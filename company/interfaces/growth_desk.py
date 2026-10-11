@@ -60,6 +60,7 @@ __all__ = [
     "mandate_permits_replacement",
     "new_retention_holdout",
     "replacement_cost_avoided_gbp",
+    "retention_cut_share_at_price_match",
     "retention_engagement",
     "retention_offer_can_buy_anything",
     "retention_value_protected",
@@ -402,6 +403,24 @@ def retention_value_protected(expected_margin: float, acq_cost_saved: float,
 def retention_bad_debt_charge(default_belief_rate: float | None, billed: float) -> float | None:
     """The charge `retention_value_protected` nets, for the run's retention log."""
     return None if default_belief_rate is None else default_belief_rate * max(0.0, billed)
+
+
+def retention_cut_share_at_price_match(unit_rate: float | None, *,
+                                       published_default_rate: float | None,
+                                       published_best_deal_gap_share: float | None,
+                                       cost_floor: float | None) -> float | None:
+    """The renewal cut, as a share of our re-fix, that meets the market's best published deal.
+
+    B8 Q5 (2026-10-11): a retention desk sizes its counter-offer against what a rival offers on the
+    day, not as a flat share of its own rate. This is the save's price match
+    (`company.crm.save_offer.price_match_save_rate`) asked of the re-fix, so the two desks read one
+    observable through one function. None -- no offer -- where an input is missing, the market had
+    nothing cheaper than the default, or our re-fix already sits at or below the match."""
+    from company.crm.save_offer import price_match_save_rate
+
+    match = price_match_save_rate(unit_rate, published_default_rate,
+                                  published_best_deal_gap_share, cost_floor)
+    return None if match is None else 1.0 - match / unit_rate
 
 
 def retention_offer_can_buy_anything(*, previous_term_on_our_default: bool,

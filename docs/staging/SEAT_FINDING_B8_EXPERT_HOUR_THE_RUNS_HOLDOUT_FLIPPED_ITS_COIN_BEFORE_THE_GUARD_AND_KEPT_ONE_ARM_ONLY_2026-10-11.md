@@ -196,3 +196,77 @@ Reverse: revert the commit. The holdout is off on every standing policy, so no s
 ### Landing note, 10:40
 
 The tick that wrote the addendum also died before it landed. Its surgical_land was seen in its gate at 08:23. The work was still in `/var/tmp/se-b8-harden`, uncommitted, with its owner pid gone. Lane 0 redrew the item at 10:38. This tick carried the source, test and record hunks onto origin/main (`800c4b18d`) with a 3-way apply. That base already held two later commits to `simulation/run_phase2b.py` (42b2eb254, 68793db33), and the apply was clean. Both control files pass at the new base (27 passed). The generated observability files from that worktree were not carried. The live-run tables above are the earlier tick's, taken at its base, and were not re-run here.
+
+## Addendum, 2026-10-11 afternoon: Q5, the renewal cut sized against the best published deal (direction `b8-q5-size-the-renewal-cut-against-the-best-published-deal`)
+
+**What was built.** `DecisionPolicy.retention_cut_sizing`: `"risk_tiers"` (the standing 3/5/8% by
+churn belief) or `"price_match"`. Under the match the renewal cut is the save's own price match
+asked of the re-fix (`growth_desk.retention_cut_share_at_price_match` calls
+`company.crm.save_offer.price_match_save_rate`; the run reads its inputs through one helper,
+`run_phase2b._price_match_inputs`, which the save now uses too). The rate offered is the published
+default x (1 - the published best-deal gap), never below the term's cost floor, and there is **no
+offer** where our re-fix already sits at or below that. Off on every standing policy.
+
+The gap table held only the CSS window, so before 2022 Q3 the match would have offered nothing for
+want of an input. It is filled back to 2016 Q1 from the same Ofgem RMI series (re-read from the
+chart's CSV, the save's first-month-of-quarter method): 17-33% through 2016-2021 Q3, 0.0 for 2021
+Q4-2022 Q2 as the same stale-cheapest absence the save already reads for 2022 Q3-2023 Q2. No save
+moves: a switch before CSS sends no Invitation.
+
+**Printed at real inputs first** (published run, fixed re-fixes 2016-2019, position against the
+default): electricity median -23 / -17 / -12 / -31%, gas -39 / -9 / -9 / -44%, against a published
+gap of 17-33%. So in most years most of our re-fixes already beat the market's average-cheapest
+deal, and the match will offer nothing to them.
+
+**Pre-registered, before either run** (holdout on, default roster, 2016-01-01 to 2019-12-31, both
+arms at one base, driver `/var/tmp/se-b8-q5-out/arm.py`, counted from the run's own logs):
+
+1. Renewals reaching the value test move little: within +/-10% of the tiers arm (the belief is
+   read before the size; the books diverge only after the first different offer).
+2. Offers made fall to at most half the tiers arm's.
+3. Coin flips (holdout rows) fall to at most half the tiers arm's.
+4. Mean cut on the offers made rises to at least 8% (tiers: at most 5%).
+5. "the fix already meets the best published deal" is the commonest reason the match makes no
+   offer: more than half of the renewals it is asked about.
+6. The holdout still decides nothing (window None), on both arms.
+
+**The result** (both arms at `ef7a52d5c` plus this change, one process each, 1,163 s and 1,167 s;
+the sizing is the only difference):
+
+| | risk tiers | price match | prediction |
+|---|---|---|---|
+| renewals reaching the value test | 122 | 123 | within 10%: **held** |
+| offers made | 41 (2016: 1, 2017: 26, 2018: 12, 2019: 2) | 15 (2017: 10, 2018: 4, 2019: 1) | at most half: **held** |
+| coin flips (holdout rows) | 82 (41 treated / 41 held out) | 40 (15 / 25) | at most half: **held, at the edge** |
+| mean cut on the offers made | 3.95% | **3.12%** | at least 8%: **REFUTED** |
+| match gives no offer | n/a | 64 of 123 asked (52%) | more than half: **held, at the edge** |
+| holdout rows decided | 0 | 0 | none: **held** |
+| offer cost | GBP 932 | GBP 332 | (not predicted) |
+| total net to 2019-12-31 | GBP 133,817 | GBP 134,395 | (not predicted) |
+
+**Prediction 4 was wrong, and why.** I reasoned from the size of the published gap (17-33%) and
+expected the match's cuts to be deep. That gap is between the default and the market's
+average-cheapest deal. Our re-fixes already sit 10-45% below the default. So where the market beats
+our fix at all, it beats it narrowly. The match closes only that remainder: 0.4% to 7.6%, median
+3.1%. The tiers rule cuts 3-8% of our own rate whether the market beats us or not. The match is no
+deeper. It is **narrower**: it offers in 15 places instead of 41, and nowhere the market could not
+have undercut us.
+
+**What it moves, read plainly.** Of 123 renewals the belief flagged, the match gave no offer at 64.
+Neither the driver nor the run's reason string (`the_fix_already_meets_the_best_published_deal`,
+26 of the stayers) separates "our re-fix already met the best deal" from "an input was missing".
+Every 2016-2019 quarter has a gap and every term carries its locked costs, so I expect the first
+reason. That is not measured. A desk sizing against the market offers those
+households nothing. Wherever its own guard passed, the tiers rule paid them a cut. The match spends GBP 600 less on offers. Net to 2019 is GBP 577 higher on
+one seed and one window. That is under half a percent of net and within what a different offer set
+moves through the book. **I cannot yet say it is better**: retention on the treated arm reads 12/15
+stayed against 15/25 held out, and the tiers arm 31/41 against 29/41. Neither is decided, and the
+holdout's window is still None.
+
+**Not done here, on purpose.** The standing policy still sizes by the tiers. Switching
+`CURRENT_POLICY` moves every published run and the value arms that pin it. The evidence for the
+switch is one seed to 2019, and it is not yet a result. Next: the match against the tiers on the
+full window (2016-2025), across the arms' seeds, holdout off, as a standing-policy candidate. The
+2023-2025 quarters are where the published gap and our re-fix's position can both be read cleanly.
+
+Reverse: revert the commit. The field is off on every standing policy.

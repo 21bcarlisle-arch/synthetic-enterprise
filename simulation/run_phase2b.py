@@ -63,6 +63,7 @@ from company.interfaces.growth_desk import (
     new_retention_holdout,
     replacement_cost_avoided_gbp,
     retention_bad_debt_charge,
+    retention_cut_share_at_price_match,
     retention_engagement,
     retention_offer_can_buy_anything,
     retention_value_protected,
@@ -1133,6 +1134,20 @@ def _company_eac_estimate(
         cid, year_ago.isoformat(), term_start.isoformat())
     base = base_eac_override if (base_eac_override is not None) else EFFECTIVE_EAC_KWH.get(cid, 0.0)
     return estimated if estimated > 0 else base
+
+
+def _price_match_inputs(term: dict, commodity: str, term_start_str: str,
+                        company_fwd: float | None) -> dict:
+    """THE PRICE MATCH'S INPUTS (2026-10-10): the published default for this fuel, the published
+    best-deal gap for the quarter, and the cost floor of the rate the company struck for this term --
+    what its own desk floors at. One reading for the save and the renewal cut (B8 Q5)."""
+    locked = (term.get("locked_policy_cost_gbp_per_mwh"), term.get("locked_network_cost_gbp_per_mwh"))
+    return {
+        "published_default_rate": _account_state_svt_rate(commodity, term_start_str),
+        "published_best_deal_gap_share": published_best_deal_gap_share(term_start_str),
+        "cost_floor": (None if None in locked or company_fwd is None
+                       else company_fwd + locked[0] + locked[1]),
+    }
 
 
 def _account_state_svt_rate(commodity: str, term_start_str: str) -> float | None:
@@ -3206,7 +3221,21 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     hangover_remaining[cid] = hangover_periods - 1
                 if company_est_pre > RETENTION_THRESHOLD:
                     eac_for_ret = company_eac  # Phase 23a: use company estimate
-                    discount_pct = policy.retention_discount_for_risk(company_est_pre)
+                    # B8 Q5: sized against the best published deal on the day, as the save is, or
+                    # by the churn-belief tiers. None from the match = our re-fix already meets it.
+                    _match_cut = None
+                    if policy.retention_cut_sizing == "price_match":
+                        _match_cut = retention_cut_share_at_price_match(
+                            unit_rate, **_price_match_inputs(
+                                term, commodity, term_start_str, company_fwd))
+                        discount_pct = 0.0 if _match_cut is None else _match_cut
+                    elif policy.retention_cut_sizing == "risk_tiers":
+                        discount_pct = policy.retention_discount_for_risk(company_est_pre)
+                    else:
+                        raise ValueError(f"retention_cut_sizing {policy.retention_cut_sizing!r} "
+                                         "is neither 'risk_tiers' nor 'price_match'")
+                    _market_beats_the_fix = (policy.retention_cut_sizing != "price_match"
+                                             or _match_cut is not None)
                     _would_be_discount_pct = discount_pct
                     ret_cost = unit_rate * discount_pct * eac_for_ret / 1000.0
                     expected_margin = (unit_rate - company_fwd) * eac_for_ret / 1000.0
@@ -3248,7 +3277,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     # The household is on our default tariff, so its exits were carried there; the
                     # offer can only turn a fix it would decline into one it takes. The company asks
                     # that of its own fix, its own discount and the published default.
-                    _offer_can_buy = (
+                    _offer_can_buy = _market_beats_the_fix and (
                         not policy.retention_offers_at_default_anniversary_only_where_the_discount_wins
                         or retention_offer_can_buy_anything(
                             previous_term_on_our_default=(
@@ -3293,7 +3322,9 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     _holdout_would_offer = _holdout_arm is not None and _would_offer
                     if _holdout_arm is not None:
                         retention_holdout_log[-1]["would_offer"] = _would_offer
-                    if not _offer_can_buy:
+                    if not _market_beats_the_fix:
+                        _no_offer_reason = "the_fix_already_meets_the_best_published_deal"
+                    elif not _offer_can_buy:
                         _no_offer_reason = "the_discount_cannot_win_the_fix"
                         retention_gate_value_test_log.append({
                             "customer_id": billing_account, "event_date": term_start_str,
@@ -3587,21 +3618,11 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     for _wire in wire_registrations(registration_notices(
                             [(cid, date.fromisoformat(_first_day))], run_base_seed())):
                         _psr_register.receive_registration_wire(_wire)
-                # THE PRICE MATCH'S INPUTS (2026-10-10): the published default for this fuel, the
-                # published best-deal gap for the quarter, and the cost floor of the rate the
-                # company struck for this term -- what its own renewal desk floors at.
-                _locked = (term.get("locked_policy_cost_gbp_per_mwh"),
-                           term.get("locked_network_cost_gbp_per_mwh"))
-                _price_match_inputs = {
-                    "published_default_rate": _account_state_svt_rate(commodity, term_start_str),
-                    "published_best_deal_gap_share": published_best_deal_gap_share(term_start_str),
-                    "cost_floor": (None if None in _locked or company_fwd is None
-                                   else company_fwd + _locked[0] + _locked[1]),
-                }
+                _save_inputs = _price_match_inputs(term, commodity, term_start_str, company_fwd)
                 _save_rate, _known_vulnerable = request_save_offer(
                     _change_of_supplier_register, cid, term_start_str, unit_rate,
                     policy.save_offer_cut_share, psr_register=_psr_register,
-                    sizing=policy.save_offer_sizing, **_price_match_inputs)
+                    sizing=policy.save_offer_sizing, **_save_inputs)
                 _asked = roll_lifecycle_event(
                     cid, term_start_str, commodity,
                     **{**_roll_kwargs, "new_rate_gbp_per_mwh": _save_rate},
@@ -3620,7 +3641,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     "invitation_held": _pending_notice_sent,
                     "renewal_unit_rate_gbp_per_mwh": unit_rate,
                     "save_unit_rate_gbp_per_mwh": _save_rate,
-                    "price_match_inputs": _price_match_inputs,
+                    "price_match_inputs": _save_inputs,
                     "p_stay_at_offer": event["effective_retention_probability"],
                     "p_stay_at_save": (
                         _asked["effective_retention_probability"] if _asked is not None else None),
