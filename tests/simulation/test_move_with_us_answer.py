@@ -41,3 +41,13 @@ def test_the_shipped_activation_is_off_and_k_must_be_a_share(tmp_path):
     bad.write_text(json.dumps(data))
     with pytest.raises(ValueError, match=r"\[0, 1\]"):
         take_up_scale(bad)
+
+
+def test_a_default_tariff_stay_is_annualised_over_its_segment():
+    """Defect: a quarter's stay read as a year's, so default-tariff movers follow far too often."""
+    from simulation.move_with_us_answer import p_stay_on_default_tariff
+
+    quarter = p_stay_on_default_tariff(0.05, 91)
+    assert quarter < 0.95
+    assert abs(quarter - 0.95 ** (365.25 / 91)) < 1e-12
+    assert abs(p_stay_on_default_tariff(0.2, 365) - 0.8 ** (365.25 / 365)) < 1e-12

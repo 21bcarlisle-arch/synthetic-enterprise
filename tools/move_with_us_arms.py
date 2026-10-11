@@ -109,6 +109,7 @@ def _twin_shortfalls(log: list[dict]) -> list[dict]:
 def compare(off: dict, on: dict) -> dict:
     log = on["move_with_us_log"]
     retained = {r["billing_account"] for r in log if r.get("moves_with_us")}
+    supplied = [r for r in log if r.get("supplied_at_new_home")]
     moves = stayer_price_moves(off["account_state"], on["account_state"], retained)
     key = lambda r: (r["customer_id"], r["commodity"], r["term_start"])  # noqa: E731
     offered_plain = any(r.get("offered") and not r.get("known_vulnerable") for r in log)
@@ -126,6 +127,11 @@ def compare(off: dict, on: dict) -> dict:
         "no_offer_reasons": _count(r.get("no_offer_reason") for r in log if not r.get("offered")),
         "answerable": sum(1 for r in log if r.get("offered") and r.get("p_stay_at_carried") is not None),
         "moves_with_us": len(retained),
+        "supplied_at_new_home": len(supplied),
+        "supplied_in_origin_region": sum(1 for r in supplied if r.get("destination_in_origin_region")),
+        "not_supplied_reasons": _count(r.get("not_supplied_reason") for r in log
+                                       if r.get("moves_with_us") and not r.get("supplied_at_new_home")),
+        "offered_by_tariff": _count(r.get("tariff_type") for r in log if r.get("offered")),
         "expected_moves_with_us_at_k": round(sum(
             (on["take_up_scale"] or 0.0) * r["p_stay_at_carried"] for r in log
             if r.get("offered") and r.get("p_stay_at_carried") is not None), 3),

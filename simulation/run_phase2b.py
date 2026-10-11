@@ -15,6 +15,7 @@ Key differences from Phase 2a repriced:
 Delegation note: hand-written (orchestration-adjacent, per protocol).
 """
 
+import dataclasses
 import heapq
 import itertools
 import random
@@ -213,11 +214,19 @@ from simulation.live_population import (
     live_population,
     run_base_seed,
 )
+from simulation.move_destination import (
+    draw_destination,
+    household_at_destination,
+    next_move_from_destination,
+)
+from simulation.move_destination import shape_across_a_move as _shape_across_a_move
 from simulation.move_out_notice_feed import MoveOutNoticeFeed
 from simulation.move_with_us_answer import (
     NOT_ANSWERABLE,
+    default_tariff_roll,
     household_moves_with_us,
     move_with_us_active,
+    p_stay_on_default_tariff,
     take_up_scale,
 )
 from simulation.nudge_physics import framing_effectiveness_multiplier, susceptibility_for
@@ -2165,6 +2174,16 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     # Whether households answer that offer (`simulation/move_with_us_answer.py`): read once per run.
     _move_with_us_answers = move_with_us_active()
     _move_with_us_k = take_up_scale() if _move_with_us_answers else None
+    # STEP 4: a mover who takes the offer is supplied at its new home (home_moves.md s.8.6). Its
+    # electricity leg keeps its account; from the move it lives at a drawn destination, and its next
+    # move is drawn there (`_move_out_by_leg`). Its new home's data is bound to the account at its
+    # next term (`_relocation_pending`): the term in force settles the old home to the move date and
+    # the new one after it (`_carried_from`). Every one stays empty unless a mover follows.
+    _move_out_by_leg: dict[str, date | None] = {}
+    _home_move_by_leg: dict = {}
+    _relocation_pending: dict[str, dict] = {}
+    _journey_before_move: dict[tuple, object] = {}
+    _followed_moves: set[tuple] = set()
     _home_move_by_household: dict = {}
     home_move_outs: list[dict] = []
     # B7 slice 3: who supplies a vacated premise from the move date. The book is live and module
@@ -2251,6 +2270,69 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             "void_owner_charge_gbp": 0.0,
         }
         home_move_ins.append(_move_in_entry[leg])
+    def _supply_at_new_home(cid: str, commodity: str, household: str, move_end: date,
+                            carried_to: str) -> tuple[dict, str | None]:
+        """Bind a mover who took the offer to its new home (home_moves.md s.8.6, choices 3-5).
+        Returns (what the log records, the reason it could not be supplied, or None)."""
+        if commodity != "electricity":
+            return {}, ("only the electricity leg is carried: a destination gas annual quantity "
+                        "and its heating-degree cell are not built")
+        record = get_customer(cid)
+        if record is None or is_hh_customer(record):
+            return {}, ("a half-hourly account settles on its own metered file, which cannot be "
+                        "redrawn for a new home")
+        move = _home_move_by_leg.get(cid, _home_move_by_household[household])
+        dest = draw_destination(move.mover_arrives.premise_id, record, move_end, run_base_seed())
+        if dest is None:
+            return {}, "the origin names no ONS region, or the destination region has no siting cells"
+        _now = household_demand_register.household_at_date(cid, move_end.isoformat())
+        # AN INCOMING OCCUPANT the world drew no household for carries nothing of its own (no EV,
+        # its stress unknown): it lives at the new dwelling as drawn. Named, not filled in.
+        new_home = (household_at_destination(_now, dest) if _now is not None
+                    else dataclasses.replace(dest.premise.household, customer_id=cid,
+                                             output_area=dest.output_area))
+        dest_record = {**record, "location": {"lat": dest.lat, "lon": dest.lon,
+                                               "region": dest.region,
+                                               "output_area": dest.output_area}}
+        site = _weather_source.site_for(dest_record)
+        if not _weather_source.available(site):
+            return {}, f"no weather for the destination's cell ({site})"
+        household_demand_register.relocate(cid, move_end.isoformat(), new_home)
+        series = build_fabric_series_for_site(
+            customer_id=cid,
+            household_at_date=lambda d, _c=cid: household_demand_register.household_at_date(_c, d),
+            weather_site=site, latitude_deg=dest.lat, start=move_end,
+            end=date.fromisoformat(effective_end), seed=DEFAULT_TRACE_SEED,
+            weather_days_for=_weather_source.days,
+        )
+        _shape = fabric_shape_fn(series, "electricity",
+                                 battery_dispatch=_fabric_battery_dispatch_for(cid))
+        _dates = series.dates()
+        if len(_dates) >= 365:
+            eac, _basis = registry_eac_from_own_reads(_shape, _dates, move_end.isoformat())
+        else:
+            # Under a year of the new home left in the window: its own reads, annualised.
+            eac = sum(sum(_shape(d)) for d in _dates) * 365.0 / max(1, len(_dates))
+        from simulation.premise_population import dwelling_record
+        _relocation_pending[cid] = {
+            "location": dest_record["location"], "series": series,
+            "property": {**properties.get(cid, DEFAULT_PROPERTY),
+                         **dwelling_record(dest.premise), "output_area": dest.output_area},
+            "eac_kwh": round(eac, 1),
+        }
+        nxt = next_move_from_destination(
+            move, date.fromisoformat(carried_to[:10]),
+            date.fromisoformat(effective_end) + timedelta(days=1), run_base_seed())
+        _move_out_by_leg[cid] = nxt.move_date if nxt else None
+        _home_move_by_leg[cid] = nxt
+        return {"destination_premise": dest.premise_id, "destination_region": dest.region,
+                "destination_in_origin_region": dest.in_origin_region,
+                "destination_epc": new_home.epc_rating,
+                "destination_property_type": new_home.property_type.value,
+                "destination_eac_kwh": round(eac, 1),
+                "next_move_date": nxt.move_date.isoformat() if nxt else None,
+                "supplied_at_new_home": True}, None
+
     # EP12: HOW THE SUPPLIER HEARS IT LOST A HOUSEHOLD -- a registration-loss notice per supply
     # point, from the registration service, filed in its change-of-supplier register. Called at
     # every site that adds to `churned_billing_accounts` and handed only the household and the
@@ -2376,11 +2458,25 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
 
         term_end_str = term.get("term_end") or _clamp_term_end(term_start_str, end_date=effective_end)
 
+        # A LEG THAT MOVED WITH US is bound to its new home from this term on: weather, dwelling,
+        # demand trace and the meter point's annual quantity are the destination's. The vacated
+        # home's data went to its incoming occupant as new references, so nothing there moves.
+        if cid in _relocation_pending:
+            _new_home = _relocation_pending.pop(cid)
+            _rec = get_customer(cid)
+            _rec["location"] = _new_home["location"]
+            weather_by_customer[cid] = weather_means_for_customer(_rec, _weather_world)
+            cloud_cover_by_customer[cid] = cloud_cover_for_customer(_rec, _weather_world)
+            fabric_series_by_customer[cid] = _new_home["series"]
+            properties[cid] = _new_home["property"]
+            _rec["eac_kwh"] = EFFECTIVE_EAC_KWH[cid] = _new_home["eac_kwh"]
+
         # B7 slice 2: a home move ends this household's supply at the move date. Asked once, at
         # the household's first term (the heap is chronological), over its own supply window, so
         # a household won in 2020 cannot lose a term to a move drawn in 2018. Off unless the curriculum
         # file says on.
         _moved_in_term = False
+        _carried_from = None
         if _home_moves_on:
             if billing_account not in _move_out_by_household:
                 # An incoming occupant moves on the same hazard, so a premise can turn over twice.
@@ -2400,7 +2496,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 _home_move_by_household[billing_account] = _move
             _move_end, _moved_in_term = term_window_under_move(
                 date.fromisoformat(term_start_str), date.fromisoformat(term_end_str[:10]),
-                _move_out_by_household[billing_account],
+                _move_out_by_leg.get(cid, _move_out_by_household[billing_account]),
             )
             if _move_end is None:
                 if not _spliced:
@@ -2412,7 +2508,12 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 if _churn_journey_register.get_journey(billing_account) is None:
                     _churn_journey_register.register_customer(billing_account)
                 _mover_journey = _churn_journey_register.get_journey(billing_account)
-                _mover_journey.record_home_move(_move_end)
+                # A household that moved with us is still ours: its other leg's move does not end
+                # its journey, and the leg that carried it restores what the move recorded.
+                if (billing_account, _move_end) not in _followed_moves:
+                    _journey_before_move.setdefault((billing_account, _move_end),
+                                                    _mover_journey.state)
+                    _mover_journey.record_home_move(_move_end)
                 # W2_36 slice 3: the change-of-tenancy gap. The vacated meter goes on recording
                 # with nobody named liable; sim/customer_state_layer.py says why the window is an
                 # expectation and why the rate is the meter point's annual quantity.
@@ -2425,7 +2526,9 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     "unnamed_kwh_expected": unnamed_kwh_after_move(
                         _leg.get("aq_kwh") if commodity == "gas" else _leg.get("eac_kwh")),
                 })
-                _admit_incoming_occupant(_leg, commodity, _home_move_by_household[billing_account])
+                _admit_incoming_occupant(
+                    _leg, commodity,
+                    _home_move_by_leg.get(cid, _home_move_by_household[billing_account]))
 
         forward_price = term["forward_price_gbp_per_mwh"]        # sim's sophisticated estimate
         company_fwd = term.get("company_forward_price_gbp_per_mwh", forward_price)
@@ -3892,14 +3995,27 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     "offered": _mwu_offer is not None, "no_offer_reason": _mwu_reason,
                     "known_vulnerable": _mwu_vulnerable,
                 })
-                # THE WORLD'S ANSWER: the roll of the household's NEXT renewal against k times the
-                # P(stay) the world rolled its renewal onto this tariff against. Recorded only: the
-                # household still leaves at the move, because nothing yet supplies it at its new
-                # home (`mover_arrives` has no demand the world can draw, see the proposal's step 4).
+                # THE WORLD'S ANSWER (`simulation/move_with_us_answer.py`): the roll of the
+                # household's NEXT decision against k times the world's P(stay) at the tariff it
+                # carries -- its renewal onto a fixed term, or its current default-tariff segment's
+                # stay annualised. A follower is then supplied at its new home (step 4).
                 if _move_with_us_answers and _mwu_offer is not None:
-                    _p_carried = (_renewal_event_this_term or {}).get(
-                        "effective_retention_probability")
-                    _next_roll = churn_roll_for_renewal(billing_account, _next_renewal_str[:10])
+                    if term_tariff_type == SVT_TARIFF_TYPE:
+                        _segment_row = next(
+                            (r for r in reversed(_svt_decisions)
+                             if r["customer_id"] == billing_account
+                             and r["event_date"] == term_start_str
+                             and r["event_type"] == "stayed" and r.get("sim_segment_days")),
+                            None)
+                        _p_carried = (None if _segment_row is None else p_stay_on_default_tariff(
+                            _segment_row["realized_churn_probability"],
+                            _segment_row["sim_segment_days"]))
+                        _next_roll = default_tariff_roll(billing_account, _next_renewal_str[:10])
+                    else:
+                        _p_carried = (_renewal_event_this_term or {}).get(
+                            "effective_retention_probability")
+                        _next_roll = churn_roll_for_renewal(
+                            billing_account, _next_renewal_str[:10])
                     move_with_us_log[-1].update({
                         "take_up_scale": _move_with_us_k,
                         "p_stay_at_carried": _p_carried,
@@ -3909,6 +4025,22 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                         "moves_with_us": (_p_carried is not None and household_moves_with_us(
                             _next_roll, _p_carried, _move_with_us_k)),
                     })
+                    if move_with_us_log[-1]["moves_with_us"]:
+                        _supplied, _why_not = _supply_at_new_home(
+                            cid, commodity, billing_account, _move_end, _next_renewal_str)
+                        move_with_us_log[-1].update(_supplied)
+                        move_with_us_log[-1]["not_supplied_reason"] = _why_not
+                        if _why_not is None:
+                            # It stays ours: the term in force runs to its end, the old home to
+                            # the move date and the new one after it.
+                            term_end_str = _next_renewal_str
+                            _carried_from = _move_end.isoformat()
+                            _accounts_held_on_a_save.add(billing_account)
+                            _followed_moves.add((billing_account, _move_end))
+                            _prior_state = _journey_before_move.get((billing_account, _move_end))
+                            if _prior_state is not None:
+                                _churn_journey_register.get_journey(
+                                    billing_account).state = _prior_state
 
         if cid in pending_committee_overrides:
             hf = pending_committee_overrides.pop(cid)
@@ -3964,6 +4096,16 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     household_register=household_demand_register, customer_id=cid,
                     eac_kwh=_base_profile_eac(customer),
                 )
+
+            # THE TERM A MOVER CARRIED: the old home's demand to the move date, the new home's
+            # trace after it (`_supply_at_new_home`). Only on this one term; later terms read the
+            # new home's data directly.
+            if _carried_from is not None:
+                shape_fn = _shape_across_a_move(
+                    shape_fn,
+                    fabric_shape_fn(_relocation_pending[cid]["series"], "electricity",
+                                    battery_dispatch=_fabric_battery_dispatch_for(cid)),
+                    _carried_from)
 
             cust_segment = customer.get("segment", "resi") if customer else "resi"
             if term_tariff_type == "deemed":

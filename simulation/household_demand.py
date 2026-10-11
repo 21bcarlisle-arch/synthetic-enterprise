@@ -83,6 +83,10 @@ class HouseholdDemandRegister:
             customers, drawn_households
         )
         self._events: dict[str, list] = {}
+        # A household that moved with us lives at a new dwelling from its move date
+        # (`relocate`). Empty unless the move-with-us lever supplies one, so every lookup below
+        # is the original one otherwise.
+        self._relocated: dict[str, list[tuple[str, Household]]] = {}
         for cid, hh in self._households.items():
             cid_seed = seed ^ (_cid_hash(cid) & 0xFFFF)
             self._events[cid] = generate_life_events(
@@ -90,10 +94,25 @@ class HouseholdDemandRegister:
             )
 
     def household_at_date(self, customer_id: str, date_str: str):
+        for moved_on, at_new_home in reversed(self._relocated.get(customer_id, ())):
+            if date_str >= moved_on:
+                # Only the life events from the move on: what happened at the old dwelling stayed
+                # there (a boiler replaced, panels fitted), and the household's own state as at
+                # the move is already on the new record (`move_destination`).
+                later = [e for e in self._events.get(customer_id, []) if e.event_date >= moved_on]
+                return _household_at_date(at_new_home, later, date_str)
         hh = self._households.get(customer_id)
         if hh is None:
             return None
         return _household_at_date(hh, self._events.get(customer_id, []), date_str)
+
+    def relocate(self, customer_id: str, moved_on: str, at_new_home: Household) -> None:
+        """From `moved_on` (YYYY-MM-DD) this account's household lives at `at_new_home`. An account
+        the register drew no household for (an incoming occupant) gets one from that date only."""
+        moves = self._relocated.setdefault(customer_id, [])
+        if moves and moved_on <= moves[-1][0]:
+            raise ValueError(f"{customer_id}: a move on {moved_on} is not after {moves[-1][0]}")
+        moves.append((moved_on, at_new_home))
 
     def epc_multiplier(self, customer_id: str, date_str: str) -> float:
         hh = self.household_at_date(customer_id, date_str)
