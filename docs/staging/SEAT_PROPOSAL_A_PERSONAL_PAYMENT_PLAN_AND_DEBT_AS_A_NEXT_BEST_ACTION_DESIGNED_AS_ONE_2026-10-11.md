@@ -125,3 +125,91 @@ for this test unless the director wants them first.
 Nothing to start the knowledge-backed parts. Two choices are his: whether DD4b (the world's response to a bill
 shock) is built first so the plan's shock-avoidance can be graded at all (recommended), and whether to begin with
 the supplier-controlled levers only (recommended), leaving the customer-chosen ones as later sensitivities.
+
+## 9. Recentred: one engine on a forward cash forecast per customer (amendment, 2026-10-11)
+
+*The director, the same day: "Payment, credit risk and forward cash forecasting are the heart of this business.
+Design the payment plan and debt work as one engine, centred on a forward cash forecast per customer." §§0-8 above
+stand; this section puts them under one forecast. Knowledge landed first: the Bacs signals
+(`dd_failure_basis_and_live_arrears_provision_rates.md`), ability to pay, self-disconnection and the prepayment
+gates (`company_debt_management.md`), Breathing Space (`debt_and_collections.md`), plan cure and early contact
+(`domestic_repayment_plan_take_up_and_keep_rates.md`), self-serve elsewhere
+(`risk_based_payment_plans_outside_gb_energy.md`), all published on the site's `debt-and-collections` page.*
+
+### 9a. The forecast
+
+For each customer, month by month over the next twelve:
+- **expected bill** = the one consumption forecast (§2) x the rate fixed for the term (the company's forward view
+  beyond it) + standing charge;
+- **expected payment** = the amount due x P(paid | payment method, the customer's own track record, the current
+  signal state), with its timing on the method's rails (a DD on its Bacs day; a manual payment on its due date);
+- **expected balance path** = today's balance + bills - payments.
+
+P(paid) is the company's own: estimated from its book's observed payment outcomes by method and state, the way
+`company/pricing/default_belief.py` already learns default by method and arrears state, extended from a yearly
+charge share to a monthly payment hazard. Nothing in it is the world's hidden state.
+
+### 9b. What it drives
+
+| Output | From the forecast | Replaces |
+|---|---|---|
+| **Provision** | expected loss per customer = the forecast's expected unpaid amount past the point it would be written off, rolled up to the book | the flat age-band rates in `company/finance/bad_debt_provision.py` (0.5 / 5 / 20 / 50 / 90%) |
+| **Balance limit** | how far the balance may drift from zero before the plan acts, set by the forecast's P(default) and the volatility of its balance path; the book's gross credit held under the 20% cash-coverage trigger | none today |
+| **Payment plan** | amount = expected bills + the balance to clear over a horizon; the envelope of §3a | the flat annual review |
+| **Early warning** | a signal moves P(paid) and the expected balance path *before* debt builds | the 91-day age band |
+| **Response** | chosen where the forecast says it raises expected cash collected, net of cost to serve | a fixed collections journey |
+
+### 9c. The early-warning signals, in the order they arrive
+
+1. **A cancelled mandate** (ADDACS; the morning after the bank records it; act within three working days) -- the
+   only signal before a collection fails.
+2. **A failed DD, code 0 "refer to payer"** (ARUDD; the working day after the debit) -- the one return about money.
+   Other codes (administration, our errors, a death, a customer leaving) are read separately, never pooled.
+3. **A re-presented collection that fails again** (within the month).
+4. **A missed manual payment** (standard credit, on its due date).
+5. **Collapsing consumption** -- a fall the forecast does not expect: on prepayment, a sign of self-disconnection
+   (SLC 27A duty to check); on credit, a sign of rationing.
+
+The world produces 1-4 already (`simulation/bacs_rails.py` carries Bacs timing and reason codes; ADDACS handles
+amendments today, so cancellations need a check) and 5 through `simulation/self_rationing.py`.
+
+### 9d. The automated responses, within the limits
+
+- **A lower payment for a period** -- a REAL cut: the evidence is that a token cut does nothing and default falls
+  about 1% per 1% cut (US mortgages, an analogue). Offered self-serve where the forecast says it beats the full
+  amount.
+- **A breathing space** -- the supplier's own pause (SLC 27.8A permits pauses); distinct from the statutory
+  Breathing Space, which the engine must honour on notice (stop collecting old debt, keep billing ongoing use).
+- **A repayment plan** -- sized on ability to pay (SLC 27.8A), set where the forecast says some money steadily
+  beats none; a plan set in breach makes the debt unrecoverable until fixed (27.8C), so the sizing rule is a
+  compliance control, not only a commercial one.
+- **Human handling** for households the company knows to be vulnerable (PSR), mental-health Breathing Spaces,
+  welfare visits and exceptions. **Never automated:** an involuntary prepayment move.
+- **Duty triggers honoured on the forecast:** the ability-to-pay duty starts when a customer "is having or will
+  have difficulty" (SLC 27.5), so a forecast-flagged difficulty is itself a trigger; contact after two missed
+  payments (27.5B) is the floor.
+
+### 9e. The test (replacing §6's arms with this engine)
+
+Against **today's collections** -- the flat annual DD review, the age-band provision, the existing collections
+journey and the supplier's DD stop after two returns -- on the lean decision set, with the world's hidden finances,
+job loss and pay-or-heat behaviour deciding responses. Measured: **cash collected; bad debt; provision accuracy**
+(each customer's expected loss at the forecast date against the loss realised in the held-back months that follow,
+never seen by the company); **cost to serve** (contacts and plans, at the repo's sourced cost-to-serve rates);
+**hardship** (homes beyond 91 days, homes self-rationing, self-disconnections); **churn**. Vulnerable and stretched
+households reported separately. Then the settled read-out on the seed families, by origin (founders and campaign
+wins).
+
+### 9f. Unpublished numbers, as labelled toggles with ranges
+
+Plan cure (the derived prior 0.25-0.45 cured), early-contact effect (0 to the analogue's 12 points), payday
+alignment (0-0.36), the take-up of each self-serve response (ASSUMED 0-0.5), P(default | signal) where the
+company has not yet observed enough of its own book (the engine learns it; the prior is ASSUMED). A result that
+turns on one is reported as turning on an unpublished number.
+
+### 9g. What the world must add for this test to mean anything
+
+DD4b (a household cancelling or failing after a bill shock), so avoiding shocks can earn anything; mandate
+**cancellations** as a distinct household act (the rails carry amendments); and the debt-to-prepayment route,
+which is the end state the engine must sometimes reach legally. Each is world work blocking this supplier result,
+built with its knowledge page first.
