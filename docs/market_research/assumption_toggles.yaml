@@ -33,6 +33,8 @@
 # 2026-10-09 (repaid share): q3_ordinary_failed_bill_repaid_share added, an ESTIMATE from Ofgem's
 #   stock and flow (gb_domestic_bill_payment_failure_and_arrears_prevalence.md s.(f)). Read by
 #   payment_behaviour_source.LATER_SETTLEMENT_REPAID_SHARE; its default stays the shipped 0.5.
+# 2026-10-11 (DD4b): dd4b_mandate_cancel_share_at_shock, dd4b_failure_uplift_after_shock and
+#   dd4b_complaint_share_at_shock added, each defaulting to 0 (off); what_bill_shock_is.md, DD4b.
 written: 2026-10-05
 toggles:
   - id: q1_move_out_notice_share
@@ -1549,6 +1551,88 @@ toggles:
       kind: not_run
       detail: No world draw exists. It is the term that should carry arrears risk, not the PSR flag.
     verdict: MATTERS_AND_RESOLVABLE (estimate)
+
+  - id: dd4b_mandate_cancel_share_at_shock
+    question: DD4b bill shock
+    meaning: >-
+      Of fixed-DD households meeting a material DD rise at review (PB4's shock: reviewed amount
+      more than 15% over the amount in force) and staying, the share that cancel the mandate at
+      their bank, for a LOW-stress household. Scaled by the world's own stress relativity
+      (MODERATE 4x, HIGH 11.7x) and capped at 1. ESTIMATE range; shipped at 0 (off).
+    default: 0.0
+    low: 0.01
+    high: 0.10
+    unit: probability_per_shocked_review
+    basis_default: >-
+      Off: the book is unchanged until the director switches it. No source publishes a
+      household-initiated cancellation rate (gb_payment_method_migration_rates.md, 2026-10-03).
+    basis_low: >-
+      A floor, not a measurement: one in a hundred comfortable households cancels after a rise
+      it can afford, the smallest effect distinguishable on a book of this size.
+    basis_high: >-
+      Derived ceiling, weak. DESNZ QEP Dec 2025: the DD share ROSE 3-4 points from Sep 2020 to
+      Sep 2025, across 2022, when over 7 million SVT DDs rose by 62% on average (Ofgem, July
+      2022). Permanent cancellation by a share c of those would cut the DD share by about
+      c x 7m / 28m; at c = 0.10 that is 2.5 points, which a background trend can absorb.
+      Much more is hard to square with a rising share. Temporary cancellations followed by a
+      new mandate are not bounded by this.
+    feeds: [DD4b, simulation/dd_shock_response.py]
+    sensitivity:
+      kind: argued
+      detail: >-
+        what_bill_shock_is.md, DD4b section. Counts at low and high on a 40-founder book are in
+        the commit that landed simulation/dd_shock_response.py.
+    verdict: MATTERS_AND_UNRESOLVABLE (practitioner -- a supplier's ADDACS-1 rate after a review)
+
+  - id: dd4b_failure_uplift_after_shock
+    question: DD4b bill shock
+    meaning: >-
+      For a household that stays after a material DD rise, the proportional uplift on its tier's
+      per-presentation DD failure probability over the twelve billed months the raised amount is
+      in force (multiplier 1 + uplift, capped at probability 1). ESTIMATE range; shipped at 0.
+    default: 0.0
+    low: 0.25
+    high: 3.0
+    unit: relative_uplift
+    basis_default: Off. No source crosses DD-change size with failed collections (what_bill_shock_is.md s.3).
+    basis_low: >-
+      A floor, not a measurement: a quarter more returns while paying a larger amount.
+    basis_high: >-
+      The world's own next-tier relativity: a LOW household paying a raised DD fails like a
+      MODERATE one (4x = uplift 3). The relativity is itself unsourced
+      (arrears_engine._DD_TIER_RATIO_TO_LOW).
+    feeds: [DD4b, simulation/dd_shock_response.py]
+    sensitivity:
+      kind: argued
+      detail: >-
+        Moves returns in the triad, the rails and the arrears engine together, so bad debt and
+        the company's observed arrears move as one.
+    verdict: MATTERS_AND_UNRESOLVABLE (practitioner -- returns by review outcome)
+
+  - id: dd4b_complaint_share_at_shock
+    question: DD4b bill shock
+    meaning: >-
+      Of fixed-DD households meeting a material DD rise at review, the share that complain about
+      it, on top of the world's existing renewal complaint roll. Not scaled by income: nothing
+      published ties complaining to it. ESTIMATE range; shipped at 0.
+    default: 0.0
+    low: 0.02
+    high: 0.24
+    unit: probability_per_shocked_review
+    basis_default: Off.
+    basis_low: >-
+      The lowest published annual "made a complaint" share, 2% (Ofgem/Citizens Advice consumer
+      survey, Jan-Feb 2026 wave; satisfaction_drivers_and_the_three_bill_shocks.md): a shock adds
+      at least one more background year of complaining.
+    basis_high: >-
+      Derived ceiling: the highest published annual share, 6% of ~28m accounts (about 1.7m
+      complaints), all attributed to the 7m+ DD rises of 2022, is 0.24. No year's DD shocks can
+      have produced more complaints than all complaints.
+    feeds: [DD4b, simulation/dd_shock_response.py]
+    sensitivity:
+      kind: argued
+      detail: Reaches the company as a contact through the run's one complaint booking.
+    verdict: MATTERS_AND_UNRESOLVABLE (practitioner -- complaint codes tagged to DD reviews)
 
 no_toggle:
   - question: Q5 carbon

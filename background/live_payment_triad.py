@@ -112,8 +112,10 @@ from interface.contracts.payment_observable_seam import (
 )
 from interface.contracts.wall_envelope import WallRequest
 from simulation.arrears_engine import PAY_ON_RECEIPT_METHOD
+from simulation.dd_shock_response import failure_table as dd_failure_table
 from simulation.payment_behaviour_source import (
     ARREARS_REPAYMENT,
+    CANCELLED_OTHER,
     DIRECT_DEBIT,
     generate_payment_event,
     generate_payment_method,
@@ -1004,6 +1006,7 @@ class LivePaymentTriad:
         segment: str = "resi",
         fuel: str = "electricity",
         dd_stopped_by: Optional[Callable[[str, date], bool]] = None,
+        dd_shock_effect=None,
     ) -> dict:
         """Generate the ONE canonical W2_11 payment event for this
         (customer, period), cross the seam + feed the company consumer LIVE,
@@ -1028,11 +1031,23 @@ class LivePaymentTriad:
         invoice_ref = f"{customer_id}::{period_index}"
         issue_date = due_date - timedelta(days=PAYMENT_TERMS_DAYS)
 
+        # DD4b (`simulation/dd_shock_response.py`): the household's own answer to a DD shock, as a
+        # `BillEffect` for this billed month, or None. A cancelled mandate is paid on receipt like a
+        # stopped one; the month it was cancelled in, the collection is presented and comes back
+        # "instruction cancelled", which is how the supplier learns of it (ARUDD, and the ADDACS
+        # advice the mandate stream below emits for that reason).
+        if method == DIRECT_DEBIT and dd_shock_effect is not None and dd_shock_effect.cancelled:
+            method = PAY_ON_RECEIPT_METHOD
         stress = income_stress_value if income_stress_value else "low"
         event = generate_payment_event(
             customer_id, period_index, due_date, amount_gbp, stress, method,
             segment=segment,
+            dd_failure_prob=(dd_failure_table(dd_shock_effect.failure_multiplier)
+                             if method == DIRECT_DEBIT and dd_shock_effect is not None else None),
         )
+        if method == DIRECT_DEBIT and dd_shock_effect is not None and dd_shock_effect.cancel_return:
+            event = dataclasses.replace(event, result="failed", days_late=0, payment_date=None,
+                                        dd_failure_reason=CANCELLED_OTHER)
 
         # Post the bill into the COMPANY's own belief ledger so unpaid invoices
         # age (the ageing gap) exactly as the offline scenario does. This is the

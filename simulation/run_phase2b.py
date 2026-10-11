@@ -24,6 +24,7 @@ from collections import defaultdict
 from datetime import date, datetime, time, timedelta
 
 import sim.risk_committee_agent as risk_committee_agent
+import simulation.dd_shock_response as _dd_shock_response
 from background.gap_metric import format_ageing_summary as _format_ageing_summary
 from background.gap_metric import format_belief_summary as _format_belief_summary
 from background.gap_metric import format_detection_summary as _format_detection_summary
@@ -149,6 +150,9 @@ from simulation.customer_events import (
     roll_lifecycle_event,
     svt_conversion_event,
 )
+from simulation.dd_shock_response import RECORD_KEY as _DD_SHOCK_RECORD_KEY
+from simulation.dd_shock_response import DDShockResponseBook
+from simulation.dd_shock_response import respond as respond_to_dd_shock
 from simulation.debt_objection import WorldDebtBook
 from simulation.demand_model import (
     build_demand_shape,
@@ -191,6 +195,7 @@ from simulation.fabric_physics import DEFAULT_LATITUDE_DEG
 from simulation.feedback_survey import (
     dispatch_complaint_and_resolution,
     dispatch_csat_survey,
+    dispatch_dd_shock_complaint,
     dispatch_nps_survey,
 )
 from simulation.gas_settlement import run_gas_term
@@ -2025,6 +2030,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             fuel=held["fuel"],
             dd_stopped_by=lambda _cid, _due: _dd_stop_board.notice_as_of(
                 _cid, _due.isoformat()) is not None,
+            dd_shock_effect=(None if _dd_shock_strengths.off
+                             else _dd_shock_book.effect(household_of(cid), held["month"])),
         )
         _cx_desk.observe_payment(PaymentOutcome(
             customer_id=cid,
@@ -2119,9 +2126,14 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     # only what the run has settled. Stress is the household's drawn trajectory, the same one
     # `_build_behavioral_trajectories` hands the money side, fixed before the first term.
     from simulation.dd_collection_book import StopNoticeBoard, install_stop_notice_board
+    # DD4b: the household's own answer to a DD shock, recorded at each review the run reaches.
+    # Read once per run from the module, so a harness that measures a setting sets it before main().
+    _dd_shock_strengths = _dd_shock_response.STRENGTHS
+    _dd_shock_book = DDShockResponseBook()
     _dd_stop_board = StopNoticeBoard(
         lambda _cid: household_demand_register.income_stress_trajectory(_cid, list(range(2016, 2026)))
-        if household_demand_register is not None else [])
+        if household_demand_register is not None else [],
+        dd_shock_responses_of=lambda _sp: _dd_shock_book.responses_of(household_of(_sp)))
     install_stop_notice_board(_dd_stop_board)
     # THE FOLD, fed at exactly one place -- the line that extends `all_records` below.
     # Fed anywhere else it would see records the list has not, and the point-in-time window
@@ -3399,21 +3411,24 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 billing_account, term_start_str, _bill_shock_this_term,
                 occupancy_for_customer(billing_account).value,
             )
-            if _complaint_outcome.occurred:
+
+            def _book_complaint(_outcome, _about_bill_shock):
                 # KNIFE step 21 (§3p): the world reports that the customer got in
                 # touch and whether the company closed it on time. Filing it under
                 # BILLING, wording it, and both trust deltas are the desk's.
+                # One booking for every complaint the world raises at a renewal: the rate-shock
+                # roll above and DD4b's complaint about a DD review (below) both come through here.
                 _cx_desk.observe_contact(CustomerContact(
                     customer_id=cid,
                     account_id=billing_account,
                     contacted_on=date.fromisoformat(term_start_str),
-                    about_bill_shock=_bill_shock_this_term,
+                    about_bill_shock=_about_bill_shock,
                     resolved_on_time=(
-                        _complaint_outcome.reputation_event_type
+                        _outcome.reputation_event_type
                         == ReputationEventType.COMPLAINT_RESOLVED_ON_TIME
                     ),
                 ))
-                if _complaint_outcome.reputation_event_type == ReputationEventType.COMPLAINT_RESOLVED_ON_TIME:
+                if _outcome.reputation_event_type == ReputationEventType.COMPLAINT_RESOLVED_ON_TIME:
                     _churn_journey_register.record_friction(
                         billing_account, FrictionEventType.COMPLAINT_RESOLVED_WELL,
                         date.fromisoformat(term_start_str),
@@ -3423,20 +3438,23 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                         billing_account, FrictionEventType.COMPLAINT_UNRESOLVED,
                         date.fromisoformat(term_start_str),
                         amplifier=(
-                            1.5 if _complaint_outcome.reputation_event_type
+                            1.5 if _outcome.reputation_event_type
                             == ReputationEventType.COMPLAINT_UPHELD_AT_OMBUDSMAN else 1.0
                         ),
                     )
                 _churn_journey_register.gri.record(
-                    _complaint_outcome.reputation_event_type, date.fromisoformat(term_start_str),
+                    _outcome.reputation_event_type, date.fromisoformat(term_start_str),
                     description=f"{billing_account} complaint raised {term_start_str}",
                 )
                 reputation_events_log.append({
                     "customer_id": billing_account,
                     "date": term_start_str,
-                    "event_type": _complaint_outcome.reputation_event_type.value,
-                    "days_to_resolve": _complaint_outcome.days_to_resolve,
+                    "event_type": _outcome.reputation_event_type.value,
+                    "days_to_resolve": _outcome.days_to_resolve,
                 })
+
+            if _complaint_outcome.occurred:
+                _book_complaint(_complaint_outcome, _bill_shock_this_term)
             _perceived_bill_saving_gbp = (
                 max(0.0, unit_rate - old_decision_leg_rate) * (company_eac / 1000.0)
                 if old_decision_leg_rate else 0.0
@@ -3615,6 +3633,26 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     # here would splice a saved household onto the default tariff.
                     _offer_vs_default = None
             _renewal_event_this_term = event
+            # DD4b (`simulation/dd_shock_response.py`): the household answers a material rise in
+            # its direct debit at this review -- cancelling its mandate, failing more collections
+            # while the raised amount is in force, complaining. Its departure is already answered
+            # by the roll above (PB4's shock hazard). Nothing is drawn while the toggles are zero.
+            if not _dd_shock_strengths.off and event is not None:
+                _dd_household = household_of(billing_account)
+                _dd_response = respond_to_dd_shock(
+                    household=_dd_household, review_month=term_start_str[:7],
+                    shock=event.get("sim_experienced_bill_shock"),
+                    stress=(_churn_income_stress.value if _churn_income_stress is not None
+                            else None),
+                    stays=event["event_type"] != "churned",
+                    already_cancelled=_dd_shock_book.has_cancelled(_dd_household),
+                    strengths=_dd_shock_strengths,
+                )
+                if _dd_response is not None:
+                    _dd_shock_book.record(_dd_response)
+                    if _dd_response["complained"]:
+                        _book_complaint(
+                            dispatch_dd_shock_complaint(billing_account, term_start_str), True)
             # STAY, LEAVE, OR STAY AND REFUSE. Leaving is the roll's and stands; the rule only
             # reprices a household that stayed.
             _renewal_outcome = renewal_outcome(
@@ -5241,7 +5279,11 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             _cx_desk,
             _bill_shock_dates,
             {m["customer_id"]: m["move_date"] for m in home_move_outs},
+            dd_shock_responses_of=_dd_shock_book.responses_of,
         ),
+        # DD4b: only present when its toggles are switched on, so the shipped output is unchanged.
+        **({"dd_shock_response_summary": _dd_shock_book.summary()}
+           if not _dd_shock_strengths.off else {}),
         # Phase NJ: company churn model calibration report
         "churn_model_performance": score_churn_estimates(
             customer_events_log, retention_log, no_offer_churn_log
@@ -5274,7 +5316,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
 
 
 def _build_behavioral_trajectories(customers, hdr, cx_desk, bill_shock_dates=None,
-                                   move_out_dates=None):
+                                   move_out_dates=None, dd_shock_responses_of=None):
     """Splice the world's own per-customer trajectories around the company's
     experience record.
 
@@ -5309,6 +5351,11 @@ def _build_behavioral_trajectories(customers, hdr, cx_desk, bill_shock_dates=Non
         # mover carries the key, so every other record is unchanged.
         if cid in (move_out_dates or {}):
             out[cid]["moved_out_on"] = move_out_dates[cid]
+        # DD4b: a household's answer to a DD shock rides on each of its legs' records, for the
+        # arrears engine and the rails. Only a responding household carries the key.
+        _dd_responses = dd_shock_responses_of(household_of(cid)) if dd_shock_responses_of else None
+        if _dd_responses:
+            out[cid][_DD_SHOCK_RECORD_KEY] = list(_dd_responses)
     return out
 
 

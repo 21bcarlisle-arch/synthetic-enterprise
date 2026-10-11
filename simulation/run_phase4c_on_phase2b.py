@@ -367,10 +367,12 @@ def main(report_end: str | None = None, policy=None):
     # each customer's 12-month anniversary. Purely additive and read-only,
     # exactly like build_dd_collection_book above: reads only the company's own
     # issued `bills` (company-observable), draws no RNG, mutates nothing, and
-    # changes no existing financial figure. The `large_increase` events it
-    # emits are the seam DD4b will route into the churn/resentment engine (the
-    # registered next gated step -- deliberately not wired here, as that shifts
-    # ground-truth churn and needs population-level verification).
+    # changes no existing financial figure. DD4b, the household's response to a
+    # large rise, is NOT routed from these events: the departure leg is PB4's
+    # experienced shock at the renewal (`simulation/experienced_bill_shock.py`),
+    # and cancellation, failed collections and complaints are the world's own
+    # draw at that review (`simulation/dd_shock_response.py`, off by default),
+    # carried to the arrears engine and the rails on the behavioural record.
     #
     # KNIFE pass 3 step 32 (§3aa, B13): this used to call the desk module
     # directly, which handed the world the +/-5% variance rule, the 15%

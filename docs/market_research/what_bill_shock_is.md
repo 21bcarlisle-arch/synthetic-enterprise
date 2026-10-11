@@ -293,3 +293,101 @@ and direct gaps in what is published:
   issues"/£117,580 compensation figures in §1 and §3.
 
 *Fetched live 2026-10-11. No figure in this addendum is simulation output.*
+
+---
+
+## DD4b: how the world responds to a direct-debit shock -- rules, evidence, GAPs, and the build's choices (2026-10-11)
+
+*Knowledge pass, world lane, for the director's 2026-10-11 instruction (seat proposal
+`SEAT_PROPOSAL_A_PERSONAL_PAYMENT_PLAN_AND_DEBT_AS_A_NEXT_BEST_ACTION_DESIGNED_AS_ONE_2026-10-11.md`
+§7 item 5 and §9g): a household that meets a large DD increase can cancel its mandate, fail its
+collections, complain or leave. Until this pass the world could only make it leave. Population A
+(fixed direct debit) throughout. No figure in this section is simulation output.*
+
+### 1. The rules -- ESTABLISHED
+
+- **The duty to set and review a DD** is SLC 27.15 ("best and most current information"); the ±5% band
+  is a supplier convention, not licence text (corrected 2026-09-03; see the addendum above and
+  `what_a_supplier_holds_to_size_a_direct_debit.md`).
+- **A change in amount needs advance notice** under the Direct Debit Guarantee, and a collection that
+  differs from its notice entitles the payer to an immediate refund from their bank, reclaimed from the
+  supplier as an indemnity claim (`dd_failure_basis_and_live_arrears_provision_rates.md` §5).
+- **The payer can cancel at any time at their bank.** The supplier hears it on ADDACS (code 0/1, the
+  working day after the bank inputs it, to be acted on within 3 working days), and a collection already
+  in flight returns ARUDD 1 "instruction cancelled". The supplier must then agree another way to pay
+  what is owed (same page, §4 and the ARUDD code table).
+
+### 2. The published evidence -- what it supports
+
+| quantity | figure | source | grade |
+|---|---|---|---|
+| DD rises in the 2022 shock | **>7m** SVT DDs rose Feb-Apr 2022, **+62%** on average, **8%** (~500k) above 100% | Ofgem press release, July 2022 (re-fetched 2026-10-11) | H |
+| Wrong among the largest rises | ~**4,000** of almost **1m** >100% rises confirmed wrong, **~0.4%**; £117,580 compensation (~£29/case) | Ofgem DD MCR progress update (addendum §3 above) | H (derived ratio M) |
+| DD share across the shock | **72%** electricity / **73%** gas at Sep 2025, **up 3-4 points** on Sep 2020 | DESNZ QEP Dec 2025, "Payment methods", p.9 (fetched 2026-10-11) | H |
+| Complaining at all | **2-6%** of consumers "made a complaint" a year (three waves 2025-26); ~**1%** of accounts per quarter (Ofgem complaints data) | `satisfaction_drivers_and_the_three_bill_shocks.md` | H |
+| Billing as a complaint cause | billing **58%** of Energy Ombudsman volume (2024); back-billing **>15%** of Citizens Advice energy cases (2016) | same page; this page's population B | H, not DD-specific |
+| Departure after a shock | PB4's hazard, level refitted against the published departure band | `simulation/experienced_bill_shock.py`, 2026-10-01 | built |
+
+**What this supports, and no more.** (a) The 2022 shock was overwhelmingly *correct* (0.4% wrong), so
+a response to a large rise is a response to its size, not to an error. (b) The rises did **not**
+empty direct debit: the share rose across the period that contained them, so any lasting move off
+DD after a shock was small against the background drift. (c) Complaints are bounded by all
+complaints: no year's DD shocks can have produced more than the annual total.
+
+### 3. What is NOT published -- the GAPs
+
+1. **A dose-response from DD change size to anything.** No source crosses the size of a DD change
+   with cancellation, failed collections, complaints or switching at household level (unchanged from
+   the addendum's §3; re-confirmed on the Ofgem 2022 press release, which carries no behavioural
+   figure). **GAP.**
+2. **The household-initiated cancellation rate** (ADDACS 0/1 per mandate, or after a review). Behind
+   the Bacs login or held as supplier data (`gb_payment_method_migration_rates.md`, 2026-10-03:
+   "the one nothing publishes"). **GAP; practitioner question.**
+3. **Returns by review outcome** -- whether a household fails more often while paying a raised
+   amount. **GAP.**
+4. **Complaints tagged to DD reviews** as distinct from billing generally. **GAP.**
+5. **The "balance I did not expect" half of definition A.** It is a communication property, and the
+   world holds no record of what a household was told. **GAP, unchanged.**
+6. **Whether income is the cause.** Nothing publishes cancellation or complaint by income; the
+   world's only stress-to-payment gradient is its own unsourced tier relativity (4x, 11.7x).
+
+### 4. The build's choices, with reasons (`simulation/dd_shock_response.py`)
+
+- **One trigger.** PB4's shock: a population-A household whose reviewed amount rises more than 15%
+  over the amount in force. That 15% is itself inherited, not sourced (the page's "not settled" 4);
+  using it again keeps one meaning of "shocked" across departure and the new responses.
+- **No second departure term.** The shock already raises the departure hazard at the renewal it lands
+  on, and that level was fitted against the published band. Another multiplier would count one shock
+  twice.
+- **Three new responses, each a labelled toggle shipped at 0** (`assumption_toggles.yaml`):
+
+  | toggle | low | high | basis of the range |
+  |---|---:|---:|---|
+  | `dd4b_mandate_cancel_share_at_shock` | 0.01 | 0.10 | floor: smallest effect a 40-founder book can show. Ceiling DERIVED, weak: c x 7m / 28m off the DD share must sit inside a share that rose 3-4 points |
+  | `dd4b_failure_uplift_after_shock` | 0.25 | 3.0 | floor, a modelling choice; ceiling = the world's own next-tier relativity (LOW failing like MODERATE) |
+  | `dd4b_complaint_share_at_shock` | 0.02 | 0.24 | floor = lowest published annual complaint share; ceiling DERIVED = 6% of ~28m / 7m |
+
+- **Hidden finances where they are the cause.** The cancel share is a LOW-stress household's, scaled by
+  the world's stress relativity and capped at 1; at the high setting a HIGH-stress household therefore
+  always cancels, which is the ceiling's job to show. The failure uplift multiplies the tier's own
+  failure probability. Complaining is not scaled by income (gap 6).
+- **How the supplier learns of it** -- only what a real supplier receives: the collection presented in
+  the cancellation month comes back "instruction cancelled" (ARUDD, plus ADDACS through the existing
+  mandate stream), and the household pays on receipt thereafter, as after a supplier stop. A
+  complaint arrives as a contact through the run's one complaint booking. Simplification: a real
+  ADDACS can arrive before any collection; here it rides on the returned one.
+- **Window.** The failure uplift runs for the twelve billed months the reviewed amount is in force
+  under today's annual review. A cancelled household stays on pay-on-receipt for the rest of its
+  tenure; the supplier re-establishing a mandate is company work, not modelled here.
+- **One reality.** The live payment triad, the Bacs rails and the arrears engine (published bad debt)
+  all read the same response record, so returns, stops and write-offs move together.
+
+### Sources added this pass
+
+- Ofgem, *Ofgem requires improvements from energy suppliers on customer direct debits*, July 2022 --
+  <https://www.ofgem.gov.uk/press-release/ofgem-requires-improvements-energy-suppliers-customer-direct-debits>.
+  Re-fetched 2026-10-11: confirms >7m / +62% / 8% above 100%; carries no complaint, cancellation,
+  failure or switching figure.
+- DESNZ, *Quarterly Energy Prices*, December 2025, "Payment methods", p.9 --
+  <https://assets.publishing.service.gov.uk/media/6942cb008f4636fa2c547df5/quarterly-energy-prices-december-2025.pdf>.
+  Fetched 2026-10-11: 72% / 73% DD at end-September 2025, +3 / +4 points on September 2020.

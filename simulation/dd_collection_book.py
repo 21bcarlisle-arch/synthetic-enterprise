@@ -208,9 +208,12 @@ class StopNoticeBoard:
     the money side's register cut at `as_of`.
     """
 
-    def __init__(self, stress_trajectory_of, seed: int = 42) -> None:
+    def __init__(self, stress_trajectory_of, seed: int = 42, dd_shock_responses_of=None) -> None:
         self._stress_trajectory_of = stress_trajectory_of
         self._seed = seed
+        # DD4b: a household's own response to a DD shock moves its returns, so the board's rails
+        # read it as the post-run rails do. None, or an empty answer, adds no key.
+        self._dd_shock_responses_of = dd_shock_responses_of
         self._records: dict[str, list[dict]] = {}
         self._stopped: dict[str, str] = {}
         self._clear_through: dict[str, date] = {}
@@ -250,6 +253,11 @@ class StopNoticeBoard:
         bills = issued_bills(build_monthly_bills(records, set()))
         behavioral = {supply_point: {
             "income_stress_trajectory": self._stress_trajectory_of(supply_point)}}
+        if self._dd_shock_responses_of is not None:
+            from simulation.dd_shock_response import RECORD_KEY
+            responses = self._dd_shock_responses_of(supply_point)
+            if responses:
+                behavioral[supply_point][RECORD_KEY] = responses
         notices = supplier_dd_stop_notices(bills, behavioral, self._seed)
         if supply_point in notices:
             self._stopped[supply_point] = notices[supply_point]
@@ -303,6 +311,8 @@ def _run_rails(
     # ONE LAG STREAM PER CUSTOMER (PB8 L2, 2026-10-03). A single stream walked in customer order
     # made one household's notice date depend on every household sorted before it, so a stop could
     # not be asked about mid-run from that household's own bills (`StopNoticeBoard`).
+    from simulation.dd_shock_response import RECORD_KEY as SHOCK_RECORD_KEY
+    from simulation.dd_shock_response import bill_effect, failure_table
     rails_rngs: dict[str, random.Random] = {}
     desk = open_collections_desk()
     stops: dict[str, tuple[str, str]] = {}
@@ -330,18 +340,27 @@ def _run_rails(
         # does not re-open a mandate the household never asked for.
         if desk.has_mandate(cid) and not desk.pays_by_direct_debit(cid):
             continue
+        # DD4b (`simulation/dd_shock_response.py`): a household that cancelled its own mandate
+        # after a DD shock has nothing on the rails from the month after; that month's collection
+        # comes back unpaid. NO_EFFECT on every record while the toggles are at zero.
+        shock = bill_effect((behavioral.get(cid) or {}).get(SHOCK_RECORD_KEY), period_end[:7])
+        if shock.cancelled:
+            continue
         stress = stress_for_year(behavioral.get(cid) or {}, year)
         commodity = bill.get("commodity", "electricity")
         exit_ = mover_final_bill_outcome(behavioral.get(cid) or {}, cid, period_end, commodity,
                                          amount, method, stress, seed)
         if exit_ is not None:
             outcome = exit_[0]
+        elif shock.cancel_return:
+            outcome = "failed"
         else:
             outcome, _days_late = payment_outcome(
                 method, stress, bill_substream(seed, cid, period_end, commodity),
                 segment,
                 _fuel_poor_for_bill(method, cid),
                 _tone_for_bill(method, cid, period_end), cid,
+                dd_failure_prob=failure_table(shock.failure_multiplier),
             )
 
         issue_date = date.fromisoformat(period_end)
