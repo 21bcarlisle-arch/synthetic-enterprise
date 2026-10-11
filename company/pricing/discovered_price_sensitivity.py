@@ -365,8 +365,10 @@ def retention_cut_decision(observation: dict, *, cut_gbp_per_mwh: float, margin_
 # would consider, it flips its own coin. The held-out half gets no offer. The other half gets the
 # offer the standing guard makes while the company's own interval is undecided -- that is the
 # experiment running -- and `retention_cut_decision` decides it once the interval says anything.
-# A row is written only where the arm's treatment was actually given: a treated renewal the decision
-# declined is not a treated row, or the estimate would count an offer nobody received.
+# A row is written only where the company WOULD have offered, on either arm
+# (`RetentionHoldout.would_offer`). The coin is flipped over every renewal the guard considers, but only the would-offer ones are the
+# experiment: keeping a held-out renewal the guard would have declined, while dropping its treated
+# twin, puts households nobody would offer into one arm only (blind Expert Hour, 2026-10-11, Q11).
 
 #: Not a domain figure: the split that gives a difference of two shares its narrowest interval for a
 #: given number of decisions, the one `simulation/coin_drawn_decision_set.py` flips.
@@ -382,33 +384,109 @@ def holdout_arm(account_id: str, event_date: str) -> str:
     return "holdout" if int.from_bytes(digest[:8], "big") / 2 ** 64 < HOLDOUT_SHARE else "treated"
 
 
-class RetentionHoldout:
-    """The run's holdout rows, and the decision they support at a given day."""
+#: HOW LONG AFTER A RENEWAL A LOSS IS STILL THAT RENEWAL'S (blind Expert Hour, 2026-10-11, Q10). None
+#: on purpose: no published source establishes a retention-measurement window for a GB domestic
+#: renewal. SLC 22C fixes the notice (42-49 days before term end) and the fee-free exit window
+#: before it, not how long after the decision a loss is attributed; a practitioner case study's
+#: "six or twelve months" is advice, not evidence. While it is None no holdout row closes, so the
+#: company learns nothing from its own holdout and the standing guard decides -- which is what the
+#: founders' book already did, since its interval never decided. 0 is the old definition (stayed
+#: at the decision itself), kept nameable so the bias it carries can be measured against a window.
+#: Keep a window inside the term it attributes: at or past a re-fix's own term end it counts the
+#: household's NEXT renewal departure against this one (2026-10-11: nine of ten later losses sat there).
+RETENTION_OUTCOME_WINDOW_DAYS: int | None = None
 
-    def __init__(self) -> None:
+#: The three ways a renewal decision ends, as the supplier holds them: the household left on the
+#: decision, took the new fixed term, or stayed and refused it and sits on the default tariff. A
+#: rollover onto the default is not a re-fix, and a held-out arm full of one is not the other's twin.
+RENEWAL_KINDS = ("left_at_decision", "re_fixed", "declined_fix_on_default")
+
+
+class RetentionHoldout:
+    """The run's holdout rows, and the decision they support at a given day.
+
+    A row's outcome is "still on supply `outcome_window_days` after the renewal", read from the
+    company's own loss notices (`CoSRegister.losses_notified()`) on the account's supply points. A
+    move-out is not a loss notice and does not count against the row: a household that moved home
+    was not lost to a rival price."""
+
+    def __init__(self, outcome_window_days: int | None = RETENTION_OUTCOME_WINDOW_DAYS) -> None:
         self.rows: list[dict] = []
+        self.outcome_window_days = outcome_window_days
 
     def record(self, *, account_id: str, event_date: str, arm: str, stayed: bool,
-               payment_method: str | None) -> None:
+               payment_method: str | None, saved_on_loss_notice: bool = False,
+               renewal: str | None = None, supply_points: tuple[str, ...] = ()) -> None:
+        """`stayed` is the decision's own stay-or-leave; the outcome is read later, at the window.
+        `saved_on_loss_notice`: the household was leaving and the reactive save kept it. It
+        stays `stayed` (the estimate is the renewal offer's effect with the save running, on both
+        arms alike), but it is carried so a save reaching the held-out arm is counted, not hidden.
+        `renewal` is one of `RENEWAL_KINDS`; `supply_points` are the account's own points, the key
+        its loss notices arrive under."""
+        kind = renewal or ("re_fixed" if stayed else "left_at_decision")
+        if kind not in RENEWAL_KINDS or (kind == "left_at_decision") == bool(stayed):
+            raise ValueError(f"a renewal that {'stayed' if stayed else 'left'} cannot end {kind!r}")
         self.rows.append({"account_id": account_id, "event_date": event_date, "arm": arm,
-                          "stayed": bool(stayed), "payment_method": str(payment_method)})
+                          "stayed_at_decision": bool(stayed), "renewal": kind,
+                          "payment_method": str(payment_method),
+                          "saved_on_loss_notice": bool(saved_on_loss_notice),
+                          "supply_points": tuple(supply_points) or (account_id,)})
 
-    def closed_before(self, event_date: str) -> list[dict]:
-        """Rows whose outcome the company knew before `event_date`: a renewal's stay or leave is
-        settled on its own day, so a row dated that day is not yet in the book."""
-        return [r for r in self.rows if r["event_date"] < event_date]
+    @staticmethod
+    def first_loss_after(row: dict, losses_notified) -> dict | None:
+        """The earliest loss notice on the row's points effective AFTER its renewal, or None. A
+        loss effective on the renewal day is the decision's own departure, already on the row."""
+        later = [loss for loss in losses_notified or ()
+                 if loss["supply_point_id"] in row["supply_points"]
+                 and loss["supply_effective_from"] > row["event_date"]]
+        return min(later, key=lambda loss: loss["supply_effective_from"], default=None)
+
+    def closed_before(self, event_date: str, losses_notified=()) -> list[dict]:
+        """Rows whose outcome the company knew before `event_date`, each with its `stayed` at the
+        window. A row closes when the household left on the decision (known that day), when a loss
+        notice inside the window had reached the company, or when the whole window had passed with
+        none. With no window established, none closes."""
+        window = self.outcome_window_days
+        if window is None:
+            return []
+        closed = []
+        for row in self.rows:
+            if row["event_date"] >= event_date:
+                continue
+            if not row["stayed_at_decision"]:
+                closed.append({**row, "stayed": False})
+                continue
+            end = (dt.date.fromisoformat(row["event_date"]) + dt.timedelta(days=window)).isoformat()
+            loss = self.first_loss_after(row, losses_notified)
+            if (loss is not None and loss["supply_effective_from"] <= end
+                    and loss["notified_on"] < event_date):
+                closed.append({**row, "stayed": False})
+            elif end < event_date:
+                closed.append({**row, "stayed": True})
+        return closed
+
+    def outcomes(self, losses_notified) -> list[dict]:
+        """Every row with the days from its renewal to its first later loss (None: none notified),
+        so the outcome at any window can be read off the run's artefact without re-running it."""
+        result = []
+        for row in self.rows:
+            loss = self.first_loss_after(row, losses_notified) if row["stayed_at_decision"] else None
+            result.append({**{k: v for k, v in row.items() if k != "supply_points"},
+                           "days_to_later_loss": None if loss is None else (
+                               dt.date.fromisoformat(loss["supply_effective_from"])
+                               - dt.date.fromisoformat(row["event_date"])).days})
+        return result
 
     def decide(self, *, account_id: str, event_date: str, payment_method: str | None,
                term_margin_gbp: float, term_billed_gbp: float, billed_kwh: float,
-               cut_gbp_per_mwh: float) -> tuple[str, CutDecision | None]:
-        """`(arm, decision)` for one renewal. `decision` is None on the held-out arm, and on the
-        treated arm while the company's own interval is undecided or refused: the caller then makes
-        the standing guard's offer. Otherwise it is `retention_cut_decision` on the rows closed
-        before today, valued at this term's own margin as a share of its own billing."""
+               cut_gbp_per_mwh: float, losses_notified=()) -> tuple[str, CutDecision | None]:
+        """`(arm, decision)` for one renewal. `decision` is None while the company's own interval
+        is undecided or refused: the standing guard then says whether it would offer. Otherwise it
+        is `retention_cut_decision` on the rows closed before today, valued at this term's own
+        margin as a share of its own billing. It is read on BOTH arms, because whether a renewal
+        belongs in the experiment (`would_offer`) must not depend on the coin."""
         arm = holdout_arm(account_id, event_date)
-        if arm == "holdout":
-            return arm, None
-        rows = self.closed_before(event_date)
+        rows = self.closed_before(event_date, losses_notified)
         pooled = estimate_offer_effect(rows)
         if pooled.verdict in ("undecided", "refused") or term_billed_gbp <= 0:
             return arm, None
@@ -418,3 +496,10 @@ class RetentionHoldout:
             observation, cut_gbp_per_mwh=cut_gbp_per_mwh,
             margin_share=term_margin_gbp / term_billed_gbp,
             by_channel=estimate_offer_effect_by_channel(rows), pooled=pooled)
+
+    @staticmethod
+    def would_offer(decision: CutDecision | None, standing_guard_offers: bool) -> bool:
+        """Whether the company would offer at this renewal, read before its coin: the learned
+        decision once there is one, else the standing guard. The held-out arm gets no offer and the
+        treated arm gets it, but a row is due on either arm exactly when this is true."""
+        return decision.offer_cut if decision is not None else bool(standing_guard_offers)

@@ -3036,6 +3036,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             company_est_pre = None
             _retention_offer = None
             _holdout_arm = None
+            _holdout_would_offer = False
             _no_offer_reason = "below_threshold"
             _would_be_discount_pct = None
             _bill_shock_this_term = False
@@ -3267,7 +3268,10 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                             account_id=billing_account, event_date=term_start_str,
                             payment_method=_company_payment_method,
                             term_margin_gbp=expected_margin, term_billed_gbp=_ret_billed,
-                            billed_kwh=eac_for_ret, cut_gbp_per_mwh=unit_rate * discount_pct)
+                            billed_kwh=eac_for_ret, cut_gbp_per_mwh=unit_rate * discount_pct,
+                            # Q10: a row's outcome is read at its window from the company's own
+                            # loss notices, so a departure months after the renewal is the row's.
+                            losses_notified=_change_of_supplier_register.losses_notified())
                         retention_holdout_log.append({
                             "customer_id": billing_account, "event_date": term_start_str,
                             "arm": _holdout_arm, "payment_method": _company_payment_method,
@@ -3275,11 +3279,20 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                             "decided": _cut_decision is not None,
                             "offer_cut": None if _cut_decision is None else _cut_decision.offer_cut,
                             "reason": None if _cut_decision is None else _cut_decision.reason,
+                            "outcome_window_days": _retention_holdout.outcome_window_days,
                         })
                     # One reading of the guard, so the gate's record below is the guard's own verdict.
                     _value_protected = retention_value_protected(
                         expected_margin, acq_cost_saved, _engagement,
                         default_belief_rate=_ret_default_belief, billed=_ret_billed)
+                    # Whether it WOULD offer is read before the coin matters, on both arms: only
+                    # those renewals are the experiment, so a row is due on either arm exactly then.
+                    _would_offer = (
+                        _retention_holdout.would_offer(_cut_decision, _value_protected > ret_cost)
+                        if _retention_holdout is not None else _value_protected > ret_cost)
+                    _holdout_would_offer = _holdout_arm is not None and _would_offer
+                    if _holdout_arm is not None:
+                        retention_holdout_log[-1]["would_offer"] = _would_offer
                     if not _offer_can_buy:
                         _no_offer_reason = "the_discount_cannot_win_the_fix"
                         retention_gate_value_test_log.append({
@@ -3291,9 +3304,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                             # half of them first; the verdict here is the guard's alone.
                             "holdout_would_have_drawn": _retention_holdout is not None,
                         })
-                    elif _holdout_arm != "holdout" and (
-                          _cut_decision.offer_cut if _cut_decision is not None
-                          else _value_protected > ret_cost):
+                    elif _holdout_arm != "holdout" and _would_offer:
                         # THE OFFER REACHES THE WORLD AS ITS RATE (director, 2026-10-09), answered
                         # at the roll below by `simulation.retention_offer`. It reached it as a flat,
                         # unsourced 0.20 cut to one hazard whatever the discount, so a 3% and an 8%
@@ -3330,7 +3341,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                                if _ret_default_belief is not None else {}),
                         })
                     else:
-                        _no_offer_reason = "held_out" if _holdout_arm == "holdout" else "uneconomical"
+                        _no_offer_reason = (
+                            "held_out" if _holdout_arm == "holdout" and _would_offer else "uneconomical")
             # Phase NQ: industry base rate floor when no prior rate exists
             if company_est_pre is None:
                 company_est_pre = estimate_churn_without_rate_history()
@@ -3698,13 +3710,21 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 _journey, renewal_decisions_log, customer_id=billing_account,
                 event_date=term_start_str, commodity=commodity, rolled=_rolled, event=event,
             )
-            # B8 L3: a row only where the arm's treatment was given -- held out, or offered.
-            if _holdout_arm == "holdout" or (_holdout_arm == "treated" and _retention_offer is not None):
+            # B8 L3: a row on either arm exactly where the company would have offered.
+            if _holdout_would_offer:
                 _retention_holdout.record(
                     account_id=billing_account, event_date=term_start_str, arm=_holdout_arm,
                     stayed=not (event is not None and event["event_type"] == "churned"),
-                    payment_method=_company_payment_method)
-                retention_holdout_log[-1]["stayed"] = _retention_holdout.rows[-1]["stayed"]
+                    payment_method=_company_payment_method,
+                    saved_on_loss_notice=bool(event is not None and event.get("saved_on_loss_notice")),
+                    renewal=(
+                        "left_at_decision" if event is not None and event["event_type"] == "churned"
+                        else "declined_fix_on_default" if _renewal_outcome == RENEWAL_DECLINED_FIX
+                        else "re_fixed"),
+                    supply_points=_supply_points_of_account.get(billing_account, (cid,)))
+                retention_holdout_log[-1]["stayed_at_decision"] = (
+                    _retention_holdout.rows[-1]["stayed_at_decision"])
+                retention_holdout_log[-1]["renewal"] = _retention_holdout.rows[-1]["renewal"]
             if event is not None:
                 event["is_active_renewal"] = active_renewal
                 # Phase 2 Layer 1: SIM-internal ground truth, retained here for
@@ -5211,7 +5231,11 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         "company_event_log": _build_company_event_log(
             customer_events_log, fresh_acquisitions),
         "retention_log": retention_log,
-        **({"retention_holdout_log": retention_holdout_log} if policy.retention_runs_holdout else {}),
+        **({"retention_holdout_log": retention_holdout_log,
+            # Q10: each row's days to its first later loss, so any window can be read off the run.
+            "retention_holdout_outcomes": _retention_holdout.outcomes(
+                _change_of_supplier_register.losses_notified())}
+           if policy.retention_runs_holdout else {}),
         "nudge_physics_log": nudge_physics_log,
         "retention_cost_events": retention_cost_events,
         "no_offer_churn_log": no_offer_churn_log,

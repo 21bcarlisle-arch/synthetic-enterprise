@@ -8,6 +8,39 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-11 — Seat stopped at 98% of the allowance: what landed, what is parked, what is running, and the next three steps
+
+<!-- head: a706f6560b59 -->
+
+*Interactive delivery seat, 2026-10-11, stopping at 98% of the weekly allowance on the director's instruction. Resume from here after the Monday reset.*
+
+## Landed today (on origin)
+- Live price-match save, with the stayer leak fixed (afd818b22/a1d5ec932); its knowledge record: the match is a design choice with no published basis (0c6acfc89).
+- Home-mover retention steps 0-4 (cfd8ae74d, ebde11366, 182337029, f1fed7c89, 8fd1c3739, 68793db33): result turns on k (0 / +GBP 1,580); 2 of 9 followers supplied (gas-only, weather cells, real HH meter block the rest).
+- Seed families: 40-founder all-wins and founders-only shapes, seeds 61101-61112 authorised (fad147bd4); first families read by origin.
+- Launcher queues for room and follows units to their end by default (339a49723); trace-worker memory 620 MB measured (fork_map).
+- Supplier-first focus rule and the commit split in every stretch entry (ba2fc548f).
+- Payment-plan and debt-engine knowledge pages, published on the site (68d8f3e27 and the later engine-knowledge landing); the design and its one-engine amendment (c65bce9ae and successor); forecast/capital finding and the capital-start row for the director (97e65aa2a); staging header guide for writers outside the gate (docs/operations/FILING_TO_STAGING.md).
+- Expected-loss provision from a forward cash forecast, BUILD ONLY (16ba6249c) -- its accuracy measurement was not run.
+
+## Running (no action needed; result location)
+- landing-dd4b-build (world: households' response to a DD shock), result in /var/tmp/se-dd4b.land.log; worktree /var/tmp/se-dd4b (9 dirty paths = the build being landed). If it refused, read the log; do not reset the worktree.
+
+## Parked (worktrees kept)
+- /var/tmp/se-leakfix -- one dirty file, the leak-fix trial already landed via se-save-live; safe to remove after checking.
+- /var/tmp/se-cashfc -- clean at 16ba6249c; the provision-accuracy measurement (flat vs expected-loss against held-back loss, by method and origin) is the unrun next piece.
+- Agents stopped mid-work: the world-vs-supplier census (not started on origin files), the cash-forecast measurement.
+
+## The director's last instruction, not yet answered
+"Check the save, the mover offer and the payment work done so far against these four [world first; freeze then solve; separate lanes; truth stays an instrument], and tell me where any of them breaks one." Known so far, unaudited in full: the mover's world answer and supplier offer were built in ONE lane, supplier steps before the world's; the save and mover arms were graded on one seed; the DD review (simulation/dd_balance_book.py) and the trailing-12 forecast (simulation/run_phase2b.py) are supplier policy living in world files; the hedge volume reads world multipliers (a wall breach); the provision build ran ahead of a frozen world.
+
+## Next three steps, in order
+1. Finish the audit against the four principles (re-run the census, origin files) and answer the director.
+2. World first: the household payment-behaviour lane -- responses to a lower-payment offer, breathing space, early contact, a changed DD amount or date; mandate cancellation, switching to manual, stopping paying -- from research with labelled ranges; freeze it with predictions filed (closes the 10 Oct gap: the world answers every plan offer None).
+3. Only then the supplier engine's measurement and responses, graded on fresh seeds across the world's ranges.
+
+---
+
 ## 2026-10-11 — orientation: The stretch answered the director's first question, and the answer is a step backwards against the thesis
 
 <!-- head: ed9aa25eb57f -->
