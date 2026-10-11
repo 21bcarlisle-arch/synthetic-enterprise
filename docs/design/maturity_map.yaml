@@ -1907,18 +1907,17 @@
   # MINTED 2026-10-05, canon step 3: "the spine every lever is judged against. Build and test
   # it on held-back history". Couples to EP1 (three horizons, L2, blocked on a second book):
   # a held-back-history test needs no second book, which is why this is its own atom.
-  # L1 2026-10-06. Window (27d0d3065) and switch/move split (3d9c4fb84) landed. PARKED
-  # 2026-10-06: nothing left moves in company code. UN-PARK when B7 slice 3 lands and moves are
-  # switched on (split gets graded), or the director rules EP17 (books to separate the rules).
-  block_reason: "the next gain is in the WORLD (B7 slice 3 + moves switched on) or the director's EP17 row, not company code"
-  blocked_on: [B7_customer_state_layer_moves_and_shocks, EP17_varied_population_draw]
+  # L1 2026-10-06. Slice 5 (2026-10-11): moves reach the backtest (61 held back), so B7 dropped.
+  # Both rules over-predict departure (0.79/0.67 vs 0.43) and rank nobody (AUC ~0.52).
+  block_reason: "EP17 blocks L3 only: on one book departure p varies by sd 0.03, so neither rule has anything to rank; a varied draw is the director's curriculum call. The departure-level calibration slice is company code and is not blocked"
+  blocked_on: [EP17_varied_population_draw]
   dial_inherited: 90
   provenance: director_ruling
   depends_on: []
   couples_with: [EP1_clv_three_horizon]
   file_scope: ['company/analytics/forward_clv.py',
     'tests/company/analytics/test_forward_clv_backtest.py']
-  simplifications_count: 3
+  simplifications_count: 4
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a finance team whose customer-value model is only ever checked against the same years it was fitted on."
 - id: W2_37_complaints_arise_from_billing_failures_and_the_silent_unhappy_are_modelled
