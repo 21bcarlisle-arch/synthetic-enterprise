@@ -75,6 +75,16 @@ on the cut year alone). Every run so far opens in 2016, but later cohorts open e
 ``exit_cells`` with ``standardised_ratios`` ask whether a contract year carries anything once its
 calendar year is held. It assumes no cohort effect, which no single book can test.
 
+THE TERM-END KEY (slice 9). Slice 8 found the tenure signal is the fixed-term anniversary: exits
+pile up in tenure months 12 and 24, the month the switch away at term end lands in, and the
+twelve-month table smears that spike across a contract year. ``tenure_key="term_end"`` replaces
+the per-customer rule's contract-year table with two phases, IN TERM and the TERM-END month
+(tenure a whole number of years, at least one). Each phase's hazard is the segment's flat hazard
+times the phase's ratio to the calendar year's rate (``term_phase_ratios``), so the regime the
+fit window lived through is not read as a tenure effect and the level stays the flat rule's.
+A supplier knows each account's term end: the run's renewal events fall in the acquisition
+month's anniversary, so it is read from the first supplied month, not from the world.
+
 THE BOUND. Every comparison is paired over the same accounts: the mean of
 (per-customer absolute error − flat absolute error) with a normal-approximation 95%
 interval on that mean. An interval that straddles zero is reported as "cannot tell",
@@ -116,9 +126,12 @@ __all__ = [
     "run_backtest",
     "backtest_run_output",
     "StandardisedRatio",
+    "TENURE_KEYS",
     "exit_cells",
     "pooled_ratio",
     "standardised_ratios",
+    "term_phase",
+    "term_phase_ratios",
 ]
 
 DEFAULT_CUT_YEAR = 2020
@@ -152,6 +165,7 @@ LIMITATION_SWITCH_LEVEL_IS_THE_REGIME = (
 
 _TWO_SIDED_95 = NormalDist().inv_cdf(0.975)
 _MONTHS_PER_CONTRACT_YEAR = 12
+TENURE_KEYS = ("contract_year", "term_end")
 
 
 def _month_index(ym: str) -> int:
@@ -417,6 +431,10 @@ class Backtest:
     # departures, and (with a register) switches and moves. A reading of the ledger, not a forecast.
     departures_by_calendar_year: Mapping[int, Mapping[str, int]] | None = None
     hazard_fit_months: tuple[str, str] | None = None
+    # Slice 9. Which tenure key the per-customer hazard used, and under "term_end" each phase's
+    # ratio to the calendar year's rate over the hazard window (0 in term, 1 the term-end month).
+    tenure_key: str = "contract_year"
+    term_phase_ratio: Mapping[int, "StandardisedRatio"] | None = None
     # Slice 7. None without a register. The flat rule's segment hazard split into a switch hazard
     # (moves censored) and a move hazard (switches censored), run as competing risks: each cause's
     # mean predicted incidence and the realised share of graded accounts that left by it, and the
@@ -569,23 +587,38 @@ class StandardisedRatio:
     interval_95: tuple[float, float] | None  # Byar's approximation to the exact Poisson bound
 
 
+def term_phase(tenure_months: int) -> int:
+    """1 in a term-end month -- the first month of a contract year after the first, where a
+    switch away at the fixed term's end lands -- else 0. Year 0 holds no term end."""
+    return int(tenure_months >= _MONTHS_PER_CONTRACT_YEAR
+               and tenure_months % _MONTHS_PER_CONTRACT_YEAR == 0)
+
+
+def _contract_year(tenure_months: int) -> int:
+    return tenure_months // _MONTHS_PER_CONTRACT_YEAR
+
+
 def exit_cells(
     accounts: Sequence[AccountHistory], book_end: int, censored: frozenset[str] = frozenset(),
+    start: int | None = None, key=_contract_year,
 ) -> dict[tuple[int, int], tuple[int, int]]:
-    """(calendar year, contract year) -> (months at risk, exits), over every observed month.
+    """(calendar year, `key` of tenure) -> (months at risk, exits), over every observed month
+    from `start` (default: all) to `book_end`. `key` defaults to the contract year.
 
-    The exit rule is ``_fit_hazards``' with the book's last month as the cut. On one cohort the
+    The exit rule is ``_fit_hazards``' with `book_end` as the cut. On one cohort the
     two keys move together, so a contract-year table cannot tell tenure from calendar time;
     where cohorts open in different years the same contract year is seen in several calendar
     years, and ``standardised_ratios`` asks whether it carries anything once the year is held.
     """
     cells: dict[tuple[int, int], list[int]] = defaultdict(lambda: [0, 0])
     for a in accounts:
-        for m in range(a.first_month, min(a.last_month, book_end) + 1):
-            cells[(m // 12, (m - a.first_month) // _MONTHS_PER_CONTRACT_YEAR)][0] += 1
-        if a.last_month < book_end and a.account_id not in censored:
+        lo = a.first_month if start is None else max(a.first_month, start)
+        for m in range(lo, min(a.last_month, book_end) + 1):
+            cells[(m // 12, key(m - a.first_month))][0] += 1
+        if (a.last_month < book_end and a.account_id not in censored
+                and (start is None or a.last_month >= start)):
             m = a.last_month
-            cells[(m // 12, (m - a.first_month) // _MONTHS_PER_CONTRACT_YEAR)][1] += 1
+            cells[(m // 12, key(m - a.first_month))][1] += 1
     return {k: (v[0], v[1]) for k, v in cells.items()}
 
 
@@ -600,7 +633,7 @@ def _poisson_ratio_interval(observed: int, expected: float) -> tuple[float, floa
     return lower / expected, upper / expected
 
 
-_AXES = {"calendar_year": 0, "contract_year": 1}
+_AXES = {"calendar_year": 0, "contract_year": 1, "term_phase": 1}
 
 
 def standardised_ratios(
@@ -644,6 +677,27 @@ def standardised_ratios(
     return out
 
 
+def term_phase_ratios(
+    accounts: Sequence[AccountHistory], fit_end: int, censored: frozenset[str] = frozenset(),
+    fit_start: int | None = None,
+) -> dict[int, StandardisedRatio]:
+    """Each term phase's exits over those its calendar years' rates give, on fit months only.
+
+    The book is its own reference, so the phases' ratios average to one weighted by expected
+    exits: multiplying the segment's hazard by them moves where in tenure an exit is expected,
+    not how many. A phase with no expected exit is refused -- a hazard multiplier of nothing.
+    """
+    cells = exit_cells(accounts, fit_end, censored, fit_start, term_phase)
+    ratios = {r.key: r for r in standardised_ratios(cells, cells, "calendar_year", "term_phase")}
+    for phase, name in ((0, "in term"), (1, "term end")):
+        if phase not in ratios or ratios[phase].ratio is None:
+            raise ValueError(
+                f"no {name} month expects an exit up to {_month_label(fit_end)}: a term-end "
+                "hazard needs both phases at risk and some exit in the window"
+            )
+    return ratios
+
+
 def pooled_ratio(ratios: Sequence[StandardisedRatio]) -> StandardisedRatio:
     """All keys together, keyed -1: the subject's one overall ratio to the reference."""
     o = sum(r.observed for r in ratios)
@@ -660,6 +714,7 @@ def run_backtest(
     wholesale_gas_by_month: Mapping[str, float] | None = None,
     move_out_month_by_account: Mapping[str, int] | None = None,
     hazard_fit_from_year: int | None = None,
+    tenure_key: str = "contract_year",
 ) -> Backtest:
     """Fit on months up to December of `cut_year`; forecast and grade every later month.
 
@@ -679,7 +734,12 @@ def run_backtest(
     unchanged by it.
 
     `hazard_fit_from_year` (slice 6) fits both departure hazards on that January to the cut only.
+
+    `tenure_key` (slice 9) is the per-customer hazard's tenure key: the contract-year table, or
+    "term_end" -- the segment's flat hazard times its term phase's calendar-standardised ratio.
     """
+    if tenure_key not in TENURE_KEYS:
+        raise ValueError(f"tenure_key must be one of {TENURE_KEYS}, not {tenure_key!r}")
     fit_end = _month_index(f"{cut_year}-12")
     if hazard_fit_from_year is not None and hazard_fit_from_year > cut_year:
         raise ValueError(
@@ -721,6 +781,8 @@ def run_backtest(
     dev_seg_mean, k_by_seg, dev_own = (
         (seg_mean, k_by_seg, own) if dev_end == fit_end else _fit_margins(accounts, dev_end))
     by_cy, by_seg_h, seg_ratio = _fit_hazards(accounts, fit_end, fit_start=hazard_start)
+    phase_ratio = (None if tenure_key == "contract_year"
+                   else term_phase_ratios(accounts, fit_end, fit_start=hazard_start))
     horizon = book_end - fit_end
     excluded = {"joined after the cut (no fit history)": 0, "left before the cut": 0}
     forecasts: list[AccountForecast] = []
@@ -749,7 +811,10 @@ def run_backtest(
             # effect at the month's end, as the fit counted it.
             pc_total += s_pc * pc_margin_rate
             fl_total += s_fl * fl_margin_rate
-            s_pc *= 1 - min(1.0, seg_ratio[a.segment] * _hazard_at(by_cy, tenure + step))
+            h_pc = (seg_ratio[a.segment] * _hazard_at(by_cy, tenure + step)
+                    if phase_ratio is None
+                    else h_fl * phase_ratio[term_phase(tenure + step)].ratio)
+            s_pc *= 1 - min(1.0, h_pc)
             s_fl *= 1 - h_fl
         realised = sum(v for m, v in a.monthly_net_gbp.items() if m > fit_end)
         forecasts.append(
@@ -906,6 +971,8 @@ def run_backtest(
                            _month_label(fit_end)),
         departure_incidence_by_cause=incidence_by_cause,
         departure_calibration_by_cause=calibration_by_cause,
+        tenure_key=tenure_key,
+        term_phase_ratio=phase_ratio,
     )
 
 
@@ -919,6 +986,7 @@ def backtest_run_output(
     margin_fit_end_year: int | None = None,
     wholesale_gas_by_month: Mapping[str, float] | None = None,
     hazard_fit_from_year: int | None = None,
+    tenure_key: str = "contract_year",
 ) -> Backtest:
     """A run's book, split by departure cause where it carries a move-out register. The caller hands in the wholesale series
     (`SimInterface.monthly_wholesale_prices("gas")`); importing the live interface here would
@@ -928,6 +996,7 @@ def backtest_run_output(
     return run_backtest(
         *book_from_run_output(run_output), cut_year, margin_fit_end_year,
         wholesale_gas_by_month, move_outs_from_run_output(run_output), hazard_fit_from_year,
+        tenure_key,
     )
 
 

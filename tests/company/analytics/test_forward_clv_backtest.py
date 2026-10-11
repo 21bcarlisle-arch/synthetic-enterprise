@@ -28,6 +28,8 @@ from company.analytics.forward_clv import (
     regime_boundary_month,
     run_backtest,
     standardised_ratios,
+    term_phase,
+    term_phase_ratios,
 )
 from tools.run_output_store import as_plain_file, resolve_run_output
 
@@ -568,3 +570,53 @@ def test_a_subject_is_graded_only_in_years_its_reference_saw_and_pools_to_one_ra
     assert whole.ratio == pytest.approx(1.0)
     with pytest.raises(ValueError, match="an axis must be one of"):
         standardised_ratios(subject, reference, "tenure", "calendar_year")
+
+
+def test_the_term_end_month_is_the_first_of_each_contract_year_after_the_first():
+    """The defect: a phase key that marks year 0's opening month, or the month after the
+    anniversary, puts the term-end spike where no term ends. Both phases are reachable."""
+    assert [term_phase(t) for t in (0, 1, 11, 12, 13, 23, 24, 36)] == [0, 0, 0, 1, 0, 0, 1, 1]
+
+
+def _anniversary_book(leave_at):
+    """Twenty accounts from 2016-01; ten leave in `leave_at`, ten stay to 2021-03."""
+    return ([_acct(f"L{i}", "resi electricity", "2016-01", leave_at, 1.0) for i in range(10)]
+            + [_acct(f"S{i}", "resi electricity", "2016-01", "2021-03", 1.0) for i in range(10)])
+
+
+def test_term_phase_ratios_find_an_anniversary_spike_and_move_exits_without_adding_any():
+    """The defect: a phase ratio that reads above one whatever the book says, or that changes
+    the number of exits it expects. Exits at an anniversary read a term-end ratio above one
+    with an interval that excludes it; exits mid-term read it at zero; the expected-weighted
+    ratios sum back to the book's own exits either way. No exit anywhere is refused."""
+    fit_end = _month_index("2019-12")
+    for leave_at, spiked in (("2017-01", True), ("2017-07", False)):
+        r = term_phase_ratios(_anniversary_book(leave_at), fit_end)
+        assert sum(x.observed for x in r.values()) == 10
+        assert sum(x.expected for x in r.values()) == pytest.approx(10.0)
+        if spiked:
+            assert r[1].interval_95[0] > 1.0 and r[0].ratio < 1.0
+        else:
+            assert r[1].ratio == 0.0 and r[0].ratio > 1.0
+    with pytest.raises(ValueError, match="needs both phases at risk"):
+        term_phase_ratios(_anniversary_book("2021-03"), fit_end)
+
+
+def test_the_term_end_key_raises_p_only_for_an_account_whose_term_ends_in_the_horizon():
+    """The defect: a tenure key that reaches the per-customer p without moving it, or moves the
+    flat rule too. Over a three-month horizon the account whose anniversary falls in it is given
+    the higher per-customer p; the flat p is the same for both; the default key is unchanged."""
+    book = _anniversary_book("2017-01") + [
+        _acct("X", "resi electricity", "2016-02", "2021-03", 1.0),  # term ends 2021-02
+        _acct("Y", "resi electricity", "2016-06", "2021-03", 1.0),  # term ends 2021-06
+    ]
+    end = _month_index("2021-03")
+    bt = run_backtest(book, end, 2020, tenure_key="term_end")
+    by = {f.account_id: f for f in bt.forecasts}
+    assert by["X"].per_customer_departure_p > by["Y"].per_customer_departure_p
+    assert by["X"].flat_departure_p == by["Y"].flat_departure_p
+    assert bt.tenure_key == "term_end" and set(bt.term_phase_ratio) == {0, 1}
+    default = run_backtest(book, end, 2020)
+    assert default.tenure_key == "contract_year" and default.term_phase_ratio is None
+    with pytest.raises(ValueError, match="tenure_key must be one of"):
+        run_backtest(book, end, 2020, tenure_key="calendar_year")
