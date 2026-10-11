@@ -341,3 +341,344 @@ bot-blocked this pass. Gas SLC 27 mirrors it; the gas text was not read this pas
   is not drawn in the licence text]
 - 27.8A(f)(iii) already obliges the company to monitor failed arrangements "to understand whether
   inappropriate rates are being set". A plan-failure metric is a licence duty, not an optional KPI.
+
+## Ability to pay and repayment plans: the full rule set, its history, and what Ofgem has said since (2026-10-11)
+
+*Goes deeper than the "Licence text follow-up" section above, which already quotes 27.5B, 27.8 and
+27.8A(a)-(g). Not repeated here. Licence text: the same consolidation (Electricity SLCs, consolidated
+to 1 Aug 2025, Wayback 30 Jul 2026 capture of
+`ofgem.gov.uk/sites/default/files/2025-08/Electricity-Supply-Standard-Consolidated-Licence-Conditions.pdf`),
+pp. 239-246. Gas text not read.*
+
+### The parts of SLC 27 the earlier passes did not quote (ESTABLISHED, verbatim or close paraphrase)
+- **27.5**: the duty is triggered when the supplier "becomes aware or has reason to believe" the customer
+  "is having or will have difficulty paying". So it is a forecast trigger ("will have"), not only an
+  arrears trigger. 27.5B (two missed monthly payments) is the latest point for contact, not the first.
+- **27.6, the menu that must be offered**: (a)(i) payment deducted at source from a social security
+  benefit "where available" (Fuel Direct / Third Party Deductions); (a)(ii) regular instalments
+  "calculated in accordance with 27.8" paid other than by PPM; (a)(iii) a PPM where safe and reasonably
+  practicable, instalments again per 27.8; (b) energy-efficiency information. **27.5A**: none of it may
+  be charged for.
+- **27.8** has two limbs the earlier pass left out. The supplier must give due consideration to (a)
+  "relevant information provided by third parties, where it is available", and (b) for PPM recovery,
+  "the value of all of the charges that are to be recovered through that meter". That means debt plus
+  ongoing use plus standing charge: affordability is judged on the total weekly outgoing, not the debt
+  rate alone.
+- **27.8C**: contract terms must say that charges "may not be demanded or recovered unless and until"
+  27.5-27.8 (and 28.15-28.16) have been complied with. **A plan set in breach of 27.8 makes the debt
+  contractually unrecoverable until it is cured.**
+- **27.9**: no disconnection for unpaid charges unless "all reasonable steps" to recover through a PPM
+  were taken first. **27.9A**: disconnection *includes* credit-limiting that stops supply and
+  load-limiting that "significantly" constrains it (non-PPM). So a smart-meter throttle is a
+  disconnection in law.
+- **27.10-27.11A**: the Winter bar (pensioners alone or only with pensioners or under-18s); "all
+  reasonable steps to avoid" Winter disconnection where there is a pensioner, a disabled or a chronically
+  sick person; a duty to check which applies first. **27.11C**: none of 27.5-27.11B applies to the
+  statutory (safety/theft) disconnection power.
+- **28.15**: any recovery action, and the costs sought, must be "proportionate in the context of the
+  amount of the charges". This is not limited to warrants.
+
+### History: when 27.8A came in (closes GAP 3 of the "2026-10-11 pass" section and the "which limbs were new" gap)
+- **27.8A was introduced by Ofgem's *Self-disconnection and self-rationing: decision*, Oct 2020, in force
+  15 Dec 2020** (decision PDF §1.5, ch. 4,
+  https://www.ofgem.gov.uk/sites/default/files/docs/2020/10/self-disconnection_and_self-rationing_decision.pdf).
+  Ofgem called these the "updated Ability to Pay principles", moved from guidance into the licence. The
+  2020 text of (d) ends at (iii) "not insisting on substantial upfront payments before reconnection".
+  **ESTABLISHED.**
+- **(d)(iv), "pausing scheduled repayments for an appropriate period ... reviewing ... at regular
+  intervals before re-instating", is NOT in the 2020 text but IS in the Aug 2025 consolidation.** The
+  only modification between the two found in any pass is the 18 Oct 2023 Consumer Standards notice.
+  **DERIVED: the pause limb is a Consumer Standards (Dec 2023) addition.** (b)(i) (27.5B contact) and
+  (b)(iv) (31G debt advice) are the same: they cite provisions created by that notice.
+- **"Failed repayment arrangement" has a published definition:** "full payment has not been received by
+  the supplier within 10 working days after the agreed payment date" (Social Obligations Reporting, cited
+  at decision §4.25). Re-engagement under (g) is expected "as soon as" a failure on that definition is
+  identified, and on every failure, not only the first (§4.26). **ESTABLISHED.**
+- **Default rates** (§4.22): only where the customer has not engaged; "guidelines only"; must change
+  when information arrives; "should be reasonable". **ESTABLISHED.**
+
+### Minimum and maximum repayment rates: there are none (ESTABLISHED as an absence)
+- No SLC, guidance or decision read sets a floor, a ceiling, a maximum term or a percentage-of-income
+  cap for supplier repayment plans. The only numeric repayment rates in the system are the **DWP Fuel
+  Direct / Third Party Deduction** rates (UC: a flat 5% of the standard allowance; see
+  `debt_and_collections.md` §3). Those are DWP's, not Ofgem's.
+- The 2020 decision says Ofgem is "engaging with DWP" on misalignment between the licence and DWP's rules
+  on when Third Party Deductions can be used (§1.26). **Note: §2 of this file gives "£3.70/week" as a
+  Fuel Direct floor with no date or source. It predates the UC 5% rule and should be read as stale.**
+  [DERIVED; legacy-benefit rate not re-read this pass]
+- **Observed, not regulated**: 2025 electricity PPM-for-debt rates ran £2.69-£17.17/wk and 137-737
+  weeks by supplier (https://www.ofgem.gov.uk/data/debt-and-arrears-indicators, 24 Sep 2026). That spread
+  is consistent with there being no rate rule.
+
+### What Ofgem has said about ability to pay since (ESTABLISHED unless marked)
+- **PPM guidance §6 (13 Sep 2023)**, binding before any involuntary PPM. 6.1: offer "the cheapest
+  payment option" and "an affordable, sustainable repayment plan". 6.2: a customer who "agrees, and
+  adheres to" a plan must be accepted, and the supplier "should not threaten Involuntary PPM to try and
+  secure higher payment than is affordable". 6.3: if the customer can afford ongoing use but not the
+  debt, consider "delaying repayment start (seasonality or change in financial circumstances)".
+- **Ofgem, *Guide for energy suppliers and debt advice providers*** (PDF dated "28 January 2025", in the
+  2026-01 folder,
+  https://www.ofgem.gov.uk/sites/default/files/2026-01/Guide_for_energy_suppliers_and_debt_advice_providers.pdf,
+  pp. 9-11). It is good-practice guidance, not a rule.
+  - A Standard Financial Statement (SFS; CFS in Scotland) from an FCA-authorised or local-authority debt
+    adviser "should be duly considered and, in many cases, removes the need to ask for further financial
+    information". It "may form the foundation" of the instalment.
+  - Poor practice: rejecting an offer without saying why; asking for a second income-and-expenditure
+    check; "expect[ing] that a large debt can be repaid over a short (three to six month) period" from a
+    low-income or deficit-budget household.
+- **Compliance findings.** The autumn-2022 payment-difficulty review found "severe weaknesses" at Tru,
+  Utilita and ScottishPower and issued provisional orders
+  (https://www.ofgem.gov.uk/decision/ofgem-completes-review-how-suppliers-support-customers-payment-difficulty,
+  page re-stamped Aug 2025). The Jun 2026 PPM review found "unaffordable default debt repayment rates
+  when customers were not present", and refusals of part-payment or a DD plan on the day of a warrant.
+- **Debt strategy update, 6 Nov 2025**
+  (https://www.ofgem.gov.uk/policy/debt-strategy-update-supporting-reduction-energy-debt):
+  - Standardised ability-to-pay assessment is a priority, to come "through phase 2 of the DRS". The Dec
+    2024 *Improving debt standards* proposals have **no decision** (none in Ofgem's sitemap, 10 Oct 2026).
+  - The "Debt Guarantee" became a consumer "Know your rights" guide ("the right to an affordable
+    repayment plan").
+  - The 2023 involuntary-PPM rules are under evaluation, "to conclude ... in the first half of 2026".
+    **No outcome found.**
+- **Write-off.** No licence condition obliges domestic write-off. The only proposed obligation is DRS
+  phase 1 (statutory consultation 6 Nov 2025, decision "expected ... January 2026"; **none found**).
+  Its terms are in `debt_and_collections.md` §3. Otherwise write-off is supplier discretion.
+
+### GAPs
+- E1: gas SLC 27 text (assumed to mirror electricity; not read). E2: DRS phase 1 decision (expected Jan
+  2026; not found). E3: involuntary-PPM evaluation outcome (due H1 2026; not found). E4: the Aug 2025 ASC
+  letter (not reached). E5: no standard ability-to-pay method yet; SFS acceptance is good practice only.
+
+### What this means for an automated self-serve response
+- **May be automated (the rules allow and partly require it):** contact at the 27.5B trigger or on a
+  *forecast* of difficulty (27.5 "will have"); the full 27.6 menu (plan, PPM, Fuel Direct signposting);
+  a provisional, "reasonable" default plan for a non-engaging customer; a pause, review and re-instate
+  cycle (27.8A(d)(iv)); a delayed start for seasonality (PPM guidance 6.3); re-engagement on every
+  failure (10-working-day definition); accepting an SFS-based adviser offer; monitoring whether failing
+  plans mean rates are set too high (27.8A(f)(iii)).
+- **"Some money steadily beats none" fits the rules.** 27.8 makes affordability binding with no floor,
+  so a low rate that holds is lawful, and a high rate that fails is what 27.8A(f)(iii) asks the
+  supplier to detect. [DERIVED]
+- **Must stay human, or at least human-reviewable:** "case-by-case" handling (27.8A(a)(i)) means the
+  engine cannot be the only route, so a person must be reachable (31G.3A, with 31G.3B priority for
+  vulnerable situations). Also anything resting on third-party information (27.8(a)), and any rejection
+  of a debt adviser's offer, which must give its reason.
+- **Forbidden:** charging for any 27.6 service; insisting on substantial upfront payment before
+  reconnection; incentives linked to repayment value (27.8A(a)(ii)), which applies equally to an
+  optimiser's objective [DERIVED]; recovering while 27.5-27.8 is unmet (27.8C); treating a smart
+  load-limit as anything but a disconnection (27.9A).
+
+## Self-disconnection and self-rationing: the duties, and what a supplier must do on detection (2026-10-11)
+
+*Correction to the brief that started this pass: the self-disconnection duties are **SLC 27A**, not
+"SLC 28.1A". 27A was created by the Oct 2020 decision cited in the section above, in force 15 Dec 2020.
+Text: the same Aug 2025 electricity consolidation, pp. 247-249.*
+
+### The rules (ESTABLISHED, verbatim or close paraphrase)
+- **27A.1 Identify.** For every PPM customer, "take all reasonable steps to identify on an ongoing and
+  continuous basis, whether that Domestic Customer is Self-Disconnecting". If they are, offer
+  "appropriate support" under 27A, 27.8 and the other PPM duties, taking vulnerability into account.
+- **Definitions (27A.9).**
+  - *Self-disconnection*: a PPM customer "experiences an interruption to their electricity supply because
+    the credit on the meter has been exhausted".
+  - *Self-rationing*: a customer "deliberately limits its electricity use to save money for other goods or
+    services". This is defined without reference to a PPM.
+- **27A.2 Emergency and friendly-hours credit must be offered to every PPM customer**, unless technically
+  unfeasible or outside the supplier's control. In that case there must be "alternative short-term
+  support in a timely manner" (27A.3).
+  - Friendly-hours credit is credit "overnight, at weekends and public holidays".
+  - **Ofgem refused to set amounts or hours** (decision §3.11): it did not want "a potential race to the
+    bottom".
+- **27A.4**: if the customer is or will be in difficulty, repayment of emergency or friendly credit must
+  be calculated under 27.8 (ability to pay).
+- **27A.5 Additional Support Credit (ASC).** "On each and every occasion" the supplier identifies that a
+  PPM customer **in a Vulnerable Situation** has self-disconnected or is self-disconnecting, or has
+  reason to believe they are self-rationing, it must offer ASC "in a timely manner". This is on top of
+  emergency credit.
+  - 27A.6: the amount and the repayment instalments must be assessed under SLC 27.
+  - 27A.7: the supplier may decline ASC only if, "acting reasonably", it is not in the customer's best
+    interest. It must then give "alternative appropriate support" under SLC 0 and 31G.2. The decision
+    (§3.31) names non-repayable financial support and debt-advice signposting.
+  - ASC is a "fixed amount of credit". **No amount is prescribed.**
+- **27A.7A-C Involuntary PPM credit.** It is automatic on every involuntary installation and repaid under
+  27.8. PPM guidance §10.1 sets it at **£30 per meter** (or an equivalent non-disconnection period that
+  must not leave a negative balance).
+- **27A.8**: every PPM customer must be told, in a usable form and frequency, what each credit facility is,
+  when it can be used and how it is repaid. 28.1(bb) repeats this at installation.
+- **There is NO licence duty to identify self-rationing.** Ofgem decided against one (decision §2.28) and
+  chose to monitor instead. The ASC duty bites only when the supplier "becomes aware or has reason to
+  believe" it is happening.
+- **What on detection.** PPM guidance §9.1 (applies to all PPMs, 13 Sep 2023):
+  - monitor top-up and disconnection patterns;
+  - on self-disconnection, "make multiple attempts to contact the customer using various contact
+    channels" to understand why;
+  - offer "sufficient" ASC "amounts and frequencies".
+  - §9.1(b): if self-disconnection is "frequent or prolonged" and the customer relies on ASC beyond the
+    supplier's own ASC policy, the supplier **must re-assess whether a PPM is still safe and reasonably
+    practicable**. That can end in moving the customer off PPM (28.2(c)).
+- **Annual re-check (28.3)**: contact every PPM customer at least yearly to assess whether a PPM remains
+  safe and reasonably practicable.
+- **Meter-fault interruptions (31G.3A(c))**: a 24-hour enquiry service for customers off supply because of
+  a meter fault.
+
+### Reporting and scale (ESTABLISHED)
+- **Reporting.** The 2020 decision imposed no new reporting condition. Ofgem monitors self-disconnection
+  through its RFIs (§2.22). It now publishes smart-PPM counts in the debt and arrears indicators, from
+  all suppliers since Q3 2023 (before that, the largest 8, about 98% of the market).
+- **Latest (Q2 2026, indicators page dated 24 Sep 2026).**
+  - Electricity: 564,191 smart-PPM customers self-disconnected at least once; 368,659 for over 3 hours;
+    2,038,289 events.
+  - Gas: 304,428 customers; 245,056 for over 3 hours; 958,551 events.
+  - Ofgem warns the counts rise as more meters gain the connectivity to report.
+- **So the same identification duty observes different things by meter type.** A smart PPM reports
+  each event. For a traditional PPM the supplier can see only top-up gaps. [DERIVED]
+
+### GAPs
+- E6: ASC amounts and frequencies actually offered (supplier policy; not published), and the Aug 2025
+  letter that "clarif[ied] expectations" on ASC targeting (not reached).
+- E7: the self-rationing proxy a supplier uses. No rule, and no published method.
+- E8: the share of self-disconnections ended by emergency or friendly credit versus top-up. Not
+  published.
+
+### What this means for an automated self-serve response
+- **May be automated, and largely must be:**
+  - continuous identification of self-disconnection from smart data (27A.1 says "ongoing and
+    continuous");
+  - automatic emergency and friendly-hours credit;
+  - the £30 involuntary-PPM credit;
+  - a first offer of ASC with 27.8-sized repayment;
+  - multi-channel contact after an event;
+  - a trigger that escalates "frequent or prolonged" self-disconnection to a suitability review.
+- **Must stay human:**
+  - the 27A.7 judgement that ASC is *not* in a vulnerable customer's best interest, and the alternative
+    support offered instead;
+  - the safe-and-reasonably-practicable re-assessment after repeated self-disconnection;
+  - anything that rests on suspected self-rationing, which is a judgement about intent the data cannot
+    settle.
+- **Forbidden:**
+  - an ASC policy that caps support below need for a vulnerable customer and leaves no alternative
+    (27A.7);
+  - repaying emergency credit or ASC at a rate not set under 27.8;
+  - leaving a PPM customer without the information in 27A.8.
+- **Modelling note.** Self-disconnection is the PPM population's form of default
+  (`debt_and_collections.md` §2.1). An engine that sizes a PPM debt rate must count the
+  self-disconnection it causes as a cost, not a saving. [DERIVED]
+
+## Involuntary prepayment since 2023: the complete gate, the do-not-install list, and what happened to installations (2026-10-11)
+
+*`debt_and_collections.md` §3 already gives the headline gate (Debt Trigger £200 per fuel and 3 months,
+10 attempts, a Site Welfare Visit, the 75+/under-2 bans, the £150 warrant cap). This section adds the
+rest of SLC 28.7-28.22 and the guidance. Sources:
+- the same Aug 2025 electricity consolidation, pp. 250-257;
+- Ofgem, *PPM Guidance (Safe and Reasonably Practicable)*, 13 Sep 2023, OFG1163,
+  https://www.ofgem.gov.uk/sites/default/files/2023-09/PPM%20Guidance_Safe%20and%20Reasonably%20Practicable.pdf
+  (binding through 28.4).*
+
+### Timeline (ESTABLISHED)
+- Late 2022: media allegations. Jan 2023: market compliance review (MCR) opened. All suppliers stopped
+  involuntary installs and remote switches.
+- 18 Apr 2023: voluntary Code of Practice.
+- Licence and guidance decision Sep 2023, in force **8 Nov 2023**.
+- Restart required a second independent audit. EDF, Octopus and ScottishPower restarted first, in
+  **Jan 2024**.
+- MCR final report, **3 Jun 2026**
+  (https://www.ofgem.gov.uk/sites/default/files/2026-06/Market-Compliance-Review-prepayment-meter-installations.pdf):
+  - "All [suppliers] can now carry out involuntary PPM activity, although not all have chosen to do so";
+  - British Gas "does not currently carry out involuntary PPM activity";
+  - Utilita and OVO were moved to enforcement.
+- The warrant-trauma, warrant-charge and £150-cap limbs (28.10-28.13) had a 30 Jun 2025 sunset in the
+  licence text (28.19). They were extended to 2027 (Ofgem decision, May 2025; see
+  `gb_payment_method_migration_rates.md`).
+
+### The licence gate beyond the headline (ESTABLISHED)
+- **28.21: "involuntary" covers two routes.** One is a warrant install. The other is a remote smart
+  switch to prepay mode when there are outstanding charges, alternatives have been offered under
+  SLC 27, SLC 23 notice has been given, and there is no explicit Consent.
+  - **Consent (28.22)** must be "unmistakably given ... rather than implied or retained in terms and
+    conditions", recorded, and "not given under pressure". A consent clause in T&Cs is not consent.
+- **28.7 order of conditions:** Debt Trigger; multiple engagement attempts; SLC 27/27A/28 compliance;
+  Site Welfare Visit(s); a positive safe-and-reasonably-practicable finding, including the Precautionary
+  Principle and a PSR check. 28.8: 28.7 prevails over any other SLC.
+  - **Precautionary Principle**: assume anyone facing involuntary PPM "is likely to be in financial
+    difficulty and therefore more likely to self-disconnect".
+- **28.9:** accept any relevant financial information and authorised representatives; **no staff
+  incentives tied to the number of installations**; body-cam or audio on welfare visits; aftercare; keep
+  the records (guidance 11.1: **at least five years**).
+- **28.10**: no warrant where it "would be severely traumatic" because of an existing mental-capacity or
+  psychological vulnerability.
+- **28.11**: no warrant costs charged to a customer whose vulnerability impaired engagement, or whose
+  severe financial vulnerability would be worsened.
+- **28.14/28.15**: warrant use and recovery costs must be proportionate to the debt.
+- **28.17/28.18 Debt completion.** Once an involuntary-PPM customer has repaid all debt, the supplier
+  must offer a suitability re-assessment, information on other methods and tariffs, and the option to
+  move. It must implement a move "as soon as reasonably practicable" (credit checks allowed, any deposit
+  "reasonable").
+
+### Do not install (guidance 3.7) and further assessment needed (3.8) (ESTABLISHED, verbatim list)
+- **Do not install.** Applies where no one in the household can access, operate or top up the meter
+  (physical or mental incapacity, or technical reasons), or the household has any of:
+  - **a continuous-supply health need**: powered medical equipment ("heart/lung ventilators, dialysis
+    equipment, stair lift, hoist or refrigerated medication"), carelines or health alarms, or "a medical
+    dependency on a warm home" (for example circulatory disease or sickle cell);
+  - **an occupant aged 75+ "without support in the house"**;
+  - **children under 2**;
+  - **"chronic/severe or terminal health conditions"** (cancer, cardiovascular or respiratory disease
+    including COPD, organ failure).
+- **Further assessment needed**, assessed with the Precautionary Principle:
+  - children 5 and under;
+  - other serious medical conditions (neurological, respiratory, nutritional, mobility-limiting);
+  - serious mental or developmental conditions (depression, dementia, learning disabilities,
+    schizophrenia);
+  - **temporary situations (pregnancy, bereavement)**.
+  - 3.9: suppliers are "encouraged" to check suitability for any household with an adult over 65 or a
+    child under 16.
+  - 3.12: if a further-assessment household's ability-to-pay check shows it "will, frequently or for
+    prolonged periods self-disconnect", the PPM **must** be treated as not safe and reasonably
+    practicable.
+- **Discrepancy, flagged:** Ofgem's consumer page "Installing a prepayment meter without your
+  permission" (updated 16 Sep 2026) says a supplier "must not" install where "anyone's temporary
+  circumstances make a prepayment meter unsafe or unsuitable, for example pregnancy or bereavement".
+  The guidance puts those in further-assessment-needed, not do-not-install. **The binding text is the
+  guidance. The consumer page is the public promise.** A company that treats them as do-not-install
+  satisfies both. [DERIVED]
+
+### Required steps (guidance §§4-6, 10-11) (ESTABLISHED)
+- In the 3 months before execution: **at least 10 engagement attempts**, multi-channel and at various
+  times. Translation and accessible formats. **At least one Site Welfare Visit in every case** (5.3).
+  - Postal-only accounts may do fewer than 10, but must evidence their attempts to find other contact
+    details (5.10).
+  - If there is no contact at the visit, the supplier may proceed (warrant or remote switch), but must
+    try to assess vulnerability without the customer, with a Welfare Officer in Edge Cases, and write to
+    say what happens next (5.7-5.8).
+- **An assessment team independent of debt-recovery and installation** must review every case (5.13).
+  A **Welfare Officer** or senior decision-maker must be present or contactable at visits (5.14). Senior
+  authorisation is needed before the move (§4 table).
+- Smart by default under warrant, and the reason for any non-smart install recorded (7.1-7.3).
+- **Aftercare** (10.1-10.4): £30 credit per meter; at least 3 contact attempts in the first fortnight,
+  the first within 3 days; checks that the customer can top up; a fix for a faulty in-home display.
+  Non-compliant installs must be offered reversal and compensation.
+- Monthly QA of a sample of cases (11.4).
+
+### Effect (ESTABLISHED / NOT ESTABLISHED)
+- **Pre-rules window, from the MCR.** Over 150,000 involuntary installs or switches were reviewed (Jan
+  2022 to Jan 2023, excluding British Gas). **1,925 (under 2%) should not have happened**, mostly "poor
+  quality assurance or human error". Remediation: £7m compensation, £13m written off, £55m hardship and
+  relief. Tiers: £40-60 for process issues; £250 for insufficient support or unfair treatment; £500 for
+  vulnerability not considered; **£1,000 for an inappropriate install, switch or use**.
+- **Post-restart volumes (2024-2026): NOT ESTABLISHED.** Ofgem collects weekly reports from each
+  restarted supplier (MCR §1) but publishes no count, and the debt and arrears indicators have no
+  involuntary-install series. Also flagged in `gb_payment_method_migration_rates.md`.
+
+### What this means for an automated self-serve response
+- **May be automated:** the Debt Trigger test; scheduling the 10 multi-channel attempts; PSR and
+  do-not-install screening as a hard exclusion; flagging further-assessment households for review; the
+  £30 credit and aftercare schedule; the 28.17 debt-completion offer and the move back on request;
+  record retention.
+- **Must stay human:** the Site Welfare Visit; the independent case assessment; Welfare Officer Edge
+  Case decisions; the safe-and-reasonably-practicable judgement for further-assessment households; any
+  decision to proceed without contact.
+- **Forbidden:** an engine that *decides* an involuntary PPM (warrant or remote switch) on a score; any
+  install for a do-not-install household; a T&Cs clause treated as Consent; incentives or an optimiser
+  objective on install counts; threatening involuntary PPM to win a higher-than-affordable rate from a
+  customer keeping to a plan (guidance 6.2).
+- **Involuntary PPM is the end of a human-gated process, never a self-serve response.** [DERIVED from
+  the above]

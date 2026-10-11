@@ -982,3 +982,139 @@ All fetched 2026-10-05 unless stated otherwise.
   - NAO's 25%-on-plans restatement.
 - **Deceased customers: secondary guides only** (afterlossguide.co.uk, withfarra.co.uk). Treated as
   practice description, not evidence of scale.
+
+## Breathing Space (Debt Respite Scheme): what a supplier must do, volumes, Scotland, and whether our seam matches (2026-10-11)
+
+*Sources:
+- SI 2020/1311 as made (https://www.legislation.gov.uk/uksi/2020/1311/made), regs 14-18, 26, 29-33
+  read this pass. legislation.gov.uk records **no amending instrument** (11 Oct 2026).
+- Insolvency Service, *Debt Respite Scheme (Breathing Space) guidance for creditors* (cited as "G"
+  plus section number),
+  https://www.gov.uk/government/publications/debt-respite-scheme-breathing-space-guidance/debt-respite-scheme-breathing-space-guidance-for-creditors .
+- Insolvency Service, *Individual insolvencies, August 2026* (18 Sep 2026), long-run CSV and commentary.
+
+The commons artefact `docs/domain_artefact_library/regulatory/debt_respite_breathing_space_moratorium.json`
+already quotes regs 1, 2, 6, 7, 11, 16, 25, 26 and 32. This section adds what it lacks.*
+
+### What a creditor must do (ESTABLISHED)
+- **Search on notice (reg 14, G3.1, G3.3).**
+  - Search "as soon as reasonably practicable" for the notified debt **and any other debt** the debtor
+    owes. Report extras to the adviser (the service's "add debts that should be included"). Report any
+    assignee.
+  - Failure makes the creditor liable for losses. Action taken without applying the protections is
+    "null and void". A notice with limited information is no excuse not to search.
+- **Timing.** Protections run from the notice date. An electronic notice counts from the day sent, a
+  postal one from 4 business days after posting (reg 37, G2.9). The start is the day after the register
+  entry (reg 26(1)), so electronic notice usually arrives the day before.
+- **Interest, fees and charges (G3.1, G4.4).** They may accrue where systems cannot stop them, but "the
+  debtor must not be required to pay" them, during or after, and they **cannot be backdated** without a
+  court. `company/billing/breathing_space_register.py`'s docstring ("Frozen interest/charges are NOT
+  cancelled") reads as if they could be collected later. **They cannot.**
+- **Enforcement stops (G3.4, G3.5).** Three limbs are specific to energy:
+  - **no PPM install, and no use of an existing PPM, to collect moratorium debt**, unless the PPM was
+    consented to before the start. Ongoing consumption through the PPM continues. [DERIVED from reg
+    7(7)(h)]
+  - **no disconnection**, except for illegally taken supply;
+  - **legacy-benefit DWP third-party deductions (Fuel Direct) must be stopped** (email DWP), and no new
+    application made. **Existing Universal Credit deductions are excluded and must NOT be stopped.** A
+    mistaken stop needs a fresh application.
+  - Credit-reference reporting may continue, but with no automatic breathing-space flag.
+- **Contact (G3.9)** is allowed only about non-moratorium matters (ongoing liabilities), at the debtor's
+  request, in reply to a query or complaint, or with court permission. It should be "minimal" and must
+  not read as a demand. **Existing direct debits may still be accepted**: "A breathing space is not a
+  payment holiday" (G3.12).
+- **Ongoing liabilities.** Energy used during the moratorium is an ongoing liability (reg 2(1)), and the
+  debtor must pay it (reg 16(2)(b)).
+  - **Non-payment is NOT a ground for a creditor review** (G3.18). The adviser *may* cancel at the
+    **midway review, day 25-35** (G3.14-3.16), unless that would be unfair or the debtor lacked the
+    means.
+  - **In a mental-health crisis breathing space there is no ongoing-liability duty and no midway
+    review** (G3.14, G3.17).
+- **The creditor has outbound legs.**
+  - A review request (reg 17) **within 20 days** of the start or of an added debt, in writing, outside
+    the service. The grounds are unfair prejudice, or material irregularity: debtor ineligible, debt not
+    qualifying, or the debtor "has sufficient funds". The adviser decides within 35 days (reg 18).
+  - A court application within 50 days (G3.21).
+- **Eligibility and duration (G2.3-2.4, reg 33).**
+  - Standard: not available if the debtor had one in the previous 12 months; runs 60 days.
+  - Mental-health crisis: no 12-month bar. It runs crisis treatment plus 30 days, **or ends 30 days after
+    the adviser gets no reply** from the nominated contact (asked between day 20 and day 30, then every
+    20-30 days).
+  - A debt reported after day 45 may be refused by the adviser (reg 15(4)). The creditor may then
+    recover it.
+
+### Volumes, England and Wales (ESTABLISHED; long-run CSV, Aug 2026 release)
+| Year | Total | Standard | Mental-health crisis |
+|---|---|---|---|
+| 2021 (from 4 May) | 41,126 | 40,502 | 624 |
+| 2022 | 70,787 | 69,571 | 1,216 |
+| 2023 | 88,390 | 86,926 | 1,464 |
+| 2024 | 89,020 | 87,732 | 1,288 |
+| 2025 | 89,130 | 87,813 | 1,317 |
+| 2026 (Jan-Aug) | 40,270 | 39,240 | 1,030 |
+
+- **A structural break, not a hardship signal.** August 2026 had 5,012, 32% down year on year. The
+  commentary attributes this to StepChange, which made 56% of all registrations, tightening its
+  suitability criteria in Nov 2025.
+- **The energy share is NOT ESTABLISHED.** Tables 6 and 7c split only by type and by adviser group.
+- About 89,000 a year is of the order of 0.3-0.4% of E&W adults or households a year. [DERIVED, order
+  of magnitude; denominator not re-read; a registration is per person]
+
+### Scotland
+- SI 2020/1311 covers England and Wales only (reg 1(8)-(9)). Scotland has the **moratorium on diligence**
+  (Bankruptcy (Scotland) Act 2016 ss. 195-198). It starts on notice to the Accountant in Bankruptcy of
+  intent to seek sequestration, a protected trust deed or a DAS programme, and cannot be repeated within
+  12 months. It runs **6 months** in the current revised s. 198(1)(b)(i); the amending instrument was not
+  traced. **ESTABLISHED.**
+- It bars only charges for payment, diligence and petitions founded on the debt (s. 197(3)). **Nothing on
+  contact, fees, PPM or disconnection.** [DERIVED]
+- The Bankruptcy and Diligence (Scotland) Act 2024 s. 1 *requires* a mental-health moratorium by
+  regulations. **None found. NOT ESTABLISHED as in force.**
+
+### Does `interface/contracts/debt_respite_seam.py` match the rules? Mostly. Five mismatches.
+It gets right: the start, end and cancellation notices and their regulations; reason text on
+cancellation and death endings and none on a 60-day end; reg 36 fields with the address withheld under
+reg 38; and deemed receipt. **Mismatches:**
+1. **The notice unit is the DEBT.** "If the debt adviser is aware that you are owed more than one
+   qualifying debt, you will receive a notification for each debt" (G2.9). The seam's
+   `debts: tuple[...]` on one start notice invites the wrong assumption.
+2. **There is no ADDED-DEBT notice.** Reg 15 adds debts after the start. A notice is sent, and the
+   protections run from it while the start and end stay unchanged (G3.3).
+3. **Partial cancellation.** Cancellation can be "for some or all of the debts" (reg 18, G3.19).
+   `MoratoriumCancellationNotice` has no debt list.
+4. **"UNSOLICITED BY CONSTRUCTION ... no request leg" is too strong.** Reporting additional debts is a
+   reg 14 *duty* done in the service. Review requests (reg 17) and court applications are creditor
+   legs too.
+5. **"NO AMOUNT".** Advisers "will also try to" give "details of any amounts", and creditors may query
+   "an incorrect debt balance" in a notification (G2.5, G3.10). A balance can be present. An optional
+   amount with a NONE_MEANS entry fits the record better. [DERIVED]
+
+The register also has no route for the PPM limb or the Fuel Direct (legacy stop, UC continue) limb. This
+was flagged, not checked in code.
+
+### GAPs
+- E9: the energy share of breathing spaces.
+- E10: whether notices print balances in practice.
+- E11: Scottish mental-health moratorium regulations; the s. 198 amending instrument.
+- E12: any Ofgem-specific breathing-space rule (none found; the Oct 2020 decision §1.25 points suppliers
+  to Insolvency Service guidance).
+
+### What this means for an automated self-serve response
+- **May be automated, and must be fast:**
+  - matching each per-debt notice and searching for other debts;
+  - an immediate hold on dunning, fees, PPM debt deduction, warrant and disconnection steps;
+  - the DWP stop for legacy Fuel Direct, leaving UC running;
+  - continuing to bill and collect ongoing use, including existing DDs;
+  - resuming at the end date with nothing backdated;
+  - diarising the 20-day review window.
+- **Must stay human:** a review or court decision; contact about the moratorium debt that the debtor
+  initiates; every mental-health crisis case (vulnerability team, not the engine).
+- **Forbidden:**
+  - any demand, or any self-serve "repayment offer" prompt, about the moratorium debt during the period;
+  - PPM recovery without consent given before the start;
+  - stopping UC deductions;
+  - treating ongoing-use non-payment as a review ground;
+  - charging the period's interest or fees afterwards.
+- **A statutory breathing space is an external hold that overrides the engine, not a plan state the
+  engine chooses.** The engine's own payment pause (SLC 27.8A(d)(iv)) should be named differently.
+  [DERIVED]
