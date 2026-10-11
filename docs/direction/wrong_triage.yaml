@@ -115,11 +115,11 @@ items:
     reason: "An artefact that never became part of the tree is that register's subject."
   - id: no-work-base-advance-merges
     problem: "A large share of commits were base-advance merges that carried no work and each cost a gate cycle."
-    match: ["No-work base-advance merges", "Base-advance merges carry no work"]
+    match: ["No-work base-advance merges", "Base-advance merges carry no work", "advances its base with a commit even when"]
     first_seen: "2026-10-03"
-    times_listed: 35
+    times_listed: 36
     fate: accept
-    reason: "The per-merge gate cost was fixed by 3c5702901 and the share has run 0-4 per stretch for three days; it is a rate the Monday census grades, not a defect awaiting a fix."
+    reason: "The per-merge gate cost was fixed by 3c5702901 and the share has run 0-4 per stretch for three days; it is a rate the Monday census grades, not a defect awaiting a fix. 2026-10-11 08:23: the row the 05:20 record re-raised as new (three identical 'merge origin/main' subjects) is this same rate, and the 05:20-08:23 stretch ran 4 of 19, inside it."
   - id: a-launch-chain-dies-silently-at-its-waiters-deadline
     problem: "A hand-built launch chain whose waiter hits DEADLINE never starts its next job, and the register does not show it."
     match: ["launch chain dies silently", "chained behind it, never started"]
