@@ -1009,3 +1009,99 @@ the claim:**
 - l.135: `| Capital target (self-assessment) | £130 net assets / dual-fuel customer |` should be £115.
 - l.37 (Floor £0, 7-day notification) is right. "net assets" should be "Adjusted Net Assets" (Net
   Assets less intangibles plus permitted Alternative Sources of Capital).
+
+---
+
+## An expected-loss provision from a forward cash forecast -- rules, practice, GAPs, the build's choices (2026-10-11)
+
+*Knowledge pass for the director's instruction of 2026-10-11 ("the provision, as expected loss per
+customer rolled up to the book, replacing the flat assumption"; "measure ... provision accuracy against
+held-back outcomes"), before the first piece of the cash-forecast engine is built
+(`docs/staging/SEAT_PROPOSAL_A_PERSONAL_PAYMENT_PLAN_AND_DEBT_AS_A_NEXT_BEST_ACTION_DESIGNED_AS_ONE_2026-10-11.md`
+§9b). IFRS 9 re-read at source this pass: Commission Regulation (EU) 2016/2067, EUR-Lex CELEX
+32016R2067, HTML text fetched 2026-10-11. Sections 2.1-2.2 above stand; this adds what they did not
+quote and what follows for a cash-forecast build.*
+
+### Rules (ESTABLISHED, quoted at source)
+
+1. **A credit loss IS a cash-flow shortfall.** Appendix A: *"credit loss: The difference between all
+   contractual cash flows that are due to an entity in accordance with the contract and all the cash
+   flows that the entity expects to receive (ie all cash shortfalls), discounted at the original
+   effective interest rate"*. B5.5.28: *"Expected credit losses are a probability-weighted estimate of
+   credit losses (ie the present value of all cash shortfalls) over the expected life of the financial
+   instrument ... a credit loss arises even if the entity expects to be paid in full but later than
+   when contractually due."* So a provision computed as *the balance owed today less the cash the
+   supplier expects to receive against it* is the standard's own definition, not an analogy to it. The
+   age-band matrix (B5.5.35) is a **practical expedient** for that quantity.
+2. **Lifetime, for trade receivables.** 5.5.15 (simplified approach, quoted in 2.1); Appendix A:
+   *"lifetime expected credit losses: The expected credit losses that result from all possible default
+   events over the expected life of a financial instrument."* For an energy receivable the life is
+   short (bill to cash, or bill to write-off), so a twelve-month forecast covers most of it.
+3. **Probability-weighted, not worst case, and simple models are allowed.** B5.5.42: the estimate must
+   be *"unbiased and probability-weighted ... In practice, this may not need to be a complex analysis
+   ... the average credit losses of a large group of financial instruments with shared risk
+   characteristics may be a reasonable estimate of the probability-weighted amount."*
+4. **Discounting.** B5.5.44: ECL *"shall be discounted to the reporting date ... using the effective
+   interest rate determined at initial recognition or an approximation thereof."* A trade receivable
+   with no significant financing component carries no contractual interest; what rate approximates its
+   EIR is **not stated in the standard (GAP for us)**. Practice for short receivables is not to discount;
+   **NOT ESTABLISHED from a published supplier note** -- Centrica's Note 17 does not mention it.
+5. **Forward-looking, from the entity's own history.** 5.5.17(c) and B5.5.52 (quoted in 2.1): history
+   is "an important anchor", adjusted for current conditions and forecasts, and *"directionally
+   consistent with ... payment status"*.
+6. **Scope: today's receivable only.** The loss allowance is held against recognised financial assets
+   and contract assets (Appendix A, *loss allowance*). **Bills not yet issued are not in it.** The
+   expected loss on NEXT year's billing is a pricing and forward-value quantity (section 4.2), not a
+   provision. A cash forecast that runs twelve months forward therefore serves two different
+   quantities, and they must not be added: (a) the provision = expected shortfall on the balance owed at
+   the forecast date; (b) the expected loss on the bills the forecast expects to issue. This build
+   computes (a).
+
+### How GB suppliers do it (practice)
+
+- **Centrica (Note 17, 2018-2025):** a provision matrix by customer group (*"the nature of the
+  customer, the payment method selected"*), live or final, and age of the OLDEST unpaid invoice, rates
+  from *"historical loss experience"* and recalculated from *"historical cash collection"* (2025
+  auditor), plus a judgemental macroeconomic overlay; *"internal ratings based on a customer's payment
+  history"* also enter (sections 2.2, 3.1). That is a matrix expedient with a payment-history input, not
+  a per-customer cash forecast.
+- **2025: the model changed** (an Ensek model replacing SAP), and the auditor estimated *"an expected
+  profile of the recovery"* from 2024-2025 collection patterns (section 2.2) -- a recovery-curve
+  (cash-collection) frame, which is what a forward cash forecast is.
+- **No GB supplier publishes a per-customer cash-forecast provision, its roll rates or its cure rates
+  (GAP, unchanged from section 4.1).** Roll-rate matrices built from a lender's own monthly ageing are
+  ordinary consumer-credit practice; no published source confirms their use in GB energy (practitioner
+  question, section 4.1).
+
+### GAPs this build carries rather than fills
+
+| GAP | What the build does instead |
+|---|---|
+| Published GB monthly roll / cure rates by payment method | learns them from the company's own book, point in time; until a cell has observations, it shrinks to the book's pooled rate; with no observation anywhere it returns None ("cannot tell"), not a number |
+| Whether a rolling balance's cash is allocated oldest-first for provisioning (the ledger's FIFO) or a DD in-course balance is provisioned on its own instalment schedule | FIFO, the ledger's own convention (`company/billing/arrears_engine.fifo_unpaid_bills`); **practitioner question for the director** |
+| The close-to-write-off period | the write-off point is a horizon from the forecast date (12 months), inside Centrica's stated *"six to twelve months from the issuance of a final bill"* default range (`prov_final_bill_default_months`, 6-12) |
+| Recovery after an account closes, before the book has seen any | prior = 1 - final-bill >90-day coverage (2025: 1 - 0.878 = 0.122, `prov_coverage_final_bill_over_90d`, range 0.104-0.245); replaced by the book's own observed post-close recovery once it has one |
+| The EIR for discounting | not discounted, a named simplification inside a twelve-month horizon |
+| A forward-looking macroeconomic overlay | none; `prov_forward_looking_overlay_share` (0-0.134) is the toggle a later step reads |
+
+### The build's choices (company side; the build follows in its own commit)
+
+1. **Monthly grid, twelve months forward** from each forecast date.
+2. **Expected bill** per month from the company's own billed history: the trailing twelve months' bills
+   where a year exists (their level and their monthly shape, so the account's own last-year shape), else
+   the bills so far scaled to a year on equal monthly weights, a named simplification until the
+   consumption forecast of the forecast finding (one forecast per property, rates in force and forward)
+   lands and replaces it.
+3. **Expected payment** = amount due x P(paid), where amount due is the account's recent instalment (a
+   direct debit) or the previous month's bill (pay on receipt), and P(paid) is a monthly **roll-rate**
+   probability learned from the company's own book: P(an account pays in month m+1 | its payment
+   method on its own register, and its track record = consecutive months without a payment, 0 / 1 / 2 /
+   3+), with a separate learned P(the account closes). A month counts as paid when cash received is at
+   least half the account's median monthly bill (a named threshold).
+4. **Loss given default is not a parameter**: it is what the forecast's expected cash leaves unpaid.
+   After an account closes, recovery is the learned post-close share (prior as in the GAP table).
+5. **The provision** = the probability-weighted expected unpaid part of the balance owed at the forecast
+   date (FIFO), at the write-off point, rolled up to the book.
+6. **Graded, not used.** The run's provision is not switched; the engine is graded beside the flat age
+   bands of `company/finance/bad_debt_provision.py` against the held-back realised shortfall over the
+   next 12 and 24 months, a measurement the company never sees.
