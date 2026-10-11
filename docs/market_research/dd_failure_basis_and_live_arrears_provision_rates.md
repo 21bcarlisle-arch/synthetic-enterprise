@@ -281,3 +281,178 @@ available real-world reference point, cited to the supplier and year, not as an 
 - Attempted and could not read (403 / JS-only, no data extracted): wearepay.uk statistics/glossary
   pages (live), ukfinance.org.uk, bing.com and duckduckgo.com search result pages,
   gocardless.com guide pages (404 on the specific URLs tried).
+
+---
+
+## How DD failure, re-presentation and mandate cancellation reach a supplier, and when (2026-10-11)
+
+*Knowledge pass for the forward-cash-forecast engine (director, 2026-10-11). This section covers the
+scheme mechanics: which messages a supplier receives, what each code means, and on which working day
+it arrives. Rates are dealt with only where a source gives one. Bacs' own rulebook, its reason-code
+appendix (`bacs.co.uk/bdc-sugr/appendix-2-reason-codes/`), the DDIC guide and the indemnity research
+findings are all **behind a login**. Anything here that would need them is marked as such.*
+
+**Sources (all retrieved 2026-10-11):**
+- **[G]** Bacs glossary, live: <https://www.bacs.co.uk/resources/glossary/>.
+- **[F]** Bacs FAQs, live: <https://www.bacs.co.uk/resources/faqs/>.
+- **[R]** Bacs *Reason codes* page, Wayback snapshot 2022-08-23:
+  <http://web.archive.org/web/20220823085703/https://www.bacs.co.uk/resources/reason-codes/>. The
+  live URL now returns 404. Treat this as the last public copy.
+- **[A]** Bacs ADDACS service page, Wayback 2023-12-11:
+  <https://www.bacs.co.uk/bacs-schemes/direct-debit/services/addacs/>.
+- **[AG]** Bacs *AUDDIS service guide* v1.1 (Apr 2021), Wayback 2023-03-09:
+  <https://www.bacs.co.uk/media/4tpm0bar/auddis_service_guide.pdf>.
+- **[S]** Stripe, *Bacs Direct Debit payments* (vendor docs): <https://docs.stripe.com/payments/bacs-debit>.
+- **[GC]** GoCardless guides (vendor): `/guides/posts/arudd-messages/`, `/addacs-messages/` and
+  `/what-is-an-indemnity-claim/` on gocardless.com.
+- **[DDG]** Direct Debit Guarantee: <https://www.directdebit.co.uk/direct-debit-explained/direct-debit-guarantee/>.
+
+### 1. The collection cycle: ESTABLISHED [G]
+
+- **Day 1 (input):** the supplier submits the file. **Day 2 (processing):** Bacs passes it to the
+  paying bank. **Day 3 (entry):** the payer is debited and the supplier credited on the same day.
+  Days are English bank working days, which exclude weekends and public holidays. A file can be
+  "warehoused" up to 30 days before its input day.
+- **Advance notice:** the default is **10 working days plus postal time** before the first collection
+  or any change to amount, date or frequency [G][F][DDG]. The DDI terms can agree a shorter period.
+  The scheme requires advance notice. The ±5% DD-review band is a separate matter
+  (`what_a_supplier_holds_to_size_a_direct_debit.md`).
+- **First collection on a new AUDDIS mandate:** possible **2 working days after the DDI is lodged**.
+  Bacs *recommends* 5, so that lodgement rejections arrive first [AG]. Stripe's timeline for a new
+  mandate runs submitted T+0, active and debit submitted T+3, money leaves the payer T+5 [S].
+- **The supplier cannot count a collection as cash on Day 3.** Stripe treats a payment as succeeded
+  at **T+3 21:00 UTC**, after the return window has passed, and makes funds available at T+4. With an
+  existing mandate the money leaves the payer at T+2 [S]. (Stripe counts T+0 as submission, so its
+  T+2 is the scheme's Day 3.)
+
+### 2. Unpaid DDs: ARUDD, the 12 codes: ESTABLISHED [R], current list NOT RE-CONFIRMED
+
+ARUDD returns the unpaid item to the supplier's account and produces a report giving the reason for
+each item [G]. These are the codes, with Bacs' own instruction to the service user (the supplier):
+
+| Code | Reason | What it means, and Bacs' instruction to the supplier |
+|---|---|---|
+| **0** | Refer to payer | The payer's bank is "not in a position to pay" (in practice, insufficient funds). Also used for a garnishee order or arrestment, bankruptcy, liquidation or receivership. **May be re-presented up to one month from the original processing day**; Bacs recommends notifying the payer **5 working days** before. The supplier should find out why it was not paid and how likely re-presentation is to work. |
+| 1 | Instruction cancelled | Cancelled by the payer or their bank. The supplier must agree another payment method for what is outstanding. |
+| 2 | Payer deceased | — |
+| 3 | Account transferred | Collection is suspended until a new DDI is in place and advance notice has been given. Under a full current-account switch the DD is redirected centrally. Under the Payment Transfer Service it is not, and the collection returns code 3 [F]. |
+| 4 | Advance notice disputed | Do not collect again until the dispute is resolved. |
+| 5 | No account (or wrong account type) | Check the DDI details. |
+| 6 | No instruction | No DDI is held at the paying bank. Obtain a new one. |
+| 7 | Amount differs | The payer says the amount differs from the advance notice. Do not collect again until resolved. |
+| 8 | Amount not yet due | Collected before the date in the advance notice, or (AUDDIS only) less than 2 working days after lodgement. |
+| 9 | Presentation overdue | More than 3 working days after the advance-notice date, **or a re-presentation more than one month after the original processing day**. Give further advance notice. |
+| A | Service user differs | — |
+| B | Account closed | A new DDI on a different account is needed. |
+
+GoCardless independently confirms "12 ARUDD reason codes" and that code 0 is "by far, the most
+common" [GC]. **The code list is from a 2022 snapshot.** The live page is gone and the appendix that
+replaced it is behind a login, so a 2023–26 code change cannot be ruled out. **NOT ESTABLISHED:**
+the share of returns carrying each code.
+
+**When the supplier learns of a failure: DERIVED.** GoCardless says ARUDD is triggered "the day after
+the payment was due to be collected" [GC]. Stripe confirms success or failure 4 business days after
+submission and declares success at T+3 [S]. Together these put the routine return on the **working
+day after Day 3, about 3–4 working days after submission**. Stripe adds that a bank can report a
+failure *after* a payment has been marked successful. It then arrives as a dispute (an indemnity
+claim) [S]. **A late failure is therefore possible, and it comes through a different channel.**
+
+### 3. Re-presentation: rule ESTABLISHED, how many times DERIVED, cure share NOT ESTABLISHED
+
+- **Rule [R]:** the only code a supplier may re-present on is **code 0**. The deadline is **one month
+  from the original processing day**, and a later attempt can be returned under code 9. Bacs
+  recommends (it does not require) **5 working days' notice** to the payer.
+- **How many times: DERIVED, not seen in the rules.** The public Bacs text sets a time limit, not a
+  count. "Up to twice within 30 days" comes from vendor practice: Stripe "can automatically retry ...
+  up to 2 times, no more than 30 days after the original payment attempt" [S]. The scheme summaries
+  already on disk say the same (`gb_payment_method_migration_rates.md`). British Gas retries after
+  14 days and then cancels the DD (`debt_and_collections.md` P1). The count may sit in the
+  members-only rulebook. Treat "two" as industry practice.
+- **Cure share: NOT ESTABLISHED.** The only figures are vendor figures, already filed in
+  `gb_domestic_bill_payment_failure_and_arrears_prevalence.md` §2: up to 70% (a ceiling), 22%
+  (Jellyfish, SME energy), and +7% over a plain retry. No published share exists for a plain Bacs
+  re-presentation on domestic energy.
+
+### 4. Mandate lodgement and cancellation: AUDDIS and ADDACS: ESTABLISHED for timing, PARTIAL for codes
+
+- **AUDDIS** sends a new DDI electronically to the payer's bank. A rejected one comes back on the
+  *AUDDIS Bank Rejected Direct Debit Instruction Report* [Bacs AUDDIS service page, Wayback 2023-12-11: https://www.bacs.co.uk/bacs-schemes/direct-debit/services/auddis/]. AUDDIS
+  is mandatory for new direct submitters. **NOT ESTABLISHED: the AUDDIS rejection code list.** It is
+  in the login-only appendix. It is not reproduced here from memory.
+- **ADDACS** carries the bank's amendments and cancellations to the supplier. **Timing: available
+  from 08:00 on the working day after the paying bank inputs the advice** [AG §3.2]. **The supplier
+  must act on it within 3 working days** and is recommended to act immediately [A][G][F].
+- **ADDACS codes**, as listed by GoCardless [GC]. Bacs itself confirms only code 3 [G]:
+  - **Cancellations:** 0 "instruction cancelled – refer to payer", 1 "instruction cancelled by
+    payer", 2 "payer deceased", B "account closed", D "advance notice disputed".
+  - **Amendments:** 3 and C "account transferred to a new bank or building society", E "instruction
+    amended".
+  - Other codes may exist (for example a reinstatement code). **That is NOT ESTABLISHED and is left
+    unlisted.**
+- **A cancellation can overtake a collection already in flight.** That collection then returns
+  ARUDD 1. The supplier can therefore receive two messages for one act by the customer.
+
+### 5. Indemnity claims (DDIC / DDICA) under the Direct Debit Guarantee
+
+- **What they are: ESTABLISHED.** The Guarantee entitles the payer to "a full and immediate refund"
+  from their bank when an error is made [DDG]. The paying bank then claims the money back from the
+  supplier as an indemnity claim [G]. The supplier receives it on a DDICA report, and a DDIC
+  challenge process exists [G].
+- **Time limits: vendor-sourced.** There is no time limit for the payer: "Bacs has an indefinite
+  indemnity period" [S]. GoCardless says the supplier has **9 days to challenge** and the claim is
+  usually collected within 14 days [GC]. Stripe says its claims cannot be contested [S]. That is
+  Stripe's own policy, not the scheme's.
+- **Grounds [GC]:** the amount or date differs from the advance notice, no advance notice was
+  received, a dispute, wrong account, or collection more than 3 working days late. These mirror
+  ARUDD 4/7/8/9.
+- **How often: NOT ESTABLISHED.** Bacs' "Indemnity claims research findings" is behind a login. The
+  only public statement is GoCardless's "very uncommon" [GC].
+- **For a supplier, a DDIC is not mainly a fraud signal.** Its grounds are almost all the supplier's
+  own failures over notice or amount. A sudden DD increase sent with a short or missing notice
+  invites one.
+
+### 6. What this means for early warning and for a forward cash forecast
+
+The order in which signals arrive around one collection, counted in working days from the supplier's
+submission (S):
+
+| Signal | Arrives | Before or after the money is due | Evidence on how well it predicts default |
+|---|---|---|---|
+| ADDACS 0/1 (customer cancels the mandate) | the working day after the bank inputs it, **at any time** | **Can be before**: the earliest warning, and it costs the supplier no failed collection | **NOT ESTABLISHED** |
+| AUDDIS rejection (new mandate) | before the first collection, if the recommended 5-day gap is kept | before | NOT ESTABLISHED; mostly bad details, not distress (DERIVED from the code meanings) |
+| ADDACS 2/3/B/C/E | the working day after input | before or between collections | these are about administration, not credit (DERIVED) |
+| ARUDD 0 (insufficient funds) | about S+3 to S+4 | after: the first hard evidence of distress | **NOT ESTABLISHED**; no published P(default given a first-time code 0) |
+| ARUDD 1/B | about S+3 to S+4 | after | this is a cancellation found out late (DERIVED) |
+| Re-presentation outcome | the re-presentation's own S+3, inside one month | after | NOT ESTABLISHED; cure share is vendor-only (§3) |
+| DDIC (indemnity claim) | **at any time, with no time limit** | long after | NOT ESTABLISHED; mostly a notice/amount defect, not credit |
+| A missed manual payment, or collapsing consumption | outside Bacs: the supplier's own ledger and meter reads | — | outside this section |
+
+**Design implications:**
+1. **Model a collection as a state machine with a clock, not as a Bernoulli trial per bill.** The
+   states are: submitted, then Day 3, then either cleared at S+3/S+4 or returned with a code.
+   - **Code 0** branches to a re-presentation, at most twice and within one month (industry
+     practice).
+   - **Codes 1/B/3/5/6** go to "no mandate": stop collecting, and agree a new method or a new DDI.
+   - **Codes 4/7/8/9** go to "our own error": resolve it before collecting again.
+   - A cleared item can still be reversed later by a DDIC. Expected cash should be booked against
+     these dates. The bill date is the wrong clock.
+2. **ADDACS 0/1 is the only signal that arrives before a failed collection.** It moves expected
+   collections for the next cycle to zero before any return comes in. The engine should consume it
+   as the earliest warning.
+3. **The reason code tells you where the problem lies, and only code 0 is about credit.** Pooling
+   all returns into one "DD failure" rate repeats the bill-shock definition error that `CLAUDE.md`
+   names. It mixes distress (0) with administration (3/5/6), with the supplier's own fault (4/7/8/9)
+   and with switching away (1/B).
+4. **The epistemic wall:** every signal here is something a real supplier receives. The ARUDD/ADDACS
+   code and its date may cross the seam. The household's balance and intent may not.
+
+**GAPs to file:**
+- the share of returns by code;
+- P(default) given a first code 0, and given an ADDACS cancellation;
+- the cure share of a plain re-presentation (domestic energy);
+- the DDIC rate;
+- the AUDDIS rejection codes, the full current ADDACS list, and whether the scheme caps the number
+  of re-presentations.
+
+All of these are behind the Bacs login or held as supplier data. **The fastest route is the
+practitioner leg**: a supplier's payments team, or the director.
