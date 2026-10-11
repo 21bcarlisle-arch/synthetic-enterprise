@@ -148,7 +148,7 @@ from datetime import date, timedelta
 
 from company.interfaces.dd_collection_instructions import open_collections_desk
 from simulation.arrears_engine import (
-    PAYMENT_TERMS_DAYS, bill_substream, payment_method, payment_outcome,
+    PAYMENT_TERMS_DAYS, bill_substream, mover_final_bill_outcome, payment_method, payment_outcome,
     stress_for_year, _fuel_poor_for_bill, _tone_for_bill,
 )
 from simulation.bacs_rails import (
@@ -331,12 +331,18 @@ def _run_rails(
         if desk.has_mandate(cid) and not desk.pays_by_direct_debit(cid):
             continue
         stress = stress_for_year(behavioral.get(cid) or {}, year)
-        outcome, _days_late = payment_outcome(
-            method, stress, bill_substream(seed, cid, period_end, bill.get("commodity", "electricity")),
-            segment,
-            _fuel_poor_for_bill(method, cid),
-            _tone_for_bill(method, cid, period_end), cid,
-        )
+        commodity = bill.get("commodity", "electricity")
+        exit_ = mover_final_bill_outcome(behavioral.get(cid) or {}, cid, period_end, commodity,
+                                         amount, method, stress, seed)
+        if exit_ is not None:
+            outcome = exit_[0]
+        else:
+            outcome, _days_late = payment_outcome(
+                method, stress, bill_substream(seed, cid, period_end, commodity),
+                segment,
+                _fuel_poor_for_bill(method, cid),
+                _tone_for_bill(method, cid, period_end), cid,
+            )
 
         issue_date = date.fromisoformat(period_end)
         due_date = issue_date + timedelta(days=PAYMENT_TERMS_DAYS)

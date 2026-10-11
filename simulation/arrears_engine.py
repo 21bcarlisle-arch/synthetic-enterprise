@@ -543,6 +543,49 @@ def payment_outcome(method: str, stress: str, rng: random.Random, segment: str =
     return ("success", rng.randint(lo, hi))
 
 
+def mover_final_bill_outcome(behavioral: dict, customer_id: str, period_end: str, commodity: str,
+                             amount_gbp: float, method: str | None, stress: str, base_seed: int
+                             ) -> tuple[str, int, float] | None:
+    """`(outcome, days_late, part_paid_gbp)` for a home mover's FINAL bill, else None.
+
+    A mover's last bill is the exit, and `final_bill_outcome` is the world's one model of an exit:
+    the bill lands after the household has gone, sometimes with no forwarding address. Before B7
+    slice 7 it was drawn here at the mid-tenure rate, 0.74% lost at issue at LOW stress against
+    final_bill_outcome's 15% and Centrica's 32-37% provision (home_moves.md s5.1). Every deriver
+    of a bill's outcome calls this first, so the P&L, the ledger and the DD book agree on it.
+
+    The final bill is the one whose period reaches the month of the last supplied day; the run
+    stamps `moved_out_on` on the leg's behavioural record (`run_phase2b`). A prepayment statement
+    demands nothing, so it is never an exit debt here either.
+
+    A PARTIALLY_PAID outcome is `failed` with the part paid returned beside it: the case is for the
+    rest. A GONE-AWAY balance is booked wholly unpaid, and its 0-20% recovery band is not taken
+    here. Post-close collection is what `post_write_off_recovery_gbp` already returns on every
+    write-off, so taking both would count one collection twice.
+    """
+    moved = behavioral.get("moved_out_on")
+    if not moved or method == PREPAYMENT_METHOD or amount_gbp <= 0:
+        return None
+    move_date = date.fromisoformat(moved)
+    last_supplied = move_date - timedelta(days=1)
+    pe = date.fromisoformat(period_end)
+    if (pe.year, pe.month) < (last_supplied.year, last_supplied.month):
+        return None
+    from simulation.final_bill_outcome import (
+        FinalBillOutcome,
+        open_final_bill_exposure,
+        resolve_final_bill,
+    )
+    exposure = open_final_bill_exposure(customer_id, customer_id, commodity, move_date,
+                                        amount_gbp, customer_id=customer_id)
+    seed = bill_substream(base_seed, customer_id, period_end, commodity).getrandbits(64)
+    res = resolve_final_bill(exposure, exposure.resolution_date, stress=stress, seed=seed)
+    if res.outcome in (FinalBillOutcome.PAID_ON_TIME, FinalBillOutcome.PAID_LATE):
+        return ("success", res.days_late, 0.0)
+    part = 0.0 if res.gone_away else res.recovered_gbp
+    return ("failed", 0, round(min(part, amount_gbp), 2))
+
+
 #: The only method whose failure is a returned Direct Debit. Anything else
 #: fails as a payment that did not arrive -- there is no mandate to return.
 DD_METHOD = "direct_debit"
@@ -842,12 +885,18 @@ def _resolve_bills(bills: list[dict], behavioral: dict, seed: int) -> list[dict]
             continue
         stress = stress_for_year(behavioral.get(cid) or {}, int(period_end[:4]))
         method = paying_method(segment, amount, cid, commodity, period_end, dd_stops)
-        outcome, days_late = payment_outcome(
-            method, stress, bill_substream(seed, cid, period_end, commodity),
-            segment,
-            _fuel_poor_for_bill(payment_method(segment, amount, cid, commodity), cid),
-            _tone_for_bill(method, cid, period_end), cid,
-        )
+        exit_ = mover_final_bill_outcome(behavioral.get(cid) or {}, cid, period_end, commodity,
+                                         amount, method, stress, seed)
+        if exit_ is not None:
+            outcome, days_late, part_paid = exit_
+            amount = round(amount - part_paid, 2)
+        else:
+            outcome, days_late = payment_outcome(
+                method, stress, bill_substream(seed, cid, period_end, commodity),
+                segment,
+                _fuel_poor_for_bill(payment_method(segment, amount, cid, commodity), cid),
+                _tone_for_bill(method, cid, period_end), cid,
+            )
         rows.append({"customer_id": cid, "period_end": period_end, "commodity": commodity,
                      "amount_gbp": amount, "due_date": due_date, "method": method,
                      "outcome": outcome, "days_late": days_late})

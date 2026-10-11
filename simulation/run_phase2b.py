@@ -5055,6 +5055,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             household_demand_register,
             _cx_desk,
             _bill_shock_dates,
+            {m["customer_id"]: m["move_date"] for m in home_move_outs},
         ),
         # Phase NJ: company churn model calibration report
         "churn_model_performance": score_churn_estimates(
@@ -5087,7 +5088,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
 
 
 
-def _build_behavioral_trajectories(customers, hdr, cx_desk, bill_shock_dates=None):
+def _build_behavioral_trajectories(customers, hdr, cx_desk, bill_shock_dates=None,
+                                   move_out_dates=None):
     """Splice the world's own per-customer trajectories around the company's
     experience record.
 
@@ -5118,6 +5120,10 @@ def _build_behavioral_trajectories(customers, hdr, cx_desk, bill_shock_dates=Non
             **(cx_desk.behavioural_record(cid) if cx_desk else dict(empty_record)),
             "bill_shock_history": (bill_shock_dates or {}).get(cid, []),
         }
+        # B7: a mover's last bill is the exit (`arrears_engine.mover_final_bill_outcome`). Only a
+        # mover carries the key, so every other record is unchanged.
+        if cid in (move_out_dates or {}):
+            out[cid]["moved_out_on"] = move_out_dates[cid]
     return out
 
 

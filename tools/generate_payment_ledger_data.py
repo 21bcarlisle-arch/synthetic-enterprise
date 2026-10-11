@@ -78,6 +78,12 @@ def build_account_ledger(cust, as_of):
                 })
             continue
         method = pay["method"] if pay else None
+        if pay and pay.get("part_paid_gbp") and pay["payment_date"] <= as_of:
+            entries.append({
+                "date": pay["payment_date"], "type": "payment_received", "invoice_number": num,
+                "amount_gbp": round(-pay["part_paid_gbp"], 2), "info_amount_gbp": None,
+                "method": pay["method"], "description": "Part payment received",
+            })
         for stage in arr["stages"]:
             if stage["date"] > as_of:
                 break
