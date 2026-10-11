@@ -29,6 +29,7 @@ from simulation.arrears_engine import (
     payment_method as _payment_method,
     paying_method as _paying_method,
     payment_outcome as _payment_outcome,
+    mover_final_bill_outcome as _mover_final_bill_outcome,
     _fuel_poor_for_bill,
     _tone_for_bill,
     arrears_stages as _arrears_stages,
@@ -244,6 +245,7 @@ def generate(run_json_path=None, out_path=None):
         # invoice was otherwise rendered as a "successful direct_debit
         # payment" of a negative sum, which is not a real event).
         is_credit = amount <= 0
+        part_paid = 0.0
         if is_credit:
             method = None
             _tone = None
@@ -251,11 +253,17 @@ def generate(run_json_path=None, out_path=None):
         else:
             method = _paying_method(segment, amount, cid, commodity, period_end, dd_stops)
             _tone = _tone_for_bill(method, cid, period_end)
-            outcome, days_late = _payment_outcome(
-                method, stress, _bill_substream(_outcome_seed, cid, period_end, commodity),
-                segment, _fuel_poor_for_bill(_payment_method(segment, amount, cid, commodity), cid),
-                _tone, cid,
-            )
+            exit_ = _mover_final_bill_outcome(beh, cid, period_end, commodity, amount, method,
+                                              stress, _outcome_seed)
+            if exit_ is not None:
+                outcome, days_late, part_paid = exit_
+            else:
+                outcome, days_late = _payment_outcome(
+                    method, stress, _bill_substream(_outcome_seed, cid, period_end, commodity),
+                    segment,
+                    _fuel_poor_for_bill(_payment_method(segment, amount, cid, commodity), cid),
+                    _tone, cid,
+                )
 
         # Defect 2: meter-read status, opening/closing reads, meter serial,
         # MPAN/MPRN. read_event is None for a bill Phase 3's meter-read
@@ -494,6 +502,9 @@ def generate(run_json_path=None, out_path=None):
                 "income_stress_at_time": stress,
                 "tone": _tone,
             }
+            if part_paid:
+                # A mover's final bill paid in part: the case below is for the rest.
+                pay["part_paid_gbp"] = part_paid
             payments_by_cid.setdefault(cid, []).append(pay)
 
         written_off = write_offs.get((cid, period_end, commodity))
@@ -501,8 +512,9 @@ def generate(run_json_path=None, out_path=None):
         # (SLC 27.16) -- the amount the engine writes off or leaves open. `face` is the bill.
         credits = credits_applied.get((cid, period_end, commodity), [])
         face = amount
+        amount = round(face - part_paid, 2)
         if credits:
-            amount = max(round(face - sum(c["amount_gbp"] for c in credits), 2), 0.0) + 0.0
+            amount = max(round(amount - sum(c["amount_gbp"] for c in credits), 2), 0.0) + 0.0
         if outcome == "failed":
             # A case that is not written off is still an open balance, and ends on BALANCE_OPEN.
             still_open = written_off is None
@@ -541,8 +553,8 @@ def generate(run_json_path=None, out_path=None):
         # balance also nets credit from -- never the face, which a part-credited bill no longer owes.
         inv["outstanding_gbp"] = 0.0
         if outcome in ("failed", "dispute"):
-            arr.update(face_gbp=round(face, 2), credit_applied_gbp=round(face - amount, 2),
-                       stages=_with_credits_applied(arr["stages"], face, credits))
+            arr.update(face_gbp=round(face, 2), credit_applied_gbp=round(face - part_paid - amount, 2),
+                       stages=_with_credits_applied(arr["stages"], face - part_paid, credits))
             inv["outstanding_gbp"] = arr["arrears_gbp"]
             inv["credit_applied_gbp"] = arr["credit_applied_gbp"]
             if credits and amount == 0:
@@ -582,7 +594,8 @@ def generate(run_json_path=None, out_path=None):
         pays = payments_by_cid.get(cid, [])
         arrs = arrears_by_cid.get(cid, [])
         total_billed = sum(i["total_amount_gbp"] for i in invs)
-        total_paid = sum(p["amount_gbp"] for p in pays if p["outcome"] == "success")
+        total_paid = sum(p["amount_gbp"] if p["outcome"] == "success" else p.get("part_paid_gbp", 0.0)
+                         for p in pays)
         failed_count = sum(1 for p in pays if p["outcome"] in ("failed", "dispute"))
         customers[cid] = {
             "segment": segment_by_cid.get(cid, "resi"),

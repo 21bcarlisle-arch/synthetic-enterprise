@@ -159,3 +159,31 @@ def test_a_bill_carries_the_share_of_its_charges_that_is_occupier_debt(moved_run
     assert all(b["occupier_share"] == 1.0 for b in whole), whole
     assert all(0.0 < b["occupier_share"] < 1.0 for b in split), split
     assert not [b for b in after if "occupier_share" in b]
+
+
+def test_the_run_stamps_each_movers_leg_and_its_final_bill_reaches_the_exit_draw(moved_run):
+    """B7 slice 7. Defect: `moved_out_on` never reaches the behavioural record, so every mover's
+    final bill is drawn at the mid-tenure rate again and the unit controls in
+    `test_a_movers_final_bill_is_the_exit_draw.py` stay green on stamps the run never writes. The
+    bill before the final one must exist and stay off the exit, or a rule reaching every bill
+    would pass."""
+    from simulation.arrears_engine import mover_final_bill_outcome
+    from simulation.run_phase4c_on_phase2b import build_monthly_bills
+    behavioral = moved_run["per_customer_behavioral"]
+    moved = {m["customer_id"]: m["move_date"] for m in moved_run["home_move_outs"]}
+    assert {c for c, b in behavioral.items() if "moved_out_on" in b} == set(moved)
+    assert all(behavioral[c]["moved_out_on"] == d for c, d in moved.items())
+
+    bills = sorted((b for b in build_monthly_bills(moved_run["all_records"])
+                    if b["customer_id"] in moved), key=lambda b: b["period_end"])
+    by_leg: dict = {}
+    for b in bills:
+        by_leg.setdefault(b["customer_id"], []).append(b)
+
+    def asks(b):
+        return mover_final_bill_outcome(behavioral[b["customer_id"]], b["customer_id"],
+                                        b["period_end"], b.get("commodity", "electricity"),
+                                        150.0, "direct_debit", "LOW", 42)
+    legs = [own for own in by_leg.values() if len(own) > 1]
+    assert legs
+    assert all(asks(own[-1]) is not None and asks(own[-2]) is None for own in legs)

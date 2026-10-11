@@ -335,11 +335,24 @@ numbers are at the worktree HEAD of that date.
   (≈ line 328) is the sanctioned crossing, and it omits the probability, archetype, tenure and channel.
   It is sound in shape. *Corrected 2026-10-10: this said it "has no move-out stream to feed it". The
   stream now exists (B7, moves on since ada37371c), but the run still has no caller of
-  `OccupancyEnded.final_bill_exposure`, so a mover's final bill never goes through this module.*
+  `OccupancyEnded.final_bill_exposure`, so a mover's final bill never goes through this module.* *Corrected again the same day: a mover's final bill now goes through it, by way of
+  `arrears_engine.mover_final_bill_outcome` (below). `OccupancyEnded.final_bill_exposure` still has
+  no caller.*
 - **That module against the one sourced exit-loss figure (measured 2026-10-10, not wired).** Centrica
   ARA 2025 Note 17 p.175 provisions UK residential **closed-account final bills** at 31.6% / 57.6% /
   87.8% of the gross balance at <30 / 30–90 / >90 days past invoice (2024: 36.8 / 63.6 / 89.6), per
-  `knowledge_map.md`'s IFRS 9 row. The world's comparable figure is the eventual shortfall over the
+  `knowledge_map.md`'s IFRS 9 row. **What each figure counts, before they are compared (added
+  2026-10-10).** Centrica's is a share of VALUE. It is an expected-credit-loss rate applied to the
+  gross receivable balance in each age bucket, so it is pounds provided over pounds owed. It is not a
+  share of accounts and not a share of the bills that fail. It is a STOCK, the balances still open at
+  the reporting date, so a large or old balance weighs more than a small one. It includes the
+  supplier's prudence, and it excludes closed accounts in credit. The world's figures below, and the
+  0.74% after them, count pounds too: the face value of a final bill not recovered (a part payment
+  counts as recovered), after the 12.2% post-write-off recovery, over the face value issued. That is a
+  FLOW over bills at issue. Every draw is a £100 bill, so on this basis the share of value equals the
+  expected share of each bill lost, and no size weighting is in it. So the comparison is value
+  against value, with two known gaps: stock against flow, and Centrica's book mix and prudence. The
+  world's comparable figure is the eventual shortfall over the
   balance still outstanding at that invoice age. That age is days past due plus the 28 days to pay.
   The draw used 20,000 £100 debit exposures per cell, with credit closures excluded as Centrica's
   bucket excludes them.
@@ -375,6 +388,15 @@ numbers are at the worktree HEAD of that date.
   exit models, and the live one has no exit shape at all. The next step is to fold
   `final_bill_outcome` in as the close-time draw for a mover's final bill, and not add it beside
   the close rule. That would be two implementations of one exit.
+- **Folded in, 2026-10-10 (B7 slice 7).** A mover's final bill is now decided by
+  `final_bill_outcome`, through `arrears_engine.mover_final_bill_outcome`, which the P&L, the
+  billing ledger and the DD book each ask first. A traceable part payment is booked, and the case
+  is for the rest. A gone-away balance is booked wholly unpaid, because its 0–20% recovery band is
+  the post-close collection that the register's 12.2% already returns. Measured on £100 final bills
+  (20,000 per cell, three in four by direct debit, after the 12.2%): **13.4% lost at issue at LOW,
+  26.3% MODERATE, 38.6% HIGH.** That replaces the 0.74% / 3.0% / ~9% above. LOW is now about 40% of
+  Centrica's 32–37%, not a fortieth of it. The gone-away base rate (`GONE_AWAY_BASE_BETA`, mean
+  0.12) is still an admitted choice, and it is the first suspect if the book's exits read low.
 
 ### 5.2 The company: a complete change-of-tenancy machine with no input
 

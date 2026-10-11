@@ -69,6 +69,12 @@ switch hazard and a move hazard and run as competing risks, so the all-cause lev
 between the causes rather than re-fitted. A retention lever acts on one term only, and slice 6
 found the regime moved one term (switching) far more than the other.
 
+TENURE GIVEN CALENDAR TIME (slice 8). On one cohort a contract year IS a calendar year, so the
+tenure table can be a recency estimator in disguise (slice 7 found the founders' oldest year fitted
+on the cut year alone). Every run so far opens in 2016, but later cohorts open each year after, and
+``exit_cells`` with ``standardised_ratios`` ask whether a contract year carries anything once its
+calendar year is held. It assumes no cohort effect, which no single book can test.
+
 THE BOUND. Every comparison is paired over the same accounts: the mean of
 (per-customer absolute error − flat absolute error) with a normal-approximation 95%
 interval on that mean. An interval that straddles zero is reported as "cannot tell",
@@ -109,6 +115,10 @@ __all__ = [
     "regime_boundary_month",
     "run_backtest",
     "backtest_run_output",
+    "StandardisedRatio",
+    "exit_cells",
+    "pooled_ratio",
+    "standardised_ratios",
 ]
 
 DEFAULT_CUT_YEAR = 2020
@@ -545,6 +555,101 @@ def _hazard_at(by_cy: Mapping[int, float], tenure_months: int) -> float:
     cy = tenure_months // _MONTHS_PER_CONTRACT_YEAR
     seen = [c for c in by_cy if c <= cy]
     return by_cy[max(seen) if seen else min(by_cy)]
+
+
+@dataclass(frozen=True)
+class StandardisedRatio:
+    """Observed exits over the exits expected if only the OTHER axis mattered, for one key."""
+
+    key: int  # a contract year, or a calendar year
+    months_at_risk: int
+    observed: int
+    expected: float
+    ratio: float | None
+    interval_95: tuple[float, float] | None  # Byar's approximation to the exact Poisson bound
+
+
+def exit_cells(
+    accounts: Sequence[AccountHistory], book_end: int, censored: frozenset[str] = frozenset(),
+) -> dict[tuple[int, int], tuple[int, int]]:
+    """(calendar year, contract year) -> (months at risk, exits), over every observed month.
+
+    The exit rule is ``_fit_hazards``' with the book's last month as the cut. On one cohort the
+    two keys move together, so a contract-year table cannot tell tenure from calendar time;
+    where cohorts open in different years the same contract year is seen in several calendar
+    years, and ``standardised_ratios`` asks whether it carries anything once the year is held.
+    """
+    cells: dict[tuple[int, int], list[int]] = defaultdict(lambda: [0, 0])
+    for a in accounts:
+        for m in range(a.first_month, min(a.last_month, book_end) + 1):
+            cells[(m // 12, (m - a.first_month) // _MONTHS_PER_CONTRACT_YEAR)][0] += 1
+        if a.last_month < book_end and a.account_id not in censored:
+            m = a.last_month
+            cells[(m // 12, (m - a.first_month) // _MONTHS_PER_CONTRACT_YEAR)][1] += 1
+    return {k: (v[0], v[1]) for k, v in cells.items()}
+
+
+def _poisson_ratio_interval(observed: int, expected: float) -> tuple[float, float] | None:
+    if expected <= 0:
+        return None
+    z = _TWO_SIDED_95
+    lower = 0.0 if observed == 0 else observed * (
+        1 - 1 / (9 * observed) - z / (3 * math.sqrt(observed))) ** 3
+    o1 = observed + 1
+    upper = o1 * (1 - 1 / (9 * o1) + z / (3 * math.sqrt(o1))) ** 3
+    return lower / expected, upper / expected
+
+
+_AXES = {"calendar_year": 0, "contract_year": 1}
+
+
+def standardised_ratios(
+    subject: Mapping[tuple[int, int], tuple[int, int]],
+    reference: Mapping[tuple[int, int], tuple[int, int]],
+    rate_by: str,
+    report_by: str,
+) -> list[StandardisedRatio]:
+    """Indirect standardisation: ``subject``'s exits over those ``reference``'s exit rate by
+    ``rate_by`` (pooled over the other axis) would give, one ratio per key of ``report_by``.
+
+    Tenure given calendar time is ``rate_by="calendar_year", report_by="contract_year"`` with
+    one population as both: a contract year away from 1 carries something its calendar years
+    do not. Another population as reference with ``report_by="calendar_year"`` asks whether the
+    subject leaves as the reference did in the same years.
+    """
+    for axis in (rate_by, report_by):
+        if axis not in _AXES:
+            raise ValueError(f"an axis must be one of {sorted(_AXES)}, not {axis!r}")
+    by, keep = _AXES[rate_by], _AXES[report_by]
+    risk: dict[int, int] = defaultdict(int)
+    exits: dict[int, int] = defaultdict(int)
+    for k, (n, e) in reference.items():
+        risk[k[by]] += n
+        exits[k[by]] += e
+    rate = {k: exits[k] / n for k, n in risk.items() if n}
+    obs: dict[int, int] = defaultdict(int)
+    exp: dict[int, float] = defaultdict(float)
+    months: dict[int, int] = defaultdict(int)
+    for k, (n, e) in subject.items():
+        if k[by] not in rate:
+            continue  # the reference never saw this key: nothing to expect from, so not graded
+        obs[k[keep]] += e
+        exp[k[keep]] += n * rate[k[by]]
+        months[k[keep]] += n
+    out = []
+    for key in sorted(months):
+        o, x = obs[key], exp[key]
+        out.append(StandardisedRatio(key, months[key], o, x, o / x if x > 0 else None,
+                                     _poisson_ratio_interval(o, x)))
+    return out
+
+
+def pooled_ratio(ratios: Sequence[StandardisedRatio]) -> StandardisedRatio:
+    """All keys together, keyed -1: the subject's one overall ratio to the reference."""
+    o = sum(r.observed for r in ratios)
+    x = sum(r.expected for r in ratios)
+    return StandardisedRatio(-1, sum(r.months_at_risk for r in ratios), o, x,
+                             o / x if x > 0 else None, _poisson_ratio_interval(o, x))
 
 
 def run_backtest(
