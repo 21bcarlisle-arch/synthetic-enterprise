@@ -78,6 +78,16 @@ DEFAULT_FOUNDERS = 40
 #: Unbounded for an analysis book: every campaign win settles. The member checks the campaign
 #: reported a sample rate of exactly 1.0, so this is a premise the run proves, not a hope.
 ANALYSIS_BUDGET_CUSTOMER_YEARS = 1e9
+#: THE TWO BOOK SHAPES (director, 2026-10-10 and 2026-10-11). `all_wins`: 40 founders and every
+#: campaign win settled -- mostly selected new shoppers. `founders_only`: the production founder
+#: book (400) with NO win settled, for back-book questions. How no win is settled: the budget is
+#: 0 customer-years, so the campaign's headroom (`budget - committed`, floored at 0 in
+#: `net_new_acquisition.settle_within_budget`) is 0 and its sample rate is 0. The founders are not
+#: charged against that headroom's floor, so they all settle. The campaign still RUNS -- it
+#: quotes, wins and spends exactly as in production -- and the member refuses a run whose
+#: campaign booked any win or whose table holds a campaign-win home.
+SHAPES = {"all_wins": {"founders": DEFAULT_FOUNDERS, "budget": ANALYSIS_BUDGET_CUSTOMER_YEARS},
+          "founders_only": {"founders": 400, "budget": 0.0}}
 #: One member's peak, from the 2026-10-10 measurement at F=40 (2.9 GB PSS) with a margin for the
 #: captured payment triad. Admission weighs it against everything resident.
 MEMBER_PEAK_MB = 3500
@@ -117,7 +127,12 @@ def member_refusal(requested: int, meta: dict) -> str | None:
         return ("seed {}: the run recorded _RUN_BASE_SEED = {!r}. The rebind did not reach the "
                 "book, so this table is some other book under this seed's label."
                 .format(requested, meta.get("run_base_seed")))
-    if meta.get("sample_rate") != 1.0:
+    if meta.get("shape", "all_wins") == "founders_only":
+        if meta.get("wins_settled") != 0 or meta.get("campaign_win_homes") != 0:
+            return ("seed {}: a founders-only book settled {!r} campaign win(s) and its table "
+                    "holds {!r} campaign-win home(s); it is not a back book."
+                    .format(requested, meta.get("wins_settled"), meta.get("campaign_win_homes")))
+    elif meta.get("sample_rate") != 1.0:
         return ("seed {}: the campaign settled at sample rate {!r}, not 1.0, so its homes are a "
                 "weighted sample and not every win.".format(requested, meta.get("sample_rate")))
     if meta.get("foreign_seed") and not meta.get("rolls_redrawn"):
@@ -287,7 +302,7 @@ def _supply_points() -> list[dict]:
     return out
 
 
-def member(seed: int, founders: int, out: Path) -> int:
+def member(seed: int, founders: int, out: Path, shape: str = "all_wins") -> int:
     """ONE book, in this process. Must be the first thing the process does: the seed and the
     founder count are rebound before anything imports `simulation.run_phase2b`, which draws the
     book at import."""
@@ -304,7 +319,7 @@ def member(seed: int, founders: int, out: Path) -> int:
     default_seed = lp._DEFAULT_BASE_SEED
     lp._DEFAULT_BASE_SEED = seed
     lp.founder_accounts = lambda: founders
-    nna.SETTLEMENT_CUSTOMER_YEAR_BUDGET = ANALYSIS_BUDGET_CUSTOMER_YEARS
+    nna.SETTLEMENT_CUSTOMER_YEAR_BUDGET = SHAPES[shape]["budget"]
     founder_ids = {r["customer_id"] for r in lp.founder_book(seed)}
 
     import background.live_payment_triad as lpt
@@ -348,6 +363,10 @@ def member(seed: int, founders: int, out: Path) -> int:
     meta = {
         "seed": seed, "run_base_seed": lp._RUN_BASE_SEED, "foreign_seed": foreign,
         "founders": founders, "sample_rate": camp.get("settlement_sample_rate"),
+        "shape": shape, "budget_customer_years": SHAPES[shape]["budget"],
+        "wins_settled": sum(int(r.get("wins") or 0) for r in camp.get("by_year") or []),
+        "funnel_wins": camp.get("funnel_wins"),
+        "campaign_win_homes": sum(1 for r in rows if r["route"] == "campaign_win"),
         "rolls_redrawn": calls["redrawn"], "homes": len(rows),
         "triad_captured": bool(triads),
         "bad_debt_reconciliation_gbp": round(sum(r["bad_debt_gbp"] for r in rows)
@@ -372,8 +391,8 @@ def member(seed: int, founders: int, out: Path) -> int:
 
 def launch(seeds: list[int], founders: int, out: Path, tag: str, parallel: int,
            run_case: dict, launcher=None, record: Path | None = None,
-           wait_for_pid: int | None = None, sleep=None, queue_deadline_s: float = 6 * 3600
-           ) -> list[dict]:
+           wait_for_pid: int | None = None, sleep=None, queue_deadline_s: float = 6 * 3600,
+           shape: str = "all_wins", peak_mb: float = MEMBER_PEAK_MB) -> list[dict]:
     """Every member as its own long-job unit, all at once; admission decides whether they fit.
     More seeds than `parallel` is refused rather than queued: chaining units on a queued unit's
     pid is refused by the launcher's admission, so the caller launches the next wave itself.
@@ -402,9 +421,9 @@ def launch(seeds: list[int], founders: int, out: Path, tag: str, parallel: int,
                 entries.append(launcher(
                     f"seed-family-{tag}-{s}",
                     [sys.executable, "-m", "tools.seed_family", "member", "--seed", str(s),
-                     "--founders", str(founders), "--out", str(member_dir)],
+                     "--founders", str(founders), "--out", str(member_dir), "--shape", shape],
                     artefact=str(member_dir / f"member_{s}.json"), workdir=str(PROJECT_DIR),
-                    peak_mb=MEMBER_PEAK_MB, expect_minutes=expect, run_case=dict(run_case),
+                    peak_mb=peak_mb, expect_minutes=expect, run_case=dict(run_case),
                     wait_for_pid=wait_for_pid))
                 break
             except NoRoom as exc:
@@ -596,11 +615,15 @@ def main(argv: list[str] | None = None) -> int:
     sub = ap.add_subparsers(dest="cmd", required=True)
     m = sub.add_parser("member")
     m.add_argument("--seed", type=int, required=True)
-    m.add_argument("--founders", type=int, default=DEFAULT_FOUNDERS)
+    m.add_argument("--founders", type=int, help="default: the shape's own")
     m.add_argument("--out", type=Path, required=True)
+    m.add_argument("--shape", choices=sorted(SHAPES), default="all_wins")
     la = sub.add_parser("launch")
     la.add_argument("--seeds", required=True)
-    la.add_argument("--founders", type=int, default=DEFAULT_FOUNDERS)
+    la.add_argument("--founders", type=int, help="default: the shape's own")
+    la.add_argument("--shape", choices=sorted(SHAPES), default="all_wins")
+    la.add_argument("--peak-mb", type=float, default=MEMBER_PEAK_MB,
+                    help="one member's declared peak, from its own last run")
     la.add_argument("--out", type=Path, required=True)
     la.add_argument("--tag", required=True)
     la.add_argument("--parallel", type=int, default=4)
@@ -631,15 +654,19 @@ def main(argv: list[str] | None = None) -> int:
     args = ap.parse_args(argv)
 
     if args.cmd == "member":
-        return member(args.seed, args.founders, args.out)
+        return member(args.seed, args.founders or SHAPES[args.shape]["founders"], args.out,
+                      args.shape)
     if args.cmd == "launch":
         seeds = [int(x) for x in args.seeds.split(",") if x.strip()]
         from background.launch_long_job import LaunchRefused, follow_unit
         try:
-            entries = launch(seeds, args.founders, args.out, args.tag, args.parallel,
-                   {"question": args.question, "why_not_minutes": args.why_not_minutes,
-                    "would_change": args.would_change, "expect_minutes": args.expect_minutes},
-                   wait_for_pid=args.wait_for_pid)
+            entries = launch(seeds, args.founders or SHAPES[args.shape]["founders"], args.out,
+                             args.tag, args.parallel,
+                             {"question": args.question, "why_not_minutes": args.why_not_minutes,
+                              "would_change": args.would_change,
+                              "expect_minutes": args.expect_minutes},
+                             wait_for_pid=args.wait_for_pid, shape=args.shape,
+                             peak_mb=args.peak_mb)
         except LaunchRefused as exc:
             print("REFUSED:", exc)
             return 2

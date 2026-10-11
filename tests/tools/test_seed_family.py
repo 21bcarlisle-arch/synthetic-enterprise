@@ -275,3 +275,32 @@ def test_a_member_with_no_room_yet_queues_instead_of_stranding_the_family(tmp_pa
                         record=record, sleep=slept.append)
     assert [e["unit"] for e in entries] == [f"seed-family-t-{OTHER}", f"seed-family-t-{OTHER + 1}"]
     assert len(slept) == 1
+
+
+def test_a_founders_only_book_that_settled_a_win_is_refused():
+    """DEFECT (director, 2026-10-11): a 'back book' that quietly settled campaign wins -- a
+    budget that let wins through, or a table carrying a won home -- read as founders only. And the
+    shape's own mechanism: a zero budget, which leaves the campaign no headroom to settle into."""
+    back = {**GOOD, "shape": "founders_only", "sample_rate": 0.0, "wins_settled": 0,
+            "campaign_win_homes": 0}
+    assert sf.member_refusal(_DEFAULT_BASE_SEED, back) is None
+    assert "settled 3" in sf.member_refusal(_DEFAULT_BASE_SEED, {**back, "wins_settled": 3})
+    assert "2 campaign-win" in sf.member_refusal(_DEFAULT_BASE_SEED,
+                                                 {**back, "campaign_win_homes": 2})
+    # The all-wins shape is unchanged: it still demands every win.
+    assert "sample rate" in sf.member_refusal(_DEFAULT_BASE_SEED, {**GOOD, "sample_rate": 0.0})
+    assert sf.SHAPES["founders_only"] == {"founders": 400, "budget": 0.0}
+
+
+def test_a_zero_budget_settles_no_win_through_the_campaigns_own_settlement():
+    """The mechanism, asked of `settle_within_budget` itself: with founders already committed and
+    a zero budget, the headroom is 0 and no candidate is booked."""
+    from simulation.net_new_acquisition import settle_within_budget
+    out = settle_within_budget([(2017, None, None, 1.0), (2018, None, None, 2.0)],
+                                           committed_cy=500.0, customer_year_budget=0.0)
+    assert out["sample_rate"] == 0.0
+    assert sum(out["booked_by_year"].values()) == 0 and not out["winners"]
+    # ...and the same call with room books both, so the zero is the budget's doing.
+    room = settle_within_budget([(2017, None, None, 1.0), (2018, None, None, 2.0)],
+                                committed_cy=500.0, customer_year_budget=1e9)
+    assert sum(room["booked_by_year"].values()) == 2

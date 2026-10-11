@@ -1,5 +1,7 @@
 # ADVISOR FINDINGS — this project against the observability literature, and the one instrument it is missing
 
+**Severity:** LATENT · **Lane:** H_harness · **Epoch:** unassigned · **Atom:** `unminted` — header added by the scale lane: the file landed without one (the second advisor-staged file to, after 67ab788e5) and the severity gate refused every lane's merge of origin
+
 Staged by the advisor on the director's behalf, 2026-10-11, at his request.
 **Report and rank.** Nothing here is urgent. Rank it against the current
 direction rather than ahead of it.
