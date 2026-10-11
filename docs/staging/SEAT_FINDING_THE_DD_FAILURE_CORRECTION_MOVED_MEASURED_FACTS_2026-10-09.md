@@ -617,3 +617,37 @@ truth for one bill, and it is named here rather than assumed harmless.
 Refutation: a numerator that moves means a route from the exit rule or the closure into the
 triad that I have not found. A hold that turns NOT MET means the 400-founder book's arrears rested
 on something the closure changed.
+
+## Result: the three-seed pool after B7 slice 7 (worker, 2026-10-11 05:45Z)
+
+`longjob-b7s7-arrears-three-seeds` ran `/var/tmp/b7s7/arrears.sh` at b72674c73, which descends from
+9a7449b4b and c4fb2931b. It was admitted at 04:14Z, after the pre-registration above had landed as
+ac0fa6157. Captures are `/var/tmp/b7s7/arrears_{default,dice1,dice2}.json`, and the grades are
+`/var/tmp/b7s7/arrears_pooled.txt`.
+
+| 2019, electricity | levies once (d40857770) | after slice 7 (b72674c73) |
+|---|---|---|
+| default dice | 50/1155 = 4.3%, MET | 50/1155 = 4.3%, MET |
+| dice seed 1 | 99/1155 = 8.6%, NOT MET, HIGH | 99/1155 = 8.6%, NOT MET, HIGH |
+| dice seed 2 | 62/1161 = 5.3%, MET | 62/1161 = 5.3%, MET |
+| **pooled** | 211/3471 = 6.1%, 4.6-7.7%, MET, 1.19x | **211/3471 = 6.1%, account-clustered 4.6-7.7%, MET, 1.19x** |
+
+Gas, pooled, is 40/610 = 6.6%, MET, unchanged. No prepayment account is behind on any seed.
+
+**Graded.** P1 holds, and holds more tightly than I wrote: the denominators did not move at all,
+so c4fb2931b (the account closing on the move) changed nothing here either. P2 holds: MET, 1.19x.
+P3 holds: 0.
+
+**The 400-founder book's arrears hold still reads MET, at about 1.2x Ofgem.** The reading needs a
+limit stated beside it. The hold is a stock of live accounts more than 91 days behind. A mover's
+exit debt cannot enter it, by either route in the pre-registration. So this MET says nothing about
+whether the exit debt is right. Movers' exit debt is graded on the full run, against the B7
+record's own prediction (`docs/design/simplifications/B7_customer_state_layer_moves_and_shocks.yaml`).
+
+**One bill, two payment truths. Named here, not fixed.** For a mover's final month, the live triad
+draws the outcome at the mid-tenure rate through `generate_payment_event`. The P&L, the billing
+ledger and the DD book ask `mover_final_bill_outcome` and draw the exit. For arrears this is
+harmless, by route (2). Anything that reads the triad's records for exit behaviour would read the
+wrong rate. That includes the company's payment-behaviour beliefs, which cross the seam from the
+triad live. Whether a mover's final month ever reaches a company belief before the account closes
+is not established here.
