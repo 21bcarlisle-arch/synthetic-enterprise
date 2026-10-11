@@ -64,6 +64,11 @@ January to the cut only, left-truncated: an account is at risk from the later of
 and the window's start, and its contract year is still counted from its first month. It exists to
 test whether the fit window's early years set the level; the default is the whole fit window.
 
+THE LEVEL BY CAUSE (slice 7). With a register, the flat rule's segment hazard is split into a
+switch hazard and a move hazard and run as competing risks, so the all-cause level miss is divided
+between the causes rather than re-fitted. A retention lever acts on one term only, and slice 6
+found the regime moved one term (switching) far more than the other.
+
 THE BOUND. Every comparison is paired over the same accounts: the mean of
 (per-customer absolute error − flat absolute error) with a normal-approximation 95%
 interval on that mean. An interval that straddles zero is reported as "cannot tell",
@@ -391,6 +396,13 @@ class Backtest:
     # departures, and (with a register) switches and moves. A reading of the ledger, not a forecast.
     departures_by_calendar_year: Mapping[int, Mapping[str, int]] | None = None
     hazard_fit_months: tuple[str, str] | None = None
+    # Slice 7. None without a register. The flat rule's segment hazard split into a switch hazard
+    # (moves censored) and a move hazard (switches censored), run as competing risks: each cause's
+    # mean predicted incidence and the realised share of graded accounts that left by it, and the
+    # calibration (incidence minus left-by-this-cause) with its interval. The two incidences sum
+    # to the flat departure p, so the all-cause level miss is split between the causes, not re-fit.
+    departure_incidence_by_cause: Mapping[str, tuple[float, float]] | None = None
+    departure_calibration_by_cause: Mapping[str, tuple[float, tuple[float, float] | None]] | None = None
 
 
 def regime_boundary_month(
@@ -663,6 +675,8 @@ def run_backtest(
     switch_by_cy: dict[int, float] | None = None
     by_outcome: dict[str, OutcomeGrade] | None = None
     moved: frozenset[str] | None = None
+    incidence_by_cause: dict[str, tuple[float, float]] | None = None
+    calibration_by_cause: dict[str, tuple[float, tuple[float, float] | None]] | None = None
     if move_out_month_by_account is None:
         limitations = [LIMITATION_DEPARTURE_CAUSE, LIMITATION_NO_MOVE_REGISTER]
     else:
@@ -685,6 +699,29 @@ def run_backtest(
             partition[outcome].append(f)
         by_outcome = {o: _grade_outcome(fs, None if o == "stayer" else partition["stayer"])
                       for o, fs in partition.items()}
+        left_by = {f.account_id: o for o, fs in partition.items() for f in fs}
+        switched = frozenset(a.account_id for a in accounts if a.account_id not in moved)
+        h_cause = {"switch": _fit_hazards(accounts, fit_end, moved, hazard_start)[1],
+                   "move": _fit_hazards(accounts, fit_end, switched, hazard_start)[1]}
+        causes = (("switch", "switcher"), ("move", "mover"))
+        predicted: dict[str, list[float]] = {"switch": [], "move": []}
+        errors: dict[str, list[float]] = {"switch": [], "move": []}
+        for f in forecasts:
+            hs = h_cause["switch"].get(f.segment, 0.0)
+            hm = h_cause["move"].get(f.segment, 0.0)
+            alive, inc = 1.0, {"switch": 0.0, "move": 0.0}
+            for _ in range(horizon):
+                inc["switch"] += alive * hs
+                inc["move"] += alive * hm
+                alive *= 1 - hs - hm
+            for cause, outcome in causes:
+                predicted[cause].append(inc[cause])
+                errors[cause].append(inc[cause] - (left_by[f.account_id] == outcome))
+        if forecasts:
+            incidence_by_cause = {
+                c: (sum(predicted[c]) / len(forecasts), len(partition[o]) / len(forecasts))
+                for c, o in causes}
+        calibration_by_cause = {c: _mean_with_interval(e) for c, e in errors.items()}
     by_year: dict[int, dict[str, int]] = defaultdict(
         lambda: {"months_at_risk": 0, "departures": 0}
         | ({} if moved is None else {"switch": 0, "move": 0}))
@@ -737,6 +774,8 @@ def run_backtest(
         departures_by_calendar_year={y: dict(r) for y, r in sorted(by_year.items())},
         hazard_fit_months=(_month_label(first if hazard_start is None else hazard_start),
                            _month_label(fit_end)),
+        departure_incidence_by_cause=incidence_by_cause,
+        departure_calibration_by_cause=calibration_by_cause,
     )
 
 
@@ -786,6 +825,8 @@ if __name__ == "__main__":  # pragma: no cover - a reading aid, not a door
     print(f"hazard window {bt.hazard_fit_months}")
     print(f"departure calibration (mean p - realised) {bt.departure_calibration}")
     print(f"departure ranking {bt.departure_ranking}")
+    print(f"flat incidence by cause (predicted, realised) {bt.departure_incidence_by_cause}")
+    print(f"flat calibration by cause {bt.departure_calibration_by_cause}")
     for year, row in (bt.departures_by_calendar_year or {}).items():
         print(f"  {year}: {row}")
     for outcome, g in (bt.error_by_outcome or {}).items():

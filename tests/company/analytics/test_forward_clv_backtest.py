@@ -460,3 +460,28 @@ def test_the_calendar_year_record_adds_up_to_the_book_and_splits_by_cause():
     assert all(r["switch"] + r["move"] == r["departures"] for r in rows.values())
     assert rows[2019] == {"months_at_risk": 12 + 3 + 7 + 12 + 12, "departures": 2, "switch": 1, "move": 1}
     assert "switch" not in run_backtest(book, end).departures_by_calendar_year[2019]
+
+
+def test_the_level_split_by_cause_sums_to_the_flat_p_and_each_cause_reads_its_own_exits():
+    """The defect: a cause split that re-fits the level instead of dividing it, or a move hazard
+    that counts switches. In the fit window M1 moved and W1, W2 switched over 267 months at risk,
+    so every account's switch incidence is exactly twice its move incidence. W4 makes the held-back
+    switchers outnumber the movers, so a split that swaps the realised causes cannot pass."""
+    book = _movers_book() + [_acct("W4", "resi electricity", "2016-01", "2023-08", 16.0)]
+    register = {"home_move_outs": [*_MOVE_REGISTER["home_move_outs"],
+                                   {"household": "W4", "move_date": "2024-03-01"}]}
+    end = _month_index("2025-06")
+    bt = run_backtest(book, end, move_out_month_by_account=move_outs_from_run_output(register))
+    inc, cal = bt.departure_incidence_by_cause, bt.departure_calibration_by_cause
+    assert inc["switch"][0] > 0.0 and inc["move"][0] > 0.0
+    assert inc["switch"][0] == pytest.approx(2 * inc["move"][0])
+    mean_flat_p = sum(f.flat_departure_p for f in bt.forecasts) / bt.accounts_graded
+    assert inc["switch"][0] + inc["move"][0] == pytest.approx(mean_flat_p)
+    grades = bt.error_by_outcome
+    assert inc["switch"][1] == grades["switcher"].accounts / bt.accounts_graded
+    assert inc["move"][1] == grades["mover"].accounts / bt.accounts_graded
+    for cause in ("switch", "move"):
+        assert cal[cause][0] == pytest.approx(inc[cause][0] - inc[cause][1])
+    absent = run_backtest(book, end)
+    assert absent.departure_incidence_by_cause is None
+    assert absent.departure_calibration_by_cause is None
