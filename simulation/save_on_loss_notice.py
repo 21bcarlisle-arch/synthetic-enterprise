@@ -78,3 +78,30 @@ def billed_rate_when_saved(renewal_unit_rate: float, save_unit_rate: float) -> f
     the book's composition fixed and leaves the save's price as the only difference."""
     del renewal_unit_rate
     return save_unit_rate
+
+
+#: The gap between the cheapest deal on the market and the default tariff, as a share of the typical
+#: default bill, by quarter ("YYYY-Qn"). PUBLISHED DATA a supplier can read (Ofgem retail market
+#: indicators), handed to the company's save door as a plain value -- the observable a price-match
+#: save is sized on (`company.crm.save_offer.price_match_save_rate`). Source: Ofgem RMI "Retail
+#: price comparison by company and tariff type: Domestic (GB)", "cheapest tariff (all suppliers)"
+#: against the default, read 2026-10-10 (`docs/market_research/
+#: cheapest_fix_against_the_default_tariff_gb_2016_2025.md`). Only the CSS save window (from
+#: 2022-07-18) is filled; a quarter not listed is None, which offers nothing.
+PUBLISHED_BEST_DEAL_GAP_SHARE: dict[str, float] = {
+    # 2022 Q3 - 2023 Q2: 0.0, ESTABLISHED as an absence, not missing. The series' "cheapest tariff"
+    # repeats to the penny for six months at a time (stale, carried forward), while its "average
+    # fixed tariff" -- everything on sale -- ran 54-133% ABOVE the default and no fix was quoted
+    # at all Oct 2022 - May 2023. Nothing undercut the default, so no save is offered.
+    "2022-Q3": 0.0, "2022-Q4": 0.0, "2023-Q1": 0.0, "2023-Q2": 0.0,
+    # From 2023 Q3, quarterly cap cadence: the quarter's first-month reading, gap / default bill.
+    "2023-Q3": 0.048, "2023-Q4": 0.039,
+    "2024-Q1": 0.091, "2024-Q2": 0.089, "2024-Q3": 0.037, "2024-Q4": 0.088,
+    "2025-Q1": 0.063, "2025-Q2": 0.140, "2025-Q3": 0.110, "2025-Q4": 0.150,
+}
+
+
+def published_best_deal_gap_share(date_str: str) -> float | None:
+    """The published best-deal gap for the quarter holding `date_str`, or None if not established."""
+    year, month = int(date_str[:4]), int(date_str[5:7])
+    return PUBLISHED_BEST_DEAL_GAP_SHARE.get(f"{year}-Q{(month - 1) // 3 + 1}")

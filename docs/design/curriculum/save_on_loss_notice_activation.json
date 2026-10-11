@@ -1,14 +1,14 @@
 {
   "_meta": {
     "artefact": "save_on_loss_notice_activation",
-    "version": 1,
-    "status": "OFF -- 2026-10-08, built on the director's direction, not yet switched on",
+    "version": 2,
+    "status": "ON -- 2026-10-10, director: \"make the reactive save on the loss notice a live supplier capability in the run\"",
     "r13_discipline": "Whether households in this world answer a save offer made on the CSS Invitation to Intervene is a CURRICULUM question, the director's. With it off the run is byte-identical to the run before the save existed: the save path is never entered. The SIZE of a save offer is the company's (company.policy.decision_policy.DecisionPolicy.save_offer_cut_gbp_per_mwh) and is not set here; no published or practitioner figure establishes it (toggle q4_save_offer_cost_share_of_annual_bill, GAP).",
     "consumed_by": "simulation.save_on_loss_notice.save_offers_active() and .world_save_response_scale(), read once per run by simulation.run_phase2b._main"
   },
   "activated": {
-    "value": false,
-    "basis": "Off until the director reads the fairness checks (docs/staging/SEAT_FINDING_THE_REACTIVE_SAVE_IN_THE_SETTLED_RUN_2026-10-08.md). He made the save conditional, 2026-10-08: it must never be paid for by raising the price of customers who stay.",
+    "value": true,
+    "basis": "Director, 2026-10-10: \"Next supplier items ... make the reactive save on the loss notice a live supplier capability in the run.\" Switched on with the company's standing price-match sizing (DecisionPolicy.save_offer_sizing = \"price_match\": the market's best published deal, never below the company's own cost floor; company/crm/save_offer.py::price_match_save_rate), so no save size is chosen here. His 2026-10-08 condition -- a save is never paid for by raising a stayer's price -- is graded by tools/save_on_loss_notice_arms.py on every change. Previously OFF (2026-10-08) until he had read the fairness checks in docs/staging/SEAT_FINDING_THE_REACTIVE_SAVE_IN_THE_SETTLED_RUN_2026-10-08.md.",
     "effect": "When true, a household the world rolls to LEAVE at a renewal point, on a switch that sends the losing supplier a CSS Invitation to Intervene (requests submitted from 18 July 2022), is offered a Fixed Retention Tariff by the company if its policy names a save size. The world re-asks the SAME renewal roll at the offered price; if the household would stay at that price it is saved: no loss notice, the term is supplied at the save price. REVERT is this one field."
   },
   "world_save_response_scale": {

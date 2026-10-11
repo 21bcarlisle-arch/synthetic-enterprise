@@ -98,16 +98,13 @@ def test_extract_both_bases_from_run_output():
 # --- 2. Live-data expected-failure: documents the currently-real gap ---
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason=(
-        "AFFORDABILITY_AS_SIM_PHYSICS.md: arrears are currently propensity-shaped, "
-        "not emergent from a household budget meeting a price shock -- so the "
-        "headline bad-debt trajectory shows no real 2021-22 crisis step-up. "
-        "EXPECTED to fail until the W2_4.. affordability cluster (M3) is built. "
-        "Do NOT satisfy this by tuning a bad-debt parameter (R12)."
-    ),
-)
+# THE STRICT XFAIL IS RETIRED (2026-10-11), by the convention this module states: it XPASSed. The
+# published run output (a88fb2436, 2026-10-05 -- neither it nor the validator has changed since)
+# shows the crisis step-up the marker said it could not, so the strict xfail had turned into a
+# FAILURE on origin and refused every landing that selected it for six days. Kept as a live guard
+# on the published headline. NOT ESTABLISHED HERE: that the step-up EMERGES from a household budget
+# meeting the price shock rather than from a tuned propensity -- R12's condition for closing the
+# gap. That question is the W2_4.. affordability cluster's and is not answered by this pass.
 def test_live_run_output_shows_crisis_step_up_headline():
     if not _RUN_OUTPUT.exists():
         pytest.skip("no run_output_latest.json present")

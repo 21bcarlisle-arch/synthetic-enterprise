@@ -200,6 +200,12 @@ class DecisionPolicy:
     #: it; an experiment does (`tools/move_with_us_arms.py`).
     move_with_us_offers: bool = False
 
+    #: (2026-10-10) how the company sizes a save when no experiment names a cut: "price_match"
+    #: meets the market's best published deal, never below the company's own cost floor
+    #: (`company.crm.save_offer.price_match_save_rate`). Every input is published or the company's
+    #: own, so it needs no figure the knowledge layer lacks. `None` offers nothing.
+    save_offer_sizing: str | None = "price_match"
+
     #: (2026-10-10) at a term the world does not roll, the household converting off our default
     #: tariff onto our fix, a retention offer can buy one thing: a conversion it would otherwise
     #: decline, where the full-rate fix sits above the published default and the offered rate

@@ -324,6 +324,10 @@ def build_renewal_schedule(
             "unit_rate_gbp_per_mwh": unit_rate,
             "forward_price_gbp_per_mwh": sim_fwd,
             "company_forward_price_gbp_per_mwh": company_fwd,
+            # What the company locked at signing, carried so the term's own cost floor can be read
+            # back at a save (`company.crm.save_offer.price_match_save_rate`).
+            "locked_policy_cost_gbp_per_mwh": offer.locked_policy_cost_gbp_per_mwh,
+            "locked_network_cost_gbp_per_mwh": offer.locked_network_cost_gbp_per_mwh,
             "tariff_type": tariff_type,
             "term_end": min(next_start, report_end + timedelta(days=1)).isoformat(),
         }

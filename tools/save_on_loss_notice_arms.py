@@ -49,16 +49,22 @@ def run_arm(arm: str, out: Path, report_end: str, cut: float | None, scale: floa
     from company.policy.decision_policy import CURRENT_POLICY, policy_scope
     from simulation.segment_vocabulary import is_business
 
+    # THE ARM'S OWN POLICY, built first and read from: a module-level CURRENT_POLICY read is a field
+    # a counterfactual arm cannot switch (tests/company/policy/test_policy_field_consumption.py).
+    policy = dataclasses.replace(CURRENT_POLICY,
+                                 save_offer_cut_share=None if arm == "off" else cut)
     if arm == "placebo":
         rp2b.billed_rate_when_saved = lambda renewal, save: renewal  # noqa: E731
     if arm in ("on", "placebo"):
-        if cut is None:
-            raise SystemExit("REFUSED: the on arm needs --cut-share; a save's size is a GAP and is "
-                             "never defaulted (q4_save_offer_cost_share_of_annual_bill)")
+        if cut is None and policy.save_offer_sizing is None:
+            raise SystemExit("REFUSED: the on arm needs --cut-share or a standing save sizing; a "
+                             "save's size is never defaulted (q4_save_offer_cost_share_of_annual_bill)")
         rp2b.save_offers_active = lambda: True  # noqa: E731 -- the arm's switch, this process only
         rp2b.world_save_response_scale = lambda: scale
-    policy = dataclasses.replace(CURRENT_POLICY,
-                                 save_offer_cut_share=None if arm == "off" else cut)
+    else:
+        # EXPLICITLY OFF since the save went live (2026-10-10): the curriculum now says on, so an
+        # `off` arm that only cleared the cut would still offer the standing price match.
+        rp2b.save_offers_active = lambda: False  # noqa: E731
     head = subprocess.run(["git", "-C", str(REPO), "rev-parse", "HEAD"],
                           capture_output=True, text=True).stdout.strip()
     t0 = time.time()
@@ -67,6 +73,8 @@ def run_arm(arm: str, out: Path, report_end: str, cut: float | None, scale: floa
                            gap_ledger_path=Path(scratch) / "gap_ledger.json")
     summary = {
         "arm": arm, "head": head, "report_end": report_end, "cut_share": cut,
+        "save_sizing": None if arm == "off" else ("cut_share" if cut is not None
+                                                  else policy.save_offer_sizing),
         "world_save_response_scale": None if arm == "off" else scale,
         "seconds": round(time.time() - t0, 1),
         "total_gross": result.get("total_gross"), "total_net": result.get("total_net"),
@@ -119,28 +127,63 @@ def vulnerable_twin_shortfalls(save_log: list[dict], cut: float) -> list[dict]:
     be vulnerable (`known_vulnerable`, from its own disclosure register) the price it was ACTUALLY
     offered is the vulnerable side, so a desk that priced the run differently from the function
     is caught too."""
-    from company.crm.save_offer import save_offer_rate
+    from company.crm.save_offer import price_match_save_rate, save_offer_rate
 
     out = []
     for row in save_log:
         rate = row.get("renewal_unit_rate_gbp_per_mwh")
         if row.get("save_unit_rate_gbp_per_mwh") is None or rate is None:
             continue
-        plain = save_offer_rate(rate, cut, vulnerable=False)
+        if cut is None:
+            # THE PRICE MATCH IS POSITION-FREE: the twin is the same match on the inputs the run
+            # logged for this offer, so a desk that priced a known-vulnerable household above it
+            # is caught here.
+            m = row.get("price_match_inputs") or {}
+            plain = price_match_save_rate(rate, m.get("published_default_rate"),
+                                          m.get("published_best_deal_gap_share"), m.get("cost_floor"))
+            if plain is None:
+                out.append({**row, "vulnerable_rate": row["save_unit_rate_gbp_per_mwh"],
+                            "plain_rate": None})
+                continue
+        else:
+            plain = save_offer_rate(rate, cut, vulnerable=False)
         vuln = (row["save_unit_rate_gbp_per_mwh"] if row.get("known_vulnerable")
-                else save_offer_rate(rate, cut, vulnerable=True))
+                else (plain if cut is None else save_offer_rate(rate, cut, vulnerable=True)))
         if vuln > plain + 1e-9:
             out.append({**row, "vulnerable_rate": vuln, "plain_rate": plain})
     return out
 
 
 def vulnerable_leavers_not_offered(save_log: list[dict]) -> list[dict]:
-    """A known-vulnerable leaver holding an Invitation who was offered nothing while a plain
-    leaver in the run was offered something: the other way a vulnerable household gets less."""
-    offered_plain = any(r.get("save_unit_rate_gbp_per_mwh") is not None
-                        and not r.get("known_vulnerable") for r in save_log)
-    return [r for r in save_log if offered_plain and r.get("known_vulnerable")
-            and r.get("invitation_held") and r.get("save_unit_rate_gbp_per_mwh") is None]
+    """A known-vulnerable leaver holding an Invitation who was offered nothing where a plain
+    household IN THE SAME POSITION would have been: the other way a vulnerable household gets less.
+
+    THE TWIN, NOT THE RUN (2026-10-10). Under a flat cut every Invitation-holder is offered, so a
+    vulnerable one left unoffered while any plain one was offered was the right alarm. Under the
+    standing price match an offer depends on position -- the renewal it would replace, the
+    published default and gap, the company's cost floor -- and the first live run flagged 4
+    known-vulnerable leavers whose plain twins, on the same logged inputs, would also have been
+    offered nothing (the match could not beat their renewal). Asked of the twin, it reads 0."""
+    from company.crm.save_offer import price_match_save_rate
+
+    out = []
+    for r in save_log:
+        if not (r.get("known_vulnerable") and r.get("invitation_held")
+                and r.get("save_unit_rate_gbp_per_mwh") is None):
+            continue
+        m = r.get("price_match_inputs")
+        if m is None:
+            # A flat-cut run logs no match inputs: the old run-level reading is the only one.
+            if any(x.get("save_unit_rate_gbp_per_mwh") is not None and not x.get("known_vulnerable")
+                   for x in save_log):
+                out.append(r)
+            continue
+        if price_match_save_rate(r.get("renewal_unit_rate_gbp_per_mwh"),
+                                 m.get("published_default_rate"),
+                                 m.get("published_best_deal_gap_share"),
+                                 m.get("cost_floor")) is not None:
+            out.append(r)
+    return out
 
 
 def implied_save_rate(save_log: list[dict]) -> float | None:
@@ -210,8 +253,8 @@ def compare(off: dict, on: dict) -> dict:
         "offers_to_known_vulnerable": sum(1 for r in log if r.get("known_vulnerable")
                                           and r["save_unit_rate_gbp_per_mwh"] is not None),
         "vulnerable_leavers_not_offered": len(vulnerable_leavers_not_offered(log)),
-        "vulnerable_twin_shortfalls": len(vulnerable_twin_shortfalls(log, on["cut_share"]))
-        if on["cut_share"] is not None else None,
+        "save_sizing": on.get("save_sizing"),
+        "vulnerable_twin_shortfalls": len(vulnerable_twin_shortfalls(log, on["cut_share"])),
     }
 
 

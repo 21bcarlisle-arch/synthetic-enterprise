@@ -64,16 +64,49 @@ def save_offer_rate(renewal_unit_rate_gbp_per_mwh: float, cut_share: float, *,
     return renewal_unit_rate_gbp_per_mwh * (1.0 - share)
 
 
+def price_match_save_rate(renewal_unit_rate_gbp_per_mwh: float | None,
+                          published_default_rate_gbp_per_mwh: float | None,
+                          best_deal_gap_share: float | None,
+                          cost_floor_gbp_per_mwh: float | None) -> float | None:
+    """The save as a PRICE MATCH: the market's best published deal, never below our own cost.
+
+    WHY THIS SHAPE (2026-10-10, director: "make the reactive save on the loss notice a live
+    supplier capability"). A household on a loss notice is leaving for a cheaper deal, and a
+    retention desk's save meets that deal where it can afford to. Every input is something a
+    supplier holds: the published default tariff for the fuel, the published gap between the
+    cheapest deal on the market and that default, and the cost floor of the rate it struck itself.
+    No size is chosen here, which is what kept `cut_share` at None on every standing policy.
+
+    None -- no offer -- where any input is missing, where the market had nothing cheaper than the
+    default (a gap at or below zero, as through 2022), or where the match would not beat the
+    renewal it replaces. Position-free, so a household the company knows to be vulnerable is
+    offered exactly what its twin is (the director's rule: never less)."""
+    if None in (renewal_unit_rate_gbp_per_mwh, published_default_rate_gbp_per_mwh,
+                best_deal_gap_share, cost_floor_gbp_per_mwh) or best_deal_gap_share <= 0.0:
+        return None
+    match = max(cost_floor_gbp_per_mwh, published_default_rate_gbp_per_mwh * (1.0 - best_deal_gap_share))
+    return match if match < renewal_unit_rate_gbp_per_mwh else None
+
+
 def save_offer_on_invitation(pending_notice: dict, renewal_unit_rate_gbp_per_mwh: float | None,
                              cut_share: float | None, *, acquisition_route: str | None = None,
                              months_on_default: int | None = None,
-                             vulnerable: bool = False) -> SaveOffer | None:
+                             vulnerable: bool = False,
+                             price_match_rate: float | None = None) -> SaveOffer | None:
     """The offer the company makes on one Invitation to Intervene it holds, or None.
 
-    None where the policy names no cut (the size is a GAP, see the module note) or the company
-    struck no fixed rate to cut from: a save is a fixed tariff priced off the offer it replaces."""
-    if cut_share is None or renewal_unit_rate_gbp_per_mwh is None:
+    An experiment's explicit `cut_share` sizes the save when it names one; otherwise the standing
+    price match (`price_match_save_rate`, computed by the door from what the company holds) does.
+    None where neither gives a rate, or the company struck no fixed rate to cut from: a save is a
+    fixed tariff priced off the offer it replaces."""
+    if renewal_unit_rate_gbp_per_mwh is None:
         return None
+    if cut_share is None:
+        if price_match_rate is None:
+            return None
+        return SaveOffer(supply_point_id=pending_notice["supply_point_id"],
+                         renewal_unit_rate=renewal_unit_rate_gbp_per_mwh,
+                         save_unit_rate=price_match_rate)
     if not 0.0 < cut_share < 1.0:
         raise ValueError(f"a save's cut share must lie in (0, 1), got {cut_share!r}: a zero cut is "
                          "never offering, which is the arm it is graded against")

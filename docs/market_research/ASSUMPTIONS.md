@@ -3,7 +3,7 @@
 Living log of simulation assumptions validated against real UK energy market data.
 Updated by discovery agent and manually when phases change assumptions.
 
-Last updated: 2026-10-04. (Originally seeded 2026-08-10 from the codebase; rows have been added since, most recently the domestic arrears-prevalence rows. This line is checked against git by `tools/startup_anchor_freshness.py` -- if you change this file, change this date.)
+Last updated: 2026-10-10. (Originally seeded 2026-08-10 from the codebase; rows have been added since, most recently the cheapest-fix-vs-default-tariff save-offer-market-gap rows. This line is checked against git by `tools/startup_anchor_freshness.py` -- if you change this file, change this date.)
 
 **Runnable invariants library (2026-07-09, DOMAIN_SENSE_AND_COMPLIANCE.md Phase 2):**
 `company/compliance/domain_invariants.py` turns 24 of the anchors below (Bill
@@ -560,6 +560,18 @@ candidate era boundaries, and full source citations:
 | Coal generation share fell to ~0 by end of window | Not separately modelled as an era signal | 22.4% (2015) to 9.0% (2016, post carbon-price-floor) to 2.1% (2019) to 0.7% (2024) to 0% from 1 Oct 2024 (Ratcliffe-on-Soar closure, UK's last coal station) | DUKES Table 5.6.J + Wikipedia (Ratcliffe-on-Soar), cross-checked, fetched 2026-07-24 | 2026-07-24 | H -- two independent sources agree; single clearest real-world regime-change anchor in the whole window (2018/2019 boundary: coal share 5.0%->2.1%, fossil capacity -12.5% in one year, the largest year-on-year move in the 2016-2024 fossil-capacity series) |
 | Renewables penetration trajectory 2016-2025 | Not separately modelled as an era signal | Renewables generation share 24.5% (2016) -> 36.6% (2019) -> 43.1% (2020, partly COVID demand-denominator confound) -> 50.4% (2024, first time crossing 50%) | DUKES Table 5.6.J, `DUKES_5.6.xlsx`, fetched 2026-07-24 | 2026-07-24 | H for the raw series; M on interpreting the 2020 jump as a pure capacity signal (demand fell 327.2->310.3 TWh that year, inflating the share mechanically) |
 | Candidate 3-era partition for a future time-varying `DISPATCHABLE_CAPACITY_MW` | n/a -- not yet built | Era A 2016-18 (fossil ~50-51 GW, coal still material); Era B 2019-22 (fossil ~42-44 GW plateau, coal <3% residual); Era C 2023-25 (fossil ~36-40 GW falling, coal fully exited from Oct 2024) | Derived from DUKES 5.7.A plateau structure, fetched 2026-07-24 | 2026-07-24 | H for the plateau boundaries in the observed data (2016-2024); the 2025 extension of Era C is explicitly flagged INFERRED (no full-year 2025 DUKES data published yet as of this session) |
+
+## Cheapest fix vs the default tariff — the save-offer market gap, 2016-2025 (2026-10-10, discovery-agent)
+
+Full series, basis and caveats: `docs/market_research/cheapest_fix_against_the_default_tariff_gb_2016_2025.md`.
+Primary source: Ofgem RMI chart "Retail price comparison by company and tariff type: Domestic (GB)",
+read from its everviz embed's own CSV data (monthly, 2012-2026), not the JS-rendered page. Answers
+what gap a CSS-era save offer is plausibly matching (`a_save_offer_against_the_switching_rules_and_the_seam.md`).
+
+| Assumption | SIM value | Industry benchmark | Source | Last checked | Status |
+|---|---|---|---|---|---|
+| Gap, default tariff to cheapest market fix, by year/quarter 2016-2025 | `simulation/market_switching_propensity.py::MARKET_SAVINGS_BY_YEAR` — not read this pass (out of the discovery agent's epistemic scope); compared instead against `churn_price_elasticity.md`'s own published "SIM Calibration" savings column | **ESTABLISHED for most periods, H.** 2016-2018 ~26-30% of the default bill (£290-330/yr); 2019-2021 H1 ~17-33% (£196-374/yr); the gap collapses to ~5% by Sep 2021 and stays there through the crisis; 2023 Jul ~4.8%(£100), 2024 ~4-9% (£59-175), 2025 ~6-15% (£110-264) | Ofgem RMI, chart `g53GfRDaf` everviz CSV, fetched 2026-10-10 | 2026-10-10 | Diffs flagged: the churn doc understates 2017-2020 savings by £90-200/yr against this reading; its 2021 "0" omits a still-24% H1; its 2022 "-200" has the right sign against the "average fixed tariff" reading (§3 of the new doc, which runs to **-£2,628 by Sep 2022**) but the wrong sign against the (flagged-stale) "cheapest tariff" reading (+£99-125) |
+| Whether the market had a genuinely cheaper fix available, 2021 H2 – mid-2023 | Not distinguished from other years | **NOT a positive gap in practice**, despite the "cheapest tariff (all suppliers)" column staying nominally positive (flagged as likely stale — identical to the penny for 4-6 consecutive months three separate times). The same Ofgem series' "average fixed tariff" column (everything actually on sale, not just the cheapest) turns negative from **Jun 2021** and reaches **-£2,628/yr (-133%) by Sep 2022**; no reading at all is published Oct 2022 – May 2023, itself evidence the market had stopped quoting new fixed terms | Same source | 2026-10-10 | A save offer sized off "the market's best" in this window should floor at zero/the supplier's own cost, not a positive published gap |
 
 *Maintained by `background/discovery_agent.py`. Manual updates should note the source and date.*
 

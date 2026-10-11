@@ -22,7 +22,7 @@ is held there and tested there; the run-level twin check is `tools/save_on_loss_
 from __future__ import annotations
 
 from company.crm.cos_process import CoSRegister
-from company.crm.save_offer import save_offer_on_invitation
+from company.crm.save_offer import price_match_save_rate, save_offer_on_invitation
 from company.regulatory.priority_services_register import PriorityServicesRegister
 
 __all__ = ["request_save_offer"]
@@ -30,12 +30,18 @@ __all__ = ["request_save_offer"]
 
 def request_save_offer(register: CoSRegister, supply_point_id: str, supply_effective_from: str,
                        renewal_unit_rate: float | None, cut_share: float | None,
-                       psr_register: PriorityServicesRegister | None = None,
+                       psr_register: PriorityServicesRegister | None = None, *,
+                       sizing: str | None = None,
+                       published_default_rate: float | None = None,
+                       published_best_deal_gap_share: float | None = None,
+                       cost_floor: float | None = None,
                        ) -> tuple[float | None, bool]:
     """(the save's unit rate for this point's pending switch, or None; whether the company knew
     the household to be vulnerable when it answered). None where no Invitation is held, there is no
-    fixed rate to cut from, or the policy names no save. `cut_share` is the run's policy's
-    (`DecisionPolicy.save_offer_cut_share`), handed in by the run that holds it."""
+    fixed rate to cut from, or the policy names no save. `cut_share` and `sizing` are the run's
+    policy's (`DecisionPolicy.save_offer_cut_share`, `.save_offer_sizing`), handed in by the run
+    that holds it. Under `sizing == "price_match"` the three published or company-held values size
+    the save (`company.crm.save_offer.price_match_save_rate`): plain values, as at the renewal door."""
     record = None if psr_register is None else psr_register.get_record(supply_point_id)
     vulnerable = (record is not None
                   and record.registration_date.isoformat() <= supply_effective_from)
@@ -44,6 +50,9 @@ def request_save_offer(register: CoSRegister, supply_point_id: str, supply_effec
             and n["supply_effective_from"] == supply_effective_from]
     if not held:
         return None, vulnerable
+    match = (price_match_save_rate(renewal_unit_rate, published_default_rate,
+                                   published_best_deal_gap_share, cost_floor)
+             if sizing == "price_match" else None)
     offer = save_offer_on_invitation(held[-1], renewal_unit_rate,
-                                     cut_share, vulnerable=vulnerable)
+                                     cut_share, vulnerable=vulnerable, price_match_rate=match)
     return (None if offer is None else offer.save_unit_rate), vulnerable

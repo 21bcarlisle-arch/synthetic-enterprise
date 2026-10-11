@@ -237,6 +237,7 @@ from simulation.retention_offer import ask_world_at_offer, offered_rate
 from simulation.save_on_loss_notice import (
     billed_rate_when_saved,
     household_takes_save,
+    published_best_deal_gap_share,
     save_offers_active,
     world_save_response_scale,
 )
@@ -928,6 +929,8 @@ def _build_gas_renewal_schedule(
             "forward_price_gbp_per_mwh": sim_fwd,
             "company_forward_price_gbp_per_mwh": company_fwd,
             "unit_rate_gbp_per_mwh": unit_rate,
+            "locked_policy_cost_gbp_per_mwh": _gas_strike.locked_policy_cost_gbp_per_mwh,
+            "locked_network_cost_gbp_per_mwh": _gas_strike.locked_network_cost_gbp_per_mwh,
             "tariff_type": tariff_type,
         })
         term_start = term_end  # next term starts where this ends
@@ -2050,6 +2053,11 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     # Phase 17a + 19a: rolling portfolio-wide margin rates for learning premium
     # Released only once a term has ended: see `EndedTermMargins`.
     _portfolio_margins = EndedTermMargins()
+    # Every account a save kept. NOT ONLY ITS SAVED TERM: the next renewal is priced off the save
+    # rate (`_prior_rates`), so its margin differs from what it would have been, and admitting it
+    # recovered the save from the stayers through the premium a term later (measured 2026-10-11,
+    # tests/simulation/test_a_save_is_not_paid_for_by_the_stayers.py: 372 stayer prices moved).
+    _accounts_held_on_a_save: set[str] = set()
     portfolio_elec_margin_rates = _portfolio_margins.electricity
     portfolio_gas_margin_rates = _portfolio_margins.gas  # Phase 19a: separate gas tracking
     dynamic_pricing_log: list[dict] = []
@@ -3430,9 +3438,21 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     for _wire in wire_registrations(registration_notices(
                             [(cid, date.fromisoformat(_first_day))], run_base_seed())):
                         _psr_register.receive_registration_wire(_wire)
+                # THE PRICE MATCH'S INPUTS (2026-10-10): the published default for this fuel, the
+                # published best-deal gap for the quarter, and the cost floor of the rate the
+                # company struck for this term -- what its own renewal desk floors at.
+                _locked = (term.get("locked_policy_cost_gbp_per_mwh"),
+                           term.get("locked_network_cost_gbp_per_mwh"))
+                _price_match_inputs = {
+                    "published_default_rate": _account_state_svt_rate(commodity, term_start_str),
+                    "published_best_deal_gap_share": published_best_deal_gap_share(term_start_str),
+                    "cost_floor": (None if None in _locked or company_fwd is None
+                                   else company_fwd + _locked[0] + _locked[1]),
+                }
                 _save_rate, _known_vulnerable = request_save_offer(
                     _change_of_supplier_register, cid, term_start_str, unit_rate,
-                    policy.save_offer_cut_share, psr_register=_psr_register)
+                    policy.save_offer_cut_share, psr_register=_psr_register,
+                    sizing=policy.save_offer_sizing, **_price_match_inputs)
                 _asked = roll_lifecycle_event(
                     cid, term_start_str, commodity,
                     **{**_roll_kwargs, "new_rate_gbp_per_mwh": _save_rate},
@@ -3451,6 +3471,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     "invitation_held": _pending_notice_sent,
                     "renewal_unit_rate_gbp_per_mwh": unit_rate,
                     "save_unit_rate_gbp_per_mwh": _save_rate,
+                    "price_match_inputs": _price_match_inputs,
                     "p_stay_at_offer": event["effective_retention_probability"],
                     "p_stay_at_save": (
                         _asked["effective_retention_probability"] if _asked is not None else None),
@@ -3461,6 +3482,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 if _saved:
                     unit_rate = billed_rate_when_saved(unit_rate, _save_rate)
                     _held_on_a_save = True
+                    _accounts_held_on_a_save.add(billing_account)
                     event = {**_asked, "event_type": "renewed", "departure_cause": None,
                              "saved_on_loss_notice": True}
                     if not _indexed_tariff:
@@ -4407,7 +4429,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         # never be paid for by raising the price of customers who stay). Its margin is thinner by
         # the save's cut, and this feed sets every later renewal's portfolio premium, so admitting
         # it recovered the save from the stayers -- measured, 2026-10-08, before this line existed.
-        if term_revenue > 0 and not _held_on_a_save:
+        if term_revenue > 0 and not _held_on_a_save and billing_account not in _accounts_held_on_a_save:
             _portfolio_margins.settled(
                 max(r["settlement_date"] for r in settled_this_term), commodity, actual_net / term_revenue,
             )

@@ -170,3 +170,22 @@ def test_the_save_rate_denominator_is_the_on_arms_own_switches_and_never_underco
     assert compare(off, arm(None, log))["switches_started_counted_as"].startswith("at least")
     nobody = {**arm(9, log), "world_save_response_scale": 0.0}
     assert compare(off, nobody)["implied_saves_per_domestic_switch_away_from_css"] == 0.0
+
+
+def test_a_vulnerable_leaver_left_unoffered_is_flagged_only_when_its_TWIN_would_have_been_offered():
+    """Fires on both wrong readings of the standing price match (2026-10-10). Flagging every
+    unoffered vulnerable leaver (the flat-cut rule) cries wolf where the match could not beat that
+    household's renewal for anyone -- the first live run flagged 4 such; flagging none misses a desk
+    that withholds a match from a household because the company knows it is vulnerable."""
+    from tools.save_on_loss_notice_arms import vulnerable_leavers_not_offered
+
+    def row(renewal, floor):
+        return {"known_vulnerable": True, "invitation_held": True, "save_unit_rate_gbp_per_mwh": None,
+                "renewal_unit_rate_gbp_per_mwh": renewal,
+                "price_match_inputs": {"published_default_rate": 250.0,
+                                       "published_best_deal_gap_share": 0.08, "cost_floor": floor}}
+    no_twin_offer = row(225.0, 200.0)   # match 230 does not beat 225: nobody would be offered
+    withheld = row(245.0, 200.0)        # match 230 beats 245: a plain twin is offered
+    plain_offered = {"known_vulnerable": False, "invitation_held": True,
+                     "save_unit_rate_gbp_per_mwh": 230.0}
+    assert vulnerable_leavers_not_offered([no_twin_offer, withheld, plain_offered]) == [withheld]
