@@ -1309,6 +1309,22 @@ def _record_renewal_decision(journey, log: list, *, customer_id: str, event_date
                 "commodity": commodity, "rolled": rolled, "switched": switched})
 
 
+def _company_provision_by_year_end(triad, effective_end: str, payment_method_of) -> dict:
+    """The company's provision stock at each year end in the run and at its end, read once the run
+    is over. Each read is by value date, so a later read of an earlier date sees only cash that had
+    arrived by then; reading during the run would force-cross held settlements and change the run.
+    A failed read is recorded with its reason and does not kill a finished run."""
+    end = date.fromisoformat(effective_end)
+    dates = [date(y, 12, 31) for y in range(int(REPORT_START[:4]), end.year) if date(y, 12, 31) < end]
+    try:
+        stocks = {d.isoformat(): triad.provision_stock(d, payment_method_of=payment_method_of)
+                  for d in dates + [end]}
+    except Exception as exc:  # noqa: BLE001 -- a reporting read must not kill a completed run
+        print(f"WARNING [company provision] could not be read: {exc!r}")
+        return {"unavailable_because": repr(exc)}
+    return {"by_date": stocks, "closing": stocks[end.isoformat()]}
+
+
 def _box_admission():
     """`resource_headroom.queued` for one run, declared at the shipped budget's measured peak
     (`budgeted_run_peak_mb`; the `sim_run` class weight when no curve prices it). Over-declares for
@@ -5134,6 +5150,11 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         # plan, or crossed for a bill a plan covers (the arrears paid twice). AFTER the journeys,
         # whose end-of-run forced crossing is the last that can move these counts.
         "later_settlements": _payment_triad.later_settlements(),
+        # The COMPANY's bad-debt provision: a stock over its own receivables on the payment-seam
+        # ledger, by footing and age, at each 31 December and at the end. Unlike
+        # `total_bad_debt`'s provisioned reading, which is the world's incidence on revenue.
+        "company_provision": _company_provision_by_year_end(
+            _payment_triad, effective_end, _book_method_of),
         "total_net": total_net,
         "final_treasury": final_treasury,
         "starting_treasury": STARTING_TREASURY_GBP,

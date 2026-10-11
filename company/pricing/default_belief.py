@@ -60,6 +60,7 @@ from company.billing.arrears_engine import fifo_unpaid_bills
 from company.crm.churn_model import ARREARS_STATE_UNKNOWN
 from company.pricing.value_based_renewal import (
     _LIVE_PROVISION_ROW_BY_METHOD,
+    DIRECT_DEBIT_REPRESENTATION_WINDOW_DAYS,
     RECEIVABLE_PROVISION_RATE_FINAL_BILL,
     _banded_rate,
     _live_rate,
@@ -211,6 +212,100 @@ def _provision(ledger, on: dt.date, method: str, closes_on: dt.date) -> Optional
     if live_row is None:
         return None if unpaid else 0.0
     return sum(g * _live_rate(live_row, (on - d).days) for d, g in unpaid)
+
+
+#: The footings a provision stock is read on. Three are Centrica Note 17's rows; the fourth is the
+#: money no published row covers, reported beside the figure and never provisioned at a borrowed rate.
+BUCKET_LIVE_DIRECT_DEBIT = "live_direct_debit"
+BUCKET_LIVE_PAY_ON_RECEIPT = "live_pay_on_receipt"
+BUCKET_FINAL_BILL = "final_bill"
+BUCKET_NO_PUBLISHED_ROW = "no_published_row"
+PROVISION_BUCKETS = (BUCKET_LIVE_DIRECT_DEBIT, BUCKET_LIVE_PAY_ON_RECEIPT, BUCKET_FINAL_BILL,
+                     BUCKET_NO_PUBLISHED_ROW)
+#: Centrica's own age bands, by days beyond invoice date.
+AGE_BANDS = ((30, "lt_30d"), (90, "30_90d"), (None, "gt_90d"))
+NO_PUBLISHED_ROW_REASON = (
+    "Centrica ARA 2025 Note 17 publishes live rows for direct debit and pay on receipt only: no "
+    "prepayment row, and its business table is not transcribed "
+    "(docs/market_research/dd_failure_basis_and_live_arrears_provision_rates.md, C6). An account "
+    "the method register does not answer for (business) or answers prepayment for is owed this "
+    "money and carries no provision, rather than one read off a row that is not its own.")
+
+
+def _band(days: int) -> str:
+    for upper, name in AGE_BANDS:
+        if upper is None or days < upper:
+            return name
+    raise AssertionError("the last band is open")
+
+
+def provision_stock(
+    book: LedgerBook,
+    *,
+    on: dt.date,
+    payment_method_of: Callable[[str, dt.date], Optional[str]],
+) -> dict:
+    """The provision this company holds against its own receivables on `on`: a STOCK, read bucket by
+    bucket on the published rows, off its own ledger and its own method register and nothing else.
+
+    The same reading `_provision` gives one account, kept per footing and age band so the figure
+    shows where it sits. An account is closed on `on` when nothing was billed to it in the
+    `CLOSED_IF_UNBILLED_DAYS` before, asked of the bills it had by then (a later bill is not known).
+    `payment_method_of` is asked only of an account that owes money on a live footing.
+    """
+    buckets = {b: {band: {"receivable_gbp": 0.0,
+                          "provision_gbp": None if b == BUCKET_NO_PUBLISHED_ROW else 0.0}
+                   for _, band in AGE_BANDS}
+               for b in PROVISION_BUCKETS}
+    accounts = {b: set() for b in PROVISION_BUCKETS}
+    for account in book.accounts():
+        ledger = book.ledger(account)
+        unpaid = [(d, g) for d, g in fifo_unpaid_bills(ledger, on) if g > 0.005]
+        if not unpaid:
+            continue
+        last_bill = max(e.valid_time for e in ledger.events_through(on)
+                        if e.event_type == LedgerEventType.BILL_DEBIT)
+        closed = (on - last_bill).days >= CLOSED_IF_UNBILLED_DAYS
+        method = None if closed else payment_method_of(account, on)
+        live_row = None if closed else _LIVE_PROVISION_ROW_BY_METHOD.get(method or "")
+        for billed, gbp in unpaid:
+            days = (on - billed).days
+            if closed:
+                bucket, rate = BUCKET_FINAL_BILL, _banded_rate(RECEIVABLE_PROVISION_RATE_FINAL_BILL, days)
+            elif live_row is None:
+                bucket, rate = BUCKET_NO_PUBLISHED_ROW, None
+            else:
+                # `_live_rate` moves a DD bill unpaid past the re-presentation window onto the
+                # pay-on-receipt row, so the bucket follows the row the rate was read on.
+                rate = _live_rate(live_row, days)
+                bucket = (BUCKET_LIVE_DIRECT_DEBIT if method == "direct_debit"
+                          and days < DIRECT_DEBIT_REPRESENTATION_WINDOW_DAYS
+                          else BUCKET_LIVE_PAY_ON_RECEIPT)
+            cell = buckets[bucket][_band(days)]
+            cell["receivable_gbp"] += gbp
+            if rate is not None:
+                cell["provision_gbp"] += gbp * rate
+            accounts[bucket].add(account)
+
+    out: dict = {"as_of": on.isoformat(), "buckets": {}}
+    for bucket in PROVISION_BUCKETS:
+        bands = {band: {"receivable_gbp": round(c["receivable_gbp"], 2),
+                        "provision_gbp": None if c["provision_gbp"] is None
+                        else round(c["provision_gbp"], 2)}
+                 for band, c in buckets[bucket].items()}
+        out["buckets"][bucket] = {
+            "accounts": len(accounts[bucket]),
+            "receivable_gbp": round(sum(c["receivable_gbp"] for c in bands.values()), 2),
+            "provision_gbp": (None if bucket == BUCKET_NO_PUBLISHED_ROW
+                              else round(sum(c["provision_gbp"] for c in bands.values()), 2)),
+            "by_age": bands,
+        }
+    out["buckets"][BUCKET_NO_PUBLISHED_ROW]["reason"] = NO_PUBLISHED_ROW_REASON
+    out["provision_gbp"] = round(sum(
+        b["provision_gbp"] for b in out["buckets"].values() if b["provision_gbp"] is not None), 2)
+    out["receivable_gbp"] = round(sum(b["receivable_gbp"] for b in out["buckets"].values()), 2)
+    out["unprovisioned_receivable_gbp"] = out["buckets"][BUCKET_NO_PUBLISHED_ROW]["receivable_gbp"]
+    return out
 
 
 def default_belief(
