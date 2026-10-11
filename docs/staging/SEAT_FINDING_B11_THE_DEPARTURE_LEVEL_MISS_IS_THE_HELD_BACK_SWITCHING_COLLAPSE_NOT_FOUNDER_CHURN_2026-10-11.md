@@ -74,6 +74,9 @@ per month.
 
 **H3, a calendar confound in the tenure table: not supported as stated, and it cannot be
 separated on one book.**
+*Corrected by slice 7, `SEAT_FINDING_B11_THE_MOVE_TERM_TRANSFERS_AND_THE_SWITCH_TERM_IS_THE_REGIME_2026-10-11.md`:
+at cuts 2020, 2022 and 2023 the oldest contract year is fitted on the cut year alone, so for the
+founders the per-customer level IS that calendar year's rate. H3 holds in that form.*
 - 2019 is the highest year in the fit window. 2020 is not.
 - In 2020, contract year 4 (the 2016 founders) left at 0.0293, against 0.0204 for the whole book
   in the same year. So at least part of the tenure gradient is not calendar time.
@@ -92,7 +95,7 @@ separated on one book.**
 3. **The prediction I would make for a later cut is arithmetic, and is stated here so it can
    refute me.** At a 2022 cut the fit window is 2016–2022, with a pooled monthly rate of about
    0.018. The held-back window is 2023 to 2025-06, at about 0.009. Over 30 months that puts flat p
-   at about 0.42 against about 0.24 realised. **So a later cut is predicted to still over-predict,
+   at about 0.42 against about 0.24 realised. *(Graded in slice 7: 0.418 against 0.249, +0.169.)* **So a later cut is predicted to still over-predict,
    by roughly 0.15–0.2.** A later cut does not answer the level question either. The level depends
    on the regime.
 4. **The miss is in the switch hazard. The move hazard transferred.** A forecast that separates

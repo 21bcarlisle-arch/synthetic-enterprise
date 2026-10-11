@@ -12,6 +12,7 @@ from company.analytics.forward_clv import (
     HELD_BACK_OUTCOMES,
     LIMITATION_DEPARTURE_CAUSE,
     LIMITATION_NO_MOVE_REGISTER,
+    LIMITATION_SWITCH_LEVEL_IS_THE_REGIME,
     AccountForecast,
     AccountHistory,
     _fit_hazards,
@@ -482,6 +483,33 @@ def test_the_level_split_by_cause_sums_to_the_flat_p_and_each_cause_reads_its_ow
     assert inc["move"][1] == grades["mover"].accounts / bt.accounts_graded
     for cause in ("switch", "move"):
         assert cal[cause][0] == pytest.approx(inc[cause][0] - inc[cause][1])
+    assert LIMITATION_SWITCH_LEVEL_IS_THE_REGIME in bt.limitations
     absent = run_backtest(book, end)
     assert absent.departure_incidence_by_cause is None
     assert absent.departure_calibration_by_cause is None
+    assert LIMITATION_SWITCH_LEVEL_IS_THE_REGIME not in absent.limitations
+
+
+def test_an_oldest_contract_year_fitted_on_one_calendar_year_is_named_and_both_branches_reach():
+    """The defect: a per-customer level read as tenure when the oldest contract year, which
+    holds for all later tenure, was fitted on the cut year alone -- the real book's shape at
+    every cut. Opened in January with an exit in 2020, the fifth contract year is 2020 alone.
+    Opened in July with the exit in 2019, the fifth year has none and folds into the fourth,
+    which spans 2019-07..2020-06, so nothing is named."""
+    end = _month_index("2025-06")
+
+    def book(start, exit_at):
+        return [
+            _acct("J1", "resi dual", start, "2025-06", 10.0),
+            _acct("J2", "resi dual", start, "2016-09", 10.0),
+            _acct("J3", "resi dual", start, exit_at, 10.0),
+            _acct("J4", "resi dual", start, "2023-02", 10.0),
+        ]
+
+    jan = run_backtest(book("2016-01", "2020-05"), end)
+    named = [m for m in jan.limitations if "oldest contract year" in m]
+    assert max(jan.hazard_by_contract_year) == 4
+    assert len(named) == 1 and "(4) is fitted on 2020 alone" in named[0]
+    july = run_backtest(book("2016-07", "2019-10"), end)
+    assert max(july.hazard_by_contract_year) == 3
+    assert not [m for m in july.limitations if "oldest contract year" in m]

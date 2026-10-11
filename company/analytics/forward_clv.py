@@ -97,6 +97,7 @@ __all__ = [
     "HELD_BACK_OUTCOMES",
     "LIMITATION_DEPARTURE_CAUSE",
     "LIMITATION_NO_MOVE_REGISTER",
+    "LIMITATION_SWITCH_LEVEL_IS_THE_REGIME",
     "AccountHistory",
     "Backtest",
     "OutcomeGrade",
@@ -127,6 +128,16 @@ LIMITATION_DEPARTURE_CAUSE = (
 LIMITATION_NO_MOVE_REGISTER = (
     "the run carries no move-out register (home_move_outs): the world's home moves are off, "
     "so no departure in this book can be told to be a move"
+)
+# Slice 7 (docs/staging/SEAT_FINDING_B11_THE_MOVE_TERM_TRANSFERS_AND_THE_SWITCH_TERM_IS_THE_REGIME_2026-10-11.md):
+# on the slice-5 book the move term's level held at cuts 2020, 2022 and 2023 (every interval holds
+# zero) while the switch term over-predicted at all three (+0.24, +0.14, +0.05), shrinking only as
+# the collapse entered the fit window. Fitting the switch level to a held-back rate is fitting to
+# the answer, so it is published with this instead of a calibrated constant.
+LIMITATION_SWITCH_LEVEL_IS_THE_REGIME = (
+    "the switch term's level is the fit window's switching regime, not a property of the "
+    "customer: it cannot see a regime change after the cut (switching collapsed in the 2021-23 "
+    "crisis); the move term is the part of the departure level that held across it"
 )
 
 _TWO_SIDED_95 = NormalDist().inv_cdf(0.975)
@@ -680,7 +691,7 @@ def run_backtest(
     if move_out_month_by_account is None:
         limitations = [LIMITATION_DEPARTURE_CAUSE, LIMITATION_NO_MOVE_REGISTER]
     else:
-        limitations = []
+        limitations = [LIMITATION_SWITCH_LEVEL_IS_THE_REGIME]
         moved = frozenset(
             a.account_id for a in accounts
             if move_out_month_by_account.get(a.account_id) == a.last_month
@@ -733,6 +744,20 @@ def run_backtest(
             row["departures"] += 1
             if moved is not None:
                 row["move" if a.account_id in moved else "switch"] += 1
+    # The oldest contract year holds for every month beyond it. When one calendar year is all that
+    # fitted it, the per-customer level for the book's longest-tenured accounts is that year's rate
+    # (slice 7: the cut year alone, at every cut), so a good level there is recency, not tenure.
+    oldest = max(by_cy)
+    oldest_years = {m // 12 for a in accounts if a.first_month <= fit_end
+                    for m in range(max(a.first_month + oldest * _MONTHS_PER_CONTRACT_YEAR,
+                                       hazard_start if hazard_start is not None else first),
+                                   min(a.last_month, fit_end) + 1)}
+    if len(oldest_years) == 1:
+        limitations.append(
+            f"the per-customer hazard's oldest contract year ({oldest}) is fitted on "
+            f"{oldest_years.pop()} alone, and holds for every later month of tenure: for the "
+            "accounts there its level is one calendar year's rate, not a tenure effect"
+        )
     pooled = sorted(s for s, k in k_by_seg.items() if k is None)
     if pooled:
         limitations.append(
