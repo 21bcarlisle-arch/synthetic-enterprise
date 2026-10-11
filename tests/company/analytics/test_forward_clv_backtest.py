@@ -21,10 +21,13 @@ from company.analytics.forward_clv import (
     _paired,
     _ranking,
     backtest_run_output,
+    exit_cells,
     load_book,
     move_outs_from_run_output,
+    pooled_ratio,
     regime_boundary_month,
     run_backtest,
+    standardised_ratios,
 )
 from tools.run_output_store import as_plain_file, resolve_run_output
 
@@ -513,3 +516,55 @@ def test_an_oldest_contract_year_fitted_on_one_calendar_year_is_named_and_both_b
     july = run_backtest(book("2016-07", "2019-10"), end)
     assert max(july.hazard_by_contract_year) == 3
     assert not [m for m in july.limitations if "oldest contract year" in m]
+
+
+def test_exit_cells_key_each_month_by_its_calendar_and_contract_year_and_only_exits_leave():
+    """The defect: an exit counted in the wrong cell, or the book's edge (or a move) read as
+    one, moves the ratio the tenure-against-calendar test reads."""
+    end = _month_index("2025-06")
+    book = [
+        _acct("S", "resi dual", "2016-07", "2018-03", 1.0),  # exits 2018, contract year 1
+        _acct("C", "resi dual", "2024-01", "2025-06", 1.0),  # on supply at the edge
+        _acct("M", "resi dual", "2024-01", "2024-04", 1.0),  # moved, censored
+    ]
+    cells = exit_cells(book, end, censored=frozenset({"M"}))
+    assert cells[(2016, 0)] == (6, 0)
+    assert cells[(2017, 0)] == (6, 0) and cells[(2017, 1)] == (6, 0)
+    assert cells[(2018, 1)] == (3, 1)
+    assert cells[(2024, 0)] == (12 + 4, 0) and cells[(2025, 1)] == (6, 0)
+    assert sum(e for _, e in cells.values()) == 1
+
+
+def test_a_contract_year_ratio_is_one_when_only_the_calendar_moves_and_departs_when_tenure_does():
+    """The defect: a ratio that reads 1 whatever the cells say cannot tell tenure from calendar
+    time, which is the question it exists for. Both branches are asserted reachable: the
+    calendar-only book reads 1 at every contract year, and doubling year 0's exits within the
+    same calendar years moves year 0 above 1 with an interval that excludes it."""
+    calendar_only = {(2017, 0): (1000, 20), (2017, 1): (500, 10),
+                     (2018, 0): (1000, 5), (2018, 1): (2000, 10)}
+    flat = standardised_ratios(calendar_only, calendar_only, "calendar_year", "contract_year")
+    assert [r.key for r in flat] == [0, 1]
+    assert all(abs(r.ratio - 1.0) < 1e-12 for r in flat)
+    assert all(r.interval_95[0] < 1.0 < r.interval_95[1] for r in flat)
+
+    tenure = {(2017, 0): (1000, 60), (2017, 1): (1000, 20),
+              (2018, 0): (1000, 60), (2018, 1): (1000, 20)}
+    first, second = standardised_ratios(tenure, tenure, "calendar_year", "contract_year")
+    assert first.ratio == pytest.approx(1.5) and first.interval_95[0] > 1.0
+    assert second.ratio == pytest.approx(0.5) and second.interval_95[1] < 1.0
+    years = standardised_ratios(tenure, tenure, "contract_year", "calendar_year")
+    assert all(abs(r.ratio - 1.0) < 1e-12 for r in years)
+
+
+def test_a_subject_is_graded_only_in_years_its_reference_saw_and_pools_to_one_ratio():
+    """The defect: a subject year the reference never observed given an expectation of zero (a
+    ratio of infinity) or silently pooled. Such a year is left out, and that branch is taken."""
+    reference = {(2018, 0): (1000, 10), (2019, 0): (1000, 20)}
+    subject = {(2017, 5): (400, 9), (2018, 2): (100, 2), (2019, 3): (100, 1)}
+    by_year = standardised_ratios(subject, reference, "calendar_year", "calendar_year")
+    assert [r.key for r in by_year] == [2018, 2019]  # 2017 is not graded
+    whole = pooled_ratio(by_year)
+    assert (whole.observed, whole.expected) == (3, pytest.approx(3.0))
+    assert whole.ratio == pytest.approx(1.0)
+    with pytest.raises(ValueError, match="an axis must be one of"):
+        standardised_ratios(subject, reference, "tenure", "calendar_year")
