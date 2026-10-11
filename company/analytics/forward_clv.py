@@ -84,6 +84,10 @@ times the phase's ratio to the calendar year's rate (``term_phase_ratios``), so 
 fit window lived through is not read as a tenure effect and the level stays the flat rule's.
 A supplier knows each account's term end: the run's renewal events fall in the acquisition
 month's anniversary, so it is read from the first supplied month, not from the world.
+Graded on the slice-5 book it held the flat level and ranked no better at cuts 2020/2022/2023:
+over a multi-year horizon every account crosses about as many anniversaries, so the key has
+nothing to separate. The default stays the contract-year table by the rule written before the
+grade (docs/staging/SEAT_FINDING_B11_THE_TERM_END_KEY_HOLDS_THE_LEVEL_AND_RANKS_NO_BETTER_OVER_THE_WHOLE_HORIZON_2026-10-11.md).
 
 THE BOUND. Every comparison is paired over the same accounts: the mean of
 (per-customer absolute error − flat absolute error) with a normal-approximation 95%
