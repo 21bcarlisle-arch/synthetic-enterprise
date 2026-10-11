@@ -9,6 +9,8 @@ Five ways it can go wrong, one control each:
 """
 from __future__ import annotations
 
+import pytest
+
 from company.crm.competitive_pressure import CompetitivePressureLedger, pressure_ledger_scope
 from company.crm.enriched_churn_estimate import enriched_churn_estimate
 from company.policy.decision_policy import (
@@ -197,6 +199,15 @@ def _account_on(arm: str, day: str) -> str:
     return next(f"R{i}" for i in range(1000) if dps.holdout_arm(f"R{i}", day) == arm)
 
 
+#: The old outcome definition, stayed at the decision itself: the decision tests below are about the
+#: decision, so they plant rows that close on the decision's own day.
+AT_THE_DECISION = 0
+
+
+def _holdout_book() -> "dps.RetentionHoldout":
+    return dps.RetentionHoldout(outcome_window_days=AT_THE_DECISION)
+
+
 def _planted(holdout: "dps.RetentionHoldout", day: str, n: int = 400) -> None:
     """A holdout whose own interval says the offer raises staying: 0.95 treated against 0.75."""
     for i in range(n):
@@ -218,8 +229,8 @@ def test_the_runs_holdout_takes_every_branch_and_reads_only_rows_closed_before_t
     not yet in the book -- the same planted rows on the decision's own day leave it undecided."""
     day = "2019-06-01"
     treated, held = _account_on("treated", day), _account_on("holdout", day)
-    empty, learned, same_day = dps.RetentionHoldout(), dps.RetentionHoldout(), dps.RetentionHoldout()
-    thin = dps.RetentionHoldout()
+    empty, learned, same_day = _holdout_book(), _holdout_book(), _holdout_book()
+    thin = _holdout_book()
     _planted(learned, "2018-06-01")
     _planted(thin, "2018-06-01", n=10)  # the founders' book: an arm of ten is undecided, not refused
     _planted(same_day, day)
@@ -232,12 +243,107 @@ def test_the_runs_holdout_takes_every_branch_and_reads_only_rows_closed_before_t
         "cut": _run_decide(learned, treated, day, 100.0),
         "no_cut": _run_decide(learned, treated, day, 10.0),
     }
-    assert outcomes["held_out"] == ("holdout", None)
+    # The held-out arm is decided too -- whether it is in the experiment cannot depend on the coin.
+    assert outcomes["held_out"][0] == "holdout" and outcomes["held_out"][1].offer_cut
     assert outcomes["learning"] == ("treated", None)
-    assert dps.estimate_offer_effect(thin.rows).verdict == "undecided"
+    assert dps.estimate_offer_effect(thin.closed_before(day)).verdict == "undecided"
     assert outcomes["undecided"] == ("treated", None)
     assert outcomes["same_day"] == ("treated", None)
     assert outcomes["cut"][1].offer_cut and not outcomes["no_cut"][1].offer_cut, outcomes
+
+
+def test_a_holdout_row_is_due_on_either_arm_exactly_where_the_company_would_offer():
+    """The experiment is the renewals the company would offer. Defect: the coin flipped over every
+    considered renewal, the held-out row kept where the guard would have declined and the treated
+    twin dropped, so households nobody would offer sat in one arm only (blind Expert Hour 2026-10-11,
+    Q11). Read through the run's own door: the decision on each arm, then `would_offer`."""
+    day = "2019-06-01"
+    treated, held = _account_on("treated", day), _account_on("holdout", day)
+    learned = _holdout_book()
+    _planted(learned, "2018-06-01")
+    due = {}
+    for name, account in (("treated", treated), ("holdout", held)):
+        for margin in (100.0, 10.0):  # decided: cut, and decided: no cut
+            arm, decision = _run_decide(learned, account, day, margin)
+            due[(name, "decided", margin)] = (arm, learned.would_offer(decision, True))
+        for guard in (True, False):  # still learning: the standing guard says
+            arm, decision = _run_decide(_holdout_book(), account, day, 100.0)
+            due[(name, "learning", guard)] = (arm, learned.would_offer(decision, guard))
+    # Every branch is taken: a row due, and a row not due -- and once decided, the decision and not
+    # the standing guard (which says yes on every decided leg here) is what puts it in.
+    assert {v[1] for v in due.values()} == {True, False}, due
+    assert due[("treated", "decided", 100.0)][1] and not due[("treated", "decided", 10.0)][1], due
+    for (name, kind, k), (arm, is_due) in due.items():
+        assert arm == name
+        assert is_due == due[("holdout" if name == "treated" else "treated", kind, k)][1], due
+
+
+def test_a_save_on_the_loss_notice_is_carried_on_the_holdout_row():
+    book = dps.RetentionHoldout()
+    book.record(account_id="H1", event_date="2019-06-01", arm="holdout", stayed=True,
+                payment_method="direct_debit", saved_on_loss_notice=True)
+    book.record(account_id="T1", event_date="2019-06-01", arm="treated", stayed=True,
+                payment_method="direct_debit")
+    assert [r["saved_on_loss_notice"] for r in book.rows] == [True, False]
+
+
+def _loss(point: str, effective: str, notified: str) -> dict:
+    return {"supply_point_id": point, "registration_ref": "R", "supply_effective_from": effective,
+            "notified_on": notified, "stage": "objection_cleared"}
+
+
+def test_a_holdout_rows_outcome_is_read_at_its_window_from_the_companys_own_loss_notices():
+    """Q10 (blind Expert Hour, 2026-10-11). Defect: a renewal counted as stayed whenever the decision
+    itself was not a departure, so a household that took the renewal and left two months later was a
+    stay, which biases the offer's effect upward. One partition over a row's states on one day: left
+    on the decision; lost inside the window; lost after it (stayed); window passed with no loss
+    (stayed); window still open (not closed); a loss inside the window not yet notified (not closed);
+    and another account's loss never counts. Every state is taken."""
+    book = dps.RetentionHoldout(outcome_window_days=90)
+    rows = {"left": ("L", False), "lost_in": ("A", True), "lost_after": ("B", True),
+            "quiet": ("C", True), "open": ("D", True), "unnotified": ("E", True)}
+    for name, (acct, stayed) in rows.items():
+        day = {"open": "2019-11-01", "unnotified": "2019-10-01"}.get(name, "2019-06-01")
+        book.record(account_id=acct, event_date=day, arm="treated", stayed=stayed,
+                    payment_method="direct_debit", supply_points=(f"{acct}-e",))
+    losses = [_loss("A-e", "2019-08-01", "2019-07-25"),   # 61 days after: inside the window
+              _loss("B-e", "2019-10-01", "2019-09-25"),   # 122 days after: outside it
+              _loss("E-e", "2019-12-10", "2019-12-05"),   # inside, but the company not told by today
+              _loss("Z-e", "2019-07-01", "2019-06-25")]   # another account's point
+    closed = {r["account_id"]: r["stayed"] for r in book.closed_before("2019-12-01", losses)}
+    assert closed == {"L": False, "A": False, "B": True, "C": True}, closed
+    # The old definition calls the household that left at day 61 a stay.
+    at_decision = dps.RetentionHoldout(outcome_window_days=AT_THE_DECISION)
+    at_decision.rows = book.rows
+    assert {r["account_id"]: r["stayed"] for r in at_decision.closed_before("2019-12-01", losses)
+            }["A"] is True
+    days = {r["account_id"]: r["days_to_later_loss"] for r in book.outcomes(losses)}
+    assert days == {"L": None, "A": 61, "B": 122, "C": None, "D": None, "E": 70}, days
+
+
+def test_with_no_outcome_window_established_no_row_closes_and_the_standing_guard_decides():
+    """The window is a named gap (`RETENTION_OUTCOME_WINDOW_DAYS`), not a picked number. Under it the
+    company's own holdout learns nothing, so a book that would decide at window 0 stays undecided."""
+    assert dps.RETENTION_OUTCOME_WINDOW_DAYS is None
+    day = "2019-06-01"
+    gap, at_decision = dps.RetentionHoldout(), _holdout_book()
+    _planted(gap, "2018-06-01")
+    _planted(at_decision, "2018-06-01")
+    treated = _account_on("treated", day)
+    assert gap.closed_before(day) == [] and _run_decide(gap, treated, day, 100.0) == ("treated", None)
+    assert _run_decide(at_decision, treated, day, 100.0)[1].offer_cut
+
+
+def test_a_rollover_onto_the_default_is_carried_apart_from_a_re_fix():
+    book = _holdout_book()
+    for acct, stayed, kind in (("A", True, "re_fixed"), ("B", True, "declined_fix_on_default"),
+                               ("C", False, "left_at_decision")):
+        book.record(account_id=acct, event_date="2019-06-01", arm="holdout", stayed=stayed,
+                    payment_method="direct_debit", renewal=kind)
+    assert [r["renewal"] for r in book.rows] == list(dps.RENEWAL_KINDS[1:] + dps.RENEWAL_KINDS[:1])
+    with pytest.raises(ValueError, match="cannot end"):
+        book.record(account_id="D", event_date="2019-06-01", arm="holdout", stayed=False,
+                    payment_method="direct_debit", renewal="declined_fix_on_default")
 
 
 def test_the_companys_coin_holds_about_half_out_and_flips_the_same_way_on_a_rerun():

@@ -84,6 +84,11 @@ def test_the_run_gates_the_offer_on_the_rule_from_its_own_book():
                    and isinstance(n.value, ast.Call)
                    and getattr(n.value.func, "id", None) == "retention_value_protected"
                    for t in n.targets if isinstance(t, ast.Name)}
+    # ...or into a name derived from it, as the holdout's `_would_offer` is (B8 Q11: the learned
+    # decision, else the guard), so long as that name's own value reads the guard.
+    guard_names |= {t.id for n in ast.walk(tree) if isinstance(n, ast.Assign)
+                    and {m.id for m in ast.walk(n.value) if isinstance(m, ast.Name)} & guard_names
+                    for t in n.targets if isinstance(t, ast.Name)}
     reads = {n.id for n in ast.walk(branch.test) if isinstance(n, ast.Name)} if isinstance(
         branch, ast.If) else set()
     assert isinstance(branch, ast.If) and (
