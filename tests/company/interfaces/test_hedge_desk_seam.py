@@ -533,7 +533,10 @@ def test_control_3_each_call_site_passes_its_own_commodity_and_its_own_locals():
     elec = by_commodity["electricity"]
     gas = by_commodity["gas"]
     assert isinstance(elec["volume_kwh"], ast.Name) and elec["volume_kwh"].id == "eac_kwh"
-    assert isinstance(gas["volume_kwh"], ast.Name) and gas["volume_kwh"].id == "aq_kwh"
+    # `hedge_aq_kwh`, the company's own gas volume -- not `aq_kwh`, the household's multiplied use,
+    # which this line pinned until 2026-10-11 (`tests/simulation/
+    # test_the_hedge_volume_reads_only_what_the_company_holds.py`).
+    assert isinstance(gas["volume_kwh"], ast.Name) and gas["volume_kwh"].id == "hedge_aq_kwh"
     for kw in (elec, gas):
         assert isinstance(kw["forward_price_gbp_per_mwh"], ast.Name)
         assert kw["forward_price_gbp_per_mwh"].id == "company_fwd"

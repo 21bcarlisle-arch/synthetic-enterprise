@@ -51,6 +51,23 @@ The year-1 electricity fallback and every gas term multiply by `simulation/house
 multipliers -- a quantity no real supplier can see. It also overshoots (+8 to +12%). **Owed:** the hedge volume
 reads the company's own forecast (F2, or the one forecast below), never a world multiplier.
 
+**Closed 2026-10-11 (claim `the-hedge-volume-reads-only-what-the-company-holds`).** Both fuels' volume
+now comes from `company/interfaces/sim_interface.supplier_annual_volume_kwh`. It is handed only the
+register reads that ARRIVED before the term (the change-of-supply opening read included) and the
+registry EAC/AQ. It annualises the advance nearest a year, from 6 to 24 months, on the published
+profile. The world's gas demand still takes the multiplied AQ: that is the household's use, not
+the company's belief. `demand_estimation_log.error_pct` now grades the year that FOLLOWED.
+
+One seed, 606 graded hedges: pooled MAPE fell from 10.4% to 5.8%, but the pooled bias rose from
++1.4% to +3.4%. `total_capital` rose 0.2% where I predicted a fall of 2-8%. The old trailing sum had
+been UNDER-stating later electricity terms (-4.1%) whenever the window held less than a year.
+Prediction and result, graded:
+`docs/staging/records/SEAT_PREREG_THE_HEDGE_VOLUME_READS_ONLY_WHAT_THE_COMPANY_HOLDS_2026-10-11.md`.
+Control: `tests/simulation/test_the_hedge_volume_reads_only_what_the_company_holds.py`, with four
+mutations proven. Still owed: the +3-4% over-statement of the profile-annualised advance (the season
+finding), and `household_demand_register.eac_multiplier_for_date` and `_derive_eac_from_settlement`,
+which now have no production caller.
+
 ## 3. The capital target is £115, and the code says £130
 
 Ofgem's financial resilience decision of 26 July 2023: "The Capital Floor will be £0 Adjusted Net Assets per

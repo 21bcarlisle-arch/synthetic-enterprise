@@ -15,6 +15,7 @@ Key differences from Phase 2a repriced:
 Delegation note: hand-written (orchestration-adjacent, per protocol).
 """
 
+import calendar
 import dataclasses
 import heapq
 import itertools
@@ -1047,7 +1048,8 @@ def _compute_company_divergence(
 
     by_year_demand: dict[str, list[float]] = defaultdict(list)
     for d in (demand_estimation_log or []):
-        by_year_demand[d["term_start"][:4]].append(abs(d["error_pct"]))
+        if d.get("error_pct") is not None:
+            by_year_demand[d["term_start"][:4]].append(abs(d["error_pct"]))
 
     def _summarize(by_year: dict) -> dict:
         return {
@@ -1082,6 +1084,28 @@ def _as_fold(settled) -> SettlementFold:
     return fold
 
 
+def _grade_demand_estimates_against_the_year_ahead(log: list[dict], settled) -> None:
+    """Fill each row's `true_eac_kwh` with the settled kWh of the twelve months FROM its term start,
+    and `error_pct` with the forecast's error against it. A row whose year the run did not settle
+    in full keeps `None` and says why: a part year is not a year, and annualising it would grade
+    the forecast against the season the run happened to stop in."""
+    fold = _as_fold(settled)
+    for row in log:
+        start = date.fromisoformat(row["term_start"])
+        end = start.replace(year=start.year + 1) if not (start.month == 2 and start.day == 29) \
+            else date(start.year + 1, 3, 1)
+        days = fold.monthly_totals(row["customer_id"])
+        if not days or days[0][0] > start.isoformat() or days[-1][1] < (end - timedelta(days=1)).isoformat():
+            row["ungraded_reason"] = "the run did not settle the full year ahead of this term"
+            continue
+        actual = fold.consumption_kwh_between(row["customer_id"], start.isoformat(), end.isoformat())
+        if actual <= 0:
+            row["ungraded_reason"] = "no consumption settled in the year ahead"
+            continue
+        row["true_eac_kwh"] = round(actual)
+        row["error_pct"] = round((row["company_eac_kwh"] - actual) / actual * 100.0, 2)
+
+
 def _derive_eac_from_settlement(cid: str, settled) -> float:
     """Mean actual annual consumption from all available settlement records.
 
@@ -1104,36 +1128,73 @@ def _derive_eac_from_settlement(cid: str, settled) -> float:
     return fold.total_consumption_kwh(cid) / total_days * 365.25
 
 
-def _company_eac_estimate(
-    cid: str, term_start_str: str, settled,
-    base_eac_override: float | None = None,
-) -> float:
-    """Estimate customer annual consumption from observable prior-year billing records.
+def _company_held_register_reads(cid: str, term_start_str: str, settled,
+                                 read_feed=None) -> list[tuple]:
+    """The register reads the company HOLDS for `cid` on `term_start_str`: what the meter told it.
 
-    Phase 23a: replaces SIM-internal EFFECTIVE_EAC_KWH lookup in company-layer decisions.
-    The company observes kWh billed in the 12 months before the renewal date.
-    Falls back to EFFECTIVE_EAC_KWH on the first term (no prior billing yet).
-
-    Phase H: base_eac_override replaces the EFFECTIVE_EAC_KWH fallback when provided.
-    Allows the caller to supply a household-model-adjusted base (EV/solar/ASHP multiplied).
-
-    2026-08-24: the 12-month window is now answered from per-day totals rather than by
-    filtering the whole book. The WINDOW IS UNCHANGED and still half-open -- `[year_ago,
-    term_start)` -- because it is the point-in-time blindfold, not an implementation detail.
+    WORLD-SIDE, AND THE ONLY THING IT HANDS OVER IS READS. The change-of-supply opening read
+    (register 0 the day before the first settled day), then one per complete calendar month whose
+    read ARRIVED -- `simulate_read`'s own verdict, keyed exactly as the bill run keys it (the
+    month's last settled day), and only where `period end + delay` falls before the term starts.
+    A month billed as an estimate contributes no read; its kWh reach the company only inside the
+    next actual read's advance, which is what a register does.
     """
-    from datetime import date as _date
+    from simulation.meter_reads import SimulatedReadFeed
 
-    from simulation.customer_events import twelve_month_window_open
+    feed = read_feed if read_feed is not None else SimulatedReadFeed()
+    fold = _as_fold(settled)
+    months = fold.monthly_totals(cid)
+    if not months:
+        return []
+    term_start = date.fromisoformat(term_start_str)
+    meter_type = feed.meter_type_for(get_customer(cid))
+    reads = [(date.fromisoformat(months[0][0]) - timedelta(days=1), 0.0)]
+    register = 0.0
+    for first_day, last_day, kwh in months:
+        register += kwh
+        closing = date.fromisoformat(last_day)
+        month_end = date(closing.year, closing.month, calendar.monthrange(closing.year, closing.month)[1])
+        if month_end >= term_start:
+            break
+        event = feed.read_for(cid, last_day, meter_type, kwh, 0)
+        if event.status == "actual" and closing + timedelta(days=event.delay_days) < term_start:
+            reads.append((closing, register))
+    return reads
 
-    term_start = _date.fromisoformat(term_start_str)
-    # NOT `term_start.replace(year=...)`: that raises on a term starting 29 February and took
-    # the whole run down the first time the book held one. See the helper for the convention
-    # and for why it opens on 1 March rather than 28 February.
-    year_ago = twelve_month_window_open(term_start)
-    estimated = _as_fold(settled).consumption_kwh_between(
-        cid, year_ago.isoformat(), term_start.isoformat())
-    base = base_eac_override if (base_eac_override is not None) else EFFECTIVE_EAC_KWH.get(cid, 0.0)
-    return estimated if estimated > 0 else base
+
+def _company_eac_estimate(
+    cid: str, term_start_str: str, settled, commodity: str = "electricity",
+    read_feed=None,
+) -> float:
+    """The annual volume the company believes `cid` uses at `term_start_str`, from what it holds.
+
+    Through `company.interfaces.sim_interface.supplier_annual_volume_kwh`: the register reads
+    that arrived (`_company_held_register_reads`) and the registry figure -- the declared EAC, or
+    the registered AQ for gas. Never the settled fold's true kWh and never a household multiplier
+    (`tests/simulation/test_the_hedge_volume_reads_only_what_the_company_holds.py`).
+
+    UNTIL 2026-10-11 this summed the settled fold's TRUE kWh over the twelve months before the
+    term, months billed as estimates included (79% of traditional-meter months in run
+    7379375f6), and its first-term fallback took the declared EAC times the household's own
+    EV/solar/heat-pump multiplier; gas took the AQ times an EPC-band multiplier. Each overshot by
+    8-12% and none crosses the seam (finding:
+    docs/staging/SEAT_FINDING_SEVERAL_CONSUMPTION_FORECASTS_A_WALL_LEAK_IN_HEDGE_VOLUME_AND_THE_CAPITAL_TARGET_IS_115_2026-10-11.md).
+    """
+    return _company_volume_reading(cid, term_start_str, settled, commodity, read_feed)["kwh"]
+
+
+def _company_volume_reading(cid: str, term_start_str: str, settled,
+                            commodity: str = "electricity", read_feed=None) -> dict:
+    """`_company_eac_estimate` with its basis: {"kwh", "basis", "from", "to"} from the seam."""
+    from company.interfaces.sim_interface import supplier_annual_volume_kwh
+
+    if commodity == "electricity":
+        registry = EFFECTIVE_EAC_KWH.get(cid, 0.0)
+    else:
+        registry = (get_customer(cid) or {}).get("aq_kwh")
+    return supplier_annual_volume_kwh(
+        commodity, _company_held_register_reads(cid, term_start_str, settled, read_feed),
+        registry)
 
 
 def _price_match_inputs(term: dict, commodity: str, term_start_str: str,
@@ -3017,7 +3078,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             "unit_rate_gbp_per_mwh": _state_unit_rate,
             "svt_rate_gbp_per_mwh": _state_svt_rate,
             "rate_vs_svt_pct": _state_rate_vs_svt_pct,
-            "company_eac_kwh": round(_company_eac_estimate(cid, term_start_str, settled_fold)),
+            "company_eac_kwh": round(_company_eac_estimate(cid, term_start_str, settled_fold, commodity)),
             # THE PORTFOLIO POSITION, WRITTEN FOR EVERY TERM AND NOT ONLY THE ONES IT MOVED.
             # `dynamic_pricing_log` records these two only where the premium cleared 1e-6 and
             # changed a rate, which made a continuously-held reading look like an event: 149 of
@@ -3108,21 +3169,21 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 prev_hf = current_hf.get(cid, 0.0)
                 hangover_periods = hangover_remaining.get(cid, 0)
                 # Phase 23a: company estimates EAC from observable prior-year billing
-                company_eac = _company_eac_estimate(cid, term_start_str, settled_fold)
-                # Phase 25a: true_eac is mean annual settled consumption (actual, not declared).
-                # Fixes misleading ~100% error for EV customers (C2/C4 declared 3500/5500
-                # kWh but actually consume ~6820 kWh/year with EV charging).
-                true_eac = _derive_eac_from_settlement(cid, settled_fold) or EFFECTIVE_EAC_KWH.get(cid, 0.0)
-                if true_eac > 0:
-                    eac_err_pct = (company_eac - true_eac) / true_eac * 100.0
-                    demand_estimation_log.append({
-                        "customer_id": cid,
-                        "term_start": term_start_str,
-                        "company_eac_kwh": round(company_eac),
-                        "true_eac_kwh": round(true_eac),
-                        "error_pct": round(eac_err_pct, 2),
-                        "source": "prior_billing" if company_eac != true_eac else "fallback",
-                    })
+                _volume = _company_volume_reading(cid, term_start_str, settled_fold, commodity)
+                company_eac = _volume["kwh"]
+                # GRADED AGAINST THE YEAR THAT FOLLOWS, filled in after the run
+                # (`_grade_demand_estimates_against_the_year_ahead`). Until 2026-10-11 `true_eac`
+                # was the run-average settled year to date and `company_eac` the trailing settled
+                # year: two backward reads of one fold, published as forecast accuracy.
+                demand_estimation_log.append({
+                    "customer_id": cid,
+                    "commodity": commodity,
+                    "term_start": term_start_str,
+                    "company_eac_kwh": round(company_eac),
+                    "true_eac_kwh": None,
+                    "error_pct": None,
+                    "source": "prior_billing" if _volume["basis"] == "annualised_advance" else "fallback",
+                })
                 # PB7: THE OBSERVABLE THE COMPANY ALREADY HAS A SEAM FOR, ACTUALLY HANDED OVER.
                 # `SimInterface.get_payment_method` has exposed this since PB6 and no run passed
                 # it, so `payment_method_engagement_factor` returned 1.0 on every account in every
@@ -4145,19 +4206,9 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
 
         if commodity == "electricity":
             customer = get_customer(cid)
-            # Phase H: adjust base EAC for EV/solar/ASHP at first term.
-            # Billing history on renewal terms already reflects actual consumption;
-            # the declared-EAC fallback needs the household multiplier.
-            # A fabric premise's EAC is already its own reads, assets and EPC included, so the
-            # multiplier that turned a TDCV band into a household would count them twice.
-            if household_demand_register is not None and cid not in fabric_series_by_customer:
-                _elec_mult = household_demand_register.eac_multiplier_for_date(cid, term_start_str)
-                _base_elec_eac = EFFECTIVE_EAC_KWH.get(cid, 0.0)
-                _adj_base_elec = max(1, round(_base_elec_eac * _elec_mult))
-            else:
-                _adj_base_elec = None
-            # Phase 25a/H: use billing records; falls back to household-adjusted declared EAC.
-            eac_kwh = _company_eac_estimate(cid, term_start_str, settled_fold, base_eac_override=_adj_base_elec)
+            # The company's volume: its own arrived reads, else the declared EAC. No household
+            # multiplier -- the household's assets are the world's; see `_company_eac_estimate`.
+            eac_kwh = _company_eac_estimate(cid, term_start_str, settled_fold)
             if is_hh_customer(customer):
                 shape_fn = hh_shape_fn(hh_consumption_by_customer[cid])
                 # Phase MT: I&C customers reduce demand 25% during Triad risk windows.
@@ -4346,11 +4397,15 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
 
         else:  # gas
             gas_customer = get_customer(cid)
+            # TWO QUANTITIES, NOT ONE (2026-10-11). `aq_kwh` is the HOUSEHOLD's gas use -- the
+            # registered AQ times its EPC-band multiplier (Phase D) -- and drives the world's
+            # demand. `hedge_aq_kwh` is what the COMPANY believes it uses, from its own reads and
+            # the registered AQ (`_company_eac_estimate`), and is all the desk and the risk see.
             aq_kwh = gas_customer["aq_kwh"]
-            # Phase D: scale gas AQ by EPC-band multiplier from household model.
             if household_demand_register is not None:
                 _gas_mult = household_demand_register.gas_eac_multiplier_for_date(cid, term_start_str)
                 aq_kwh = max(1, round(aq_kwh * _gas_mult))
+            hedge_aq_kwh = _company_eac_estimate(cid, term_start_str, settled_fold, commodity="gas")
 
             # Phase 44b: VaR-constrained hedge decision for gas fixed terms (mirrors electricity 43b).
             # Phase 56: Pass-through gas customers must not hedge — they bill at spot, so a forward
@@ -4358,7 +4413,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             if term_tariff_type == "pass_through":
                 hf = 0.0
                 current_hf[cid] = 0.0
-            elif policy.use_var_hedge_decision and unit_rate and company_fwd and aq_kwh > 0:
+            elif policy.use_var_hedge_decision and unit_rate and company_fwd and hedge_aq_kwh > 0:
                 _gas_term_days = (
                     date.fromisoformat(term_end_str) - date.fromisoformat(term_start_str)
                 ).days
@@ -4374,7 +4429,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                         term_start=term_start_str,
                         term_end=term_end_str,
                         commodity="gas",
-                        volume_kwh=aq_kwh,
+                        volume_kwh=hedge_aq_kwh,
                         forward_price_gbp_per_mwh=company_fwd,
                         unit_rate_gbp_per_mwh=unit_rate,
                         price_records=_gas_price_hist,
@@ -4390,11 +4445,11 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             # Phase NE: pass-through gas has no commodity price risk -- customer pays spot
             # directly, so company holds no naked position. Using aq_kwh here was generating
             # spurious VaR capital costs on a genuinely zero-risk position.
-            naked_kwh = 0.0 if term_tariff_type == "pass_through" else aq_kwh * (1.0 - hf)
+            naked_kwh = 0.0 if term_tariff_type == "pass_through" else hedge_aq_kwh * (1.0 - hf)
             risk = assess_term_risk(term_start_str, naked_kwh, forward_price, gas_records)
             counterfactual_risk = assess_term_risk(
                 term_start_str,
-                0.0 if term_tariff_type == "pass_through" else float(aq_kwh),
+                0.0 if term_tariff_type == "pass_through" else float(hedge_aq_kwh),
                 forward_price, gas_records,
             )
             current_risk[cid] = risk
@@ -5134,6 +5189,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         )
 
     install_stop_notice_board(None)
+    _grade_demand_estimates_against_the_year_ahead(demand_estimation_log, settled_fold)
     _psr_registrations = (
         {"psr_registrations": _deliver_psr_registrations(all_records, run_base_seed())}
         if _vulnerability_hidden_state_on else {})

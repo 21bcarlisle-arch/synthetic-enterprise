@@ -29,8 +29,21 @@ from datetime import date, timedelta
 
 import pytest
 
-from simulation.run_phase2b import _company_eac_estimate, _derive_eac_from_settlement
+from simulation.customer_events import twelve_month_window_open
+from simulation.run_phase2b import _derive_eac_from_settlement
 from simulation.settlement_fold import SettlementFold
+
+
+def _company_eac_estimate(cid, term_start_str, fold):
+    """The fold's twelve-month window, as `_company_eac_estimate` asked it until 2026-10-11.
+
+    The run's volume no longer reads the settled fold (it reads arrived register reads through the
+    seam: `tests/simulation/test_the_hedge_volume_reads_only_what_the_company_holds.py`), but the
+    fold's window question is still the one its readers ask, so its equality with the scan stays
+    pinned here."""
+    term_start = date.fromisoformat(term_start_str)
+    return fold.consumption_kwh_between(
+        cid, twelve_month_window_open(term_start).isoformat(), term_start.isoformat())
 
 # ── the implementations this replaced, verbatim, as the oracle ──────────────────────────────
 
@@ -79,7 +92,7 @@ def test_the_fold_answers_the_twelve_month_window_exactly_as_the_scan_did():
 
     for cid in ("C1", "C2"):
         for term_start in ("2019-01-01", "2019-06-15", "2020-01-01", "2018-03-01"):
-            assert _company_eac_estimate(cid, term_start, fold, base_eac_override=0.0) == \
+            assert _company_eac_estimate(cid, term_start, fold) == \
                 pytest.approx(_scan_company_eac(cid, term_start, records)), (
                     "fold and scan disagree for {} at {}".format(cid, term_start))
 
@@ -107,13 +120,13 @@ def test_the_fold_and_the_list_agree_at_every_point_in_the_run():
     for term in terms:
         # asked BEFORE this term lands, exactly as the run asks
         for cid in ("C1", "C2"):
-            assert _company_eac_estimate(cid, "2018-09-01", fold, base_eac_override=0.0) == \
+            assert _company_eac_estimate(cid, "2018-09-01", fold) == \
                 pytest.approx(_scan_company_eac(cid, "2018-09-01", accumulated))
         accumulated.extend(term)
         fold.add(term)
 
     for cid in ("C1", "C2"):
-        assert _company_eac_estimate(cid, "2019-01-01", fold, base_eac_override=0.0) == \
+        assert _company_eac_estimate(cid, "2019-01-01", fold) == \
             pytest.approx(_scan_company_eac(cid, "2019-01-01", accumulated))
 
 

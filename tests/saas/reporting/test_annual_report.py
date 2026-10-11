@@ -2251,14 +2251,14 @@ def test_company_eac_estimate_ignores_other_customers():
 
 def test_company_eac_estimate_excludes_records_at_term_start():
     from simulation.run_phase2b import _company_eac_estimate
-    # A record ON term_start should be excluded (half-open [year_ago, term_start))
-    records = [
-        {"customer_id": "C1", "settlement_date": "2019-01-01", "consumption_kwh": 100.0},
-        {"customer_id": "C1", "settlement_date": "2018-06-01", "consumption_kwh": 200.0},
-    ]
-    result = _company_eac_estimate("C1", "2019-01-01", records)
-    # Only the 2018-06-01 record should be included
-    assert abs(result - 200.0) < 0.01
+    # A record ON term_start is the future at the moment of asking: it must not move the volume.
+    # (Pinned on the value until 2026-10-11, when the volume stopped summing settled kWh and began
+    # annualising arrived reads -- the property is the half-open window, not the sum.)
+    records = _make_records("C1", 2018, 3650.0)
+    on_the_day = records + [
+        {"customer_id": "C1", "settlement_date": "2019-01-01", "consumption_kwh": 99_999.0}]
+    assert _company_eac_estimate("C1", "2019-01-01", on_the_day) == \
+        _company_eac_estimate("C1", "2019-01-01", records)
 
 
 # --- _compute_company_divergence demand_error_by_year ---

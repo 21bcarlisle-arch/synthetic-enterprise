@@ -166,6 +166,13 @@ needs the interface steward's judgement before anyone acts on it.
   forecast accuracy.
 - The held-back version is §2's F4 row.
 
+**4(a) and 4(b) closed 2026-10-11.** The hedge volume (F4 and F5) now crosses
+`company/interfaces/sim_interface.supplier_annual_volume_kwh`. It is handed only arrived register
+reads and the registry figure, and it annualises the advance on the published profile.
+`error_pct` now grades the year that followed, and a year the run did not settle stays ungraded.
+Before and after on one seed:
+`docs/staging/SEAT_FINDING_SEVERAL_CONSUMPTION_FORECASTS_A_WALL_LEAK_IN_HEDGE_VOLUME_AND_THE_CAPITAL_TARGET_IS_115_2026-10-11.md` §2.
+
 ## Recommendation: one forecast
 
 **One per-property forecast object, owned by billing and read by all five consumers:**

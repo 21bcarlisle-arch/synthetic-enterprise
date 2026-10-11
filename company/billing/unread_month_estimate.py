@@ -32,6 +32,7 @@ from company.billing.annual_consumption_estimate import estimate_annual_consumpt
 
 __all__ = [
     "MONTHLY_SHARE_OF_ANNUAL_USE",
+    "annualised_advance_kwh",
     "estimate_unread_kwh",
     "opening_estimate_kwh",
     "profile_weight",
@@ -85,6 +86,44 @@ def estimate_unread_kwh(
     if weight <= 0:  # no read yet
         return None
     return sum(kwh for _, _, kwh in window) / weight * profile_weight(fuel, start, end)
+
+
+#: The shortest advance annualised. Elexon's EAC calculation (BSCP504) and Xoserve's AQ review both
+#: work from a meter advance between two actual reads; an advance under half a year leans on the
+#: profile for most of the year it claims to describe, which is the weakness the three-read window
+#: above was measured to have (6.3% / 7.5% median error,
+#: docs/staging/SEAT_FINDING_THE_COMPANY_HOLDS_SIX_CONSUMPTION_FORECASTS_AND_THE_WORLD_IS_TOO_STEADY_TO_RANK_THEM_2026-10-11.md).
+MIN_ADVANCE_DAYS = 182
+#: ...and the longest: two years, so a hard-to-read household still has an advance to annualise.
+MAX_ADVANCE_DAYS = 731
+
+
+def annualised_advance_kwh(
+    fuel: str, register_reads: list[tuple[date, float]]
+) -> tuple[float, date, date] | None:
+    """The annual rate the company's own actual reads imply: (kWh a year, from, to).
+
+    `register_reads` are (read date, register kWh) for reads that ARRIVED, the register counting
+    use through the end of that day. The latest read closes the advance; it opens on the earlier
+    read whose span is nearest a year within `MIN_ADVANCE_DAYS`..`MAX_ADVANCE_DAYS`. The advance is
+    divided by the profile weight of the days it covers -- the industry's EAC/AQ-from-an-advance.
+
+    None when no pair of reads spans long enough, or the fuel has no published shape: the caller
+    then holds the registry figure, and the absence is the reason.
+    """
+    if fuel not in MONTHLY_SHARE_OF_ANNUAL_USE or len(register_reads) < 2:
+        return None
+    reads = sorted(register_reads)
+    closing_day, closing_kwh = reads[-1]
+    spans = [(abs((closing_day - d).days - 365), d, kwh) for d, kwh in reads[:-1]
+             if MIN_ADVANCE_DAYS <= (closing_day - d).days <= MAX_ADVANCE_DAYS]
+    if not spans:
+        return None
+    _, opening_day, opening_kwh = min(spans)
+    weight = profile_weight(fuel, opening_day + timedelta(days=1), closing_day)
+    if weight <= 0:
+        return None
+    return (closing_kwh - opening_kwh) / weight, opening_day, closing_day
 
 
 def opening_estimate_kwh(
