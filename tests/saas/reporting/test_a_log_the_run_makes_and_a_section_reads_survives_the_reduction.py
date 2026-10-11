@@ -64,15 +64,15 @@ def _returned_dict_keys(tree: ast.AST) -> set[str]:
     return keys
 
 
-def _keys_read_off_data(tree: ast.AST) -> set[str]:
-    """Every `data.get("...")` key in the module -- what a report section asks the payload for."""
+def _keys_read_off_data(tree: ast.AST, name: str = "data") -> set[str]:
+    """Every `<name>.get("...")` key in the module -- what a reader asks the payload for."""
     keys: set[str] = set()
     for node in ast.walk(tree):
         if (isinstance(node, ast.Call)
                 and isinstance(node.func, ast.Attribute)
                 and node.func.attr == "get"
                 and isinstance(node.func.value, ast.Name)
-                and node.func.value.id == "data"
+                and node.func.value.id == name
                 and node.args
                 and isinstance(node.args[0], ast.Constant)
                 and isinstance(node.args[0].value, str)):
@@ -92,6 +92,12 @@ def _census() -> tuple[set[str], set[str]]:
     report_tree = ast.parse(_REPORT.read_text())
     produced = {k for k in _returned_dict_keys(run_tree) if k.endswith("_log")}
     read = {k for k in _keys_read_off_data(report_tree) if k.endswith("_log")}
+    # A tool that loads the saved payload is a consumer too. The sections were the only readers
+    # this asked about, so `retention_gate_value_test_log` (read by `renewal_population_by_step`)
+    # and `nudge_physics_log` (read by `generate_customer_sample`) were dropped with this green.
+    for tool in sorted((_ROOT / "tools").glob("*.py")):
+        read |= {k for k in _keys_read_off_data(ast.parse(tool.read_text()), "run")
+                 if k.endswith("_log")}
     return produced & read, _extract_report_data_keys(report_tree)
 
 
@@ -123,7 +129,8 @@ def test_no_log_the_run_makes_and_a_section_reads_is_dropped_by_extract_report_d
     assert not dropped, (
         f"{dropped} -- `simulation/run_phase2b.py` returns each of these and a `_section_*` in "
         "`saas/reporting/annual_report.py` reads it, but `extract_report_data` does not forward "
-        "it. Its section renders nothing in every saved payload, and that emptiness is "
+        "it. Its section, or the tool reading the saved run, gets nothing in every saved payload, "
+        "and that emptiness is "
         "indistinguishable from the policy never firing. Add a "
         '`"<key>": phase2b.get("<key>", [])` line to the returned dict.'
     )

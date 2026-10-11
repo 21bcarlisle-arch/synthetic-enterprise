@@ -1207,6 +1207,11 @@ def extract_report_data(run_output: dict) -> dict:
         "churn_basis_risk": phase2b.get("churn_basis_risk", []),
         "retention_log": phase2b.get("retention_log", []),
         "no_offer_churn_log": phase2b.get("no_offer_churn_log", []),
+        # No default, so a run that predates the log reads `None` and never zero. Dropped here
+        # until 2026-10-11: the run at 3f1ebfac3 computed it and its saved payload did not carry it.
+        "retention_gate_value_test_log": phase2b.get("retention_gate_value_test_log"),
+        # `tools/generate_customer_sample` reads it off the saved payload; dropped here until then.
+        "nudge_physics_log": phase2b.get("nudge_physics_log", []),
         "company_divergence": phase2b.get("company_divergence", {}),
         # Phase QP: Phase QL's churn_journey_log was computed by run_phase2b but never
         # forwarded here, so dash["customers"]["journey_log"] has been silently empty
