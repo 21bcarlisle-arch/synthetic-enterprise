@@ -34,8 +34,8 @@ A supplier's SVT book has a ceiling. The margin on SVT = (capped retail price) -
 
 | Level | Threshold | Consequence |
 |-------|-----------|-------------|
-| Capital floor | **£0 net assets per dual-fuel customer equiv** | Serious licence violation; must notify Ofgem within 7 days; revocation risk |
-| Capital target | **£130 net assets per dual-fuel customer** (£65 per single-fuel) | Below target: must have credible capitalisation plan |
+| Capital floor | **£0 Adjusted Net Assets per dual-fuel customer equiv** | Serious licence violation; must notify Ofgem within 7 days; revocation risk |
+| Capital target | **£115 Adjusted Net Assets per dual-fuel customer** (£57.50 per single-fuel) -- *corrected 2026-10-11: £130/£65 was the April 2023 consultation figure; Ofgem's decision of 26 July 2023 set £115 ("the Capital Target will be £115 per domestic dual fuel equivalent customer"), binding from 31 March 2025, upheld by the CMA 19 January 2024, no indexation (bad_debt_provisioning.md, "Capital target: the conflict settled")* | Below target: must have credible capitalisation plan |
 
 - Annual adequacy self-assessment is a licence obligation (first due 31 March 2024)
 
@@ -53,7 +53,7 @@ A supplier's SVT book has a ceiling. The margin on SVT = (capped retail price) -
 
 ### Simulation implication
 
-Model `net_assets / customer_count` as a regulatory solvency signal. Administration trigger should fire well before treasury = 0 if per-customer equity falls below £130 (plan required) or £0 (breach). Customer credit balance (direct debit float from monthly DDI) is a liability, not capital.
+Model `net_assets / customer_count` as a regulatory solvency signal. Administration trigger should fire well before treasury = 0 if per-customer equity falls below £115 (plan required; *corrected 2026-10-11 from £130, see the Capital target row*) or £0 (breach). Customer credit balance (direct debit float from monthly DDI) is a liability, not capital.
 
 ## 3. Balancing and Settlement Code (BSC)
 
@@ -132,7 +132,7 @@ RO at ~£31.80/MWh is a significant, non-optional electricity cost that our simu
 | Parameter | Value |
 |-----------|-------|
 | Capital floor (regulatory insolvency) | £0 net assets / customer |
-| Capital target (self-assessment) | £130 net assets / dual-fuel customer |
+| Capital target (self-assessment) | £115 Adjusted Net Assets / dual-fuel customer (*corrected 2026-10-11 from £130*) |
 | Cap resets | Quarterly, wholesale allowance ~3.5 months stale |
 | Fixed-rate tariffs | Outside cap (separate cost-vs-retail P&L) |
 | BSC credit cover rate | ~£350/MWh × 29 days energy indebtedness |
