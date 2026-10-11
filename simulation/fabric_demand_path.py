@@ -299,6 +299,7 @@ def build_fabric_series(
     latitude_deg: float,
     seed: int = DEFAULT_TRACE_SEED,
     reference_unit_price_p_per_kwh: float = REFERENCE_UNIT_PRICE_P_PER_KWH,
+    price_response: bool = False,
 ) -> FabricDemandSeries:
     """Generate one customer's whole-window fabric trace, segment by segment.
 
@@ -334,6 +335,14 @@ def build_fabric_series(
     this seam; (2) the bill is priced at a GAS reference rate, so an electrically
     heated premise's bill is understated here and its prebound response correspondingly
     weak. Both are recorded, not hidden: the whole book is gas-heated today.
+
+    THE 2022 PRICE RESPONSE (`price_response`)
+    ------------------------------------------
+    When on, each day's gas and electricity are scaled by `price_response.household_multipliers`:
+    a per-household SERL elasticity against the household's prior winter's cap rate. It is applied
+    AFTER the trace, so the prebound bill above still reads the unscaled heating kWh. Feeding the
+    cut back into next year's prebound bill would be a second variable. OFF by default until the
+    settled book takes it as its own step, because it moves every volume from April 2022 onward.
     """
     if not weather:
         raise ValueError("cannot build a fabric series with no weather days")
@@ -411,6 +420,18 @@ def build_fabric_series(
             heating_kwh_by_year[segment.year] = heating_kwh_by_year.get(segment.year, 0.0) + (
                 day.gas_total_kwh if heating_commodity == "gas" else day.electricity_total_kwh
             )
+
+    if price_response:
+        from simulation.price_response import household_multipliers
+
+        multiplier = household_multipliers(customer_id, dates, seed=seed)
+        for key in gross:
+            m_gas, m_elec = multiplier["gas"][key], multiplier["electricity"][key]
+            if m_gas != 1.0:
+                gas[key] = array("f", (v * m_gas for v in gas[key]))
+                gas_space_heating[key] *= m_gas
+            if m_elec != 1.0:
+                gross[key] = array("f", (v * m_elec for v in gross[key]))
 
     n_days = len(dates)
     return FabricDemandSeries(
