@@ -302,3 +302,24 @@ per-household value or cost for any gated household.
 8 or more refusals are more than 2 `would_refuse`. If so, the gate binds: it is the only thing
 refusing those offers, and the value test is not a backstop for it. If more than a third are
 `would_refuse`, the gate is mostly redundant with the guard on this book.
+
+**Graded, 2026-10-11: HELD.** Run of ab1bf89f7 (which contains 3f1ebfac3), standing policy, full
+2016–2025 window, survived; `tools.renewal_population_by_step` on its saved JSON. The gate refused
+**94** (exactly the 7379375f6 count), on 85 distinct accounts, and the value test would have offered
+on **all 94**: `would_refuse` is 0 in every year (2018 30/0, 2019 9/0, 2020 1/0, 2021 8/0, 2023 13/0,
+2024 30/0, 2025 3/0). It was nowhere near refusing them. Value protected minus offer cost is at least
++£74.87 and at most +£1,423.98, and the median value protected is £326 against a median offer cost of £21.
+No row was on a holdout policy.
+
+**So the gate binds, and the value test is not a backstop for it.** The reason is structural, not
+peculiar to this book. The guard weighs (`growth_desk.retention_value_protected`) term margin plus
+replacement cost saved against the discount's cost. It has no term for whether the offer changes
+what the household does. At a default anniversary the household's exits were already carried on the
+default, so a large margin makes the guard *more* willing to offer exactly where the offer buys
+nothing. Removing the gate would add 94 offers, each giving up a discount for no change in behaviour.
+The two steps answer different questions, so on any book where the guard's margin is positive the
+gate is the only thing refusing these households.
+
+*Duplicate-work note (draw-time check):* the live claim `the-held-back-backtest-has-a-production-caller`
+also names `simulation/run_phase2b.py`. It is different work (B11's held-back grade on the annual
+report), so this item carried on under its own id.
