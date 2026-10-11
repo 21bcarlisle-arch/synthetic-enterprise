@@ -3313,6 +3313,117 @@ def _clv_trajectory_section(data: dict) -> str:
     ])
 
 
+def _fmt_point_interval(point: tuple[float, tuple[float, float] | None], digits: int = 3,
+                        sign: str = "+") -> str:
+    value, interval = point
+    if value != value:  # NaN: nothing graded
+        return "—"
+    spec = f"{sign}.{digits}f"
+    if interval is None:
+        return f"{value:{spec}} (no interval)"
+    return f"{value:{spec}} [{interval[0]:{spec}}, {interval[1]:{spec}}]"
+
+
+def _section_held_back_grade(data: dict) -> str:
+    """B11: forward value fitted on the book's years to the cut and graded on the years after.
+
+    One stated cut (`forward_clv.DEFAULT_CUT_YEAR`). What reaches the page is the grade of the
+    departure forecast, which is where the three slices' result lives: the LEVEL (mean p minus the
+    realised rate) for each rule, split into switch and move terms where the run carries a move-out
+    register, and the RANKING (AUC, departers against stayers) with the paired per-customer minus
+    flat difference. On every book graded so far the answer is negative: the level over-predicts
+    because switching collapsed after the cut, and neither rule ranks better than the other.
+    """
+    from company.analytics.forward_clv import (
+        DEFAULT_CUT_YEAR,
+        LIMITATION_SWITCH_LEVEL_IS_THE_REGIME,
+        book_from_run_output,
+        move_outs_from_run_output,
+        run_backtest,
+    )
+
+    title = f"## Forward Value on Held-Back History (cut {DEFAULT_CUT_YEAR})"
+    if not any(y.get("per_customer_monthly") for y in data.get("years", {}).values()):
+        return f"{title}\n\n{NOT_AVAILABLE} The run carries no per-account monthly ledger.\n"
+    accounts, book_end = book_from_run_output(data)
+    if book_end <= DEFAULT_CUT_YEAR * 12 + 11:
+        return (f"{title}\n\n{NOT_AVAILABLE} The book ends before {DEFAULT_CUT_YEAR + 1}, so "
+                "nothing after the cut is held back to grade against.\n")
+    bt = run_backtest(accounts, book_end, DEFAULT_CUT_YEAR,
+                      move_out_month_by_account=move_outs_from_run_output(data))
+    if not bt.accounts_graded:
+        return (f"{title}\n\n{NOT_AVAILABLE} No account was on supply at the end of "
+                f"{DEFAULT_CUT_YEAR} with fit history to forecast from.\n")
+
+    excluded = ", ".join(f"{n} {why}" for why, n in bt.accounts_excluded.items()) or "none"
+    realised = sum(f.departed for f in bt.forecasts)
+    cal = bt.departure_calibration or {}
+    lines = [
+        title,
+        "",
+        f"Fitted on {bt.fit_months[0]} to {bt.fit_months[1]}; graded on {bt.held_back_months[0]} "
+        f"to {bt.held_back_months[1]}, which the fit never saw. {bt.accounts_graded} accounts "
+        f"graded (excluded: {excluded}); {realised} of them left supply in the held-back months. "
+        "Two rules on the same accounts: PER-CUSTOMER (the account's own margin, shrunk to its "
+        "segment, and a departure hazard by contract year of tenure) and FLAT (one margin and one "
+        "hazard per segment). Brackets are 95% intervals; one that straddles zero cannot tell.",
+        "",
+        "**Departure level** — mean forecast probability of leaving minus the share that left. "
+        "Positive over-predicts departure.",
+        "",
+        "| Rule | Level miss |",
+        "|------|-----------:|",
+        f"| Per-customer | {_fmt_point_interval(cal.get('per_customer', (float('nan'), None)))} |",
+        f"| Flat | {_fmt_point_interval(cal.get('flat', (float('nan'), None)))} |",
+        "",
+    ]
+    if bt.departure_calibration_by_cause is None:
+        lines += ["**By cause:** the switch and move terms cannot be split on this run: it carries "
+                  "no move-out register (below).", ""]
+    else:
+        inc = bt.departure_incidence_by_cause or {}
+        lines += [
+            "**The flat rule's level, by cause** — its hazard split into a switch term and a move "
+            "term run as competing risks, so the two rows add up to the flat level miss above.",
+            "",
+            "| Cause | Predicted share | Realised share | Level miss |",
+            "|-------|----------------:|---------------:|-----------:|",
+        ]
+        for cause in ("switch", "move"):
+            pred, real = inc.get(cause, (float("nan"), float("nan")))
+            lines.append(
+                f"| {cause.capitalize()} | {pred:.3f} | {real:.3f} | "
+                f"{_fmt_point_interval(bt.departure_calibration_by_cause[cause])} |")
+        lines.append("")
+    rk = bt.departure_ranking
+    if rk is not None:
+        lines += [
+            f"**Ranking** — the chance a departer was given a higher probability than a stayer "
+            f"({rk.departers} departers, {rk.stayers} stayers). 0.5 knows nothing about who leaves.",
+            "",
+            "| Rule | AUC |",
+            "|------|----:|",
+            f"| Per-customer | {_fmt_point_interval(rk.per_customer, sign='')} |",
+            f"| Flat | {_fmt_point_interval(rk.flat, sign='')} |",
+            f"| Per-customer minus flat (paired) | {_fmt_point_interval(rk.difference)} |",
+            "",
+            f"Verdict: {rk.verdict}.",
+            "",
+        ]
+    me = bt.margin_error
+    lines += [
+        f"**Margin:** per-customer minus flat absolute error, £ per account, "
+        f"{_fmt_point_interval((me.mean_difference, me.interval_95), 1)} — {me.verdict}.",
+        "",
+        "**What this cannot see:**",
+        "",
+        f"- {LIMITATION_SWITCH_LEVEL_IS_THE_REGIME}.",
+        *(f"- {lim}." for lim in bt.limitations),
+        "",
+    ]
+    return "\n".join(lines)
+
+
 _RATE_SPAN_TOLERANCE_PCT = 0.05
 
 
@@ -10971,6 +11082,7 @@ def generate_annual_report(data: dict) -> str:
     # pages nobody reads together.
     sections.append(_three_horizon_clv_section(data))
     sections.append(_clv_trajectory_section(data))
+    sections.append(_section_held_back_grade(data))   # B11
     sections.append(_lifetime_pricing_section(data))
     sections.append(_section_repricing_impact(data))
     sections.append(_section_margin_feedback(data))

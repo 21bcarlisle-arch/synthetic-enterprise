@@ -15,9 +15,14 @@ deliberately later rather than drifting into it."*
 |---|---|
 | Production importers reading a COMPUTATION | **0** (was 1, moved out) |
 | Production importers frozen with a stated reason | **2** (the renderer's own runner; a publisher importing two path constants) |
-| Test files importing the report | **91** |
+| Test files importing the report | **92** |
 | ...of which reach into private `_section_*` functions | **83** |
 | `saas/reporting/annual_report.py` | **11079 lines** |
+
+Importer count re-measured 2026-10-11: **92**, one new: `tests/saas/reporting/test_the_held_back_grade_door.py`,
+which calls the private `_section_held_back_grade` with and without a move-out register, because
+the register's two branches cannot both be reached from one saved run. The other two figures are
+still the 2026-10-01 measurement.
 
 Importer count re-measured 2026-10-10: **91**, two new. The first is
 `tests/simulation/test_departure_rolled_at_renewal.py`, which calls the private

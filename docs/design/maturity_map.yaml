@@ -1901,7 +1901,7 @@
   lane: B_commercial
   value_stream: close_to_learn
   epoch: 4
-  level_current: 1
+  level_current: 2
   level_target: 3
   loop_stage: idle
   # MINTED 2026-10-05, canon step 3: "the spine every lever is judged against. Build and test
@@ -1909,6 +1909,7 @@
   # a held-back-history test needs no second book, which is why this is its own atom.
   # L1 2026-10-06. Slice 5 (2026-10-11): moves reach the backtest (61 held back), so B7 dropped.
   # Both rules over-predict departure (0.79/0.67 vs 0.43) and rank nobody (AUC ~0.52).
+  # L2 2026-10-11: production caller is the annual report's held-back grade (door test on the saved run).
   block_reason: "EP17 blocks L3 only: on one book departure p varies by sd 0.03, so neither rule has anything to rank; a varied draw is the director's curriculum call. The departure-level calibration slice is company code and is not blocked"
   blocked_on: [EP17_varied_population_draw]
   dial_inherited: 90
@@ -1917,7 +1918,7 @@
   couples_with: [EP1_clv_three_horizon]
   file_scope: ['company/analytics/forward_clv.py',
     'tests/company/analytics/test_forward_clv_backtest.py']
-  simplifications_count: 6
+  simplifications_count: 7
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a finance team whose customer-value model is only ever checked against the same years it was fitted on."
 - id: W2_37_complaints_arise_from_billing_failures_and_the_silent_unhappy_are_modelled
