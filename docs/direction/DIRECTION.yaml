@@ -405,3 +405,15 @@ for_the_director:
     in all cases, taking account of reads and of customer and third-party information, and reassessed when new information would change it materially. Close the practitioner question with this.'' He also
     set the shape: the DD amount comes from the company''s own twelve-month forecast for the property, priced at known rates where fixed and forecast rates beyond, plus the balance to be cleared.'
   evidence: tools/dd_book_legs.py; docs/staging/SEAT_FINDING_EVERY_SETTLED_BILL_CHARGED_THE_LEVIES_TWICE_2026-10-10.md (Prediction 2's residual, split and graded)
+- id: the-capital-target-binds-from-2025-but
+  raised: '2026-10-11'
+  kind: canon_intent
+  what: The run applies Ofgem's Capital Target from 2016, but it was decided on 26 July 2023 and binds from 31 March 2025; a supplier in 2016-2022 faced no such target. The
+    code also carries GBP 130 per account where the decision set GBP 115 (GBP 130 was the April 2023 consultation figure). saas/growth_mandate.py bounds the campaign's quote
+    budget by capital per account, so both the figure and its start date shape how fast the book can grow. The figure is a factual correction the seat is landing as its own
+    measured step; the start date changes which world the company lives through, so it is yours.
+  proposal: Apply the Capital Target from 31 March 2025 (GBP 115 per dual-fuel account, GBP 0 floor), with no target before the July 2023 decision; between decision and binding
+    date, treat it as a plan-ahead target the company may choose to meet. Measured before/after on the same seed before it is switched on. If you prefer it applied throughout
+    as a prudence rule, say so and the run keeps it from 2016 at GBP 115.
+  status: open
+  resolution: ''
