@@ -13,7 +13,7 @@ This bundle holds everything recovered from the first attempt at the canon tidy-
 
 | Item | State | Where |
 |---|---|---|
-| Reconciled theme documents (5 of 11) | **Complete.** Full documents. | `reconciled/`: harness rules, world-fidelity method, operating model and governance, communication and director interface, run discipline and scale |
+| Reconciled theme documents (5 of 14 themes) | **Complete.** Full documents. | `reconciled/`: harness rules, world-fidelity method, operating model and governance, communication and director interface, run discipline and scale |
 | Theme extract files for the other themes | **Complete** raw extracts, not yet reconciled | `themes/`: mission and thesis, world-vs-supplier wall, knowledge first, priority and arc, CLV and commercial, product vs machinery, and fairness/pricing + carbon + other in one file |
 | Second-wave reconciliations (3) | **Summary only.** The full documents were lost with the container. | `agent_reports/`: priority-and-arc, CLV-and-commercial, knowledge-first |
 | Second-wave reconciliations cut off by the limit (4) | **Not done** | product vs machinery, mission and thesis, world-vs-supplier wall, fairness/carbon/other |
@@ -40,3 +40,9 @@ This bundle holds everything recovered from the first attempt at the canon tidy-
 
 - Run fan-out sub-agents on Sonnet, not Fable, and keep them to the recovered files rather than re-reading the repository.
 - Push intermediate files to this branch as each step finishes, so that a lost container costs nothing.
+
+## Progress since the salvage (12 Oct, second attempt)
+
+- **All 14 themes now reconciled.** The seven theme files were reconciled on Sonnet helpers, using the recovered brief and only the recovered files plus current copies of the standing pages. Fairness/pricing, carbon and other were split back into their own files. That makes nine new documents in `reconciled/`, each folding in the October console words.
+- `work/october_log.md` was regenerated from `inputs/director_words_filtered.md` with the lost script (64 entries, cited R-L-01..R-L-64). `work/reconcile_brief.md` is the recovered brief.
+- Still to do: the October update for the first five themes (done during the merge), the merge into one consolidated canon, and the citation check.
