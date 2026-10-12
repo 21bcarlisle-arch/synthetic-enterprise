@@ -302,6 +302,7 @@ items:
     - was declared at 50 minutes and has held its admission
     first_seen: '2026-10-10'
     fate: fix
+    status: open
     owner: background/resource_headroom.py
     reason: 'Live again on 2026-10-12: sim-runner deferred every cycle from 14:54 to past 16:43 to resident
       long jobs, and the week''s publish waits on it. A declaration needs an expiry the admission enforces.'
@@ -320,6 +321,7 @@ items:
     - carries a GBP 130 capital figure per account
     first_seen: '2026-10-11'
     fate: fix
+    status: open
     owner: docs/direction/DIRECTION.yaml (the-capital-target-binds-from-2025-but, answered 2026-10-12)
     reason: 'The director ruled C14 on 2026-10-12: GBP 115 from 31 March 2025, measured before and after
       on the same seed. Stays listed until that lands.'
@@ -340,6 +342,7 @@ items:
     - sends stdout and stderr to DEVNULL
     first_seen: '2026-10-12'
     fate: fix
+    status: open
     owner: background/worker_tick.py
     reason: A crash with no recorded cause cannot be diagnosed; the remedy is a per-tick log of the child's
       output. Small, and it stays listed until built.
