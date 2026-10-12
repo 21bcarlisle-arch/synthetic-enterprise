@@ -2641,7 +2641,21 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             _rec["location"] = _new_home["location"]
             weather_by_customer[cid] = weather_means_for_customer(_rec, _weather_world)
             cloud_cover_by_customer[cid] = cloud_cover_for_customer(_rec, _weather_world)
-            fabric_series_by_customer[cid] = _new_home["series"]
+            # THE VERDICT FOLLOWS THE HOME, as the series does. Eligibility is a verdict on the premise
+            # (the incoming-occupier path copies its premise's for the same reason), so a follower keeps
+            # its OLD home's verdict only by mistake: on fresh seeds 61110-61112 a follower moving from a
+            # legacy home into a fabric one settled on the fabric trace with the old "not eligible"
+            # verdict, and the settlement-switch guard stopped the run (2026-10-12).
+            fabric_eligibility_verdicts[:] = [v for v in fabric_eligibility_verdicts
+                                              if v.customer_id != cid]
+            if _new_home["series"] is not None:
+                fabric_series_by_customer[cid] = _new_home["series"]
+                fabric_eligibility_verdicts.append(FabricEligibility(
+                    cid, True, "moved with us: the destination home's fabric trace"))
+            else:
+                fabric_series_by_customer.pop(cid, None)
+                fabric_eligibility_verdicts.append(FabricEligibility(
+                    cid, False, "moved with us: the destination home has no fabric trace"))
             properties[cid] = _new_home["property"]
             _rec["eac_kwh"] = EFFECTIVE_EAC_KWH[cid] = _new_home["eac_kwh"]
 
