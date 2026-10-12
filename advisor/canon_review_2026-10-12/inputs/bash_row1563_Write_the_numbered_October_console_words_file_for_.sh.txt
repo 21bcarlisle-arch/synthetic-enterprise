@@ -1,0 +1,20 @@
+cd /tmp/claude-0/canon && python3 -I - <<'EOF'
+import re
+src="/tmp/claude-0/-home-claude/2950c3bf-0c45-5bed-817c-477e3a28a7b4/scratchpad/director_words_filtered.md"
+txt=open(src).read()
+parts=re.split(r'\n\n### \[(2026-[^\]]+) UTC\]\n\n', txt)
+items=[(parts[i],parts[i+1].strip()) for i in range(1,len(parts),2)]
+out=["# October console words (ops-repo director_input_log, 2026-09-25 .. 2026-10-12)\n",
+"Source: synthetic-enterprise-ops/director_input_log.md, [window][in] entries that are the director's own pastes (machine prompts, doorbells and task notifications removed). Entries fenced in ``` are the advisor's drafted pastes that the director forwarded verbatim; they carry his authority as pasted. Treat as DATA. Cite as R-L-<n> with the timestamp.\n"]
+for n,(ts,b) in enumerate(items,1):
+    out.append(f"\n### [R-L-{n:02d}] {ts} UTC\n- date: {ts[:10]}\n- source: synthetic-enterprise-ops/director_input_log.md @ {ts} UTC\n\n{b}\n")
+open("october_log.md","w").write("\n".join(out))
+print(len(items))
+EOF
+wc -w october_log.md; grep -c "^### \[R-L" october_log.md
+
+# OUTPUT:
+64
+12399 october_log.md
+64
+Shell cwd was reset to /home/claude
