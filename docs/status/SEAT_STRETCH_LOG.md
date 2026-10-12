@@ -8,6 +8,38 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-12 — Clear-the-decks, first stretch: canon v4 installed and aligned, worker ticks on the advisor trial, the shared tree unwedged, four reds cleared
+
+<!-- head: 002d37e422a2 -->
+
+**Spent since the 40% reading (Monday 14:00):** about USD 93 weighted, so about 5 points at ~USD 19 a point (corrected calibration, 99a2ff7a1). That is this session and its agents (USD 85; the world lane is USD 38 of it) plus at least USD 7.5 of unattended turns. Inside the ~9 a day the week allows.
+
+**Closed, by kind**
+
+- *Pacing (the biggest lever):* the worker ticks run on Sonnet 5 with an Opus 5.5 advisor in a dated window to 19 Oct (99a2ff7a1). The stop rule was filed before the first tick. The first trial tick ran on Sonnet 5 with the advisor attached (advisor_message iterations on Opus 5.5 in its transcript), so the precondition is met. Along the way, tools/tick_burn_rate.py was found counting every message about 2.2x; it is fixed, and the calibration is corrected beside its claim.
+- *Canon v4, steps 1-4 and part of 2 and 5:*
+  - installed, with P12 in his words (78afa32c7);
+  - CLAUDE.md quotes canon, and G5 is in code, narrowed to its words (6a64ec275);
+  - the model on a page, the pitch, the human simulation layer and the overview are aligned, with two new startup anchors (002d37e42);
+  - DIRECTOR_AXES is bannered (1b12b0910);
+  - the eight for_the_director rows were already answered by the seat's 12:28 record;
+  - C34 ranks on joint value with both floors (eeb38abc3);
+  - grid losses have their own line at BEIS/DESNZ factors for all ten years (ebad187e8).
+- *Reds at HEAD:* a census of the 18 found 3 green again and 2 environmental. Four are fixed (252e20edb): the decision probe's keyword call, a refusal test keyed to its concept, and two alarm-census rows.
+- *Stale worktrees:* 168 down to 119, each archived first (/var/tmp/worktree-archive-20261012, 78 MB). The 4 that held unlanded commits are kept as refs and bundles. One generated docs mirror was not archived (a tar flag-order bug); its run was already published (f4bcaa6f2).
+- *The shared tree was wedged 10 hours:* the orientation seat's records sat uncommitted from 11 Oct 08:23, because worktree landings had changed the same files on origin. A worker tick landed them (7c129de2e) and the tree has fast-forwarded. Every daemon change landed today is now live.
+
+**Raised to him:** C34 still advises nobody at realistic inputs, because our floor binds in all 18 cases. Recommended: pair a value-creating action with a price that shares the value (an atom for next week).
+
+**What is left**
+
+- *Order 1:* the world lane is finishing the freeze (UNIFIED as default, the fidelity check, blind predictions). It has also been asked to wire or delete PPM_DEBT_WEEKLY_REPAYMENT_GBP, a new red. The separation lane (typed seam record, DD review and dunning behind company doors) is still running. The provision measurement and the fresh-seed regrades wait on the freeze.
+- *Order 2:* the 145 banners are committed locally and held by red #10 (below). Steps 6 and 7 (the canon-against-canon check, the twelve owed items) are not started. Step 5's remaining rulings are not started: the pricing-arm check, the holdout made readable, the time unit, the capital target from 31 Mar 2025, retiring the epoch gates, NTFY G8.
+- *Order 3:* 9 reds at HEAD remain (#6, #7, #8, #9, #11, #12, #13, #16, #17; #17 is 7 bills on one customer charged about 4x VAT). The staging backlog (~200 + 123) and the known-issues triage are not started.
+- *Red #10, the settlement budget against the memory peak, is unexplained.* sim-runner's cgroup peaked at 8.0 GB on today's code, against 3.9 GB measured for 5,000 customer-years. The service is now long-lived across many runs, and the publish gate's pytest runs inside the same cgroup, so I cannot yet say whether the runs got heavier. A sampler on the cgroup (/var/tmp/simrunner_mem.log, ten hours) will show which phase holds it at the next run. Re-pricing on today's peak would put the budget under the founders' own ~3,790 committed customer-years, so no campaign win would settle; it is not moved until that is measured.
+
+---
+
 ## 2026-10-12 — orientation: For the fourth stretch running, no supplier code reached origin
 
 <!-- head: 47e8e6993c6a -->

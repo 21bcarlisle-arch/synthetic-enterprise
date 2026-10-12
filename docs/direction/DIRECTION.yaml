@@ -872,3 +872,21 @@ for_the_director:
     with the pre-registered stop rule as the way back. The seat and interactive sessions stay on Opus
     with no advisor. Draw it when it doesn''t displace the steps above."'
   evidence: docs/observability/model_tier_log.jsonl, 14-day SPAWNED count; docs/staging/in_progress/WORKER_MINTED_advisor_trial_on_worker_ticks_2026-10-12.md
+- id: c34-now-ranks-next-best-action-on
+  raised: '2026-10-12'
+  kind: canon_intent
+  what: C34 now ranks next best action on joint value with a no-loss floor on both sides, as ruled (C7,
+    eeb38abc3), and it still advises nobody at realistic inputs. Across the C34 finding's own B11-scale
+    inputs (margin GBP 5-30 a month, hazard 0.5-3% a month, 48 months, advice giving up GBP 2-3 a month
+    and cutting the hazard 0.1-0.3 points), joint value is positive in all 18 cases (+GBP 13 to +107)
+    and our side is negative in all 18, so our floor refuses every one. The ranking key changed and no
+    decision did.
+  proposal: 'Keep both floors, and let an advice action that creates value but costs us travel with a
+    price that shares it: the renewal or retention price is set so that our side of that action is at
+    least zero, which is M2''s created-then-shared. That is a pricing-lever change (step 5), not a C34
+    change, so I would build it next week as an atom, knowledge page first, and grade it on fresh seeds.
+    If you would rather loosen our floor to ''joint value exceeds what we give up'', say so; that one
+    is a one-line change and I would measure it the same way.'
+  status: open
+  resolution: ''
+  evidence: docs/market_research/next_best_action_and_cross_sell.md section 6.1; landed eeb38abc3
