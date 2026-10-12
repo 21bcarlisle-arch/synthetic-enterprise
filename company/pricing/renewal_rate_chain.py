@@ -79,6 +79,7 @@ a composition problem: the import was not the crossing, the DECISION was.
 
 from __future__ import annotations
 
+import heapq
 from dataclasses import dataclass, field
 from datetime import date
 
@@ -666,3 +667,90 @@ def decide_renewal_rate(
 
     result.unit_rate_gbp_per_mwh = unit_rate
     return result
+
+
+def decide_renewal_rate_from(inputs) -> RenewalRateChain:
+    """`decide_renewal_rate` for a `company.interfaces.renewal_decision_inputs.RenewalDecisionInputs`.
+
+    The record's names are market-neutral (the seam's portability law); the desk's carry the
+    book's currency. This is the one place the two are mapped, field for field.
+    """
+    return decide_renewal_rate(
+        customer_id=inputs.customer_id,
+        billing_account=inputs.billing_account,
+        commodity=inputs.commodity,
+        term_start=inputs.term_start,
+        tariff_type=inputs.tariff_type,
+        term_index=inputs.term_index,
+        struck_unit_rate_gbp_per_mwh=inputs.struck_unit_rate_per_mwh,
+        portfolio_margin_rates=inputs.portfolio_margin_rates,
+        prior_term_margin_gbp=inputs.prior_term_margin,
+        prior_term_revenue_gbp=inputs.prior_term_revenue,
+        is_domestic=inputs.is_domestic,
+        segment=inputs.segment,
+        settled_records=inputs.settled_records,
+        customer=inputs.customer,
+        arrears_state=inputs.arrears_state,
+        receivable=inputs.receivable,
+        payment_method=inputs.payment_method,
+        default_belief_rate=inputs.default_belief_rate,
+        own_default_tariff_inc_vat_gbp_per_mwh=inputs.own_default_tariff_inc_vat_per_mwh,
+    )
+
+
+class PortfolioMarginBook:
+    """The supplier's realised margin rate per term, per fuel: the history its portfolio premium
+    reads, holding a term back until it has ENDED, and admitting no term a save kept.
+
+    MOVED FROM THE RUN LOOP (2026-10-12). This was `simulation.run_phase2b.EndedTermMargins` plus
+    the save rule written inline beside its one `.settled()` call. Both are the company's own
+    bookkeeping over its own P&L; the run loop now reports what happened and the book decides what
+    it admits.
+
+    ENDED, NOT SETTLED. The run walks terms in START order and settles each one to its end inside
+    its own iteration, so a list appended at settlement handed a renewal priced in July 2024 the
+    whole-term margin of a term that ran to February 2025: days no supplier has seen. The premium
+    reads the last N *completed* terms, and `as_of` is what makes "completed" true at the moment of
+    reading. Found 2026-10-01 when a 2025-only standing-charge change moved renewals priced in 2024.
+
+    A SAVE DOES NOT TEACH THE PREMIUM (director, 2026-10-08: a save must never be paid for by
+    raising the price of customers who stay). A term held on a save has a margin thinner by the
+    save's cut, and so does every later term of that account, because its next renewal is priced
+    off the save rate. Admitting either recovered the save from the stayers through the premium
+    (measured 2026-10-11, tests/simulation/test_a_save_is_not_paid_for_by_the_stayers.py: 372
+    stayer prices moved). So an account is excluded for good once a save, or a followed home move
+    priced as one, has held it.
+    """
+
+    def __init__(self) -> None:
+        self.electricity: list[float] = []
+        self.gas: list[float] = []
+        self._pending: list[tuple[str, int, str, float]] = []
+        self._sequence = 0
+        self._held_on_a_save: set[str] = set()
+
+    def rates(self, commodity: str) -> list[float]:
+        """The released history for `commodity`, oldest first. The live list, not a copy."""
+        return self.electricity if commodity == "electricity" else self.gas
+
+    def account_held_on_a_save(self, billing_account: str) -> None:
+        """Record that a save kept this account: none of its terms teaches the premium again."""
+        self._held_on_a_save.add(billing_account)
+
+    def term_ended(self, *, billing_account: str, commodity: str, last_settled_day: str,
+                   net_margin: float, revenue: float, held_on_a_save: bool) -> None:
+        """Take one term's outcome off the company's own P&L, and admit it unless a save held it
+        or it earned nothing. `held_on_a_save` is this term's own flag; the account-level
+        exclusion is the book's."""
+        if revenue > 0 and not held_on_a_save and billing_account not in self._held_on_a_save:
+            self.settled(last_settled_day, commodity, net_margin / revenue)
+
+    def settled(self, last_settled_day: str, commodity: str, margin_rate: float) -> None:
+        heapq.heappush(self._pending, (last_settled_day[:10], self._sequence, commodity, margin_rate))
+        self._sequence += 1
+
+    def as_of(self, day: str) -> None:
+        """Release, in end order, every term whose last settled day is before `day`."""
+        while self._pending and self._pending[0][0] < day[:10]:
+            _, _, commodity, rate = heapq.heappop(self._pending)
+            (self.electricity if commodity == "electricity" else self.gas).append(rate)

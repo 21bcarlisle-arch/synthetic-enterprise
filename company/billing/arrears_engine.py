@@ -57,7 +57,6 @@ from company.billing.account_ledger import (
 )
 from company.crm.account_hierarchy import Segment
 
-
 # ---------------------------------------------------------------------------
 # 1. Ageing
 # ---------------------------------------------------------------------------
@@ -316,6 +315,54 @@ _DUNNING_PATHS: Dict[Segment, List[DunningStep]] = {
 #: held account owes money -- the two must not read as one (the same sentinel collision D24 lifted
 #: out of the overdue clock).
 MORATORIUM_HOLD = DunningStep(0, "moratorium_hold", "none")
+
+
+#: THE NOTICES THE BILLING LEDGER RECORDS AGAINST A MISSED BILL: which letter, sent how many days
+#: past the due date, worded how. Moved here from `simulation/arrears_engine.arrears_stages`
+#: (2026-10-12, director: "the DD review and dunning moved out of world files"): when to remind a
+#: customer is the supplier's dunning decision, and the world was taking it. Moved as it stood, so
+#: no ledger figure changed. It is NOT `_DUNNING_PATHS` and the two disagree -- this ledger offers a
+#: plan at day 21, the desk's ladder at day 28 -- and reconciling them is a behaviour change owed
+#: separately, not part of this move. `domestic` is every non-I&C bill; `commercial` the I&C one.
+LEDGER_NOTICES = {
+    "domestic": (
+        ("FIRST_NOTICE", 7, "First overdue notice -- GBP%.2f outstanding"),
+        ("SECOND_NOTICE", 21, "Second notice -- payment plan offered"),
+    ),
+    "commercial": (
+        ("DISPUTE_NOTICE", 14, "Dispute notice raised -- escalated to accounts receivable"),
+    ),
+}
+
+#: Days past the due date at which the ledger dates a write-off when the run's balance rule gave no
+#: date (`final_bill_outcome`'s callers). Moved with the notices, for the same reason: when to stop
+#: chasing is the supplier's call. Unsourced, as it was in the world: C4 records that no published
+#: source gives an industry clock from due date to write-off.
+LEDGER_WRITE_OFF_FALLBACK_DAYS = {"domestic": 90, "commercial": 60}
+
+
+def ledger_notices(due_date: dt.date, owed: float, *, commercial: bool = False) -> List[dict]:
+    """The ledger's notice stages for a bill missed on `due_date` with `owed` outstanding."""
+    out = []
+    for stage, days, wording in LEDGER_NOTICES["commercial" if commercial else "domestic"]:
+        out.append({"stage": stage, "date": (due_date + dt.timedelta(days=days)).isoformat(),
+                    "note": wording % owed if "%" in wording else wording})
+    return out
+
+
+def ledger_notice_wording(stage: str) -> Optional[str]:
+    """The wording template of ledger notice `stage`, or None if the ledger sends no such notice."""
+    for notices in LEDGER_NOTICES.values():
+        for name, _days, wording in notices:
+            if name == stage:
+                return wording
+    return None
+
+
+def ledger_write_off_fallback(due_date: dt.date, *, commercial: bool = False) -> dt.date:
+    """The write-off date the ledger uses when no balance rule dated one."""
+    return due_date + dt.timedelta(days=LEDGER_WRITE_OFF_FALLBACK_DAYS[
+        "commercial" if commercial else "domestic"])
 
 
 def dunning_path(segment: Segment) -> List[DunningStep]:

@@ -5,7 +5,8 @@ straight away, so a renewal priced in July 2024 read a term settling to February
 here names the shape of that defect it would catch.
 """
 
-from simulation.run_phase2b import EndedTermMargins
+# The book moved behind the company's door on 2026-10-12; it was `simulation.run_phase2b.EndedTermMargins`.
+from company.interfaces.renewal_rate_chain import open_portfolio_margin_book as EndedTermMargins
 
 
 def test_a_running_term_is_held_while_an_ended_one_is_released():
@@ -42,3 +43,21 @@ def test_each_fuel_reads_only_its_own_terms():
     book.settled("2024-01-31", "gas", 0.04)
     book.as_of("2024-02-01")
     assert (book.electricity, book.gas) == ([0.03], [0.04])
+
+
+def test_a_save_keeps_its_term_and_every_later_term_of_its_account_out_of_the_premium():
+    # The partition in one control: an ordinary term IS admitted (so a book refusing everything
+    # fails), and each of the three refusals refuses. The rule moved here from the run loop.
+    book = EndedTermMargins()
+    def end(account, held=False, revenue=100.0):
+        book.term_ended(billing_account=account, commodity="electricity",
+                        last_settled_day="2024-01-31", net_margin=10.0, revenue=revenue,
+                        held_on_a_save=held)
+    end("A")                       # admitted: 0.10
+    end("B", held=True)            # this term held on a save
+    book.account_held_on_a_save("C")
+    end("C")                       # a later term of an account a save kept
+    end("D", revenue=0.0)          # earned nothing
+    book.as_of("2024-02-01")
+    assert book.rates("electricity") == [0.10]
+    assert book.rates("gas") == []

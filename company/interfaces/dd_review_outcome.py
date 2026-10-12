@@ -87,7 +87,18 @@ chokepoint.
 """
 from __future__ import annotations
 
-__all__ = ["opening_monthly_amount", "reviewed_monthly_amount", "reviewed_monthly_amount_at_rates"]
+# The rule NAMES only: which arm a run puts the review on is the run's choice. What each rule does
+# stays behind `reviewed_standing`.
+from company.billing.dd_review import DEFAULT_REVIEW_RULE, REVIEW_RULES
+
+__all__ = [
+    "DEFAULT_REVIEW_RULE",
+    "REVIEW_RULES",
+    "opening_monthly_amount",
+    "reviewed_monthly_amount",
+    "reviewed_monthly_amount_at_rates",
+    "reviewed_standing",
+]
 
 
 def reviewed_monthly_amount(actual_annual_spend_gbp: float) -> float:
@@ -135,10 +146,30 @@ def reviewed_monthly_amount_at_rates(
     (it settles earlier energy at the earlier price). Out: the amount on the letter, rounded as
     the other review rounds it. So under flat rates the two reviews set the same debit.
     """
-    from company.compliance.domain_invariants import vat_rate_for_segment
+    from company.billing.dd_review import _recommended_monthly_at_rates
 
-    ex_vat = annual_kwh / 1000.0 * unit_rate_per_mwh_ex_vat + days * standing_charge_per_day_ex_vat
-    return reviewed_monthly_amount(ex_vat * (1.0 + vat_rate_for_segment("resi")) + billed_adjustments)
+    return _recommended_monthly_at_rates(
+        annual_kwh=annual_kwh,
+        days=days,
+        unit_rate_per_mwh_ex_vat=unit_rate_per_mwh_ex_vat,
+        standing_charge_per_day_ex_vat=standing_charge_per_day_ex_vat,
+        billed_adjustments=billed_adjustments,
+    )
+
+
+def reviewed_standing(rule: str, completed: list, first_of_new) -> float:
+    """The standing monthly Direct Debit the supplier's annual review sets after a completed window.
+
+    In: the review rule the run put the desk on, the window's bills as issued, and the first bill
+    of the window being set (or None). All three are what the supplier issued. Out: the amount on
+    the letter. Which bills are summed, which rates are read off which bill, and when the review
+    falls back to last year's spend are the supplier's review policy, in
+    `company/billing/dd_review.py`. Until 2026-10-12 that policy was computed inside
+    `simulation/dd_balance_book.py`; the world now asks and is told.
+    """
+    from company.billing.dd_review import reviewed_standing as _reviewed_standing
+
+    return _reviewed_standing(rule, completed, first_of_new)
 
 
 def opening_monthly_amount(

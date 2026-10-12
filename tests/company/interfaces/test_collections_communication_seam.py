@@ -119,7 +119,9 @@ def test_the_seam_does_not_re_export_the_policy_object():
     would make `from company.interfaces.collections_communication import CURRENT_POLICY` a
     sanctioned move for a SIM module — the dependency restored, with no wall edge created,
     because the import still terminates on the exempt seam package."""
-    assert seam.__all__ == ["collections_tone_for"]
+    # The three ledger-notice doors joined on 2026-10-12, when the notice schedule moved out of
+    # `simulation/arrears_engine.py`; they return dates and wording, never the schedule table.
+    assert seam.__all__ == ["collections_tone_for", "ledger_notice_wording", "ledger_notices", "ledger_write_off_fallback"]
     leaked = [n for n in seam.__all__ if n in ("CURRENT_POLICY", "DecisionPolicy", "tone_for")]
     assert not leaked, f"seam re-exports company decision machinery: {leaked}"
 
@@ -158,14 +160,14 @@ def test_mutation_re_exporting_the_policy_reds_the_surface_check():
     with open(path, encoding="utf-8") as fh:
         source = fh.read()
 
-    assert _public_names_in_all(source) == ["collections_tone_for"], (
+    assert _public_names_in_all(source) == ["collections_tone_for", "ledger_notice_wording", "ledger_notices", "ledger_write_off_fallback"], (
         "source and imported module disagree on __all__ — this mutation proof is not "
         "reading the file the test above checks"
     )
 
     mutated = source.replace(
-        '__all__ = ["collections_tone_for"]',
-        '__all__ = ["collections_tone_for", "CURRENT_POLICY"]',
+        '__all__ = [\n    "collections_tone_for",',
+        '__all__ = [\n    "CURRENT_POLICY",\n    "collections_tone_for",',
     )
     assert mutated != source, "mutation did not apply — the __all__ spelling moved"
 

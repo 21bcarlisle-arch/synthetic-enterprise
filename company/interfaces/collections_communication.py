@@ -77,7 +77,12 @@ from __future__ import annotations
 
 from company.policy.decision_policy import active_policy, tone_for
 
-__all__ = ["collections_tone_for"]
+__all__ = [
+    "collections_tone_for",
+    "ledger_notice_wording",
+    "ledger_notices",
+    "ledger_write_off_fallback",
+]
 
 
 def collections_tone_for(customer_id: str, period_end: str) -> str:
@@ -103,3 +108,32 @@ def collections_tone_for(customer_id: str, period_end: str) -> str:
     asks for a tone and receives a string, exactly as before.
     """
     return tone_for(active_policy(), customer_id, period_end)
+
+
+def ledger_notices(due_date, owed: float, *, commercial: bool = False) -> list[dict]:
+    """The overdue notices the supplier sent against a bill missed on `due_date`, each a dict of
+    `stage`, `date` (ISO) and `note`, with `owed` the amount outstanding that day.
+
+    WHEN TO REMIND IS THE SUPPLIER'S DECISION (2026-10-12). Until then the world's
+    `simulation/arrears_engine.arrears_stages` chose the notice days and wrote the letters; the
+    world now reports that a payment was missed and is told which letters went out. The schedule
+    lives in `company/billing/arrears_engine.py` (`LEDGER_NOTICES`) and does not cross.
+    """
+    from company.billing.arrears_engine import ledger_notices as _notices
+
+    return _notices(due_date, owed, commercial=commercial)
+
+
+def ledger_notice_wording(stage: str) -> str | None:
+    """The wording of notice `stage` as the supplier sends it, for restating the amount after a
+    credit is netted; None for a stage that is not one of its notices."""
+    from company.billing.arrears_engine import ledger_notice_wording as _wording
+
+    return _wording(stage)
+
+
+def ledger_write_off_fallback(due_date, *, commercial: bool = False):
+    """The date the supplier writes a case off when the run's balance rule gave none."""
+    from company.billing.arrears_engine import ledger_write_off_fallback as _fallback
+
+    return _fallback(due_date, commercial=commercial)

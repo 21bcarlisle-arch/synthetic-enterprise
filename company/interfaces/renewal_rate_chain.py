@@ -29,9 +29,17 @@ for itself. They stay inside `company/pricing/`, which is the point of the door.
 
 from __future__ import annotations
 
+from company.interfaces.renewal_decision_inputs import RenewalDecisionInputs
 from company.pricing.renewal_rate_chain import RenewalRateChain
 
-__all__ = ["RenewalRateChain", "decide_renewal_rate", "portfolio_position"]
+__all__ = [
+    "RenewalDecisionInputs",
+    "RenewalRateChain",
+    "decide_renewal",
+    "decide_renewal_rate",
+    "open_portfolio_margin_book",
+    "portfolio_position",
+]
 
 
 def portfolio_position(portfolio_margin_rates: list[float]) -> dict | None:
@@ -129,3 +137,29 @@ def decide_renewal_rate(
         default_belief_rate=default_belief_rate,
         own_default_tariff_inc_vat_gbp_per_mwh=own_default_tariff_inc_vat_gbp_per_mwh,
     )
+
+
+def decide_renewal(inputs: RenewalDecisionInputs) -> RenewalRateChain:
+    """Ask the company what rate it is contracting this renewal at, handing it the typed record.
+
+    The run loop's door since 2026-10-12. The record (`renewal_decision_inputs.py`) declares every
+    input as something the supplier holds, and its field list is an allow-list; the keyword door
+    above is kept for the callers that predate it and asks the same desk.
+    """
+    from company.pricing.renewal_rate_chain import decide_renewal_rate_from
+
+    return decide_renewal_rate_from(inputs)
+
+
+def open_portfolio_margin_book():
+    """A fresh book of the supplier's realised margin per ended term, for one run.
+
+    The run loop reports each ended term to it (`term_ended`) and each save that held an account
+    (`account_held_on_a_save`); what the book admits, and when it releases a term to the premium
+    (`as_of`), is the company's own bookkeeping and stays behind it (2026-10-12; it was computed
+    inline in `simulation/run_phase2b.py`). `rates(commodity)` is the history `decide_renewal`
+    and `portfolio_position` read.
+    """
+    from company.pricing.renewal_rate_chain import PortfolioMarginBook
+
+    return PortfolioMarginBook()

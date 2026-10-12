@@ -60,12 +60,12 @@ from datetime import date
 from pathlib import Path
 from typing import Mapping
 
+from company.billing.dd_review import bill_days as _bill_days
 from company.compliance.domain_invariants import vat_rate_for_segment
 from simulation.arrears_engine import payment_method
 from simulation.dd_balance_book import (
     DEFAULT_REVIEW_RULE,
     REVIEW_RULES,
-    _bill_days,
     _months_between,
     _true_charges,
     build_dd_balance_book,

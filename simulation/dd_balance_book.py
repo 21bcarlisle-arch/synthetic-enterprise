@@ -111,9 +111,10 @@ from datetime import date
 from typing import Mapping
 
 from company.interfaces.bill_assembly import barred_at_charge_recovery
-from company.interfaces.dd_review_outcome import (
-    reviewed_monthly_amount,
-    reviewed_monthly_amount_at_rates,
+from company.interfaces.dd_review_outcome import (  # noqa: F401 -- REVIEW_RULES re-exported for tools
+    DEFAULT_REVIEW_RULE,
+    REVIEW_RULES,
+    reviewed_standing,
 )
 from simulation.arrears_engine import payment_method
 
@@ -122,46 +123,11 @@ from simulation.arrears_engine import payment_method
 # illustration). Deterministic pick: the first N direct-debit customers by id.
 _SAMPLE_TRAJECTORY_CUSTOMERS = 6
 
-#: How the annual review sizes next year's debit. `last_year_spend` resets it to what the completed
-#: year cost at the prices it was billed at. `consumption_at_rates_in_force` prices that year's
-#: billed kWh and days at the rates on the first bill of the year being set (SLC 27.15, "most
-#: current information"). The two agree when prices are flat.
-REVIEW_RULES = ("last_year_spend", "consumption_at_rates_in_force")
-DEFAULT_REVIEW_RULE = "last_year_spend"
-
-
-def _bill_days(b: Mapping) -> int:
-    if b.get("days_in_period"):
-        return int(b["days_in_period"])
-    end = date.fromisoformat(b["period_end"][:10])
-    start = date.fromisoformat(b["period_start"][:10]) if b.get("period_start") else end.replace(day=1)
-    return (end - start).days + 1
-
-
-def reviewed_standing(rule: str, completed: list[Mapping], first_of_new: Mapping | None) -> float:
-    """The standing monthly debit the review after `completed` (one window's bills) sets.
-
-    Where the rates in force cannot be read off the window's first bill (no such bill, or a bill
-    without the rate fields), the review falls back to last year's spend: there is nothing more
-    current to price at.
-    """
-    if rule not in REVIEW_RULES:
-        raise ValueError(f"unknown DD review rule {rule!r}; expected one of {REVIEW_RULES}")
-    spend = sum(float(b["total_amount_gbp"]) for b in completed)
-    if rule == "last_year_spend" or first_of_new is None:
-        return reviewed_monthly_amount(spend)
-    unit = first_of_new.get("average_unit_rate_gbp_per_mwh")
-    sc = first_of_new.get("standing_charge_gbp_per_day")
-    if not unit or sc is None or any(b.get("total_consumption_kwh") is None for b in completed):
-        return reviewed_monthly_amount(spend)
-    return reviewed_monthly_amount_at_rates(
-        annual_kwh=sum(float(b["total_consumption_kwh"]) for b in completed),
-        days=sum(_bill_days(b) for b in completed),
-        unit_rate_per_mwh_ex_vat=float(unit),
-        standing_charge_per_day_ex_vat=float(sc),
-        billed_adjustments=sum(float(b.get("catchup_adjustment_gbp") or 0.0)
-                                   for b in completed if b.get("catchup_applied")),
-    )
+# THE ANNUAL REVIEW IS THE SUPPLIER'S (2026-10-12). `reviewed_standing` -- which rule sizes next
+# year's debit, which bills it sums, which rates it reads off which bill, and when it falls back
+# to last year's spend -- was computed here, in the world, duplicating the company's review desk.
+# It now lives in `company/billing/dd_review.py` behind `company/interfaces/dd_review_outcome.py`;
+# this book asks the door per completed window and applies the amount it is told.
 
 
 def _months_between(anchor: date, d: date) -> int:

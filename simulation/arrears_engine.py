@@ -92,6 +92,11 @@ from pathlib import Path
 
 import yaml
 
+from company.interfaces.collections_communication import (
+    ledger_notice_wording,
+    ledger_notices,
+    ledger_write_off_fallback,
+)
 from simulation.meter_reads import assumption_toggle
 from simulation.rng_substream import substream
 from simulation.segment_vocabulary import (
@@ -628,7 +633,9 @@ BALANCE_OPEN_NOTE = "Balance still open -- GBP%.2f unpaid, with no payment or ar
 
 
 #: The notes that state an amount, so a credit netted later can restate what was owed that day.
-_NOTICE_AMOUNT_NOTES = {"FIRST_NOTICE": "First overdue notice -- GBP%.2f outstanding",
+#: The first notice's wording is the supplier's letter, read through its door; the dispute is the
+#: customer's own act, so its wording stays here.
+_NOTICE_AMOUNT_NOTES = {"FIRST_NOTICE": ledger_notice_wording("FIRST_NOTICE"),
                         "INVOICE_DISPUTED": "Invoice disputed -- GBP%.2f under formal review"}
 
 
@@ -651,19 +658,14 @@ def arrears_stages(arrears_gbp: float, due_date: date, still_open: bool,
     it -- re-presentation and arrangement paydown are unbuilt -- so it ends on `BALANCE_OPEN`, a
     statement that moves no money, never on a resolution that did not happen.
     """
-    stages = [
-        opening_arrears_stage(method, due_date),
-        {"stage": "FIRST_NOTICE", "date": (due_date + timedelta(days=7)).isoformat(),
-         "note": _NOTICE_AMOUNT_NOTES["FIRST_NOTICE"] % arrears_gbp},
-        {"stage": "SECOND_NOTICE", "date": (due_date + timedelta(days=21)).isoformat(),
-         "note": "Second notice -- payment plan offered"},
-    ]
+    # Which notices went out, and when, is the supplier's dunning decision (2026-10-12): asked.
+    stages = [opening_arrears_stage(method, due_date), *ledger_notices(due_date, arrears_gbp)]
     if still_open:
         stages.append({"stage": BALANCE_OPEN, "date": stages[-1]["date"],
                         "note": BALANCE_OPEN_NOTE % arrears_gbp})
     else:
         if write_off_date is None:
-            write_off_date = due_date + timedelta(days=90)
+            write_off_date = ledger_write_off_fallback(due_date)
         write_off_date = max(write_off_date, due_date)
         stages = stages[:1] + [st for st in stages[1:] if st["date"] <= write_off_date.isoformat()]
         stages.append({"stage": "WRITTEN_OFF", "date": write_off_date.isoformat(),
@@ -724,15 +726,14 @@ def ic_arrears_stages(arrears_gbp: float, due_date: date, still_open: bool,
     stages = [
         {"stage": "INVOICE_DISPUTED", "date": due_date.isoformat(),
          "note": _NOTICE_AMOUNT_NOTES["INVOICE_DISPUTED"] % arrears_gbp},
-        {"stage": "DISPUTE_NOTICE", "date": (due_date + timedelta(days=14)).isoformat(),
-         "note": "Dispute notice raised -- escalated to accounts receivable"},
+        *ledger_notices(due_date, arrears_gbp, commercial=True),
     ]
     if still_open:
         stages.append({"stage": BALANCE_OPEN, "date": stages[-1]["date"],
                         "note": BALANCE_OPEN_NOTE % arrears_gbp})
     else:
         if write_off_date is None:
-            write_off_date = due_date + timedelta(days=60)
+            write_off_date = ledger_write_off_fallback(due_date, commercial=True)
         write_off_date = max(write_off_date, due_date)
         stages = stages[:1] + [st for st in stages[1:] if st["date"] <= write_off_date.isoformat()]
         stages.append({"stage": "WRITTEN_OFF",

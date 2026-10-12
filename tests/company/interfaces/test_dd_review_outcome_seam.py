@@ -160,9 +160,12 @@ def _dd_customer_bills():
 #: list so an accidental widening still trips; `opening_monthly_amount` joined it
 #: on 2026-09-02 with atom `D_opening_dd_seasonal_sizing`, which gave the opening
 #: DD an estimate to be set from, and `reviewed_monthly_amount_at_rates` on 2026-10-10 (the
-#: review priced at the rates in force). The load-bearing leg of this control is the
+#: review priced at the rates in force), and `reviewed_standing` with the two rule NAMES on
+#: 2026-10-12, when the review policy moved out of `simulation/dd_balance_book.py`. The
+#: load-bearing leg of this control is the
 #: FORBIDDEN_AT_THE_DOOR reachability check below, not this list.
-SANCTIONED_DOORS = ["opening_monthly_amount", "reviewed_monthly_amount", "reviewed_monthly_amount_at_rates"]
+SANCTIONED_DOORS = ["DEFAULT_REVIEW_RULE", "REVIEW_RULES", "opening_monthly_amount",
+                    "reviewed_monthly_amount", "reviewed_monthly_amount_at_rates", "reviewed_standing"]
 
 
 def test_the_door_exposes_only_the_reviewed_amount():
@@ -181,14 +184,14 @@ def test_the_door_exposes_only_the_reviewed_amount():
     # written with a module-level import, which put the private routine in the seam's
     # own namespace. This mutation restores that exact mistake.
     (
-        '__all__ = ["opening_monthly_amount", "reviewed_monthly_amount", "reviewed_monthly_amount_at_rates"]',
-        'from company.billing.dd_review import _recommended_monthly\n\n__all__ = ["opening_monthly_amount", "reviewed_monthly_amount", "reviewed_monthly_amount_at_rates"]',
+        '__all__ = [',
+        'from company.billing.dd_review import _recommended_monthly\n\n__all__ = [',
         "_recommended_monthly",
     ),
     # (b) The convenience widening: hand back the whole review API.
     (
-        '__all__ = ["opening_monthly_amount", "reviewed_monthly_amount", "reviewed_monthly_amount_at_rates"]',
-        'from company.billing.dd_review import review\n\n__all__ = ["reviewed_monthly_amount", "review"]',
+        '__all__ = [',
+        'from company.billing.dd_review import review\n\n__all__ = ["review", ',
         "review",
     ),
 ])
@@ -242,17 +245,19 @@ def test_mutation_a_drifting_door_moves_the_published_held_credit_liability():
 
     with _Mutant(
         SEAM_SOURCE,
-        "    return _recommended_monthly(actual_annual_spend_gbp)",
-        "    return _recommended_monthly(actual_annual_spend_gbp) + 1.0",
+        # The book asks `reviewed_standing` since 2026-10-12 (the review policy moved behind
+        # the door), so the drift is put on THAT door's answer.
+        "    return _reviewed_standing(rule, completed, first_of_new)",
+        "    return _reviewed_standing(rule, completed, first_of_new) + 1.0",
         "_mutant_ddreview_drift",
     ) as mutant:
         import simulation.dd_balance_book as bb
-        original = bb.reviewed_monthly_amount
+        original = bb.reviewed_standing
         try:
-            bb.reviewed_monthly_amount = mutant.reviewed_monthly_amount
+            bb.reviewed_standing = mutant.reviewed_standing
             drifted = build_dd_balance_book(bills, opening).serialise()
         finally:
-            bb.reviewed_monthly_amount = original
+            bb.reviewed_standing = original
 
     assert drifted != baseline, (
         "the held-credit liability did not move when the reviewed amount changed — "

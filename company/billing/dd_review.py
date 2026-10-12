@@ -38,6 +38,67 @@ def _recommended_monthly(actual_annual: float) -> float:
     return round(monthly + 0.5)   # ceiling-round to pound
 
 
+def _recommended_monthly_at_rates(
+    *,
+    annual_kwh: float,
+    days: int,
+    unit_rate_per_mwh_ex_vat: float,
+    standing_charge_per_day_ex_vat: float,
+    billed_adjustments: float = 0.0,
+) -> float:
+    """The completed year's consumption priced at the rates in force from the review date, grossed
+    for VAT, plus any catch-up billed in the year, rounded as `_recommended_monthly` rounds.
+    Published through `company.interfaces.dd_review_outcome.reviewed_monthly_amount_at_rates`."""
+    from company.compliance.domain_invariants import vat_rate_for_segment
+    ex_vat = annual_kwh / 1000.0 * unit_rate_per_mwh_ex_vat + days * standing_charge_per_day_ex_vat
+    return _recommended_monthly(ex_vat * (1.0 + vat_rate_for_segment("resi")) + billed_adjustments)
+
+
+#: How the annual review sizes next year's debit. `last_year_spend` resets it to what the completed
+#: year cost at the prices it was billed at. `consumption_at_rates_in_force` prices that year's
+#: billed kWh and days at the rates on the first bill of the year being set (SLC 27.15, "most
+#: current information"). The two agree when prices are flat. Moved here from
+#: `simulation/dd_balance_book.py` (2026-10-12): which rule the review applies is the supplier's
+#: review policy; the world chooses only which policy arm a run is on.
+REVIEW_RULES = ("last_year_spend", "consumption_at_rates_in_force")
+DEFAULT_REVIEW_RULE = "last_year_spend"
+
+
+def bill_days(b) -> int:
+    """Days a bill covers, as printed on it (`days_in_period`), else from its period dates."""
+    if b.get("days_in_period"):
+        return int(b["days_in_period"])
+    end = date.fromisoformat(b["period_end"][:10])
+    start = date.fromisoformat(b["period_start"][:10]) if b.get("period_start") else end.replace(day=1)
+    return (end - start).days + 1
+
+
+def reviewed_standing(rule: str, completed: list, first_of_new) -> float:
+    """The standing monthly debit the review after `completed` (one window's bills) sets.
+
+    Where the rates in force cannot be read off the window's first bill (no such bill, or a bill
+    without the rate fields), the review falls back to last year's spend: there is nothing more
+    current to price at.
+    """
+    if rule not in REVIEW_RULES:
+        raise ValueError(f"unknown DD review rule {rule!r}; expected one of {REVIEW_RULES}")
+    spend = sum(float(b["total_amount_gbp"]) for b in completed)
+    if rule == "last_year_spend" or first_of_new is None:
+        return _recommended_monthly(spend)
+    unit = first_of_new.get("average_unit_rate_gbp_per_mwh")
+    sc = first_of_new.get("standing_charge_gbp_per_day")
+    if not unit or sc is None or any(b.get("total_consumption_kwh") is None for b in completed):
+        return _recommended_monthly(spend)
+    return _recommended_monthly_at_rates(
+        annual_kwh=sum(float(b["total_consumption_kwh"]) for b in completed),
+        days=sum(bill_days(b) for b in completed),
+        unit_rate_per_mwh_ex_vat=float(unit),
+        standing_charge_per_day_ex_vat=float(sc),
+        billed_adjustments=sum(float(b.get("catchup_adjustment_gbp") or 0.0)
+                                   for b in completed if b.get("catchup_applied")),
+    )
+
+
 def review(
     customer_id: str,
     review_date: date,

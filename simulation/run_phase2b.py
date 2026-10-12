@@ -78,7 +78,12 @@ from company.interfaces.renewal_offer import (
     request_company_forward_estimate,
     request_fixed_unit_rate,
 )
-from company.interfaces.renewal_rate_chain import decide_renewal_rate, portfolio_position
+from company.interfaces.renewal_rate_chain import (
+    RenewalDecisionInputs,
+    decide_renewal,
+    open_portfolio_margin_book,
+    portfolio_position,
+)
 from company.interfaces.save_offer import published_best_deal_gap_share, request_save_offer
 from company.interfaces.statutory_obligations import build_statutory_obligations
 from company.interfaces.supply_book import (
@@ -1093,8 +1098,10 @@ def _grade_demand_estimates_against_the_year_ahead(log: list[dict], settled) -> 
     fold = _as_fold(settled)
     for row in log:
         start = date.fromisoformat(row["term_start"])
-        end = start.replace(year=start.year + 1) if not (start.month == 2 and start.day == 29) \
-            else date(start.year + 1, 3, 1)
+        try:
+            end = start.replace(year=start.year + 1)
+        except ValueError:  # a term starting 29 February: its year ahead ends on 1 March
+            end = date(start.year + 1, 3, 1)
         days = fold.monthly_totals(row["customer_id"])
         if not days or days[0][0] > start.isoformat() or days[-1][1] < (end - timedelta(days=1)).isoformat():
             row["ungraded_reason"] = "the run did not settle the full year ahead of this term"
@@ -1348,33 +1355,6 @@ def campaign_acquisition_spend_events(report_end: str = REPORT_END) -> list[dict
         for quote in campaign_quotes_paid_for()
         if REPORT_START <= quote["event_date"] <= report_end
     ]
-
-
-class EndedTermMargins:
-    """The supplier's realised margin rate per term, per fuel, holding a term back until it has ENDED.
-
-    `main` walks terms in START order and settles each one to its end inside its own iteration, so
-    a list appended at settlement handed a renewal priced in July 2024 the whole-term margin of a
-    term that ran to February 2025: days no supplier has seen. `PORTFOLIO_PREMIUM_LOOKBACK` reads
-    the last N *completed* terms, and this is what makes "completed" true at the moment of reading.
-    Found 2026-10-01 when a 2025-only standing-charge change moved renewals priced in 2024.
-    """
-
-    def __init__(self) -> None:
-        self.electricity: list[float] = []
-        self.gas: list[float] = []
-        self._pending: list[tuple[str, int, str, float]] = []
-        self._sequence = 0
-
-    def settled(self, last_settled_day: str, commodity: str, margin_rate: float) -> None:
-        heapq.heappush(self._pending, (last_settled_day[:10], self._sequence, commodity, margin_rate))
-        self._sequence += 1
-
-    def as_of(self, day: str) -> None:
-        """Release, in end order, every term whose last settled day is before `day`."""
-        while self._pending and self._pending[0][0] < day[:10]:
-            _, _, commodity, rate = heapq.heappop(self._pending)
-            (self.electricity if commodity == "electricity" else self.gas).append(rate)
 
 
 def _record_renewal_decision(journey, log: list, *, customer_id: str, event_date: str,
@@ -2175,16 +2155,10 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     _NG_BILL_SHOCK_THRESHOLD = 0.20  # matches simulation.bill_shock_tracker.BILL_SHOCK_THRESHOLD
     CRISIS_HANGOVER_LOSS_THRESHOLD = 0.20  # trigger: net loss > 20% of term revenue
 
-    # Phase 17a + 19a: rolling portfolio-wide margin rates for learning premium
-    # Released only once a term has ended: see `EndedTermMargins`.
-    _portfolio_margins = EndedTermMargins()
-    # Every account a save kept. NOT ONLY ITS SAVED TERM: the next renewal is priced off the save
-    # rate (`_prior_rates`), so its margin differs from what it would have been, and admitting it
-    # recovered the save from the stayers through the premium a term later (measured 2026-10-11,
-    # tests/simulation/test_a_save_is_not_paid_for_by_the_stayers.py: 372 stayer prices moved).
-    _accounts_held_on_a_save: set[str] = set()
-    portfolio_elec_margin_rates = _portfolio_margins.electricity
-    portfolio_gas_margin_rates = _portfolio_margins.gas  # Phase 19a: separate gas tracking
+    # Phase 17a + 19a: the supplier's realised margin per ended term, per fuel, which its portfolio
+    # premium reads. The company's own bookkeeping (2026-10-12): the run reports each ended term and
+    # each save, and the book decides what it admits and when (`PortfolioMarginBook`).
+    _portfolio_margins = open_portfolio_margin_book()
     dynamic_pricing_log: list[dict] = []
     # THE COMPANY'S RECORD OF ITS OWN BOOK, ACCOUNT-SHAPED (2026-09-06). Every other customer log
     # in this run is EVENT-shaped: it exists because a renewal fired, an offer was made, a journey
@@ -2685,10 +2659,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         # the recorded figure the one the rate was actually struck against, and not a second
         # reading that agrees today.
         _portfolio_margins.as_of(term_start_str)
-        _position = portfolio_position(
-            portfolio_elec_margin_rates if commodity == "electricity"
-            else portfolio_gas_margin_rates
-        )
+        _position = portfolio_position(_portfolio_margins.rates(commodity))
         # WHAT THIS ACCOUNT HAS PAID, ASKED BEFORE THE PRICE IS STRUCK (2026-10-03). The value arm
         # priced every renewal blind to payment history -- the arrears state reached the churn
         # estimate below, AFTER the rate was set, and never reached the rate. Asked through the
@@ -2716,20 +2687,19 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 if active_policy().renewal_default_belief == DEFAULT_BELIEF_OWN_BOOK:
                     _chain_default_belief = _payment_triad.default_belief_rate(
                         _chain_asof, _chain_arrears_state, payment_method_of=_book_method_of)
-        _chain = decide_renewal_rate(
+        # THE TYPED SEAM RECORD (2026-10-12): every input is declared company-observable on the
+        # record itself, and its field list is an allow-list a world-only value cannot join.
+        _chain = decide_renewal(RenewalDecisionInputs(
             customer_id=cid,
             billing_account=billing_account,
             commodity=commodity,
             term_start=term_start_str,
             tariff_type=term_tariff_type,
             term_index=term_index,
-            struck_unit_rate_gbp_per_mwh=unit_rate,
-            portfolio_margin_rates=(
-                portfolio_elec_margin_rates if commodity == "electricity"
-                else portfolio_gas_margin_rates
-            ),
-            prior_term_margin_gbp=prev_term_margin.get(cid),
-            prior_term_revenue_gbp=prev_term_revenue.get(cid, 0.0),
+            struck_unit_rate_per_mwh=unit_rate,
+            portfolio_margin_rates=_portfolio_margins.rates(commodity),
+            prior_term_margin=prev_term_margin.get(cid),
+            prior_term_revenue=prev_term_revenue.get(cid, 0.0),
             is_domestic=cid in _RESI_CUSTOMER_IDS,
             # `_SEGMENT_OF` already exists here for the Triad carve-out, so the fact the
             # renewal desk was missing was three lines away the whole time.
@@ -2745,10 +2715,10 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             # THE COMPANY'S OWN DEFAULT TARIFF on the day: what it bills a household on its SVT,
             # which is the published series this world bills that product at. A supplier knows
             # its own default price; before the 2019 cap there is no ceiling to read it from.
-            own_default_tariff_inc_vat_gbp_per_mwh=(
+            own_default_tariff_inc_vat_per_mwh=(
                 _account_state_svt_rate(commodity, term_start_str)
                 if cid in _RESI_CUSTOMER_IDS else None),
-        )
+        ))
         unit_rate = _chain.unit_rate_gbp_per_mwh
         dynamic_pricing_log.extend(_chain.dynamic_pricing_entries)
         margin_feedback_log.extend(_chain.margin_feedback_entries)
@@ -3742,7 +3712,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 if _saved:
                     unit_rate = billed_rate_when_saved(unit_rate, _save_rate)
                     _held_on_a_save = True
-                    _accounts_held_on_a_save.add(billing_account)
+                    _portfolio_margins.account_held_on_a_save(billing_account)
                     event = {**_asked, "event_type": "renewed", "departure_cause": None,
                              "saved_on_loss_notice": True}
                     if not _indexed_tariff:
@@ -4220,7 +4190,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                             # the move date and the new one after it.
                             term_end_str = _next_renewal_str
                             _carried_from = _move_end.isoformat()
-                            _accounts_held_on_a_save.add(billing_account)
+                            _portfolio_margins.account_held_on_a_save(billing_account)
                             _followed_moves.add((billing_account, _move_end))
                             _prior_state = _journey_before_move.get((billing_account, _move_end))
                             if _prior_state is not None:
@@ -4746,14 +4716,13 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         # even when rates improve, so churn stays elevated for 2 renewal periods.
         if commodity == "electricity" and term_revenue > 0 and actual_net / term_revenue < -CRISIS_HANGOVER_LOSS_THRESHOLD:
             hangover_remaining[cid] = crisis_hangover_periods()
-        # A TERM HELD ON A SAVE DOES NOT TEACH THE BOOK'S PREMIUM (director, 2026-10-08: a save must
-        # never be paid for by raising the price of customers who stay). Its margin is thinner by
-        # the save's cut, and this feed sets every later renewal's portfolio premium, so admitting
-        # it recovered the save from the stayers -- measured, 2026-10-08, before this line existed.
-        if term_revenue > 0 and not _held_on_a_save and billing_account not in _accounts_held_on_a_save:
-            _portfolio_margins.settled(
-                max(r["settlement_date"] for r in settled_this_term), commodity, actual_net / term_revenue,
-            )
+        # The term's outcome off the company's own P&L. Whether it teaches the premium (not if a
+        # save held it: director, 2026-10-08) is the book's rule, behind its door.
+        _portfolio_margins.term_ended(
+            billing_account=billing_account, commodity=commodity,
+            last_settled_day=max(r["settlement_date"] for r in settled_this_term),
+            net_margin=actual_net, revenue=term_revenue, held_on_a_save=_held_on_a_save,
+        )
 
         # KNIFE3 step 23 (§3r): the backward-looking arm of the SAME desk — was the
         # hedge worth paying for, and where does that put next term's opening.
