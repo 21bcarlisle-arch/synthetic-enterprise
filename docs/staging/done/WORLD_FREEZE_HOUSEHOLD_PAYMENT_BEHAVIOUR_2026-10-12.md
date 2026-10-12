@@ -185,3 +185,75 @@ engine's own draw the same settings moved bad debt +32.56 and +121.38, with plan
 nothing. **The freeze now stands on `62596685a` with `UNIFIED` on as part of the frozen world for
 any debt-engine grading; the shipped default stays off until the seat flips it** (it moves the
 shipped book: 440.85 -> 161.08 bad debt at default on this book).
+
+## Frozen for grading (2026-10-12)
+
+**The commit.** Origin `3f09d17e4`. The household mechanisms as frozen above, plus one payment truth
+shipped ON: `62596685a` (the P&L reads the triad's outcomes and repayments), `c11ec1e50` (the
+rails and a mover's final bill read it too), `ded298ecd` (ON by default; the uncalled prepayment
+recovery removed). The shipped book's change from the correction, 40 founders, budget 0: bad debt
+GBP 440.85 -> 116.48, net 31,124.47 -> 31,448.84, revenue unchanged; every bill from the triad.
+
+**Every mechanism and toggle range** (all default off; one truth on):
+
+| Mechanism | Toggles, low-high |
+|---|---|
+| Arrangement offers (plan, lower payment, pause) | `plan_take_up_share` 0.32-0.53; `plan_break_share` 0.45-0.65; `plan_weeks_to_recover` 46-96; `plan_lower_payment_failure_elasticity` 0.25-1.0; `plan_pause_resume_failure_share` 0.09-0.40 |
+| Early contact in difficulty | `early_contact_woken_payer_share` 0.04-0.29 |
+| Own-reasons mandate cancellation; prepayment offer | `method_own_reasons_cancel_share` 0.005-0.02; `method_prepayment_offer_take_up_share` 0.30-0.40 |
+| DD shock (DD4b) and a told amount | `dd4b_mandate_cancel_share_at_shock` 0.01-0.10; `dd4b_failure_uplift_after_shock` 0.25-3.0; `dd4b_complaint_share_at_shock` 0.02-0.24 |
+| A date nearer payday | `dd_date_alignment_failure_reduction` 0.10-0.36 |
+| One payment truth | `world_payment_truth.UNIFIED` = True (a switch, not a range) |
+
+**Fidelity check** (`bad_debt_provisioning.md`, "Fidelity check after one payment truth"). The
+>91-day arrears stock matches Ofgem's 5.1%: 4.4% at 400 founders, clustered 2.4-6.8%, MET. The
+write-off flow undershoots: residential write-offs 0.15% of billing at 160 founders (14 cases)
+against Centrica's derived 0.7-1.0% for 2021-2025, about 5-7x low (2.5-3.6x under the old double
+draw). Not a reason to restore the double draw, which wrote off paid bills. Carried as a NAMED GAP
+of that size; the most likely cause on the evidence is that a household that has left repays its
+ordinary arrears at the stayer's rate (final bills over 90 days recover 10-25p). A debt engine
+graded here is graded on a world that loses too little to leavers: the comparison between arms
+stands, the absolute level does not.
+
+**Not this lane's, reported:** `tests/simulation/test_the_company_ledger_bills_the_months_revenue.py
+::test_the_ledger_is_billed_the_runs_own_revenue_to_the_pound` fails at origin `32f9463f4` with
+or without one truth (134,949.90 vs 137,046.39).
+
+### Predictions for the frozen-for-grading world, filed before its low/high runs (2026-10-12T15:06Z)
+
+Book: 40 founders, budget 0, origin `3f09d17e4` (one payment truth ON by default, the rails and the mover's
+final bill on it), each mechanism at the register's low or high. Seen before filing: the default
+of this world (bad debt 116.48, net 31,448.84, measured on identical code), the re-freeze's low and
+high with the truth on but the rails and final bill not yet on it (131.28 / 229.46), and the
+160-founder fidelity runs. Nothing at low or high in this world has been run.
+
+| Quantity | Low | High | Reasoning |
+|---|---|---|---|
+| Offers / agreed | 42 / 12, each within +/-3 | 55 / 29, each within +/-3 | the stop board now stops a DD on the household's own returns, which can move which bills are paid on receipt and so which journeys reach the plan offer; small on this book |
+| Completed / broken own / income shock | 7 / 4 / 1, each within +/-2 | 7 / 19 / 1, each within +/-3 | the same |
+| Own-reasons cancellations | 1 | 4 | drawn on the triad's channel before the month's collection; no stop moves them |
+| Repayment rows | ~40 (30-60) | ~85 (60-120) | as the re-freeze, plus or minus the final bills that no longer get a lump |
+| Bad debt (default 116.48) | ~87 (50-150) | ~185 (110-300) | the re-freeze's low/high less the ~45 the mover's final bill took off at default |
+| Total net (default 31,448.84) | ~31,478 (31,415-31,540) | ~31,380 (31,265-31,455) | net moves against bad debt one for one; revenue unchanged |
+
+Design refutation: high bad debt not above low's; any engine-drawn bill; a cancellation count other
+than 1 / 4.
+
+### Result (frozen for grading)
+
+*Runs at the head named above, 40 founders, budget 0. Predictions unedited (sha256 `c50b7f38...`).*
+
+| Quantity | Predicted low | Result low | Predicted high | Result high |
+|---|---|---|---|---|
+| Offers / agreed | 42 / 12 (+/-3) | **41 / 12** | 55 / 29 (+/-3) | **54 / 29** |
+| Completed / broken own / shock | 7 / 4 / 1 (+/-2) | **7 / 4 / 1** | 7 / 19 / 1 (+/-3) | **7 / 19 / 1** (2 running) |
+| Own-reasons cancellations | 1 | **1** | 4 | **4** |
+| Repayment rows | 30-60 | **39** | 60-120 | **84** |
+| Bad debt (default 116.48) | ~87 (50-150) | **95.06** | ~185 (110-300) | **184.86** |
+| Net (default 31,448.84) | 31,415-31,540 | **31,470.26** | 31,265-31,455 | **31,380.46** |
+| Engine-drawn bills | 0 | **0** (1,505 from the triad) | 0 | **0** |
+
+All inside their ranges; no design refutation. One offer fewer at each end, as the stop board now
+stops on the household's own returns. The default reproduces the measured shipped book exactly
+(116.48, 31,448.84). Against the default, a kept-plan-heavy low lowers bad debt by 21.42 and the
+broken plans and cancellations at high raise it by 68.38.

@@ -37,12 +37,6 @@ This document supersedes the individual findings listed below, which are **archi
 - `SEAT_FINDING_THE_HOOK_GATE_MARK_WAS_INERT_IN_THE_ONLY_TREE_THAT_COMMITS_AND_IS_NOW_LIVE_2026-09-25.md`
 - `WORKER_FINDING_THE_DRAWN_LANE_0_ITEM_WAS_NEVER_CLAIMED_SO_ITS_OWN_BIND_INSTRUCTION_IS_INERT_2026-09-05.md`
 
-## Refused consolidation — out of lane, still live
-
-These documents match this class but carry a different lane. They are NOT archived and NOT superseded: severity is lane-scoped, so filing them here would remove their own lane's finding while recording it under `H_harness`.
-
-- `SEAT_FINDING_THE_VALUE_ARM_CANNOT_SEE_ARREARS_BECAUSE_THE_PRICING_ADAPTER_NEVER_FORWARDS_IT_2026-10-02.md` — lane `B_commercial`
-
 ## Disposition
 
 **Decision:** OPEN

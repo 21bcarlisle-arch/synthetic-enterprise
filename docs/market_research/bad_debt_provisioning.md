@@ -1156,3 +1156,44 @@ tenure or channel-by-income-distribution crosstab, which a coupling of the run's
 the channel would need, was not reached: it stays the named GAP, with the Consumer Impacts survey
 tables and the EHS household-level energy tables as the next places to look.
 
+## Fidelity check after one payment truth (2026-10-12)
+
+**The question, defined first.** Does the corrected world's realised bad debt sit where the
+published record puts it? Two quantities, kept apart because they count different things:
+(1) the *write-off flow*: GBP written off in a period over GBP billed in it (the world's
+`BAD_DEBT_BASIS` is write-offs only; its stayer provision leg is off); (2) the *arrears stock*:
+accounts with a bill unpaid more than 91 days at a quarter end over accounts billed
+(`tools/grade_world_debt_against_ofgem.py`).
+
+| Quantity | Published anchor | What the anchor counts | World before (engine draw) | World after (one truth) |
+|---|---|---|---|---|
+| Write-offs / residential revenue | Centrica UK & Ireland residential, 2021-2025: written off GBP 58m-113m a year against revenue of about GBP 7.6-12.8bn (derived from s.3.2: the charge over its published share of revenue) = **about 0.7-1.0%** (2021 0.76%, 2022 0.84%, 2023 0.88%, 2024 1.04%, 2025 0.67%; derived, UK and Ireland) | one large, standard-credit-heavy supplier; write-offs of closed accounts' debt mostly, after a final bill | 160 founders, budget 0: GBP 1,639 / 588,358 billed residential = **0.28%** (27 cases) | **0.15%** (874.43; 14 cases), 40 founders 0.08% |
+| Bad-debt charge / revenue | Centrica residential 1.1-3.1% (2019-2025) | provision movement plus write-offs, less recoveries | not comparable: the world books no provision (leg 4b off) | same |
+| Cap allowance per customer | DD GBP 25 (1.4% of the DD cap), standard credit GBP 121 (6.5%), prepayment GBP 10 (0.6%) | bad debt plus debt administration plus working capital, industry average | below the DD allowance's whole share | further below |
+| >91-day arrears stock, electricity 2019 | Ofgem arrears plus debt, **5.1%** of accounts (Q4 2019) | stock, accounts per fuel | 400 founders: 4.3-6.1% across captures, MET | **4.4%** (51/1,155 account-quarters, 22 accounts; clustered 2.4-6.8%), **MET**, 0.87x |
+
+**Reading.** The STOCK of unpaid debt matches the record before and after; one truth leaves it in
+place (the triad, which the grader reads, was always the truth; only a mover's final bill changed,
+and an account that has left is no longer counted). The FLOW written off undershoots the record
+by about **5-7x** after the correction (2.5-3.6x before): GBP 874 against an anchor that would put
+GBP 4,100-5,900 on the same residential billing. Fewer than twenty write-off cases at 160 founders,
+so the factor is wide; the direction is not in doubt.
+
+**This is a finding about another part of the world, not a reason to restore the double draw.**
+The double draw wrote off bills the households had paid. Candidate causes, ranked by the evidence
+on the pages:
+1. **A leaver's ordinary arrears are repaid after it has gone at the STAYER's rate.** The triad's
+   later settlement (repaid share by method from Centrica's live-balance provisions, re-dated up to
+   Ofgem's 22-month window) does not know the account closed. Published final-bill evidence says a
+   gone household pays far less: final bills more than 90 days old recover 10-25p in the pound
+   (s.3.1), Centrica provides 32-37% on final bills (`home_moves.md` s5.1). Most likely the largest
+   part of the gap, because write-offs fall almost wholly on leavers.
+2. **No stayer debt is written off inside the window** except at the six-year bar, while a supplier
+   writes off long-aged stayer debt too; the world's provision leg that would book its cost is off.
+3. **Book mix**: 72% direct debit and mostly LOW stress, against a standard-credit-heavy anchor
+   (the cap's SC allowance is 4.6x DD's).
+
+**Not fixed.** The pages say a gone household repays less; they do not say how a closed account's
+ordinary arrears, as distinct from its final bill, are repaid after it leaves. Carried as a named
+gap, size above, with cause 1 as the next build to weigh (a practitioner question: what share of a
+closed account's pre-final-bill arrears is ever recovered, and how late).
