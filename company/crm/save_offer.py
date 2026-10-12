@@ -27,7 +27,10 @@ THE DIRECTOR'S RULES (2026-10-08), each held by code below rather than by this s
 """
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
+from functools import lru_cache
+from pathlib import Path
 
 #: The only positions a save offer may be varied by (director, 2026-10-08). A renewal price may
 #: vary by neither.
@@ -62,6 +65,42 @@ def save_offer_rate(renewal_unit_rate_gbp_per_mwh: float, cut_share: float, *,
     del vulnerable
     share = _cut_share_for(cut_share, acquisition_route, months_on_default)
     return renewal_unit_rate_gbp_per_mwh * (1.0 - share)
+
+
+#: The published best-deal gap a price match is sized on. Published market data a real supplier
+#: reads, so it lives in the commons beside the cap windows and is read here, on the company's side;
+#: until 2026-10-12 it was a table in `simulation/save_on_loss_notice.py`, handed in by the run loop.
+_BEST_DEAL_GAP_COMMONS = (
+    Path(__file__).resolve().parents[2]
+    / "docs" / "domain_artefact_library" / "regulatory" / "gb_best_deal_gap_to_default.json"
+)
+_ACCEPTED_PROVENANCE = ("primary", "secondary")
+
+
+@lru_cache(maxsize=1)
+def _published_best_deal_gaps() -> dict[str, float]:
+    """`{"YYYY-Qn": gap share}` from the commons. A missing or malformed artefact, or an entry
+    nobody fetched, raises: a quiet empty table would read as "no deal beat the default" and
+    silently withdraw every price match."""
+    raw = json.loads(_BEST_DEAL_GAP_COMMONS.read_text())
+    out: dict[str, float] = {}
+    for row in raw["quarters"]:
+        if row.get("provenance") not in _ACCEPTED_PROVENANCE:
+            raise ValueError(f"{_BEST_DEAL_GAP_COMMONS}: {row.get('quarter')} has provenance "
+                             f"{row.get('provenance')!r}; an unfetched figure is not the record")
+        gap = float(row["gap_share"])
+        if not 0.0 <= gap < 1.0:
+            raise ValueError(f"{_BEST_DEAL_GAP_COMMONS}: {row['quarter']} gap {gap} is not a share")
+        out[row["quarter"]] = gap
+    if not out:
+        raise ValueError(f"{_BEST_DEAL_GAP_COMMONS} carries no quarters")
+    return out
+
+
+def published_best_deal_gap_share(date_str: str) -> float | None:
+    """The published best-deal gap for the quarter holding `date_str`, or None if not established."""
+    year, month = int(date_str[:4]), int(date_str[5:7])
+    return _published_best_deal_gaps().get(f"{year}-Q{(month - 1) // 3 + 1}")
 
 
 def price_match_save_rate(renewal_unit_rate_gbp_per_mwh: float | None,

@@ -11,8 +11,8 @@ import pytest
 
 from company.crm.save_offer import price_match_save_rate
 from company.interfaces.growth_desk import retention_cut_share_at_price_match
+from company.interfaces.save_offer import published_best_deal_gap_share
 from company.policy.decision_policy import CURRENT_POLICY, NAIVE_POLICY
-from simulation.save_on_loss_notice import published_best_deal_gap_share
 
 _DEFAULT = 140.0
 

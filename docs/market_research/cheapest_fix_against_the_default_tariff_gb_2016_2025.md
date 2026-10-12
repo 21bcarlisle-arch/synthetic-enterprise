@@ -2,6 +2,8 @@
 
 **Knowledge:** acquisition-and-retention-economics
 
+**Held as data (2026-10-12):** the quarterly gap series is `docs/domain_artefact_library/regulatory/gb_best_deal_gap_to_default.json`, read by the company through `company/interfaces/save_offer.published_best_deal_gap_share`.
+
 **Research completed 2026-10-10, discovery agent.** Answers the question behind a save offer's
 size: when a supplier price-matches a leaving household (CSS Invitation to Intervene, from 18 July
 2022; see `a_save_offer_against_the_switching_rules_and_the_seam.md`), what gap to the market's best

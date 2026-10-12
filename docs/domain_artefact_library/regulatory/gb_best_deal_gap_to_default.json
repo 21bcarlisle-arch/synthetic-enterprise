@@ -1,0 +1,239 @@
+{
+  "artefact": "gb_best_deal_gap_to_default",
+  "version": 1,
+  "published_by": "Ofgem, Retail Market Indicators: 'Retail price comparison by company and tariff type: Domestic (GB)' (Energylinx to May 2017, Energyhelpline June 2017 - May 2022, Cornwall Insight from June 2022)",
+  "what_this_is": "THE PUBLISHED RECORD a supplier can read: how far below the default tariff the cheapest deal on the market sat, as a share of the typical default bill, by quarter. It is what a price-match save and a price-matched renewal cut are sized against (company.crm.save_offer.price_match_save_rate). Moved here 2026-10-12 from simulation/save_on_loss_notice.py, where a supplier observable lived in a world file (docs/staging/SEAT_FINDING_THE_SAVE_THE_MOVER_OFFER_AND_THE_PAYMENT_WORK_AGAINST_THE_FOUR_PRINCIPLES_2026-10-11.md section 1 P3 (b)). Values unchanged.",
+  "basis": {
+    "gap_share": "(default bill - cheapest tariff (all suppliers)) / default bill, typical consumption. The default is the large-legacy SVT average until 2018 and the cap level from 2019, as the series itself switches.",
+    "reading": "Each quarter is the quarter's first-month reading. A quarter not listed is not established and reads None, which offers nothing; 0.0 is an established absence of any deal below the default."
+  },
+  "series_source": "https://app.everviz.com/embed/g53GfRDaf, the data behind the chart on https://www.ofgem.gov.uk/news-and-insight/data/data-portal/retail-market-indicators, fetched 2026-10-10. Derivation and confidence: docs/market_research/cheapest_fix_against_the_default_tariff_gb_2016_2025.md.",
+  "source_check": {
+    "publication": "Ofgem, Retail Market Indicators, 'Retail price comparison by company and tariff type: Domestic (GB)' -- the cheapest tariff (all suppliers) against the default tariff, monthly. The data table is served inside the chart's everviz embed, not as a download.",
+    "url": "https://app.everviz.com/embed/g53GfRDaf",
+    "fetched": "2026-10-10",
+    "version_token": null,
+    "version_token_is": "none_published",
+    "how_to_recheck": "GET https://app.everviz.com/embed/g53GfRDaf and read the CSV string inside the page JSON (the Ofgem portal page itself is JS-rendered and cannot be scraped). Confirm the embed is still the one behind the chart of that title on https://www.ofgem.gov.uk/news-and-insight/data/data-portal/retail-market-indicators via the page's `data-js-chart-modal-data` attributes. The series carries no edition: a revision shows only as a later last month, or as changed values in months already read, so diff the quarter's first-month readings against `quarters` here. Method and the zero quarters: docs/market_research/cheapest_fix_against_the_default_tariff_gb_2016_2025.md.",
+    "checked_for_supersession": {
+      "on": "2026-10-10",
+      "found": "current",
+      "note": "The quarters here ARE the fetch of 2026-10-10, so they agree with the series as served that day by construction. Moved unchanged on 2026-10-12 from the table in simulation/save_on_loss_notice.py; old and new readers agree on every month 2014-2027."
+    }
+  },
+  "provenance_legend": {
+    "primary": "read from the publisher's own series (the everviz embed of Ofgem's RMI chart). Every entry in this file is primary.",
+    "secondary": "taken from an in-repo derivation or another publisher quoting it. None in this file.",
+    "recalled": "author recall, never fetched. None in this file."
+  },
+  "quarters": [
+    {
+      "quarter": "2016-Q1",
+      "gap_share": 0.303,
+      "provenance": "primary"
+    },
+    {
+      "quarter": "2016-Q2",
+      "gap_share": 0.321,
+      "provenance": "primary"
+    },
+    {
+      "quarter": "2016-Q3",
+      "gap_share": 0.289,
+      "provenance": "primary"
+    },
+    {
+      "quarter": "2016-Q4",
+      "gap_share": 0.304,
+      "provenance": "primary"
+    },
+    {
+      "quarter": "2017-Q1",
+      "gap_share": 0.214,
+      "provenance": "primary"
+    },
+    {
+      "quarter": "2017-Q2",
+      "gap_share": 0.231,
+      "provenance": "primary"
+    },
+    {
+      "quarter": "2017-Q3",
+      "gap_share": 0.261,
+      "provenance": "primary"
+    },
+    {
+      "quarter": "2017-Q4",
+      "gap_share": 0.272,
+      "provenance": "primary"
+    },
+    {
+      "quarter": "2018-Q1",
+      "gap_share": 0.287,
+      "provenance": "primary"
+    },
+    {
+      "quarter": "2018-Q2",
+      "gap_share": 0.308,
+      "provenance": "primary"
+    },
+    {
+      "quarter": "2018-Q3",
+      "gap_share": 0.302,
+      "provenance": "primary"
+    },
+    {
+      "quarter": "2018-Q4",
+      "gap_share": 0.246,
+      "provenance": "primary"
+    },
+    {
+      "quarter": "2019-Q1",
+      "gap_share": 0.172,
+      "provenance": "primary"
+    },
+    {
+      "quarter": "2019-Q2",
+      "gap_share": 0.298,
+      "provenance": "primary"
+    },
+    {
+      "quarter": "2019-Q3",
+      "gap_share": 0.325,
+      "provenance": "primary"
+    },
+    {
+      "quarter": "2019-Q4",
+      "gap_share": 0.267,
+      "provenance": "primary"
+    },
+    {
+      "quarter": "2020-Q1",
+      "gap_share": 0.31,
+      "provenance": "primary"
+    },
+    {
+      "quarter": "2020-Q2",
+      "gap_share": 0.327,
+      "provenance": "primary"
+    },
+    {
+      "quarter": "2020-Q3",
+      "gap_share": 0.301,
+      "provenance": "primary"
+    },
+    {
+      "quarter": "2020-Q4",
+      "gap_share": 0.21,
+      "provenance": "primary"
+    },
+    {
+      "quarter": "2021-Q1",
+      "gap_share": 0.176,
+      "provenance": "primary"
+    },
+    {
+      "quarter": "2021-Q2",
+      "gap_share": 0.246,
+      "provenance": "primary"
+    },
+    {
+      "quarter": "2021-Q3",
+      "gap_share": 0.246,
+      "provenance": "primary",
+      "note": "July 2021's cheapest (GBP 858.59) is the penny figure of Jan-Apr; by August the gap was 9.3% and the average fix already sat above the default. Kept at the method's reading, flagged."
+    },
+    {
+      "quarter": "2021-Q4",
+      "gap_share": 0.0,
+      "provenance": "primary",
+      "note": "0.0, the same absence as 2022-Q3 to 2023-Q2: the cheapest column is stale to the penny from October 2021 and the average fix ran 64-54% above the default."
+    },
+    {
+      "quarter": "2022-Q1",
+      "gap_share": 0.0,
+      "provenance": "primary",
+      "note": "0.0, the same absence as 2022-Q3 to 2023-Q2: the cheapest column is stale to the penny from October 2021 and the average fix ran 64-54% above the default."
+    },
+    {
+      "quarter": "2022-Q2",
+      "gap_share": 0.0,
+      "provenance": "primary",
+      "note": "0.0, the same absence as 2022-Q3 to 2023-Q2: the cheapest column is stale to the penny from October 2021 and the average fix ran 64-54% above the default."
+    },
+    {
+      "quarter": "2022-Q3",
+      "gap_share": 0.0,
+      "provenance": "primary",
+      "note": "0.0, ESTABLISHED as an absence, not missing. The series' cheapest tariff repeats to the penny for six months at a time (stale, carried forward), while its average fixed tariff ran 54-133% ABOVE the default and no fix was quoted at all Oct 2022 - May 2023. Nothing undercut the default."
+    },
+    {
+      "quarter": "2022-Q4",
+      "gap_share": 0.0,
+      "provenance": "primary",
+      "note": "0.0, ESTABLISHED as an absence, not missing. The series' cheapest tariff repeats to the penny for six months at a time (stale, carried forward), while its average fixed tariff ran 54-133% ABOVE the default and no fix was quoted at all Oct 2022 - May 2023. Nothing undercut the default."
+    },
+    {
+      "quarter": "2023-Q1",
+      "gap_share": 0.0,
+      "provenance": "primary",
+      "note": "0.0, ESTABLISHED as an absence, not missing. The series' cheapest tariff repeats to the penny for six months at a time (stale, carried forward), while its average fixed tariff ran 54-133% ABOVE the default and no fix was quoted at all Oct 2022 - May 2023. Nothing undercut the default."
+    },
+    {
+      "quarter": "2023-Q2",
+      "gap_share": 0.0,
+      "provenance": "primary",
+      "note": "0.0, ESTABLISHED as an absence, not missing. The series' cheapest tariff repeats to the penny for six months at a time (stale, carried forward), while its average fixed tariff ran 54-133% ABOVE the default and no fix was quoted at all Oct 2022 - May 2023. Nothing undercut the default."
+    },
+    {
+      "quarter": "2023-Q3",
+      "gap_share": 0.048,
+      "provenance": "primary"
+    },
+    {
+      "quarter": "2023-Q4",
+      "gap_share": 0.039,
+      "provenance": "primary"
+    },
+    {
+      "quarter": "2024-Q1",
+      "gap_share": 0.091,
+      "provenance": "primary"
+    },
+    {
+      "quarter": "2024-Q2",
+      "gap_share": 0.089,
+      "provenance": "primary"
+    },
+    {
+      "quarter": "2024-Q3",
+      "gap_share": 0.037,
+      "provenance": "primary"
+    },
+    {
+      "quarter": "2024-Q4",
+      "gap_share": 0.088,
+      "provenance": "primary"
+    },
+    {
+      "quarter": "2025-Q1",
+      "gap_share": 0.063,
+      "provenance": "primary"
+    },
+    {
+      "quarter": "2025-Q2",
+      "gap_share": 0.14,
+      "provenance": "primary"
+    },
+    {
+      "quarter": "2025-Q3",
+      "gap_share": 0.11,
+      "provenance": "primary"
+    },
+    {
+      "quarter": "2025-Q4",
+      "gap_share": 0.15,
+      "provenance": "primary"
+    }
+  ]
+}

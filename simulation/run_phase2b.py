@@ -78,7 +78,7 @@ from company.interfaces.renewal_offer import (
     request_fixed_unit_rate,
 )
 from company.interfaces.renewal_rate_chain import decide_renewal_rate, portfolio_position
-from company.interfaces.save_offer import request_save_offer
+from company.interfaces.save_offer import published_best_deal_gap_share, request_save_offer
 from company.interfaces.statutory_obligations import build_statutory_obligations
 from company.interfaces.supply_book import (
     acquired_supply_points,
@@ -254,7 +254,6 @@ from simulation.retention_offer import ask_world_at_offer, offered_rate
 from simulation.save_on_loss_notice import (
     billed_rate_when_saved,
     household_takes_save,
-    published_best_deal_gap_share,
     save_offers_active,
     world_save_response_scale,
 )
@@ -1202,7 +1201,8 @@ def _price_match_inputs(term: dict, commodity: str, term_start_str: str,
                         company_fwd: float | None) -> dict:
     """THE PRICE MATCH'S INPUTS (2026-10-10): the published default for this fuel, the published
     best-deal gap for the quarter, and the cost floor of the rate the company struck for this term --
-    what its own desk floors at. One reading for the save and the renewal cut (B8 Q5)."""
+    what its own desk floors at. One reading for the save and the renewal cut (B8 Q5). The gap is
+    the company's read of the published record, through the save door."""
     locked = (term.get("locked_policy_cost_gbp_per_mwh"), term.get("locked_network_cost_gbp_per_mwh"))
     return {
         "published_default_rate": _account_state_svt_rate(commodity, term_start_str),

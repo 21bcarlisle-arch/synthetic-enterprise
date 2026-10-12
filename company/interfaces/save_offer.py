@@ -12,6 +12,10 @@ supply point and effective date the world is asking about, and the rate the comp
 for the renewal being left. Out: one number, the Fixed Retention Tariff's unit rate, or None when
 the company makes no offer. The decision is `company/crm/save_offer.py`.
 
+THE PUBLISHED BEST-DEAL GAP is read through this door (`published_best_deal_gap_share`), from the
+commons (`docs/domain_artefact_library/regulatory/gb_best_deal_gap_to_default.json`): published
+market data, so the company's to read, and the save and the renewal cut read the one copy.
+
 VULNERABILITY IS WHAT THE HOUSEHOLD DISCLOSED. The company's Priority Services Register holds a
 record only for a household that told it (`interface/contracts/psr_registration_seam.py`), so a
 household is offered as vulnerable iff its point is registered on or before the switch it is
@@ -22,10 +26,14 @@ is held there and tested there; the run-level twin check is `tools/save_on_loss_
 from __future__ import annotations
 
 from company.crm.cos_process import CoSRegister
-from company.crm.save_offer import price_match_save_rate, save_offer_on_invitation
+from company.crm.save_offer import (
+    price_match_save_rate,
+    published_best_deal_gap_share,
+    save_offer_on_invitation,
+)
 from company.regulatory.priority_services_register import PriorityServicesRegister
 
-__all__ = ["request_save_offer"]
+__all__ = ["published_best_deal_gap_share", "request_save_offer"]
 
 
 def request_save_offer(register: CoSRegister, supply_point_id: str, supply_effective_from: str,
