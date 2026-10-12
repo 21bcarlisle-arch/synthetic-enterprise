@@ -138,6 +138,8 @@ plans break in their first quarter.
 
 ## What the world does with this
 
+*(Superseded 2026-10-12 by "The world's answer to an offer" at the end of this page: the world
+now answers from labelled ranges when switched on, and still answers None as shipped.)*
 `simulation/plan_offer_response.py` answers every plan offer with `accepted: None` and the reason
 named, because no published rate establishes take-up or keeping. The answer crosses
 `company/interfaces/sim_interface.py` (`answer_plan_offer`, `get_plan_instalments`), so the
@@ -231,3 +233,48 @@ of 2. That makes the cure rate a property of the engine as much as of the househ
   - Australian national (AER) hardship exit data (unreachable);
   - any energy trial of contact timing;
   - the cure rate of a SELF-SERVE plan versus an agent-set one (none found anywhere).
+
+## The world's answer to an offer (2026-10-12)
+
+**2026-10-12, the world lane, on the director's principles of 2026-10-11** ("the world creates
+customer behaviour behind the curtain, from evidence ... where evidence is missing, carry a labelled
+range, not a number ... the world answers every plan offer None; that's the first gap"). No new
+source was read for this section. It turns the evidence above into a household that answers the
+offer it is SENT, from its own money, with no reference to who sends it or why.
+
+**The stimulus, defined before any rate.** A household in arrears is told one of three things:
+(a) *a repayment plan*: pay the arrears at an instalment, which it names itself in the SLC 27.8
+conversation or the supplier names; (b) *a lower monthly payment for a period*; (c) *a pause*
+(breathing space) for a number of months. Its answer is agree or decline, and then, for a plan,
+kept or broken.
+
+| Choice the world makes | Range carried (toggle) | Evidence | Mark |
+|---|---|---|---|
+| Take-up, flat over means and offer shape | 0.32-0.53 (`plan_take_up_share`) | MMI control arm 31.85% started a programme; PFRC/StepChange 37% + 16% = 53% agreed a plan (selected population, so a ceiling). 16% agreed a plan they felt unaffordable, so an unaffordable offer is still agreed | analogues, DERIVED range |
+| The household's own instalment | the arrears over 46-96 weeks (`plan_weeks_to_recover`) | Ofgem social-obligations data annexes, mean weeks to recover a credit-arrangement debt: 46, 58, 68 (2014) and 46, 77, 96 (2015) at the three largest suppliers | ESTABLISHED range, a decade old |
+| A plan is kept or broken whole; break share | 0.45-0.65 (`plan_break_share`) | the derived prior above (s.A): Victoria 45-64% excluded, IVAs ~1 in 3, Ofgem 2015 ~40% with a miss in a year | DERIVED from analogues |
+| Breaks fall in the first six instalments | (design choice, `BREAK_WINDOW_INSTALMENTS`) | "most of the hazard in the first 3-6 months" (s.A); the upper end of that reading | named simplification |
+| An unaffordable instalment breaks more, in proportion | break share x (named / own instalment), capped at 1 | Ganong & Noel (HAMP): a 1% payment change moves default about 1%; Ofgem 2015 break shares rise with the weekly amount | analogue elasticity |
+| An income shock breaks a plan | a household whose stress tier rises to HIGH after agreeing breaks at the next instalment | the mechanism every analogue names (liquidity); no rate is added | no new number |
+| A lower payment: token cuts do nothing | cut under 5.9% of the payment: no effect (`TOKEN_CUT_SHARE`) | MMI: a 0.14pp-of-balance cut on a 2.38% payment had no detectable effect | ESTABLISHED (RCT), analogue |
+| A lower payment: material cuts lower failed collections | failure x (1 - e x cut), e in 0.25-1.0 (`plan_lower_payment_failure_elasticity`) | HAMP elasticity about 1 as the ceiling; the floor is a choice | analogue ceiling |
+| A pause: a household still in difficulty may not resume | 9-40% fail the first collection after (`plan_pause_resume_failure_share`); a LOW-stress household always resumes | FCA, Covid forbearance key findings, Fig. 1: 9% (smaller deposit-takers) to 40% (high-cost credit) of expired first deferrals needed further help | analogue range |
+
+**Cure is an outcome, not an input.** A plan kept to its last instalment has cleared the debt. So
+the world's cure share is what the break share, the plan length and the household's later money
+leave; it is not set. At the derived prior's ends (break 0.45-0.65) the cure share before
+income shocks and departures is 0.35-0.55, against the prior's 0.25-0.45 net of the 6-19% of analogue exits that
+are switches. That agrees.
+
+**Shipped off.** Every toggle defaults to 0 (or, for the weeks, to a midpoint read only when
+take-up is on), so the shipped world answers every offer None with the reason named, exactly as
+before. A harness switches it with `plan_offer_response.BASIS = basis_at("low"|"high")`.
+
+**GAPs the world carries rather than fills:**
+- take-up split by means, by offer shape, or by who makes it (none published; simplification 4);
+- the effect of the household's pay-or-heat state on keeping (`self_rationing.py` is not wired
+  into the run, so no household carries it);
+- what a household does in the months of a pause (the supplier presents nothing: its act, not
+  the household's) and how a broken plan's debt is later repaid (simplification 2);
+- every GB energy flow above: SOR Q3.1 (entries), Q3.3 (weeks), Q3.6-3.27 (failed arrangements),
+  collected by Ofgem and unpublished. The practitioner question stands.

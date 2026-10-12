@@ -117,6 +117,8 @@ from simulation.payment_behaviour_source import (
     ARREARS_REPAYMENT,
     CANCELLED_OTHER,
     DIRECT_DEBIT,
+    INSUFFICIENT_FUNDS,
+    PREPAYMENT,
     generate_payment_event,
     generate_payment_method,
     later_settlement_date,
@@ -1039,15 +1041,27 @@ class LivePaymentTriad:
         if method == DIRECT_DEBIT and dd_shock_effect is not None and dd_shock_effect.cancelled:
             method = PAY_ON_RECEIPT_METHOD
         stress = income_stress_value if income_stress_value else "low"
+        # EP4, the world side (`simulation/plan_offer_response.py`): the household's money this
+        # month, which is what an income shock to an agreed plan reads, and the effect of any
+        # lower-payment or pause agreement on this collection. A credit bill only: a meter is paid
+        # before use. (1.0, False) for every household that agreed neither, which is all of them
+        # while the plan toggles are off.
+        self._household_plans.note_stress(account_id, due_date, stress)
+        plan_mult, plan_force = ((1.0, False) if method == PREPAYMENT
+                                 else self._household_plans.collection_effect(account_id, due_date))
+        shock_mult = (dd_shock_effect.failure_multiplier
+                      if method == DIRECT_DEBIT and dd_shock_effect is not None else 1.0)
         event = generate_payment_event(
             customer_id, period_index, due_date, amount_gbp, stress, method,
             segment=segment,
-            dd_failure_prob=(dd_failure_table(dd_shock_effect.failure_multiplier)
-                             if method == DIRECT_DEBIT and dd_shock_effect is not None else None),
+            dd_failure_prob=dd_failure_table(shock_mult * plan_mult),
         )
         if method == DIRECT_DEBIT and dd_shock_effect is not None and dd_shock_effect.cancel_return:
             event = dataclasses.replace(event, result="failed", days_late=0, payment_date=None,
                                         dd_failure_reason=CANCELLED_OTHER)
+        elif plan_force and event.result != "failed":
+            event = dataclasses.replace(event, result="failed", days_late=0, payment_date=None,
+                                        dd_failure_reason=INSUFFICIENT_FUNDS)
 
         # Post the bill into the COMPANY's own belief ledger so unpaid invoices
         # age (the ageing gap) exactly as the offline scenario does. This is the

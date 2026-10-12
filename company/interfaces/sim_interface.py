@@ -301,14 +301,21 @@ class SimInterface:
         """
         raise NotImplementedError
 
-    def answer_plan_offer(self, account_id: str, offered_on, debt: float) -> dict:
-        """The household's answer to a repayment-plan offer (WORLD -> COMPANY, atom EP4).
+    def answer_plan_offer(self, account_id: str, offered_on, debt: float, *,
+                          offer: Optional[dict] = None) -> dict:
+        """The household's answer to a payment-arrangement offer (WORLD -> COMPANY, atom EP4).
 
         OBSERVABLE: a supplier that offers an arrangement (SLC 27.8) learns in that conversation
         whether the household agrees and at what instalment. Never why, nor what it could really
         afford. Returns ``{"accepted": bool | None, "instalment": float | None, "reason": str}``, the
         instalment in the account's billing currency;
         ``accepted`` None means the world cannot answer, and ``reason`` says why.
+
+        ``offer`` is what the household is told, in the supplier's own terms: None is an
+        arrangement with the instalment left to the household; ``{"kind": "repayment_plan",
+        "monthly_gbp": x}`` names the instalment; ``{"kind": "lower_payment", "monthly_gbp": x,
+        "usual_monthly_gbp": y, "months": n}`` and ``{"kind": "pause", "months": n}`` are the other
+        two shapes the world answers (`simulation/plan_offer_response.py`).
         """
         raise NotImplementedError
 
@@ -417,7 +424,7 @@ class StubSimInterface(SimInterface):
     def enrol_flex(self, enrolment, *, as_of) -> Any:
         return self._flex_desk.enrol(enrolment, as_of=as_of)
 
-    def answer_plan_offer(self, account_id, offered_on, debt) -> dict:
+    def answer_plan_offer(self, account_id, offered_on, debt, *, offer=None) -> dict:
         return {"accepted": None, "instalment": None,
                 "reason": "stub seam: no household behind it to answer"}
 
@@ -667,19 +674,19 @@ class LiveSimInterface(SimInterface):
     ) -> float:
         return estimate_churn_probability(old_rate_gbp_per_mwh, new_rate_gbp_per_mwh, tenure_years, annual_consumption_kwh)
 
-    def answer_plan_offer(self, account_id, offered_on, debt) -> dict:
+    def answer_plan_offer(self, account_id, offered_on, debt, *, offer=None) -> dict:
         """The world's answer, reduced to what the conversation tells a supplier. Deferred import,
-        as for the price history. While no take-up rate is published the answer is None with the
+        as for the price history. While the take-up toggle is off the answer is None with the
         world's named reason (`simulation/plan_offer_response.py`)."""
         from simulation.plan_offer_response import answer_plan_offer
-        answer = answer_plan_offer(account_id, offered_on, debt,
+        answer = answer_plan_offer(account_id, offered_on, debt, offer=offer,
                                    agreements=self._household_plans)
         return {"accepted": answer.accepted, "instalment": answer.instalment,
                 "reason": answer.reason}
 
     def get_plan_instalments(self, account_id, agreed_on, through) -> list[dict]:
         from simulation.plan_offer_response import plan_instalments
-        return plan_instalments(account_id, agreed_on, through)
+        return plan_instalments(account_id, agreed_on, through, agreements=self._household_plans)
 
     def send_contact(self, account_id, sent_on, instrument) -> dict:
         if self._contacts_received is None:

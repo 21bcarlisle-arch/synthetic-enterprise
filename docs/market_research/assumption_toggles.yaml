@@ -35,6 +35,8 @@
 #   payment_behaviour_source.LATER_SETTLEMENT_REPAID_SHARE; its default stays the shipped 0.5.
 # 2026-10-11 (DD4b): dd4b_mandate_cancel_share_at_shock, dd4b_failure_uplift_after_shock and
 #   dd4b_complaint_share_at_shock added, each defaulting to 0 (off); what_bill_shock_is.md, DD4b.
+# 2026-10-12 (EP4 world): five plan_* rows for how a household answers an arrangement offer, each
+#   off by default; domestic_repayment_plan_take_up_and_keep_rates.md, "The world's answer".
 written: 2026-10-05
 toggles:
   - id: q1_move_out_notice_share
@@ -1633,6 +1635,127 @@ toggles:
       kind: argued
       detail: Reaches the company as a contact through the run's one complaint booking.
     verdict: MATTERS_AND_UNRESOLVABLE (practitioner -- complaint codes tagged to DD reviews)
+
+  - id: plan_take_up_share
+    question: EP4 plan offers answered (world)
+    meaning: >-
+      Of households offered a payment arrangement (a repayment plan, a lower payment for a period
+      or a pause), the share that agree it. Flat over means and offer shape (nothing published
+      splits it). ESTIMATE range from analogues; shipped at 0 (off: every offer answered None).
+    default: 0.0
+    low: 0.32
+    high: 0.53
+    unit: probability_per_offer
+    basis_default: >-
+      Off: the book is unchanged until switched. No GB source counts offers made
+      (domestic_repayment_plan_take_up_and_keep_rates.md, verdict table).
+    basis_low: >-
+      Dobbie & Song (MMI randomised credit-counselling programme, ~80,000 borrowers): 31.85% of the
+      control arm started a repayment programme. Analogous: US unsecured debt, not GB energy.
+    basis_high: >-
+      PFRC/StepChange, Powering up support (Oct 2025): of 256 clients with energy arrears, 37%
+      agreed a payment they felt affordable and 16% one they felt unaffordable, 53% in all. A
+      selected population (people who reached debt advice), so read as a ceiling.
+    feeds: [EP4, simulation/plan_offer_response.py]
+    sensitivity:
+      kind: argued
+      detail: >-
+        Sets how many SLC 27.8 offers end the collections journey on the arrangement exit, and so
+        how much arrears is repaid through plans rather than the lump route.
+    verdict: MATTERS_AND_UNRESOLVABLE (Ofgem SOR Q3.1 entries are collected and unpublished)
+
+  - id: plan_break_share
+    question: EP4 plan offers answered (world)
+    meaning: >-
+      Of agreed repayment plans at an instalment the household named, the share broken for the
+      household's own reasons, in one of the first six instalments. Multiplied by the offer's
+      affordability ratio (supplier-named instalment over the household's own; HAMP elasticity ~1)
+      and capped at 1. Income-shock breaks (stress rising to HIGH) are on top. Kept plans complete:
+      the cure share is an OUTCOME. ESTIMATE range; shipped at 0 (off with take-up).
+    default: 0.0
+    low: 0.45
+    high: 0.65
+    unit: probability_per_agreed_plan
+    basis_default: Off, with plan_take_up_share.
+    basis_low: >-
+      Derived prior (domestic_repayment_plan_take_up_and_keep_rates.md, 2026-10-11 s.A): Victoria
+      hardship and tailored-assistance exits 45-64% excluded for non-compliance; IVAs ~1 in 3
+      terminated; Ofgem 2015 ~40% of large-supplier plans with a miss in a year. Low end 0.45.
+    basis_high: The same derived prior's upper end, 0.65.
+    feeds: [EP4, simulation/plan_offer_response.py]
+    sensitivity:
+      kind: argued
+      detail: Sets how many agreed plans default and send the household back into collections.
+    verdict: MATTERS_AND_UNRESOLVABLE (Ofgem SOR Q3.6-3.27 failed-arrangement counts unpublished)
+
+  - id: plan_weeks_to_recover
+    question: EP4 plan offers answered (world)
+    meaning: >-
+      The weeks over which a household offered an arrangement with no amount named proposes to
+      repay its arrears; its own instalment is the debt over this many weeks, monthly. Read only
+      while plan_take_up_share is on.
+    default: 71.0
+    low: 46.0
+    high: 96.0
+    unit: weeks
+    basis_default: >-
+      Midpoint of the published supplier range below; not a measurement. Unused while take-up is off.
+    basis_low: >-
+      Ofgem social obligations 2015 annual data report: mean weeks to recover a credit-arrangement
+      debt, British Gas 46 (2014 annex: 46 to 68 across the three largest).
+    basis_high: The same 2015 annex, E.ON 96 weeks.
+    feeds: [EP4, simulation/plan_offer_response.py]
+    sensitivity:
+      kind: argued
+      detail: >-
+        Sets the instalment, so how fast a kept plan clears the debt; a longer plan stays exposed
+        to income shocks for longer.
+    verdict: MATTERS_AND_RESOLVABLE (a decade-old published range; SOR Q3.3 is collected since)
+
+  - id: plan_lower_payment_failure_elasticity
+    question: EP4 plan offers answered (world)
+    meaning: >-
+      For a household that agreed a lower monthly payment for a period, the proportional fall in
+      its failed collections per proportional cut in the payment, while the cut is in force
+      (multiplier 1 - elasticity x cut). A cut below TOKEN_CUT_SHARE (5.9% of the payment, MMI's
+      null) has no effect. ESTIMATE range; shipped at 0.
+    default: 0.0
+    low: 0.25
+    high: 1.0
+    unit: elasticity
+    basis_default: Off. No GB energy evidence on a reduced payment's effect on failures.
+    basis_low: >-
+      A floor, not a measurement: a quarter of HAMP's response, for a household whose difficulty
+      is not only liquidity.
+    basis_high: >-
+      Ganong & Noel (AER 2020, HAMP): "a one percent payment reduction reduces default rates by
+      about one percent". Analogous: US mortgages.
+    feeds: [EP4, simulation/plan_offer_response.py]
+    sensitivity:
+      kind: argued
+      detail: Reached only when a supplier offers a lower payment; no live supplier does yet.
+    verdict: MATTERS_AND_UNRESOLVABLE (no GB energy trial)
+
+  - id: plan_pause_resume_failure_share
+    question: EP4 plan offers answered (world)
+    meaning: >-
+      Of households still in difficulty (not LOW stress) when an agreed pause ends, the share that
+      fail their first collection after it. A household whose difficulty has passed resumes.
+      ESTIMATE range; shipped at 0.
+    default: 0.0
+    low: 0.09
+    high: 0.40
+    unit: probability_per_pause_end
+    basis_default: Off. No GB energy figure for payment after a pause.
+    basis_low: >-
+      FCA, Coronavirus linked forbearance: key findings (2021) Fig. 1: smaller deposit-takers, 9% of
+      expired first deferrals needed further help.
+    basis_high: The same figure's highest sector, high-cost credit, 40%.
+    feeds: [EP4, simulation/plan_offer_response.py]
+    sensitivity:
+      kind: argued
+      detail: Reached only when a supplier offers a pause; no live supplier does yet.
+    verdict: MATTERS_AND_UNRESOLVABLE (no GB energy figure)
 
 no_toggle:
   - question: Q5 carbon
