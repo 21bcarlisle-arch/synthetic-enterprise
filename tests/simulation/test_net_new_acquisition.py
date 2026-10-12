@@ -229,14 +229,14 @@ def test_a_supplier_in_MCR_breach_has_no_growth_budget_at_all():
 def test_MUTATION_headroom_ignoring_the_existing_book_would_fund_a_breach():
     """R15: the defect this clamp guards is counting gross net assets as spendable.
 
-    A supplier holding £2,000 against 14 accounts owes £1,820 of MCR and has £180 free. Read
-    gross, it would look like £2,000 -- eleven times the truth, and every pound of the
+    A supplier holding £2,000 against 14 accounts owes £1,610 of capital (14 x £115) and has £390
+    free. Read gross, it would look like £2,000 -- five times the truth, and every pound of the
     difference is capital another customer's account is already standing on.
     """
     honest = capital_headroom_gbp(2_000.0, 14)
     gross = 2_000.0
-    assert honest == pytest.approx(180.0)
-    assert gross > honest * 10
+    assert honest == pytest.approx(390.0)
+    assert gross > honest * 5
 
 
 def test_more_capital_buys_more_quotes_UNTIL_THE_RATE_CAP_TAKES_OVER():
@@ -371,7 +371,7 @@ def test_a_campaign_asked_to_quote_a_NON_DOMESTIC_segment_is_refused_at_its_own_
     pretending to be a design; the state is refused where it is created.
 
     THE REASON IS `DOMESTIC_ONLY`'S OWN and is not newly invented: the plan is denominated in
-    Ofgem's Minimum Capital Requirement of £130 per dual-fuel-equivalent DOMESTIC customer, and
+    Ofgem's Capital Target of £115 per dual-fuel-equivalent DOMESTIC customer, and
     `_draw_dwelling` draws a dwelling only for domestic prospects -- so a won SME reaches
     `dwelling_records.build_properties` with no dwelling and raises `DwellingNotDrawn`. The run
     was always going to die; this decides WHERE, and a failure that names the campaign's pricing
@@ -1328,8 +1328,11 @@ def test_b2_the_two_flags_are_INDEPENDENT_and_the_default_path_is_untouched(monk
 # RE-MEASURED 2026-10-09 at the 400-founder book (director's founder ruling, 2026-10-08): the
 # quote budget is sized off the book the campaign plans against, so a five-times-larger opening
 # book quotes more -- 2694 -> 3345 quotes, £59,859.52 -> £74,356.09, all still inside the window.
-CAMPAIGN_QUOTES_AT_SHIPPED_CONFIG = 3345
-CAMPAIGN_SPEND_AT_SHIPPED_CONFIG = 74356.09
+# RE-MEASURED 2026-10-12, a factual correction: capital held per account 130 -> 115 (Ofgem's decided
+# Capital Target; £130 was the consultation). More headroom lifts the one capital-bound year (2025)
+# off its ceiling: 3345 -> 3373 quotes, £74,356.09 -> £74,990.15, all still inside the window.
+CAMPAIGN_QUOTES_AT_SHIPPED_CONFIG = 3373
+CAMPAIGN_SPEND_AT_SHIPPED_CONFIG = 74990.15
 
 #: The subset the ACCOUNTS can carry: quotes dated inside [REPORT_START, REPORT_END].
 #:
@@ -1341,8 +1344,8 @@ CAMPAIGN_SPEND_AT_SHIPPED_CONFIG = 74356.09
 #:
 #: The filter is still real and still tested: `test_c_MUTATION_the_window_filter_can_actually_
 #: EXCLUDE` hands it a mid-decade `report_end` and requires it to drop the rest.
-CAMPAIGN_QUOTES_INSIDE_WINDOW = 3345
-CAMPAIGN_SPEND_INSIDE_WINDOW = 74356.09
+CAMPAIGN_QUOTES_INSIDE_WINDOW = 3373
+CAMPAIGN_SPEND_INSIDE_WINDOW = 74990.15
 
 
 def test_c_every_quote_the_campaign_paid_for_is_BOOKED_as_acquisition_spend():
@@ -1721,16 +1724,21 @@ def test_the_settlement_ceiling_does_not_outrun_the_measured_memory_curve():
 
 
 _RUN_STARTED = re.compile(r"Starting run — git=(?P<sha>[0-9a-f]{7,40})")
+_RUN_PROCESS_PEAK = re.compile(r"Run largest process peak — git=[0-9a-f]{7,40}, (?P<mb>[0-9.]+) MB")
 
 
 def _peaks_by_the_code_they_ran(journal_text, unit):
-    """`(closed, current)` from one journal read: `closed` is `[(peak_mb, shas)]`, one per unit
-    lifetime systemd closed with a `memory peak`, `shas` the runs that lifetime started;
-    `current` is the shas started since the last close, which the live `MemoryPeak` covers.
+    """`(closed, current)` from one journal read: `closed` is `[(peak_mb, shas)]`, one per
+    `Run largest process peak` line sim_runner writes after each completed run, `shas` every run
+    the unit lifetime had started by then; `current` is the shas started since the last line.
 
-    A cgroup peak is a property of every run its lifetime held, so a lifetime is attributed to
-    the whole set and never to its last run."""
-    from background.oom_watch import _CONSUMED, parse_memory_size_mb
+    THE PEAK IS THE RUN'S LARGEST PROCESS, NOT THE CGROUP'S (2026-10-12). Since 38f3a565f the
+    trace build's forked workers fill whatever memory is free above the floor, so the unit's
+    `memory peak` grew to 7.5-8 GB with the run unchanged: it measures the box. The curve prices
+    the run's own process. The line is `ru_maxrss`, a maximum over the runner's lifetime, so it is
+    attributed to every run the lifetime held and never to its last run; a systemd close starts a
+    new lifetime."""
+    from background.oom_watch import _CONSUMED
 
     closed, shas = [], []
     for line in (journal_text or "").splitlines():
@@ -1738,11 +1746,12 @@ def _peaks_by_the_code_they_ran(journal_text, unit):
         if started:
             shas.append(started.group("sha"))
             continue
+        peak = _RUN_PROCESS_PEAK.search(line)
+        if peak:
+            closed.append((float(peak.group("mb")), tuple(shas)))
+            continue
         consumed = _CONSUMED.search(line)
         if consumed and consumed.group("unit") == unit:
-            peak = parse_memory_size_mb(consumed.group("peak"))
-            if peak is not None:
-                closed.append((peak, tuple(shas)))
             shas = []
     return closed, tuple(shas)
 
@@ -1780,7 +1789,6 @@ def test_the_ceiling_still_fits_the_peak_systemds_own_journal_reports_today():
     """
     import subprocess
 
-    from background.oom_watch import read_unit_memory_peak_live_mb
     from background.resource_headroom import CLASS_DRIFT_WINDOWS, CLASS_UNITS, DRIFT_WINDOW
     from simulation.premise_population import load_whole_run_rss_curve
 
@@ -1794,7 +1802,7 @@ def test_the_ceiling_still_fits_the_peak_systemds_own_journal_reports_today():
     try:
         journal = subprocess.run(
             ["journalctl", "--user", "-u", unit, "--since", since, "-o", "short-iso",
-             "--no-pager", "--grep", "memory peak|Starting run — git="],
+             "--no-pager", "--grep", "memory peak|Starting run — git=|Run largest process peak"],
             capture_output=True, text=True, errors="replace", timeout=60,
         )
         journal_text = journal.stdout if journal.returncode in (0, 1) else None
@@ -1815,13 +1823,12 @@ def test_the_ceiling_still_fits_the_peak_systemds_own_journal_reports_today():
         ).returncode == 0
 
     closed, current = _peaks_by_the_code_they_ran(journal_text, unit)
-    peaks = _peaks_on_the_curves_code(
-        closed, current, read_unit_memory_peak_live_mb(unit=unit), carries_the_curve
-    )
+    # No live reading: a running run has no process peak until it completes.
+    peaks = _peaks_on_the_curves_code(closed, current, None, carries_the_curve)
     if not peaks:
         pytest.skip(
-            f"UNAVAILABLE, not clean: none of the {len(closed)} closed {unit} lifetime(s) in "
-            f"{since}, nor the running one (runs {', '.join(current) or 'none yet'}), ran only "
+            f"UNAVAILABLE, not clean: none of the {len(closed)} run process peak(s) {unit} logged in "
+            f"{since}, nor the running lifetime (runs {', '.join(current) or 'none yet'}), ran only "
             f"code carrying {curve_head}, the code the curve was measured on, so no production "
             "peak yet speaks about this curve. It arms on the first lifetime that does."
         )
@@ -1840,27 +1847,35 @@ def test_BOTH_branches_of_the_code_keyed_peak_filter_are_reachable():
     """A filter that excludes everything turns the leg above into a permanent skip, and one that
     excludes nothing is the defect it was re-keyed for. One control over the partition."""
     journal = "\n".join([
+        # A window that opens mid-lifetime: a peak with no run started inside it.
+        "x python3[1]: - Run largest process peak — git=9999999, 3000.0 MB",
+        "x systemd[2]: sim-runner.service: Consumed 1min CPU time, 7.5G memory peak.",
         "x python3[1]: - Starting run — git=aaaaaaa, json=a.json",
+        "x python3[1]: - Run largest process peak — git=aaaaaaa, 3900.0 MB",
         "x systemd[2]: sim-runner.service: Consumed 1min CPU time, 8.1G memory peak.",
         "x python3[1]: - Starting run — git=bbbbbbb, json=b.json",
         "x python3[1]: - Starting run — git=ccccccc, json=c.json",
+        "x python3[1]: - Run largest process peak — git=ccccccc, 3500.0 MB",
         "x systemd[2]: sim-runner.service: Consumed 1min CPU time, 4.5G memory peak.",
         "x python3[1]: - Starting run — git=ccccccc, json=d.json",
-        "x systemd[2]: sim-runner.service: Consumed 1min CPU time, 5G memory peak.",
-        "x systemd[2]: sim-runner.service: Consumed 1s CPU time, 20M memory peak.",
+        "x python3[1]: - Run largest process peak — git=ccccccc, 3600.0 MB",
+        "x systemd[2]: sim-runner.service: Consumed 1min CPU time, 7.9G memory peak.",
         "x python3[1]: - Starting run — git=ccccccc, json=e.json",
     ])
     closed, current = _peaks_by_the_code_they_ran(journal, "sim-runner.service")
     assert [shas for _, shas in closed] == [
-        ("aaaaaaa",), ("bbbbbbb", "ccccccc"), ("ccccccc",), ()
+        (), ("aaaaaaa",), ("bbbbbbb", "ccccccc"), ("ccccccc",)
     ] and current == ("ccccccc",)
+    # The cgroup's 7.5-8 GB never enters: it is the trace workers' spike, not the run's process.
+    assert not {7.5 * 1024, 8.1 * 1024, 4.5 * 1024, 7.9 * 1024} & {peak for peak, _ in closed}
     peaks = _peaks_on_the_curves_code(closed, current, 4700.0, lambda sha: sha == "ccccccc")
     # Kept: the all-new lifetime and the running one. Dropped: the old run, the lifetime that
-    # MIXED old and new (its peak may be the old code's), and the lifetime that ran nothing.
-    assert peaks == [5120.0, 4700.0]
+    # MIXED old and new (its peak may be the old code's), and the peak with no run in the window.
+    assert peaks == [3600.0, 4700.0]
     assert _peaks_on_the_curves_code(closed, current, 4700.0, lambda sha: True) == [
-        8294.4, 4608.0, 5120.0, 4700.0
+        3900.0, 3500.0, 3600.0, 4700.0
     ]
+    assert _peaks_on_the_curves_code(closed, current, None, lambda sha: True)[-1] == 3600.0
 
 
 def test_BOTH_verdicts_of_the_memory_ceiling_guard_are_reachable():

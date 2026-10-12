@@ -196,10 +196,11 @@ def roll_acquisition(segment: str, rng_seed: str) -> bool:
 #
 # WHAT DECIDES HOW BIG THE CAMPAIGN IS, and why it is capital rather than a
 # chosen number. Ofgem's Minimum Capital Requirement makes a supplier hold net
-# assets per domestic account -- £130, already load-bearing in this repo at
-# `saas/capital/solvency.py::MCR_FLOOR_GBP_PER_CUSTOMER` and
-# `company/finance/treasury.py::MCR_PER_ACCOUNT`, and anchored to the 26 July
-# 2023 decision in `docs/market_research/ofgem_licence_readiness.md` §2. So
+# assets per domestic account -- £115, the 26 July 2023 Capital Target
+# (`CAPITAL_TARGET_GBP_PER_DUAL_FUEL_ACCOUNT` below). `saas/capital/solvency.py`,
+# `company/finance/treasury.py` and `company/risk/independent_amount.py` still
+# carry the consulted £130.
+# So
 # winning a customer costs a supplier twice: the cash to run the funnel, and
 # the capital it must then hold behind that account for as long as it keeps it.
 # A small supplier's growth ceiling is the second one, and that is the whole
@@ -265,6 +266,18 @@ def roll_acquisition(segment: str, rng_seed: str) -> bool:
 #: book this small is over-capitalised, and the published company is small because it is a
 #: fixture rather than because it is poor.
 MAX_BOOK_GROWTH_RATE_PER_YEAR: float = 0.33
+
+#: Capital held behind each domestic dual-fuel account: Ofgem's Capital Target, £115 per domestic
+#: dual-fuel-equivalent customer (£57.50 per domestic customer in the licence), Ofgem decision
+#: "Strengthening Financial Resilience - Minimum Capital Requirement", 26 July 2023, binding from
+#: 31 March 2025, upheld by the CMA 19 January 2024, not indexed
+#: (docs/market_research/bad_debt_provisioning.md, "Capital target: the conflict settled").
+#: This was 130.0 until 2026-10-12: £130 was the April 2023 CONSULTATION figure the decision cut.
+#: The run applies it from 2016, before the target existed; whether it should start at its binding
+#: date is the director's open question, so the start is left alone here.
+#: Measured on seed 42 (campaign only): 2025 stops being capital-bound, funnel wins 608 -> 619 and
+#: the settled book 618 -> 619, because the settlement customer-year budget refuses the rest.
+CAPITAL_TARGET_GBP_PER_DUAL_FUEL_ACCOUNT: float = 115.0
 
 #: Share of AVAILABLE capital headroom the company is willing to commit to growth in any one
 #: year. A DIAL (R12), not a target: it exists so a single campaign cannot spend the whole
@@ -338,7 +351,7 @@ def expected_quotes_per_win(
 def capital_headroom_gbp(
     net_assets_gbp: float,
     accounts_held: int,
-    mcr_per_account_gbp: float = 130.0,
+    mcr_per_account_gbp: float = CAPITAL_TARGET_GBP_PER_DUAL_FUEL_ACCOUNT,
 ) -> float:
     """Net assets above the MCR the CURRENT book already obliges. Never negative.
 
@@ -355,7 +368,7 @@ def growth_quote_budget(
     net_assets_gbp: float,
     accounts_held: int,
     segment: str = "resi",
-    mcr_per_account_gbp: float = 130.0,
+    mcr_per_account_gbp: float = CAPITAL_TARGET_GBP_PER_DUAL_FUEL_ACCOUNT,
     capital_share: float = GROWTH_CAPITAL_SHARE_PER_YEAR,
     max_growth_rate: float | None = None,
     quotes_issued_to_date: int = 0,

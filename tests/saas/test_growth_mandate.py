@@ -3,12 +3,11 @@
 import pytest
 
 from saas.growth_mandate import (
-    acquisition_budget_gbp,
     ACQUISITION_WIN_RATE,
     FIXED_COST_MONTHLY,
-    cost_per_acquisition_gbp,
     MANDATE,
     acquisition_budget_gbp,
+    cost_per_acquisition_gbp,
     forecast_churns_next_year,
     roll_acquisition,
 )
@@ -80,9 +79,9 @@ def test_acquisition_budget_defaults_unknown_segment_to_resi():
 
 
 from saas.growth_mandate import (
-    MANDATE,
     ACQUISITION_WIN_RATE,
     FIXED_COST_MONTHLY,
+    MANDATE,
     cost_per_acquisition_gbp,
     should_attempt_acquisition,
 )
@@ -236,3 +235,25 @@ def test_a_worse_realised_rate_buys_fewer_wins_from_the_same_capital():
         quotes_issued_to_date=quotes, wins_to_date=int(quotes * 0.05),
     )
     assert pessimistic["wins_capital_allows"] < optimistic["wins_capital_allows"]
+
+
+def test_the_campaign_holds_the_decided_capital_target_not_the_consulted_one():
+    """The run's quote budget holds £115 behind each account, Ofgem's 26 July 2023 decision.
+
+    £130 was the April 2023 consultation figure and sat here until 2026-10-12. The figure is read
+    through the production chain -- `growth_desk.plan_growth_campaign_year`, which passes no MCR of
+    its own and so takes this module's default -- because a module default is only the production
+    constant while the one caller declines to pass one. Headroom is `net_assets - accounts x target`,
+    so the target is recovered exactly from two accounts counts on one balance sheet.
+
+    Fires on: the target back at 130 (the consulted figure), anywhere on the chain -- the constant,
+    either default, or the seam starting to pass its own.
+    """
+    from company.interfaces.growth_desk import plan_growth_campaign_year
+    from saas.growth_mandate import CAPITAL_TARGET_GBP_PER_DUAL_FUEL_ACCOUNT
+
+    assert CAPITAL_TARGET_GBP_PER_DUAL_FUEL_ACCOUNT == 115.0
+    small = plan_growth_campaign_year(net_assets_gbp=250_000.0, accounts_held=100)
+    large = plan_growth_campaign_year(net_assets_gbp=250_000.0, accounts_held=200)
+    assert small.headroom_gbp - large.headroom_gbp == pytest.approx(100 * 115.0)
+    assert small.headroom_gbp == pytest.approx(250_000.0 - 100 * 115.0)

@@ -15,6 +15,7 @@ Runs continuously 24/7 — token budget takes priority over electricity cost.
 """
 
 import os
+import resource
 import subprocess
 import sys
 import time
@@ -401,6 +402,15 @@ def run_simulation() -> bool:
 
     size_kb = out_json.stat().st_size / 1024
     log(f"Run complete — {elapsed:.0f}s, {size_kb:.0f} KB ({out_json.name})")
+    # THE RUN'S OWN PEAK, which the unit's cgroup `memory peak` stopped being on 2026-10-10
+    # (38f3a565f): the trace build's forked workers now fill whatever memory is free above the
+    # floor, so the cgroup peak measures the box, not the run. The settlement ceiling's memory
+    # curve prices the run's largest process, and `ru_maxrss` over reaped children is exactly that
+    # (Linux: the largest single descendant, in KB). It is a maximum over this runner's lifetime,
+    # so a reader attributes it to every run the lifetime held, as it does the cgroup peak.
+    # Read by tests/simulation/test_net_new_acquisition.py's journal leg.
+    log(f"Run largest process peak — git={head}, "
+        f"{resource.getrusage(resource.RUSAGE_CHILDREN).ru_maxrss / 1024:.1f} MB")
     update_agent_status("sim-runner", status="idle", last_action=f"Run complete in {elapsed:.0f}s — {size_kb:.0f} KB ({out_json.name})")
     # PRODUCER HEALTH (RUNG 1d): a success CLEARS the streak, so the rung stops drawing
     # without anyone editing state by hand.

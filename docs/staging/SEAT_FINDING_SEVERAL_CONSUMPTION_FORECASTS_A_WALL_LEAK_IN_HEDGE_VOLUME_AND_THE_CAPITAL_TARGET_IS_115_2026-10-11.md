@@ -88,6 +88,41 @@ from its binding date (31 March 2025; or from the July 2023 decision as the date
 plan for it), and before that only the floor a real supplier faced (none) -- which would loosen early growth
 and is the director's to rule, because it changes which world the company lives through.
 
+### 3a. Landed for the run's figure, measured before and after (2026-10-12)
+
+The run's figure is `saas/growth_mandate.py`'s default (the one caller, `growth_desk.plan_growth_campaign_year`,
+passes none). It is now `CAPITAL_TARGET_GBP_PER_DUAL_FUEL_ACCOUNT = 115.0`, citing the decision. The start date
+is unchanged (still applied from 2016; the director's question above stands). Control:
+`tests/saas/test_growth_mandate.py::test_the_campaign_holds_the_decided_capital_target_not_the_consulted_one`,
+read through the seam, and it reds on 130 both in the constant and when the seam passes its own.
+
+**Prediction, written before measuring:** headroom rises by exactly 15 x accounts held; capital-allowed wins rise
+by at most 13% and only in capital-bound years; in other years quotes and wins do not move; the final book moves
+by under 5% because the settlement customer-year budget refuses the marginal wins.
+
+**Measured, seed 42, campaign only, both arms in one process (`_resolve_campaign(..., persist=False)`):**
+
+| | £130 | £115 |
+|---|---|---|
+| 2016 headroom (403 accounts) | £197,610 | £203,655 (+15 x 403) |
+| Years bound by capital | 2025 only | none (2025 hits the prospect ceiling instead) |
+| 2025 funnel wins / spend | 28 / £3,195 | 39 / £4,007 |
+| Funnel wins, 2016-2025 | 608 | 619 |
+| Refused by the settlement budget | 393 | 403 |
+| Settled book after 2025 | 618 | 619 |
+
+The shipped campaign's quote count goes from 3,345 to 3,373 and spend from £74,356.09 to £74,990.15 (the pins in
+`tests/simulation/test_net_new_acquisition.py` were re-measured). **The prediction was wrong in one place:** funnel
+wins in 2016-2024 did not move, as predicted, but SETTLED wins per year did (2016: 29 -> 32; 2019: 27 -> 25),
+because the settlement sampler re-weights across the whole campaign when the pool grows. So for growth, the
+binding constraint at the 400-founder book is the prospect ceiling and the 5,000 customer-year settlement budget,
+not capital. The correction matters for the book's size only in 2025, and only at the funnel.
+
+**Still at £130, and not touched here:** `company/finance/treasury.py::MCR_PER_ACCOUNT`,
+`saas/capital/solvency.py::MCR_FLOOR_GBP_PER_CUSTOMER` and `company/risk/independent_amount.py::MCR_GBP_PER_ACCOUNT`.
+Each drives a different published output (treasury health, the solvency signal, the collateral desk's free
+equity), so each needs its own measured step.
+
 ## 4. What this sets for the payment plan
 
 The director's target is one forecast per property: the next twelve months with its seasonal shape and normal
