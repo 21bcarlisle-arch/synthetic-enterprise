@@ -134,7 +134,9 @@ def _read_jsonl(path: Path) -> list[dict]:
 
 def current_canon_version() -> int:
     text = CANON_PATH.read_text(encoding="utf-8")
-    m = re.search(r"\*\*Version:\s*(\d+)\.\*\*", text)
+    # v3 wrote "**Version: 3.**"; v4 (2026-10-12) writes "**Version 4, adopted ...". Read both, or a
+    # v4 canon reads as version 1 with no error.
+    m = re.search(r"\*\*Version:?\s*(\d+)[.,]", text)
     return int(m.group(1)) if m else 1
 
 

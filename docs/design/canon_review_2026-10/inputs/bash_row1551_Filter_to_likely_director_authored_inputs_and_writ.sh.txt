@@ -1,0 +1,39 @@
+cd /tmp/claude-0/-home-claude/2950c3bf-0c45-5bed-817c-477e3a28a7b4/scratchpad && python3 -I - <<'EOF'
+import re
+txt=open("director_words_sept17_oct12.md").read()
+parts=re.split(r'\n\n### \[(2026-[^\]]+) UTC\]\n\n', txt)
+items=[(parts[i],parts[i+1]) for i in range(1,len(parts),2)]
+drop_starts=("You are the delivery seat","You hold the DELIVERY SEAT","<cross-session-message","[Cross-session idle notice]","Which of your available specialist subagents","Stuck-prevention task","Continue: read","Go-hard week:","Operating-model task:","Worker seat (re)started")
+keep=[(ts,b) for ts,b in items if not b.startswith(drop_starts)]
+# further: drop self-scheduled continuations the machine wrote to itself (pattern "Continue ...read task")
+print(len(keep))
+import collections
+c=collections.Counter(ts[:10] for ts,_ in keep)
+for k in sorted(c): print(k,c[k])
+with open("director_words_filtered.md","w") as w:
+    for ts,b in keep:
+        w.write(f"\n\n### [{ts} UTC]\n\n{b}\n")
+import os
+print(os.path.getsize("director_words_filtered.md"), sum(len(b.split()) for _,b in keep))
+EOF
+
+# OUTPUT:
+64
+2026-09-25 4
+2026-09-26 2
+2026-09-27 11
+2026-09-29 2
+2026-09-30 1
+2026-10-02 1
+2026-10-03 6
+2026-10-04 9
+2026-10-05 3
+2026-10-06 2
+2026-10-07 4
+2026-10-08 5
+2026-10-09 5
+2026-10-10 3
+2026-10-11 5
+2026-10-12 1
+72245 11468
+Shell cwd was reset to /home/claude
