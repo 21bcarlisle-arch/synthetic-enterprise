@@ -19,6 +19,8 @@ principles (§6). Line numbers below are origin's at `2b005a8f6`.
 
 ## The answer in one paragraph
 
+*Sent to the director by NTFY on 2026-10-12, id `yzf66zm0kGie` (delivery state: delivered), after the landing `b05429544`.*
+
 None of the three is clean. **No capability reads a truth probe at decision time.** I searched
 `company/` and `saas/` for the decision probe, the coin-drawn decision set and the holdout truth, and
 found only comments that say they are kept out. So P4 holds where it is asked directly. It breaks
