@@ -129,6 +129,20 @@ class SettlementFold:
             return 0
         return (date.fromisoformat(last) - date.fromisoformat(first)).days + 1
 
+    def monthly_totals(self, cid: str) -> list[tuple[str, str, float]]:
+        """(first settled day, last settled day, kWh) per calendar month, in order.
+
+        The unit a monthly bill and its read are made on (`company/billing/monthly_bill_assembly`
+        buckets by `settlement_date[:7]` and dates the read at the month's last settled day), so
+        the world can say which months' reads ARRIVED without the company ever seeing the fold.
+        """
+        out: dict[str, list] = {}
+        for day, kwh in sorted((self._kwh_by_date.get(cid) or {}).items()):
+            row = out.setdefault(day[:7], [day, day, 0.0])
+            row[1] = day
+            row[2] += kwh
+        return [tuple(r) for r in out.values()]
+
     def has_records(self, cid: str) -> bool:
         return cid in self._kwh_total
 

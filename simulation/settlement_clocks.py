@@ -66,12 +66,13 @@ CLOCK_DEFINITIONS: dict[str, str] = {
         "is the clock every unprefixed figure in the run dict is on."
     ),
     SETTLED_PROVISIONED: (
-        "SETTLED, on the flat-rate bad-debt PROVISION, and superseded within the same run. "
-        "`simulation/run_phase2b.py:2506-2510` folds the same rows at the end of the "
-        "settlement loop, before the arrears engine has touched them, so its `bad_debt_gbp` is "
-        "still `get_bad_debt_rate()` x billed amount — a calibrated company assumption, not an "
-        "outcome. Kept under a `provisioned_` name rather than dropped, because it is what the "
-        "company provisioned and a reader comparing provision with outcome needs both."
+        "SETTLED, on a placeholder bad-debt charge, and superseded within the same run. "
+        "`simulation/run_phase2b.py` folds the same rows at the end of the settlement loop, "
+        "before the arrears engine has touched them, so its `bad_debt_gbp` is still the WORLD's "
+        "default incidence x settlement revenue (`world_bad_debt_incidence`, since 2026-08-14) "
+        "-- neither an outcome nor anything the company holds. The company's own provision is "
+        "the stock in `company_provision`. Kept under a `provisioned_` name rather than dropped, "
+        "because a reader comparing the headline before and after the arrears write-back needs both."
     ),
 }
 

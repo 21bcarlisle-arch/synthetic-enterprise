@@ -1402,3 +1402,37 @@ def test_a_shared_trace_is_reused_only_for_the_same_inputs_and_only_inside_the_s
         assert changed is not first and changed.gas_kwh != first.gas_kwh
     assert build(household) is not first
     assert build(household).gas_kwh == first.gas_kwh
+
+
+def test_the_settlement_door_applies_the_2022_price_response(weather, monkeypatch):
+    """`build_fabric_series_for_site` is the door `run_phase2b` settles a fabric premise through, and
+    since 2026-10-11 the book takes the SERL price response there. Fires if the door stops passing
+    it (the book silently reverts to a world with no 2022 demand response), and the second leg if
+    the shared-trace key cannot tell a response-on trace from a response-off one."""
+    seen = []
+    real = fdp.build_fabric_series
+
+    def spy(**kwargs):
+        seen.append(kwargs.get("price_response", False))
+        return real(**kwargs)
+
+    monkeypatch.setattr(fdp, "build_fabric_series", spy)
+
+    def build():
+        return fdp.build_fabric_series_for_site(
+            customer_id="C1",
+            household_at_date=constant_household(make_household("C1")),
+            weather_site="C1",
+            latitude_deg=LATITUDE,
+            start=WINDOW_START,
+            end=WINDOW_START + dt.timedelta(days=13),
+            weather_days_for=lambda _site, *, start, end: weather[:14],
+        )
+
+    build()
+    assert seen == [True]
+    with fdp.sharing_traces():
+        build()
+        monkeypatch.setattr(fdp, "SETTLED_BOOK_PRICE_RESPONSE", False)
+        build()
+    assert seen == [True, True, False]

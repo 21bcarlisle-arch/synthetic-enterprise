@@ -299,6 +299,7 @@ def build_fabric_series(
     latitude_deg: float,
     seed: int = DEFAULT_TRACE_SEED,
     reference_unit_price_p_per_kwh: float = REFERENCE_UNIT_PRICE_P_PER_KWH,
+    price_response: bool = False,
 ) -> FabricDemandSeries:
     """Generate one customer's whole-window fabric trace, segment by segment.
 
@@ -328,12 +329,20 @@ def build_fabric_series(
 
     TWO SIMPLIFICATIONS, REGISTERED
     -------------------------------
-    (1) the reference price is FIXED, so the household shows no response to the
-    2021-22 crisis prices it actually paid — closing that needs the tariff the
-    company charged, i.e. a demand<->price coupling that belongs to W1_12, not to
-    this seam; (2) the bill is priced at a GAS reference rate, so an electrically
+    (1) the reference price is FIXED, so the prebound bill does not see the
+    2021-22 crisis prices. The crisis response is the separate price-response leg
+    below, at the cap rate rather than the tariff the company charged (that coupling
+    belongs to W1_12, not to this seam); (2) the bill is priced at a GAS reference rate, so an electrically
     heated premise's bill is understated here and its prebound response correspondingly
     weak. Both are recorded, not hidden: the whole book is gas-heated today.
+
+    THE 2022 PRICE RESPONSE (`price_response`)
+    ------------------------------------------
+    When on, each day's gas and electricity are scaled by `price_response.household_multipliers`:
+    a per-household SERL elasticity against the household's prior winter's cap rate. It is applied
+    AFTER the trace, so the prebound bill above still reads the unscaled heating kWh. Feeding the
+    cut back into next year's prebound bill would be a second variable. OFF by default here; the
+    settled book takes it through `SETTLED_BOOK_PRICE_RESPONSE` at `build_fabric_series_for_site`.
     """
     if not weather:
         raise ValueError("cannot build a fabric series with no weather days")
@@ -411,6 +420,18 @@ def build_fabric_series(
             heating_kwh_by_year[segment.year] = heating_kwh_by_year.get(segment.year, 0.0) + (
                 day.gas_total_kwh if heating_commodity == "gas" else day.electricity_total_kwh
             )
+
+    if price_response:
+        from simulation.price_response import household_multipliers
+
+        multiplier = household_multipliers(customer_id, dates, seed=seed)
+        for key in gross:
+            m_gas, m_elec = multiplier["gas"][key], multiplier["electricity"][key]
+            if m_gas != 1.0:
+                gas[key] = array("f", (v * m_gas for v in gas[key]))
+                gas_space_heating[key] *= m_gas
+            if m_elec != 1.0:
+                gross[key] = array("f", (v * m_elec for v in gross[key]))
 
     n_days = len(dates)
     return FabricDemandSeries(
@@ -589,6 +610,15 @@ def sharing_traces():
         _SHARED_TRACES = outer
 
 
+#: THE SETTLED BOOK TAKES THE 2022 PRICE RESPONSE (2026-10-11). Graded before it was switched on:
+#: SERL's winter 22/23 gas distribution reproduced (11.7%, IQR 0.4-20.7 against 10.78%, 1.19-22.44)
+#: and nothing moves before April 2022 -- `docs/staging/records/SEAT_RESULT_A_PER_HOUSEHOLD_SERL_
+#: ELASTICITY_GETS_THE_2022_GAS_DISTRIBUTION_AND_MISSES_ELECTRICITY_AND_THE_CALENDAR_YEAR_2026-10-11.md`.
+#: A module constant rather than a literal at the call so the world's demand digest
+#: (`world_home_identity.home_demand_identity`) can read which response the book settles on.
+SETTLED_BOOK_PRICE_RESPONSE = True
+
+
 def build_fabric_series_for_site(
     *,
     customer_id: str,
@@ -613,6 +643,7 @@ def build_fabric_series_for_site(
             tuple(household_at_date(day.date.isoformat()) for day in weather),
             latitude_deg,
             seed,
+            SETTLED_BOOK_PRICE_RESPONSE,
         )
         if key not in _SHARED_TRACES:
             _SHARED_TRACES[key] = build_fabric_series(
@@ -621,6 +652,7 @@ def build_fabric_series_for_site(
                 weather=weather,
                 latitude_deg=latitude_deg,
                 seed=seed,
+                price_response=SETTLED_BOOK_PRICE_RESPONSE,
             )
         return _SHARED_TRACES[key]
     return build_fabric_series(
@@ -629,6 +661,7 @@ def build_fabric_series_for_site(
         weather=weather,
         latitude_deg=latitude_deg,
         seed=seed,
+        price_response=SETTLED_BOOK_PRICE_RESPONSE,
     )
 
 

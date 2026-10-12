@@ -68,3 +68,14 @@ def test_the_world_identity_carries_the_demand_part(live):
     from simulation.departure_level_anchor import world_level_identity
 
     assert world_level_identity()["demand"]["digest"] == live[0]
+
+
+def test_the_price_response_switch_moves_the_digest(monkeypatch, live):
+    from simulation import fabric_demand_path
+
+    assert fabric_demand_path.SETTLED_BOOK_PRICE_RESPONSE is True
+    monkeypatch.setattr(fabric_demand_path, "SETTLED_BOOK_PRICE_RESPONSE", False)
+    assert home_demand_identity()["digest"] != live[0], (
+        "the settled book stopped applying the 2022 price response and the demand digest did not "
+        "move, so a run on either side of the switch reads as one world")
+    assert home_stock_identity()["digest"] == live[1]

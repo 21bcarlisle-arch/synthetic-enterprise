@@ -141,6 +141,7 @@ FIELD_CONSUMPTION = {
     "retention_nets_bad_debt": {"via": "run_argument"},
     "retention_offers_at_default_anniversary_only_where_the_discount_wins": {"via": "run_argument"},
     "retention_runs_holdout": {"via": "run_argument"},
+    "retention_cut_sizing": {"via": "run_argument"},
     "svt_contact_instrument": {"via": "run_argument"},
     "save_offer_cut_share": {"via": "run_argument"},
     "move_with_us_offers": {"via": "run_argument"},

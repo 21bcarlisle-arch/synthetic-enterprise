@@ -222,6 +222,13 @@ class DecisionPolicy:
     #: and `retention_cut_decision` after. Off on every standing policy, so no run moves.
     retention_runs_holdout: bool = False
 
+    #: B8 Q5 (2026-10-11): how the renewal cut is sized. "risk_tiers" is `retention_discount_for_risk`
+    #: (a share of our own rate, by our churn belief). "price_match" meets the market's best
+    #: published deal on the day, never below our own cost floor -- the save's sizing, through the
+    #: save's own function (`growth_desk.retention_cut_share_at_price_match`) -- and offers nothing
+    #: where our re-fix already sits at or below it. Off on every standing policy, so no run moves.
+    retention_cut_sizing: str = "risk_tiers"
+
     def retention_discount_for_risk(self, company_est: float) -> float:
         """Return the retention discount fraction for a given churn estimate."""
         if self.retention_discount_mode == "flat":

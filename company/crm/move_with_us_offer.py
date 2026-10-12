@@ -24,9 +24,9 @@ household's own consumption at its old home is the company's estimate, and is la
 THE RULE: offer when the company's own estimate says carrying the household earns a positive margin.
 A positive margin per year is exactly when its forward value (`next_best_action.forward_value`, any
 departure hazard below one) is positive, so the sign is all the rule needs; no horizon or hazard is
-chosen. A default-tariff household is not offered: "carrying" a default tariff is supply at our
-default tariff, which the incumbent at the new home already gives it on a deemed contract, and the
-world's renewal roll that answers the offer is rolled only at a fixed term's end (named simplification).
+chosen. On EITHER tariff (2026-10-11; home_moves.md s.8.6, choice 1): a default-tariff household is
+offered our default tariff at its new home. Until then it was refused as "what the new home's
+incumbent already supplies", which left 10 of 14 movers, and a known-vulnerable one, unoffered.
 
 THE DIRECTOR'S RULES, held in code below:
   * An offer may vary by acquisition route or time on the default tariff, never the renewal price.
@@ -42,7 +42,6 @@ from dataclasses import dataclass
 
 #: Why no offer was made, one spelling each, so the run's log can be counted by reason.
 NO_POLICY = "the policy makes no move-with-us offer"
-NOT_FIXED = "not on a fixed tariff: a default tariff is what the new home's incumbent already supplies"
 NO_RATE = "no struck rate in force to carry"
 NO_MARGIN = "on the company's own estimate, carrying the household earns no margin"
 
@@ -69,8 +68,6 @@ def decide_move_with_us(notice, *, offers_on: bool, tariff_type: str,
     """(the offer, or None; the reason for None). `notice` is a filed `MoveOutNotice`."""
     if not offers_on:
         return None, NO_POLICY
-    if tariff_type != "fixed":
-        return None, NOT_FIXED
     if unit_rate_per_mwh is None or cost_per_mwh is None or annual_kwh is None:
         return None, NO_RATE
     margin = expected_margin_gbp_per_year(unit_rate_per_mwh, cost_per_mwh, annual_kwh)

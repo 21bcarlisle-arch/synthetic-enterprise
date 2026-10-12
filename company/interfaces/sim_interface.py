@@ -775,3 +775,30 @@ def holdout_decision_observations(world_rows) -> list[dict]:
                            "the company cannot see a decision it was not told about")
         out.append({k: row[k] for k in HOLDOUT_OBSERVABLE_FIELDS})
     return out
+
+
+def supplier_annual_volume_kwh(fuel: str, register_reads, registry_kwh) -> dict:
+    """The annual volume the company believes an account uses, from what a supplier holds.
+
+    THE HEDGE'S VOLUME CROSSES HERE, and only these cross: the register reads that ARRIVED --
+    (read date, register kWh), the opening read at change of supply among them -- and the annual
+    figure the registry handed over at registration. Until 2026-10-11 the world computed the volume
+    itself, from the settled fold's true kWh (including months the company billed as estimates)
+    and the household's own EV, solar, heat-pump and EPC multipliers, none of which a supplier can
+    see (docs/staging/SEAT_FINDING_SEVERAL_CONSUMPTION_FORECASTS_A_WALL_LEAK_IN_HEDGE_VOLUME_AND_THE_CAPITAL_TARGET_IS_115_2026-10-11.md
+    section 2).
+
+    Returns {"kwh", "basis", "from", "to"}: an annualised advance where the reads span long enough,
+    else the registry figure, else 0.0 with basis "none" -- the caller's existing `> 0` guard
+    already declines to hedge a volume nobody holds.
+    """
+    from company.billing.unread_month_estimate import annualised_advance_kwh
+
+    advance = annualised_advance_kwh(fuel, list(register_reads or ()))
+    if advance is not None and advance[0] > 0:
+        kwh, opened, closed = advance
+        return {"kwh": kwh, "basis": "annualised_advance",
+                "from": opened.isoformat(), "to": closed.isoformat()}
+    if registry_kwh:
+        return {"kwh": float(registry_kwh), "basis": "registry", "from": None, "to": None}
+    return {"kwh": 0.0, "basis": "none", "from": None, "to": None}

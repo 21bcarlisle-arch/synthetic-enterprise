@@ -506,3 +506,80 @@ documents on 2026-10-08:
 the derogation, without false urgency. The director has ruled that it may vary by acquisition
 route or time on the default tariff, that renewal prices may not, and that stayers must not pay
 for it. A retention fix offered near term end is the derogation's own named case.
+
+---
+
+## 7. The size of a save: what is published, and what the build chose (2026-10-11)
+
+Read on the director's instruction after `afd818b22` built `company/crm/save_offer.py::price_match_save_rate`:
+*"is 'match the market's best published deal' grounded in the save-offer page? If not, add the
+reasoning and evidence, or say it's a design choice with no published basis."*
+
+### 7a. Rules on a retention tariff's price
+
+**NOT ESTABLISHED.** SLC 22B's market-wide derogation (§1d, §6 above; R6) sets *who* a Fixed
+Retention Tariff may be sold to (existing customers, fixed term, a retention aim) and a notification
+duty. It names no price formula, no floor, no ceiling and no reference price. Ofgem's own November
+2025 renewal decision says the same from the other side: *"we have not seen any substantial evidence
+to date of the Market-wide Derogation's impact on pricing and tariffs"* (R7 §3.3) — the regulator does
+not itself monitor how deep a retention tariff runs. **ESTABLISHED: a retention tariff's depth is
+unregulated.** Re-read for this pass: R6, R7 (both already in §1d/§6); no new Ofgem text on retention
+pricing was found.
+
+### 7b. Published practice and evidence on how saves are sized
+
+| finding | shape | source, date | energy or analogous |
+|---|---|---|---|
+| Retention tariffs (actively renegotiated) priced **25–36% below rollover tariffs for electricity, 25–28% for gas**, and 66–116% below deemed tariffs, 2012–2014, Six Large Energy Firms + independents | a discount off the **supplier's own default/rollover tariff**, not a competitor's price | CMA, *Energy Market Investigation, final report, Summary*, 23 Jun 2016, §279 (gov.uk/cma-cases/energy-market-investigation; fetched 2026-10-11) | **energy**, microbusiness, not domestic |
+| The domestic AEC's detriment is sized as the gap between the actual (SVT/default) price and a **competitive benchmark price**, not a named rival's tariff | a benchmark-gap framing, same shape as a price match in spirit, never applied to a save offer | CMA, same report, §124–§280 (detriment methodology) | **energy**, domestic, context only — this prices the *market failure*, not a *remedy a supplier chooses to offer* |
+| A reactive win-back credit of **"£200 on top of their tariff"**, British Gas, pre-CSS | a flat cash add-on, not a rate cut, not sized against any published reference | MSE forum, 17 Nov 2012 (already §2a) | energy, domestic, one unsourced practitioner claim |
+| CMA/Citizens Advice "loyalty penalty" work (cash savings, mortgages, insurance, mobile, broadband) quantifies a **total loyalty penalty of ~£4bn/yr** across those five markets and recommends disclosure duties | names the detriment, not a save-offer sizing rule; no "save desk" pricing formula found | CMA, *CMA tackles loyalty penalty charges*, 19 Dec 2018 (gov.uk/government/news/cma-tackles-loyalty-penalty-charges; fetched 2026-10-11) | analogous, **not energy** — and does not reach retention-offer sizing even there |
+| Ofcom's "best tariff"/end-of-contract notification remedy, telecoms (expected to require disclosing the provider's own best deals to out-of-contract customers) | would be the closest analogous price-match-style rule if confirmed | **not retrieved this pass** — `ofcom.org.uk` pages probed returned 404; not re-tried past one attempt per source | analogous, candidate only |
+| Which?/Citizens Advice "haggling with your energy supplier" consumer guidance | would speak directly to what a household can extract informally | **not retrieved this pass** — both probed pages returned 404 (page moved/paywalled); not found in what could be read | energy, candidate only |
+
+### 7c. GAPs, labelled
+
+- **GAP — no GB source, energy or analogous, prescribes pricing a save/retention offer as a match to
+  a *specific competitor's* published price.** The nearest published shape (CMA §279) discounts off
+  the supplier's *own* default, not off the market's cheapest deal.
+- **GAP — the telecoms "best tariff"/end-of-contract analogy was not retrieved this pass.** The
+  Ofcom and Which?/Citizens Advice pages probed were 404 or paywalled; this is "not found in what
+  could be read," not "not published" (per the existing doc's own convention, §5a). Re-attempting
+  with a different URL or a cached copy is a cheap next step, not yet done.
+
+### 7d. What the build chose and why
+
+**A DESIGN CHOICE WITH NO PUBLISHED BASIS**, for the specific mechanism `price_match_save_rate`
+implements: matching the market's best published deal (default x (1 − Ofgem's published best-deal
+gap share), floored at the company's own cost). No rule or documented practice found in §7a–§7b
+prices a save this way. The two things grounded in the published record are narrower than the
+mechanism: (i) that a retention tariff may legally be priced below the default at all (SLC 22B's
+derogation, §1d) and (ii) that real retention tariffs, where measured, do run materially below the
+default (CMA's 25–36%/25–28% figures, §7b) — but as a discount off the supplier's *own* tariff, not
+as a match to a *named rival's* price. **Correction to the knowledge map's adjacent claim, made
+beside it:** `cheapest_fix_against_the_default_tariff_gb_2016_2025.md` establishes the *size of the
+gap* the build matches (H confidence, Ofgem's own series) but that document answers "how far below
+the default was the market's cheapest deal", not "is matching that gap how a save should be sized" —
+the two questions were conflated in the build's docstring reasoning and should not be.
+
+**The practitioner reasoning for the choice, stated as such and not as a finding:** a household on a
+loss notice is, by construction, leaving for something cheaper; matching the gap to the cheapest deal
+on the market is the smallest move that answers the reason given, and the cost floor stops that move
+from being a guaranteed loss. This is sound commercial logic and is the reasoning a retention desk
+would plausibly use — but it is the discovery agent's and the build's inference, not a sourced
+industry norm, and §7a–§7b found nothing that confirms or contradicts it directly.
+
+**What alternative sizes the evidence would allow**, ranked by how directly they are supported:
+1. **A fixed discount off the company's own default** (CMA's 25–36%/25–28% precedent, §7b) — the
+   best-evidenced shape, though it is a microbusiness, 2012–14 figure, not domestic or current.
+   2. **The company's own cheapest generally-available tariff** (distinct from price-matching a named
+   competitor; nothing found rules this in or out).
+3. **No standing size at all**, leaving `cut_share` at `None` until a practitioner figure is given —
+   the position `save_offer.py`'s own docstring held before `afd818b22`, and the one the §2b/§5e GAPs
+   in this document already support most directly.
+
+**Action warranted:** keep `price_match_save_rate` as a labelled design choice in the code's own
+docstring (it already is, partially) rather than as a grounded rule, and route the open question —
+whether GB retention desks price-match a named rival or discount off their own book — to the
+director as a practitioner question per `the-save-offer-needs-two-practitioner-figures`, alongside
+the telecoms analogy gap in §7c.

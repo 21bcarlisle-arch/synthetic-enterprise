@@ -256,3 +256,70 @@ carrying steps 1-3; `tools/move_with_us_arms.py`). Counts at both ends: 18 move-
 **What would change the size most, in order:** step 4 (no money without it); a world answer for
 default-tariff movers (10 of 14 here; the executor found one: the household's own segment decision
 annualised over its days); and answering first-term movers.
+
+## Step 4 built, and default-tariff movers answered (2026-10-11): predictions before the run
+
+Knowledge first: `docs/market_research/home_moves.md` §8.6 and the `home-moves` site page (`8fd1c3739`)
+carry the rules, the gaps and the seven design choices this build follows.
+
+What changes:
+- The company now offers on either tariff wherever its margin estimate is positive.
+- A default-tariff mover answers on its next segment's roll against its current segment's stay,
+  annualised.
+- A follower's electricity leg is supplied at a drawn destination from the move date: the region
+  per `q1_move_destination_in_region_share`, the address from the siting draw, the dwelling from
+  the world's premise draw, and demand from that dwelling's physics.
+- Every later term of the account is held out of the premium.
+
+**Predictions** (40 founders, budget 0, same seed as before):
+- P1: `off` and `on` at k = 0 identical on every account-term (nobody moves with us, so no supply
+  changes); `off` identical to the tree before this step.
+- P2: 0 stayer price moves at k = 1. Every later term of a carried account is out of the premium,
+  as for the price-match save.
+- P3: 0 twin shortfalls, and now no known-vulnerable mover unoffered while others are offered. The
+  default-tariff refusal that caused the one failure is gone.
+- P4: offers rise from 4 to roughly 10-12 of 14 households, since most margins are positive on the
+  default tariff. Answerable movers rise from 1 to about 8-10. At k = 1, with default-tariff stays
+  annualised near 0.8-0.9, I expect **5 to 8 followers**, most supplied, about half in their origin
+  region. On minus off total net is positive at k = 1, of the order of the followers' remaining
+  margin: a few hundred pounds each per year, so **+£500 to +£3,000** on this book. At k = 0 it is
+  exactly zero. The money turns on k, by construction.
+
+**Result, 2026-10-11** (40 founders, budget 0, base seed; `off` and `on` at k = 0 and k = 1 on the
+step 4 tree; `off` also run on the tree before it, `e787e9508`; `tools/move_with_us_arms.py`):
+
+| | k = 0 | k = 1 |
+|---|---|---|
+| move-out notices filed | 17 | 18 (one follower moved again from its new home) |
+| households asked / offered | 14 / 14 (4 fixed, 10 default) | 15 / 15 (4 fixed, 11 default) |
+| answerable (the world holds a P(stay)) | 11 | 12 |
+| would move with us | 0 | 9 (expected at k = 1: 9.43) |
+| supplied at the new home | 0 | **2** (SYN-2016-019 to London, SYN-2016-026 to the South East; both out of region) |
+| stayer price moves | 0 | **0** |
+| vulnerable twin shortfalls; known-vulnerable unoffered while others offered | 0; 0 | 0; 0 |
+| on minus off total net | £0.00 | **+£1,579.90** |
+
+- **P1: HOLDS.** `off` equals the tree before step 4 on all 717 account-terms and `total_net`. At k = 0
+  every account-term and `total_net` equals `off`.
+- **P2: HOLDS, and not trivially now.** 0 stayer price moves at k = 1, with 40 more account-terms
+  supplied. The one-variable control: the same k = 1 arm without the premium hold (every later term
+  of a carried account kept out of the premium) gives **14 stayer price moves**, 1 of them raised.
+  So the hold is what keeps the stayers' prices fixed.
+- **P3: HOLDS.** 0 twin shortfalls. The known-vulnerable default-tariff mover (OCC-6387bf64272a) is
+  now offered. At k = 1 it declines on its own roll (P(stay) 0.39, roll 0.92).
+- **P4: offers and answers as predicted, supply far below.** 14-15 offers (predicted 10-12), 11-12
+  answerable (predicted 8-10), 9 would follow (predicted 5-8). Only **2 of 9 are supplied**,
+  against "most" predicted. On minus off is +£1,580 at k = 1, inside the predicted £500-3,000 but
+  from 2 households, not 5-8. **The money turns on k:** exactly 0 at k = 0, +£1,580 at k = 1.
+- **Why 7 of 9 followers are not supplied, each a named gap:**
+  - 3 are gas-only accounts. Only the electricity leg is carried. What it would take: a destination
+    annual quantity (in this world the AQ comes from the household's TDCV band, not the dwelling,
+    so it needs a ruling on whose quantity it is), the gas heating-degree cell re-adopted at the new
+    location, and the gas heating split from the destination's trace.
+  - 3 drew a destination cell outside the weather store. The store holds only the cells the book
+    occupies (`sim/weather_world`), and it refuses to substitute the nearest one. What it would
+    take: adding cells to the store (`tools/build_weather_world.py`; its ERA5 half is a network
+    pull).
+  - 1 (C8) settles on a real half-hourly file, which cannot be redrawn for a new home.
+- My prediction of "most supplied" was wrong because I did not count gas-only accounts or the
+  store's coverage before writing it.

@@ -647,11 +647,91 @@ across and waiving the termination fee that closing the old contract would other
   regional tariff is re-rated.
 - G8.4 The take-up of a move-with-us offer, and its value (= §6 gap 3).
 - G8.5 The 10-working-day credit refund's locus (the remainder of §6 gap 8).
+- G8.6 Where a mover goes, finer than a region. The same-local-authority share of moves is not
+  published at GB level (ONS internal migration excludes within-LA moves). Of moves that change
+  local authority, 51.9% stay inside the same ONS region (year ending June 2020), so at least 51.9%
+  of all moves stay in-region. That is a lower bound. Source:
+  `how_far_gb_households_move_and_what_their_new_home_uses.md` §1.
+- G8.7 The ONS-region to electricity-region (GSP group) lookup. It exists (postcode to GSP group) but
+  is not in this repo. It binds only where prices are regional (§8.6).
+- G8.8 A household's consumption after a move. No before/after panel of movers was found. Across
+  households, the dwelling explains more of a home's use (39%) than socio-demographics (24%)
+  (Huebner et al. 2015). How fast a mover's use converges to its new home's level is not published.
+
+### 8.6 The move-with-us offer as this world builds it: the rules, the evidence, and the choices
+
+*Added 2026-10-11, before the build, under the director's rule "knowledge before build". Published at
+`site/knowledge/home-moves/` (the `home-moves` entry of `site/data/knowledge_topics.json`).*
+
+**What the rules require.**
+- The notice: SLC 24.1(a) ends the contract on the move date if the customer gives at least two
+  Working Days' notice (§8.1). The world already ends every mover's liability on the move date, so
+  every notice is on time and is dated at that latest point.
+- The exit fee: SLC 24.3 gives a mover no exemption from a fixed-term fee. Waiving it is the
+  supplier's choice (§8.3). This world charges no fee on a move, so the waiver costs nothing here.
+  That understates a real waiver's cost; it is a gap in the world, not a choice.
+- Retention pricing: SLC 22B's derogation (to 31 March 2027) lets a supplier offer a fixed tariff
+  only to existing customers (`a_save_offer_against_the_switching_rules_and_the_seam.md` s.1d). A
+  move-with-us offer cuts no price: it carries the price the household already pays. If carrying
+  it is a variation of the existing contract, 22B is not engaged. If it is a new contract (G8.3),
+  whether a tariff offered only to movers sits inside 22B or its derogation is NOT ESTABLISHED.
+  The world does not test it.
+- At the new home the incumbent supplier holds the meter. Taking us with them is a switch gained
+  there, through the ordinary registration route.
+
+**What published practice and evidence say.** Suppliers commonly waive the exit fee if the tariff
+moves with the customer (comparison-site summaries, §8.3; practice, not a number). Most moves stay
+local: at least 51.9% stay in-region (G8.6). By tenure, the share moving within 5 miles is 70% for
+social renters, 51% for owners and 45% for private renters (EHS 2021-22 Annex 1.5). A dwelling
+predicts its consumption better than its occupants do (G8.8).
+
+**What is unknown (GAP).** G8.1 to G8.8 above. G8.4 (how many movers take the offer) is the one the
+result turns on.
+
+**The design's choices, and why.**
+1. *Who is offered.* Our household on either tariff, wherever the company's own estimate says
+   carrying it earns a margin. The estimate is the rate in force, less the forward cost the rate was
+   struck against, on the company's billing consumption estimate. A default-tariff household is
+   offered our default tariff at its new home. The company reads only the notice, its own book and
+   its own Priority Services Register.
+2. *How the world answers (k).* No take-up rate exists, so none is invented. The household answers
+   on the roll of its NEXT decision with us (its next renewal, or its next default-tariff segment).
+   It answers against k times the world's own P(stay) at the tariff it would carry. For a fixed
+   term, that P(stay) is the probability the world rolled its renewal onto that tariff against. For
+   the default tariff, it is the current segment's stay probability, annualised:
+   (1 - p) ** (365.25 / days). k = 0 means no mover takes us; k = 1 means a mover stays as often as
+   a household deciding at that price. Both ends are run. A household still in its first fixed term
+   has no world P(stay) yet and does not move with us. That can only understate the lever.
+3. *Where it goes.* The destination stays in the origin's ONS region with probability
+   `q1_move_destination_in_region_share`. The default is 0.519, the derived lower bound (G8.6); the
+   range runs up to 0.70, the social-renter within-5-miles share, which is a distance proxy and not a
+   region share. Otherwise the destination region is drawn from the world's own regional household
+   mix, excluding the origin. That stands in for the ONS flow marginals, which are not carried. The
+   address within the region is the world's household siting draw, and the weather follows that
+   cell. This world prices nationally (one rate per fuel, no regional tariff), so G8.7 and the
+   re-rating half of G8.3 do not bind the run. They would bind once prices are regional.
+4. *What the new home uses.* The destination dwelling is drawn by the world's own premise draw
+   (`premise_population.draw_premise_from_joint`, keyed on the destination's id). Its demand is that
+   dwelling's physics under the household's own occupancy, not the old home's consumption (G8.8: the
+   dwelling outweighs the occupants). The household keeps what belongs to it: its EV, its income
+   stress, and every trait the world keys by its account. The dwelling's fields, solar and battery
+   come from the new home. Its use snaps to the new dwelling on the move date. The timing is not
+   published, so that is an assumption, named.
+5. *Which legs.* The electricity leg is carried. A dual-fuel household's gas leg leaves at the move,
+   as before: a destination gas annual quantity and its heating-degree cell are not built. That can
+   only understate the lever.
+6. *The stayers.* Every later term of a carried account is held out of the portfolio premium. The
+   carried rate and the renewals priced off it would otherwise teach the stayers' prices. This is the
+   same set the price-match save uses.
+7. *The vacated home* passes to its incoming occupant exactly as for any mover.
 
 ---
 
 ## Sources
 
+- `docs/market_research/how_far_gb_households_move_and_what_their_new_home_uses.md` (this repo,
+  2026-10-10): ONS internal migration matrices YE June 2020, EHS 2021-22 Annex 1.5, Huebner et al.
+  2015 (G8.6-G8.8, §8.6).
 - Ofgem, *Electricity Supply Standard Licence Conditions*, consolidated to 1 August 2025, SLC 24.1-24.3A,
   24.8, 24.17 (pp.216-220) and SLC 27.17 (p.246),
   https://www.ofgem.gov.uk/sites/default/files/2023-03/Electricity%20Supply%20Standard%20Consolidated%20Licence%20Conditions%20-%20Current.pdf

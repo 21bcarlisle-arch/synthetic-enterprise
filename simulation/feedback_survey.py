@@ -176,7 +176,19 @@ def dispatch_complaint_and_resolution(
         probability *= OCCUPANCY_COMPLAINT_MULTIPLIER.get(occupancy, 1.0)
     if rng.random() >= probability:
         return ComplaintResolutionOutcome(customer_id, event_date, occurred=False)
+    return _resolved_complaint(customer_id, event_date, rng)
 
+
+def dispatch_dd_shock_complaint(customer_id: str, event_date: str) -> ComplaintResolutionOutcome:
+    """DD4b: a complaint the household has already decided to make about its DD review
+    (`simulation/dd_shock_response.py` decides whether, on its own draw). Only how it resolves is
+    drawn here, by the same resolution model as every other complaint, on its own stream."""
+    return _resolved_complaint(customer_id, event_date,
+                               random.Random(f"dd4b_complaint_{customer_id}_{event_date}"))
+
+
+def _resolved_complaint(customer_id: str, event_date: str,
+                        rng: random.Random) -> ComplaintResolutionOutcome:
     outcome_roll = rng.random()
     if outcome_roll < OMBUDSMAN_ESCALATION_PROBABILITY:
         days = rng.randint(57, 120)

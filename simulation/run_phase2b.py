@@ -15,6 +15,8 @@ Key differences from Phase 2a repriced:
 Delegation note: hand-written (orchestration-adjacent, per protocol).
 """
 
+import calendar
+import dataclasses
 import heapq
 import itertools
 import random
@@ -23,6 +25,7 @@ from collections import defaultdict
 from datetime import date, datetime, time, timedelta
 
 import sim.risk_committee_agent as risk_committee_agent
+import simulation.dd_shock_response as _dd_shock_response
 from background.gap_metric import format_ageing_summary as _format_ageing_summary
 from background.gap_metric import format_belief_summary as _format_belief_summary
 from background.gap_metric import format_detection_summary as _format_detection_summary
@@ -61,6 +64,7 @@ from company.interfaces.growth_desk import (
     new_retention_holdout,
     replacement_cost_avoided_gbp,
     retention_bad_debt_charge,
+    retention_cut_share_at_price_match,
     retention_engagement,
     retention_offer_can_buy_anything,
     retention_value_protected,
@@ -148,6 +152,9 @@ from simulation.customer_events import (
     roll_lifecycle_event,
     svt_conversion_event,
 )
+from simulation.dd_shock_response import RECORD_KEY as _DD_SHOCK_RECORD_KEY
+from simulation.dd_shock_response import DDShockResponseBook
+from simulation.dd_shock_response import respond as respond_to_dd_shock
 from simulation.debt_objection import WorldDebtBook
 from simulation.demand_model import (
     build_demand_shape,
@@ -190,6 +197,7 @@ from simulation.fabric_physics import DEFAULT_LATITUDE_DEG
 from simulation.feedback_survey import (
     dispatch_complaint_and_resolution,
     dispatch_csat_survey,
+    dispatch_dd_shock_complaint,
     dispatch_nps_survey,
 )
 from simulation.gas_settlement import run_gas_term
@@ -213,11 +221,19 @@ from simulation.live_population import (
     live_population,
     run_base_seed,
 )
+from simulation.move_destination import (
+    draw_destination,
+    household_at_destination,
+    next_move_from_destination,
+)
+from simulation.move_destination import shape_across_a_move as _shape_across_a_move
 from simulation.move_out_notice_feed import MoveOutNoticeFeed
 from simulation.move_with_us_answer import (
     NOT_ANSWERABLE,
+    default_tariff_roll,
     household_moves_with_us,
     move_with_us_active,
+    p_stay_on_default_tariff,
     take_up_scale,
 )
 from simulation.nudge_physics import framing_effectiveness_multiplier, susceptibility_for
@@ -1032,7 +1048,8 @@ def _compute_company_divergence(
 
     by_year_demand: dict[str, list[float]] = defaultdict(list)
     for d in (demand_estimation_log or []):
-        by_year_demand[d["term_start"][:4]].append(abs(d["error_pct"]))
+        if d.get("error_pct") is not None:
+            by_year_demand[d["term_start"][:4]].append(abs(d["error_pct"]))
 
     def _summarize(by_year: dict) -> dict:
         return {
@@ -1067,6 +1084,28 @@ def _as_fold(settled) -> SettlementFold:
     return fold
 
 
+def _grade_demand_estimates_against_the_year_ahead(log: list[dict], settled) -> None:
+    """Fill each row's `true_eac_kwh` with the settled kWh of the twelve months FROM its term start,
+    and `error_pct` with the forecast's error against it. A row whose year the run did not settle
+    in full keeps `None` and says why: a part year is not a year, and annualising it would grade
+    the forecast against the season the run happened to stop in."""
+    fold = _as_fold(settled)
+    for row in log:
+        start = date.fromisoformat(row["term_start"])
+        end = start.replace(year=start.year + 1) if not (start.month == 2 and start.day == 29) \
+            else date(start.year + 1, 3, 1)
+        days = fold.monthly_totals(row["customer_id"])
+        if not days or days[0][0] > start.isoformat() or days[-1][1] < (end - timedelta(days=1)).isoformat():
+            row["ungraded_reason"] = "the run did not settle the full year ahead of this term"
+            continue
+        actual = fold.consumption_kwh_between(row["customer_id"], start.isoformat(), end.isoformat())
+        if actual <= 0:
+            row["ungraded_reason"] = "no consumption settled in the year ahead"
+            continue
+        row["true_eac_kwh"] = round(actual)
+        row["error_pct"] = round((row["company_eac_kwh"] - actual) / actual * 100.0, 2)
+
+
 def _derive_eac_from_settlement(cid: str, settled) -> float:
     """Mean actual annual consumption from all available settlement records.
 
@@ -1089,36 +1128,87 @@ def _derive_eac_from_settlement(cid: str, settled) -> float:
     return fold.total_consumption_kwh(cid) / total_days * 365.25
 
 
-def _company_eac_estimate(
-    cid: str, term_start_str: str, settled,
-    base_eac_override: float | None = None,
-) -> float:
-    """Estimate customer annual consumption from observable prior-year billing records.
+def _company_held_register_reads(cid: str, term_start_str: str, settled,
+                                 read_feed=None) -> list[tuple]:
+    """The register reads the company HOLDS for `cid` on `term_start_str`: what the meter told it.
 
-    Phase 23a: replaces SIM-internal EFFECTIVE_EAC_KWH lookup in company-layer decisions.
-    The company observes kWh billed in the 12 months before the renewal date.
-    Falls back to EFFECTIVE_EAC_KWH on the first term (no prior billing yet).
-
-    Phase H: base_eac_override replaces the EFFECTIVE_EAC_KWH fallback when provided.
-    Allows the caller to supply a household-model-adjusted base (EV/solar/ASHP multiplied).
-
-    2026-08-24: the 12-month window is now answered from per-day totals rather than by
-    filtering the whole book. The WINDOW IS UNCHANGED and still half-open -- `[year_ago,
-    term_start)` -- because it is the point-in-time blindfold, not an implementation detail.
+    WORLD-SIDE, AND THE ONLY THING IT HANDS OVER IS READS. The change-of-supply opening read
+    (register 0 the day before the first settled day), then one per complete calendar month whose
+    read ARRIVED -- `simulate_read`'s own verdict, keyed exactly as the bill run keys it (the
+    month's last settled day), and only where `period end + delay` falls before the term starts.
+    A month billed as an estimate contributes no read; its kWh reach the company only inside the
+    next actual read's advance, which is what a register does.
     """
-    from datetime import date as _date
+    from simulation.meter_reads import SimulatedReadFeed
 
-    from simulation.customer_events import twelve_month_window_open
+    feed = read_feed if read_feed is not None else SimulatedReadFeed()
+    fold = _as_fold(settled)
+    months = fold.monthly_totals(cid)
+    if not months:
+        return []
+    term_start = date.fromisoformat(term_start_str)
+    meter_type = feed.meter_type_for(get_customer(cid))
+    reads = [(date.fromisoformat(months[0][0]) - timedelta(days=1), 0.0)]
+    register = 0.0
+    for first_day, last_day, kwh in months:
+        register += kwh
+        closing = date.fromisoformat(last_day)
+        month_end = date(closing.year, closing.month, calendar.monthrange(closing.year, closing.month)[1])
+        if month_end >= term_start:
+            break
+        event = feed.read_for(cid, last_day, meter_type, kwh, 0)
+        if event.status == "actual" and closing + timedelta(days=event.delay_days) < term_start:
+            reads.append((closing, register))
+    return reads
 
-    term_start = _date.fromisoformat(term_start_str)
-    # NOT `term_start.replace(year=...)`: that raises on a term starting 29 February and took
-    # the whole run down the first time the book held one. See the helper for the convention
-    # and for why it opens on 1 March rather than 28 February.
-    year_ago = twelve_month_window_open(term_start)
-    estimated = _as_fold(settled).consumption_kwh_between(
-        cid, year_ago.isoformat(), term_start.isoformat())
-    base = base_eac_override if (base_eac_override is not None) else EFFECTIVE_EAC_KWH.get(cid, 0.0)
-    return estimated if estimated > 0 else base
+
+def _company_eac_estimate(
+    cid: str, term_start_str: str, settled, commodity: str = "electricity",
+    read_feed=None,
+) -> float:
+    """The annual volume the company believes `cid` uses at `term_start_str`, from what it holds.
+
+    Through `company.interfaces.sim_interface.supplier_annual_volume_kwh`: the register reads
+    that arrived (`_company_held_register_reads`) and the registry figure -- the declared EAC, or
+    the registered AQ for gas. Never the settled fold's true kWh and never a household multiplier
+    (`tests/simulation/test_the_hedge_volume_reads_only_what_the_company_holds.py`).
+
+    UNTIL 2026-10-11 this summed the settled fold's TRUE kWh over the twelve months before the
+    term, months billed as estimates included (79% of traditional-meter months in run
+    7379375f6), and its first-term fallback took the declared EAC times the household's own
+    EV/solar/heat-pump multiplier; gas took the AQ times an EPC-band multiplier. Each overshot by
+    8-12% and none crosses the seam (finding:
+    docs/staging/SEAT_FINDING_SEVERAL_CONSUMPTION_FORECASTS_A_WALL_LEAK_IN_HEDGE_VOLUME_AND_THE_CAPITAL_TARGET_IS_115_2026-10-11.md).
+    """
+    return _company_volume_reading(cid, term_start_str, settled, commodity, read_feed)["kwh"]
+
+
+def _company_volume_reading(cid: str, term_start_str: str, settled,
+                            commodity: str = "electricity", read_feed=None) -> dict:
+    """`_company_eac_estimate` with its basis: {"kwh", "basis", "from", "to"} from the seam."""
+    from company.interfaces.sim_interface import supplier_annual_volume_kwh
+
+    if commodity == "electricity":
+        registry = EFFECTIVE_EAC_KWH.get(cid, 0.0)
+    else:
+        registry = (get_customer(cid) or {}).get("aq_kwh")
+    return supplier_annual_volume_kwh(
+        commodity, _company_held_register_reads(cid, term_start_str, settled, read_feed),
+        registry)
+
+
+def _price_match_inputs(term: dict, commodity: str, term_start_str: str,
+                        company_fwd: float | None) -> dict:
+    """THE PRICE MATCH'S INPUTS (2026-10-10): the published default for this fuel, the published
+    best-deal gap for the quarter, and the cost floor of the rate the company struck for this term --
+    what its own desk floors at. One reading for the save and the renewal cut (B8 Q5)."""
+    locked = (term.get("locked_policy_cost_gbp_per_mwh"), term.get("locked_network_cost_gbp_per_mwh"))
+    return {
+        "published_default_rate": _account_state_svt_rate(commodity, term_start_str),
+        "published_best_deal_gap_share": published_best_deal_gap_share(term_start_str),
+        "cost_floor": (None if None in locked or company_fwd is None
+                       else company_fwd + locked[0] + locked[1]),
+    }
 
 
 def _account_state_svt_rate(commodity: str, term_start_str: str) -> float | None:
@@ -1298,6 +1388,22 @@ def _record_renewal_decision(journey, log: list, *, customer_id: str, event_date
     journey.record_decision(date.fromisoformat(event_date), switched=switched)
     log.append({"customer_id": customer_id, "event_date": event_date,
                 "commodity": commodity, "rolled": rolled, "switched": switched})
+
+
+def _company_provision_by_year_end(triad, effective_end: str, payment_method_of) -> dict:
+    """The company's provision stock at each year end in the run and at its end, read once the run
+    is over. Each read is by value date, so a later read of an earlier date sees only cash that had
+    arrived by then; reading during the run would force-cross held settlements and change the run.
+    A failed read is recorded with its reason and does not kill a finished run."""
+    end = date.fromisoformat(effective_end)
+    dates = [date(y, 12, 31) for y in range(int(REPORT_START[:4]), end.year) if date(y, 12, 31) < end]
+    try:
+        stocks = {d.isoformat(): triad.provision_stock(d, payment_method_of=payment_method_of)
+                  for d in dates + [end]}
+    except Exception as exc:  # noqa: BLE001 -- a reporting read must not kill a completed run
+        print(f"WARNING [company provision] could not be read: {exc!r}")
+        return {"unavailable_because": repr(exc)}
+    return {"by_date": stocks, "closing": stocks[end.isoformat()]}
 
 
 def _box_admission():
@@ -2000,6 +2106,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             fuel=held["fuel"],
             dd_stopped_by=lambda _cid, _due: _dd_stop_board.notice_as_of(
                 _cid, _due.isoformat()) is not None,
+            dd_shock_effect=(None if _dd_shock_strengths.off
+                             else _dd_shock_book.effect(household_of(cid), held["month"])),
         )
         _cx_desk.observe_payment(PaymentOutcome(
             customer_id=cid,
@@ -2094,9 +2202,14 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     # only what the run has settled. Stress is the household's drawn trajectory, the same one
     # `_build_behavioral_trajectories` hands the money side, fixed before the first term.
     from simulation.dd_collection_book import StopNoticeBoard, install_stop_notice_board
+    # DD4b: the household's own answer to a DD shock, recorded at each review the run reaches.
+    # Read once per run from the module, so a harness that measures a setting sets it before main().
+    _dd_shock_strengths = _dd_shock_response.STRENGTHS
+    _dd_shock_book = DDShockResponseBook()
     _dd_stop_board = StopNoticeBoard(
         lambda _cid: household_demand_register.income_stress_trajectory(_cid, list(range(2016, 2026)))
-        if household_demand_register is not None else [])
+        if household_demand_register is not None else [],
+        dd_shock_responses_of=lambda _sp: _dd_shock_book.responses_of(household_of(_sp)))
     install_stop_notice_board(_dd_stop_board)
     # THE FOLD, fed at exactly one place -- the line that extends `all_records` below.
     # Fed anywhere else it would see records the list has not, and the point-in-time window
@@ -2165,6 +2278,16 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     # Whether households answer that offer (`simulation/move_with_us_answer.py`): read once per run.
     _move_with_us_answers = move_with_us_active()
     _move_with_us_k = take_up_scale() if _move_with_us_answers else None
+    # STEP 4: a mover who takes the offer is supplied at its new home (home_moves.md s.8.6). Its
+    # electricity leg keeps its account; from the move it lives at a drawn destination, and its next
+    # move is drawn there (`_move_out_by_leg`). Its new home's data is bound to the account at its
+    # next term (`_relocation_pending`): the term in force settles the old home to the move date and
+    # the new one after it (`_carried_from`). Every one stays empty unless a mover follows.
+    _move_out_by_leg: dict[str, date | None] = {}
+    _home_move_by_leg: dict = {}
+    _relocation_pending: dict[str, dict] = {}
+    _journey_before_move: dict[tuple, object] = {}
+    _followed_moves: set[tuple] = set()
     _home_move_by_household: dict = {}
     home_move_outs: list[dict] = []
     # B7 slice 3: who supplies a vacated premise from the move date. The book is live and module
@@ -2251,6 +2374,69 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             "void_owner_charge_gbp": 0.0,
         }
         home_move_ins.append(_move_in_entry[leg])
+    def _supply_at_new_home(cid: str, commodity: str, household: str, move_end: date,
+                            carried_to: str) -> tuple[dict, str | None]:
+        """Bind a mover who took the offer to its new home (home_moves.md s.8.6, choices 3-5).
+        Returns (what the log records, the reason it could not be supplied, or None)."""
+        if commodity != "electricity":
+            return {}, ("only the electricity leg is carried: a destination gas annual quantity "
+                        "and its heating-degree cell are not built")
+        record = get_customer(cid)
+        if record is None or is_hh_customer(record):
+            return {}, ("a half-hourly account settles on its own metered file, which cannot be "
+                        "redrawn for a new home")
+        move = _home_move_by_leg.get(cid, _home_move_by_household[household])
+        dest = draw_destination(move.mover_arrives.premise_id, record, move_end, run_base_seed())
+        if dest is None:
+            return {}, "the origin names no ONS region, or the destination region has no siting cells"
+        _now = household_demand_register.household_at_date(cid, move_end.isoformat())
+        # AN INCOMING OCCUPANT the world drew no household for carries nothing of its own (no EV,
+        # its stress unknown): it lives at the new dwelling as drawn. Named, not filled in.
+        new_home = (household_at_destination(_now, dest) if _now is not None
+                    else dataclasses.replace(dest.premise.household, customer_id=cid,
+                                             output_area=dest.output_area))
+        dest_record = {**record, "location": {"lat": dest.lat, "lon": dest.lon,
+                                               "region": dest.region,
+                                               "output_area": dest.output_area}}
+        site = _weather_source.site_for(dest_record)
+        if not _weather_source.available(site):
+            return {}, f"no weather for the destination's cell ({site})"
+        household_demand_register.relocate(cid, move_end.isoformat(), new_home)
+        series = build_fabric_series_for_site(
+            customer_id=cid,
+            household_at_date=lambda d, _c=cid: household_demand_register.household_at_date(_c, d),
+            weather_site=site, latitude_deg=dest.lat, start=move_end,
+            end=date.fromisoformat(effective_end), seed=DEFAULT_TRACE_SEED,
+            weather_days_for=_weather_source.days,
+        )
+        _shape = fabric_shape_fn(series, "electricity",
+                                 battery_dispatch=_fabric_battery_dispatch_for(cid))
+        _dates = series.dates()
+        if len(_dates) >= 365:
+            eac, _basis = registry_eac_from_own_reads(_shape, _dates, move_end.isoformat())
+        else:
+            # Under a year of the new home left in the window: its own reads, annualised.
+            eac = sum(sum(_shape(d)) for d in _dates) * 365.0 / max(1, len(_dates))
+        from simulation.premise_population import dwelling_record
+        _relocation_pending[cid] = {
+            "location": dest_record["location"], "series": series,
+            "property": {**properties.get(cid, DEFAULT_PROPERTY),
+                         **dwelling_record(dest.premise), "output_area": dest.output_area},
+            "eac_kwh": round(eac, 1),
+        }
+        nxt = next_move_from_destination(
+            move, date.fromisoformat(carried_to[:10]),
+            date.fromisoformat(effective_end) + timedelta(days=1), run_base_seed())
+        _move_out_by_leg[cid] = nxt.move_date if nxt else None
+        _home_move_by_leg[cid] = nxt
+        return {"destination_premise": dest.premise_id, "destination_region": dest.region,
+                "destination_in_origin_region": dest.in_origin_region,
+                "destination_epc": new_home.epc_rating,
+                "destination_property_type": new_home.property_type.value,
+                "destination_eac_kwh": round(eac, 1),
+                "next_move_date": nxt.move_date.isoformat() if nxt else None,
+                "supplied_at_new_home": True}, None
+
     # EP12: HOW THE SUPPLIER HEARS IT LOST A HOUSEHOLD -- a registration-loss notice per supply
     # point, from the registration service, filed in its change-of-supplier register. Called at
     # every site that adds to `churned_billing_accounts` and handed only the household and the
@@ -2376,11 +2562,25 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
 
         term_end_str = term.get("term_end") or _clamp_term_end(term_start_str, end_date=effective_end)
 
+        # A LEG THAT MOVED WITH US is bound to its new home from this term on: weather, dwelling,
+        # demand trace and the meter point's annual quantity are the destination's. The vacated
+        # home's data went to its incoming occupant as new references, so nothing there moves.
+        if cid in _relocation_pending:
+            _new_home = _relocation_pending.pop(cid)
+            _rec = get_customer(cid)
+            _rec["location"] = _new_home["location"]
+            weather_by_customer[cid] = weather_means_for_customer(_rec, _weather_world)
+            cloud_cover_by_customer[cid] = cloud_cover_for_customer(_rec, _weather_world)
+            fabric_series_by_customer[cid] = _new_home["series"]
+            properties[cid] = _new_home["property"]
+            _rec["eac_kwh"] = EFFECTIVE_EAC_KWH[cid] = _new_home["eac_kwh"]
+
         # B7 slice 2: a home move ends this household's supply at the move date. Asked once, at
         # the household's first term (the heap is chronological), over its own supply window, so
         # a household won in 2020 cannot lose a term to a move drawn in 2018. Off unless the curriculum
         # file says on.
         _moved_in_term = False
+        _carried_from = None
         if _home_moves_on:
             if billing_account not in _move_out_by_household:
                 # An incoming occupant moves on the same hazard, so a premise can turn over twice.
@@ -2400,7 +2600,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 _home_move_by_household[billing_account] = _move
             _move_end, _moved_in_term = term_window_under_move(
                 date.fromisoformat(term_start_str), date.fromisoformat(term_end_str[:10]),
-                _move_out_by_household[billing_account],
+                _move_out_by_leg.get(cid, _move_out_by_household[billing_account]),
             )
             if _move_end is None:
                 if not _spliced:
@@ -2412,7 +2612,12 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 if _churn_journey_register.get_journey(billing_account) is None:
                     _churn_journey_register.register_customer(billing_account)
                 _mover_journey = _churn_journey_register.get_journey(billing_account)
-                _mover_journey.record_home_move(_move_end)
+                # A household that moved with us is still ours: its other leg's move does not end
+                # its journey, and the leg that carried it restores what the move recorded.
+                if (billing_account, _move_end) not in _followed_moves:
+                    _journey_before_move.setdefault((billing_account, _move_end),
+                                                    _mover_journey.state)
+                    _mover_journey.record_home_move(_move_end)
                 # W2_36 slice 3: the change-of-tenancy gap. The vacated meter goes on recording
                 # with nobody named liable; sim/customer_state_layer.py says why the window is an
                 # expectation and why the rate is the meter point's annual quantity.
@@ -2425,7 +2630,9 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     "unnamed_kwh_expected": unnamed_kwh_after_move(
                         _leg.get("aq_kwh") if commodity == "gas" else _leg.get("eac_kwh")),
                 })
-                _admit_incoming_occupant(_leg, commodity, _home_move_by_household[billing_account])
+                _admit_incoming_occupant(
+                    _leg, commodity,
+                    _home_move_by_leg.get(cid, _home_move_by_household[billing_account]))
 
         forward_price = term["forward_price_gbp_per_mwh"]        # sim's sophisticated estimate
         company_fwd = term.get("company_forward_price_gbp_per_mwh", forward_price)
@@ -2871,7 +3078,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             "unit_rate_gbp_per_mwh": _state_unit_rate,
             "svt_rate_gbp_per_mwh": _state_svt_rate,
             "rate_vs_svt_pct": _state_rate_vs_svt_pct,
-            "company_eac_kwh": round(_company_eac_estimate(cid, term_start_str, settled_fold)),
+            "company_eac_kwh": round(_company_eac_estimate(cid, term_start_str, settled_fold, commodity)),
             # THE PORTFOLIO POSITION, WRITTEN FOR EVERY TERM AND NOT ONLY THE ONES IT MOVED.
             # `dynamic_pricing_log` records these two only where the premium cleared 1e-6 and
             # changed a rate, which made a continuously-held reading look like an event: 149 of
@@ -2905,6 +3112,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             company_est_pre = None
             _retention_offer = None
             _holdout_arm = None
+            _holdout_would_offer = False
             _no_offer_reason = "below_threshold"
             _would_be_discount_pct = None
             _bill_shock_this_term = False
@@ -2961,21 +3169,21 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 prev_hf = current_hf.get(cid, 0.0)
                 hangover_periods = hangover_remaining.get(cid, 0)
                 # Phase 23a: company estimates EAC from observable prior-year billing
-                company_eac = _company_eac_estimate(cid, term_start_str, settled_fold)
-                # Phase 25a: true_eac is mean annual settled consumption (actual, not declared).
-                # Fixes misleading ~100% error for EV customers (C2/C4 declared 3500/5500
-                # kWh but actually consume ~6820 kWh/year with EV charging).
-                true_eac = _derive_eac_from_settlement(cid, settled_fold) or EFFECTIVE_EAC_KWH.get(cid, 0.0)
-                if true_eac > 0:
-                    eac_err_pct = (company_eac - true_eac) / true_eac * 100.0
-                    demand_estimation_log.append({
-                        "customer_id": cid,
-                        "term_start": term_start_str,
-                        "company_eac_kwh": round(company_eac),
-                        "true_eac_kwh": round(true_eac),
-                        "error_pct": round(eac_err_pct, 2),
-                        "source": "prior_billing" if company_eac != true_eac else "fallback",
-                    })
+                _volume = _company_volume_reading(cid, term_start_str, settled_fold, commodity)
+                company_eac = _volume["kwh"]
+                # GRADED AGAINST THE YEAR THAT FOLLOWS, filled in after the run
+                # (`_grade_demand_estimates_against_the_year_ahead`). Until 2026-10-11 `true_eac`
+                # was the run-average settled year to date and `company_eac` the trailing settled
+                # year: two backward reads of one fold, published as forecast accuracy.
+                demand_estimation_log.append({
+                    "customer_id": cid,
+                    "commodity": commodity,
+                    "term_start": term_start_str,
+                    "company_eac_kwh": round(company_eac),
+                    "true_eac_kwh": None,
+                    "error_pct": None,
+                    "source": "prior_billing" if _volume["basis"] == "annualised_advance" else "fallback",
+                })
                 # PB7: THE OBSERVABLE THE COMPANY ALREADY HAS A SEAM FOR, ACTUALLY HANDED OVER.
                 # `SimInterface.get_payment_method` has exposed this since PB6 and no run passed
                 # it, so `payment_method_engagement_factor` returned 1.0 on every account in every
@@ -3074,7 +3282,21 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     hangover_remaining[cid] = hangover_periods - 1
                 if company_est_pre > RETENTION_THRESHOLD:
                     eac_for_ret = company_eac  # Phase 23a: use company estimate
-                    discount_pct = policy.retention_discount_for_risk(company_est_pre)
+                    # B8 Q5: sized against the best published deal on the day, as the save is, or
+                    # by the churn-belief tiers. None from the match = our re-fix already meets it.
+                    _match_cut = None
+                    if policy.retention_cut_sizing == "price_match":
+                        _match_cut = retention_cut_share_at_price_match(
+                            unit_rate, **_price_match_inputs(
+                                term, commodity, term_start_str, company_fwd))
+                        discount_pct = 0.0 if _match_cut is None else _match_cut
+                    elif policy.retention_cut_sizing == "risk_tiers":
+                        discount_pct = policy.retention_discount_for_risk(company_est_pre)
+                    else:
+                        raise ValueError(f"retention_cut_sizing {policy.retention_cut_sizing!r} "
+                                         "is neither 'risk_tiers' nor 'price_match'")
+                    _market_beats_the_fix = (policy.retention_cut_sizing != "price_match"
+                                             or _match_cut is not None)
                     _would_be_discount_pct = discount_pct
                     ret_cost = unit_rate * discount_pct * eac_for_ret / 1000.0
                     expected_margin = (unit_rate - company_fwd) * eac_for_ret / 1000.0
@@ -3116,7 +3338,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     # The household is on our default tariff, so its exits were carried there; the
                     # offer can only turn a fix it would decline into one it takes. The company asks
                     # that of its own fix, its own discount and the published default.
-                    _offer_can_buy = (
+                    _offer_can_buy = _market_beats_the_fix and (
                         not policy.retention_offers_at_default_anniversary_only_where_the_discount_wins
                         or retention_offer_can_buy_anything(
                             previous_term_on_our_default=(
@@ -3136,7 +3358,10 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                             account_id=billing_account, event_date=term_start_str,
                             payment_method=_company_payment_method,
                             term_margin_gbp=expected_margin, term_billed_gbp=_ret_billed,
-                            billed_kwh=eac_for_ret, cut_gbp_per_mwh=unit_rate * discount_pct)
+                            billed_kwh=eac_for_ret, cut_gbp_per_mwh=unit_rate * discount_pct,
+                            # Q10: a row's outcome is read at its window from the company's own
+                            # loss notices, so a departure months after the renewal is the row's.
+                            losses_notified=_change_of_supplier_register.losses_notified())
                         retention_holdout_log.append({
                             "customer_id": billing_account, "event_date": term_start_str,
                             "arm": _holdout_arm, "payment_method": _company_payment_method,
@@ -3144,12 +3369,23 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                             "decided": _cut_decision is not None,
                             "offer_cut": None if _cut_decision is None else _cut_decision.offer_cut,
                             "reason": None if _cut_decision is None else _cut_decision.reason,
+                            "outcome_window_days": _retention_holdout.outcome_window_days,
                         })
                     # One reading of the guard, so the gate's record below is the guard's own verdict.
                     _value_protected = retention_value_protected(
                         expected_margin, acq_cost_saved, _engagement,
                         default_belief_rate=_ret_default_belief, billed=_ret_billed)
-                    if not _offer_can_buy:
+                    # Whether it WOULD offer is read before the coin matters, on both arms: only
+                    # those renewals are the experiment, so a row is due on either arm exactly then.
+                    _would_offer = (
+                        _retention_holdout.would_offer(_cut_decision, _value_protected > ret_cost)
+                        if _retention_holdout is not None else _value_protected > ret_cost)
+                    _holdout_would_offer = _holdout_arm is not None and _would_offer
+                    if _holdout_arm is not None:
+                        retention_holdout_log[-1]["would_offer"] = _would_offer
+                    if not _market_beats_the_fix:
+                        _no_offer_reason = "the_fix_already_meets_the_best_published_deal"
+                    elif not _offer_can_buy:
                         _no_offer_reason = "the_discount_cannot_win_the_fix"
                         retention_gate_value_test_log.append({
                             "customer_id": billing_account, "event_date": term_start_str,
@@ -3160,9 +3396,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                             # half of them first; the verdict here is the guard's alone.
                             "holdout_would_have_drawn": _retention_holdout is not None,
                         })
-                    elif _holdout_arm != "holdout" and (
-                          _cut_decision.offer_cut if _cut_decision is not None
-                          else _value_protected > ret_cost):
+                    elif _holdout_arm != "holdout" and _would_offer:
                         # THE OFFER REACHES THE WORLD AS ITS RATE (director, 2026-10-09), answered
                         # at the roll below by `simulation.retention_offer`. It reached it as a flat,
                         # unsourced 0.20 cut to one hazard whatever the discount, so a 3% and an 8%
@@ -3199,7 +3433,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                                if _ret_default_belief is not None else {}),
                         })
                     else:
-                        _no_offer_reason = "held_out" if _holdout_arm == "holdout" else "uneconomical"
+                        _no_offer_reason = (
+                            "held_out" if _holdout_arm == "holdout" and _would_offer else "uneconomical")
             # Phase NQ: industry base rate floor when no prior rate exists
             if company_est_pre is None:
                 company_est_pre = estimate_churn_without_rate_history()
@@ -3280,21 +3515,24 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 billing_account, term_start_str, _bill_shock_this_term,
                 occupancy_for_customer(billing_account).value,
             )
-            if _complaint_outcome.occurred:
+
+            def _book_complaint(_outcome, _about_bill_shock):
                 # KNIFE step 21 (§3p): the world reports that the customer got in
                 # touch and whether the company closed it on time. Filing it under
                 # BILLING, wording it, and both trust deltas are the desk's.
+                # One booking for every complaint the world raises at a renewal: the rate-shock
+                # roll above and DD4b's complaint about a DD review (below) both come through here.
                 _cx_desk.observe_contact(CustomerContact(
                     customer_id=cid,
                     account_id=billing_account,
                     contacted_on=date.fromisoformat(term_start_str),
-                    about_bill_shock=_bill_shock_this_term,
+                    about_bill_shock=_about_bill_shock,
                     resolved_on_time=(
-                        _complaint_outcome.reputation_event_type
+                        _outcome.reputation_event_type
                         == ReputationEventType.COMPLAINT_RESOLVED_ON_TIME
                     ),
                 ))
-                if _complaint_outcome.reputation_event_type == ReputationEventType.COMPLAINT_RESOLVED_ON_TIME:
+                if _outcome.reputation_event_type == ReputationEventType.COMPLAINT_RESOLVED_ON_TIME:
                     _churn_journey_register.record_friction(
                         billing_account, FrictionEventType.COMPLAINT_RESOLVED_WELL,
                         date.fromisoformat(term_start_str),
@@ -3304,20 +3542,23 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                         billing_account, FrictionEventType.COMPLAINT_UNRESOLVED,
                         date.fromisoformat(term_start_str),
                         amplifier=(
-                            1.5 if _complaint_outcome.reputation_event_type
+                            1.5 if _outcome.reputation_event_type
                             == ReputationEventType.COMPLAINT_UPHELD_AT_OMBUDSMAN else 1.0
                         ),
                     )
                 _churn_journey_register.gri.record(
-                    _complaint_outcome.reputation_event_type, date.fromisoformat(term_start_str),
+                    _outcome.reputation_event_type, date.fromisoformat(term_start_str),
                     description=f"{billing_account} complaint raised {term_start_str}",
                 )
                 reputation_events_log.append({
                     "customer_id": billing_account,
                     "date": term_start_str,
-                    "event_type": _complaint_outcome.reputation_event_type.value,
-                    "days_to_resolve": _complaint_outcome.days_to_resolve,
+                    "event_type": _outcome.reputation_event_type.value,
+                    "days_to_resolve": _outcome.days_to_resolve,
                 })
+
+            if _complaint_outcome.occurred:
+                _book_complaint(_complaint_outcome, _bill_shock_this_term)
             _perceived_bill_saving_gbp = (
                 max(0.0, unit_rate - old_decision_leg_rate) * (company_eac / 1000.0)
                 if old_decision_leg_rate else 0.0
@@ -3438,21 +3679,11 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     for _wire in wire_registrations(registration_notices(
                             [(cid, date.fromisoformat(_first_day))], run_base_seed())):
                         _psr_register.receive_registration_wire(_wire)
-                # THE PRICE MATCH'S INPUTS (2026-10-10): the published default for this fuel, the
-                # published best-deal gap for the quarter, and the cost floor of the rate the
-                # company struck for this term -- what its own renewal desk floors at.
-                _locked = (term.get("locked_policy_cost_gbp_per_mwh"),
-                           term.get("locked_network_cost_gbp_per_mwh"))
-                _price_match_inputs = {
-                    "published_default_rate": _account_state_svt_rate(commodity, term_start_str),
-                    "published_best_deal_gap_share": published_best_deal_gap_share(term_start_str),
-                    "cost_floor": (None if None in _locked or company_fwd is None
-                                   else company_fwd + _locked[0] + _locked[1]),
-                }
+                _save_inputs = _price_match_inputs(term, commodity, term_start_str, company_fwd)
                 _save_rate, _known_vulnerable = request_save_offer(
                     _change_of_supplier_register, cid, term_start_str, unit_rate,
                     policy.save_offer_cut_share, psr_register=_psr_register,
-                    sizing=policy.save_offer_sizing, **_price_match_inputs)
+                    sizing=policy.save_offer_sizing, **_save_inputs)
                 _asked = roll_lifecycle_event(
                     cid, term_start_str, commodity,
                     **{**_roll_kwargs, "new_rate_gbp_per_mwh": _save_rate},
@@ -3471,7 +3702,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     "invitation_held": _pending_notice_sent,
                     "renewal_unit_rate_gbp_per_mwh": unit_rate,
                     "save_unit_rate_gbp_per_mwh": _save_rate,
-                    "price_match_inputs": _price_match_inputs,
+                    "price_match_inputs": _save_inputs,
                     "p_stay_at_offer": event["effective_retention_probability"],
                     "p_stay_at_save": (
                         _asked["effective_retention_probability"] if _asked is not None else None),
@@ -3496,6 +3727,26 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     # here would splice a saved household onto the default tariff.
                     _offer_vs_default = None
             _renewal_event_this_term = event
+            # DD4b (`simulation/dd_shock_response.py`): the household answers a material rise in
+            # its direct debit at this review -- cancelling its mandate, failing more collections
+            # while the raised amount is in force, complaining. Its departure is already answered
+            # by the roll above (PB4's shock hazard). Nothing is drawn while the toggles are zero.
+            if not _dd_shock_strengths.off and event is not None:
+                _dd_household = household_of(billing_account)
+                _dd_response = respond_to_dd_shock(
+                    household=_dd_household, review_month=term_start_str[:7],
+                    shock=event.get("sim_experienced_bill_shock"),
+                    stress=(_churn_income_stress.value if _churn_income_stress is not None
+                            else None),
+                    stays=event["event_type"] != "churned",
+                    already_cancelled=_dd_shock_book.has_cancelled(_dd_household),
+                    strengths=_dd_shock_strengths,
+                )
+                if _dd_response is not None:
+                    _dd_shock_book.record(_dd_response)
+                    if _dd_response["complained"]:
+                        _book_complaint(
+                            dispatch_dd_shock_complaint(billing_account, term_start_str), True)
             # STAY, LEAVE, OR STAY AND REFUSE. Leaving is the roll's and stands; the rule only
             # reprices a household that stayed.
             _renewal_outcome = renewal_outcome(
@@ -3541,13 +3792,21 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 _journey, renewal_decisions_log, customer_id=billing_account,
                 event_date=term_start_str, commodity=commodity, rolled=_rolled, event=event,
             )
-            # B8 L3: a row only where the arm's treatment was given -- held out, or offered.
-            if _holdout_arm == "holdout" or (_holdout_arm == "treated" and _retention_offer is not None):
+            # B8 L3: a row on either arm exactly where the company would have offered.
+            if _holdout_would_offer:
                 _retention_holdout.record(
                     account_id=billing_account, event_date=term_start_str, arm=_holdout_arm,
                     stayed=not (event is not None and event["event_type"] == "churned"),
-                    payment_method=_company_payment_method)
-                retention_holdout_log[-1]["stayed"] = _retention_holdout.rows[-1]["stayed"]
+                    payment_method=_company_payment_method,
+                    saved_on_loss_notice=bool(event is not None and event.get("saved_on_loss_notice")),
+                    renewal=(
+                        "left_at_decision" if event is not None and event["event_type"] == "churned"
+                        else "declined_fix_on_default" if _renewal_outcome == RENEWAL_DECLINED_FIX
+                        else "re_fixed"),
+                    supply_points=_supply_points_of_account.get(billing_account, (cid,)))
+                retention_holdout_log[-1]["stayed_at_decision"] = (
+                    _retention_holdout.rows[-1]["stayed_at_decision"])
+                retention_holdout_log[-1]["renewal"] = _retention_holdout.rows[-1]["renewal"]
             if event is not None:
                 event["is_active_renewal"] = active_renewal
                 # Phase 2 Layer 1: SIM-internal ground truth, retained here for
@@ -3892,14 +4151,27 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     "offered": _mwu_offer is not None, "no_offer_reason": _mwu_reason,
                     "known_vulnerable": _mwu_vulnerable,
                 })
-                # THE WORLD'S ANSWER: the roll of the household's NEXT renewal against k times the
-                # P(stay) the world rolled its renewal onto this tariff against. Recorded only: the
-                # household still leaves at the move, because nothing yet supplies it at its new
-                # home (`mover_arrives` has no demand the world can draw, see the proposal's step 4).
+                # THE WORLD'S ANSWER (`simulation/move_with_us_answer.py`): the roll of the
+                # household's NEXT decision against k times the world's P(stay) at the tariff it
+                # carries -- its renewal onto a fixed term, or its current default-tariff segment's
+                # stay annualised. A follower is then supplied at its new home (step 4).
                 if _move_with_us_answers and _mwu_offer is not None:
-                    _p_carried = (_renewal_event_this_term or {}).get(
-                        "effective_retention_probability")
-                    _next_roll = churn_roll_for_renewal(billing_account, _next_renewal_str[:10])
+                    if term_tariff_type == SVT_TARIFF_TYPE:
+                        _segment_row = next(
+                            (r for r in reversed(_svt_decisions)
+                             if r["customer_id"] == billing_account
+                             and r["event_date"] == term_start_str
+                             and r["event_type"] == "stayed" and r.get("sim_segment_days")),
+                            None)
+                        _p_carried = (None if _segment_row is None else p_stay_on_default_tariff(
+                            _segment_row["realized_churn_probability"],
+                            _segment_row["sim_segment_days"]))
+                        _next_roll = default_tariff_roll(billing_account, _next_renewal_str[:10])
+                    else:
+                        _p_carried = (_renewal_event_this_term or {}).get(
+                            "effective_retention_probability")
+                        _next_roll = churn_roll_for_renewal(
+                            billing_account, _next_renewal_str[:10])
                     move_with_us_log[-1].update({
                         "take_up_scale": _move_with_us_k,
                         "p_stay_at_carried": _p_carried,
@@ -3909,6 +4181,22 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                         "moves_with_us": (_p_carried is not None and household_moves_with_us(
                             _next_roll, _p_carried, _move_with_us_k)),
                     })
+                    if move_with_us_log[-1]["moves_with_us"]:
+                        _supplied, _why_not = _supply_at_new_home(
+                            cid, commodity, billing_account, _move_end, _next_renewal_str)
+                        move_with_us_log[-1].update(_supplied)
+                        move_with_us_log[-1]["not_supplied_reason"] = _why_not
+                        if _why_not is None:
+                            # It stays ours: the term in force runs to its end, the old home to
+                            # the move date and the new one after it.
+                            term_end_str = _next_renewal_str
+                            _carried_from = _move_end.isoformat()
+                            _accounts_held_on_a_save.add(billing_account)
+                            _followed_moves.add((billing_account, _move_end))
+                            _prior_state = _journey_before_move.get((billing_account, _move_end))
+                            if _prior_state is not None:
+                                _churn_journey_register.get_journey(
+                                    billing_account).state = _prior_state
 
         if cid in pending_committee_overrides:
             hf = pending_committee_overrides.pop(cid)
@@ -3918,19 +4206,9 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
 
         if commodity == "electricity":
             customer = get_customer(cid)
-            # Phase H: adjust base EAC for EV/solar/ASHP at first term.
-            # Billing history on renewal terms already reflects actual consumption;
-            # the declared-EAC fallback needs the household multiplier.
-            # A fabric premise's EAC is already its own reads, assets and EPC included, so the
-            # multiplier that turned a TDCV band into a household would count them twice.
-            if household_demand_register is not None and cid not in fabric_series_by_customer:
-                _elec_mult = household_demand_register.eac_multiplier_for_date(cid, term_start_str)
-                _base_elec_eac = EFFECTIVE_EAC_KWH.get(cid, 0.0)
-                _adj_base_elec = max(1, round(_base_elec_eac * _elec_mult))
-            else:
-                _adj_base_elec = None
-            # Phase 25a/H: use billing records; falls back to household-adjusted declared EAC.
-            eac_kwh = _company_eac_estimate(cid, term_start_str, settled_fold, base_eac_override=_adj_base_elec)
+            # The company's volume: its own arrived reads, else the declared EAC. No household
+            # multiplier -- the household's assets are the world's; see `_company_eac_estimate`.
+            eac_kwh = _company_eac_estimate(cid, term_start_str, settled_fold)
             if is_hh_customer(customer):
                 shape_fn = hh_shape_fn(hh_consumption_by_customer[cid])
                 # Phase MT: I&C customers reduce demand 25% during Triad risk windows.
@@ -3964,6 +4242,16 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     household_register=household_demand_register, customer_id=cid,
                     eac_kwh=_base_profile_eac(customer),
                 )
+
+            # THE TERM A MOVER CARRIED: the old home's demand to the move date, the new home's
+            # trace after it (`_supply_at_new_home`). Only on this one term; later terms read the
+            # new home's data directly.
+            if _carried_from is not None:
+                shape_fn = _shape_across_a_move(
+                    shape_fn,
+                    fabric_shape_fn(_relocation_pending[cid]["series"], "electricity",
+                                    battery_dispatch=_fabric_battery_dispatch_for(cid)),
+                    _carried_from)
 
             cust_segment = customer.get("segment", "resi") if customer else "resi"
             if term_tariff_type == "deemed":
@@ -4109,11 +4397,15 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
 
         else:  # gas
             gas_customer = get_customer(cid)
+            # TWO QUANTITIES, NOT ONE (2026-10-11). `aq_kwh` is the HOUSEHOLD's gas use -- the
+            # registered AQ times its EPC-band multiplier (Phase D) -- and drives the world's
+            # demand. `hedge_aq_kwh` is what the COMPANY believes it uses, from its own reads and
+            # the registered AQ (`_company_eac_estimate`), and is all the desk and the risk see.
             aq_kwh = gas_customer["aq_kwh"]
-            # Phase D: scale gas AQ by EPC-band multiplier from household model.
             if household_demand_register is not None:
                 _gas_mult = household_demand_register.gas_eac_multiplier_for_date(cid, term_start_str)
                 aq_kwh = max(1, round(aq_kwh * _gas_mult))
+            hedge_aq_kwh = _company_eac_estimate(cid, term_start_str, settled_fold, commodity="gas")
 
             # Phase 44b: VaR-constrained hedge decision for gas fixed terms (mirrors electricity 43b).
             # Phase 56: Pass-through gas customers must not hedge — they bill at spot, so a forward
@@ -4121,7 +4413,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             if term_tariff_type == "pass_through":
                 hf = 0.0
                 current_hf[cid] = 0.0
-            elif policy.use_var_hedge_decision and unit_rate and company_fwd and aq_kwh > 0:
+            elif policy.use_var_hedge_decision and unit_rate and company_fwd and hedge_aq_kwh > 0:
                 _gas_term_days = (
                     date.fromisoformat(term_end_str) - date.fromisoformat(term_start_str)
                 ).days
@@ -4137,7 +4429,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                         term_start=term_start_str,
                         term_end=term_end_str,
                         commodity="gas",
-                        volume_kwh=aq_kwh,
+                        volume_kwh=hedge_aq_kwh,
                         forward_price_gbp_per_mwh=company_fwd,
                         unit_rate_gbp_per_mwh=unit_rate,
                         price_records=_gas_price_hist,
@@ -4153,11 +4445,11 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             # Phase NE: pass-through gas has no commodity price risk -- customer pays spot
             # directly, so company holds no naked position. Using aq_kwh here was generating
             # spurious VaR capital costs on a genuinely zero-risk position.
-            naked_kwh = 0.0 if term_tariff_type == "pass_through" else aq_kwh * (1.0 - hf)
+            naked_kwh = 0.0 if term_tariff_type == "pass_through" else hedge_aq_kwh * (1.0 - hf)
             risk = assess_term_risk(term_start_str, naked_kwh, forward_price, gas_records)
             counterfactual_risk = assess_term_risk(
                 term_start_str,
-                0.0 if term_tariff_type == "pass_through" else float(aq_kwh),
+                0.0 if term_tariff_type == "pass_through" else float(hedge_aq_kwh),
                 forward_price, gas_records,
             )
             current_risk[cid] = risk
@@ -4897,6 +5189,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         )
 
     install_stop_notice_board(None)
+    _grade_demand_estimates_against_the_year_ahead(demand_estimation_log, settled_fold)
     _psr_registrations = (
         {"psr_registrations": _deliver_psr_registrations(all_records, run_base_seed())}
         if _vulnerability_hidden_state_on else {})
@@ -4992,6 +5285,11 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         # plan, or crossed for a bill a plan covers (the arrears paid twice). AFTER the journeys,
         # whose end-of-run forced crossing is the last that can move these counts.
         "later_settlements": _payment_triad.later_settlements(),
+        # The COMPANY's bad-debt provision: a stock over its own receivables on the payment-seam
+        # ledger, by footing and age, at each 31 December and at the end. Unlike
+        # `total_bad_debt`'s provisioned reading, which is the world's incidence on revenue.
+        "company_provision": _company_provision_by_year_end(
+            _payment_triad, effective_end, _book_method_of),
         "total_net": total_net,
         "final_treasury": final_treasury,
         "starting_treasury": STARTING_TREASURY_GBP,
@@ -5010,7 +5308,11 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         "company_event_log": _build_company_event_log(
             customer_events_log, fresh_acquisitions),
         "retention_log": retention_log,
-        **({"retention_holdout_log": retention_holdout_log} if policy.retention_runs_holdout else {}),
+        **({"retention_holdout_log": retention_holdout_log,
+            # Q10: each row's days to its first later loss, so any window can be read off the run.
+            "retention_holdout_outcomes": _retention_holdout.outcomes(
+                _change_of_supplier_register.losses_notified())}
+           if policy.retention_runs_holdout else {}),
         "nudge_physics_log": nudge_physics_log,
         "retention_cost_events": retention_cost_events,
         "no_offer_churn_log": no_offer_churn_log,
@@ -5078,7 +5380,11 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             _cx_desk,
             _bill_shock_dates,
             {m["customer_id"]: m["move_date"] for m in home_move_outs},
+            dd_shock_responses_of=_dd_shock_book.responses_of,
         ),
+        # DD4b: only present when its toggles are switched on, so the shipped output is unchanged.
+        **({"dd_shock_response_summary": _dd_shock_book.summary()}
+           if not _dd_shock_strengths.off else {}),
         # Phase NJ: company churn model calibration report
         "churn_model_performance": score_churn_estimates(
             customer_events_log, retention_log, no_offer_churn_log
@@ -5111,7 +5417,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
 
 
 def _build_behavioral_trajectories(customers, hdr, cx_desk, bill_shock_dates=None,
-                                   move_out_dates=None):
+                                   move_out_dates=None, dd_shock_responses_of=None):
     """Splice the world's own per-customer trajectories around the company's
     experience record.
 
@@ -5146,6 +5452,11 @@ def _build_behavioral_trajectories(customers, hdr, cx_desk, bill_shock_dates=Non
         # mover carries the key, so every other record is unchanged.
         if cid in (move_out_dates or {}):
             out[cid]["moved_out_on"] = move_out_dates[cid]
+        # DD4b: a household's answer to a DD shock rides on each of its legs' records, for the
+        # arrears engine and the rails. Only a responding household carries the key.
+        _dd_responses = dd_shock_responses_of(household_of(cid)) if dd_shock_responses_of else None
+        if _dd_responses:
+            out[cid][_DD_SHOCK_RECORD_KEY] = list(_dd_responses)
     return out
 
 

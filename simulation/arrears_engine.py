@@ -858,6 +858,8 @@ def _resolve_bills(bills: list[dict], behavioral: dict, seed: int) -> list[dict]
     """
     # PB8 L2: a household whose DD the supplier stopped pays its later bills on receipt.
     from simulation.dd_collection_book import supplier_dd_stops
+    from simulation.dd_shock_response import RECORD_KEY as SHOCK_RECORD_KEY
+    from simulation.dd_shock_response import bill_effect, failure_table
     dd_stops = supplier_dd_stops(bills, behavioral, seed)
     rows = []
     for bill in sorted(bills, key=lambda b: (b["customer_id"], b["period_end"])):
@@ -885,17 +887,27 @@ def _resolve_bills(bills: list[dict], behavioral: dict, seed: int) -> list[dict]
             continue
         stress = stress_for_year(behavioral.get(cid) or {}, int(period_end[:4]))
         method = paying_method(segment, amount, cid, commodity, period_end, dd_stops)
+        # DD4b: the household's own answer to a DD shock (`simulation/dd_shock_response.py`). Absent
+        # on every record while its toggles are at zero, so this is NO_EFFECT on the shipped world.
+        shock = bill_effect((behavioral.get(cid) or {}).get(SHOCK_RECORD_KEY), period_end[:7])
+        if method == "direct_debit" and shock.cancelled:
+            method = PAY_ON_RECEIPT_METHOD
         exit_ = mover_final_bill_outcome(behavioral.get(cid) or {}, cid, period_end, commodity,
                                          amount, method, stress, seed)
         if exit_ is not None:
             outcome, days_late, part_paid = exit_
             amount = round(amount - part_paid, 2)
+        elif method == "direct_debit" and shock.cancel_return:
+            # The mandate was cancelled at the bank: the collection comes back unpaid.
+            outcome, days_late = "failed", 0
         else:
             outcome, days_late = payment_outcome(
                 method, stress, bill_substream(seed, cid, period_end, commodity),
                 segment,
                 _fuel_poor_for_bill(payment_method(segment, amount, cid, commodity), cid),
                 _tone_for_bill(method, cid, period_end), cid,
+                dd_failure_prob=(failure_table(shock.failure_multiplier)
+                                 if method == "direct_debit" else None),
             )
         rows.append({"customer_id": cid, "period_end": period_end, "commodity": commodity,
                      "amount_gbp": amount, "due_date": due_date, "method": method,

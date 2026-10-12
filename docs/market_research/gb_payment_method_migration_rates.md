@@ -176,3 +176,109 @@ should come out of the policy acting on the book, not go in as a number.
 3. **The household-authored route stays parked** on the published-rate gap, unchanged.
 
 PB8's `block_reason` in the maturity map points here.
+
+---
+
+## Addendum 2026-10-11 — the full range of arrangements, who/why, and cap treatment (for a personal payment plan)
+
+*Research pass, discovery agent, for the director's 2026-10-11 instruction on a personal payment
+plan merged with debt management. Extends PB8 with the arrangement taxonomy, cap treatment, and
+what is/is not known about take-up and choice.*
+
+### 1. Taxonomy — ESTABLISHED: only three cap-recognised methods; everything else is a variant
+
+DESNZ's *Quarterly Energy Prices* (Dec 2025, p.9): *"We track the three main payment methods...
+prepayment, credit and direct debit."* PPM = pay-as-you-go against a topped-up balance. Standard
+credit (SC) = pay on receipt of bill. DD = "a recurring payment based on an estimated usage which is
+**revised based on actual usage**" — DESNZ's own definition makes review mechanics part of what DD
+*is*. **There is no fourth cap category.** Variable DD, budget plans, seasonal/flexible DD and smart
+PAYG are implementations of one of the three (variable DD is still DD; smart PAYG is PPM on a smart
+meter). **Load-bearing for a plan: a "seasonal" or "flexible" product sits on top of a regulated
+method's cost basis, it does not get one of its own.**
+
+### 2. Who, and why — shares re-confirmed; WHY is thinner, and points toward non-choice
+
+Shares: DD ~72–73% (Sept 2025); SC+PPM remainder ~27–28%; **the SC-vs-PPM split of that remainder is
+still NOT ESTABLISHED** (JS-rendered Ofgem data portal, unchanged gap; QEP's XLSX tables 2.2–2.4 were
+not pulled this session — concrete next step, not attempted here).
+
+Ofgem's *Decision on adjusting standing charges for Prepayment Customers* (23 Feb 2024), citing its
+own *Consumer Impacts of Market Conditions* survey (Wave 3 Dec 2022, Wave 4 Jul 2023), is the useful
+find: *"the primary reason customers choose their payment methods, **noting that not all customers
+are able to actively choose**."* On SC specifically: *"a doubling in the proportion of SC customers
+falling behind in their energy bills"* between the two waves (7 months apart), plus **"low awareness
+of the price differential between SC and DD"** — Ofgem's own conclusion that price differentials are
+"an ineffective method of incentivising payment method choice" for this group.
+
+**ESTABLISHED (H), qualitative, no numeric split:** PPM is frequently not actively chosen (debt
+install/remote switch, landlord-fitted at move-in — consistent with PB8's route-2 research above); SC
+shows rising arrears and low DD-price awareness, consistent with inertia/no-DD-access rather than
+deliberate budgeting choice for a material share of its users. **GAP, stated explicitly:** the brief's
+"control, budgeting, distrust of DD" as *positive* chosen reasons is not evidenced in anything read
+this session — what is evidenced points the other way. No income/tenure/vulnerability crosstab
+against method was reachable (survey data tables not pulled).
+
+### 3. Cap treatment — ESTABLISHED, with an exact, recent magnitude
+
+**PPM↔DD standing-charge levelisation (Phase 1) is real, dated, quantified.** Ofgem decision, 23 Feb
+2024, effective 1 April 2024, reconciled between suppliers (REC R0147): *"The £52 benefit for PPM
+customers comes at a cost of £10 per DD customer [/yr, inc. VAT]... net benefit of £112m... reductions
+in total debt of £12.3m."* **Phase 2 (SC↔DD debt-cost levelisation), planned for April 2025, was
+PAUSED** per Ofgem's Aug 2024 open letter — standard credit's premium over DD remains un-levelised.
+
+**Current premium, DESNZ QEP Dec 2025 Chart 2.4, combined dual-fuel, 2025 averages:**
+
+| method | 2025 avg annual bill | vs DD | vs 2024 |
+|---|---:|---:|---|
+| Credit (SC) | **£2,015** | **+£131** | +£47 / +2.4% |
+| Direct debit | **£1,884** | — | −£1 / −0.1% |
+| Prepayment | **£1,817** | **−£67** | +£65 / +3.7% |
+
+**Striking, confirmed (not derived): prepayment is now the CHEAPEST method (£198 below credit),
+reversing the historical PPM premium** (Ofgem 2014: ~£80/yr PPM premium over DD, down from ~£140 in
+2009 — kept as pre-levelisation baseline only, superseded by the table above). **Standard credit,
+untouched by levelisation, is the clear most-expensive method (£131–198/yr).** For a plan: moving an
+SC household onto DD/PPM is a larger, sourced saving than anything achievable by adjusting within SC.
+
+### 4. Migration — one addition to the existing gap list
+
+The Phase 1 reconciliation mechanism (REC R0147) is itself evidence Ofgem expects ongoing PPM↔DD flow
+— it exists to true up standing-charge revenue between suppliers as customers move. **Indirect (L)
+evidence of continuing flow, not a rate**; none of the three gross-rate gaps already logged above are
+closed by this addition.
+
+### What this means for a personal payment plan
+
+1. **Method is now a secondary lever to amount.** Since PPM is at parity-or-cheaper than DD, the
+   biggest cap-driven saving is moving an SC household onto DD/PPM (£131–198/yr), not the collection
+   pattern once there — price that move explicitly in any customer-level value model.
+2. **"Not actively choosing" is the operative finding on PPM, plausibly SC too** — a plan proposing a
+   method change is evidenced not to be fighting informed preference in a large share of cases, but no
+   take-up rate for an offered switch is published; do not assume one.
+3. **SC/DD debt-cost levelisation is paused, not delivered** — a plan relying on future parity there
+   is building on a stalled policy; Ofgem's promised "Autumn 2024" debt-policy update was not found
+   published as of this session.
+4. **The SC/PPM split of the non-DD remainder and any income/tenure/vulnerability crosstab remain the
+   two load-bearing gaps**, unchanged from PB8's prior verdict — next step is pulling the QEP XLSX
+   tables and the Consumer Impacts Wave 3/4 data tables directly, not their policy-document summaries.
+
+### Sources added this pass
+
+- DESNZ, *Quarterly Energy Prices*, December 2025, pp.9–10 (Chart 2.4) — full PDF read, not only the
+  commentary extract previously cited: <https://assets.publishing.service.gov.uk/media/6942cb008f4636fa2c547df5/quarterly-energy-prices-december-2025.pdf>. Retrieved 2026-10-11.
+- Ofgem, *Levelling the cost of standing charges on prepayment meters* (workstream history: CfE Apr
+  2023 → consultation Aug 2023 → statutory consultation Nov 2023 → decision Feb 2024) —
+  <https://www.ofgem.gov.uk/consultation/levelling-cost-standing-charges-prepayment-meters>. Retrieved
+  2026-10-11.
+- Ofgem, *Decision on adjusting standing charges for Prepayment Customers*, 23 Feb 2024 (117pp; Exec
+  Summary and §2 read directly) — <https://www.ofgem.gov.uk/sites/default/files/2024-02/Decision%20on%20adjusting%20standing%20charges%20for%20Prepayment%20Customers.pdf>. Retrieved 2026-10-11. Source
+  of the £52/£10/£112m figures and the "not all customers are able to actively choose" / SC-awareness
+  quotes.
+- Ofgem, landing page carrying the Aug 2024 Phase 2 pause notice —
+  <https://www.ofgem.gov.uk/decision/decision-adjusting-standing-charges-prepayment-customers>.
+  Retrieved 2026-10-11.
+- Ofgem, *Ofgem publishes analysis: price differences between payment methods* (pre-cap era) —
+  <https://www.ofgem.gov.uk/press-release/ofgem-publishes-analysis-price-differences-between-payment-methods>. Retrieved 2026-10-11. Historical ~£80/yr (2014) vs ~£140/yr (2009) PPM premium, superseded
+  by §3's current figures.
+
+*Fetched live 2026-10-11. No figure in this addendum is simulation output.*

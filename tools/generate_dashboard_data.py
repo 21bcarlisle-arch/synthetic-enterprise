@@ -1765,9 +1765,12 @@ def extract_monthly_ops(data):
     dem_source_counts: dict[str, dict[str, int]] = _dd(lambda: {"prior_billing": 0, "oracle_fallback": 0})
     for entry in data.get("demand_estimation_log", []):
         yr = entry.get("term_start", "")[:4]
-        if not yr:
+        if not yr or entry.get("error_pct") is None:
+            # An ungraded row: the run did not settle the year ahead of it (run_phase2b's
+            # `_grade_demand_estimates_against_the_year_ahead`). Counting it as 0% would be a
+            # perfect forecast nobody made.
             continue
-        dem_by_year[yr].append(abs(entry.get("error_pct", 0.0)))
+        dem_by_year[yr].append(abs(entry["error_pct"]))
         if entry.get("source") == "prior_billing":
             dem_source_counts[yr]["prior_billing"] += 1
         else:

@@ -75,7 +75,16 @@ def price_match_save_rate(renewal_unit_rate_gbp_per_mwh: float | None,
     retention desk's save meets that deal where it can afford to. Every input is something a
     supplier holds: the published default tariff for the fuel, the published gap between the
     cheapest deal on the market and that default, and the cost floor of the rate it struck itself.
-    No size is chosen here, which is what kept `cut_share` at None on every standing policy.
+
+    CORRECTED 2026-10-11, beside the claim it replaces ("No size is chosen here"): the MATCH IS A
+    DESIGN CHOICE WITH NO PUBLISHED BASIS. No rule or documented GB practice prices a save as a
+    match to the market's best deal (SLC 22B's derogation leaves a retention tariff's depth
+    unregulated; the nearest precedent, CMA 2016 §279, is a discount off the supplier's OWN default).
+    The published gap sizes what is matched; it does not say matching is how a save is sized. The
+    reasoning is a practitioner's -- a leaver is leaving for something cheaper, matching it is the
+    least that answers the reason, the floor stops a guaranteed loss -- and is stated as such in
+    docs/market_research/a_save_offer_against_the_switching_rules_and_the_seam.md §7d, with the
+    alternatives the evidence would allow.
 
     None -- no offer -- where any input is missing, where the market had nothing cheaper than the
     default (a gap at or below zero, as through 2022), or where the match would not beat the
