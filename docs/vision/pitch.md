@@ -1,3 +1,5 @@
+> **The June 2026 pitch, kept as written.** Since superseded: 'survived the 2021-2022 energy crisis', the 85% hedge floor, 18/19 retention, the four-hour opt-out, local-model execution. Current canon: `docs/design/DIRECTOR_CANON.md`. *(Banner 2026-10-12, the director's canon-alignment steer.)*
+
 Please note the below is intended and an external document to explain what we are doing and why. It will provide useful context for you and your planning and decision making about overall goals and rationale. It should also inform the about section of website.
 
 ****

@@ -34,6 +34,11 @@ the score. The new one makes carbon one of three currencies the household is sav
 page (`E5`, the SAVED/SPENT/NET ledger, the £/tCO₂e front-page target) survives intact and keeps its
 level; what it loses is the claim to be the whole purpose.
 
+**Canon v4 (2026-10-12), quoted:** carbon's job (CO1) is "to show customers what they've saved and
+could save in CO2, so those motivated by it can enjoy it. That clarifies the mission's carbon part
+rather than changing it". Time (M3) "means household effort, measured in its own unit (household
+minutes per kind of activity) and never converted to pounds." Phases: canon §2.
+
 ### What follows from it, that no document said before
 
 **1. Every decision has two sides, and transfer is not creation.** Value is created and *then* shared,
@@ -51,7 +56,7 @@ rather than merely unreachable.
 | | household side (value CREATED) | our side (value SHARED) |
 |---|---|---|
 | **money** | **instrumented 2026-08-28** — `company/analytics/household_value_share.py` computes what a household kept against the published SVT at its own metered volumes, per customer-year; read by the price ladder, carried per ARM by the value-cycle A/B, and **published beside the company's own net margin on `/capabilities/` since 2026-08-28** — the first surface on which a reader meets both sides of one decision; read by no decision surface (`A47` at L2) | **EARN** — instrumented; the only leg of the *scored* objective |
-| **time** | **does not exist** | **does not exist** |
+| **time** | household minutes per kind of activity, never converted to pounds (M3); not yet instrumented | not yet instrumented |
 | **carbon** | **ABATE** — designed, not instrumented (`E5`) | £/tCO₂e — designed, downstream of the cell to its left |
 
 *The money row moved on the day the mission landed and the distinction it forced is the useful part:
@@ -199,7 +204,7 @@ household's emissions are now measured. `company/carbon/half_hourly_footprint.py
 half-hourly intensity by the half-hourly reads of the accounts that have them and profiles the rest,
 and Explore publishes it. The ledger is still called by nothing, and abatement is still unmeasured,
 because nothing supplies the counterfactual it needs.)*
-**Method:** the harness itself — gates, R1–R17, daily self-note — the third product. *(Corrected
+**Method:** the harness itself — gates, R1–R15 (canon H1), daily self-note — the third product. *(Corrected
 2026-10-04: "twin approvals" removed; the twin last acted on 2026-07-16.)*
 
 ## TIMEFRAME 2 — EVOLUTION (registered, sequenced, not yet true)
@@ -220,10 +225,11 @@ VAT/CCL tax cycle · cannot-pay/will-not-pay collections physics.
 income shocks) · continuous engagement replacing the three bins · price-sensitivity and attitudes
 *discovered* through conversations and offers, never tagged · misclassification-cost physics ·
 holdout-measured uplift so "this segment justifies its treatment" is proven, not asserted.
-**Carbon becomes the headline:** E5 instrumented — NESO intensity × every half-hourly read →
-per-customer trajectories → **£/tCO₂e on the front page**.
-**Endgame:** whole company lives rerun across scenario worlds to death or endpoint — the evolutionary
-tournament where EV is fitness and mortality is selection.
+**Carbon's public face (CO1, CO3):** the customer's saved and could-save CO₂ is what is shown; E5
+instrumented — NESO intensity × every half-hourly read → per-customer trajectories. £/tCO₂e "is a
+diagnostic, not a target", kept internal in three ledgers.
+**Endgame:** whole company lives rerun across scenario worlds to death or endpoint. The fitness
+function is open and the director's until Phase 3 (canon §2).
 
 ---
 

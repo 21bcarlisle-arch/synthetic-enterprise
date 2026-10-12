@@ -1,5 +1,7 @@
 # Human Simulation Layer — Vision and Build Requirements
 
+> **Banner 2026-10-12 (canon v4).** Superseded parts: the one-sided CLV objective (now canon M2 and C7); the two bill-shock thresholds, 20% and 30% (now F20: the shock is the payment change); build phases A–D (now P1 and canon §2). Current canon: `docs/design/DIRECTOR_CANON.md`.
+
 ## Read First: The Founding Vision
 
 Before reading this document, read `docs/vision/pitch.md` in the
