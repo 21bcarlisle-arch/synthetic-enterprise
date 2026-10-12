@@ -213,3 +213,16 @@ DD4b (a household cancelling or failing after a bill shock), so avoiding shocks 
 **cancellations** as a distinct household act (the rails carry amendments); and the debt-to-prepayment route,
 which is the end state the engine must sometimes reach legally. Each is world work blocking this supplier result,
 built with its knowledge page first.
+
+## Director's rulings (2026-10-12)
+
+*Verbatim:* "Rulings on your payment-plan and debt proposal: 1. Yes: build the world's response to a bill shock (DD4b,
+mandate cancellation as its own act, the debt-to-prepayment route) before grading the engine. 2. Yes: start with the
+supplier-controlled levers only. Customer-chosen options come later, as sensitivities across a take-up range. 3. Good
+catch on Ofgem's gross credit test. Keep the portfolio ceiling on credit held." And: "After the engine's first result,
+unify the company's four consumption forecasts into the one forecast, using the best against held-back actuals, and
+point purchasing, DD setting, unbilled estimation and customer value at it."
+
+*Standing since 2026-10-11 and governing the order:* world first (household side from research, labelled ranges),
+freeze then solve (predictions filed before any supplier arm), separate lanes (the supplier reads only the seam; graded
+on fresh seeds across the world's ranges), truth stays an instrument.
