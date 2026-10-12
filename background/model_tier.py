@@ -63,6 +63,9 @@ from pathlib import Path
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 PILOT_CONFIG = PROJECT_DIR / "docs" / "observability" / "model_tier_pilot.yaml"
 TIER_LOG = PROJECT_DIR / "docs" / "observability" / "model_tier_log.jsonl"
+ADVISOR_TRIAL = PROJECT_DIR / "docs" / "observability" / "advisor_trial.yaml"
+#: The director's bound on the trial: "at most seven days". A window drawn wider is refused whole.
+ADVISOR_TRIAL_MAX_DAYS = 7
 
 OPUS = "claude-opus-5-5"
 # THE ONE PLACE THE OPUS-TIER MODEL IS NAMED (2026-09-27). Opus 5.5 is $4/$20 per M tokens against
@@ -163,6 +166,7 @@ class TierDecision:
     pilot_hits: list[str] = field(default_factory=list)
     why: str = ""
     reason_sha: str = ""
+    advisor: str = ""                          # set only inside the advisor trial's window
 
     @property
     def is_pilot(self) -> bool:
@@ -280,6 +284,36 @@ def classify(reason: str, *, config: Path | None = None, today: str | None = Non
     )
 
 
+def advisor_trial(config: Path | None = None, *, today: str | None = None) -> "tuple[str, str] | None":
+    """(main model, advisor model) while the director's advisor trial is live, else None.
+
+    It OVERRIDES classify() for the worker ticks: the director set aside the 2026-08-12
+    reserved-marker rule for them, for the trial only. FAIL-CLOSED TOWARD THE OLD RULE: a missing,
+    malformed or disabled file, a date outside [starts, ends], or a window wider than
+    ADVISOR_TRIAL_MAX_DAYS all return None, and classify() decides as before."""
+    import datetime
+    import time
+    path = ADVISOR_TRIAL if config is None else config
+    try:
+        import yaml
+        data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+        if not isinstance(data, dict) or data.get("enabled") is not True:
+            return None
+        starts, ends = str(data.get("starts") or ""), str(data.get("ends") or "")
+        span = (datetime.date.fromisoformat(ends) - datetime.date.fromisoformat(starts)).days
+        if not 0 <= span <= ADVISOR_TRIAL_MAX_DAYS:
+            return None
+        now = today or time.strftime("%Y-%m-%d")
+        if not starts <= now <= ends:
+            return None
+        main, advisor = data.get("main"), data.get("advisor")
+        if not (isinstance(main, str) and main and isinstance(advisor, str) and advisor):
+            return None
+        return main, advisor
+    except Exception:
+        return None
+
+
 def log_decision(decision: TierDecision, reason: str, *, outcome: str = "SPAWNED",
                  path: Path | None = None, now: float | None = None) -> None:
     """Append one auditable line per tick decision. Never raises — measurement must not be able to
@@ -299,6 +333,7 @@ def log_decision(decision: TierDecision, reason: str, *, outcome: str = "SPAWNED
             "pilot_hits": decision.pilot_hits,
             "why": decision.why,
             "reason_sha": decision.reason_sha,
+            "advisor": decision.advisor,
             "reason_head": (reason or "")[:400],
             "outcome": outcome,
         }

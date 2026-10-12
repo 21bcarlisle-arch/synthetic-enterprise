@@ -28,6 +28,45 @@ the staging root is never empty. So:
 Which of those is intended is canon intent, so it was raised to `for_the_director` with a
 recommendation (see the commit that landed this file). Until he answers, nothing below is built.
 
+**Answered (director, 2026-10-12):** "I set aside my 12 August reserved-marker rule for the worker
+ticks only, for the trial's duration (at most seven days), using a dated launch flag, with the
+pre-registered stop rule as the way back." Built as the launch-flag override:
+`docs/observability/advisor_trial.yaml` (2026-10-12 to 2026-10-19; a wider window is refused in
+code), read by `model_tier.advisor_trial()` and applied in `worker_tick.apply_advisor_trial()`.
+**Sonnet 5, not 5.5:** Claude Code 2.1.282 has no `claude-sonnet-5-5`. Opus 5.5 as advisor to
+Sonnet 5 was probed and attached.
+
+## The stop rule (pre-registered 2026-10-12, before the first trial tick)
+
+**Baseline:** the Opus-only worker ticks of the 7 days to 2026-10-12, read by
+`python3 -m tools.tick_burn_rate --days 7` after its double-count fix (one usage per message id):
+**207 turns, 74% landed, median $2.44 weighted, $568.93 total = $3.71 per landed turn.** Rework:
+`tools/model_tier_report.py`'s `rework_rate` over the same 7 days, read at the first report.
+
+**Prediction, written before the answer:** landed share 65-75%; $ per landed turn $1.50-2.50
+(Sonnet's list is half Opus 5.5's on fresh tokens and equal on cache reads, which dominate; each
+advisor call re-reads the conversation uncached at Opus rates, about $0.40 at a 100k context).
+
+**Advisor attached** is a precondition, not a measure: until a worker-tick transcript shows an
+`advisor_message` iteration, no trial turn counts. If the first 10 trial ticks show none, the trial
+is off (`enabled: false`) and the cause is fixed before it reopens.
+
+**STOP at once (`enabled: false`, then say so)** on any of:
+1. after at least 40 trial ticks, landed share below **64%** (ten points under the baseline);
+2. $ per landed turn at or above the baseline **$3.71** after 40 ticks (no saving to buy);
+3. a trial landing reverted for a correctness defect, or a red at HEAD opened by a trial commit,
+   at a rate above the baseline's `rework_rate`;
+4. a trial turn crossing a wall (the reserved markers it no longer routes on are the reason to watch).
+
+**Propose KEEP** (and extension to other units, which is his) if, at the window's end, landed share
+is at least 70%, $ per landed turn is at most **60% of baseline ($2.23)**, and rework is no higher.
+Anything between is reported as inconclusive with the numbers, and the trial lapses on 2026-10-19.
+
+**Measured per turn:** the serving model and the advisor's calls and tokens, from each transcript
+(`tick_burn_rate`: `model`, `advisor_calls`, `advisor_tokens`, the advisor priced at its own list);
+the tier and the advisor named at dispatch in `model_tier_log.jsonl` (`tier: advisor_trial`).
+What each call was about is read from a sample of transcripts at the report, not counted.
+
 ## Deliverables
 
 1. **Pre-register the stop rule** before the first trial tick, in this file, against the five

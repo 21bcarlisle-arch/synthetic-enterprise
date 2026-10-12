@@ -303,3 +303,32 @@ def test_log_decision_never_raises_on_an_unwritable_path(tmp_path):
     """Measurement must not be able to wedge the tick."""
     d = mt.classify("anything", config=tmp_path / "none.yaml")
     mt.log_decision(d, "anything", path=Path("/proc/definitely/not/writable/x.jsonl"))
+
+
+def _trial(tmp_path, **over):
+    cfg = {"enabled": True, "starts": "2026-10-12", "ends": "2026-10-19",
+           "main": "claude-sonnet-5", "advisor": "claude-opus-5-5", **over}
+    p = tmp_path / "advisor_trial.yaml"
+    p.write_text("\n".join(f"{k}: {json.dumps(v)}" for k, v in cfg.items()))
+    return p
+
+
+def test_the_advisor_trial_is_live_only_inside_its_window_and_never_wider_than_seven_days(tmp_path):
+    """The rare branch first: inside the window the trial CAN be taken. Then every way it must lapse."""
+    live = ("claude-sonnet-5", "claude-opus-5-5")
+    assert mt.advisor_trial(_trial(tmp_path), today="2026-10-15") == live
+    assert mt.advisor_trial(_trial(tmp_path), today="2026-10-19") == live
+    assert mt.advisor_trial(_trial(tmp_path), today="2026-10-20") is None
+    assert mt.advisor_trial(_trial(tmp_path), today="2026-10-11") is None
+    assert mt.advisor_trial(_trial(tmp_path, ends="2026-10-20"), today="2026-10-15") is None
+    assert mt.advisor_trial(_trial(tmp_path, enabled=False), today="2026-10-15") is None
+    assert mt.advisor_trial(_trial(tmp_path, advisor=""), today="2026-10-15") is None
+    assert mt.advisor_trial(tmp_path / "missing.yaml", today="2026-10-15") is None
+
+
+def test_the_committed_advisor_trial_names_models_the_burn_tool_can_price():
+    import yaml
+
+    from tools.tick_burn_rate import PRICE
+    data = yaml.safe_load(mt.ADVISOR_TRIAL.read_text())
+    assert data["main"] in PRICE and data["advisor"] in PRICE, data
