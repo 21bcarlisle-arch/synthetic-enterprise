@@ -20,10 +20,11 @@ reassessment) are company decisions and are not here. What is here is what a HOU
   * ITS ANSWER TO THE PREPAYMENT ROUTE. When a supplier offers a prepayment meter to recover a debt
     the household agrees or not (`answer_prepayment_offer`; a labelled range, shipped at 0). When
     the meter is changed -- by agreement or under warrant, which is the supplier's act and the
-    household's only response to it is to live with it -- the debt is recovered from its top-ups at
-    the published mean weekly rate for new PPM-for-debt installs (`debt_recovery_on_prepayment`).
-    No supplier in the run pursues this route yet, so nothing calls these two in the run; they are
-    the world's side for the day one does.
+    household's only response to it is to live with it -- the debt would be recovered from its
+    top-ups at the published mean weekly rate for new PPM-for-debt installs (GBP 6.01 electricity,
+    GBP 4.40 gas, Ofgem 2025; `company_debt_management.md` s.2). No meter is changed for debt in
+    the run, so that recovery is NOT built here (removed 2026-10-12: a cited constant no live code
+    reached); it is built where the run first changes a meter for debt.
 
 NAMED SIMPLIFICATIONS:
   1. One draw per household per billed month, the annual share taken as a monthly hazard, keyed
@@ -54,12 +55,6 @@ TOGGLE_PPM_TAKE_UP = "method_prepayment_offer_take_up_share"
 
 #: Why a cancellation happened, on the book's record. A shock-driven row carries no cause.
 CAUSE_OWN_REASONS = "own_reasons"
-
-#: Ofgem, Debt and arrears indicators (calendar 2025, new prepayment meters installed for debt):
-#: mean weekly debt repayment, GBP. Cited in `docs/market_research/company_debt_management.md` s.2
-#: and `debt_and_collections.md` (P4). A mean over new installs, not over every PPM in debt.
-PPM_DEBT_WEEKLY_REPAYMENT_GBP = {"electricity": 6.01, "gas": 4.40}
-
 
 @dataclass(frozen=True)
 class MethodStrengths:
@@ -130,15 +125,6 @@ def answer_prepayment_offer(account_id: str, offered_on: str,
         return None
     u = substream(STREAM_NAMESPACE, f"ppm_offer::{account_id}::{offered_on}", 0).random()
     return u < strengths.prepayment_take_up_share
-
-
-def debt_recovery_on_prepayment(debt_gbp: float, fuel: str = "electricity") -> dict:
-    """After a meter is changed for debt: the weekly deduction from the household's top-ups and the
-    weeks it takes to clear the debt at that rate."""
-    weekly = PPM_DEBT_WEEKLY_REPAYMENT_GBP[fuel]
-    pence = round(max(0.0, debt_gbp) * 100)
-    weekly_pence = round(weekly * 100)
-    return {"weekly_gbp": weekly, "weeks_to_clear": -(-pence // weekly_pence)}
 
 
 def summarise(book, strengths: Optional[MethodStrengths] = None) -> dict:

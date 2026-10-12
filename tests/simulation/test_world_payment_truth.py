@@ -3,8 +3,9 @@ mechanisms act on (2026-10-12, the world lane).
 
 What each control names as its own defect:
 
-  * `test_the_shipped_engine_draws_as_before` -- the switch on by default, or a record without the
-    truth read as if it had one.
+  * `test_the_shipped_world_runs_on_one_truth_and_a_record_without_it_draws` -- the switch off in
+    the shipped world (2026-10-12: the default became ON, the seat's decision), or a record without
+    the truth read as if it had one.
   * `test_the_engine_takes_each_bills_outcome_from_the_truth_and_draws_only_where_it_has_none` --
     two truths again: the engine's own draw overriding the household's, or no fallback counted.
   * `test_a_repayment_reaches_the_write_off_whole_part_or_not_at_all` -- the partition first
@@ -41,8 +42,8 @@ def _truth(failed=("2022-03",), repayments=(), months=MONTHS):
             "repayments": list(repayments)}
 
 
-def test_the_shipped_engine_draws_as_before():
-    assert wpt.UNIFIED is False
+def test_the_shipped_world_runs_on_one_truth_and_a_record_without_it_draws():
+    assert wpt.UNIFIED is True
     bills, behavioral, _ = _book()
     once = ae._resolve_bills(bills, behavioral, 42)
     assert once == ae._resolve_bills(bills, dict(behavioral), 42)
