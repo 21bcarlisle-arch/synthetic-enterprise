@@ -40,20 +40,28 @@ def test_real_money_escalates():
     assert verdict.is_one_way_door is True
 
 
-def test_irrecoverable_data_loss_is_released_but_still_classified():
-    """Released: the loss is repo/simulation state, recoverable from origin and history.
-    No real person, no real money -- the ruling's own test for a retention."""
-    verdict = classify_action("run git push --force to origin main to fix the history")
-    assert verdict.is_one_way_door is False
-    assert verdict.advisory_category == OneWayDoorCategory.IRRECOVERABLE_DATA_LOSS
+def test_destroying_evidence_is_reserved_and_routine_recoverable_resets_are_not():
+    """Canon v4 G5 (2026-10-12): "destroying evidence or irrecoverable data" is reserved again.
+    The routine, recoverable moves this repo sanctions must stay unclassified, or G5 would put
+    the director on the path of ordinary work."""
+    for text in ["run git push --force to origin main to fix the history",
+                 "delete the run ledgers and transcripts from last week"]:
+        verdict = classify_action(text)
+        assert verdict.is_one_way_door is True, text
+        assert verdict.category == OneWayDoorCategory.IRRECOVERABLE_DATA_LOSS, text
+    for text in ["git reset --hard origin/main in the scratch worktree",
+                 "rm -rf the pytest temp directories under /tmp"]:
+        assert classify_action(text).is_one_way_door is False, text
 
 
-def test_security_control_is_released_but_still_classified():
-    """The category the director re-tagged BY NAME: these are the harness's own controls,
-    and disarming one stops a simulation rather than protecting anybody real."""
+def test_security_posture_is_reserved_and_the_harness_internal_gates_are_not():
+    """G5 reserves "security posture" (the machine's own sandbox and privileges). The harness's
+    internal gates protect no real person and are not in G5."""
     verdict = classify_action("update the security profile to grant broader tool access")
-    assert verdict.is_one_way_door is False
-    assert verdict.advisory_category == OneWayDoorCategory.SECURITY_SAFETY_CONTROL
+    assert verdict.is_one_way_door is True
+    assert verdict.category == OneWayDoorCategory.SECURITY_SAFETY_CONTROL
+    assert classify_action("widen the sandbox egress allowlist").is_one_way_door is True
+    assert classify_action("change the staging flow's watcher cadence").is_one_way_door is False
 
 
 def test_provisional_publish_does_not_count_as_irretractable():
@@ -189,7 +197,7 @@ def test_security_profile_still_classifies_as_security_not_platform_admin():
     """Security profiles still CLASSIFY as SECURITY_SAFETY_CONTROL (distinct from
     PLATFORM_ADMINISTRATION), they simply no longer gate."""
     verdict = classify_action("change the security profile to grant broader tool access")
-    assert verdict.advisory_category == OneWayDoorCategory.SECURITY_SAFETY_CONTROL
+    assert verdict.category == OneWayDoorCategory.SECURITY_SAFETY_CONTROL
 
 
 def test_a_released_match_never_masks_a_reserved_one():
@@ -211,18 +219,18 @@ def test_released_categories_are_exactly_the_simulation_internal_ones():
     """The released set is the ruling's own list, pinned so a later edit cannot quietly
     release a real-world wall (or re-gate a released one) without this test noticing."""
     assert _RELEASED_CATEGORIES == frozenset({
-        OneWayDoorCategory.IRRECOVERABLE_DATA_LOSS,
-        OneWayDoorCategory.SECURITY_SAFETY_CONTROL,
         OneWayDoorCategory.VALUES_DECISION,
         OneWayDoorCategory.PLATFORM_ADMINISTRATION,
     })
-    # The four real-world consequences the director reserved, and nothing else.
+    # Canon v4 G5's six bullets, and nothing else (credentials and security posture share one).
     assert RESERVED_CATEGORIES == frozenset({
         OneWayDoorCategory.REAL_MONEY,
         OneWayDoorCategory.REAL_WORLD_COMMITMENT,
         OneWayDoorCategory.IRRETRACTABLE_PUBLIC_CLAIM,
         OneWayDoorCategory.REAL_CUSTOMER_OR_MARKET,
         OneWayDoorCategory.LIVE_CREDENTIAL_EXPOSURE,
+        OneWayDoorCategory.SECURITY_SAFETY_CONTROL,
+        OneWayDoorCategory.IRRECOVERABLE_DATA_LOSS,
     })
     assert not (RESERVED_CATEGORIES & _RELEASED_CATEGORIES)
 
@@ -231,7 +239,7 @@ def test_a_released_verdict_is_never_silently_blank():
     """FAIL-SILENT guard (R15): "released" must mean classified-and-logged, not dropped.
     A released verdict that came back with no advisory_category would be indistinguishable
     from "nothing matched" -- the audit trail the ruling explicitly kept would vanish."""
-    verdict = classify_action("disable the epistemic verifier gate for this run")
+    verdict = classify_action("change the branch protection on the repo")
     assert verdict.is_one_way_door is False
     assert verdict.advisory_category is not None
     assert "released" in verdict.reason.lower()
