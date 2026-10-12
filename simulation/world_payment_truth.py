@@ -28,10 +28,10 @@ Case, the running-account default the company ledger also uses --
 debtor, restarts the limitation clock (Limitation Act 1980 s.29(5), as the engine's own payments
 already do). Knowledge: `docs/market_research/bad_debt_provisioning.md`, "One payment truth".
 
-SHIPPED OFF. `UNIFIED = False`, so the arrears engine draws as before and the shipped book is
-byte-identical. Switching it on changes the shipped book's bad debt: that change is a world
-correction, measured and recorded, and making it the shipped default is the seat's call because
-controls elsewhere pin today's book.
+SHIPPED ON since 2026-10-12. It first landed off (`62596685a`, byte-identical book); the seat made
+it the default once the rails and the mover's final bill had joined it (`c11ec1e50`), as a world
+correction before any supplier result was seen. On 40 founders, budget 0, it moved bad debt from
+GBP 440.85 to 116.48 and net from 31,124.47 to 31,448.84 (the freeze record has the measurement).
 
 NAMED SIMPLIFICATIONS:
   1. A bill the triad has no record for (a leg it does not collect, or a month outside its run)
@@ -48,8 +48,10 @@ from __future__ import annotations
 import datetime as dt
 from typing import Optional
 
-#: The switch. Off: the arrears engine draws its own outcomes, as shipped.
-UNIFIED = False
+#: The switch. ON, the shipped world since 2026-10-12 (the seat's decision, a world correction made
+#: before any supplier result was seen: bills households repaid were being written off). Off brings
+#: back the engine's own draw, for comparing against books produced before the correction.
+UNIFIED = True
 
 #: The behavioural-record key the run writes and the arrears engine reads.
 RECORD_KEY = "world_payment_truth"

@@ -1,4 +1,5 @@
 **Severity:** LATENT · **Lane:** A_strategy_governance · **Epoch:** unassigned · **Atom:** `unminted`
+**Knowledge:** none -- the director's canon and its alignment steer, not domain research; installed as docs/design/DIRECTOR_CANON.md
 
 # [DIRECTOR-STEER] Canon in one home, every page aligned (2026-10-12)
 

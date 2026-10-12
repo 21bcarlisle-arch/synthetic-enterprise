@@ -1,4 +1,5 @@
 **Severity:** LATENT · **Lane:** A_strategy_governance · **Epoch:** unassigned · **Atom:** `unminted`
+**Knowledge:** none -- the director's canon and its alignment steer, not domain research; installed as docs/design/DIRECTOR_CANON.md
 
 **Type:** [CANON: the director's canon, version 4, adopted 2026-10-12 on his ruling "Agree all". Install everything from the heading "# The Director's Canon" to the end of this file, verbatim, as `docs/design/DIRECTOR_CANON.md`, archiving version 3, as `DIRECTOR_STEER_CANON_V4_ALIGNMENT_2026-10-12.md` sets out. The trailer is `Director-doc: his-words -- canon v4, director rulings of 2026-10-12`.]
 
