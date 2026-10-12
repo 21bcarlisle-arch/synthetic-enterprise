@@ -45,4 +45,8 @@ This bundle holds everything recovered from the first attempt at the canon tidy-
 
 - **All 14 themes now reconciled.** The seven theme files were reconciled on Sonnet helpers, using the recovered brief and only the recovered files plus current copies of the standing pages. Fairness/pricing, carbon and other were split back into their own files. That makes nine new documents in `reconciled/`, each folding in the October console words.
 - `work/october_log.md` was regenerated from `inputs/director_words_filtered.md` with the lost script (64 entries, cited R-L-01..R-L-64). `work/reconcile_brief.md` is the recovered brief.
-- Still to do: the October update for the first five themes (done during the merge), the merge into one consolidated canon, and the citation check.
+- **Merged into one canon:** `v4/DIRECTOR_CANON_v4_PROPOSED.md`, a proposed version 4 of `docs/design/DIRECTOR_CANON.md`. It has 168 numbered principles in 14 sections, with the October console words folded in, a new Phases section, and §15 listing 14 decisions for the director plus 12 items owed to him.
+- **Quote check** (`tools/quote_check.py`, reports in `work/`):
+  - chapters: 1,051 of 1,124 quotes verbatim in the repository; the rest are close paraphrases or quotes of extract notes;
+  - canon v4: 257 of 257 verbatim.
+- **Alignment steer, draft:** `v4/DIRECTOR_STEER_CANON_V4_ALIGNMENT_DRAFT.md`. It is staged only after the director rules.
