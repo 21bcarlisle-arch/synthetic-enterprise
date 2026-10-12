@@ -421,6 +421,8 @@ for_the_director:
     model while it runs, with the Opus advisor as the judgment cover and the pre-registered stop rule
     as the revert. Once your allowance resets I build it unless you say no. The alternative is to narrow
     'unprocessed staging' first so the tier can tell routine ticks from judgment ones.
-  status: open
-  resolution: ''
+  status: answered
+  resolution: 'Director, 2026-10-12: "Advisor trial: I set aside my 12 August reserved-marker rule for the worker ticks only, for the trial''s duration (at most seven days), using a dated
+      launch flag, with the pre-registered stop rule as the way back. The seat and interactive sessions stay on Opus with no advisor. Draw it when it doesn''t displace the steps
+      above."'
   evidence: docs/observability/model_tier_log.jsonl, 14-day SPAWNED count; docs/staging/in_progress/WORKER_MINTED_advisor_trial_on_worker_ticks_2026-10-12.md
