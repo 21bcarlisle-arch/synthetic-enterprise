@@ -5217,12 +5217,11 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             f"{REPORT_START}..{effective_end}"
         )
 
-    install_stop_notice_board(None)
     _grade_demand_estimates_against_the_year_ahead(demand_estimation_log, settled_fold)
     _psr_registrations = (
         {"psr_registrations": _deliver_psr_registrations(all_records, run_base_seed())}
         if _vulnerability_hidden_state_on else {})
-    return {
+    _result = {
         **_psr_registrations,
         "all_records": all_records,
         "administration_event": administration_event,
@@ -5450,6 +5449,12 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             for yr in range(2016, 2026)
         ],
     } | ({"save_on_loss_notice_log": save_on_loss_notice_log} if _save_offers_on else {})
+    # THE BOARD OUTLIVES THE LAST READ THAT ASKS IT. `company_provision` above asks the company's
+    # method register for past dates, and `get_payment_method(as_of=)` refuses with no board. Cleared
+    # here, after the result is built, rather than before it: from 42b2eb254 (2026-10-11) to
+    # 2026-10-12 it was cleared first, and every run's company provision read "could not be read".
+    install_stop_notice_board(None)
+    return _result
 
 
 

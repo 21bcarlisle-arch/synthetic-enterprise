@@ -166,3 +166,19 @@ def test_the_companys_provision_imports_nothing_but_the_company_and_the_standard
     own_root = provision_stock.__module__.partition(".")[0]
     assert {m for m in imported if m.split(".")[0] != own_root} <= {
         "__future__", "datetime", "dataclasses", "typing"}, imported
+
+
+def test_the_stop_notice_board_is_cleared_only_after_the_provision_has_read_it():
+    """The company provision asks `get_payment_method(as_of=)`, which refuses once the run's DD
+    stop-notice board is cleared. Cleared before the read (42b2eb254 to 2026-10-12), every run
+    published "could not be read". Fires if any clear in `_main` precedes the read."""
+    tree = ast.parse(_source("simulation.run_phase2b"))
+    main = next(n for n in ast.walk(tree) if isinstance(n, ast.FunctionDef) and n.name == "_main")
+    reads = [k.lineno for n in ast.walk(main) if isinstance(n, ast.Dict)
+             for k in n.keys if isinstance(k, ast.Constant) and k.value == "company_provision"]
+    clears = [n.lineno for n in ast.walk(main) if isinstance(n, ast.Call)
+              and getattr(n.func, "id", None) == "install_stop_notice_board"
+              and n.args and isinstance(n.args[0], ast.Constant) and n.args[0].value is None]
+    assert reads and clears, (reads, clears)
+    assert min(clears) > max(reads), (
+        f"the board is cleared at line {min(clears)}, before the provision reads it at {max(reads)}")
