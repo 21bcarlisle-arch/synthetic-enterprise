@@ -856,14 +856,23 @@ def _resolve_bills(bills: list[dict], behavioral: dict, seed: int) -> list[dict]
     """Each bill's payment outcome, from its own `bill_substream`, in (customer, period_end)
     order. The one place the engine draws an outcome, so every consumer below reads the same one.
     """
-    # PB8 L2: a household whose DD the supplier stopped pays its later bills on receipt.
+    import simulation.world_payment_truth as wpt
     from simulation.dd_collection_book import supplier_dd_stops
     from simulation.dd_shock_response import RECORD_KEY as SHOCK_RECORD_KEY
     from simulation.dd_shock_response import bill_effect, failure_table
+    # PB8 L2: a household whose DD the supplier stopped pays its later bills on receipt.
     dd_stops = supplier_dd_stops(bills, behavioral, seed)
     rows = []
+    # ONE PAYMENT TRUTH (`simulation/world_payment_truth.py`): a leg whose record carries the
+    # triad's truth takes each bill's outcome from it, and its repayments are appended after its
+    # bills. No record carries it while `wpt.UNIFIED` is off, so this is the shipped draw.
+    truth_rows_from: dict[str, int] = {}
+    wpt.LAST_COUNTS.clear()
     for bill in sorted(bills, key=lambda b: (b["customer_id"], b["period_end"])):
         cid = bill["customer_id"]
+        truth = (behavioral.get(cid) or {}).get(wpt.RECORD_KEY)
+        if truth is not None and cid not in truth_rows_from:
+            truth_rows_from[cid] = len(rows)
         segment = bill.get("segment", "resi")
         # B7 slice 5: the change-of-tenancy window is already booked as occupier debt in the run
         # (`occupier_debt_gbp`), so a named payer is asked only for the rest of the bill, and a
@@ -894,9 +903,15 @@ def _resolve_bills(bills: list[dict], behavioral: dict, seed: int) -> list[dict]
             method = PAY_ON_RECEIPT_METHOD
         exit_ = mover_final_bill_outcome(behavioral.get(cid) or {}, cid, period_end, commodity,
                                          amount, method, stress, seed)
+        told = wpt.truth_outcome(truth, period_end) if exit_ is None else None
+        if truth is not None and exit_ is None:
+            wpt.LAST_COUNTS["truth_bills" if told else "fallback_bills"] = (
+                wpt.LAST_COUNTS.get("truth_bills" if told else "fallback_bills", 0) + 1)
         if exit_ is not None:
             outcome, days_late, part_paid = exit_
             amount = round(amount - part_paid, 2)
+        elif told is not None:
+            outcome, days_late, method = told["result"], told["days_late"], told["method"]
         elif method == "direct_debit" and shock.cancel_return:
             # The mandate was cancelled at the bank: the collection comes back unpaid.
             outcome, days_late = "failed", 0
@@ -912,6 +927,11 @@ def _resolve_bills(bills: list[dict], behavioral: dict, seed: int) -> list[dict]
         rows.append({"customer_id": cid, "period_end": period_end, "commodity": commodity,
                      "amount_gbp": amount, "due_date": due_date, "method": method,
                      "outcome": outcome, "days_late": days_late})
+    for cid, start in truth_rows_from.items():
+        own = [r for r in rows[start:] if r["customer_id"] == cid]
+        repaid = wpt.repayment_rows(behavioral[cid][wpt.RECORD_KEY], cid, own)
+        wpt.LAST_COUNTS["repayment_rows"] = wpt.LAST_COUNTS.get("repayment_rows", 0) + len(repaid)
+        rows.extend(repaid)
     return rows
 
 
@@ -961,6 +981,11 @@ def balance_settlement_from_outcomes(resolved: list[dict], churned_ids: set[str]
                 events.append((r["due_date"], 1, r))
             elif r["outcome"] == "success":
                 events.append((r["due_date"] + timedelta(days=r["days_late"]), 2, r))
+            elif r["outcome"] == "repayment":
+                # One payment truth (`world_payment_truth.py`): the household repays arrears. It
+                # discharges the oldest outstanding bill on its fuel first and, as a payment by
+                # the debtor, restarts the limitation clock.
+                events.append((r["due_date"], 2, r))
         events.sort(key=lambda e: (e[0], e[1]))
 
         outstanding: list[dict] = []  # oldest first; each {"row", "remaining"}
@@ -1015,6 +1040,16 @@ def balance_settlement_from_outcomes(resolved: list[dict], churned_ids: set[str]
                     _net(item, when, r["period_end"])
             else:
                 last_ack = when
+                if r["outcome"] == "repayment":
+                    left = r["amount_gbp"]
+                    for item in [i for i in outstanding if i["row"]["commodity"] == r["commodity"]]:
+                        if left <= 0:
+                            break
+                        take = round(min(item["remaining"], left), 2)
+                        item["remaining"] = round(item["remaining"] - take, 2)
+                        left = round(left - take, 2)
+                        if item["remaining"] <= 0:
+                            outstanding.remove(item)
         _bar(horizon)
         if leaver:
             for item in outstanding:
