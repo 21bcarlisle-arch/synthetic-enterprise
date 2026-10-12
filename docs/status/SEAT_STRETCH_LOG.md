@@ -8,6 +8,27 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-11 — The save, the mover offer and the payment work against the four principles: P4 holds at decision time and leaks through run-loop inputs; P2 and P3 break everywhere
+
+<!-- head: d06b039e7619 -->
+
+*Worker tick, 2026-10-11, answering the director's 10:30 instruction. Audit only; no code changed.*
+
+The save, the mover offer and the payment work each break at least one of his four principles. The
+finding is `docs/staging/SEAT_FINDING_THE_SAVE_THE_MOVER_OFFER_AND_THE_PAYMENT_WORK_AGAINST_THE_FOUR_PRINCIPLES_2026-10-11.md`.
+
+- **Truth as an instrument (P4)** holds at decision time: no supplier decision reads a probe or the holdout. It breaks one level down. The world loop builds the supplier's inputs itself, so true settled kWh reaches pricing, the hedge and the mover offer.
+- **Freeze, then solve, and separate lanes (P2, P3)** break everywhere. The save, the mover and the renewal cut (d06b039e7, landed after 10:30) each changed a world file and a supplier file in one commit. Each was graded on one seed at one point in the world's range.
+- **World first (P1).** The payment world has one of the eight responses he listed. Plan offers are answered None, and the DD-shock toggles ship at 0, below their own ranges.
+- The DD review, the trailing-12 forecast and the world-side dunning, write-off and DCA timing are supplier policy in world files.
+- A correction to the item: the collections view is company-side, so the credited-account dunning defect is a supplier correctness bug, not a breach of the line.
+- **Re-read against origin `2b005a8f6` on 2026-10-12, then landed.** `77cc6a9a9` has since closed the consumption-forecast leak into the hedge and the mover offer; `f853cd2ff` (a household answers an arrangement offer, five ranged toggles off, predictions filed at `/var/tmp/wp_runs/freeze/predictions.md` before steps 2-4) is the first work done under the principles and reads clean on P1, P2 and P4. `d06b039e7` is now its own row: a break of P2 and P3 made after the instruction.
+- Six remedies are queued as seat continuations, each with a lane (the finding's "Queued" table).
+
+The order I recommend is the payment-behaviour world (frozen, with predictions filed), then one typed seam record for run-loop inputs plus the one company forecast, then fresh-seed re-grades, then moving the review and the dunning across.
+
+---
+
 ## 2026-10-11 — Seat stopped at 98% of the allowance: what landed, what is parked, what is running, and the next three steps
 
 <!-- head: a706f6560b59 -->
