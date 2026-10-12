@@ -1139,6 +1139,16 @@ function carbonLeg(name, leg) {
     (leg.status === "billed" && leg.reason ? " &mdash; " + esc(leg.reason) : "") + "</td></tr>";
 }
 
+/* T&D LOSSES ON THEIR OWN NAMED LINE (canon CO4, 2026-10-12): the electricity figure above is per
+   kWh GENERATED (NESO's own series); what the grid lost delivering it is shown beside it, at the
+   published BEIS/DESNZ factor, and is not added into it or into the total. */
+function tdLossLine(leg) {
+  if (!leg || leg.status !== "billed" || !("td_losses_co2e_kg" in leg)) return "";
+  var kg = leg.td_losses_co2e_kg === null ? "not known" : num(leg.td_losses_co2e_kg, 0) + " kg";
+  return "<tr><td>Electricity lost in the grid</td><td><b>" + kg + "</b></td><td>" +
+    "transmission and distribution losses, its own line: not in the electricity figure or the total</td></tr>";
+}
+
 function householdCarbon(group) {
   var h = (CARBON.households || {})[group];
   if (!h || !h.years || !h.years.length) return "";
@@ -1168,9 +1178,10 @@ function householdCarbon(group) {
     '<div class="table-scroll"><table class="split">' +
     carbonLeg("Electricity", y.electricity) + carbonLeg("Gas", y.gas) +
     "<tr><td>Total</td><td><b>" + (y.total_co2e_kg === null ? "not known" : num(y.total_co2e_kg, 0) + " kg (electricity CO&#8322;, gas CO&#8322;e)") +
-    "</b></td><td>" + esc(y.total_unavailable || "") + "</td></tr></table></div>" + closure + change +
+    "</b></td><td>" + esc(y.total_unavailable || "") + "</td></tr>" + tdLossLine(y.electricity) +
+    "</table></div>" + closure + change +
     '<p style="font-size:12px;color:var(--muted);margin-top:8px"><b>Electricity:</b> ' +
-    esc(b.electricity || "") + " <b>Gas:</b> " + esc(b.gas || "") + " <b>Total:</b> " +
+    esc(b.electricity || "") + (b.td_losses ? " <b>Grid losses:</b> " + esc(b.td_losses) : "") + " <b>Gas:</b> " + esc(b.gas || "") + " <b>Total:</b> " +
     esc(b.total || "") + "</p>", "margin-bottom:12px");
 }
 

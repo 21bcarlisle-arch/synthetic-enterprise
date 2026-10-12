@@ -507,3 +507,43 @@ be built around the money-led products and miss the win-win ones.
 Not proposed: moving heating above steps 2–4. Unbilled energy, forward CLV and per-customer decisions are
 the spine the lever is judged against, and nothing here argues they stop being foundational. EP13 stays
 parked; G14 (NESO's series) is sufficient for every timing figure on this page.
+
+---
+
+## T&D losses by reporting year, 2016-2025 (DESNZ/BEIS conversion factors)
+
+Read directly from the official "Greenhouse gas reporting: conversion factors `<year>`" publications on
+gov.uk (BEIS for 2016–2022, DESNZ from 2023), "Transmission and distribution" sheet / "Factors by
+Category" sheet, row "T&D- UK electricity" / "Electricity: UK", total **kg CO2e** column (not the CO2,
+CH4 or N2O sub-components). The 2021 and 2022 official `.xls` releases (flat, condensed and full sets
+alike) raise a shared-string-table assertion error in standard xlrd/pandas parsers; the figures below for
+those two years were recovered by patching that one tolerance check in a scratch copy of xlrd (never
+touching the installed package) and cross-checked against two to three independent official files each,
+which agreed exactly.
+
+| Reporting year | kgCO2e/kWh | Source title | URL | Read from |
+|---|---|---|---|---|
+| 2016 | 0.03727 | Greenhouse gas reporting: conversion factors 2016 | https://www.gov.uk/government/publications/greenhouse-gas-reporting-conversion-factors-2016 | file (flat file, "Factors by Category") |
+| 2017 | 0.03287 | Greenhouse gas reporting: conversion factors 2017 | https://www.gov.uk/government/publications/greenhouse-gas-reporting-conversion-factors-2017 | file (flat file, "Factors by Category") |
+| 2018 | 0.02413 | Greenhouse gas reporting: conversion factors 2018 | https://www.gov.uk/government/publications/greenhouse-gas-reporting-conversion-factors-2018 | file (flat file, "Factors by Category") |
+| 2019 | 0.02170 | Greenhouse gas reporting: conversion factors 2019 | https://www.gov.uk/government/publications/greenhouse-gas-reporting-conversion-factors-2019 | file (flat file, "Factors by Category") |
+| 2020 | 0.02005 | Greenhouse gas reporting: conversion factors 2020 | https://www.gov.uk/government/publications/greenhouse-gas-reporting-conversion-factors-2020 | file (flat file, "Factors by Category") |
+| 2021 | 0.01879 | Greenhouse gas reporting: conversion factors 2021 | https://www.gov.uk/government/publications/greenhouse-gas-reporting-conversion-factors-2021 | file (condensed set, "Transmission and distribution" sheet; confirmed identical in the flat file, "Factors by Category") |
+| 2022 | 0.01769 | Greenhouse gas reporting: conversion factors 2022 | https://www.gov.uk/government/publications/greenhouse-gas-reporting-conversion-factors-2022 | file (condensed set AND full set AND flat file, "Transmission and distribution"/"Factors by Category" — all three agree exactly) |
+| 2023 | 0.017915 | Greenhouse gas reporting: conversion factors 2023 | https://www.gov.uk/government/publications/greenhouse-gas-reporting-conversion-factors-2023 | file (flat file, "Factors by Category") |
+| 2024 | 0.01830 | Greenhouse gas reporting: conversion factors 2024 | https://www.gov.uk/government/publications/greenhouse-gas-reporting-conversion-factors-2024 | file (flat file, "Factors by Category") |
+| 2025 | 0.01853 | Greenhouse gas reporting: conversion factors 2025 | https://www.gov.uk/government/publications/greenhouse-gas-reporting-conversion-factors-2025 | file (flat file, "Factors by Category") — matches the value already recorded on this page |
+
+No GAPs: all ten reporting years were read directly from an official DESNZ/BEIS workbook, not from a
+secondary source or an estimate.
+
+**Caveat (from the publications' own guidance).** T&D factors are reported **separately** from the
+generation factor and are additive: a consumer's full Scope-2+3 electricity footprint is "electricity
+generation" (Scope 2) plus "T&D" (Scope 3, grid losses getting the power from plant to the purchaser), and
+the two must not be confused with the pre-2013 combined "electricity consumption" figure. The published
+factors for calendar/reporting year Y are built from UK grid data that lags by roughly **two years** (e.g.
+the 2022 publication's T&D figure is described as reflecting generation-mix and loss data from around
+2020), so a reporting-year label does not mean same-year grid conditions. The 2022 BEIS "major changes"
+document records the T&D factor as having moved **-6% versus 2021** (consistent with the 0.01879 →
+0.01769 figures read here), attributing it to a falling generation factor partially offset by increased
+losses — cited here only as corroboration of the two read values, not as the source of either.

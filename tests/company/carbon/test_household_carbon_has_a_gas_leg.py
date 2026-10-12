@@ -220,3 +220,19 @@ def test_exactly_one_gas_factor_is_used_and_it_is_the_co2e_one():
         if DESNZ_2023_CO2_ONLY in _numeric_literals(p)
     ]
     assert not offenders, f"DESNZ's CO2-only gas factor is a live number in: {offenders}"
+
+
+def test_grid_losses_are_a_named_line_at_the_published_factor_and_never_in_the_total():
+    """Canon v4 CO4. Fires if losses fold into the electricity figure or the total, if the line
+    is computed at a neighbouring year's factor, or if it vanishes when the grid series does."""
+    from company.regulatory.carbon_emissions import DESNZ_TD_LOSSES_KG_CO2E_PER_KWH as TD
+    e = electricity_leg(2020, 2_700, 12)
+    assert e.td_losses_co2e_kg == round(2_700 * TD[2020], 4)
+    assert e.co2e_kg is not None and e.co2e_kg == electricity_leg(2020, 2_700, 12).co2e_kg
+    h = HouseholdFootprint("H", 2020, e, gas_leg(2020, 11_500, 12))
+    assert h.total_co2e_kg == round(e.co2e_kg + h.gas.co2e_kg, 4)
+    assert h.as_dict()["electricity"]["td_losses_co2e_kg"] == e.td_losses_co2e_kg
+    # A year whose grid series is not established still carries its losses line.
+    assert electricity_leg(2016, 2_700, 12).td_losses_co2e_kg == round(2_700 * TD[2016], 4)
+    # A year with no published factor is not known, never a neighbour's.
+    assert electricity_leg(2030, 2_700, 12).td_losses_co2e_kg is None

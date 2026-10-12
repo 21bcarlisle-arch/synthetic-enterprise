@@ -171,6 +171,33 @@ def gas_factor_kg_co2e_per_kwh(year: int) -> float:
               f"{max(DESNZ_NATURAL_GAS_KG_CO2E_PER_KWH_GROSS_CV)}"))
 
 
+#: THE ONE HOME OF THE TRANSMISSION-AND-DISTRIBUTION LOSS FACTOR (canon v4 CO4, ruled 2026-10-12):
+#: losses go on their own named line beside NESO's generation-basis figure, never folded into it.
+#: BEIS (2016-2022) / DESNZ (2023-) *Greenhouse gas reporting: conversion factors*, row
+#: "T&D- UK electricity", total kgCO2e per kWh, each reporting year's own file -- all ten read
+#: from the official workbooks for docs/market_research/household_carbon_and_the_measures_that_save_it.md
+#: ("T&D losses by reporting year"). A year Y set reflects grid data about two years older; the
+#: household's year Y uses the year Y set, as a reporting company would.
+DESNZ_TD_LOSSES_KG_CO2E_PER_KWH = {
+    2016: 0.03727, 2017: 0.03287, 2018: 0.02413, 2019: 0.02170, 2020: 0.02005,
+    2021: 0.01879, 2022: 0.01769, 2023: 0.017915, 2024: 0.01830, 2025: 0.01853,
+}
+
+
+class TDLossFactorUnavailable(ValueError):
+    """No published T&D loss factor is held for this year. Never a silent nearest-year."""
+
+
+def td_losses_kg_co2e_per_kwh(year: int) -> float:
+    """BEIS/DESNZ T&D losses for UK electricity, kgCO2e per kWh consumed, that reporting year."""
+    year = int(year)
+    if year in DESNZ_TD_LOSSES_KG_CO2E_PER_KWH:
+        return DESNZ_TD_LOSSES_KG_CO2E_PER_KWH[year]
+    raise TDLossFactorUnavailable(
+        f"no published T&D loss factor is held for {year}; the table covers "
+        f"{min(DESNZ_TD_LOSSES_KG_CO2E_PER_KWH)}-{max(DESNZ_TD_LOSSES_KG_CO2E_PER_KWH)}")
+
+
 #: Scope 1 factor for supplied gas, gCO2e/kWh, for a consumer that has no year to ask about. Also
 #: the published value (the annual report's `Gas CO2 (t)` column). DERIVED from the table above --
 #: the latest DESNZ set to the nearest gram, 183 -- so it is the same figure as before and cannot

@@ -43,6 +43,7 @@ from company.carbon.half_hourly_footprint import (
     MEASURED,
     NOT_INCLUDED,
     PROFILED,
+    TD_LOSSES_BASIS,
     TOTAL_BASIS,
     UNCOVERED,
     UNKNOWN,
@@ -645,6 +646,7 @@ def build(hh_days: dict, shape: dict, feed: dict, meter: dict,
         # 2026-10-05 this feed carried electricity only, which for a gas-heated home is about a
         # sixth of its carbon and would show a heat pump as an increase.
         "household_basis": {"electricity": ELECTRICITY_LEG_BASIS, "gas": GAS_LEG_BASIS,
+                            "td_losses": TD_LOSSES_BASIS,
                             "total": TOTAL_BASIS, "change": CHANGE_BASIS},
         "households": households or {},
     }

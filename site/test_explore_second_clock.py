@@ -616,3 +616,26 @@ def test_a_PART_YEAR_comparator_is_named_as_its_span_and_never_as_the_year():
     assert "year&#x27;s <b>average</b>" in html or "year's <b>average</b>" in html, (
         "the whole-year day ({}) lost its year's-average label, so the part-year branch is "
         "taken everywhere rather than only where it is true".format(whole["date"]))
+
+
+def test_grid_losses_are_their_own_named_line_and_never_in_the_total():
+    """Canon v4 CO4 (2026-10-12): transmission and distribution losses go on their own named line
+    beside NESO's generation-basis figure, never folded into it. A feed is handed a known loss
+    figure, so the leg asserts the rendered line carries THAT number and the total is still
+    electricity plus gas.
+
+    MUTATION (must fire): drop `tdLossLine(...)` from `householdCarbon`, or add the losses into
+    the total.
+    """
+    carbon = json.loads(json.dumps(_load(CARBON)))
+    group = next(g for g, h in sorted((carbon.get("households") or {}).items())
+                 if any(y["electricity"]["status"] == "billed" and y["electricity"]["co2e_kg"]
+                        and y["gas"]["status"] == "billed" and y["gas"]["co2e_kg"]
+                        and y["year"] == h["headline_year"] for y in h["years"]))
+    year = next(y for y in carbon["households"][group]["years"]
+                if y["year"] == carbon["households"][group]["headline_year"])
+    year["electricity"]["td_losses_co2e_kg"] = 4321.0
+    panel = _household_panel(_stage(group, carbon))
+    assert "<td>Electricity lost in the grid</td><td><b>4,321 kg</b>" in panel, panel[:1500]
+    kg = [int(x.replace(",", "")) for x in re.findall(r"<td><b>([\d,]+) kg", panel)[:3]]
+    assert abs(kg[2] - (kg[0] + kg[1])) <= 1, "the losses were folded into the total"

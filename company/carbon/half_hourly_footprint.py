@@ -79,10 +79,12 @@ from pathlib import Path
 
 from company.regulatory.carbon_emissions import (
     GasFactorUnavailable,
+    TDLossFactorUnavailable,
     gas_factor_kg_co2e_per_kwh,
     grid_intensity_g_co2e_per_kwh,
     grid_intensity_level,
     grid_intensity_unavailable_reason,
+    td_losses_kg_co2e_per_kwh,
 )
 
 PROJECT = Path(__file__).resolve().parent.parent.parent
@@ -113,9 +115,9 @@ NOT_INCLUDED = [
     "household's gas is in its yearly figure, from its billed gas",
     "upstream (well-to-tank) emissions of the gas, and the lifecycle and upstream emissions of "
     "the electricity's generation (NESO's factors are CO2 at the generator)",
-    "transmission and distribution losses: the grid figure is per kWh GENERATED, and the "
-    "electricity lost between the power station and the meter is not added. Whether it should "
-    "be is an open definition decision; if it is, it will be its own named line",
+    "transmission and distribution losses in the electricity figure itself: the grid figure is "
+    "per kWh GENERATED. The household's year carries them on their own named line beside it "
+    "(canon CO4), not in its total",
     "fuels this supplier does not sell the household: gas or electricity bought elsewhere, oil, "
     "petrol",
     "abatement: what the household would have emitted otherwise. A counterfactual, not measured",
@@ -430,6 +432,12 @@ ELECTRICITY_LEG_BASIS = (
     "year, generation basis with transmission and distribution losses not included, CO2 at the "
     "generator. A year the series covers only in part has no figure."
 )
+TD_LOSSES_BASIS = (
+    "Electricity lost between the power station and the meter to deliver the kWh this supplier "
+    "billed: billed kWh times BEIS/DESNZ's transmission-and-distribution factor for that "
+    "reporting year (company/regulatory/carbon_emissions.py). Its own line, beside the "
+    "generation-basis electricity figure and not added into it or into the total."
+)
 GAS_LEG_BASIS = (
     "Gas this supplier billed the household for in the year -- kWh read from its own gas meter, "
     "converted at gross calorific value -- times DESNZ's natural-gas conversion factor for that "
@@ -459,6 +467,7 @@ class Leg:
     reason: str | None = None
     closed_on: str | None = None
     closure_cause: str | None = None
+    td_losses_co2e_kg: float | None = None     # electricity only; its own line, never in co2e_kg
 
     @property
     def full_year(self) -> bool:
@@ -477,15 +486,22 @@ def electricity_leg(year: int, billed_kwh: float | None, months_billed: int) -> 
     if billed_kwh is None:
         return _no_supply("electricity")
     kwh = float(billed_kwh)
+    # The loss line needs only the billed kWh and the published factor, never the grid series.
+    try:
+        td = round(kwh * td_losses_kg_co2e_per_kwh(int(year)), 4)
+    except TDLossFactorUnavailable:
+        td = None
     try:
         co2e_kg = profiled_footprint("", kwh, int(year)).co2e_kg_flat
     except FootprintUnavailable:
         return Leg(fuel="electricity", status=BILLED, kwh=round(kwh, 4), co2e_kg=None,
                    months_billed=int(months_billed), basis=ELECTRICITY_LEG_BASIS,
+                   td_losses_co2e_kg=td,
                    reason=f"grid intensity not established for {year}: "
                           + str(grid_intensity_unavailable_reason(int(year))))
     return Leg(fuel="electricity", status=BILLED, kwh=round(kwh, 4), co2e_kg=co2e_kg,
-               months_billed=int(months_billed), basis=ELECTRICITY_LEG_BASIS)
+               months_billed=int(months_billed), basis=ELECTRICITY_LEG_BASIS,
+               td_losses_co2e_kg=td)
 
 
 def gas_closure_cause(*, gas_point_lost: bool, household_left: bool,
@@ -596,6 +612,8 @@ class HouseholdFootprint:
                    "months_billed": leg.months_billed}
             if leg.reason:
                 row["reason"] = leg.reason
+            if leg.fuel == "electricity" and leg.status == BILLED:
+                row["td_losses_co2e_kg"] = leg.td_losses_co2e_kg
             if leg.closed_on:
                 row["closed_on"] = leg.closed_on
                 row["closure_cause"] = leg.closure_cause
