@@ -4,6 +4,8 @@
 
 **Fate (2026-10-12, clear-the-decks):** ATOM -- price_match sizing recommended over risk_tiers on all 3 seeds, but CURRENT_POLICY.retention_cut_sizing is still "risk_tiers" -- flip not actioned, awaiting director/next build turn (P2)
 
+**The floor question (2026-10-12):** the 71-77 floor declines per seed are not a floor defect -- the rate chain's portfolio learning premium (writer 1, down to -5%) discounts fixes below the cost floor the desk struck them over, and the match rightly refuses to cut them further. The flip need not wait on it: `SEAT_FINDING_B8_Q5_WHY_THE_RENEWAL_FIX_SITS_BELOW_ITS_OWN_COST_FLOOR_2026-10-12.md`.
+
 *2026-10-11, delivery seat (direction `b8-q5-price-match-as-the-standing-renewal-cut`).*
 
 `d06b039e7` built `DecisionPolicy.retention_cut_sizing = "price_match"`, off by default. On one seed
