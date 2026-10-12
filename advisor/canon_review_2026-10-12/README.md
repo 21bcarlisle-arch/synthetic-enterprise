@@ -50,3 +50,4 @@ This bundle holds everything recovered from the first attempt at the canon tidy-
   - chapters: 1,051 of 1,124 quotes verbatim in the repository; the rest are close paraphrases or quotes of extract notes;
   - canon v4: 257 of 257 verbatim.
 - **Alignment steer, draft:** `v4/DIRECTOR_STEER_CANON_V4_ALIGNMENT_DRAFT.md`. It is staged only after the director rules.
+- **Ruled and staged.** On 2026-10-12 the director answered "Agree all" to the fourteen decisions. Both documents were staged on main at `e89a772`: `docs/staging/DIRECTOR_CANON_V4_2026-10-12.md` and `docs/staging/DIRECTOR_STEER_CANON_V4_ALIGNMENT_2026-10-12.md`. Copies are in `staged/`.
