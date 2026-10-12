@@ -1,49 +1,29 @@
 version: 1
-oriented_at: '2026-10-12T20:21:46.770721+00:00'
-thesis_read: 'No supplier code reached origin this stretch. There were 5 commits, 2 substantive, split 0 supplier,
-  2 world and 3 other. Both world commits serve a supplier grade. 71c324b6d has the household answer the supplier''s
-  own DD review as each bill posts, and it ships off. e71d5c1db gives a mover the new home''s settlement verdict,
-  which unblocked the fresh-seed mover arms. Two supplier fixes are in their gates now: the provision reading the
-  stop-board before it is uninstalled (surgical_land pid 2648879), and the renewal discount re-floored at the desk''s
-  cost (pid 2970530). The GBP 115 capital fix is no longer at risk, because it is preserved on origin''s refs/preserved/capt115-2026-10-12.
-  It is still not landed, and nothing is landing it. Against the thesis, the gap has not closed. No per-customer
-  decision has been graded against the flat-rule baseline on a frozen world. The nearest is the mover offer, now
-  run on all four fresh seeds, and its own comparison says the grade would measure the world more than the offer.
-  On 61110-61112 it made 33 offers, 14 households moved with us, and only 7 were supplied at the new home. The rest
-  were refused because the world has no weather cell at the destination or no destination gas leg. Focus three fixes
-  that before the grade is read. The director''s DD design from 2026-10-11 04:20 is the clearest unworked supplier
-  steer: the DD amount comes from the company''s own twelve-month forecast, priced at known rates where fixed and
-  forecast beyond, plus the balance to clear. company/billing/dd_review.py still offers only last year''s spend
-  and consumption at the rates in force, so that is focus two. No publish has landed for 166h. sim-runner defers
-  every cycle to the interactive seat''s provision-grade members, which is a choice of what to run and not a fault.
-  On the steer: of four focus items, two were drawn. The fabric fix is done and drops out. The capital preserve
-  was done, but not the landing. The provision fix is in its gate and moves to not_now. The salvage mechanism was
-  never drawn, and the path check reads it ''nothing to land'', so it is re-worded with the file to change. Wrong:
-  the mover-arm row and my 14:21 premise row are corrected with evidence above. One new row is corrected: a commit
-  claimed runs that were never queued. Every other carried row stays open.'
+oriented_at: '2026-10-12T23:22:09.992413+00:00'
+thesis_read: 'No supplier-only commit reached origin this stretch. There were 13 commits, 2 substantive,
+  split 0 supplier, 1 world, 1 both and 11 other, and 5 of the 13 changed nothing. The one supplier change
+  is real. 03a0b66da stops writer 1 discounting renewal fixes below the cost the desk struck over. Before
+  it, 15 of 18 electricity renewals to 2017-03 sat GBP 0.48-7.96/MWh under cost, which is value transferred
+  and not created. a070c2195 put the company''s own provision back into every run''s result. It had read
+  ''could not be read'' since 11 October. Against the thesis, the gap has not closed. No per-customer
+  decision has been graded against the flat-rule baseline on a frozen world in a way that measures the
+  decision. The mover offer was graded on four fresh seeds (42b39b8d6), and five of six predictions hold.
+  But only 7 of 23 followers were supplied at the new home, and its net rises with that count, so the
+  grade mostly measured the weather store. That is focus four. On the steer, of five focus items only
+  the capital fix moved. Its GBP 115 copies and the C14 dating are finished but uncommitted in the shared
+  tree, under the interactive seat''s claim. The director''s DD design, H45 and the salvage item were
+  never drawn, because the executor spent the stretch on continuations. The DD design goes first now.
+  The machine''s worst drift is the publish. Nothing has reached origin for 169h, and sim-runner deferred
+  every cycle tonight on an exhausted memory budget as new grade jobs were admitted. My last record said
+  that would clear within the hour, and that was wrong (new row). Focus three reserves the box for the
+  publish, so the next job queues behind it. The director asked tonight whether the long jobs were broken.
+  They are not broken, but nothing was ordering them. Wrong: all twelve carried rows stay open, one new
+  seat row is added, and last stretch''s three corrected rows drop.'
 stretch_reviewed:
-  since: '2026-10-12T17:21:15.224259+00:00'
-  commits: 5
+  since: '2026-10-12T20:21:46.770721+00:00'
+  commits: 13
   substantive: 2
 focus:
-- id: the-capital-target-lands-at-115-from-the-preserved-ref-then-dated-per-c14
-  what: 'Land the GBP 115 capital fix from origin''s refs/preserved/capt115-2026-10-12 (9942c1fb7) onto
-    current origin. In an owned isolated worktree, take its hunks to saas/growth_mandate.py, tests/saas/test_growth_mandate.py,
-    tests/simulation/test_net_new_acquisition.py and the SEAT_FINDING ...CAPITAL_TARGET_IS_115 doc. Leave
-    out its background/sim_runner.py hunk, which its own message calls unrelated. Land with tools/isolate_hunks.py
-    and surgical_land --content. Correct every copy of 130: growth_mandate.py lines 341 and 358 (mcr_per_account_gbp),
-    and the treasury, solvency and collateral-desk copies (grep company/ and saas/ for 130). Then, in
-    a second commit, apply C14 from docs/design/DIRECTOR_CANON.md: no target before 26 July 2023, a plan-ahead
-    target from then to 31 March 2025, and binding at GBP 115 with a GBP 0 floor from 31 March 2025. File
-    seed 42''s funnel-wins and settled-book prediction before you measure before and after in one process.
-    Before starting, check ps for a rival surgical_land carrying growth_mandate.py.'
-  why: 'The run applies a 2025 rule from 2016 and throttles for nine years the growth the thesis is judged
-    on. The work has been finished since 2026-10-11 and lost or stranded three times. DONE: both commits
-    are on origin with their controls and the before/after against the filed prediction, and the GBP 130
-    wrong row closes.'
-  lane: E_finance_treasury
-  side: supplier
-  written_at: 1791836914.725
 - id: the-dd-amount-is-set-from-the-companys-own-twelve-month-forecast-plus-the-balance
   what: 'Build the director''s DD sizing design (his console, 2026-10-11T04:20Z, recorded under practitioner-question-at-an-annual-direct-debit)
     as a third REVIEW_RULES entry in company/billing/dd_review.py. The new amount is the company''s own
@@ -54,762 +34,870 @@ focus:
     Ship it selectable with the default unchanged. File a prediction of the review-lag leg in tools/dd_book_legs.py
     before you measure it against both existing rules on the single-levy book, in one process. Read only
     what the company can see: its own bills, reads, tariffs and forward.'
-  why: 'Billing accuracy is top of the director''s supplier order, and he set this shape 40 hours ago.
-    It is unbuilt: the review still offers only last year''s spend or last year''s consumption at today''s
-    rates, and the review lag was -GBP 17.8k of the DD book''s -GBP 20.6k net debit at 2018-06. DONE:
-    the knowledge section, the rule, its control (mutating the balance term or the fixed-rate leg reds
-    it) and the measured three-way lag against the filed prediction are on origin. Switching the default
-    is a separate decision recorded with its reason.'
+  why: 'Billing accuracy is top of the director''s supplier order, and he set this shape 43 hours ago.
+    It has been in focus for two stretches and was never drawn. The review still offers only last year''s
+    spend or last year''s consumption at today''s rates, and the review lag was -GBP 17.8k of the DD book''s
+    -GBP 20.6k net debit at 2018-06. DONE: the knowledge section, the rule, its control (mutating the
+    balance term or the fixed-rate leg reds it) and the measured three-way lag against the filed prediction
+    are on origin. Switching the default is a separate decision, recorded with its reason.'
   lane: D_billing_metering
   side: supplier
-  written_at: 1791836914.725
+  written_at: 1791847664.99
+- id: the-capital-target-lands-at-115-from-the-preserved-ref-then-dated-per-c14
+  what: 'Land the GBP 115 capital fix and the C14 dating that now sit uncommitted in the shared tree (saas/growth_mandate.py,
+    company/finance/treasury.py, company/risk/counterparty_collateral_desk.py, company/risk/independent_amount.py,
+    saas/reporting/annual_report.py, tests/saas/test_growth_mandate.py, tests/simulation/test_net_new_acquisition.py,
+    tests/company/finance/test_treasury.py, tests/saas/capital/test_solvency.py). The interactive seat
+    claimed this item at 23:04 UTC, so the holder of that claim lands it. Anyone else checks seat_work_in_hand
+    and ps for a rival surgical_land first, and builds nothing. Take only this item''s hunks with tools/isolate_hunks.py
+    and land with surgical_land --content, leaving out the background/sim_runner.py hunk from refs/preserved/capt115-2026-10-12.
+    C14 from docs/design/DIRECTOR_CANON.md: no target before 26 July 2023, plan-ahead from then to 31
+    March 2025, binding at GBP 115 with a GBP 0 floor from 31 March 2025. Seed 42''s funnel-wins and settled-book
+    prediction is filed before the before-and-after is measured in one process.'
+  why: 'The run applies a 2025 rule from 2016 and throttles the growth the thesis is judged on for nine
+    years. The work is finished and was lost or stranded three times. It is now one tree away from origin,
+    in the busiest tree on the box. DONE: the change is on origin with its controls and the before-and-after
+    against the filed prediction, origin''s growth_mandate.py no longer reads 130.0, and the GBP 130 wrong
+    row closes.'
+  lane: E_finance_treasury
+  side: supplier
+  written_at: 1791847664.99
+- id: the-weekly-publish-holds-a-reservation-the-grade-jobs-queue-behind
+  what: 'Change background/sim_runner.py so that when the weekly publish is overdue (no figures on origin
+    for more than 7 days, read from the publisher''s own state), it writes a resource_headroom reservation
+    for the publish run''s declared peak. background/launch_long_job.py already counts live reservations
+    (_live_reserved_by_pid). Make that admission count this reservation too, so a new long job that does
+    not fit beside it queues and says why, while jobs already running finish. Release the reservation
+    when the publish run exits. Add a control: with the publish overdue and the reservation held, a 3300
+    MB job that would exhaust the budget is refused and names the publish as the reason. With the publish
+    not overdue, the same job is admitted. Then let the next publish run.'
+  why: 'No publish has landed for 169h. sim-runner deferred every cycle tonight because grade jobs were
+    admitted one after another, and my last record wrongly called that a one-off. D48''s L2 and the module-graph
+    tombstone both wait on a publish, and the director asked tonight whether the long jobs were broken.
+    DONE: the change and its control are on origin, and a publish run has started or figures have reached
+    origin.'
+  lane: H_harness
+  side: other
+  written_at: 1791847664.99
 - id: a-mover-who-moves-with-us-can-be-supplied-at-the-new-home
-  what: 'Read not_supplied_reasons in /var/tmp/regrade/out/cmp-mv-k1-61110.json, -61111.json and -61112.json.
-    Of 14 households that moved with us, 7 were not supplied at the new home, because the weather store
-    holds no cell for the destination, or because the destination''s gas annual quantity and heating-degree
-    cell are not built. First check ps, /var/tmp/regrade and docs/staging for the interactive seat''s
-    mover finding. If it already names this remedy, build that remedy; do not grade. Make the world resolve
-    a destination outside the book''s cells to its nearest weather cell, held in the store with a published-source
-    fetch done by the harness, never by company/. Build the destination''s gas leg the way the incoming-occupier
-    path builds it. Add a control: a seed-61112 relocation to a premise 26.9 km from the nearest held
-    cell is supplied, and removing the change reds it. Ship it on the world side, decided blind to the
-    offer''s result.'
-  why: 'The mover offer is the per-customer decision closest to a baseline grade on fresh seeds, and half
-    its successes are lost to world coverage, not to the offer, so a grade read now measures the store.
-    DONE: the change and its control are on origin, and a rerun of one k=1 arm shows no ''no weather for
-    the destination''s cell'' or ''only the electricity leg'' reason.'
+  what: 'Read not_supplied_reasons in /var/tmp/regrade/out/cmp-mv-k1-61110.json, -61111.json and -61112.json,
+    and the interactive seat''s finding SEAT_FINDING_THE_MOVER_OFFER_ON_FRESH_SEEDS_..._2026-10-12.md
+    (42b39b8d6): 7 of 23 followers were supplied at the new home. The rest were refused because the weather
+    store holds no cell for the destination, or because the destination''s gas annual quantity and heating-degree
+    cell are not built. Make the world resolve a destination outside the book''s cells to its nearest
+    held weather cell, with any fetch done by the harness, never by company/. Build the destination''s
+    gas leg the way the incoming-occupier path builds it. Add a control: a seed-61112 relocation to a
+    premise 26.9 km from the nearest held cell is supplied, and removing the change reds it. Ship it on
+    the world side, decided blind to the offer''s result.'
+  why: 'The fresh-seed grade landed (42b39b8d6). Its net, +GBP 0 to +2,039 per seed, rises with the supplied
+    count, so most of what it measured was the weather store and not the offer. DONE: the change and its
+    control are on origin, and a rerun of one k=1 arm shows no reason of ''no weather for the destination''s
+    cell'' or ''only the electricity leg''.'
   lane: W1_market_weather
   side: world
-  unblocks: the mover offer graded against its off arm on fresh seeds 61109-61112 (the four-principles
-    re-grade), so the grade measures the offer and not the weather store
-  written_at: 1791836914.725
+  unblocks: the mover offer graded against its off arm on fresh seeds 61109-61112, so that the grade measures
+    the offer and not the weather store
+  written_at: 1791847664.99
 - id: h45-is-recorded-at-l3-on-the-directors-g16-ruling
   what: 'Record H45_the_queue_is_chained_to_the_map''s move from L2 to L3 through the level gate (background/gate_authorization.py,
     tools/level_promotion_gate.py), citing the director''s 2026-10-12 ''Agree all'' to canon v4 G16 (docs/staging/DIRECTOR_STEER_CANON_V4_ALIGNMENT_2026-10-12.md,
     step 4): an Expert Hour whose only open question is reviewer independence passes for L3. Clear its
-    PARKED block_reason in docs/design/maturity_map.yaml and carry the independence limit into docs/design/simplifications/H45_*.yaml.
+    PARKED block_reason in docs/design/maturity_map.yaml, and carry the independence limit into docs/design/simplifications/H45_*.yaml.
     Ask python3 -m tools.maturity_map_store for headroom before writing the row, and drain a comment if
-    it is short.'
-  why: 'He ruled it today and said to record it, and nothing has. It is a level change, and it takes a
-    parked atom out of the draw count (2639 unchanged draws). DONE: the map row reads level_current 3
-    on origin with the ruling cited, and H45 is no longer parked.'
+    headroom is short.'
+  why: 'He ruled it on 2026-10-12 and said to record it, and nothing has. It is a level change, and it
+    takes a parked atom out of the draw count (2658 unchanged draws). DONE: the map row reads level_current
+    3 on origin with the ruling cited, and H45 is no longer parked.'
   lane: H_harness
   side: other
-  written_at: 1791836914.725
-- id: fork-salvage-pushes-a-dead-owners-dirty-worktree-to-a-preserved-ref
-  what: 'Change background/fork_salvage.py. In salvage_all, find why /tmp/wt_capt115 (dead owner pid,
-    dirty for hours) got no salvage commit, starting with _is_a_live_writers_worktree. Then make salvage
-    cover every worktree under /tmp and /var/tmp whose .se_worktree_owner pid is dead and whose copy is
-    dirty, and push each salvage commit to refs/preserved/salvage-<path>-<stamp> on origin. Run it from
-    a systemd user timer as well as worker-tick''s ExecStopPost. Add a control: a scratch worktree with
-    a dead-pid marker and a dirty file gets a pushed ref, and the live-owner case does not.'
-  why: 'Twice on 2026-10-12, finished supplier work sat in a dead owner''s worktree where nothing would
-    recover it, and the capital fix was saved by hand. Last stretch''s wording named no edit, and the
-    path check read it ''nothing to land''. DONE: the change, its control and the timer are on origin,
-    and one pass leaves no dirty dead-owner worktree under /tmp or /var/tmp without a pushed ref.'
-  lane: H_harness
-  side: other
-  written_at: 1791836914.725
+  written_at: 1791847664.99
 not_now:
-- what: Re-focusing the provision stop-board fix (the-provision-reads-the-stop-board-before-it-is-uninstalled).
-  why: It is in its gate (surgical_land pid 2648879). A focus row would let the draw hand it out again mid-landing.
-    If the landing is refused, it returns to focus at the next orientation.
-- what: Re-focusing the renewal learning premium below the cost floor.
-  why: Its fix is in its gate from the continuation that holds it (surgical_land pid 2970530). Racing it would land
-    the same file twice.
+- what: Making the dead-owner salvage push to a preserved ref (fork-salvage-pushes-a-dead-owners-dirty-worktree-to-a-preserved-ref,
+    background/fork_salvage.py).
+  why: No finished work was stranded this stretch, and the capital fix it was written for is now one landing
+    from origin. The publish has been starved for a week, so the box reservation takes the harness slot.
+    It returns if a dead owner's dirty worktree reappears.
+- what: Re-focusing the value arm's base (value-arm-base-assumes-the-strikes-margin-survives-writer-one)
+    and the 2016-17 electricity margin probe (what-made-the-2016-17-electricity-book-beat-its-eight-percent-target).
+  why: Both are live continuations the draw already offers. The value arm's files are staged in the shared
+    index now, and the probe's prediction is on origin (75b1274b5). A focus row would hand them out twice.
 - what: Booking the hedge at the market's quote (four-principles-the-hedge-books-at-the-markets-quote).
-  why: It is a live continuation the draw already offers. The capital landing and the director's unbuilt DD design
-    rank ahead because they are finished or ruled work, not new findings.
-- what: Grading the mover offer, the provision and DD4b now.
-  why: The interactive seat holds the provision and mover grades with predictions filed, and DD4b has an embargoed
-    continuation for 22:45. The mover grade should wait for focus three, or it measures the weather store.
+  why: It is a live continuation, and its research doc is staged. The director's DD design and the finished
+    capital fix rank ahead, because they are ruled or finished work and not new findings.
+- what: Grading the provision and DD4b in this record.
+  why: Both are running now with filed predictions (provgrade3 members and dd4b-il200 low and high, admitted
+    at 23:15), and the DD4b grade is a claimed continuation. Focus three makes the next job queue behind
+    the publish rather than stopping these.
+- what: Stopping the running grade jobs to publish sooner.
+  why: Killing a filed-prediction grade throws away a measurement. Reserving the box for the publish keeps
+    the next job from starving it, which is the actual defect.
 - what: Building C34's created-then-shared pricing lever.
-  why: The concern is open with the director, with two options. I proposed to build it next week, and this week
+  why: The concern is open with the director, with two options. I proposed building it next week, and
     the billing and capital steers he has already ruled come first.
-- what: Forcing the publish by stopping the grade jobs.
-  why: sim-runner yields to the provision grade's members, which end within the hour. Killing a filed-prediction
-    grade to publish sooner throws away a measurement, and D48 waits one more cycle.
-- what: Capturing a worker spawn's stderr (background/worker_tick.py:534).
-  why: There was no rc=1 run this stretch. The dead-owner salvage protects finished work and ranks ahead.
+- what: Attributing M5's stayer price moves with the one-variable arm (offer on, follower not supplied).
+  why: The grade filed it as a P2 atom for next week. Until the destination coverage is fixed (focus four),
+    the arm would attribute a channel on 7 supplied followers.
+- what: Capturing a worker spawn's stderr (background/worker_tick.py).
+  why: There was no rc=1 run this stretch, and the publish reservation ranks ahead.
 - what: Landing or disposing the two salvage commits in .claude/worktrees/agent-a583ed37272a6f872.
-  why: Its owner, pid 2197437, is a live 421h worker session. Its salvage is that session's to land, and focus five
-    makes such commits reach a pushed ref anyway.
+  why: Its owner, pid 2197437, is a live 424h worker session, so the salvage is that session's to land.
 - what: The gas-heated home's January electricity shortfall against SERL.
   why: It blocks no supplier result named this stretch, so it waits under the director's 2026-10-10 balance.
 wrong:
-- what: 'THE MACHINE''S, CARRIED. A held change''s hold condition is not re-asked when its premise moves. Owner:
-    SEAT_FINDING_A_HOLD_OR_A_TOMBSTONE_STATES_ITS_CONDITION_IN_PROSE_AND_NOTHING_RE_ASKS_IT. 08:22: the arrears
-    half was re-asked by hand (70a662dc1, NOT MET), not by the mechanism. The e2e400 run started with that half
-    unmet, and nothing asked. 11:22: the 400-founder ceiling probe (4400/5000) is running with the arrears half
-    still NOT MET, and nothing asked. 14:20: ad0afe7b3 enacted the 400-founder book quoting the ruling as conditioned
-    only on the run. The arrears half my record stated was never re-asked by anything. Either the hold was over-stated
-    in prose or the landing skipped it, and no mechanism could tell which. 17:23: re-asked by hand again (6856fb0a1,
-    1.67x, NOT MET), by a focus item, not by the mechanism. 20:22: the arrears half now reads MET (95c1193cb, 0.85x,
-    one seed), again by a focus item and by a script in /var/tmp, not by the mechanism. Focus one makes the reading
-    a tracked tool. 23:24: nothing re-asked anything this stretch. The arrears instrument is still /var/tmp/arrears_like_for_like.py;
-    W2_38 was drawn 56 times unchanged and landed nothing. Focus one makes the reading a tracked tool. 02:22: the
-    instrument is now tracked (84d782864), but the hold condition is still re-asked by a focus item, not by a mechanism.
-    Focus one re-asks it on two dice seeds. 05:22: unchanged. The pooled reading of the two dice seeds is a continuation
-    embargoed to 10:30 (the-arrears-pooled-grade-under-p5), so the hold is still re-asked by an item, not by a mechanism.
-    08:22: unchanged. The pooled grade is still a continuation embargoed to 10:30. Its capture finished at 06:29
-    with exit 0, so an item will re-ask the hold, not a mechanism. 11:23: re-asked by items twice more, never by
-    the mechanism: 403b46746 read the three-seed pool NOT MET at 1.19x, then cbfccfc02 re-graded the same pool MET
-    at 1.19x on an account-clustered interval. And its premise moved again unasked: 1d3c28930 found every settled
-    bill charged the levies twice, and the arrears captures (finished 06:29) predate that fix. Focus two re-asks
-    it. 14:23: re-asked by an item again, never by the mechanism: 1f35bc21f re-took the three-seed pool on single-levy
-    bills (211/3471 = 6.1%, 1.19x, MET, unchanged, because the world never paid the double-levied amounts). The
-    premise moved and was re-asked only because a focus item asked. 17:22: nothing re-asked it this stretch; no
-    hold''s premise moved, so there was nothing to re-ask, and nothing could have. 20:23: no hold''s premise moved,
-    and nothing re-asked anything. ab17e3136 adds one more hold written in prose: the rates-in-force DD rule stays
-    off the default until the director answers the practitioner question, and nothing will re-ask that hold when
-    he answers. 23:20: no hold was re-asked, and one premise is about to move unasked. The B7 slice 7 landing (surgical_land
-    pid 901669) moves a mover''s final bill from 0.74% to 13.4% lost at issue at LOW. The arrears pool''s 1.19x
-    MET (1f35bc21f), on which the 400-founder book''s hold rests, was taken before it. Nothing will re-ask it when
-    it lands. Focus four re-asks it by hand. 02:20: nothing re-asked any hold, and no premise moved on origin. The
+- what: 'THE MACHINE''S, CARRIED. A held change''s hold condition is not re-asked when its premise moves.
+    Owner: SEAT_FINDING_A_HOLD_OR_A_TOMBSTONE_STATES_ITS_CONDITION_IN_PROSE_AND_NOTHING_RE_ASKS_IT. 08:22:
+    the arrears half was re-asked by hand (70a662dc1, NOT MET), not by the mechanism. The e2e400 run started
+    with that half unmet, and nothing asked. 11:22: the 400-founder ceiling probe (4400/5000) is running
+    with the arrears half still NOT MET, and nothing asked. 14:20: ad0afe7b3 enacted the 400-founder book
+    quoting the ruling as conditioned only on the run. The arrears half my record stated was never re-asked
+    by anything. Either the hold was over-stated in prose or the landing skipped it, and no mechanism
+    could tell which. 17:23: re-asked by hand again (6856fb0a1, 1.67x, NOT MET), by a focus item, not
+    by the mechanism. 20:22: the arrears half now reads MET (95c1193cb, 0.85x, one seed), again by a focus
+    item and by a script in /var/tmp, not by the mechanism. Focus one makes the reading a tracked tool.
+    23:24: nothing re-asked anything this stretch. The arrears instrument is still /var/tmp/arrears_like_for_like.py;
+    W2_38 was drawn 56 times unchanged and landed nothing. Focus one makes the reading a tracked tool.
+    02:22: the instrument is now tracked (84d782864), but the hold condition is still re-asked by a focus
+    item, not by a mechanism. Focus one re-asks it on two dice seeds. 05:22: unchanged. The pooled reading
+    of the two dice seeds is a continuation embargoed to 10:30 (the-arrears-pooled-grade-under-p5), so
+    the hold is still re-asked by an item, not by a mechanism. 08:22: unchanged. The pooled grade is still
+    a continuation embargoed to 10:30. Its capture finished at 06:29 with exit 0, so an item will re-ask
+    the hold, not a mechanism. 11:23: re-asked by items twice more, never by the mechanism: 403b46746
+    read the three-seed pool NOT MET at 1.19x, then cbfccfc02 re-graded the same pool MET at 1.19x on
+    an account-clustered interval. And its premise moved again unasked: 1d3c28930 found every settled
+    bill charged the levies twice, and the arrears captures (finished 06:29) predate that fix. Focus two
+    re-asks it. 14:23: re-asked by an item again, never by the mechanism: 1f35bc21f re-took the three-seed
+    pool on single-levy bills (211/3471 = 6.1%, 1.19x, MET, unchanged, because the world never paid the
+    double-levied amounts). The premise moved and was re-asked only because a focus item asked. 17:22:
+    nothing re-asked it this stretch; no hold''s premise moved, so there was nothing to re-ask, and nothing
+    could have. 20:23: no hold''s premise moved, and nothing re-asked anything. ab17e3136 adds one more
+    hold written in prose: the rates-in-force DD rule stays off the default until the director answers
+    the practitioner question, and nothing will re-ask that hold when he answers. 23:20: no hold was re-asked,
+    and one premise is about to move unasked. The B7 slice 7 landing (surgical_land pid 901669) moves
+    a mover''s final bill from 0.74% to 13.4% lost at issue at LOW. The arrears pool''s 1.19x MET (1f35bc21f),
+    on which the 400-founder book''s hold rests, was taken before it. Nothing will re-ask it when it lands.
+    Focus four re-asks it by hand. 02:20: nothing re-asked any hold, and no premise moved on origin. The
     B7 slice 7 premise did not move because the slice never reached origin (9a7449b4b sits gated on /tmp/wt_b7s7).
-    The arrears pool''s 1.19x MET still rests on the pre-slice book. Focus four re-asks it by hand once focus one
-    lands the slice. 05:20: re-asked by hand again, never by the mechanism. 6794c0d39 put B7 slice 7 on origin at
-    02:39, and ed9aa25eb re-took the three-seed arrears pool on it against ac0fa6157''s prediction: 211/3471, 1.19x,
-    MET, identical. A second hold''s premise moved too. The director answered the practitioner question at 04:20
-    (SLC 27.15 as strengthened in August 2022), and the rates-in-force rule''s hold (ab17e3136) was re-asked only
-    because this record read his console. It is not re-asked by switching the default; his one-forecast design supersedes
-    it (not_now). 08:23: Nothing re-asked any hold, and no hold''s premise moved on origin. 42b2eb254 moved the
-    provision, and no hold rests on it. The first focus item will move the hedge volume, and no hold names that
-    either. 11:23: Nothing re-asked any hold. 88ca35156 changed which renewals B8''s holdout flips its coin over,
-    and no hold names that. The hedge volume is about to move (focus one), and no hold names that either. 14:21:
-    Nothing re-asked any hold, and a premise moved unasked. bc34b3912 switched the settled book onto the SERL 2022
-    price response and moved the demand digest. The arrears pool''s 1.19x MET, on which the 400-founder book''s
-    hold rests, was taken on the demand world before it, and nothing re-asked it. The value arms are being re-taken
-    in the new world (arms-retake-lane2, running), but only because a continuation asked. 05:23: Nothing re-asked
-    any hold. 47e8e6993 recorded W2_38 at L2 on the 1.19x MET, a reading taken on the demand world before bc34b3912,
-    and the 400-founder hold still rests on it unasked. 08:20: Nothing re-asked any hold. The household payment
-    world landed three more steps (9ca9624fc, 1cadad9b5, 3a35fbc8f), all shipped off, so no premise a hold rests
-    on moved. The 400-founder hold still rests on the arrears reading taken before bc34b3912, and nothing has asked
-    it again. 11:21: Nothing re-asked any hold. f49c13405 froze the payment world and 62596685a ships the unified
-    write-offs off, so no premise a hold rests on moved on the shipped book. The 400-founder hold still rests on
-    the arrears reading taken before bc34b3912, and nothing has asked it again. 14:21: Nothing re-asked any hold,
-    and a premise is about to move. 84ab67f08 (in /var/tmp/se-world-pay, not yet on origin) switches the shipped
-    world onto one payment truth, so the 400-founder hold''s arrears reading (1.19x, taken before bc34b3912) rests
-    on a book that is about to change twice over. wp-arrears400 is running now, and it re-asks that reading only
-    because the interactive seat launched it, not because anything noticed the premise move. 17:21: Nothing re-asked
-    any hold, and its premise moved twice. ded298ecd put the shipped world on one payment truth (bad debt on 40
-    founders GBP 440.85 to 116.48), and 553d7c855 froze it. wp-arrears400 re-captured the 400-book arrears at 15:13,
-    but only because the interactive seat launched it; the capture is raw and ungraded, and nothing landed. The
-    400-founder hold still rests on the 1.19x reading taken before bc34b3912. 20:21: Nothing re-asked any hold,
-    and no premise a hold rests on moved on the shipped book: DD4b''s in-loop review (71c324b6d) and the mover''s
-    new-home verdict (e71d5c1db) both ship off. The 400-founder hold still rests on the 1.19x reading taken before
-    bc34b3912, and no grade of the wp-arrears400 capture has landed.'
+    The arrears pool''s 1.19x MET still rests on the pre-slice book. Focus four re-asks it by hand once
+    focus one lands the slice. 05:20: re-asked by hand again, never by the mechanism. 6794c0d39 put B7
+    slice 7 on origin at 02:39, and ed9aa25eb re-took the three-seed arrears pool on it against ac0fa6157''s
+    prediction: 211/3471, 1.19x, MET, identical. A second hold''s premise moved too. The director answered
+    the practitioner question at 04:20 (SLC 27.15 as strengthened in August 2022), and the rates-in-force
+    rule''s hold (ab17e3136) was re-asked only because this record read his console. It is not re-asked
+    by switching the default; his one-forecast design supersedes it (not_now). 08:23: Nothing re-asked
+    any hold, and no hold''s premise moved on origin. 42b2eb254 moved the provision, and no hold rests
+    on it. The first focus item will move the hedge volume, and no hold names that either. 11:23: Nothing
+    re-asked any hold. 88ca35156 changed which renewals B8''s holdout flips its coin over, and no hold
+    names that. The hedge volume is about to move (focus one), and no hold names that either. 14:21: Nothing
+    re-asked any hold, and a premise moved unasked. bc34b3912 switched the settled book onto the SERL
+    2022 price response and moved the demand digest. The arrears pool''s 1.19x MET, on which the 400-founder
+    book''s hold rests, was taken on the demand world before it, and nothing re-asked it. The value arms
+    are being re-taken in the new world (arms-retake-lane2, running), but only because a continuation
+    asked. 05:23: Nothing re-asked any hold. 47e8e6993 recorded W2_38 at L2 on the 1.19x MET, a reading
+    taken on the demand world before bc34b3912, and the 400-founder hold still rests on it unasked. 08:20:
+    Nothing re-asked any hold. The household payment world landed three more steps (9ca9624fc, 1cadad9b5,
+    3a35fbc8f), all shipped off, so no premise a hold rests on moved. The 400-founder hold still rests
+    on the arrears reading taken before bc34b3912, and nothing has asked it again. 11:21: Nothing re-asked
+    any hold. f49c13405 froze the payment world and 62596685a ships the unified write-offs off, so no
+    premise a hold rests on moved on the shipped book. The 400-founder hold still rests on the arrears
+    reading taken before bc34b3912, and nothing has asked it again. 14:21: Nothing re-asked any hold,
+    and a premise is about to move. 84ab67f08 (in /var/tmp/se-world-pay, not yet on origin) switches the
+    shipped world onto one payment truth, so the 400-founder hold''s arrears reading (1.19x, taken before
+    bc34b3912) rests on a book that is about to change twice over. wp-arrears400 is running now, and it
+    re-asks that reading only because the interactive seat launched it, not because anything noticed the
+    premise move. 17:21: Nothing re-asked any hold, and its premise moved twice. ded298ecd put the shipped
+    world on one payment truth (bad debt on 40 founders GBP 440.85 to 116.48), and 553d7c855 froze it.
+    wp-arrears400 re-captured the 400-book arrears at 15:13, but only because the interactive seat launched
+    it; the capture is raw and ungraded, and nothing landed. The 400-founder hold still rests on the 1.19x
+    reading taken before bc34b3912. 20:21: Nothing re-asked any hold, and no premise a hold rests on moved
+    on the shipped book: DD4b''s in-loop review (71c324b6d) and the mover''s new-home verdict (e71d5c1db)
+    both ship off. The 400-founder hold still rests on the 1.19x reading taken before bc34b3912, and no
+    grade of the wp-arrears400 capture has landed. 23:22: Nothing re-asked any hold, and a premise moved
+    unasked. 03a0b66da floors writer 1''s renewal discounts at the desk''s cost on the shipped book, and
+    a070c2195 puts the company''s provision back into the run''s result. The 400-founder hold still rests
+    on the 1.19x arrears reading taken before bc34b3912, and nothing has asked it again.'
   corrected: false
-- what: 'THE MACHINE''S, CARRIED. One item can land twice, on origin through surgical_land and as a local commit
-    on the shared HEAD. Owner: SEAT_FINDING_ONE_ITEM_LANDS_TWICE_AND_THE_SHARED_HEAD_FORKS_FROM_ORIGIN. 08:22: no
-    new instance. 0c7389aa9 was briefly 1 ahead, then promoted, so HEAD is 0/0. The refusal mechanism is still not
-    built. 11:22: no new instance. 14:20: no new instance; HEAD 0/0. 17:23: no new instance; HEAD 0/0. 20:22: no
-    new instance; HEAD is 0 ahead, 6 behind. 23:24: no new instance; HEAD 0/0. 02:22: no new instance; HEAD 0 ahead,
-    8 behind. 05:22: no new instance; HEAD 0 ahead, 25 behind. 08:22: no new instance; HEAD 0 ahead, 37 behind.
-    11:23: no new instance; HEAD 0 ahead, 70 behind. 14:23: no new instance; HEAD 0/0. 17:22: no new instance. HEAD
-    was 1 ahead at the brief (336b789fc, a surgical_land receipt), then 0/0 once it was promoted. 20:23: no new
-    instance; HEAD 0/0. 23:20: no new instance; HEAD 0/0. 02:20: no new instance; HEAD 0/0. 05:20: no new instance;
-    HEAD 0 ahead, 9 behind. 08:23: No new instance. HEAD is 0 ahead and 28 behind. 11:23: No new instance. HEAD
-    is 0 ahead and 44 behind. 14:21: No new instance. HEAD is 0 ahead and 48 behind. 05:23: No new instance. HEAD
-    is 0 ahead and 59 behind. 08:20: No new instance. HEAD is 0 ahead and 65 behind, and the fast-forward is now
-    refused outright (focus one). 11:21: No new instance. HEAD is 0 ahead and 69 behind. 14:21: No new instance.
-    HEAD is 0 ahead and 84 behind. 17:21: No new instance. HEAD and origin are level (0/0). 20:21: No new instance.
-    HEAD and origin are level (0/0).'
+- what: 'THE MACHINE''S, CARRIED. One item can land twice, on origin through surgical_land and as a local
+    commit on the shared HEAD. Owner: SEAT_FINDING_ONE_ITEM_LANDS_TWICE_AND_THE_SHARED_HEAD_FORKS_FROM_ORIGIN.
+    08:22: no new instance. 0c7389aa9 was briefly 1 ahead, then promoted, so HEAD is 0/0. The refusal
+    mechanism is still not built. 11:22: no new instance. 14:20: no new instance; HEAD 0/0. 17:23: no
+    new instance; HEAD 0/0. 20:22: no new instance; HEAD is 0 ahead, 6 behind. 23:24: no new instance;
+    HEAD 0/0. 02:22: no new instance; HEAD 0 ahead, 8 behind. 05:22: no new instance; HEAD 0 ahead, 25
+    behind. 08:22: no new instance; HEAD 0 ahead, 37 behind. 11:23: no new instance; HEAD 0 ahead, 70
+    behind. 14:23: no new instance; HEAD 0/0. 17:22: no new instance. HEAD was 1 ahead at the brief (336b789fc,
+    a surgical_land receipt), then 0/0 once it was promoted. 20:23: no new instance; HEAD 0/0. 23:20:
+    no new instance; HEAD 0/0. 02:20: no new instance; HEAD 0/0. 05:20: no new instance; HEAD 0 ahead,
+    9 behind. 08:23: No new instance. HEAD is 0 ahead and 28 behind. 11:23: No new instance. HEAD is 0
+    ahead and 44 behind. 14:21: No new instance. HEAD is 0 ahead and 48 behind. 05:23: No new instance.
+    HEAD is 0 ahead and 59 behind. 08:20: No new instance. HEAD is 0 ahead and 65 behind, and the fast-forward
+    is now refused outright (focus one). 11:21: No new instance. HEAD is 0 ahead and 69 behind. 14:21:
+    No new instance. HEAD is 0 ahead and 84 behind. 17:21: No new instance. HEAD and origin are level
+    (0/0). 20:21: No new instance. HEAD and origin are level (0/0). 23:22: No new instance. HEAD and origin
+    are level (0/0).'
   corrected: false
 - what: 'THE MACHINE''S, CARRIED. The draw ledger reads the same for work never started and for work mid-landing,
     because it asks only origin by path. 08:22: unchanged. w2-20-grade-r5-and-publish-the-20261008r-pair-after-leg-two
-    still reads not_done, and headcount-given-dwelling-size-then-the-per-occupant-slope still reads CANNOT ANSWER.
-    11:22: unchanged, and it cannot tell a crash at dispatch from work not done either. 14:20: unchanged. raise-the-settlement-budget-to-3100-after-w220
-    reads not_done, though ad0afe7b3 has since set the budget to 5,000 under another name. 17:23: unchanged; headcount-given-dwelling-size
-    still reads CANNOT ANSWER at 13.1h. 20:22: unchanged; headcount-given-dwelling-size still reads CANNOT ANSWER
-    at 16.1h. 23:24: unchanged; headcount-given-dwelling-size still reads CANNOT ANSWER at 19.1h. 02:22: LIVE INSTANCE.
-    a-seat-run-whose-record-is-not-on-origin-says-so reads not_done while its surgical_land (pid 1881779) is running.
-    headcount-given-dwelling-size still reads CANNOT ANSWER at 22.1h, and it is now in not_now. 05:22: LIVE INSTANCE.
-    The arrears re-take was drawn a second time while its two captures were still queued (7b3950cd7); the tick launched
-    nothing, correctly, but only because it read the launch queue by hand. 08:22: LIVE INSTANCE. The path check
-    reads the reactive save ''nothing to land'' on all three of its paths, while its work sits modified in /var/tmp/se-save-live
-    with its on arm running. 11:23: LIVE INSTANCE. the-reactive-save-on-the-loss-notice-is-live-in-the-run reads
-    not_done and the path check reads ''nothing to land'', while its arms finished at 10:03 (compare.json), its
-    suite is running in /var/tmp/se-save-live, and a dead tick''s patch sits staged in /var/tmp/se-save-land. 14:23:
-    no new mid-landing instance. The path check reads the arrears and checkout items ''nothing to land'', and that
-    is right, because both are spent. A related shape is live: the draw refused two items 80 times on /var/tmp/se-cap,
-    a 10-03 draft held by the 15-day worker session, which was doing neither item''s work (focus four). 17:22: no
-    new mid-landing instance. the-week-old-se-cap-draft-is-dispositioned was refused 5 times on /var/tmp/se-seat-executor,
-    which was doing the publish item''s work, not this one, and the draft was dispositioned anyway (refs/preserved/se-cap-2026-10-03,
-    18:24). 20:23: no new mid-landing instance. considered-renewals-falling-from-53-to-3-is-explained reads ''nothing
-    to land'', and that is right, because no worker ever started it. 23:20: no new mid-landing instance shown. a-movers-final-bill-fails-at-the-close-time-rate
-    is mid-landing (surgical_land pid 901669, 31 min in its gate), and the ledger cannot say so. 02:20: LIVE INSTANCE.
-    a-movers-final-bill-fails-at-the-close-time-rate reads not_done, but its work is a gated commit: surgical_land
-    printed ''landed 9a7449b4b'' with EXIT 0 at 01:38 in /tmp/wt_b7s7, the commit is on no remote ref, and its owner
-    pid 767804 is gone. The ledger cannot tell finished-but-stranded work from work not done. Focus one promotes
-    it. 05:20: LIVE INSTANCE. the-bad-debt-provision-is-the-companys-own-aged-receivables reads ''nothing to land''
-    on simulation/run_phase2b.py while its surgical_land (pid 2449934) is in its gate. And a-movers-final-bill-fails-at-the-close-time-rate
-    reads landed_unbound against 9a7449b4b, which is the work: it reached origin through the merge 6794c0d39, and
-    nothing bound it. 08:23: LIVE INSTANCE. b8-the-holdouts-stay-has-an-outcome-window reads not_done (CANNOT ANSWER)
-    while its surgical_land (pid 1281783) is in its gate. the-bad-debt-provision-is-the-companys-own-aged-receivables
-    is on origin in 42b2eb254, and nothing has bound it. Focus two binds it. 11:23: LIVE INSTANCE. The path check
-    reads the-provision-and-the-movers-final-bill-graded-on-one-run-at-head ''nothing to land'' while its run is
-    12 minutes into its year loop (provgrade-run, /var/tmp/se-provgrade, run_annual_report pid 4121993). a-movers-final-bill-fails-at-the-close-time-rate
-    still reads landed_unbound against 9a7449b4b, and the bad-debt provision row is still unbound to 42b2eb254.
-    Focus four binds both. 14:21: LIVE INSTANCE, twice. The path check reads the-provision-and-the-movers-final-bill-graded-on-one-run-at-head
-    ''nothing to land'', while its work is finished in /var/tmp/se-provgrade: the stop-board fix in simulation/run_phase2b.py,
+    still reads not_done, and headcount-given-dwelling-size-then-the-per-occupant-slope still reads CANNOT
+    ANSWER. 11:22: unchanged, and it cannot tell a crash at dispatch from work not done either. 14:20:
+    unchanged. raise-the-settlement-budget-to-3100-after-w220 reads not_done, though ad0afe7b3 has since
+    set the budget to 5,000 under another name. 17:23: unchanged; headcount-given-dwelling-size still
+    reads CANNOT ANSWER at 13.1h. 20:22: unchanged; headcount-given-dwelling-size still reads CANNOT ANSWER
+    at 16.1h. 23:24: unchanged; headcount-given-dwelling-size still reads CANNOT ANSWER at 19.1h. 02:22:
+    LIVE INSTANCE. a-seat-run-whose-record-is-not-on-origin-says-so reads not_done while its surgical_land
+    (pid 1881779) is running. headcount-given-dwelling-size still reads CANNOT ANSWER at 22.1h, and it
+    is now in not_now. 05:22: LIVE INSTANCE. The arrears re-take was drawn a second time while its two
+    captures were still queued (7b3950cd7); the tick launched nothing, correctly, but only because it
+    read the launch queue by hand. 08:22: LIVE INSTANCE. The path check reads the reactive save ''nothing
+    to land'' on all three of its paths, while its work sits modified in /var/tmp/se-save-live with its
+    on arm running. 11:23: LIVE INSTANCE. the-reactive-save-on-the-loss-notice-is-live-in-the-run reads
+    not_done and the path check reads ''nothing to land'', while its arms finished at 10:03 (compare.json),
+    its suite is running in /var/tmp/se-save-live, and a dead tick''s patch sits staged in /var/tmp/se-save-land.
+    14:23: no new mid-landing instance. The path check reads the arrears and checkout items ''nothing
+    to land'', and that is right, because both are spent. A related shape is live: the draw refused two
+    items 80 times on /var/tmp/se-cap, a 10-03 draft held by the 15-day worker session, which was doing
+    neither item''s work (focus four). 17:22: no new mid-landing instance. the-week-old-se-cap-draft-is-dispositioned
+    was refused 5 times on /var/tmp/se-seat-executor, which was doing the publish item''s work, not this
+    one, and the draft was dispositioned anyway (refs/preserved/se-cap-2026-10-03, 18:24). 20:23: no new
+    mid-landing instance. considered-renewals-falling-from-53-to-3-is-explained reads ''nothing to land'',
+    and that is right, because no worker ever started it. 23:20: no new mid-landing instance shown. a-movers-final-bill-fails-at-the-close-time-rate
+    is mid-landing (surgical_land pid 901669, 31 min in its gate), and the ledger cannot say so. 02:20:
+    LIVE INSTANCE. a-movers-final-bill-fails-at-the-close-time-rate reads not_done, but its work is a
+    gated commit: surgical_land printed ''landed 9a7449b4b'' with EXIT 0 at 01:38 in /tmp/wt_b7s7, the
+    commit is on no remote ref, and its owner pid 767804 is gone. The ledger cannot tell finished-but-stranded
+    work from work not done. Focus one promotes it. 05:20: LIVE INSTANCE. the-bad-debt-provision-is-the-companys-own-aged-receivables
+    reads ''nothing to land'' on simulation/run_phase2b.py while its surgical_land (pid 2449934) is in
+    its gate. And a-movers-final-bill-fails-at-the-close-time-rate reads landed_unbound against 9a7449b4b,
+    which is the work: it reached origin through the merge 6794c0d39, and nothing bound it. 08:23: LIVE
+    INSTANCE. b8-the-holdouts-stay-has-an-outcome-window reads not_done (CANNOT ANSWER) while its surgical_land
+    (pid 1281783) is in its gate. the-bad-debt-provision-is-the-companys-own-aged-receivables is on origin
+    in 42b2eb254, and nothing has bound it. Focus two binds it. 11:23: LIVE INSTANCE. The path check reads
+    the-provision-and-the-movers-final-bill-graded-on-one-run-at-head ''nothing to land'' while its run
+    is 12 minutes into its year loop (provgrade-run, /var/tmp/se-provgrade, run_annual_report pid 4121993).
+    a-movers-final-bill-fails-at-the-close-time-rate still reads landed_unbound against 9a7449b4b, and
+    the bad-debt provision row is still unbound to 42b2eb254. Focus four binds both. 14:21: LIVE INSTANCE,
+    twice. The path check reads the-provision-and-the-movers-final-bill-graded-on-one-run-at-head ''nothing
+    to land'', while its work is finished in /var/tmp/se-provgrade: the stop-board fix in simulation/run_phase2b.py,
     its control, and the movers'' grade (12.8% against 17%) in the finding. Its landing script (/var/tmp/provgrade/land1.sh,
-    13:32) never wrote a line, and its owner pid 3735426 is gone. The four-principles audit is finished in a salvage
-    commit on no remote (82e27f85c, /var/tmp/se-four-principles), its tick dead since 13:55, and nothing reads it
-    as done. The hedge volume is in its gate (surgical_land pid 2957065), and the ledger cannot say so either. 05:23:
-    Live again. households-answer-a-payment-plan... reads landed_unbound against 727bd57c2, an advisor-trial commit,
-    while its real work landed as f853cd2ff and its second step is in the gate now (surgical_land pid 2055196).
-    The ledger could say neither. 08:20: LIVE INSTANCE. The path check reads the-capital-target-is-115-and-measured-before-after
-    ''nothing to land'' on saas/growth_mandate.py while its surgical_land (pid 1176275) is in its gate with the
-    measured before/after in its message. Five continuations the executor took between 07:08 and 07:46 read ''LANDED
-    NOTHING'', four of them after under eleven minutes, and the ledger cannot tell that from work tried and failed.
-    11:21: LIVE INSTANCE. the-capital-target-is-115-and-measured-before-after reads not_done (''none on saas/growth_mandate.py''),
-    but its work was gated green as 09fca096c at 10:54 in /tmp/wt_capt115. It was refused only at promotion, because
-    origin moved to f49c13405 during the gate. The ledger cannot tell gated-and-refused from never started. 14:21:
-    LIVE INSTANCE. the-capital-target-is-115-and-measured-before-after reads not_done (''none on saas/growth_mandate.py'')
-    while its surgical_land (pid 2714123, in /var/tmp/se-seat-executor) is in its gate with all five copies corrected.
-    The ledger still cannot tell work in its gate from work never started. 17:21: LIVE INSTANCE, twice. four-principles-the-dd-review-and-dunning-move-to-the-supplier
-    reads not_done, but its work is on origin in 441994e17 (16:22), landed by the interactive seat outside the item''s
-    window and bound to nothing. the-capital-target-is-115-and-measured-before-after reads not_done, while its work
-    sits finished and uncommitted in /tmp/wt_capt115 with its owner dead. The ledger cannot tell either case from
-    work never started. 20:21: LIVE INSTANCE, three times. the-capital-target-is-115-and-measured-before-after reads
-    not_done while its work sits on origin''s refs/preserved/capt115-2026-10-12 (9942c1fb7). four-principles-the-dd-review-and-dunning-move-to-the-supplier
+    13:32) never wrote a line, and its owner pid 3735426 is gone. The four-principles audit is finished
+    in a salvage commit on no remote (82e27f85c, /var/tmp/se-four-principles), its tick dead since 13:55,
+    and nothing reads it as done. The hedge volume is in its gate (surgical_land pid 2957065), and the
+    ledger cannot say so either. 05:23: Live again. households-answer-a-payment-plan... reads landed_unbound
+    against 727bd57c2, an advisor-trial commit, while its real work landed as f853cd2ff and its second
+    step is in the gate now (surgical_land pid 2055196). The ledger could say neither. 08:20: LIVE INSTANCE.
+    The path check reads the-capital-target-is-115-and-measured-before-after ''nothing to land'' on saas/growth_mandate.py
+    while its surgical_land (pid 1176275) is in its gate with the measured before/after in its message.
+    Five continuations the executor took between 07:08 and 07:46 read ''LANDED NOTHING'', four of them
+    after under eleven minutes, and the ledger cannot tell that from work tried and failed. 11:21: LIVE
+    INSTANCE. the-capital-target-is-115-and-measured-before-after reads not_done (''none on saas/growth_mandate.py''),
+    but its work was gated green as 09fca096c at 10:54 in /tmp/wt_capt115. It was refused only at promotion,
+    because origin moved to f49c13405 during the gate. The ledger cannot tell gated-and-refused from never
+    started. 14:21: LIVE INSTANCE. the-capital-target-is-115-and-measured-before-after reads not_done
+    (''none on saas/growth_mandate.py'') while its surgical_land (pid 2714123, in /var/tmp/se-seat-executor)
+    is in its gate with all five copies corrected. The ledger still cannot tell work in its gate from
+    work never started. 17:21: LIVE INSTANCE, twice. four-principles-the-dd-review-and-dunning-move-to-the-supplier
+    reads not_done, but its work is on origin in 441994e17 (16:22), landed by the interactive seat outside
+    the item''s window and bound to nothing. the-capital-target-is-115-and-measured-before-after reads
+    not_done, while its work sits finished and uncommitted in /tmp/wt_capt115 with its owner dead. The
+    ledger cannot tell either case from work never started. 20:21: LIVE INSTANCE, three times. the-capital-target-is-115-and-measured-before-after
+    reads not_done while its work sits on origin''s refs/preserved/capt115-2026-10-12 (9942c1fb7). four-principles-the-dd-review-and-dunning-move-to-the-supplier
     still reads not_done though its work is on origin in 441994e17. the-provision-and-the-movers-final-bill-graded-on-one-run-at-head
-    reads not_done while the stop-board fix it needs is in its gate (surgical_land pid 2648879, .claude/worktrees/provision-board-order).'
+    reads not_done while the stop-board fix it needs is in its gate (surgical_land pid 2648879, .claude/worktrees/provision-board-order).
+    23:22: LIVE INSTANCE, three times. the-capital-target-115-is-preserved-from-wt-capt115-then-dated-per-c14
+    reads not_done while the GBP 115 copies and the C14 dating sit uncommitted in the shared tree (saas/growth_mandate.py
+    written 22:49 UTC), under the interactive seat''s claim from 23:04. the-provision-and-the-movers-final-bill-graded-on-one-run-at-head
+    reads not_done though its stop-board fix is on origin in a070c2195. four-principles-the-dd-review-and-dunning-move-to-the-supplier
+    still reads not_done though its work is on origin in 441994e17.'
   corrected: false
-- what: 'THE MACHINE''S, CARRIED. A focus-row tombstone still retires a row without asking its DONE. 08:22: re-read-the-arrears-like-for-like-after-the-dd-failure-correction
-    was tombstoned at 08:04, and that was sound: its DONE (a ratio and met or not met) is on origin in 70a662dc1.
-    The mechanism still does not ask. 11:22: no tombstone this stretch. 14:20: no tombstone this stretch. 17:23:
-    two tombstones. the-worlds-failed-bill-repayment-share was sound (ad2776cfd and 6856fb0a1 carry its DONE). the-module-graph-door-regenerated-weekly
-    was retired at 17:16 with half its DONE (the 2026-10-12 publish rendering the door) still in the future. That
-    is a live instance. 20:22: three tombstones, all sound: each DONE is on origin (95c1193cb, 42423e618 with bbdb6c1a7,
-    e11dc1a01). The module-graph instance stays live until the 2026-10-12 publish. 23:24: no focus-row tombstone
-    this stretch (the two continuation retirements were the holders'' own). The module-graph instance stays live
-    until the 2026-10-12 publish. 02:22: one focus-row tombstone, sound: a-held-work-refusal-of-a-focus-item-reaches-the-brief
-    at 00:17, with its DONE on origin in cf8706023. The module-graph instance stays live until the 2026-10-12 publish.
-    05:22: no focus-row tombstone this stretch (all five retirements were the holders'' own). The module-graph instance
-    stays live until the 2026-10-12 publish. 08:22: LIVE INSTANCE. the-shared-checkout-advances-to-origin was tombstoned
-    at 07:41 with its DONE unmet. At 08:22 HEAD is 37 behind origin, not equal to it, because one path still holds
-    the tree (7ed1477f2). The repair it landed (b3d948346) is sound; the retirement came early. Focus four re-issues
-    the remainder under a new id. The module-graph instance stays live until the 2026-10-12 publish. 11:23: no focus-row
-    tombstone this stretch (all five retirements were the holders'' own). The module-graph instance stays live until
-    the 2026-10-12 publish. 14:23: no focus-row tombstone this stretch (all four retirements were the holders''
-    own). The module-graph instance stays live until the 2026-10-12 publish. 17:22: no focus-row tombstone this
-    stretch (the one retirement was the holder''s own). The module-graph instance stays live until the 2026-10-12
-    publish. 20:23: two focus-row tombstones, both sound. the-monday-publish-carries-a-single-levy-run (17:37):
-    the shared tree''s file is 91.5 MB and its producing_commit 7379375f6 has 1d3c28930 as an ancestor. the-dd-review-sizes-from-consumption-at-the-rates-in-force
-    (18:33): the rule, its control and the offline grade are on origin (ab17e3136, 9dbf516d8), and the default is
-    set with its reason. The module-graph instance stays live until the 2026-10-12 publish. 23:20: one focus-row
-    tombstone, sound: a-worktree-owner-marker-says-who-is-editing at 22:38, with its DONE on origin in 19491609b
-    (105 worktree holders to 3, each with a pid inside). The module-graph instance stays live until the 2026-10-12
-    publish. 02:20: no focus-row tombstone this stretch (all three retirements were the holders'' own). The module-graph
-    instance stays live until the 2026-10-12 publish. 05:20: one focus-row tombstone, sound: the-held-back-backtest-has-a-production-caller
-    at 03:02, with its DONE on origin in 051954893 (the grade renders from the saved run and B11 is recorded at
-    L2). The module-graph instance stays live until the 2026-10-12 publish. 08:23: No focus-row tombstone this stretch;
-    all three retirements were the holders'' own. The module-graph instance stays live until the 2026-10-12 publish.
-    11:23: No focus-row tombstone this stretch; all four retirements were the holders'' own. The module-graph instance
-    stays live until the 2026-10-12 publish. 14:21: No focus-row tombstone this stretch; all four retirements were
-    the holders'' own. The module-graph instance stays live until the 2026-10-12 publish. 05:23: No focus-row tombstone
-    this stretch. The module-graph instance stays live until the 2026-10-12 publish, whose run (tools.run_annual_report
-    at 47e8e6993) is running now. 08:20: No focus-row tombstone this stretch. The one retirement was the holder''s
-    own, and its DONE is on origin (b05429544, ca851702d). The module-graph instance stays live until a publish
-    lands, and this week''s did not (focus one). 11:21: No focus-row tombstone this stretch. The module-graph instance
-    stays live until a publish lands. 14:21: No focus-row tombstone this stretch. Both retirements were the holders''
-    own. The module-graph instance stays live until a publish lands. 17:21: No focus-row tombstone this stretch;
-    all four retirements were the holders'' own. the-shared-checkout-reaches-origin... retired at 16:14 with HEAD
-    level, but its DONE also named a landed publish, and none has landed. The module-graph instance stays live until
-    a publish lands. 20:21: No focus-row tombstone this stretch; the one retirement (dd4b-answers-the-told-amount...,
-    19:31) was the holder''s own. The module-graph instance stays live until a publish lands, and none has (166h).'
+- what: 'THE MACHINE''S, CARRIED. A focus-row tombstone still retires a row without asking its DONE. 08:22:
+    re-read-the-arrears-like-for-like-after-the-dd-failure-correction was tombstoned at 08:04, and that
+    was sound: its DONE (a ratio and met or not met) is on origin in 70a662dc1. The mechanism still does
+    not ask. 11:22: no tombstone this stretch. 14:20: no tombstone this stretch. 17:23: two tombstones.
+    the-worlds-failed-bill-repayment-share was sound (ad2776cfd and 6856fb0a1 carry its DONE). the-module-graph-door-regenerated-weekly
+    was retired at 17:16 with half its DONE (the 2026-10-12 publish rendering the door) still in the future.
+    That is a live instance. 20:22: three tombstones, all sound: each DONE is on origin (95c1193cb, 42423e618
+    with bbdb6c1a7, e11dc1a01). The module-graph instance stays live until the 2026-10-12 publish. 23:24:
+    no focus-row tombstone this stretch (the two continuation retirements were the holders'' own). The
+    module-graph instance stays live until the 2026-10-12 publish. 02:22: one focus-row tombstone, sound:
+    a-held-work-refusal-of-a-focus-item-reaches-the-brief at 00:17, with its DONE on origin in cf8706023.
+    The module-graph instance stays live until the 2026-10-12 publish. 05:22: no focus-row tombstone this
+    stretch (all five retirements were the holders'' own). The module-graph instance stays live until
+    the 2026-10-12 publish. 08:22: LIVE INSTANCE. the-shared-checkout-advances-to-origin was tombstoned
+    at 07:41 with its DONE unmet. At 08:22 HEAD is 37 behind origin, not equal to it, because one path
+    still holds the tree (7ed1477f2). The repair it landed (b3d948346) is sound; the retirement came early.
+    Focus four re-issues the remainder under a new id. The module-graph instance stays live until the
+    2026-10-12 publish. 11:23: no focus-row tombstone this stretch (all five retirements were the holders''
+    own). The module-graph instance stays live until the 2026-10-12 publish. 14:23: no focus-row tombstone
+    this stretch (all four retirements were the holders'' own). The module-graph instance stays live until
+    the 2026-10-12 publish. 17:22: no focus-row tombstone this stretch (the one retirement was the holder''s
+    own). The module-graph instance stays live until the 2026-10-12 publish. 20:23: two focus-row tombstones,
+    both sound. the-monday-publish-carries-a-single-levy-run (17:37): the shared tree''s file is 91.5
+    MB and its producing_commit 7379375f6 has 1d3c28930 as an ancestor. the-dd-review-sizes-from-consumption-at-the-rates-in-force
+    (18:33): the rule, its control and the offline grade are on origin (ab17e3136, 9dbf516d8), and the
+    default is set with its reason. The module-graph instance stays live until the 2026-10-12 publish.
+    23:20: one focus-row tombstone, sound: a-worktree-owner-marker-says-who-is-editing at 22:38, with
+    its DONE on origin in 19491609b (105 worktree holders to 3, each with a pid inside). The module-graph
+    instance stays live until the 2026-10-12 publish. 02:20: no focus-row tombstone this stretch (all
+    three retirements were the holders'' own). The module-graph instance stays live until the 2026-10-12
+    publish. 05:20: one focus-row tombstone, sound: the-held-back-backtest-has-a-production-caller at
+    03:02, with its DONE on origin in 051954893 (the grade renders from the saved run and B11 is recorded
+    at L2). The module-graph instance stays live until the 2026-10-12 publish. 08:23: No focus-row tombstone
+    this stretch; all three retirements were the holders'' own. The module-graph instance stays live until
+    the 2026-10-12 publish. 11:23: No focus-row tombstone this stretch; all four retirements were the
+    holders'' own. The module-graph instance stays live until the 2026-10-12 publish. 14:21: No focus-row
+    tombstone this stretch; all four retirements were the holders'' own. The module-graph instance stays
+    live until the 2026-10-12 publish. 05:23: No focus-row tombstone this stretch. The module-graph instance
+    stays live until the 2026-10-12 publish, whose run (tools.run_annual_report at 47e8e6993) is running
+    now. 08:20: No focus-row tombstone this stretch. The one retirement was the holder''s own, and its
+    DONE is on origin (b05429544, ca851702d). The module-graph instance stays live until a publish lands,
+    and this week''s did not (focus one). 11:21: No focus-row tombstone this stretch. The module-graph
+    instance stays live until a publish lands. 14:21: No focus-row tombstone this stretch. Both retirements
+    were the holders'' own. The module-graph instance stays live until a publish lands. 17:21: No focus-row
+    tombstone this stretch; all four retirements were the holders'' own. the-shared-checkout-reaches-origin...
+    retired at 16:14 with HEAD level, but its DONE also named a landed publish, and none has landed. The
+    module-graph instance stays live until a publish lands. 20:21: No focus-row tombstone this stretch;
+    the one retirement (dd4b-answers-the-told-amount..., 19:31) was the holder''s own. The module-graph
+    instance stays live until a publish lands, and none has (166h). 23:22: No focus-row tombstone this
+    stretch. The one retirement (renewal-learning-premium-discounts-fixes-below-their-cost-floor, 21:02)
+    was the holder''s own, and its DONE is on origin in 03a0b66da. The module-graph instance stays live
+    until a publish lands, and none has (169h).'
   corrected: false
-- what: 'THE MACHINE''S, CARRIED. A landing can carry docs/direction/DIRECTION.yaml from the shared working copy
-    when it is older than origin''s. 08:22: no instance. The copy matched origin at 09:05. 11:22: no instance. 14:20:
-    no instance. 17:23: no instance. 20:22: the inverse shape is live. The 17:23 record never reached origin at
-    all (167d583a4 sits on no remote), so origin carries the 14:20 record with two concern rows grafted in by 95c1193cb
-    and b6860aaf1, while the draw and this brief read the working copy. Focus two. 23:24: no instance; the 20:22
-    record reached origin whole (bd189e491). A live risk remains: /var/tmp/se-conc holds a modified copy cut from
-    an older base, and a landing from it would carry that copy. 02:22: no instance. The live risk has moved: the
-    shared working copy now lacks origin''s d717a42bb, so a landing that carried it would revert that addendum.
-    05:22: no instance. The shared working copy equals origin''s record byte for byte. 08:22: no instance, but a
-    live risk. The shared working copy differs from both HEAD and origin''s record, and origin''s carries 4d38ac8b1''s
-    new concern row. A landing that carried the working copy would revert that row. 11:23: no instance, but the
-    live risk stands. The shared working copy differs from origin''s record, which carries b6d6bba87''s and fad147bd4''s
-    rows. This record is rebuilt from origin''s, so the seat''s own landing carries them. 14:23: no instance. The
-    shared working copy equals origin''s record, and this record is rebuilt from origin''s. 17:22: no instance.
-    336b789fc carried the record on purpose (content-sourced, adding the practitioner row onto origin''s). A live
-    risk: the shared working copy differs from origin''s record by about 160 lines. This record is rebuilt from
-    origin''s. 20:23: no instance. 9dbf516d8 edited the record on purpose (the concern''s figure, corrected beside
-    the claim). The shared working copy equals origin''s record byte for byte, and this record is rebuilt from it.
-    23:20: no instance. 1eabca525 edited the record on purpose (the holdout row''s figure, corrected beside the
-    claim). The shared working copy equals origin''s record, and this record is rebuilt from it. 02:20: LIVE INSTANCE,
-    inverse shape. My 23:20 record never reached origin: origin''s record is still the 20:23 one plus 1eabca525,
-    while the draw and this brief read the working copy''s 23:20 focus. The for_the_director rows are identical
-    in both, so no concern was lost. This record is rebuilt from the working copy and carries origin''s rows unchanged.
-    05:20: no instance. My 02:20 record reached origin whole (c5dca0208), and the shared working copy equals origin''s
-    record. This record is rebuilt from it. 08:23: No instance. 97e65aa2a edited the record on purpose to add the
-    capital-target concern row. The shared working copy now lacks that row (12 lines short of origin''s), so a landing
-    that carried it would drop the row. This record is rebuilt from origin''s and carries it. 11:23: No instance.
-    The shared working copy equals origin''s record byte for byte, and this record is rebuilt from it. 14:21: LIVE
-    INSTANCE, inverse shape. My 11:23 record never reached origin. origin''s record is still the 08:23 one (1c11e871b),
-    while the draw and this brief read the working copy''s 11:23 focus. The for_the_director rows are identical
-    in both, so no concern was lost. This record is rebuilt from the working copy and carries origin''s rows unchanged.
-    05:23: LIVE, and wider. My 11:23 and 14:21 records never reached origin: the landing was refused because the
-    shared tree''s docs/status/SEAT_STRETCH_LOG.md is not origin''s copy plus one block. The four orientations from
-    17:25 to 02:26 then did not run (rc=1). Origin still holds the 2026-10-11 08:23 record plus the 81f3d21e0 answer.
-    This record is rebuilt from the 14:21 working copy and carries origin''s for_the_director rows, including the
-    answered advisor row. 08:20: LIVE, same cause, and it now blocks the publish too. My 05:23 record never reached
-    origin either. The shared tree''s docs/status/SEAT_STRETCH_LOG.md still differs from origin''s copy, which now
-    carries b05429544''s audit block. Both the seat''s landing and this week''s publish fail on it (focus one).
-    This record is rebuilt from the 05:23 working copy. Its for_the_director rows match origin''s exactly. 11:21:
-    LIVE, same cause. My 08:20 record never reached origin either. Origin''s record is still the 2026-10-11 08:23
-    one plus 81f3d21e0. This record is rebuilt from the 08:20 working copy. It carries origin''s for_the_director
-    rows, closed with the director''s canon-v4 answers. 14:21: LIVE, same cause, narrowing. 7c129de2e put the seat''s
-    stranded stretch-log blocks, decisions and the bill-shock correction on origin, but not the record itself. Origin''s
-    record is still the 2026-10-11 08:23 one plus 81f3d21e0. This record is rebuilt from the 11:21 working copy.
-    Its for_the_director rows stay closed on the director''s canon-v4 answers (e89a7728a, on origin). 17:21: No
-    instance. My 14:21 record reached origin (ddae98605), 1a3800d18 edited it on purpose, and the shared working
-    copy equals origin''s byte for byte. This record is rebuilt from it. 20:21: No instance. My 17:21 record reached
-    origin (923441cad), and the shared working copy equals origin''s byte for byte. This record is rebuilt from
-    it.'
+- what: 'THE MACHINE''S, CARRIED. A landing can carry docs/direction/DIRECTION.yaml from the shared working
+    copy when it is older than origin''s. 08:22: no instance. The copy matched origin at 09:05. 11:22:
+    no instance. 14:20: no instance. 17:23: no instance. 20:22: the inverse shape is live. The 17:23 record
+    never reached origin at all (167d583a4 sits on no remote), so origin carries the 14:20 record with
+    two concern rows grafted in by 95c1193cb and b6860aaf1, while the draw and this brief read the working
+    copy. Focus two. 23:24: no instance; the 20:22 record reached origin whole (bd189e491). A live risk
+    remains: /var/tmp/se-conc holds a modified copy cut from an older base, and a landing from it would
+    carry that copy. 02:22: no instance. The live risk has moved: the shared working copy now lacks origin''s
+    d717a42bb, so a landing that carried it would revert that addendum. 05:22: no instance. The shared
+    working copy equals origin''s record byte for byte. 08:22: no instance, but a live risk. The shared
+    working copy differs from both HEAD and origin''s record, and origin''s carries 4d38ac8b1''s new concern
+    row. A landing that carried the working copy would revert that row. 11:23: no instance, but the live
+    risk stands. The shared working copy differs from origin''s record, which carries b6d6bba87''s and
+    fad147bd4''s rows. This record is rebuilt from origin''s, so the seat''s own landing carries them.
+    14:23: no instance. The shared working copy equals origin''s record, and this record is rebuilt from
+    origin''s. 17:22: no instance. 336b789fc carried the record on purpose (content-sourced, adding the
+    practitioner row onto origin''s). A live risk: the shared working copy differs from origin''s record
+    by about 160 lines. This record is rebuilt from origin''s. 20:23: no instance. 9dbf516d8 edited the
+    record on purpose (the concern''s figure, corrected beside the claim). The shared working copy equals
+    origin''s record byte for byte, and this record is rebuilt from it. 23:20: no instance. 1eabca525
+    edited the record on purpose (the holdout row''s figure, corrected beside the claim). The shared working
+    copy equals origin''s record, and this record is rebuilt from it. 02:20: LIVE INSTANCE, inverse shape.
+    My 23:20 record never reached origin: origin''s record is still the 20:23 one plus 1eabca525, while
+    the draw and this brief read the working copy''s 23:20 focus. The for_the_director rows are identical
+    in both, so no concern was lost. This record is rebuilt from the working copy and carries origin''s
+    rows unchanged. 05:20: no instance. My 02:20 record reached origin whole (c5dca0208), and the shared
+    working copy equals origin''s record. This record is rebuilt from it. 08:23: No instance. 97e65aa2a
+    edited the record on purpose to add the capital-target concern row. The shared working copy now lacks
+    that row (12 lines short of origin''s), so a landing that carried it would drop the row. This record
+    is rebuilt from origin''s and carries it. 11:23: No instance. The shared working copy equals origin''s
+    record byte for byte, and this record is rebuilt from it. 14:21: LIVE INSTANCE, inverse shape. My
+    11:23 record never reached origin. origin''s record is still the 08:23 one (1c11e871b), while the
+    draw and this brief read the working copy''s 11:23 focus. The for_the_director rows are identical
+    in both, so no concern was lost. This record is rebuilt from the working copy and carries origin''s
+    rows unchanged. 05:23: LIVE, and wider. My 11:23 and 14:21 records never reached origin: the landing
+    was refused because the shared tree''s docs/status/SEAT_STRETCH_LOG.md is not origin''s copy plus
+    one block. The four orientations from 17:25 to 02:26 then did not run (rc=1). Origin still holds the
+    2026-10-11 08:23 record plus the 81f3d21e0 answer. This record is rebuilt from the 14:21 working copy
+    and carries origin''s for_the_director rows, including the answered advisor row. 08:20: LIVE, same
+    cause, and it now blocks the publish too. My 05:23 record never reached origin either. The shared
+    tree''s docs/status/SEAT_STRETCH_LOG.md still differs from origin''s copy, which now carries b05429544''s
+    audit block. Both the seat''s landing and this week''s publish fail on it (focus one). This record
+    is rebuilt from the 05:23 working copy. Its for_the_director rows match origin''s exactly. 11:21:
+    LIVE, same cause. My 08:20 record never reached origin either. Origin''s record is still the 2026-10-11
+    08:23 one plus 81f3d21e0. This record is rebuilt from the 08:20 working copy. It carries origin''s
+    for_the_director rows, closed with the director''s canon-v4 answers. 14:21: LIVE, same cause, narrowing.
+    7c129de2e put the seat''s stranded stretch-log blocks, decisions and the bill-shock correction on
+    origin, but not the record itself. Origin''s record is still the 2026-10-11 08:23 one plus 81f3d21e0.
+    This record is rebuilt from the 11:21 working copy. Its for_the_director rows stay closed on the director''s
+    canon-v4 answers (e89a7728a, on origin). 17:21: No instance. My 14:21 record reached origin (ddae98605),
+    1a3800d18 edited it on purpose, and the shared working copy equals origin''s byte for byte. This record
+    is rebuilt from it. 20:21: No instance. My 17:21 record reached origin (923441cad), and the shared
+    working copy equals origin''s byte for byte. This record is rebuilt from it. 23:22: No instance. My
+    20:21 record reached origin (0e9525e5a), and the shared working copy equals origin''s byte for byte.
+    This record is rebuilt from it.'
   corrected: false
-- what: 'THE MACHINE''S, CARRIED. A parked atom is still counted as drawn. H45 is PARKED and the counter still moves.
-    08:22: SITE2 moved from 43708 to 43775, and H45 to 1449. 11:22: SITE2 43974, H45 1550. 14:20: SITE2 44155, H45
-    1641. 17:23: SITE2 44317, H45 1722. 20:22: SITE2 44466, H45 1796. 23:24: SITE2 44626, H45 1877. 02:22: SITE2
-    44784, H45 1958. 05:22: SITE2 44916, H45 2024. 08:22: SITE2 45059, H45 2096. 11:23: SITE2 45181, H45 2157. 14:23:
-    SITE2 45335, H45 2234. 17:22: SITE2 45480, H45 2307. 20:23: SITE2 45647, H45 2341. 23:20: SITE2 45793, H45 2360.
-    02:20: SITE2 45936, H45 2378. 05:20: SITE2 46087, H45 2397. 08:23: SITE2 46233, H45 2415. 11:23: SITE2 46376,
-    H45 2434. 14:21: SITE2 46530, H45 2453. 05:23: SITE2 47432, H45 2566. 08:20: SITE2 47596, H45 2587. 11:21: SITE2
-    47733, H45 2605. 14:21: SITE2 47824, H45 2618. 17:21: SITE2 47838, H45 2621. 20:21: SITE2 47976, H45 2639. Focus
-    four takes H45 off the parked list on the director''s G16 ruling, which ends this instance for H45 but not the
-    counting defect.'
+- what: 'THE MACHINE''S, CARRIED. A parked atom is still counted as drawn. H45 is PARKED and the counter
+    still moves. 08:22: SITE2 moved from 43708 to 43775, and H45 to 1449. 11:22: SITE2 43974, H45 1550.
+    14:20: SITE2 44155, H45 1641. 17:23: SITE2 44317, H45 1722. 20:22: SITE2 44466, H45 1796. 23:24: SITE2
+    44626, H45 1877. 02:22: SITE2 44784, H45 1958. 05:22: SITE2 44916, H45 2024. 08:22: SITE2 45059, H45
+    2096. 11:23: SITE2 45181, H45 2157. 14:23: SITE2 45335, H45 2234. 17:22: SITE2 45480, H45 2307. 20:23:
+    SITE2 45647, H45 2341. 23:20: SITE2 45793, H45 2360. 02:20: SITE2 45936, H45 2378. 05:20: SITE2 46087,
+    H45 2397. 08:23: SITE2 46233, H45 2415. 11:23: SITE2 46376, H45 2434. 14:21: SITE2 46530, H45 2453.
+    05:23: SITE2 47432, H45 2566. 08:20: SITE2 47596, H45 2587. 11:21: SITE2 47733, H45 2605. 14:21: SITE2
+    47824, H45 2618. 17:21: SITE2 47838, H45 2621. 20:21: SITE2 47976, H45 2639. Focus four takes H45
+    off the parked list on the director''s G16 ruling, which ends this instance for H45 but not the counting
+    defect. 23:22: SITE2 48129, H45 2658. Focus five takes H45 off the parked list on the director''s
+    G16 ruling. It was not drawn this stretch.'
   corrected: false
-- what: 'THE MACHINE''S, CARRIED. The coupled-triad gate now excludes twinless L3 targets, and its refusal reaches
-    only the supervisor journal. 08:22: D48 is still at L1, and its unchanged draws rose from 1416 to 1450. 11:22:
-    D48 still L1, unchanged draws 1551. 14:20: D48 still L1, 1641. It still excludes W1_14 and W2_30 behind it in
-    every tick''s journal. 17:23: D48 still L1, 1722. 20:22: D48 still L1, 1797. 23:24: D48 still L1, 1878. The
-    gate also refused W2_non_dd_miss_vocabulary L2 until its target was lowered 3 -> 2 (64a7c8709), on precedent;
-    the move is sound but the gate shaped a target rather than a build. 02:22: D48 still L1, 1958 unchanged draws.
-    05:22: D48 still L1, 2025 unchanged draws. 08:22: D48 still L1, 2097 unchanged draws. 11:23: D48 still L1, 2158
-    unchanged draws. 14:23: D48 still L1, 2235 unchanged draws. 17:22: D48 still L1, 2307 unchanged draws. 20:23:
-    D48 still L1, 2342 unchanged draws. 23:20: D48 still L1, 2360 unchanged draws. 02:20: D48 still L1, 2378 unchanged
-    draws. Its L2 is the /capabilities/ figures, which reach the page at the publish opening 2026-10-12 03:00 UTC.
-    05:20: D48 still L1, 2397 unchanged draws. Its L2 is the /capabilities/ figures, which reach the page at the
-    publish opening 2026-10-12 03:00 UTC. 08:23: D48 is still at L1, with 2416 unchanged draws. Its L2 is the /capabilities/
-    figures, which reach the page at the publish that opens 2026-10-12 03:00 UTC. 11:23: D48 is still at L1, with
-    2434 unchanged draws. Its L2 is the /capabilities/ figures, which reach the page at the publish that opens 2026-10-12
-    03:00 UTC. 14:21: D48 is still at L1, with 2453 unchanged draws. Its L2 is the /capabilities/ figures, which
-    reach the page at the publish that opens 2026-10-12 03:00 UTC. 05:23: D48 is still at L1, with 2567 unchanged
-    draws. Its L2 reaches the page at the publish now running. 08:20: D48 is still at L1, with 2588 unchanged draws.
-    Its L2 waits on a publish, and this week''s did not land (focus one). 11:21: D48 is still at L1, with 2606 unchanged
-    draws. Its L2 waits on a publish, and none has landed. 14:21: D48 is still at L1, with 2619 unchanged draws.
-    Its L2 waits on a publish, and none has landed. 17:21: D48 is still at L1, with 2622 unchanged draws. Its L2
-    waits on a publish. The checkout no longer blocks one, but none has landed (sim-runner deferred on the memory
-    budget). 20:21: D48 is still at L1, with 2639 unchanged draws. Its L2 waits on a publish. sim-runner deferred
-    every cycle from 20:09 to 20:24 on the memory the provision grade''s members hold.'
+- what: 'THE MACHINE''S, CARRIED. The coupled-triad gate now excludes twinless L3 targets, and its refusal
+    reaches only the supervisor journal. 08:22: D48 is still at L1, and its unchanged draws rose from
+    1416 to 1450. 11:22: D48 still L1, unchanged draws 1551. 14:20: D48 still L1, 1641. It still excludes
+    W1_14 and W2_30 behind it in every tick''s journal. 17:23: D48 still L1, 1722. 20:22: D48 still L1,
+    1797. 23:24: D48 still L1, 1878. The gate also refused W2_non_dd_miss_vocabulary L2 until its target
+    was lowered 3 -> 2 (64a7c8709), on precedent; the move is sound but the gate shaped a target rather
+    than a build. 02:22: D48 still L1, 1958 unchanged draws. 05:22: D48 still L1, 2025 unchanged draws.
+    08:22: D48 still L1, 2097 unchanged draws. 11:23: D48 still L1, 2158 unchanged draws. 14:23: D48 still
+    L1, 2235 unchanged draws. 17:22: D48 still L1, 2307 unchanged draws. 20:23: D48 still L1, 2342 unchanged
+    draws. 23:20: D48 still L1, 2360 unchanged draws. 02:20: D48 still L1, 2378 unchanged draws. Its L2
+    is the /capabilities/ figures, which reach the page at the publish opening 2026-10-12 03:00 UTC. 05:20:
+    D48 still L1, 2397 unchanged draws. Its L2 is the /capabilities/ figures, which reach the page at
+    the publish opening 2026-10-12 03:00 UTC. 08:23: D48 is still at L1, with 2416 unchanged draws. Its
+    L2 is the /capabilities/ figures, which reach the page at the publish that opens 2026-10-12 03:00
+    UTC. 11:23: D48 is still at L1, with 2434 unchanged draws. Its L2 is the /capabilities/ figures, which
+    reach the page at the publish that opens 2026-10-12 03:00 UTC. 14:21: D48 is still at L1, with 2453
+    unchanged draws. Its L2 is the /capabilities/ figures, which reach the page at the publish that opens
+    2026-10-12 03:00 UTC. 05:23: D48 is still at L1, with 2567 unchanged draws. Its L2 reaches the page
+    at the publish now running. 08:20: D48 is still at L1, with 2588 unchanged draws. Its L2 waits on
+    a publish, and this week''s did not land (focus one). 11:21: D48 is still at L1, with 2606 unchanged
+    draws. Its L2 waits on a publish, and none has landed. 14:21: D48 is still at L1, with 2619 unchanged
+    draws. Its L2 waits on a publish, and none has landed. 17:21: D48 is still at L1, with 2622 unchanged
+    draws. Its L2 waits on a publish. The checkout no longer blocks one, but none has landed (sim-runner
+    deferred on the memory budget). 20:21: D48 is still at L1, with 2639 unchanged draws. Its L2 waits
+    on a publish. sim-runner deferred every cycle from 20:09 to 20:24 on the memory the provision grade''s
+    members hold. 23:22: D48 is still at L1, with 2658 unchanged draws. Its L2 waits on a publish. sim-runner
+    deferred every cycle from 23:04 to 23:24, first to a regrade arm and then on an exhausted budget (24,400
+    MB declared) once the provision re-grade and the DD4b low and high runs were admitted at 23:15. Focus
+    three.'
   corrected: false
-- what: 'THE WORLD''S, CARRIED. A gas-heated fabric home''s electricity has no season against SERL. 08:22: unchanged
-    (peak 0.562 at 20:00, season 1.239). The evening-stack pre-registration landed (a208dd212) and the measurement
-    has not run. Focus two. 11:22: MOVED, NOT CORRECTED. da944e500 put the dishwasher and lighting on HES time of
-    use, and the peak cell fell 0.561 -> 0.528 at 20:00, with no fitted scalar. S1, S2 and S3 all stay red. The
-    remaining evening excess is cooking timing and level (queued: the-evening-cooking-hour-against-hes-fig-245),
-    and S3 is the summer level. 14:20: the cooking pre-registration landed (611cae007). The world-side read has
-    not run, and the cells are unchanged. Focus three. 17:23: MOVED, NOT CORRECTED. 15570b42d put the oven and hob
-    on HES''s hours: S2 0.528 -> 0.495 at 19:00 (top 0.485), and S3 is flat at 1.227 against 1.36-1.47. Focus four.
-    20:22: MOVED, NOT CORRECTED. e11dc1a01 attributes the summer excess to the 2022 price response the world does
-    not model (the world''s summer sits on SERL''s own 2021, and SERL fell 8-9% into 2022), so the summer is a named
-    gap and nothing is fitted. What is left is January 0.35 kWh/day short and the trough 7 W high, both unsourced;
-    queued as a-gas-homes-january-electricity-short-and-the-s3-band-years. 23:24: MOVED, NOT CORRECTED. 5343a8e96
-    re-read SERL''s bands from its 3 dp tables spanning 2021-2023 (a factual correction; S3''s 2023 sat below the
-    old edge). Graded at 2,412 homes with the prediction first: S2 0.495 now PASSES (weak: 2021''s evening is lockdown),
-    S1 0.137 FAILS by 0.001 on 0.126-0.136, S3 1.220 FAILS on 1.358-1.459. What is left is the January shortfall,
-    unsourced. 02:22: unchanged; nothing worked it this stretch. 05:22: unchanged; nothing worked it. It blocks
-    no supplier result named this stretch, so under the director''s 2026-10-10 balance it waits. 08:22: unchanged;
-    nothing worked it. It still waits under the director''s 2026-10-10 balance. 11:23: unchanged; nothing worked
-    it. It still waits under the director''s 2026-10-10 balance. 14:23: unchanged; nothing worked it. It still waits
-    under the director''s 2026-10-10 balance. 17:22: unchanged; nothing worked it. It still waits under the director''s
-    2026-10-10 balance. 20:23: unchanged; nothing worked it. It still waits under the director''s 2026-10-10 balance.
-    23:20: unchanged; nothing worked it. It still waits under the director''s 2026-10-10 balance. 02:20: unchanged;
-    nothing worked it. It still waits under the director''s 2026-10-10 balance. 05:20: unchanged; nothing worked
-    it. It still waits under the director''s 2026-10-10 balance. 08:23: Unchanged, and nothing worked it. It still
-    waits under the director''s 2026-10-10 balance. 11:23: Unchanged. b4d3e0c46 gave the price response a per-household
-    SERL elasticity, which is the 2022 summer gap and not the January shortfall. It still waits under the director''s
-    2026-10-10 balance. 14:21: Unchanged. bc34b3912 put the SERL 2022 price response into the settled book, which
-    is the summer gap and not the January shortfall. It still waits under the director''s 2026-10-10 balance. 05:23:
-    Unchanged, and nothing worked it. It still waits under the director''s 2026-10-10 balance. 08:20: Unchanged,
-    and nothing worked it. It still waits under the director''s 2026-10-10 balance. 11:21: Unchanged, and nothing
-    worked it. It still waits under the director''s 2026-10-10 balance. 14:21: Unchanged, and nothing worked it.
-    It still waits under the director''s 2026-10-10 balance. 17:21: Unchanged, and nothing worked it. It still waits
-    under the director''s 2026-10-10 balance. 20:21: Unchanged, and nothing worked it. It still waits under the
-    director''s 2026-10-10 balance.'
+- what: 'THE WORLD''S, CARRIED. A gas-heated fabric home''s electricity has no season against SERL. 08:22:
+    unchanged (peak 0.562 at 20:00, season 1.239). The evening-stack pre-registration landed (a208dd212)
+    and the measurement has not run. Focus two. 11:22: MOVED, NOT CORRECTED. da944e500 put the dishwasher
+    and lighting on HES time of use, and the peak cell fell 0.561 -> 0.528 at 20:00, with no fitted scalar.
+    S1, S2 and S3 all stay red. The remaining evening excess is cooking timing and level (queued: the-evening-cooking-hour-against-hes-fig-245),
+    and S3 is the summer level. 14:20: the cooking pre-registration landed (611cae007). The world-side
+    read has not run, and the cells are unchanged. Focus three. 17:23: MOVED, NOT CORRECTED. 15570b42d
+    put the oven and hob on HES''s hours: S2 0.528 -> 0.495 at 19:00 (top 0.485), and S3 is flat at 1.227
+    against 1.36-1.47. Focus four. 20:22: MOVED, NOT CORRECTED. e11dc1a01 attributes the summer excess
+    to the 2022 price response the world does not model (the world''s summer sits on SERL''s own 2021,
+    and SERL fell 8-9% into 2022), so the summer is a named gap and nothing is fitted. What is left is
+    January 0.35 kWh/day short and the trough 7 W high, both unsourced; queued as a-gas-homes-january-electricity-short-and-the-s3-band-years.
+    23:24: MOVED, NOT CORRECTED. 5343a8e96 re-read SERL''s bands from its 3 dp tables spanning 2021-2023
+    (a factual correction; S3''s 2023 sat below the old edge). Graded at 2,412 homes with the prediction
+    first: S2 0.495 now PASSES (weak: 2021''s evening is lockdown), S1 0.137 FAILS by 0.001 on 0.126-0.136,
+    S3 1.220 FAILS on 1.358-1.459. What is left is the January shortfall, unsourced. 02:22: unchanged;
+    nothing worked it this stretch. 05:22: unchanged; nothing worked it. It blocks no supplier result
+    named this stretch, so under the director''s 2026-10-10 balance it waits. 08:22: unchanged; nothing
+    worked it. It still waits under the director''s 2026-10-10 balance. 11:23: unchanged; nothing worked
+    it. It still waits under the director''s 2026-10-10 balance. 14:23: unchanged; nothing worked it.
+    It still waits under the director''s 2026-10-10 balance. 17:22: unchanged; nothing worked it. It still
+    waits under the director''s 2026-10-10 balance. 20:23: unchanged; nothing worked it. It still waits
+    under the director''s 2026-10-10 balance. 23:20: unchanged; nothing worked it. It still waits under
+    the director''s 2026-10-10 balance. 02:20: unchanged; nothing worked it. It still waits under the
+    director''s 2026-10-10 balance. 05:20: unchanged; nothing worked it. It still waits under the director''s
+    2026-10-10 balance. 08:23: Unchanged, and nothing worked it. It still waits under the director''s
+    2026-10-10 balance. 11:23: Unchanged. b4d3e0c46 gave the price response a per-household SERL elasticity,
+    which is the 2022 summer gap and not the January shortfall. It still waits under the director''s 2026-10-10
+    balance. 14:21: Unchanged. bc34b3912 put the SERL 2022 price response into the settled book, which
+    is the summer gap and not the January shortfall. It still waits under the director''s 2026-10-10 balance.
+    05:23: Unchanged, and nothing worked it. It still waits under the director''s 2026-10-10 balance.
+    08:20: Unchanged, and nothing worked it. It still waits under the director''s 2026-10-10 balance.
+    11:21: Unchanged, and nothing worked it. It still waits under the director''s 2026-10-10 balance.
+    14:21: Unchanged, and nothing worked it. It still waits under the director''s 2026-10-10 balance.
+    17:21: Unchanged, and nothing worked it. It still waits under the director''s 2026-10-10 balance.
+    20:21: Unchanged, and nothing worked it. It still waits under the director''s 2026-10-10 balance.
+    23:22: Unchanged, and nothing worked it. It still waits under the director''s 2026-10-10 balance.'
   corrected: false
-- what: 'THE MACHINE''S, CARRIED. The draw ledger credits or denies an item by path overlap, not by its work. 08:22:
-    unchanged. a-home-mover-is-a-retention-moment-the-company-sees still reads landed_unbound against 6987325ae,
-    a commit about electronics. 11:22: unchanged. 14:20: unchanged. 17:23: unchanged. 20:22: unchanged. 23:24: unchanged.
-    02:22: unchanged; no new instance shown. 05:22: unchanged; no new instance shown. 08:22: unchanged; no new instance
-    shown. 11:23: unchanged; no new instance shown. 14:23: unchanged; no new instance shown. 17:22: unchanged; no
-    new instance shown. 20:23: LIVE INSTANCE, denying side. The draw refused considered-renewals-falling-from-53-to-3-is-explained
-    102 times because /var/tmp/se-legP''s uncommitted diff ''changes svt_decisions''. The item only READS that table,
-    and se-legP''s edit is a 2026-10-03 draft of tools/run_value_cycle_ab.py. A word shared between the item''s
-    prose and a holder''s diff is not shared work. 23:20: the restamp half of the denying side is gone (19491609b),
-    but the word half is live. The draw refused the-forward-value-backtest-splits-switches-from-moves 15 times on
-    /tmp/wt_b7s7, because its diff ''changes home_move_outs'' and the item''s prose named that field. This time
-    the holder''s work is a real upstream of the item, so the refusal is right by luck, not by design. Focus one''s
-    wording names no field the holder changes. 02:20: no new instance. The refusal on /tmp/wt_b7s7 ended once the
-    backtest item was worded without the holder''s field; it was drawn and landed (60c3a92f2 to ec9e19927). 05:20:
-    no new wrong instance. The draw refused the provision item 33 times on /var/tmp/se-save-live, which held simulation/run_phase2b.py
-    for the reactive save (afd818b22). Both items change that file, so the refusal was right by design this time,
-    and another worker took the provision anyway. 08:23: No new wrong instance. The draw refused the provision item
-    72 times on /var/tmp/se-b8-harden, which holds simulation/run_phase2b.py for B8 Q10. Both items change that
-    file, so the refusal was right by design, and the provision landed anyway (42b2eb254). 11:23: No new instance
-    shown. 14:21: No new wrong instance. The draw refused b8-q5-size-the-renewal-cut-against-the-best-published-deal
-    14 times on /var/tmp/se-seat-executor, which holds simulation/run_phase2b.py for the hedge volume. Both items
-    change that file, so the refusal was right by design, and the item landed anyway (d06b039e7). 05:23: Two live
-    instances. The plan-offer item was credited to 727bd57c2 and the provision item to d552d5239, a no-work merge,
-    because each shared docs/direction/DIRECTION.yaml with the item''s path list. 08:20: The two live instances
-    are unchanged. The plan-offer item is still credited to 727bd57c2, and the provision item to d552d5239. 11:21:
-    The two live instances are unchanged. 14:21: The two live instances are unchanged. The plan-offer item still
-    reads landed_unbound against 727bd57c2. 17:21: The two live instances are unchanged. The plan-offer item still
-    reads landed_unbound against 727bd57c2. 20:21: The two live instances are unchanged. The plan-offer item still
-    reads landed_unbound against 727bd57c2.'
+- what: 'THE MACHINE''S, CARRIED. The draw ledger credits or denies an item by path overlap, not by its
+    work. 08:22: unchanged. a-home-mover-is-a-retention-moment-the-company-sees still reads landed_unbound
+    against 6987325ae, a commit about electronics. 11:22: unchanged. 14:20: unchanged. 17:23: unchanged.
+    20:22: unchanged. 23:24: unchanged. 02:22: unchanged; no new instance shown. 05:22: unchanged; no
+    new instance shown. 08:22: unchanged; no new instance shown. 11:23: unchanged; no new instance shown.
+    14:23: unchanged; no new instance shown. 17:22: unchanged; no new instance shown. 20:23: LIVE INSTANCE,
+    denying side. The draw refused considered-renewals-falling-from-53-to-3-is-explained 102 times because
+    /var/tmp/se-legP''s uncommitted diff ''changes svt_decisions''. The item only READS that table, and
+    se-legP''s edit is a 2026-10-03 draft of tools/run_value_cycle_ab.py. A word shared between the item''s
+    prose and a holder''s diff is not shared work. 23:20: the restamp half of the denying side is gone
+    (19491609b), but the word half is live. The draw refused the-forward-value-backtest-splits-switches-from-moves
+    15 times on /tmp/wt_b7s7, because its diff ''changes home_move_outs'' and the item''s prose named
+    that field. This time the holder''s work is a real upstream of the item, so the refusal is right by
+    luck, not by design. Focus one''s wording names no field the holder changes. 02:20: no new instance.
+    The refusal on /tmp/wt_b7s7 ended once the backtest item was worded without the holder''s field; it
+    was drawn and landed (60c3a92f2 to ec9e19927). 05:20: no new wrong instance. The draw refused the
+    provision item 33 times on /var/tmp/se-save-live, which held simulation/run_phase2b.py for the reactive
+    save (afd818b22). Both items change that file, so the refusal was right by design this time, and another
+    worker took the provision anyway. 08:23: No new wrong instance. The draw refused the provision item
+    72 times on /var/tmp/se-b8-harden, which holds simulation/run_phase2b.py for B8 Q10. Both items change
+    that file, so the refusal was right by design, and the provision landed anyway (42b2eb254). 11:23:
+    No new instance shown. 14:21: No new wrong instance. The draw refused b8-q5-size-the-renewal-cut-against-the-best-published-deal
+    14 times on /var/tmp/se-seat-executor, which holds simulation/run_phase2b.py for the hedge volume.
+    Both items change that file, so the refusal was right by design, and the item landed anyway (d06b039e7).
+    05:23: Two live instances. The plan-offer item was credited to 727bd57c2 and the provision item to
+    d552d5239, a no-work merge, because each shared docs/direction/DIRECTION.yaml with the item''s path
+    list. 08:20: The two live instances are unchanged. The plan-offer item is still credited to 727bd57c2,
+    and the provision item to d552d5239. 11:21: The two live instances are unchanged. 14:21: The two live
+    instances are unchanged. The plan-offer item still reads landed_unbound against 727bd57c2. 17:21:
+    The two live instances are unchanged. The plan-offer item still reads landed_unbound against 727bd57c2.
+    20:21: The two live instances are unchanged. The plan-offer item still reads landed_unbound against
+    727bd57c2. 23:22: The two live instances are unchanged. The plan-offer item still reads landed_unbound
+    against 727bd57c2. four-principles-the-hedge-books-at-the-markets-quote was refused 6 times on /var/tmp/se-seat-executor
+    for a diff that ''changes company_fwd''. I have not read whether that holder was doing hedge work.'
   corrected: false
-- what: 'THE MACHINE''S, NEW. longjob-save-eight was declared at 50 minutes and has held its admission for 4h46m.
-    Its process is now a pytest suite (pid 2264024), not the arms it was launched for. sim-runner has deferred every
-    five-minute cycle to it since 11:07 UTC, more than nine hours. Nothing compares a long job''s elapsed time with
-    its declaration, or what it runs with what it declared. Monday is covered only because a hand-placed run sits
-    on disk. 23:20: WORSE. longjob-save-eight has held its admission for 7h42m against a declared 50 minutes. Its
-    pytest (pid 2264024) has run 3h29m at 95% CPU. sim-runner has deferred every cycle to it for about twelve hours,
-    the 23:18 cycle included, where the journal says the declared memory fits. This now blocks supplier work: B11''s
-    backtest, the gate counterfactual count and the movers'' grade all need a run on current code. Focus two. 02:20:
-    THE INSTANCE ENDED, THE RULE WAS NOT BUILT. longjob-save-eight ended by 23:49 with exit 0, about 7h55m against
-    a declared 50 minutes. The yield item was never drawn (the path check reads ''nothing to land'' on background/sim_runner.py).
-    sim-runner now yields to jobs inside their declarations (save-leak-fixtest, gate-value-test-count), and supplier
-    runs reach the box as their own long jobs (b11s5-full-run, 77 min). It moves to not_now. Nothing still compares
-    a job''s age with its declaration. 05:20: unchanged; no overrun this stretch. b7s7-full-run (declared 110 minutes)
-    is 46 minutes in. Nothing still compares a job''s age with its declaration. 08:23: No overrun this stretch.
-    Nothing still compares a job''s age with its declaration. 11:23: No overrun shown. Nothing still compares a
-    job''s age with its declaration. 14:21: No overrun shown. Nothing still compares a job''s age with its declaration.
-    05:23: No overrun shown. Nothing still compares a job''s age with its declaration. 08:20: No overrun shown.
-    b8-q5-full-risk_tiers-11111 is a few minutes in. Nothing still compares a job''s age with its declaration. 11:21:
-    No overrun shown. The four freeze runs and the six B8 Q5 arms all ended with exit 0. Nothing still compares
-    a job''s age with its declaration. 14:21: One possible overrun, not attributed. separate-book was declared at
-    15 minutes, and its launcher (pid 1917420) has been alive 1h02m. From ps I cannot tell whether it waited in
-    the queue or ran over. Nothing still compares a job''s age with its declaration. 17:21: No overrun shown. sim-runner
-    deferred every cycle from at least 17:09 to 17:19 because the box''s memory budget was declared to the provision
-    grade''s four members (3500 MB each) and the DD4b run, all inside the declarations I can see. Nothing still
-    compares a job''s age with its declaration. 20:21: No overrun shown. The provision grade''s three members (3500
-    MB declared each) are 60 minutes in, and sim-runner yields to them; I have not read their declared duration.
-    Nothing still compares a job''s age with its declaration.'
+- what: 'THE MACHINE''S, NEW. longjob-save-eight was declared at 50 minutes and has held its admission
+    for 4h46m. Its process is now a pytest suite (pid 2264024), not the arms it was launched for. sim-runner
+    has deferred every five-minute cycle to it since 11:07 UTC, more than nine hours. Nothing compares
+    a long job''s elapsed time with its declaration, or what it runs with what it declared. Monday is
+    covered only because a hand-placed run sits on disk. 23:20: WORSE. longjob-save-eight has held its
+    admission for 7h42m against a declared 50 minutes. Its pytest (pid 2264024) has run 3h29m at 95% CPU.
+    sim-runner has deferred every cycle to it for about twelve hours, the 23:18 cycle included, where
+    the journal says the declared memory fits. This now blocks supplier work: B11''s backtest, the gate
+    counterfactual count and the movers'' grade all need a run on current code. Focus two. 02:20: THE
+    INSTANCE ENDED, THE RULE WAS NOT BUILT. longjob-save-eight ended by 23:49 with exit 0, about 7h55m
+    against a declared 50 minutes. The yield item was never drawn (the path check reads ''nothing to land''
+    on background/sim_runner.py). sim-runner now yields to jobs inside their declarations (save-leak-fixtest,
+    gate-value-test-count), and supplier runs reach the box as their own long jobs (b11s5-full-run, 77
+    min). It moves to not_now. Nothing still compares a job''s age with its declaration. 05:20: unchanged;
+    no overrun this stretch. b7s7-full-run (declared 110 minutes) is 46 minutes in. Nothing still compares
+    a job''s age with its declaration. 08:23: No overrun this stretch. Nothing still compares a job''s
+    age with its declaration. 11:23: No overrun shown. Nothing still compares a job''s age with its declaration.
+    14:21: No overrun shown. Nothing still compares a job''s age with its declaration. 05:23: No overrun
+    shown. Nothing still compares a job''s age with its declaration. 08:20: No overrun shown. b8-q5-full-risk_tiers-11111
+    is a few minutes in. Nothing still compares a job''s age with its declaration. 11:21: No overrun shown.
+    The four freeze runs and the six B8 Q5 arms all ended with exit 0. Nothing still compares a job''s
+    age with its declaration. 14:21: One possible overrun, not attributed. separate-book was declared
+    at 15 minutes, and its launcher (pid 1917420) has been alive 1h02m. From ps I cannot tell whether
+    it waited in the queue or ran over. Nothing still compares a job''s age with its declaration. 17:21:
+    No overrun shown. sim-runner deferred every cycle from at least 17:09 to 17:19 because the box''s
+    memory budget was declared to the provision grade''s four members (3500 MB each) and the DD4b run,
+    all inside the declarations I can see. Nothing still compares a job''s age with its declaration. 20:21:
+    No overrun shown. The provision grade''s three members (3500 MB declared each) are 60 minutes in,
+    and sim-runner yields to them; I have not read their declared duration. Nothing still compares a job''s
+    age with its declaration. 23:22: No overrun shown. Nothing still compares a job''s age with its declaration.'
   corrected: false
-- what: 'THE MACHINE''S, NEW. saas/growth_mandate.py carries a GBP 130 capital figure per account. Ofgem''s July
-    2023 decision set GBP 115, and 130 was the consultation figure. The figure bounds the campaign''s quote budget.
-    Focus three corrects it. When it starts is with the director (the-capital-target-binds-from-2025-but). 11:23:
-    Unchanged; the item was not drawn. It stays in focus. 14:21: Unchanged; the item was not drawn for the second
-    stretch running. It stays in focus. 05:23: Unchanged. It was drawn at 02:17, inside the ten hours when no seat
-    session ran and nothing landed, so it never had a working window. It stays in focus. 08:20: Being corrected,
-    not yet corrected. surgical_land (pid 1176275) is in its gate with CAPITAL_TARGET_GBP_PER_DUAL_FUEL_ACCOUNT
-    = 115.0, a control checked by two mutations, and a before/after on seed 42 measured against a prediction written
-    first (funnel wins 608 to 619, settled book 618 to 619; one leg of the prediction was wrong and says so). The
-    treasury, solvency and collateral-desk copies still carry 130 (not_now). The row closes when the landing is
-    on origin. 11:21: Being corrected, not yet corrected. The landing gated green as 09fca096c at 10:54, then was
-    refused at promotion because origin moved to f49c13405 during its gate. Its owner, pid 1069101, is gone, and
-    a fourth attempt at 10:55 wrote nothing (/tmp/capt115_land4.log is empty). The work sits uncommitted in /tmp/wt_capt115
-    on f49c13405, and origin has since moved to 62596685a. The director has now also ruled the start date (C14,
-    canon v4). Focus two. 14:21: Being corrected, not yet corrected. A fresh landing (surgical_land pid 2714123,
-    from /var/tmp/se-seat-executor) is in its gate with all five copies at GBP 115, the treasury, solvency and collateral-desk
-    copies included. The row closes when it is on origin. The C14 start date is focus three. 17:21: WORSE. The 14:21
-    landing (surgical_land pid 2714123) left no commit on any ref. No commit anywhere carries CAPITAL_TARGET_GBP_PER_DUAL_FUEL_ACCOUNT
-    except my own records, and /var/tmp/se-seat-executor now holds other work. On origin, saas/growth_mandate.py
-    still reads mcr_per_account_gbp = 130.0 at lines 341 and 358. The only surviving copy of the fix is uncommitted
-    in /tmp/wt_capt115 (5 files, +135/-41, on f49c13405), and its owner pid 1069101 is dead. That is the shape that
-    lost /var/tmp/se-provgrade. Focus one preserves it first. 20:21: Not corrected, but no longer at risk. The fix
-    is preserved on origin at refs/preserved/capt115-2026-10-12 (9942c1fb7, 19:23 UTC), whose message calls the
-    background/sim_runner.py hunk unrelated. origin''s saas/growth_mandate.py still reads 130.0 at lines 341 and
-    358, and nothing is landing it. Focus one lands it from the ref.'
+- what: 'THE MACHINE''S, NEW. saas/growth_mandate.py carries a GBP 130 capital figure per account. Ofgem''s
+    July 2023 decision set GBP 115, and 130 was the consultation figure. The figure bounds the campaign''s
+    quote budget. Focus three corrects it. When it starts is with the director (the-capital-target-binds-from-2025-but).
+    11:23: Unchanged; the item was not drawn. It stays in focus. 14:21: Unchanged; the item was not drawn
+    for the second stretch running. It stays in focus. 05:23: Unchanged. It was drawn at 02:17, inside
+    the ten hours when no seat session ran and nothing landed, so it never had a working window. It stays
+    in focus. 08:20: Being corrected, not yet corrected. surgical_land (pid 1176275) is in its gate with
+    CAPITAL_TARGET_GBP_PER_DUAL_FUEL_ACCOUNT = 115.0, a control checked by two mutations, and a before/after
+    on seed 42 measured against a prediction written first (funnel wins 608 to 619, settled book 618 to
+    619; one leg of the prediction was wrong and says so). The treasury, solvency and collateral-desk
+    copies still carry 130 (not_now). The row closes when the landing is on origin. 11:21: Being corrected,
+    not yet corrected. The landing gated green as 09fca096c at 10:54, then was refused at promotion because
+    origin moved to f49c13405 during its gate. Its owner, pid 1069101, is gone, and a fourth attempt at
+    10:55 wrote nothing (/tmp/capt115_land4.log is empty). The work sits uncommitted in /tmp/wt_capt115
+    on f49c13405, and origin has since moved to 62596685a. The director has now also ruled the start date
+    (C14, canon v4). Focus two. 14:21: Being corrected, not yet corrected. A fresh landing (surgical_land
+    pid 2714123, from /var/tmp/se-seat-executor) is in its gate with all five copies at GBP 115, the treasury,
+    solvency and collateral-desk copies included. The row closes when it is on origin. The C14 start date
+    is focus three. 17:21: WORSE. The 14:21 landing (surgical_land pid 2714123) left no commit on any
+    ref. No commit anywhere carries CAPITAL_TARGET_GBP_PER_DUAL_FUEL_ACCOUNT except my own records, and
+    /var/tmp/se-seat-executor now holds other work. On origin, saas/growth_mandate.py still reads mcr_per_account_gbp
+    = 130.0 at lines 341 and 358. The only surviving copy of the fix is uncommitted in /tmp/wt_capt115
+    (5 files, +135/-41, on f49c13405), and its owner pid 1069101 is dead. That is the shape that lost
+    /var/tmp/se-provgrade. Focus one preserves it first. 20:21: Not corrected, but no longer at risk.
+    The fix is preserved on origin at refs/preserved/capt115-2026-10-12 (9942c1fb7, 19:23 UTC), whose
+    message calls the background/sim_runner.py hunk unrelated. origin''s saas/growth_mandate.py still
+    reads 130.0 at lines 341 and 358, and nothing is landing it. Focus one lands it from the ref. 23:22:
+    Being corrected, not yet corrected. Every copy now reads 115, with the C14 dating, but only uncommitted
+    in the shared tree (saas/growth_mandate.py, company/finance/treasury.py, company/risk/, and tests),
+    claimed by the interactive seat at 23:04. origin''s saas/growth_mandate.py still reads 130.0. The
+    row closes when the landing is on origin (focus two).'
   corrected: false
-- what: 'THE SEAT''S, NEW. My 05:23 thesis put the run of rc=1 worker exits from 17:28 to 02:58 down to the weekly
-    allowance, and so did not list it. That was a cause I never tested. The worker''s spawn sends stdout and stderr
-    to DEVNULL (background/worker_tick.py:508), so nothing recorded why any of them died. The same six-second rc=1
-    came back from 07:00 to 07:53 (seven worker exits) while the interactive seat was running, and in the same window
-    the executor''s continuation turns landed nothing. I cannot yet say what causes it. 11:21: Unchanged. worker-tick''s
-    last two runs read one done and one failed, with no exception recorded. I still cannot say what causes it, and
-    the spawn still discards stderr. 14:21: Unchanged. And worker-tick is running code that lacks 99a2ff7a1, its
-    own new model tier, so the Sonnet-with-advisor trial is not yet what the ticks run. 17:21: Unchanged on the
-    cause. worker-tick''s last two runs read done, and the spawn still sends stderr to DEVNULL (background/worker_tick.py:534).
-    One part of the 14:21 note is corrected: worker-tick now runs Sonnet with the Opus advisor (pid 4162871, --model
-    claude-sonnet-5 --advisor claude-opus-5-5), so the trial is what the ticks run. 20:21: Unchanged on the cause.
-    worker-tick''s and seat-executor''s last two runs read done, and the spawn still sends stderr to DEVNULL (background/worker_tick.py:534).'
+- what: 'THE SEAT''S, NEW. My 05:23 thesis put the run of rc=1 worker exits from 17:28 to 02:58 down to
+    the weekly allowance, and so did not list it. That was a cause I never tested. The worker''s spawn
+    sends stdout and stderr to DEVNULL (background/worker_tick.py:508), so nothing recorded why any of
+    them died. The same six-second rc=1 came back from 07:00 to 07:53 (seven worker exits) while the interactive
+    seat was running, and in the same window the executor''s continuation turns landed nothing. I cannot
+    yet say what causes it. 11:21: Unchanged. worker-tick''s last two runs read one done and one failed,
+    with no exception recorded. I still cannot say what causes it, and the spawn still discards stderr.
+    14:21: Unchanged. And worker-tick is running code that lacks 99a2ff7a1, its own new model tier, so
+    the Sonnet-with-advisor trial is not yet what the ticks run. 17:21: Unchanged on the cause. worker-tick''s
+    last two runs read done, and the spawn still sends stderr to DEVNULL (background/worker_tick.py:534).
+    One part of the 14:21 note is corrected: worker-tick now runs Sonnet with the Opus advisor (pid 4162871,
+    --model claude-sonnet-5 --advisor claude-opus-5-5), so the trial is what the ticks run. 20:21: Unchanged
+    on the cause. worker-tick''s and seat-executor''s last two runs read done, and the spawn still sends
+    stderr to DEVNULL (background/worker_tick.py:534). 23:22: Unchanged on the cause. worker-tick''s and
+    seat-executor''s last two runs read done, and the spawn still sends stderr to DEVNULL.'
   corrected: false
-- what: 'THE MACHINE''S, NEW. Three of the fresh-seed mover re-grade arms died on the run''s own settlement-switch
-    control (simulation/run_phase2b.py:5168): regrade-mv-k1-61110, regrade-mv-k1-61111 and regrade-mv-k05-61112.
-    Every off arm and every arm on seed 61109 finished. In the 61110 log, SYN-2016-021 settled on fabric_physics
-    while its eligibility verdict says not eligible. So on fresh seeds the mover offer moves a premise onto a settlement
-    provider its verdict refuses, or the verdict is read before the move. I cannot yet say which. The mover offer
-    cannot be graded on fresh seeds until that is settled (focus three). 20:21: CORRECTED. It was the first of my
-    two explanations. e71d5c1db found that a follower relocating from a legacy-profiled home into a fabric-traced
-    one took the destination''s trace but kept its old home''s ''not eligible'' verdict, and it now takes the new
-    home''s verdict, as the incoming-occupier path already did. Correction beside my 17:21 claim: four arms died,
-    not three; k=0.5 on 61112 died too. All three r2 re-runs ended exit 0, and all eight on arms on 61109-61112
-    have output in /var/tmp/regrade/out.'
-  corrected: true
-- what: 'THE SEAT''S, NEW. My 14:21 record told the provision item to wait for /var/tmp/se-world-pay to land. That
-    landed as ded298ecd at 14:30, before the record was written, so the condition was spent when I filed it. The
-    item then lost to the draw''s refusal on /var/tmp/se-separate, which holds simulation/run_phase2b.py. I never
-    re-read the premise I gated it on. 20:21: CORRECTED. My 17:21 record re-read the premise and gated the item
-    on the DD4b landing, which reached origin at 17:33 (71c324b6d). The item was then drawn, and its fix is in its
-    gate (surgical_land pid 2648879).'
-  corrected: true
-- what: THE MACHINE'S, NEW. 71c324b6d's message says DD4b's P4 and P5 are graded 'on the 200-founder runs now running',
-    but only the default run had been launched. The low and high runs were never queued, and d4d377acc relaunched
-    them at 18:20 and corrected the pre-registration beside the claim. A landed commit stated a running job that
-    nothing had queued, and nothing checked the claim against the launch register.
-  corrected: true
+- what: THE SEAT'S, NEW. My 20:21 record kept the publish out of focus because sim-runner was yielding
+    only to the provision grade's members, which 'end within the hour', so D48 would wait 'one more cycle'.
+    Instead a provision re-grade (four members) and the DD4b low and high runs were admitted at 23:15,
+    and sim-runner deferred every cycle from 23:04 to 23:24 on an exhausted budget. No publish has landed
+    for 169h. I treated each grade's admission as a one-off when it is a stream, and nothing reserves
+    the box for the weekly publish. Focus three.
+  corrected: false
 for_the_director:
 - id: the-end-to-end-review-of-claude
   raised: '2026-10-04'
   kind: canon_intent
-  what: The end-to-end review of CLAUDE.md found it contradicting the code on the reserved action walls, pointing
-    every session at a staging procedure that still described the July rules, using one name for several seats,
-    and claiming enforcement for two rows that only report; three of its findings touch canon or wall wording that
-    is yours (the curriculum wall reads stricter than your 2026-09-04 canon; DIRECTOR_CANON.md lists seven one-way
-    doors and the twin as standing approver; DIRECTOR_AXES.md cites a pricing law that no longer exists).
+  what: The end-to-end review of CLAUDE.md found it contradicting the code on the reserved action walls,
+    pointing every session at a staging procedure that still described the July rules, using one name
+    for several seats, and claiming enforcement for two rows that only report; three of its findings touch
+    canon or wall wording that is yours (the curriculum wall reads stricter than your 2026-09-04 canon;
+    DIRECTOR_CANON.md lists seven one-way doors and the twin as standing approver; DIRECTOR_AXES.md cites
+    a pricing law that no longer exists).
   proposal: 'Approve the cleanup as proposed in docs/staging/SEAT_PROPOSAL_CLAUDE_MD_CLEANUP_FROM_THE_END_TO_END_REVIEW_2026-10-04.md,
-    item by item, or strike the items you disagree with; on the three canon items, rule on the wording and I will
-    carry it into the canon documents. Already done without asking: the plain factual corrections it marks, the
-    reserved-actions list restated from the code, and the two withdrawn rules in the staging procedure.'
+    item by item, or strike the items you disagree with; on the three canon items, rule on the wording
+    and I will carry it into the canon documents. Already done without asking: the plain factual corrections
+    it marks, the reserved-actions list restated from the code, and the two withdrawn rules in the staging
+    procedure.'
   status: answered
-  resolution: 'Director, 2026-10-12, ''Agree all'' to the fourteen decisions in canon v4 section 15 (staged in e89a7728a;
-    docs/staging/DIRECTOR_STEER_CANON_V4_ALIGNMENT_2026-10-12.md, step 4): approved as proposed. The three canon
-    items are settled by v4: the curriculum wall (G6), the one-way doors (G5), and DIRECTOR_AXES''s missing pricing
-    law, which gets a banner.'
+  resolution: 'Director, 2026-10-12, ''Agree all'' to the fourteen decisions in canon v4 section 15 (staged
+    in e89a7728a; docs/staging/DIRECTOR_STEER_CANON_V4_ALIGNMENT_2026-10-12.md, step 4): approved as proposed.
+    The three canon items are settled by v4: the curriculum wall (G6), the one-way doors (G5), and DIRECTOR_AXES''s
+    missing pricing law, which gets a banner.'
 - id: time-is-scored-in-minutes-not-converted-to-money
   raised: '2026-10-04'
   kind: vision
-  what: The mission names three currencies, and time does not exist in the model. The C31 frame (70ea47ac5, docs/design/C31_TIME_AS_A_CURRENCY_DISCOVER_FRAME_2026-10-04.md,
-    Q1) has to decide whether household time is scored in its own unit or converted to money at a value of time.
-    Converting it would fold one of your three currencies into money. The only regulator pricing found (GSOP, GBP
-    30 or 15) prices failure events, not hours, and it is a transfer.
-  proposal: 'Score time in its own unit: household minutes, per class (shopping, servicing, recovery, routine admin),
-    never summed across classes and never converted to GBP. A GSOP payment stays a money transfer and is not a measure
-    of time. This does not block L1, which counts events in minutes either way, so work carries on unless you rule
-    otherwise.'
+  what: The mission names three currencies, and time does not exist in the model. The C31 frame (70ea47ac5,
+    docs/design/C31_TIME_AS_A_CURRENCY_DISCOVER_FRAME_2026-10-04.md, Q1) has to decide whether household
+    time is scored in its own unit or converted to money at a value of time. Converting it would fold
+    one of your three currencies into money. The only regulator pricing found (GSOP, GBP 30 or 15) prices
+    failure events, not hours, and it is a transfer.
+  proposal: 'Score time in its own unit: household minutes, per class (shopping, servicing, recovery,
+    routine admin), never summed across classes and never converted to GBP. A GSOP payment stays a money
+    transfer and is not a measure of time. This does not block L1, which counts events in minutes either
+    way, so work carries on unless you rule otherwise.'
   status: answered
-  resolution: 'Director, 2026-10-12, ''Agree all'' to the fourteen decisions in canon v4 section 15 (staged in e89a7728a;
-    docs/staging/DIRECTOR_STEER_CANON_V4_ALIGNMENT_2026-10-12.md, step 4): approved (M3).'
+  resolution: 'Director, 2026-10-12, ''Agree all'' to the fourteen decisions in canon v4 section 15 (staged
+    in e89a7728a; docs/staging/DIRECTOR_STEER_CANON_V4_ALIGNMENT_2026-10-12.md, step 4): approved (M3).'
 - id: whether-per-customer-pricing-beats-a-flat
   raised: '2026-10-04'
   kind: strategy
-  what: 'Whether per-customer pricing beats a flat price a supplier could have set in advance cannot be answered
-    on one book: the four probe paths share their households, and their SNR ceiling is about 0.95 however often
-    they are re-run. Only independent books separate it. Varying the book seed is EP17_varied_population_draw, which
-    is your curriculum.'
+  what: 'Whether per-customer pricing beats a flat price a supplier could have set in advance cannot be
+    answered on one book: the four probe paths share their households, and their SNR ceiling is about
+    0.95 however often they are re-run. Only independent books separate it. Varying the book seed is EP17_varied_population_draw,
+    which is your curriculum.'
   proposal: 'Authorise book seeds 61101-61112 for EP17 by recording docs/design/curriculum/varied_population_draw_activation.json
-    in the shape of population_draw_activation.json. I would run 12 books at about 36 min and 5.1 GB each, 7.2 box-hours
-    serial, after the QEP refit lands, and only after a 2.4 h re-take on the default book. Projected SNR is 1.8-2.4.
-    If you decline, the result stands as: not separable on this book.'
+    in the shape of population_draw_activation.json. I would run 12 books at about 36 min and 5.1 GB each,
+    7.2 box-hours serial, after the QEP refit lands, and only after a 2.4 h re-take on the default book.
+    Projected SNR is 1.8-2.4. If you decline, the result stands as: not separable on this book.'
   status: answered
-  resolution: 'Director, 2026-10-10: "Yes to the seed-family runner: 40-founder books settling every win, four side
-    by side on distinct seeds under the box budget ... This also answers my open request on independent books (EP17,
-    seeds 61101-61112): authorised under this runner. Close that concern with this ruling." Recorded in docs/design/curriculum/varied_population_draw_activation.json.'
+  resolution: 'Director, 2026-10-10: "Yes to the seed-family runner: 40-founder books settling every win,
+    four side by side on distinct seeds under the box budget ... This also answers my open request on
+    independent books (EP17, seeds 61101-61112): authorised under this runner. Close that concern with
+    this ruling." Recorded in docs/design/curriculum/varied_population_draw_activation.json.'
 - id: no-atom-can-reach-l3-while-an
   raised: '2026-10-04'
   kind: canon_intent
-  what: 'No atom can reach L3 while an Expert Hour counts reviewer independence as a finding against it: the blind-review
-    tool records independence false on every pass by construction, and reserves external review for the few verdicts
-    you choose. H45 (the queue chained to the map) has closed every other question its two blind passes raised --
-    edit back door, re-link, doubt route, trend -- and is held at L2 on that one alone. Its specific form: whether
-    a queue item serves its atom is read by a tick of the same machine that files it, and nothing outside audits
-    that read.'
-  proposal: Rule that an Expert Hour whose only open disqualifying question is reviewer independence passes for
-    L3, with the limit carried in the atom's simplification record, and that external review stays at your choosing
-    for the highest-stakes verdicts. On that ruling I would record H45's move to L3 through the level gate. If you
-    want H45 audited from outside instead, the read record (serves_by_hand on the harness page) is what you or a
-    relayed model would sample. Meanwhile H45 parks so it stops being drawn for a question no build can answer.
+  what: 'No atom can reach L3 while an Expert Hour counts reviewer independence as a finding against it:
+    the blind-review tool records independence false on every pass by construction, and reserves external
+    review for the few verdicts you choose. H45 (the queue chained to the map) has closed every other
+    question its two blind passes raised -- edit back door, re-link, doubt route, trend -- and is held
+    at L2 on that one alone. Its specific form: whether a queue item serves its atom is read by a tick
+    of the same machine that files it, and nothing outside audits that read.'
+  proposal: Rule that an Expert Hour whose only open disqualifying question is reviewer independence passes
+    for L3, with the limit carried in the atom's simplification record, and that external review stays
+    at your choosing for the highest-stakes verdicts. On that ruling I would record H45's move to L3 through
+    the level gate. If you want H45 audited from outside instead, the read record (serves_by_hand on the
+    harness page) is what you or a relayed model would sample. Meanwhile H45 parks so it stops being drawn
+    for a question no build can answer.
   status: answered
-  resolution: 'Director, 2026-10-12, ''Agree all'' to the fourteen decisions in canon v4 section 15 (staged in e89a7728a;
-    docs/staging/DIRECTOR_STEER_CANON_V4_ALIGNMENT_2026-10-12.md, step 4): approved (G16). Record H45''s move through
-    the level gate.'
+  resolution: 'Director, 2026-10-12, ''Agree all'' to the fourteen decisions in canon v4 section 15 (staged
+    in e89a7728a; docs/staging/DIRECTOR_STEER_CANON_V4_ALIGNMENT_2026-10-12.md, step 4): approved (G16).
+    Record H45''s move through the level gate.'
 - id: a-household-s-electricity-carbon-is-shown
   raised: '2026-10-05'
   kind: strategy
   what: 'A household''s electricity carbon is shown per kWh GENERATED: NESO''s series has carried no transmission
-    and distribution loss uplift since 2020-04-27, so a kWh used at home reads several percent low against the electricity
-    that had to be generated for it. Whether the household figure adds losses is a definition you own; it was described
-    as raised on 2026-10-05 but never reached this list.'
-  proposal: Add losses as its own named line beside the electricity figure, at DESNZ's published T&D factor (0.01853
-    kgCO2e/kWh, 2025 set, already sourced in the household-carbon knowledge page), never folded into the grid series,
-    so the published NESO number stays NESO's and the household sees both. Until you rule, the page states that
-    losses are not included, which it now does.
+    and distribution loss uplift since 2020-04-27, so a kWh used at home reads several percent low against
+    the electricity that had to be generated for it. Whether the household figure adds losses is a definition
+    you own; it was described as raised on 2026-10-05 but never reached this list.'
+  proposal: Add losses as its own named line beside the electricity figure, at DESNZ's published T&D factor
+    (0.01853 kgCO2e/kWh, 2025 set, already sourced in the household-carbon knowledge page), never folded
+    into the grid series, so the published NESO number stays NESO's and the household sees both. Until
+    you rule, the page states that losses are not included, which it now does.
   status: answered
-  resolution: 'Director, 2026-10-12, ''Agree all'' to the fourteen decisions in canon v4 section 15 (staged in e89a7728a;
-    docs/staging/DIRECTOR_STEER_CANON_V4_ALIGNMENT_2026-10-12.md, step 4): approved (CO4).'
+  resolution: 'Director, 2026-10-12, ''Agree all'' to the fourteen decisions in canon v4 section 15 (staged
+    in e89a7728a; docs/staging/DIRECTOR_STEER_CANON_V4_ALIGNMENT_2026-10-12.md, step 4): approved (CO4).'
   evidence: docs/staging/SEAT_FINDING_G14_EXPERT_HOUR_RETAKE_ON_THE_HISTORIC_MIX_2026-10-05.md
 - id: c34-next-best-action-the-customer-s
   raised: '2026-10-06'
   kind: canon_intent
-  what: 'C34 next best action: the customer''s benefit first, then ours, is read in slice 1 as a gate (never an
-    action the customer loses by) followed by supplier forward value as the objective. At realistic margins and
-    hazards, every advice action that saves the customer money then LOSES supplier forward value, so the rule advises
-    almost nobody: do no harm, take what pays us.'
+  what: 'C34 next best action: the customer''s benefit first, then ours, is read in slice 1 as a gate
+    (never an action the customer loses by) followed by supplier forward value as the objective. At realistic
+    margins and hazards, every advice action that saves the customer money then LOSES supplier forward
+    value, so the rule advises almost nobody: do no harm, take what pays us.'
   proposal: Keep the gate-then-CLV reading until you answer. If you agree with the mission's created-then-shared
-    reading, C34 ranks on joint value (customer benefit plus supplier forward-value change) with a no-loss floor
-    on both sides. That is a one-line change to the decision's ranking key; the planted, null and misled control
-    arms carry over.
+    reading, C34 ranks on joint value (customer benefit plus supplier forward-value change) with a no-loss
+    floor on both sides. That is a one-line change to the decision's ranking key; the planted, null and
+    misled control arms carry over.
   status: answered
-  resolution: 'Director, 2026-10-12, ''Agree all'' to the fourteen decisions in canon v4 section 15 (staged in e89a7728a;
-    docs/staging/DIRECTOR_STEER_CANON_V4_ALIGNMENT_2026-10-12.md, step 4): approved. Joint value with a no-loss
-    floor on both sides (C7).'
+  resolution: 'Director, 2026-10-12, ''Agree all'' to the fourteen decisions in canon v4 section 15 (staged
+    in e89a7728a; docs/staging/DIRECTOR_STEER_CANON_V4_ALIGNMENT_2026-10-12.md, step 4): approved. Joint
+    value with a no-loss floor on both sides (C7).'
   evidence: docs/staging/SEAT_FINDING_C34_THE_DECISION_IS_BUILT_AND_ON_SUPPLIER_VALUE_ALONE_IT_ADVISES_NOBODY_2026-10-06.md
 - id: the-run-s-company-cannot-learn-whether
   raised: '2026-10-09'
   kind: strategy
-  what: The run's company cannot learn whether its own retention offers work. Its own holdout sees about 30 offer
-    decisions a year in 2017-2018 and far fewer after (correction 2026-10-10 -- about 14 considered and 5 offered
-    a year over 2019-2025, because the founders renew together, most roll passively to the default, and cheaper
-    2019 renewals fall below the offer threshold), and the real effect needs about 19,600 per arm to tell from nothing.
-    Meanwhile its standing guard treats every offered household as saved, which B8 measured as a loss at every cut
-    size.
-  proposal: I am keeping the holdout off on every standing policy and recording 'an offer a small book cannot evaluate'
-    as the named limit of a 400-household company. Unless you object, I will not let the company price offers on
-    evidence from outside its own book, because that changes what a supplier this size is allowed to know. If you
-    would rather it use published retention trials, say so and I will build that next.
+  what: The run's company cannot learn whether its own retention offers work. Its own holdout sees about
+    30 offer decisions a year in 2017-2018 and far fewer after (correction 2026-10-10 -- about 14 considered
+    and 5 offered a year over 2019-2025, because the founders renew together, most roll passively to the
+    default, and cheaper 2019 renewals fall below the offer threshold), and the real effect needs about
+    19,600 per arm to tell from nothing. Meanwhile its standing guard treats every offered household as
+    saved, which B8 measured as a loss at every cut size.
+  proposal: I am keeping the holdout off on every standing policy and recording 'an offer a small book
+    cannot evaluate' as the named limit of a 400-household company. Unless you object, I will not let
+    the company price offers on evidence from outside its own book, because that changes what a supplier
+    this size is allowed to know. If you would rather it use published retention trials, say so and I
+    will build that next.
   status: answered
-  resolution: 'Director, 2026-10-12, ''Agree all'' to the fourteen decisions in canon v4 section 15 (staged in e89a7728a;
-    docs/staging/DIRECTOR_STEER_CANON_V4_ALIGNMENT_2026-10-12.md, step 4): the director says so. Published retention
-    trials are design-time knowledge, and the company may run its own randomised holdout and read it, never the
-    world''s truth (C8). Build what you offered.'
+  resolution: 'Director, 2026-10-12, ''Agree all'' to the fourteen decisions in canon v4 section 15 (staged
+    in e89a7728a; docs/staging/DIRECTOR_STEER_CANON_V4_ALIGNMENT_2026-10-12.md, step 4): the director
+    says so. Published retention trials are design-time knowledge, and the company may run its own randomised
+    holdout and read it, never the world''s truth (C8). Build what you offered.'
   evidence: docs/staging/SEAT_FINDING_B8_L3_THE_RUNS_OWN_HOLDOUT_CANNOT_DECIDE_AT_THE_FOUNDERS_SCALE_2026-10-09.md
 - id: a-held-lane-crash-can-now-wake
   raised: '2026-10-09'
   kind: reserved
-  what: A held lane crash can now wake the interactive session, but only while that session has armed the waiter.
-    Nothing re-arms it after a restart or after it fires, so the 10-09 gap is closed only as far as the session
-    remembers.
+  what: A held lane crash can now wake the interactive session, but only while that session has armed
+    the waiter. Nothing re-arms it after a restart or after it fires, so the 10-09 gap is closed only
+    as far as the session remembers.
   proposal: Add a SessionStart hook on the console that tells the session to arm 'python3 -m background.lane_unit_crash
-    --wait-held --deadline 21600' in the background. The hook only emits context and never types into the pane.
-    It acts on your console, so I have not built it; say yes and I will.
+    --wait-held --deadline 21600' in the background. The hook only emits context and never types into
+    the pane. It acts on your console, so I have not built it; say yes and I will.
   status: answered
-  resolution: 'Director, 2026-10-12, ''Agree all'' to the fourteen decisions in canon v4 section 15 (staged in e89a7728a;
-    docs/staging/DIRECTOR_STEER_CANON_V4_ALIGNMENT_2026-10-12.md, step 4): yes. Build the start-up hook.'
-  evidence: docs/staging/SEAT_FINDING_A_HELD_LANE_CRASH_WAKES_THE_INTERACTIVE_SESSION_2026-10-09.md; landed bcb725078
+  resolution: 'Director, 2026-10-12, ''Agree all'' to the fourteen decisions in canon v4 section 15 (staged
+    in e89a7728a; docs/staging/DIRECTOR_STEER_CANON_V4_ALIGNMENT_2026-10-12.md, step 4): yes. Build the
+    start-up hook.'
+  evidence: docs/staging/SEAT_FINDING_A_HELD_LANE_CRASH_WAKES_THE_INTERACTIVE_SESSION_2026-10-09.md; landed
+    bcb725078
 - id: the-scale-lane-s-seed-families-need
   raised: '2026-10-10'
   kind: strategy
   what: 'The scale lane''s seed families need the same book-seed authorisation as the open row whether-per-customer-pricing-beats-a-flat:
-    any seed other than the default draws a different set of households (EP17_varied_population_draw, your curriculum),
-    so tools/seed_family.py refuses until docs/design/curriculum/varied_population_draw_activation.json lists the
-    seed. Built and checked on the default seed: 482 homes per 40-founder no-sample book, 36 min, 3 GB, identical
-    tables on a repeat. One book reads ''cannot yet tell'' on all three questions; homes per arm for 80% power are
-    3,012 (value per home, 10%), 661 (share ever >91 days behind, 25%), and the trimmed bad-debt mean is unusable
-    (most homes have none).'
+    any seed other than the default draws a different set of households (EP17_varied_population_draw,
+    your curriculum), so tools/seed_family.py refuses until docs/design/curriculum/varied_population_draw_activation.json
+    lists the seed. Built and checked on the default seed: 482 homes per 40-founder no-sample book, 36
+    min, 3 GB, identical tables on a repeat. One book reads ''cannot yet tell'' on all three questions;
+    homes per arm for 80% power are 3,012 (value per home, 10%), 661 (share ever >91 days behind, 25%),
+    and the trimmed bad-debt mean is unusable (most homes have none).'
   proposal: 'Authorise seeds 61101-61112 once, for both uses: record them in varied_population_draw_activation.json
-    (shape of population_draw_activation.json). The scale lane then runs 4 books side by side (~2,000 homes per
-    ~48 min), which answers the debt-share question in about 1.5 books per arm and value per home in about 6 per
-    arm. Reversible: delete the file and every run is the default book again.'
+    (shape of population_draw_activation.json). The scale lane then runs 4 books side by side (~2,000
+    homes per ~48 min), which answers the debt-share question in about 1.5 books per arm and value per
+    home in about 6 per arm. Reversible: delete the file and every run is the default book again.'
   status: answered
-  resolution: 'Director, 2026-10-10: "Yes to the seed-family runner: 40-founder books settling every win, four side
-    by side on distinct seeds under the box budget ... This also answers my open request on independent books (EP17,
-    seeds 61101-61112): authorised under this runner. Close that concern with this ruling." Recorded in docs/design/curriculum/varied_population_draw_activation.json.'
+  resolution: 'Director, 2026-10-10: "Yes to the seed-family runner: 40-founder books settling every win,
+    four side by side on distinct seeds under the box budget ... This also answers my open request on
+    independent books (EP17, seeds 61101-61112): authorised under this runner. Close that concern with
+    this ruling." Recorded in docs/design/curriculum/varied_population_draw_activation.json.'
 - id: c34-s-debt-decision-cannot-be-graded
   raised: '2026-10-10'
   kind: strategy
-  what: 'C34''s debt decision cannot be graded: the world answers every plan offer None (no published take-up or
-    keep rate), no payment-method change crosses the seam, and withholding the SLC 27.8 offer is unlawful, so a
-    per-customer debt rule and the flat plan rule are identical by construction on any book.'
-  proposal: 'Name a curriculum world carrying a stated plan take-up and instalment keep rate, marked as curriculum
-    and set blind to company results; the debt decision is then wired and graded inside that named world. Until
-    you do, C34 stays at level 1 and the module stays in the orphan baseline. Also: tell me if a company-initiated
-    payment-method change is a debt action a GB supplier takes at the 27.5B trigger; I read it as needing the household
-    (DD mandate) or the regulated involuntary-PPM route.'
+  what: 'C34''s debt decision cannot be graded: the world answers every plan offer None (no published
+    take-up or keep rate), no payment-method change crosses the seam, and withholding the SLC 27.8 offer
+    is unlawful, so a per-customer debt rule and the flat plan rule are identical by construction on any
+    book.'
+  proposal: 'Name a curriculum world carrying a stated plan take-up and instalment keep rate, marked as
+    curriculum and set blind to company results; the debt decision is then wired and graded inside that
+    named world. Until you do, C34 stays at level 1 and the module stays in the orphan baseline. Also:
+    tell me if a company-initiated payment-method change is a debt action a GB supplier takes at the 27.5B
+    trigger; I read it as needing the household (DD mandate) or the regulated involuntary-PPM route.'
   status: answered
   resolution: 'Director, 2026-10-11T04:20Z: ''Merge debt management as a next best action with a new capability,
-    a personal payment plan per customer, and design them as one.'' Supplier-controlled levers for customers already
-    on a fixed DD (amount, review trigger, size of change, refund of surplus credit, contact timing, debt-plan terms
-    within the rules) are tested as results now. Customer-chosen levers (changing payment method, seasonal plan,
-    opt-in buffer, moving the collection date) have no published take-up, ''so run only as sensitivities across
-    a take-up range, never as findings.'' ''Label anything unpublished as a toggle with a range.'' Design comes
-    to him before it is built into the run.'
+    a personal payment plan per customer, and design them as one.'' Supplier-controlled levers for customers
+    already on a fixed DD (amount, review trigger, size of change, refund of surplus credit, contact timing,
+    debt-plan terms within the rules) are tested as results now. Customer-chosen levers (changing payment
+    method, seasonal plan, opt-in buffer, moving the collection date) have no published take-up, ''so
+    run only as sensitivities across a take-up range, never as findings.'' ''Label anything unpublished
+    as a toggle with a range.'' Design comes to him before it is built into the run.'
   evidence: docs/staging/SEAT_FINDING_C34_DEBT_ARMS_ARE_TIED_BY_CONSTRUCTION_BECAUSE_NO_DEBT_ACTION_REACHES_A_WORLD_THAT_ANSWERS_2026-10-10.md
 - id: practitioner-question-at-an-annual-direct-debit
   raised: '2026-10-10'
   kind: strategy
-  what: 'Practitioner question: at an annual direct-debit review, does a GB supplier set the new amount from last
-    year''s spend, from last year''s consumption at the rates in force now, and does it add recovery of the balance?
-    Nothing published says. On the single-levy run, the company''s review resets to last year''s spend at last year''s
-    prices and never recovers the balance. That review lag is -£17.8k of the DD book''s -£20.6k net debit at 2018-06,
-    and it is why the book never shows the summer credit a real one holds.'
-  proposal: 'I recommend sizing the review from last year''s consumption at the rates in force (SLC 27.15''s ''most
-    current information''). CORRECTED 2026-10-10 after measuring: I wrote that this was about -£11k of the debit,
-    and it is £3.4k (lag -£17.8k to -£14.4k). About half of each year''s price rise comes after the review, which
-    no rule can see. The rule is built and selectable, and the run''s default is unchanged because it missed its
-    pre-registered £4k bar. The sharper question: does a supplier lift the debit by price changes it has already
-    planned, or re-review when the price moves? Balance recovery stays your existing toggle until you say what the
-    practice is.'
+  what: 'Practitioner question: at an annual direct-debit review, does a GB supplier set the new amount
+    from last year''s spend, from last year''s consumption at the rates in force now, and does it add
+    recovery of the balance? Nothing published says. On the single-levy run, the company''s review resets
+    to last year''s spend at last year''s prices and never recovers the balance. That review lag is -£17.8k
+    of the DD book''s -£20.6k net debit at 2018-06, and it is why the book never shows the summer credit
+    a real one holds.'
+  proposal: 'I recommend sizing the review from last year''s consumption at the rates in force (SLC 27.15''s
+    ''most current information''). CORRECTED 2026-10-10 after measuring: I wrote that this was about -£11k
+    of the debit, and it is £3.4k (lag -£17.8k to -£14.4k). About half of each year''s price rise comes
+    after the review, which no rule can see. The rule is built and selectable, and the run''s default
+    is unchanged because it missed its pre-registered £4k bar. The sharper question: does a supplier lift
+    the debit by price changes it has already planned, or re-review when the price moves? Balance recovery
+    stays your existing toggle until you say what the practice is.'
   status: answered
-  resolution: 'Director, 2026-10-11T04:20Z: ''Your DD review question was answerable. Ofgem''s August 2022 decision
-    strengthened SLC 27.15: a fixed DD must be set on the best and most current information in all cases, taking
-    account of reads and of customer and third-party information, and reassessed when new information would change
-    it materially. Close the practitioner question with this.'' He also set the shape: the DD amount comes from
-    the company''s own twelve-month forecast for the property, priced at known rates where fixed and forecast rates
-    beyond, plus the balance to be cleared.'
+  resolution: 'Director, 2026-10-11T04:20Z: ''Your DD review question was answerable. Ofgem''s August
+    2022 decision strengthened SLC 27.15: a fixed DD must be set on the best and most current information
+    in all cases, taking account of reads and of customer and third-party information, and reassessed
+    when new information would change it materially. Close the practitioner question with this.'' He also
+    set the shape: the DD amount comes from the company''s own twelve-month forecast for the property,
+    priced at known rates where fixed and forecast rates beyond, plus the balance to be cleared.'
   evidence: tools/dd_book_legs.py; docs/staging/SEAT_FINDING_EVERY_SETTLED_BILL_CHARGED_THE_LEVIES_TWICE_2026-10-10.md
     (Prediction 2's residual, split and graded)
 - id: the-capital-target-binds-from-2025-but
   raised: '2026-10-11'
   kind: canon_intent
-  what: The run applies Ofgem's Capital Target from 2016, but it was decided on 26 July 2023 and binds from 31 March
-    2025; a supplier in 2016-2022 faced no such target. The code also carries GBP 130 per account where the decision
-    set GBP 115 (GBP 130 was the April 2023 consultation figure). saas/growth_mandate.py bounds the campaign's quote
-    budget by capital per account, so both the figure and its start date shape how fast the book can grow. The figure
-    is a factual correction the seat is landing as its own measured step; the start date changes which world the
-    company lives through, so it is yours.
-  proposal: Apply the Capital Target from 31 March 2025 (GBP 115 per dual-fuel account, GBP 0 floor), with no target
-    before the July 2023 decision; between decision and binding date, treat it as a plan-ahead target the company
-    may choose to meet. Measured before/after on the same seed before it is switched on. If you prefer it applied
-    throughout as a prudence rule, say so and the run keeps it from 2016 at GBP 115.
+  what: The run applies Ofgem's Capital Target from 2016, but it was decided on 26 July 2023 and binds
+    from 31 March 2025; a supplier in 2016-2022 faced no such target. The code also carries GBP 130 per
+    account where the decision set GBP 115 (GBP 130 was the April 2023 consultation figure). saas/growth_mandate.py
+    bounds the campaign's quote budget by capital per account, so both the figure and its start date shape
+    how fast the book can grow. The figure is a factual correction the seat is landing as its own measured
+    step; the start date changes which world the company lives through, so it is yours.
+  proposal: Apply the Capital Target from 31 March 2025 (GBP 115 per dual-fuel account, GBP 0 floor),
+    with no target before the July 2023 decision; between decision and binding date, treat it as a plan-ahead
+    target the company may choose to meet. Measured before/after on the same seed before it is switched
+    on. If you prefer it applied throughout as a prudence rule, say so and the run keeps it from 2016
+    at GBP 115.
   status: answered
-  resolution: 'Director, 2026-10-12, ''Agree all'' to the fourteen decisions in canon v4 section 15 (staged in e89a7728a;
-    docs/staging/DIRECTOR_STEER_CANON_V4_ALIGNMENT_2026-10-12.md, step 4): approved as proposed (C14). Folded into
-    focus two.'
+  resolution: 'Director, 2026-10-12, ''Agree all'' to the fourteen decisions in canon v4 section 15 (staged
+    in e89a7728a; docs/staging/DIRECTOR_STEER_CANON_V4_ALIGNMENT_2026-10-12.md, step 4): approved as proposed
+    (C14). Folded into focus two.'
 - id: the-advisor-trial-steer-sonnet-5-5
   raised: '2026-10-12'
   kind: canon_intent
-  what: 'The advisor-trial steer (Sonnet 5.5 main + Opus advisor on worker ticks) collides with the 2026-08-12 tiering
-    rule that reserved work stays Opus: in the 14 days to 2026-10-12, 586 of 586 worker ticks carried a reserved
-    marker (584 ''unprocessed staging''), so as a tier-pilot class the trial would never fire, and as a launch flag
-    it sets that rule aside on every tick.'
-  proposal: Run the trial as a dated launch flag on worker-tick only, overriding the tier for the main model while
-    it runs, with the Opus advisor as the judgment cover and the pre-registered stop rule as the revert. Once your
-    allowance resets I build it unless you say no. The alternative is to narrow 'unprocessed staging' first so the
-    tier can tell routine ticks from judgment ones.
+  what: 'The advisor-trial steer (Sonnet 5.5 main + Opus advisor on worker ticks) collides with the 2026-08-12
+    tiering rule that reserved work stays Opus: in the 14 days to 2026-10-12, 586 of 586 worker ticks
+    carried a reserved marker (584 ''unprocessed staging''), so as a tier-pilot class the trial would
+    never fire, and as a launch flag it sets that rule aside on every tick.'
+  proposal: Run the trial as a dated launch flag on worker-tick only, overriding the tier for the main
+    model while it runs, with the Opus advisor as the judgment cover and the pre-registered stop rule
+    as the revert. Once your allowance resets I build it unless you say no. The alternative is to narrow
+    'unprocessed staging' first so the tier can tell routine ticks from judgment ones.
   status: answered
-  resolution: 'Director, 2026-10-12: "Advisor trial: I set aside my 12 August reserved-marker rule for the worker
-    ticks only, for the trial''s duration (at most seven days), using a dated launch flag, with the pre-registered
-    stop rule as the way back. The seat and interactive sessions stay on Opus with no advisor. Draw it when it doesn''t
-    displace the steps above."'
+  resolution: 'Director, 2026-10-12: "Advisor trial: I set aside my 12 August reserved-marker rule for
+    the worker ticks only, for the trial''s duration (at most seven days), using a dated launch flag,
+    with the pre-registered stop rule as the way back. The seat and interactive sessions stay on Opus
+    with no advisor. Draw it when it doesn''t displace the steps above."'
   evidence: docs/observability/model_tier_log.jsonl, 14-day SPAWNED count; docs/staging/in_progress/WORKER_MINTED_advisor_trial_on_worker_ticks_2026-10-12.md
 - id: c34-now-ranks-next-best-action-on
   raised: '2026-10-12'
   kind: canon_intent
-  what: C34 now ranks next best action on joint value with a no-loss floor on both sides, as ruled (C7, eeb38abc3),
-    and it still advises nobody at realistic inputs. Across the C34 finding's own B11-scale inputs (margin GBP 5-30
-    a month, hazard 0.5-3% a month, 48 months, advice giving up GBP 2-3 a month and cutting the hazard 0.1-0.3 points),
-    joint value is positive in all 18 cases (+GBP 13 to +107) and our side is negative in all 18, so our floor refuses
-    every one. The ranking key changed and no decision did.
-  proposal: 'Keep both floors, and let an advice action that creates value but costs us travel with a price that
-    shares it: the renewal or retention price is set so that our side of that action is at least zero, which is
-    M2''s created-then-shared. That is a pricing-lever change (step 5), not a C34 change, so I would build it next
-    week as an atom, knowledge page first, and grade it on fresh seeds. If you would rather loosen our floor to
-    ''joint value exceeds what we give up'', say so; that one is a one-line change and I would measure it the same
-    way.'
+  what: C34 now ranks next best action on joint value with a no-loss floor on both sides, as ruled (C7,
+    eeb38abc3), and it still advises nobody at realistic inputs. Across the C34 finding's own B11-scale
+    inputs (margin GBP 5-30 a month, hazard 0.5-3% a month, 48 months, advice giving up GBP 2-3 a month
+    and cutting the hazard 0.1-0.3 points), joint value is positive in all 18 cases (+GBP 13 to +107)
+    and our side is negative in all 18, so our floor refuses every one. The ranking key changed and no
+    decision did.
+  proposal: 'Keep both floors, and let an advice action that creates value but costs us travel with a
+    price that shares it: the renewal or retention price is set so that our side of that action is at
+    least zero, which is M2''s created-then-shared. That is a pricing-lever change (step 5), not a C34
+    change, so I would build it next week as an atom, knowledge page first, and grade it on fresh seeds.
+    If you would rather loosen our floor to ''joint value exceeds what we give up'', say so; that one
+    is a one-line change and I would measure it the same way.'
   status: open
   resolution: ''
   evidence: docs/market_research/next_best_action_and_cross_sell.md section 6.1; landed eeb38abc3
 - id: canon-h1-owes-r16-and-r17-section
   raised: '2026-10-12'
   kind: canon_intent
-  what: Canon H1 owes R16 and R17 (section 15 item 10). Their text is found verbatim in the CLAUDE.md commits that
-    introduced them (9251474f9, eaffdb81e), and the mechanisms both name are still live.
+  what: Canon H1 owes R16 and R17 (section 15 item 10). Their text is found verbatim in the CLAUDE.md
+    commits that introduced them (9251474f9, eaffdb81e), and the mechanisms both name are still live.
   proposal: Ratify both as written, so the numbered set becomes R1-R17. In the canon text, put G12's 'recorded,
-    never authorised' beside R16's older word 'authorization'. The text and the evidence are in the proposal file.
+    never authorised' beside R16's older word 'authorization'. The text and the evidence are in the proposal
+    file.
   status: open
   resolution: ''
   evidence: docs/staging/SEAT_PROPOSAL_R16_AND_R17_FOUND_RATIFY_AS_WRITTEN_2026-10-12.md
+- id: a-direction-item-s-why-claimed-the
+  raised: '2026-10-12'
+  kind: strategy
+  what: 'A direction item''s WHY claimed the capital target ''throttles for nine years the growth the
+    thesis is judged on.'' Measured on seed 42 (campaign-only resolve, 403-founder book, 2016-2025): binding
+    is prospect_ceiling or market in every single year, at £0, £115 and £130 alike -- capital has never
+    been the constraint this book''s growth is sized against, before or after the capital-115/C14 dating
+    fix.'
+  proposal: Land the capital-115 correction and the C14 dating fix on their own merits (they are correct
+    factual corrections regardless), but do not treat them as having unthrottled growth -- they haven't.
+    If growth is meant to be capital-judged, the lever to look at is PROSPECTS_PER_YEAR (400) or the founder
+    book size, both of which bind in every year of the shipped run.
+  status: open
+  resolution: ''
+  evidence: 'docs/staging/done/SEAT_FINDING_SEVERAL_CONSUMPTION_FORECASTS_A_WALL_LEAK_IN_HEDGE_VOLUME_AND_THE_CAPITAL_TARGET_IS_115_2026-10-11.md
+    §3b: _resolve_campaign(_pre_growth_book(42), 42, persist=False) run twice in one process (flat £115
+    from 2016 vs C14-dated), by_year binding is prospect_ceiling (8 years) or market (2 years) in BOTH
+    arms, never capital.'
