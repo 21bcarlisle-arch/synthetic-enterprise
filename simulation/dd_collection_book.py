@@ -148,12 +148,21 @@ from datetime import date, timedelta
 
 from company.interfaces.dd_collection_instructions import open_collections_desk
 from simulation.arrears_engine import (
-    PAYMENT_TERMS_DAYS, bill_substream, mover_final_bill_outcome, payment_method, payment_outcome,
-    stress_for_year, _fuel_poor_for_bill, _tone_for_bill,
+    PAYMENT_TERMS_DAYS,
+    _fuel_poor_for_bill,
+    _tone_for_bill,
+    bill_substream,
+    mover_final_bill_outcome,
+    payment_method,
+    payment_outcome,
+    stress_for_year,
 )
 from simulation.bacs_rails import (
-    ARUDD_REASON_CODES, resolve_submission, submit_amendment,
-    submit_collection, submit_mandate_setup,
+    ARUDD_REASON_CODES,
+    resolve_submission,
+    submit_amendment,
+    submit_collection,
+    submit_mandate_setup,
 )
 from simulation.dd_payment_day import staggered_payment_day
 
@@ -208,8 +217,12 @@ class StopNoticeBoard:
     the money side's register cut at `as_of`.
     """
 
-    def __init__(self, stress_trajectory_of, seed: int = 42, dd_shock_responses_of=None) -> None:
+    def __init__(self, stress_trajectory_of, seed: int = 42, dd_shock_responses_of=None,
+                 payment_truth_of=None) -> None:
         self._stress_trajectory_of = stress_trajectory_of
+        # One payment truth: the triad's outcomes so far for a supply point, so the board's rails
+        # stop a DD on the returns the household actually made. None while the switch is off.
+        self._payment_truth_of = payment_truth_of
         self._seed = seed
         # DD4b: a household's own response to a DD shock moves its returns, so the board's rails
         # read it as the post-run rails do. None, or an empty answer, adds no key.
@@ -258,6 +271,9 @@ class StopNoticeBoard:
             responses = self._dd_shock_responses_of(supply_point)
             if responses:
                 behavioral[supply_point][RECORD_KEY] = responses
+        if self._payment_truth_of is not None:
+            from simulation.world_payment_truth import RECORD_KEY as TRUTH_KEY
+            behavioral[supply_point][TRUTH_KEY] = self._payment_truth_of(supply_point)
         notices = supplier_dd_stop_notices(bills, behavioral, self._seed)
         if supply_point in notices:
             self._stopped[supply_point] = notices[supply_point]
@@ -311,6 +327,7 @@ def _run_rails(
     # ONE LAG STREAM PER CUSTOMER (PB8 L2, 2026-10-03). A single stream walked in customer order
     # made one household's notice date depend on every household sorted before it, so a stop could
     # not be asked about mid-run from that household's own bills (`StopNoticeBoard`).
+    import simulation.world_payment_truth as wpt
     from simulation.dd_shock_response import RECORD_KEY as SHOCK_RECORD_KEY
     from simulation.dd_shock_response import bill_effect, failure_table
     rails_rngs: dict[str, random.Random] = {}
@@ -326,6 +343,12 @@ def _run_rails(
         year = int(period_end[:4])
 
         method = payment_method(segment, amount, cid, bill.get("commodity", "electricity"))
+        # ONE PAYMENT TRUTH (`simulation/world_payment_truth.py`): a leg whose record carries the
+        # triad's truth is put on the rails by the channel it actually paid by that month, and its
+        # outcome is the household's, not a second draw. Absent while the switch is off.
+        told = wpt.truth_outcome((behavioral.get(cid) or {}).get(wpt.RECORD_KEY), period_end)
+        if told is not None:
+            method = told["method"]
         # A non-DD bill can now be skipped BEFORE drawing its outcome: the
         # draw is keyed by (cid, period_end), so not making it cannot shift
         # any other bill's result. Under the old shared stream this loop had
@@ -344,13 +367,16 @@ def _run_rails(
         # after a DD shock has nothing on the rails from the month after; that month's collection
         # comes back unpaid. NO_EFFECT on every record while the toggles are at zero.
         shock = bill_effect((behavioral.get(cid) or {}).get(SHOCK_RECORD_KEY), period_end[:7])
-        if shock.cancelled:
+        if shock.cancelled and told is None:
             continue
         stress = stress_for_year(behavioral.get(cid) or {}, year)
         commodity = bill.get("commodity", "electricity")
-        exit_ = mover_final_bill_outcome(behavioral.get(cid) or {}, cid, period_end, commodity,
-                                         amount, method, stress, seed)
-        if exit_ is not None:
+        exit_ = (None if told is not None else
+                 mover_final_bill_outcome(behavioral.get(cid) or {}, cid, period_end, commodity,
+                                          amount, method, stress, seed))
+        if told is not None:
+            outcome = "success" if told["result"] == "success" else "failed"
+        elif exit_ is not None:
             outcome = exit_[0]
         elif shock.cancel_return:
             outcome = "failed"

@@ -80,9 +80,19 @@ MARKER_RE = re.compile(
 # was said on the day, and rewriting the record to make a test pass would be the falsification
 # this project's whole evidence discipline exists to prevent. The record keeps saying the
 # exception was granted; the canon must stop offering it.
+#
+# For the same reason it EXCLUDES two records that live under docs/design/ (2026-10-12): the
+# archived canon versions (`docs/design/archive/`) and the canon review's evidence base
+# (`docs/design/canon_review_*/`), which quotes old rulings verbatim and says of itself "It is not
+# canon". The live canon is `docs/design/DIRECTOR_CANON.md` and the pages it governs.
+_RECORDS_UNDER_DESIGN = ("archive", "canon_review_")
+
+
 def _live_canon_files() -> list[Path]:
+    design = ROOT / "docs" / "design"
     files = [OPERATING_CANON]
-    files += sorted((ROOT / "docs" / "design").rglob("*.md"))
+    files += sorted(f for f in design.rglob("*.md")
+                    if not f.relative_to(design).parts[0].startswith(_RECORDS_UNDER_DESIGN))
     return [f for f in files if f.is_file()]
 
 
@@ -226,3 +236,12 @@ def test_the_design_doc_does_not_leave_the_retirement_in_the_future_tense(phrase
         f"({phrase!r}). OPS5 has executed it; the doc must record it in the past tense or the "
         "expiry reads as pending."
     )
+
+
+def test_the_live_canon_scan_still_reads_the_canon_and_skips_only_the_records():
+    """The exclusion above must not empty the scan: the canon itself and its governed pages stay
+    in, and only the archive and the review's evidence leave."""
+    names = {str(f.relative_to(ROOT)) for f in _live_canon_files()}
+    assert "docs/design/DIRECTOR_CANON.md" in names
+    assert "docs/design/THE_MODEL_ON_A_PAGE.md" in names
+    assert not any(n.startswith(("docs/design/archive/", "docs/design/canon_review_")) for n in names)

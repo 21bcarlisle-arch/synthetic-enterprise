@@ -48,13 +48,12 @@ RESERVED — gates, every time:
    any simulation. (Split out of the old PLATFORM_ADMINISTRATION, whose
    remaining members are settings, not credentials.)
 
+6. IRRECOVERABLE_DATA_LOSS and 7. SECURITY_SAFETY_CONTROL — reserved again by
+   canon v4 G5 (2026-10-12), which replaced the 29 July release: "live
+   credentials, security posture and the safety controls that protect real
+   people; destroying evidence or irrecoverable data". Narrowed to those words.
+
 RELEASED — classifies and informs, never gates:
-- IRRECOVERABLE_DATA_LOSS — the loss is repo/simulation state, recoverable from
-  origin and history. No real person, no real money.
-- SECURITY_SAFETY_CONTROL — these are the HARNESS's own controls (the verifier,
-  the hooks, the staging flow, skip-permissions). Disarming one stops a
-  simulation; it protects nobody real. This is the exact category the director
-  re-tagged by name.
 - VALUES_DECISION — the curriculum and the fitness function. R13 and LAW A still
   govern as canon (a curriculum change is a named, versioned, director-authored
   artefact, never silent parameter drift), but canon is now enforced by that
@@ -215,14 +214,22 @@ _CATEGORY_PATTERNS: dict[OneWayDoorCategory, list[str]] = {
         # as the epoch-adjective tighten (test_open_build_in_the_open_epoch_is_not_a_door).
         r"\bpublish\b(?!.*\bprovisional\b)",
     ],
+    # RESERVED again by canon v4 G5 (2026-10-12): "destroying evidence or irrecoverable data".
+    # Narrowed to that: `rm -rf` and `git reset --hard` are routine, sanctioned and recoverable
+    # here (scratch, a worktree reset to origin), and gating them would put the director on the
+    # path of ordinary work, which G8 calls a defect.
     OneWayDoorCategory.IRRECOVERABLE_DATA_LOSS: [
-        r"rm -rf", r"drop table", r"force[- ]push", r"push --force", r"git reset --hard",
+        r"drop table", r"force[- ]push", r"push --force",
         r"delete (the )?backup", r"--no-verify", r"\bwipe\b.*\b(database|repo|history)\b",
+        r"\b(destroy|delete|erase|shred)\w*\b.*\b(evidence|transcripts?|run ledgers?|audit (log|trail))\b",
+        r"\bgit (gc --prune=now|reflog expire)\b",
     ],
+    # RESERVED again by G5 as "security posture" (the machine's own sandbox and privileges). The
+    # harness's internal gates (verifier, staging flow, hooks) protect no real person and are not
+    # in G5, so they are no longer classified here.
     OneWayDoorCategory.SECURITY_SAFETY_CONTROL: [
-        r"security profile", r"skip[- ]permissions",
-        r"(modify|change|disable|bypass|weaken|remove|alter).*(epistemic verifier|staging flow)",
-        r"disable.*(hook|verifier|gate)", r"\bsudo\b",
+        r"security profile", r"\bsudo\b", r"sandbox (profile|policy|settings)",
+        r"(widen|loosen|disable|bypass)\w*.*\b(sandbox|firewall|egress)\b",
     ],
     OneWayDoorCategory.VALUES_DECISION: [
         r"fitness function", r"mortality rule", r"what the company is for",
@@ -262,8 +269,6 @@ _CATEGORY_PATTERNS: dict[OneWayDoorCategory, list[str]] = {
 # Each is released because its real-world consequence (if any) is internal
 # to the simulation: stopping a simulation protects no one real.
 _RELEASED_CATEGORIES = frozenset({
-    OneWayDoorCategory.IRRECOVERABLE_DATA_LOSS,
-    OneWayDoorCategory.SECURITY_SAFETY_CONTROL,
     OneWayDoorCategory.VALUES_DECISION,
     OneWayDoorCategory.PLATFORM_ADMINISTRATION,
 })

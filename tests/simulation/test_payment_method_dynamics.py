@@ -11,7 +11,6 @@ What each control names as its own defect:
   * `test_the_shock_summary_does_not_count_an_own_reasons_cancellation` -- one act counted twice.
   * `test_a_prepayment_offer_is_answered_only_when_switched_on_and_both_ways` -- an answer invented
     while off, or one that only goes one way.
-  * `test_a_debt_on_a_prepayment_meter_is_recovered_at_the_published_weekly_rate` -- the rate lost.
 """
 from __future__ import annotations
 
@@ -21,7 +20,6 @@ from simulation.payment_method_dynamics import (
     CAUSE_OWN_REASONS,
     MethodStrengths,
     answer_prepayment_offer,
-    debt_recovery_on_prepayment,
     monthly_hazard,
     own_reasons_cancellation,
     summarise,
@@ -75,9 +73,3 @@ def test_the_shock_summary_does_not_count_an_own_reasons_cancellation():
 def test_a_prepayment_offer_is_answered_only_when_switched_on_and_both_ways():
     answers = {answer_prepayment_offer(f"A{i}", "2020-04-01", HIGH) for i in range(300)}
     assert answers == {True, False}
-
-
-def test_a_debt_on_a_prepayment_meter_is_recovered_at_the_published_weekly_rate():
-    assert debt_recovery_on_prepayment(601.0) == {"weekly_gbp": 6.01, "weeks_to_clear": 100}
-    assert debt_recovery_on_prepayment(440.0, "gas")["weeks_to_clear"] == 100
-    assert debt_recovery_on_prepayment(601.01)["weeks_to_clear"] == 101

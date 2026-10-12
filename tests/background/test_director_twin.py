@@ -288,3 +288,10 @@ def test_route_blocking_decision_oneway_registers_action_needed_and_waits(tmp_pa
 # (DIRECTOR_RULING_RIP_OUT_PERMISSION_MACHINERY item 2). The twin keeps its real role, a voice that
 # answers and never acts; `tests/background/test_gate_authorization.py` now owns the level-RECORD
 # control, and `test_the_permission_surface_is_gone` fails if the ratification path returns.
+
+
+def test_the_installed_v4_canon_reads_as_version_4_not_the_silent_default(monkeypatch):
+    from background import director_twin
+    monkeypatch.setattr(director_twin, "CANON_PATH",
+                        director_twin.PROJECT_DIR / "docs" / "design" / "DIRECTOR_CANON.md")
+    assert director_twin.current_canon_version() >= 4

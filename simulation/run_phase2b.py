@@ -2124,6 +2124,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 _cid, _due.isoformat()) is not None,
             dd_shock_effect=(None if not _mandate_book_live
                              else _dd_shock_book.effect(household_of(cid), held["month"])),
+            moved_out_on=_moved_out_on_by_leg.get(cid),
         )
         _cx_desk.observe_payment(PaymentOutcome(
             customer_id=cid,
@@ -2230,7 +2231,9 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     _dd_stop_board = StopNoticeBoard(
         lambda _cid: household_demand_register.income_stress_trajectory(_cid, list(range(2016, 2026)))
         if household_demand_register is not None else [],
-        dd_shock_responses_of=lambda _sp: _dd_shock_book.responses_of(household_of(_sp)))
+        dd_shock_responses_of=lambda _sp: _dd_shock_book.responses_of(household_of(_sp)),
+        payment_truth_of=(_payment_triad.payment_truth_so_far
+                          if _world_payment_truth.UNIFIED else None))
     install_stop_notice_board(_dd_stop_board)
     # THE FOLD, fed at exactly one place -- the line that extends `all_records` below.
     # Fed anywhere else it would see records the list has not, and the point-in-time window
@@ -2313,6 +2316,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     _followed_moves: set[tuple] = set()
     _home_move_by_household: dict = {}
     home_move_outs: list[dict] = []
+    # leg -> move date, for the triad's final-bill exit under one payment truth.
+    _moved_out_on_by_leg: dict[str, str] = {}
     # B7 slice 3: who supplies a vacated premise from the move date. The book is live and module
     # level, so a second run in one process starts it empty.
     _incoming_occupant_book = incoming_occupant_supply_points()
@@ -2645,6 +2650,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 # with nobody named liable; sim/customer_state_layer.py says why the window is an
                 # expectation and why the rate is the meter point's annual quantity.
                 _leg = get_customer(cid)
+                _moved_out_on_by_leg[cid] = _move_end.isoformat()
                 home_move_outs.append({
                     "household": billing_account, "customer_id": cid,
                     "commodity": commodity, "move_date": _move_end.isoformat(),

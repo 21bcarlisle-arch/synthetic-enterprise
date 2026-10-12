@@ -28,15 +28,16 @@ Case, the running-account default the company ledger also uses --
 debtor, restarts the limitation clock (Limitation Act 1980 s.29(5), as the engine's own payments
 already do). Knowledge: `docs/market_research/bad_debt_provisioning.md`, "One payment truth".
 
-SHIPPED OFF. `UNIFIED = False`, so the arrears engine draws as before and the shipped book is
-byte-identical. Switching it on changes the shipped book's bad debt: that change is a world
-correction, measured and recorded, and making it the shipped default is the seat's call because
-controls elsewhere pin today's book.
+SHIPPED ON since 2026-10-12. It first landed off (`62596685a`, byte-identical book); the seat made
+it the default once the rails and the mover's final bill had joined it (`c11ec1e50`), as a world
+correction before any supplier result was seen. On 40 founders, budget 0, it moved bad debt from
+GBP 440.85 to 116.48 and net from 31,124.47 to 31,448.84 (the freeze record has the measurement).
 
 NAMED SIMPLIFICATIONS:
   1. A bill the triad has no record for (a leg it does not collect, or a month outside its run)
      keeps the engine's own draw; the count is published (`fallback_bills`) so it cannot hide.
-  2. A mover's final bill keeps the engine's B7 exit, which the triad does not model.
+  2. A mover's final bill is decided once, in the triad, by the world's one exit model
+     (`arrears_engine.mover_final_bill_outcome`); the part a gone household paid reduces the bill.
   3. The stayer provision leg (off) does not net repayments.
   4. No meter is changed for debt in the run, so no prepayment repayment exists to carry.
 
@@ -47,8 +48,10 @@ from __future__ import annotations
 import datetime as dt
 from typing import Optional
 
-#: The switch. Off: the arrears engine draws its own outcomes, as shipped.
-UNIFIED = False
+#: The switch. ON, the shipped world since 2026-10-12 (the seat's decision, a world correction made
+#: before any supplier result was seen: bills households repaid were being written off). Off brings
+#: back the engine's own draw, for comparing against books produced before the correction.
+UNIFIED = True
 
 #: The behavioural-record key the run writes and the arrears engine reads.
 RECORD_KEY = "world_payment_truth"
@@ -83,6 +86,9 @@ def build(triad, through: dt.date) -> dict[str, dict]:
         rec["outcomes"][r.due_date.isoformat()[:7]] = {
             "result": r.result, "days_late": int(r.days_late or 0),
             "method": engine_method(r.payment_method)}
+        part = triad._final_bill_part_share.get((r.customer_id, r.due_date.isoformat()[:7]))
+        if part:
+            rec["outcomes"][r.due_date.isoformat()[:7]]["part_share"] = part
         by_account.setdefault(r.account_id, []).append(r)
     cid_of = {a: rs[0].customer_id for a, rs in by_account.items()}
     for account_id, bill_due, settled_on in triad._crossed_settlements:
