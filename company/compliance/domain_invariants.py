@@ -1022,6 +1022,79 @@ def check_no_acquisition_only_tariff(offers: list, as_of) -> bool:
     return not result["breaches"]
 
 
+
+# A DISCRETIONARY PRICE MOVE MAY COST MARGIN; IT MAY NEVER SELL BELOW COST. Not law: no licence
+# condition sets a floor under a domestic fixed tariff (the cap is a ceiling, and SLC 4B asks a
+# supplier to manage mutualisable costs responsibly, not to price at any level). It is this
+# supplier's own rule, stated by its renewal desk (`renewal_desk._apply_competitive_ceiling`: "an
+# undercut ceiling may cost margin, it may never force a sale below cost") and broken by the rate
+# chain's portfolio premium on 15 of 18 electricity renewals to 2017-03-31
+# (SEAT_FINDING_B8_Q5_WHY_THE_RENEWAL_FIX_SITS_BELOW_ITS_OWN_COST_FLOOR_2026-10-12.md).
+# The floor counts only what the offer priced off -- the company's own forward and the policy and
+# network costs it locked -- so a rate AT the floor still recovers no operating cost: the rule is
+# the least a supplier could hold itself to, not a margin. Knowledge:
+# site/data/knowledge_topics.json -> acquisition-and-retention-economics.
+DISCRETIONARY_RATE_NOT_BELOW_OWN_COST_FLOOR = StructuralInvariant(
+    id="discretionary_rate_not_below_own_cost_floor",
+    description=(
+        "A unit rate the supplier contracts after its own discretionary adjustments is not below "
+        "its own cost floor for that term -- the forward it priced off plus the pass-through "
+        "costs it locked -- unless the rate was struck below it before any adjustment or the "
+        "default tariff cap clamped it there"
+    ),
+    source=(
+        "Supplier's own pricing rule (company/pricing/renewal_desk.py, _apply_competitive_"
+        "ceiling); context, not a price floor: Ofgem SLC 4B Financial Responsibility Principle"
+    ),
+)
+
+
+def own_cost_floor(company_forward, locked_policy, locked_network) -> Optional[float]:
+    """The term's own cost floor, GBP/MWh: its forward plus the two costs it locked. `None` when
+    any of the three is unknown -- a partial sum would read as a floor and be one nobody struck."""
+    if company_forward is None or locked_policy is None or locked_network is None:
+        return None
+    return company_forward + locked_policy + locked_network
+
+
+def discretionary_rate_shortfall_below_own_cost_floor(
+    contracted, *, entered, cost_floor, cap=None,
+) -> Optional[float]:
+    """How far, GBP/MWh, `contracted` sits below the lowest rate the rule allows; `None` if it does
+    not, or if there is no rate or no floor to grade (nothing was discounted against cost)."""
+    if contracted is None or cost_floor is None:
+        return None
+    allowed = cost_floor
+    if entered is not None:
+        allowed = min(allowed, entered)
+    if cap is not None:
+        allowed = min(allowed, cap)
+    shortfall = allowed - contracted
+    return shortfall if shortfall > 1e-9 else None
+
+
+def check_discretionary_rate_not_below_own_cost_floor(contracted, *, entered, cost_floor,
+                                                      cap=None) -> bool:
+    return discretionary_rate_shortfall_below_own_cost_floor(
+        contracted, entered=entered, cost_floor=cost_floor, cap=cap) is None
+
+
+class DiscretionaryRateBelowOwnCostFloorError(Exception):
+    pass
+
+
+def refuse_discretionary_rate_below_own_cost_floor(contracted, *, entered, cost_floor, cap=None,
+                                                   where: str = "") -> None:
+    """Raise, naming the shortfall and its terms, where the rule is broken."""
+    shortfall = discretionary_rate_shortfall_below_own_cost_floor(
+        contracted, entered=entered, cost_floor=cost_floor, cap=cap)
+    if shortfall is not None:
+        raise DiscretionaryRateBelowOwnCostFloorError(
+            f"{where}: contracted {contracted:.4f}/MWh is {shortfall:.4f} below what "
+            f"{DISCRETIONARY_RATE_NOT_BELOW_OWN_COST_FLOOR.id} allows (cost floor "
+            f"{cost_floor:.4f}, entered {entered}, cap {cap}): a discretionary writer in the "
+            f"rate chain priced under the cost the desk struck over")
+
 ALL_INVARIANTS: list = [
     NO_ACQUISITION_ONLY_TARIFF,
     VAT_RESIDENTIAL, VAT_SME,
@@ -1039,6 +1112,7 @@ ALL_INVARIANTS: list = [
     BAD_DEBT_RATE_RESI, BAD_DEBT_RATE_SME,
     BACK_BILLING_CAP_RESPECTED,
     SOLD_UNIT_RATE_WITHIN_CAP_EX_VAT,
+    DISCRETIONARY_RATE_NOT_BELOW_OWN_COST_FLOOR,
     BILLED_CLOCK_RECONCILES_WITH_ISSUED_BILLS,
     VAT_SEGMENT_MATCHES_CONSUMPTION,
     BILL_FOOTS,

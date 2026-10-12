@@ -96,3 +96,65 @@ alike.
    32-46/MWh network figure ALSO covers cost that standing charge recovers is a separate fidelity
    question. It does not touch this verdict, because the floor and the strike count that figure
    identically.
+
+## The re-floor (direction `renewal-learning-premium-discounts-fixes-below-their-cost-floor`)
+
+*2026-10-12, delivery seat. Knowledge first: `site/data/knowledge_topics.json` ->
+`acquisition-and-retention-economics`, section "How far a renewal discount may go".*
+
+Built: writer 1 may take a rate down to `company_fwd + locked_policy + locked_network` and no
+further. The three cross the typed record (`RenewalDecisionInputs`) the way the struck rate does.
+Where any of the three is unknown, a NEGATIVE premium is not applied at all (fail closed: a
+discount nobody can check against cost is not given); a positive premium is unaffected. The class
+is `domain_invariants.DISCRETIONARY_RATE_NOT_BELOW_OWN_COST_FLOOR`, checked where the chain
+returns: the contracted rate may sit below the floor only where it entered below it or the cap
+clamp (law) put it there.
+
+### Pre-registration (filed before the re-run of the probe)
+
+Same probe, adapted to wrap `decide_renewal` (the run loop's door since 2026-10-12), to 2017-03-31.
+
+- **R1.** No electricity or gas renewal leaves the chain below its floor (0 of N, against 15 of 18
+  electricity before).
+- **R2.** Each of the 15 that were below now leaves writer 1 at its floor to the penny, so
+  writer 1's logged `unit_rate_after` equals the floor and `floored_at_cost` is true on those 15
+  and false elsewhere.
+- **R3.** The 3 that were discounted but not below stay byte-identical; gas is unchanged.
+- **R4.** The price-match decline count barely moves (the fixes now sit AT the floor, where
+  `cost_floor >= unit_rate` still declines). I put it at the same count +/- 2 per window.
+
+### Result (probe `/var/tmp/se-b8-refloor/probe.py`, CURRENT_POLICY + price_match, to 2017-03-31)
+
+- **R1 HELD.** 0 of 19 unique electricity renewals leave the chain below their floor (15 of 18
+  before).
+- **R2 HELD, with one more row than predicted.** All 15 that were below now leave writer 1 at
+  their floor exactly, `floored_at_cost` true. A 16th, SYN-2016-150's 2017-03-23 renewal, exists
+  only in the new run (the world moved once rates did: it now reaches the price match) and is
+  floored the same way. I predicted 15 because I counted the old population; the new run's
+  population is not the old one.
+- **R3 HELD for electricity.** The 3 discounted-but-not-below rows are byte-identical. **Gas:
+  ungraded.** The probe joins the chain to the price-match row by the leg's customer id, and gas
+  rows carry none, so gas went unrecorded in both runs. "Gas unchanged" is not established here.
+- **R4 UNGRADED.** The probe records the price match's inputs, not its outcome, so the decline
+  count was not measured. I cannot yet say whether it moved.
+
+**The value arm, run because it could trip the new refusal** (same probe, `renewal_margin_arm=
+value_based`): 27 unique electricity renewals, 0 below floor, 23 floored by writer 1 and then
+priced by the arm, smallest arm margin chosen GBP 3.75/MWh. No refusal fired. **LATENT, not
+reached here:** the arm adds `chosen margin - GBP 2` to whatever writer 1 left, on the assumption
+that the struck rate still carries the GBP 2. On a rate writer 1 has floored it does not, so an arm
+choice below GBP 2 (the grid starts at 0.50) would take the rate up to GBP 1.50 under the floor, and
+the chain would now REFUSE it, stopping the run with a message naming the term. Correct by the
+rule, and the fix belongs in the arm's base (price against the cost floor, not `struck - 2`), not
+in a softer check. Handed on.
+
+**Correction, same day, to the paragraph above:** it was not latent. Within the hour,
+`tests/tools/test_the_decision_probe_compares_rules_without_moving_the_book.py` reached it: the
+probe prices every renewal at each level of the flat-at-level grid, and levels under GBP 2 on
+SYN-2016-009's floored 2017-01-09 renewal sold at 134.77 against a floor of 136.27, exactly GBP
+1.50 under. The return check refused, as designed. So the arm's move now goes through the same
+floor as writer 1 (`_floor_a_discount`): the arm may lower a rate, never under cost, and its entry
+carries `floored_at_cost` on a cut. This changes the contracted rate ONLY where an arm or level
+choice under GBP 2 meets a floored rate; the arm's logged belief stays the one for the rate it
+chose. What stays open is the arm's base (`struck - GBP 2`), which is wrong on any rate writer 1
+moved, in either direction: handed on.

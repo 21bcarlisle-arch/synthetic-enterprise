@@ -124,36 +124,37 @@ def probe(report_end: str | None = None, roll_seed: int | None = None) -> list[d
 
     offers: dict[tuple, dict] = {}
     rows: list[dict] = []
-    real_price, real_roll = runner.decide_renewal_rate, runner.roll_lifecycle_event
+    # The run loop asks through the typed record since 2026-10-12 (`decide_renewal`), so the probe
+    # wraps that door and varies the record, not a keyword dict.
+    real_price, real_roll = runner.decide_renewal, runner.roll_lifecycle_event
 
-    def priced(**kw):
-        result = real_price(**kw)
-        if kw.get("term_index", 0) >= 1 and kw.get("struck_unit_rate_gbp_per_mwh"):
+    def priced(inputs):
+        result = real_price(inputs)
+        if inputs.term_index >= 1 and inputs.struck_unit_rate_per_mwh:
             with policy_scope(VALUE_ARM_POLICY):
-                value = real_price(**kw)
-                blind = real_price(**{k: v for k, v in kw.items()
-                                      if k not in PAYMENT_HISTORY_ARGS})
+                value = real_price(inputs)
+                blind = real_price(replace(inputs, **dict.fromkeys(PAYMENT_HISTORY_ARGS)))
             # B8: the value arm pricing with the price response it learned from its own renewals.
             with policy_scope(VALUE_ARM_LEARNED_POLICY):
-                learned = real_price(**kw)
+                learned = real_price(inputs)
                 learned_delta = learned_correction(
-                    kw.get("payment_method"), kw["commodity"], int(kw["term_start"][:4]))
+                    inputs.payment_method, inputs.commodity, int(inputs.term_start[:4]))
             # The value arm that knows a stayer is billed at most the default.
             with policy_scope(VALUE_ARM_CAPPED_POLICY):
-                capped = real_price(**kw)
+                capped = real_price(inputs)
             with policy_scope(VALUE_ARM_CAPPED_LEARNED_POLICY):
-                capped_learned = real_price(**kw)
+                capped_learned = real_price(inputs)
             levels, believed_at_level = {}, {}
             for level in LEVEL_GRID:
                 with policy_scope(replace(CURRENT_POLICY, name="level_arm",
                                           renewal_margin_arm=FLAT_AT_LEVEL,
                                           renewal_margin_flat_level_gbp_per_mwh=float(level))):
-                    at_level = real_price(**kw)
+                    at_level = real_price(inputs)
                 levels[level] = at_level.unit_rate_gbp_per_mwh
                 believed_at_level[level] = _believed(at_level)
-            offers[(kw["customer_id"], kw["term_start"][:10], kw["commodity"])] = {
-                "billing_account": kw["billing_account"],
-                "base_gbp_per_mwh": float(kw["struck_unit_rate_gbp_per_mwh"])
+            offers[(inputs.customer_id, inputs.term_start[:10], inputs.commodity)] = {
+                "billing_account": inputs.billing_account,
+                "base_gbp_per_mwh": float(inputs.struck_unit_rate_per_mwh)
                 - TARGET_MARGIN_GBP_PER_MWH,
                 "offer": {"flat": result.unit_rate_gbp_per_mwh,
                           "value": value.unit_rate_gbp_per_mwh,
@@ -169,8 +170,8 @@ def probe(report_end: str | None = None, roll_seed: int | None = None) -> list[d
                 # Whether the world's decline-and-stay rule can reach this decision: the run loop's
                 # own conditions, less the splice (a mid-term join is not a renewal this probes).
                 "declinable": bool(runner.DECLINE_A_FIX_ABOVE_THE_DEFAULT
-                                   and kw.get("tariff_type") == "fixed"
-                                   and (kw.get("segment") or "resi") == "resi"),
+                                   and inputs.tariff_type == "fixed"
+                                   and (inputs.segment or "resi") == "resi"),
                 # WHAT THE COMPANY BELIEVED about this customer staying, at its own offer: the
                 # value arm's churn belief, set beside the world's truth so the belief error is
                 # measured per decision. None where the arm declined or did not price.
@@ -226,7 +227,7 @@ def probe(report_end: str | None = None, roll_seed: int | None = None) -> list[d
         })
         return event
 
-    runner.decide_renewal_rate, runner.roll_lifecycle_event = priced, rolled
+    runner.decide_renewal, runner.roll_lifecycle_event = priced, rolled
     real_dice = events.churn_roll_for_renewal
     if roll_seed is not None:
         events.churn_roll_for_renewal = lambda account, term_start: random.Random(
@@ -240,7 +241,7 @@ def probe(report_end: str | None = None, roll_seed: int | None = None) -> list[d
             out = run_phase4c(report_end=report_end, policy=CURRENT_POLICY)
             phase2b = out["phase2b"]
     finally:
-        runner.decide_renewal_rate, runner.roll_lifecycle_event = real_price, real_roll
+        runner.decide_renewal, runner.roll_lifecycle_event = real_price, real_roll
         events.churn_roll_for_renewal = real_dice
     LAST_REFERENCE_EVENTS[:] = sorted(
         (e["customer_id"], e["event_date"], e["event_type"])

@@ -32,6 +32,11 @@ THE FIELDS, each something the supplier itself holds:
   default_belief_rate            -- its own book's default rate, asked only under that policy.
   own_default_tariff_inc_vat_per_mwh
                                  -- its own default tariff on the day, for a domestic account.
+  company_forward_per_mwh, locked_policy_cost_per_mwh, locked_network_cost_per_mwh
+                                 -- what the company's own offer for this term priced off: its own
+                                    forward and the two pass-through costs it locked. Their sum is
+                                    the cost floor its desk struck over, and no discount in the chain
+                                    may go under it (2026-10-12). None where the term has no offer.
 
 FROZEN, SHALLOWLY. The record cannot be re-pointed after it is built. The lists and dicts it carries
 are the run's own objects, passed by reference exactly as the keywords were, so the decision is
@@ -66,3 +71,6 @@ class RenewalDecisionInputs:
     payment_method: str | None = None
     default_belief_rate: float | None = None
     own_default_tariff_inc_vat_per_mwh: float | None = None
+    company_forward_per_mwh: float | None = None
+    locked_policy_cost_per_mwh: float | None = None
+    locked_network_cost_per_mwh: float | None = None
