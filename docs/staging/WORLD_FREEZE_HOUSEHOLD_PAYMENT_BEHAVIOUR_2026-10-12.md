@@ -130,3 +130,56 @@ not reach the arrears engine's P&L (a named limit from step 1).
 of agreed plans. 40 founders give about a dozen to thirty plans and one to four cancellations: every
 figure here is a count, not a rate, and none should be read as calibrated. Nothing was tuned to
 these results, and no supplier arm has yet been run against this world.
+
+## Re-freeze, 2026-10-12: one payment truth -- predictions filed before the low/high runs
+
+Filed at 2026-10-12T10:15Z, before any low or high run with `world_payment_truth.UNIFIED` on. Seen before
+filing: the frozen runs above (plans and cancellations at low/high, engine-drawn bad debt) and ONE
+unified run at default (bad debt 440.85 -> 161.08, net 31,124.47 -> 31,404.24; 1,497 bills taken
+from the triad, none drawn by the engine, 6 repayment rows). Nothing at low or high with the switch
+on has been run. Book: 40 founders, budget 0, the frozen head `62596685a` (unified truth landed at `62596685a`), each setting plus `UNIFIED`.
+
+| Quantity | Low | High | Reasoning |
+|---|---|---|---|
+| Offers / agreed / completed / broken own / shock / running | 42 / 12 / 7 / 4 / 1 / 0 | 55 / 29 / 7 / 19 / 1 / 2 | unchanged from the first freeze: the switch acts only after the run, in the P&L, so no household's behaviour moves (not blind, predicted to reproduce exactly) |
+| Own-reasons cancellations | 1 | 4 | the same reason |
+| Bills drawn by the engine (fallback) | 0 | 0 | every bill matched at default |
+| Repayment rows | ~80 (40-150) | ~70 (30-150) | ~6 settlements plus instalments of the plans that cover a still-unpaid bill: about 7 completed plans x ~10 instalments at low; at high fewer completed and many partial |
+| Bad debt (unified default 161.08) | ~150 (90-220) | ~300 (180-450) | low: completed plans repay a few leavers' bills, but two lumps they replace would have repaid anyway, so near-neutral; high: four cancellations add returned months (about +120 under the engine at high, of which some re-present or settle later), and broken plans withdraw lumps that would have repaid (5 withdrawn) while repaying only part, so bad debt RISES |
+| Total net (unified default 31,404.24) | ~31,415 (31,345-31,475) | ~31,265 (31,115-31,385) | revenue unchanged; net moves against bad debt one for one |
+
+**What would refute the design rather than the numbers:** any change in the plan or cancellation
+counts (the switch reached the run); a fallback count above zero; bad debt at high BELOW low's (a
+broken plan repaying as if kept, or a withdrawn lump still counted as repaid).
+
+*Filing note: the block above was hashed at filing (`7397075c...`) before the frozen commit
+existed; its only edit since is the head named in its "Book:" line, after `62596685a` landed and
+before either run (`e5325669...`).*
+
+## Result (re-freeze)
+
+*Runs at `62596685a`, 40 founders, budget 0, `UNIFIED` on, 2026-10-12. Predictions above unedited.*
+
+| Quantity | Predicted low | Result low | Predicted high | Result high |
+|---|---|---|---|---|
+| Offers / agreed / completed / broken own / shock / running | 42 / 12 / 7 / 4 / 1 / 0 | **42 / 12 / 7 / 4 / 1 / 0** | 55 / 29 / 7 / 19 / 1 / 2 | **55 / 29 / 7 / 19 / 1 / 2** |
+| Own-reasons cancellations | 1 | **1** | 4 | **4** |
+| Bills drawn by the engine | 0 | **0** (1,497 from the triad) | 0 | **0** (1,497) |
+| Repayment rows | ~80 (40-150) | **40** (at the floor) | ~70 (30-150) | **85** |
+| Bad debt (unified default 161.08) | ~150 (90-220) | **131.28** | ~300 (180-450) | **229.46** |
+| Total net (unified default 31,404.24) | ~31,415 (31,345-31,475) | **31,434.04** | ~31,265 (31,115-31,385) | **31,335.86** |
+
+Every figure inside its range; no design refutation (counts unchanged, no fallback, high above
+low). Two directions I had wrong in size: at low the kept plans repay MORE than the lumps they
+replace (bad debt falls 30, where I predicted near-neutral), and at high the rise is smaller than
+predicted (+68, not +140), so the broken plans' partial repayments offset more of the withdrawn
+lumps than I expected. Repayment rows ran above my high guess's centre and at low's floor: plan
+counts are a dozen to thirty, and instalments per plan vary more than "about ten".
+
+**What this makes true.** With the switch on, a kept plan lowers realised bad debt and a broken
+one, or a cancellation, raises it, through the same record the supplier's days-behind come from.
+Compared like for like (each against unified default 161.08): low -29.80, high +68.38. Under the
+engine's own draw the same settings moved bad debt +32.56 and +121.38, with plans contributing
+nothing. **The freeze now stands on `62596685a` with `UNIFIED` on as part of the frozen world for
+any debt-engine grading; the shipped default stays off until the seat flips it** (it moves the
+shipped book: 440.85 -> 161.08 bad debt at default on this book).
