@@ -216,8 +216,12 @@ def test_holder_work_survives_and_is_refused_by_name_with_its_reason(tree: Path)
     # that the refusal distinguishes HOLDER WORK from a file that merely differs, so it checks
     # the two halves of that claim -- something this copy SUPPLIES, that upstream LACKS -- and
     # stops caring how they are capitalised or which ref is named.
+    # 2026-10-12: reworded again, to "N line(s) here are not on origin, so it is live work". Same
+    # two halves, so either wording passes and a reason with neither still fails.
     reason = result["reason"].lower()
-    assert "supplies" in reason and "lacks" in reason, (
+    says_supplies = ("supplies" in reason and "lacks" in reason) or (
+        "not on origin" in reason and "live work" in reason)
+    assert says_supplies, (
         "the refusal named the path but not the reason, which is the whole of what a reader needs "
         "to know whether the refusal is the right one. 'not byte-identical to what origin brings' "
         "is equally true of holder work nobody may touch and of a file this tree has no reader "

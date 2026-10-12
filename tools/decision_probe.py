@@ -178,7 +178,11 @@ def probe(report_end: str | None = None, roll_seed: int | None = None) -> list[d
             }
         return result
 
-    def rolled(cid, term_start_str, commodity, records, customers, **kw):
+    def rolled(cid, term_start_str, commodity, records=None, customers=None, **kw):
+        # The run loop passes these by keyword since `_roll_kwargs` (records_so_far=, customers=);
+        # read them either way, so the probe follows the loop rather than its old call shape.
+        records = kw.pop("records_so_far", records)
+        customers = kw.pop("customers", customers)
         event = real_roll(cid, term_start_str, commodity, records, customers, **kw)
         held = offers.pop((cid, term_start_str[:10], commodity), None)
         if held is None:
