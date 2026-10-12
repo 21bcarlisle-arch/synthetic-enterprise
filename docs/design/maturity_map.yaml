@@ -1084,27 +1084,6 @@
     # duplicate here would make the two-sources contract unfalsifiable).
   records_rehomed: [evidence, expert_hour_findings, expert_hour_history_findings]
   real_world_twin: "a regulator's comparison exhibit that puts a customer's own bill next to the supplier's internal cost-to-serve view, labelled so neither can be mistaken for the other"
-- id: SITE3_wall_exhibit_url_rename
-  title: "The wall exhibit's URL stops saying 'customers', and every link to the old one is repointed"
-  notes_rehomed: [gain, name]
-  lane: H_harness
-  value_stream: close_to_learn
-  epoch: 3
-  level_current: 0
-  level_target: 2
-  loop_stage: build
-  dial_inherited: 1
-  provenance: director_ruling
-  depends_on: []
-  couples_with: [SITE2_two_sided_wall_exhibit]
-  # 2026-09-25: three named pages were deleted by 03dd8c49e and dropped -- they cannot be renamed.
-  # HALF ONE IS DELIVERED by that commit, not by this row: sitemap.xml has six locs, none /customers/.
-  # Half two (repoint every link) survives only as look_href './customers/#cust-who' in
-  # site/data/{moap_node_atoms,evidence}.json, and nothing under site/ renders look_href -- dead
-  # generated data, not a live 404, so the level stays 0 on evidence rather than on a park.
-  file_scope: ['site/_redirects', 'site/sitemap.xml', 'site/index.html', 'site/privacy/index.html', 'tools/generate_capabilities_json.py', 'tools/verify_printed_bill_render.mjs']
-  expert_hour: {status: not_attempted, last: null, findings: []}
-  real_world_twin: "a regulator moving a published register to a new address and leaving every citation of the old one intact -- the redirect exists, and every reader still arrives one bounce late"
 # ── D37..D45 ──────────────────────────────────────────────────────────────────
 # The nine ids nine consecutive H27 Expert Hours shipped their work under, minted
 # 2026-08-14 (worker tick, RUNG 1c blocking-finding draw on

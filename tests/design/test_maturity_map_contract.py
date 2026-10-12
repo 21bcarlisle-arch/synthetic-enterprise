@@ -748,7 +748,6 @@ LEGACY_UNGRADABLE_BUILD_ROWS = frozenset({
     "OPS8_last_known_good_staleness_banner",
     "SITE12_evidence_a_reader_can_use",
     "SITE14_the_front_door_schematic_carries_the_corrected_model",
-    "SITE3_wall_exhibit_url_rename",
     "W1_14_weather_cells_for_household_heat_load",
     "W2_20_mains_gas_is_drawn_not_inferred_from_the_heating_system",
     "W2_21_the_premise_joint_is_fitted_not_drawn_independently",

@@ -4851,3 +4851,23 @@
   blocked_on: null
   simplifications_count: 4
   records_rehomed: [evidence]
+
+- id: SITE3_wall_exhibit_url_rename
+  title: "The wall exhibit's URL stops saying 'customers', and every link to the old one is repointed"
+  notes_rehomed: [gain, name]
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 2
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 1
+  provenance: director_ruling
+  depends_on: []
+  couples_with: [SITE2_two_sided_wall_exhibit]
+  # Spent, not renamed: 03dd8c49e deleted the page, so no URL is left to move. The links outlived
+  # it (6/6 mapping look_hrefs, 8/10 capability evidence_links on deleted pages); both fixed at
+  # source 2026-10-12, and the capabilities test now refuses a link to a page or anchor that is gone.
+  file_scope: ['tools/generate_capabilities_json.py', 'tests/tools/test_generate_capabilities_json.py', 'tools/generate_evidence_data.py']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a regulator moving a published register to a new address and leaving every citation of the old one intact -- the redirect exists, and every reader still arrives one bounce late"
