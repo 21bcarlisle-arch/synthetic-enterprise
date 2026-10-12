@@ -8,6 +8,35 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-12 — Clear-the-decks week: the calibration (~USD 43 a point), what 55 points buys, and what will not fit
+
+<!-- head: b1113bc543f0 -->
+
+*Interactive delivery seat, Monday 2026-10-12 ~14:00 BST. Director's reading: 40% of the weekly allowance used; the week runs to the reset at Monday 19 October 04:00 BST, about 55 points, ~9 a day. Canon P12 as amended today: I pace myself to land at about 95% at the reset. This is a clear-the-decks week (a dated exception to P6).*
+
+## The calibration
+`tools/tick_burn_rate.py --days 7`: last week's turns cost ~USD 4,230 at list-price weighting -- seat executor 1,063 (165 turns, 79% landed), worker ticks 1,255 (207 turns, 74% landed), the orienting seat 180 (53 turns), this interactive session 1,726. That week took the director to ~98% by Saturday, so **one point is roughly USD 43 weighted** (plus or minus ~30%: the windows do not align exactly). 55 points is about USD 2,370.
+
+**The problem:** at last week's rates the unattended lanes alone (executor, ticks, orientation) spend ~8.3 points a day -- the whole week's budget -- before any interactive work. So the week only fits if the mix changes:
+- worker ticks onto the approved advisor trial (Sonnet main, Opus advisor; ruled 2026-10-12): estimated -50 to -60% on ~4.2 pts/day;
+- the interactive seat at ~2-2.5 pts/day: Sonnet/Haiku subagents for census, search and batch fates; Opus only for code and judgment; one or two agents at a time, not four;
+- executor and orientation unchanged (~4.1 pts/day), pointed at the deck through focus.
+That is ~8 pts/day, ~53 for the week. I re-estimate at each reading.
+
+## What 55 points buys (rough, in points)
+1. **Payment work in flight, ~9-11:** finish the household-world freeze (~1, in flight); the expected-loss provision against held-back loss on the frozen world (~1.5); re-grade the save, mover offer and renewal cut on fresh seeds across the ranges (~2-3; compute-heavy, token-light); the typed seam record for run-loop inputs and the DD review and dunning out of world files (~4-5).
+2. **Canon v4, ~14-18:** install, align, banner, close the eight rows, report (~4); the rulings in code -- C34 joint value with no-loss floors, the pricing-arm check, the company reading its own holdout, the T&D-loss line, the time unit in C31, the capital target from 31 Mar 2025 at GBP 115 measured, retiring epoch gates, NTFY under G8 (~8-10); the canon-against-canon check and the two anchors (~2); the twelve owed items in §15 (~2-4 where evidence exists; more where an item is a build).
+3. **Clear the decks, ~18-24:** reds at HEAD, broken controls, dead runs, stale worktrees first (~3; highest value per point); the known-issues triage under the 7 October rule (~2); the staging backlog -- ~200 in the root and 123 in progress, one fate each -- batched by rule (superseded, stale, already done) with a cheap model and judgment only where a rule cannot decide (~10-14); the owed list overlaps item 2.
+
+**Total ~41-53 points.** It fits if the pacing changes hold.
+
+## What will not fit
+- A one-by-one Opus reading of all ~323 staging documents: the backlog is fated in batches by rule, and documents a rule cannot decide go to the back, ranked, or take "accept with a stated reason".
+- Any owed item or ruling that is a new capability: building retention from published trials (C8, the save and retention levers) and anything else new become atoms for next week, as directed.
+- The supplier payment engine: it opens next week.
+
+---
+
 ## 2026-10-11 — The save, the mover offer and the payment work against the four principles: P4 holds at decision time and leaks through run-loop inputs; P2 and P3 break everywhere
 
 <!-- head: d06b039e7619 -->
