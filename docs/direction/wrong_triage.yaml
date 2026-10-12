@@ -284,3 +284,91 @@ items:
     times_listed: 14
     fate: accept
     reason: "No recurrence in seven orientations. The remedy the seat owns is cheaper than a window check: it splits a multi-run ask into a landable tool and a launch_long_job reading as separate items, which the 2026-10-10 record does for the arrears instrument. A second instance reopens it as fix."
+  - id: every-settled-bill-charged-the-levies-twice
+    problem: Every settled bill charged the non-commodity levies twice, and the week's money readings rested
+      on it.
+    match:
+    - charged the non-commodity levies twice
+    first_seen: '2026-10-10'
+    fate: fold
+    owner: docs/staging/WORLD_FREEZE_DD_SHOCK_SAVE_AND_MOVER_AT_THEIR_RANGE_ENDS_2026-10-12.md
+    reason: The fix is on origin (1d3c28930) and the arrears pool, B8 L3 and the DD review were re-taken
+      on single-levy bills (1f35bc21f, ad319581e, 7252e8d72). What remains is re-grading the save and mover
+      on fresh seeds, which is the director's Order 1 for this week and is carried there.
+  - id: a-long-job-outlives-its-declaration-and-holds-the-box
+    problem: A long job holds its admission far past its declared duration, and what it runs is never compared
+      with what it declared.
+    match:
+    - was declared at 50 minutes and has held its admission
+    first_seen: '2026-10-10'
+    fate: fix
+    owner: background/resource_headroom.py
+    reason: 'Live again on 2026-10-12: sim-runner deferred every cycle from 14:54 to past 16:43 to resident
+      long jobs, and the week''s publish waits on it. A declaration needs an expiry the admission enforces.'
+  - id: the-seat-named-a-job-it-had-not-read
+    problem: The seat named a running job that did not exist, without reading the launch record.
+    match:
+    - No such unit, log or artefact exists
+    first_seen: '2026-10-11'
+    fate: accept
+    owner: ''
+    reason: A one-off reading error by the seat, corrected in its own next record. launch_long_job now follows
+      every job it queues to its end (339a49723), so a named job has a unit and a log to read.
+  - id: the-capital-target-carries-the-consultation-figure
+    problem: The capital target carried the GBP 130 consultation figure and bound from 2016.
+    match:
+    - carries a GBP 130 capital figure per account
+    first_seen: '2026-10-11'
+    fate: fix
+    owner: docs/direction/DIRECTION.yaml (the-capital-target-binds-from-2025-but, answered 2026-10-12)
+    reason: 'The director ruled C14 on 2026-10-12: GBP 115 from 31 March 2025, measured before and after
+      on the same seed. Stays listed until that lands.'
+  - id: supplier-capabilities-built-before-their-world
+    problem: Supplier capabilities were built before the world they are graded against was built and frozen.
+    match:
+    - Supplier capabilities were built before the world
+    first_seen: '2026-10-11'
+    fate: fold
+    owner: docs/staging/SEAT_FINDING_THE_SAVE_THE_MOVER_OFFER_AND_THE_PAYMENT_WORK_AGAINST_THE_FOUR_PRINCIPLES_2026-10-11.md
+    reason: Audited against the four principles on 2026-10-11; the remedies (freeze the world, re-grade
+      on fresh seeds, move policy behind company doors) are the director's Order 1 this week and are worked
+      there.
+  - id: a-worker-exit-records-no-reason
+    problem: Worker invocations exit rc=1 and nothing records why, because the spawn sends stdout and stderr
+      to DEVNULL.
+    match:
+    - sends stdout and stderr to DEVNULL
+    first_seen: '2026-10-12'
+    fate: fix
+    owner: background/worker_tick.py
+    reason: A crash with no recorded cause cannot be diagnosed; the remedy is a per-tick log of the child's
+      output. Small, and it stays listed until built.
+  - id: the-publish-did-not-land-behind-origin
+    problem: The week's publish did not land because the shared checkout could not fast-forward over origin.
+    match:
+    - publish of the 47e8e6993 run did not land
+    first_seen: '2026-10-12'
+    fate: accept
+    owner: ''
+    reason: 'Resolved 2026-10-12: the seat''s stranded records reached origin (7c129de2e) and the shared
+      tree fast-forwarded. The recurrence is the carried a-landing-carries-a-stale-direction-record, which
+      stays a fix.'
+  - id: the-seats-focus-did-not-reach-the-draw
+    problem: A focus written by the seat did not reach the draw, because its items had already been drawn
+      and swept.
+    match:
+    - My 08:20 focus did not reach the draw
+    first_seen: '2026-10-12'
+    fate: fold
+    owner: docs/direction/wrong_triage.yaml#the-draw-ledger-cannot-tell-mid-landing-from-not-done
+    reason: 'The same draw-ledger blindness as the carried item it folds into: the draw cannot tell taken-and-in-hand
+      from not started.'
+  - id: a-dead-owners-worktree-was-reaped-with-work-in-it
+    problem: A worktree holding finished supplier work with a dead owner was reaped with the work uncommitted.
+    match:
+    - was reaped with that work uncommitted
+    first_seen: '2026-10-12'
+    fate: fold
+    owner: docs/staging/reference/CLASS_UNCOMMITTED_AND_ORPHANED_WORK_2026-08-12.md
+    reason: The orphaned-work class. Since 2026-10-12 the clear-the-decks reap archives every dead-owner
+      worktree first (/var/tmp/worktree-archive-20261012, refs/preserved/worktree-archive/*).
