@@ -81,3 +81,23 @@ def test_landing_is_read_from_tool_results_and_split_by_the_prompt_the_turn_rece
     _turn_with(d / "o3.jsonl", base + "then STOP and exit cleanly [surgical-land] landed 0000000", "nothing")
     tick = next(e for e in B.change_effects(B.turns(7, root=tmp_path)) if e["kind"] == "worker_tick")
     assert (tick["old_turns"], tick["old_landed_pct"]) == (3, 33), tick
+
+
+def test_one_message_split_across_block_rows_is_counted_once_and_its_advisor_call_is_priced(tmp_path):
+    """Fires on the ~2.15x overcount (summing every block row of one message) and on an advisor
+    call left unpriced, which would make the advisor trial read cheaper than it is."""
+    d = tmp_path / "proj"
+    d.mkdir()
+    adv = {"type": "advisor_message", "model": "claude-opus-5-5", "input_tokens": 10_000,
+           "output_tokens": 100, "cache_read_input_tokens": 0}
+    u = {"input_tokens": 1000, "output_tokens": 1000, "cache_read_input_tokens": 0,
+         "iterations": [{"type": "message", "input_tokens": 1000}, adv]}
+    plain = {"input_tokens": 1000, "output_tokens": 0}
+    rows = [{"type": "user", "timestamp": "2026-10-12T10:00:00Z", "message": {"content": "x"}}]
+    rows += [{"type": "assistant", "message": {"id": "m1", "model": "claude-sonnet-5", "usage": u}}] * 3
+    rows += [{"type": "assistant", "message": {"id": "m2", "model": "claude-sonnet-5", "usage": plain}}] * 2
+    (d / "a.jsonl").write_text("\n".join(json.dumps(r) for r in rows))
+    t = B.read_turn(d / "a.jsonl")
+    assert t["input"] == 2000 and t["advisor_calls"] == 1, t
+    # Sonnet 5: 2000*2 + 1000*10 = $0.014; the Opus 5.5 advisor: 10000*4 + 100*20 = $0.042.
+    assert round(t["weighted_usd"], 6) == 0.056, t

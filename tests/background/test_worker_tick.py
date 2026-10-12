@@ -348,3 +348,17 @@ def test_heartbeat_recent_window_bounded(_isolate):
         wt._write_heartbeat(wt.TickDecision(False, "REST_NO_WORK", detail=f"t{i}"), f"enum{i}")
     hb = json.loads((_isolate / "tick_heartbeat.json").read_text())
     assert len(hb["recent"]) == wt.HEARTBEAT_RECENT_MAX     # rolls, never grows unbounded
+
+
+def test_the_advisor_trial_overrides_the_tier_and_adds_the_flag_and_lapses_to_it(monkeypatch):
+    from background import model_tier as mt
+    d = mt.TierDecision(model=mt.OPUS, tier="opus", classes=["x"], why="reserved")
+    monkeypatch.setattr(mt, "advisor_trial", lambda *a, **k: ("claude-sonnet-5", "claude-opus-5-5"))
+    model, advisor = wt.apply_advisor_trial(d.model, d)
+    assert (model, advisor, d.model, d.advisor, d.tier) == (
+        "claude-sonnet-5", "claude-opus-5-5", "claude-sonnet-5", "claude-opus-5-5", "advisor_trial")
+    argv = wt.spawn_argv("claude", model, advisor, "P")
+    assert argv[argv.index("--advisor") + 1] == "claude-opus-5-5" and argv[-1] == "P"
+    monkeypatch.setattr(mt, "advisor_trial", lambda *a, **k: None)
+    assert wt.apply_advisor_trial(mt.OPUS, None) == (mt.OPUS, None)
+    assert "--advisor" not in wt.spawn_argv("claude", mt.OPUS, None, "P")

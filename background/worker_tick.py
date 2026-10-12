@@ -443,6 +443,31 @@ def choose_model(reason: str) -> "tuple[str, object | None]":
         return MODEL, None
 
 
+def apply_advisor_trial(model: str, decision: "object | None") -> "tuple[str, str | None]":
+    """(model, advisor) for this tick: the director's dated advisor trial when it is live, else the
+    tier's own choice with no advisor. Never raises; an unreadable trial is no trial."""
+    try:
+        from background.model_tier import advisor_trial
+        trial = advisor_trial()
+    except Exception as e:  # pragma: no cover - defensive
+        _log(f"advisor trial unreadable, tier choice stands: {e!r}")
+        return model, None
+    if trial is None:
+        return model, None
+    main, advisor = trial
+    if decision is not None:
+        decision.why = f"advisor trial (was {decision.tier}/{decision.model}): {decision.why}"
+        decision.model, decision.tier, decision.advisor = main, "advisor_trial", advisor
+    return main, advisor
+
+
+def spawn_argv(claude_bin: str, model: str, advisor: "str | None", prompt: str) -> list[str]:
+    argv = [claude_bin, "-p", "--dangerously-skip-permissions", "--model", model]
+    if advisor:
+        argv += ["--advisor", advisor]
+    return argv + [prompt]
+
+
 def _held_at_dispatch(reason: str) -> "str | None":
     """`delivery_lane.held_at_dispatch`, lazily imported and never raising, like the claim below."""
     try:
@@ -492,8 +517,9 @@ def spawn_invocation(reason: str) -> "subprocess.Popen | None":
         return None
     env = _worker_env()
     model, decision = choose_model(reason)
+    model, advisor = apply_advisor_trial(model, decision)
     if decision is not None:
-        _log(f"model={model} tier={decision.tier} classes={','.join(decision.classes)} "
+        _log(f"model={model} advisor={advisor or '-'} tier={decision.tier} classes={','.join(decision.classes)} "
              f"-- {decision.why}")
         try:
             from background.model_tier import log_decision
@@ -503,7 +529,7 @@ def spawn_invocation(reason: str) -> "subprocess.Popen | None":
     prompt = WORKER_PREAMBLE + "[SCHEDULED-TICK doorbell -- R7: act on real disk/git state] " + reason
     try:
         return subprocess.Popen(
-            [claude_bin, "-p", "--dangerously-skip-permissions", "--model", model, prompt],
+            spawn_argv(claude_bin, model, advisor, prompt),
             cwd=str(PROJECT_DIR),
             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
             stdin=subprocess.DEVNULL, env=env, start_new_session=True,

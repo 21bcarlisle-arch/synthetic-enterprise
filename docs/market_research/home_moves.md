@@ -645,7 +645,21 @@ across and waiving the termination fee that closing the old contract would other
 - G8.2 The share of movers who give a forwarding address, and the share who name their destination.
 - G8.3 Whether carrying a tariff to a new premises is a new contract or a variation, and how a
   regional tariff is re-rated.
-- G8.4 The take-up of a move-with-us offer, and its value (= §6 gap 3).
+- G8.4 The take-up of a move-with-us offer, and its value (= §6 gap 3). **Re-searched 2026-10-12**
+  for the four-principles audit (§2 P1), and still a gap. Nothing published splits movers into
+  "took us with them", "stayed on the destination's deemed contract" and "switched again soon
+  after". The nearest figures count a different population. Ofgem/Ipsos *Consumer Engagement
+  Survey 2019* (p.27, Q161) gives "I moved home" as the prompt for 7% (2017), 7% (2018) and 8%
+  (2019) of those who switched or compared. That is engagers who moved, not movers who engaged, and
+  no mover denominator is published to invert it. The same report gives 22% for first-time
+  switchers, on n=191. The one take-up-shaped figure is still BFY Group's unnamed supplier
+  (mover retention raised from ~5% to ~30%; a consultancy case study with no base or price,
+  already in `a_save_offer_against_the_switching_rules_and_the_seam.md` §2a). No source compares a
+  mover's stay with a renewer's at the same price. So the world's `take_up_scale` k stays a
+  labelled range [0, 1]. **A reality check, not an input (canon W8):** at k = 1 the 40-founder run
+  of `68793db33` had 9 of 15 offered movers follow (60%). That is twice the best figure any
+  supplier has claimed (30%). The evidence leans towards the low half of k, but it is too weak to
+  narrow the range.
 - G8.5 The 10-working-day credit refund's locus (the remainder of §6 gap 8).
 - G8.6 Where a mover goes, finer than a region. The same-local-authority share of moves is not
   published at GB level (ONS internal migration excludes within-LA moves). Of moves that change
