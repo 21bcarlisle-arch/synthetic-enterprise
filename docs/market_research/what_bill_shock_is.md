@@ -391,3 +391,32 @@ complaints: no year's DD shocks can have produced more than the annual total.
 - DESNZ, *Quarterly Energy Prices*, December 2025, "Payment methods", p.9 --
   <https://assets.publishing.service.gov.uk/media/6942cb008f4636fa2c547df5/quarterly-energy-prices-december-2025.pdf>.
   Fetched 2026-10-11: 72% / 73% DD at end-September 2025, +3 / +4 points on September 2020.
+
+## A changed amount or date: the world's answer (DD4c, 2026-10-12)
+
+**2026-10-12, the world lane.** No new source read. The stimulus is what the household is TOLD:
+a new monthly DD amount (at any point in the year, not only at the review), or the offer of a
+collection date nearer its payday. Built in `simulation/dd_shock_response.py` beside DD4b.
+
+**A new amount.** Answered exactly as a review is (DD4b): a rise of more than PB4's material
+threshold (15% over the amount in force) is a shock, with DD4b's three responses and toggles, and
+nothing smaller or any fall is. One meaning of "shocked" serves the review, the departure hazard and
+a mid-year change. GAP: whether a household answers a FALL (relief, or suspicion that the amount is
+wrong); nothing published, so nothing is drawn.
+
+**A date nearer payday.**
+
+| Choice the world makes | Range or rule | Evidence | Mark |
+|---|---|---|---|
+| Who it can help: a stretched household whose date now precedes its income | MODERATE or HIGH stress, and mismatched with share 0.53; a LOW-stress household is not drawn as mismatched | Diaz-Campo et al. (Tucuman, AAEP 2024): payday after the due date in 53% of low-income cases; Barrage et al.: the US effect "nearly vanishes" in high-income areas | ESTABLISHED share (analogue); direction |
+| Whether it takes the offer | takes it if mismatched; a household whose date already suits it has nothing to gain | none on take-up (Illinois makes it a right on request; no uptake published) | choice from the mechanism, GAP on take-up |
+| The effect on its failed collections | x (1 - r) from the change month on, r in 0.10-0.36 (`dd_date_alignment_failure_reduction`); compounds with any shock uplift in force | floor: Moneyline VRP trial, arrears 10% lower than standard DD (second-hand, flexible timing and amount); ceiling: Barrage et al., 36% fewer bills not paid on time (bill-receipt timing for pay-on-receipt accounts, so above a DD date choice); Diaz-Campo et al. "nearly 30%" | GB effect NOT ESTABLISHED; analogue range from 0.10 to the analogue's upper bound |
+
+**Shipped off.** The reduction defaults to 0. No supplier in the run offers a date change, and no
+seam carries the offer yet (the company lane's), so the response is the world's side for the day
+one does; a response is recorded on the run's one mandate book, which the triad, the rails and the
+arrears engine already read.
+
+**GAPs:** any GB measurement of a DD date choice (Pay.UK returns by alignment unpublished); the
+take-up of an offered date; a household's response to a fall in its DD; whether income timing is
+known to a household at all in a world that draws no payday (the 53% stands in for a payday draw).

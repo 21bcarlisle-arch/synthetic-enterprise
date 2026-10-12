@@ -41,6 +41,8 @@
 #   contact: the world's answer".
 # 2026-10-12 (PB8 world): method_own_reasons_cancel_share and method_prepayment_offer_take_up_share,
 #   off by default; gb_payment_method_migration_rates.md, "The household's own payment-method acts".
+# 2026-10-12 (DD4c world): dd_date_alignment_failure_reduction, off by default; what_bill_shock_is.md,
+#   "A changed amount or date: the world's answer".
 written: 2026-10-05
 toggles:
   - id: q1_move_out_notice_share
@@ -1845,6 +1847,35 @@ toggles:
       kind: argued
       detail: Reached only when a supplier offers a PPM for debt; none does in the run yet.
     verdict: MATTERS_AND_UNRESOLVABLE (no flow of PPM offers is published)
+
+  - id: dd_date_alignment_failure_reduction
+    question: DD4c changed DD date (world)
+    meaning: >-
+      For a stretched (MODERATE or HIGH stress) DD household whose collection date falls before its
+      income (53% of them, Diaz-Campo et al.) and which takes an offered date nearer its payday, the
+      proportional fall in its failed collections from that month on (multiplier 1 - reduction). A
+      LOW-stress household is unaffected. GB effect NOT ESTABLISHED; ESTIMATE range; shipped at 0.
+    default: 0.0
+    low: 0.10
+    high: 0.36
+    unit: relative_reduction
+    basis_default: >-
+      Off. No GB quantified evidence on choosing a DD date (risk_based_payment_plans_outside_gb_energy.md
+      s.4 and its 2026-10-11 follow-up).
+    basis_low: >-
+      Davies & Collard (PFRC, Fair By Design, Oct 2024), reporting Moneyline's Variable Recurring
+      Payments trial second-hand: arrears 10% lower than on standard Direct Debits (flexible timing
+      and amount, affordable credit, not energy).
+    basis_high: >-
+      Barrage, Chin, Chyn & Hastings (NBER RDRC NB19-09, 2019): below-median-income US electricity
+      accounts whose bill arrives as benefits land were 36% less likely not to pay on time.
+      Bill-receipt timing for pay-on-receipt accounts, so it overstates a DD date choice: a ceiling.
+      Diaz-Campo et al. (Tucuman): payday just after the due date cut on-time payment "nearly 30%".
+    feeds: [DD4c, simulation/dd_shock_response.py]
+    sensitivity:
+      kind: argued
+      detail: Reached only when a supplier offers a date change; no live supplier does yet.
+    verdict: MATTERS_AND_UNRESOLVABLE (no GB trial; Pay.UK returns by date alignment unpublished)
 
 no_toggle:
   - question: Q5 carbon

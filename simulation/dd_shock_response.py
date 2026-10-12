@@ -45,7 +45,7 @@ from dataclasses import asdict, dataclass
 from typing import Optional
 
 from simulation.arrears_engine import _DD_FAILURE_PROB, _DD_TIER_RATIO_TO_LOW
-from simulation.experienced_bill_shock import POPULATION_LEVEL_PAYMENT
+from simulation.experienced_bill_shock import MATERIAL_RISE_FRACTION, POPULATION_LEVEL_PAYMENT
 from simulation.meter_reads import assumption_toggle
 from simulation.rng_substream import substream
 
@@ -143,7 +143,11 @@ NO_EFFECT = BillEffect()
 
 
 def bill_effect(responses: Optional[list], month: str) -> BillEffect:
-    """The effect of `responses` (one household's, as recorded) on the collection for `month`."""
+    """The effect of `responses` (one household's, as recorded) on the collection for `month`.
+
+    A shock's uplift lasts `FAILURE_WINDOW_MONTHS` and the largest in force applies (one review can
+    be recorded once per fuel leg). A collection date moved nearer payday (`CAUSE_DATE_CHANGE`)
+    lasts from its month on and multiplies whatever else is in force."""
     if not responses:
         return NO_EFFECT
     cancels = [r["cancelled_month"] for r in responses if r.get("cancelled_month")]
@@ -153,9 +157,87 @@ def bill_effect(responses: Optional[list], month: str) -> BillEffect:
     if first_cancel is not None and month == first_cancel:
         return BillEffect(cancel_return=True)
     mult = max((r["failure_multiplier"] for r in responses
-                if r["review_month"] <= month < _add_months(r["review_month"], FAILURE_WINDOW_MONTHS)),
+                if r.get("cause") != CAUSE_DATE_CHANGE
+                and r["review_month"] <= month < _add_months(r["review_month"], FAILURE_WINDOW_MONTHS)),
                default=1.0)
+    for r in responses:
+        if r.get("cause") == CAUSE_DATE_CHANGE and r["review_month"] <= month:
+            mult *= r["failure_multiplier"]
     return BillEffect(failure_multiplier=mult) if mult != 1.0 else NO_EFFECT
+
+
+# --- Being told a new amount, or offered a date nearer payday (2026-10-12, the world lane) -------
+#
+# Knowledge first: `what_bill_shock_is.md`, section "A changed amount or date: the world's answer"
+# (2026-10-12), and `risk_based_payment_plans_outside_gb_energy.md` s.4 (payday alignment).
+
+#: Why a row is on the book when it is not a review shock.
+CAUSE_DATE_CHANGE = "date_nearer_payday"
+
+TOGGLE_DATE_CHANGE = "dd_date_alignment_failure_reduction"
+
+#: Diaz-Campo et al. (AAEP 2024), Tucuman: payday fell after the bill's due date in 53% of
+#: low-income cases. Read as the share of stretched households whose collection date currently
+#: precedes their income -- the households a date nearer payday can help at all.
+PAYDAY_MISMATCH_SHARE_LOW_INCOME = 0.53
+
+STREAM_DATE = "DD4c_dd_date_change"
+
+
+@dataclass(frozen=True)
+class DateChangeStrength:
+    """The proportional fall in a stretched, mismatched household's failed collections once its
+    date is moved after its payday. 0 -- the shipped world -- moves nothing."""
+    failure_reduction: float = 0.0
+
+    @property
+    def off(self) -> bool:
+        return not self.failure_reduction
+
+    @classmethod
+    def at(cls, setting: str = "default") -> "DateChangeStrength":
+        return cls(assumption_toggle(TOGGLE_DATE_CHANGE, setting))
+
+
+#: What the run uses. A harness that measures a setting replaces this module attribute.
+DATE_CHANGE = DateChangeStrength.at("default")
+
+
+def respond_to_told_amount(*, household: str, month: str, amount_in_force_gbp: float,
+                           new_amount_gbp: float, stress: Optional[str], stays: bool,
+                           already_cancelled: bool,
+                           strengths: Optional[DDShockStrengths] = None) -> Optional[dict]:
+    """A DD household told a new monthly amount at any point in the year answers it as it answers
+    a review: through `respond`, with PB4's one meaning of a material rise (more than
+    `MATERIAL_RISE_FRACTION` over the amount in force). A fall, or a small rise, is not a shock, and
+    nothing published says a household answers one (GAP), so it returns None."""
+    if amount_in_force_gbp <= 0:
+        return None
+    rise = (new_amount_gbp - amount_in_force_gbp) / amount_in_force_gbp
+    shock = {"population": POPULATION_LEVEL_PAYMENT, "shocked": rise > MATERIAL_RISE_FRACTION,
+             "rise_fraction": round(rise, 6)}
+    return respond(household=household, review_month=month, shock=shock, stress=stress,
+                   stays=stays, already_cancelled=already_cancelled, strengths=strengths)
+
+
+def respond_to_date_offer(*, household: str, month: str, stress: Optional[str],
+                          strength: Optional[DateChangeStrength] = None) -> Optional[dict]:
+    """A DD household offered a collection date nearer its payday. It takes the offer only if its
+    date now falls before its income (`PAYDAY_MISMATCH_SHARE_LOW_INCOME` of stretched households;
+    a comfortable one is not drawn as mismatched, the US effect "nearly vanishing" at high income),
+    and its failed collections then fall by the strength from that month on. None when off, or
+    when it does not take the offer: a household whose date already suits it gains nothing."""
+    strength = DATE_CHANGE if strength is None else strength
+    if strength.off:
+        return None
+    tier = (stress or "LOW").upper()
+    u = substream(STREAM_DATE, f"{household}::mismatch", 0).random()
+    if tier == "LOW" or u >= PAYDAY_MISMATCH_SHARE_LOW_INCOME:
+        return None
+    return {"household": household, "review_month": month, "rise_fraction": None,
+            "stress": tier, "cancelled_month": None,
+            "failure_multiplier": 1.0 - strength.failure_reduction, "complained": False,
+            "cause": CAUSE_DATE_CHANGE}
 
 
 def failure_table(multiplier: float) -> Optional[dict]:
