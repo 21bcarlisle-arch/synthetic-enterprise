@@ -39,6 +39,8 @@
 #   off by default; domestic_repayment_plan_take_up_and_keep_rates.md, "The world's answer".
 # 2026-10-12 (early contact): early_contact_woken_payer_share, off by default; same page, "Early
 #   contact: the world's answer".
+# 2026-10-12 (PB8 world): method_own_reasons_cancel_share and method_prepayment_offer_take_up_share,
+#   off by default; gb_payment_method_migration_rates.md, "The household's own payment-method acts".
 written: 2026-10-05
 toggles:
   - id: q1_move_out_notice_share
@@ -1789,6 +1791,60 @@ toggles:
         Reached only when a supplier sends an arrears_contact through the seam; no live supplier
         does yet. Moves when a missed bill's cash arrives, not whether the household could pay.
     verdict: MATTERS_AND_UNRESOLVABLE (no energy trial)
+
+  - id: method_own_reasons_cancel_share
+    question: PB8 household payment-method acts (world)
+    meaning: >-
+      Of households paying by direct debit, the share per year that cancel the mandate at their
+      bank for their own reasons (distrust, control of timing, closing the account), with no bill
+      shock behind it, for a LOW-stress household. Scaled by the world's stress relativity
+      (MODERATE 4x, HIGH 11.7x) and capped at 1. They then pay on receipt. ESTIMATE range; shipped
+      at 0 (off).
+    default: 0.0
+    low: 0.005
+    high: 0.02
+    unit: probability_per_dd_household_year
+    basis_default: >-
+      Off. No source publishes a household-initiated cancellation rate
+      (gb_payment_method_migration_rates.md, PB8 addendum 2026-10-03).
+    basis_low: >-
+      A floor, not a measurement: one comfortable household in two hundred a year, about one a
+      year on a 40-founder book.
+    basis_high: >-
+      A labelled choice, weak: at 0.02 a HIGH-stress DD household (x11.7) cancels at 0.23 a year,
+      about as often as its own collections fail on two presentations (tier 0.35), which is the
+      point past which the cancellation would dominate the return route the supplier already sees.
+      DESNZ QEP Dec 2025 (the DD share rose 3-4 points over five years) bounds the net, not this
+      gross flow.
+    feeds: [PB8, simulation/payment_method_dynamics.py]
+    sensitivity:
+      kind: argued
+      detail: >-
+        Moves mandate cancellations, ARUDD 1 returns and pay-on-receipt bills in the triad, the
+        rails and the arrears engine together.
+    verdict: MATTERS_AND_UNRESOLVABLE (practitioner -- ADDACS 1 volumes by supplier)
+
+  - id: method_prepayment_offer_take_up_share
+    question: PB8 household payment-method acts (world)
+    meaning: >-
+      Of households in debt offered a prepayment meter to recover it, the share that agree.
+      ESTIMATE range, weak; shipped at 0 (the world answers None). No supplier in the run makes
+      this offer yet.
+    default: 0.0
+    low: 0.30
+    high: 0.40
+    unit: probability_per_offer
+    basis_default: Off. No published take-up of a voluntary PPM-for-debt offer.
+    basis_low: >-
+      Derived, weak: Ofgem Debt and arrears indicators, the share of customers repaying a debt who
+      repay through a PPM "typically ranged between around 30% and 40% over the last 15 years". A
+      stock of repayment routes, read as the share choosing the meter when both are on offer.
+    basis_high: The same published range's upper end, 40% (it reached 58% only during 2022-23).
+    feeds: [PB8, simulation/payment_method_dynamics.py]
+    sensitivity:
+      kind: argued
+      detail: Reached only when a supplier offers a PPM for debt; none does in the run yet.
+    verdict: MATTERS_AND_UNRESOLVABLE (no flow of PPM offers is published)
 
 no_toggle:
   - question: Q5 carbon

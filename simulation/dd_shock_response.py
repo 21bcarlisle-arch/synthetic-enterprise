@@ -186,7 +186,9 @@ class DDShockResponseBook:
         return bill_effect(self._by_household.get(household), month)
 
     def summary(self) -> dict:
-        rows = [r for rs in self._by_household.values() for r in rs]
+        # The shock's own rows: a household's own-reasons cancellation (`payment_method_dynamics`)
+        # shares this book and carries a `cause`, and is counted in that module's summary.
+        rows = [r for rs in self._by_household.values() for r in rs if not r.get("cause")]
         return {
             "strengths": asdict(STRENGTHS),
             "shocked_reviews_responded": len(rows),

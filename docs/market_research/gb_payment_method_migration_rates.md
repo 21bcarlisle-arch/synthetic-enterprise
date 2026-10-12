@@ -282,3 +282,54 @@ closed by this addition.
   by §3's current figures.
 
 *Fetched live 2026-10-11. No figure in this addendum is simulation output.*
+
+---
+
+## The household's own payment-method acts: what the world does (2026-10-12)
+
+**2026-10-12, the world lane, on the director's principles of 2026-10-11 and his ruling of
+2026-10-12 ("mandate cancellation as its own act, the debt-to-prepayment route").** No new source
+was read: the web-search budget for the session was spent, and the in-repo evidence was re-read.
+The addendum of 2026-10-03 above splits channel changes by author; the supplier's routes stay
+company decisions. This section is the household's side only, built in
+`simulation/payment_method_dynamics.py`.
+
+**The acts, defined first.** (1) *Cancelling a mandate for its own reasons*: the household tells
+its bank to stop the DD with no bill shock behind it (distrust, wanting to control when money
+leaves, closing or switching the account). The shock-driven cancellation is DD4b
+(`what_bill_shock_is.md`). (2) *Paying by hand afterwards*: pay on receipt. (3) *Stopping paying*:
+not a separate act in the world; a household paying on receipt that cannot pay fails at its own
+tier's rate. (4) *Its answer on the prepayment route*: agreeing or not when offered a meter to
+recover a debt; living with one fitted under warrant (the fitting is the supplier's act).
+
+| Choice the world makes | Range or rule | Evidence | Mark |
+|---|---|---|---|
+| Own-reasons cancellation, per DD household-year, LOW stress | 0.005-0.02 (`method_own_reasons_cancel_share`), shipped 0 | none: "the one nothing publishes" (addendum 2026-10-03). DESNZ QEP: the DD share rose 3-4 points over 2020-25, a net figure that bounds no gross flow | ESTIMATE, labelled; both ends are choices said to be choices |
+| A stretched household cancels more | x the world's stress relativity (4x, 11.7x), capped at 1 | Ofgem's Feb 2024 decision: many do not actively choose a method, and SC payers fall behind more; the direction, not a size. The relativity itself is unsourced (`arrears_engine._DD_TIER_RATIO_TO_LOW`), shared with DD4b so one scaling serves both | direction only |
+| After cancelling it pays on receipt; the supplier sees an ARUDD 1 return that month and an ADDACS advice | reuses DD4b's book and wiring | Bacs scheme codes (already in `what_bill_shock_is.md`) | ESTABLISHED mechanism |
+| Agreeing a prepayment meter offered for debt | 0.30-0.40 (`method_prepayment_offer_take_up_share`), shipped 0 | Ofgem indicators: 30-40% of customers repaying a debt repay through a PPM over 15 years (a stock of routes, read weakly as a choice share) | DERIVED, weak |
+| Recovery once a meter is fitted for debt | GBP 6.01 a week electricity, 4.40 gas, from top-ups | Ofgem indicators, mean for new PPM-for-debt installs, calendar 2025 (`company_debt_management.md` s.2) | ESTABLISHED (a mean over new installs) |
+
+**Shipped off, and what fires in the run.** The cancellation is drawn every billed month, the annual
+share taken as a monthly hazard, before that month's collection is presented, when its share is on;
+it is the only one of these acts the run can reach today. (First built at the annual review, it was
+moved the same day: the run reaches a renewal review only about 20 times in 190 account-years on a
+40-founder book, so a yearly share drawn there would have been an eighth of itself.) No supplier
+in the run offers a prepayment meter or pursues a warrant, so the prepayment answers are the world's
+side for the day one does.
+
+**GAPs, carried rather than filled:**
+- **the coupling of payment channel to income, tenure and vulnerability.** The research supports a
+  direction (prepayment skews to low income, renters and debt) but no crosstab with a number was
+  reachable: the SC/PPM split and any income/tenure crosstab are this page's two load-bearing gaps
+  (s.4 of the 2026-10-11 addendum), and this session's web search was exhausted before EHS or the
+  Consumer Impacts survey tables could be read. So the world's channel stays drawn once and
+  uncoupled, and the first step is pulling the English Housing Survey energy tables and the Consumer
+  Impacts Wave 3/4 tables, not a further search. Building a coupling on a direction alone would put
+  an invented strength behind a published share;
+- any published household-initiated cancellation rate (ADDACS code 1 volumes by sector are
+  collected by Bacs and not published by energy supplier);
+- re-mandating after a cancellation (the world never re-mandates: an overstatement of manual payers);
+- a per-household self-disconnection rate on a meter fitted for debt (only stocks over all smart PPM
+  customers are published: 564,191 electricity in Q2 2026);
+- prepayment back to credit on the SLC 28.1A reassessment (a supplier act; no flow published).

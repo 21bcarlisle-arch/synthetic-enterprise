@@ -26,6 +26,7 @@ from datetime import date, datetime, time, timedelta
 
 import sim.risk_committee_agent as risk_committee_agent
 import simulation.dd_shock_response as _dd_shock_response
+import simulation.payment_method_dynamics as _method_dynamics
 from background.gap_metric import format_ageing_summary as _format_ageing_summary
 from background.gap_metric import format_belief_summary as _format_belief_summary
 from background.gap_metric import format_detection_summary as _format_detection_summary
@@ -2097,6 +2098,20 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     _payment_month_open: dict[str, dict] = {}  # cid -> the month being accumulated
 
     def _post_month_bill(cid: str, held: dict) -> None:
+        # PB8 (`simulation/payment_method_dynamics.py`): a household paying by DD may cancel its
+        # mandate this month for its own reasons, before the month's collection is presented.
+        # Nothing is drawn while the share is zero.
+        if not _method_strengths.off:
+            _own_household = household_of(cid)
+            _own = _method_dynamics.own_reasons_cancellation(
+                household=_own_household, month=held["month"],
+                stress=held["income_stress_value"],
+                pays_by_direct_debit=_method_dynamics.pays_by_direct_debit(cid, held["fuel"]),
+                already_cancelled=_dd_shock_book.has_cancelled(_own_household),
+                strengths=_method_strengths,
+            )
+            if _own is not None:
+                _dd_shock_book.record(_own)
         _pm_rec = _payment_triad.record_period(
             customer_id=cid,
             due_date=date.fromisoformat(held["month"] + '-28'),
@@ -2106,7 +2121,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             fuel=held["fuel"],
             dd_stopped_by=lambda _cid, _due: _dd_stop_board.notice_as_of(
                 _cid, _due.isoformat()) is not None,
-            dd_shock_effect=(None if _dd_shock_strengths.off
+            dd_shock_effect=(None if not _mandate_book_live
                              else _dd_shock_book.effect(household_of(cid), held["month"])),
         )
         _cx_desk.observe_payment(PaymentOutcome(
@@ -2206,6 +2221,11 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     # Read once per run from the module, so a harness that measures a setting sets it before main().
     _dd_shock_strengths = _dd_shock_response.STRENGTHS
     _dd_shock_book = DDShockResponseBook()
+    # PB8, the household's own acts (`simulation/payment_method_dynamics.py`): a mandate cancelled
+    # for its own reasons is a row on the same book, so the triad, the rails and the arrears engine
+    # read it as they read a shock's. Read once per run, as above.
+    _method_strengths = _method_dynamics.STRENGTHS
+    _mandate_book_live = not (_dd_shock_strengths.off and _method_strengths.off)
     _dd_stop_board = StopNoticeBoard(
         lambda _cid: household_demand_register.income_stress_trajectory(_cid, list(range(2016, 2026)))
         if household_demand_register is not None else [],
@@ -5387,6 +5407,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         # DD4b: only present when its toggles are switched on, so the shipped output is unchanged.
         **({"dd_shock_response_summary": _dd_shock_book.summary()}
            if not _dd_shock_strengths.off else {}),
+        **({"household_method_acts_summary": _method_dynamics.summarise(_dd_shock_book)}
+           if not _method_strengths.off else {}),
         # Phase NJ: company churn model calibration report
         "churn_model_performance": score_churn_estimates(
             customer_events_log, retention_log, no_offer_churn_log
