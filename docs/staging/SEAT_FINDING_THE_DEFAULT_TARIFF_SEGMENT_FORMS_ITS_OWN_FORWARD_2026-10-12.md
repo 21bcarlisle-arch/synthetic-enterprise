@@ -1,6 +1,6 @@
 **Severity:** LATENT · **Lane:** W4_the_wall · **Epoch:** unassigned · **Atom:** `unminted`
 **What:** a world-only number reached two supplier decisions (hedge sizing, mover offer cost) · claim `four-principles-the-default-tariff-segment-forms-its-own-forward`
-**Status:** pre-registered 2026-10-12 before either arm ran (first landed as `70862ebbe` at 14:47Z, before the 14:48Z launch; that commit could not reach origin because a merge gate refused the base advance, so it is re-landed here byte-identical below this line); Result section filled after
+**Status:** pre-registered 2026-10-12 before the arms launched (14:48Z): first committed `70862ebbe` at 14:47Z, which never reached origin because the merge-gate refused a base advance; re-landed byte-identical as `02ff661bd`. Graded below the same day
 
 # The default-tariff segment forms its own forward
 
@@ -72,6 +72,46 @@ door return its fallback (bit-for-bit HEAD); arm `own` uses the company's estima
   thesis that more hedging into the 2021–22 rise outweighs 2023's fall. Low confidence; F11 says to err
   against the thesis, so a fall is the outcome I would believe first.
 
-## Result
+## Result (graded 2026-10-12; arms `head` and `own`, 40 founders, budget 0, default book)
 
-*(filled after the runs, beside the predictions)*
+A first launch crashed in world build in both arms (`DwellingNotDrawn` for SYN-2016-012). That was a harness
+defect: `arm.py` imported `simulation.svt_product` before `m_scale` patched the founder count, so
+customers were built for the curriculum's 400 and dwellings for 40. The fix was to patch first. No
+segment was reached, and the predictions above were not edited.
+
+| | Predicted | Measured | Verdict |
+|---|---|---|---|
+| P1 | every segment asks; <1% fall back | 1,500 asks in each arm, **0** fallbacks | **held** |
+| P2 | median company/world 1.05–1.35 | **1.090** (electricity 1.100, gas 1.062) | **held** |
+| P3 | mean SVT hedge fraction not lower | 646 SVT hedge decisions: **0.8542 → 0.8562** | **held** (small: most quarterly tenors sit near the 0.85 floor) |
+| P4 | renewal/save/acquisition unchanged unless follows differ | move-with-us is **off** in this policy (0 rows, so that route went untested). Every `(customer, date, event_type, occasion)` is **identical** (25 renewed, 6 churned). **But** 8 of 31 events carry different rates. | **half wrong, see below** |
+| P5 | \|Δnet\| < 1%, sign up | `total_net` 31,448.84 → **31,459.77 (+£10.93, +0.035%)**; bad debt and settled rows identical | **held** (sign held; F11 said to doubt it, and it held anyway at this size) |
+
+**Where P4 was wrong, and what the trace missed.** The table above says the renewal cut cannot be
+*reached* from an SVT segment, and that is still true. What it missed is a second-order path: the
+company's **portfolio learning premium** (`dynamic_pricing_log`, `margin_feedback_log`) learns from the
+realised margins of *every* term it holds, SVT segments included. The SVT segments now hedge slightly
+more, so they realise slightly different margins. The company then learns a different premium and
+strikes fixed renewals elsewhere in the book differently: 64 `unit_rate_after` moves, −£0.60 to
++£0.47/MWh; 46 contracted rates move, ±£3.1/MWh. No renewal decision flipped on this seed. This path
+is legitimate: the company learning from its own results is exactly what should happen. It is noted so
+that "an SVT segment cannot touch the renewal cut" is not repeated as true.
+
+**Book diff.** Net +£10.93; enterprise value 17,446.04 → 17,461.46; hedging value-add
+−51,768.84 → −51,747.80. On one seed and 40 founders this is a fidelity correction with a
+near-zero book effect. It is not a lever, and it is not presented as value created.
+
+## Disposition and what stays open
+
+- **Built** in the same claim: `simulation/svt_product.py` asks the door; control
+  `tests/simulation/test_the_default_tariff_segment_carries_the_companys_own_forward.py` (three
+  mutations, each red).
+- **Not met, and why:** the item's done-means names a `NAMED_DEBTS` row in
+  `tests/architecture/test_a_supplier_input_is_never_built_from_a_world_only_source.py`. That control,
+  and `tools/seam_value_flow.py` which would feed it, are not in the tree, so there is no row to delete.
+  Whoever lands that control should leave `svt_product` off its debt list.
+- **Open (filed, not built):** the hedge's agreed price on *both* products is the company's belief.
+  A real forward trades at the market's quote. It touches only the `hedge_pnl_gbp` decomposition, and
+  it is one question for both products, not a per-product patch.
+- **Untested route:** the move-with-us offer cost now carries the company's forward too. It is off in
+  the current policy, so this run could not see it.

@@ -134,6 +134,7 @@ from __future__ import annotations
 
 from datetime import date, timedelta
 
+from company.interfaces.renewal_offer import request_company_forward_estimate
 from sim.forward_curve import generate_forward_price
 from simulation.departure_risks import svt_inertia_hazard
 from simulation.market_switching_propensity import market_switching_multiplier
@@ -302,9 +303,9 @@ def build_svt_schedule(
     household that arrives mid-quarter is billed from the day it arrived at the rate then in
     force. Every subsequent segment starts on a boundary.
 
-    `price_records` and `lookback_temps_fn` are used only for the SIM's own forward-price
-    estimate, which settlement needs for margin and hedging and which is not a price offered to
-    anybody. The signature deliberately does NOT take `eac_kwh` or `segment`: neither can change
+    `price_records` and `lookback_temps_fn` are used only for the two forward-price estimates --
+    the SIM's own, which settlement needs, and the company's, asked through its door -- and
+    neither is a price offered to anybody. The signature deliberately does NOT take `eac_kwh` or `segment`: neither can change
     a capped rate, and taking them would invite a future edit that lets them.
 
     THE SEGMENTATION IS THE SAME FOR BOTH FUELS AND THAT IS NOT AN ASSUMPTION MADE HERE. The
@@ -376,10 +377,20 @@ def build_svt_schedule(
             "household_charged_unit_rate_gbp_per_mwh": charged,
             "hmt_epg_receipt_gbp_per_mwh": receipt,
             "forward_price_gbp_per_mwh": sim_fwd,
-            # The company did not price this and is not asked to. Handing it the SIM's own
-            # forward keeps the settlement arithmetic whole without inventing a company belief
-            # about a number the company never formed one about.
-            "company_forward_price_gbp_per_mwh": sim_fwd,
+            # THE COMPANY'S OWN VIEW, ASKED AT THE SEGMENT'S START (2026-10-12). The company does
+            # not price a capped rate, but it does act on this segment: the run loop hands this
+            # field to the hedge desk (the VaR sizing and the contract's agreed price, on both
+            # fuels) and to the move-with-us offer as its cost. It used to be `sim_fwd`, so those
+            # decisions were taken on the world's forward. It is now the gas schedule's door, asked
+            # on the records before the segment starts -- there is no notice period on a cap
+            # segment, so the start IS the decision date. The world's estimate survives only as
+            # the cold-start fallback, the same leak register §3a already owes on the gas path.
+            "company_forward_price_gbp_per_mwh": request_company_forward_estimate(
+                commodity=fuel,
+                notice_date=segment_start_str,
+                observable_price_records=price_records,
+                fallback_gbp_per_mwh=sim_fwd,
+            ),
             "tariff_type": SVT_TARIFF_TYPE,
             "term_end": segment_end.isoformat(),
         })
