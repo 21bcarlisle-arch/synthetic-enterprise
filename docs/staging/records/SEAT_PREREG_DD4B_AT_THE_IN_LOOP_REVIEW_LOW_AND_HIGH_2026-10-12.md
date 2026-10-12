@@ -1,6 +1,6 @@
 **Severity:** LATENT · **Lane:** W2_customer_generator · **Epoch:** unassigned · **Atom:** `unminted`
 **What:** DD4b re-sited from the renewal to the supplier's annual DD review, told in the loop; its world predictions at the toggles' low and high ends · claim `dd4b-answers-the-told-amount-at-the-in-loop-review-then-freeze-at-the-range-ends`
-**Status:** pre-registered 2026-10-12 before the 200-founder default, low and high runs launched. Graded below when they finish
+**Status:** pre-registered 2026-10-12 before the 200-founder default, low and high runs launched. `default` finished 18:26; `low` and `high` never ran in the build's invocation (one sat queued on memory, its launcher died with the turn). Relaunched 19:2x, graded below when they finish
 
 # DD4b at the review the household meets: predictions at its range ends
 
@@ -48,3 +48,14 @@ on an older origin, so it is not this run's control. The control is `default` on
 
 **What would refute the build rather than the numbers:** P4 above 0, which would mean the in-loop chain
 is not the post-loop chain; or no answered review in 2022 (P2 at 0).
+
+## Run state, 2026-10-12 19:2x
+
+- `default`: finished 18:26, 36 min, 3.1 GB peak. Total net 148,258.89, bad debt 1,243.83. `told.json`
+  is empty because every strength is 0 and the in-loop review is behind `not off`, so P4/P5 can only be
+  graded on `low` and `high`. The post-loop review on this run has 847 reviews, 299 of them material,
+  which matches the WORLD_FREEZE note's 299.
+- `low`, `high`: relaunched as `longjob-dd4b-il200-{low,high}` from the locked worktree
+  `/var/tmp/se-dd4b-il200`, the one `default` ran from. Its `dd_review_in_loop.py`, `run_phase2b.py` and
+  `dd_shock_response.py` are byte-identical to `71c324b6d`, so the control and both arms run the same code.
+  Outputs go to `/var/tmp/dd4b_runs/il/f200-{low,high}/`. Grade with `python3 /var/tmp/dd4b_runs/il/grade200.py`.
