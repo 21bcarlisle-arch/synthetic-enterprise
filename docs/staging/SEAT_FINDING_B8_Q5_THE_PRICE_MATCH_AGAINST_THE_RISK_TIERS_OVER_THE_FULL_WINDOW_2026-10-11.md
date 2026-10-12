@@ -2,6 +2,8 @@
 
 # B8 Q5: the renewal cut sized by price match, against the risk tiers, over 2016-2025 across seeds
 
+**Fate (2026-10-12, clear-the-decks):** ATOM -- price_match sizing recommended over risk_tiers on all 3 seeds, but CURRENT_POLICY.retention_cut_sizing is still "risk_tiers" -- flip not actioned, awaiting director/next build turn (P2)
+
 *2026-10-11, delivery seat (direction `b8-q5-price-match-as-the-standing-renewal-cut`).*
 
 `d06b039e7` built `DecisionPolicy.retention_cut_sizing = "price_match"`, off by default. On one seed

@@ -2,6 +2,8 @@
 
 # One item lands twice, on origin and on the shared HEAD, and the shared checkout forks
 
+**Fate (2026-10-12, clear-the-decks):** ATOM -- what done means control (refuse a plain git commit on the shared checkout outside surgical_land) not found in background/*.py; twin-rule part closed by SEAT_DISPOSITION_THE_TWIN_RULE... but a structural blocker (test_execution_log.jsonl classification) is explicitly handed to a next item (P2)
+
 *Console seat, 2026-10-07, from the triage of the delivery seat's carried "what it got wrong" items
 (`docs/direction/wrong_triage.yaml`). Carried as `one-item-lands-twice-on-origin-and-the-shared-head`,
 55 listings since 2026-09-30.*

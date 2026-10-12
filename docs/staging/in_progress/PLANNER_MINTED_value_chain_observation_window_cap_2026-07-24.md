@@ -22,6 +22,8 @@
 
 # [PLANNER-MINTED] VALUE_CHAIN: replace the static cap dict with real observation-window mechanics + MC-2 collateral death-test (2026-07-24)
 
+**Fate (2026-10-12, clear-the-decks):** ATOM -- MC-2 collateral death-test site render explicitly not shipped yet on the live surface (P2)
+
 > **[IN-PROGRESS — 2026-07-24 worker tick]** Director-waived to proceed (`docs/staging/done/DIRECTOR_RULING_PLANNER_MINT_WAIVED_2026-07-24.md`, item 2 — PRODUCT-FIRST item 3, the declared static-cap FAIL + MC-2 collateral death-test). No map atom yet (tracked in `docs/PRIORITIES.md` item 3 + steer `DIRECTOR_STEER_WHOLESALE_VALUE_CHAIN_2026-07-22.md`); register on BUILD open.
 > **BLOCKING SUB-ITEM (open):** ~~Scope 1 (FRAME the static-cap call sites + name through-the-wall observable inputs)~~ **DONE this tick — see the FRAME section appended below.** Scope 2-3 BUILD (observation-window cap + MC-2 death-test) proceeds under reversible authority, **but the MC-2 scenario *difficulty* is R13 curriculum — escalate any difficulty knob, never tune** (mint the mechanism + a benign default only). **UNBLOCKS:** self for the mechanism; director for any named curriculum-difficulty value. **FRAME surfaced a prerequisite:** both target registers (`WholesaleCreditExposureRegister`, `MarginCallBook`) have **no live (non-test) constructor** — they are modelled organs not yet in the run loop, so an observation-window cap has nothing to observe until the register is first fed the company's own live MtM/margin-call stream. The next drawable BUILD step is therefore the **live feed**, then the window mechanic on top; details in the FRAME.
 

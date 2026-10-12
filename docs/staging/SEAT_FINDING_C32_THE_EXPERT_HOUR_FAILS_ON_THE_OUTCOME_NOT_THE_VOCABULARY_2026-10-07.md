@@ -1,5 +1,7 @@
 # C32's expert hour fails on the outcome, not the vocabulary — and one of its findings was a live fail-open, fixed in the same turn
 
+**Fate (2026-10-12, clear-the-decks):** ATOM -- Expert Hour FAIL, level stays at 2; one fail-open fixed this turn, but ppm_warrant_register.VulnerabilityCheck still needs routing through one decider or deletion, pending commons knowledge (EH-2/3/5) (P2)
+
 **Severity:** LATENT · **Lane:** C_customer_ops · **Epoch:** 3 · **Atom:** `C32_one_obligation_one_vulnerability_scorer` · **Claim:** released on landing
 
 *Worker tick, 2026-10-07. Atom `C32_one_obligation_one_vulnerability_scorer`, L2, loop_stage harden.

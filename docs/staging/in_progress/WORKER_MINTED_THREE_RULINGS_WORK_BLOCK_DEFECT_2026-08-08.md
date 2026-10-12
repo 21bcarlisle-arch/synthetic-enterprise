@@ -6,6 +6,8 @@
 
 # [WORKER-MINTED] Work identified from three block-less rulings (2026-08-08)
 
+**Fate (2026-10-12, clear-the-decks):** ATOM -- ruling A's id-collision/lane-split items (A2-A4) appear largely actioned; rulings B/C and A5-A7 (charters, title field, registry tool) not independently verified (P3, unverified)
+
 ## Why this doc exists
 
 Three staged rulings carry no **WORK THIS CREATES** block:

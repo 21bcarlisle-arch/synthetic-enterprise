@@ -2,6 +2,8 @@
 
 # D48: L2 waits for the weekly publish, so the row is parked, not promoted
 
+**Fate (2026-10-12, clear-the-decks):** ATOM -- maturity_map.yaml still shows D48 level_current:1, loop_stage:idle at 2026-10-12 (the publish date this doc names); L2 not yet recorded via level_promotion_gate (P1)
+
 ## The ask
 
 Drawn as `d48-records-the-level-its-reader-earned`. The ask was to record D48's level through

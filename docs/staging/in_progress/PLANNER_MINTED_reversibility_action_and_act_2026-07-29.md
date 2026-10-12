@@ -40,6 +40,8 @@
 
 # [PLANNER-MINTED] Action the proceed-at-risk class with recorded undos, and send ONE batched [ACT] (2026-07-29)
 
+**Fate (2026-10-12, clear-the-decks):** ATOM -- item #2's 15 reversible level moves still need individual re-verification against real artefacts per the doc's own 2026-08-03 note (P3)
+
 **Source ruling:** `DIRECTOR_RULING_WORK_AT_RISK_DEFAULT_2026-07-29.md`, WORK-THIS-CREATES **#2**
 ("Everything in the proceed-at-risk class actioned, with recorded undos.") **and #3** ("One batched
 [ACT]: what was done, how to reverse each, what remains genuinely reserved and why.") — #3 is the

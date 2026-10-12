@@ -1,5 +1,7 @@
 # W2_20 H2 placebo: does a floor seed equal to the base seed reproduce the default draw?
 
+**Fate (2026-10-12, clear-the-decks):** ATOM -- more floor seeds over the full window (nine-seed fold) still owed; the control-arm-by-design sub-question is already answered in a sibling finding (6a857a21d) (P2)
+
 **Severity:** RECORDED · **Lane:** W2_customer_generator · **Epoch:** 3 · **Atom:** W2_20_mains_gas_is_drawn_not_inferred_from_the_heating_system
 
 The placebo matches, so the page's band is the right family. The three-seed band is too thin to hold the control arm's tail draw.

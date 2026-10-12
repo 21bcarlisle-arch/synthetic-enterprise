@@ -2,6 +2,8 @@
 
 # COMPOUNDING WORK GOES FIRST — two re-ranks (P0, director-decided)
 
+**Fate (2026-10-12, clear-the-decks):** ATOM -- ARCH1 (internal seams) and A8_experiment_loop_speed atom ids not found anywhere in docs/design/maturity_map.yaml; re-rank may not have landed (P2)
+
 **Staged:** 2026-07-13 by advisor, **director-decided**. Disposition: INTERRUPT
 for the re-ranks. **Note: item 2 is a NEW registration and therefore breaches the
 advisor's own moratorium — deliberately, with the director's explicit

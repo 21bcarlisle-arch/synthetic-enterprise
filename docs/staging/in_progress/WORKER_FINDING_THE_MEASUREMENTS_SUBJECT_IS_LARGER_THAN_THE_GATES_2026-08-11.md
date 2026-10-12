@@ -33,6 +33,8 @@
 
 # [WORKER-FINDING] The measurement's subject is a LARGER suite than the gate's, and that is what OOMs the box (2026-08-11)
 
+**Fate (2026-10-12, clear-the-decks):** ATOM -- the -x pytest premium reconciliation (12.9G baseline vs 5.34G measured) and the recommended systemd-run MemoryMax bound are explicitly unbuilt (P3)
+
 **Rank:** after the OPS2 exit itself (P-1) — this is the standing cause of the OPS2 criterion-1
 measurement never landing, but the repair needs a decision, not a patch.
 **Lane:** `H_harness` · **Class:** a harness whose subject diverges from the thing it measures.

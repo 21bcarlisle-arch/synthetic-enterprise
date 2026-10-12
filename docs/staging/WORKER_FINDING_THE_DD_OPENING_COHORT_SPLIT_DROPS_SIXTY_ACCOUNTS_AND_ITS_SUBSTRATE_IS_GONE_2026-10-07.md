@@ -1,5 +1,7 @@
 # The DD-opening cohort split drops 60 accounts, and the published comparison's substrate no longer exists
 
+**Fate (2026-10-12, clear-the-decks):** ATOM -- republish dd-opening-arms artefacts from a tracked substrate, reading each account's opening date from run output rather than a fresh draw, and re-grade the 2026-10-01 prediction (P2)
+
 **Severity:** LATENT · **Lane:** D_billing_metering · **Epoch:** 3 · **Atom:** `D_opening_dd_seasonal_sizing`
 
 *Worker, 2026-10-07. Found while grading the atom's own predictions for its L1 → L2 move. The move

@@ -20,6 +20,8 @@
 
 # Archived run markers keep coming back to the staging root, and while they are there NO commit on this tree can pass the gate
 
+**Fate (2026-10-12, clear-the-decks):** ATOM -- instrument built and waiting; no specimen has occurred yet to diagnose the writer/cause (P3)
+
 **This document deliberately does not name a cause.** I proposed two and measured both to be
 wrong. The evidence is below; the mechanism is an open question, and the next person should
 start by instrumenting rather than by reading, because reading is what produced the two wrong

@@ -3,6 +3,8 @@
 
 # The head-red census keeps no crash line, so a pollution bisect starts blind
 
+**Fate (2026-10-12, clear-the-decks):** ATOM -- add the first line of each red's reprcrash (truncated ~200 chars) to background/head_red_register.py's record and print it beside NEW RED (P3)
+
 `background/head_red_register.record(...)` stores each red's node id, run count and dates. The
 only cause it keeps is a per-run count by exception type (`causes`: `AssertionError x13`). The
 nightly journal prints `NEW RED <node>` and nothing more.

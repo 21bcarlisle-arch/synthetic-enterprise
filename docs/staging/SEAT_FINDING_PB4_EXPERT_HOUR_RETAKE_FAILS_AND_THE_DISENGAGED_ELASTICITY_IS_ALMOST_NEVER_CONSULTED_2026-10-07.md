@@ -1,5 +1,7 @@
 # PB4: the Expert Hour re-take fails, and a disengaged household's elasticity is almost never consulted
 
+**Fate (2026-10-12, clear-the-decks):** ATOM -- PB4 row still reads expert_hour status attempted_finding_open, "FAIL, held at 2"; two buildable blockers from this retake remain owed (P2)
+
 **Severity:** RECORDED · **Lane:** W2_customer_generator · **Epoch:** 3 · **Atom:** `PB4_engagement_separated_from_elasticity` · **Claim:** `pb4-retake-the-expert-hour-on-the-drift-gradient-world` (Lane 0)
 
 The blind Expert Hour was re-taken on the drift-gradient world, after `beb4f8533` (gradient),

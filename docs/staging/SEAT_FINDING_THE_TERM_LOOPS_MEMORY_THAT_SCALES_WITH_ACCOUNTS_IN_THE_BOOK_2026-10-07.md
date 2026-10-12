@@ -2,6 +2,8 @@
 
 # Which structure in phase 2b's term loop grows with the accounts in the book
 
+**Fate (2026-10-12, clear-the-decks):** ATOM -- attribute the doubled book (b870dd6c5) before backfilling the 164-cell weather-store gap now held as strict-xfail (P2)
+
 Follows the third control in
 `SEAT_FINDING_THE_40_AND_160_FOUNDER_PEAKS_MEASURE_THE_CAMPAIGN_NOT_THE_BOOK_2026-10-07.md`: at 40
 founders and `--end 2019-12-31`, the 461 won legs dated after `--end` add 1,059 MB of peak and 200 s,

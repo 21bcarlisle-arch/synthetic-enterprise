@@ -1,5 +1,7 @@
 # PB4 R6: a woken SVT household now chooses by its own elasticity, and the saving gradient is a named None
 
+**Fate (2026-10-12, clear-the-decks):** ATOM -- wire a company SVT-stock contact through the seam (C34/W2_39 level 2) so the built elasticity-choice route is actually reached by a run (P2)
+
 **Severity:** RECORDED · **Lane:** W2_customer_generator · **Epoch:** 3 · **Atom:** `PB4_engagement_separated_from_elasticity` · **Claim:** `pb4-r6-the-woken-share-for-svt-stock-between-boundaries` (Lane 0)
 
 R6 from `SEAT_FINDING_PB4_EXPERT_HOUR_RETAKE_FAILS_AND_THE_DISENGAGED_ELASTICITY_IS_ALMOST_NEVER_CONSULTED_2026-10-07.md`.

@@ -18,6 +18,8 @@
 
 # [WORKER-FINDING] The epistemic wall is BREACHED at HEAD, and every measurement that said otherwise was taken against the working tree (2026-08-09)
 
+**Fate (2026-10-12, clear-the-decks):** ATOM -- item 1 (KNIFE1/KNIFE2 wall cuts) DONE per the doc; items 2-3 (re-audit self-certified levels against a HEAD checkout, not the working tree) not found built (P2)
+
 **Found:** immediately after `DIRECTOR_RULING_PUBLISH_GATE_SUBJECT_2026-08-09` moved the publish
 gate's subject to a clean checkout of HEAD. This is the ruling's first real yield, and it is worth
 more than the outage it was meant to prevent.

@@ -2,6 +2,8 @@
 
 # The four practitioner points contradict four levers in the build
 
+**Fate (2026-10-12, clear-the-decks):** ATOM -- fix world post-write-off recovery rates (above evidence, register unread), tilt smart-meter exposure by tenure, give the landlord/void occupier leg a collection route (point 2 is already W2_36's pointer, not new) (P2)
+
 ## Premise, re-measured at draw
 
 The research for the director's item 2 (2026-10-07) was already on origin: `fe150ffd1` wrote all four

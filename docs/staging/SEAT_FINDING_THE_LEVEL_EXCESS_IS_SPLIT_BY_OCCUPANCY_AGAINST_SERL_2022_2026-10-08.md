@@ -2,6 +2,8 @@
 
 # The gas-home level excess, split by occupancy against SERL 2022
 
+**Fate (2026-10-12, clear-the-decks):** ATOM -- fit headcount from Census 2021 occupancy-by-bedrooms, then refit the per-person slope against SERL Figure_48 per-band medians, as a pair (P2)
+
 Delivery seat, 2026-10-08. Decided blind to company results: nothing below reads a company figure.
 
 **Duplicate-work note.** The draw reported this id "already held" in `.seat_work_in_hand.json`. The

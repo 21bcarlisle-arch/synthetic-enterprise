@@ -2,6 +2,8 @@
 
 # A gas home's season miss is now the winter, and lighting is the one end use off its source
 
+**Fate (2026-10-12, clear-the-decks):** ATOM -- lighting-season pre-registered arms A (_DAYLIGHT_LIGHTING_SHARE=0) and B (ECUK top bracket) never landed; _DAYLIGHT_LIGHTING_SHARE still 0.19 (P2)
+
 ## The premise was re-measured first, and it is spent
 
 The drawn item said the world's S3 is 1.227 and its summer about +0.9 kWh/day too high. Both

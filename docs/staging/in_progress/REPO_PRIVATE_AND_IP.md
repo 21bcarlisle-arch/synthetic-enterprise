@@ -9,6 +9,8 @@
 
 # REPO_PRIVATE_AND_IP — protect the IP, assert the copyright (P1)
 
+**Fate (2026-10-12, clear-the-decks):** ATOM -- Phase 2 (visibility flip) and Phase 3 (IP assertion/entity name) are explicitly the director's own manual actions per the doc; cannot be verified from inside the checkout (P3)
+
 **Staged:** 2026-07-11 by advisor, director-decided. **Rationale on record:**
 trade-secret posture requires demonstrable confidentiality steps — the public
 repo undermined any proprietary claim over method/code. Site stays public

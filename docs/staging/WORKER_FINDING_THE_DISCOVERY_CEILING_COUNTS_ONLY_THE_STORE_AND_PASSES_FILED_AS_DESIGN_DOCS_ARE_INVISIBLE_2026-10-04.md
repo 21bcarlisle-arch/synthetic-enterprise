@@ -2,6 +2,8 @@
 
 # The discovery ceiling counts only the note store, so passes filed as design docs are invisible to it
 
+**Fate (2026-10-12, clear-the-decks):** ATOM -- class-level remedy owed: check EP5 the same way (header says "store not edited") and backfill if so (P3)
+
 Draw: LANE 3 DISCOVER/FRAME on `EP14_adapter_published_cost_stack`, worker tick 2026-10-04.
 **No sixth investigation was run.** The draw's useful act was to find that it should not have
 been offered.

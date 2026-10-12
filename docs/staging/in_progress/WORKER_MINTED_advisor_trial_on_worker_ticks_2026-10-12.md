@@ -2,6 +2,8 @@
 
 # [WORKER-MINTED] Trial Sonnet 5.5 + Opus advisor on the worker ticks (2026-10-12)
 
+**Fate (2026-10-12, clear-the-decks):** ATOM -- fresh director-steer-derived mint; a model-tiering conflict was found before any build, trial embargoed until the weekly allowance resets (P2)
+
 **Source:** `DIRECTOR_STEER_ADVISOR_TRIAL_BACKLOG_2026-10-11.md` (moved to `in_progress/` beside
 this). The steer carries no `WORK THIS CREATES` block; its `## Done when` and `## How to judge it`
 name the work, so the deliverables below are minted from those sections. Requesting a block from

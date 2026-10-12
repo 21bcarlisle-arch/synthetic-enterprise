@@ -24,6 +24,8 @@
 
 # [WORKER-FINDING] Green work is dying uncommitted in the shared tree (2026-08-08, AO2 tick)
 
+**Fate (2026-10-12, clear-the-decks):** ATOM -- no background/ mechanism found reporting uncommitted tracked changes outside a tick's file_scope at exit; the class-fix sub-item 1 appears unbuilt (P3)
+
 **Class:** work-at-risk. **Found by:** the 21:04 tick, while committing `AO2_write_time_reuse_gate`.
 **Status:** one instance ADOPTED and committed, one instance STILL AT RISK, class NOT closed.
 

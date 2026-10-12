@@ -2,6 +2,8 @@
 
 # Of the eight other modules that run `run_phase2b.main`, one runs it twice over one window
 
+**Fate (2026-10-12, clear-the-decks):** ATOM -- tests/simulation/test_net_new_acquisition.py still has its own module-scoped shared_fabric_traces fixture with 2 run_phase2b calls in the module; no commit found opting it into shared fabric traces across modules (P3, harness efficiency)
+
 ## Premise, re-measured at draw time
 
 `09555ee17` is origin/main's tip and this worktree's HEAD, so the pattern it lands

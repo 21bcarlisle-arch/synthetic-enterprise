@@ -2,6 +2,8 @@
 
 # The kettle does not scale with headcount in HES, and the world's did
 
+**Fate (2026-10-12, clear-the-decks):** ATOM -- finish cooking-class-off-headcount refit (oven/hob/toaster/microwave), headcount-given-dwelling-size, and recheck per-occupant slope (P2)
+
 Delivery seat, 2026-10-09. Decided blind to company results: nothing below reads a company figure.
 
 **Duplicate-work note.** The draw reported this id "already held" in `.seat_work_in_hand.json`. The

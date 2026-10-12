@@ -2,6 +2,8 @@
 
 # The EP13 embedded-generation bound's artefact is stale, and its own oracle rung refuses the reading
 
+**Fate (2026-10-12, clear-the-decks):** ATOM -- artefact was just regenerated but level_current has not moved to 3, so the "what is owed" reading (instrument_can_see_within_day, then embedded_gain_within_day) appears not yet concluded (P2, unverified)
+
 ## THIRD DEATH, 2026-08-27 14:18 UTC — it was neither branch this file predicted, and item 2 is now READ
 
 The `setsid` relaunch (pid 1027522) was **also** gone by 14:02 UTC with a 0-byte log and the
