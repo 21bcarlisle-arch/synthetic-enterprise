@@ -5,17 +5,18 @@ headline number from the latest run's dashboard.json rather than carrying a
 hand-written, frozen-at-writing-time statistic.
 """
 import json
+from pathlib import Path
 
 from tools.generate_capabilities_json import (
     CAPABILITIES,
-    _settlement_engine_metric,
-    _customer_model_metric,
-    _churn_model_metric,
-    _regulatory_metric,
-    _carbon_metric,
-    generate,
-    OUT_PATH,
     DASHBOARD_PATH,
+    OUT_PATH,
+    _carbon_metric,
+    _churn_model_metric,
+    _customer_model_metric,
+    _regulatory_metric,
+    _settlement_engine_metric,
+    generate,
 )
 
 
@@ -63,6 +64,20 @@ def test_registry_every_entry_has_evidence_link_and_description():
         assert cap["evidence_link"]
         assert cap["description"]
         assert cap["name"]
+
+
+def test_every_evidence_link_lands_on_a_served_page_and_its_anchor():
+    # Eight of the ten links pointed at /sim/, /customers/ and /project/ for weeks after
+    # those pages were deleted (SITE3). The links resolve against site/data/, where the
+    # feed is written.
+    site_data = Path(__file__).resolve().parents[2] / "site" / "data"
+    for cap in CAPABILITIES:
+        path, _, anchor = cap["evidence_link"].partition("#")
+        page = (site_data / path / "index.html").resolve()
+        assert page.is_file(), f"{cap['id']}: {cap['evidence_link']} has no page"
+        if anchor:
+            assert f'id="{anchor}"' in page.read_text(encoding="utf-8"), (
+                f"{cap['id']}: no #{anchor} on {page}")
 
 
 def test_generate_writes_json_with_one_card_per_registry_entry(tmp_path, monkeypatch):

@@ -565,8 +565,6 @@ def build_payload(
         raise EvidenceSourceUnavailable(
             f"node->atom mapping yielded zero nodes: {mapping_path}"
         )
-    mapping = json.loads(mapping_path.read_text(encoding="utf-8"))
-    look = {n.get("id"): n.get("look_href") for n in mapping.get("nodes", [])}
 
     nodes = []
     for stage in stages:
@@ -634,7 +632,6 @@ def build_payload(
                 "declared_stage": stage["declared_stage"],
                 "computed_stage": stage["computed_stage"],
                 "stage_matches": stage["matches"],
-                "look_href": look.get(stage["id"]),
                 "evidence_href": f"./evidence/#{stage['id']}",
                 "atoms": atoms_out,
                 "atoms_at_target": sum(1 for x in atoms_out if x["at_target"]),
