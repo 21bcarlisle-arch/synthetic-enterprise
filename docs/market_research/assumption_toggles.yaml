@@ -1574,6 +1574,8 @@ toggles:
     basis_default: >-
       Off: the book is unchanged until the director switches it. No source publishes a
       household-initiated cancellation rate (gb_payment_method_migration_rates.md, 2026-10-03).
+      0 is the no-response SENSITIVITY END, below a low that is a floor, not a measurement; a
+      supplier is graded at low and high, never at 0 alone (staging WORLD_FREEZE_DD_SHOCK_SAVE_AND_MOVER_AT_THEIR_RANGE_ENDS_2026-10-12.md).
     basis_low: >-
       A floor, not a measurement: one in a hundred comfortable households cancels after a rise
       it can afford, the smallest effect distinguishable on a book of this size.
@@ -1602,7 +1604,9 @@ toggles:
     low: 0.25
     high: 3.0
     unit: relative_uplift
-    basis_default: Off. No source crosses DD-change size with failed collections (what_bill_shock_is.md s.3).
+    basis_default: >-
+      Off. No source crosses DD-change size with failed collections (what_bill_shock_is.md s.3).
+      0 is the no-response SENSITIVITY END, below a low that is a floor, not a measurement.
     basis_low: >-
       A floor, not a measurement: a quarter more returns while paying a larger amount.
     basis_high: >-
@@ -1627,7 +1631,10 @@ toggles:
     low: 0.02
     high: 0.24
     unit: probability_per_shocked_review
-    basis_default: Off.
+    basis_default: >-
+      Off. 0 is BELOW the evidence here: the low end is argued from published complaint shares,
+      not a floor. When DD4b is re-sited onto the told amount, the frozen world should take the
+      low end, 0.02 (recommended, the director's switch; staging WORLD_FREEZE_DD_SHOCK_SAVE_AND_MOVER_AT_THEIR_RANGE_ENDS_2026-10-12.md).
     basis_low: >-
       The lowest published annual "made a complaint" share, 2% (Ofgem/Citizens Advice consumer
       survey, Jan-Feb 2026 wave; satisfaction_drivers_and_the_three_bill_shocks.md): a shock adds
