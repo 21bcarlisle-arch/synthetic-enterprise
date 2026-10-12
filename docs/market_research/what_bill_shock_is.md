@@ -56,7 +56,7 @@ gap and it is stated rather than filled — see "What is not settled" below.
 The shock is one of two things:
 
 1. **A material change in the monthly payment.** The regulated trigger for a review is a variance
-   beyond **±5%** (SLC 27B). Ofgem's own escalation cut in the 2022 Direct Debit Market Compliance
+   beyond **±5%** — a band of OURS, not a licence rule: the duty is **SLC 27.15** and no threshold appears in the licence, there being no SLC 27B. Ofgem's own escalation cut in the 2022 DD Compliance
    Review was an increase **above 100%**, which put **over 900,000 direct debits** into a mandatory
    re-review; across Feb–Apr 2022 over 7 million SVT consumers saw an increase averaging **+62%**,
    with **8%** above 100%.
