@@ -2800,6 +2800,12 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             own_default_tariff_inc_vat_per_mwh=(
                 _account_state_svt_rate(commodity, term_start_str)
                 if cid in _RESI_CUSTOMER_IDS else None),
+            # THE COMPANY'S OWN OFFER for this term, read off the term dict its offer wrote, so the
+            # desk can floor a discount at the cost it struck over. Deliberately NOT `company_fwd`
+            # above, which falls back to the world's forward where the offer recorded none.
+            company_forward_per_mwh=term.get("company_forward_price_gbp_per_mwh"),
+            locked_policy_cost_per_mwh=term.get("locked_policy_cost_gbp_per_mwh"),
+            locked_network_cost_per_mwh=term.get("locked_network_cost_gbp_per_mwh"),
         ))
         unit_rate = _chain.unit_rate_gbp_per_mwh
         dynamic_pricing_log.extend(_chain.dynamic_pricing_entries)

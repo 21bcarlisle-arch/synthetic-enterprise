@@ -85,6 +85,9 @@ def decide_renewal_rate(
     payment_method: str | None = None,
     default_belief_rate: float | None = None,
     own_default_tariff_inc_vat_gbp_per_mwh: float | None = None,
+    company_forward_per_mwh: float | None = None,
+    locked_policy_cost_per_mwh: float | None = None,
+    locked_network_cost_per_mwh: float | None = None,
 ) -> RenewalRateChain:
     """Ask the company what rate it is contracting this renewal at.
 
@@ -136,6 +139,12 @@ def decide_renewal_rate(
         payment_method=payment_method,
         default_belief_rate=default_belief_rate,
         own_default_tariff_inc_vat_gbp_per_mwh=own_default_tariff_inc_vat_gbp_per_mwh,
+        # THE COMPANY'S OWN OFFER for the term: the forward it priced off and the two costs it
+        # locked, so the chain can floor a cut at the cost the desk struck over (2026-10-12).
+        # Crossing here for the reason `segment` does. `None` withholds a discount, never a rise.
+        company_forward_per_mwh=company_forward_per_mwh,
+        locked_policy_cost_per_mwh=locked_policy_cost_per_mwh,
+        locked_network_cost_per_mwh=locked_network_cost_per_mwh,
     )
 
 

@@ -83,7 +83,11 @@ import heapq
 from dataclasses import dataclass, field
 from datetime import date
 
-from company.compliance.domain_invariants import vat_rate_for_segment
+from company.compliance.domain_invariants import (
+    own_cost_floor,
+    refuse_discretionary_rate_below_own_cost_floor,
+    vat_rate_for_segment,
+)
 from company.crm.churn_model import ARREARS_STATE_UNKNOWN
 from company.interfaces.customer_profitability import renewal_unit_rate_uplift
 from company.policy.decision_policy import DEFAULT_BELIEF_OWN_BOOK, active_policy
@@ -260,6 +264,14 @@ def _stayer_default_ex_vat(commodity: str, term_start: str,
     return cap_ceiling_ex_vat(commodity, date.fromisoformat(term_start[:10]), multi_register=False)
 
 
+def _floor_a_discount(rate_before: float, discounted: float, cost_floor: float | None) -> float:
+    """`discounted`, raised no higher than `cost_floor` and never above `rate_before`: a discount
+    stops at cost, and a rate that entered below cost is not lifted by a writer that only cuts."""
+    if cost_floor is None or discounted >= rate_before:
+        return discounted
+    return max(discounted, min(rate_before, cost_floor))
+
+
 def decide_renewal_rate(
     *,
     customer_id: str,
@@ -281,6 +293,9 @@ def decide_renewal_rate(
     payment_method: str | None = None,
     default_belief_rate: float | None = None,
     own_default_tariff_inc_vat_gbp_per_mwh: float | None = None,
+    company_forward_per_mwh: float | None = None,
+    locked_policy_cost_per_mwh: float | None = None,
+    locked_network_cost_per_mwh: float | None = None,
 ) -> RenewalRateChain:
     """Decide the rate this renewal is contracted at.
 
@@ -299,9 +314,16 @@ def decide_renewal_rate(
     `customer` is the record as the world holds it, read for METERING FACTS only, through the
     same `tou_desk.offers_tou` the ToU offer reads: it decides which cap benchmark writer 4 grades
     this term against. Required, so no caller can reach the single-rate benchmark by omission.
+
+    `company_forward_per_mwh` and the two locked costs are what the company's own offer for
+    this term priced off; their sum is the cost floor the desk struck over. `None` where the term
+    has no offer to read them from, and then no discount is given (writer 1).
     """
     unit_rate = struck_unit_rate_gbp_per_mwh
     rate_original = unit_rate
+    cost_floor = own_cost_floor(
+        company_forward_per_mwh, locked_policy_cost_per_mwh,
+        locked_network_cost_per_mwh)
 
     result = RenewalRateChain(unit_rate_gbp_per_mwh=unit_rate)
 
@@ -315,9 +337,19 @@ def decide_renewal_rate(
     ):
         position = portfolio_position(portfolio_margin_rates)
         portfolio_prem = position["portfolio_premium_fraction"]
-        if abs(portfolio_prem) > 1e-6:
+        # A DISCOUNT MAY COST MARGIN; IT MAY NEVER TAKE THE RATE UNDER COST (2026-10-12). The
+        # desk struck this rate over `cost_floor` (`renewal_desk._apply_competitive_ceiling`), and
+        # the headroom it leaves is the ~2% margin plus capital cost, so a premium below about -2%
+        # crossed the floor: 15 of 18 electricity renewals to 2017-03-31
+        # (`SEAT_FINDING_B8_Q5_WHY_THE_RENEWAL_FIX_SITS_BELOW_ITS_OWN_COST_FLOOR_2026-10-12.md`).
+        # With no floor to check against, the discount is not given at all; a surcharge is.
+        # It never LIFTS a rate that entered below the floor: this writer only discounts.
+        discount_unchecked = portfolio_prem < 0 and cost_floor is None
+        if abs(portfolio_prem) > 1e-6 and not discount_unchecked:
             rate_before = unit_rate
-            unit_rate *= (1.0 + portfolio_prem)
+            unit_rate = _floor_a_discount(
+                rate_before, rate_before * (1.0 + portfolio_prem), cost_floor)
+            floored_at_cost = unit_rate > rate_before * (1.0 + portfolio_prem)
             entry = {
                 "customer_id": customer_id,
                 "commodity": commodity,
@@ -332,6 +364,11 @@ def decide_renewal_rate(
                 "unit_rate_before": round(rate_before, 4),
                 "unit_rate_after": round(unit_rate, 4),
             }
+            if portfolio_prem < 0:
+                # On a discount only: a surcharge has no floor to meet, and its entry keeps the
+                # shape the pre-cut reproduction pins.
+                entry["cost_floor"] = round(cost_floor, 4)
+                entry["floored_at_cost"] = floored_at_cost
             result.dynamic_pricing_entries.append(entry)
             result.chain_entries.append(entry)
             result.components.append({
@@ -547,7 +584,13 @@ def decide_renewal_rate(
         })
     if unit_rate is not None and arm_uplift.decision is not None:
         rate_before = unit_rate
-        unit_rate += arm_uplift.uplift_gbp_per_mwh
+        # THE SAME FLOOR AS WRITER 1 (2026-10-12). The arm adds `margin - GBP 2` on the assumption
+        # that the rate it is handed still carries the strike's GBP 2; once writer 1 has floored a
+        # discount it does not, and an arm or level choice under GBP 2 sold up to GBP 1.50 under
+        # cost (the decision probe's level grid, at once). The arm may lower a rate, never under it.
+        unit_rate = _floor_a_discount(
+            rate_before, rate_before + arm_uplift.uplift_gbp_per_mwh, cost_floor)
+        arm_floored_at_cost = unit_rate > rate_before + arm_uplift.uplift_gbp_per_mwh
         decision = arm_uplift.decision
         entry = {
             "customer_id": billing_account,
@@ -614,12 +657,17 @@ def decide_renewal_rate(
             "ladder_ceiling_clamped": decision.ladder_ceiling_clamped,
             "ladder_above_support_bound": decision.ladder_above_support_bound,
         }
+        if arm_uplift.uplift_gbp_per_mwh < 0:
+            # On a cut only, as writer 1: the arm's belief above is for the rate it CHOSE, and this
+            # says the contracted rate was raised to cost instead.
+            entry["floored_at_cost"] = arm_floored_at_cost
         result.value_arm_entries.append(entry)
         result.chain_entries.append(entry)
         result.components.append({
             "cause": "value_arm",
             "basis": "gbp_per_mwh",
-            "magnitude": round(arm_uplift.uplift_gbp_per_mwh, 4),
+            "magnitude": round(unit_rate - rate_before if arm_floored_at_cost
+                               else arm_uplift.uplift_gbp_per_mwh, 4),
             "rate_before": round(rate_before, 4),
             "rate_after": round(unit_rate, 4),
         })
@@ -665,6 +713,12 @@ def decide_renewal_rate(
             "components": result.components,
         }
 
+    # THE CLASS, checked where the chain returns: whatever writer moved it, the rate leaves no
+    # lower than its own cost floor unless it entered lower or the cap (the law) put it there.
+    refuse_discretionary_rate_below_own_cost_floor(
+        unit_rate, entered=rate_original, cost_floor=cost_floor, cap=cap_ceiling,
+        where=f"{customer_id} {commodity} {term_start}")
+
     result.unit_rate_gbp_per_mwh = unit_rate
     return result
 
@@ -695,6 +749,10 @@ def decide_renewal_rate_from(inputs) -> RenewalRateChain:
         payment_method=inputs.payment_method,
         default_belief_rate=inputs.default_belief_rate,
         own_default_tariff_inc_vat_gbp_per_mwh=inputs.own_default_tariff_inc_vat_per_mwh,
+        # Already market-neutral on both sides: the seam door carries them under the same names.
+        company_forward_per_mwh=inputs.company_forward_per_mwh,
+        locked_policy_cost_per_mwh=inputs.locked_policy_cost_per_mwh,
+        locked_network_cost_per_mwh=inputs.locked_network_cost_per_mwh,
     )
 
 

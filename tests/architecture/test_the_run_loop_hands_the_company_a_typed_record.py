@@ -32,6 +32,8 @@ ALLOWED_FIELDS = (
     "struck_unit_rate_per_mwh", "portfolio_margin_rates", "prior_term_margin", "prior_term_revenue",
     "is_domestic", "settled_records", "customer", "segment", "arrears_state", "receivable",
     "payment_method", "default_belief_rate", "own_default_tariff_inc_vat_per_mwh",
+    # The company's own offer for the term: the floor its desk struck over (2026-10-12).
+    "company_forward_per_mwh", "locked_policy_cost_per_mwh", "locked_network_cost_per_mwh",
 )
 
 WORLD_PACKAGES = ("sim", "simulation")
