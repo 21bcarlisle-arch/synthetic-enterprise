@@ -1105,3 +1105,54 @@ quote and what follows for a cash-forecast build.*
 6. **Graded, not used.** The run's provision is not switched; the engine is graded beside the flat age
    bands of `company/finance/bad_debt_provision.py` against the held-back realised shortfall over the
    next 12 and 24 months, a measurement the company never sees.
+
+## One payment truth: the world's losses come from the households' own payments (2026-10-12)
+
+**2026-10-12, the world lane, on the coordinator's finding of the same day.** A world correction,
+not new evidence: no new source was needed, because the domain rules the change uses are already
+on this project's pages. It is recorded here because it decides which bills the world writes off.
+
+**The defect.** The run drew whether a household paid a bill twice, from two models that never
+met. The payment triad (`background/live_payment_triad.py`) is the run's declared canonical payment
+truth; every household mechanism acts on it (agreed and broken plans, pauses, lower payments,
+early-contact payments, mandate cancellations, re-presented and later-settled bills). The arrears
+engine (`simulation/arrears_engine._resolve_bills`) drew its own outcomes, by a different
+substream, and its balance rule held "arrangement paydown" and re-presentation as None. So the bad
+debt the P&L books came from different households' failures than the days-behind the supplier
+saw, a re-presented DD the household paid was still written off at close, and a kept plan reduced
+no write-off. A debt engine graded on bad debt would be graded against losses its own actions
+could not reach.
+
+**The correction (`simulation/world_payment_truth.py`, switch `UNIFIED`).**
+
+| Choice | Rule | Basis |
+|---|---|---|
+| Whether and when a bill was paid | the triad's record for that leg and month; the engine draws only where the triad has none (counted, published) | one truth by construction: the triad is what the household mechanisms act on |
+| How much a bill was | the issued bill's amount (`bill_assembly`), unchanged | the bill is the supplier's document; only the paying is the household's |
+| What a later settlement repays | the issued amount of the bill it settled | the triad settles a whole bill |
+| What a plan instalment repays | its share of the plan's debt (instalment over debt) times the issued amounts of the bills the plan covered; a broken plan repays only what was paid before it broke | the plan's debt is those bills; the scale is the issued bills' |
+| Which arrears a repayment discharges | the oldest outstanding bill on the same fuel's contract first | Clayton's Case, the running-account default the company ledger already uses (`account_hierarchy_payment_allocation.md` s.1) |
+| The limitation clock | a repayment restarts it | Limitation Act 1980 s.29(5): a payment by the debtor acknowledges the debt, as the engine's own payments already do |
+
+**Shipped off, and why that is said plainly.** Unifying cannot leave the shipped book unchanged:
+the engine's failure draws are replaced by the triad's, and failed bills the household repaid stop
+being written off. So the switch ships off (the book is byte-identical) and the change it makes is
+measured on 40 founders and recorded in the freeze record as a world correction. Making it the
+shipped default is the seat's decision, because controls elsewhere pin today's book.
+
+**What it still leaves (GAPs and named limits):** the rails' collection book
+(`dd_collection_book.py`) keeps its own outcomes, matched to the engine's draw, so the rails do not
+yet follow the unified truth; a mover's final bill keeps the engine's B7 exit; the stayer provision
+leg (off) does not net repayments; no prepayment repayment exists because no meter is changed for
+debt in the run.
+
+**Payment channel and income, tenure, vulnerability (re-checked 2026-10-12).** The English Housing
+Survey 2021-22 energy annex tables (chapters 1-4, downloaded and read as data) carry no payment-
+method table. DESNZ, *Annual fuel poverty statistics report 2025*, s.3.4: households paying for
+electricity by prepayment meter had a 22.3% fuel-poverty rate (standard credit 18.5%, direct debit
+8.8%) and the lowest median income, GBP 18,500. The world already conditions fuel poverty on the
+channel at exactly those rates (`household_segments.FUEL_POVERTY_RATE_BY_CHANNEL`). A channel-by-
+tenure or channel-by-income-distribution crosstab, which a coupling of the run's payment stress to
+the channel would need, was not reached: it stays the named GAP, with the Consumer Impacts survey
+tables and the EHS household-level energy tables as the next places to look.
+

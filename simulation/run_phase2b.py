@@ -27,6 +27,7 @@ from datetime import date, datetime, time, timedelta
 import sim.risk_committee_agent as risk_committee_agent
 import simulation.dd_shock_response as _dd_shock_response
 import simulation.payment_method_dynamics as _method_dynamics
+import simulation.world_payment_truth as _world_payment_truth
 from background.gap_metric import format_ageing_summary as _format_ageing_summary
 from background.gap_metric import format_belief_summary as _format_belief_summary
 from background.gap_metric import format_detection_summary as _format_detection_summary
@@ -5403,6 +5404,11 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             _bill_shock_dates,
             {m["customer_id"]: m["move_date"] for m in home_move_outs},
             dd_shock_responses_of=_dd_shock_book.responses_of,
+            # One payment truth (`simulation/world_payment_truth.py`), only when switched on. Built
+            # here, after `collections_journeys` above has walked every account to the run's end.
+            payment_truth=(_world_payment_truth.build(
+                _payment_triad, date.fromisoformat(effective_end))
+                if _world_payment_truth.UNIFIED else None),
         ),
         # DD4b: only present when its toggles are switched on, so the shipped output is unchanged.
         **({"dd_shock_response_summary": _dd_shock_book.summary()}
@@ -5441,7 +5447,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
 
 
 def _build_behavioral_trajectories(customers, hdr, cx_desk, bill_shock_dates=None,
-                                   move_out_dates=None, dd_shock_responses_of=None):
+                                   move_out_dates=None, dd_shock_responses_of=None,
+                                   payment_truth=None):
     """Splice the world's own per-customer trajectories around the company's
     experience record.
 
@@ -5481,6 +5488,9 @@ def _build_behavioral_trajectories(customers, hdr, cx_desk, bill_shock_dates=Non
         _dd_responses = dd_shock_responses_of(household_of(cid)) if dd_shock_responses_of else None
         if _dd_responses:
             out[cid][_DD_SHOCK_RECORD_KEY] = list(_dd_responses)
+        # One payment truth: the triad's outcomes and repayments for this leg, when switched on.
+        if payment_truth and cid in payment_truth:
+            out[cid][_world_payment_truth.RECORD_KEY] = payment_truth[cid]
     return out
 
 
