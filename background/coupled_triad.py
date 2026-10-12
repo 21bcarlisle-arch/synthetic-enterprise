@@ -137,6 +137,12 @@ _AUTHORITATIVE_COUPLING = {
     # weather-normal AQ/EAC. The cell's departure from normal is therefore what a true-up
     # corrects, and D48 is the grade that measures it. Held below L3 for D48's level.
     "W1_14": "D48",
+    # W2_38 the world's arrears graded against Ofgem <-> C11 segment debt policy, on the same
+    # standing as W2_9. W2_38 is the payment truth (who fails, who settles, how late); C11 is the
+    # supplier's own debt model built from bills and contact. The row's couples_with names
+    # EP4, whose short id is not a C twin, so the table is this pair's only source. No gap
+    # is defined, so W2_38 stays held below L3.
+    "W2_38": "C11",
 }
 
 # TWIN-EXEMPT world atoms (director-authored exemptions from binding rule 1).
