@@ -1,5 +1,7 @@
 # DIRECTOR AXES — what the director currently cares about most
 
+> **Banner 2026-10-12 (canon v4).** The pricing law this file cites no longer exists. Current canon: `docs/design/DIRECTOR_CANON.md`.
+
 **Version: 1** (2026-07-22). Established by `DIRECTOR_STEER_SELF_MEASUREMENT_AND_AXES_2026-07-22.md` §4.
 
 **What this file is.** The small, versioned record of the axes the director judges the system on —
