@@ -2,6 +2,8 @@
 
 # The payment score reaches the churn belief, and the retention guard prices it as if the debtor pays
 
+**Fate (2026-10-12, clear-the-decks):** ATOM -- P2 unverified: a cited commit is not on origin (4c300feb9). retention guard now nets the company's own bad-debt belief (relanded 6870d3c8b)
+
 Opened by `docs/staging/records/SEAT_RESULT_THE_CHOSEN_BOOKS_EXCESS_BAD_DEBT_IS_TWO_ZERO_WEIGHT_ACCOUNTS_AND_WEIGHTED_IT_IS_THE_LOWER_2026-10-07.md`
 §3 and "What this changes" item 2. That record said the score "reaches no collections or retention
 decision on this record". **Correction beside that claim: half of it is wrong.** The score reaches the

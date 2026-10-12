@@ -2,6 +2,8 @@
 
 # The draw ledger grades by path, so work mid-landing, work spent and work that merely shares a path read alike
 
+**Fate (2026-10-12, clear-the-decks):** ATOM -- no "landing now" fourth verdict or live-claim/majority-path check found in background/delivery_lane.py; mid-landing items may still read as not_done and a single shared path may still credit a landing (P2)
+
 *Console seat, 2026-10-07, from the triage of the delivery seat's carried "what it got wrong" items
 (`docs/direction/wrong_triage.yaml`). Two carried items share one cause, so they share this home.*
 

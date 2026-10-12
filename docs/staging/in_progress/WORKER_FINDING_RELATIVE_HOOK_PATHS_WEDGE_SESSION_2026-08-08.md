@@ -13,6 +13,8 @@
 
 # [WORKER FINDING] A single `cd` in a Bash call wedged EVERY tool in the session (2026-08-08)
 
+**Fate (2026-10-12, clear-the-decks):** ATOM -- instance fixed per the doc; the regression test asserting every hook command is cwd-independent still does not exist (P3)
+
 **Status:** root cause FIXED in the same turn (`.claude/settings.json`, 8 hook commands).
 Filed as a finding because the class is broader than the instance.
 **Severity:** total session deadlock — observed, not inferred.

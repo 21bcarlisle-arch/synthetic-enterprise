@@ -2,6 +2,8 @@
 
 # The campaign now asks for the quote before the win. The quote needs the market's price, not the cap, as its reference
 
+**Fate (2026-10-12, clear-the-decks):** ATOM -- ACQUISITION_HELD_AT_CAP_TARIFF_TYPES still present (doc's "done means" called for its deletion); campaign-time net-new acquisition quote still does not read the company's own forward price -- only the replacement-acquisition path got quoted_unit_rate_per_mwh wired (28eb35ec7) (P2)
+
 Follow-on 1 of `SEAT_FINDING_A_CHOSEN_FIXED_RENEWAL_IS_OUTSIDE_THE_CAP_AND_A_FIRST_TERM_IS_HELD_BY_THE_ACQUISITION_RULE_2026-10-02.md`.
 This item is bigger than one turn. This note records what landed, what "done" means, and the
 measurement that decides the next step.

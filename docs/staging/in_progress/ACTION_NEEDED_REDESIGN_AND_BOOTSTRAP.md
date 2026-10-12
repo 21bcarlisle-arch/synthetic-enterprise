@@ -13,6 +13,8 @@ being drawn/built through to a real, measured, tested bootstrap.
 
 # [ACTION NEEDED] two-strike REDESIGN + harness bootstrap/DR (P0 / P1)
 
+**Fate (2026-10-12, clear-the-decks):** ATOM -- item 1 (redesign) is DONE per its own text and matches current operating model; item 2 (harness bootstrap/DR) still owed, idle (P3)
+
 **Staged:** 2026-07-13 by advisor, director-raised. Note: trust ledger, skills/
 rules, done-is-monitored, alarm-runbook and the billing check are ALREADY staged
 today (fce31c33, 2afb4196) — do not duplicate them. These two are the gaps.

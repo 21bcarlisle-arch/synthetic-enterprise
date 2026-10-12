@@ -2,6 +2,8 @@
 
 # C34's debt branch: the two arms tie by construction, because no debt action reaches a world that answers
 
+**Fate (2026-10-12, clear-the-decks):** ATOM -- LEVEL MOVE 1->2 REFUSED 2026-10-10 (simplifications yaml); unblocks only on sourced take-up/keep rate or director-named curriculum world (for_the_director) (P2)
+
 ## Disposition of the duplicate-work note
 
 The draw said the claim was already held under this id. The holder was this draw itself: its own

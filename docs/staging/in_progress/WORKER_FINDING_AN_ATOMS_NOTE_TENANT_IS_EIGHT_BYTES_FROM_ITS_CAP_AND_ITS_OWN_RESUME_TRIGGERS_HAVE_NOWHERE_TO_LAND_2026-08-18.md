@@ -15,6 +15,8 @@
 
 # WORKER FINDING — D27's note tenant sits 8 bytes under its budget, so the three resume triggers its own pause note declares have nowhere to be written
 
+**Fate (2026-10-12, clear-the-decks):** ATOM -- whether a note tenant at its byte bound can roll a whole note field into an archive chunk (tools/simplifications_store.py::_roll) remains undecided/unbuilt (P3)
+
 **Severity:** LATENT · **Lane:** H_harness · **Disposition:** QUEUED (not fixed on sight)
 
 **Found:** 2026-08-18, verifying a DISCOVER fork's landed commit `145a1490f` on

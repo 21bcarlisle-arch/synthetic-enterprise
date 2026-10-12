@@ -21,6 +21,8 @@
 
 # The projection feed is rewritten every publish cycle for no reader
 
+**Fate (2026-10-12, clear-the-decks):** ATOM -- the feed is still not re-wired into a surviving door (e.g. /harness/) nor has the producer been unwired (P3)
+
 `observed-with-evidence` unless marked otherwise (R9).
 
 ## What is true

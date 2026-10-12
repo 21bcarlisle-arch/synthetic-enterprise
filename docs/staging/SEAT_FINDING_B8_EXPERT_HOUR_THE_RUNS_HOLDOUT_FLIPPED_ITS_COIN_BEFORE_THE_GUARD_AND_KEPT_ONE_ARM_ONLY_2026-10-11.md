@@ -2,6 +2,8 @@
 
 # B8's Expert Hour, run blind: FAIL, held at L2. One disqualifier was a live defect and is fixed here
 
+**Fate (2026-10-12, clear-the-decks):** ATOM -- Q11 randomisation defect fixed in this same commit, but Expert Hour still FAILs (held at L2): Q5 relative pricing for renewal cut, Q7 print renewal-event count, Q8 decision-rule prior still OPEN (P2)
+
 *2026-10-11, worker tick.*
 
 ## The pass

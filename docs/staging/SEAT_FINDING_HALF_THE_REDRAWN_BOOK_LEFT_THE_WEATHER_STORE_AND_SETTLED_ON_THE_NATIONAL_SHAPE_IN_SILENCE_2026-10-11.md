@@ -2,6 +2,8 @@
 
 # Half the redrawn book is off the weather store, and that is what the "pinned providers" are
 
+**Fate (2026-10-12, clear-the-decks):** ATOM -- weather store extension for the 496 missing cells is still incomplete: tests/simulation/test_every_settling_domestic_premise_reads_a_complete_stored_cell.py is still a strict xfail at HEAD (P2)
+
 Claim `world-household-consumption-is-too-steady-year-on-year`. Pre-registration, landed before
 the store was touched:
 `docs/staging/records/SEAT_PREREG_HOW_MUCH_OF_THE_YEAR_ON_YEAR_GAP_IS_THE_WEATHER_STORE_NOT_REACHING_THE_BOOK_2026-10-11.md`.

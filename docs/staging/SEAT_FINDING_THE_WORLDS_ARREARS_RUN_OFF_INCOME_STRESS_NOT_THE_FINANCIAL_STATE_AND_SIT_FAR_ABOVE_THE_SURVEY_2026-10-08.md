@@ -2,6 +2,8 @@
 
 # The world's arrears run off income_stress, not the financial-vulnerability state, and the share behind sits far above the survey
 
+**Fate (2026-10-12, clear-the-decks):** ATOM -- rank and act on the three explanations (definition, driver, level) for the 31% vs 7.6% gap; a fidelity decision for the director, blind to company results (P2)
+
 *Found 2026-10-08 by the hidden-vulnerability build (director's ruling: vulnerability drawn as a
 hidden household state). Recorded, NOT retuned. Changing what drives arrears is a fidelity
 decision, to be taken blind to company results.*

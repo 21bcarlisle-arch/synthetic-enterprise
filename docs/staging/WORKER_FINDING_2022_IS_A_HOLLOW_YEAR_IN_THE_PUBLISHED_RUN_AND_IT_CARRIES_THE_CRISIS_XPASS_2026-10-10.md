@@ -2,6 +2,8 @@
 
 # 2022 is a hollow year in the published run, and that hollow is what turns the crisis xfail into a pass
 
+**Fate (2026-10-12, clear-the-decks):** ATOM -- find where years[y].bad_debt_gbp mis-keys the year (2022 write-offs booked to 2021), which makes the crisis-step-up xfail spuriously XPASS (P2)
+
 Found while working the head-red register (2026-10-10). Re-run at `origin/main` 6a7a35721 in a
 clean worktree, 6 of the register's 48 rows are still red. Two of them point at the same year.
 

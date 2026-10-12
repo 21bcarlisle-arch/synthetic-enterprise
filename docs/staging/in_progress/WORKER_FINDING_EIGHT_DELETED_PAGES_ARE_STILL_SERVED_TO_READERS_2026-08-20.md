@@ -11,6 +11,8 @@
 
 # The 504s were never real. What was underneath them is: eight deleted pages are still being served, and our own live checks were reading them
 
+**Fate (2026-10-12, clear-the-decks):** ATOM -- doc's own status says items 3 (Harness page content) and 4 (PB3 growth path) still open; not independently re-checked (P2)
+
 This REPLACES `WORKER_FINDING_THE_SITE_IS_FAILING_UP_TO_47_PERCENT_OF_PAGE_LOADS_2026-08-20.md`,
 whose headline claim is **false** and whose filename repeated it. Retraction first, because
 that document was filed BLOCKING and would otherwise be drawn on its own say-so.

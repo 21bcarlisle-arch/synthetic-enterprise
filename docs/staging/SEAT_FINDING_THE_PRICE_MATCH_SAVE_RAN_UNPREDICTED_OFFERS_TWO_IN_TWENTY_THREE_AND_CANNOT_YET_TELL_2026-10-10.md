@@ -2,6 +2,8 @@
 
 # The price-match save ran without predictions, offered 2 of 23 held invitations, and on net we cannot yet tell
 
+**Fate (2026-10-12, clear-the-decks):** ATOM -- re-run the reactive-save on/off pair with predictions filed before compare.json is written (P2)
+
 *Worker, 2026-10-10 ~12:40. Direction item `the-reactive-save-on-the-loss-notice-is-live-in-the-run`.
 Read-only on `/var/tmp/save_live/` and `/var/tmp/se-save-live`. The interactive session is still
 working in that worktree (it was appending tests and running `suite.sh` while I read it), so this

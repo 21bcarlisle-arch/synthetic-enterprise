@@ -1,5 +1,7 @@
 # WORKER FINDING (QUEUED) — the only Proof-door pair a test process can re-publish is this atom's own, and until this tick nothing compared any door figure to the ledger it derives from
 
+**Fate (2026-10-12, clear-the-decks):** ATOM -- the dependency this finding's remaining item was blocked on has since landed; the site-lane live tripwire itself not independently re-checked (P2, unverified)
+
 **Severity:** BLOCKING · **Lane:** H_harness · **Disposition:** PARTIALLY BUILT (the detecting control is landed; two named repairs are QUEUED, both outside this atom's `file_scope`)
 
 > ## PARKED IN `in_progress/` — 2026-08-17 scheduled tick, RUNG-1c draw

@@ -2,6 +2,8 @@
 
 # A hold or a tombstone states its condition in prose, and nothing re-asks it
 
+**Fate (2026-10-12, clear-the-decks):** ATOM -- no mechanism found re-grading block_reason on premise change or checking tombstone DONE before retiring a row (P3)
+
 *Console seat, 2026-10-07, from the triage of the delivery seat's carried "what it got wrong" items
 (`docs/direction/wrong_triage.yaml`). Two carried items share one cause, so they share this home.*
 

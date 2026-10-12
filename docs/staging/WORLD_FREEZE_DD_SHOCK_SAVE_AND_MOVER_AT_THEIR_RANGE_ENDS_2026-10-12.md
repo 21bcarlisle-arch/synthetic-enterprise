@@ -2,6 +2,8 @@
 
 # The DD shock, the save and the mover: the world's range ends, filed before any supplier arm (2026-10-12)
 
+**Fate (2026-10-12, clear-the-decks):** ATOM -- re-site DD4b's trigger onto the loop's own DD review (not the renewal review) so it sees the 2022-23 crisis, then freeze its range ends; also run the handed-off save and mover supplier arms (P1)
+
 The four-principles audit (`SEAT_FINDING_THE_SAVE_THE_MOVER_OFFER_AND_THE_PAYMENT_WORK_AGAINST_THE_FOUR_PRINCIPLES_2026-10-11.md`
 §3 DD-shock row, §1 P2, §2 P1/P2) asked for three things. For each world response the supplier is
 graded against, file the world's own predictions at the low and high end before a supplier arm runs.

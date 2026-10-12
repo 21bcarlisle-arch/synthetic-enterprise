@@ -46,6 +46,8 @@
 
 # WORKER FINDING — the published book value counts customers who have already left, and the site's featured household is one of them
 
+**Fate (2026-10-12, clear-the-decks):** ATOM -- the hardcoded featured-account id is still unchanged; prefer-a-supplied-account rule and status-beside-CLV render not built (P2)
+
 **Severity:** BLOCKING · **Lane:** B_commercial
 **Found:** 2026-08-13, during the EP1_clv_three_horizon DISCOVER/FRAME draw (LANE 3 idle, no BUILD).
 **Rank:** with the sibling finding on the same estimator

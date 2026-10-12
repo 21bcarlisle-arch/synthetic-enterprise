@@ -2,6 +2,8 @@
 
 # SEAT PROPOSAL — a personal payment plan per customer and debt management as a next best action, designed as one (2026-10-11)
 
+**Fate (2026-10-12, clear-the-decks):** ATOM -- director ruled 2026-10-12 (verbatim, in-doc): build the world's response to a bill shock (DD4b, mandate cancellation, debt-to-prepayment route) before grading the engine, supplier-controlled levers first (P1)
+
 *Delivery seat. For the director's reading before anything is built into the run (his instruction, 2026-10-11:
 "Design, then bring it to me before building into the run"). Knowledge first, per his standing rule: the pages
 this rests on were written and published the same day and are cited by section below.*

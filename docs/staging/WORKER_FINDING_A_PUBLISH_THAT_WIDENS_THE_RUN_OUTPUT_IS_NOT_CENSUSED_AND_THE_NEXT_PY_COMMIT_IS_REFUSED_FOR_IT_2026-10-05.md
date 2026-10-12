@@ -2,6 +2,8 @@
 
 # A publish that widens the run output is not censused, and the next `.py` commit is refused for it
 
+**Fate (2026-10-12, clear-the-decks):** ATOM -- step 2 of the finding (add ARTEFACT_REL to the wall-channel census trigger so a widening publish is refused/flagged) not yet built (P3)
+
 ## What held the publish
 
 The publish commit `a88fb2436` passed its gate and landed locally. Its push was refused because

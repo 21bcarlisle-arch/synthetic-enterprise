@@ -1,5 +1,7 @@
 # For the console seat: a household's payment method now has one home, so re-read B8's per-method slopes on it
 
+**Fate (2026-10-12, clear-the-decks):** ATOM -- re-fit B8's per-method churn slopes on a run whose world_identity.payment_methods digest is 86560148d7db82b7 (P2)
+
 **Severity:** RECORDED · **Lane:** B_commercial · **Epoch:** 3 · **Atom:** `B8_discovered_price_sensitivity_holdout` · **Claim:** `one-payment-method-home-in-the-world` (Lane 0 delivery)
 
 **2026-10-03.** This is the hand-off the delivery item asked for. Nothing here touched

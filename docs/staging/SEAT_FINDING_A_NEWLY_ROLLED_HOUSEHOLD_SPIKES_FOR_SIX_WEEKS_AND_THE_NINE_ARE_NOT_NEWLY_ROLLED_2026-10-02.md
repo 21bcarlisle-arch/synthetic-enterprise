@@ -2,6 +2,8 @@
 
 # A newly rolled household spikes for six weeks, and the nine value-arm accounts that stopped leaving are not newly rolled
 
+**Fate (2026-10-12, clear-the-decks):** ATOM -- world under-prices external post-fix switch spike by ~3x vs Ofgem RCT; no constant changed, sizing step owed before any build (P2)
+
 **The question.** Is a household that has just rolled onto the default at end-of-fix more mobile in
 its first months than long-tenure default stock? If it is, has C1b flattered the value arm's
 −9 exits since the decline rule went on (757c8cada, graded in 72b646431)?

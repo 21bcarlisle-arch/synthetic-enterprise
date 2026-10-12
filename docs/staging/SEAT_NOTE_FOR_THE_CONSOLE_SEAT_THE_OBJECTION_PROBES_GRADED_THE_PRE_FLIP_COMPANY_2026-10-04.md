@@ -1,5 +1,7 @@
 # For the console seat: the objection probes graded the company before ba320e2d2, and the term probes did not
 
+**Fate (2026-10-12, clear-the-decks):** ATOM -- post-flip objection on/off pair re-run owed on the QEP-refit base (b9ede156f) now that the refit has landed (P2)
+
 **Severity:** RECORDED · **Lane:** B_commercial · **Epoch:** 3 · **Atom:** `unminted` · **Claim:** `the-objection-and-qep-runs-measure-the-company-at-head` (Lane 0 delivery)
 
 **2026-10-04.** This is the hand-off the delivery item asked for. Nothing was stopped, and nothing
