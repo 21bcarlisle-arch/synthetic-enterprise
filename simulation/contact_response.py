@@ -66,6 +66,7 @@ from simulation.market_switching_propensity import (
     perceived_price_differential,
 )
 from simulation.renewal_engagement import rolls_active_renewal
+from simulation.rng_substream import substream
 
 # Ofgem, End of Fixed Term Communications Trial (Sept 2019) §4.1 / Fig. 4.1, n=19,553:
 # switching within six weeks of a one-year fix ending.
@@ -209,7 +210,79 @@ def svt_departure_after_contact(
     return p_drift + (1.0 - p_drift) * woken * churn_if_choosing
 
 
+# --- A contact early in difficulty (2026-10-12, the world lane) ----------------------------------
+#
+# Knowledge first: `docs/market_research/domestic_repayment_plan_take_up_and_keep_rates.md`, section
+# "Early contact: the world's answer" (2026-10-12), from s.B of the same page. THE STIMULUS is a
+# contact about a missed payment (a letter, text or call) that reaches the household within
+# `EARLY_WINDOW_DAYS` of the bill it missed. THE SAME STRUCTURE AS AT A TERM END: a contact wakes a
+# share of the households that would not otherwise have dealt with the miss; it does not decide
+# for them. A woken household that has the money pays the missed bill by the end of the window. A
+# woken household that has not (HIGH stress) gets in touch but cannot pay. No GB energy trial
+# measures the share, so it is a toggle with a range whose ceiling is the analogue evidence.
+
+#: The instrument a supplier sends about a missed payment. Its woken share is the toggle below,
+#: not a trial's, so it is not in `WOKEN_SHARE_OF_SVT_STOCK`.
+EARLY_CONTACT_INSTRUMENT = "arrears_contact"
+
+TOGGLE_EARLY_CONTACT = "early_contact_woken_payer_share"
+
+#: FCA PS24/2 (Mar 2024) para 4.10, an industry claim the regulator reports: about 80% of initial
+#: payment shortfalls are rectified within 30 days. The window in which a first miss is still a
+#: first miss: a contact later than this meets arrears, not a slip.
+EARLY_WINDOW_DAYS = 30
+
+#: How the effect falls with the days between the missed due date and the contact, from w33669 (a
+#: randomised early-delinquency call experiment): the gap in repayment between a weaker and a
+#: stronger first contact was 12pp at day 5, 2pp at day 10 and 0.8pp at day 30. Read as the
+#: relative weight of a contact on those days: a DERIVED shape, the only published one.
+DELAY_WEIGHTS = ((5, 1.0), (10, 2.0 / 12.0), (EARLY_WINDOW_DAYS, 0.8 / 12.0))
+
+STREAM_EARLY_CONTACT = "W2_39_early_contact"
+
+
+def early_contact_share_at(setting: str = "default") -> float:
+    """The register's `default`, `low` or `high` woken-payer share."""
+    from simulation.meter_reads import assumption_toggle
+    return assumption_toggle(TOGGLE_EARLY_CONTACT, setting)
+
+
+#: What the run uses. Zero -- the shipped world -- and no contact in difficulty is answered.
+EARLY_CONTACT_SHARE = 0.0
+
+
+def delay_weight(days: int) -> float:
+    """The weight of a contact `days` after the missed due date: 0 outside the window."""
+    if days <= 0:
+        return 0.0
+    for limit, weight in DELAY_WEIGHTS:
+        if days <= limit:
+            return weight
+    return 0.0
+
+
+def early_contact_response(account_id: str, missed_due: date, contacted_on: date,
+                           stress: str | None, share: float | None = None) -> dict:
+    """The household's answer to a contact about the bill due on `missed_due`.
+
+    Woken with probability share x delay weight. A woken household that is not in HIGH stress pays
+    the missed bill by the end of the window; a woken HIGH-stress household engages and cannot pay.
+    One draw per (household, missed bill), from its own substream."""
+    share = EARLY_CONTACT_SHARE if share is None else share
+    days = (contacted_on - missed_due).days
+    u = substream(STREAM_EARLY_CONTACT, f"{account_id}::{missed_due.isoformat()}", 0).random()
+    woken = u < share * delay_weight(days)
+    can_pay = (stress or "LOW").upper() != "HIGH"
+    return {"account_id": account_id, "missed_due": missed_due.isoformat(),
+            "contacted_on": contacted_on.isoformat(), "days_after_due": days,
+            "stress": (stress or "LOW").upper(), "woken": woken,
+            "engaged": woken, "pays": woken and can_pay}
+
+
 __all__ = [
+    "EARLY_CONTACT_INSTRUMENT",
+    "early_contact_response",
+    "early_contact_share_at",
     "WOKEN_SHARE_OF_SVT_STOCK",
     "WOKEN_SHARE_SAVING_GRADIENT_ON_SVT_STOCK",
     "churn_if_choosing_off_svt",
@@ -234,7 +307,7 @@ class ContactsReceived:
         self._by_account: dict[str, list[tuple[date, str]]] = {}
 
     def receive(self, account_id: str, sent_on: date, instrument: str) -> None:
-        if instrument not in WOKEN_SHARE_OF_SVT_STOCK:
+        if instrument not in WOKEN_SHARE_OF_SVT_STOCK and instrument != EARLY_CONTACT_INSTRUMENT:
             raise ValueError(
                 f"no woken share for instrument {instrument!r}: the sourced ones are "
                 f"{sorted(WOKEN_SHARE_OF_SVT_STOCK)}, and an unsourced contact cannot be sent")
@@ -249,6 +322,13 @@ class ContactsReceived:
         """
         sent = [i for on, i in self._by_account.get(account_id, ()) if start <= on < end]
         return sent[0] if sent else None
+
+    def first_contact_on(self, account_id: str, start: date, end: date,
+                         instrument: str) -> date | None:
+        """The day the first ``instrument`` contact reached this household in ``(start, end]``."""
+        sent = [on for on, i in self._by_account.get(account_id, ())
+                if i == instrument and start < on <= end]
+        return min(sent) if sent else None
 
     def __len__(self) -> int:
         return sum(len(v) for v in self._by_account.values())

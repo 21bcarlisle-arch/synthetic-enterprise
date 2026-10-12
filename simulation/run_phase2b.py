@@ -2252,6 +2252,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     # read only by the SVT roll. Run-scoped for the same reason as the ledger above.
     from simulation.contact_response import ContactsReceived
     _contacts_received = ContactsReceived()
+    # A contact about a missed payment reaches the same store (`contact_response`, early contact).
+    _payment_triad.contacts_received = _contacts_received
     _svt_contact_instrument = policy.svt_contact_instrument
     if _svt_contact_instrument is not None:
         from company.interfaces.sim_interface import LiveSimInterface

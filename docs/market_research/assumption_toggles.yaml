@@ -37,6 +37,8 @@
 #   dd4b_complaint_share_at_shock added, each defaulting to 0 (off); what_bill_shock_is.md, DD4b.
 # 2026-10-12 (EP4 world): five plan_* rows for how a household answers an arrangement offer, each
 #   off by default; domestic_repayment_plan_take_up_and_keep_rates.md, "The world's answer".
+# 2026-10-12 (early contact): early_contact_woken_payer_share, off by default; same page, "Early
+#   contact: the world's answer".
 written: 2026-10-05
 toggles:
   - id: q1_move_out_notice_share
@@ -1756,6 +1758,37 @@ toggles:
       kind: argued
       detail: Reached only when a supplier offers a pause; no live supplier does yet.
     verdict: MATTERS_AND_UNRESOLVABLE (no GB energy figure)
+
+  - id: early_contact_woken_payer_share
+    question: early contact in difficulty (world)
+    meaning: >-
+      Of households that missed a payment and would not otherwise deal with it within 30 days, the
+      share a contact about the miss wakes, when it reaches them within 5 days of the due date
+      (later contacts weigh 2/12 to day 10 and 0.8/12 to day 30, from w33669). A woken household
+      not in HIGH stress pays the missed bill by day 30; a woken HIGH-stress one gets in touch but
+      cannot pay. ESTIMATE range; shipped at 0 (off).
+    default: 0.0
+    low: 0.04
+    high: 0.29
+    unit: probability_per_contacted_miss
+    basis_default: >-
+      Off. No GB or overseas energy trial of contact timing or effect was found
+      (domestic_repayment_plan_take_up_and_keep_rates.md s.B).
+    basis_low: >-
+      Barboni, Cardenas & de Roux (Review of Finance 2026): an SMS to borrowers already late cut the
+      probability of being late by 4% (relative). Bursztyn et al. (JPE 2019): 4.4pp of a 66%
+      delinquency base, 6.7%. Analogous: consumer credit, not GB energy.
+    basis_high: >-
+      BIT, Applying behavioural insights to reduce fraud, error and debt (2012), Trial 5, HMCTS
+      fines: 5.2% paid with no text, 33.0% with the best text; woken share (33.0 - 5.2)/(100 - 5.2)
+      = 0.29. A fine with enforcement behind it, so a ceiling for an energy reminder.
+    feeds: [W2_39, simulation/contact_response.py, background/live_payment_triad.py]
+    sensitivity:
+      kind: argued
+      detail: >-
+        Reached only when a supplier sends an arrears_contact through the seam; no live supplier
+        does yet. Moves when a missed bill's cash arrives, not whether the household could pay.
+    verdict: MATTERS_AND_UNRESOLVABLE (no energy trial)
 
 no_toggle:
   - question: Q5 carbon

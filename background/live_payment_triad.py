@@ -81,6 +81,7 @@ import heapq
 from datetime import date, datetime, time, timedelta, timezone
 from typing import Callable, List, Optional
 
+import simulation.contact_response as early_contact
 from background.gap_metric import (
     GapResult,
     format_ageing_summary,
@@ -697,6 +698,7 @@ class LivePaymentTriad:
         # queue asks before any lump crosses (`_deliver_settlements_through`).
         self._household_plans = HouseholdPlanBook()
         plan_offers = LiveSimInterface(household_plans=self._household_plans)
+        self._plan_seam = plan_offers
         self._consumer = PaymentObservationConsumer(
             ledger_book=self._ledger_book,
             dd_failure_window_days=dd_failure_window_days,
@@ -736,6 +738,15 @@ class LivePaymentTriad:
         # lump crossed is counted rather than assumed away (`settlements_crossed_despite_a_plan`).
         self._n_settlements_withdrawn = 0
         self._crossed_settlements: list = []
+        # A CONTACT EARLY IN DIFFICULTY (`simulation.contact_response.early_contact_response`). The
+        # run's store of what reached each household; None, or a zero share, and no check is ever
+        # queued. A missed bill not otherwise settled within the window gets one check, dated at
+        # the window's end, that asks whether the supplier's contact reached the household.
+        self._contacts_received = None
+        self._early_checks: dict = {}
+        self._early_cured: set = set()
+        self._early_responses: list = []
+        self._n_early_withdrawn = 0
         # The latest date the run is known to have lived through: the bound every journey walk
         # takes (`record_period`'s previous due date, or the run's last day).
         self._lived_through: Optional[date] = None
@@ -749,6 +760,18 @@ class LivePaymentTriad:
         # account -> segment, for walking every collections journey to the run's end (EP4).
         self._journey_segments: dict = {}
         self._journey_last_due: dict = {}
+
+    @property
+    def contacts_received(self):
+        """The run's store of contacts that reached households (`contact_response.ContactsReceived`)."""
+        return self._contacts_received
+
+    @contacts_received.setter
+    def contacts_received(self, store) -> None:
+        # The collections desk's seam delivers into the same store, so a contact the desk sends
+        # about a missed payment is one the world can answer.
+        self._contacts_received = store
+        self._plan_seam._contacts_received = store
 
     @property
     def records(self) -> List[PeriodRecord]:
@@ -934,8 +957,22 @@ class LivePaymentTriad:
 
     def _cross_settlement(self, item) -> None:
         """Withdraw one lump the household's plan replaced, or cross it to both companies."""
-        settled_on, _seq, event, account_id, invoice_ref, correlation_id = item
+        settled_on, seq, event, account_id, invoice_ref, correlation_id = item
         bill_due = date.fromisoformat(event.due_date)
+        if seq in self._early_checks:
+            contacted = self._contacts_received.first_contact_on(
+                account_id, bill_due, settled_on, early_contact.EARLY_CONTACT_INSTRUMENT)
+            if contacted is None:
+                return
+            response = early_contact.early_contact_response(
+                account_id, bill_due, contacted, self._early_checks[seq])
+            self._early_responses.append(response)
+            if not response["pays"]:
+                return
+            self._early_cured.add((account_id, bill_due))
+        elif (account_id, bill_due) in self._early_cured:
+            self._n_early_withdrawn += 1
+            return
         if self._household_plans.repays_through_plan(account_id, bill_due, settled_on):
             self._n_settlements_withdrawn += 1
             return
@@ -974,6 +1011,14 @@ class LivePaymentTriad:
         here, against the world's book as it stands, so a walk that falls short is seen."""
         return sum(self._household_plans.repays_through_plan(*crossed)
                    for crossed in self._crossed_settlements)
+
+    def early_contact_summary(self) -> dict:
+        """What contacts early in difficulty did, as the world knows it (never crosses)."""
+        rows = self._early_responses
+        return {"checks_queued": len(self._early_checks), "contacted": len(rows),
+                "woken": sum(r["woken"] for r in rows), "paid": sum(r["pays"] for r in rows),
+                "engaged_could_not_pay": sum(r["engaged"] and not r["pays"] for r in rows),
+                "later_lumps_replaced": self._n_early_withdrawn}
 
     def later_settlements(self) -> dict:
         """The three lump counters as the run summary publishes them (EP4). Read it after
@@ -1260,6 +1305,19 @@ class LivePaymentTriad:
         # the household pays this bill off after all -- its own substream, so no draw above moves
         # -- and the cash waits in the queue until the run reaches that day.
         settled_on = later_settlement_date(event, segment=segment)
+        window_end = due_date + timedelta(days=early_contact.EARLY_WINDOW_DAYS)
+        if (event.result == "failed" and early_contact.EARLY_CONTACT_SHARE
+                and self._contacts_received is not None
+                and (settled_on is None or settled_on > window_end)):
+            check_seq = -(len(self._records) + 1)
+            self._early_checks[check_seq] = stress
+            heapq.heappush(self._pending_settlements, (
+                window_end, check_seq,
+                dataclasses.replace(
+                    event, result="success", payment_method=ARREARS_REPAYMENT,
+                    days_late=(window_end - due_date).days,
+                    payment_date=window_end.isoformat(), dd_failure_reason=None),
+                account_id, invoice_ref, f"{customer_id}::p{period_index}::early"))
         if settled_on is not None:
             heapq.heappush(self._pending_settlements, (
                 settled_on, len(self._records),

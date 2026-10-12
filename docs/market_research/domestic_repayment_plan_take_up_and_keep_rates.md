@@ -278,3 +278,34 @@ before. A harness switches it with `plan_offer_response.BASIS = basis_at("low"|"
   the household's) and how a broken plan's debt is later repaid (simplification 2);
 - every GB energy flow above: SOR Q3.1 (entries), Q3.3 (weeks), Q3.6-3.27 (failed arrangements),
   collected by Ofgem and unpublished. The practitioner question stands.
+
+## Early contact: the world's answer (2026-10-12)
+
+**2026-10-12, the world lane.** No new source read; this turns s.B into a household that answers a
+contact it receives, from its own money, with no reference to who sends it.
+
+**The stimulus, defined first.** A contact about a missed payment (letter, text or call; the
+instrument `arrears_contact`) that reaches the household after the due date of the bill it missed
+and within 30 days of it. A contact about something else (a tariff letter) is not this stimulus.
+"Early" is measured from the missed due date, because that is the clock every source uses.
+
+| Choice the world makes | Range or rule | Evidence | Mark |
+|---|---|---|---|
+| The window in which a contact meets a first miss | 30 days from the due date | FCA PS24/2 para 4.10: about 80% of initial shortfalls rectified within 30 days (an industry claim the regulator reports) | DERIVED |
+| A contact wakes a share of the households that would not have dealt with the miss; it does not decide for them | woken share 0.04-0.29 (`early_contact_woken_payer_share`) | Barboni et al.: SMS to late borrowers, 4% relative fall in lateness; Bursztyn et al.: 4.4pp of 66%; BIT/HMCTS fines: 5.2% to 33.0% paying, woken share 0.29 (a ceiling: a fine has enforcement behind it). The same woken-share structure the world already uses at a fixed-term end (`contact_response.py`) | analogues; ceiling = the analogue evidence |
+| The effect falls with delay | weight 1 within 5 days, 2/12 to day 10, 0.8/12 to day 30, 0 after | w33669 (randomised early-delinquency calls): 12pp gap at day 5, 2pp at day 10, 0.8pp at day 30 | DERIVED shape |
+| Money decides what a woken household does | not HIGH stress: pays the missed bill by day 30; HIGH stress: gets in touch, cannot pay | the liquidity reading every source shares (Diaz-Campo et al.'s card-payer null); no rate added | no new number |
+| The later repayment it replaces | the bill's later lump (if any) is withdrawn, so it is never paid twice | - | mechanism |
+
+**What the supplier sees.** Only the cash, arriving by day 30, as any payment against arrears
+does. That the household was woken, or got in touch and could not pay, is the world's; the second
+would reach a supplier as an inbound contact, which no seam carries yet (GAP below).
+
+**Shipped off.** The share defaults to 0 and no supplier sends an `arrears_contact` today, so the
+book is unchanged. The run's contact store is shared with the collections desk's seam, so a supplier
+arm that sends one reaches the household.
+
+**GAPs:** an energy-specific effect of contact timing or of contact at all (none found anywhere);
+whether a self-serve offer carries the "promise" deficit w33669 measured for automated calls; the
+inbound contact as an observable; what a second contact adds (nothing published; the world counts
+the first in the window, as at a term end).
