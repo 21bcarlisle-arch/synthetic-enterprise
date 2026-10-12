@@ -121,3 +121,16 @@ def test_an_unknown_effect_is_never_chosen_and_says_why():
 def test_the_flat_rule_does_nothing_when_nothing_pays_on_average():
     book = [account(i, [est(T, dm=-1.0)]) for i in range(5)]
     assert flat_action(book, H) is N
+
+
+def test_c7_ranks_on_joint_value_and_holds_a_no_loss_floor_on_both_sides():
+    """Canon v4 C7 (2026-10-12). Fires on the old key (our forward value alone would take T, which
+    gives us 1 more month of margin but the household nothing) and on a missing floor (C gives the
+    household GBP 400 a year but costs us margin, so it is refused however large the sum)."""
+    s = account(0, [est(T, benefit=0.0, dm=0.05), est(Action.CARBON_ADVICE, benefit=60.0, dm=0.0),
+                    est(D, benefit=400.0, dm=-2.0)])
+    d = decide(s, H)
+    assert d.action is Action.CARBON_ADVICE, d
+    # The rare branch exists: with the household's gain removed, our side alone decides.
+    s2 = account(0, [est(T, benefit=0.0, dm=0.05), est(Action.CARBON_ADVICE, benefit=0.0, dm=0.0)])
+    assert decide(s2, H).action is T

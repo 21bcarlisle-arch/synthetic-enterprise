@@ -397,6 +397,24 @@ also exactly the instrument needed to *grade* an uplift model, because the compa
 be scored against the truth decision by decision. That makes it the strongest evidence for the
 mission's third point: the method is the asset.
 
+**C34's decision rule, and the choices it makes (amended 2026-10-12, canon v4 C7).**
+`company/crm/next_best_action.py` ranks on JOINT value: the household's benefit over the horizon
+plus our forward-value change, with a no-loss floor on both sides. The director ruled this; no
+published source sets a supplier's ranking key. The design makes three choices, and each one is ours:
+- **The household's benefit over the horizon is its yearly benefit x horizon/12.** It is
+  undiscounted, like B11's forward value. It is not weighted by the account's survival, because
+  advice keeps paying the household after it leaves us. **GAP:** no published source says how long
+  a household keeps the benefit of supplier advice.
+- **Our floor is "our forward value does not fall".** Our side is not "joint value exceeds what we
+  give up".
+- **The flat baseline faces the same floors, on the book's means**, so it cannot win by sending an
+  action that loses us money.
+Measured at B11-scale inputs (margin GBP 5-30/month, hazard 0.5-3%/month, 48 months, advice giving
+up GBP 2-3/month and cutting the hazard 0.1-0.3 points), joint value is positive in all 18 cells
+(+GBP 13 to +107). Our side is negative in all 18, so the rule chooses nothing in all 18: the floor
+on our side binds. Whether a positive-sum action that costs us should be paired with a price that
+shares its value is the director's question (M2: created, then shared).
+
 ### 6.2 What the company knows about uplift
 
 **Only propensity.** Every churn quantity on the company side is P(leave), or P(leave given a

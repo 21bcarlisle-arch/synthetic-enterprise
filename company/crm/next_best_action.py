@@ -7,10 +7,14 @@ nothing (its uplift), never the level of an outcome: ranking on who is likely to
 propensity, and targeting on risk is the rule the field trials found inferior to targeting on lift
 (Ascarza 2018, `docs/market_research/next_best_action_and_cross_sell.md` §2).
 
-THE CUSTOMER'S BENEFIT FIRST, THEN OURS. An action the company estimates leaves the customer worse
-off is not a candidate, whatever it does for us. Among the rest, the one that raises the account's
-forward value most is taken, and only if it raises it at all. Charging someone more moves value
-without making any; the gate is what stops this rule from choosing that.
+JOINT VALUE, WITH A NO-LOSS FLOOR ON BOTH SIDES (canon v4 C7, ruled 2026-10-12, decision 5). An
+action the company estimates leaves the customer worse off, or lowers our forward value, is not a
+candidate. Among the rest, the one with the largest JOINT value is taken: the household's benefit
+over the horizon plus our forward-value change, taken only if that sum is positive. Charging someone
+more moves value without making any; the customer's floor is what stops this rule from choosing
+that, and our floor is what keeps a gift from being called a decision.
+The household's benefit over the horizon is its yearly benefit x horizon/12, undiscounted like B11.
+It is not weighted by survival, because advice keeps paying the household after it leaves us.
 
 FORWARD VALUE has B11's shape (`company/analytics/forward_clv.py`): the sum over the horizon of
 P(supplied at the month's start) × monthly margin, that probability being (1 − h)^t after t
@@ -128,6 +132,12 @@ def value_change(state: AccountState, est: ActionEstimate, horizon_months: int) 
     )
 
 
+def joint_value(value_change_gbp: float, customer_benefit_gbp_per_year: float,
+                horizon_months: int) -> float:
+    """C7's ranking key: the household's benefit over the horizon plus our forward-value change."""
+    return value_change_gbp + customer_benefit_gbp_per_year * horizon_months / 12.0
+
+
 def _scored(state: AccountState, horizon_months: int):
     scored, unscored = [], []
     for est in state.estimates:
@@ -158,28 +168,37 @@ def decide(state: AccountState, horizon_months: int) -> Decision:
     if forced is not None:
         return forced
     scored, unscored = _scored(state, horizon_months)
-    fair = [(e, v) for e, v in scored if e.customer_benefit_gbp_per_year >= 0.0]
+    fair = [(e, v) for e, v in scored if e.customer_benefit_gbp_per_year >= 0.0 and v >= 0.0]
     if not fair:
-        why = "no scored action leaves the customer no worse off" if scored else "no action could be scored"
+        why = ("no scored action leaves both the customer and us no worse off" if scored
+               else "no action could be scored")
         return Decision(state.account_id, Action.NOTHING, 0.0, 0.0, why, unscored)
-    est, v = max(fair, key=lambda ev: (ev[1], ev[0].customer_benefit_gbp_per_year))
-    if v <= 0.0:
+    est, v = max(fair, key=lambda ev: (joint_value(ev[1], ev[0].customer_benefit_gbp_per_year,
+                                                   horizon_months), ev[1]))
+    if joint_value(v, est.customer_benefit_gbp_per_year, horizon_months) <= 0.0:
         return Decision(state.account_id, Action.NOTHING, 0.0, 0.0,
-                        "no action the customer gains from raises forward value", unscored)
+                        "no action that leaves both sides no worse off creates any value", unscored)
     return Decision(state.account_id, est.action, v, est.customer_benefit_gbp_per_year,
-                    "largest rise in forward value among actions the customer gains from", unscored)
+                    "largest joint value among actions that leave both sides no worse off", unscored)
 
 
 def flat_action(book: Sequence[AccountState], horizon_months: int) -> Action:
-    """The one action with the best mean estimated value change across the book, or nothing.
+    """The one action with the best mean estimated JOINT value across the book, or nothing.
 
     An account with no scored estimate for an action counts as zero for it: the flat rule would
     still send it, and with no estimate the company cannot claim it does anything.
+
+    The same two floors as the per-customer rule, on the book's means: an action whose mean
+    forward-value change or mean customer benefit is negative is not a candidate.
     """
-    totals: dict[Action, float] = {}
+    ours: dict[Action, float] = {}
+    theirs: dict[Action, float] = {}
     for state in book:
         for est, v in _scored(state, horizon_months)[0]:
-            totals[est.action] = totals.get(est.action, 0.0) + v
+            ours[est.action] = ours.get(est.action, 0.0) + v
+            theirs[est.action] = theirs.get(est.action, 0.0) + est.customer_benefit_gbp_per_year
+    totals = {a: joint_value(ours[a], theirs[a], horizon_months)
+              for a in ours if ours[a] >= 0.0 and theirs[a] >= 0.0}
     if not totals:
         return Action.NOTHING
     best = max(totals, key=lambda a: (totals[a], a.value))
@@ -215,8 +234,9 @@ def grade(
     """Both rules choose on the company's estimates; each choice is scored on its TRUE effect.
 
     ``truth`` is a harness instrument (the counterfactual no supplier sees). An action absent from
-    an account's truth did nothing. Scored as value FORGONE (the negative of the true change) so
-    the paired comparison reads as B11's does: negative favours per-customer.
+    an account's truth did nothing. Scored as JOINT value FORGONE (the negative of the true joint
+    change, C7's own key) so the paired comparison reads as B11's does: negative favours
+    per-customer. The customer's side is also reported on its own.
     """
     flat = flat_action(book, horizon_months)
     pc_loss, fl_loss, pc_cb, fl_cb = [], [], [], []
@@ -230,12 +250,13 @@ def grade(
             (decide_flat(state, flat, horizon_months), fl_loss, fl_cb),
         ):
             t = real.get(decision.action)
-            loss.append(-value_change(state, t, horizon_months) if t else 0.0)
+            loss.append(-joint_value(value_change(state, t, horizon_months),
+                                     t.customer_benefit_gbp_per_year, horizon_months) if t else 0.0)
             cb.append(t.customer_benefit_gbp_per_year if t else 0.0)
     n = len(book)
     return Grade(
         flat,
-        _paired("value forgone against the true counterfactual, GBP", pc_loss, fl_loss),
+        _paired("joint value forgone against the true counterfactual, GBP", pc_loss, fl_loss),
         sum(pc_cb) / n if n else float("nan"),
         sum(fl_cb) / n if n else float("nan"),
         chosen,
