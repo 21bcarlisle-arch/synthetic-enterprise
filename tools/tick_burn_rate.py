@@ -97,6 +97,8 @@ def read_turn(path: Path) -> dict | None:
     if path.suffix != ".jsonl":   # only Claude Code's own transcripts are read here
         return None
     opening, model, started, landed = None, None, None, False
+    advisor_calls, advisor_model = 0, None
+    seen_messages: set = set()
     tot = defaultdict(int)
     weighted = 0.0
     for line in path.read_text(errors="replace").splitlines():
@@ -124,6 +126,14 @@ def read_turn(path: Path) -> dict | None:
             continue
         if msg.get("model") == "<synthetic>":   # a harness placeholder message, not a model call
             continue
+        # ONE API MESSAGE IS WRITTEN AS ONE ROW PER CONTENT BLOCK, each repeating the whole message's
+        # usage. Summing rows counted every message ~2.15x (11,078 rows for 5,151 messages over the
+        # last 40 transcripts, 2026-10-12); every weighted figure before that date carries it.
+        mid = msg.get("id")
+        if mid is not None:
+            if mid in seen_messages:
+                continue
+            seen_messages.add(mid)
         model = msg.get("model") or model
         cc = u.get("cache_creation") or {}
         w5 = int(cc.get("ephemeral_5m_input_tokens", 0) or 0)
@@ -134,6 +144,25 @@ def read_turn(path: Path) -> dict | None:
                  "cache_write": w5 + w1, "cache_read": int(u.get("cache_read_input_tokens", 0) or 0)}
         for k, v in parts.items():
             tot[k] += v
+        # An ADVISOR call is billed inside the main message, as a `usage.iterations` entry of type
+        # `advisor_message` carrying its own model; the top-level counts omit it, so it is priced
+        # here at the advisor's rate or the trial would read cheaper than it is.
+        for it in u.get("iterations") or ():
+            if not isinstance(it, dict) or it.get("type") != "advisor_message":
+                continue
+            advisor_calls += 1
+            advisor_model = it.get("model") or advisor_model
+            ap = PRICE.get(it.get("model") or "")
+            icc = it.get("cache_creation") or {}
+            a5 = int(icc.get("ephemeral_5m_input_tokens", 0) or 0)
+            a1 = int(icc.get("ephemeral_1h_input_tokens", 0) or 0)
+            if not (a5 or a1):
+                a5 = int(it.get("cache_creation_input_tokens", 0) or 0)
+            ai, ao, ar = (int(it.get(k, 0) or 0) for k in ("input_tokens", "output_tokens",
+                                                            "cache_read_input_tokens"))
+            tot["advisor_tokens"] += ai + ao + a5 + a1 + ar
+            if ap:
+                weighted += (ai * ap[0] + ao * ap[1] + a5 * ap[2] + a1 * ap[3] + ar * ap[4]) / 1e6
         price = PRICE.get(msg.get("model") or "")
         if price:
             pi, po, p5, p1, pr = price
@@ -142,7 +171,8 @@ def read_turn(path: Path) -> dict | None:
     if opening is None or model is None:
         return None
     return {"kind": kind_of(opening), "model": model, "started": started, "weighted_usd": weighted,
-            "landed": landed, "opening": opening[:20000], **dict(tot)}
+            "landed": landed, "advisor_calls": advisor_calls, "advisor_model": advisor_model,
+            "opening": opening[:20000], **dict(tot)}
 
 
 def turns(days: float = 7.0, now: float | None = None, root: Path = PROJECTS) -> list[dict]:
@@ -171,6 +201,8 @@ def table(rows: list[dict], days: float) -> list[dict]:
                     "median_weighted_usd": round(statistics.median(w), 3),
                     "landed_pct": None if kind == "delivery_seat"
                     else round(100 * sum(r["landed"] for r in rs) / len(rs)),
+                    "advisor_calls": sum(r.get("advisor_calls", 0) for r in rs),
+                    "turns_without_advisor": sum(1 for r in rs if not r.get("advisor_calls")),
                     "week_weighted_usd": round(sum(w), 2)})
     return out
 
@@ -180,11 +212,13 @@ def render(days: float = 7.0, now: float | None = None, root: Path = PROJECTS) -
     if not rows:
         return f"No turns found in the last {days:g} days under `{root}` -- nothing measured, which is not zero."
     head = ("| kind | model | turns | per day | landed | median fresh tokens | median cache-read tokens "
-            "| median weighted $ | total weighted $ |\n|---|---|---|---|---|---|---|---|---|")
+            "| median weighted $ | total weighted $ | advisor calls (turns without) |"
+            "\n|---|---|---|---|---|---|---|---|---|---|")
     body = "\n".join(f"| {r['kind']} | {r['model']} | {r['turns']} | {r['turns_per_day']} | "
                      f"{'n/a' if r['landed_pct'] is None else str(r['landed_pct']) + '%'} | "
                      f"{r['median_fresh_tokens']:,} | {r['median_cache_read_tokens']:,} | "
-                     f"{r['median_weighted_usd']} | {r['week_weighted_usd']} |" for r in rows)
+                     f"{r['median_weighted_usd']} | {r['week_weighted_usd']} | "
+                     f"{r['advisor_calls']} ({r['turns_without_advisor']}) |" for r in rows)
     return head + "\n" + body + "\n\n" + render_changes(turns(days, now, root))
 
 

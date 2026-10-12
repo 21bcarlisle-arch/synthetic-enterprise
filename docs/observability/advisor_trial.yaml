@@ -1,0 +1,23 @@
+# ADVISOR TRIAL ON THE WORKER TICKS -- the dated launch flag (director, 2026-10-12)
+#
+# His words: "I set aside my 12 August reserved-marker rule for the worker ticks only, for the
+# trial's duration (at most seven days), using a dated launch flag, with the pre-registered stop
+# rule as the way back. The seat and interactive sessions stay on Opus with no advisor."
+#
+# Read by background/model_tier.advisor_trial() on every worker tick. While today is inside
+# [starts, ends], every worker tick runs on `main` with `--advisor <advisor>`, reserved markers or
+# not. Outside it, or if this file is missing, malformed, or spans more than seven days, the tick is
+# back on model_tier.classify() (Opus) with no edit and no restart.
+#
+# STOPPING EARLY: set `enabled: false` or delete this file. The stop rule is pre-registered in
+# docs/staging/in_progress/WORKER_MINTED_advisor_trial_on_worker_ticks_2026-10-12.md.
+#
+# Sonnet 5 here, not the steer's Sonnet 5.5: Claude Code 2.1.282 has no claude-sonnet-5-5. Opus
+# 5.5 as advisor to Sonnet 5 was probed on 2026-10-12 and attached (an `advisor` server tool call
+# with an `advisor_message` iteration on claude-opus-5-5 in the transcript).
+
+enabled: true
+starts: "2026-10-12"
+ends: "2026-10-19"
+main: "claude-sonnet-5"
+advisor: "claude-opus-5-5"
