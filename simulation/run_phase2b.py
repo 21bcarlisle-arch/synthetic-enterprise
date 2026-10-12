@@ -159,9 +159,9 @@ from simulation.customer_events import (
     roll_lifecycle_event,
     svt_conversion_event,
 )
+from simulation.dd_review_in_loop import InLoopDDReview
 from simulation.dd_shock_response import RECORD_KEY as _DD_SHOCK_RECORD_KEY
-from simulation.dd_shock_response import DDShockResponseBook
-from simulation.dd_shock_response import respond as respond_to_dd_shock
+from simulation.dd_shock_response import DDShockResponseBook, respond_to_told_amount
 from simulation.debt_objection import WorldDebtBook
 from simulation.demand_model import (
     build_demand_shape,
@@ -2078,6 +2078,47 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     # or the run ends -- never twice, since the ledger keys a bill on (customer, month).
     _payment_month_open: dict[str, dict] = {}  # cid -> the month being accumulated
 
+    def _book_complaint_for(cid, billing_account, term_start_str, _outcome, _about_bill_shock):
+        # KNIFE step 21 (§3p): the world reports that the customer got in
+        # touch and whether the company closed it on time. Filing it under
+        # BILLING, wording it, and both trust deltas are the desk's.
+        # One booking for every complaint the world raises: the rate-shock roll at a renewal and
+        # DD4b's complaint about the DD review told in the loop (`_post_month_bill`) both come here.
+        _cx_desk.observe_contact(CustomerContact(
+            customer_id=cid,
+            account_id=billing_account,
+            contacted_on=date.fromisoformat(term_start_str),
+            about_bill_shock=_about_bill_shock,
+            resolved_on_time=(
+                _outcome.reputation_event_type
+                == ReputationEventType.COMPLAINT_RESOLVED_ON_TIME
+            ),
+        ))
+        if _outcome.reputation_event_type == ReputationEventType.COMPLAINT_RESOLVED_ON_TIME:
+            _churn_journey_register.record_friction(
+                billing_account, FrictionEventType.COMPLAINT_RESOLVED_WELL,
+                date.fromisoformat(term_start_str),
+            )
+        else:
+            _churn_journey_register.record_friction(
+                billing_account, FrictionEventType.COMPLAINT_UNRESOLVED,
+                date.fromisoformat(term_start_str),
+                amplifier=(
+                    1.5 if _outcome.reputation_event_type
+                    == ReputationEventType.COMPLAINT_UPHELD_AT_OMBUDSMAN else 1.0
+                ),
+            )
+        _churn_journey_register.gri.record(
+            _outcome.reputation_event_type, date.fromisoformat(term_start_str),
+            description=f"{billing_account} complaint raised {term_start_str}",
+        )
+        reputation_events_log.append({
+            "customer_id": billing_account,
+            "date": term_start_str,
+            "event_type": _outcome.reputation_event_type.value,
+            "days_to_resolve": _outcome.days_to_resolve,
+        })
+
     def _post_month_bill(cid: str, held: dict) -> None:
         # PB8 (`simulation/payment_method_dynamics.py`): a household paying by DD may cancel its
         # mandate this month for its own reasons, before the month's collection is presented.
@@ -2093,6 +2134,32 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             )
             if _own is not None:
                 _dd_shock_book.record(_own)
+        # DD4b, AT THE REVIEW THE HOUSEHOLD ACTUALLY MEETS (`simulation/dd_review_in_loop.py`): the
+        # supplier's annual review is asked as this month's bill posts, and a DD household told a
+        # material rise answers it before this month's collection is presented. One answer per
+        # household per review month: its two legs are reviewed together and draw the same uniforms.
+        if not _dd_shock_strengths.off:
+            _told = _dd_in_loop_review.post(cid, held["month"], held["amount_gbp"])
+            _dd_household = household_of(cid)
+            if (_told is not None
+                    and _method_dynamics.pays_by_direct_debit(cid, held["fuel"])
+                    and not any(r.get("review_month") == held["month"]
+                                for r in _dd_shock_book.responses_of(_dd_household))):
+                _dd_response = respond_to_told_amount(
+                    household=_dd_household, month=held["month"],
+                    amount_in_force_gbp=_told["current_dd_gbp"],
+                    new_amount_gbp=_told["recommended_monthly_gbp"],
+                    stress=held["income_stress_value"], stays=True,
+                    already_cancelled=_dd_shock_book.has_cancelled(_dd_household),
+                    strengths=_dd_shock_strengths,
+                )
+                if _dd_response is not None:
+                    _dd_shock_book.record(_dd_response)
+                    if _dd_response["complained"]:
+                        _book_complaint_for(cid, _dd_household, _told["review_date"],
+                                            dispatch_dd_shock_complaint(_dd_household,
+                                                                        _told["review_date"]),
+                                            True)
         _pm_rec = _payment_triad.record_period(
             customer_id=cid,
             due_date=date.fromisoformat(held["month"] + '-28'),
@@ -2197,6 +2264,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     # Read once per run from the module, so a harness that measures a setting sets it before main().
     _dd_shock_strengths = _dd_shock_response.STRENGTHS
     _dd_shock_book = DDShockResponseBook()
+    _dd_in_loop_review = InLoopDDReview(get_customer)
     # PB8, the household's own acts (`simulation/payment_method_dynamics.py`): a mandate cancelled
     # for its own reasons is a row on the same book, so the triad, the rails and the arrears engine
     # read it as they read a shock's. Read once per run, as above.
@@ -3516,45 +3584,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             )
 
             def _book_complaint(_outcome, _about_bill_shock):
-                # KNIFE step 21 (§3p): the world reports that the customer got in
-                # touch and whether the company closed it on time. Filing it under
-                # BILLING, wording it, and both trust deltas are the desk's.
-                # One booking for every complaint the world raises at a renewal: the rate-shock
-                # roll above and DD4b's complaint about a DD review (below) both come through here.
-                _cx_desk.observe_contact(CustomerContact(
-                    customer_id=cid,
-                    account_id=billing_account,
-                    contacted_on=date.fromisoformat(term_start_str),
-                    about_bill_shock=_about_bill_shock,
-                    resolved_on_time=(
-                        _outcome.reputation_event_type
-                        == ReputationEventType.COMPLAINT_RESOLVED_ON_TIME
-                    ),
-                ))
-                if _outcome.reputation_event_type == ReputationEventType.COMPLAINT_RESOLVED_ON_TIME:
-                    _churn_journey_register.record_friction(
-                        billing_account, FrictionEventType.COMPLAINT_RESOLVED_WELL,
-                        date.fromisoformat(term_start_str),
-                    )
-                else:
-                    _churn_journey_register.record_friction(
-                        billing_account, FrictionEventType.COMPLAINT_UNRESOLVED,
-                        date.fromisoformat(term_start_str),
-                        amplifier=(
-                            1.5 if _outcome.reputation_event_type
-                            == ReputationEventType.COMPLAINT_UPHELD_AT_OMBUDSMAN else 1.0
-                        ),
-                    )
-                _churn_journey_register.gri.record(
-                    _outcome.reputation_event_type, date.fromisoformat(term_start_str),
-                    description=f"{billing_account} complaint raised {term_start_str}",
-                )
-                reputation_events_log.append({
-                    "customer_id": billing_account,
-                    "date": term_start_str,
-                    "event_type": _outcome.reputation_event_type.value,
-                    "days_to_resolve": _outcome.days_to_resolve,
-                })
+                _book_complaint_for(cid, billing_account, term_start_str, _outcome,
+                                    _about_bill_shock)
 
             if _complaint_outcome.occurred:
                 _book_complaint(_complaint_outcome, _bill_shock_this_term)
@@ -3726,26 +3757,10 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     # here would splice a saved household onto the default tariff.
                     _offer_vs_default = None
             _renewal_event_this_term = event
-            # DD4b (`simulation/dd_shock_response.py`): the household answers a material rise in
-            # its direct debit at this review -- cancelling its mandate, failing more collections
-            # while the raised amount is in force, complaining. Its departure is already answered
-            # by the roll above (PB4's shock hazard). Nothing is drawn while the toggles are zero.
-            if not _dd_shock_strengths.off and event is not None:
-                _dd_household = household_of(billing_account)
-                _dd_response = respond_to_dd_shock(
-                    household=_dd_household, review_month=term_start_str[:7],
-                    shock=event.get("sim_experienced_bill_shock"),
-                    stress=(_churn_income_stress.value if _churn_income_stress is not None
-                            else None),
-                    stays=event["event_type"] != "churned",
-                    already_cancelled=_dd_shock_book.has_cancelled(_dd_household),
-                    strengths=_dd_shock_strengths,
-                )
-                if _dd_response is not None:
-                    _dd_shock_book.record(_dd_response)
-                    if _dd_response["complained"]:
-                        _book_complaint(
-                            dispatch_dd_shock_complaint(billing_account, term_start_str), True)
+            # DD4b is no longer answered here: a renewal is not the review a default-tariff household
+            # meets, and answering both would answer one rise twice. It is answered where the
+            # supplier's review is told, in `_post_month_bill`. The departure leg (PB4's shock
+            # hazard at this renewal) is unchanged.
             # STAY, LEAVE, OR STAY AND REFUSE. Leaving is the roll's and stands; the rule only
             # reprices a household that stayed.
             _renewal_outcome = renewal_outcome(
@@ -4676,6 +4691,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         # ROWS, not the term's dicts -- handed the dicts it would hold the whole book twice over.
         _folded_this_term = all_records[_committed_from:]
         _dd_stop_board.observe(_folded_this_term)
+        if not _dd_shock_strengths.off:
+            _dd_in_loop_review.observe(_folded_this_term)
         for _closed_cid, _closed in _months_closed_this_term:
             _post_month_bill(_closed_cid, _closed)
         settled_fold.add(settled_this_term)
@@ -5386,7 +5403,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 if _world_payment_truth.UNIFIED else None),
         ),
         # DD4b: only present when its toggles are switched on, so the shipped output is unchanged.
-        **({"dd_shock_response_summary": _dd_shock_book.summary()}
+        **({"dd_shock_response_summary": _dd_shock_book.summary(),
+            "dd_review_told_in_loop": _dd_in_loop_review.told}
            if not _dd_shock_strengths.off else {}),
         **({"household_method_acts_summary": _method_dynamics.summarise(_dd_shock_book)}
            if not _method_strengths.off else {}),
