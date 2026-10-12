@@ -36,7 +36,8 @@ controls elsewhere pin today's book.
 NAMED SIMPLIFICATIONS:
   1. A bill the triad has no record for (a leg it does not collect, or a month outside its run)
      keeps the engine's own draw; the count is published (`fallback_bills`) so it cannot hide.
-  2. A mover's final bill keeps the engine's B7 exit, which the triad does not model.
+  2. A mover's final bill is decided once, in the triad, by the world's one exit model
+     (`arrears_engine.mover_final_bill_outcome`); the part a gone household paid reduces the bill.
   3. The stayer provision leg (off) does not net repayments.
   4. No meter is changed for debt in the run, so no prepayment repayment exists to carry.
 
@@ -83,6 +84,9 @@ def build(triad, through: dt.date) -> dict[str, dict]:
         rec["outcomes"][r.due_date.isoformat()[:7]] = {
             "result": r.result, "days_late": int(r.days_late or 0),
             "method": engine_method(r.payment_method)}
+        part = triad._final_bill_part_share.get((r.customer_id, r.due_date.isoformat()[:7]))
+        if part:
+            rec["outcomes"][r.due_date.isoformat()[:7]]["part_share"] = part
         by_account.setdefault(r.account_id, []).append(r)
     cid_of = {a: rs[0].customer_id for a, rs in by_account.items()}
     for account_id, bill_due, settled_on in triad._crossed_settlements:

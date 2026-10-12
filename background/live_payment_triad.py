@@ -82,6 +82,7 @@ from datetime import date, datetime, time, timedelta, timezone
 from typing import Callable, List, Optional
 
 import simulation.contact_response as early_contact
+import simulation.world_payment_truth as world_payment_truth
 from background.gap_metric import (
     GapResult,
     format_ageing_summary,
@@ -112,7 +113,7 @@ from interface.contracts.payment_observable_seam import (
     SCHEMA_VERSION as SEAM_SCHEMA_VERSION,
 )
 from interface.contracts.wall_envelope import WallRequest
-from simulation.arrears_engine import PAY_ON_RECEIPT_METHOD
+from simulation.arrears_engine import PAY_ON_RECEIPT_METHOD, mover_final_bill_outcome
 from simulation.dd_shock_response import failure_table as dd_failure_table
 from simulation.payment_behaviour_source import (
     ARREARS_REPAYMENT,
@@ -743,6 +744,8 @@ class LivePaymentTriad:
         # queued. A missed bill not otherwise settled within the window gets one check, dated at
         # the window's end, that asks whether the supplier's contact reached the household.
         self._contacts_received = None
+        self._final_bill_part_share: dict = {}
+        self._outcomes_by_customer: dict = {}
         self._early_checks: dict = {}
         self._early_cured: set = set()
         self._early_responses: list = []
@@ -1012,6 +1015,13 @@ class LivePaymentTriad:
         return sum(self._household_plans.repays_through_plan(*crossed)
                    for crossed in self._crossed_settlements)
 
+    def payment_truth_so_far(self, customer_id: str) -> dict:
+        """The leg's outcomes recorded so far, in the shape the arrears engine and the rails read
+        (`world_payment_truth`), for the stop-notice board's mid-run rails. No repayments: the board
+        decides stops from returns, and a repayment returns nothing."""
+        return {"outcomes": dict(self._outcomes_by_customer.get(customer_id, {})),
+                "repayments": []}
+
     def early_contact_summary(self) -> dict:
         """What contacts early in difficulty did, as the world knows it (never crosses)."""
         rows = self._early_responses
@@ -1054,6 +1064,7 @@ class LivePaymentTriad:
         fuel: str = "electricity",
         dd_stopped_by: Optional[Callable[[str, date], bool]] = None,
         dd_shock_effect=None,
+        moved_out_on: Optional[str] = None,
     ) -> dict:
         """Generate the ONE canonical W2_11 payment event for this
         (customer, period), cross the seam + feed the company consumer LIVE,
@@ -1107,6 +1118,29 @@ class LivePaymentTriad:
         elif plan_force and event.result != "failed":
             event = dataclasses.replace(event, result="failed", days_late=0, payment_date=None,
                                         dd_failure_reason=INSUFFICIENT_FUNDS)
+        # ONE PAYMENT TRUTH (`simulation/world_payment_truth.py`): a home mover's final bill is the
+        # exit, decided once, here, by the world's one model of it (`arrears_engine.
+        # mover_final_bill_outcome`), so the P&L and the rails read this outcome rather than drawing
+        # their own. What the final-bill model recovers is all that is recovered: no later lump.
+        final_exit = None
+        if moved_out_on and world_payment_truth.UNIFIED:
+            final_exit = mover_final_bill_outcome(
+                {"moved_out_on": moved_out_on}, customer_id, due_date.isoformat(), fuel,
+                amount_gbp, world_payment_truth.engine_method(method), stress.upper(), 42)
+        if final_exit is not None:
+            outcome, exit_days_late, part_paid = final_exit
+            if outcome == "success":
+                event = dataclasses.replace(
+                    event, result="success", days_late=exit_days_late, dd_failure_reason=None,
+                    payment_date=(due_date + timedelta(days=exit_days_late)).isoformat())
+            else:
+                event = dataclasses.replace(event, result="failed", days_late=0,
+                                            payment_date=None,
+                                            dd_failure_reason=event.dd_failure_reason
+                                            or INSUFFICIENT_FUNDS)
+                if amount_gbp > 0 and part_paid > 0:
+                    self._final_bill_part_share[(customer_id, due_date.isoformat()[:7])] = (
+                        part_paid / amount_gbp)
 
         # Post the bill into the COMPANY's own belief ledger so unpaid invoices
         # age (the ageing gap) exactly as the offline scenario does. This is the
@@ -1304,7 +1338,8 @@ class LivePaymentTriad:
         # WHAT HAPPENS AFTER THE DUE DATE (2026-10-04). The world decides now whether, and when,
         # the household pays this bill off after all -- its own substream, so no draw above moves
         # -- and the cash waits in the queue until the run reaches that day.
-        settled_on = later_settlement_date(event, segment=segment)
+        settled_on = (None if final_exit is not None
+                      else later_settlement_date(event, segment=segment))
         window_end = due_date + timedelta(days=early_contact.EARLY_WINDOW_DAYS)
         if (event.result == "failed" and early_contact.EARLY_CONTACT_SHARE
                 and self._contacts_received is not None
@@ -1327,6 +1362,10 @@ class LivePaymentTriad:
                     payment_date=settled_on.isoformat(), dd_failure_reason=None),
                 account_id, invoice_ref, f"{customer_id}::p{period_index}::settlement"))
 
+        if world_payment_truth.UNIFIED:
+            self._outcomes_by_customer.setdefault(customer_id, {})[due_date.isoformat()[:7]] = {
+                "result": event.result, "days_late": int(event.days_late or 0),
+                "method": world_payment_truth.engine_method(method)}
         self._records.append(PeriodRecord(
             customer_id=customer_id, period_index=period_index,
             invoice_ref=invoice_ref, account_id=account_id,

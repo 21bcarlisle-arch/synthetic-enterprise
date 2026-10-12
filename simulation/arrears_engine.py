@@ -901,17 +901,22 @@ def _resolve_bills(bills: list[dict], behavioral: dict, seed: int) -> list[dict]
         shock = bill_effect((behavioral.get(cid) or {}).get(SHOCK_RECORD_KEY), period_end[:7])
         if method == "direct_debit" and shock.cancelled:
             method = PAY_ON_RECEIPT_METHOD
-        exit_ = mover_final_bill_outcome(behavioral.get(cid) or {}, cid, period_end, commodity,
-                                         amount, method, stress, seed)
-        told = wpt.truth_outcome(truth, period_end) if exit_ is None else None
-        if truth is not None and exit_ is None:
+        # One payment truth: the triad decided this bill, a mover's final bill included, so the
+        # engine reads that and does not draw the exit again.
+        told = wpt.truth_outcome(truth, period_end)
+        if truth is not None:
             wpt.LAST_COUNTS["truth_bills" if told else "fallback_bills"] = (
                 wpt.LAST_COUNTS.get("truth_bills" if told else "fallback_bills", 0) + 1)
+        exit_ = (None if told is not None else
+                 mover_final_bill_outcome(behavioral.get(cid) or {}, cid, period_end, commodity,
+                                          amount, method, stress, seed))
         if exit_ is not None:
             outcome, days_late, part_paid = exit_
             amount = round(amount - part_paid, 2)
         elif told is not None:
             outcome, days_late, method = told["result"], told["days_late"], told["method"]
+            if told.get("part_share"):
+                amount = round(amount * (1.0 - told["part_share"]), 2)
         elif method == "direct_debit" and shock.cancel_return:
             # The mandate was cancelled at the bank: the collection comes back unpaid.
             outcome, days_late = "failed", 0
