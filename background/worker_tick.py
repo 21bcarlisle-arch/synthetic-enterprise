@@ -56,6 +56,10 @@ SCHEDULED_FLAG = PROJECT_DIR / "docs" / "observability" / ".scheduled_invocation
 LOCK_FILE = PROJECT_DIR / "docs" / "observability" / ".worker_tick.lock"
 LOG_FILE = PROJECT_DIR / "docs" / "observability" / "worker-tick-log.md"
 HEALTH_FILE = PROJECT_DIR / "docs" / "observability" / ".worker_tick_health.json"
+#: The last invocation's own output, overwritten on every spawn. Outside the tree, so it never churns
+#: git. A run of six-second rc=1 exits once went unexplained for a night because the child wrote to
+#: DEVNULL; `claude -p` prints only its result, so one invocation's output stays small.
+LAST_OUTPUT_FILE = Path("/var/tmp/worker-tick-last-output.txt")
 # RAIL-3 HEARTBEAT (DIRECTOR_RULING_HEARTBEAT_AND_QUIET_CLASSIFICATION 2026-07-24). Unlike LOG_FILE
 # and HEALTH_FILE (both .gitignored -> never leave this machine), this lives under site/data/, which
 # process_run_complete.py commits WHOLE every publish cycle. So the tick verdict is fetchable from
@@ -105,6 +109,17 @@ def _log(msg: str) -> None:
             f.write(f"- [{time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime())}] {msg}\n")
     except Exception:
         pass
+
+
+def _why_it_exited(rc) -> str:
+    """The tail of a failed invocation's own output, for the log line. Empty on success."""
+    if rc == 0:
+        return ""
+    try:
+        tail = LAST_OUTPUT_FILE.read_text(encoding="utf-8", errors="replace").strip()[-300:]
+    except OSError as e:
+        return f" -- its output is unreadable ({e.__class__.__name__})"
+    return f" -- it said: {' '.join(tail.split())}" if tail else " -- it printed nothing"
 
 
 def _write_health(outcome: str, detail: str = "") -> None:
@@ -528,12 +543,20 @@ def spawn_invocation(reason: str) -> "subprocess.Popen | None":
             pass
     prompt = WORKER_PREAMBLE + "[SCHEDULED-TICK doorbell -- R7: act on real disk/git state] " + reason
     try:
-        return subprocess.Popen(
-            spawn_argv(claude_bin, model, advisor, prompt),
-            cwd=str(PROJECT_DIR),
-            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-            stdin=subprocess.DEVNULL, env=env, start_new_session=True,
-        )
+        try:
+            out = LAST_OUTPUT_FILE.open("wb")
+        except OSError:
+            out = subprocess.DEVNULL
+        try:
+            return subprocess.Popen(
+                spawn_argv(claude_bin, model, advisor, prompt),
+                cwd=str(PROJECT_DIR),
+                stdout=out, stderr=subprocess.STDOUT,
+                stdin=subprocess.DEVNULL, env=env, start_new_session=True,
+            )
+        finally:
+            if out is not subprocess.DEVNULL:
+                out.close()   # the child holds its own descriptor
     except Exception as e:
         _log(f"spawn failed: {e!r}")
         return None
@@ -621,7 +644,7 @@ def run_tick() -> TickDecision:
                     rc = proc.wait()
                 except Exception as e:
                     rc = f"wait-error {e!r}"
-                _log(f"invocation pid={proc.pid} exited (rc={rc})")
+                _log(f"invocation pid={proc.pid} exited (rc={rc}){_why_it_exited(rc)}")
             else:
                 _log("decided to spawn but launch failed — next tick retries")
         else:
