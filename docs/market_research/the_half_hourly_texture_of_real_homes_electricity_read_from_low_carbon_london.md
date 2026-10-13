@@ -491,7 +491,25 @@ order they fire. Two mutations were run: a constant True and a constant False re
 companion, and the constant False result also turns the strict xfail into an XPASS. **No world draw
 changed**, so the world digest and the value arms do not move.
 
+**The always-on draw, one variable** (added the same day, after landing). This checks the causal
+sentence above. The drawn 60 was regenerated with only `standby_kw` held at the old uniform 25 W, both
+arms in one process. No prediction was filed before the run.
+
+| drawn 60 | r(texture, kWh/day) | median texture | kWh/day p10/50/90 | under real p10/25/50/75 |
+|---|---|---|---|---|
+| drawn always-on (live) | −0.665 | 0.161 | 4.4 / 6.7 / 12.7 | 3 / 14 / 27 / 44 |
+| uniform 25 W | −0.469 | 0.213 | 3.7 / 5.1 / 8.0 | 0 / 3 / 10 / 28 |
+
+So the always-on draw does tighten the coupling (−0.47 → −0.67), and it is also what brought the
+median onto the real one. Narrowing it is **not** the remedy, because that undoes the median and the
+real base-load match. Even at 25 W the world is more size-bound than LCL, though not significantly
+at n 60 (z ≈ −1.2). The −0.95 recorded on 2026-10-06 was an earlier world with the full stock in every
+home, so it does not compare to either row. What is missing is a spread of active use that does not
+travel with the always-on draw.
+
 Limits: four seeds and one weather site. Whole-meter LCL carries electric-heated homes, which are big
 and calm, so net of heating the real coupling is probably weaker than −0.32. That makes the comparison
-lenient to the world. LCL's −0.32 is read on linear kWh/day, and the log-kWh correlations above are
-world-only. Scripts: `/var/tmp/se-w129/.scratch_w129/` (not committed).
+lenient to the world. The section of 2026-10-06 does not name the estimator behind LCL's −0.32. It is
+taken here to be linear Pearson on kWh/day, and the comparator depends on that. The log-kWh
+correlations above are world-only. A NEED search found consumption-change and stock medians, but no
+spread of electricity at a given household size, so the GAP stands. Scripts: `/var/tmp/se-w129/.scratch_w129/` (not committed).

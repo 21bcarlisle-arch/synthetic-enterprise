@@ -20,6 +20,10 @@ section "The pass is one 60-home draw ...".
    home big and calm at once. Homes under 5 kWh/day never sit under 0.15 (real 29%), and homes at 12-20
    kWh/day always do (real 60%). Real homes differ in size mostly through active use: above-base p90 is
    18.7 kWh/day real against 8.8 in the world. That is the same missing spread as the L2.4 red.
+   *One-variable check, run after the first landing:* with only the always-on load put back to a uniform
+   25 W, the drawn 60's r moves −0.665 → −0.469, and the median texture moves 0.161 → 0.213. The draw
+   does tighten the coupling. But narrowing it is not the remedy, because the median would go with it.
+   What is missing is a spread of active use that is independent of the always-on draw.
 3. **"No two alike" holds.** No exact duplicate texture appeared in any draw.
 4. **"Small busy flats" is not measurable against LCL**, which records no dwelling type. Nothing was keyed on
    flats.
@@ -55,6 +59,7 @@ HES 2012's per-household totals as the reads to try first.
   orchestrator write, which this worker cannot make.
 - **Next DISCOVER: the between-home spread of active electricity at a given household size**, from NEED/HES.
   It probably closes L2.4 and this atom together.
-- Severity is LATENT, not BLOCKING. The L1.1 instrument is correct at n 60; it is underpowered there. If the
-  seat reads the pinned PASS as a control in this area that has been taken for more than it shows, the
-  severity should be BLOCKING. That is the seat's call.
+- Severity is LATENT, not BLOCKING. The L1.1 instrument is sound and is only underpowered at n 60. Nothing
+  published reads the n 60 pass as the world's verdict: a grep of `site/data/` and
+  `tools/generate_dashboard_data.py` finds L1.1 only in historical proof notes and in the map row, and the map
+  row still calls the cell red.
