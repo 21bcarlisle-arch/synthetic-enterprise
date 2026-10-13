@@ -3609,8 +3609,11 @@ _REFUSING_GATE_BANNERS = (
      ("[moap-coherence] ❌ COMMIT REFUSED",), "tools/moap_coherence_gate.py"),
     ("ruling-archive-question gate",
      ("[archive-question-gate] ❌ COMMIT REFUSED",), "tools/ruling_archive_question_gate.py"),
+    # The epoch refusal was retired at cf7419764 (canon v4 decision 11): every branch of `gate()`
+    # returns 0, so the old needle named a refusal that can no longer happen. The one path that
+    # still fails the hook is `ConsolidationUnavailable` (unparseable map or ledger) in `main`.
     ("consolidation-rhythm gate",
-     ("COMMIT REFUSED -- this commit closes epoch(s)",), "tools/consolidation_rhythm.py"),
+     ("FAIL consolidation check could not run: ",), "tools/consolidation_rhythm.py"),
     # ONLY the unavailable path. The violation path prints f"[{tag}] ..." where `tag` is
     # SIZE-RATCHET or SIZE-RATCHET WARN, so the token that separates a refusal from warn mode is
     # built by interpolation and is not a literal anything can check — and the same prefix is

@@ -503,8 +503,11 @@ def test_a_gas_heated_household_is_shown_electricity_gas_and_total_separately():
     only the electricity leg.
     """
     carbon = _load(CARBON)
+    # Both legs must carry a figure in the headline year. A first household whose electricity has
+    # no 2016 grid intensity honestly renders two figures and no total -- that is the other branch.
     group = next(g for g, h in sorted((carbon.get("households") or {}).items())
                  if any(y["gas"]["status"] == "billed" and y["gas"]["co2e_kg"]
+                        and y["electricity"].get("co2e_kg") is not None
                         and y["year"] == h["headline_year"] for y in h["years"]))
     year = next(y for y in carbon["households"][group]["years"]
                 if y["year"] == carbon["households"][group]["headline_year"])
@@ -524,6 +527,30 @@ def test_a_household_with_no_gas_account_is_told_so_in_words():
     assert "<td>Gas</td><td><b>0 kg</b>" in panel and "no gas supply on record" in panel
 
 
+def _a_book_with_one_gas_closure(carbon: dict) -> tuple[str, dict]:
+    from company.carbon.half_hourly_footprint import (
+        UNKNOWN,
+        HouseholdFootprint,
+        electricity_leg,
+        gas_leg,
+    )
+
+    households = carbon.get("households") or {}
+    group = next((g for g, h in sorted(households.items())
+                  if len(h["years"]) >= 2 and h["years"][-1]["gas"]["status"] == "billed"
+                  and h["years"][-1]["electricity"]["status"] == "billed"), None)
+    assert group, "no dual-fuel household with two billed years, so no closure can be built"
+    last = households[group]["years"][-1]
+    year = int(last["year"])
+    e = last["electricity"]
+    row = HouseholdFootprint(
+        group, year, electricity_leg(year, e["kwh"], e["months_billed"]),
+        gas_leg(year, 0.0, 0, closed_on=f"{year - 1}-12-31", closure_cause=UNKNOWN)).as_dict()
+    derived = json.loads(json.dumps(carbon))
+    derived["households"][group]["years"][-1] = row
+    return group, derived
+
+
 def test_an_unexplained_gas_closure_is_shown_plainly_and_claims_nothing():
     """A gas leg that stopped while the electricity went on is a CLOSURE, not a low year. Every
     closure on the published book is `unknown` -- no removal order, no loss notice -- so the page
@@ -534,10 +561,15 @@ def test_an_unexplained_gas_closure_is_shown_plainly_and_claims_nothing():
     carbon = _load(CARBON)
     group = next((g for g, h in sorted((carbon.get("households") or {}).items())
                   if any(y["gas"]["status"] == "closed" for y in h["years"])), None)
-    assert group, "no household on this book has a closed gas account, so the branch is unverified"
+    if group is None:
+        # Whether a book holds a closure is the run's answer, not the page's: the 774-household
+        # book of 2026-10-13 had none (the 127-household one had two). The branch is still taken,
+        # on this book with one household's last year rebuilt as a closure by the generator's own
+        # legs, so the shape the page reads is the one production writes.
+        group, carbon = _a_book_with_one_gas_closure(carbon)
     closed = next(y for y in carbon["households"][group]["years"] if y["gas"]["status"] == "closed")
     assert closed["gas"]["closure_cause"] == "unknown" and closed["gas"]["co2e_kg"] is None
-    panel = _household_panel(_stage(group))
+    panel = _household_panel(_stage(group, carbon))
     assert "Gas account closed" in panel and "why is not on file" in panel
     assert "no change is claimed" in panel
     assert "Gas meter removed" not in panel and "its gas meter was removed" not in panel
