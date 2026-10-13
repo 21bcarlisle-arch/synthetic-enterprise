@@ -8,6 +8,32 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-13 — Order 1 delivered: the payment world frozen, the provision graded, and the save, mover and renewal cut re-graded on fresh seeds
+
+<!-- head: ffa8b5574d39 -->
+
+**Spent since the last entry (Monday 16:15 to Tuesday 04:45):** this session and its agents about USD 87, plus the unattended lanes, so about 5-6 points at ~USD 19 a point. The week to date is roughly 11 points against the ~9 a day the week allows.
+
+**Order 1 is delivered.** Every grade was run on fresh book seeds 61109-61112 against the frozen household payment world (553d7c855), with its predictions filed before any run.
+
+- *The household payment world is frozen* (world lane, 553d7c855). One payment truth is the default. Arrears over 91 days match Ofgem (MET). Write-offs run 5-7x low, a named gap. The blind predictions all landed inside their ranges.
+- *The four-principles fixes are in* (441994e17). The typed seam record carries the run loop's renewal inputs. The DD review, the dunning schedule and the margin feed are behind company doors. The book is identical.
+- *The expected-loss provision* (109915be0) does not yet beat the age bands. It lags in the calm years (0.52-0.77 of realised loss) and ranks worse (AUC 0.964 against 0.976). It is not switched, and the improvements are a P2 atom.
+- *The mover offer* (42b39b8d6): M1, M2, M3 and M6 hold; M4 holds pooled. Stayers' prices move where a follower is supplied (M5 refuted on 3 of 4 seeds); the attribution arm is a P2 atom.
+- *The save and the renewal cut* (b234e27bd): the save never fired, because 23 of 27 held renewals sat below the company's own cost floor. The price-match renewal cut loses net on every seed, so the cut stays on risk tiers and the earlier recommendation (a99685b68) is withdrawn.
+
+**Defects found by grading, and fixed:**
+- every run since 11 October published "could not be read" for the company provision (a070c2195);
+- a home-mover follower kept its old home's fabric verdict and stopped the run (e71d5c1db).
+
+**What is left**
+
+- *Next week, P1:* why renewals sit below their own cost floor. It decides whether the save can ever fire, and how any cut is sized.
+- *Order 2:* the 145 consolidation banners wait on red #10. sim-runner deferred to these experiments all night, so the sampler saw no run. It is re-armed (/var/tmp/simrunner_mem.log) and wakes me at the next run's end. Step 5's remaining rulings are unchanged since the last entry (pricing arm, holdout, time unit, epoch gates, NTFY G8). The capital target landed through another lane overnight. Steps 6 and 7 stand as the last entry gave them.
+- *Order 3:* unchanged since the last entry. 9 reds remain; #17 and probably #13 and #7 clear at the next publish.
+
+---
+
 ## 2026-10-13 — orientation: No supplier commit reached origin this stretch, and four finished supplier changes sit unlanded in the shared tree
 
 <!-- head: 20a515541991 -->
