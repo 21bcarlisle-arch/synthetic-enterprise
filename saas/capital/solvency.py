@@ -1,8 +1,12 @@
 """Ofgem per-customer solvency signal (Minimum Capital Requirement).
 
 Ofgem's supply licence Standard Condition 27 requires licensed suppliers to
-maintain net assets sufficient to cover obligations to customers. The default
-requirement is approximately £130 per dual-fuel customer (the 'MCR target').
+maintain net assets sufficient to cover obligations to customers. The Capital
+Target, decided 26 July 2023 and binding from 31 March 2025, is £115 per
+domestic dual-fuel-equivalent customer (£130 was the April 2023 consultation
+figure the decision cut; corrected 2026-10-12,
+docs/market_research/bad_debt_provisioning.md, "Capital target: the conflict
+settled").
 
 The actual MCR is computed from the supplier's gross revenue and customer
 obligations, but for our purposes the per-customer net asset floor is the
@@ -11,7 +15,7 @@ is in Ofgem compliance stress.
 
 This module computes annual per-customer solvency metrics from settlement data:
 - per_customer_net_assets_gbp: treasury / active_customers at year-end
-- mcr_floor_gbp: £130/customer (regulatory minimum; MCR target for dual-fuel)
+- mcr_floor_gbp: £115/customer (Capital Target for dual-fuel)
 - solvency_ratio: per_customer_net_assets / mcr_floor
 - status: OK / Watch / STRESS
 
@@ -35,13 +39,17 @@ from __future__ import annotations
 from saas.customer_reaction import _billing_account_id
 from saas.enterprise_value import ceased_billing_accounts
 
-MCR_FLOOR_GBP_PER_CUSTOMER: float = 130.0
+#: Ofgem's Capital Target, £115 per domestic dual-fuel-equivalent customer, decided 26 July 2023,
+#: binding from 31 March 2025. £130 was the April 2023 consultation figure; corrected 2026-10-12.
+#: Same figure as `company/finance/treasury.py::MCR_PER_ACCOUNT` and
+#: `company/risk/independent_amount.py::MCR_GBP_PER_ACCOUNT`.
+MCR_FLOOR_GBP_PER_CUSTOMER: float = 115.0
 MCR_WATCH_RATIO: float = 2.0
 MCR_STRESS_RATIO: float = 1.0
 
 #: The segments Ofgem's per-account capital requirement is levied on. SLC 27's capital
 #: adequacy regime is a DOMESTIC supply obligation; a non-domestic account on the same book
-#: carries no £130. Kept as a set rather than a `== "resi"` literal so the exclusion is
+#: carries no £115. Kept as a set rather than a `== "resi"` literal so the exclusion is
 #: visible at the one place it is decided, and so `mcr_accounts_on_supply` can report the
 #: count it excluded rather than silently dropping it.
 MCR_DOMESTIC_SEGMENTS: frozenset[str] = frozenset({"resi"})
@@ -60,7 +68,7 @@ def mcr_accounts_on_supply(
 
       1. Every DISTINCT BILLING ACCOUNT that has settled to us anywhere in `settlement_records`.
          Records are keyed by per-commodity `customer_id`; a dual-fuel household is ONE account
-         and one £130, so the legs are collapsed by `_billing_account_id`. Counting legs is the
+         and one £115, so the legs are collapsed by `_billing_account_id`. Counting legs is the
          defect this function was written to remove.
       2. Less the accounts we can read as no longer on supply (`ceased_billing_accounts`, the
          supplier's own 35-day continuity reading of its own records). A customer who has gone
@@ -130,7 +138,7 @@ def compute_solvency_signal(
     ----------
     treasury_gbp : year-end treasury balance (£)
     active_customer_count : number of active accounts at year-end
-    mcr_floor : minimum net assets per customer (£); defaults to £130
+    mcr_floor : minimum net assets per customer (£); defaults to £115
 
     Returns
     -------

@@ -131,12 +131,18 @@ class TestFreeEquity:
         assert free_equity_gbp(0.0, 13) == 0.0
 
     def test_the_mcr_figure_agrees_with_every_other_copy(self):
-        """R10: the same published number is spelled in three modules. If they ever disagree, one
+        """R10: the same published number is spelled in four modules. If they ever disagree, one
         of them is wrong and no reader could tell which."""
         from company.finance.treasury import MCR_PER_ACCOUNT
         from saas.capital.solvency import MCR_FLOOR_GBP_PER_CUSTOMER
+        from saas.growth_mandate import CAPITAL_TARGET_GBP_PER_DUAL_FUEL_ACCOUNT
 
-        assert MCR_GBP_PER_ACCOUNT == MCR_PER_ACCOUNT == MCR_FLOOR_GBP_PER_CUSTOMER
+        assert (
+            MCR_GBP_PER_ACCOUNT
+            == MCR_PER_ACCOUNT
+            == MCR_FLOOR_GBP_PER_CUSTOMER
+            == CAPITAL_TARGET_GBP_PER_DUAL_FUEL_ACCOUNT
+        )
 
 
 class TestTheDemandItself:

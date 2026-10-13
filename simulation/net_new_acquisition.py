@@ -40,7 +40,8 @@ PB1/PB2 stalled for thirteen days. Instead the world says only WHO is in the mar
 company decides how many of them it can afford to quote
 (`saas.growth_mandate.growth_quote_budget`, injected by `run_phase2b` — never imported
 here; see the wall note on `plan_growth_campaign`). The binding constraint there is the Ofgem
-minimum capital requirement per account, which this repo already models at £130
+Capital Target per account, which this repo already models at £115 (decided 26 July 2023,
+binding from 31 March 2025; £130 was the April 2023 consultation figure, corrected 2026-10-12)
 (`saas/capital/solvency.py::MCR_FLOOR_GBP_PER_CUSTOMER`, `company/finance/treasury.py::
 MCR_PER_ACCOUNT`). So the supplier grows exactly as fast as its balance sheet can capitalise
 the accounts it wins — which is the real constraint on a real small supplier, and it is a
@@ -161,9 +162,10 @@ PROSPECTS_PER_YEAR = 400
 ELECTRICITY_ONLY: dict[str, float] = {"electricity": 1.0}
 
 #: DOMESTIC ONLY, for a reason that comes from the price rather than from convenience. The
-#: whole growth plan is denominated in Ofgem's Minimum Capital Requirement, and that figure is
-#: *"£130 per dual-fuel-equivalent DOMESTIC customer"* (26 July 2023 decision,
-#: `docs/market_research/ofgem_licence_readiness.md` §2). An SME account is not priced by it,
+#: whole growth plan is denominated in Ofgem's Capital Target, and that figure is
+#: *"£115 per domestic dual fuel equivalent customer"* (26 July 2023 decision, binding from 31
+#: March 2025; £130 was the April 2023 consultation figure, corrected 2026-10-12,
+#: `docs/market_research/bad_debt_provisioning.md`). An SME account is not priced by it,
 #: is not won through the same channel, and carries an acquisition cost this repo already
 #: models at 2.7x the domestic one -- so a campaign that quoted SMEs would be spending a
 #: domestic capital budget on non-domestic accounts.
@@ -1212,9 +1214,12 @@ def plan_growth_campaign(
     (design `B6_cpa_is_company_accounting`), and for the same reason: what a supplier can
     afford to spend is company accounting, and the world has no view of it and no business
     deciding it. So `quote_budget_fn(net_assets_gbp, accounts_held, quotes_issued_to_date,
-    wins_to_date) -> plan` ARRIVES as an injected callable, exactly like `run_funnel` and
+    wins_to_date, as_of) -> plan` ARRIVES as an injected callable, exactly like `run_funnel` and
     `cost_per_quote_gbp`. `run_phase2b` is the orchestrator and is the layer permitted to hold
-    both sides; nothing under `simulation/` imports `saas.*` to make this work.
+    both sides; nothing under `simulation/` imports `saas.*` to make this work. `as_of` (added
+    2026-10-12, C14) is the one date this loop already has and the company needs to date its
+    own capital constraint -- the plan year's 1 January, same direction as the other two
+    arguments and no more a company secret than the year itself.
 
     The last two arguments are the company's OWN quote book, carried forward by the year loop
     below (2026-08-24). They travel the same direction as the first two and for the same reason:
@@ -1258,7 +1263,7 @@ def plan_growth_campaign(
     # the shipped configuration and reachable only by overriding this parameter.
     #
     # WHY NO, and the reason is already on `DOMESTIC_ONLY` rather than newly invented here: the
-    # growth plan is denominated in Ofgem's Minimum Capital Requirement, which is £130 per
+    # growth plan is denominated in Ofgem's Capital Target, which is £115 per
     # dual-fuel-equivalent DOMESTIC customer, and an SME is not priced by it; and `_draw_dwelling`
     # draws a dwelling only for domestic prospects, so a won SME reaches
     # `dwelling_records.build_properties` with no dwelling and raises `DwellingNotDrawn`. THE RUN
@@ -1279,8 +1284,8 @@ def plan_growth_campaign(
         if non_domestic:
             raise ValueError(
                 f"this growth campaign is priced for DOMESTIC accounts and was asked to quote "
-                f"{', '.join(non_domestic)}. The plan is denominated in Ofgem's Minimum Capital "
-                f"Requirement (£130 per dual-fuel-equivalent domestic customer, 26 July 2023), "
+                f"{', '.join(non_domestic)}. The plan is denominated in Ofgem's Capital "
+                f"Target (£115 per dual-fuel-equivalent domestic customer, decided 26 July 2023), "
                 f"which does not price a non-domestic account, and the world draws a dwelling "
                 f"only for domestic prospects -- so every such win carries no home, reaches the "
                 f"settlement chooser unplaceable, and would raise DwellingNotDrawn downstream. "
@@ -1315,6 +1320,11 @@ def plan_growth_campaign(
         plan = quote_budget_fn(
             net_assets_gbp=net_assets, accounts_held=accounts,
             quotes_issued_to_date=quotes_issued_to_date, wins_to_date=wins_to_date,
+            # THE DATE THE PLAN IS MADE, not the plan's horizon: this campaign plans once a
+            # year, at the year's start, so the capital constraint's three periods (C14) are
+            # read on 1 January of the planning year, same as every other "as of" date in
+            # this run.
+            as_of=dt.date(year, 1, 1).isoformat(),
         )
         # NOT `in_market`: that name is already taken in this function for a PROSPECT'S OWN
         # in-market DATE (`winners.append((prospect, in_market))`), and shadowing it put a date

@@ -4,6 +4,7 @@ Configuration, budget calculation, and deterministic acquisition rolls.
 No simulation imports — pure business-rule module.
 """
 
+import datetime as dt
 import random
 
 # "flat": replace each churn with an acquisition attempt.
@@ -196,10 +197,12 @@ def roll_acquisition(segment: str, rng_seed: str) -> bool:
 #
 # WHAT DECIDES HOW BIG THE CAMPAIGN IS, and why it is capital rather than a
 # chosen number. Ofgem's Minimum Capital Requirement makes a supplier hold net
-# assets per domestic account -- £130, already load-bearing in this repo at
-# `saas/capital/solvency.py::MCR_FLOOR_GBP_PER_CUSTOMER` and
-# `company/finance/treasury.py::MCR_PER_ACCOUNT`, and anchored to the 26 July
-# 2023 decision in `docs/market_research/ofgem_licence_readiness.md` §2. So
+# assets per domestic account -- £115, the 26 July 2023 Capital Target
+# (`CAPITAL_TARGET_GBP_PER_DUAL_FUEL_ACCOUNT` below), the same figure
+# `saas/capital/solvency.py`, `company/finance/treasury.py` and
+# `company/risk/independent_amount.py` now carry too (corrected 2026-10-12, each its own
+# measured step).
+# So
 # winning a customer costs a supplier twice: the cash to run the funnel, and
 # the capital it must then hold behind that account for as long as it keeps it.
 # A small supplier's growth ceiling is the second one, and that is the whole
@@ -265,6 +268,63 @@ def roll_acquisition(segment: str, rng_seed: str) -> bool:
 #: book this small is over-capitalised, and the published company is small because it is a
 #: fixture rather than because it is poor.
 MAX_BOOK_GROWTH_RATE_PER_YEAR: float = 0.33
+
+#: Capital held behind each domestic dual-fuel account: Ofgem's Capital Target, £115 per domestic
+#: dual-fuel-equivalent customer (£57.50 per domestic customer in the licence), Ofgem decision
+#: "Strengthening Financial Resilience - Minimum Capital Requirement", 26 July 2023, binding from
+#: 31 March 2025, upheld by the CMA 19 January 2024, not indexed
+#: (docs/market_research/bad_debt_provisioning.md, "Capital target: the conflict settled").
+#: This was 130.0 until 2026-10-12: £130 was the April 2023 CONSULTATION figure the decision cut.
+#: THE VALUE a supplier plans against once the decision exists. WHEN it applies is dated by
+#: `capital_target_gbp_per_account` below (C14, ruled 12 Oct, decision 13) -- this constant is
+#: the figure for every date on or after the 26 July 2023 decision; before it, there is none.
+CAPITAL_TARGET_GBP_PER_DUAL_FUEL_ACCOUNT: float = 115.0
+
+#: The date Ofgem decided the Capital Target. Before this date no such figure existed for a
+#: supplier to plan against.
+CAPITAL_TARGET_DECIDED_DATE: dt.date = dt.date(2023, 7, 26)
+
+#: The date the Capital Target starts to bind. Between the decided date and this one it is a
+#: plan-ahead target the company may choose to meet, not yet enforceable.
+CAPITAL_TARGET_BINDING_DATE: dt.date = dt.date(2025, 3, 31)
+
+
+def capital_target_gbp_per_account(as_of: "dt.date | str") -> float:
+    """What a supplier plans its capital against on `as_of` (C14, `docs/design/DIRECTOR_CANON.md`,
+    ruled 12 Oct, decision 13): "The capital target applies from 31 March 2025 at £115 per
+    dual-fuel account. Before the July 2023 decision there is none; between the decision and the
+    binding date it is a plan-ahead target the company may choose to meet."
+
+    Returns 0.0 before the decision (there was nothing to plan against) and
+    `CAPITAL_TARGET_GBP_PER_DUAL_FUEL_ACCOUNT` (£115) on or after it. The VALUE does not change
+    again at the binding date -- a prudent supplier that has chosen to plan ahead is already
+    holding to it -- only its basis does; see `capital_target_basis` for that distinction, which
+    this function has no occasion to represent on its own.
+
+    The run applied this figure from 2016, nine years before the decision existed, until
+    2026-10-12 (the director's own open question, filed in
+    docs/staging/done/SEAT_FINDING_SEVERAL_CONSUMPTION_FORECASTS_A_WALL_LEAK_IN_HEDGE_VOLUME_AND_THE_CAPITAL_TARGET_IS_115_2026-10-11.md,
+    now ruled by C14).
+    """
+    if isinstance(as_of, str):
+        as_of = dt.date.fromisoformat(as_of)
+    if as_of < CAPITAL_TARGET_DECIDED_DATE:
+        return 0.0
+    return CAPITAL_TARGET_GBP_PER_DUAL_FUEL_ACCOUNT
+
+
+def capital_target_basis(as_of: "dt.date | str") -> str:
+    """The REASON `capital_target_gbp_per_account(as_of)` returned what it did, one of "none"
+    (before the 26 July 2023 decision), "plan_ahead" (decided but not yet binding) or "binding"
+    (on or after 31 March 2025) -- reported so a reader of the growth curve can tell a year with
+    no target from a year that chose to meet one without reading two dates against each other."""
+    if isinstance(as_of, str):
+        as_of = dt.date.fromisoformat(as_of)
+    if as_of < CAPITAL_TARGET_DECIDED_DATE:
+        return "none"
+    if as_of < CAPITAL_TARGET_BINDING_DATE:
+        return "plan_ahead"
+    return "binding"
 
 #: Share of AVAILABLE capital headroom the company is willing to commit to growth in any one
 #: year. A DIAL (R12), not a target: it exists so a single campaign cannot spend the whole
@@ -338,15 +398,32 @@ def expected_quotes_per_win(
 def capital_headroom_gbp(
     net_assets_gbp: float,
     accounts_held: int,
-    mcr_per_account_gbp: float = 130.0,
+    mcr_per_account_gbp: float | None = None,
+    as_of: "dt.date | str | None" = None,
 ) -> float:
-    """Net assets above the MCR the CURRENT book already obliges. Never negative.
+    """Net assets above the Capital Target the CURRENT book already obliges. Never negative.
 
-    A supplier below its own MCR is not a supplier with a small growth budget; it is a
-    supplier in breach, and the honest answer to "how much can it spend winning customers"
-    is nothing. Clamping at zero rather than returning a negative keeps a breached balance
-    sheet from reading as a spending instruction downstream.
+    A supplier below its own Capital Target is not yet in breach -- the regulatory breach
+    threshold is the separate Capital Floor, £0 Adjusted Net Assets per account
+    (`docs/market_research/bad_debt_provisioning.md`, "Capital target: the conflict settled"),
+    which this function does not model -- but it is a supplier with no growth budget left to
+    spend on new customers, and the honest answer to "how much can it spend winning customers"
+    is nothing. Clamping at zero rather than returning a negative keeps that exhausted balance
+    sheet from reading as a spending instruction downstream. Before the Capital Target
+    existed (C14), "below the target" cannot be true, because there is no target to be below.
+
+    `mcr_per_account_gbp`, given explicitly, is read as-is -- a test fixing the figure. Given
+    `as_of` instead, the figure is dated (C14, `capital_target_gbp_per_account`): 0.0 before the
+    26 July 2023 decision, £115 on or after it. With neither, the flat current figure applies,
+    exactly as before C14 -- the undated call a caller that does not know today's date still
+    makes.
     """
+    if mcr_per_account_gbp is None:
+        mcr_per_account_gbp = (
+            capital_target_gbp_per_account(as_of)
+            if as_of is not None
+            else CAPITAL_TARGET_GBP_PER_DUAL_FUEL_ACCOUNT
+        )
     return max(0.0, net_assets_gbp - accounts_held * mcr_per_account_gbp)
 
 
@@ -355,7 +432,8 @@ def growth_quote_budget(
     net_assets_gbp: float,
     accounts_held: int,
     segment: str = "resi",
-    mcr_per_account_gbp: float = 130.0,
+    mcr_per_account_gbp: float | None = None,
+    as_of: "dt.date | str | None" = None,
     capital_share: float = GROWTH_CAPITAL_SHARE_PER_YEAR,
     max_growth_rate: float | None = None,
     quotes_issued_to_date: int = 0,
@@ -373,6 +451,11 @@ def growth_quote_budget(
     all-in price of one won account is the sum of the two, and the number of wins the
     committed capital supports is `committed / (cost_per_win + mcr)`. Quotes follow from
     wins through the company's own believed conversion.
+
+    `as_of` dates the figure (C14): before the 26 July 2023 decision there is no capital
+    constraint at all (`mcr_per_account_gbp` resolves to 0.0), so a year entirely before it can
+    only bind on `growth_rate` or `mandate`, never `capital`. `mcr_per_account_gbp` passed
+    explicitly overrides the dating, exactly as in `capital_headroom_gbp`.
     """
     # Read at CALL time -- see the note in net_new_acquisition.plan_growth_campaign. A default
     # argument freezes the constant at import and makes the dial unmovable from a test or a
@@ -385,6 +468,12 @@ def growth_quote_budget(
                 "believed_win_rate": None, "realised_win_rate": None,
                 "planning_on": "mandate"}
 
+    if mcr_per_account_gbp is None:
+        mcr_per_account_gbp = (
+            capital_target_gbp_per_account(as_of)
+            if as_of is not None
+            else CAPITAL_TARGET_GBP_PER_DUAL_FUEL_ACCOUNT
+        )
     headroom = capital_headroom_gbp(net_assets_gbp, accounts_held, mcr_per_account_gbp)
     committed = headroom * capital_share
     cost_per_quote = cost_per_acquisition_gbp(segment)
@@ -421,4 +510,8 @@ def growth_quote_budget(
         "believed_win_rate": ACQUISITION_WIN_RATE.get(segment, ACQUISITION_WIN_RATE["resi"]),
         "realised_win_rate": own_rate,
         "planning_on": "realised" if own_rate is not None else "belief",
+        # C14's three periods, reported so a reader can tell "no target" from "chose to meet
+        # one early" without comparing two dates. `None` when the caller gave no `as_of` --
+        # an undated call cannot say which period it is in.
+        "capital_target_basis": capital_target_basis(as_of) if as_of is not None else None,
     }

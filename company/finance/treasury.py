@@ -5,7 +5,14 @@ Data source: annual_management_pack() output (balance sheets per year).
 No simulation internals accessed -- uses company-layer accounting only.
 """
 
-MCR_PER_ACCOUNT = 130.0  # Ofgem minimum capital requirement per dual-fuel account
+#: Ofgem's Capital Target, decided 26 July 2023 ("Strengthening Financial Resilience -- Minimum
+#: Capital Requirement"), binding from 31 March 2025, upheld by the CMA 19 January 2024, not
+#: indexed. £130 was the April 2023 consultation figure the decision cut; carried here as £130
+#: until 2026-10-12, corrected to £115 (docs/market_research/bad_debt_provisioning.md, "Capital
+#: target: the conflict settled"). Same figure as `saas/capital/solvency.py::MCR_FLOOR_GBP_PER_CUSTOMER` and
+#: `company/risk/independent_amount.py::MCR_GBP_PER_ACCOUNT` --
+#: `test_the_mcr_figure_agrees_with_every_other_copy` fails if the three disagree.
+MCR_PER_ACCOUNT = 115.0
 
 
 def working_capital(balance_sheet: dict) -> float:

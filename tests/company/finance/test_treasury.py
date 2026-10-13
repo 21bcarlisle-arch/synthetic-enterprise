@@ -112,7 +112,7 @@ def test_treasury_health_watch_at_boundary():
 # --- Phase LW depth tests ---
 
 def test_mcr_per_account_constant():
-    assert MCR_PER_ACCOUNT == pytest.approx(130.0)
+    assert MCR_PER_ACCOUNT == pytest.approx(115.0)
 
 
 def test_working_capital_basic():
@@ -149,7 +149,7 @@ def test_treasury_health_mcr_requirement():
     pack = {'2022': {'balance_sheet': {'cash_gbp': 50000.0, 'trade_receivables_gbp': 0.0,
                                        'vat_payable_gbp': 0.0, 'total_liabilities_gbp': 0.0}}}
     h = treasury_health(pack, '2022', customer_count=10)
-    assert h['mcr_requirement_gbp'] == pytest.approx(10 * 130.0)
+    assert h['mcr_requirement_gbp'] == pytest.approx(10 * 115.0)
 
 
 def test_treasury_health_missing_year_returns_watch_or_critical():

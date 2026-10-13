@@ -43,8 +43,10 @@ remove. Instead:
     stressed holding period (typically 5 days)" -- and the move over that horizon is MEASURED from
     the observable price history the desk already holds, not assumed.
 
-The MCR leg is sourced too: £130 of net assets per domestic account, Ofgem's decision of 26 July
-2023, already load-bearing at `company/finance/treasury.MCR_PER_ACCOUNT` and
+The MCR leg is sourced too: £115 of net assets per domestic account, Ofgem's Capital Target
+decided 26 July 2023 and binding from 31 March 2025 (£130 was the April 2023 consultation figure
+the decision cut, mis-cited here as the decision's own figure until 2026-10-12), already
+load-bearing at `company/finance/treasury.MCR_PER_ACCOUNT` and
 `saas/capital/solvency.MCR_FLOOR_GBP_PER_CUSTOMER`.
 
 WHAT THIS IS NOT, said plainly because the evidence says to say it. This is NOT a model of how GB
@@ -72,19 +74,20 @@ from math import isfinite
 #: it could be tuned is visible.
 STRESSED_CLOSE_OUT_DAYS: int = 5
 
-#: Ofgem's minimum capital requirement per domestic account, £. Decision of 26 July 2023, and the
-#: same figure `company/finance/treasury.MCR_PER_ACCOUNT` and
-#: `saas/capital/solvency.MCR_FLOOR_GBP_PER_CUSTOMER` already carry. Restated rather than imported:
-#: importing `company.finance.treasury` from the risk layer would add a dependency for one scalar,
-#: and `test_the_mcr_figure_agrees_with_every_other_copy` fails if the three ever disagree.
-MCR_GBP_PER_ACCOUNT: float = 130.0
+#: Ofgem's Capital Target per domestic account, £. Decided 26 July 2023, binding from 31 March
+#: 2025; £130 was the April 2023 consultation figure, corrected 2026-10-12. The same figure
+#: `company/finance/treasury.MCR_PER_ACCOUNT` and `saas/capital/solvency.MCR_FLOOR_GBP_PER_CUSTOMER`
+#: already carry. Restated rather than imported: importing `company.finance.treasury` from the
+#: risk layer would add a dependency for one scalar, and
+#: `test_the_mcr_figure_agrees_with_every_other_copy` fails if the three ever disagree.
+MCR_GBP_PER_ACCOUNT: float = 115.0
 
 
 def free_equity_gbp(net_assets_gbp: float, accounts_held: int) -> float | None:
     """Net assets a counterparty could actually look to, after the regulator's prior claim.
 
     A supplier's equity is not all available to absorb a trading loss: Ofgem obliges it to hold
-    £130 per domestic account against the customer book, and a counterparty assessing it knows
+    £115 per domestic account against the customer book, and a counterparty assessing it knows
     that capital is spoken for. What is left is what backs the trading position.
 
     Returns `None` -- not zero -- on an unreadable balance sheet. The two are different claims and
