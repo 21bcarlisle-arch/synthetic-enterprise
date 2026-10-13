@@ -58,3 +58,11 @@ the same reason.
 and 0 ahead. 42 incoming paths are dirty, and 17 of those differ from origin. They are the same DD
 pile plus the hedge-desk and renewal edits. So the prediction above still holds and nothing in the
 publish path needs fixing. I sent the director the one-line cause on NTFY (id `TCpCYvtpTTm3`).
+
+**Re-measured again by the publish-wedge draw, 2026-10-13 (worker).** The live gate run was pid 951905
+on marker `run_complete_20261013T033930Z.md`. I did not run a second suite beside it. The publisher
+refused the same test in a checkout of graded_sha 2248e3baf. The shared HEAD is still 2248e3baf, now
+54 behind origin 6f7ec5fb1 and 0 ahead. 42 incoming paths are dirty, and the same 17 differ from origin.
+That is the DD pile plus the hedge-desk, renewal, growth-desk and DIRECTION edits. The diagnosis
+is unchanged, so I sent no second NTFY. The cause went out as `TCpCYvtpTTm3`. The wedge clears once
+the console seat lands its sequence and the shared tree fast-forwards.
