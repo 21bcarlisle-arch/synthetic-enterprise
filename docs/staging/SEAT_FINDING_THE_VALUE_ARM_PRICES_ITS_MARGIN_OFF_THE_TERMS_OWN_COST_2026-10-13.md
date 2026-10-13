@@ -120,3 +120,47 @@ Premise note: `04913b693` (this finding's own commit, floor + rebase of the valu
 already an ancestor of origin/main. That does not spend this item's premise — 04913b693 is the
 *subject* the run measures, not the deliverable. The deliverable is the run's numbers and the
 re-take-vs-footnote call on B8, still open.
+
+## Book-level result (delivery seat, 2026-10-13, graded from the artefact)
+
+`longjob-value-arm-measure-61001b` finished 09:53 BST; artefact
+`/var/tmp/value_arm_measure_61001.json` (roll seed 61001, full 2016-2025 book, at 04913b693).
+`value_arm.rows`: 698 priced renewals (495 electricity, 203 gas). `level_grid.rows` is the same
+698 repeated over 30 rungs (GBP 5-150); the base does not depend on the level, so its statistics
+are identical and add nothing.
+
+| Pre-registered | Predicted | Measured |
+|---|---|---|
+| `arm_base_source = term_cost` share | >= 90% | **698 / 698 (100%)**; no fallback |
+| delta where no writer fired | ~0.00 | **untested**: 0 renewals with no writer, because `portfolio_premium` fires on all 698 |
+| moved-renewal share (bar: > 10%) | -- | **100%** (698 / 698, every delta nonzero) |
+| median abs(delta) among moved (bar: >= 1.11) | -- | **2.61 GBP/MWh**; 649 / 698 at or above 1.11 |
+
+By writer bucket (delta = `arm_base - (unit_rate_before - 2)`): `portfolio_premium` alone
+n=679, median +2.59 (range -31.3 to +8.0); `+profitability_uplift` n=8, median -2.28;
+`+margin_surcharge+profitability_uplift` n=11, median -22.9 (to -88.3). By fuel: electricity
+median +2.69, gas +1.61.
+
+**Verdict: RE-TAKE.** Both bars cleared, the first by 2.3x and the second by 10x. The shift is not
+uniform either: about +2.6 on writer-1-only renewals and negative, sometimes by tens of pounds, where
+writers 2-3 fired. So no single offset can carry the published arm-vs-control figures across.
+Carried by `retake-the-value-arms-on-the-term-cost-base`.
+
+**Correction to the pre-registration, kept beside it.** It had the sign backwards. With
+`unit_rate_before = strike + m` (m being writer 1's move), the old base is `base + m`, so
+**delta = -m**. A writer-1 *discount* gives a *positive* delta (old base too low, old arm
+*overstated* its margin), and a premium or a writer-2/3 uplift gives a negative one. The fixture
+quoted in the same paragraph was already a positive delta (+3.11 on a floored discount), so the
+text contradicted itself. The data follows the arithmetic, not the prediction. The verdict does
+not depend on the sign, because the bars are on abs(delta) and on share.
+
+**What this does to the reading of writer 1.** A positive delta on 654 / 698 means writer 1
+mostly *discounts* below the strike, by a median of about 2.6 against a GBP 2 margin. So
+`unit_rate_before` is below the term's own cost (capital charge included) on **496 / 698**
+renewals (median `before - base` = -0.58). The probe cannot tell whether that is real under-cost
+pricing by `portfolio_premium` or a reading taken before a later floor. That question, and whether the
+re-take has to wait for a fix, belongs to `the-pre-arm-struck-rate-sits-below-term-cost-on-496-of-698-renewals`,
+which the re-take is told to check first.
+
+One seed only, as pre-registered: this picks re-take over footnote and says nothing tight about
+size. The no-writer identity stays unexercised on the real book, and only the fixture backs it.
