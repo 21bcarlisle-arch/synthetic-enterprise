@@ -64,9 +64,11 @@ from company.interfaces.growth_desk import (
     growth_mandate_label,
     mandate_permits_replacement,
     new_retention_holdout,
+    refuse_retention_offer_below_own_cost_floor,
     replacement_cost_avoided_gbp,
     retention_bad_debt_charge,
     retention_cut_share_at_price_match,
+    retention_cut_share_at_risk_tiers,
     retention_engagement,
     retention_offer_can_buy_anything,
     retention_value_protected,
@@ -3364,20 +3366,20 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 if company_est_pre > RETENTION_THRESHOLD:
                     eac_for_ret = company_eac  # Phase 23a: use company estimate
                     # B8 Q5: sized against the best published deal on the day, as the save is, or
-                    # by the churn-belief tiers. None from the match = our re-fix already meets it.
-                    _match_cut = None
+                    # by the churn-belief tiers; either way no deeper than the re-fix's own cost
+                    # floor. None = no cut left to give (the match: our re-fix already meets it).
+                    _cut_inputs = _price_match_inputs(term, commodity, term_start_str, company_fwd)
                     if policy.retention_cut_sizing == "price_match":
-                        _match_cut = retention_cut_share_at_price_match(
-                            unit_rate, **_price_match_inputs(
-                                term, commodity, term_start_str, company_fwd))
-                        discount_pct = 0.0 if _match_cut is None else _match_cut
+                        _cut = retention_cut_share_at_price_match(unit_rate, **_cut_inputs)
                     elif policy.retention_cut_sizing == "risk_tiers":
-                        discount_pct = policy.retention_discount_for_risk(company_est_pre)
+                        _cut = retention_cut_share_at_risk_tiers(
+                            unit_rate, policy.retention_discount_for_risk(company_est_pre),
+                            cost_floor=_cut_inputs["cost_floor"])
                     else:
                         raise ValueError(f"retention_cut_sizing {policy.retention_cut_sizing!r} "
                                          "is neither 'risk_tiers' nor 'price_match'")
-                    _market_beats_the_fix = (policy.retention_cut_sizing != "price_match"
-                                             or _match_cut is not None)
+                    discount_pct = 0.0 if _cut is None else _cut
+                    _market_beats_the_fix = _cut is not None
                     _would_be_discount_pct = discount_pct
                     ret_cost = unit_rate * discount_pct * eac_for_ret / 1000.0
                     expected_margin = (unit_rate - company_fwd) * eac_for_ret / 1000.0
@@ -3465,7 +3467,10 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     if _holdout_arm is not None:
                         retention_holdout_log[-1]["would_offer"] = _would_offer
                     if not _market_beats_the_fix:
-                        _no_offer_reason = "the_fix_already_meets_the_best_published_deal"
+                        _no_offer_reason = (
+                            "the_fix_already_meets_the_best_published_deal"
+                            if policy.retention_cut_sizing == "price_match"
+                            else "the_fix_has_no_room_above_its_cost_floor")
                     elif not _offer_can_buy:
                         _no_offer_reason = "the_discount_cannot_win_the_fix"
                         retention_gate_value_test_log.append({
@@ -3486,7 +3491,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                         # relative uplift on a matched framing) scaling the offered rate's effect.
                         _framing_type = framing_type_for(policy, billing_account, term_start_str)
                         _framing_multiplier = framing_effectiveness_multiplier(billing_account, _framing_type)
-                        _retention_offer = (discount_pct, _framing_multiplier)
+                        _retention_offer = (discount_pct, _framing_multiplier,
+                                            _cut_inputs["cost_floor"])
                         retention_cost_events.append(
                             book_retention_cost(
                                 billing_account=billing_account,
@@ -3682,7 +3688,13 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     roll_lifecycle_event, cid, term_start_str, commodity, _roll_kwargs or {},
                     event, discount_pct=_retention_offer[0],
                     framing_multiplier=_retention_offer[1])
+                _refix_rate = unit_rate
                 unit_rate = offered_rate(unit_rate, _retention_offer[0])
+                # THE CLASS, asked of the rate the household is actually offered: the tier cut sold
+                # under cost after the chain's own check had returned (95b3a38d2).
+                refuse_retention_offer_below_own_cost_floor(
+                    unit_rate, entered=_refix_rate, cost_floor=_retention_offer[2],
+                    where=f"{billing_account} {commodity} {term_start_str}")
                 _prior_rates[cid] = unit_rate
                 _account_state_row["unit_rate_gbp_per_mwh"] = unit_rate
                 _account_state_row["rate_vs_svt_pct"] = (

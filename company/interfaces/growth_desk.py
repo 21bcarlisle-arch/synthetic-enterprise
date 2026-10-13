@@ -438,6 +438,35 @@ def retention_cut_share_at_price_match(unit_rate: float | None, *,
     return None if match is None else 1.0 - match / unit_rate
 
 
+def retention_cut_share_at_risk_tiers(unit_rate: float | None, tier_share: float, *,
+                                      cost_floor: float | None) -> float | None:
+    """The churn-belief tier's renewal cut, as a share of our re-fix, taken no deeper than the
+    re-fix's own cost floor.
+
+    B8 (2026-10-13): the tier cut (3-8%) was applied after the rate chain's own floor check and was
+    floored nowhere, so it alone could sell under cost: the only two held renewals below floor on
+    seed 61109 were both tier cuts (95b3a38d2). The floor is the one the chain and the price match
+    hold to (`domain_invariants.DISCRETIONARY_RATE_NOT_BELOW_OWN_COST_FLOOR`). None -- no offer --
+    where there is no floor to check the cut against (the chain's writer 1 gives no discount then
+    either), or where the re-fix already sits at or under its floor, so no cut is left to give."""
+    if unit_rate is None or cost_floor is None or tier_share <= 0.0:
+        return None
+    if unit_rate * (1.0 - tier_share) >= cost_floor:
+        return tier_share
+    return None if cost_floor >= unit_rate else 1.0 - cost_floor / unit_rate
+
+
+def refuse_retention_offer_below_own_cost_floor(offered: float, *, entered: float,
+                                                cost_floor: float | None, where: str) -> None:
+    """The class rule asked of the rate a retention offer actually puts in front of the household,
+    whichever sizing made it: it may sit below the term's cost floor only where the re-fix it cuts
+    already did. Raises `DiscretionaryRateBelowOwnCostFloorError` naming the shortfall."""
+    from company.compliance.domain_invariants import refuse_discretionary_rate_below_own_cost_floor
+
+    refuse_discretionary_rate_below_own_cost_floor(
+        offered, entered=entered, cost_floor=cost_floor, where=f"retention offer {where}")
+
+
 def retention_offer_can_buy_anything(*, previous_term_on_our_default: bool,
                                      full_position_vs_default: float | None,
                                      offered_position_vs_default: float | None) -> bool:

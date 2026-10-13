@@ -158,7 +158,8 @@ def test_no_offer_churn_log_entries_have_reason(sim_result_2017):
     result = sim_result_2017
     for entry in result["no_offer_churn_log"]:
         assert "no_offer_reason" in entry, f"no_offer_reason missing from {entry}"
-        assert entry["no_offer_reason"] in ("below_threshold", "uneconomical")
+        assert entry["no_offer_reason"] in (
+            "below_threshold", "uneconomical", "the_fix_has_no_room_above_its_cost_floor")
 
 
 def test_retention_log_offers_are_economically_rational(sim_result_2017):
@@ -207,13 +208,14 @@ def test_retention_tiers_cover_threshold():
 
 
 def test_retention_log_discount_pct_is_in_valid_tier(sim_result_2017):
-    """discount_pct in each retention log entry must correspond to a valid tier value."""
-    from simulation.run_phase2b import RETENTION_TIERS
-    valid_discounts = {d for _, d in RETENTION_TIERS}
+    """discount_pct is a cut no deeper than the tier for the entry's own churn estimate. Since
+    2026-10-13 a tier is floored at the re-fix's cost floor, so a cut may sit below its tier."""
+    from simulation.run_phase2b import _retention_discount_for_risk
     result = sim_result_2017
     for entry in result["retention_log"]:
-        assert entry["discount_pct"] in valid_discounts, (
-            f"{entry['customer_id']}: unexpected discount_pct {entry['discount_pct']}"
+        tier = _retention_discount_for_risk(entry["company_churn_estimate"])
+        assert 0.0 < entry["discount_pct"] <= tier, (
+            f"{entry['customer_id']}: discount_pct {entry['discount_pct']} outside (0, {tier}]"
         )
 
 
