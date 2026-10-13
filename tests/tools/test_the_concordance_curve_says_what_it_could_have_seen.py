@@ -630,11 +630,18 @@ def test_the_buildability_verdict_is_REACHABLE_ON_BOTH_SIDES_of_its_own_partitio
     Fires on: hard-wiring either verdict; on a capacity read that collapses to a
     constant; and on a requirement that stops being compared to anything.
     """
+    from simulation.net_new_acquisition import SETTLEMENT_CUSTOMER_YEAR_BUDGET
     from tools.generate_value_arms_data import _can_this_book_be_built
 
     rows = [{"times_this_book": 2.82}]
     seen = set()
-    for customer_years in (10.0, 100.0, 1029.0, 400.0, 425.0):
+    # KEYED TO THE PROPERTY, NOT TO TODAY'S BUDGET (2026-10-13). The sweep was fixed book sizes
+    # (10 to 1,029 customer-years) chosen when the budget was 1,200. At the 5,000 budget every one
+    # of them reaches 2.82x, so the verdict read constant and this control went red for the
+    # budget moving, not for the verdict collapsing. Books are now sized against the budget
+    # itself: two that clear 2.82x with room, two that cannot.
+    budget = float(SETTLEMENT_CUSTOMER_YEAR_BUDGET)
+    for customer_years in (budget / 100, budget / 10, budget / 2.82 * 1.5, budget):
         verdict = _can_this_book_be_built(_buildable_run(customer_years), rows)
         assert verdict["available"], verdict.get("reason")
         seen.add(verdict["no_leg_is_reachable"])
