@@ -8,6 +8,33 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-13 — The 774-household publish was refused by a full /tmp, not a red test; the fixture that filled it is fixed
+
+<!-- head: 562051867b38 -->
+
+Direction item `the-publish-run-of-2026-10-13-reaches-origin`, 20:10 to 21:10Z.
+
+**The run.** The 11:24Z run (pid 2607003) was killed by the runner's old fixed 7200 s timeout, not by a
+`None`. The retry at 13:44Z finished in 6929 s. **It is stamped 2248e3baf, which lacks 5f61c2262** (the SLC
+20-24 ungraded-estimate fix; `merge-base --is-ancestor` says no). The item says the working copy of
+`saas/reporting/compliance_scorecard_population.py` held origin's (5f61c2262) bytes while it ran, so the
+`producing_commit` row says "2248e3baf drew every figure" about code it may not have run. That is a **new wrong
+row**. I could not check the bytes after the fact, because the 18:10Z fast-forward restamped the file.
+`resolved_at` is also the stamping time, not the launch time. Both are filed in one finding.
+
+**The publish.** It passed the `tests/` gate in 1050 s, and the site lane refused it at 20:50Z with 72
+failed and 7 errors. The cause was /tmp filling up, not a red test. `site/test_ia_register.py` copied the whole
+`site/`, which the 774-household book has grown to 180 MB, into each of 18 tests, onto a shared 12 GB tmpfs.
+Control: the same files pass 82/82 with TMPDIR on disk. With the default TMPDIR they error, and /tmp goes from
+2.6 GB to 488 KB free. A worker tick landed the same fixture fix first (0d5304e98), so mine was dropped. What I
+land is the control that the slimmer copy still carries every input the register reads.
+
+**Not done.** No figures are on origin yet. The next publish is the 6ab998ad7 run that started at 20:10Z, or a
+re-attempt of 134447Z. Either one needs this fix on the shared tree. A gate that reads a full tmpfs as red tests
+is still possible from any other fixture. That is filed, not fixed.
+
+---
+
 ## 2026-10-13 — orientation: The machine moved this stretch
 
 <!-- head: 6ab998ad7fc9 -->

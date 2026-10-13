@@ -65,6 +65,17 @@ def tree(tmp_path):
     return dest
 
 
+def test_the_copy_carries_every_input_the_register_reads(tree):
+    """Leaving the feeds out is safe only while the register's own inputs all come across."""
+    def inputs(root):
+        return {p.relative_to(root).as_posix() for p in root.rglob("*")
+                if p.is_file() and (p.suffix == ".html" or p.name in ("sitemap.xml", "_redirects"))
+                and "__pycache__" not in p.parts and "node_modules" not in p.parts}
+    assert inputs(SITE) and inputs(tree) == inputs(SITE)
+    assert reg.classify(tree) == reg.classify(SITE)
+    assert sorted(reg.unrouted_pages(tree)) == sorted(reg.unrouted_pages(SITE))
+
+
 # ---------------------------------------------------------------------------
 # 1. The three-state register
 # ---------------------------------------------------------------------------
