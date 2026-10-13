@@ -78,3 +78,49 @@ The chain was queued at 2026-10-13T14:11Z as `longjob-termcost-arms-chain`
 was waiting for room: `sim-runner` was holding 7.1 GB. Once it starts, the whole chain should end
 roughly 9 h later. Nothing has been graded yet. The legs' `--asserted-live-by` names this file at its first path,
 `docs/staging/` root, before the rooms gate moved it here.
+
+## Leg 1 graded (2026-10-13 ~20:20Z, executor seat, `grade-the-term-cost-arms-retake`)
+
+Leg 1 exited at 2026-10-13T20:05Z (the artefact stamps `generated_at` 19:55Z), as `docs/observability/value_cycle_ab_s1_three_arm_20261013t.json`.
+It was produced at `05f9f3347`, on world digest `cdba75ebb9197b33` (the same as `r`), with the same book
+across all three arms, and the arms differ only in `name` and `renewal_margin_arm`. The clock audit
+passes, and arrears reconcile on all three arms. The grader is `r`-against-`r` placebo-checked: it reads
+zero on every leg.
+
+**The launch record's timing was wrong.** Leg 1 ran 5 h 44 min, not ~1.5 h, so the claim that no
+leg runs longer than 5 h is refuted. The cause is the next paragraph.
+
+**The book is 2.8 times larger, and this file did not name why.** `settlement_customer_year_budget`
+went from 1,750 to 5,000, the sample rate from 0.4188 to 0.3636, settled billing accounts from 272 to
+774, and accounts at the end of the window from 119 to 231. That is `ad0afe7b3`, the director's
+founder ruling of 2026-10-08 (80 to 400 founders, budget 1,750 to 5,000). It is one of the 501
+commits in `45122d156..05f9f3347`. The "what this cannot attribute" list above missed it, and it is
+the largest substrate move in the range. The demand digest also moved (`16c3829e` to `7d6195c5`).
+Of `r`'s 272 accounts, 149 are in `t`. So every `t - r` total below is mostly a different book, not a
+different price.
+
+| # | prediction | `t` | grade |
+|---|---|---|---|
+| T1 | every arm moves more than 1 sd (1,770) | control +309,787, value +309,195, level +310,653 (about 175 sd each) | **TRUE, for a reason the file did not give.** The book roughly doubled (`ad0afe7b3`). |
+| T2 | control moves up | +309,787 | **TRUE on the total, and the stated mechanism is not what moved it.** On the 149 accounts both runs share (post-hoc, not pre-registered), control net *fell* 18,746 (123,950 to 105,203). Value fell 21,851 and level fell 14,448. |
+| T3 | value-arm renewals priced within 236-320 | 623 (615 priced, 8 declined) | **REFUTED.** Book size. |
+| T4 | level moves by less than £5/MWh | 61.75 to 57.00 (-4.75) | **TRUE, by 0.25.** |
+| T5 | `value_advantage_gbp` stays positive | 5,244 to 4,652. Selection 11,345 to 9,886; level advantage -5,234 | **TRUE.** On the 149 shared accounts (post-hoc), value minus control went from +1,694 to -1,410. |
+| T8 | median contracted-rate shift on priced renewals up £1-4/MWh | 77 renewals priced in both runs: median +6.66 (IQR 2.46-12.51), 73 up and 4 down. Median chosen margin unchanged (0.00), so the base moved by a median of +5.93 | **REFUTED on the matched 77.** These are 77 of `r`'s 272, a subset conditioned on surviving into both books, so this cannot be read as the book's shift. The book-level 2.61 from the earlier finding stands as the population figure. |
+
+Other movements. The value arm's belief-vs-outcome AUC rose from 0.645 to 0.700. Against control
+outcomes it rose from 0.524 to 0.550. Method-skill concordance went from 0.576 to 0.565. Bound-decided
+priced renewals went from 50 of 272 (18%) to 87 of 615 (14%), and endpoint-at-ceiling from 91 to 176.
+
+**What this means for the page.** The `t` pair is the first value-arm reading on the 400-founder
+book the director ruled for, as well as on the term-cost base. Moving the page to it changes the
+book under every arm figure, so `CURRENT_WORLD_CHANGED_SINCE_THE_LAST_READING` must lead with the
+book, not the base. The `r` floor's sd (1,770) was drawn over a 272-account book. T7's band is
+therefore in more danger than this file allowed.
+
+**The floor.** The original chain was stopped at 21:05:54 local time, in the 30 s gap after leg 1. The
+console delivery seat did this on purpose, so that one sim-runner publish cycle could run. It
+re-issued the floors as `/var/tmp/se-termcost-arms-rest.sh`: it waits up to 3 h for that cycle,
+then runs floor a, floor b and the fold. The commands and artefacts are the same. At the leg-1 pace
+(about 1.9 h per full-window pass on this book), each floor leg is probably 7-8 h, not 3.7 h. T6-T7
+and the page move wait for the fold.
