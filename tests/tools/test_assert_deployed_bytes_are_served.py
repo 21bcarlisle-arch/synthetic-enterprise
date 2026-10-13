@@ -268,3 +268,35 @@ def test_a_push_where_NOTHING_reached_the_edge_claims_nothing_about_the_reader(m
     assert rc == 1
     assert "STALE" not in err, err
     assert "UNCONFIRMED" in err, err
+
+
+def test_the_stage_leaves_out_ONLY_the_file_pages_would_refuse(monkeypatch, tmp_path, capsys):
+    """Run 38474007478: one 57.7 MiB ledger made wrangler refuse the whole upload, so every
+    page stayed a week old. The stage must drop that file AND keep its siblings -- a stage
+    that drops everything passes an "oversized file is absent" check too."""
+    monkeypatch.setattr(A, "PROJECT", str(tmp_path))
+    monkeypatch.setattr(A, "PAGES_MAX_FILE_BYTES", 10)
+    (tmp_path / "site" / "state").mkdir(parents=True)
+    (tmp_path / "site" / "index.html").write_bytes(b"small")
+    (tmp_path / "site" / "state" / "ledger.json").write_bytes(b"x" * 11)
+    (tmp_path / "site" / "state" / "edge.json").write_bytes(b"x" * 10)   # AT the limit: kept
+    dest = tmp_path / "out"
+    assert A.stage(str(dest)) == 0
+    assert (dest / "index.html").read_bytes() == b"small"
+    assert (dest / "state" / "edge.json").exists()
+    assert not (dest / "state" / "ledger.json").exists()
+    assert "::warning::NOT DEPLOYED -- site/state/ledger.json" in capsys.readouterr().out
+
+
+def test_an_unsent_oversized_file_is_reported_and_not_waited_on(monkeypatch, tmp_path, capsys):
+    """Its bytes were never uploaded, so polling for them would red every deploy for eight
+    minutes on a fact already known. The small sibling is still asserted."""
+    monkeypatch.setattr(A, "PAGES_MAX_FILE_BYTES", 10)
+    rc, seen = _run(monkeypatch, tmp_path,
+                    {"site/index.html": b"a", "site/state/ledger.json": b"x" * 11},
+                    {"https://poesys.net/": b"a"})
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "NOT DEPLOYED" in out and "https://poesys.net/state/ledger.json" in out
+    assert not any(url.endswith("ledger.json") for url, _ in seen)
+    assert any(url == "https://poesys.net/" for url, _ in seen)

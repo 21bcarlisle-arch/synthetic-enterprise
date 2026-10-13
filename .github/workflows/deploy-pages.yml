@@ -21,7 +21,12 @@ jobs:
           fetch-depth: 0
 
       - name: Deploy site/ to Cloudflare Pages
-        run: npx wrangler pages deploy site --project-name=poesys-net --commit-dirty=true
+        # Staged without any file over Pages' 25 MiB limit, which refuses the WHOLE upload
+        # (run 38474007478: one 57.7 MiB ledger held every page on a week-old snapshot).
+        # Each file left out is printed as a ::warning:: -- see PAGES_MAX_FILE_BYTES.
+        run: |
+          python3 tools/assert_deployed_bytes_are_served.py --stage _pages_deploy
+          npx wrangler pages deploy _pages_deploy --project-name=poesys-net --commit-dirty=true
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

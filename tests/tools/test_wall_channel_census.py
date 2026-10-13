@@ -5204,3 +5204,22 @@ def test_a_producer_changed_on_a_FORK_the_artefact_never_saw_is_staleness_not_un
 
     assert prov.undetermined == [] and prov.determined
     assert prov.predates == [PRODUCER]
+
+
+def test_a_rev_that_retired_the_plain_run_for_its_gzip_is_still_read(git_tree):
+    """ed3dadd9d was the first publish to commit `run_output_latest.json.gz` and retire the plain
+    file. This census read only the plain path, so it refused every commit after it with
+    CensusUnavailable -- a HEAD-wide red made by the publish's own sanctioned layout. The plain
+    rev is read first, so both legs are asserted: before retirement and after."""
+    import gzip
+    import subprocess
+
+    before = _commit(git_tree, wcc.ARTEFACT_REL, json.dumps({"plain_key": 1}), "plain")
+    gz = git_tree / wcc.PUBLISHED_REL
+    gz.write_bytes(gzip.compress(json.dumps({"gz_key": 1}).encode(), mtime=0))
+    subprocess.run(["git", "-C", str(git_tree), "rm", "-q", "--cached", wcc.ARTEFACT_REL],
+                   check=True)
+    _git(git_tree, "add", "--", wcc.PUBLISHED_REL)
+    _git(git_tree, "commit", "-q", "-m", "retire plain for gz")
+    assert wcc.artefact_at(before, repo_root=git_tree) == {"plain_key": 1}
+    assert wcc.artefact_at("HEAD", repo_root=git_tree) == {"gz_key": 1}

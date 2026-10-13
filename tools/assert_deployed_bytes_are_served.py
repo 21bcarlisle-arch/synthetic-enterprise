@@ -53,6 +53,7 @@ from __future__ import annotations
 
 import hashlib
 import os
+import shutil
 import subprocess
 import sys
 import time
@@ -119,6 +120,43 @@ GAP_SECONDS = 15
 #: Served by the platform as configuration, not as assets. Fetching them 404s by design,
 #: which would be a false failure, not a finding.
 NOT_ASSETS = {"_headers", "_redirects", "_routes.json", "functions"}
+
+#: Cloudflare Pages refuses the WHOLE upload if any one file is larger than this -- wrangler's
+#: own refusal, run 38474007478 (2026-10-13): "Pages only supports files up to 25 MiB in
+#: size / state/billing_ledger.json is 57.7 MiB". One oversized artefact held every page on
+#: the 2026-10-05 snapshot. So the deploy stages `site/` without such files (`--stage`), and
+#: this check reports them as NOT DEPLOYED rather than waiting on bytes that were never sent.
+PAGES_MAX_FILE_BYTES = 25 * 1024 * 1024
+
+
+def oversized(root: str) -> list[tuple[str, int]]:
+    """[(path relative to `root`, size)] for every file Pages would refuse."""
+    found = []
+    for dirpath, _, names in os.walk(root):
+        for name in names:
+            full = os.path.join(dirpath, name)
+            size = os.path.getsize(full)
+            if size > PAGES_MAX_FILE_BYTES:
+                found.append((os.path.relpath(full, root), size))
+    return sorted(found)
+
+
+def stage(dest: str) -> int:
+    """Copy `site/` to `dest` minus the files Pages would refuse, naming each one left out.
+
+    A `::warning::` per file, so the omission is on the run's surface and not only in its log.
+    """
+    src = os.path.join(PROJECT, "site")
+    left_out = oversized(src)
+    skip = {os.path.join(src, rel) for rel, _ in left_out}
+    shutil.copytree(src, dest, ignore=lambda d, names: [
+        n for n in names if os.path.join(d, n) in skip
+    ])
+    for rel, size in left_out:
+        print(f"::warning::NOT DEPLOYED -- site/{rel} is {size / 2**20:.1f} MiB, over Pages' "
+              f"{PAGES_MAX_FILE_BYTES // 2**20} MiB per-file limit; readers keep whatever "
+              f"copy the edge last had")
+    return 0
 
 
 def changed_files(base: str | None) -> list[tuple[str, str]]:
@@ -253,6 +291,7 @@ def main() -> int:
     wanted: dict[str, str] = {}     # url -> expected sha256
     source: dict[str, str] = {}     # url -> the repo path it came from, for `classify`
     deleted: list[str] = []
+    unsent: list[str] = []          # over PAGES_MAX_FILE_BYTES, so `stage` never uploaded it
     for status, path in rows:
         url = url_for(path)
         if url is None:
@@ -263,6 +302,9 @@ def main() -> int:
         full = os.path.join(PROJECT, path)
         if not os.path.isfile(full):
             continue
+        if os.path.getsize(full) > PAGES_MAX_FILE_BYTES:
+            unsent.append(url)
+            continue
         with open(full, "rb") as fh:
             wanted[url] = hashlib.sha256(fh.read()).hexdigest()
         source[url] = path
@@ -272,6 +314,12 @@ def main() -> int:
             "NOT ASSERTED -- these URLs were deleted by this push, and a deploy cannot\n"
             "prove absence through an edge cache that serves last-known-good:\n  "
             + "\n  ".join(deleted)
+        )
+
+    if unsent:
+        print(
+            "NOT DEPLOYED -- over Pages' per-file limit, so this push never uploaded them\n"
+            "and a reader is still on an older copy:\n  " + "\n  ".join(unsent)
         )
 
     if not wanted:
@@ -321,4 +369,6 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    if sys.argv[1:2] == ["--stage"]:
+        raise SystemExit(stage(sys.argv[2]))
     raise SystemExit(main())

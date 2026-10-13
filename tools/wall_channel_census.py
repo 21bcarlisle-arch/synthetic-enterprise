@@ -117,10 +117,12 @@ from tools.epistemic_wall import (  # noqa: E402
     head_export,
     indirect_crossings,
 )
+from tools.run_output_store import PUBLISHED_REL, load_run_output, loads_run_output  # noqa: E402
 
 BASELINE_PATH = PROJECT_DIR / "docs" / "design" / "wall_channel_census_baseline.json"
 
-#: The artefact channel F is a census of. Tracked in git, so it can be read at a rev.
+#: The artefact channel F is a census of. Tracked in git, so it can be read at a rev -- as
+#: PUBLISHED_REL (its gzip) once a publish has retired the plain file, which ed3dadd9d did first.
 ARTEFACT_REL = "docs/reports/run_output_latest.json"
 
 #: Every tree a crossing can live in. `tools` is here because channel D's ports live there.
@@ -712,7 +714,7 @@ def artefact_wire_conformance_at(
     if worktree:
         artefact_path = repo_root / ARTEFACT_REL
         try:
-            artefact = json.loads(artefact_path.read_text(encoding="utf-8"))
+            artefact = load_run_output(artefact_path)
         except (OSError, json.JSONDecodeError) as exc:
             raise CensusUnavailable(f"{ARTEFACT_REL} is unreadable in the worktree: {exc}") from exc
         if not isinstance(artefact, dict):
@@ -763,14 +765,15 @@ def producer_paths_of(root: str) -> list[str]:
     return sorted({site.split(" -> ")[0] for site in wire_publish_keys(root)})
 
 
-def _last_commit_touching(rel: str, rev: str, repo_root: Path) -> str | None:
+def _last_commit_touching(rel: str | tuple[str, ...], rev: str, repo_root: Path) -> str | None:
     """The commit at or before `rev` that last changed `rel`, or None if git cannot say.
 
     None is UNDETERMINED, never "unchanged" -- every caller routes it to the undetermined list.
     """
     try:
         proc = subprocess.run(
-            ["git", "-C", str(repo_root), "rev-list", "-1", rev, "--", rel],
+            ["git", "-C", str(repo_root), "rev-list", "-1", rev, "--",
+             *((rel,) if isinstance(rel, str) else rel)],
             capture_output=True, text=True, check=False,
         )
     except OSError:
@@ -901,7 +904,7 @@ def artefact_provenance(
             artefact_commit=None, producers={}, predates=[], undetermined=[],
             reason="no wire call sites in this tree",
         )
-    artefact_commit = _last_commit_touching(ARTEFACT_REL, rev, repo_root)
+    artefact_commit = _last_commit_touching((ARTEFACT_REL, PUBLISHED_REL), rev, repo_root)
     if artefact_commit is None:
         return ArtefactProvenance(
             artefact_commit=None, producers=producers, predates=[],
@@ -3531,7 +3534,7 @@ def nested_schema_at(
     reader set reports a difference that is nobody's defect.
     """
     if worktree:
-        artefact = json.loads((repo_root / ARTEFACT_REL).read_text(encoding="utf-8"))
+        artefact = load_run_output(repo_root / ARTEFACT_REL)
         return nested_schema(artefact, enumerate_f(str(repo_root), artefact))
     artefact = artefact_at(rev, repo_root)
     with head_export(str(repo_root), CENSUS_DIRS, rev=rev) as root:
@@ -3712,22 +3715,29 @@ def census(root: str, artefact: dict) -> dict[str, set[str]]:
 
 
 def artefact_at(rev: str, repo_root: Path = PROJECT_DIR) -> dict:
-    """The published artefact AS `rev` CONTAINS IT -- the same tree the readers come from."""
+    """The published artefact AS `rev` CONTAINS IT -- the same tree the readers come from.
+
+    The plain file if `rev` still tracks it, else its gzip: a publish commits PUBLISHED_REL and
+    retires the plain copy, so a census reading only the plain path refuses every commit after it.
+    """
+    errors = []
+    for rel in (ARTEFACT_REL, PUBLISHED_REL):
+        try:
+            proc = subprocess.run(
+                ["git", "-C", str(repo_root), "show", f"{rev}:{rel}"],
+                capture_output=True, check=False,
+            )
+        except OSError as exc:
+            raise CensusUnavailable(f"could not run git show: {exc}") from exc
+        if proc.returncode == 0:
+            break
+        errors.append(f"{rel} (rc {proc.returncode}): {proc.stderr.decode(errors='replace').strip()}")
+    else:
+        raise CensusUnavailable(f"the run-output artefact is not readable at {rev}: "
+                                + "; ".join(errors))
     try:
-        proc = subprocess.run(
-            ["git", "-C", str(repo_root), "show", f"{rev}:{ARTEFACT_REL}"],
-            capture_output=True, text=True, check=False,
-        )
-    except OSError as exc:
-        raise CensusUnavailable(f"could not run git show: {exc}") from exc
-    if proc.returncode != 0:
-        raise CensusUnavailable(
-            f"{ARTEFACT_REL} is not readable at {rev} (rc {proc.returncode}): "
-            f"{proc.stderr.strip()}"
-        )
-    try:
-        loaded = json.loads(proc.stdout)
-    except json.JSONDecodeError as exc:
+        loaded = loads_run_output(proc.stdout)
+    except (json.JSONDecodeError, OSError, EOFError) as exc:
         raise CensusUnavailable(f"{ARTEFACT_REL} at {rev} is not valid JSON: {exc}") from exc
     if not isinstance(loaded, dict):
         raise CensusUnavailable(f"{ARTEFACT_REL} at {rev} is not an object")
