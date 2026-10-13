@@ -1,6 +1,6 @@
 **Severity:** LATENT · **Lane:** B_commercial · **Epoch:** unassigned · **Atom:** `unminted`
 **What:** pre-registration, filed before any run: the 23 of 27 held loss notices whose renewal sat below its own cost floor, recounted at origin HEAD (d55598dd6, carrying 03a0b66da and 04913b693) · claim `the-renewals-below-their-own-cost-floor-are-recounted-at-origin-head`
-**Status:** PREDICTED 2026-10-13, no arm run yet
+**Status:** GRADED 2026-10-13 -- P1-P5 on 61109 (95b3a38d2); P6 holds on 61110-61112; P7 (a) refuted, (b) ungradable, (c) GBP 89 outside its band. Results are beside the finding's claims.
 
 # The renewals below their own cost floor, recounted at origin HEAD: predictions
 

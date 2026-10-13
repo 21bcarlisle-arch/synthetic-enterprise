@@ -80,6 +80,29 @@ the published default tariff. The base seed offered 2 of 23. On fresh seeds the 
 >
 > Seeds 61110-61112 and the price-match side of the renewal-cut pair are re-running at d55598dd6
 > (predictions P6-P7, filed first). Their results go beside the next claim.
+>
+> **AMENDED again 2026-10-13: P6 graded. Seeds 61110-61112 at d55598dd6, same arm and book.**
+> Artefacts: `/var/tmp/floor-recount-out/sv-k1-6111{0,1,2}.json`. The count is the one used for 61109:
+> held rows with renewal < `cost_floor` - 0.01, plus the number of save offers.
+>
+> | seed | held | held, below floor (ed668c733 -> d55598dd6) | held, at floor | all answered below floor | save offers |
+> |---|---|---|---|---|---|
+> | 61109 | 8 | 6 -> 2 | 5 | 7 / 62 | 0 |
+> | 61110 | 7 | 6 -> **1** | 5 | 9 / 52 | 0 |
+> | 61111 | 6 | 5 -> **0** | 5 | 6 / 58 | 0 |
+> | 61112 | 7 | 6 -> **1** | 6 | 10 / 61 | 0 |
+>
+> **P6 holds on every seed.** Held below floor: 23 of 27 before, 4 of 28 now. 21 of the 28 held
+> renewals sit at their floor to the penny. There were 0 offers and 0 saves. All four remaining rows
+> are gas, and each one divides back to its floor or above by a tier:
+> - 61110 SYN-2016-150, 64.23 against a floor of 67.21. That needs 5% or 8%.
+> - 61112 SYN-2016-127, 64.66 against 66.25. Any tier reaches it.
+>
+> That is consistent with the risk-tier cut, but it does not identify it. 127 fits every tier, and the
+> artefact keeps no retention event to tie a cut to the row. `5c137eb5b` (landed after d55598dd6)
+> floors that cut, so on origin these rows should read at floor. That is not measured here.
+> **The finding's headline premise is spent on all four seeds.** The save's inertness is the design
+> question stated above: a book renewed at cost leaves the match nothing to offer.
 
 ## The renewal cut: the price match loses net on every seed
 
@@ -104,6 +127,36 @@ three of the four seeds).
 falls on every seed. **The renewal cut stays on risk_tiers, and the recommendation of a99685b68 (the
 default book with three churn-roll floor seeds) is withdrawn.** It did not survive fresh book seeds,
 which is the point of the four principles' third.
+
+> **AMENDED 2026-10-13: P7 graded, one seed (61109) at d55598dd6.** The price-match arm is
+> `/var/tmp/floor-recount-out/rc-price_match-61109.json`. The tiers side is the save run
+> `sv-k1-61109.json`: it made 0 offers, so it is the CURRENT_POLICY run, and `retention_cut_sizing`
+> is `risk_tiers` there. At ed668c733 the two runs agreed to the penny (233,035.45).
+>
+> | 61109 | ed668c733 (tiers / match) | d55598dd6 (tiers / match) |
+> |---|---|---|
+> | net GBP | 233,035 / 231,396 | 253,051 / 249,962 |
+> | match - tiers | -1,639 | **-3,089** |
+> | renewal departures | 63 / 66 | 64 / 68 |
+> | match offers, cost GBP | 47, 1,006 | **47**, 783 |
+>
+> Against P7:
+> - **(a) is refuted.** The match made 47 offers before and 47 now. Its mean cut fell from GBP 21.4 to
+>   16.7, so the floor reached the size of the cut but not the number of cuts.
+> - **(b) cannot be graded.** The renewal-cut arm writes no loss-notice log, only totals. The
+>   prediction asked for a field the instrument does not keep.
+> - **(c)** I could not say the sign. It is negative and GBP 89 outside the GBP 3,000 band.
+>
+> **What this does to the withdrawal above: nothing yet, as the pre-registration said.** One seed can
+> neither confirm nor withdraw. The direction repeats and the gap doubles. There is also a structural
+> reason this pair is still not the fair one. At d55598dd6 the tiers side can still cut below the cost
+> floor, and the match cannot. `5c137eb5b` closed that gap after these runs were launched. So this is
+> the cost-respecting rule against the below-cost one, which the correction below warns about. The
+> tiers arm wins that comparison by GBP 3,089 on this seed.
+>
+> **The re-grade that would decide it** is both arms, on four seeds, at a base that carries
+> `5c137eb5b` and the value-arm term-cost base (`2473321d6`, which says the arms are re-taken). It
+> is not launched from this item. Until it runs, **the renewal cut stays on risk_tiers**, as above.
 
 ## The next item, ahead of new work
 
