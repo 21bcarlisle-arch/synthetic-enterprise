@@ -6,6 +6,10 @@ on:
     paths:
       - site/**
       - docs/PROJECT_STATE.md
+  # A fix to the deploy itself touches no site/** path, so without this the site stays on the
+  # failed push's predecessor until the next publish (b1c3e4832). A dispatch has no
+  # `event.before`, so the served-bytes check asserts only HEAD's own site/ diff -- verify by hand.
+  workflow_dispatch:
 
 jobs:
   deploy:
