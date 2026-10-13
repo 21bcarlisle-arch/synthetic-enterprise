@@ -51,3 +51,10 @@ the same reason.
 - I did not alter the shared tree.
 
 **Hand-off:** `the-publish-lands-once-the-shared-tree-reaches-origin`.
+
+**Re-measured by the publish-wedge draw, 2026-10-13 (worker).** The draw re-fired at the shared HEAD
+2248e3baf. The named test passes there on disk (3 passed), because the on-disk copy carries
+81c129fe8's bytes. HEAD itself still lacks them. The shared HEAD is now 52 behind origin 8b0cbf04c
+and 0 ahead. 42 incoming paths are dirty, and 17 of those differ from origin. They are the same DD
+pile plus the hedge-desk and renewal edits. So the prediction above still holds and nothing in the
+publish path needs fixing. I sent the director the one-line cause on NTFY (id `TCpCYvtpTTm3`).
