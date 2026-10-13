@@ -85,7 +85,7 @@ from company.governance.decision_rights import (
 )
 from company.pricing.tariff_engine import CompanyTariffEngine
 from company.risk.hedge_policy import COMPANY_MIN_HEDGE_FLOOR
-from saas.tariff_pricing import price_fixed_tariff
+from saas.tariff_pricing import TARGET_MARGIN_GBP_PER_MWH, price_fixed_tariff
 
 _COMPANY_ENGINE = CompanyTariffEngine()
 
@@ -259,6 +259,35 @@ def strike_fixed_unit_rate(
         locked_policy,
         locked_network,
     )
+
+
+#: Any positive volume: capital cost is spread over the same EAC it is charged on, so the EAC
+#: cancels in `price_fixed_tariff` and a per-MWh rate does not depend on it.
+_ANY_EAC_KWH = 1000
+
+
+def pre_margin_unit_rate(
+    company_forward_price_gbp_per_mwh: float | None,
+    term_start: str,
+    locked_policy_cost_gbp_per_mwh: float | None,
+    locked_network_cost_gbp_per_mwh: float | None,
+) -> float | None:
+    """The term's own rate BEFORE margin: forward + capital + the two locked costs, GBP/MWh.
+
+    The strike with its margin taken off, through the same `price_fixed_tariff` call, so it moves
+    with the strike rather than beside it. It is what a margin over this term is measured from:
+    the cost floor alone would read the capital charge as margin. `None` when any component is
+    unknown, as `own_cost_floor`.
+    """
+    if (company_forward_price_gbp_per_mwh is None or locked_policy_cost_gbp_per_mwh is None
+            or locked_network_cost_gbp_per_mwh is None):
+        return None
+    return price_fixed_tariff(
+        company_forward_price_gbp_per_mwh, _ANY_EAC_KWH, term_start[:10],
+        naked_fraction=NAKED_FRACTION,
+        policy_cost_per_mwh=locked_policy_cost_gbp_per_mwh,
+        network_cost_per_mwh=locked_network_cost_gbp_per_mwh,
+    ) - TARGET_MARGIN_GBP_PER_MWH
 
 
 @dataclass(frozen=True)

@@ -25,7 +25,7 @@ and remedy. They must be measured separately, as CLAUDE.md's bill-shock rule req
 
 **Time SAVED** is a difference in minutes, per class, between this household with us and the same
 household in the counterfactual. As with money (`THE_MODEL_ON_A_PAGE.md` §2), the counterfactual is
-the hard half. **The unit is minutes. Do not convert to £** until the director rules otherwise (§5 Q1).
+the hard half. **The unit is minutes. Never convert to £** (ruled 2026-10-12, canon M3; §5 Q1).
 Three currencies means three units, and folding time into money removes the currency the mission names.
 
 ## 2. What the published record establishes (fetched and read this pass)
@@ -111,6 +111,10 @@ event census, and it lights up T3, the class the regulator already prices. No ne
   currencies, and a conversion makes one of them disappear into money. The GSOP £30 shows that even the
   regulator prices *events* rather than hours. This is canon intent, so it is the director's to rule. It
   does not block L1, which works in minutes either way.
+  **RULED 2026-10-12 (canon v4 M3, decision 3):** time "means household effort, measured in its own unit
+  (household minutes per kind of activity) and never converted to pounds." The frame works in minutes
+  per class T1-T4, never summed across classes, with no value-of-time conversion. A GSOP payment stays a
+  money transfer and is never read as a measure of time.
 - **Q2. Does T1 belong to us at all?** Most switching time is spent with the market. We save it only by
   making staying the right answer (no need to shop) or by making a move to us cheap in attention.
   *Recommendation:* defer T1 to C30 (advice reaching a household) and PB4 (engagement). T2–T4 are the

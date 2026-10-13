@@ -1377,9 +1377,10 @@ FUNNEL_STAGES: tuple[str, ...] = (
 class MarginArmUplift:
     """What the value arm moved this renewal by, and enough to refute it.
 
-    `uplift_gbp_per_mwh` is a DELTA AGAINST THE FLAT RULE, never a margin: the rate handed to the
-    chain already carries `TARGET_MARGIN_GBP_PER_MWH`, so adding the chosen margin outright would
-    charge the flat rule twice. It is SIGNED, because the arm prices some accounts BELOW the flat
+    `uplift_gbp_per_mwh` is the MOVE from the rate the chain handed the arm to `base + chosen
+    margin`, never a margin. Where nothing upstream moved the strike that is `chosen - GBP 2`, the
+    old reading; where writers 1-3 moved it, it also undoes their move, because the arm's margin is
+    measured from the term's own cost (`base_source`). It is SIGNED, because the arm prices some accounts BELOW the flat
     rule -- measured, 5 of 263 -- and a writer that could only add would turn a per-customer
     decision back into a surcharge.
     """
@@ -1402,7 +1403,18 @@ class MarginArmUplift:
     #: report a stage total. One of `FUNNEL_STAGES`, and set at the same statement as the prose.
     #: `None` only on the priced path, where `stage` reads it off `decision is not None`.
     not_run_stage: str | None = None
+    #: What the arm measured its margin FROM, GBP/MWh, on the priced path; `None` otherwise.
+    base_rate_gbp_per_mwh: float | None = None
+    #: `BASE_TERM_COST` (the term's own pre-margin rate) or `BASE_STRIKE_LESS_FLAT_MARGIN` (the
+    #: handed rate less GBP 2, which is the cost only if nothing upstream moved it).
+    base_source: str | None = None
 
+
+#: The arm's margin is measured from `renewal_desk.pre_margin_unit_rate`: forward + capital +
+#: locked policy + locked network for THIS term.
+BASE_TERM_COST = "term_cost"
+#: No offer components on the record, so the handed rate less the flat GBP 2 stands in for it.
+BASE_STRIKE_LESS_FLAT_MARGIN = "strike_less_flat_margin"
 
 
 def segments_for(segment: str | None, is_domestic: bool) -> tuple[str, str]:
@@ -1466,6 +1478,7 @@ def renewal_margin_uplift(
     billed_last_year_gbp: float | None = None,
     default_belief_rate: float | None = None,
     stayer_default_rate_gbp_per_mwh: float | None = None,
+    pre_margin_rate_gbp_per_mwh: float | None = None,
 ) -> MarginArmUplift:
     """The £/MWh this renewal moves by, under ONE arm, from the supplier's own settled book.
 
@@ -1499,6 +1512,12 @@ def renewal_margin_uplift(
 
     `None` remains legitimate and means what it says: no ceiling binds this renewal. A non-domestic
     or non-capped product genuinely has none, and the caller that knows which is the chain.
+
+    `pre_margin_rate_gbp_per_mwh` IS WHAT THE MARGIN IS MEASURED FROM (2026-10-13). This used
+    `locked_unit_rate - GBP 2`, which is the term's cost only if nothing upstream moved the strike;
+    writer 1 moves it by -5% to +x% first, so the arm scored every candidate on a margin it did not
+    earn (`SEAT_FINDING_THE_VALUE_ARM_PRICES_ITS_MARGIN_OFF_THE_TERMS_OWN_COST_2026-10-13.md`).
+    The chain passes `renewal_desk.pre_margin_unit_rate`; `None` keeps the old base, named.
     """
     if arm == FLAT_RULES:
         return MarginArmUplift(0.0, not_run_stage=STAGE_CONTROL_ARM)
@@ -1527,6 +1546,11 @@ def renewal_margin_uplift(
 
     # Two vocabularies, mapped rather than shared -- see `segments_for`.
     churn_segment, cost_segment = segments_for(segment, is_domestic)
+    if pre_margin_rate_gbp_per_mwh is not None:
+        base, base_source = float(pre_margin_rate_gbp_per_mwh), BASE_TERM_COST
+    else:
+        base = float(locked_unit_rate) - TARGET_MARGIN_GBP_PER_MWH
+        base_source = BASE_STRIKE_LESS_FLAT_MARGIN
     # THE COMMODITY IS PASSED, NOT ASSUMED. Every quantity `observed_account_state`
     # derives is commodity-specific — which settled records belong to this account's
     # book, what cadence cost-to-serve is charged at, and which standing-charge table
@@ -1547,10 +1571,9 @@ def renewal_margin_uplift(
             # that would have silently priced `flat_at_level` renewals with the value arm.
             arm=arm,
             current_rate_gbp_per_mwh=observed["current_rate_gbp_per_mwh"],
-            # The rate BEFORE margin. The strike already added the flat rule, so subtracting it
-            # is what makes `base + chosen` the arm's own answer rather than the flat rule plus
-            # it.
-            base_rate_gbp_per_mwh=float(locked_unit_rate) - TARGET_MARGIN_GBP_PER_MWH,
+            # The rate BEFORE margin, so `base + chosen` is the arm's own answer -- see the
+            # docstring on `pre_margin_rate_gbp_per_mwh` for why it is not `locked - GBP 2`.
+            base_rate_gbp_per_mwh=base,
             eac_kwh=observed["eac_kwh"],
             tenure_years=observed["tenure_years"],
             cost_to_serve_gbp_per_year=observed["cost_to_serve_gbp_per_year"],
@@ -1617,8 +1640,15 @@ def renewal_margin_uplift(
             0.0, not_run_reason="no lawful, predictable offer: {}".format(exc), declined=True,
             not_run_stage=STAGE_DECLINED)
     return MarginArmUplift(
-        uplift_gbp_per_mwh=decision.margin_gbp_per_mwh - TARGET_MARGIN_GBP_PER_MWH,
+        # Written as `chosen - GBP 2` on the fallback, so a run without offer components moves by
+        # exactly the float it always did rather than by a rounding of it.
+        uplift_gbp_per_mwh=(
+            base + decision.margin_gbp_per_mwh - float(locked_unit_rate)
+            if base_source == BASE_TERM_COST
+            else decision.margin_gbp_per_mwh - TARGET_MARGIN_GBP_PER_MWH),
         decision=decision,
+        base_rate_gbp_per_mwh=base,
+        base_source=base_source,
     )
 
 

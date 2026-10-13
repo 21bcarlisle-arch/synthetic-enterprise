@@ -697,6 +697,16 @@ def _route_arrivals_to_rooms() -> list[str]:
             continue
     return moved
 
+def canon_doc_lacks_where_it_lands(name: str, text: str) -> bool:
+    """A new DIRECTOR_CANON_* document that does not say which pages it lands on (canon v4 alignment
+    steer, step 6b, 2026-10-12): "The ruling is not done until each listed page is updated, or marked
+    not applicable with a reason." Only canon documents are asked; a line `## Where this lands` is the
+    section."""
+    if not name.startswith("DIRECTOR_CANON_"):
+        return False
+    return not any(line.strip().lower() == "## where this lands" for line in text.splitlines())
+
+
 def check_once(seen: set[str]) -> set[str]:
     """Check docs/staging/ once. Notifies (filename only) for any file not in
     `seen`, logs each notification, queues any genuinely new actionable
@@ -737,6 +747,14 @@ def check_once(seen: set[str]) -> set[str]:
             # commit, so the window between "arrived" and "a human noticed" is a window in which
             # nothing on this machine can land. Closing it here makes that window zero.
             applied = auto_chain(STAGING_DIR / name)
+            try:
+                _missing_lands = canon_doc_lacks_where_it_lands(
+                    name, (STAGING_DIR / name).read_text(encoding="utf-8", errors="replace"))
+            except OSError:
+                _missing_lands = False
+            if _missing_lands:
+                log(f"FLAGGED {name}: a canon document with no '## Where this lands' section, so no "
+                    "page is named for it to land on (canon v4 alignment steer, step 6b)")
             if applied:
                 log(f"Auto-chained {name} as {applied} (it arrived unclassified, which refuses "
                     f"every lane's commit)")
@@ -768,7 +786,8 @@ def check_once(seen: set[str]) -> set[str]:
                 # conversely, without mark_sent a SUCCESSFUL send here would leave
                 # the item looking never-sent, so the deadman's daily sweep would
                 # re-fire it every cycle instead of once a day.
-                sent_id = ntfy(f"New staged instruction: {name} — pending review")
+                sent_id = ntfy(f"New staged instruction: {name} — pending review"
+                               + (" — it has no 'Where this lands' section" if _missing_lands else ""))
                 if sent_id:
                     action_needed.mark_sent(item_id)
                 log(f"Notified (once): {name}")
