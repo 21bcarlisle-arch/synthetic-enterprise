@@ -134,6 +134,17 @@ withdrawn rather than regraded. If Q1 holds, P11/P13's bad-debt moves stand as D
 register's "small responses" prior was wrong. My expectation is that Q1 holds: probe changes no draw
 that the default setting makes, unless the 1e-12 complaint share consumes a random draw default does not.
 
+**Run state, 2026-10-13 05:00.** The first launch (`dd4b-il200-probe`) died queued: no systemd unit was
+ever created, its `--wait-for-pid` target was itself dead by hand-off, and `f200-probe-il/` sat empty
+with a zero-byte launch log. Re-launched under `setsid` as its own session leader (verified: a distinct
+session id from the launching shell), PID 615599, from the same locked worktree `/var/tmp/se-dd4b-il200`
+(`dd_review_in_loop.py`, `run_phase2b.py`, `dd_shock_response.py` re-verified byte-identical to
+`71c324b6d` by direct diff against `git show`, not `git diff`, since the files are untracked in that
+worktree and a tracked-only diff reads an untracked file as if absent). `/var/tmp/dd4b_runs/il/grade200.py`
+is extended to load the `probe` arm (output directory `f200-probe-il`, not `f200-probe`) and print Q1-Q4
+verdicts against the bands above. Based on `default`'s 36-minute runtime at the same 200/0 sizing, expect
+output by about 05:40-05:50. Grading and this table's completion are handed on as a continuation.
+
 ## The content tail, explained (2026-10-13)
 
 Script: `/var/tmp/dd4b_runs/il/tail200.py` over `f200-low/report.json` and `told.json`; output in
