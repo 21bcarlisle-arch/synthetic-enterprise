@@ -98,7 +98,22 @@ __all__ = [
     "reviewed_monthly_amount",
     "reviewed_monthly_amount_at_rates",
     "reviewed_standing",
+    "simple_balance_after_window",
 ]
+
+
+def simple_balance_after_window(entering_balance: float, standing_amount: float, window_bills: list) -> float:
+    """The balance a direct-debit account carries out of one completed 12-month window -- what it
+    carried in, plus what came in at the standing monthly amount, less what was billed. The world
+    already holds every figure this touches (its own issued bills, the standing amount it set); the
+    one judgement call -- whether and how a review recovers it -- stays behind `reviewed_standing`,
+    which is why this is bookkeeping at the seam rather than a policy decision crossing it. See
+    `company.billing.dd_review.simple_balance_after_window` for the one implementation."""
+    from company.billing.dd_review import (
+        simple_balance_after_window as _simple_balance_after_window,
+    )
+
+    return _simple_balance_after_window(entering_balance, standing_amount, window_bills)
 
 
 def reviewed_monthly_amount(actual_annual_spend_gbp: float) -> float:
@@ -157,7 +172,7 @@ def reviewed_monthly_amount_at_rates(
     )
 
 
-def reviewed_standing(rule: str, completed: list, first_of_new) -> float:
+def reviewed_standing(rule: str, completed: list, first_of_new, **kwargs) -> float:
     """The standing monthly Direct Debit the supplier's annual review sets after a completed window.
 
     In: the review rule the run put the desk on, the window's bills as issued, and the first bill
@@ -166,10 +181,14 @@ def reviewed_standing(rule: str, completed: list, first_of_new) -> float:
     falls back to last year's spend are the supplier's review policy, in
     `company/billing/dd_review.py`. Until 2026-10-12 that policy was computed inside
     `simulation/dd_balance_book.py`; the world now asks and is told.
+
+    `**kwargs` carries `own_forecast_plus_balance`'s optional `term_end_iso`,
+    `forward_rate_per_mwh_ex_vat` and the balance to clear straight through -- see
+    `dd_review.reviewed_standing` for what each does and what each defaults to.
     """
     from company.billing.dd_review import reviewed_standing as _reviewed_standing
 
-    return _reviewed_standing(rule, completed, first_of_new)
+    return _reviewed_standing(rule, completed, first_of_new, **kwargs)
 
 
 def opening_monthly_amount(

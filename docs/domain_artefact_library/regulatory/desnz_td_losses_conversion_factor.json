@@ -1,0 +1,92 @@
+{
+ "artefact": "desnz_td_losses_conversion_factor",
+ "version": 1,
+ "published_by": "BEIS (2016-2022) / DESNZ (2023-), 'Greenhouse gas reporting: conversion factors', one set per reporting year",
+ "what_this_is": "THE PUBLISHED FACTOR, NOT A READING OF IT. Transmission and distribution losses for UK electricity, row 'T&D- UK electricity', total kgCO2e per kWh, each reporting year's own file. Added to the generation factor for electricity consumed; a separate line, never folded into it (canon v4 CO4).",
+ "basis": {
+  "units": "kgCO2e per kWh of electricity consumed",
+  "year_key": "the BEIS/DESNZ reporting year whose factor set states the value",
+  "scope": "T&D losses only; not generation, not well-to-tank"
+ },
+ "provenance_legend": {
+  "transcribed": "read from that year's official workbook on 2026-10-12 for docs/market_research/household_carbon_and_the_measures_that_save_it.md ('T&D losses by reporting year'), each year's gov.uk URL recorded there. 2021 and 2022 were recovered past an xlrd parsing fault and cross-checked against two to three official files each. Asserted as an equality by the year-keyed rate census."
+ },
+ "r13_wall": "Published conversion factors, transcribed blind to company results. No value here may be moved because a carbon figure looks wrong.",
+ "portability": "One factor per reporting year. Another market supplies its own artefact behind the same loader.",
+ "open_items": [],
+ "factors": [
+  {
+   "year": 2016,
+   "kg_co2e_per_kwh": 0.03727,
+   "provenance": "transcribed",
+   "source": "docs/market_research/household_carbon_and_the_measures_that_save_it.md"
+  },
+  {
+   "year": 2017,
+   "kg_co2e_per_kwh": 0.03287,
+   "provenance": "transcribed",
+   "source": "docs/market_research/household_carbon_and_the_measures_that_save_it.md"
+  },
+  {
+   "year": 2018,
+   "kg_co2e_per_kwh": 0.02413,
+   "provenance": "transcribed",
+   "source": "docs/market_research/household_carbon_and_the_measures_that_save_it.md"
+  },
+  {
+   "year": 2019,
+   "kg_co2e_per_kwh": 0.0217,
+   "provenance": "transcribed",
+   "source": "docs/market_research/household_carbon_and_the_measures_that_save_it.md"
+  },
+  {
+   "year": 2020,
+   "kg_co2e_per_kwh": 0.02005,
+   "provenance": "transcribed",
+   "source": "docs/market_research/household_carbon_and_the_measures_that_save_it.md"
+  },
+  {
+   "year": 2021,
+   "kg_co2e_per_kwh": 0.01879,
+   "provenance": "transcribed",
+   "source": "docs/market_research/household_carbon_and_the_measures_that_save_it.md"
+  },
+  {
+   "year": 2022,
+   "kg_co2e_per_kwh": 0.01769,
+   "provenance": "transcribed",
+   "source": "docs/market_research/household_carbon_and_the_measures_that_save_it.md"
+  },
+  {
+   "year": 2023,
+   "kg_co2e_per_kwh": 0.017915,
+   "provenance": "transcribed",
+   "source": "docs/market_research/household_carbon_and_the_measures_that_save_it.md"
+  },
+  {
+   "year": 2024,
+   "kg_co2e_per_kwh": 0.0183,
+   "provenance": "transcribed",
+   "source": "docs/market_research/household_carbon_and_the_measures_that_save_it.md"
+  },
+  {
+   "year": 2025,
+   "kg_co2e_per_kwh": 0.01853,
+   "provenance": "transcribed",
+   "source": "docs/market_research/household_carbon_and_the_measures_that_save_it.md"
+  }
+ ],
+ "source_check": {
+  "publication": "DESNZ, 'UK government conversion factors for company reporting of greenhouse gas emissions' (gov.uk collection; one factor set per reporting year)",
+  "url": "https://www.gov.uk/government/collections/government-conversion-factors-for-company-reporting",
+  "fetched": "2026-10-12",
+  "version_token": "2026-06-11T09:30:08+01:00",
+  "version_token_is": "publisher_page_date",
+  "how_to_recheck": "GET https://www.gov.uk/api/content/government/collections/government-conversion-factors-for-company-reporting and read `public_updated_at`. A later value means a set was added or revised; DESNZ publishes a new year's set each June, which adds a year to this artefact rather than changing an old one. The token was read on 2026-10-12; the factor values themselves were read by the 2026-10-12 knowledge pass (see the legend).",
+  "checked_for_supersession": {
+   "on": "2026-10-12",
+   "found": "current",
+   "note": "collection page date read from the gov.uk content API on 2026-10-05; the 2026 set (June 2026) is not yet transcribed and is a new year, not a revision of the years held."
+  }
+ }
+}

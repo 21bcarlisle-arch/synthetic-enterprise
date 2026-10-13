@@ -46,12 +46,13 @@ def populate_compliance_scorecard(data: dict):
     report data, one check per SLC domain per year. Returns None when there is no
     yearly data. Shared by _section_compliance_scorecard's markdown table and
     tools/generate_dashboard_data.py's Regulatory tab (SUPPLIER_TAB_OVERHAUL.md)."""
+    import datetime as dt
+
     from company.regulatory.compliance_scorecard import (
-        ComplianceScorecard,
         ComplianceDomain,
+        ComplianceScorecard,
         RAGStatus,
     )
-    import datetime as dt
 
     years = data.get("years", {})
     ma = data.get("management_accounts") or {}
@@ -104,17 +105,31 @@ def populate_compliance_scorecard(data: dict):
                                 notes=f"Bad debt {bad_debt_pct:.2f}% of revenue")
 
         # INFORMATION & TRANSPARENCY (SLC 20-24): demand estimation accuracy
+        # A row's `error_pct` is None until the run settles the full year ahead of its term
+        # (run_phase2b `_grade_demand_estimates_against_the_year_ahead`): no actual yet, not a
+        # zero error. Averaging it as 0.0 would publish a perfect forecast nobody made, and
+        # abs(None) killed the 2026-10-13 weekly publish. With nothing graded the check cannot
+        # tell, so it says so and is not GREEN.
         dem_log = [e for e in data.get("demand_estimation_log", []) if e.get("term_start", "")[:4] == yr]
-        avg_err = abs(sum(abs(e.get("error_pct", 0.0)) for e in dem_log) / len(dem_log)) if dem_log else 0.0
-        if avg_err < 10.0:
-            info_rag = RAGStatus.GREEN
-        elif avg_err < 20.0:
-            info_rag = RAGStatus.AMBER
+        dem_errs = [abs(e["error_pct"]) for e in dem_log if e.get("error_pct") is not None]
+        dem_ungraded = len(dem_log) - len(dem_errs)
+        if not dem_errs:
+            scorecard.record_check(ComplianceDomain.INFORMATION_TRANSPARENCY, as_of, RAGStatus.AMBER,
+                                    metric_value=None, threshold=10.0,
+                                    notes=f"EAC estimation error unavailable: 0 of {len(dem_log)} "
+                                          f"estimates graded against a settled year ahead")
         else:
-            info_rag = RAGStatus.RED
-        scorecard.record_check(ComplianceDomain.INFORMATION_TRANSPARENCY, as_of, info_rag,
-                                metric_value=round(avg_err, 1), threshold=10.0,
-                                notes=f"EAC estimation error {avg_err:.1f}%")
+            avg_err = sum(dem_errs) / len(dem_errs)
+            if avg_err < 10.0:
+                info_rag = RAGStatus.GREEN
+            elif avg_err < 20.0:
+                info_rag = RAGStatus.AMBER
+            else:
+                info_rag = RAGStatus.RED
+            scorecard.record_check(ComplianceDomain.INFORMATION_TRANSPARENCY, as_of, info_rag,
+                                    metric_value=round(avg_err, 1), threshold=10.0,
+                                    notes=f"EAC estimation error {avg_err:.1f}% over {len(dem_errs)} graded "
+                                          f"estimates; {dem_ungraded} not graded (no full settled year ahead)")
 
         # COMPLAINTS (SLC 25-29, displayed as "SLC 25C: Communication Channel
         # Choice") -- FIXED 2026-07-10 (director page comment: "How do

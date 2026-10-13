@@ -115,6 +115,7 @@ from company.interfaces.dd_review_outcome import (  # noqa: F401 -- REVIEW_RULES
     DEFAULT_REVIEW_RULE,
     REVIEW_RULES,
     reviewed_standing,
+    simple_balance_after_window,
 )
 from simulation.arrears_engine import payment_method
 
@@ -409,9 +410,25 @@ def build_dd_balance_book(
         standing_dd_by_window: dict[int, float] = {}
         order = sorted(windows)
         standing_dd_by_window[order[0]] = float(opening)
+        # The simple running balance entering each window -- what the account carried in, plus
+        # twelve months at the prior window's standing amount, less what was billed over it. Only
+        # `own_forecast_plus_balance` reads this (via `balance_to_clear_gbp`); the other two rules
+        # ignore the kwarg and this stays dead arithmetic for them, at zero cost.
+        balance_entering: dict[int, float] = {order[0]: 0.0}
         for prev_wi, wi in zip(order, order[1:]):
+            balance_entering[wi] = simple_balance_after_window(
+                balance_entering[prev_wi], standing_dd_by_window[prev_wi], windows[prev_wi])
             # Reset for each later year from the year before it, by the review rule.
-            standing_dd_by_window[wi] = reviewed_standing(review_rule, windows[prev_wi], windows[wi][0])
+            # `balance_entering` follows THIS module's own sign convention (negative = debit, see
+            # `barred_at_charge_recovery`'s `-balance`); `reviewed_standing`'s `balance_to_clear_gbp`
+            # is signed the other way round -- positive RAISES the debit to recover it. Passing
+            # `balance_entering` straight through would lower the DD on a debit, the opposite of
+            # recovering it; the control that caught this is `test_the_portfolio_balance_moves_
+            # toward_zero_under_balance_recovery` (measured, not asserted from the arithmetic alone).
+            kwargs = ({"balance_to_clear_gbp": -balance_entering[wi]}
+                      if review_rule == "own_forecast_plus_balance" else {})
+            standing_dd_by_window[wi] = reviewed_standing(
+                review_rule, windows[prev_wi], windows[wi][0], **kwargs)
         # [start, end, true charge, collected] per period, for the recovery actions below.
         recovery: list[list] = []
         barred_here = 0.0
