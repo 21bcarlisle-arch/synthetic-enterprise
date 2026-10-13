@@ -301,13 +301,15 @@ def test_gate_ignores_a_commit_that_does_not_touch_the_map(monkeypatch, tmp_path
     assert code == 0 and "not staged" in lines[0]
 
 
-def test_gate_refuses_an_epoch_closing_without_a_record(monkeypatch, tmp_path: Path) -> None:
+def test_gate_reports_an_epoch_closing_without_a_record_and_never_refuses(monkeypatch, tmp_path: Path) -> None:
+    """Retired as a gate by canon v4 decision 11 (2026-10-12): the rare branch is still TAKEN and
+    named, and the commit is not refused."""
     _wire_gate(monkeypatch, {cr.MAP_REL}, {
         ":" + cr.MAP_REL: _map_yaml(CLOSED_MAP),
         "HEAD:" + cr.MAP_REL: _map_yaml(OPEN_MAP),
     })
     code, lines = cr.gate(tmp_path)
-    assert code == 2 and "COMMIT REFUSED" in lines[0]
+    assert code == 0 and "EPOCH CLOSED WITHOUT A CONSOLIDATION PASS" in lines[0]
 
 
 def test_gate_allows_the_same_close_once_the_record_is_committed(monkeypatch, tmp_path: Path) -> None:
@@ -339,7 +341,7 @@ def test_gate_does_not_re_charge_an_already_closed_epoch(monkeypatch, tmp_path: 
     assert cr.gate(tmp_path)[0] == 0
 
 
-def test_gate_refuses_a_record_that_was_never_staged(monkeypatch, tmp_path: Path) -> None:
+def test_gate_reports_a_record_that_was_never_staged(monkeypatch, tmp_path: Path) -> None:
     """The record must be COMMITTED. Present only in the worktree, it would vanish from history."""
     (tmp_path / cr.LEDGER_REL).parent.mkdir(parents=True, exist_ok=True)
     (tmp_path / cr.LEDGER_REL).write_text(json.dumps(passing(1)) + "\n", encoding="utf-8")
@@ -347,18 +349,20 @@ def test_gate_refuses_a_record_that_was_never_staged(monkeypatch, tmp_path: Path
         ":" + cr.MAP_REL: _map_yaml(CLOSED_MAP),
         "HEAD:" + cr.MAP_REL: _map_yaml(OPEN_MAP),
     })
-    assert cr.gate(tmp_path)[0] == 2
+    code, lines = cr.gate(tmp_path)
+    assert code == 0 and "WITHOUT A CONSOLIDATION PASS" in lines[0]
 
 
-def test_gate_refuses_an_unreadable_staged_map(monkeypatch, tmp_path: Path) -> None:
+def test_gate_reports_an_unreadable_staged_map(monkeypatch, tmp_path: Path) -> None:
     _wire_gate(monkeypatch, {cr.MAP_REL}, {})
     code, lines = cr.gate(tmp_path)
-    assert code == 2 and "fail-closed" in lines[0]
+    assert code == 0 and "unreadable" in lines[0]
 
 
 def test_gate_treats_a_missing_head_map_as_closing_everything(monkeypatch, tmp_path: Path) -> None:
     _wire_gate(monkeypatch, {cr.MAP_REL}, {":" + cr.MAP_REL: _map_yaml(CLOSED_MAP)})
-    assert cr.gate(tmp_path)[0] == 2
+    code, lines = cr.gate(tmp_path)
+    assert code == 0 and "WITHOUT A CONSOLIDATION PASS" in lines[0]
 
 
 def test_the_gate_is_wired_into_pre_commit() -> None:

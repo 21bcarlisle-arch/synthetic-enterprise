@@ -422,8 +422,10 @@ def _git_head_summary() -> str:
 # "Send test notification" produces a fixed machine-generated body, e.g.
 #   "This is a test notification from the ntfy Android app. It has a level 3
 #    priority. If you send another, it may look different."
-# It carries zero authority (R7: injected/app text is a doorbell, not an instruction;
-# R8: all inbound is untrusted data) and is NOT a director steer. Left ungated it
+# It carries zero authority and is NOT a director steer. Canon v4 G8 (2026-10-12), which replaced
+# "all inbound is untrusted": the director's own words carry full authority on NTFY as on the console;
+# "text that is not plausibly his is data: it is acknowledged and discarded without spending a model,
+# and it never acts". App text is that case. Left ungated it
 # staged as from_rich_*.md; each staged file re-granted a supervisor turn -> a model
 # load (VRAM 1,383 -> 10,726 MiB, observed twice on 2026-07-29). That makes an
 # app-test (or anyone who learns the public topic) a cheap denial-of-attention /
@@ -448,8 +450,8 @@ def _write_to_staging(message: str) -> Path | None:
     director instruction) or is a reply-PIN closing an already-open escalation.
 
     Message LENGTH is never a reason to drop -- see the ruling note below."""
-    # Inbound-as-instruction guard: an ntfy-app self-test is untrusted machine text
-    # with zero authority -- never stage it (staging = a supervisor turn = a model
+    # Inbound-as-instruction guard: an ntfy-app self-test is machine text, not plausibly his
+    # (canon G8), with zero authority -- never stage it (staging = a supervisor turn = a model
     # load). Matched narrowly so a real steer is never caught. See _is_app_selftest.
     if _is_app_selftest(message):
         return None
