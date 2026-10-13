@@ -164,3 +164,11 @@ which the re-take is told to check first.
 
 One seed only, as pre-registered: this picks re-take over footnote and says nothing tight about
 size. The no-writer identity stays unexercised on the real book, and only the fixture backs it.
+
+**Settled (autonomous worker, 2026-10-13): real, not a reading taken before a later floor.** The
+arm entry's `unit_rate_before` is already past writer 1's floor, and no later floor touches the
+contracted rate. Writer 1 floored at forward + locked costs, which leaves out the capital charge
+the base includes. All 496 gaps sit inside that charge's band. The floor is now the
+capital-inclusive term cost, and the arm's base reads the same number:
+`SEAT_FINDING_WRITER_ONE_DISCOUNTS_INTO_THE_CAPITAL_CHARGE_2026-10-13.md`. The re-take runs at or
+after that commit.

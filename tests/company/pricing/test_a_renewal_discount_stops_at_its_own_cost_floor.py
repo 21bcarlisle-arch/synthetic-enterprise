@@ -5,6 +5,10 @@ the rate chain's writer 1, the portfolio learning premium, multiplied the struck
 -5% while the desk had struck it only ~2% above `company_fwd + locked_policy + locked_network`.
 15 of 18 electricity renewals to 2017-03-31 left the chain below that floor, and nothing re-floored.
 
+THE SECOND DEFECT (`SEAT_FINDING_WRITER_ONE_DISCOUNTS_INTO_THE_CAPITAL_CHARGE_2026-10-13.md`): that
+floor left out the capital charge the strike prices in, so writer 1 still cut 496 of 698 renewals
+on seed 61001 into the band between it and the term's own cost. The floor is now the term cost.
+
 Each test names the defect it fires on. Through the typed record and the SEAM DOOR the run calls, because an adapter that
 forwards named fields drops a new one silently unless the control goes through it.
 """
@@ -22,6 +26,7 @@ from company.compliance.domain_invariants import (
 )
 from company.interfaces.renewal_decision_inputs import RenewalDecisionInputs
 from company.interfaces.renewal_rate_chain import decide_renewal, decide_renewal_rate
+from company.pricing.renewal_desk import pre_margin_unit_rate
 from company.pricing.tariff_engine import (
     PORTFOLIO_PREMIUM_HALF_LIFE,
     PORTFOLIO_PREMIUM_MIN,
@@ -29,9 +34,11 @@ from company.pricing.tariff_engine import (
     compute_portfolio_premium,
 )
 
-# The item's own example: 2017-01-09 electricity, struck 139.15 over a floor of 136.27.
+# The item's own example: 2017-01-09 electricity, struck 139.15 over forward + locked costs of
+# 136.27, plus a capital charge of 1.11 (1.645 x 0.50 x 0.15 x 10% WACC x 90): a term cost of 137.38.
 FWD, POLICY, NETWORK = 90.0, 14.27, 32.0
-FLOOR = FWD + POLICY + NETWORK
+COST_WITHOUT_CAPITAL = FWD + POLICY + NETWORK
+FLOOR = pre_margin_unit_rate(FWD, "2017-01-09", POLICY, NETWORK)
 STRUCK = 139.15
 #: A book running far above target: the premium clamps at its floor, -5%.
 BOOK_FAR_ABOVE_TARGET = [0.30] * 5
@@ -57,6 +64,15 @@ def test_the_two_books_put_the_premium_either_side_of_the_desks_headroom():
     assert compute_portfolio_premium(BOOK_FAR_ABOVE_TARGET) == PORTFOLIO_PREMIUM_MIN
     assert STRUCK * (1 + PORTFOLIO_PREMIUM_MIN) < FLOOR
     assert FLOOR < STRUCK * (1 + compute_portfolio_premium(BOOK_JUST_ABOVE_TARGET)) < STRUCK
+
+
+def test_the_floor_is_the_term_cost_with_its_capital_charge():
+    """DEFECT: the floor omits capital, so a discount stops above forward + locked costs and still
+    under what the term costs to carry. Pinned at the fixture's own numbers."""
+    assert FLOOR == pytest.approx(137.380375)
+    assert FLOOR - COST_WITHOUT_CAPITAL == pytest.approx(1.645 * 0.50 * 0.15 * 0.10 * FWD)
+    deep = _rate(BOOK_FAR_ABOVE_TARGET)
+    assert deep.unit_rate_gbp_per_mwh > COST_WITHOUT_CAPITAL + 1.0
 
 
 def test_a_deep_discount_stops_at_the_floor_and_a_shallow_one_is_untouched():
@@ -152,7 +168,7 @@ def test_the_arm_measures_its_margin_from_the_terms_own_cost_not_the_rate_writer
     from company.pricing.renewal_desk import pre_margin_unit_rate
 
     base = pre_margin_unit_rate(FWD, "2017-01-09", POLICY, NETWORK)
-    assert base > FLOOR, "no capital charge in the base, so the arm reads it as margin"
+    assert base > COST_WITHOUT_CAPITAL, "no capital charge in the base, so the arm reads it as margin"
     for level in (0.5, 5.0):
         out = _level_arm(level)
         entry = out.value_arm_entries[0]
@@ -164,13 +180,18 @@ def test_the_arm_measures_its_margin_from_the_terms_own_cost_not_the_rate_writer
 
 
 def test_the_arm_may_cut_a_rate_no_further_than_cost_and_says_when_it_was_stopped(monkeypatch):
-    """DEFECT: with the honest base the arm's own floor is rarely reached (a margin below minus the
-    capital charge, e.g. a low ladder rung), and a floor nobody can reach is not tested. A base
-    knocked GBP 4 under cost reaches it: 0.5 over it is floored, 0.5 over the true base is not."""
+    """DEFECT: the base and the floor are now one number, so the arm's own floor binds only where
+    they part, and a floor nobody can reach is not tested. The base alone, knocked GBP 4 under cost
+    on its way into the arm, reaches it: 0.5 over it is floored, 0.5 over the true base is not."""
     from company.pricing.renewal_desk import pre_margin_unit_rate
 
     kept = _level_arm(0.5)
-    monkeypatch.setattr(desk, "pre_margin_unit_rate", lambda *a: FLOOR - 4.0)
+    real_uplift = desk.renewal_margin_uplift
+
+    def base_knocked_under_cost(**kw):
+        return real_uplift(**{**kw, "pre_margin_rate_gbp_per_mwh": FLOOR - 4.0})
+
+    monkeypatch.setattr(desk, "renewal_margin_uplift", base_knocked_under_cost)
     cut = _level_arm(0.5)
     assert cut.unit_rate_gbp_per_mwh == pytest.approx(FLOOR)
     assert kept.unit_rate_gbp_per_mwh == pytest.approx(

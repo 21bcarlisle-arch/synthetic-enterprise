@@ -84,7 +84,6 @@ from dataclasses import dataclass, field
 from datetime import date
 
 from company.compliance.domain_invariants import (
-    own_cost_floor,
     refuse_discretionary_rate_below_own_cost_floor,
     vat_rate_for_segment,
 )
@@ -317,13 +316,19 @@ def decide_renewal_rate(
     this term against. Required, so no caller can reach the single-rate benchmark by omission.
 
     `company_forward_per_mwh` and the two locked costs are what the company's own offer for
-    this term priced off; their sum is the cost floor the desk struck over. `None` where the term
-    has no offer to read them from, and then no discount is given (writer 1).
+    this term priced off; with the capital charge, they are the term cost a discount stops at.
+    `None` where the term has no offer to read them from, and then no discount is given (writer 1).
     """
     unit_rate = struck_unit_rate_gbp_per_mwh
     rate_original = unit_rate
-    cost_floor = own_cost_floor(
-        company_forward_per_mwh, locked_policy_cost_per_mwh,
+    # THE FLOOR IS THE TERM'S OWN COST, CAPITAL INCLUDED (2026-10-13). It was `own_cost_floor`
+    # (forward + the two locked costs), which leaves out the capital charge the strike prices in
+    # (~1.2% of forward pre-2023, ~3.7% after). Writer 1 then cut 496 of 698 renewals on seed 61001
+    # into that band: above the floor, under the term's cost
+    # (`SEAT_FINDING_WRITER_ONE_DISCOUNTS_INTO_THE_CAPITAL_CHARGE_2026-10-13.md`). The same number
+    # the value arm measures its margin from, so a discount and the arm stop at one cost.
+    cost_floor = pre_margin_unit_rate(
+        company_forward_per_mwh, term_start, locked_policy_cost_per_mwh,
         locked_network_cost_per_mwh)
 
     result = RenewalRateChain(unit_rate_gbp_per_mwh=unit_rate)
@@ -548,9 +553,8 @@ def decide_renewal_rate(
                 and is_domestic) else None),
         # WHAT THE ARM'S MARGIN IS MEASURED FROM: this term's own cost before margin, not the rate
         # writers 1-3 left less GBP 2. The arm's rate is then `base + chosen`, the rate it scored.
-        pre_margin_rate_gbp_per_mwh=pre_margin_unit_rate(
-            company_forward_per_mwh, term_start, locked_policy_cost_per_mwh,
-            locked_network_cost_per_mwh),
+        # The same number writer 1's discount stops at (`cost_floor` above), read once.
+        pre_margin_rate_gbp_per_mwh=cost_floor,
     )
     # THE DENOMINATOR, WRITTEN AT THE SAME SITE AS THE DECISION. Unconditional and before the two
     # branches below, so a renewal cannot reach the funnel through one path and miss it through
@@ -592,9 +596,9 @@ def decide_renewal_rate(
         rate_before = unit_rate
         # THE SAME FLOOR AS WRITER 1 (2026-10-12). Added when the arm measured its margin from the
         # handed rate less GBP 2, which writer 1 had already cut: a level under GBP 2 then sold up
-        # to GBP 1.50 under cost. Since 2026-10-13 the base is the term's own pre-margin cost, so
-        # with offer components this binds only on a margin below minus the capital charge; it
-        # stays for the fallback base and as the writer-local half of the class check below.
+        # to GBP 1.50 under cost. Since 2026-10-13 the base IS this floor, so with offer components
+        # it binds only on a margin below zero, which no rung offers; it stays as the writer-local
+        # half of the class check below, for a base that ever parts from the floor.
         unit_rate = _floor_a_discount(
             rate_before, rate_before + arm_uplift.uplift_gbp_per_mwh, cost_floor)
         arm_floored_at_cost = unit_rate > rate_before + arm_uplift.uplift_gbp_per_mwh
