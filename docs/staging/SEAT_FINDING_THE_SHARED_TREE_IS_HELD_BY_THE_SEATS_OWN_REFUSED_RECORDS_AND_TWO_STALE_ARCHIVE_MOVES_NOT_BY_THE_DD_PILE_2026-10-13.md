@@ -66,3 +66,24 @@ the root in the shared tree is a one-line `git checkout HEAD -- <both>` plus del
 untracked `done/` copies. Every byte in those copies is on origin except one auto-applied header,
 so nothing is lost. It is left for the console seat or a hand landing, because this executor does
 not write to the shared tree.
+
+**The prediction, graded (~18:05Z).**
+- (1) **Held.** The 17:22Z orientation landed its record (3143bf196). Separately, 98a5eb6d7 hand-landed
+  the 18:27 records on a fresh origin base.
+- (2) **Held.** Re-measured with `paths_blocking_fast_forward`: the three record files no longer
+  block.
+- (3) **Held, with one addition.** The shared tree is still at 2248e3baf, now 70 behind. Six paths
+  block the fast-forward, and three of those are twins. The other three are the two archive moves
+  named above, plus
+  `tests/saas/reporting/test_a_log_the_run_makes_and_a_section_reads_survives_the_reduction.py`.
+  That test file was rewritten and staged in the shared tree at 17:49Z: a second implementation of
+  the returned-name walk that 81c129fe8 already fixed on origin. It is another lane's live work, and
+  it is left alone.
+
+**The fix (70bbfdfbd, promoted in 5d0ad359f) is inert in the orientation seat until the shared tree
+fast-forwards.** `delivery-seat.service` imports `background/delivery_seat.py` from the shared
+checkout. Until the fast-forward, the next HEAD-plus-block record is refused exactly as before.
+
+**One misattribution, corrected here.** `WORKER_FINDING_THE_PUBLISHERS_RETRIES_…_2026-10-13.md`
+gives pid 1911763 as the writer of the three record paths. pid 1911763 is this executor, which ran
+in an isolated worktree. The orientation seat (`delivery-seat.service`, MainPID 1884575) wrote them.
