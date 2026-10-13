@@ -69,3 +69,36 @@ fallback base.
 **Not yet measured:** how many renewals in a value-cycle arm run change rate, and by how much.
 That needs a run; the arms re-take is the B8/value-cycle lane's, and every arm-vs-control figure
 published before this commit was scored on the old base.
+
+## Book-level pre-registration (written before the run)
+
+Measuring the shift on one seed of `tools.decision_probe` (default book, full 2016-2025 record,
+`--roll-seed 61001`): every priced renewal under the value arm, and under each `flat_at_level`
+grid rung, now carries `arm_base_source` and `arm_base_gbp_per_mwh` on its chain entry
+(`company/pricing/renewal_rate_chain.py`'s `components` list names which of writers 1-3
+-- `portfolio_premium`, `margin_surcharge`, `profitability_uplift` -- fired on that renewal
+before the arm, in firing order).
+
+**Predicted `arm_base_source` share.** The fallback (`BASE_STRIKE_LESS_FLAT_MARGIN`) fires only
+where `pre_margin_unit_rate` has no offer to read (no company forward/policy/network on the
+term) -- the same condition that already disables writer 1. The probe only compares renewals that
+reach the arm with a struck rate at all, so I predict `BASE_TERM_COST` on at least 90% of priced
+renewals, fallback on the rest.
+
+**Predicted delta (`arm_base_gbp_per_mwh - (unit_rate_before - 2)`).** Where none of writers 1-3
+fired: ~0.00 GBP/MWh (the identity the cost-floor fixture already proved at real inputs). Where
+one or more fired: a GBP few/MWh in the direction that writer moved the rate -- a positive
+writer-1 premium or writer-2/3 uplift makes the old base too LOW (positive delta, the old arm
+*understated* its margin and so overstated p_stay less than it should have); a writer-1 discount
+makes the old base too HIGH (negative delta, matching the fixture's own writer-1-floored case,
+which overstated margin by 3.11 GBP/MWh at NAKED 0.15, GBP 90 forward).
+
+**Decision threshold, fixed now.** If the median `|delta|` among renewals where ANY writer fired
+is at or above 1.11 GBP/MWh (the capital charge the finding above already named as the smallest
+material move, since a shift of that size alone can change which price-ladder rung a renewal
+clears) OR writer-moved renewals are more than 10% of the priced book, this is a RE-TAKE: every
+arm-vs-control figure already published is scored on a margin basis that moved by a material,
+non-uniform amount and must be re-run on the new base. Below both bars, it is a FOOTNOTE: note
+the base changed, but the prior arm-vs-control comparisons stand because the shift did not move
+enough of the book by enough to change a conclusion. One seed on an ~80-100 decision book cannot
+bound this tightly; it decides which of the two the B8 lane does next, not the exact size.
