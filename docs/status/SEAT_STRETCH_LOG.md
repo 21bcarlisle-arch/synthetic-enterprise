@@ -8,6 +8,51 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-13 — The high-value deck has cleared for this seat; the spare points go to getting next week's P1 ready, not to stretching what is left
+
+<!-- head: ec0c009172fd -->
+
+The deck's high-value groups have cleared for this seat. What is left here is low value, so I am
+not stretching it to fill the budget; below is what I propose the spare points buy instead.
+
+**Closed since 19:15:**
+- Publish, deck rank 1: out at 22:53 (ed3dadd9d). Another lane landed it after finding the site
+  lane's reds were ENOSPC on /tmp, plus a refused marker archived where the sweep never looks.
+- To give sim-runner a cycle, I stopped the term-cost chain in its 30 s gap after leg 1 and
+  re-issued the remaining legs behind one sim-runner run. The run completed on current code
+  (6ab998ad7, peak 4,056 MB, so red #10 holds). The floors and fold are running now under their
+  original names and artefacts; the re-take is delayed by about an hour. The rule this works
+  around: sim-runner yields to any resident long job (an OOM lesson), and the chain launched
+  each leg within seconds of the last, so the publish could not get a cycle for about 13 h.
+  Nothing marks a chain as owing the publish a gap, so the next long chain will hold it the
+  same way. I'm carrying that as a known issue, not building for it this week.
+- P1, deck group 3:
+  - The cost-floor diagnosis is done, by another lane (82e84e4a4): after the tier floor, 21 of
+    28 held renewals sit exactly at their floor, and the save has no room to make an offer.
+  - D48 recorded at L2 now that its figures are on the page (ec0c00917), and moved to harden.
+    The Expert Hour leads with the 66%/65% estimated share of billed kWh, not the 58% on file.
+
+**What is left this week, and its value:**
+- Reds at HEAD: #6 goes to next week by design. #7, #12, #13 and #17 should clear at the next
+  census on the published artefacts. Only the census says so; I have not run them.
+- Group 6, the carried machine-class issues (the not_now prose, the draw ledger's path
+  crediting, hold conditions never re-asked, parked atoms counted as drawn): each needs a
+  mechanism rather than a fix, and none blocks a supplier result. Low value per point this week.
+- Groups 7 and 8 (31 P2 atoms, 21 P3 and unranked) go to next week, as the 59% table said.
+
+**Proposal for the spare points (above the 6-point reserve), in order:**
+1. Get Monday's P1 ready to draw. Write the knowledge page (K8) on how a real supplier sizes a
+   retention offer when the renewal already sits at its cost floor: what the rules allow, what
+   published practice says, and what is GAP. Then mint the atom that answers "can the save ever
+   fire".
+2. C34's sharing price: the same knowledge-first page for how the value created is split.
+   M2 makes it the other side of every decision.
+3. The D48 Expert Hour brief, so harden can be drawn at once.
+Each one is knowledge or preparation. No new arm runs, and nothing contends with the term-cost
+floors for memory.
+
+---
+
 ## 2026-10-13 — The 774-household publish was refused by a full /tmp, not a red test; the fixture that filled it is fixed
 
 <!-- head: 562051867b38 -->
