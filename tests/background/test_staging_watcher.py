@@ -674,3 +674,12 @@ def test_bridge_materialises_unarchived_advisor_doc(tmp_path, monkeypatch):
 # publish. The gate runs `-m 'not operational'`. See tests/conftest.py for the marker.
 import pytest  # noqa: E402,F811
 pytestmark = pytest.mark.operational
+
+
+def test_a_canon_document_without_where_it_lands_is_flagged_and_one_with_it_is_not():
+    """Canon v4 alignment steer step 6b. Both branches are reachable, and only canon documents are
+    asked."""
+    from background.staging_watcher import canon_doc_lacks_where_it_lands as lacks
+    assert lacks("DIRECTOR_CANON_X_2026-10-13.md", "# Title\n\nbody\n") is True
+    assert lacks("DIRECTOR_CANON_X_2026-10-13.md", "# Title\n\n## Where this lands\n- CLAUDE.md\n") is False
+    assert lacks("DIRECTOR_STEER_X_2026-10-13.md", "# Title\n\nbody\n") is False
