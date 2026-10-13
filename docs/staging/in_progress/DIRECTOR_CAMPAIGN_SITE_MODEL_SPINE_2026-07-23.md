@@ -1,5 +1,7 @@
 # [IN PROGRESS] Site campaign continuation — WORDS → DIAGRAM → EVIDENCE + financials reframe + R11 link integrity (2026-07-23)
 
+**Fate (2026-10-13, clear-the-decks):** KEEP OPEN -- n/a Carries banner. Own disposition: "Only remainder: the SC arrears-£-per-customer DISTRIBUTION -- a SIM-emission BUILD... belongs in the normal BUILD draw." Not independently verified built.
+
 > Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
 
 **DISPOSITION (updated 2026-07-24): §A RESOLVED by the director — THE FOLD IS COMMITTED.**

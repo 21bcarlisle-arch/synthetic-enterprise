@@ -11,6 +11,8 @@
 
 # [DIRECTOR-RULING] — Axis-1 verdict, row-scored from the director's own screenshots; the five root causes; iteration order (2026-07-23)
 
+**Fate (2026-10-13, clear-the-decks):** KEEP OPEN -- n/a Carries banner. RC2-RC4 named explicitly still open in its own status block; successor atoms SITE6/8/9/11/12/14/15 confirmed in docs/design/maturity_map.yaml all at level_current 0 of level_target 2.
+
 > Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
 
 **Type:** [DIRECTOR-RULING] via advisor bridge. The director reviewed six live pages (/now, /world, /method, /company, /project, /simplified) on his phone and rendered the verdict "awful". The advisor decomposed it with him into the specific verdicts below. **The ratified structure stands** (causal chain, clocks, honesty placeholders, wall crossings) — the failure is the presentation layer and content selection. Fix those; do not re-architect the IA.

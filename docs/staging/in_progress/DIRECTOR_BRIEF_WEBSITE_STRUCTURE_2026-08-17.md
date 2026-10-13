@@ -40,6 +40,8 @@
 
 # [DIRECTOR-BRIEF] — The website: structure, content, and the end-to-end customer traversal (2026-08-17)
 
+**Fate (2026-10-13, clear-the-decks):** KEEP OPEN -- n/a Carries banner. Own status: "Open sub-item: WORK THIS CREATES items 1-6 and 8". SITE4 confirmed built; SITE6/8/9/11/12/14/15 confirmed unbuilt (level 0/2) in the current map.
+
 > Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
 
 **Type:** [BRIEF — problem, requirements and non-negotiables. Design, mechanism, sequencing and implementation are the worker's. Nothing here prescribes markup, framework, file layout, or component structure.]

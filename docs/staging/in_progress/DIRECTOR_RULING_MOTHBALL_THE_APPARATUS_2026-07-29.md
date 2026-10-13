@@ -3,6 +3,8 @@
      do not re-scan as unprocessed. Reversible throughout. -->
 # [DIRECTOR-RULING] — Mothball the apparatus unless it earns its place (2026-07-29)
 
+**Fate (2026-10-13, clear-the-decks):** KEEP OPEN -- n/a Carries banner. Asks execution of docs/design/MOTHBALL_2026-07-29.md's verdict rows (disable+record); completion not independently verified in this pass.
+
 > Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
 
 **Type:** [DIRECTOR-RULING] via advisor bridge. Companion to `THE_STANDARD`. Do this yourself; do not wait.

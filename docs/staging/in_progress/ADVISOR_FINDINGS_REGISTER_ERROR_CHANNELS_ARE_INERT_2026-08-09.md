@@ -1,5 +1,7 @@
 # ADVISOR FINDINGS — the EPC register in this simulation is never wrong, only absent or vague, and the absence carries no information
 
+**Fate (2026-10-13, clear-the-decks):** ATOM -- n/a No banner. P3 -- EPC-certificate staleness/absence-correlation discovery needs a network-access session (§2a/§2b); the wall item (§1d/§2c) is already built and landed per its own status.
+
 **Severity:** BLOCKING · **Lane:** W2_customer_generator
 
 > **Status 2026-08-12 — PARTIALLY BUILT; parked in `in_progress/` with one genuinely open half.**

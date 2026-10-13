@@ -27,6 +27,8 @@
 
 # [ADVISOR-PROPOSAL] — How an outsider would assess this, and what that implies we should build (2026-08-04)
 
+**Fate (2026-10-13, clear-the-decks):** ATOM -- n/a No banner. P3 -- §4 (separate staging exhaust, ~4,300+ run-completion markers in docs/staging/done/, from the record) has "no atom" by its own account; §2 demo and §3 blind-check also remain unbuilt.
+
 **Type:** [PROPOSAL]. Findings and a suggested shape; the mechanism is yours. Refute freely.
 
 ## 0. The director's question, which answers the others

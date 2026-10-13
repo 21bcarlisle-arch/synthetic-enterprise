@@ -1,5 +1,7 @@
 # [DIRECTOR-DECISION] Three verified 2025/26 rates are ready and NOT landed; test-file split is APPROVED (2026-08-14)
 
+**Fate (2026-10-13, clear-the-decks):** KEEP OPEN -- n/a (DIRECTOR-ONLY) Carries banner. Own status: explicitly waiting on the director's go for three verified 2025/26 rates ("a published figure may not move without him being told first"); no evidence of his reply found.
+
 > Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
 
 **PARKED (2026-08-18, worker triage):** blocking sub-item is §2 — the director's explicit go on the

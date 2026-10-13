@@ -1,5 +1,7 @@
 # [DIRECTOR-RULING] — Organise the site around THE MODEL: words → diagram → evidence. Financials reframed. Links canonical. (2026-07-23)
 
+**Fate (2026-10-13, clear-the-decks):** KEEP OPEN -- n/a Carries banner. Organising-principle ruling for the still-open site programme; successor atoms SITE6/8/9/11/12/14/15 confirmed unbuilt in the current map.
+
 > Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
 
 **Type:** [DIRECTOR-RULING] via advisor bridge, from the director's live review of the rebuilt surfaces ("a bit better" — progress acknowledged, structure of information still wrong). Three rulings; these refine the running site campaign's remaining iterations rather than opening a new one.

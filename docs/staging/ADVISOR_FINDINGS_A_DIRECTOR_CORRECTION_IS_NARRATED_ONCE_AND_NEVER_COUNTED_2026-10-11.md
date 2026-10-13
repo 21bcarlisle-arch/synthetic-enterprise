@@ -1,5 +1,7 @@
 # [ADVISOR] A director correction is narrated once and never counted
 
+**Fate (2026-10-13, clear-the-decks):** ATOM -- n/a No banner. P3 -- proposes a mechanism to count/classify repeated director corrections (not just narrate them in prose); unbuilt, advisor itself says "nothing here claims priority over drawn work."
+
 **Severity:** LATENT · **Lane:** A_strategy_governance · **Epoch:** unassigned · **Atom:** `unminted` — lane set by the scale lane: `unassigned` is not a lane and the severity gate refused every merge of origin
 
 Date: 2026-10-11. Staged at the director's request after reading an external thought piece with him

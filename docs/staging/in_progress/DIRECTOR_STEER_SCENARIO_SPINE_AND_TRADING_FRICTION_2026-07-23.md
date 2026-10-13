@@ -11,6 +11,8 @@
 
 # [DIRECTOR-STEER] — Scenario spine, trading friction, and the pricing of forecast error (2026-07-23)
 
+**Fate (2026-10-13, clear-the-decks):** KEEP OPEN -- n/a Carries banner. SPINE_1/SPINE_3 atoms confirmed present in maturity_map.yaml, still director/BUILD-gated and not built.
+
 > Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
 
 **Type:** [STEER] via advisor bridge, from a live director conversation 2026-07-23. Decisions below are DECIDED

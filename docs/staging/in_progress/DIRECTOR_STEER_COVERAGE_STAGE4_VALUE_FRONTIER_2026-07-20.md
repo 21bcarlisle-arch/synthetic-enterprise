@@ -18,6 +18,8 @@
 
 # DIRECTOR STEER — Stage 4: the value frontier, and how many segments is enough (2026-07-20)
 
+**Fate (2026-10-13, clear-the-decks):** KEEP OPEN -- n/a (DIRECTOR-ONLY on the values-calls) Carries banner. Own status: "AWAITING DIRECTOR" on the value-weighting and critical-group calls, plus the reserved generator wiring.
+
 > Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
 
 **Type:** [STEER] — extends the coverage loop from *coverage* to *value*. Method yours.

@@ -7,6 +7,8 @@
 
 # [ADVISOR-INPUT] — Two inverted gap sources, and one note on the instrument itself (2026-07-28)
 
+**Fate (2026-10-13, clear-the-decks):** ATOM -- n/a No banner. P3 -- proposes an "overhang register" (accidental vs deliberate capability gaps); not built, not disqualified, own text flags the LAW-C tension honestly.
+
 **Type:** [ADVISOR-INPUT] via advisor bridge. Not a ruling, not a proposal to re-open a ratified method.
 
 ## 0. Standing, stated first

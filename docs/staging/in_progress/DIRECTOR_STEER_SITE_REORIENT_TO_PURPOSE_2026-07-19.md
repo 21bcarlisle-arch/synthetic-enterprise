@@ -6,6 +6,8 @@
 
 # DIRECTOR STEER — Reorient the website around the ratified purpose (2026-07-19)
 
+**Fate (2026-10-13, clear-the-decks):** KEEP OPEN -- n/a Carries banner. Site rebuild/reorientation folded into the still-open SITE programme atoms.
+
 > Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
 
 **Type:** [STEER] — rider to `DIRECTOR_RATIFIED_PURPOSE_PITCH_V4_2026-07-19.md` (consumed moments ago). This is coherence flag 12, which the advisor missed on first staging.
