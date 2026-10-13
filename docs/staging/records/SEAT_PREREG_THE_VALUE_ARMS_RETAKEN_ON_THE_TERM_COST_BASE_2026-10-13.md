@@ -124,3 +124,44 @@ re-issued the floors as `/var/tmp/se-termcost-arms-rest.sh`: it waits up to 3 h 
 then runs floor a, floor b and the fold. The commands and artefacts are the same. At the leg-1 pace
 (about 1.9 h per full-window pass on this book), each floor leg is probably 7-8 h, not 3.7 h. T6-T7
 and the page move wait for the fold.
+
+## Why value trails control on the shared 149: prediction, written before the split (2026-10-14, worker, `the-value-arms-like-for-like-loss-is-decomposed`)
+
+*This was written before any per-account figure was read. I had read only the artefacts' key
+structure, so I know which components they carry. The decomposition is the next section.*
+
+**The fall to explain.** On the 149 accounts both runs settle, value minus control went from +1,694
+(`r`) to -1,410 (`t`), a change of -3,104. The full-book floor sd is 1,770, drawn over 272 accounts,
+so the fall is about 1.75 sd of a different population.
+
+**What the artefacts can and cannot split.** Per account and per arm, they carry: net; the arrears
+lines (`pre_4c_net_gbp` plus the bad-debt and recovery lines); departure date and renewal outcomes;
+and, for value and level only, each renewal's chosen margin and offered rate. Control's renewal rate
+is not logged. Hedge, acquisition, wholesale and revenue are not split per account: they are only in
+the book-level gross-to-net bridge. So hedge and acquisition cannot be split per account. The best
+the artefacts allow is that they sit inside `pre_4c_net` alongside renewal margin.
+
+| # | prediction | confidence |
+|---|---|---|
+| D1 | Most of the -3,104 sits in `pre_4c_net` (margin and retention), not in the arrears lines. The bad-debt component of the change in value minus control is under a third of the fall in absolute size. | 0.65 |
+| D2 | Inside `pre_4c_net`, the fall comes from **fewer months retained in the value arm relative to control**: more value-only churners among the 149 in `t` than in `r`. It does not come from a lower margin per retained month. The base rose, so value's offers rose more than control's (T8 matched median +6.66), and more customers left. | 0.55 |
+| D3 | The fall is concentrated. The 10 accounts with the largest change carry more than half of it. | 0.60 |
+| D4 | The 149 are not representative of either book. In both runs they are older founder-era accounts with more renewals each than the rest of their book. Their value-minus-control per account differs in sign or size from the non-shared remainder of `t`. | 0.70 |
+
+**Attribution (which candidate carries the fall).** These must sum to 1.
+
+| candidate | probability it is the main carrier |
+|---|---|
+| term-cost base `04913b693` (with `434d87587`): value's offers move up relative to control's, and value loses retention | 0.40 |
+| selection or noise on a 149-account subset: the fall is inside what an arm difference wanders over a subset this size | 0.35 |
+| the 400-founder book `ad0afe7b3`: capacity, shared-cost or price effects that act on the arms differently | 0.15 |
+| the other ~500 commits in the range (arrears corrections, hedge-at-quote, DD review, B8 tier floor, price-match) | 0.10 |
+
+**The decision rule, fixed now.**
+- If D1 and D2 hold, and the fall sits in the accounts whose value offers rose most, the base is the
+  carrier. Then a one-variable run is pre-registered below: `05f9f3347` with `04913b693` reverted,
+  control and value only.
+- If the fall is spread thinly across the arrears lines, or it is no larger than the per-account
+  scatter of value minus control in `r` itself, no run is warranted, and the reason is stated.
+- If the 149's `t` difference has the opposite sign from the rest of `t`'s book, the book is not
+  trailing. The subset is.
