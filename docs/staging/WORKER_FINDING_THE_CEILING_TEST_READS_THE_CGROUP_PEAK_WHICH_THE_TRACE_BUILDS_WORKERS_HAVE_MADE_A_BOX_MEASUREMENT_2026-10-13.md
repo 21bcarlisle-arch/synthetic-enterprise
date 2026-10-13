@@ -48,3 +48,17 @@ from fixing what the test measures.
 least one run; the first "Run largest process peak" line it writes gives the test its first
 production reading. A red after that point is the correct red -- it will mean the run's own
 process peak genuinely does not support the budget, which this fix cannot know yet.
+
+**DISCHARGED 2026-10-13 05:xx.** The fix is on origin/main (ancestor of local HEAD `2f5c926dc`,
+itself 8 commits behind `origin/main`'s `cf7419764`, so present on both). Re-ran the three named
+tests at HEAD: `test_the_ceiling_still_fits_the_peak_systemds_own_journal_reports_today` SKIPPED,
+`test_BOTH_branches_of_the_code_keyed_peak_filter_are_reachable` and
+`test_BOTH_verdicts_of_the_memory_ceiling_guard_are_reachable` PASSED -- exactly this finding's own
+"Measured" prediction. SKIP, not FAIL, so `tools/pre_commit_test_gate.py` does not refuse on it;
+this lane's gate-red is resolved and new feature work in `W2_customer_generator` is not blocked by
+it. `sim-runner.service` is active since 02:54:25 but has not yet written a "Run largest process
+peak" line (0 in its journal), so the SKIP state persists -- that is the expected, not-yet-live-data
+state, not a new defect. What stays open is exactly what this finding already named: the live
+reading waits on a completed run, and `SETTLEMENT_CUSTOMER_YEAR_BUDGET`'s own re-pricing is
+`WORKER_FINDING_THE_SETTLEMENT_CEILING_CURVE_RETAKEN_AT_CURRENT_CODE_2026-10-08.md`'s subject, not
+this one's.
