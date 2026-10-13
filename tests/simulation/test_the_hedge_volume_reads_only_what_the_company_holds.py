@@ -10,6 +10,8 @@ Each test names the defect it reds on:
   * the volume sums settled kWh again -> `test_a_year_of_estimated_months_leaves_the_company_on_the_registry`
   * a read that arrives after the term starts is counted -> `test_a_read_arriving_after_the_term_starts_is_not_held`
   * the hedge is handed a world multiplier or a settled figure -> `test_every_hedge_volume_in_the_run_is_the_companys_estimate`
+  * the hedge books at the company's own forward belief, not the market's quote ->
+    `test_every_hedge_the_run_books_is_struck_at_the_markets_forward_quote`
 """
 from __future__ import annotations
 
@@ -162,3 +164,24 @@ def test_the_published_demand_error_grades_the_year_that_followed():
     p2._grade_demand_estimates_against_the_year_ahead(log, fold)
     assert log[0]["true_eac_kwh"] == 4380 and log[0]["error_pct"] == pytest.approx(-16.67)
     assert log[1].get("error_pct") is None and log[1]["ungraded_reason"]
+
+
+def test_every_hedge_the_run_books_is_struck_at_the_markets_forward_quote():
+    """A counterparty executes at its own quote, never at the supplier's private forecast
+    (docs/market_research/a_hedge_executes_at_the_markets_quote_not_the_companys_own_forward_estimate_2026-10-12.md).
+    Every `forward_price_gbp_per_mwh=` handed to `open_term_hedge` is a name assigned only from
+    the term's PIT market forward, `term["forward_price_gbp_per_mwh"]`. Pointing the booking back
+    at `company_fwd` reds it; `decide_term_hedge` is free to size off the company's belief."""
+    tree = ast.parse(_RUN.read_text())
+    prices = [kw.value for node in ast.walk(tree) if isinstance(node, ast.Call)
+              and isinstance(node.func, ast.Attribute) and node.func.attr == "open_term_hedge"
+              for kw in node.keywords if kw.arg == "forward_price_gbp_per_mwh"]
+    assert prices, "the run books no hedge: re-point this control at the booking call"
+    for v in prices:
+        assert isinstance(v, ast.Name), ast.unparse(v)
+        sources = _assigned_from(tree, v.id)
+        assert sources and all(
+            isinstance(e, ast.Subscript) and isinstance(e.slice, ast.Constant)
+            and e.slice.value == "forward_price_gbp_per_mwh" for e in sources), (
+            f"`forward_price_gbp_per_mwh={v.id}` is assigned from "
+            f"{[ast.unparse(e) for e in sources]}: a hedge books at the market's quote")
