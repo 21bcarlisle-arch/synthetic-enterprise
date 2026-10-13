@@ -1,4 +1,5 @@
 # [DIRECTOR-RULING] — Organise the site around THE MODEL: words → diagram → evidence. Financials reframed. Links canonical. (2026-07-23)
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** KEEP OPEN -- n/a Carries banner. Organising-principle ruling for the still-open site programme; successor atoms SITE6/8/9/11/12/14/15 confirmed unbuilt in the current map.
 

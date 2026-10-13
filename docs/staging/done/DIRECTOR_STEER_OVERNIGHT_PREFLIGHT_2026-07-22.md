@@ -16,6 +16,7 @@
 > lifts. Unblocks on the director's console word.
 
 # DIRECTOR STEER — Overnight pre-flight: verify the restarts, freeze the novelty, state the queue (2026-07-22)
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** DONE (consolidated into DIRECTOR_CANON.md v4; nothing still owed) -- n/a Carries banner. Dated one-night ops record; the R16 authz-trust console entry it flagged is superseded by the current gate_authorization.py mechanism.
 

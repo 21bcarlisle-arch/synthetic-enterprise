@@ -39,6 +39,7 @@
 ---
 
 # [DIRECTOR-BRIEF] — The website: structure, content, and the end-to-end customer traversal (2026-08-17)
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** KEEP OPEN -- n/a Carries banner. Own status: "Open sub-item: WORK THIS CREATES items 1-6 and 8". SITE4 confirmed built; SITE6/8/9/11/12/14/15 confirmed unbuilt (level 0/2) in the current map.
 

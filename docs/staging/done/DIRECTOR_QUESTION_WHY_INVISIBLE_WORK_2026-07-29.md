@@ -32,6 +32,7 @@
 > distinction matters more than the agreement does, and it is the sharper version of his own point.
 
 # [DIRECTOR-QUESTION] — How did 31 pieces of work stay invisible through all of it? (2026-07-29)
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** DONE (consolidated into DIRECTOR_CANON.md v4; nothing still owed) -- n/a Carries banner. Own status: retrospective published (docs/retrospectives/2026-07-29-...). R17/forward-discovery mechanism confirmed live today in background/supervisor.py (_forward_discovery_tracks).
 

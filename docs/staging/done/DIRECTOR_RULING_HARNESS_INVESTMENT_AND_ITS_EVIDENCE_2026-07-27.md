@@ -22,6 +22,7 @@
     move to done/. The mint obligation (Problem One) is DISCHARGED; this file no longer re-grants a mint turn. -->
 
 # [DIRECTOR-RULING] — Harness investment CONTINUES; it must terminate on evidence. Two problems to solve, mechanisms yours. (2026-07-27)
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** DONE (consolidated into DIRECTOR_CANON.md v4; nothing still owed) -- n/a Carries banner. The harness-exit-criterion question is moot: current CLAUDE.md states the principle directly ("build the smallest mechanism that can fail... delete the register you were about to write"), i.e. absorbed into canon rather than left as a standing proposal.
 

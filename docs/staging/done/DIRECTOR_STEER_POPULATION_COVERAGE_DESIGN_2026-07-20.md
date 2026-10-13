@@ -19,6 +19,7 @@
 ---
 
 # DIRECTOR STEER — Population coverage design: which N households span the space (2026-07-20)
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** DONE (consolidated into DIRECTOR_CANON.md v4; nothing still owed) -- n/a Carries banner. Population coverage is fully operational: today's Group A findings routinely use 40-400 founder seeded books across many seeds, well beyond this steer's stage-2/3 fetch-blocker scope.
 

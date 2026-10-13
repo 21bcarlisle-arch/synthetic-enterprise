@@ -1,4 +1,5 @@
 # [ADVISOR] The knowledge layer has no "published when" clock, and no link to the constants that use it
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** ATOM -- n/a No banner. P2 -- add a "knowable from" publication-date field to knowledge_map.md rows / domain_constant_origins, distinct from the already-closed source-revision-staleness atom (2026-09-07); bears on epistemic-wall fidelity.
 

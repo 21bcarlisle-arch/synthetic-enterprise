@@ -1,4 +1,5 @@
 # DIRECTOR STEER — End the console dependency: phone-native authority, plus F1 FRAME-open (2026-07-22)
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** DONE (consolidated into DIRECTOR_CANON.md v4; nothing still owed) -- n/a Carries banner. Phone/console-native authority is now central to the operating model ("NTFY is how you reach HIM... 'yes' and 'go' are complete", current CLAUDE.md), confirming this ratification happened.
 

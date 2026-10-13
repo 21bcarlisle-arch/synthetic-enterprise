@@ -9,6 +9,7 @@
      Variable/seasonal-DD product + growth-timing solvency analysis: REGISTERED as reserved in the proposal. -->
 
 # [DIRECTOR-STEER] — Per-customer DD cash flow: the seasonal credit cycle, and why growth timing is a solvency mechanism (2026-07-25)
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** DONE (consolidated into DIRECTOR_CANON.md v4; nothing still owed) -- 5cdaca020 Carries banner. DD1/DD3/DD4a/DD5/DD-H confirmed built per the map's own comment; DD4b landed today (5cdaca020, Group A). DD2's non-zero opening balance remains tracked under its own dependency (W2_12), not orphaned by this steer.
 

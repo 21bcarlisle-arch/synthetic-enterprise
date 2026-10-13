@@ -6,6 +6,7 @@
      or pre-empt the pending exit criterion, it waits. -->
 
 # [ADVISOR-ADDENDUM] — The harness-pruning trigger has fired. Registration only; nothing to action now. (2026-07-28)
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** ARCHIVED -- n/a No banner. Registration-only record of a July Claude-Code feature announcement, subordinate to a HELD evaluation doc; superseded by many subsequent Claude Code releases and harness evolution.
 

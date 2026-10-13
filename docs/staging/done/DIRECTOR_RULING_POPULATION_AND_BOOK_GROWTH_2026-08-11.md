@@ -29,6 +29,7 @@ work already done under another name.
 -->
 
 # [DIRECTOR-RULING] — Grow the world first, then win a book out of it (2026-08-11)
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** DONE (consolidated into DIRECTOR_CANON.md v4; nothing still owed) -- n/a Carries banner. PB1-PB3 atoms not found in current maturity_map.yaml; growth-mandate/capital-target machinery seen throughout today's Group A findings is far more mature than this ruling's scope, consistent with having moved past it.
 

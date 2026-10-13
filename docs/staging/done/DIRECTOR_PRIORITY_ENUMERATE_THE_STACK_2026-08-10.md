@@ -1,4 +1,5 @@
 # [DIRECTOR-PRIORITY] — Enumerate the whole stack: one no-x run, one batch fix (2026-08-10)
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** DONE -- n/a No banner. Own status: census done, batch landed (c330c3cae); only remaining clause was "the next publisher cycle completes green", which two months of continuous subsequent operation has certainly satisfied many times over.
 

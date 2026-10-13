@@ -1,6 +1,7 @@
 > [AGENT 2026-07-19] Consumed. Extends the Epoch-2 campaign; atoms G (machinery, in flight)/H (emit-DoD)/SITE-FID registered in the decomposition. Emit binds future BUILD DoD; W1 BUILD closed.
 
 # DIRECTOR ADDENDUM — Fidelity evidence: what Epoch 2 must EMIT, and what the site must let the director eyeball (2026-07-19)
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** DONE (consolidated into DIRECTOR_CANON.md v4; nothing still owed) -- n/a Carries banner. Epoch-2 fidelity-evidence requirements; Epoch 2 is long closed (current work is epoch 3), and the inspection-chain/lift-over-baseline practice is absorbed into ongoing Expert Hour + knowledge-map discipline.
 

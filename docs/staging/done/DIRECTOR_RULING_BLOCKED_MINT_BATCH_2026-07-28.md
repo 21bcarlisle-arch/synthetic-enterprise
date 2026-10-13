@@ -10,6 +10,7 @@
 > the ledger-release path; then draw the five §1 BUILDs.
 
 # [DIRECTOR-RULING] — Blocked-mint batch release, and the ruling-vs-ledger mismatch (2026-07-28)
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** DONE (consolidated into DIRECTOR_CANON.md v4; nothing still owed) -- n/a Carries banner. Old LEDGER:/console-act bootstrap problem; superseded wholesale by the current authority mechanism (background/gate_authorization.py, recommendation_guard, console ratification per OPERATING_MODEL.md, 2026-10-04).
 

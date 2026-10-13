@@ -1,4 +1,5 @@
 # ADVISOR FINDINGS — this project against the observability literature, and the one instrument it is missing
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** ATOM -- n/a No banner. P3 -- wide-event-style structured logging / a caller for the run ledger, per advisor's observability-engineering reading; explicitly "nothing here is urgent."
 

@@ -1,4 +1,5 @@
 # DIRECTOR AMENDMENT — Tokens as the second resource dimension (amends RESOURCE_AWARE_SCHEDULING_PROPOSAL, 2026-07-19)
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** DONE (consolidated into DIRECTOR_CANON.md v4; nothing still owed) -- n/a Carries banner. Token-as-second-resource-dimension concern now handled by background.tick_mode and the Friday burn review (current operating model), not the rate_limits-sensor shape proposed here.
 

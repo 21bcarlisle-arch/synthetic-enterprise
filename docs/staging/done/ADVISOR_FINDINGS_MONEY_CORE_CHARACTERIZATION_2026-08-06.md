@@ -21,6 +21,7 @@
 > both directions.
 
 # [ADVISOR-FINDINGS] — Money-core characterization: verified defects and signals (2026-08-06)
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** ARCHIVED -- n/a No banner. Own disposition: the six BLOCKING (cannot-fail) controls are fixed and R15-proven; the 40 remaining findings are tracked live in docs/observability/money_core_findings_disposition.md, not in this staging file -- nothing further owed from the file itself.
 

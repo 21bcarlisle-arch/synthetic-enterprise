@@ -8,6 +8,7 @@
 <!-- best-practice register; transition-only NTFY (R5). Nothing here authorizes any harness change. -->
 
 # ADVISOR PILOT — SKILLS REPO DISCOVER (2026-07-28)
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** ARCHIVED -- n/a No banner. Own comment: the actual DISCOVER audit never ran. Superseded: this session's available skill set (cloudflare/design/operations/engineering/finance/legal/product-management families) shows first-party skills adoption has since proceeded through a much broader channel than this narrow pilot.
 **[DISCOVER — YIELDED SLOTS ONLY]** · advisor-staged, director-confirmed 2026-07-28

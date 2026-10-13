@@ -5,6 +5,7 @@
 ---
 
 # DIRECTOR STEER — Reorient the website around the ratified purpose (2026-07-19)
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** KEEP OPEN -- n/a Carries banner. Site rebuild/reorientation folded into the still-open SITE programme atoms.
 

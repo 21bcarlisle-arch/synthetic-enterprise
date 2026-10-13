@@ -1,4 +1,5 @@
 # DIRECTOR STEER — Make the world legible: the site lost the operational window, and the cohorts are too thin (2026-07-20)
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** KEEP OPEN -- n/a Carries banner. Site-legibility requirement folded into the still-open SITE programme (SITE6/8/9/11/12/14/15, unbuilt).
 

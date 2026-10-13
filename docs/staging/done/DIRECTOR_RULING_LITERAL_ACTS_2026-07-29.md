@@ -5,6 +5,7 @@ PLANNER_MINTED_self_authority_release_sweep_2026-07-29.md. This ruling and its s
 in_progress/ (open sub-item = both atoms unbuilt) to stay out of the unprocessed-staging re-scan. -->
 
 # [DIRECTOR-RULING] — Give me the literal acts. Stop describing blocks; emit executable text. (2026-07-29)
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** DONE (consolidated into DIRECTOR_CANON.md v4; nothing still owed) -- n/a Carries banner. Superseded by the current operating model's authority mechanism (gate_authorization.py / recommendation_guard / console ratification), which replaced the LEDGER:-paste bootstrap this ruling was patching.
 

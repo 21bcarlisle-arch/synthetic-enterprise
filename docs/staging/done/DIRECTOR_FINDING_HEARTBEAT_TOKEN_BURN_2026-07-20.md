@@ -10,6 +10,7 @@
 > from a SEPARATE shell. Unblocks when he runs it; rollback is a flag flip. Move to done/ after cutover verifies live.
 
 # DIRECTOR FINDING — The rest-heartbeat burns tokens while resting (2026-07-20)
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** DONE (consolidated into DIRECTOR_CANON.md v4; nothing still owed) -- n/a Carries banner. Blocking sub-item was the director's cutover to scheduled bounded invocations; confirmed live (background/worker_tick.py + cutover_to_scheduled.sh present, and current CLAUDE.md describes worker-tick/delivery-seat.timer as the standing architecture).
 

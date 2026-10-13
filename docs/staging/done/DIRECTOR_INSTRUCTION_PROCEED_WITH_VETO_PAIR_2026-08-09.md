@@ -18,6 +18,7 @@
 > Left here deliberately so the draw re-surfaces both unbuilt halves.
 
 # [DIRECTOR-INSTRUCTION] — Two items, proceed-with-veto (2026-08-09)
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** DONE (consolidated into DIRECTOR_CANON.md v4; nothing still owed) -- n/a Carries banner. Item 2 (dirty-path level-gate check) confirmed built: tools/level_promotion_gate.py now has a dirty_source_paths function. Item 1 (value_chain_observation_window_cap) already carries its own separate 2026-10-12 ATOM fate -- not orphaned by this doc.
 

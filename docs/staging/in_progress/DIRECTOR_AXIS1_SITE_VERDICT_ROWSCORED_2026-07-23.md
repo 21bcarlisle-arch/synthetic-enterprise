@@ -10,6 +10,7 @@
 > unprocessed-staging scan by living here, per the multi-part-staged-instruction convention.
 
 # [DIRECTOR-RULING] — Axis-1 verdict, row-scored from the director's own screenshots; the five root causes; iteration order (2026-07-23)
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** KEEP OPEN -- n/a Carries banner. RC2-RC4 named explicitly still open in its own status block; successor atoms SITE6/8/9/11/12/14/15 confirmed in docs/design/maturity_map.yaml all at level_current 0 of level_target 2.
 

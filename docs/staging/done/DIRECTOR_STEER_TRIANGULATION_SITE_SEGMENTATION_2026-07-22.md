@@ -8,6 +8,7 @@
 > spec lands in staging.
 
 # DIRECTOR STEER — Triangulation extended: the website (Spec 005) and segmentation (Spec 006) (2026-07-22)
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** ARCHIVED -- n/a No banner. FRAME-only doc, blocked on "board Specs 005 and 006" landing from a blind-board-spec triangulation exercise; that practice is not evidenced anywhere in current operating docs and appears to have lapsed.
 

@@ -62,6 +62,7 @@
 > Not silently absorbed, and not written back into this file as if the author had enumerated it.
 
 # [DIRECTOR-PROGRAMME] — Architected out, organic in (2026-08-05)
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** DONE (consolidated into DIRECTOR_CANON.md v4; nothing still owed) -- n/a Carries banner. 9 AO atoms minted; AO1_capability_index confirmed built (tools/capability_index.py exists). Two-month-old programme checkpoint, superseded by subsequent harness evolution.
 

@@ -26,6 +26,7 @@
 > - **Group E — OPEN.**
 
 # [DIRECTOR-PRIORITY] — Backlog triage: the whole root, classified; drain to <20 then auto-arm the product interleave (2026-08-10)
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** DONE (consolidated into DIRECTOR_CANON.md v4; nothing still owed) -- n/a Carries banner. Its own later note withdraws the interleave trigger it introduced ("now armed unconditionally... no staging-depth term exists anywhere"); the remaining drain (Groups C/D/E) is two months old and this clear-the-decks triage itself is its continuation.
 

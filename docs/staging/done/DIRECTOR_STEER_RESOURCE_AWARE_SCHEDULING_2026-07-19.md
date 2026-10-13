@@ -1,4 +1,5 @@
 # DIRECTOR STEER — Resource-aware scheduling: light work must never wait behind heavy work (2026-07-19)
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** DONE (consolidated into DIRECTOR_CANON.md v4; nothing still owed) -- n/a Carries banner. Resource-aware scheduling confirmed implemented via background/resource_headroom.py (wired) and background.tick_mode (current slowdown dial per project memory).
 

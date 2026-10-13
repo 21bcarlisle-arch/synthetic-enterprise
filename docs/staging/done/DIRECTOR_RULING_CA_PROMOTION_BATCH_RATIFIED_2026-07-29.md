@@ -6,6 +6,7 @@
      author: §4 defect (no WORK-THIS-CREATES block). CA2-finding-publish is drawable now under the CA2 atom. -->
 
 # [DIRECTOR-RULING] — CA cohort promotion batch: RATIFIED (2026-07-29)
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** DONE (consolidated into DIRECTOR_CANON.md v4; nothing still owed) -- n/a Carries banner. CA1-CA4 atoms not found anywhere in the current docs/design/maturity_map.yaml -- consistent with the level-ups having been applied and the atoms retired/renamed long before this triage.
 

@@ -6,6 +6,7 @@
      are not triaged by mistake. Consume alongside GAP3, or reject with reasons. -->
 
 # [ADVISOR-INPUT] — Two inverted gap sources, and one note on the instrument itself (2026-07-28)
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** ATOM -- n/a No banner. P3 -- proposes an "overhang register" (accidental vs deliberate capability gaps); not built, not disqualified, own text flags the LAW-C tension honestly.
 

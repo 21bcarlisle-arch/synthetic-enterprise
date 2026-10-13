@@ -37,6 +37,7 @@
 > Do NOT re-file the remediated sweep rows (2,4,5,8,9,11,12); rows 8+11 are the reference templates.
 
 # [DIRECTOR-RULING] — Suppression sweep accepted. Close the registration hole; Law C first; merit-order is the next product draw. (2026-07-27)
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** DONE (consolidated into DIRECTOR_CANON.md v4; nothing still owed) -- 3916c3457; 37c2a5854 Carries banner. Own status: "STATUS RECONCILED: every §2 machinery item has LANDED", both cited commits confirmed real.
 

@@ -26,6 +26,7 @@
      reserved release rung. §2 mechanism-only (values R13). §6 registered-only, director-session gated. -->
 
 # [DIRECTOR-RULING] — Generator population ACTIVATED (R13); run rotation, run ledger, and the three separated scores (2026-07-25)
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** DONE (consolidated into DIRECTOR_CANON.md v4; nothing still owed) -- n/a Carries banner. Population-generator activation (N vs lambda) long since resolved -- current runs throughout Group A use 40-400 founder seeded books (e.g. seeds 61109-61112), far beyond this ruling's N=200 pilot scope.
 

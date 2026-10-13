@@ -1,4 +1,5 @@
 # [CC PROCESSING STATUS -- 2026-07-23] IN PROGRESS (part 2 ABSORBED; parts 1 & 3 OPEN)
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** SUPERSEDED -- SITE4-15 programme (DIRECTOR_BRIEF_WEBSITE_STRUCTURE); background/daily_self_note.py No banner. Part 2 (open-campaign draw) landed; Part 1 (turn-aware utilisation) superseded by the current daily_self_note.py; Part 3 (site surfaces) superseded by/continued under the SITE4-15 programme tracked separately above.
 #

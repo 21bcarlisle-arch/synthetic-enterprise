@@ -14,6 +14,7 @@
      `resource_headroom.observe()`/`admit()`, so the governor cannot yet defer anything. Not fixed on
      sight (SELF_INTERRUPT_DISCIPLINE: real but non-blocking, queued for a future BUILD draw). -->
 # [DIRECTOR-PRIORITY] — Memory cleanse: reclaim the 6GB tonight, govern the rest (2026-08-10)
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** DONE (consolidated into DIRECTOR_CANON.md v4; nothing still owed) -- n/a Carries banner. Step1 (ollama/llama retirement) confirmed via current CLAUDE.md ("qwen3:14b was evicted 2026-08-10... ollama.service disabled"). Step2 (headroom governor wiring) confirmed: resource_headroom is now called from background/sim_runner.py and background/process_run_complete.py.
 

@@ -3,6 +3,7 @@
 > security-profile + M2-wiring work this turn.
 
 # ADVISOR_STEER — auto-update line, final kill (Tier 2, tiny)
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** ARCHIVED -- n/a No banner. Tiny July Claude-Code autoupdate-line cosmetic issue; not mentioned in any current operational doc, superseded by subsequent Claude Code version upgrades.
 

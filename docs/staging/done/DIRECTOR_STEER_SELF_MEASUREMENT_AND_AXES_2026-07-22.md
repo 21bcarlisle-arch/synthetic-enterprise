@@ -11,6 +11,7 @@
 > already resolved by the scheduled-invocation cutover — fold only its measurement half into SM2.
 
 # DIRECTOR STEER — Self-measurement, director axes, and the always-drawable lane (2026-07-22)
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** DONE (consolidated into DIRECTOR_CANON.md v4; nothing still owed) -- n/a Carries banner. SM1 (daily-note automation) confirmed live (background/daily_self_note.py exists and is under active maintenance per current git status); SM3 (always-drawable discovery lane) confirmed via the live forward-discovery mechanism.
 

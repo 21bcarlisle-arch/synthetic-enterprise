@@ -16,6 +16,7 @@
      measured, register as a fidelity-ledger row; D3 three-clock bridge on the revenue-bridge standing). -->
 
 # [DIRECTOR-STEER] — Dunning, debt discovery and provisioning: the design session output (2026-07-25)
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** KEEP OPEN -- n/a Carries banner. Steps 2-4 of the debt ledger-spine (outcome->estimate wiring, ability-to-pay ladder, CoT attribution) and director-reserved walls R-1..R-5 are not evidenced as resolved; today's Group A cash-forecast-provision finding shows this area is still live, unsettled work.
 

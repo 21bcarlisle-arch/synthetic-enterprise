@@ -9,6 +9,7 @@ minted GAP1/2/3 docs are RUNG-1 staged work; GAP1's BUILD half additionally need
 [4] cohort-activation status + exit-criterion counter reading + last reset cause — COVERED by pre-existing atoms + status DISCHARGED (see §4 STATUS DISCHARGE below). NOT re-minted.
 -->
 # [DIRECTOR-RULING] — The published gaps ARE the backlog. Saturation was a bookkeeping artifact. (2026-07-28)
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** DONE (consolidated into DIRECTOR_CANON.md v4; nothing still owed) -- n/a Carries banner. Old gap-triage rung mechanism; superseded by the current staging-protocol/maturity-map draw (no "rung" vocabulary survives in current CLAUDE.md).
 

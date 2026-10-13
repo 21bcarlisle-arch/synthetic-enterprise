@@ -16,6 +16,7 @@ STATUS 2026-07-25 (parked in_progress — one sub-item LANDED, remainder belongs
 - §6 growth/leverage: REGISTERED for its own director session, not built here.
 -->
 # [DIRECTOR-RULING] — MC-2: no difficulty knob. Real 2021–22 history is the test; breaking-strain sweep around it. Facility sizing is a defect, not a dial. (2026-07-25)
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** DONE (consolidated into DIRECTOR_CANON.md v4; nothing still owed) -- n/a Carries banner. Facility-sizing defect landed (company/finance/margin_call_book.py, book-derived facility). Remaining breaking-strain sweep is already captured under its own separately-fated staging doc (PLANNER_MINTED_value_chain_observation_window_cap, ATOM P2, fated 2026-10-12) -- not orphaned here.
 

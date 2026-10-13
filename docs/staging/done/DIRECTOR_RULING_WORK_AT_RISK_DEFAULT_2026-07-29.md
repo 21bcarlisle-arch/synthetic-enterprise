@@ -10,6 +10,7 @@ NOT re-mints: literal_act_ledger (groups by channel, assumes director-blocked) a
 OPEN sub-item: all three minted atoms are self-drawable and un-executed; §4 binding is live doctrine. -->
 
 # [DIRECTOR-RULING] — WORK AT RISK is the default. Re-scope the reserved set by reversibility, not by category. (2026-07-29)
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** DONE (consolidated into DIRECTOR_CANON.md v4; nothing still owed) -- n/a Carries banner. 3 atoms minted; the "work at risk is the default" principle is now directly stated in the current operating model ("Get on with, without asking... nothing inside the simulation is a one-way door").
 

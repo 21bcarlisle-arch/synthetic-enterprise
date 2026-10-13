@@ -24,6 +24,7 @@
      (scenario/true-prob values stay R13). §6 survival-usefulness = REGISTERED ONLY, director-session gated. -->
 
 # [DIRECTOR-RULING] — Generator population ACTIVATED; run rotation, run manifest and the three separated scores (2026-07-25)
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** DONE -- n/a No banner. Population-generator activation (SE_DRAW_POPULATION) long since landed; today's Group A findings routinely run 40-400 founder seeded books (seeds 61109-61112 etc.), far beyond this ruling's N=200 pilot.
 

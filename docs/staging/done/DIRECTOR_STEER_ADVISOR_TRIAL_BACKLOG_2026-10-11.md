@@ -1,4 +1,5 @@
 # [DIRECTOR-STEER][ADVISOR-STAGED] Backlog: trial Sonnet 5.5 + Opus advisor on worker ticks (2026-10-11)
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** DONE (consolidated into DIRECTOR_CANON.md v4; nothing still owed) -- n/a Carries banner. Confirmed live: a running worker-tick process was observed during this triage invoked as "claude -p --model claude-sonnet-5 --advisor claude-opus-5-5", i.e. the trial is actioned.
 

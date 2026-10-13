@@ -17,6 +17,7 @@
   UNBLOCKS-ON: §3 built + R15-proven. Everything else is closed. -->
 
 # [DIRECTOR-RULING] — Publish gate wedged 3.5h and escalating: PRIORITY ZERO. Diagnose, fix, republish, prove live. (2026-07-23)
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** DONE -- n/a No banner. §1/§2/§4 done per own status; §3 ("mechanise: a wedge >60min is priority-zero work") has been mechanised far beyond this ask by the current publish-gate/origin-reconcile/surgical_land apparatus (referenced throughout current project memory).
 

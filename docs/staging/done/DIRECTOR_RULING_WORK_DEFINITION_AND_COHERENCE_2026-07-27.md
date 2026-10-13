@@ -60,6 +60,7 @@ Each remaining item: failing test FIRST, own commit, shadow rail on any scanner/
 -->
 
 # [DIRECTOR-RULING] — Work definition and coherence: rulings must create atoms; model, diagram, site and map must DERIVE from one truth (2026-07-27)
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** DONE (consolidated into DIRECTOR_CANON.md v4; nothing still owed) -- n/a Carries banner. Own status: "FULLY MINTED... mint-source obligation is DISCHARGED".
 

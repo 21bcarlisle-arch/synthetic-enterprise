@@ -1,4 +1,5 @@
 # ADVISOR ESCALATION — Worktree transient pings STILL reaching the director; deploy the ratified fix and prove quiet (2026-07-19)
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** ARCHIVED -- n/a No banner. July worktree-ping/NTFY-routing escalation; superseded by extensive subsequent worktree and NTFY hygiene work recorded throughout project memory.
 

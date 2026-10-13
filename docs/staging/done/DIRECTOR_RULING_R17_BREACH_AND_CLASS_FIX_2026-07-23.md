@@ -9,6 +9,7 @@
 > **UNBLOCKS WHEN:** each sub-item's own artefact is committed. §3.1 self-drains the new rung.
 
 # [DIRECTOR-RULING] — R17 breach declared; the rest-proof class fix; immediate work order (2026-07-23)
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** DONE (consolidated into DIRECTOR_CANON.md v4; nothing still owed) -- n/a Carries banner. R17 class fix confirmed live (background/supervisor.py::_forward_discovery_tracks, cited directly in current CLAUDE.md's R17 entry). The five dated sub-items (F1 proposal doc, F2 site fold-in, MC-2 death test, MC-1 classification, one daily-note line) are one-off July asks, long superseded by subsequent work.
 

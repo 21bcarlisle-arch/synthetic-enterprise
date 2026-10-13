@@ -1,4 +1,5 @@
 # DIRECTOR STEER — Thinking ahead, done right: kill W1_8, establish the forward-discovery register (2026-07-21)
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** DONE (consolidated into DIRECTOR_CANON.md v4; nothing still owed) -- n/a Carries banner. Forward-discovery register (F1-F5) confirmed live in background/supervisor.py and cited directly by current CLAUDE.md's R17 entry; W1_8 zonal-pricing closure stands (REMA not pursued).
 

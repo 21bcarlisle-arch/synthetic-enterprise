@@ -5,6 +5,7 @@
 > steer it companions.
 
 # ADVISOR DISCOVERY — Wholesale product & shaped-cost anchors (companion to WHOLESALE_VALUE_CHAIN steer, 2026-07-22)
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** DONE -- n/a No banner. Own header: "FOLDED... into docs/design/WHOLESALE_VALUE_CHAIN_FRAME.md" -- sourced-anchor research already incorporated where it was meant to go.
 

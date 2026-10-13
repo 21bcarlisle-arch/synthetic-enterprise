@@ -14,6 +14,7 @@
 > the open ask lives in the mint doc above, not in the scanner's silence.
 
 # [DIRECTOR-RULING] — H-lane cut + plain-words naming law (2026-08-05)
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** DONE (consolidated into DIRECTOR_CANON.md v4; nothing still owed) -- n/a Carries banner. Only open ask was the author supplying a missing WORK-THIS-CREATES block, a process nicety now moot under the current (non-rung) draw mechanism.
 

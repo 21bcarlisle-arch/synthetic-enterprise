@@ -10,6 +10,7 @@
 > friction term. Follow-ons SPINE_1–5 named for the map (orchestrator registers). Then → done/.
 
 # [DIRECTOR-STEER] — Scenario spine, trading friction, and the pricing of forecast error (2026-07-23)
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** KEEP OPEN -- n/a Carries banner. SPINE_1/SPINE_3 atoms confirmed present in maturity_map.yaml, still director/BUILD-gated and not built.
 

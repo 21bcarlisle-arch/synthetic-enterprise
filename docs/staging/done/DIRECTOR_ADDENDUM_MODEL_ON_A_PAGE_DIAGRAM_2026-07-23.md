@@ -1,4 +1,5 @@
 # [DIRECTOR-DECISION → publish] — MODEL-ON-A-PAGE DIAGRAM, ADD TO SITE (2026-07-23)
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** DONE (consolidated into DIRECTOR_CANON.md v4; nothing still owed) -- n/a Carries banner. Site diagram decision superseded by the SITE14/SITE15 front-door-schematic atoms, tracked separately and currently open under their own ids.
 

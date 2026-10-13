@@ -1,4 +1,5 @@
 # DIRECTOR_TWIN — the pretend principal (P0, capstone of the autonomy work)
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** DONE (consolidated into DIRECTOR_CANON.md v4; nothing still owed) -- n/a Carries banner. DIRECTOR_CANON_V4 states explicitly "The twin is retired... its permission code was deleted on 29 July" -- the subject of this doc no longer exists.
 

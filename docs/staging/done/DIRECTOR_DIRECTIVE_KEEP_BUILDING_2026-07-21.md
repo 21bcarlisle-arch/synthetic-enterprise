@@ -12,6 +12,7 @@
 ---
 
 # DIRECTOR DIRECTIVE — Keep building: drawable work exists; draw it, and advance the idle backlog (2026-07-21)
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** DONE (consolidated into DIRECTOR_CANON.md v4; nothing still owed) -- n/a Carries banner. The named director gates (W1 coupling, W1_7/W1_9 level-ups, SITE1, W1_8, OPS1) are all from the W1 lane's epoch-2 state; current W1 atoms (e.g. W1_29) are epoch 3 and far downstream, confirming the lane has long since progressed past this checkpoint.
 

@@ -20,6 +20,7 @@
 ---
 
 # [DIRECTOR-RULING] — Unwedge the publish gate (R16 class); axis-3 weather verdicts RATIFIED; sequencing (2026-07-23)
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** SUPERSEDED -- DIRECTOR_CANON_V4 ("the twin is retired") No banner. Open sub-items 3(a)/3(b) depended on the director twin's ledger-backed level-move calls; the twin was retired 29 July per canon v4, so level moves now go through gate_authorization.py / console ratification instead.
 

@@ -12,6 +12,7 @@
 > incoming — reconcile it with the FRAME + primary-source DISCOVER at BUILD (disagreements are findings).
 
 # DIRECTOR STEER — The wholesale value chain: products, shaped cost, and where trading value is created (2026-07-22)
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** KEEP OPEN -- n/a Carries banner. WVC_1-5 atoms not found anywhere in the current maturity_map.yaml; cannot confirm built, renamed or dropped -- flagged rather than guessed.
 

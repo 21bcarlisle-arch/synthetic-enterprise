@@ -15,6 +15,7 @@
      ruling. Archive only when Acceptance items 1–6 land and item 7's evidence is returned. -->
 
 # [DIRECTOR-RULING] — Shared primitives, code standards, and making "should this have been shared?" an ensuring activity (2026-07-28)
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** DONE (consolidated into DIRECTOR_CANON.md v4; nothing still owed) -- n/a Carries banner. Items 1-6 minted and sequenced three months ago; item 7 (money-representation) is director-reserved evidence-gathering only, not a standing build ask.
 

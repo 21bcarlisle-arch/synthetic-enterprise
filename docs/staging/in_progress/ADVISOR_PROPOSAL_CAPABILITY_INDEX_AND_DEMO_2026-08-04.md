@@ -26,6 +26,7 @@
 >    programme's own absorption hit). Mint it or rule it out — do not leave it here unowned.
 
 # [ADVISOR-PROPOSAL] — How an outsider would assess this, and what that implies we should build (2026-08-04)
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** ATOM -- n/a No banner. P3 -- §4 (separate staging exhaust, ~4,300+ run-completion markers in docs/staging/done/, from the record) has "no atom" by its own account; §2 demo and §3 blind-check also remain unbuilt.
 

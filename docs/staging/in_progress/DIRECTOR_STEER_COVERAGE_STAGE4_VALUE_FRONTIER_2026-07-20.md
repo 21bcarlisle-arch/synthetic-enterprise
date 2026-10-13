@@ -17,6 +17,7 @@
 > campaign in `in_progress/` — continue there, not as a fresh atom.
 
 # DIRECTOR STEER — Stage 4: the value frontier, and how many segments is enough (2026-07-20)
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** KEEP OPEN -- n/a (DIRECTOR-ONLY on the values-calls) Carries banner. Own status: "AWAITING DIRECTOR" on the value-weighting and critical-group calls, plus the reserved generator wiring.
 

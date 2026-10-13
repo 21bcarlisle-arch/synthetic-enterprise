@@ -1,4 +1,5 @@
 # [CC PROCESSING STATUS -- 2026-07-23 NIGHT] IN PROGRESS (rungs 2 + 4 ABSORBED + seeds MINTED; rungs 5/7 OPEN)
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** DONE (consolidated into DIRECTOR_CANON.md v4; nothing still owed) -- n/a Carries banner. Only open item was "RUNG 5" wiring in an architecture (rungs 1-7) no longer present in the current harness vocabulary.
 

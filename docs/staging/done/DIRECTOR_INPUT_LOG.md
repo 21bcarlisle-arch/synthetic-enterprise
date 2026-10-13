@@ -21,6 +21,7 @@
 > Move to done/ once V2 lands or the director judges V1 sufficient.
 
 # DIRECTOR_INPUT_LOG — unified log of every director input, every channel (P2)
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** DONE (consolidated into DIRECTOR_CANON.md v4; nothing still owed) -- n/a Carries banner. V1 built and live; V2 (extra channel wiring) was registered as "next if prioritised further" and was not -- NTFY/console channels now carry this role per the current operating model.
 

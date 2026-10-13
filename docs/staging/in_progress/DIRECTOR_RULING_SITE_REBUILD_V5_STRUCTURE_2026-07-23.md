@@ -1,4 +1,5 @@
 # [CC PROCESSING STATUS — 2026-07-23] IN PROGRESS (sequence step 1 DONE)
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** KEEP OPEN -- n/a Carries banner. Own status: "build the five surfaces... NEXT DRAWABLE PHASE: Surface 1". Same open SITE atoms as above.
 

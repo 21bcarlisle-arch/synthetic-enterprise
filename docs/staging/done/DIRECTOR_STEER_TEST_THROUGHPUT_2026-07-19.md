@@ -3,6 +3,7 @@
 ---
 
 # DIRECTOR STEER — Test throughput is becoming the rate-determining step; restructure it (2026-07-19)
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** DONE (consolidated into DIRECTOR_CANON.md v4; nothing still owed) -- n/a Carries banner. Test-throughput constraint addressed by extensive current harness (SIM_FAST_MODE, nearest-test selection, scoped publish-path gate argv), far beyond the measure-then-propose state this steer left off at.
 

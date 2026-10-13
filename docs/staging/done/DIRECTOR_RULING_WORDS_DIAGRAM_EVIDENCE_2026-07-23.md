@@ -1,4 +1,5 @@
 # [DIRECTOR-RULING] — Site round 2 verdicts: financials re-grounded; link integrity; WORDS → DIAGRAM → EVIDENCE as the organising principle (2026-07-23)
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** SUPERSEDED -- SITE4-15 programme; R11 link-walk tests No banner. The words->diagram->evidence IA principle and link-integrity test are folded into/continued by the SITE4-15 programme and the R11 link-walk gate, both tracked separately above.
 

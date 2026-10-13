@@ -1,4 +1,5 @@
 # [IN PROGRESS] Site campaign continuation — WORDS → DIAGRAM → EVIDENCE + financials reframe + R11 link integrity (2026-07-23)
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** KEEP OPEN -- n/a Carries banner. Own disposition: "Only remainder: the SC arrears-£-per-customer DISTRIBUTION -- a SIM-emission BUILD... belongs in the normal BUILD draw." Not independently verified built.
 

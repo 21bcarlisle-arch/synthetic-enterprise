@@ -1,4 +1,5 @@
 # [ADVISOR] A director correction is narrated once and never counted
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** ATOM -- n/a No banner. P3 -- proposes a mechanism to count/classify repeated director corrections (not just narrate them in prose); unbuilt, advisor itself says "nothing here claims priority over drawn work."
 

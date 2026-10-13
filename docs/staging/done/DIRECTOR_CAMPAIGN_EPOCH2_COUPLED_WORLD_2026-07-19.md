@@ -1,6 +1,7 @@
 > [AGENT 2026-07-19] CONSUMED + STARTED. Decomposed into homed atoms A-F: `docs/design/EPOCH2_COUPLED_WORLD_CAMPAIGN_DECOMPOSITION.md`. DISCOVER forks LIVE: atom A (scope-of-need scoring frame, req 1, FIRST) + atoms B/C (price-formation + supplier-cost, req 3). D/E/F sequenced after. W1 BUILD closed; site lane standing. Move to done/ when the campaign's DISCOVER/FRAME stages are all landed.
 
 # DIRECTOR CAMPAIGN FRAMING — Epoch 2: the coupled world, ranked by value (2026-07-19)
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** DONE (consolidated into DIRECTOR_CANON.md v4; nothing still owed) -- n/a Carries banner. Epoch-2 campaign framing; current work is epoch 3 throughout (confirmed via today's B8 findings), so the campaign this doc opened has run its course.
 

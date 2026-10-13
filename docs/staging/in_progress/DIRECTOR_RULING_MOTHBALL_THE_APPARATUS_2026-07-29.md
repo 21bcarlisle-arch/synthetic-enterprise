@@ -2,6 +2,7 @@
      (verdicts recorded per component). OPEN: execute the MOTHBALL-verdict rows (disable + record),
      do not re-scan as unprocessed. Reversible throughout. -->
 # [DIRECTOR-RULING] — Mothball the apparatus unless it earns its place (2026-07-29)
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** KEEP OPEN -- n/a Carries banner. Asks execution of docs/design/MOTHBALL_2026-07-29.md's verdict rows (disable+record); completion not independently verified in this pass.
 

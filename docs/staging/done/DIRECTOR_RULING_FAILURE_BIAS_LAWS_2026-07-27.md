@@ -10,6 +10,7 @@
      mints drawing + landing with R15 both-ways. Ruling itself is NOT independently drawable. -->
 
 # [DIRECTOR-RULING] — Three failure-bias laws, and the suppression audit. Why one held assumption stopped everything. (2026-07-27)
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** DONE (consolidated into DIRECTOR_CANON.md v4; nothing still owed) -- n/a Carries banner. Decomposed into 4 RUNG-1 mints three months ago; the failure-bias-law content (suppression, lane isolation, independent verification) is now standing practice, reflected throughout the current R-rule catalogue (MEMORY.md R15 index).
 

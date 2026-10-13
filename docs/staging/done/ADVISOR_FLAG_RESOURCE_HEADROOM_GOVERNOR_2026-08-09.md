@@ -17,6 +17,7 @@
 > Full disposition: `WORKER_REPORT_THE_GOVERNOR_LANDED_BUT_ITS_CALLERS_WAIT_FOR_THE_CENSUS_2026-08-10.md`
 
 # [ADVISOR-FLAG] — Resource headroom needs a governor (2026-08-09)
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** DONE -- n/a No banner. Confirmed: resource_headroom is now called from background/sim_runner.py and background/process_run_complete.py (the blocking "callers not wired" gap this doc named is closed).
 

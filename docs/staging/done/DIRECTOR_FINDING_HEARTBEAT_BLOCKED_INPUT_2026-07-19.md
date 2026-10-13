@@ -5,6 +5,7 @@
 ---
 
 # DIRECTOR FINDING — The rest-heartbeat blocked director input for 27 minutes (2026-07-19, 22:37 BST)
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** DONE -- n/a No banner. Own analysis: only satisfiable by the scheduled-invocation architecture; confirmed built and live (background/worker_tick.py, cutover_to_scheduled.sh, and current CLAUDE.md's worker-tick/delivery-seat.timer description).
 

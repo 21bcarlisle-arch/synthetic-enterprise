@@ -1,4 +1,5 @@
 # ADVISOR FINDINGS — the EPC register in this simulation is never wrong, only absent or vague, and the absence carries no information
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** ATOM -- n/a No banner. P3 -- EPC-certificate staleness/absence-correlation discovery needs a network-access session (§2a/§2b); the wall item (§1d/§2c) is already built and landed per its own status.
 

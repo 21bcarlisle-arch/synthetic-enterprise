@@ -15,6 +15,7 @@ BLOCKING / STILL OPEN (drawn next ticks, named honestly per the ruling's own "ho
 Parent ruling: docs/staging/in_progress/DIRECTOR_RULING_WORK_IS_THE_DEFAULT_2026-07-23.md. -->
 
 # [DIRECTOR-RULING] — Night enforcement: the hierarchy gets BUILT tonight; the seeds get MINTED tonight; the 07:00 note is pass/fail (2026-07-23)
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** ARCHIVED -- n/a No banner. A single dated night's pass/fail enforcement record ("the 07:00 note is pass/fail on this list"); time-bound and expired, superseded by the current draw mechanism.
 

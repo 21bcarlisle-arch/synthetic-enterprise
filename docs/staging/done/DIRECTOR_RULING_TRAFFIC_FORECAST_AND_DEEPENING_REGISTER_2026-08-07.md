@@ -14,6 +14,7 @@
 > the open ask lives in the mint doc above, not in the scanner's silence.
 
 # [DIRECTOR-RULING] — Traffic forecast + deepening register (2026-08-07)
+**Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
 **Fate (2026-10-13, clear-the-decks):** DONE (consolidated into DIRECTOR_CANON.md v4; nothing still owed) -- n/a Carries banner. Only open ask was a missing WORK-THIS-CREATES block from the author, a process nicety moot under the current draw mechanism.
 
