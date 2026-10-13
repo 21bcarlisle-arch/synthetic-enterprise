@@ -1,5 +1,14 @@
 **Severity:** LATENT · **Lane:** H_harness · **Epoch:** unassigned · **Atom:** `unminted` · **Claim:** `the-publish-lands-once-the-shared-tree-reaches-origin` (Lane 0 delivery)
 
+**Disposition, 2026-10-13 ~21:05Z (executor, claim `the-shared-tree-fast-forward-is-held-by-two-archive-moves-and-a-rival-census-test`): SPENT, archived.**
+The shared tree has reached origin. Its HEAD is 3fcc1de08, 0 behind, and it carries 81c129fe8.
+None of this finding's three paths are dirty there: neither ADVISOR_FINDINGS note and not the census test.
+The rewritten census test was not landed. A worker put origin's blob back at 18:10Z and kept the rewrite as blob `d1c7e4dc6f2c`.
+That is recorded in `WORKER_FINDING_THE_PUBLISH_WEDGE_CLEARED_BY_THE_SHARED_HEAD_ADVANCE_AND_BOTH_RECORDED_REDS_WERE_THE_STALE_HEAD_2026-10-13.md`.
+The publish still failed at 20:50Z, at the advanced HEAD, but on a different cause: 74 site-lane reds from ENOSPC on /tmp.
+That was fixed afterwards in 0d5304e98 and 3fcc1de08 (`SEAT_FINDING_THE_774_HOUSEHOLD_PUBLISH_WAS_REFUSED_BY_A_FULL_TMPFS_NOT_BY_A_RED_SITE_TEST_2026-10-13.md`).
+The next publish cycle is the test of that fix. This finding has nothing left to do.
+
 # The shared tree is held by the seat's own refused records and two stale archive moves, not by the DD pile
 
 *Continues `done/SEAT_FINDING_THE_PUBLISH_IS_HELD_BY_THE_SHARED_TREES_STALE_HEAD_NOT_BY_A_LIVE_RED_2026-10-13.md`.
