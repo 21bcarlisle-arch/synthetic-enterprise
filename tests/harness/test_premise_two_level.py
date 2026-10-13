@@ -1231,9 +1231,10 @@ def test_the_size_coupling_comparator_can_both_pass_and_fire(population):
 @pytest.mark.xfail(strict=True, reason=(
     "W1_29, 2026-10-13: a world home's texture is set by its size. Drawn 60: r(texture, kWh/day) "
     "-0.665 against LCL's -0.32 (z -3.27); log-kWh r -0.69 at n=60 and -0.72 to -0.73 at n=240 over seeds "
-    "17/18/19/23, and log kWh tracks log always-on at +0.77 to +0.82. The world's homes are big "
-    "BECAUSE their always-on draw is big, and so calm; real homes differ in active use at a given "
-    "size, and no sourced between-home spread of active use exists in the knowledge layer (GAP)."))
+    "17/18/19/23, and log kWh tracks log always-on at +0.77 to +0.82. The always-on draw tightens it "
+    "(r -0.469 with it held at 25 W) but also set the median right, so it is not the remedy: real "
+    "homes differ in active use at a given size, and no sourced between-home spread of active use "
+    "exists in the knowledge layer (GAP)."))
 def test_a_world_homes_texture_is_no_more_set_by_its_size_than_a_real_homes(population):
     textures, sizes = _netted_texture_and_size(population)
     tied, r, z = _texture_is_tied_to_size_harder_than_real_homes(textures, sizes)

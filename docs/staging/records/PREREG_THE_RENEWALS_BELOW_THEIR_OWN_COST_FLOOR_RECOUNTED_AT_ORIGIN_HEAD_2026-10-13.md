@@ -52,3 +52,23 @@ The book is path-dependent, so the set of held notices can change with the code.
 - **P4 holds:** the save's inertness is NOT a cost-floor defect any more. It is the price match's own
   shape: on a book renewed at cost, there is nothing cheaper than the floor to offer. Say so beside the
   claim, as a question about the save's design, not about pricing.
+
+## Addendum, filed after the seed-61109 count and before any further run (2026-10-13 ~08:45 BST)
+
+The 61109 result and its writer attribution are in the finding's amendment. In short: 2 of 8 held
+notices are below floor, and both are risk-tier retention cuts applied after the chain. This addendum
+is for the runs the item calls for next: seeds 61110-61112 (save k = 1), and the price-match arm of
+the renewal-cut pair on 61109. The risk_tiers side is the save run already done: with 0 offers the
+save arm is the CURRENT_POLICY run, and at ed668c733 the two nets were identical (233,035.45).
+
+- **P6.** Seeds 61110-61112 at HEAD each have at most 2 held notices below floor (6/5/6 before). Every
+  such notice is a retention cut: rate / (1 - tier) lands at or above floor for a tier in
+  {0.03, 0.05, 0.08}. 0 save offers on every seed.
+- **P7.** Price-match renewal cut on 61109 at HEAD:
+  - (a) retention offers fall below 47, the ed668c733 count, because a renewal now sits at its floor
+    and the match cannot cut it;
+  - (b) 0 renewals below floor anywhere in the run's loss-notice log (the match is floored);
+  - (c) on net, match minus tiers (253,051): **I cannot say the sign.** Fewer cuts saves money and more
+    departures costs it. The band is within GBP 3,000, either sign.
+- **The rule from the finding stands:** do not recommend the switch if net falls on every seed. Only
+  one seed is run here, so this pair can withdraw nothing and confirm nothing on its own.

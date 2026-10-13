@@ -30,6 +30,57 @@ below the company's own cost floor** (for example 61109, 2025-05-12: renewal GBP
 251.1). The price match never prices below the floor, so no save can be offered. One renewal sat above
 the published default tariff. The base seed offered 2 of 23. On fresh seeds the save is inert.
 
+> **AMENDED 2026-10-13, recounted at origin HEAD d55598dd6. This code carries 03a0b66da (writer 1's
+> discount floored at cost).** Pre-registration:
+> `records/PREREG_THE_RENEWALS_BELOW_THEIR_OWN_COST_FLOOR_RECOUNTED_AT_ORIGIN_HEAD_2026-10-13.md`.
+> Seed 61109, the same arm and book; artefact `/var/tmp/floor-recount-out/sv-k1-61109.json`.
+>
+> | | ed668c733 | d55598dd6 |
+> |---|---|---|
+> | held loss notices | 7 | 8 |
+> | held, below floor | 6 | **2** |
+> | held, at floor to the penny | 0 | 5 |
+> | all answered loss notices below floor | 44 / 61 | **7 / 62** |
+> | save offers | 0 | **0** |
+>
+> **The premise "renewals sit below their own cost floor" is mostly spent.** It was writer 1's -5%
+> premium, and 03a0b66da fixed it. All five held electricity renewals now sit exactly at their floor.
+>
+> **The save still does not fire, and on this seed the floor fix could not have changed that.** This was
+> predicted (P4) before the run. The match offers `max(cost_floor, best deal)`, and only below the
+> renewal. A renewal floored at its own cost leaves the match nothing to offer. So the save's
+> inertness is now a question about **the save's design** (a book renewed at cost has nothing
+> cheaper to give), not a pricing defect.
+>
+> **The writer for the 2 held renewals still below floor is the risk-tier retention cut, not a chain
+> writer.** These are gas SYN-2016-045 (2025-02-08) and SYN-2016-179 (2025-04-11).
+> - The class check `refuse_discretionary_rate_below_own_cost_floor` runs where
+>   `renewal_rate_chain.decide_renewal_rate` returns. A fixed renewal is not held at the cap
+>   (`held_at_published_cap`), and the strike sits GBP 3.1-3.5/MWh above floor at real inputs. So
+>   **no chain component can leave a rate below floor without the run raising**, and it did not raise.
+> - Between the chain's return and the save, the only rate writer is
+>   `run_phase2b`'s `unit_rate = offered_rate(unit_rate, _retention_offer[0])`. That is the renewal cut,
+>   sized by `retention_discount_for_risk` and floored nowhere.
+> - The arithmetic fits the tiers. SYN-2016-179: 63.23 / 0.92 = 68.73, against a floor of 68.34. SYN-2016-045:
+>   62.14 / 0.97 = 64.06, against a floor of 63.61. The chain left each just above floor, and an 8% or 3%
+>   tier took it under.
+>
+> This is the class 03a0b66da named ("a discount may cost margin; it may never take the rate under
+> cost"), with a discount writer outside the place the class is checked. Its `value_protected >
+> ret_cost` test counts an acquisition cost saved, so a below-cost retention cut may still be a
+> considered choice. That is the question the continuation must answer before flooring it.
+>
+> **A second defect found on the way: the price match mixes VAT bases.** `published_default_rate`
+> is `simulation.svt_rates`, which is **inc-VAT** (gas 2025-Q2: 69.9 = Ofgem's 6.99p). The renewal rate
+> and `cost_floor` are ex-VAT (`cap_ceiling_ex_vat` gives 66.57 for the same window). So
+> `default x (1 - gap)` overstates the best published deal by 5% against the rate it is compared with.
+> On 61109 this changes no offer, because the floor binds on every held row. It biases both the save
+> and the price-match renewal cut against offering, and it explains "one renewal sat above the
+> published default tariff" above, which compared an ex-VAT renewal with an inc-VAT default.
+>
+> Seeds 61110-61112 and the price-match side of the renewal-cut pair are re-running at d55598dd6
+> (predictions P6-P7, filed first). Their results go beside the next claim.
+
 ## The renewal cut: the price match loses net on every seed
 
 | seed | offers, tiers / match | offer cost GBP, tiers / match | net, match - tiers | renewal departures, tiers / match |
