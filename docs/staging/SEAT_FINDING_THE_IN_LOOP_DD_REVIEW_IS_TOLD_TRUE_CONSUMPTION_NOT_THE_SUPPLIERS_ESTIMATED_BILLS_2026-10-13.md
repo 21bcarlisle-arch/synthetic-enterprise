@@ -21,8 +21,10 @@ DD4b response, which is correctly the world's. The defect is in what the househo
 TOLD: a supplier could not have told it that amount.
 
 **A second, separate defect the census exposed.** `C7` has a smart meter and 42 consecutive estimated
-bills with no forced catch-up. Look for the parked atom on read-cadence and catch-up rules before
-minting one.
+bills with no forced catch-up: `simulate_read` (`simulation/meter_reads.py`) treats a smart meter not in
+smart mode as traditional, and nothing in the world forces a read across 42 months. This belongs to the
+existing atom `W2_36_unbilled_energy_arises_the_way_it_does_in_reality` (estimated reads and their
+true-up), not a new one.
 
 **Remedy (not built).** The in-loop review should take the supplier's own bill for the month, from the
 same `SimulatedReadFeed` and assembly door `build_monthly_bills` uses, with the move-in void and
