@@ -91,8 +91,31 @@ by `growth_desk`, 5c137eb5b) and the save's price match (`save_offer.py`) still 
 locked costs, without capital. They are the same rule with a different cost under it. Not changed
 in this commit. The knowledge page records it as a GAP.
 
-## Ten-renewal evidence
+## Ten-renewal evidence (replay of seed 61001, 2016-2017, at 4e8054786, pre-fix)
 
-To follow below this line: per-writer rates for ten of the renewals, from a replay of seed 61001 at
-origin (pre-fix) code. The replay is queued behind the memory gate's "landings come before
-experiments" rule.
+`tools.decision_probe.probe(report_end="2017-12-31", roll_seed=61001)` with `decide_renewal` wrapped
+to log each call's inputs, every writer's `rate_before -> rate_after` and the contracted rate. The
+control (`current`) pass, which is the rate actually billed, since no arm replaces it there. The
+first row is the artefact's own first row (C5, before 128.6801 against base 129.4867), so the
+replay matches the full run on that renewal.
+
+| customer | fuel | term start | strike | writer 1 % | after writer 1 | other writers | billed (contracted) | fwd+locked floor | term cost incl. capital | billed - term cost |
+|---|---|---|---|---|---|---|---|---|---|---|
+| C5 | elec | 2016-12-31 | 131.49 | -3.80 | 128.68 | none | 128.68 | 128.68 | 129.49 | -0.81 |
+| SYN-2016-029 | elec | 2017-01-24 | 141.38 | -5.00 | 139.06 | none | 139.06 | 139.06 | 139.98 | -0.92 |
+| SYN-2016-064 | elec | 2017-02-16 | 123.07 | -2.03 | 120.57 | none | 120.57 | 120.38 | 121.07 | -0.50 |
+| SYN-2016-085 | elec | 2017-02-25 | 122.04 | -5.00 | 119.36 | none | 119.36 | 119.36 | 120.04 | -0.68 |
+| SYN-2016-119 | elec | 2017-03-09 | 133.98 | -4.54 | 131.15 | none | 131.15 | 131.15 | 131.98 | -0.82 |
+| SYN-2016-150 | elec | 2017-03-23 | 134.68 | -5.00 | 131.85 | none | 131.85 | 131.85 | 132.68 | -0.83 |
+| SYN-2016-162 | elec | 2017-03-31 | 122.77 | -5.00 | 120.09 | none | 120.09 | 120.09 | 120.77 | -0.69 |
+| SYN-2016-168 | elec | 2017-04-03 | 134.53 | -5.00 | 131.77 | none | 131.77 | 131.77 | 132.53 | -0.76 |
+| SYN-2016-216 | elec | 2017-05-03 | 120.79 | -5.00 | 118.20 | none | 118.20 | 118.20 | 118.79 | -0.59 |
+| PROS-2016-0170 | elec | 2017-06-05 | 108.62 | -5.00 | 106.18 | none | 106.18 | 106.18 | 106.62 | -0.45 |
+
+Over the whole window's control pass: 428 renewals had offer components, and writer 1 fired on 71.
+It left 52 of them under the capital-inclusive term cost, 48 exactly at the forward + locked floor
+and none below it (23 read below by up to 2e-5, but that is the logged 4-dp rounding against an
+unrounded floor). 51 were billed there, each with writer 1 as its only writer. The strike sits
+GBP 2 above the term cost and a -5% premium takes off more than that, so the old floor binds and
+the rate stops the capital charge short of cost. Since 434d87587 the same renewals stop at the
+term cost column, which `test_the_floor_is_the_term_cost_with_its_capital_charge` pins.
