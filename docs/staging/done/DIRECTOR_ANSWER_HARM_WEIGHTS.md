@@ -1,5 +1,7 @@
 # DIRECTOR ANSWER — A7_harm_cost_weights_ratio (R13, signed) + a formula defect
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Staged:** 2026-07-13 by advisor, **relaying the DIRECTOR'S DECISION** made in
 live conversation after reviewing your decision pack. This answers your
 [ACTION NEEDED] A7_harm_cost_weights_ratio. Disposition: **INTERRUPT** (you are

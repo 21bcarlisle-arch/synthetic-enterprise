@@ -1,5 +1,7 @@
 # [DIRECTOR-CANON] — PITCH v7, VERBATIM. Adopt as purpose canon; reconcile against primary state. (2026-07-28)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [DIRECTOR-CANON + reconciliation instruction]. Director-authored, supplied verbatim below. **Do not edit, condense or "correct" the director's text.** Adopt as `docs/design/PITCH_V7.md`, superseding v6.
 
 ## The layer division (this is the coherence ruling, applied to the pitch)

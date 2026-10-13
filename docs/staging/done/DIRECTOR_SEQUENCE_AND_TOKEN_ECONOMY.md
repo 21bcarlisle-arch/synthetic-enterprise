@@ -1,5 +1,7 @@
 # DIRECTOR_SEQUENCE_AND_TOKEN_ECONOMY — RY endorsed, re-sequenced (P1)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Staged:** 2026-07-08 ~09:25 BST by advisor, director-confirmed ("I agree").
 **Tier:** 2 — director decision on existing proposals, proceed immediately.
 **Applies to:** the Phase RY 4h opt-out window (expires ~11:51 BST). This is the

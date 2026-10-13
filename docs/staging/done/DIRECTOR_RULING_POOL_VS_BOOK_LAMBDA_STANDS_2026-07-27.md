@@ -1,5 +1,7 @@
 # [DIRECTOR-RULING] — N=200 is the COVERAGE DRAW; λ=1.0 STANDS as the real book. The book is earned, never granted. (2026-07-27)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [DIRECTOR-RULING] via advisor bridge. Resolves the one live decision reported as blocking the population cluster since 2026-07-25.
 
 ## The ruling

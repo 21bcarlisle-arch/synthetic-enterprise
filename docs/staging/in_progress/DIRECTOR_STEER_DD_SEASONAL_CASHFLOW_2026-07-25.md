@@ -10,6 +10,8 @@
 
 # [DIRECTOR-STEER] — Per-customer DD cash flow: the seasonal credit cycle, and why growth timing is a solvency mechanism (2026-07-25)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [STEER] via advisor bridge. Director-authored domain content. Mechanism yours to design; the requirements below are the wall. FRAME first — establish what the billing organ already does before proposing anything.
 
 ## The mechanism the director has named

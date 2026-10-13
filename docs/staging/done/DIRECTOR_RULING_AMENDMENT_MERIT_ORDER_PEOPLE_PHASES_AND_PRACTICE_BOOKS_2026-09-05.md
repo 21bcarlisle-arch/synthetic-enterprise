@@ -2,6 +2,8 @@
 
 # [DIRECTOR-RULING][ADVISOR-STAGED] Amendment: the merit order re-cuts the people phases, and four practice books (2026-09-05)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Amends** `DIRECTOR_RULING_PEOPLE_MONEY_AND_WHO_THEY_ARE_PHASE1_2026-09-05.md` (§2.1–2.2, §3, §4), `DIRECTOR_RULING_HOUSING_VALUE_CEILING_AND_SAMPLE_PHASE1_2026-09-05.md` (§5) and the run-mix item those rulings reserve for the director. **Where this conflicts with those files, this governs.** Recorded as a separate document so the staged files stay byte-stable for the bridge.
 
 Decided by the director in the advisor channel this afternoon, after the CLV reference work (`ADVISOR_REFERENCE_CLV_DRIVERS_THESIS_AND_SENSE_CHECK_2026-09-05.md`). Director, verbatim: *"Good management of renters and won't pay (but can) can create as much value for a given starting portfolio as other value add."* And: *"I'm not sure we've modelled the phases of this well enough."*

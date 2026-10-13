@@ -1,5 +1,7 @@
 # [IN PROGRESS] Site campaign continuation — WORDS → DIAGRAM → EVIDENCE + financials reframe + R11 link integrity (2026-07-23)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **DISPOSITION (updated 2026-07-24): §A RESOLVED by the director — THE FOLD IS COMMITTED.**
 §A was answered by `DIRECTOR_RULING_CANONICAL_DOOR_A_COMMIT_THE_FOLD_2026-07-24.md` ("Decision A:
 COMMIT THE FOLD" — /method, /simplified, /project, /tours fold into /proof; the temporary /method

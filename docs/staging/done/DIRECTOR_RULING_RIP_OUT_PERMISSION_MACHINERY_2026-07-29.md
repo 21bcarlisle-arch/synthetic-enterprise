@@ -38,6 +38,8 @@
 
 # [DIRECTOR-RULING] — Rip out the permission machinery. Tonight. (2026-07-29)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [DIRECTOR-RULING] via advisor bridge. Do this now, before more work; it is cheap and it is blocking everything else.
 
 ## The problem

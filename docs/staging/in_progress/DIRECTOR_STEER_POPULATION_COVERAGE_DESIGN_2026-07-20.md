@@ -20,6 +20,8 @@
 
 # DIRECTOR STEER — Population coverage design: which N households span the space (2026-07-20)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [STEER] — DISCOVER work, run as a **collaborative learning loop with the director and advisor**, not a one-shot spec. The brief will be refined as we all learn. Mechanism and method yours.
 
 ---

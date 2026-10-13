@@ -1,5 +1,7 @@
 # DIRECTOR AMENDMENT — Tokens as the second resource dimension (amends RESOURCE_AWARE_SCHEDULING_PROPOSAL, 2026-07-19)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [STEER] — an amendment to an EXISTING proposal, deliberately not a new artifact. Absorb into `docs/design/RESOURCE_AWARE_SCHEDULING_PROPOSAL.md` as additional scope; do not spawn a parallel document. (Related in-progress steer: `DIRECTOR_STEER_RESOURCE_AWARE_SCHEDULING_2026-07-19.md`.)
 
 **Reading first, credit where due:** the proposal's root-cause section is exactly right — the seat was never hard-blocked, interleaving was permitted but not the default, and the shared-pool ceiling trimming near-zero-cost light lanes is the real defect. The heavy/moderate/light budget split with I1–I4 and the four R15 mutations is a sound design. This amendment adds the dimension it does not yet model.

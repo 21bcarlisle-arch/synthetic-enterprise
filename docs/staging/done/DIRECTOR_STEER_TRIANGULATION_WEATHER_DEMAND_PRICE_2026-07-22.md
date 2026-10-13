@@ -1,5 +1,7 @@
 # DIRECTOR STEER — Extend the triangulation: weather, demand, and wholesale price FORMATION (2026-07-22)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 > **PARKED in in_progress/ (2026-07-22, autonomous tick).** DISCOVER→FRAME done, doc-only, reversible:
 > `docs/design/TRIANGULATION_WEATHER_DEMAND_PRICE_FRAME.md` (design principle recorded proposed-for-canon;
 > all three domains reconciled vs the live map; candidate atoms named; "NOT credible" battery seeds).

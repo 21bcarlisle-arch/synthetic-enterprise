@@ -1,5 +1,7 @@
 # [DIRECTOR-RULING] — The site breathes: publish freshness decoupled from HEAD perfection (2026-08-10)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [DECISION — ratified in conversation ~11:00 BST. Modifies DIRECTOR_PRIORITY_PUBLISH_FIRST_2026-08-10: its three ordered draws STAND at first priority; its "no feature draws" clause is LIFTED and replaced by this design.]
 
 **The defect this names:** the publish gate currently conflates two questions — "is the entire repo green at HEAD?" and "may the site update?" — so any red anywhere (a stale ledger, an allowlist row) freezes the public surface entirely and silently. 22 hours of frozen site over bookkeeping is the measured cost.

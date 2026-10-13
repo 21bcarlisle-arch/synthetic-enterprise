@@ -1,5 +1,7 @@
 # DIRECTOR RULING — the household page is a wall exhibit, and its bill drops the line that explains itself
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 Staged 2026-08-12 by the advisor. Director ruling given in session on both parts.
 Both parts land in the same file (`site/customers/index.html`), which is why they are one
 document: Part 2's redesign must not undo Part 1's fix.

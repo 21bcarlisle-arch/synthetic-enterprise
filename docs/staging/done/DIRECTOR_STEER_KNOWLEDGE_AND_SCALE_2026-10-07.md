@@ -12,6 +12,8 @@
 
 # [DIRECTOR-STEER] — Knowledge on three areas, and a book of a few thousand (2026-10-07)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [STEER — work direction, not canon. Severity: LATENT. Staged by the advisor because the director's console session is unreachable; the same text arrived by NTFY at 2026-10-06 20:44Z and was queued for a seat that may not exist. If it has already been acted on, discharge this as a duplicate.]
 
 **Knowledge:** none — a work steer; the knowledge it asks for lands on the relevant area pages.

@@ -10,6 +10,8 @@
 
 # [DIRECTOR-CANON] — THE MODEL ON A PAGE (2026-07-23)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [DIRECTOR-RULING → canon] via advisor bridge. The director asked for the whole design on one page, split into exactly two timeframes: what the machine runs on NOW (core), and what it EVOLVES INTO (later). Adopt as `docs/design/THE_MODEL_ON_A_PAGE.md` (canon, Tier-2), and treat it as the seed for the /simplified lay page — same content, plainer words. Where this page and any FRAME doc disagree, surface as a finding.
 
 ---

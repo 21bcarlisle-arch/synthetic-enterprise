@@ -1,5 +1,7 @@
 # [DIRECTOR-RULING] — SSP baseline recalibration HELD. The real fix is merit-order reconstruction, not coefficient recalibration. (2026-07-25)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [DIRECTOR-RULING] via advisor bridge. Answers the director-reserved wall on `PLANNER_MINTED_ssp_negative_lift_cells` part (a).
 
 ## The ruling: part (a) is HELD — not authorized, not deferred-by-priority

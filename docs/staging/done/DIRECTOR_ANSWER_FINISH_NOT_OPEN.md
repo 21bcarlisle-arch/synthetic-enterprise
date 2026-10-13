@@ -1,5 +1,7 @@
 # DIRECTOR ANSWER — the [FINISH SET EXHAUSTED] escalation (06:29)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Staged:** 2026-07-16 by advisor, **director-decided**. Answers the async NTFY
 escalation: "open a new epoch, or more finishing?" Disposition: normal (the agent
 said no rush; it's been drawing other work meanwhile).

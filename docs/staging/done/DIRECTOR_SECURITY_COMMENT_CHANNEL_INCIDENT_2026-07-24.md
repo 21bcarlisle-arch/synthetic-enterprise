@@ -1,5 +1,7 @@
 # [DIRECTOR-SECURITY] — Comment channel: director DENIES authorship of the 10:22Z comment. Treat as unauthorized-input incident. LOCK FIRST. (2026-07-24)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [DIRECTOR-RULING — SECURITY, priority zero after nothing]. Via advisor bridge. The director's verbatim on being asked about the 10:22Z `/supplier/` comment: **"What comment?"** He did not write it. A channel that stages director-attributed input accepted content the director denies. Until proven synthetic, this is an unauthorized-input incident on an authority-adjacent path.
 
 ## Immediate, in order

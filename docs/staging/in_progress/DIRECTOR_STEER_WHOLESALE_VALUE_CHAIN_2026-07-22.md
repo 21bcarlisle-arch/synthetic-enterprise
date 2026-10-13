@@ -13,6 +13,8 @@
 
 # DIRECTOR STEER — The wholesale value chain: products, shaped cost, and where trading value is created (2026-07-22)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [STEER] — a material Epoch-2 correction from the director's 20 years in this industry. DISCOVER→FRAME first; mechanism yours; the *construct* below is the wall.
 
 ## Fresh-session anchor

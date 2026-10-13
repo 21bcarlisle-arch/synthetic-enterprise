@@ -13,6 +13,8 @@
 
 # DIRECTOR DIRECTIVE — Keep building: drawable work exists; draw it, and advance the idle backlog (2026-07-21)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [DIRECTIVE + STEER]. Standing campaign authority already covers the builds below. This is here because the loop rested overnight (23:00→06:00, zero work commits) while drawable work existed — that is the failure to fix, and there is real work to do meanwhile.
 
 ## The finding that matters

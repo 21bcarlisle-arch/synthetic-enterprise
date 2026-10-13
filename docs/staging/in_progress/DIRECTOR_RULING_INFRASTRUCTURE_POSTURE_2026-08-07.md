@@ -15,6 +15,8 @@
 
 # [DIRECTOR-RULING] — Infrastructure posture: seat, standby, scale (2026-08-07)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [DECISION]. Ratified in conversation 2026-08-07; the director's own sequence — "start with PC, no Qwen reliance, Oracle for recovery cut-over, proper scale later" — adopted verbatim as the posture. See-and-correct applies; the worker sequences everything below without approval loops.
 
 ## The three planes (the wall is the deployment boundary)

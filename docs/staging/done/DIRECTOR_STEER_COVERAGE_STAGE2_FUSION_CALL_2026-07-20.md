@@ -1,5 +1,7 @@
 # DIRECTOR STEER — Stage 2 of the coverage loop: the fusion call (2026-07-20)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [STEER] — answers the decision raised in `POPULATION_COVERAGE_SOURCE_LANDSCAPE.md` §5 and authorises stage 2. Method remains yours.
 
 **First: the stage-1 landscape is good work.** The coverage matrix (§2) is the load-bearing finding and it is honestly drawn — no row is `●` across the board, the two richest joint sources are precisely the gated ones, and you named the two gaps that matter rather than papering over them: household-level EV×PV×battery co-ownership is not openly observable, and attitudes are never jointly observed with fabric or tech. That those gaps sit exactly where the value and the mortality live is the finding, not an inconvenience.

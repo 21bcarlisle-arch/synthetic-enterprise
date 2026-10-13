@@ -2,6 +2,8 @@
 
 # [DIRECTOR-RULING][ADVISOR-STAGED] Housing modelling and segmentation — phase 1 of 3: the houses, the sample, the ceiling (2026-09-05)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Decided by the director in the advisor channel, 2026-09-05. Transmitted as decisions. The mechanism is yours.** Sibling of `DIRECTOR_RULING_WEATHER_CELLS_HEAT_LOAD_SEGMENTATION_PHASE1_2026-09-05.md` (staged this morning); the two are the first two axes of one portfolio-draw approach described in §1.
 
 ## 0. Zero-context orientation

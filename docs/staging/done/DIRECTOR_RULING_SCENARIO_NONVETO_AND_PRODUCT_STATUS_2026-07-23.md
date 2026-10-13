@@ -1,5 +1,7 @@
 # [DIRECTOR-RULING] — Scenario steer: window NOT vetoed + sequencing guard; and a product-status demand (2026-07-23)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [DIRECTOR-RULING] via advisor bridge. Two parts, one doc to keep the queue lean.
 
 ## 1. The scenario-spine steer (c2e83d9f7): proceed — window not vetoed — with one sequencing guard

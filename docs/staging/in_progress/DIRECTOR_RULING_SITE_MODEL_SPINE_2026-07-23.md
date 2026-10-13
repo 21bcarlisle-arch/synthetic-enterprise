@@ -1,5 +1,7 @@
 # [DIRECTOR-RULING] — Organise the site around THE MODEL: words → diagram → evidence. Financials reframed. Links canonical. (2026-07-23)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [DIRECTOR-RULING] via advisor bridge, from the director's live review of the rebuilt surfaces ("a bit better" — progress acknowledged, structure of information still wrong). Three rulings; these refine the running site campaign's remaining iterations rather than opening a new one.
 
 ## 1. The organising principle: the site's evidential core IS the model

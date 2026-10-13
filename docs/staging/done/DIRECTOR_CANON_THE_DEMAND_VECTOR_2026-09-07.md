@@ -1,5 +1,7 @@
 # [DIRECTOR-CANON] — The demand vector: simulate difference, not averages (2026-09-07)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Severity:** BLOCKING · **Lane:** W2_customer_generator · **Epoch:** 3 · **Atom:** W2_19_who_lives_where_money_and_composition · **Classifies:** 2696eec0
 
 **Knowledge:** how-many-synthetic-households

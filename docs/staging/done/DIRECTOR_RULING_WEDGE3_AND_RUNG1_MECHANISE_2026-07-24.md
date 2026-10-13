@@ -1,5 +1,7 @@
 # [DIRECTOR-RULING] — Wedge #3: unwedge NOW, and the rung-1 rule gets MECHANISED this time (2026-07-24)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [DIRECTOR-RULING] via advisor bridge. Priority zero.
 
 ## 1. Unwedge (third wedge in 36 hours)

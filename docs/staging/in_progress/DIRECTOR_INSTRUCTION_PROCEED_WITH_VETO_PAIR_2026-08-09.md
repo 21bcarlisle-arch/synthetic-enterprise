@@ -19,6 +19,8 @@
 
 # [DIRECTOR-INSTRUCTION] — Two items, proceed-with-veto (2026-08-09)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [INSTRUCTION — both items move now; the director's veto rides the announcements; no reply is required or awaited]. Doctrine applied, not restated: reversible work proceeds and announces; only true doors gate.
 
 **1. `value_chain_observation_window_cap` (open mint since 2026-07-24) — UNBLOCKED, delegated.** Build the mechanism now. Choose a provisional curriculum-difficulty value yourself; log the rationale beside it; announce the value on first live use. The director may reset it at any time; treat the provisional as standing until then. The mint's own "director for any named value" clause is hereby satisfied by this delegation.

@@ -1,5 +1,7 @@
 # [DIRECTOR-RULING] — Rail-3 heartbeat: ship it where promised; classify the current quiet; planner-rung status (2026-07-24)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [DIRECTOR-RULING] via advisor bridge. Three short demands, evidence not narrative (R9).
 
 ## 1. The rail-3 heartbeat is not discoverable at origin

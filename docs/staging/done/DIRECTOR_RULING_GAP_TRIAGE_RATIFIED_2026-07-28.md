@@ -1,5 +1,7 @@
 # [DIRECTOR-RULING] — GAP2 triage method RATIFIED, with one amendment and two questions. GAP1 BUILD half OPENED. (2026-07-28)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [DIRECTOR-RULING] via advisor bridge. Answers the held [ACT] on `docs/design/GAP_TRIAGE_AND_RANKING.md` and the `director_build_open` block on GAP1.
 
 ## 1. RATIFIED as proposed

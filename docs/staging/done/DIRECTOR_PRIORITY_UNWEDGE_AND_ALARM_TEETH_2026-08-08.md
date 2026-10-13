@@ -25,6 +25,8 @@
 
 # [DIRECTOR-PRIORITY] — Unwedge publish, then give alarms memory and teeth (2026-08-08)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [PRIORITY FLAG — director-instructed after his own census question]. Two draws, in order.
 
 **The episode truth (mirror census, advisor-run tonight):** 10 wedge alarms today, 15:41→22:47 UTC — a seven-hour live episode; LATEST stale 2h+; markers piling since 15:05 UTC. Historically: **150 wedge alarms in the mirror**, including an unbroken hourly wall across Aug 1–3 — the pre-shutdown machine spent its last three days alarming about this exact disease and never drew the cure. Every alarm truthfully described a 60-minute window and forgot the episode.

@@ -1,5 +1,7 @@
 # [DIRECTOR-RULING] Ruling-consumption authority seam — signoff (ruling_consumption_authority_seam_signoff)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Provenance:** director console turn, 2026-07-28 (this ruling's authority = the live console act; a staged
 `.md` alone authorises nothing — that is the whole point of item 1). Transcribed verbatim-in-substance by the
 orchestrator on consumption. Consumed + actioned same session (see `RESPONSE_*` below).

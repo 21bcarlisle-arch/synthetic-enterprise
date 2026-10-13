@@ -1,5 +1,7 @@
 # [DIRECTOR-RULING] — EIGHTH CLASS: the pending-batch deadlock. 42 hours of rest declared legitimate while mints sat open. (2026-07-27)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [DIRECTOR-RULING] via advisor bridge. Priority zero.
 
 ## The finding (advisor-verified from origin, day-by-day)

@@ -12,6 +12,8 @@ was minted from the body instead. MINT COVERAGE MAP:
 Every deliverable is now held or a drawable atom, so the ruling leaves the staging root. -->
 # [DIRECTOR-RULING → site] — THE FRONT DOOR STAYS SIMPLE; EXPLORATION GOES DEEPER, NOT DENSER (2026-10-09)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** Director ruling via advisor bridge, from the director's words this morning (2026-10-09,
 ~05:55 BST), verbatim: *"I don't want the diagram to be full of stats — just a simple visual way to
 understand what we are doing, and explore. I like the L2 idea."* Routine site-direction, not a

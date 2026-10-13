@@ -1,5 +1,7 @@
 # [DIRECTOR-RULING] — Harness exit criterion RATIFIED. N=3. Two decisions attached, one problem returned. (2026-07-27)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [DIRECTOR-RULING] via advisor bridge. Ratifies `docs/design/HARNESS_EXIT_CRITERION_PROPOSAL_2026-07-27.md`.
 
 ## 1. RATIFIED as proposed

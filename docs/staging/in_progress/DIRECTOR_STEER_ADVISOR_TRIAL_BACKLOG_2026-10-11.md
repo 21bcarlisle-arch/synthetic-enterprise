@@ -1,5 +1,7 @@
 # [DIRECTOR-STEER][ADVISOR-STAGED] Backlog: trial Sonnet 5.5 + Opus advisor on worker ticks (2026-10-11)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Status:** BACKLOG. Not urgent. Do not start before the weekly allowance resets, and do not let it displace supplier work in the current priority order. Draw it when a stretch has room.
 
 **Proportionality:** reversible / narrow. A launch-flag change on one unit, switched off by removing the flag. Just do it once drawn, and report the result.

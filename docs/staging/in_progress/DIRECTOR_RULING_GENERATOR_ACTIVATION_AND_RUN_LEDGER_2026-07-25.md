@@ -27,6 +27,8 @@
 
 # [DIRECTOR-RULING] — Generator population ACTIVATED (R13); run rotation, run ledger, and the three separated scores (2026-07-25)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [DIRECTOR-RULING] via advisor bridge. Answers the director-reserved wall on `SE_DRAW_POPULATION` and rules the run-management questions it raises. Confirmed by the director this morning.
 
 ## 1. R13 RULING — activate the drawn population

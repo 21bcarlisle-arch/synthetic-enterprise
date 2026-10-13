@@ -1,4 +1,6 @@
 # [CC PROCESSING STATUS — 2026-07-23] IN PROGRESS (sequence step 1 DONE)
+
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
 #
 # STEP 1 (structure confirmation against canon) is COMPLETE — verdict CONFIRMED, no
 # propose-back. Artifact: `docs/design/SITE_V5_STRUCTURE_CONFIRMATION.md`. The five-surface IA,

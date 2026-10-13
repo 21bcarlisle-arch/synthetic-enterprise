@@ -2,6 +2,8 @@
 
 # [DIRECTOR-RULING][ADVISOR-STAGED] Three July segmentation steers reconciled, one amendment, and the parked-documents audit (2026-09-05)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Decided by the director in the advisor channel, 2026-09-05.** His instruction, verbatim: *"I don't want to ignore prior steers or stages that are out of date."* The three dispositions in §1 were checked against the repository by the advisor this afternoon, not against the documents' own headers; the evidence lines are given so they can be re-verified in one command each.
 
 ## 1. Three parked steers — dispositions

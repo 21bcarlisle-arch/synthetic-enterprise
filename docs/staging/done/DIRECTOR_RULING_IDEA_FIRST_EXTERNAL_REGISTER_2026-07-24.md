@@ -35,6 +35,8 @@
 
 # [DIRECTOR-RULING] — IDEA FIRST, EXTERNAL REGISTER: no headline financials at this stage; the diagram's stages visible in plain outside language (2026-07-24)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [DIRECTOR-RULING] via advisor bridge. Director's verbatim: *"£80k makes no sense either. Why is that the lead number. At this stage what matters more is the idea. And the visibility of each stage of the diagram. In easy normal external views. Not internal project narrative."* Queue behind the wedge-3 emergency; then this governs the campaign.
 
 ## RC7 — No headline financials from the teaching cohort. Period.

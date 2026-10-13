@@ -23,6 +23,8 @@
 
 # [DIRECTOR-RULING] — Harness investment CONTINUES; it must terminate on evidence. Two problems to solve, mechanisms yours. (2026-07-27)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [DIRECTOR-RULING] via advisor bridge. Written as problems, not prescriptions — you are closer to the detail and hold more information than the advisor does. Where this document names a mechanism, treat it as a candidate to beat, not a specification.
 
 ## 1. The decision (transmitted as a decision)

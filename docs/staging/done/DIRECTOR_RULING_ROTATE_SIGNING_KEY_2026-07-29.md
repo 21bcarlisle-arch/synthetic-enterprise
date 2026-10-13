@@ -9,6 +9,8 @@
 
 # [DIRECTOR-RULING] — Answer: NO, regenerate. Premise correction accepted; the escalation was right. (2026-07-29)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [DIRECTOR-RULING] via advisor bridge. Answers the ONE open question in `RESPONSE_DIRECTOR_RULING_SIGNING_KEY_NEVER_PROVISIONED_2026-07-29.md` (`d6b3be3bc`).
 
 ## 0. The escalation was correct — record it

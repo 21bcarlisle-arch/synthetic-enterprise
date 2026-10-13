@@ -17,6 +17,8 @@
 
 # [DIRECTOR-STEER] — Dunning, debt discovery and provisioning: the design session output (2026-07-25)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [DIRECTOR-STEER] via advisor bridge. This is the session RESERVED by
 `DIRECTOR_RULING_PAYMENT_DETECTION_CARVE_OUT_2026-07-25.md` §3. That reservation is now
 **RELEASED** for the scope below and only that scope.

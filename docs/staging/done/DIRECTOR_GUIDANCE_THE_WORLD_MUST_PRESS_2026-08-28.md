@@ -2,6 +2,8 @@
 
 # [DIRECTOR-GUIDANCE] — The world must press: canon corrections and the problem inventory (2026-08-28)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [GUIDANCE — problems, evidence, and three canon corrections. Deliberately NOT a sequence. Sequencing, minting and mechanism are the delivery seat's.]
 
 **The mission does not change.** Poesys is an autonomous UK energy supplier run inside a faithful simulation of the real market, cutting carbon through personalisation, measured in £ per tonne of CO₂e saved, with "could a real supplier know this?" as the test on every line. Nothing below alters that sentence. What follows says the simulation is not yet faithful in three specific ways, and that this bounds what any result about the company can mean.

@@ -7,6 +7,8 @@
 
 # [DIRECTOR-RULING] — CA cohort promotion batch: RATIFIED (2026-07-29)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [DIRECTOR-RULING] via advisor bridge. Answers `[ACTION NEEDED] CA_cohort_promotion_batch`.
 
 ## Ratified

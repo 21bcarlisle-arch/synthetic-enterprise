@@ -1,5 +1,7 @@
 # [DIRECTOR-RULING] — The front carries the MISSION, not the cost-arbitrage leg (2026-07-24)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [DIRECTOR-RULING] via advisor bridge. Director's verdict on the new front page: better — but the cost-to-serve block "is not what the idea and pitch really is." He is right on two counts; both are classes already ruled, applied here.
 
 ## 1. Wrong thesis in the lead slot

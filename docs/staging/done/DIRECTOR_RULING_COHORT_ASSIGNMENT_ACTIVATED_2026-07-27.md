@@ -1,5 +1,7 @@
 # [DIRECTOR-RULING] — R13: cohort assignment ACTIVATED for the pool. The world gets variety; the book still cannot. (2026-07-27)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [DIRECTOR-RULING] via advisor bridge. Closes a gap the advisor left open this morning.
 
 ## 0. The gap, owned

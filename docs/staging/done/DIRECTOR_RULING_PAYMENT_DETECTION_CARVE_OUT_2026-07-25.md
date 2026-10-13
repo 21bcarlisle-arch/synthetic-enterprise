@@ -1,5 +1,7 @@
 # [DIRECTOR-RULING] — Payment-failure detection: irreducibility REJECTED; narrow sensing carve-out AUTHORIZED; dunning/debt/provisioning RESERVED to a director session (2026-07-25)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [DIRECTOR-RULING] via advisor bridge. Answers the wall on `PLANNER_MINTED_payment_truth_detection_gap` (W2_11).
 
 ## 1. The irreducibility claim is REJECTED — it is a LATENCY, not a blind spot

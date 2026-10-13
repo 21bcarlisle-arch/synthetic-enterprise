@@ -1,5 +1,7 @@
 # DIRECTOR ANSWER — DELEGATE (forever) + escalation fires IFF the predicate is true (P1, signed)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Staged:** 2026-07-16 by advisor, **director-decided ("Delegate — fix forever")**.
 Answers the executor-wall escalation on SITE1 review-gating AND fixes the class
 that produced it. Two parts: a decision (part 1) and a harness defect fix (part 2).

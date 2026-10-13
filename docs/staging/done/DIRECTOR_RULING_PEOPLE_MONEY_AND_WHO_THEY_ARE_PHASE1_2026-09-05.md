@@ -2,6 +2,8 @@
 
 # [DIRECTOR-RULING][ADVISOR-STAGED] People modelling and segmentation — phase 1 of 3: money and who they are (2026-09-05)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Decided by the director in the advisor channel, 2026-09-05. Transmitted as decisions. The mechanism is yours.** Third axis of the portfolio-draw approach; siblings staged today: `DIRECTOR_RULING_WEATHER_CELLS_HEAT_LOAD_SEGMENTATION_PHASE1_2026-09-05.md` and `DIRECTOR_RULING_HOUSING_VALUE_CEILING_AND_SAMPLE_PHASE1_2026-09-05.md`. The frame in the housing ruling's §1 applies verbatim here.
 
 ## 0. Zero-context orientation

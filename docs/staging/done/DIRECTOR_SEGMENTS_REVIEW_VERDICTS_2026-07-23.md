@@ -1,5 +1,7 @@
 # Director segments-review verdicts — coupling hypotheses, prepayment estate, two new atoms (2026-07-23)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Provenance.** Advisor-staged on the director's explicit verdict in live review, 2026-07-23. Follow-on to
 `DIRECTOR_STEER_TRIANGULATION_SITE_SEGMENTATION_2026-07-22.md`, `SEGMENTATION_RECONCILIATION_FRAME.md`,
 `BOARD_SPEC_006_RECONCILIATION.md`, and the population_coverage artefacts. Doc-only trigger; the builds it

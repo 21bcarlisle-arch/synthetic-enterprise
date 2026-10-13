@@ -17,6 +17,8 @@ STATUS 2026-07-25 (parked in_progress — one sub-item LANDED, remainder belongs
 -->
 # [DIRECTOR-RULING] — MC-2: no difficulty knob. Real 2021–22 history is the test; breaking-strain sweep around it. Facility sizing is a defect, not a dial. (2026-07-25)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [DIRECTOR-RULING] via advisor bridge. Answers the R13 curriculum wall on `PLANNER_MINTED_value_chain_observation_window_cap` (MC-2 death-test difficulty).
 
 ## 1. No difficulty knob is set — and none is created

@@ -1,5 +1,7 @@
 # DIRECTOR_TWIN — the pretend principal (P0, capstone of the autonomy work)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **IN PROGRESS, 2026-07-12 — what's done and what's still open (staging-directory-protocol note):**
 DONE: `background/director_twin.py` (`ask_twin`/`overturn`/`fidelity_metric`, 7 tests + one real
 live end-to-end verified `claude -p` call), `docs/design/DIRECTOR_CANON.md` v1 (the twin's brief),

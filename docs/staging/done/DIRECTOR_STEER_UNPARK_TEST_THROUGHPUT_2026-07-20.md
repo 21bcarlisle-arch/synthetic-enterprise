@@ -11,6 +11,8 @@
 
 # DIRECTOR STEER — Un-park the test-throughput regime; scaling customers will re-raise the ceiling (2026-07-20)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [STEER] — resume parked work with a sharpened priority. Method yours; the design already exists in `docs/design/TEST_THROUGHPUT_MEASUREMENT_AND_PROPOSAL.md`.
 
 ## Why now

@@ -1,5 +1,7 @@
 # [DIRECTOR-RULING] — The publish gate's subject is committed truth (2026-08-09)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [DECISION — ratified in conversation 17:40 BST, delivered to the acting session by pane; this document is the record for canon and every other lane].
 
 **Ruling:** the run-complete publish gate tests a clean checkout of HEAD (worktree or archive extraction), never the shared working tree. Publishing is the act of verifying and rendering committed truth; the living tree belongs to the lanes. Effective immediately with a minimal implementation tonight; the polished mechanism gets its own atom.

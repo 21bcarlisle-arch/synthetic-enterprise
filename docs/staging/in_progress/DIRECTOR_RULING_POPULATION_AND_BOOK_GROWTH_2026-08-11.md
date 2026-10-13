@@ -30,6 +30,8 @@ work already done under another name.
 
 # [DIRECTOR-RULING] — Grow the world first, then win a book out of it (2026-08-11)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [DECISION]. The published company runs a ~13-account book. That is a stress test of the money machinery, not a supplier. Ruling: it should grow — in this order, and by acquisition, never by assignment.
 
 **1. The SIM population grows first.** The world's premise population is raised materially above today's research draw (target the worker's to propose with the AO12 10k-probe's measurements as the price list — the probe exists precisely to say what scale costs before it is bought). A larger world is the precondition; the company cannot plausibly acquire from a stock that isn't there.

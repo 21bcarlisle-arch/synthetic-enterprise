@@ -1,5 +1,7 @@
 # [DIRECTOR-RULING] — Warning: you have swapped one kind of busywork for another. Course-correct now. (2026-07-29)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [DIRECTOR-RULING] via advisor bridge. A warning, deliberately given early rather than after the failure.
 
 ## What the director sees

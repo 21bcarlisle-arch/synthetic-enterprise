@@ -1,5 +1,7 @@
 # [DIRECTOR-CANON] — What the synthetic book is: generated, calibrated, and standing for millions (2026-09-07)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Severity:** LATENT · **Lane:** W2_customer_generator · **Epoch:** 3 · **Atom:** W2_19_who_lives_where_money_and_composition
 
 **Knowledge:** how-many-synthetic-households

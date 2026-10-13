@@ -1,5 +1,7 @@
 # [DIRECTOR-RULING] Hook-bypass is a WALL — and the class gets closed by a tool
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Date:** 2026-08-09. **Channel:** director, in-window. **Status:** RULING, binding.
 
 ## THE RULING

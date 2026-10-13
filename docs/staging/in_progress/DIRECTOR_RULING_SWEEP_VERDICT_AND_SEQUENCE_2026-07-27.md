@@ -38,6 +38,8 @@
 
 # [DIRECTOR-RULING] — Suppression sweep accepted. Close the registration hole; Law C first; merit-order is the next product draw. (2026-07-27)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [DIRECTOR-RULING] via advisor bridge. Verdict on `docs/observability/suppression_audit_2026-07-27.md`.
 
 ## 0. The sweep is ACCEPTED

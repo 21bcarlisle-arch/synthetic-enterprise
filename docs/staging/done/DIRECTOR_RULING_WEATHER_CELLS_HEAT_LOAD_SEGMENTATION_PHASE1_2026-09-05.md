@@ -2,6 +2,8 @@
 
 # [DIRECTOR-RULING][ADVISOR-STAGED] Weather cells for household heat load — phase 1 (2026-09-05)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Decided by the director in the advisor channel, 2026-09-05. Transmitted as decisions. The mechanism is yours.**
 
 ## 0. Zero-context orientation

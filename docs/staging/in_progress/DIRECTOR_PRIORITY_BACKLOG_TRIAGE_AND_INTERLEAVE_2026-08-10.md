@@ -27,6 +27,8 @@
 
 # [DIRECTOR-PRIORITY] — Backlog triage: the whole root, classified; drain to <20 then auto-arm the product interleave (2026-08-10)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [PRIORITY — director decision 2C+3C]. This page IS the drain: execute it above feature draws until staging root < 20 files. Each disposition = one-line receipt in the tick digest. **When root < 20: the product interleave ARMS automatically** — one world/customer/product atom drawn per harness atom thereafter (director 3C, no further instruction needed). Where a row says worker-judges, the group rule decides; nothing here overrides a finding's own status line if it says its fix already landed.
 
 ## Group A — ARCHIVE AS CANON (move to docs/market_research/ or docs/design/refs/, index, done)

@@ -15,6 +15,8 @@ was not yet built; BLOCKING SUB-ITEMS were (1) mechanism not built; (4) the six 
 
 # [DIRECTOR-RULING] — No question left unanswered. A question is a first-class open item. (2026-07-28)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [DIRECTOR-RULING] via advisor bridge. Director's instruction, verbatim: *"Let's never leave questions unanswered please."*
 
 ## 0. The bug, named

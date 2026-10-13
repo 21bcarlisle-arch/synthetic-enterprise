@@ -22,6 +22,8 @@
 
 # DIRECTOR_INPUT_LOG — unified log of every director input, every channel (P2)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Staged:** 2026-07-11 by advisor, director-proposed ("a log of everything I
 post on every channel, hashed where confidential, that the advisor can see").
 **Lane H.** Extends ADVISOR_VISIBILITY (which mirrors ntfy) to close the gap

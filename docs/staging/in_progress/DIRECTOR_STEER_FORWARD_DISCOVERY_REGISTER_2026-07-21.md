@@ -1,5 +1,7 @@
 # DIRECTOR STEER — Thinking ahead, done right: kill W1_8, establish the forward-discovery register (2026-07-21)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [STEER] — a ruling plus a new standing register. Method yours.
 
 ## The ruling: W1_8 zonal pricing is closed

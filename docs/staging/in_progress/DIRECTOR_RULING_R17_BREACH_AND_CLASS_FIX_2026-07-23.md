@@ -10,6 +10,8 @@
 
 # [DIRECTOR-RULING] — R17 breach declared; the rest-proof class fix; immediate work order (2026-07-23)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [DIRECTOR-RULING] via the advisor bridge (wired 2026-07-22, commit 0675ec915). This is the first live use of the bridge channel. Director's verbatim verdict on the overnight: *"It built absolutely nothing all night. That's a total disaster."*
 
 ## 1. The breach, declared per the director's standing ruling

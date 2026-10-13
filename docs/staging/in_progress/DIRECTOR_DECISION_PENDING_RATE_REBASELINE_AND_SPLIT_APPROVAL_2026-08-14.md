@@ -1,5 +1,7 @@
 # [DIRECTOR-DECISION] Three verified 2025/26 rates are ready and NOT landed; test-file split is APPROVED (2026-08-14)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **PARKED (2026-08-18, worker triage):** blocking sub-item is §2 — the director's explicit go on the
 three verified rates — and §3 (Low Carbon reconciliation, source found, not transcribed). §1 (test-file
 split) is approved and left to its owning lane. A reminder/recommendation NTFY was sent 2026-08-18

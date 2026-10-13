@@ -1,5 +1,7 @@
 # [DIRECTOR-STEER] — After the second publish wedge (2026-08-09)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [DIRECTOR STEER — decided items closed; DO-NEXT ordered; verbatim the director's text, staged by the ops advisor on standing proceed-with-veto.]
 
 ANCHOR. Publishing was down ~10h. Two causes, both now found: a gate that could only time out and whose timeout counted as a pass, and untracked files in the shared index causing the write-time gate to refuse every publish commit. The fail-open is closed (1fd85cb27). No real publish commit has been confirmed to land yet.

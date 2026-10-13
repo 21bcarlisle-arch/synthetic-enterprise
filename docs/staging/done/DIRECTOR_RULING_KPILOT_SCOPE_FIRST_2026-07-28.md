@@ -1,5 +1,7 @@
 # [DIRECTOR-RULING] — K-pilot verdict: SCOPE-FIRST replaces assembly-first. The brief was the fault. (2026-07-28)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [DIRECTOR-RULING] via advisor bridge. Director's verdict on `/knowledge/wholesale-price-formation/`.
 
 ## 0. Verdict

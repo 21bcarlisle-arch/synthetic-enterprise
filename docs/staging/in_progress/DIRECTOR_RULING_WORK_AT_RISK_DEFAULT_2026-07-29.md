@@ -11,6 +11,8 @@ OPEN sub-item: all three minted atoms are self-drawable and un-executed; §4 bin
 
 # [DIRECTOR-RULING] — WORK AT RISK is the default. Re-scope the reserved set by reversibility, not by category. (2026-07-29)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [DIRECTOR-RULING] via advisor bridge. Priority alongside the literal-act list; this is what makes that list short.
 
 ## 0. The regression

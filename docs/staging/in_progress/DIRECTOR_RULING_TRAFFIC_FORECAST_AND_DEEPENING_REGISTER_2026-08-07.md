@@ -15,6 +15,8 @@
 
 # [DIRECTOR-RULING] — Traffic forecast + deepening register (2026-08-07)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [DECISION — binding design input]. Ratified by the director in conversation 2026-08-07. This is the load section TARGET_DESIGN.md (ARCHITECTED-OUT §2) consumes, and the system-level "bound" the Birth-Certificate law was missing (retro, hardening 1). From today, the write-time gate's question for any load-bearing choice is: **"does this die at 10⁵?"** — and the 10k probe (data-architecture review) now has expected values to confirm or refute. Orders of magnitude only, per day unless marked. See-and-correct applies: the worker consumes and files this without approval loops; the director corrects retrospectively.
 
 ## Ratified posture (the three calls)

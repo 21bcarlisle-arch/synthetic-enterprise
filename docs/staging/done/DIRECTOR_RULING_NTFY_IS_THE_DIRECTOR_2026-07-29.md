@@ -11,6 +11,8 @@
      docs/retrospectives/2026-08-03-the-permission-machinery-outlived-its-own-deletion.md. -->
 # [DIRECTOR-RULING] — NTFY IS THE DIRECTOR. No signatures. This is a simulation, not a nuclear facility. (2026-07-29)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [DIRECTOR-RULING] via advisor bridge. Supersedes the signature requirement in every prior ruling. Highest priority.
 
 ## The ruling, in one line

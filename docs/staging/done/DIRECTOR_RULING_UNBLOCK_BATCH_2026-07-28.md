@@ -1,5 +1,7 @@
 # [DIRECTOR-RULING] — Unblock batch: merit-order, cohort level-up, exit-criterion counter (2026-07-28)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [DIRECTOR-RULING] via advisor bridge. Answers arising from the six question closures (`155251dad`). Three items; sequencing and mechanism are yours.
 
 **Standing note on advisor availability:** the director's advisor budget is finite and roughly half spent for the week. Assume **fewer advisor interventions from here**. Consequences: batch escalations rather than splitting them; prefer one dense [ACT] over several; and where a decision is genuinely yours under an existing ratification, take it rather than waiting. The remaining advisor capacity should be spent on decisions only the director can make.

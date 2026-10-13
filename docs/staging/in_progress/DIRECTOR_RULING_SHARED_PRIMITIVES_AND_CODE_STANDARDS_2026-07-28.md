@@ -16,6 +16,8 @@
 
 # [DIRECTOR-RULING] — Shared primitives, code standards, and making "should this have been shared?" an ensuring activity (2026-07-28)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [DIRECTOR-RULING] via advisor bridge. Written as decisions plus problems. Where this document names a mechanism, treat it as a candidate to beat, not a specification — you are closer to the detail.
 
 **Staged:** 2026-07-28 ~08:40 BST. **Proportionality:** §2 is [ACT]-first (touches domain correctness). §3–§4 are contract-touching — implement with the named mitigations. §5 is reversible/narrow — just do it.

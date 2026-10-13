@@ -63,6 +63,8 @@
 
 # [DIRECTOR-PROGRAMME] — Architected out, organic in (2026-08-05)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** Programme statement. Director-commissioned, director-ratified 2026-08-05. Amended same day (director): build-vs-buy added to the write-time gate; standing production-readiness constraints added to NET as executable checks. Problems and outcomes; mechanisms are the worker's to design.
 
 ## 0. The problem, in the director's words

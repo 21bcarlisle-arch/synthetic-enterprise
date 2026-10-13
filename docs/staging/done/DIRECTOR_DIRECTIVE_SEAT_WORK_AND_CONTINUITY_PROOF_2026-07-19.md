@@ -1,5 +1,7 @@
 # DIRECTOR DIRECTIVE — Work for the reconciled seat, and the continuity proof (2026-07-19, evening)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [ACT-equivalent authorization + work]. The director bounced the seat himself; a fresh worker seat brought up clean at 21:13 UTC (epistemic_verifier PASS, 516 files, 0 violations). **This document is also the continuity proof: if you are reading it, a rested loop woke on an origin-staged doc with no console input.** Report that fact explicitly in your first line.
 
 ## Context the director wants stated plainly

@@ -1,5 +1,7 @@
 # [DIRECTOR-CANON] — The world validation ladder: bottom-up generation, top-down checks (2026-08-31)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Severity:** RECORDED · **Lane:** W2_customer_generator
 
 *Chained by the delivery seat, 2026-08-31. The document arrived unchained and left the severity

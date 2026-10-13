@@ -17,6 +17,8 @@
 
 # DIRECTOR STEER — Overnight pre-flight: verify the restarts, freeze the novelty, state the queue (2026-07-22)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [STEER] — tonight-scoped. Purpose: maximise the probability of the first clean night under R17. The wiring ratification is in flight; this governs how tonight ends and runs.
 
 ## 1. Pre-flight evidence before the wiring turn ends (R9 — evidence, not narrative)

@@ -1,5 +1,7 @@
 # [DIRECTOR-RULING] — Page-comment authority path: RETIRE (2026-07-24)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [DIRECTOR-RULING] via advisor bridge, answering the [ACT] "retire vs redesign the page-comment authority path". Director's word: **"Retire."**
 
 ## The ruling

@@ -12,6 +12,8 @@
 
 # DIRECTOR STEER — Self-measurement, director axes, and the always-drawable lane (2026-07-22)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [STEER] — establishes how the system measures its own performance and how the director's judgment enters it. **The intent below is fixed; the mechanism is explicitly yours to design.** The director, verbatim: *"make sure it has some say in how best to do this, as it sees more than you."* Where you see a better construction than anything specified here, propose it with reasoning and build that instead — the advisor's shapes are defaults, not walls.
 
 ## Context anchor (fresh-session safe)

@@ -1,5 +1,7 @@
 # [DIRECTOR-RULING] — Decision A: COMMIT THE FOLD. Canonical doors confirmed; fix every link in one pass. (2026-07-24)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [DIRECTOR-RULING] via advisor bridge, answering the [ACT] of 2026-07-24 00:23Z ("Site campaign fully walled on ONE decision (A)"). Director's word: **"Do it."**
 
 ## The ruling

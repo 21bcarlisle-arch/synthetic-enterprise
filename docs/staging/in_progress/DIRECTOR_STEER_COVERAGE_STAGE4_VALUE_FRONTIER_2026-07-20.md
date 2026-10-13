@@ -18,6 +18,8 @@
 
 # DIRECTOR STEER — Stage 4: the value frontier, and how many segments is enough (2026-07-20)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [STEER] — extends the coverage loop from *coverage* to *value*. Method yours.
 
 **First, the coverage result is banked and correct.** The threshold sweep showing the design barely moves between 1.3/1.5/2.0, the off-gas fuel-poor tail staying coupled at every setting, and N=200 as the completeness knee with the three critical cells each covered ×4 — that is a clean result and 1.5 is on the right side. Nothing to revisit there.

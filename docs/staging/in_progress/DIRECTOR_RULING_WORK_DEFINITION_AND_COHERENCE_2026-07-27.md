@@ -61,6 +61,8 @@ Each remaining item: failing test FIRST, own commit, shadow rail on any scanner/
 
 # [DIRECTOR-RULING] — Work definition and coherence: rulings must create atoms; model, diagram, site and map must DERIVE from one truth (2026-07-27)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [DIRECTOR-RULING] via advisor bridge. Six parts. Addresses today's HARDEN treadmill and its cause.
 
 ## §0 The diagnosis — and where the fault sits

@@ -1,5 +1,7 @@
 # [DIRECTOR-DECISION → publish] — MODEL-ON-A-PAGE DIAGRAM, ADD TO SITE (2026-07-23)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** Director decision via advisor bridge — routine publish authority (R16-valid per the phone-native authority model; this is site content, not a reserved/safety/authz action). Addendum to `DIRECTOR_CANON_MODEL_ON_A_PAGE_2026-07-23.md` (adopted a9b73dda3) and to open finding **F-MOAP-1**.
 
 **Priority: P3, product queue (SITE_V5 surface-1 iteration). Explicitly BEHIND the live publish-gate wedge (rc=1 @3d6820900 lineage). Do not consume this ahead of unwedging — the wedge is the crisis; this is content.**

@@ -11,6 +11,8 @@
 
 # [DIRECTOR-RULING] — Three failure-bias laws, and the suppression audit. Why one held assumption stopped everything. (2026-07-27)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [DIRECTOR-RULING] via advisor bridge. The director's challenge, verbatim: *"I don't get why one assumption caused the whole process to fail. If the assumption can be improved of course do it. But don't ignore why stuff went wrong when it shouldn't."* He is right: the λ contradiction was the trigger, not the disease. This ruling addresses the disease.
 
 ## The diagnosis: five defences failed in the same direction

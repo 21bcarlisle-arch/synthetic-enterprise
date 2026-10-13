@@ -2,6 +2,8 @@
 
 # DIRECTOR CAMPAIGN FRAMING — Epoch 2: the coupled world, ranked by value (2026-07-19)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** director's campaign direction, transmitted by the advisor. Requirements and non-negotiables only — the mechanisms, sequencing detail, and statistical methods are yours to design and discover.
 
 ---

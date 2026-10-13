@@ -1,5 +1,7 @@
 # DIRECTOR STEER — Make the world legible: the site lost the operational window, and the cohorts are too thin (2026-07-20)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [STEER] — two linked corrections. Mechanism yours.
 
 ---

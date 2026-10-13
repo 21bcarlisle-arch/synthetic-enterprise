@@ -1,5 +1,7 @@
 # [DIRECTOR-TASK] — The no-caller class: count it, name it, one page (2026-08-09)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [DIRECTOR TASK — REPORT ONLY, NO BUILD]. [DIRECTOR-PRIORITY]: a report about a class that keeps getting outranked should not itself be outranked; draw ahead of the general plate.
 
 ## CONTEXT / STATE ANCHOR

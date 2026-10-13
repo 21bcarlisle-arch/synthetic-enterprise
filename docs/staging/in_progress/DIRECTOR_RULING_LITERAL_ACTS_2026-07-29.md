@@ -6,6 +6,8 @@ in_progress/ (open sub-item = both atoms unbuilt) to stay out of the unprocessed
 
 # [DIRECTOR-RULING] — Give me the literal acts. Stop describing blocks; emit executable text. (2026-07-29)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [DIRECTOR-RULING] via advisor bridge. Priority: above all other work except a live gate wedge.
 
 ## 0. Evidence, and the advisor's error

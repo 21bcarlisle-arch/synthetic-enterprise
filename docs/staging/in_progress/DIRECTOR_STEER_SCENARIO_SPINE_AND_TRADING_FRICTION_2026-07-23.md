@@ -11,6 +11,8 @@
 
 # [DIRECTOR-STEER] — Scenario spine, trading friction, and the pricing of forecast error (2026-07-23)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [STEER] via advisor bridge, from a live director conversation 2026-07-23. Decisions below are DECIDED
 (director's 20-year domain judgment); mechanism design is yours. Problem-and-construct framing — no filenames,
 intervals, or architectures prescribed.

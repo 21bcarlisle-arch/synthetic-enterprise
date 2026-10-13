@@ -1,5 +1,7 @@
 # [DIRECTOR-RULING] — Decision-linkage gate: the 2026-07-22 ratification STANDS (precedence clarification, 2026-07-23)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [DIRECTOR-RULING] via advisor bridge. One conflict of record, resolved.
 
 Today's DIRECTOR_SEGMENTS_REVIEW_VERDICTS_2026-07-23.md lists "the decision-linkage gate on the frontier metric" as **reserved, separate ratification pending**. That line was written without sight of the ledger: the director ratified the decision-linkage gate on **2026-07-22 by console** — verbatim: *"The decision-linkage gate (a segment scores value only if a decision is conditioned on it): RATIFIED as an amendment to the learning-value metric, tagged CHOSEN."* Ledgered and actioned same day.

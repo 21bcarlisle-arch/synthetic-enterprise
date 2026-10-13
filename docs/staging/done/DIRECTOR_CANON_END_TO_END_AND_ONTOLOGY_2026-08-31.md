@@ -1,5 +1,7 @@
 # [DIRECTOR-CANON] — End-to-end is how we design and test; a concept has one home (2026-08-31)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Severity:** RECORDED · **Lane:** A_strategy_governance
 
 **Type:** [CANON — a standing standard, with a deliberately evidence-first first step. Sits alongside the world validation ladder rather than inside it: the ladder governs whether the world is right, this governs whether the parts of it agree with each other.]

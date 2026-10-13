@@ -1,5 +1,7 @@
 # DIRECTOR STEER — Reframe the segmentation objective: LEARNING value, data-guided, not P&L weights (2026-07-20)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [STEER] — a correction to the stage-4 value-frontier objective, before the two values-calls are confirmed and before the generator is wired. The director has caught a genuine conflation; do not proceed on the old framing. Method yours.
 
 ## The conflation the director caught

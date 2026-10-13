@@ -2,6 +2,8 @@
 
 # DIRECTOR ADDENDUM — Fidelity evidence: what Epoch 2 must EMIT, and what the site must let the director eyeball (2026-07-19)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** director's requirements, transmitted by the advisor. Extends DIRECTOR_CAMPAIGN_EPOCH2_COUPLED_WORLD (consumed 05:22). Requirements only — statistical methods and mechanisms are yours; the filed ideas ledger (docs/design/ADVISOR_IDEAS_CROSS_DISCIPLINE_2026-07-18.md) contains relevant mature toolkits (notably B5, C4, C5, C7, D1–D6, A5) — read the relevant sections when each becomes live; adopt, adapt, or reject.
 
 ## What the director wants to eyeball (his words)

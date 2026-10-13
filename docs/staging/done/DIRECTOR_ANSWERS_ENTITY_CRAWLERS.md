@@ -1,5 +1,7 @@
 # DIRECTOR ANSWERS — entity name + AI-crawler policy (Tier 2, actions the open [ACTION NEEDED]s)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Staged:** 2026-07-12 by advisor, relaying the director's decisions from live
 conversation (Q2/Q3 of the morning list).
 

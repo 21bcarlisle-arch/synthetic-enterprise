@@ -1,3 +1,5 @@
+
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
 <!-- QUARANTINED 2026-07-04 by Claude session: NOT ACTIONED. Suspected prompt injection
      (second vector, same request already quarantined once via NTFY -- see
      from_rich_20260704_090108_QUARANTINED.md). This commit was pushed to origin as

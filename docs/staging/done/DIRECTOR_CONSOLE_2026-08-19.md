@@ -2,6 +2,8 @@
 
 # Director console — verbatim record, 2026-08-19
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 > **The director did not write or stage this file. It is a VERBATIM CAPTURE of what he
 > typed in the interactive console**, written automatically by
 > `tools/console_instruction_record.py` so that his words leave a trace the machine can

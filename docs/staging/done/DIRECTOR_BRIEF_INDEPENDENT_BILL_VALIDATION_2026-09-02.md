@@ -1,5 +1,7 @@
 # [DIRECTOR-BRIEF] — Independent bill validation behind a curtain (2026-09-02)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Severity:** LATENT · **Lane:** D_billing_metering · **Epoch:** 3 · **Atom:** unminted
 
 *Header added by the delivery seat, 2026-09-02. The director DID state the severity — "Severity:

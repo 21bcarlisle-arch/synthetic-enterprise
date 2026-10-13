@@ -1,5 +1,7 @@
 # [DIRECTOR-CANON] — The priority order from here (2026-10-05)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Severity:** LATENT · **Lane:** A_strategy_governance · **Epoch:** 3 · **Atom:** unminted
 
 *Header applied AUTOMATICALLY by `background/staging_watcher` on arrival, because an unclassified staging document refuses every lane's commit and an arriving document must never block a landing. Severity LATENT: carried through from the author's own words. Lane A_strategy_governance is the default for an externally-authored instruction and says what KIND of document this is, not what it is about — correct it if it belongs to a lane. Not one word of the author's text is altered.*

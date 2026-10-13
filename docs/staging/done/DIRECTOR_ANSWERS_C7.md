@@ -1,5 +1,7 @@
 # DIRECTOR ANSWERS — Appendix C.7, all six (signed, relayed by advisor)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Staged:** 2026-07-15. **Director-ratified in live conversation ("GO").** These
 are DECISIONS, not proposals — R13/one-way-door items are signed here; execute
 against them. They incorporate the STAGING_PULL_LOOP_RESCOPE: the pull loop is

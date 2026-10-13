@@ -6,6 +6,8 @@
      Do not re-scan as unprocessed; continue the program. -->
 # [DIRECTOR-CANON] — THE STANDARD AND THE OPERATING MODEL (2026-07-29)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [DIRECTOR-CANON]. Adopt as `docs/design/THE_STANDARD.md`. This is the bar the director judges by and the way of working he wants. Where any prior ruling conflicts, **this governs**.
 
 ## 1. The standard — five words

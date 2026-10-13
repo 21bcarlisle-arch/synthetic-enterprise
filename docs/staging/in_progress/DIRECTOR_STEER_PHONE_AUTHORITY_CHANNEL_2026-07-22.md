@@ -1,5 +1,7 @@
 # DIRECTOR STEER — End the console dependency: phone-native authority, plus F1 FRAME-open (2026-07-22)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 > **PARKED IN in_progress/ — 2026-07-22 (worker tick).**
 > - **Part 1 (F1 FRAME-open): DONE + committed.** `docs/design/frame/F1_conversations_coupled_triad_FRAME.md`
 >   exists (coupled-triad SIM-response / company-generator+estimator / harness-gap, reconciled with the

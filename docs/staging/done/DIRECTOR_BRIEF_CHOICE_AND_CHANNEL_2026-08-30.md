@@ -9,6 +9,8 @@ each step needs.*
 
 # [DIRECTOR-BRIEF] — Choice and channel: the missing mechanic (2026-08-30)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [BRIEF — problem, evidence and requirements. Research, design, sequencing and mechanism are the delivery seat's. Nothing here prescribes an implementation.]
 
 **Mission link.** We create enterprise value by automating ways to find individual customers we can create value for, and sharing in that value — by saving them money, time and carbon, through personalised modelling, tariffs and advice. Finding those customers, and keeping them, happens entirely inside choice and channel. Today neither exists as a mechanism.

@@ -15,6 +15,8 @@
      sight (SELF_INTERRUPT_DISCIPLINE: real but non-blocking, queued for a future BUILD draw). -->
 # [DIRECTOR-PRIORITY] — Memory cleanse: reclaim the 6GB tonight, govern the rest (2026-08-10)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Severity:** LATENT · **Lane:** H_harness
 
 **Type:** [PRIORITY — executes the already-ruled Qwen retirement's first physical step and sequences the two queued guards]. Evidence: 15.9GB real (the 32GB constant was fiction, finding filed), llama-server ~6GB resident, sim spikes 5.4GB, /tmp is tmpfs, repeated oom-kills all weekend disguised as test regressions.

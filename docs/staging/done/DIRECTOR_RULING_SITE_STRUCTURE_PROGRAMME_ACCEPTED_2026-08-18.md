@@ -1,5 +1,7 @@
 # [DIRECTOR-RULING] — The website structure programme is accepted (2026-08-18)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [DECISION]. Ruled by the director in the interactive console, 2026-08-18 ~07:14 BST.
 
 **Answers:** `docs/design/SITE_STRUCTURE_PROGRAMME_PROPOSAL_2026-08-17.md` §6, the four open questions

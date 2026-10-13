@@ -4,6 +4,8 @@
 
 # DIRECTOR STEER — Test throughput is becoming the rate-determining step; restructure it (2026-07-19)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [STEER] — a problem with requirements. The strategy is yours to propose and design.
 
 ---

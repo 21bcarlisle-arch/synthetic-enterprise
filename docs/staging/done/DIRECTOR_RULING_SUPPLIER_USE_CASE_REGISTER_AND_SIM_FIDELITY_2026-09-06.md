@@ -4,6 +4,8 @@
 
 # [DIRECTOR-RULING][ADVISOR-STAGED] Supplier-side use-case register, and the SIM fidelity each one needs (2026-09-06)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Decided by the director in the advisor channel, 5–6 September 2026.** This is a **product document, not a build order**: it says what the world being built is *for*, so the machine can judge fidelity work by the use it enables, and so the site's Capabilities register has something true to say. Nothing here authorises a company-side build. The **second half** registers the SIM-side fidelity each use case depends on — the director's instruction verbatim: *"we need the SIM to have sufficient fidelity on the other side to enable these."*
 
 Companion documents: the three phase-1 rulings and their amendment (5 September), and `ADVISOR_REFERENCE_CLV_DRIVERS_THESIS_AND_SENSE_CHECK_2026-09-05.md`.

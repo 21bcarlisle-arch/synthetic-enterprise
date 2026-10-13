@@ -11,6 +11,8 @@
 
 # [DIRECTOR-RULING] — Blocked-mint batch release, and the ruling-vs-ledger mismatch (2026-07-28)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [DIRECTOR-RULING] via advisor bridge. Answers the [ACT] of 14:15Z/15:16Z: 24 minted items blocked and un-worked for 3+ hours.
 
 ## 0. The mechanism fault — name it and fix it

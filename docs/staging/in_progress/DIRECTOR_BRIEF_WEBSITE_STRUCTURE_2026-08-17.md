@@ -40,6 +40,8 @@
 
 # [DIRECTOR-BRIEF] — The website: structure, content, and the end-to-end customer traversal (2026-08-17)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [BRIEF — problem, requirements and non-negotiables. Design, mechanism, sequencing and implementation are the worker's. Nothing here prescribes markup, framework, file layout, or component structure.]
 
 **REVISED 2026-08-18 after this document entered in_progress.** Changes: Home reframed around the project's own claim (autopoiesis — self-production and self-maintained boundary; the wall/boundary correspondence is structural, not analogical); Capabilities gains the interface/curtain inventory and the go-live seam; Harness gains the method, lanes and levels, the discovery-to-knowledge loop, observability including its own blind spots, and separate SIM/Company codebase tracking; the no-jargon rule gains its single Harness exception. If work has already begun from the earlier version, nothing built is invalidated — these are additions and one reframing, not reversals.

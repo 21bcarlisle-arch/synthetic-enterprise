@@ -1,3 +1,5 @@
+
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
 > **[IN PROGRESS — steps 1-2 of 3 DONE, 2026-08-11]** Parked here, not archived, because sub-item 3
 > of WORK THIS CREATES is genuinely still open. Do not re-mint.
 >

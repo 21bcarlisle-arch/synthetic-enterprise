@@ -1,4 +1,6 @@
 # [CC PROCESSING STATUS -- 2026-07-23 NIGHT] IN PROGRESS (rungs 2 + 4 ABSORBED + seeds MINTED; rungs 5/7 OPEN)
+
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
 #
 # The class-of-classes fix = a 7-rung WORK-SOURCE HIERARCHY the draw walks. Rungs 1/2/3/6 LIVE.
 #   RUNG 2 (open campaigns) LIVE + R15-proven (supervisor.py::_open_campaign_draw).

@@ -1,5 +1,7 @@
 # DIRECTOR_COMMENTS_BOX — per-page feedback channel (P3, small) + one forward registration
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Staged:** 2026-07-09 by advisor, director-decided.
 **Place in the arc:** director tooling / harness — multiplies the operating
 contract (feedback lands with context, zero friction). Independent of Epoch 2.

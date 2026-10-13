@@ -11,6 +11,8 @@
 
 # DIRECTOR FINDING — The rest-heartbeat burns tokens while resting (2026-07-20)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [STEER] — a defect with a measurement requirement. Absorb; do not interrupt in-flight work.
 
 ## Observed

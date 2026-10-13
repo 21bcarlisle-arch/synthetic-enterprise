@@ -1,5 +1,7 @@
 # [DIRECTOR] The site carries a module-graph door, regenerated weekly
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 Date: 2026-10-09. Director request, staged by the advisor. This is a decided
 instruction for a new capability; how it is built is the seat's to choose, and
 it slots into the existing plan wherever the seat judges — it does not jump

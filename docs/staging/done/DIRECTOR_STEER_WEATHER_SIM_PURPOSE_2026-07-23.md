@@ -1,5 +1,7 @@
 # DIRECTOR STEER — Weather simulation: purpose, variable selection order, forecast layer (2026-07-23)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Provenance:** Director-decided in advisor conversation 2026-07-23, advisor-staged. This is a PURPOSE
 steer for the W1 weather lane — it re-frames what the lane is for and how its variable set is chosen.
 It authorizes no BUILD, opens no gate, moves no level. Existing ratified levels (W1_3/W1_4/W1_5/W1_6/C13

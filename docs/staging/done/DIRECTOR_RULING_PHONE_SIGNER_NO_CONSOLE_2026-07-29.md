@@ -11,6 +11,8 @@ Sequence per §2: #2 before #1; #3 is #1's exit gate. -->
 
 # [DIRECTOR-RULING] — Phone-signer setup, delivered as a DOCUMENT not a console session. And: console is the last resort. (2026-07-29)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [DIRECTOR-RULING] via advisor bridge. Priority immediately after the literal-act list.
 
 ## 0. The standing rule, first — because the advisor keeps breaking it

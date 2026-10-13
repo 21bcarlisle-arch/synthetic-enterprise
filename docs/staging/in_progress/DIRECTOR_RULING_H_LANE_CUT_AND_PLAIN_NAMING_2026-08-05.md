@@ -15,6 +15,8 @@
 
 # [DIRECTOR-RULING] — H-lane cut + plain-words naming law (2026-08-05)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [DECISION ×2]. Ratified in conversation with the director 2026-08-05, machine offline; lands with the Saturday batch. Companion evidence: `ADVISOR_REVIEW_MATURITY_MAP_TAXONOMY_2026-08-05.md`. **Amended same day:** director-in-the-loop steps removed — see §Operating mode. The director is not an approval gate anywhere in this ruling.
 
 ## Ruling 1 — The H territory becomes two lanes, after distribution

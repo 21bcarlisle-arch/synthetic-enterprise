@@ -20,6 +20,8 @@
      Archived to done/. No wall touched (mint = planning artefacts, doc-only). -->
 # [DIRECTOR-RULING] — The DECOMPOSITION is the deliverable. Gas and electricity are separate topics. A gap list is not a page. (2026-07-28)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [DIRECTOR-RULING] via advisor bridge. Second verdict on the K-pilot. Supersedes the sequencing in `d557a58e3`; its scope-first ruling stands and is sharpened here.
 
 ## 0. Verdict — still FAIL, different mode

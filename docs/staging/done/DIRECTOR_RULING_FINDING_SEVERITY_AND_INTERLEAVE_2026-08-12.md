@@ -1,5 +1,7 @@
 # [DIRECTOR-RULING] — Findings get severity; severity gates progress; blockers jump the queue (2026-08-12)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [DECISION]. Replaces the count-based interleave trigger in DIRECTOR_PRIORITY_BACKLOG_TRIAGE_AND_INTERLEAVE_2026-08-10. Mechanisms are the worker's; the properties below are the director's.
 
 **The problem, measured this morning:** staging root at 111 files, 103 of them self-generated findings, 45 filed on one day. The interleave was gated on that count dropping under 20 — a number that measures the rate of self-scrutiny, not the state of the project, and which has grown every day since the rule was made. A crude instrument, and mine; withdrawn.

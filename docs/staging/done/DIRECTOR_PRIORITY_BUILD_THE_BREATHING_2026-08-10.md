@@ -1,5 +1,7 @@
 # [DIRECTOR-PRIORITY] — Build the breathing NOW: stop winning wedges, change the game (2026-08-10)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [PRIORITY — sequencing the already-ruled PUBLISH_DECOUPLING to the front]. Evidence: 25h frozen stamp, ~18 causes cured serially with excellence, re-wedged within the hour every time. The treadmill is structurally unwinnable while publishing demands whole-repo perfection; the director ruled the alternative yesterday — it just hasn't been built.
 
 **Next tick, before any other draw including the drain:** implement THE SITE BREATHES items 1 and 3 minimally —

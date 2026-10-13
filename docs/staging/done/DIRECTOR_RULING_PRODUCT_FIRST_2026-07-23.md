@@ -1,5 +1,7 @@
 # [DIRECTOR-RULING] — PRODUCT FIRST: the productive-hours metric, and the re-rank (2026-07-23)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [DIRECTOR-RULING] via advisor bridge. The director's verdict, verbatim: *"Nothing material is happening."* He is right on the ledger: the recent verified hours are dominated by machinery (governance, continuity, authority, measurement) while the product — the things on his ratified axes — has barely moved in visible terms. Machinery fires were real; the balance is still wrong. This ruling fixes the metric and the priority together.
 
 ## 1. The metric: PRODUCT hours vs MACHINERY hours (daily note headline, from tonight)

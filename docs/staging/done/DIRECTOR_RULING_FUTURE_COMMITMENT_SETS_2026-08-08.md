@@ -1,5 +1,7 @@
 # [DIRECTOR-RULING] — The futures go on the map (2026-08-08)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [DECISION]. Ratified in conversation, late 2026-08-08. **Direction without redirection:** nothing below changes any current draw, dial, or sequence — the factory continues exactly as it is running tonight. What changes is that future commitments become map objects instead of prose, so discovery can file forward and accretion becomes visible.
 
 ## The problem, evidenced tonight

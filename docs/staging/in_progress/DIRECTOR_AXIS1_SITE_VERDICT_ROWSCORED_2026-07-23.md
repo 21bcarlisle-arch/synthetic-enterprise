@@ -11,6 +11,8 @@
 
 # [DIRECTOR-RULING] — Axis-1 verdict, row-scored from the director's own screenshots; the five root causes; iteration order (2026-07-23)
 
+> Consolidated into DIRECTOR_CANON.md v4 on 2026-10-12. Kept verbatim as the record; the canon text governs.
+
 **Type:** [DIRECTOR-RULING] via advisor bridge. The director reviewed six live pages (/now, /world, /method, /company, /project, /simplified) on his phone and rendered the verdict "awful". The advisor decomposed it with him into the specific verdicts below. **The ratified structure stands** (causal chain, clocks, honesty placeholders, wall crossings) — the failure is the presentation layer and content selection. Fix those; do not re-architect the IA.
 
 ## The five root causes (each is a class, fix as classes — R10)
