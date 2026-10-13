@@ -101,3 +101,21 @@ def test_one_message_split_across_block_rows_is_counted_once_and_its_advisor_cal
     assert t["input"] == 2000 and t["advisor_calls"] == 1, t
     # Sonnet 5: 2000*2 + 1000*10 = $0.014; the Opus 5.5 advisor: 10000*4 + 100*20 = $0.042.
     assert round(t["weighted_usd"], 6) == 0.056, t
+
+
+def test_the_points_conversion_counts_subagents_and_sessions_started_before_the_window(tmp_path):
+    """Fires on the first calibration's two misses: a subagent transcript, and a session whose first
+    row predates the window but whose messages fall inside it."""
+    d = tmp_path / "proj"
+    (d / "sess" / "subagents").mkdir(parents=True)
+    msg = lambda i, ts: {"type": "assistant", "timestamp": ts,  # noqa: E731
+                         "message": {"id": i, "model": "claude-opus-5-5",
+                                     "usage": {"input_tokens": 0, "output_tokens": 1_000_000}}}
+    (d / "a.jsonl").write_text("\n".join(json.dumps(r) for r in (
+        msg("early", "2026-10-12T10:00:00Z"), msg("m1", "2026-10-12T14:00:00Z"),
+        msg("m1", "2026-10-12T14:00:01Z"))))
+    (d / "sess" / "subagents" / "x.jsonl").write_text(json.dumps(msg("s1", "2026-10-12T15:00:00Z")))
+    # Opus 5.5 output is USD 20 per million: m1 and s1 count once each, the early message not at all.
+    assert B.weighted_usd_between("2026-10-12T13:00", "2026-10-13T07:10", tmp_path) == 40.0
+    assert B.usd_per_point((("2026-10-12T13:00", 40.0), ("2026-10-13T07:10", 42.0)), tmp_path) == 20.0
+    assert B.usd_per_point((("2026-10-12T13:00", 40.0),), tmp_path) is None

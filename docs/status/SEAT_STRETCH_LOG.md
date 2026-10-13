@@ -8,6 +8,52 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-13 — The director's reading: 15 points in 18 hours, the conversion recalibrated to USD 26.5 a point, the advisor trial stopped, and the deck re-estimated at 8 a day
+
+<!-- head: 39afcb4af4f7 -->
+
+**The director's reading (2026-10-13 08:10): 55%, so 15 points since 14:00 Monday, about 20 a day. My log said about 11 for the week, about 40% low. 45 points remain to the reset (Monday 04:00 BST), about 8 a day.**
+
+**Recalibrated.** The conversion was USD 19 a point, read only from sessions that started inside the window and without their subagents. Every transcript between his two readings, subagents included, each message once, comes to USD 397 for 15 points: **USD 26.5 a point.** `tools/tick_burn_rate.py --points` now computes this from his readings (`POINT_READINGS`) instead of a typed number. Append a row each time he gives a reading.
+
+**Where the 15 points went:**
+
+| Kind of turn | Points |
+|---|---|
+| Worker ticks on the advisor trial | 4.9 |
+| This session | 3.6 |
+| Its Opus subagents (the world and separation lanes, now finished) | 2.9 |
+| The executor | 1.9 |
+| Its Sonnet subagents | 0.8 |
+| The orienting seat | 0.4 |
+
+**The advisor trial is stopped** (`enabled: false`). After 24 ticks: 33% landed against the baseline's 74%, and USD 16.4 per landed turn against 3.71. Both are past the pre-registered stop lines. I stopped it before the 40-tick read; the reason is in the minted item. My prediction was wrong on both measures. Worker ticks are back on Opus.
+
+**The pace from here, at 8 points a day:**
+
+| Lane | Points a day |
+|---|---|
+| Worker ticks back on Opus | about 2.8 |
+| The executor | about 2.5 |
+| The orienting seat | about 0.5 |
+| **Unattended, total** | **about 5.8** |
+| This seat, budgeted | about 2 |
+
+This seat: no Opus subagents, Haiku or Sonnet for search and census, small turns, one landing at a time, and no new experiment arms unless they test something landing this week. None are running.
+
+**What the rest of the deck costs, and what I would drop.** Roughly 38 points against 45, with the unattended lanes about 28 of it.
+
+| Item | Points |
+|---|---|
+| The four supplier changes staged in the shared tree: the DD design (inert as wired), the GBP 115 capital fix, the hedge at the market's quote, and a fourth | 3 |
+| Red #10, then the 145 banners and the publish | 0.5 |
+| The real reds at HEAD: #6, #8, #9, #11, #12, #16 | 3-4 |
+| Friday's report | 0.5 |
+
+The stale-artefact reds #7, #13 and #17 clear at the publish. **Dropped to next week if the line slips:** reds #6 (a calibration miss) and #16 (a constant verdict), then the vacated-home trio. **Already moved to next week:** the mover's attribution arm, the provision's prior and age state, and the renewal-below-cost-floor question (P1 there).
+
+---
+
 ## 2026-10-13 — Order 1 delivered: the payment world frozen, the provision graded, and the save, mover and renewal cut re-graded on fresh seeds
 
 <!-- head: ffa8b5574d39 -->

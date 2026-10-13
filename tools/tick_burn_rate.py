@@ -248,11 +248,87 @@ def render_changes(rows: list[dict]) -> str:
     return "\n".join(lines)
 
 
+#: THE DIRECTOR'S USAGE READINGS (P12, his words, 2026-10-12: "I'll tell you my weekly usage reading
+#: from time to time. Use it with tools/tick_burn_rate.py to work out what each kind of work costs you
+#: in my points"). (UTC time, percent of the week). A point is one percent. Append a row per reading;
+#: the conversion is computed from the latest two, never typed in.
+POINT_READINGS: tuple[tuple[str, float], ...] = (
+    ("2026-10-12T13:00", 40.0),   # Monday 14:00 BST
+    ("2026-10-13T07:10", 55.0),   # Tuesday 08:10 BST
+)
+
+
+def weighted_usd_between(t0: str, t1: str, root: Path = PROJECTS) -> float:
+    """Every assistant message priced between two UTC instants, across EVERY transcript: the
+    sessions and their subagents (`*/*/subagents/*.jsonl`), each message once by id. The first
+    calibration (2026-10-12) read only sessions that STARTED in the window and no subagents, and
+    ran about 40% low against the director's readings."""
+    seen: set = set()
+    total = 0.0
+    paths = list(root.glob("*/*.jsonl")) + list(root.glob("*/*/subagents/*.jsonl"))
+    for path in paths:
+        for line in path.read_text(errors="replace").splitlines():
+            if '"assistant"' not in line:
+                continue
+            try:
+                row = json.loads(line)
+            except ValueError:
+                continue
+            ts = row.get("timestamp") or ""
+            msg = row.get("message") or {}
+            if row.get("type") != "assistant" or not (t0 <= ts < t1) or not msg.get("usage"):
+                continue
+            if msg.get("model") == "<synthetic>" or msg.get("id") in seen:
+                continue
+            seen.add(msg.get("id"))
+            total += _priced(msg["usage"], msg.get("model"))
+    return total
+
+
+def _priced(u: dict, model: str | None) -> float:
+    price = PRICE.get(model or "")
+    usd = 0.0
+    if price:
+        cc = u.get("cache_creation") or {}
+        w5 = int(cc.get("ephemeral_5m_input_tokens", 0) or 0)
+        w1 = int(cc.get("ephemeral_1h_input_tokens", 0) or 0)
+        if not (w5 or w1):
+            w5 = int(u.get("cache_creation_input_tokens", 0) or 0)
+        usd = (int(u.get("input_tokens", 0) or 0) * price[0] + int(u.get("output_tokens", 0) or 0) * price[1]
+               + w5 * price[2] + w1 * price[3] + int(u.get("cache_read_input_tokens", 0) or 0) * price[4]) / 1e6
+    for it in u.get("iterations") or ():
+        if isinstance(it, dict) and it.get("type") == "advisor_message":
+            ap = PRICE.get(it.get("model") or "")
+            if ap:
+                usd += (int(it.get("input_tokens", 0) or 0) * ap[0] + int(it.get("output_tokens", 0) or 0) * ap[1]
+                        + int(it.get("cache_read_input_tokens", 0) or 0) * ap[4]) / 1e6
+    return usd
+
+
+def usd_per_point(readings=POINT_READINGS, root: Path = PROJECTS) -> float | None:
+    """Weighted USD per point of the director's weekly allowance, from his latest two readings.
+    None when there are fewer than two, or no points passed between them."""
+    if len(readings) < 2:
+        return None
+    (t0, p0), (t1, p1) = readings[-2], readings[-1]
+    if p1 <= p0:
+        return None
+    return weighted_usd_between(t0, t1, root) / (p1 - p0)
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--days", type=float, default=7.0)
     ap.add_argument("--json", action="store_true")
+    ap.add_argument("--points", action="store_true",
+                    help="the USD-per-point conversion from the director's last two readings")
     a = ap.parse_args(argv)
+    if a.points:
+        per = usd_per_point()
+        print("no conversion: fewer than two readings" if per is None
+              else f"one point = USD {per:.1f} weighted (from {POINT_READINGS[-2][0]} "
+                   f"to {POINT_READINGS[-1][0]}, all transcripts and subagents)")
+        return 0
     if a.json:
         print(json.dumps(table(turns(a.days), a.days), indent=1))
     else:

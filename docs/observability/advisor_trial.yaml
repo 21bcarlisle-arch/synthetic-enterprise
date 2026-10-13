@@ -16,7 +16,7 @@
 # 5.5 as advisor to Sonnet 5 was probed on 2026-10-12 and attached (an `advisor` server tool call
 # with an `advisor_message` iteration on claude-opus-5-5 in the transcript).
 
-enabled: true
+enabled: false   # STOPPED 2026-10-13 on its own stop rule; see the minted item
 starts: "2026-10-12"
 ends: "2026-10-19"
 main: "claude-sonnet-5"

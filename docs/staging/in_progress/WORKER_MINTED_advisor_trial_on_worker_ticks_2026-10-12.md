@@ -89,3 +89,27 @@ What each call was about is read from a sample of transcripts at the report, not
 
 The advisor sees the whole conversation; it is a second opinion, not the separate-agent check that
 high-stakes work requires. Do not count it as one.
+
+## Result and stop (2026-10-13 08:40 BST)
+
+Stopped early, on the pre-registered stop rule's own measures, after 24 trial ticks (from
+`python3 -m tools.tick_burn_rate --days 1`):
+
+| | trial (Sonnet 5 + Opus 5.5 advisor) | baseline (Opus 5.5, 7 days to 2026-10-12) |
+|---|---|---|
+| turns | 24 | 207 |
+| landed | **33%** | 74% |
+| median weighted $ per turn | 4.33 | 2.44 |
+| $ per landed turn | **16.4** | 3.71 |
+| advisor calls | 24 turns had one or more; 8 had none | - |
+
+Stop conditions 1 (landed share below 64%) and 2 ($ per landed turn at or above 3.71) were both
+past their lines by margins the remaining 16 ticks to the 40-tick read could not close. Stopping
+before 40 is a departure from the rule as written, made because the director's reading of
+2026-10-13 put the week at twice its affordable pace. The prediction of 65-75% landed and
+$1.50-2.50 per landed turn was wrong on both. Fresh tokens per turn rose (250k against 143k) and
+cache reads rose (14.1M against 4.9M median): the main model took longer to land less, and the
+advisor's uncached re-reads were added on top.
+
+Reverse: `enabled: true` in docs/observability/advisor_trial.yaml (window to 2026-10-19).
+Proposal: drop. Extending to other units is the director's, and the evidence says not to.
