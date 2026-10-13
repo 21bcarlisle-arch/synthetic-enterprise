@@ -3,6 +3,8 @@
 
 # On fresh seeds the save never fires, because renewals sit below their own cost floor, and the price-match renewal cut loses net (2026-10-13)
 
+**Fate (2026-10-13, clear-the-decks):** ATOM -- n/a P1 -- director's Order-1 re-grade of risk_tiers vs price_match renewal cut + save is explicitly not yet re-run at a base carrying 03a0b66da+5c137eb5b+61c122683+434d87587 (all now landed); doc says "the re-grade that would decide it... is not launched from this item."
+
 The director's Order 1: re-grade the save and the renewal cut on fresh seeds across the world's ranges.
 Set-up:
 - book seeds 61109-61112, 400 founders, budget 0, to 2025-06-07, frozen payment world (553d7c855),

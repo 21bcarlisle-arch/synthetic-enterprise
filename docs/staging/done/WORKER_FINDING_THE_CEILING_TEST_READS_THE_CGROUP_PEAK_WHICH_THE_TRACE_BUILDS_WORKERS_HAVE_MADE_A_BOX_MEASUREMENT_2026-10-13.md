@@ -2,6 +2,8 @@
 
 # The ceiling test reads the cgroup peak, which the trace build's workers have made a box measurement (2026-10-13)
 
+**Fate (2026-10-13, clear-the-decks):** DONE -- 168137d37 Run largest process peak journal-line fix confirmed landed in background/sim_runner.py and consumed by tests/simulation/test_net_new_acquisition.py.
+
 **Subject.** `tests/simulation/test_net_new_acquisition.py::test_the_ceiling_still_fits_the_peak_
 systemds_own_journal_reports_today` reads `sim-runner.service`'s systemd-reported `memory peak`
 (a cgroup aggregate) and compares it to `SETTLEMENT_CUSTOMER_YEAR_BUDGET` (5,000.0) via

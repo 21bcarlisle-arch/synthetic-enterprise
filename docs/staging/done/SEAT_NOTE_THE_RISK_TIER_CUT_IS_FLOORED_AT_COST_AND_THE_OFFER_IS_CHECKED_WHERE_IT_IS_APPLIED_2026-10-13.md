@@ -3,6 +3,8 @@
 
 # The risk-tier retention cut is floored at cost, and the offer is checked where it is applied (2026-10-13)
 
+**Fate (2026-10-13, clear-the-decks):** DONE -- 5c137eb5b B8: the risk-tier retention cut is floored at its own cost floor -- confirmed on origin.
+
 *Direction `b8-the-risk-tiers-retention-cut-is-never-held-to-the-cost-floor`, autonomous worker.*
 
 ## What was wrong

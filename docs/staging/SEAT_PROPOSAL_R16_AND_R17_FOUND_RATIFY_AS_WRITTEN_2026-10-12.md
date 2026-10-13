@@ -3,6 +3,8 @@
 
 # [SEAT-PROPOSAL] R16 and R17 are found: ratify them as written, with one wording note (2026-10-12)
 
+**Fate (2026-10-13, clear-the-decks):** ATOM -- n/a P3 -- proposes ratifying R16/R17 text formally into canon numbering; both rules are already cited informally in active docs (e.g. BOARD_SPEC_002_RECONCILIATION.md) but no formal ratification/insertion into CLAUDE.md's R-list found.
+
 Canon v4 H1: "R16 and R17 are cited in rulings but defined on no page. Until their text is found and
 ratified, the numbered set is R1-R15 (section 15, owed item 10)." Both texts are found, verbatim, in the
 CLAUDE.md commits that introduced them. The 28 August rewrite dropped both from every page.

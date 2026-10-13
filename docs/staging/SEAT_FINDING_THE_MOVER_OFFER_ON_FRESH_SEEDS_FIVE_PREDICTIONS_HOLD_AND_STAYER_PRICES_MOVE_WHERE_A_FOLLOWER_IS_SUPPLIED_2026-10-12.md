@@ -3,6 +3,8 @@
 
 # The mover offer on fresh seeds: five predictions hold, and stayers' prices move where a follower is supplied (2026-10-12)
 
+**Fate (2026-10-13, clear-the-decks):** ATOM -- n/a P2 -- M5 (stayer-price moves) refuted on 3/4 seeds and unattributed; doc files its own follow-on "the-mover-offers-stayer-price-moves-are-attributed-by-an-unsupplied-follower-arm".
+
 The director's Order 1: re-grade the mover offer on fresh seeds across the world's ranges. The
 predictions M1-M6 were filed first, in WORLD_FREEZE_DD_SHOCK_SAVE_AND_MOVER_AT_THEIR_RANGE_ENDS_2026-10-12.md
 §3.

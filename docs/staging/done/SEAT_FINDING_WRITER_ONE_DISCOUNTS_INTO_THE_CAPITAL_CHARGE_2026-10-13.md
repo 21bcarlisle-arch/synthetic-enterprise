@@ -3,6 +3,8 @@
 
 # Writer 1 discounts into the capital charge: the 496 renewals are real, not a probe artefact (2026-10-13)
 
+**Fate (2026-10-13, clear-the-decks):** DONE -- 434d87587 A renewal discount stops at the term's cost with its capital charge -- confirmed on origin; cost_floor now reads pre_margin_unit_rate.
+
 *Direction `the-pre-arm-struck-rate-sits-below-term-cost-on-496-of-698-renewals`, autonomous worker.*
 
 ## The question

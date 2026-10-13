@@ -4,6 +4,8 @@
 
 # The default-tariff segment forms its own forward
 
+**Fate (2026-10-13, clear-the-decks):** DONE -- 5187cb21a svt_product now asks the forward door and is controlled; the hedge's agreed-price open question this doc raised is independently resolved by 61c122683. Minor residue (move-with-us SVT cost untested, since move-with-us is off; a NAMED_DEBTS architecture row not yet built) is explicitly handed to other work, not orphaned here.
+
 ## What the drawn item said, and what was true of it
 
 The item cites `tools/seam_value_flow.py`, a finding

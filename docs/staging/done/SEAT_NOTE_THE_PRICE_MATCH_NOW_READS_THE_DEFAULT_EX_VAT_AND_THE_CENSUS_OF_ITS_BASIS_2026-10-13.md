@@ -3,6 +3,8 @@
 
 # The price match now reads the published default ex VAT; the census of who reads which basis
 
+**Fate (2026-10-13, clear-the-decks):** DONE -- d1e37f45c The price match reads the published default ex VAT -- confirmed on origin; control file present.
+
 **Item:** `the-price-match-compares-an-inc-vat-default-with-an-ex-vat-renewal` (found by the floor
 recount, 95b3a38d2). **Premise re-measured at origin c3bf385b9: live.** `_price_match_inputs` handed
 `_account_state_svt_rate` (inc VAT; and the GROSS cap through the EPG, 2022-10..2023-06) to a match

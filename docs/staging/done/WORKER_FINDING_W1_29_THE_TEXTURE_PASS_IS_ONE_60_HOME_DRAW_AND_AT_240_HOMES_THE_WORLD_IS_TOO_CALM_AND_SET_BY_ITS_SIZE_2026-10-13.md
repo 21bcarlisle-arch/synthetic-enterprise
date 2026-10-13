@@ -2,6 +2,8 @@
 
 # W1_29: the texture pass is one 60-home draw, and at 240 homes the world is too calm and set by its size
 
+**Fate (2026-10-13, clear-the-decks):** DONE -- c22f6c144; f17319e8f Stronger 240-home comparator + strict xfail + both-branches control all confirmed landed in tests/harness/test_premise_two_level.py. The underlying world-calmness defect itself stays open as atom W1_29 in the maturity map -- that is pre-existing tracked work, not an orphan of this finding.
+
 Worker on the lane-1 self-refill BUILD draw of `W1_29`, 2026-10-13, at `origin/main` `e4595810a`, in an
 isolated worktree. This was decided blind to company results, and nothing below reads a company figure.
 Evidence and tables:

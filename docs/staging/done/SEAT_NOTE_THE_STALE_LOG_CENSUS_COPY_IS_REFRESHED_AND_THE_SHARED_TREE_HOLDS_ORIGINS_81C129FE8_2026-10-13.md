@@ -1,5 +1,7 @@
 # The stale log-census copy is refreshed, and the shared tree now holds origin's 81c129fe8 bytes
 
+**Fate (2026-10-13, clear-the-decks):** DONE -- 2248e3baf This note's own landing is the current worktree HEAD commit.
+
 **Severity:** RECORDED · **Lane:** B_commercial · **Epoch:** unassigned · **Atom:** `unminted` · **Claim:** `the-shared-trees-stale-log-census-copy-reverts-origins-tool-reader-leg` (Lane 0 delivery)
 
 *Worker tick, 2026-10-13. Item: `the-shared-trees-stale-log-census-copy-reverts-origins-tool-reader-leg`.*

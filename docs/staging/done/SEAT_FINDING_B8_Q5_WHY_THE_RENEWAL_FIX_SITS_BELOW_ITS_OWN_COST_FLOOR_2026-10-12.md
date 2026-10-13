@@ -2,6 +2,8 @@
 
 # B8 Q5: why 71-77 renewals per seed have a re-fix below their own cost floor
 
+**Fate (2026-10-13, clear-the-decks):** DONE -- 03a0b66da Floor class DISCRETIONARY_RATE_NOT_BELOW_OWN_COST_FLOOR built and on origin; the arm-base follow-on it hands off is separately landed at 434d87587/04913b693 (see two 2026-10-13 findings below).
+
 *2026-10-12, delivery seat (direction `b8-q5-why-does-the-renewal-fix-sit-below-its-own-cost-floor`).*
 
 In the B8 Q5 full-window price-match arms (`/var/tmp/se-b8-q5-full/price_match-*.json`), 71-77

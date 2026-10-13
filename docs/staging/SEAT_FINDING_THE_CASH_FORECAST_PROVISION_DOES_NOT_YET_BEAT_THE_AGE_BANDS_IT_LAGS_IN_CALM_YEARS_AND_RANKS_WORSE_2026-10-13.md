@@ -3,6 +3,8 @@
 
 # The cash-forecast provision does not yet beat the age bands: it lags in calm years and ranks worse (2026-10-13)
 
+**Fate (2026-10-13, clear-the-decks):** ATOM -- n/a P2 -- doc's own close: "do not switch the run's provision to CF"; files follow-on atom "the-cash-forecast-provision-learns-a-prior-and-the-oldest-age-before-it-is-re-graded".
+
 The director's Order 1: measure the expected-loss provision against held-back loss on the frozen world.
 The estimator is company/finance/cash_forecast_provision.py (16ba6249c, dormant). It was built
 to switch the run's provision "once the grade shows it beats the matrix".

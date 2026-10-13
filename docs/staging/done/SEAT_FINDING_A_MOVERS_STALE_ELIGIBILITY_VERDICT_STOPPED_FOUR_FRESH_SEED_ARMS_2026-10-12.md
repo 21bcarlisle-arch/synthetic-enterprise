@@ -2,6 +2,8 @@
 
 # A mover's stale eligibility verdict stopped four fresh-seed arms before the book settled
 
+**Fate (2026-10-13, clear-the-decks):** DONE -- e71d5c1db; db1f3767f Doc's own "Fate (2026-10-13): CLOSED" confirms control built (rebind_fabric_verdict_to_new_home + two test files), both on origin.
+
 **Fate (2026-10-13):** CLOSED -- the standing control the hand-off below asked for is built. The
 relocation's verdict-copy is now `simulation.fabric_demand_path.rebind_fabric_verdict_to_new_home`,
 called from the relocation block. `tests/simulation/test_fabric_demand_path_mover_verdict.py` holds

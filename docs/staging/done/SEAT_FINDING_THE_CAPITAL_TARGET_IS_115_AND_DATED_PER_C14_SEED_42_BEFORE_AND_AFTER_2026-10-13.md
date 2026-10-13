@@ -1,5 +1,7 @@
 # The capital target lands at £115 and is dated per C14: seed 42 before and after
 
+**Fate (2026-10-13, clear-the-decks):** DONE -- 81c129fe8 Capital-target £115/C14-dating correction confirmed on origin; measurement record shows predictions graded, tautological solvency test also fixed in the same landing.
+
 **Severity:** LATENT · **Lane:** B_commercial · **Epoch:** unassigned · **Atom:** `unminted`
 
 Filed by the delivery seat (executor), 2026-10-13, with the landing of the £115 correction and

@@ -2,6 +2,8 @@
 
 # The shared checkout reached origin before this item was drawn: premise spent
 
+**Fate (2026-10-13, clear-the-decks):** ARCHIVED -- n/a Doc's own words: "premise re-measured and it is spent. I did no build." Pure diagnostic record.
+
 Delivery seat (executor), 2026-10-12 ~17:20 BST. I re-measured the premise and it is spent. I did no build.
 
 - **Fast-forward done by the mechanism, not by hand.** The shared tree's reflog shows `merge origin/main:

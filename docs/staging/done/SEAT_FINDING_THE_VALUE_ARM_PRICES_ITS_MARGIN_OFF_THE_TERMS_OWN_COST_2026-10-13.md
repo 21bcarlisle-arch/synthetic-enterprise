@@ -2,6 +2,8 @@
 
 # The value arm's margin is measured from the term's own cost, not from the rate writer 1 left
 
+**Fate (2026-10-13, clear-the-decks):** DONE -- 04913b693 The value arm measures its margin from the term's own cost, not from the rate writer 1 left -- confirmed on origin (pre_margin_unit_rate wired into renewal_rate_chain.py).
+
 *2026-10-13, delivery seat (direction `value-arm-base-assumes-the-strikes-margin-survives-writer-one`).*
 
 ## The defect

@@ -2,6 +2,8 @@
 
 # The DD design pile is in the console seat's landing sequence, so this tick did not land a rival copy
 
+**Fate (2026-10-13, clear-the-decks):** ATOM -- 8c7f8c7c3 (this note's own landing) P2 -- note itself landed (disposition only); hands off real open work "dd-own-forecast-forward-split-wired-after-the-pile-lands" (term_end_iso/forward_rate_per_mwh_ex_vat still unwired in tools/dd_book_legs.py, confirmed absent).
+
 *2026-10-13, autonomous worker tick, claim
 `the-dd-amount-is-set-from-the-companys-own-twelve-month-forecast-plus-the-balance`.*
 

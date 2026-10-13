@@ -4,6 +4,8 @@
 
 # The in-loop DD review is told true consumption, not the supplier's estimated bills
 
+**Fate (2026-10-13, clear-the-decks):** DONE -- 5cdaca020 The in-loop DD review now reads the supplier's own bills, not true consumption -- confirmed on origin.
+
 `simulation/dd_review_in_loop.py` builds the review's bills from the loop's monthly settled revenue,
 grossed up at VAT. In this world that revenue is priced at the meter's TRUE consumption. The company's
 review door (`annual_dd_review_view`) then sizes the household's DD from it. A real supplier reviewing

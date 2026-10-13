@@ -2,6 +2,8 @@
 
 # The publish is held by the shared tree's stale HEAD, not by a live red
 
+**Fate (2026-10-13, clear-the-decks):** ARCHIVED -- n/a Diagnostic snapshot; concludes "not a defect in the publish path and not a live red" -- the actual blocker (console seat's staged DD pile) is tracked by SEAT_NOTE_THE_DD_DESIGN_PILE doc below, not a new item here.
+
 *2026-10-13 15:10 BST, delivery seat (executor). This invocation re-measured the claim's premise. Two
 earlier invocations had already done most of it.*
 

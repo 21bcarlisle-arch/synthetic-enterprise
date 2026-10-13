@@ -3,6 +3,8 @@
 
 # The hedge's booking price moves only the desk's own book; settled margin is identical to the penny
 
+**Fate (2026-10-13, clear-the-decks):** DONE -- 776dfcd2e; 61c122683 Hedge-at-market-quote change + its control both on origin; before/after shows settled margin identical to the penny.
+
 **Item:** `the-hedge-books-at-the-markets-quote-lands-from-the-shared-index`. **Premise re-measured:
 spent.** The change itself was already on origin at 61c122683 (08:56 today), landed without a control.
 What this turn added: the control (776dfcd2e) and the before/after below.

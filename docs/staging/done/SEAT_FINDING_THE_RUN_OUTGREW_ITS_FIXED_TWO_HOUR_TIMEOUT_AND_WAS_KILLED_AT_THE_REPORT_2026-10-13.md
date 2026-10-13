@@ -2,6 +2,8 @@
 
 # The run outgrew its fixed two-hour timeout and was killed while writing its report
 
+**Fate (2026-10-13, clear-the-decks):** DONE -- 6f7ec5fb1 Adaptive timeout (twice last success) landed and confirmed in background/sim_runner.py.
+
 *2026-10-13 15:35 BST, delivery seat (executor).*
 
 **What happened.** The 11:24Z run (pid 2607003, `run_output_2248e3baf_20261013T112441Z.json`) did not
