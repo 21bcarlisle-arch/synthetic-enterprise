@@ -1,6 +1,6 @@
 **Severity:** LATENT · **Lane:** W2_customer_generator · **Epoch:** unassigned · **Atom:** `unminted`
 **What:** DD4b re-sited from the renewal to the supplier's annual DD review, told in the loop; its world predictions at the toggles' low and high ends · claim `dd4b-answers-the-told-amount-at-the-in-loop-review-then-freeze-at-the-range-ends`
-**Status:** pre-registered 2026-10-12 before the 200-founder default, low and high runs launched. `default` finished 18:26; `low` and `high` never ran in the build's invocation (one sat queued on memory, its launcher died with the turn). Relaunched 19:2x, graded below when they finish
+**Status:** GRADED 2026-10-13 01:05. 11 of 13 hold; P11's bad-debt leg and P13 are wrong. Neither refutation clause fires as registered (P4 = 0, 2022 answered 34). But P4's gloss, "the in-loop chain is the post-loop chain", is only true on KEYS: 365 of the 847 matched reviews carry a different current DD. See "The grade" below
 
 # DD4b at the review the household meets: predictions at its range ends
 
@@ -59,3 +59,58 @@ is not the post-loop chain; or no answered review in 2022 (P2 at 0).
   `/var/tmp/se-dd4b-il200`, the one `default` ran from. Its `dd_review_in_loop.py`, `run_phase2b.py` and
   `dd_shock_response.py` are byte-identical to `71c324b6d`, so the control and both arms run the same code.
   Outputs go to `/var/tmp/dd4b_runs/il/f200-{low,high}/`. Grade with `python3 /var/tmp/dd4b_runs/il/grade200.py`.
+
+## The grade, 2026-10-13
+
+`low` and `high` were relaunched at 23:46 because the 19:2x launchers had died queued, with no unit
+ever created. They were held behind another lane's commit gate until 00:15 and finished at 01:05, from
+the same locked worktree. `dd_review_in_loop.py`, `run_phase2b.py` and `dd_shock_response.py` there are
+byte-identical to `71c324b6d`. Output is from `python3 /var/tmp/dd4b_runs/il/grade200.py`.
+
+| # | Prediction | Result | Grade |
+|---|---|---|---|
+| P1 | 150 to 260 answered | 208 (111 households) | holds |
+| P2 | 60 to 110 in 2022-23, at least a third of P1 | 81 (2022: 34, 2023: 47), 39% | holds |
+| P3 | LOW share 0.5 to 0.9 | 0.885 (184 LOW, 16 MODERATE, 8 HIGH) | holds, at the top |
+| P4 | told in the loop and missing from the post-loop review = 0 | 0, and 0 the other way; 847 / 847 matched | holds as registered (see below) |
+| P5 | material-rise agreement on matched reviews of at least 90% | 771 / 847 = 91.0% | holds, narrowly |
+| P6 | low: 0 to 10 cancelled | 5 | holds |
+| P7 | low: 1 to 9 complaints | 4 | holds |
+| P8 | high: 15 to 70 cancelled | 33 | holds |
+| P9 | high: 30 to 65 complaints | 38 | holds |
+| P10 | high: +60 to +300 DD failures over default | +74 (149 to 223; cancelled_other 26 to 67) | holds, at the low end |
+| P11 | low: net within 0.3%, bad debt within 5% | net -0.145%; **bad debt +17.3%** (1,243.83 to 1,458.72) | **net holds, bad debt WRONG** |
+| P12 | high: net lower by under 2% | -0.254% (148,258.89 to 147,882.25) | holds |
+| P13 | high: bad debt higher by 0 to 30% | **+37.2%** (to 1,707.02) | **WRONG** |
+
+**The build is not refuted.** No review is told in the loop that the post-loop review lacks. Rises are
+answered in 2022, 34 of them.
+
+**What the two wrong predictions say.** Bad debt moves about four times further than "small responses
+on a small share" allowed. In low, 14 extra failures came with +£215 of bad debt. The base is only
+£1,244, so a few stretched households carry the whole percentage. I cannot yet say how much of the
+move is the response and how much is path divergence. Any change in a household's payment path can
+move the draws downstream, and there is no placebo arm on this code: `f200-probe` ran on an older
+origin. The one-variable control is a `probe` arm (it records every shock and changes nothing) from
+the same worktree. If bad debt moves by more than about 5% there, the bad-debt legs of P11 and P13
+measure noise, not DD4b.
+
+**FINDING (severity LATENT): P4 is graded on keys, and the content diverges.** The registered gloss
+was "the in-loop chain is the post-loop chain". On keys it is: the same 847 (customer, month)
+reviews. On content it is not:
+
+- the current DD is the same in 482 of 847 matched reviews, and in all 217 of window 0's;
+- annual spend, in-loop over post-loop: total +1.6%, median 1.000, p10 0.934, p90 1.047, and
+  668 / 847 within 5%. The tail reaches 3.8 times (£1,710 against £451), far beyond the VAT
+  gross-up the pre-registration expected;
+- the material count ties at 299 and 299 only because 38 reviews flip each way;
+- `reconcile` is identical in `low` and `high`, so the response strengths do not cause this.
+
+Window 0 agrees exactly, so the opening door is shared. The split comes from the bill basis: the
+loop's settled revenue grossed up at VAT, against `build_monthly_bills`' estimated-then-trued-up
+totals. Once one window's recommendation differs, every later window's current DD differs too. The
+households are told the in-loop figures. The post-loop review publishes the other set (the WORLD_FREEZE
+note's 299). Until the tail is explained, those are two descriptions of different reviews. This
+does not block freezing DD4b's strengths at the range ends: P6-P10 hold and are counted on the in-loop
+reviews the household actually met. It does block quoting the post-loop census as "what the household
+was told".
