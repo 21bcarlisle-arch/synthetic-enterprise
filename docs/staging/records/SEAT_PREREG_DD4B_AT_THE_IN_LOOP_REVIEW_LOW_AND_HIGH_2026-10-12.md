@@ -145,6 +145,27 @@ is extended to load the `probe` arm (output directory `f200-probe-il`, not `f200
 verdicts against the bands above. Based on `default`'s 36-minute runtime at the same 200/0 sizing, expect
 output by about 05:40-05:50. Grading and this table's completion are handed on as a continuation.
 
+**Correction, 2026-10-13 06:50 BST.** The PID 615599 `setsid` relaunch above also failed: by 06:50
+BST the process no longer existed (`ps -p 615599` found nothing), `f200-probe-il/` was still empty,
+and its launch log held only a pytensor import warning and nothing past it. No systemd unit was
+ever created for it either, so this was a second silent death of the same shape as the first launch
+(died queued, no unit, no output), not a successful hand-off. `dmesg` shows no OOM kill naming that
+PID; the cause of death is otherwise unestablished.
+
+Relaunched 06:50:33 BST (`2026-10-13T05:50:33Z`) the sanctioned way instead, the route that
+recovered `low`/`high`: `background.launch_long_job --job dd4b-il200-probe --artefact
+/var/tmp/dd4b_runs/il/f200-probe-il/told.json --workdir /var/tmp/se-dd4b-il200 --peak-mb 3300
+--expect-minutes 45 --detach -- python3 /var/tmp/dd4b_runs/il/il_run.py probe 200 0
+/var/tmp/dd4b_runs/il/f200-probe-il`. Admitted at 9300 MB resident + 3300 MB declared peak against a
+23008 MB ceiling. Unit `longjob-dd4b-il200-probe` is verified in its own cgroup, detached from the
+launching tick, so it survives this invocation ending; its log is
+`/var/tmp/longjob-dd4b-il200-probe.log`. The three files re-verified byte-identical to `71c324b6d`
+immediately before this launch. Re-checked at 06:54 BST: `ActiveState=active`, `SubState=running`,
+`MainPID=2225642`, and the log has moved well past the pytensor line into real per-household work,
+so this one did not die silently like the first two. Expect `told.json` by about 07:35-07:45 BST.
+Grading (Q1-Q4 against the bands registered above) and this table's completion remain handed on as
+a continuation -- `DO NOT DRAW BEFORE 07:40 on 2026-10-13`.
+
 ## The content tail, explained (2026-10-13)
 
 Script: `/var/tmp/dd4b_runs/il/tail200.py` over `f200-low/report.json` and `told.json`; output in
