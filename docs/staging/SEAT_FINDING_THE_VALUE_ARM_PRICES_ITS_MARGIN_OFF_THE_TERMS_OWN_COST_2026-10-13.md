@@ -102,3 +102,21 @@ non-uniform amount and must be re-run on the new base. Below both bars, it is a 
 the base changed, but the prior arm-vs-control comparisons stand because the shift did not move
 enough of the book by enough to change a conclusion. One seed on an ~80-100 decision book cannot
 bound this tightly; it decides which of the two the B8 lane does next, not the exact size.
+## Measurement in flight (delivery seat, 2026-10-13 07:16 BST)
+
+`longjob-value-arm-measure-61001b` (one roll-seed, full 2016-2025 book, `/tmp/value_arm_measure.py`
+against this commit) is RUNNING, not stuck: `active` since 05:52:44 BST, CPU 1h44m, memory 2.5G
+(peak 6G), log progressing through settlement periods with no traceback. No artefact yet at
+`/var/tmp/value_arm_measure_61001.json` — the run has not written its result.
+
+Schema check (read before waiting on it): the script captures one row per value-arm-policy
+renewal with `delta_gbp_per_mwh` and `writers`, plus a `summary` that medians over ALL captured
+rows, not just moved ones. The pre-registered test (median |delta| >= 1.11 GBP/MWh among moved
+renewals, or moved-renewal share > 10%) needs filtering the raw rows to `delta_gbp_per_mwh != 0`
+first — the summary block alone cannot answer it. Confirmed the rows carry everything needed to do
+that filter once the file exists; nothing further needs changing in the script.
+
+Premise note: `04913b693` (this finding's own commit, floor + rebase of the value-arm's base) is
+already an ancestor of origin/main. That does not spend this item's premise — 04913b693 is the
+*subject* the run measures, not the deliverable. The deliverable is the run's numbers and the
+re-take-vs-footnote call on B8, still open.

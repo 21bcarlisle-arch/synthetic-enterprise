@@ -113,3 +113,30 @@ below its own cost floor. B8 Q5 met it as 71-77 floor declines per seed and hand
 and how a cut is sized. **Ranked P1 for next week's supplier engine**: either the renewal price is
 loss-making (a pricing defect), or the floor counts a cost the renewal price is not meant to carry (a
 definitional one). Which it is decides the fix.
+
+## Correction, 2026-10-13 07:30 BST, beside the claim above (B8 seat, interconnection)
+
+**Every arm here ran at `ed668c733` (12 Oct 17:10). That base does not contain the re-floor
+`03a0b66da` (12 Oct 21:54).** The "pricing defect or definitional" question above was already
+answered before this grade landed. `31e639bcd` answered it as a pricing defect: writer 1's portfolio
+learning premium discounted fixes below the floor the desk struck them over. `03a0b66da` fixed it,
+with the class `DISCRETIONARY_RATE_NOT_BELOW_OWN_COST_FLOOR`. The P1 ranking above is spent as worded.
+What it changes:
+
+- **The save stays inert, most likely.** Renewals writer 1 discounted now sit AT their floor, not
+  below it. `price_match_save_rate` declines where `max(floor, default x (1 - gap)) >= fix`, so a
+  rate at its floor still declines. Not measured. That was R4 of the re-floor's own
+  pre-registration, which is ungraded.
+- **This renewal-cut grade and `a99685b68`'s both predate the re-floor, and the re-floor did not
+  move the two arms equally.** Under `risk_tiers`, `simulation/run_phase2b.py` offers
+  `unit_rate x (1 - 3..8%)` through `offered_rate`. That is applied after the rate chain returns, so
+  the invariant is never checked on it. The price match never prices below the floor. So after
+  `03a0b66da` the tiers arm can contract an electricity renewal up to 8% below the cost floor
+  writer 1 just stopped at. The knowledge page (`acquisition-and-retention-economics`, "How far a
+  renewal discount may go") says the supplier holds "every adjustment it chooses to make to that
+  floor... Only the cap may take a rate lower". A retention cut is such an adjustment. **This is a
+  gap in the class, not a sizing question.** Re-running tiers against the match before the cut is
+  floored would compare a cost-respecting rule with a below-cost one. The withdrawal above stands on
+  its own pre-refloor evidence. Any re-grade waits for the floored cut, and for the hedge-at-quote
+  and value-arm-base changes that move the same floor (DIRECTION focus four;
+  `value-arm-term-cost-base-measure-what-moved`).
