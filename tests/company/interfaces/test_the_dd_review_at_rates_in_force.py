@@ -80,7 +80,8 @@ def test_every_branch_of_the_rule_is_reachable():
     assert priced != spend and fallback == spend
     with pytest.raises(ValueError, match="unknown DD review rule"):
         reviewed_standing("seek_balance", bills[:12], bills[12])
-    assert set(REVIEW_RULES) == {"last_year_spend", "consumption_at_rates_in_force"}
+    assert set(REVIEW_RULES) == {
+        "last_year_spend", "consumption_at_rates_in_force", "own_forecast_plus_balance"}
 
 
 def test_the_book_carries_the_rule_it_is_given():
@@ -113,3 +114,24 @@ def test_the_legs_tool_follows_the_rule_and_only_rounding_and_lag_move():
     assert new["review_lag"] > old["review_lag"]
     assert new["balance_gbp"] - old["balance_gbp"] == pytest.approx(
         new["review_lag"] - old["review_lag"] + new["rounding"] - old["rounding"], abs=0.02)
+
+
+def test_the_third_rule_books_a_balance_recovery_leg_and_sums_to_the_books_own_balance():
+    """DEFECT: the balance addition lands in `rounding` instead of its own leg (the contamination
+    `priced_annual`/`reviewed_standing` would otherwise share), or the book `build_dd_balance_book`
+    builds disagrees with what `account_legs` prices, which `decompose`'s own sum check catches."""
+    from tools.dd_book_legs import decompose
+
+    cid = _a_direct_debit_id()
+    bills = _two_years(cid, 132.0)
+    rates = decompose(bills, {cid: 40.0}, "2018-06", "consumption_at_rates_in_force")["groups"]["all"]
+    forecast = decompose(bills, {cid: 40.0}, "2018-06", "own_forecast_plus_balance")["groups"]["all"]
+    # Flat-opening DD below the first year's real spend puts the account in debit by the second
+    # window, so the balance leg this rule reads is non-zero -- the branch is actually taken.
+    assert forecast["balance_recovery"] != 0.0
+    for leg in ("opening_sizing", "seasonal_phase", "estimate_vs_actual", "review_lag"):
+        assert forecast[leg] == rates[leg]
+    assert forecast["balance_gbp"] == pytest.approx(
+        sum(forecast[leg] for leg in (
+            "opening_sizing", "review_lag", "rounding", "seasonal_phase",
+            "estimate_vs_actual", "balance_recovery")), abs=0.02)

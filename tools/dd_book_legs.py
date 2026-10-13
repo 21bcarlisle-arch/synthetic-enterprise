@@ -70,10 +70,11 @@ from simulation.dd_balance_book import (
     _true_charges,
     build_dd_balance_book,
     reviewed_standing,
+    simple_balance_after_window,
 )
 
 LEGS = ("opening_sizing", "review_lag", "rounding", "seasonal_phase",
-        "estimate_vs_actual", "collection_failure")
+        "estimate_vs_actual", "collection_failure", "balance_recovery")
 
 #: Months whose window opening counts as a winter start: an account that opened its current year
 #: in one of them has consumed a whole winter on level instalments by the summer.
@@ -150,9 +151,23 @@ def account_legs(seq: list[tuple], opening: float, month: str,
         tot[w][2] += true
     bills_in = {w: [r[5] for r in rows if r[0] == w] for w in windows}
     standing = {windows[0]: float(opening)}
+    # `own_forecast_plus_balance` adds the balance carried into the window to the standing amount, as
+    # `build_dd_balance_book` does (same running balance, same sign: the review recovers
+    # `-balance_entering`). The addition is its own leg, `balance_recovery`, so `rounding` keeps
+    # measuring only the forecast's own rounding and the other legs match the rates-in-force rule.
+    recovery = {windows[0]: 0.0}
+    balance_entering = {windows[0]: 0.0}
     priced = {}
     for prev_w, w in zip(windows, windows[1:]):
-        standing[w] = reviewed_standing(rule, bills_in[prev_w], bills_in[w][0])
+        balance_entering[w] = simple_balance_after_window(
+            balance_entering[prev_w], standing[prev_w], bills_in[prev_w])
+        without = reviewed_standing(rule, bills_in[prev_w], bills_in[w][0])
+        if rule == "own_forecast_plus_balance":
+            standing[w] = reviewed_standing(rule, bills_in[prev_w], bills_in[w][0],
+                                            balance_to_clear_gbp=-balance_entering[w])
+        else:
+            standing[w] = without
+        recovery[w] = standing[w] - without
         priced[w] = _priced_annual(rule, bills_in[prev_w], bills_in[w][0])
 
     legs = dict.fromkeys(LEGS, 0.0)
@@ -175,7 +190,8 @@ def account_legs(seq: list[tuple], opening: float, month: str,
         else:
             _, a_prev, t_prev = tot[windows[i - 1]]
             x_prev = priced[w]
-            legs["rounding"] += (standing[w] - x_prev / 12.0) * n_le
+            legs["rounding"] += (standing[w] - recovery[w] - x_prev / 12.0) * n_le
+            legs["balance_recovery"] += recovery[w] * n_le
             legs["estimate_vs_actual"] += (a_prev - t_prev) / 12.0 * n_le
             legs["review_lag"] += ((t_prev + x_prev - a_prev) / 12.0 - level) * n_le
     window_start_month = (anchor.month - 1 + 12 * current_window) % 12 + 1

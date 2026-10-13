@@ -146,6 +146,14 @@ These are gaps, stated rather than filled. Each is a place where the code must c
    supplier's review resets to last year's spend, to last year's consumption at current rates, or
    adds recovery of the balance. SLC 27.15's "best and most current information" points to current
    rates; the practice is unpublished. Practitioner question for the director.
+   *ANSWERED 2026-10-11T04:20Z (console): "Your DD review question was answerable. Ofgem's August
+   2022 decision strengthened SLC 27.15: a fixed DD must be set on the best and most current
+   information in all cases, taking account of reads and of customer and third-party information,
+   and reassessed when new information would change it materially. Close the practitioner question
+   with this." He also set the shape: the DD amount comes from the company's own twelve-month
+   forecast for the property, priced at known rates where fixed and forecast rates beyond, plus
+   the balance to be cleared. Built as `own_forecast_plus_balance` in
+   `company/billing/dd_review.py` -- see §6.
 
 ---
 
@@ -242,3 +250,60 @@ in `bad_debt_provisioning.md` §10, not repeated here.*
   wider band around zero for low-risk customers (more credit held, by design) interacts with the
   Cash Coverage Trigger and CCB ringfencing regime — this is addressed in `bad_debt_provisioning.md`
   §10, which is the load-bearing finding for "credits and debits net out across the portfolio."
+
+---
+
+## 6. 2026-10-13 pass — building the third review rule, and what is still owed
+
+*Knowledge pass before build (K8), delivery seat. The director's ruling above (§4.7, 2026-10-11)
+closed the practitioner question with the published SLC 27.15 duty and set the shape of the third
+`REVIEW_RULES` entry. This records what was built, what the published record still does not
+establish, and what the build itself approximates rather than wires end to end.*
+
+**ESTABLISHED, cited (repeats §4.7 and §5 for the reader landing here):** the August 2022
+strengthening of SLC 27.15 (reassess on best and most current information, material-impact test,
+not a numeric trigger) is the whole of the published duty this rule rests on. Nothing published
+describes the arithmetic below; it is the director's practitioner statement, cited as that.
+
+**What `own_forecast_plus_balance` does.** The same trailing-12-month billed kWh and days
+`consumption_at_rates_in_force` already reads (`company/billing/dd_review.py`), priced at the
+account's known rate for the days its current term still covers and the company's own forward
+estimate for the days beyond, grossed for VAT, plus the balance the account carries into the
+review, recovered over the same twelve months. All three rules agree when prices are flat and the
+account carries no balance.
+
+**GAPs, stated rather than filled:**
+
+1. **The known/forward rate split is built and unit-tested, but not wired to live term data.**
+   `reviewed_standing` takes `term_end_iso` and `forward_rate_per_mwh_ex_vat` as optional
+   parameters; `simulation/dd_balance_book.py::build_dd_balance_book` and
+   `tools/dd_book_legs.py::account_legs` both call it from bills alone and never supply either, so
+   in every run today the whole forecast year prices at the known rate -- the same figure
+   `consumption_at_rates_in_force` returns. The data to supply them exists (`account_state_log`'s
+   `term_end`/`tariff_type`/`unit_rate_gbp_per_mwh`, and the company's own forward engine,
+   `company.pricing.tariff_engine.CompanyTariffEngine.get_forward_price`, against the published
+   electricity SSP series `sim/cache/elexon_ssp_full.json` any market participant can read), but
+   threading it through either composition root is a separate, larger build: `build_dd_balance_book`
+   is a bills-only composition root and would need its caller to pass term records alongside bills,
+   and a genuine `company_fwd` is a wholesale figure (`renewal_desk.py:187`,
+   `cost_floor = company_fwd + locked_policy + locked_network`) -- converting it to a retail rate
+   needs the published policy/network schedule in force, not yet threaded here either. Owed to
+   whoever draws that wiring; the mechanism itself is real and reachable today only by calling
+   `reviewed_standing` directly (`tests/company/billing/
+   test_dd_review_own_forecast_plus_balance.py::test_the_known_forward_split_is_reachable_and_moves_the_price`).
+2. **The balance leg's sign symmetry is a modelling choice, not a published rule.** A credit
+   balance lowers the debit by the same arithmetic a debit balance raises it
+   (`_recommended_monthly_forecast_plus_balance` adds `balance_to_clear_gbp` straight through, post-
+   VAT). Nothing published says a supplier treats the two cases alike, and §5's GAP 3 (whether a
+   credit-risk-driven uplift is SLC 27.15 or SLC 27.8 territory) does not reach this either -- this
+   rule is consumption/balance-based throughout, not risk-tier-based, so it sits inside §5's
+   ALLOWED category.
+3. **The twelve-month clearing period is the same director's practitioner convention already filed
+   in §4.1** ("an annualised plan divides estimated annual cost by twelve whatever the start date"),
+   extended to the balance rather than a fresh assumption.
+4. **The balance recovered is the simple running figure on the bills** (`simple_balance_after_window`:
+   what came in at the standing amount, less what was billed, carried forward), not the book's
+   charge-recovery-barred figure (`barred_at_charge_recovery`, the existing `seek_balance_at_review`
+   toggle). The two are deliberately different questions -- what a review clerk reads off the bills
+   to size next year's debit, versus what SLC 21BA lets the supplier actually demand at a recovery
+   action -- and nothing published says a review is supposed to net the two.

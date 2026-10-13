@@ -164,8 +164,12 @@ def _dd_customer_bills():
 #: 2026-10-12, when the review policy moved out of `simulation/dd_balance_book.py`. The
 #: load-bearing leg of this control is the
 #: FORBIDDEN_AT_THE_DOOR reachability check below, not this list.
+#: `simple_balance_after_window` joined 2026-10-13 with the `own_forecast_plus_balance` review
+#: rule -- it is bookkeeping (what the world already holds), not a policy decision, so it sits at
+#: the seam rather than behind it; see its own docstring.
 SANCTIONED_DOORS = ["DEFAULT_REVIEW_RULE", "REVIEW_RULES", "opening_monthly_amount",
-                    "reviewed_monthly_amount", "reviewed_monthly_amount_at_rates", "reviewed_standing"]
+                    "reviewed_monthly_amount", "reviewed_monthly_amount_at_rates", "reviewed_standing",
+                    "simple_balance_after_window"]
 
 
 def test_the_door_exposes_only_the_reviewed_amount():
@@ -247,8 +251,8 @@ def test_mutation_a_drifting_door_moves_the_published_held_credit_liability():
         SEAM_SOURCE,
         # The book asks `reviewed_standing` since 2026-10-12 (the review policy moved behind
         # the door), so the drift is put on THAT door's answer.
-        "    return _reviewed_standing(rule, completed, first_of_new)",
-        "    return _reviewed_standing(rule, completed, first_of_new) + 1.0",
+        "    return _reviewed_standing(rule, completed, first_of_new, **kwargs)",
+        "    return _reviewed_standing(rule, completed, first_of_new, **kwargs) + 1.0",
         "_mutant_ddreview_drift",
     ) as mutant:
         import simulation.dd_balance_book as bb

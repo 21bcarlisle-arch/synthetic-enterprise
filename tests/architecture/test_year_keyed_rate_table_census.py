@@ -64,6 +64,7 @@ COMMONS_DIR = ROOT / "docs" / "domain_artefact_library" / "regulatory"
 CCL_COMMONS = COMMONS_DIR / "ccl_main_rates.json"
 RO_COMMONS = COMMONS_DIR / "ro_obligation_and_buyout.json"
 NATGAS_COMMONS = COMMONS_DIR / "desnz_natural_gas_conversion_factor.json"
+TD_LOSSES_COMMONS = COMMONS_DIR / "desnz_td_losses_conversion_factor.json"
 
 _MIN_YEAR, _MAX_YEAR = 1990, 2100
 _MIN_ENTRIES = 3
@@ -160,6 +161,8 @@ _PINNED: dict[str, str] = {
     "simulation/policy_costs.py::_RO_COST_BY_OY_START": "ro_effective_gbp_per_mwh_1dp",
     "company/regulatory/carbon_emissions.py::DESNZ_NATURAL_GAS_KG_CO2E_PER_KWH_GROSS_CV":
         "desnz_natural_gas_kg_co2e_per_kwh_gross_cv",
+    "company/regulatory/carbon_emissions.py::DESNZ_TD_LOSSES_KG_CO2E_PER_KWH":
+        "desnz_td_losses_kg_co2e_per_kwh",
 }
 
 # status "published_unpinned": a real publication exists; no commons pin yet. RATCHETED DOWN.
@@ -556,6 +559,11 @@ def _expected_for(conversion: str, asserted_only: bool = True) -> tuple[dict[int
         # on purpose, and the window leg below holds the code to the same absence.
         return {int(e["year"]): float(e["kg_co2e_per_kwh_gross_cv"])
                 for e in _load_commons(NATGAS_COMMONS, "factors")
+                if e["provenance"] == "transcribed"}, 0.000005
+    if conversion == "desnz_td_losses_kg_co2e_per_kwh":
+        # Transcribed per year from each BEIS/DESNZ workbook (canon v4 CO4's named line, 2026-10-12).
+        return {int(e["year"]): float(e["kg_co2e_per_kwh"])
+                for e in _load_commons(TD_LOSSES_COMMONS, "factors")
                 if e["provenance"] == "transcribed"}, 0.000005
     raise ValueError(f"unknown conversion: {conversion!r}")
 
