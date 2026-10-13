@@ -66,3 +66,19 @@ refused the same test in a checkout of graded_sha 2248e3baf. The shared HEAD is 
 That is the DD pile plus the hedge-desk, renewal, growth-desk and DIRECTION edits. The diagnosis
 is unchanged, so I sent no second NTFY. The cause went out as `TCpCYvtpTTm3`. The wedge clears once
 the console seat lands its sequence and the shared tree fast-forwards.
+
+**Re-measured a third time, 2026-10-13 ~17:40 BST (worker).** The publisher graded marker
+`run_complete_20261013T134447Z.md` (pid 1448887) in `/var/tmp/publish-gate-head-sc763uof`, a clean
+checkout of 2248e3baf, and refused it on the same census test. I ran that one file in the gate's own
+checkout while the suite ran: red, "the census selected only [] -- under the floor of 4". It is not a
+second suite. After that refusal, the publish commit was refused **by the hook chain** in the shared
+tree, which named **73** reds (`.last_gate_blocking_tests.json`, census `hook_chain`), mostly
+`site/test_the_baseline_comparison_reaches_the_reader.py` and `site/test_explore_second_clock.py`.
+Those are the same cause. `site/test_explore_second_clock.py` is red in the shared tree (2 failed)
+and green at origin ed07176b1. At origin, those two files and the census file are 210 passed and 15 skipped.
+**What has moved:** the shared HEAD is 57 behind origin and 0 ahead. Only **9** dirty incoming paths
+now differ from origin, down from 17, and the DD pile is no longer among them. The 9 are
+`company/interfaces/growth_desk.py`, `docs/direction/DIRECTION.yaml`, `docs/status/SEAT_STRETCH_LOG.md`,
+`site/data/knowledge_topics.json`, `tests/harness/test_premise_two_level.py`, and four staging notes.
+Each is older than origin's commit to its path, so the fast-forward is now held by stale copies and
+other lanes' edits, not by a landing sequence. I moved none of them. No second NTFY was sent.
