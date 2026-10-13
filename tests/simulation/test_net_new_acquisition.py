@@ -66,7 +66,7 @@ def _budget(quotes: int):
     its_own_quote_book` below is the one that asserts the counts arrive, and it is separate for
     that reason -- a pinned budget that also consumed them could not tell the two apart.
     """
-    def _fn(net_assets_gbp, accounts_held, quotes_issued_to_date=0, wins_to_date=0):
+    def _fn(net_assets_gbp, accounts_held, quotes_issued_to_date=0, wins_to_date=0, as_of=None):
         return {"quotes": quotes, "budget_gbp": quotes * 150.0,
                 "wins_capital_allows": quotes // 5, "binding": "capital",
                 "headroom_gbp": net_assets_gbp}
@@ -92,6 +92,43 @@ def _campaign(**kw):
 # ---------------------------------------------------------------------------
 # The property the ruling is about
 # ---------------------------------------------------------------------------
+
+def test_the_year_loop_wires_as_of_through_the_real_seam_to_date_the_target_C14():
+    """END TO END, through the PRODUCTION shape rather than a stub: `quote_budget_fn` here is
+    the exact lambda `simulation.live_population` wires -- `plan_growth_campaign_year`, the real
+    seam function, not a test double -- so this proves `as_of` actually reaches
+    `capital_target_gbp_per_account` from this module's year loop, not just that a mock accepts
+    the keyword.
+
+    Parameters picked so capital is the binding reason at £115 and is NOT at £0 (found by
+    direct search, not asserted blind): at net assets £50,000 / 150 accounts, growth_quote_budget
+    returns "growth_rate"/245 quotes at mcr=0 and "capital"/215 at mcr=115. One campaign year
+    before the 26 July 2023 decision (2016) must see the first; one in the plan-ahead period
+    (2024) must see the second -- same balance sheet, different year, different capital figure,
+    because the date crossed the seam.
+    """
+    from company.interfaces.growth_desk import plan_growth_campaign_year
+
+    def _real_quote_budget_fn(net_assets_gbp, accounts_held, quotes_issued_to_date=0,
+                               wins_to_date=0, as_of=None):
+        return vars(plan_growth_campaign_year(
+            net_assets_gbp=net_assets_gbp, accounts_held=accounts_held,
+            quotes_issued_to_date=quotes_issued_to_date, wins_to_date=wins_to_date,
+            as_of=as_of,
+        ))
+
+    before = _campaign(
+        years=[2016], opening_net_assets_gbp=50_000.0, accounts_held_at_start=150,
+        quote_budget_fn=_real_quote_budget_fn,
+    )
+    plan_ahead = _campaign(
+        years=[2024], opening_net_assets_gbp=50_000.0, accounts_held_at_start=150,
+        quote_budget_fn=_real_quote_budget_fn,
+    )
+    assert before["by_year"][0]["binding"] == "growth_rate"
+    assert plan_ahead["by_year"][0]["binding"] == "capital"
+    assert len(before["spend"]) > len(plan_ahead["spend"])
+
 
 def test_a_campaign_whose_every_quote_FAILS_wins_nothing_and_still_costs_money():
     """THE ASSERTION THAT CARRIES THE ATOM. Growth has to be losable.
@@ -229,14 +266,14 @@ def test_a_supplier_in_MCR_breach_has_no_growth_budget_at_all():
 def test_MUTATION_headroom_ignoring_the_existing_book_would_fund_a_breach():
     """R15: the defect this clamp guards is counting gross net assets as spendable.
 
-    A supplier holding £2,000 against 14 accounts owes £1,820 of MCR and has £180 free. Read
-    gross, it would look like £2,000 -- eleven times the truth, and every pound of the
+    A supplier holding £2,000 against 14 accounts owes £1,610 of capital (14 x £115) and has £390
+    free. Read gross, it would look like £2,000 -- five times the truth, and every pound of the
     difference is capital another customer's account is already standing on.
     """
     honest = capital_headroom_gbp(2_000.0, 14)
     gross = 2_000.0
-    assert honest == pytest.approx(180.0)
-    assert gross > honest * 10
+    assert honest == pytest.approx(390.0)
+    assert gross > honest * 5
 
 
 def test_more_capital_buys_more_quotes_UNTIL_THE_RATE_CAP_TAKES_OVER():
@@ -371,7 +408,7 @@ def test_a_campaign_asked_to_quote_a_NON_DOMESTIC_segment_is_refused_at_its_own_
     pretending to be a design; the state is refused where it is created.
 
     THE REASON IS `DOMESTIC_ONLY`'S OWN and is not newly invented: the plan is denominated in
-    Ofgem's Minimum Capital Requirement of £130 per dual-fuel-equivalent DOMESTIC customer, and
+    Ofgem's Capital Target of £115 per dual-fuel-equivalent DOMESTIC customer, and
     `_draw_dwelling` draws a dwelling only for domestic prospects -- so a won SME reaches
     `dwelling_records.build_properties` with no dwelling and raises `DwellingNotDrawn`. The run
     was always going to die; this decides WHERE, and a failure that names the campaign's pricing
@@ -648,7 +685,8 @@ def test_the_company_plans_on_its_FUNNELS_wins_not_on_what_the_machine_would_set
     """
     seen = []
 
-    def _recording_budget(net_assets_gbp, accounts_held, quotes_issued_to_date=0, wins_to_date=0):
+    def _recording_budget(net_assets_gbp, accounts_held, quotes_issued_to_date=0, wins_to_date=0,
+                           as_of=None):
         seen.append(wins_to_date)
         return {"quotes": 40, "budget_gbp": 40 * 150.0, "wins_capital_allows": 8,
                 "binding": "capital", "headroom_gbp": net_assets_gbp}
@@ -691,7 +729,8 @@ def test_the_campaign_feeds_the_company_its_own_quote_book():
     """
     seen = []
 
-    def _recording_budget(net_assets_gbp, accounts_held, quotes_issued_to_date=0, wins_to_date=0):
+    def _recording_budget(net_assets_gbp, accounts_held, quotes_issued_to_date=0, wins_to_date=0,
+                           as_of=None):
         seen.append((quotes_issued_to_date, wins_to_date))
         return {"quotes": 10, "budget_gbp": 10 * 150.0,
                 "wins_capital_allows": 2, "binding": "capital",
@@ -1328,8 +1367,11 @@ def test_b2_the_two_flags_are_INDEPENDENT_and_the_default_path_is_untouched(monk
 # RE-MEASURED 2026-10-09 at the 400-founder book (director's founder ruling, 2026-10-08): the
 # quote budget is sized off the book the campaign plans against, so a five-times-larger opening
 # book quotes more -- 2694 -> 3345 quotes, £59,859.52 -> £74,356.09, all still inside the window.
-CAMPAIGN_QUOTES_AT_SHIPPED_CONFIG = 3345
-CAMPAIGN_SPEND_AT_SHIPPED_CONFIG = 74356.09
+# RE-MEASURED 2026-10-12, a factual correction: capital held per account 130 -> 115 (Ofgem's decided
+# Capital Target; £130 was the consultation). More headroom lifts the one capital-bound year (2025)
+# off its ceiling: 3345 -> 3373 quotes, £74,356.09 -> £74,990.15, all still inside the window.
+CAMPAIGN_QUOTES_AT_SHIPPED_CONFIG = 3373
+CAMPAIGN_SPEND_AT_SHIPPED_CONFIG = 74990.15
 
 #: The subset the ACCOUNTS can carry: quotes dated inside [REPORT_START, REPORT_END].
 #:
@@ -1341,8 +1383,8 @@ CAMPAIGN_SPEND_AT_SHIPPED_CONFIG = 74356.09
 #:
 #: The filter is still real and still tested: `test_c_MUTATION_the_window_filter_can_actually_
 #: EXCLUDE` hands it a mid-decade `report_end` and requires it to drop the rest.
-CAMPAIGN_QUOTES_INSIDE_WINDOW = 3345
-CAMPAIGN_SPEND_INSIDE_WINDOW = 74356.09
+CAMPAIGN_QUOTES_INSIDE_WINDOW = 3373
+CAMPAIGN_SPEND_INSIDE_WINDOW = 74990.15
 
 
 def test_c_every_quote_the_campaign_paid_for_is_BOOKED_as_acquisition_spend():

@@ -1,14 +1,15 @@
 """Tests for saas.growth_mandate — Phase 8a."""
 
+import datetime as dt
+
 import pytest
 
 from saas.growth_mandate import (
-    acquisition_budget_gbp,
     ACQUISITION_WIN_RATE,
     FIXED_COST_MONTHLY,
-    cost_per_acquisition_gbp,
     MANDATE,
     acquisition_budget_gbp,
+    cost_per_acquisition_gbp,
     forecast_churns_next_year,
     roll_acquisition,
 )
@@ -80,9 +81,9 @@ def test_acquisition_budget_defaults_unknown_segment_to_resi():
 
 
 from saas.growth_mandate import (
-    MANDATE,
     ACQUISITION_WIN_RATE,
     FIXED_COST_MONTHLY,
+    MANDATE,
     cost_per_acquisition_gbp,
     should_attempt_acquisition,
 )
@@ -236,3 +237,156 @@ def test_a_worse_realised_rate_buys_fewer_wins_from_the_same_capital():
         quotes_issued_to_date=quotes, wins_to_date=int(quotes * 0.05),
     )
     assert pessimistic["wins_capital_allows"] < optimistic["wins_capital_allows"]
+
+
+def test_the_campaign_holds_the_decided_capital_target_not_the_consulted_one():
+    """The run's quote budget holds £115 behind each account, Ofgem's 26 July 2023 decision.
+
+    £130 was the April 2023 consultation figure and sat here until 2026-10-12. The figure is read
+    through the production chain -- `growth_desk.plan_growth_campaign_year`, which passes no MCR of
+    its own and so takes this module's default -- because a module default is only the production
+    constant while the one caller declines to pass one. Headroom is `net_assets - accounts x target`,
+    so the target is recovered exactly from two accounts counts on one balance sheet.
+
+    Fires on: the target back at 130 (the consulted figure), anywhere on the chain -- the constant,
+    either default, or the seam starting to pass its own.
+    """
+    from company.interfaces.growth_desk import plan_growth_campaign_year
+    from saas.growth_mandate import CAPITAL_TARGET_GBP_PER_DUAL_FUEL_ACCOUNT
+
+    assert CAPITAL_TARGET_GBP_PER_DUAL_FUEL_ACCOUNT == 115.0
+    small = plan_growth_campaign_year(net_assets_gbp=250_000.0, accounts_held=100)
+    large = plan_growth_campaign_year(net_assets_gbp=250_000.0, accounts_held=200)
+    assert small.headroom_gbp - large.headroom_gbp == pytest.approx(100 * 115.0)
+    assert small.headroom_gbp == pytest.approx(250_000.0 - 100 * 115.0)
+
+
+def test_capital_target_dates_its_three_periods_C14():
+    """C14 (`docs/design/DIRECTOR_CANON.md`, ruled 12 Oct, decision 13): "Before the July 2023
+    decision there is none; between the decision and the binding date it is a plan-ahead target
+    the company may choose to meet." Binding (31 March 2025) carries the SAME £ value as
+    plan-ahead -- only the basis label changes; a value-keyed control cannot tell the two apart,
+    so this checks the basis directly, one partition control over the whole axis."""
+    from saas.growth_mandate import (
+        CAPITAL_TARGET_BINDING_DATE,
+        CAPITAL_TARGET_DECIDED_DATE,
+        CAPITAL_TARGET_GBP_PER_DUAL_FUEL_ACCOUNT,
+        capital_target_basis,
+        capital_target_gbp_per_account,
+    )
+
+    assert CAPITAL_TARGET_DECIDED_DATE == dt.date(2023, 7, 26)
+    assert CAPITAL_TARGET_BINDING_DATE == dt.date(2025, 3, 31)
+
+    before = CAPITAL_TARGET_DECIDED_DATE - dt.timedelta(days=1)
+    plan_ahead_start = CAPITAL_TARGET_DECIDED_DATE
+    plan_ahead_mid = CAPITAL_TARGET_BINDING_DATE - dt.timedelta(days=1)
+    binding = CAPITAL_TARGET_BINDING_DATE
+
+    assert capital_target_basis(before) == "none"
+    assert capital_target_basis(plan_ahead_start) == "plan_ahead"
+    assert capital_target_basis(plan_ahead_mid) == "plan_ahead"
+    assert capital_target_basis(binding) == "binding"
+
+    assert capital_target_gbp_per_account(before) == 0.0
+    assert capital_target_gbp_per_account(plan_ahead_start) == CAPITAL_TARGET_GBP_PER_DUAL_FUEL_ACCOUNT
+    assert capital_target_gbp_per_account(binding) == CAPITAL_TARGET_GBP_PER_DUAL_FUEL_ACCOUNT
+    # Accepts the ISO string the seam actually carries, not just a date object.
+    assert capital_target_gbp_per_account(binding.isoformat()) == CAPITAL_TARGET_GBP_PER_DUAL_FUEL_ACCOUNT
+
+
+def test_capital_target_basis_over_the_shipped_campaign_years_2016_2025():
+    """MEASURED (2026-10-12), not asserted blind, and not reconstructed independently either:
+    this records the `as_of` values the real year loop
+    (`simulation.net_new_acquisition.plan_growth_campaign`) actually PASSES, over the real
+    `simulation.live_population.CAMPAIGN_YEARS`, rather than rebuilding a `dt.date(y, 1, 1)` range
+    by hand -- a hand-built range cannot fail if the loop's own plan-date convention ever moves
+    (e.g. to mid-year), because this test would have moved with it.
+
+    Over the shipped years, "binding" never actually occurs -- 31 March 2025 is after every plan
+    date the shipped run has reached so far -- so a control asserting all three bases occur over
+    the SHIPPED years would be false. This is the honest partition instead: 8 "none" years
+    (2016-2023) and 2 "plan_ahead" years (2024-2025), zero "binding" ones.
+    """
+    from saas.growth_mandate import capital_target_basis
+    from simulation import net_new_acquisition as nna
+    from simulation.live_population import CAMPAIGN_YEARS
+
+    recorded_as_of = []
+
+    def _recording_budget(net_assets_gbp, accounts_held, quotes_issued_to_date=0,
+                           wins_to_date=0, as_of=None):
+        recorded_as_of.append(as_of)
+        return {"quotes": 0, "binding": "mandate", "headroom_gbp": net_assets_gbp}
+
+    nna.plan_growth_campaign(
+        years=list(CAMPAIGN_YEARS), base_seed=1, opening_net_assets_gbp=1.0,
+        accounts_held_at_start=1, horizon_end=dt.date(2026, 1, 1), credit_bureau=None,
+        cost_per_quote_gbp={"resi": 1.0, "SME": 1.0},
+        run_funnel=lambda *a, **kw: None, quote_budget_fn=_recording_budget,
+    )
+
+    assert len(recorded_as_of) == len(list(CAMPAIGN_YEARS))
+    assert all(as_of is not None for as_of in recorded_as_of)
+    bases = [capital_target_basis(as_of) for as_of in recorded_as_of]
+    assert bases.count("none") == 8
+    assert bases.count("plan_ahead") == 2
+    assert bases.count("binding") == 0
+    assert bases == (["none"] * 8) + (["plan_ahead"] * 2)
+
+
+def test_removing_the_pre_decision_capital_constraint_cannot_tighten_a_year_C14():
+    """The fix's actual effect on the shipped book, by monotonicity rather than a fresh
+    multi-year run: `capital_headroom_gbp` is non-decreasing as `mcr_per_account_gbp` falls, so
+    `wins_capital_allows` only rises and capital can only become LESS likely to be the binding
+    reason, never more. §3a of the SEAT_FINDING doc already measured, at the OLD £130 (the
+    highest of the three figures in play), that capital bound only 2025 -- every other year was
+    already tighter on `growth_rate`. So lowering pre-decision years to £0 (C14's "none" period)
+    cannot move a single wins/quotes number in the shipped campaign: if growth_rate was the
+    binding reason at £130, it is still the binding reason at £0.
+
+    Point-check at the real 2016 parameters (£250,000 net assets, 403 accounts, the shipped
+    opening position): binding is "growth_rate" and wins/quotes are IDENTICAL at £0, £115 and
+    £130, even though `wins_capital_allows` differs (606 / 268 / 246) -- the gap the capital
+    figure would make, each visible and each irrelevant because growth_rate is tighter.
+
+    Fires on: `growth_quote_budget` or `capital_headroom_gbp` changing shape so the dated £0
+    period starts to move the binding reason or the quote count at these parameters.
+    """
+    from saas.growth_mandate import growth_quote_budget
+
+    results = {
+        mcr: growth_quote_budget("grow", 250_000.0, 403, mcr_per_account_gbp=mcr)
+        for mcr in (0.0, 115.0, 130.0)
+    }
+    assert {r["binding"] for r in results.values()} == {"growth_rate"}
+    assert len({r["quotes"] for r in results.values()}) == 1
+    assert len({r["wins_rate_allows"] for r in results.values()}) == 1
+    # The capital-allowed figure DOES move with the target -- confirming the test exercises a
+    # real difference in input, not a no-op mutation the control can't see.
+    assert results[0.0]["wins_capital_allows"] > results[115.0]["wins_capital_allows"] > results[130.0]["wins_capital_allows"]
+
+
+def test_the_seam_forwards_as_of_to_date_the_target_C14():
+    """The dating is reachable through the production chain, not just the module function:
+    `growth_desk.plan_growth_campaign_year` carries `as_of` straight to `growth_quote_budget`
+    and the seam's own `GrowthCampaignPlan.capital_target_basis` reports which period it landed
+    in -- the same two scalars (a balance sheet and a date) crossing the one seam, nothing
+    regulatory leaking across it (`capital_target_basis` is a bare three-way label)."""
+    from company.interfaces.growth_desk import plan_growth_campaign_year
+
+    before = plan_growth_campaign_year(
+        net_assets_gbp=250_000.0, accounts_held=403, as_of="2020-01-01",
+    )
+    after = plan_growth_campaign_year(
+        net_assets_gbp=250_000.0, accounts_held=403, as_of="2024-01-01",
+    )
+    undated = plan_growth_campaign_year(net_assets_gbp=250_000.0, accounts_held=403)
+
+    assert before.capital_target_basis == "none"
+    assert after.capital_target_basis == "plan_ahead"
+    assert undated.capital_target_basis is None
+    # No target at all in 2020: headroom is the full balance sheet.
+    assert before.headroom_gbp == pytest.approx(250_000.0)
+    # 2024 and the undated (flat, pre-C14-dating) call agree: both are £115.
+    assert after.headroom_gbp == pytest.approx(undated.headroom_gbp)

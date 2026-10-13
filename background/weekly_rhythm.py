@@ -317,6 +317,22 @@ class EndToEndCheckMissing(ValueError):
     """Monday's step cannot close until its end-to-end check is written. The message says why."""
 
 
+def _canon_against_canon_section() -> list[str]:
+    """Canon v4 alignment steer step 6a: the standing pages against canon, read in the Monday step
+    beside the end-to-end check. Reports; a failed read says so rather than reading as clean."""
+    try:
+        from tools.canon_against_canon import scan
+        found, checked = scan()
+    except Exception as exc:  # noqa: BLE001 -- a broken check is UNAVAILABLE, never clean
+        return ["## Canon against canon", "", f"UNAVAILABLE, not clean: {exc!r}", ""]
+    lines = ["## Canon against canon", "",
+             f"{len(found)} problem(s); {checked} attributed quote(s) compared on the standing pages "
+             "(`tools/canon_against_canon.py`)."
+             + ("" if checked else " NOTHING WAS COMPARED, so this is not a clean result."), ""]
+    lines += [f"- {p}" for p in found[:20]]
+    return lines + ([""] if found else [])
+
+
 def end_to_end_refusal(step: str, due_on: date, staging: Path | None = None) -> str | None:
     """Why this step may not close for want of its end-to-end check, or None.
 
@@ -484,6 +500,7 @@ def _step_body(step: str, due_on: date, overdue: list[dict]) -> str:
     if step == MONDAY_STEP:
         from background.director_concerns import end_to_end_section
         lines += end_to_end_section()
+        lines += _canon_against_canon_section()
         lines += _merge_pressure_section()
         lines += _run_cost_section()
         lines += _priority_order_section()

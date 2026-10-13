@@ -15,7 +15,7 @@ class TestComputeSolvencySignal:
         assert result["per_customer_net_assets_gbp"] == pytest.approx(10_000.0)
 
     def test_ratio_computed_correctly(self):
-        result = compute_solvency_signal(treasury_gbp=130.0 * 5, active_customer_count=5)
+        result = compute_solvency_signal(treasury_gbp=MCR_FLOOR_GBP_PER_CUSTOMER * 5, active_customer_count=5)
         assert result["solvency_ratio"] == pytest.approx(1.0)
         assert result["status"] == "Watch"  # exactly at floor = Watch (barely compliant)
 
@@ -25,13 +25,15 @@ class TestComputeSolvencySignal:
         assert result["solvency_ratio"] < 1.0
 
     def test_between_floor_and_watch_is_watch(self):
-        # per_customer = 200 / 1 = 200; floor = 130; ratio = 1.54 → Watch
+        # per_customer = 200 / 1 = 200; floor = 115; ratio = 1.74 → Watch
         result = compute_solvency_signal(treasury_gbp=200.0, active_customer_count=1)
         assert result["status"] == "Watch"
         assert 1.0 <= result["solvency_ratio"] < 2.0
 
     def test_above_watch_threshold_is_ok(self):
-        result = compute_solvency_signal(treasury_gbp=260.0 * 3, active_customer_count=3)
+        result = compute_solvency_signal(
+            treasury_gbp=2 * MCR_FLOOR_GBP_PER_CUSTOMER * 3, active_customer_count=3
+        )
         assert result["status"] == "OK"
         assert result["solvency_ratio"] == pytest.approx(2.0)
 
@@ -66,10 +68,10 @@ class TestComputeSolvencyByYear:
 
     def test_uses_active_customer_ids_when_count_missing(self):
         years_data = {
-            "2022": {"treasury_gbp": 130.0 * 2, "active_customer_ids": ["C1", "C2"]},
+            "2022": {"treasury_gbp": MCR_FLOOR_GBP_PER_CUSTOMER * 2, "active_customer_ids": ["C1", "C2"]},
         }
         result = compute_solvency_by_year(years_data)
-        # 2 customers, 260 treasury → per_customer = 130 → ratio = 1.0 → Watch (at floor)
+        # 2 customers, 230 treasury → per_customer = 115 → ratio = 1.0 → Watch (at floor)
         assert result["2022"]["solvency_ratio"] == pytest.approx(1.0)
         assert result["2022"]["status"] == "Watch"
 
@@ -80,8 +82,8 @@ class TestComputeSolvencyByYear:
 
 
 class TestSolvencyConstants:
-    def test_mcr_floor_is_130(self):
-        assert MCR_FLOOR_GBP_PER_CUSTOMER == 130.0
+    def test_mcr_floor_is_115(self):
+        assert MCR_FLOOR_GBP_PER_CUSTOMER == 115.0
 
     def test_compute_solvency_signal_returns_dict(self):
         result = compute_solvency_signal(treasury_gbp=1000.0, active_customer_count=5)

@@ -1079,10 +1079,12 @@ def _resolve_campaign(book: List[dict], seed: int, *, persist: bool = True,
         run_funnel=functools.partial(
             run_acquisition_funnel, price_differential_pct=PRICE_DIFFERENTIAL_PCT
         ),
-        quote_budget_fn=lambda net_assets_gbp, accounts_held, quotes_issued_to_date=0, wins_to_date=0: vars(
+        quote_budget_fn=lambda net_assets_gbp, accounts_held, quotes_issued_to_date=0,
+        wins_to_date=0, as_of=None: vars(
             plan_growth_campaign_year(
                 net_assets_gbp=net_assets_gbp, accounts_held=accounts_held,
                 quotes_issued_to_date=quotes_issued_to_date, wins_to_date=wins_to_date,
+                as_of=as_of,
             )
         ),
         customer_years_already_committed=existing_cy,

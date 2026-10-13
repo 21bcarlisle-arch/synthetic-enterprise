@@ -321,10 +321,11 @@ items:
     - carries a GBP 130 capital figure per account
     first_seen: '2026-10-11'
     fate: fix
-    status: open
+    status: already_fixed
+    fixed_by: 81c129fe8
     owner: docs/direction/DIRECTION.yaml (the-capital-target-binds-from-2025-but, answered 2026-10-12)
-    reason: 'The director ruled C14 on 2026-10-12: GBP 115 from 31 March 2025, measured before and after
-      on the same seed. Stays listed until that lands.'
+    reason: '81c129fe8 put GBP 115 in all six copies and dated it per C14 (none before 26 July 2023),
+      measured before and after on seed 42 in one process: the settled book moves by one account.'
   - id: supplier-capabilities-built-before-their-world
     problem: Supplier capabilities were built before the world they are graded against was built and frozen.
     match:

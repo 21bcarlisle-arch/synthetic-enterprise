@@ -2308,7 +2308,7 @@ def test_solvency_signal_header_present():
     })
     result = _section_solvency_signal(data)
     assert "Solvency Signal" in result
-    assert "£130" in result
+    assert "£115" in result
     assert "2024" in result
 
 
@@ -2335,12 +2335,16 @@ def test_solvency_signal_above_target():
         }
     })
     result = _section_solvency_signal(data)
-    # 5000/1 = 5000 — above both £0 and £130
+    # 5000/1 = 5000 — above both £0 and £115
     assert result.count("OK") >= 2
 
 
 def test_solvency_signal_below_target_shows_gap():
-    """Treasury below £130/account shows gap and 'below' label."""
+    """Treasury below the Capital Target per account reads as a ratio under 1x and STRESS.
+
+    The section prints no gap figure. Until 2026-10-13 this asserted "30" (the £130 - £100 gap)
+    and "below", and both were satisfied by the HEADER: "30" inside "£130" and "below" inside
+    "below regulatory floor". The ratio row is the only thing here computed from the figure."""
     data = _make_solvency_data({
         "2024": {
             "treasury_end_gbp": 100.0,
@@ -2348,9 +2352,11 @@ def test_solvency_signal_below_target_shows_gap():
         }
     })
     result = _section_solvency_signal(data)
-    # 100/1 = 100 — below £130 target, gap = £30
-    assert "below" in result
-    assert "30" in result
+    # 100/1 = 100 against REGULATORY_CAPITAL_FLOOR_PER_CUSTOMER_GBP (£115): 0.87x, STRESS
+    from saas.reporting.annual_report import REGULATORY_CAPITAL_FLOOR_PER_CUSTOMER_GBP
+    ratio = 100.0 / REGULATORY_CAPITAL_FLOOR_PER_CUSTOMER_GBP
+    assert ratio < 1.0
+    assert f"| 2024 | 100 | 1 | 100 | {ratio:.2f}× | **STRESS** |" in result
 
 
 def test_solvency_signal_breach_when_negative():

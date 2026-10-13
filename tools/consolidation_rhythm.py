@@ -400,14 +400,20 @@ def _whole_map_at(root: Path, rev_prefix: str) -> str | None:
 
 
 def gate(root: Path) -> tuple[int, list[str]]:
-    """Refuse a commit that CLOSES an epoch with no committed pass record for it."""
+    """Report a commit that CLOSES an epoch with no committed pass record for it. REPORTS, never refuses.
+
+    RETIRED AS A GATE 2026-10-12 (canon v4 decision 11): "Where the map or the draw still gates on
+    epochs, retire the gate and record what it touched; epoch fields may stay as history." Until then
+    this refused (rc 2) any commit that closed an epoch without a consolidation pass, and refused an
+    unreadable staged map to protect that refusal. Both now return 0 with the same named finding, so
+    the closing commit still says, at the moment it closes the epoch, that no pass was recorded."""
     if not any(rel in _staged_paths(root) for rel in map_store.MAP_PARTS_REL):
         return 0, ["consolidation gate: map not staged -- no epoch can close in this commit."]
 
     staged_map = _whole_map_at(root, ":")
     if staged_map is None:
-        return 2, ["the map is staged but its blob is unreadable -- refusing rather than allowing "
-                   "an unverifiable epoch close (fail-closed)."]
+        return 0, ["consolidation gate: the map is staged but its blob is unreadable, so whether an "
+                   "epoch closes here cannot be said (reported, not refused: canon v4 decision 11)."]
     staged_atoms = atoms_from_map(staged_map)
 
     head_map = _whole_map_at(root, "HEAD:")
@@ -424,11 +430,11 @@ def gate(root: Path) -> tuple[int, list[str]]:
     recorded = {r.get("epoch") for r in parse_ledger(ledger_text) if r.get("kind") == PASS}
     missing = sorted(newly_closed - recorded, key=str)
     if missing:
-        return 2, [
-            "COMMIT REFUSED -- this commit closes epoch(s) %s with no committed consolidation pass."
+        return 0, [
+            "EPOCH CLOSED WITHOUT A CONSOLIDATION PASS -- this commit closes epoch(s) %s with no "
+            "committed pass (reported, not refused: canon v4 decision 11 retired the gate)."
             % ", ".join(str(e) for e in missing),
-            "Run the pass, then stage the record:",
-            "    python3 tools/consolidation_rhythm.py --record --epoch %s" % missing[0],
+            "To record one:  python3 tools/consolidation_rhythm.py --record --epoch %s" % missing[0],
         ]
     return 0, ["consolidation gate: epoch(s) %s close WITH a recorded pass."
                % ", ".join(str(e) for e in sorted(newly_closed, key=str))]

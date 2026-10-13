@@ -54,13 +54,31 @@ def _returned_dict_keys(tree: ast.AST) -> set[str]:
             yield from dicts(value.body)
             yield from dicts(value.orelse)
 
-    for node in ast.walk(tree):
-        if isinstance(node, ast.Return) and node.value is not None:
-            for d in dicts(node.value):
-                keys |= {
-                    k.value for k in d.keys
-                    if isinstance(k, ast.Constant) and isinstance(k.value, str)
-                }
+    # A returned NAME is the dict assigned to it in the same function. The run took
+    # `_result = {...}; ...; return _result` on 2026-10-12 (a070c2195), and the walk selected
+    # nothing again until 2026-10-13 -- refusing every commit that imports annual_report.
+    returned = []
+    for fn in ast.walk(tree):
+        if not isinstance(fn, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            continue
+        assigned: dict[str, list[ast.AST]] = {}
+        for node in ast.walk(fn):
+            if isinstance(node, ast.Assign):
+                for t in node.targets:
+                    if isinstance(t, ast.Name):
+                        assigned.setdefault(t.id, []).append(node.value)
+        for node in ast.walk(fn):
+            if isinstance(node, ast.Return) and node.value is not None:
+                returned.append(node.value)
+                if isinstance(node.value, ast.Name):
+                    returned.extend(assigned.get(node.value.id, []))
+
+    for value in returned:
+        for d in dicts(value):
+            keys |= {
+                k.value for k in d.keys
+                if isinstance(k, ast.Constant) and isinstance(k.value, str)
+            }
     return keys
 
 

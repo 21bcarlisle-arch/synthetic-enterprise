@@ -206,10 +206,11 @@ def _mcr_accounts_held(
     segment_by_cid: Mapping[str, str],
     mark_date: str,
 ) -> dict:
-    """How many accounts the £130 MCR is levied on at the mark, and what that count SELECTS.
+    """How many accounts the £115 Capital Target is levied on at the mark, and what that count
+    SELECTS.
 
     A thin adapter onto `saas.capital.solvency.mcr_accounts_on_supply`, which owns the selection
-    because it owns the £130. It is a function rather than an inline call so the one place the
+    because it owns the £115. It is a function rather than an inline call so the one place the
     credit desk decides "which supplier's book?" is greppable, and so a caller reading this file
     is not sent to another package to find out.
     """
@@ -395,7 +396,8 @@ def _credit_and_margin(
         _summary["free_equity_gbp"] = _verdict["free_equity_gbp"]
         _summary["gross_marked_exposure_gbp"] = _verdict["gross_exposure_gbp"]
         # WHAT THE MCR WAS NETTED AGAINST, ON THE SURFACE (2026-08-29). Free equity is
-        # `net_assets - accounts x £130`, and until this date the published figure said the
+        # `net_assets - accounts x £115` (£130 was the April 2023 consultation figure, corrected
+        # 2026-10-12), and until 2026-08-29 the published figure said the
         # subtrahend's SIZE and never what it counted -- while five different account populations
         # were live in the run's own artefacts and this desk was multiplying by a sixth. The caller
         # names its population; the name is copied here so the figure and its basis cannot be read

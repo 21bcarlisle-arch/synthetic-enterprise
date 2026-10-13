@@ -41,10 +41,25 @@ def _string_keys_of_returned_dicts(path: Path) -> set[str]:
     """
     tree = ast.parse(path.read_text())
     keys: set[str] = set()
-    for node in ast.walk(tree):
-        if not isinstance(node, ast.Return) or node.value is None:
+    # A returned NAME is the dict assigned to it in the same function: the run took
+    # `_result = {...}; return _result` at a070c2195 (2026-10-12), and this walk saw nothing.
+    returned = []
+    for fn in ast.walk(tree):
+        if not isinstance(fn, (ast.FunctionDef, ast.AsyncFunctionDef)):
             continue
-        for sub in ast.walk(node.value):
+        assigned = {}
+        for node in ast.walk(fn):
+            if isinstance(node, ast.Assign):
+                for t in node.targets:
+                    if isinstance(t, ast.Name):
+                        assigned.setdefault(t.id, []).append(node.value)
+        for node in ast.walk(fn):
+            if isinstance(node, ast.Return) and node.value is not None:
+                returned.append(node.value)
+                if isinstance(node.value, ast.Name):
+                    returned.extend(assigned.get(node.value.id, []))
+    for value in returned:
+        for sub in ast.walk(value):
             if isinstance(sub, ast.Dict):
                 keys |= {k.value for k in sub.keys
                          if isinstance(k, ast.Constant) and isinstance(k.value, str)}

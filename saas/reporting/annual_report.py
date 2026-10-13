@@ -103,10 +103,11 @@ CRISIS_YEARS = {"2021", "2022"}
 
 NOT_AVAILABLE = "Not available in current run output (see REPORTING_BACKLOG.md)"
 
-# Phase 21b: Ofgem regulatory capital floor per customer (dual-fuel basis).
-# Licence condition: £0 net assets/customer triggers regulatory review;
-# £130/customer is the industry working-capital target.
-REGULATORY_CAPITAL_FLOOR_PER_CUSTOMER_GBP = 130.0
+# Phase 21b: Ofgem's Capital Target per customer (dual-fuel basis), decided 26 July 2023 and
+# binding from 31 March 2025; the Capital Floor is £0 net assets/customer. £130 was the April
+# 2023 consultation figure the decision cut; corrected 2026-10-12. Same figure as
+# `saas/capital/solvency.py::MCR_FLOOR_GBP_PER_CUSTOMER`.
+REGULATORY_CAPITAL_FLOOR_PER_CUSTOMER_GBP = 115.0
 
 
 def _year(date_str: str) -> str:
@@ -4801,8 +4802,9 @@ def _section_solvency_signal(data: dict) -> str:
     """Phase 21b/55: Per-customer solvency — Ofgem MCR compliance signal.
 
     Ofgem licence Standard Condition 27 requires positive net assets per customer.
-    MCR target: £130/dual-fuel account. Phase 55: formal Watch/STRESS status from
-    saas/capital/solvency.py; solvency_ratio = per_customer_net_assets / £130 floor.
+    Capital Target: £115/dual-fuel account (Ofgem decision 26 July 2023, binding from 31
+    March 2025; £130 was the April 2023 consultation figure). Phase 55: formal Watch/STRESS
+    status from saas/capital/solvency.py; solvency_ratio = per_customer_net_assets / £115 floor.
     Watch < 2×, STRESS < 1×.
     """
     years = data.get("years", {})
@@ -4812,7 +4814,7 @@ def _section_solvency_signal(data: dict) -> str:
     lines = [
         "## Solvency Signal — Net Assets per Customer (Phase 21b/55)",
         "",
-        "Treasury ÷ active accounts. Ofgem MCR floor: £130/dual-fuel account.",
+        "Treasury ÷ active accounts. Ofgem Capital Target: £115/dual-fuel account.",
         "Watch < 2×, STRESS < 1× (account balance below regulatory floor).",
         "",
         "| Year | Treasury £ | Accounts | Net Assets/Account £ | Solvency Ratio | Status |",

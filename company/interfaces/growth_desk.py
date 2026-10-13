@@ -286,6 +286,11 @@ class GrowthCampaignPlan:
     believed_win_rate: float | None = None
     realised_win_rate: float | None = None
     planning_on: str = "belief"
+    #: Which of the capital constraint's three periods `as_of` fell in -- "none", "plan_ahead"
+    #: or "binding" -- or `None` if the caller gave no `as_of`. Reported so a reader can tell a
+    #: year with no capital constraint at all from one where the company chose to meet a target
+    #: not yet enforceable, without comparing two dates themselves.
+    capital_target_basis: str | None = None
 
 
 def plan_growth_campaign_year(
@@ -294,8 +299,16 @@ def plan_growth_campaign_year(
     accounts_held: int,
     quotes_issued_to_date: int = 0,
     wins_to_date: int = 0,
+    as_of: str | None = None,
 ) -> GrowthCampaignPlan:
     """Ask the supplier how large an acquisition campaign it will run this year.
+
+    `as_of` (an ISO date string, default `None`) is the one new scalar this seam carries since
+    the capital constraint itself was dated (2026-10-12): a real supplier knows today's date,
+    and the regulator's decided figure is public, so the world passes only the date and the
+    company side resolves what it means. Nothing about the figure, its decided date or its
+    binding date crosses here -- exactly the same shape as every other scalar this function
+    already carries.
 
     THE SEAM, AND WHY THIS FUNCTION EXISTS RATHER THAN A DIRECT IMPORT (2026-08-24, atom
     PB3). `simulation/live_population.py` assembles the run's book and needs the supplier's
@@ -333,6 +346,7 @@ def plan_growth_campaign_year(
     plan = growth_quote_budget(
         "grow", net_assets_gbp, accounts_held,
         quotes_issued_to_date=quotes_issued_to_date, wins_to_date=wins_to_date,
+        as_of=as_of,
     )
     return GrowthCampaignPlan(
         quotes=plan["quotes"],
@@ -344,6 +358,7 @@ def plan_growth_campaign_year(
         believed_win_rate=plan.get("believed_win_rate"),
         realised_win_rate=plan.get("realised_win_rate"),
         planning_on=plan.get("planning_on", "belief"),
+        capital_target_basis=plan.get("capital_target_basis"),
     )
 
 
