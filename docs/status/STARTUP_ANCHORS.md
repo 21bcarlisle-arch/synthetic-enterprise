@@ -41,8 +41,8 @@ one typed from memory does not.
 
 | Figure | Stated | Its source could have said | Verdict |
 |---|---|---|---|
-| commits | 13,094 | 12,768 – 13,205 (`git rev-list --count`) | AGREES |
-| lines | 1,132,176 | 1,113,318 – 1,135,444 (newlines across every `*.py` in the git index) | AGREES |
+| commits | 13,094 | 12,768 – 13,227 (`git rev-list --count`) | AGREES |
+| lines | 1,132,176 | 1,113,318 – 1,135,692 (newlines across every `*.py` in the git index) | AGREES |
 | modules | 3,360 | 3,281 – 3,376 (the count of `*.py` in the git index) | AGREES |
 | tests | 39,465 | 39,465 – 39,465 (CLAUDE.md's Build line, floored by the test functions in the git index) | AGREES on the floor only on this run -- too large was ruled out at the commit that wrote this sentence |
 
