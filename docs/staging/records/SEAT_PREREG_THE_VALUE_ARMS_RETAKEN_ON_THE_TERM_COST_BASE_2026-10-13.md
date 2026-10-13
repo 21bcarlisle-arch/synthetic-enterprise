@@ -165,3 +165,95 @@ the artefacts allow is that they sit inside `pre_4c_net` alongside renewal margi
   scatter of value minus control in `r` itself, no run is warranted, and the reason is stated.
 - If the 149's `t` difference has the opposite sign from the rest of `t`'s book, the book is not
   trailing. The subset is.
+
+## The split, read after the prediction landed (2026-10-14, same item)
+
+All figures come from the two artefacts alone. The 149 are the accounts in `net_by_billing_account_gbp`
+of both arms in both runs. Each account's net is split by `tools/run_value_cycle_ab.arrears_line_net`'s
+own identity. **Margin** is `pre_4c_net` plus the released placeholder. **Bad debt** is write-offs
+less recoveries. Both sums reproduce the headline: r +1,694, t -1,410, change -3,105.
+
+**By component (change in value minus control, t against r).**
+
+| component | r | t | change |
+|---|---:|---:|---:|
+| margin before bad debt | +2,356 | -1,165 | **-3,521** |
+| realised bad debt | -661 | -245 | +416 |
+| total | +1,694 | -1,410 | -3,105 |
+
+Margin splits by shift-share into bills issued (months served) and margin per bill:
+
+| | r | t | change |
+|---|---:|---:|---:|
+| value's per-bill premium x control bills | +7,866 (0.86 x 9,146) | +5,830 (0.77 x 7,610) | -2,036 |
+| bills value issued fewer x value margin per bill | -5,512 (-364 bills) | -6,995 (-477 bills) | -1,483 |
+
+**Renewal rate.** Control's offered rate is not logged, so a matched rate comparison is not
+possible. T8 above has the value arm's side. **Hedge and acquisition** are not carried per account.
+They sit inside margin and cannot be split out from these artefacts.
+
+**The split that decides it: paths that held against paths that forked.** An account's path holds if
+its bills issued are equal across both arms in both runs.
+
+| subset | accounts | change | margin | bad debt | accounts with change below / above zero |
+|---|---:|---:|---:|---:|---|
+| path held in all four arm-runs | 83 | **-293** | -304 | +10 | 32 / 7 |
+| . of which the value arm priced a renewal | 25 | -153 | | | |
+| . of which never priced (control and value should be identical) | 58 | -140 | | | |
+| path forked (an arm or a run issued different bills) | 66 | **-2,812** | -3,217 | +406 | 41 / 16 |
+
+The forked accounts are life paths that diverged, not prices. The largest movers have mixed signs:
+
+| account | change | what happened |
+|---|---:|---|
+| C8 | +2,960 | control's bills went from 111 to 21 |
+| SYN-2016-036 | -2,906 | value's bills went from 110 to 80 |
+| PROS-2016-0046 | +2,813 | control's bills went from 226 to 26 |
+| PROS-2019-0310 | -1,846 | value stayed in r and left in t, with bills going from 138 to 26 |
+
+Ten accounts carry -2,400 of the -3,105, but gross of sign they move several times that.
+
+**Against the scatter.** Per-account change has sd 538 and mean -20.8. The standard error of a
+149-account sum is about 6,566, so **the -3,105 is z = -0.47**. The value-minus-control total on the
+same 149 has its own standard error of about 6,433 in r and 4,396 in t. The full-book floor sd of
+1,770 is the wrong yardstick for a subset: it is a sd across redraws, not across accounts.
+
+**Are the 149 representative?** No. They trail their own book in both runs:
+
+| run | 149 shared: value minus control per account | rest of book |
+|---|---:|---:|
+| r | +11.4 | +28.9 (123 accounts) |
+| t | **-9.5** | **+20.6** (611 accounts, +12,613 in total) |
+
+On control net, bills and value-priced renewals per account, they look like the rest of `t`
+(706 against 707, 51.1 against 50.8, 0.69 against 0.74). On the value-minus-control reading they do
+not. In `t` the rest of the book has the value arm ahead, and the subset has it behind.
+
+### Grades
+
+| # | grade |
+|---|---|
+| D1 | **TRUE.** Margin -3,521. Bad debt +416 runs the other way, at 12% of the margin figure. |
+| D2 | **REFUTED.** The value arm lost fewer customers than control in both runs (leavers: r 13 against 17, t 15 against 22). The margin fall is split between the per-bill premium (-2,036) and bills (-1,483). Forked paths drive the bills term, not value-only churn. |
+| D3 | **TRUE on the letter, wrong in spirit.** The top 10 carry 77% of the net fall, but with mixed signs: what concentrates is path divergence, not a pricing effect. |
+| D4 | **TRUE on the claim, and the mechanism given was wrong.** The subset's sign is opposite to the rest of `t`. It is not an older, more-renewed cohort: in `r` it had *fewer* bills than the rest (61.4 against 67.9). |
+| attribution | **Selection and noise (0.35) carries it. The base (my 0.40 top pick) does not.** On the 25 held-path priced accounts, where a price change acts without a path change, the arm difference moved -153: about £6 per account. |
+
+### Decision: no one-variable run
+
+By the rule fixed before the split, the fall is no larger than the per-account scatter (z = -0.47),
+and the subset's sign is opposite to the rest of its book. So the book is not trailing on the
+director's 400-founder book: the 149-account subset is. The `04913b693`-reverted run would cost
+about 1.9 h per arm, and there is nothing for it to answer. The per-customer arm does nothing worse
+at scale here: outside the 149, `t` has the value arm ahead by £20.6 per account.
+
+The thesis reading still waits on what it always waited on: T6 and T7, the four-seed floor fold
+from `/var/tmp/se-termcost-arms-rest.sh`, which this item did not touch. That fold measures whether
+`selection_gbp` is distinguishable from zero across redraws. A shared-account subset of two
+different books cannot.
+
+**A gap, noted and not chased.** The 58 held-path accounts the value arm never priced should read
+exactly zero between arms. They read +162 in `r` and +21 in `t`, at most about £48 on one account.
+So the arms are coupled through something shared beyond the renewal price. These artefacts cannot
+say what (hedge allocation or capital cost are the candidates). It is small against everything
+above, and it is the first place to look if a future like-for-like reading needs pennies.
