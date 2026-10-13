@@ -86,7 +86,11 @@ from company.interfaces.renewal_rate_chain import (
     open_portfolio_margin_book,
     portfolio_position,
 )
-from company.interfaces.save_offer import published_best_deal_gap_share, request_save_offer
+from company.interfaces.save_offer import (
+    published_best_deal_gap_share,
+    published_default_rate_ex_vat,
+    request_save_offer,
+)
 from company.interfaces.statutory_obligations import build_statutory_obligations
 from company.interfaces.supply_book import (
     acquired_supply_points,
@@ -1212,11 +1216,13 @@ def _price_match_inputs(term: dict, commodity: str, term_start_str: str,
                         company_fwd: float | None) -> dict:
     """THE PRICE MATCH'S INPUTS (2026-10-10): the published default for this fuel, the published
     best-deal gap for the quarter, and the cost floor of the rate the company struck for this term --
-    what its own desk floors at. One reading for the save and the renewal cut (B8 Q5). The gap is
-    the company's read of the published record, through the save door."""
+    what its own desk floors at. One reading for the save and the renewal cut (B8 Q5). The gap and
+    the default are the company's read of the published record, through the save door -- the
+    default EX VAT, as the re-fix and the floor are; NOT `_account_state_svt_rate`, which is the
+    inc-VAT account-state record's field."""
     locked = (term.get("locked_policy_cost_gbp_per_mwh"), term.get("locked_network_cost_gbp_per_mwh"))
     return {
-        "published_default_rate": _account_state_svt_rate(commodity, term_start_str),
+        "published_default_rate": published_default_rate_ex_vat(commodity, term_start_str),
         "published_best_deal_gap_share": published_best_deal_gap_share(term_start_str),
         "cost_floor": (None if None in locked or company_fwd is None
                        else company_fwd + locked[0] + locked[1]),

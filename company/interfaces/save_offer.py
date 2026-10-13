@@ -14,7 +14,9 @@ the company makes no offer. The decision is `company/crm/save_offer.py`.
 
 THE PUBLISHED BEST-DEAL GAP is read through this door (`published_best_deal_gap_share`), from the
 commons (`docs/domain_artefact_library/regulatory/gb_best_deal_gap_to_default.json`): published
-market data, so the company's to read, and the save and the renewal cut read the one copy.
+market data, so the company's to read, and the save and the renewal cut read the one copy. So is
+THE PUBLISHED DEFAULT the gap is taken off (`published_default_rate_ex_vat`): ex VAT, like the
+re-fix and the floor it is compared with.
 
 VULNERABILITY IS WHAT THE HOUSEHOLD DISCLOSED. The company's Priority Services Register holds a
 record only for a household that told it (`interface/contracts/psr_registration_seam.py`), so a
@@ -29,11 +31,12 @@ from company.crm.cos_process import CoSRegister
 from company.crm.save_offer import (
     price_match_save_rate,
     published_best_deal_gap_share,
+    published_default_rate_ex_vat,
     save_offer_on_invitation,
 )
 from company.regulatory.priority_services_register import PriorityServicesRegister
 
-__all__ = ["published_best_deal_gap_share", "request_save_offer"]
+__all__ = ["published_best_deal_gap_share", "published_default_rate_ex_vat", "request_save_offer"]
 
 
 def request_save_offer(register: CoSRegister, supply_point_id: str, supply_effective_from: str,

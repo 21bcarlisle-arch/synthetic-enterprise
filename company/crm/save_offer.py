@@ -103,6 +103,22 @@ def published_best_deal_gap_share(date_str: str) -> float | None:
     return _published_best_deal_gaps().get(f"{year}-Q{(month - 1) // 3 + 1}")
 
 
+def published_default_rate_ex_vat(commodity: str, date_str: str) -> float | None:
+    """The published default tariff for this fuel on this day, EX VAT and EPG-net -- the basis
+    every rate the price match compares it with is on, and the one the churn belief reads
+    (`renewal_rate_chain.cap_ceiling_ex_vat`, single-rate). None for a fuel with no cap.
+
+    2026-10-13: the run handed the match `simulation.svt_rates`, which is INC VAT and the gross cap
+    through the EPG, against an ex-VAT re-fix and floor. The market's best deal read 5% dear, so
+    both desks under-offered: on 2024-Q3 a re-fix at the cap got no save at all (gap 3.7% < VAT)."""
+    if commodity not in ("electricity", "gas"):
+        return None
+    from datetime import date
+
+    from company.pricing.renewal_rate_chain import cap_ceiling_ex_vat
+    return cap_ceiling_ex_vat(commodity, date.fromisoformat(date_str[:10]), multi_register=False)
+
+
 def price_match_save_rate(renewal_unit_rate_gbp_per_mwh: float | None,
                           published_default_rate_gbp_per_mwh: float | None,
                           best_deal_gap_share: float | None,
