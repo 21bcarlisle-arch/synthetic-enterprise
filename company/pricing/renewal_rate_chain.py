@@ -96,6 +96,7 @@ from company.pricing.ofgem_price_cap import (
     get_cap_unit_rate_for_date,
     get_multi_register_cap_unit_rate_for_date,
 )
+from company.pricing.renewal_desk import pre_margin_unit_rate
 from company.pricing.tariff_engine import (
     PORTFOLIO_PREMIUM_LOOKBACK,
     compute_portfolio_premium,
@@ -545,6 +546,11 @@ def decide_renewal_rate(
             _stayer_default_ex_vat(commodity, term_start, own_default_tariff_inc_vat_gbp_per_mwh)
             if (active_policy().renewal_stayer_pays_at_most_default and tariff_type == "fixed"
                 and is_domestic) else None),
+        # WHAT THE ARM'S MARGIN IS MEASURED FROM: this term's own cost before margin, not the rate
+        # writers 1-3 left less GBP 2. The arm's rate is then `base + chosen`, the rate it scored.
+        pre_margin_rate_gbp_per_mwh=pre_margin_unit_rate(
+            company_forward_per_mwh, term_start, locked_policy_cost_per_mwh,
+            locked_network_cost_per_mwh),
     )
     # THE DENOMINATOR, WRITTEN AT THE SAME SITE AS THE DECISION. Unconditional and before the two
     # branches below, so a renewal cannot reach the funnel through one path and miss it through
@@ -584,10 +590,11 @@ def decide_renewal_rate(
         })
     if unit_rate is not None and arm_uplift.decision is not None:
         rate_before = unit_rate
-        # THE SAME FLOOR AS WRITER 1 (2026-10-12). The arm adds `margin - GBP 2` on the assumption
-        # that the rate it is handed still carries the strike's GBP 2; once writer 1 has floored a
-        # discount it does not, and an arm or level choice under GBP 2 sold up to GBP 1.50 under
-        # cost (the decision probe's level grid, at once). The arm may lower a rate, never under it.
+        # THE SAME FLOOR AS WRITER 1 (2026-10-12). Added when the arm measured its margin from the
+        # handed rate less GBP 2, which writer 1 had already cut: a level under GBP 2 then sold up
+        # to GBP 1.50 under cost. Since 2026-10-13 the base is the term's own pre-margin cost, so
+        # with offer components this binds only on a margin below minus the capital charge; it
+        # stays for the fallback base and as the writer-local half of the class check below.
         unit_rate = _floor_a_discount(
             rate_before, rate_before + arm_uplift.uplift_gbp_per_mwh, cost_floor)
         arm_floored_at_cost = unit_rate > rate_before + arm_uplift.uplift_gbp_per_mwh
@@ -599,6 +606,8 @@ def decide_renewal_rate(
             "arm": decision.arm,
             "chosen_margin_gbp_per_mwh": round(decision.margin_gbp_per_mwh, 4),
             "flat_rule_margin_gbp_per_mwh": TARGET_MARGIN_GBP_PER_MWH,
+            "arm_base_gbp_per_mwh": round(arm_uplift.base_rate_gbp_per_mwh, 4),
+            "arm_base_source": arm_uplift.base_source,
             "uplift_gbp_per_mwh": round(arm_uplift.uplift_gbp_per_mwh, 4),
             # THE BELIEF, LABELLED AS ONE. `expected_value_gbp` is the company's own number and
             # is never evidence the decision was right -- the realised A/B is. Carried so the

@@ -120,11 +120,7 @@ def test_the_invariant_allows_only_what_entered_low_or_what_the_cap_put_there():
     assert check(1.0, entered=139.15, cost_floor=None)
 
 
-def test_the_value_arm_may_cut_a_floored_rate_no_further_than_cost():
-    """DEFECT: the arm adds `level - GBP 2` to the rate writer 1 left, assuming it still carries the
-    strike's GBP 2. On a floored rate a level under GBP 2 sold GBP 1.50 under cost -- found by the
-    decision probe's level grid the moment the return check existed. Both legs over one partition:
-    the cut level is held at the floor, the rising level passes untouched."""
+def _level_arm(level, *, floor_known=True):
     from dataclasses import replace
 
     from company.policy.decision_policy import CURRENT_POLICY, policy_scope
@@ -134,23 +130,59 @@ def test_the_value_arm_may_cut_a_floored_rate_no_further_than_cost():
                 "settlement_date": f"2016-{m:02d}-15", "term_start": "2016-01-01",
                 "consumption_kwh": 250.0, "revenue_gbp": 30.0, "net_margin_gbp": 1.0,
                 "margin_gbp": 5.0, "settlement_periods_folded": 48} for m in range(1, 13)]
-    out = {}
+    costs = dict(company_forward_per_mwh=FWD, locked_policy_cost_per_mwh=POLICY,
+                 locked_network_cost_per_mwh=NETWORK) if floor_known else {}
+    policy = replace(CURRENT_POLICY, name="level_arm", renewal_margin_arm=FLAT_AT_LEVEL,
+                     renewal_margin_flat_level_gbp_per_mwh=level)
+    with policy_scope(policy):
+        return decide_renewal(RenewalDecisionInputs(
+            customer_id="C1", billing_account="C1", commodity="electricity",
+            term_start="2017-01-09", tariff_type="fixed", term_index=1,
+            struck_unit_rate_per_mwh=STRUCK, portfolio_margin_rates=BOOK_FAR_ABOVE_TARGET,
+            prior_term_margin=None, prior_term_revenue=0.0, is_domestic=False,
+            settled_records=settled, customer={"metering": "NHH", "smart_meter": False},
+            **costs))
+
+
+def test_the_arm_measures_its_margin_from_the_terms_own_cost_not_the_rate_writer_one_left():
+    """DEFECT: the arm's base was `the rate writer 1 left - GBP 2`, so on a term writer 1 cut to
+    the floor a level-L renewal earned L - 3.11 and the arm's belief was for a margin it never
+    charged. Now the contracted rate is the term's pre-margin cost (forward + capital + locked
+    costs) plus the level, whatever writer 1 did."""
+    from company.pricing.renewal_desk import pre_margin_unit_rate
+
+    base = pre_margin_unit_rate(FWD, "2017-01-09", POLICY, NETWORK)
+    assert base > FLOOR, "no capital charge in the base, so the arm reads it as margin"
     for level in (0.5, 5.0):
-        policy = replace(CURRENT_POLICY, name="level_arm", renewal_margin_arm=FLAT_AT_LEVEL,
-                         renewal_margin_flat_level_gbp_per_mwh=level)
-        with policy_scope(policy):
-            out[level] = decide_renewal(RenewalDecisionInputs(
-                customer_id="C1", billing_account="C1", commodity="electricity",
-                term_start="2017-01-09", tariff_type="fixed", term_index=1,
-                struck_unit_rate_per_mwh=STRUCK, portfolio_margin_rates=BOOK_FAR_ABOVE_TARGET,
-                prior_term_margin=None, prior_term_revenue=0.0, is_domestic=False,
-                settled_records=settled, customer={"metering": "NHH", "smart_meter": False},
-                company_forward_per_mwh=FWD, locked_policy_cost_per_mwh=POLICY,
-                locked_network_cost_per_mwh=NETWORK))
-    cut, rise = out[0.5], out[5.0]
-    assert [e["uplift_gbp_per_mwh"] for e in (*cut.value_arm_entries, *rise.value_arm_entries)] \
-        == [-1.5, 3.0], "the arm did not price both levels, so neither leg below is tested"
+        out = _level_arm(level)
+        entry = out.value_arm_entries[0]
+        assert entry["arm_base_source"] == "term_cost"
+        assert entry["arm_base_gbp_per_mwh"] == pytest.approx(base, abs=1e-4)
+        assert out.unit_rate_gbp_per_mwh == pytest.approx(base + level)
+        assert entry["offered_rate_gbp_per_mwh"] == pytest.approx(out.unit_rate_gbp_per_mwh,
+                                                                  abs=1e-4)
+
+
+def test_the_arm_may_cut_a_rate_no_further_than_cost_and_says_when_it_was_stopped(monkeypatch):
+    """DEFECT: with the honest base the arm's own floor is rarely reached (a margin below minus the
+    capital charge, e.g. a low ladder rung), and a floor nobody can reach is not tested. A base
+    knocked GBP 4 under cost reaches it: 0.5 over it is floored, 0.5 over the true base is not."""
+    from company.pricing.renewal_desk import pre_margin_unit_rate
+
+    kept = _level_arm(0.5)
+    monkeypatch.setattr(desk, "pre_margin_unit_rate", lambda *a: FLOOR - 4.0)
+    cut = _level_arm(0.5)
     assert cut.unit_rate_gbp_per_mwh == pytest.approx(FLOOR)
-    assert cut.value_arm_entries[0]["floored_at_cost"] is True
-    assert rise.unit_rate_gbp_per_mwh == pytest.approx(FLOOR + 3.0)
-    assert "floored_at_cost" not in rise.value_arm_entries[0]
+    assert kept.unit_rate_gbp_per_mwh == pytest.approx(
+        pre_margin_unit_rate(FWD, "2017-01-09", POLICY, NETWORK) + 0.5)
+    assert [cut.value_arm_entries[0].get("floored_at_cost"),
+            kept.value_arm_entries[0].get("floored_at_cost")] == [True, None]
+
+
+def test_with_no_offer_components_the_arm_keeps_the_old_base_and_names_it():
+    """DEFECT: a record with no forward or locked costs either crashes the arm or is priced off a
+    base nobody can see. The old `handed rate - GBP 2` stands, labelled as the fallback."""
+    out = _level_arm(5.0, floor_known=False)
+    entry = out.value_arm_entries[0]
+    assert entry["arm_base_source"] == "strike_less_flat_margin"
+    assert entry["uplift_gbp_per_mwh"] == pytest.approx(3.0)
