@@ -403,3 +403,72 @@ def test_the_deadline_is_the_units_budget_less_one_gate_run(tmp_path, monkeypatc
     start = seat._PROCESS_STARTED
     assert seat.direction_land_deadline_s(start + 1000) == 3000 - 1000 - seat.DIRECTION_GATE_RUN_S
     assert seat.direction_land_deadline_s(start + 2000) == 0.0
+
+
+def test_a_HEAD_plus_block_record_is_carried_onto_origin_and_the_shared_copy_settles(world):
+    """Defect it names: the shared HEAD lags origin, so the seat's copy is HEAD-plus-its-row, and
+    the append-only guard refused it as "not kept whole" -- 05:29, 08:31, 11:27 and 14:31Z on
+    2026-10-13. The refused record stayed dirty, held the fast-forward, and kept the next record
+    HEAD-plus-block: the publish graded a HEAD 62 commits behind all day.
+
+    MUTATIONS (must fire): restore the refusal (this lands nothing); insert at the divergence
+    point instead of the end (origin's row lands AFTER the seat's); drop `settle_shared_copies`
+    (the shared copy stays HEAD-plus-block and keeps holding the fast-forward)."""
+    # Origin moved on past the shared HEAD's rows: the HEAD is behind, not diverged, on this file.
+    _push_from(world["origin"], world["origin"].parent, ROWS,
+               '{"at": "1"}\n{"at": "2"}\n{"at": "origin"}\n')
+    _git(world["shared"], "fetch", "-q")
+
+    ok, detail = seat.commit_direction()
+
+    assert ok is True, detail
+    rows = _on_origin(world["origin"], ROWS).splitlines()
+    assert rows == ['{"at": "1"}', '{"at": "2"}', '{"at": "origin"}', '{"at": "3"}']
+    assert (world["shared"] / ROWS).read_text().splitlines() == rows
+    assert ROWS in detail
+    assert _git(world["shared"], "rev-parse", "HEAD") == world["shared_head"]
+
+
+def test_every_rebase_outcome_is_REACHABLE():
+    """THE PARTITION, one control: already origin-plus-block, a prepend carried under the header,
+    an append carried to the end, a block origin already holds, and a refusal. A rebase that
+    refused everything, or carried everything, passes some legs alone.
+
+    MUTATIONS (must fire): drop the `block in theirs` branch (the held leg duplicates the entry);
+    drop the line snap (the prepend leg splits a heading); drop the `theirs[:at]` agreement check
+    (the refused leg is carried over a header origin rewrote)."""
+    head = b"# Log\n\n---\n"
+    old = b"\n## 2026-10-13 14:31 old\n\n---\n"
+    mine = b"\n## 2026-10-13 17:27 mine\n\n---\n"
+    # Another session's entry, headed without the date: it parts from the seat's heading INSIDE the
+    # line, so only an insertion snapped to the line start agrees with origin's copy.
+    hand = b"\n## Order 1, the director's 17:00 reading\n\n---\n"
+    rows = b'{"at": "1"}\n'
+    outcomes = {
+        "unchanged": seat.rebase_append_only(head + mine + old, head, head + old),
+        "prepend": seat.rebase_append_only(head + mine + old, head + old, head + hand + old),
+        "append": seat.rebase_append_only(rows + b'{"at": "3"}\n', rows, rows + b'{"at": "2"}\n'),
+        "held": seat.rebase_append_only(head + mine + old, head + old, head + mine + hand + old),
+        "refused": seat.rebase_append_only(head + mine + old, head + old,
+                                           b"# Renamed\n" + hand + old),
+    }
+    assert outcomes["unchanged"] == head + mine + old
+    assert outcomes["prepend"] == head + mine + hand + old
+    assert outcomes["append"] == rows + b'{"at": "2"}\n{"at": "3"}\n'
+    assert outcomes["held"] == head + mine + hand + old
+    assert outcomes["refused"] is None
+    # A copy that is neither origin's nor HEAD's plus one block is refused, whatever origin holds.
+    assert seat.rebase_append_only(b"rewritten\n", head + old, head + hand + old) is None
+
+
+def test_a_shared_copy_another_writer_appended_to_after_the_read_is_left_alone(world):
+    """MUTATION (must fire): drop the compare-and-swap in `settle_shared_copies`, and the later
+    append is overwritten with origin's copy, which does not hold it."""
+    read = (world["shared"] / ROWS).read_bytes()
+    seat.commit_direction()
+    later = read + b'{"at": "4"}\n'
+    (world["shared"] / ROWS).write_bytes(later)
+    _push_from(world["origin"], world["origin"].parent, ROWS,
+               _on_origin(world["origin"], ROWS) + '\n{"at": "elsewhere"}\n')
+    assert seat.settle_shared_copies(world["shared"], {ROWS: read}) == []
+    assert (world["shared"] / ROWS).read_bytes() == later
