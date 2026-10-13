@@ -425,3 +425,73 @@ have behaviour (real 0.070, drawn world 0.017) and the ones that have none (resc
 meter. The panel is London only and 2013.
 
 Script: `/tmp/l11n/` (not committed).
+
+## The pass is one 60-home draw, and at 240 homes the world is too calm and set by its size (2026-10-13)
+
+Worker on the self-refill draw of `W1_29`, at `origin/main` `e4595810a`, in an isolated worktree. Nothing
+reads a company figure. The limit stated at the top of this doc ("the world side is one draw ... could
+vary with the seed. That has not been checked") is checked here. The world side is read exactly as the
+L1.1 cell reads it (net of both machines), C1 weather Jan-Apr 2022, traces seed 7, homes drawn by
+`premise_population.draw_premise_population(n, base_seed=s, as_of=2022-05-01)`.
+
+**The L1.1 cell's own verdict** (`fgl.evaluate_two_level`), homes under the real p10 / p25 / median / p75:
+
+| draw | under | expected | verdict |
+|---|---|---|---|
+| seed 17, n 60 (the pinned draw) | 3 / 14 / 27 / 44 | 6 / 15 / 30 / 45 | PASS |
+| seed 17, n 240 | 17 / 73 / 134 / 197 | 24 / 60 / 120 / 180 | **FAIL** (p75 p 0.011) |
+| seed 18, n 240 | 17 / 81 / 142 / 196 | | **FAIL** (p25 p 0.003) |
+| seed 19, n 240 | 16 / 74 / 133 / 196 | | PASS (p75 p 0.018, inside the four-leg correction) |
+| seed 23, n 240 | 16 / 79 / 141 / 194 | | **FAIL** (p25 p 0.007) |
+
+World texture at n 240, p10 / p25 / median / p75 / p90: 0.081-0.083 / 0.106-0.108 / 0.144-0.145 /
+0.188-0.193 / 0.232-0.240, against real 0.072 / 0.117 / 0.158 / 0.208 / 0.311. 52-55% of world homes
+sit under 0.15, against real 45%. The red is on the **calm** side: the middle is too calm, and the
+rough tail is missing (p90 0.24 against 0.31). The n=60 pass was a matter of statistical power. The
+world was not already right.
+
+**Why: a world home's texture is set by its size, and its size by its always-on draw.** These are
+per-home Pearson correlations over the n 240 draws (the range across the four seeds):
+
+| | world |
+|---|---|
+| texture ~ log kWh/day | −0.72 to −0.73 (real, on kWh/day: −0.32) |
+| texture ~ log always-on kW | −0.69 to −0.70 |
+| log kWh/day ~ log always-on kW | **+0.80 to +0.82** |
+| log kWh/day ~ people | +0.42 to +0.46 |
+| texture residual on log kWh ~ owned-stock count | +0.39 to +0.45 |
+
+By kWh band (n 240, four seeds), world medians are 0.197-0.207 under 5 kWh/day, with **0%** of homes
+under 0.15 (real 29%), and 0.076-0.092 at 12-20 kWh/day, with **100%** under 0.15 (real 60%).
+
+So the world does have homes from calm to busy, and no two are alike (no exact duplicate texture in
+any draw). But which home is calm is decided almost entirely by how big its always-on load happens to
+be. A big always-on draw makes a home big and calm at once. Real homes differ by size mostly through
+**active** use: above-base use p90 is 18.7 kWh/day in LCL against the world's 8.8 (the section of
+2026-10-06 near midnight). That is the same missing spread L2.4 measures (scale spread 1.9-2.4 against
+5.38). At a given size, a real home's texture still varies widely.
+
+**The flats in the twin line are not established.** LCL records no dwelling type, so "a rough tail of
+small busy flats" is prose rather than a measured fact. In the world, flats' median texture is
+0.151-0.164 against 0.129-0.149 for houses, with a similar p90. Nothing here is keyed on dwelling type.
+
+**GAP: the between-home spread of active use at a given household size.** The world draws a home's
+active electricity from its headcount, owned stock and routine. No source in the knowledge layer gives
+how much homes of one size differ in it. EFUS 2011 gives only a range of mean hourly demand (121 W
+to 2,438 W, n 79). The candidates to read first are DESNZ NEED's consumption by household
+characteristics (the stratified source L2.4's anchor names) and HES 2012's per-household appliance
+totals, if HES publishes their spread. LCL cannot be the source, because LCL is the comparison. A
+per-home intensity multiplier tuned until these quantiles match would be circular, so none is built.
+
+**What was built.** A comparator in `tests/harness/test_premise_two_level.py`: a Fisher-z two-sample
+test of the world's texture~kWh/day correlation against LCL's −0.32 (n 313). On the drawn 60 it reads
+r −0.665, z −3.27, and it is pinned as a strict xfail. A companion control shows that both of its
+branches are reachable on the drawn 60's own textures: dealt at random they pass, and dealt in size
+order they fire. Two mutations were run: a constant True and a constant False result. Each reds the
+companion, and the constant False result also turns the strict xfail into an XPASS. **No world draw
+changed**, so the world digest and the value arms do not move.
+
+Limits: four seeds and one weather site. Whole-meter LCL carries electric-heated homes, which are big
+and calm, so net of heating the real coupling is probably weaker than −0.32. That makes the comparison
+lenient to the world. LCL's −0.32 is read on linear kWh/day, and the log-kWh correlations above are
+world-only. Scripts: `/var/tmp/se-w129/.scratch_w129/` (not committed).

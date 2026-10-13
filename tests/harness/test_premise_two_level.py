@@ -716,6 +716,13 @@ def test_MEASURED_population_values(population, population_result):
     # A weighted start consumes the day's substream differently from a uniform one, so every later
     # appliance's start reshuffles too: timing and RNG together. Not predicted.
     assert [legs[q].below for q in (0.10, 0.25, 0.50, 0.75)] == [3, 14, 27, 44], texture.note
+    # THIS PASS IS ONE 60-HOME DRAW, NOT THE WORLD'S (2026-10-13, W1_29). The same cell over 240
+    # homes at origin e4595810a: seed 17 [17, 73, 134, 197], 18 [17, 81, 142, 196], 19 [16, 74,
+    # 133, 196], 23 [16, 79, 141, 194] against expected [24, 60, 120, 180]. Red on seeds 17, 18
+    # and 23 and passing on 19 by the p75 leg's margin, every time on the CALM side: too many homes
+    # under the real p25, median and p75. At n=60 the cell has not the power to see it. The size
+    # coupling behind it is the strict xfail
+    # `test_a_world_homes_texture_is_no_more_set_by_its_size_than_a_real_homes`.
     # 0.142 -> 0.153 with electronics at its 2022 level (real 0.158).
     # 0.153 -> 0.168 on 2026-10-09, the census headcount (above).
     # 0.168 -> 0.159 the same day, the headcount given the dwelling's bedrooms (real 0.158).
@@ -1175,6 +1182,62 @@ def test_net_of_both_machines_no_electric_home_is_calmer_than_every_gas_home(
     gas_median = statistics.median(gas_criticals)
     after = [v for v in electric_after if v > 1e-9]
     assert all(v >= 0.6 * gas_median for v in after), (after, gas_median)
+
+
+#: Low Carbon London, 313 flat-tariff homes, Jan-Apr 2013, whole meter: Pearson correlation of a
+#: home's L1.1 texture with its kWh/day. Read in
+#: docs/market_research/the_half_hourly_texture_of_real_homes_electricity_read_from_low_carbon_london.md.
+#: Whole-meter LCL carries electric-heated "Std" homes, which are big AND calm, so net of heating the
+#: real coupling is if anything weaker than this: judging the world against it errs in its favour.
+LCL_TEXTURE_KWH_CORRELATION = -0.32
+LCL_TEXTURE_KWH_HOMES = 313
+
+
+def _texture_is_tied_to_size_harder_than_real_homes(textures, kwh_per_day):
+    """Fisher-z two-sample test of the world's texture~kWh/day correlation against LCL's, 5%
+    two-sided. The real p-quantile legs of L1.1 cannot see this: a world can lay its homes on the
+    real quantiles while ordering them by size alone, and then a home's size tells a meter-reading
+    method everything its texture would."""
+    r = statistics.correlation(textures, kwh_per_day)
+    se = math.sqrt(1.0 / (len(textures) - 3) + 1.0 / (LCL_TEXTURE_KWH_HOMES - 3))
+    z = (math.atanh(r) - math.atanh(LCL_TEXTURE_KWH_CORRELATION)) / se
+    return z < -statistics.NormalDist().inv_cdf(0.975), r, z
+
+
+def _netted_texture_and_size(population):
+    textures, sizes = [], []
+    for k in range(len(population.homes)):
+        behaviour = fgl.meter_net_of_machines(
+            [list(d) for d in population.grids[k]], _machines_of(population, k))
+        textures.append(fgl.half_hourly_texture(behaviour))
+        sizes.append(sum(map(sum, behaviour)) / len(behaviour))
+    return textures, sizes
+
+
+def test_the_size_coupling_comparator_can_both_pass_and_fire(population):
+    """Both branches of the comparator below are reachable on the drawn 60's own numbers: the same
+    textures dealt to homes at random do not read as size-bound, and dealt in size order they do."""
+    textures, sizes = _netted_texture_and_size(population)
+    dealt = list(textures)
+    random.Random(0).shuffle(dealt)
+    assert not _texture_is_tied_to_size_harder_than_real_homes(dealt, sizes)[0]
+    by_size = sorted(range(len(sizes)), key=sizes.__getitem__)
+    ordered = [0.0] * len(sizes)
+    for rank, k in enumerate(by_size):
+        ordered[k] = sorted(textures, reverse=True)[rank]
+    assert _texture_is_tied_to_size_harder_than_real_homes(ordered, sizes)[0]
+
+
+@pytest.mark.xfail(strict=True, reason=(
+    "W1_29, 2026-10-13: a world home's texture is set by its size. Drawn 60: r(texture, kWh/day) "
+    "-0.665 against LCL's -0.32 (z -3.27); log-kWh r -0.69 at n=60 and -0.72 to -0.73 at n=240 over seeds "
+    "17/18/19/23, and log kWh tracks log always-on at +0.77 to +0.82. The world's homes are big "
+    "BECAUSE their always-on draw is big, and so calm; real homes differ in active use at a given "
+    "size, and no sourced between-home spread of active use exists in the knowledge layer (GAP)."))
+def test_a_world_homes_texture_is_no_more_set_by_its_size_than_a_real_homes(population):
+    textures, sizes = _netted_texture_and_size(population)
+    tied, r, z = _texture_is_tied_to_size_harder_than_real_homes(textures, sizes)
+    assert not tied, f"r {r:.3f} against LCL {LCL_TEXTURE_KWH_CORRELATION}, z {z:.2f}"
 
 
 def _critical_true_behaviour_weight(meter, behaviour, machines):
