@@ -166,9 +166,12 @@ def _dd_customer_bills():
 #: FORBIDDEN_AT_THE_DOOR reachability check below, not this list.
 #: `simple_balance_after_window` joined 2026-10-13 with the `own_forecast_plus_balance` review
 #: rule -- it is bookkeeping (what the world already holds), not a policy decision, so it sits at
-#: the seam rather than behind it; see its own docstring.
-SANCTIONED_DOORS = ["DEFAULT_REVIEW_RULE", "REVIEW_RULES", "opening_monthly_amount",
-                    "reviewed_monthly_amount", "reviewed_monthly_amount_at_rates", "reviewed_standing",
+#: the seam rather than behind it; see its own docstring. `review_forecast_inputs` and
+#: `forward_readings_by_fuel` joined the same day: the term end and forward rate that rule reads,
+#: formed from records the supplier holds; how the forward rate is formed stays behind the door.
+SANCTIONED_DOORS = ["DEFAULT_REVIEW_RULE", "REVIEW_RULES", "forward_readings_by_fuel",
+                    "opening_monthly_amount", "review_forecast_inputs", "reviewed_monthly_amount",
+                    "reviewed_monthly_amount_at_rates", "reviewed_standing",
                     "simple_balance_after_window"]
 
 

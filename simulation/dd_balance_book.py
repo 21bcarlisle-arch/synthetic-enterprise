@@ -114,6 +114,8 @@ from company.interfaces.bill_assembly import barred_at_charge_recovery
 from company.interfaces.dd_review_outcome import (  # noqa: F401 -- REVIEW_RULES re-exported for tools
     DEFAULT_REVIEW_RULE,
     REVIEW_RULES,
+    forward_readings_by_fuel,
+    review_forecast_inputs,
     reviewed_standing,
     simple_balance_after_window,
 )
@@ -184,6 +186,12 @@ class DDBalanceBook:
     #: barred_gbp, exposure_gbp}` -- so D48 can bound the bar over the accounts that could carry one
     #: (`company/billing/billing_accuracy.direct_debit_money_line`).
     back_billing_accounts: list = field(default_factory=list)
+    #: `own_forecast_plus_balance` only: reviews made, and how many of them split the forecast year
+    #: at a term end and priced the days beyond at a forward rate. Not serialised; read by the
+    #: control that both legs are taken and by `tools/dd_book_legs`.
+    forecast_reviews: int = 0
+    forecast_term_end_taken: int = 0
+    forecast_forward_taken: int = 0
 
     def _months_sorted(self) -> list:
         return sorted(self.monthly)
@@ -301,12 +309,23 @@ def _settle_oldest_first(periods: list[list], amount: float) -> None:
         amount -= take
 
 
+def forecast_inputs_from_run(run: Mapping) -> dict:
+    """The term records and forward readings a run hands `build_dd_balance_book`: the terms the
+    supplier sold (`account_state_log`) and the forward each was priced from (`basis_risk_terms`).
+    One place for the production caller and `tools/dd_book_legs` to read them from, so the book a
+    control builds is the book the run builds."""
+    return {"term_records": run.get("account_state_log"),
+            "term_forwards": run.get("basis_risk_terms")}
+
+
 def build_dd_balance_book(
     bills: list[dict],
     opening_dd_gbp: Mapping[str, float] | None = None,
     closed_ids: set[str] | None = None,
     seek_balance_at_review: bool = False,
     review_rule: str = DEFAULT_REVIEW_RULE,
+    term_records: list[dict] | None = None,
+    term_forwards: list[dict] | None = None,
 ) -> DDBalanceBook:
     """Carry each direct-debit customer's level-DD credit/debit balance
     tick-by-tick and aggregate the portfolio held-credit liability over time.
@@ -344,7 +363,12 @@ def build_dd_balance_book(
 
     Pure, deterministic, idempotent (no RNG, no mutation of ``bills`` or any
     ground-truth structure). ``review_rule`` is one of ``REVIEW_RULES`` (see
-    ``reviewed_standing``). See the module docstring for the wall-clean basis
+    ``reviewed_standing``). ``term_records`` (the run's ``account_state_log``: the terms the
+    supplier sold, each with its start and end) and ``term_forwards`` (the run's
+    ``basis_risk_terms``: the supplier's own forward each term was priced from) are read only by
+    ``own_forecast_plus_balance``, which asks the door for the term end and forward rate of each
+    review (``review_forecast_inputs``); without them that rule prices the whole year at the known
+    rate. See the module docstring for the wall-clean basis
     and the exact consistency with ``dd_collection_book`` / ``dd_review_runner``.
     """
     # Group the company's OWN issued bills by customer, direct-debit only --
@@ -373,6 +397,11 @@ def build_dd_balance_book(
         bills_by_cust.setdefault(b["customer_id"], []).append(b)
 
     book = DDBalanceBook(seek_balance_at_review=seek_balance_at_review)
+    forecasting = review_rule == "own_forecast_plus_balance" and term_records is not None
+    terms_by_cust: dict[str, list[Mapping]] = {}
+    for t in (term_records or []) if forecasting else []:
+        terms_by_cust.setdefault(t["customer_id"], []).append(t)
+    readings = forward_readings_by_fuel(term_forwards or []) if forecasting else {}
     # Per-customer forward-filled balance by month, so the portfolio aggregate
     # at any calendar month sums each customer's most recent known balance while
     # they are active (customers bill in different months / start dates).
@@ -427,6 +456,14 @@ def build_dd_balance_book(
             # toward_zero_under_balance_recovery` (measured, not asserted from the arithmetic alone).
             kwargs = ({"balance_to_clear_gbp": -balance_entering[wi]}
                       if review_rule == "own_forecast_plus_balance" else {})
+            if forecasting:
+                inputs = review_forecast_inputs(
+                    windows[prev_wi], windows[wi][0], terms_by_cust.get(cid, []),
+                    readings.get(windows[wi][0].get("commodity", "electricity"), []))
+                kwargs.update(inputs)
+                book.forecast_reviews += 1
+                book.forecast_term_end_taken += "term_end_iso" in inputs
+                book.forecast_forward_taken += "forward_rate_per_mwh_ex_vat" in inputs
             standing_dd_by_window[wi] = reviewed_standing(
                 review_rule, windows[prev_wi], windows[wi][0], **kwargs)
         # [start, end, true charge, collected] per period, for the recovery actions below.

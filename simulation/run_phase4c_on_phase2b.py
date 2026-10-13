@@ -89,7 +89,7 @@ from simulation.arrears_engine import (
 )
 from simulation.contact_centre import generate_contact_centre_log
 from simulation.credit_refund_events import generate_credit_refund_log
-from simulation.dd_balance_book import build_dd_balance_book
+from simulation.dd_balance_book import build_dd_balance_book, forecast_inputs_from_run
 from simulation.dd_collection_book import build_dd_collection_book
 from simulation.dd_level_collection_book import build_dd_level_collection_book
 from simulation.household import households_whose_account_closed, supply_points_that_left
@@ -401,10 +401,14 @@ def main(report_end: str | None = None, policy=None):
     # that left asks for its closing balance, so `churned_ids` names those actions. Whether the annual
     # review also seeks the balance is the director's assumption toggle; the book runs as the review
     # is (it does not), and the other arm is published beside it so the bar can be read across both.
-    dd_balance_book = build_dd_balance_book(bills, opening_dd, churned_ids)
+    #
+    # The term records and forward readings are read only by the `own_forecast_plus_balance`
+    # review rule; under the default rule they change nothing.
+    dd_book_terms = forecast_inputs_from_run(phase2b_result)
+    dd_balance_book = build_dd_balance_book(bills, opening_dd, churned_ids, **dd_book_terms)
     dd_back_billing_if_review_seeks_balance = {
         k: v for k, v in build_dd_balance_book(
-            bills, opening_dd, churned_ids, seek_balance_at_review=True,
+            bills, opening_dd, churned_ids, seek_balance_at_review=True, **dd_book_terms,
         ).summary().items()
         if k.startswith("back_billing_") or k in ("seek_balance_at_review", "n_customers_barred")
     }

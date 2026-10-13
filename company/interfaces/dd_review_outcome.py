@@ -94,9 +94,11 @@ from company.billing.dd_review import DEFAULT_REVIEW_RULE, REVIEW_RULES
 __all__ = [
     "DEFAULT_REVIEW_RULE",
     "REVIEW_RULES",
+    "forward_readings_by_fuel",
     "opening_monthly_amount",
     "reviewed_monthly_amount",
     "reviewed_monthly_amount_at_rates",
+    "review_forecast_inputs",
     "reviewed_standing",
     "simple_balance_after_window",
 ]
@@ -189,6 +191,29 @@ def reviewed_standing(rule: str, completed: list, first_of_new, **kwargs) -> flo
     from company.billing.dd_review import reviewed_standing as _reviewed_standing
 
     return _reviewed_standing(rule, completed, first_of_new, **kwargs)
+
+
+def forward_readings_by_fuel(term_forwards: list) -> dict:
+    """The supplier's own twelve-month forward readings, per fuel, by the date each was taken --
+    from the forward it priced each term from. The world's forward on the same records is never
+    read. See `company.billing.dd_review.forward_readings_by_fuel`."""
+    from company.billing.dd_review import forward_readings_by_fuel as _forward_readings_by_fuel
+
+    return _forward_readings_by_fuel(term_forwards)
+
+
+def review_forecast_inputs(completed: list, first_of_new, account_terms: list,
+                           forward_readings: list) -> dict:
+    """What the supplier's own-forecast review reads besides the bills: the end of the term the
+    account is on at the review, and the forward rate it prices the days beyond it at. In: the
+    window's bills, the first bill of the window being set, the supplier's own record of the terms
+    it sold this account, and its own forward readings for the account's fuel -- all things the
+    supplier holds. Out: keyword arguments for `reviewed_standing`, empty where there is nothing
+    to split. How the forward rate is formed stays behind this door, in
+    `company/billing/dd_review.py`."""
+    from company.billing.dd_review import review_forecast_inputs as _review_forecast_inputs
+
+    return _review_forecast_inputs(completed, first_of_new, account_terms, forward_readings)
 
 
 def opening_monthly_amount(

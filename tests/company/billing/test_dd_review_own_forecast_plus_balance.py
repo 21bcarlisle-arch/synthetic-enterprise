@@ -5,11 +5,9 @@ balance the account carries into the review -- the director's ruling of 2026-10-
 what_a_supplier_holds_to_size_a_direct_debit.md` §4.7 raised.
 
 Properties: the new rule collapses to `consumption_at_rates_in_force` when the account carries no
-balance and no term boundary falls inside the forecast year (the only shape reachable through
-`simulation.dd_balance_book.build_dd_balance_book` today -- it has no term data to pass). The
-known/forward rate split is real and reachable, proven here by calling `reviewed_standing`
-directly with the kwargs the SIM-side caller does not yet supply (filed as owed in the knowledge
-page, not shipped as a branch nothing can take).
+balance and no term boundary falls inside the forecast year. The known/forward rate split is
+proven here by calling `reviewed_standing` directly; that the book the run builds supplies it is
+`tests/simulation/test_the_dd_books_forecast_legs_are_taken.py`.
 """
 from __future__ import annotations
 

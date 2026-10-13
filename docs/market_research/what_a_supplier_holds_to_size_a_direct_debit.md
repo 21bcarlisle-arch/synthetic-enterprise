@@ -274,7 +274,8 @@ account carries no balance.
 
 **GAPs, stated rather than filled:**
 
-1. **The known/forward rate split is built and unit-tested, but not wired to live term data.**
+1. **WIRED 2026-10-13 -- see §7.** *As first written:* **The known/forward rate split is built
+   and unit-tested, but not wired to live term data.**
    `reviewed_standing` takes `term_end_iso` and `forward_rate_per_mwh_ex_vat` as optional
    parameters; `simulation/dd_balance_book.py::build_dd_balance_book` and
    `tools/dd_book_legs.py::account_legs` both call it from bills alone and never supply either, so
@@ -307,3 +308,52 @@ account carries no balance.
    toggle). The two are deliberately different questions -- what a review clerk reads off the bills
    to size next year's debit, versus what SLC 21BA lets the supplier actually demand at a recovery
    action -- and nothing published says a review is supposed to net the two.
+
+---
+
+## 7. 2026-10-13 pass — the term end and the forward rate the review can see
+
+*Knowledge before build (K8), delivery seat, for claim
+`dd-own-forecast-forward-split-wired-after-the-pile-lands`. Closes §6 GAP 1's wiring; the
+conversion it named stays a stated belief, below.*
+
+**What the company holds at a review, and what is now read.** Both are the company's own records,
+already in every run's output:
+
+* **The term in force and its end** -- `account_state_log`, one row per term the supplier sold
+  (`term_start`, `term_end`; default-tariff terms run one cap period, fixes their length). The
+  review reads the term in force on the review date; it splits the forecast year only when that
+  term ends inside it.
+* **Its own 12-month forward** -- `basis_risk_terms.company_fwd_gbp_per_mwh`, the forward the
+  company priced each term from, dated by the term's start (the world's forward on the same row,
+  `sim_fwd_gbp_per_mwh`, is never read). Per the forward-axis page
+  (`the_published_forward_has_an_as_of_axis_and_no_delivery_axis_2026-10-07.md`) this is a
+  12-month strip from its as-of date, an EWMA of spot with a seasonal shape, so its level swings
+  with the season it is read in.
+
+**The forward rate, and the belief in it (not a published figure).** The days after the term end
+price at the known unit rate moved by the change in the company's forward between the term's start
+(when the known rate was set) and the review date. That is a **1:1 pass-through of wholesale into
+the retail unit rate, with no losses uplift**. The direction is near-certain: the cap's wholesale
+allowance is indexed to forward prices, so a retail rate set from them moves with them. The
+coefficient is not established here: the cap applies a losses factor to the wholesale allowance,
+and this pass does not transcribe it, so the 1:1 understates the move by that factor -- erring
+toward the rule mattering less (F11). **GAP:** the losses factor in force by year from the cap
+methodology, and whether a supplier's own default rate passes wholesale through at the cap's
+coefficient.
+
+**Measured (single-levy run, 2018-06, one process).** Review lag: `last_year_spend` -£17.8k,
+`consumption_at_rates_in_force` -£14.4k, `own_forecast_plus_balance` with the term records withheld
+-£14.4k (identical, as built), wired -£9.6k. Book: -£20.6k, -£17.4k, -£12.6k, -£8.4k. The
+pre-registered prediction (forward split moves the lag by under £1.5k) **missed** by a factor of
+three: `docs/staging/records/SEAT_PREREGISTRATION_THE_DD_REVIEW_PRICED_AT_THE_TERM_END_AND_THE_COMPANYS_FORWARD_2026-10-13.md`.
+
+**What the forward knows, graded per review.** Against the consumption-weighted rate actually billed
+over the days beyond the term end, the forward beats the known rate in rising years and loses in
+falling ones (mean absolute % error, known vs forward): electricity 2017 0.109/0.098, 2018
+0.098/0.082, 2019 0.072/0.090, 2020 0.077/0.101, 2021 0.209/0.129, 2022 0.377/0.301; gas 2018
+0.055/0.092, 2019 0.093/0.154. So the lag it closes at 2018-06 is partly a rising market, and a
+book read in 2019-2020 would be priced worse than the known rate. Whether a better-shaped forward
+(the cap's own reference quarters) keeps the rising-year gain without the falling-year loss is the
+next question; it waits on the basket the forward-axis page names.
+

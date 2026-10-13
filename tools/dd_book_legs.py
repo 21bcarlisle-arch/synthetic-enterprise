@@ -48,9 +48,16 @@ THE EPISTEMIC WALL
 This reads one finished run's issued bills and the opening amounts it published. It reaches no
 ground truth, and `T` is the supplier's own figure, not the world's.
 
+Under `own_forecast_plus_balance` the review prices the days after the account's term in force
+ends at a forward rate (`review_forecast_inputs`, from the run's term records and the company's
+own forward readings), and adds the balance carried in. `X_prev` is then that blended figure, and
+the addition is its own leg, `balance_recovery`. `--no-terms` withholds the term records, so the
+forward split can be measured as one variable.
+
 USAGE
     python3 -m tools.dd_book_legs /var/tmp/single_levy/run_output_abb925ec7.json --month 2018-06
     python3 -m tools.dd_book_legs RUN --month 2018-06 --rule consumption_at_rates_in_force
+    python3 -m tools.dd_book_legs RUN --month 2018-06 --rule own_forecast_plus_balance [--no-terms]
 """
 from __future__ import annotations
 
@@ -60,8 +67,7 @@ from datetime import date
 from pathlib import Path
 from typing import Mapping
 
-from company.billing.dd_review import bill_days as _bill_days
-from company.compliance.domain_invariants import vat_rate_for_segment
+from company.billing.dd_review import priced_annual_for_review
 from simulation.arrears_engine import payment_method
 from simulation.dd_balance_book import (
     DEFAULT_REVIEW_RULE,
@@ -69,6 +75,9 @@ from simulation.dd_balance_book import (
     _months_between,
     _true_charges,
     build_dd_balance_book,
+    forecast_inputs_from_run,
+    forward_readings_by_fuel,
+    review_forecast_inputs,
     reviewed_standing,
     simple_balance_after_window,
 )
@@ -79,24 +88,6 @@ LEGS = ("opening_sizing", "review_lag", "rounding", "seasonal_phase",
 #: Months whose window opening counts as a winter start: an account that opened its current year
 #: in one of them has consumed a whole winter on level instalments by the summer.
 WINTER_MONTHS = frozenset({10, 11, 12, 1, 2, 3})
-
-
-def _priced_annual(rule: str, completed: list[Mapping], first_of_new: Mapping | None) -> float:
-    """`X`, the annual figure the review priced before rounding: last year's spend, or its
-    consumption at the rates on the new window's first bill. Mirrors `reviewed_standing`,
-    including its fallback; a mismatch would move money between rounding and lag, never the sum.
-    """
-    spend = sum(float(b["total_amount_gbp"]) for b in completed)
-    if rule == "last_year_spend" or first_of_new is None:
-        return spend
-    unit = first_of_new.get("average_unit_rate_gbp_per_mwh")
-    sc = first_of_new.get("standing_charge_gbp_per_day")
-    if not unit or sc is None or any(b.get("total_consumption_kwh") is None for b in completed):
-        return spend
-    kwh = sum(float(b["total_consumption_kwh"]) for b in completed)
-    days = sum(_bill_days(b) for b in completed)
-    adj = sum(float(b.get("catchup_adjustment_gbp") or 0.0) for b in completed if b.get("catchup_applied"))
-    return (kwh / 1000.0 * float(unit) + days * float(sc)) * (1.0 + vat_rate_for_segment("resi")) + adj
 
 
 def _dd_supplies(bills: list[dict]) -> dict[str, list[tuple[date, date, float, float, dict]]]:
@@ -121,13 +112,17 @@ def _dd_supplies(bills: list[dict]) -> dict[str, list[tuple[date, date, float, f
 
 
 def account_legs(seq: list[tuple], opening: float, month: str,
-                 rule: str = DEFAULT_REVIEW_RULE) -> dict | None:
+                 rule: str = DEFAULT_REVIEW_RULE, terms: list[Mapping] | None = None,
+                 readings: list[tuple[str, float]] | None = None) -> dict | None:
     """One account's balance at `month` and its legs, or None if the book does not count it then.
 
     Counted means what the book's portfolio sum means: first bill on or before `month` and last
     bill on or after it. The balance is the one after the last bill on or before `month`.
     Each row is `(end, start, billed, true)`, with the bill dict as a fifth element where the rule
-    needs the rates it carries.
+    needs the rates it carries. `terms` (this account's term records) and `readings` (the
+    company's forward readings for its fuel) give `own_forecast_plus_balance` its term end and
+    forward rate, as `build_dd_balance_book` is given them; without them that rule prices the whole
+    year at the known rate.
     """
     def ym(d: date) -> str:
         return f"{d.year:04d}-{d.month:02d}"
@@ -161,14 +156,16 @@ def account_legs(seq: list[tuple], opening: float, month: str,
     for prev_w, w in zip(windows, windows[1:]):
         balance_entering[w] = simple_balance_after_window(
             balance_entering[prev_w], standing[prev_w], bills_in[prev_w])
-        without = reviewed_standing(rule, bills_in[prev_w], bills_in[w][0])
+        inputs = (review_forecast_inputs(bills_in[prev_w], bills_in[w][0], terms, readings or [])
+                  if rule == "own_forecast_plus_balance" and terms is not None else {})
+        without = reviewed_standing(rule, bills_in[prev_w], bills_in[w][0], **inputs)
         if rule == "own_forecast_plus_balance":
-            standing[w] = reviewed_standing(rule, bills_in[prev_w], bills_in[w][0],
+            standing[w] = reviewed_standing(rule, bills_in[prev_w], bills_in[w][0], **inputs,
                                             balance_to_clear_gbp=-balance_entering[w])
         else:
             standing[w] = without
         recovery[w] = standing[w] - without
-        priced[w] = _priced_annual(rule, bills_in[prev_w], bills_in[w][0])
+        priced[w] = priced_annual_for_review(rule, bills_in[prev_w], bills_in[w][0], **inputs)[0]
 
     legs = dict.fromkeys(LEGS, 0.0)
     balance = 0.0
@@ -201,19 +198,29 @@ def account_legs(seq: list[tuple], opening: float, month: str,
 
 
 def decompose(bills: list[dict], opening_dd: Mapping[str, float], month: str,
-              rule: str = DEFAULT_REVIEW_RULE) -> dict:
+              rule: str = DEFAULT_REVIEW_RULE, term_records: list[dict] | None = None,
+              term_forwards: list[dict] | None = None) -> dict:
     """The portfolio's balance at `month`, its legs, and the same split by fuel, window and start.
 
-    Raises if any account's legs do not sum to the balance the book itself carries for it.
+    `term_records` / `term_forwards` are the run's `account_state_log` / `basis_risk_terms`, passed
+    to the book and to each account's legs alike. Raises if any account's legs do not sum to the
+    balance the book itself carries for it.
     """
-    book = build_dd_balance_book(bills, opening_dd, review_rule=rule)
+    book = build_dd_balance_book(bills, opening_dd, review_rule=rule,
+                                 term_records=term_records, term_forwards=term_forwards)
+    terms_by_cust: dict[str, list[Mapping]] = {}
+    for t in term_records or []:
+        terms_by_cust.setdefault(t["customer_id"], []).append(t)
+    readings = forward_readings_by_fuel(term_forwards or [])
     supplies = _dd_supplies(bills)
     per = {}
     for cid, seq in supplies.items():
         opening = opening_dd.get(cid)
         if opening is None or opening <= 0.0:
             continue
-        got = account_legs(seq, opening, month, rule)
+        got = account_legs(seq, opening, month, rule,
+                           terms_by_cust.get(cid, []) if term_records is not None else None,
+                           readings.get(seq[0][4].get("commodity", "electricity"), []))
         if got is None:
             continue
         pts = [p for p in book.trajectories[cid] if p.month <= month]
@@ -246,6 +253,9 @@ def decompose(bills: list[dict], opening_dd: Mapping[str, float], month: str,
     return {"month": month, "review_rule": rule, "book_portfolio_balance_gbp": round(series.get(month, 0.0), 2),
             "collection_failure_note": "structural zero: the book collects the standing amount "
                                        "every month and never reads dd_collection_book",
+            "forecast_legs": {"reviews": book.forecast_reviews,
+                              "term_end_taken": book.forecast_term_end_taken,
+                              "forward_taken": book.forecast_forward_taken},
             "groups": {k: total(v) for k, v in groups.items()}}
 
 
@@ -255,9 +265,14 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--month", default="2018-06")
     ap.add_argument("--json", type=Path, default=None)
     ap.add_argument("--rule", choices=REVIEW_RULES, default=DEFAULT_REVIEW_RULE)
+    ap.add_argument("--no-terms", action="store_true",
+                    help="withhold the term records and forwards (own_forecast_plus_balance then "
+                         "prices the whole year at the known rate)")
     args = ap.parse_args(argv)
     run = json.loads(args.run_output.read_text())
-    out = decompose(run["bills"], run["opening_dd_by_customer"], args.month, args.rule)
+    terms = {} if args.no_terms else forecast_inputs_from_run(run)
+    out = decompose(run["bills"], run["opening_dd_by_customer"], args.month, args.rule,
+                    terms.get("term_records"), terms.get("term_forwards"))
     published = {m["month"]: m["portfolio_balance_gbp"]
                  for m in run["dd_balance_book"]["monthly_held_credit_series"]}
     out["published_portfolio_balance_gbp"] = published.get(args.month)
