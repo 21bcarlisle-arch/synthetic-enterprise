@@ -1,6 +1,6 @@
 **Severity:** LATENT · **Lane:** W4_the_wall · **Epoch:** unassigned · **Atom:** `unminted`
 **What:** the in-loop annual DD review is fed settled revenue at TRUE kWh, where the supplier holds only its estimated bills · claim `dd4b-in-loop-bill-basis-tail-and-probe-placebo`
-**Status:** measured 2026-10-13 on `f200-low` (200 founders, budget 0); remedy not built. Evidence in `records/SEAT_PREREG_DD4B_AT_THE_IN_LOOP_REVIEW_LOW_AND_HIGH_2026-10-12.md`, "The content tail, explained"
+**Status:** measured 2026-10-13 on `f200-low` (200 founders, budget 0); remedy built 2026-10-13, claim `dd4b-in-loop-review-reads-the-suppliers-own-bill` (`simulation/dd_review_in_loop.py`). Evidence in `records/SEAT_PREREG_DD4B_AT_THE_IN_LOOP_REVIEW_LOW_AND_HIGH_2026-10-12.md`, "The content tail, explained". Not yet re-graded at range ends -- that re-grade is owed to whoever next runs `f200-low`/`f200-high` after this landing.
 
 # The in-loop DD review is told true consumption, not the supplier's estimated bills
 
@@ -26,8 +26,23 @@ smart mode as traditional, and nothing in the world forces a read across 42 mont
 existing atom `W2_36_unbilled_energy_arises_the_way_it_does_in_reality` (estimated reads and their
 true-up), not a new one.
 
-**Remedy (not built).** The in-loop review should take the supplier's own bill for the month, from the
-same `SimulatedReadFeed` and assembly door `build_monthly_bills` uses, with the move-in void and
-unnamed months attributed as the post-loop bills attribute them, or both re-attributed together. Then
-"the in-loop chain is the post-loop chain" holds on content, and a control can assert it: matched
-reviews' spend equal to the penny, not just keys equal.
+**Remedy, built 2026-10-13.** `InLoopDDReview` now keeps each leg's own settled rows (`observe`) and,
+at each window close, calls `simulation.run_phase4c_on_phase2b.build_monthly_bills` -- the same
+`SimulatedReadFeed`-backed assembly door the post-loop chain calls -- restricted to that leg's rows
+observed so far, rather than grossing up the loop's own settled revenue at true kWh. Because
+`SimulatedReadFeed.read_for` seeds its RNG on `(customer_id, period_end)` alone, a bill assembled from
+a prefix of a leg's rows is byte-identical to the one the post-loop chain assembles later from the
+complete history. The move-in attribution is resolved the same way, by construction: both chains now
+read one assembly's decision, not two. Knowledge pass:
+`docs/market_research/a_suppliers_annual_dd_review_is_sized_from_its_own_issued_bills_not_true_
+consumption_2026-10-13.md`. New control:
+`tests/simulation/test_dd_review_in_loop.py::test_the_review_told_in_the_loop_is_the_post_loop_chains_
+bills_to_the_penny` asserts the in-loop chain's told events equal the post-loop chain's events exactly
+(spend to the penny, not just keys). NOT yet re-run at `f200-low`/`f200-high` range ends -- the 135/44
+tail counts above are pre-remedy and are owed a re-grade.
+
+**Landed 2026-10-13 by the executor seat** (claim `dd4b-in-loop-review-reads-the-suppliers-own-bill`),
+from the prior invocation's unlanded shared-tree copy, with the one caller hunk in
+`simulation/run_phase2b.py` (`post(cid, month)`). Mutation: rebuilding the bills as settled revenue x 1.05
+inside the new structure reds the to-the-penny control. Still owed from K8: the knowledge note declares
+`none` because no site topic covers the DD review, so it is not yet published on the site.

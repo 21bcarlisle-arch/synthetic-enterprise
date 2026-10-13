@@ -14,11 +14,27 @@ causal by construction -- window w is reviewed at the first bill of window w+1, 
 bills only -- so asking it as the bills arrive gives the post-loop chain's events at the month they
 fall, provided the bills are the same.
 
-THE BILLS ARE THE LOOP'S, AND THAT IS A STATED DIFFERENCE. The loop's monthly amount is the settled
-revenue it collects against (ex-VAT), grossed up here at the domestic rate. The post-loop review reads
-`build_monthly_bills`, whose totals can be ESTIMATED where a read is late and are trued up later. Over
-a twelve-month window the two should sum close; how close is measured, not assumed
-(`reconcile` below, and the landing's evidence).
+THE BILLS ARE THE SUPPLIER'S OWN, THE SAME ONES THE POST-LOOP CHAIN BILLS
+(`docs/staging/SEAT_FINDING_THE_IN_LOOP_DD_REVIEW_IS_TOLD_TRUE_CONSUMPTION_NOT_THE_SUPPLIERS_
+ESTIMATED_BILLS_2026-10-13.md`, remedy; knowledge pass
+`docs/market_research/a_suppliers_annual_dd_review_is_sized_from_its_own_issued_bills_not_true_
+consumption_2026-10-13.md`). This used to gross up the loop's own settled revenue at true meter kWh --
+a figure no real supplier holds where a read is estimated. It now calls the SAME assembly door the
+post-loop chain calls (`simulation.run_phase4c_on_phase2b.build_monthly_bills`, the world's wrapper
+over `company.billing.monthly_bill_assembly.assemble_monthly_bills` and
+`simulation.meter_reads.SimulatedReadFeed`), restricted to this leg's own settled rows observed so
+far. `SimulatedReadFeed.read_for` seeds its RNG on `(customer_id, period_end)` alone
+(`simulation/meter_reads.py`), so a bill assembled here from a subset of rows is byte-identical to the
+one the post-loop chain assembles later from the complete history -- there is no second estimate to
+agree with, only one assembly asked twice. `churned_ids` is deliberately never passed: whether this
+leg will churn is not yet knowable to a chain running causally inside the leg's own history, so no
+bill here is ever forced to a final-read resolution the way the post-loop chain's genuinely-last bill
+can be -- the honest asymmetry of asking mid-run rather than after the fact.
+
+THE MOVE-IN ATTRIBUTION (the SEAT_FINDING's second named cause: a mover's first window dropping the
+owner's void and unnamed-occupier months the post-loop bills include) is resolved by construction, not
+by a separate rule: both chains now attribute a leg's rows through the one assembly call that decides
+it, so there is nothing left for two attributions to disagree about.
 
 The opening amount -- what the supplier set at sign-up -- is asked through the same door as the
 post-loop review (`_opening_dd_by_customer`), from the leg's registration and its first settled month.
@@ -28,8 +44,6 @@ from __future__ import annotations
 
 from datetime import date
 from typing import Callable, Optional
-
-from simulation.price_cap_enforcement import DOMESTIC_VAT_RATE
 
 
 def _month_end(month: str) -> str:
@@ -43,23 +57,27 @@ def _months_between(a: str, b: str) -> int:
 
 
 class InLoopDDReview:
-    """Per leg: the bills posted so far and its first settled month's rows. `post` returns the
-    review event told THIS month (the company's serialised event), or None."""
+    """Per leg: the settled rows observed so far and its first settled month's rows. `post` returns
+    the review event told THIS month (the company's serialised event), or None."""
 
     def __init__(self, customer_of: Callable[[str], Optional[dict]]):
         self._customer_of = customer_of
-        self._bills: dict[str, list[dict]] = {}
+        self._rows: dict[str, list[dict]] = {}
         self._first_month_rows: dict[str, list[dict]] = {}
         self._first_month: dict[str, str] = {}
+        self._last_window: dict[str, int] = {}
         self._opening: dict[str, Optional[float]] = {}
         self.told: list[dict] = []
 
     def observe(self, rows) -> None:
-        """The committed daily rows: only each leg's first settled month is kept, which is all the
-        opening amount reads (`sold_unit_rate`, `sold_standing_charge`)."""
+        """The committed daily rows: kept in full per leg, so a window close can re-ask the
+        supplier's own assembly door over this leg's whole history, same as the post-loop chain
+        does over the whole run's. Each leg's first settled month is additionally kept apart --
+        all the opening amount reads (`sold_unit_rate`, `sold_standing_charge`)."""
         for r in rows:
             cid = r.get("customer_id")
             month = r["settlement_date"][:7]
+            self._rows.setdefault(cid, []).append(r)
             first = self._first_month.setdefault(cid, month)
             if month == first:
                 self._first_month_rows.setdefault(cid, []).append(r)
@@ -72,20 +90,22 @@ class InLoopDDReview:
                 [customer], self._first_month_rows.get(cid, [])).get(cid))
         return self._opening[cid]
 
-    def post(self, cid: str, month: str, amount_ex_vat_gbp: float) -> Optional[dict]:
-        bills = self._bills.setdefault(cid, [])
-        period_end = _month_end(month)
-        starts_a_window = bool(bills) and (
-            _months_between(bills[0]["period_end"], period_end) // 12
-            > _months_between(bills[0]["period_end"], bills[-1]["period_end"]) // 12)
-        bills.append({"customer_id": cid, "period_end": period_end,
-                      "total_amount_gbp": amount_ex_vat_gbp * (1.0 + DOMESTIC_VAT_RATE)})
+    def post(self, cid: str, month: str) -> Optional[dict]:
+        first = self._first_month.get(cid)
+        if first is None:
+            return None
+        window = _months_between(first, month) // 12
+        starts_a_window = window != self._last_window.get(cid, 0)
+        self._last_window[cid] = window
         if not starts_a_window:
             return None
         opening = self._opening_of(cid)
         if opening is None:
             return None
+        from simulation.run_phase4c_on_phase2b import build_monthly_bills
+        bills = build_monthly_bills(self._rows.get(cid, []))
         from company.interfaces.dd_review import annual_dd_review_view
+        period_end = _month_end(month)
         events = annual_dd_review_view(bills, {cid: opening})["events"]
         told = next((e for e in events if e["review_date"] == period_end), None)
         if told is not None:

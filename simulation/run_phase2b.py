@@ -2140,7 +2140,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         # material rise answers it before this month's collection is presented. One answer per
         # household per review month: its two legs are reviewed together and draw the same uniforms.
         if not _dd_shock_strengths.off:
-            _told = _dd_in_loop_review.post(cid, held["month"], held["amount_gbp"])
+            _told = _dd_in_loop_review.post(cid, held["month"])
             _dd_household = household_of(cid)
             if (_told is not None
                     and _method_dynamics.pays_by_direct_debit(cid, held["fuel"])
