@@ -1,14 +1,14 @@
 {
   "meta": {
-    "generated_at": "2026-10-05T21:12:16Z",
-    "git_commit": "998814330",
-    "household_count": 127,
+    "generated_at": "2026-10-13T21:22:32Z",
+    "git_commit": "2248e3baf",
+    "household_count": 774,
     "note": "Auto-curated from real per-household timeline/reaction-chain/churn-accuracy data (WEBSITE_AS_SHOWCASE.md tab 4) -- no household is hand-picked."
   },
   "cases": [
     {
       "category": "Most eventful journey",
-      "headline": "112 timeline + reaction-chain entries on record",
+      "headline": "51 timeline + reaction-chain entries on record",
       "wall_side": "sim",
       "account_id": "PROS-2016-0098",
       "base_account_id": "PROS-2016-0098",
@@ -21,72 +21,72 @@
     },
     {
       "category": "Largest company-vs-SIM churn divergence",
-      "headline": "100.0 percentage points apart at the 2024 renewal (sim 0.0% vs company 100.0%)",
+      "headline": "100.0 percentage points apart at the 2023 renewal (sim 0.0% vs company 100.0%)",
       "wall_side": "sim",
-      "account_id": "PROS-2016-0092",
-      "base_account_id": "PROS-2016-0092",
+      "account_id": "SYN-2016-529",
+      "base_account_id": "SYN-2016-529",
       "segment": "resi",
-      "commodity": "electricity",
+      "commodity": "gas",
       "link": {
-        "acc": "PROS-2016-0092",
+        "acc": "SYN-2016-529",
         "tab": "timeline",
-        "year": 2024
+        "year": 2023
       }
     },
     {
       "category": "Retention save, then churned anyway",
       "headline": "The company offered retention and won, then lost the account regardless",
       "wall_side": "company",
-      "account_id": "SYN-2016-038",
-      "base_account_id": "SYN-2016-038",
+      "account_id": "PROS-2019-0310",
+      "base_account_id": "PROS-2019-0310",
       "segment": "resi",
-      "commodity": "gas",
+      "commodity": "electricity",
       "link": {
-        "acc": "SYN-2016-038",
+        "acc": "PROS-2019-0310",
         "tab": "timeline",
-        "year": 2025
+        "year": 2024
       }
     },
     {
       "category": "Heaviest arrears cascade",
-      "headline": "7 debt write-off event(s) in the arrears cascade",
+      "headline": "2 debt write-off event(s) in the arrears cascade",
       "wall_side": "company",
-      "account_id": "SYN-2016-077",
-      "base_account_id": "SYN-2016-077",
+      "account_id": "OCC-17ff099218d5",
+      "base_account_id": "OCC-17ff099218d5",
       "segment": "resi",
       "commodity": "electricity",
       "link": {
-        "acc": "SYN-2016-077",
+        "acc": "OCC-17ff099218d5",
         "tab": "timeline",
-        "year": 2020
+        "year": 2024
       }
     },
     {
       "category": "Notable life event",
-      "headline": "Insulation upgraded (2024) -- Usage moved -3% (avg 201 kWh/mo -> 195 kWh/mo)",
+      "headline": "Income recovery (2024) -- Real downstream drift: income stress high -> low",
       "wall_side": "sim",
-      "account_id": "PROS-2020-0321",
-      "base_account_id": "PROS-2020-0321",
+      "account_id": "PROS-2018-0267",
+      "base_account_id": "PROS-2018-0267",
       "segment": "resi",
       "commodity": "electricity",
       "link": {
-        "acc": "PROS-2020-0321",
+        "acc": "PROS-2018-0267",
         "tab": "timeline",
         "year": 2024
       }
     },
     {
       "category": "Silent-middle churn risk",
-      "headline": "True satisfaction fell 19.0 percentage points (59.6% in 2018 to 40.6% in 2024) but never once answered a survey -- invisible to the company's measurement instrument",
+      "headline": "True satisfaction fell 30.0 percentage points (76.0% in 2020 to 46.0% in 2025) but never once answered a survey -- invisible to the company's measurement instrument",
       "wall_side": "sim",
-      "account_id": "SYN-2016-066",
-      "base_account_id": "SYN-2016-066",
+      "account_id": "SYN-2016-187",
+      "base_account_id": "SYN-2016-187",
       "segment": "resi",
       "commodity": "electricity",
       "link": {
-        "acc": "SYN-2016-066",
+        "acc": "SYN-2016-187",
         "tab": "timeline",
-        "year": 2024
+        "year": 2025
       }
     }
   ]

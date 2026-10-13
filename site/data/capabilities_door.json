@@ -1,10 +1,10 @@
 {
- "generated_at": "2026-10-10T02:00:10Z",
- "git_commit": "cf8706023de17cbd24b5c76c1739f5def0258e15",
+ "generated_at": "2026-10-13T21:28:14Z",
+ "git_commit": "aa824294216bc3c2abee8b6ad1b2203ce060c670",
  "published_from": {
-  "commit": "cf8706023de17cbd24b5c76c1739f5def0258e15",
-  "tree_was_clean": false,
-  "inputs_are_the_committed_bytes": false,
+  "commit": "aa824294216bc3c2abee8b6ad1b2203ce060c670",
+  "tree_was_clean": true,
+  "inputs_are_the_committed_bytes": true,
   "inputs": [
    {
     "path": "site/data/maturity_map.json",
@@ -24,14 +24,14 @@
    },
    {
     "path": "docs/design/maturity_map.yaml",
-    "state": "modified"
+    "state": "committed"
    },
    {
     "path": "docs/design/EP19_COUNTERPARTY_QUALIFICATION_REGISTER.md",
     "state": "committed"
    }
   ],
-  "reason": "read off the working tree, not out of this commit: docs/design/maturity_map.yaml \u2014 standing at this commit will not reproduce this feed"
+  "reason": "every input read here is byte-identical to what this commit holds, and nothing else in the tree differed from it either"
  },
  "sources": {
   "record": "site/data/maturity_map.json",
@@ -99,7 +99,7 @@
     ],
     "evidence": null,
     "checks": {
-     "checks": 395,
+     "checks": 396,
      "covered": 2,
      "of": 2
     }
@@ -207,7 +207,7 @@
     ],
     "evidence": null,
     "checks": {
-     "checks": 96,
+     "checks": 94,
      "covered": 1,
      "of": 2
     }
@@ -221,7 +221,7 @@
     ],
     "evidence": null,
     "checks": {
-     "checks": 96,
+     "checks": 94,
      "covered": 1,
      "of": 1
     }
@@ -1400,12 +1400,20 @@
    "describes": "The company's MARKET-FEED INTAKE surface \u2014 the one place the world may publish prices to."
   },
   {
+   "module": "move_with_us",
+   "describes": "The company's MOVE-WITH-US door: what it offers our household that has told it it is moving out."
+  },
+  {
    "module": "point_in_time_view",
    "describes": "PointInTimeView \u2014 the as-of snapshot object (Epoch-2 core, W1_reveal_over_ time / D2_three_clocks, director-approved bounded start 2026-07-10, per the closed POINT_IN_TIME_SNAPSHOT_TIER1.md gate's Option A scope)."
   },
   {
    "module": "recorded_sim_interface",
    "describes": "RecordedSimInterface \u2014 the typed mock at the OUTER sim/company seam."
+  },
+  {
+   "module": "renewal_decision_inputs",
+   "describes": "The typed record the run loop hands the company when it asks what a renewal costs."
   },
   {
    "module": "renewal_offer",
@@ -1445,13 +1453,13 @@
   }
  ],
  "wall": {
-  "live_crossings": 7,
-  "direct": 5,
+  "live_crossings": 6,
+  "direct": 4,
   "indirect": 2,
   "examined": 91,
   "cut": 85,
   "owed": 6,
-  "unexamined": 1
+  "unexamined": 0
  },
  "scale": {
   "figures": [

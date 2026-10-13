@@ -1,5 +1,269 @@
 {
-  "available": false,
-  "reason": "the run output this publish read carries no billing-accuracy measure, so there is nothing to show; it was added to the run output on 2026-10-06 and appears at the next run",
-  "source": "run_output_998814330_20261005T205247Z.json"
+  "available": true,
+  "by_fuel": {
+    "electricity": {
+      "K1_year_end_grades": [
+        {
+          "as_of": "2016-12",
+          "graded_gross_true_up_share": 0.20006978246525123,
+          "graded_net_true_up_share": 0.09289874928980366,
+          "graded_runs": 205,
+          "never_read_runs": 0,
+          "outstanding_bills": 685,
+          "outstanding_gbp": 25456.74987338268
+        },
+        {
+          "as_of": "2017-12",
+          "graded_gross_true_up_share": 0.17814185749000197,
+          "graded_net_true_up_share": 0.11040924100292183,
+          "graded_runs": 193,
+          "never_read_runs": 0,
+          "outstanding_bills": 955,
+          "outstanding_gbp": 40124.04916144001
+        },
+        {
+          "as_of": "2018-12",
+          "graded_gross_true_up_share": 0.1909161755232035,
+          "graded_net_true_up_share": 0.09126157182135065,
+          "graded_runs": 164,
+          "never_read_runs": 0,
+          "outstanding_bills": 828,
+          "outstanding_gbp": 40074.3899469015
+        },
+        {
+          "as_of": "2019-12",
+          "graded_gross_true_up_share": 0.20545633565321922,
+          "graded_net_true_up_share": 0.08075790417999887,
+          "graded_runs": 148,
+          "never_read_runs": 0,
+          "outstanding_bills": 799,
+          "outstanding_gbp": 45834.14798849355
+        },
+        {
+          "as_of": "2020-12",
+          "graded_gross_true_up_share": 0.08315275047616046,
+          "graded_net_true_up_share": -0.0037962747781970793,
+          "graded_runs": 136,
+          "never_read_runs": 0,
+          "outstanding_bills": 640,
+          "outstanding_gbp": 33734.05686186055
+        },
+        {
+          "as_of": "2021-12",
+          "graded_gross_true_up_share": 0.097548257434145,
+          "graded_net_true_up_share": 0.01759933363239637,
+          "graded_runs": 138,
+          "never_read_runs": 0,
+          "outstanding_bills": 588,
+          "outstanding_gbp": 35934.32839769295
+        },
+        {
+          "as_of": "2022-12",
+          "graded_gross_true_up_share": 0.10915665867864424,
+          "graded_net_true_up_share": 0.016518680684478804,
+          "graded_runs": 150,
+          "never_read_runs": 0,
+          "outstanding_bills": 735,
+          "outstanding_gbp": 90062.86352788581
+        },
+        {
+          "as_of": "2023-12",
+          "graded_gross_true_up_share": 0.10696217403669182,
+          "graded_net_true_up_share": 0.026585266296968536,
+          "graded_runs": 152,
+          "never_read_runs": 0,
+          "outstanding_bills": 679,
+          "outstanding_gbp": 68874.79862733043
+        },
+        {
+          "as_of": "2024-12",
+          "graded_gross_true_up_share": 0.13361601808425214,
+          "graded_net_true_up_share": 0.04828690286369339,
+          "graded_runs": 108,
+          "never_read_runs": 36,
+          "outstanding_bills": 594,
+          "outstanding_gbp": 49116.42797225211
+        }
+      ],
+      "K2_estimated_share_of_billed_kwh": 0.6649622511794039,
+      "K3_barred_share_of_undercharge_kwh": 0.0038793244835245355,
+      "accounts": 635,
+      "barred_kwh": 1120.5752085527504,
+      "barred_true_ups": 20,
+      "billed_kwh": 7007776.489169141,
+      "estimated_kwh": 4659906.830000011,
+      "open_estimated_kwh": 138386.26000000007,
+      "overcharge_kwh": 246687.74675919447,
+      "snapshot": {
+        "accounts": 195,
+        "against_published": "cannot_be_told_apart_from_the_median_supplier",
+        "ci95": [
+          0.014176572285013067,
+          0.06549221998004974
+        ],
+        "no_read_bill_in_12": 6,
+        "share": 0.03076923076923077
+      },
+      "true_ups": 3805,
+      "undercharge_kwh": 288858.3343084152
+    },
+    "gas": {
+      "K1_year_end_grades": [
+        {
+          "as_of": "2016-12",
+          "graded_gross_true_up_share": 0.15717837988500685,
+          "graded_net_true_up_share": 0.003752257301327718,
+          "graded_runs": 99,
+          "never_read_runs": 0,
+          "outstanding_bills": 342,
+          "outstanding_gbp": 11602.23421139326
+        },
+        {
+          "as_of": "2017-12",
+          "graded_gross_true_up_share": 0.14663648149322409,
+          "graded_net_true_up_share": -0.006910568705924641,
+          "graded_runs": 79,
+          "never_read_runs": 0,
+          "outstanding_bills": 350,
+          "outstanding_gbp": 12655.865663550876
+        },
+        {
+          "as_of": "2018-12",
+          "graded_gross_true_up_share": 0.11518101222592035,
+          "graded_net_true_up_share": -0.009131088515572823,
+          "graded_runs": 82,
+          "never_read_runs": 0,
+          "outstanding_bills": 372,
+          "outstanding_gbp": 14752.989235718032
+        },
+        {
+          "as_of": "2019-12",
+          "graded_gross_true_up_share": 0.12979964234414196,
+          "graded_net_true_up_share": -0.03274720153166565,
+          "graded_runs": 73,
+          "never_read_runs": 0,
+          "outstanding_bills": 341,
+          "outstanding_gbp": 13391.944916479311
+        },
+        {
+          "as_of": "2020-12",
+          "graded_gross_true_up_share": 0.11908363297564903,
+          "graded_net_true_up_share": -0.0024782767859088707,
+          "graded_runs": 73,
+          "never_read_runs": 0,
+          "outstanding_bills": 324,
+          "outstanding_gbp": 11349.85840434538
+        },
+        {
+          "as_of": "2021-12",
+          "graded_gross_true_up_share": 0.13786925436567316,
+          "graded_net_true_up_share": -0.1171344515856257,
+          "graded_runs": 76,
+          "never_read_runs": 0,
+          "outstanding_bills": 339,
+          "outstanding_gbp": 15126.455152864488
+        },
+        {
+          "as_of": "2022-12",
+          "graded_gross_true_up_share": 0.12199173422408413,
+          "graded_net_true_up_share": -0.03325713791095397,
+          "graded_runs": 77,
+          "never_read_runs": 0,
+          "outstanding_bills": 372,
+          "outstanding_gbp": 44042.9450287159
+        },
+        {
+          "as_of": "2023-12",
+          "graded_gross_true_up_share": 0.10860730974348322,
+          "graded_net_true_up_share": -0.043262063386033604,
+          "graded_runs": 81,
+          "never_read_runs": 2,
+          "outstanding_bills": 389,
+          "outstanding_gbp": 32654.024751628287
+        },
+        {
+          "as_of": "2024-12",
+          "graded_gross_true_up_share": 0.11737225139676419,
+          "graded_net_true_up_share": -0.03540333911543712,
+          "graded_runs": 59,
+          "never_read_runs": 22,
+          "outstanding_bills": 392,
+          "outstanding_gbp": 25085.401878085733
+        }
+      ],
+      "K2_estimated_share_of_billed_kwh": 0.6469008258593357,
+      "K3_barred_share_of_undercharge_kwh": 0.007838844442380005,
+      "accounts": 354,
+      "barred_kwh": 3895.715636647126,
+      "barred_true_ups": 11,
+      "billed_kwh": 11597508.474399997,
+      "estimated_kwh": 7502437.810000002,
+      "open_estimated_kwh": 258816.98,
+      "overcharge_kwh": 510926.3527999998,
+      "snapshot": {
+        "accounts": 113,
+        "against_published": "cannot_be_told_apart_from_the_median_supplier",
+        "ci95": [
+          0.030328174516897573,
+          0.122369840829024
+        ],
+        "no_read_bill_in_12": 7,
+        "share": 0.061946902654867256
+      },
+      "true_ups": 1886,
+      "undercharge_kwh": 496975.75519999996
+    }
+  },
+  "direct_debit_money_line": {
+    "accounts_barred": 153,
+    "accounts_met_recovery_action": 422,
+    "available": true,
+    "barred_gbp": 33769.62,
+    "dd_accounts": 695,
+    "mean_barred_gbp": 80.0227962085308,
+    "mean_barred_gbp_ci95": [
+      53.038903065652036,
+      107.00668935140958
+    ],
+    "mean_ci_method": "normal_approximation",
+    "open_accounts": 273,
+    "open_exposure_gbp": 50296.81,
+    "seek_balance_at_review": false,
+    "share_barred": 0.36255924170616116,
+    "share_barred_ci95": [
+      0.31812249651263286,
+      0.4094756563193224
+    ],
+    "unit": "gbp_gross_of_vat",
+    "unmeasured_accounts": 21
+  },
+  "example_account": {
+    "account_id": "PROS-2016-0187g",
+    "barred_kwh": 1450.5876669627726,
+    "barred_true_ups": 2,
+    "billed_kwh": 116025.74560000002,
+    "bills": 109,
+    "estimated_bills": 88,
+    "estimated_kwh": 94452.18,
+    "fuel": "gas",
+    "last_period_end": "2025-06-07",
+    "longest_run_without_read_bill": 15,
+    "no_read_bill_in_last_12": false,
+    "open_estimated_kwh": 2176.98,
+    "overcharge_kwh": 2227.0942,
+    "true_up_kwh": 22734.48189999999,
+    "true_ups": 18,
+    "undercharge_kwh": 24961.576099999995
+  },
+  "kinds": {
+    "K1": "billed on estimate and not yet trued up at a month end, graded by the later read",
+    "K2": "estimated bills and their true-up at the actual read",
+    "K3": "energy barred by the 12-month back-billing limit (SLC 21BA)"
+  },
+  "published_median_supplier_share_no_read_bill_in_12": [
+    0.052000000000000046,
+    0.05600000000000005
+  ],
+  "snapshot_month": "2025-06",
+  "source": "run_output_2248e3baf_20261013T134447Z.json"
 }

@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-10-05T21:16:56Z",
-  "git_hash": "998814330",
+  "generated_at": "2026-10-13T21:28:18Z",
+  "git_hash": "aa8242942",
   "published_from": {
-    "commit": "998814330c298a6f749b14a311739618ffa7de16",
+    "commit": "aa824294216bc3c2abee8b6ad1b2203ce060c670",
     "tree_was_clean": true,
     "inputs_are_the_committed_bytes": true,
     "inputs": [
@@ -42,7 +42,6 @@
       "declared_stage": "Live",
       "computed_stage": "Live",
       "stage_matches": true,
-      "look_href": "./proof/#method-anchor",
       "evidence_href": "./evidence/#governance_method",
       "atoms": [
         {
@@ -145,7 +144,7 @@
               "resolved_path": "tests/saas/test_ledger.py",
               "raw": "tests/saas/test_ledger.py (integration tests proving real decision-events land for the second wired class)",
               "is_test": true,
-              "test_functions": 75
+              "test_functions": 76
             },
             {
               "path": "company/interfaces/bitemporal_event_log.py",
@@ -164,7 +163,7 @@
             }
           ],
           "test_files": 4,
-          "test_functions": 151,
+          "test_functions": 152,
           "ledger": [],
           "missing": [
             "NO_LEDGER_RECORD"
@@ -182,8 +181,8 @@
           "citations": [
             {
               "path": "docs/staging/in_progress/GOVERNED_COMPANY_AND_THREE_LANES.md",
-              "status": "RESOLVED",
-              "resolved_path": "docs/staging/in_progress/GOVERNED_COMPANY_AND_THREE_LANES.md",
+              "status": "RELOCATED",
+              "resolved_path": "docs/staging/done/GOVERNED_COMPANY_AND_THREE_LANES.md",
               "raw": "docs/staging/in_progress/GOVERNED_COMPANY_AND_THREE_LANES.md",
               "is_test": false
             },
@@ -593,7 +592,6 @@
       "declared_stage": "Building",
       "computed_stage": "Building",
       "stage_matches": true,
-      "look_href": "./world/#causal-chain",
       "evidence_href": "./evidence/#the_world",
       "atoms": [
         {
@@ -608,8 +606,8 @@
           "citations": [
             {
               "path": "docs/staging/in_progress/WEATHER_PHYSICS_HIERARCHY.md",
-              "status": "RESOLVED",
-              "resolved_path": "docs/staging/in_progress/WEATHER_PHYSICS_HIERARCHY.md",
+              "status": "RELOCATED",
+              "resolved_path": "docs/staging/done/WEATHER_PHYSICS_HIERARCHY.md",
               "raw": "docs/staging/in_progress/WEATHER_PHYSICS_HIERARCHY.md",
               "is_test": false
             },
@@ -707,8 +705,8 @@
           "citations": [
             {
               "path": "docs/staging/in_progress/WEATHER_PHYSICS_HIERARCHY.md",
-              "status": "RESOLVED",
-              "resolved_path": "docs/staging/in_progress/WEATHER_PHYSICS_HIERARCHY.md",
+              "status": "RELOCATED",
+              "resolved_path": "docs/staging/done/WEATHER_PHYSICS_HIERARCHY.md",
               "raw": "docs/staging/in_progress/WEATHER_PHYSICS_HIERARCHY.md",
               "is_test": false
             },
@@ -806,8 +804,8 @@
           "citations": [
             {
               "path": "docs/staging/in_progress/WEATHER_PHYSICS_HIERARCHY.md",
-              "status": "RESOLVED",
-              "resolved_path": "docs/staging/in_progress/WEATHER_PHYSICS_HIERARCHY.md",
+              "status": "RELOCATED",
+              "resolved_path": "docs/staging/done/WEATHER_PHYSICS_HIERARCHY.md",
               "raw": "docs/staging/in_progress/WEATHER_PHYSICS_HIERARCHY.md",
               "is_test": false
             },
@@ -894,8 +892,8 @@
           "citations": [
             {
               "path": "docs/staging/in_progress/WEATHER_PHYSICS_HIERARCHY.md",
-              "status": "RESOLVED",
-              "resolved_path": "docs/staging/in_progress/WEATHER_PHYSICS_HIERARCHY.md",
+              "status": "RELOCATED",
+              "resolved_path": "docs/staging/done/WEATHER_PHYSICS_HIERARCHY.md",
               "raw": "docs/staging/in_progress/WEATHER_PHYSICS_HIERARCHY.md",
               "is_test": false
             },
@@ -1214,7 +1212,6 @@
       "declared_stage": "Live",
       "computed_stage": "Live",
       "stage_matches": true,
-      "look_href": "./customers/#cust-who",
       "evidence_href": "./evidence/#the_households",
       "atoms": [
         {
@@ -1538,7 +1535,6 @@
       "declared_stage": "Live",
       "computed_stage": "Live",
       "stage_matches": true,
-      "look_href": "./world/#crossings",
       "evidence_href": "./evidence/#the_wall",
       "atoms": [
         {
@@ -1684,8 +1680,8 @@
           "citations": [
             {
               "path": "docs/staging/done/M2_FRAME_ACCOUNT_HIERARCHY_PAYMENTS.md",
-              "status": "RELOCATED",
-              "resolved_path": "docs/staging/in_progress/M2_FRAME_ACCOUNT_HIERARCHY_PAYMENTS.md",
+              "status": "RESOLVED",
+              "resolved_path": "docs/staging/done/M2_FRAME_ACCOUNT_HIERARCHY_PAYMENTS.md",
               "raw": "docs/staging/done/M2_FRAME_ACCOUNT_HIERARCHY_PAYMENTS.md",
               "is_test": false
             }
@@ -1825,7 +1821,6 @@
       "declared_stage": "Live",
       "computed_stage": "Live",
       "stage_matches": true,
-      "look_href": "./company/#state-decisions",
       "evidence_href": "./evidence/#the_company",
       "atoms": [
         {
@@ -2500,7 +2495,6 @@
       "declared_stage": "Building",
       "computed_stage": "Building",
       "stage_matches": true,
-      "look_href": "./proof/#not-proven",
       "evidence_href": "./evidence/#the_score",
       "atoms": [
         {
@@ -2752,8 +2746,8 @@
     "nodes": 6,
     "atoms": 46,
     "citations": 214,
-    "citations_resolved": 209,
-    "citations_relocated": 1,
+    "citations_resolved": 205,
+    "citations_relocated": 5,
     "citations_missing": 4,
     "atoms_with_missing": 42,
     "nodes_fully_evidenced": 0

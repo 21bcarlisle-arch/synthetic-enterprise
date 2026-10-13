@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-05T21:16:51.423139+00:00",
+  "generated_at": "2026-10-13T21:28:10.428816+00:00",
   "stamp_version": 1,
   "stamp_file": "director_last_look.json",
   "stamp_status": "ok",
@@ -13,16 +13,17 @@
     "reserved_changed": 0,
     "reserved_added": 0,
     "reserved_cleared": 0,
-    "daemons_flipped": 3,
-    "daemons_newly_stale": 3,
+    "daemons_flipped": 4,
+    "daemons_newly_stale": 4,
     "daemons_recovered": 0,
     "daemons_appeared": 0,
     "daemons_disappeared": 0,
-    "headline_moves": 1
+    "headline_moves": 2
   },
   "changes": [
-    "3 daemon(s) went stale: discovery-daemon, dispatcher, ntfy-responder",
-    "total_open_atoms: 55 -> 113"
+    "4 daemon(s) went stale: discovery-daemon, dispatcher, epistemic-verifier, ntfy-responder",
+    "twin canon_version: 3 -> 4",
+    "total_open_atoms: 55 -> 101"
   ],
   "detail": {
     "new_decisions": [],
@@ -31,17 +32,24 @@
     "daemons_newly_stale": [
       "discovery-daemon",
       "dispatcher",
+      "epistemic-verifier",
       "ntfy-responder"
     ],
     "daemons_recovered": [],
     "daemons_appeared": [],
     "daemons_disappeared": [],
-    "fidelity_moves": [],
+    "fidelity_moves": [
+      {
+        "field": "canon_version",
+        "from": 3,
+        "to": 4
+      }
+    ],
     "headline_moves": [
       {
         "field": "total_open_atoms",
         "from": 55,
-        "to": 113
+        "to": 101
       }
     ]
   },
@@ -58,7 +66,7 @@
       "ntfy-responder": "stale",
       "autonomous-runner": "retired",
       "background-worker": "live",
-      "epistemic-verifier": "live",
+      "epistemic-verifier": "stale",
       "discovery-agent": "stale",
       "supervisor": "live",
       "sanity-daemon": "live",
@@ -69,13 +77,13 @@
       "answered": 5,
       "routed_to_director": 3,
       "overturned": 0,
-      "canon_version": 3
+      "canon_version": 4
     },
-    "open_atoms": 113
+    "open_atoms": 101
   },
   "source_stamps": {
     "reserved_generated_at": "2026-09-18T23:17:47.846939+00:00",
-    "health_last_updated": "2026-10-05T21:16:34.890505+00:00",
+    "health_last_updated": "2026-10-13T21:28:06.290297+00:00",
     "decisions_generated_at": "2026-07-19T06:25:33Z"
   }
 }

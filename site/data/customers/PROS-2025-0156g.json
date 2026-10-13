@@ -11,12 +11,12 @@
   "mprn": "37578270",
   "lifetime_revenue_gbp": 4.69,
   "lifetime_gross_gbp": 2.5,
-  "lifetime_net_gbp": 0.39,
-  "lifetime_net_after_cts_gbp": -0.37,
+  "lifetime_net_gbp": 0.62,
+  "lifetime_net_after_cts_gbp": -0.13,
   "cost_to_serve_gbp": 0.75,
   "pricing_action": {
     "flag": "NET_NEGATIVE",
-    "recommended_uplift_pct": 7.8
+    "recommended_uplift_pct": 2.8
   },
   "avg_hedge_fraction": 0.85,
   "clv_gbp": null,
@@ -29,7 +29,7 @@
   "commodity_split": {
     "electricity": null,
     "gas": {
-      "net_gbp": 0.39,
+      "net_gbp": 0.62,
       "revenue_gbp": 4.69
     }
   },
@@ -39,7 +39,7 @@
       "year": 2025,
       "revenue_gbp": 0,
       "gross_gbp": 2.5,
-      "net_gbp": 0.39,
+      "net_gbp": 0.62,
       "tariff_min": 48.47,
       "tariff_max": 48.47
     }
@@ -47,20 +47,20 @@
   "timeline": [],
   "invoices": [
     {
-      "id": "PROS-2025-0156g-INV4399",
+      "id": "PROS-2025-0156g-INV20636",
       "date": "2025-06-07",
       "period_start": "2025-06-03",
       "period_end": "2025-06-07",
       "commodity": "gas",
       "consumption_kwh": 66.2,
-      "unit_rate_p_per_kwh": 4.85,
-      "commodity_amount_gbp": 3.21,
+      "unit_rate_p_per_kwh": 3.85,
+      "commodity_amount_gbp": 2.55,
       "standing_charge_gbp": 1.48,
       "days_in_period": 5,
       "standing_charge_gbp_per_day": 0.296,
       "non_commodity_amount_gbp": 0.66,
-      "vat_gbp": 0.27,
-      "amount_gbp": 5.62,
+      "vat_gbp": 0.23,
+      "amount_gbp": 4.92,
       "status": "PAID",
       "outstanding_gbp": 0.0,
       "credit_applied_gbp": null,
@@ -75,8 +75,8 @@
           "register_id": "1",
           "label": "Anytime",
           "consumption_kwh": 66.2,
-          "amount_gbp": 3.21,
-          "unit_rate_p_per_kwh": 4.85
+          "amount_gbp": 2.55,
+          "unit_rate_p_per_kwh": 3.85
         }
       ],
       "catchup_applied": false,
@@ -91,22 +91,32 @@
     }
   ],
   "ledger": {
-    "as_of_date": "2025-06-21",
+    "as_of_date": "2025-06-25",
     "entries": [
       {
         "date": "2025-06-10",
         "type": "invoice_raised",
-        "invoice_number": 4399,
-        "amount_gbp": 5.62,
+        "invoice_number": 20636,
+        "amount_gbp": 4.92,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV4399 raised",
-        "running_balance_gbp": 5.62
+        "description": "Invoice INV20636 raised",
+        "running_balance_gbp": 4.92
+      },
+      {
+        "date": "2025-06-24",
+        "type": "payment_received",
+        "invoice_number": 20636,
+        "amount_gbp": -4.92,
+        "info_amount_gbp": null,
+        "method": "standard_credit",
+        "description": "Payment received",
+        "running_balance_gbp": 0.0
       }
     ],
-    "current_balance_gbp": 5.62,
-    "total_billed_gbp": 5.62,
-    "total_collected_gbp": 0,
+    "current_balance_gbp": 0.0,
+    "total_billed_gbp": 4.92,
+    "total_collected_gbp": 4.92,
     "total_written_off_gross_gbp": 0,
     "total_recovered_gbp": 0
   },

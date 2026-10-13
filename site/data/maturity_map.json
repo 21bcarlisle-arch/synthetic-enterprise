@@ -198,7 +198,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 107,
+      "stall_consecutive_unchanged": 196,
       "forward_attachments": []
     },
     {
@@ -246,28 +246,6 @@
       "forward_attachments": []
     },
     {
-      "id": "W1_7_renewable_capacity_trends",
-      "name": "Renewable capacity + generation-mix evolution over time",
-      "lane": "W1_market_weather",
-      "value_stream": "wholesale_to_price",
-      "value_stream_label": "Wholesale to Price",
-      "epoch": 3,
-      "level_current": 2,
-      "level_target": 3,
-      "loop_stage": "build",
-      "dial_inherited": 3,
-      "expert_hour_status": "not_attempted",
-      "depends_on": [
-        "W1_6_physics_price_signal"
-      ],
-      "couples_with": [],
-      "chain": null,
-      "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
-      "forward_attachments": []
-    },
-    {
       "id": "W1_8_zonal_locational_pricing",
       "name": "Zonal / locational marginal pricing mechanics (the regional-basis market that does not exist today)",
       "lane": "W1_market_weather",
@@ -285,28 +263,6 @@
       "couples_with": [
         "B5_regional_basis_risk"
       ],
-      "chain": null,
-      "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
-      "forward_attachments": []
-    },
-    {
-      "id": "W1_10_ev_heatpump_geography",
-      "name": "EV + heat-pump adoption geography (spatially-varying load growth)",
-      "lane": "W1_market_weather",
-      "value_stream": "wholesale_to_price",
-      "value_stream_label": "Wholesale to Price",
-      "epoch": 3,
-      "level_current": 2,
-      "level_target": 3,
-      "loop_stage": "harden",
-      "dial_inherited": 3,
-      "expert_hour_status": "not_attempted",
-      "depends_on": [
-        "W1_5_premise_demand_shape"
-      ],
-      "couples_with": [],
       "chain": null,
       "at_target": false,
       "stalled": false,
@@ -401,7 +357,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 105,
+      "stall_consecutive_unchanged": 196,
       "forward_attachments": []
     },
     {
@@ -449,26 +405,6 @@
       "forward_attachments": []
     },
     {
-      "id": "D_opening_dd_seasonal_sizing",
-      "name": "Size the OPENING level direct debit from an annual estimate, not from one seasonal month's bill",
-      "lane": "D_billing_metering",
-      "value_stream": "meter_to_cash",
-      "value_stream_label": "Meter to Cash",
-      "epoch": 3,
-      "level_current": 1,
-      "level_target": 2,
-      "loop_stage": "build",
-      "dial_inherited": 3,
-      "expert_hour_status": "not_attempted",
-      "depends_on": [],
-      "couples_with": [],
-      "chain": null,
-      "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 13,
-      "forward_attachments": []
-    },
-    {
       "id": "DD_seasonal_cashflow_physics",
       "name": "Per-customer level-DD seasonal cash-flow physics: summer-credit / winter-drawdown balances, held customer credit booked as a LIABILITY, annual DD review as a first-class event, and the cash-rich-but-insolvent tell made visible (DD1-DD5 + DD-H)",
       "lane": "D_billing_metering",
@@ -487,27 +423,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 13,
-      "forward_attachments": []
-    },
-    {
-      "id": "SPINE_1_scenario_world_state",
-      "name": "Scenario spine: the ScenarioSpine world-state object + director-authored named-world curriculum registry + the epistemic wall (company cannot read which scenario it lives in) + a byte-identical baseline guarantee. The exogenous world the WVC benchmark/formation is computed against; sampled tail-heavy with each world's true-probability tag. BACKLOG.md B1.",
-      "lane": "W1_market_weather",
-      "value_stream": "wholesale_to_price",
-      "value_stream_label": "Wholesale to Price",
-      "epoch": 3,
-      "level_current": 2,
-      "level_target": 3,
-      "loop_stage": "build",
-      "dial_inherited": 4,
-      "expert_hour_status": "not_attempted",
-      "depends_on": [],
-      "couples_with": [],
-      "chain": null,
-      "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 1884,
+      "stall_consecutive_unchanged": 196,
       "forward_attachments": []
     },
     {
@@ -635,7 +551,29 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 13,
+      "stall_consecutive_unchanged": 323,
+      "forward_attachments": []
+    },
+    {
+      "id": "W2_40_voids_tied_to_move_outs",
+      "name": "",
+      "lane": "W2_customer_generator",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 3,
+      "level_current": 1,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 100,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "B7_customer_state_layer_moves_and_shocks"
+      ],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -645,17 +583,17 @@
       "value_stream": "price_to_bill",
       "value_stream_label": "Price to Bill",
       "epoch": 3,
-      "level_current": 0,
+      "level_current": 2,
       "level_target": 3,
-      "loop_stage": "idle",
+      "loop_stage": "build",
       "dial_inherited": 3,
-      "expert_hour_status": "not_attempted",
+      "expert_hour_status": "attempted_finding_open",
       "depends_on": [],
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
+      "stalled": true,
+      "stall_consecutive_unchanged": 311,
       "forward_attachments": []
     },
     {
@@ -699,68 +637,6 @@
       "forward_attachments": []
     },
     {
-      "id": "W2_payment_channel_dd_consistency_invariant",
-      "name": "Cross-generator class invariant: a non-DD payment_channel implies zero dd_failed/DD-method events for that customer (R10 class closure, not a C1g instance patch)",
-      "lane": "W2_customer_generator",
-      "value_stream": "meter_to_cash",
-      "value_stream_label": "Meter to Cash",
-      "epoch": 2,
-      "level_current": 2,
-      "level_target": 3,
-      "loop_stage": "harden",
-      "dial_inherited": 3,
-      "expert_hour_status": "not_attempted",
-      "depends_on": [],
-      "couples_with": [],
-      "chain": null,
-      "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
-      "forward_attachments": []
-    },
-    {
-      "id": "W2_non_dd_miss_vocabulary",
-      "name": "Give the behavioural/analytics surface a non-DD missed-payment label, so a standard-credit or corporate customer's miss stops being recorded as a returned Direct Debit",
-      "lane": "W2_customer_generator",
-      "value_stream": "meter_to_cash",
-      "value_stream_label": "Meter to Cash",
-      "epoch": 2,
-      "level_current": 0,
-      "level_target": 3,
-      "loop_stage": "build",
-      "dial_inherited": 3,
-      "expert_hour_status": "not_attempted",
-      "depends_on": [
-        "W2_payment_channel_dd_consistency_invariant"
-      ],
-      "couples_with": [],
-      "chain": null,
-      "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 13,
-      "forward_attachments": []
-    },
-    {
-      "id": "W2_sme_segment_case_normalisation",
-      "name": "SME customers are routed through the RESIDENTIAL payment-channel model because the segment test is case-sensitive -- and the naive fix silently deletes all SME bad debt",
-      "lane": "W2_customer_generator",
-      "value_stream": "meter_to_cash",
-      "value_stream_label": "Meter to Cash",
-      "epoch": 2,
-      "level_current": 2,
-      "level_target": 3,
-      "loop_stage": "harden",
-      "dial_inherited": 2,
-      "expert_hour_status": "not_attempted",
-      "depends_on": [],
-      "couples_with": [],
-      "chain": null,
-      "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
-      "forward_attachments": []
-    },
-    {
       "id": "C_supply_start_consumer_routing",
       "name": "Route the tenure/cohort/render consumers off the term anchor and onto the separated supply_start -- the LIVE half of the semantic separation, which moves published figures",
       "lane": "C_customer_ops",
@@ -779,7 +655,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 99,
+      "stall_consecutive_unchanged": 196,
       "forward_attachments": []
     },
     {
@@ -925,30 +801,6 @@
       "forward_attachments": []
     },
     {
-      "id": "PB3_book_growth_as_earned_outcome",
-      "name": "Deliverable 3: growth from the opening book is GRADUAL AND EARNED -- won and lost against the market through the acquisition physics already built, never incremented. EXIT: (a) the mechanisms named and wired, not gestured at: churn, acquisition cost, and the competitor field (W2_3_competitor_field and B4_competitor_field are the existing world/company organs; B10_competitor_switching_response is the switching response) -- this atom is the loop that makes book size THEIR outcome; (b) the falsifier IS the exit test, because the ruling states the property directly -- a growth curve that cannot be lost is not a growth curve. AMENDED 2026-08-15 (DISCOVER, worker tick) because the original wording was vacuous: it asked only that a world configuration in which the book SHRINKS be demonstrated, and at HEAD the book can ONLY shrink -- acquisition is replacement-only and can fail, so book size is monotonically non-increasing -- which means that test passes on unbuilt code, an R15 fail-open. BOTH legs are now required, from the SAME mechanism and neither bolted on: a world configuration in which the book GROWS and one in which it SHRINKS, each demonstrated, not argued; RE-AMENDED 2026-08-18 (DISCOVER, worker tick) because that wording was fail-open in the direction it ADDED: at HEAD the book already both grows (curriculum arrivals -- five staggered static I&C dates 2017-2020 plus the activated SYN-* Poisson trickle) and shrinks (churn), so it passes on unbuilt code, the identical R15 fail-open one direction over. The DIRECTION OF THE CURVE is not the test; the IDENTITY OF THE MECHANISM is -- \"won and lost against the market\" is not satisfied by a book that goes up and down, only by a book whose up and whose down are the SAME contest. Both legs must therefore come from the same contested mechanism, proven by a NULL CONTROL: (b1) with the arrival stream held FIXED, a change to the company's own market position alone must move book size in BOTH directions; and (b2) with the arrival stream EMPTIED, the book must still be able to grow. (b1) without (b2) is satisfiable by the curriculum; (b2) without (b1) is satisfiable by a growth curve that cannot be lost; (c) no step change in book size that is not a modelled acquisition or loss event -- RED AT HEAD 2026-08-18 with SEVEN named instances, none of which passes a funnel, costs a penny, or can fail: C_IC1 (2017-01-01), C_IC2 (2018-01-01), C_IC3 and C_IC3g (2019-01-01), C_IC4 (2020-01-01) from the static roster's hand-authored acquisition_dates, plus SYN-2021-001 and SYN-2025-001 from the activated population draw; (d) the company's own belief about its book and the world's truth are measured against each other and the gap reported, per the coupled-triad rule that the gap is the score.",
-      "lane": "W2_customer_generator",
-      "value_stream": "meter_to_cash",
-      "value_stream_label": "Meter to Cash",
-      "epoch": 2,
-      "level_current": 2,
-      "level_target": 3,
-      "loop_stage": "build",
-      "dial_inherited": 3,
-      "expert_hour_status": "not_attempted",
-      "depends_on": [
-        "PB2_opening_book_won_not_assigned"
-      ],
-      "couples_with": [
-        "W2_3_competitor_field"
-      ],
-      "chain": null,
-      "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 605,
-      "forward_attachments": []
-    },
-    {
       "id": "EP7_adapter_elexon_insights",
       "name": "Adapter for the Elexon Insights Solution (bmrs.elexon.co.uk): REST for the full BMRS catalogue -- imbalance volumes, pricing stacks, dynamic BMU data, demand -- plus IRIS real-time push and the Data Archive. Access class OPEN NOW, zero accession cost. Indicative settlement prices land ~15 min after each settlement period with a D+1 refresh; Settlement messages give early warnings on calculation accuracy. Advisor research verified live 2026-08-05.",
       "lane": "W4_the_wall",
@@ -1057,7 +909,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2326,
+      "stall_consecutive_unchanged": 2752,
       "forward_attachments": []
     },
     {
@@ -1284,7 +1136,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2325,
+      "stall_consecutive_unchanged": 2752,
       "forward_attachments": []
     },
     {
@@ -1294,7 +1146,7 @@
       "value_stream": "close_to_learn",
       "value_stream_label": "Close to Learn",
       "epoch": 2,
-      "level_current": 0,
+      "level_current": 1,
       "level_target": 2,
       "loop_stage": "build",
       "dial_inherited": 3,
@@ -1304,7 +1156,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 13,
+      "stall_consecutive_unchanged": 197,
       "forward_attachments": []
     },
     {
@@ -1328,7 +1180,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 13,
+      "stall_consecutive_unchanged": 196,
       "forward_attachments": []
     },
     {
@@ -1352,7 +1204,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 34,
+      "stall_consecutive_unchanged": 51,
       "forward_attachments": []
     },
     {
@@ -1376,7 +1228,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 44,
+      "stall_consecutive_unchanged": 51,
       "forward_attachments": []
     },
     {
@@ -1399,29 +1251,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 42131,
-      "forward_attachments": []
-    },
-    {
-      "id": "SITE3_wall_exhibit_url_rename",
-      "name": "MINTED 2026-08-12 (worker tick) as SITE2's SINGLE NAMED RESIDUAL, not as new scope -- exit criterion (4) of SITE2 is 'name, title, entry copy and URL stop claiming to be a customer's portal, and the old URL redirects'. The name/title/entry-copy half LANDED in SITE2 (title is now 'Two Sides of the Wall', the login copy says plainly it is not a customer login, and the page names the real portal at company/portal/ twice). The URL half is split out because it is a different KIND of change with a different blast radius: site/customers/ is a canonical door in site/sitemap.xml, so moving it touches site/index.html, site/now/, site/privacy/, site/wip-flow/, site/company/ navs, three DAEMON-REGENERATED feeds (site/data/evidence.json look_href, site/data/moap_node_atoms.json look_href, site/data/capabilities.json evidence_link via tools/generate_capabilities_json.py), and ~10 hard-coded PORTAL = site/customers/index.html paths in tests/tools/ plus tools/verify_printed_bill_render.mjs. Attempting it in the same tick as SITE2's page rebuild would have meant committing coordinated edits to site/data/*.json while those files were concurrently dirty from a daemon regeneration -- the 'a repo-wide census is not decomposable by pathspec' failure this repo has already been bitten by. EXIT: (1) the door resolves at its new URL and site/sitemap.xml advertises only that one; (2) site/_redirects 301s the old /customers path (and /customers/*) to it; (3) NO published link on any canonical door, and no glossary see_url, still points at the redirected URL -- site/test_no_links_to_redirected_urls.py is the existing class guard and must stay green, which means repointing site/index.html's './customers/#cust-who' and the navs on now/privacy/wip-flow/company; (4) the three generated feeds are fixed AT THEIR GENERATOR, not hand-patched in the JSON, so the next regeneration agrees; (5) every hard-coded path to the door file moves with it and the coupled test set stays green (tests/tools/test_billing_tab_fix.py, test_bill_correctness_addendum_defect1/2/4.py, test_billing_and_payments_ledger.py, test_site_structure.py, test_nav_story_platform_method_rq.py, test_e2_revenue_reconciliation_surfaces.py, site/test_brand_token_adoption.py's UNADOPTED key, tools/verify_printed_bill_render.mjs); (6) R11 -- the new URL fetched live returns 200 directly (not via a redirect) and the old one 301s, checked with site/live_pixel_verify.py, which derives its door list from the sitemap; (7) R15 -- a mutation reinstating a link to the old URL fails test_no_published_link_targets_a_redirected_url, proving the class guard covers this rename and not just the SITE_V5 one it was written for.",
-      "lane": "H_harness",
-      "value_stream": "close_to_learn",
-      "value_stream_label": "Close to Learn",
-      "epoch": 3,
-      "level_current": 0,
-      "level_target": 2,
-      "loop_stage": "build",
-      "dial_inherited": 1,
-      "expert_hour_status": "not_attempted",
-      "depends_on": [],
-      "couples_with": [
-        "SITE2_two_sided_wall_exhibit"
-      ],
-      "chain": null,
-      "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 39,
+      "stall_consecutive_unchanged": 48682,
       "forward_attachments": []
     },
     {
@@ -1443,7 +1273,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2325,
+      "stall_consecutive_unchanged": 2752,
       "forward_attachments": []
     },
     {
@@ -1509,7 +1339,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2325,
+      "stall_consecutive_unchanged": 2752,
       "forward_attachments": []
     },
     {
@@ -1533,7 +1363,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 13,
+      "stall_consecutive_unchanged": 197,
       "forward_attachments": []
     },
     {
@@ -1553,7 +1383,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2325,
+      "stall_consecutive_unchanged": 2752,
       "forward_attachments": []
     },
     {
@@ -1576,7 +1406,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 857,
+      "stall_consecutive_unchanged": 2752,
       "forward_attachments": []
     },
     {
@@ -1598,7 +1428,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 38,
+      "stall_consecutive_unchanged": 197,
       "forward_attachments": []
     },
     {
@@ -1612,7 +1442,7 @@
       "level_target": 3,
       "loop_stage": "harden",
       "dial_inherited": 80,
-      "expert_hour_status": "not_attempted",
+      "expert_hour_status": "attempted_finding_open",
       "depends_on": [],
       "couples_with": [
         "B10_competitor_switching_response",
@@ -1622,7 +1452,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2113,
+      "stall_consecutive_unchanged": 2837,
       "forward_attachments": []
     },
     {
@@ -1713,7 +1543,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 13,
+      "stall_consecutive_unchanged": 196,
       "forward_attachments": []
     },
     {
@@ -1730,7 +1560,8 @@
       "expert_hour_status": "not_attempted",
       "depends_on": [],
       "couples_with": [
-        "W1_5_premise_demand_shape"
+        "W1_5_premise_demand_shape",
+        "D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used"
       ],
       "chain": null,
       "at_target": false,
@@ -1745,7 +1576,7 @@
       "value_stream": "price_to_bill",
       "value_stream_label": "Price to Bill",
       "epoch": 3,
-      "level_current": 0,
+      "level_current": 1,
       "level_target": 3,
       "loop_stage": "build",
       "dial_inherited": 60,
@@ -1757,7 +1588,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 14,
+      "stall_consecutive_unchanged": 197,
       "forward_attachments": []
     },
     {
@@ -1780,7 +1611,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 14,
+      "stall_consecutive_unchanged": 197,
       "forward_attachments": []
     },
     {
@@ -1814,13 +1645,13 @@
       "level_target": 3,
       "loop_stage": "harden",
       "dial_inherited": 50,
-      "expert_hour_status": "not_attempted",
+      "expert_hour_status": "attempted_finding_open",
       "depends_on": [],
       "couples_with": [],
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 21,
+      "stall_consecutive_unchanged": 197,
       "forward_attachments": []
     },
     {
@@ -1849,35 +1680,13 @@
       "forward_attachments": []
     },
     {
-      "id": "W2_20_mains_gas_is_drawn_not_inferred_from_the_heating_system",
-      "name": "",
-      "lane": "W2_customer_generator",
-      "value_stream": "price_to_bill",
-      "value_stream_label": "Price to Bill",
-      "epoch": 3,
-      "level_current": 0,
-      "level_target": 3,
-      "loop_stage": "build",
-      "dial_inherited": 60,
-      "expert_hour_status": "not_attempted",
-      "depends_on": [],
-      "couples_with": [
-        "W2_18_the_housing_joint_the_sample_and_the_ceiling"
-      ],
-      "chain": null,
-      "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 13,
-      "forward_attachments": []
-    },
-    {
       "id": "W2_21_the_premise_joint_is_fitted_not_drawn_independently",
       "name": "",
       "lane": "W2_customer_generator",
       "value_stream": "price_to_bill",
       "value_stream_label": "Price to Bill",
       "epoch": 3,
-      "level_current": 0,
+      "level_current": 1,
       "level_target": 3,
       "loop_stage": "build",
       "dial_inherited": 60,
@@ -1890,8 +1699,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
+      "stalled": true,
+      "stall_consecutive_unchanged": 197,
       "forward_attachments": []
     },
     {
@@ -1911,7 +1720,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 13,
+      "stall_consecutive_unchanged": 197,
       "forward_attachments": []
     },
     {
@@ -1933,7 +1742,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 14,
+      "stall_consecutive_unchanged": 197,
       "forward_attachments": []
     },
     {
@@ -1960,35 +1769,13 @@
       "forward_attachments": []
     },
     {
-      "id": "A46_book_depth_is_a_curriculum_question",
-      "name": "",
-      "lane": "A_strategy_governance",
-      "value_stream": "close_to_learn",
-      "value_stream_label": "Close to Learn",
-      "epoch": 3,
-      "level_current": 1,
-      "level_target": 2,
-      "loop_stage": "build",
-      "dial_inherited": 45,
-      "expert_hour_status": "not_attempted",
-      "depends_on": [],
-      "couples_with": [
-        "B10_competitor_switching_response"
-      ],
-      "chain": null,
-      "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 14,
-      "forward_attachments": []
-    },
-    {
       "id": "C29_decisions_stop_being_lookup_tables",
       "name": "",
       "lane": "C_customer_ops",
       "value_stream": "meter_to_cash",
       "value_stream_label": "Meter to Cash",
       "epoch": 4,
-      "level_current": 0,
+      "level_current": 1,
       "level_target": 3,
       "loop_stage": "build",
       "dial_inherited": 45,
@@ -2027,7 +1814,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 13,
+      "stall_consecutive_unchanged": 197,
       "forward_attachments": []
     },
     {
@@ -2052,7 +1839,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2326,
+      "stall_consecutive_unchanged": 2752,
       "forward_attachments": []
     },
     {
@@ -2221,28 +2008,6 @@
       "forward_attachments": []
     },
     {
-      "id": "W2_28_a_household_is_a_vector_and_a_claim_declares_what_it_reduces_over",
-      "name": "",
-      "lane": "W2_customer_generator",
-      "value_stream": "meter_to_cash",
-      "value_stream_label": "Meter to Cash",
-      "epoch": 3,
-      "level_current": 2,
-      "level_target": 3,
-      "loop_stage": "build",
-      "dial_inherited": 50,
-      "expert_hour_status": "not_attempted",
-      "depends_on": [],
-      "couples_with": [
-        "W2_21_the_premise_joint_is_fitted_not_drawn_independently"
-      ],
-      "chain": null,
-      "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 1920,
-      "forward_attachments": []
-    },
-    {
       "id": "W2_29_the_coverage_is_re_measured_against_the_demand_vector",
       "name": "",
       "lane": "W2_customer_generator",
@@ -2267,29 +2032,6 @@
       "forward_attachments": []
     },
     {
-      "id": "W1_28_the_weather_partition_is_joint_over_a_stock_with_varying_fabric",
-      "name": "",
-      "lane": "W1_market_weather",
-      "value_stream": "price_to_bill",
-      "value_stream_label": "Price to Bill",
-      "epoch": 3,
-      "level_current": 2,
-      "level_target": 3,
-      "loop_stage": "harden",
-      "dial_inherited": 60,
-      "expert_hour_status": "not_attempted",
-      "depends_on": [],
-      "couples_with": [
-        "W1_14_weather_cells_for_household_heat_load",
-        "W2_18_the_housing_joint_the_sample_and_the_ceiling"
-      ],
-      "chain": null,
-      "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 1886,
-      "forward_attachments": []
-    },
-    {
       "id": "W2_30_per_household_half_hourly_electricity_and_seasonal_gas_shape",
       "name": "",
       "lane": "W2_customer_generator",
@@ -2304,54 +2046,13 @@
       "depends_on": [],
       "couples_with": [
         "W1_5_premise_demand_shape",
-        "W2_28_a_household_is_a_vector_and_a_claim_declares_what_it_reduces_over"
+        "W2_28_a_household_is_a_vector_and_a_claim_declares_what_it_reduces_over",
+        "D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used"
       ],
       "chain": null,
       "at_target": false,
       "stalled": true,
       "stall_consecutive_unchanged": 158,
-      "forward_attachments": []
-    },
-    {
-      "id": "W2_31_people_phase1_the_physical_layer_stands_alone",
-      "name": "",
-      "lane": "W2_customer_generator",
-      "value_stream": "price_to_bill",
-      "value_stream_label": "Price to Bill",
-      "epoch": 3,
-      "level_current": 2,
-      "level_target": 3,
-      "loop_stage": "harden",
-      "dial_inherited": 50,
-      "expert_hour_status": "not_attempted",
-      "depends_on": [],
-      "couples_with": [
-        "W2_19_who_lives_where_money_and_composition"
-      ],
-      "chain": null,
-      "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 1887,
-      "forward_attachments": []
-    },
-    {
-      "id": "W2_34_the_company_has_one_piece_of_advice_that_costs_the_customer_nothing",
-      "name": "",
-      "lane": "W2_customer_generator",
-      "value_stream": "price_to_bill",
-      "value_stream_label": "Price to Bill",
-      "epoch": 3,
-      "level_current": 2,
-      "level_target": 3,
-      "loop_stage": "build",
-      "dial_inherited": 50,
-      "expert_hour_status": "not_attempted",
-      "depends_on": [],
-      "couples_with": [],
-      "chain": null,
-      "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 1615,
       "forward_attachments": []
     },
     {
@@ -2373,7 +2074,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1502,
+      "stall_consecutive_unchanged": 1703,
       "forward_attachments": []
     },
     {
@@ -2418,8 +2119,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
+      "stalled": true,
+      "stall_consecutive_unchanged": 197,
       "forward_attachments": []
     },
     {
@@ -2429,19 +2130,21 @@
       "value_stream": "meter_to_cash",
       "value_stream_label": "Meter to Cash",
       "epoch": 4,
-      "level_current": 0,
+      "level_current": 1,
       "level_target": 3,
-      "loop_stage": "build",
+      "loop_stage": "idle",
       "dial_inherited": 100,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
       "couples_with": [
-        "W2_36_unbilled_energy_arises_the_way_it_does_in_reality"
+        "W2_36_unbilled_energy_arises_the_way_it_does_in_reality",
+        "W2_30_per_household_half_hourly_electricity_and_seasonal_gas_shape",
+        "W1_14_weather_cells_for_household_heat_load"
       ],
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 151,
+      "stall_consecutive_unchanged": 2753,
       "forward_attachments": []
     },
     {
@@ -2451,9 +2154,9 @@
       "value_stream": "close_to_learn",
       "value_stream_label": "Close to Learn",
       "epoch": 4,
-      "level_current": 0,
+      "level_current": 2,
       "level_target": 3,
-      "loop_stage": "build",
+      "loop_stage": "idle",
       "dial_inherited": 90,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
@@ -2463,7 +2166,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 151,
+      "stall_consecutive_unchanged": 346,
       "forward_attachments": []
     },
     {
@@ -2497,7 +2200,7 @@
       "value_stream": "meter_to_cash",
       "value_stream_label": "Meter to Cash",
       "epoch": 4,
-      "level_current": 0,
+      "level_current": 2,
       "level_target": 3,
       "loop_stage": "build",
       "dial_inherited": 90,
@@ -2508,8 +2211,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
+      "stalled": true,
+      "stall_consecutive_unchanged": 174,
       "forward_attachments": []
     },
     {
@@ -2519,7 +2222,7 @@
       "value_stream": "meter_to_cash",
       "value_stream_label": "Meter to Cash",
       "epoch": 4,
-      "level_current": 0,
+      "level_current": 2,
       "level_target": 3,
       "loop_stage": "build",
       "dial_inherited": 85,
@@ -2541,7 +2244,7 @@
       "value_stream": "meter_to_cash",
       "value_stream_label": "Meter to Cash",
       "epoch": 4,
-      "level_current": 0,
+      "level_current": 1,
       "level_target": 3,
       "loop_stage": "build",
       "dial_inherited": 75,
@@ -2555,8 +2258,55 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
+      "stalled": true,
+      "stall_consecutive_unchanged": 197,
+      "forward_attachments": []
+    },
+    {
+      "id": "W1_29_the_worlds_homes_are_drawn_too_alike_in_half_hourly_behaviour",
+      "name": "",
+      "lane": "W1_market_weather",
+      "value_stream": "wholesale_to_price",
+      "value_stream_label": "Wholesale to Price",
+      "epoch": 3,
+      "level_current": 1,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "W1_12_premise_trace_generator"
+      ],
+      "couples_with": [
+        "C14_thermal_parameter_inference",
+        "H_GAP_fabric_belief_truth_gap"
+      ],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 322,
+      "forward_attachments": []
+    },
+    {
+      "id": "SITE15_each_front_door_band_opens_into_one_l2_sheet",
+      "name": "",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 1,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [
+        "SITE14_the_front_door_schematic_carries_the_corrected_model"
+      ],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 197,
       "forward_attachments": []
     },
     {
@@ -8098,6 +7848,351 @@
       "stalled": false,
       "stall_consecutive_unchanged": null,
       "forward_attachments": []
+    },
+    {
+      "id": "W2_31_people_phase1_the_physical_layer_stands_alone",
+      "name": "",
+      "lane": "W2_customer_generator",
+      "value_stream": "price_to_bill",
+      "value_stream_label": "Price to Bill",
+      "epoch": 3,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "harden",
+      "dial_inherited": 50,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [
+        "W2_19_who_lives_where_money_and_composition"
+      ],
+      "chain": null,
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 1887,
+      "forward_attachments": []
+    },
+    {
+      "id": "W2_34_the_company_has_one_piece_of_advice_that_costs_the_customer_nothing",
+      "name": "",
+      "lane": "W2_customer_generator",
+      "value_stream": "price_to_bill",
+      "value_stream_label": "Price to Bill",
+      "epoch": 3,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 50,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 1615,
+      "forward_attachments": []
+    },
+    {
+      "id": "W1_7_renewable_capacity_trends",
+      "name": "Renewable capacity + generation-mix evolution over time",
+      "lane": "W1_market_weather",
+      "value_stream": "wholesale_to_price",
+      "value_stream_label": "Wholesale to Price",
+      "epoch": 3,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "W1_6_physics_price_signal"
+      ],
+      "couples_with": [],
+      "chain": null,
+      "at_target": true,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
+    },
+    {
+      "id": "W1_10_ev_heatpump_geography",
+      "name": "EV + heat-pump adoption geography (spatially-varying load growth)",
+      "lane": "W1_market_weather",
+      "value_stream": "wholesale_to_price",
+      "value_stream_label": "Wholesale to Price",
+      "epoch": 3,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "harden",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "W1_5_premise_demand_shape"
+      ],
+      "couples_with": [],
+      "chain": null,
+      "at_target": true,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
+    },
+    {
+      "id": "SPINE_1_scenario_world_state",
+      "name": "Scenario spine: the ScenarioSpine world-state object + director-authored named-world curriculum registry + the epistemic wall (company cannot read which scenario it lives in) + a byte-identical baseline guarantee. The exogenous world the WVC benchmark/formation is computed against; sampled tail-heavy with each world's true-probability tag. BACKLOG.md B1.",
+      "lane": "W1_market_weather",
+      "value_stream": "wholesale_to_price",
+      "value_stream_label": "Wholesale to Price",
+      "epoch": 3,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 4,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 1884,
+      "forward_attachments": []
+    },
+    {
+      "id": "W2_payment_channel_dd_consistency_invariant",
+      "name": "Cross-generator class invariant: a non-DD payment_channel implies zero dd_failed/DD-method events for that customer (R10 class closure, not a C1g instance patch)",
+      "lane": "W2_customer_generator",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 2,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "harden",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": true,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
+    },
+    {
+      "id": "W2_sme_segment_case_normalisation",
+      "name": "SME customers are routed through the RESIDENTIAL payment-channel model because the segment test is case-sensitive -- and the naive fix silently deletes all SME bad debt",
+      "lane": "W2_customer_generator",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 2,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "harden",
+      "dial_inherited": 2,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": true,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
+    },
+    {
+      "id": "PB3_book_growth_as_earned_outcome",
+      "name": "Deliverable 3: growth from the opening book is GRADUAL AND EARNED -- won and lost against the market through the acquisition physics already built, never incremented. EXIT: (a) the mechanisms named and wired, not gestured at: churn, acquisition cost, and the competitor field (W2_3_competitor_field and B4_competitor_field are the existing world/company organs; B10_competitor_switching_response is the switching response) -- this atom is the loop that makes book size THEIR outcome; (b) the falsifier IS the exit test, because the ruling states the property directly -- a growth curve that cannot be lost is not a growth curve. AMENDED 2026-08-15 (DISCOVER, worker tick) because the original wording was vacuous: it asked only that a world configuration in which the book SHRINKS be demonstrated, and at HEAD the book can ONLY shrink -- acquisition is replacement-only and can fail, so book size is monotonically non-increasing -- which means that test passes on unbuilt code, an R15 fail-open. BOTH legs are now required, from the SAME mechanism and neither bolted on: a world configuration in which the book GROWS and one in which it SHRINKS, each demonstrated, not argued; RE-AMENDED 2026-08-18 (DISCOVER, worker tick) because that wording was fail-open in the direction it ADDED: at HEAD the book already both grows (curriculum arrivals -- five staggered static I&C dates 2017-2020 plus the activated SYN-* Poisson trickle) and shrinks (churn), so it passes on unbuilt code, the identical R15 fail-open one direction over. The DIRECTION OF THE CURVE is not the test; the IDENTITY OF THE MECHANISM is -- \"won and lost against the market\" is not satisfied by a book that goes up and down, only by a book whose up and whose down are the SAME contest. Both legs must therefore come from the same contested mechanism, proven by a NULL CONTROL: (b1) with the arrival stream held FIXED, a change to the company's own market position alone must move book size in BOTH directions; and (b2) with the arrival stream EMPTIED, the book must still be able to grow. (b1) without (b2) is satisfiable by the curriculum; (b2) without (b1) is satisfiable by a growth curve that cannot be lost; (c) no step change in book size that is not a modelled acquisition or loss event -- RED AT HEAD 2026-08-18 with SEVEN named instances, none of which passes a funnel, costs a penny, or can fail: C_IC1 (2017-01-01), C_IC2 (2018-01-01), C_IC3 and C_IC3g (2019-01-01), C_IC4 (2020-01-01) from the static roster's hand-authored acquisition_dates, plus SYN-2021-001 and SYN-2025-001 from the activated population draw; (d) the company's own belief about its book and the world's truth are measured against each other and the gap reported, per the coupled-triad rule that the gap is the score.",
+      "lane": "W2_customer_generator",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 2,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "PB2_opening_book_won_not_assigned"
+      ],
+      "couples_with": [
+        "W2_3_competitor_field"
+      ],
+      "chain": null,
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 605,
+      "forward_attachments": []
+    },
+    {
+      "id": "W2_28_a_household_is_a_vector_and_a_claim_declares_what_it_reduces_over",
+      "name": "",
+      "lane": "W2_customer_generator",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 3,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 50,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [
+        "W2_21_the_premise_joint_is_fitted_not_drawn_independently"
+      ],
+      "chain": null,
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 1920,
+      "forward_attachments": []
+    },
+    {
+      "id": "W1_28_the_weather_partition_is_joint_over_a_stock_with_varying_fabric",
+      "name": "",
+      "lane": "W1_market_weather",
+      "value_stream": "price_to_bill",
+      "value_stream_label": "Price to Bill",
+      "epoch": 3,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "harden",
+      "dial_inherited": 60,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [
+        "W1_14_weather_cells_for_household_heat_load",
+        "W2_18_the_housing_joint_the_sample_and_the_ceiling"
+      ],
+      "chain": null,
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 1886,
+      "forward_attachments": []
+    },
+    {
+      "id": "A46_book_depth_is_a_curriculum_question",
+      "name": "",
+      "lane": "A_strategy_governance",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 45,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [
+        "B10_competitor_switching_response"
+      ],
+      "chain": null,
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 25,
+      "forward_attachments": []
+    },
+    {
+      "id": "D_opening_dd_seasonal_sizing",
+      "name": "Size the OPENING level direct debit from an annual estimate, not from one seasonal month's bill",
+      "lane": "D_billing_metering",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 3,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 33,
+      "forward_attachments": []
+    },
+    {
+      "id": "W2_20_mains_gas_is_drawn_not_inferred_from_the_heating_system",
+      "name": "",
+      "lane": "W2_customer_generator",
+      "value_stream": "price_to_bill",
+      "value_stream_label": "Price to Bill",
+      "epoch": 3,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 60,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [
+        "W2_18_the_housing_joint_the_sample_and_the_ceiling"
+      ],
+      "chain": null,
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 33,
+      "forward_attachments": []
+    },
+    {
+      "id": "H50_a_run_entry_point_leaves_no_state_behind",
+      "name": "",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "H40_full_suite_pollution_bisect"
+      ],
+      "couples_with": [],
+      "chain": null,
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 39,
+      "forward_attachments": []
+    },
+    {
+      "id": "W2_non_dd_miss_vocabulary",
+      "name": "Give the behavioural/analytics surface a non-DD missed-payment label, so a standard-credit or corporate customer's miss stops being recorded as a returned Direct Debit",
+      "lane": "W2_customer_generator",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 2,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "W2_payment_channel_dd_consistency_invariant"
+      ],
+      "couples_with": [],
+      "chain": null,
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 55,
+      "forward_attachments": []
+    },
+    {
+      "id": "SITE3_wall_exhibit_url_rename",
+      "name": "MINTED 2026-08-12 (worker tick) as SITE2's SINGLE NAMED RESIDUAL, not as new scope -- exit criterion (4) of SITE2 is 'name, title, entry copy and URL stop claiming to be a customer's portal, and the old URL redirects'. The name/title/entry-copy half LANDED in SITE2 (title is now 'Two Sides of the Wall', the login copy says plainly it is not a customer login, and the page names the real portal at company/portal/ twice). The URL half is split out because it is a different KIND of change with a different blast radius: site/customers/ is a canonical door in site/sitemap.xml, so moving it touches site/index.html, site/now/, site/privacy/, site/wip-flow/, site/company/ navs, three DAEMON-REGENERATED feeds (site/data/evidence.json look_href, site/data/moap_node_atoms.json look_href, site/data/capabilities.json evidence_link via tools/generate_capabilities_json.py), and ~10 hard-coded PORTAL = site/customers/index.html paths in tests/tools/ plus tools/verify_printed_bill_render.mjs. Attempting it in the same tick as SITE2's page rebuild would have meant committing coordinated edits to site/data/*.json while those files were concurrently dirty from a daemon regeneration -- the 'a repo-wide census is not decomposable by pathspec' failure this repo has already been bitten by. EXIT: (1) the door resolves at its new URL and site/sitemap.xml advertises only that one; (2) site/_redirects 301s the old /customers path (and /customers/*) to it; (3) NO published link on any canonical door, and no glossary see_url, still points at the redirected URL -- site/test_no_links_to_redirected_urls.py is the existing class guard and must stay green, which means repointing site/index.html's './customers/#cust-who' and the navs on now/privacy/wip-flow/company; (4) the three generated feeds are fixed AT THEIR GENERATOR, not hand-patched in the JSON, so the next regeneration agrees; (5) every hard-coded path to the door file moves with it and the coupled test set stays green (tests/tools/test_billing_tab_fix.py, test_bill_correctness_addendum_defect1/2/4.py, test_billing_and_payments_ledger.py, test_site_structure.py, test_nav_story_platform_method_rq.py, test_e2_revenue_reconciliation_surfaces.py, site/test_brand_token_adoption.py's UNADOPTED key, tools/verify_printed_bill_render.mjs); (6) R11 -- the new URL fetched live returns 200 directly (not via a redirect) and the old one 301s, checked with site/live_pixel_verify.py, which derives its door list from the sitemap; (7) R15 -- a mutation reinstating a link to the old URL fails test_no_published_link_targets_a_redirected_url, proving the class guard covers this rename and not just the SITE_V5 one it was written for.",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 1,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [
+        "SITE2_two_sided_wall_exhibit"
+      ],
+      "chain": null,
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 196,
+      "forward_attachments": []
     }
   ],
   "lanes": {
@@ -8180,7 +8275,7 @@
       "loop_stage_now": "harden"
     }
   },
-  "total_atoms": 361,
+  "total_atoms": 365,
   "epoch2_movements": [
     {
       "id": "M1",
