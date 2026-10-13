@@ -191,9 +191,14 @@ class HedgeDesk:
     ) -> ForwardContract:
         """Execute the hedge: size it, price the spread, name the counterparty, book it.
 
-        `agreed_price` is the forward the company locked at tariff signing, and
-        the notional is the hedged share of its own demand estimate — both
-        company-observable, neither read from the world.
+        `agreed_price` is the market's own point-in-time forward quote at execution
+        — what a counterparty actually charges, not the company's own forward
+        belief (`docs/market_research/
+        a_hedge_executes_at_the_markets_quote_not_the_companys_own_forward_estimate_2026-10-12.md`).
+        It crosses as a plain float, the same mechanism `price_records` already
+        uses — the desk still imports nothing from `simulation/`/`sim/`. The
+        notional is the hedged share of the company's own demand estimate,
+        company-observable as before.
         """
         tenor_years = term_days / 365.25
         notional_mwh = (volume_kwh / 1000.0) * hedge_fraction

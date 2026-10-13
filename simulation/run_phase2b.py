@@ -4375,7 +4375,12 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     pass_through=(term_tariff_type == "pass_through"),
                 )
                 # Phase 43a: open a forward contract in the company trading book.
-                # agreed_price = company_fwd (the price the company locked at tariff signing).
+                # agreed_price = forward_price, the market's own PIT forward quote
+                # (docs/market_research/a_hedge_executes_at_the_markets_quote_not_the_companys_own_forward_estimate_2026-10-12.md):
+                # a counterparty prices the trade, not the company's own belief --
+                # company_fwd stays the sizing input (decide_term_hedge, above) and
+                # the tariff-pricing strike (request_fixed_unit_rate), neither of
+                # which this changes.
                 # notional_mwh = hedged portion of EAC estimate.
                 if company_fwd and hf > 0:
                     # KNIFE3 step 23 (§3r): sizing the notional, pricing the spread,
@@ -4386,7 +4391,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                         term_start=term_start_str,
                         term_end=term_end_str,
                         volume_kwh=eac_kwh,
-                        forward_price_gbp_per_mwh=company_fwd,
+                        forward_price_gbp_per_mwh=forward_price,
                         hedge_fraction=hf,
                         term_days=term_days_count,
                     )

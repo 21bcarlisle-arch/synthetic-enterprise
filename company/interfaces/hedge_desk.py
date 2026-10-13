@@ -12,11 +12,19 @@ module's wall crossings (`company.trading.forward_book`,
 `company.trading.hedge_decision`, `company.risk.hedge_policy`).
 
 Now the world hands over what it can observe — its own demand estimate, the
-forward it locked, the tariff it proposes, and a PUBLIC price history it has
-already put through the point-in-time blindfold — and takes back a `TermHedge`.
-The VaR model, the mandate floor, the bid-ask calibration, the counterparty
-bands and the roll rule are unreachable from the SIM; what crosses is this one
-door, in one direction, per term.
+tariff it proposes, and a PUBLIC price history it has already put through the
+point-in-time blindfold — and takes back a `TermHedge`. The VaR model, the
+mandate floor, the bid-ask calibration, the counterparty bands and the roll
+rule are unreachable from the SIM; what crosses is this one door, in one
+direction, per term.
+
+TWO FORWARDS CROSS HERE, not one, and they answer different questions
+(2026-10-12, `docs/market_research/
+a_hedge_executes_at_the_markets_quote_not_the_companys_own_forward_estimate_2026-10-12.md`).
+`decide_term_hedge`'s `forward_price_gbp_per_mwh` is the company's own belief
+(`company_fwd`) — its judgement, used to size how much to hedge. `open_term_hedge`'s
+is the market's own point-in-time quote — what a counterparty actually charges
+to execute the trade, which the company does not get to set.
 
 THE READ DIRECTION IS WHY THIS IS A CUT AND NOT A FILE MOVE — the same test §3f
 applied to bill assembly, §3i to the month-end close, §3l to the statutory
