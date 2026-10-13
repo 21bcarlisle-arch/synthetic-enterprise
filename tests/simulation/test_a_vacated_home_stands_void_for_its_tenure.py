@@ -28,9 +28,18 @@ from simulation.policy_costs import (
 )
 from tests.tools.test_generate_billing_ledger_pw import _resi_bill
 
+#: The run's last day. A move-in whose void outlasts it starts supply after the run ends, so nothing
+#: of its supply can be observed. The tests below judge only move-ins whose supply starts inside
+#: the run (head red #9, 2026-10-13: an occupier opened 2016-12-26 with its void running past the end).
+_RUN_END = "2016-12-31"
+
+
+def _observable(moves):
+    return [m for m in moves if m["void_days"] > 0 and m["supply_start"] <= _RUN_END]
+
 
 @pytest.fixture(scope="module")
-def void_run():
+def void_run(tmp_path_factory):
     patch = pytest.MonkeyPatch()
     patch.setattr(run, "moves_active", lambda: True)
     posted = {}
@@ -42,7 +51,10 @@ def void_run():
 
     patch.setattr(lpt.LivePaymentTriad, "record_period", _logged)
     try:
-        result = run.main(report_end="2016-12-31")
+        # A test run writes its own gap ledger, as its sibling run tests do; without the path the run
+        # wrote the live one, and live_ledger_guard refused it during fixture setup (head red #8).
+        result = run.main(report_end=_RUN_END,
+                          gap_ledger_path=tmp_path_factory.mktemp("gap") / "coupled_gap_ledger.json")
         result["_triad_posted"] = posted
         yield result
     finally:
@@ -82,7 +94,7 @@ def test_the_void_length_follows_the_vacated_homes_tenure(void_run):
 def test_the_incoming_occupier_starts_at_void_end_and_its_unnamed_window_starts_there(void_run):
     """Defect: the unnamed window still runs from the move date, so the owner's void is booked as
     the occupier's debt, or the occupier's supply starts on the move date regardless."""
-    voided = [m for m in void_run["home_move_ins"] if m["void_days"] > 0]
+    voided = _observable(void_run["home_move_ins"])
     assert voided
     for m in voided:
         opened = dt.date.fromisoformat(m["account_opened"])
@@ -110,9 +122,8 @@ def test_an_owner_occupiers_home_has_no_void_and_says_why(void_run):
 def test_a_void_day_carries_the_standing_charge_and_no_energy(void_run):
     """Defect: the void settled at the premise's normal use, or billed nothing, or the void field
     spilling past the occupier's arrival."""
-    voided = [m for m in void_run["home_move_ins"] if m["void_days"] > 0]
+    voided = _observable(void_run["home_move_ins"])
     assert {m["commodity"] for m in voided} == {"electricity", "gas"}
-    total = 0.0
     for m in voided:
         rows = _rows_of(void_run, m["customer_id"])
         inside = [r for r in rows if r["settlement_date"][:10] < m["supply_start"]]
@@ -133,7 +144,9 @@ def test_a_void_day_carries_the_standing_charge_and_no_energy(void_run):
             assert "occupier_debt_gbp" not in r and r["bad_debt_gbp"] == 0.0, r
         assert m["void_owner_charge_gbp"] == pytest.approx(
             sum(r["void_owner_charge_gbp"] for r in inside)), m
-        total += m["void_owner_charge_gbp"]
+    # The run's total counts every void day inside the run, including a void that outlasts it, so
+    # it is compared with every voided move-in, not only the observable ones checked row by row.
+    total = sum(m["void_owner_charge_gbp"] for m in void_run["home_move_ins"] if m["void_days"] > 0)
     assert void_run["total_void_owner_charge"] == pytest.approx(total)
 
 
