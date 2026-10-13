@@ -46,8 +46,13 @@ def test_the_ledger_is_billed_the_runs_own_revenue_to_the_pound(_billed):
     # charge leaking into a named household's bill breaks this equality as surely as a lost month.
     void_owner = sum(float(r.get("void_owner_charge_gbp") or 0.0) for r in result["all_records"]
                      if isinstance(r, Mapping))
+    # THE SAME FOR THE CHANGE-OF-TENANCY WINDOW (B7 slice 5): energy used before the incoming
+    # occupier is named is booked as `occupier_debt_gbp`, and the arrears engine asks the named
+    # payer only for the rest of the bill. Leaving it out read as a ~GBP 2,100 gap, all on OCC rows.
+    occupier = sum(float(r.get("occupier_debt_gbp") or 0.0) for r in result["all_records"]
+                   if isinstance(r, Mapping))
     assert posted and revenue > 100.0, "the window billed nothing, so this control proves nothing"
-    assert sum(a for _, _, a in posted) + void_owner == pytest.approx(revenue, abs=1.0)
+    assert sum(a for _, _, a in posted) + void_owner + occupier == pytest.approx(revenue, abs=1.0)
 
 
 def test_a_customer_is_billed_once_a_month_even_when_a_renewal_splits_it(_billed):
