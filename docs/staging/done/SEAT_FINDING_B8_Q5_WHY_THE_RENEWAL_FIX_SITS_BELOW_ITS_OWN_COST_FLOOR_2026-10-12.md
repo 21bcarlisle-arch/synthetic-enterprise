@@ -160,3 +160,34 @@ carries `floored_at_cost` on a cut. This changes the contracted rate ONLY where 
 choice under GBP 2 meets a floored rate; the arm's logged belief stays the one for the rate it
 chose. What stays open is the arm's base (`struck - GBP 2`), which is wrong on any rate writer 1
 moved, in either direction: handed on.
+
+## The base fix (direction `value-arm-base-assumes-the-strikes-margin-survives-writer-one`)
+
+*2026-10-12, delivery seat. Knowledge first: `site/data/knowledge_topics.json` ->
+`what-a-customer-is-worth`, gap section.*
+
+Built: `renewal_margin_uplift` now subtracts `TARGET_MARGIN_GBP_PER_MWH` off the term's OWN
+struck rate (`rate_original`, threaded through as `struck_unit_rate_gbp_per_mwh`) rather than off
+`locked_unit_rate` -- the rate as the writer receives it, i.e. after the portfolio premium and the
+margin surcharge have already multiplied the WHOLE rate by a percentage. The struck rate is the
+one quantity in this chain no earlier writer can have moved, so it is the only one that still
+satisfies the subtraction's own assumption (the rate carries exactly the flat margin and nothing
+else). Verified at real inputs (STRUCK=139.15, a -1% premium leaving the chain at 137.7585): the
+two bases differ by 1.3915 GBP/MWh and the value arm's chosen margin moves by 0.50 GBP/MWh on the
+0.25 lattice -- not a no-op. Existing tests (`test_a_renewal_discount_stops_at_its_own_cost_floor.
+py`, the value-arm chain suite) are unaffected because none of them combines a non-floored writer-1
+discount with the value arm; the fallback (`struck_unit_rate_gbp_per_mwh=None` -> old behaviour)
+keeps every caller outside the live chain unchanged. This closes the "handed on" item above. The
+remaining open items (2-4) are untouched.
+
+**Standing control added** (same session, continuing): the gap just named -- no existing test
+combines a non-floored writer-1 move with the value arm -- is itself the R15 shape this project
+keeps paying for ("a mutation that does not fire is either a missing test or an equivalence").
+`tests/company/pricing/test_value_arm_in_the_renewal_chain.py::
+test_the_arms_BASE_survives_a_writer_1_move_it_is_the_struck_rate_not_the_handed_on_one` monkeypatches
+`value_based_renewal.decide_margin` to capture `base_rate_gbp_per_mwh` directly (rather than
+re-deriving the arm's answer, which would pass under either base), drives the chain through a
+writer-1 move that is NOT floored, and asserts the captured base is `struck - TARGET_MARGIN`, not
+`handed_on - TARGET_MARGIN`. Verified red on the reversion (`struck_unit_rate_gbp_per_mwh=None`
+at the call site): 135.7585 obtained against 137.15 expected -- the mutation this finding
+describes, caught.

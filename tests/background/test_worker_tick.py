@@ -38,6 +38,7 @@ def _isolate(tmp_path, monkeypatch):
     monkeypatch.setattr(wt, "LOG_FILE", tmp_path / "worker-tick-log.md")
     monkeypatch.setattr(wt, "HEALTH_FILE", tmp_path / ".worker_tick_health.json")
     monkeypatch.setattr(wt, "HEARTBEAT_FILE", tmp_path / "tick_heartbeat.json")
+    monkeypatch.setattr(wt, "LAST_OUTPUT_FILE", tmp_path / "worker-tick-last-output.txt")
     return tmp_path
 
 
@@ -362,3 +363,20 @@ def test_the_advisor_trial_overrides_the_tier_and_adds_the_flag_and_lapses_to_it
     monkeypatch.setattr(mt, "advisor_trial", lambda *a, **k: None)
     assert wt.apply_advisor_trial(mt.OPUS, None) == (mt.OPUS, None)
     assert "--advisor" not in wt.spawn_argv("claude", mt.OPUS, None, "P")
+
+
+def test_a_failed_invocation_says_why_in_the_tick_log(tmp_path, monkeypatch):
+    """Defect it names: the child wrote to DEVNULL, so a night of six-second rc=1 exits left no
+    reason anywhere. A real child process, so the control is the descriptor wiring and not a stub:
+    put DEVNULL back in spawn_invocation and this reads "it printed nothing"."""
+    fake = tmp_path / "stand-in-cli"   # the G-T1 guard refuses anything named claude
+    fake.write_text("#!/bin/sh\necho 'Claude usage limit reached' >&2\nexit 1\n")
+    fake.chmod(0o755)
+    monkeypatch.setattr(wt, "_resolve_claude", lambda: str(fake))
+    monkeypatch.setattr(wt, "choose_model", lambda reason: ("sonnet", None))
+    proc = wt.spawn_invocation("a drawn item")
+    assert proc is not None, wt.LOG_FILE.read_text() if wt.LOG_FILE.exists() else "no log"
+    rc = proc.wait()
+    assert rc == 1
+    assert "usage limit reached" in wt._why_it_exited(rc)
+    assert wt._why_it_exited(0) == ""
