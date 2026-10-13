@@ -255,6 +255,7 @@ def render_changes(rows: list[dict]) -> str:
 POINT_READINGS: tuple[tuple[str, float], ...] = (
     ("2026-10-12T13:00", 40.0),   # Monday 14:00 BST
     ("2026-10-13T07:10", 55.0),   # Tuesday 08:10 BST
+    ("2026-10-13T16:00", 59.0),   # Tuesday 17:00 BST
 )
 
 

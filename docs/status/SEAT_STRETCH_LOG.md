@@ -8,6 +8,34 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-13 — Reading 59%: 35 points to spend above a 6-point reserve; the whole deck sized, ranked and placed against the reset
+
+<!-- head: de3a33eb342c -->
+
+**Reading: 59% at 17:00 Tuesday.** 41 points remain to Monday 04:00. Keeping a 6-point reserve leaves **35 to spend**. The conversion holds at **USD 26.6 a point** (`tools/tick_burn_rate.py --points`, now on three readings). The 8-a-day line is dropped, as the director asked: spend runs as fast as the most valuable clear-down allows, in value-per-point order.
+
+The unattended lanes (worker ticks on Opus, the executor, the orienting seat) will spend about **21 of the 35** by Monday at today's rate. They draw from this same deck, so their points are clearing capacity, not overhead. This seat has about **14**.
+
+**The whole deck, sized** (counts at origin, 2026-10-13 17:00):
+
+| Rank | Group | Count | Points | By the reset |
+|---|---|---|---|---|
+| 1 | The publish, held 172h by the shared tree's stale HEAD: 9 other-lane paths block the fast-forward (my 14 spent copies are cleared) | 9 paths | ~1 | **clears** |
+| 2 | Real reds at HEAD: #6 lift floor, #8 / #9 / #11 vacated home and ledger, #12 capabilities feed, #16 constant verdict. #10 is now green; #7, #13 and #17 clear at the publish; #2 is environmental | 6 | ~5 | **clears** |
+| 3 | P1 atoms: why renewals sit below their own cost floor (the executor is recounting it), and D48's L2 recording at the publish | 2 | ~2 | **in part**: the diagnosis by the reset; a pricing fix waits for the engine next week |
+| 4 | Staging documents new since Monday's sweep, with no fate | 24 (21 root, 3 in progress) | ~1 | **clears** |
+| 5 | Director and advisor documents in the rooms. 60 are consolidated into canon v4 and bannered; 22 are not | 80 | ~1 | **clears** |
+| 6 | Known issues still open as fixes (`wrong_triage.yaml`) | 18 of 45 | ~1.5 each, ~27 | **in part**: the 3-4 cheapest, ~5; the rest to next week |
+| 7 | P2 atoms from Monday's sweep: mostly supplier and world features, which this week's rule excludes | 31 | ~1-2 each | **next week**, except any that prove to be fixes in the fate pass |
+| 8 | P3 and unranked atoms | 21 (13 P3, 8 unranked) | low | **next week**, or drop at the fate pass |
+
+This seat's share of groups 1-6 is about **15 points against its 14**, so the plan fits with the reserve intact. If the lanes take more of it than expected, the spare goes, in order, to:
+- knowledge work for next week's supplier engine (the cost-floor question, and C34's sharing price);
+- getting next week's feature atoms ready to draw on Monday (P2s with their K8 page and their predictions filed).
+It is never stretched to fill the budget.
+
+---
+
 ## 2026-10-13 — The director's reading: 15 points in 18 hours, the conversion recalibrated to USD 26.5 a point, the advisor trial stopped, and the deck re-estimated at 8 a day
 
 <!-- head: 39afcb4af4f7 -->
