@@ -50,11 +50,17 @@ from tools import render_site_nav as renderer  # noqa: E402
 def tree(tmp_path):
     """A throwaway copy of the real site tree. Mutations happen HERE, never in the
     working tree -- a control whose own test can leave the repo dirty is a control
-    nobody will run twice."""
+    nobody will run twice.
+
+    JSON is left out: the register and the nav renderer read pages, the sitemap and area
+    directories, never a JSON payload under site/, and copying ~170 MB of them into every one
+    of ~20 tests filled the 12 GB /tmp tmpfs mid site-lane on 2026-10-13 -- 72 ENOSPC reds
+    that refused the publish."""
     dest = tmp_path / "site"
     shutil.copytree(
         SITE, dest,
-        ignore=shutil.ignore_patterns("__pycache__", "node_modules", ".pytest_cache"),
+        ignore=shutil.ignore_patterns("__pycache__", "node_modules", ".pytest_cache",
+                                      "*.json", "*.jsonl"),
     )
     return dest
 
