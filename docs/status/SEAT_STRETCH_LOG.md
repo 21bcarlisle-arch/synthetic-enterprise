@@ -8,6 +8,47 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-13 — Four reds at HEAD closed, the shared tree caught up with origin, and a stopped trial came back on for an hour
+
+<!-- head: b65360ac09ef -->
+
+Deck group 2 (reds at HEAD) and the shared-tree wedge, 17:00 to 19:15.
+
+**Closed, by kind:**
+- Reds at HEAD: four.
+  - #16, #8 and #9 landed as cc5793d46: the test fixes, re-landed from a fresh base.
+  - #11 landed as 7461de1d8. The ledger control left out the occupier debt from the
+    change-of-tenancy window, and the arrears engine never bills a named payer for that.
+    Verified 2 passed before landing.
+- Known issues: one. A worker invocation that fails now writes the tail of its own output into
+  the tick log (aa7b2849e), so the next run of six-second rc=1 exits will name its cause.
+- Records: two.
+  - The seat records were merged and landed (98a5eb6d7).
+  - The B8 Q5 finding kept 31 lines on the arm-base fix that the move to done/ had left
+    behind (7bc5cfac5).
+- Shared tree: fast-forwarded at 19:11 (5f4cf98c8) and level with origin. It took 22 spent
+  copies staged at origin's bytes, two identical untracked twins, and one subset copy, which is
+  preserved. Another lane cleared the last two blockers in parallel; I stepped back once I saw
+  it rather than race it on one index.
+
+**Wrong, and corrected:**
+- At 18:44 a lane wrote HEAD's bytes back over the shared tree's copies, including
+  advisor_trial.yaml. That re-enabled the trial I stopped this morning, and one Sonnet-plus-
+  advisor worker spawned at 17:48Z. I wrote origin's `enabled: false` back at about 18:50.
+  `advisor_trial()` returns None, and the advanced tree now carries it from git.
+- My first red #11 probe ran into its 25-minute timeout. The cause was readable in the code
+  in two greps (arrears_engine.py:878). I should have read before running.
+
+**Publish:** the 16:35 attempt failed its gate. When the gate re-ran its 12 cited red tests at
+HEAD, all 12 passed, so the failure does not stand up. The next sim-runner pass runs from a
+current tree. Reds #7, #12, #13 and #17 clear with that publish.
+
+**What's left on the decks:** the table at the 59% reading stands. Group 2 is down to #6,
+which waits for next week by design, and the publish-dependent four. Next in value order:
+group 6, the cheap known-issue fixes, then group 3, the P1 atoms.
+
+---
+
 ## 2026-10-13 — orientation: Nothing moved the thesis this stretch, and on the supplier side it went backwards
 
 <!-- head: 2248e3baf244 -->
