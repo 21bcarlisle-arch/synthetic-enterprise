@@ -114,3 +114,71 @@ note's 299). Until the tail is explained, those are two descriptions of differen
 does not block freezing DD4b's strengths at the range ends: P6-P10 hold and are counted on the in-loop
 reviews the household actually met. It does block quoting the post-loop census as "what the household
 was told".
+
+## The placebo, registered 2026-10-13 before launch
+
+`probe` (cancel 0, uplift 0, complaint share 1e-12) from the same locked worktree, same files
+(`run_phase2b.py`, `dd_review_in_loop.py`, `dd_shock_response.py` byte-identical to `71c324b6d`,
+re-hashed at launch), 200 founders, budget 0: `il_run.py probe 200 0 .../il/f200-probe-il`. It records
+every in-loop shock and should change no payment path, except that the complaint share is 1e-12, not 0.
+
+| # | Quantity | Prediction |
+|---|---|---|
+| Q1 | probe bad debt vs default's 1,243.83 | within 5% (1,181.6 to 1,306.0) |
+| Q2 | probe total net vs default's 148,258.89 | within 0.05% |
+| Q3 | probe DD failed collections vs default's 149 | within 5 |
+| Q4 | probe reviews told in loop | equal to low's 847 matched, and the same keys |
+
+**Reading.** If Q1 fails, the bad-debt legs of P11 and P13 measure path noise, not DD4b, and both are
+withdrawn rather than regraded. If Q1 holds, P11/P13's bad-debt moves stand as DD4b's response, and the
+register's "small responses" prior was wrong. My expectation is that Q1 holds: probe changes no draw
+that the default setting makes, unless the 1e-12 complaint share consumes a random draw default does not.
+
+## The content tail, explained (2026-10-13)
+
+Script: `/var/tmp/dd4b_runs/il/tail200.py` over `f200-low/report.json` and `told.json`; output in
+`tail200.out` beside it. Every one of the 847 matched reviews has 12 bills in its window, the same
+window index in both chains, and a post-loop spend equal to the sum of its window's issued bills.
+
+**Correction to "The grade" above.** "Window 0 agrees exactly (217 / 217)" is true of the CURRENT DD,
+and that agreement is guaranteed: both chains open from the same `_opening_dd_by_customer`. On SPEND,
+window 0 agrees within 5% in 149 of 217, and 68 of the 179 tail reviews are in window 0. The opening
+door is shared; the window-0 bills are not.
+
+Also, the item's "settled ex-VAT revenue x 1.2" is wrong: `DOMESTIC_VAT_RATE` is 0.05 and the issued
+bills carry 5% VAT. The gross-up is not the gap.
+
+**The 179 reviews over 5% fall into two causes, and nothing is left over:**
+
+| Cause | Reviews | How it was established |
+|---|---|---|
+| Volume: the bill is ESTIMATED and not trued up inside the window; the loop's amount is settled at TRUE kWh | 135 | re-pricing each window bill at the meter log's `true_consumption_kwh` brings the post-loop spend within 5% of the in-loop one |
+| ...of which the true-up lands in a later window (timing) | 111 | the household's lifetime true/billed kWh is within 0.83 to 1.2 |
+| ...of which it never lands (persistent) | 24, 8 households | lifetime true/billed kWh outside that band. `C7` (smart meter): 42 consecutive estimated bills at about 335 kWh/month against a true 1,658, never a forced catch-up; that is the 3.8x |
+| Move-in, window 0: the loop drops the void (owner) and unnamed-occupier months; the issued bills include them | 44, all `OCC-*` households, all window 0 | after re-pricing, the loop is lower in 43 of 44; dropping the window's first 3 to 5 bills matches it, 20 within 3% (`_held["amount_gbp"]` subtracts `void_owner_charge_gbp` and `occupier_debt_gbp`, `run_phase2b.py`) |
+| Unexplained | 0 | one zero-kWh estimate window cannot be re-priced and is counted with move-in |
+
+**Why the current DD differs in 365.** Once one window's recommendation differs, every later window's
+current DD differs too. Of the 76 material flips (38 each way), 40 are on reviews whose own spend agrees
+within 5%. They inherit an earlier divergence.
+
+**Which chain describes the household honestly?** Neither, completely:
+
+- *Volume (135).* The in-loop chain is told a spend at TRUE consumption. A supplier with estimated
+  reads cannot know that at review time; its own issued bills are what it holds. So 135 in-loop reviews
+  rest on a number that does not cross the epistemic wall honestly. The post-loop chain is the
+  supplier's honest view here. Filed as
+  `docs/staging/SEAT_FINDING_THE_IN_LOOP_DD_REVIEW_IS_TOLD_TRUE_CONSUMPTION_NOT_THE_SUPPLIERS_ESTIMATED_BILLS_2026-10-13.md`.
+- *Move-in (44).* Here the in-loop chain is closer to the household's own account. The void is the
+  owner's and the unnamed period is "the occupier's", and neither is what the named household's DD is
+  sized against. The post-loop chain sizes the named household's first review on bills that include them.
+- The persistent 24 are also a billing fidelity defect in themselves. A smart meter estimated for 42
+  months at a fifth of its true use is not what a supplier holding smart reads would issue.
+
+**Consequence for the grade.** P6 to P10 are counted on the in-loop reviews, and they still describe
+what the world did. But 135 of those reviews were sized on information the supplier could not hold.
+Neither chain can yet be quoted as "what the household was told by a supplier that knows only what a
+supplier knows". The remedy is to feed the in-loop review the supplier's OWN bill for each month as it
+would be issued, using the same read feed `build_monthly_bills` uses, with the move-in months attributed
+to the occupier and owner. Then the two chains coincide by construction. Handed on as a
+continuation.
