@@ -1,6 +1,6 @@
 **Severity:** LATENT · **Lane:** W2_customer_generator · **Epoch:** unassigned · **Atom:** `unminted`
 **What:** DD4b re-sited from the renewal to the supplier's annual DD review, told in the loop; its world predictions at the toggles' low and high ends · claim `dd4b-answers-the-told-amount-at-the-in-loop-review-then-freeze-at-the-range-ends`
-**Status:** GRADED 2026-10-13 01:05. 11 of 13 hold; P11's bad-debt leg and P13 are wrong. Neither refutation clause fires as registered (P4 = 0, 2022 answered 34). But P4's gloss, "the in-loop chain is the post-loop chain", is only true on KEYS: 365 of the 847 matched reviews carry a different current DD. See "The grade" below
+**Status:** GRADED 2026-10-13 01:05. 11 of 13 hold; P11's bad-debt leg and P13 are wrong. Neither refutation clause fires as registered (P4 = 0, 2022 answered 34). But P4's gloss, "the in-loop chain is the post-loop chain", is only true on KEYS: 365 of the 847 matched reviews carry a different current DD. See "The grade" below. PLACEBO GRADED 2026-10-13 08:57: Q1-Q4 all hold, and `probe` is bit-identical to `default` (bad debt 1,243.83, net 148,258.89, 149 DD failures), so P11/P13's bad-debt moves stand as DD4b's response, not path noise at zero strength. See "The placebo, graded"
 
 # DD4b at the review the household meets: predictions at its range ends
 
@@ -165,6 +165,39 @@ immediately before this launch. Re-checked at 06:54 BST: `ActiveState=active`, `
 so this one did not die silently like the first two. Expect `told.json` by about 07:35-07:45 BST.
 Grading (Q1-Q4 against the bands registered above) and this table's completion remain handed on as
 a continuation -- `DO NOT DRAW BEFORE 07:40 on 2026-10-13`.
+
+## The placebo, graded 2026-10-13 08:57
+
+`longjob-dd4b-il200-probe` finished at 07:21 BST (1,851 s, peak 2,044 MB). The unit is inactive and
+all of `summary.json`, `world.json` and `told.json` are in `/var/tmp/dd4b_runs/il/f200-probe-il/`.
+Output is from `python3 /var/tmp/dd4b_runs/il/grade200.py`.
+
+| # | Prediction | Result | Grade |
+|---|---|---|---|
+| Q1 | bad debt within 5% of 1,243.83 | 1,243.83, +0.00% | holds |
+| Q2 | total net within 0.05% of 148,258.89 | 148,258.89, +0.0000% | holds |
+| Q3 | DD failures within 5 of 149 | 149 (123 insufficient funds, 26 cancelled_other, as default) | holds |
+| Q4 | 847 told in loop, the same keys as low | 847; 0 keys either way | holds |
+
+The arm was live. It recorded 208 shocked reviews over 111 households, the same as `low` and `high`.
+It cancelled 0 mandates, made 0 complaints and applied the failure uplift to 0 reviews. Its reconcile
+block is identical to low's (771 / 847 material agreement). My expectation was "Q1 holds unless the
+1e-12 complaint share consumes a draw default does not". It held more strongly than that: the whole
+path is bit-identical, so the complaint draw consumed nothing that `default` does not.
+
+**Reading, as registered.** Q1 holds, so the bad-debt legs of P11 (+17.3%) and P13 (+37.2%) stand as
+DD4b's response, and the register's prior of "small responses on a small share" was wrong by about 4x.
+
+**What the placebo does not settle.** It shows that running the in-loop review at zero strength does
+not move the path. It does not show how much of low's +£215 is the response itself and how much is
+divergence that ANY non-zero perturbation would set off downstream. Once one household's failure moves,
+later draws can move too, and a 5-cancellation, 14-failure response on a £1,244 base is where that
+would show. Under F11 the safe statement is: the bad-debt move is caused by DD4b at non-zero strength,
+and its size on one seed is not yet a measured elasticity. The smallest run that separates these is
+`low` on a second seed against `default` on the same seed. If the bad-debt move there is within about
+half of +17%, the size is a response, not chaos. This is not handed on as owed work. It matters only if
+someone quotes the bad-debt percentage as DD4b's strength, and the freeze at the range ends rests on
+P6-P10, which do not depend on it.
 
 ## The content tail, explained (2026-10-13)
 
