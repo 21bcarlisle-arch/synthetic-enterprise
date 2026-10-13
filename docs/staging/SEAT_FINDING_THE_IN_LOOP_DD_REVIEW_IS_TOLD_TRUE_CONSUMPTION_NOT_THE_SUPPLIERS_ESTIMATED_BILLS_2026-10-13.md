@@ -46,3 +46,15 @@ from the prior invocation's unlanded shared-tree copy, with the one caller hunk 
 `simulation/run_phase2b.py` (`post(cid, month)`). Mutation: rebuilding the bills as settled revenue x 1.05
 inside the new structure reds the to-the-penny control. Still owed from K8: the knowledge note declares
 `none` because no site topic covers the DD review, so it is not yet published on the site.
+
+**Pre-registered 2026-10-13, before the re-grade runs** (claim
+`dd4b-regrade-the-in-loop-bill-tail-after-own-bills`). Runs `f200-low-ownbills` and
+`f200-high-ownbills` under `/var/tmp/dd4b_runs/il/`, from a worktree at `d73cc0d8f` (remedy
+`5cdaca020` included); the pre-remedy `f200-low/` and `f200-high/` are kept. Graded with
+`tail200.py` and `reconcile()`. Predicted, at both range ends:
+- `only_in_loop` = `only_post_loop` = 0, `max_abs_rise_gap_on_matched` = 0.0.
+- 0 of N matched reviews differ from the post-loop chain by more than 5% on spend (was 135/847 at low).
+- 0 move-in window-0 rows (was 44), and 0 reviews with a different current DD (was 365).
+The rival: the loop calls `observe()` per term and `post()` per month, so a term boundary falling
+inside a review window could leave rows unobserved when the review posts. That would show as a
+non-zero residue concentrated at term boundaries, with the in-loop spend BELOW the post-loop spend.
