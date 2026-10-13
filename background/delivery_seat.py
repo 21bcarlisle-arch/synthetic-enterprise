@@ -2288,14 +2288,87 @@ def keeps_all_of(ours: bytes, theirs: bytes) -> bool:
     return len(ours) >= len(theirs) and ours.endswith(theirs[head:])
 
 
-def _refuse_an_append_only_rewrite(root: Path, content: dict[str, bytes]) -> None:
+def _head_bytes(root: Path, path: str) -> bytes | None:
+    out = _git_in(root, "show", f"HEAD:{path}")
+    return out.stdout if out.returncode == 0 else None
+
+
+def rebase_append_only(ours: bytes, base: bytes | None, theirs: bytes) -> bytes | None:
+    """`ours` carried onto `theirs`, or None when that cannot be done without guessing.
+
+    `ours` is the shared working copy, `base` the shared HEAD's copy, `theirs` origin's. The shared
+    HEAD lags origin as a standing state, so the seat's copy is usually HEAD-plus-its-block, not
+    origin-plus-its-block -- and refusing that left the record dirty, the dirty record held the
+    fast-forward, and the held fast-forward made the next record HEAD-plus-block again: 05:29,
+    08:31, 11:27 and 14:31Z on 2026-10-13, and the publish graded a 62-behind HEAD all day (the
+    loop `done/WORKER_FINDING_A_BEHIND_SHARED_TREE_STOPS_THE_SEAT_LANDING_ITS_ORIENTATION_AND_ITS_
+    UNLANDED_RECORD_KEEPS_THE_TREE_BEHIND_2026-10-05.md` named and proposed this for).
+
+    The block is what `ours` inserts into `base`, snapped back to a line start when that still
+    reproduces `ours`, and it goes into `theirs` at the same offset only when `theirs` agrees with
+    `base` up to there (the header the stretch log prepends under, or all of `base` for an append).
+    An append goes after everything origin appended. A block origin already holds returns `theirs`
+    unchanged."""
+    if keeps_all_of(ours, theirs):
+        return ours
+    if base is None or not keeps_all_of(ours, base):
+        return None
+    n = len(ours) - len(base)
+    at = len(os.path.commonprefix([ours, base]))
+    line = base.rfind(b"\n", 0, at) + 1
+    if ours[:line] + ours[line:line + n] + base[line:] == ours:
+        at = line
+    block = ours[at:at + n]
+    if not block or theirs.find(block) >= 0:
+        return theirs
+    if theirs[:at] != base[:at]:
+        return None
+    if at == len(base):
+        # AN APPEND STAYS LAST: `last_orientation` reads the final row, so the seat's row goes after
+        # anything origin appended, never between base and origin's rows.
+        return theirs + block if theirs.endswith(b"\n") or not theirs else None
+    return theirs[:at] + block + theirs[at:]
+
+
+def _rebase_append_only_onto_origin(root: Path, content: dict[str, bytes]) -> dict[str, bytes]:
+    rebased = dict(content)
     for path in APPEND_ONLY:
         theirs = _origin_bytes(root, path)
-        if path in content and theirs is not None and not keeps_all_of(content[path], theirs):
+        if path not in content or theirs is None:
+            continue
+        carried = rebase_append_only(content[path], _head_bytes(root, path), theirs)
+        if carried is None:
             raise DirectionNotLanded(
-                f"{path} on origin/main is not kept whole by this tree's copy (it is not origin's "
-                f"copy plus one inserted block), so landing it would delete what origin holds. Not "
-                f"merged by guesswork: the file needs a hand landing that keeps both sides")
+                f"{path} on origin/main is not kept whole by this tree's copy (it is neither "
+                f"origin's copy nor the shared HEAD's copy plus one inserted block), so landing it "
+                f"would delete what origin holds. Not merged by guesswork: the file needs a hand "
+                f"landing that keeps both sides")
+        rebased[path] = carried
+    return rebased
+
+
+def settle_shared_copies(root: Path, read: dict[str, bytes]) -> list[str]:
+    """After a landing, put origin's bytes over each append-only shared copy the seat read, so the
+    copy is origin's twin and the fast-forward is not held by it. Only where the copy is still the
+    bytes the seat read (another writer's later append is left alone) and everything the seat added
+    is on origin (`rebase_append_only` returns origin's copy unchanged). Returns the paths written."""
+    written = []
+    _git_in(root, "fetch", "--quiet", "origin")
+    for path in APPEND_ONLY:
+        theirs, here = _origin_bytes(root, path), root / path
+        if read.get(path) is None or theirs is None or theirs == read[path] or not here.is_file():
+            continue
+        if rebase_append_only(read[path], _head_bytes(root, path), theirs) != theirs:
+            continue
+        # Asked of git by blob hash: the copy is unchanged since the read only if they hash alike.
+        now = _git_in(root, "hash-object", "--", path)
+        then = subprocess.run(["git", "hash-object", "--stdin"], input=read[path],
+                              capture_output=True, timeout=60)
+        if now.returncode or then.returncode or now.stdout != then.stdout:
+            continue
+        here.write_bytes(theirs)
+        written.append(path)
+    return written
 
 
 def _cut_direction_worktree(root: Path, worktree: Path) -> None:
@@ -2398,15 +2471,15 @@ def land_direction_on_origin(root: Path, paths: list[str], message: str,
                                      f"re-based over it: " + " | ".join(moved))
         base = record
         # ASKED OF EVERY ORIGIN, not only the first: a move can carry an append to these files too.
-        _refuse_an_append_only_rewrite(root, content)
+        carried = _rebase_append_only_onto_origin(root, content)
         _cut_direction_worktree(root, worktree)
         # THE WORKTREE'S FILES CARRY THE BYTES TOO. The door commits `content` without touching the
         # working copy, which then still holds origin's old bytes -- and promotion refuses that as
         # uncommitted work. Found on this route's first hand landing, 2026-10-04.
-        for rel, data in content.items():
+        for rel, data in carried.items():
             (worktree / rel).parent.mkdir(parents=True, exist_ok=True)
             (worktree / rel).write_bytes(data)
-        landing, landed_content = list(paths), dict(content)
+        landing, landed_content = list(paths), dict(carried)
         page = (regenerate or regenerate_startup_anchors)(worktree)
         if page is not None:
             landed_content[STARTUP_ANCHORS_PAGE] = page
@@ -2639,7 +2712,12 @@ def commit_direction(lander=None) -> tuple[bool, str]:
         # The refusal's own words are the diagnosis (2026-09-30: a bare rc classified nothing).
         why = refusal_verdict(str(exc))
         return False, f"landing refused ({type(exc).__name__}): {why or 'no message'}"
-    return True, f"commit rc=0; landed {sha[:9]} on origin/main"
+    try:
+        settled = settle_shared_copies(PROJECT_DIR, content)
+    except (OSError, subprocess.SubprocessError) as exc:  # the record is on origin either way
+        settled = [f"not settled: {exc!r}"]
+    return True, f"commit rc=0; landed {sha[:9]} on origin/main" + (
+        f"; shared copies set to origin's: {', '.join(settled)}" if settled else "")
 
 
 def refusal_verdict(text: str, limit: int = 1500) -> str:
