@@ -257,6 +257,7 @@ def record_run_outcome(
             "detail": None,
             "git": head,
             "elapsed_s": round(elapsed) if elapsed is not None else None,
+            "last_success_elapsed_s": round(elapsed) if elapsed is not None else previous.get("last_success_elapsed_s"),
         }
     else:
         try:
@@ -286,6 +287,9 @@ def record_run_outcome(
             "detail": detail,
             "git": head,
             "elapsed_s": round(elapsed) if elapsed is not None else None,
+            # Carried, never overwritten by a failure: it is what run_budget_seconds() reads, and a
+            # timeout's elapsed is the old bound, not a duration the run achieved.
+            "last_success_elapsed_s": previous.get("last_success_elapsed_s"),
             # RUNG 1d reads `first_failure_ts` and `consecutive_failures` for SEVERITY. When the
             # prior was unreadable both are floors, not the episode, and the rung can now be told
             # so instead of being handed a fresh outage it has no evidence for.
@@ -321,6 +325,30 @@ def record_run_outcome(
     return state
 
 
+#: The fixed bound the run used to get. It stays the floor, so the new budget can only be looser.
+LEGACY_RUN_TIMEOUT_S = 7200
+
+
+def run_budget_seconds(state_path=None) -> int:
+    """How long the child may run before it is treated as hung: twice the last SUCCESSFUL run.
+
+    A fixed 7200s was a constant the run grew into: 4273s on 2026-10-11, 5119s on 2026-10-12, and
+    the 2026-10-13 11:24Z run was killed at 7200s eight minutes into writing its report, after the
+    simulation had finished. Only a success moves the reference, so repeated timeouts cannot
+    escalate it. With no recorded success, the reference is the legacy bound itself.
+    """
+    import json
+
+    path = Path(state_path) if state_path is not None else PRODUCER_STATE_FILE
+    try:
+        last = json.loads(path.read_text()).get("last_success_elapsed_s")
+    except (OSError, ValueError, AttributeError):
+        last = None
+    reference = last if isinstance(last, (int, float)) and not isinstance(last, bool) and last > 0 \
+        else LEGACY_RUN_TIMEOUT_S
+    return max(LEGACY_RUN_TIMEOUT_S, int(2 * reference))
+
+
 def _git_head() -> str:
     try:
         return subprocess.check_output(
@@ -347,6 +375,7 @@ def run_simulation() -> bool:
         produces="docs/reports/run_output_*.json, docs/staging/run_complete_*.md",
     )
 
+    budget = run_budget_seconds()
     t0 = time.monotonic()
     try:
         # H30 (2026-08-08): stderr is CAPTURED, not inherited. When this runner
@@ -365,7 +394,7 @@ def run_simulation() -> bool:
                 "--output", str(out_md),
             ],
             cwd=str(PROJECT_DIR),
-            timeout=7200,
+            timeout=budget,
             stderr=subprocess.PIPE,
             text=True,
         )
@@ -375,7 +404,7 @@ def run_simulation() -> bool:
         # TimeoutExpired carries what was read so far. That partial output is
         # usually where it got stuck.
         tail = stderr_tail(exc.stderr)
-        log(f"Run TIMED OUT after {elapsed:.0f}s — killing subprocess and retrying"
+        log(f"Run TIMED OUT after {elapsed:.0f}s (budget {budget}s) — killing subprocess and retrying"
             + (f"\n  child stderr (last lines before kill):\n{tail}" if tail
                else "\n  child stderr: nothing captured before the kill"))
         notify(f"[SIM] Run timed out after {elapsed:.0f}s — {failure_detail(exc.stderr)} "
