@@ -2,7 +2,18 @@
 
 # A mover's stale eligibility verdict stopped four fresh-seed arms before the book settled
 
-**Fate (2026-10-12, clear-the-decks):** PARTIAL -- e71d5c1db, db1f3767f. The fix is on origin and all
+**Fate (2026-10-13):** CLOSED -- the standing control the hand-off below asked for is built. The
+relocation's verdict-copy is now `simulation.fabric_demand_path.rebind_fabric_verdict_to_new_home`,
+called from the relocation block. `tests/simulation/test_fabric_demand_path_mover_verdict.py` holds
+the rule in both directions against `settlement_providers_match_eligibility` and holds the guard red on
+the pre-fix shape; `tests/simulation/test_run_phase2b_mover_verdict.py` holds the relocation block to
+the call by AST. Each is named for the module it guards, so the pre-commit stem selector runs it on
+any commit to that module (a first, single-file version reached by neither stem was refused by
+`test_the_strict_census_stays_discharged`, rightly). Both run in under a second. Mutations
+run before landing, each red: the call site reverted to e71d5c1db's pre-fix inline line; the moved-in
+verdict flipped to not-eligible; the old verdict left in place.
+
+**Earlier fate (2026-10-12, clear-the-decks):** PARTIAL -- e71d5c1db, db1f3767f. The fix is on origin and all
 eight `on` mover arms on 61109-61112 finish exit 0; the item's third DONE condition, a control that
 reproduces on 61110 and reds without the fix, does not exist and is handed off below, not claimed.
 

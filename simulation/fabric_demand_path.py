@@ -987,6 +987,32 @@ def settlement_providers_match_eligibility(
     return True
 
 
+def rebind_fabric_verdict_to_new_home(
+    customer_id: str,
+    destination_series: FabricDemandSeries | None,
+    *,
+    series_by_customer: dict[str, FabricDemandSeries],
+    verdicts: list[FabricEligibility],
+) -> None:
+    """A leg that MOVES WITH US takes its new home's trace AND its new home's verdict, in place.
+
+    Eligibility is a verdict on the premise, so the two travel together or the settled book carries
+    a fabric trace under a "not eligible" verdict (or the reverse), and
+    `settlement_providers_match_eligibility` stops the run. That happened on fresh seeds 61110-61112
+    (e71d5c1db) when the relocation copied the trace inline and left the old verdict behind; it is a
+    function so a fast test can reach it -- the only other witness is a multi-minute fresh-seed run.
+    """
+    verdicts[:] = [v for v in verdicts if v.customer_id != customer_id]
+    if destination_series is not None:
+        series_by_customer[customer_id] = destination_series
+        verdicts.append(FabricEligibility(
+            customer_id, True, "moved with us: the destination home's fabric trace"))
+    else:
+        series_by_customer.pop(customer_id, None)
+        verdicts.append(FabricEligibility(
+            customer_id, False, "moved with us: the destination home has no fabric trace"))
+
+
 def coverage_refusals(eligibility: Sequence[FabricEligibility]) -> list[str]:
     """The customers that would have settled on fabric physics but for the weather
     archive stopping short of the settlement window.
