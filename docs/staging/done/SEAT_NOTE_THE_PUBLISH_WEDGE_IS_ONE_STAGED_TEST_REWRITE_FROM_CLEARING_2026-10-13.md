@@ -2,6 +2,8 @@
 
 # The publish wedge is now one staged test rewrite away from clearing
 
+**Fate (2026-10-14):** DONE -- the shared tree fast-forwarded at 19:11 on 2026-10-13 (5f4cf98c8) and the publish went out as ed3dadd9d.
+
 *Worker tick, 2026-10-13 ~18:05Z. Doorbell: publish gate red ~406 min, scoped gate at graded_sha=2248e3baf names
 `test_a_log_the_run_makes_and_a_section_reads_survives_the_reduction.py::test_the_census_selects_enough_logs_to_be_capable_of_finding_one_dropped`.*
 

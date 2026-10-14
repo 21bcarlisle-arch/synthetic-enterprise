@@ -2,6 +2,8 @@
 
 # The publisher's retries at an unchanged sha hold the gate lock the shared tree's advance needs
 
+**Fate (2026-10-14):** ATOM -- harness, next week: the publisher's retries and the reconciler's advance can still starve each other.
+
 This follows `done/SEAT_FINDING_THE_PUBLISH_IS_HELD_BY_THE_SHARED_TREES_STALE_HEAD_NOT_BY_A_LIVE_RED_2026-10-13.md`.
 That finding's diagnosis still holds. The publisher grades a clean checkout of the shared HEAD,
 2248e3baf. That HEAD lacks 81c129fe8, so the census test is red there. It is green on disk and at origin.
