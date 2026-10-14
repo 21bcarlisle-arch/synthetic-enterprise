@@ -52,7 +52,7 @@ def test_a_save_keeps_its_term_and_every_later_term_of_its_account_out_of_the_pr
     def end(account, held=False, revenue=100.0):
         book.term_ended(billing_account=account, commodity="electricity",
                         last_settled_day="2024-01-31", net_margin=10.0, revenue=revenue,
-                        held_on_a_save=held)
+                        standing_charge_revenue=0.0, volume_mwh=1.0, held_on_a_save=held)
     end("A")                       # admitted: 0.10
     end("B", held=True)            # this term held on a save
     book.account_held_on_a_save("C")

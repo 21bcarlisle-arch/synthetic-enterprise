@@ -34,6 +34,8 @@ ALLOWED_FIELDS = (
     "payment_method", "default_belief_rate", "own_default_tariff_inc_vat_per_mwh",
     # The company's own offer for the term: the floor its desk struck over (2026-10-12).
     "company_forward_per_mwh", "locked_policy_cost_per_mwh", "locked_network_cost_per_mwh",
+    # What each term in its own margin history was priced to earn, off its own strike (2026-10-14).
+    "portfolio_priced_for_rates",
 )
 
 WORLD_PACKAGES = ("sim", "simulation")

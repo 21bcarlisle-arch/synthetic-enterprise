@@ -63,6 +63,7 @@ __all__ = (
     "request_company_forward_estimate",
     "request_fixed_unit_rate",
     "request_renewal_offer",
+    "term_cost_floor",
 )
 
 
@@ -96,6 +97,24 @@ def request_fixed_unit_rate(
         published_policy_cost_per_mwh=published_policy_cost_per_mwh,
         published_network_cost_per_mwh=published_network_cost_per_mwh,
     )
+
+
+def term_cost_floor(
+    company_forward_per_mwh: float | None,
+    term_start: str,
+    locked_policy_cost_per_mwh: float | None,
+    locked_network_cost_per_mwh: float | None,
+) -> float | None:
+    """The company's own cost floor for a term: forward + capital + the two locked costs.
+
+    The one floor no discretionary cut may go under (2026-10-14): the same number writer 1's
+    discount stops at, so the save and the renewal cut read it through here rather than summing
+    their own. `None` when any component is unknown.
+    """
+    from company.pricing.renewal_desk import pre_margin_unit_rate
+
+    return pre_margin_unit_rate(company_forward_per_mwh, term_start,
+                                locked_policy_cost_per_mwh, locked_network_cost_per_mwh)
 
 
 def request_company_forward_estimate(

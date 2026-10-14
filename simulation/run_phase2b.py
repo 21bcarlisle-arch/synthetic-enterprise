@@ -1220,12 +1220,17 @@ def _price_match_inputs(term: dict, commodity: str, term_start_str: str,
     the default are the company's read of the published record, through the save door -- the
     default EX VAT, as the re-fix and the floor are; NOT `_account_state_svt_rate`, which is the
     inc-VAT account-state record's field."""
-    locked = (term.get("locked_policy_cost_gbp_per_mwh"), term.get("locked_network_cost_gbp_per_mwh"))
+    # ONE FLOOR (2026-10-14): writer 1 stops a discount at `pre_margin_unit_rate` (forward + capital
+    # + the two locked costs) since 2026-10-13; this handed the save forward + the two locked costs,
+    # so one supplier held two floors GBP 2.2-4.5/MWh apart on every electricity renewal.
+    from company.interfaces.renewal_offer import term_cost_floor
+
     return {
         "published_default_rate": published_default_rate_ex_vat(commodity, term_start_str),
         "published_best_deal_gap_share": published_best_deal_gap_share(term_start_str),
-        "cost_floor": (None if None in locked or company_fwd is None
-                       else company_fwd + locked[0] + locked[1]),
+        "cost_floor": term_cost_floor(
+            company_fwd, term_start_str, term.get("locked_policy_cost_gbp_per_mwh"),
+            term.get("locked_network_cost_gbp_per_mwh")),
     }
 
 
@@ -2743,7 +2748,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         # the recorded figure the one the rate was actually struck against, and not a second
         # reading that agrees today.
         _portfolio_margins.as_of(term_start_str)
-        _position = portfolio_position(_portfolio_margins.rates(commodity))
+        _position = portfolio_position(_portfolio_margins.rates(commodity),
+                                       _portfolio_margins.priced_for(commodity))
         # WHAT THIS ACCOUNT HAS PAID, ASKED BEFORE THE PRICE IS STRUCK (2026-10-03). The value arm
         # priced every renewal blind to payment history -- the arrears state reached the churn
         # estimate below, AFTER the rate was set, and never reached the rate. Asked through the
@@ -2782,6 +2788,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             term_index=term_index,
             struck_unit_rate_per_mwh=unit_rate,
             portfolio_margin_rates=_portfolio_margins.rates(commodity),
+            portfolio_priced_for_rates=_portfolio_margins.priced_for(commodity),
             prior_term_margin=prev_term_margin.get(cid),
             prior_term_revenue=prev_term_revenue.get(cid, 0.0),
             is_domestic=cid in _RESI_CUSTOMER_IDS,
@@ -4775,7 +4782,12 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         _portfolio_margins.term_ended(
             billing_account=billing_account, commodity=commodity,
             last_settled_day=max(r["settlement_date"] for r in settled_this_term),
-            net_margin=actual_net, revenue=term_revenue, held_on_a_save=_held_on_a_save,
+            net_margin=actual_net, revenue=term_revenue,
+            standing_charge_revenue=sum(
+                r.get("standing_charge_gbp", r.get("gas_standing_charge_gbp", 0.0))
+                for r in settled_this_term),
+            volume_mwh=sum(r["consumption_kwh"] for r in settled_this_term) / 1000.0,
+            held_on_a_save=_held_on_a_save,
         )
 
         # KNIFE3 step 23 (§3r): the backward-looking arm of the SAME desk — was the

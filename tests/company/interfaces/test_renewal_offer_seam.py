@@ -169,6 +169,9 @@ def test_the_door_exposes_only_the_offer_and_the_request():
         "request_company_forward_estimate",
         "request_fixed_unit_rate",
         "request_renewal_offer",
+        # 2026-10-14: the term's own cost floor, so the save and the renewal cut read the floor
+        # writer 1 stops at instead of summing a second one in the run loop. A value, not a desk.
+        "term_cost_floor",
     )
     reachable = [n for n in FORBIDDEN_AT_THE_DOOR if hasattr(seam, n)]
     assert reachable == [], (

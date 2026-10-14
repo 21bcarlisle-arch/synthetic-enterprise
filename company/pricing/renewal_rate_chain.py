@@ -143,7 +143,28 @@ def cap_ceiling_ex_vat(
 # `term_index >= 1` at two call sites; it is one supplier rule, named once.
 MIN_TERM_INDEX_FOR_LEARNED_ADJUSTMENT = 1
 
-def portfolio_position(portfolio_margin_rates: list[float]) -> dict | None:
+def _priced_for_target(lookback: list[float],
+                       priced_for_rates: list[float | None] | None) -> float | None:
+    """The mean margin rate the lookback's own terms were priced for, or `None` if any is unstated.
+
+    THE TARGET ON THE SAME BASIS AS THE MEASUREMENT (2026-10-14). `PORTFOLIO_TARGET_MARGIN_RATE`
+    (8%, no source) was compared with a margin that counted the standing charge as profit; no
+    published source sets what margin a supplier should aim for, and the cap's EBIT allowance is a
+    comparator, not an aim (`docs/domain_artefact_library/regulatory/price_cap_ebit_allowance.md`).
+    What the company does know is what its own strike priced each term to earn. The premium closes
+    the gap between that and what the term earned. All or nothing: a mean over the terms that
+    happen to state it would compare one window of rates with another window of targets.
+    """
+    if priced_for_rates is None:
+        return None
+    window = priced_for_rates[-len(lookback):]
+    if len(window) != len(lookback) or any(t is None for t in window):
+        return None
+    return sum(window) / len(window)
+
+
+def portfolio_position(portfolio_margin_rates: list[float],
+                       priced_for_rates: list[float | None] | None = None) -> dict | None:
     """What the supplier's own P&L says about its recent margin on this commodity, and the
     premium that reading implies — held CONTINUOUSLY, whether or not it moves a rate.
 
@@ -172,10 +193,15 @@ def portfolio_position(portfolio_margin_rates: list[float]) -> dict | None:
     if not portfolio_margin_rates:
         return None
     lookback = portfolio_margin_rates[-PORTFOLIO_PREMIUM_LOOKBACK:]
-    premium = compute_portfolio_premium(lookback)
+    target = _priced_for_target(lookback, priced_for_rates)
+    premium = (compute_portfolio_premium(lookback) if target is None
+               else compute_portfolio_premium(lookback, target=target))
     return {
         "recent_margin_rates": [round(r, 4) for r in lookback],
         "mean_recent_margin_rate": round(sum(lookback) / len(lookback), 4),
+        # What the same terms were priced to earn, on the same basis. `None` where the history
+        # does not say (a caller that handed rates alone), and then the 8% literal answers.
+        "target_margin_rate": None if target is None else round(target, 4),
         "portfolio_premium_pct": round(premium * 100, 2),
         # THE UNROUNDED FRACTION, kept beside the published percentage because it is what
         # multiplies the rate. Rounding to 2dp first and dividing back would move the rate the
@@ -296,6 +322,7 @@ def decide_renewal_rate(
     company_forward_per_mwh: float | None = None,
     locked_policy_cost_per_mwh: float | None = None,
     locked_network_cost_per_mwh: float | None = None,
+    portfolio_priced_for_rates: list[float | None] | None = None,
 ) -> RenewalRateChain:
     """Decide the rate this renewal is contracted at.
 
@@ -341,7 +368,7 @@ def decide_renewal_rate(
         and term_index >= MIN_TERM_INDEX_FOR_LEARNED_ADJUSTMENT
         and len(portfolio_margin_rates) >= 1
     ):
-        position = portfolio_position(portfolio_margin_rates)
+        position = portfolio_position(portfolio_margin_rates, portfolio_priced_for_rates)
         portfolio_prem = position["portfolio_premium_fraction"]
         # A DISCOUNT MAY COST MARGIN; IT MAY NEVER TAKE THE RATE UNDER COST (2026-10-12). The
         # desk struck this rate over `cost_floor` (`renewal_desk._apply_competitive_ceiling`), and
@@ -370,6 +397,9 @@ def decide_renewal_rate(
                 "unit_rate_before": round(rate_before, 4),
                 "unit_rate_after": round(unit_rate, 4),
             }
+            if position["target_margin_rate"] is not None:
+                # Only where the history stated what it was priced for; the pre-cut shape otherwise.
+                entry["target_margin_rate"] = position["target_margin_rate"]
             if portfolio_prem < 0:
                 # On a discount only: a surcharge has no floor to meet, and its entry keeps the
                 # shape the pre-cut reproduction pins.
@@ -766,6 +796,7 @@ def decide_renewal_rate_from(inputs) -> RenewalRateChain:
         company_forward_per_mwh=inputs.company_forward_per_mwh,
         locked_policy_cost_per_mwh=inputs.locked_policy_cost_per_mwh,
         locked_network_cost_per_mwh=inputs.locked_network_cost_per_mwh,
+        portfolio_priced_for_rates=inputs.portfolio_priced_for_rates,
     )
 
 
@@ -796,7 +827,10 @@ class PortfolioMarginBook:
     def __init__(self) -> None:
         self.electricity: list[float] = []
         self.gas: list[float] = []
-        self._pending: list[tuple[str, int, str, float]] = []
+        # Index-aligned with the two lists above: the margin rate each released term's own strike
+        # priced for, on the same basis as its realised rate. `None` where it was not stated.
+        self._priced_for = {"electricity": [], "gas": []}
+        self._pending: list[tuple[str, int, str, float, float | None]] = []
         self._sequence = 0
         self._held_on_a_save: set[str] = set()
 
@@ -804,24 +838,46 @@ class PortfolioMarginBook:
         """The released history for `commodity`, oldest first. The live list, not a copy."""
         return self.electricity if commodity == "electricity" else self.gas
 
+    def priced_for(self, commodity: str) -> list[float | None]:
+        """What each term in `rates(commodity)` was priced to earn, index for index. Live list."""
+        return self._priced_for["electricity" if commodity == "electricity" else "gas"]
+
     def account_held_on_a_save(self, billing_account: str) -> None:
         """Record that a save kept this account: none of its terms teaches the premium again."""
         self._held_on_a_save.add(billing_account)
 
     def term_ended(self, *, billing_account: str, commodity: str, last_settled_day: str,
-                   net_margin: float, revenue: float, held_on_a_save: bool) -> None:
+                   net_margin: float, revenue: float, standing_charge_revenue: float,
+                   volume_mwh: float, held_on_a_save: bool) -> None:
         """Take one term's outcome off the company's own P&L, and admit it unless a save held it
-        or it earned nothing. `held_on_a_save` is this term's own flag; the account-level
-        exclusion is the book's."""
-        if revenue > 0 and not held_on_a_save and billing_account not in self._held_on_a_save:
-            self.settled(last_settled_day, commodity, net_margin / revenue)
+        or its unit rate earned nothing. `held_on_a_save` is this term's own flag; the
+        account-level exclusion is the book's.
 
-    def settled(self, last_settled_day: str, commodity: str, margin_rate: float) -> None:
-        heapq.heappush(self._pending, (last_settled_day[:10], self._sequence, commodity, margin_rate))
+        THE UNIT-RATE MARGIN, NOT THE BILL'S (2026-10-14). The standing charge is in `revenue` and
+        in `net_margin` in full, with no cost against it: the term's P&L carries neither the
+        operating costs nor the fixed network share it recovers (by the cap's construction the
+        standing charge IS that nil-consumption allowance). Read as margin, it put the book at
+        18-20% against an 8% target on a book priced at cost, and the premium took the full -5%
+        off 21 of 21 held electricity renewals on four seeds, every one onto its floor
+        (`SEAT_FINDING_RENEWALS_SIT_AT_THEIR_COST_FLOOR_..._2026-10-14.md`). So the standing charge
+        comes out of both sides, and the rate is set beside what the term's own strike priced for
+        on the same basis: `TARGET_MARGIN_GBP_PER_MWH` on each MWh, over the unit-rate revenue.
+        """
+        unit_revenue = revenue - standing_charge_revenue
+        if unit_revenue > 0 and not held_on_a_save and billing_account not in self._held_on_a_save:
+            self.settled(last_settled_day, commodity,
+                         (net_margin - standing_charge_revenue) / unit_revenue,
+                         TARGET_MARGIN_GBP_PER_MWH * volume_mwh / unit_revenue)
+
+    def settled(self, last_settled_day: str, commodity: str, margin_rate: float,
+                priced_for: float | None = None) -> None:
+        heapq.heappush(self._pending,
+                       (last_settled_day[:10], self._sequence, commodity, margin_rate, priced_for))
         self._sequence += 1
 
     def as_of(self, day: str) -> None:
         """Release, in end order, every term whose last settled day is before `day`."""
         while self._pending and self._pending[0][0] < day[:10]:
-            _, _, commodity, rate = heapq.heappop(self._pending)
-            (self.electricity if commodity == "electricity" else self.gas).append(rate)
+            _, _, commodity, rate, priced_for = heapq.heappop(self._pending)
+            self.rates(commodity).append(rate)
+            self.priced_for(commodity).append(priced_for)
