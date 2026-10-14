@@ -64,3 +64,46 @@ recorded beside the decision in
 docs/staging/done/SEAT_RESULT_THE_RENEWAL_CUT_STAYS_ON_RISK_TIERS_THE_MATCH_LOSES_NET_ON_EVERY_SEED_AND_GIVES_CUSTOMERS_LESS_2026-10-14.md.
 Run this design only once writer one's floor basis lands, since both arms read the floor d30dafffe found
 double-counted.
+
+## Addendum 2026-10-14: re-taken on writer one's basis
+
+*Written 2026-10-14 09:50 BST. No regrade5 arm has run yet and none produced an artefact. Nothing
+above this heading is edited.*
+
+**What changed in the base.** The eight arms run from an origin worktree carrying e3b5ed01a, not
+58e1e8905. That commit changes two things both arms read:
+
+- **Writer 1's premium.** It now reads the unit-rate margin against the margin its own strike priced
+  for. Before, it counted the standing charge as margin against an 8% literal, and took the full -5%
+  off 21 of 21 held electricity renewals.
+- **The floor.** The cut and the save share one floor, `renewal_offer.term_cost_floor`, which now
+  includes capital. Row 433's floor moves from 194.15 to 196.63.
+
+The regrade4 queue (/var/tmp/regrade4) was stopped before any arm produced an artefact. Its reason is
+in /var/tmp/regrade4/queue.log.
+
+**Same design.** C1, C2, P1-P3 and the decision rule above stand unedited. Same seeds 61109-61112,
+400 founders, budget 0, report end 2025-06-07. Arm script /var/tmp/regrade5/cut_arm5.py is
+regrade4's cut_arm.py with the save's counts added and nothing else changed. Grader:
+/var/tmp/regrade5/grade5.py. The arms are armed by `longjob-regrade5-arm-behind-focus-one`. That unit
+starts them only once e3b5ed01a and this addendum are both on origin/main.
+
+**Folded in, so one set of arms answers all three:**
+
+- **d5ba38b12's renewal-cut re-take.** d5ba38b12 kept the cut on risk tiers because the match lost
+  net on every seed. That comparison read the old floor and the old -5%. The match_where_published
+  against risk_tiers pair above, on the new base, is that re-take in the only form a supplier could
+  run.
+- **The save.** It has been live by curriculum since 2026-10-10, so both arms run it. Each artefact
+  records `save_offers_made`, `saves_taken` and `save_offers_by_year`.
+  - **S1:** on the risk_tiers arm, the save makes at least 1 offer on at least 3 of 4 seeds. The
+    basis is the finding that the save never fired because renewals sat on or below their own floor.
+    With the blanket -5% gone they should sit above it.
+  - **S1 failing** means the floor account of the inert save is incomplete.
+  - **Not answered here:** whether the save creates value. That needs a save-off arm per seed, and
+    it waits on S1. A save that never fires has no value to measure.
+
+**Duplicate-work note.** The claim `writer-one-margin-basis-and-one-floor-for-the-save` is focus one
+itself: the fix and its seed-61109 grade. This item, `the-renewal-cut-and-save-are-re-taken-on-writer-ones-basis`,
+is the four-seed re-take that runs on top of it. They are different work, and neither is released
+for the other.
