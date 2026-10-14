@@ -56,6 +56,8 @@ from pathlib import Path
 
 import pytest
 
+from tools.run_output_store import load_run_output, resolve_run_output
+
 REPO_ROOT = Path(__file__).resolve().parents[3]
 RUN_OUTPUT_PATH = REPO_ROOT / "docs" / "reports" / "run_output_latest.json"
 
@@ -101,11 +103,13 @@ def years_absent_from_the_lifecycle_record(artefact: dict) -> list[str]:
 
 
 def _live_artefact() -> dict:
-    assert RUN_OUTPUT_PATH.exists(), (
-        f"{RUN_OUTPUT_PATH} is missing -- the published run artefact is what this control grades, "
+    # The publish commits the run gzipped (tools/run_output_store.py), so a checkout has only the
+    # .gz; the shared tree may also hold the plain file. The store reads whichever exists.
+    assert resolve_run_output(RUN_OUTPUT_PATH) is not None, (
+        f"{RUN_OUTPUT_PATH} (or its .gz) is missing -- the published run artefact is what this control grades, "
         "and its absence is a refusal to grade, never a pass"
     )
-    return json.loads(RUN_OUTPUT_PATH.read_text())
+    return load_run_output(RUN_OUTPUT_PATH)
 
 
 # ─────────────────────────────────────────────────────────────────────────────────────────────
