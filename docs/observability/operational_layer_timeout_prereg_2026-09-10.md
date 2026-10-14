@@ -181,3 +181,19 @@ red against three mutants (no cache, path-keyed, no copy). The production draw g
 **Prediction, filed before the full-suite timing returns:** the operational suite now finishes
 inside 1800s. If a later run times out, it names a draw path that reads a different real-tree
 file per call, not `read_direction`.
+
+**Refuted, the same evening.** The full operational run after that fix (on a box shared with a
+24-minute landing gate) was killed at 2400s, only 37% through, with user+sys about 19 of 40
+minutes. It had stopped at `test_health_check.py::...::test_the_requirement_tracks_what_the_tree_launches_in_both_directions`
+(collected at about #568; the hourly runs died earlier, at about #508, so they never got this far).
+Its live leg `rglob`s the repo root for chromium launches and parses every `.py` through
+`searchable` at ~44ms each. **70,721 of the 74,118 files it walked were in the 22 linked worktrees
+under `.claude/worktrees/`**: other lanes' copies, which come and go through the day. That is
+~3,000s for one test, larger than the whole budget, and it rises and falls with how many lanes have
+a worktree open. It is the best explanation yet for timeouts interleaved with greens. Repair: the
+walk skips `.claude/worktrees/` (a copy is not what this tree launches). The test takes 98s under
+load, still parsing ~3,400 files. A raw-text prefilter would cut that further, but it is the
+substring scan `test_a_control_reads_python_as_code.py` refuses, so it is left alone.
+
+**Prediction, round 4b:** the next operational run goes green inside 1800s, or, if it times out,
+names a test collected after `test_health_check.py`.
