@@ -181,15 +181,44 @@ def _basis_and_rate_by_customer(customers: list[dict],
 # Building one arm
 # ---------------------------------------------------------------------------
 
+def closed_supply_points(payload: Mapping[str, Any], bills: list[dict]) -> tuple[set[str], dict]:
+    """The supply points whose account closed, derived the way `run_phase4c_on_phase2b.main()` does.
+
+    The run passes this set to the review (no review at a closed account's final bill) and to the
+    balance book (the final bill asks for the closing balance). An arm built without it reviews
+    every leaver at its final bill, which the run stopped doing at the final-bill rule.
+
+    The saved run output carries `churned_billing_accounts` but not `home_move_outs`, so a mover's
+    closure is invisible here unless a later run output publishes it. The second return value says
+    which, so the arms are never read as mirroring the run more closely than they can.
+    """
+    from simulation.household import households_whose_account_closed, supply_points_that_left
+
+    closed = supply_points_that_left(
+        households_whose_account_closed(payload), {b["customer_id"] for b in bills})
+    movers = payload.get("home_move_outs")
+    return closed, {
+        "n_closed_supply_points": len(closed),
+        "departures_from": "churned_billing_accounts",
+        "home_move_outs": (len(movers) if movers is not None
+                           else "absent from the substrate: movers' final bills are still reviewed"),
+    }
+
+
 def build_arm(bills: list[dict], opening_for_book: Mapping[str, float],
-              opening_for_review: Mapping[str, float]) -> dict:
-    """The three DD run-output keys, exactly as `run_phase4c_on_phase2b.main()` builds them."""
+              opening_for_review: Mapping[str, float],
+              closed_ids: set[str] | None = None) -> dict:
+    """The three DD run-output keys, exactly as `run_phase4c_on_phase2b.main()` builds them.
+
+    Exactly only when `closed_ids` is the run's own closure set: the run passes it to both the
+    review and the balance book. `run()` derives it with `closed_supply_points`.
+    """
     from company.interfaces.dd_review import annual_dd_review_view
     from simulation.dd_balance_book import build_dd_balance_book
     from simulation.dd_level_collection_book import build_dd_level_collection_book
 
-    review = annual_dd_review_view(bills, dict(opening_for_review))
-    book = build_dd_balance_book(bills, dict(opening_for_book))
+    review = annual_dd_review_view(bills, dict(opening_for_review), closed_ids)
+    book = build_dd_balance_book(bills, dict(opening_for_book), closed_ids)
     level = build_dd_level_collection_book(book)
     return {
         "annual_dd_review": review,
@@ -485,8 +514,9 @@ def run(run_output_path: Path) -> dict:
     basis = _basis_and_rate_by_customer(
         customers, payload.get("opening_registry_kwh_by_customer"))
 
-    flat_arm = build_arm(bills, flat_for_book, flat_for_review)
-    est_arm = build_arm(bills, est_open, est_open)
+    closed, closure_basis = closed_supply_points(payload, bills)
+    flat_arm = build_arm(bills, flat_for_book, flat_for_review, closed)
+    est_arm = build_arm(bills, est_open, est_open, closed)
 
     # The control, run and reported BEFORE any diff: does the reconstructed flat
     # arm reproduce the book the pre-organ run actually published?
@@ -523,6 +553,7 @@ def run(run_output_path: Path) -> dict:
             "substrate_sha256": hashlib.sha256(run_output_path.read_bytes()).hexdigest(),
             "n_bills": len(bills),
             "basis": "one-seed, two-arm; both arms are pure functions of these bills",
+            "closure": closure_basis,
         },
         "flat_arm_reproduces_the_published_pre_organ_book": reproduces,
         "whole_run_output_diff": diff_run_outputs(whole_flat, whole_est),

@@ -95,6 +95,7 @@ __all__ = ["annual_dd_review_view"]
 def annual_dd_review_view(
     bills: list[dict],
     opening_dd_gbp: dict | None = None,
+    closed_ids: set | None = None,
 ) -> dict:
     """The supplier's annual DD review over its own issued `bills`, serialised.
 
@@ -105,6 +106,10 @@ def annual_dd_review_view(
     which is the same property `dd_review_outcome` holds for the reviewed
     amount. A customer absent from it is REFUSED and counted in the serialised
     summary's `unestimated_customers`, never opened from a bill.
+
+    `closed_ids` names the accounts that have left supply. Like the opening amount,
+    it is a fact the supplier holds (the loss notification), and no review is dated
+    at such an account's final bill.
 
     Returns the JSON-safe `{"summary": ..., "events": [...]}` form. Nothing of
     the supplier's decision machinery — the variance rule, the bill-shock
@@ -126,4 +131,6 @@ def annual_dd_review_view(
     """
     from company.billing.dd_review_runner import run_annual_reviews
 
-    return run_annual_reviews(bills, opening_dd_gbp=opening_dd_gbp).serialise()
+    return run_annual_reviews(
+        bills, opening_dd_gbp=opening_dd_gbp, closed_ids=closed_ids,
+    ).serialise()

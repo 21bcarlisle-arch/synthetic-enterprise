@@ -38,7 +38,7 @@ from __future__ import annotations
 import dataclasses
 from dataclasses import dataclass, field
 from datetime import date
-from typing import Mapping
+from typing import AbstractSet, Mapping
 
 from company.billing.dd_review import DDAction, DDReviewBook, review
 
@@ -122,6 +122,7 @@ def run_annual_reviews(
     bills: list[dict],
     *,
     opening_dd_gbp: Mapping[str, float] | None = None,
+    closed_ids: AbstractSet[str] | None = None,
     large_increase_threshold_pct: float = LARGE_INCREASE_THRESHOLD_PCT,
 ) -> DDReviewRunResult:
     """Drive ``dd_review.review`` over the portfolio at each customer's own
@@ -156,6 +157,13 @@ def run_annual_reviews(
     no fallback -- ``tests/company/billing/
     test_the_opening_dd_is_never_the_first_issued_bill.py`` fails if one returns.
 
+    **No review is dated at a closed account's final bill.** ``closed_ids`` are the
+    accounts the supplier has been told left supply (switch away or move out). A review
+    sets next year's monthly amount, and a closing account has no next year: it gets a
+    final bill, a credit refund or one last collection
+    (`docs/market_research/a_supplier_does_not_review_the_direct_debit_at_an_accounts_
+    final_bill_2026-10-13.md`). The run-end stub is not a closure and is still reviewed.
+
     Deterministic and idempotent: pure function of its inputs, no RNG, no
     mutation of any input or ground-truth structure.
     """
@@ -168,6 +176,7 @@ def run_annual_reviews(
         )
 
     result = DDReviewRunResult(book=DDReviewBook(), events=[])
+    closed = closed_ids or frozenset()
 
     for cid in sorted(by_cust):
         seq = sorted(by_cust[cid], key=lambda t: t[0])
@@ -204,6 +213,8 @@ def run_annual_reviews(
                 if next_bills
                 else max(d for d, _ in wbills)
             )
+            if cid in closed and review_date == seq[-1][0]:
+                continue
             r = review(cid, review_date, standing_dd, actual_annual)
             result.book.record(r)
             large = (

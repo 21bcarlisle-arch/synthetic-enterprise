@@ -5,7 +5,7 @@ Defects these name:
     (a window boundary off by a month, the chain reset, a review told before its year is out);
   * the in-loop review was fed the loop's own settled revenue at TRUE meter kWh, where a real
     supplier reviewing a household with estimated reads holds only its own issued bills
-    (`docs/staging/SEAT_FINDING_THE_IN_LOOP_DD_REVIEW_IS_TOLD_TRUE_CONSUMPTION_NOT_THE_SUPPLIERS_
+    (`docs/staging/done/SEAT_FINDING_THE_IN_LOOP_DD_REVIEW_IS_TOLD_TRUE_CONSUMPTION_NOT_THE_SUPPLIERS_
     ESTIMATED_BILLS_2026-10-13.md`) -- fixed by asking the SAME assembly door
     (`simulation.run_phase4c_on_phase2b.build_monthly_bills`) the post-loop chain asks, restricted
     to the leg's own rows observed so far, so there is one assembly computing bill content and
@@ -17,6 +17,10 @@ Mutations performed 2026-10-12: window bound //12 -> //13 (red), VAT not grossed
 answer site in the loop (red). Taking the chain's LAST event in place of the one dated this month stays
 green, and that is an equivalence, not a gap: the review is asked only at a window's first bill, and
 the newest event then is always dated at that bill.
+
+Mutations performed 2026-10-13 for the final-bill rule: the loop's closure guard off, the run-end
+lookup off, the runner's guard off, the guard widened to drop every year of a closed account, the door
+dropping `closed_ids`, the post-loop caller dropping `churned_ids` (all red).
 """
 from __future__ import annotations
 
@@ -138,3 +142,67 @@ def test_the_run_loop_answers_dd4b_at_one_site_only():
              and isinstance(n.func, ast.Name)
              and n.func.id in {"respond_to_told_amount", "respond_to_dd_shock", "respond"}]
     assert [c.func.id for c in calls] == ["respond_to_told_amount"]
+
+
+def _fed_as_the_loop_feeds(legs: dict[str, list[dict]], opening: float, run_end: str):
+    """The order `simulation/run_phase2b.py` keeps: month M of a leg is posted once a later month's
+    row has been observed, and every leg's last month is posted by the run-end flush."""
+    rv = InLoopDDReview(lambda _cid: None, run_end=run_end)
+    for cid in legs:
+        rv._opening[cid] = opening
+    months = sorted({r["settlement_date"][:7] for rows in legs.values() for r in rows})
+    open_month: dict[str, str] = {}
+    for month in months:
+        batch = [r for rows in legs.values() for r in rows if r["settlement_date"][:7] == month]
+        rv.observe(batch)
+        for cid in sorted({r["customer_id"] for r in batch}):
+            if open_month.get(cid, month) != month:
+                rv.post(cid, open_month[cid])
+            open_month[cid] = month
+    for cid, month in open_month.items():
+        rv.post(cid, month)
+    return rv
+
+
+def test_a_leavers_final_bill_is_not_reviewed_and_the_run_end_stub_is():
+    # `docs/market_research/a_supplier_does_not_review_the_direct_debit_at_an_accounts_final_bill_
+    # 2026-10-13.md`. Three legs, one partition. C1 (stays) opens 2023-03 and runs to the run end, so it is
+    # told a review at a mid-run month-end (2024-03-31). C2 (leaves) opens on the same day and leaves on
+    # 2024-03-31, a month-end, so its final bill is the first bill of its second year: no review in
+    # either chain. C3 (stub) opens 2024-06, so its second year starts with the run's own cut-short
+    # bill (2025-06-07), and that review is told.
+    run_end = "2025-06-07"
+    stub_last = [r for r in _month_rows("C3", 2025, 6, 300.0) if r["settlement_date"] <= run_end]
+    legs = {
+        "C1": _rows_for("C1", "2023-03", 27, lambda i: 300.0) + [
+            dict(r, customer_id="C1") for r in stub_last],
+        "C2": _rows_for("C2", "2023-03", 13, lambda i: 300.0),
+        "C3": _rows_for("C3", "2024-06", 12, lambda i: 300.0) + stub_last,
+    }
+    rv = _fed_as_the_loop_feeds(legs, 60.0, run_end)
+    told = {(e["customer_id"], e["review_date"]) for e in rv.told}
+    assert told == {("C1", "2024-03-31"), ("C1", "2025-03-31"), ("C3", run_end)}
+
+    all_rows = [r for rows in legs.values() for r in rows]
+    post = annual_dd_review_view(build_monthly_bills(all_rows, {"C2"}),
+                                 {c: 60.0 for c in legs}, {"C2"})["events"]
+    assert {(e["customer_id"], e["review_date"]) for e in post} == told
+    # The same bills with no closure named review C2 at its final bill: the guard is what
+    # drops it, not an absent window.
+    unclosed = annual_dd_review_view(build_monthly_bills(all_rows, {"C2"}),
+                                     {c: 60.0 for c in legs})["events"]
+    assert ("C2", "2024-03-31") in {(e["customer_id"], e["review_date"]) for e in unclosed}
+
+
+def test_both_production_callers_hand_over_what_the_final_bill_rule_reads():
+    # The rule above reaches the run only if the post-loop review is given the closed accounts and
+    # the in-loop review is given the run's end. Without them both guards are silently off.
+    def calls(path: str, name: str):
+        tree = ast.parse((ROOT / "simulation" / path).read_text())
+        return [n for n in ast.walk(tree) if isinstance(n, ast.Call)
+                and isinstance(n.func, ast.Name) and n.func.id == name]
+
+    [post] = calls("run_phase4c_on_phase2b.py", "annual_dd_review_view")
+    assert len(post.args) + len(post.keywords) == 3
+    [loop] = calls("run_phase2b.py", "InLoopDDReview")
+    assert [k.arg for k in loop.keywords] == ["run_end"]

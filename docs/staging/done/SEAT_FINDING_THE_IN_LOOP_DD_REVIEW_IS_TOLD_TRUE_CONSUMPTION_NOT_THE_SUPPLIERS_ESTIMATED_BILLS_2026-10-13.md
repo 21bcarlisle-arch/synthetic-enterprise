@@ -91,3 +91,16 @@ That belief has no source behind it yet. If it holds, the defect is in the publi
 side. The two live claims flagged as possible duplicates (`dd4b-grade-the-in-loop-probe-placebo`,
 `the-dd-amount-is-set-from-the-companys-own-twelve-month-forecast-plus-the-balance`) are different
 work on the same file. Neither was touched.
+
+**Settled, 2026-10-13 (claim `dd4b-does-a-supplier-review-the-dd-at-a-final-bill`).** The 45 were two
+populations, and each chain was wrong for one of them (K8 note
+`docs/market_research/a_supplier_does_not_review_the_direct_debit_at_an_accounts_final_bill_2026-10-13.md`).
+- **Leavers' final bills (37):** no supplier reviews a closing account's DD. It sends a final bill
+  within six weeks and refunds any credit within 10 working days. The post-loop chain was wrong, and
+  `run_annual_reviews` now takes `closed_ids` and emits no review at a closed account's final bill.
+  9 more leavers whose final bill fell on a month-end were caught by the same rule. The loop had been
+  telling those 9, and it now recognises a final bill at the run-end flush.
+- **Run-end stub (8):** the account continues and only the date is an artefact. Here the loop was
+  wrong, and it now looks for the review at the run's last settled day in the run's last month.
+Re-graded from the saved runs: 800 matched, 0 and 0 unmatched, 292 material rises in both chains.
+The published census changes from 846 to 800 events and from 301 to 292 material rises.

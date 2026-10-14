@@ -12,6 +12,8 @@ from tools.dd_opening_arms import (
     _matched_window0,
     _split_credit_debit,
     basis_precedence_view,
+    build_arm,
+    closed_supply_points,
     diff_run_outputs,
     flat_opening_by_customer,
 )
@@ -428,3 +430,30 @@ def test_the_filed_predictions_verdict_follows_the_interval_and_every_verdict_is
     assert verdict([-1.0, 1.0]) == "refuted"
     assert verdict([1.0, 3.0]) == "refuted"
     assert verdict([-3.0, -1.0], n=0) == "unbounded"
+
+
+def _monthly(cid: str, n: int) -> list[dict]:
+    return [{"customer_id": cid, "period_end": f"{2020 + i // 12:04d}-{i % 12 + 1:02d}-28",
+             "total_amount_gbp": 50.0, "payment_channel": "direct_debit"} for i in range(n)]
+
+
+def test_the_arms_do_not_review_a_departed_households_final_bill_on_either_leg():
+    """DEFECT: the arms review every leaver at its final bill, which the run stopped doing.
+
+    `run_phase4c_on_phase2b.main()` passes its closure set to `annual_dd_review_view`; `build_arm`
+    used to call the door without one while its docstring claimed to build the review exactly as
+    the run does. The household `C1` departed: its electricity point and its gas leg `C1g` each lose
+    the review dated at bill 25 (their final bill) and keep year 1's. `C2` continues with the same
+    bills and keeps both, so the guard is taken and is not refusing everything. Dropping
+    `closed_ids` from either `build_arm` call site, or `supply_points_that_left` from
+    `closed_supply_points`, turns this red.
+    """
+    bills = _monthly("C1", 25) + _monthly("C1g", 25) + _monthly("C2", 25)
+    closed, basis = closed_supply_points({"churned_billing_accounts": ["C1"]}, bills)
+    assert closed == {"C1", "C1g"}
+    assert "absent" in str(basis["home_move_outs"])
+    opening = {"C1": 50.0, "C1g": 50.0, "C2": 50.0}
+    events = build_arm(bills, opening, opening, closed)["annual_dd_review"]["events"]
+    dates = {c: [e["review_date"] for e in events if e["customer_id"] == c] for c in opening}
+    assert dates["C2"] == ["2021-01-28", "2022-01-28"]
+    assert dates["C1"] == dates["C1g"] == ["2021-01-28"]

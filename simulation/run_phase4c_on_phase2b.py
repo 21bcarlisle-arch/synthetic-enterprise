@@ -384,7 +384,7 @@ def main(report_end: str | None = None, policy=None):
     # `company.interfaces.dd_review`, which takes the bills and returns the
     # SERIALISED review -- no company type crosses at all.
     opening_dd = _opening_dd_by_customer(_get_all_customers(), all_records)
-    annual_dd_review = annual_dd_review_view(bills, opening_dd)
+    annual_dd_review = annual_dd_review_view(bills, opening_dd, churned_ids)
 
     # DD2 (atom DD_seasonal_cashflow_physics): the per-customer level-DD seasonal
     # credit/debit balance carried tick-by-tick, and the portfolio HELD-CREDIT

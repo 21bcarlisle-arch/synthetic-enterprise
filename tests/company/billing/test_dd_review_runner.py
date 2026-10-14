@@ -152,3 +152,16 @@ def test_empty_portfolio():
     result = run_annual_reviews([])
     assert result.events == []
     assert result.serialise()["summary"]["total_reviews"] == 0
+
+
+def test_a_closed_accounts_final_bill_is_not_reviewed_but_its_earlier_years_are():
+    # `docs/market_research/a_supplier_does_not_review_the_direct_debit_at_an_accounts_final_bill_
+    # 2026-10-13.md`. 25 bills: year 1 is reviewed at bill 13, year 2 at bill 25. Closed after bill
+    # 25, the account loses only the review dated at that final bill. A continuing account with the
+    # same bills keeps both, so the guard can be taken and is not refusing everything.
+    bills = _bills("C1", [50.0] * 25) + _bills("C2", [50.0] * 25)
+    result = run_annual_reviews(bills, opening_dd_gbp={"C1": 50.0, "C2": 50.0},
+                                closed_ids={"C1"})
+    dates = {c: [e.review_date for e in result.events if e.customer_id == c] for c in ("C1", "C2")}
+    assert dates["C2"] == ["2021-01-28", "2022-01-28"]
+    assert dates["C1"] == ["2021-01-28"]

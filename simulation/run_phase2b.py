@@ -2273,7 +2273,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     # Read once per run from the module, so a harness that measures a setting sets it before main().
     _dd_shock_strengths = _dd_shock_response.STRENGTHS
     _dd_shock_book = DDShockResponseBook()
-    _dd_in_loop_review = InLoopDDReview(get_customer)
+    _dd_in_loop_review = InLoopDDReview(get_customer, run_end=effective_end)
     # PB8, the household's own acts (`simulation/payment_method_dynamics.py`): a mandate cancelled
     # for its own reasons is a row on the same book, so the triad, the rails and the arrears engine
     # read it as they read a shock's. Read once per run, as above.

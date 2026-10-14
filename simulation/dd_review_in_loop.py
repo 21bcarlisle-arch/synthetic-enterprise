@@ -15,7 +15,7 @@ bills only -- so asking it as the bills arrive gives the post-loop chain's event
 fall, provided the bills are the same.
 
 THE BILLS ARE THE SUPPLIER'S OWN, THE SAME ONES THE POST-LOOP CHAIN BILLS
-(`docs/staging/SEAT_FINDING_THE_IN_LOOP_DD_REVIEW_IS_TOLD_TRUE_CONSUMPTION_NOT_THE_SUPPLIERS_
+(`docs/staging/done/SEAT_FINDING_THE_IN_LOOP_DD_REVIEW_IS_TOLD_TRUE_CONSUMPTION_NOT_THE_SUPPLIERS_
 ESTIMATED_BILLS_2026-10-13.md`, remedy; knowledge pass
 `docs/market_research/a_suppliers_annual_dd_review_is_sized_from_its_own_issued_bills_not_true_
 consumption_2026-10-13.md`). This used to gross up the loop's own settled revenue at true meter kWh --
@@ -39,6 +39,16 @@ it, so there is nothing left for two attributions to disagree about.
 The opening amount -- what the supplier set at sign-up -- is asked through the same door as the
 post-loop review (`_opening_dd_by_customer`), from the leg's registration and its first settled month.
 A leg with no opening amount is never reviewed here either, exactly as there.
+
+WHERE THE TOLD EVENT IS LOOKED FOR (`docs/market_research/a_supplier_does_not_review_the_direct_debit_
+at_an_accounts_final_bill_2026-10-13.md`). The post-loop review is dated at the first bill of the new
+window, and that bill ends either at month-end or, in the run's last month, at the run's last settled
+day, where the horizon cuts it short. `post` looks at exactly those two dates. A leaver's final bill
+ends on its own last day. The post-loop chain reviews no closed account there, and the loop must not
+tell one either, including a leaver whose last day happens to be a month-end. The loop knows it is
+looking at a final bill because a leg's last month is posted only by the run-end flush, once all its
+rows are in. If its last settled day falls in that month and before the run's end, the leg has left
+supply.
 """
 from __future__ import annotations
 
@@ -60,12 +70,14 @@ class InLoopDDReview:
     """Per leg: the settled rows observed so far and its first settled month's rows. `post` returns
     the review event told THIS month (the company's serialised event), or None."""
 
-    def __init__(self, customer_of: Callable[[str], Optional[dict]]):
+    def __init__(self, customer_of: Callable[[str], Optional[dict]], run_end: Optional[str] = None):
         self._customer_of = customer_of
+        self._run_end = run_end
         self._rows: dict[str, list[dict]] = {}
         self._first_month_rows: dict[str, list[dict]] = {}
         self._first_month: dict[str, str] = {}
         self._last_window: dict[str, int] = {}
+        self._last_day: dict[str, str] = {}
         self._opening: dict[str, Optional[float]] = {}
         self.told: list[dict] = []
 
@@ -78,6 +90,9 @@ class InLoopDDReview:
             cid = r.get("customer_id")
             month = r["settlement_date"][:7]
             self._rows.setdefault(cid, []).append(r)
+            day = r["settlement_date"][:10]
+            if day > self._last_day.get(cid, ""):
+                self._last_day[cid] = day
             first = self._first_month.setdefault(cid, month)
             if month == first:
                 self._first_month_rows.setdefault(cid, []).append(r)
@@ -99,6 +114,9 @@ class InLoopDDReview:
         self._last_window[cid] = window
         if not starts_a_window:
             return None
+        last = self._last_day[cid]
+        if self._run_end is not None and last[:7] == month and last < self._run_end:
+            return None
         opening = self._opening_of(cid)
         if opening is None:
             return None
@@ -106,6 +124,8 @@ class InLoopDDReview:
         bills = build_monthly_bills(self._rows.get(cid, []))
         from company.interfaces.dd_review import annual_dd_review_view
         period_end = _month_end(month)
+        if self._run_end is not None and self._run_end[:7] == month:
+            period_end = min(period_end, self._run_end)
         events = annual_dd_review_view(bills, {cid: opening})["events"]
         told = next((e for e in events if e["review_date"] == period_end), None)
         if told is not None:
