@@ -193,6 +193,22 @@ def declared_peaks(records_path: Path | None = None) -> dict:
             if r.get("claim") == launch_liveness.LIVE and r.get("unit") and r.get("peak_mb")}
 
 
+def declared_durations(records_path: Path | None = None) -> dict:
+    """{unit: (launched_at, expect_minutes)} for every `live` launch record that declared minutes.
+
+    Read beside `declared_peaks` so a neighbour that yields to a long job can say how long it has
+    been yielding against what the job promised. Nothing compared them: longjob-save-eight was
+    declared at 50 minutes and held the box for 4h46m while sim-runner deferred every cycle.
+    """
+    try:
+        records = launch_liveness.load(records_path)
+    except Exception:  # noqa: BLE001 -- no register means no declarations
+        return {}
+    return {_as_cgroup_leaf(r["unit"]): (r.get("launched_at"), float(r["expect_minutes"]))
+            for r in records
+            if r.get("claim") == launch_liveness.LIVE and r.get("unit") and r.get("expect_minutes")}
+
+
 def _as_cgroup_leaf(unit: str) -> str:
     return unit if unit.endswith(".service") else f"{unit}.service"
 

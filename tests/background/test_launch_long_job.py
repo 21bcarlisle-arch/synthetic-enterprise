@@ -542,3 +542,29 @@ def test_no_queue_and_a_refusal_waiting_cannot_cure_still_return_at_once(monkeyp
     monkeypatch.setattr(llj, "launch",
                         lambda *a, **k: (_ for _ in ()).throw(llj.LaunchRefused("no run case")))
     assert llj.main(base) == 1
+
+
+def test_a_deferral_names_how_far_a_long_job_has_run_past_what_it_declared(tmp_path):
+    """Defect it names: a long job held the box 4h46m against a 50-minute declaration, and every
+    deferral named its peak and pids but never its overrun, so the stall read like normal work.
+
+    Fires on: the declared minutes not reaching the census (no note at all), and on the flag
+    firing for a job inside its declaration (a note that cries wolf)."""
+    from datetime import datetime, timezone
+
+    from background import launch_liveness
+    from background import resource_headroom as rh
+
+    records = tmp_path / "records.json"
+    launch_liveness.record("save-eight", "longjob-save-eight", "/tmp/a.json", path=records,
+                           launched_at="2026-10-13T06:21:00Z", peak_mb=3800, expect_minutes=50)
+    launch_liveness.record("on-time", "longjob-on-time", "/tmp/b.json", path=records,
+                           launched_at="2026-10-13T10:37:00Z", peak_mb=3800, expect_minutes=80)
+    residents = [{"pid": 11, "unit": "longjob-save-eight.service"},
+                 {"pid": 12, "unit": "longjob-on-time.service"}]
+    now = datetime(2026, 10, 13, 11, 7, tzinfo=timezone.utc)
+    jobs = {j["unit"]: j for j in rh.running_long_jobs(records, residents, now=now)}
+    late, fine = jobs["longjob-save-eight.service"], jobs["longjob-on-time.service"]
+    assert round(late["elapsed_min"]) == 286 and late["expect_minutes"] == 50
+    assert "OVERRUN" in rh._overrun_note(late) and "5.7x" in rh._overrun_note(late)
+    assert rh._overrun_note(fine) and "OVERRUN" not in rh._overrun_note(fine)
