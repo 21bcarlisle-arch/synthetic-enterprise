@@ -73,3 +73,45 @@ tiers against a match that sat out three years for lack of a default to match. I
 is the worse rule. **The decision stays on `risk_tiers`** (F11: the evidence for switching is not in
 hand). Re-grading the match is owed once the company can read a pre-cap published default, or the
 comparison is restricted to 2019 onwards.
+
+## Graded from 2019, 2026-10-14 10:00 BST: on 61109 the whole gap sits before 2019, and the decision stands
+
+One pair finished, on seed 61109 at head 5e5358092 (the same base as the table above). Artefacts:
+/var/tmp/regrade5/out/{price_match,risk_tiers_from_2019}-61109.json. Arm one is the match as in the
+table. Arm two is risk tiers with the cut muted on every renewal before 2019-01-01, the way the match is
+muted for lack of a default. So the two arms differ only from 2019.
+
+| 61109 | offers from 2019 | cut GBP from 2019 | renewal departures before / from 2019 | net |
+|---|---|---|---|---|
+| match | 13 | 204 | 41 / 32 | 247,960.04 |
+| tiers muted before 2019 | 16 | 316 | 41 / 32 | 247,960.04 |
+
+Before 2019 the arms are identical: the same 196 customer events by hash, and no offers in either.
+From 2019 the paired difference in net is **GBP 0.00**, and gross is identical too. The match's 13
+offers reproduce the table's 61109 row exactly. So on this seed **all of the match's GBP -4,264 came
+before 2019, where it had no default to read.** From 2019 it neither wins nor loses. The tiers give
+customers GBP 112 more in cuts and keep no more of them.
+
+**The decision stays on `risk_tiers`.** One seed of four cannot meet either branch of the rule filed
+in docs/staging/records/PREREG_THE_PRICE_MATCH_AGAINST_RISK_TIERS_FROM_2019_WHERE_A_DEFAULT_IS_PUBLISHED_2026-10-14.md
+(4 of 4 either way), so it reads "no evidence either way" (F11). What changes is the reason. The
+statement above that the match "loses net on every seed" no longer argues against it from 2019. Both
+rules are now tied on the one seed that could tell them apart.
+
+**Not the pre-registered design.** These arms mute the tiers before 2019. The filed comparison
+(`match_where_published`) runs the tiers before 2019 and the match from 2019. Its arms
+(/var/tmp/regrade4/queue.sh, grader /var/tmp/regrade4/grade4.py, written before any arm) were never
+launched. The two designs should agree from 2019 only if the books entering 2019 do not matter, and
+that is untested. The regrade5 pre-registration named in its launch records
+(/var/tmp/se-seat-executor/.../PREREG_THE_RENEWAL_CUT_RE_GRADED_FROM_2019_WITH_THE_TIERS_MUTED_...md)
+is no longer on disk and never reached origin, so this pair answers no filed prediction. It is a measurement.
+
+**I cannot yet say why net matches to the penny.** Three extra offers, GBP 112 more in cuts, the same
+departures and the same gross mean either every customer who got an offer left anyway, or the
+discounted rate never reached billed revenue. The one-variable check is the arm's retention_log, by
+offered account: outcome against billed rate.
+
+**Conditional on focus one.** Both arms, and the eight in the table, read the cost floor that
+d30dafffe found double-counts the network cost the standing charge also recovers. The renewal cut is
+clamped to that floor, so the cut sizes, the offer counts and the tie can all move once writer one's
+basis lands. This grade stands only on today's floor.

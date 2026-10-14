@@ -54,3 +54,13 @@ that to be defined before the rule was used again.
 - If the hybrid nets less on 4 of 4: matching the market does not create value at the retention lever
   in this world from 2019 either. Record that as the M2 answer.
 - Anything else: no evidence either way. Stay on `risk_tiers` (F11).
+
+## Result, 2026-10-14 10:00 BST: not run
+
+The eight arms above were never launched. /var/tmp/regrade4/queue.sh is ready and its grader is
+/var/tmp/regrade4/grade4.py, so no prediction here is graded. A different pair, tiers muted before
+2019 against the match, ran on 61109 only. Its paired difference from 2019 was GBP 0.00. It is
+recorded beside the decision in
+docs/staging/done/SEAT_RESULT_THE_RENEWAL_CUT_STAYS_ON_RISK_TIERS_THE_MATCH_LOSES_NET_ON_EVERY_SEED_AND_GIVES_CUSTOMERS_LESS_2026-10-14.md.
+Run this design only once writer one's floor basis lands, since both arms read the floor d30dafffe found
+double-counted.
