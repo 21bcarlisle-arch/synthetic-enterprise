@@ -150,3 +150,17 @@ def test_no_artefact_on_disk_disagrees_with_its_own_filename(monkeypatch):
     # lands under the fixed code, and a reader is owed that rather than a green.
     if checked == 0:
         pytest.skip("no run artefact written since the fix landed -- this leg has no subject yet")
+
+
+def test_the_commit_is_dated_when_it_was_read_not_when_the_artefact_was_stamped(monkeypatch):
+    """Defect it names: `producing_commit.resolved_at` carried the stamping time while its own
+    `resolved_when` said "at process start" (run_output_2248e3baf_20261013T134447Z: 15:39:51Z on a
+    run that started at 13:44:47Z). MUTATION: write `stamped_at` back into `resolved_at` and this
+    fires. The artefact's own `generated_at` stays the stamping time."""
+    from datetime import datetime, timezone
+    _reconcilable(monkeypatch)
+    launched = datetime(2026, 10, 13, 13, 44, 47, tzinfo=timezone.utc)
+    data = rar.reconcile_and_stamp({"years": []}, code_commit=_AT_LAUNCH, code_commit_at=launched)
+    block = data["producing_commit"]
+    assert block["resolved_at"] == launched.strftime(rar._GENERATED_AT_FORMAT)
+    assert data["generated_at"] != block["resolved_at"]

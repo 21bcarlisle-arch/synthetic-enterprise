@@ -2,6 +2,8 @@
 
 # The 774-household book has no gas closure; the 127-household book had two
 
+**Fate (2026-10-14):** ATOM -- world, next week: 0 gas closures in 215 dual-fuel households against 2 in 64 is unexplained, a fidelity question decided blind to company results.
+
 *Worker tick, 2026-10-13 ~18:40Z. Found while clearing the publish gate. Not yet explained.*
 
 **What was measured.** `tools/generate_explore_carbon.py::household_years` treats a household as a gas closure when

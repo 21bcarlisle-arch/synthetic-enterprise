@@ -2,6 +2,8 @@
 
 # A run's `producing_commit` names HEAD, not the bytes that ran, and its `resolved_at` is the stamping time
 
+**Fate (2026-10-14):** ATOM -- harness, a cheap-fix candidate this week (deck group 7): `_run_identity_header` writes stamped_at into resolved_at.
+
 *Delivery seat, 2026-10-13 ~20:20Z, while waiting on the publish of `run_output_2248e3baf_20261013T134447Z.json`.*
 
 **What the artefact says.** `producing_commit` = `{"commit": "2248e3baf", "resolved_at": "2026-10-13T15:39:51Z",

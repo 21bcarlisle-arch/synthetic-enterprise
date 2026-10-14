@@ -1,5 +1,7 @@
 # The 6ab998ad7 run was held by the weekly window; the figures reached the live page on the 2248e3baf run
 
+**Fate (2026-10-14):** DONE -- a record; the 6ab998ad7 run goes out in the next weekly window.
+
 **Severity:** RECORDED · **Lane:** H_harness · **Epoch:** unassigned · **Atom:** `unminted`
 
 *Worker, 2026-10-14 ~00:40Z. Disposition of the delivery item `the-6ab998ad7-publish-reaches-the-live-page`. No code changed.*

@@ -143,7 +143,7 @@ def _run_and_extract(report_end: str | None = None) -> dict:
 
 def reconcile_and_stamp(
     data: dict, code_commit: str | None = None, report_end: object = _WINDOW_NOT_STATED,
-    imports_off_commit: dict | None = None,
+    imports_off_commit: dict | None = None, code_commit_at: datetime | None = None,
 ) -> dict:
     """Refuse a run output that does not add up, then stamp WHICH COMMIT and WHICH WORLD made it.
 
@@ -257,6 +257,7 @@ def reconcile_and_stamp(
     return _run_identity_header(
         data, stamped_at, commit, world, mode, from_launch=bool(code_commit),
         imports_off_commit=_imports_off_commit_record(imports_off_commit, commit),
+        resolved_at=code_commit_at if code_commit else None,
     )
 
 
@@ -425,7 +426,7 @@ _GENERATED_AT_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
 
 def _run_identity_header(
     data: dict, stamped_at, commit: str | None, world: dict, mode: dict, *, from_launch: bool,
-    imports_off_commit: dict | None = None,
+    imports_off_commit: dict | None = None, resolved_at=None,
 ) -> dict:
     """Put WHICH RUN THIS IS at the top of the artefact, in the shape every other promote target
     already uses -- `generated_at`, `producing_commit`, `world_identity`.
@@ -467,7 +468,10 @@ def _run_identity_header(
         "generated_at": stamped_at.strftime(_GENERATED_AT_FORMAT),
         "producing_commit": {
             "commit": commit if resolvable else None,
-            "resolved_at": stamped_at.strftime(_GENERATED_AT_FORMAT),
+            # WHEN THE COMMIT WAS READ, which on the launch path is the process start. Writing the
+            # stamping time here contradicted `resolved_when` on every published run (2026-10-13:
+            # resolved_at 15:39:51Z on a run the journal starts at 13:44:47Z).
+            "resolved_at": (resolved_at or stamped_at).strftime(_GENERATED_AT_FORMAT),
             "resolved_when": (
                 "at process start, before the world ran -- this is the commit whose code drew "
                 "every figure below"
@@ -600,6 +604,7 @@ def main() -> None:
     # therefore the commit that produces every number below. Reading it after the run reads a
     # different fact -- see the stamping block in `reconcile_and_stamp`.
     code_commit = _git_commit_hash()
+    code_commit_at = datetime.now(timezone.utc)
 
     raw_output = run_phase4c_on_phase2b(report_end=report_end)
     # THE SAME DISCIPLINE AS `save_run_output_json`, AND THIS IS THE PATH THAT PUBLISHES.
@@ -611,7 +616,7 @@ def main() -> None:
     # separately are two facts -- the stamp would then be a claim about a window it never saw.
     data = reconcile_and_stamp(
         extract_report_data(raw_output), code_commit=code_commit, report_end=report_end,
-        imports_off_commit=args.imports_off_commit,
+        imports_off_commit=args.imports_off_commit, code_commit_at=code_commit_at,
     )
     args.save_json.parent.mkdir(parents=True, exist_ok=True)
     args.save_json.write_text(dump_run_output(data))
