@@ -2,6 +2,8 @@
 
 # The publish wedge is cleared at the shared tree: HEAD advanced to origin, and both recorded reds were the stale HEAD
 
+**Fate (2026-10-14):** DONE -- a record of the wedge clearing; the publish went out as ed3dadd9d.
+
 *Worker tick, 2026-10-13 ~18:10Z. Continues
 `SEAT_NOTE_THE_PUBLISH_WEDGE_IS_ONE_STAGED_TEST_REWRITE_FROM_CLEARING_2026-10-13.md`.*
 

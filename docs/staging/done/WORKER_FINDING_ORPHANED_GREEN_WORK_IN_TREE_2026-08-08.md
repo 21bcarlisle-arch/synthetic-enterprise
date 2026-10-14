@@ -24,6 +24,7 @@
 
 # [WORKER-FINDING] Green work is dying uncommitted in the shared tree (2026-08-08, AO2 tick)
 
+**Fate (2026-10-14):** SUPERSEDED -- by background/tree_divergence.py (14fbd32cd, 2026-08-09): per-lane, report-only, never auto-commits, attributes by file_scope, wired into process_run_complete._publish_tree_divergence; with H9_map_write_serialisation at its target. *Corrected beside it:* the 2026-10-12 fate below said no such mechanism existed.
 **Fate (2026-10-12, clear-the-decks):** ATOM -- no background/ mechanism found reporting uncommitted tracked changes outside a tick's file_scope at exit; the class-fix sub-item 1 appears unbuilt (P3)
 
 **Class:** work-at-risk. **Found by:** the 21:04 tick, while committing `AO2_write_time_reuse_gate`.

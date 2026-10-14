@@ -2,6 +2,8 @@
 
 # The billing ledger outgrew Pages' file limit, and that held every page on the old snapshot
 
+**Fate (2026-10-14):** ATOM -- remedy (b) DECIDED by the delivery seat: stop publishing state/billing_ledger.json under site/ and keep it a build input, then withdraw the stale live copy. No page reads it, and sharding (a) would outgrow the limit again as the book grows. Reversible; the build is the harness lane's.
+
 **The wedge moved; it did not end.** The publisher landed `ed3dadd9d` at 21:53 UTC, which is run
 2248e3baf: 989 accounts and 39,084 bills. The episode closed. Its deploy, run 38474007478, then
 failed inside `wrangler pages deploy` with "Pages only supports files up to 25 MiB in size /

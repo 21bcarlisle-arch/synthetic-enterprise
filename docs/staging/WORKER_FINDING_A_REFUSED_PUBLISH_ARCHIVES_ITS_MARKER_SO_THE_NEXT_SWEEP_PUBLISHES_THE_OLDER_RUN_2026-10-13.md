@@ -2,6 +2,8 @@
 
 # A refused publish archives its marker, so the next sweep publishes the older run
 
+**Fate (2026-10-14):** ATOM -- harness, next week: the mechanism it proposes is unbuilt; the marker was moved back by hand.
+
 **The wedge itself is diagnosed and fixed. This note is about what was left behind.** The publisher
 failed at 20:50 UTC on `run_complete_20261013T134447Z.md`, and that run was graded at 2248e3baf. The
 `tests/` gate passed. The site-lane gate then refused, with 72 failed and 7 errors. `0d5304e98`

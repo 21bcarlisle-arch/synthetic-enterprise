@@ -2,6 +2,8 @@
 
 # The 774-household publish was refused because /tmp filled up, not because a site test was red
 
+**Fate (2026-10-14):** DONE -- 0d5304e98 fixed the ENOSPC cause and the publish went out as ed3dadd9d.
+
 *Delivery seat, 2026-10-13 ~21:00Z. Drawn as `the-publish-run-of-2026-10-13-reaches-origin`.*
 
 **What happened to the runs.** The 11:24Z run (pid 2607003, stamped 2248e3baf) did not die on a `None`. The
