@@ -257,3 +257,27 @@ exactly zero between arms. They read +162 in `r` and +21 in `t`, at most about Â
 So the arms are coupled through something shared beyond the renewal price. These artefacts cannot
 say what (hedge allocation or capital cost are the candidates). It is small against everything
 above, and it is the first place to look if a future like-for-like reading needs pennies.
+
+## Floor legs stopped, ungraded (2026-10-14 15:45 BST, worker, `the-save-stayers-fix-runs-on-a-freed-box-and-lands-on-its-one-variable-evidence`)
+
+The rest-of-chain script (`/var/tmp/se-termcost-arms-rest.sh`, pid 2612757) was stopped first, so floor b
+cannot launch. Then `longjob-termcost-arms-floor-a` (pid 3022845) was stopped at 12 h 58 min. It had
+written no artefact, so T6 and T7 stay **UNGRADED**. They are not refuted.
+
+Before stopping it I read the log tail. Each floor seed runs all three arms (`noise_floor` calls
+`run_value_cycle_ab(level_arm=True)`), so floor a is six book passes. It had finished three, one
+coupled-triad emission each, at about 4.2 h per pass on the 400-founder book. It was about halfway
+and nowhere near its artefact, so the 30-minute exception did not apply. There were two reasons
+to stop it:
+
+- **Cost.** The table above priced a floor leg at about 3.7 h and the whole re-take at about 1.5 h
+  per pass. At the measured rate one two-seed floor leg is about 25 h. That is
+  the same book-size cause as leg 1's 5 h 44 min, and this file did not price it in.
+- **Base.** The worktree is pinned at `05f9f3347`, which lacks `87e9f4245` (writer 1's unit-rate
+  margin basis and the save's one floor). A floor graded here would measure a writer 1 basis that has
+  already been replaced.
+
+The box was freed for the stayers control (`longjob-stayers-fix-one-variable`), which is the director's
+own 2026-10-08 condition. Leg 1's grade above still stands as a reading at `05f9f3347`. The re-take is
+re-issued on origin at or after `87e9f4245`, with its own pre-registration:
+`docs/staging/records/SEAT_PREREG_THE_VALUE_ARMS_RETAKEN_ON_WRITER_ONES_CORRECTED_BASIS_2026-10-14.md`.
