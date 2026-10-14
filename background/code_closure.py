@@ -102,6 +102,78 @@ def closure_for_session(session: str, path: Path | None = None,
     return set()
 
 
+def imports_off_commit(entry_rel: str, commit: str, repo: Path | None = None) -> dict:
+    """Which files `entry_rel` imports hold bytes on disk that are NOT `commit`'s.
+
+    A run stamped with a HEAD sha in the shared tree, which nearly always has another lane's edits
+    in it, imports those edits too. The 2026-10-13 13:44Z run was stamped 2248e3baf and published
+    as that commit's figures, and its working tree did not match that commit. This is the reading
+    that tells the two apart: `git diff <commit>` over the closure (staged, unstaged, either way)
+    plus the closure's untracked files.
+
+    `paths` is None, never [], when the reading could not be taken, with the reason beside it.
+    The empty list is the one value a consumer may publish on, so it must mean "measured, clean".
+    """
+    import subprocess
+    repo = repo or _REPO
+    out = {"commit": commit or None, "paths": None, "unavailable_because": None}
+    if not commit or commit == "unknown":
+        out["unavailable_because"] = "no commit was resolved, so there is nothing to diff against"
+        return out
+    closure = sorted(import_closure(entry_rel, repo))
+    if not closure:
+        out["unavailable_because"] = f"the import closure of {entry_rel} did not resolve"
+        return out
+    try:
+        changed = subprocess.run(["git", "diff", "--name-only", commit, "--", *closure],
+                                 cwd=str(repo), capture_output=True, text=True, check=True,
+                                 timeout=60).stdout.split()
+        untracked = subprocess.run(["git", "ls-files", "--others", "--exclude-standard", "--",
+                                    *closure], cwd=str(repo), capture_output=True, text=True,
+                                   check=True, timeout=60).stdout.split()
+    except (OSError, subprocess.SubprocessError) as exc:
+        out["unavailable_because"] = f"git could not diff the closure: {type(exc).__name__}: {exc}"
+        return out
+    # A diff that only moves comments or docstrings changed no code that ran, and this tree has
+    # orphaned comment edits sitting in the closure for weeks (three on 2026-10-14, two of them
+    # prose-only), so a byte reading would refuse every run on prose. Named, not dropped.
+    same_code = [p for p in changed if _same_code_at(commit, p, repo)]
+    out["paths"] = sorted((set(changed) - set(same_code)) | set(untracked))
+    out["prose_only"] = sorted(same_code)
+    return out
+
+
+def _code_shape(source: str) -> str | None:
+    """The module's AST with docstrings removed (comments never reach the AST), or None."""
+    import ast
+    try:
+        tree = ast.parse(source)
+    except SyntaxError:
+        return None
+    for node in ast.walk(tree):
+        body = getattr(node, "body", None)
+        if (isinstance(node, (ast.Module, ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef))
+                and body and isinstance(body[0], ast.Expr)
+                and isinstance(body[0].value, ast.Constant) and isinstance(body[0].value.value, str)):
+            node.body = body[1:] or [ast.Pass()]
+    return ast.dump(tree)
+
+
+def _same_code_at(commit: str, rel: str, repo: Path) -> bool:
+    """True only when `rel` on disk and at `commit` are both parseable Python of the same code."""
+    import subprocess
+    if not rel.endswith(".py") or not (repo / rel).is_file():
+        return False
+    try:
+        at_commit = subprocess.run(["git", "show", f"{commit}:{rel}"], cwd=str(repo),
+                                   capture_output=True, text=True, check=True, timeout=60).stdout
+        on_disk = (repo / rel).read_text()
+    except (OSError, UnicodeDecodeError, subprocess.SubprocessError):
+        return False
+    shape = _code_shape(on_disk)
+    return shape is not None and shape == _code_shape(at_commit)
+
+
 if __name__ == "__main__":  # pragma: no cover - operator inspection aid
     try:  # seat guard, FIRST act -- refuse to start on foreign soil (background/_seat.py)
         from background._seat import refuse_if_foreign

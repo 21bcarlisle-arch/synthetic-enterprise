@@ -10674,6 +10674,33 @@ def _content_publish_window():
     return publish_freshness.content_publish_window()
 
 
+def imports_off_commit_refusal(data):
+    """Why this run may not be published as its stamped commit's figures, or None if it may.
+
+    The 2026-10-13 13:44Z run was stamped 2248e3baf and its shared tree held bytes that were not
+    that commit's, so the page named a commit whose code had not drawn the figures. The launcher
+    (`background/sim_runner.py`) now records which imported files were off the commit; this
+    refuses a run whose list is non-empty, or whose list could not be measured (None).
+
+    A run whose header has NO such key predates the reading and passes, said in the log: those
+    artefacts were made before anything measured it, and refusing them would refuse every
+    pre-existing run rather than the defect.
+    """
+    block = (data.get("producing_commit") or {}) if isinstance(data, dict) else {}
+    reading = block.get("imports_off_commit")
+    if reading is None:
+        return None
+    paths = reading.get("paths")
+    commit = block.get("commit") or reading.get("commit")
+    if paths is None:
+        return "nothing measured whether the code that ran was {}'s ({})".format(
+            commit, reading.get("unavailable_because") or "no reason given")
+    if paths:
+        return "{} imported file(s) held bytes that are not {}'s when the run launched: {}".format(
+            len(paths), commit, ", ".join(paths))
+    return None
+
+
 def _process(marker_path_str):
     marker = Path(marker_path_str).resolve()
     if not marker.exists():
@@ -10723,6 +10750,16 @@ def _process(marker_path_str):
         except Exception as exc:  # never let liveness publishing break the hold path
             log("Liveness refresh on HOLD raised (non-fatal): {}".format(exc))
         return EXIT_NOTHING_PUBLISHED
+
+    if (data.get("producing_commit") or {}).get("imports_off_commit") is None:
+        log("Imported bytes were not measured for {} (it predates the reading); publishing on "
+            "its stamp alone".format(json_path.name))
+    off_commit = imports_off_commit_refusal(data)
+    if off_commit:
+        _archive_marker(marker)
+        log("REFUSED (run bytes are not the stamped commit's): {} -- no regen/test/commit. "
+            "Archived {}.".format(off_commit, marker.name))
+        return EXIT_PUBLISH_DID_NOT_LAND
 
     # Change-detection gate: if this run's meaningful outputs are identical to
     # the last fully-processed run (same headline figures, same UTC date), the

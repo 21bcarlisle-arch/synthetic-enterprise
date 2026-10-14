@@ -14,6 +14,7 @@ Phase 9a reconciliation).
 Runs continuously 24/7 — token budget takes priority over electricity cost.
 """
 
+import json
 import os
 import resource
 import subprocess
@@ -359,6 +360,21 @@ def _git_head() -> str:
         return "unknown"
 
 
+#: The run's entry file, whose import closure is the code a publish run executes.
+RUN_ENTRY = "tools/run_annual_report.py"
+
+
+def imports_off_commit_at_launch(head: str) -> dict:
+    """Which files the run imports are not `head`'s bytes, read just before launch. Never raises:
+    a reading that cannot be taken says why, with `paths` None, and the publisher refuses it."""
+    try:
+        from background import code_closure
+        return code_closure.imports_off_commit(RUN_ENTRY, head, PROJECT_DIR)
+    except Exception as exc:  # noqa: BLE001 -- the run must still launch; the publisher refuses
+        return {"commit": head, "paths": None,
+                "unavailable_because": f"the reading raised {type(exc).__name__}: {exc}"}
+
+
 def run_simulation() -> bool:
     """Run one full simulation. Returns True on success."""
     ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
@@ -374,6 +390,14 @@ def run_simulation() -> bool:
         role="Runs full 10-year simulation in a loop; writes run_complete markers",
         produces="docs/reports/run_output_*.json, docs/staging/run_complete_*.md",
     )
+
+    off_commit = imports_off_commit_at_launch(head)
+    if off_commit["paths"]:
+        log(f"Run launches with {len(off_commit['paths'])} imported file(s) that are not "
+            f"{head}'s bytes, so the publisher will refuse it: {', '.join(off_commit['paths'])}")
+    elif off_commit["paths"] is None:
+        log(f"Run launches UNMEASURED against {head} ({off_commit['unavailable_because']}), "
+            f"so the publisher will refuse it")
 
     budget = run_budget_seconds()
     t0 = time.monotonic()
@@ -392,6 +416,7 @@ def run_simulation() -> bool:
                 sys.executable, "-m", "tools.run_annual_report",
                 "--save-json", str(out_json),
                 "--output", str(out_md),
+                "--imports-off-commit", json.dumps(off_commit),
             ],
             cwd=str(PROJECT_DIR),
             timeout=budget,

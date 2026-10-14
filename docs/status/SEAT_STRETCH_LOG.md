@@ -8,6 +8,20 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-14 — A run's stamp now has to match the code it imported, and the page's 2248e3baf figures did not
+
+<!-- head: 4463fa84ceb4 -->
+
+**Part 1, the 13:44Z run.** The publish of record the seat wanted to avoid did land. `ed3dadd9d` (2026-10-13 22:53 BST) put `run_output_2248e3baf_20261013T134447Z` on the page as 2248e3baf's figures. The seat judged that the run imported bytes that were on neither 2248e3baf nor origin. Its own finding said it could not check that after the 18:10Z fast-forward. **What I could measure, and it is wider:** `tools/demand_vector_coverage.py` in the shared tree has carried an unlanded code edit since 2026-09-24 (it drops `seasonal_swing` from the settlement choice's demand vector). Every run since then imported it, including the 13:44Z run and the 6ab998ad7 run (20:10Z). So the 2248e3baf stamp on the page names code that did not draw those figures. The figures are not known to be wrong; the stamp is.
+
+**Why 6ab998ad7 is not on the page.** It finished at 23:05 and the publisher HELD it under the weekly window. The director ruled that window (Monday 04:00 London). The seat's "publish it as soon as it completes" conflicts with that ruling, and the ruling stands. The 6ab998ad7 run also ran the same unlanded bytes, so it is no cleaner a publish of record. I did not hand-edit `site/data/publish_provenance.json`, which the publisher regenerates on every publish. The caveat is recorded here and in the finding below.
+
+**Part 2, landed.** sim-runner now reads, at launch, which files the run imports differ from the stamped commit (`code_closure.imports_off_commit`: `git diff` plus untracked files over the import closure; comment- or docstring-only diffs are named `prose_only` and not refused). The run writes that reading into `producing_commit.imports_off_commit`. The publisher refuses (rc 77, marker archived, paths named) a run whose list is non-empty or unmeasured. Artefacts that predate the reading pass, and the publisher logs that it did. The control file `tests/background/test_a_run_whose_imported_bytes_are_off_its_commit_is_not_published.py` was mutation-proven nine ways.
+
+**What this costs on Monday.** While `tools/demand_vector_coverage.py` stays unlanded, Monday's publish will be refused. The seat must land the edit or refresh it to HEAD before Mon 2026-10-19 04:00: `WORKER_FINDING_EVERY_RUN_SINCE_09_24_IMPORTED_AN_UNLANDED_SETTLEMENT_CHOICE_AXIS_EDIT_AND_THE_PUBLISHER_NOW_REFUSES_IT_2026-10-14.md` (BLOCKING, H_harness). sim-runner was restarted at 23:35Z, after these bytes were on its disk, so it already runs this launcher. Any run it launched before then records "unmeasured" and is refused. The finding is archived under `docs/staging/done/` as the class gate requires, and listed as BLOCKING in `CLASS_UNCOMMITTED_AND_ORPHANED_WORK_2026-08-12.md`.
+
+---
+
 ## 2026-10-14 — orientation: The thesis did not go backwards
 
 <!-- head: a0214b51d892 -->

@@ -143,6 +143,7 @@ def _run_and_extract(report_end: str | None = None) -> dict:
 
 def reconcile_and_stamp(
     data: dict, code_commit: str | None = None, report_end: object = _WINDOW_NOT_STATED,
+    imports_off_commit: dict | None = None,
 ) -> dict:
     """Refuse a run output that does not add up, then stamp WHICH COMMIT and WHICH WORLD made it.
 
@@ -254,8 +255,29 @@ def reconcile_and_stamp(
         "world_level": world,
     }
     return _run_identity_header(
-        data, stamped_at, commit, world, mode, from_launch=bool(code_commit)
+        data, stamped_at, commit, world, mode, from_launch=bool(code_commit),
+        imports_off_commit=_imports_off_commit_record(imports_off_commit, commit),
     )
+
+
+def _imports_off_commit_record(reading: dict | None, commit: str | None) -> dict:
+    """The launcher's reading of which imported files were not `commit`'s bytes, checked against
+    the commit this process stamped. `paths` is None (unmeasured, reason beside it) unless the
+    reading exists AND was taken against the same commit; the publisher refuses on None and on a
+    non-empty list, so only a measured-clean run reaches the page."""
+    if not reading:
+        return {"commit": commit, "paths": None, "unavailable_because": (
+            "this run was not handed a reading by its launcher (`background/sim_runner.py` "
+            "takes it), so nothing says whether the code that ran was this commit's")}
+    measured = str(reading.get("commit") or "")
+    stamped = str(commit or "")
+    if not measured or not stamped or not (
+            measured.startswith(stamped) or stamped.startswith(measured)):
+        return {"commit": commit, "paths": None, "unavailable_because": (
+            "the reading was taken against {!r} and this run is stamped {!r}, so it does not "
+            "describe this run's code".format(measured or None, stamped or None))}
+    return {"commit": commit, "paths": reading.get("paths"),
+            "unavailable_because": reading.get("unavailable_because")}
 
 
 def _execution_mode(report_end: object, data: dict) -> dict:
@@ -402,7 +424,8 @@ _GENERATED_AT_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
 
 
 def _run_identity_header(
-    data: dict, stamped_at, commit: str | None, world: dict, mode: dict, *, from_launch: bool
+    data: dict, stamped_at, commit: str | None, world: dict, mode: dict, *, from_launch: bool,
+    imports_off_commit: dict | None = None,
 ) -> dict:
     """Put WHICH RUN THIS IS at the top of the artefact, in the shape every other promote target
     already uses -- `generated_at`, `producing_commit`, `world_identity`.
@@ -466,6 +489,10 @@ def _run_identity_header(
                 "any of its eighteen binders makes about which run sits here can be checked "
                 "against anything but `git log`."
             ),
+            # A HEAD SHA DOES NOT NAME THE CODE IN A DIRTY TREE. Which imported files held bytes
+            # that are not `commit`'s when the run launched; the publisher refuses unless this
+            # is a measured empty list. See `background.code_closure.imports_off_commit`.
+            "imports_off_commit": imports_off_commit or _imports_off_commit_record(None, commit),
         },
         # THE SAME OBJECT `_cache_meta.world_level` HOLDS, not a second computation of it. A
         # commit moves for every reason and a timestamp cannot see a re-fit; the digest is the
@@ -547,6 +574,13 @@ def main() -> None:
         "Useful for fast iteration on early years without running the full window.",
     )
     parser.add_argument(
+        "--imports-off-commit",
+        type=json.loads,
+        default=None,
+        metavar="JSON",
+        help="The launcher's `code_closure.imports_off_commit` reading, taken at launch.",
+    )
+    parser.add_argument(
         "--fast",
         action="store_true",
         help="Set SIM_FAST_MODE=1: use the deterministic mock risk committee "
@@ -576,7 +610,8 @@ def main() -> None:
     # and not `f"{args.end_year}-12-31"` written a second time. Two copies of a fact computed
     # separately are two facts -- the stamp would then be a claim about a window it never saw.
     data = reconcile_and_stamp(
-        extract_report_data(raw_output), code_commit=code_commit, report_end=report_end
+        extract_report_data(raw_output), code_commit=code_commit, report_end=report_end,
+        imports_off_commit=args.imports_off_commit,
     )
     args.save_json.parent.mkdir(parents=True, exist_ok=True)
     args.save_json.write_text(dump_run_output(data))
