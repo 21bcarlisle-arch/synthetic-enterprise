@@ -47,3 +47,26 @@ print, for one gap, whether the bill generator produced and held an estimate for
 `KNOWN_OPEN_INVERSIONS` under one reason pointing here. That lets the move of the ledger out of
 `site/` land, because the test sits in its file scope. A tenth inversion still reds. Clearing this
 finding means removing those nine rows.
+
+## The leading explanation, confirmed by the print (delivery seat, 2026-10-14 evening)
+
+The ledger's `exception_queue` (41 held bills) fills the invoice holes exactly:
+- PROS-2017-0117: held 2017-12-31, 2018-01-31, 2018-02-28 and 2018-03-31. The hole runs from
+  2017-11-30 to 2018-04-01.
+- PROS-2017-0336: held across both holes, and through 2018-2020 (27 months).
+
+Every hold carries the same two reasons: `vat_by_segment`, because a declared resi account meters
+2,300-4,400 kWh a month, which looks like an SME-as-household mislabel; and
+`slc_6_7_billing_accuracy`, which calls that implausible for resi.
+
+So two layers, now separated:
+1. **World:** two prospects drawn as residential with SME-scale use (about 30-50 MWh a year). A
+   real book has such mislabels. Holding the bill is what a real supplier does, so it is not by
+   itself a defect.
+2. **Company, the defect:** `validate_bills` holds bills AFTER assembly (company/interfaces/
+   bill_assembly.py, accounting_close.py, run_phase4c). But `_resolve_catchup`
+   (company/billing/monthly_bill_assembly.py) reconciles the estimated run DURING assembly, as if
+   every estimate were billed. The next actual read credits `true - billed` for months whose
+   estimate never reached the customer. The fix makes holding known at assembly (a held period
+   carries billed 0), or reconciles after holding. It moves billed totals across the book, so it
+   is a pre-registered change, not a patch: next week's first billing item.
