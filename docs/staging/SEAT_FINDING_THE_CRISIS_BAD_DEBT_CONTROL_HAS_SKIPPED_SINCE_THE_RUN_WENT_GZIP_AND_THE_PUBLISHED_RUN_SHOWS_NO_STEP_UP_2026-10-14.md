@@ -1,9 +1,9 @@
-**Severity:** BLOCKING · **Lane:** W2_customer_generator · **Epoch:** 4 · **Atom:** `unminted`
+**Severity:** BLOCKING · **Lane:** E_finance_treasury · **Epoch:** 4 · **Atom:** `unminted`
 **Knowledge:** none -- a control grading a published run against the bad-debt step-up already recorded in docs/market_research/ASSUMPTIONS.md (1.3% to 2.8% of revenue); no new domain claim
 
 # The crisis bad-debt control has skipped since the run went gzip, and the published run shows no crisis step-up (2026-10-14)
 
-**Fate (2026-10-14):** ATOM -- world fidelity, the affordability cluster's question (W2_4..); the control's reader fix lands with the cause's fix, never alone.
+**Fate (2026-10-14):** ATOM -- company-side, as printed below: the age-band provision lags the world's 2022 arrears; it is fixed by the forward-cash-forecast provision, and the reader fix lands with it, never alone.
 
 ## What was found
 
@@ -56,6 +56,25 @@ debt is written off.
    which IFRS 9 argues against.
 Settle (1) against (2) with one print, before any change: the company's provision charge by month
 against the world's arrears stock by month, for 2021-2023.
+
+## Printed: (1) holds, the world builds the arrears and the provision lags them
+
+Year-end, company_provision.by_date in the 6ab998ad7 run (GBP):
+
+| year-end | receivable | 30-90 days | over 90 days | provision |
+|---|---|---|---|---|
+| 2021 | 6,515 | 1,716 | 868 | 978 |
+| 2022 | 16,906 (x2.6) | 4,279 (x2.5) | 1,059 (x1.2) | 1,604 (x1.6) |
+| 2023 | 13,970 | 3,928 | 1,978 | 2,090 |
+
+The world builds the 2022 arrears: the receivable is 2.6x and the 30-90-day band 2.5x. The
+age-band provision reserves little until debt passes 90 days, so it moves 1.6x in 2022, and the
+over-90 band only arrives in 2023. **The defect is company-side: the provision is not
+forward-looking.** The validator's window is right and the world does not under-build. The fix is
+the forward-cash-forecast provision (payment-plan design, section 9), which charges expected loss
+as arrears build, not a world change. Until it lands, this control stays red against the
+published record, and that is correct. Its reader fix should land with the provision engine, or
+with a recorded acceptance that the age-band provision is known to lag.
 
 ## What I cannot yet say
 
