@@ -61,3 +61,15 @@ so the fall cannot be attributed to any one of them. The one-variable run is the
 d55598dd6 plus 434d87587 alone.
 
 The rule's "seed-spread" should be defined in the rule itself before it is used again.
+
+## Corrected 2026-10-14, beside the decision and not over it: the match is mute before 2019, not refused
+
+The census in docs/staging/records/PREREG_THE_PRICE_MATCH_OFFER_GATE_UNDER_THE_EX_VAT_BASIS_2026-10-14.md
+(seed 61109, both bases) shows no gate drops the match's offers. The company's ex-VAT default is the cap,
+and there was no cap before 2019, so the match makes **no offer at all from 2016 to 2018**. Those were 57
+of the 67 offers on the inc-VAT reading. From 2019 the ex-VAT match offers more (13 against 10), and the
+value test refuses nothing on either basis. So "the match loses net on every seed" is a comparison of the
+tiers against a match that sat out three years for lack of a default to match. It does not show matching
+is the worse rule. **The decision stays on `risk_tiers`** (F11: the evidence for switching is not in
+hand). Re-grading the match is owed once the company can read a pre-cap published default, or the
+comparison is restricted to 2019 onwards.

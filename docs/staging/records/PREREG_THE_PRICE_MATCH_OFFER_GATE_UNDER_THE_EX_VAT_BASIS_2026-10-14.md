@@ -58,3 +58,49 @@ billed, and whether an offer was booked. No code under test is edited. Two arms:
   matching rule.
 
 If G4 fails, the value test refuses cuts and the arithmetic above is wrong somewhere. That would be the finding.
+
+## Result (2026-10-14 05:40 BST), beneath G1-G6, which are unedited
+
+Both arms are whole: /var/tmp/regrade4/out/gate-{exvat,novat}-61109.json, finished 05:16-05:17. Their
+nets and offer counts reproduce 5074f1d40's exactly (exvat 247,960.04 on 13 offers; novat 252,116.63 on
+67), so the wrappers changed nothing they watched. This file's sha256 at grading equals the one filed at
+03:19 (/var/tmp/regrade4/PREREG.sha256). Reasons come from /var/tmp/regrade4/grade.py, written before the
+arms finished.
+
+| 61109, renewals sized | exvat pre-2019 | exvat 2019+ | novat pre-2019 | novat 2019+ |
+|---|---|---|---|---|
+| no published default (cut None) | **96** | 0 | 0 | 0 |
+| published gap is zero (EPG window) | 0 | 9 | 0 | 9 |
+| re-fix already at or below the match | 0 | 32 | 9 | 34 |
+| cut sized, discount cannot win the fix | 0 | 18 | 25 | 12 |
+| cut sized, fails the value test | 0 | 0 | 0 | 0 |
+| **offered** | **0** | **13** | **57** | **10** |
+
+- **G1: held.** Every one of exvat's 96 pre-2019 evaluations has `published_default_rate` None, and no
+  offer is made before 2019.
+- **G2: held.** 57 of novat's 67 offers predate 2019 (43 in 2017, 14 in 2018; 30 electricity, 27 gas).
+  They were sized against a mean published gap of 0.26, and the cost floor bound them to a mean cut of 2.2%.
+- **G3: held, and exceeded.** From 2019 on, exvat makes 13 offers against novat's 10. Moving the default
+  to ex VAT does what d1e37f45c said it would: it admits more cuts.
+- **G4: held.** Neither arm has a row with a sized cut that can buy something and that the value test
+  refuses. The holdout is off. The value test drops nothing.
+- **G5: refuted as written.** From 2019 on, exvat has 18 can-buy refusals against novat's 12. But exvat
+  has more cuts to refuse (31 sized against 22), the refusal rate is about the same (58% and 55%), and
+  every refusal in both arms is a household whose previous term was on our default. Pre-2019 offers change
+  who is on the book after 2019, so the populations are not the same. The prediction compared counts
+  across two different books. It should have compared rates over the same rows. This does not move G6.
+- **G6, the reading: held.** No downstream gate drops the 54 offers. The drop is in the sizing:
+  `published_default_rate_ex_vat` reads the cap, and there was no cap before 2019-01-01, so the match
+  has nothing to match against for the twelve quarters with the widest published gaps (0.17-0.32). On
+  the inc-VAT reading, `simulation.svt_rates` answered those quarters from its pre-cap table (published
+  ranges, M confidence, +/-15%). That table is the world's, and the company now reads the cap instead.
+
+**What this means for the decision in 5074f1d40.** "The price match loses on 61109" means the match
+made no offer at all from 2016 to 2018, because the company reads no published default before the cap.
+It does not mean the matching rule costs more than it protects. The value test refused nothing in either
+arm. With the pre-cap quarters answered (on a basis 5% dear), the match ties the tiers (-108). This is a
+GAP in what the company can read, not evidence against the rule. It is not a basis mismatch inside the
+gate. Whether a pre-cap published default exists for the company to read is the open question. The
+knowledge map's *SVT unit rates 2016-2025* row holds pre-cap ranges at M confidence, back-derived from
+QEP bills and Ofgem SVT league tables that are "not fully digitised".
+`position_vs_default` and the value test are not where the loss comes from.
