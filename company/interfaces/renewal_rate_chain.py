@@ -42,7 +42,8 @@ __all__ = [
 ]
 
 
-def portfolio_position(portfolio_margin_rates: list[float]) -> dict | None:
+def portfolio_position(portfolio_margin_rates: list[float],
+                       priced_for_rates: list[float | None] | None = None) -> dict | None:
     """Ask the company what its own recent margin on this commodity is, and what premium it implies.
 
     THE SAME READING `decide_renewal_rate` TAKES, and that is why it crosses here rather than
@@ -61,7 +62,7 @@ def portfolio_position(portfolio_margin_rates: list[float]) -> dict | None:
     """
     from company.pricing.renewal_rate_chain import portfolio_position as _position
 
-    return _position(portfolio_margin_rates)
+    return _position(portfolio_margin_rates, priced_for_rates)
 
 
 def decide_renewal_rate(
@@ -88,6 +89,7 @@ def decide_renewal_rate(
     company_forward_per_mwh: float | None = None,
     locked_policy_cost_per_mwh: float | None = None,
     locked_network_cost_per_mwh: float | None = None,
+    portfolio_priced_for_rates: list[float | None] | None = None,
 ) -> RenewalRateChain:
     """Ask the company what rate it is contracting this renewal at.
 
@@ -145,6 +147,7 @@ def decide_renewal_rate(
         company_forward_per_mwh=company_forward_per_mwh,
         locked_policy_cost_per_mwh=locked_policy_cost_per_mwh,
         locked_network_cost_per_mwh=locked_network_cost_per_mwh,
+        portfolio_priced_for_rates=portfolio_priced_for_rates,
     )
 
 

@@ -37,6 +37,10 @@ THE FIELDS, each something the supplier itself holds:
                                     forward and the two pass-through costs it locked. Their sum is
                                     the cost floor its desk struck over, and no discount in the chain
                                     may go under it (2026-10-12). None where the term has no offer.
+  portfolio_priced_for_rates     -- index for index with `portfolio_margin_rates`: the margin rate
+                                    each of those terms' own strike priced for, on the same basis
+                                    (`PortfolioMarginBook.priced_for`, 2026-10-14). None leaves the
+                                    premium on its old 8% literal.
 
 FROZEN, SHALLOWLY. The record cannot be re-pointed after it is built. The lists and dicts it carries
 are the run's own objects, passed by reference exactly as the keywords were, so the decision is
@@ -74,3 +78,4 @@ class RenewalDecisionInputs:
     company_forward_per_mwh: float | None = None
     locked_policy_cost_per_mwh: float | None = None
     locked_network_cost_per_mwh: float | None = None
+    portfolio_priced_for_rates: list[float | None] | None = None
