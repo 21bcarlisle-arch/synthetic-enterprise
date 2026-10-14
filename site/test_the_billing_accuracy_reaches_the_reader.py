@@ -138,7 +138,11 @@ def test_the_dd_money_line_reaches_the_reader_with_its_bound(shown):
     text = shown["billacc-dd"]
     assert "27 of 45 direct-debit accounts" in text
     assert "60.0% (95% 45.5% to 73.0%)" in text
-    assert "£15,447 in all, £343 an account (95% £165 to £521)" in text
+    # TWO MEANS, EACH SAYING WHAT IT COUNTS (D48 Expert Hour, 2026-10-14): the sentence names the
+    # accounts that lost money, so a bare "an account" was read as their mean when it was the mean
+    # over every account asked. Fires on: either mean dropped, or the denominators unnamed.
+    assert "£15,447 in all: £343 averaged over all 45 accounts asked (95% £165 to £521)" in text
+    assert "or £572 for each account that lost some" in text
     assert "84 accounts are still open, with £27,539" in text and "exposure, not a loss" in text
 
 

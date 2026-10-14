@@ -4769,8 +4769,11 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
           + esc(dd.accounts_barred) + " of " + esc(dd.accounts_met_recovery_action)
           + " direct-debit accounts asked for their balance lost some of it, "
           + pct(dd.share_barred) + range(dd.share_barred_ci95, pct) + ", "
-          + gbp(dd.barred_gbp) + " in all, " + gbp(dd.mean_barred_gbp) + " an account"
-          + range(dd.mean_barred_gbp_ci95, gbp) + ", a rough normal approximation at this size. "
+          + gbp(dd.barred_gbp) + " in all: " + gbp(dd.mean_barred_gbp) + " averaged over all "
+          + esc(dd.accounts_met_recovery_action) + " accounts asked"
+          + range(dd.mean_barred_gbp_ci95, gbp) + ", a rough normal approximation at this size, or "
+          + (dd.accounts_barred ? gbp(dd.barred_gbp / dd.accounts_barred) : "nothing")
+          + " for each account that lost some. "
           + (dd.seek_balance_at_review ? "The annual review asks for the balance here. "
             : "The annual review here does not ask for the balance, so it is asked for only at "
               + "an account's final bill. ")
