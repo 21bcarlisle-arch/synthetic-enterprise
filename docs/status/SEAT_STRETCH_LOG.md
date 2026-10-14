@@ -224,6 +224,24 @@ not stretching it to fill the budget; below is what I propose the spare points b
 **What is left this week, and its value:**
 - Reds at HEAD: #6 goes to next week by design. #7, #12, #13 and #17 should clear at the next
   census on the published artefacts. Only the census says so; I have not run them.
+  - **Re-asked 2026-10-14 ~11:10Z, at origin 0ab0e2003. All four CLEARED, and none needed a
+    fix.** The numbers are the 2026-10-12 census's (/var/tmp/redcensus/N.log).
+    - #12 (`test_a_promoted_feed_still_reproduces_at_the_commit_it_records`): CLEARED.
+    - #13 (`test_the_published_reading_is_what_the_world_at_this_commit_produces`): CLEARED.
+    - #17 (`test_every_bills_vat_matches_the_rate_the_PUBLISHED_LAW_says_applies`): CLEARED.
+    - #7 (`test_every_year_the_published_run_reports_appears_in_its_lifecycle_record`):
+      CLEARED against the published run (`docs/reports/run_output_latest.json`, 2026-10-13
+      23:05), 1 passed in the shared tree. In a clean origin extract it refuses to grade,
+      because that file is gitignored and is not there. So every extract-based census will
+      report #7 red whatever the code does. Read #7's census row as "not graded", not as a
+      red.
+  - The full 18-test census never ran under this item. Its launcher waited 4h42m for room
+    while its scratch worktree (/var/tmp/se-census) was deleted, and then it died at
+    systemd's CHDIR step with its record still reading `live`. `launch_long_job` now refuses
+    a workdir that is not a directory, and asks again on every queue retry. Another lane
+    re-launched the census as `red-census-18b` (in /var/tmp/se-census2, output to
+    /var/tmp/census18b.out) one minute before I would have, so I withdrew my copy.
+    To reverse the guard, revert this commit.
 - Group 6, the carried machine-class issues (the not_now prose, the draw ledger's path
   crediting, hold conditions never re-asked, parked atoms counted as drawn): each needs a
   mechanism rather than a fix, and none blocks a supplier result. Low value per point this week.

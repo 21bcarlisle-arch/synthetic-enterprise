@@ -199,6 +199,21 @@ def test_a_launch_with_no_declared_peak_is_refused(tmp_path, faked_path):
         _launch(tmp_path, _Runner(), peak_mb=None)
 
 
+def test_a_launch_into_a_workdir_that_is_gone_is_refused_and_nothing_starts(tmp_path, faked_path):
+    """red-census-18 queued 4h42m while its scratch worktree was deleted, then died at CHDIR.
+    The accept leg is every other test here, which launches into an existing `tmp_path`.
+
+    Fires on: the check removed, or moved after the artefact mkdir -- which, for a relative
+    artefact, creates the missing workdir and runs the job in an empty directory."""
+    gone = tmp_path / "deleted-worktree"
+    runner = _Runner()
+    with pytest.raises(llj.LaunchRefused, match="not a directory"):
+        _launch(tmp_path, runner, workdir=str(gone), artefact="out/census.done")
+    assert not _started(runner)
+    assert not gone.exists()
+    assert not (tmp_path / "records.json").exists()
+
+
 def test_every_outcome_is_reachable(tmp_path, monkeypatch, faked_path):
     """The partition, before any leg's meaning. A launcher that always refuses passes every
     refusal test below; one that never verifies passes every acceptance test.

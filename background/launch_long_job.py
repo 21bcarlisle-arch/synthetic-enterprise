@@ -555,6 +555,15 @@ def launch(job: str, command: list, *, artefact: str, workdir: str | None = None
 
     unit = unit_name(job)
     workdir = str(Path(workdir).resolve()) if workdir else str(_REPO)
+    # Asked BEFORE the artefact mkdir below, which would otherwise create an empty workdir for a
+    # relative artefact and run the job in it. And asked on every queue retry, because the queue
+    # can outlive the workdir: red-census-18 waited 4h42m for room on 2026-10-14 while its scratch
+    # worktree was deleted, then died at systemd's CHDIR step with its record still reading live.
+    if not Path(workdir).is_dir():
+        raise LaunchRefused(
+            f"the workdir {workdir} is not a directory, so the unit would die at systemd's CHDIR "
+            "step with nothing run. A scratch worktree can be deleted while a launch waits for "
+            "room -- recreate it (and `git worktree lock` it) and launch again.")
     log = str(Path(log).resolve()) if log else f"/var/tmp/{unit}.log"
     Path(log).parent.mkdir(parents=True, exist_ok=True)
     (Path(workdir) / artefact).parent.mkdir(parents=True, exist_ok=True)
