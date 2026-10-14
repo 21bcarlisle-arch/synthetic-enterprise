@@ -8,8 +8,12 @@ import pytest
 
 from simulation import arrears_engine
 from tools.generate_billing_ledger import (
-    generate, _stress_for_year, _payment_method, _payment_outcome, _arrears_stages,
+    _arrears_stages,
     _bill_generation_delay_days,
+    _payment_method,
+    _payment_outcome,
+    _stress_for_year,
+    generate,
 )
 
 
@@ -546,3 +550,12 @@ def test_stress_label_in_payment(tmp_path):
     rj.write_text(json.dumps(_run(bills, beh=beh)))
     result = generate(rj, tmp_path / "l.json")
     assert result["customers"]["C7"]["payments"][0]["income_stress_at_time"] == "MODERATE"
+
+
+def test_the_ledger_is_written_outside_the_cloudflare_site():
+    """The ledger outgrew Pages' 25 MiB file limit and one oversized file refuses the whole
+    deploy (docs/staging/done/WORKER_FINDING_THE_BILLING_LEDGER_OUTGREW_THE_PAGES_FILE_LIMIT_...).
+    It grows with the book, so it must not live under site/ at all."""
+    import tools.generate_billing_ledger as gbl
+    site = (gbl.PROJECT / "site").resolve()
+    assert site not in gbl.OUT_PATH.resolve().parents, gbl.OUT_PATH

@@ -10,7 +10,7 @@ report a Head of Compliance would present.
 This module does not invent new monitoring -- for the two obligations
 Phase 3's pre-bill gate actually enforces (billing accuracy, VAT-by-
 segment), status comes from the gate's own live exception-queue count
-(site/state/billing_ledger.json's held_bill_count). Every other obligation
+(docs/state/billing_ledger.json's held_bill_count). Every other obligation
 reports its existing_tracker pointer (from the register) rather than a
 fabricated status -- an obligation with no live automated check is reported
 as MANUAL, not silently upgraded to a false GREEN.
@@ -38,7 +38,7 @@ def build_compliance_report(held_bill_count: int = 0) -> dict:
     """The risk-tiered compliance report: obligations grouped by tier, each
     with a real status derived from whatever live signal actually exists
     for it (see _status_for_obligation). `held_bill_count` should be read
-    from site/state/billing_ledger.json's meta.held_bill_count by the
+    from docs/state/billing_ledger.json's meta.held_bill_count by the
     caller (kept as a plain int here so this module has no file-I/O and
     stays independently testable)."""
     by_tier: dict[str, list[dict]] = {tier.value: [] for tier in RiskTier}

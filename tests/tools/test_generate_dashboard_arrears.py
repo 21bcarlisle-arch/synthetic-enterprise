@@ -17,7 +17,7 @@ def _data():
 
 
 def _write_ledger(tmp_path, customers):
-    ledger_dir = tmp_path / "site" / "state"
+    ledger_dir = tmp_path / "docs" / "state"
     ledger_dir.mkdir(parents=True)
     (ledger_dir / "billing_ledger.json").write_text(json.dumps({"customers": customers}))
 
@@ -107,7 +107,7 @@ def test_zero_active_customers_gives_unknown_status(tmp_path, monkeypatch):
 
 def test_malformed_ledger_json_does_not_crash(tmp_path, monkeypatch):
     import tools.generate_dashboard_data as gdd
-    ledger_dir = tmp_path / "site" / "state"
+    ledger_dir = tmp_path / "docs" / "state"
     ledger_dir.mkdir(parents=True)
     (ledger_dir / "billing_ledger.json").write_text("not valid json")
     monkeypatch.setattr(gdd, "PROJECT", tmp_path)

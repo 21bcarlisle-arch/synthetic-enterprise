@@ -69,7 +69,7 @@ from company.compliance import sanity_adjudication as adjudication  # noqa: E402
 
 LOG_FILE = PROJECT_DIR / "docs" / "observability" / "sanity-daemon-log.md"
 RUN_OUTPUT_PATH = PROJECT_DIR / "docs" / "reports" / "run_output_latest.json"
-BILLING_LEDGER_PATH = PROJECT_DIR / "site" / "state" / "billing_ledger.json"
+BILLING_LEDGER_PATH = PROJECT_DIR / "docs" / "state" / "billing_ledger.json"
 LAST_DIGEST_DATE_FILE = PROJECT_DIR / "docs" / "observability" / ".sanity_daemon_last_digest_date"
 # Clause 5, OPS14_aged_staging_named_daily (DIRECTOR_RULING_FINDING_SEVERITY_
 # AND_INTERLEAVE_2026-08-12): the staging ROOT only -- direct files in

@@ -1449,7 +1449,7 @@ def extract_b2_taxonomy(data):
     # positive balance (credit/overpaid) contributes nothing to working capital
     # tied up. Bare segment grain (resi/SME/I&C), matching bare_revenue_share
     # above -- working capital is a per-household concept, not per-fuel-account.
-    ledger_path = PROJECT / "site" / "state" / "billing_ledger.json"
+    ledger_path = PROJECT / "docs" / "state" / "billing_ledger.json"
     segment_working_capital = {}
     if ledger_path.is_file():
         try:
@@ -1854,7 +1854,7 @@ def extract_arrears_case_load(data):
     genuine zero, because this function used to render the first as a `green` row."""
     from saas.reporting.arrears_ledger import load as _load_arrears
 
-    arrears = _load_arrears(PROJECT / "site" / "state" / "billing_ledger.json")
+    arrears = _load_arrears(PROJECT / "docs" / "state" / "billing_ledger.json")
 
     rows = []
     for yr, yd in sorted(data.get("years", {}).items()):
@@ -2047,11 +2047,11 @@ def extract_risk_tiered_compliance():
     extract_regulatory()'s existing RAG scorecard above -- this one carries
     the director's impact x likelihood risk tiering and, for the two
     obligations the Phase 3 pre-bill gate actually enforces, a LIVE status
-    read from site/state/billing_ledger.json's held_bill_count (the gate's
+    read from docs/state/billing_ledger.json's held_bill_count (the gate's
     own real exception-queue count), not a build/phase metadata guess."""
     from company.compliance.compliance_report import build_compliance_report
 
-    ledger_path = PROJECT / "site" / "state" / "billing_ledger.json"
+    ledger_path = PROJECT / "docs" / "state" / "billing_ledger.json"
     held_bill_count = 0
     if ledger_path.is_file():
         try:

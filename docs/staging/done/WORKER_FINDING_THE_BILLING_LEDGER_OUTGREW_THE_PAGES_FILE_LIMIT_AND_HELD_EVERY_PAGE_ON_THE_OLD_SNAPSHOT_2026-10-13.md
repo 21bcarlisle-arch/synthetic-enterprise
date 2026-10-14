@@ -55,3 +55,29 @@ The P3 atom on the 2026-10-05 finding is still unbuilt: the census does not run 
 commit, because the gate skips any commit with no `.py` file staged. That gap is why this widening
 was billed to the next code commit again. This occurrence is the second, and it is evidence for
 raising that atom.
+
+## Decided and done: remedy (b), 2026-10-14 (worker, claim `the-billing-ledger-leaves-the-published-site`)
+
+- **The ledger now lives at `docs/state/billing_ledger.json`, and nothing is left under `site/`.**
+  That path was already a byte-identical, committed copy: the GitHub Pages mirror wrote it every
+  publish, and four readers (`generate_company_data`, `raw_account_export`, `statement_export`,
+  two tests) already read it. `generate_billing_ledger.OUT_PATH` writes there now, and so do the
+  other ~15 generators and controls that read `site/state/`. The mirror row is gone; it would now
+  copy the file onto itself. The publish's explicit append is gone too, because `docs/state/` is
+  staged as a directory. The step ledger names the new path, and `site/state/billing_ledger.json`
+  is deleted. That also drops one of two 58 MB copies from every publish commit.
+- **Withdrawal of the stale live copy: measured, nothing owed.** `curl -I
+  https://poesys.net/state/billing_ledger.json` returned **404** at 12:07 UTC. A Pages deployment
+  is a whole snapshot. Once the staged deploy shipped without the file, the 2026-10-05 copy
+  stopped being served. The "two snapshots" this finding saw were gone before this change.
+- **Live-URL evidence repointed.** `generate_project_state` no longer lists
+  `poesys.net/state/billing_ledger.json`. The github.io URL stays and now says why. The shadow
+  generator's link points there as well. Earlier R11 evidence in
+  `D_money_boundary_reconciliation` was already measured on `docs/state/`.
+- **Dry-run:** `assert_deployed_bytes_are_served.py --stage` on the tree it creates stages
+  1,239 of 1,239 tracked `site/` files, with no `NOT DEPLOYED` line.
+- **Control:** `test_the_ledger_is_written_outside_the_cloudflare_site`. It went red when
+  `OUT_PATH` was set back to `site/state/` and green when restored.
+- **Not caused by this, found while doing it:** one test was already red at untouched origin,
+  `test_billed_total_never_less_than_gross_margin_for_any_real_customer_year`. It is filed as
+  `WORKER_FINDING_NINE_CUSTOMER_YEARS_BILL_LESS_THAN_THEIR_GROSS_MARGIN_AT_ORIGIN_2026-10-14.md`.

@@ -3,7 +3,7 @@ the population the publish path currently claims.
 
 WORKER_FINDING_THE_PRINTED_FOOTING_CONTROL_RUNS_ON_A_SMALLER_POPULATION_THAN_THE_PAGE
 (2026-08-12) reported that `PRINTED_BILL_FOOTS_EXACTLY` sees 0/1557 invoices failing in
-`site/state/billing_ledger.json` while 30/1682 fail in `site/data/customers/*.json`, and
+`docs/state/billing_ledger.json` while 30/1682 fail in `site/data/customers/*.json`, and
 proposed pointing the footing control at the second path as well.
 
 That diagnosis was checked and does not hold, which is why this guard is shaped the way

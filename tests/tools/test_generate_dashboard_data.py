@@ -341,7 +341,7 @@ def test_extract_regulatory_every_domain_has_an_obligation():
 
 def test_extract_risk_tiered_compliance_no_ledger_file_defaults_clean(tmp_path, monkeypatch):
     import tools.generate_dashboard_data as gdd
-    monkeypatch.setattr(gdd, "PROJECT", tmp_path)  # no site/state/billing_ledger.json here
+    monkeypatch.setattr(gdd, "PROJECT", tmp_path)  # no docs/state/billing_ledger.json here
     report = gdd.extract_risk_tiered_compliance()
     assert report["held_bill_count"] == 0
     assert report["overall_rag"] == "GREEN"
@@ -349,7 +349,7 @@ def test_extract_risk_tiered_compliance_no_ledger_file_defaults_clean(tmp_path, 
 
 def test_extract_risk_tiered_compliance_reads_live_held_count(tmp_path, monkeypatch):
     import tools.generate_dashboard_data as gdd
-    ledger_dir = tmp_path / "site" / "state"
+    ledger_dir = tmp_path / "docs" / "state"
     ledger_dir.mkdir(parents=True)
     (ledger_dir / "billing_ledger.json").write_text(json.dumps({"meta": {"held_bill_count": 4}}))
     monkeypatch.setattr(gdd, "PROJECT", tmp_path)
@@ -360,7 +360,7 @@ def test_extract_risk_tiered_compliance_reads_live_held_count(tmp_path, monkeypa
 
 def test_extract_risk_tiered_compliance_malformed_ledger_defaults_to_zero(tmp_path, monkeypatch):
     import tools.generate_dashboard_data as gdd
-    ledger_dir = tmp_path / "site" / "state"
+    ledger_dir = tmp_path / "docs" / "state"
     ledger_dir.mkdir(parents=True)
     (ledger_dir / "billing_ledger.json").write_text("not valid json")
     monkeypatch.setattr(gdd, "PROJECT", tmp_path)
@@ -578,7 +578,7 @@ def _b2_data():
 
 def _write_ledger(tmp_path, customers):
     import json as _json
-    ledger_dir = tmp_path / "site" / "state"
+    ledger_dir = tmp_path / "docs" / "state"
     ledger_dir.mkdir(parents=True)
     (ledger_dir / "billing_ledger.json").write_text(_json.dumps({"customers": customers}))
 

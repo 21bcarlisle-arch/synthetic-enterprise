@@ -6,7 +6,7 @@ WHY THIS EXISTS (2026-08-12, closing
 CLASS, per R10 -- an absurdity-class defect may not be closed with an instance fix).
 
 Three independent surfaces derived an arrears RAG from their own copy of the same
-`site/state/billing_ledger.json` read, each swallowing the absence of the file into
+`docs/state/billing_ledger.json` read, each swallowing the absence of the file into
 an empty dict:
 
   * `saas/reporting/annual_report.py::_section_population_anchoring`  (ANNUAL_REPORT.md)

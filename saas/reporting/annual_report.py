@@ -10474,7 +10474,7 @@ def _section_population_anchoring(data: dict, ledger_path=None) -> str:
     # empty by-year map means "no arrears" OR "no ledger", and rendering the second
     # as the first is what printed 10-of-10 GREEN over absent data (2026-08-12).
     if ledger_path is None:
-        ledger_path = _PROJECT / "site" / "state" / "billing_ledger.json"
+        ledger_path = _PROJECT / "docs" / "state" / "billing_ledger.json"
     _arrears = _load_arrears(ledger_path)
 
     rows = []

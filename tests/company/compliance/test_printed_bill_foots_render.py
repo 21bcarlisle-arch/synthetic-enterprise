@@ -64,7 +64,7 @@ WHAT IS CHECKED, AND AGAINST WHAT
 THE POPULATION, AND A DEFECT IT EXPOSED THAT WAS NOT THIS ATOM'S TO FIX
 ----------------------------------------------------------------------
 This module originally recorded that the page rendered ``site/data/customers/*.json``
-(21 accounts) while ``PRINTED_BILL_FOOTS_EXACTLY`` ran on ``site/state/billing_ledger.json``
+(21 accounts) while ``PRINTED_BILL_FOOTS_EXACTLY`` ran on ``docs/state/billing_ledger.json``
 (18), with 30 invoice RECORDS in the three-account difference failing to foot by a penny --
 staged as its own finding rather than fixed here (D36 is render-layer only, and
 SELF-INTERRUPT DISCIPLINE says queue it).

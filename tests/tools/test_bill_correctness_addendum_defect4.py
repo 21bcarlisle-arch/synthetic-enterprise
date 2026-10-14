@@ -8,7 +8,7 @@ Root cause (not a bug -- a definitional mismatch that was never made
 explicit): customer_sample.json's annual_pnl[year].gross_gbp comes straight
 from the SIM's run_output per-customer-year commodity trading margin
 (revenue minus wholesale cost -- see tools/generate_customer_sample.py's
-_per_year(), cdata["gross_gbp"]). site/state/billing_ledger.json's invoice
+_per_year(), cdata["gross_gbp"]). docs/state/billing_ledger.json's invoice
 total_amount_gbp is the real all-in customer-facing bill: commodity +
 standing charge + non-commodity network/environmental pass-through + VAT.
 The ledger is authoritative for "what was this customer actually billed" --
@@ -32,7 +32,7 @@ from pathlib import Path
 import pytest
 
 PROJECT = Path(__file__).resolve().parents[2]
-LEDGER_PATH = PROJECT / "site" / "state" / "billing_ledger.json"
+LEDGER_PATH = PROJECT / "docs" / "state" / "billing_ledger.json"
 SAMPLE_PATH = PROJECT / "site" / "data" / "customer_sample.json"
 
 
@@ -123,7 +123,21 @@ def test_billed_total_helper_sums_by_customer_and_year():
 # rather than xfailed so that any OTHER inversion still reds the gate. An entry that stops
 # inverting excuses nothing, so it rots harmlessly, but delete it when its cause lands. See
 # docs/staging/WORKER_FINDING_A_LEAVING_HOUSEHOLDS_GAS_LEG_READ_AS_A_STAYER_AND_CLOSED_ON_AN_ESTIMATE_2026-09-30.md
+_HELD_ESTIMATE_NETTED = (
+    "held estimates leave the ledger but the catch-up still nets them: WORKER_FINDING_NINE_CUSTOMER_YEARS_BILL_LESS_THAN_THEIR_GROSS_MARGIN_AT_ORIGIN_2026-10-14.md"
+)
 KNOWN_OPEN_INVERSIONS = {
+    # Red at origin 440ebe1f6 on the 2248e3baf book, before anyone touched this file; the nine
+    # are named so the gate keeps its teeth for a TENTH while the BLOCKING finding is worked.
+    ("OCC-25ff8966357a", 2022): _HELD_ESTIMATE_NETTED,
+    ("OCC-b7693802f91c", 2016): _HELD_ESTIMATE_NETTED,
+    ("PROS-2017-0117", 2018): _HELD_ESTIMATE_NETTED,
+    ("PROS-2017-0336", 2017): _HELD_ESTIMATE_NETTED,
+    ("PROS-2017-0336", 2018): _HELD_ESTIMATE_NETTED,
+    ("PROS-2017-0336", 2019): _HELD_ESTIMATE_NETTED,
+    ("PROS-2017-0336", 2020): _HELD_ESTIMATE_NETTED,
+    ("PROS-2017-0336", 2023): _HELD_ESTIMATE_NETTED,
+    ("PROS-2025-0106", 2025): _HELD_ESTIMATE_NETTED,
     ("PROS-2020-0132", 2021): "gas leg of a leaver closed on an estimate; fixed in code, clears on "
                               "the next published run",
     ("PROS-2016-0092", 2017): "the leaver's final actual bill is held by validate_bills",

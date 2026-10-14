@@ -1494,7 +1494,7 @@ def check_printed_bill_foots_exactly(inv: dict) -> bool:
     line items must sum exactly to its printed total.
 
     Input is a rendered invoice dict (the shape written into
-    `site/state/billing_ledger.json`), NOT the full-precision computed bill --
+    `docs/state/billing_ledger.json`), NOT the full-precision computed bill --
     `check_bill_foots` is the check for that. The two are deliberately
     different checks with different tolerances, because a bill can foot as
     computed and still not foot as printed; the printed one is what the
@@ -1656,7 +1656,7 @@ def check_printed_line_rederives(inv: dict) -> bool:
     must reproduce its own printed amount from its own printed figures.
 
     Input is a rendered invoice dict (the shape written into
-    `site/state/billing_ledger.json` and `site/data/customers/*.json`), not the
+    `docs/state/billing_ledger.json` and `site/data/customers/*.json`), not the
     full-precision computed bill.
 
     **This check deliberately re-implements the arithmetic.** It does not

@@ -41,7 +41,7 @@ from saas.money import (
 )
 
 PROJECT = Path(__file__).resolve().parents[3]
-LEDGER = PROJECT / "site" / "state" / "billing_ledger.json"
+LEDGER = PROJECT / "docs" / "state" / "billing_ledger.json"
 
 
 def _line(**over):

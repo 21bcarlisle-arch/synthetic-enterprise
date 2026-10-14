@@ -673,7 +673,7 @@ def build_customers(dash, sample, ts, ledger=None, journey_log=None):
         + "<h2>Full Ground Truth</h2>"
         + "<p>Machine-readable per-customer data:<br>"
         + '<a href="/state/customer_sample.json">customer_sample.json</a> | '
-        + '<a href="/state/billing_ledger.json">billing_ledger.json</a></p>'
+        + '<a href="https://21bcarlisle-arch.github.io/synthetic-enterprise/state/billing_ledger.json">billing_ledger.json</a></p>'
     )
     return _page("Customer Portfolio", "Customers", body, ts, git_commit, phase)
 
@@ -1763,7 +1763,7 @@ def generate(run_json_path=None):
     sim_data = json.loads((DATA / "sim_data.json").read_text())
     sample_path = DATA / "customer_sample.json"
     sample = json.loads(sample_path.read_text()) if sample_path.exists() else {}
-    ledger_path = STATE / "billing_ledger.json"
+    ledger_path = PROJECT / "docs" / "state" / "billing_ledger.json"
     billing_ledger = json.loads(ledger_path.read_text()) if ledger_path.exists() else {}
     pa_path = STATE / "population_anchoring.json"
     _population_anchoring = json.loads(pa_path.read_text()) if pa_path.exists() else {}

@@ -140,7 +140,7 @@ class ToneSegmentLift:
 def compute_tone_lift_by_segment(payments_by_customer: dict, customers: list[dict]) -> list[ToneSegmentLift]:
     """Empirical payment-success rate by (tone, segment) from real persisted
     payment records. `payments_by_customer` maps customer_id -> list of
-    payment dicts (site/state/billing_ledger.json's own shape -- each with
+    payment dicts (docs/state/billing_ledger.json's own shape -- each with
     "tone" and "outcome" keys)."""
     seg_by_id = dict((c["customer_id"], c.get("segment", "resi")) for c in customers)
     groups: dict[tuple[str, str], list[bool]] = dict()

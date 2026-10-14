@@ -19,7 +19,7 @@ from pathlib import Path
 
 PROJECT = Path(__file__).resolve().parent.parent
 RUN_OUTPUT = PROJECT / "docs" / "reports" / "run_output_latest.json"
-LEDGER_PATH = PROJECT / "site" / "state" / "billing_ledger.json"
+LEDGER_PATH = PROJECT / "docs" / "state" / "billing_ledger.json"
 DASHBOARD_PATH = PROJECT / "site" / "data" / "dashboard.json"
 
 

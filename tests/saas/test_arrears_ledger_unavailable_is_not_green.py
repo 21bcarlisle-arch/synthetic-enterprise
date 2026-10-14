@@ -140,7 +140,7 @@ def test_report_complaints_verdict_survives_an_absent_ledger(tmp_path):
 # ── surface 2: the dashboard Operations tab ──────────────────────────────────────
 def test_dashboard_arrears_status_is_unavailable_not_green(tmp_path, monkeypatch):
     import tools.generate_dashboard_data as gdd
-    monkeypatch.setattr(gdd, "PROJECT", tmp_path)  # no site/state/billing_ledger.json
+    monkeypatch.setattr(gdd, "PROJECT", tmp_path)  # no docs/state/billing_ledger.json
     result = gdd.extract_arrears_case_load(_YEARS)
     assert result["ledger_available"] is False
     for row in result["annual"]:
@@ -151,7 +151,7 @@ def test_dashboard_arrears_status_is_unavailable_not_green(tmp_path, monkeypatch
 
 def test_dashboard_arrears_status_is_unavailable_on_malformed_json(tmp_path, monkeypatch):
     import tools.generate_dashboard_data as gdd
-    d = tmp_path / "site" / "state"
+    d = tmp_path / "docs" / "state"
     d.mkdir(parents=True)
     (d / "billing_ledger.json").write_text("not valid json")
     monkeypatch.setattr(gdd, "PROJECT", tmp_path)
@@ -162,7 +162,7 @@ def test_dashboard_arrears_status_is_unavailable_on_malformed_json(tmp_path, mon
 
 def test_dashboard_arrears_still_rags_a_present_ledger(tmp_path, monkeypatch):
     import tools.generate_dashboard_data as gdd
-    d = tmp_path / "site" / "state"
+    d = tmp_path / "docs" / "state"
     d.mkdir(parents=True)
     (d / "billing_ledger.json").write_text(json.dumps({"customers": {
         "C1": {"arrears_history": [{"opened_date": "2020-03-01"}]},
@@ -179,7 +179,7 @@ def test_dashboard_unavailable_is_distinct_from_unknown(tmp_path, monkeypatch):
     """`unknown` already meant "zero active customers" -- a denominator problem.
     An absent ledger is a NUMERATOR problem and must not borrow that word."""
     import tools.generate_dashboard_data as gdd
-    d = tmp_path / "site" / "state"
+    d = tmp_path / "docs" / "state"
     d.mkdir(parents=True)
     (d / "billing_ledger.json").write_text(json.dumps({"customers": {"C1": {}}}))
     monkeypatch.setattr(gdd, "PROJECT", tmp_path)

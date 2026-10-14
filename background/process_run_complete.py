@@ -4997,14 +4997,14 @@ def _generate_dashboard_json(json_path, git_hash="unknown"):
         from tools.generate_customer_data import generate as gen_cust
         gen_cust(json_path)
         log("Generated site/data/customers/ JSON")
-    with _ledger.step("Billing ledger generation", ["site/state/billing_ledger.json"]):
+    with _ledger.step("Billing ledger generation", ["docs/state/billing_ledger.json"]):
         # Must run before generate_invoice_data: real per-invoice bill-equation
         # data (usage, rate, standing charge) is wired from this ledger into the
         # customer JSON here; also must run before generate_shadow_html which reads
         # it independently.
         from tools.generate_billing_ledger import generate as gen_ledger
         gen_ledger(json_path)
-        log("Generated site/state/billing_ledger.json")
+        log("Generated docs/state/billing_ledger.json")
     with _ledger.step("Invoice data generation", ["site/data/customers/"]):
         from tools.generate_invoice_data import generate as gen_inv
         gen_inv(json_path)
@@ -7063,9 +7063,6 @@ def git_commit_push(git_hash, net_margin, outcome=None):
     docs_status_anchors = PROJECT_DIR / "docs" / "status" / "STARTUP_ANCHORS.md"
     if docs_status_anchors.exists():
         files.append(str(docs_status_anchors))
-    site_state_billing = PROJECT_DIR / "site" / "state" / "billing_ledger.json"
-    if site_state_billing.exists():
-        files.append(str(site_state_billing))
     site_state_anchor = PROJECT_DIR / "site" / "state" / "population_anchoring.json"
     if site_state_anchor.exists():
         files.append(str(site_state_anchor))
@@ -7175,7 +7172,7 @@ def git_commit_push(git_hash, net_margin, outcome=None):
     # THE SAME CLASS, ON THE OTHER GENERATED DIRECTORY (2026-08-17, the three-day content
     # freeze). Everything above closed the orphaned-at-commit gap for `site/data/` with a glob and
     # then went straight back to hand-listing `site/state/` one path at a time -- customer_sample,
-    # PROJECT_STATE, billing_ledger, population_anchoring, scenario_analysis_latest,
+    # PROJECT_STATE, billing_ledger (now under docs/state/), population_anchoring, scenario_analysis_latest,
     # live_decisions_log, track_record_scorecard. Three files this cycle's own log says it
     # regenerates were never on that list and so were regenerated every cycle and committed by
     # none: `live_portfolio.json`, `live_decisions_latest.json`, `frozen_policy_baseline.json`.

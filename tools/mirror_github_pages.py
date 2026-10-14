@@ -28,10 +28,11 @@ from pathlib import Path
 PROJECT = Path(__file__).resolve().parent.parent
 DOCS_STATE = PROJECT / "docs" / "state"
 
-# (source, dest-filename-under-docs/state/)
+# (source, dest-filename-under-docs/state/). `billing_ledger.json` is not here: it is
+# generated straight into docs/state/ since it outgrew Pages' 25 MiB file limit, so there is
+# no site/ original to copy.
 _STATE_JSON_FILES = [
     (PROJECT / "site" / "state" / "customer_sample.json", "customer_sample.json"),
-    (PROJECT / "site" / "state" / "billing_ledger.json", "billing_ledger.json"),
     (PROJECT / "site" / "state" / "population_anchoring.json", "population_anchoring.json"),
     (PROJECT / "site" / "data" / "sim_data.json", "sim_data.json"),
 ]

@@ -2,7 +2,7 @@
 """BILLING_AND_PAYMENTS_LEDGER.md (Phase RP) -- per-account chronological
 payment ledger for the customer portal's Statement/Cashflow views.
 
-site/state/billing_ledger.json (tools/generate_billing_ledger.py) already
+docs/state/billing_ledger.json (tools/generate_billing_ledger.py) already
 carries real invoices, payments (with real payment_date = due_date +
 days_late, method, outcome), and arrears_history (dated dunning cascades
 from simulation/arrears_engine.py, now including a structured amount_gbp
@@ -35,7 +35,7 @@ import json
 from pathlib import Path
 
 PROJECT = Path(__file__).resolve().parent.parent
-LEDGER_PATH = PROJECT / "site" / "state" / "billing_ledger.json"
+LEDGER_PATH = PROJECT / "docs" / "state" / "billing_ledger.json"
 CUSTOMERS_DIR = PROJECT / "site" / "data" / "customers"
 
 _NOTE_STAGES = {"DD_FAILED": "payment_failed", "INVOICE_DISPUTED": "invoice_disputed",
@@ -55,7 +55,7 @@ def _book_as_of_date(ledger_customers):
 
 def build_account_ledger(cust, as_of):
     """Build the chronological entries + summary totals for one account
-    (one entry per site/state/billing_ledger.json customer record)."""
+    (one entry per docs/state/billing_ledger.json customer record)."""
     invoices = {inv["invoice_number"]: inv for inv in cust.get("invoices", [])}
     payments = {p["invoice_number"]: p for p in cust.get("payments", [])}
     arrears = {a["invoice_number"]: a for a in cust.get("arrears_history", [])}

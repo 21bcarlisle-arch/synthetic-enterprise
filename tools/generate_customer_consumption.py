@@ -9,7 +9,7 @@ consumption model, no fabrication:
 
 - Monthly kWh per fuel leg: aggregated from docs/reports/run_output_latest.json's
   "bills" list (total_consumption_kwh per settlement period) -- the exact same
-  real figure that already flows into site/state/billing_ledger.json invoices.
+  real figure that already flows into docs/state/billing_ledger.json invoices.
 - Daily kWh + load-shape (weekday/weekend/seasonal average 48-period profile):
   derived from sim/hh_data/{cid}.csv, the simulation's real half-hourly
   settlement output, for the customers that actually have it.

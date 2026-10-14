@@ -3,7 +3,7 @@ PRINTED representation of a bill (D_money_boundary_reconciliation, 2026-08-03).
 
 BILL_FOOTS checks the COMPUTED bill: full-precision floats, 5p tolerance, where
 footing holds trivially. Nothing checked the bill as PRINTED, and that is where
-the defect lived -- 534/1603 invoices in site/state/billing_ledger.json printed
+the defect lived -- 534/1603 invoices in docs/state/billing_ledger.json printed
 a column that did not add up to its own total.
 
 R15: every control below is mutation-tested against its own named defect, and

@@ -2,7 +2,7 @@
 """Real per-customer invoice records for the customer portal, sourced from the
 actual billed usage -- not a fabrication.
 
-Phase RJ finding: site/state/billing_ledger.json (tools/generate_billing_ledger.py)
+Phase RJ finding: docs/state/billing_ledger.json (tools/generate_billing_ledger.py)
 already carries the real per-invoice breakdown from the simulation's own bills --
 consumption_kwh, commodity_amount_gbp, standing_charge_gbp, non_commodity_amount_gbp,
 vat_gbp, total_amount_gbp -- everything CUSTOMER_360_REDESIGN.md v4 item 2 (the bill
@@ -24,7 +24,7 @@ from saas.money import display_rate_p_per_kwh, quantize_gbp
 
 PROJECT = Path(__file__).resolve().parent.parent
 RUN_OUTPUT = PROJECT / "docs" / "reports" / "run_output_latest.json"
-LEDGER_PATH = PROJECT / "site" / "state" / "billing_ledger.json"
+LEDGER_PATH = PROJECT / "docs" / "state" / "billing_ledger.json"
 CUSTOMERS_DIR = PROJECT / "site" / "data" / "customers"
 
 # ADVISOR_STEER_BILL_ARITHMETIC.md Defect 2 (2026-07-11): a written-off invoice

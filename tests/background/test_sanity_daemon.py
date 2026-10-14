@@ -12,7 +12,7 @@ from company.compliance import sanity_adjudication
 def _isolate(tmp_path, monkeypatch):
     monkeypatch.setattr(sanity_daemon, "LOG_FILE", tmp_path / "log.md")
     monkeypatch.setattr(sanity_daemon, "RUN_OUTPUT_PATH", tmp_path / "run_output_latest.json")
-    # Isolated from the real, committed site/state/billing_ledger.json --
+    # Isolated from the real, committed docs/state/billing_ledger.json --
     # defaults to a nonexistent tmp_path file (payment-channel-mix check
     # simply skipped, matching the daemon's own graceful-degradation
     # design), never the real repo file.
@@ -309,7 +309,7 @@ def test_daily_digest_carries_live_coupled_gap_line(monkeypatch):
 
 
 def test_run_cycle_reads_billing_ledger_payments_for_channel_mix(monkeypatch):
-    """When site/state/billing_ledger.json (isolated to tmp_path) exists with
+    """When docs/state/billing_ledger.json (isolated to tmp_path) exists with
     a lopsided all-direct_debit resi population, run_cycle() must surface the
     payment_channel_mix_vs_desnz_anchor finding -- proving the daemon actually
     reads and passes the payments through, not just a dead code path."""

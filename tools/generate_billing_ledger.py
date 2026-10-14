@@ -13,7 +13,7 @@ Payment method by segment:
   SME     -> BACS or DD
   Resi    -> DD (default)
 
-Output: site/state/billing_ledger.json
+Output: docs/state/billing_ledger.json
 """
 from __future__ import annotations
 
@@ -22,37 +22,13 @@ import random
 from datetime import date, timedelta
 from pathlib import Path
 
-from simulation.arrears_engine import (
-    PAYMENT_TERMS_DAYS,
-    bill_substream as _bill_substream,
-    stress_for_year as _stress_for_year,
-    payment_method as _payment_method,
-    paying_method as _paying_method,
-    payment_outcome as _payment_outcome,
-    mover_final_bill_outcome as _mover_final_bill_outcome,
-    _fuel_poor_for_bill,
-    _tone_for_bill,
-    arrears_stages as _arrears_stages,
-    balance_settlement as _balance_settlement,
-    with_credits_applied as _with_credits_applied,
-    ic_arrears_stages as _ic_arrears_stages,
-    debt_archetype as _debt_archetype,
-    _CORP_BACS_ON_TIME_PROB,
-    _CORP_BACS_LATE_PROB,
-    _CORP_BACS_DISPUTE_PROB,
-    _CORP_LATE_DAYS,
-    _DD_FAILURE_PROB,
-    _ON_TIME_PROB,
-    _LATE_DAYS,
-)
-from simulation.household import households_whose_account_closed, supply_points_that_left
 from company.billing.pre_bill_validation import (
-    validate_bills,
-    exception_queue_as_dicts,
-    validate_rendered_bill_reads,
-    validate_rendered_bill_money,
     BillValidationResult,
     ValidationOutcome,
+    exception_queue_as_dicts,
+    validate_bills,
+    validate_rendered_bill_money,
+    validate_rendered_bill_reads,
 )
 from saas.money import (
     MoneyBoundaryError,
@@ -60,11 +36,60 @@ from saas.money import (
     display_rate_p_per_kwh,
     foot_components_to_total,
 )
+from simulation.arrears_engine import (
+    _CORP_BACS_DISPUTE_PROB,
+    _CORP_BACS_LATE_PROB,
+    _CORP_BACS_ON_TIME_PROB,
+    _CORP_LATE_DAYS,
+    _DD_FAILURE_PROB,
+    _LATE_DAYS,
+    _ON_TIME_PROB,
+    PAYMENT_TERMS_DAYS,
+    _fuel_poor_for_bill,
+    _tone_for_bill,
+)
+from simulation.arrears_engine import (
+    arrears_stages as _arrears_stages,
+)
+from simulation.arrears_engine import (
+    balance_settlement as _balance_settlement,
+)
+from simulation.arrears_engine import (
+    bill_substream as _bill_substream,
+)
+from simulation.arrears_engine import (
+    debt_archetype as _debt_archetype,
+)
+from simulation.arrears_engine import (
+    ic_arrears_stages as _ic_arrears_stages,
+)
+from simulation.arrears_engine import (
+    mover_final_bill_outcome as _mover_final_bill_outcome,
+)
+from simulation.arrears_engine import (
+    paying_method as _paying_method,
+)
+from simulation.arrears_engine import (
+    payment_method as _payment_method,
+)
+from simulation.arrears_engine import (
+    payment_outcome as _payment_outcome,
+)
+from simulation.arrears_engine import (
+    stress_for_year as _stress_for_year,
+)
+from simulation.arrears_engine import (
+    with_credits_applied as _with_credits_applied,
+)
+from simulation.household import households_whose_account_closed, supply_points_that_left
 from tools.run_output_store import load_run_output
 
 PROJECT = Path(__file__).parent.parent
 RUN_JSON = PROJECT / "docs" / "reports" / "run_output_latest.json"
-OUT_PATH = PROJECT / "site" / "state" / "billing_ledger.json"
+# NOT under site/ (2026-10-14): at 57.7 MiB it passed Cloudflare Pages' 25 MiB per-file limit, and
+# Pages refuses the whole upload over one file. No page fetches it; every reader is a generator
+# reading disk. docs/state/ is also what the GitHub Pages mirror serves, so it stays fetchable there.
+OUT_PATH = PROJECT / "docs" / "state" / "billing_ledger.json"
 
 
 def _printed_unit_rate(printed_consumption_kwh, printed_commodity_amount_gbp):

@@ -79,7 +79,7 @@ def test_quantize_error_names_the_field():
 # --- foot_components_to_total ----------------------------------------------
 
 def test_printed_parts_sum_to_printed_total_on_the_real_defect_case():
-    """The exact invoice from site/state/billing_ledger.json that motivated
+    """The exact invoice from docs/state/billing_ledger.json that motivated
     this atom: C4 invoice 519, period 2019-01-31. Its printed lines summed to
     143.86 against a printed total of 143.88."""
     raw = {

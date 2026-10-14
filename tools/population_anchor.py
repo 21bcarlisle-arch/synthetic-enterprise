@@ -657,7 +657,7 @@ def generate(run_json_path=None, out_path=None, billing_ledger_path=None):
 
     complaints_findings = _complaints_check(years_data)
     if billing_ledger_path is None:
-        billing_ledger_path = PROJECT / "site" / "state" / "billing_ledger.json"
+        billing_ledger_path = PROJECT / "docs" / "state" / "billing_ledger.json"
     arrears_ledger = load_arrears_ledger(billing_ledger_path)
     arrears_findings = _arrears_check_by_year(arrears_ledger, years_data)
     acquisition_funnel_findings = _acquisition_funnel_check(data.get("acquisition_funnel_log"))

@@ -1,5 +1,5 @@
 """Tests for tools/generate_invoice_data.py -- real per-invoice bill-equation
-data sourced from site/state/billing_ledger.json (Phase RJ: replaces the
+data sourced from docs/state/billing_ledger.json (Phase RJ: replaces the
 previous fabricated seasonal-weight invoice approximation)."""
 import json
 from pathlib import Path
