@@ -56,3 +56,21 @@ The power law through the two medians (6,800 at 20k and 11,500 at 120k) has an e
 At 120k each seed peaked at about 1.1 GB and took 63 to 69 minutes with four running at once. The
 probe's 240k RSS sets how many run at a time. The rule is that the running seeds use no more than
 about 70% of `resource_headroom.sample()["available_mb"]` taken at launch.
+
+## Launch log (added after filing; nothing above it changed)
+
+- **10:19, first launch: died empty.** The prior invocation ran the five seeds through a plain
+  `xargs` inside its own tick. That turn ended and the seeds went with it. All five output files
+  are zero bytes and there is no done marker (`/var/tmp/dvn240/`). No seed result exists, so nothing
+  has been seen that could bias the reading rule.
+- **12:25, relaunched as two systemd units**, `longjob-dvn240-seeds-a` (seeds 0, 1, 2) and
+  `longjob-dvn240-seeds-b` (seeds 3, 4). They run one seed after another, in the locked worktree
+  `/var/tmp/se-dvn240` at `fa7ac5168`. `tools/demand_vector_coverage.py` there is byte-identical
+  to `b585d3733`. Admission held 20.8 GB already resident against a 23.0 GB ceiling (the termcost
+  arms declared 11.2 GB), so only one seed at 1.5 GB fitted. Unit B waits for
+  `regrade5-match-where-published-61109` to exit. The design is unchanged and only the
+  parallelism differs. The pre-launch price assumed four seeds at once, so each seed's wall time
+  is not comparable with the 120k cell's.
+- **Results land in** `/var/tmp/dvn240/r2/s{0..4}.json`, written atomically, with `DONE_A` and
+  `DONE_B` as markers. If a seed is missing when its unit has ended, read its `.err` and do not
+  re-run it blind.
