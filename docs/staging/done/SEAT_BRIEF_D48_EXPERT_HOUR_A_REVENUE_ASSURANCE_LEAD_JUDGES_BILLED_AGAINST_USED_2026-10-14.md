@@ -3,6 +3,8 @@
 
 # D48's Expert Hour, ready to run: a revenue-assurance lead judges billed against used (2026-10-14)
 
+**Run (2026-10-14T11:42Z):** battery recorded blind (18 entries, ledger), then figures shown. FAIL, held at L2: SEAT_FINDING_D48_THE_EXPERT_HOUR_FAILS_ON_THE_CLAIM_NOT_THE_MEASURE_2026-10-14.md.
+
 **Fate (2026-10-14):** ATOM -- D48 is at L2, loop_stage harden (ec0c00917); this brief is the harden step's input, drawn by the ordinary loop.
 
 D48 recorded L2 on the published /capabilities/ figures (ec0c00917), and the live site serves them.

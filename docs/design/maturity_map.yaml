@@ -1859,8 +1859,7 @@
   level_current: 2
   level_target: 3
   loop_stage: harden
-  # L2 recorded 2026-10-13 on the published /capabilities/ figures (ed3dadd9d). Next: Expert Hour,
-  # revenue-assurance persona: SEAT_BRIEF_D48_EXPERT_HOUR_* (2026-10-14) is ready to run.
+  # L2 recorded 2026-10-13 on the published /capabilities/ figures (ed3dadd9d).
   # MINTED 2026-10-05, canon step 2's company half. "Debt and cashflow work rests on knowing
   # what was actually billed, which is why this comes before them." Steps 3 and 5 read it.
   # Reuses closed D1 (bill content), D3 (catch-up rebill) and E3 (unbilled accrual, saas/ledger);
@@ -1872,7 +1871,7 @@
   file_scope: ['company/billing/billing_accuracy.py',
     'tests/company/billing/test_billing_accuracy.py']
   simplifications_count: 1
-  expert_hour: {status: not_attempted, last: null, findings: []}
+  expert_hour: {status: attempted_finding_open, last: '2026-10-14 blind pass, 18 entries. FAIL, held at 2: title claims the accrual, twin claims settled kWh; neither built. SEAT_FINDING_D48_THE_EXPERT_HOUR_*', findings: []}
   real_world_twin: "a revenue-assurance team reconciling billed kWh against settled kWh and finding the gap lives in a few hundred estimated accounts."
 - id: B12_writer_one_reads_its_margin_on_the_unit_rate_so_a_renewal_floor_is_its_true_unit_cost
   title: "writer 1's realised margin is measured on the unit rate, with standing-charge revenue net of the cost it recovers, and the save takes writer 1's floor, so a renewal at its floor is at its true unit cost"
