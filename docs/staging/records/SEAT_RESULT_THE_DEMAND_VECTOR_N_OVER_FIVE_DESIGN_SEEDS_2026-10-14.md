@@ -22,7 +22,7 @@ redrawn. They are a five-draw range, not a confidence interval.
 |---|---|---|---|---|
 | 20k full vector | 5,215 · 5,219 · 6,812 · 6,813 · 6,815 | 5200 ×2, 6800 ×3 | ≥2 rungs, all in {4000,5200,6800}, median 5200 | **median REFUTED** (6800). Rest held |
 | 20k distribution axes | 6,809 · 6,811 · 5,211 · 6,811 · 6,810 | 5200 ×1, 6800 ×4 | ≥2 rungs | held |
-| 120k full vector | 11,520 (published) · seeds 1..4 IN FLIGHT | pending | ≥2 rungs, median 8800 (~55%); ≥1 seed at 6800 or 8800 (~80%) | pending |
+| 120k full vector | 11,520 (published) · 11,522 · 8,823 · 8,825 · 11,520 | 8800 ×2, 11520 ×3 | ≥2 rungs, median 8800 (~55%); ≥1 seed at 6800 or 8800 (~80%) | **median REFUTED** (11520). ≥2 rungs held; the weaker claim held (seeds 2, 3 at 8800) |
 
 Control (prediction 1): 20k full vector at seed 0 gave **5,215** again. The instrument has not moved
 since `8082bd246`.
@@ -31,11 +31,19 @@ The near-misses show that the rung is set by where one draw crosses the line. At
 seed 4 failed at 5,218 with a distance of 0.0502 and passed at 6,815 with 0.0499. Seed 1 passed at
 5,219 with 0.0498. In the other direction, seed 3 missed at 5,221 with 0.0542.
 
-**120k is in flight at the time of this increment.** Seeds 1..4 were launched at 08:38 and 08:55 under /var/tmp/dvn. A later commit in this same draw fills in the row and the page. Until it does, nothing on the page has changed.
+**120k (seeds 1..4 finished 09:46 to 10:04, under /var/tmp/dvn).** Seed 4 repeats seed 0's shape. It missed at 6,825 by under 0.00005 (printed 0.0500) and then missed at 8,821 by 0.0119. So the 6800-rung near-miss is not a one-seed accident. It happens on the draws that end at 11,520. No seed passed at 6,800. Each 120k seed took 63 to 69 minutes with four running at once, at about 1.1 GB peak RSS each.
+
+Both medians came out one rung higher than predicted. My priors leaned low in both cells because I anchored on the published seed-0 figure being the high end at 120k. At 20k it turned out to be the low end, and at 120k the median.
 
 ## What this changes on the page
 
-Nothing yet. The 20k half already refutes one sentence on the page. 5,215 is not "the" 20k figure. It is the low end of a range whose median is the 6,800 rung. The page changes once the 120k spread is in, so that the slope sentence ("grows with the reference") is judged on both spreads at once, as the pre-registration's second falsifier requires.
+The second falsifier (spreads overlap → the "grows with the reference" sentence is withdrawn) **did not fire**. 20k spans 5,215 to 6,815 and 120k spans 8,823 to 11,522, so there is no overlap and the sentence stays. It now carries both ranges.
+
+`how-many-synthetic-households` now publishes N as a five-draw range, **8,823 to 11,522 against 120,000** and 5,215 to 6,815 against 20,000. It says that only the choosing was redrawn and that the range is not a confidence interval. The sample-to-reference ratios become 26 to 34% and 7.4 to 9.6%. The 243 → full-vector rise becomes 36 to 47 fold.
+
+**The swing-axis deletion is now shown to be inside the noise, not just argued to be.** Before the deletion the figures were 8,822 at 120k and 6,816 at 20k. After it they were 11,520 and 5,215. All four sit inside the five-draw ranges for the vector without the axis. The page's second limit now says this from measurement, where before it argued it from the curve's non-monotonicity.
+
+What stays open: the spread here covers the choosing only. The population seed, the test directions and the weight-fit seed are held fixed, so the full uncertainty on N is at least this wide. Convergence with the reference is still unsettled, because both ranges rise and nothing larger than 120k has been run.
 
 ## Falsifiers
 
