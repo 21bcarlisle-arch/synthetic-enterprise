@@ -166,8 +166,11 @@ which is the point of the four principles' third.
 > three fresh seeds it is -8,555, -5,966 and -3,542. Net falls on every seed, so the renewal cut stays
 > on `risk_tiers` by the pre-registered rule. The grade is in
 > `docs/staging/records/PREREG_THE_RENEWAL_CUT_DECIDING_REGRADE_ON_A_BASE_CARRYING_THE_WEEKS_FLOORS_2026-10-13.md`.
-> How much of the -1,175 move is the ex-VAT basis and how much the floors: not split yet. A one-variable
-> arm with `d1e37f45c` reverted is running, and its predictions were filed in that file first.
+> **The -1,175 move, split on 61109 by a one-variable arm (`d1e37f45c` reverted).** The ex-VAT basis
+> is -4,156: without it the match nets -108 and makes 67 offers, not 13. The floors and the rest of the
+> week are +2,981. They narrowed the gap almost to zero, and the ex-VAT basis reopened it. Why the
+> ex-VAT reading cuts the match's offers fivefold is not established. Its cut-sizing function alone
+> predicts the reverse.
 
 ## The next item, ahead of new work
 

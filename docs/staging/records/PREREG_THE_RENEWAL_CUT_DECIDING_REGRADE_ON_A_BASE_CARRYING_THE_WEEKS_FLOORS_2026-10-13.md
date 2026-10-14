@@ -104,3 +104,40 @@ artefact MISSING` for units that had just started. A wait on that line would hav
 arms.
 
 The ex-VAT and floors split of P7's move is graded in the next section, when its two arms finish.
+
+## Result of the one-variable split (2026-10-14 03:15 BST), beside V1-V3, which are unedited
+
+Both arms are whole: /var/tmp/regrade3/out/novat-<arm>-61109.json. They ran at 5e5358092 with
+`d1e37f45c`'s three code files reverted in the working tree. The artefact's `head` field reads
+5e5358092 because the tool reads HEAD, not the tree.
+
+| 61109 | d55598dd6 | 5e5358092, inc-VAT default (novat) | 5e5358092 as landed (ex VAT) |
+|---|---|---|---|
+| tiers net | 253,051 | 252,224.50 | 252,224.50 |
+| match net | 249,962 | 252,116.63 | 247,960.04 |
+| **match - tiers** | **-3,089** | **-108** | **-4,264** |
+| match offers, cost GBP | 47, 783 | 67, 872 | 13, 204 |
+| match renewal departures | 68 | 63 | 73 |
+
+- **V1, at most 13 offers without the ex-VAT basis: refuted, and the direction is opposite.** The match
+  makes 67 offers on the inc-VAT default and 13 on the ex-VAT one. `price_match_save_rate` alone
+  predicts the reverse: a lower default lowers the match and admits more cuts. So the drop happens
+  after the cut is sized. The candidates are the value test (a deeper cut costs more than the value it
+  protects), `retention_offer_can_buy_anything` (which reads `position_vs_default` for the offered rate),
+  and the holdout. **Which one is not established.** The arm keeps no no-offer reasons, so this run
+  cannot say.
+- **V2, the tiers' net moves under GBP 500: held.** It moved GBP 0.00, identical to the penny.
+- **V3, the ex-VAT basis is under half of the move: refuted.** The move from -3,089 to -4,264 is
+  -1,175. The ex-VAT basis alone is **-4,156** (-108 to -4,264). Everything else between d55598dd6 and
+  5e5358092 is **+2,981** (-3,089 to -108). That is the floored tiers cut, hedge at quote, the
+  capital-inclusive floor and the term-cost base, which this split does not separate. So the
+  floors narrowed the gap almost to nothing, and the ex-VAT basis opened it again, wider.
+
+**What this does to the decision: it stands, and it now rests on one commit.** On the basis the
+code holds to be correct (ex VAT, as the re-fix and floor are), the match loses on all four seeds.
+On the old basis it ties the tiers on 61109 (-108, inside P6's band). `d1e37f45c`'s message says
+the inc-VAT reading made both desks under-offer. At the renewal cut, on this seed, the ex-VAT reading
+offers a fifth as often. Until the gate that drops the 54 offers is named, "the price match loses"
+means "the price match, as the ex-VAT basis now feeds it through the offer gates, loses". It does not
+show that matching the market is the worse rule. The cut stays on `risk_tiers`, by the rule and
+erring against the thesis (F11).
