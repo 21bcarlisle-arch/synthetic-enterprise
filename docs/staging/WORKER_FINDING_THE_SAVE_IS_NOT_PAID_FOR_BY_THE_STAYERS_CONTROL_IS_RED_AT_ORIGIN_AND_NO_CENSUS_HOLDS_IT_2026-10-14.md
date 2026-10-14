@@ -84,3 +84,22 @@ off 107.23 / on 106.78 £/MWh: a stayer priced 0.4% *lower* in the `on` arm.
 the earliest is a renewal priced after a save's first bill has posted. Probe: both arms to
 2017-12-31 at origin 55701bb84, every stayer row diff with its keys
 (`/var/tmp/stayers-probe/probe.py`, launched under `launch_long_job` as `stayers-probe-2017`).
+
+**In flight (2026-10-14 14:38 BST).** One queued long job, `longjob-stayers-probe-and-bisect` (launcher
+under setsid; log `/var/tmp/stayers-probe/launcher.log`). It waits on termcost-arms-floor-a's 11,200 MB
+declaration and then runs, serially, at a 3,500 MB peak (a full-book arm measured 2.2 GB):
+
+1. the probe at origin 55701bb84 to 2017-12-31 → `/var/tmp/stayers-probe/out-2017.json`: both
+   arms' save logs, every stayer price move sorted by term start, every differing account-state
+   key, and the rows only one arm holds;
+2. ed9aa25eb asked rather than assumed: if its arms do not save the same households to 2017-09-30,
+   there is no bisect and the census's green there was not this criterion;
+3. `git bisect run --first-parent 55701bb84 ed9aa25eb` on that criterion, in
+   `/var/tmp/se-stayers-bisect`, one line per commit in `/var/tmp/stayers-probe/bisect_steps.log`.
+   `ALL_DONE` marks the end.
+
+**The criterion's limit, stated before it runs.** "Same saved households to 2017-09-30" is narrower
+than line 76, which asks the whole window to 2018-09-30. A commit whose divergence starts after
+2017-09 grades good and moves the blame later. At origin the divergence is at 2017-08-13, so the
+named commit must be confirmed by running line 76 itself at that commit and its parent before the
+blame is written here as fact.
