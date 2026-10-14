@@ -51,3 +51,25 @@ fixed-term margin it learns from still reads high (median 8.5% against 1.67%, `f
 
 The legs run and are graded beside U1-U4. The page pair in `tools/generate_value_arms_data.py` moves
 only when a floor is graded on the same base as its leg 1.
+
+## Decision on the floor's size, written 2026-10-14 16:20 BST before any leg launched
+
+*Delivery seat, drawn item `retake-the-value-arms-on-writer-ones-corrected-basis`.*
+
+**Not launched yet.** At 16:14 both `longjob-stayers-fix-one-variable` (the stayers pytest) and
+`longjob-stayers-probe-and-bisect` (origin probe, then a first-parent bisect `ed9aa25eb..55701bb84`)
+were active. The box is theirs, and the pin depends on whether the fix lands. The launch is handed on.
+
+**One two-seed floor leg, not four seeds.** R5 says to run the smallest thing that answers the question.
+U3 asks whether the folded `selection_gbp` mean is positive and distinguishable from zero. A two-seed leg
+gives that answer at n=2, and the page says it is n=2. A 50 h four-seed floor would hold the box for more
+than two days, which is a large bet on a basis whose leg 1 has not read yet. The second leg is decided now,
+by this rule, before the first result is known:
+- **if** leg A grades `selection_distinguishable_from_zero` **false**, or its mean's sign is the opposite
+  of U1's leg-1 sign, run leg B (seeds disjoint from A's) and grade the four seeds folded;
+- **otherwise**, stop at n=2 and publish the pair with its n=2 bound.
+
+**Order and pricing** (from the table above, priced at the slow rate, because under-pricing is the fatal
+direction): leg 1 `--level-arm` `--expect-minutes 760` (3 passes x 4.2 h), then floor leg A
+`--expect-minutes 1520` (6 passes x 4.2 h). Serial: each pass peaks at about 11.2 GB. If leg 1 runs at
+t's 1.9 h per pass, record the measured rate and re-price leg A from it before launching.
