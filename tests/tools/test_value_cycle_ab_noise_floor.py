@@ -2678,3 +2678,23 @@ def test_a_runner_with_no_by_account_block_at_all_is_also_a_named_absence():
         assert row["selection_by_account_gbp"] is None, row
         assert "predates" in row["selection_by_account_unavailable_because"], row
         assert row["value_arm_net_by_account_gbp"] is None, row
+
+
+def test_a_launcher_handing_a_floor_leg_over_after_a_bare_dash_dash_is_not_itself_a_leg(tmp_path):
+    """`launch_long_job ... -- python3 -m tools.run_value_cycle_ab --noise-floor-seeds ...` carries
+    the leg's tokens in its own argv, and the leg runs in another unit, so it is neither this
+    process's ancestor nor the launcher's child. The launcher (18 MB) was priced as an 11.2 GB leg,
+    and every floor launched through it refused itself on 2026-10-14.
+
+    Fires on: reading argv past the first bare `--`. The real leg must still be counted, so a
+    census that drops every leg does not pass."""
+    from tools.run_value_cycle_ab import running_floor_legs
+
+    leg = ["python3", "-m", "tools.run_value_cycle_ab", "--noise-floor-seeds", "11111,22222"]
+    _fake_proc(tmp_path, {
+        999101: (1, 18 * 1024, ["python3", "-m", "background.launch_long_job", "--job", "floor-a",
+                                "--peak-mb", "11200", "--"] + leg),
+        999102: (1, 4096 * 1024, leg),
+    })
+    census = running_floor_legs(proc_root=tmp_path)
+    assert [pid for pid, _rss, _peak in census] == [999102], repr(census)

@@ -7712,6 +7712,13 @@ def running_floor_legs(proc_root: Path | None = None) -> list[tuple[int, float, 
         try:
             argv = [tok for tok in (entry / "cmdline").read_bytes()
                     .decode("utf-8", "replace").split("\x00") if tok]
+            # A LAUNCHER HANDS ITS CHILD OVER AFTER A BARE `--` (`launch_long_job ... -- python3 -m
+            # tools.run_value_cycle_ab --noise-floor-seeds ...`), so the leg's tokens sit in the
+            # launcher's own argv. The leg runs in its own unit, not as the launcher's child, so no
+            # ancestor exclusion reaches it: the launcher was counted as an 11.2 GB leg at 18 MB, and
+            # every floor launched that way refused itself (2026-10-14, termcost-arms-floor-a).
+            if "--" in argv:
+                argv = argv[:argv.index("--")]
             # TOKENS, NEVER A SUBSTRING OF THE WHOLE LINE. Excluding self and ancestors is not
             # enough: a SIBLING shell carries the full pipeline as ONE argv element, so a
             # substring test matches `bash -c "python3 -m tools.run_value_cycle_ab
