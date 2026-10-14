@@ -120,3 +120,27 @@ already chosen to leave. It is on no tariff list a rival or a comparison site re
 the pre-save rate; worktree `/var/tmp/se-stayers-fix`): line 76 GREEN, about 0.7. Line 95: I cannot
 yet say. If line 76 is green and line 95 still red, the remaining moves are the director's
 condition proper, read on equal arms.
+
+---
+
+## Worker tick, 2026-10-14 14:47 BST — both runs are in flight as units of their own
+
+**The one-variable run had never started.** `/var/tmp/se-stayers-fix` holds the patch above
+(`simulation/run_phase2b.py`: `_rate_the_rival_sees = unit_rate` before the save block, and that rate
+fed to `_competitor_position_ledger.observe`), but `/var/tmp/stayers-probe/fix-launch.out` is empty, and
+`/var/tmp/w1-basis-out/stayers-fix.log` dates from 11:47, before the patch was written. A second
+lane also queued a probe and a first-parent bisect (`/var/tmp/stayers-probe/handoff.sh`) at 14:38.
+Its launcher died with its tick: the log stops at its first `QUEUED` line and no process survives.
+A queued retry loop runs inside the tick's own cgroup, and setsid does not take it out.
+
+Both are now launched with `--wait-for-pid 3022845` (termcost-arms-floor-a, 11,200 MB declared), so
+each unit exists at once in its own cgroup and starts the moment that run exits:
+
+- `longjob-stayers-fix-one-variable`: the whole stayers control in the fix worktree →
+  `/var/tmp/stayers-probe/fix-run.done`. The prediction is the one filed above, before any run:
+  line 76 GREEN at about 0.7, line 95 not yet called.
+- `longjob-stayers-probe-and-bisect`: the probe at origin 55701bb84, then the endpoint check and
+  the bisect, as described in `handoff.sh` → `/var/tmp/stayers-probe/ALL_DONE`.
+
+If line 76 goes green on the fix, the bisect only says which commit made a channel that already
+existed start to bite. The fix lands on the one-variable evidence, without waiting for the bisect.
