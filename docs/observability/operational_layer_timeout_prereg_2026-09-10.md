@@ -158,3 +158,26 @@ absorbs the 2026-09-10 leaf (`searchable` 12.9s here is hit-path hashing of 17 M
 and hands out deep copies. Same test, back to back: **95.6s → 30.0s**; the nine-test block
 344s → 162s. Not a budget raise. Why it crossed today rather than earlier I cannot yet say: the
 map grows and the box load moves (load average 12.9 at measurement), and both changed.
+
+# Round 4 — 2026-10-14: the direction record, re-parsed on every FRAME draw
+
+Five consecutive `red_timeout`s, the last naming
+`test_frame_saturation_draw_marker.py::test_fires_hands_only_the_unsaturated_atom[concurrent]`.
+Round 3's prediction holds: the timeout names a test outside `test_supervisor.py`.
+
+**Slow, not blocking.** In isolation the named test passes in ~5s, and the whole file (57 tests)
+in 66.7s with user time ≈ wall time (58.8s of 69.4s): CPU, no waiting. cProfile: 13.4 of 13.5s
+were `direction.read_direction` → `yaml.safe_load` on the real `DIRECTION.yaml` (129 KB, ~0.27s a
+parse), reached through `focus_weights` once per `_idle_discover_frame_draw_concurrent`, 50 draws
+a test. It is the same shape as round 3's map leg: a real-tree read on a draw path, re-parsed per
+call. The record grows with every orientation, so the cost has risen week by week.
+
+**Repair, not a budget raise:** `read_direction` caches the YAML parse keyed on the TEXT (the
+`maturity_map_store._as_atom_list` shape). An edit is a miss, and callers get a deep copy.
+`validate` still runs on every call, because it also reads the map. The file goes from 66.7s to 5.4s.
+Control: `test_direction_contracts.py::test_the_record_is_parsed_once_per_TEXT_and_an_edit_is_read_fresh`,
+red against three mutants (no cache, path-keyed, no copy). The production draw gains the same.
+
+**Prediction, filed before the full-suite timing returns:** the operational suite now finishes
+inside 1800s. If a later run times out, it names a draw path that reads a different real-tree
+file per call, not `read_direction`.
