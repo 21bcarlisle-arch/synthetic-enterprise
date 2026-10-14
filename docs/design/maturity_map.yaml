@@ -1855,7 +1855,7 @@
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a supplier that books revenue on estimated reads for a year and learns what it actually sold when the smart meter finally reports."
 - id: D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used
-  title: "the company measures what it billed against what was used, by kind, from what a real supplier can see: estimated versus actual reads, true-ups, back-billing limits, and the accrual"
+  title: "the company measures what it billed against what was used, by kind, from what a real supplier can see: estimated versus actual reads, true-ups and back-billing limits; the accrual is a GAP, not yet computed"
   lane: D_billing_metering
   value_stream: meter_to_cash
   epoch: 4
@@ -1875,7 +1875,7 @@
     'tests/company/billing/test_billing_accuracy.py']
   simplifications_count: 1
   expert_hour: {status: attempted_finding_open, last: '2026-10-14 blind pass, 18 entries. FAIL, held at 2: title claims the accrual, twin claims settled kWh; neither built. SEAT_FINDING_D48_THE_EXPERT_HOUR_*', findings: []}
-  real_world_twin: "a revenue-assurance team reconciling billed kWh against settled kWh and finding the gap lives in a few hundred estimated accounts."
+  real_world_twin: "a revenue-assurance team reconciling billed kWh against its own later actual reads; billed-against-settled (K6) is a GAP until settled volume crosses the seam."
 - id: B12_writer_one_reads_its_margin_on_the_unit_rate_so_a_renewal_floor_is_its_true_unit_cost
   title: "writer 1's realised margin is measured on the unit rate, with standing-charge revenue net of the cost it recovers, and the save takes writer 1's floor, so a renewal at its floor is at its true unit cost"
   lane: B_commercial

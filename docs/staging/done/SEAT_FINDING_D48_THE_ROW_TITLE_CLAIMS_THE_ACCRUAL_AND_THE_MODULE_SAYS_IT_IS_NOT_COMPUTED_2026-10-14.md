@@ -3,6 +3,8 @@
 
 # D48's title ends "and the accrual", but the module says unbilled energy is not computed (2026-10-14)
 
+**Fate (2026-10-14):** DONE -- remedy taken in this commit: the row title now says the accrual is a GAP, not yet computed.
+
 *From D48 Expert Hour, 2026-10-14. Adjudication: `SEAT_FINDING_D48_THE_EXPERT_HOUR_FAILS_ON_THE_CLAIM_NOT_THE_MEASURE_2026-10-14.md`. Not fixed in the turn that found it.*
 
 The row title is "...true-ups, back-billing limits, and the accrual". The brief's blind restatement repeated it, as "the energy used but not yet billed at the month's end (the accrual)". The module docstring says: "True unbilled revenue (used and not yet billed) is still not computed."

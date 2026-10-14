@@ -3,6 +3,8 @@
 
 # On writer one's corrected basis the unit-rate margin still reads well above its target on fixed terms, so the full -5% still lands on 38% of them (2026-10-14)
 
+**Fate (2026-10-14):** ATOM -- folds into B12_writer_one_reads_its_margin_on_the_unit_rate_so_a_renewal_floor_is_its_true_unit_cost, the same subject.
+
 **Source:** the seed-61109 grade of
 `docs/staging/records/PREREG_WRITER_ONE_READS_THE_UNIT_RATE_MARGIN_AND_THE_SAVE_TAKES_ITS_FLOOR_2026-10-14.md`
 (P2's band and P3 failed). That pre-registration said in advance that a fail-high P2 is this finding.

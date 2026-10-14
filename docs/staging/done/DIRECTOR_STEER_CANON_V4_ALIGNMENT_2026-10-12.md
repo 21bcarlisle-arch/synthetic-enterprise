@@ -3,6 +3,8 @@
 
 # [DIRECTOR-STEER] Canon in one home, every page aligned (2026-10-12)
 
+**Fate (2026-10-14):** DONE -- CLAUDE.md, OPERATING_MODEL.md and the pages aligned to canon v4 (6a64ec275, 002d37e42).
+
 **Type:** STEER. Canon alignment, carrying the director's rulings of 2026-10-12. He answered the fourteen decisions in `DIRECTOR_CANON_V4_2026-10-12.md` §15 with "Agree all", so each is ruled as written there.
 
 **When:**

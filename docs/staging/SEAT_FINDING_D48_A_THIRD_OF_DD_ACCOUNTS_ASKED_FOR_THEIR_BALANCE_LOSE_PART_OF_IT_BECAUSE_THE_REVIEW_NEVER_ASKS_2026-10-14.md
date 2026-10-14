@@ -3,6 +3,8 @@
 
 # A third of direct-debit accounts asked for their balance lose part of it to the 12-month limit, because only the final bill ever asks (2026-10-14)
 
+**Fate (2026-10-14):** ATOM -- company, next week, with the DD engine: the review never asks for the balance (seek_balance_at_review false).
+
 *From D48 Expert Hour, 2026-10-14. Adjudication: `SEAT_FINDING_D48_THE_EXPERT_HOUR_FAILS_ON_THE_CLAIM_NOT_THE_MEASURE_2026-10-14.md`. Not fixed in the turn that found it.*
 
 **The figures:** 153 of 422 DD accounts (36.3%, 95% CI 31.8-40.9%) that met a charge recovery action had money barred, £33,770 gross of VAT in all. `seek_balance_at_review: false`.

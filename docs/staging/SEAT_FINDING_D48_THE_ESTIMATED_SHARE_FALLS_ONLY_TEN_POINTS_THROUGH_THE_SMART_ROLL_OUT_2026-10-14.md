@@ -3,6 +3,8 @@
 
 # The estimated share of billed kWh falls only about ten points from 2016 to 2025, through the whole smart roll-out (2026-10-14)
 
+**Fate (2026-10-14):** ATOM -- world fidelity, next week: the smart roll-out should move the estimated share more than ten points; decided blind to company results.
+
 *From D48 Expert Hour, 2026-10-14. Adjudication: `SEAT_FINDING_D48_THE_EXPERT_HOUR_FAILS_ON_THE_CLAIM_NOT_THE_MEASURE_2026-10-14.md`. Not fixed in the turn that found it.*
 
 The page publishes one cumulative figure (66.5% electricity, 64.7% gas). Split by period_end year from the bills of run_output_2248e3baf_20261013T134447Z (39,084 bills), it is:
