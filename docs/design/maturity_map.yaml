@@ -1876,6 +1876,72 @@
   simplifications_count: 1
   expert_hour: {status: attempted_finding_open, last: '2026-10-14 blind pass, 18 entries. FAIL, held at 2: title claims the accrual, twin claims settled kWh; neither built. SEAT_FINDING_D48_THE_EXPERT_HOUR_*', findings: []}
   real_world_twin: "a revenue-assurance team reconciling billed kWh against its own later actual reads; billed-against-settled (K6) is a GAP until settled volume crosses the seam."
+- id: E6_a_forward_cash_forecast_per_customer_charges_expected_loss_as_arrears_build
+  title: "one forward cash forecast per customer (expected bills, expected payments by method and track record, the balance path) drives the bad-debt provision as expected loss, so the charge moves when arrears build, not a year later"
+  lane: E_finance_treasury
+  value_stream: meter_to_cash
+  epoch: 4
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  # MINTED 2026-10-14. C9 (canon v4): steps 3 and 5 run through one payment and debt engine;
+  # the director ruled 2026-10-12 supplier-controlled levers first. Its knowledge is already
+  # written: SEAT_PROPOSAL_A_PERSONAL_PAYMENT_PLAN_* section 9 (the engine), bad_debt_provisioning.md
+  # and dd_failure_basis_and_live_arrears_provision_rates.md. Evidence it is owed: the crisis
+  # control is red because the age bands lag 2022's arrears a year (SEAT_FINDING_THE_CRISIS_BAD_DEBT_*,
+  # a1cd16678). First slice: the provision. Balance limit, plan and early warning follow.
+  dial_inherited: 95
+  provenance: director_ruling
+  depends_on: []
+  couples_with: [W2_41_a_household_cancels_its_mandate_as_its_own_act, W2_42_debt_reaches_prepayment_only_by_the_legal_route, DD_seasonal_cashflow_physics]
+  file_scope: ['company/finance/bad_debt_provision.py',
+    'tests/company/finance/test_the_provision_charges_expected_loss_as_arrears_build.py']
+  simplifications_count: 0
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a supplier finance team booking an IFRS 9 expected-credit-loss charge in the quarter arrears rise, not when the debt is written off."
+- id: W2_41_a_household_cancels_its_mandate_as_its_own_act
+  title: "a household cancels its direct-debit mandate as its own act, distinct from a failed collection, and the supplier sees it the way Bacs tells it (ADDACS)"
+  lane: W2_customer_generator
+  value_stream: meter_to_cash
+  epoch: 4
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  # MINTED 2026-10-14. The director's ruling of 2026-10-12, on the payment-plan proposal: build the
+  # world's response to a bill shock (DD4b, mandate cancellation, debt-to-prepayment) before the
+  # engine is graded. DD4b is built and graded (14633ee7b, 33322ee9c). The rails carry amendments,
+  # not cancellations (simulation/bacs_rails.py). Knowledge: dd_failure_basis_and_live_arrears_provision_rates.md.
+  # World fidelity, decided blind to company results.
+  dial_inherited: 85
+  provenance: director_ruling
+  depends_on: []
+  couples_with: [E6_a_forward_cash_forecast_per_customer_charges_expected_loss_as_arrears_build]
+  file_scope: ['simulation/bacs_rails.py',
+    'tests/simulation/test_a_household_cancels_its_mandate_as_its_own_act.py']
+  simplifications_count: 0
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "an ADDACS 1 file arriving the morning after a customer cancels at their bank, before any collection fails."
+- id: W2_42_debt_reaches_prepayment_only_by_the_legal_route
+  title: "a household in debt reaches prepayment only by the legal route (ability-to-pay checks, the involuntary-move rules), so the engine's end state exists in the world"
+  lane: W2_customer_generator
+  value_stream: meter_to_cash
+  epoch: 4
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  # MINTED 2026-10-14, the same ruling. Knowledge: company_debt_management.md (prepayment gates,
+  # SLC 28B) and debt_and_collections.md. Self-disconnection exists (simulation/self_rationing.py);
+  # the route from debt to a prepayment meter does not. World fidelity, decided blind; the company's
+  # side of the decision is never automated (an involuntary move is the director's reserved shape).
+  dial_inherited: 80
+  provenance: director_ruling
+  depends_on: []
+  couples_with: [E6_a_forward_cash_forecast_per_customer_charges_expected_loss_as_arrears_build]
+  file_scope: ['simulation/self_rationing.py',
+    'tests/simulation/test_debt_reaches_prepayment_only_by_the_legal_route.py']
+  simplifications_count: 0
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a supplier that may install a prepayment meter for debt only after the ability-to-pay steps, and never for the households the rules protect."
 - id: B12_writer_one_reads_its_margin_on_the_unit_rate_so_a_renewal_floor_is_its_true_unit_cost
   title: "writer 1's realised margin is measured on the unit rate, with standing-charge revenue net of the cost it recovers, and the save takes writer 1's floor, so a renewal at its floor is at its true unit cost"
   lane: B_commercial
