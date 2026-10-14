@@ -583,3 +583,68 @@ docstring (it already is, partially) rather than as a grounded rule, and route t
 whether GB retention desks price-match a named rival or discount off their own book — to the
 director as a practitioner question per `the-save-offer-needs-two-practitioner-figures`, alongside
 the telecoms analogy gap in §7c.
+
+## 8. When the renewal already sits at its cost floor: one margin, two claims on it (2026-10-14)
+
+Written first under K8 for next week's P1. On fresh seeds the save never fires, because 21 of 28
+held renewals already sit at the company's own cost floor to the penny (82e84e4a4). The renewal
+cut stays on risk tiers (d5ba38b12). This section says what is settled, what our code does, and
+what nobody has published, before any design changes.
+
+### 8a. What the rules settle
+
+- **No licence floor under a domestic fixed tariff.** The default tariff cap is a ceiling on
+  default products. SLC 22B's market-wide derogation sets who a fixed retention tariff may be sold
+  to, not its price (§7a). **ESTABLISHED: a retention price below cost is lawful.**
+- **SLC 4B (Financial Responsibility Principle)** is about risk and capital: managing the costs that
+  would be mutualised if the supplier failed. It does not forbid a below-cost tariff. It makes
+  plain who pays if a supplier makes a habit of one (knowledge topic acquisition-and-retention-economics,
+  quoting ofgem_licence_readiness.md §1).
+- So the floor is **the supplier's own rule**, and this one states it once: an undercut "may cost
+  margin, it may never force a sale below cost" (company/pricing/renewal_desk.py, the through-cost
+  floor).
+
+### 8b. What our code does (discovery, not evidence about the market)
+
+*Re-framed before landing by `SEAT_FINDING_RENEWALS_SIT_AT_THEIR_COST_FLOOR_BECAUSE_THE_FLOOR_CARRIES_THE_STANDING_CHARGES_NETWORK_..._2026-10-14.md`
+(d30dafffe, 05:45 today). My first draft said that the price the desk meets sits below what it
+costs us to serve the household. That finding shows the reverse: **the floor overstates the cost.***
+
+- Writer 1, the renewal re-fix, meets the market and is clamped up to the term's cost floor. On
+  all four fresh seeds, 21 of 21 held electricity renewals sit there to the penny.
+- **The floor counts cost the standing charge already recovers.** The electricity floor is forward +
+  policy + network, with the whole network allowance charged per MWh. Ofgem's cap construction puts
+  only the per-kWh share of network cost in the unit rate. The fixed share is recovered once,
+  through the standing charge (about GBP 187 a year ex-VAT in 2025), which the floor ignores. The
+  floor's policy plus network is GBP 127-130/MWh, against 109-123 of *total* non-commodity cost in
+  the cap's own unit rate.
+- **Writer 1's margin counts the standing charge as profit**, because settlement adds it to revenue
+  and margin with no cost to serve deducted.
+- So a renewal at the floor is **not loss-making in the world**. The market's best deal on those rows
+  sits above the true per-kWh cost and below our inflated floor. The tier cut and the save do draw
+  on one margin, but most of what blocks them is the floor's definition, not the market.
+- Since 2026-10-13, writer 1 and the save read **two different floors** (capital-inclusive and not).
+  The finding predicts held renewals now sit GBP 2.2-4.5 above the save's floor.
+
+### 8c. What is not published (GAPs)
+
+- **GAP: how real retention desks split margin between proactive renewal pricing and a reactive
+  save reserve.** Nothing read for §2, §5 or §7 addresses it. This is a practitioner question,
+  for the director.
+- **GAP: what the 8% margin target counts, set against the cap's EBIT allowance.** It is named by
+  the finding as the K8 page owed before writer 1's margin basis changes.
+- Settled since the first draft: **whether our floor is right.** It is not, on the cap's own
+  construction (above).
+
+### 8d. What follows, in the finding's order
+
+1. **Company (B12):** writer 1's margin is measured on the unit-rate margin, with standing-charge
+   revenue net of the cost it recovers, after the K8 page on the 8% target. The save then takes
+   writer 1's floor (`pre_margin_unit_rate`), so there is one floor.
+2. **World, separately (W3_3):** the electricity network schedule splits into per-kWh and per-day
+   shares (Ofgem's model, the TCR from April 2023). It moves every settled figure, so it is never
+   bundled with (1). It is decided for fidelity, blind to company results.
+3. **The save is re-graded only after (1).** Until then its inertness says nothing about its design.
+
+**Design choices this page makes:** none. Capping the tier cut to keep a save reserve is not
+proposed while the floor itself is wrong.

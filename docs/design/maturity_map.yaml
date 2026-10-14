@@ -1874,6 +1874,50 @@
   simplifications_count: 1
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a revenue-assurance team reconciling billed kWh against settled kWh and finding the gap lives in a few hundred estimated accounts."
+- id: B12_writer_one_reads_its_margin_on_the_unit_rate_so_a_renewal_floor_is_its_true_unit_cost
+  title: "writer 1's realised margin is measured on the unit rate, with standing-charge revenue net of the cost it recovers, and the save takes writer 1's floor, so a renewal at its floor is at its true unit cost"
+  lane: B_commercial
+  value_stream: price_to_bill
+  epoch: 4
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  # MINTED 2026-10-14 from SEAT_FINDING_RENEWALS_SIT_AT_THEIR_COST_FLOOR_BECAUSE_* (d30dafffe), fix 1:
+  # 21/21 held electricity renewals sat at a floor that counts network cost the standing charge
+  # already recovers, and writer 1 reads the standing charge as margin. K8 first: what the 8% target
+  # counts against the cap's EBIT allowance. Then one floor (pre_margin_unit_rate) for the save,
+  # then the save is re-graded. Save-offer page section 8. The world half is W3_3.
+  dial_inherited: 90
+  provenance: director_ruling
+  depends_on: []
+  couples_with: [B8_discovered_price_sensitivity_holdout, W3_3_the_network_charge_splits_per_unit_and_per_day]
+  file_scope: ['company/pricing/renewal_rate_chain.py',
+    'tests/company/pricing/test_writer_one_reads_its_margin_on_the_unit_rate.py']
+  simplifications_count: 0
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a pricing analyst noticing the margin report counts standing-charge income as profit while the cost floor counts the network cost twice."
+- id: W3_3_the_network_charge_splits_per_unit_and_per_day
+  title: "settlement charges electricity network cost as Ofgem's model does: the per-kWh allowance on volume and the nil-consumption share per supply point per day"
+  lane: W3_industry_systems
+  value_stream: meter_to_cash
+  epoch: 4
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  # MINTED 2026-10-14 from the same finding, fix 2: world fidelity, decided blind to company
+  # results, never bundled with B12. It moves every settled figure, so it gets its own K8 page
+  # (the cap's per-kWh and nil-consumption network allowances, the TCR from April 2023) and a
+  # pre-registration before any run.
+  dial_inherited: 80
+  provenance: director_ruling
+  depends_on: []
+  couples_with: [B12_writer_one_reads_its_margin_on_the_unit_rate_so_a_renewal_floor_is_its_true_unit_cost]
+  file_scope: ['simulation/hedged_settlement.py',
+    'simulation/policy_costs.py',
+    'tests/simulation/test_the_network_charge_splits_per_unit_and_per_day.py']
+  simplifications_count: 0
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a settlement analyst reconciling DUoS: unit-rate charges on volume, fixed charges per MPAN per day."
 - id: B11_forward_clv_backtested_on_held_back_history
   title: "forward CLV: base-case cashflow and churn risk per customer, forecast from earlier years and checked against what later years actually did"
   lane: B_commercial
