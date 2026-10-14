@@ -20,6 +20,8 @@ The canon text lands on `docs/design/DIRECTOR_CANON.md`. It then reaches every s
 
 # The Director's Canon
 
+**Fate (2026-10-14):** DONE -- installed as docs/design/DIRECTOR_CANON.md v4 (78afa32c7).
+
 **Version 4, adopted 2026-10-12 on the director's ruling.** He answered the fourteen decisions in §15 with "Agree all". It consolidates version 3 (18 July, the director twin's brief) and every director ruling, canon document, steer and console instruction from June to 12 October 2026: 209 documents and 64 October console entries, reconciled theme by theme. The evidence for every line is in the 12 October canon review: fourteen theme chapters, each ruling cited by id and date, and the ids resolve to their source files.
 
 Quotation marks mark the director's own words, checked against the repository. Text without them is a faithful summary. A line marked *(ruled 12 Oct, decision N)* carries one of those rulings. §15 records all fourteen.

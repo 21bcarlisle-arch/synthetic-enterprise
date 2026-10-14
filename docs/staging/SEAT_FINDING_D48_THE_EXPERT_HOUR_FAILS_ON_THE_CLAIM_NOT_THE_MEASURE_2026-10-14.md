@@ -3,6 +3,8 @@
 
 # D48's Expert Hour fails, and the level stays at L2. The measure is honest; the row claims an accrual and a settlement reconciliation it does not do, and the estimated share barely moves through the smart roll-out (2026-10-14)
 
+**Fate (2026-10-14):** ATOM -- D48 stays at L2, harden. The two row-claim MAJORs are fixed in this commit (title: the accrual is a GAP; twin: reads, not settled kWh). The measure findings are the next harden work.
+
 *Worker tick, 2026-10-14. This was run from the brief `SEAT_BRIEF_D48_EXPERT_HOUR_A_REVENUE_ASSURANCE_LEAD_JUDGES_BILLED_AGAINST_USED_2026-10-14.md` (now in done/).*
 
 **How it was run.**

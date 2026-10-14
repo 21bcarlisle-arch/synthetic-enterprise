@@ -2,6 +2,8 @@
 
 # Nine customer-years bill less than their own gross margin at origin, and no census holds the test
 
+**Fate (2026-10-14):** ATOM -- D lane: a red at origin that no census holds. First this week, if a gap allows; otherwise the first billing item next week.
+
 `tests/tools/test_bill_correctness_addendum_defect4.py::test_billed_total_never_less_than_gross_margin_for_any_real_customer_year`
 is **red at untouched origin/main `440ebe1f6`**. A control run in a fresh origin worktree, with
 none of the ledger-move change in it, failed in 0.7 s. The ledger move does not cause it: the

@@ -2,6 +2,8 @@
 
 # The director's "a save is never paid for by the stayers" control is red at origin, and no red census holds it (2026-10-14)
 
+**Fate (2026-10-14):** ATOM -- in hand: the stayers control and its bisect are running, and the director let them finish (2026-10-14 18:15).
+
 `tests/simulation/test_a_save_is_not_paid_for_by_the_stayers.py` fails 2 of 8. The two failures are the
 same on both sides of e3b5ed01a:
 

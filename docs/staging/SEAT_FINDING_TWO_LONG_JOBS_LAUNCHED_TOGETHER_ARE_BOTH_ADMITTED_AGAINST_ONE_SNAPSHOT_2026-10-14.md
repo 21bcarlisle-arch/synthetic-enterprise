@@ -1,5 +1,7 @@
 # Two long jobs launched together are both admitted against one snapshot
 
+**Fate (2026-10-14):** ATOM -- harness, next week: admission against one memory snapshot.
+
 **Severity:** LATENT · **Lane:** H_harness · **Epoch:** unassigned · **Atom:** `unminted`
 
 *Delivery seat, 2026-10-14, while launching `dvn480-seeds-a` and `-b` for

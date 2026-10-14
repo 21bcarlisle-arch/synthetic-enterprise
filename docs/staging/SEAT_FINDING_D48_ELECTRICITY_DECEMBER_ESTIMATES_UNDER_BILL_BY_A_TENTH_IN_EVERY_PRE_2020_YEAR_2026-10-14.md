@@ -3,6 +3,8 @@
 
 # Electricity's year-end estimates under-bill by 8-11% in every year from 2016 to 2019, and gas's do not (2026-10-14)
 
+**Fate (2026-10-14):** ATOM -- D48 harden, next week: electricity-only year-end under-billing, 2016-19. World or company is not yet separated.
+
 *From D48 Expert Hour, 2026-10-14. Adjudication: `SEAT_FINDING_D48_THE_EXPERT_HOUR_FAILS_ON_THE_CLAIM_NOT_THE_MEASURE_2026-10-14.md`. Not fixed in the turn that found it.*
 
 **The figures:** K1 graded net true-up share at December. Positive means undercharge.
