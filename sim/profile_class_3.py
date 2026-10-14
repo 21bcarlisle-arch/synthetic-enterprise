@@ -24,8 +24,12 @@ was built to produce.
 
 import csv
 from datetime import date, datetime, timedelta
+from pathlib import Path
 
-CSV_PATH = "sim/data/profile_class_3_gad.csv"
+# ANCHORED TO THIS FILE, not to the working directory. A bare "sim/data/..." resolved only from the
+# repo root, and a caller that guards the load fell back in silence from anywhere else -- the
+# demand-vector N moved 5,215 -> 8,815 at 20k when run from /tmp, with no error on the surface.
+CSV_PATH = str(Path(__file__).resolve().parent / "data" / "profile_class_3_gad.csv")
 
 _SEASON_COLUMN_PREFIX = {
     "winter": "Wtr",

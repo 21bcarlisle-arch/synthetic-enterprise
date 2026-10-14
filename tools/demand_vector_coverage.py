@@ -1332,6 +1332,9 @@ def measurement(points: int = POPULATION_POINTS, seed: int = 0, generated: bool 
                                      if pop.get("cell_nation") is not None else None),
         "need_dwellings": pop["n_need_rows"],
         "axes_measured": list(AXES),
+        # THE "VISIBLY" IN `_peak_window_share`'s FALLBACK, which nothing printed: with the profile
+        # unreadable the axis went constant and N moved a whole rung with no trace in this output.
+        "peak_window_share_is_constant": bool(np.ptp(allv[:, AXES.index("peak_window_share")]) == 0),
         "this_is_a_floor_not_an_answer": True,
         "uncounted_axes": list(UNCOUNTED_AXES),
         "alpha": ALPHA,

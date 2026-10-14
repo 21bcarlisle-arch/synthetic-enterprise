@@ -4,17 +4,17 @@ Phase MV-pre: coverage for season_for_date (5 BSC seasons, UK clock-change bound
 day_type_for_date (weekday/saturday/sunday), load_pc1_shape (shape structure).
 """
 
-import pytest
 from datetime import date
 
-from sim.profile_class_1 import (
-    last_sunday_of_month,
-    last_monday_of_month,
-    season_for_date,
-    day_type_for_date,
-    load_pc1_shape,
-)
+import pytest
 
+from sim.profile_class_1 import (
+    day_type_for_date,
+    last_monday_of_month,
+    last_sunday_of_month,
+    load_pc1_shape,
+    season_for_date,
+)
 
 # ── last_sunday_of_month ────────────────────────────────────────────────────
 
@@ -158,3 +158,13 @@ def test_load_pc1_shape_saturday_differs_from_weekday():
     weekday = load_pc1_shape(date(2024, 1, 15))  # Monday
     saturday = load_pc1_shape(date(2024, 1, 20))  # Saturday
     assert weekday != saturday
+
+
+def test_the_published_shapes_load_from_any_working_directory(tmp_path, monkeypatch):
+    """Defect: CSV_PATH was cwd-relative, so a guarded caller run outside the repo root (the
+    demand-vector peak axis) fell back to a constant in silence and moved its N 5,215 -> 8,815."""
+    from sim.profile_class_3 import load_pc3_shape
+
+    monkeypatch.chdir(tmp_path)
+    assert len(load_pc1_shape("2024-01-15")) == 48
+    assert len(load_pc3_shape("2024-01-15")) == 48
