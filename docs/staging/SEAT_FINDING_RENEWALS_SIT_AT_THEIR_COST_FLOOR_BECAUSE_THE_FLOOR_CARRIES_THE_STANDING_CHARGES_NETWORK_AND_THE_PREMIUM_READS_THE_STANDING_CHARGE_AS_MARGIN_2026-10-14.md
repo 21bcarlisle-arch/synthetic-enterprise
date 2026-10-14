@@ -3,6 +3,8 @@
 
 # Renewals sit at their cost floor because the floor carries the network cost the standing charge recovers, and the portfolio premium reads the standing charge as margin (2026-10-14)
 
+**Fate (2026-10-14):** ATOM -- fix 1 is `B12_writer_one_reads_its_margin_on_the_unit_rate_so_a_renewal_floor_is_its_true_unit_cost` and fix 2 is `W3_3_the_network_charge_splits_per_unit_and_per_day`, both minted at L0 build; the save is re-graded after B12. The save-offer page §8 is rewritten on this frame.
+
 **Decision: (b), a definitional defect, not (a).** The renewal price is not loss-making in the world. A renewal at its floor still collects the standing charge, about GBP 187 a year ex-VAT in 2025, and nothing in the floor counts that. Two definitions are wrong, and together they put the price on the floor:
 
 1. **The floor counts the network cost the standing charge already recovers.** The electricity floor is `company_fwd + locked_policy + locked_network` (`run_phase2b._price_match_inputs`, the save's floor and the competitive ceiling's). `locked_network` is `simulation.policy_costs._NETWORK_COST_RESI_SME_BY_YEAR`, which is Ofgem's whole per-customer network allowance divided by 3.1 MWh ("£/customer/yr ÷ 3.1 MWh", per the table's own comment). That is GBP 69/MWh in 2024-25. By Ofgem's construction the cap splits each cost into a nil-consumption allowance (the standing charge) and a per-kWh allowance (the unit rate). The fixed network share, including the TNUoS residual moved to fixed charges by the TCR in April 2023, sits in the standing charge. The company bills that standing charge too: `_ELEC_SC_PENCE_PER_DAY_BY_YEAR` reproduces Ofgem's nil-consumption total to the penny.
