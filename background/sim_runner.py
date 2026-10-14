@@ -813,6 +813,7 @@ def cycle_admission(**admit_kwargs) -> dict:
     if decision["admitted"] and decision.get("long_jobs"):
         named = "; ".join(
             f"{j['unit']} declared {j['peak_mb']:.0f} MB, pid(s) {', '.join(str(p) for p in j['pids'])}"
+            f"{resource_headroom._overrun_note(j)}"
             for j in decision["long_jobs"])
         decision = {**decision, "admitted": False, "reason": (
             f"yielding to a resident long job ({named}): the declared arithmetic fits "

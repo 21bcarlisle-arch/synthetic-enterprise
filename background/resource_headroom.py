@@ -665,7 +665,23 @@ def weight_for(job_class: str, weight_mb=None):
     return CLASS_WEIGHTS_MB.get(job_class)
 
 
-def running_long_jobs(records_path: Path | None = None, residents: list | None = None) -> list[dict]:
+#: How far past its declared minutes a long job runs before a deferral names it as overrunning.
+#: Not a domain constant: it decides only when a deferral's text says OVERRUN.
+OVERRUN_FACTOR = 2.0
+
+
+def _overrun_note(job: dict) -> str:
+    """`, running 286 min against 50 declared (5.7x, OVERRUN)` or "" when nothing was declared."""
+    if job.get("expect_minutes") is None or job.get("elapsed_min") is None:
+        return ""
+    ratio = job["elapsed_min"] / job["expect_minutes"] if job["expect_minutes"] else 0.0
+    flag = ", OVERRUN" if ratio >= OVERRUN_FACTOR else ""
+    return (f", running {job['elapsed_min']:.0f} min against {job['expect_minutes']:.0f} declared "
+            f"({ratio:.1f}x{flag})")
+
+
+def running_long_jobs(records_path: Path | None = None, residents: list | None = None,
+                      now: "datetime.datetime | None" = None) -> list[dict]:
     """[{unit, peak_mb, pids}] for every long job that declared a peak AND still has a process.
 
     A launch through `launch_long_job` declares `--peak-mb`; this is how a neighbour that did NOT
@@ -681,11 +697,21 @@ def running_long_jobs(records_path: Path | None = None, residents: list | None =
         return []
     if residents is None:
         residents = launch_long_job.resident_census()
+    durations = launch_long_job.declared_durations(records_path)
+    now = now or datetime.datetime.now(datetime.timezone.utc)
     jobs = []
     for unit, peak in sorted(declared.items()):
         pids = sorted(r["pid"] for r in residents if r.get("unit") == unit)
         if pids:
-            jobs.append({"unit": unit, "peak_mb": peak, "pids": pids})
+            job = {"unit": unit, "peak_mb": peak, "pids": pids}
+            launched_at, minutes = durations.get(unit, (None, None))
+            try:
+                started = datetime.datetime.fromisoformat(str(launched_at).replace("Z", "+00:00"))
+                job["elapsed_min"] = (now - started).total_seconds() / 60.0
+                job["expect_minutes"] = minutes
+            except (TypeError, ValueError):
+                pass
+            jobs.append(job)
     return jobs
 
 
@@ -740,7 +766,7 @@ def admit(job_class: str, weight_mb=None, reservations_path: Path | None = None,
     if committed + weight > budget:
         named = "".join(
             f"; long job {j['unit']} declared {j['peak_mb']:.0f} MB, "
-            f"pid(s) {', '.join(str(p) for p in j['pids'])}" for j in long_jobs)
+            f"pid(s) {', '.join(str(p) for p in j['pids'])}{_overrun_note(j)}" for j in long_jobs)
         decision["reason"] = (
             f"budget exhausted: {committed:.0f} MB already declared ({reserved:.0f} MB reserved"
             f"{named}) + {weight:.0f} MB "
