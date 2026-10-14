@@ -8,6 +8,43 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-14 — The day's three pieces are done; reds #12, #13 and #17 pass, #7 is fixed, and a red hidden behind a skip is diagnosed as company-side
+
+<!-- head: a1cd166781f3 -->
+
+The three pieces from the 07:15 reading are done, and the four named reds are checked.
+
+**Closed:**
+- **Reds, run at origin 0ab0e2003:** #12, #13 and #17 pass. #7 was red for a new reason: the
+  publish has committed the run gzipped since 2026-10-10, and the test read the plain path. It
+  reads through run_output_store now (6d4c62a5a). The full 18-test census is still queued for
+  memory. Its first launch died because its unlocked worktree was deleted while it queued.
+- **A hidden red, found by the #7 fix:** the crisis bad-debt control had skipped silently
+  everywhere outside the shared tree. Read through the store, it fails. Printed, the cause is
+  company-side: the world builds 2022's arrears (receivable x2.6, 30-90-day x2.5) and the
+  age-band provision lags them into 2023 (x1.6). It is filed BLOCKING in E_finance_treasury
+  (a1cd16678). The fix is the forward-cash-forecast provision, with the reader fix landing
+  alongside it.
+- **P1 made drawable (7c1ee032b):** the save-offer page §8 and atoms B12 (company: margin and
+  floor on the cap's per-kWh basis) and W3_3 (world: the network charge split). My first draft
+  was wrong. It said the market price sat below our cost; the 05:45 finding (d30dafffe) showed
+  the floor overstates cost. The draft never landed, and the page carries the re-frame.
+- **C34's sharing-price page (5d9218c43):** the licence is silent on a savings-share fee;
+  instalment recovery is consumer credit; the only computable GB split is Octopus's Demand
+  Flexibility Service tests at 75/25. No number is recommended; that decision is the director's.
+- **D48's Expert Hour brief (a449e62da),** ready to run.
+- **Staging:** nine root fates, four to done (d9a313c88). The billing-ledger remedy (b) is
+  decided: stop publishing it under site/. One stale in-progress fate is corrected.
+- **Known issues:** the run stamp's resolved_at now names the launch time (3476f2398).
+
+**Wrong:**
+- The deck table's "15 in-progress without a fate" (corrected beside it above).
+- The first P1 frame (never landed).
+- I trusted a subagent summary's "GAP" until I read the source. In the C34 page, GAP is NESO's
+  Guaranteed Acceptance Price, not a gap label.
+
+---
+
 ## 2026-10-14 — Wednesday 07:15 reading: the whole deck, sized by group, with this week's fates
 
 <!-- head: 58e1e89051db -->
@@ -22,7 +59,7 @@ the 6-point reserve.* Counts are at origin at 07:40.
 | 3 | C34's sharing price: the knowledge-first page | 1 page | ~2 | **clears** |
 | 4 | D48 Expert Hour brief (L2 recorded, row at harden) | 1 | ~1 | **clears** |
 | 5 | Staging root, 58 at 17:00 Tuesday. 45 have a fate line; 10 have none | 55 | ~0.5 | **clears** between pieces: one fate line or a superseded banner each |
-| 6 | In progress, 99 at 17:00 Tuesday. 259ac97ca closed 57 of them; 24 of the rest have a fate line, 15 do not | 39 | ~0.5 | **clears** between pieces, the same way |
+| 6 | In progress, 99 at 17:00 Tuesday. 259ac97ca closed 57 of them; 24 of the rest have a fate line, 15 do not. *Corrected 2026-10-14 afternoon: all of them carry fates; my census read only each file's first 20 lines. One fate was wrong and is fixed (d9a313c88).* | 39 | ~0.5 | **clears** between pieces, the same way |
 | 7 | Known issues open as fixes (wrong_triage.yaml): 15 of 45, now 14 with the worker exit closed (aa7b2849e). The other rows are 14 fold and 13 accept | 14 | ~1.5 each, ~21 | **in part**: the cheapest, ~5. The machine-class rows (not_now prose, draw-ledger crediting, holds never re-asked) go to next week as mechanisms |
 | 8 | Ranked atoms, Monday's sweep: 57 from c6542f76e plus 5 from dbe4f7167. P1 2, both resolved this week (the renewal cut decided d5ba38b12, D48 L2 ec0c00917); P2 31; P3 13; unranked 8 | 62 | ~1-2 each | **next week**. Exceptions: any the fate pass finds already done or superseded close now with a one-line fate |
 
