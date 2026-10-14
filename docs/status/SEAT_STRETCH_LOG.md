@@ -8,6 +8,46 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-14 — Wednesday 18:15 reading: the N study parked, every staging document fated, and next week's engine atoms drawable in the director's order
+
+<!-- head: 62e64489fc1b -->
+
+*Reading: 68% at 18:15 Wednesday, 32 points to the reset. About 0.5 spent across the machine
+by 18:49.*
+
+**The director's correction, enacted:** the demand-vector N study is research. The 480k rung's
+five seeds finish, and no further rung launches. W2_29 is parked idle, with its next step (grade
+480k, then decide whether any larger N is needed) written on the row (d2376549f). The stayers
+control and its bisect run on, since they test the save.
+
+**The deck, after this stretch:**
+
+| Group | Count | State |
+|---|---|---|
+| Staging root | 61 | all fated (126d34012). The census reads whole files now; the 20-line read missed fates |
+| In progress | 36 | all fated; the two canon v4 drafts are done (Director-doc: record) |
+| Known issues open as fixes | 11 of 45 | two were already fixed and are closed (9c87c8d57); the long-job overrun is now reported in every deferral (47e306b79); retention-to-debtors is built but off in the standing policy, so next week's arm |
+| Reds at HEAD | 1 | #6, next week by design. The crisis bad-debt control is red and BLOCKING (E): the age-band provision lags; E6 fixes it |
+
+**D48:** its Expert Hour ran and failed on the claim, not the measure. Two row claims are
+corrected (the accrual is a GAP; the twin reads, not settled kWh). Five findings are its next
+harden work.
+
+**Next week, drawable on Monday (78dba258d), in the director's steps:**
+- Step 2: W2_36, D48 (harden), B7, W2_37.
+- Step 3: E6 (a forward cash forecast per customer; first slice the expected-loss provision),
+  then W2_41 (mandate cancellation) and W2_42 (debt to prepayment by the legal route), by the
+  12 Oct ruling: supplier levers first, the world's bill-shock response before grading. Then
+  B11 and EP1, blocked on EP17, which is the director's curriculum call, and W2_38.
+- Step 4: W2_39, C34 (sharing price awaits the director), C29, PB4, PB5, then B12 (margin on
+  the unit rate) and W3_3 (the network split).
+
+**Spare points:** what is left this week is the D48 page-wording fix and the nine
+customer-years billing below margin, then the machine-class known issues (mechanisms, not
+fixes). I will take the first two and stop short of the reserve.
+
+---
+
 ## 2026-10-14 — The day's three pieces are done; reds #12, #13 and #17 pass, #7 is fixed, and a red hidden behind a skip is diagnosed as company-side
 
 <!-- head: a1cd166781f3 -->
