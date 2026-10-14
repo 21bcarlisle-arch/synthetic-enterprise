@@ -2,6 +2,8 @@
 
 # The regrade4 grade continuation was already spent when it was drawn, and regrade5 owns the grade (2026-10-14)
 
+**Fate (2026-10-14):** DONE -- a record; regrade5 owns the grade.
+
 `price-match-from-2019-grade-2` was drawn at 14:06 BST. It asked for the eight regrade4 arms to be graded with `/var/tmp/regrade4/grade4.py`. That premise was already spent when the item was drawn:
 
 - `/var/tmp/regrade4/queue.log`, 08:50Z: the queue is "STOPPED, never to be re-run". None of its arms produced an artefact, and 12aeea182 records that they were never launched. The arms measured the cost floor that e3b5ed01a replaces, so whatever they returned would have been re-taken.

@@ -3,6 +3,8 @@
 
 # D48's row claims a billed-against-settled reconciliation, but no settled kWh is read (2026-10-14)
 
+**Fate (2026-10-14):** ATOM -- remedy (a) taken in this commit: the twin is narrowed to reads, and K6 is named as a GAP on the row. Remedy (b), building K6 from settled volume the supplier can see, is the real capability and is drawn next week.
+
 *From D48 Expert Hour, 2026-10-14. Adjudication: `SEAT_FINDING_D48_THE_EXPERT_HOUR_FAILS_ON_THE_CLAIM_NOT_THE_MEASURE_2026-10-14.md`. Not fixed in the turn that found it.*
 
 D48's `real_world_twin` is "a revenue-assurance team reconciling billed kWh against settled kWh". `company/billing/billing_accuracy.py` compares bills only against the supplier's own later reads. The knowledge note lists K6, settlement versus billing (settled ≠ billed), and the module says K4-K7 "cannot arise in the run yet". The reviewer doubted this first. To a revenue-assurance lead, billed against reads is billing accuracy, and the reconciliation is billed against settled.
