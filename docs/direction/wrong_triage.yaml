@@ -163,7 +163,9 @@ items:
     times_listed: 18
     fate: fix
     owner: "docs/staging/SEAT_FINDING_THE_DIRECTION_RECORDS_WORKING_COPY_IS_READ_CARRIED_AND_RECORDED_AS_IF_IT_WERE_ORIGINS_2026-10-07.md"
-    status: open
+    status: already_fixed
+    fixed_by: 820a2f31b
+    reason: '820a2f31b (2026-10-10) builds previous_for_the_director from director_concerns.open_rows_on_either(working copy, origin), and orient checks the carry against the same union; found still open by the 2026-10-14 triage, already fixed.'
   - id: the-draw-ledger-cannot-tell-mid-landing-from-not-done
     problem: "The draw ledger, the path check and the queue read work that is mid-landing the same as work never started or already spent."
     match: ["draw-follows-the-order item not_done", "for work never started and for work mid-landing"]
@@ -260,7 +262,9 @@ items:
     times_listed: 4
     fate: fix
     owner: "docs/staging/SEAT_FINDING_THE_DIRECTION_RECORDS_WORKING_COPY_IS_READ_CARRIED_AND_RECORDED_AS_IF_IT_WERE_ORIGINS_2026-10-07.md"
-    status: open
+    status: already_fixed
+    fixed_by: e549d787c
+    reason: 'e549d787c (2026-10-07): run_session returns ran=False on any non-zero rc, and record_session_did_not_run records it refused, pages, and lands nothing; found still open by the 2026-10-14 triage, already fixed.'
   - id: retention-money-goes-to-debtors-priced-as-payers
     problem: "The retention guard values a debtor whose churn belief the payment score raised as if it pays, so offers go to the worst payers."
     match: ["payment score lifted a debtor's churn belief", "retention guard"]
@@ -269,6 +273,7 @@ items:
     fate: fix
     owner: "docs/staging/SEAT_FINDING_THE_PAYMENT_SCORE_REACHES_THE_CHURN_BELIEF_AND_THE_RETENTION_GUARD_PRICES_IT_AS_IF_THE_DEBTOR_PAYS_2026-10-07.md"
     status: open
+    reason: 'Re-read 2026-10-14: the netting is BUILT (6870d3c8b, retention_value_protected takes the company default_belief_rate) but OFF in the standing policy (DecisionPolicy.retention_nets_bad_debt defaults False and CURRENT_POLICY never sets it), so the live guard still prices a debtor as a payer. Switching it on moves the standing results and needs a measured arm, so it is next week''s, not this week''s (no new arms).'
   - id: the-draw-ledger-credits-an-item-by-path-overlap
     problem: "The draw ledger credited an item as landed because another commit shared one of its paths."
     match: ["retention-guard-nets-the-companys-own-bad-debt-belief as landed_unbound", "path overlap"]
