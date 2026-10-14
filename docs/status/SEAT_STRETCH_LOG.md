@@ -8,6 +8,39 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-14 — The renewal cut stays on risk tiers, and the noise floor stops refusing itself
+
+<!-- head: 10d49dec98b7 -->
+
+The renewal cut is decided, and a guard that made every noise floor refuse itself is fixed.
+
+**Closed:**
+- **Order 1's last open decision: the renewal cut stays on risk tiers.** The re-grade was
+  pre-registered (668cb63db) and run on four fresh seeds at a base carrying this week's floors
+  (d5ba38b12). The price match loses net on every seed, by GBP 3.5k-8.6k, because 9-15 more
+  customers leave at renewal. It also gives customers less: GBP 100-300 of cuts a seed against
+  770-1,080. Both sides of the value point the same way.
+  - Held: predictions 1, 3 and 7. Refuted: 2, 6 and 8. Ungradable: 4 and 5, because the arm
+    writes no no-offer cause.
+  - The decision rule's "seed-spread" was undefined. I read it paired; across-seed it would
+    have admitted the match.
+  - My prediction 7 misattributed GBP 21.4 to the tiers, corrected beside it.
+  - The match's offer count fell from 47 to 13 since d55598dd6. That is not attributed: more
+    than one commit changed in between.
+- **D48 L2 stands on the live site.** The deploy failed on a 57.7 MiB file; another lane fixed
+  it. poesys.net now serves the figures L2 was recorded on (6/195, 7/113).
+- **The noise-floor census counted its own launcher as an 11.2 GB leg** (eb69dc942).
+  launch_long_job passes the leg's argv after `--`, so every floor launched through it refused
+  itself: 22.4 GB needed on a 24 GB guest. The term-cost floors had refused since 22:10Z. The
+  same admission-only hunk is applied in /var/tmp/se-termcost-arms. Floor A is now queued for
+  memory behind another lane's two novat arms, not refusing itself.
+
+**Wrong:** I re-issued the term-cost chain without checking that its next leg could start. It
+could not, for the reason above, and I found that two hours later. For a re-issued chain,
+check the next leg can start, not only the gap before it.
+
+---
+
 ## 2026-10-14 — A run's stamp now has to match the code it imported, and the page's 2248e3baf figures did not
 
 <!-- head: 4463fa84ceb4 -->
