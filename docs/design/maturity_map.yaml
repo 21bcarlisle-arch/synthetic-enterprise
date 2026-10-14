@@ -1731,7 +1731,10 @@
   epoch: 3
   level_current: 1
   level_target: 3
-  loop_stage: build
+  loop_stage: idle
+  # PARKED 2026-10-14 (director, 18:15): the N study is research, not clear-down. The 480k
+  # rung's five seeds finish (/var/tmp/dvn480, prereg SEAT_PREREG_..._480K); no further rungs.
+  # Next week's step: grade 480k against its prereg, then decide whether any larger N is needed.
   dial_inherited: 50
   provenance: director_ruling
   blocked_on: null
