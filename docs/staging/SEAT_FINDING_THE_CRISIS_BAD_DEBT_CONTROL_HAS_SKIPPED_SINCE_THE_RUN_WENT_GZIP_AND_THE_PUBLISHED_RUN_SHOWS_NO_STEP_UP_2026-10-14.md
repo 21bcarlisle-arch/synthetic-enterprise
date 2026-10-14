@@ -39,6 +39,24 @@ write-offs lag into 2023. So "no step-up" is too strong. **The world's step-up a
 wrong: the lag (when a real supplier writes 2022 debt off) or the window. That is a knowledge
 question first.
 
+## End-to-end check: the explanations the evidence allows, ranked
+
+The validator's anchor is Centrica's **bad-debt charge**, "from 2.3 to 2.8% of revenue". That is a
+P&L charge, and under IFRS 9 it is the expected credit loss, booked as arrears build, not when the
+debt is written off.
+1. **The supplier's provision lags by design (most likely).** company/finance/bad_debt_provision.py
+   provisions on flat age bands (0.5/5/20/50/90%), so a 2022 arrears build is charged only as it
+   ages, and the charge peaks in 2023. That matches the pounds above. The forward-cash-forecast
+   engine (payment-plan design, section 9) already names these bands as what it replaces. If this
+   ranks first, the defect is company-side, and the validator's window is right.
+2. **The world under-builds 2022 arrears.** Its share peak of 2.35% is still short of 2.8% even in
+   2023. The arrears stock by month through 2022 would separate this from (1); it is not printed
+   yet.
+3. **The validator's window (2021-22) is wrong.** This holds only if real charges lagged too,
+   which IFRS 9 argues against.
+Settle (1) against (2) with one print, before any change: the company's provision charge by month
+against the world's arrears stock by month, for 2021-2023.
+
 ## What I cannot yet say
 
 A share can fall while pounds rise, because revenue roughly doubled with prices in 2022. Whether
