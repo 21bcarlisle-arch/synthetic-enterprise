@@ -110,7 +110,13 @@ def published_default_rate_ex_vat(commodity: str, date_str: str) -> float | None
 
     2026-10-13: the run handed the match `simulation.svt_rates`, which is INC VAT and the gross cap
     through the EPG, against an ex-VAT re-fix and floor. The market's best deal read 5% dear, so
-    both desks under-offered: on 2024-Q3 a re-fix at the cap got no save at all (gap 3.7% < VAT)."""
+    both desks under-offered: on 2024-Q3 a re-fix at the cap got no save at all (gap 3.7% < VAT).
+
+    None before 2019 is a GAP, not a missing lookup. Before the cap, Ofgem published the default only
+    as a dual-fuel annual bill (the RMI large-legacy SVT average). Nothing per fuel or per unit was
+    published, and splitting that bill would be a picked number
+    (docs/market_research/svt_rates_active_passive_2016_2025.md §1a). So the match is mute in
+    2016-2018. Never fill this from `simulation.svt_rates`: that is the world's back-derivation."""
     if commodity not in ("electricity", "gas"):
         return None
     from datetime import date

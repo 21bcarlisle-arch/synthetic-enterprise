@@ -16,6 +16,36 @@ Research completed: 2026-06-22. Source: R&D agent, web-sourced from Ofgem, DESNZ
 
 Rates back-derived from BEIS QEP bills + Ofgem SVT league tables; treat as ±15%. Gas fell to 2.07p/kWh Q4 2017 then recovered.
 
+### 1a. What a supplier could READ of the pre-cap default, per fuel and ex VAT (2026-10-14)
+
+The per-fuel unit rates above are the world's back-derivation. The company reads only what was
+published, and the question here is what that was.
+
+| What | Published? | Basis | Confidence |
+|---|---|---|---|
+| Large-legacy-supplier average SVT, monthly 2012-2018 | **Yes**: Ofgem RMI "Retail price comparison by company and tariff type" | **Dual-fuel annual bill**, inc VAT, direct debit, TDCV | H |
+| The same at single dates, by supplier | Yes: Ofgem "SVT comparison" (28 Nov 2016), "SVTs: latest trends" (Sep 2017) | Dual-fuel annual bill, inc VAT, DD, TDCV (3,100 / 12,000-12,500 kWh) | H |
+| The default per fuel (electricity alone, gas alone) | **GAP**: not found in any Ofgem publication of 2016-2018 | n/a | n/a |
+| The default as a unit rate (p/kWh), apart from the standing charge | **GAP**: never published as such before the cap | n/a | n/a |
+| Ex VAT | Arithmetic once a level is in hand: domestic VAT 5% throughout | n/a | H |
+
+Fetched 2026-10-14: `ofgem.gov.uk/publications/standard-variable-tariff-comparison-28-november-2016`
+("a dual fuel direct debit customer ... All prices include VAT") and
+`.../standard-variable-tariffs-latest-trends-september-2017` (same basis). The RMI series is read in
+`cheapest_fix_against_the_default_tariff_gb_2016_2025.md` §0 and gives the dual-fuel bill only.
+BEIS QEP tables 2.2.4 / 2.3.4 do publish per-fuel unit and fixed costs. But they average every
+tariff, fixes included, so they are not the default.
+
+**So the pre-cap default is published, but only as a dual-fuel bill.** A per-fuel ex-VAT unit
+rate, which is what the price match compares a re-fix against, would need a fuel split and a
+standing-charge split, and neither was published. A real supplier would have known its rivals'
+per-fuel SVT sheets through comparison-site feeds. That data is commercial and not in this record,
+so it is a GAP here, and no value fills it.
+`company.crm.save_offer.published_default_rate_ex_vat` stays `None` before 2019, and the price
+match makes no offer in those years. The grade of the match against the tiers is therefore
+restricted to 2019 onwards:
+`docs/staging/records/PREREG_THE_PRICE_MATCH_AGAINST_RISK_TIERS_FROM_2019_WHERE_A_DEFAULT_IS_PUBLISHED_2026-10-14.md`.
+
 ### Post-Cap Period: 2019–2025 (Ofgem Default Tariff Cap)
 
 | Period | Electricity (p/kWh) | Gas (p/kWh) | Annual Typical Bill | Confidence |
