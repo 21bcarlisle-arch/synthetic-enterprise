@@ -343,8 +343,11 @@ items:
     - sends stdout and stderr to DEVNULL
     first_seen: '2026-10-12'
     fate: fix
-    status: open
+    status: already_fixed
+    fixed_by: aa7b2849e
     owner: background/worker_tick.py
+    reason: 'aa7b2849e sends the child to /var/tmp/worker-tick-last-output.txt and puts its last 300 characters
+      on the exited line when rc != 0; control spawns a real stand-in process and reds on DEVNULL.'
     reason: A crash with no recorded cause cannot be diagnosed; the remedy is a per-tick log of the child's
       output. Small, and it stays listed until built.
   - id: the-publish-did-not-land-behind-origin

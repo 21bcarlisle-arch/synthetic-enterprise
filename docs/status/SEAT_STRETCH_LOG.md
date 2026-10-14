@@ -8,6 +8,33 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-14 — Wednesday 07:15 reading: the whole deck, sized by group, with this week's fates
+
+<!-- head: 58e1e89051db -->
+
+*Reading: 64% at 07:15 Wednesday, 5 points since 17:00 Tuesday. 36 points to the reset, 30 above
+the 6-point reserve.* Counts are at origin at 07:40.
+
+| Value rank | Group | Count now | Points (this seat) | Fate this week |
+|---|---|---|---|---|
+| 1 | Reds at HEAD: the register's 18 from Monday's 05:56Z census, re-run at origin now. #16, #8, #9, #11 and #10 are fixed; the run confirms #7, #12, #13 and #17 | 18 rows | ~2-4 to fix what the census still shows red | **clears**, except #6 (next week by design) |
+| 2 | Next week's P1 made drawable: the K8 page on a retention offer when the renewal sits at its cost floor, then the atom | 1 page + 1 atom | ~2 | **clears**, started today |
+| 3 | C34's sharing price: the knowledge-first page | 1 page | ~2 | **clears** |
+| 4 | D48 Expert Hour brief (L2 recorded, row at harden) | 1 | ~1 | **clears** |
+| 5 | Staging root, 58 at 17:00 Tuesday. 45 have a fate line; 10 have none | 55 | ~0.5 | **clears** between pieces: one fate line or a superseded banner each |
+| 6 | In progress, 99 at 17:00 Tuesday. 259ac97ca closed 57 of them; 24 of the rest have a fate line, 15 do not | 39 | ~0.5 | **clears** between pieces, the same way |
+| 7 | Known issues open as fixes (wrong_triage.yaml): 15 of 45, now 14 with the worker exit closed (aa7b2849e). The other rows are 14 fold and 13 accept | 14 | ~1.5 each, ~21 | **in part**: the cheapest, ~5. The machine-class rows (not_now prose, draw-ledger crediting, holds never re-asked) go to next week as mechanisms |
+| 8 | Ranked atoms, Monday's sweep: 57 from c6542f76e plus 5 from dbe4f7167. P1 2, both resolved this week (the renewal cut decided d5ba38b12, D48 L2 ec0c00917); P2 31; P3 13; unranked 8 | 62 | ~1-2 each | **next week**. Exceptions: any the fate pass finds already done or superseded close now with a one-line fate |
+
+Sum for this seat: about 14-17 points against the 30 above the reserve. **Pace check:** 5 points
+in the 14.25 h since 17:00 is about 0.35 an hour across the machine, and 117 h remain to the reset.
+At that rate the machine spends about 41, five more than the 36 left, so the reserve would be gone
+by about Sunday. That night rate included two long arm families (the renewal-cut re-grade and the
+term-cost legs). Neither repeats, and no new arm family is planned. If the next reading still
+shows about 8 a day, group 7 is cut first and groups 1-4 are kept whole.
+
+---
+
 ## 2026-10-14 — The stranded seasonal-swing deletion lands, and the live page's figures did not move
 
 <!-- head: c91e5aeacbbf -->
