@@ -98,3 +98,14 @@ read before its seed is graded.
 - `PYTHONPATH=. python3 /var/tmp/dvn480/run.py 480000 <s>` from a tree whose
   `tools/demand_vector_coverage.py` equals `b585d3733`'s reproduces each seed's `n` exactly. The
   choosing is deterministic given its seeds.
+
+## Launch log (added after filing; nothing above it changed)
+
+- **16:2x, both legs launched** as `longjob-dvn480-seeds-a` (seeds 0, 1, 2) and `-b` (seeds 3, 4)
+  in `/var/tmp/se-dvn480` at `e999ca6f6`. The module there is byte-identical to `b585d3733`, and
+  both cgroups are VERIFIED. The two launches were admitted against one snapshot, and neither
+  counted the other (`SEAT_FINDING_TWO_LONG_JOBS_LAUNCHED_TOGETHER_ARE_BOTH_ADMITTED_AGAINST_ONE_SNAPSHOT_2026-10-14`).
+  Both were kept on a measurement, not the door's sum. After they started,
+  `available_mb` was 11,823 with PSI at 0.13, and each seed held about 1.04 GB at 2.5 minutes in.
+  That is inside this prereg's 70% rule. The 480k population build fitted in the same memory as at
+  240k.
