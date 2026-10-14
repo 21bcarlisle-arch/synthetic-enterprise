@@ -20,17 +20,27 @@ def _grid(n=4000, seed=0):
     added as a sixth axis every fixture here silently disagreed with the module and six controls
     failed at once. A fixture whose width is hardcoded is a fixture that goes stale the moment the
     subject grows.
+
+    EVERY COLUMN DRAWS FROM ITS OWN STREAM, and that is load-bearing rather than tidy. Until
+    2026-09-09 all of them consumed one shared `rng` in dict order, so ADDING OR REMOVING ANY COLUMN
+    RESHUFFLED EVERY COLUMN BELOW IT. Deleting `seasonal_swing` on the day the axis went reds
+    `test_THE_WEIGHTING_MUST_DO_WORK` at seed 7 -- and it reds because the four columns after it got
+    different random numbers, not because the vector lost an axis. Held draws, six axes, seeds
+    7/11/13/21/42: designed beats random every time. A shared stream turns "I changed one axis" into
+    "I changed the whole population", which is exactly the confound that makes a red unattributable
+    and invites re-tuning the fixture until it agrees.
     """
-    rng = np.random.default_rng(seed)
-    gas = rng.lognormal(9.2, 0.6, size=n)
+    def stream(name):
+        return np.random.default_rng([seed, sum(name.encode())])
+
+    gas = stream("annual_gas_kwh").lognormal(9.2, 0.6, size=n)
     columns = {
         "annual_gas_kwh": gas,
-        "annual_electricity_kwh": rng.lognormal(7.9, 0.5, size=n),
-        "seasonal_swing": rng.uniform(0.55, 0.75, size=n),
-        "weather_sensitivity_kwh_per_degree_day": gas * rng.uniform(0.0002, 0.0006, size=n),
-        "peak_window_share": rng.uniform(0.19, 0.26, size=n),
-        "insulation_ceiling_kwh": gas * rng.uniform(0.05, 0.45, size=n),
-        "turndown_ceiling_kwh": gas * rng.uniform(0.04, 0.09, size=n),
+        "annual_electricity_kwh": stream("elec").lognormal(7.9, 0.5, size=n),
+        "weather_sensitivity_kwh_per_degree_day": gas * stream("wsens").uniform(0.0002, 0.0006, size=n),
+        "peak_window_share": stream("peak").uniform(0.19, 0.26, size=n),
+        "insulation_ceiling_kwh": gas * stream("insul").uniform(0.05, 0.45, size=n),
+        "turndown_ceiling_kwh": gas * stream("turndown").uniform(0.04, 0.09, size=n),
     }
     missing = [a for a in dvc.AXES if a not in columns]
     assert not missing, f"the fixture has no column for {missing}; add one rather than let it drift"
@@ -147,23 +157,41 @@ def test_THE_CEILING_IS_WHAT_IS_LEFT_TO_DO_not_what_a_bare_fabric_would_gain():
         "the sample cannot tell the canon's two households apart")
 
 
-def test_ONLY_THE_HALF_HOURLY_SHAPE_IS_STILL_ABSENT():
+def test_THE_SHAPE_COMPONENTS_ARE_DECLARED_BLIND_AND_ANNUAL_ELECTRICITY_IS_NOT():
     """THE CORRECTION THE DIRECTOR FORCED. This used to assert that annual electricity was absent,
     and that was a real deferral dressed as a dependency: the HALF-HOURLY SHAPE needs a presence
     pattern and waits for `W2_19`; ANNUAL ELECTRICITY is carried per dwelling by NEED and waits for
     nothing. Bundling them deferred the axis that turns a floor into a number.
 
-    So electricity must now be IN, and exactly one axis may remain declared blind."""
+    So electricity must now be IN, and the SHAPE components must be declared blind.
+
+    RENAMED AND RE-KEYED 2026-09-09, AND THE OLD VERSION IS THE CASE STUDY. It asserted
+    `blind_to == ("half_hourly_electricity_shape",)` -- an exact tuple, which is a control keyed to
+    today's answer rather than to the property. When `seasonal_gas_shape` was added to the blind
+    list, this went RED because the module had become MORE HONEST: the axis that had been standing
+    in for seasonal shape was an invented affine copy of the weather-sensitivity axis, and deleting
+    it turned an undeclared blindness into a declared one. A control that reds on a correction and
+    would have stayed green on the invented axis is pointed exactly backwards, which is the failure
+    CLAUDE.md names and this project has hit repeatedly.
+
+    WHAT THE PROPERTY ACTUALLY IS: neither SHAPE component may be claimed as covered, because
+    nothing in this instrument distinguishes either -- the half-hourly shape because
+    `peak_window_share` carries a level rather than a shape, and the seasonal gas shape because
+    `demand_case_coverage.DOYS` stops on 31 March, so the cold-half share of the year's demand is
+    not computable here at all. Both of those are structural, and a later build that genuinely
+    measures one takes it OFF the blind list and tightens this control -- which is a change to make
+    deliberately, not one to trip over."""
     assert dvc.UNCOUNTED_AXES, "the uncounted axes must be enumerated, not left to prose"
-    # CORRECTED 2026-09-08. This asserted that the half-hourly shape had left the blind list --
-    # that the vector was complete. The director refused the result it licensed and he was right:
-    # `peak_window_share` is in the measurement and carries a LEVEL, because two of the three
-    # occupancy patterns have proportional multipliers and a share is scale-invariant. An axis that
-    # is present but does not carry what its name says is worse than an absent one, so the control
-    # now asserts the blindness is DECLARED rather than asserting it is gone.
-    assert dvc.REDUCES_OVER.blind_to == ("half_hourly_electricity_shape",), (
-        "the half-hourly shape must stay declared blind while the axis standing in for it is "
-        "level-driven -- see tests/simulation/test_occupancy_reshapes_rather_than_relevels.py")
+    for component in ("half_hourly_electricity_shape", "seasonal_gas_shape"):
+        assert component in dvc.REDUCES_OVER.blind_to, (
+            f"{component} is a component of the canon's demand vector that this instrument cannot "
+            "distinguish, so it must be DECLARED blind. An undeclared blindness is how an invented "
+            "axis gets read as coverage -- see DISTRIBUTION_AXES on `seasonal_swing`.")
+    assert "seasonal_swing" not in dvc.AXES, (
+        "`seasonal_swing` was an affine function of the heat-loss coefficient and so a duplicate of "
+        "`weather_sensitivity_kwh_per_degree_day`, with its 0.15 and 0.5 unsourced. Re-adding a "
+        "seasonal axis means measuring the share of demand in the coldest half, which needs a model "
+        "that runs past 31 March.")
     assert "half_hourly_shape_by_composition" in dvc.UNCOUNTED_AXES
     assert dvc.PEAK_WINDOW_IS_LEVEL_DRIVEN is True, (
         "if the multipliers gain a real shape distinction this flag comes off, and this control "

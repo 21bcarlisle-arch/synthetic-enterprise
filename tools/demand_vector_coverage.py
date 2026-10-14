@@ -38,9 +38,13 @@ WHAT IS MEASURED AND WHAT IS NAMED ABSENT
 Measured (the heat-driven axes, per the director's sequencing decision):
 
     annual_gas_kwh          modelled space-heat demand
-    seasonal_swing          the share of the year's demand falling in the coldest half
     insulation_ceiling_kwh  what the REMAINING measures would save, given LI/CWI already installed
     turndown_ceiling_kwh    one degree off the set-point
+
+`seasonal_swing` used to head that list and was removed on 2026-09-09 as an invented duplicate of
+the weather-sensitivity axis; the canon component it claimed to cover, `seasonal_gas_shape`, is now
+declared BLIND. The reasoning is at `DISTRIBUTION_AXES` and the consequence for the published N is
+in `SEAT_RESULT_THE_PUBLISHED_SAMPLE_SIZE_WAS_INFLATED_BY_AN_INVENTED_AXIS_2026-09-09`.
 
 NAMED ABSENT, not silently skipped: annual ELECTRICITY and its half-hourly shape. For the 81% of
 households on gas, electricity is appliances, lights and EV rather than fabric, and there is no
@@ -79,7 +83,24 @@ _MODELLED_MONTHS = (10, 11, 12, 1, 2, 3)
 
 #: The axes that describe what a household USES. Reproducing their joint distribution is the
 #: canon's first number.
-DISTRIBUTION_AXES = ("annual_gas_kwh", "annual_electricity_kwh", "seasonal_swing",
+#:
+#: `seasonal_swing` WAS HERE AND IS GONE, 2026-09-09. It was `0.5 * (1 + 0.15 * z(hlc))` -- an
+#: affine function of the heat-loss coefficient, and `weather_sensitivity_kwh_per_degree_day` is
+#: `hlc * 24`, so the two correlated at 1.000000 BY CONSTRUCTION and the vector had six directions
+#: under seven labels. The 0.15 and the 0.5 had no source, no derivation and no comment, and the
+#: quantity the axis claimed to be -- the share of the YEAR's demand in the coldest half -- is not
+#: computable here at all, because `demand_case_coverage.DOYS` stops on 31 March.
+#:
+#: WHY IT IS DELETED RATHER THAN REPLACED, which is the move the previous pass did not consider.
+#: `SEAT_FINDING_TWO_AXES_OF_THE_DEMAND_VECTOR_ARE_THE_SAME_AXIS_2026-09-08` recorded the
+#: degeneracy and the control that caught it RATCHETED the pair instead of removing it, reasoning
+#: that replacing the axis honestly needs the annual model and is "not a patch". That is true of
+#: REPLACING it and answers a question nobody had to ask: nothing real is lost by deleting it,
+#: because the direction it carried is still measured by `weather_sensitivity_kwh_per_degree_day`,
+#: which is the quantity the physics actually computes. What was lost is the PRETENCE that seasonal
+#: shape is spanned -- and `blind_to` is where that belongs. An invented axis inflated the published
+#: N; a declared blindness states the same limit and cannot be quoted as coverage.
+DISTRIBUTION_AXES = ("annual_gas_kwh", "annual_electricity_kwh",
                      "weather_sensitivity_kwh_per_degree_day", "peak_window_share")
 
 #: The axes that describe what could be DONE for a household. The canon's second number adds these,
@@ -116,10 +137,22 @@ REDUCES_OVER = declare(
     kind="sufficiency",
     of=_SUBJECT,
     reduces_over=AXES + ("heating_fuel",),
-    derived_from={"seasonal_swing": ("seasonal_gas_shape",),
-                  # Sensitivity is how much the gas total MOVES with the weather, so it is built
-                  # from the level and the shape together rather than being a fifth thing.
-                  "weather_sensitivity_kwh_per_degree_day": ("annual_gas_kwh", "seasonal_gas_shape"),
+    derived_from={
+                  # SENSITIVITY IS DERIVED FROM THE LEVEL ALONE, and the declaration said "the level
+                  # and the shape together" until 2026-09-09. The control refused the pair when
+                  # `seasonal_gas_shape` went onto the blind list -- declared blind AND reduced over,
+                  # one of the two is wrong -- and the one that was wrong is this.
+                  #
+                  # Read the physics rather than the name. `demand()` computes
+                  # `hlc = (fabric_loss + 0.33 * ach * volume) / 1000`, which takes the wall, roof
+                  # and floor U-values, the air change rate and the site wind speed, and NOTHING
+                  # from any seasonal profile; the axis is `hlc * 24`. The degree-days it is a rate
+                  # PER come from the cell and are shared by every household in it. So the axis is
+                  # the winter gas total normalised by the cell's climate, and it correlates 0.985
+                  # with `annual_gas_kwh` for that reason. It says how much demand MOVES with
+                  # temperature; it cannot say how that demand DISTRIBUTES across the season, and
+                  # naming the shape here is what let the shape look covered.
+                  "weather_sensitivity_kwh_per_degree_day": ("annual_gas_kwh",),
                   # DERIVED FROM THE LEVEL, NOT THE SHAPE, and the AST control is what forced the
                   # correction. It was declared as derived from `half_hourly_electricity_shape`
                   # while that component was also declared blind, and it refused the pair: one of
@@ -141,7 +174,15 @@ REDUCES_OVER = declare(
     # appears to: two of the three occupancy patterns are proportional, so it distinguishes elderly
     # from everyone else and nothing finer. An axis that is PRESENT but carries a level rather than
     # a shape is worse than an absent one, because the vector looks complete.
-    blind_to=("half_hourly_electricity_shape",),
+    # SEASONAL GAS SHAPE JOINS THE BLIND LIST, 2026-09-09, and this is a correction rather than a
+    # widening of scope. It was never distinguished: the axis that claimed it was an affine copy of
+    # `weather_sensitivity_kwh_per_degree_day` with two typed constants in front of it. Declaring it
+    # blind changes no measurement -- it states what the measurement was always doing. It is blind
+    # for a reason that is structural rather than pending: the share of the YEAR's demand falling in
+    # the coldest half needs a model that runs past 31 March, and `demand_case_coverage.DOYS` is
+    # 1 October to 31 March. That is the `simulate_premise` build, and until it lands this is a gap
+    # a reader can see rather than a number a reader would quote.
+    blind_to=("half_hourly_electricity_shape", "seasonal_gas_shape"),
     joint=True,
 )
 
@@ -520,8 +561,6 @@ def generated_population(points: int = POPULATION_POINTS, seed: int = 0) -> dict
     gas, hlc = demand(as_built, cold)
     gas_turndown, _ = demand(as_built, warm)
     gas_retrofit, _ = demand(retrofit, cold)
-    swing = np.full(points, 0.5) * (1.0 + 0.15 * (hlc - hlc.mean()) / (hlc.std() or 1.0))
-
     # WEATHER SENSITIVITY IS AN AXIS, not an assumption that it is spanned. The director named it
     # among the things this figure did not confirm; it is the heat-loss coefficient in kWh per
     # degree-day, which the physics already computes, so there was no reason to leave it implicit.
@@ -576,7 +615,7 @@ def generated_population(points: int = POPULATION_POINTS, seed: int = 0) -> dict
     # water a household draws. If a future intervention does move hot water -- a lower cylinder
     # set-point, a shower timer -- it gets its own counterfactual rather than being folded in here.
     peak_share = _peak_window_share(points, rng, people=people)
-    values = np.stack([gas, elec_obs, swing, hlc * 24.0, peak_share,
+    values = np.stack([gas, elec_obs, hlc * 24.0, peak_share,
                        np.maximum(0.0, space_heat - gas_retrofit),
                        np.maximum(0.0, space_heat - gas_turndown)], axis=1)
     # PAYMENT METHOD, DRAWN AND CARRIED BUT NOT GIVEN A CONSUMPTION EFFECT. The canon keeps the
@@ -675,19 +714,16 @@ def population(points: int = POPULATION_POINTS, seed: int = 0) -> dict:
     gas_turndown, _ = demand(as_built, warm)
     gas_retrofit, _ = demand(retrofit, cold)
 
-    # SEASONAL SWING: the share of demand falling in the coldest half of the heating season. A
-    # MODELLED quantity, published as such -- see the module docstring and the director's decision.
-    half = len(dcc.DOYS) // 2
-    doys = np.array(dcc.DOYS)
-    coldest = np.isin(doys, doys[np.argsort(-_seasonal_profile())][:half])
-    swing = np.full(points, float(coldest.sum()) / len(doys))
-    swing = swing * (1.0 + 0.15 * (hlc - hlc.mean()) / (hlc.std() or 1.0))
-
+    # SEASONAL SWING WAS COMPUTED HERE AND THE AXIS IS GONE -- see `DISTRIBUTION_AXES`. This copy
+    # looked more like a measurement than the generator's did, and was not one: the leading term
+    # was `coldest.sum() / len(doys)`, a share of DAYS identical for every household, and the only
+    # per-household variation came from the same `1 + 0.15 * z(hlc)` factor. A share of days is not
+    # a share of demand, so the more elaborate of the two copies was the more misleading.
     # OBSERVED electricity, not modelled: NEED carries it per dwelling, so this axis needs nothing
     # from `W2_19`. Only the HALF-HOURLY SHAPE does, which is the dependency that was mistakenly
     # taken to cover both.
     elec = np.array([rows[ri]["_elec"] for ri in row_pick])
-    values = np.stack([gas, elec, swing, hlc * 24.0, _peak_window_share(len(gas), rng),
+    values = np.stack([gas, elec, hlc * 24.0, _peak_window_share(len(gas), rng),
                        np.maximum(0.0, gas - gas_retrofit),
                        np.maximum(0.0, gas - gas_turndown)], axis=1)
     fuel = np.array([rows[ri].get("MAIN_HEAT_FUEL", "?") for ri in row_pick])

@@ -8,6 +8,14 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-14 — The stranded seasonal-swing deletion lands, and the live page's figures did not move
+
+<!-- head: c91e5aeacbbf -->
+
+The demand-vector edit that every sim-runner run since 09-24 imported was live work, not a stale copy. It is the code half of the 09-09 seasonal-swing deletion, whose write-up landed without it, and it now lands with its two paired test edits (155 tests across every importer pass). **Did the published figures move? No.** The settlement choice reaches only `choose_for_difference`, `fit_weights`, `_Reference`, `accepts_weighted` and `weighted_ks`. None of them reads the axis list, and the edit changes no line in them, so the page's figures stand. Only the run stamp was wrong, and the stamp now names the code that drew them. That closes the refusal Monday's publish would have hit. Still owed: the knowledge page's full-vector N (6,816 / 8,822) was measured with the duplicate axis and is now behind its own code. It is handed on as a continuation. Detail: SEAT_RESULT_THE_STRANDED_SEASONAL_SWING_DELETION_LANDS_AND_MOVES_NO_SETTLEMENT_FIGURE_2026-10-14.
+
+---
+
 ## 2026-10-14 — orientation: The per-customer view won a decision this stretch, and the decision is weaker than its grade says
 
 <!-- head: eb6b82e8e137 -->
