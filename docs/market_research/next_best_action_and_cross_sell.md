@@ -414,6 +414,17 @@ up GBP 2-3/month and cutting the hazard 0.1-0.3 points), joint value is positive
 (+GBP 13 to +107). Our side is negative in all 18, so the rule chooses nothing in all 18: the floor
 on our side binds. Whether a positive-sum action that costs us should be paired with a price that
 shares its value is the director's question (M2: created, then shared).
+The published evidence on how such a share is priced (2026-10-14) is in
+`how_a_supplier_prices_a_share_of_value_it_creates_for_a_household_2026-10-14.md`:
+- **The licence is silent on a savings-share fee.** SLC 0.6 does not bound a fee's amount.
+- **The binding constraint is consumer credit** if the share is recovered by instalments
+  (the Green Deal precedent).
+- **The one computable GB energy split** is Octopus's Demand Flexibility Service test events:
+  75% passed to households, 25% retained (Octopus's own account).
+- ECO is the opposite polarity: the supplier funds the measure and the household keeps the
+  whole saving.
+- No GB supplier publishes an advice-savings-share scheme.
+It ranks five pricing shapes by evidence and recommends none. The decision stays the director's.
 
 ### 6.2 What the company knows about uplift
 
