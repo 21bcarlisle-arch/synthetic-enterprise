@@ -159,6 +159,15 @@ which is the point of the four principles' third.
 > **The re-grade that would decide it** is both arms, on four seeds, at a base that carries
 > `5c137eb5b` and the value-arm term-cost base (`2473321d6`, which says the arms are re-taken). It
 > is not launched from this item. Until it runs, **the renewal cut stays on risk_tiers**, as above.
+>
+> **P7 CORRECTED 2026-10-14, beside the -3,089 above: the deciding re-grade ran.** At 5e5358092, which
+> carries the floored tiers cut (`5c137eb5b`), the ex-VAT basis (`d1e37f45c`), hedge at quote, the
+> capital-inclusive floor and the term-cost base, **match minus tiers on 61109 is -4,264**. On the other
+> three fresh seeds it is -8,555, -5,966 and -3,542. Net falls on every seed, so the renewal cut stays
+> on `risk_tiers` by the pre-registered rule. The grade is in
+> `docs/staging/records/PREREG_THE_RENEWAL_CUT_DECIDING_REGRADE_ON_A_BASE_CARRYING_THE_WEEKS_FLOORS_2026-10-13.md`.
+> How much of the -1,175 move is the ex-VAT basis and how much the floors: not split yet. A one-variable
+> arm with `d1e37f45c` reverted is running, and its predictions were filed in that file first.
 
 ## The next item, ahead of new work
 
