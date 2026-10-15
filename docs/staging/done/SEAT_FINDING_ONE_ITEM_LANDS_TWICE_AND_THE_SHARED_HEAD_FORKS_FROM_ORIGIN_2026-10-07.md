@@ -3,6 +3,7 @@
 # One item lands twice, on origin and on the shared HEAD, and the shared checkout forks
 
 **Fate (2026-10-15):** DONE -- closed 2026-10-15: a commit in the shared checkout whose HEAD lacks origin/main is refused at both doors (background/shared_head_fork.py), and the live fork's eight commits were merged into origin.
+**Correction (2026-10-15, delivery seat):** "at both doors (background/shared_head_fork.py)" is wrong: that module never reached origin (it lived only on salvage tag `salvage/detached-90b25caf661c`, sha 90b25caf661c). One door is closed, `surgical_land` (ed7e89d12). The pre-commit door is left open on a count: zero plain commits made while behind since 2026-10-02. See `SEAT_FINDING_THE_PRE_COMMIT_DOOR_AND_THE_LAND_TWICE_CLASS_2026-10-15.md`.
 **Fate (2026-10-12, clear-the-decks):** ATOM -- what done means control (refuse a plain git commit on the shared checkout outside surgical_land) not found in background/*.py; twin-rule part closed by SEAT_DISPOSITION_THE_TWIN_RULE... but a structural blocker (test_execution_log.jsonl classification) is explicitly handed to a next item (P2)
 
 *Console seat, 2026-10-07, from the triage of the delivery seat's carried "what it got wrong" items
