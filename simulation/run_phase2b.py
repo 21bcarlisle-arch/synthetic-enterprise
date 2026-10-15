@@ -3720,6 +3720,11 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 # does not (director, 2026-10-08): stayers must not pay for the discount.
                 _held_on_a_save = event is None or event["event_type"] == "renewed"
             _pending_notice_sent = False
+            # THE RIVAL NEVER SEES A SAVE (2026-10-14). A save is a reactive price offered only to a
+            # household that has already chosen to leave; it is on no tariff list a rival or a
+            # comparison site reads. Fed to the rival's ledger, it moved every later household's
+            # P(stay) by what the save cost, which is the save reaching the stayers through the world.
+            _rate_the_rival_sees = unit_rate
             # A domestic household leaving a FIXED term: a Fixed Retention Tariff is a domestic
             # tariff, and one offered to a household leaving the default tariff is not established
             # as inside the SLC 22B derogation (`simulation/save_on_loss_notice.py`). Measured
@@ -3814,7 +3819,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             # A REFUSED offer is not a price this supplier holds anyone at, so the rival never
             # sees it: the household is on the default, which is what the ledger must read.
             if _renewal_outcome != RENEWAL_DECLINED_FIX:
-                _competitor_position_ledger.observe(term_start_str, unit_rate, commodity=commodity)
+                _competitor_position_ledger.observe(term_start_str, _rate_the_rival_sees,
+                                                    commodity=commodity)
             # ...but it STAYED, and the record keeps the decision. Appended here and nowhere else:
             # the block below feeds the journey, the retention log and the departure handling, and
             # nothing inside this loop reads `customer_events_log`, so this row changes no outcome.

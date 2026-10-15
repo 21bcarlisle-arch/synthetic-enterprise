@@ -146,3 +146,45 @@ each unit exists at once in its own cgroup and starts the moment that run exits:
 
 If line 76 goes green on the fix, the bisect only says which commit made a channel that already
 existed start to bite. The fix lands on the one-variable evidence, without waiting for the bisect.
+
+---
+
+## The one-variable run read, 2026-10-14 16:38 BST: both lines green, and the fix lands
+
+`longjob-stayers-fix-one-variable` ran the whole control in `/var/tmp/se-stayers-fix`, at origin
+`f6e806b8f` plus only the rival-ledger change. `simulation/run_phase2b.py` has not changed between
+`f6e806b8f` and the origin it lands on. Before it could run, the box had to be freed:
+termcost-arms-floor-a was stopped ungraded, and the reasons are in `58d629a20`. The run took 39 min 12 s
+and wrote `/var/tmp/stayers-probe/fix-run.done`. All 8 tests passed.
+
+| line | at origin (above) | on the fix | prediction filed before the run | grade |
+|---|---|---|---|---|
+| 76 `test_a_saved_term_ends_and_stayers_renew_after_it` | FAILED | **PASSED** | GREEN, about 0.7 | **TRUE.** The arms save the same households, a saved term ends inside the window, stayers renew after it, and the save price is billed |
+| 95 `test_no_stayer_price_moves_with_the_save_price` | FAILED | **PASSED** | not called | **The director's condition holds on equal arms.** `stayer_price_moves(...) == []`, so the full list of stayer moves is empty |
+
+**What this establishes.** The rival's ledger reading the save price was the channel. It is the only
+change between a red and a green control, so the attribution is one-variable. This was a world-fidelity
+leak: a reactive, unlisted price offered only to a leaver reached the market reference, and through it
+every later household's P(stay). The stayers did not pay for the save. The world was mispricing the
+rival.
+
+**What it does not establish.** Which commit in `ed9aa25eb..55701bb84` made a channel that already
+existed start to bite. That is the bisect (`the-save-stayers-control-read-the-bisect`), still queued
+behind the probe. It no longer gates anything. When it reads, it should be graded against this result,
+and an endpoint that turns green once this fix is merged is expected, not a contradiction.
+
+**Discharged:** `tests/simulation/test_a_save_is_not_paid_for_by_the_stayers.py::test_a_saved_term_ends_and_stayers_renew_after_it`, `tests/simulation/test_a_save_is_not_paid_for_by_the_stayers.py::test_no_stayer_price_moves_with_the_save_price` -- the rival's ledger observes the pre-save rate, and the director's stayers control passes 8 of 8 on that one change (lines 76 and 95 both green)
+
+## The bisect read, 2026-10-14 22:05 BST (recorded 2026-10-15 by the delivery seat)
+
+`longjob-stayers-probe-and-bisect` ended and wrote `/var/tmp/stayers-probe/ALL_DONE`. It ran a first-parent bisect over
+`ed9aa25eb..55701bb84` on the index-18 comparison, without the fix. The first bad commit is **`03a0b66da`**, which floors
+writer 1's renewal discount at the term's cost floor. Before it, the on and placebo arms saved the same households (22 and 22).
+From it on, the on arm saves one more (23 against 22) and they diverge at index 18 (SYN-2016-365 against SYN-2016-391).
+This fits the channel above. The cost floor moved what a save is billed at, the rival's ledger read the moved price, and
+P(stay) moved with it. It is graded against the one-variable result as expected, not as a contradiction. The step log is
+`/var/tmp/stayers-probe/bisect_steps.log`.
+
+The first landing of this fix (`land-fix4`, 19:10) was queued on the memory budget and died at 19:51 partway through the
+test gate without committing. The delivery seat re-landed it from an isolated worktree at origin `9ab9b7959`, where
+`simulation/run_phase2b.py` is still unchanged since `f6e806b8f`.
