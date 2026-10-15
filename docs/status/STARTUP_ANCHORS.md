@@ -17,16 +17,16 @@ not maintained -- so it tells you what the project IS, not what it is currently 
 | `docs/design/DIRECTOR_CANON.md` | The director's canon in one home, every ruling quoted with its id and date | 2026-10-12 | 3 | UNDATED |
 | `docs/design/THE_MODEL_ON_A_PAGE.md` | The model on a page — the mission, the three currencies and the two timeframes, in the director's frame | 2026-10-12 | 3 | UNDATED |
 | `docs/operations/OPERATING_MODEL.md` | How the seat operates — what it gets on with, what it escalates to the director with a proposal, what is reserved, and the end-to-end check it owns | 2026-10-12 | 3 | UNDATED |
-| `docs/direction/priority_order.yaml` | The director's priority order as the map expresses it, and whether the draw follows it (`tools/draw_follows_the_order.py`) | 2026-10-14 | 1 | UNDATED |
+| `docs/direction/priority_order.yaml` | The director's priority order as the map expresses it, and whether the draw follows it (`tools/draw_follows_the_order.py`) | 2026-10-15 | 0 | UNDATED |
 | `docs/reports/ANNUAL_REPORT.md` | The book's own annual report, regenerated each publish | 2026-10-13 | 2 | UNDATED |
 | `docs/market_research/ASSUMPTIONS.md` | Every sourced assumption the world is built on, with its anchor and its gaps | 2026-10-11 | 4 | FRESH |
 | `docs/status/LATEST.md` | What just happened and what the machine is working on now | 2026-10-13 | 2 | FRESH |
-| `docs/status/STARTUP_ANCHORS.md` | The computed age of every anchor on this page, and what each is for | 2026-10-14 | 1 | FRESH |
-| `docs/status/SEAT_STRETCH_LOG.md` | Why each stretch of work went the way it did — the corrections, what was stopped short of, the reasoning behind a call | 2026-10-14 | 1 | UNDATED |
-| `docs/direction/DIRECTION.yaml` | What the delivery seat is currently steering by, and what it has recorded as wrong | 2026-10-14 | 1 | UNDATED |
-| `docs/direction/decisions.jsonl` | The append-only record of decisions taken, oldest to newest | 2026-10-14 | 1 | UNDATED |
+| `docs/status/STARTUP_ANCHORS.md` | The computed age of every anchor on this page, and what each is for | 2026-10-15 | 0 | FRESH |
+| `docs/status/SEAT_STRETCH_LOG.md` | Why each stretch of work went the way it did — the corrections, what was stopped short of, the reasoning behind a call | 2026-10-15 | 0 | UNDATED |
+| `docs/direction/DIRECTION.yaml` | What the delivery seat is currently steering by, and what it has recorded as wrong | 2026-10-15 | 0 | UNDATED |
+| `docs/direction/decisions.jsonl` | The append-only record of decisions taken, oldest to newest | 2026-10-15 | 0 | UNDATED |
 | `docs/status/PROJECT_STATE.txt` | Build state — current phase and test count, generated each publish | 2026-10-13 | 2 | FRESH |
-| `docs/institutional/knowledge_map.md` | What we know and what we have NOT established, with the gaps named | 2026-10-14 | 1 | UNDATED |
+| `docs/institutional/knowledge_map.md` | What we know and what we have NOT established, with the gaps named | 2026-10-15 | 0 | UNDATED |
 | `docs/operations/MAINTENANCE.md` | The monthly maintenance runbook this machine operates under | 2026-07-06 | 101 | UNDATED |
 
 `FRESH` recent · `OLD` genuinely old and honest about it (not a defect) · `UNDATED` states
@@ -41,9 +41,9 @@ one typed from memory does not.
 
 | Figure | Stated | Its source could have said | Verdict |
 |---|---|---|---|
-| commits | 13,094 | 12,768 – 13,324 (`git rev-list --count`) | AGREES |
-| lines | 1,132,176 | 1,113,318 – 1,137,304 (newlines across every `*.py` in the git index) | AGREES |
-| modules | 3,360 | 3,281 – 3,379 (the count of `*.py` in the git index) | AGREES |
+| commits | 13,094 | 12,768 – 13,379 (`git rev-list --count`) | AGREES |
+| lines | 1,132,176 | 1,113,318 – 1,138,540 (newlines across every `*.py` in the git index) | AGREES |
+| modules | 3,360 | 3,281 – 3,384 (the count of `*.py` in the git index) | AGREES |
 | tests | 39,465 | 39,465 – 39,465 (CLAUDE.md's Build line, floored by the test functions in the git index) | AGREES on the floor only on this run -- too large was ruled out at the commit that wrote this sentence |
 
 `AGREES` inside the band · `OVERSTATES` / `UNDERSTATES` a number its own source never carried in that window · `UNGRADED` the source did not exist that far back, so this figure is unchecked and the reader is told so rather than reassured · `SOURCE_GONE` the source existed and stopped being readable inside this window, which is a refusal rather than an unchecked figure -- nobody chooses for a source not to have existed yet, and somebody chose this · `BELOW_THE_INDEX_FLOOR` the figure is smaller than the number of test functions the repository actually contains, which no collection can be.

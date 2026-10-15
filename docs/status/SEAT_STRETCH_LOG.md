@@ -8,6 +8,95 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-15 — orientation: The split was 0 supplier, 1 world and 18 other, but the 'other' hides where the substance went
+
+<!-- head: bb5276856d7c -->
+
+*Written by the orientation seat from its own record (2026-10-15T11:21:50.608844+00:00; 19 commits, 7 substantive, since 2026-10-15T08:20:43.412611+00:00).*
+
+Commit split (product code by path): 0 supplier, 1 world, 0 both, 18 other.
+
+## What the stretch meant
+
+The split was 0 supplier, 1 world and 18 other, but the 'other' hides where the substance went. Supplier: B12's hypothesis 1 was pre-registered, run on two arms and refuted (836ec06fa). Reading fixed terms only removes the default book's excess, as predicted. But it overshoots: fixed terms read -2.39% against a 1.86% target, and 2023-24 sit at -34% to -38% because the lookback learns from the 2021-22 crisis strikes and pins the premium at +15%. So the code did not land, and B12 is still one of the two conditions EP17 waits on. The write-off run graded predictions 1 and 2 (136e0eda3): write-offs move the IFRS 9 charge by GBP 47.37 over the decade, exactly the 12.2% of each that was not provided for. Its share prediction went vacuous a second time, because the grader read an empty block. World: a storage home now charges off-peak (025ca62ae), and three W1_29 texture readings landed. The world again got more change than the supplier. Against the thesis this stretch is learning, not progress. No level moved, there is still no evidence that a per-customer view beats the flat baseline, and B11's comparison is still held behind EP17's two open blockers (B12, E6). It did not go backwards. The refutation was filed against a prediction locked before the arms ran, which is the method working. The previous focus was named and drawn, two of two. B12's DONE is met by the refutation record, so it leaves focus and its successor arm takes the place. The held-estimate grade is not met: its one-variable run (pid 605426) had reached 2024-06 at 11:2xZ, inside its declared 120 minutes. The machine had one event that outranks the rest. The guest's user session shut down at 08:29:34Z (journal: shutdown.target) and came back at 08:53Z. That killed the 08:20 orientation nine minutes in, so its record never reached origin and the stretch log stopped at 05:47Z, which is what the director's steer saw. It also killed every in-flight landing chain: the parked-atom fix 7bfd6fea3 now exists only on a local salvage tag. Meanwhile the shared checkout is 109 behind origin, so every daemon still runs without the hold, tombstone and overlap fixes that are on origin. Its one local commit bb5276856 is a byte-identical second landing of 068928f47 (git diff on its two paths is empty), which is the land-twice class recurring. The director's 05:52Z order puts these machine classes first this week. Closing the fork is cheapest and makes four landed fixes live at once, so it leads. Two supplier items follow, as SUPPLIER FIRST requires. 388 failed sudo calls in delivery-seat's journal since 10-09 were read and are the brief's own probes. They did not cause the shutdown and are not a finding.
+
+## What went wrong
+
+- NOT corrected: THE MACHINE'S, CARRIED. A held change's hold condition is not re-asked when its premise moves. Owner: SEAT_FINDING_A_HOLD_OR_A_TOMBSTONE_STATES_ITS_CONDITION_IN_PROSE_AND_NOTHING_RE_ASKS_IT. Readings before 08:20 are in docs/direction/decisions.jsonl and this file's git history. 11:21: Fixed on origin and still not running. 56d7cf77b is on origin, and delivery-seat still lacks it because the shared checkout is 109 behind, so this brief again carried no held-row list. It stays open until a brief shows one. Focus one.
+- NOT corrected: THE MACHINE'S, CARRIED. One item can land twice, on origin through surgical_land and as a local commit on the shared HEAD. Owner: SEAT_FINDING_ONE_ITEM_LANDS_TWICE_AND_THE_SHARED_HEAD_FORKS_FROM_ORIGIN. Readings before 08:20 are in docs/direction/decisions.jsonl and this file's git history. 11:21: It recurred. bb5276856 (surgical_land receipt, parent 10e90b5c7, the shared HEAD) and origin's 068928f47 carry the same two files byte for byte. The shared HEAD is 1 ahead and 109 behind. The eight stranded commits did reach origin (1610b2640). Focus one.
+- NOT corrected: THE MACHINE'S, CARRIED. The draw ledger reads the same for work never started and for work mid-landing, because it asks only origin by path. Readings before 08:20 are in docs/direction/decisions.jsonl and this file's git history. 11:21: LIVE and unchanged. Nothing landed on it.
+- NOT corrected: THE MACHINE'S, CARRIED. A focus-row tombstone still retires a row without asking its DONE. Readings before 08:20 are in docs/direction/decisions.jsonl and this file's git history. 11:21: It recurred, harmlessly again. b12-the-premise-lookback-reads-the-default-books-margin was tombstoned at 09:01:49Z, when only its pre-registration (03ee2fd09) existed. Its DONE, the refutation 836ec06fa, came at 10:51Z through a separate continuation. The fix 635919987 is on origin and inert behind the fork.
+- NOT corrected: THE MACHINE'S, CARRIED. A parked atom is still counted as drawn. H45 is PARKED and the counter still moves. Readings before 08:20 are in docs/direction/decisions.jsonl and this file's git history. 11:21: Worse. The fix 7bfd6fea3 lost its worktree at the 08:29Z shutdown and exists only on local tag salvage/detached-7bfd6fea34c8. H45 reads 2930. Focus four.
+- NOT corrected: THE MACHINE'S, CARRIED. The coupled-triad gate now excludes twinless L3 targets, and its refusal reaches only the supervisor journal. Readings before 08:20 are in docs/direction/decisions.jsonl and this file's git history. 11:21: Unchanged. No refusal reached the brief.
+- NOT corrected: THE WORLD'S, CARRIED. A gas-heated fabric home's electricity has no season against SERL. Readings before 08:20 are in docs/direction/decisions.jsonl and this file's git history. 11:21: Unchanged and not worked. It blocks no supplier result in focus.
+- NOT corrected: THE MACHINE'S, CARRIED. The draw ledger credits or denies an item by path overlap, not by its work. Readings before 08:20 are in docs/direction/decisions.jsonl and this file's git history. 11:21: Fixed on origin and not running. 46b16e84d is on origin, delivery-seat lacks it, and this brief still lists d1dd04cd5 as the landing of the-bad-debt-provision-charges-expected-loss-as-arrears-build. Focus one.
+- NOT corrected: THE MACHINE'S, NEW. longjob-save-eight was declared at 50 minutes and has held its admission for 4h46m. Readings before 08:20 are in docs/direction/decisions.jsonl and this file's git history. 11:21: No overrun. heldgrade-2248e3baf was declared at 120 minutes from 09:59:30Z and its log read 2024-06-30 at 11:2xZ. writeoff r3 is queued behind it for memory, by design. 47e306b79 is still inert in sim-runner.
+- NOT corrected: THE MACHINE'S, NEW. A held estimate was netted at its draft amount when the next actual read caught up, so seven customer-years on the published book were credited for estimates never sent (PROS-2017-0336: -GBP 271.29 against GBP 789.74 truly owed). Readings before 08:20 are in docs/direction/decisions.jsonl and this file's git history. 11:21: Fixed in code (650fdcdd7), not graded. The grading moved to a one-variable run at 2248e3baf (6da7326e9), because the Monday publish also carries the storage-demand change. That run is in flight. Focus three.
+- NOT corrected: THE MACHINE'S, NEW. The write-off two-arm run (longjob writeoff-two-arm-61109) is recorded as Result=success status=0, and it never graded: both arms read 'no crisis-year (2022, 2023) data present', so the pre-registered question was never asked. The launch register cannot tell a run that answered from a run whose grade had nothing to read. Readings before 08:20 are in docs/direction/decisions.jsonl and this file's git history. 11:21: Half answered, and the class recurred. The re-run graded predictions 1 and 2 (136e0eda3). Prediction 3's grader then read an empty management_accounts block and returned a vacuous FAIL, the same shape. r3 is queued. The register still records both as success.
+- NOT corrected: THE MACHINE'S, NEW. The 08:20 orientation's record never reached origin. The guest's user session shut down at 08:29:34Z, nine minutes into the session. The record existed only in the working copy, the draw worked from it, and the stretch log stayed at 05:47Z until the director's steer asked why. delivery-seat-log.md has no line for the killed session, so a seat killed by the host leaves no trace of itself. This record carries the 08:20 record's focus and grading forward, and its landing is the missed stretch entry.
+- NOT corrected: THE MACHINE'S, NEW. Two statement controls (test_the_statement_shows_how_each_bill_reached_its_number.py: the event walk's close, and VAT on catch-up bills) are red at origin on the published 2248e3baf ledger, and no census holds them. That is the third control this week whose data is a published artefact and which went red at a publish unseen, after the nine inversions and the stayers control.
+
+## Chosen against
+
+- E6's write-off share prediction (r3, longjob-writeoff-two-arm-61109-r3) and the P&L bad-debt line swap.
+- The W1_29 texture continuations and stream 2 of the storage-home hot water.
+- Building C35 (the share of value priced by optimising joint value), which the director asked to have minted for Monday.
+- Diagnosing why the guest shut down at 08:29Z.
+- The director's items 3 and 4 (the 145 banners, and fates for the staging root).
+- B11's forward-CLV ranking against flat.
+
+## Focus for the next stretch
+
+- `the-shared-checkout-fast-forwards-past-its-duplicate-of-068928f47`
+- `b12-fixed-only-lookback-without-the-crisis-terms`
+- `the-held-estimate-fix-is-graded-against-its-pre-registration`
+- `the-parked-atom-fix-lands-from-its-salvage-tag`
+
+---
+
+## 2026-10-15 — orientation: The split was 2 supplier, 1 world, 1 both and 25 other
+
+<!-- head: 10e90b5c7488 -->
+
+*Written by the orientation seat from its own record (2026-10-15T08:20:43.412611+00:00; 29 commits, 11 substantive, since 2026-10-15T05:22:06.785438+00:00).*
+
+Commit split (product code by path): 2 supplier, 1 world, 1 both, 25 other.
+
+## What the stretch meant
+
+The split was 2 supplier, 1 world, 1 both and 25 other. The 'other' commits include 088b63397, which is world texture work, so the world kept pace with the supplier in substance. A third W1_29 landing is in flight and two more texture continuations are queued. Even so, this is the first stretch in a week with a visible path from the supplier work to the thesis comparison. The director's EP17 ruling (ccba18530) holds the population draw fixed until four result-moving defects close on origin: B12, E6's first slice, the held-estimate catch-up and the stayers control. Only then does it vary the draw, and B11's ranking of per-customer against flat needs that varied draw. Two of the four closed this stretch. The stayers control passes 8 of 8 at 4492d17bd (e1946dcb4). The held-estimate catch-up is fixed in code (650fdcdd7), though its pre-registration is not graded. What we learned about per-customer value is mostly that we cannot see it yet. 0 saves from 23 offers is what the world predicts, with P(0) about 0.84 (15dab5ca9). So the one live per-customer retention lever cannot be graded on this book, either way. The company's IFRS 9 charge has the real 2022-23 shape at a tenth of the real level (7702dc287), so the published bad-debt line stays a flat 2% of every bill. The write-off re-run that would test that is in flight, and its first run never graded. Net: no evidence yet that a per-customer view beats the flat baseline, and the work is no longer going sideways. The previous focus was named, drawn and landed: three of three. grade-regrade5-cut-and-save-on-writer-ones-basis reads not_done, but its work is the seed-61109 grade in the B12 residue finding. The machine's main fact is that the shared checkout is 92 behind origin. So four fixes landed this stretch for rows in 'wrong' are inert in the daemons that import them. Ten of 29 commits were empty merges; that is the accepted cost of five lanes landing on one moving base. B12 now leads: it is the last pricing blocker on EP17.
+
+## What went wrong
+
+- NOT corrected: THE MACHINE'S, CARRIED. A held change's hold condition is not re-asked when its premise moves. Owner: SEAT_FINDING_A_HOLD_OR_A_TOMBSTONE_STATES_ITS_CONDITION_IN_PROSE_AND_NOTHING_RE_ASKS_IT. Readings before 08:20 are in docs/direction/decisions.jsonl and this file's git history. 08:20: Fixed on origin and not yet running. 56d7cf77b makes the brief list each held row whose atom is done. But delivery-seat lacks 56d7cf77b, because the shared checkout is 92 behind, and this brief carried no such list. It stays open until a brief shows one.
+- NOT corrected: THE MACHINE'S, CARRIED. One item can land twice, on origin through surgical_land and as a local commit on the shared HEAD. Owner: SEAT_FINDING_ONE_ITEM_LANDS_TWICE_AND_THE_SHARED_HEAD_FORKS_FROM_ORIGIN. Readings before 08:20 are in docs/direction/decisions.jsonl and this file's git history. 08:20: The loss risk is gone and the fork is not. All eight commits are on refs/preserved/shared-head-2026-10-15-* (git ls-remote, read 08:2x), and fe76a4f95 carried the cures' content to origin. The shared HEAD is now 8 ahead and 92 behind. So the fixes landed this stretch (56d7cf77b, 635919987, 6630966c5, 47e306b79) are inert in every daemon that imports them. Closing it is the interactive session's landing-headfork3 chain.
+- NOT corrected: THE MACHINE'S, CARRIED. The draw ledger reads the same for work never started and for work mid-landing, because it asks only origin by path. Readings before 08:20 are in docs/direction/decisions.jsonl and this file's git history. 08:20: LIVE. Nothing landed on it this stretch.
+- NOT corrected: THE MACHINE'S, CARRIED. A focus-row tombstone still retires a row without asking its DONE. Readings before 08:20 are in docs/direction/decisions.jsonl and this file's git history. 08:20: Fixed on origin and not yet running: 635919987 tombstones a focus row only when its DONE has evidence, and the daemons lack it. This stretch's three tombstones all had their DONE (03bc0e4f1+650fdcdd7, 15dab5ca9, and the preserved refs+fe76a4f95). That was luck, not the mechanism.
+- corrected: THE MACHINE'S, CARRIED. A landing can carry docs/direction/DIRECTION.yaml from the shared working copy when it is older than origin's. Readings before 08:20 are in docs/direction/decisions.jsonl and this file's git history. 08:20: CORRECTED for this instance. Origin's newest commit on the path is the seat's own 1c40d22de (the 05:22 record), and no later commit on origin touched it. If a landing carries an older copy again, the row reopens.
+- NOT corrected: THE MACHINE'S, CARRIED. A parked atom is still counted as drawn. H45 is PARKED and the counter still moves. Readings before 08:20 are in docs/direction/decisions.jsonl and this file's git history. 08:20: In flight, not landed. 7bfd6fea3 (a block_reason starting PARKED excludes the row from every draw) sits in /var/tmp/se-parked under the landing-parked3 chain. H45 is still in the drawn list at 2907.
+- NOT corrected: THE MACHINE'S, CARRIED. The coupled-triad gate now excludes twinless L3 targets, and its refusal reaches only the supervisor journal. Readings before 08:20 are in docs/direction/decisions.jsonl and this file's git history. 08:20: Unchanged. No refusal reached the brief.
+- NOT corrected: THE WORLD'S, CARRIED. A gas-heated fabric home's electricity has no season against SERL. Readings before 08:20 are in docs/direction/decisions.jsonl and this file's git history. 08:20: Unchanged, and nothing worked it. It blocks no supplier result in focus.
+- NOT corrected: THE MACHINE'S, CARRIED. The draw ledger credits or denies an item by path overlap, not by its work. Readings before 08:20 are in docs/direction/decisions.jsonl and this file's git history. 08:20: In flight. 46b16e84d (a commit confined to the seat's own record is never an item's landing) sits in /var/tmp/se-overlap under landing-overlap2, now 1h15m. That would clear the d1dd04cd5 misattribution. grade-regrade5-cut-and-save-on-writer-ones-basis reads not_done, but its work is the seed-61109 grade recorded in SEAT_FINDING_THE_UNIT_RATE_MARGIN_STILL_READS_ABOVE_ITS_TARGET_ON_FIXED_TERMS_2026-10-14.md.
+- NOT corrected: THE MACHINE'S, NEW. longjob-save-eight was declared at 50 minutes and has held its admission for 4h46m. Readings before 08:20 are in docs/direction/decisions.jsonl and this file's git history. 08:20: No overrun this stretch: writeoff-two-arm-61109 and stayers-control-at-4492d17bd both finished. 47e306b79 on origin makes a deferral name the overrun, which makes it visible but does not stop it, and sim-runner lacks it.
+- NOT corrected: THE MACHINE'S, NEW. A held estimate was netted at its draft amount when the next actual read caught up, so seven customer-years on the published book were credited for estimates never sent (PROS-2017-0336: -GBP 271.29 against GBP 789.74 truly owed). Readings before 08:20 are in docs/direction/decisions.jsonl and this file's git history. 08:20: Fixed in code, not yet in the published book. 650fdcdd7 is on origin: the catch-up reconciles a held estimate as billed nothing. Its pre-registration has not been graded, and the published ledger changes only at the 2026-10-19 04:00 publish. Focus two.
+- NOT corrected: THE MACHINE'S, NEW. The write-off two-arm run (longjob writeoff-two-arm-61109) is recorded as Result=success status=0, and it never graded. Both arms of /var/tmp/writeoff/run.log read 'no crisis-year (2022, 2023) data present' at a 0.0000% rate on a 12-founder book, so the pre-registered question was never asked. The launch register cannot tell a run that answered from a run whose grade had nothing to read. I have not read why the charge series is empty. A re-run (member2.py 61109, pid 2966791) is in hand by the seat's continuation.
+
+## Chosen against
+
+- E6's first slice and the swap of the published P&L bad-debt line to the company's IFRS 9 charge.
+- Fast-forwarding the shared checkout so the daemons load the fixes landed this stretch.
+- Weight on the W1_29 and L2.4 half-hourly texture work (two queued continuations, plus the fridge landing in flight).
+- B11's forward-CLV ranking against flat on held-back history.
+- Building the C34 shared-value price lever proposed in the open concern c34-now-ranks-next-best-action-on.
+- Diagnosing the save further, or running more save arms.
+
+## Focus for the next stretch
+
+- `b12-the-premise-lookback-reads-the-default-books-margin`
+- `the-held-estimate-fix-is-graded-against-its-pre-registration`
+
+---
+
 ## 2026-10-15 — orientation: Two supplier commits, no world commits and three other commits this stretch (2/0/3), plus one supplier merge after the brief
 
 <!-- head: 10e90b5c7488 -->

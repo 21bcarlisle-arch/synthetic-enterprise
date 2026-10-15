@@ -384,38 +384,22 @@ items:
     owner: docs/staging/reference/CLASS_UNCOMMITTED_AND_ORPHANED_WORK_2026-08-12.md
     reason: The orphaned-work class. Since 2026-10-12 the clear-the-decks reap archives every dead-owner
       worktree first (/var/tmp/worktree-archive-20261012, refs/preserved/worktree-archive/*).
-  - id: two-long-jobs-are-admitted-against-one-snapshot
-    problem: "Two long jobs launched together are both admitted against one memory snapshot, so together they exceed the budget either alone fits."
-    match: ["both admitted against one snapshot"]
-    first_seen: '2026-10-15'
-    fate: fix
-    status: open
-    owner: "docs/staging/SEAT_FINDING_TWO_LONG_JOBS_LAUNCHED_TOGETHER_ARE_BOTH_ADMITTED_AGAINST_ONE_SNAPSHOT_2026-10-14.md"
-  - id: a-run-phase2b-test-module-runs-twice-over-one-window
-    problem: "A run_phase2b test module runs the whole window twice where one shared trace would serve, doubling the gate's cost."
-    match: ["runs twice over one window"]
-    first_seen: '2026-10-15'
-    fate: fix
-    status: open
-    owner: "docs/staging/SEAT_FINDING_ONE_OTHER_RUN_PHASE2B_MODULE_RUNS_TWICE_OVER_ONE_WINDOW_2026-10-02.md"
-  - id: a-handoff-reads-unit-liveness-not-run-success
-    problem: "A long-job handoff treats a unit that ended as a leg that succeeded, so a chain carries on over refusals."
-    match: ["ended over three refusals"]
-    first_seen: '2026-10-15'
-    fate: fix
-    status: open
-    owner: "docs/staging/SEAT_FINDING_THE_QEP_ARMS_ARE_RE_TAKEN_AT_ORIGIN_AND_THE_LAST_HANDOFF_ENDED_OVER_THREE_REFUSALS_2026-10-04.md"
-  - id: the-term-loops-memory-scales-with-the-book
-    problem: "The term loop holds a per-term local whose memory scales with the accounts in the book."
-    match: ["memory that scales with accounts"]
-    first_seen: '2026-10-15'
-    fate: fix
-    status: open
-    owner: "docs/staging/SEAT_FINDING_THE_TERM_LOOPS_MEMORY_THAT_SCALES_WITH_ACCOUNTS_IN_THE_BOOK_2026-10-07.md"
-  - id: the-settlement-budget-is-sited-on-an-old-memory-curve
-    problem: "SETTLEMENT_CUSTOMER_YEAR_BUDGET is sited on a memory curve the re-take at current code has moved."
-    match: ["settlement ceiling curve"]
-    first_seen: '2026-10-15'
-    fate: fix
-    status: open
-    owner: "docs/staging/WORKER_FINDING_THE_SETTLEMENT_CEILING_CURVE_RETAKEN_AT_CURRENT_CODE_2026-10-08.md"
+  - id: a-standing-pace-instruction-is-not-re-asked-at-admission
+    problem: A queued handoff does not re-ask the director's standing instruction to admit only arms that test something
+      landing this week.
+    match:
+    - stop admitting new regrade or experiment arms
+    - re-ask a standing instruction
+    first_seen: '2026-10-13'
+    fate: accept
+    reason: Every admission since 2026-10-13 has honoured it by hand. The write-off arms test 81cede723 and B12's arm tests
+      B12, both of which land this week. A check at admission that re-asks his pace call would be a new gate on his path,
+      which the operating model calls a defect.
+  - id: a-long-job-chain-reads-a-refusal-artefact-as-a-finished-leg
+    problem: A hand-written long-job chain treats a refusal artefact as a finished leg.
+    match:
+    - REFUSAL artefact as a finished leg
+    first_seen: '2026-10-13'
+    fate: accept
+    reason: These chains are one-off /var/tmp scripts, the same class as a-hand-written-driver-is-not-checked-against-the-api.
+      None has run since 2026-10-13, and a checker for ad-hoc chains would cost more than every instance so far.
