@@ -2141,11 +2141,9 @@
     - tests/simulation/test_a_homes_always_on_load_is_drawn_from_efus.py
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a London street read off its smart meters: nearly half the homes calmer than 0.15 of their own mean between half-hours, a rough tail of small busy flats, and no two alike"
-  # EVIDENCE (2026-10-06): L1.1 is judged against 313 real LCL homes
-  # (docs/market_research/the_half_hourly_texture_of_real_homes_electricity_read_from_low_carbon_london.md).
-  # Since the per-home stock draw (`pt.owned_stock`, EFUS) the drawn 60 reads [0, 7, 29, 46] under the
-  # real p10/p25/median/p75 against [6, 15, 30, 45]; only the p10 leg is red. Exit: `test_MEASURED_population_values`
-  # sees L1.1 PASS, by a mechanism, never by widening a draw. Per-customer inference only beats flat where homes differ.
+  # EVIDENCE (2026-10-15, LCL texture doc): since the L2.4 coupling L1.1 fails on the drawn 60 (rough p75) and at
+  # n 240 on 1 of 2 seeds (calm); texture is set by size (r -0.67 vs LCL -0.32). Volume levers move L2.4 only.
+  # Exit: the strict xfail `test_a_world_homes_texture_is_no_more_set_by_its_size_than_a_real_homes` XPASSes by a mechanism.
 - id: SITE15_each_front_door_band_opens_into_one_l2_sheet
   title: "Each band of the front-door picture opens into one closer picture of that band, in the door's own visual grammar, carrying no statistics and no hand-typed state"
   notes_rehomed: [gain]

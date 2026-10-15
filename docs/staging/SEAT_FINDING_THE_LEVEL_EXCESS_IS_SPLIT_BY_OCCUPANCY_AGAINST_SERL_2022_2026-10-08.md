@@ -1,7 +1,8 @@
-**Severity:** RECORDED · **Lane:** W1_market_weather · **Epoch:** 4 · **Atom:** `unminted` · **Claim:** `land-the-dated-cooking-cut-and-find-the-unsourced-200`
+**Severity:** RECORDED · **Lane:** W1_market_weather · **Epoch:** 4 · **Atom:** `W2_30_per_household_half_hourly_electricity_and_seasonal_gas_shape` · **Claim:** `land-the-dated-cooking-cut-and-find-the-unsourced-200`
 
 # The gas-home level excess, split by occupancy against SERL 2022
 
+**Fate (2026-10-15):** ATOM -- folds into `W2_30_per_household_half_hourly_electricity_and_seasonal_gas_shape` (re-pointed 2026-10-15; an ATOM fate names its atom).
 **Fate (2026-10-12, clear-the-decks):** ATOM -- fit headcount from Census 2021 occupancy-by-bedrooms, then refit the per-person slope against SERL Figure_48 per-band medians, as a pair (P2)
 
 Delivery seat, 2026-10-08. Decided blind to company results: nothing below reads a company figure.

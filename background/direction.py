@@ -35,6 +35,7 @@ as it did before this module existed.
 """
 from __future__ import annotations
 
+import copy
 import json
 import re
 import sys
@@ -350,15 +351,37 @@ def validate(record) -> list[str]:
     return problems
 
 
+# Keyed on the TEXT, as `maturity_map_store._PARSE_CACHE` is: an edit is a miss by construction.
+# Only the parse is cached -- `validate` reads the map too, so it runs every call. Why it exists:
+# the record is ~130 KB and parses in ~0.27s, and every concurrent FRAME draw reads it through
+# `focus_weights`; 50 draws a test put `test_frame_saturation_draw_marker.py` at ~5s a test and
+# the operational-layer suite past its 1800s budget on 2026-10-14.
+_PARSE_CACHE: dict[str, object] = {}
+_PARSE_CACHE_MAX = 4
+_MISS = object()  # a cached record can itself be None (an empty file)
+
+
+def _parse_record(text: str):
+    cached = _PARSE_CACHE.get(text, _MISS)
+    if cached is not _MISS:
+        return copy.deepcopy(cached)
+    import yaml
+    record = yaml.safe_load(text)
+    if len(_PARSE_CACHE) >= _PARSE_CACHE_MAX:
+        _PARSE_CACHE.pop(next(iter(_PARSE_CACHE)))
+    _PARSE_CACHE[text] = copy.deepcopy(record)
+    return record
+
+
 def read_direction(path: Path | None = None) -> Direction | None:
     """The current direction, or None. NEVER RAISES -- see the module docstring on fail-soft."""
     path = DIRECTION_PATH if path is None else path
     try:
-        import yaml
+        import yaml  # noqa: F401
     except ImportError:
         return None
     try:
-        record = yaml.safe_load(path.read_text(encoding="utf-8"))
+        record = _parse_record(path.read_text(encoding="utf-8"))
     except Exception:
         # BREADTH IS THE POINT (see the fail-soft note above): a missing file, a permission
         # error and a YAML syntax error all mean the same thing to the draw -- no advice.

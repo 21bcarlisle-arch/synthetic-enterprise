@@ -2114,6 +2114,15 @@ class PaymentObservationConsumer:
                 memo=self.__dict__.setdefault("_roll_rate_memo", {}))
         return out
 
+    def write_off_closed_balances(self, on: dt.date) -> List[LedgerEvent]:
+        """Write off what each closed account still owes once its final bill is a year old
+        (`arrears_engine.closed_balance_write_offs`), reading this class's ledger as it stood on
+        `on`, and return the write-offs posted."""
+        from company.billing.arrears_engine import closed_balance_write_offs
+
+        return closed_balance_write_offs(
+            self.ledger_book, on, dt.datetime.combine(on, dt.time(23, 59)))
+
     def advance_collections_journey(
         self, account_id: str, through: dt.date, segment: str = "resi",
     ) -> None:

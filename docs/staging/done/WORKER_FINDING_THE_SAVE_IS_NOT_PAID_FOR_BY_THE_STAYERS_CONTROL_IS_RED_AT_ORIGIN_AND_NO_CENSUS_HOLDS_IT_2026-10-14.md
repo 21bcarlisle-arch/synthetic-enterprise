@@ -197,3 +197,16 @@ whole-loop simulation tests among them, and the box was loaded. The fix itself w
 `e0492757e`, where `simulation/run_phase2b.py` is still byte-identical to `f6e806b8f`. Because the gate does not select
 the control, it is re-run on its own at that base (`/var/tmp/stayers-land3/control.log`). That re-run's verdict is
 recorded beside this finding's move to `done/`.
+
+## Closed, 2026-10-15 (worker tick)
+
+The control was re-run on its own at **`4492d17bd`**, the merge that put `cc258be0a` on origin, in a clean worktree at that
+commit (`/var/tmp/se-stayers-land4`, unit `longjob-stayers-control-at-4492d17bd`, log `/var/tmp/stayers-land3/control.log`).
+It waited 7,125 s for the HEAD-green census to exit, then ran `tests/simulation/test_a_save_is_not_paid_for_by_the_stayers.py`:
+**8 passed in 1,637 s, EXIT=0**. Lines 76 and 95 are both green at the commit that actually landed, as they were in the
+one-variable run at `f6e806b8f`. The director's condition, that stayers never pay for a save, holds at origin again, and
+this finding no longer blocks lane B_commercial.
+
+What stays open: the commit gate still does not select this control for a `simulation/run_phase2b.py` change, so a
+regression arrives only through the HEAD-green census. The census suite selects it: the file is not in `HEAVY_IGNORES`. The value-arms
+re-take on the term-cost base can launch at `4492d17bd` or later.

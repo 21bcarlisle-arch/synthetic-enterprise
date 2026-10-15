@@ -1,7 +1,8 @@
-**Severity:** RECORDED · **Lane:** H_harness · **Epoch:** unassigned · **Atom:** `unminted`
+**Severity:** RECORDED · **Lane:** H_harness · **Epoch:** unassigned · **Atom:** `OPS7_provenance_stamps_on_live_pages`
 
 # A run's `producing_commit` names HEAD, not the bytes that ran, and its `resolved_at` is the stamping time
 
+**Fate (2026-10-15):** ATOM -- folds into `OPS7_provenance_stamps_on_live_pages` (re-pointed 2026-10-15; an ATOM fate names its atom).
 **Fate (2026-10-14):** ATOM -- harness, a cheap-fix candidate this week (deck group 7): `_run_identity_header` writes stamped_at into resolved_at.
 
 *Delivery seat, 2026-10-13 ~20:20Z, while waiting on the publish of `run_output_2248e3baf_20261013T134447Z.json`.*

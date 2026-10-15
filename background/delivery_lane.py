@@ -3276,6 +3276,26 @@ def release_refusal_reason(focus_id: str, *, path: Path | None = None) -> str:
         return f"the reason could not be derived ({exc.__class__.__name__}: {exc})"
 
 
+def focus_tombstone_refusal(focus_id: str, path: Path | None = None) -> str | None:
+    """Why a focus row may NOT be tombstoned yet, or None when its DONE has evidence.
+
+    A tombstone retires a focus row on the releasing tick's word alone, and nothing asked whether
+    the row's DONE was met (`a-tombstone-retires-a-row-without-checking-its-done`, listed 11 times).
+    A focus row states its DONE in prose, so the evidence asked for is the one the lane already
+    records: a landing bound to the id (`--landed`), or a premise recorded spent (`--premise-spent`).
+    Without either, the release still frees the claim, but the row stays offerable, so a row
+    released on a belief is drawn again rather than silently retired."""
+    try:
+        row = (claims_mod._load(_ledger_path(path or CLAIMS_FILE)) or {}).get(focus_id) or {}
+    except Exception as exc:  # noqa: BLE001 -- an unreadable ledger is not evidence
+        return f"the draw ledger could not be read ({exc}), so nothing shows its DONE is met"
+    if row.get("last_landing_at") or row.get(PREMISE_SPENT):
+        return None
+    return ("no landing is bound to it and no spent premise is recorded, so nothing shows its DONE "
+            f"is met. Bind the landing first (--landed {focus_id} --commit <sha>) or record "
+            f"--premise-spent {focus_id} <commit> <reason>, then release")
+
+
 def retire_continuation(focus_id: str, *, path: Path | None = None) -> bool:
     """Take a finished id OUT OF THE OFFER. Returns whether a live continuation was retired.
 
@@ -3337,6 +3357,8 @@ def retire_continuation(focus_id: str, *, path: Path | None = None) -> bool:
         # The offerable focus list is exactly the population that can be RE-DRAWN, which is the
         # only population a tombstone can save anything for.
         if any(i.get("id") == focus_id for i in direction_mod.unreachable_focus(_atom_ids())):
+            if focus_tombstone_refusal(focus_id):
+                return False
             return seat_continuation.retire_focus_row(
                 focus_id, orientation=orientation, path=path)
         return False
@@ -5670,6 +5692,10 @@ def main(argv=None) -> int:
         # shape is exactly the one the claim check refuses -- claimed at draw, swept at 100
         # minutes, finished afterwards -- and an early `return 1` there left the offer standing.
         retired = retire_continuation(args.release)
+        tomb_refusal = None if retired else focus_tombstone_refusal(args.release)
+        if tomb_refusal and any(i.get("id") == args.release
+                                for i in direction_mod.unreachable_focus(_atom_ids())):
+            print(f"did NOT tombstone the focus row {args.release}: {tomb_refusal}")
         if retired:
             # THE MESSAGE SAYS WHICH DISCHARGE HAPPENED, because the two are not the same fact and
             # `_retired_ids` objects to this repair on exactly that ground: a tombstone for a focus

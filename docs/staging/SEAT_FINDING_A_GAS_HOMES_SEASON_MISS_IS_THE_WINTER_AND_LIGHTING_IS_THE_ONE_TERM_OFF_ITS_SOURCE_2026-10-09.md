@@ -1,7 +1,8 @@
-**Severity:** LATENT · **Lane:** W1_market_weather · **Epoch:** 4 · **Atom:** `unminted` · **Claim:** `a-gas-homes-summer-electricity-level-against-serl-table-3`
+**Severity:** LATENT · **Lane:** W1_market_weather · **Epoch:** 4 · **Atom:** `W2_30_per_household_half_hourly_electricity_and_seasonal_gas_shape` · **Claim:** `a-gas-homes-summer-electricity-level-against-serl-table-3`
 
 # A gas home's season miss is now the winter, and lighting is the one end use off its source
 
+**Fate (2026-10-15):** ATOM -- folds into `W2_30_per_household_half_hourly_electricity_and_seasonal_gas_shape` (re-pointed 2026-10-15; an ATOM fate names its atom).
 **Fate (2026-10-12, clear-the-decks):** ATOM -- lighting-season pre-registered arms A (_DAYLIGHT_LIGHTING_SHARE=0) and B (ECUK top bracket) never landed; _DAYLIGHT_LIGHTING_SHARE still 0.19 (P2)
 
 ## The premise was re-measured first, and it is spent

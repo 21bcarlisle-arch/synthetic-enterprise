@@ -375,6 +375,48 @@ def imports_off_commit_at_launch(head: str) -> dict:
                 "unavailable_because": f"the reading raised {type(exc).__name__}: {exc}"}
 
 
+def commit_on_origin(commit: str, root: Path | None = None) -> bool | None:
+    """True when `commit` is an ancestor of origin/main, False when it is not, None when git cannot
+    say (an unknown commit, no origin ref). Reads the ref as it stands; the reconciler fetches."""
+    try:
+        rc = subprocess.run(["git", "merge-base", "--is-ancestor", commit, "origin/main"],
+                            cwd=str(root or PROJECT_DIR), capture_output=True, timeout=30).returncode
+    except Exception:  # noqa: BLE001 -- cannot tell is its own answer
+        return None
+    return True if rc == 0 else False if rc == 1 else None
+
+
+def code_admission(head: str | None = None, *, off_commit: dict | None = None,
+                   on_origin: bool | None = ...) -> dict:
+    """May a run start on the code this tree would import? Only if that code is origin's.
+
+    c701d8605 made the publisher refuse a run whose imported bytes were not its stamped commit's,
+    but the run still ran, and a stamp can be clean against a commit origin never received: on
+    2026-10-15 the shared HEAD carried eight local commits origin lacked, so every run imported
+    code that is on no published history while reading clean against its own stamp. So the
+    cycle defers, naming why, until the shared tree's code is origin's -- the same yield as
+    `cycle_admission`, never a failed run. Prose-only differences (unchanged AST) still pass.
+    """
+    head = head or _git_head()
+    off = off_commit if off_commit is not None else imports_off_commit_at_launch(head)
+    verdict = commit_on_origin(head) if on_origin is ... else on_origin
+    reasons = []
+    if off.get("paths"):
+        reasons.append("{} imported file(s) are not {}'s bytes: {}".format(
+            len(off["paths"]), head, ", ".join(off["paths"])))
+    elif off.get("paths") is None:
+        reasons.append("the import closure could not be read against {} ({})".format(
+            head, off.get("unavailable_because") or "no reason given"))
+    if verdict is False:
+        reasons.append("{} is not on origin/main -- the shared tree holds commits origin lacks".format(head))
+    elif verdict is None:
+        reasons.append("cannot tell whether {} is on origin/main".format(head))
+    if reasons:
+        log("DEFERRED this cycle -- the code a run would import is not origin's: " + "; ".join(reasons))
+        return {"admitted": False, "reason": "; ".join(reasons)}
+    return {"admitted": True, "reason": None}
+
+
 def run_simulation() -> bool:
     """Run one full simulation. Returns True on success."""
     ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
@@ -847,6 +889,9 @@ def main() -> None:
             time.sleep(120)
             continue
         if not cycle_admission()["admitted"]:
+            time.sleep(DEFERRAL_RETRY_SECONDS)
+            continue
+        if not code_admission()["admitted"]:
             time.sleep(DEFERRAL_RETRY_SECONDS)
             continue
         try:

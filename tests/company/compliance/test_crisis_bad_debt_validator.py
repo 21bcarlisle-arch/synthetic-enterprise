@@ -104,11 +104,30 @@ def test_extract_both_bases_from_run_output():
     run = _published_run_or_skip()
     head_bd, head_rev = extract_series_from_run_output(run, "headline")
     pnl_bd, pnl_rev = extract_series_from_run_output(run, "pnl_accrual")
-    # Both bases must yield the crisis years.
-    assert all(y in head_bd and y in pnl_bd for y in CRISIS_YEARS)
+    charge_bd, _ = extract_series_from_run_output(run, "ifrs9_charge")
+    # Every basis must yield the crisis years, else its strict xfail holds on an empty series.
+    assert all(y in head_bd and y in pnl_bd and y in charge_bd for y in CRISIS_YEARS)
     # The two bases are genuinely different representations (this IS the
     # separately-registered multiple-basis ambiguity).
     assert head_bd[2022] != pnl_bd[2022]
+
+
+def test_the_ifrs9_charge_is_the_stock_movement_plus_write_offs_defect_the_stock_read_as_the_charge():
+    stock = {"2016-12-31": {"provision_gbp": 10.0}, "2017-12-31": {"provision_gbp": 25.0},
+             "2019-12-31": {"provision_gbp": 40.0, "written_off_to_date_gbp": 0.0},
+             "2020-12-31": {"provision_gbp": 30.0, "written_off_to_date_gbp": 15.0},
+             "2020-06-30": {"provision_gbp": 999.0}}
+    run = {"company_provision": {"by_date": stock},
+           "management_accounts": {str(y): {"income_statement": {"revenue_gbp": 100.0}}
+                                   for y in (2016, 2017, 2018, 2019, 2020)}}
+    bd, rev = extract_series_from_run_output(run, "ifrs9_charge")
+    # 2016 opens from zero; 2019 has no 2018 stock to move from, so it is left out, not charged 40;
+    # 2020's stock FALLS by 10 while 15 is written off, so the charge is +5, not -10.
+    assert bd == {2016: 10.0, 2017: 15.0, 2020: 5.0}
+    assert set(rev) == set(bd)
+    assert extract_series_from_run_output({"company_provision": {"unavailable_because": "x"},
+                                           "management_accounts": run["management_accounts"]},
+                                          "ifrs9_charge") == ({}, {})
 
 
 # --- 2. Live-data expected-failure: documents the currently-real gap ---
@@ -140,8 +159,15 @@ def test_extract_both_bases_from_run_output():
 # real record's write-offs did not step up in share either: Centrica wrote off GBP 58m, 93m and 113m
 # in 2021-23 while revenue roughly doubled, and the charge rose through provisions, not write-offs.
 # So the headline leg is graded against an anchor that describes a different quantity; its XPASS
-# would itself be a fidelity question. The P&L accrual leg is the real gap: the real charge carries
-# the provision movement in the year the arrears build, and ours dips in 2022.
+# would itself be a fidelity question. The P&L accrual leg is not a charge at all (traced
+# 2026-10-15): it is 2% of every issued bill booked 30+ days later, so its 2022 dip is timing.
+#
+# THE IFRS 9 CHARGE (2026-10-15) is the movement in the company's own provision stock, plus
+# write-offs (none are posted today), less recoveries: Ofgem Debt-related costs App. 2 para 3.14.
+# On the committed run it has the real shape, 2021 low (0.08%) and 2022 high (0.18%, x2.3), at
+# about a tenth of the real level: 0.13% in 2022-23 against 0.12% in 2016-19, x1.12. It fails the
+# floor and the step-up, as pre-registered. The 2016-19 baseline is inflated by the stock filling
+# from zero as the book was built, which is not credit.
 _REARMED = ("the published run's crisis-years bad-debt share does not step up on this basis "
             "(2026-10-15, window 2022-23): P&L accrual x1.02, headline x0.57")
 _WRITE_OFFS = ("the headline basis is write-offs, and the real record's write-offs did not step up "
@@ -157,6 +183,16 @@ def test_live_run_output_shows_crisis_step_up_headline():
 @pytest.mark.xfail(strict=True, reason=_REARMED)
 def test_live_run_output_shows_crisis_step_up_pnl_accrual():
     result = validate_run_output(_published_run_or_skip(), "pnl_accrual")
+    assert result.passed, result.summary()
+
+
+_TENTH_OF_REAL = ("the company's IFRS 9 charge has the real shape but about a tenth of the real "
+                  "level (2026-10-15): 0.13% of revenue in 2022-23, x1.12 on 2016-19")
+
+
+@pytest.mark.xfail(strict=True, reason=_TENTH_OF_REAL)
+def test_live_run_output_shows_crisis_step_up_ifrs9_charge():
+    result = validate_run_output(_published_run_or_skip(), "ifrs9_charge")
     assert result.passed, result.summary()
 
 

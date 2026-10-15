@@ -52,6 +52,7 @@ from typing import Dict, List, Optional, Sequence
 
 from company.billing.account_ledger import (
     AccountLedger,
+    LedgerBook,
     LedgerEvent,
     LedgerEventType,
 )
@@ -186,7 +187,11 @@ def fifo_unpaid_bills(
     """
     # The ledger's replay order is (valid_time, event_id), so its prefix to `as_of` is already
     # the bills in FIFO order and the credits in the order the sum below has always taken them.
-    events = ledger.events_through(as_of)
+    return _fifo_unpaid(ledger.events_through(as_of))
+
+
+def _fifo_unpaid(events: Sequence[LedgerEvent]) -> List[tuple]:
+    """`fifo_unpaid_bills` over an event list already in replay order."""
     bills = [e for e in events if e.event_type == LedgerEventType.BILL_DEBIT]
     # Total credit magnitude available to appropriate against bills, oldest-first.
     credit = round(sum(e.amount_gbp for e in events if not e.event_type.is_debit), 2)
@@ -929,6 +934,63 @@ def build_write_off_event(
     # a silent status flip can never leave this factory unaudited.
     assert_write_off_audited(event)
     return event
+
+
+#: Days after a closed account's final bill at which the company writes off what is still unpaid.
+#: A labelled CONVENTION, not an estimate: no supplier publishes the close-to-write-off clock (C4;
+#: Ofgem App. 2 Dec 2024 s.2.22). It is the far end of Centrica's published default range ("six to
+#: twelve months from the issuance of a final bill"), and a write-off follows default. The bounds
+#: are 182 days and the six-year statute bar. The choice moves the charge very little: closed debt
+#: over 90 days is already provisioned at 87.8%, so a write-off adds only the other 12.2% of its face
+#: (`docs/market_research/bad_debt_provisioning.md`, section "When the company writes off its own
+#: closed-account debt", 2026-10-15). Live arrears are never written off on a clock.
+CLOSED_ACCOUNT_WRITE_OFF_AFTER_FINAL_BILL_DAYS = 365
+
+
+def closed_balance_write_offs(
+    book: LedgerBook,
+    on: dt.date,
+    transaction_time: dt.datetime,
+    after_final_bill_days: int = CLOSED_ACCOUNT_WRITE_OFF_AFTER_FINAL_BILL_DAYS,
+) -> List[LedgerEvent]:
+    """Write off, dated `on`, the unpaid balance of every account whose final bill is at least
+    `after_final_bill_days` old, and return what was posted. The account counts as closed because it
+    has not been billed since then. It is read off the company's own ledger, as the ledger stood on
+    `on`: an event dated by then but recorded later (a late-crossing settlement) is not seen, so a
+    sweep run after the fact decides exactly what a sweep on the day would have. Idempotent: a
+    written-off account owes nothing, so a second sweep posts nothing."""
+    posted: List[LedgerEvent] = []
+    for account in book.accounts():
+        ledger = book.ledger(account)
+        events = [e for e in ledger.events_through(on) if e.transaction_time.date() <= on]
+        bills = [e.valid_time for e in events if e.event_type == LedgerEventType.BILL_DEBIT]
+        if not bills or (on - max(bills)).days < after_final_bill_days:
+            continue
+        owed = round(sum(g for _d, g in _fifo_unpaid(events)), 2)
+        if owed <= 0.005:
+            continue
+        event = build_write_off_event(
+            account, owed, WriteOffReason.UNECONOMIC_TO_PURSUE, on, transaction_time,
+            note=f"closed-account balance unpaid {(on - max(bills)).days} days after the final "
+                 f"bill of {max(bills).isoformat()}")
+        if book.post(event):
+            posted.append(event)
+    return posted
+
+
+def written_off_and_recovered(ledger: AccountLedger, on: dt.date) -> tuple:
+    """`(GBP written off, GBP recovered)` on this account through `on`. A recovery is cash RECORDED
+    after a write-off was, up to the amount written off so far, so the order is transaction time.
+    NAMED SIMPLIFICATION: cash that pays a bill raised after the write-off (a reopened account) is
+    also counted, so the recovery can only be overstated. Done properly, cash would be matched to
+    the written-off invoices."""
+    written_off = recovered = 0.0
+    for e in sorted(ledger.events_through(on), key=lambda e: (e.transaction_time, e.event_id)):
+        if e.event_type == LedgerEventType.WRITE_OFF_CREDIT:
+            written_off += e.amount_gbp
+        elif e.event_type == LedgerEventType.PAYMENT_CREDIT and written_off > recovered:
+            recovered += min(e.amount_gbp, written_off - recovered)
+    return round(written_off, 2), round(recovered, 2)
 
 
 # ---------------------------------------------------------------------------

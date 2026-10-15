@@ -200,7 +200,7 @@ def traces(weather):
             # matched pair that owned different appliances would not be matched. The
             # world is judged on the drawn 60 (`drawn_traces`), which draws its stock.
             # The cooking fuel (2026-10-08) is held with it: all-electric, the old electricity.
-            owned=pt.FULL_STOCK, standby_kw=pt.UNIFORM_STANDBY_KW, cooked_on_gas=frozenset(),
+            owned=pt.FULL_STOCK, standby_kw=pt.UNIFORM_STANDBY_KW, cooked_on_gas=frozenset(), active_use=1.0,
         )
         for spec in POPULATION
     ]
@@ -655,7 +655,7 @@ def test_MEASURED_population_values(population, population_result):
     # 5-6 kW from one plug-in heater on a cold day. P0023 0.1056 -> 0.1347
     # (pre-registered 0.12-0.16, held). It is still the calmest home.
     texture = population_result.cell(fgl.TEXTURE_STATISTIC)
-    assert texture.verdict is fgl.Verdict.PASS, texture.note  # since 2026-10-08, see below
+    assert texture.verdict is fgl.Verdict.FAIL, texture.note  # PASS 2026-10-08 to 10-15, see below
     assert texture.homes_judged == 60 and texture.homes_unjudged == 0, texture.note
     legs = {leg.q: leg for leg in texture.quantiles}
     #
@@ -715,7 +715,13 @@ def test_MEASURED_population_values(population, population_result):
     # 440-441's hours, not uniformly 16:00-21:30. Oven alone [3, 13, 26, 44], hob alone [3, 14, 26, 44].
     # A weighted start consumes the day's substream differently from a uniform one, so every later
     # appliance's start reshuffles too: timing and RNG together. Not predicted.
-    assert [legs[q].below for q in (0.10, 0.25, 0.50, 0.75)] == [3, 14, 27, 44], texture.note
+    # [3, 14, 27, 44] -> [6, 13, 27, 35] on 2026-10-15, and the cell is RED again on the ROUGH side:
+    # 35 under the real p75 where 45 are expected (p 0.007). A home's active use now rides with its
+    # always-on load (`pt.active_use_multiplier`, L2.4), so a small-base home is busier for its base.
+    # The p10 leg lands on expected (6). At n 240 the same build reads [25, 76, 129, 182] (seed 17,
+    # PASS) and [25, 79, 137, 179] (18, FAIL on the calm side), so the p75 leg sits on expected
+    # there: this red is the 60's draw. Pre-registered for L2.4, not for this cell.
+    assert [legs[q].below for q in (0.10, 0.25, 0.50, 0.75)] == [6, 13, 27, 35], texture.note
     # THIS PASS IS ONE 60-HOME DRAW, NOT THE WORLD'S (2026-10-13, W1_29). The same cell over 240
     # homes at origin e4595810a: seed 17 [17, 73, 134, 197], 18 [17, 81, 142, 196], 19 [16, 74,
     # 133, 196], 23 [16, 79, 141, 194] against expected [24, 60, 120, 180]. Red on seeds 17, 18
@@ -726,9 +732,10 @@ def test_MEASURED_population_values(population, population_result):
     # 0.142 -> 0.153 with electronics at its 2022 level (real 0.158).
     # 0.153 -> 0.168 on 2026-10-09, the census headcount (above).
     # 0.168 -> 0.159 the same day, the headcount given the dwelling's bedrooms (real 0.158).
-    assert legs[0.50].world == pytest.approx(0.159, abs=0.005), texture.note
+    # 0.159 -> 0.171 on 2026-10-15, active use riding with the always-on load (above).
+    assert legs[0.50].world == pytest.approx(0.171, abs=0.005), texture.note
     red = [q for q, leg in legs.items() if leg.p * len(legs) < fgl.TEXTURE_DISTRIBUTION_ALPHA]
-    assert red == [], texture.note
+    assert red == [0.75], texture.note
     # The calmest home was a gas home with a 364 W always-on load and no heater, no longer the
     # heater owner P0023.
     # 0.0611 -> 0.0621 with electronics at its 2022 level (2026-10-08); still P0018.
@@ -746,8 +753,11 @@ def test_MEASURED_population_values(population, population_result):
     # (0.06482). Both: P0033 0.06521 against P0018 0.06528, so the strict xfail below is open again.
     # P0033 0.0652 -> P0018 0.0647 the same day: oven and hob on HES's hours (each alone 0.06468,
     # P0018). The calmest home is a gas home again, and the xfail below passes again.
-    assert texture.worst_home == "P0018", texture.note
-    assert texture.worst_value == pytest.approx(0.0647, abs=5e-4), texture.note
+    # P0018 0.0647 -> P0033 0.0556 on 2026-10-15: active use rides with the always-on load. P0033
+    # (electric storage, 331 W, active use x2.49) is calmer net of its water heater than with it, so
+    # the H38 legs it breaks are strict xfails: see `_P0033_NETTING_REASON`.
+    assert texture.worst_home == "P0033", texture.note
+    assert texture.worst_value == pytest.approx(0.0556, abs=5e-4), texture.note
     # NOBODY WAS EXCLUDED TO GET HERE. All 60 homes are judged on every anchored
     # cell — the electrically heated ones included — which is the difference
     # between netting a component out of a statistic and dropping the homes that
@@ -765,9 +775,10 @@ def test_MEASURED_population_values(population, population_result):
     # as the census conditional, 2.00 -> 1.96). Re-pinned rather than loosened, so
     # the regress stays visible: composition made more faithful NARROWED the
     # spread, which says the missing 2.5x is not in who lives there.
-    # L1.1 left this set on 2026-10-08 (the cooking-fuel draw); see the texture block above.
+    # L1.1 left this set on 2026-10-08 (the cooking-fuel draw) and rejoined it on 2026-10-15; see
+    # the texture block above.
     assert {c.statistic for c in population_result.failed} == {
-        "L2.4_scale_spread_p90_p10",
+        "L1.1_half_hourly_texture", "L2.4_scale_spread_p90_p10",
     }, population_result.summary()
     #
     # 1.96 -> 1.93 on 2026-10-06: the heater's anchor 1,505 -> 656 kWh/yr took about
@@ -795,7 +806,10 @@ def test_MEASURED_population_values(population, population_result):
     # the large homes to the small, so the spread narrows. Further from 4.88.
     # 2.99 -> 2.82 the same day: oven, hob, toaster and microwave off headcount, the same direction.
     # 2.82 -> 2.88 the same day: the headcount drawn given the dwelling's bedrooms (Census RM136).
-    assert spread.value == pytest.approx(2.88, abs=0.05), spread.note
+    # 2.88 -> 4.12 on 2026-10-15: a home's active use rides with its always-on load, at the slope
+    # Low Carbon London's homes show (`pt.active_use_multiplier`). Still red against 4.88: beta was
+    # measured, not raised to clear the floor. Two seeds of 240 read 4.57 and 5.05.
+    assert spread.value == pytest.approx(4.12, abs=0.05), spread.note
     assert not population_result.inconclusive, population_result.summary()
     # 0.4386 -> 0.4511 on 2026-10-06: the boiler pump repeats with the heating, so
     # it raises a gas home's day-to-day shape correlation a little. Still a GAS home.
@@ -825,7 +839,10 @@ def test_MEASURED_population_values(population, population_result):
     # argument above predicts a RISE, so the fall is not that mechanism; the electronics chain
     # follows occupancy, which repeats day to day, so it carried shape. Not predicted; unread.
     shape = population_result.cell("L1.2_day_to_day_shape_correlation")
-    assert shape.worst_home == "P0023", shape.note
+    # P0023 0.530 -> P0046 0.587 on 2026-10-15, a gas home with a 652 W always-on load: active use
+    # rides with that load (x3.4), and its occupancy-led lighting and screens repeat day to day.
+    # Still a gas home, still under the 0.6 band, by 0.013.
+    assert shape.worst_home == "P0046", shape.note
     # 0.4572 -> 0.555 on 2026-10-09, still P0023 (band 0.6): the drawn 60 on the book's census
     # headcount. More repeatable day to day, which fewer occupants predicts. Not pre-registered.
     # 0.555 -> 0.527 the same day, still P0023: the microwave's use count 0.8 -> 1.70 a day. Its
@@ -838,7 +855,7 @@ def test_MEASURED_population_values(population, population_result):
     # there. Still under the 0.6 band. Not predicted.
     # 0.563 -> 0.530 the same day, still P0023: oven and hob on HES's hours (hob alone 0.499; oven
     # alone inside 0.563 +/- 0.01). The reverse of the dishwasher's move. Not predicted.
-    assert shape.worst_value == pytest.approx(0.530, abs=0.01), shape.note
+    assert shape.worst_value == pytest.approx(0.587, abs=0.01), shape.note
     assert "gas" in population.heating_systems[
         population.homes.index(shape.worst_home)
     ], "the worst home is a GAS home"
@@ -859,8 +876,10 @@ def test_P0000_the_calmest_home_is_ORDINARY_against_real_homes_and_the_red_is_th
     a record, and the red is the population's shape.
     """
     cell = population_result.cell(fgl.TEXTURE_STATISTIC)
-    # The cell has PASSED since 2026-10-08 (the cooking-fuel draw), so it is not red at all.
-    assert cell.verdict is fgl.Verdict.PASS, cell.note
+    # The cell PASSED from 2026-10-08 (the cooking-fuel draw) to 2026-10-15, when it went red on
+    # the ROUGH side of the real p75 (active use riding with the always-on load). The red is still
+    # the population's shape, not the calmest home.
+    assert cell.verdict is fgl.Verdict.FAIL, cell.note
 
     readings = {}
     for trace in drawn_traces:
@@ -923,8 +942,9 @@ def test_P0000_the_calmest_home_is_ORDINARY_against_real_homes_and_the_red_is_th
     # 16 -> 15 the same day (oven and hob at their 2022 energy); the property still holds.
     # 15 -> 13 on 2026-10-09 (headcount given the dwelling's bedrooms); the property still holds.
     # 13 -> 14 the same day (oven and hob on HES's hours; P0054 joins, from the hob's move alone).
+    # 14 -> 13 on 2026-10-15 (active use riding with the always-on load); the property still holds.
     calm = {pid for pid, r in readings.items() if r[0] < REAL_P25}
-    assert len(calm) == 14, sorted(calm)
+    assert len(calm) == 13, sorted(calm)
     with_freezer = {pid for pid in calm if "freezer" in stock[pid]}
     assert with_freezer, "no calm home owns a freezer, so the property below is vacuous"
     assert all(pt.always_on_kw(seeds[pid]) > pt._ALWAYS_ON_MEDIAN_KW for pid in with_freezer)
@@ -943,7 +963,9 @@ def test_P0000_the_calmest_home_is_ORDINARY_against_real_homes_and_the_red_is_th
     # 0.2139 -> 0.1980 the same day: P0000's headcount drawn given its bedrooms (Census RM136).
     # 0.1980 -> 0.1998 the same day: the dishwasher on HES's hours (0.1991 alone) and lighting in
     # daylight at CAR's share (0.1996 alone).
-    assert live == pytest.approx(0.1998, abs=5e-4)
+    # 0.1998 -> 0.2127 on 2026-10-15: P0000's 57 W always-on gives it x0.73 active use, and a
+    # smaller active load over the same base steps more for its mean.
+    assert live == pytest.approx(0.2127, abs=5e-4)
     assert net_of_pump > live
     # ORDINARY: inside the real middle half, with or without its pump. Keyed to REAL_MEDIAN as
     # the upper edge until 2026-10-08, when electronics at its 2022 level took P0000 to 0.1589,
@@ -956,12 +978,31 @@ def test_P0000_the_calmest_home_is_ORDINARY_against_real_homes_and_the_red_is_th
     # heater) and the red leg is p75: the world is too calm through its upper half.
     # Since the cooking-fuel draw (2026-10-08) no leg is red net of the heater either: the p75
     # leg that was the population's red reads adjusted p 0.36. The heater is not what passes it.
+    # Since 2026-10-15 the live cell is red on the rough side of p75, and net of the heater the same
+    # leg, and only it, is red (34 under, adjusted p 0.012): the heater does not make the red either.
     net = [r[5] for r in readings.values()]
     legs = fgl.texture_distribution_legs(net)
     assert [leg.q for leg in legs] == [0.10, 0.25, 0.50, 0.75]
-    assert all(leg.p * len(legs) >= fgl.TEXTURE_DISTRIBUTION_ALPHA for leg in legs)
+    red_net = [leg.q for leg in legs if leg.p * len(legs) < fgl.TEXTURE_DISTRIBUTION_ALPHA]
+    red_live = [leg.q for leg in cell.quantiles if leg.p * len(legs) < fgl.TEXTURE_DISTRIBUTION_ALPHA]
+    assert red_net == red_live, (red_net, red_live)
 
 
+#: Why three H38 legs are strict xfails since 2026-10-15. A home's active use now rides with its
+#: always-on load (`pt.active_use_multiplier`, L2.4). P0033 (electric storage, five people, 331 W
+#: always-on) carries x2.49 active use, and on it the water heater now ADDS texture: net of space
+#: heat 0.0869, net of both 0.0556, calmer than the calmest gas home (P0046, 0.0589). Held at
+#: `active_use=1.0` it reads 0.0519 -> 0.0651 as H38 says. P0008 and P0020 still behave as H38
+#: says. Open: whether that is P0033's storage water heating meeting a large active load, or the
+#: coupling being too strong for an electrically heated home. Filed in
+#: docs/staging/SEAT_FINDING_AN_ELECTRIC_HOMES_WATER_HEATER_ADDS_TEXTURE_UNDER_THE_ACTIVE_USE_COUPLING_2026-10-15.md.
+_P0033_NETTING_REASON = (
+    "P0033's water heater adds texture once its active use rides with its 331 W always-on load "
+    "(x2.49): net of both machines it is calmer than every gas home. See _P0033_NETTING_REASON."
+)
+
+
+@pytest.mark.xfail(strict=True, reason=_P0033_NETTING_REASON)
 def test_the_L1_1_BREACH_WAS_the_WATER_HEATER_and_the_LOAD_SET_CLOSED_IT(
     drawn_traces, population, population_result
 ):
@@ -1109,7 +1150,9 @@ def test_the_WATER_HEATER_netting_is_a_LOAD_SET_repair_and_not_a_LOOSENING(
     # 0.563 -> 0.602 on 2026-10-09, the drawn 60 on the book's census headcount instead of the deleted bedrooms fallback.
     # 0.602 -> 0.575 the same day: the headcount drawn given the dwelling's bedrooms. Same
     # direction for every gas home; the band means the same.
-    assert gas_median == pytest.approx(0.575, abs=0.02)
+    # 0.575 -> 0.631 on 2026-10-15: active use rides with the always-on load, so a large-base gas
+    # home carries more behaviour above it, and more must be lost. Same mechanism for every gas home.
+    assert gas_median == pytest.approx(0.631, abs=0.02)
 
     # BEFORE: an electrically heated home fired at a fraction of the breakage a gas
     # home needed — P0008 at 0.0000 was already under the floor untouched.
@@ -1150,6 +1193,7 @@ def test_the_WATER_HEATER_netting_is_a_LOAD_SET_repair_and_not_a_LOOSENING(
         )
 
 
+@pytest.mark.xfail(strict=True, reason=_P0033_NETTING_REASON)
 def test_net_of_both_machines_no_electric_home_is_calmer_than_every_gas_home(
     drawn_traces, population_result, water_heat_parity
 ):
@@ -1359,6 +1403,7 @@ def test_HALF_a_split_is_NOT_a_split_and_the_WHOLE_meter_is_JUDGED(population, m
         assert strict.verdict is not fgl.Verdict.PASS, strict.note
 
 
+@pytest.mark.xfail(strict=True, reason=_P0033_NETTING_REASON)
 def test_the_REPAIR_ITSELF_fires_its_own_named_defect(population):
     """R15 for H38 as a whole: put the water heater back and the cell must read
     the homes it was about differently.
@@ -2867,7 +2912,9 @@ def test_L1_1n_CAN_PASS_and_is_not_a_control_that_can_only_fail(population_resul
     # alone gives P0040 1.077, hob alone P0040 0.977 (1 of 60 below 1.0). A weighted start draws the
     # day's substream differently from a uniform one, so the later appliances' starts reshuffle and
     # the tail home changes. 0 of 60 violate.
-    assert cell.worst_value == pytest.approx(1.337, abs=0.005), cell.note
+    # 1.337 -> 1.103 on 2026-10-15, worst now P0049: active use rides with the always-on load, so a
+    # small-base home does less above its flat day. 0 of 60 violate.
+    assert cell.worst_value == pytest.approx(1.103, abs=0.005), cell.note
     assert cell.homes_violating / cell.homes_judged <= fgl.RATE_BANDS[
         fgl.TEXTURE_NULL_RATIO_STATISTIC].threshold, cell.note
 
@@ -3161,7 +3208,7 @@ def _regenerated_result(monkeypatch, weather, **patches):
                 spec[0], _household(*spec), seed=7, people_count=spec[5]
             ),
             latitude_deg=fp.latitude_for_weather_site("C1"),
-            owned=pt.FULL_STOCK, standby_kw=pt.UNIFORM_STANDBY_KW, cooked_on_gas=frozenset(),
+            owned=pt.FULL_STOCK, standby_kw=pt.UNIFORM_STANDBY_KW, cooked_on_gas=frozenset(), active_use=1.0,
         )
         for spec in POPULATION
     ]
@@ -4143,7 +4190,7 @@ def matched_pair(weather):
                 premise_id, _matched_household(premise_id, heating), seed=7, people_count=3
             ),
             latitude_deg=fp.latitude_for_weather_site("C1"),
-            owned=pt.FULL_STOCK, standby_kw=pt.UNIFORM_STANDBY_KW, cooked_on_gas=frozenset(),
+            owned=pt.FULL_STOCK, standby_kw=pt.UNIFORM_STANDBY_KW, cooked_on_gas=frozenset(), active_use=1.0,
         )
         for premise_id, heating in (
             ("HP1", HeatingSystem.HEAT_PUMP_AIR),
@@ -4834,7 +4881,11 @@ def test_the_goal_seek_warning_needs_a_PREVALENCE_not_a_single_home(population_r
     #
     # GREEN AGAIN 2026-10-08 (the cooking-fuel draw, `pt.gas_cooked`), and asserted so. The
     # arms below still set texture to PASS explicitly, which now matches the live cell.
-    assert population_result.cell(fgl.TEXTURE_STATISTIC).verdict is fgl.Verdict.PASS
+    #
+    # RED AGAIN 2026-10-15 on the 60 (active use riding with the always-on load, rough side of p75).
+    # The arms below set texture to PASS explicitly, so the warning is exercised on a synthetic
+    # texture arm, and the live cell is asserted RED so this note cannot outlive the breach unread.
+    assert population_result.cell(fgl.TEXTURE_STATISTIC).verdict is fgl.Verdict.FAIL
 
     def with_structural(value: float, verdict: fgl.Verdict) -> fgl.TwoLevelResult:
         def rewrite(c):
@@ -4904,7 +4955,7 @@ def matched_regimes(weather):
                 premise_id, _matched_household(premise_id, heating), seed=7, people_count=3
             ),
             latitude_deg=fp.latitude_for_weather_site("C1"),
-            owned=pt.FULL_STOCK, standby_kw=pt.UNIFORM_STANDBY_KW, cooked_on_gas=frozenset(),
+            owned=pt.FULL_STOCK, standby_kw=pt.UNIFORM_STANDBY_KW, cooked_on_gas=frozenset(), active_use=1.0,
         )
         for premise_id, heating, _ in REGIME_FIXTURES
     }

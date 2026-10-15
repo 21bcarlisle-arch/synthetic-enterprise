@@ -1,7 +1,8 @@
-**Severity:** RECORDED · **Lane:** B_commercial · **Epoch:** unassigned · **Atom:** `unminted`
+**Severity:** RECORDED · **Lane:** B_commercial · **Epoch:** unassigned · **Atom:** `B12_writer_one_reads_its_margin_on_the_unit_rate_so_a_renewal_floor_is_its_true_unit_cost`
 
 # The price-match save ran without predictions, offered 2 of 23 held invitations, and on net we cannot yet tell
 
+**Fate (2026-10-15):** ATOM -- folds into `B12_writer_one_reads_its_margin_on_the_unit_rate_so_a_renewal_floor_is_its_true_unit_cost` (re-pointed 2026-10-15; an ATOM fate names its atom).
 **Fate (2026-10-12, clear-the-decks):** ATOM -- re-run the reactive-save on/off pair with predictions filed before compare.json is written (P2)
 
 *Worker, 2026-10-10 ~12:40. Direction item `the-reactive-save-on-the-loss-notice-is-live-in-the-run`.

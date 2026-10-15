@@ -106,6 +106,8 @@ figures use.
 | 20,000 | 34% | 6,813 | 6,816 |
 | **120,000** | **7.4%** | **8,820** | **8,822** |
 
+*Corrected beside the table, 2026-10-15: these N were measured with `seasonal_swing` still among the axes, an invented duplicate of weather sensitivity (|r| = 1.0000) that origin removed in ac3612a6f on 2026-10-14. The re-measure without it is W2_29's parked step for next week. Until then these figures are the duplicate's, not the six real axes'.*
+
 **Two households in 8,822.** The null holds, and it holds where the sample is a genuine compression
 of the population rather than a third of it. The mechanism stands: a driver moves households inside
 a shape the acceptance test already reproduces, and only what the sample is scored on can move the

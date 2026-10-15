@@ -1,5 +1,6 @@
 # The QEP value arms are re-taken at origin, and the last handoff ended over three refusals
 
+**Fate (2026-10-15):** TRIAGE -- a machine-class known issue, carried as `a-handoff-reads-unit-liveness-not-run-success` in docs/direction/wrong_triage.yaml.
 **Fate (2026-10-12, clear-the-decks):** ATOM -- complete the QEP three-arm + floor-seed value-arms re-take at origin and publish a finished result (P2)
 
 **Severity:** LATENT · **Lane:** W2_customer_generator · **Epoch:** 3 · **Atom:** `unminted` · **Claim:** `the-qep-value-arms-are-retaken-at-origin-one-leg-at-a-time` (Lane 0 delivery)
