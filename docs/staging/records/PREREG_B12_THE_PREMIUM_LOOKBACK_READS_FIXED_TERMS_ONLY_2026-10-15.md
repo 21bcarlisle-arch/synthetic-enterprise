@@ -259,3 +259,47 @@ then in the strike (`price_fixed_tariff`), not in the premium, and each line nee
 section first (K8). If wholesale or capital carries it instead, the forward or the capital rate is
 the next variable. The size-keyed loss cap (b) waits on this answer, because a cap fitted over a
 book that loses by construction would cap the wrong thing.
+
+## Grade of D (2026-10-15, after the probe finished at 15:25Z)
+
+Graded by `/var/tmp/b12-out/grade_d.py`. Its sha256, `0a66bafa…77ccbc1`, was filed at 14:39:30Z, before
+the population existed. One field changed after that: the term dict carries no `term_start`, so
+the log wrote `"None"`, and the grader reads `first_day` instead. That date only chooses the
+pre-2023 sigma, which is the same for every 2016-19 term. The predictions above are unchanged: their sha256 on
+origin (`ffbcf464…a7696d`, in `/var/tmp/b12-out/D.prereg.sha256`) still matches. Unit result:
+success.
+
+| over U, median, 254 terms | points |
+|---|---|
+| realised / priced-for / gap | −2.38 / +1.84 / **−4.18** |
+| bad debt (unpriced) | **−2.49** |
+| policy (locked at start, billed by date) | **−1.73** |
+| wholesale (hedged −0.03, spot −0.34) | −0.03 |
+| network / capital / void+occupier | −0.11 / −0.22 / 0.00 |
+| rate (billed beyond the strike's £2) | 0.00 |
+
+- **D0: HOLDS.** `total_net` is £269,782.234811 on both D and L, and 0 of 7,566 `account_state` rows
+  differ.
+- **D1: HOLDS.** The median |residual| is 0.0000. It can fail: drop bad debt from the line list and
+  the residual becomes −2.49.
+- **D2: HOLDS.** The population reads −2.38% realised against +1.84% priced for: the terms L read.
+- **H1: HOLDS** (−2.49). **H2: HOLDS** (−1.73). **H3: HOLDS**: bad debt plus policy is 1.01 of the
+  median gap. **H4: HOLDS** (−0.35). **H5: HOLDS** (0.00).
+
+**What the pooled median hides, read off the years rather than predicted.** 2017 is 192 of the 254
+terms, and in 2017 bad debt plus policy carries the whole gap (−3.94 of −3.35, with the hedges +0.81).
+2018 (n=31) and 2019 (n=22) carry a third effect of the same size. There the **hedged leg** loses 3.0
+and 4.1 points: the hedges cost more than the forward the strike priced off. The premium's rate
+line pays back +3.3 and +2.2. So the premium was already learning a real loss in those years. It
+cannot tell an unpriced cost, which recurs on every term, from a hedge loss, which belongs to a
+year.
+
+**Disposition.** The second effect is named: **the strike prices no bad debt, and it locks a levy
+that is billed by date.** Both are on the company's own P&L before it prices. Its own provision
+rate, and the published RO/FiT/CM schedule for the coming obligation year, are things a real
+supplier holds. So B12's remedy is in `price_fixed_tariff`, not in the premium's window. It comes
+in two parts, each knowledge page first (K8): a bad-debt allowance per MWh in the strike, from the
+company's own provision, and policy priced at the term's settlement-weighted levy rate, from the
+published schedules. The 2018-19 hedge-versus-forward gap is a third question for the hedge desk,
+not for B12. The size-keyed loss cap, item (b), still follows. Once the strike prices what recurs,
+what the premium is left to learn is the year-bound loss, which is the thing a cap is for.
