@@ -1,0 +1,77 @@
+**Severity:** RECORDED · **Lane:** W_world · **Epoch:** 4 · **Atom:** `unminted` · **Claim:** `retake-the-value-arms-in-the-l2-4-coupled-demand-world`
+
+# Pre-registration: the four blind-envelope arms re-taken in demand world 87d94399c9a414ed
+
+Written 2026-10-15 ~10:30 BST, before any arm was launched.
+
+## Which value-arms artefacts read the demand world
+
+I checked this rather than assuming it. In `tools/generate_value_arms_data.py`, exactly one block
+checks `world_home_identity.home_demand_identity`: the blind envelope
+(`_blind_envelope_demand_refusal`, which reads `docs/design/blind_envelope_arms_2026-09-11.json`).
+The noise floor, the size-term pair and the other bounds check only
+`departure_level_anchor.world_level_identity`. That is the departure level, and `aa8a7c444` did not
+move it (`cdba75ebb9197b33` before and after). So the blind envelope is the only artefact the
+demand change visibly stales.
+
+The `run_value_cycle_ab` arms are measured in the demand world too, but nothing checks which one.
+Their re-take is already queued and held behind the stayers control
+(`SEAT_PREREG_THE_VALUE_ARMS_RETAKEN_ON_WRITER_ONES_CORRECTED_BASIS_2026-10-14.md`), pinned at origin.
+Any pin taken now includes `aa8a7c444`, so it lands in this world without a separate re-take. This
+item does not duplicate it.
+
+## The state found
+
+- The page refuses the blind envelope now. The artefact says demand `b422b3dd8de98b8c` (fc47cd363),
+  and the live demand is `87d94399c9a414ed`.
+- **The 2026-10-11 re-take ran and was never filed.** Its four arms completed at d06b039e7, in
+  demand `7d6195c5eb1562ab`, and sit in `~/.cache/seat_lane0_20261011_priceresp/` (each about 1 h
+  20 min, two lanes). Nothing put them into the artefact, so the page went on refusing.
+- **`7d6195c5eb1562ab` is the demand at `aa8a7c444^`**, which I measured from a `git archive` of that
+  parent. The only demand move since the unfiled re-take is therefore `aa8a7c444`, and those four
+  runs are the nearest "before" there is. They are not a one-variable control: there are 322 commits
+  between d06b039e7 and cd2fda5c6, many of them in the company (writer one's basis and others).
+
+The unfiled 10-11 figures, per settlement-weighted win:
+
+| arm | settled | gross | revenue | net | net after CTS | bad debt |
+|---|---:|---:|---:|---:|---:|---:|
+| B chosen | 221 | 1,984 ± 145 | 3,572 ± 275 | 794 ± 58 | 529 ± 46 | 20.5 |
+| A cull | 223 | 2,050 ± 134 | 3,805 ± 265 | 797 ± 55 | 526 ± 42 | 17.8 |
+| C cull221 | 221 | 2,060 ± 134 | 3,865 ± 268 | 794 ± 55 | 510 ± 41 | 17.7 |
+| D tenure | 229 | 2,359 ± 402 | 4,266 ± 695 | 889 ± 126 | 625 ± 107 | 10.4 |
+
+## What runs
+
+The same `arm_rerun.py` as 2026-10-07 and 2026-10-11 (byte-identical), run from a clean
+`git archive` of origin/main `cd2fda5c6` at `~/.cache/arm_rerun_cd2fda5c6`. I read the digests
+there: demand `87d94399c9a414ed`, homes `35f8efe8ff02f245`, departure `cdba75ebb9197b33`. It runs
+with `SIM_FAST_MODE=1`, in two lanes: `chosen` then `tenure`, and `cull` then `cull<N>`, where N is
+B's own settled count. ARM C' is not re-run.
+
+## Predictions
+
+- **Q1** All four arms stamp demand `87d94399c9a414ed`, homes `35f8efe8ff02f245` and one departure
+  digest. Once filed, `_blind_envelope_demand_refusal` stops firing. 85%.
+- **Q2** B's settled count is within ±5 of 221. 60%. The chooser places on fabric axes, which
+  `aa8a7c444` did not touch, but the funnel runs through company decisions that read metered demand.
+- **Q3** In every arm, revenue per weighted win moves by less than one of its own 10-11 standard
+  errors. 60%. `aa8a7c444` scales active use by (always-on/90 W)^0.7 per home, which is up for some
+  homes and down for others. Its mean effect on annual electricity kWh was never printed, and
+  electricity is only part of revenue. This is a guess, not a derivation, and the 322 company
+  commits can move it on their own.
+- **Q4** B against the blind arms, per weighted win, is NOT PREDICTED. On 10-11, B's gross (1,984)
+  was below all three blind arms, and its net (794) tied the bottom of their span.
+- **Q5** No per-win difference between B and any blind arm exceeds twice the larger of the two
+  standard errors. Nothing separates the chosen book from the blind books at one seed. 75%.
+
+## What done means
+
+The four arms are filed into `docs/design/blind_envelope_arms_2026-09-11.json` with their stamps.
+The 10-11 and 10-07 figures are kept beside them as prior readings. `site/data/value_arms.json` is
+regenerated so the block publishes, or refuses for a named reason that is not the demand stamp.
+Q1–Q5 are graded in a result record.
+
+**What this cannot attribute:** it cannot say how much of any move comes from `aa8a7c444`. That needs
+the same commit run with `active_use=1.0` against the coupled run. That pair is not run here (R5):
+the question this item asks is whether the page's envelope describes the live world.
