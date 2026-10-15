@@ -8,6 +8,56 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-15 — orientation: No level moved toward the thesis this stretch, and there is still no measurement of a per-customer view against the flat baseline
+
+<!-- head: b1c20f2d7d43 -->
+
+*Written by the orientation seat from its own record (2026-10-15T17:25:00.128009+00:00; 15 commits, 7 substantive, since 2026-10-15T14:23:37.483870+00:00).*
+
+Commit split (product code by path): 0 supplier, 0 world, 0 both, 15 other.
+
+## What the stretch meant
+
+No level moved toward the thesis this stretch, and there is still no measurement of a per-customer view against the flat baseline. What moved is the route to that measurement. EP17 holds the population draw fixed until four bugs are closed, and then B11's per-customer-against-flat comparison can run on varied draws. Two of the four are now closed on origin: the stayers control (earlier) and E6's first slice (738b3f0ab). In E6, the published provision moves in the quarter the run's arrears build. The learned roll-rate stock trails by three quarters, so it stays off, and the missing 2021-22 step-up is filed as the world's. The held-estimate catch-up is graded by a continuation after 18:30. B12 is the long pole. Its pre-crisis shortfall is now decomposed (6442d41af): 2.5 points of bad debt the strike never priced and 1.7 points of levies locked at the start but billed by date. A worker tick then built the strike-side fix in company/pricing/renewal_rate_chain.py and was killed at its timeout at 17:04Z. That work now exists only as SALVAGE commits on no remote ref (4dd8f4bae and 3d1277a47 in /var/tmp/b12-strike, 6f440e559 in /var/tmp/b12-land). Both worktrees are unlocked, their owner pids are dead, and nothing holds the claim. That is the most valuable unlanded supplier work on the box, so it is focus one. The split reads 0 supplier, 0 world and 15 other. Read honestly, the supplier substance is E6 and the B12 decomposition, plus 66b23fe38. That commit showed that every figure on the live site comes from the one publish of 21 whose imported bytes were not its stamp's. So the 2026-10-19 publish must be drawn at a clean stamp, and it will move what the site says even if no code changes. On the machine, three director-facing defects closed: his steer now has a route ahead of the lanes (the advisor channel, 4a581cd72 and 7bc3e3d3a), NTFY is mothballed as he asked (565bd6303), and a parked atom is no longer drawn (47e544e24; H45 is absent from this brief's drawn atoms). The previous focus was steered: 2 of 4 drawn, and both met their DONE. The run-stamp item delivered the arm refusal and the census (66b23fe38). The E6 item delivered the control, L1, and the world gap filed. Both leave focus. The other two (the red statement controls, and the merge offered as a landing) were never drawn. They are carried, and the statement item moves up, because a third real-book control (the ledger against the P&L on write-offs for 48 accounts) was found red at the same publish and its fix is landing now. That is the steer drifting, not the work being done. It did not go backwards.
+
+## What went wrong
+
+- corrected: THE MACHINE'S, CARRIED. A held change's hold condition is not re-asked when its premise moves. Owner: SEAT_FINDING_A_HOLD_OR_A_TOMBSTONE_STATES_ITS_CONDITION_IN_PROSE_AND_NOTHING_RE_ASKS_IT. 14:23: CORRECTED, 56d7cf77b runs and the brief carries stale_holds. 17:25: Still corrected. stale_holds again names E5, PB6, C30 and C31.
+- corrected: THE MACHINE'S, CARRIED. One item can land twice, on origin through surgical_land and as a local commit on the shared HEAD. Owner: SEAT_FINDING_ONE_ITEM_LANDS_TWICE_AND_THE_SHARED_HEAD_FORKS_FROM_ORIGIN. 14:23: CORRECTED (ed7e89d12). 17:25: Still corrected. HEAD and origin read 0 0. de736bb97 counted zero plain commits on a behind main since 10-13, and dropped the second door's hook as superseded.
+- NOT corrected: THE MACHINE'S, CARRIED. The draw ledger reads the same for work never started and for work mid-landing, because it asks only origin by path. Readings before 08:20 are in docs/direction/decisions.jsonl and this file's git history. 14:23: Unchanged. 17:25: It recurred on a supplier item. The B12 strike continuation reads as queued and never started, while its built work sits in three SALVAGE commits from a tick killed at 17:04Z. Focus one recovers that instance. The class is untouched.
+- NOT corrected: THE MACHINE'S, CARRIED. A focus-row tombstone still retires a row without asking its DONE. Readings before 08:20 are in docs/direction/decisions.jsonl and this file's git history. 14:23: The fix 635919987 runs, and no tombstone was seen. 17:25: One tombstone this stretch, the-provision-moves-in-the-quarter-arrears-build at 16:39:45Z, a minute after its DONE landed (738b3f0ab, 16:38). That is consistent with the row asking DONE, but one case where DONE was already met cannot show it, so the row stays open.
+- corrected: THE MACHINE'S, CARRIED. A parked atom is still counted as drawn. H45 is PARKED and the counter still moves. Readings before 08:20 are in docs/direction/decisions.jsonl and this file's git history. 14:23: Re-applied as 99d2bd2a1, not on origin. 17:25: CORRECTED. 47e544e24 is on origin: a block_reason starting PARKED excludes the row from every draw. H45 is absent from this brief's atoms_drawn and from its stalled list.
+- NOT corrected: THE MACHINE'S, CARRIED. The coupled-triad gate now excludes twinless L3 targets, and its refusal reaches only the supervisor journal. Readings before 08:20 are in docs/direction/decisions.jsonl and this file's git history. 14:23: Unchanged. 17:25: Unchanged.
+- NOT corrected: THE WORLD'S, CARRIED. A gas-heated fabric home's electricity has no season against SERL. Readings before 08:20 are in docs/direction/decisions.jsonl and this file's git history. 17:25: Unchanged and not worked. It blocks no supplier result in focus.
+- NOT corrected: THE MACHINE'S, CARRIED. The draw ledger credits or denies an item by path overlap, not by its work. Readings before 08:20 are in docs/direction/decisions.jsonl and this file's git history. 14:23: 46b16e84d runs, but the brief offers 5cd4f625d, a no-work base-advance merge, as landed_unbound evidence. 17:25: Unchanged, because the focus item was not drawn. Focus four.
+- NOT corrected: THE MACHINE'S, NEW. longjob-save-eight was declared at 50 minutes and has held its admission for 4h46m. Readings before 08:20 are in docs/direction/decisions.jsonl and this file's git history. 14:23: No overrun for a second stretch. 17:25: No overrun for a third. All four jobs that ended this stretch ended inside it. The expiry the triage owner asks for is still not built.
+- NOT corrected: THE MACHINE'S, NEW. A held estimate was netted at its draft amount when the next actual read caught up, so seven customer-years on the published book were credited for estimates never sent (PROS-2017-0336: -GBP 271.29 against GBP 789.74 truly owed). Readings before 08:20 are in docs/direction/decisions.jsonl and this file's git history. 14:23: Graded on three shared accounts (9b4178f6a). PROS-2017-0336 waits on the 81c12 arms. 17:25: X0 finished at 15:11Z. The grade is the continuation at 18:30.
+- corrected: THE MACHINE'S, NEW. The write-off two-arm run (longjob writeoff-two-arm-61109) is recorded as Result=success status=0, and it never graded. 14:23: CORRECTED for this run (417800d6e). The class is under the accepted triage row. 17:25: Still corrected. r4 and r4b graded E6's lag on a populated series (738b3f0ab).
+- NOT corrected: THE MACHINE'S, NEW. The 08:20 orientation's record never reached origin. The guest's user session shut down at 08:29:34Z, and a seat killed by the host leaves no trace of itself in delivery-seat-log.md. 14:23: The missed entry landed (6789bd0e1). A second killed seat (09:09) also left no line. 17:25: Unchanged. No seat was killed this stretch, and nothing landed on the trace.
+- NOT corrected: THE MACHINE'S, NEW. Two statement controls (test_the_statement_shows_how_each_bill_reached_its_number.py: the event walk's close, and VAT on catch-up bills) are red at origin on the published 2248e3baf ledger, and no census holds them. 14:23: Unchanged. 17:25: Unchanged and not drawn. A third real-book control is red at the same publish (ledger against P&L write-offs, 48 accounts, 66b23fe38), and its fix is landing. Focus two.
+- corrected: THE MACHINE'S, NEW. A run's producing_commit names HEAD at process start, not the bytes it imported. Run A (run_output_2248e3baf_20261013T134447Z.json) was drawn by uncommitted 81c129fe8 copies, which cost a 108-minute placebo (554bacacf). 17:25: CORRECTED. The publish already refused (c701d8605). 66b23fe38 adds the one-variable arm refusal, with a control mutation-proven four ways, and a census of 21 publishes: only the live one is dirty. The live site's figures stay from it until the 2026-10-19 publish.
+- corrected: THE MACHINE'S, NEW. The director's staged steer (DIRECTOR_STEER_STRETCH_LOG_AND_DECK_2026-10-15.md, 09:50 BST) sat undrawn in the staging root until 14:00 while worker turns spent the day on W1_29 texture work. 17:25: CORRECTED. The advisor channel landed (4a581cd72, 7bc3e3d3a). A file in docs/staging/advisor/ under his pinned signature is drawn first by every lane, and that steer moved to done/ actioned (b1c20f2d7).
+- NOT corrected: THE MACHINE'S, NEW. A worker tick holding b12-the-strike-prices-its-bad-debt-and-the-levy-it-will-be-billed was killed at its timeout at 17:04Z with supplier code uncommitted (company/pricing/renewal_rate_chain.py, +64). fork_salvage kept it as 4dd8f4bae, 3d1277a47 and 6f440e559. Those are in UNLOCKED worktrees with dead owners, on no remote ref, and no claim names them. One worktree reap would have lost the stretch's main supplier build. Focus one recovers it.
+
+## Chosen against
+
+- Grading the held-estimate fix on the 81c12 arms from focus.
+- The ledger/P&L write-off fix for 48 accounts (continuation the-live-books-ledger-and-pnl-write-offs-disagree-for-48-accounts).
+- Retiring the inbound NTFY library and the sent-id provenance check.
+- Switching ROLL_RATE_PROVISION on, or building a forward-looking (IFRS 9) overlay for E6 now.
+- The world's missing 2021-23 arrears step-up in heads (filed by 738b3f0ab), and the gas-heated home's electricity season.
+- C35 (pricing the share of joint value) and the c34 advice-floor proposal.
+- Reaping the two prunable /tmp worktrees and the 119 others.
+
+## Focus for the next stretch
+
+- `b12-the-strike-lands-from-its-salvage`
+- `the-two-red-statement-controls-get-a-cause`
+- `b11-the-flat-baseline-is-pre-registered-for-the-ep17-switch`
+- `the-draw-ledger-never-offers-a-merge-as-a-landing`
+
+---
+
 ## 2026-10-15 — The director's phone goes quiet: NTFY is mothballed with its record kept, the inbound route is retired, one dead-man's push stays, and the advisor channel only draws what the advisor signed
 
 <!-- head: 565bd6303b9c -->
