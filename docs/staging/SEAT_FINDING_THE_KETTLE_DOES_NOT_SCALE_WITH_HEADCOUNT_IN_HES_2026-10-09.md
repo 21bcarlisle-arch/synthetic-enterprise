@@ -120,3 +120,22 @@ size-conditioned headcount, as the 3.02 finding set out.
 4. **The electric-homes-on-the-calm-side question** (the new strict xfail). Is it the 4–5-person
    composition of this draw, or a stream other than the water heater? Read across more than one draw
    before acting.
+
+## Addendum 2026-10-15 (worker, `w1-29-bursts-against-long-draws`): the step is at one person, and real homes spread where the world's do not
+
+Two HES-derived facts that this finding's FLAT fit does not carry. They are read in the texture knowledge page's
+2026-10-15 section ("Real homes differ most in their bursts").
+
+1. **One person against two or more is a real step.** Powering the Nation 2 (DECC/DEFRA 2014, p. 87) gives
+   kettle owners by household size: 1 person 116 kWh/yr against 189 for the rest (n 67/167, t −5.6), 2 persons
+   190 against 156 (t 2.7), 3 persons 191 (t 1.4, n.s.), 4+ 185 (t 1.5, n.s.). Table 23 above shows the same
+   direction, more mildly (singles 141/153 against multiples 167–185). FLAT puts singles at 166–168. So the shape
+   is a step between one person and two or more, flat above that. It is neither SCALE nor FLAT. Above two people
+   PtN2 agrees with this finding: no significant headcount effect.
+2. **Between-home spread.** The SD backed out of PtN2's t-tests is 90–95 kWh/yr on all four size rows. That is a
+   CV of 0.55 among owners. The world (seed 17, n 240, β 0.7 world) reads **0.06**, because the only spread it has
+   is day-to-day Poisson noise. The cooking class as a whole reads 0.34 against HES's all-home 0.64.
+
+Neither moves W1_29's texture. A per-home cooking factor at HES's spread moved r(texture, size) by under 0.01 on four
+seeds. Both belong to this finding's W2_30 refit. Build them with the next digest-moving change, since either one
+redraws the world.

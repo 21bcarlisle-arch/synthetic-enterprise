@@ -710,3 +710,83 @@ fixed passes `active_use=1.0`. The built path reproduces the β 0.7 probe row ab
 Limits: LCL is London, 2013, and whole-meter, and some of its Jan–Apr homes heat electrically (hence the summer
 check). The p5 estimator is not EFUS's p10-of-10-second base. Two seeds of 240. Scripts: `/var/tmp/se-l24/` (not
 committed).
+
+## Real homes differ most in their bursts, and giving the world that spread still does not loosen texture from size (2026-10-15)
+
+Worker on lane-0 draw `w1-29-bursts-against-long-draws`, at `origin/main` `025ca62ae` (β 0.7 coupling and storage
+off-peak charging both live). Every prediction was filed before its run (`/var/tmp/se-w129c/PREREG.md`). Nothing ships:
+no world draw changed.
+
+**What is published, per home and per category.** No source in reach publishes a per-home split of active use into
+short bursts and long draws. HES 2012's final report (Intertek R66141 §7.5, Figs 289–324) gives the split as averages
+by household type only. Its early findings and its consumer-archetypes report (Element Energy, seven clusters) add no
+per-home composition either. The HES microdata (UK Data Service) were not read. **But Powering the Nation 2 (DECC/DEFRA
+2014, pp. 79–87, "Assess electricity demand for products with high agency") publishes Student t-tests per appliance
+category**, giving group sizes, means and t. The within-group SD can be backed out as s = |m1 − m2| ÷ (|t| √(1/n1 + 1/n2)),
+assuming the pooled-variance test. Over the household-size rows (|t| ≥ 1):
+
+| category (HES population) | s, kWh/yr (per row) | mean | CV |
+|---|---|---|---|
+| kettle (owners, n ≈ 234) | 90 / 92 / 94 / 95 | 168 | **0.55** |
+| electric cooking, all homes (n 249, gas cooks included) | 268 / 283 / 293 / 294 | 450 | **0.64** |
+| lighting (n 246) | 491 / 505 / 510 | 491 | 1.03 |
+| audiovisual (1-person row only) | 473 | 541 | 0.87 |
+| washing machine | 116 / 119 / 123 / 126 | 158 | 0.77 |
+
+The rows agree to a few percent, and the kettle mean matches HES Table 14's 167. That supports the pooled-t reading.
+PtN2 says the same thing in prose: "a factor of 16 difference between energy use for lighting in the highest and
+lowest households, but only 2.3 for cold appliances".
+
+**The world, same quantity** (seed 17, n 240, C1 Jan–Apr 2022, the meter's own event and switching draws, annualised):
+
+| | mean kWh/yr | CV (HES) | corr(log x, log meter) |
+|---|---|---|---|
+| kettle (owners) | 164 | **0.06** (0.55) | +0.09 |
+| cooking class (kettle, toaster, microwave, oven, hob) | 438 | **0.34** (0.64) | +0.27 |
+| lighting | 209 | 0.98 (1.03) | +0.79 |
+| electronics | 356 | 1.01 (AV 0.87) | +0.79 |
+| washing machine | 231 | 0.83 (0.77) | +0.84 |
+
+**So the world's long draws already carry the real between-home spread, and all of it rides the meter.** The β 0.7
+coupling did that. The bursts carry almost none: every cooking spec is `scales_with_people=False`, so neither headcount
+nor `active_use_multiplier` reaches it. Every home's expected kettle use is identical, and what spread the class has
+comes from gas cooking and ownership. The burst-against-long-draw composition is therefore wrong in exactly the
+direction the 2026-10-14 section suspected. Big homes get more smooth load and the same bursts.
+
+**The arm, one variable.** A per-home, mean-one lognormal factor exp(sz − s²/2) on the five cooking specs'
+`events_per_day`, with z keyed on the premise id alone (independent of base and size). s = 0.48 is the sourced value,
+filling the gap between ln(1 + 0.64²) and the world's ln(1 + 0.34²). s = 1.0 is an envelope. A manipulation check
+confirms the factor reached the events: at s 0.48 the cooking CV reads 0.62, against HES's 0.64.
+
+| seed | r control | r at s 0.48 | r at s 1.0 | texture p90, control → s 0.48 | L2.4, control → s 0.48 |
+|---|---|---|---|---|---|
+| 17 | −0.691 | −0.694 | −0.660 | 0.267 → 0.267 | 4.57 → 4.78 |
+| 18 | −0.671 | −0.675 | −0.641 | 0.273 → 0.274 | 5.05 → 5.13 |
+| 19 | −0.685 | −0.692 | −0.659 | 0.265 → 0.265 | 5.03 → 5.27 |
+| 23 | −0.672 | −0.677 | −0.637 | 0.262 → 0.267 | 5.12 → 5.36 |
+
+The comparator fires in every cell (z −4.9 to −6.1). The L1.1 leg counts move by at most 5, which is noise. The p90
+texture under the β 0.7 world is now 0.262–0.273 (it was 0.232–0.240 on 2026-10-13), against the real 0.311.
+
+**Graded.** P1 held (−0.671 to −0.691). **P2 was refuted low:** at the sourced spread r did not rise at all (it moved
+−0.003 to −0.007), where 0.04–0.12 was predicted. **P3 was refuted low:** the envelope moved r by +0.026 to +0.035,
+against 0.08–0.20. P4 held at its floor: p90 moved 0.000–0.005 and the median less than 3%. P5 held. Census C1:
+cooking held, kettle held in direction (0.06 against a predicted 0.10–0.30), and lighting was refuted (0.98 against a
+predicted 0.4–0.7). The prediction assumed the long draws were narrow, and they are not.
+
+**What this settles.**
+1. **Composition of active use, as bursts, is not W1_29's lever.** Even with the real spread, and even doubled, the
+   cooking bursts move r by under 0.04. They are ~13–15% of a meter and fill a few of a day's 48 steps, so they cannot
+   carry the median step. This closes the last candidate the 2026-10-14 section named on the active-use side.
+2. **What is left is the night floor that moves from night to night,** which is the other candidate named there, and
+   an LCL-side split nobody has run. Apply r(texture, size) to LCL's own p5 base share and to its active texture
+   (median step ÷ (mean − p5)), and the same to the world. That says whether the gap lives in the base share or in the
+   steps per unit of active use. The LCL raw partitions are no longer cached, so it was not run here.
+3. **A fidelity defect independent of texture:** the cooking class does not scale with headcount and has no
+   between-home spread, which contradicts PtN2's owner-only kettle rows (one-person homes 116 kWh/yr against 189,
+   t −5.6). It is appended to `SEAT_FINDING_THE_KETTLE_DOES_NOT_SCALE_WITH_HEADCOUNT_IN_HES_2026-10-09.md`
+   (atom W2_30), which fitted the kettle flat. It is not built here, because it moves the world digest and the
+   value arms, and the arm above shows it buys W1_29 nothing.
+
+Limits: the pooled-t back-out assumes equal group variances; if PtN2 ran Welch's test, s shifts by a few percent. HES
+is 2010–11, 250 owner-occupiers. Four seeds, one weather site, Jan–Apr. Scripts: `/var/tmp/se-w129c/` (not committed).
