@@ -2,6 +2,7 @@
 
 # A hold or a tombstone states its condition in prose, and nothing re-asks it
 
+**Fate (2026-10-15):** DONE -- both defects closed 2026-10-15: holds are re-asked in the seat's brief (background/stale_holds.py) and a focus-row tombstone needs DONE evidence (delivery_lane.focus_tombstone_refusal).
 **Fate (2026-10-12, clear-the-decks):** ATOM -- no mechanism found re-grading block_reason on premise change or checking tombstone DONE before retiring a row (P3)
 
 *Console seat, 2026-10-07, from the triage of the delivery seat's carried "what it got wrong" items

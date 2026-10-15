@@ -2,6 +2,7 @@
 
 # Which structure in phase 2b's term loop grows with the accounts in the book
 
+**Fate (2026-10-15):** TRIAGE -- a machine-class known issue, carried as `the-term-loops-memory-scales-with-the-book` in docs/direction/wrong_triage.yaml.
 **Fate (2026-10-12, clear-the-decks):** ATOM -- attribute the doubled book (b870dd6c5) before backfilling the 164-cell weather-store gap now held as strict-xfail (P2)
 
 Follows the third control in

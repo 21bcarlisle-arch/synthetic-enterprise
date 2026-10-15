@@ -1,8 +1,9 @@
-**Severity:** LATENT · **Lane:** B_commercial · **Epoch:** unassigned · **Atom:** `unminted`
+**Severity:** LATENT · **Lane:** B_commercial · **Epoch:** unassigned · **Atom:** `B12_writer_one_reads_its_margin_on_the_unit_rate_so_a_renewal_floor_is_its_true_unit_cost`
 **Knowledge:** none -- grades of built capabilities against predictions already filed; the pricing pages are docs/market_research/a_save_offer_against_the_switching_rules_and_the_seam.md and retention_slope_per_pound_of_renewal_cut.md
 
 # On fresh seeds the save never fires, because renewals sit below their own cost floor, and the price-match renewal cut loses net (2026-10-13)
 
+**Fate (2026-10-15):** ATOM -- folds into `B12_writer_one_reads_its_margin_on_the_unit_rate_so_a_renewal_floor_is_its_true_unit_cost` (re-pointed 2026-10-15; an ATOM fate names its atom).
 **Fate (2026-10-14):** ATOM, half done. The renewal cut is DONE -- the deciding re-grade ran at 5e5358092 and stays on risk tiers (SEAT_RESULT_THE_RENEWAL_CUT_STAYS_ON_RISK_TIERS_..._2026-10-14.md). The save's own question (renewals at their floor to the penny, so no room to offer) is next week's P1. **Decided 2026-10-14: (b), definitional** -- the floor carries the network cost the standing charge recovers, and writer 1 reads the standing charge as margin, so its -5% lands every electricity renewal on the floor (21 of 21 held rows): SEAT_FINDING_RENEWALS_SIT_AT_THEIR_COST_FLOOR_BECAUSE_THE_FLOOR_CARRIES_THE_STANDING_CHARGES_NETWORK_AND_THE_PREMIUM_READS_THE_STANDING_CHARGE_AS_MARGIN_2026-10-14.md.
 
 The director's Order 1: re-grade the save and the renewal cut on fresh seeds across the world's ranges.

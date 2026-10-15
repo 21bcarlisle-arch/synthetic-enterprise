@@ -2,6 +2,7 @@
 
 # The settlement-ceiling curve re-taken at current code (2026-10-08)
 
+**Fate (2026-10-15):** TRIAGE -- a machine-class known issue, carried as `the-settlement-budget-is-sited-on-an-old-memory-curve` in docs/direction/wrong_triage.yaml.
 **Fate (2026-10-12, clear-the-decks):** ATOM -- raise SETTLEMENT_CUSTOMER_YEAR_BUDGET from 1,750 to ~3,100 per the re-taken curve, once the value-arms series it would split has finished (P2)
 
 **Subject.** `simulation/net_new_acquisition.py::SETTLEMENT_CUSTOMER_YEAR_BUDGET` (1,750) was priced

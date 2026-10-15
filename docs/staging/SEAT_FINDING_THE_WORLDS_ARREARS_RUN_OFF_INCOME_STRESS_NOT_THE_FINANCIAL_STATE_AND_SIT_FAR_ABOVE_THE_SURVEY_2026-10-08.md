@@ -1,7 +1,8 @@
-**Severity:** LATENT · **Lane:** W2_customer_generator · **Epoch:** unassigned · **Atom:** `unminted`
+**Severity:** LATENT · **Lane:** W2_customer_generator · **Epoch:** unassigned · **Atom:** `W2_38_the_worlds_debt_is_graded_against_ofgems_quarterly_series`
 
 # The world's arrears run off income_stress, not the financial-vulnerability state, and the share behind sits far above the survey
 
+**Fate (2026-10-15):** ATOM -- folds into `W2_38_the_worlds_debt_is_graded_against_ofgems_quarterly_series` (re-pointed 2026-10-15; an ATOM fate names its atom).
 **Fate (2026-10-12, clear-the-decks):** ATOM -- rank and act on the three explanations (definition, driver, level) for the 31% vs 7.6% gap; a fidelity decision for the director, blind to company results (P2)
 
 *Found 2026-10-08 by the hidden-vulnerability build (director's ruling: vulnerability drawn as a

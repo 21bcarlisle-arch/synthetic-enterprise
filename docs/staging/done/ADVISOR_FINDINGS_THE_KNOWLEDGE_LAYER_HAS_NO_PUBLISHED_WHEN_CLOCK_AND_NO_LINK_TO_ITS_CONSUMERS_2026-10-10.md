@@ -1,6 +1,7 @@
 # [ADVISOR] The knowledge layer has no "published when" clock, and no link to the constants that use it
 **Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
+**Fate (2026-10-15):** CLOSED UNBUILT -- machinery with no product item depending on it (canon P6: machinery only when a product item names it as a dependency); reopen from done/ when one does.
 **Fate (2026-10-13, clear-the-decks):** ATOM -- n/a No banner. P2 -- add a "knowable from" publication-date field to knowledge_map.md rows / domain_constant_origins, distinct from the already-closed source-revision-staleness atom (2026-09-07); bears on epistemic-wall fidelity.
 
 **Severity:** LATENT · **Lane:** G_data_learning · **Epoch:** unassigned · **Atom:** `unminted` — header added by the scale lane: the file landed without one and the severity gate refused every lane's merge of origin

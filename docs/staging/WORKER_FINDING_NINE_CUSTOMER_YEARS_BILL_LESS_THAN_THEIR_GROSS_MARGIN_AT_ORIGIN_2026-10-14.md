@@ -1,7 +1,8 @@
-**Severity:** BLOCKING · **Lane:** D_billing_metering · **Epoch:** unassigned · **Atom:** `unminted` · **Claim:** none (found by the billing-ledger move, 2026-10-14)
+**Severity:** BLOCKING · **Lane:** D_billing_metering · **Epoch:** unassigned · **Atom:** `D46_the_validator_holds_against_the_varied_population` · **Claim:** none (found by the billing-ledger move, 2026-10-14)
 
 # Nine customer-years bill less than their own gross margin at origin, and no census holds the test
 
+**Fate (2026-10-15):** ATOM -- folds into `D46_the_validator_holds_against_the_varied_population` (re-pointed 2026-10-15; an ATOM fate names its atom).
 **Fate (2026-10-14):** ATOM -- D lane: a red at origin that no census holds. First this week, if a gap allows; otherwise the first billing item next week.
 
 `tests/tools/test_bill_correctness_addendum_defect4.py::test_billed_total_never_less_than_gross_margin_for_any_real_customer_year`

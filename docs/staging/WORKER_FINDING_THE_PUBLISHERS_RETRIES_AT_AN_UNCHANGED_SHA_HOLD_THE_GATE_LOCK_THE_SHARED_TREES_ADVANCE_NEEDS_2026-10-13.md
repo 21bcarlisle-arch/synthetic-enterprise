@@ -1,7 +1,8 @@
-**Severity:** LATENT · **Lane:** H_harness · **Epoch:** unassigned · **Atom:** `unminted` · **Claim:** publish-wedge draw (worker), 2026-10-13 ~18:35 BST
+**Severity:** LATENT · **Lane:** H_harness · **Epoch:** unassigned · **Atom:** `OPS6_scoped_publish_path_suite` · **Claim:** publish-wedge draw (worker), 2026-10-13 ~18:35 BST
 
 # The publisher's retries at an unchanged sha hold the gate lock the shared tree's advance needs
 
+**Fate (2026-10-15):** ATOM -- folds into `OPS6_scoped_publish_path_suite` (re-pointed 2026-10-15; an ATOM fate names its atom).
 **Fate (2026-10-14):** ATOM -- harness, next week: the publisher's retries and the reconciler's advance can still starve each other.
 
 This follows `done/SEAT_FINDING_THE_PUBLISH_IS_HELD_BY_THE_SHARED_TREES_STALE_HEAD_NOT_BY_A_LIVE_RED_2026-10-13.md`.
