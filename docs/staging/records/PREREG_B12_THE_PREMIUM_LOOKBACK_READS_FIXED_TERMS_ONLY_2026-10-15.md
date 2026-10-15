@@ -198,3 +198,64 @@ the company could hold (point 2). B12's row does not move. The next one-variable
 (a) on L, decompose a 2016-19 fixed term's `net_margin` against its priced-for margin, line by line
 (a probe on L's artefact, no new arm), to name the cost behind the second effect; (b) only then,
 replace the date window with a size-keyed loss cap. Both remain L-based, in `/var/tmp/b12-lookback`.
+
+## Run D: where a 2016-19 fixed term's margin goes, line by line (pre-registered 2026-10-15, before D launched)
+
+**Claim:** `b12-decompose-the-pre-crisis-fixed-term-shortfall`. This is item (a) above. It is a probe, not
+an arm: L's code at `1ca6dfcf5` in a new worktree, `/var/tmp/b12-decomp`, plus one write-only line per
+term after `term_ended`. The line holds the term's summed settlement lines and the strike's
+components off its `term` dict (`company_forward_price`, `locked_policy`, `locked_network`). It is
+switched on by `B12_TERM_LINE_LOG`. Same seed (61109) and same command as L. The artefact is
+`/var/tmp/b12-out/decomp-sv-k1-61109.json`, plus the line log `/var/tmp/b12-out/decomp-term-lines.jsonl`.
+
+**Population.** The terms writer 1's book admits, by its own predicate: electricity, `fixed`,
+unit revenue > 0, neither the term nor its account held on a save, and last settled day in
+2016-2019. These are the terms 2016-19 renewals read.
+
+**The identity.** For each term, realised minus priced-for, both over unit revenue U = revenue −
+standing charge, splits exactly into:
+- **wholesale**: F·V − wholesale cost (the forward the strike used, against what the energy cost),
+  split further into the **hedged leg** (F·V_h − Σ hedged kWh × hedge price) and the **spot leg**
+  (the rest);
+- **policy**: P_locked·V − policy cost (levies locked at term start against those billed by date);
+- **network**: N_locked·V − network cost;
+- **capital**: K·V − capital cost, where K is the strike's capital rate (`pre_margin_unit_rate` − F
+  − P − N);
+- **bad debt**: − bad debt (the strike prices none);
+- **void/occupier**: − (void owner charge + occupier debt) (also unpriced);
+- **rate**: (U/V − pre-margin rate − £2)·V, meaning what the term was actually billed per MWh,
+  premium and discount included, beyond what the strike's £2 priced.
+Opex is not in `net_margin` (fixed costs go to the ledger only), so it cannot be a line here.
+
+**Controls.**
+- **D0 (the probe moves nothing).** D's `total_net` equals L's £269,782.234811 to the penny, and
+  every `account_state` row is identical to L's. If this fails, the probe leaked and nothing below
+  stands.
+- **D1 (the identity closes).** Over the population, the median |residual| of the identity is under
+  **0.05 points** of U. If it fails, `net_margin` carries a line not listed here, and that line is
+  the finding.
+- **D2 (the population is the one L read).** The population's median realised rate is between
+  **−4.5% and −1%**, and its median priced-for rate is between **1% and 2.5%**, as L's 2016-19
+  renewals read.
+
+**Predictions** (medians over the population, in points of U, signed so that negative means a loss
+against what was priced):
+- **H1 (bad debt, unpriced).** Between **−3.5 and −1.5**. The world's incidence is 2% of *all*
+  revenue in 2016-20, standing charge included, and U is roughly 70-80% of revenue.
+- **H2 (policy, locked at the start and billed by date).** Between **−3 and −0.5**. RO+CfD+CM+FiT
+  went from £20 to £39/MWh over 2016-19, so a term billed past its first April levy step pays
+  more than it locked.
+- **H3 (the two together carry it).** Bad debt plus policy is **at least 70%** of the population's
+  median shortfall (realised − priced-for).
+- **H4 (what the strike prices, and what it does not).** Wholesale + network + capital sum to
+  between **−1.5 and +1.5**.
+- **H5 (the rate line, low confidence on sign).** Between **−1 and +3**. A fixed-only premium
+  that read losses would add to the £2, not take from it.
+
+**What it decides.** If H1-H3 hold, the second effect is not noise and not the lookback. The strike
+leaves out two costs the company can see on its own P&L before it prices: its own bad-debt
+provision, and a levy schedule already published for the coming obligation year. The remedy is
+then in the strike (`price_fixed_tariff`), not in the premium, and each line needs a knowledge-page
+section first (K8). If wholesale or capital carries it instead, the forward or the capital rate is
+the next variable. The size-keyed loss cap (b) waits on this answer, because a cap fitted over a
+book that loses by construction would cap the wrong thing.
