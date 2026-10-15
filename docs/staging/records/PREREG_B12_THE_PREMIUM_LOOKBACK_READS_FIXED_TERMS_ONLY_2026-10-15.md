@@ -105,3 +105,41 @@ premium's lookback excluding terms whose settlement crosses 2021-10..2022-09, or
 lookback widened beyond 4 terms. It answers whether point 2 is the crisis carry-over alone: if
 2016-19 still read 3-6 points under, a second effect remains. Filed for B12; nothing was predicted
 after the answer.
+
+## Run L2: L without the crisis terms (pre-registered 2026-10-15, before L2 launched)
+
+**Claim:** `b12-fixed-only-lookback-without-the-crisis-terms`. Knowledge first: the section "What a
+desk does with a fixed book that lost money through a one-off crisis" on
+`what_a_renewal_decision_is_for_a_gb_domestic_customer.md`.
+
+**The one variable.** L, plus: `PortfolioMarginBook.term_ended` refuses a term whose settlement days
+touch `CRISIS_EXCLUDED_SETTLEMENT_WINDOW = ("2021-10-01", "2022-09-30")`, which is Ofgem cap periods
+7-8. `term_ended` gains `first_settled_day`, and the run loop passes the term's earliest
+settlement date. Same base `1ca6dfcf5`, same worktree `/var/tmp/b12-lookback`, same seed 61109, same
+command. Artefact: `/var/tmp/b12-out/lookback-nocrisis-sv-k1-61109.json`, graded against L by
+`/var/tmp/b12-out/grade.py`. The sha256 of the code diff over L's base is in
+`/var/tmp/b12-out/L2.diff.sha256`.
+
+L's by-year fixed electricity medians are the base. In 2016-18, 218 of the 341 rows read 2-4 points
+under target. In 2023-24 they read -34% to -38%, with 21 rows at the +15% clamp.
+
+- **C0 (the arm can only move what it says).** Every fixed electricity row with `term_start` before
+  2021-10-01 has the same `mean_recent_margin_rate` and `portfolio_premium_pct` as in L. No term
+  that touches the window is released before the window opens. If this fails, the change leaked
+  beyond its variable and nothing below can be attributed.
+- **C1 (the pin is crisis carry-over).** The 2023 and 2024 medians each rise by more than **20
+  points** from L's -37.7% and -33.9%, and the count at +15% falls from 21 to **5 or fewer**.
+- **C2 (and nothing more).** The 2023 and 2024 medians are each within **4 points** of their year's
+  median target, which is P2's band.
+- **C3 (the second effect is the larger part of P1's miss).** The overall fixed median stays within
+  **1 point** of L's -2.39%, so P1 still fails, because 2016-20 carry 303 of the 341 rows and C0
+  holds them fixed. The excluded terms cannot explain the pre-crisis under-reading.
+- **C4 (the book, a direction, low confidence).** `total_net` is **lower** than L's £269,782,
+  because the +15% clamp was charging about 20 fixed renewals more.
+
+**What it decides.** If C0-C2 hold, the crisis exclusion is the right treatment of 2023-24, and B12's
+remaining defect is the 2016-19 under-reading. That is the next hypothesis: fixed terms
+systematically realise less than `TARGET_MARGIN_GBP_PER_MWH` because a cost the strike does not
+price reaches `net_margin`. The code still does not land while P1 fails. If C1 fails, the 2023-24
+reading is not crisis carry-over, and the 4-term window (the 10-14 finding's noise) is the
+next variable.
