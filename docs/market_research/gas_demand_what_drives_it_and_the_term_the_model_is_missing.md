@@ -264,6 +264,8 @@ reference populations:
 | 20,000 | 34% | 6,813 | 6,816 |
 | 120,000 | 7.4% | 8,820 | 8,822 |
 
+*Corrected beside the table, 2026-10-15: these N were measured with `seasonal_swing` still among the axes, an invented duplicate of weather sensitivity (|r| = 1.0000) that origin removed in ac3612a6f on 2026-10-14. The re-measure without it is W2_29's parked step for next week. Until then these figures are the duplicate's, not the six real axes'.*
+
 **Two households in 8,822.** Not a small effect — a wrong mechanism.
 
 **What the prediction got wrong** is worth more than the number. "Independent of fabric and weather"

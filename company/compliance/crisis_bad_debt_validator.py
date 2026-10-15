@@ -31,7 +31,13 @@ bad debt in the run output reflect this:
     bad_debt_gbp) sits ~in-band as a % of revenue but is a broadly FLAT
     ~2% rate every year -- it tracks revenue, it does not spike in the
     crisis -- which is itself the propensity/rate-applied signature, not a
-    budget-shock-emergent one.
+    budget-shock-emergent one. Traced 2026-10-15: it is saas.payment_behaviour's
+    2% (the `medium` default every real account takes) of every issued bill,
+    booked as a write-off 30+ days later, so its 2022 dip and 2023 rise are timing;
+  - the IFRS 9 CHARGE (basis "ifrs9_charge"): the movement in the company's own
+    provision stock plus write-offs, less recoveries -- the real charge's
+    definition. On the 2026-10-15 run it has the real SHAPE (2021 low, 2022
+    high, x2.3) at about a tenth of the real LEVEL.
 
 ANCHORS (real published UK figures -- cite-your-source discipline, [L] tags
 where magnitude is directional/low-confidence, no fabricated precision)
@@ -96,7 +102,7 @@ CRISIS_STEP_UP_SOURCE: str = (
     "not the ~2x the real figure moved"
 )
 
-Basis = Literal["headline", "pnl_accrual"]
+Basis = Literal["headline", "pnl_accrual", "ifrs9_charge"]
 
 
 @dataclass(frozen=True)
@@ -204,7 +210,11 @@ def extract_series_from_run_output(
                          (the behavioural arrears-engine figure the CFO flagged,
                          summed into the surfaced total_bad_debt_gbp).
     basis="pnl_accrual" -> management_accounts[*].income_statement.bad_debt_gbp
-                         / .revenue_gbp (the ledger P&L accrual).
+                         / .revenue_gbp (the ledger P&L line: a flat rate on every
+                         issued bill, saas.payment_behaviour, NOT a charge).
+    basis="ifrs9_charge" -> the movement in company_provision.by_date's year-end
+                         stock, plus write-offs, less recoveries (Ofgem Debt-related
+                         costs App. 2, May 2025, para 3.14) / management_accounts revenue.
     """
     bd: dict[int, float] = {}
     rev: dict[int, float] = {}
@@ -217,9 +227,44 @@ def extract_series_from_run_output(
             inc = blk.get("income_statement", {})
             bd[int(y)] = float(inc.get("bad_debt_gbp", 0.0))
             rev[int(y)] = float(inc.get("revenue_gbp", 0.0))
+    elif basis == "ifrs9_charge":
+        bd, rev = _ifrs9_charge_series(run_output)
     else:  # pragma: no cover - guarded by Literal typing
         raise ValueError(f"unknown basis: {basis!r}")
     return bd, rev
+
+
+def _ifrs9_charge_series(run_output: dict) -> tuple[dict[int, float], dict[int, float]]:
+    """The company's own charge by year: its year-end provision stock less the one before, plus what
+    it wrote off in the year. Nothing in the run posts a company write-off or recovery today, so the
+    published stock carries no `written_off_to_date_gbp` and the movement is the whole charge; the
+    day a stock carries one, its movement is added here rather than silently left out.
+
+    The first year with revenue opens from a zero stock (the company opened then). Any other year
+    whose prior year-end stock is missing is left out, not charged from zero, and so is a run whose
+    provision read failed (`unavailable_because`)."""
+    stocks = (run_output.get("company_provision") or {}).get("by_date") or {}
+    year_end = {int(d[:4]): s for d, s in stocks.items() if d.endswith("-12-31")}
+    rev = {int(y): float(blk.get("income_statement", {}).get("revenue_gbp", 0.0))
+           for y, blk in run_output.get("management_accounts", {}).items()}
+    if not year_end or not rev:
+        return {}, {}
+    opened = min(rev)
+
+    def charged(s: dict) -> tuple[float, float]:
+        return float(s.get("provision_gbp") or 0.0), float(s.get("written_off_to_date_gbp") or 0.0)
+
+    bd: dict[int, float] = {}
+    for y in sorted(year_end):
+        if (y - 1) in year_end:
+            before = charged(year_end[y - 1])
+        elif y == opened:
+            before = (0.0, 0.0)
+        else:
+            continue
+        stock, written_off = charged(year_end[y])
+        bd[y] = (stock - before[0]) + (written_off - before[1])
+    return ({y: g for y, g in bd.items() if y in rev}, {y: rev[y] for y in bd if y in rev})
 
 
 def validate_run_output(
