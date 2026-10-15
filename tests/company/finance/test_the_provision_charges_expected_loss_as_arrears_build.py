@@ -4,7 +4,7 @@ the quarter the run's own arrears stock builds, not a year later.
 The clock is always the book's own arrears stock: money on bills unpaid more than 30 days, at each
 quarter end. Never the published 1.3%-2.8% level. Whether the crisis charge reaches that level is a
 separate question, and a world one (the world's non-payment does not step up in 2021-22), filed
-against the world's debt atom and not asked here.
+against W2_38_the_worlds_debt_is_graded_against_ofgems_quarterly_series and not asked here.
 
 Two measures of the lag, both pre-registered before the run was read (prediction: 0 quarters on both):
 - `lag_peak`: the quarter with the largest rise in the charge, from the arrears build quarter `Qa`
@@ -23,6 +23,54 @@ from company.finance import bad_debt_provision as bdp
 from tests.company.finance.test_roll_rate_provision import START, _method, _post
 
 MAX_LAG = 4
+
+# The run, graded 2026-10-15 against the pre-registration in /var/tmp/writeoff/r4/PREREG.md: seed
+# 61109, all_wins, 12 founders (r3's recipe), run at 751184c75 (= 6442d41af plus an auto-salvage of
+# six generated observability files; no code differs). The switch was off for the run; both stocks
+# were read afterwards on its ledger at each quarter end. (quarter end, arrears GBP unpaid > 30 days,
+# roll-rate matrix provision GBP with overlay none, None while the matrix has not seen the tail,
+# the Centrica-rate provision the run publishes.)
+RUN_61109 = (
+    ("2016-03-31", 0.0, None, 0.0),
+    ("2016-06-30", 54.39, None, 6.41),
+    ("2016-09-30", 27.01, None, 6.05),
+    ("2016-12-31", 42.56, None, 20.47),
+    ("2017-03-31", 110.92, None, 18.44),
+    ("2017-06-30", 35.06, None, 6.62),
+    ("2017-09-30", 65.88, None, 16.0),
+    ("2017-12-31", 119.17, None, 19.91),
+    ("2018-03-31", 907.44, None, 138.96),
+    ("2018-06-30", 329.23, None, 51.15),
+    ("2018-09-30", 29.86, None, 6.07),
+    ("2018-12-31", 671.4, None, 113.05),
+    ("2019-03-31", 173.76, None, 51.53),
+    ("2019-06-30", 403.13, None, 198.1),
+    ("2019-09-30", 332.26, None, 160.05),
+    ("2019-12-31", 308.77, None, 160.13),
+    ("2020-03-31", 378.86, 150.96, 189.8),
+    ("2020-06-30", 464.72, 152.94, 201.68),
+    ("2020-09-30", 271.45, 147.29, 171.05),
+    ("2020-12-31", 524.97, 157.68, 223.84),
+    ("2021-03-31", 605.56, 156.98, 236.83),
+    ("2021-06-30", 840.21, 188.37, 288.11),
+    ("2021-09-30", 603.1, 183.71, 262.8),
+    ("2021-12-31", 905.04, 182.73, 288.88),
+    ("2022-03-31", 764.09, 185.5, 288.47),
+    ("2022-06-30", 827.86, 209.61, 291.72),
+    ("2022-09-30", 768.55, 210.75, 298.77),
+    ("2022-12-31", 1667.68, 212.2, 467.23),
+    ("2023-03-31", 2035.87, 215.32, 511.47),
+    ("2023-06-30", 1632.77, 218.39, 481.37),
+    ("2023-09-30", 888.44, 320.26, 439.62),
+    ("2023-12-31", 1895.44, 357.85, 604.39),
+    ("2024-03-31", 2360.58, 378.53, 715.68),
+    ("2024-06-30", 1846.1, 391.36, 633.67),
+    ("2024-09-30", 1824.33, 430.63, 665.79),
+    ("2024-12-31", 2263.23, 432.08, 744.49),
+    ("2025-03-31", 2651.69, 469.37, 864.26),
+)
+#: Index range of the arrears build window: deltas into 2021Q1 through 2023Q4.
+RUN_BUILD_WINDOW = (19, 31)
 
 
 def _deltas(series):
@@ -109,3 +157,29 @@ def test_on_a_live_book_the_charge_moves_in_the_build_quarter_defect_the_provisi
     assert provision[build_quarter(arrears, 0, len(arrears) - 1)] is not None
     assert lag_peak(arrears, provision) == 0
     assert lag_xcorr(arrears, provision) == 0
+
+
+def _run(col):
+    return [row[col] for row in RUN_61109]
+
+
+def test_the_runs_published_provision_moves_in_the_build_quarter_defect_the_age_bands_lag_arrears():
+    """The Centrica-rate stock the run publishes rises most in the quarter the run's own arrears
+    build most (2023Q4), and its quarter-on-quarter moves track the arrears' at lag 0."""
+    arrears, published = _run(1), _run(3)
+    assert RUN_61109[RUN_BUILD_WINDOW[0]][0] == "2020-12-31"
+    assert lag_peak(arrears, published, *RUN_BUILD_WINDOW) == 0
+    assert lag_xcorr(arrears, published) == 0
+
+
+@pytest.mark.xfail(strict=True, reason=(
+    "OPEN, measured 2026-10-15: the roll-rate stock trails the run's arrears by 3 quarters on both "
+    "pre-registered measures (prediction was 0). Its learned loss rates for money aged 0-2 months "
+    "are 0.02%-1.2%, learned from 24 months of young arrears that cured, so 2022Q4's arrears "
+    "(GBP 769 -> 1,668) move it GBP 1.45; it catches up only as that money ages past four months. "
+    "No forward-looking term keyed to the arrears inflow exists. When one does, this XPASSes: "
+    "re-run the grade and flip it."))
+def test_the_roll_rate_provision_moves_in_the_runs_build_quarter_defect_learned_rates_lag_arrears():
+    arrears, roll_rate = _run(1), _run(2)
+    assert lag_peak(arrears, roll_rate, *RUN_BUILD_WINDOW) == 0
+    assert lag_xcorr(arrears, roll_rate) == 0

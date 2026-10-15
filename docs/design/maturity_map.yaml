@@ -918,7 +918,7 @@
   level_current: 0
   level_target: 3
   loop_stage: idle
-  block_reason: "RULED 2026-10-15 (director): one variable constant. The population draw stays FIXED while the bugs that move results are cleared, so a change in results means a change in code. SWITCH when all of these are closed on origin: B12 (writer one margin and floor basis), E6 first slice (the provision lags arrears a year), the catch-up that credits held estimates (WORKER_FINDING_NINE_CUSTOMER_YEARS_*), and the stayers control (WORKER_FINDING_THE_SAVE_IS_NOT_PAID_FOR_BY_THE_STAYERS_*). THEN vary it: a fresh draw per run, as canon F13 says, to test the edge cases: B11 ranking where departure p varies, EP1 legs-then-rate replication, and whether this week decisions (renewal cut on tiers, the save) hold for edge households (vulnerable, SME-mislabelled, gas-heated, movers)."
+  block_reason: "RULED 2026-10-15 (director): one variable constant. The population draw stays FIXED while the bugs that move results are cleared, so a change in results means a change in code. SWITCH when all of these are closed on origin: B12 (writer one margin and floor basis), E6 first slice (the published provision moves in the arrears build quarter; the learned roll-rate one trails it 3 quarters, 2026-10-15), the catch-up that credits held estimates (WORKER_FINDING_NINE_CUSTOMER_YEARS_*), and the stayers control (WORKER_FINDING_THE_SAVE_IS_NOT_PAID_FOR_BY_THE_STAYERS_*). THEN vary it: a fresh draw per run, as canon F13 says, to test the edge cases: B11 ranking where departure p varies, EP1 legs-then-rate replication, and whether this week decisions (renewal cut on tiers, the save) hold for edge households (vulnerable, SME-mislabelled, gas-heated, movers)."
   blocked_on: [B12_writer_one_reads_its_margin_on_the_unit_rate_so_a_renewal_floor_is_its_true_unit_cost,
     E6_a_forward_cash_forecast_per_customer_charges_expected_loss_as_arrears_build]
   dial_inherited: 60    # R1 -- DIRECTOR_CANON_RERANKING_THE_ARC_2026-09-04 §2/§5.
@@ -1880,7 +1880,7 @@
   lane: E_finance_treasury
   value_stream: meter_to_cash
   epoch: 4
-  level_current: 0
+  level_current: 1   # 2026-10-15 L0->L1 SELF-CERTIFIED: provision built, control grades it; learned one lags 3q (WORKER_FINDING_THE_ROLL_RATE_PROVISION_*)
   level_target: 2
   loop_stage: build
   # MINTED 2026-10-14. C9 (canon v4): steps 3 and 5 run through one payment and debt engine;
