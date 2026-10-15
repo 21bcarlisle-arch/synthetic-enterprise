@@ -59,3 +59,26 @@ The code change lands with a unit control. Grading on the book needs the next pu
 Monday publish). At that run, re-print the `defect4` sweep. Then delete the seven
 `_HELD_ESTIMATE_NETTED` rows and keep the two OCC rows, if and only if P2 and P3 hold. Grade each line
 here beside its result.
+
+## Grading design, written 2026-10-15 before the grading run (claim `the-held-estimate-fix-is-graded-against-its-pre-registration`)
+
+**Why not the Monday publish.** P1 says no bill other than the 11 catch-ups changes. The next
+published run will also carry 068928f47 and its successors (the storage-heater and water-heater
+demand changes), which move the demand digest and so move every electrically heated home's bills.
+On that run P1 is ungradeable by construction, and any P2 margin would mix two causes.
+
+**The one-variable run instead.** A locked worktree at `2248e3baf` (the published book's own commit)
+with only 650fdcdd7's `company/billing/monthly_bill_assembly.py` hunk applied
+(`/var/tmp/se-heldgrade-2248e3baf`). Full `simulation.run_phase4c_on_phase2b.main()`, saved through
+`save_run_output_json`. The arm it is compared with is the published
+`run_output_2248e3baf_20261013T134447Z.json` (its bills are byte-equal to the `.gz` this record was
+measured on; checked).
+
+**Placebo leg, graded first.** Every bill outside the 11 catch-ups must be equal to the published
+bill. If more than those 11 differ, the world has drifted between runs at one commit (weather store,
+an untracked input or nondeterminism). In that case P1 is reported as *not gradeable on this run*
+with the count of drifted bills. It is not reported as refuted.
+
+**Then P1, P4 from the bills; P2, P3 from a ledger and customer sample regenerated from this run**
+(in the scratch worktree, never committed), read through `billed_total_by_customer_year(...,
+net_of_catchup=True)` at the billing account, as the gate does.
