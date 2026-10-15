@@ -1,6 +1,8 @@
-**Severity:** LATENT · **Lane:** D_billing_metering · **Epoch:** unassigned · **Atom:** `unminted` · **Claim:** none (found while landing `a-held-estimate-is-known-at-assembly-knowledge-and-prereg-first`)
+**Severity:** LATENT · **Lane:** D_billing_metering · **Epoch:** unassigned · **Atom:** `D46_the_validator_holds_against_the_varied_population` · **Claim:** none (found while landing `a-held-estimate-is-known-at-assembly-knowledge-and-prereg-first`)
 
 # Two statement controls are red at origin on the 2248e3baf ledger, and no census holds them
+
+**Fate (2026-10-15):** ATOM -- folds into `D46_the_validator_holds_against_the_varied_population` (re-pointed 2026-10-15; an ATOM fate names its atom).
 
 Run on 2026-10-15 in a fresh origin worktree with `monthly_bill_assembly.py` restored to HEAD, so
 neither red is the held-estimate change:

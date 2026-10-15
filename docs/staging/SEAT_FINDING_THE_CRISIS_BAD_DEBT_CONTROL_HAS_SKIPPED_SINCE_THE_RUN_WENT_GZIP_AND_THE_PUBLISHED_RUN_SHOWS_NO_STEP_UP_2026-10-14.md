@@ -1,8 +1,9 @@
-**Severity:** BLOCKING · **Lane:** W2_customer_generator · **Epoch:** 4 · **Atom:** `unminted`
+**Severity:** BLOCKING · **Lane:** W2_customer_generator · **Epoch:** 4 · **Atom:** `E6_a_forward_cash_forecast_per_customer_charges_expected_loss_as_arrears_build`
 **Knowledge:** none -- a control grading a published run against the bad-debt step-up already recorded in docs/market_research/ASSUMPTIONS.md (1.3% to 2.8% of revenue); no new domain claim
 
 # The crisis bad-debt control has skipped since the run went gzip, and the published run shows no crisis step-up (2026-10-14)
 
+**Fate (2026-10-15):** ATOM -- folds into `E6_a_forward_cash_forecast_per_customer_charges_expected_loss_as_arrears_build` (re-pointed 2026-10-15; an ATOM fate names its atom).
 **Fate (2026-10-14):** ATOM -- world fidelity, the affordability cluster's question (W2_4..); the control's reader fix lands with the cause's fix, never alone.
 **Fate (2026-10-15):** stays OPEN. The roll-rate matrix and the reader fix land together (shipped off). The leg that still fails is the validator: 2021-22 does not step up on either basis, and the roll-rate matrix's own charge also peaks in 2023. See the last section.
 

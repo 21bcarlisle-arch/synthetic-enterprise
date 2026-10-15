@@ -2,6 +2,7 @@
 
 # The draw's refusals, and its draws of parked atoms, reach only the supervisor journal
 
+**Fate (2026-10-15):** TRIAGE -- a machine-class known issue, carried as `a-coupled-triad-refusal-reaches-only-the-supervisor-log` in docs/direction/wrong_triage.yaml.
 **Fate (2026-10-12, clear-the-decks):** ATOM -- coupled-triad gate exclusions and Lane-0-item refusals still reach only the supervisor journal, not the seat's brief (P2)
 
 *Console seat, 2026-10-07, from the triage of the delivery seat's carried "what it got wrong" items

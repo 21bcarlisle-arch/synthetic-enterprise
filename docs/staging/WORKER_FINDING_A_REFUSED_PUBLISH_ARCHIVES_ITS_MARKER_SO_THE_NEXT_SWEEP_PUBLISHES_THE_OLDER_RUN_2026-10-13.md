@@ -1,7 +1,8 @@
-**Severity:** LATENT · **Lane:** H_harness · **Epoch:** unassigned · **Atom:** `unminted` · **Claim:** publish-wedge draw (worker), 2026-10-13 ~22:20 BST
+**Severity:** LATENT · **Lane:** H_harness · **Epoch:** unassigned · **Atom:** `OPS6_scoped_publish_path_suite` · **Claim:** publish-wedge draw (worker), 2026-10-13 ~22:20 BST
 
 # A refused publish archives its marker, so the next sweep publishes the older run
 
+**Fate (2026-10-15):** ATOM -- folds into `OPS6_scoped_publish_path_suite` (re-pointed 2026-10-15; an ATOM fate names its atom).
 **Fate (2026-10-14):** ATOM -- harness, next week: the mechanism it proposes is unbuilt; the marker was moved back by hand.
 
 **The wedge itself is diagnosed and fixed. This note is about what was left behind.** The publisher

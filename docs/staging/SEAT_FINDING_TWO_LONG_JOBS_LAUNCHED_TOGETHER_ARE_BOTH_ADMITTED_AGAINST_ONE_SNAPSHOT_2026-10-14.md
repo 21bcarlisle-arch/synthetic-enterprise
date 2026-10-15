@@ -1,5 +1,6 @@
 # Two long jobs launched together are both admitted against one snapshot
 
+**Fate (2026-10-15):** TRIAGE -- a machine-class known issue, carried as `two-long-jobs-are-admitted-against-one-snapshot` in docs/direction/wrong_triage.yaml.
 **Fate (2026-10-14):** ATOM -- harness, next week: admission against one memory snapshot.
 
 **Severity:** LATENT · **Lane:** H_harness · **Epoch:** unassigned · **Atom:** `unminted`
