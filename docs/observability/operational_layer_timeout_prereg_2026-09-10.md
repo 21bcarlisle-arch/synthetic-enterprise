@@ -197,3 +197,31 @@ substring scan `test_a_control_reads_python_as_code.py` refuses, so it is left a
 
 **Prediction, round 4b:** the next operational run goes green inside 1800s, or, if it times out,
 names a test collected after `test_health_check.py`.
+
+**Refuted, the same night (2026-10-15 00:17).** A forced run at `db1e5c740` timed out at 1800s
+inside `test_supervisor.py` (`test_find_work_never_reports_map_exhausted_against_real_map_with_idle_atoms`),
+which is collected *before* `test_health_check.py`. user+sys was 18.5 of 30 minutes on a box at load
+24-32 over 16 cores, so it was working, not blocked. The test the doorbell named
+(`test_self_refill_draw_single_atom_message_unchanged`) passes alone in 6.2s; it was only where the
+clock ran out. `test_supervisor.py` on its own (all of it marked `operational`) ran past 1500s and
+was killed.
+
+**Slow, not blocking, and the cost is one draw multiplied.** Each `run_cycle` reaches
+`_self_refill_draw`, about 3.0s of live-tree reads. The four `test_stuck_escalation_*` tests drive
+31 cycles each, 80-120s apiece. Profiled over one of them: `product_machinery_split.split()` was
+1.54s per draw (51%), because it re-ran `git log -n 100 --name-only` on every call;
+`gap_ledger_reconciler.discover_writers` was 0.80s; `gap_register_scan.open_residue` was 0.60s.
+
+**Repair, round 5, not a budget raise:** `split()` caches the raw log text on (repo, HEAD sha,
+window). Commits are immutable, so it cannot go stale. `rev-parse` costs 5ms against 2.5s for the
+log, and the production draw gains the same. A failed log is never cached. Controls in
+`tests/tools/test_product_machinery_split.py`, red against two mutants (no cache; key without the
+sha). Measured: the stuck-escalation test went from 94.5s to 43.3s, at a higher load (33.6 against
+about 24). The two remaining legs (`discover_writers`, `open_residue`) are about 1.4s per draw, are
+keyed to file contents rather than one sha, and are left for a measured next round.
+
+**Prediction, round 5, filed before the next full run:** `test_supervisor.py` alone comes in under
+about 900s at comparable load. Whether the whole operational suite fits in 1800s I cannot yet say:
+the hourly runs have never reached past roughly #508 of about 600, so the tail is unmeasured. If it
+still times out, it names a test after `test_supervisor.py`, or a supervisor test whose draw cost
+is `discover_writers`/`open_residue`.

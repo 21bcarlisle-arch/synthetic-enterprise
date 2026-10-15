@@ -120,13 +120,46 @@ def classify_commit(paths: list[str]) -> str:
     return "neither"
 
 
+# The trailing log is a pure function of (repo, HEAD, window) -- commits are immutable -- so it is
+# cached on the HEAD sha. Every supervisor draw asks the floor, and the `git log --name-only` was
+# half of each draw's cost (1.5s of 3.0s, measured 2026-10-15): 31 draws per stuck-escalation test
+# made the operational layer outgrow its 1800s budget. `rev-parse` costs ~5ms. Only the raw text is
+# cached; classification still runs on every call.
+_LOG_CACHE: dict[tuple[str, str, int], str] = {}
+_LOG_CACHE_MAX = 8
+
+
+def _head_sha(root: Path) -> str | None:
+    try:
+        r = subprocess.run(["git", "rev-parse", "HEAD"], cwd=str(root),
+                           capture_output=True, text=True, timeout=30)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    sha = r.stdout.strip()
+    return sha if r.returncode == 0 and sha else None
+
+
+def _trailing_log(root: Path, window: int) -> str:
+    sha = _head_sha(root)
+    key = (str(root), sha or "", window)
+    if sha and key in _LOG_CACHE:
+        return _LOG_CACHE[key]
+    r = subprocess.run(
+        ["git", "log", "-n", str(window), "--pretty=%x1e%h", "--name-only"],
+        cwd=str(root), capture_output=True, text=True, timeout=120,
+    )
+    out = r.stdout
+    if sha and r.returncode == 0:
+        if len(_LOG_CACHE) >= _LOG_CACHE_MAX:
+            _LOG_CACHE.clear()
+        _LOG_CACHE[key] = out
+    return out
+
+
 def split(window: int = 200, repo: Path | None = None) -> dict:
     """The product/machinery split over the trailing `window` commits."""
     root = repo or PROJECT
-    out = subprocess.run(
-        ["git", "log", "-n", str(window), "--pretty=%x1e%h", "--name-only"],
-        cwd=str(root), capture_output=True, text=True, timeout=120,
-    ).stdout
+    out = _trailing_log(root, window)
     counts = {"product": 0, "machinery": 0, "neither": 0}
     for block in out.split("\x1e"):
         lines = [ln for ln in block.splitlines() if ln.strip()]
