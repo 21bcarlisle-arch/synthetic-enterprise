@@ -116,3 +116,32 @@ clustering is in the table's year-1 hazard and is not imposed on it.
   `first_renewal_departure_rate_small_gb_supplier.md`.
 - How much evergreen customers leave per cap-change notice compared with between notices. No
   published series separates the two.
+
+## Which book a fixed renewal's realised margin is read against (added 2026-10-15)
+
+Opened by `docs/staging/SEAT_FINDING_THE_UNIT_RATE_MARGIN_STILL_READS_ABOVE_ITS_TARGET_ON_FIXED_TERMS_2026-10-14.md`
+(hypothesis 1, atom B12). Writer 1's portfolio premium reads the last four completed terms of a fuel
+of ANY tariff and compares them with what a fixed strike priced for. About 10 in 11 of those terms are
+standard variable.
+
+**Established.** The CMA's Energy Market Investigation (final report, 2016) found that the six large
+suppliers earned materially more per unit on standard variable tariffs than on fixed and other deals:
+about 12% more for electricity and 13% for gas over 2011-14. It also found that SVT prices sat above
+what cost differences could justify. That is the inactive-customer detriment the default tariff cap
+(2019) was set up to bound. Sources:
+[CMA EMI provisional findings notice](https://assets.publishing.service.gov.uk/media/559aacbee5274a1559000017/EMI_Notice_of_PFs.pdf);
+[Brattle, inactive customers and unilateral market power](https://www.brattle.com/wp-content/uploads/2017/10/7179_inactive_customers_and_unilateral_market_power_-_the_cmas_energy_market_investigation-4.pdf).
+Under the cap, a default term earns whatever headroom the cap leaves over the supplier's cost. That
+headroom is set by the regulator's cost assessment, not by the supplier's strike. So it is large when
+wholesale sits under the cap's observation window (2019-20, mid-2023 onward) and negative when
+wholesale runs ahead of it (2021-22).
+
+**What follows, as a design choice made here.** The SVT and fixed books earn different margins for
+reasons that have nothing to do with how well a fixed strike was priced. A desk that wants to know
+whether its fixed strikes earn what they priced for therefore compares fixed terms with fixed terms.
+The default book's margin is a reading of the cap's headroom, not of the strike, so letting it into
+the fixed premium would cut next year's fixed prices on the strength of a margin the cap produced.
+
+**GAP.** No published source says how a GB supplier's renewal desk sets the comparison book, and
+none says whether it learns from its default book at all. This is practitioner territory (K4). The
+choice above is the design's, labelled as such, and the B12 run on seed 61109 is its test.
