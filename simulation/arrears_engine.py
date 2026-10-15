@@ -677,10 +677,14 @@ def arrears_stages(arrears_gbp: float, due_date: date, still_open: bool,
 #: A credit bill netted against this case (SLC 27.16). It moves no money on the account ledger:
 #: the credit invoice itself already reduced the balance, so this stage only says where it went.
 CREDIT_APPLIED = "CREDIT_APPLIED"
+#: A household repayment the world's payment truth records, applied to this case. Unlike a credit
+#: it is money in, so the account ledger books it as a payment received.
+ARREARS_REPAID = "ARREARS_REPAID"
 
 
 def with_credits_applied(stages: list[dict], face_gbp: float, credits: list[dict]) -> list[dict]:
-    """`stages` with each credit `balance_settlement` netted against the case inserted in date order.
+    """`stages` with each credit or repayment `balance_settlement` netted against the case inserted
+    in date order.
 
     A case the credits settle in full ends on its last CREDIT_APPLIED, and no notice dated after it
     is sent. The terminal stage of a case left open is dated no earlier than its last credit, so the
@@ -696,6 +700,13 @@ def with_credits_applied(stages: list[dict], face_gbp: float, credits: list[dict
         owed = round(owed - c["amount_gbp"], 2)
         # A credit already on the account meets the bill the day the case opens. The ledger's case
         # opens at the issued bill's due date, which can be a day or two after the engine's clock.
+        if c.get("kind") == "repayment":
+            credit_stages.append({
+                "stage": ARREARS_REPAID, "date": max(c["date"].isoformat(), opened),
+                "amount_gbp": c["amount_gbp"],
+                "note": "Payment of GBP%.2f received %s towards this bill -- GBP%.2f left owed"
+                        % (c["amount_gbp"], c["credit_period_end"], max(owed, 0.0))})
+            continue
         credit_stages.append({
             "stage": CREDIT_APPLIED, "date": max(c["date"].isoformat(), opened),
             "amount_gbp": c["amount_gbp"],
@@ -911,6 +922,7 @@ def _resolve_bills(bills: list[dict], behavioral: dict, seed: int) -> list[dict]
         exit_ = (None if told is not None else
                  mover_final_bill_outcome(behavioral.get(cid) or {}, cid, period_end, commodity,
                                           amount, method, stress, seed))
+        asked = amount
         if exit_ is not None:
             outcome, days_late, part_paid = exit_
             amount = round(amount - part_paid, 2)
@@ -930,9 +942,12 @@ def _resolve_bills(bills: list[dict], behavioral: dict, seed: int) -> list[dict]
                 dd_failure_prob=(failure_table(shock.failure_multiplier)
                                  if method == "direct_debit" else None),
             )
+        # `part_paid_gbp` is what the payer paid of a final bill before the rest failed; the ledger
+        # prints it on the payment, so it reads it here rather than drawing the exit again.
         rows.append({"customer_id": cid, "period_end": period_end, "commodity": commodity,
                      "amount_gbp": amount, "due_date": due_date, "method": method,
-                     "outcome": outcome, "days_late": days_late})
+                     "outcome": outcome, "days_late": days_late,
+                     "part_paid_gbp": round(asked - amount, 2)})
     for cid, start in truth_rows_from.items():
         own = [r for r in rows[start:] if r["customer_id"] == cid]
         repaid = wpt.repayment_rows(behavioral[cid][wpt.RECORD_KEY], cid, own)
@@ -954,8 +969,10 @@ def balance_settlement_from_outcomes(resolved: list[dict], churned_ids: set[str]
     once credits are netted. A failed bill that is not here is either still an open balance on a
     live account at the end of the run, or has been cleared by credit.
 
-    ``credits_applied`` lists the account credits netted against each bill:
-    ``[{"date", "amount_gbp", "credit_period_end"}]``, where ``amount_gbp`` is positive.
+    ``credits_applied`` lists the account credits and household repayments netted against each
+    bill: ``[{"date", "amount_gbp", "credit_period_end", "kind"}]``, where ``amount_gbp`` is
+    positive and ``kind`` is ``"credit"`` (a credit bill) or ``"repayment"`` (money the household
+    paid, its ``credit_period_end`` the payment date).
 
     A successful payment pays its own bill. On a running account balance = bills - payments, so
     it does not reduce the arrears; it restarts the limitation clock (s.29(5)). Re-presentation
@@ -1009,7 +1026,8 @@ def balance_settlement_from_outcomes(resolved: list[dict], churned_ids: set[str]
             item["remaining"] = round(item["remaining"] - take, 2)
             unapplied[commodity] = round(unapplied[commodity] - take, 2)
             credited.setdefault(_key(item["row"]), []).append(
-                {"date": when, "amount_gbp": round(take, 2), "credit_period_end": credit_period_end})
+                {"date": when, "amount_gbp": round(take, 2), "credit_period_end": credit_period_end,
+                 "kind": last_credit_kind[commodity]})
             if item["remaining"] <= 0:
                 outstanding.remove(item)
 
@@ -1029,6 +1047,7 @@ def balance_settlement_from_outcomes(resolved: list[dict], churned_ids: set[str]
                     _write_off(item, barred_at, LEG_STATUTE_BAR)
 
         last_credit_pe: dict[str, str] = {}
+        last_credit_kind: dict[str, str] = {}
         for when, kind, r in events:
             if when > horizon:
                 break
@@ -1041,7 +1060,7 @@ def balance_settlement_from_outcomes(resolved: list[dict], churned_ids: set[str]
             elif kind == 1:
                 c = r["commodity"]
                 unapplied[c] = round(unapplied.get(c, 0.0) - r["amount_gbp"], 2)
-                last_credit_pe[c] = r["period_end"]
+                last_credit_pe[c], last_credit_kind[c] = r["period_end"], "credit"
                 for item in [i for i in outstanding if i["row"]["commodity"] == c]:
                     _net(item, when, r["period_end"])
             else:
@@ -1054,8 +1073,19 @@ def balance_settlement_from_outcomes(resolved: list[dict], churned_ids: set[str]
                         take = round(min(item["remaining"], left), 2)
                         item["remaining"] = round(item["remaining"] - take, 2)
                         left = round(left - take, 2)
+                        credited.setdefault(_key(item["row"]), []).append(
+                            {"date": when, "amount_gbp": take, "credit_period_end": r["period_end"],
+                             "kind": "repayment"})
                         if item["remaining"] <= 0:
                             outstanding.remove(item)
+                    if left > 0:
+                        # A payment in excess of what is owed is credit on the account (SLC 27.16):
+                        # a settlement dated before the engine opens the bill it settles met an
+                        # empty list, and was dropped, so the P&L wrote off money the household
+                        # had paid (PROS-2016-0263, GBP 215.97, 2026-10-15).
+                        c = r["commodity"]
+                        unapplied[c] = round(unapplied.get(c, 0.0) + left, 2)
+                        last_credit_pe[c], last_credit_kind[c] = r["period_end"], "repayment"
         _bar(horizon)
         if leaver:
             for item in outstanding:
@@ -1069,17 +1099,33 @@ def balance_write_offs_from_outcomes(resolved: list[dict], churned_ids: set[str]
     return balance_settlement_from_outcomes(resolved, churned_ids)[0]
 
 
+def resolved_settlement(bills: list[dict], behavioral: dict, churned_ids: set[str],
+                        seed: int = 42) -> tuple[dict[tuple[str, str, str], dict],
+                                                 dict[tuple[str, str, str], dict],
+                                                 dict[tuple[str, str, str], list[dict]]]:
+    """``(outcomes, write_offs, credits_applied)``: each issued bill's resolved row keyed
+    ``(customer_id, period_end, commodity)``, plus `balance_settlement`'s two maps.
+
+    `tools.generate_billing_ledger` reads a bill's outcome, method, lateness and owed amount from
+    ``outcomes`` rather than drawing them again. Its own draw could not see the world's payment
+    truth, so a bill the P&L wrote off read as paid on the ledger, and the reverse (2026-10-15).
+    A bill with no row is wholly the occupier's or the owner's (B7), so no named payer is asked.
+    """
+    # Only the bills the supplier issues: a bill its pre-bill gate holds never reached the customer,
+    # so it cannot fail and a held credit was never given. The ledger runs the same gate.
+    from company.interfaces.bill_assembly import issued_bills
+    resolved = _resolve_bills(issued_bills(bills), behavioral, seed)
+    outcomes = {(r["customer_id"], r["period_end"], r["commodity"]): r
+                for r in resolved if r["outcome"] != "repayment"}
+    return (outcomes, *balance_settlement_from_outcomes(resolved, churned_ids))
+
+
 def balance_settlement(bills: list[dict], behavioral: dict, churned_ids: set[str],
                        seed: int = 42) -> tuple[dict[tuple[str, str, str], dict],
                                                 dict[tuple[str, str, str], list[dict]]]:
     """Every written-off case in the book and every credit netted against a case, under the
-    balance-at-close rule. `tools.generate_billing_ledger` reads both, so the household's arrears
-    history nets exactly what the P&L nets."""
-    # Only the bills the supplier issues: a bill its pre-bill gate holds never reached the customer,
-    # so it cannot fail and a held credit was never given. The ledger runs the same gate.
-    from company.interfaces.bill_assembly import issued_bills
-    return balance_settlement_from_outcomes(
-        _resolve_bills(issued_bills(bills), behavioral, seed), churned_ids)
+    balance-at-close rule."""
+    return resolved_settlement(bills, behavioral, churned_ids, seed)[1:]
 
 
 def balance_write_offs(bills: list[dict], behavioral: dict, churned_ids: set[str],

@@ -52,9 +52,6 @@ from simulation.arrears_engine import (
     arrears_stages as _arrears_stages,
 )
 from simulation.arrears_engine import (
-    balance_settlement as _balance_settlement,
-)
-from simulation.arrears_engine import (
     bill_substream as _bill_substream,
 )
 from simulation.arrears_engine import (
@@ -74,6 +71,9 @@ from simulation.arrears_engine import (
 )
 from simulation.arrears_engine import (
     payment_outcome as _payment_outcome,
+)
+from simulation.arrears_engine import (
+    resolved_settlement as _resolved_settlement,
 )
 from simulation.arrears_engine import (
     stress_for_year as _stress_for_year,
@@ -180,12 +180,13 @@ def generate(run_json_path=None, out_path=None):
     # By supply point, as the engine tests each bill's own id: see `supply_points_that_left`.
     churned = supply_points_that_left(
         households_whose_account_closed(data), {b["customer_id"] for b in bills})
-    # Which failed bills are written off, when, and what credit is netted against each, is READ
-    # from the engine over the same unfiltered bills the P&L sees -- never re-derived here. The
-    # engine drops held bills and credits itself, so the ledger and `bad_debt_gbp` agree per
-    # account; tests/tools/test_the_ledger_and_the_pnl_write_off_agree_on_the_real_book.py holds
-    # that on the real run.
-    write_offs, credits_applied = _balance_settlement(bills, behavioral, churned, seed=42)
+    # Each bill's outcome, which failed bills are written off, when, and what credit or repayment
+    # is netted against each, is READ from the engine over the same unfiltered bills the P&L sees
+    # -- never re-derived here. The engine drops held bills and credits itself, so the ledger and
+    # `bad_debt_gbp` agree per account;
+    # tests/tools/test_the_ledger_and_the_pnl_write_off_agree_on_the_real_book.py holds that on the
+    # real run.
+    resolved, write_offs, credits_applied = _resolved_settlement(bills, behavioral, churned, seed=42)
     # PB8 L2: the households the supplier stopped collecting by DD, over the bills the engine reads,
     # so a stopped household's later bills are payable on receipt here as they are in the P&L.
     from company.interfaces.bill_assembly import issued_bills
@@ -271,11 +272,22 @@ def generate(run_json_path=None, out_path=None):
         # payment" of a negative sum, which is not a real event).
         is_credit = amount <= 0
         part_paid = 0.0
+        # What the named payer is asked for: the bill less any occupier or owner share (B7).
+        asked = amount
+        row = resolved.get((cid, period_end, commodity))
         if is_credit:
             method = None
             _tone = None
             outcome, days_late = "success", 0
+        elif row is not None:
+            # The engine's outcome, which reads the world's payment truth where a draw cannot.
+            method, outcome, days_late = row["method"], row["outcome"], row["days_late"]
+            part_paid = row.get("part_paid_gbp", 0.0)
+            asked = round(row["amount_gbp"] + part_paid, 2)
+            _tone = _tone_for_bill(method, cid, period_end)
         else:
+            # No row: the bill is wholly the occupier's or the owner's, which the engine never
+            # collects from this payer. Drawn here as before; see the 2026-10-15 finding.
             method = _paying_method(segment, amount, cid, commodity, period_end, dd_stops)
             _tone = _tone_for_bill(method, cid, period_end)
             exit_ = _mover_final_bill_outcome(beh, cid, period_end, commodity, amount, method,
@@ -537,7 +549,7 @@ def generate(run_json_path=None, out_path=None):
         # (SLC 27.16) -- the amount the engine writes off or leaves open. `face` is the bill.
         credits = credits_applied.get((cid, period_end, commodity), [])
         face = amount
-        amount = round(face - part_paid, 2)
+        amount = round(asked - part_paid, 2)
         if credits:
             amount = max(round(amount - sum(c["amount_gbp"] for c in credits), 2), 0.0) + 0.0
         if outcome == "failed":
@@ -578,12 +590,17 @@ def generate(run_json_path=None, out_path=None):
         # balance also nets credit from -- never the face, which a part-credited bill no longer owes.
         inv["outstanding_gbp"] = 0.0
         if outcome in ("failed", "dispute"):
-            arr.update(face_gbp=round(face, 2), credit_applied_gbp=round(face - part_paid - amount, 2),
-                       stages=_with_credits_applied(arr["stages"], face - part_paid, credits))
+            # Credit bills and the household's own repayments both net the case, but only a
+            # repayment is money in, so the two are kept apart.
+            repaid = round(sum(c["amount_gbp"] for c in credits if c.get("kind") == "repayment"), 2)
+            arr.update(face_gbp=round(face, 2),
+                       credit_applied_gbp=round(asked - part_paid - amount - repaid, 2),
+                       repaid_gbp=repaid,
+                       stages=_with_credits_applied(arr["stages"], asked - part_paid, credits))
             inv["outstanding_gbp"] = arr["arrears_gbp"]
             inv["credit_applied_gbp"] = arr["credit_applied_gbp"]
             if credits and amount == 0:
-                inv["payment_status"] = "settled_by_credit"
+                inv["payment_status"] = "paid_late" if repaid else "settled_by_credit"
 
         invoice_number += 1
 
