@@ -512,4 +512,145 @@ and calm, so net of heating the real coupling is probably weaker than −0.32. T
 lenient to the world. The section of 2026-10-06 does not name the estimator behind LCL's −0.32. It is
 taken here to be linear Pearson on kWh/day, and the comparator depends on that. The log-kWh
 correlations above are world-only. A NEED search found consumption-change and stock medians, but no
-spread of electricity at a given household size, so the GAP stands. Scripts: `/var/tmp/se-w129/.scratch_w129/` (not committed).
+spread of electricity at a given household size, so the GAP stands.
+
+*Correction, 2026-10-14: the GAP is closed. NEED's Table A14 (by number of adults) publishes p5–p95, not only
+the medians quoted in 2026-07. See the 2026-10-14 section below.* Scripts: `/var/tmp/se-w129/.scratch_w129/` (not committed).
+
+## NEED publishes the spread at a given household size, and a per-home use intensity is not the texture remedy (2026-10-14)
+
+Worker on the self-refill draw of `W1_29`. **The GAP above ("no source gives how much homes of one size
+differ") is closed by a table the 2026-07-23 read already had and quoted only for its medians.** DESNZ
+NEED 2026 (published June 2026), `Consumption_additional_EW_2024.xlsx`, Table A14 ("Electricity
+consumption by number of adults", Experian-modelled adults, England and Wales). It publishes p5, p10, p25,
+median, p75, p90 and p95 for each adult count and year. 2022 electricity year, whole meter, kWh:
+
+| adults | share | p10 | p25 | median | p75 | p90 | p90/p10 | p75/p25 |
+|---|---|---|---|---|---|---|---|---|
+| all | 100% | 1,043 | 1,630 | 2,539 | 3,946 | 6,195 | 5.94 | 2.42 |
+| 1 | 36% | 850 | 1,278 | 1,946 | 3,121 | 5,198 | 6.12 | 2.44 |
+| 2 | 38% | 1,366 | 1,944 | 2,774 | 4,060 | 6,179 | 4.52 | 2.09 |
+| 3 | 13% | 1,541 | 2,225 | 3,200 | 4,653 | 6,940 | 4.50 | 2.09 |
+| 4 | 5% | 1,700 | 2,502 | 3,624 | 5,262 | 7,775 | 4.57 | 2.10 |
+
+2016, 2019 and 2024 have the same shape: p75/p25 is 2.0–2.5 at every adult count. Knowing the adult count
+narrows the real spread very little. A14 is whole-meter and includes electric-heated homes. The cleaner
+comparison is `Consumption_multiple_attributes_EW_2024.xlsx`, which gives quartiles for each region ×
+property type × age × bedrooms × gas present × meter type cell. Weighted by sample size, the geometric
+mean p75/p25 **inside one cell, gas present, standard meter** is **2.08 in 2022** (2.04–2.16 across
+2020–2024). Even a home's region, dwelling and fuel leave a real p75/p25 of about 2.1.
+
+**The world, same quantity.** Four draws of 1,000 homes (`draw_premise_population`, base seeds 17, 18,
+19, 23, as of 2022-05-01; traces seed 7, C1 weather Jan–Apr 2022; `annual_kwh("electricity")`; origin
+`3b9848300` code). Gas-heated homes, p75/p25 at a given adult count: **1.45–1.66** (1 adult 1.57–1.66, 2
+adults 1.48–1.57, 3 adults 1.45–1.57). Gas homes' log-variance of annual electricity is 0.148–0.151, and
+87–89% of it sits within an adult count. A lognormal reading of the real cell quartiles puts that
+within-size variance at about 0.29 (σ ≈ ln 2.08 / 1.349). **So the world has about half the real
+between-home variance at a given size, and corr(log kWh, log always-on) is 0.78–0.79.** What spread it
+has comes mostly from the always-on draw.
+
+**Two one-variable arms, each pre-registered** (`/var/tmp/w129need/PREDICTION.md`, filed before the run).
+240 homes, seeds 17 and 18, read as the L1.1 cell reads them (net of both machines). A per-home
+multiplier m = exp(σz) was keyed on the premise id. σ = 0 reproduced the control to the last digit, and
+the seed-17 control reproduces the 2026-10-13 row (17 / 73 / 134 / 197). Nothing ships.
+
+| seed 17 / seed 18 | control | arm 1: m on `appliance_intensity` (σ 0.5) | arm 2: m on every event rate + lighting + electronics kW (σ 0.5) |
+|---|---|---|---|
+| gas p75/p25, 1 adult and 2 adults | 1.57, 1.57 / 1.63, 1.51 | 1.60, 1.60 / 1.64, 1.47 | **1.83, 1.70 / 1.79, 1.76** |
+| corr(texture, kWh/day) | −0.671 / −0.662 | −0.671 / −0.665 | −0.621 / −0.604 |
+| texture p10 / p25 / median / p75 / p90 (real 0.072 / 0.117 / 0.158 / 0.208 / 0.311) | 0.079 / 0.107 / 0.147 / 0.189 / 0.235 | 0.081 / 0.107 / 0.146 / 0.188 / 0.236 | 0.081 / 0.106 / 0.145 / 0.192 / 0.238 |
+| under real p10 / p25 / median / p75 | 17 / 73 / 134 / 197 | 19 / 75 / 138 / 195 | 18 / 76 / 137 / 196 |
+| L1.1 verdict | FAIL / FAIL | PASS / FAIL | PASS / FAIL |
+| L2.4 p90/p10 (real 5.38) | 2.97 / 3.56 | 3.15 / 3.55 | 3.74 / 3.84 |
+| median annual kWh | 2,801 / 2,820 | 2,797 / 2,861 | 2,857 / 2,902 |
+
+The L1.1 verdict flips on seed 17 within the cell's own sampling noise, because the leg counts barely move.
+Read it as noise, not as an effect.
+
+**Graded.** Arm 1 refuted P1–P3: `appliance_intensity` reaches only washing, dishwashing, drying and
+vacuuming, about a tenth of use. P4 held. Arm 2: Q1 held in 3 of 4 cells (1.70–1.83 against 1.75–2.05).
+**Q2 was refuted**: |corr| fell 0.05–0.06, not ≥ 0.10. Q3 held on seed 17 (+0.77) and was refuted on
+seed 18 (+0.28). **Q4 was refuted**: p90 texture moved +0.003 and −0.013, and the rough tail did not appear.
+Its other half held: the p25 leg did not improve. Q5 was refuted: the median rose 2–3%, not 5–15%.
+
+**What this settles.**
+1. **A per-home intensity on active use is a lever on L2.4, the size spread, and not on L1.1.** It
+   widens the within-size spread toward NEED's, but it neither creates the rough tail nor loosens texture's
+   coupling to size. In this world a home's texture is set by its always-on share. Scaling the active part
+   moves the home's size and its steps together, so the ratio barely moves.
+2. **The sourced target for that lever now exists.** A within-size p75/p25 of about 2.1 comes from NEED,
+   not LCL, so sizing a per-home intensity on it would not be circular against L1.1's LCL comparison. It
+   belongs to L2.4's open "a stratified source should replace it" (`RATE_BANDS`, the L2.4 anchor), and it
+   should be built under that cell, not as W1_29's remedy.
+3. **W1_29's L1.1 red is in what makes a home rough or calm at a given size**: the rough tail (p90 0.24
+   against 0.31) and too many calm homes in the middle. Neither more always-on nor more active volume
+   produces that. The remaining candidates are the ones the 2026-10-07 section named and nobody has
+   tested. One is how much of a home's active use comes in short high-power bursts against long low ones
+   (kettle-and-oven homes against TV-and-lights homes). The other is a night floor that moves from night
+   to night. Neither has a published per-home distribution in the knowledge layer.
+
+Limits: A14's adult count is Experian-modelled, and the world's is `adult_count` (people minus children),
+so the two definitions differ. The world reads Jan–Apr annualised, while NEED reads a Feb–Jan year. The arm
+multiplier is lognormal by choice, and σ 0.5 is an envelope, not a fit. Scripts: `/var/tmp/w129need/` (not
+committed).
+
+## The size spread has to ride with the always-on load, and it still does not loosen texture from size (2026-10-15)
+
+Worker on the self-refill draw of `W1_29`, at `origin/main` `fc015460d`. The section above (2026-10-14)
+was committed as `997f78bf7` on a fork of the shared tree that never reached origin. It is carried
+here unchanged. Every prediction below was filed before its run (`/var/tmp/se-w129b/PREREG.md`). Nothing
+ships: no world draw changed.
+
+**NEED, read per dwelling.** The 2026 anonymised 50k sample (`anon2026_50k.csv`, the file
+`tools/need_stock_joint.py` reads) was filtered to gas-heated homes (`MAIN_HEAT_FUEL` 1) with no PV and a
+valid 2022 reading, giving n 36,150. Within each `PROP_TYPE` × `FLOOR_AREA_BAND` cell of n ≥ 200 (16 cells), the median
+p90/p10 of annual electricity is **4.09** (3.66–4.96). The median log-sd is **0.567**, the pooled
+within-cell log-sd is **0.562**, and the log-sd over all homes is 0.601. So dwelling type and floor area
+explain about 13% of the log-variance. The figure agrees with the 2026-10-14 reading of the published cell
+quartiles (σ ≈ ln 2.08 / 1.349 = 0.54), and it is a second route to it rather than the same table. On the world's
+side, 4 seeds × 240 homes, gas no-PV, read in the same cells (`fp.floor_area_m2`): the pooled within-cell
+log-sd is **0.394–0.409** and the median cell p90/p10 is 2.43–2.75. Pre-registered as 1.8–2.6: the direction held and
+the range was refuted on 2 of 4 seeds.
+
+**Where the world's spread sits** (seed 17, n 240, gas no-PV, Jan–Apr kWh/day): the meter's mean is 8.08.
+The always-on load is 3.27 of it (40.5%) with an sd of 3.42, against the meter's sd of 3.88, and its
+correlation with log meter is +0.80. The event appliances are 2.16 (26.8%) with an sd of 0.66. Cold appliances
+are 0.92 and the boiler's auxiliaries 0.36. The world's between-home size is its always-on draw.
+
+**A coupled arm, one variable.** Active use (the event rate, lighting kW, electronics kW) was multiplied per
+home by (always-on ÷ 90 W)^β. That is the opposite of the 2026-10-14 arm, which drew its multiplier
+independently of the base. Seed 17, n 240:
+
+| β | within-cell log-sd (NEED 0.562) | L2.4 p90/p10 (real 5.38, floor 4.88) | L1.1 under p10/25/50/75 (expected 24/60/120/180) | texture p90 (real 0.311) | r(texture, kWh/day) (LCL −0.32) |
+|---|---|---|---|---|---|
+| 0 (control) | 0.401 | 2.97 | 17 / 73 / 134 / 197, FAIL | 0.234 | −0.671 |
+| 0.5 | 0.499 | 4.01 | 24 / 73 / 130 / 186, PASS | 0.260 | −0.697 |
+| 1.0 | 0.618 | 5.83 | 26 / 78 / 129 / 176, FAIL (p25) | 0.276 | −0.646 |
+
+**Graded.** P8 held: the within-cell spread rises, 0.50 and 0.62. P6 was refuted: r did not rise above −0.55
+at any β, and the comparator fires throughout (z −5.1 to −6.1). P7 was refuted: the median of always-on ÷ mean
+moved 0.32 → 0.30, not to 0.20–0.25.
+
+**What this adds to the 2026-10-14 section.**
+1. **The L2.4 lever has a shape as well as a size.** An independent σ 0.5 multiplier reached an L2.4 of only 3.74.
+   A multiplier tied to the always-on load reaches NEED's within-cell spread and LCL's 5.38 at the
+   **same β, about 0.7** (interpolated, not run). Those are two independent anchors, from two publishers, agreeing on one
+   number. The physical reading is that a home with more devices left on also uses more. It is a belief, with β
+   bounded by the two anchors, and no published source states that coupling. **GAP: the correlation of a
+   home's always-on load with its active use.** EFUS 2011 §4.1's per-home base-load table is the first
+   place to read. That is L2.4's build, not W1_29's.
+2. **It confirms by a second route that no volume lever loosens texture from size.** Coupled or independent, r stays at
+   −0.65 to −0.70. What sets a world home's texture is its always-on share, and scaling the active part with
+   the base moves both of them together.
+3. **An electric shower is not the texture remedy, and this was argued, not run.** The world's gas homes
+   have none (`_dhw_fuel_kwh` sends all their hot water to gas), but HES (Powering the Nation 2, 2014) puts
+   showers at 112 kWh/yr, 2.7% of an average home. L1.1 is the MEDIAN half-hour step over the mean, and a
+   shower moves 2–4 of a day's 48 steps, so it cannot shift a median. It may matter to a peak or L1.1n
+   reading. A first event-rate arm (σ 0.3–0.7 on `appliance_intensity` alone) moved nothing, which repeats
+   the 2026-10-14 arm 1.
+
+The texture red therefore stays where the 2026-10-14 section left it: in how a home's active use is split
+between short, high-power bursts and long, low draws, and in a night floor that moves. Limits: one seed for
+the coupled arm, and Jan–Apr against NEED's Feb–Jan year. The world's always-on ÷ mean here is the
+drawn base over the whole meter, not LCL's p5 estimator, so its level does not compare with the LCL row
+above, only its movement does. Scripts: `/var/tmp/se-w129b/` (not committed).
