@@ -145,3 +145,45 @@ the fixed premium would cut next year's fixed prices on the strength of a margin
 **GAP.** No published source says how a GB supplier's renewal desk sets the comparison book, and
 none says whether it learns from its default book at all. This is practitioner territory (K4). The
 choice above is the design's, labelled as such, and the B12 run on seed 61109 is its test.
+
+## What a desk does with a fixed book that lost money through a one-off crisis (added 2026-10-15)
+
+Opened by the B12 grade in `docs/staging/records/PREREG_B12_THE_PREMIUM_LOOKBACK_READS_FIXED_TERMS_ONLY_2026-10-15.md`.
+Read on its own, the fixed book's last four terms in 2023-24 are the terms whose strikes were set
+before the 2021-22 spike. They read -34% to -38%, so the premium pins new fixes at +15%. There are
+three things a desk could do with that history: learn from it, exclude it, or widen the window
+until it is diluted.
+
+**Established, from the regulator's own treatment of the same period.** Ofgem did not fold the
+crisis into the cap's ongoing allowances. It recovered it through separate adjustments, each for a
+fixed term. One was a £61 adjustment for the extra costs suppliers bore in cap period 7
+(October 2021 to March 2022), in force for 12 months from April 2022. The other recovered
+backwardation costs above a deadband over the six months after the cap period they arose in
+(decision of August 2022). In both, the crisis cost was recovered once, on its own line, and then
+dropped out. It was not left in the run-rate that sets later caps. Sources:
+[Ofgem, default tariff cap letter, August 2022](https://www.ofgem.gov.uk/sites/default/files/2022-08/Default%20tariff%20cap%20letter.pdf);
+[Ofgem, wholesale additional risk allowance consultation, October 2022](https://www.ofgem.gov.uk/sites/default/files/2022-10/Consultation%20on%20the%20wholesale%20additional%20risk%20allowance%20index%20within%20Annex%202%20%E2%80%93%20Wholesale%20cost%20allowance%20methodology.pdf).
+
+**Established, from insurance ratemaking, the nearest published discipline.** In US workers'
+compensation, NCCI excludes all losses from catastrophic occurrences from the ratemaking data
+because "those claims are not expected to be predictive of the loss experience that may arise
+during the upcoming ... prospective periods". It caps large individual losses rather than letting
+them drive the rate. Before that was standardised, the alternatives in use included a longer
+experience period, which is the "widen the window" option. Sources:
+[Daley, Catastrophes and workers compensation ratemaking (Variance)](https://variancejournal.org/article/84910-catastrophes-and-workers-compensation-ratemaking);
+[CAS paper](https://casact.org/sites/default/files/2021-07/Catastrophes-Workers-Daley.pdf).
+
+**What follows, as a design choice made here.** The two published treatments agree that a one-off
+event's loss is taken out of the experience that sets the forward rate and dealt with on its own
+line. So the B12 arm excludes from the premium's lookback any term whose settlement touches cap
+periods 7 and 8 (2021-10-01 to 2022-09-30), the periods Ofgem made its separate adjustments for.
+The window is fixed by the regulator's dates, not fitted to our run. Widening the lookback is the
+other published option. It is not the one tried first, because it also dilutes the non-crisis
+signal the premium exists to read.
+
+**GAP.** No published source says what a GB supplier's renewal desk did with its 2021-22 fixed
+book when pricing 2023 fixes. Whether it learnt from the losses (repricing hedging risk upward),
+excluded them, or recovered them as a time-limited uplift is practitioner territory (K4). The
+exclusion is the design's choice, borrowed from the regulator's and the actuaries' treatment, and
+labelled as such. A desk that genuinely learnt from 2022 would put a higher *risk* premium on fixes,
+and that belongs in the strike's risk allowance, not in a margin-reading premium.
