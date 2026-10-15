@@ -129,8 +129,10 @@ processes:
   - session: ntfy-responder
     command: python3 background/ntfy_responder.py
     match: ntfy_responder.py
-    owner: systemd
-    state: enabled
+    owner: (none -- daemon retired 2026-10-15; unit removed)
+    state: retired
+    reason: "DIRECTOR STEER (DIRECTOR_STEER_MOTHBALL_NTFY_2026-10-15.md, his words 14:08 BST: 'Should we not mothball the ntfy alerts? I don't ever read them. And you can stage so it's redundant.'): the inbound NTFY route is retired by construction. The entry point is a permanent no-op and the unit is removed; director input arrives through the console and the advisor channel (background/advisor_channel.py). The last inbound message staged by this route was from_rich_20261006_204456.md. Retirement is the EXPECTED state, and a retired+running observation alarms RETIRED_RUNNING."
+    flip: "does not flip -- retired. Reviving an inbound phone route is a fresh director decision, never a restart."
     launched_by: systemd   # CUTOVER COMPLETED 2026-07-29 → out of start_worker's tmux set. Half-done
                            # cutover (unit installed+enabled+ACTIVE, this flip never made) left TWO
                            # launchers -- systemd PID 266098 + tmux PID 419021 -- so ONE director NTFY
@@ -140,8 +142,10 @@ processes:
   - session: dispatcher
     command: python3 background/dispatcher.py
     match: dispatcher.py
-    owner: systemd
-    state: enabled
+    owner: (none -- daemon retired 2026-10-15; unit removed)
+    state: retired
+    reason: "DIRECTOR STEER (DIRECTOR_STEER_MOTHBALL_NTFY_2026-10-15.md, his words 14:08 BST: 'Should we not mothball the ntfy alerts? I don't ever read them. And you can stage so it's redundant.'): the inbound NTFY route is retired by construction. The entry point is a permanent no-op and the unit is removed; director input arrives through the console and the advisor channel (background/advisor_channel.py). The last inbound message staged by this route was from_rich_20261006_204456.md. Retirement is the EXPECTED state, and a retired+running observation alarms RETIRED_RUNNING."
+    flip: "does not flip -- retired. Reviving an inbound phone route is a fresh director decision, never a restart."
     launched_by: systemd   # CUTOVER COMPLETED (unit installed+enabled+ACTIVE); flip made 2026-08-09 by the
                            # publish-wedge investigation. Same half-done cutover as staging-watcher /
                            # ntfy-responder above, which were closed at the INSTANCE on 2026-07-29 and

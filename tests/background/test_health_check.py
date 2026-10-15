@@ -580,7 +580,7 @@ def test_retro_cadence_nudge_is_live_in_health_check(monkeypatch):
 
 
 def test_missing_process_reported_as_problem(monkeypatch):
-    present = {k: "python3" for k in health_check.EXPECTED_PANES if k != "dispatcher"}
+    present = {k: "python3" for k in health_check.EXPECTED_PANES if k != "staging-watcher"}
     monkeypatch.setattr(health_check, "_tmux_panes", lambda: present)
     monkeypatch.setattr(health_check, "_running_scripts", lambda: [])
     monkeypatch.setattr(health_check, "_check_staging_age", lambda: None)
@@ -588,14 +588,14 @@ def test_missing_process_reported_as_problem(monkeypatch):
     all_ok, ok_lines, problem_lines = health_check.run_health_check()
 
     assert not all_ok
-    assert any("dispatcher" in line for line in problem_lines)
+    assert any("staging-watcher" in line for line in problem_lines)
 
 
 def test_process_running_without_tmux_pane_still_passes(monkeypatch):
     from background import retro_cadence_check
-    present = {k: "python3" for k in health_check.EXPECTED_PANES if k != "dispatcher"}
+    present = {k: "python3" for k in health_check.EXPECTED_PANES if k != "staging-watcher"}
     monkeypatch.setattr(health_check, "_tmux_panes", lambda: present)
-    monkeypatch.setattr(health_check, "_running_scripts", lambda: ["python3 background/dispatcher.py"])
+    monkeypatch.setattr(health_check, "_running_scripts", lambda: ["python3 background/staging_watcher.py"])
     monkeypatch.setattr(health_check, "_check_staging_age", lambda: None)
     # Mock the machine-state-dependent checks so this asserts the intended
     # pane/process logic, not whatever the live host happens to look like
@@ -648,7 +648,7 @@ def test_main_returns_0_when_all_ok(monkeypatch, tmp_path):
 
 
 def test_main_returns_1_and_sends_ntfy_on_failure(monkeypatch, tmp_path):
-    present = {k: "python3" for k in health_check.EXPECTED_PANES if k != "dispatcher"}
+    present = {k: "python3" for k in health_check.EXPECTED_PANES if k != "staging-watcher"}
     monkeypatch.setattr(health_check, "_tmux_panes", lambda: present)
     monkeypatch.setattr(health_check, "_running_scripts", lambda: [])
     monkeypatch.setattr(health_check, "_check_staging_age", lambda: None)
@@ -665,7 +665,8 @@ def test_main_returns_1_and_sends_ntfy_on_failure(monkeypatch, tmp_path):
 
 
 def test_all_expected_panes_are_checked():
-    assert "dispatcher" in health_check.EXPECTED_PANES
+    assert "staging-watcher" in health_check.EXPECTED_PANES
+    assert "dispatcher" not in health_check.EXPECTED_PANES   # retired 2026-10-15 (NTFY mothball)
     assert "sim-runner" in health_check.EXPECTED_PANES
 
 

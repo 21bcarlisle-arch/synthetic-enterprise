@@ -196,7 +196,22 @@ def check_once(seen: dict[str, str]) -> dict[str, str]:
     return seen
 
 
+#: RETIRED 2026-10-15 (director, 14:08 BST, to his advisor: "Should we not mothball the ntfy alerts?
+#: I don't ever read them. And you can stage so it's redundant."). DIRECTOR_STEER_MOTHBALL_NTFY_2026-10-15
+#: item 2: the inbound route is retired BY CONSTRUCTION. This entry point is a permanent no-op, the
+#: manifest row is `retired` (a running instance alarms RETIRED_RUNNING) and the unit is gone, so no
+#: inbound text can reach a lane by this route. Director input now arrives through the console and
+#: the advisor channel (background/advisor_channel.py). The library below has no caller left and is
+#: kept only until its tests are retired with it (handoff retire-the-inbound-ntfy-library).
+RETIRED = True
+
+
 def main() -> None:
+    """Permanent no-op: see RETIRED above. Reviving the inbound route is a fresh director decision."""
+    log("The dispatcher is RETIRED (2026-10-15, the director's mothball steer): exiting without polling.")
+
+
+def _retired_main() -> None:
     log("Dispatcher started")
     seen, verdict = _load_seen()
     if prior_unreadable(verdict):

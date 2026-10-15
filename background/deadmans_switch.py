@@ -143,6 +143,12 @@ _NON_PROGRESS_SUBJECT_PREFIXES = (
 _COMMIT_KEY = "deadman_commit"        # BLOCKED / STALL (shared timer, tier-agnostic state)
 _OPEN_MINT_KEY = "deadman_open_mint"          # EIGHTH CLASS: blocked mints open while resting
 _HARD_REST_CAP_KEY = "deadman_hard_rest_cap"  # EIGHTH CLASS: rest > 6h in any circumstance
+#: THE ONE PUSH LEFT TO HIS PHONE (NTFY mothballed 2026-10-15, DIRECTOR_STEER_MOTHBALL_NTFY): "If
+#: the machine is down or wedged for more than six hours, with nothing landing and no lane alive, a
+#: single push still goes to his phone." Once per episode, never re-escalated. Its rarity is
+#: measured, not hoped: the hard rest cap it rides fired 0 times in the 47 days the ops mirror holds
+#: (2026-08-30 to 2026-10-15). What it CANNOT say: a box that is wholly down runs no switch.
+_DEADMAN_PHONE_KEY = "deadman_phone_push"
 _DRAWABLE_UNDRAWN_KEY = "deadman_drawable_undrawn"  # LAW C: self-drawable mint undrawn while resting
 _LOOP_BROKEN_KEY = "deadman_loop_broken"
 _FORK_ORPHAN_KEY = "deadman_fork_orphan"
@@ -474,8 +480,48 @@ def _check_open_mint_escalation(since_commit: float) -> None:
             topic_class=_digest_classes().ACTION_NEEDED,
         )
         log(f"HARD REST CAP escalation checked (notify-gated) -- {since_commit / 3600:.1f}h since a work commit")
+        lanes = lanes_alive()
+        if lanes is not None and not lanes:
+            notify(
+                f"[DEAD-MAN] The machine has landed no work for {since_commit / 3600:.1f}h and no "
+                "lane is alive (no Claude process, worker-tick timer inactive). Sign in to the "
+                "console. This is the only alert that still reaches your phone.",
+                kind="real_alarm", transition_key=_DEADMAN_PHONE_KEY, state="DOWN",
+                topic_class=_digest_classes().ACTION_NEEDED, _phone=True,
+            )
     else:
         clear_transition(_HARD_REST_CAP_KEY)
+        clear_transition(_DEADMAN_PHONE_KEY)
+
+
+def lanes_alive(proc: Path = Path("/proc"), timer_active=None) -> "list[str] | None":
+    """What is alive that could still land work: Claude processes and an active worker-tick timer.
+    None when it cannot be read, which never pages: an unreadable /proc is not a dead machine."""
+    found: list[str] = []
+    try:
+        for d in proc.iterdir():
+            if not d.name.isdigit():
+                continue
+            try:
+                argv = (d / "cmdline").read_bytes().split(b"\0")
+            except OSError:
+                continue
+            if argv and argv[0].endswith(b"/claude"):
+                found.append(f"claude pid {d.name}")
+    except OSError:
+        return None
+    try:
+        if (timer_active or _worker_tick_timer_active)():
+            found.append("worker-tick.timer")
+    except Exception:  # noqa: BLE001
+        return None
+    return found
+
+
+def _worker_tick_timer_active() -> bool:
+    r = subprocess.run(["systemctl", "--user", "is-active", "worker-tick.timer"],
+                       capture_output=True, text=True, timeout=30)
+    return r.stdout.strip() == "active"
 
 
 def _self_drawable_undrawn() -> list[tuple[str, str]]:

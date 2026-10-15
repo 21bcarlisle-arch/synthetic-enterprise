@@ -395,8 +395,27 @@ def record_delivery_outcome(delivered: bool, detail: str) -> None:
         pass
 
 
+#: MOTHBALLED 2026-10-15 (director, 14:08 BST, to his advisor: "Should we not mothball the ntfy
+#: alerts? I don't ever read them. And you can stage so it's redundant."). Nothing reaches his
+#: phone any more: every message still lands in the ops mirror (`ntfy-mirror.md`, direction
+#: `out-mothballed`) and the director input log, which is what his advisor reads and relays. The
+#: one push left is the dead-man's (`_phone=True`, background/deadmans_switch.py), and only
+#: there. DIRECTOR_STEER_MOTHBALL_NTFY_2026-10-15.md.
+PHONE_PUSH_MOTHBALLED = True
+
+
+def _mirror_mothballed(message: str) -> None:
+    from background.ntfy_mirror import append_mirror_entry
+    append_mirror_entry("out-mothballed", message, topic=NTFY_TOPIC)
+
+
+def _log_mothballed(message: str) -> None:
+    from background.director_input_log import append_entry
+    append_entry("ntfy", message, direction="out-mothballed", hmac_verified=None)
+
+
 def send_ntfy(message: str, headers: dict[str, str] | None = None,
-              *, _allow_real_send: bool = False) -> str | None:
+              *, _allow_real_send: bool = False, _phone: bool = False) -> str | None:
     """POST `message` to the shared ntfy topic, record its id (so the
     inbound-command poller can recognise and skip it), mirror it
     (secret-scrubbed) for the advisor (ADVISOR_VISIBILITY.md), and return
@@ -452,6 +471,18 @@ def send_ntfy(message: str, headers: dict[str, str] | None = None,
         # passes _allow_real_send=True; everything else is suppressed so no test can
         # buzz the director's phone by forgetting to mock.
         return "pytest-suppressed"  # sentinel: a real POST never happens under pytest
+    if PHONE_PUSH_MOTHBALLED and not _phone:
+        # THE RECORD IS KEPT; ONLY THE PUSH STOPS. The returned id is truthy on purpose: every
+        # caller's send-clock (action_needed.mark_sent, notify's transition memory) treats this as
+        # delivered, because it WAS delivered -- to the surface that is read. A falsy return would
+        # make each of them re-send every cycle into a channel nobody reads.
+        mothballed_id = f"mothballed-{int(time.time() * 1000)}"
+        for _write in (_mirror_mothballed, _log_mothballed):
+            try:
+                _write(message)
+            except Exception:
+                pass  # the record must never break the caller
+        return mothballed_id
     cmd = ["curl", "-s"]
     if NTFY_AUTH_TOKEN:
         cmd += ["-H", f"Authorization: Bearer {NTFY_AUTH_TOKEN}"]

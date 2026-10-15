@@ -861,7 +861,22 @@ def check_once(since: float, seen_hashes: list[str]) -> tuple[float, list[str]]:
     return latest, seen_hashes
 
 
+#: RETIRED 2026-10-15 (director, 14:08 BST, to his advisor: "Should we not mothball the ntfy alerts?
+#: I don't ever read them. And you can stage so it's redundant."). DIRECTOR_STEER_MOTHBALL_NTFY_2026-10-15
+#: item 2: the inbound route is retired BY CONSTRUCTION. This entry point is a permanent no-op, the
+#: manifest row is `retired` (a running instance alarms RETIRED_RUNNING) and the unit is gone, so no
+#: inbound text can reach a lane by this route. Director input now arrives through the console and
+#: the advisor channel (background/advisor_channel.py). The library below has no caller left and is
+#: kept only until its tests are retired with it (handoff retire-the-inbound-ntfy-library).
+RETIRED = True
+
+
 def main() -> None:
+    """Permanent no-op: see RETIRED above. Reviving the inbound route is a fresh director decision."""
+    log("The NTFY responder is RETIRED (2026-10-15, the director's mothball steer): exiting without polling.")
+
+
+def _retired_main() -> None:
     # SINGLETON (2026-07-29): a second live responder is the ROOT CAUSE of the
     # double-messaging, not a nuisance -- refuse to become one, and say so out
     # loud rather than deduping quietly and leaving the extra daemon in place.

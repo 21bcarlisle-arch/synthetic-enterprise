@@ -200,6 +200,10 @@ def _no_real_ntfy_from_tests(request, monkeypatch):
     that intentionally exercise send_ntfy's real internals mark themselves
     @pytest.mark.real_ntfy (curl mocked there, so still no network)."""
     if request.node.get_closest_marker("real_ntfy"):
+        # These exercise the POST/parse internals (curl mocked), which the 2026-10-15 mothball
+        # bypasses; tests/background/test_ntfy_mothball.py sets it back on to prove the bypass.
+        import background.ntfy_utils as _nu
+        monkeypatch.setattr(_nu, "PHONE_PUSH_MOTHBALLED", False)
         return
     import background.ntfy_utils as _nu
     monkeypatch.setattr(_nu, "send_ntfy", lambda *a, **k: "conftest-suppressed")

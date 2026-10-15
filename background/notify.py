@@ -97,7 +97,7 @@ def _write_transitions(d: dict) -> None:
 def notify(message: str, *, kind: str, transition_key: str | None = None,
            state: object | None = None, re_escalate_after: float | None = None,
            headers: dict[str, str] | None = None, topic_class: str | None = None,
-           _allow_real_send: bool = False) -> str | None:
+           _allow_real_send: bool = False, _phone: bool = False) -> str | None:
     """Send a notification through the one contract.
 
     kind: one of KINDS (G-N2, required — an untyped page is forbidden).
@@ -262,7 +262,10 @@ def notify(message: str, *, kind: str, transition_key: str | None = None,
 
     # Call via the module (not a bound import) so the conftest pytest guard and caller-test mocks
     # that patch ntfy_utils.send_ntfy are honoured, and the real send's own PYTEST guard applies.
-    return _commit(ntfy_utils.send_ntfy(message, headers=h, _allow_real_send=_allow_real_send))
+    # `_phone` is passed only when True, so a caller-test mock that predates it keeps its signature.
+    extra = {"_phone": True} if _phone else {}
+    return _commit(ntfy_utils.send_ntfy(message, headers=h, _allow_real_send=_allow_real_send,
+                                        **extra))
 
 
 def current_state(transition_key: str) -> str | None:

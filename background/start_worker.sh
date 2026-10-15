@@ -213,5 +213,5 @@ python3 background/health_check.py --quiet
 echo ""
 echo "Attach to any session: tmux attach -t <session-name>"
 echo "Sessions: background-worker, session-watchdog, staging-watcher, supervisor,"
-echo "         ntfy-responder, dispatcher, discovery-daemon, sanity-daemon,"
+echo "         discovery-daemon, sanity-daemon,"
 echo "         deadmans-switch, director-comments"
