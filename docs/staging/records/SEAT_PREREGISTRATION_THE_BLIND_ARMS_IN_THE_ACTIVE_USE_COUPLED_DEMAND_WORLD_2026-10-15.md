@@ -75,3 +75,31 @@ Q1–Q5 are graded in a result record.
 **What this cannot attribute:** it cannot say how much of any move comes from `aa8a7c444`. That needs
 the same commit run with `active_use=1.0` against the coupled run. That pair is not run here (R5):
 the question this item asks is whether the page's envelope describes the live world.
+
+## Not launched: decision written 2026-10-15 ~11:30 BST, before any arm ran
+
+**No arm ran, and Q1–Q5 are ungraded.** Lane 1 sat queued for about an hour behind the sim-runner's
+annual-report run (7 GB resident, against a 23,008 MB budget). Then the worker on claim
+`a-storage-home-charges-off-peak-in-both-streams` reported that it was about to land a change that
+moves the demand digest from `87d94399c9a414ed` to `2876e687`. That change is
+`fabric_physics.storage_charge_kwh`, which moves electric-storage space heat into 00:30–07:30. They
+also reported a second stream: hot water, SAP Table 13, see
+`docs/market_research/` → `068928f47`. It will move the digest again in a later turn. The page
+refuses on any stamp mismatch, so arms filed at `87d94399` would refuse as soon as the first of
+those changes lands. That is about 3 h of box spent on a world that would be gone within hours. I
+cancelled the queued launch, which had never started a unit. **The re-take runs once, after stream
+2 lands**, with these predictions carried over unchanged. Because I am writing this before any
+figure exists, it does not count as a change to a prediction.
+
+**What the next lane inherits:**
+- The harness is `~/.cache/seat_lane0_20261015_activeuse/`: `lane.sh` (two lanes: `chosen tenure`
+  and `cull cullB`), `per_win.py`, and `file_retake.py`. `file_retake.py` files the four arms and
+  keeps the unfiled 10-11 readings and the fc47cd363 figures as priors. Re-point `EX`/`OUT`/
+  `ARM_PRODUCING_COMMIT` in `lane.sh` and the strings in `file_retake.py` at the new origin, and use a
+  fresh `git archive`. Then read the three digests there before launching.
+- **One arm's peak memory has never been measured.** I declared 7,000 MB as a guess. The 11,200 MB
+  figure belongs to a three-pass value cycle and over-prices one arm. Sample the first arm's RSS and
+  admit the second lane on that measurement. The 10-11 lanes took ~1 h 20 min per arm and ran two
+  at a time.
+- `cannot_attribute` gets wider: the move from the 10-11 readings will now sum `aa8a7c444`, both
+  storage streams and every company commit in between.
