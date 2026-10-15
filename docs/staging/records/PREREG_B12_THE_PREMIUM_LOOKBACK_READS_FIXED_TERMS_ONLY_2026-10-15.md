@@ -303,3 +303,55 @@ company's own provision, and policy priced at the term's settlement-weighted lev
 published schedules. The 2018-19 hedge-versus-forward gap is a third question for the hedge desk,
 not for B12. The size-keyed loss cap, item (b), still follows. Once the strike prices what recurs,
 what the premium is left to learn is the year-bound loss, which is the thing a cap is for.
+
+## Run S: the strike prices its bad debt and the levy it will be billed (pre-registered 2026-10-15, before S launched)
+
+**Claim:** `b12-the-strike-prices-its-bad-debt-and-the-levy-it-will-be-billed`. This is the remedy D's
+disposition names. The knowledge comes first (K8): the renewal-decision page's new section, "What a
+fixed strike carries for levies and bad debt". S is L's code at `1ca6dfcf5` plus one change to the
+strike, in two parts, in the worktree `/var/tmp/b12-strike`. The diff against `1ca6dfcf5` is
+`/var/tmp/b12-out/S-full.diff`, sha256 `af7de28f…7059170`. The grader `grade_s.py` and the
+prediction script `predict_s.py` were hashed at the same time, in `/var/tmp/b12-out/grade_s.sha256`.
+- **Bad debt.** A fixed term's rate, and the cost floor a discount stops at, both carry the company's
+  own bad-debt charge per MWh. The rate is read off its own settled lines over the year before the
+  notice date (`OwnBadDebtBook` in `company/pricing/renewal_rate_chain.py`). It is not the world's
+  incidence. Before any line has settled, nothing is added. Both fuels, because it is one rule.
+- **Levies.** The electricity strike prices RO+CfD+CM+FiT as the day-weighted mean over the term of
+  the level published for each day by the notice date. A day whose level is not yet published carries
+  the latest published one forward (`published_electricity_policy_cost_over_term` in
+  `simulation/policy_costs.py`). A level counts as published from 1 October before it takes effect.
+  The direction asked for settlement weighting. Day weighting is used because the strike has no
+  profile to weight by.
+
+It runs on the same seed (61109) with the same command as L, and with D's write-only line probe, plus one field: the
+allowance applied. The artefacts are `/var/tmp/b12-out/strike-sv-k1-61109.json` and
+`/var/tmp/b12-out/strike-term-lines.jsonl`.
+
+**What the predictions are built from.** `predict_s.py` reprices D's 254-term population off its own log. The
+own-book charge comes to £2.79/MWh at the median. The levy moves only for terms whose notice falls
+on or after 1 October, about half of them (Nov-Mar starts). A July start sees no April step. To first
+order, the median realised rate moves from −2.38 to +0.25 against +1.79 priced for. 2017 moves
+to +1.08 and 2018 to −1.78, because 2018 carries D's hedge loss, which S does not touch. The
+premium's and the churn's responses are second order and are not modelled. That is why the bands
+below are wider than the first-order gaps. The grader, run on L's own lines with S's file names
+pointed at L, reads every one of P1-P4 and P6 false. So each can fail.
+
+**Controls.**
+- **S0 (the identity still closes).** Over S's population, the median |residual| is under 0.05 points.
+  The bad-debt line is the allowance billed less the charge.
+
+**Predictions** (medians, points of unit revenue, population as D's):
+- **P1 (the direction's question).** For terms last settled in 2016-17, the realised rate is within
+  **2 points** of what was priced for. First order: −0.7.
+- **P2 (pooled 2016-19, lower confidence).** Within 2 points. First order: −1.5.
+- **P3 (bad debt is priced).** The bad-debt line sits between **−0.5 and +0.5** (L: −2.49).
+- **P4 (the levy, only partly).** The policy line sits between **−1.0 and 0** (L: −1.73). It does not reach
+  0, because the terms struck from April to September cannot see the next April's step.
+- **P5 (what S does not touch).** 2018 is still more than **2 points** short. That is the hedge leg.
+- **P6 (the book, a direction, low confidence).** `total_net` is higher than L's £269,782.23. Dearer
+  fixes could lose customers, and that would refute this.
+
+**What a failure points to.** If S0 fails, the bad-debt allowance reached a line the identity does not list.
+If P3 holds and P1 fails, the remainder is the levy carry-forward, or the premium answering the
+change. The rate line separates the two. If P3 fails, the own-book charge does not track the
+charge the terms bear, which can happen if the trailing year lags a rising charge.
