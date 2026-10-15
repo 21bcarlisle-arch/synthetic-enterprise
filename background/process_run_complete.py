@@ -10671,6 +10671,23 @@ def _content_publish_window():
     return publish_freshness.content_publish_window()
 
 
+def stamp_not_on_origin_refusal(data, on_origin=None):
+    """Why a run whose stamped commit is not on origin/main may not be published, or None.
+
+    A run can be clean against its own stamp while the stamp itself is a local commit origin never
+    received (the shared HEAD, 2026-10-15). Refuses only on a definite "not an ancestor": a commit
+    git does not know at all is logged by the caller and passed, because the launcher
+    (`sim_runner.code_admission`) is the gate that defers on "cannot tell"; this is its backstop."""
+    commit = ((data.get("producing_commit") or {}).get("commit")) if isinstance(data, dict) else None
+    if not commit:
+        return None
+    if on_origin is None:
+        from background.sim_runner import commit_on_origin as on_origin
+    if on_origin(commit) is False:
+        return "{} is not on origin/main, so the figures were drawn by code no published history holds".format(commit)
+    return None
+
+
 def imports_off_commit_refusal(data):
     """Why this run may not be published as its stamped commit's figures, or None if it may.
 
@@ -10751,7 +10768,7 @@ def _process(marker_path_str):
     if (data.get("producing_commit") or {}).get("imports_off_commit") is None:
         log("Imported bytes were not measured for {} (it predates the reading); publishing on "
             "its stamp alone".format(json_path.name))
-    off_commit = imports_off_commit_refusal(data)
+    off_commit = imports_off_commit_refusal(data) or stamp_not_on_origin_refusal(data)
     if off_commit:
         _archive_marker(marker)
         log("REFUSED (run bytes are not the stamped commit's): {} -- no regen/test/commit. "
