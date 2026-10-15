@@ -19,7 +19,6 @@ Two kinds of test here:
 R12 (anti-goal-seek): nothing here may be satisfied by tuning a bad-debt
 parameter toward the anchor. The xfail closes only when arrears EMERGE.
 """
-import json
 from pathlib import Path
 
 import pytest
@@ -31,8 +30,17 @@ from company.compliance.crisis_bad_debt_validator import (
     validate_crisis_bad_debt,
     validate_run_output,
 )
+from tools.run_output_store import load_run_output, resolve_run_output
 
 _RUN_OUTPUT = Path(__file__).resolve().parents[3] / "docs" / "reports" / "run_output_latest.json"
+
+
+def _published_run_or_skip():
+    """The published run, plain or gzipped. Since 2026-10-10 only the .gz is committed, and a read of
+    the plain path skipped silently in every worktree and gate extract for four days."""
+    if resolve_run_output(_RUN_OUTPUT) is None:
+        pytest.skip("no run_output_latest.json present, plain or gzipped")
+    return load_run_output(_RUN_OUTPUT)
 
 
 # --- 1. Pure-function unit tests (synthetic data) ---
@@ -82,9 +90,7 @@ def test_zero_revenue_year_does_not_crash():
 
 
 def test_extract_both_bases_from_run_output():
-    if not _RUN_OUTPUT.exists():
-        pytest.skip("no run_output_latest.json present")
-    run = json.loads(_RUN_OUTPUT.read_text())
+    run = _published_run_or_skip()
     head_bd, head_rev = extract_series_from_run_output(run, "headline")
     pnl_bd, pnl_rev = extract_series_from_run_output(run, "pnl_accrual")
     # Both bases must yield the crisis years.
@@ -105,9 +111,53 @@ def test_extract_both_bases_from_run_output():
 # on the published headline. NOT ESTABLISHED HERE: that the step-up EMERGES from a household budget
 # meeting the price shock rather than from a tuned propensity -- R12's condition for closing the
 # gap. That question is the W2_4.. affordability cluster's and is not answered by this pass.
+#
+# THE STRICT XFAIL IS RE-ARMED (2026-10-14), on both bases. The a88fb2436 run above XPASSed; read
+# through the store, the published run (2248e3baf, and 6ab998ad7 in the
+# shared tree) FAILS on both: the crisis-years share falls (headline 0.10% against 0.15% pre-crisis;
+# P&L accrual 1.76% against 2.01%) because revenue doubled in 2022 while the write-offs land in 2023.
+# The pounds do rise, late: GBP 3,531 (2021) -> 5,698 (2022) -> 11,342 (2023) on the accrual basis.
+# The finding: SEAT_FINDING_THE_CRISIS_BAD_DEBT_CONTROL_HAS_SKIPPED_SINCE_THE_RUN_WENT_GZIP_AND_THE_PUBLISHED_RUN_SHOWS_NO_STEP_UP_2026-10-14.
+# Strict, so the day a published run steps up on a basis, that leg XPASSes, the suite reds, and
+# someone revisits this. NOT ESTABLISHED: that a step-up EMERGES from a household budget meeting the
+# price shock rather than a tuned propensity (R12) -- the W2_4.. affordability cluster's question.
+_REARMED = ("the published run's crisis-years bad-debt share falls on this basis (2026-10-14): "
+            "write-offs land in 2023, revenue doubles in 2022")
+
+
+@pytest.mark.xfail(strict=True, reason=_REARMED)
 def test_live_run_output_shows_crisis_step_up_headline():
-    if not _RUN_OUTPUT.exists():
-        pytest.skip("no run_output_latest.json present")
-    run = json.loads(_RUN_OUTPUT.read_text())
-    result = validate_run_output(run, "headline")
+    result = validate_run_output(_published_run_or_skip(), "headline")
     assert result.passed, result.summary()
+
+
+@pytest.mark.xfail(strict=True, reason=_REARMED)
+def test_live_run_output_shows_crisis_step_up_pnl_accrual():
+    result = validate_run_output(_published_run_or_skip(), "pnl_accrual")
+    assert result.passed, result.summary()
+
+
+def test_the_live_legs_read_the_gzipped_run_defect_a_plain_path_read_skips_silently(tmp_path, monkeypatch):
+    """Only the .gz is committed. A reader of the plain path finds nothing there and skips, and a
+    skipped live leg is a green one. With the plain file absent the run must still load."""
+    import gzip
+    import shutil
+    import sys
+
+    src = resolve_run_output(_RUN_OUTPUT)
+    if src is None:
+        pytest.skip("no published run in this checkout")
+    plain = tmp_path / "run_output_latest.json"
+    if src.suffix == ".gz":
+        shutil.copy(src, tmp_path / src.name)
+    else:
+        with open(src, "rb") as fin, gzip.open(tmp_path / (plain.name + ".gz"), "wb") as fout:
+            shutil.copyfileobj(fin, fout)
+    assert not plain.exists()
+    monkeypatch.setattr(sys.modules[__name__], "_RUN_OUTPUT", plain, raising=True)
+    try:
+        run = _published_run_or_skip()
+    except pytest.skip.Exception as skipped:
+        pytest.fail(f"the live legs skip in a gz-only checkout: {skipped}")
+    head_bd, _ = extract_series_from_run_output(run, "headline")
+    assert 2022 in head_bd

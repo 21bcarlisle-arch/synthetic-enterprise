@@ -1197,3 +1197,106 @@ on the pages:
 ordinary arrears, as distinct from its final bill, are repaid after it leaves. Carried as a named
 gap, size above, with cause 1 as the next build to weigh (a practitioner question: what share of a
 closed account's pre-final-bill arrears is ever recovered, and how late).
+
+## A provision matrix whose loss rates come from the company's own roll rates, and the forward-looking overlay at its two ends (2026-10-14)
+
+*Knowledge pass before the roll-rate build in `company/finance/bad_debt_provision.py`, on the
+finding that the crisis bad-debt control had skipped since the run went gzip
+(`docs/staging/SEAT_FINDING_THE_CRISIS_BAD_DEBT_CONTROL_HAS_SKIPPED_SINCE_THE_RUN_WENT_GZIP_AND_THE_PUBLISHED_RUN_SHOWS_NO_STEP_UP_2026-10-14.md`).
+No new source was fetched: the rules are IFRS 9 as quoted in section 2.1, the practice is Centrica's
+Note 17 as quoted in 2.2 and 3.2. This section says what follows from them for a matrix the company
+learns from its own book, and what is still GAP.*
+
+### What the simplified approach and the provision matrix require (ESTABLISHED, section 2.1)
+
+- **Lifetime loss from day one, no staging** (5.5.15): every energy receivable carries a lifetime
+  expected-loss allowance the day it is billed.
+- **A provision matrix is a permitted expedient** (B5.5.35): fixed rates by days past due, from
+  *"its historical credit loss experience"*, grouped where loss patterns differ (Centrica groups by
+  customer type, payment method and live or final, section 2.2).
+- **History is the anchor, adjusted forward** (5.5.17(c), B5.5.52): the rates must reflect *"current
+  conditions and ... forecasts of future conditions that did not affect the period on which the
+  historical data is based"*, and move *"directionally consistent with ... payment status"*.
+- **A write-off is a derecognition** (5.4.4), not a cash recovery: a written-off balance is a loss
+  outcome when the rates are learned.
+
+### How loss rates come from the supplier's own roll rates (PRACTICE, partly GAP)
+
+The standard says "historical credit loss experience"; it does not say how a supplier turns its
+ledger into a rate per band. Two calculations are ordinary credit-risk practice (section 4.1):
+- **Cohort (vintage) loss rate:** of the money in band *b* at a past date, the share still unpaid at
+  the write-off point. It needs the whole horizon to have elapsed, so at a December 2022 provision
+  date a twelve-month horizon reads only cohorts from 2021 or earlier: **it lags a shock by the
+  horizon, by construction.**
+- **Roll-rate (flow) chain:** the share of money in age state *k* that is still unpaid one month
+  later, in state *k+1*; the loss rate of state *k* is the product of the monthly rolls from *k* to
+  the write-off point. Every factor is a one-month observation, so a chain read at December 2022
+  is built from rolls observed up to November 2022. **It responds to a shock in about a month for
+  the early states, but the late factors are still read from money that entered the late states
+  before the shock.**
+
+Centrica's 2025 auditor *"recalculat[ed] management's provision rates based on historical cash
+collection"* and *"assessed historical debt collection patterns over 2024 and 2025"* (section 2.2):
+a cash-collection frame over a **two-year** window. **No GB supplier publishes its roll rates, cure
+rates or the window it learns them over (GAP, unchanged).**
+
+### The forward-looking overlay (ESTABLISHED for one supplier)
+
+The overlay is the judgemental top-up a supplier adds when it believes its matrix, learned from the
+past, does not yet reflect what is coming (B5.5.52). Centrica's, from section 3.2, GBP m, with the
+share of total credit-loss provision where the page has the total:
+
+| Year-end | Overlay | Total credit-loss provision (Group) | Share | Stated reason |
+|---|---|---|---|---|
+| 2019 | not disclosed | -- | -- | -- |
+| 2020 | 30 | GAP (not on this page) | GAP | COVID-19 |
+| 2021 | 30 | GAP | GAP | maintained |
+| 2022 | 125 | GAP | GAP | crisis (+95) |
+| 2023 | 175 | 1,309 | **13.4%** (derived) | crisis (+50) |
+| 2024 | 49 | GAP | GAP | "the initial matrix model starting to more accurately reflect" the same challenges |
+| 2025 | 11 | 1,818 | **0.6%** (derived) | run down |
+
+Indicatively, against the **residential** closing provision in 3.2 the overlay would be 7.5% (2020
+restated), 7.0%, 22.0%, 20.6%, 5.0% and 0.9% (derived). Those overstate the share, because the
+overlay covers billed and unbilled debt across the Group and the residential column does not, so
+they are recorded and not used.
+
+**What the record shows about timing:** the overlay was largest in exactly the two years a learned
+matrix lags most (2022-2023), and was released as the matrix caught up (2024). That is the
+directional consistency B5.5.52 asks for, and it is why an overlay cannot be left out: omitting it
+asserts zero, and Centrica's own record says zero was wrong in 2022 (K2).
+
+### GAPs this build carries rather than fills
+
+| GAP | What the build does instead |
+|---|---|
+| GB roll rates, cure rates and learning windows | learned from the company's own ledger, point in time; window two years (the 2025 auditor's span), a named choice |
+| The write-off point for a live balance | twelve months unpaid is the terminal (loss) state: `cash_forecast_provision.HORIZON_MONTHS`, the far end of Centrica's "six to twelve months from the issuance of a final bill"; a named simplification, since a live balance's clock starts at its bill, not at a final bill |
+| How a supplier sizes its overlay | **not sized.** It is run at both ends at every date: none (0.0) and the published high, `prov_forward_looking_overlay_share` = 0.134 (Centrica 2023). Never a midpoint, never a picked strength |
+| A year-by-year overlay share | not used: four of six years lack the Group total on this page, and Centrica's year-Y overlay is published in year Y+1, so reading it at a December-Y date would be look-ahead |
+| Discounting (B5.5.44) | not discounted, as in the cash-forecast build |
+
+### The build's choices (company side; the build follows in its own commit)
+
+1. **States:** each bill's unpaid residual, oldest bill first (the ledger's FIFO), aged in whole
+   months from its bill date, 0 to 11; twelve months is terminal.
+2. **Rolls are cash-only.** The residual used for learning is reduced by cash and adjustments but
+   **not by write-offs**, so a written-off bill rolls on to the terminal state as the loss it is
+   (5.4.4), rather than reading as a cure.
+3. **Footings:** live direct debit, other live, closed (unbilled for `CLOSED_IF_UNBILLED_DAYS`, the
+   convention `default_belief.provision_stock` uses). A footing's roll is shrunk to the pooled roll
+   at the same age with `cash_forecast_provision.PRIOR_TRANSITIONS` of weight.
+4. **Point in time:** a roll from month-end *s* to *s'* is read only where *s'* is on or before the
+   provision date and inside the two-year window. With no observation at an age the money could
+   reach, the rate is None with its reason, never a prior dressed as an answer.
+5. **The stock** is the ledger's receivable (write-offs derecognised) times the learned loss rate
+   for its footing and age, then grossed up so the overlay is its stated share of the total.
+6. **Shipped off** (`ROLL_RATE_PROVISION = False`): the run's published provision stays the
+   Centrica-rate matrix of `default_belief.provision_stock`. With the switch on, the roll-rate
+   stock at both overlay ends is published beside it, with the company's own write-offs to date so
+   a charge (closing - opening + written off) can be read off the run.
+
+**What the measurement must answer before the switch is ever turned on:** does the learned matrix
+charge 2022's arrears in 2022 (the charge step-up arriving in the year the arrears build, not the
+year they are written off), at each overlay end; and how far it sits from the published matrix the
+run already holds, which is a real supplier's rates and therefore not this world's.

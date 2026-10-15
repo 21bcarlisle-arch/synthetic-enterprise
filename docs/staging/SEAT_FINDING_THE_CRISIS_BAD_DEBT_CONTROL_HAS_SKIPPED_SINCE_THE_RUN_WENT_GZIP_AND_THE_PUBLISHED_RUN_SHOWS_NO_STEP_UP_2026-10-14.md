@@ -1,9 +1,10 @@
-**Severity:** BLOCKING · **Lane:** E_finance_treasury · **Epoch:** 4 · **Atom:** `unminted`
+**Severity:** BLOCKING · **Lane:** W2_customer_generator · **Epoch:** 4 · **Atom:** `unminted`
 **Knowledge:** none -- a control grading a published run against the bad-debt step-up already recorded in docs/market_research/ASSUMPTIONS.md (1.3% to 2.8% of revenue); no new domain claim
 
 # The crisis bad-debt control has skipped since the run went gzip, and the published run shows no crisis step-up (2026-10-14)
 
-**Fate (2026-10-14):** ATOM -- company-side, as printed below: the age-band provision lags the world's 2022 arrears; it is fixed by the forward-cash-forecast provision, and the reader fix lands with it, never alone.
+**Fate (2026-10-14):** ATOM -- world fidelity, the affordability cluster's question (W2_4..); the control's reader fix lands with the cause's fix, never alone.
+**Fate (2026-10-15):** stays OPEN. The roll-rate matrix and the reader fix land together (shipped off). The leg that still fails is the validator: 2021-22 does not step up on either basis, and the roll-rate matrix's own charge also peaks in 2023. See the last section.
 
 ## What was found
 
@@ -38,43 +39,6 @@ write-offs lag into 2023. So "no step-up" is too strong. **The world's step-up a
 (CRISIS_YEARS = 2021, 2022) misses the year it lands in. Before the world changes, decide which is
 wrong: the lag (when a real supplier writes 2022 debt off) or the window. That is a knowledge
 question first.
-
-## End-to-end check: the explanations the evidence allows, ranked
-
-The validator's anchor is Centrica's **bad-debt charge**, "from 2.3 to 2.8% of revenue". That is a
-P&L charge, and under IFRS 9 it is the expected credit loss, booked as arrears build, not when the
-debt is written off.
-1. **The supplier's provision lags by design (most likely).** company/finance/bad_debt_provision.py
-   provisions on flat age bands (0.5/5/20/50/90%), so a 2022 arrears build is charged only as it
-   ages, and the charge peaks in 2023. That matches the pounds above. The forward-cash-forecast
-   engine (payment-plan design, section 9) already names these bands as what it replaces. If this
-   ranks first, the defect is company-side, and the validator's window is right.
-2. **The world under-builds 2022 arrears.** Its share peak of 2.35% is still short of 2.8% even in
-   2023. The arrears stock by month through 2022 would separate this from (1); it is not printed
-   yet.
-3. **The validator's window (2021-22) is wrong.** This holds only if real charges lagged too,
-   which IFRS 9 argues against.
-Settle (1) against (2) with one print, before any change: the company's provision charge by month
-against the world's arrears stock by month, for 2021-2023.
-
-## Printed: (1) holds, the world builds the arrears and the provision lags them
-
-Year-end, company_provision.by_date in the 6ab998ad7 run (GBP):
-
-| year-end | receivable | 30-90 days | over 90 days | provision |
-|---|---|---|---|---|
-| 2021 | 6,515 | 1,716 | 868 | 978 |
-| 2022 | 16,906 (x2.6) | 4,279 (x2.5) | 1,059 (x1.2) | 1,604 (x1.6) |
-| 2023 | 13,970 | 3,928 | 1,978 | 2,090 |
-
-The world builds the 2022 arrears: the receivable is 2.6x and the 30-90-day band 2.5x. The
-age-band provision reserves little until debt passes 90 days, so it moves 1.6x in 2022, and the
-over-90 band only arrives in 2023. **The defect is company-side: the provision is not
-forward-looking.** The validator's window is right and the world does not under-build. The fix is
-the forward-cash-forecast provision (payment-plan design, section 9), which charges expected loss
-as arrears build, not a world change. Until it lands, this control stays red against the
-published record, and that is correct. Its reader fix should land with the provision engine, or
-with a recorded acceptance that the age-band provision is known to lag.
 
 ## What I cannot yet say
 
@@ -141,3 +105,65 @@ skips in gz-only checkouts. Its conversion was withdrawn on 2026-10-10 (34aa4485
 shared tree held an uncommitted edit of it. That edit is gone (the shared copy is clean,
 2026-10-14), so the conversion can land again. The stale-copy gate reads it as re-creating a
 deliberate deletion, so it lands through that gate's own door with this note as its reason.
+
+## 2026-10-14 (evening): the reader fix landed with the first leg of the cause's fix
+
+Worked as `the-bad-debt-provision-charges-expected-loss-as-arrears-build`.
+
+- **The reader.** Both live legs now read the published run through `tools/run_output_store`, and a
+  new control fails (not skips) if a gz-only checkout cannot load it; mutation-proven (the plain-path
+  reader turns it red). The live legs are re-armed as **strict xfails on both bases**, the module's
+  own convention: both published runs fail on both bases, so HEAD stays green and the day a published
+  run steps up on a basis, that leg XPASSes and reds the suite.
+- **The validator's verdict, on both bases, is unchanged: 2021-22 does not step up in share.** Nothing
+  in the run moved, because the build below ships off.
+- **A premise of the item was wrong and is corrected here.** The flat age bands with no origin
+  (`company/finance/bad_debt_provision._PROVISION_RATES`) reach no production code. The provision the
+  run publishes is `default_belief.provision_stock`, on Centrica's Note 17 rates, and it does move most
+  in 2022: the stock rises GBP 977 -> 1,604 (+627, against +34 to +317 in 2017-2021) as the receivable
+  goes GBP 6,507 -> 16,905 (2248e3baf). What lags into 2023 is the P&L accrual line, which is the
+  world's write-offs. The validator grades the world's write-offs and the P&L accrual, never the
+  company's provision.
+- **Built, off:** `bad_debt_provision.roll_rate_provision_stock`, a matrix learned from the company's
+  own monthly roll rates, point in time, with the overlay at its two ends (0 and 0.134). Knowledge
+  first: `docs/market_research/bad_debt_provisioning.md`, section "A provision matrix whose loss rates
+  come from the company's own roll rates" (2026-10-14).
+
+**Still open: the printed charge by year.** The roll rates need the run's ledger, which the published
+run does not carry, so the 6ab998ad7 book cannot be re-read; a 40-founder run with the switch on
+in-process is the measurement (`/var/tmp/rollrate/member.py`, seed 61109).
+
+## 2026-10-15: the matrix lands, and its charge by year also peaks in 2023
+
+Landed from the stranded `/home/rich/wt-baddebt-rollrate` (owner pid gone) as
+`the-roll-rate-provision-lands-from-wt-baddebt-rollrate`. No subject path had moved on origin since
+its base f4df6adb5, so the files were carried over whole. `ROLL_RATE_PROVISION` ships `False`.
+
+**The charge by year**, from `/var/tmp/rollrate/out/provision_61109.json` (40 founders, 453 homes,
+seed 61109, run at f4df6adb5 with the switch on in-process). The company ledger records **no
+write-offs to date at any year end** (`written_off_to_date_gbp` = 0.0 throughout), so the charge is
+the change in the stock. GBP:
+
+| year | receivable | Note 17 stock | charge | roll-rate, no overlay: stock | charge | roll-rate, overlay 0.134: stock | charge |
+|---|---|---|---|---|---|---|---|
+| 2017 | 999 | 93.20 | +59.11 | 0.00 | 0.00 | 0.00 | 0.00 |
+| 2018 | 2,572 | 178.06 | +84.86 | 0.00 | 0.00 | 0.00 | 0.00 |
+| 2019 | 2,338 | 234.92 | +56.86 | 137.11 | +137.11 | 158.32 | +158.32 |
+| 2020 | 3,324 | 434.45 | +199.53 | 355.31 | +218.20 | 410.29 | +251.97 |
+| 2021 | 4,759 | 565.27 | +130.82 | 389.55 | +34.24 | 449.82 | +39.53 |
+| 2022 | 12,967 | 990.48 | +425.21 | 574.41 | +184.86 | 663.29 | +213.47 |
+| 2023 | 10,807 | 1,247.21 | +256.73 | 901.81 | +327.40 | 1,041.35 | +378.06 |
+
+- **The learned matrix lags the shock, as the knowledge page predicted.** The receivable nearly
+  triples in 2022 (4,759 to 12,967), but the roll-rate stock covers only 4.4% of it at end-2022,
+  against 8.2% at end-2021. The charge peaks in 2023. The published-rate (Note 17) stock charges
+  most in 2022. At the high end the overlay is a fixed share, so it scales the lag and does not move
+  it. That is the gap Centrica's 2022-23 overlay filled.
+- **2017-2018 read 0.00 with `reason: None`.** Before the 24-month window fills there are 320 and
+  517 transitions but no rate that reaches the terminal age. That zero should be a `None` with a
+  reason (K2), not a provision. It is noted here and not fixed in this landing.
+- **The validator, read through `tools/run_output_store`:** unchanged. 2021-22 **does not step up**
+  on either basis (both strict xfails hold; 801 passed, 2 xfailed across `tests/company/finance/` and
+  the validator module). The validator grades the world's write-offs and the P&L accrual, never the
+  company's provision, so no provision switch can turn it. The open leg is the world's write-off
+  timing against `CRISIS_YEARS`: the knowledge question above, still unasked.

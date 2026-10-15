@@ -2104,9 +2104,15 @@ class PaymentObservationConsumer:
         and age band (`company.pricing.default_belief.provision_stock`). Read off this class's
         ledger for the reason `default_belief_rate` is; `payment_method_of(account, date)` is the
         company's own method register, which this class does not hold."""
+        from company.finance import bad_debt_provision
         from company.pricing.default_belief import provision_stock
 
-        return provision_stock(self.ledger_book, on=on, payment_method_of=payment_method_of)
+        out = provision_stock(self.ledger_book, on=on, payment_method_of=payment_method_of)
+        if bad_debt_provision.ROLL_RATE_PROVISION:
+            out["roll_rate"] = bad_debt_provision.roll_rate_provision_stock(
+                self.ledger_book, on=on, payment_method_of=payment_method_of,
+                memo=self.__dict__.setdefault("_roll_rate_memo", {}))
+        return out
 
     def advance_collections_journey(
         self, account_id: str, through: dt.date, segment: str = "resi",
