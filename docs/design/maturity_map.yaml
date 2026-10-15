@@ -1734,13 +1734,10 @@
   level_current: 1
   level_target: 3
   loop_stage: idle
-  # PARKED 2026-10-14 (director, 18:15): the N study is research, not clear-down. The 480k
-  # rung's five seeds finish (/var/tmp/dvn480, prereg SEAT_PREREG_..._480K); no further rungs.
-  # Next week's step: grade 480k against its prereg, then decide whether any larger N is needed.
   dial_inherited: 50
   provenance: director_ruling
   blocked_on: null
-  block_reason: null
+  block_reason: "PARKED 2026-10-14 (director): the N study is research, not clear-down; the 480k seeds finish, no further rungs. Next: grade 480k against its prereg, then decide whether a larger N is needed."
   depends_on: [W2_30_per_household_half_hourly_electricity_and_seasonal_gas_shape]
   couples_with: [W2_28_a_household_is_a_vector_and_a_claim_declares_what_it_reduces_over]
   file_scope:

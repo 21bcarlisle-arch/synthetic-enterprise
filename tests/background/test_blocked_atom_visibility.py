@@ -272,6 +272,10 @@ UNPARKED_SUBJECT_COVERAGE: dict[str, list[str]] = {
         # switch/move split are built, and the next gain needs B7 slice 3 with moves on, or the
         # director's EP17 row. Its `block_reason` names both; removed here, not hidden. That commit
         # left this control red on origin until 2026-10-08.
+        # 2026-10-15. Unparked again BY THE DIRECTOR (console 05:52Z): "Write the switch condition
+        # into the atom ... Unblock B11 and EP1 on that basis for Monday." Its block_reason is null
+        # on origin with the reason in its comment; this control was red at origin from that edit.
+        "B11_forward_clv_backtested_on_held_back_history",
         # 2026-10-05. Minted unparked (8f5518e88) when the director approved the step-1 proposals:
         # next best action as one CLV-judged decision. New and drawable, like B11; nothing released.
         "C34_next_best_action_is_one_decision_across_debt_retention_upsell_and_carbon_judged_by_clv",

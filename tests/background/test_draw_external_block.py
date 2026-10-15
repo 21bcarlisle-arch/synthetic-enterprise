@@ -81,4 +81,24 @@ def test_helper_predicate():
 # reconciliation), never a published business surface -- so it must never wedge the live
 # publish. The gate runs `-m 'not operational'`. See tests/conftest.py for the marker.
 import pytest  # noqa: E402,F811
+
 pytestmark = pytest.mark.operational
+
+
+_PARKED_IDLE = (
+    "- id: PARKED_IDLE\n  lane: H\n  dial_inherited: 100\n"
+    "  level_current: 0\n  level_target: 3\n  loop_stage: idle\n"
+    '  block_reason: "PARKED 2026-10-15: waits for next week"\n'
+)
+
+
+def test_a_parked_atom_is_not_drawn_by_any_lane_and_an_unparked_one_is():
+    """Defect it names: a row parked in its block_reason was still drawn as idle DISCOVER/FRAME
+    work, and its unchanged-draw counter climbed by thousands (H45, PB4). Fires on: the park not
+    read (it is drawn); and on reading every block_reason as a park (the unparked twin vanishes)."""
+    supervisor.MATURITY_MAP_PATH.write_text(_PARKED_IDLE)
+    assert supervisor._idle_discover_frame_draw() is None
+    assert supervisor._idle_discover_frame_draw_concurrent(exclude_stalled=True) == []
+    unparked = _PARKED_IDLE.replace("PARKED 2026-10-15", "measured 2026-10-15")
+    supervisor.MATURITY_MAP_PATH.write_text(unparked)
+    assert supervisor._idle_discover_frame_draw_concurrent(exclude_stalled=True) != []

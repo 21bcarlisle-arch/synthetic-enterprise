@@ -831,6 +831,15 @@ def _names_abolished_permission_block(reason: Any) -> bool:
     return any(p.search(text) for p in _ABOLISHED_PERMISSION_BLOCK_PATTERNS)
 
 
+def _is_parked(a: dict) -> bool:
+    """A row the seat or the director PARKED: its `block_reason` starts with "PARKED". Parked work
+    is excluded from every draw, like a `blocked_on` one. Before this, a parked row was drawn as
+    idle DISCOVER/FRAME work and its unchanged-draw counter climbed (H45 950 to 1,266 in three days),
+    because the park was prose the draw never read. The word is the one convention every parked row
+    already shares; a comment is not read, since the map loader drops it."""
+    return str(a.get("block_reason") or "").lstrip().upper().startswith("PARKED")
+
+
 def _is_externally_blocked(a: dict) -> bool:
     """True if an atom is blocked on a GENUINE external act (an upstream dependency, a real reserved
     wall) and therefore has NO drawable worker work right now -- honest: its gap to target is that
@@ -846,6 +855,8 @@ def _is_externally_blocked(a: dict) -> bool:
     company's name, a real person's safety -- it still blocks, even when it also mentions a permission
     token. That judgement is DELEGATED to `one_way_door.classify_action` (the sole enumeration) rather
     than forked here, so the two can never drift apart."""
+    if isinstance(a, dict) and _is_parked(a):
+        return True
     if not (isinstance(a, dict) and a.get("blocked_on")):
         return False
     reason = a.get("blocked_on")
