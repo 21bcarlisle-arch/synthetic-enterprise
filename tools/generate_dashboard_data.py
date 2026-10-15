@@ -770,18 +770,21 @@ def extract_financial(data):
         "ledger_basis": (
             "Double-entry P&L accrual (management_accounts[*].income_statement."
             "bad_debt_gbp, summed) -- company/compliance/crisis_bad_debt_"
-            "validator.py's 'PnL ACCRUAL figure': tracks ~2-3% of revenue most "
-            "years, in the Ofgem/EUA 1-3% benchmark band "
-            "(docs/market_research/ASSUMPTIONS.md)."
+            "validator.py's 'PnL ACCRUAL figure': about 2% of revenue most "
+            "years, in the Ofgem/EUA 1-3% band BY CONSTRUCTION -- it is "
+            "saas/payment_behaviour's seed 2% rate applied to every issued bill, "
+            "not a charge read off arrears. The company's own IFRS 9 charge "
+            "(provision movement plus write-offs) is about a tenth of that "
+            "(crisis_bad_debt_validator basis 'ifrs9_charge')."
         ),
         "ratio_x": ratio_x,
         "authoritative": "ledger",
         "note": (
             "These are two different measurements of bad debt, previously "
             "published with no bridge between them -- the ledger figure is the "
-            "plausible one (in-band vs Ofgem/EUA, always non-negative) and is "
-            "what the board's bad-debt-rate reporting should be read from; the "
-            "annual series is a diagnostic shape only."
+            "board's bad-debt cost line, but its in-band level comes from a seed "
+            "rate, not from arrears, so it is not evidence that bad debt is "
+            "realistic; the annual series is a diagnostic shape only."
         ),
         "evidence": "company/compliance/crisis_bad_debt_validator.py",
     }
