@@ -39,13 +39,14 @@ def test_the_ceiling_can_be_reached_and_holds(monkeypatch):
 
 
 def test_the_always_on_load_moves_the_meter_by_exactly_itself():
-    """One variable: the held standby shifts every half-hour by the same energy and nothing else."""
+    """One variable: the held standby shifts every half-hour by the same energy and nothing else.
+    Active use is held at 1.0, because by default it rides with the standby (L2.4)."""
     weather = pt.load_trace_weather("C1", start=dt.date(2022, 1, 1), end=dt.date(2022, 1, 14))
 
     def meter(standby_kw):
         trace = pt.generate_premise_trace(
             premise_id="P-base", household=make_household(), weather=weather, seed=3,
-            latitude_deg=fp.latitude_for_weather_site("C1"), standby_kw=standby_kw,
+            latitude_deg=fp.latitude_for_weather_site("C1"), standby_kw=standby_kw, active_use=1.0,
         )
         return [v for day in trace.half_hourly("electricity") for v in day]
 

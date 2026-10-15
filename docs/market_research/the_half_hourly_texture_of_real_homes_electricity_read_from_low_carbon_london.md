@@ -654,3 +654,59 @@ between short, high-power bursts and long, low draws, and in a night floor that 
 the coupled arm, and Jan–Apr against NEED's Feb–Jan year. The world's always-on ÷ mean here is the
 drawn base over the whole meter, not LCL's p5 estimator, so its level does not compare with the LCL row
 above, only its movement does. Scripts: `/var/tmp/se-w129b/` (not committed).
+
+## A home's active use rides with its always-on load: measured in LCL, built at β 0.7 (2026-10-15, L2.4)
+
+Delivery seat, lane-0 draw `l2-4-the-active-use-rides-with-the-always-on-load`, at `origin/main` `7ac5bf514`.
+Every prediction was filed before its run (`/var/tmp/se-l24/PREREG.md`). **This section is the knowledge page
+for the build (K8), and the build is in the same commit.**
+
+**What is published.** EFUS 2011 (`9_Domestic_appliances__cooking_and_cooling_equipment.pdf`) §4.1–4.2 was read in
+full. It gives base load (power exceeded 90% of the time, 10-second data, n 79) and mean hourly demand (121–2,438 W,
+median 447 W) only as two separately sorted per-home charts (Figs 10 and 11). It says in prose that the high
+tail correlates with "high TV and appliance ownership … and high base load power", but it publishes no joint, no
+correlation and no slope. The HES 2012 early findings put standby at 5.1% of use, with no per-home joint either.
+**GAP: no publication states the coupling.** It is therefore built as a stated belief, with its β measured.
+
+**Measured from Low Carbon London raw** (the same 13 partitions as the 2026-10-06 read, Std tariff). One estimator is
+applied identically on both sides. Per home: base = the 5th percentile of its half-hourly kW, and active = mean − base.
+The statistic is the OLS slope b of ln(active) on ln(base). Homes with a zero p5 are dropped and counted: 23 of 313 in
+Jan–Apr and 20 of 305 in Jun–Aug.
+
+| | n used | b | r |
+|---|---|---|---|
+| LCL Jan–Apr 2013 | 290 | **0.459** | 0.518 |
+| LCL Jun–Aug 2013 (little electric heating) | 285 | 0.384 | 0.543 |
+
+P1 (r 0.30–0.60), P2 (b 0.40–0.90) and P3 (summer within 0.20) held.
+
+**The estimator is calibrated on the world, not taken at face value.** The p5 base is noisy, and active = mean − base
+shares that noise. So β was chosen where the world's *estimated* b matches LCL's b, and β was never set equal to b.
+The placebo arm (true β 0) reads b = 0.11 (P4 held, [0, 0.35]). Seed 17 / seed 18, n 240, C1 Jan–Apr 2022, whole
+meter, all homes:
+
+| true β | est. b | within-cell log-sd (NEED 0.562) | L2.4 p90/p10 (LCL 5.38, floor 4.88) | r(texture, size) | L1.1 |
+|---|---|---|---|---|---|
+| 0 | 0.11 / – | 0.401 / – | 2.97 / 3.56 | −0.671 | FAIL / FAIL |
+| 0.5 | 0.37 / 0.34 | 0.499 / 0.502 | 4.01 / 4.42 | −0.70 / −0.68 | PASS / FAIL |
+| 0.6 | 0.42 / 0.39 | 0.521 / 0.524 | 4.28 / 4.75 | −0.70 / −0.68 | PASS / FAIL |
+| **0.7** | **0.47 / 0.44** | **0.543 / 0.546** | **4.57 / 5.05** | −0.69 / −0.67 | PASS / FAIL |
+| 1.0 | 0.63 / 0.60 | 0.618 / 0.621 | 5.83 / 6.16 | −0.65 / −0.62 | FAIL / FAIL |
+
+**β = 0.7.** The two seeds' estimated b average 0.459, which is LCL's b to three places, so P5 held. The two
+out-of-fit anchors both sit just under the real value at β 0.7. NEED's within-cell spread is 0.54 against 0.56, and
+L2.4 is 4.6–5.1 against 5.38. That is the safe side (F11): β was not raised to clear the floor. **So L2.4 may still
+read red on some populations, seed 17's 4.57 among them.** The summer b (0.384) would put β nearer 0.6. Range
+0.6–0.8.
+
+**What did not move:** texture's tie to size (r −0.67 to −0.69, against LCL's −0.32). This repeats the 2026-10-14 and
+2026-10-15 arms, so W1_29's L1.1 red is untouched by this build.
+
+**Built:** `simulation/premise_trace.py` `active_use_multiplier` = (always-on ÷ 90 W)^0.7. It multiplies the
+people-scaled event rate (`appliance_intensity`), lighting kW and electronics kW. A caller holding the old world
+fixed passes `active_use=1.0`. The built path reproduces the β 0.7 probe row above to the last digit on both seeds.
+**The world redraws, so the world digest moves and the value-arms artefacts need re-taking.**
+
+Limits: LCL is London, 2013, and whole-meter, and some of its Jan–Apr homes heat electrically (hence the summer
+check). The p5 estimator is not EFUS's p10-of-10-second base. Two seeds of 240. Scripts: `/var/tmp/se-l24/` (not
+committed).

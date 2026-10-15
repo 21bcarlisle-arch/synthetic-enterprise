@@ -111,7 +111,7 @@ import functools
 import hashlib
 import math
 import random
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from statistics import NormalDist
 from typing import Iterable, Mapping, Sequence
@@ -798,6 +798,26 @@ def always_on_kw(base_seed: int) -> float:
     u = _substream(base_seed, "always-on").random()
     z = NormalDist().inv_cdf(min(max(u, 1e-12), 1.0 - 1e-12))
     return min(_ALWAYS_ON_CEILING_KW, _ALWAYS_ON_MEDIAN_KW * math.exp(_ALWAYS_ON_SIGMA * z))
+
+
+# `domain-knowledge` (L2.4) — A HOME THAT LEAVES MORE ON ALSO USES MORE. Its active use (the
+# people-scaled event rate, lighting kW and electronics kW) rides with its always-on draw as
+# (always-on ÷ 90 W)^β. STATED BELIEF: EFUS 2011 §4.1 publishes base load (Fig 10) and mean demand
+# (Fig 11) only as separately sorted charts, and no source states the coupling, so β is MEASURED,
+# not cited. Low Carbon London Std homes, Jan–Apr 2013 (n 290), slope of ln(mean − p5) on ln(p5) is
+# 0.459 (Jun–Aug 0.384). The same estimator on this world reads 0.11 at β 0 (its noise floor) and
+# 0.444–0.475 at β 0.7, so β = 0.7. Out of fit: NEED 2026's within-cell log-sd 0.562 against the
+# world's 0.54, and LCL's L2.4 5.38 against 4.6–5.1. Range 0.6–0.8
+# (docs/market_research/the_half_hourly_texture_of_real_homes_electricity_read_from_low_carbon_london.md,
+# 2026-10-15 build section). Without it, the world's between-home size was its always-on draw alone
+# and L2.4 sat at 2.97.
+_ACTIVE_USE_BETA = 0.7
+
+
+def active_use_multiplier(standby_kw: float) -> float:
+    """How much more (or less) a home with this always-on load uses actively than one at the
+    90 W median. 1.0 at the median; a caller holding the old world fixed passes `active_use=1.0`."""
+    return (standby_kw / _ALWAYS_ON_MEDIAN_KW) ** _ACTIVE_USE_BETA
 
 _FROZEN_COMPARTMENT_TARGET_C = -18.0
 """EU Reg. 2019/2016 / IEC 62552-2 frozen-compartment target temperature."""
@@ -2007,6 +2027,7 @@ def generate_premise_trace(
     owned: frozenset[str] | None = None,
     standby_kw: float | None = None,
     cooked_on_gas: frozenset[str] | None = None,
+    active_use: float | None = None,
 ) -> PremiseTrace:
     """Generate one premise's half-hourly gas and electricity trace.
 
@@ -2020,7 +2041,8 @@ def generate_premise_trace(
     `owned` attaches a stock where a caller holds it fixed, as `behaviour` does; absent, the
     premise draws its own (`owned_stock`). `standby_kw` does the same for the always-on load
     (`always_on_kw`), and `cooked_on_gas` for the cooking fuel (`gas_cooked`); it is read only where
-    hot water is on gas, because an off-gas home cooks electrically.
+    hot water is on gas, because an off-gas home cooks electrically. `active_use` is the multiplier
+    on active use (`active_use_multiplier` of the standby in force when absent).
     """
     if not weather:
         raise ValueError("generate_premise_trace needs at least one weather day")
@@ -2056,6 +2078,8 @@ def generate_premise_trace(
     # added to either output series.
     owned = owned_stock(base_seed, profile.people_count) if owned is None else owned
     standby_kw = always_on_kw(base_seed) if standby_kw is None else standby_kw
+    active_use = active_use_multiplier(standby_kw) if active_use is None else active_use
+    event_profile = replace(profile, appliance_intensity=profile.appliance_intensity * active_use)
     cold_specs = tuple(spec for spec in COLD_APPLIANCES if spec.name in owned)
     cold_phases = cold_appliance_phases(base_seed, specs=cold_specs)
     # THE ROOM THE FRIDGE STANDS IN, lagged one day — and the lag is structural,
@@ -2094,7 +2118,7 @@ def generate_premise_trace(
 
         # --- Layer 2: events -------------------------------------------------
         events = draw_appliance_events(
-            base_seed, day_index, profile, month=wx.date.month, is_weekend=is_weekend, is_away=is_away,
+            base_seed, day_index, event_profile, month=wx.date.month, is_weekend=is_weekend, is_away=is_away,
             owned=electric_stock,
         )
         appliance_kwh = [0.0] * PERIODS_PER_DAY
@@ -2122,8 +2146,8 @@ def generate_premise_trace(
         switch_rng = _substream(base_seed, f"switched::{day_index}")
         light_units = max(1, int(round(_LIGHTING_UNITS_PER_PERSON * profile.people_count)))
         device_units = max(1, int(round(_ELECTRONICS_UNITS_PER_PERSON * profile.people_count)))
-        light_kw_per_unit = _LIGHTING_KW_PER_PERSON * profile.people_count / light_units
-        device_kw_per_unit = _ELECTRONICS_KW_PER_PERSON * profile.people_count / device_units
+        light_kw_per_unit = active_use * _LIGHTING_KW_PER_PERSON * profile.people_count / light_units
+        device_kw_per_unit = active_use * _ELECTRONICS_KW_PER_PERSON * profile.people_count / device_units
         lights_on = 0
         devices_on = 0
         prev_device_p: float | None = None
