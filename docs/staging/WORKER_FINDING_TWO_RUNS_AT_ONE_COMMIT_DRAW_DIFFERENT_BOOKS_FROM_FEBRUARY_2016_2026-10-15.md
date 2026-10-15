@@ -96,6 +96,11 @@ worktrees at a real commit whose code draws A's book:
   `total_amount_gbp`. If some differ, the residual is other uncommitted bytes in A's shared tree
   (`2248e3baf` names `simulation/run_phase2b.py` as another lane's staged work). In that case the
   fix is graded X0 against X1 only, never against A.
+  **Graded 2026-10-15 18:55: Q0 HELD, exactly.** X0 (`run_output_81c129fe8_20261015T151056Z`, 119.9
+  min) and A have the same 39,084 bill keys, and **0 bills differ in any field**. The book totals are
+  £2,462,538.19 and £2,462,538.19, and the world and demand digests are equal. So A's uncommitted
+  `simulation/run_phase2b.py` residual moved no bill. The fix can be graded X1 against X0, and so
+  against A.
 - **P1.** X1 − X0 = **+£20,335.71 ±£0.11**, all of it on 11 catch-up bills. No other bill changes.
 - **P2.** All five PROS-2017-0336 rows (2017, 2018, 2019, 2020, 2023) clear, with the deltas in the
   pre-registration's table. 2023 is the narrowest, at +£177.71 for a £122 clearance.
@@ -165,6 +170,23 @@ per-stamp id lists are in `/var/tmp/se-stampcensus/` (`scan.sh`, `scan.log`).
   so the figures are not from code that no history holds. They are from a combination that no
   single commit holds. Whether `81c129fe8` alone reproduces them is Q0 of the X0 run above, which
   is running now. Until Q0 reads, those figures have no commit that reproduces them.
+  **Q0 has read (2026-10-15): `81c129fe8` alone reproduces every one of A's 39,084 bills in every
+  field, but not the whole run.** A full walk of both outputs finds 115 of 124 top-level sections
+  identical. The billing figures, the customers and the P&L sections therefore have a commit that
+  reproduces them. Nine sections differ (run identity aside):
+  - `trading_book`: hedge P&L £97.16 in A, £71,848.92 in X0; bid-ask cost £10,972.76 vs £12,533.98.
+  - `wholesale_credit_exposure`: peak £54,142.77 vs £26,757.92.
+  - `margin_call_book`: outstanding £344,691.59 vs £631,742.98.
+  - `mc2_collateral_death_test`.
+  - `scenario_analysis`: read off disk from `site/state/scenario_analysis_latest.json` by design. Its
+    `portfolio_as_of` is 10-13 in A and 10-05 in X0, so this one is the tree, not the run.
+
+  The first four come from `simulation/run_phase2b.py`'s hedge desk. Between `2248e3baf` and
+  `81c129fe8`, 14 runtime files differ, among them `company/risk/independent_amount.py`,
+  `company/risk/counterparty_collateral_desk.py` and `company/finance/treasury.py`. The two commits
+  are on diverged lines (4 commits one way, 19 the other). **I cannot yet say which bytes A carried in
+  those files**, so the live site's hedge P&L, credit-exposure and margin-call figures still have no
+  commit that reproduces them. This does not touch the held-estimate grade, which reads bills only.
 - **The 19 publishes from 09-25 to 10-05** each ran the `demand_vector_coverage` edit under a stamp
   that lacks it. The book witness passes on all 19, so their acquisition code was their stamp's.
   The edit's effect on figures is argued, not measured: `ac3612a6f` reads that the settlement choice

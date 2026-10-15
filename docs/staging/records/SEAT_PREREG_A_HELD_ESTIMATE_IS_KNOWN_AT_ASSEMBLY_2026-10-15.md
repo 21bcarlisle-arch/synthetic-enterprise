@@ -128,3 +128,18 @@ The committed ledger is still run A's, so deleting the two cleared rows would re
 artefact it reads. EP17's held-estimate condition is **not** closed: 5 of its 7 rows are ungraded.
 Closing it needs a run that draws PROS-2017-0336, which first needs the book-drift finding's
 one-variable placebo (2248e3baf *without* the hunk, under the same long-job unit).
+
+## Re-graded on the `81c129fe8` arms (claim `grade-the-held-estimate-fix-on-the-81c12-arms`)
+
+The design is in the book-drift finding, under "Re-grading the held-estimate fix". X0 is
+`81c129fe8` clean. X1 is the same commit plus this fix's `monthly_bill_assembly.py` hunk (checked
+line for line against `650fdcdd7`).
+
+- **Q0 (placebo, X0 against published A): HELD, exactly.** The same 39,084 bill keys, 0 bills
+  differing in any field, and a book total of £2,462,538.19 in both. So X1 against X0 grades the fix
+  on A's own book, and PROS-2017-0336 is drawn. (Outside the bills, the hedge, credit-exposure and
+  margin-call sections differ. The finding records it, and it does not touch this grade.)
+- **P1, P2 (the five PROS-2017-0336 rows), P4: PENDING X1.** The first X1 launch died queued with
+  the tick that started it. It was relaunched 2026-10-15 18:57 BST under `setsid`, waiting on the
+  weekly publish run's memory, as unit `longjob-bookfix-81c12-x1`. `/var/tmp/se-placebo-out/post.sh`
+  writes `grade_P1_x0_vs_x1.txt` and `grade_ledger_x{0,1}.txt`, then `POSTDONE`.
