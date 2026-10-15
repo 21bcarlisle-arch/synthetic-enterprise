@@ -790,3 +790,54 @@ predicted 0.4–0.7). The prediction assumed the long draws were narrow, and the
 
 Limits: the pooled-t back-out assumes equal group variances; if PtN2 ran Welch's test, s shifts by a few percent. HES
 is 2010–11, 250 owner-occupiers. Four seeds, one weather site, Jan–Apr. Scripts: `/var/tmp/se-w129c/` (not committed).
+
+## The world's gap is in both halves, and a night floor alone cannot clear it (2026-10-15)
+
+Lane-0 draw `w1-29-texture-gap-base-share-or-steps`, at `origin/main` `836ec06fa` (β 0.7 world). Every prediction was
+filed before either side was read (`/var/tmp/se-w129d/PREREG.md`). Nothing ships: no world draw changed.
+
+**One estimator on both sides.** Texture T is `fgl.half_hourly_texture`. Base share S is the p5 half-hour ÷ mean.
+Active texture A is the median step ÷ (mean − p5). These obey T = A × (1 − S), so the split is exact. Size is
+kWh/day, and r is Pearson on linear kWh/day, which is the comparator's form. LCL: the same 13 partitions,
+re-fetched by HTTP range from the London Datastore, Std, Jan–Apr 2013, ≥ 100 complete days, whole meter.
+World: n 240, seeds 17/18/19/23, C1 Jan–Apr 2022, traces seed 7, netted as `_netted_texture_and_size` nets
+(the script asserts T matches it to 1e-12). **Instrument checks held.** LCL gives n 313, r(T, size) −0.316 and
+a median A of 0.214 (0.213 on 2026-10-06). The world's comparator r is −0.691 / −0.671 / −0.685 / −0.672, which
+matches the 2026-10-15 burst-arm controls.
+
+| | r(T, kWh/day) | r(S, kWh/day) | r(A, kWh/day) | S p10 / 50 / 90 | A p10 / 50 / 90 | share of cov(log T, kWh) via log(1−S) / log A |
+|---|---|---|---|---|---|---|
+| LCL Std (n 313) | −0.316 | **−0.033** | **−0.346** | 0.048 / 0.213 / 0.412 | 0.093 / 0.214 / 0.377 | −0.05 / 1.05 |
+| world, 4 seeds (n 240 each) | −0.671 to −0.691 | **+0.463 to +0.517** | **−0.581 to −0.608** | 0.22 / 0.37 / 0.54 | 0.13 / 0.24 / 0.40 | 0.26–0.28 / 0.72–0.74 |
+| gap, Fisher z (world − LCL) | −5.6 to −6.1 | **+6.2 to +7.0** | **−3.5 to −4.0** | | | |
+
+**Graded.** P1 held: LCL's r(S, size) is −0.03, so a real home's base share does not depend on its size. P2 held:
+the world's is +0.46 to +0.52. P3 held (−0.346). **P4 was refuted:** the world's r(A, size) is −0.58 to −0.61,
+past the predicted floor of −0.55. **P5 held by its stated rule:** S carries the larger gap (z +6.2 to +7.0
+against A's −3.5 to −4.0).
+
+**But both halves carry a significant gap, and the decision rule was too coarse to say what to do next.** In real
+homes, all of texture's size coupling comes through the active steps (105%), and none comes through the base share.
+In the world, about three quarters of it still comes through the active steps. A counterfactual on the measured
+rows settles the next step. Deal the world's S at random across its homes (200 deals per seed). That keeps S's
+distribution and removes its tie to size. T' = A × (1 − S) then reads **r −0.51 to −0.54** (deal range −0.45 to
+−0.58). With S held at its median, r is −0.58 to −0.61. The comparator fires below r ≈ −0.46 at n 240. **So a
+night-floor arm that only loosens the base share from size cannot clear W1_29's comparator, even if it works
+perfectly.** It also has a level to fix: the world's median base share is 0.37 against 0.21. The world's
+active steps are also tied to size more tightly than real ones (−0.59 against −0.35). In the world, a home with
+more active use has smoother active use, and in real homes much less so.
+
+**What this means for the next test.**
+1. The night floor stays worth testing, but for the **level and the size tie of S** (median 0.37 against 0.21, r +0.49
+   against −0.03), not as the remedy for r(T, size). Its prediction should be written against S, and should expect r(T)
+   to move by at most about +0.15.
+2. **The second lever is A's tie to size**: why a world home's steps per unit of active use fall with its volume. The
+   β 0.7 coupling scales lighting and electronics kW, which are long, smooth draws, with the always-on load. So a big
+   world home's active use is mostly smooth draw. That fits the 2026-10-15 burst table (lighting and electronics
+   corr(log x, log meter) +0.79). The candidate to read first is whether real big homes add *more events* or *bigger
+   smooth draws*. No source in the knowledge layer separates the two per home. **GAP.**
+
+Limits: LCL is whole-meter, London 2013, and includes some electric-heated homes. The world is netted of both
+machines. A is undefined for 2 LCL homes with a zero median step, which are excluded from the log decomposition
+only. The counterfactual shuffles measured S, so it does not run a world. The p5 estimator is the same noisy base
+as the L2.4 section, on both sides. Scripts: `/var/tmp/se-w129d/` (not committed).
