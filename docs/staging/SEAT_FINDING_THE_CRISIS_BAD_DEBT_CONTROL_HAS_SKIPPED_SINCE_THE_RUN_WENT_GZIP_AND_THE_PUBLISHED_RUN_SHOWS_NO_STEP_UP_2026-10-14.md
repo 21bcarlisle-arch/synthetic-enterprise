@@ -323,3 +323,42 @@ run). Two arms on one ledger: (A) the year-end stocks read before the sweep, and
    between 0.10% and 0.20% of revenue, and the step-up stays under x1.2.
 4. So the published P&L line is still not swapped. The level gap goes back to the world's
    affordability cluster.
+
+### Graded (2026-10-15, late): predictions 1 and 2 held; prediction 3 did not grade on the first run
+
+Worked as `the-write-off-two-arm-run-graded-against-its-pre-registration`. The run (unit
+`longjob-writeoff-two-arm-61109`, worktree at 7e7c59779, seed 61109, `all_wins`) used **12 founders,
+not the 40 pre-registered**. The launch record says why ("shares are scale-free"). The book was 279
+homes. Both arms were read from one ledger (`provision_61109.json`) and put through the validator's
+own `_ifrs9_charge_series`:
+
+| year | 2016 | 2017 | 2018 | 2019 | 2020 | 2021 | 2022 | 2023 | 2024 |
+|---|---|---|---|---|---|---|---|---|---|
+| A charge GBP (before sweep) | 20.25 | -0.33 | 91.55 | 48.23 | 61.23 | 59.10 | 171.43 | 156.91 | 134.63 |
+| B charge GBP (after sweep) | 20.25 | -0.33 | 91.55 | 48.23 | 78.10 | 59.10 | 179.60 | 156.91 | 156.96 |
+| written off in year, GBP | 0 | 0 | 0 | 0 | 138.29 | 0 | 66.95 | 0 | 183.05 |
+| B - A / written off | | | | | 0.1220 | | 0.1220 | | 0.1220 |
+
+1. **Held.** Nine write-offs were posted, with a face value of GBP 388.29 by end-2024. Recoveries are
+   0.00 at every year end.
+2. **Held.** Over the decade, B exceeds A by GBP 47.37, under the GBP 300 bound. In each year with a
+   write-off, the excess is 0.1220 of the face written off, which is exactly the un-provided 12.2%. The
+   stock itself falls much further (end-2024: A 743.00, B 402.08), because the provided 87.8% leaves
+   the stock and re-enters as a write-off. The prose estimate "about GBP 200" was scaled to the
+   40-founder book; this book is about a third of that size.
+3. **Not graded on this run.** The first grader read `run_output["management_accounts"]`, which is
+   empty at the point it is called. That gave zero revenue, and the validator's "no crisis-year data"
+   FAIL in `graded_61109.json` is vacuous. It is not a result. The corrected grader
+   (`member2.py`, which builds the accounts from `ledger_events` and refuses if they are empty) was
+   relaunched as `-r2`. A user-manager teardown stopped that run at 09:29, along with every other
+   service, at 2020-07 simulated. It is relaunched as `-r3`.
+   It runs detached (`/var/tmp/writeoff/launcher3.log`) and is queued behind an 11.2 GB resident.
+   **I cannot yet say** whether the crisis-years share falls inside 0.10% to 0.20%. The pounds alone
+   step up from GBP 39.9 a year in 2016-19 to GBP 164.2 (A) or 168.3 (B) in 2022-23, which is x4.1. On
+   this book that is mostly book growth and price, and the share needs this run's own revenue.
+4. **Not graded yet.** It rests on 3. Prediction 2's GBP 47 does bound how far the write-off can move
+   the decision: it is 6% of the decade's charge on either arm. A swap that was wrong without the
+   write-off is still wrong with it, whatever the shares turn out to be.
+
+Handed on as `the-write-off-run-r3-grades-prediction-3-and-removes-the-worktree`. The worktree
+`/var/tmp/writeoff/wt` stays locked until r3 has run, because r3 runs in it.
