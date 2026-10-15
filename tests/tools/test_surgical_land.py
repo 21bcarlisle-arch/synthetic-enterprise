@@ -2082,3 +2082,48 @@ def test_the_no_ref_check_passes_an_ordinary_landing_and_a_detached_head_one(rep
     (repo / "detached.py").write_text("VALUE = 3\n")
     detached = sl.land(repo, ["detached.py"], "on a detached HEAD")
     assert _head(repo) == detached and on_branch != detached
+
+
+# --------------------------------------------------------------------------------------------
+# The land-twice class (docs/staging/SEAT_FINDING_ONE_ITEM_LANDS_TWICE_AND_THE_SHARED_HEAD_
+# FORKS_FROM_ORIGIN_2026-10-07.md). bb5276856 was landed on the shared checkout while it sat 97
+# behind origin, stranded, and was landed again as 068928f47. The fixture's `side` branch plays
+# origin: `refs/remotes/origin/main` is pointed at a commit the checkout does not contain.
+# --------------------------------------------------------------------------------------------
+
+def _origin_ahead(repo: Path) -> str:
+    side = _fork(repo)
+    _run(repo, "git", "update-ref", sl.UPSTREAM_REF, side)
+    return side
+
+
+def test_a_pathspec_landing_on_a_primary_checkout_behind_origin_is_refused(repo: Path):
+    _origin_ahead(repo)
+    (repo / "code.py").write_text("VALUE = 2\n")
+    before = _head(repo)
+
+    with pytest.raises(sl.LandingRefused) as exc:
+        sl.land(repo, ["code.py"], "would strand")
+
+    assert _head(repo) == before, "a landing behind origin moved the shared branch"
+    said = str(exc.value)
+    assert "1 commit(s) behind origin/main" in said and "promote_worktree_landing" in said, said
+
+
+def test_the_behind_origin_refusal_leaves_every_other_landing_route_open(repo: Path,
+                                                                         tmp_path: Path):
+    """The partition control: a guard that refused EVERY landing would pass the test above."""
+    side = _origin_ahead(repo)
+    # A linked worktree behind origin moves no shared branch; promotion re-gates it.
+    wt = tmp_path / "wt"
+    _run(repo, "git", "worktree", "add", "-q", "--detach", str(wt), "HEAD")
+    (wt / "code.py").write_text("VALUE = 3\n")
+    in_worktree = sl.land(wt, ["code.py"], "from a linked worktree")
+    # A merge whose other side IS origin is the commit that closes the gap.
+    merged = sl.land(repo, [], "catch up", merge=sl.UPSTREAM_REF)
+    # Level with origin, an ordinary pathspec landing goes through as before.
+    (repo / "code.py").write_text("VALUE = 2\n")
+    level = sl.land(repo, ["code.py"], "level with origin")
+    assert in_worktree and merged and level
+    assert _run(repo, "git", "merge-base", "--is-ancestor", side, level).returncode == 0
+

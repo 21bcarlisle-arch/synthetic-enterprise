@@ -1526,6 +1526,55 @@ def land(root: Path, paths: list[str], message: str, hook_rel: str = HOOK_REL,
                       for i, e in enumerate(lost))))
 
 
+#: The trunk a landing on the PRIMARY checkout must already contain. Read from the local
+#: remote-tracking ref, never fetched here: the reconciler fetches on its five-minute cadence,
+#: and a landing that opened a socket to decide would make the gate depend on the network.
+UPSTREAM_REF = "refs/remotes/origin/main"
+
+
+def _refuse_a_landing_a_behind_checkout_would_strand(root: Path, parent: str,
+                                                     merge_parent: str | None) -> None:
+    """Refuse a commit on the primary checkout whose parents do not contain origin/main.
+
+    WHY (2026-10-15, docs/staging/SEAT_FINDING_ONE_ITEM_LANDS_TWICE_AND_THE_SHARED_HEAD_FORKS_
+    FROM_ORIGIN_2026-10-07.md). A landing here moves the shared branch. When that branch is level
+    with origin, the reconciler pushes the commit as a fast-forward and origin receives the SAME
+    sha. When it is behind, the commit can reach origin only as a merge the reconciler may never
+    make, so it strands -- and the lane, seeing its work absent from origin, lands it again from a
+    worktree under another sha. Measured over the shared reflog 2026-10-13..15: every one of 15
+    landings made at 0 behind is on origin under its own sha; all 9 made while 29-97 behind
+    stranded, eight for ~19h until merge 1610b2640, and bb5276856 was landed a second time as
+    068928f47, whose later edit then made the stranded copy a conflict no reconciler cycle could
+    settle. So this checkout is NOT TOUCHED rather than forked.
+
+    A linked worktree is exempt: its HEAD is detached, it moves no shared branch, and
+    `promote_worktree_landing` re-gates it on the new base. A repo with no origin ref has no trunk
+    to fork from. A `--merge` whose other side contains origin passes, because that commit is what
+    closes the gap."""
+    git_dir = _git(root, "rev-parse", "--path-format=absolute", "--git-dir")
+    common = _git(root, "rev-parse", "--path-format=absolute", "--git-common-dir")
+    if git_dir.returncode != 0 or git_dir.stdout != common.stdout:
+        return
+    upstream = _git(root, "rev-parse", "--verify", "-q", UPSTREAM_REF + "^{commit}")
+    if upstream.returncode != 0:
+        return
+    up = upstream.stdout.decode().strip()
+    for side in (parent, merge_parent):
+        if side and _git(root, "merge-base", "--is-ancestor", up, side).returncode == 0:
+            return
+    behind = _git_text(root, "rev-list", "--count", "{}..{}".format(parent, up))
+    raise LandingRefused(
+        "this is the PRIMARY checkout and its HEAD {} is {} commit(s) behind origin/main ({}). "
+        "A commit here would advance the shared branch on a base origin has moved past, so it "
+        "cannot reach origin as itself: it strands until someone merges it, and a second landing "
+        "of the same work from a worktree arrives on origin under another sha (the land-twice "
+        "class). Nothing was gated or committed. Land from a worktree on the trunk instead: "
+        "`git worktree add --detach <dir> origin/main`, copy the paths there, run "
+        "`python3 -m tools.surgical_land` in it, then `python3 -m tools.promote_worktree_landing "
+        "<dir>`. The shared checkout catches up when the reconciler fast-forwards it.".format(
+            parent[:9], behind, up[:9]))
+
+
 def _refuse_a_landing_no_ref_holds(root: Path, sha: str) -> None:
     """Refuse -- after the fact, but before anything announces it -- a commit that no ref holds.
 
@@ -1653,6 +1702,7 @@ def _land_once(root: Path, paths: list[str], message: str, hook_rel: str = HOOK_
             "settle, and the bytes would just be an unnamed content change.")
     else:
         result_tree = build_resulting_tree(root, paths, parent, content)
+    _refuse_a_landing_a_behind_checkout_would_strand(root, parent, merge_parent)
     if result_tree == parent_tree:
         # For a merge this is the already-up-to-date case that `--is-ancestor` did not catch:
         # the other history's content is all here, but its COMMITS are not, so the merge is

@@ -73,3 +73,47 @@ The twins can be cleared mechanically. The three code/test paths dated 09-24 to 
 abandoned-copy candidates for `origin_reconcile.preserve_abandoned_copies`, not lane work in
 flight. Until both kinds are cleared, the daemons keep running pre-`effd32f63` code even though the
 fork itself is closed. This tick did not touch the shared checkout's HEAD, index or working files.
+
+## 2026-10-15: the writer is `surgical_land` itself, landing on a checkout behind origin
+
+*Delivery-seat executor, direction item `the-shared-checkout-fast-forwards-past-its-duplicate-of-068928f47`.*
+
+It recurred. `bb5276856` (surgical_land receipt, parent `10e90b5c7`, the shared HEAD) and origin's
+`068928f47` (parent `cd2fda5c6`) carry the same two files: `git diff bb5276856 068928f47` on both
+paths is empty. `bb5276856` is a duplicate with nothing of its own, so it can be thrown away. It
+still held the fork, because origin edited `when_an_electrically_heated_homes_water_heater_runs.md`
+after `068928f47`. That made the stranded copy an add/add conflict, and reconcile-watch read
+`REFUSED_CONFLICT` on it every cycle from 10:21 onwards.
+
+**The cause, measured.** The 2026-10-07 hypothesis was a plain `git commit` on the shared HEAD.
+That is not what wrote these. `surgical_land` lands on whatever HEAD its own checkout holds. On
+the primary checkout that HEAD is the shared branch, and nothing asked whether origin had moved
+past it. Across the 24 `surgical-land` entries in the shared `main` reflog from 2026-10-13 to
+2026-10-15, I counted the origin commits each parent lacked when it landed:
+
+| at landing | landings | on origin under their own sha |
+|---|---|---|
+| 0 behind | 15 | 15 |
+| 29–97 behind | 9 | 8 only via merge `1610b2640` (~19 h later); `bb5276856` never; it was re-landed as `068928f47` |
+
+At 0 behind, the reconciler pushes the commit as a fast-forward and origin gets the same sha.
+Behind origin, a commit can reach origin only as a merge, and that merge may never come. The lane
+sees its work missing and lands it again from a worktree.
+
+**The fix.** `tools/surgical_land.py::_refuse_a_landing_a_behind_checkout_would_strand` makes the
+primary checkout **not touched** in that state. It refuses a landing whose parents do not contain
+`refs/remotes/origin/main`, and the refusal names the worktree-and-promote route. It does not
+refuse in three cases:
+- a linked worktree, which moves no shared branch;
+- a repo with no origin ref;
+- a `--merge` whose other side contains origin, which is the commit that closes the gap.
+
+The control is in `tests/tools/test_surgical_land.py`. The refusal leg reds on today's shape, and
+a partition control shows all three passing routes still land. Four mutations each red a control:
+the call removed, the worktree exemption removed, the merge side ignored, and the guard made
+unconditional. A fifth, the no-origin exemption removed, reds the file's other 100 tests.
+
+**The fork.** It is closed by the door `1610b2640` used: `surgical_land --merge bb5276856`, run
+from an origin worktree, with the conflicted doc resolved to origin's bytes. The merge's tree is
+origin's tree. After promotion the shared checkout is 0 ahead, so the reconciler's
+`advance_shared_tree` can fast-forward it once the paths blocking it are cleared.
