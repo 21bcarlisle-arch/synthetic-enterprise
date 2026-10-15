@@ -18,10 +18,15 @@ obvious:
     mangles an instruction corrupts direction; on 2026-08-26 this seat ran a
     `[A-Za-z0-9_-]{40,}` sweep over a document and replaced EIGHT strings when one was a
     secret. §3 is that partner, and it is the longer section on purpose.
+
+§6 proved the guard was wired into the NTFY responder's four inbound routes. Those routes were
+retired with the responder (2026-10-15 mothball), so §6 went with them and this module has no
+caller: it is kept for the next inbound route that needs it.
 """
 from __future__ import annotations
 
 import re
+from pathlib import Path
 
 import pytest
 
@@ -310,8 +315,7 @@ def test_duplicate_families_are_COUNTED_but_named_once():
 def test_the_raw_directory_is_outside_the_working_tree():
     """Derived from the secrets root rather than PROJECT_DIR, so no later refactor of the
     repo layout can quietly move it back inside the thing it must stay outside of."""
-    from background import ntfy_responder
-    assert not str(R.RAW_DIR).startswith(str(ntfy_responder.PROJECT_DIR))
+    assert not str(R.RAW_DIR).startswith(str(Path(__file__).resolve().parents[2]))
 
 
 def test_preserve_raw_writes_the_unredacted_message_with_owner_only_permissions(monkeypatch,
@@ -332,111 +336,3 @@ def test_preserve_raw_NEVER_raises_when_the_location_is_unwritable(monkeypatch, 
     blocker.write_text("i am a file, not a directory")
     monkeypatch.setattr(R, "RAW_DIR", blocker / "inbound_raw")
     assert R.preserve_raw("anything", "20260827_120000") is None
-
-
-# ---------------------------------------------------------------------------
-# 6. THE GUARD IS ACTUALLY WIRED -- all four routes
-# ---------------------------------------------------------------------------
-# A redactor nothing calls is decoration (R11: no orphan transitions). Inbound text reaches
-# the working tree by FOUR routes, and each one below was found by looking for the others
-# rather than by it failing. Fixing only `_write_to_staging` -- the obvious one, and the one
-# the 2026-08-26 leak came through -- would have been the instance fix this was explicitly
-# not to be.
-
-@pytest.fixture
-def responder(monkeypatch, tmp_path):
-    from background import ntfy_responder as N
-    monkeypatch.setattr(N, "PROJECT_DIR", tmp_path)
-    monkeypatch.setattr(N, "LOG_FILE", tmp_path / "docs" / "observability" / "log.md")
-    monkeypatch.setattr(R, "RAW_DIR", tmp_path / "outside" / "inbound_raw")
-    return N
-
-
-def _leaky_message():
-    return "Route the analytics zone with {} please".format(CLOUDFLARE_SHAPED)
-
-
-def test_route_1_the_staged_file_does_not_contain_the_credential(responder):
-    path = responder._write_to_staging(_leaky_message())
-    text = path.read_text()
-    assert CLOUDFLARE_SHAPED not in text
-    assert "Route the analytics zone with" in text, "the instruction itself must survive"
-
-
-def test_route_1_the_staged_file_SAYS_that_something_was_removed(responder):
-    """A reader of this instruction needs to know a word of it was replaced, or the redaction
-    reads as something the director never wrote."""
-    text = responder._write_to_staging(_leaky_message()).read_text()
-    assert "REDACTED" in text and "high_entropy_token" in text
-
-
-def test_route_1_an_ordinary_message_gets_NO_redaction_banner(responder):
-    """The partner: a banner on every staged file would be noise, and would stop the banner
-    meaning anything when it did appear."""
-    text = responder._write_to_staging("Book age is mine and I'll come back on it.").read_text()
-    assert "REDACTED" not in text
-    assert "Book age is mine" in text
-
-
-def test_route_2_the_QUARANTINE_file_is_guarded_too(responder):
-    """Quarantine is still the working tree. Redacting only the staging route would leave a
-    credential one directory to the left."""
-    path = responder._quarantine(_leaky_message(), reason="flood")
-    assert CLOUDFLARE_SHAPED not in path.read_text()
-    assert "Route the analytics zone with" in path.read_text()
-
-
-def test_route_3_the_responder_LOG_is_guarded(responder):
-    """`docs/observability/ntfy-responder-log.md` is in-tree, and several call sites log
-    `message[:60]` -- a 40-character token fits inside sixty characters comfortably."""
-    responder.log("Acked inbound message ({!r})".format(_leaky_message()[:60]))
-    assert CLOUDFLARE_SHAPED not in responder.LOG_FILE.read_text()
-
-
-def test_route_3_is_guarded_at_the_FUNCTION_not_at_its_call_sites(responder):
-    """The class fix, stated as a test: an arbitrary future log line inherits the guard
-    without its author remembering to ask for it."""
-    responder.log("some future diagnostic nobody has written yet: " + CLOUDFLARE_SHAPED)
-    assert CLOUDFLARE_SHAPED not in responder.LOG_FILE.read_text()
-
-
-def test_route_4_agent_status_carries_no_credential(responder):
-    """docs/observability/agent_status.json is committed like everything else there, so an
-    80-character excerpt lands in git exactly as the staging file would have."""
-    import inspect
-    source = inspect.getsource(responder.check_once)
-    assert "last_action=f\"Acked message: {message[:80]!r}\"" not in source, (
-        "the raw message excerpt is back in agent_status.json")
-    assert "inbound_secret_redaction.redact(message)[0][:80]" in source
-
-
-def test_the_raw_message_is_preserved_out_of_tree_when_something_was_removed(responder):
-    responder._write_to_staging(_leaky_message())
-    raws = list(R.RAW_DIR.glob("from_rich_RAW_*.md"))
-    assert len(raws) == 1
-    assert CLOUDFLARE_SHAPED in raws[0].read_text()
-
-
-def test_no_raw_file_is_written_for_an_ordinary_message(responder):
-    """The partner. Copying every director message to a 0700 directory forever would build a
-    second, quieter archive of everything he has ever said."""
-    responder._write_to_staging("Book age is mine and I'll come back on it.")
-    assert not R.RAW_DIR.exists() or not list(R.RAW_DIR.glob("*.md"))
-
-
-def test_the_ACK_tells_the_director_when_something_was_removed(responder, monkeypatch):
-    monkeypatch.setattr(responder, "_run_progress_summary", lambda: "-")
-    monkeypatch.setattr(responder, "_gpu_summary", lambda: "-")
-    monkeypatch.setattr(responder, "_git_head_summary", lambda: "-")
-    _, families = R.redact(_leaky_message())
-    reply = responder.build_status_reply(staged_path=None, redacted_families=families)
-    assert "redacted" in reply and "high_entropy_token" in reply
-    assert CLOUDFLARE_SHAPED not in reply
-
-
-def test_the_ACK_is_unchanged_when_nothing_was_removed(responder, monkeypatch):
-    monkeypatch.setattr(responder, "_run_progress_summary", lambda: "-")
-    monkeypatch.setattr(responder, "_gpu_summary", lambda: "-")
-    monkeypatch.setattr(responder, "_git_head_summary", lambda: "-")
-    assert "redacted" not in responder.build_status_reply(staged_path=None,
-                                                          redacted_families=[])

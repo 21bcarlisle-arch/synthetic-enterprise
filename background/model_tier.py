@@ -129,8 +129,6 @@ RESERVED: tuple[tuple[str, str, str], ...] = (
     ("wall_crossing", "wall", "wall-crossing paydown"),
     ("KNIFE", "wall", "the KNIFE passes cut wall crossings"),
     # ── JUDGMENT (not in the director's four, but Opus by standing policy) ───
-    ("urgent from_rich queued", "director_input",
-     "the director's own words; NTFY IS THE DIRECTOR — never handled by the cheaper tier"),
     ("[DIRECTOR-RULING]", "director_input", "a ruling is director authority"),
     ("[STEER]", "director_input", "a steer is director authority"),
     ("agenda open", "agenda",

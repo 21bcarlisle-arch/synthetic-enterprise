@@ -117,9 +117,14 @@ def test_the_inbound_daemons_entry_point_is_a_no_op(mod, monkeypatch):
     import importlib
     m = importlib.import_module(mod)
     assert m.RETIRED is True
-    monkeypatch.setattr(m, "_retired_main", _no_curl)
-    monkeypatch.setattr(m, "log", lambda msg: None)
-    m.main()          # returns without polling, staging or classifying anything
+    # The library went with the entry point (retire-the-inbound-ntfy-library): the tombstone holds
+    # nothing that could poll, stage, classify or reply. MUTANT: restore any of them and this reds.
+    import inspect
+    functions = {n for n, f in vars(m).items() if inspect.isfunction(f) and f.__module__ == mod}
+    assert functions == {"log", "main"}, functions
+    logged = []
+    monkeypatch.setattr(m, "log", logged.append)
+    assert m.main() == 0 and len(logged) == 1 and "RETIRED" in logged[0]
 
 
 def test_the_manifest_retires_both_and_no_unit_file_remains():

@@ -4,7 +4,8 @@ built after doorbell failure #4 (2026-07-09, R3 architecture rebuild).
 Includes explicit simulations of all four historical wake/turn-granting
 failure modes, per the director's directive to test against each one:
   1. Original raw-send-into-a-busy-pane corruption (pre-Phase-SB).
-  2. 17:47 urgent-from_rich queued-no-wake (Phase SB).
+  2. 17:47 urgent-from_rich queued-no-wake (Phase SB). Its test went with the
+     inbound NTFY route, retired 2026-10-15: nothing writes from_rich_*.md now.
   3. session_watchdog's autoloop racing staging_watcher's wake (strike 3,
      2026-07-08, fixed by relay_lock).
   4. Delivered-confirmed-but-no-progress: 34 "successful" autoloop sends
@@ -217,15 +218,6 @@ def test_find_work_ignores_in_progress_subdirectory():
 def test_find_work_ignores_gitkeep():
     (supervisor.STAGING_DIR / ".gitkeep").write_text("")
     assert supervisor.find_work(resumed_from_pause=False)[0] is None
-
-
-def test_find_work_detects_urgent_from_rich_distinctly():
-    (supervisor.STAGING_DIR / "from_rich_20260709_010000.md").write_text(
-        "<!-- Dispatcher: URGENT (classified 2026-07-09 01:00 UTC) -->\nsomething is wrong"
-    )
-    reason, _ = supervisor.find_work(resumed_from_pause=False)
-    assert "urgent from_rich queued" in reason
-    assert "from_rich_20260709_010000.md" in reason
 
 
 def test_find_work_normal_from_rich_counts_as_unprocessed_staging():
@@ -2105,31 +2097,6 @@ class TestFailureMode1RawSendIntoBusyPane:
         agenda_module.set_agenda("PhaseX", "stepY", "urgent work")
         supervisor.run_cycle()
         assert grant_calls == []
-
-
-class TestFailureMode2UrgentFromRichQueuedNoWake:
-    """2026-07-08 17:47: an urgent from_rich message was classified and
-    queued for relay, but the fast-path wake never delivered. The
-    supervisor's guarantee does not depend on dispatcher.py's own relay --
-    it reads the classified file straight off disk on its own poll."""
-
-    def test_supervisor_grants_a_turn_for_urgent_from_rich_independent_of_dispatcher(self, monkeypatch):
-        monkeypatch.setattr(supervisor, "is_session_idle", lambda session: True)
-        grant_calls = []
-        monkeypatch.setattr(
-            supervisor, "grant_turn",
-            lambda reason: grant_calls.append(reason) or True,
-        )
-        # Simulate dispatcher.py having classified the file (header
-        # prepended) but its own _pending_urgent relay never having fired --
-        # the supervisor never reads dispatcher's in-memory state at all.
-        (supervisor.STAGING_DIR / "from_rich_20260708_174700.md").write_text(
-            "<!-- Dispatcher: URGENT (classified 2026-07-08 17:47 UTC) -->\n"
-            "gross margin looks wrong, investigate now"
-        )
-        supervisor.run_cycle()
-        assert len(grant_calls) == 1
-        assert "urgent from_rich queued" in grant_calls[0]
 
 
 class TestFailureMode3AutoloopRacingStagingWake:

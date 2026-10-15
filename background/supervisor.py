@@ -2,8 +2,8 @@
 failure #4, R3 architecture-level rebuild, director-direct).
 
 A single dumb loop. Every POLL_INTERVAL_SECONDS: if the session is idle AND
-real work exists on disk (an open agenda, unprocessed staging, an urgent
-from_rich message, a usage-limit pause that just ended, OR -- 2026-07-10,
+real work exists on disk (an open agenda, unprocessed staging, a usage-limit
+pause that just ended, OR -- 2026-07-10,
 SELF_DIRECTION_AND_PARALLELISM.md Problem 1, REDESIGNED same-day per a
 director audit + R3 -- a dial-weighted draw from docs/design/
 maturity_map.yaml's real capability atoms with an open gap, falling back to
@@ -538,8 +538,7 @@ def ntfy(msg: str) -> None:
 def _unprocessed_staging_files() -> list[str]:
     """Top-level files directly in docs/staging/, IN DRAW ORDER -- excludes done/, fyi/,
     responses/, drafts/, reference/, console/ and any other subdirectory automatically
-    (iterdir + is_file), and .gitkeep. Covers both staged instruction docs and
-    from_rich_*.md files left in place by dispatcher.py (URGENT/NORMAL).
+    (iterdir + is_file), and .gitkeep.
 
     ORDER, NOT ALPHABET (2026-08-28, director, having read all 49 files himself: "the draw
     takes files in alphabetical filename order, and that is the least of it"). This returned
@@ -688,23 +687,6 @@ def _real_staged_instructions() -> list[str]:
     except Exception:  # a detection error must never break the draw
         pass
     return real
-
-
-def _urgent_from_rich_pending(staged: list[str]) -> str | None:
-    """Name of the first unprocessed from_rich_*.md file dispatcher.py has
-    classified URGENT (its <!-- Dispatcher: URGENT --> header, prepended in
-    place -- dispatcher.py never moves urgent/normal files out of
-    docs/staging/, only fyi goes to staging/fyi/), or None."""
-    for name in staged:
-        if not (name.startswith("from_rich_") and name.endswith(".md")):
-            continue
-        try:
-            content = (STAGING_DIR / name).read_text(encoding="utf-8")
-        except OSError:
-            continue
-        if "Dispatcher: URGENT" in content:
-            return name
-    return None
 
 
 def _pause_active_readonly() -> bool:
@@ -6511,10 +6493,7 @@ def find_work(resumed_from_pause: bool) -> tuple[str | None, bool]:
         primary = f"agenda open -- phase '{agenda.get('phase', '?')}', step '{agenda.get('step', '?')}'"
     else:
         staged = _real_staged_instructions()
-        urgent = _urgent_from_rich_pending(staged)
-        if urgent:
-            primary = f"urgent from_rich queued -- {urgent}"
-        elif staged:
+        if staged:
             primary = _differentiated_staging(staged)
             # §2+§4 (DIRECTOR_RULING_WORK_DEFINITION_AND_COHERENCE 2026-07-27): a drawn
             # [DIRECTOR-RULING]/[STEER] is a MINT SOURCE -- instruct the drawn turn to mint one atom

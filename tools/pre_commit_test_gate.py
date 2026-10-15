@@ -363,13 +363,12 @@ CENSUSED_WHOLE_DIRECTORY_SUBJECTS = [
     # test file                                                      subject roots | tests | secs
     "tests/architecture/test_a_wait_is_written_one_way.py",  # bg,co,saas,sim,site,tools|6|4.95
     "tests/architecture/test_the_svt_drift_belief_is_not_wired_to_any_decision.py",  # +docs|9|8.93
-    "tests/background/test_inbound_secret_redaction.py",  # docs|64|0.26
-    "tests/background/test_ntfy_responder.py",  # background,docs|35|1.11
+    # Three of the eighteen left 2026-10-15 with the retired inbound NTFY responder: two tested only
+    # it and were deleted, and test_inbound_secret_redaction lost the responder half that walked.
     "tests/background/test_producer_starvation_draw.py",  # background|31|6.82
     "tests/background/test_seat_continuity.py",  # .claude,bg,docs,hooks,sim,site|27|0.13
     "tests/background/test_seat_work_in_hand.py",  # company|16|0.14
     "tests/background/test_staging_archive_policy.py",  # docs|29|0.20
-    "tests/background/test_the_responder_refuses_to_guess_whose_a_message_is.py",  # docs|20|0.27
     "tests/background/test_weekly_rhythm.py",  # docs|26|0.43
     "tests/company/policy/test_policy_field_consumption.py",  # bg,co,saas,sim,tools|15|3.57
     "tests/simulation/test_account_state_record.py",  # simulation|8|3.89

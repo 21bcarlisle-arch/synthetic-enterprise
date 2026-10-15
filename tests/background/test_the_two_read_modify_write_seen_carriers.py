@@ -20,6 +20,9 @@ EVERY LEG ASSERTS THE TWO ANSWERS **DIFFER**, never that they match, and each ca
 REACHABILITY leg proving a live prior reaches a third answer. Without those, "differs" is satisfied
 by a loader that answers UNREADABLE to everything -- which for the watcher means reseeding on every
 single start and never notifying anything again.
+
+The dispatcher's half was deleted with the dispatcher (inbound NTFY route retired 2026-10-15). The
+helper-delegation control moved here from the responder's loader tests, which went with it.
 """
 from __future__ import annotations
 
@@ -27,7 +30,7 @@ import json
 
 import pytest
 
-from background import dispatcher, staging_watcher
+from background import ntfy_utils, staging_watcher
 from background.episode_prior import ABSENT, READABLE, UNREADABLE
 
 #: The whole partition. `null` and `[1, 2, 3]` PARSE -- which is exactly why an `except
@@ -44,7 +47,6 @@ UNREADABLE_RAW = pytest.mark.parametrize(
     ],
 )
 
-LIVE_MAP = {"from_rich_a.md": "normal", "from_rich_b.md": "urgent"}
 LIVE_LIST = ["from_rich_a.md", "from_rich_b.md"]
 
 
@@ -132,66 +134,47 @@ def test_a_second_loss_never_overwrites_the_first_preserved_copy(watch_state):
 
 
 # =====================================================================================
-# dispatcher -- the one annotated `-> dict[str, str]` that returned None and lists
+# The helper a fourth call site was about to fork
 # =====================================================================================
 
-@pytest.fixture
-def disp_state(tmp_path, monkeypatch):
-    path = tmp_path / ".dispatcher_seen.json"
-    monkeypatch.setattr(dispatcher, "_SEEN_FILE", path)
-    return path
+def test_every_carriers_preservation_goes_through_the_one_helper(tmp_path, monkeypatch):
+    """Byte-identical private `_preserve_unreadable_*` copies were folded into
+    `episode_prior.preserve_unreadable`. Keyed to the PROPERTY, not to the source text: patch the
+    central helper and each carrier must change its answer. MUTANT: re-inline either body and its
+    row fails."""
+    import background.episode_prior as ep
 
+    # REDIRECT THE REAL PATHS FIRST: a re-inlined body ignores the spy and performs a REAL
+    # `Path.replace`, which once moved a live state file out of the working tree.
+    monkeypatch.setattr(ntfy_utils, "SENT_IDS_FILE", tmp_path / ".sent_ntfy_ids.json")
+    monkeypatch.setattr(staging_watcher, "STATE_FILE", tmp_path / ".staging_watcher_seen.json")
 
-@UNREADABLE_RAW
-def test_the_dispatcher_always_returns_something_it_can_subscript(raw, disp_state):
-    """The caller's next line is `seen[path.name] = classification`. MUTANT: restore the old body
-    and `null` returns None (TypeError on assignment) and the two lists return lists (TypeError:
-    list indices must be integers) -- on every staged file the dispatcher handles."""
-    disp_state.write_text(raw, encoding="utf-8")
+    calls: list[str] = []
+    original = ep.preserve_unreadable
 
-    seen, verdict = dispatcher._load_seen()
+    def spy(path):
+        calls.append(str(path))
+        return "SENTINEL"
 
-    assert isinstance(seen, dict), "a function annotated -> dict returned something else"
-    assert verdict == UNREADABLE
-    seen["from_rich_new.md"] = "normal"  # the caller's actual next move, must not raise
+    carriers = (
+        (ntfy_utils, "_preserve_unreadable_sent_ids"),
+        (staging_watcher, "_preserve_unreadable_seen"),
+    )
+    for module, helper in carriers:
+        # `staging_watcher` binds the name at import; `ntfy_utils` imports it inside the
+        # function. Patching BOTH routes is what makes this a property and not one import style.
+        ep.preserve_unreadable = spy
+        rebound = hasattr(module, "preserve_unreadable")
+        if rebound:
+            module.preserve_unreadable = spy
+        try:
+            answer = getattr(module, helper)()
+        finally:
+            ep.preserve_unreadable = original
+            if rebound:
+                module.preserve_unreadable = original
+        assert answer == "SENTINEL", (
+            f"{module.__name__}.{helper} does not delegate to episode_prior.preserve_unreadable"
+        )
 
-
-def test_the_dispatcher_tells_a_first_run_from_a_wiped_one(disp_state):
-    """Both give `{}` so the caller cannot crash, AND the verdicts differ so the wipe is visible.
-    MUTANT: return only the dict and the distinction is laundered away again."""
-    assert not disp_state.exists()
-    assert dispatcher._load_seen() == ({}, ABSENT)
-
-    disp_state.write_text("[1, 2, 3]", encoding="utf-8")
-    assert dispatcher._load_seen() == ({}, UNREADABLE)
-
-
-def test_a_readable_classification_memory_is_kept(disp_state):
-    """REACHABILITY NULL CONTROL. A dispatcher that answered UNREADABLE to everything would
-    re-classify and re-route every staged from_rich on every restart, and pass every leg above."""
-    disp_state.write_text(json.dumps(LIVE_MAP), encoding="utf-8")
-
-    seen, verdict = dispatcher._load_seen()
-
-    assert verdict == READABLE
-    assert seen == LIVE_MAP
-
-
-def test_a_mapping_that_is_not_this_record_is_still_readable(disp_state):
-    """Deliberately NOT unreadable, and the contrast with the watcher's list screen is the point:
-    a seen-map's keys are arbitrary filenames, so there is no schema here to violate. Unknown keys
-    are simply files we have not seen since. Pinned so a later 'tightening' has to argue with it."""
-    disp_state.write_text('{"other": 1}', encoding="utf-8")
-    assert dispatcher._load_seen() == ({"other": 1}, READABLE)
-
-
-def test_the_dispatchers_recovery_does_not_destroy_the_classifications(disp_state):
-    """Same destructive half, same order as `main`. The dispatcher's `_save_seen` writes the whole
-    map, so the first save after a corrupt read is what makes the loss permanent."""
-    disp_state.write_text('{"routed_already.md": "urgent"', encoding="utf-8")
-
-    preserved = dispatcher._preserve_unreadable_seen()
-    dispatcher._save_seen({"a_new_one.md": "normal"})
-
-    assert preserved is not None
-    assert "routed_already.md" in disp_state.with_name(preserved).read_text(encoding="utf-8")
+    assert len(calls) == len(carriers)

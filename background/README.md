@@ -9,8 +9,7 @@ Always-on background processes that run independently of the Claude Code session
 | `sim_runner.py` | Runs full 10-year sim in a loop; writes `run_complete_*.md` markers | Per run (~7 min) |
 | `autonomous_runner.py` | Polls `docs/staging/` for `run_complete_*.md` and publishes results | Per marker |
 | `background_worker.py` | General-purpose background task queue | Per task |
-| `dispatcher.py` | Classifies and routes inbound NTFY messages | Per message |
-| `ntfy_responder.py` | Writes inbound NTFY (>25 chars) to `docs/staging/from_rich_*.md` | Per message |
+| `dispatcher.py`, `ntfy_responder.py` | RETIRED 2026-10-15 (inbound NTFY route mothballed): tombstones whose `main()` exits. Director input arrives via the console and `advisor_channel.py` | — |
 | `health_check.py` | Pings all daemons; updates `docs/observability/health-check-log.md` | Every 5 min |
 | `worker_seat.py` | Seeds + keep-alives the interactive worker seat (replaced session_watchdog; systemd unit) | Continuous |
 | `interactive_session_probe.py` | Read-only /proc probe of interactive Claude sessions (used by health_check's duplicate-session check) | Library |
@@ -33,7 +32,5 @@ Live logs in `docs/observability/`. Mirrored to `site/data/agent_status.json` an
 # From repo root (each in its own tmux pane or systemd unit)
 python3 background/sim_runner.py
 python3 background/autonomous_runner.py
-python3 background/ntfy_responder.py
 python3 background/health_check.py
-python3 background/dispatcher.py
 ```
