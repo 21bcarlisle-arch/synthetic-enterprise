@@ -16,3 +16,12 @@ Do this after the advisor channel (`DIRECTOR_STEER_ADVISOR_CHANNEL_NO_PASTE_2026
 6. **Report** in the stretch log: what was retired, what stays, and the dead-man's decision.
 
 Keep going between pieces.
+
+## Done (2026-10-15, console seat)
+
+1. **Push stopped, record kept** (`565bd6303`). Every message now goes to `ntfy-mirror.md` (direction `out-mothballed`) and the director input log. Nothing reaches the phone except item 4.
+2. **Inbound route retired by construction.** `ntfy_responder` and `dispatcher` have permanent no-op entry points and `retired` manifest rows, and their units are removed from the repo. On the box they are stopped, disabled and masked. The dead library is handed off as `retire-the-inbound-ntfy-library`.
+3. **Escalations moved.** They go to `for_the_director` and the stretch log.
+4. **Dead-man's push kept.** One `[DEAD-MAN]` message per episode, when nothing has landed for 6h and no lane is alive. It is rare by measurement: 0 fires of the hard rest cap in 47 days. A box that is wholly down cannot send it.
+5. **Canon D5, D7, G8 and CLAUDE.md amended**, marked as his words.
+6. **Reported** in the stretch log entry of 15 Oct: "The director's phone goes quiet".

@@ -8,6 +8,39 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-15 — The director's phone goes quiet: NTFY is mothballed with its record kept, the inbound route is retired, one dead-man's push stays, and the advisor channel only draws what the advisor signed
+
+<!-- head: 565bd6303b9c -->
+
+*Written by the console seat, 15 Oct afternoon. It acts on the three steers staged while the director could not reach the pane.*
+
+**What was retired, what stays, and the dead-man's decision** (the mothball steer's item 6). Landed as `565bd6303`; the two services are stopped, disabled and masked on the box, with their installed units kept in `~/.config/systemd/user/retired-2026-10-15/`.
+
+- **Retired: the phone push.** `ntfy_utils.send_ntfy` is the only network POST, and it now writes the ops mirror (`ntfy-mirror.md`, direction `out-mothballed`) and the director input log instead. Nothing was deleted from the record: every alert the machine would have pushed is still a line the advisor reads.
+- **Retired: the inbound route.** `ntfy_responder` and `dispatcher` have permanent no-op entry points, `retired` manifest rows and no unit files. The last message that route staged was `from_rich_20261006_204456.md`, nine days ago, so it had already stopped carrying his words. The library they leave behind is handed off as `retire-the-inbound-ntfy-library`.
+- **Stays: the staging watcher.** It announces arrivals and acks the advisor channel. Its messages now go to the mirror.
+- **Stays: one push to his phone.** A `[DEAD-MAN]` message goes out once per episode when no work has landed for 6 hours AND no Claude process is alive AND the worker-tick timer is inactive. **Decision: kept**, because it is rare by measurement. The hard rest cap it rides fired 0 times in the 47 days the mirror holds, against 10 to 44 stall or blocked alerts a day, and none of those reach him now. **What it cannot do:** a box that is wholly down runs no switch, so that case pages nothing. That is said here rather than implied.
+
+**The advisor channel, and a duplicate I caused.** I built a channel in a worktree while a worker tick built and landed its own (`4a581cd72`, 16:11). I had not claimed the item, so the draw offered it to both. Mine lost the race to origin three times on 15-minute gates. Rather than land a rival, I kept theirs and added the one thing it lacked: **provenance** (`7bc3e3d3a`). A file is drawn only if origin holds its exact bytes in a commit signed by the advisor's key. Measured: all nine advisor commits since September carry one key, and none of the 1,045 machine commits is signed. Without this, any lane could write a file "on the director's standing delegation" and be drawn as his word, which is the reason the page-comment channel was retired on 07-24. The mothball was claimed (`seat_work_in_hand`) before it was built further.
+
+**What the dropped console left, and where it went.**
+- The parked-atom fix (`7bfd6fea3`, only on a salvage ref) landed as `47e544e24`. Its gate caught a census control that was already red at origin: B11 was unblocked this morning on his 05:52Z EP17 words and the frozen set was never updated. That line is in the same commit.
+- **The shared checkout had stopped tracking origin.** It was 123 behind and refused by 56 paths, so every daemon ran code without the hold, tombstone and overlap fixes. 28 of the paths were byte-identical to revisions on origin. All 56 were snapshotted to `salvage/shared-ff-blockers-2026-10-15` and cleared, and the reconcile door fast-forwarded the checkout to `554bacacf`. `bb5276856`, the land-twice duplicate, is gone with it. The four old local-only edits stay on that tag, not re-applied.
+- The land-twice control from the dropped session (`salvage/detached-90b25caf661c`) is superseded in part by `ed7e89d12`, which another lane landed at 13:21. The remaining question, whether the pre-commit door needs the same refusal, is handed off with the count that decides it.
+
+**Mistakes worth keeping.**
+- **The duplicate:** an unclaimed item drawn twice.
+- **A machine-state file swept into a landing:** the visibility generator run with the real NTFY env appended a line to `ntfy_digest_queue.jsonl`. My re-land helper took every dirty path and carried it in. The helper now takes only the commit's own paths.
+- **Picking up the wrong change:** after two WIP commits, the tag pointed at the second, and cherry-picking it would have landed only a one-line reword. A conflict stopped it first. The fix was squashing to one commit.
+- **A `pkill -f` pattern that matched my own shell.**
+- **An amend on the wrong commit:** a refused gate left HEAD on origin's merge commit, and my `--amend` rewrote a local copy of it. Nothing reached origin.
+- **A cherry-pick that failed silently:** a leftover untracked file blocked it, and `| grep conflict` hid the error, so a 'v4' briefly held one file.
+- **The gates were right each time they refused the mothball.** Two tests used `dispatcher` as their stand-in live daemon. CLAUDE.md's published operating model had to be regenerated. And the orphan ratchet saw that removing the units leaves the responder, the dispatcher and `inbound_secret_redaction` with nothing that runs them. They are frozen as deliberately dormant in the same commit.
+
+**Stopped short of.** I did not delete the inbound library or its tests. That is about ten test files, the steer did not need it for "no inbound text can reach a lane", and the entry points are closed. W1_29 texture work was parked for next week by another lane, on the director's 13:01 steer.
+
+---
+
 ## 2026-10-15 — orientation: No level moved, and there is still no evidence that a per-customer view beats the flat baseline
 
 <!-- head: 807c0996e8be -->
