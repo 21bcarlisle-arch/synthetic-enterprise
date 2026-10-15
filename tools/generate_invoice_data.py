@@ -42,6 +42,8 @@ _STATUS_MAP = dict(
     written_off="WRITTEN_OFF", credited="CREDITED",
     # A failed bill that a later credit on the same contract paid off in full (SLC 27.16).
     settled_by_credit="SETTLED_BY_CREDIT",
+    # A failed bill the household itself repaid later (the world's payment truth).
+    paid_late="PAID",
 )
 
 

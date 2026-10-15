@@ -20,7 +20,7 @@ import pytest
 
 from company.billing.pre_bill_validation import validate_bills
 from simulation.arrears_engine import BALANCE_OPEN, CREDIT_APPLIED, compute_emergent_bad_debt
-from simulation.household import supply_points_that_left
+from simulation.household import households_whose_account_closed, supply_points_that_left
 from tools.generate_billing_ledger import generate
 from tools.run_output_store import as_plain_file, load_run_output, resolve_run_output
 
@@ -64,7 +64,8 @@ def test_the_ledger_and_the_pnl_write_off_agree_per_account(book):
     pnl: dict[str, float] = defaultdict(float)
     for (cid, _year), gbp in compute_emergent_bad_debt(
             data["bills"], data.get("per_customer_behavioral", {}),
-            supply_points_that_left(data.get("churned_billing_accounts", []),
+            # The run's own P&L caller's set (`run_phase4c_on_phase2b`): movers' accounts close too.
+            supply_points_that_left(households_whose_account_closed(data),
                                     {b["customer_id"] for b in data["bills"]})).items():
         pnl[cid] += gbp
     led = _ledger_write_off_by_account(ledger)

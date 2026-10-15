@@ -94,6 +94,13 @@ def build_account_ledger(cust, as_of):
                     "amount_gbp": 0.0, "info_amount_gbp": None, "method": method,
                     "description": stage["note"],
                 })
+            elif name == "ARREARS_REPAID":
+                # The household's own repayment (the world's payment truth): money in.
+                entries.append({
+                    "date": stage["date"], "type": "payment_received", "invoice_number": num,
+                    "amount_gbp": round(-stage["amount_gbp"], 2), "info_amount_gbp": None,
+                    "method": None, "description": stage["note"],
+                })
             elif name in _RESOLVED_STAGES:
                 entries.append({
                     "date": stage["date"], "type": "arrears_resolved", "invoice_number": num,

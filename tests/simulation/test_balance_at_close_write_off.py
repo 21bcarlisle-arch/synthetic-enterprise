@@ -189,6 +189,35 @@ def test_a_credit_is_not_a_payment_so_it_does_not_restart_the_limitation_clock()
     assert first["date"] == date(2022, 2, 11) and first["amount_gbp"] == 90.0
 
 
+def _repayment(cid, on, amount):
+    return {"customer_id": cid, "period_end": on, "commodity": "electricity", "amount_gbp": amount,
+            "due_date": date.fromisoformat(on), "method": None, "outcome": "repayment",
+            "days_late": 0, "repayment_kind": "settlement"}
+
+
+def test_a_repayment_the_household_made_is_never_written_off():
+    """Defect (2026-10-15, PROS-2016-0263): the world's settlement of a bill is dated by its own
+    clock, which can fall days before the engine opens that bill. It met an empty list and was
+    dropped, so the P&L wrote off GBP 215.97 the household had paid, and a settlement larger than
+    the oldest bill lost its excess the same way. One control over the partition: applied to an
+    open bill, waiting on the account for the bill it arrives before, its excess carried, and
+    every application recorded so the ledger can net what the P&L nets."""
+    rows = (
+        [_row("ON_TIME", "2016-01-28", "failed"), _repayment("ON_TIME", "2016-03-01", 100.0)]
+        + [_row("EARLY", "2016-01-28", "failed"), _repayment("EARLY", "2016-02-08", 100.0)]
+        + [_row("EXCESS", "2016-01-28", "failed", amount=40.0), _row("EXCESS", "2016-02-28", "failed"),
+           _repayment("EXCESS", "2016-03-08", 100.0), _repayment("EXCESS", "2016-03-20", 40.0)]
+        + [_row("SHORT", "2016-01-28", "failed"), _repayment("SHORT", "2016-03-01", 30.0)]
+    )
+    cids = {"ON_TIME", "EARLY", "EXCESS", "SHORT"}
+    wo, credited = balance_settlement_from_outcomes(rows, cids)
+    owed = {cid: sum(v["amount_gbp"] for (c, _pe, _f), v in wo.items() if c == cid) for cid in cids}
+    assert owed == {"ON_TIME": 0, "EARLY": 0, "EXCESS": 0, "SHORT": 70.0}, owed
+    early = credited[("EARLY", "2016-01-28", "electricity")]
+    assert [(c["kind"], c["amount_gbp"]) for c in early] == [("repayment", 100.0)]
+    assert sum(c["amount_gbp"] for k, cs in credited.items() if k[0] == "EXCESS" for c in cs) == 140.0
+
+
 def _provision_book():
     rows = _monthly("STAYER_TWO_FAILED", 2016, 40, "failed", "success")
     rows[5] = _row("STAYER_TWO_FAILED", rows[5]["period_end"], "failed")
