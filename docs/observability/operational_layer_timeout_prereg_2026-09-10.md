@@ -270,3 +270,18 @@ fits in 1800s, I cannot yet say: the hourly runs have been killed at around #508
 the tail stays unmeasured. If the suite still times out, I expect it to name a test whose cost is
 NOT a per-draw store parse. Then the next question is the cadence one in the director's 2026-08-21
 words, "what genuinely must run before a publish", not another cache.
+
+## Round 6 — result, 2026-10-15 02:57-03:24 UTC
+
+**GREEN.** A forced run at `9712ed756` (shared checkout, round 6 in it) finished rc 0 in 1594s of
+the 1800s budget, at load 19-20 over 16 cores. That ends an 11-check timeout streak. The signal
+paged RECOVERED itself, and its state file reads `consecutive_green: 1`.
+
+**Graded against the prediction.** The whole-suite question round 6 left open now has one answer:
+the suite fits, and the tail past #508 ran. The `test_supervisor.py`-alone-under-900s leg was NOT
+measured. The signal captures its output, and a separate run would have been a second variable on
+the same box. One green does not end this, because the margin is 206s, about 11%. Load is lower
+than the 24-33 the prediction was conditioned on, and round 5 showed load decides where the edge
+falls. **Prediction, filed now:** a later timeout at load ≥25 is expected, and it should stop at a
+test whose cost is not a per-draw store parse. If so, the next move is the cadence question, not a
+seventh cache and not a budget raise.
