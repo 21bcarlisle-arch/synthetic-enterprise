@@ -143,3 +143,58 @@ systematically realise less than `TARGET_MARGIN_GBP_PER_MWH` because a cost the 
 price reaches `net_margin`. The code still does not land while P1 fails. If C1 fails, the 2023-24
 reading is not crisis carry-over, and the 4-term window (the 10-14 finding's noise) is the
 next variable.
+
+## Grade of L2 (2026-10-15, after the arm finished at 13:10Z)
+
+Graded by `/var/tmp/b12-out/grade_l2.py` over `lookback-sv-k1-61109.json` (L) and
+`lookback-nocrisis-sv-k1-61109.json` (L2), both on base `1ca6dfcf5` in `/var/tmp/b12-lookback`
+(unit Result=success, 3,500 s). The predictions above are unchanged: before this section was appended,
+their sha256 on origin was `86be2d72…f6bb0e`, the value filed in `/var/tmp/b12-out/L2.prereg.sha256`
+before launch.
+
+| fixed electricity | L | L2 |
+|---|---|---|
+| rows with a position | 341 | 342 |
+| median realised margin / median target | −2.39% / 1.86% | −2.39% / 1.81% |
+| full +15% / full −5% taken | 21 / 3 | **0** / 0 |
+| 2023 median (n=9) | −37.7% | −12.9% (target 1.6%) |
+| 2024 median (n=13/14) | −33.9% | −9.8% (target 1.4%) |
+| 2025 median (n=5) | +11.2% | +4.8% (target 0.9%) |
+| `total_net` / renewal departures | £269,782 / 62 | £262,887 / 62 |
+
+- **C0: HOLDS.** 0 of 391 pre-window fixed rows differ from L. The check can fail: run O against L,
+  it flags 323 of 403.
+- **C1: HOLDS.** 2023 rose 24.8 points and 2024 rose 24.1, both over 20. The +15% count fell from 21
+  to 0.
+- **C2: FAILS.** 2023 sits 14.5 points under its target and 2024 sits 11.2 points under, against a
+  band of 4.
+- **C3: HOLDS.** The overall median is unchanged to four places, so P1 still fails. The 2016-20 rows
+  carry the median, and C0 holds them fixed.
+- **C4: HOLDS.** `total_net` is £6,895 lower, with no change in departures.
+
+**What the C2 failure shows, read off the rows rather than predicted.** From November 2021 to
+September 2023, every fixed renewal read the same frozen lookback, −12.89% (premium +7.25%). No
+fixed term that ended in those 23 months could be admitted, because every one of them touched the
+window. The four terms the premium kept reading had ended **before** 2021-10-01, and they had
+already lost, on the 2021 rise. L's July 2021 renewals read −8.8% from the same kind of terms. So:
+
+1. **The +15% pin was crisis carry-over (C1).** Taking the window's terms out removes it.
+2. **The window, as the regulator's dates draw it, starts after this book's losses began.** Ofgem's
+   cap periods 7-8 bound what Ofgem recovered, not when a fixed book bought before the spring
+   2021 rise started losing. Widening the window to fit this run would be fitting the window to
+   the answer. The published alternative that needs no date is NCCI's: cap or exclude a loss by
+   its *size* (a term's realised margin far below what its strike priced for). The company can see
+   that on its own P&L, with no calendar in the code.
+3. **A date-keyed exclusion freezes the book.** For 23 months the premium priced on four terms
+   that were two years old. Any exclusion rule has to say what the premium reads while the
+   excluded stretch is passing. The four-term window has no answer to that.
+4. **The second effect is untouched and is the larger part of P1's miss.** 2016-19 read 3-6
+   points under target (−1.5% to −3.8% against 1.5-1.9%), in years with no crisis in the
+   lookback. That is the next hypothesis: a cost reaches a fixed term's `net_margin` that its
+   strike's `TARGET_MARGIN_GBP_PER_MWH` does not price.
+
+**Disposition: the code does not land.** L and L2 both fail P1, and the date window is not a rule
+the company could hold (point 2). B12's row does not move. The next one-variable runs, in order:
+(a) on L, decompose a 2016-19 fixed term's `net_margin` against its priced-for margin, line by line
+(a probe on L's artefact, no new arm), to name the cost behind the second effect; (b) only then,
+replace the date window with a size-keyed loss cap. Both remain L-based, in `/var/tmp/b12-lookback`.
