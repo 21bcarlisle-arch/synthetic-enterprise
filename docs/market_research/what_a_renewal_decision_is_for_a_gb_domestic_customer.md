@@ -217,10 +217,14 @@ priced with no bad debt in it loses that share of revenue on every term, in ever
   forward. It does not forecast. The publication date used is the RO's, 1 October before the
   obligation year (or calendar year, for the CfD levy). The weighting is by day, because the strike
   has no seasonal profile to weight by.
-- *Bad debt.* The strike adds the company's own bad-debt charge per MWh supplied, read off its own
-  settled lines over the year before the notice date. It is the company's charge, not the world's
-  incidence: what a supplier sees on its own P&L. It goes on the cost floor too, because it is a cost
-  of the term. With no settled lines yet, at the very start of the book, nothing is added.
+- *Bad debt.* The strike adds the bad-debt charge the company has learned per GBP billed off its own
+  ledger (`company/pricing/default_belief.py`: the change in its provision plus write-offs, by
+  arrears state, shrunk towards a 2.0% prior), times the struck unit rate. It goes on the cost floor
+  too, because it is a cost of the term. Business accounts have no published provision row, so
+  nothing is added for them. *Corrected 2026-10-15, the same day:* this bullet first said the charge
+  was "read off its own settled lines". On those lines `bad_debt_gbp` is the world's incidence
+  (revenue × `world_bad_debt_incidence`), which no supplier sees. The seat ruled that on 2026-10-11
+  (`docs/staging/done/SEAT_FINDING_THE_PUBLISHED_PROVISION_WAS_THE_WORLDS_INCIDENCE_AND_THE_COMPANYS_OWN_STOCK_WAS_NEVER_READ_2026-10-11.md`).
 
 **GAP.**
 - The publication lead times of the CfD interim levy rate, the CM levy and the FiT levelisation
@@ -229,5 +233,5 @@ priced with no bad debt in it loses that share of revenue on every term, in ever
   is practitioner territory (K4). Carrying the last published level forward is the conservative
   reading, and it leaves terms struck from April to September still short of the April step.
 - No published source says how a supplier loads bad debt into a fixed unit rate: per MWh, per
-  customer, or by payment method. The cap's per-customer, by-method form is what the regulator does.
+  customer, by payment method, or by arrears state. The cap's per-customer, by-method form is what the regulator does.
   The per-MWh form here is the design's, because the strike is a unit rate.
