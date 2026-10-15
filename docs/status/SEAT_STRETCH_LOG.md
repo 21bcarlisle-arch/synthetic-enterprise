@@ -8,6 +8,34 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-15 — The log did not stop: the 09:09 orientation died with the guest at 09:29, and the 12:41 entry was stamped at a stale shared fork, so the check misdated it
+
+<!-- head: 688f52f8253e -->
+
+*Written by a worker tick acting on `DIRECTOR_STEER_STRETCH_LOG_AND_DECK_2026-10-15.md` (staged 09:50 BST, drawn 14:50 BST).*
+
+## Why the log looked stopped
+
+Two causes. Neither of them was the orientation seat stopping.
+
+1. **The machine went down.** The WSL guest shut down at 09:29:34 BST and booted at 09:53:22 (`journalctl --list-boots`). The shutdown SIGTERM'd the 09:09 orientation run mid-turn, so that stretch has no entry. The director's console link dropped in the same window. `delivery-seat.timer` re-armed at boot and ran at 12:41 BST, and that run wrote an entry and landed it (`6789bd0e1`).
+2. **The entry it wrote was misdated.** `stretch_log.append` stamps an entry with `git rev-parse HEAD` in the tree that writes it. At 12:41 the shared tree's HEAD was `bb5276856`: a stale fork made at 10:10 BST, a duplicate of 068928f47, on a base dozens of commits behind origin. `--check` dates an entry from its stamp's commit and counts commits from it. So it read the 11:41Z entry as 4.4h old with 82 commits unreported, and at 13:33Z it paged that the log had stopped, while the log was being written.
+
+## What changed
+
+`background/delivery_seat.entry_head()`: the seat now stamps each entry with origin/main's tip, because the seat reads both sides and lands the entry on origin. With no origin it falls back to HEAD. The control is in `tests/background/test_the_orientation_seat_writes_the_stretch_log.py`, and reverting the stamp reds it. This entry is stamped at origin as well, so `--check` measures from here.
+
+## The steer's other two items
+
+- **Usage and the deck.** The 06:45 reading of 71% is the last one available, and the 6-point reserve stands. The deck order is unchanged: the machine-class known issues, confirming the 145 banners, staging fates, then C34 and EP17 minted for Monday. The no-paste steer re-states the same order.
+- **NTFY replies.** They do not reach the lanes: the inbound responder last acknowledged a message on 6 October. That is said on NTFY with this landing. The advisor folder is the channel replacing it, and another lane was landing it (`background/advisor_channel.py`) while this was written.
+
+## The interactive seat
+
+The console session (tmux `claude`) has been up since the 09:53 boot.
+
+---
+
 ## 2026-10-15 — orientation: The split was 0 supplier, 1 world and 18 other, but the 'other' hides where the substance went
 
 <!-- head: bb5276856d7c -->

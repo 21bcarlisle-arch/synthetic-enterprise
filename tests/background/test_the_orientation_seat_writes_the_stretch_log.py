@@ -22,7 +22,7 @@ def test_every_run_that_recorded_a_reason_writes_and_a_refusal_does_not():
     exactly like a stopped writer, and the page could not say which. A refused run has neither a
     reading nor a skip reason, and writing for it would invent one."""
     got = []
-    grab = lambda s, b: got.append((s, b))  # noqa: E731
+    grab = lambda s, b, at_head=None: got.append((s, b))  # noqa: E731
     assert seat.write_stretch_entry(dict(ROW), append_fn=grab) is True
     skipped = {"outcome": "skipped", "why": "no substantive commit in the stretch", "thesis_read": ""}
     assert seat.write_stretch_entry(skipped, append_fn=grab) is True
@@ -60,7 +60,7 @@ def test_a_subject_the_log_would_refuse_falls_back_rather_than_losing_the_entry(
 
 
 def test_a_failing_append_is_recorded_and_never_raises():
-    def boom(s, b):
+    def boom(s, b, at_head=None):
         raise OSError("disk full")
     row = dict(ROW)
     assert seat.write_stretch_entry(row, append_fn=boom) is False and row["stretch_entry"] is False
@@ -90,3 +90,23 @@ def test_a_skipped_orientation_reaches_the_writer(monkeypatch):
     monkeypatch.setattr(seat, "write_stretch_entry", lambda row, append_fn=None: written.append(row))
     row = seat.orient()
     assert row["outcome"] == "skipped" and written == [row]
+
+
+def test_the_entry_is_stamped_at_origin_not_at_a_stale_shared_head(tmp_path, monkeypatch):
+    """The 2026-10-15 defect: the entry was stamped with the shared tree's HEAD, a stale fork, so
+    `--check` dated it 2.5h early and counted the fork's 82 commits as unreported. The stamp must be
+    origin/main's tip; with no origin it falls back to HEAD rather than writing no stamp."""
+    log = tmp_path / "SEAT_STRETCH_LOG.md"
+    monkeypatch.setattr(seat.stretch_log_mod, "LOG", log)
+    origin_tip = "a" * 40
+    real_git = seat._git
+    monkeypatch.setattr(seat, "_git", lambda *a: origin_tip + "\n" if a[:1] == ("rev-parse",)
+                        and a[-1] == "origin/main" else real_git(*a))
+    assert seat.write_stretch_entry(dict(ROW)) is True
+    assert seat.stretch_log_mod.newest_entry_head() == origin_tip[:12]
+
+    monkeypatch.setattr(seat, "_upstream", lambda: None)
+    log.unlink()
+    assert seat.write_stretch_entry(dict(ROW)) is True
+    head = real_git("rev-parse", "HEAD").strip()
+    assert head and seat.stretch_log_mod.newest_entry_head() == head[:12]

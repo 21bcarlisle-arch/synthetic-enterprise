@@ -2640,6 +2640,18 @@ def skipped_entry_from_row(row: dict) -> tuple[str, str]:
     return subject, body
 
 
+def entry_head() -> str | None:
+    """The commit an entry is stamped at: origin/main's tip, else None (append then uses HEAD).
+
+    NOT this checkout's HEAD. The seat reads both sides and lands the entry on origin, but the shared
+    tree's HEAD can be a stale fork: on 2026-10-15 the 11:41Z entry was stamped `bb5276856`, a
+    10:10 BST duplicate of 068928f47 off a base dozens of commits behind, so `--check` dated the
+    entry 2.5h early, counted 82 commits as unreported and paged that the log had stopped while it
+    was being written (`DIRECTOR_STEER_STRETCH_LOG_AND_DECK_2026-10-15.md`)."""
+    up = _upstream()
+    return (_git("rev-parse", up).strip() or None) if up else None
+
+
 def write_stretch_entry(row: dict, append_fn=None) -> bool:
     """Append the run's entry to the stretch log: an oriented row's reading, or a skipped row's
     reason. A row with neither (a refusal, an oriented row whose reading is empty) writes nothing,
@@ -2651,7 +2663,7 @@ def write_stretch_entry(row: dict, append_fn=None) -> bool:
         return False
     try:
         entry = stretch_entry_from_row(row) if oriented else skipped_entry_from_row(row)
-        (append_fn or stretch_log_mod.append)(*entry)
+        (append_fn or stretch_log_mod.append)(*entry, at_head=entry_head())
         row["stretch_entry"] = True
     except Exception as exc:  # noqa: BLE001
         row["stretch_entry"] = False
