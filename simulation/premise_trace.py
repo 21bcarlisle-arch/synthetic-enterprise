@@ -137,6 +137,7 @@ from simulation.fabric_physics import (
     simulate_day,
     solar_declination_deg,
     solar_elevation_sin,
+    storage_charge_kwh,
 )
 from simulation.household import (
     BoilerAge,
@@ -1482,6 +1483,59 @@ def dhw_daily_litres(people_count: float) -> float:
     carrying a second copy -- which is the defect this correction exists to end."""
     return _DHW_FIXED_LITRES_PER_DAY + _DHW_LITRES_PER_PERSON_DAY * people_count
 _DHW_HEAT_PUMP_COP_PENALTY = 0.62  # a cylinder at 55 C is a worse duty than space heat
+
+
+# ---------------------------------------------------------------------------
+# A storage home's cylinder charges off-peak; its electric shower does not
+# ---------------------------------------------------------------------------
+# Stream 2 of "a storage home charges off-peak" (stream 1, space heat: `fabric_physics.
+# storage_charge_kwh`). Source for all of it: docs/market_research/
+# when_an_electrically_heated_homes_water_heater_runs.md, E1, E2, E5 and GAPs G1, G4, G5. The water
+# drawn, its heat and its gain to the room are unchanged; only the METER moves, and the day's total
+# is conserved.
+
+#: G4 and G5 are GAPs, so these are RdSAP 10 conventions held as beliefs: a dual immersion wherever the
+#: meter is two-rate (§11.7), on a 110 L cylinder (RdSAP's normal default; 210 L is its inaccessible
+#: off-peak default). 110 L gives the HIGHEST Table 13 fraction, so the error runs toward the day.
+STORAGE_DHW_CYLINDER_LITRES = 110.0
+#: SAP 10.2 Table 13, 7-hour tariff, dual immersion, over 1-5 occupants and 110-210 L: 0.011-0.271.
+#: Printed so that the convention above is read against everything the table allows.
+TABLE_13_DUAL_HIGH_RATE_RANGE = (0.011, 0.271)
+#: G1 is a GAP: the share of storage homes whose shower is an instantaneous electric one (SAP J step 8,
+#: costed at the draw, never on the cylinder) is not established. 0.35 is the all-household secondary
+#: figure (Statista 2010-12, not read at source), here read as a share of the day's hot-water ENERGY
+#: kept at the draws, because `draw_dhw_events` labels no showers. No midpoint is picked. The trace runs
+#: the UPPER end, the one that moves least to the night: erring against any off-peak claim (F11).
+ELECTRIC_SHOWER_SHARE_RANGE = (0.0, 0.35)
+
+
+def table_13_dual_high_rate_fraction(occupants: float, litres: float) -> float:
+    """SAP 10.2 Table 13 note 2, 7-hour tariff, dual immersion: the share of an off-peak cylinder's
+    electricity drawn at the high rate, `[(6.8 - 0.024V)N + 14 - 0.07V] / 100` clipped to [0, 1].
+    N is the household's headcount here, where SAP uses its assumed occupancy."""
+    return min(1.0, max(0.0, ((6.8 - 0.024 * litres) * occupants + 14.0 - 0.07 * litres) / 100.0))
+
+
+def storage_dhw_meter_kwh(
+    dhw_fuel_kwh: Sequence[float],
+    occupants: float,
+    *,
+    electric_shower_share: float,
+    litres: float = STORAGE_DHW_CYLINDER_LITRES,
+) -> list[float]:
+    """A storage home's hot-water electricity as its two-rate meter carries it: the electric-shower
+    share stays at the draws; of the cylinder's share, Table 13's high-rate fraction stays at the
+    draws as the day element's boost and the rest is charged across the off-peak window."""
+    lo, hi = ELECTRIC_SHOWER_SHARE_RANGE
+    if not lo <= electric_shower_share <= hi:
+        raise ValueError(
+            f"electric-shower share {electric_shower_share} is outside the GAP range {lo}-{hi} (G1)"
+        )
+    cylinder = storage_charge_kwh(
+        [kwh * (1.0 - electric_shower_share) for kwh in dhw_fuel_kwh],
+        high_rate_fraction=table_13_dual_high_rate_fraction(occupants, litres),
+    )
+    return [kwh * electric_shower_share + c for kwh, c in zip(dhw_fuel_kwh, cylinder)]
 _DHW_EVENT_HOURS = 0.2
 
 
@@ -2028,6 +2082,7 @@ def generate_premise_trace(
     standby_kw: float | None = None,
     cooked_on_gas: frozenset[str] | None = None,
     active_use: float | None = None,
+    electric_shower_share: float = ELECTRIC_SHOWER_SHARE_RANGE[1],
 ) -> PremiseTrace:
     """Generate one premise's half-hourly gas and electricity trace.
 
@@ -2273,6 +2328,10 @@ def generate_premise_trace(
             _dhw_fuel_kwh(household, heat_kwh, ambient.temperatures_c[p])
             for p, heat_kwh in enumerate(dhw_heat_kwh)
         ]
+        if household.heating_system == HeatingSystem.ELECTRIC_STORAGE:
+            dhw_fuel = storage_dhw_meter_kwh(
+                dhw_fuel, profile.people_count, electric_shower_share=electric_shower_share
+            )
         # COOKING GAS, on the same commodity as hot water: both are "the gas base". Zero for a home
         # that cooks all-electric (`gas_cooked`); until 2026-10-08 every gas home burned it AND ran
         # an electric oven and hob.
@@ -2362,6 +2421,8 @@ def _dhw_fuel_kwh(household: Household, heat_kwh: float, ambient_c: float) -> fl
             ambient_c, ground_source=household.heating_system == HeatingSystem.HEAT_PUMP_GROUND
         )
         return heat_kwh / max(1.3, cop * _DHW_HEAT_PUMP_COP_PENALTY)
+    # ELECTRIC_DIRECT stays "at the draw": a thermostat-only immersion reheats within the hour, and
+    # whether the stock's single-rate immersions run on timers instead is NOT ESTABLISHED (G3).
     return heat_kwh  # immersion / instantaneous electric: resistive, 1:1
 
 

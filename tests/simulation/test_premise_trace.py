@@ -20,6 +20,7 @@ import math
 
 import pytest
 
+from simulation import fabric_physics
 from simulation import premise_trace as pt
 from simulation.household import (
     BoilerAge,
@@ -937,3 +938,53 @@ def test_separability_still_FIRES_after_the_cold_stream_was_exempted(weather):
     )
     assert 0.01 > pt.SEPARABILITY_EPSILON_KWH * 1e9
     assert not pt.fabric_only_moves_level_and_character(leaky, mutated)
+
+
+# ---------------------------------------------------------------------------
+# A storage home's hot water charges off-peak (SAP 10.2 Table 13; knowledge page
+# when_an_electrically_heated_homes_water_heater_runs.md E2, E5, G1, G4, G5)
+# ---------------------------------------------------------------------------
+
+
+def _outside_off_peak(series) -> float:
+    first, last = fabric_physics.OFF_PEAK_WINDOW_PERIODS
+    return sum(series[:first]) + sum(series[last:])
+
+
+@pytest.mark.parametrize("shower", pt.ELECTRIC_SHOWER_SHARE_RANGE)
+def test_a_storage_homes_cylinder_charges_off_peak_and_only_its_shower_and_boost_stay_at_the_draw(
+    weather, shower
+):
+    """The defect: until 2026-10-15 a storage home's hot water was metered 1:1 at each draw, as a
+    direct-electric home's still is. Both ends of the G1 shower range are run; neither is a pick.
+    The direct home is the partition's other side and the reason the storage assertion is not vacuous:
+    the same draws land outside the window there."""
+    days = weather[:7]
+    traces = {}
+    for system in (HeatingSystem.ELECTRIC_STORAGE, HeatingSystem.ELECTRIC_DIRECT):
+        household = make_household(heating_system=system)
+        traces[system] = pt.generate_premise_trace(
+            premise_id="P-dhw", household=household, weather=days, seed=11,
+            latitude_deg=pt.DEFAULT_LATITUDE_DEG, electric_shower_share=shower, away_days=frozenset(),
+            behaviour=pt.behaviour_profile_for("P-dhw", household, seed=11, people_count=5),
+        )
+    at_draw = shower + (1.0 - shower) * pt.table_13_dual_high_rate_fraction(5, 110.0)
+    first, last = fabric_physics.OFF_PEAK_WINDOW_PERIODS
+    for s_day, d_day in zip(traces[HeatingSystem.ELECTRIC_STORAGE].days,
+                            traces[HeatingSystem.ELECTRIC_DIRECT].days):
+        assert _outside_off_peak(d_day.dhw_fuel_kwh) > 1.0
+        assert sum(s_day.dhw_fuel_kwh) == pytest.approx(sum(d_day.dhw_fuel_kwh), rel=1e-12)
+        assert _outside_off_peak(s_day.dhw_fuel_kwh) == pytest.approx(
+            at_draw * _outside_off_peak(d_day.dhw_fuel_kwh), rel=1e-12)
+        assert min(s_day.dhw_fuel_kwh[first:last]) > 0.0
+
+
+def test_table_13_reads_the_published_values_and_its_printed_range():
+    assert pt.table_13_dual_high_rate_fraction(1, 110.0) == pytest.approx(0.105, abs=5e-4)
+    assert pt.table_13_dual_high_rate_fraction(5, 110.0) == pytest.approx(0.271, abs=5e-4)
+    assert pt.table_13_dual_high_rate_fraction(4, 160.0) == pytest.approx(0.146, abs=5e-4)
+    assert pt.table_13_dual_high_rate_fraction(5, 210.0) == pytest.approx(0.081, abs=5e-4)
+    grid = [pt.table_13_dual_high_rate_fraction(n, v) for n in range(1, 6) for v in (110, 160, 210)]
+    assert (round(min(grid), 3), round(max(grid), 3)) == pt.TABLE_13_DUAL_HIGH_RATE_RANGE
+    with pytest.raises(ValueError, match="G1"):
+        pt.storage_dhw_meter_kwh([1.0] * 48, 3, electric_shower_share=0.5)

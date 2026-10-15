@@ -90,7 +90,12 @@ storage heaters) rising to 66% (new). Typical Economy 7 off-peak hours: "from 12
   room calls for it, not in the night window. (§6.) **Built 2026-10-15:** the room still calls for
   heat in the day, but the meter now carries the day's space-heat electricity as an even charge
   across 00:30–07:30 at Table 12a's 0.00 high-rate fraction (`fabric_physics.storage_charge_kwh`;
-  its simplifications are named beside it). Hot water (`_dhw_fuel_kwh`) is not yet moved.
+  its simplifications are named beside it). **Built 2026-10-15 (stream 2):** a storage home's hot
+  water is split by `premise_trace.storage_dhw_meter_kwh`. An electric-shower share stays at the draws
+  (G1, the range 0–0.35, the trace runs the upper end, no midpoint). Of the cylinder's share, Table 13's
+  dual 110 L high-rate fraction stays at the draws (G4/G5 as RdSAP beliefs; the table's span,
+  0.011–0.271, is printed beside it). The rest is charged across 00:30–07:30. `ELECTRIC_DIRECT` hot water
+  stays at the draw (G3).
 - `simulation/household.py::HeatingSystem` already separates `ELECTRIC_STORAGE` from
   `ELECTRIC_DIRECT`, so the evidence above maps onto the world's own types without a new axis.
 
