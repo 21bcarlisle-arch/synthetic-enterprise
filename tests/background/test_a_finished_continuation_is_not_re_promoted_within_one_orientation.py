@@ -53,6 +53,9 @@ def store(tmp_path, monkeypatch):
     monkeypatch.setattr(seat_continuation, "STORE", path)
     monkeypatch.setattr(delivery_lane.direction_mod, "unreachable_focus",
                         lambda *a, **k: [dict(FOCUS_ROW)])
+    # These tests are about WHAT a tombstone is and WHICH ids get one; whether its DONE has
+    # evidence is its own rule, graded by the control at the end of this file.
+    monkeypatch.setattr(delivery_lane, "focus_tombstone_refusal", lambda *a, **k: None)
     return path
 
 
@@ -381,3 +384,29 @@ def test_the_EXECUTORS_own_discharge_retires_rather_than_deletes_and_a_second_on
     assert seat_executor.seat_continuation_drop(FOCUS_ROW["id"]) is True, (
         "a turn ending after its own --release is reported as having found no record"
     )
+
+
+def test_a_focus_row_is_tombstoned_only_when_its_DONE_has_evidence(tmp_path, monkeypatch):
+    """Defect it names: a focus row was tombstoned on the releasing tick's word, with its DONE never
+    asked (`a-tombstone-retires-a-row-without-checking-its-done`, listed 11 times). The evidence
+    asked for is what the lane records: a bound landing or a spent premise.
+
+    Fires on: the refusal not wired (no evidence, still tombstoned); and on refusing everything
+    (a bound landing, still refused) -- both branches are taken below."""
+    import json
+    monkeypatch.setattr(seat_continuation, "STORE", tmp_path / "continuations.json")
+    monkeypatch.setattr(delivery_lane.direction_mod, "unreachable_focus",
+                        lambda *a, **k: [dict(FOCUS_ROW)])
+    claims = tmp_path / "claims.json"
+    monkeypatch.setattr(delivery_lane, "CLAIMS_FILE", claims)
+    _orientation(monkeypatch, ORIENTATION)
+    ledger = claims.with_suffix(".draws.json")
+    ledger.write_text(json.dumps({FOCUS_ROW["id"]: {"first_drawn_at": 1.0, "last_drawn_at": 1.0}}))
+    assert "nothing shows its DONE is met" in delivery_lane.focus_tombstone_refusal(FOCUS_ROW["id"])
+    assert delivery_lane.retire_continuation(FOCUS_ROW["id"]) is False
+    ledger.write_text(json.dumps({FOCUS_ROW["id"]: {"first_drawn_at": 1.0, "last_drawn_at": 1.0,
+                                                    "last_landing_at": 2.0}}))
+    assert delivery_lane.focus_tombstone_refusal(FOCUS_ROW["id"]) is None
+    assert delivery_lane.retire_continuation(FOCUS_ROW["id"]) is True
+    ledger.write_text(json.dumps({FOCUS_ROW["id"]: {"premise_spent": {"commit": "abc"}}}))
+    assert delivery_lane.focus_tombstone_refusal(FOCUS_ROW["id"]) is None
