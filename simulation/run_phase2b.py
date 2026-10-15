@@ -1390,16 +1390,21 @@ def _company_provision_by_year_end(triad, effective_end: str, payment_method_of)
     """The company's provision stock at each year end in the run and at its end, read once the run
     is over. Each read is by value date, so a later read of an earlier date sees only cash that had
     arrived by then; reading during the run would force-cross held settlements and change the run.
-    A failed read is recorded with its reason and does not kill a finished run."""
+    A failed read is recorded with its reason and does not kill a finished run.
+
+    The company's month-end write-off sweeps run first (`LivePaymentTriad.write_off_closed_balances`),
+    each on the ledger as it stood that day, so every stock carries its write-offs and recoveries
+    to date and the IFRS 9 charge can be read off two of them."""
     end = date.fromisoformat(effective_end)
     dates = [date(y, 12, 31) for y in range(int(REPORT_START[:4]), end.year) if date(y, 12, 31) < end]
     try:
+        write_offs = triad.write_off_closed_balances(end)
         stocks = {d.isoformat(): triad.provision_stock(d, payment_method_of=payment_method_of)
                   for d in dates + [end]}
     except Exception as exc:  # noqa: BLE001 -- a reporting read must not kill a completed run
         print(f"WARNING [company provision] could not be read: {exc!r}")
         return {"unavailable_because": repr(exc)}
-    return {"by_date": stocks, "closing": stocks[end.isoformat()]}
+    return {"by_date": stocks, "closing": stocks[end.isoformat()], "write_offs_posted": write_offs}
 
 
 def _box_admission():

@@ -56,7 +56,7 @@ from dataclasses import dataclass
 from typing import Callable, Iterable, Optional
 
 from company.billing.account_ledger import LedgerBook, LedgerEventType
-from company.billing.arrears_engine import fifo_unpaid_bills
+from company.billing.arrears_engine import fifo_unpaid_bills, written_off_and_recovered
 from company.crm.churn_model import ARREARS_STATE_UNKNOWN
 from company.pricing.value_based_renewal import (
     _LIVE_PROVISION_ROW_BY_METHOD,
@@ -258,8 +258,12 @@ def provision_stock(
                    for _, band in AGE_BANDS}
                for b in PROVISION_BUCKETS}
     accounts = {b: set() for b in PROVISION_BUCKETS}
+    written_off = recovered = 0.0
     for account in book.accounts():
         ledger = book.ledger(account)
+        account_written_off, account_recovered = written_off_and_recovered(ledger, on)
+        written_off += account_written_off
+        recovered += account_recovered
         unpaid = [(d, g) for d, g in fifo_unpaid_bills(ledger, on) if g > 0.005]
         if not unpaid:
             continue
@@ -305,6 +309,10 @@ def provision_stock(
         b["provision_gbp"] for b in out["buckets"].values() if b["provision_gbp"] is not None), 2)
     out["receivable_gbp"] = round(sum(b["receivable_gbp"] for b in out["buckets"].values()), 2)
     out["unprovisioned_receivable_gbp"] = out["buckets"][BUCKET_NO_PUBLISHED_ROW]["receivable_gbp"]
+    # What the IFRS 9 charge adds to the stock's movement: write-offs, less recoveries (Ofgem App. 2,
+    # May 2025, para 3.14). To date, so a year's flow is the difference of two stocks.
+    out["written_off_to_date_gbp"] = round(written_off, 2)
+    out["recovered_to_date_gbp"] = round(recovered, 2)
     return out
 
 

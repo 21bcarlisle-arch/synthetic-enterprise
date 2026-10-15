@@ -1340,3 +1340,68 @@ window? The answer is in sections 2.3 and 3.2 above; this section draws it out.
 **GAP.** Only one supplier publishes the charge by year on a consistent UK basis. Octopus, OVO and
 E.ON Next publish 2023-24 only (section 3.4), so the 2021 trough is one company's evidence. The
 2016-18 UK-only ratio is not published, so the baseline rests on 2019 alone. [L]
+
+## When the company writes off its own closed-account debt, and what the recoveries line counts (2026-10-15)
+
+Written before the company's write-off is built (K8). The build makes the company post a
+`WRITE_OFF_CREDIT` to its own ledger. Until now nothing did, so a closed account's unpaid final bill
+stayed on the books forever at the final-bill rate.
+
+### What the rules and the published practice say (ESTABLISHED, sections 2.1-2.3 and the write-off note)
+
+- **When a write-off is allowed.** IFRS 9 5.4.4: when there is *"no reasonable expectations of
+  recovering"* the asset. A write-off is a derecognition event. It uses up provision already made,
+  so it costs nothing extra if the provision was adequate.
+- **Which debt gets written off.** Centrica: *"Receivables are generally written off only once a
+  period of time has elapsed since the final bill"* (2018-2025). So it is closed-account debt. A
+  stayer's arrears are written off only by an event: a scheme, redress, or the statute bar
+  (`how_a_gb_supplier_decides_to_write_off_a_failed_payment.md` (c)). No supplier publishes a
+  voluntary write-off of a live, still-billed account.
+- **Collection continues after write-off.** Centrica: GBP 105m of 2025's GBP 135m written off was
+  still under enforcement (section 1).
+- **The charge.** It is the movement in provision, plus write-offs, less recoveries (Ofgem App. 2,
+  May 2025, para 3.14). Centrica's recoveries were 4.6% of its write-offs, pooled 2017-2025 (section
+  3.2). The one recovery it describes is a sale of written-off debt, and its Note 17 footnote keeps
+  recoveries out of the charge it reports.
+
+### GAPs this build carries rather than fills
+
+- **The clock from final bill to write-off is NOT PUBLISHED** (C4 in the 2026-09-27 write-off
+  design; Ofgem App. 2 Dec 2024 §2.22, *"how long they chase up bad debt before writing it off"*).
+  Re-searched 2026-10-15: nothing new. The 12-month write-offs Ofgem reported in 2026 come from the
+  back-billing rule (the supplier was at fault). That is a different write-off and does not give
+  this clock.
+- **Bounds.** The lower bound comes from the default definition. Centrica's ranges from 60 days past
+  due to *"six to twelve months from the issuance of a final bill"*, and a write-off follows default.
+  The upper bound is the six-year statute bar (Limitation Act 1980 s.5).
+- **Recoveries after write-off: rate not established for any supplier's own collection.** Centrica's
+  4.6% is mostly debt-sale proceeds.
+
+### The build's choices (company side)
+
+1. **Only a closed account's balance is written off.** "Closed" means the company's own reading: no
+   bill in `CLOSED_IF_UNBILLED_DAYS` (62). Live arrears are never written off on a clock. Their cost
+   is the provision.
+2. **The clock is a labelled CONVENTION: 365 days after the final bill.** That is the far end of
+   Centrica's published default range, and the range runs from 182 days to six years. It is a
+   convention and not an estimate, so it is declared as one. **Why the choice is cheap (measured on
+   the committed run, 2026-10-15):** closed debt over 90 days old is already provisioned at 87.8%.
+   Writing it off moves the charge by only the other 12.2% of its face value. The year-end
+   final-bill receivable never exceeds GBP 1,723 in that run, so for any clock in the range the
+   write-off moves the decade's charge by a few hundred pounds, on about GBP 2.2m of revenue.
+3. **The write-off is dated the day the company sweeps its book.** Each month the company sweeps
+   every account whose final bill is at least the clock old. The amount is the balance unpaid that
+   day, under the FIFO walk the provision uses. Reason: `uneconomic_to_pursue`, with the final-bill
+   date in the note.
+4. **Recoveries are counted, not assumed.** Cash the company receives on an account after writing
+   it off is a recovery, up to the amount written off. It is published beside the write-offs as
+   `recovered_to_date_gbp`, and the IFRS 9 basis subtracts its movement. If the world never pays a
+   final bill late, the line reads 0 and the run says so. It is not an estimated rate.
+
+**What this does not fix, said here so the build is not read as fixing it.** The company's charge
+is about a tenth of the real level. That is because the company's receivable is small and young:
+its year-end final-bill debt is at most about 0.5% of revenue, and live pay-on-receipt debt over 90
+days at most about 0.2%. At Octopus the gross receivable is 44% covered, against about 16% here.
+The 2026-10-12 fidelity check puts the cause in the world: the world writes off a fifth to a
+seventh of what a large supplier does per pound billed. A write-off cannot create a loss the world
+never produced.
