@@ -78,3 +78,29 @@ compare `abs()`. On the three graded seeds, the hybrid gave less on 61110 and 61
 The item planned around "~136 min" per arm, from an earlier 61109 run of 8,187 s. On this base the
 arms take 2.25x that. The continuation is timed from the unit's own start (21:34 BST) plus the
 observed 18,4xx s.
+
+## Seed 61112
+
+`risk_tiers-61112` finished; graded 2026-10-15 03:28 BST by `grade5.py`. All eight arms are at the
+same head, `87e9f4245`.
+
+| Filed prediction (22:55 BST) | Read | Grade |
+|---|---|---|
+| C1: tiers `offers_pre2019` 68, `cost_pre2019_gbp` -1388.61, `renewal_departures_pre2019` 32, the hybrid's figures exactly | 68, -1388.61, 32 | **HOLDS** |
+| d_net negative | +181.17 (tiers net 298,201.15, hybrid 298,382.32) | **REFUTED** |
+| S1: the tiers save makes ≥1 offer | 4 offers, 0 taken | **HOLDS** |
+
+C2 holds as well (swaps: `tiered_no_default` 107, `matched` 58). From 2019 the hybrid made 6 offers
+to the tiers arm's 9, and gave £170.95 to its £341.51. Renewal departures were 27 on both arms.
+
+Over all four seeds, grade5 prints: P1 4/4 HOLDS, P2 REFUTED (61110), P3 2/4 positive HOLDS, S1 4/4
+HOLDS, and **DECISION: no evidence either way, stay on risk_tiers (F11)**. Its `cut_lower` reading is
+ignored for the reason in the section above. No seed is void, so the comparison stands as filed in
+the 3/4 verdict.
+
+The d_net guess failed. It was "a guess from 2 of 3" and it carried no weight in the rule. Its
+failure leaves the two-and-two split that the 3/4 verdict already acted on. The "two of three seeds
+lean negative" remark above now reads two of four, so even the informal lean is gone.
+
+The save: 23 offers over the eight arms (12 on tiers arms, 11 on hybrid arms), and `saves_taken` is
+0 on every arm. The open question from above is unchanged: why is no save offer accepted?
