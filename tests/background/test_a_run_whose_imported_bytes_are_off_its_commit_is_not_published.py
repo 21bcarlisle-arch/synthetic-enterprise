@@ -170,3 +170,72 @@ def test_the_launchers_reading_reaches_the_publisher_through_the_runs_argv(tmp_p
     reading = json.loads(argv[argv.index("--imports-off-commit") + 1])
     why = prc.imports_off_commit_refusal(_header(reading))
     assert why and "saas/x.py" in why
+
+
+# ---- the run itself, and the stamp against ORIGIN (2026-10-15) ---------------------------------
+# The shared HEAD carried eight local commits origin lacked, so every run read clean against its
+# own stamp while importing code on no published history.
+
+def _quiet(monkeypatch):
+    from background import sim_runner
+    said = []
+    monkeypatch.setattr(sim_runner, "log", lambda m: said.append(m))
+    return sim_runner, said
+
+
+def test_a_run_starts_only_on_code_that_is_origins_and_each_refusal_names_why(monkeypatch):
+    """The whole partition, admitting branch first: a guard that defers everything passes every
+    refusal leg. Fires on: the gate unwired from any leg, or deferring a clean origin tree."""
+    sr, said = _quiet(monkeypatch)
+    clean = {"commit": "abc1234", "paths": [], "unavailable_because": None, "prose_only": ["x.py"]}
+    assert sr.code_admission("abc1234", off_commit=clean, on_origin=True)["admitted"] is True
+    dirty = dict(clean, paths=["tools/demand_vector_coverage.py"])
+    r = sr.code_admission("abc1234", off_commit=dirty, on_origin=True)
+    assert r["admitted"] is False and "demand_vector_coverage" in r["reason"]
+    unread = dict(clean, paths=None, unavailable_because="git said no")
+    assert "could not be read" in sr.code_admission("abc1234", off_commit=unread, on_origin=True)["reason"]
+    r = sr.code_admission("abc1234", off_commit=clean, on_origin=False)
+    assert r["admitted"] is False and "not on origin/main" in r["reason"]
+    assert "cannot tell" in sr.code_admission("abc1234", off_commit=clean, on_origin=None)["reason"]
+    assert any(m.startswith("DEFERRED this cycle") for m in said)
+
+
+def test_commit_on_origin_reads_git_for_all_three_answers(tmp_path):
+    """True for an ancestor of origin/main, False for a local commit beyond it, None for a commit
+    git does not know. Fires on: the rc mapping collapsed (False read as None or True)."""
+    import subprocess
+
+    from background import sim_runner
+
+    def git(*a):
+        return subprocess.run(["git", *a], cwd=tmp_path, capture_output=True, text=True,
+                              check=True).stdout.strip()
+    git("init", "-q")
+    git("-c", "user.email=t@t", "-c", "user.name=t", "commit", "-q", "--allow-empty", "-m", "a")
+    a = git("rev-parse", "HEAD")
+    git("update-ref", "refs/remotes/origin/main", a)
+    git("-c", "user.email=t@t", "-c", "user.name=t", "commit", "-q", "--allow-empty", "-m", "b")
+    b = git("rev-parse", "HEAD")
+    assert sim_runner.commit_on_origin(a, tmp_path) is True
+    assert sim_runner.commit_on_origin(b, tmp_path) is False
+    assert sim_runner.commit_on_origin("0" * 40, tmp_path) is None
+
+
+def test_the_publisher_refuses_a_stamp_origin_never_received():
+    """Fires on: the backstop dropped from the refusal, or refusing a stamp that is on origin."""
+    from background import process_run_complete as prc
+    run = {"producing_commit": {"commit": "10e90b5c7"}}
+    assert "not on origin/main" in prc.stamp_not_on_origin_refusal(run, on_origin=lambda c: False)
+    assert prc.stamp_not_on_origin_refusal(run, on_origin=lambda c: True) is None
+    assert prc.stamp_not_on_origin_refusal(run, on_origin=lambda c: None) is None
+
+
+def test_the_runner_loop_consults_the_code_gate_before_it_runs():
+    """Fires on: code_admission defined but never called, the rule with no production caller."""
+    import ast
+    import inspect
+
+    from background import sim_runner
+    calls = {n.func.id for n in ast.walk(ast.parse(inspect.getsource(sim_runner.main)))
+             if isinstance(n, ast.Call) and isinstance(n.func, ast.Name)}
+    assert "code_admission" in calls and "run_simulation" in calls
