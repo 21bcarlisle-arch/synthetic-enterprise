@@ -841,3 +841,58 @@ Limits: LCL is whole-meter, London 2013, and includes some electric-heated homes
 machines. A is undefined for 2 LCL homes with a zero median step, which are excluded from the log decomposition
 only. The counterfactual shuffles measured S, so it does not run a world. The p5 estimator is the same noisy base
 as the L2.4 section, on both sides. Scripts: `/var/tmp/se-w129d/` (not committed).
+
+## Big world homes grow by smooth draw; growing them by events loosens texture from size (2026-10-15)
+
+Lane-0 draw `w1-29-active-steps-smooth-with-volume`, at `origin/main` `8f92f93ca`. Predictions P1–P5 were filed
+before any arm ran, and P6–P7 were filed after P1–P5 were read but before their own arms ran
+(`/var/tmp/se-w129e/PREREG.md`). Nothing ships: no world draw changed.
+
+**Method.** The estimator is the same as in the section above (A = median step ÷ (mean − p5), netted meter, Pearson on
+kWh/day, n 240, seeds 17/18/19/23). Each home's behavioural stream is split per half hour, read from the generator
+itself. Lighting L and electronics D are `switched_units_on` × per-unit kW. Events E is behavioural − standby − cold −
+L − D, and it is never negative. β 0.7 multiplies E's people-scaled rate **and** L and D's kW. The arms regenerate the
+world with β moved: `ev_only` (β on the event rate, L and D at β 0), `le_only` (β on L and D kW only), `b0`, and
+`ev_hi_b` (L and D at β 0, event rate × (always-on ÷ 90 W)^b). "L2.4 slope" is ln(mean − p5) on ln(p5) over the
+**netted** meter. This is not the shipped L2.4 estimator. It reads 0.43 on the live world against the shipped
+0.444–0.475, and LCL's whole-meter figure is 0.459. **Instrument check held.** Live r(A) reads −0.608 / −0.581 /
+−0.586 / −0.588, matching `01d99f7c3`.
+
+| arm (4-seed mean) | r(A, kWh/day) | r(T, kWh/day) | r(S, kWh/day) | L2.4 slope | sd ln kWh/day | r(T) with S dealt at random |
+|---|---|---|---|---|---|---|
+| LCL Std (n 313) | −0.346 | −0.316 | −0.03 | 0.459 (whole meter) | | |
+| live (β 0.7 on all three) | −0.591 | −0.680 | +0.49 | 0.43 | 0.548 | −0.52 |
+| `le_only` | −0.496 | −0.678 | +0.56 | 0.27 | 0.480 | −0.41 |
+| `ev_only` (b 0.7) | −0.468 | −0.676 | +0.59 | 0.25 | 0.470 | −0.38 |
+| `b0` | −0.236 | −0.665 | +0.62 | 0.05 | 0.406 | −0.17 |
+| `ev_hi_1.4` | −0.516 | −0.563 | +0.26 | 0.50 | 0.576 | −0.46 |
+| `ev_hi_2.1` | −0.341 | −0.287 | −0.29 | 0.82 | 0.764 | −0.32 |
+
+**Graded.** P1 held: in the live world, the share of active energy in lighting and electronics rises with size
+(r +0.55 to +0.58). P2 held: per unit of volume, the L+D stream steps 0.23 against events' 1.29. With events
+removed, r(A) is −0.62 to −0.65, so the smooth draws on their own are tied to size. P3 held: `ev_only` gives −0.468.
+**P4 refuted:** `le_only` gives −0.496, so β on either channel ties A to size, and the two effects add. P5 held:
+`b0` gives −0.236. **P6 refuted, in the direction against the prediction.** Raising β on events alone until L2.4's
+slope is restored (b 1.4, slope 0.50) gives r(A) −0.52, not ≤ −0.55. It also loosens T (−0.56 against live −0.68),
+halves S's size tie (+0.26 against +0.49) and keeps the size spread (0.576 against NEED's within-cell 0.562). **P7
+refuted:** dealing S at random clears the comparator's −0.46 in four arms, not only in `b0`.
+
+**What it means.** A world home that is big because it leaves more on is big mostly through **smooth** load. That
+load is standby (which raises S) plus lighting and electronics (which smooth A). Spread over a longer-lit, more-
+watched day, a bigger home's steps shrink against its volume. When the same coupling is routed through **events**,
+a big home is big through bursts. Its steps then grow with its volume, and both halves of texture loosen from size.
+At roughly matched L2.4 slope (b ≈ 1.2–1.4), the event channel helps on three readings at once (A, S's size tie and
+the size spread). On its own it does not clear the comparator (r(T) −0.56 against −0.46), and b 2.1 overshoots
+L2.4's slope by 0.36. The β 0.7 coupling's *size* was measured. **Its *channel* (which loads carry it) was a
+modelling choice, and this measurement says it matters.**
+
+**GAP, before any build (K8).** No source in the knowledge layer says whether a real home with a higher base load
+uses more appliance *events* (more cycles, more appliances owned: dishwasher, tumble dryer, electric shower) or
+bigger *smooth* draws (more rooms lit, more screens on longer). HES ownership and cycle counts by household
+type are the first place to read. LCL's own r(A, size) of −0.35 alongside a 0.459 slope is consistent with the
+event channel, but it does not establish it. **Next:** read that, then pre-register a combined arm (event channel at
+the b that restores the shipped L2.4 estimator, plus the night floor for S's level of 0.37 against 0.21) against
+the comparator, L2.4 and NEED's spread together.
+
+Limits: these are the same as above. One weather site, Jan–Apr, the L2.4 slope is read on the netted meter, and the
+arms are counterfactual worlds, not candidate builds. Scripts: `/var/tmp/se-w129e/` (not committed).
