@@ -600,6 +600,72 @@ Months are days / 30.44. No code reads these toggles yet (`sim/customer_state_la
 
 ---
 
+## 12. A withheld estimate and the catch-up that follows it
+
+*Added 2026-10-15 (K8) before the change to `company/billing/monthly_bill_assembly.py`, for the
+BLOCKING finding `WORKER_FINDING_NINE_CUSTOMER_YEARS_BILL_LESS_THAN_THEIR_GROSS_MARGIN_AT_ORIGIN_2026-10-14.md`.
+Licence text read this session from the consolidated electricity SLCs (to 1 Aug 2025), extracted with
+`pdftotext` [H].*
+
+**What the licence requires.**
+
+- **A read goes on the next bill.** "If a Customer provides a meter reading … or if the Electricity
+  Meter is read by the licensee, the licensee must take all reasonable steps to reflect the meter
+  reading in the next Bill or statement of account sent to the Customer." [H] SLC 21B.1.
+- **A bill at least twice a year.** "The licensee must make available a Bill or statement of account
+  to each of its Customers at least twice yearly and at least quarterly to any Customer who requests
+  it or who has Online Account Management." Smart and prepayment are excluded. [H] SLC 21B.5.
+- **A read at least once a year.** All reasonable steps to obtain one. [H] SLC 21B.4.
+- **What is billed is limited by when it is demanded, not by when it was used or estimated.** A bill
+  is a charge recovery action, and it may only recover units "which could reasonably be considered
+  to have been consumed within the 12 months preceding the date the charge recovery action was
+  taken". [H] SLC 21BA.1. A bill the supplier generated and **did not send** is not a charge recovery
+  action, because nothing was sought. §1 above has the rest of the definition.
+- **Fairness.** Communications must be "complete, accurate and not misleading". [H] SLC 0 (Standards
+  of Conduct).
+
+**What follows for a held estimate.** None of these says "hold" in so many words. A supplier's
+pre-bill
+validation that withholds a bill is its own control. What the licence then fixes is the arithmetic of
+the next bill:
+
+1. **The customer has been charged nothing for a held period.** The held bill was never a demand, so
+   the period is *unbilled*, not *estimated*. This is case **B3** in §1, a billing-system failure,
+   rather than B1.
+2. **At the next actual read, the reconciliation runs against what was BILLED.** Billed is zero for
+   a held period. The catch-up is therefore true charges minus the estimates that were *sent*. A
+   catch-up formed against an estimate that was never sent credits the customer for a charge they
+   never received. That cannot be a correct bill under SLC 0. The ledger shows it: PROS-2017-0336 was
+   credited £271.29 for 2018-03..04, a period with no invoice at all.
+3. **The 12-month limit still applies to the unbilled part.** The catch-up is the first demand for
+   that energy, so units older than 12 months before it are barred (21BA.1). None of 21BA.2's
+   exceptions covers a supplier's own hold. The cap and its comparator already exist
+   (`_resolve_catchup`, §5).
+4. **Refunds are never capped** (§1), so an over-estimate that *was* sent is still credited in full.
+
+**Published practice.** Ofgem's 2026 review of backbilling found suppliers wrote off more than £172m
+for almost one million households under the rule, and warned that weak record keeping led to its
+protections being applied inconsistently. [M] Energy Live News, 28 Jul 2026 (headline and search
+summary; the article body was not readable). That bears on "make the hold visible in the record".
+It says nothing about how a held bill is reconciled.
+
+**GAP.**
+
+- **How long a real supplier's exception queue holds a bill before it is worked or reissued.** No
+  published figure was found. The model does not reissue a held bill (`pre_bill_validation`'s
+  docstring names that as follow-up). The catch-up at the next actual read is therefore the first
+  demand, which is the conservative reading of 21BA: it bars more.
+- **Whether a supplier recomputes a held estimate's charge at release, or bills the whole held run at
+  the read.** Not published. Both give the same total under SLC 21B.1 when the read arrives first.
+
+**The design choice.** The assembly asks the same question `validate_bills` will ask, for each
+estimate, when the estimate is made. A held estimate joins the pending run with **billed = £0 and
+billed kWh = 0**, so the catch-up reconciles against what was sent. Validation is unchanged and still
+holds the same bills. The choice is kept in one function, `pre_bill_validation.validate_bill`, so
+the hold cannot be decided in two places.
+
+---
+
 ## Sources
 
 - Ofgem, *Open letter – notifying of our intention to launch a project to protect consumers from
