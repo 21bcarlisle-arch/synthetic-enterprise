@@ -225,3 +225,48 @@ about 900s at comparable load. Whether the whole operational suite fits in 1800s
 the hourly runs have never reached past roughly #508 of about 600, so the tail is unmeasured. If it
 still times out, it names a test after `test_supervisor.py`, or a supervisor test whose draw cost
 is `discover_writers`/`open_residue`.
+
+# Round 6 — 2026-10-15: the record store, re-parsed on every self-refill draw
+
+**Round 5's prediction holds in its conditional form.** A forced run at `e88bc6d8b` (box at load
+19-25 over 16 cores) still timed out at 1800s, at
+`test_supervisor.py::TestFailureMode4DeliveredButNoProgress::test_repeated_confirmed_grants_with_no_progress_trigger_one_escalation`.
+That is a supervisor test whose draw cost is `discover_writers`/`open_residue`, the branch round 5
+named. The hourly timeout before it, at 00:23, named
+`test_stuck_escalation_still_fires_when_only_housekeeping_landed`.
+
+**Slow, not blocking, on two kinds of evidence.** (1) The named test passes alone, in 88s. (2) The
+journal's last 24 hourly runs time out at eight different tests across five files
+(`test_health_check`, `test_supervisor`, `test_frame_saturation_draw_marker`, `test_deadmans_switch`,
+`test_boot_sha_deployment`), with greens in between. A test that blocks stops in the same place
+every time. This suite is at the edge of its budget, and box load decides where the edge falls.
+
+**Profile of the named test** (31 `run_cycle`s, 89.6s, all in `_self_refill_draw_ladder`):
+`discover_writers` 56.7s, of which 46s is the first cycle's cold `code_text` parse of 493 files.
+That is paid once per process, and the 1024-entry cache holds it after. `open_residue` 22.4s,
+about 0.7s a draw, almost all `simplifications_store.load_all`. `load_all` makes 958 `yaml.load`
+calls over 479 unchanged files on every call, about 0.37s of its 0.59s, even under CSafeLoader.
+
+**Repair, not a budget raise:** `simplifications_store._safe_load` caches the parse keyed on the
+TEXT, the round-4 `direction._PARSE_CACHE` shape, and hands out deep copies (2ms for the whole store,
+against 0.15-0.37s to parse). Files are still read on every call, so an edit is a miss. The supervisor
+ruling the module cited as "NOT A CACHE" forbids a cache keyed on anything *but* the current
+stores, and this one is keyed on them, so the comment is corrected rather than the ruling
+overturned. Control:
+`tests/design/test_simplifications_store.py::test_the_store_is_parsed_once_per_TEXT_and_an_edit_is_read_fresh`.
+It goes red against three mutants: no cache; keyed on `len(text)`, so a same-length edit is never
+seen; and no copy. The placebo arm is green. The no-copy mutant first SURVIVED a draft that poisoned
+through `load_all`, which rebuilds its lists. That was the missing test, not an equivalence:
+`_read_doc` hands out the dict itself, and the control now poisons through that.
+Measured: the named test went from 88s to 38.7s, at load 37 against about 19.
+
+**Not taken:** `discover_writers`' warm cost (about 0.15s a draw, file reads plus hashing in the
+`code_text` lru) is a quarter of what was removed. Its cold cost is one parse per process. Keying it
+on stat would be the mtime cache the ruling above forbids.
+
+**Prediction, round 6, filed before the full-suite timing returns:** at load comparable to round 5
+(about 24-33), `test_supervisor.py` alone comes in under 900s. Whether the whole operational suite
+fits in 1800s, I cannot yet say: the hourly runs have been killed at around #508 of about 600, so
+the tail stays unmeasured. If the suite still times out, I expect it to name a test whose cost is
+NOT a per-draw store parse. Then the next question is the cadence one in the director's 2026-08-21
+words, "what genuinely must run before a publish", not another cache.
