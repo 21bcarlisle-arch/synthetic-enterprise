@@ -8,9 +8,9 @@
 
 | Property | Source | Result |
 |---|---|---|
-| Invisible to the BUILD draw | `supervisor._maturity_map_draw_concurrent` (the real draw) | 95/95 parked atoms not offered — 55 proven excluded BY THE PARK (lifting the park alone makes them drawable), 40 excluded for another reason |
-| Visible to the staleness clocks | `tools/map_assertion_provenance.build_rows` (AO11) | 95/95 parked atoms carry a row |
-| Visible to the composition dial | this module, over all 367 atoms | 95 parked (26 with a gate stated in `block_reason`) |
+| Invisible to the BUILD draw | `supervisor._maturity_map_draw_concurrent` (the real draw) | 96/96 parked atoms not offered — 56 proven excluded BY THE PARK (lifting the park alone makes them drawable), 40 excluded for another reason |
+| Visible to the staleness clocks | `tools/map_assertion_provenance.build_rows` (AO11) | 96/96 parked atoms carry a row |
+| Visible to the composition dial | this module, over all 370 atoms | 96 parked (26 with a gate stated in `block_reason`) |
 
 ## The dial
 
@@ -19,7 +19,7 @@ At mint (2026-08-08) the ruling measured **82 harness vs 7 commercial across 206
 | Lane | All atoms | Excluding parked | Hidden by a park-filtering reader |
 |---|---:|---:|---:|
 | `H_harness` | 126 | 103 | 23 |
-| `W2_customer_generator` | 56 | 50 | 6 |
+| `W2_customer_generator` | 58 | 51 | 7 |
 | `D_billing_metering` | 48 | 37 | 11 |
 | `W1_market_weather` | 32 | 23 | 9 |
 | `C_customer_ops` | 23 | 16 | 7 |
@@ -28,11 +28,11 @@ At mint (2026-08-08) the ruling measured **82 harness vs 7 commercial across 206
 | `W4_the_wall` | 15 | 3 | 12 |
 | `B_commercial` | 12 | 7 | 5 |
 | `F_risk_compliance` | 11 | 6 | 5 |
-| `E_finance_treasury` | 8 | 5 | 3 |
+| `E_finance_treasury` | 9 | 6 | 3 |
 | `W3_industry_systems` | 4 | 3 | 1 |
 | `W5_banking_payment_rails` | 1 | 1 | 0 |
 
-Harness share of the whole map: **34.3%** (126 of 367).
+Harness share of the whole map: **34.1%** (126 of 370).
 This is a DIAGNOSTIC (R12). `--check` never fails on it.
 The same lane counts split by `loop_stage` are on the WIP-flow door (`tools/generate_wip_flow_data.py`); what is here and not there is the with/without-parked comparison and the two probes below it.
 
