@@ -993,12 +993,18 @@ def test_P0000_the_calmest_home_is_ORDINARY_against_real_homes_and_the_red_is_th
 #: always-on) carries x2.49 active use, and on it the water heater now ADDS texture: net of space
 #: heat 0.0869, net of both 0.0556, calmer than the calmest gas home (P0046, 0.0589). Held at
 #: `active_use=1.0` it reads 0.0519 -> 0.0651 as H38 says. P0008 and P0020 still behave as H38
-#: says. Open: whether that is P0033's storage water heating meeting a large active load, or the
-#: coupling being too strong for an electrically heated home. Filed in
+#: says. DIAGNOSED the same day (one home, one variable): it is the median, not beta. Net of both,
+#: just over half of P0033's steps are quiet ones (p50 0.024, p70 0.140), so the median sits on the
+#: edge between quiet and active periods. Seven hot-water draws a day (five people) push it over that
+#: edge. Coupling the switched banks alone, or the events alone, reproduces the reversal. Across seeds
+#: 17/18/19/23, 2 of 16 electric homes reverse, both with 5+ people and a multiplier above 1.5. None
+#: does uncoupled. On 18/19/23 no electric home is calmer than the calmest gas home, and the coupling
+#: lowers the calmest gas home on every seed. So this is one home on one draw, not a class. Read in
 #: docs/staging/SEAT_FINDING_AN_ELECTRIC_HOMES_WATER_HEATER_ADDS_TEXTURE_UNDER_THE_ACTIVE_USE_COUPLING_2026-10-15.md.
 _P0033_NETTING_REASON = (
-    "P0033's water heater adds texture once its active use rides with its 331 W always-on load "
-    "(x2.49): net of both machines it is calmer than every gas home. See _P0033_NETTING_REASON."
+    "P0033's seven daily hot-water draws push the median step over the quiet/active edge once its "
+    "active use rides with its 331 W always-on load (x2.49): net of both machines it is calmer than "
+    "every gas home on seed 17 (not on 18, 19 or 23). See _P0033_NETTING_REASON."
 )
 
 
