@@ -87,7 +87,10 @@ storage heaters) rising to 66% (new). Typical Economy 7 off-peak hours: "from 12
   scatter). Storage and direct electric homes are treated alike.
 - `simulation/fabric_physics.py`: `ELECTRIC_STORAGE` is controlled `ON_OFF_DEADBAND` with
   modulation floor 1.00 and fuel 1:1 — i.e. **a direct-acting heater**. Its space heat lands when the
-  room calls for it, not in the night window. (§6.)
+  room calls for it, not in the night window. (§6.) **Built 2026-10-15:** the room still calls for
+  heat in the day, but the meter now carries the day's space-heat electricity as an even charge
+  across 00:30–07:30 at Table 12a's 0.00 high-rate fraction (`fabric_physics.storage_charge_kwh`;
+  its simplifications are named beside it). Hot water (`_dhw_fuel_kwh`) is not yet moved.
 - `simulation/household.py::HeatingSystem` already separates `ELECTRIC_STORAGE` from
   `ELECTRIC_DIRECT`, so the evidence above maps onto the world's own types without a new axis.
 

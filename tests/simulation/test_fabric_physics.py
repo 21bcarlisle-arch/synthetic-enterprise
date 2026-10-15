@@ -1073,6 +1073,10 @@ def _reference_simulate_day(*, household, params, schedule, source, ambient_prof
         duty.append(period_on_steps / steps)
         fuel.append(fabric_physics._fuel_for(household.heating_system, period_heat_kwh,
                                              ambient[period], household.boiler_age))
+    # The storage charge re-times the meter AFTER the integration; it is not the integrator, so the
+    # reference applies the production step rather than re-deriving it.
+    if household.heating_system == HeatingSystem.ELECTRIC_STORAGE:
+        fuel = fabric_physics.storage_charge_kwh(fuel)
     return air, mass, heat, fuel, duty, (t_i, t_m, firing)
 
 
@@ -1132,3 +1136,47 @@ def test_the_hoisted_integrator_is_BIT_IDENTICAL_to_the_per_step_integrator():
             days += 1
     assert days > 50, f"the partition stopped reaching the integrator: {days}"
     assert {"none", ControlMode.WEATHER_COMPENSATED} < modes_seen, modes_seen
+
+
+# ---------------------------------------------------------------------------
+# A storage heater charges off-peak (SAP 10.2 Table 12a; knowledge page
+# when_an_electrically_heated_homes_water_heater_runs.md E6)
+# ---------------------------------------------------------------------------
+
+
+def _outside_window(series: list[float]) -> float:
+    first, last = fabric_physics.OFF_PEAK_WINDOW_PERIODS
+    return sum(series[:first]) + sum(series[last:])
+
+
+def test_a_storage_home_meters_its_space_heat_in_the_off_peak_window_while_the_room_calls_for_it_in_the_day():
+    """The defect: until 2026-10-15 a storage heater was a direct-acting heater on the meter, its
+    electricity landing whenever the room called for heat. The room still calls in the day here
+    (asserted first, so the re-timing is not vacuous), and the meter now carries none of it there."""
+    week = winter_week()
+    storage = simulate_premise(
+        premise_id="P-S", household=make_household(heating_system=HeatingSystem.ELECTRIC_STORAGE),
+        daily_weather=week, seed=3, latitude_deg=DEFAULT_LATITUDE_DEG)
+    direct = simulate_premise(
+        premise_id="P-S", household=make_household(heating_system=HeatingSystem.ELECTRIC_DIRECT),
+        daily_weather=week, seed=3, latitude_deg=DEFAULT_LATITUDE_DEG)
+    for s_day, d_day in zip(storage, direct):
+        assert _outside_window(s_day.heat_delivered_kwh) > 1.0
+        assert _outside_window(s_day.fuel_kwh) == 0.0
+        assert sum(s_day.fuel_kwh) == pytest.approx(sum(s_day.heat_delivered_kwh), abs=1e-9)
+        # The partition's other side: a direct-acting heater is still metered where it heats.
+        assert d_day.fuel_kwh == d_day.heat_delivered_kwh
+        assert _outside_window(d_day.fuel_kwh) > 1.0
+
+
+def test_the_storage_charge_conserves_the_day_and_keeps_its_high_rate_fraction_at_the_draw():
+    draw = [0.0] * PERIODS_PER_DAY
+    draw[16], draw[36] = 3.0, 1.0
+    charged = fabric_physics.storage_charge_kwh(draw, high_rate_fraction=0.25)
+    first, last = fabric_physics.OFF_PEAK_WINDOW_PERIODS
+    assert sum(charged) == pytest.approx(4.0)
+    assert charged[16] == pytest.approx(0.75) and charged[36] == pytest.approx(0.25)
+    assert charged[first:last] == pytest.approx([3.0 / (last - first)] * (last - first))
+    assert fabric_physics.storage_charge_kwh(draw)[16] == 0.0  # Table 12a: 0.00 at the high rate
+    with pytest.raises(ValueError, match="window"):
+        fabric_physics.storage_charge_kwh(draw, window=(40, 50))

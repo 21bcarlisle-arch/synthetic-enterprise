@@ -158,6 +158,7 @@ from __future__ import annotations
 import hashlib
 import math
 import random
+from collections.abc import Sequence
 from dataclasses import dataclass, replace
 from enum import Enum
 from functools import lru_cache
@@ -1205,6 +1206,60 @@ def _fuel_for(system: HeatingSystem, heat_kwh: float, ambient_c: float, boiler_a
     return 0.0
 
 
+# ---------------------------------------------------------------------------
+# A storage heater charges off-peak and releases on demand
+# ---------------------------------------------------------------------------
+# Until 2026-10-15 an ELECTRIC_STORAGE home was a direct-acting heater on the meter: its space-heat
+# electricity landed in the period the room called for heat. A real storage heater draws its charge
+# overnight on a two-rate meter and gives the heat out through the day. Source for everything here:
+# docs/market_research/when_an_electrically_heated_homes_water_heater_runs.md (E6, §6).
+#
+# THE ROOM IS UNTOUCHED: heat is still released when the thermostat calls for it, so the indoor
+# temperature, `heat_delivered_kwh` and the duty cycle are what they were. Only the METER moves.
+#
+# NAMED SIMPLIFICATIONS, each a stated belief rather than an established fact:
+#   * The charge is sized to the same calendar day's release, which the window opens -- a controller
+#     with perfect foresight. Real automatic charge controllers read the overnight temperature and
+#     the core's residual heat, and manual input dials are set seasonally; how far the stock misses
+#     the next day's demand is NOT ESTABLISHED.
+#   * The charge is spread evenly across the window. Whether the stock charges early, late or at the
+#     DNO's switched times inside it is NOT ESTABLISHED.
+#   * No standing loss from the core, and no cap at the heaters' input rating: on the coldest day the
+#     window draws the whole day's demand at day-kWh / 7 h. The stock's installed input rating is
+#     NOT ESTABLISHED, and so neither is how often a real home runs out and falls back to a direct
+#     panel (Table 12a's 0.20 for integrated storage+direct is that case, not this one).
+
+#: SAP 10.2 (17-12-2021) Table 12a, "Other storage heaters, 7-hour or 24-hour tariff": space-heating
+#: high-rate fraction 0.00. The share of the charge left at the moment of demand.
+STORAGE_HEATER_HIGH_RATE_FRACTION = 0.00
+
+#: The off-peak window as [first, last) settlement periods of the day: 00:30-07:30. Element Energy for
+#: BEIS (2019/021) §6: Economy 7 runs "from 12:30 or 1:00 am to 7:30 or 8:00 am"; this is the earlier
+#: end, seven hours. Which window each region's teleswitch or meter actually used is NOT ESTABLISHED.
+OFF_PEAK_WINDOW_PERIODS = (1, 15)
+
+
+def storage_charge_kwh(
+    fuel_kwh: Sequence[float],
+    *,
+    high_rate_fraction: float = STORAGE_HEATER_HIGH_RATE_FRACTION,
+    window: tuple[int, int] = OFF_PEAK_WINDOW_PERIODS,
+) -> list[float]:
+    """A day's space-heat electricity as a storage heater meters it: `high_rate_fraction` of each
+    period's draw stays where the room called for it, and the rest of the day's total is charged
+    evenly across the off-peak `window`. The day's total is conserved exactly."""
+    first, last = window
+    if not 0 <= first < last <= len(fuel_kwh):
+        raise ValueError(f"off-peak window {window} does not fit a {len(fuel_kwh)}-period day")
+    if not 0.0 <= high_rate_fraction <= 1.0:
+        raise ValueError(f"high-rate fraction {high_rate_fraction} is not a fraction")
+    metered = [kwh * high_rate_fraction for kwh in fuel_kwh]
+    block = (sum(fuel_kwh) - sum(metered)) / (last - first)
+    for period in range(first, last):
+        metered[period] += block
+    return metered
+
+
 def simulate_day(
     *,
     household: Household,
@@ -1322,6 +1377,9 @@ def simulate_day(
         out_fuel.append(
             _fuel_for(household.heating_system, period_heat_kwh, ambient[period], household.boiler_age)
         )
+
+    if household.heating_system == HeatingSystem.ELECTRIC_STORAGE:
+        out_fuel = storage_charge_kwh(out_fuel)
 
     return FabricDayResult(
         ambient_c=list(ambient),
