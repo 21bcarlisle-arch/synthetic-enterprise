@@ -387,3 +387,25 @@ def test_validation_reads_the_maps_lanes_once_per_record(monkeypatch):
     assert len(reads) == 1
     assert [p for p in problems if "lane" in p] == [
         "focus[4].lane 'Z_not_a_lane' is not a lane on the maturity map (A_lane)"]
+
+
+def test_the_record_is_parsed_once_per_TEXT_and_an_edit_is_read_fresh(tmp_path, monkeypatch):
+    """Every concurrent FRAME draw reads this ~130 KB record, and re-parsing it per draw (~0.27s)
+    put the operational-layer suite past its budget (2026-10-14). Defects this names: a cache keyed
+    on the PATH (an edit is never seen), no cache (the count rises per read), and a cache that hands
+    out its own object (a caller's mutation of `raw` poisons the next read)."""
+    import yaml
+    monkeypatch.setattr(d, "_PARSE_CACHE", {})
+    parses = []
+    real = yaml.safe_load
+    monkeypatch.setattr(yaml, "safe_load", lambda text: parses.append(1) or real(text))
+    path = _write(tmp_path, _record())
+
+    first = d.read_direction(path=path)
+    first.raw["focus"].append({"id": "poison", "why": "a caller mutated raw"})
+    assert d.read_direction(path=path).focus_keys() == ("atom-a",)
+    assert len(parses) == 1
+
+    _write(tmp_path, _record(focus=[{"id": "atom-b", "why": "edited"}]))
+    assert d.read_direction(path=path).focus_keys() == ("atom-b",)
+    assert len(parses) == 2

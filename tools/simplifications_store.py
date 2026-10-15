@@ -52,6 +52,7 @@ Stdlib + pyyaml only.
 """
 from __future__ import annotations
 
+import copy
 from pathlib import Path
 
 import yaml
@@ -79,10 +80,32 @@ STORE_DIR = PROJECT / "docs" / "design" / "simplifications"
 #: identical safe YAML subset, so a file that parses under one parses under the other.
 _SAFE_LOADER = getattr(yaml, "CSafeLoader", yaml.SafeLoader)
 
+#: THE PARSE IS NOW CACHED, KEYED ON THE TEXT (2026-10-15, round 6 of
+#: `docs/observability/operational_layer_timeout_prereg_2026-09-10.md`). This corrects the "NOT A
+#: CACHE" above without overturning the ruling it cites: that ruling forbids a cache keyed on
+#: anything BUT the current stores, and every call still reads every file from disk -- the text IS
+#: the current store, so an edit is a miss by construction and freshness is exactly what it was.
+#: Only `yaml.load` of unchanged bytes is skipped. Why: even under CSafeLoader, `load_all` was
+#: still ~0.4-0.8s (958 parses of 479 files) on every self-refill draw via `open_residue`, and the
+#: supervisor tests drive 31 draws a test -- the operational suite's 1800s budget ran out inside
+#: them. Callers get a deep copy (~2ms for the whole store against ~0.2-0.4s to parse), so a
+#: writer that mutates a loaded doc cannot poison the next read. FIFO-bounded at roughly twice
+#: the store's file count, so a process that polls forever holds old texts for a bounded while.
+_PARSE_CACHE: dict[str, object] = {}
+_PARSE_CACHE_MAX = 1024
+_MISS = object()  # a cached document can itself be None (an empty file)
+
 
 def _safe_load(text: str):
     """`yaml.safe_load` with the fastest available safe loader. Same subset, same result."""
-    return yaml.load(text, Loader=_SAFE_LOADER)
+    cached = _PARSE_CACHE.get(text, _MISS)
+    if cached is not _MISS:
+        return copy.deepcopy(cached)
+    data = yaml.load(text, Loader=_SAFE_LOADER)
+    if len(_PARSE_CACHE) >= _PARSE_CACHE_MAX:
+        _PARSE_CACHE.pop(next(iter(_PARSE_CACHE)))
+    _PARSE_CACHE[text] = copy.deepcopy(data)
+    return data
 
 # The store's bound (README "bound"): one file per existing atom, each <=100KB.
 MAX_FILE_BYTES = 100 * 1024
