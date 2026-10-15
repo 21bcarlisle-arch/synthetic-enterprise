@@ -1,8 +1,9 @@
-**Severity:** LATENT · **Lane:** C_customer_ops · **Epoch:** unassigned · **Atom:** `unminted`
+**Severity:** LATENT · **Lane:** C_customer_ops · **Epoch:** unassigned · **Atom:** `B7_customer_state_layer_moves_and_shocks`
 **Knowledge:** none -- a grade of a built capability against predictions already filed; the mover knowledge page is docs/market_research/home_moves.md
 
 # The mover offer on fresh seeds: five predictions hold, and stayers' prices move where a follower is supplied (2026-10-12)
 
+**Fate (2026-10-15):** ATOM -- folds into `B7_customer_state_layer_moves_and_shocks` (re-pointed 2026-10-15; an ATOM fate names its atom).
 **Fate (2026-10-13, clear-the-decks):** ATOM -- n/a P2 -- M5 (stayer-price moves) refuted on 3/4 seeds and unattributed; doc files its own follow-on "the-mover-offers-stayer-price-moves-are-attributed-by-an-unsupplied-follower-arm".
 
 The director's Order 1: re-grade the mover offer on fresh seeds across the world's ranges. The

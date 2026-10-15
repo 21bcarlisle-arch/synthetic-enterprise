@@ -1,7 +1,8 @@
-**Severity:** RECORDED · **Lane:** W2_customer_generator · **Epoch:** unassigned · **Atom:** `unminted`
+**Severity:** RECORDED · **Lane:** W2_customer_generator · **Epoch:** unassigned · **Atom:** `W2_40_voids_tied_to_move_outs`
 
 # The 774-household book has no gas closure; the 127-household book had two
 
+**Fate (2026-10-15):** ATOM -- folds into `W2_40_voids_tied_to_move_outs` (re-pointed 2026-10-15; an ATOM fate names its atom).
 **Fate (2026-10-14):** ATOM -- world, next week: 0 gas closures in 215 dual-fuel households against 2 in 64 is unexplained, a fidelity question decided blind to company results.
 
 *Worker tick, 2026-10-13 ~18:40Z. Found while clearing the publish gate. Not yet explained.*

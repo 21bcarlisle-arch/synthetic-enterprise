@@ -236,9 +236,10 @@ def extract_series_from_run_output(
 
 def _ifrs9_charge_series(run_output: dict) -> tuple[dict[int, float], dict[int, float]]:
     """The company's own charge by year: its year-end provision stock less the one before, plus what
-    it wrote off in the year. Nothing in the run posts a company write-off or recovery today, so the
-    published stock carries no `written_off_to_date_gbp` and the movement is the whole charge; the
-    day a stock carries one, its movement is added here rather than silently left out.
+    it wrote off in the year, less what it recovered of earlier write-offs. The run posts the
+    company's own closed-account write-offs (`arrears_engine.closed_balance_write_offs`), and the
+    stock carries `written_off_to_date_gbp` and `recovered_to_date_gbp`. A run written before that
+    carries neither, and its charge is the movement alone.
 
     The first year with revenue opens from a zero stock (the company opened then). Any other year
     whose prior year-end stock is missing is left out, not charged from zero, and so is a run whose
@@ -251,19 +252,20 @@ def _ifrs9_charge_series(run_output: dict) -> tuple[dict[int, float], dict[int, 
         return {}, {}
     opened = min(rev)
 
-    def charged(s: dict) -> tuple[float, float]:
-        return float(s.get("provision_gbp") or 0.0), float(s.get("written_off_to_date_gbp") or 0.0)
+    def charged(s: dict) -> tuple[float, float, float]:
+        return (float(s.get("provision_gbp") or 0.0), float(s.get("written_off_to_date_gbp") or 0.0),
+                float(s.get("recovered_to_date_gbp") or 0.0))
 
     bd: dict[int, float] = {}
     for y in sorted(year_end):
         if (y - 1) in year_end:
             before = charged(year_end[y - 1])
         elif y == opened:
-            before = (0.0, 0.0)
+            before = (0.0, 0.0, 0.0)
         else:
             continue
-        stock, written_off = charged(year_end[y])
-        bd[y] = (stock - before[0]) + (written_off - before[1])
+        stock, written_off, recovered = charged(year_end[y])
+        bd[y] = (stock - before[0]) + (written_off - before[1]) - (recovered - before[2])
     return ({y: g for y, g in bd.items() if y in rev}, {y: rev[y] for y in bd if y in rev})
 
 

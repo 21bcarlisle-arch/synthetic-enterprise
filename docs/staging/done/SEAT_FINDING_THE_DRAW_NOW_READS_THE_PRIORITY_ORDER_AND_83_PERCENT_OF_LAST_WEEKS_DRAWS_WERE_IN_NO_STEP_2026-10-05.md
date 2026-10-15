@@ -2,6 +2,7 @@
 
 # The BUILD draw now reads the priority order, and 83% of last week's draws were in no step of it
 
+**Fate (2026-10-15):** DONE -- the BUILD draw reads the director's priority order on origin since 20c9c52c9 (2026-10-05, tests/background/test_the_draw_follows_the_priority_order.py); acff52923, cited above as not on origin, was an unpromoted twin of it.
 **Fate (2026-10-12, clear-the-decks):** ATOM -- P2 unverified: a cited commit is not on origin (acff52923). The BUILD draw takes its primary from the earliest step of the director's order, and 81% of last week's atom draws served no step; priority_order.yaml canon later archived (7abf04330) as all deliverables landed
 
 Draw: LANE 0 DELIVERY `the-draw-follows-the-directors-priority-order-not-only-the-dials`, worker

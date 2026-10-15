@@ -75,3 +75,51 @@ def test_the_floor_is_a_target_and_is_above_everything_the_record_contains():
     assert pms.PRODUCT_SHARE_FLOOR > 0.2074, (
         "the floor must sit above the measured p75 of 20.74%, or it ratifies the standing state"
     )
+
+
+def _repo_with_commit(tmp_path, rel):
+    import subprocess
+    env = ["-c", "user.name=t", "-c", "user.email=t@t", "-c", "commit.gpgsign=false"]
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+
+    def commit(path):
+        f = tmp_path / path
+        f.parent.mkdir(parents=True, exist_ok=True)
+        f.write_text(path)
+        subprocess.run(["git", *env, "add", path], cwd=tmp_path, check=True)
+        subprocess.run(["git", *env, "commit", "-q", "-m", path], cwd=tmp_path, check=True)
+
+    commit(rel)
+    return commit
+
+
+def test_the_trailing_log_is_read_once_per_head_so_every_draw_does_not_pay_for_git_log(
+        tmp_path, monkeypatch):
+    """The supervisor asks the floor on every draw. Re-running `git log --name-only` each time was
+    half of a draw's cost and pushed the operational layer past its budget (2026-10-15)."""
+    pms._LOG_CACHE.clear()
+    _repo_with_commit(tmp_path, "company/a.py")
+    first = pms.split(window=5, repo=tmp_path)
+    real_run = pms.subprocess.run
+    logs = []
+
+    def counting_run(argv, *a, **kw):
+        if argv[:2] == ["git", "log"]:
+            logs.append(argv)
+        return real_run(argv, *a, **kw)
+
+    monkeypatch.setattr(pms.subprocess, "run", counting_run)
+    assert pms.split(window=5, repo=tmp_path) == first
+    assert logs == [], "a second split at the same HEAD re-ran git log"
+
+
+def test_a_new_commit_is_read_fresh_so_the_cache_never_serves_a_stale_split(tmp_path):
+    """The other side: a cache keyed on anything weaker than HEAD would pass the test above and
+    report yesterday's ratio for as long as the process lived."""
+    pms._LOG_CACHE.clear()
+    commit = _repo_with_commit(tmp_path, "company/a.py")
+    before = pms.split(window=5, repo=tmp_path)
+    commit("background/b.py")
+    after = pms.split(window=5, repo=tmp_path)
+    assert (before["product"], before["machinery"]) == (1, 0)
+    assert (after["product"], after["machinery"]) == (1, 1)

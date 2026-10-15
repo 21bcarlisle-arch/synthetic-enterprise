@@ -1,6 +1,7 @@
 # [ADVISOR] A director correction is narrated once and never counted
 **Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 
+**Fate (2026-10-15):** CLOSED UNBUILT -- machinery with no product item depending on it (canon P6: machinery only when a product item names it as a dependency); reopen from done/ when one does.
 **Fate (2026-10-13, clear-the-decks):** ATOM -- n/a No banner. P3 -- proposes a mechanism to count/classify repeated director corrections (not just narrate them in prose); unbuilt, advisor itself says "nothing here claims priority over drawn work."
 
 **Severity:** LATENT · **Lane:** A_strategy_governance · **Epoch:** unassigned · **Atom:** `unminted` — lane set by the scale lane: `unassigned` is not a lane and the severity gate refused every merge of origin

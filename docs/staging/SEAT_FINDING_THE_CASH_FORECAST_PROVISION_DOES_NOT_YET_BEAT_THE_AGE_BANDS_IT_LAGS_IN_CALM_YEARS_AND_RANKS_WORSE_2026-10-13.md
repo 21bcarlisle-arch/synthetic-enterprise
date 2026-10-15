@@ -1,8 +1,9 @@
-**Severity:** LATENT · **Lane:** D_billing_metering · **Epoch:** unassigned · **Atom:** `unminted`
+**Severity:** LATENT · **Lane:** D_billing_metering · **Epoch:** unassigned · **Atom:** `E6_a_forward_cash_forecast_per_customer_charges_expected_loss_as_arrears_build`
 **Knowledge:** none -- a grade of a built estimator; the method is in docs/market_research/bad_debt_provisioning.md
 
 # The cash-forecast provision does not yet beat the age bands: it lags in calm years and ranks worse (2026-10-13)
 
+**Fate (2026-10-15):** ATOM -- folds into `E6_a_forward_cash_forecast_per_customer_charges_expected_loss_as_arrears_build` (re-pointed 2026-10-15; an ATOM fate names its atom).
 **Fate (2026-10-13, clear-the-decks):** ATOM -- n/a P2 -- doc's own close: "do not switch the run's provision to CF"; files follow-on atom "the-cash-forecast-provision-learns-a-prior-and-the-oldest-age-before-it-is-re-graded".
 
 The director's Order 1: measure the expected-loss provision against held-back loss on the frozen world.

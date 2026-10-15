@@ -402,6 +402,11 @@ _FULL_CHROMIUM_JS_CALL = re.compile(
 # `git ls-files` would give; the walk is used instead so the control still has a
 # subject in a clean extract, which has no `.git` to ask.
 _NOT_OUR_TREE = {".git", "node_modules", "__pycache__", ".venv", "venv", ".pytest_cache"}
+# Linked worktrees under `.claude/worktrees/` are other lanes' copies of the tree, gitignored here
+# too. Walking them made this test read and parse ~23 copies of the repo -- 70,721 of 74,118 `.py`
+# files on 2026-10-14 -- and its cost rose and fell with how many lanes had one open, which is
+# what timed out the operational-layer signal between green runs.
+_LINKED_WORKTREES = (".claude", "worktrees")
 
 
 def _full_chromium_consumers(root: Path) -> set[str]:
@@ -439,7 +444,9 @@ def _full_chromium_consumers(root: Path) -> set[str]:
 
 
 def _skip_not_our_tree(path: Path, root: Path) -> bool:
-    return not path.is_file() or bool(_NOT_OUR_TREE & set(path.relative_to(root).parts))
+    parts = path.relative_to(root).parts
+    return (parts[:2] == _LINKED_WORKTREES or bool(_NOT_OUR_TREE & set(parts))
+            or not path.is_file())
 
 
 def _read(path: Path) -> str:

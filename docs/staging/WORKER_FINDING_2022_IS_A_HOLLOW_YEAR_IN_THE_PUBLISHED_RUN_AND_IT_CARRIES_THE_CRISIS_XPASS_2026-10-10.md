@@ -1,7 +1,8 @@
-**Severity:** LATENT · **Lane:** H_harness · **Epoch:** 4 · **Atom:** `unminted`
+**Severity:** LATENT · **Lane:** H_harness · **Epoch:** 4 · **Atom:** `C_supply_start_consumer_routing`
 
 # 2022 is a hollow year in the published run, and that hollow is what turns the crisis xfail into a pass
 
+**Fate (2026-10-15):** ATOM -- folds into `C_supply_start_consumer_routing` (re-pointed 2026-10-15; an ATOM fate names its atom).
 **Fate (2026-10-12, clear-the-decks):** ATOM -- find where years[y].bad_debt_gbp mis-keys the year (2022 write-offs booked to 2021), which makes the crisis-step-up xfail spuriously XPASS (P2)
 
 Found while working the head-red register (2026-10-10). Re-run at `origin/main` 6a7a35721 in a

@@ -1179,3 +1179,27 @@ def test_MUTATION_the_duplicate_finder_FIRES_on_a_duplicated_run():
     # A run that differs by ONE character is not a duplicate -- the finder must not cluster.
     near = doubled.replace("second line of it\n", "second line of it too\n", 1)
     assert not drain.duplicated_comment_blocks(near)
+
+
+def test_the_store_is_parsed_once_per_TEXT_and_an_edit_is_read_fresh(tmp_path, monkeypatch):
+    """Every self-refill draw reaches `load_all` through `open_residue`, and re-parsing ~480
+    unchanged files per draw put the operational-layer suite past its budget (2026-10-15).
+    Defects this names: no cache (the count rises per read), a cache keyed on anything but the
+    text (the same-length edit below is never seen), and a cache that hands out its own object
+    (a caller's mutation of a loaded list poisons the next read)."""
+    monkeypatch.setattr(store, "_PARSE_CACHE", {})
+    parses = []
+    real = store.yaml.load
+    monkeypatch.setattr(store.yaml, "load", lambda text, Loader: parses.append(1) or real(text, Loader=Loader))
+    f = tmp_path / "A1.yaml"
+    f.write_text(yaml.safe_dump({"atom_id": "A1", "simplifications": ["n1"]}), encoding="utf-8")
+
+    # `_read_doc` hands back the parsed dict itself (`load_all` rebuilds its lists, so poisoning
+    # through it would leave a no-copy cache undetected); the writers start from that dict.
+    store._read_doc("A1", tmp_path)["simplifications"].append("poison")
+    assert store.load_all(tmp_path) == {"A1": ["n1"]}
+    assert len(parses) == 1
+
+    f.write_text(yaml.safe_dump({"atom_id": "A1", "simplifications": ["n2"]}), encoding="utf-8")
+    assert store.load_all(tmp_path) == {"A1": ["n2"]}
+    assert len(parses) == 2

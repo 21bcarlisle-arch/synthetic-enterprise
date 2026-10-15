@@ -1,7 +1,8 @@
-**Severity:** LATENT · **Lane:** D_billing_metering · **Epoch:** unassigned · **Atom:** `unminted`
+**Severity:** LATENT · **Lane:** D_billing_metering · **Epoch:** unassigned · **Atom:** `E6_a_forward_cash_forecast_per_customer_charges_expected_loss_as_arrears_build`
 
 # SEAT PROPOSAL — a personal payment plan per customer and debt management as a next best action, designed as one (2026-10-11)
 
+**Fate (2026-10-15):** ATOM -- folds into `E6_a_forward_cash_forecast_per_customer_charges_expected_loss_as_arrears_build` (re-pointed 2026-10-15; an ATOM fate names its atom).
 **Fate (2026-10-12, clear-the-decks):** ATOM -- director ruled 2026-10-12 (verbatim, in-doc): build the world's response to a bill shock (DD4b, mandate cancellation, debt-to-prepayment route) before grading the engine, supplier-controlled levers first (P1)
 
 *Delivery seat. For the director's reading before anything is built into the run (his instruction, 2026-10-11:

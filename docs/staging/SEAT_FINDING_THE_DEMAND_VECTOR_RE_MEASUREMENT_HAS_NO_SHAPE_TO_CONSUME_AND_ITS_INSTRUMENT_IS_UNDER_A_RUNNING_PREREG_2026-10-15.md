@@ -3,6 +3,8 @@
 
 # The demand-vector re-measurement has no shape to consume, and its instrument is under a running prereg
 
+**Fate (2026-10-15):** ATOM -- `W2_29`, parked for next week by the director (2026-10-14): the re-measure waits on a shape to consume and on the running 480k prereg.
+
 *Delivery seat fork, drawn on W2_29, 2026-10-15. The premise was re-measured before any build, and it
 does not hold. Nothing was built. This finding names what is missing.*
 

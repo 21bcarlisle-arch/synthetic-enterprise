@@ -873,6 +873,29 @@ class LivePaymentTriad:
                 account, on, _one_billing_period_before(on)),
         )
 
+    def write_off_closed_balances(self, through: date) -> int:
+        """Run the company's write-off sweep at every month end up to `through`, as it would have run
+        on each of those days, and return how many write-offs it posted. Called once the run is
+        over: bills post in term order, not date order, so a sweep during the run could write off
+        an account whose next bill had not been posted yet. Each sweep reads only what the ledger
+        held by its own day, so running them late decides nothing a supplier could not have.
+        The D8 shadow is not swept: it exists to attribute cash, and a write-off is not cash."""
+        self._deliver_settlements_through(through, force=True)
+        bills = [e.valid_time for a in self._ledger_book.accounts()
+                 for e in self._ledger_book.ledger(a).events()
+                 if e.event_type == LedgerEventType.BILL_DEBIT]
+        if not bills:
+            return 0
+        posted = 0
+        year, month = min(bills).year, min(bills).month
+        while True:
+            month_end = (date(year + month // 12, month % 12 + 1, 1) - timedelta(days=1))
+            if month_end > through:
+                break
+            posted += len(self._consumer.write_off_closed_balances(month_end))
+            year, month = year + month // 12, month % 12 + 1
+        return posted
+
     def provision_stock(self, on: date, *, payment_method_of) -> dict:
         """The COMPANY's bad-debt provision on `on`: a stock over its own receivables, by footing and
         age band, as a plain dict -- the door shape of `default_belief_rate`. The reading is the

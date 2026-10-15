@@ -1,7 +1,8 @@
-**Severity:** LATENT · **Lane:** W2_customer_generator · **Epoch:** 3 · **Atom:** `unminted` · **Claim:** `is-a-newly-rolled-default-household-as-sticky-as-svt-stock` (Lane 0 delivery)
+**Severity:** LATENT · **Lane:** W2_customer_generator · **Epoch:** 3 · **Atom:** `PB4_engagement_separated_from_elasticity` · **Claim:** `is-a-newly-rolled-default-household-as-sticky-as-svt-stock` (Lane 0 delivery)
 
 # A newly rolled household spikes for six weeks, and the nine value-arm accounts that stopped leaving are not newly rolled
 
+**Fate (2026-10-15):** ATOM -- folds into `PB4_engagement_separated_from_elasticity` (re-pointed 2026-10-15; an ATOM fate names its atom).
 **Fate (2026-10-12, clear-the-decks):** ATOM -- world under-prices external post-fix switch spike by ~3x vs Ofgem RCT; no constant changed, sizing step owed before any build (P2)
 
 **The question.** Is a household that has just rolled onto the default at end-of-fix more mobile in

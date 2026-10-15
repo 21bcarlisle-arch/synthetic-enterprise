@@ -158,3 +158,130 @@ absorbs the 2026-09-10 leaf (`searchable` 12.9s here is hit-path hashing of 17 M
 and hands out deep copies. Same test, back to back: **95.6s → 30.0s**; the nine-test block
 344s → 162s. Not a budget raise. Why it crossed today rather than earlier I cannot yet say: the
 map grows and the box load moves (load average 12.9 at measurement), and both changed.
+
+# Round 4 — 2026-10-14: the direction record, re-parsed on every FRAME draw
+
+Five consecutive `red_timeout`s, the last naming
+`test_frame_saturation_draw_marker.py::test_fires_hands_only_the_unsaturated_atom[concurrent]`.
+Round 3's prediction holds: the timeout names a test outside `test_supervisor.py`.
+
+**Slow, not blocking.** In isolation the named test passes in ~5s, and the whole file (57 tests)
+in 66.7s with user time ≈ wall time (58.8s of 69.4s): CPU, no waiting. cProfile: 13.4 of 13.5s
+were `direction.read_direction` → `yaml.safe_load` on the real `DIRECTION.yaml` (129 KB, ~0.27s a
+parse), reached through `focus_weights` once per `_idle_discover_frame_draw_concurrent`, 50 draws
+a test. It is the same shape as round 3's map leg: a real-tree read on a draw path, re-parsed per
+call. The record grows with every orientation, so the cost has risen week by week.
+
+**Repair, not a budget raise:** `read_direction` caches the YAML parse keyed on the TEXT (the
+`maturity_map_store._as_atom_list` shape). An edit is a miss, and callers get a deep copy.
+`validate` still runs on every call, because it also reads the map. The file goes from 66.7s to 5.4s.
+Control: `test_direction_contracts.py::test_the_record_is_parsed_once_per_TEXT_and_an_edit_is_read_fresh`,
+red against three mutants (no cache, path-keyed, no copy). The production draw gains the same.
+
+**Prediction, filed before the full-suite timing returns:** the operational suite now finishes
+inside 1800s. If a later run times out, it names a draw path that reads a different real-tree
+file per call, not `read_direction`.
+
+**Refuted, the same evening.** The full operational run after that fix (on a box shared with a
+24-minute landing gate) was killed at 2400s, only 37% through, with user+sys about 19 of 40
+minutes. It had stopped at `test_health_check.py::...::test_the_requirement_tracks_what_the_tree_launches_in_both_directions`
+(collected at about #568; the hourly runs died earlier, at about #508, so they never got this far).
+Its live leg `rglob`s the repo root for chromium launches and parses every `.py` through
+`searchable` at ~44ms each. **70,721 of the 74,118 files it walked were in the 22 linked worktrees
+under `.claude/worktrees/`**: other lanes' copies, which come and go through the day. That is
+~3,000s for one test, larger than the whole budget, and it rises and falls with how many lanes have
+a worktree open. It is the best explanation yet for timeouts interleaved with greens. Repair: the
+walk skips `.claude/worktrees/` (a copy is not what this tree launches). The test takes 98s under
+load, still parsing ~3,400 files. A raw-text prefilter would cut that further, but it is the
+substring scan `test_a_control_reads_python_as_code.py` refuses, so it is left alone.
+
+**Prediction, round 4b:** the next operational run goes green inside 1800s, or, if it times out,
+names a test collected after `test_health_check.py`.
+
+**Refuted, the same night (2026-10-15 00:17).** A forced run at `db1e5c740` timed out at 1800s
+inside `test_supervisor.py` (`test_find_work_never_reports_map_exhausted_against_real_map_with_idle_atoms`),
+which is collected *before* `test_health_check.py`. user+sys was 18.5 of 30 minutes on a box at load
+24-32 over 16 cores, so it was working, not blocked. The test the doorbell named
+(`test_self_refill_draw_single_atom_message_unchanged`) passes alone in 6.2s; it was only where the
+clock ran out. `test_supervisor.py` on its own (all of it marked `operational`) ran past 1500s and
+was killed.
+
+**Slow, not blocking, and the cost is one draw multiplied.** Each `run_cycle` reaches
+`_self_refill_draw`, about 3.0s of live-tree reads. The four `test_stuck_escalation_*` tests drive
+31 cycles each, 80-120s apiece. Profiled over one of them: `product_machinery_split.split()` was
+1.54s per draw (51%), because it re-ran `git log -n 100 --name-only` on every call;
+`gap_ledger_reconciler.discover_writers` was 0.80s; `gap_register_scan.open_residue` was 0.60s.
+
+**Repair, round 5, not a budget raise:** `split()` caches the raw log text on (repo, HEAD sha,
+window). Commits are immutable, so it cannot go stale. `rev-parse` costs 5ms against 2.5s for the
+log, and the production draw gains the same. A failed log is never cached. Controls in
+`tests/tools/test_product_machinery_split.py`, red against two mutants (no cache; key without the
+sha). Measured: the stuck-escalation test went from 94.5s to 43.3s, at a higher load (33.6 against
+about 24). The two remaining legs (`discover_writers`, `open_residue`) are about 1.4s per draw, are
+keyed to file contents rather than one sha, and are left for a measured next round.
+
+**Prediction, round 5, filed before the next full run:** `test_supervisor.py` alone comes in under
+about 900s at comparable load. Whether the whole operational suite fits in 1800s I cannot yet say:
+the hourly runs have never reached past roughly #508 of about 600, so the tail is unmeasured. If it
+still times out, it names a test after `test_supervisor.py`, or a supervisor test whose draw cost
+is `discover_writers`/`open_residue`.
+
+# Round 6 — 2026-10-15: the record store, re-parsed on every self-refill draw
+
+**Round 5's prediction holds in its conditional form.** A forced run at `e88bc6d8b` (box at load
+19-25 over 16 cores) still timed out at 1800s, at
+`test_supervisor.py::TestFailureMode4DeliveredButNoProgress::test_repeated_confirmed_grants_with_no_progress_trigger_one_escalation`.
+That is a supervisor test whose draw cost is `discover_writers`/`open_residue`, the branch round 5
+named. The hourly timeout before it, at 00:23, named
+`test_stuck_escalation_still_fires_when_only_housekeeping_landed`.
+
+**Slow, not blocking, on two kinds of evidence.** (1) The named test passes alone, in 88s. (2) The
+journal's last 24 hourly runs time out at eight different tests across five files
+(`test_health_check`, `test_supervisor`, `test_frame_saturation_draw_marker`, `test_deadmans_switch`,
+`test_boot_sha_deployment`), with greens in between. A test that blocks stops in the same place
+every time. This suite is at the edge of its budget, and box load decides where the edge falls.
+
+**Profile of the named test** (31 `run_cycle`s, 89.6s, all in `_self_refill_draw_ladder`):
+`discover_writers` 56.7s, of which 46s is the first cycle's cold `code_text` parse of 493 files.
+That is paid once per process, and the 1024-entry cache holds it after. `open_residue` 22.4s,
+about 0.7s a draw, almost all `simplifications_store.load_all`. `load_all` makes 958 `yaml.load`
+calls over 479 unchanged files on every call, about 0.37s of its 0.59s, even under CSafeLoader.
+
+**Repair, not a budget raise:** `simplifications_store._safe_load` caches the parse keyed on the
+TEXT, the round-4 `direction._PARSE_CACHE` shape, and hands out deep copies (2ms for the whole store,
+against 0.15-0.37s to parse). Files are still read on every call, so an edit is a miss. The supervisor
+ruling the module cited as "NOT A CACHE" forbids a cache keyed on anything *but* the current
+stores, and this one is keyed on them, so the comment is corrected rather than the ruling
+overturned. Control:
+`tests/design/test_simplifications_store.py::test_the_store_is_parsed_once_per_TEXT_and_an_edit_is_read_fresh`.
+It goes red against three mutants: no cache; keyed on `len(text)`, so a same-length edit is never
+seen; and no copy. The placebo arm is green. The no-copy mutant first SURVIVED a draft that poisoned
+through `load_all`, which rebuilds its lists. That was the missing test, not an equivalence:
+`_read_doc` hands out the dict itself, and the control now poisons through that.
+Measured: the named test went from 88s to 38.7s, at load 37 against about 19.
+
+**Not taken:** `discover_writers`' warm cost (about 0.15s a draw, file reads plus hashing in the
+`code_text` lru) is a quarter of what was removed. Its cold cost is one parse per process. Keying it
+on stat would be the mtime cache the ruling above forbids.
+
+**Prediction, round 6, filed before the full-suite timing returns:** at load comparable to round 5
+(about 24-33), `test_supervisor.py` alone comes in under 900s. Whether the whole operational suite
+fits in 1800s, I cannot yet say: the hourly runs have been killed at around #508 of about 600, so
+the tail stays unmeasured. If the suite still times out, I expect it to name a test whose cost is
+NOT a per-draw store parse. Then the next question is the cadence one in the director's 2026-08-21
+words, "what genuinely must run before a publish", not another cache.
+
+## Round 6 — result, 2026-10-15 02:57-03:24 UTC
+
+**GREEN.** A forced run at `9712ed756` (shared checkout, round 6 in it) finished rc 0 in 1594s of
+the 1800s budget, at load 19-20 over 16 cores. That ends an 11-check timeout streak. The signal
+paged RECOVERED itself, and its state file reads `consecutive_green: 1`.
+
+**Graded against the prediction.** The whole-suite question round 6 left open now has one answer:
+the suite fits, and the tail past #508 ran. The `test_supervisor.py`-alone-under-900s leg was NOT
+measured. The signal captures its output, and a separate run would have been a second variable on
+the same box. One green does not end this, because the margin is 206s, about 11%. Load is lower
+than the 24-33 the prediction was conditioned on, and round 5 showed load decides where the edge
+falls. **Prediction, filed now:** a later timeout at load ≥25 is expected, and it should stop at a
+test whose cost is not a per-draw store parse. If so, the next move is the cadence question, not a
+seventh cache and not a budget raise.

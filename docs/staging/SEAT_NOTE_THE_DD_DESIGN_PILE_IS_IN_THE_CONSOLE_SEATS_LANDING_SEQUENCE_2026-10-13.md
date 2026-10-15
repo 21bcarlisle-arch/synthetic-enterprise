@@ -1,7 +1,8 @@
-**Severity:** RECORDED · **Lane:** D_billing_metering · **Epoch:** unassigned · **Atom:** `unminted`
+**Severity:** RECORDED · **Lane:** D_billing_metering · **Epoch:** unassigned · **Atom:** `DD_seasonal_cashflow_physics`
 
 # The DD design pile is in the console seat's landing sequence, so this tick did not land a rival copy
 
+**Fate (2026-10-15):** ATOM -- folds into `DD_seasonal_cashflow_physics` (re-pointed 2026-10-15; an ATOM fate names its atom).
 **Fate (2026-10-13, clear-the-decks):** ATOM -- 8c7f8c7c3 (this note's own landing) P2 -- note itself landed (disposition only); hands off real open work "dd-own-forecast-forward-split-wired-after-the-pile-lands" (term_end_iso/forward_rate_per_mwh_ex_vat still unwired in tools/dd_book_legs.py, confirmed absent).
 
 *2026-10-13, autonomous worker tick, claim

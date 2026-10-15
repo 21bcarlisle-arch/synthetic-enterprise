@@ -1,8 +1,9 @@
 # A credited account is dunned, and the run stops on EP17 seed 61106
 
+**Fate (2026-10-15):** ATOM -- folds into `EP4_collections_journey` (re-pointed 2026-10-15; an ATOM fate names its atom).
 **Fate (2026-10-12, clear-the-decks):** ATOM -- domain question: open-item view (gross overdue) vs ledger (net) disagree on credited accounts; seed worked around, not fixed (P2)
 
-**Severity:** LATENT · **Lane:** C_customer_ops · **Epoch:** unassigned · **Atom:** `unminted`
+**Severity:** LATENT · **Lane:** C_customer_ops · **Epoch:** unassigned · **Atom:** `EP4_collections_journey`
 
 Filed by the scale lane, 2026-10-11, from the founders-only seed family at origin `bf238e2bf`.
 

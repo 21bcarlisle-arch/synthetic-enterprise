@@ -1,8 +1,9 @@
-**Severity:** BLOCKING · **Lane:** W2_customer_generator · **Epoch:** 4 · **Atom:** `unminted`
+**Severity:** BLOCKING · **Lane:** W2_customer_generator · **Epoch:** 4 · **Atom:** `E6_a_forward_cash_forecast_per_customer_charges_expected_loss_as_arrears_build`
 **Knowledge:** none -- a control grading a published run against the bad-debt step-up already recorded in docs/market_research/ASSUMPTIONS.md (1.3% to 2.8% of revenue); no new domain claim
 
 # The crisis bad-debt control has skipped since the run went gzip, and the published run shows no crisis step-up (2026-10-14)
 
+**Fate (2026-10-15):** ATOM -- folds into `E6_a_forward_cash_forecast_per_customer_charges_expected_loss_as_arrears_build` (re-pointed 2026-10-15; an ATOM fate names its atom).
 **Fate (2026-10-14):** ATOM -- world fidelity, the affordability cluster's question (W2_4..); the control's reader fix lands with the cause's fix, never alone.
 **Fate (2026-10-15):** stays OPEN. The roll-rate matrix and the reader fix land together (shipped off). The leg that still fails is the validator: 2021-22 does not step up on either basis, and the roll-rate matrix's own charge also peaks in 2023. See the last section.
 
@@ -288,3 +289,37 @@ Handed on as the continuation `the-company-writes-off-what-its-own-ledger-says-i
 
 **Status:** OPEN. The window is right and all three bases are graded. None of them steps up at the
 real level.
+
+## 2026-10-15 (evening): the company writes off its own closed-account debt. Pre-registration first
+
+Worked as `the-company-writes-off-what-its-own-ledger-says-is-gone`. Knowledge first:
+`docs/market_research/bad_debt_provisioning.md`, section "When the company writes off its own
+closed-account debt, and what the recoveries line counts".
+
+**Built.** `arrears_engine.closed_balance_write_offs` writes off a closed account's unpaid balance
+365 days after its final bill. The 365 days is a labelled convention, because C4 is not published.
+Live arrears are never written off on a clock. Each month-end sweep reads the ledger as it stood
+that day, by valid time and by transaction time. The sweeps run once the run is over
+(`LivePaymentTriad.write_off_closed_balances`), because bills post in term order and not date
+order. Each stock now carries `written_off_to_date_gbp` and `recovered_to_date_gbp`, and the
+`ifrs9_charge` basis subtracts the recoveries' movement.
+
+**What the premise got wrong, measured before any run.** "With no write-offs, unpaid debt ages
+forever at the oldest band's rate", so it is never charged in full. That much is true. But the
+final-bill row over 90 days is already 87.8%, so a write-off adds only the other 12.2% of its face.
+On the committed run the year-end final-bill receivable is GBP 241 to 1,723, so writing off all of
+it could move the decade's charge by about GBP 200, against about GBP 2.2m of revenue. **A
+write-off cannot close a tenfold level gap.** The gap is the size and age of the receivable
+(year-end final-bill debt at most about 0.5% of revenue, pay-on-receipt debt over 90 days at most
+about 0.2%), and that is the world's non-payment.
+
+**Pre-registration, filed before the run** (40 founders, seed 61109, `all_wins`, as the roll-rate
+run). Two arms on one ledger: (A) the year-end stocks read before the sweep, and (B) after it.
+1. Write-offs posted: more than 0. Recoveries at every year end: exactly 0.00, because the world's
+   final-bill model has "no later lump".
+2. Arm B's charge over the decade exceeds arm A's by less than GBP 300, and in every year by about
+   0.122 of what was written off that year.
+3. On the `ifrs9_charge` basis both arms FAIL both conditions. The crisis-years share stays
+   between 0.10% and 0.20% of revenue, and the step-up stays under x1.2.
+4. So the published P&L line is still not swapped. The level gap goes back to the world's
+   affordability cluster.
