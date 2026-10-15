@@ -187,3 +187,51 @@ excluded them, or recovered them as a time-limited uplift is practitioner territ
 exclusion is the design's choice, borrowed from the regulator's and the actuaries' treatment, and
 labelled as such. A desk that genuinely learnt from 2022 would put a higher *risk* premium on fixes,
 and that belongs in the strike's risk allowance, not in a margin-reading premium.
+
+## What a fixed strike carries for levies and bad debt (added 2026-10-15)
+
+Opened by the B12 grade of Run D in `docs/staging/records/PREREG_B12_THE_PREMIUM_LOOKBACK_READS_FIXED_TERMS_ONLY_2026-10-15.md`.
+The median 2016-19 fixed electricity term made 4.18 points of unit revenue less than its strike priced for.
+Two costs carry all of it: bad debt (−2.49), which the strike prices none of, and levies (−1.73),
+which the strike locks at the term's first-day level while settlement bills each day at that day's
+level.
+
+**Established: levies are published ahead, on a known calendar.** The Renewables Obligation level
+for an April-to-March obligation year is published around the end of September before it starts.
+The 2017-18 level's explanatory note is dated 1 October 2016. The buy-out price for the year follows
+(`docs/domain_artefact_library/regulatory/ro_obligation_and_buyout.json`, `how_to_recheck`). The
+capacity market and FiT levies also run on April obligation years. Ofgem's cap re-prices them every
+cap period from published levelisation tables
+(`docs/domain_artefact_library/regulatory/capacity_market_supplier_levy.json`). So the cap does not
+lock a levy for a year. A twelve-month fixed term starting in January spans two obligation years,
+and the second one's RO level is already public when the term is priced.
+
+**Established: bad debt is a cost per unit supplied, and the cap prices it.** The cap carries a bad
+debt allowance per customer, by payment method (`bad_debt_provisioning.md` §3.3). The one published
+residential-only charge rate, Centrica's, ran from 1.1% to 3.1% of revenue over 2019-2025 (§3.2). A tariff
+priced with no bad debt in it loses that share of revenue on every term, in every year.
+
+**What follows, as design choices made here.**
+- *Levies.* The strike prices each day of the term at the level published for that day by the
+  notice date. Where a day's level is not yet published, it carries the latest published level
+  forward. It does not forecast. The publication date used is the RO's, 1 October before the
+  obligation year (or calendar year, for the CfD levy). The weighting is by day, because the strike
+  has no seasonal profile to weight by.
+- *Bad debt.* The strike adds the bad-debt charge the company has learned per GBP billed off its own
+  ledger (`company/pricing/default_belief.py`: the change in its provision plus write-offs, by
+  arrears state, shrunk towards a 2.0% prior), times the struck unit rate. It goes on the cost floor
+  too, because it is a cost of the term. Business accounts have no published provision row, so
+  nothing is added for them. *Corrected 2026-10-15, the same day:* this bullet first said the charge
+  was "read off its own settled lines". On those lines `bad_debt_gbp` is the world's incidence
+  (revenue × `world_bad_debt_incidence`), which no supplier sees. The seat ruled that on 2026-10-11
+  (`docs/staging/done/SEAT_FINDING_THE_PUBLISHED_PROVISION_WAS_THE_WORLDS_INCIDENCE_AND_THE_COMPANYS_OWN_STOCK_WAS_NEVER_READ_2026-10-11.md`).
+
+**GAP.**
+- The publication lead times of the CfD interim levy rate, the CM levy and the FiT levelisation
+  estimate are not in the commons. The RO's date stands in for all three.
+- Whether a GB fixed-tariff desk forecasts a levy year that is not yet published, and how it does so,
+  is practitioner territory (K4). Carrying the last published level forward is the conservative
+  reading, and it leaves terms struck from April to September still short of the April step.
+- No published source says how a supplier loads bad debt into a fixed unit rate: per MWh, per
+  customer, by payment method, or by arrears state. The cap's per-customer, by-method form is what the regulator does.
+  The per-MWh form here is the design's, because the strike is a unit rate.

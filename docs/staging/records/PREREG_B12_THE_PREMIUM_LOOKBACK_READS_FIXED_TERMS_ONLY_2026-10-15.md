@@ -303,3 +303,112 @@ company's own provision, and policy priced at the term's settlement-weighted lev
 published schedules. The 2018-19 hedge-versus-forward gap is a third question for the hedge desk,
 not for B12. The size-keyed loss cap, item (b), still follows. Once the strike prices what recurs,
 what the premium is left to learn is the year-bound loss, which is the thing a cap is for.
+
+## Run S: the strike prices its bad debt and the levy it will be billed (pre-registered 2026-10-15, before S launched)
+
+**Claim:** `b12-the-strike-prices-its-bad-debt-and-the-levy-it-will-be-billed`. This is the remedy D's
+disposition names. The knowledge comes first (K8): the renewal-decision page's new section, "What a
+fixed strike carries for levies and bad debt". S is L's code at `1ca6dfcf5` plus one change to the
+strike, in two parts, in the worktree `/var/tmp/b12-strike`. The diff against `1ca6dfcf5` is
+`/var/tmp/b12-out/S-full.diff`, sha256 `af7de28f…7059170`. The grader `grade_s.py` and the
+prediction script `predict_s.py` were hashed at the same time, in `/var/tmp/b12-out/grade_s.sha256`.
+- **Bad debt.** A fixed term's rate, and the cost floor a discount stops at, both carry the company's
+  own bad-debt charge per MWh. The rate is read off its own settled lines over the year before the
+  notice date (`OwnBadDebtBook` in `company/pricing/renewal_rate_chain.py`). It is not the world's
+  incidence. Before any line has settled, nothing is added. Both fuels, because it is one rule.
+- **Levies.** The electricity strike prices RO+CfD+CM+FiT as the day-weighted mean over the term of
+  the level published for each day by the notice date. A day whose level is not yet published carries
+  the latest published one forward (`published_electricity_policy_cost_over_term` in
+  `simulation/policy_costs.py`). A level counts as published from 1 October before it takes effect.
+  The direction asked for settlement weighting. Day weighting is used because the strike has no
+  profile to weight by.
+
+It runs on the same seed (61109) with the same command as L, and with D's write-only line probe, plus one field: the
+allowance applied. The artefacts are `/var/tmp/b12-out/strike-sv-k1-61109.json` and
+`/var/tmp/b12-out/strike-term-lines.jsonl`.
+
+**What the predictions are built from.** `predict_s.py` reprices D's 254-term population off its own log. The
+own-book charge comes to £2.79/MWh at the median. The levy moves only for terms whose notice falls
+on or after 1 October, about half of them (Nov-Mar starts). A July start sees no April step. To first
+order, the median realised rate moves from −2.38 to +0.25 against +1.79 priced for. 2017 moves
+to +1.08 and 2018 to −1.78, because 2018 carries D's hedge loss, which S does not touch. The
+premium's and the churn's responses are second order and are not modelled. That is why the bands
+below are wider than the first-order gaps. The grader, run on L's own lines with S's file names
+pointed at L, reads every one of P1-P4 and P6 false. So each can fail.
+
+**Controls.**
+- **S0 (the identity still closes).** Over S's population, the median |residual| is under 0.05 points.
+  The bad-debt line is the allowance billed less the charge.
+
+**Predictions** (medians, points of unit revenue, population as D's):
+- **P1 (the direction's question).** For terms last settled in 2016-17, the realised rate is within
+  **2 points** of what was priced for. First order: −0.7.
+- **P2 (pooled 2016-19, lower confidence).** Within 2 points. First order: −1.5.
+- **P3 (bad debt is priced).** The bad-debt line sits between **−0.5 and +0.5** (L: −2.49).
+- **P4 (the levy, only partly).** The policy line sits between **−1.0 and 0** (L: −1.73). It does not reach
+  0, because the terms struck from April to September cannot see the next April's step.
+- **P5 (what S does not touch).** 2018 is still more than **2 points** short. That is the hedge leg.
+- **P6 (the book, a direction, low confidence).** `total_net` is higher than L's £269,782.23. Dearer
+  fixes could lose customers, and that would refute this.
+
+**What a failure points to.** If S0 fails, the bad-debt allowance reached a line the identity does not list.
+If P3 holds and P1 fails, the remainder is the levy carry-forward, or the premium answering the
+change. The rate line separates the two. If P3 fails, the own-book charge does not track the
+charge the terms bear, which can happen if the trailing year lags a rising charge.
+
+## Run S-prime: the same strike, with the bad-debt allowance from the company's own belief (pre-registered 2026-10-15, before S-prime launched)
+
+**Why S cannot land as built, found on taking over its salvage.** S's `OwnBadDebtBook` reads
+`bad_debt_gbp` off the settled lines. At settlement that field is `revenue × world_bad_debt_incidence ×
+stress` (`simulation/run_phase2b.py`): the world's own incidence. The seat ruled on 2026-10-11 that this
+is "a flow on settlement revenue at the world's own default incidence. Nothing in it is a receivable,
+an age, or a company record" (`docs/staging/done/SEAT_FINDING_THE_PUBLISHED_PROVISION_WAS_THE_WORLDS_INCIDENCE_AND_THE_COMPANYS_OWN_STOCK_WAS_NEVER_READ_2026-10-11.md`).
+D's own disposition asked for the allowance "from the company's own provision". So S is still worth
+grading, but as the upper bound: what the strike would recover if it knew the world's incidence.
+S-prime is the version that can land.
+
+**Claim:** `b12-the-strike-lands-from-its-salvage`. S-prime is S's code (`4dd8f4bae`) with one change.
+The bad-debt allowance is `default_belief_rate × the struck unit rate`. That is the charge per GBP
+billed that the company has learned off its own ledger, by arrears state, shrunk towards the 2.0%
+prior (`company/pricing/default_belief.py`, cited to `docs/market_research/ASSUMPTIONS.md`). It is the
+belief the value arm already reads, and the run already supplies it for residential accounts. It is
+`None` for business accounts, which have no published row, so nothing is added for them.
+`OwnBadDebtBook` is deleted. The value arm is handed the floor without the allowance, because the arm
+nets the same belief off its own value. That does not touch the flat-rules run graded here. The worktree is
+`/var/tmp/b12-strike2`. Its diff against `1ca6dfcf5` is `/var/tmp/b12-out/Sprime-full.diff`, sha256
+`160cdbdc…74f67bc`, and its diff against S is `Sprime-vs-S.diff`, sha256 `1a06a85a…12229b`. The
+grader is `/var/tmp/b12-out/grade_sprime.py`, sha256 `64d266b1…88936ee9ed`. It is the same seed and
+the same command as S. The artefacts are `strikeprime-sv-k1-61109.json` and
+`strikeprime-term-lines.jsonl`.
+
+**What the predictions are built from.** Over D's 254 terms, the world charged 2.00% of revenue,
+2.49% of unit revenue. The median term unit rate was £108.8/MWh. At the prior alone, the allowance
+would be about £2.2/MWh, 2.0 points of U, leaving the bad-debt line near −0.5. The belief is learned
+by arrears state, though, and the provision on a current DD account is 0% (Centrica C6). So a clean
+account's belief can fall well below the prior once outcomes resolve. That is the main uncertainty,
+and it is why the bands below are wider than S's.
+
+**Controls.**
+- **S'0.** The median |residual| is under 0.05 points.
+
+**Predictions** (medians, points of U, D's population):
+- **P1' (the direction's question, low confidence).** 2016-17 realised is within **2 points** of
+  priced-for.
+- **P2'.** Pooled 2016-19 is within **2.5 points**.
+- **P3'.** The bad-debt line is between **−1.0 and 0.0**. It does not close fully, because the
+  belief is the company's and not the world's.
+- **P4'.** The policy line is between **−1.0 and 0** (same as P4: the levy change is S's, unchanged).
+- **P5'.** 2018 is still more than **2 points** short.
+- **P6'.** `total_net` is higher than L's £269,782.23.
+- **P7' (the source).** The median allowance is between **£2.0 and £3.5/MWh**.
+- **P8' (against S, low confidence).** S-prime's bad-debt line sits below S's: the company's belief
+  recovers less than the world's incidence.
+
+**What a failure points to.** If P7' fails low, the arrears-state belief has learned that clean
+accounts lose little. The fixed strike is then under-loaded by design, and the remaining gap sits
+on the accounts that do go bad. That is the value arm's per-account question, not the strike's. If
+P3' holds and P1' fails, the remainder is the levy carry-forward, as for S.
+
+**Landing rule.** If S'0, P3' and P4' hold, S-prime's code lands (the levy, the belief-based
+allowance, and L's fixed-only lookback) with its controls. P1' failing does not block the landing.
+It names B12's remainder in EP17's `block_reason`.
