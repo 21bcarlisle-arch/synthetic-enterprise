@@ -164,6 +164,15 @@ def _no_real_tick_mode(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def _advisor_provenance_stubbed(monkeypatch):
+    """The advisor channel's authority check needs a signed commit on a git origin, so every test
+    that judges a file in a scratch folder would read as forged. Accepted here; the real check is
+    proven against a throwaway signed and unsigned origin in tests/background/test_advisor_channel.py."""
+    from background import advisor_channel
+    monkeypatch.setattr(advisor_channel, "verify_provenance", lambda root, name, data: None)
+
+
+@pytest.fixture(autouse=True)
 def _no_real_state_write(request, monkeypatch):
     """G-T2: a test may NOT write a production surface, WHATEVER PRIMITIVE IT USES.
 
