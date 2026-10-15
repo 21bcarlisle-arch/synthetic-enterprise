@@ -733,6 +733,11 @@ def check_once(seen: set[str]) -> set[str]:
     # cadence, and is the one place a move is safe. Guarded whole: a routing failure must never
     # take down the scan that finds real staged work.
     _route_arrivals_to_rooms()
+    try:  # the advisor folder is not the root: its arrivals are announced by the channel's own ack
+        from background.advisor_channel import acknowledge_arrivals
+        acknowledge_arrivals()
+    except Exception as exc:  # noqa: BLE001 -- never take down the scan that finds staged work
+        log(f"advisor channel arrival check failed: {type(exc).__name__}: {exc}")
 
     files = current_files()
     new_files = sorted(files - seen)

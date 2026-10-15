@@ -838,7 +838,8 @@ CHARTER = CHARTER_BODY + _TURN_ENDS
 
 
 def build_prompt(item: dict) -> str:
-    return CHARTER + "\n\nTHE WORK:\n\n" + delivery_lane.doorbell(item)
+    from background.advisor_channel import prefix as _advisor_rung_zero
+    return CHARTER + "\n\nTHE WORK:\n\n" + _advisor_rung_zero() + delivery_lane.doorbell(item)
 
 
 def run_once(*, dry_run: bool = False, now: float | None = None) -> tuple[bool, str]:

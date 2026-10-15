@@ -2174,8 +2174,10 @@ def _prompt(brief: dict) -> str:
             r.get("status"), r.get("id"), r.get("kind") or "no kind", r.get("what"),
             r.get("proposal")) for r in concerns)
     ) if concerns else "\n\nNO OPEN CONCERNS are waiting on the director."
+    from background.advisor_channel import prefix as _advisor_rung_zero
     return (
         CHARTER
+        + "\n\n" + _advisor_rung_zero()
         + graded
         + carried
         + "\n\nTHE LAST STRETCH OF COMMITS, as a person would read them. `!!` marks a commit that "

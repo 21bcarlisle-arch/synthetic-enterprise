@@ -29,3 +29,20 @@ His console link dropped at about 09:45 and he cannot reach the pane. Severity i
 4. **The rest of the week.** The 09:50 steer's list stands: the machine-class known issues, the 145 banners, staging fates, then C34 and EP17 minted for Monday under his 06:50 words. World texture work (W1_29, L2.4, storage charging) is not clear-down. Land what is in hand, then park the rest as atoms for next week. The last usage reading was 71% at 06:45. Keep the 6-point reserve.
 
 Keep going between pieces.
+
+## Progress (worker tick, 2026-10-15 ~15:40 BST)
+
+- **Item 2, the channel: built.** `background/advisor_channel.py` reads `docs/staging/advisor/` (top
+  level only; `done/` is the archive). A file is drawn when it has the staging header and quotes his
+  chat words with a time, or says it acts "on the director's standing delegation of 15 Oct". Any
+  other file is refused with its reason and never drawn. The rung-zero text goes first in all three
+  lanes' prompts: `worker_tick.compose_prompt`, `seat_executor.build_prompt`, and
+  `delivery_seat._prompt`. It carries the delegation's limits and the move-to-`done/` rule. The
+  acknowledgement is one NTFY per file, keyed on the file. The staging watcher sends it on arrival
+  (its scan reads only the root, so the folder is checked separately), and a lane's draw sends it
+  if the watcher has not. Tests: `tests/background/test_advisor_channel.py`. It covers drawn
+  first in each lane, refused with its reason, both verdicts reachable in one folder, and one ack
+  per file. A mutation that drops the executor's prefix reds it. The G8 amendment is in
+  `DIRECTOR_CANON.md` in his words.
+- **Still open:** item 1's NTFY naming both files, item 3 (whether the console session is up), and
+  item 4 (the rest of the week). The mothball steer follows this one.

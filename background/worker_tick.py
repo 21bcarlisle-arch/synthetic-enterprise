@@ -509,6 +509,13 @@ def _claim_dispatched(reason: str) -> "str | None":
     return claimed
 
 
+def compose_prompt(reason: str) -> str:
+    """The tick's prompt: the advisor channel's rung zero, if any, ahead of the drawn work."""
+    from background.advisor_channel import prefix as _advisor_rung_zero
+    return (WORKER_PREAMBLE + _advisor_rung_zero()
+            + "[SCHEDULED-TICK doorbell -- R7: act on real disk/git state] " + reason)
+
+
 def spawn_invocation(reason: str) -> "subprocess.Popen | None":
     """Spawn ONE headless bounded `claude -p` worker invocation. Returns the Popen (still running),
     or None if it could not be launched. The invocation is marked SE_SBI_WORKER=1 (the Stop hook's
@@ -541,7 +548,7 @@ def spawn_invocation(reason: str) -> "subprocess.Popen | None":
             log_decision(decision, reason)
         except Exception:  # pragma: no cover - measurement must never wedge the tick
             pass
-    prompt = WORKER_PREAMBLE + "[SCHEDULED-TICK doorbell -- R7: act on real disk/git state] " + reason
+    prompt = compose_prompt(reason)
     try:
         try:
             out = LAST_OUTPUT_FILE.open("wb")
