@@ -16,6 +16,16 @@ WHAT THE DELEGATION COVERS is in the rung text below, because the lane reading t
 that has to apply it: a delegated file that reaches for the mission, canon intent, a curriculum
 value, a reserved action or a decision that is his is a proposal to raise, not an instruction.
 
+PROVENANCE COMES BEFORE ATTRIBUTION, AND IT IS A SIGNATURE, NOT PROSE (added 2026-10-15). The
+page-comment channel was retired on 2026-07-24 because "a web form that stages content as the
+director's voice was the weakest link in the authority model" (background/director_comments.py).
+Every lane on this box can write a file, so a folder whose authority rested on its text alone would
+let the machine author its own orders. A file is therefore drawn only if its bytes are what
+origin/main holds at that path, in a commit signed by the advisor's pinned key
+(tools/advisor_allowed_signers). Measured 2026-10-15: all nine advisor commits since September carry
+that one key, and none of 1,045 machine commits is signed at all. A file that exists only on this
+disk, or was edited after the advisor staged it, is refused with that reason.
+
 THE ACK IS THE MECHANISM'S, not the reader's: composing the rung for a file sends one NTFY naming
 it, keyed so it is sent once per file however many lanes draw it.
 """
@@ -34,6 +44,42 @@ _DELEGATION_RE = re.compile(
 # A time, then a quoted span of at least three words, on one line: `- 09:49 BST: "Is there a way..."`.
 _QUOTED_CHAT_RE = re.compile(
     r"\b[0-2]?\d:[0-5]\d\b[^\n\"“]*[\"“][^\"”\n]*\S+\s+\S+\s+\S+[^\"”\n]*[\"”]")
+
+
+ALLOWED_SIGNERS = REPO_ROOT / "tools" / "advisor_allowed_signers"
+
+
+def _git(root: Path, *args: str, text: bool = True):
+    import subprocess
+    return subprocess.run(["git", "-c", f"gpg.ssh.allowedSignersFile={ALLOWED_SIGNERS}", *args],
+                          cwd=str(root), capture_output=True, text=text, timeout=60)
+
+
+def provenance(root: Path, name: str, data: bytes) -> str | None:
+    """None when `data` is what origin/main holds for this file, in a commit signed by the pinned
+    advisor key; otherwise why it is refused. Fail-closed by design: this is the authority check,
+    and a check that cannot run must not grant his voice."""
+    path = f"{ADVISOR_DIR_REL}/{name}"
+    try:
+        shown = _git(root, "show", f"origin/main:{path}", text=False)
+        if shown.returncode != 0:
+            return "not on origin: only a commit signed by the advisor's key can stage here"
+        if shown.stdout != data:
+            return "its bytes differ from origin's, so it was edited after the advisor staged it"
+        commit = _git(root, "log", "-1", "--format=%H", "origin/main", "--", path).stdout.strip()
+        if not commit:
+            return "no origin commit stages it"
+        if _git(root, "verify-commit", commit).returncode != 0:
+            return (f"the commit that staged it ({commit[:9]}) is not signed by the advisor's "
+                    "pinned key")
+        return None
+    except Exception as exc:  # noqa: BLE001
+        return f"provenance could not be checked ({exc!r})"
+
+
+#: Swapped for an accepting stub in tests (tests/conftest.py); the real check needs a git origin
+#: and is proven against a throwaway one in tests/background/test_advisor_channel.py.
+verify_provenance = provenance
 
 
 @dataclass(frozen=True)
@@ -64,7 +110,8 @@ def attribution_of(text: str) -> tuple[str | None, str | None]:
 
 def scan(repo_root: Path | str | None = None) -> list[AdvisorFile]:
     """Every file at the folder's top level, oldest name first, each judged drawable or refused."""
-    folder = Path(repo_root if repo_root is not None else REPO_ROOT) / ADVISOR_DIR_REL
+    root = Path(repo_root if repo_root is not None else REPO_ROOT)
+    folder = root / ADVISOR_DIR_REL
     if not folder.is_dir():
         return []
     out = []
@@ -73,6 +120,10 @@ def scan(repo_root: Path | str | None = None) -> list[AdvisorFile]:
             text = path.read_text(encoding="utf-8")
         except (OSError, UnicodeDecodeError) as exc:
             out.append(AdvisorFile(path, None, f"unreadable: {exc}"))
+            continue
+        why = verify_provenance(root, path.name, text.encode("utf-8"))
+        if why:
+            out.append(AdvisorFile(path, None, why))
             continue
         attribution, refusal = attribution_of(text)
         out.append(AdvisorFile(path, attribution, refusal))
