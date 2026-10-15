@@ -174,12 +174,62 @@ def _same_code_at(commit: str, rel: str, repo: Path) -> bool:
     return shape is not None and shape == _code_shape(at_commit)
 
 
+def one_variable_arm_refusal(data: dict) -> str | None:
+    """Why a run output may not stand as an arm of a one-variable grade, or None if it may.
+
+    A grade that re-runs at a run's stamp and differences against it is reading one commit only
+    if the run imported that commit's bytes. `run_output_2248e3baf_20261013T134447Z` did not: its
+    shared tree held 81c129fe8's acquisition code, so a re-run at 2248e3baf drew a different book
+    from 2016-02-13 and left PROS-2017-0336 ungraded (docs/staging/WORKER_FINDING_TWO_RUNS_AT_ONE_
+    COMMIT_DRAW_DIFFERENT_BOOKS_FROM_FEBRUARY_2016_2026-10-15.md).
+
+    Stricter than the publisher's `imports_off_commit_refusal` on one point: a header with NO
+    reading refuses here. The publisher lets those pass because refusing them would have refused
+    every run made before the reading existed. An arm with no reading is exactly the case that
+    went wrong, and the remedy is cheap: run both arms fresh from one recipe.
+    """
+    block = (data.get("producing_commit") or {}) if isinstance(data, dict) else {}
+    commit = block.get("commit")
+    if not commit:
+        return "the run names no producing commit ({})".format(
+            block.get("unavailable_because") or "no reason given")
+    reading = block.get("imports_off_commit")
+    if not isinstance(reading, dict):
+        return ("{} carries no reading of its imported bytes (it predates c701d8605), so nothing "
+                "says the code that ran was {}'s; run both arms fresh instead".format(commit, commit))
+    paths = reading.get("paths")
+    if paths is None:
+        return "nothing measured whether the code that ran was {}'s ({})".format(
+            commit, reading.get("unavailable_because") or "no reason given")
+    if paths:
+        return "{} imported file(s) were not {}'s bytes when the run started: {}".format(
+            len(paths), commit, ", ".join(paths))
+    return None
+
+
+def load_one_variable_arm(path) -> dict:
+    """Load a run output, refusing by name one that cannot be an arm of a one-variable grade."""
+    from tools.run_output_store import load_run_output
+    data = load_run_output(path)
+    why = one_variable_arm_refusal(data)
+    if why:
+        raise ValueError("{} is not a one-variable arm: {}".format(path, why))
+    return data
+
+
 if __name__ == "__main__":  # pragma: no cover - operator inspection aid
     try:  # seat guard, FIRST act -- refuse to start on foreign soil (background/_seat.py)
         from background._seat import refuse_if_foreign
     except ModuleNotFoundError:  # launched as `python3 background/code_closure.py`
         from _seat import refuse_if_foreign
     refuse_if_foreign("code_closure")
+    if sys.argv[1:2] == ["--arm"] and len(sys.argv) == 3:
+        try:
+            load_one_variable_arm(sys.argv[2])
+        except ValueError as exc:
+            sys.exit(f"REFUSED: {exc}")
+        print(f"admitted: {sys.argv[2]} imported its stamp's bytes")
+        sys.exit(0)
     for s in sys.argv[1:]:
         c = closure_for_session(s)
         print(f"{s}: {len(c)} modules")

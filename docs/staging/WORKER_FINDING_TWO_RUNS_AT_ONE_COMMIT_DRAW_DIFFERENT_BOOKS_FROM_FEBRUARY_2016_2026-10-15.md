@@ -100,3 +100,94 @@ worktrees at a real commit whose code draws A's book:
 - **P2.** All five PROS-2017-0336 rows (2017, 2018, 2019, 2020, 2023) clear, with the deltas in the
   pre-registration's table. 2023 is the narrowest, at +£177.71 for a £122 clearance.
 - **P4.** No catch-up bill is newly held.
+
+## Which published figures ran code their stamp does not name (delivery seat, claim `no-run-or-publish-imports-code-that-is-not-its-stamp`)
+
+**Part (1) was already on origin before this item was drawn.** `c701d8605` (2026-10-14 00:08Z) takes
+`background.code_closure.imports_off_commit` at launch: `git diff <stamp>` plus untracked files over
+the run's import closure. `run_annual_report` writes it into `producing_commit.imports_off_commit`,
+and marks it unmeasured (`paths: None`, with the reason) when no launcher handed it one or the reading
+was taken against another commit. `process_run_complete.imports_off_commit_refusal` refuses a publish
+on a non-empty list or on `None`. `sim_runner.code_admission` stops a run from starting at all
+unless the closure is clean and the stamp is on origin. The control the item asks for, HEAD at X with
+a disk copy from Y, is
+`tests/background/test_a_run_whose_imported_bytes_are_off_its_commit_is_not_published.py`
+(`test_the_reading_names_modified_and_untracked_imports_and_only_those`,
+`test_a_dirty_imported_path_is_not_published_under_a_clean_stamp`). The one missing leg is the
+**re-run recipe**. A grader that differences a fresh run against a published arm reads nothing that
+would refuse a dirty-stamped arm. That leg is built in this landing.
+
+**The twenty-day edit the director named** is the `tools/demand_vector_coverage.py` working copy
+(mtime 2026-09-24 15:02 BST). It dropped `seasonal_swing` from `DISTRIBUTION_AXES`. It was named by
+`c701d8605`'s finding and landed by `ac3612a6f` (2026-10-14). That commit argues from the code that no
+settlement figure moves, because the settlement choice reaches no function that reads the axes.
+
+**Census population.** Every `Auto-process run complete` publish on origin since 2026-09-21: 21
+publishes, 21 distinct stamps, and every run file is still on the shared tree's disk. None carries an
+`imports_off_commit` reading, because all 21 predate `c701d8605`. So no reading taken at run time can
+say what each one imported. A partial witness that can still be read now is the **book draw**.
+`simulation.live_population.live_population()` at a clean checkout of the stamp, in-process with no
+`SE_*` env, gives the PROS ids that commit's acquisition code signs. A run whose code was its stamp's
+bills no PROS id that its stamp does not draw. Calibrated on arm B (clean `2248e3baf`), billed-not-drawn
+is 0 and drawn-not-billed is 4, the never-billed signers. On arm A it is 139 and 147.
+
+**What this witness cannot see.** Dirty bytes downstream of acquisition (billing, hedging,
+reporting) leave the book unchanged. So a pass says only that the acquisition code agrees with the
+stamp. It does not say the run was clean. The `demand_vector_coverage` edit is one of those
+invisible ones, and the census names it on the strength of its mtime, not of the witness.
+
+**Prediction, written before the scan.** `run_output_2248e3baf_20261013T134447Z` fails (it is arm A,
+already known). Of the other 20, I expect **at least 18 to pass**. Every one of them also ran the
+`demand_vector_coverage` edit (all 19 launched after 2026-09-24 14:02Z, all but `87b25d6da`), but the
+book cannot see that edit. A failure means a second dirty acquisition edit that nobody has named.
+
+**Result: the prediction held, 20 of 20.** Only the run already known as arm A fails. Scripts and
+per-stamp id lists are in `/var/tmp/se-stampcensus/` (`scan.sh`, `scan.log`).
+
+| Publish | Run file | Stamp | Book witness (billed PROS not drawn / drawn not billed) | Dirty imported paths, and the evidence for them |
+|---|---|---|---|---|
+| `ed3dadd9d` 10-13 | `run_output_2248e3baf_20261013T134447Z` | `2248e3baf` | **139 / 147, FAIL** | `simulation/net_new_acquisition.py` and `saas/growth_mandate.py` at `81c129fe8`'s bytes (witness above). `tools/demand_vector_coverage.py`, the 09-24 edit (mtime). |
+| `a88fb2436` 10-05 | `run_output_998814330_20261005T205247Z` | `998814330` | 0 / 0 | `tools/demand_vector_coverage.py` (mtime) |
+| `1526f5267` 09-28 | `run_output_16eeaf2cf_20260928T032442Z` | `16eeaf2cf` | 0 / 0 | same |
+| `d28b8021e`, `d75148485`, `bfc64212f`, `cbb11d939`, `65d046034`, `7e7b0332e`, `8e2b20ced` (09-27) | `d110149f0`, `496e41f26`, `32c12e1a7`, `65d046034`, `d678f063a`, `2596867f7`, `fe4bde811` | as file | 0 / 0 each | same |
+| `2596867f7`, `d1cb3b90f`, `b77978a40`, `8470c4d44`, `704a7318a`, `b22f47610` (09-26) | `d58c6340a`, `4c31d98a2`, `3a1678638`, `1f3720eeb`, `c64ba1b32`, `833d07a01` | as file | 0 / 0 each | same |
+| `82d89003c`, `e8a4aab51`, `4bc282c50`, `19e60c443` (09-25) | `e1736649a`, `5903db01e`, `837a94c8a`, `33650edec` | as file | 0 / 0 each | same |
+| `60c8c1d4b` 09-21 (control, before the edit) | `run_output_87b25d6da_20260921T152931Z` | `87b25d6da` | 0 / 0 | none known |
+
+**Which figures that touches.**
+- **Every figure on the live site today comes from the one failing run.** No run has been published
+  since `ed3dadd9d`. That publish wrote 47 `site/data` and `site/state` files and 1,000 customer
+  pages. Those include the £543,474 net headline (`company.json`, `dashboard.json`,
+  `margin_bridge.json`), the book (`customers.json`, `customer_sample.json`, `book_growth.json`,
+  `site/data/customers/*`), `billing_accuracy.json`, `billing_ledger.json`, `value_arms.json` and
+  `publish_provenance.json`. Their stamp, `2248e3baf`, does not draw that book. The code that did
+  draw it is `2248e3baf` with `81c129fe8`'s two acquisition files. `81c129fe8` is now on origin,
+  so the figures are not from code that no history holds. They are from a combination that no
+  single commit holds. Whether `81c129fe8` alone reproduces them is Q0 of the X0 run above, which
+  is running now. Until Q0 reads, those figures have no commit that reproduces them.
+- **The 19 publishes from 09-25 to 10-05** each ran the `demand_vector_coverage` edit under a stamp
+  that lacks it. The book witness passes on all 19, so their acquisition code was their stamp's.
+  The edit's effect on figures is argued, not measured: `ac3612a6f` reads that the settlement choice
+  calls no function that reads `DISTRIBUTION_AXES`. Every one of these figures was superseded by
+  `ed3dadd9d`.
+- **What the census cannot rule out:** a dirty edit downstream of acquisition in any of the 20 that
+  left no mtime anyone recorded. The witness is blind there, and no reading was taken at the time.
+  From `c701d8605` on, no run can reach the page without that reading. From this landing on, no run
+  can stand as a one-variable arm without it either (`python3 -m background.code_closure --arm <file>`).
+
+**What this commit adds (part 1's missing leg).**
+- `background/code_closure.one_variable_arm_refusal` / `load_one_variable_arm`, and a door at
+  `--arm`. They refuse an arm whose reading is absent, unmeasured or non-empty. The publisher passes
+  an absent reading, but an arm check does not, because the absent case is the 2248e3baf case.
+- `tools/run_annual_report.main()` now takes its own reading at process start when no launcher
+  handed it one. A grader's arm or a hand run stamps its dirty paths instead of reading as
+  unmeasured.
+- Control: `tests/tools/test_a_run_whose_bytes_were_not_its_stamp_is_not_a_one_variable_arm.py`.
+  It builds today's shape (HEAD at X, a disk copy of a `simulation/` file from Y). It was
+  mutation-proven four ways: dirty admitted, absent admitted, loader skips the check, and no
+  fallback reading. Each one reds.
+
+**Fate:** the stamp defect is closed by `c701d8605`, `code_admission` and this landing. The live
+site's provenance gap resolves when Q0 reads, or at Monday 2026-10-19's publish, which must pass
+the reading. The continuation `the-run-stamp-names-the-imported-bytes-not-head` is retired as
+subsumed.

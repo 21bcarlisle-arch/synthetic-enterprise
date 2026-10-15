@@ -261,6 +261,18 @@ def reconcile_and_stamp(
     )
 
 
+def _imports_off_commit_at_start(commit: str | None) -> dict | None:
+    """This process's own reading of which imported files are not `commit`'s bytes, for a run no
+    launcher measured (a grader's arm, a hand run). Taken before the run, beside the commit, so a
+    direct run stamps its dirty paths instead of reading unmeasured. Never raises: None falls
+    through to the unmeasured record, which the publisher and the arm check both refuse."""
+    try:
+        from background import code_closure
+        return code_closure.imports_off_commit("tools/run_annual_report.py", commit or "")
+    except Exception:  # noqa: BLE001 -- an unmeasured run is refused downstream, never crashed
+        return None
+
+
 def _imports_off_commit_record(reading: dict | None, commit: str | None) -> dict:
     """The launcher's reading of which imported files were not `commit`'s bytes, checked against
     the commit this process stamped. `paths` is None (unmeasured, reason beside it) unless the
@@ -605,6 +617,7 @@ def main() -> None:
     # different fact -- see the stamping block in `reconcile_and_stamp`.
     code_commit = _git_commit_hash()
     code_commit_at = datetime.now(timezone.utc)
+    imports_off_commit = args.imports_off_commit or _imports_off_commit_at_start(code_commit)
 
     raw_output = run_phase4c_on_phase2b(report_end=report_end)
     # THE SAME DISCIPLINE AS `save_run_output_json`, AND THIS IS THE PATH THAT PUBLISHES.
@@ -616,7 +629,7 @@ def main() -> None:
     # separately are two facts -- the stamp would then be a claim about a window it never saw.
     data = reconcile_and_stamp(
         extract_report_data(raw_output), code_commit=code_commit, report_end=report_end,
-        imports_off_commit=args.imports_off_commit, code_commit_at=code_commit_at,
+        imports_off_commit=imports_off_commit, code_commit_at=code_commit_at,
     )
     args.save_json.parent.mkdir(parents=True, exist_ok=True)
     args.save_json.write_text(dump_run_output(data))

@@ -188,7 +188,8 @@ def test_JOIN_the_VAT_charged_is_the_rate_the_LAW_publishes(journey):
 def test_JOIN_the_field_called_average_unit_rate_is_NOT_what_the_household_paid(journey):
     """A name doing two jobs, found by this walk, and pinned so it cannot be read the wrong way.
 
-    `average_unit_rate_gbp_per_mwh` is `commodity_amount / MWh` — the wholesale leg alone. What the
+    `average_unit_rate_gbp_per_mwh` is `(commodity_amount + non_commodity_amount) / MWh` — the unit
+    charge alone, before standing charge and VAT. What the
     household actually paid per MWh is the whole bill over the same volume, which on this book runs
     around **1.4x to 2x higher**. Both numbers are correct and only one of them is what a reader of
     the words "average unit rate" would take. It reaches `site/data/customers.json` as
@@ -215,11 +216,14 @@ def test_JOIN_the_field_called_average_unit_rate_is_NOT_what_the_household_paid(
         mwh = bill["total_consumption_kwh"] / 1000.0
         if mwh <= 0:
             continue
-        commodity_rate = bill["commodity_amount_gbp"] / mwh
-        assert abs(bill["average_unit_rate_gbp_per_mwh"] - commodity_rate) < 0.01, (
-            f"{bill['period_end']}: `average_unit_rate_gbp_per_mwh` is no longer the COMMODITY "
-            "rate. If it has been redefined as what the household paid, that is a change of "
-            "meaning for every reader of the field."
+        # 1d3c28930 carved the levies out of `commodity_amount_gbp` into
+        # `non_commodity_amount_gbp`, so the unit rate is the two together over the volume. The
+        # field's value did not move; the commodity leg it was compared with did.
+        unit_rate = (bill["commodity_amount_gbp"] + bill.get("non_commodity_amount_gbp", 0.0)) / mwh
+        assert abs(bill["average_unit_rate_gbp_per_mwh"] - unit_rate) < 0.01, (
+            f"{bill['period_end']}: `average_unit_rate_gbp_per_mwh` is no longer the UNIT rate "
+            "(commodity plus levies, before standing charge and VAT). If it has been redefined as "
+            "what the household paid, that is a change of meaning for every reader of the field."
         )
         if bill.get("catchup_adjustment_gbp"):
             skipped_catchup += 1
@@ -228,8 +232,8 @@ def test_JOIN_the_field_called_average_unit_rate_is_NOT_what_the_household_paid(
         effective_rate = bill["total_amount_gbp"] / mwh
         assert effective_rate > bill["average_unit_rate_gbp_per_mwh"], (
             f"{bill['period_end']}: the effective rate {effective_rate:.2f}/MWh is not above the "
-            f"commodity rate {bill['average_unit_rate_gbp_per_mwh']:.2f}/MWh, which would mean "
-            "levies, standing charge and VAT sum to nothing"
+            f"unit rate {bill['average_unit_rate_gbp_per_mwh']:.2f}/MWh, which would mean "
+            "standing charge and VAT sum to nothing"
         )
     assert checked >= 10
     assert skipped_catchup > 0, (
