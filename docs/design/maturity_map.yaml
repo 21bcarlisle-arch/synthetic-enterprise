@@ -606,8 +606,8 @@
   records_rehomed: [evidence]
   file_scope: ['company/analytics/clv_three_horizon.py', 'tests/company/analytics/test_clv_three_horizon.py', 'company/analytics/customer_value_view.py', 'tools/couple_clv.py', 'tests/tools/test_couple_clv.py']
   simplifications_count: 19   # 2026-10-01 LEVEL STAYS 2. Ledger row landed 7a8e651cd: gap 1.081 n=69 (H2 on the book's tenure-year life table). Best single scale leaves 0.991: no per-account information left to recover company-side. Tenure is unrankable because the world holds no tenure signal (world lane); the margin ranking is the fuel split. See SEAT_FINDING_EP1_LEGS_THEN_RATE_*.
-  blocked_on: ['EP17_varied_population_draw']
-  block_reason: "Only the legs-then-rate RANKING's replication needs a second book (R13; recommendation in SEAT_FINDING_EP1_LEGS_THEN_RATE_*). Forward CLV moves without one: B11 grades it on this book's held-back later years. See simplifications/B11_*.yaml."
+  blocked_on: null
+  block_reason: null   # 2026-10-15: unblocked by the EP17 ruling; the legs-then-rate RANKING replication waits for EP17 to switch, the rest runs on the fixed draw.
 - id: EP2_variance_learning_loop
   title: "Expected minus realised, fed back into belief"
   notes_rehomed: [gain, name, origin_note]
@@ -918,7 +918,9 @@
   level_current: 0
   level_target: 3
   loop_stage: idle
-  block_reason: "director-reserved curriculum sequencing (R13). Epoch-4 commitment set (ruling §1); pull-forward is proposal-only (§3). Population ACTIVATION is separately director-reserved as curriculum (the SE_DRAW_POPULATION reservation). DISCOVERY DISPOSITION 2026-08-26 (delivery seat, over the discovery pass ceiling at 6 passes with the level never having moved): no further DISCOVER pass is authorised, and this is a disposition rather than a closure because the atom is wanted and is a director ruling. The reason the passes could not move it is the block above -- the only act that promotes an epoch-4 curriculum atom is a curriculum decision, which R13 reserves to the director. Re-opens the day epoch 4 is named; until then a pass here is the livelock, not the work."
+  block_reason: "RULED 2026-10-15 (director): one variable constant. The population draw stays FIXED while the bugs that move results are cleared, so a change in results means a change in code. SWITCH when all of these are closed on origin: B12 (writer one margin and floor basis), E6 first slice (the provision lags arrears a year), the catch-up that credits held estimates (WORKER_FINDING_NINE_CUSTOMER_YEARS_*), and the stayers control (WORKER_FINDING_THE_SAVE_IS_NOT_PAID_FOR_BY_THE_STAYERS_*). THEN vary it: a fresh draw per run, as canon F13 says, to test the edge cases: B11 ranking where departure p varies, EP1 legs-then-rate replication, and whether this week decisions (renewal cut on tiers, the save) hold for edge households (vulnerable, SME-mislabelled, gas-heated, movers)."
+  blocked_on: [B12_writer_one_reads_its_margin_on_the_unit_rate_so_a_renewal_floor_is_its_true_unit_cost,
+    E6_a_forward_cash_forecast_per_customer_charges_expected_loss_as_arrears_build]
   dial_inherited: 60    # R1 -- DIRECTOR_CANON_RERANKING_THE_ARC_2026-09-04 §2/§5.
   provenance: director_ruling
   depends_on: ['EP16_anchored_generators']
@@ -1993,15 +1995,15 @@
   epoch: 4
   level_current: 2
   level_target: 3
-  loop_stage: idle
+  loop_stage: build
   # MINTED 2026-10-05, canon step 3: "the spine every lever is judged against. Build and test
   # it on held-back history". Couples to EP1 (three horizons, L2, blocked on a second book):
   # a held-back-history test needs no second book, which is why this is its own atom.
   # L1 2026-10-06. Slice 5 (2026-10-11): moves reach the backtest (61 held back), so B7 dropped.
   # Both rules over-predict departure (0.79/0.67 vs 0.43) and rank nobody (AUC ~0.52).
   # L2 2026-10-11: production caller is the annual report's held-back grade (door test on the saved run).
-  block_reason: "EP17 blocks L3 only: on one book departure p varies by sd 0.03, so neither rule has anything to rank; a varied draw is the director's curriculum call. The departure-level calibration slice is company code and is not blocked"
-  blocked_on: [EP17_varied_population_draw]
+  block_reason: null   # 2026-10-15: unblocked by the EP17 ruling. Everything up to L3 runs on the fixed draw; the L3 ranking test runs after EP17 switches (its row states the condition).
+  blocked_on: null
   dial_inherited: 90
   provenance: director_ruling
   depends_on: []
@@ -2070,6 +2072,30 @@
     'tests/simulation/test_a_run_reaches_the_svt_contact_response.py']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a retention campaign that raises churn among the customers it reminded they could leave."
+- id: C35_the_supplier_finds_the_share_of_value_it_prices_by_optimising_joint_value_against_the_households_response
+  title: "the price of sharing the value an action creates is the supplier's own commercial optimisation: the share that creates the most joint value under both no-loss floors, against the household's response to that price"
+  lane: C_customer_ops
+  value_stream: price_to_bill
+  epoch: 4
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  # MINTED 2026-10-15 on the director's word: "not a ruling from me". Judged on joint value with the
+  # no-loss floors (C34). The household's response (elasticity) is the WORLD's, built from evidence
+  # under the four principles, and the supplier learns it only through the seam. If the optimum
+  # looks odd, check the world's rules and behaviours first, then fix the world as a factual
+  # correction or bring the director what it would change. Constraints on the search, from
+  # how_a_supplier_prices_a_share_of_value_it_creates_for_a_household_2026-10-14.md: the licence
+  # and consumer-credit limits (an instalment-recovered share is consumer credit).
+  dial_inherited: 85
+  provenance: director_ruling
+  depends_on: [C34_next_best_action_is_one_decision_across_debt_retention_upsell_and_carbon_judged_by_clv]
+  couples_with: [W2_39_households_respond_to_contact_including_badly]
+  file_scope: ['company/crm/next_best_action.py',
+    'tests/company/crm/test_the_share_is_the_one_that_creates_the_most_joint_value.py']
+  simplifications_count: 0
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a supplier pricing an energy-saving service by testing what share of the saving households will pay for, within the credit rules."
 - id: C34_next_best_action_is_one_decision_across_debt_retention_upsell_and_carbon_judged_by_clv
   title: "next best action is one per-customer decision across debt handling, retention, upsell and carbon advice -- the customer's benefit first, then ours -- chosen by its effect on CLV, never a fixed ranking of measures"
   lane: C_customer_ops
