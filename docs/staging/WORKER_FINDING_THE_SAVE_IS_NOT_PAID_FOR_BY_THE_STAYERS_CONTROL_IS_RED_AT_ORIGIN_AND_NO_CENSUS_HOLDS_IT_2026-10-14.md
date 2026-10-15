@@ -210,3 +210,60 @@ this finding no longer blocks lane B_commercial.
 What stays open: the commit gate still does not select this control for a `simulation/run_phase2b.py` change, so a
 regression arrives only through the HEAD-green census. The census suite selects it: the file is not in `HEAVY_IGNORES`. The value-arms
 re-take on the term-cost base can launch at `4492d17bd` or later.
+
+## Worked 2026-10-14 (worker tick, claim `the-save-stayers-control-is-red-at-origin-bisect-and-hold-it`)
+
+**Correction, beside "Why it is held nowhere".** The census does hold this test. The file read above
+was the *legacy* tracked `docs/observability/head_red_observed.json`. Nothing has written it since
+2026-09-10 (`background/head_red_register.py`, `LEGACY_OBSERVED_PATH`). The live observation is the
+untracked `docs/observability/.head_red_observed.json`, and it reads:
+
+| census run (head) | line 95 `test_no_stayer_price_moves_with_the_save_price` | line 76 |
+|---|---|---|
+| 2026-10-10 05:41 (cf8706023) | red | green (not listed) |
+| 2026-10-11 05:45 (ab1bf89f7) | red | green |
+| 2026-10-12 05:56 (ed9aa25eb) | **green** (`currently_red: false`) | green |
+| 2026-10-13 03:37 | not run: deferred by the memory governor ("UNPROVEN ... register not updated") | — |
+| 2026-10-14 03:38 | not run: deferred (termcost-arms-floor-a declared 11,200 MB) | — |
+
+So the census stopped seeing it because the census stopped running, not because it skips the test.
+It has been deferred two nights running. Nothing needs to change to "make the census hold it": the
+next census that is admitted will record it. What is owed is the governor's two-night deferral,
+which is the census's own standing condition and is not this item's to fix.
+
+**What this does to the bisect.** Line 76 was green at ed9aa25eb (the 2026-10-12 census head, an
+ancestor of origin). The range is ed9aa25eb..58e1e8905, not bfcae065d..58e1e8905: 263 commits,
+about 20 first-parent commits touching `simulation/`, `company/`, `saas/` or `sim/`, so about 5
+bisect steps instead of 9.
+
+**What the failing run already says about line 76.** The first 18 saves are identical in both arms.
+At index 18, `on` saved SYN-2016-365 (term 2017-08-13) and `placebo` saved SYN-2016-391 (2017-09-05),
+and `on` holds one more save (SYN-2016-347, 2018-08-04). That is a divergence in **2017-08**, ten
+months before the first saved electricity term ends (2018-06-20). So the cause is *not* an ended
+saved term teaching the premium. Something that reads the save price *during* a saved term reaches a
+later household's renewal rate or its roll. Line 95's first listed move is SYN-2016-406, electricity,
+off 107.23 / on 106.78 £/MWh: a stayer priced 0.4% *lower* in the `on` arm.
+
+**Prediction, filed before the probe below returns.** Stayer price moves begin before 2017-08-13, and
+the earliest is a renewal priced after a save's first bill has posted. Probe: both arms to
+2017-12-31 at origin 55701bb84, every stayer row diff with its keys
+(`/var/tmp/stayers-probe/probe.py`, launched under `launch_long_job` as `stayers-probe-2017`).
+
+**In flight (2026-10-14 14:38 BST).** One queued long job, `longjob-stayers-probe-and-bisect` (launcher
+under setsid; log `/var/tmp/stayers-probe/launcher.log`). It waits on termcost-arms-floor-a's 11,200 MB
+declaration and then runs, serially, at a 3,500 MB peak (a full-book arm measured 2.2 GB):
+
+1. the probe at origin 55701bb84 to 2017-12-31 → `/var/tmp/stayers-probe/out-2017.json`: both
+   arms' save logs, every stayer price move sorted by term start, every differing account-state
+   key, and the rows only one arm holds;
+2. ed9aa25eb asked rather than assumed: if its arms do not save the same households to 2017-09-30,
+   there is no bisect and the census's green there was not this criterion;
+3. `git bisect run --first-parent 55701bb84 ed9aa25eb` on that criterion, in
+   `/var/tmp/se-stayers-bisect`, one line per commit in `/var/tmp/stayers-probe/bisect_steps.log`.
+   `ALL_DONE` marks the end.
+
+**The criterion's limit, stated before it runs.** "Same saved households to 2017-09-30" is narrower
+than line 76, which asks the whole window to 2018-09-30. A commit whose divergence starts after
+2017-09 grades good and moves the blame later. At origin the divergence is at 2017-08-13, so the
+named commit must be confirmed by running line 76 itself at that commit and its parent before the
+blame is written here as fact.
