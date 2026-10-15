@@ -412,3 +412,35 @@ P3' holds and P1' fails, the remainder is the levy carry-forward, as for S.
 **Landing rule.** If S'0, P3' and P4' hold, S-prime's code lands (the levy, the belief-based
 allowance, and L's fixed-only lookback) with its controls. P1' failing does not block the landing.
 It names B12's remainder in EP17's `block_reason`.
+
+## Grade of S (2026-10-15, after the arm finished at 18:44Z): the upper bound
+
+Graded by `/var/tmp/b12-out/grade_s.py`. Its sha256, and `predict_s.py`'s, still match the hashes
+filed at 16:58Z (`sha256sum -c grade_s.sha256`: OK). Unit result: success, 4,027 s. S priced the
+world's incidence (see Run S-prime above), so this grade says how much of B12 the two costs carry.
+It does not say what the company can recover with what it knows.
+
+| over U, median | L (D's lines) | S |
+|---|---|---|
+| realised / priced-for / gap | −2.38 / +1.84 / −4.18 | **+0.03 / +1.80 / −1.66** |
+| bad debt | −2.49 | **−0.05** |
+| policy | −1.73 | **−0.43** |
+| wholesale / network / capital / rate | −0.03 / −0.11 / −0.22 / 0.00 | −0.16 / −0.11 / −0.23 / 0.00 |
+
+The population is 249 terms (L: 254). 21 of them carry no allowance: the book's cold start. By year:
+2016 (n=9) −0.79, 2017 (n=192) −0.94, 2018 (n=31) −4.90, 2019 (n=17) −4.75. In 2018 and 2019 the
+wholesale line is −5.0 and −5.4, which is the hedge leg, and the premium's rate line pays back +2.0 and +1.6.
+
+- **S0: HOLDS** (median |residual| 0.0000).
+- **P1: HOLDS.** 2016-17 is −0.80 against priced-for, n=201. First order was −0.7.
+- **P2: HOLDS.** −1.77 pooled. First order was −1.5.
+- **P3: HOLDS** (−0.05).
+- **P4: HOLDS** (−0.43). 2018's policy line is −1.83: terms struck April to September cannot see the
+  next April's step, as P4 said they would not.
+- **P5: HOLDS.** 2018 is −4.82 against priced-for.
+- **P6: HOLDS.** `total_net` is £276,134.52 against L's £269,782.23 (+£6,352).
+
+**What S settles.** The two unpriced costs carry the pre-crisis shortfall, as D said: with both
+priced, 2016-17 closes to within a point. What stays is 2018-19's hedge leg, which belongs to the hedge
+desk and the size-keyed loss cap (item (b)), not to the strike. S does not land, because its
+bad-debt source is the world's. S-prime grades the version that can.
