@@ -102,9 +102,15 @@ worktrees at a real commit whose code draws A's book:
   `simulation/run_phase2b.py` residual moved no bill. The fix can be graded X1 against X0, and so
   against A.
 - **P1.** X1 − X0 = **+£20,335.71 ±£0.11**, all of it on 11 catch-up bills. No other bill changes.
+  **Graded 2026-10-15 22:40: HELD.** X1 (`run_output_81c129fe8_20261015T201543Z`) − X0 =
+  **+£20,335.72**, on exactly the 11 catch-up bills. No other bill's total moves (13 move only in
+  bill-shock comparator fields, whose baseline reads the catch-up). Detail is in the prereg record.
 - **P2.** All five PROS-2017-0336 rows (2017, 2018, 2019, 2020, 2023) clear, with the deltas in the
   pre-registration's table. 2023 is the narrowest, at +£177.71 for a £122 clearance.
+  **Graded: HELD, 5 of 5** (+537.81, +3,959.49, +5,261.28, +4,436.91, +177.71; 2023 clears by
+  £122.32). The defect4 sweep reads 9 inversions on X0 and 2 on X1, which are the two OCC stubs.
 - **P4.** No catch-up bill is newly held.
+  **Graded: HELD.** 0 newly held; 65 held bills in each arm.
 
 ## Which published figures ran code their stamp does not name (delivery seat, claim `no-run-or-publish-imports-code-that-is-not-its-stamp`)
 

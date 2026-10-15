@@ -82,3 +82,13 @@ one commit drew different households from 2016-02-13
 Grades are written beside each prediction in
 `records/SEAT_PREREG_A_HELD_ESTIMATE_IS_KNOWN_AT_ASSEMBLY_2026-10-15.md`. This finding stays open, and
 so do its `KNOWN_OPEN_INVERSIONS` rows, until PROS-2017-0336 is graded.
+
+## Graded 2026-10-15 22:40: all seven held-estimate rows clear on A's own book
+
+On X1 against X0 (`81c129fe8` with and without the assembly hunk, X0 equal to A bill for bill),
+all five PROS-2017-0336 rows clear by their predicted deltas. The book rises £20,335.72 on exactly
+the 11 catch-ups, and no bill is newly held. The defect4 sweep reads 9 inversions on X0 and 2 on X1,
+which are the two OCC December stubs, the D46 remainder. Grades are in the prereg record. The
+seven `_HELD_ESTIMATE_NETTED` rows are deleted by the first landing whose committed ledger carries
+650fdcdd7 (the 2026-10-19 publish). Until then the ledger is run A's, and deleting them reds the
+gate. The finding's billing cause is closed. Its atom fate (D46) stands for the two stubs.

@@ -139,7 +139,30 @@ line for line against `650fdcdd7`).
   differing in any field, and a book total of £2,462,538.19 in both. So X1 against X0 grades the fix
   on A's own book, and PROS-2017-0336 is drawn. (Outside the bills, the hedge, credit-exposure and
   margin-call sections differ. The finding records it, and it does not touch this grade.)
-- **P1, P2 (the five PROS-2017-0336 rows), P4: PENDING X1.** The first X1 launch died queued with
-  the tick that started it. It was relaunched 2026-10-15 18:57 BST under `setsid`, waiting on the
-  weekly publish run's memory, as unit `longjob-bookfix-81c12-x1`. `/var/tmp/se-placebo-out/post.sh`
-  writes `grade_P1_x0_vs_x1.txt` and `grade_ledger_x{0,1}.txt`, then `POSTDONE`.
+- **Graded 2026-10-15 22:40 on X1** (`run_output_81c129fe8_20261015T201543Z`, 106 min, worktree
+  `/var/tmp/se-bookfix-81c12-x1`, never committed). X1 against X0 has the same 39,084 bill keys
+  and equal world and demand digests. Prints: `/var/tmp/se-placebo-out/grade_P1_x0_vs_x1.txt` and
+  `grade_ledger_x{0,1}.txt`.
+- **P1 (book): HELD.** X1 − X0 = **+£20,335.72** (predicted £20,335.71 ±£0.11). The book total
+  is £2,462,538.19 → £2,482,873.91. Exactly 11 bills change total, and all 11 are the catch-ups
+  (8 on PROS-2017-0336, plus 0117, 0065 and 0106). Their `catchup_unbilled_periods` sum to 41,
+  which equals the held estimates. **Unpredicted, no money:** 3,443 bills differ only in the
+  new `catchup_unbilled_periods: 0` field. A further 13 bills move only in bill-shock and
+  clarity comparator fields (`bill_movement_pct`, `bill_shock_*`, `clarity_score`). Their
+  year-on-year and previous-bill baselines read the now-larger catch-up bill. No total on them moves.
+- **P2 (the nine): HELD, 7 of 7.** The five PROS-2017-0336 rows clear by the table's deltas:
+  2017 £618.78 → £1,156.59 (+537.81); 2018 −£106.00 → £3,853.49 (+3,959.49); 2019 −£117.58 →
+  £5,143.70 (+5,261.28, one penny of rounding off the table); 2020 £725.65 → £5,162.56
+  (+4,436.91); 2023 £7,541.68 → £7,719.39 (+177.71, clears £7,597.07 by £122.32). 0117 2018
+  (£1,489.15) and 0106 2025 (£520.07) repeat the earlier grade. The sweep's inversions go from
+  9 on X0 (A's nine, exactly) to 2 on X1.
+- **P3: HELD.** The two OCC rows are X1's only inversions and are unchanged (£0.57 vs £3.22;
+  £0.59 vs £2.41).
+- **P4: HELD.** No bill is newly held. `validate_bill` holds 65 bills in X0 and 65 in X1.
+
+**Disposition.** Every prediction holds on A's own book, so EP17's held-estimate condition is
+graded. The seven `_HELD_ESTIMATE_NETTED` rows in `tests/tools/test_bill_correctness_addendum_defect4.py`
+stay **only until the committed ledger is regenerated from a run carrying 650fdcdd7** (the
+2026-10-19 publish). They do not stay in the meantime because the fix is in doubt. The test says
+a stale row "rots harmlessly", but deleting the rows now would red the gate on run A's ledger.
+The publish that carries the fix should delete them. The two OCC rows stay with D46.
