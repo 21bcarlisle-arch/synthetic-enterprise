@@ -521,6 +521,23 @@ def _liveness_surface_or_raise() -> frozenset[str]:
     return surface
 
 
+#: The stretch log, the seat's own record beside `direction.WRITE_SCOPE`. It is
+#: `delivery_seat.SEAT_WRITTEN`, which is not imported here: `supervisor -> delivery_lane ->
+#: delivery_seat` would put the seat inside the publish gate (see `_liveness_surface_or_raise`).
+#: A control asserts the two are equal, so this copy cannot drift in silence.
+SEAT_WRITTEN_FILES = ("docs/status/SEAT_STRETCH_LOG.md",)
+
+
+def _seat_record_surface() -> frozenset[str]:
+    """The files the orientation seat lands as its RECORD -- direction, decisions, triage, the
+    delivery feed, the stretch log. A commit confined to them is the seat writing down what it
+    decided, never an item's work landing: on 2026-10-15 the held-estimate fix heading the focus
+    list was credited to 1c40d22de, the seat's "direction for the next stretch", because both name
+    the stretch log (`the-draw-ledger-credits-an-item-by-path-overlap`). Read from
+    `direction.WRITE_SCOPE`, the list the seat's own landing uses, plus the stretch log."""
+    return frozenset(direction_mod.WRITE_SCOPE) | frozenset(SEAT_WRITTEN_FILES)
+
+
 def _is_liveness_only(touched, surface: frozenset[str]) -> bool:
     """Do these paths carry NOTHING but the publisher's declared liveness surface?
 
@@ -1620,7 +1637,7 @@ def _window_hits(focus_id: str, row: dict, drawn: float, *,
         return [], [], []
     # ASKED BEFORE GIT, so an unreadable declaration costs nothing and cannot be mistaken for a
     # clean window: there is no point holding an answer that cannot be judged.
-    surface = _liveness_surface_or_raise()
+    surface = _liveness_surface_or_raise() | _seat_record_surface()
     window_ends = (drawn + CLAIM_STALE_SECONDS + _landing_grace_seconds()
                    if until is None else float(until))
     # `--name-only` UNDER THE SAME PATHSPEC IS THE INTERSECTION, FOR FREE. git filters the printed
@@ -3446,7 +3463,7 @@ def record_landing(focus_id: str, *, commit: str = "HEAD", path: Path | None = N
         when, paths = _commit_facts(commit, since)
         if not paths:
             return []
-        if _is_liveness_only(paths, _liveness_surface_or_raise()):
+        if _is_liveness_only(paths, _liveness_surface_or_raise() | _seat_record_surface()):
             return []
         if claimed_at is None:
             # Pin a claim the ledger predates (it was drawn before this ledger existed, or by a

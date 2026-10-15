@@ -373,3 +373,24 @@ def test_AN_UNREADABLE_DECLARATION_REFUSES_THE_WRITE_TOO(monkeypatch, tmp_path):
 
     assert (with_declaration == [WORK_PATH] and heartbeat == [] and work == []), (
         with_declaration, heartbeat, work)
+
+
+def test_a_commit_confined_to_the_seats_record_is_not_an_items_landing(monkeypatch):
+    """Defect it names: the held-estimate fix heading the focus list was credited to 1c40d22de, the
+    seat's "direction for the next stretch", because both name the stretch log
+    (`the-draw-ledger-credits-an-item-by-path-overlap`). Fires on: the seat-record surface dropped
+    from the inferred credit (the record commit is credited); and on it swallowing real work (a
+    commit with the stretch log AND a real path must still credit)."""
+    record_only = [(HEARTBEAT_SHA, ["docs/status/SEAT_STRETCH_LOG.md"])]
+    monkeypatch.setattr(dl, "_claim_subject_paths",
+                        lambda fid, row: ["docs/status/SEAT_STRETCH_LOG.md", WORK_PATH])
+    assert _credit(monkeypatch, record_only) is None
+    with_work = [(WORK_SHA, ["docs/status/SEAT_STRETCH_LOG.md", WORK_PATH])]
+    verdict = _credit(monkeypatch, with_work)
+    assert verdict and verdict["commit"] == WORK_SHA, verdict
+
+
+def test_the_lanes_copy_of_the_seats_stretch_log_is_the_seats_own():
+    """Fires on: the two copies drifting -- the lane would then credit work to a seat record again."""
+    from background import delivery_seat
+    assert tuple(dl.SEAT_WRITTEN_FILES) == tuple(delivery_seat.SEAT_WRITTEN)
