@@ -362,3 +362,46 @@ own `_ifrs9_charge_series`:
 
 Handed on as `the-write-off-run-r3-grades-prediction-3-and-removes-the-worktree`. The worktree
 `/var/tmp/writeoff/wt` stays locked until r3 has run, because r3 runs in it.
+
+### Graded (2026-10-15, r3): predictions 3 and 4 held. The share is only just inside, for a reason the prediction did not name
+
+Worked as `the-write-off-run-r3-grades-prediction-3-and-removes-the-worktree`. The r3 launcher queued
+behind the 11.2 GB heldgrade run and died with its tick before it was admitted. It was relaunched
+detached (`/var/tmp/writeoff/launch3.sh`, `--wait-for-pid` on the heldgrade python), ran when that
+run exited, and wrote `graded2_61109.json`. It ran in the same worktree as r1, with the same seed and
+12 founders. The per-year charges are identical to r1's table to the penny, so the replay is
+deterministic and the two runs can be read as one. Revenue is built from the run's own
+`ledger_events`, and the grader refuses if they are empty. It did not refuse.
+
+| year | 2016 | 2017 | 2018 | 2019 | 2020 | 2021 | 2022 | 2023 | 2024 |
+|---|---|---|---|---|---|---|---|---|---|
+| revenue GBP | 10,147 | 17,047 | 22,569 | 30,524 | 36,120 | 49,846 | 110,167 | 204,518 | 208,137 |
+| A charge % revenue | 0.200 | -0.002 | 0.406 | 0.158 | 0.170 | 0.119 | 0.156 | 0.077 | 0.065 |
+| B charge % revenue | 0.200 | -0.002 | 0.406 | 0.158 | 0.216 | 0.119 | 0.163 | 0.077 | 0.075 |
+
+3. **Held, on all three parts.** Crisis-years share: A **0.1043%**, B **0.1069%**, inside 0.10% to 0.20%.
+   Step-up: A **x0.52**, B **x0.54**, under x1.2. Both arms FAIL both the 1% floor and the step-up.
+   **Beside the claim:** the step-up sits under x1.2 for a different reason from the one the
+   prediction carried over from the committed run (x1.12 there). Here it falls, x0.5, because the
+   2016-19 baseline is 0.199% against 0.120% on the committed run: on a 12-founder book the stock
+   fills from zero against a tiny revenue (2018: GBP 91.55 on GBP 22,569, 0.41%). That is book growth,
+   as already noted for the committed run, but larger on a smaller book. The crisis share passes the
+   0.10% lower bound by 0.004 points (A), so "held" is narrow. The pre-registered 40-founder run might
+   not have held it. Shares are not scale-free while the stock is still filling, so the launch
+   record's reason for cutting to 12 founders was wrong for prediction 3. It was right for
+   prediction 2, which is a ratio per write-off.
+4. **Held.** The published P&L bad-debt line is **not swapped**. On either arm the IFRS 9 charge is
+   about a tenth of the 1% floor in the crisis years. The write-off moves the crisis share by 0.003
+   points (A to B), so it does not decide the swap either way. The level gap goes back to the world's
+   non-payment (the W2_4.. affordability cluster) and, inside the company, to a receivable that
+   rarely ages into debt. Swapping now would raise every published margin, which errs for the thesis
+   (F11).
+
+The worktree `/var/tmp/writeoff/wt` is unlocked and removed. Before removal it was checked against
+origin: its eight modified source, test and knowledge files were byte-identical to origin/main. Its
+untracked `test_closed_balance_write_off.py` was an earlier prefix of origin's longer copy. The rest
+were run-written observability files and an older copy of this finding. r1-r3's outputs stay in
+`/var/tmp/writeoff/out/`.
+
+**Status:** OPEN, the same as before r3. All three bases fail at the real level. The P&L line stays
+on the seed rate until the world's non-payment is grounded.
