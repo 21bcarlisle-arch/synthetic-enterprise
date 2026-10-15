@@ -444,3 +444,56 @@ wholesale line is −5.0 and −5.4, which is the hedge leg, and the premium's r
 priced, 2016-17 closes to within a point. What stays is 2018-19's hedge leg, which belongs to the hedge
 desk and the size-keyed loss cap (item (b)), not to the strike. S does not land, because its
 bad-debt source is the world's. S-prime grades the version that can.
+
+## Grade of S-prime (2026-10-15, after the arm finished at 18:51Z)
+
+Graded by `/var/tmp/b12-out/grade_sprime.py`, whose sha256 still matches the one filed above
+(`64d266b1…88936ee9ed`). Unit result: success, 3,697 s.
+
+| over U, median | L | S | S-prime |
+|---|---|---|---|
+| realised / priced-for / gap | −2.38 / +1.84 / −4.18 | +0.03 / +1.80 / −1.66 | −2.00 / +1.84 / −3.66 |
+| bad debt | −2.49 | −0.05 | −2.45 |
+| policy | −1.73 | −0.43 | −0.45 |
+
+- **S'0: HOLDS** (0.0000).
+- **P1': FAILS** (−3.31, n=201). **P2': FAILS** (−3.83). **P3': FAILS** (−2.45).
+- **P4': HOLDS** (−0.45). **P5': HOLDS** (−4.67). **P6': HOLDS** (£274,220.93 against £269,782.23).
+- **P7': FAILS** (median £0.00). **P8': HOLDS.**
+
+**Why, read off the lines rather than guessed.** 202 of the 249 terms carried no allowance. 200 of
+those 202 are terms that started in 2016: the founders' first terms. The run asks for the belief only
+on a renewal (`term_index >= 1`), because it is part of the read of the account's own payment record.
+On the 47 terms where it was asked, the allowance was exactly 2.0% of the strike, a median of
+£2.19/MWh, inside P7's band. So P7' failed on **reach**, not for the reason its failure note gave (a
+belief learnt low on clean accounts). The belief never moved off the prior on these terms. Corrected
+here: the note's explanation was wrong. The levy half holds on its own, as in S.
+
+## Run S-double-prime: the first term's strike asks the book's belief too (pre-registered 2026-10-15, before S-double-prime launched)
+
+**Claim:** `b12-the-strike-lands-from-its-salvage`. This is S-prime plus one change in the run loop. A
+first term (`term_index == 0`) of a residential account asks the triad for `default_belief_rate` at
+the account's own arrears state. For an account with no bills that state is `'unknown'`, and the
+belief is the 2.0% prior (checked directly: `arrears_state` → `'unknown'`, `default_belief_rate` →
+0.02). Nothing else in a first term's read changes. The retention path already asks the triad itself
+when this is `None`. The worktree is `/var/tmp/b12-strike3`. The diff against `1ca6dfcf5` is
+`/var/tmp/b12-out/Spp-full.diff`, sha256 `8092640c…7fa45d7`. The grader is `grade_spp.py`, sha256
+`131c45bb…bce5689`. The seed and command are the same as before. The artefacts are
+`strikepp-sv-k1-61109.json` and `strikepp-term-lines.jsonl`.
+
+**First order.** The allowance is about 2.0% of the strike. The world charged 2.49% of U. So the
+bad-debt line is about −0.5, and 2016-17 is S's −0.80 less about 0.5: about −1.3.
+
+**Predictions** (medians, points of U, D's population):
+- **S''0.** The median |residual| is under 0.05.
+- **P1''.** 2016-17 is within **2 points** of priced-for.
+- **P2''.** Pooled 2016-19 is within **2.5 points**.
+- **P3''.** The bad-debt line is between **−1.0 and 0.0**.
+- **P4''.** The policy line is between **−1.0 and 0**.
+- **P5''.** 2018 is still more than **2 points** short.
+- **P6''.** `total_net` is above L's.
+- **P7''.** The median allowance is between **£2.0 and £3.5/MWh**, and fewer than **30** terms are
+  unpriced. The business accounts, about 12, stay unpriced by design.
+
+**Landing rule.** If S''0, P3'' and P4'' hold, S-double-prime's code lands with its controls. If
+P1'' fails, the remainder is named in EP17's `block_reason`.
