@@ -1265,6 +1265,14 @@ def _by_cause(ungradable: list[dict], causes_of=None) -> dict:
     return {k: sorted(v, key=lambda x: (x is None, str(x))) for k, v in sorted(out.items())}
 
 
+def _stale_holds_report() -> dict:
+    try:
+        from background import stale_holds
+        return stale_holds.report()
+    except Exception as exc:  # noqa: BLE001 -- the brief says it could not look, never "none"
+        return {"stale": None, "unavailable_because": f"{type(exc).__name__}: {exc}"}
+
+
 def self_contradicting_levels() -> dict:
     """Atoms at `level_current: 0` / `loop_stage: build` whose OWN named controls all pass.
 
@@ -1701,6 +1709,10 @@ def build_brief(now: datetime | None = None) -> dict:
         # of a move that the evidence already supports is invisible to both, and it is what made
         # PB4 and PB6 sit at zero with their work landed and passing.
         "self_contradicting_levels": self_contradicting_levels(),
+        # A HOLD IS RE-ASKED EVERY STRETCH (2026-10-15). Each held row naming an atom that has since
+        # reached target or closed, with the sentence that names it -- a premise or a citation is
+        # the seat's call. C29 sat "sequenced behind B10" for five weeks after B10 was done.
+        "stale_holds": _stale_holds_report(),
         "publish": publish_state(),
         "director_inputs": director_inputs(since),
         # THE FOLDER, NOT ITS DOCUMENTS. `findings_now()` above reads what is IN the staging root;
