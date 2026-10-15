@@ -46,3 +46,15 @@ Keep going between pieces.
   `DIRECTOR_CANON.md` in his words.
 - **Still open:** item 1's NTFY naming both files, item 3 (whether the console session is up), and
   item 4 (the rest of the week). The mothball steer follows this one.
+
+## Done (2026-10-15, console seat)
+
+1. **The 09:50 steer** was actioned (`ec1e50480`, in done/). The NTFY naming both files went at 15:21 UTC.
+2. **The channel** is `4a581cd72`, plus provenance in `7bc3e3d3a`: a file is drawn only if origin holds its exact bytes in a commit signed by the advisor's key. A second build of the channel by the console seat, made without a claim, was not landed and is on tag `wip/advisor-channel-2026-10-15`.
+3. **The interactive seat** is up: tmux `claude`, since 09:53 BST. The same 15:21 NTFY said so. The dropped console's held work landed: the parked-atom fix as `47e544e24`. Its land-twice control is superseded in part by `ed7e89d12`, and the remainder is handed off.
+4. **The rest of the week:**
+   - Done: the banners (`3a692ad58`), staging fates (`2f17ba79f`), C34 and EP17 minted on his 05:52Z words, and the parked-atom fix.
+   - Now running live: the hold re-ask and tombstone fixes, since the shared checkout fast-forwarded past its 56 blockers.
+   - Still open: the draw ledger crediting by path, carried in DIRECTION's `wrong` list.
+   - Parked for next week by another lane: W1_29.
+   - The mothball steer that followed is done too (`565bd6303`).
