@@ -230,7 +230,7 @@ def _exclusive(path: Path):
     logged, and the isolated executor drew the same item four times while the worker ran it.
     Measured with eight processes each claiming 25 ids into one store: 21 of 200 rows survived.
     `tests/background/test_concurrent_claim_writers_lose_no_row.py` is the control. Same pattern
-    as `ntfy_utils.record_sent_id`, which lost ids the same way.
+    as `ntfy_utils.record_sent_id` (deleted 2026-10-15), which lost ids the same way.
     """
     path.parent.mkdir(parents=True, exist_ok=True)
     with open(path.with_name(path.name + ".lock"), "w") as lock:

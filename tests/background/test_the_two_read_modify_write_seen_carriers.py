@@ -30,7 +30,7 @@ import json
 
 import pytest
 
-from background import ntfy_utils, staging_watcher
+from background import staging_watcher
 from background.episode_prior import ABSENT, READABLE, UNREADABLE
 
 #: The whole partition. `null` and `[1, 2, 3]` PARSE -- which is exactly why an `except
@@ -140,13 +140,13 @@ def test_a_second_loss_never_overwrites_the_first_preserved_copy(watch_state):
 def test_every_carriers_preservation_goes_through_the_one_helper(tmp_path, monkeypatch):
     """Byte-identical private `_preserve_unreadable_*` copies were folded into
     `episode_prior.preserve_unreadable`. Keyed to the PROPERTY, not to the source text: patch the
-    central helper and each carrier must change its answer. MUTANT: re-inline either body and its
-    row fails."""
+    central helper and each carrier must change its answer. MUTANT: re-inline the body and its
+    row fails. (`ntfy_utils`'s sent-ids carrier left this list 2026-10-15, deleted with its
+    last reader.)"""
     import background.episode_prior as ep
 
     # REDIRECT THE REAL PATHS FIRST: a re-inlined body ignores the spy and performs a REAL
     # `Path.replace`, which once moved a live state file out of the working tree.
-    monkeypatch.setattr(ntfy_utils, "SENT_IDS_FILE", tmp_path / ".sent_ntfy_ids.json")
     monkeypatch.setattr(staging_watcher, "STATE_FILE", tmp_path / ".staging_watcher_seen.json")
 
     calls: list[str] = []
@@ -157,12 +157,11 @@ def test_every_carriers_preservation_goes_through_the_one_helper(tmp_path, monke
         return "SENTINEL"
 
     carriers = (
-        (ntfy_utils, "_preserve_unreadable_sent_ids"),
         (staging_watcher, "_preserve_unreadable_seen"),
     )
     for module, helper in carriers:
-        # `staging_watcher` binds the name at import; `ntfy_utils` imports it inside the
-        # function. Patching BOTH routes is what makes this a property and not one import style.
+        # Patch both the central name and any import-time binding, so a carrier added here with
+        # either import style is tested as a property and not as one import style.
         ep.preserve_unreadable = spy
         rebound = hasattr(module, "preserve_unreadable")
         if rebound:

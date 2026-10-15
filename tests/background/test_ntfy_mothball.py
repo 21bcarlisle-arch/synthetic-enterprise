@@ -40,14 +40,12 @@ def test_a_record_that_fails_to_write_does_not_break_the_caller(monkeypatch):
 def test_only_the_phone_flag_reaches_the_network(monkeypatch):
     import subprocess
     monkeypatch.setattr(ntfy_utils, "PHONE_PUSH_MOTHBALLED", True)
-    monkeypatch.setattr(ntfy_utils, "SENT_IDS_FILE", ntfy_utils.SENT_IDS_FILE.parent / "x")
     calls = []
 
     def fake_run(cmd, **k):
         calls.append(cmd)
         return subprocess.CompletedProcess(cmd, 0, stdout='{"id": "p1"}\n200', stderr="")
     monkeypatch.setattr(ntfy_utils.subprocess, "run", fake_run)
-    monkeypatch.setattr(ntfy_utils, "record_sent_id", lambda i: None)
     monkeypatch.setattr(ntfy_utils, "record_delivery_outcome", lambda *a: None)
     assert ntfy_utils.send_ntfy("[DEAD-MAN] down", _allow_real_send=True, _phone=True) == "p1"
     assert calls and calls[0][0] == "curl"

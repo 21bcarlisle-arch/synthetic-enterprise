@@ -15,176 +15,32 @@ def _fake_run(stdout):
 
 
 @pytest.mark.real_ntfy
-def test_send_ntfy_records_id(tmp_path, monkeypatch):
-    sent_ids_file = tmp_path / "sent.json"
-    monkeypatch.setattr(ntfy_utils, "SENT_IDS_FILE", sent_ids_file)
+def test_send_ntfy_returns_the_server_id(monkeypatch):
     monkeypatch.setattr(ntfy_utils.subprocess, "run", _fake_run('{"id": "abc123"}'))
 
-    msg_id = ntfy_utils.send_ntfy("hello", _allow_real_send=True)
-
-    assert msg_id == "abc123"
-    assert json.loads(sent_ids_file.read_text()) == ["abc123"]
+    assert ntfy_utils.send_ntfy("hello", _allow_real_send=True) == "abc123"
 
 
 @pytest.mark.real_ntfy
-def test_send_ntfy_handles_unparseable_response(tmp_path, monkeypatch):
-    sent_ids_file = tmp_path / "sent.json"
-    monkeypatch.setattr(ntfy_utils, "SENT_IDS_FILE", sent_ids_file)
+def test_send_ntfy_handles_unparseable_response(monkeypatch):
     monkeypatch.setattr(ntfy_utils.subprocess, "run", _fake_run("not json"))
 
-    msg_id = ntfy_utils.send_ntfy("hello", _allow_real_send=True)
-
-    assert msg_id is None
-    assert not sent_ids_file.exists()
-
-
-def test_was_sent_by_us_true_for_recorded_id(tmp_path, monkeypatch):
-    sent_ids_file = tmp_path / "sent.json"
-    sent_ids_file.write_text(json.dumps(["id1", "id2"]))
-    monkeypatch.setattr(ntfy_utils, "SENT_IDS_FILE", sent_ids_file)
-
-    assert ntfy_utils.was_sent_by_us("id1") is True
-    assert ntfy_utils.was_sent_by_us("id3") is False
-
-
-def test_was_sent_by_us_false_when_no_file(tmp_path, monkeypatch):
-    monkeypatch.setattr(ntfy_utils, "SENT_IDS_FILE", tmp_path / "missing.json")
-    assert ntfy_utils.was_sent_by_us("id1") is False
-
-
-def test_was_sent_by_us_false_for_none_id(tmp_path, monkeypatch):
-    sent_ids_file = tmp_path / "sent.json"
-    sent_ids_file.write_text(json.dumps(["id1"]))
-    monkeypatch.setattr(ntfy_utils, "SENT_IDS_FILE", sent_ids_file)
-
-    assert ntfy_utils.was_sent_by_us(None) is False
-
-
-def test_record_sent_id_caps_at_max_entries(tmp_path, monkeypatch):
-    sent_ids_file = tmp_path / "sent.json"
-    monkeypatch.setattr(ntfy_utils, "SENT_IDS_FILE", sent_ids_file)
-    monkeypatch.setattr(ntfy_utils, "MAX_SENT_IDS", 3)
-
-    for i in range(5):
-        ntfy_utils.record_sent_id(f"id{i}")
-
-    assert json.loads(sent_ids_file.read_text()) == ["id2", "id3", "id4"]
+    assert ntfy_utils.send_ntfy("hello", _allow_real_send=True) is None
 
 
 @pytest.mark.real_ntfy
-def test_send_ntfy_appends_to_existing_ids(tmp_path, monkeypatch):
-    sent_ids_file = tmp_path / "sent.json"
-    import json as _json
-    sent_ids_file.write_text(_json.dumps(["existing"]))
-    monkeypatch.setattr(ntfy_utils, "SENT_IDS_FILE", sent_ids_file)
-    monkeypatch.setattr(ntfy_utils.subprocess, "run", _fake_run('{"id": "new123"}'))
-
-    ntfy_utils.send_ntfy("hello", _allow_real_send=True)
-
-    ids = _json.loads(sent_ids_file.read_text())
-    assert "existing" in ids
-    assert "new123" in ids
-
-
-def test_record_sent_id_creates_file_if_missing(tmp_path, monkeypatch):
-    sent_ids_file = tmp_path / "missing.json"
-    monkeypatch.setattr(ntfy_utils, "SENT_IDS_FILE", sent_ids_file)
-
-    ntfy_utils.record_sent_id("newid")
-
-    import json as _json
-    assert _json.loads(sent_ids_file.read_text()) == ["newid"]
-
-
-def test_was_sent_by_us_empty_file(tmp_path, monkeypatch):
-    sent_ids_file = tmp_path / "empty.json"
-    import json as _json
-    sent_ids_file.write_text(_json.dumps([]))
-    monkeypatch.setattr(ntfy_utils, "SENT_IDS_FILE", sent_ids_file)
-
-    assert ntfy_utils.was_sent_by_us("id1") is False
-
-
-@pytest.mark.real_ntfy
-def test_send_ntfy_no_id_key_returns_none(tmp_path, monkeypatch):
-    sent_ids_file = tmp_path / "sent.json"
-    monkeypatch.setattr(ntfy_utils, "SENT_IDS_FILE", sent_ids_file)
+def test_send_ntfy_no_id_key_returns_none(monkeypatch):
     monkeypatch.setattr(ntfy_utils.subprocess, "run", _fake_run('{"error": "bad"}'))
 
-    msg_id = ntfy_utils.send_ntfy("hello", _allow_real_send=True)
-
-    assert msg_id is None
+    assert ntfy_utils.send_ntfy("hello", _allow_real_send=True) is None
 
 
-def test_max_sent_ids_constant_exists():
-    assert hasattr(ntfy_utils, "MAX_SENT_IDS")
-    assert ntfy_utils.MAX_SENT_IDS > 0
-
-
-def test_record_sent_id_stores_single_id(tmp_path, monkeypatch):
-    sent_ids_file = tmp_path / "sent.json"
-    monkeypatch.setattr(ntfy_utils, "SENT_IDS_FILE", sent_ids_file)
-    ntfy_utils.record_sent_id("test-id-001")
-    import json as _json
-    ids = _json.loads(sent_ids_file.read_text())
-    assert "test-id-001" in ids
-
-
-def test_was_sent_by_us_returns_bool(tmp_path, monkeypatch):
-    sent_ids_file = tmp_path / "sent.json"
-    monkeypatch.setattr(ntfy_utils, "SENT_IDS_FILE", sent_ids_file)
-    result = ntfy_utils.was_sent_by_us("any-id")
-    assert isinstance(result, bool)
-
-
-@pytest.mark.real_ntfy
-def test_daemon_sent_message_is_recognised_as_ours(tmp_path, monkeypatch):
-    """Part A tagging invariant (2026-07-15): a message a daemon sends via
-    send_ntfy must be was_sent_by_us()==True end to end, so the responder never
-    captures our own [ACTION NEEDED]/[HEALTH CHECK] outbound as inbound (echo
-    loop). Both calls read the SAME SENT_IDS_FILE."""
-    sent_ids_file = tmp_path / "sent.json"
-    monkeypatch.setattr(ntfy_utils, "SENT_IDS_FILE", sent_ids_file)
-    monkeypatch.setattr(ntfy_utils.subprocess, "run", _fake_run('{"id": "daemon-xyz"}'))
-
-    msg_id = ntfy_utils.send_ntfy("[HEALTH CHECK] Stack OK", _allow_real_send=True)
-
-    assert msg_id == "daemon-xyz"
-    assert ntfy_utils.was_sent_by_us(msg_id) is True
-
-
-def test_record_sent_id_concurrent_writes_lose_no_ids(tmp_path, monkeypatch):
-    """R15 mutation test for Part A: the tagging control's named defect is a
-    LOST id from a read-modify-write race between concurrent daemon senders --
-    an unrecorded id makes was_sent_by_us() return False for our own outbound,
-    the exact echo-loop cause. The flock in record_sent_id closes it.
-
-    Mutant check: this test FAILS (loses ids) if the flock is removed and the
-    read-append-write runs unserialised."""
-    import threading
-
-    sent_ids_file = tmp_path / "sent.json"
-    monkeypatch.setattr(ntfy_utils, "SENT_IDS_FILE", sent_ids_file)
-    monkeypatch.setattr(ntfy_utils, "MAX_SENT_IDS", 10_000)
-
-    n = 120
-    barrier = threading.Barrier(n)
-
-    def worker(i: int) -> None:
-        barrier.wait()  # maximise overlap on the critical section
-        ntfy_utils.record_sent_id(f"id-{i}")
-
-    threads = [threading.Thread(target=worker, args=(i,)) for i in range(n)]
-    for t in threads:
-        t.start()
-    for t in threads:
-        t.join()
-
-    ids = json.loads(sent_ids_file.read_text())
-    assert len(ids) == n
-    assert len(set(ids)) == n
-    for i in range(n):
-        assert ntfy_utils.was_sent_by_us(f"id-{i}") is True
+def test_the_sent_id_record_is_gone_with_its_last_reader():
+    """The record existed only so the inbound responder could skip our own outbound; the
+    responder was retired 2026-10-15 and nothing else read it. MUTANT: restore any of these and
+    this fires -- a writer with no reader is exactly what was deleted."""
+    for name in ("record_sent_id", "was_sent_by_us", "sent_ids_unreadable", "SENT_IDS_FILE"):
+        assert not hasattr(ntfy_utils, name), name
 
 
 def test_ntfy_topic_raises_at_import_if_unset():
@@ -306,7 +162,6 @@ def _fake_run_full(stdout, returncode=0, stderr=""):
 def _isolate_delivery(tmp_path, monkeypatch):
     """Redirect BOTH delivery paths -- record_delivery_outcome is a no-op under
     pytest until they are, so a test that forgets cannot pollute the real files."""
-    monkeypatch.setattr(ntfy_utils, "SENT_IDS_FILE", tmp_path / "sent.json")
     monkeypatch.setattr(ntfy_utils, "DELIVERY_LOG_FILE", tmp_path / "delivery-log.md")
     monkeypatch.setattr(ntfy_utils, "DELIVERY_STATE_FILE", tmp_path / "delivery-state.json")
     return tmp_path / "delivery-log.md", tmp_path / "delivery-state.json"
@@ -470,6 +325,7 @@ def test_trailing_status_split_tolerates_a_body_with_no_status():
 # reconciliation), never a published business surface -- so it must never wedge the live
 # publish. The gate runs `-m 'not operational'`. See tests/conftest.py for the marker.
 import pytest  # noqa: E402,F811
+
 pytestmark = pytest.mark.operational
 
 

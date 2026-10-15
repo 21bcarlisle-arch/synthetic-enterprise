@@ -2,10 +2,10 @@
 
 See docs/instructions/NTFY_TWO_WAY_PROTOCOL.md. `session_watchdog.py` polls
 the shared NTFY topic for short steering messages Rich sends from the ntfy
-app on his phone (Two-Way NTFY Command Channel). To avoid treating our own
-outgoing notifications as incoming commands (a feedback loop), every message
-sent via `send_ntfy()` has its ntfy-assigned id recorded in `SENT_IDS_FILE`;
-`was_sent_by_us()` checks an incoming message's id against that record.
+app on his phone (Two-Way NTFY Command Channel). The inbound route is retired
+(DIRECTOR_STEER_MOTHBALL_NTFY_2026-10-15 item 2), and with it the record of sent
+ids that kept our own outbound from being read back as inbound: it had a writer
+here and no reader left anywhere, so it was deleted on 2026-10-15.
 
 Topic rotation (2026-07-08, docs/staging/NTFY_CHANNEL_HARDENING.md): the
 topic name is a secret, no longer committed to git. It is loaded ONLY from
@@ -23,7 +23,6 @@ unauthenticated access (public topics only).
 Delegation note: hand-written (orchestration-adjacent, per protocol).
 """
 
-import fcntl
 import hashlib
 import hmac
 import json
@@ -45,9 +44,6 @@ if not NTFY_TOPIC:
 NTFY_PUBLISH_URL = f"https://ntfy.sh/{NTFY_TOPIC}"
 NTFY_AUTH_TOKEN: str | None = os.environ.get("NTFY_AUTH_TOKEN")
 WAKE_HMAC_KEY: str | None = os.environ.get("SE_WAKE_HMAC_KEY")
-
-SENT_IDS_FILE = Path("/home/rich/synthetic-enterprise/docs/observability/.sent_ntfy_ids.json")
-MAX_SENT_IDS = 500
 
 # Delivery observability (2026-08-12, WORKER_FINDING_THE_ESCALATION_CHANNEL_IS_
 # FAILING_SILENTLY_2026-08-10 + WORKER_FINDING_THE_ONLY_ESCALATION_CHANNEL_FAILS_
@@ -102,115 +98,6 @@ def verify_wake_message(signed: str, max_age_seconds: int = 300) -> str | None:
     if abs(time.time() - ts) > max_age_seconds:
         return None
     return text
-
-
-def record_sent_id(msg_id: str) -> None:
-    """Append `msg_id` to SENT_IDS_FILE (keeping at most MAX_SENT_IDS), under
-    an exclusive file lock so concurrent daemon sends cannot LOSE an id via a
-    read-modify-write race.
-
-    A lost id is exactly the echo-loop defect this file exists to prevent
-    (2026-07-15, inbound_tagging_and_rate_guard): multiple daemons
-    (health_check, action_needed, session_watchdog, the responder's own
-    replies) can call send_ntfy concurrently on this one shared tree; the
-    previous unlocked read-append-write meant two overlapping senders each read
-    the same list, appended their own id, and the last writer clobbered the
-    other's id. An unrecorded id makes was_sent_by_us() return False for our
-    OWN outbound, so ntfy_responder captures it as INBOUND and stages a bogus
-    from_rich -- which was observed live for our own [ACTION NEEDED] and
-    [HEALTH CHECK] sends. The flock serialises the whole read-modify-write; the
-    write is atomic (tmp + os.replace) so a concurrent was_sent_by_us() reader
-    never sees a truncated/partial file."""
-    SENT_IDS_FILE.parent.mkdir(parents=True, exist_ok=True)
-    lock_path = SENT_IDS_FILE.with_name(SENT_IDS_FILE.name + ".lock")
-    with open(lock_path, "w") as lock_f:
-        fcntl.flock(lock_f, fcntl.LOCK_EX)
-        try:
-            # ABSENT AND UNREADABLE ARE OPPOSITE FACTS HERE, AND THIS TREATED THEM AS ONE
-            # (2026-09-04). No file means nothing was ever sent, so starting a fresh list is
-            # right. An unreadable file means ids WERE recorded and cannot be read -- and
-            # `ids = []` then wrote a ONE-ENTRY list over them, destroying the only record that
-            # our own outbound was ours. Measured, against a prior of three sent ids: truncated,
-            # empty and a mapping all left `['id_new']` and turned `was_sent_by_us('id1')` False.
-            # That is the echo-loop this file exists to prevent, and the flock above only ever
-            # protected against a race losing ONE id. `null` and `{"a": 1}` were worse: they
-            # PARSE, so `ids.append` raised AttributeError inside the lock, on the send path.
-            ids: list[str] = []
-            if SENT_IDS_FILE.is_file():
-                try:
-                    loaded = json.loads(SENT_IDS_FILE.read_text(encoding="utf-8"))
-                except (json.JSONDecodeError, ValueError):
-                    loaded = None
-                if isinstance(loaded, list) and all(isinstance(i, str) for i in loaded):
-                    ids = loaded
-                else:
-                    _preserve_unreadable_sent_ids()
-            ids.append(msg_id)
-            ids = ids[-MAX_SENT_IDS:]
-            tmp_path = SENT_IDS_FILE.with_name(SENT_IDS_FILE.name + ".tmp")
-            tmp_path.write_text(json.dumps(ids), encoding="utf-8")
-            os.replace(tmp_path, SENT_IDS_FILE)
-        finally:
-            fcntl.flock(lock_f, fcntl.LOCK_UN)
-
-
-def _preserve_unreadable_sent_ids() -> str | None:
-    """Move an unreadable sent-ids file aside so the rebuild cannot destroy it. Where it went.
-
-    Called with the flock already held -- which is why this stays a named function here rather
-    than a bare call at the site: the lock discipline is this module's, not the helper's. Never
-    overwrites an earlier preserved copy (the FIRST loss still has the ids in it) and best-effort,
-    because a send that cannot keep the old bytes is still better than a send that does not go;
-    both live in `episode_prior.preserve_unreadable` since 2026-09-04.
-    """
-    from background.episode_prior import preserve_unreadable
-    return preserve_unreadable(SENT_IDS_FILE)
-
-
-def sent_ids_unreadable() -> bool:
-    """True when the sent-ids file EXISTS and cannot be trusted -- i.e. we cannot tell whose a
-    message is. Named rather than inlined so a caller that wants to fail closed can ask, and so
-    the question is greppable. The judgement it was written for is SETTLED and this pointer was
-    stale (2026-09-04): `ntfy_responder.check_once` asks THIS above `was_sent_by_us` and refuses to
-    classify at all. Read that branch before adding a caller with a different fail direction."""
-    if not SENT_IDS_FILE.is_file():
-        return False
-    try:
-        loaded = json.loads(SENT_IDS_FILE.read_text(encoding="utf-8"))
-    except (json.JSONDecodeError, ValueError):
-        return True
-    return not (isinstance(loaded, list) and all(isinstance(i, str) for i in loaded))
-
-
-def was_sent_by_us(msg_id: str | None) -> bool:
-    """True if `msg_id` was recorded by a prior `send_ntfy()` call.
-
-    THE ANSWER FOR AN UNREADABLE FILE IS STILL False, AND THE JUDGEMENT IS NOW SETTLED ELSEWHERE
-    (2026-09-04). Absent and unreadable are NOT the same fact. Absent means nothing was ever sent,
-    so False is simply true. Unreadable means we cannot tell whose a message is, and neither
-    boolean is honest there: False says "not ours", which is how `ntfy_responder` came to capture
-    our own outbound as INBOUND and stage a bogus `from_rich` carrying the director's authority he
-    never gave; True would suppress a real message from him. The resolution is that the question is
-    not this loader's to answer -- it stays a plain "is this id in the record", and the RESPONDER
-    asks `sent_ids_unreadable()` FIRST and refuses to classify at all, quarantining the message
-    unstaged and unanswered. See `ntfy_responder.check_once`'s provenance branch and
-    tests/background/test_the_responder_refuses_to_guess_whose_a_message_is.py. Do not "fix" this
-    to return True: that would move the decision back inside a loader and silently re-arm the
-    other failure for every future caller.
-
-    What IS fixed: a non-list prior no longer decides this by accident. `json.loads` accepts
-    `"abc"`, and `msg_id in "abc"` is a SUBSTRING test, so a corrupt file could answer True for an
-    id nobody sent; `null` raised TypeError on the `in`; a mapping tested its keys.
-    """
-    if not msg_id or not SENT_IDS_FILE.is_file():
-        return False
-    try:
-        ids = json.loads(SENT_IDS_FILE.read_text(encoding="utf-8"))
-    except (json.JSONDecodeError, ValueError):
-        return False
-    if not isinstance(ids, list):
-        return False
-    return msg_id in ids
 
 
 def _split_trailing_status(stdout: str) -> tuple[str, str | None]:
@@ -416,8 +303,7 @@ def _log_mothballed(message: str) -> None:
 
 def send_ntfy(message: str, headers: dict[str, str] | None = None,
               *, _allow_real_send: bool = False, _phone: bool = False) -> str | None:
-    """POST `message` to the shared ntfy topic, record its id (so the
-    inbound-command poller can recognise and skip it), mirror it
+    """POST `message` to the shared ntfy topic, mirror it
     (secret-scrubbed) for the advisor (ADVISOR_VISIBILITY.md), and return
     the id (or None if the request or id-parsing failed).
 
@@ -499,7 +385,6 @@ def send_ntfy(message: str, headers: dict[str, str] | None = None,
         msg_id = None
 
     if msg_id:
-        record_sent_id(msg_id)
         record_delivery_outcome(True, f"id={msg_id} http={status or 'unknown'}")
     else:
         # The whole defect was here: an id-less response used to return a bare None.
