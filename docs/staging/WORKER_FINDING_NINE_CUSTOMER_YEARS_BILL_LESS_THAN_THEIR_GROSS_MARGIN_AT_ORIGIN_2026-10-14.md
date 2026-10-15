@@ -71,3 +71,14 @@ So two layers, now separated:
    estimate never reached the customer. The fix makes holding known at assembly (a held period
    carries billed 0), or reconciles after holding. It moves billed totals across the book, so it
    is a pre-registered change, not a patch: next week's first billing item.
+
+## Graded 2026-10-15: the fix holds where it can be measured; 5 of 7 rows are ungraded
+
+On the one-variable run (2248e3baf + 650fdcdd7's assembly hunk), PROS-2017-0117 2018 and PROS-2025-0106
+2025 clear to the penny of the prediction. The two OCC rows stay red as predicted, with no held bill.
+The five PROS-2017-0336 rows cannot be graded: that run's book does not draw the account. Two runs at
+one commit drew different households from 2016-02-13
+(`WORKER_FINDING_TWO_RUNS_AT_ONE_COMMIT_DRAW_DIFFERENT_BOOKS_FROM_FEBRUARY_2016_2026-10-15.md`).
+Grades are written beside each prediction in
+`records/SEAT_PREREG_A_HELD_ESTIMATE_IS_KNOWN_AT_ASSEMBLY_2026-10-15.md`. This finding stays open, and
+so do its `KNOWN_OPEN_INVERSIONS` rows, until PROS-2017-0336 is graded.

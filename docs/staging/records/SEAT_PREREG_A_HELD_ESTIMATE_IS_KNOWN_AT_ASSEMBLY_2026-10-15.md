@@ -82,3 +82,49 @@ with the count of drifted bills. It is not reported as refuted.
 **Then P1, P4 from the bills; P2, P3 from a ledger and customer sample regenerated from this run**
 (in the scratch worktree, never committed), read through `billed_total_by_customer_year(...,
 net_of_catchup=True)` at the billing account, as the gate does.
+
+## Graded 2026-10-15 on the one-variable run (`run_output_2248e3baf_20261015T114732Z.json`, 108 min, scratch worktree, never committed)
+
+**Placebo leg: FAILED, so the book-wide grades are not gradeable on this run, as the design above
+says.** Run B carries 38,431 bills to A's 39,084. 171 customer ids are only in A and 160 only in B,
+and 2,100 shared bills differ in money. The world digests are identical (`cdba75ebb9197b33`, demand
+`7d6195c5eb1562ab`). **The divergence is not the fix feeding back** through treasury into
+acquisition. The first differing bill is 2016-02-13, when different households sign
+(PROS-2016-0042 only in B; PROS-2016-0054 and -0059 only in A). The first held estimate is 2017-12,
+22 months later. Two runs at one commit drew different books. Filed:
+`docs/staging/WORKER_FINDING_TWO_RUNS_AT_ONE_COMMIT_DRAW_DIFFERENT_BOOKS_FROM_FEBRUARY_2016_2026-10-15.md`.
+**PROS-2017-0336 is not on B's book at all.** It carries 8 of the 11 catch-ups, 35 of the 41 held
+estimates and 5 of the 7 P2 rows.
+
+**What IS gradeable: the three subject accounts drawn in both runs.** Each has identical bill keys in
+A and B, and on each one *only* the catch-up bill moved:
+
+| Account | Catch-up bill | A → B | = the held estimates it now absorbs |
+|---|---|---|---|
+| PROS-2017-0117 | 2018-04-01..11 | 362.25 → 1,961.84 (**+1,599.59**) | 418.59 + 442.71 + 363.79 + 374.50 = 1,599.59 (4 periods) |
+| PROS-2024-0065 | 2025-04 | 498.58 → 1,011.16 (**+512.58**) | 512.58 (1 period) |
+| PROS-2025-0106 | 2025-06-01..07 | −365.40 → −61.76 (**+303.64**) | 303.64 (1 period) |
+
+- **P1 (book): NOT GRADEABLE on this run** (placebo). On the 3 of 11 catch-ups that can be compared it
+  holds to the penny: +£2,415.81 predicted, +£2,415.81 measured, and no other bill on those
+  accounts changed. The remaining £17,919.90 sits on PROS-2017-0336 and is ungraded.
+- **P2 (the nine): 2 of 7 gradeable, 2 of 2 cleared, to the penny.** PROS-2017-0117 2018 bills
+  £1,489.15 (299.37 + 1,189.78) against £881.07 gross. PROS-2025-0106 2025 bills £520.07
+  (216.43 + 303.64) against £323.89. The five PROS-2017-0336 rows (2017, 2018, 2019, 2020, 2023) are
+  **ungraded**: the account is not drawn.
+- **P3: HELD.** Both OCC rows are on B's book. They are unchanged at £0.57 vs £3.22 (2022) and
+  £0.59 vs £2.41 (2016), and they are B's only two inversions in the whole defect4 sweep. They
+  belong to `D46_the_validator_holds_against_the_varied_population` (the finding's atom), where
+  the remedy is the gate's day-weighted attribution of a later credit into a December stub, not
+  billing.
+- **P4: HELD on the gradeable accounts.** No catch-up bill is newly held. The 0117 catch-up
+  (2018-04-11) was held in A and is held in B; the 0065 and 0106 catch-ups are held in neither.
+- **Out of sample, unpredicted, one case:** PROS-2024-0010 is drawn only in B. Its 2024-05 catch-up
+  absorbs 2 held estimates (`catchup_unbilled_periods: 2`) and its years do not invert. Across B's
+  whole sweep, the only inversions are the two P3 rows; A has nine.
+
+**Disposition.** The finding stays in the staging root and its nine `KNOWN_OPEN_INVERSIONS` rows stay.
+The committed ledger is still run A's, so deleting the two cleared rows would red the gate on the
+artefact it reads. EP17's held-estimate condition is **not** closed: 5 of its 7 rows are ungraded.
+Closing it needs a run that draws PROS-2017-0336, which first needs the book-drift finding's
+one-variable placebo (2248e3baf *without* the hunk, under the same long-job unit).
