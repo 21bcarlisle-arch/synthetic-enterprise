@@ -117,7 +117,22 @@ def test_a_book_with_no_rolls_says_it_cannot_tell_defect_a_prior_dressed_as_an_a
                                         payment_method_of=_method)
     assert got["transitions"] == 0 and got["reason"]
     assert got["receivable_gbp"] == 60.0
-    assert got["unrated_receivable_gbp"] == 60.0 and got["matrix_provision_gbp"] == 0.0
+    assert got["unrated_receivable_gbp"] == 60.0 and got["matrix_provision_gbp"] is None
+    assert set(got["by_overlay"].values()) == {None}
+
+
+def test_a_book_that_has_never_seen_the_tail_says_so_defect_a_zero_roll_read_as_no_loss():
+    """Ten months of a book whose stoppers' debt is never older than nine months: plenty of rolls,
+    but none at the last age before terminal. The stock is None with that reason, not 0.00. And the
+    branch is not stuck: the same book at month 30 has seen the tail and provides."""
+    young = _book(crisis=0, months=10)
+    got = bdp.roll_rate_provision_stock(young, on=_on(10), payment_method_of=_method)
+    assert got["transitions"] > 0
+    assert got["matrix_provision_gbp"] is None and "tail" in got["reason"]
+    assert got["unrated_receivable_gbp"] == got["receivable_gbp"] > 0
+    grown = bdp.roll_rate_provision_stock(_book(crisis=0, months=30), on=_on(30),
+                                          payment_method_of=_method)
+    assert grown["reason"] is None and grown["matrix_provision_gbp"] > 0
 
 
 def test_the_reader_publishes_the_roll_rate_stock_only_with_the_switch_on_defect_shipped_on(monkeypatch):

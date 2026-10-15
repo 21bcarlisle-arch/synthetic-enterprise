@@ -167,3 +167,40 @@ the change in the stock. GBP:
   the validator module). The validator grades the world's write-offs and the P&L accrual, never the
   company's provision, so no provision switch can turn it. The open leg is the world's write-off
   timing against `CRISIS_YEARS`: the knowledge question above, still unasked.
+
+## 2026-10-15 (morning): pre-registration, written before re-grading the published run on a moved window
+
+The knowledge page already answers the timing question (`bad_debt_provisioning.md` §3.2, §2.3):
+Centrica's UK charge ran 1.2% (2019), 2.2% (2020), **1.1% (2021, the low)**, 2.1% (2022), **2.7-3.1%
+(2023, the high)** of revenue; Ofgem's industry debt-cost series peaked in summer 2023. So in the
+real record the charge's step-up is 2022-2023, and 2021 is the trough. Predictions, filed before
+the validator is run on a (2022, 2023) window against the committed gz run:
+- **pnl_accrual: still FAIL**, step-up about x1.02 (crisis about 2.05% against about 2.01%
+  pre-crisis), because 2022's share dips while revenue doubles.
+- **headline: still FAIL**, the behavioural write-off share stays near 0.1%, far under the 1% floor.
+- So both strict xfails hold, and moving the window cannot be read as tuning the control to pass.
+
+## 2026-10-15: graded, and decided
+
+**The predictions held.** On the committed run, with the window at 2022-23: P&L accrual x1.02 (2.0497%
+against 2.0055%), headline x0.57. Both legs fail, both strict xfails hold.
+
+**Decided** (`bad_debt_provisioning.md`, section "When a GB supplier charged and wrote off 2022-era
+arrears"):
+- **The window was wrong.** Centrica's charge was 1.1% of revenue in 2021, its low, then 2.1% in 2022
+  and 2.7-2.9% in 2023. Ofgem's series peaks in 2023. `CRISIS_YEARS` is now (2022, 2023).
+  **Corrected beside the claim:** the anchor this finding and the validator quoted, "2.3% to 2.8%", is
+  Centrica's FY2025 Q&A, a 2025 movement and not the crisis. A new control feeds Centrica's published
+  series through the validator and requires a pass. It is mutation-proven: reverting the window reds it.
+- **The world's write-off lag is not the defect.** Real write-offs did not step up in share either
+  (GBP 58m, 93m, 113m in 2021-23 as revenue doubled). The headline leg grades write-offs against a
+  charge anchor. Its xfail now says that, and an XPASS there would itself be a fidelity question.
+- **The leg still open is the P&L charge.** The real charge is the movement in provisions plus
+  write-offs, less recoveries (Ofgem App. 2 §3.14). This finding's 2026-10-14 reading is that our
+  accrual line follows the world's write-offs. That reading was not re-traced this turn. The
+  company's Note 17 stock already moves most in 2022. The next build: make the published P&L
+  bad-debt line the IFRS 9 charge, then re-grade. Its prediction will be filed before the run.
+- **Done:** `roll_rate_provision_stock` returns `None` with a named reason, and the whole receivable
+  unrated, while no debt in the window has reached the last age before terminal (11 months). A zero
+  roll followed by an unobserved age had multiplied out to 0.00. The control is mutation-proven, and
+  it asserts the branch can be left: the same book at 30 months provides.

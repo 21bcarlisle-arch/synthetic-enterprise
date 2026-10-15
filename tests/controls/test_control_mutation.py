@@ -755,8 +755,8 @@ def test_crisis_bad_debt_validator_fires_on_flat_no_stepup_trajectory():
     # A flat ~2%-of-revenue trajectory with NO crisis step-up must FAIL (this is
     # the EXPECTED failing state the CFO cold-walk found -- the control's whole
     # value is that it fires on exactly that).
-    flat_bd = {y: 200.0 for y in (2016, 2017, 2018, 2019, 2021, 2022)}
-    flat_rev = {y: 10_000.0 for y in (2016, 2017, 2018, 2019, 2021, 2022)}
+    flat_bd = {y: 200.0 for y in (2016, 2017, 2018, 2019, 2022, 2023)}
+    flat_rev = {y: 10_000.0 for y in (2016, 2017, 2018, 2019, 2022, 2023)}
     res = validate_crisis_bad_debt(flat_bd, flat_rev)
     assert res.passed is False
     assert any("step-up" in f for f in res.failures)
@@ -765,7 +765,7 @@ def test_crisis_bad_debt_validator_fires_on_flat_no_stepup_trajectory():
 def test_crisis_bad_debt_validator_passes_on_a_real_stepup():
     # CORRECT: a genuine crisis step-up (rate >= floor and >= 1.2x pre-crisis)
     # must PASS -- proving the control is not stuck-closed theatre.
-    bd = {2016: 100.0, 2017: 100.0, 2018: 100.0, 2019: 100.0, 2021: 300.0, 2022: 300.0}
+    bd = {2016: 100.0, 2017: 100.0, 2018: 100.0, 2019: 100.0, 2022: 300.0, 2023: 300.0}
     rev = {y: 10_000.0 for y in bd}
     res = validate_crisis_bad_debt(bd, rev)
     assert res.passed is True

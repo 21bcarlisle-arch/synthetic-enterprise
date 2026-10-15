@@ -272,7 +272,16 @@ def learn_roll_rates(book, *, as_of: dt.date, payment_method_of: Callable,
                 product *= r
             row.append(product)
         loss[f] = row
-    reason = None if n else "no roll observed in the window: the book cannot tell its own loss rates yet"
+    # A chain that meets an unobserved age after a zero roll multiplies out to 0.0, so a young book
+    # whose debt has never reached the last age before terminal reads "no loss" (2017-18 at seed
+    # 61109: 320 and 517 rolls, a 0.00 stock). It has not seen the tail, so it cannot say.
+    if not n:
+        reason = "no roll observed in the window: the book cannot tell its own loss rates yet"
+    elif pooled[terminal - 1] is None:
+        reason = (f"no debt in the window has reached {terminal - 1} months unpaid: the book has not "
+                  f"seen the tail its loss rates run through, so it cannot tell them yet")
+    else:
+        reason = None
     return RollRateMatrix(as_of=as_of, rolls=rolls, loss_rate=loss, transitions=n, reason=reason)
 
 
@@ -280,7 +289,8 @@ def roll_rate_provision_stock(book, *, on: dt.date, payment_method_of: Callable,
     """The provision on `on`: the ledger's receivable (write-offs derecognised), per bill, times the
     learned loss rate for its footing and age (1.0 once it is past the terminal age), then grossed up
     for each overlay end so the overlay is its stated share of the total. Money at an age the book
-    cannot rate is reported unprovisioned with the reason, never rated off a borrowed row."""
+    cannot rate is reported unprovisioned with the reason, never rated off a borrowed row. While the
+    matrix carries a reason the stock is None and the whole receivable is unrated."""
     from company.billing.account_ledger import LedgerEventType
     matrix = learn_roll_rates(book, as_of=on, payment_method_of=payment_method_of, memo=memo)
     terminal = _terminal_months()
@@ -301,15 +311,18 @@ def roll_rate_provision_stock(book, *, on: dt.date, payment_method_of: Callable,
                 unrated += gbp
             else:
                 provided += gbp * rate
+    if matrix.reason:
+        provided, unrated = None, receivable
     return {
         "as_of": on.isoformat(),
         "window_months": ROLL_RATE_WINDOW_MONTHS,
         "terminal_months": terminal,
         "transitions": matrix.transitions,
         "receivable_gbp": round(receivable, 2),
-        "matrix_provision_gbp": round(provided, 2),
+        "matrix_provision_gbp": None if provided is None else round(provided, 2),
         "unrated_receivable_gbp": round(unrated, 2),
-        "by_overlay": {name: round(provided / (1.0 - share), 2) for name, share in OVERLAY_SHARE_ENDS},
+        "by_overlay": {name: None if provided is None else round(provided / (1.0 - share), 2)
+                       for name, share in OVERLAY_SHARE_ENDS},
         "written_off_to_date_gbp": round(written_off, 2),
         "loss_rate": {f: [None if r is None else round(r, 4) for r in row]
                       for f, row in matrix.loss_rate.items()},

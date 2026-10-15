@@ -6,7 +6,7 @@ WHAT THIS IS
 ============
 A harness-side (outside the wall -- the harness plays Ofgem/external auditor,
 not the company) anchored check that asserts the sim's bad-debt/arrears
-trajectory shows a REAL step-up through the 2021-22 UK energy crisis, the way
+trajectory shows a REAL step-up through the UK energy crisis (charged 2022-23), the way
 real UK suppliers did.
 
 WHAT THIS IS NOT (R12, anti-goal-seek -- CLAUDE.md)
@@ -44,14 +44,20 @@ where magnitude is directional/low-confidence, no fabricated precision)
     -- Ofgem debt/affordability reporting and Citizens Advice put total
     domestic energy debt at ~GBP 4.43bn by June 2025, roughly DOUBLE its
     pre-crisis level (ASSUMPTIONS.md line ~74). [L] on the exact multiple.
-  - Centrica plc's own CFO quantified the movement live in the FY2025 Q&A:
-    bad-debt charge "went from 2.3 to 2.8% of revenue in the year ... about
-    a 40 million pound increase" (ASSUMPTIONS.md line ~255) -- confirming
-    that in the real crisis the bad-debt RATE itself steps up, it is not a
-    constant fraction of revenue. [L] as a single-company data point.
+  - Centrica's UK bad-debt charge as a share of UK energy supply revenue
+    (Audit and Risk Committee report, each year; bad_debt_provisioning.md
+    section 3.2): 1.2% (2019), 2.2% (2020, COVID), 1.1% (2021, the LOW),
+    2.1% (2022), 2.7% as published / 2.9% restated (2023, the HIGH). Ofgem's
+    industry debt-cost series peaked in summer 2023 "at well over twice the
+    level seen in the previous year" (Debt-related costs decision, App. 2,
+    May 2025, para 2.20). So the real charge steps up in 2022-23, about 2x the
+    2019 rate, and 2021 is the trough. [L] as a single-company series.
+    CORRECTED 2026-10-15: this anchor used to be the FY2025 Q&A line "went
+    from 2.3 to 2.8% ... in the year", which is a 2025 movement, not the
+    crisis, and the window was 2021-22, which puts the real trough inside it.
 
 So the two anchored assertions below are deliberately CONSERVATIVE:
-  (1) crisis-era (2021-22) blended bad-debt rate >= 1.0% of revenue (the LOW
+  (1) crisis-era (2022-23) blended bad-debt rate >= 1.0% of revenue (the LOW
       end of the real resi band; the real crisis pushed it well above this);
   (2) crisis-era rate steps up to at least 1.2x the pre-crisis (2016-19)
       baseline [L] -- far short of the ~2x real energy debt actually moved,
@@ -67,7 +73,9 @@ from company.compliance.domain_invariants import BAD_DEBT_RATE_RESI
 
 # --- Anchored constants (see module docstring for provenance) ---
 
-CRISIS_YEARS: tuple[int, ...] = (2021, 2022)
+# The years the real charge stepped up (2022-23), not the years prices rose (2021-22): Centrica's 2021
+# charge was its decade low and Ofgem's series peaks in 2023. Section 3.2 of bad_debt_provisioning.md.
+CRISIS_YEARS: tuple[int, ...] = (2022, 2023)
 PRE_CRISIS_YEARS: tuple[int, ...] = (2016, 2017, 2018, 2019)
 
 # Reused from the already-anchored domain invariant, not re-derived here.
@@ -75,17 +83,17 @@ CRISIS_BAD_DEBT_RATE_FLOOR: float = BAD_DEBT_RATE_RESI.low  # 0.01 (1% of revenu
 CRISIS_BAD_DEBT_RATE_FLOOR_SOURCE: str = (
     "domain_invariants.BAD_DEBT_RATE_RESI.low (Ofgem Annual Report; Cornwall "
     "Insight; ASSUMPTIONS.md) -- LOW end of the real resi 1-3% band; the real "
-    "2021-22 crisis pushed rates well above this"
+    "2022-23 crisis charge pushed rates well above this"
 )
 
 # [L] directional: real UK domestic energy debt roughly DOUBLED through the
 # crisis; 1.2x is a deliberately conservative floor so a PASS is unambiguous.
 CRISIS_STEP_UP_MIN_RATIO: float = 1.2
 CRISIS_STEP_UP_SOURCE: str = (
-    "[L] Ofgem/Citizens Advice domestic energy debt ~doubled 2020->2022 "
-    "(~GBP4.43bn by 2025); Centrica CFO bad-debt charge 2.3%->2.8% of revenue "
-    "-- ASSUMPTIONS.md. 1.2x is a conservative directional floor, not the ~2x "
-    "the real figure moved"
+    "[L] Centrica UK bad-debt charge 1.2% of revenue (2019) -> 2.1% (2022) and "
+    "2.7% (2023), about 2x (bad_debt_provisioning.md 3.2); Ofgem/Citizens Advice "
+    "domestic energy debt ~doubled. 1.2x is a conservative directional floor, "
+    "not the ~2x the real figure moved"
 )
 
 Basis = Literal["headline", "pnl_accrual"]
@@ -118,8 +126,8 @@ class CrisisBadDebtResult:
 
     def summary(self) -> str:
         return (
-            f"[{self.basis}] crisis(2021-22) bad-debt rate={self.crisis_rate:.4%} "
-            f"vs pre-crisis(2016-19)={self.pre_crisis_rate:.4%} "
+            f"[{self.basis}] crisis{CRISIS_YEARS} bad-debt rate={self.crisis_rate:.4%} "
+            f"vs pre-crisis{PRE_CRISIS_YEARS}={self.pre_crisis_rate:.4%} "
             f"(step-up x{self.step_up_ratio:.2f}); "
             f"floor>={CRISIS_BAD_DEBT_RATE_FLOOR:.1%}, "
             f"step-up>=x{CRISIS_STEP_UP_MIN_RATIO}; "
@@ -141,7 +149,7 @@ def validate_crisis_bad_debt(
     revenue_by_year: dict[int, float],
     basis: Basis = "headline",
 ) -> CrisisBadDebtResult:
-    """Assert the bad-debt trajectory shows a real 2021-22 crisis step-up.
+    """Assert the bad-debt trajectory shows a real crisis step-up in CRISIS_YEARS.
 
     Pure function -- no I/O. `bad_debt_by_year`/`revenue_by_year` are keyed by
     integer year. Returns a CrisisBadDebtResult; check `.passed`.
@@ -162,7 +170,7 @@ def validate_crisis_bad_debt(
 
     failures: list[str] = []
     if not crisis_rows:
-        failures.append("no crisis-year (2021/2022) data present")
+        failures.append(f"no crisis-year {CRISIS_YEARS} data present")
     if crisis_rate < CRISIS_BAD_DEBT_RATE_FLOOR:
         failures.append(
             f"crisis bad-debt rate {crisis_rate:.4%} below anchored floor "

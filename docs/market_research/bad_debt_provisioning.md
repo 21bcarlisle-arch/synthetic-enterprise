@@ -1300,3 +1300,43 @@ asserts zero, and Centrica's own record says zero was wrong in 2022 (K2).
 charge 2022's arrears in 2022 (the charge step-up arriving in the year the arrears build, not the
 year they are written off), at each overlay end; and how far it sits from the published matrix the
 run already holds, which is a real supplier's rates and therefore not this world's.
+
+## When a GB supplier charged and wrote off 2022-era arrears, and which crisis window a control should grade (2026-10-15)
+
+**The question.** The crisis bad-debt validator (`company/compliance/crisis_bad_debt_validator.py`)
+graded 2021-22 against 2016-19. Our world's step-up lands in 2023. Is the world's lag wrong, or the
+window? The answer is in sections 2.3 and 3.2 above; this section draws it out.
+
+**ESTABLISHED (Centrica, section 3.2; Ofgem, section 2.3 and 3.3):**
+- **The charge stepped up in 2022 and peaked in 2023.** UK bad-debt charge as a share of UK energy
+  supply revenue: 1.2% (2019), 2.2% (2020), **1.1% (2021, the decade low)**, 2.1% (2022), **2.7%
+  published, 2.9% restated (2023, the high)**, then 2.6% (2024, 2025). Residential alone: 3.1% in 2023.
+  Ofgem's industry debt-cost series peaked in summer 2023, "well over twice" the year before (App. 2
+  decision, May 2025, §2.20), and 2023 showed "record debt-related costs" (§4.7).
+- **Write-offs did not step up.** Centrica residential written off: GBP 58m (2021), 93m (2022), 113m
+  (2023), 111m (2024), 74m (2025), while revenue roughly doubled. From 2022 the charge ran through
+  the provision, not the write-off: charge 2022-25 GBP 1,160m against GBP 391m written off.
+- **Write-off timing:** "a period of time" after the final bill (Centrica), and write-off does not end
+  collection. 2022 debt was largely still held, provided for and not written off, through 2025.
+
+**Decision.**
+1. **The window was wrong. It is now 2022-23.** 2021 is the real trough and sat inside the old window,
+   so the old window understated the real step-up (about x1.33 on Centrica's own series, against about
+   x2.0 on 2022-23). This is a factual correction to the harness, not a world change. Graded before the
+   change on the committed run: P&L accrual x1.02 on the new window (x0.88 on the old), headline x0.57
+   (x0.64). Both still fail, so the move was not tuned to pass.
+2. **The world's write-off lag is not wrong in itself.** A real supplier's write-offs of 2022 debt land
+   in 2023 and later, or not at all. What the real 2022 charge had and ours lacks is the provision
+   movement in the year the arrears build. The validator's two bases are write-offs (headline) and
+   our P&L accrual. **Grading write-offs against a charge step-up compares two different quantities.**
+   The real write-off share fell. So the headline leg's failure is the expected shape, not a defect.
+3. **The open gap is the P&L charge's definition.** Ofgem measures bad-debt cost as "Profit and loss
+   charge incurred. Costs include write-offs and recoveries, movements in provisions and credit
+   balance recognition" (App. 2, §3.14). On our run the company's own Note 17 provision stock moves
+   most in 2022 (+GBP 627, against +34 to +317 in 2017-21). A P&L charge built as the change in
+   provision plus write-offs, less recoveries, would carry that movement into 2022. This build has
+   not been done or measured.
+
+**GAP.** Only one supplier publishes the charge by year on a consistent UK basis. Octopus, OVO and
+E.ON Next publish 2023-24 only (section 3.4), so the 2021 trough is one company's evidence. The
+2016-18 UK-only ratio is not published, so the baseline rests on 2019 alone. [L]

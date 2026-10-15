@@ -26,6 +26,7 @@ import pytest
 from company.compliance.crisis_bad_debt_validator import (
     CRISIS_BAD_DEBT_RATE_FLOOR,
     CRISIS_STEP_UP_MIN_RATIO,
+    CRISIS_YEARS,
     extract_series_from_run_output,
     validate_crisis_bad_debt,
     validate_run_output,
@@ -47,12 +48,12 @@ def _published_run_or_skip():
 
 
 def test_real_crisis_step_up_passes():
-    # A trajectory that behaves like the real 2021-22 crisis: bad-debt rate
+    # A trajectory that behaves like the real crisis charge: bad-debt rate
     # ~1% pre-crisis rising to ~2.5% in the crisis years -> should PASS.
     revenue = {2016: 1_000_000, 2017: 1_000_000, 2018: 1_000_000, 2019: 1_000_000,
-               2021: 1_000_000, 2022: 1_000_000}
+               2022: 1_000_000, 2023: 1_000_000}
     bad_debt = {2016: 10_000, 2017: 10_000, 2018: 10_000, 2019: 10_000,   # ~1%
-                2021: 25_000, 2022: 25_000}                                # ~2.5%
+                2022: 25_000, 2023: 25_000}                                # ~2.5%
     result = validate_crisis_bad_debt(bad_debt, revenue)
     assert result.passed, result.summary()
     assert result.step_up_ratio >= CRISIS_STEP_UP_MIN_RATIO
@@ -62,8 +63,8 @@ def test_real_crisis_step_up_passes():
 def test_flat_low_trajectory_fails_the_floor():
     # Uniformly tiny bad debt (the behavioural-arrears-engine signature):
     # fails BOTH the floor and the step-up.
-    revenue = {y: 1_000_000 for y in (2016, 2017, 2018, 2019, 2021, 2022)}
-    bad_debt = {y: 50 for y in (2016, 2017, 2018, 2019, 2021, 2022)}  # 0.005%
+    revenue = {y: 1_000_000 for y in (2016, 2017, 2018, 2019, 2022, 2023)}
+    bad_debt = {y: 50 for y in (2016, 2017, 2018, 2019, 2022, 2023)}  # 0.005%
     result = validate_crisis_bad_debt(bad_debt, revenue)
     assert not result.passed
     assert any("below anchored floor" in f for f in result.failures)
@@ -72,8 +73,8 @@ def test_flat_low_trajectory_fails_the_floor():
 def test_in_band_but_flat_fails_the_step_up():
     # ~2.2% every year (the PnL-accrual signature): clears the floor but has
     # NO crisis spike, so it must fail the step-up assertion.
-    revenue = {y: 1_000_000 for y in (2016, 2017, 2018, 2019, 2021, 2022)}
-    bad_debt = {y: 22_000 for y in (2016, 2017, 2018, 2019, 2021, 2022)}
+    revenue = {y: 1_000_000 for y in (2016, 2017, 2018, 2019, 2022, 2023)}
+    bad_debt = {y: 22_000 for y in (2016, 2017, 2018, 2019, 2022, 2023)}
     result = validate_crisis_bad_debt(bad_debt, revenue)
     assert not result.passed
     assert any("step-up" in f for f in result.failures)
@@ -82,11 +83,21 @@ def test_in_band_but_flat_fails_the_step_up():
 
 def test_zero_revenue_year_does_not_crash():
     revenue = {2016: 0, 2017: 1_000_000, 2018: 1_000_000, 2019: 1_000_000,
-               2021: 1_000_000, 2022: 1_000_000}
+               2022: 1_000_000, 2023: 1_000_000}
     bad_debt = {2016: 0, 2017: 10_000, 2018: 10_000, 2019: 10_000,
-                2021: 25_000, 2022: 25_000}
+                2022: 25_000, 2023: 25_000}
     result = validate_crisis_bad_debt(bad_debt, revenue)  # must not raise
     assert result.crisis_rate > 0
+
+
+def test_the_published_record_passes_its_own_validator_defect_a_window_that_holds_the_real_trough():
+    # Centrica's UK bad-debt charge as a share of revenue, as published (bad_debt_provisioning.md
+    # 3.2): 2021 was its decade low and 2023 its high. A validator the real supplier fails cannot
+    # be graded against. 2016-18 are not published on this basis, so 2019 alone is the baseline.
+    real = {2019: 1.2, 2020: 2.2, 2021: 1.1, 2022: 2.1, 2023: 2.7}
+    result = validate_crisis_bad_debt(real, {y: 100.0 for y in real})
+    assert result.passed, result.summary()
+    assert 2021 not in CRISIS_YEARS and 2023 in CRISIS_YEARS
 
 
 def test_extract_both_bases_from_run_output():
@@ -94,8 +105,7 @@ def test_extract_both_bases_from_run_output():
     head_bd, head_rev = extract_series_from_run_output(run, "headline")
     pnl_bd, pnl_rev = extract_series_from_run_output(run, "pnl_accrual")
     # Both bases must yield the crisis years.
-    assert 2021 in head_bd and 2022 in head_bd
-    assert 2021 in pnl_bd and 2022 in pnl_bd
+    assert all(y in head_bd and y in pnl_bd for y in CRISIS_YEARS)
     # The two bases are genuinely different representations (this IS the
     # separately-registered multiple-basis ambiguity).
     assert head_bd[2022] != pnl_bd[2022]
@@ -121,11 +131,24 @@ def test_extract_both_bases_from_run_output():
 # Strict, so the day a published run steps up on a basis, that leg XPASSes, the suite reds, and
 # someone revisits this. NOT ESTABLISHED: that a step-up EMERGES from a household budget meeting the
 # price shock rather than a tuned propensity (R12) -- the W2_4.. affordability cluster's question.
-_REARMED = ("the published run's crisis-years bad-debt share falls on this basis (2026-10-14): "
-            "write-offs land in 2023, revenue doubles in 2022")
+#
+# THE WINDOW MOVED TO 2022-23 (2026-10-15): the real charge stepped up then, and 2021 was Centrica's
+# low. Graded before the move was made, on the committed run: P&L accrual x1.02 (2.05% against
+# 2.01%), headline x0.57. Both legs still fail, as pre-registered in the finding.
+#
+# The two legs fail for different reasons. The headline basis is the world's WRITE-OFFS, and the
+# real record's write-offs did not step up in share either: Centrica wrote off GBP 58m, 93m and 113m
+# in 2021-23 while revenue roughly doubled, and the charge rose through provisions, not write-offs.
+# So the headline leg is graded against an anchor that describes a different quantity; its XPASS
+# would itself be a fidelity question. The P&L accrual leg is the real gap: the real charge carries
+# the provision movement in the year the arrears build, and ours dips in 2022.
+_REARMED = ("the published run's crisis-years bad-debt share does not step up on this basis "
+            "(2026-10-15, window 2022-23): P&L accrual x1.02, headline x0.57")
+_WRITE_OFFS = ("the headline basis is write-offs, and the real record's write-offs did not step up "
+               "in share either (Centrica GBP 58m, 93m, 113m in 2021-23 as revenue doubled)")
 
 
-@pytest.mark.xfail(strict=True, reason=_REARMED)
+@pytest.mark.xfail(strict=True, reason=_WRITE_OFFS)
 def test_live_run_output_shows_crisis_step_up_headline():
     result = validate_run_output(_published_run_or_skip(), "headline")
     assert result.passed, result.summary()
