@@ -126,11 +126,17 @@ def test_billed_total_helper_sums_by_customer_and_year():
 _HELD_ESTIMATE_NETTED = (
     "held estimates leave the ledger but the catch-up still nets them: WORKER_FINDING_NINE_CUSTOMER_YEARS_BILL_LESS_THAN_THEIR_GROSS_MARGIN_AT_ORIGIN_2026-10-14.md"
 )
+# The two OCC- rows have no held bill (measured 2026-10-15, SEAT_PREREG_A_HELD_ESTIMATE_IS_KNOWN_AT_
+# ASSEMBLY_2026-10-15.md P3): each is a 6-8 day December stub, and the netting below spreads a later
+# catch-up CREDIT over the whole run by day, which takes a few pence out of the stub.
+_STUB_TAKES_A_DAY_SHARE_OF_A_LATER_CREDIT = (
+    "December stub: the day-weighted netting of a later over-estimate credit, not a held bill"
+)
 KNOWN_OPEN_INVERSIONS = {
     # Red at origin 440ebe1f6 on the 2248e3baf book, before anyone touched this file; the nine
     # are named so the gate keeps its teeth for a TENTH while the BLOCKING finding is worked.
-    ("OCC-25ff8966357a", 2022): _HELD_ESTIMATE_NETTED,
-    ("OCC-b7693802f91c", 2016): _HELD_ESTIMATE_NETTED,
+    ("OCC-25ff8966357a", 2022): _STUB_TAKES_A_DAY_SHARE_OF_A_LATER_CREDIT,
+    ("OCC-b7693802f91c", 2016): _STUB_TAKES_A_DAY_SHARE_OF_A_LATER_CREDIT,
     ("PROS-2017-0117", 2018): _HELD_ESTIMATE_NETTED,
     ("PROS-2017-0336", 2017): _HELD_ESTIMATE_NETTED,
     ("PROS-2017-0336", 2018): _HELD_ESTIMATE_NETTED,

@@ -65,6 +65,7 @@ from company.billing.back_billing import (
     RecoveryPeriod,
     barred_unrecovered_gbp,
 )
+from company.billing.pre_bill_validation import validate_bill
 from company.billing.unread_month_estimate import estimate_unread_kwh, opening_estimate_kwh
 from company.interfaces.supply_book import registered_point as get_customer
 from saas.bill_generator import (
@@ -625,6 +626,8 @@ def build_monthly_bills(
                     bill["read_true_up_barred_kwh"] = catchup.get("barred_kwh")
                 if catchup is not None and catchup["is_material"]:
                     bill["catchup_applied"] = True
+                    bill["catchup_unbilled_periods"] = sum(
+                        1 for p in pending_estimated_run if p["held"])
                     bill["catchup_period_start"] = catchup["period_start"]
                     bill["catchup_period_end"] = catchup["period_end"]
                     bill["catchup_periods_covered"] = catchup["periods_covered"]
@@ -727,13 +730,22 @@ def build_monthly_bills(
                 bill = _annotate_billing_basis(estimated_bill, event, true_bill)
                 bill["estimated_consumption_kwh"] = est_kwh
                 consecutive_estimated = event.consecutive_estimated_count
+                # A HELD ESTIMATE WAS NEVER SENT, so the catch-up reconciles it as billed nothing.
+                # `validate_bills` holds bills after this function returns; reconciling the run as
+                # if every estimate went out credited customers for charges they never received
+                # (PROS-2017-0336: -£271.29 for 2018-03..04, a period with no invoice). The hold is
+                # asked of the same `validate_bill`, so it is decided in one place; an estimate is
+                # never released downstream (`release_confirmed_domestic` takes an actual read).
+                # Licence reading: docs/market_research/back_billing_and_liability.md §12.
+                held = validate_bill(bill).held
                 pending_estimated_run.append({
                     "period_start": bill["period_start"],
                     "period_end": bill["period_end"],
                     "true_total_amount_gbp": bill["true_total_amount_gbp"],
-                    "total_amount_gbp": bill["total_amount_gbp"],
-                    "billed_kwh": bill["total_consumption_kwh"],
+                    "total_amount_gbp": 0.0 if held else bill["total_amount_gbp"],
+                    "billed_kwh": 0.0 if held else bill["total_consumption_kwh"],
                     "used_kwh": true_kwh,
+                    "held": held,
                 })
             # B7 slice 5: energy at a vacated premise before anyone is named is billed to "the
             # occupier". The world books it as occupier debt on the settled rows, so the bill
