@@ -30,6 +30,7 @@ steps:
     name: per-customer decisions
     atoms: [W2_39_households_respond_to_contact_including_badly,
             C34_next_best_action_is_one_decision_across_debt_retention_upsell_and_carbon_judged_by_clv,
+            C35_the_supplier_finds_the_share_of_value_it_prices_by_optimising_joint_value_against_the_households_response,
             C29_decisions_stop_being_lookup_tables, PB4_engagement_separated_from_elasticity,
             PB5_pounds_or_percent_resolved,
             B12_writer_one_reads_its_margin_on_the_unit_rate_so_a_renewal_floor_is_its_true_unit_cost,
