@@ -117,3 +117,25 @@ unconditional. A fifth, the no-origin exemption removed, reds the file's other 1
 from an origin worktree, with the conflicted doc resolved to origin's bytes. The merge's tree is
 origin's tree. After promotion the shared checkout is 0 ahead, so the reconciler's
 `advance_shared_tree` can fast-forward it once the paths blocking it are cleared.
+
+**Where it stands, 12:26 UTC.** `ed7e89d12` (the guard) and `3fd241644` (the merge) reached origin
+in promotion `9d71b68c9`. The shared checkout now reads **0 ahead, 116 behind**, and
+`bb5276856` is an ancestor of origin, so the fork is closed. The fast-forward is still
+`NOT_ADVANCED`, on 54 paths. A dry run of `advance_shared_tree` used a lock that throws before any
+write. It proves 51 of the 54 lossless and is held, all-or-nothing, by three that
+`refresh_to_head --base origin/main` also refuses as holder work. I did not touch those three:
+- `site/data/knowledge_topics.json`, written 2026-10-14 07:13. It is the pre-landing draft of
+  b585d3733's N page, and d26837927 revised that page again. It still changes 13 values across
+  three pages, so it is not provably superseded. It is under the 48 h abandonment line, and that
+  is what keeps the abandoned class from firing for all three.
+- `docs/institutional/knowledge_map.md`, written 2026-10-13 00:38. It is a replacement draft, and
+  among its changes it holds a capital target of £115 (decided 26 July 2023) where HEAD has £130.
+  That is a factual question worth checking against Ofgem's decision. It is not settled here.
+- `tests/company/compliance/test_crisis_bad_debt_validator.py`, written 2026-10-11 05:18. It
+  supplies 5 names origin lacks, among them
+  `test_the_strict_marker_is_not_armed_by_the_working_tree_copy`.
+
+When `knowledge_topics.json` crosses 48 h, at **2026-10-16 07:13 BST**, all three age out together.
+The reconciler then preserves them on `refs/preserved/abandoned/*`, names them in one staging item
+and fast-forwards with no one needing to act. A lane that lands or drops any of the three before
+then brings that forward.
