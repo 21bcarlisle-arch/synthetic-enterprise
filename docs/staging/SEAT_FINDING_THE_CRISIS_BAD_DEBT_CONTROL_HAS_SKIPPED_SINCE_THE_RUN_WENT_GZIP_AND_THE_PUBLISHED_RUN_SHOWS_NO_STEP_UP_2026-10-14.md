@@ -405,3 +405,62 @@ were run-written observability files and an older copy of this finding. r1-r3's 
 
 **Status:** OPEN, the same as before r3. All three bases fail at the real level. The P&L line stays
 on the seed rate until the world's non-payment is grounded.
+
+## 2026-10-16: the provision charge beside the company's own arrears, by year, from the committed run
+
+Worked as `when-a-gb-supplier-charged-2022s-bad-debt`. The knowledge question was already answered
+on 10-15 (`bad_debt_provisioning.md`, "When a GB supplier charged and wrote off 2022-era arrears"):
+**the published step-up is a provision charge, not a write-off.** Centrica's charge rose 1.1% (2021)
+to 2.1% (2022) and 2.7-2.9% (2023) of revenue, while write-offs stayed flat in share (GBP 58m, 93m,
+113m). GB suppliers recognised 2022's arrears in 2022 and 2023 through the provision, and most of
+that debt was still held, not written off, through 2025. The window was corrected to (2022, 2023)
+on that basis. This section prints the table that was still owed.
+
+**What each column counts.** *Arrears* is receivable aged 30 days or more, across every bucket
+(live DD, live pay-on-receipt, final bill, no published row). *Stock* is `company_provision.by_date`,
+meaning `default_belief.provision_stock` on Centrica's Note 17 rates, which is what the run publishes.
+*Charge* is the year's movement in stock. The ledger records no write-offs in this run, so the
+charge is the IFRS 9 charge as the `ifrs9_charge` basis grades it. *Revenue* and the *P&L line*
+come from the validator's own `extract_series_from_run_output`. Source: the committed
+`run_output_latest.json.gz`, producing commit 2248e3baf.
+
+| year | receivable | arrears >=30d | of which >90d | stock | stock / arrears | charge | change in arrears | charge % revenue | P&L line (seed 2%) |
+|---|---|---|---|---|---|---|---|---|---|
+| 2016 | 3,217 | 466 | 0 | 96.96 | 20.8% | +96.96 | +466 | 0.097% | 1,316 |
+| 2017 | 4,222 | 976 | 293 | 363.25 | 37.2% | +266.29 | +511 | 0.141% | 3,982 |
+| 2018 | 5,034 | 1,716 | 599 | 680.49 | 39.7% | +317.24 | +739 | 0.162% | 4,126 |
+| 2019 | 6,206 | 1,896 | 686 | 803.13 | 42.4% | +122.64 | +180 | 0.066% | 4,002 |
+| 2020 | 4,537 | 1,656 | 846 | 837.10 | 50.6% | +33.97 | -240 | 0.020% | 3,758 |
+| 2021 | 6,507 | 2,579 | 867 | 976.59 | 37.9% | +139.49 | +924 | 0.079% | 3,531 |
+| **2022** | 16,905 | 5,337 | 1,058 | 1,603.95 | 30.1% | **+627.36** | **+2,758** | **0.180%** | 5,698 |
+| 2023 | 13,962 | 5,905 | 1,978 | 2,089.66 | 35.4% | +485.71 | +568 | 0.101% | 11,342 |
+| 2024 | 14,445 | 6,023 | 2,116 | 2,384.10 | 39.6% | +294.44 | +118 | 0.092% | 6,867 |
+| 2025 | 10,444 | 5,606 | 2,228 | 2,360.07 | 42.1% | -24.03 | -417 | -0.015% | 4,717 |
+
+**Ruling.**
+- **The published provision does not lag.** Arrears build most in 2022 (+GBP 2,758, three times any
+  other year), and the charge is largest in 2022 (+GBP 627). In 2023 arrears grow only +568, yet the
+  charge is still +486, because the 2022 debt ages: the over-90-day balance nearly doubles, from 1,058
+  to 1,978. That is the Centrica shape, with the step in 2022 and the peak carried into 2023. Coverage
+  dips to 30.1% in 2022 because new arrears are young, which is the age-banded method working as
+  designed and not a lag.
+- **The learned provision does lag, and that is already filed.** E6's own roll-rate matrix trails the
+  run's arrears by three quarters. It is filed as
+  `WORKER_FINDING_THE_ROLL_RATE_PROVISION_TRAILS_THE_RUNS_ARREARS_BY_THREE_QUARTERS_2026-10-15.md`,
+  pre-registered (lag 0 was predicted and refuted), held by a strict xfail in
+  `tests/company/finance/test_the_provision_charges_expected_loss_as_arrears_build.py`, and ships
+  off. No second filing is needed.
+- **The window was the timing defect, and it is fixed.** `CRISIS_YEARS = (2022, 2023)`, cited to
+  Centrica and Ofgem (10-15). No further window change is warranted.
+- **So what keeps this finding BLOCKING is level, not timing.** The company's charge has the real
+  shape, but at 0.10-0.18% of revenue it sits about a tenth of the way to the real 1-3% band. The P&L
+  line sits inside the band only because of the seed 2% rate, and its 2023 peak is booking delay, not
+  credit. Both are already recorded above and go back to the world's non-payment (the W2_4..
+  affordability cluster).
+
+**Corrected beside the claim:** E6's map row says "the crisis control is red because the age bands
+lag 2022's arrears a year". The table above refutes that: the age-band stock charges most in 2022.
+The comment is corrected in the same commit. This finding's header also cites "1.3% to 2.8%" as
+recorded in `ASSUMPTIONS.md`. No 1.3% figure is recorded there. The 2.3-to-2.8% figure that is
+recorded is Centrica's FY2025 movement, as corrected on 10-15. The crisis anchor is the 1.1% (2021)
+to 2.1-2.9% (2022-23) series in `bad_debt_provisioning.md` §3.2.
