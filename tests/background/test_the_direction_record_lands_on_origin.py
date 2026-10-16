@@ -401,7 +401,10 @@ def test_the_deadline_is_the_units_budget_less_one_gate_run(tmp_path, monkeypatc
     assert seat.direction_unit_budget_s(tmp_path / "absent") == seat.DIRECTION_UNIT_FALLBACK_BUDGET_S
     monkeypatch.setattr(seat, "DIRECTION_UNIT", unit)
     start = seat._PROCESS_STARTED
-    assert seat.direction_land_deadline_s(start + 1000) == 3000 - 1000 - seat.DIRECTION_GATE_RUN_S
+    # approx: (start + 1000) - start is not exactly 1000 in floating point once the monotonic
+    # clock is large, so == went red as the host's uptime grew (500.0000000000146 at ~130,000 s).
+    assert seat.direction_land_deadline_s(start + 1000) == pytest.approx(
+        3000 - 1000 - seat.DIRECTION_GATE_RUN_S, abs=1e-6)
     assert seat.direction_land_deadline_s(start + 2000) == 0.0
 
 

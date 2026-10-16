@@ -1,0 +1,236 @@
+# A retention price that shares the value an action creates: the GB rules on pricing a retention or renewal offer, and what such a price does to C34's 18 cases
+
+**Knowledge:** next-best-action-and-cross-sell
+
+**Written 2026-10-16** for the director's open row `c34-now-ranks-next-best-action-on`. That row
+proposes that an advice action which creates value but costs us should travel with a renewal or
+retention price that brings our side to at least zero (M2: created, then shared). This page is
+knowledge and measurement only. It changes no decision rule.
+
+Its sibling, `how_a_supplier_prices_a_share_of_value_it_creates_for_a_household_2026-10-14.md`,
+covers a **one-off fee** (C35). This page covers the other shape: a **price change on the tariff**,
+paid for each month the household stays.
+
+## 0. The quantity, stated before any source
+
+> For one account, the smallest rise in our monthly margin, carried by the tariff the household is
+> on, that brings our forward-value change from the advice action to at least zero. It is read
+> with the household's own floor, so the household still ends up better off than with no action.
+
+Three things follow from that definition.
+
+- **The rise is a transfer.** The module holds the hazard fixed, so every pound the rise adds to
+  our side comes off the household's side. The joint value of the action is unchanged. At the
+  *smallest* rise our side is exactly zero, so **the household holds 100% of the joint value by
+  construction.** That column in §4 says nothing new; it confirms the arithmetic. The informative
+  column is how much of its *gross* benefit the household keeps.
+- **The household pays the rise only in months it is supplied.** The benefit of the advice is
+  counted over the whole horizon, as `next_best_action.joint_value` counts it.
+- **A price rise is not neutral for staying.** A household asked to pay more leaves more often.
+  The module's arithmetic leaves this out, so §4 carries a second column that adds it from the
+  published slope. Read that column first (F11: erring against our own thesis is the safe direction).
+
+## 1. The cap (SLC 28AD)
+
+**ESTABLISHED (in this repo, `a_save_offer_against_the_switching_rules_and_the_seam.md` §6, read
+2026-10-08 from the consolidated licence).** The default tariff cap reaches **default and deemed
+contracts only**, not a fixed tariff the household chose. So:
+
+- **On a default tariff,** a rise is lawful only up to the cap. A supplier already pricing at the
+  cap has no headroom, so no rise is possible there. **GAP:** none of the 18 cases carries its
+  headroom under the cap, and the "margin" in each case is contribution, not headroom. The verdict
+  for this route is therefore given for the at-cap case only.
+- **On a fixed tariff,** the cap sets no ceiling. The household's alternative is still the cap,
+  because it can let the fix lapse onto the default tariff or move to another supplier.
+
+## 2. SLC 22B: the ban on acquisition-only tariffs, its retention carve-out, and the 2024 proposal to lift it
+
+**ESTABLISHED (R1, R6, R7 of the save-offer page; Ofgem press release, 30 July 2024, fetched
+2026-10-16).**
+
+| date | what Ofgem did | source |
+|---|---|---|
+| 14 April 2022 | BAT (SLC 22B) in force. Every domestic tariff must be open to new and existing customers. The Market-wide Derogation permits **Fixed Retention Tariffs**: fixed-term, existing customers only, "with the aim of retaining the loyalty of those customers", and notified to Ofgem | R1, R6 |
+| April 2022 to April 2024 | the Market Stabilisation Charge ran alongside, and was removed in April 2024 | save-offer page §6 |
+| 3 February 2023 | Market-wide derogation decision and Directions for Fixed Retention Tariffs | R6 |
+| February 2024 | BAT extended to 31 March 2025 | Ofgem consultation page *Future of the BAT after March 2025* (search result, 2026-10-16) |
+| May 2024 | **Ofgem proposed to remove the ban, with an intended end date of 1 October 2024** | Ofgem press release *Ofgem retains ban on acquisition-only tariffs*, 30 July 2024 |
+| 30 July 2024 | **Ofgem reversed that proposal.** It retained the BAT to at least 31 March 2025, citing the risk of "returning to an unfair market for inactive switchers – often referred to as the 'loyalty penalty'" and of harm to customers in debt who cannot switch | same |
+| November 2024 | BAT extended to 31 March 2026 | Cornwall Insight alert, 15 November 2024 (title only, not read) |
+| 13 November 2025 | BAT and derogation renewed to **31 March 2027** | R7 |
+
+**So the ban has not been lifted.** A lift was proposed once, in May 2024, and withdrawn. **GAP:**
+what happens after 31 March 2027. Ofgem treats a permanent ban as a separate workstream, and its
+statutory consultation was unpublished at R7.
+
+**What this means for a sharing price.** A price offered only to existing customers who take an
+advice action is a criterion about being an existing customer. Outside the derogation, 22B.1 bars
+it. Inside the derogation it is lawful **only as a fixed-term tariff**. A variable-tariff surcharge
+for advice-takers has no carve-out. If the ban were lifted, the carve-out would no longer be
+needed. Lifting it would also bring back cheaper acquisition-only deals elsewhere, which raises the
+household's outside option. **That direction is reasoned, not measured.**
+
+**The derogation names no price rule.** Save-offer page §7a, ESTABLISHED: there is no formula, no
+floor, no ceiling and no reference price. Ofgem's own words in R7 §3.3: "not seen any substantial
+evidence to date of the Market-wide Derogation's impact on pricing and tariffs". **A Fixed Retention
+Tariff may be priced above the household's present tariff.** Nothing in the text requires it to be
+a discount.
+
+## 3. The other limits on a retention price
+
+- **(a) SLC 0, the Standards of Conduct.** SLC 0.6 excludes the *amount* of a charge. SLC 0.3
+  bounds how the offer is presented: the information must be complete and accurate, the product
+  appropriate, and there must be no "material imbalance" in the licensee's favour (sibling page §1).
+  A retention tariff priced above the household's present rate, sold on the strength of the advice,
+  has to show the household its net position honestly.
+  **GAP:** no Ofgem guidance applies this to a tariff bundled with advice.
+- **(b) DMCC Act 2024, in force 6 April 2025.** No false urgency and no drip pricing (save-offer
+  page §6). The rise must be in the headline price, not added on later.
+- **(c) The form.** A rise on a fixed retention tariff is the tariff's own price. It is not credit
+  extended to the household, so **reasoned, not established:** it avoids the consumer-credit regime
+  that an instalment-recovered share falls under (Green Deal, SI 2012/2798; sibling page §1).
+  **GAP:** no source confirms this boundary for a bundled advice tariff.
+- **(d) Term length.** The horizon is 48 months. A rise priced on 48 months needs one fix of that
+  length, or a fresh retention tariff at each renewal. **GAP:** no licence maximum on a fix's length
+  was found. Whether a supplier may re-strike a retention tariff each year under the derogation is
+  covered by its text, which carries no frequency limit.
+- **(e) Analogue: the FCA's 2022 ban on price walking in insurance.** It bans pricing a renewal above
+  the new-business price. BAT is energy's nearest equivalent, and it reaches *who may be offered* a
+  price, not how high the price may go (`next_best_action_and_cross_sell.md`).
+- **(f) Vulnerability and payment method.** SLC 0 and SLC 27 still apply (save-offer page §6).
+  **GAP:** none of the 18 cases carries a vulnerability flag.
+
+**Verdict used in §4.** A rise is **lawful as a Fixed Retention Tariff** in every case where the
+household still ends up better off: the form is permitted and the depth is unregulated, subject to
+(a) to (d). It is **not lawful on a default tariff priced at the cap**. A default tariff below the
+cap is a GAP (§1).
+
+## 4. The 18 cases, through `company/crm/next_best_action.py`'s own arithmetic
+
+**The inputs** are §6.1 of `next_best_action_and_cross_sell.md`:
+
+- margin £5, 15 or 30 a month
+- departure hazard 0.5% or 3% a month
+- horizon 48 months
+- three advice effects, each a margin given up and a hazard cut: (£2, 0.1 point), (£2, 0.3 points)
+  and (£3, 0.3 points)
+- the household's yearly benefit taken as 12 x the margin given up
+
+§6.1 does not list the grid. This one was **reconstructed** because it reproduces every published
+range: joint value +£13.4 to +£107.0, our side −£0.3 to −£122.2. A second grid also reproduces them:
+margin {5, 30} x hazard {0.5, 1.5, 3%} x the same three effects. Its counts are given beside this
+grid's.
+
+**The arithmetic.** `value_change` and `joint_value` are imported unchanged. The rise d (£ a month)
+enters as `margin_change = −give_up + d`, and the smallest d with our side ≥ 0 is found by
+bisection.
+
+**The last column** adds the price's own effect on staying. The published within-household
+renewal slope is 0.0013–0.0016 of P(stay) per £ a year of price gap (Deller et al. 2021, average
+marginal effect; `retention_slope_per_pound_of_renewal_cut.md` §1). At 0.0015, a rise of £d a month
+adds 0.0015·d to the monthly hazard. That slope was measured on opted-in collective-switch
+households, so for an inactive book it probably **overstates** the response. It is a bound against
+our thesis, not a central estimate.
+
+The **"lawful?" column** abbreviates two routes: a Fixed Retention Tariff, and a default tariff
+priced at the cap.
+
+| margin £/mo | hazard /mo | advice gives up £/mo | hazard cut | joint value £ | our side £ | smallest rise £/mo | household keeps £ | household share of joint | share of its gross benefit kept | rise £/yr | lawful? | rise with the price's own hazard (slope 0.0015/£·yr) £/mo |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 5 | 0.5% | 2 | 0.1 pt | +13.4 | -82.6 | 1.89 | 13.4 | 100% | 14% | 22.7 | FRT: yes · capped default at the cap: no | 2.28 |
+| 5 | 0.5% | 2 | 0.3 pt | +19.6 | -76.4 | 1.67 | 19.6 | 100% | 20% | 20.0 | FRT: yes · capped default at the cap: no | 2.00 |
+| 5 | 0.5% | 3 | 0.3 pt | +21.8 | -122.2 | 2.67 | 21.8 | 100% | 15% | 32.0 | FRT: yes · capped default at the cap: no | 3.21 |
+| 5 | 3.0% | 2 | 0.1 pt | +46.2 | -49.8 | 1.91 | 46.2 | 100% | 48% | 22.9 | FRT: yes · capped default at the cap: no | 2.22 |
+| 5 | 3.0% | 2 | 0.3 pt | +49.2 | -46.8 | 1.73 | 49.2 | 100% | 51% | 20.7 | FRT: yes · capped default at the cap: no | 2.00 |
+| 5 | 3.0% | 3 | 0.3 pt | +70.1 | -73.9 | 2.73 | 70.1 | 100% | 49% | 32.7 | FRT: yes · capped default at the cap: no | 3.16 |
+| 15 | 0.5% | 2 | 0.1 pt | +23.2 | -72.8 | 1.66 | 23.2 | 100% | 24% | 20.0 | FRT: yes · capped default at the cap: no | 3.48 |
+| 15 | 0.5% | 2 | 0.3 pt | +50.0 | -46.0 | 1.00 | 50.0 | 100% | 52% | 12.0 | FRT: yes · capped default at the cap: no | 2.00 |
+| 15 | 0.5% | 3 | 0.3 pt | +52.2 | -91.8 | 2.00 | 52.2 | 100% | 36% | 24.0 | FRT: yes · capped default at the cap: no | 4.09 |
+| 15 | 3.0% | 2 | 0.1 pt | +51.0 | -45.0 | 1.73 | 51.0 | 100% | 53% | 20.7 | FRT: yes · capped default at the cap: no | 2.97 |
+| 15 | 3.0% | 2 | 0.3 pt | +63.9 | -32.1 | 1.18 | 63.9 | 100% | 67% | 14.2 | FRT: yes · capped default at the cap: no | 2.00 |
+| 15 | 3.0% | 3 | 0.3 pt | +84.9 | -59.1 | 2.18 | 84.9 | 100% | 59% | 26.2 | FRT: yes · capped default at the cap: no | 3.72 |
+| 30 | 0.5% | 2 | 0.1 pt | +38.0 | -58.0 | 1.33 | 38.0 | 100% | 40% | 15.9 | FRT: yes · capped default at the cap: no | none: no rise reaches zero |
+| 30 | 0.5% | 2 | 0.3 pt | +95.7 | -0.3 | 0.01 | 95.7 | 100% | 100% | 0.1 | FRT: yes · capped default at the cap: no | none: no rise reaches zero |
+| 30 | 0.5% | 3 | 0.3 pt | +97.8 | -46.2 | 1.01 | 97.8 | 100% | 68% | 12.1 | FRT: yes · capped default at the cap: no | none: no rise reaches zero |
+| 30 | 3.0% | 2 | 0.1 pt | +58.2 | -37.8 | 1.45 | 58.2 | 100% | 61% | 17.4 | FRT: yes · capped default at the cap: no | none: no rise reaches zero |
+| 30 | 3.0% | 2 | 0.3 pt | +86.1 | -9.9 | 0.37 | 86.1 | 100% | 90% | 4.4 | FRT: yes · capped default at the cap: no | none: no rise reaches zero |
+| 30 | 3.0% | 3 | 0.3 pt | +107.0 | -37.0 | 1.37 | 107.0 | 100% | 74% | 16.4 | FRT: yes · capped default at the cap: no | none: no rise reaches zero |
+
+**Count.**
+
+- **Holding the hazard, as the module does:** a lawful sharing price rescues **18 of 18** cases as a
+  Fixed Retention Tariff, on both grids. It rescues **0 of 18** on a default tariff priced at the
+  cap. The rise needed is £0.01 to £2.73 a month (£0.1 to £32.7 a year). The household keeps 14% to
+  100% of its gross benefit.
+- **Adding the price's own effect on staying (published slope):** **10 of 18** are rescued (9 of 18
+  on the second grid).
+  - **None of the six £30-margin cases** is rescued. There, every pound of price costs more in lost
+    staying than it brings in, so no rise brings our side to zero.
+  - All 12 cases at £5 and £15 margin are rescued with a rise of £2.00 to £4.09 a month.
+  - Of those 12, **10 also clear the household's floor**. The two that fail are both at £15 margin
+    and 0.5% hazard: (£2, 0.1 point) and (£3, 0.3 points). There the rise takes more than the advice
+    saves.
+
+**What this says, and what it does not.**
+
+- **The cases a price can rescue are the low-margin ones.** At high margin, the loss in staying
+  that a rise causes costs more than the margin it recovers.
+- **The rescue is a transfer.** It does not create value. Creating the value is the advice's job,
+  and the price only moves it.
+- **Every rescued case turns on two unestablished numbers.** One is the household's benefit horizon
+  (§6.1 GAP). The other is whether the published slope applies to a household that has just been
+  helped.
+
+**I cannot yet say** whether a household offered advice together with a higher fixed price
+responds like Deller's switchers. No published source measures a bundle. That is the measurement a
+holdout would make (`hazard_estimate_from_holdout`, B8).
+
+**Reproduce:** from the repo root, `PYTHONPATH=. python3` the snippet below.
+
+```python
+from company.crm.next_best_action import AccountState, ActionEstimate, Action, forward_value, value_change, joint_value
+H, K = 48, 0.0015   # K: monthly hazard per GBP/month of price, from 0.0015 P(stay) per GBP/yr
+def ours(m, h, g, c, d, k=0.0):
+    return value_change(AccountState("a", m, h, 0, ()), ActionEstimate(Action.TARIFF_ADVICE, g*12, -g+d, -c+k*d), H)
+def smallest(m, h, g, c, k=0.0):          # None when no rise up to GBP 200/month reaches zero
+    if ours(m, h, g, c, 0, k) >= 0: return 0.0
+    if ours(m, h, g, c, 200, k) < 0: return None
+    lo, hi = 0.0, 200.0
+    for _ in range(80):
+        mid = (lo + hi) / 2; lo, hi = (mid, hi) if ours(m, h, g, c, mid, k) < 0 else (lo, mid)
+    return hi
+for m in (5, 15, 30):
+    for h in (0.005, 0.03):
+        for g, c in ((2, .001), (2, .003), (3, .003)):
+            d, dk = smallest(m, h, g, c), smallest(m, h, g, c, K)
+            paid_k = None if dk is None else dk * forward_value(1.0, h - c + K*dk, H)
+            print(m, h, g, c, round(joint_value(ours(m, h, g, c, 0), g*12, H), 1), round(d, 2),
+                  None if dk is None else (round(dk, 2), paid_k <= g*12*H/12))
+```
+
+## 5. Gaps, in one place
+
+1. Each case's headroom under the cap, if it is on a default tariff (§1).
+2. What happens to the BAT after 31 March 2027, and the permanent-ban workstream (§2).
+3. How Ofgem reads SLC 0.3 for a retention tariff bundled with advice (§3a).
+4. Whether a tariff-price share avoids consumer-credit treatment (§3c).
+5. The longest permitted fix (§3d).
+6. The household's benefit horizon from supplier advice (inherited, §6.1).
+7. The staying response to a bundle of advice and a higher price. The Deller slope is a bound, not
+   a measure (§4).
+
+## Sources
+
+- Ofgem, *Ofgem retains ban on acquisition-only tariffs*, press release, 30 July 2024
+  (ofgem.gov.uk/press-release/ofgem-retains-ban-acquisition-only-tariffs, fetched 2026-10-16).
+- Ofgem, *Future of the Ban on Acquisition-only Tariffs (BAT) after March 2025*, consultation page
+  (ofgem.gov.uk/consultation/future-ban-acquisition-only-tariffs-bat-after-march-2025), and
+  *Final Consultation Future of the BAT*, May 2024 (ofgem.gov.uk/sites/default/files/2024-05/Final_Consultation_Future_of_the_BAT.pdf).
+  Both were seen as search results on 2026-10-16 and were not read in full.
+- Cornwall Insight, *Ofgem's decision to retain the BAT*, alert, 15 November 2024. Title only.
+- R1, R6 and R7, as cited in `a_save_offer_against_the_switching_rules_and_the_seam.md`. The
+  November 2025 renewal to 31 March 2027 is R7.
+- Deller, Waddams Price, Giulietti, Loomes, Moniche and Jeon (2021), *Energy Journal* 42(3), via
+  `retention_slope_per_pound_of_renewal_cut.md`.
+- `how_a_supplier_prices_a_share_of_value_it_creates_for_a_household_2026-10-14.md` (consumer
+  credit, SLC 0.6).
