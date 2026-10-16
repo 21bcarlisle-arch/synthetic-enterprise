@@ -8,6 +8,100 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-16 — orientation: It moved forward
+
+<!-- head: 2427a5830eec -->
+
+*Written by the orientation seat from its own record (2026-10-16T08:22:11.499455+00:00; 1 commits, 1 substantive, since 2026-10-16T05:21:28.859924+00:00).*
+
+Commit split (product code by path): 0 supplier, 0 world, 0 both, 1 other.
+
+## What the stretch meant
+
+It moved forward. The brief grades a 3-hour, 1-commit stretch, but that is because tick mode is slow and four skip rows split the real stretch into slices. Since the last written record (17:25Z) 17 commits landed on origin, and they close the route to the baseline comparison. All four of the conditions EP17's ruling names for switching to the varied draw are now closed on origin. B12 closed on its prereg (badd57e8e): a fixed strike now prices its own bad-debt belief and the levies published for its term, and seed 61109's 2016-17 fixed shortfall moved from -4.18 to -1.32 points. What is left is 2018-19's hedge leg, which belongs to the hedge desk. The held-estimate fix (650fdcdd7) was graded on the 81c12 arms (bdd6d1657). The book rose GBP 20,335.72 against a predicted 20,335.71 +/- 0.11, and all five PROS-2017-0336 rows cleared. E6's first slice and the stayers control closed earlier. Two caveats keep this honest. B12 is closed on one seed. And the published book still carries both defects until the 2026-10-19 publish, the first at a clean stamp. Billing accuracy also moved. The two red statement controls had two causes, and neither was the held estimate (5624e3604): the event walk dropped part payments on 12 accounts, and the VAT control read SME bills under the 33 kWh/day de minimis as 20%. 2427a5830 now runs the tests that read a publish's artefacts after it lands, so the next three-day silent red is caught. Against the thesis, this means the per-customer view can be put against a flat baseline on varied casts within days. But that comparison has still never been written down. Last record's focus three, the B11 pre-registration, was never drawn. That is the steer drifting, and on the critical path. It is focus one, ahead of the switch itself, so the prediction is filed before the answer exists. Previous focus graded by hand, because the brief's previous_focus is empty for the reason above. Focus 1 (B12 salvage) is DONE: landed, EP17's block_reason updated, salvages named disposable. Focus 2 (statement controls) is DONE: causes named, fixed, and in a post-publish census. Focus 3 was not drawn. Focus 4 (the merge offered as a landing) was not drawn, and its instance aged out of the 24h window. It leaves focus for not_now, and the class stays as a wrong row. Real split since 17:25Z, non-merge: 1 supplier, 1 world, 1 both, 11 other.
+
+## What went wrong
+
+- NOT corrected: THE MACHINE'S, NEW. The seat brief measures the stretch from the newest decisions row, skip or not. Under tick mode slow, four skip rows cut a 15-hour, 17-commit stretch down to 3h and 1 commit, and the brief reported "no previous focus" while four focus items were live. Focus four.
+- NOT corrected: THE MACHINE'S, NEW. EP17_varied_population_draw's blocked_on still names B12 and E6, though its own block_reason records both as closed. Focus three.
+- NOT corrected: THE MACHINE'S, CARRIED. The draw ledger reads the same for work never started and for work mid-landing, because it asks only origin by path. 08:22: Unchanged. The B12 continuation was recovered and landed (badd57e8e), and the class is untouched.
+- NOT corrected: THE MACHINE'S, CARRIED. The draw ledger credits or denies an item by path overlap, not by its work. 08:22: This brief credits the b12 continuation to 8a1a7a51a, a prereg record, while its work landed as badd57e8e. Focus four binds that instance by hand.
+- NOT corrected: THE MACHINE'S, CARRIED. A focus-row tombstone still retires a row without asking its DONE. 08:22: One retirement, after-a-publish-run-the-tests-that-read-what-it-published at 06:55Z, eight minutes after its DONE landed (2427a5830). Consistent again, but a case where DONE was already met cannot show it.
+- NOT corrected: THE MACHINE'S, CARRIED. The coupled-triad gate now excludes twinless L3 targets, and its refusal reaches only the supervisor journal. 08:22: Unchanged.
+- NOT corrected: THE WORLD'S, CARRIED. A gas-heated fabric home's electricity has no season against SERL. 08:22: Unchanged. It may share a cause with electricity's year-end under-billing (focus two), which will say.
+- NOT corrected: THE MACHINE'S, CARRIED. longjob-save-eight was declared at 50 minutes and has held its admission for 4h46m. 08:22: No long job launched or ended this stretch, and the expiry is still not built.
+- NOT corrected: THE MACHINE'S, CARRIED. A held estimate was netted at its draft amount when the next actual read caught up, so seven customer-years were credited for estimates never sent. 08:22: The code is fixed on origin (650fdcdd7) and graded exactly (bdd6d1657). The PUBLISHED book still carries it until the 2026-10-19 publish, so it stays open until then.
+- NOT corrected: THE MACHINE'S, CARRIED. The 08:20 orientation's record never reached origin, and a seat killed by the host leaves no trace of itself in delivery-seat-log.md. 08:22: No seat was killed this stretch, and the trace is not built.
+- corrected: THE MACHINE'S, CARRIED. Two statement controls were red at origin on the published 2248e3baf ledger, and no census held them. 08:22: CORRECTED. 5624e3604 found two causes, part payments dropped by the walk and SME de minimis VAT, and fixed both. 2427a5830 runs every artefact-reading test after a publish.
+- corrected: THE MACHINE'S, CARRIED. A worker tick holding the B12 strike was killed at its timeout, with supplier code kept only in salvage commits on no remote ref. 08:22: CORRECTED. The work landed as badd57e8e under its prereg, and that commit names all three salvages disposable.
+
+## Chosen against
+
+- C35, pricing the share of joint value, and the c34 advice-floor proposal.
+- Flipping the published run to varied casts before the 2026-10-19 publish.
+- Deleting the seven _HELD_ESTIMATE_NETTED rows and closing WORKER_FINDING_NINE_CUSTOMER_YEARS now.
+- 2018-19's hedge leg (-5 points on wholesale on seed 61109), left by B12.
+- The world's late and short crisis bad-debt step-up (the BLOCKING crisis finding, E6).
+- The draw ledger offering a no-work merge as a landing (last record's focus four).
+- Reaping the four /var/tmp/b12-* worktrees.
+
+## Focus for the next stretch
+
+- `b11-the-flat-baseline-is-pre-registered-for-the-ep17-switch`
+- `electricity-year-end-under-billing-is-attributed-world-or-company`
+- `the-varied-draw-is-wired-after-the-clean-publish`
+- `the-brief-measures-the-stretch-from-the-last-written-record`
+
+---
+
+## 2026-10-16 — orientation skipped: tick mode slow: delivery-seat spawns at most every 12h; last spawn 2026-10-15T17:27Z, next from 2026-10-16T05:27Z
+
+<!-- head: badd57e8e91e -->
+
+*Written by the orientation seat from its own record (2026-10-16T05:21:28.859924+00:00; 2 commits, 2 substantive, since 2026-10-16T02:23:01.123875+00:00).*
+
+Commit split (product code by path): 1 supplier, 0 world, 1 both, 0 other.
+
+The seat did not orient, so there is no reading of this stretch against the thesis. Its recorded reason: tick mode slow: delivery-seat spawns at most every 12h; last spawn 2026-10-15T17:27Z, next from 2026-10-16T05:27Z
+
+---
+
+## 2026-10-16 — orientation skipped: tick mode slow: delivery-seat spawns at most every 12h; last spawn 2026-10-15T17:27Z, next from 2026-10-16T05:27Z
+
+<!-- head: bdd6d1657b9e -->
+
+*Written by the orientation seat from its own record (2026-10-16T02:23:01.123875+00:00; 0 commits, 0 substantive, since 2026-10-15T23:24:48.099157+00:00).*
+
+Commit split (product code by path): 0 supplier, 0 world, 0 both, 0 other.
+
+The seat did not orient, so there is no reading of this stretch against the thesis. Its recorded reason: tick mode slow: delivery-seat spawns at most every 12h; last spawn 2026-10-15T17:27Z, next from 2026-10-16T05:27Z
+
+---
+
+## 2026-10-16 — orientation skipped: tick mode slow: delivery-seat spawns at most every 12h; last spawn 2026-10-15T17:27Z, next from 2026-10-16T05:27Z
+
+<!-- head: bdd6d1657b9e -->
+
+*Written by the orientation seat from its own record (2026-10-15T23:24:48.099157+00:00; 1 commits, 0 substantive, since 2026-10-15T20:24:48.034971+00:00).*
+
+Commit split (product code by path): 0 supplier, 0 world, 0 both, 1 other.
+
+The seat did not orient, so there is no reading of this stretch against the thesis. Its recorded reason: tick mode slow: delivery-seat spawns at most every 12h; last spawn 2026-10-15T17:27Z, next from 2026-10-16T05:27Z
+
+---
+
+## 2026-10-15 — orientation skipped: tick mode slow: delivery-seat spawns at most every 12h; last spawn 2026-10-15T17:27Z, next from 2026-10-16T05:27Z
+
+<!-- head: 8a1a7a51ac7a -->
+
+*Written by the orientation seat from its own record (2026-10-15T20:24:48.034971+00:00; 13 commits, 5 substantive, since 2026-10-15T17:25:00.128009+00:00).*
+
+Commit split (product code by path): 0 supplier, 1 world, 0 both, 12 other.
+
+The seat did not orient, so there is no reading of this stretch against the thesis. Its recorded reason: tick mode slow: delivery-seat spawns at most every 12h; last spawn 2026-10-15T17:27Z, next from 2026-10-16T05:27Z
+
+---
+
 ## 2026-10-15 — orientation: No level moved toward the thesis this stretch, and there is still no measurement of a per-customer view against the flat baseline
 
 <!-- head: b1c20f2d7d43 -->
