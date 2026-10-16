@@ -2073,9 +2073,12 @@
   lane: C_customer_ops
   value_stream: price_to_bill
   epoch: 4
-  level_current: 0
+  level_current: 1
   level_target: 2
   loop_stage: build
+  # L1 2026-10-16, dormant: next_best_action.price_share picks the tried share with most expected
+  # joint value (take-up x joint) under both floors, one-off fee (instalments = credit). NOT L2: the
+  # world has no response to a priced share, so no take-up point is ever observed (research doc §6).
   # MINTED 2026-10-15 on the director's word: "not a ruling from me". Judged on joint value with the
   # no-loss floors (C34). The household's response (elasticity) is the WORLD's, built from evidence
   # under the four principles, and the supplier learns it only through the seam. If the optimum

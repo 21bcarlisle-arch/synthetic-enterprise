@@ -278,3 +278,31 @@ director's own question.
    reason: nothing in the published record prices *this* mechanism directly.** Nothing found this pass
    changes that position for an advice-sharing fee either. It remains the one choice the evidence does
    not contradict, because it is not a choice about a size at all.
+
+---
+
+## 6. The choices C35 makes, and why (2026-10-16, K8 for `company/crm/next_best_action.py`)
+
+The director, 2026-10-15: the share is "not a ruling from me" but the supplier's own commercial
+optimisation, judged on joint value under both no-loss floors (C34), against the household's
+response to the price.
+
+1. **What is optimised is EXPECTED joint value: take-up × (our change + the household's benefit).**
+   The fee is a transfer. It leaves the joint value of a taken action unchanged, so the share moves
+   joint value only through whether households take the action. Under take-up that falls with the
+   share, the best share is the LOWEST that clears our floor. Anything above it moves value from the
+   household to us and costs households who would have said yes. This is M2 in mechanism form.
+2. **The fee is one-off.** Recovering it by instalments is regulated consumer credit (§1, the Green
+   Deal precedent), and the company holds no credit permission. Whether a one-off fee is clear of
+   credit regulation is §4 GAP 3. It is carried, not resolved.
+3. **The supplier searches only the shares it has tried and observed.** It has no grid of its own and
+   no elasticity number. No published source prices take-up of a savings-share fee for advice (§4
+   GAP 5). The price comes from the supplier's own tests, which is the real twin: testing what share
+   households will pay.
+4. **With no tried share, the action is priced as C34 prices it.** That is a named reason on the
+   decision, never an invented response.
+5. **GAP, world side:** the world's household (W2_39, `simulation/contact_response.py`) answers a
+   contact, but it has no response to a PRICED share of advice. So in a run the supplier can never
+   observe a take-up point, and C35 stays dormant. The design question belongs to the world: does a
+   household weigh a one-off fee against its own expected saving, and with what discounting? Until
+   it is answered from evidence, C35 is at L1.

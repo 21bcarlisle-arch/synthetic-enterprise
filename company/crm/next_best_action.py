@@ -40,6 +40,21 @@ best mean estimated effect across the book. The per-customer rule has to beat it
 effect of what each rule chose, paired over the same accounts, with an interval; a tie or an
 interval straddling zero is "cannot tell".
 
+PRICING A SHARE OF WHAT AN ACTION CREATES (C35; director 2026-10-15: "not a ruling from me").
+C34 found the joint-value rule positive-sum and negative on our side in every cell, so it chose
+nothing. The supplier may ask the household for a share of the benefit as a one-off fee. The fee
+is a transfer: it adds to our side what it takes from theirs and leaves the joint value of a
+TAKEN action unchanged. What it moves is whether the action is taken, so the share is chosen by
+the EXPECTED joint value, take-up times joint value, under both no-loss floors at that share.
+With take-up falling as the share rises, the best share is the lowest one that clears our floor:
+every penny above it costs households who would have said yes and buys nothing for the pair.
+The fee is one-off because a share recovered by instalments is regulated consumer credit, as the
+Green Deal's was (SI 2012/2798; `how_a_supplier_prices_a_share_of_value_it_creates_for_a_household_2026-10-14.md`
+§1). Take-up is the household's (the world's, W2_39); the supplier knows it only at the shares it
+has tried and observed, so it searches those points and no grid of its own. No points tried, and
+the action stays priced as C34 prices it, which is the honest default: C35 adds nothing it
+cannot see.
+
 EPISTEMIC WALL. Pure functions of the company's own estimates. No world state, no socket. Grading
 against a true counterfactual (`grade`) is a harness instrument, as `tools/decision_probe.py` is:
 the company never holds the truth argument.
@@ -90,12 +105,50 @@ class ActionEstimate:
 
 
 @dataclass(frozen=True)
+class SharePoint:
+    """One share of the household's benefit the company has offered, and what it observed.
+
+    ``hazard_change_per_month`` is the departure-hazard change among households offered the action
+    at this share; None means the price did not move it from the action's own estimate.
+    """
+
+    share: float
+    take_up: float
+    hazard_change_per_month: float | None = None
+
+    def __post_init__(self) -> None:
+        if not 0.0 <= self.share <= 1.0:
+            raise ValueError(f"a share of the household's benefit lies in [0, 1], got {self.share}")
+        if not 0.0 <= self.take_up <= 1.0:
+            raise ValueError(f"take-up is a probability, got {self.take_up}")
+
+
+@dataclass(frozen=True)
+class ShareResponse:
+    """The company's observed household response to the share it asks for one action."""
+
+    action: Action
+    points: tuple[SharePoint, ...]
+
+
+@dataclass(frozen=True)
+class SharePrice:
+    share: float
+    fee_gbp: float
+    take_up: float
+    expected_value_change_gbp: float
+    expected_customer_benefit_gbp: float
+    expected_joint_value_gbp: float
+
+
+@dataclass(frozen=True)
 class AccountState:
     account_id: str
     monthly_margin_gbp: float
     monthly_departure_hazard: float
     consecutive_missed_monthly_payments: int
     estimates: tuple[ActionEstimate, ...]
+    share_responses: tuple[ShareResponse, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -106,6 +159,7 @@ class Decision:
     customer_benefit_gbp_per_year: float
     reason: str
     unscored: tuple[tuple[Action, str], ...] = ()
+    share: SharePrice | None = None
 
 
 def forward_value(monthly_margin_gbp: float, monthly_hazard: float, horizon_months: int) -> float:
@@ -138,6 +192,35 @@ def joint_value(value_change_gbp: float, customer_benefit_gbp_per_year: float,
     return value_change_gbp + customer_benefit_gbp_per_year * horizon_months / 12.0
 
 
+def price_share(state: AccountState, est: ActionEstimate, response: ShareResponse,
+                horizon_months: int) -> tuple[SharePrice | None, str]:
+    """The tried share with the largest expected joint value under both floors, or None and why.
+
+    The fee is ``share`` x the household's benefit over the horizon, taken once. Ties go to the
+    lower share: the customer's side first.
+    """
+    benefit = est.customer_benefit_gbp_per_year * horizon_months / 12.0
+    if not response.points:
+        return None, "no share has been tried, so take-up at any share is unknown"
+    best: SharePrice | None = None
+    for p in sorted(response.points, key=lambda p: p.share):
+        hazard = est.hazard_change_per_month if p.hazard_change_per_month is None else p.hazard_change_per_month
+        fee = p.share * benefit
+        ours = value_change(state, ActionEstimate(est.action, est.customer_benefit_gbp_per_year,
+                                                  est.margin_change_gbp_per_month, hazard),
+                            horizon_months) + fee
+        theirs = benefit - fee
+        if ours < 0.0 or theirs < 0.0:
+            continue
+        cand = SharePrice(p.share, fee, p.take_up, p.take_up * ours, p.take_up * theirs,
+                          p.take_up * (ours + theirs))
+        if best is None or cand.expected_joint_value_gbp > best.expected_joint_value_gbp:
+            best = cand
+    if best is None:
+        return None, "no tried share leaves both the customer and us no worse off"
+    return best, ""
+
+
 def _scored(state: AccountState, horizon_months: int):
     scored, unscored = [], []
     for est in state.estimates:
@@ -168,6 +251,18 @@ def decide(state: AccountState, horizon_months: int) -> Decision:
     if forced is not None:
         return forced
     scored, unscored = _scored(state, horizon_months)
+    responses = {r.action: r for r in state.share_responses}
+    priced = []
+    for est, _ in scored:
+        if est.action in responses:
+            price, why = price_share(state, est, responses[est.action], horizon_months)
+            if price is None:
+                unscored += ((est.action, f"share: {why}"),)
+            else:
+                priced.append((est, price))
+    if priced:
+        unpriced = [(e, v) for e, v in scored if e.action not in responses]
+        return _decide_with_shares(state, unpriced, priced, unscored, horizon_months)
     fair = [(e, v) for e, v in scored if e.customer_benefit_gbp_per_year >= 0.0 and v >= 0.0]
     if not fair:
         why = ("no scored action leaves both the customer and us no worse off" if scored
@@ -180,6 +275,28 @@ def decide(state: AccountState, horizon_months: int) -> Decision:
                         "no action that leaves both sides no worse off creates any value", unscored)
     return Decision(state.account_id, est.action, v, est.customer_benefit_gbp_per_year,
                     "largest joint value among actions that leave both sides no worse off", unscored)
+
+
+def _decide_with_shares(state, unpriced, priced, unscored, horizon_months) -> Decision:
+    """C34's candidates plus priced ones, ranked on one key: expected joint value.
+
+    An unpriced action is taken for certain, as C34 assumes, so its expected joint value is its
+    joint value.
+    """
+    cands = [(joint_value(v, e.customer_benefit_gbp_per_year, horizon_months), v,
+              e.customer_benefit_gbp_per_year, e.action, None)
+             for e, v in unpriced if e.customer_benefit_gbp_per_year >= 0.0 and v >= 0.0]
+    cands += [(p.expected_joint_value_gbp, p.expected_value_change_gbp,
+               p.expected_customer_benefit_gbp * 12.0 / horizon_months, e.action, p)
+              for e, p in priced]
+    joint, v, cb, action, price = max(cands, key=lambda c: (c[0], c[1]))
+    if joint <= 0.0:
+        return Decision(state.account_id, Action.NOTHING, 0.0, 0.0,
+                        "no action that leaves both sides no worse off creates any value", unscored)
+    why = (f"largest expected joint value, offered at a {price.share:.0%} share of the household's "
+           f"benefit (fee {price.fee_gbp:.2f} GBP, take-up {price.take_up:.0%})" if price
+           else "largest joint value among actions that leave both sides no worse off")
+    return Decision(state.account_id, action, v, cb, why, unscored, price)
 
 
 def flat_action(book: Sequence[AccountState], horizon_months: int) -> Action:
