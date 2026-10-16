@@ -221,7 +221,11 @@ priced with no bad debt in it loses that share of revenue on every term, in ever
   ledger (`company/pricing/default_belief.py`: the change in its provision plus write-offs, by
   arrears state, shrunk towards a 2.0% prior), times the struck unit rate. It goes on the cost floor
   too, because it is a cost of the term. Business accounts have no published provision row, so
-  nothing is added for them. *Corrected 2026-10-15, the same day:* this bullet first said the charge
+  nothing is added for them. A residential account's first term has no record of its own, so it is
+  priced on the same belief at the account's state, which for an account with no bills is the 2.0%
+  prior (Run S-prime: without this, 200 of 249 2016-19 fixed terms carried no allowance). Graded on
+  seed 61109 in Run S-double-prime: 2016-17 moved from −4.18 to −1.32 points against priced-for,
+  with a bad-debt line of −0.56 and a policy line of −0.45. That is one seed. *Corrected 2026-10-15, the same day:* this bullet first said the charge
   was "read off its own settled lines". On those lines `bad_debt_gbp` is the world's incidence
   (revenue × `world_bad_debt_incidence`), which no supplier sees. The seat ruled that on 2026-10-11
   (`docs/staging/done/SEAT_FINDING_THE_PUBLISHED_PROVISION_WAS_THE_WORLDS_INCIDENCE_AND_THE_COMPANYS_OWN_STOCK_WAS_NEVER_READ_2026-10-11.md`).

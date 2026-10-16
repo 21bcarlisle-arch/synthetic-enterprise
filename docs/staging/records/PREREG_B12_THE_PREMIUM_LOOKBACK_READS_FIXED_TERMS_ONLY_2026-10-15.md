@@ -497,3 +497,28 @@ bad-debt line is about −0.5, and 2016-17 is S's −0.80 less about 0.5: about 
 
 **Landing rule.** If S''0, P3'' and P4'' hold, S-double-prime's code lands with its controls. If
 P1'' fails, the remainder is named in EP17's `block_reason`.
+
+## Grade of S-double-prime (graded 2026-10-16, by the pre-filed grader)
+
+Before grading, both hashes were checked against the section above: `grade_spp.py` 131c45bb…bce5689
+and `Spp-full.diff` 8092640c…7fa45d7, the latter re-derived from `/var/tmp/b12-strike3` against
+`1ca6dfcf5`. The run finished at 20:52 BST on 2026-10-15 and sat ungraded until this grade.
+
+| | L (origin) | S'' |
+|---|---|---|
+| 2016-17 realised − priced-for (n=201) | −4.18 | **−1.32** |
+| bad-debt line | −2.49 | −0.56 |
+| policy line | −1.73 | −0.45 |
+| 2018 gap / wholesale line | | −5.42 / −5.04 |
+| `total_net` | £269,782 | £277,876 |
+
+S''0, P1'', P2'' (−2.01), P3'', P4'', P5'' (−5.33), P6'' and P7'' (median allowance £2.16/MWh,
+4 terms unpriced) all hold. P8 (S'' bad-debt line below S's) holds. The first-order estimate of
+about −1.3 for 2016-17 came in at −1.32.
+
+**Landing.** The rule's conditions hold, so S-double-prime's code lands with its three controls. The
+probe block (`B12_TERM_LINE_LOG`) and a trailing-blank-line hunk in
+`company/interfaces/renewal_rate_chain.py` are left out. P1'' holds, so B12 is recorded as closed
+in EP17's `block_reason` on this one seed. What stays is 2018-19's hedge leg (−5 points on
+wholesale), which belongs to the hedge desk and the loss cap. **Limit:** this is one seed on the
+fixed draw. The varied draw that EP17 switches to is where it is re-read.

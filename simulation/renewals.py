@@ -34,10 +34,8 @@ from simulation.household import household_of
 from simulation.household_segments import active_renewal_probability_for_customer
 from simulation.market_switching_propensity import market_switching_multiplier
 from simulation.policy_costs import (
-    get_cm_levy_per_mwh,
     get_electricity_network_cost_per_mwh,
-    get_electricity_policy_cost_per_mwh,
-    get_fit_levy_per_mwh,
+    published_electricity_policy_cost_over_term,
 )
 from simulation.renewal_engagement import rolls_active_renewal
 from simulation.settlement import CONTRACT_LENGTH_DAYS
@@ -275,11 +273,10 @@ def build_renewal_schedule(
         )
         # Phase 30a/31a: CM + FiT levies included in policy_cost pass-through (apply to all segments).
         # PUBLISHED schedules — what any market participant can look up for this term.
-        policy_cost = (
-            get_electricity_policy_cost_per_mwh(term_start_str)
-            + get_cm_levy_per_mwh(term_start_str)
-            + get_fit_levy_per_mwh(term_start_str)
-        )
+        # B12 (2026-10-15): over the term's days as published on the notice date, not the first
+        # day's level -- settlement bills each day at its own (`published_electricity_policy_cost_over_term`).
+        policy_cost = published_electricity_policy_cost_over_term(
+            term_start, CONTRACT_LENGTH_DAYS, notice_date)
         network_cost = get_electricity_network_cost_per_mwh(term_start_str, segment)
         # B4_competitor_field (2026-08-24): two more published figures, handed
         # over the same way as policy_cost/network_cost above -- the Ofgem

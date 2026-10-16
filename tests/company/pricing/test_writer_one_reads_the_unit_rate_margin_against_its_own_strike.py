@@ -23,7 +23,8 @@ def _book_after(unit_margin_per_mwh, *, sc=SC, mwh=MWH):
     unit_revenue = RATE * mwh
     book.term_ended(billing_account="A", commodity="electricity", last_settled_day="2024-09-30",
                     net_margin=unit_margin_per_mwh * mwh + sc, revenue=unit_revenue + sc,
-                    standing_charge_revenue=sc, volume_mwh=mwh, held_on_a_save=False)
+                    standing_charge_revenue=sc, volume_mwh=mwh, held_on_a_save=False,
+                    tariff_type="fixed")
     book.as_of("2024-10-01")
     return book
 

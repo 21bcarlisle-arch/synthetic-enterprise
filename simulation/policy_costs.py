@@ -28,6 +28,7 @@ is also exempt from electricity CCL. Phase 30b adds gas-side costs: gas CCL
 """
 
 import json
+from datetime import date, timedelta
 from pathlib import Path
 
 # RO effective cost floor (£/MWh) by obligation year start.
@@ -840,3 +841,45 @@ def first_extrapolated_date(name: str, from_date: str, to_date: str) -> str | No
             y, m = y + 1, 1
     return None
 
+
+
+def _published_by(effective_from: date, notice: date) -> bool:
+    """Whether a levy level taking effect on `effective_from` was published by `notice`.
+
+    Taken as published on 1 October before it takes effect: the date the RO obligation level for
+    the following April is published (`docs/domain_artefact_library/regulatory/ro_obligation_and_buyout.json`).
+    Applied to CfD, CM and FiT as well, whose own lead times are a GAP on the renewal-decision page.
+    """
+    return notice >= date(effective_from.year - 1, 10, 1)
+
+
+def published_electricity_policy_cost_over_term(term_start: date, term_days: int,
+                                                notice: date) -> float:
+    """RO + CfD + CM + FiT (GBP/MWh) over a fixed term's days, as published on its notice date.
+
+    B12 (2026-10-15). The strike used to lock the levy in force on the term's first day, while
+    settlement bills each day at the levy in force that day; over 2016-19, when the levies rose every
+    April, that cost 2016-19 fixed terms 1.73 points of unit revenue (PREREG_B12 grade of D). Each day is
+    priced at its own level where that level was published by the notice date, and otherwise at the
+    latest published one, carried forward. Day-weighted, not volume-weighted: the strike has no
+    seasonal profile to weight by. Why a strike may price a published schedule: the renewal-decision
+    page, "What a fixed strike carries for levies and bad debt".
+    """
+    total = 0.0
+    for offset in range(term_days):
+        day = term_start + timedelta(days=offset)
+        oy_start = date(_ro_oy_start_year(day.isoformat()), 4, 1)
+        april_day = day if _published_by(oy_start, notice) else _latest_published_april(notice)
+        cfd_day = day if _published_by(date(day.year, 1, 1), notice) else date(notice.year, 1, 1)
+        april_iso = april_day.isoformat()
+        total += (get_ro_cost_per_mwh(april_iso) + get_cm_levy_per_mwh(april_iso)
+                  + get_fit_levy_per_mwh(april_iso) + get_cfd_levy_per_mwh(cfd_day.isoformat()))
+    return total / term_days
+
+
+def _latest_published_april(notice: date) -> date:
+    """The first day of the latest RO-family obligation year whose level was published by `notice`."""
+    start = date(notice.year + 1, 4, 1)
+    while not _published_by(start, notice):
+        start = date(start.year - 1, 4, 1)
+    return start

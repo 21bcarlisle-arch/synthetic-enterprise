@@ -254,6 +254,8 @@ class RenewalRateChain:
     """
 
     unit_rate_gbp_per_mwh: float | None
+    #: The bad-debt allowance the fixed strike carries, GBP/MWh (B12); 0.0 where none is added.
+    bad_debt_allowance_gbp_per_mwh: float = 0.0
     components: list[dict] = field(default_factory=list)
     chain_entries: list[dict] = field(default_factory=list)
     dynamic_pricing_entries: list[dict] = field(default_factory=list)
@@ -347,6 +349,20 @@ def decide_renewal_rate(
     `None` where the term has no offer to read them from, and then no discount is given (writer 1).
     """
     unit_rate = struck_unit_rate_gbp_per_mwh
+    # THE STRIKE'S BAD-DEBT ALLOWANCE (B12, 2026-10-15): a fixed term carries the bad-debt charge the
+    # company has learned per GBP billed off its own ledger (`default_belief_rate`, the same belief
+    # the value arm reads), and so does the floor a discount stops at, because it is a cost of the
+    # term. Not the settled lines' `bad_debt_gbp`: that is the world's incidence, which no supplier
+    # sees. `None` (a business account: no published row) adds nothing. Knowledge: the
+    # renewal-decision page, "What a fixed strike carries for levies and bad debt".
+    believed_loss_share = (
+        default_belief_rate
+        if active_policy().renewal_default_belief == DEFAULT_BELIEF_OWN_BOOK else None)
+    bad_debt_allowance = (unit_rate * believed_loss_share
+                          if tariff_type == "fixed" and unit_rate is not None
+                          and believed_loss_share is not None else 0.0)
+    if bad_debt_allowance:
+        unit_rate += bad_debt_allowance
     rate_original = unit_rate
     # THE FLOOR IS THE TERM'S OWN COST, CAPITAL INCLUDED (2026-10-13). It was `own_cost_floor`
     # (forward + the two locked costs), which leaves out the capital charge the strike prices in
@@ -357,8 +373,11 @@ def decide_renewal_rate(
     cost_floor = pre_margin_unit_rate(
         company_forward_per_mwh, term_start, locked_policy_cost_per_mwh,
         locked_network_cost_per_mwh)
+    if cost_floor is not None:
+        cost_floor += bad_debt_allowance
 
-    result = RenewalRateChain(unit_rate_gbp_per_mwh=unit_rate)
+    result = RenewalRateChain(unit_rate_gbp_per_mwh=unit_rate,
+                              bad_debt_allowance_gbp_per_mwh=bad_debt_allowance)
 
     # WRITER 1 — the portfolio learning premium. The supplier looks at what it
     # actually earned on its last few completed terms of this commodity and
@@ -584,7 +603,10 @@ def decide_renewal_rate(
         # WHAT THE ARM'S MARGIN IS MEASURED FROM: this term's own cost before margin, not the rate
         # writers 1-3 left less GBP 2. The arm's rate is then `base + chosen`, the rate it scored.
         # The same number writer 1's discount stops at (`cost_floor` above), read once.
-        pre_margin_rate_gbp_per_mwh=cost_floor,
+        # Less the strike's bad-debt allowance: the arm nets the same belief off its own value, so
+        # measuring from a floor that already carries it would charge the loss twice (B12).
+        pre_margin_rate_gbp_per_mwh=(
+            cost_floor - bad_debt_allowance if cost_floor is not None else None),
     )
     # THE DENOMINATOR, WRITTEN AT THE SAME SITE AS THE DECISION. Unconditional and before the two
     # branches below, so a renewal cannot reach the funnel through one path and miss it through
@@ -800,6 +822,10 @@ def decide_renewal_rate_from(inputs) -> RenewalRateChain:
     )
 
 
+#: The tariffs whose completed terms teach the portfolio premium: the product whose strike it moves.
+FIXED_PREMIUM_BOOK_TARIFF_TYPES = ("fixed",)
+
+
 class PortfolioMarginBook:
     """The supplier's realised margin rate per term, per fuel: the history its portfolio premium
     reads, holding a term back until it has ENDED, and admitting no term a save kept.
@@ -848,7 +874,7 @@ class PortfolioMarginBook:
 
     def term_ended(self, *, billing_account: str, commodity: str, last_settled_day: str,
                    net_margin: float, revenue: float, standing_charge_revenue: float,
-                   volume_mwh: float, held_on_a_save: bool) -> None:
+                   volume_mwh: float, held_on_a_save: bool, tariff_type: str) -> None:
         """Take one term's outcome off the company's own P&L, and admit it unless a save held it
         or its unit rate earned nothing. `held_on_a_save` is this term's own flag; the
         account-level exclusion is the book's.
@@ -862,9 +888,16 @@ class PortfolioMarginBook:
         (`SEAT_FINDING_RENEWALS_SIT_AT_THEIR_COST_FLOOR_..._2026-10-14.md`). So the standing charge
         comes out of both sides, and the rate is set beside what the term's own strike priced for
         on the same basis: `TARGET_MARGIN_GBP_PER_MWH` on each MWh, over the unit-rate revenue.
+
+        FIXED TERMS ONLY (B12, 2026-10-15). The premium moves a fixed strike, and its target is what
+        a fixed strike priced for, but a default term's margin is the cap's headroom over cost, not
+        anything a strike priced. Default terms outnumbered fixed ones about 10 to 1 in the lookback,
+        so the fixed premium was learning the cap's headroom (2019-20, 2023-24 read 14-18% against a
+        ~1.7% target). Which book a desk compares with: the renewal-decision knowledge page.
         """
         unit_revenue = revenue - standing_charge_revenue
-        if unit_revenue > 0 and not held_on_a_save and billing_account not in self._held_on_a_save:
+        if (tariff_type in FIXED_PREMIUM_BOOK_TARIFF_TYPES and unit_revenue > 0
+                and not held_on_a_save and billing_account not in self._held_on_a_save):
             self.settled(last_settled_day, commodity,
                          (net_margin - standing_charge_revenue) / unit_revenue,
                          TARGET_MARGIN_GBP_PER_MWH * volume_mwh / unit_revenue)

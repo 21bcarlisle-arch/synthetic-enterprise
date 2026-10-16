@@ -2782,6 +2782,18 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 if active_policy().renewal_default_belief == DEFAULT_BELIEF_OWN_BOOK:
                     _chain_default_belief = _payment_triad.default_belief_rate(
                         _chain_asof, _chain_arrears_state, payment_method_of=_book_method_of)
+        # A FIRST TERM'S FIXED STRIKE CARRIES THE BOOK'S BELIEF TOO (B12, 2026-10-15). The block
+        # above is a renewal's read of the account's own record; a new account has none, but its
+        # strike still bears bad debt, so it is priced on the book's belief at the account's state
+        # (the whole-book prior until outcomes resolve). Without this, 200 of the 249 2016-19 fixed
+        # terms the premium reads carried no allowance (PREREG_B12, grade of S-prime).
+        if (_chain_default_belief is None and term_index == 0
+                and _SEGMENT_OF.get(cid, "resi") == "resi"
+                and active_policy().renewal_default_belief == DEFAULT_BELIEF_OWN_BOOK):
+            _first_asof = date.fromisoformat(term_start_str)
+            _chain_default_belief = _payment_triad.default_belief_rate(
+                _first_asof, _payment_triad.arrears_state(cid, _first_asof, segment="resi"),
+                payment_method_of=_book_method_of)
         # THE TYPED SEAM RECORD (2026-10-12): every input is declared company-observable on the
         # record itself, and its field list is an allow-list a world-only value cannot join.
         _chain = decide_renewal(RenewalDecisionInputs(
@@ -4798,7 +4810,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 r.get("standing_charge_gbp", r.get("gas_standing_charge_gbp", 0.0))
                 for r in settled_this_term),
             volume_mwh=sum(r["consumption_kwh"] for r in settled_this_term) / 1000.0,
-            held_on_a_save=_held_on_a_save,
+            held_on_a_save=_held_on_a_save, tariff_type=term_tariff_type,
         )
 
         # KNIFE3 step 23 (§3r): the backward-looking arm of the SAME desk — was the
