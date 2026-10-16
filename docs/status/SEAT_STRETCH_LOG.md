@@ -8,6 +8,46 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-16 — orientation: The stretch gave us an answer, and it moved the 2022 problem
+
+<!-- head: 3f7959f480e0 -->
+
+*Written by the orientation seat from its own record (2026-10-16T20:22:27.532042+00:00; 10 commits, 4 substantive, since 2026-10-16T17:22:58.283644+00:00).*
+
+Commit split (product code by path): 2 supplier, 0 world, 0 both, 8 other.
+
+## What the stretch meant
+
+The stretch gave us an answer, and it moved the 2022 problem. The question is now where the world falls short, not whether it does. The diagnosis (91ad4cad8, 3f7959f48) found that the world's count of households in arrears is roughly in Ofgem's range in most years. What is wrong is the pound balance per debtor, 9-14x low in every year, crisis or not. Each bill is an independent coin flip, so 78% of world debtors are exactly one bill behind and then pay again. The payment draw also has no price input: the four 2021-22 bill levels give identical failure shares. The household budget does respond to 2022, but nothing reads it. The worker's own first fix (move the tier up a step) was refuted by the table it printed next, and is kept beside the replacement: let the budget decide how much of each bill gets paid, month after month. All four pre-registered predictions were refuted, and that is the instrument working. For the thesis, this means a per-customer debt decision is graded in a world where debt clears by itself. In that world, collecting a debt and forgiving it look about the same, so we cannot yet tell value created from value moved. My own record was wrong about the company side. I said the provision charge peaks a year after the arrears. 52eafa5dd prints both by year: the published age-band provision does not lag, and it is largest in 2022. So the crisis bad-debt finding stays BLOCKING on the level only, and the level is the world's problem. It is not a supplier defect. Billing accuracy moved forward. c5963a5c0 registers each year an account goes without a read (the SLC 21B.4 breach) and publishes the count beside K2. The company can now see its own breach. The flat-against-per-customer comparison is where it was. B11 is parked at L2 with every door built. It needs the 10-19 publish and the six seeds only the director can list (open row ep17-s-flat-against-per-customer-comparison). That is still the biggest gap against the thesis, and it is not ours to close. Commit split: 2 supplier, 0 world, 8 other. Two of the eight "other" commits are world findings and one is E6's measurement, so supplier-first held in substance, if not in the label. All four previous focus items were drawn, and all four are done, so none is carried. The tombstone item landed (a5f02f869), and wrong_triage now marks that row already_fixed. It leaves the wrong list by that route, not by being dropped. Next is the largest open money figure on the billing page, £33,770 barred on direct-debit accounts, then pricing that shares value, then the knowledge page the non-payment build needs.
+
+## What went wrong
+
+- NOT corrected: THE MACHINE'S, CARRIED. The coupled-triad gate now excludes twinless L3 targets, and its refusal reaches only the supervisor journal. 20:22: Unchanged.
+- NOT corrected: THE WORLD'S, CARRIED. A gas-heated fabric home's electricity has no season against SERL. 20:22: Unchanged. It waits for the post-publish world builds.
+- NOT corrected: THE MACHINE'S, CARRIED. longjob-save-eight was declared at 50 minutes and has held its admission for 4h46m. 20:22: Two long jobs ran this stretch (nonpay2022-capture, -capture2) and both finished successfully, so there was no new instance. The expiry is still not built.
+- NOT corrected: THE MACHINE'S, CARRIED. A held estimate was netted at its draft amount when the next actual read caught up, so seven customer-years were credited for estimates never sent. 20:22: Fixed on origin. The published book carries it until the 2026-10-19 publish.
+- NOT corrected: THE MACHINE'S, CARRIED. The 08:20 orientation's record never reached origin, and a seat killed by the host leaves no trace of itself in delivery-seat-log.md. 20:22: No seat was killed this stretch, and the trace is not built.
+- corrected: THE SEAT'S, NEW. My 17:22 record said the company's provision charge peaks in 2023, a year after the arrears, and E6's map comment said the age bands lag 2022 by a year. 52eafa5dd prints both by year from the committed run: arrears build most in 2022, and the age-band charge is largest in 2022. Only E6's learned roll-rate matrix lags, and that is already held by a strict xfail. The crisis finding stays BLOCKING on the level alone.
+- corrected: THE SEAT'S, NEW. My 17:22 focus framed the world as forgiving crisis non-payment, which implied too few debtors. The diagnosis (3f7959f48) shows the debtor count is roughly in Ofgem's range, and the gap is in pounds per debtor (9-14x low), because world debt clears after about one bill. This record's world item is written against the measured layer.
+
+## Chosen against
+
+- Building the budget-driven non-payment fix in simulation/ this stretch.
+- Building the company's true month-end unbilled accrual (the D48 title's GAP).
+- Flipping C34's own floor to "joint value exceeds what we give up".
+- Running B11's per-customer-against-flat arms on seeds that have already been read.
+- Making the smart roll-out move the estimated share more than ten points (world).
+- The long-job declaration expiry, the coupled-triad refusal surface, the killed-seat trace, and a heartbeat for worker-seat-manager.
+- Reaping /var/tmp/b12-* and pruning the two missing /tmp worktrees.
+
+## Focus for the next stretch
+
+- `the-dd-review-asks-for-the-balance-it-is-owed`
+- `a-retention-price-that-shares-created-value`
+- `the-budget-decides-how-much-of-each-bill-is-paid`
+
+---
+
 ## 2026-10-16 — orientation: Billing moved forward and the comparison did not
 
 <!-- head: cd3b93e9e4d7 -->
