@@ -474,6 +474,20 @@ def test_the_level_policy_is_the_flat_supplier_renewing_everyone_at_the_level():
         sf.policy_named(sf.LEVEL_POLICY)
 
 
+def test_a_member_holds_the_level_its_source_record_carries_and_runs_nothing_when_refused(tmp_path):
+    """DEFECT: the member reads the source and then runs at another level (a default, a constant,
+    the flat arm's own), or runs anyway after the source is refused. The admitting leg is first."""
+    s = _DEFAULT_BASE_SEED
+    run_policy, level, refusal = sf.member_policy(
+        s, sf.LEVEL_POLICY, _value_member(tmp_path, {"value_arm_median_margin_gbp_per_mwh": 37.25}),
+        "c0")
+    assert refusal is None and level == 37.25
+    assert (run_policy.name, run_policy.renewal_margin_flat_level_gbp_per_mwh) == (
+        sf.LEVEL_POLICY, 37.25)
+    assert sf.member_policy(s, sf.LEVEL_POLICY, tmp_path, "c1")[:2] == (None, None)
+    assert sf.member_policy(s, "flat_supplier", None, "c0")[0].name == "flat_supplier"
+
+
 def test_a_member_stamps_the_median_its_value_arm_chose(tmp_path):
     """DEFECT: the value-arm member records no median, so no level member can ever run."""
     run = {"phase2b": {"value_arm_log": [{"chosen_margin_gbp_per_mwh": m} for m in (3.0, 44.5, 60.0)]

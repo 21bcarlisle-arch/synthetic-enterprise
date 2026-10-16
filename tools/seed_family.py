@@ -467,6 +467,20 @@ def run_book(policy) -> dict:
         return p4.main(policy=policy)
 
 
+def member_policy(seed: int, policy: str, level_from: Path | None, commit: str):
+    """(the policy a member runs under, the level it holds, why it may not run). Apart from
+    `member` so the level's road from the source record into the policy is checked without a run."""
+    refusal = seed_refusal([seed])
+    level = None
+    if refusal is None and policy == LEVEL_POLICY:
+        refusal = level_source_refusal(seed, level_from, commit)
+        if refusal is None:
+            level = _level_of(seed, level_from)
+    if refusal:
+        return None, None, refusal
+    return policy_named(policy, level), level, None
+
+
 def member(seed: int, founders: int, out: Path, shape: str = "all_wins",
            policy: str = "current", level_from: Path | None = None) -> int:
     """ONE book, in this process. Must be the first thing the process does: the seed and the
@@ -474,18 +488,12 @@ def member(seed: int, founders: int, out: Path, shape: str = "all_wins",
     book at import."""
     if "simulation.run_phase2b" in sys.modules:
         raise SystemExit("seed_family member: the book is already drawn in this process")
-    refusal = seed_refusal([seed])
-    level = None
-    if refusal is None and policy == LEVEL_POLICY:
-        refusal = level_source_refusal(seed, level_from, _head())
-        if refusal is None:
-            level = _level_of(seed, level_from)
+    run_policy, level, refusal = member_policy(seed, policy, level_from, _head())
     if refusal:
         print("REFUSED:", refusal)
         return 2
     out.mkdir(parents=True, exist_ok=True)
     t0 = time.monotonic()
-    run_policy = policy_named(policy, level)
     import simulation.live_population as lp
     import simulation.net_new_acquisition as nna
     default_seed = lp._DEFAULT_BASE_SEED
