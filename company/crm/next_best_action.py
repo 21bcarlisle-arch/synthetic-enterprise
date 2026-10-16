@@ -34,6 +34,8 @@ AN UNKNOWN EFFECT IS A NAMED None. No published source gives the uplift of a sup
 to its own customer (research §7 gap 1), and the company runs no holdout that could estimate one
 (atom B8). An estimate with any None is UNSCORED, carries its reason onto the decision, and is
 never chosen — so with today's inputs every non-debt decision is "nothing", and says why.
+`hazard_estimate_from_holdout` is the first door that fills one: it reads an action's hazard
+effect from a coin-drawn holdout, and only when the holdout's interval decides.
 
 THE FLAT BASELINE is B11's flat rule carried over: ONE action for every account, the one with the
 best mean estimated effect across the book. The per-customer rule has to beat it on the TRUE
@@ -219,6 +221,39 @@ def price_share(state: AccountState, est: ActionEstimate, response: ShareRespons
     if best is None:
         return None, "no tried share leaves both the customer and us no worse off"
     return best, ""
+
+
+def hazard_estimate_from_holdout(action: Action, observations, window_months: int,
+                                 customer_benefit_gbp_per_year: float | None,
+                                 margin_change_gbp_per_month: float | None) -> ActionEstimate:
+    """An action's effect on the departure hazard, from the company's own coin-drawn holdout.
+
+    Each row is ``{"arm": "treated" | "holdout", "stayed": bool}`` over a window of
+    `window_months`. B8's interval decides: an undecided or refused holdout leaves the hazard None
+    with the interval as its reason, so the action stays unscored. A decided one converts both stay
+    shares to a constant monthly hazard, ``1 - s ** (1 / w)``, and returns the difference
+    (research §6.2).
+    """
+    from company.pricing.discovered_price_sensitivity import estimate_offer_effect
+
+    if window_months < 1:
+        raise ValueError(f"a holdout window must be at least one month, got {window_months}")
+    eff = estimate_offer_effect(observations)
+    if eff.verdict in ("refused", "undecided"):
+        span = "" if eff.low is None else f" [{eff.low:+.3f}, {eff.high:+.3f}]"
+        why = (f"holdout {eff.treated} contacted / {eff.held_out} held out{span}: {eff.reason}")
+        return ActionEstimate(action, customer_benefit_gbp_per_year, margin_change_gbp_per_month,
+                              None, why)
+
+    def monthly(stayed: int, n: int) -> float:
+        return 1.0 - (stayed / n) ** (1.0 / window_months)
+
+    dh = monthly(eff.stayed_treated, eff.treated) - monthly(eff.stayed_held_out, eff.held_out)
+    unknown = "" if None not in (customer_benefit_gbp_per_year, margin_change_gbp_per_month) else (
+        "the holdout measures staying only; the customer's benefit and our margin change are not "
+        "estimated from it")
+    return ActionEstimate(action, customer_benefit_gbp_per_year, margin_change_gbp_per_month, dh,
+                          unknown)
 
 
 def _scored(state: AccountState, horizon_months: int):

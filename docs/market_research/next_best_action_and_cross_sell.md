@@ -452,6 +452,28 @@ coincidence or a copy. Either way, the company's estimate of what an offer does 
 world's truth by construction, so any analytics built on it cannot be surprised. That is worth a
 look by whoever owns the wall.
 
+**C34's first uplift input (2026-10-16): an action's hazard effect read from the company's own
+holdout.** `next_best_action.hazard_estimate_from_holdout` takes coin-drawn rows for one action
+(contacted against held out, and who was still supplied at the end of the window). It runs B8's
+interval (`discovered_price_sensitivity.estimate_offer_effect`, Newcombe, 95%) and converts both
+stay shares to a monthly hazard over the window. The design makes three choices:
+- **Only the interval's verdict sets the number.** A holdout that cannot tell gives `None`, with
+  the interval as the reason, so the action stays unscored. A point estimate is never ranked when
+  its interval spans zero. A holdout that says the contact *lowers* staying gives a positive
+  hazard change. Our floor then refuses the action, so the world can defeat it (sleeping dogs,
+  §2).
+- **The hazard is constant over the window:** `h = 1 - s^(1/w)`. This is B11's shape, and it is a
+  choice. No published source gives the month profile of a contact's effect (gap 3 is the nearest).
+- **One estimate covers every account the holdout covered.** Per-account variation in the decision
+  comes from each account's own margin and hazard, not from the uplift. Splitting the uplift by an
+  observable needs its own power.
+
+Printed at real inputs: a 2-point stay effect over 12 months is about 0.002/month of hazard.
+Deciding it needs about 3,000 accounts per arm (800 decides 4 points, 200 decides neither).
+**I cannot yet say** whether a run's default-tariff stock is that large. No run yet holds out the
+W2_39 contact (`DecisionPolicy.svt_contact_instrument` writes to everybody), so the function is
+dormant.
+
 ### 6.3 World side: how households respond to offers
 
 | offer | world response | where |

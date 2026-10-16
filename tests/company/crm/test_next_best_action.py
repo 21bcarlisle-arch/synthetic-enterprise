@@ -22,6 +22,7 @@ from company.crm.next_best_action import (
     flat_action,
     forward_value,
     grade,
+    hazard_estimate_from_holdout,
 )
 
 H = 36
@@ -134,3 +135,28 @@ def test_c7_ranks_on_joint_value_and_holds_a_no_loss_floor_on_both_sides():
     # The rare branch exists: with the household's gain removed, our side alone decides.
     s2 = account(0, [est(T, benefit=0.0, dm=0.05), est(Action.CARBON_ADVICE, benefit=0.0, dm=0.0)])
     assert decide(s2, H).action is T
+
+
+def holdout(n, stayed_contacted, stayed_held_out):
+    return ([{"arm": "treated", "stayed": i < round(stayed_contacted * n)} for i in range(n)]
+            + [{"arm": "holdout", "stayed": i < round(stayed_held_out * n)} for i in range(n)])
+
+
+def test_a_holdout_sets_the_hazard_only_when_its_interval_decides_and_can_decide_against_us():
+    """Research §6.2. Over one partition: a holdout that raises staying, one that lowers it, and one
+    that cannot tell all occur. Fires on ranking the point when the interval spans zero (the
+    undecided arm would be scored) and on a sign flip (the sleeping dog would be taken)."""
+    raises = hazard_estimate_from_holdout(T, holdout(3000, 0.86, 0.84), 12, 50.0, 0.0)
+    lowers = hazard_estimate_from_holdout(T, holdout(3000, 0.80, 0.84), 12, 50.0, 0.0)
+    unsure = hazard_estimate_from_holdout(T, holdout(200, 0.86, 0.84), 12, 50.0, 0.0)
+    assert raises.hazard_change_per_month < 0 < lowers.hazard_change_per_month
+    assert unsure.hazard_change_per_month is None and "spans zero" in unsure.unknown_because
+    # 1 - 0.86^(1/12) minus 1 - 0.84^(1/12): the constant-hazard reading of the window.
+    assert raises.hazard_change_per_month == pytest.approx(0.84 ** (1 / 12) - 0.86 ** (1 / 12))
+    taken = {e: decide(account(0, [e]), H).action for e in (raises, lowers, unsure)}
+    assert taken == {raises: T, lowers: N, unsure: N}
+    assert "unknown" in decide(account(0, [unsure]), H).unscored[0][1]
+    one_arm = hazard_estimate_from_holdout(T, holdout(10, 1.0, 1.0)[:10], 12, 50.0, 0.0)
+    assert one_arm.hazard_change_per_month is None and "holds no decision" in one_arm.unknown_because
+    with pytest.raises(ValueError):
+        hazard_estimate_from_holdout(T, holdout(10, 1.0, 1.0), 0, 50.0, 0.0)
