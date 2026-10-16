@@ -66,3 +66,14 @@ observables. The mislabel class is read in the harness only.
 
 The fresh seeds 61113–61118 need listing in the activation record. The recommendation goes to
 `for_the_director`, and the build of items 1–3 does not wait on it.
+
+## Items 1-4 are built (worker, 2026-10-16)
+
+Items 1-3 landed in `bf0997494`. Item 4 is `tools/seed_family.py member --policy flat_at_level
+--level-from DIR`: `FLAT_SUPPLIER_POLICY` renewing every account at the median margin that the same
+seed's `value_arm` member chose and stamped (`value_arm_median_margin_gbp_per_mwh`). A source that is
+missing, refused, from another policy, seed or commit, or with no median, is refused before the run.
+Nothing has run. What is left is the director's listing of 61113-61118 (`for_the_director`), then
+the prereg's eighteen members: six `value_arm`, six `flat_supplier`, then six `flat_at_level`
+pointed at the first six.
+

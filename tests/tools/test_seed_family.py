@@ -426,3 +426,78 @@ def test_the_readout_refuses_directories_run_under_two_policies(tmp_path, capsys
     assert json.loads(capsys.readouterr().out)["policy"] == "flat_supplier"
     assert sf.main(["readout", str(tmp_path / "a"), str(tmp_path / "b")]) == 2
     assert "REFUSED: members ran under 2 policies" in capsys.readouterr().out
+
+
+# --- B11 item 4: the flat-at-level member, at the level its own seed's value arm chose ----------
+
+def _value_member(tmp_path, over=None, seed=_DEFAULT_BASE_SEED):
+    meta = {**GOOD, "seed": seed, "policy": "value_arm", "commit": "c0", "refused": None,
+            "value_arm_median_margin_gbp_per_mwh": 44.5, **(over or {})}
+    (tmp_path / f"member_{seed}.json").write_text(json.dumps(meta))
+    return tmp_path
+
+
+def test_a_value_arm_member_of_this_seed_and_commit_sets_the_level_and_every_other_source_is_refused(
+        tmp_path):
+    """DEFECT: a level arm held at a number this book did not produce. The admitting leg is asked
+    FIRST: a check refusing every source passes all the refusing legs below."""
+    s = _DEFAULT_BASE_SEED
+    assert sf.level_source_refusal(s, _value_member(tmp_path), "c0") is None
+    assert sf._level_of(s, tmp_path) == 44.5
+    assert "no --level-from" in sf.level_source_refusal(s, None, "c0")
+    assert "does not exist" in sf.level_source_refusal(s + 1, tmp_path, "c0")
+    assert "ran at 'c0'" in sf.level_source_refusal(s, tmp_path, "c1")
+    for over, why in (({"refused": "x"}, "was refused"), ({"policy": "current"}, "not value_arm"),
+                      ({"seed": OTHER}, "records seed"),
+                      ({"value_arm_median_margin_gbp_per_mwh": None}, "chose no level")):
+        assert why in sf.level_source_refusal(s, _value_member(tmp_path, over), "c0"), over
+    (tmp_path / f"member_{s}.json").write_text(json.dumps(
+        {k: v for k, v in {**GOOD, "seed": s, "commit": "c0",
+                           "value_arm_median_margin_gbp_per_mwh": 44.5}.items()}))
+    assert "not value_arm" in sf.level_source_refusal(s, tmp_path, "c0"), "unstamped = current"
+
+
+def test_the_level_policy_is_the_flat_supplier_renewing_everyone_at_the_level():
+    """DEFECT: the level arm built on CURRENT_POLICY (per-customer retention back in, which is
+    `run_value_cycle_ab --level-arm`'s arm, not the prereg's) or at a defaulted level."""
+    from dataclasses import fields
+
+    from company.policy.decision_policy import FLAT_SUPPLIER_POLICY
+    from company.pricing.value_based_renewal import FLAT_AT_LEVEL
+    level = sf.policy_named(sf.LEVEL_POLICY, 44.5)
+    differ = {f.name for f in fields(level)
+              if getattr(level, f.name) != getattr(FLAT_SUPPLIER_POLICY, f.name)}
+    assert differ == {"name", "renewal_margin_arm", "renewal_margin_flat_level_gbp_per_mwh"}
+    assert (level.name, level.renewal_margin_arm, level.renewal_margin_flat_level_gbp_per_mwh) == (
+        sf.LEVEL_POLICY, FLAT_AT_LEVEL, 44.5)
+    with pytest.raises(SystemExit, match="needs the level"):
+        sf.policy_named(sf.LEVEL_POLICY)
+
+
+def test_a_member_stamps_the_median_its_value_arm_chose(tmp_path):
+    """DEFECT: the value-arm member records no median, so no level member can ever run."""
+    run = {"phase2b": {"value_arm_log": [{"chosen_margin_gbp_per_mwh": m} for m in (3.0, 44.5, 60.0)]
+                       + [{"declined": True}]}}
+    stamp = sf.level_stamp(run, None, None)
+    assert stamp["value_arm_median_margin_gbp_per_mwh"] == 44.5
+    assert (stamp["value_arm_priced"], stamp["value_arm_declined"]) == (3, 1)
+    assert sf.level_stamp({"phase2b": {}}, None, None)["value_arm_median_margin_gbp_per_mwh"] is None
+    assert sf.level_stamp(run, 44.5, tmp_path)["level_from"] == str(tmp_path)
+
+
+def test_a_level_launch_reads_every_source_first_and_hands_each_member_its_directory(
+        tmp_path, monkeypatch):
+    """DEFECT: a level family half-launched behind a missing value-arm member, or members launched
+    without the directory their level comes from."""
+    monkeypatch.setattr(sf, "_head", lambda: "c0")
+    argvs = []
+    sf.launch([_DEFAULT_BASE_SEED], 40, tmp_path / "out", "t", 1, {},
+              launcher=lambda name, argv, **k: argvs.append(argv) or {"unit": name},
+              policy=sf.LEVEL_POLICY, level_from=_value_member(tmp_path))
+    assert argvs[0][argvs[0].index("--level-from") + 1] == str(tmp_path.resolve())
+    argvs.clear()
+    with pytest.raises(SystemExit, match="does not exist"):
+        sf.launch([_DEFAULT_BASE_SEED, 61101], 40, tmp_path / "out", "t", 2, {},
+                  launcher=lambda name, argv, **k: argvs.append(argv) or {"unit": name},
+                  record=None, policy=sf.LEVEL_POLICY, level_from=tmp_path)
+    assert argvs == []

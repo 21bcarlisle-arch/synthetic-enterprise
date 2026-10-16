@@ -63,6 +63,16 @@ chimera refusal holds. Default `current`, so every existing family is unchanged.
 stamped in each member's record and `readout` refuses to pool members run under different ones; a
 record from before the stamp existed was run under `current`, the only policy a member could take.
 
+THE LEVEL ARM (B11 prereg arm three, item 4 of the flat-supplier finding). `--policy flat_at_level
+--level-from DIR` runs `FLAT_SUPPLIER_POLICY` renewing every account at ONE margin: the median the
+value arm chose on the SAME seed, read from DIR's `member_<seed>.json`. It is a second pass because
+that level does not exist until the value-arm member has chosen; the median is
+`run_value_cycle_ab.arm_decision_shape`'s, the figure that runner's `--level-arm` holds. Every member
+stamps that median (None where it priced no value-arm renewal), so any value-arm member can feed
+one. The level member refuses before running where the source is missing, refused, not a value-arm
+member, another seed, another commit, or carries no median: a level arm at a number this book did
+not produce separates nothing.
+
 THE SEED IS A BOOK SEED, so any seed but the default is EP17_varied_population_draw, the
 director's. The launcher and the member both refuse a foreign seed his record does not list, and
 the member refuses a run whose `_RUN_BASE_SEED` is not the seed it was asked for. A foreign book
@@ -72,6 +82,7 @@ on (id, date) alone and a shared founder id would otherwise roll the same dice i
 Usage:
   python3 -m tools.seed_family launch --seeds 20260724 --tag a --out /var/tmp/sf [--parallel 4]
   python3 -m tools.seed_family member --seed S --founders 40 --out DIR [--policy flat_supplier]
+  python3 -m tools.seed_family member --seed S --out DIR2 --policy flat_at_level --level-from DIR
   python3 -m tools.seed_family readout DIR [DIR ...] [--where route=campaign_win] [--mix M.json]
   python3 -m tools.seed_family mix REPORT.json --source "..." --out M.json [--wins-scale 2.75]
   python3 -m tools.seed_family same A.csv B.csv
@@ -122,10 +133,23 @@ POLICY_NAMES = {"current": "CURRENT_POLICY", "value_arm": "VALUE_ARM_POLICY",
                 "flat_supplier": "FLAT_SUPPLIER_POLICY"}
 #: What a member record from before the policy stamp ran under.
 UNSTAMPED_POLICY = "current"
+#: The second-pass arm: built per member, at a level read from that seed's value-arm member.
+LEVEL_POLICY = "flat_at_level"
+MEMBER_POLICIES = sorted([*POLICY_NAMES, LEVEL_POLICY])
 
 
-def policy_named(name: str):
+def policy_named(name: str, level: float | None = None):
     from company.policy import decision_policy
+    if name == LEVEL_POLICY:
+        from dataclasses import replace
+
+        from company.pricing.value_based_renewal import FLAT_AT_LEVEL
+        if level is None:
+            raise SystemExit("seed_family: --policy flat_at_level needs the level its value-arm "
+                             "member chose (--level-from)")
+        return replace(decision_policy.FLAT_SUPPLIER_POLICY, name=LEVEL_POLICY,
+                       renewal_margin_arm=FLAT_AT_LEVEL,
+                       renewal_margin_flat_level_gbp_per_mwh=float(level))
     policy = getattr(decision_policy, POLICY_NAMES[name])
     if policy.name != name:
         raise SystemExit(f"seed_family: --policy {name} resolved to a policy named {policy.name!r}")
@@ -154,6 +178,52 @@ Z_POWER = 0.841621
 #: zero; the read-out prints the raw mean beside it and says when that has happened.
 TRIM = 0.05
 RECONCILE_TOLERANCE_GBP = 1.0
+
+
+def level_source_refusal(seed: int, source: Path | None, commit: str) -> str | None:
+    """Why the value-arm member record at `source` cannot set seed `seed`'s level, or None."""
+    if source is None:
+        return f"seed {seed}: no --level-from directory, so there is no level to hold"
+    path = source / f"member_{seed}.json"
+    if not path.exists():
+        return f"seed {seed}: {path} does not exist; run the value_arm member of this seed first"
+    meta = json.loads(path.read_text(encoding="utf-8"))
+    if meta.get("refused"):
+        return f"seed {seed}: the value-arm member was refused ({meta['refused']})"
+    if meta.get("policy", UNSTAMPED_POLICY) != "value_arm":
+        return (f"seed {seed}: {path} ran under {meta.get('policy', UNSTAMPED_POLICY)!r}, not "
+                "value_arm, so its median is not the per-customer arm's level")
+    if meta.get("seed") != seed:
+        return f"seed {seed}: {path} records seed {meta.get('seed')!r}"
+    if meta.get("commit") != commit:
+        return (f"seed {seed}: the value-arm member ran at {meta.get('commit')!r} and this one "
+                f"would run at {commit!r}; a level from other code is not this book's")
+    if meta.get("value_arm_median_margin_gbp_per_mwh") is None:
+        return (f"seed {seed}: the value-arm member priced no renewal with the value arm, so it "
+                "chose no level")
+    return None
+
+
+def level_stamp(run_output: dict, level: float | None, level_from: Path | None) -> dict:
+    """What a member records about renewal levels: the median its value arm chose (what a level
+    member reads) and, on a level member, the level it held and where that came from."""
+    from tools.run_value_cycle_ab import arm_decision_shape
+    shape = arm_decision_shape(run_output)
+    return {"value_arm_median_margin_gbp_per_mwh": shape.get("median_margin_gbp_per_mwh"),
+            "value_arm_priced": shape.get("priced", 0),
+            "value_arm_declined": shape.get("declined", 0),
+            "flat_level_gbp_per_mwh": level,
+            "level_from": str(level_from) if level is not None else None}
+
+
+def _level_of(seed: int, source: Path) -> float:
+    meta = json.loads((source / f"member_{seed}.json").read_text(encoding="utf-8"))
+    return float(meta["value_arm_median_margin_gbp_per_mwh"])
+
+
+def _head() -> str:
+    return subprocess.run(["git", "rev-parse", "HEAD"], cwd=PROJECT_DIR,
+                          capture_output=True, text=True).stdout.strip()
 
 
 def seed_refusal(seeds: list[int], record: Path | None = None) -> str | None:
@@ -398,19 +468,24 @@ def run_book(policy) -> dict:
 
 
 def member(seed: int, founders: int, out: Path, shape: str = "all_wins",
-           policy: str = "current") -> int:
+           policy: str = "current", level_from: Path | None = None) -> int:
     """ONE book, in this process. Must be the first thing the process does: the seed and the
     founder count are rebound before anything imports `simulation.run_phase2b`, which draws the
     book at import."""
     if "simulation.run_phase2b" in sys.modules:
         raise SystemExit("seed_family member: the book is already drawn in this process")
     refusal = seed_refusal([seed])
+    level = None
+    if refusal is None and policy == LEVEL_POLICY:
+        refusal = level_source_refusal(seed, level_from, _head())
+        if refusal is None:
+            level = _level_of(seed, level_from)
     if refusal:
         print("REFUSED:", refusal)
         return 2
     out.mkdir(parents=True, exist_ok=True)
     t0 = time.monotonic()
-    run_policy = policy_named(policy)
+    run_policy = policy_named(policy, level)
     import simulation.live_population as lp
     import simulation.net_new_acquisition as nna
     default_seed = lp._DEFAULT_BASE_SEED
@@ -462,6 +537,7 @@ def member(seed: int, founders: int, out: Path, shape: str = "all_wins",
         "shape": shape, "budget_customer_years": SHAPES[shape]["budget"],
         "policy": run_policy.name,
         "retention_offers": len(run_output["phase2b"].get("retention_log") or []),
+        **level_stamp(run_output, level, level_from),
         "wins_settled": sum(int(r.get("wins") or 0) for r in camp.get("by_year") or []),
         "funnel_wins": camp.get("funnel_wins"),
         "campaign_win_homes": sum(1 for r in rows if r["route"] == "campaign_win"),
@@ -473,8 +549,7 @@ def member(seed: int, founders: int, out: Path, shape: str = "all_wins",
         "wall_min": round((time.monotonic() - t0) / 60, 1),
         "peak_cgroup_mb": _cgroup_peak_mb(),
         "ru_maxrss_mb": resource.getrusage(resource.RUSAGE_SELF).ru_maxrss // 1024,
-        "commit": subprocess.run(["git", "rev-parse", "HEAD"], cwd=PROJECT_DIR,
-                                 capture_output=True, text=True).stdout.strip(),
+        "commit": _head(),
     }
     refusal = member_refusal(seed, meta)
     meta["refused"] = refusal
@@ -491,7 +566,7 @@ def launch(seeds: list[int], founders: int, out: Path, tag: str, parallel: int,
            run_case: dict, launcher=None, record: Path | None = None,
            wait_for_pid: int | None = None, sleep=None, queue_deadline_s: float = 6 * 3600,
            shape: str = "all_wins", peak_mb: float = MEMBER_PEAK_MB,
-           policy: str = "current") -> list[dict]:
+           policy: str = "current", level_from: Path | None = None) -> list[dict]:
     """Every member as its own long-job unit, all at once; admission decides whether they fit.
     More seeds than `parallel` is refused rather than queued: chaining units on a queued unit's
     pid is refused by the launcher's admission, so the caller launches the next wave itself.
@@ -502,8 +577,15 @@ def launch(seeds: list[int], founders: int, out: Path, tag: str, parallel: int,
     if refusal is None and len(seeds) > parallel:
         refusal = (f"{len(seeds)} seeds over --parallel {parallel}; launch them in waves of "
                    f"{parallel}")
+    if refusal is None and policy == LEVEL_POLICY:
+        # Every seed's source is read before any unit starts: a family half-launched behind one
+        # missing value-arm member is the stranded wave the queueing below exists to prevent.
+        head = _head()
+        refusal = next(filter(None, (level_source_refusal(s, level_from, head) for s in seeds)),
+                       None)
     if refusal:
         raise SystemExit("REFUSED: " + refusal)
+    level_argv = ["--level-from", str(level_from.resolve())] if policy == LEVEL_POLICY else []
     from background.launch_long_job import QUEUE_RETRY_SECONDS, NoRoom
     if launcher is None:
         from background.launch_long_job import launch as launcher
@@ -521,7 +603,7 @@ def launch(seeds: list[int], founders: int, out: Path, tag: str, parallel: int,
                     f"seed-family-{tag}-{s}",
                     [sys.executable, "-m", "tools.seed_family", "member", "--seed", str(s),
                      "--founders", str(founders), "--out", str(member_dir), "--shape", shape,
-                     "--policy", policy],
+                     "--policy", policy, *level_argv],
                     artefact=str(member_dir / f"member_{s}.json"), workdir=str(PROJECT_DIR),
                     peak_mb=peak_mb, expect_minutes=expect, run_case=dict(run_case),
                     wait_for_pid=wait_for_pid))
@@ -718,12 +800,15 @@ def main(argv: list[str] | None = None) -> int:
     m.add_argument("--founders", type=int, help="default: the shape's own")
     m.add_argument("--out", type=Path, required=True)
     m.add_argument("--shape", choices=sorted(SHAPES), default="all_wins")
-    m.add_argument("--policy", choices=sorted(POLICY_NAMES), default="current")
+    m.add_argument("--policy", choices=MEMBER_POLICIES, default="current")
+    m.add_argument("--level-from", type=Path,
+                   help="flat_at_level only: the directory holding this seed's value_arm member")
     la = sub.add_parser("launch")
     la.add_argument("--seeds", required=True)
     la.add_argument("--founders", type=int, help="default: the shape's own")
     la.add_argument("--shape", choices=sorted(SHAPES), default="all_wins")
-    la.add_argument("--policy", choices=sorted(POLICY_NAMES), default="current")
+    la.add_argument("--policy", choices=MEMBER_POLICIES, default="current")
+    la.add_argument("--level-from", type=Path)
     la.add_argument("--peak-mb", type=float, default=MEMBER_PEAK_MB,
                     help="one member's declared peak, from its own last run")
     la.add_argument("--out", type=Path, required=True)
@@ -757,7 +842,7 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.cmd == "member":
         return member(args.seed, args.founders or SHAPES[args.shape]["founders"], args.out,
-                      args.shape, args.policy)
+                      args.shape, args.policy, args.level_from)
     if args.cmd == "launch":
         seeds = [int(x) for x in args.seeds.split(",") if x.strip()]
         from background.launch_long_job import LaunchRefused, follow_unit
@@ -768,7 +853,8 @@ def main(argv: list[str] | None = None) -> int:
                               "would_change": args.would_change,
                               "expect_minutes": args.expect_minutes},
                              wait_for_pid=args.wait_for_pid, shape=args.shape,
-                             peak_mb=args.peak_mb, policy=args.policy)
+                             peak_mb=args.peak_mb, policy=args.policy,
+                             level_from=args.level_from)
         except LaunchRefused as exc:
             print("REFUSED:", exc)
             return 2
