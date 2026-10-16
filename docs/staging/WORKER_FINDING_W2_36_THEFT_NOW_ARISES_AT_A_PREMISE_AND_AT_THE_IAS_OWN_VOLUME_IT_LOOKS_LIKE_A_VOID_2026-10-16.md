@@ -95,3 +95,45 @@ nothing.
 
 **Fate (2026-10-16, after grading):** ATOM -- W2_36's next slice prices the third source (low-use
 occupied homes, from the world's household demand) in the same probe.
+
+## The third source priced: occupied homes flag by the shape of the company's expectation, not by low use (worker, 2026-10-16, late)
+
+Pre-registration and grades:
+`records/WORKER_PREREG_W2_36_WHAT_THE_SCREEN_FLAGS_AMONG_OCCUPIED_HOMES_2026-10-16.md`. The probe is
+`tools/theft_void_screen_probe.occupied_screen_table`. It reads the published run's own book and
+asks the company's own expectation for every month: `estimate_unread_kwh` over its last three
+actual reads, or `opening_estimate_kwh` before its first read. The control is in
+`tests/tools/test_theft_void_screen_probe.py`. It is mutation-proven: if the void is never
+attributed, if the void never ends, if the company never learns from its reads, or if the
+expectation ignores the profile, the control goes red. A placebo run stays green.
+
+Beside the earlier table, per 10,000 premise-years:
+
+| Cut | thefts | private voids | social voids | occupied homes (run book) |
+|---|---|---|---|---|
+| Month empty (under 0.05) | about 1,100 | 0.2 | 112 | **0** |
+| Month under 0.4 | about 1,100 | 848 | 430 | 576 |
+| Month under 0.65 | about 1,100 | 1,740 | 669 | **1,939** |
+| Year under 0.65 | 84–107 | 0 | 0 | **0** |
+
+- **The empty-month screen is still a theft screen.** No occupied home empties a period.
+- **At a loose monthly cut, occupied homes are the largest source of flags.** They flag more than
+  private voids and more than thefts. The flags are the expectation's shape error: weather-driven
+  homes in summer, after a winter-heavy read window. They are not low use. A real screen keyed to a
+  profile-shaped estimate would see the same thing in a storage-heated home on a domestic profile.
+- **An annual window flags nothing occupied.** So the annual screen's flags stay almost all thefts.
+- **Corrected beside my own premise:** in the run, a void is on the account. It is the incoming
+  occupier's opening stub at 0 kWh. On a billing-period window it reads as an empty period
+  (276 per 10,000 premise-years on the run's mixed-tenure book).
+
+**GAPs carried.**
+1. Whether the world's summer-to-winter swing in fabric homes matches published heating-season
+   shapes. If it is too steep, the 1,939 is inflated. The flags concentrate in ten accounts, so
+   this is the first thing to check.
+2. The run book is one seed and mixed tenure, so it is not split by tenure the way the void table is.
+3. The two populations differ: thefts and voids come from 20,000 synthetic premises per tenure,
+   and occupied homes from the run's 633 accounts. The rates are per premise-year on each, so they
+   sit side by side but are not one draw.
+
+**Fate (2026-10-16, after this slice):** ATOM -- W2_36's remaining kinds (K5 meter faults, K6
+settlement against billing) stand. GAP 1 is the next fidelity question for this screen.
