@@ -5,6 +5,8 @@
 
 **Fate (2026-10-14):** ATOM -- D48 harden, next week: electricity-only year-end under-billing, 2016-19. World or company is not yet separated.
 
+**Answered (2026-10-16):** neither candidate. One account, C7 (an unread EV home billed on the TDCV fallback for 50 months and trued up +41,778 kWh on 2020-03-31), carries the whole level. Without it, every month end from 2016-06 to 2020-02 is -2.5% to +2.2%. See `WORKER_FINDING_D48_ELECTRICITYS_PRE_2020_UNDER_BILL_IS_ONE_UNREAD_EV_HOME_BILLED_ON_THE_TDCV_FALLBACK_2026-10-16.md`.
+
 *From D48 Expert Hour, 2026-10-14. Adjudication: `SEAT_FINDING_D48_THE_EXPERT_HOUR_FAILS_ON_THE_CLAIM_NOT_THE_MEASURE_2026-10-14.md`. Not fixed in the turn that found it.*
 
 **The figures:** K1 graded net true-up share at December. Positive means undercharge.
