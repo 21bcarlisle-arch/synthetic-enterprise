@@ -233,6 +233,7 @@ from simulation.live_population import (
     live_drawn_households,
     live_dwellings,
     live_population,
+    population_seed_argument,
     run_base_seed,
 )
 from simulation.move_destination import (
@@ -314,7 +315,8 @@ ACQUIRED_CUSTOMERS = acquired_supply_points()
 # returns the same 18 records in the same order, so this is byte-identical; flag ON,
 # it is those 18 plus the curriculum's drawn 2021-2025 trickle, and the drawn points
 # are registered on the book so `registered_point()` can resolve them.
-CUSTOMERS = live_population()
+# EP17's switch: `SE_POPULATION_SEED` names the book seed; unset is today's book, byte for byte.
+CUSTOMERS = live_population(base_seed=population_seed_argument())
 SUCCESSOR_CUSTOMERS = successor_supply_points()
 
 REPORT_START = "2016-01-01"
@@ -1465,6 +1467,9 @@ def main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     with _box_admission(), pressure_ledger_scope():
         result = _main(report_end=report_end, policy=policy,
                        gap_ledger_path=gap_ledger_path)
+    # Which cast this run faced. Read back from the seam, not from the argument, so it is the seed
+    # the book was actually drawn at.
+    result["population_seed"] = run_base_seed()
     # One line per run: its cost against the book it settled (simulation/run_cost.py).
     run_cost.record(result, wall_s=_time.monotonic() - started, report_end=report_end)
     return result

@@ -93,6 +93,33 @@ _ACTIVATION_CURRICULUM = (
 # deterministic draw the "on" state yields.
 _DEFAULT_BASE_SEED = 20260724
 
+# EP17's switch: the run's EXPLICIT population seed. An environment value rather than a CLI flag
+# because `run_phase2b` draws its book at IMPORT, before any `main()` argument exists to read.
+_POPULATION_SEED_ENV = "SE_POPULATION_SEED"
+
+
+def population_seed_argument() -> Optional[int]:
+    """The book seed the caller asked for, or None for the default book.
+
+    Unset or empty -> None, so `live_population()` draws exactly the book it drew before the
+    switch existed. A value that is not an integer RAISES rather than falling back: a typo that
+    silently ran the default book would publish under a seed nobody chose. A non-default seed is
+    asked of `tools.book_seed_authorisation` -- EP17 is the director's curriculum, and his record
+    must list the seed -- and a refusal raises with its reason.
+    """
+    raw = os.environ.get(_POPULATION_SEED_ENV, "").strip()
+    if not raw:
+        return None
+    try:
+        seed = int(raw)
+    except ValueError:
+        raise ValueError(f"{_POPULATION_SEED_ENV}={raw!r} is not an integer book seed") from None
+    from tools.book_seed_authorisation import book_seed_authorisation_refusal
+    refusal = book_seed_authorisation_refusal([seed])
+    if refusal:
+        raise RuntimeError(f"{_POPULATION_SEED_ENV}={seed} refused: {refusal}")
+    return seed
+
 
 def _curriculum_activated() -> bool:
     """Read the committed activation curriculum. FAIL-CLOSED to OFF.

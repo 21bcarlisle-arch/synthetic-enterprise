@@ -778,3 +778,15 @@ no ledger row written; `level_current`, `level_target` and `loop_stage` are unto
 EP17 and W2_2.
 
 — FRAME pass 6, worker tick 2026-08-18, at HEAD `e9965940a`.
+
+## 2026-10-16 — the switch is wired, and not yet used
+
+`SE_POPULATION_SEED` is the run's explicit book seed: `simulation/run_phase2b.py` passes
+`population_seed_argument()` to `live_population(base_seed=…)` at import, because that is when the
+book is drawn. Unset, the argument is `None` and the cast is today's byte for byte. A non-default
+seed is asked of `tools/book_seed_authorisation.py` and refused unless the director's record
+(`docs/design/curriculum/varied_population_draw_activation.json`) lists it. The run output carries
+`population_seed`, read back from `run_base_seed()`. Control:
+`tests/simulation/test_the_population_seed_switch.py`. `background/run_rotation.py` is still not on
+the publish path. Nothing sets the variable until the 2026-10-19 04:00 publish has landed on the
+fixed draw and its readers are green.
