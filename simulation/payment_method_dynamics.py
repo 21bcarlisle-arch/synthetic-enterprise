@@ -25,6 +25,11 @@ reassessment) are company decisions and are not here. What is here is what a HOU
     GBP 4.40 gas, Ofgem 2025; `company_debt_management.md` s.2). No meter is changed for debt in
     the run, so that recovery is NOT built here (removed 2026-10-12: a cited constant no live code
     reached); it is built where the run first changes a meter for debt.
+  * THE ROUTE ITSELF (W2_42, 2026-10-16). Deciding to ask for the meter change stays the supplier's
+    act, but whether the meter actually changes is the world's: `move_to_prepayment_for_debt` moves
+    it only by recorded Consent or through the SLC 28.7 involuntary gate, and refuses anything else
+    with its reason. Nothing in the run calls it yet (`company_debt_management.md`, "The world's side
+    of the route from debt to prepayment").
 
 NAMED SIMPLIFICATIONS:
   1. One draw per household per billed month, the annual share taken as a monthly hazard, keyed
@@ -125,6 +130,79 @@ def answer_prepayment_offer(account_id: str, offered_on: str,
         return None
     u = substream(STREAM_NAMESPACE, f"ppm_offer::{account_id}::{offered_on}", 0).random()
     return u < strengths.prepayment_take_up_share
+
+
+#: The two routes to a prepayment meter for debt (SLC 28.21-28.22): the household's recorded explicit
+#: Consent, or an involuntary move by warrant or remote switch.
+ROUTE_CONSENT = "consent"
+INVOLUNTARY_ROUTES = ("warrant", "remote_switch")
+
+#: Involuntary moves stopped industry-wide in Feb 2023; the 28.7 rules came into force 8 Nov 2023 and
+#: the first restarts were Jan 2024 (`company_debt_management.md`, "Involuntary prepayment since 2023").
+INVOLUNTARY_PAUSED_FROM = "2023-02-01"
+INVOLUNTARY_RESTART = "2024-01-01"
+#: SLC 28.7 Debt Trigger and guidance 5.6, cited in `debt_and_collections.md` s.3 (SLC 28B row).
+DEBT_TRIGGER_GBP = 200.0
+DEBT_TRIGGER_MONTHS = 3
+MIN_ENGAGEMENT_ATTEMPTS = 10
+
+
+@dataclass(frozen=True)
+class PrepaymentForDebtRequest:
+    """What the supplier did before asking for the meter to be changed, for one fuel."""
+    account_id: str
+    fuel: str
+    requested_on: str
+    route: str
+    debt_gbp: float
+    months_outstanding: int
+    on_payment_plan: bool = False
+    engagement_attempts: int = 0
+    site_welfare_visit: bool = False
+    explicit_consent_recorded: bool = False
+
+
+@dataclass(frozen=True)
+class PrepaymentMove:
+    moved: bool
+    route: str
+    reason: str
+
+
+def move_to_prepayment_for_debt(request: PrepaymentForDebtRequest, *, psr_type_vulnerable: bool,
+                                strengths: Optional[MethodStrengths] = None) -> PrepaymentMove:
+    """Whether the world changes this meter to prepayment for debt. Only a lawful route moves it;
+    anything else is refused with the first unmet condition, in SLC 28.7's order.
+
+    `psr_type_vulnerable` is the household's hidden V1 state (`vulnerability_state`), world truth.
+    No needs code is drawn, so every V1 household is treated as do-not-install (guidance 3.7, the
+    Precautionary Principle): the world cannot tell which V1 households the list names, and the
+    error can only shrink the route. Choices and gaps: `company_debt_management.md`, "The world's
+    side of the route from debt to prepayment"."""
+    r = request
+    if r.route == ROUTE_CONSENT:
+        if not r.explicit_consent_recorded:
+            return PrepaymentMove(False, r.route, "no explicit Consent recorded (SLC 28.22)")
+        answer = answer_prepayment_offer(r.account_id, r.requested_on, strengths)
+        if answer is None:
+            return PrepaymentMove(False, r.route, "the household cannot answer: take-up share is off")
+        return PrepaymentMove(answer, r.route, "household agreed" if answer else "household declined")
+    if r.route not in INVOLUNTARY_ROUTES:
+        raise ValueError(f"unknown route to prepayment: {r.route!r}")
+    if r.requested_on < INVOLUNTARY_PAUSED_FROM:
+        return PrepaymentMove(False, r.route, "the pre-2023 involuntary gate is not established (GAP)")
+    if r.requested_on < INVOLUNTARY_RESTART:
+        return PrepaymentMove(False, r.route, "involuntary moves paused industry-wide")
+    if (r.debt_gbp < DEBT_TRIGGER_GBP or r.months_outstanding < DEBT_TRIGGER_MONTHS
+            or r.on_payment_plan):
+        return PrepaymentMove(False, r.route, "Debt Trigger not met (SLC 28.7)")
+    if r.engagement_attempts < MIN_ENGAGEMENT_ATTEMPTS:
+        return PrepaymentMove(False, r.route, "fewer than 10 engagement attempts")
+    if not r.site_welfare_visit:
+        return PrepaymentMove(False, r.route, "no Site Welfare Visit")
+    if psr_type_vulnerable:
+        return PrepaymentMove(False, r.route, "household is on the do-not-install list")
+    return PrepaymentMove(True, r.route, "the 28.7 gate holds")
 
 
 def summarise(book, strengths: Optional[MethodStrengths] = None) -> dict:

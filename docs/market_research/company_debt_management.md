@@ -682,3 +682,48 @@ rest of SLC 28.7-28.22 and the guidance. Sources:
   customer keeping to a plan (guidance 6.2).
 - **Involuntary PPM is the end of a human-gated process, never a self-serve response.** [DERIVED from
   the above]
+
+## The world's side of the route from debt to prepayment (2026-10-16, atom W2_42)
+
+*K8 page for `simulation/payment_method_dynamics.py::move_to_prepayment_for_debt`. The rules are the
+section above and `debt_and_collections.md` §3. This section says what the world does with them.*
+
+### What the world does (DESIGN CHOICES, each named)
+- **The world executes a meter change for debt only by a lawful route, and refuses any other with a
+  named reason.** Two routes: by the household's recorded explicit Consent (28.22), when the household
+  answers yes (`answer_prepayment_offer`); or involuntarily (warrant or remote switch, 28.21) when the
+  28.7 gate holds. The refusal reason is the first unmet condition, in 28.7's order.
+- **The involuntary gate the world checks, from 8 Nov 2023:** the Debt Trigger (£200 or more per fuel,
+  3 months or more outstanding, not on or moving to a plan); at least 10 engagement attempts; at least
+  one Site Welfare Visit; and that no one in the household is on the do-not-install list.
+- **Feb 2023 to the end of Dec 2023 is refused as paused.** Every supplier stopped in Feb 2023, the
+  rules came into force 8 Nov 2023, and the first restarts (after a second independent audit) were in
+  Jan 2024. The world does not model the audit, so it treats 1 Jan 2024 as the restart for any supplier.
+- **Do-not-install is drawn from the hidden PSR-type state (V1).** `vulnerability_state` draws V1 but no
+  needs code (no distribution of registrations by code is published). The world cannot say which V1
+  households are on the do-not-install list, so it treats every V1 household as do-not-install. That
+  is the Precautionary Principle, and it errs against the thesis (F11): it can only shrink the route.
+  A V1 household that never disclosed is still protected: the protection is the household's fact, not
+  the supplier's record of it.
+- **The Consent route is not barred by V1.** The do-not-install list is guidance for involuntary moves
+  (3.7). A household that asks for a prepayment meter may have one.
+
+### GAPs
+- **The gate before Feb 2023 is NOT ESTABLISHED.** 28.7 dates from Nov 2023. What a warrant needed
+  before then (the 1954 Rights of Entry Act route, SLC 28's older "safe and reasonably practicable"
+  text) was not located. The world refuses an involuntary move dated before Feb 2023 with that reason,
+  rather than invent a gate. The real record has about 150,000 such moves in Jan 2022 to Jan 2023
+  alone, so this understates the route for 2016-2022. A refusal that names the gap is how it gets
+  found.
+- **Do-not-install prevalence.** Energy UK (Feb 2026, pp. 10-11) puts about 25% of arrears £ with
+  customers who have do-not-install characteristics. That is a £ share of arrears, not a share of
+  households, so it does not set a prevalence. It is the check to run when the route is wired.
+- **Unlawful installs.** Under 2% of the reviewed pre-rules moves should not have happened (MCR, Jun
+  2026). The world refuses them instead, so a company defect shows as a refusal and not as a harmed
+  household. That is a simplification of the world, not a fact about it.
+- **Debt recovery on the new meter** (£6.01 electricity, £4.40 gas a week, Ofgem 2025, §2) is not built.
+  It is built where the run first changes a meter, together with the household's life on it.
+
+### What reaches it
+Nothing in the run yet. The company's involuntary decision is the director's reserved shape and is
+never automated. The Consent route needs a seam door, which is the next slice.
