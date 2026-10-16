@@ -1,193 +1,174 @@
 version: 1
-oriented_at: "2026-10-16T17:22:58.283644+00:00"
+oriented_at: "2026-10-16T20:22:27.532042+00:00"
 thesis_read: >-
-  Billing moved forward and the comparison did not. The thesis needs a flat baseline to beat. That
-  comparison is exactly where it was at 14:22. Both doors are built and the predictions are filed.
-  It still waits on the 2026-10-19 publish and on six fresh seeds that only the director can list
-  (open row ep17-s-flat-against-per-customer-comparison). Billing accuracy produced real company
-  results this stretch. C7 is graded (c3f015034). It sits at the far end of a class of 287 runs of
-  estimates longer than twelve months, on 245 accounts. None of them is billed past the 12-month
-  back-billing bar. The 21BA write-off works on both payment routes. K1 now carries its
-  concentration, so one account can no longer pass for a population bias. That wrong row is
-  corrected. The same census found the company never asks for a read. Nothing in company/ acts on a
-  run of estimates, so the company cannot see its own SLC 21B.4 breach. That is focus one. D46 closed
-  a leak in billing (e6785dce5). A void stub's estimate is now priced at the account's own tariff, so
-  world truth no longer decides whether the company charges for its own estimate. The P3 wrong row is
-  corrected in code. Its two OCC rows leave KNOWN_OPEN_INVERSIONS when the next published ledger is
-  billed by this code. The draw ledger now credits an item only through a commit that binds it, and it
-  reads a landing in flight as mid_landing (1961c22d5). The instrument that grades whether the steer
-  bit is honest at last. Both of its carried wrong rows are retired in wrong_triage.yaml as
-  already_fixed, so they leave this list by that route rather than by being forgotten. What has not
-  moved, and matters most for the thesis, is 2022. The world books crisis bad debt at about a tenth of
-  the published share: 0.10% of revenue in 2021-22 against 1.3% to 2.8% published. The company's
-  provision charge peaks in 2023, a year after the arrears. Any per-customer debt or retention decision
-  is graded inside a world that forgives non-payment, and in that world value created and value
-  transferred look alike. That BLOCKING finding has had no work for two days, so it becomes focus two
-  (supplier timing) and focus three (world level, diagnosis only before the publish). Commit split: 3
-  supplier, 1 world, 7 other. Four of the seven "other" commits are seat records and merges, so the
-  supplier-first order held. The previous focus is graded. Two of three Lane 0 items were drawn
-  (the C7 census, and the legacy PC1 item, which landed as finding and prereg in 91038fa91). The draw-ledger
-  item was not drawn but landed anyway, and so did the D46 atom (the draw never took it; e6785dce5
-  did the work). All four are done, so none is carried. One correction to my own record: last
-  stretch I listed C35 in not_now as a director-ruled row. Its map row quotes him: "not a ruling from
-  me". A worker built it to L1, dormant (1bf415a14). That was right, and my rejection was wrong.
+  The stretch gave us an answer, and it moved the 2022 problem. The question is now where the
+  world falls short, not whether it does. The diagnosis (91ad4cad8, 3f7959f48) found that the
+  world's count of households in arrears is roughly in Ofgem's range in most years. What is wrong
+  is the pound balance per debtor, 9-14x low in every year, crisis or not. Each bill is an
+  independent coin flip, so 78% of world debtors are exactly one bill behind and then pay again.
+  The payment draw also has no price input: the four 2021-22 bill levels give identical failure
+  shares. The household budget does respond to 2022, but nothing reads it. The worker's own first
+  fix (move the tier up a step) was refuted by the table it printed next, and is kept beside the
+  replacement: let the budget decide how much of each bill gets paid, month after month. All four
+  pre-registered predictions were refuted, and that is the instrument working.
+  For the thesis, this means a per-customer debt decision is graded in a world where debt clears
+  by itself. In that world, collecting a debt and forgiving it look about the same, so we cannot
+  yet tell value created from value moved. My own record was wrong about the company side. I said
+  the provision charge peaks a year after the arrears. 52eafa5dd prints both by year: the
+  published age-band provision does not lag, and it is largest in 2022. So the crisis bad-debt
+  finding stays BLOCKING on the level only, and the level is the world's problem. It is not a
+  supplier defect.
+  Billing accuracy moved forward. c5963a5c0 registers each year an account goes without a read
+  (the SLC 21B.4 breach) and publishes the count beside K2. The company can now see its own
+  breach.
+  The flat-against-per-customer comparison is where it was. B11 is parked at L2 with every door
+  built. It needs the 10-19 publish and the six seeds only the director can list (open row
+  ep17-s-flat-against-per-customer-comparison). That is still the biggest gap against the thesis,
+  and it is not ours to close.
+  Commit split: 2 supplier, 0 world, 8 other. Two of the eight "other" commits are world
+  findings and one is E6's measurement, so supplier-first held in substance, if not in the label.
+  All four previous focus items were drawn, and all four are done, so none is carried.
+  The tombstone item landed (a5f02f869), and wrong_triage now marks that row already_fixed.
+  It leaves the wrong list by that route, not by being dropped.
+  Next is the largest open money figure on the billing page, £33,770 barred on direct-debit
+  accounts, then pricing that shares value, then the knowledge page the non-payment build needs.
 stretch_reviewed:
-  since: "2026-10-16T14:22:31.865021+00:00"
-  commits: 11
-  substantive: 7
+  since: "2026-10-16T17:22:58.283644+00:00"
+  commits: 10
+  substantive: 4
 focus:
-- id: a-year-unread-is-registered-as-the-companys-21b4-breach
+- id: the-dd-review-asks-for-the-balance-it-is-owed
   lane: D_billing_metering
   side: supplier
-  what: Build the smallest company mechanism proposed in section 4 of docs/staging/WORKER_FINDING_C7_AND_286_OTHER_RUNS_OVER_TWELVE_MONTHS_NONE_BILLED_PAST_THE_BAR_AND_NOTHING_ASKS_FOR_A_READ_2026-10-16.md.
-    Knowledge first (K8). Amend docs/market_research/read_access_and_theft_duties.md to state the SLC
-    21B.4 duty and the register's design. The chase before the year stays a labelled GAP. Then, in company/billing/,
-    add a 21B.4 register. It writes one dated row per account each time a run of estimates reaches 12
-    months without an actual read, read from the company's own consecutive_estimated_count. The trigger
-    is the licence's own year, not a picked number. It records only. It changes no bill and no read, and
-    it needs no world change, so the 2026-10-19 publish stays a one-variable reading. Publish the count
-    of accounts a year past their last read beside K2's one-month count on the capabilities page. Add
-    one control that drives a run of 11 and a run of 12 estimates through the real path, and asserts that
-    both branches (no row, row) are reachable in a single statement. Pre-register the count on the published
-    run 2248e3baf before running it. The census says 287 runs on 245 accounts. Explain any difference
-    beside the prediction. Do not commit a regenerated ledger.
-  why: 'Billing accuracy is first in the director''s supplier order. The company breaks a read duty 287
-    times and has no way to know it. A supplier that cannot count its own breaches cannot decide whom
-    to chase, and that chase is a per-customer decision. DONE: the knowledge page is amended, the register
-    and its control are on origin, the published figure is shown beside K2, and the prediction is graded
-    in the C7 finding.'
-  written_at: 1792171741.869
-- id: when-a-gb-supplier-charged-2022s-bad-debt
-  lane: E_finance_treasury
+  what: Work docs/staging/SEAT_FINDING_D48_A_THIRD_OF_DD_ACCOUNTS_ASKED_FOR_THEIR_BALANCE_LOSE_PART_OF_IT_BECAUSE_THE_REVIEW_NEVER_ASKS_2026-10-14.md,
+    knowledge first (K8). From Ofgem's direct-debit guidance and the SLC 27 direct-debit conditions, Energy
+    UK practice and Ombudsman decisions, establish whether a GB supplier's annual review recovers an accrued
+    debit balance, and over what period. Write the answer, or a labelled GAP, into docs/market_research/what_a_supplier_holds_to_size_a_direct_debit.md.
+    Then, in company/billing/dd_review.py, make the review recover the balance as that page says, behind
+    a company-side switch whose default is unchanged. Read both arms with the existing seek_balance_at_review
+    toggle in simulation/dd_balance_book.py on the committed run, and print, by year, the money barred,
+    the number of accounts with money barred, and the size of the direct-debit step-up the recovery causes,
+    in pounds a month. Pre-register the barred share before you run it; today it is 153 of 422 accounts,
+    £33,770. Do not flip the default before the 2026-10-19 publish lands. Add one control that drives
+    an account with a balance through the review under both settings and asserts, in one statement, that
+    both outcomes (recovered, barred) can happen.
+  why: 'This is billing accuracy, first in the director''s supplier order, and it is the largest open
+    money figure on the billing page. Recovering the balance is also a per-customer trade-off: a bigger
+    direct-debit step-up is the household''s bill shock, so both sides of M2 show up in one number. DONE:
+    the knowledge page answers the question, sourced or GAP; the switch and its control are on origin;
+    the two-arm table and the graded prediction are in the finding; and the finding states whether the
+    default should flip after the publish, with the reason.'
+  written_at: 1792182458.332
+- id: a-retention-price-that-shares-created-value
+  lane: B_commercial
   side: supplier
-  what: 'Work the open question in docs/staging/SEAT_FINDING_THE_CRISIS_BAD_DEBT_CONTROL_HAS_SKIPPED_SINCE_THE_RUN_WENT_GZIP_AND_THE_PUBLISHED_RUN_SHOWS_NO_STEP_UP_2026-10-14.md
-    (section "Measured since"), knowledge first. From published evidence (supplier annual reports and
-    IFRS 9 notes for 2021-2024, Ofgem''s debt and arrears data, and the source behind the 1.3%-to-2.8%
-    figure in docs/market_research/ASSUMPTIONS.md), establish two things: whether the published step-up
-    is a provision charge or a write-off, and in which year GB suppliers recognised 2022''s arrears. Amend
-    docs/market_research/bad_debt_provisioning.md with the answer, or with a labelled GAP if nothing establishes
-    it. Then rule on what is wrong: the validator''s CRISIS_YEARS window in tests/company/compliance/test_crisis_bad_debt_validator.py,
-    or the timing of E6''s roll-rate provision. Print E6''s provision charge by year beside the company''s
-    own arrears balance by year, in pounds, from the committed run_output_latest.json.gz. If the window
-    is wrong, correct it and cite the source. If the provision lags arrears, file the defect against E6
-    with a prediction.'
-  why: 'This is one of the two BLOCKING findings, and E6''s L2 claim is that "the charge moves when arrears
-    build, not a year later". It is untested while the definition is unsettled. Say what the step-up IS
-    before differencing it. DONE: the knowledge page states the timing (sourced or GAP), the finding''s
-    open section carries the by-year table, and either the window is corrected with its citation or the
-    lag is filed with a prediction.'
-  written_at: 1792171741.869
-- id: the-worlds-2022-non-payment-against-the-published-arrears-record
+  what: Knowledge and measurement only, no change to any decision rule. Write docs/market_research/a_retention_price_that_shares_the_value_an_action_creates.md,
+    giving the published GB practice and limits for pricing a retention or renewal offer. Cover the cap,
+    SLC 22B's ban on acquisition-only tariffs being lifted, and Ofgem's 2022-24 loyalty rules, with every
+    unestablished limit labelled GAP. Then print a table across the 18 cases in docs/market_research/next_best_action_and_cross_sell.md
+    section 6.1 (margin GBP 5-30 a month, hazard 0.5-3%, 48 months, advice giving up GBP 2-3 a month,
+    hazard cut 0.1-0.3 points). For each case show the joint value, the smallest price change that brings
+    our side to at least zero, the household's remaining share of the joint value, and whether that price
+    is lawful under the page. Use company/crm/next_best_action.py's own arithmetic. Attach the table to
+    the open row c34-now-ranks-next-best-action-on as evidence.
+  why: 'Per-customer decisions and levers in merit order are the supplier priority. C34 refuses every
+    realistic advice action, because creating value costs us. The director''s open row is waiting on exactly
+    this measurement, and it changes nothing he ruled. DONE: the page is on the site, the 18-row table
+    is printed and cited from the open row, and the table states how many of the 18 cases a lawful sharing
+    price rescues, including if that is none.'
+  written_at: 1792182458.332
+- id: the-budget-decides-how-much-of-each-bill-is-paid
   lane: W2_customer_generator
   side: world
-  unblocks: E6's L2 provision grade, the crisis bad-debt control (BLOCKING), and every per-customer debt
-    and retention decision graded in 2022. The world's crisis non-payment is about a tenth of the published
-    share, so those decisions are graded in a world that forgives debt.
-  what: 'Diagnose only, and land a finding. Do not change world behaviour before the 2026-10-19 publish.
-    Using docs/market_research/gb_domestic_bill_payment_failure_and_arrears_prevalence.md and Ofgem''s
-    published debt and arrears series, print the world''s arrears prevalence and its arrears balance per
-    account by year, 2016-2024, from the committed run, beside the published series at the same definition.
-    Say first which experience each published series counts: accounts in arrears with or without a plan,
-    or the pound balance. Then trace in simulation/ which mechanism should raise non-payment when the
-    2022 price shock meets a household budget, and print what it does at real 2022 inputs. File the finding
-    under docs/staging/ naming the layer that falls short, with the fix and its predicted effect on the
-    crisis share, pre-registered, for a build after the publish.'
-  why: 'The write-off runs (r1-r3, 2026-10-15) put the level gap on the world''s non-payment and not on
-    the company''s books. A world that cannot press back with 2022''s arrears cannot tell a debt decision
-    that creates value from one that only moves it. DONE: the finding names the layer, prints both tables
-    at one stated definition, and carries a filed prediction.'
-  written_at: 1792171741.869
-- id: a-tombstone-retires-a-focus-row-only-on-a-commit-that-binds-it
-  lane: H_harness
-  side: other
-  what: In background/seat_continuation.py, where a focus-row tombstone retires a row, retire it only
-    when a commit on origin binds the row's id. Reuse the binding that delivery_lane now uses (1961c22d5)
-    rather than writing a second reader. A row tombstoned with no binding commit stays live, and the seat
-    brief shows it as "retired without a landing". Add one control that drives a bound row and an unbound
-    row through the real retirement, and asserts in a single statement that both outcomes are reachable.
-    Close the owning finding, docs/staging/done/SEAT_FINDING_A_HOLD_OR_A_TOMBSTONE_STATES_ITS_CONDITION_IN_PROSE_AND_NOTHING_RE_ASKS_IT_2026-10-07.md,
-    and set its wrong_triage.yaml entry to already_fixed with the commit.
-  why: 'A focus item has no exit test except its disappearance, and the tombstone is the thing that makes
-    it disappear. This row has been listed 16 times since 2026-10-05, and three clean retirements have
-    not shown the defect. The ledger''s binding now exists, so the fix is one call. DONE: the control
-    is on origin, and the carried wrong row closes.'
-  written_at: 1792171741.869
+  unblocks: The level leg of the BLOCKING crisis bad-debt finding, E6's L2 provision grade, and every
+    per-customer debt and retention decision graded in 2022. Today world debt clears by itself after about
+    one bill.
+  what: 'Knowledge page only before the 2026-10-19 publish (K8). Amend docs/market_research/household_budget_w2_4.md
+    with the design of the revised fix in docs/staging/WORKER_FINDING_THE_WORLDS_PAYMENT_DRAW_HAS_NO_PRICE_INPUT_SO_2022_CANNOT_RAISE_NON_PAYMENT_AND_THE_BUDGET_BUILT_FOR_IT_IS_UNWIRED_2026-10-16.md.
+    Each month, a credit-meter household''s margin plus savings goes through allocate_debt_payments, and
+    the unpaid part of the energy bill ages. State which parts are sourced and which are R10 shapes or
+    GAP: the ladder, the housing draw, and whether households with a negative margin before 2022 accumulate
+    debt too. Add the evidence on how long GB arrears persist (Ofgem''s repaid-within-22-months figure,
+    FCA Financial Lives). Also add the finding''s stress-drift reading: moderate plus high stress rises
+    from 8% to 20% while FCA''s negative-life-event share stays at 19-22%. File that as a second, separate
+    world defect with its own prediction, and do not fold it into this fix. Change no world code before
+    the publish.'
+  why: 'The diagnosis has named the layer, and the build is the first world change after the publish.
+    It cannot start without its page (K8). Writing the page now means the build starts on the 19th, and
+    the 2026-10-19 reading stays one variable. DONE: the page carries the design, every number''s origin,
+    and the persistence evidence; the stress drift is filed as its own finding; and the worker finding''s
+    Fate line names the build as ready for after the publish.'
+  written_at: 1792182458.332
 not_now:
+  - what: Building the budget-driven non-payment fix in simulation/ this stretch.
+    why: >-
+      It moves every money figure in the world. Landing it before the 10-19 publish would make
+      that publish's reading of B12 and the held-estimate fix unattributable. The page comes now,
+      the build comes after the publish.
+  - what: Building the company's true month-end unbilled accrual (the D48 title's GAP).
+    why: >-
+      Bills are calendar-month with a 5-day read cutoff, so true unbilled consumption at a period
+      end is close to zero by construction. The measurement would be honest and small. The
+      direct-debit balance is £33,770 and is a live decision, so it wins the billing slot.
+  - what: Flipping C34's own floor to "joint value exceeds what we give up".
+    why: >-
+      That would change a rule the director made (C7), so it waits for his answer on the open row.
+      The sharing-price measurement can be done without touching his rule, and it is what his
+      answer needs.
   - what: Running B11's per-customer-against-flat arms on seeds that have already been read.
     why: >-
-      The prereg forbids reused seeds, and the fresh seeds are the director's to list (open row). The
-      10-19 publish comes first. Both doors are built, so waiting loses nothing.
-  - what: Building the legacy PC1 world fix (the EPC multiplier on a handed-in drawn band, 91038fa91).
+      The prereg forbids reused seeds, and the fresh seeds are the director's to list. The
+      10-19 publish comes first in any case. B11 is parked with every door built, so waiting
+      costs nothing.
+  - what: Making the smart roll-out move the estimated share more than ten points (world).
     why: >-
-      The diagnosis and its prediction are on file. A world demand change landing before the 10-19
-      publish would make every money figure in that publish unattributable. It is the first world
-      build after the publish.
-  - what: Giving the world a household response to a priced share, so that C35 can reach L2 and the c34 advice-floor row has evidence.
-    why: >-
-      C35 is dormant, and nothing reads its price yet. The crisis non-payment gap is BLOCKING and
-      sits in 2022, the record's defining year, so it takes the one world slot. Knowledge for the
-      priced-share response is next in line once that finding lands.
-  - what: Switching on retention_nets_bad_debt in CURRENT_POLICY (the carried retention-guard fix).
-    why: >-
-      Switching it on moves the standing results and needs a measured arm. It would also net a
-      bad-debt belief formed in a world whose crisis non-payment is a tenth of the record, so
-      measuring it before focus three lands would grade it against the wrong world.
-  - what: Asking for a read before the year runs out (the chase that should come before 21B.4 is breached).
-    why: >-
-      When and how a supplier first asks is a practitioner GAP, and the world has no read-access
-      response, so a request would change nothing yet. The register comes first, because it counts
-      the breach whether or not a chase exists.
+      That is a real fidelity gap, but no supplier result is blocked on it this week. The
+      non-payment layer blocks a BLOCKING finding, so it takes the world slot.
   - what: The long-job declaration expiry, the coupled-triad refusal surface, the killed-seat trace, and a heartbeat for worker-seat-manager.
     why: >-
-      None had an instance this stretch. Each stays a fix with its owner. The tombstone wins the one
-      machine slot because it is the acceptance test for every focus item.
+      None had an instance this stretch: both long jobs finished inside their windows, and no
+      seat was killed. Each stays a triaged fix with its owner. With the tombstone closed, no
+      machine defect is costing the supplier any work now.
   - what: Reaping /var/tmp/b12-* and pruning the two missing /tmp worktrees.
     why: >-
-      badd57e8e names every b12 salvage disposable, and the two /tmp directories no longer exist.
-      Nothing is at risk, so this waits for the ordinary sweep.
+      badd57e8e names every b12 salvage as disposable, and the two /tmp directories no longer
+      exist. Nothing is at risk, so they wait for the ordinary sweep.
 wrong:
   - what: >-
-      THE MACHINE'S, CARRIED. A focus-row tombstone still retires a row without asking its DONE. 17:22:
-      One retirement, the C7 item, at 15:00Z, two minutes after its DONE landed (c3f015034). That is
-      consistent a fourth time, and still a case that cannot show the defect. Focus four.
-    corrected: false
-  - what: >-
       THE MACHINE'S, CARRIED. The coupled-triad gate now excludes twinless L3 targets, and its refusal
-      reaches only the supervisor journal. 17:22: Unchanged.
+      reaches only the supervisor journal. 20:22: Unchanged.
     corrected: false
   - what: >-
-      THE WORLD'S, CARRIED. A gas-heated fabric home's electricity has no season against SERL. 17:22:
+      THE WORLD'S, CARRIED. A gas-heated fabric home's electricity has no season against SERL. 20:22:
       Unchanged. It waits for the post-publish world builds.
     corrected: false
   - what: >-
       THE MACHINE'S, CARRIED. longjob-save-eight was declared at 50 minutes and has held its admission
-      for 4h46m. 17:22: No long job launched or ended this stretch, and the expiry is still not built.
+      for 4h46m. 20:22: Two long jobs ran this stretch (nonpay2022-capture, -capture2) and both
+      finished successfully, so there was no new instance. The expiry is still not built.
     corrected: false
   - what: >-
       THE MACHINE'S, CARRIED. A held estimate was netted at its draft amount when the next actual read
-      caught up, so seven customer-years were credited for estimates never sent. 17:22: Fixed on origin.
+      caught up, so seven customer-years were credited for estimates never sent. 20:22: Fixed on origin.
       The published book carries it until the 2026-10-19 publish.
     corrected: false
   - what: >-
       THE MACHINE'S, CARRIED. The 08:20 orientation's record never reached origin, and a seat killed by
-      the host leaves no trace of itself in delivery-seat-log.md. 17:22: No seat was killed this
+      the host leaves no trace of itself in delivery-seat-log.md. 20:22: No seat was killed this
       stretch, and the trace is not built.
     corrected: false
   - what: >-
-      THE MACHINE'S, CARRIED. K1 published a pooled billing-accuracy share with no concentration figure,
-      so one account set electricity's year-end figure for four years. 17:22: c3f015034 makes K1 name
-      its largest graded run, that run's share of the net, and the net without it, graded at publish.
+      THE SEAT'S, NEW. My 17:22 record said the company's provision charge peaks in 2023, a year
+      after the arrears, and E6's map comment said the age bands lag 2022 by a year. 52eafa5dd
+      prints both by year from the committed run: arrears build most in 2022, and the age-band
+      charge is largest in 2022. Only E6's learned roll-rate matrix lags, and that is already held
+      by a strict xfail. The crisis finding stays BLOCKING on the level alone.
     corrected: true
   - what: >-
-      THE MACHINE'S, CARRIED. The held-estimate prereg's P3 called the two OCC inversions the test's
-      netting, "not billing". They were a billing defect: 60 void-stub invoices priced the estimate at
-      0p. 17:22: e6785dce5 prices them at the account's own tariff, with a two-branch control. The OCC
-      rows leave KNOWN_OPEN_INVERSIONS once a published ledger is billed by this code.
-    corrected: true
-  - what: >-
-      THE SEAT'S, NEW. My 14:22 record put C35 in not_now as a director-ruled row whose build would
-      decide his question. Its map row quotes him: "not a ruling from me". The rejection was wrong.
-      A worker built C35 to L1, dormant (1bf415a14), and this record corrects the claim.
+      THE SEAT'S, NEW. My 17:22 focus framed the world as forgiving crisis non-payment, which
+      implied too few debtors. The diagnosis (3f7959f48) shows the debtor count is roughly in
+      Ofgem's range, and the gap is in pounds per debtor (9-14x low), because world debt clears
+      after about one bill. This record's world item is written against the measured layer.
     corrected: true
 for_the_director:
   - id: c34-now-ranks-next-best-action-on
