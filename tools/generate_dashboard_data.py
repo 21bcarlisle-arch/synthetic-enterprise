@@ -2614,7 +2614,7 @@ def _write_billing_accuracy_feed(feed, data, source):
     including the named absence when the run output predates the key."""
     from company.billing.billing_accuracy import published_view
 
-    block = published_view(data.get("billing_accuracy"), source)
+    block = published_view(data.get("billing_accuracy"), source, data.get("bills"))
     feed.parent.mkdir(parents=True, exist_ok=True)
     feed.write_text(json.dumps(block, indent=2, sort_keys=True) + "\n")
     print(f"Wrote {feed} (available={block.get('available')})")

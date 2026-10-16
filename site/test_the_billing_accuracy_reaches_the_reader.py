@@ -11,6 +11,7 @@ R15 -- the mutations, each run and reverted:
   * render the snapshot share without its interval -> `test_the_snapshot_reaches_the_reader_with_its_bound_and_verdict` reds.
   * drop the verdict text -> the same test reds.
   * drop the `billacc-yearend` render -> `test_the_year_end_grades_reach_the_reader` reds.
+  * drop the largest-run or the net-without-it column -> `test_the_year_end_net_reaches_the_reader_with_the_run_that_sets_it` reds.
   * drop the `billacc-example` render -> `test_one_named_account_reaches_the_reader` reds.
   * render the DD money line without its intervals -> `test_the_dd_money_line_reaches_the_reader_with_its_bound` reds.
   * render the DD barred money in the fuels table -> `test_the_dd_money_line_is_never_a_row_of_the_k3_table` reds.
@@ -88,7 +89,8 @@ def _feed(dd_line: dict | None = _DD_LINE) -> dict:
     }
     grade = {"as_of": "2024-12", "outstanding_gbp": 16232.7, "outstanding_bills": 128,
              "graded_runs": 24, "never_read_runs": 8, "graded_net_true_up_share": -0.0602,
-             "graded_gross_true_up_share": 0.1342}
+             "graded_gross_true_up_share": 0.1342, "graded_largest_run_account": "C7",
+             "graded_largest_run_share_of_net": 1.29, "graded_net_true_up_share_without_largest_run": -0.0246}
     account = {"account_id": "SYN-2016-052", "fuel": "electricity", "bills": 108,
                "estimated_bills": 87, "longest_run_without_read_bill": 22, "true_ups": 16,
                "true_up_kwh": 820.0, "undercharge_kwh": 6784.0, "overcharge_kwh": 5964.0,
@@ -119,6 +121,13 @@ def test_the_estimated_share_and_barred_energy_reach_the_reader(shown):
 
 def test_the_year_end_grades_reach_the_reader(shown):
     assert "2024-12 £16,233 24 8 -6.0% 13.4%" in shown["billacc-yearend"]
+
+
+def test_the_year_end_net_reaches_the_reader_with_the_run_that_sets_it(shown):
+    """One unread EV home set electricity's year-end net for four years and was read as a
+    population bias (2026-10-16). Fires on: either column dropped, or the account unnamed."""
+    assert "-6.0% 13.4% 129.0% (C7) -2.5%" in shown["billacc-yearend"]
+    assert "the net without that run is the population's" in shown["billacc-note"]
 
 
 def test_one_named_account_reaches_the_reader(shown):

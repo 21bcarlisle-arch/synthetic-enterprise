@@ -267,6 +267,7 @@ reasonable apportionment, not a day count. The natural one is the supplier's own
 | Before May 2018 | `cap_applies` returns False before 2018-05-01 | **Too harsh to customers.** The voluntary principle applied to 81–83% of the market and was applied by the Ombudsman. New toggle `q2_pre_2018_voluntary_cap_coverage` (§7) |
 | Which units are barred | `barred_fraction` apportions the run **by days** | **Approximate.** 21BA asks for units "reasonably considered" consumed in the window. The company already holds a published monthly profile (`company/billing/unread_month_estimate.py`). A winter-heavy gas run split by days misplaces the boundary units |
 | The comparator | `monthly_bill_assembly._resolve_catchup` writes off `(true − estimated bills) × barred_fraction`, for **every** payment method | **Wrong for direct debit.** Under the Ombudsman's Scenario B, payments taken are charge recovery. A DD account whose collections covered its use has nothing barred, yet the code writes off. Under Scenario A, a DD account billed on **actual** reads, with a shortfall not sought within 12 months, has the old shortfall barred, yet the code writes off nothing, because there was no estimate to correct |
+| *Corrected 2026-10-16* | the two rows above and below | **Fixed the same day this table was written, and traced on the published run.** `_resolve_catchup` now follows the payment method: pay-on-bill bars the old part of true against billed and writes it off at the catch-up; direct debit puts the catch-up on a statement and writes nothing off there, and `simulation/dd_balance_book` bars the old unrecovered charge at the final bill (and at the review when it seeks the balance). On run `2248e3baf` that reproduces £33,769.60 barred over 153 accounts. §13 has the census |
 | DD review | `company/billing/dd_review.review` sets the DD from forward annual spend, ±5% band | **Does not seek the balance.** It never makes a charge recovery action for the accumulated shortfall, so under 21BA that shortfall ages out after 12 months. Whether any other path (final bill, `dd_collections_desk`) seeks it was **not traced**. No module applies 21BA to a DD balance (grep: no `21BA` or back-billing reference in `dd_review*`, `dd_balance_book`, `dd_collections_desk`) |
 | Compliance gate | `company/compliance/domain_invariants.check_back_billing_cap_respected` | Re-derives the same days-based, estimate-based test. **It inherits the comparator defect.** It is green on a DD account where 21BA bars nothing, and silent on Scenario A |
 | The read process | `simulation/meter_reads.py` (two classes, easy rate solved to `q2_no_read_12m_share`, no forced read) | **Right shape**, and it now lets the cap bind. The hard class stands for *no access*. **Billing failure (B3), the main source of the published complaint cases, is not a read process** and is absent. Our own company never fails to bill |
@@ -297,13 +298,13 @@ reasonable apportionment, not a day count. The natural one is the supplier's own
    only; §7).
 9. BSC/UNC text on reconciliation cut-offs (RF/DF; the gas line in the sand). Used here as [M].
 
-**Commons gap:** `docs/domain_artefact_library/regulatory/` still has no SLC 21BA artefact. The
-draft text in Appendix 2 of the 2017 consultation, with the dates from the decision and the
-Ombudsman, would make one.
+**Commons gap:** ~~`docs/domain_artefact_library/regulatory/` still has no SLC 21BA artefact.~~
+**Closed 2026-10-16:** `docs/domain_artefact_library/regulatory/slc_21b_21ba_reads_and_back_billing.md`
+holds 21B and 21BA, copied from the [H] quotations on this page and its sister page.
 
 **Code gaps, in the order other work rests on them:**
-1. The barred amount uses the wrong comparator for DD customers, and DD balances carry no 21BA at
-   all (§5). The compliance invariant has the same defect.
+1. ~~The barred amount uses the wrong comparator for DD customers, and DD balances carry no 21BA at
+   all (§5).~~ **Closed 2026-10-06; traced on the published run 2026-10-16 (§13).**
 2. The DD review never seeks a balance, so it cannot make the charge recovery action the rule
    expects.
 3. Units are apportioned by days, not by the company's own profile.
@@ -663,6 +664,38 @@ estimate, when the estimate is made. A held estimate joins the pending run with 
 billed kWh = 0**, so the catch-up reconciles against what was sent. Validation is unchanged and still
 holds the same bills. The choice is kept in one function, `pre_bill_validation.validate_bill`, so
 the hold cannot be decided in two places.
+
+---
+
+## 13. Long unread runs on the published run: is anything billed past the bar?
+
+*Added 2026-10-16 for the direction item on C7, the electricity account unread for 50 months. The
+licence text is now in the commons (`regulatory/slc_21b_21ba_reads_and_back_billing.md`). Census over
+run `2248e3baf`'s committed bills, with the direct-debit balance book rebuilt from those bills. The
+rebuild reproduces the published bar exactly: £33,769.60 over 153 accounts. The full table is in
+`docs/staging/WORKER_FINDING_C7_AND_286_OTHER_RUNS_OVER_TWELVE_MONTHS_NONE_BILLED_PAST_THE_BAR_AND_NOTHING_ASKS_FOR_A_READ_2026-10-16.md`.*
+
+**What the census found.**
+
+- There are 287 runs of more than 12 consecutive estimated bills, on 245 accounts: 262 last 13-23
+  months, 21 last 24-35, and 4 last 36 or more. So C7 is the far end of a class, not a one-off.
+- **No catch-up is billed past the bar.**
+  - All 21 pay-on-bill undercharge catch-ups read after 1 May 2018 had the old part written off.
+    The 27 runs read before the rule began were not barred, as designed.
+  - The 91 direct-debit undercharge catch-ups went onto statements, which are not demands.
+  - Of those 91, the 40 accounts that closed were barred at their final bill. The other 51 are open
+    at the run's end, so they have met no demand. Their figure is exposure, not loss.
+- **C7** pays by direct debit. Its £5,984.42 catch-up for 50 months was put on a statement on
+  2020-03-31. At its final bill the balance book barred £4,581.30 (77%) as the supplier's cost.
+- **Nothing asks for a read.** No company code reads `consecutive_estimated_count` or acts on a run
+  of estimates. Whether a read arrives is entirely the world's draw (`simulation/meter_reads.py`). For
+  long unread runs, then, the company meets 21BA and has no mechanism for 21B.4. That is consistent
+  with `read_access_and_theft_duties.md`, "What this says about the order of work", item 3: the world has no read-access response yet, so a
+  supplier action would have nothing to act on.
+
+**GAP (practitioner).** When in a run of estimates a supplier first asks for a read, and what it
+does next: a letter, a call, a visit or a smart offer. No published source gives the timing.
+21B.4 only says once a year.
 
 ---
 
