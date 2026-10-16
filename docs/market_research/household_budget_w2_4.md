@@ -83,3 +83,117 @@ ordering claim is not well supported as stated**:
   are simultaneously in arrears and money is genuinely insufficient for all) was found — a real gap
   for a more targeted search or an explicit director-set curriculum assumption (R13) if no further
   real anchor is found.
+
+---
+
+## 2026-10-16: design for the next build, where the budget decides how much of each bill is paid (K8, knowledge before build)
+
+*Written before any code changes. No world code changes before the 2026-10-19 publish, so that
+reading is a reading of one variable. The diagnosis behind this design is
+`docs/staging/WORKER_FINDING_THE_WORLDS_PAYMENT_DRAW_HAS_NO_PRICE_INPUT_SO_2022_CANNOT_RAISE_NON_PAYMENT_AND_THE_BUDGET_BUILT_FOR_IT_IS_UNWIRED_2026-10-16.md`.
+It contains the measurements and the pre-registered predictions R1 to R4. This section is the page
+the build will cite. A fidelity change, decided blind to company results.*
+
+### What the build fixes
+
+Today, whether a bill is paid is decided by an independent draw per bill
+(`simulation/arrears_engine.payment_outcome`), keyed on income-stress tier alone. A world debtor
+misses one bill and starts paying again. 78% of world debtors are behind by exactly one bill, and
+P(next month unpaid | this month unpaid) = 0.022. World pounds per account behind are 9 to 14
+times below Ofgem's in every year 2016-2024. In the record, arrears are a household that stops
+paying for many months. Nothing on any payment path reads this module.
+
+### The mechanism
+
+For each credit-meter household (not PPM; see "Out of scope" below), in each billed month:
+
+1. **The money available for debts** = `discretionary_margin_monthly` (income minus the essential
+   floor) **plus savings drawn down**. When the margin is negative, the shortfall comes out of
+   `savings_buffer` until the buffer is empty. Savings are not refilled while the margin is
+   negative. If the margin is positive, the surplus is what the household has to service its debts.
+2. **The month's bills go through `allocate_debt_payments`** in `DEFAULT_DEBT_PRIORITY_ORDER`, with
+   energy inside the priority tier. The energy amount due is the month's bill plus any energy
+   arrears carried forward.
+3. **The unpaid part of the energy bill stays unpaid and ages.** It ages from its due date, so it
+   counts in Ofgem's "more than 91 days" stock once it is three bills old. A household whose margin
+   stays negative and whose savings are gone misses month after month. Its arrears grow by about
+   one bill a month. This is the "stops paying" shape the record has and the world lacks.
+4. **The existing per-bill draw stays as the transient layer.** Its LOW-tier level was sourced as a
+   first-presentation return rate (`gb_domestic_bill_payment_failure_and_arrears_prevalence.md`
+   §(e)). It goes on meaning a payment that fails and is then caught up. It is not a measure of
+   whether the household can afford the bill.
+5. **Cure.** Once the margin turns positive again (a lower bill, or recovery from a life event), the
+   surplus pays the arrears down in priority order. The existing later-settlement dating
+   (`payment_behaviour_source.later_settlement_date`) is not applied to budget-driven arrears.
+   Their cure is whatever the budget allows, and that is the point of the change.
+
+### Where each part comes from
+
+| Part | Origin | Status |
+|---|---|---|
+| Median disposable income, £3,225/month | ONS-reported median (this page, "Income band") | **sourced** (one anchor) |
+| The shape of the income ladder by decile (`MONTHLY_DISPOSABLE_INCOME_BY_DECILE`) | fitted to the median and to "bottom 20% essentials exceed income by £71/month" | **R10 shape.** Two anchors fix the centre and the sign of the bottom. The other eight deciles are not cited. |
+| Core essentials: single £520/month, couple £888/month | JRF/Trussell Essentials Guarantee 2026/27 (£120 and £205 per week) | **sourced**, at 2026/27 prices. It is **not deflated to 2016-2025**, which is a GAP the build must close or carry (see below). |
+| Children add-on, £180/month | none | **R10 shape** |
+| Housing cost, uniform £400-1,100/month | none. Tenure and region are not modelled. | **R10 shape.** This draw sets most of the variance in the margin. |
+| Savings buckets, <£15k and >£50k tiers | FCA Financial Lives (22% none, over a third under £1k, under £15k a year; more than half over £10k, over £50k a year) | **sourced** at the two ends |
+| Savings buckets, middle tier | interpolated to the population figures (10% none, 21% under £1k) | **R10 shape** |
+| Priority versus non-priority split, with energy inside priority | StepChange / MoneyHelper / Citizens Advice | **sourced** |
+| Order within the priority tier (rent before council tax before ... before energy) | none found | **R10 default.** Open item (above). It decides whether energy or rent goes unpaid first. |
+| The rule that savings are drawn before a bill is missed | none. It is the reading of "savings buffer" this page already uses. | **design choice** |
+| Applied to credit meters only | PPM cannot build arrears on consumption (self-disconnection; `debt_and_collections.md`) | **sourced reason**, design scope |
+
+**GAP, price level.** The essentials floor is in 2026/27 pounds and the income ladder is anchored to
+2026, while the energy bill is in each year's own pounds. The build must index the floor and the
+income ladder to the year being run, with an ONS series (CPIH for the floor, and earnings or the
+HBAI median for income). Until that is wired, it must carry the gap as a named, explicit refusal
+rather than mixing 2026 pounds with 2016 bills. **Which deflator: GAP, to be researched before
+the build. Not to be picked.**
+
+### Do households with a negative margin before 2022 build up debt too? Yes, and this is the cost
+
+Drawn over 20,000 ids, **7.3%** of households have a negative margin on the October 2021 bill, and
+**2.5%** have a negative margin and under £1k in savings (the finding, Probe 2). Under this design,
+households that are under water before any shock also run arrears in 2016-2021. Once their
+savings are gone they build up debt, which is what the design is supposed to do. So the
+**pre-crisis level moves**, and it has to be graded on Ofgem's heads and pounds together (W2_38).
+Nothing excludes this population from the change. Excluding it was the narrow tier-bump fix, which
+the finding has already withdrawn.
+
+**The open risk, stated first.** A household with a negative margin, no savings and no exit draws
+arrears every month for ten years. In the record, a household in that position is helped through
+the Warm Home Discount, the DRS, plans and benefit uprating, or leaves supply. It does not keep
+building debt forever. The world has no repayment plans (the toggles are off). Prediction R3's
+refutation clause ("if R3 exceeds +3 points, the level comes first") is the guard. If it fires,
+the next layer is the essentials and housing shapes, not this mechanism.
+
+### How long GB arrears last: the evidence the build is graded against
+
+- **Ofgem / DRS impact assessment (Nov 2025, §3.10):** *"The estimated average time for recovering
+  outstanding Eligible Debt is more than 22 months"*, from SOR data (`debt_and_collections.md`
+  §2.1).
+- **Ofgem, Monitoring social obligations 2018:** average weeks to recover a non-PPM debt on an
+  arrangement range from 53 (British Gas) to 185 (SSE). **Weighted by entries, that is 95 weeks,
+  about 22 months** (derived; `gb_domestic_bill_payment_failure_and_arrears_prevalence.md` §(e)3).
+- **Little's law on Ofgem's 2018 stock and flow:** a pool of 1,309,768 accounts over 658,363 entries
+  gives **about 2 years** in arrears or debt, and at least 12.4% of a year's inflow is still there a
+  year later (derived, same file §(f)).
+- **Energy UK Fig. 5:** "recovery rates" on debt more than 12 months old of 31%, 15% and 9%
+  (2022-23 to 2024-25). Aged arrears rose from 52% to 65% of all arrears, 2023 to 2025. Old debt
+  persists, and it was persisting more after the crisis.
+- **FCA Financial Lives:** the share of adults behind on electricity was 2.2% (2020), 3.0% (2022)
+  and 3.4% (2024). This is a count of people, not accounts, and it **rose after the crisis
+  support ended**. This is the persistence shape at the population level.
+- **The world today:** 83% of unpaid spells settle, at a median of **119 days**. That is about a
+  sixth of the record's ~22 months. Pre-registered R1 (£200-400 per account behind at Q4 2023) is
+  the test of whether a budget that stays negative closes part of this gap. What R1 leaves
+  unclosed belongs to the cure layer.
+
+### Out of scope for this build (each its own defect)
+
+- **The stress tier drifts.** This is filed separately, with its own prediction:
+  `docs/staging/WORKER_FINDING_THE_WORLDS_MODERATE_STRESS_HAS_NO_EXIT_SO_STRESS_DRIFTS_FROM_8_TO_20_PERCENT_2026-10-16.md`.
+  It is not folded in here. Fixing both in one build would make the 2016-2024 movement impossible
+  to attribute to either.
+- PPM households (no arrears on consumption; self-disconnection is a separate mechanism).
+- Repayment plans (the toggles are off; W2_38).

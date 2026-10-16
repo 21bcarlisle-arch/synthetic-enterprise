@@ -231,3 +231,14 @@ build):**
 *Refutation.* If R1 lands below £150, the budget's negative-margin population is too small or
 saves its way out, and the residual gap belongs to the cure. If R3 exceeds +3 points, the
 negative-margin share is too large for the record's heads, and the level comes first.
+
+**The stress drift is filed on its own.** It is
+`WORKER_FINDING_THE_WORLDS_MODERATE_STRESS_HAS_NO_EXIT_SO_STRESS_DRIFTS_FROM_8_TO_20_PERCENT_2026-10-16.md`,
+with its own predictions S1-S3. MODERATE has no route back to LOW. It is not part of this fix.
+
+**Fate:** the design is on its knowledge page (K8),
+`docs/market_research/household_budget_w2_4.md` §2026-10-16. That section gives the mechanism, the
+origin of every part (sourced, R10 shape or GAP), the pre-2022 negative-margin cost, and the
+evidence on how long arrears last. **The build is ready to start after the 2026-10-19 publish**,
+as the first world change after it. It has one named GAP to research first: the deflator for the
+2026/27 essentials floor and income ladder. R1-R4 above are its pre-registration.
