@@ -2108,7 +2108,7 @@
   # upsell and carbon advice, judged by CLV, rather than as a fixed ranking of measures." For a
   # customer in arrears the right action is a decision like a retention offer or an insulation
   # suggestion. Graded on EFFECT against tools/decision_probe.py's true counterfactual.
-  # L1 2026-10-06 (7211bc03a), dormant: no uplift estimate. NEXT: B8 holdout + W2_39 response.
+  # L1 2026-10-06 (7211bc03a), dormant. 2026-10-16: hazard_estimate_from_holdout reads uplift from a coin-drawn holdout. NEXT: a run holds out the W2_39 contact.
   dial_inherited: 75
   provenance: director_ruling
   depends_on: [B11_forward_clv_backtested_on_held_back_history]
