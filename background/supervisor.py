@@ -605,6 +605,15 @@ def _differentiated_staging(staged: list[str]) -> str:
     except Exception:  # noqa: BLE001
         return f"unprocessed staging -- {', '.join(staged)}"
     blob = f"unprocessed staging -- {', '.join(rest)}" if rest else "unprocessed staging -- (none)"
+    # The post-publish reader run is a SEPARATE observation from the census (a partial run folded
+    # into the census store would read every red it never reached as fixed), so it rides beside the
+    # register's clause rather than inside it.
+    try:
+        from background import post_publish_readers
+        readers = post_publish_readers.doorbell_clause()
+    except Exception:  # noqa: BLE001
+        readers = None
+    clause = "; ".join(c for c in (clause, readers) if c)
     if not clause:
         return blob
     # OUTSIDE the comma-join, not merely first inside it. The clause contains commas of its own,

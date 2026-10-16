@@ -8369,6 +8369,28 @@ def _stamp_remainder_attempt(git_hash, reason: str) -> None:
         pass
 
 
+def run_post_publish_readers_step(git_hash, *, runner=None):
+    """Run `background.post_publish_readers` inside what the publish path has left. Never raises.
+
+    Its own store, never the census's (see that module). Bounded by the smaller of its own ceiling
+    and the path's remaining budget, so it can be skipped but never kill the publish it follows."""
+    try:
+        from background import post_publish_readers
+        budget = min(post_publish_readers.TIMEOUT_SECONDS, remainder_budget_seconds())
+        if budget <= 0:
+            log("Post-publish readers NOT run: no budget left in the publish path.")
+            return None
+        state = post_publish_readers.run(git_hash, _parse_failed_node_ids, runner=runner,
+                                         timeout=budget)
+        log("Post-publish readers: {} over {} file(s), {} red, {}s{}".format(
+            state.get("outcome"), state.get("files"), len(state.get("reds") or []),
+            state.get("seconds"), "" if not state.get("reason") else " -- " + state["reason"]))
+        return state
+    except Exception as exc:  # noqa: BLE001 -- an observer that can red its subject is a defect
+        log("Post-publish readers skipped (non-fatal): {}".format(exc))
+        return None
+
+
 def run_remainder_annotation_step(git_hash, *, force=False, runner=None):
     """Run the NON-BLOCKING remainder and record its reds into the published banner.
 
@@ -11061,6 +11083,12 @@ def _process(marker_path_str):
         log("Fingerprint NOT recorded (publish outcome: {}) -- this cycle is unfinished, so the "
             "next identical run must re-attempt it rather than be skipped as already "
             "processed.".format(reason or "unknown"))
+
+    # The tests that READ the book just published, run on the bytes that now exist. The gate
+    # above graded HEAD before they did, and the remainder below never starts; without this the
+    # 2248e3baf publish turned three real-book controls red and nothing saw it for three days.
+    if reason == PUBLISHED:
+        run_post_publish_readers_step(git_hash)
 
     # The complement of the scoped gate: run it AFTER the publish (it may not add latency to
     # what it may not block) and put its reds on the page as an annotation. See the function's
