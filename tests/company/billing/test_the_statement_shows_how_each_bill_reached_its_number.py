@@ -24,6 +24,7 @@ import json
 import pytest
 
 from company.billing import statement_export as sx
+from tools.independent_bill_validator import statutory_vat_rate
 
 
 def _inv(**over):
@@ -177,6 +178,23 @@ def test_a_failed_payment_is_shown_and_moves_nothing():
     assert failed["amount_gbp"] == 40.0, "the customer saw it; a statement must show it"
     assert failed["moves_balance_gbp"] == 0.0
     assert "FAILED" in failed["detail"]
+
+
+def test_a_failed_payment_moves_the_balance_by_what_was_part_paid():
+    """The ledger counts a failed payment's `part_paid_gbp` as paid. Walking it as zero put the
+    close below the ledger on all 12 such accounts of run 2248e3baf, each by exactly that sum.
+
+    MUTATION: move a failed payment by 0.0 again and the close is -40.0, not -27.5.
+    """
+    events = sx.account_events(_record(
+        [_inv(issue_date="2016-01-31", total_amount_gbp=100.0)],
+        [{"payment_date": "2016-02-14", "amount_gbp": 60.0, "outcome": "success",
+          "method": "direct_debit", "invoice_number": 28},
+         {"payment_date": "2016-02-15", "amount_gbp": 40.0, "outcome": "failed",
+          "part_paid_gbp": 12.5, "method": "direct_debit", "invoice_number": 28}]))
+    assert events[-1]["moves_balance_gbp"] == 12.5
+    assert events[-1]["balance_after_gbp"] == -27.5
+    assert "FAILED" in events[-1]["detail"] and "12.50" in events[-1]["detail"]
 
 
 def test_a_bill_lands_before_a_payment_made_the_same_day():
@@ -346,10 +364,15 @@ def test_the_vat_charged_on_every_catchup_bill_matches_the_NET_base_across_the_r
     ledger = _real_ledger()
     excludes = includes = neither = 0
     for cid, rec in (ledger.get("customers") or {}).items():
-        expected = 0.20 if rec.get("segment") == "SME" else 0.05
         for inv in rec.get("invoices") or []:
             if not inv.get("catchup_applied"):
                 continue
+            # The RATE is the law's, per bill: an SME at or under its fuel's de minimis is
+            # reduced-rated. "SME means 20%" put C5's 31 kWh/day June 2016 catch-up on neither base.
+            expected = statutory_vat_rate(
+                segment=rec.get("segment"), commodity=inv.get("commodity"),
+                kwh=inv.get("consumption_kwh") or 0.0, days=inv.get("days_in_period") or 0)["rate"]
+            assert expected is not None, (cid, inv.get("invoice_number"), inv.get("commodity"))
             net = sum((inv.get(k) or 0.0) for k in
                       ("commodity_amount_gbp", "non_commodity_amount_gbp", "standing_charge_gbp"))
             adj = inv.get("catchup_adjustment_gbp") or 0.0

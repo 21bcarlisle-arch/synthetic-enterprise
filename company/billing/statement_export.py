@@ -230,6 +230,10 @@ def account_events(record: dict) -> list[dict]:
     (£1,922.48) equals the total billed to the penny while the account actually owes £70.85. A
     reconstruction that counted attempts instead of receipts would land exactly on zero and look
     perfect.
+
+    EXCEPT WHAT WAS PART PAID. A failed payment can carry `part_paid_gbp`: money the household did
+    pay, which the ledger counts in `total_paid_gbp`. Walking it as zero put the close below the
+    ledger on exactly the 12 accounts of run 2248e3baf that carry one, by exactly that sum.
     """
     events: list[dict] = []
     for inv in record.get("invoices") or []:
@@ -244,14 +248,17 @@ def account_events(record: dict) -> list[dict]:
     for pay in record.get("payments") or []:
         ok = pay.get("outcome") == "success"
         amount = pay.get("amount_gbp") or 0.0
+        part = 0.0 if ok else (pay.get("part_paid_gbp") or 0.0)
         events.append({
             "date": pay.get("payment_date"), "kind": "payment",
             "reference": pay.get("invoice_number"),
             "amount_gbp": amount,
-            "moves_balance_gbp": amount if ok else 0.0,
+            "moves_balance_gbp": amount if ok else part,
             "outcome": pay.get("outcome"),
             "detail": "payment by {} {}".format(
-                pay.get("method"), "received" if ok else "FAILED -- balance unchanged"),
+                pay.get("method"), "received" if ok else
+                "FAILED -- part paid {:.2f}".format(part) if part else
+                "FAILED -- balance unchanged"),
         })
     events.sort(key=lambda e: (e["date"] or "", _EVENT_ORDER.get(e["kind"], 9),
                                e["reference"] if isinstance(e["reference"], int) else 0))

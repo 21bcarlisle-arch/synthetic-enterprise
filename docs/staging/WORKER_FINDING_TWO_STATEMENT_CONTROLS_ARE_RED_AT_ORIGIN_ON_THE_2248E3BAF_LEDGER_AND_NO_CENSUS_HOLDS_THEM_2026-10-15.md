@@ -1,5 +1,12 @@
 **Severity:** LATENT · **Lane:** D_billing_metering · **Epoch:** unassigned · **Atom:** `D46_the_validator_holds_against_the_varied_population` · **Claim:** none (found while landing `a-held-estimate-is-known-at-assembly-knowledge-and-prereg-first`)
 
+**Causes (2026-10-16, delivery seat):** two, neither the held estimate. (1) The walk moved a failed
+payment by 0.00; the ledger counts its `part_paid_gbp`. All 12 disagreeing accounts, each gap
+exactly the part paid. (2) The VAT control read SME as always 20%; C5's two bills are under the
+33 kWh/day de minimis and 5% is the law. Both fixed, ids and table in
+`records/SEAT_PREREG_THE_TWO_RED_STATEMENT_CONTROLS_ONE_CAUSE_OR_TWO_2026-10-16.md`. The census does
+hold all three tests; it has not completed since the publish.
+
 # Two statement controls are red at origin on the 2248e3baf ledger, and no census holds them
 
 **Fate (2026-10-15):** ATOM -- folds into `D46_the_validator_holds_against_the_varied_population` (re-pointed 2026-10-15; an ATOM fate names its atom).
