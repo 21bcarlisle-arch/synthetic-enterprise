@@ -125,3 +125,31 @@ never `build_monthly_bills`. Prediction for when the repair lands, written befor
 because the void's true kWh is 0, so run totals move by pennies outside held runs. Both OCC
 inversions clear with no change to the test's netting. Until then the two rows stay in
 `KNOWN_OPEN_INVERSIONS`, under a reason that now names the void.
+
+## The void stub's estimate is priced at its own tariff (worker, 2026-10-16)
+
+Knowledge first: `docs/market_research/back_billing_and_liability.md` §14. `build_monthly_bills`
+now prices an estimate over a 0 kWh period at the settled rows' `unit_rate_gbp_per_mwh`. The
+estimate is spread evenly over the rows, and the standing charge is unchanged. Control:
+`tests/company/billing/test_a_void_stubs_estimate_is_priced_at_its_own_tariff.py`. It is
+mutation-proven: switching the branch off reds both tests. Both branches are asserted reachable,
+because a row with no rate keeps the true bill.
+
+**Correction beside the earlier claim.** The section above proposed the cap from 2019, and the
+company's own default tariff before that. The rows already carry a better rate: the tariff the
+account is actually on. For an OCC account that is its deemed rate, which is the capped rate from
+2019. So the rows' rate is used. **GAP, carried in the code:** on a pass-through term the row rate
+leaves out the policy and network costs that term adds, so that estimate is priced low. The
+catch-up corrects the total.
+
+**Prediction, written before any run grades it.** On the next committed ledger billed by this code:
+1. The OCC opening-stub invoices that price a positive kWh at 0p go from 60 to 0. Any left will be
+   pass-through or rate-less rows, and each will be named.
+2. Each of those invoices rises by estimate × rate × (1 + VAT). On a run of estimates the next
+   actual read credits the same amount back, because the void's true kWh is 0.
+3. Book billed totals outside held runs move by under £5 in total. The only movement is the timing
+   of that credit across a year boundary.
+4. Both OCC rows stop inverting. The test's netting is not changed.
+
+The two `KNOWN_OPEN_INVERSIONS` rows stay until that ledger is committed, as the held-estimate rows
+do. With them gone, this finding's billing causes are closed.

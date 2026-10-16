@@ -185,6 +185,37 @@ def _estimated_settlement_records(
     return scaled
 
 
+def _estimate_records_at_tariff_rate(
+    settlement_records: list[dict], est_kwh: float, commodity: str
+) -> list[dict] | None:
+    """Price an estimate over a period whose settled rows hold no energy, at the rows' own tariff.
+
+    `_estimated_settlement_records` scales the true rows, so it has nothing to scale when true kWh
+    is 0 -- every B7 void stub. The rate here is `unit_rate_gbp_per_mwh`, the tariff the company
+    sold or deemed, which `as_void_row` leaves in place. The estimate is spread evenly over the
+    rows and the standing charge is untouched. `None` when any row carries no rate: the caller
+    keeps its fallback rather than price at a number nobody set.
+
+    On a pass-through term the row rate omits the policy and network costs that term adds to
+    revenue, so the estimate is priced low. The company holds no tariff type at billing to tell.
+    The catch-up corrects the total either way, since the void's true kWh is 0.
+    docs/market_research/back_billing_and_liability.md §14.
+    """
+    if any(record.get("unit_rate_gbp_per_mwh") is None for record in settlement_records):
+        return None
+    sc_field = "gas_standing_charge_gbp" if commodity == "gas" else "standing_charge_gbp"
+    share_kwh = est_kwh / len(settlement_records)
+    priced = []
+    for record in settlement_records:
+        new_record = dict(record)
+        new_record["consumption_kwh"] = share_kwh
+        new_record["revenue_gbp"] = (
+            record["unit_rate_gbp_per_mwh"] * share_kwh / 1000.0 + record.get(sc_field, 0.0)
+        )
+        priced.append(new_record)
+    return priced
+
+
 # How many of the account's latest actual-read periods an estimate is derived from. The same three
 # the feed's flat estimate used, so the seasonal shape is the one thing the estimate changed.
 ESTIMATE_WINDOW_READS = 3
@@ -719,21 +750,26 @@ def build_monthly_bills(
                         previous_bill_total_gbp, segment, commodity, payment_channel,
                     )
                 else:
-                    # Degenerate zero-metered month: no real per-MWh rate to
-                    # price an estimate against -- fall back to the true bill
-                    # amount; the billing_basis annotation still records
-                    # the estimate. NOT RARE (2026-10-16): every B7 void stub lands here, because
-                    # `as_void_row` zeroes the true kWh while the company, which cannot see the
-                    # void, estimates the period from the registry EAC. On the 2248e3baf ledger
-                    # that is 60 OCC invoices printing an estimate (11,447 kWh) at 0p, and the
-                    # choice of branch is made on world truth. The repair needs a rate the
-                    # company can name (the cap from 2019, its own default before that) and is
-                    # D46's: WORKER_FINDING_NINE_CUSTOMER_YEARS_BILL_LESS_THAN_THEIR_GROSS_MARGIN_
-                    # AT_ORIGIN_2026-10-14.md. Also reached when the company could make no
-                    # estimate at all (no published shape for the fuel; no EAC/AQ
-                    # and no TDCV): none of the 2016-2025 book's accounts is in
-                    # that case (D48 slice 4), and it bills what was used.
-                    estimated_bill = true_bill
+                    # Nothing metered to scale: every B7 void stub, where `as_void_row` zeroes the
+                    # true kWh while the company, which cannot see the void, estimates the period
+                    # from the registry EAC. The estimate is priced at the rows' own tariff rate.
+                    # This used to bill the true total, so 60 OCC invoices on the 2248e3baf ledger
+                    # printed an estimate at 0p and the price turned on world truth (D46,
+                    # WORKER_FINDING_NINE_CUSTOMER_YEARS_BILL_LESS_THAN_THEIR_GROSS_MARGIN_AT_
+                    # ORIGIN_2026-10-14.md). The true bill is still billed where no estimate could
+                    # be made (no published shape, no EAC/AQ, no TDCV: no 2016-2025 account, D48
+                    # slice 4) or a row carries no rate.
+                    priced = (
+                        _estimate_records_at_tariff_rate(months[month], est_kwh, commodity)
+                        if est_kwh is not None and true_kwh == 0 else None
+                    )
+                    estimated_bill = (
+                        generate_bill(
+                            customer_id, priced, contract_type,
+                            previous_bill_total_gbp, segment, commodity, payment_channel,
+                        )
+                        if priced is not None else true_bill
+                    )
                 bill = _annotate_billing_basis(estimated_bill, event, true_bill)
                 bill["estimated_consumption_kwh"] = est_kwh
                 consecutive_estimated = event.consecutive_estimated_count

@@ -699,6 +699,46 @@ does next: a letter, a call, a visit or a smart offer. No published source gives
 
 ---
 
+## 14. An estimate is priced at the customer's own tariff, including over a void the supplier cannot see
+
+*Added 2026-10-16 (K8) before the change to `company/billing/monthly_bill_assembly.py`, for the two
+OCC rows left on the BLOCKING finding
+`WORKER_FINDING_NINE_CUSTOMER_YEARS_BILL_LESS_THAN_THEIR_GROSS_MARGIN_AT_ORIGIN_2026-10-14.md`.*
+
+**What the rules require.** An estimated bill is a bill under SLC 21B, and it charges the customer's
+tariff. The tariff is what the contract or the deemed contract sets (SLC 7 governs deemed
+terms). From 2019 a default tariff's unit rate may not exceed the cap (SLC 28AD). Nothing in the
+licence prices an estimate differently from an actual. Only the quantity is estimated. SLC 0 asks
+that the bill be accurate and not misleading. A bill that shows an estimated quantity and charges
+0p for it fails that test, because the charge and the quantity disagree.
+
+**What the build did.** The estimate's price came from scaling the period's TRUE settled rows by
+estimate ÷ true kWh. When true kWh was 0, the code fell back to the true bill. That happens in every
+B7 void stub (`as_void_row` zeroes the energy). So the company printed its own registry-EAC estimate
+and charged 0p for it. On the 2248e3baf ledger that is 60 OCC invoices and 11,447 kWh. Whether a
+customer was charged for the estimate depended on whether the home was empty, which is a fact only
+the world holds.
+
+**The design choice.** The rate is the one on the settled rows, `unit_rate_gbp_per_mwh`. That is the
+tariff the company sold or deemed, so it is a rate the company names itself. `as_void_row` zeroes
+volumes and their costs but not the rate. The estimate is spread evenly across the period's rows and
+priced at each row's rate. The standing charge is unchanged. This is closer to the contract than the
+cap or a default tariff: an OCC account is on its deemed rate, which is already the capped rate from
+2019. Before 2019 it is the company's own deemed price, with no cap to read.
+
+**GAP, carried in the code.** On a **pass-through** term the row's rate is not the all-in rate.
+Electricity pass-through adds actual policy and network costs to revenue, so the row rate leaves
+them out. Gas pass-through bills spot plus a fee, not the row rate. A void row zeroes those costs, and
+the company keeps no tariff-type field it can read at billing. So an estimate on a pass-through void
+is priced below the all-in rate. The catch-up corrects the total either way, because a void's true
+kWh is 0. A row with no rate at all (`None`) keeps the old fallback, and the code says why.
+
+**What it moves.** A void stub's estimate is now charged and then credited back in full at the next
+actual read. Run totals outside held runs therefore move only by the timing of that credit. The
+stub's own year goes up, so both OCC inversions should clear without touching the test's netting.
+
+---
+
 ## Sources
 
 - Ofgem, *Open letter – notifying of our intention to launch a project to protect consumers from
