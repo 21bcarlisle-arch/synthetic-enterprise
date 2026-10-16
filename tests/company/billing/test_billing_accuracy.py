@@ -287,6 +287,54 @@ def test_the_year_end_grades_are_in_the_summary():
         _k1_bills(), "2022-12")
 
 
+def _one_run(cid: str, billed: float, true_up: float) -> list[dict]:
+    """One estimated December bill and the January read that grades its run."""
+    return [
+        {"customer_id": cid, "period_end": "2022-12-31", "billing_basis": "estimated",
+         "total_amount_gbp": 100.0, "total_consumption_kwh": billed},
+        {"customer_id": cid, "period_end": "2023-01-31", "billing_basis": "actual",
+         "total_amount_gbp": 100.0, "total_consumption_kwh": billed,
+         "read_true_up_kwh": true_up, "read_true_up_billed_kwh": billed},
+    ]
+
+
+def test_the_k1_grade_names_the_run_that_sets_its_net_and_the_net_without_it():
+    """Defect caught (2026-10-16): one unread EV home's single read set electricity's K1 net at
+    +8% to +12% for fifty month ends and was read as a population bias, because the grade states no
+    concentration. Here one run of +100 kWh carries a net of +50 against two runs netting -50: the
+    largest run is 200% of the net, and without it the population nets -2.5%."""
+    bills = _one_run("C1", 1000.0, 100.0) + _one_run("C2", 1000.0, -20.0) + _one_run(
+        "C3", 1000.0, -30.0)
+    grade = estimated_billing_outstanding_grade(bills, "2022-12")
+    assert grade["graded_runs"] == 3
+    assert grade["graded_net_true_up_share"] == pytest.approx(50 / 3000)
+    assert grade["graded_largest_run_account"] == "C1"
+    assert grade["graded_largest_run_true_up_kwh"] == pytest.approx(100.0)
+    assert grade["graded_largest_run_share_of_net"] == pytest.approx(2.0)
+    assert grade["graded_net_true_up_share_without_largest_run"] == pytest.approx(-50 / 2000)
+    # The largest is by size, not sign: a -100 run is the one named when it is the biggest.
+    flipped = estimated_billing_outstanding_grade(
+        _one_run("C1", 1000.0, -100.0) + _one_run("C2", 1000.0, 20.0), "2022-12")
+    assert flipped["graded_largest_run_account"] == "C1"
+    assert flipped["graded_net_true_up_share_without_largest_run"] == pytest.approx(0.02)
+
+
+def test_the_published_k1_is_graded_from_the_bills_so_an_older_run_output_carries_the_figure():
+    """Defect caught: the concentration reaching the page only at the next run. A summary whose
+    stored K1 predates the field publishes it from the run's own bills; without bills it publishes
+    the field as an absence, never a KeyError."""
+    bills = _one_run("C1", 1000.0, 100.0) + _one_run("C2", 1000.0, -20.0)
+    summary = billing_accuracy_summary(_bills(actual_after_opening=False))
+    stale = {k: v for k, v in summary["K1_year_end_grades"]["electricity"][0].items()
+             if not k.startswith("graded_largest") and "without" not in k}
+    summary["K1_year_end_grades"] = {"electricity": [stale]}
+    absent = published_view(summary)["by_fuel"]["electricity"]["K1_year_end_grades"][0]
+    assert absent["graded_largest_run_share_of_net"] is None
+    graded = published_view(summary, bills=bills)["by_fuel"]["electricity"]["K1_year_end_grades"]
+    assert graded[0]["graded_largest_run_account"] == "C1"
+    assert graded[0]["graded_largest_run_share_of_net"] == pytest.approx(100 / 80)
+
+
 def _snapshot_summary(unread: int, accounts: int) -> dict:
     summary = billing_accuracy_summary(_bills(actual_after_opening=False))
     fuel = summary["by_fuel"]["electricity"]
@@ -336,7 +384,9 @@ def test_the_published_example_is_the_account_with_the_most_barred_energy():
     assert view["by_fuel"]["electricity"]["K1_year_end_grades"] == [
         {k: g[k] for k in ("as_of", "outstanding_gbp", "outstanding_bills", "graded_runs",
                            "never_read_runs", "graded_net_true_up_share",
-                           "graded_gross_true_up_share")}
+                           "graded_gross_true_up_share", "graded_largest_run_account",
+                           "graded_largest_run_share_of_net",
+                           "graded_net_true_up_share_without_largest_run")}
         for g in billing_accuracy_summary(
             _bills(actual_after_opening=False) + [dict(b, customer_id="C2") for b in
                                                   _bills(actual_after_opening=True)]

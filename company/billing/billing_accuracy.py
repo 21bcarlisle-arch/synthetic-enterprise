@@ -232,12 +232,16 @@ def billing_accuracy_summary(bills: Iterable[dict], direct_debit: dict | None = 
         "kinds": dict(KINDS), "snapshot_month": snapshot, "by_fuel": by_fuel, "accounts": rows,
         "direct_debit_money_line": direct_debit or direct_debit_money_line(None),
         # Per fuel, so a share never adds a kWh of gas to a kWh of electricity.
-        "K1_year_end_grades": {
-            fuel: [estimated_billing_outstanding_grade(fuel_bills, month)
-                   for month in sorted({b["period_end"][:7] for b in fuel_bills
-                                        if b["period_end"][5:7] == "12"})]
-            for fuel, fuel_bills in _bills_by_fuel(bills).items()
-        },
+        "K1_year_end_grades": _k1_year_end_grades(bills),
+    }
+
+
+def _k1_year_end_grades(bills: list[dict]) -> dict:
+    return {
+        fuel: [estimated_billing_outstanding_grade(fuel_bills, month)
+               for month in sorted({b["period_end"][:7] for b in fuel_bills
+                                    if b["period_end"][5:7] == "12"})]
+        for fuel, fuel_bills in _bills_by_fuel(bills).items()
     }
 
 
@@ -263,16 +267,23 @@ def _against_published(interval: list[float] | None) -> str:
     return "cannot_be_told_apart_from_the_median_supplier"
 
 
-def published_view(summary: dict | None, source: str | None = None) -> dict:
+def published_view(summary: dict | None, source: str | None = None,
+                   bills: list[dict] | None = None) -> dict:
     """What a reader of the site meets: the per-fuel figures with their denominators, the K2
     snapshot with a 95% interval set beside the published median supplier, the K1 year-end grades,
     and one named account. A summary that is missing or empty is published as an absence with its
-    reason, never as zeros."""
+    reason, never as zeros.
+
+    `bills`, when given, are the run's own bills: K1 is then graded from them by this code, so a
+    run output that predates a grade field (the largest run's share) still publishes it."""
     if not summary or not summary.get("by_fuel"):
         return {"available": False, "source": source, "reason": (
             "the run output this publish read carries no billing-accuracy measure, so there is "
             "nothing to show; it was added to the run output on 2026-10-06 and appears at the "
             "next run")}
+    k1 = summary.get("K1_year_end_grades", {})
+    if bills:
+        k1 = _k1_year_end_grades(bills)
     fuels = {}
     for fuel, f in sorted(summary["by_fuel"].items()):
         interval = _wilson(f["snapshot_no_read_bill_in_12"], f["snapshot_accounts"])
@@ -290,10 +301,12 @@ def published_view(summary: dict | None, source: str | None = None) -> dict:
                 "against_published": _against_published(interval),
             },
             "K1_year_end_grades": [
-                {k: g[k] for k in ("as_of", "outstanding_gbp", "outstanding_bills", "graded_runs",
+                {k: g.get(k) for k in ("as_of", "outstanding_gbp", "outstanding_bills", "graded_runs",
                                    "never_read_runs", "graded_net_true_up_share",
-                                   "graded_gross_true_up_share")}
-                for g in summary.get("K1_year_end_grades", {}).get(fuel, [])
+                                   "graded_gross_true_up_share", "graded_largest_run_account",
+                                   "graded_largest_run_share_of_net",
+                                   "graded_net_true_up_share_without_largest_run")}
+                for g in k1.get(fuel, [])
             ],
         }
     rows = summary.get("accounts") or []
@@ -364,6 +377,7 @@ def estimated_billing_outstanding_grade(bills: Iterable[dict], as_of: str | None
         "graded_runs": 0, "graded_run_billed_kwh": 0.0,
         "graded_run_true_up_kwh": 0.0, "graded_run_abs_true_up_kwh": 0.0,
     }
+    largest: tuple[float, str, float] | None = None  # (true-up kWh, account, its billed kWh)
     for account_id, account_bills in by_account.items():
         account_bills.sort(key=lambda b: b["period_end"])
         materials = [b for b in account_bills if b.get("catchup_applied")]
@@ -396,10 +410,23 @@ def estimated_billing_outstanding_grade(bills: Iterable[dict], as_of: str | None
         grade["graded_run_billed_kwh"] += closing["read_true_up_billed_kwh"]
         grade["graded_run_true_up_kwh"] += closing["read_true_up_kwh"]
         grade["graded_run_abs_true_up_kwh"] += abs(closing["read_true_up_kwh"])
+        if largest is None or abs(closing["read_true_up_kwh"]) > abs(largest[0]):
+            largest = (closing["read_true_up_kwh"], account_id, closing["read_true_up_billed_kwh"])
     grade["outstanding_gbp"] = grade["open_gbp"]
     grade["outstanding_bills"] = grade["open_bills"]
     billed = grade["graded_run_billed_kwh"]
     grade["graded_net_true_up_share"] = grade["graded_run_true_up_kwh"] / billed if billed else None
     grade["graded_gross_true_up_share"] = (
         grade["graded_run_abs_true_up_kwh"] / billed if billed else None)
+    # HOW CONCENTRATED THE NET IS. The grade pools kWh across runs, so one run can set it: on the
+    # 2248e3baf run one unread EV home (C7, +41,778 kWh at one read) carried electricity's net at
+    # +8% to +12% for fifty month ends, and was read as a population bias. Over 100% of the net
+    # means the rest of the runs net the other way; the net without it is the population's.
+    net = grade["graded_run_true_up_kwh"]
+    grade["graded_largest_run_account"] = largest[1] if largest else None
+    grade["graded_largest_run_true_up_kwh"] = largest[0] if largest else None
+    grade["graded_largest_run_share_of_net"] = largest[0] / net if largest and net else None
+    rest_billed = billed - largest[2] if largest else billed
+    grade["graded_net_true_up_share_without_largest_run"] = (
+        (net - largest[0]) / rest_billed if largest and rest_billed else None)
     return grade

@@ -4796,12 +4796,16 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
       $("billacc-yearend").innerHTML = table(
         "At each year end: what was billed on estimates and still open, and what the next read showed",
         ["", "Year end", "Open on estimate", "Runs graded", "Runs never read",
-         "Net correction", "Gross correction"],
+         "Net correction", "Gross correction", "Largest run's share of the net",
+         "Net without that run"],
         fuels.map(function (f) {
           return (d.by_fuel[f].K1_year_end_grades || []).map(function (g) {
             return tr([esc(f), esc(g.as_of), gbp(g.outstanding_gbp), esc(g.graded_runs),
               esc(g.never_read_runs), pct(g.graded_net_true_up_share),
-              pct(g.graded_gross_true_up_share)]);
+              pct(g.graded_gross_true_up_share),
+              g.graded_largest_run_account == null ? "&mdash;"
+                : pct(g.graded_largest_run_share_of_net) + " (" + esc(g.graded_largest_run_account) + ")",
+              pct(g.graded_net_true_up_share_without_largest_run)]);
           }).join("");
         }).join(""));
       var e = d.example_account;
@@ -4813,7 +4817,9 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
         + kwh(e.barred_kwh) + " could not be billed under the 12-month limit." : "";
       $("billacc-note").textContent = "From " + (d.source || "an unnamed run")
         + ". A positive net correction is an undercharge. A run no read has yet ended is counted "
-        + "as never read and is not guessed.";
+        + "as never read and is not guessed. The net pools kWh across runs, so one long unread run "
+        + "can set it: above 100% the other runs net the other way, and the net without that run "
+        + "is the population's.";
     })
     .catch(function (err) {
       $("billacc-note").textContent = "The billing-accuracy measure could not be loaded ("
