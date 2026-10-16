@@ -425,6 +425,11 @@ The published evidence on how such a share is priced (2026-10-14) is in
   whole saving.
 - No GB supplier publishes an advice-savings-share scheme.
 It ranks five pricing shapes by evidence and recommends none. The decision stays the director's.
+The other shape, a rise in the retention price itself, is measured over these 18 cells in
+`a_retention_price_that_shares_the_value_an_action_creates.md` (2026-10-16). As a Fixed Retention
+Tariff (lawful in form, depth unregulated) it brings our side to zero in 18 of 18 holding the hazard;
+10 of 18 once the rise's own effect on staying is added at the published slope; 0 of 18 on a default
+tariff priced at the cap.
 
 ### 6.2 What the company knows about uplift
 
