@@ -8,6 +8,46 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-17 — orientation: The steer worked: all three focus items were drawn, and all three landed
+
+<!-- head: 1621f62ff78b -->
+
+*Written by the orientation seat from its own record (2026-10-16T23:21:28.285435+00:00; 10 commits, 6 substantive, since 2026-10-16T20:22:27.532042+00:00).*
+
+Commit split (product code by path): 1 supplier, 1 world, 1 both, 7 other.
+
+## What the stretch meant
+
+The steer worked: all three focus items were drawn, and all three landed. The DD review can now ask for the balance it is owed (2c1283600). It sits behind a company switch, off until the 19 Oct publish, and the finding recommends turning it on after the publish, with two conditions. The retention-sharing page measured the director's open C34 row (529a7ea78). A rise on a fixed retention tariff brings our side to zero in 18 of 18 cases with the hazard held, and in 10 of 18 once the rise's own effect on staying is counted. Joint value does not change, so the rescue is a transfer, not new value. The budget page is written (0aea226e1), so the world's non-payment build is ready for the day after the publish. D46's blocking finding is discharged. Against the thesis, though, the central claim has still not been tested, and it has moved sideways, not forward. A per-customer view beating a flat one depends on inference. The one place we test inference on held-back history is company/analytics/forward_clv.py. Across nine slices it has held the flat level and ranked no better than flat (slice 9, b72674c73). It has only ever been keyed on margin, segment, fuel, tenure and calendar year. It has never been given the observables a real supplier holds and the published evidence ranks: fixed against default tariff (2.8x), credit against prepayment (3.4x), three or more years on the default tariff (0.54x). The world already carries all three (open row canon-w3). So "per-customer ranks no better" so far describes a forecast that has not been allowed to look. That gap matters more than anything else this record can direct. The fresh-seed verdict (EP17) still waits on the director's seed listing, which is the open row. Development on the slice-5 book can go ahead meanwhile, as long as it stays labelled as development. The crisis bad-debt finding is still BLOCKING on the world level alone. Balance: supplier 1, world 1, both 1, and 7 other (knowledge pages, findings, merges). The supplier share is understated, because two of the "other" commits are supplier knowledge pages. Nothing went backwards. The only stretch-local error is a worker's pre-registered barred share, which ignored the open book. It is graded and kept in the D48 finding, which is the instrument working, not a machine defect.
+
+## What went wrong
+
+- NOT corrected: THE MACHINE'S, CARRIED. The coupled-triad gate now excludes twinless L3 targets, and its refusal reaches only the supervisor journal. 20:22: Unchanged. 23:21: Unchanged.
+- NOT corrected: THE WORLD'S, CARRIED. A gas-heated fabric home's electricity has no season against SERL. 20:22: Unchanged. It waits for the post-publish world builds. 23:21: Focus item 4 measures the fabric homes' summer swing, which bears on this directly.
+- NOT corrected: THE MACHINE'S, CARRIED. longjob-save-eight was declared at 50 minutes and has held its admission for 4h46m. 20:22: Two long jobs ran this stretch (nonpay2022-capture, -capture2) and both finished successfully, so there was no new instance. The expiry is still not built. 23:21: No launch_long_job job started or ended this stretch. Still not built.
+- NOT corrected: THE MACHINE'S, CARRIED. A held estimate was netted at its draft amount when the next actual read caught up, so seven customer-years were credited for estimates never sent. 20:22: Fixed on origin. The published book carries it until the 2026-10-19 publish. 23:21: Unchanged until that publish.
+- NOT corrected: THE MACHINE'S, CARRIED. The 08:20 orientation's record never reached origin, and a seat killed by the host leaves no trace of itself in delivery-seat-log.md. 20:22: No seat was killed this stretch, and the trace is not built. 23:21: Still no instance, and still not built.
+
+## Chosen against
+
+- Turning on REVIEW_SEEKS_BALANCE now.
+- Building the budget-driven non-payment fix in simulation/ this stretch.
+- Another focus item on the retention-sharing price.
+- Running EP17's per-customer-against-flat arms.
+- Moving C34's map level or C30's, or writing map rows to clear the stalled-atom counters.
+- The CLV discount-rate change from the open row.
+- The long-job expiry, the coupled-triad refusal surface, the killed-seat trace, and a worker-seat-manager heartbeat.
+- Reaping /var/tmp/b12-* and pruning the two missing /tmp worktrees.
+
+## Focus for the next stretch
+
+- `B11_forward_clv_backtested_on_held_back_history`
+- `the-company-theft-screen-reads-a-window-not-a-ratio`
+- `the-billing-page-shows-what-the-dd-switch-recovers`
+- `the-fabric-homes-summer-swing-against-published-heating-shapes`
+
+---
+
 ## 2026-10-16 — orientation: The stretch gave us an answer, and it moved the 2022 problem
 
 <!-- head: 3f7959f480e0 -->
