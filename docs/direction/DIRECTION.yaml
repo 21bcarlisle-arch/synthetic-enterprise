@@ -1,297 +1,250 @@
 version: 1
-oriented_at: "2026-10-16T08:22:11.499455+00:00"
+oriented_at: "2026-10-16T14:22:31.865021+00:00"
 thesis_read: >-
-  It moved forward. The brief grades a 3-hour, 1-commit stretch, but that is because tick mode is
-  slow and four skip rows split the real stretch into slices. Since the last written record
-  (17:25Z) 17 commits landed on origin, and they close the route to the baseline comparison.
-  All four of the conditions EP17's ruling names for switching to the varied draw are now closed
-  on origin. B12 closed on its prereg (badd57e8e): a fixed strike now prices its own bad-debt
-  belief and the levies published for its term, and seed 61109's 2016-17 fixed shortfall moved
-  from -4.18 to -1.32 points. What is left is 2018-19's hedge leg, which belongs to the hedge
-  desk. The held-estimate fix (650fdcdd7) was graded on the 81c12 arms (bdd6d1657). The book rose
-  GBP 20,335.72 against a predicted 20,335.71 +/- 0.11, and all five PROS-2017-0336 rows cleared.
-  E6's first slice and the stayers control closed earlier. Two caveats keep this honest. B12 is
-  closed on one seed. And the published book still carries both defects until the 2026-10-19
-  publish, the first at a clean stamp. Billing accuracy also moved. The two red statement controls
-  had two causes, and neither was the held estimate (5624e3604): the event walk dropped part
-  payments on 12 accounts, and the VAT control read SME bills under the 33 kWh/day de minimis as
-  20%. 2427a5830 now runs the tests that read a publish's artefacts after it lands, so the next
-  three-day silent red is caught. Against the thesis, this means the per-customer view can be put
-  against a flat baseline on varied casts within days. But that comparison has still never been
-  written down. Last record's focus three, the B11 pre-registration, was never drawn. That is the
-  steer drifting, and on the critical path. It is focus one, ahead of the switch itself, so the
-  prediction is filed before the answer exists. Previous focus graded by hand, because the brief's
-  previous_focus is empty for the reason above. Focus 1 (B12 salvage) is DONE: landed, EP17's
-  block_reason updated, salvages named disposable. Focus 2 (statement controls) is DONE: causes
-  named, fixed, and in a post-publish census. Focus 3 was not drawn. Focus 4 (the merge offered as
-  a landing) was not drawn, and its instance aged out of the 24h window. It leaves focus for
-  not_now, and the class stays as a wrong row. Real split since 17:25Z, non-merge: 1 supplier,
-  1 world, 1 both, 11 other.
+  Forward on the baseline, flat on billing, and the critical path now waits on two clocks rather
+  than on work. The thesis needs a flat baseline to beat, and for the first time one is written
+  down before its answer exists. The prereg is on origin (4f0e613ed). The flat supplier has a door
+  (bf0997494), and so does the flat-at-level member (f692b1b80, a896e0645). EP17's seed switch is
+  wired, defaults to today's cast byte for byte, and is refused for any seed the director has not
+  listed (8ff0fcbb7). B11 is now parked with no worker work left before L3. What remains is the
+  2026-10-19 publish on the fixed cast, then six fresh seeds, and only the director can list those
+  (open row ep17-s-flat-against-per-customer-comparison). So nothing in this focus is "run B11",
+  and none of the supplier work below may vary the cast before that publish. Billing accuracy
+  produced two corrections and no fixes. D48's pre-2020 electricity under-bill was neither the
+  season nor a 2020 code change, the two candidates my last record named. It was one account, C7,
+  estimated for 51 months on the TDCV fallback and trued up by +41,778 kWh in a single read
+  (ee687026b). The estimator is cleared. But that single account set a published year-end figure
+  for four years, and an Expert Hour read it as a population bias, because K1 states no
+  concentration. Two questions about the company's own conduct came out of it and are unchecked:
+  did it seek a read in 50 months (SLC 21B), and did it bill the catch-up past the 12-month
+  back-billing bar (SLC 21BA)? That is focus one. D46 corrected its own P3 beside the prediction:
+  the two OCC inversions are a real billing defect. 60 void-stub invoices price the company's
+  estimate at 0p, so whether an estimate is charged turns on world truth (78f77c34e). That is an
+  epistemic leak in billing, and it is focus two. The commit split is 2 supplier, 1 world, 6
+  other, but four of the six "other" are B11 and D48 supplier work filed under tools/ and docs/.
+  The supplier-first order held in substance. Previous focus graded: all four drawn, and all four
+  DONE on origin. The brief fix (4859843b5) is visible in this brief, which shows a 6h window and
+  the four previous ids, so that wrong row is corrected. EP17's blocked_on is empty, so that one
+  is corrected too. HEAD is one commit ahead of origin (a896e0645); the reconciler owes the push.
+  The director's console note "80% usage" is read as information, not a pace instruction. Pace is
+  his to set, and nothing here is throttled because of it.
 stretch_reviewed:
-  since: "2026-10-16T05:21:28.859924+00:00"
-  commits: 1
-  substantive: 1
+  since: "2026-10-16T08:22:11.499455+00:00"
+  commits: 9
+  substantive: 8
 focus:
-- id: b11-the-flat-baseline-is-pre-registered-for-the-ep17-switch
-  lane: B_commercial
-  side: supplier
-  what: 'CARRIED, never drawn. Write the pre-registration that EP17''s switch fires into, before any varied-draw
-    run exists. Read EP17_varied_population_draw''s block_reason on origin (all four conditions are now
-    closed: B12 badd57e8e, held estimate 650fdcdd7 graded in bdd6d1657, E6 slice 738b3f0ab, stayers),
-    and B11''s row, its simplifications file and its slice preregs in docs/staging/records/SEAT_PREREG_B11_*.
-    File docs/staging/records/PREREG_B11_PER_CUSTOMER_AGAINST_FLAT_ON_VARIED_DRAWS_2026-10-16.md. It must
-    name: the flat arm (the same book run by a supplier applying flat rules with no per-customer view),
-    given as the exact code path and policy flags that produce it; the per-customer arm; the population
-    seeds (fresh, never 61109 or 42); the measures, each reported separately (margin, bad debt, retention,
-    and household savings in pounds, minutes and CO2); and a predicted sign and range for each, with F11''s
-    direction for ties. Report EP17''s edge households apart: vulnerable, SME-mislabelled, gas-heated
-    and movers. Name the known biases the arms inherit: the world''s late 2021-23 arrears step-up, and
-    B12 closed on one seed only. If flags alone cannot produce the flat arm today, say so and file a finding
-    on B11 naming the smallest change that would. Build nothing else.'
-  why: 'The thesis needs a baseline to beat, or ''it performed well'' means nothing. The switch condition
-    was met overnight, so the comparison could be run before its prediction is written, and a prediction
-    filed after the answer is not a prediction. DONE: the prereg is on origin with every arm, seed and
-    measure named. EP17''s block_reason points at it. Any flat-arm gap is a filed finding on B11.'
-  written_at: 1792139281.522
-- id: electricity-year-end-under-billing-is-attributed-world-or-company
+- id: c7-fifty-months-unread-is-graded-against-the-read-duty-and-the-back-billing-bar
   lane: D_billing_metering
   side: supplier
-  what: 'D48 harden. docs/staging/SEAT_FINDING_D48_ELECTRICITY_DECEMBER_ESTIMATES_UNDER_BILL_BY_A_TENTH_IN_EVERY_PRE_2020_YEAR_2026-10-14.md
-    has electricity''s December net true-up at +8 to +11% in every year 2016-19, against -0.4 to +2.7%
-    from 2020 and about 0 for gas. Two candidates are named and not separated: the electricity season
-    profile (lighting is the one term off its source), or a code change at 2020. First pre-register which
-    it is, with a predicted sign per month. Then take the same K1 grade by month end, not only December,
-    on one electricity-only cohort before and after 2020, from the committed billing ledger and run output,
-    in a fresh origin worktree. Then bisect the 2020 step: check whether any company/billing or estimation
-    change is dated to 2020 in the run, for example a smart-share or read-cadence switch keyed on year.
-    If the cause is the company''s estimator, fix it in company/ with a control that reds on the pre-2020
-    shape. If it is the world''s season, file it as a world finding against the gas-homes season finding
-    and stop. Never commit a regenerated ledger.'
-  why: 'Billing accuracy is first in the director''s supplier order, and a supplier that under-estimates
-    winter electricity by a tenth sends real households a catch-up bill. The finding was fated for this
-    week and nothing has drawn it. DONE: a finding names the cause with the per-month table. Either the
-    company fix is on origin with its control, or the world cause is filed and D48''s row says which.'
-  written_at: 1792139281.522
-- id: the-varied-draw-is-wired-after-the-clean-publish
+  what: Knowledge first (K8). Read SLC 21B (a read at least once a year) and SLC 21BA (no charge for energy
+    used more than 12 months before the bill, unless the customer obstructed) in docs/domain_artefact_library/,
+    and amend or create the knowledge page that states them. Then, over the committed run output and billing
+    ledger in a fresh origin worktree, take a census of every account with an estimated run over 12 months.
+    For each, record what the company did to get a read, and what share of its catch-up kWh and pounds
+    was billed for energy used more than 12 months before the catch-up bill. Start with C7 (51 months,
+    +41,778 kWh billed 2020-03-31, per docs/staging/WORKER_FINDING_D48_ELECTRICITYS_PRE_2020_UNDER_BILL_IS_ONE_UNREAD_EV_HOME_BILLED_ON_THE_TDCV_FALLBACK_2026-10-16.md
+    section 4). Pre-register the counts before running. If the company bills past the bar, fix it in company/billing/
+    by writing the barred amount off as the supplier's cost, and add a control that reds on a catch-up
+    charging energy older than 12 months. If it makes no read attempt, file that as a finding on D48,
+    naming the smallest company mechanism. In the same item, add the largest single run's share of the
+    graded net beside K1's published figure, the fix that finding proposes, so a one-account figure can
+    no longer read as a population bias. Do not commit a regenerated ledger.
+  why: 'Back-billing is named in the director''s supplier order, and a supplier that bills four years
+    of catch-up in one letter breaks the licence and lands the shock on a real household. The census says
+    whether C7 is one account or a class. DONE: the knowledge page is published. The census table is in
+    a finding. Either the 21BA write-off is on origin with its control, or the finding shows no catch-up
+    crosses the bar. K1 carries its concentration figure.'
+  written_at: 1792160898.766
+- id: D46_the_validator_holds_against_the_varied_population
+  lane: D_billing_metering
+  side: supplier
+  what: 'Build the void-stub repair recorded in docs/staging/WORKER_FINDING_NINE_CUSTOMER_YEARS_BILL_LESS_THAN_THEIR_GROSS_MARGIN_AT_ORIGIN_2026-10-14.md
+    (section "The two OCC rows are void stubs billed an estimate at 0p"). The seat decides the rate choice
+    the finding left open. build_monthly_bills prices an estimate that has no true kWh at the company''s
+    own default-tariff unit rate for the period. That is the deemed terms an unseen occupier is on. From
+    2019 it is the cap (get_cap_unit_rate_for_date). Before 2019 it is own_default_tariff_inc_vat_gbp_per_mwh,
+    routed through company/interfaces/renewal_rate_chain.py rather than any new number. The branch must
+    never read true kWh to decide whether to price. Add a control that reds when an estimate''s price
+    depends on the true kWh being above zero. Grade it against the finding''s prediction, filed before
+    the build: the 60 invoices rise by estimate x default rate x (1+VAT), the next actual read credits
+    it back, run totals move by pennies outside held runs, and both OCC rows leave KNOWN_OPEN_INVERSIONS.
+    Correct the prediction beside it if it misses.'
+  why: 'Whether the company charges for its own estimate currently turns on a fact only the world holds.
+    That is the epistemic wall leaking into billing, and it backs one of the two BLOCKING findings. The
+    defect is confined to 60 named invoices with a written prediction, so landing it before the 10-19
+    publish stays attributable. DONE: the repair and its control are on origin. The finding records the
+    graded prediction. KNOWN_OPEN_INVERSIONS is empty of the two OCC rows, and the finding is closed if
+    nothing else remains in it.'
+  written_at: 1792160898.766
+- id: legacy-pc1-homes-use-a-fifth-more-than-their-own-eac
   lane: W2_customer_generator
   side: world
-  unblocks: B11's per-customer-against-flat comparison on varied populations (EP17's ruled switch, all
-    four conditions closed)
-  what: 'Wire EP17''s switch, and do not use it until two things hold: the 2026-10-19 04:00 publish has
-    landed on the FIXED draw, and its post-publish readers are green. Until then, one variable stays constant,
-    and that publish is what shows the B12 and held-estimate effects alone. Steps. (1) Clear EP17''s blocked_on
-    of B12 and E6, both closed. Ask python3 -m tools.maturity_map_store for headroom first. (2) Per the
-    FRAME (docs/design/frame/EP17_VARIED_POPULATION_DRAW_FRAME.md), every production caller calls live_population()
-    bare and pins _DEFAULT_BASE_SEED. Add an explicit population-seed argument through simulation/run_phase2b.py
-    to live_population(base_seed=...). Default it to today''s seed, so the published run is unchanged.
-    Stamp the seed into run output. (3) Add a control: two seeds draw different casts, and the default
-    draws today''s cast byte for byte. Do not wire background/run_rotation.py into the publish path in
-    this item. Launch no graded B11 arm until the prereg (focus one) is on origin.'
-  why: 'The director ruled the switch for when the four conditions close, and they have closed. It is
-    the last mechanical step before B11 can run on varied casts. Defaulting to the fixed seed keeps the
-    10-19 publish a one-variable reading. DONE: the seed argument, its stamp and its control are on origin.
-    EP17''s blocked_on is empty, and its block_reason says the switch is wired and gated on the prereg.'
-  written_at: 1792139281.522
-- id: the-brief-measures-the-stretch-from-the-last-written-record
+  unblocks: D48's billing-accuracy grade on the published book. The company estimates from the registry
+    EAC, so a world path that realises +21.9% (2016 cohort) and +10.6% (later) over it shows up as a systematic
+    company under-bill that is not the company's.
+  what: Diagnose only, and land a finding. Do not change world behaviour before the 2026-10-19 publish
+    has landed. In simulation/fabric_demand_path.py and its eac_scaled_shape_fn, find what layers on top
+    of the EAC-scaled shape in the legacy_pc1_rescaled path so that the annual integral exceeds the EAC,
+    where fabric_physics homes sit at -1.5% and -3.2%. Use the D48 finding, section 1. Print the annual
+    integral against the EAC per layer at real inputs. Separately, say whether a half-hourly-settled account
+    with no EAC handed to the supplier (C7) is a draw the industry's D0019/EAC flow could produce, citing
+    the commons. File both under docs/staging/ with the fix and its predicted effect on K1, pre-registered,
+    for a build after the publish.
+  why: 'Only the world can make the company''s EAC-based estimates honest or dishonest, and right now
+    a fifth of the error in a cohort is the world''s. The build must wait so the publish stays a one-variable
+    reading. The diagnosis does not. DONE: a finding names the layer, prints the table, rules on the EAC-less
+    HH draw, and carries a filed prediction.'
+  written_at: 1792160898.766
+- id: the-draw-ledger-credits-by-the-items-work-not-by-path-overlap
   lane: H_harness
   side: other
-  what: 'background/delivery_seat.py: stretch_since() and build_brief() read last_orientation(), which
-    by its own docstring is "skip or not". Under tick mode slow, the skip rows at 20:24, 23:24, 02:23
-    and 05:21Z cut the stretch since the last written record (17:25Z, 17 commits on origin) down to 3h
-    and 1 commit. They also leave previous_focus empty, so "did last stretch''s focus reach the draw"
-    read "no previous focus" while four focus items were live. Make previous_focus come from the last
-    row whose outcome wrote a record. Make since either do the same, or report both windows side by side.
-    Add a control in tests/background/ that reds when a skip row is newest and previous_focus comes back
-    empty. Separately: bind the b12 continuation, which the brief credits to the prereg commit 8a1a7a51a.
-    Run python3 -m background.delivery_lane --landed b12-the-strike-prices-its-bad-debt-and-the-levy-it-will-be-billed
-    --commit badd57e8e.'
-  why: 'The grade of whether the steer bit, and the supplier/world split the director asked to see, are
-    the two readings he reviews. Both go blind exactly when tick mode is slow. DONE: the control is on
-    origin. The next brief''s previous_focus lists this record''s four ids, and its lane_0_drawn_never_landed
-    no longer lists the b12 row as unbound.'
-  written_at: 1792139281.522
+  what: Work the open fix in docs/staging/SEAT_FINDING_THE_DRAW_LEDGER_GRADES_BY_PATH_SO_MID_LANDING_SPENT_AND_OVERLAPPING_WORK_READ_ALIKE_2026-10-07.md.
+    A Lane 0 item counts as landed only on a commit whose trailer or subject binds it, the same binding
+    delivery_lane --landed writes. An item whose drawing tick holds a live surgical_land or an owned worktree
+    reads as mid-landing, not as not-done. Add one control over the whole partition (landed, mid-landing,
+    not-done) that asserts all three states are reachable. Then add one that reds when a commit sharing
+    only a path credits an item.
+  why: 'Listed 18 times since 2026-10-05. Every grade of "did the steer bite" rests on this ledger, and
+    it has credited a prereg record for a strike''s work (8a1a7a51a for badd57e8e). DONE: both controls
+    are on origin, and the two wrong rows that share this finding close.'
+  written_at: 1792160898.766
 not_now:
-  - what: C35, pricing the share of joint value, and the c34 advice-floor proposal.
+  - what: Running B11's per-customer-against-flat arms now, on seeds already read.
     why: >-
-      The c34 row is still open with the director. Pricing a lever before the flat baseline is
-      pre-registered would grade it against nothing, and the baseline is one item away.
-  - what: Flipping the published run to varied casts before the 2026-10-19 publish.
+      The prereg forbids reused seeds, and a re-read seed would grade against a cast the predictions
+      have already seen. The seeds are the director's to list (open row), and the publish comes
+      first. Both doors are built, so nothing is lost by waiting.
+  - what: C35, pricing a share of the value an action creates, and the c34 advice-floor proposal.
     why: >-
-      That publish is the first at a clean stamp and the first to carry B12 and the held-estimate
-      fix. Changing the cast in the same publish would make two variables, and nothing could be
-      attributed.
-  - what: Deleting the seven _HELD_ESTIMATE_NETTED rows and closing WORKER_FINDING_NINE_CUSTOMER_YEARS now.
+      C35 is a director-ruled row. 5d9218c43 published the evidence and concluded that pairing a
+      price with a positive-sum action is his M2 decision. The c34 row is still open with him.
+      Building it now would decide his question for him.
+  - what: Landing the legacy_pc1 world fix before the 2026-10-19 publish.
     why: >-
-      bdd6d1657 says they go when the committed ledger carries the fix, at the 10-19 publish. Deleting
-      them now reds the gate on run A's ledger. The post-publish readers (2427a5830) will ring if the
-      publish does not clear them.
-  - what: 2018-19's hedge leg (-5 points on wholesale on seed 61109), left by B12.
+      That publish is the one-variable reading of B12 and the held-estimate fix. A world demand
+      change in the same publish would make every money figure unattributable. The diagnosis goes
+      ahead.
+  - what: The gas spring miss (+19% to +51% April to June) that D48 found as a by-product.
     why: >-
-      It belongs to the hedge desk, not the strike, and it is one seed. The varied draw will say
-      whether it is general before anyone builds against it.
-  - what: The world's late and short crisis bad-debt step-up (the BLOCKING crisis finding, E6).
+      It belongs with the open gas-homes season finding, and it does not block a supplier result
+      before the varied draw. It is routed there rather than given its own item.
+  - what: The long-job declaration expiry and the coupled-triad refusal surface.
     why: >-
-      It is world fidelity. B11's prereg names it as a known bias on the bad-debt measure rather than
-      waiting for it. It needs its own blind-to-results decision about the validator's window.
-  - what: The draw ledger offering a no-work merge as a landing (last record's focus four).
+      No long job launched or ended, and no triad refusal moved a draw this stretch. Each stays as
+      a fix row with its owner. The draw ledger wins the one machine slot because it grades the
+      steer itself.
+  - what: Reaping the /var/tmp/b12-* worktrees and pruning /tmp/wt_capt115 and /tmp/wt_reach_origin_1583163.
     why: >-
-      Never drawn, and its instance aged out of the 24h window. The class is carried under the
-      path-overlap wrong row, and this stretch's instance is bound by hand in focus four.
-  - what: Reaping the four /var/tmp/b12-* worktrees.
-    why: >-
-      badd57e8e named every salvage in them disposable, so nothing is at risk. A reap moves no
-      supplier result and can wait for the ordinary sweep.
+      badd57e8e names every b12 salvage disposable, and the two /tmp entries are missing
+      directories. Nothing is at risk, so this waits for the ordinary sweep.
 wrong:
   - what: >-
       THE MACHINE'S, NEW. The seat brief measures the stretch from the newest decisions row, skip or not.
       Under tick mode slow, four skip rows cut a 15-hour, 17-commit stretch down to 3h and 1 commit, and
       the brief reported "no previous focus" while four focus items were live. Focus four.
-    corrected: false
+    corrected: true
   - what: >-
       THE MACHINE'S, NEW. EP17_varied_population_draw's blocked_on still names B12 and E6, though its own
       block_reason records both as closed. Focus three.
-    corrected: false
+    corrected: true
   - what: >-
       THE MACHINE'S, CARRIED. The draw ledger reads the same for work never started and for work mid-landing,
-      because it asks only origin by path. 08:22: Unchanged. The B12 continuation was recovered and landed
-      (badd57e8e), and the class is untouched.
+      because it asks only origin by path. 14:22: Unchanged, and no instance this stretch. Focus four.
     corrected: false
   - what: >-
       THE MACHINE'S, CARRIED. The draw ledger credits or denies an item by path overlap, not by its work.
-      08:22: This brief credits the b12 continuation to 8a1a7a51a, a prereg record, while its work landed as
-      badd57e8e. Focus four binds that instance by hand.
+      14:22: No Lane 0 item went unlanded in 24h, so the 8a1a7a51a instance has aged out. The class is
+      focus four.
     corrected: false
   - what: >-
-      THE MACHINE'S, CARRIED. A focus-row tombstone still retires a row without asking its DONE. 08:22: One
-      retirement, after-a-publish-run-the-tests-that-read-what-it-published at 06:55Z, eight minutes after
-      its DONE landed (2427a5830). Consistent again, but a case where DONE was already met cannot show it.
+      THE MACHINE'S, CARRIED. A focus-row tombstone still retires a row without asking its DONE. 14:22: One
+      retirement, the electricity under-billing item, at 12:34Z, a minute after its DONE landed (ee687026b).
+      Consistent a third time, and still a case that cannot show the defect.
     corrected: false
   - what: >-
       THE MACHINE'S, CARRIED. The coupled-triad gate now excludes twinless L3 targets, and its refusal reaches
-      only the supervisor journal. 08:22: Unchanged.
+      only the supervisor journal. 14:22: Unchanged.
     corrected: false
   - what: >-
-      THE WORLD'S, CARRIED. A gas-heated fabric home's electricity has no season against SERL. 08:22: Unchanged.
-      It may share a cause with electricity's year-end under-billing (focus two), which will say.
+      THE WORLD'S, CARRIED. A gas-heated fabric home's electricity has no season against SERL. 14:22: D48
+      rules out a shared cause with electricity's year-end under-bill (that was one account, C7). D48's gas
+      spring miss is routed to this finding.
     corrected: false
   - what: >-
       THE MACHINE'S, CARRIED. longjob-save-eight was declared at 50 minutes and has held its admission for 4h46m.
-      08:22: No long job launched or ended this stretch, and the expiry is still not built.
+      14:22: No long job launched or ended this stretch, and the expiry is still not built.
     corrected: false
   - what: >-
       THE MACHINE'S, CARRIED. A held estimate was netted at its draft amount when the next actual read caught up,
-      so seven customer-years were credited for estimates never sent. 08:22: The code is fixed on origin
-      (650fdcdd7) and graded exactly (bdd6d1657). The PUBLISHED book still carries it until the 2026-10-19
-      publish, so it stays open until then.
+      so seven customer-years were credited for estimates never sent. 14:22: The code is fixed on origin. The
+      published book carries it until the 2026-10-19 publish.
     corrected: false
   - what: >-
-      THE MACHINE'S, CARRIED. The 08:20 orientation's record never reached origin, and a seat killed by the
-      host leaves no trace of itself in delivery-seat-log.md. 08:22: No seat was killed this stretch, and the
-      trace is not built.
+      THE MACHINE'S, CARRIED. The 08:20 orientation's record never reached origin, and a seat killed by the host
+      leaves no trace of itself in delivery-seat-log.md. 14:22: No seat was killed this stretch, and the trace
+      is not built.
     corrected: false
   - what: >-
-      THE MACHINE'S, CARRIED. Two statement controls were red at origin on the published 2248e3baf ledger, and
-      no census held them. 08:22: CORRECTED. 5624e3604 found two causes, part payments dropped by the walk
-      and SME de minimis VAT, and fixed both. 2427a5830 runs every artefact-reading test after a publish.
+      THE SEAT'S, NEW. The last record framed D48's electricity under-bill as the season or a 2020 code change.
+      It was neither. It was one account, C7, estimated for 51 months and trued up in a single read
+      (ee687026b). The worker's pre-registration refuted the framing, and the record is corrected here.
     corrected: true
   - what: >-
-      THE MACHINE'S, CARRIED. A worker tick holding the B12 strike was killed at its timeout, with supplier code
-      kept only in salvage commits on no remote ref. 08:22: CORRECTED. The work landed as badd57e8e under its
-      prereg, and that commit names all three salvages disposable.
-    corrected: true
+      THE MACHINE'S, NEW. K1 publishes a pooled billing-accuracy share with no concentration figure, so one
+      account set electricity's year-end figure for four years and an Expert Hour read it as a population
+      bias. Focus one.
+    corrected: false
+  - what: >-
+      THE MACHINE'S, NEW. The held-estimate prereg's P3 called the two OCC inversions the test's netting, "not
+      billing". They are a billing defect: 60 void-stub invoices price the estimate at 0p (78f77c34e, which
+      corrected P3 beside the prediction). The defect itself is focus two.
+    corrected: false
 for_the_director:
-- id: c34-now-ranks-next-best-action-on
-  raised: '2026-10-12'
-  kind: canon_intent
-  what: C34 now ranks next best action on joint value with a no-loss floor on both sides, as ruled (C7,
-    eeb38abc3), and it still advises nobody at realistic inputs. Across the C34 finding's own B11-scale
-    inputs (margin GBP 5-30 a month, hazard 0.5-3% a month, 48 months, advice giving up GBP 2-3 a month
-    and cutting the hazard 0.1-0.3 points), joint value is positive in all 18 cases (+GBP 13 to +107)
-    and our side is negative in all 18, so our floor refuses every one. The ranking key changed and no
-    decision did.
-  proposal: 'Keep both floors, and let an advice action that creates value but costs us travel with a
-    price that shares it: the renewal or retention price is set so that our side of that action is at
-    least zero, which is M2''s created-then-shared. That is a pricing-lever change (step 5), not a C34
-    change, so I would build it next week as an atom, knowledge page first, and grade it on fresh seeds.
-    If you would rather loosen our floor to ''joint value exceeds what we give up'', say so; that one
-    is a one-line change and I would measure it the same way.'
-  status: open
-  resolution: ''
-  evidence: docs/market_research/next_best_action_and_cross_sell.md section 6.1; landed eeb38abc3
-- id: canon-h1-owes-r16-and-r17-section
-  raised: '2026-10-12'
-  kind: canon_intent
-  what: Canon H1 owes R16 and R17 (section 15 item 10). Their text is found verbatim in the CLAUDE.md
-    commits that introduced them (9251474f9, eaffdb81e), and the mechanisms both name are still live.
-  proposal: Ratify both as written, so the numbered set becomes R1-R17. In the canon text, put G12's 'recorded,
-    never authorised' beside R16's older word 'authorization'. The text and the evidence are in the proposal
-    file.
-  status: open
-  resolution: ''
-  evidence: docs/staging/SEAT_PROPOSAL_R16_AND_R17_FOUND_RATIFY_AS_WRITTEN_2026-10-12.md
-- id: a-direction-item-s-why-claimed-the
-  raised: '2026-10-12'
-  kind: strategy
-  what: 'A direction item''s WHY claimed the capital target ''throttles for nine years the growth the
-    thesis is judged on.'' Measured on seed 42 (campaign-only resolve, 403-founder book, 2016-2025): binding
-    is prospect_ceiling or market in every single year, at £0, £115 and £130 alike -- capital has never
-    been the constraint this book''s growth is sized against, before or after the capital-115/C14 dating
-    fix.'
-  proposal: Land the capital-115 correction and the C14 dating fix on their own merits (they are correct
-    factual corrections regardless), but do not treat them as having unthrottled growth -- they haven't.
-    If growth is meant to be capital-judged, the lever to look at is PROSPECTS_PER_YEAR (400) or the founder
-    book size, both of which bind in every year of the shipped run.
-  status: open
-  resolution: ''
-  evidence: 'docs/staging/done/SEAT_FINDING_SEVERAL_CONSUMPTION_FORECASTS_A_WALL_LEAK_IN_HEDGE_VOLUME_AND_THE_CAPITAL_TARGET_IS_115_2026-10-11.md
-    §3b: _resolve_campaign(_pre_growth_book(42), 42, persist=False) run twice in one process (flat £115
-    from 2016 vs C14-dated), by_year binding is prospect_ceiling (8 years) or market (2 years) in BOTH
-    arms, never capital.'
-- id: canon-w3-leaves-open-how-far-the
-  raised: '2026-10-13'
-  kind: canon_intent
-  what: 'Canon W3 leaves open how far the world''s price responsiveness may correlate with signals a supplier
-    holds (section 15, owed item 4). Published evidence puts the large correlations on whether a household
-    LOOKS at prices: 2.8x for fixed against default, 3.4x for credit against traditional prepayment, 0.54x
-    for 3+ years on the default tariff. The world already carries those. Nothing published sizes a correlation
-    with how far a household MOVES once it looks.'
-  proposal: 'Two changes, smallest first. (1) Selection at acquisition, with no new number: a prospect
-    enters the market weighted by its own active-renewal probability, so the link between acquisition
-    channel and later responsiveness emerges from draws the world already has. Recommended. (2) Optionally,
-    couple the price-sensitivity segment to the engagement rank, run at both ends (independent and fully
-    coupled) with the strength kept as a GAP, never a midpoint. Not recommended: a past-switching term,
-    which the only trial puts at x0.94. Your decision 6 already settles the adjacent pricing question.
-    Both are graded on fresh seeds with predictions filed first.'
-  status: open
-  resolution: ''
-  evidence: docs/market_research/observable_correlates_of_price_responsiveness.md section C
-- id: the-clv-discount-rate-and-terminal-value
-  raised: '2026-10-13'
-  kind: strategy
-  what: 'The CLV discount rate and terminal-value method (canon section 15, owed item 9). The code carries
-    a flat 0.10, labelled a simplification. Published GB evidence: CMA 2016 retail WACC 9.3-11.5% (2007-14
-    data); CEPA for Ofgem 2022, 9.28-10.88% in normal conditions and 12.23-14.94% stressed; Ofgem''s adopted
-    cost of capital 12.3% from October 2023. Marketing science: a tenure-varying survival curve to a long
-    horizon, since a hard cutoff and a flat rate to infinity each bias it.'
-  proposal: Keep 0.10 as the normal-conditions anchor for 2016 to September 2023, since it sits inside
-    the CMA and CEPA bands. From October 2023 use Ofgem's 12.3%, so the rate follows the record rather
-    than one number for ten years. Report every published CLV at both ends of the band, 9.3% and 12.3%.
-    Move the terminal value to the survival-curve form when CLV is next touched. It is a company parameter,
-    so this changes no world value.
-  status: open
-  resolution: ''
-  evidence: docs/market_research/clv_discount_rate_and_terminal_value_for_a_gb_supplier.md
-- id: ep17-s-flat-against-per-customer-comparison
-  raised: '2026-10-16'
-  kind: reserved
-  what: EP17's flat-against-per-customer comparison needs six fresh book seeds, and every seed you authorised
-    (61101-61112) has already been read under some arm. Your 2026-10-15 ruling says 'a fresh draw per
-    run', but the activation record lists exact seeds and only you write it.
-  proposal: List 61113-61118 in docs/design/curriculum/varied_population_draw_activation.json under your
-    2026-10-15 ruling. The predictions are already filed (docs/staging/records/PREREG_B11_PER_CUSTOMER_AGAINST_FLAT_ON_VARIED_DRAWS_2026-10-16.md),
-    and the flat arm's door is being built meanwhile. Say 'yes' and the seat writes the listing quoting
-    you.
-  status: open
-  resolution: ''
-  evidence: tools/book_seed_authorisation.py refuses unlisted seeds; seed census in the prereg's 'Population
-    seeds' section
+  - id: c34-now-ranks-next-best-action-on
+    raised: "2026-10-12"
+    kind: canon_intent
+    what: "C34 now ranks next best action on joint value with a no-loss floor on both sides, as ruled (C7, eeb38abc3), and it still advises nobody at realistic inputs. Across the C34 finding's own B11-scale inputs (margin GBP 5-30 a month, hazard 0.5-3% a month, 48 months, advice giving up GBP 2-3 a month and cutting the hazard 0.1-0.3 points), joint value is positive in all 18 cases (+GBP 13 to +107) and our side is negative in all 18, so our floor refuses every one. The ranking key changed and no decision did."
+    proposal: "Keep both floors, and let an advice action that creates value but costs us travel with a price that shares it: the renewal or retention price is set so that our side of that action is at least zero, which is M2's created-then-shared. That is a pricing-lever change (step 5), not a C34 change, so I would build it next week as an atom, knowledge page first, and grade it on fresh seeds. If you would rather loosen our floor to 'joint value exceeds what we give up', say so; that one is a one-line change and I would measure it the same way."
+    status: open
+    resolution: ""
+    evidence: "docs/market_research/next_best_action_and_cross_sell.md section 6.1; landed eeb38abc3"
+  - id: canon-h1-owes-r16-and-r17-section
+    raised: "2026-10-12"
+    kind: canon_intent
+    what: "Canon H1 owes R16 and R17 (section 15 item 10). Their text is found verbatim in the CLAUDE.md commits that introduced them (9251474f9, eaffdb81e), and the mechanisms both name are still live."
+    proposal: "Ratify both as written, so the numbered set becomes R1-R17. In the canon text, put G12's 'recorded, never authorised' beside R16's older word 'authorization'. The text and the evidence are in the proposal file."
+    status: open
+    resolution: ""
+    evidence: "docs/staging/SEAT_PROPOSAL_R16_AND_R17_FOUND_RATIFY_AS_WRITTEN_2026-10-12.md"
+  - id: a-direction-item-s-why-claimed-the
+    raised: "2026-10-12"
+    kind: strategy
+    what: "A direction item's WHY claimed the capital target 'throttles for nine years the growth the thesis is judged on.' Measured on seed 42 (campaign-only resolve, 403-founder book, 2016-2025): binding is prospect_ceiling or market in every single year, at £0, £115 and £130 alike -- capital has never been the constraint this book's growth is sized against, before or after the capital-115/C14 dating fix."
+    proposal: "Land the capital-115 correction and the C14 dating fix on their own merits (they are correct factual corrections regardless), but do not treat them as having unthrottled growth -- they haven't. If growth is meant to be capital-judged, the lever to look at is PROSPECTS_PER_YEAR (400) or the founder book size, both of which bind in every year of the shipped run."
+    status: open
+    resolution: ""
+    evidence: "docs/staging/done/SEAT_FINDING_SEVERAL_CONSUMPTION_FORECASTS_A_WALL_LEAK_IN_HEDGE_VOLUME_AND_THE_CAPITAL_TARGET_IS_115_2026-10-11.md §3b: _resolve_campaign(_pre_growth_book(42), 42, persist=False) run twice in one process (flat £115 from 2016 vs C14-dated), by_year binding is prospect_ceiling (8 years) or market (2 years) in BOTH arms, never capital."
+  - id: canon-w3-leaves-open-how-far-the
+    raised: "2026-10-13"
+    kind: canon_intent
+    what: "Canon W3 leaves open how far the world's price responsiveness may correlate with signals a supplier holds (section 15, owed item 4). Published evidence puts the large correlations on whether a household LOOKS at prices: 2.8x for fixed against default, 3.4x for credit against traditional prepayment, 0.54x for 3+ years on the default tariff. The world already carries those. Nothing published sizes a correlation with how far a household MOVES once it looks."
+    proposal: "Two changes, smallest first. (1) Selection at acquisition, with no new number: a prospect enters the market weighted by its own active-renewal probability, so the link between acquisition channel and later responsiveness emerges from draws the world already has. Recommended. (2) Optionally, couple the price-sensitivity segment to the engagement rank, run at both ends (independent and fully coupled) with the strength kept as a GAP, never a midpoint. Not recommended: a past-switching term, which the only trial puts at x0.94. Your decision 6 already settles the adjacent pricing question. Both are graded on fresh seeds with predictions filed first."
+    status: open
+    resolution: ""
+    evidence: "docs/market_research/observable_correlates_of_price_responsiveness.md section C"
+  - id: the-clv-discount-rate-and-terminal-value
+    raised: "2026-10-13"
+    kind: strategy
+    what: "The CLV discount rate and terminal-value method (canon section 15, owed item 9). The code carries a flat 0.10, labelled a simplification. Published GB evidence: CMA 2016 retail WACC 9.3-11.5% (2007-14 data); CEPA for Ofgem 2022, 9.28-10.88% in normal conditions and 12.23-14.94% stressed; Ofgem's adopted cost of capital 12.3% from October 2023. Marketing science: a tenure-varying survival curve to a long horizon, since a hard cutoff and a flat rate to infinity each bias it."
+    proposal: "Keep 0.10 as the normal-conditions anchor for 2016 to September 2023, since it sits inside the CMA and CEPA bands. From October 2023 use Ofgem's 12.3%, so the rate follows the record rather than one number for ten years. Report every published CLV at both ends of the band, 9.3% and 12.3%. Move the terminal value to the survival-curve form when CLV is next touched. It is a company parameter, so this changes no world value."
+    status: open
+    resolution: ""
+    evidence: "docs/market_research/clv_discount_rate_and_terminal_value_for_a_gb_supplier.md"
+  - id: ep17-s-flat-against-per-customer-comparison
+    raised: "2026-10-16"
+    kind: reserved
+    what: "EP17's flat-against-per-customer comparison needs six fresh book seeds, and every seed you authorised (61101-61112) has already been read under some arm. Your 2026-10-15 ruling says 'a fresh draw per run', but the activation record lists exact seeds and only you write it."
+    proposal: "List 61113-61118 in docs/design/curriculum/varied_population_draw_activation.json under your 2026-10-15 ruling. The predictions are already filed (docs/staging/records/PREREG_B11_PER_CUSTOMER_AGAINST_FLAT_ON_VARIED_DRAWS_2026-10-16.md), and the flat arm's door is being built meanwhile. Say 'yes' and the seat writes the listing quoting you."
+    status: open
+    resolution: ""
+    evidence: "tools/book_seed_authorisation.py refuses unlisted seeds; seed census in the prereg's 'Population seeds' section"

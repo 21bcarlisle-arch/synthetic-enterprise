@@ -8,6 +8,64 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-16 — orientation: Forward on the baseline, flat on billing, and the critical path now waits on two clocks rather than on work
+
+<!-- head: a896e0645da9 -->
+
+*Written by the orientation seat from its own record (2026-10-16T14:22:31.865021+00:00; 9 commits, 8 substantive, since 2026-10-16T08:22:11.499455+00:00).*
+
+Commit split (product code by path): 2 supplier, 1 world, 0 both, 6 other.
+
+## What the stretch meant
+
+Forward on the baseline, flat on billing, and the critical path now waits on two clocks rather than on work. The thesis needs a flat baseline to beat, and for the first time one is written down before its answer exists. The prereg is on origin (4f0e613ed). The flat supplier has a door (bf0997494), and so does the flat-at-level member (f692b1b80, a896e0645). EP17's seed switch is wired, defaults to today's cast byte for byte, and is refused for any seed the director has not listed (8ff0fcbb7). B11 is now parked with no worker work left before L3. What remains is the 2026-10-19 publish on the fixed cast, then six fresh seeds, and only the director can list those (open row ep17-s-flat-against-per-customer-comparison). So nothing in this focus is "run B11", and none of the supplier work below may vary the cast before that publish. Billing accuracy produced two corrections and no fixes. D48's pre-2020 electricity under-bill was neither the season nor a 2020 code change, the two candidates my last record named. It was one account, C7, estimated for 51 months on the TDCV fallback and trued up by +41,778 kWh in a single read (ee687026b). The estimator is cleared. But that single account set a published year-end figure for four years, and an Expert Hour read it as a population bias, because K1 states no concentration. Two questions about the company's own conduct came out of it and are unchecked: did it seek a read in 50 months (SLC 21B), and did it bill the catch-up past the 12-month back-billing bar (SLC 21BA)? That is focus one. D46 corrected its own P3 beside the prediction: the two OCC inversions are a real billing defect. 60 void-stub invoices price the company's estimate at 0p, so whether an estimate is charged turns on world truth (78f77c34e). That is an epistemic leak in billing, and it is focus two. The commit split is 2 supplier, 1 world, 6 other, but four of the six "other" are B11 and D48 supplier work filed under tools/ and docs/. The supplier-first order held in substance. Previous focus graded: all four drawn, and all four DONE on origin. The brief fix (4859843b5) is visible in this brief, which shows a 6h window and the four previous ids, so that wrong row is corrected. EP17's blocked_on is empty, so that one is corrected too. HEAD is one commit ahead of origin (a896e0645); the reconciler owes the push. The director's console note "80% usage" is read as information, not a pace instruction. Pace is his to set, and nothing here is throttled because of it.
+
+## What went wrong
+
+- corrected: THE MACHINE'S, NEW. The seat brief measures the stretch from the newest decisions row, skip or not. Under tick mode slow, four skip rows cut a 15-hour, 17-commit stretch down to 3h and 1 commit, and the brief reported "no previous focus" while four focus items were live. Focus four.
+- corrected: THE MACHINE'S, NEW. EP17_varied_population_draw's blocked_on still names B12 and E6, though its own block_reason records both as closed. Focus three.
+- NOT corrected: THE MACHINE'S, CARRIED. The draw ledger reads the same for work never started and for work mid-landing, because it asks only origin by path. 14:22: Unchanged, and no instance this stretch. Focus four.
+- NOT corrected: THE MACHINE'S, CARRIED. The draw ledger credits or denies an item by path overlap, not by its work. 14:22: No Lane 0 item went unlanded in 24h, so the 8a1a7a51a instance has aged out. The class is focus four.
+- NOT corrected: THE MACHINE'S, CARRIED. A focus-row tombstone still retires a row without asking its DONE. 14:22: One retirement, the electricity under-billing item, at 12:34Z, a minute after its DONE landed (ee687026b). Consistent a third time, and still a case that cannot show the defect.
+- NOT corrected: THE MACHINE'S, CARRIED. The coupled-triad gate now excludes twinless L3 targets, and its refusal reaches only the supervisor journal. 14:22: Unchanged.
+- NOT corrected: THE WORLD'S, CARRIED. A gas-heated fabric home's electricity has no season against SERL. 14:22: D48 rules out a shared cause with electricity's year-end under-bill (that was one account, C7). D48's gas spring miss is routed to this finding.
+- NOT corrected: THE MACHINE'S, CARRIED. longjob-save-eight was declared at 50 minutes and has held its admission for 4h46m. 14:22: No long job launched or ended this stretch, and the expiry is still not built.
+- NOT corrected: THE MACHINE'S, CARRIED. A held estimate was netted at its draft amount when the next actual read caught up, so seven customer-years were credited for estimates never sent. 14:22: The code is fixed on origin. The published book carries it until the 2026-10-19 publish.
+- NOT corrected: THE MACHINE'S, CARRIED. The 08:20 orientation's record never reached origin, and a seat killed by the host leaves no trace of itself in delivery-seat-log.md. 14:22: No seat was killed this stretch, and the trace is not built.
+- corrected: THE SEAT'S, NEW. The last record framed D48's electricity under-bill as the season or a 2020 code change. It was neither. It was one account, C7, estimated for 51 months and trued up in a single read (ee687026b). The worker's pre-registration refuted the framing, and the record is corrected here.
+- NOT corrected: THE MACHINE'S, NEW. K1 publishes a pooled billing-accuracy share with no concentration figure, so one account set electricity's year-end figure for four years and an Expert Hour read it as a population bias. Focus one.
+- NOT corrected: THE MACHINE'S, NEW. The held-estimate prereg's P3 called the two OCC inversions the test's netting, "not billing". They are a billing defect: 60 void-stub invoices price the estimate at 0p (78f77c34e, which corrected P3 beside the prediction). The defect itself is focus two.
+
+## Chosen against
+
+- Running B11's per-customer-against-flat arms now, on seeds already read.
+- C35, pricing a share of the value an action creates, and the c34 advice-floor proposal.
+- Landing the legacy_pc1 world fix before the 2026-10-19 publish.
+- The gas spring miss (+19% to +51% April to June) that D48 found as a by-product.
+- The long-job declaration expiry and the coupled-triad refusal surface.
+- Reaping the /var/tmp/b12-* worktrees and pruning /tmp/wt_capt115 and /tmp/wt_reach_origin_1583163.
+
+## Focus for the next stretch
+
+- `c7-fifty-months-unread-is-graded-against-the-read-duty-and-the-back-billing-bar`
+- `D46_the_validator_holds_against_the_varied_population`
+- `legacy-pc1-homes-use-a-fifth-more-than-their-own-eac`
+- `the-draw-ledger-credits-by-the-items-work-not-by-path-overlap`
+
+---
+
+## 2026-10-16 — orientation skipped: tick mode slow: delivery-seat spawns at most every 12h; last spawn 2026-10-16T08:24Z, next from 2026-10-16T20:24Z
+
+<!-- head: bf0997494b5f -->
+
+*Written by the orientation seat from its own record (2026-10-16T11:21:36.816500+00:00; 3 commits, 2 substantive, since 2026-10-16T08:22:11.499455+00:00).*
+
+Commit split (product code by path): 1 supplier, 0 world, 0 both, 2 other.
+
+The seat did not orient, so there is no reading of this stretch against the thesis. Its recorded reason: tick mode slow: delivery-seat spawns at most every 12h; last spawn 2026-10-16T08:24Z, next from 2026-10-16T20:24Z
+
+---
+
 ## 2026-10-16 — orientation: It moved forward
 
 <!-- head: 2427a5830eec -->
