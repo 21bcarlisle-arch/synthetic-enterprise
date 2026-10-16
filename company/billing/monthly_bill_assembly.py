@@ -721,8 +721,15 @@ def build_monthly_bills(
                 else:
                     # Degenerate zero-metered month: no real per-MWh rate to
                     # price an estimate against -- fall back to the true bill
-                    # amount (rare); the billing_basis annotation still records
-                    # the estimate. Also reached when the company could make no
+                    # amount; the billing_basis annotation still records
+                    # the estimate. NOT RARE (2026-10-16): every B7 void stub lands here, because
+                    # `as_void_row` zeroes the true kWh while the company, which cannot see the
+                    # void, estimates the period from the registry EAC. On the 2248e3baf ledger
+                    # that is 60 OCC invoices printing an estimate (11,447 kWh) at 0p, and the
+                    # choice of branch is made on world truth. The repair needs a rate the
+                    # company can name (the cap from 2019, its own default before that) and is
+                    # D46's: WORKER_FINDING_NINE_CUSTOMER_YEARS_BILL_LESS_THAN_THEIR_GROSS_MARGIN_
+                    # AT_ORIGIN_2026-10-14.md. Also reached when the company could make no
                     # estimate at all (no published shape for the fuel; no EAC/AQ
                     # and no TDCV): none of the 2016-2025 book's accounts is in
                     # that case (D48 slice 4), and it bills what was used.

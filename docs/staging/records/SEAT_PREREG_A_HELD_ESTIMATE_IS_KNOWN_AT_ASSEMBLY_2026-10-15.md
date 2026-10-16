@@ -50,6 +50,12 @@ numbers):
   run pro rata by day, and that pulls a few pence out of the stub. That is the test's day-weighted
   attribution of a seasonal over-estimate, not this defect. They keep their `KNOWN_OPEN_INVERSIONS`
   rows under a corrected reason.
+  **Correction, 2026-10-16 (prediction kept above):** the netting mechanism is right, and "not
+  billing" is wrong. Both stubs are B7 void rows (0 kWh true, owner's standing charge only). The
+  company estimates them from the EAC (55 and 34 kWh) and bills that estimate at 0p, because
+  `build_monthly_bills` prices an estimate only when the true kWh is above zero. The stub's
+  estimate error is £0, so its fair share of the later credit is £0. Day-weighting gives it a
+  share. The billing defect is 60 invoices across the book; see the finding's 2026-10-16 section.
 - **P4 (no new hold).** The 11 catch-up bills rise. None becomes newly held by `validate_bill`. If one
   is, that is a finding: a catch-up whose size a validator reads as an anomaly.
 

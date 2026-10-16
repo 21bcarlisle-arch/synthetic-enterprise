@@ -130,7 +130,8 @@ _HELD_ESTIMATE_NETTED = (
 # ASSEMBLY_2026-10-15.md P3): each is a 6-8 day December stub, and the netting below spreads a later
 # catch-up CREDIT over the whole run by day, which takes a few pence out of the stub.
 _STUB_TAKES_A_DAY_SHARE_OF_A_LATER_CREDIT = (
-    "December stub: the day-weighted netting of a later over-estimate credit, not a held bill"
+    "void stub (B7): billed its standing charge with its EAC estimate at 0p, so a later "
+    "over-estimate credit, spread by day, takes a share the stub never over-billed; D46"
 )
 KNOWN_OPEN_INVERSIONS = {
     # Red at origin 440ebe1f6 on the 2248e3baf book, before anyone touched this file; the nine

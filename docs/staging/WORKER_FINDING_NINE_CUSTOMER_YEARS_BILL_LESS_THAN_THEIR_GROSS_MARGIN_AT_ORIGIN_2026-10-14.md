@@ -92,3 +92,36 @@ which are the two OCC December stubs, the D46 remainder. Grades are in the prere
 seven `_HELD_ESTIMATE_NETTED` rows are deleted by the first landing whose committed ledger carries
 650fdcdd7 (the 2026-10-19 publish). Until then the ledger is run A's, and deleting them reds the
 gate. The finding's billing cause is closed. Its atom fate (D46) stands for the two stubs.
+
+## The two OCC rows are void stubs billed an estimate at 0p (worker, 2026-10-16)
+
+P3 put these two down to the test's day-weighting, "not billing". The day-weighting is real.
+But printing the invoices shows a billing defect under it, and the defect is bigger than two rows.
+
+- **What the stub is.** `OCC-25ff8966357a` 2022-12-24..31 bills 55 kWh at **0p/kWh**: commodity
+  £0, non-commodity £0, standing charge £3.22, total £3.38. Its next month bills £6.31 a day.
+  The account-year's gross margin is £3.22, the standing charge exactly. These are B7 void rows:
+  `as_void_row` (sim/customer_state_layer.py) zeroes the energy and leaves the owner's standing
+  charge. `OCC-b7693802f91c` 2016-12-26..31 is the same shape (34 kWh at 0p, £1.21).
+- **Why 0p.** The company cannot see the void. With no read it estimates the period from the
+  registry EAC (`opening_estimate_kwh`), as it should. But `build_monthly_bills` prices the
+  estimate by scaling the true records, and only when `true_kwh > 0`. Otherwise it falls back to
+  the true bill. The code calls that branch "rare". So a void stub prints the estimate and charges
+  the truth, and whether the estimate is priced depends on a fact only the world holds.
+- **How many.** 60 invoices on the 2248e3baf ledger price a positive kWh at 0p, all OCC: 57 are
+  opening stubs and 3 are second invoices where the void runs on. Together they hold 11,447 kWh,
+  and 35 sit inside a later catch-up window. 57 OCC opening stubs bill under 30% of their next
+  month's daily rate; no PROS or C account does.
+- **Why it inverts.** Raw stub totals sit just above margin (£3.38 vs £3.22). The over-estimate
+  credit at the next actual read (−£98.62 over 2022-12-24..2023-09-30) is spread by day, so the
+  stub takes a share although it over-billed nothing. Netted, it falls to £0.57.
+
+**The repair is D46's next slice, and it is a choice, not a patch.** The estimate needs a rate the
+company can name. From 2019 the cap is the default tariff's price (`get_cap_unit_rate_for_date`).
+Before 2019 there is no cap; the company's own default tariff is the rate, and today it reaches
+only renewals (`own_default_tariff_inc_vat_gbp_per_mwh` through company/interfaces/renewal_rate_chain.py),
+never `build_monthly_bills`. Prediction for when the repair lands, written before it exists: the
+60 invoices rise by estimate × default rate × (1+VAT). The next actual read credits that back,
+because the void's true kWh is 0, so run totals move by pennies outside held runs. Both OCC
+inversions clear with no change to the test's netting. Until then the two rows stay in
+`KNOWN_OPEN_INVERSIONS`, under a reason that now names the void.
