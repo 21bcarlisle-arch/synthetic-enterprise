@@ -82,7 +82,9 @@ items:
     times_listed: 41
     fate: fix
     owner: "docs/staging/done/SEAT_FINDING_A_HOLD_OR_A_TOMBSTONE_STATES_ITS_CONDITION_IN_PROSE_AND_NOTHING_RE_ASKS_IT_2026-10-07.md"
-    status: open
+    status: already_fixed
+    fixed_by: "56d7cf77b"
+    reason: "2026-10-16: 56d7cf77b lists in the brief every hold naming an atom at target or closed; its control holds the C29/B10 fixture with an open-premise twin and fails when the stale hold goes unlisted. The DONE's commit leg is unbuilt and has no instance: all 7 shas in the 32 live holds are on origin, cited as evidence, none awaited."
   - id: a-bounded-executor-turn-resets-over-unlanded-work
     problem: "An executor turn that hits its limit leaves finished work that the next tick resets over."
     match: ["bounded executor turn", "finished, unlanded work"]
