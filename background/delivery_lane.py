@@ -1027,10 +1027,16 @@ def drawn_without_landing(cutoff: float | None = None, now: float | None = None,
         drawn = float(row.get("last_drawn_at") or 0.0)
         if drawn < floor or stamp - drawn < CLAIM_STALE_SECONDS:
             continue
-        if float(row.get("last_landing_at") or 0.0) >= drawn:
+        refused = row.get(TOMBSTONE_REFUSED) or {}
+        # A RELEASE THE TOMBSTONE REFUSED IS LISTED EVEN OVER A LEDGER LANDING: that landing is the
+        # one `focus_tombstone_refusal` found no commit on origin for.
+        if (float(row.get("last_landing_at") or 0.0) >= drawn
+                and float(refused.get("at") or 0.0) < drawn):
             continue
         out.append({"id": str(fid), "drawn_at": drawn,
                     "hours_since_draw": round((stamp - drawn) / 3600.0, 1),
+                    **({"released": f"{RETIRED_WITHOUT_A_LANDING}: {refused.get('reason', '')}"}
+                       if float(refused.get("at") or 0.0) >= drawn else {}),
                     **_disposition(row, drawn, focus_id=str(fid),
                                    bound_at=_bound_by(ledger))})
     return sorted(out, key=lambda r: r["drawn_at"], reverse=True)
@@ -3339,24 +3345,79 @@ def release_refusal_reason(focus_id: str, *, path: Path | None = None) -> str:
         return f"the reason could not be derived ({exc.__class__.__name__}: {exc})"
 
 
+def _origin_binding_commit(focus_id: str, ledger: dict) -> str:
+    """The sha of a commit ON ORIGIN/MAIN that binds `focus_id`, or "" when none does.
+
+    `_binds_item` decides what binds (a `--landed` bind to this id, or the id in the message); this
+    asks it only of commits already published, so a landing bound from a worktree whose promotion
+    never ran is not a finished row. Candidates are the commits at the bound instant and the
+    commits whose message names the id -- the only two shapes `_binds_item` can say yes to.
+    """
+    row = ledger.get(focus_id) or {}
+    when = float(row.get("last_landing_at") or 0.0)
+    # THIS ROW'S OWN BIND, restated: `_bound_by` keeps one holder per instant, so a commit that
+    # finished two rows reads as the other row's (measured: `99b9517f3`, on origin, bound to two).
+    bound_by = {**_bound_by(ledger), **({when: focus_id} if when > 0.0 else {})}
+    candidates = []
+    if when > 0.0:
+        stamp = str(int(when))
+        candidates += (_git("log", PUBLISHED_REF, "--format=%H %ct", f"--since=@{stamp}",
+                            f"--until=@{stamp}") or "").splitlines()
+    candidates += (_git("log", PUBLISHED_REF, "--format=%H %ct", "-F", f"--grep={focus_id}")
+                   or "").splitlines()
+    for line in candidates:
+        sha, _, ct = line.strip().partition(" ")
+        if sha and ct and _binds_item(focus_id, sha, float(ct), bound_by):
+            return sha
+    return ""
+
+
 def focus_tombstone_refusal(focus_id: str, path: Path | None = None) -> str | None:
     """Why a focus row may NOT be tombstoned yet, or None when its DONE has evidence.
 
     A tombstone retires a focus row on the releasing tick's word alone, and nothing asked whether
-    the row's DONE was met (`a-tombstone-retires-a-row-without-checking-its-done`, listed 11 times).
-    A focus row states its DONE in prose, so the evidence asked for is the one the lane already
-    records: a landing bound to the id (`--landed`), or a premise recorded spent (`--premise-spent`).
-    Without either, the release still frees the claim, but the row stays offerable, so a row
-    released on a belief is drawn again rather than silently retired."""
+    the row's DONE was met (`a-tombstone-retires-a-row-without-checking-its-done`, listed 16 times).
+    A focus row states its DONE in prose, so the evidence asked for is a commit ON ORIGIN that binds
+    the id (`_origin_binding_commit`), or a premise recorded spent (`--premise-spent`, which already
+    refuses an unpublished spender). Without either, the release still frees the claim, but the row
+    stays offerable, so a row released on a belief is drawn again rather than silently retired.
+
+    A LEDGER LANDING IS NOT ENOUGH (corrected 2026-10-16, beside the 2026-10-15 version that took
+    `last_landing_at`): `--landed` binds a commit made in a worktree before it is promoted, so the
+    ledger can carry a landing origin never received."""
     try:
-        row = (claims_mod._load(_ledger_path(path or CLAIMS_FILE)) or {}).get(focus_id) or {}
+        ledger = claims_mod._load(_ledger_path(path or CLAIMS_FILE)) or {}
     except Exception as exc:  # noqa: BLE001 -- an unreadable ledger is not evidence
         return f"the draw ledger could not be read ({exc}), so nothing shows its DONE is met"
-    if row.get("last_landing_at") or row.get(PREMISE_SPENT):
+    row = ledger.get(focus_id) or {}
+    if row.get(PREMISE_SPENT) or _origin_binding_commit(focus_id, ledger):
         return None
+    if row.get("last_landing_at"):
+        return ("a landing is bound to it in the ledger but no commit on origin/main binds it, so "
+                f"its DONE is not shown met. Promote the landing (promote_worktree_landing "
+                f"--work-id {focus_id}), then release")
     return ("no landing is bound to it and no spent premise is recorded, so nothing shows its DONE "
             f"is met. Bind the landing first (--landed {focus_id} --commit <sha>) or record "
             f"--premise-spent {focus_id} <commit> <reason>, then release")
+
+
+def _remember_tombstone_refusal(focus_id: str, reason: str, path: Path | None = None) -> None:
+    """Put a refused tombstone on the ledger row, so the brief can say the row was retired without
+    a landing rather than list it as one more silent miss. Never raises."""
+    try:
+        ledger_path = _ledger_path(path or CLAIMS_FILE)
+        ledger = claims_mod._load(ledger_path)
+        row = ledger.get(focus_id)
+        if isinstance(row, dict):
+            row[TOMBSTONE_REFUSED] = {"at": time.time(), "reason": reason}
+            claims_mod._save(ledger, ledger_path)
+    except Exception:  # noqa: BLE001
+        return
+
+
+#: The ledger key a refused tombstone writes, and the brief's word for it.
+TOMBSTONE_REFUSED = "tombstone_refused"
+RETIRED_WITHOUT_A_LANDING = "retired without a landing"
 
 
 def retire_continuation(focus_id: str, *, path: Path | None = None) -> bool:
@@ -3420,7 +3481,9 @@ def retire_continuation(focus_id: str, *, path: Path | None = None) -> bool:
         # The offerable focus list is exactly the population that can be RE-DRAWN, which is the
         # only population a tombstone can save anything for.
         if any(i.get("id") == focus_id for i in direction_mod.unreachable_focus(_atom_ids())):
-            if focus_tombstone_refusal(focus_id):
+            refusal = focus_tombstone_refusal(focus_id)
+            if refusal:
+                _remember_tombstone_refusal(focus_id, refusal)
                 return False
             return seat_continuation.retire_focus_row(
                 focus_id, orientation=orientation, path=path)

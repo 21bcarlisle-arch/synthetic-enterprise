@@ -2,6 +2,7 @@
 
 # A hold or a tombstone states its condition in prose, and nothing re-asks it
 
+**Fate (2026-10-16):** DONE, tombstone leg tightened -- the 2026-10-15 evidence was a LEDGER landing, which `--landed` writes for a worktree commit before promotion, so a row could still be retired on work origin never received. `delivery_lane.focus_tombstone_refusal` now needs a commit on origin/main that `_binds_item` credits to the id (or a spent premise); a refused row stays live, its ledger row carries `tombstone_refused`, and the brief lists it as "retired without a landing". Control: `test_a_focus_row_is_tombstoned_only_when_a_commit_on_origin_binds_it`. `wrong_triage.yaml` row `a-tombstone-retires-a-row-without-checking-its-done` set already_fixed.
 **Fate (2026-10-15):** DONE -- both defects closed 2026-10-15: holds are re-asked in the seat's brief (background/stale_holds.py) and a focus-row tombstone needs DONE evidence (delivery_lane.focus_tombstone_refusal).
 **Fate (2026-10-12, clear-the-decks):** ATOM -- no mechanism found re-grading block_reason on premise change or checking tombstone DONE before retiring a row (P3)
 
