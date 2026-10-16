@@ -374,9 +374,26 @@ def last_orientation() -> dict | None:
     return rows[0] if rows else None
 
 
+#: How far back `last_written_record` looks: at one row per 3h tick, about two months of skips.
+WRITTEN_RECORD_LOOKBACK_ROWS = 500
+
+
+def last_written_record(rows: list[dict] | None = None) -> dict | None:
+    """The most recent row whose session WROTE a direction record (`outcome == "oriented"`).
+
+    NOT `last_orientation`. A skip row carries no `focus` and no `wrong`, and under tick mode slow
+    the seat skips three ticks in four -- so on 2026-10-16 the brief read the 05:21Z skip as "the
+    last orientation", cut the stretch since the 17:25Z record (17 commits) down to 3h and one
+    commit, and graded the steer as "no previous focus" while four focus items were live. The
+    stretch the seat is asked about is the one since it last steered, not since it last ticked."""
+    if rows is None:
+        rows = direction_mod.read_decisions(limit=WRITTEN_RECORD_LOOKBACK_ROWS)
+    return next((r for r in rows if r.get("outcome") == "oriented"), None)
+
+
 def stretch_since(now: datetime | None = None) -> datetime:
     now = now or datetime.now(timezone.utc)
-    row = last_orientation()
+    row = last_written_record()
     stamp = direction_mod._iso((row or {}).get("at"))
     if stamp is None:
         from datetime import timedelta
@@ -1636,7 +1653,8 @@ def build_brief(now: datetime | None = None) -> dict:
     since = stretch_since(now)
     divergence = branch_divergence()
     commits = commits_since(since)
-    previous = last_orientation() or {}
+    previous = last_written_record() or {}
+    last_tick = last_orientation() or {}
     prev_levels = previous.get("map_levels") or {}
     levels = map_levels()
     moved = {aid: [prev_levels.get(aid), lvl] for aid, lvl in levels.items()
@@ -1646,6 +1664,9 @@ def build_brief(now: datetime | None = None) -> dict:
     return {
         "now": now.isoformat(),
         "since": since.isoformat(),
+        # THE OTHER WINDOW, SIDE BY SIDE: `since` is the last WRITTEN record; this is the last
+        # tick of any outcome, so a reader can see how many skips the stretch spans.
+        "last_tick": {"at": last_tick.get("at"), "outcome": last_tick.get("outcome")},
         # FIRST, AND BEFORE `commits`, ON PURPOSE. The brief reaches the orienting session as
         # `json.dumps(...)[:60_000]` -- a truncation whose victim is whatever sorts last -- and the
         # statement that the reading covers both sides of a divergence is worth nothing if the
