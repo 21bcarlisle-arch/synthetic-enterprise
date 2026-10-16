@@ -129,7 +129,7 @@ credit, or an OCC account with no opening DD).
    - The duty of effort itself is unmodelled. The sister page records why: the world has no
      read-access response, so a request has nothing to act on (`read_access_and_theft_duties.md`,
      "What this says about the order of work", item 3).
-4. **The smallest company mechanism (proposed, not built).**
+4. **The smallest company mechanism (built 2026-10-16; graded below).**
    - A 21B.4 register: one row per account each time a run of estimates reaches 12 months without
      a read. The company can see it from `consecutive_estimated_count`, and the trigger is the
      licence's own year, not a picked number.
@@ -169,3 +169,42 @@ credit, or an OCC account with no opening DD).
 - **Prepayment accounts on long runs of estimated bills.** There are 37 such runs (3 never read), with catch-ups
   graded pay-on-bill. 21B.4 and 21B.5 exclude prepayment, and a prepayment customer pays at the
   meter, so an estimated *bill* for one is a question in itself. Not traced.
+
+## The 21B.4 register: prediction before it was run (item 4 built)
+
+> Pre-registered 2026-10-16T17:35:34Z, before the register was run on the published run
+> `run_output_2248e3baf_20261013T134447Z`. Seen beforehand: this finding's census (287 runs over
+> 12 bills, on 245 accounts; 37 of them on prepayment) and the bill fields
+> (`consecutive_estimated_count`, `payment_channel`). No count of runs of exactly 12 was taken.
+>
+> The register writes a row on the bill whose `consecutive_estimated_count` reaches 12: a year of
+> monthly bills since the last actual read, or since supply began. A run of 12 estimates means the
+> next read can come no sooner than 13 months after the last one, so it is past the licence's year.
+> The census counted runs of MORE than 12 (`read_true_up_periods > 12`, or open at the end).
+>
+> - P1. Rows = 287 + the runs of exactly 12 estimates. So rows > 287, and I expect 300-345.
+> - P2. Accounts with a row >= 245, and I expect 250-290.
+> - P3. Every census run gets exactly one row, and no row falls on a run the census did not count
+>   other than a run of exactly 12.
+> - P4. Rows on prepayment, where 21B.4 does not apply, are >= 37 (the census's prepayment runs plus
+>   any of exactly 12). They are kept but not counted as the duty's.
+
+| | Result |
+|---|---|
+| P1 | **The identity held; the range was refuted.** Rows = 355 = 287 + 68 runs of exactly 12. I expected 13-58 runs of exactly 12 and there are 68, so 355 is above my 300-345 range. Runs of exactly 12 are the commonest length past the year, which the census's 262 runs of 13-23 months did not show because it started at 13 |
+| P2 | **Held.** 285 accounts, inside 250-290 |
+| P3 | **Held.** An independent walk of each account's bills, counting estimates in a row, finds 355 runs of 12 or more and agrees with `consecutive_estimated_count` on every estimated bill. Each run gets one row, at its 12th estimate |
+| P4 | **Held.** 45 rows are on prepayment (32 electricity, 13 gas), above the census's 37, and are kept out of the duty's count |
+
+**What is published.** Within the duty: 310 rows on 248 accounts (electricity 196 on 158, gas 114
+on 90). The /capabilities/ page shows these beside K2's snapshot, which at 2025-06 finds 6 of 195
+electricity and 7 of 113 gas accounts on supply with no read bill in their last 12. The snapshot
+asks of one month. The register counts every year that passed over the run. The feed
+(`site/data/billing_accuracy.json`) was regenerated from the published run by `published_view` and
+changed by that key alone. No ledger was regenerated.
+
+**What it is not.** It records the year. It does not make the effort the duty asks for, and no bill
+or read changed. The chase before the year is the GAP on `read_access_and_theft_duties.md` §2.6.
+Mechanism: `company/billing/read_duty_register.py`. Control:
+`tests/company/billing/test_read_duty_register.py` (runs of 11, 12 and 13 through
+`build_monthly_bills`; the trigger at 11 or 13, and `<` for `!=`, each red it).

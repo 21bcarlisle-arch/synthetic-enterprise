@@ -318,6 +318,21 @@
     0.052000000000000046,
     0.05600000000000005
   ],
+  "read_duty_register": {
+    "by_fuel": {
+      "electricity": {
+        "accounts": 158,
+        "prepayment_rows": 32,
+        "rows": 196
+      },
+      "gas": {
+        "accounts": 90,
+        "prepayment_rows": 13,
+        "rows": 114
+      }
+    },
+    "year_bills": 12
+  },
   "snapshot_month": "2025-06",
   "source": "run_output_2248e3baf_20261013T134447Z.json"
 }

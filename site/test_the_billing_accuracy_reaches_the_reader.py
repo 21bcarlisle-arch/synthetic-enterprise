@@ -15,6 +15,7 @@ R15 -- the mutations, each run and reverted:
   * drop the `billacc-example` render -> `test_one_named_account_reaches_the_reader` reds.
   * render the DD money line without its intervals -> `test_the_dd_money_line_reaches_the_reader_with_its_bound` reds.
   * render the DD barred money in the fuels table -> `test_the_dd_money_line_is_never_a_row_of_the_k3_table` reds.
+  * drop the `billacc-readduty` render, or count prepayment rows as the duty's -> `test_the_read_duty_register_reaches_the_reader_beside_the_snapshot` reds.
 The null rung, `test_an_unavailable_feed_renders_an_absence_and_never_a_zero`, stays green
 through all four.
 """
@@ -33,7 +34,8 @@ SITE = Path(__file__).resolve().parent
 HARNESS = SITE / "_live_harness.mjs"
 DOOR_REL = "site/capabilities/index.html"
 FEED_REL = "site/data/billing_accuracy.json"
-PANELS = ("billacc-fuels", "billacc-dd", "billacc-snapshot", "billacc-yearend", "billacc-example", "billacc-note")
+PANELS = ("billacc-fuels", "billacc-dd", "billacc-snapshot", "billacc-readduty", "billacc-yearend",
+          "billacc-example", "billacc-note")
 
 
 def _text(fragment: str) -> str:
@@ -74,7 +76,14 @@ _DD_LINE = {
 }
 
 
-def _feed(dd_line: dict | None = _DD_LINE) -> dict:
+def _year_unread(cid: str, channel: str) -> list[dict]:
+    """Twelve estimated bills in a row on one account: one register row."""
+    return [{"customer_id": cid, "commodity": "electricity", "billing_basis": "estimated",
+             "period_end": f"2024-{m:02d}-28", "consecutive_estimated_count": m,
+             "payment_channel": channel} for m in range(1, 13)]
+
+
+def _feed(dd_line: dict | None = _DD_LINE, read_duty: bool = True) -> dict:
     """An available feed in the shape `published_view` writes: the decade capture's electricity
     snapshot (2 of 48) and one year-end grade."""
     from company.billing.billing_accuracy import published_view
@@ -95,11 +104,19 @@ def _feed(dd_line: dict | None = _DD_LINE) -> dict:
                "estimated_bills": 87, "longest_run_without_read_bill": 22, "true_ups": 16,
                "true_up_kwh": 820.0, "undercharge_kwh": 6784.0, "overcharge_kwh": 5964.0,
                "barred_kwh": 1401.0}
-    return published_view({"kinds": {"K2": "k2"}, "snapshot_month": "2025-06",
+    from company.billing.read_duty_register import read_duty_summary
+
+    view = published_view({"kinds": {"K2": "k2"}, "snapshot_month": "2025-06",
                            "by_fuel": {"electricity": fuel},
                            "K1_year_end_grades": {"electricity": [grade]},
                            "accounts": [account], "direct_debit_money_line": dd_line},
                           "run_output_test.json")
+    if read_duty:
+        # Set beside the view rather than handed in as `bills`, which would re-grade K1 above.
+        view["read_duty_register"] = read_duty_summary(
+            _year_unread("A", "direct_debit") + _year_unread("B", "standard_credit")
+            + _year_unread("P", "prepayment"))
+    return view
 
 
 @pytest.fixture(scope="module")
@@ -164,3 +181,22 @@ def test_a_feed_without_the_dd_line_renders_its_absence_and_never_a_zero():
     text = _render(_feed(dd_line=None))["billacc-dd"]
     assert "absent rather than zero" in text and "appear at the next run" in text
     assert "£" not in text
+
+
+def test_the_read_duty_register_reaches_the_reader_beside_the_snapshot(shown):
+    """K2's snapshot asks of one month; the SLC 21B.4 register counts every year a run of estimates
+    passed without a read (2026-10-16). Fires on: the panel dropped, the prepayment rows counted as
+    the duty's, or their count unshown."""
+    text = shown["billacc-readduty"]
+    assert "electricity: 2 times, on 2 accounts" in text
+    assert "SLC 21B.4" in text and "(1 electricity)" in text
+
+
+def test_a_feed_without_the_read_duty_register_renders_its_absence_and_never_a_zero():
+    from company.billing.billing_accuracy import published_view
+
+    feed = _feed(read_duty=False)
+    assert feed["read_duty_register"]["available"] is False  # no bills handed to the publish
+    text = _render(feed)["billacc-readduty"]
+    assert "absent rather than zero" in text and "times" not in text
+    assert published_view(None)["available"] is False

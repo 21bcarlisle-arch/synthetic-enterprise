@@ -4690,6 +4690,7 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
   <div id="billacc-fuels"></div>
   <p id="billacc-dd" style="margin:14px 0 0;"></p>
   <p id="billacc-snapshot" style="margin:14px 0 0;"></p>
+  <p id="billacc-readduty" style="margin:14px 0 0;"></p>
   <div id="billacc-yearend"></div>
   <p id="billacc-example" style="margin:14px 0 0;font-size:13px;"></p>
   <p id="billacc-note" class="stamp" style="margin-top:12px;"></p>
@@ -4793,6 +4794,23 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
         + ". Published median supplier (Ofgem 2018, citing Citizens Advice, 2017): "
         + pct(band[0]) + " to " + pct(band[1]) + ". Accounts with fewer than twelve bills are left "
         + "out, because a twelve-month window cannot be read on them.";
+      /* The snapshot asks of one month; the SLC 21B.4 register counts every year that passed. */
+      var rd = d.read_duty_register || {};
+      $("billacc-readduty").innerHTML = "<strong>A year past the last read, over the whole run."
+        + "</strong> "
+        + (rd.available === false || !rd.by_fuel
+          ? "Not available, so absent rather than zero. " + esc(rd.reason)
+          : Object.keys(rd.by_fuel).sort().map(function (f) {
+            var r = rd.by_fuel[f];
+            return esc(f) + ": " + esc(r.rows) + " times, on " + esc(r.accounts) + " accounts";
+          }).join("; ")
+          + ". Each is a run of " + esc(rd.year_bills) + " estimated bills in a row with no "
+          + "actual read. The licence (SLC 21B.4) asks a supplier to take all reasonable steps to "
+          + "get a read at least once a year. This supplier keeps no record of any step, so each "
+          + "is a year it cannot show it tried. Prepayment is outside that duty and is left out ("
+          + Object.keys(rd.by_fuel).sort().map(function (f) {
+            return esc(rd.by_fuel[f].prepayment_rows) + " " + esc(f);
+          }).join(", ") + "). The figure above asks only of the accounts on supply in one month.");
       $("billacc-yearend").innerHTML = table(
         "At each year end: what was billed on estimates and still open, and what the next read showed",
         ["", "Year end", "Open on estimate", "Runs graded", "Runs never read",

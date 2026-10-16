@@ -244,6 +244,42 @@ installation on debt**: 94,201 in 2022, 70% of them by three suppliers [H].
   court directions treat a warrant as the normal remedy for an unread meter [H, by absence in both
   texts]. The remedy Ofgem names is the supplier's own read attempt (§2.4).
 
+### 2.6 The company's 21B.4 register (built 2026-10-16)
+
+**What the licence asks.** SLC 21B.4 (§2.1) is a duty of *effort*, not of outcome: all reasonable
+steps to obtain a read at least once every year, a customer's own read and a smart meter's
+transmitted read counting, prepayment excluded. A year without a read is therefore not by itself a
+breach. It is a year in which the supplier must be able to show the steps it took. Before 2026-10-16
+the company took none and recorded none, and nothing in `company/` read the count of estimated bills
+in a row, so it could not even see the year pass.
+
+**What the register does** (`company/billing/read_duty_register.py`):
+- One dated row per account each time a run of estimated bills reaches **12 in a row**, read from
+  the bill's own `consecutive_estimated_count`. Twelve monthly bills is the licence's year, the same
+  equivalence `billing_accuracy.NO_READ_BILL_RUN` uses for the Citizens Advice window. After the 12th
+  estimate the next read is at least 13 months after the last one. The trigger is the licence's own
+  period, not a chosen threshold.
+- A run counts once however long it goes on: a run of 30 estimates writes one row, at its 12th.
+- A prepayment account's row is kept, marked `duty_applies` false, and left out of the duty's count.
+- **It records only.** It changes no bill, read or estimate, and needs no world change. A run with it
+  bills byte-for-byte as one without it.
+- It is published beside K2's snapshot on /capabilities/. The snapshot asks of the accounts on supply
+  in one month whether their last 12 bills held a read. The register counts every year that passed
+  over the whole run.
+
+**On the published run** (`run_output_2248e3baf_20261013T134447Z`): 355 rows on 285 accounts. 310
+rows on 248 accounts are within the duty (196 electricity on 158 accounts, 114 gas on 90), and 45
+are prepayment. The C7 finding's census of runs longer than 12 bills found 287. The other 68 are runs
+of exactly 12, which are also past the year.
+
+**GAP: the chase before the year.** When in a run a supplier first asks for a read, and by what
+means (a letter, a text, a self-read prompt, an area round at £3 or an appointment at £17.50, §2.1),
+is practice, not published rule. "Reasonable steps" is not defined in the condition. Ofgem's 2018
+decision names the supplier's own read attempt as the remedy (§2.4) and does not give a schedule. It
+is a practitioner question. It also waits on the world: a request changes nothing until a household
+can answer it (order of work, item 3). Until both exist, the register's row is the only thing the
+company does at the year, and it does not stand in for the effort the duty asks for.
+
 ## 3. Theft
 
 ### 3.1 The duties
@@ -481,6 +517,7 @@ module name outside `tests/`.
 | `company/billing/ppm_warrant_register.py` | **None** | "Ofgem banned force-fitting from April 2023" is **wrong**. Listing was suspended on 6 Feb 2023, rules were strengthened in Nov 2023, and involuntary PPM restarted in Jan 2024 (§2.5). The £200 minimum debt is unsourced. |
 | `company/billing/back_billing.py` | Yes, via `_resolve_catchup` | The cap is right (21BA, 365 days, microbusiness corrected). **Missing:** no 21BA.2(c) path. `BackBillingReason` has no obstruction or theft reason, so every long catch-up is capped. That is correct for today's world, which has no obstruction. It becomes wrong the day theft or refusal is generated. |
 | `company/billing/meter_assets.py` | `company/carbon/half_hourly_footprint.py` | Certification periods (TRAD 10, SMETS 15, AMR 7 years) are unsourced. `days_until_cert` reads **`date.today()`**, the wall clock, inside company code. It has no last-read or last-visit date, so it cannot carry the read history Ofgem relies on. |
+| `company/billing/read_duty_register.py` (added 2026-10-16) | `billing_accuracy.published_view`, at publish | Records each year a run of estimates passes without a read (§2.6). It is a record, not the effort SLC 21B.4 asks for. No read attempt is made or recorded. |
 | `company/compliance/obligations_register.py` (`theft_revenue_protection_conduct`) | Register | Names SLC 12A only as "Ofgem SLC (theft)". Its trackers are the two unreached modules above. |
 
 **Atoms.**

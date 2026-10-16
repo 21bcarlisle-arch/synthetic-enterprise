@@ -55,6 +55,8 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 
+from company.billing.read_duty_register import read_duty_summary
+
 __all__ = [
     "KINDS", "NO_READ_BILL_RUN", "PUBLISHED_MEDIAN_SUPPLIER_SHARE_NO_READ_BILL_IN_12",
     "account_billing_accuracy", "billing_accuracy_summary", "direct_debit_money_line",
@@ -275,7 +277,8 @@ def published_view(summary: dict | None, source: str | None = None,
     reason, never as zeros.
 
     `bills`, when given, are the run's own bills: K1 is then graded from them by this code, so a
-    run output that predates a grade field (the largest run's share) still publishes it."""
+    run output that predates a grade field (the largest run's share) still publishes it. The SLC
+    21B.4 register (`read_duty_register`) is read from the same bills, and is absent without them."""
     if not summary or not summary.get("by_fuel"):
         return {"available": False, "source": source, "reason": (
             "the run output this publish read carries no billing-accuracy measure, so there is "
@@ -309,6 +312,10 @@ def published_view(summary: dict | None, source: str | None = None,
                 for g in k1.get(fuel, [])
             ],
         }
+    # The SLC 21B.4 register, read from the run's own bills at publish time like K1, so the
+    # published run carries it without a re-run.
+    read_duty = (read_duty_summary(bills) if bills else {"available": False, "reason": (
+        "the publish was handed no bills, and the register is read from them")})
     rows = summary.get("accounts") or []
     example = max(rows, key=lambda r: (r["barred_kwh"], abs(r["true_up_kwh"])), default=None)
     return {
@@ -319,6 +326,7 @@ def published_view(summary: dict | None, source: str | None = None,
         "by_fuel": fuels, "example_account": example,
         "direct_debit_money_line": summary.get("direct_debit_money_line")
         or direct_debit_money_line(None),
+        "read_duty_register": read_duty,
     }
 
 
