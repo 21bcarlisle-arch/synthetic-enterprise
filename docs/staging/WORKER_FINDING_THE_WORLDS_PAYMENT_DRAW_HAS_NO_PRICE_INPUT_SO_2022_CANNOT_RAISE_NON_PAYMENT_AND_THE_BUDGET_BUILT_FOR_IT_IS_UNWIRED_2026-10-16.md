@@ -11,7 +11,10 @@ taken blind to company results.*
 `simulation/arrears_engine.payment_outcome`, reached through
 `simulation/payment_behaviour_source.generate_payment_event` from
 `background/live_payment_triad.py`. Its failure probability is a function of income-stress tier
-alone. The bill's size, the price and the household's budget are not inputs to it. The one
+alone. The bill's size, the price and the household's budget are not inputs to it. **The
+yearly table below shows that the larger defect is in the same layer:** each bill is an
+independent coin, so a world debtor misses about one bill and resumes. World pounds per account
+behind are 9-14× below Ofgem's in every year. The one
 mechanism written so that "a crisis-era bad-debt step-up can EMERGE from income-minus-essentials
 arithmetic" is `simulation/household_budget.py` (W2_4). No payment path reads it.
 
@@ -69,18 +72,87 @@ draw cannot see it.
 
 ## The world beside the published series, by year
 
-*Capture running: `tools.grade_world_debt_against_ofgem capture` to 2024-12-31, default dice,
-wrapped to keep each bill's amount and stress (`/var/tmp/nonpay2022/capture_with_amounts.py`).
-The table lands in the next commit. The predictions below were written before it existed
-(`/var/tmp/nonpay2022/PREREG.md`, 2026-10-16T18:19Z).*
+**Instrument.** `tools.grade_world_debt_against_ofgem capture` to 2024-12-31, default dice, at
+c5963a5c0 (5,500 s). It is wrapped to keep each bill's amount and stress, and changes no draw
+(`/var/tmp/nonpay2022/capture_with_amounts.py`; reader `read_years.py`, `serial.py`). It reads
+the world's own payment truth, not the company's ledger. One seed, about 250 electricity accounts
+a year, so one account moves the share by about 0.4 points.
 
-- **P1, heads.** The world's Q4 2022 share behind is within ±1.5 points of its Q4 2021 share.
-- **P2, pounds.** World GBP per account behind at Q4 2022 is at least 1.3× Q4 2021: unpaid bills
-  are bigger, so intensity rises with the bill and not with incidence.
-- **P3, level.** The world's share stays above Ofgem arrears + debt (about 4.3-6.3%) in every year
-  2017-2024.
-- **P4, persistence.** World GBP per account behind at Q4 2023 is below 1.2× Q4 2022, because
-  crisis debt clears inside the run. Ofgem's no-plan average rises 1,028 → 1,303 (×1.27).
+**Definition.** Electricity at Q4: accounts billed in December holding a bill due at least
+91 days before 31 December and still unpaid. "GBP aged" is the sum of those bills. Ofgem's
+denominator is derived: 694,191 = 2.45% at Q4 2019 and 1,064,138 = 3.6% at Q1 2025, linear
+between them.
+
+| Q4 | World billed | Behind | World share (95% CI, account-clustered) | World GBP per account behind, aged | Stress moderate+high | Ofgem arrears | Ofgem arrears + debt | Ofgem GBP per account, arrears | Ofgem GBP per account, arrears + debt |
+|---|---|---|---|---|---|---|---|---|---|
+| 2016 | 419 | 6 | 1.4% (0.5-2.6) | 47 | 8% | 1.84% | 4.31% | 570 | 488 |
+| 2017 | 361 | 17 | 4.7% (2.8-6.9) | 43 | 10% | 2.16% | 4.51% | 555 | 496 |
+| 2018 | 322 | 11 | 3.4% (1.6-5.6) | 46 | 12% | 2.31% | 4.66% | 589 | 522 |
+| 2019 | 276 | 19 | 6.9% (4.0-10.1) | 45 | 13% | 2.45% | 5.06% | 654 | 553 |
+| 2020 | 252 | 19 | 7.5% (4.4-11.1) | 60 | 14% | 2.46% | 5.00% | 774 | 630 |
+| 2021 | 243 | 17 | 7.0% (4.1-10.3) | 58 | 15% | 2.69% | 6.09% | 905 | 637 |
+| **2022** | 256 | 25 | **9.8% (6.2-13.7)** | **71** | 16% | 2.68% | 5.70% | **1,028** | 764 |
+| 2023 | 266 | 26 | 9.8% (6.4-13.5) | 102 | 18% | 3.44% | 6.01% | 1,303 | 1,035 |
+| 2024 | 275 | 22 | 8.0% (4.7-11.3) | 114 | 20% | 3.54% | 6.29% | 1,617 | 1,223 |
+
+The quarters around the crisis, world share then GBP per account aged. Ofgem's arrears count
+rose sharply to 894,732 in Q2 2022, dipped to 663,189 in Q1 2023 under the EBSS and EPG, then
+reached 1,019,640 in Q3 2023.
+
+| Quarter | Q1 | Q2 | Q3 | Q4 |
+|---|---|---|---|---|
+| 2021 | 8.9%, £61 | 8.0%, £60 | 7.6%, £56 | 7.0%, £58 |
+| 2022 | 6.0%, £71 | **6.1%, £66** | 7.6%, £67 | 9.8%, £71 |
+| 2023 | 9.3%, £69 | 8.6%, £90 | 8.9%, £97 | 9.8%, £102 |
+
+How world debt is shaped, pooled over Q4 2017-2024 and all spells:
+- Aged unpaid bills per account behind: 1 bill 121 times, 2 bills 24, 3 bills 10, 5 bills 1.
+  **78% of world debtors are behind by exactly one bill.**
+- P(an unpaid spell starts in a month) = 0.0124. P(the next month is unpaid too, given this
+  month is) = 0.0217. **Non-payment is close to independent from month to month.**
+- 370 of 444 unpaid spells settle (83%), median 119 days. 74 are never paid.
+- The mean electricity monthly bill in the world is £49 in 2019 and £96 in 2022. Ofgem's average
+  arrears, £654 (2019) and £1,028 (2022), is about **11-13 months of that bill**. The world's is
+  about one month.
+
+### The predictions, beside what happened
+
+*Written at 18:19Z (`/var/tmp/nonpay2022/PREREG.md`), before the capture existed, and committed in
+91ad4cad8 before the table.*
+
+- **P1, heads: REFUTED.** Predicted: Q4 2022 within ±1.5 points of Q4 2021. Measured: 7.0% →
+  9.8% (+2.8 points). That is 17 → 25 accounts, and the two intervals overlap almost entirely.
+  Probe 1 shows the draw cannot respond to price, so the rise is noise plus the stress drift below.
+  It is not a crisis response. The world's quarterly shape is the opposite of the record: it
+  *falls* to 6.1% in Q2 2022, the quarter in which Ofgem's count jumped.
+- **P2, pounds: REFUTED.** Predicted: at least ×1.3. Measured: £58 → £71, ×1.22. The 91-day age
+  means the Q4 2022 stock is bills due by 1 October, which are the summer bills of the April cap.
+  The EPG winter bills reach the aged stock only in 2023.
+- **P3, level: REFUTED in one year.** Predicted: above arrears + debt in every year 2017-2024.
+  2018 is 3.4% against 4.66%. Every other year is above, but **2019's interval (4.0-10.1%) now
+  contains Ofgem's 5.06%**. The "about 2× high" of the 2026-10-08 finding was measured on earlier
+  code. On heads, the world is at most about 1.5× high and statistically indistinguishable in most
+  years.
+- **P4, persistence: REFUTED.** Predicted: Q4 2023 below 1.2× Q4 2022. Measured: £71 → £102,
+  ×1.44, against Ofgem's ×1.27. World pounds per account do climb through 2023-24, but from a base
+  a tenth of the record's, and because the bills are bigger, not because debt accumulates. One
+  bill is still one bill.
+
+**Stress drifts upwards for a decade:** moderate + high rises from 8% to 20% of the billed
+accounts, steadily, crisis or not. Life events push households into HIGH faster than
+`_INCOME_RECOVERY_ANNUAL_PROB` lets them out. FCA's share of adults with a negative life event is
+flat, at 19-22% (2017-2024). Recorded here, not ranked. It is the likeliest cause of the world's
+slow rise in heads.
+
+## What the table says the layer is
+
+The draw has no price input, and the probe proves that. **But the table says the bigger gap is
+the shape of non-payment, and the price channel comes second.** On heads, the world is in the
+record's range. On pounds per account behind, it is **9-14× low in every year**, crisis or not,
+because each world debtor misses one bill and resumes paying. Real arrears are a household that
+*stops paying* for many months. The 2022 crisis in Ofgem's series is that intensity growing
+("intensity, not incidence"). A world whose non-payment is an independent coin per bill cannot
+produce it at any price, so wiring price into that coin will not help.
 
 ## The fix, for a build after the publish, and its predicted effect
 
@@ -117,3 +189,45 @@ Two consequences follow, and both are themselves predictions:
 *Refutation:* if the build moves Q4 2022 heads by more than +1 point on pooled seeds, the
 proportional-stock assumption is wrong, and the tier's unpaid duration differs by tier. Say so
 beside this line.
+
+**Correction after the table (same day).** The measured stock share by December tier, pooled over
+Q4 2017-2024, is LOW 5.2% (101/1,926), MODERATE 11.3% (25/222) and HIGH 29.1% (30/103). That is
+1 : 2.2 : 5.6, not the 1 : 4 : 11.7 assumed above. So the tier-bump fix predicts less: +0.03 to
++0.1 points. More to the point, it keeps every debtor at about one bill, so it cannot touch the
+pounds gap. **It is the wrong fix.** It is kept above because it was filed before the table, and
+it is superseded by the fix below.
+
+## The fix, revised: the budget decides how much of the bill is paid, month after month
+
+**Mechanism, reusing what exists.** Each billed month, a credit-meter household's money for its
+debts is its discretionary margin, plus savings drawn down until they run out. That money goes
+through `household_budget.allocate_debt_payments` in its existing priority order, with energy
+inside the priority tier. The unpaid part of the energy bill stays unpaid and ages. It stays
+unpaid for as long as the margin stays negative, so a household under water misses month after
+month, and its arrears grow by about one bill each month. The independent per-bill draw stays as
+the transient-failure layer. Its LOW level was sourced as a first-presentation return rate, and
+that is what it should go on meaning.
+
+**What this costs, said first.** Households whose margin is negative before any shock (7.3%
+before 2022, 2.5% with savings under £1k) would also accumulate arrears in 2016-2021. So the
+pre-crisis level moves too, and it has to be graded against Ofgem's level and its pounds together
+(W2_38). The budget's ladder and housing draw are R10 shapes, so the knowledge page (K8) comes
+first. This is a fidelity change for after the publish, decided blind to company results.
+
+**Pre-registered (electricity, Q4, the definition above, pooled dice seeds, written before any
+build):**
+- **R1, pounds.** World GBP per account behind, aged, at Q4 2023 is between £200 and £400.
+  Today it is £102, against Ofgem's £1,303. The prediction is that the fix closes part of the gap,
+  not all of it. What is left is the cure: 83% of spells settle, at a median of 119 days.
+- **R2, crisis shape.** The ratio Q4 2023 / Q4 2021 of pounds per account behind stays at or
+  above the record's 1.44. Today it is 1.76, and that comes from bigger bills alone. Once
+  persistence carries part of the level, the bill-size effect becomes a smaller share of it.
+- **R3, heads.** The Q4 2022 share rises by +0.5 to +1.7 points over the no-fix world on the same
+  dice. That range runs from the newly crossing households with savings under £1k to all of
+  them. Q2 2022 no longer sits below Q4 2021.
+- **R4, the serial signature.** P(next month unpaid, given this month unpaid) rises from 0.022 to
+  at least 0.25 among the households the budget puts under water.
+
+*Refutation.* If R1 lands below £150, the budget's negative-margin population is too small or
+saves its way out, and the residual gap belongs to the cure. If R3 exceeds +3 points, the
+negative-margin share is too large for the record's heads, and the level comes first.
