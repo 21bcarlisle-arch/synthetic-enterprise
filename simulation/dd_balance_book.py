@@ -115,7 +115,9 @@ from company.interfaces.dd_review_outcome import (  # noqa: F401 -- REVIEW_RULES
     DEFAULT_REVIEW_RULE,
     REVIEW_RULES,
     forward_readings_by_fuel,
+    review_balance_step_up,
     review_forecast_inputs,
+    review_seeks_balance,
     reviewed_standing,
     simple_balance_after_window,
 )
@@ -182,6 +184,10 @@ class DDBalanceBook:
     #: what the supplier's books write off (`company/finance/accounting_close`). An exposure on an
     #: open account is not an action and is not here.
     bar_actions: list = field(default_factory=list)
+    #: One row per review that sought a debit balance -- `{customer_id, date, step_up_gbp}`, the
+    #: monthly amount the recovery added to the debit (the household's side of the trade). Not
+    #: serialised.
+    review_step_ups: list = field(default_factory=list)
     #: One row per DD account with a set debit -- `{customer_id, closed, met_recovery_action,
     #: barred_gbp, exposure_gbp}` -- so D48 can bound the bar over the accounts that could carry one
     #: (`company/billing/billing_accuracy.direct_debit_money_line`).
@@ -322,7 +328,7 @@ def build_dd_balance_book(
     bills: list[dict],
     opening_dd_gbp: Mapping[str, float] | None = None,
     closed_ids: set[str] | None = None,
-    seek_balance_at_review: bool = False,
+    seek_balance_at_review: bool | None = None,
     review_rule: str = DEFAULT_REVIEW_RULE,
     term_records: list[dict] | None = None,
     term_forwards: list[dict] | None = None,
@@ -349,8 +355,10 @@ def build_dd_balance_book(
     * the FINAL BILL of an account in ``closed_ids`` -> ``barred_at_final_bills_gbp``;
     * the ANNUAL REVIEW, only when ``seek_balance_at_review`` -- the review then raises the debit
       by a twelfth of the debit balance it finds, after writing off the barred part
-      -> ``barred_at_reviews_gbp``. Whether a GB supplier's review normally seeks the balance is
-      unpublished; the director ruled it an assumption toggle (2026-10-05). False is the review
+      -> ``barred_at_reviews_gbp``. Ofgem's 2 Feb 2023 DD compliance progress update says suppliers
+      "commonly" add a debit balance to the debit over the next 12 months; whether to is the
+      supplier's policy, so None (the default) asks the company
+      (``dd_review.REVIEW_SEEKS_BALANCE``) and the step-up is the company's too. False is the review
       as it was: it resets the debit to last year's spend and never asks for the balance, so the
       balance is first sought at the final bill and the trajectories are byte-identical;
     * an account still open at the run's end has had no action seeking its old balance, so its
@@ -396,6 +404,8 @@ def build_dd_balance_book(
         true_by_cust.setdefault(b["customer_id"], []).append((end, start, true_charge_of[id(b)]))
         bills_by_cust.setdefault(b["customer_id"], []).append(b)
 
+    if seek_balance_at_review is None:
+        seek_balance_at_review = review_seeks_balance()
     book = DDBalanceBook(seek_balance_at_review=seek_balance_at_review)
     forecasting = review_rule == "own_forecast_plus_balance" and term_records is not None
     terms_by_cust: dict[str, list[Mapping]] = {}
@@ -492,7 +502,10 @@ def build_dd_balance_book(
                     book.bar_actions.append({"customer_id": cid, "date": start.isoformat(),
                                              "amount_gbp": round(barred, 2), "action": "review"})
                 barred_here += barred
-                standing_dd_by_window[wi] += max(0.0, -balance) / 12.0
+                step_up = review_balance_step_up(-balance, True)
+                standing_dd_by_window[wi] += step_up
+                book.review_step_ups.append({"customer_id": cid, "date": start.isoformat(),
+                                             "step_up_gbp": round(step_up, 2)})
             prev_wi = wi
             # A level DD is collected MONTHLY however often the customer is
             # billed (C-S5). Collect one standing DD per month the bill period

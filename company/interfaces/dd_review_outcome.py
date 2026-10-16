@@ -99,9 +99,27 @@ __all__ = [
     "reviewed_monthly_amount",
     "reviewed_monthly_amount_at_rates",
     "review_forecast_inputs",
+    "review_balance_step_up",
+    "review_seeks_balance",
     "reviewed_standing",
     "simple_balance_after_window",
 ]
+
+
+def review_seeks_balance() -> bool:
+    """Whether the supplier's annual review asks for the debit balance it finds. The policy is the
+    supplier's (`company.billing.dd_review.REVIEW_SEEKS_BALANCE`); a run arm may override it."""
+    from company.billing.dd_review import REVIEW_SEEKS_BALANCE
+
+    return REVIEW_SEEKS_BALANCE
+
+
+def review_balance_step_up(debit: float, seeks_balance: bool | None = None) -> float:
+    """The amount the review adds to the monthly debit to recover a debit balance -- the figure on
+    the customer's letter. See `company.billing.dd_review.review_balance_step_up`."""
+    from company.billing.dd_review import review_balance_step_up as _step_up
+
+    return _step_up(debit, seeks_balance)
 
 
 def simple_balance_after_window(entering_balance: float, standing_amount: float, window_bills: list) -> float:

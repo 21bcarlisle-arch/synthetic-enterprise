@@ -159,3 +159,26 @@ def test_each_dd_account_carries_its_recovery_outcome_for_the_d48_money_line():
     assert row["closed"] is False and row["met_recovery_action"] is True
     assert row["exposure_gbp"] == round(book.barred_if_sought_at_run_end_gbp, 2) > 0
     assert row["barred_gbp"] == round(book.barred_at_reviews_gbp, 2) > 0
+
+
+def test_the_company_review_recovers_a_balance_it_seeks_and_loses_one_it_never_asks_for(monkeypatch):
+    # The account opens £10 short of a flat £100 use and closes after two years. The review that
+    # seeks the balance adds a twelfth of it to the debit (Ofgem, 2 Feb 2023: suppliers "smooth the
+    # cost over the next 12 months"), so the shortfall is collected before it ages; the review that
+    # never asks leaves it to the final bill, where 21BA bars it.
+    import company.billing.dd_review as desk
+
+    flat = _bills([100.0] * 24)
+    never = build_dd_balance_book(flat, {DD: 90.0}, {DD}, seek_balance_at_review=False)
+    seeks = build_dd_balance_book(flat, {DD: 90.0}, {DD}, seek_balance_at_review=True)
+    # The book's default follows the company's switch, whichever way it is set.
+    monkeypatch.setattr(desk, "REVIEW_SEEKS_BALANCE", not desk.REVIEW_SEEKS_BALANCE)
+    default = build_dd_balance_book(flat, {DD: 90.0}, {DD})
+    recovered = (seeks.review_step_ups and seeks.review_step_ups[0]["step_up_gbp"] > 0
+                 # a day of year one's first bill is already past twelve months at the review
+                 and seeks.barred_by_customer[DD] < never.barred_by_customer[DD] / 100)
+    barred = never.barred_by_customer[DD] > 0 and not never.review_step_ups
+    assert (recovered and barred
+            and default.seek_balance_at_review is desk.REVIEW_SEEKS_BALANCE), (
+        seeks.review_step_ups, seeks.barred_by_customer, never.barred_by_customer,
+        default.seek_balance_at_review)

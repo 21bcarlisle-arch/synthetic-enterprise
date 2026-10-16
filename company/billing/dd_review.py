@@ -139,6 +139,27 @@ def simple_balance_after_window(entering_balance_gbp: float, standing_gbp: float
     return entering_balance_gbp + standing_gbp * 12.0 - billed
 
 
+#: Whether the annual review asks for the debit balance it finds and recovers it through the debit.
+#: Ofgem (Direct Debit Market Compliance Review: Progress Update, 2 Feb 2023): "where a consumer
+#: account is in a debit position, suppliers commonly add this amount on to the Direct Debit amount
+#: and smooth the cost over the next 12 months." So True is the published practice; False is the
+#: review as it ran until now, kept as the default until the 2026-10-19 publish lands. Source and
+#: GAPs: docs/market_research/what_a_supplier_holds_to_size_a_direct_debit.md §8.
+REVIEW_SEEKS_BALANCE = False
+#: The same Ofgem sentence: "smooth the cost over the next 12 months".
+BALANCE_RECOVERY_MONTHS = 12
+
+
+def review_balance_step_up(debit_gbp: float, seeks_balance: bool | None = None) -> float:
+    """What the review adds to the monthly debit to recover a debit balance of `debit_gbp` (positive
+    = owed by the customer, after any part SLC 21BA bars at the review). Zero when the review does
+    not seek the balance (`seeks_balance`, default `REVIEW_SEEKS_BALANCE`) or there is no debit."""
+    seeks = REVIEW_SEEKS_BALANCE if seeks_balance is None else seeks_balance
+    if not seeks or debit_gbp <= 0.0:
+        return 0.0
+    return debit_gbp / BALANCE_RECOVERY_MONTHS
+
+
 #: How the annual review sizes next year's debit. `last_year_spend` resets it to what the completed
 #: year cost at the prices it was billed at. `consumption_at_rates_in_force` prices that year's
 #: billed kWh and days at the rates on the first bill of the year being set (SLC 27.15, "most

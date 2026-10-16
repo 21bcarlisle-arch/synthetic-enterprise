@@ -357,3 +357,47 @@ book read in 2019-2020 would be priced worse than the known rate. Whether a bett
 (the cap's own reference quarters) keeps the rising-year gain without the falling-year loss is the
 next question; it waits on the basket the forward-axis page names.
 
+
+---
+
+## 8. 2026-10-16 pass — does the annual review recover a debit balance, and over what period?
+
+*Knowledge before build (K8), for claim `the-dd-review-asks-for-the-balance-it-is-owed` and
+`docs/staging/SEAT_FINDING_D48_A_THIRD_OF_DD_ACCOUNTS_ASKED_FOR_THEIR_BALANCE_LOSE_PART_OF_IT_BECAUSE_THE_REVIEW_NEVER_ASKS_2026-10-14.md`.*
+
+**Answer: yes, commonly, over the next twelve months.** Ofgem, *Direct Debit Market Compliance
+Review: Progress Update* (2 February 2023), explaining why direct debits rose in 2022:
+
+> "where a consumer account is in a debit position, suppliers commonly add this amount on to the
+> Direct Debit amount and smooth the cost over the next 12 months."
+
+The same update records the other side: Ofgem secured commitments that "surplus customer credit
+balances are either returned to consumers or factored into a lower Direct Debit amount". [H]
+
+**Why it matters for the bar.** Energy UK, *Energy UK explains — back billing* (February 2025),
+lists among the cases where a supplier may not bill energy more than 12 months old: "The customer's
+Direct Debit amount was previously set too low to cover any charges due." So a shortfall the review
+never asks for ages into the bar, and one the review recovers within the year does not. [H]
+
+**What this is and is not.** It is Ofgem describing common practice, not a licence obligation.
+SLC 27.15 requires the debit to rest on the best and most current information (§5). It does not
+require the balance to be recovered, and it sets no period. "Commonly" means some suppliers do not.
+
+**GAPs:**
+
+1. **Practice before 2022.** The sentence describes what Ofgem found in its 2022 review. Nothing
+   found says whether 2016-2021 practice was the same. The run applies it to the whole window.
+2. **The period for large balances.** "The next 12 months" is the common case. Nothing published
+   says whether a supplier lengthens it when the step-up is large (2023's median in the run is £55
+   a month), or moves the balance to a separate SLC 27.8 repayment plan instead.
+3. **A credit balance.** Ofgem names two treatments, refund or a lower debit. This build recovers
+   only debits; a credit is handled as before.
+
+**Built.** `company/billing/dd_review.py::REVIEW_SEEKS_BALANCE` (default False until the
+2026-10-19 publish lands), `BALANCE_RECOVERY_MONTHS = 12` from the sentence above, and
+`review_balance_step_up`, reached by `simulation/dd_balance_book.py` through
+`company/interfaces/dd_review_outcome.py`. The book's `seek_balance_at_review` now defaults to the
+company's switch.
+
+**Sources:** [Ofgem, Direct Debit Market Compliance Review: Progress Update, 2 Feb 2023](https://www.ofgem.gov.uk/decision/direct-debit-market-compliance-review-progress-update) ·
+[Energy UK explains back billing, Feb 2025](https://www.energy-uk.org.uk/wp-content/uploads/2025/02/Energy-UK-explains-back-billing-February-2025.pdf)

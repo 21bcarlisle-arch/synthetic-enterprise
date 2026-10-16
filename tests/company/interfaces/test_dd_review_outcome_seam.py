@@ -169,8 +169,11 @@ def _dd_customer_bills():
 #: the seam rather than behind it; see its own docstring. `review_forecast_inputs` and
 #: `forward_readings_by_fuel` joined the same day: the term end and forward rate that rule reads,
 #: formed from records the supplier holds; how the forward rate is formed stays behind the door.
+#: `review_seeks_balance` and `review_balance_step_up` joined 2026-10-16: whether the review asks for
+#: the balance, and the amount added to the letter when it does -- the recovery period stays behind.
 SANCTIONED_DOORS = ["DEFAULT_REVIEW_RULE", "REVIEW_RULES", "forward_readings_by_fuel",
-                    "opening_monthly_amount", "review_forecast_inputs", "reviewed_monthly_amount",
+                    "opening_monthly_amount", "review_balance_step_up", "review_forecast_inputs",
+                    "review_seeks_balance", "reviewed_monthly_amount",
                     "reviewed_monthly_amount_at_rates", "reviewed_standing",
                     "simple_balance_after_window"]
 
