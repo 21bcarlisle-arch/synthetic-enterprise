@@ -44,6 +44,24 @@ premise and its own row. Per home, what each column counts:
                       (aged to the run's last due date if never); a late payment for its days late.
                       The two debt columns come from two payment models the world keeps: the triad
                       for spells, `arrears_engine` for the P&L charge.
+  household_saving_gbp  what the home's settled kWh would have cost on the published default
+                      tariff less what we billed, summed over legs and calendar years
+                      (`build_household_value_share`, the M4 measure; a day with no published
+                      rate drops out of both sides, as the view does). None where any of the
+                      home's leg-years had no rate at all, or none was valued: a partial sum or a
+                      zero would read as the whole home's saving.
+  kwh_elec / kwh_gas  settled kWh per fuel, summed over the home's legs (M6's input).
+  has_gas_leg         the home settled any gas.
+  company_vulnerability_flag  the home is on the company's own Priority Services Register, built
+                      only from disclosures that crossed the seam. Who we flagged, not who is
+                      vulnerable: the world has no vulnerability truth to grade it against. None
+                      where the run carried no register (the hidden-state switch was off).
+
+THE POLICY (B11, 2026-10-16). `--policy` runs every member under one named company policy, entered
+with `policy_scope(...)` AND passed as `policy=`, as `run_value_cycle_ab` does, so the run loop's
+chimera refusal holds. Default `current`, so every existing family is unchanged. The name is
+stamped in each member's record and `readout` refuses to pool members run under different ones; a
+record from before the stamp existed was run under `current`, the only policy a member could take.
 
 THE SEED IS A BOOK SEED, so any seed but the default is EP17_varied_population_draw, the
 director's. The launcher and the member both refuse a foreign seed his record does not list, and
@@ -53,7 +71,7 @@ on (id, date) alone and a shared founder id would otherwise roll the same dice i
 
 Usage:
   python3 -m tools.seed_family launch --seeds 20260724 --tag a --out /var/tmp/sf [--parallel 4]
-  python3 -m tools.seed_family member --seed S --founders 40 --out DIR      (what a unit runs)
+  python3 -m tools.seed_family member --seed S --founders 40 --out DIR [--policy flat_supplier]
   python3 -m tools.seed_family readout DIR [DIR ...] [--where route=campaign_win] [--mix M.json]
   python3 -m tools.seed_family mix REPORT.json --source "..." --out M.json [--wins-scale 2.75]
   python3 -m tools.seed_family same A.csv B.csv
@@ -96,7 +114,35 @@ MEMBER_EXPECT_MINUTES = 40
 COLUMNS = ("home_id", "seed", "segment", "route", "acquired", "first_settled", "tenure_days",
            "still_supplied",
            "net_value_gbp", "bad_debt_gbp", "provisioned_bad_debt_gbp", "max_days_behind",
-           "behind_91")
+           "behind_91", "household_saving_gbp", "kwh_elec", "kwh_gas", "has_gas_leg",
+           "company_vulnerability_flag")
+
+#: The policies a member may run under, by the name it is stamped with.
+POLICY_NAMES = {"current": "CURRENT_POLICY", "value_arm": "VALUE_ARM_POLICY",
+                "flat_supplier": "FLAT_SUPPLIER_POLICY"}
+#: What a member record from before the policy stamp ran under.
+UNSTAMPED_POLICY = "current"
+
+
+def policy_named(name: str):
+    from company.policy import decision_policy
+    policy = getattr(decision_policy, POLICY_NAMES[name])
+    if policy.name != name:
+        raise SystemExit(f"seed_family: --policy {name} resolved to a policy named {policy.name!r}")
+    return policy
+
+
+def mixed_policy_refusal(metas: list[dict]) -> str | None:
+    """Why these members cannot be pooled into one read-out, or None."""
+    by_policy: dict[str, list] = {}
+    for meta in metas:
+        by_policy.setdefault(meta.get("policy", UNSTAMPED_POLICY), []).append(meta.get("seed"))
+    if len(by_policy) <= 1:
+        return None
+    return ("members ran under {} policies ({}); pooling them would read one arm's homes as "
+            "another's. Read each policy's directories apart."
+            .format(len(by_policy), "; ".join(f"{p}: seeds {sorted(s)}"
+                                               for p, s in sorted(by_policy.items()))))
 
 #: Read-out thresholds. The effect sizes are the director's questions (2026-10-10 power note):
 #: a 10% move in value per home, a 25% move in either debt measure. Two-sided 5%, 80% power.
@@ -181,8 +227,16 @@ def _fold_records(row, records, cost_to_serve: dict) -> dict:
     legs: dict[str, dict] = {}
     for rec in records:
         leg = legs.setdefault(rec["customer_id"], {"net": 0.0, "bad_debt": 0.0, "first": None,
-                                                   "segment": rec.get("segment")})
+                                                   "segment": rec.get("segment"),
+                                                   "kwh_elec": 0.0, "kwh_gas": 0.0, "gas": False})
         leg["net"] += float(rec.get("net_margin_gbp") or 0.0)
+        # The fuel rule `build_household_value_share` reads: a record naming no fuel is
+        # electricity, and one naming an unknown fuel is not guessed at.
+        fuel = rec["commodity"] if "commodity" in rec else "electricity"
+        if fuel not in ("electricity", "gas"):
+            raise ValueError(f"{rec['customer_id']} settled a record of fuel {fuel!r}")
+        leg["kwh_gas" if fuel == "gas" else "kwh_elec"] += float(rec.get("consumption_kwh") or 0.0)
+        leg["gas"] = leg["gas"] or fuel == "gas"
         leg["bad_debt"] += float(rec.get("bad_debt_gbp") or 0.0)
         day = str(rec["settlement_date"])[:10]
         if leg["first"] is None or day < leg["first"]:
@@ -196,6 +250,9 @@ def _fold_records(row, records, cost_to_serve: dict) -> dict:
         cts = (cost_to_serve.get(cid) or {}).get("cost_to_serve_gbp")
         missing_cts += cts is None
         r["net_value_gbp"] += leg["net"] - float(cts or 0.0)
+        r["kwh_elec"] += leg["kwh_elec"]
+        r["kwh_gas"] += leg["kwh_gas"]
+        r["has_gas_leg"] = r["has_gas_leg"] or leg["gas"]
     return {"bad_debt_gbp": sum(leg["bad_debt"] for leg in legs.values()),
             "legs_without_cost_to_serve": missing_cts}
 
@@ -223,11 +280,26 @@ def _fold_debt(row, arrears_lines: dict, payments: list) -> None:
         r["max_days_behind"] = max(r["max_days_behind"], days)
 
 
-def home_rows(seed: int, run: dict, payments: list, founders: set[str], customers=()
-              ) -> tuple[list[dict], dict]:
+def _fold_saving(row, records, svt_rate_for) -> None:
+    """The household's saving against the published default, per home (M4). A home with a
+    leg-year the view could not value, or with none it valued at all, reads None: a partial sum
+    or a zero would each read as the whole home's saving."""
+    from company.analytics.household_value_share import build_household_value_share
+    view = build_household_value_share(records, svt_rate_for=svt_rate_for)
+    for (cid, _year), v in view.by_customer_period.items():
+        r = row(cid)
+        if v.household_saving_gbp is None:
+            r["saving_blind"] = True
+        else:
+            r["household_saving_gbp"] = (r["household_saving_gbp"] or 0.0) + v.household_saving_gbp
+
+
+def home_rows(seed: int, run: dict, payments: list, founders: set[str], customers=(),
+              svt_rate_for=None) -> tuple[list[dict], dict]:
     """One row per home, and the run-level figures its columns must reconcile to. `run` is the
     run's own output (`run_phase4c_on_phase2b.main`), never the rendered report; `customers` is
-    the run's supply points (segment, acquisition date). Pure."""
+    the run's supply points (segment, acquisition date); `svt_rate_for` the published default
+    tariff by (date, fuel), `run_price_ladder.published_default_tariff` unless given. Pure."""
     from saas.customer_reaction import _billing_account_id as home_of
     from tools.grade_world_debt_against_ofgem import BEHIND_DAYS
     phase2b = run["phase2b"]
@@ -239,7 +311,10 @@ def home_rows(seed: int, run: dict, payments: list, founders: set[str], customer
         return homes.setdefault(h, {"home_id": h, "seed": seed, "segment": None,
                                     "acquired": None, "first_settled": None, "last_billed": None,
                                     "net_value_gbp": 0.0, "bad_debt_gbp": 0.0,
-                                    "provisioned_bad_debt_gbp": 0.0, "max_days_behind": 0})
+                                    "provisioned_bad_debt_gbp": 0.0, "max_days_behind": 0,
+                                    "household_saving_gbp": None, "saving_blind": False,
+                                    "kwh_elec": 0.0,
+                                    "kwh_gas": 0.0, "has_gas_leg": False})
 
     for c in customers:
         if c.get("customer_id") not in phase2b_ids:
@@ -256,6 +331,12 @@ def home_rows(seed: int, run: dict, payments: list, founders: set[str], customer
         if r["last_billed"] is None or b["period_end"] > r["last_billed"]:
             r["last_billed"] = b["period_end"]
     _fold_debt(row, phase2b.get("arrears_lines_by_customer") or {}, payments)
+    if svt_rate_for is None:
+        from tools.run_price_ladder import published_default_tariff as svt_rate_for
+    _fold_saving(row, phase2b["all_records"], svt_rate_for)
+    registered = phase2b.get("psr_registrations")
+    flagged = (None if registered is None
+               else {home_of(str(reg["account_id"])) for reg in registered})
     churned = {str(a) for a in phase2b.get("churned_billing_accounts") or []}
     won = {e.get("billing_account") for e in phase2b.get("acquisition_funnel_log") or []
            if e.get("won")}
@@ -267,8 +348,13 @@ def home_rows(seed: int, run: dict, payments: list, founders: set[str], customer
         r["tenure_days"] = (_day(last) - _day(first)).days if last and first else None
         r["still_supplied"] = h not in churned
         r["behind_91"] = r["max_days_behind"] >= BEHIND_DAYS
-        for k in ("net_value_gbp", "bad_debt_gbp", "provisioned_bad_debt_gbp"):
-            r[k] = round(r[k], 4)
+        r["company_vulnerability_flag"] = None if flagged is None else h in flagged
+        if r["saving_blind"]:
+            r["household_saving_gbp"] = None
+        for k in ("net_value_gbp", "bad_debt_gbp", "provisioned_bad_debt_gbp",
+                  "household_saving_gbp", "kwh_elec", "kwh_gas"):
+            if r[k] is not None:
+                r[k] = round(r[k], 4)
         out.append({c: r[c] for c in COLUMNS})
     return out, totals
 
@@ -302,7 +388,17 @@ def _supply_points() -> list[dict]:
     return out
 
 
-def member(seed: int, founders: int, out: Path, shape: str = "all_wins") -> int:
+def run_book(policy) -> dict:
+    """The run, under `policy`: entered as the active policy AND passed, so the collections seam
+    (which reads the active one) and the run loop (which is handed one) agree."""
+    import simulation.run_phase4c_on_phase2b as p4
+    from company.policy.decision_policy import policy_scope
+    with policy_scope(policy):
+        return p4.main(policy=policy)
+
+
+def member(seed: int, founders: int, out: Path, shape: str = "all_wins",
+           policy: str = "current") -> int:
     """ONE book, in this process. Must be the first thing the process does: the seed and the
     founder count are rebound before anything imports `simulation.run_phase2b`, which draws the
     book at import."""
@@ -314,6 +410,7 @@ def member(seed: int, founders: int, out: Path, shape: str = "all_wins") -> int:
         return 2
     out.mkdir(parents=True, exist_ok=True)
     t0 = time.monotonic()
+    run_policy = policy_named(policy)
     import simulation.live_population as lp
     import simulation.net_new_acquisition as nna
     default_seed = lp._DEFAULT_BASE_SEED
@@ -342,8 +439,7 @@ def member(seed: int, founders: int, out: Path, shape: str = "all_wins") -> int:
     if foreign:
         setattr(roll_module, name, factory(real_roll, seed, lambda _a: True, calls))
     try:
-        import simulation.run_phase4c_on_phase2b as p4
-        run_output = p4.main()
+        run_output = run_book(run_policy)
     finally:
         setattr(roll_module, name, real_roll)
         lpt.LivePaymentTriad.__init__ = real_init
@@ -364,6 +460,8 @@ def member(seed: int, founders: int, out: Path, shape: str = "all_wins") -> int:
         "seed": seed, "run_base_seed": lp._RUN_BASE_SEED, "foreign_seed": foreign,
         "founders": founders, "sample_rate": camp.get("settlement_sample_rate"),
         "shape": shape, "budget_customer_years": SHAPES[shape]["budget"],
+        "policy": run_policy.name,
+        "retention_offers": len(run_output["phase2b"].get("retention_log") or []),
         "wins_settled": sum(int(r.get("wins") or 0) for r in camp.get("by_year") or []),
         "funnel_wins": camp.get("funnel_wins"),
         "campaign_win_homes": sum(1 for r in rows if r["route"] == "campaign_win"),
@@ -392,7 +490,8 @@ def member(seed: int, founders: int, out: Path, shape: str = "all_wins") -> int:
 def launch(seeds: list[int], founders: int, out: Path, tag: str, parallel: int,
            run_case: dict, launcher=None, record: Path | None = None,
            wait_for_pid: int | None = None, sleep=None, queue_deadline_s: float = 6 * 3600,
-           shape: str = "all_wins", peak_mb: float = MEMBER_PEAK_MB) -> list[dict]:
+           shape: str = "all_wins", peak_mb: float = MEMBER_PEAK_MB,
+           policy: str = "current") -> list[dict]:
     """Every member as its own long-job unit, all at once; admission decides whether they fit.
     More seeds than `parallel` is refused rather than queued: chaining units on a queued unit's
     pid is refused by the launcher's admission, so the caller launches the next wave itself.
@@ -421,7 +520,8 @@ def launch(seeds: list[int], founders: int, out: Path, tag: str, parallel: int,
                 entries.append(launcher(
                     f"seed-family-{tag}-{s}",
                     [sys.executable, "-m", "tools.seed_family", "member", "--seed", str(s),
-                     "--founders", str(founders), "--out", str(member_dir), "--shape", shape],
+                     "--founders", str(founders), "--out", str(member_dir), "--shape", shape,
+                     "--policy", policy],
                     artefact=str(member_dir / f"member_{s}.json"), workdir=str(PROJECT_DIR),
                     peak_mb=peak_mb, expect_minutes=expect, run_case=dict(run_case),
                     wait_for_pid=wait_for_pid))
@@ -618,10 +718,12 @@ def main(argv: list[str] | None = None) -> int:
     m.add_argument("--founders", type=int, help="default: the shape's own")
     m.add_argument("--out", type=Path, required=True)
     m.add_argument("--shape", choices=sorted(SHAPES), default="all_wins")
+    m.add_argument("--policy", choices=sorted(POLICY_NAMES), default="current")
     la = sub.add_parser("launch")
     la.add_argument("--seeds", required=True)
     la.add_argument("--founders", type=int, help="default: the shape's own")
     la.add_argument("--shape", choices=sorted(SHAPES), default="all_wins")
+    la.add_argument("--policy", choices=sorted(POLICY_NAMES), default="current")
     la.add_argument("--peak-mb", type=float, default=MEMBER_PEAK_MB,
                     help="one member's declared peak, from its own last run")
     la.add_argument("--out", type=Path, required=True)
@@ -655,7 +757,7 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.cmd == "member":
         return member(args.seed, args.founders or SHAPES[args.shape]["founders"], args.out,
-                      args.shape)
+                      args.shape, args.policy)
     if args.cmd == "launch":
         seeds = [int(x) for x in args.seeds.split(",") if x.strip()]
         from background.launch_long_job import LaunchRefused, follow_unit
@@ -666,7 +768,7 @@ def main(argv: list[str] | None = None) -> int:
                               "would_change": args.would_change,
                               "expect_minutes": args.expect_minutes},
                              wait_for_pid=args.wait_for_pid, shape=args.shape,
-                             peak_mb=args.peak_mb)
+                             peak_mb=args.peak_mb, policy=args.policy)
         except LaunchRefused as exc:
             print("REFUSED:", exc)
             return 2
@@ -688,7 +790,7 @@ def main(argv: list[str] | None = None) -> int:
         diffs = tables_identical(read_table(args.a), read_table(args.b))
         print("IDENTICAL" if not diffs else "DIFFERS:\n" + "\n".join(diffs[:40]))
         return 1 if diffs else 0
-    rows, refused = [], []
+    rows, refused, pooled = [], [], []
     for d in args.dirs:
         for meta_path in sorted(d.glob("member_*.json")):
             meta = json.loads(meta_path.read_text(encoding="utf-8"))
@@ -697,7 +799,12 @@ def main(argv: list[str] | None = None) -> int:
             if why or not table.exists():
                 refused.append(why or f"{table} missing")
                 continue
+            pooled.append(meta)
             rows += read_table(table)
+    mixed = mixed_policy_refusal(pooled)
+    if mixed:
+        print("REFUSED:", mixed)
+        return 2
     if len({(r["seed"], r["home_id"]) for r in rows}) != len(rows):
         print("REFUSED: one seed's homes appear twice across the directories given")
         return 2
@@ -705,7 +812,9 @@ def main(argv: list[str] | None = None) -> int:
         col, _, val = cond.partition("=")
         rows = [r for r in rows if r.get(col) == val]
     mixes = [json.loads(m.read_text(encoding="utf-8")) for m in args.mix]
-    print(json.dumps({"refused_members": refused, **readout(rows, mixes)}, indent=1))
+    policy = pooled[0].get("policy", UNSTAMPED_POLICY) if pooled else None
+    print(json.dumps({"refused_members": refused, "policy": policy, **readout(rows, mixes)},
+                     indent=1))
     return 0
 
 

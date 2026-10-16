@@ -304,3 +304,125 @@ def test_a_zero_budget_settles_no_win_through_the_campaigns_own_settlement():
     room = settle_within_budget([(2017, None, None, 1.0), (2018, None, None, 2.0)],
                                 committed_cy=500.0, customer_year_budget=1e9)
     assert sum(room["booked_by_year"].values()) == 2
+
+
+# --- B11: the policy door and the measures the flat-against-per-customer prereg reads ----------
+
+def _valued_run(psr=True):
+    def rec(cid, day, kwh, revenue, fuel=None):
+        r = {"customer_id": cid, "settlement_date": day, "consumption_kwh": kwh,
+             "revenue_gbp": revenue, "wholesale_cost_gbp": revenue / 2, "margin_gbp": revenue / 2,
+             "net_margin_gbp": revenue / 4, "bad_debt_gbp": 0.0, "segment": "resi"}
+        if fuel:
+            r["commodity"] = fuel
+        return r
+    run = {"phase2b": {
+        "all_records": [rec("C1", "2018-01-01", 1000.0, 150.0, "electricity"),
+                        rec("C1g", "2018-01-01", 2000.0, 60.0, "gas"),
+                        rec("C2", "2018-01-01", 500.0, 80.0),
+                        rec("C3", "2018-01-01", 100.0, 20.0),
+                        rec("C3", "2019-01-01", 100.0, 20.0)],
+        "churned_billing_accounts": [], "acquisition_funnel_log": [],
+        "arrears_lines_by_customer": {}}}
+    if psr:
+        run["phase2b"]["psr_registrations"] = [{"account_id": "C1g",
+                                                "registration_date": "2018-01-01",
+                                                "categories": []}]
+    return run
+
+
+def _rate(day, fuel):
+    """£/MWh: electricity 200, gas 40; no published rate for 2019."""
+    if day.year == 2019:
+        return None
+    return {"electricity": 200.0, "gas": 40.0}[fuel]
+
+
+def test_a_home_carries_its_saving_kwh_per_fuel_gas_leg_and_our_flag():
+    """DEFECT: the legs' saving or kWh not folded onto the home, gas kWh counted as electricity,
+    a home with a year we could not value given a partial saving, or a flag on the gas leg alone
+    missing its home."""
+    rows, _ = sf.home_rows(1, _valued_run(), [], founders=set(), svt_rate_for=_rate)
+    by = {r["home_id"]: r for r in rows}
+    c1, c2, c3 = by["C1"], by["C2"], by["C3"]
+    # (1 MWh x 200 - 150) + (2 MWh x 40 - 60) = 50 + 20
+    assert c1["household_saving_gbp"] == 70.0
+    assert c1["kwh_elec"] == 1000.0 and c1["kwh_gas"] == 2000.0 and c1["has_gas_leg"]
+    assert c1["company_vulnerability_flag"] is True
+    # A record naming no fuel is electricity, as the value view reads it.
+    assert c2["household_saving_gbp"] == 20.0 and c2["kwh_elec"] == 500.0
+    assert c2["kwh_gas"] == 0.0 and not c2["has_gas_leg"]
+    assert c2["company_vulnerability_flag"] is False
+    # 2019 has no published rate, so C3's saving is unknown, not its 2018 half.
+    assert c3["household_saving_gbp"] is None and c3["kwh_elec"] == 200.0
+    assert set(sf.COLUMNS) >= {"household_saving_gbp", "kwh_elec", "kwh_gas", "has_gas_leg",
+                               "company_vulnerability_flag"}
+
+
+def test_no_register_reads_unknown_and_an_unvalued_home_reads_no_saving():
+    """DEFECT: a run with no register read as nobody flagged, or a home the view could not
+    value at all read as saving nothing."""
+    rows, _ = sf.home_rows(1, _valued_run(psr=False), [], founders=set(),
+                           svt_rate_for=lambda d, f: None)
+    assert {r["company_vulnerability_flag"] for r in rows} == {None}
+    assert {r["household_saving_gbp"] for r in rows} == {None}
+
+
+def test_an_unknown_fuel_is_refused_not_guessed():
+    run = _valued_run()
+    run["phase2b"]["all_records"][0]["commodity"] = None
+    with pytest.raises(ValueError, match="fuel None"):
+        sf.home_rows(1, run, [], founders=set(), svt_rate_for=_rate)
+
+
+@pytest.mark.parametrize("name", sorted(sf.POLICY_NAMES))
+def test_every_policy_a_member_can_take_resolves_to_the_policy_of_that_name(name):
+    assert sf.policy_named(name).name == name
+
+
+def test_the_book_runs_under_the_policy_both_entered_and_passed(monkeypatch):
+    """DEFECT: the policy passed but not entered (the collections tone stays current's), or
+    entered but not passed (the run loop prices and offers as current)."""
+    import simulation.run_phase4c_on_phase2b as p4
+    from company.policy.decision_policy import CURRENT_POLICY, active_policy
+    seen = {}
+    monkeypatch.setattr(p4, "main", lambda policy=None, **k: seen.update(
+        passed=policy, active=active_policy()) or {})
+    flat = sf.policy_named("flat_supplier")
+    sf.run_book(flat)
+    assert seen == {"passed": flat, "active": flat}
+    assert active_policy() is CURRENT_POLICY
+
+
+def test_a_launch_hands_each_member_its_policy(tmp_path):
+    argvs = []
+    sf.launch([_DEFAULT_BASE_SEED], 40, tmp_path, "t", 1, {},
+              launcher=lambda name, argv, **k: argvs.append(argv) or {"unit": name},
+              policy="flat_supplier")
+    assert argvs[0][argvs[0].index("--policy") + 1] == "flat_supplier"
+    argvs.clear()
+    sf.launch([_DEFAULT_BASE_SEED], 40, tmp_path, "t", 1, {},
+              launcher=lambda name, argv, **k: argvs.append(argv) or {"unit": name})
+    assert argvs[0][argvs[0].index("--policy") + 1] == "current"
+
+
+def test_members_of_one_policy_pool_and_of_two_are_refused():
+    """The partition: a refusal that fired on every pool would pass the refusing leg. A record
+    from before the stamp ran under current."""
+    assert sf.mixed_policy_refusal([{"seed": 1, "policy": "current"}, {"seed": 2}]) is None
+    why = sf.mixed_policy_refusal([{"seed": 1, "policy": "flat_supplier"}, {"seed": 2}])
+    assert why and "flat_supplier: seeds [1]" in why and "current: seeds [2]" in why
+
+
+def test_the_readout_refuses_directories_run_under_two_policies(tmp_path, capsys):
+    rows, _ = sf.home_rows(_DEFAULT_BASE_SEED, _valued_run(), [], founders=set(),
+                           svt_rate_for=_rate)
+    for d, policy in (("a", "current"), ("b", "flat_supplier")):
+        (tmp_path / d).mkdir()
+        (tmp_path / d / f"member_{_DEFAULT_BASE_SEED}.json").write_text(json.dumps(
+            {**GOOD, "seed": _DEFAULT_BASE_SEED, "policy": policy}))
+        sf.write_table(rows, tmp_path / d / f"homes_{_DEFAULT_BASE_SEED}.csv")
+    assert sf.main(["readout", str(tmp_path / "b")]) == 0
+    assert json.loads(capsys.readouterr().out)["policy"] == "flat_supplier"
+    assert sf.main(["readout", str(tmp_path / "a"), str(tmp_path / "b")]) == 2
+    assert "REFUSED: members ran under 2 policies" in capsys.readouterr().out
