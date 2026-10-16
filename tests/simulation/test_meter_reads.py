@@ -227,3 +227,49 @@ def test_the_hard_to_read_share_moves_the_shape_of_back_bills_and_not_their_tota
     total_high, long_high = _barred_and_long_share(monkeypatch, 0.03)
     assert abs(total_high - total_none) < 0.008
     assert long_high > long_none + 0.1
+
+
+# --- W2_36 theft at a premise (2026-10-16) ---------------------------------
+
+def _theft_population(n=4000, months=120, **kw):
+    return [mr.premise_theft_study(f"P{i}", [333.0] * months, **kw) for i in range(n)]
+
+
+def test_a_premise_theft_starts_and_ends_and_the_stock_holds_at_the_registers_prevalence():
+    # The rare branches first: a theft must be able to start mid-window and to end, or a chain
+    # that never moves would hold the stock at its opening draw and pass the level check below.
+    pop = _theft_population()
+    starts = sum(1 for r in pop for a, b in zip(r["stealing"], r["stealing"][1:]) if not a and b)
+    ends = sum(1 for r in pop for a, b in zip(r["stealing"], r["stealing"][1:]) if a and not b)
+    assert starts and ends
+    late = sum(r["stealing"][-1] for r in pop) / len(pop)
+    mean = sum(sum(r["stealing"]) for r in pop) / (len(pop) * 120)
+    se = (mr.THEFT_PREVALENCE * (1 - mr.THEFT_PREVALENCE) / len(pop)) ** 0.5
+    assert abs(mean - mr.THEFT_PREVALENCE) < 3 * se
+    assert abs(late - mr.THEFT_PREVALENCE) < 4 * se
+
+
+def test_a_theft_month_registers_the_unhidden_share_and_any_other_month_registers_true_use():
+    pop = _theft_population(n=2000, unregistered_share=0.4)
+    theft = [(t, g) for r in pop for t, g, s in zip(r["true_kwh"], r["registered_kwh"], r["stealing"]) if s]
+    honest = [(t, g) for r in pop for t, g, s in zip(r["true_kwh"], r["registered_kwh"], r["stealing"]) if not s]
+    assert theft and honest
+    assert all(g == pytest.approx(t * 0.6) for t, g in theft)
+    assert all(g == t for t, g in honest)
+    assert sum(r["stolen_kwh"] for r in pop) == pytest.approx(sum(t - g for t, g in theft))
+
+
+def test_at_the_registers_default_a_theft_premise_registers_nothing_as_an_empty_home_does():
+    # The IA's implied whole-use theft: the screen sees the same zero a B7 void shows.
+    r = next(r for r in _theft_population(n=2000) if any(r["stealing"]))
+    assert mr.THEFT_UNREGISTERED_SHARE == 1.0
+    assert all(g == 0.0 for g, s in zip(r["registered_kwh"], r["stealing"]) if s)
+
+
+def test_a_theft_that_hides_nothing_is_refused_by_name():
+    with pytest.raises(ValueError, match="hides some use"):
+        mr.premise_theft_study("P1", [333.0] * 12, unregistered_share=0.0)
+
+
+def test_a_premises_theft_is_its_own_and_repeats():
+    assert mr.premise_theft_months("P42", 60) == mr.premise_theft_months("P42", 60)

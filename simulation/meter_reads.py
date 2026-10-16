@@ -193,6 +193,69 @@ def is_not_in_smart_mode(customer_id: str) -> bool:
     """
     return random.Random(f"smartmode_{customer_id}").random() < SMART_METER_NOT_COMMUNICATING_RATE
 
+# --- Theft at a premise (W2_36, 2026-10-16) ---------------------------------
+# The director's ruling of 2026-10-08: theft is "a premise-level study in the minutes tier", not
+# a settled book. At 1% prevalence and 5.8% a year detection about 52,000 customer-years buy 30
+# detections, so no run reads these. The study generates what a supplier's screen would face.
+
+# Share of domestic MPANs with a theft in progress (Ofgem 2014 IA Table 4, "approximately 1 per cent").
+THEFT_PREVALENCE = assumption_toggle("q6_theft_prevalence_domestic_electricity")
+
+# Mean months a theft runs. Published for DETECTED thefts in a world where suppliers were already
+# detecting (IA Table 5; TEM "just under 2 years"), so it is the stock's turnover under that era's
+# detection, not a theft's natural life. Once the company investigates, its detections should end
+# thefts and this end hazard should give way to them (q6_theft_annual_detection_hazard says so).
+THEFT_MEAN_MONTHS = assumption_toggle("q6_theft_months_before_detection")
+
+# Share of the premise's use its meter misses while a theft runs. 1.0 is the IA's implied figure,
+# not a measurement, and the partial-tamper end is a GAP (the register row says why).
+THEFT_UNREGISTERED_SHARE = assumption_toggle("q6_theft_share_of_premise_use_unregistered")
+
+
+def premise_theft_months(premise_id: str, n_months: int,
+                         prevalence: float = THEFT_PREVALENCE,
+                         mean_months: float = THEFT_MEAN_MONTHS) -> list[bool]:
+    """Whether a theft is running at the premise in each of `n_months` months.
+
+    A two-state chain held stationary at `prevalence`: a theft ends with hazard 1/mean_months
+    and starts with the hazard that keeps the stock level, p/(1-p) of the end hazard. Keyed to the
+    premise, as the ruling asks; whether it moves out with a tenant is not published.
+    """
+    if not 0.0 <= prevalence < 1.0 or mean_months <= 0:
+        raise ValueError(f"prevalence {prevalence} must be in [0, 1) and mean_months {mean_months} > 0")
+    end = 1.0 / mean_months
+    start = prevalence * end / (1.0 - prevalence)
+    rng = random.Random(f"theft_{premise_id}")
+    stealing = rng.random() < prevalence
+    months = []
+    for _ in range(n_months):
+        months.append(stealing)
+        stealing = (rng.random() >= end) if stealing else (rng.random() < start)
+    return months
+
+
+def premise_theft_study(premise_id: str, true_monthly_kwh: list[float],
+                        unregistered_share: float = THEFT_UNREGISTERED_SHARE,
+                        **chain) -> dict:
+    """One premise's true use against what its meter registers, month by month.
+
+    What a supplier can see is `registered_kwh`; `true_kwh`, `stealing` and `stolen_kwh` are the
+    world's and never cross the seam.
+    """
+    if not 0.0 < unregistered_share <= 1.0:
+        raise ValueError(f"unregistered_share {unregistered_share} must be in (0, 1]: a theft hides some use")
+    stealing = premise_theft_months(premise_id, len(true_monthly_kwh), **chain)
+    registered = [kwh * (1.0 - unregistered_share) if s else kwh
+                  for kwh, s in zip(true_monthly_kwh, stealing)]
+    return {
+        "premise_id": premise_id,
+        "stealing": stealing,
+        "true_kwh": list(true_monthly_kwh),
+        "registered_kwh": registered,
+        "stolen_kwh": sum(true_monthly_kwh) - sum(registered),
+    }
+
+
 @dataclass(frozen=True)
 class MeterReadEvent:
     customer_id: str

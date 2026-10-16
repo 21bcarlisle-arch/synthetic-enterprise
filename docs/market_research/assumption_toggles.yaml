@@ -1011,6 +1011,37 @@ toggles:
         21BA.2(c) exception, which company/billing/back_billing.py does not implement.
     verdict: RESOLVED
 
+  - id: q6_theft_share_of_premise_use_unregistered
+    question: Q6 read access and theft
+    meaning: >-
+      Share of a theft premise's electricity use its meter does not register while the theft runs.
+      Not the per-case volume itself; a whole bypass is 1, a meter slowed or one circuit bypassed is less.
+    default: 1.0
+    low: null
+    high: 1.0
+    default_reason: >-
+      Derived, not measured. Ofgem's 2014 IA says its 275,000 domestic cases are "consistent with"
+      about GBP 250m a year. Its own Table 4 inputs reproduce that only if each domestic case takes a
+      whole average home's use: 275,000 x 333 kWh/month x 12, plus 5,000 commercial x 1,195 and
+      4,500 cannabis farms x 9,000, is 1,657 GWh, and at GBP 0.15/kWh that is GBP 248m. At a share of
+      0.5 it is GBP 166m (unbilled_energy_and_revenue_assurance.md K4). So 1.0 is the IA's own implied
+      figure, not an observation of what bypassed meters register.
+    basis_default: Derived from Ofgem 2014 IA Table 4 and its GBP 250m statement (above).
+    basis_low: >-
+      GAP. Partial tampering exists (the licence's "preventing a meter from registering" covers a
+      slowed meter), but no published split of whole bypass against partial, or of the share a
+      partial case leaves registered, was found. The physical floor is above 0.
+    basis_high: A meter cannot register less than nothing; 1 is the physical ceiling.
+    feeds: [W2_36_unbilled_energy_arises_the_way_it_does_in_reality]
+    sensitivity:
+      kind: acceptance_criterion
+      detail: >-
+        Sets what a consumption screen can see. At 1 a theft premise registers nothing, the same
+        ratio to EAC as an empty home, which the world also draws (B7 voids). The premise study in
+        simulation/meter_reads.py prints the registered share at 1 and across (0, 1]; the company's
+        screen is graded against the world's voids and thefts together before any threshold is set.
+    verdict: MATTERS_AND_RESOLVABLE for revenue-protection shape; DOESNT_MATTER for pricing (argued)
+
   - id: q6_uig_share_of_ldz_throughput
     question: Q6 read access and theft
     meaning: Actual final Unidentified Gas / LDZ throughput, by gas year; allocated to shippers by AUGE weighting factors.
