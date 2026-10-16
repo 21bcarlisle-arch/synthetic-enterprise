@@ -386,27 +386,68 @@ def test_the_EXECUTORS_own_discharge_retires_rather_than_deletes_and_a_second_on
     )
 
 
-def test_a_focus_row_is_tombstoned_only_when_its_DONE_has_evidence(tmp_path, monkeypatch):
+def test_a_focus_row_is_tombstoned_only_when_a_commit_on_origin_binds_it(tmp_path, monkeypatch):
     """Defect it names: a focus row was tombstoned on the releasing tick's word, with its DONE never
-    asked (`a-tombstone-retires-a-row-without-checking-its-done`, listed 11 times). The evidence
-    asked for is what the lane records: a bound landing or a spent premise.
+    asked (`a-tombstone-retires-a-row-without-checking-its-done`, listed 16 times), and then on a
+    LEDGER landing that origin may never have received. The evidence is now a commit on
+    origin/main that `_binds_item` credits to the id, or a spent premise.
 
-    Fires on: the refusal not wired (no evidence, still tombstoned); and on refusing everything
-    (a bound landing, still refused) -- both branches are taken below."""
+    Two rows through the real retirement over a real repo: one bound by `--landed` to a commit on
+    origin/main, one bound to a commit only a local branch holds. Both outcomes in one statement, so
+    refusing everything and refusing nothing each fail it. The refused row stays live and the brief
+    lists it as retired without a landing."""
     import json
+    import subprocess
+
+    def git(*args, env=None):
+        return subprocess.run(("git", *args), cwd=tmp_path / "repo", check=True, text=True,
+                              capture_output=True, env=env).stdout.strip()
+
+    (tmp_path / "repo").mkdir()
+    git("init", "-q")
+    bound, unbound = "a-row-whose-landing-reached-origin", "a-row-whose-landing-never-left"
+    stamps = {}
+    # The middle commit is on origin and its message names an id that CONTAINS `unbound`: a text
+    # match, not a binding, so `_binds_item`'s whole-id rule is what keeps `unbound` live.
+    for name, when, message in (
+            ("published", 1_700_000_000, "published work"),
+            ("prefix", 1_700_000_050, f"NEXT: {unbound}-in-another-item"),
+            ("unpromoted", 1_700_000_100, f"NEXT: {unbound}")):
+        env = {"GIT_AUTHOR_NAME": "t", "GIT_AUTHOR_EMAIL": "t@t", "GIT_COMMITTER_NAME": "t",
+               "GIT_COMMITTER_EMAIL": "t@t", "GIT_AUTHOR_DATE": f"@{when}",
+               "GIT_COMMITTER_DATE": f"@{when}", "PATH": __import__("os").environ["PATH"]}
+        git("commit", "-q", "--allow-empty", "-m", message, env=env)
+        stamps[name] = float(when)
+        if name != "unpromoted":
+            git("update-ref", delivery_lane.PUBLISHED_REF, "HEAD")
+    monkeypatch.setattr(delivery_lane, "PROJECT_DIR", tmp_path / "repo")
+
     monkeypatch.setattr(seat_continuation, "STORE", tmp_path / "continuations.json")
     monkeypatch.setattr(delivery_lane.direction_mod, "unreachable_focus",
-                        lambda *a, **k: [dict(FOCUS_ROW)])
+                        lambda *a, **k: [{"id": bound}, {"id": unbound}])
     claims = tmp_path / "claims.json"
     monkeypatch.setattr(delivery_lane, "CLAIMS_FILE", claims)
     _orientation(monkeypatch, ORIENTATION)
     ledger = claims.with_suffix(".draws.json")
-    ledger.write_text(json.dumps({FOCUS_ROW["id"]: {"first_drawn_at": 1.0, "last_drawn_at": 1.0}}))
-    assert "nothing shows its DONE is met" in delivery_lane.focus_tombstone_refusal(FOCUS_ROW["id"])
-    assert delivery_lane.retire_continuation(FOCUS_ROW["id"]) is False
-    ledger.write_text(json.dumps({FOCUS_ROW["id"]: {"first_drawn_at": 1.0, "last_drawn_at": 1.0,
-                                                    "last_landing_at": 2.0}}))
-    assert delivery_lane.focus_tombstone_refusal(FOCUS_ROW["id"]) is None
-    assert delivery_lane.retire_continuation(FOCUS_ROW["id"]) is True
-    ledger.write_text(json.dumps({FOCUS_ROW["id"]: {"premise_spent": {"commit": "abc"}}}))
-    assert delivery_lane.focus_tombstone_refusal(FOCUS_ROW["id"]) is None
+    ledger.write_text(json.dumps({
+        bound: {"first_drawn_at": 1.0, "last_drawn_at": 1.0,
+                "last_landing_at": stamps["published"]},
+        unbound: {"first_drawn_at": 1.0, "last_drawn_at": 1.0,
+                  "last_landing_at": stamps["unpromoted"]},
+        # One commit finished two rows; the ledger's instant index keeps only the later holder.
+        "a-sibling-the-same-commit-finished": {"first_drawn_at": 1.0, "last_drawn_at": 1.0,
+                                               "last_landing_at": stamps["published"]}}))
+
+    outcomes = (delivery_lane.retire_continuation(bound),
+                delivery_lane.retire_continuation(unbound))
+    assert outcomes == (True, False), outcomes
+
+    tombstoned = {i["id"] for i in seat_continuation.retired()}
+    assert bound in tombstoned and unbound not in tombstoned
+    listed = {r["id"]: r for r in delivery_lane.drawn_without_landing(cutoff=0.0, now=10**10)}
+    assert listed[unbound]["released"].startswith(delivery_lane.RETIRED_WITHOUT_A_LANDING)
+    assert "no commit on origin/main binds it" in listed[unbound]["released"]
+    assert "released" not in listed.get(bound, {})
+
+    ledger.write_text(json.dumps({unbound: {"premise_spent": {"commit": "abc"}}}))
+    assert delivery_lane.focus_tombstone_refusal(unbound) is None

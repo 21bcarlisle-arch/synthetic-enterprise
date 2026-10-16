@@ -1986,10 +1986,11 @@ def _prompt(brief: dict) -> str:
             "names, so there was never anything to find -- do not go looking in the tree, and do "
             "not draw it again until the instant the evidence names has "
             "passed:\n\n".format(horizon_hours, len(undisposed), len(rows))
-            + "\n".join("- {} (drawn {}h ago, {}{})".format(
+            + "\n".join("- {} (drawn {}h ago, {}{}){}".format(
                 r.get("id"), r.get("hours_since_draw"),
                 r.get("disposition", delivery_lane_NOT_DONE),
-                ": " + r["evidence"] if r.get("evidence") else "") for r in rows)
+                ": " + r["evidence"] if r.get("evidence") else "",
+                " -- " + r["released"] if r.get("released") else "") for r in rows)
         )
     else:
         missed = ("\n\nNO DRAWN LANE 0 ITEM finished its window without landing. MEASURED OVER "

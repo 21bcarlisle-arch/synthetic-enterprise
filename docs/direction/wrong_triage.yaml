@@ -81,7 +81,7 @@ items:
     first_seen: "2026-10-02"
     times_listed: 41
     fate: fix
-    owner: "docs/staging/SEAT_FINDING_A_HOLD_OR_A_TOMBSTONE_STATES_ITS_CONDITION_IN_PROSE_AND_NOTHING_RE_ASKS_IT_2026-10-07.md"
+    owner: "docs/staging/done/SEAT_FINDING_A_HOLD_OR_A_TOMBSTONE_STATES_ITS_CONDITION_IN_PROSE_AND_NOTHING_RE_ASKS_IT_2026-10-07.md"
     status: open
   - id: a-bounded-executor-turn-resets-over-unlanded-work
     problem: "An executor turn that hits its limit leaves finished work that the next tick resets over."
@@ -190,8 +190,10 @@ items:
     first_seen: "2026-10-05"
     times_listed: 16
     fate: fix
-    owner: "docs/staging/SEAT_FINDING_A_HOLD_OR_A_TOMBSTONE_STATES_ITS_CONDITION_IN_PROSE_AND_NOTHING_RE_ASKS_IT_2026-10-07.md"
-    status: open
+    owner: "docs/staging/done/SEAT_FINDING_A_HOLD_OR_A_TOMBSTONE_STATES_ITS_CONDITION_IN_PROSE_AND_NOTHING_RE_ASKS_IT_2026-10-07.md"
+    status: already_fixed
+    fixed_by: "the commit adding test_a_focus_row_is_tombstoned_only_when_a_commit_on_origin_binds_it"
+    reason: "2026-10-16: 635919987 refused a tombstone without a ledger landing; delivery_lane.focus_tombstone_refusal now asks for a commit on origin/main that _binds_item credits to the id (or a spent premise). A refused row stays live and the brief lists it as retired without a landing."
   - id: a-landing-carries-a-stale-direction-record
     problem: "Another lane's landing can carry docs/direction/DIRECTION.yaml from a working copy older than origin's."
     match: ["carry docs/direction/DIRECTION.yaml", "older than origin's"]
