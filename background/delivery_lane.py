@@ -1531,12 +1531,19 @@ def _binds_item(focus_id: str, sha: str, when: float, bound_by) -> bool:
     this id: `grade-the-ab6-bridge-leg` was graded `landed_elsewhere` under `51417dba4`, the commit
     that launched ab6 and wrote the prereg the grade was to append to; the grade itself was
     `504b42a37`. What does not bind is published as `path_touched_by <sha>`, a hint.
+
+    AND THE THIRD FACT WAS A PATH MATCH, NOW WITHDRAWN (director, 2026-10-16,
+    `the-draw-ledger-credits-by-the-items-work-not-by-path-overlap`). "A diff to a path the item
+    asks to CHANGE" is still a path overlap: `retention-guard-nets-the-companys-own-bad-debt-belief`
+    read `landed_unbound` on `81732ffe2`, a heating draw sharing one path of a long list, and a
+    strike item was credited with `8a1a7a51a`, the prereg record, for `badd57e8e`'s work. An unowned
+    commit now binds only by naming the id, which is what `--landed` and the `NEXT:` trailer write.
     """
     if isinstance(bound_by, dict):
         holder = bound_by.get(when)
     else:                       # a set of instants: owned or not, owner unknown
         holder = "" if when in bound_by else None
-    if holder is None or holder == focus_id:
+    if holder == focus_id:
         return True
     return _message_names(sha, focus_id)
 
@@ -1862,6 +1869,11 @@ LANDED_ELSEWHERE = "landed_elsewhere"
 PREMISE_SPENT = "premise_spent"
 LANDED_UNBOUND = "landed_unbound"
 PREMISE_NOT_YET_RIPE = "premise_not_yet_ripe"
+
+#: THE SIXTH VALUE, and not a landing: a window whose work a live landing or an owned worktree
+#: holds right now (director, 2026-10-16). Read as `not_done` it re-offered work a lander held;
+#: read as landed it would retire work that may yet be refused by its gate. See `_mid_landing`.
+MID_LANDING = "mid_landing"
 
 #: The two answers `disposition_of` can give that are NOT one of the four, because they are not
 #: windows that closed with nothing: the id delivered under its own name, or was never handed out.
@@ -2812,6 +2824,48 @@ def landing_predates_this_window(focus_id: str, *, path: Path | None = None) -> 
         return ""
 
 
+#: One probe serves a whole ledger read: `drawn_without_landing` grades every swept row, and the
+#: probe shells out to systemd and to git once per worktree. A minute is shorter than any landing.
+_HOLDERS_TTL_SECONDS = 60.0
+_HOLDERS_CACHE: list = []
+
+
+def _holders_for_the_ledger() -> list[dict]:
+    """`_live_holders()`, re-probed at most once per `_HOLDERS_TTL_SECONDS`."""
+    now = time.monotonic()
+    if not _HOLDERS_CACHE or now - _HOLDERS_CACHE[0] > _HOLDERS_TTL_SECONDS:
+        _HOLDERS_CACHE[:] = [now, _live_holders()]
+    return _HOLDERS_CACHE[1]
+
+
+def _mid_landing(focus_id: str, row: dict, holders: list[dict] | None = None) -> dict | None:
+    """`MID_LANDING` when a live `surgical_land` or an owned worktree holds this item now, or None.
+
+    TWO WAYS A HOLDER HOLDS IT: a landing whose own message names the id (the commit, once made,
+    binds it), or the draw's own `held_grade` -- a path the item asks to change, or an identifier
+    its diff changes. Read only from the live process table and worktree markers, never from
+    origin, so it says nothing about whether the work will land: it is why the row is not a miss.
+    """
+    if not focus_id:
+        return None
+    holders = _holders_for_the_ledger() if holders is None else holders
+    if not holders:
+        return None
+    named = re.compile(r"(?<![\w-]){}(?![\w-])".format(re.escape(focus_id)))
+    for holder in holders:
+        if named.search(str(holder.get("message") or "")):
+            return {"disposition": MID_LANDING,
+                    "evidence": "{} is landing it now: its message names {}".format(
+                        holder["holder"], focus_id)}
+    item = {"id": focus_id, "what": _item_text(focus_id)
+            or " ".join(str(p) for p in row.get("named_paths") or [])}
+    hit, _context = held_grade(item, holders)
+    if hit is None:
+        return None
+    holder, why = hit
+    return {"disposition": MID_LANDING, "evidence": "{} {}".format(holder["holder"], why)}
+
+
 def _disposition(row: dict, drawn: float, *, focus_id: str = "",
                  bound_at: dict | frozenset = frozenset()) -> dict:
     """WHICH of the three a row whose window closed without a landing of its own is.
@@ -2911,6 +2965,15 @@ def _disposition(row: dict, drawn: float, *, focus_id: str = "",
         unanswered.append(_raised("the sibling-owner join", exc))
     if sibling:
         return sibling
+    # NOTHING ON ORIGIN, BUT SOMETHING MAY BE ON ITS WAY THERE. Asked after both landing readings,
+    # so a landed commit always outranks a holder, and before the two that say there was no work.
+    try:
+        landing = _mid_landing(focus_id, row)
+    except Exception as exc:
+        landing = None
+        unanswered.append(_raised("the live-holder reading", exc))
+    if landing:
+        return landing
     # AND LAST OF ALL, THE CAUSE THAT IS NOT ABOUT A COMMIT. The three readings above all ask
     # "where did the work go"; this one asks whether there was any work to be had, and it is asked
     # only once all three have said no. A window that closed before its own subject existed is not
@@ -4527,6 +4590,18 @@ def doorbell(item: dict) -> str:
 #: full stop.
 _DISPATCHED_ID = re.compile(r"--landed ([a-z0-9](?:[a-z0-9.-]*[a-z0-9])?)")
 
+#: THE DOORBELL'S OWN INSTRUCTION, preferred over any bare match (2026-10-16). An item's prose can
+#: quote the flag: `the-draw-ledger-credits-by-the-items-work-not-by-path-overlap` says "the same
+#: binding delivery_lane --landed writes", the first match won, and the dispatch claimed `writes`.
+_DISPATCHED_INSTRUCTION = re.compile(
+    r"`python3 -m background\.delivery_lane --landed ([a-z0-9](?:[a-z0-9.-]*[a-z0-9])?)`")
+
+
+def _dispatched_id(reason: str) -> str | None:
+    """The id a dispatched text names: its `--landed` instruction's, else the first bare flag's."""
+    match = _DISPATCHED_INSTRUCTION.search(reason or "") or _DISPATCHED_ID.search(reason or "")
+    return match.group(1) if match else None
+
 #: What the OLD capture above would have made of an id: everything up to the first character it
 #: could not spell. It is kept -- as the definition of the equivalence, not as a parser -- because
 #: the store still holds rows written under it, and because it is exactly the relation "these two
@@ -4562,10 +4637,9 @@ def claim_dispatched(reason: str, *, now: float | None = None,
     tick is the thing that does the work.
     """
     try:
-        match = _DISPATCHED_ID.search(reason or "")
-        if not match:
+        focus_id = _dispatched_id(reason)
+        if not focus_id:
             return None
-        focus_id = match.group(1)
         store = path or CLAIMS_FILE
         # ADOPT A LIVE CLAIM UNDER THE OTHER SPELLING RATHER THAN MINTING A SECOND ROW. The widened
         # capture above means this lane no longer produces the two spellings, but the store still
@@ -4606,8 +4680,8 @@ def held_at_dispatch(reason: str, *, now: float | None = None,
     NEVER RAISES; an unreadable store answers None, which dispatches as before.
     """
     try:
-        match = _DISPATCHED_ID.search(reason or "")
-        if not match:
+        named = _dispatched_id(reason)
+        if not named:
             return None
         paired = stores if stores is not None else claim_stores()
         for store, deadline in paired:
@@ -4617,7 +4691,7 @@ def held_at_dispatch(reason: str, *, now: float | None = None,
                          claims_mod.stale_claims(path=store, now=now, stale_after=deadline)}
             except Exception:  # noqa: BLE001 - one unreadable store must not blind the other
                 continue
-            focus_id = resolve_claim_id(match.group(1), path=store) or match.group(1)
+            focus_id = resolve_claim_id(named, path=store) or named
             if isinstance(rows, dict) and focus_id in rows and focus_id not in stale:
                 return f"{focus_id} in {store.name}"
         return None
@@ -5037,7 +5111,92 @@ def _live_holders() -> list[dict]:
                         "names": {str(root)}, "paths": paths, "identifiers": idents,
                         "copies": copies.get(root, {}), "diff_digest": digest,
                         "editing": why})
+    try:
+        holders.extend(_live_landings())
+    except Exception:
+        pass
     return holders
+
+
+#: The `surgical_land` options whose value is a repo path the landing writes, split on `=` where
+#: the value is `REPOPATH=SRCFILE`. The other valued options carry no path this landing writes.
+_LANDING_PATH_OPTIONS = ("--content", "--content-remove", "--resolve", "--drops")
+_LANDING_VALUE_OPTIONS = ("-m", "--message", "--verify", "--attempts", "--merge")
+
+
+def _landing_argv(argv: list[str]) -> tuple[str, set[str]] | None:
+    """(message, paths) a `surgical_land` command line lands, or None if it is not one."""
+    at = next((i for i, a in enumerate(argv)
+               if a == "tools.surgical_land" or a.endswith("tools/surgical_land.py")), None)
+    if at is None:
+        return None
+    message, paths = "", set()
+    rest = argv[at + 1:]
+    i = 0
+    while i < len(rest):
+        arg = rest[i]
+        key, eq, inline = arg.partition("=")
+        if key in _LANDING_PATH_OPTIONS + _LANDING_VALUE_OPTIONS:
+            value = inline if eq else (rest[i + 1] if i + 1 < len(rest) else "")
+            i += 1 if eq else 2
+            if key in ("-m", "--message"):
+                message = value
+            elif key in _LANDING_PATH_OPTIONS and value:
+                paths.add(value.split("=", 1)[0])
+            continue
+        if not arg.startswith("-"):
+            paths.add(arg)
+        i += 1
+    return message, paths
+
+
+def _ancestor_pids() -> set[int]:
+    """This process and every ancestor of it, read from `/proc/<pid>/stat`. NEVER RAISES."""
+    pids, pid = set(), os.getpid()
+    while pid > 1 and pid not in pids:
+        pids.add(pid)
+        try:
+            stat = (Path("/proc") / str(pid) / "stat").read_text()
+            pid = int(stat.rsplit(")", 1)[1].split()[1])
+        except (OSError, ValueError, IndexError):
+            break
+    return pids
+
+
+def _live_landings() -> list[dict]:
+    """A holder for every `surgical_land` running now, from `/proc`. NEVER RAISES.
+
+    THE THIRD KIND OF HOLDER (director, 2026-10-16). A gated landing runs for up to
+    `_landing_grace_seconds()`, and for all of it origin has nothing: the draw re-offered
+    b7-slice-3 with its `surgical_land` running (2026-10-06) and weighted-per-win-envelope under pid
+    2895736 (2026-10-07), and the ledger read both `not_done`. The landing's own argv names the
+    paths it writes and its message, which is everything `held_grade` and `_mid_landing` ask.
+    """
+    out: list[dict] = []
+    try:
+        entries = list(Path("/proc").iterdir())
+    except OSError:
+        return out
+    # THIS PROCESS'S OWN LANDING IS NEVER A HOLDER, for the reason the shared tree is not one in
+    # `_live_holders`: a ledger read from inside a gate would otherwise find the landing being gated
+    # holding the very paths it lands (measured 2026-10-16: the gate red on its own landing).
+    mine = _ancestor_pids()
+    for entry in entries:
+        if not entry.name.isdigit() or int(entry.name) in mine:
+            continue
+        try:
+            argv = [a.decode("utf-8", "replace")
+                    for a in (entry / "cmdline").read_bytes().split(b"\0") if a]
+        except OSError:
+            continue
+        landing = _landing_argv(argv)
+        if landing is None:
+            continue
+        message, paths = landing
+        out.append({"holder": f"surgical_land pid {entry.name}", "artefact": "(a gated landing)",
+                    "names": {f"surgical_land pid {entry.name}"}, "paths": paths,
+                    "identifiers": set(), "copies": {}, "message": message})
+    return out
 
 
 def _diff_digest(copies: dict) -> str:

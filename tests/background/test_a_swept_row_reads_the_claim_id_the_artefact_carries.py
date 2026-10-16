@@ -319,7 +319,9 @@ def test_a_landed_commit_still_outranks_the_artefact(lane):
     path.write_text("landed\n")
     _git(repo, "add", "background/delivery_lane.py")
     stamp = "@{:.0f} +0000".format(DRAWN + 60)
-    subprocess.run(("git", "commit", "-m", "land the repair"), cwd=repo, check=True,
+    # The message names the claim: since 2026-10-16 that, not a shared path, is what credits it.
+    subprocess.run(("git", "commit", "-m", f"land the repair\n\nNEXT: none -- direction item {CLAIM}, finished"),
+                   cwd=repo, check=True,
                    capture_output=True, text=True,
                    env=dict(os.environ, GIT_AUTHOR_DATE=stamp, GIT_COMMITTER_DATE=stamp))
     # PUBLISHED, because the ledger credits only commits on origin/main.

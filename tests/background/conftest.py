@@ -349,6 +349,22 @@ def _publish_gate_admitted(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def _no_live_holders_in_the_draw_ledger(monkeypatch):
+    """Default the delivery lane's live-holder probe to EMPTY for every test here.
+
+    Since 2026-10-16 `_disposition` asks the live process table and worktree markers whether a
+    landing holds the row (`MID_LANDING`), and `_live_holders` reads every running `surgical_land`.
+    Inside a gate the running landing IS the one being gated, and its argv writes
+    `background/delivery_lane.py` -- the subject path half these fixtures use -- so rows built to
+    read `not_done` read `mid_landing` and the gate went red on a tree that was green here. The
+    tests of the reading patch `_holders_for_the_ledger` / `_live_landings` in their body, which wins.
+    """
+    from background import delivery_lane
+    monkeypatch.setattr(delivery_lane, "_holders_for_the_ledger", lambda: [])
+    monkeypatch.setattr(delivery_lane, "_live_landings", lambda: [])
+
+
+@pytest.fixture(autouse=True)
 def _weekly_publish_window_open(monkeypatch):
     """Default the publisher's weekly window OPEN for every test here.
 

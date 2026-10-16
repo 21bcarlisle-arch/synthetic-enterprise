@@ -46,7 +46,7 @@ def _git(repo, *args):
                           capture_output=True, text=True).stdout.strip()
 
 
-def _commit_at(repo, name, body, when: float) -> str:
+def _commit_at(repo, name, body, when: float, item: str = "") -> str:
     """A commit whose COMMITTER instant is `when`. The join keys on `%ct`, so the fixture has to be
     able to place a commit before, inside and after a window -- a repo whose commits are all `now`
     cannot express the defect at all."""
@@ -56,7 +56,10 @@ def _commit_at(repo, name, body, when: float) -> str:
     _git(repo, "add", name)
     stamp = f"@{when:.0f} +0000"
     env = dict(os.environ, GIT_AUTHOR_DATE=stamp, GIT_COMMITTER_DATE=stamp)
-    subprocess.run(("git", "commit", "-m", f"land {name}"), cwd=repo, check=True,
+    # `item` NAMES THE CLAIM in the message: since 2026-10-16 an unowned commit credits an item
+    # only by naming it, never by sharing a path with it.
+    message = f"land {name}" + (f"\n\nNEXT: none -- direction item {item}, finished" if item else "")
+    subprocess.run(("git", "commit", "-m", message), cwd=repo, check=True,
                    capture_output=True, text=True, env=env)
     # PUBLISHED, because the ledger credits only commits on origin/main.
     _git(repo, "update-ref", "refs/remotes/origin/main", "HEAD")
@@ -138,7 +141,7 @@ def test_ALL_FOUR_VERDICTS_ARE_REACHABLE_FROM_ONE_FIXTURE(lane):
     now = _now()
 
     # CREDITED: a commit inside the window on a path the claim named.
-    _commit_at(repo, "tools/credited.py", "x = 1\n", DRAWN + 60)
+    _commit_at(repo, "tools/credited.py", "x = 1\n", DRAWN + 60, "credited-id")
     _row(claims, "credited-id", ["tools/credited.py"])
 
     # STRANDED: uncommitted bytes on a path the claim NAMED, last touched before the window closed.
@@ -185,7 +188,7 @@ def test_a_commit_that_arrives_AFTER_the_given_window_but_inside_the_gate_deadli
     """
     repo, claims = lane
     late = DRAWN + dl.CLAIM_STALE_SECONDS + 606        # the measured gap, to the second
-    sha = _commit_at(repo, "simulation/run_phase2b.py", "rolled\n", late)
+    sha = _commit_at(repo, "simulation/run_phase2b.py", "rolled\n", late, "gas-roll")
     _row(claims, "gas-roll", ["simulation/run_phase2b.py"])
 
     verdict = dl.tree_verdict("gas-roll", now=_now(), path=claims)
@@ -210,7 +213,7 @@ def test_a_commit_LATER_than_the_gate_deadline_is_REFUSED(lane):
     """
     repo, claims = lane
     too_late = DRAWN + dl.CLAIM_STALE_SECONDS + dl._landing_grace_seconds() + 60
-    _commit_at(repo, "tools/somebody_elses.py", "later\n", too_late)
+    _commit_at(repo, "tools/somebody_elses.py", "later\n", too_late, "ran-out")
     _row(claims, "ran-out", ["tools/somebody_elses.py"])
 
     assert dl.tree_verdict("ran-out", now=_now(), path=claims) is None, (
@@ -240,7 +243,7 @@ def test_a_commit_ALREADY_BOUND_to_another_row_is_never_credited_twice(lane):
     """
     repo, claims = lane
     when = DRAWN + 60
-    _commit_at(repo, "tools/shared.py", "shared\n", when)
+    _commit_at(repo, "tools/shared.py", "shared\n", when, "the-bystander")
     _row(claims, "the-real-one", ["tools/shared.py"],
          last_landing_at=when, last_landing_paths=["tools/shared.py"], drawn=DRAWN - 5_000)
     _row(claims, "the-bystander", ["tools/shared.py"])
@@ -264,7 +267,7 @@ def test_the_CREDIT_IS_WRITTEN_so_the_row_reads_DELIVERED_and_NAMES_THE_COMMIT(l
     """
     repo, claims = lane
     when = DRAWN + 120
-    sha = _commit_at(repo, "simulation/svt_product.py", "rolled\n", when)
+    sha = _commit_at(repo, "simulation/svt_product.py", "rolled\n", when, "gas-roll")
 
     _row(claims, "gas-roll", ["simulation/svt_product.py"])
     assert dl.disposition_of("gas-roll", path=claims)["disposition"] != dl.DELIVERED
@@ -293,7 +296,7 @@ def test_an_EMPTY_INTERSECTION_writes_NOTHING_rather_than_falling_back(lane):
     paths recorded are the item's PROSE rather than a commit's contents.
     """
     repo, claims = lane
-    _commit_at(repo, "tools/real.py", "real\n", DRAWN + 60)
+    _commit_at(repo, "tools/real.py", "real\n", DRAWN + 60, "silent-git")
     _row(claims, "silent-git", ["tools/real.py"])
 
     import background.delivery_lane as mod
@@ -369,7 +372,7 @@ def test_a_CREDITED_claim_whose_leftovers_are_dirty_is_DELIVERED_and_not_STRANDE
     that is already in a ref.
     """
     repo, claims = lane
-    _commit_at(repo, "tools/landed.py", "done\n", DRAWN + 60)
+    _commit_at(repo, "tools/landed.py", "done\n", DRAWN + 60, "both-shapes")
     (repo / "tools" / "leftover.txt").write_text("scratch\n")
     old = DRAWN + 10
     os.utime(repo / "tools" / "leftover.txt", (old, old))
@@ -675,7 +678,7 @@ def test_THE_SWEEP_CREDITS_a_landed_but_unbound_claim_and_STILL_RELEASES_IT(lane
     sentence it replaced one rung up.
     """
     repo, claims = lane
-    sha = _commit_at(repo, "tools/swept.py", "landed\n", DRAWN + 60)
+    sha = _commit_at(repo, "tools/swept.py", "landed\n", DRAWN + 60, "swept-id")
     _row(claims, "swept-id", ["tools/swept.py"])
     claims_mod.claim("swept-id", note="n", paths=[], path=claims, now=DRAWN)
     monkeypatch.setattr(claims_mod, "_last_commit_time_touching", lambda paths: 0.0)

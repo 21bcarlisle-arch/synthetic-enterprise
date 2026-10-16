@@ -125,6 +125,10 @@ def _fake_git(log_lines, *, tracked=(SUBJECT_PATH, OTHER_PATH), revisions=()):
     # its subject, which is this file's own worry one level down. Named rather than `**k`:
     # any OTHER kwarg still fails loudly, which is the strictness this fake is for.
     def fake(*args, cwd=None):
+        if args[:3] == ("log", "-1", "--format=%B"):
+            # ONE COMMIT'S MESSAGE, since 2026-10-16: an unowned commit binds only by naming the
+            # id, so a fake that answered every commit's subject here would bind by a neighbour.
+            return next((subject for sha, _w, subject, _p in log_lines if sha == args[3]), None)
         if args and args[0] == "ls-files":
             return "\n".join(tracked) + "\n"
         if args and args[0] == "show":
@@ -187,7 +191,7 @@ def test_THE_PARTITION_all_five_readings_come_back_from_one_ledger_in_one_statem
     """
     store = _five_shapes(tmp_path)
     monkeypatch.setattr(dl, "_git", _fake_git([
-        (UNBOUND_SHA, IN_WINDOW, "the resolver was not wired into the other two readers",
+        (UNBOUND_SHA, IN_WINDOW, f"the resolver was not wired into the other two readers ({UNBOUND_ID})",
          [SUBJECT_PATH]),
     ]))
 
@@ -223,7 +227,7 @@ def test_THE_PROPERTY_a_window_with_a_commit_on_its_own_paths_is_never_evidence_
     """
     store = _ledger(tmp_path, {UNBOUND_ID: _row(named_paths=[SUBJECT_PATH])})
     monkeypatch.setattr(dl, "_git", _fake_git([
-        (UNBOUND_SHA, IN_WINDOW, "a landing nothing bound", [SUBJECT_PATH]),
+        (UNBOUND_SHA, IN_WINDOW, f"a landing nothing bound ({UNBOUND_ID})", [SUBJECT_PATH]),
     ]))
 
     rows = dl.drawn_without_landing(now=NOW, path=store)
@@ -257,9 +261,9 @@ def test_A_COMMIT_OUTSIDE_THE_WINDOW_IS_NOT_IN_IT_whichever_side_it_falls(tmp_pa
     grace = dl._landing_grace_seconds()
     outer_edge = WINDOW_ENDS + grace
     monkeypatch.setattr(dl, "_git", _fake_git([
-        ("1111111111111111111111111111111111111111", DRAWN_AT - 60, "before the draw",
+        ("1111111111111111111111111111111111111111", DRAWN_AT - 60, f"before the draw ({UNBOUND_ID})",
          [SUBJECT_PATH]),
-        ("2222222222222222222222222222222222222222", outer_edge + 60, "after the gate could run",
+        ("2222222222222222222222222222222222222222", outer_edge + 60, f"after the gate could run ({UNBOUND_ID})",
          [SUBJECT_PATH]),
     ]))
     assert dl.disposition_of(UNBOUND_ID, path=store)["disposition"] == dl.NOT_DONE
@@ -267,7 +271,7 @@ def test_A_COMMIT_OUTSIDE_THE_WINDOW_IS_NOT_IN_IT_whichever_side_it_falls(tmp_pa
     # AND THE GRACE IS LOAD-BEARING, not a widening that made a red go away. A commit past the
     # given window but inside the cost of the gate that produced it is this claim's own landing.
     monkeypatch.setattr(dl, "_git", _fake_git([
-        (UNBOUND_SHA, WINDOW_ENDS + grace / 2.0, "landed late through a gate that took its time",
+        (UNBOUND_SHA, WINDOW_ENDS + grace / 2.0, f"landed late through a gate that took its time ({UNBOUND_ID})",
          [SUBJECT_PATH]),
     ]))
     inside = dl.disposition_of(UNBOUND_ID, path=store)
@@ -283,7 +287,7 @@ def test_A_COMMIT_ON_OTHER_PATHS_IS_NOT_THIS_ITEMS_however_busy_the_window_was(
     """
     store = _ledger(tmp_path, {UNBOUND_ID: _row(named_paths=[SUBJECT_PATH])})
     monkeypatch.setattr(dl, "_git", _fake_git([
-        (UNBOUND_SHA, IN_WINDOW, "another lane, same hour, different subject", [OTHER_PATH]),
+        (UNBOUND_SHA, IN_WINDOW, f"another lane, same hour, different subject ({UNBOUND_ID})", [OTHER_PATH]),
     ]))
 
     assert dl.disposition_of(UNBOUND_ID, path=store)["disposition"] == dl.NOT_DONE
@@ -312,7 +316,7 @@ def test_A_COMMIT_ANOTHER_ROW_IS_CREDITED_WITH_IS_NOT_THIS_ONES_unbound_is_the_w
                                                  last_landing_paths=[SUBJECT_PATH]),
     })
     monkeypatch.setattr(dl, "_git", _fake_git([
-        (BOUND_SHA, IN_WINDOW, "landed and bound, by another row", [SUBJECT_PATH]),
+        (BOUND_SHA, IN_WINDOW, f"landed and bound, by another row ({UNBOUND_ID})", [SUBJECT_PATH]),
     ]))
 
     bound_only = dl.disposition_of(UNBOUND_ID, path=store)
@@ -322,8 +326,8 @@ def test_A_COMMIT_ANOTHER_ROW_IS_CREDITED_WITH_IS_NOT_THIS_ONES_unbound_is_the_w
     # nothing is credited with. If the leg above passed because the fake declined to speak rather
     # than because the commit was bound, this cannot go green.
     monkeypatch.setattr(dl, "_git", _fake_git([
-        (BOUND_SHA, IN_WINDOW, "landed and bound, by another row", [SUBJECT_PATH]),
-        (UNBOUND_SHA, IN_WINDOW + 1, "landed and nobody bound it", [SUBJECT_PATH]),
+        (BOUND_SHA, IN_WINDOW, f"landed and bound, by another row ({UNBOUND_ID})", [SUBJECT_PATH]),
+        (UNBOUND_SHA, IN_WINDOW + 1, f"landed and nobody bound it ({UNBOUND_ID})", [SUBJECT_PATH]),
     ]))
     again = dl.disposition_of(UNBOUND_ID, path=store)
     assert again["disposition"] == dl.LANDED_UNBOUND
@@ -463,7 +467,7 @@ def test_THE_REACH_a_row_whose_prose_left_every_live_store_still_gets_its_subjec
     item's prose unconditionally would pass the first leg and fail the second.
     """
     store = _ledger(tmp_path, {MISSED_ID: _row()})
-    landing = [(UNBOUND_SHA, IN_WINDOW, "the work, landed under nobody's name", [SUBJECT_PATH])]
+    landing = [(UNBOUND_SHA, IN_WINDOW, f"the work, landed under nobody's name ({MISSED_ID})", [SUBJECT_PATH])]
 
     monkeypatch.setattr(dl, "_git", _fake_git(landing, revisions=(
         ("rev1", _record((MISSED_ID, "rewrite " + SUBJECT_PATH + " so the join has a subject"))),
@@ -497,7 +501,7 @@ def test_THE_LIVE_STORES_OUTRANK_a_revision_since_rewritten(tmp_path, monkeypatc
         {"id": MISSED_ID, "what": "rewrite " + SUBJECT_PATH, "why": "", "done_means": ""},
     ])
     monkeypatch.setattr(dl, "_git", _fake_git(
-        [(UNBOUND_SHA, IN_WINDOW, "a landing on the subject this item DROPPED", [OTHER_PATH])],
+        [(UNBOUND_SHA, IN_WINDOW, f"a landing on the subject this item DROPPED ({MISSED_ID})", [OTHER_PATH])],
         revisions=(("rev1", _record((MISSED_ID, "an older cut of this item, over " + OTHER_PATH))),
                    )))
 

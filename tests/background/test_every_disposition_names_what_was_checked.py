@@ -65,6 +65,7 @@ CREDITED_ID = "a-window-whose-work-landed-under-a-better-name"
 DELIVERED_ID = "a-window-that-delivered-under-its-own-name"
 EARLY_ID = "a-window-that-closed-before-its-own-subject-existed"
 NEVER_ID = "an-id-this-ledger-has-never-heard-of"
+MID_ID = "a-window-whose-work-a-live-landing-holds-now"
 
 NOW = 1789000000.0
 #: Older than the window plus the grace, so every row below has closed.
@@ -124,6 +125,8 @@ def _fake_git(commits):
     this copy would have inherited it.
     """
     def run(*args, **kwargs):
+        if args[:3] == ("log", "-1", "--format=%B"):
+            return next((c[2] for c in commits if c[0] == args[3]), None)
         if args and args[0] == "ls-files":
             return "\n".join((SUBJECT_PATH, QUIET_PATH, SIBLING_PATH))
         if not args or args[0] != "log":
@@ -192,11 +195,16 @@ def whole_partition(tmp_path, monkeypatch, prose):
                           last_landing_paths=["site/index.html"]),
         DELIVERED_ID: _row(last_landing_at=DRAWN_AT + 60, last_landing_paths=[SUBJECT_PATH]),
         EARLY_ID: _row(named_paths=[QUIET_PATH]),
+        MID_ID: _row(named_paths=[QUIET_PATH]),
     })
+    monkeypatch.setattr(dl, "_holders_for_the_ledger", lambda: [{
+        "holder": "surgical_land pid 1", "artefact": "(a gated landing)", "names": set(),
+        "paths": set(), "identifiers": set(), "copies": {},
+        "message": f"the work, gating now\n\nNEXT: none -- direction item {MID_ID}, finished"}])
     prose[EARLY_ID] = _states_start_after_the_window()
     monkeypatch.setattr(dl, "_git", _fake_git([
-        (UNBOUND_SHA, IN_WINDOW, "a landing nothing bound", [SUBJECT_PATH]),
-        (SIBLING_SHA, SIBLING_INSTANT, "a landing another row holds", [SIBLING_PATH]),
+        (UNBOUND_SHA, IN_WINDOW, f"a landing nothing bound, {UNBOUND_ID}", [SUBJECT_PATH]),
+        (SIBLING_SHA, SIBLING_INSTANT, f"a landing another row holds, {SIBLING_ID}", [SIBLING_PATH]),
     ]))
     return store
 
@@ -253,7 +261,7 @@ def test_THE_PARTITION_every_disposition_of_can_return_CARRIES_A_REASON(whole_pa
     a guard asserted over a partition it does not cover is the same failure with better manners.
     """
     ids = (MISSED_ID, MUTE_ID, UNBOUND_ID, SIBLING_ID, SPENT_ID, CREDITED_ID, DELIVERED_ID,
-           EARLY_ID, NEVER_ID)
+           EARLY_ID, NEVER_ID, MID_ID)
     seen = {i: dl.disposition_of(i, path=whole_partition) for i in ids}
 
     silent = {i: r for i, r in seen.items() if not str(r.get("evidence") or "").strip()}

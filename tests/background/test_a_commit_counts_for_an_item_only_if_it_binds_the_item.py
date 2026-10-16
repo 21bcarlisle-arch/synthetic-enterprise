@@ -13,9 +13,11 @@ next worker "not yours to redo" about work nobody had done:
   * another item's 09:55 bytes, sitting uncommitted on a stamped path the grade never asked for,
     were read as the grade's own strand.
 
-THE RULE. A commit binds an item only by: a `--landed` bind to its id, its id in the commit
-message, or -- for a commit no row is bound to -- a diff to a path the item's prose asks to
-CHANGE. Anything else is published as `path_touched_by <sha>`, a hint and not a disposition.
+THE RULE. A commit binds an item only by: a `--landed` bind to its id, or its id in the commit
+message. Anything else is published as `path_touched_by <sha>`, a hint and not a disposition.
+(Until 2026-10-16 a third fact bound an unowned commit: a diff to a path the item asks to CHANGE.
+That is a path overlap too, and the director withdrew it; see
+`test_a_commit_sharing_only_a_path_credits_no_item.py`.)
 
 ONE PARTITION, NOT A LEG PER BRANCH. A predicate that refuses everything passes every "is it
 refused" assertion, so the three misgrades and two true bindings are asserted in one statement.
@@ -73,7 +75,8 @@ COMMITS = [
     (WEATHER_SHA, IN_WINDOW + 60, "W1_14 weather", "the world's weather covers the roster", [MAP]),
     (NAMED_SHA, IN_WINDOW + 120, "Y1 graded", f"Y1 graded.\n\nThis is {NAMED_ID}'s grade.",
      [PREREG]),
-    (OWN_SHA, IN_WINDOW + 180, "Z1 graded", "Z1 graded", [PREREG]),
+    (OWN_SHA, IN_WINDOW + 180, "Z1 graded", f"Z1 graded\n\nNEXT: none -- direction item {UNBOUND_ID}, finished",
+     [PREREG]),
 ]
 
 

@@ -122,6 +122,10 @@ def _fake_git(commits: list[tuple[str, list[str]]]):
     dropped from the query, and the suite would grade a code path production no longer takes.
     """
     def fake(*args: str) -> str | None:
+        if args[:3] == ("log", "-1", "--format=%B"):
+            # EVERY commit here names the id (2026-10-16: an unowned commit binds only by naming
+            # it), so what refuses a heartbeat is still the liveness surface and nothing else.
+            return "a subject\n\nNEXT: none -- direction item {}, finished\n".format(FOCUS_ID)
         if not args or args[0] != "log":
             return ""
         want_names = "--name-only" in args

@@ -2,6 +2,19 @@
 
 # The draw ledger grades by path, so work mid-landing, work spent and work that merely shares a path read alike
 
+**Fate (2026-10-16): FIXED, both defects** (direction `the-draw-ledger-credits-by-the-items-work-not-by-path-overlap`).
+(1) `_binds_item` no longer credits an unowned commit for touching a subject path; it must name the
+id. Over the live ledger's last 14 days, 9 of 44 swept rows had read `landed_unbound` that way, each
+on another item's commit (merges, a gas-electronics change crediting the home-mover item); all 9 now
+read `not_done` with a `path_touched_by` hint. (2) `MID_LANDING` is a sixth disposition: a live
+`surgical_land` (its argv, read from `/proc`) whose message names the id or which writes a path the
+item asks to change, or an owned worktree holding it, and the draw's held-work check sees live
+landings too. Controls: `tests/background/test_a_commit_sharing_only_a_path_credits_no_item.py`
+(partition over landed / mid_landing / not_done, and the path-only refusal with its rare branch);
+three mutations recorded there, each fired. NOT DONE HERE: the "majority of the item's paths" leg
+this finding proposed — the direction is stricter (trailer or subject only), and a single-path
+item whose tick skipped `--landed` now reads `not_done` with the hint, which is the honest answer.
+
 **Fate (2026-10-15):** TRIAGE -- a machine-class known issue, carried as `the-draw-ledger-cannot-tell-mid-landing-from-not-done` in docs/direction/wrong_triage.yaml.
 **Fate (2026-10-12, clear-the-decks):** ATOM -- no "landing now" fourth verdict or live-claim/majority-path check found in background/delivery_lane.py; mid-landing items may still read as not_done and a single shared path may still credit a landing (P2)
 

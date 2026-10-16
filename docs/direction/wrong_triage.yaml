@@ -173,7 +173,9 @@ items:
     times_listed: 18
     fate: fix
     owner: "docs/staging/SEAT_FINDING_THE_DRAW_LEDGER_GRADES_BY_PATH_SO_MID_LANDING_SPENT_AND_OVERLAPPING_WORK_READ_ALIKE_2026-10-07.md"
-    status: open
+    status: already_fixed
+    fixed_by: "the commit adding tests/background/test_a_commit_sharing_only_a_path_credits_no_item.py"
+    reason: "2026-10-16: delivery_lane reads a live surgical_land (from /proc argv) or an owned worktree holding the item as mid_landing, a sixth disposition, asked after both landing readings; the draw's held-work check sees live landings too. The partition control asserts landed, mid_landing and not_done reachable in one statement."
   - id: a-worktree-lock-outlives-its-owner
     problem: "A worktree stays locked to a dead pid and its work is still treated as in hand."
     match: ["worktree lock outlives its owner", "locked to the dead pid"]
@@ -281,7 +283,9 @@ items:
     times_listed: 1
     fate: fix
     owner: "docs/staging/SEAT_FINDING_THE_DRAW_LEDGER_GRADES_BY_PATH_SO_MID_LANDING_SPENT_AND_OVERLAPPING_WORK_READ_ALIKE_2026-10-07.md"
-    status: open
+    status: already_fixed
+    fixed_by: "the commit adding tests/background/test_a_commit_sharing_only_a_path_credits_no_item.py"
+    reason: "2026-10-16: an unowned commit binds an item only by naming its id (the --landed / NEXT: binding), never by a shared path. Measured on the live ledger over 14 days: 9 of 44 swept rows had read landed_unbound by path overlap alone, every one another item's commit; all 9 now read not_done with a path_touched_by hint."
   - id: lane-0-hands-a-multi-run-item-to-a-tick-without-asking-its-window
     problem: "Lane 0 handed the voids item to two ticks (22:57Z, 01:31Z) without asking whether a tick's window could hold a multi-run item, and both landed nothing."
     match: ["voids item was dispatched twice", "how much window a tick has left"]
