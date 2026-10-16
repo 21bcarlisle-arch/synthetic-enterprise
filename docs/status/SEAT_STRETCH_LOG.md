@@ -8,6 +8,49 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-16 — orientation: Billing moved forward and the comparison did not
+
+<!-- head: cd3b93e9e4d7 -->
+
+*Written by the orientation seat from its own record (2026-10-16T17:22:58.283644+00:00; 11 commits, 7 substantive, since 2026-10-16T14:22:31.865021+00:00).*
+
+Commit split (product code by path): 3 supplier, 1 world, 0 both, 7 other.
+
+## What the stretch meant
+
+Billing moved forward and the comparison did not. The thesis needs a flat baseline to beat. That comparison is exactly where it was at 14:22. Both doors are built and the predictions are filed. It still waits on the 2026-10-19 publish and on six fresh seeds that only the director can list (open row ep17-s-flat-against-per-customer-comparison). Billing accuracy produced real company results this stretch. C7 is graded (c3f015034). It sits at the far end of a class of 287 runs of estimates longer than twelve months, on 245 accounts. None of them is billed past the 12-month back-billing bar. The 21BA write-off works on both payment routes. K1 now carries its concentration, so one account can no longer pass for a population bias. That wrong row is corrected. The same census found the company never asks for a read. Nothing in company/ acts on a run of estimates, so the company cannot see its own SLC 21B.4 breach. That is focus one. D46 closed a leak in billing (e6785dce5). A void stub's estimate is now priced at the account's own tariff, so world truth no longer decides whether the company charges for its own estimate. The P3 wrong row is corrected in code. Its two OCC rows leave KNOWN_OPEN_INVERSIONS when the next published ledger is billed by this code. The draw ledger now credits an item only through a commit that binds it, and it reads a landing in flight as mid_landing (1961c22d5). The instrument that grades whether the steer bit is honest at last. Both of its carried wrong rows are retired in wrong_triage.yaml as already_fixed, so they leave this list by that route rather than by being forgotten. What has not moved, and matters most for the thesis, is 2022. The world books crisis bad debt at about a tenth of the published share: 0.10% of revenue in 2021-22 against 1.3% to 2.8% published. The company's provision charge peaks in 2023, a year after the arrears. Any per-customer debt or retention decision is graded inside a world that forgives non-payment, and in that world value created and value transferred look alike. That BLOCKING finding has had no work for two days, so it becomes focus two (supplier timing) and focus three (world level, diagnosis only before the publish). Commit split: 3 supplier, 1 world, 7 other. Four of the seven "other" commits are seat records and merges, so the supplier-first order held. The previous focus is graded. Two of three Lane 0 items were drawn (the C7 census, and the legacy PC1 item, which landed as finding and prereg in 91038fa91). The draw-ledger item was not drawn but landed anyway, and so did the D46 atom (the draw never took it; e6785dce5 did the work). All four are done, so none is carried. One correction to my own record: last stretch I listed C35 in not_now as a director-ruled row. Its map row quotes him: "not a ruling from me". A worker built it to L1, dormant (1bf415a14). That was right, and my rejection was wrong.
+
+## What went wrong
+
+- NOT corrected: THE MACHINE'S, CARRIED. A focus-row tombstone still retires a row without asking its DONE. 17:22: One retirement, the C7 item, at 15:00Z, two minutes after its DONE landed (c3f015034). That is consistent a fourth time, and still a case that cannot show the defect. Focus four.
+- NOT corrected: THE MACHINE'S, CARRIED. The coupled-triad gate now excludes twinless L3 targets, and its refusal reaches only the supervisor journal. 17:22: Unchanged.
+- NOT corrected: THE WORLD'S, CARRIED. A gas-heated fabric home's electricity has no season against SERL. 17:22: Unchanged. It waits for the post-publish world builds.
+- NOT corrected: THE MACHINE'S, CARRIED. longjob-save-eight was declared at 50 minutes and has held its admission for 4h46m. 17:22: No long job launched or ended this stretch, and the expiry is still not built.
+- NOT corrected: THE MACHINE'S, CARRIED. A held estimate was netted at its draft amount when the next actual read caught up, so seven customer-years were credited for estimates never sent. 17:22: Fixed on origin. The published book carries it until the 2026-10-19 publish.
+- NOT corrected: THE MACHINE'S, CARRIED. The 08:20 orientation's record never reached origin, and a seat killed by the host leaves no trace of itself in delivery-seat-log.md. 17:22: No seat was killed this stretch, and the trace is not built.
+- corrected: THE MACHINE'S, CARRIED. K1 published a pooled billing-accuracy share with no concentration figure, so one account set electricity's year-end figure for four years. 17:22: c3f015034 makes K1 name its largest graded run, that run's share of the net, and the net without it, graded at publish.
+- corrected: THE MACHINE'S, CARRIED. The held-estimate prereg's P3 called the two OCC inversions the test's netting, "not billing". They were a billing defect: 60 void-stub invoices priced the estimate at 0p. 17:22: e6785dce5 prices them at the account's own tariff, with a two-branch control. The OCC rows leave KNOWN_OPEN_INVERSIONS once a published ledger is billed by this code.
+- corrected: THE SEAT'S, NEW. My 14:22 record put C35 in not_now as a director-ruled row whose build would decide his question. Its map row quotes him: "not a ruling from me". The rejection was wrong. A worker built C35 to L1, dormant (1bf415a14), and this record corrects the claim.
+
+## Chosen against
+
+- Running B11's per-customer-against-flat arms on seeds that have already been read.
+- Building the legacy PC1 world fix (the EPC multiplier on a handed-in drawn band, 91038fa91).
+- Giving the world a household response to a priced share, so that C35 can reach L2 and the c34 advice-floor row has evidence.
+- Switching on retention_nets_bad_debt in CURRENT_POLICY (the carried retention-guard fix).
+- Asking for a read before the year runs out (the chase that should come before 21B.4 is breached).
+- The long-job declaration expiry, the coupled-triad refusal surface, the killed-seat trace, and a heartbeat for worker-seat-manager.
+- Reaping /var/tmp/b12-* and pruning the two missing /tmp worktrees.
+
+## Focus for the next stretch
+
+- `a-year-unread-is-registered-as-the-companys-21b4-breach`
+- `when-a-gb-supplier-charged-2022s-bad-debt`
+- `the-worlds-2022-non-payment-against-the-published-arrears-record`
+- `a-tombstone-retires-a-focus-row-only-on-a-commit-that-binds-it`
+
+---
+
 ## 2026-10-16 — orientation: Forward on the baseline, flat on billing, and the critical path now waits on two clocks rather than on work
 
 <!-- head: a896e0645da9 -->
