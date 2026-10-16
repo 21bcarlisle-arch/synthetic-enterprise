@@ -1919,27 +1919,6 @@
   simplifications_count: 0
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "an ADDACS 1 file arriving the morning after a customer cancels at their bank, before any collection fails."
-- id: W2_42_debt_reaches_prepayment_only_by_the_legal_route
-  title: "a household in debt reaches prepayment only by the legal route (ability-to-pay checks, the involuntary-move rules), so the engine's end state exists in the world"
-  lane: W2_customer_generator
-  value_stream: meter_to_cash
-  epoch: 4
-  level_current: 0
-  level_target: 2
-  loop_stage: build
-  # MINTED 2026-10-14, the same ruling. Knowledge: company_debt_management.md (prepayment gates,
-  # SLC 28B) and debt_and_collections.md. Self-disconnection exists (simulation/self_rationing.py);
-  # the route from debt to a prepayment meter does not. World fidelity, decided blind; the company's
-  # side of the decision is never automated (an involuntary move is the director's reserved shape).
-  dial_inherited: 80
-  provenance: director_ruling
-  depends_on: []
-  couples_with: [E6_a_forward_cash_forecast_per_customer_charges_expected_loss_as_arrears_build]
-  file_scope: ['simulation/self_rationing.py',
-    'tests/simulation/test_debt_reaches_prepayment_only_by_the_legal_route.py']
-  simplifications_count: 0
-  expert_hour: {status: not_attempted, last: null, findings: []}
-  real_world_twin: "a supplier that may install a prepayment meter for debt only after the ability-to-pay steps, and never for the households the rules protect."
 - id: B12_writer_one_reads_its_margin_on_the_unit_rate_so_a_renewal_floor_is_its_true_unit_cost
   title: "writer 1's realised margin is measured on the unit rate, with standing-charge revenue net of the cost it recovers, and the save takes writer 1's floor, so a renewal at its floor is at its true unit cost"
   lane: B_commercial

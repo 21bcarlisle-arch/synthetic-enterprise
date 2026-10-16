@@ -724,6 +724,24 @@ section above and `debt_and_collections.md` §3. This section says what the worl
 - **Debt recovery on the new meter** (£6.01 electricity, £4.40 gas a week, Ofgem 2025, §2) is not built.
   It is built where the run first changes a meter, together with the household's life on it.
 
-### What reaches it
-Nothing in the run yet. The company's involuntary decision is the director's reserved shape and is
-never automated. The Consent route needs a seam door, which is the next slice.
+### What reaches it (2026-10-16, the Consent door)
+Every run, through one seam door: `SimInterface.request_prepayment_move`. The company's residential
+ladder already selects `prepayment_or_debt_agency` at 90 days overdue
+(`company/billing/arrears_engine.py`). From this slice the collections desk
+(`company/billing/collections_journey.py`) makes that step a real ask, by the Consent route only, and
+records `prepayment_offered` straight after it with the world's answer.
+
+DESIGN CHOICES, each named:
+- **Consent only.** The company asks by explicit Consent (28.22). The door refuses an involuntary
+  route with its reason: that decision is the director's reserved shape and is never automated.
+- **The ask is one per journey, at the 90-day step.** The ladder puts the agency hand-over and the
+  prepayment offer on one rung. The desk records the prepayment offer; the agency referral is not
+  built, so it is not claimed.
+- **What crosses back is what the conversation tells a supplier:** whether the meter is changed, and
+  a reason. Never the household's V1 state.
+- **Shipped, the household cannot answer.** The take-up share (`method_prepayment_offer_take_up_share`)
+  ships at 0, as no published rate of take-up exists, so every offer is recorded unanswered with the
+  world's reason. An agreed move is reachable through an injected world only.
+- **A moved meter ends the journey on the `prepayment` exit.** GAP: life on the meter (debt recovered
+  from top-ups at £6.01 / £4.40 a week, §2) is still not built, so the debt stays on the ledger and a
+  later overdue read can open a new journey. This can only happen in an injected world today.

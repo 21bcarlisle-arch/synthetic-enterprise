@@ -21,7 +21,8 @@ open journey is evaluated only where it could open one (each bill's due + 1, and
 
 WHAT ENDS A JOURNEY. `cured` is reached from the company's own records: the overdue balance is
 cleared on the ledger. `arrangement` is reached when the household AGREES an offered plan, a fact
-the world answers through the seam. The other exits the atom names are listed in `UNREACHED_EXITS`
+the world answers through the seam. `prepayment` is reached when the world changes the meter on the
+Consent offer the 90-day rung makes (W2_42). The other exits the atom names are listed in `UNREACHED_EXITS`
 with the reason each cannot happen yet. A journey still open at the run's end carries `exit: None`
 -- "we cannot tell how it ends" -- and is never coerced into an exit.
 
@@ -78,6 +79,13 @@ MISSED_PAYMENT = "missed_payment"
 CURED = "cured"
 #: The ladder step on which SLC 27.8 has the company offer an affordable arrangement.
 PLAN_OFFER_STEP = "repayment_plan_offer"
+#: The residential rung on which the company asks for a prepayment meter by Consent (W2_42), the offer
+#: it records straight after, and the exit taken when the world changes the meter.
+PREPAYMENT_STEP = "prepayment_or_debt_agency"
+PREPAYMENT_OFFERED = "prepayment_offered"
+PREPAYMENT = "prepayment"
+#: Why a prepayment offer is recorded unanswered when the desk has no seam to ask.
+PREPAYMENT_ANSWER_GAP = "this desk was built with no seam to ask, so no meter change can be requested"
 #: The arrangement stage in the only state the company can reach alone: OFFERED. Entered on the
 #: same date as `PLAN_OFFER_STEP` and only straight after it, with the offer kept in the desk's
 #: `PaymentPlanBook`. The household's acceptance is not observed -- see ARRANGEMENT_ACCEPTANCE_GAP.
@@ -97,7 +105,11 @@ UNREACHED_EXITS = {
     "arrangement": ("reachable when the world agrees an offer, and unreached live: the world answers "
                     "every offer None, because no published rate of plan take-up exists (simulation/"
                     "plan_offer_response.py)"),
-    "disconnection_equivalent": "no prepayment-under-warrant or agency hand-over is taken live",
+    "disconnection_equivalent": ("no prepayment-under-warrant or agency hand-over is taken live; a "
+                                 "meter changed by Consent is the separate `prepayment` exit"),
+    "prepayment": ("reachable when the world changes the meter on a Consent offer, and unreached "
+                   "live: the take-up share ships at 0, so the household cannot answer "
+                   "(simulation/payment_method_dynamics.py)"),
     "write_off": "arrears_engine.build_write_off_event has no production caller",
 }
 
@@ -128,6 +140,10 @@ def lawful_successors(segment: Segment) -> Dict[Optional[str], frozenset]:
         table[PLAN_OFFER_STEP] = table[PLAN_OFFER_STEP] | {ARRANGEMENT_OFFERED}
         table[ARRANGEMENT_OFFERED] = (working - {PLAN_OFFER_STEP}) | {ARRANGEMENT}
         table[ARRANGEMENT] = frozenset()
+    if PREPAYMENT_STEP in ladder:
+        table[PREPAYMENT_STEP] = table[PREPAYMENT_STEP] | {PREPAYMENT_OFFERED}
+        table[PREPAYMENT_OFFERED] = (working - {PREPAYMENT_STEP}) | {PREPAYMENT}
+        table[PREPAYMENT] = frozenset()
     return table
 
 
@@ -151,6 +167,11 @@ def assert_journey_order_lawful(journey: dict, segment: Segment) -> None:
             raise UnlawfulJourneyOrderError(
                 f"{journey.get('account_id')}: {PLAN_OFFER_STEP} on {s['on']} with no "
                 f"{ARRANGEMENT_OFFERED} recorded after it")
+        if s["stage"] == PREPAYMENT_STEP and (
+                following is None or following["stage"] != PREPAYMENT_OFFERED):
+            raise UnlawfulJourneyOrderError(
+                f"{journey.get('account_id')}: {PREPAYMENT_STEP} on {s['on']} with no "
+                f"{PREPAYMENT_OFFERED} recorded after it")
     previous, previous_on = None, None
     for s in stages:
         if s["stage"] not in table.get(previous, frozenset()):
@@ -178,7 +199,8 @@ class _Journey:
         """The stage the SELECTOR last put this journey in. An offered arrangement is recorded
         beside its plan-offer step, not instead of it, so it is skipped: reading it as the current
         step would make the next read of the same step look like a new one, and re-offer daily."""
-        steps = [s["stage"] for s in self.stages if s["stage"] != ARRANGEMENT_OFFERED]
+        steps = [s["stage"] for s in self.stages
+                 if s["stage"] not in (ARRANGEMENT_OFFERED, PREPAYMENT_OFFERED)]
         return steps[-1] if steps else None
 
     def enter(self, stage: str, on: dt.date, decision: str, view: dict, **extra) -> None:
@@ -283,8 +305,10 @@ class CollectionsJourneyDesk:
             journey.enter(action, on, f"{action} by {view.get('dunning_channel')}", view)
             if action == PLAN_OFFER_STEP:
                 self._offer_arrangement(journey, on, view)
+            elif action == PREPAYMENT_STEP:
+                self._offer_prepayment(journey, on, view)
         self._refuse(journey.as_record(), account_id)
-        if journey.exit == ARRANGEMENT:
+        if journey.exit in (ARRANGEMENT, PREPAYMENT):
             self._closed.append(self._open.pop(account_id))
 
     def _read_instalments(self, account_id: str, on: dt.date) -> bool:
@@ -336,6 +360,24 @@ class CollectionsJourneyDesk:
             journey.exit = ARRANGEMENT
         elif accepted is False:
             self.arrangements.cancel_plan(plan.plan_id)
+
+    def _offer_prepayment(self, journey: _Journey, on: dt.date, view: dict) -> None:
+        """W2_42: the 90-day rung asks for a prepayment meter by the household's explicit Consent
+        (SLC 28.22), never involuntarily, and records the world's answer. A changed meter ends the
+        journey on the `prepayment` exit. Life on the meter (debt recovered from top-ups) is not
+        built: `company_debt_management.md`, "What reaches it"."""
+        debt = view.get("undisputed_overdue_gbp") or 0.0
+        days = view.get("max_days_overdue") or 0
+        if self._plan_offers is None:
+            answer = {"moved": False, "reason": PREPAYMENT_ANSWER_GAP}
+        else:
+            answer = self._plan_offers.request_prepayment_move(
+                journey.account_id, on.isoformat(), debt, days // 30)
+        journey.enter(PREPAYMENT_OFFERED, on, "prepayment meter offered by Consent (SLC 28.22)",
+                      view, meter_moved=answer["moved"], move_reason=answer["reason"])
+        if answer["moved"]:
+            journey.enter(PREPAYMENT, on, answer["reason"], view)
+            journey.exit = PREPAYMENT
 
     def journeys(self) -> List[dict]:
         """Every journey this desk has recorded, closed first then open, as plain records."""

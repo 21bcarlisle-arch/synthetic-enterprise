@@ -38,6 +38,10 @@ from company.billing.collections_journey import (
     CURED,
     MISSED_PAYMENT,
     PLAN_OFFER_STEP,
+    PREPAYMENT,
+    PREPAYMENT_ANSWER_GAP,
+    PREPAYMENT_OFFERED,
+    PREPAYMENT_STEP,
     UNREACHED_EXITS,
     CollectionsJourneyDesk,
     UnlawfulJourneyOrderError,
@@ -287,8 +291,10 @@ def test_the_order_check_refuses_an_unlawful_walk(stages, exit, why):
 #: A window holding every branch the controls below need: February's first misses are observable
 #: on 2016-02-29, so a cure, a day-7 reminder, a cure with no reminder and a day-28 plan offer all
 #: fall inside it. Measured 2016-10-04 at this end: 12 journeys, 5 cured (4 with no reminder),
-#: 5 reminded, 5 arrangements offered. The old end (03-02) predates any day-7 reminder.
-LIVE_WINDOW_END = "2016-05-31"
+#: 5 reminded, 5 arrangements offered. The old end (03-02) predates any day-7 reminder. Moved to
+#: 07-31 for W2_42 (2026-10-16): the first live 90-day prepayment offer falls on 2016-07-27, and
+#: the 05-31 end reached no step past day 28.
+LIVE_WINDOW_END = "2016-07-31"
 
 
 @pytest.fixture(scope="module")
@@ -352,12 +358,29 @@ def test_a_live_run_offers_arrangements_only_straight_after_the_plan_offer_step(
         "an exit other than cured/open was recorded with no world answer behind it")
 
 
+def test_a_live_run_asks_the_world_for_a_prepayment_meter_at_the_ninety_day_rung(live_journeys):
+    """W2_42's route is reached by the run, through the live seam: every 90-day rung is followed by
+    its offer, and the answer is the WORLD's (the take-up share ships at 0), not the desk's no-seam
+    text. No meter is changed on the shipped world."""
+    offered = [s for j in live_journeys for s in j["stages"] if s["stage"] == PREPAYMENT_OFFERED]
+    assert offered, "no live journey reached the 90-day rung -- the prepayment route is unreached"
+    assert {s["move_reason"] for s in offered} == {
+        "the household cannot answer: take-up share is off"}
+    assert not any(s["meter_moved"] for s in offered)
+
+
 class _World:
     """A stand-in household behind the seam: it answers every offer `accepted` at `instalment`,
-    and pays (or misses) every instalment, one each 30 days after the plan was agreed."""
+    and pays (or misses) every instalment, one each 30 days after the plan was agreed. Asked for a
+    prepayment meter by Consent, it has the meter changed when `moves`."""
 
-    def __init__(self, accepted, instalment=None, paid=True):
-        self.accepted, self.instalment, self.paid = accepted, instalment, paid
+    def __init__(self, accepted, instalment=None, paid=True, moves=False):
+        self.accepted, self.instalment, self.paid, self.moves = accepted, instalment, paid, moves
+        self.prepayment_asks = []
+
+    def request_prepayment_move(self, account_id, requested_on, debt, months_outstanding):
+        self.prepayment_asks.append((account_id, requested_on, debt, months_outstanding))
+        return {"moved": self.moves, "reason": "household agreed" if self.moves else "declined"}
 
     def answer_plan_offer(self, account_id, offered_on, debt_gbp):
         reason = {True: "agreed", False: "declined", None: "the world cannot say"}[self.accepted]
@@ -453,6 +476,45 @@ def test_a_paid_instalment_posts_to_the_ledger_as_cash_and_a_repaid_plan_frees_t
     assert paid_journeys[1]["stages"][0]["overdue_gbp"] == 100.0
     assert missed_plan.status == PaymentPlanStatus.DEFAULTED and missed_credits == []
     assert missed_journeys[1]["stages"][0]["overdue_gbp"] == 200.0
+
+
+def test_the_ninety_day_rung_asks_for_a_prepayment_meter_by_consent_and_takes_both_answers():
+    """W2_42. An unpaid GBP 100 bill, no plan agreed. At the 90-day rung the desk asks the world once
+    and records the answer straight after the step. Both answers in one control before what either
+    does: a changed meter ends the journey on `prepayment`; a refusal leaves it open."""
+    walks = {}
+    for moves in (True, False):
+        world = _World(None, moves=moves)
+        consumer = _answered("ACC-P", world)
+        consumer.advance_collections_journey("ACC-P", dt.date(2024, 6, 30))
+        (journey,) = consumer.collections_journeys.journeys()
+        assert_journey_order_lawful(journey, Segment.RESIDENTIAL)
+        walks[moves] = journey, world.prepayment_asks
+    (moved, moved_asks), (kept, kept_asks) = walks[True], walks[False]
+    assert len(moved_asks) == len(kept_asks) == 1
+    assert moved_asks[0][2] == 100.0 and moved_asks[0][3] >= 3
+    stages = [s["stage"] for s in moved["stages"]]
+    assert stages[-3:] == [PREPAYMENT_STEP, PREPAYMENT_OFFERED, PREPAYMENT]
+    assert moved["exit"] == PREPAYMENT
+    offer = next(s for s in kept["stages"] if s["stage"] == PREPAYMENT_OFFERED)
+    assert offer["meter_moved"] is False and offer["move_reason"] == "declined"
+    assert kept["exit"] is None and PREPAYMENT not in [s["stage"] for s in kept["stages"]]
+
+
+def test_a_desk_with_no_seam_records_the_prepayment_offer_unanswered_and_says_why():
+    consumer = PaymentObservationConsumer(ledger_book=LedgerBook())
+    consumer.ledger_book.post(_event(LedgerEventType.BILL_DEBIT, "ACC-N", 100.0, ISSUE, 1))
+    consumer.advance_collections_journey("ACC-N", dt.date(2024, 6, 30))
+    (journey,) = consumer.collections_journeys.journeys()
+    offer = next(s for s in journey["stages"] if s["stage"] == PREPAYMENT_OFFERED)
+    assert offer["meter_moved"] is False and offer["move_reason"] == PREPAYMENT_ANSWER_GAP
+    assert journey["exit"] is None
+
+
+def test_a_prepayment_step_with_no_offer_after_it_is_unlawful():
+    with pytest.raises(UnlawfulJourneyOrderError, match=PREPAYMENT_OFFERED):
+        assert_journey_order_lawful(_journey((MISSED_PAYMENT, "2024-02-01"),
+                                             (PREPAYMENT_STEP, "2024-05-01")), Segment.RESIDENTIAL)
 
 
 def test_a_desk_that_can_agree_plans_refuses_to_be_built_without_the_cash_seam():

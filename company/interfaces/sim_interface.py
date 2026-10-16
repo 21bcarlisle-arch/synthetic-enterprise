@@ -319,6 +319,18 @@ class SimInterface:
         """
         raise NotImplementedError
 
+    def request_prepayment_move(self, account_id: str, requested_on, debt: float,
+                                months_outstanding: int) -> dict:
+        """Ask for this account's meter to be changed to prepayment to recover its debt, by the
+        household's explicit Consent (WORLD -> COMPANY, atom W2_42).
+
+        OBSERVABLE: a supplier that asks learns whether the meter is changed, and the reason the
+        conversation gives. Never the household's vulnerability state, nor why it declined.
+        Returns ``{"moved": bool, "reason": str}``; ``debt`` is in the account's billing currency.
+        Consent is the only route this door takes: an involuntary move is never automated.
+        """
+        raise NotImplementedError
+
     def get_plan_instalments(self, account_id: str, agreed_on, through) -> list[dict]:
         """Each instalment of an agreed plan that fell due after `agreed_on` and by `through`, as
         ``{"due": iso date, "paid": bool}`` -- what the supplier's own collection records show.
@@ -427,6 +439,9 @@ class StubSimInterface(SimInterface):
     def answer_plan_offer(self, account_id, offered_on, debt, *, offer=None) -> dict:
         return {"accepted": None, "instalment": None,
                 "reason": "stub seam: no household behind it to answer"}
+
+    def request_prepayment_move(self, account_id, requested_on, debt, months_outstanding) -> dict:
+        return {"moved": False, "reason": "stub seam: no household behind it to answer"}
 
     def get_plan_instalments(self, account_id, agreed_on, through) -> list[dict]:
         return []
@@ -683,6 +698,20 @@ class LiveSimInterface(SimInterface):
                                    agreements=self._household_plans)
         return {"accepted": answer.accepted, "instalment": answer.instalment,
                 "reason": answer.reason}
+
+    def request_prepayment_move(self, account_id, requested_on, debt, months_outstanding) -> dict:
+        """The world's lawful route, reduced to what the conversation tells a supplier. The
+        Consent route never reads the household's vulnerability state, so none is passed."""
+        from simulation.payment_method_dynamics import (
+            ROUTE_CONSENT,
+            PrepaymentForDebtRequest,
+            move_to_prepayment_for_debt,
+        )
+        move = move_to_prepayment_for_debt(
+            PrepaymentForDebtRequest(account_id, "account", str(requested_on), ROUTE_CONSENT,
+                                     debt, months_outstanding, explicit_consent_recorded=True),
+            psr_type_vulnerable=False)
+        return {"moved": move.moved, "reason": move.reason}
 
     def get_plan_instalments(self, account_id, agreed_on, through) -> list[dict]:
         from simulation.plan_offer_response import plan_instalments
