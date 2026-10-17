@@ -555,6 +555,8 @@ class Backtest:
     # pair two rules on one partition; and whether the per-customer hazard keyed only its switch part.
     outcome_of: Mapping[str, str] | None = None
     switch_keyed_on_default: bool = False
+    # Slice 12. The population a key was rescaled over (RESCALE_POPULATIONS); None with no key.
+    key_rescaled_over: str | None = None
 
 
 def regime_boundary_month(
@@ -833,6 +835,8 @@ OBSERVABLE_PRIORS: Mapping[str, tuple[str, Mapping[str, tuple[float, float, floa
                                  "prepayment": (0.55, 0.33, 0.93)}),
     "months_on_default": ("under_36", {"36_plus": (0.54, 0.44, 0.66)}),
 }
+# Where a per-customer key is rescaled to average one per segment (slice 12).
+RESCALE_POPULATIONS = ("fit_window", "cut")
 # CMOL's band edge: its tenure bands are 1-3 years and 3+ years on the default.
 _DEFAULT_BAND_EDGE_MONTHS = 36
 
@@ -957,6 +961,7 @@ def run_backtest(
     tenure_key: str = "contract_year",
     observables: bool = False,
     switch_on_default: bool = False,
+    rescale_over: str = "fit_window",
 ) -> Backtest:
     """Fit on months up to December of `cut_year`; forecast and grade every later month.
 
@@ -989,7 +994,16 @@ def run_backtest(
     `switch_on_default` (slice 11) keys only the SWITCH part: the segment's move hazard plus its
     switch hazard (moves censored) times the 36+ months-on-default multiplier fitted on switches,
     rescaled so the fit window expects the flat rule's switch exits. It needs the register.
+
+    `rescale_over` (slice 12) is where either key averages one per segment: the fit window's months,
+    or "cut" -- the accounts on supply at the cut, each at its view there. The window's band mix is
+    not the cut's (every account opens on a fix, so 36+ months on default are late in the window and
+    common at the cut), which left the level 0.02-0.03 below flat after the freeze.
     """
+    if rescale_over not in RESCALE_POPULATIONS:
+        raise ValueError(f"rescale_over must be one of {RESCALE_POPULATIONS}, not {rescale_over!r}")
+    if rescale_over != "fit_window" and not (observables or switch_on_default):
+        raise ValueError("rescale_over moves a per-customer key's level, and none is keyed")
     if (observables or switch_on_default) and tenure_key != "contract_year":
         raise ValueError("observables replace the tenure key: give one per-customer hazard")
     if observables and switch_on_default:
@@ -1062,7 +1076,11 @@ def run_backtest(
         months_seg: dict[str, int] = defaultdict(int)
         mult_seg: dict[str, float] = defaultdict(float)
         for a in accounts:
-            for m in range(max(a.first_month, lo), min(a.last_month, fit_end) + 1):
+            if rescale_over == "cut":
+                months = [fit_end] if a.first_month <= fit_end <= a.last_month else []
+            else:
+                months = range(max(a.first_month, lo), min(a.last_month, fit_end) + 1)
+            for m in months:
                 months_seg[a.segment] += 1
                 mult_seg[a.segment] += _view_multiplier(obs_mults, a.observed[m])
         seg_scale = {s: months_seg[s] / mult_seg[s] for s in months_seg if mult_seg[s] > 0}
@@ -1263,6 +1281,7 @@ def run_backtest(
         observable_multipliers=obs_mults,
         outcome_of=left_by,
         switch_keyed_on_default=switch_on_default,
+        key_rescaled_over=rescale_over if obs_mults is not None else None,
     )
 
 
@@ -1279,6 +1298,7 @@ def backtest_run_output(
     tenure_key: str = "contract_year",
     observables: bool = False,
     switch_on_default: bool = False,
+    rescale_over: str = "fit_window",
 ) -> Backtest:
     """A run's book, split by departure cause where it carries a move-out register. The caller hands in the wholesale series
     (`SimInterface.monthly_wholesale_prices("gas")`); importing the live interface here would
@@ -1288,7 +1308,7 @@ def backtest_run_output(
     return run_backtest(
         *book_from_run_output(run_output), cut_year, margin_fit_end_year,
         wholesale_gas_by_month, move_outs_from_run_output(run_output), hazard_fit_from_year,
-        tenure_key, observables, switch_on_default,
+        tenure_key, observables, switch_on_default, rescale_over,
     )
 
 

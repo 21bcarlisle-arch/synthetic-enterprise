@@ -16,6 +16,7 @@ from company.analytics.forward_clv import (
     LIMITATION_NO_MOVE_REGISTER,
     LIMITATION_SWITCH_LEVEL_IS_THE_REGIME,
     OBSERVABLE_PRIORS,
+    RESCALE_POPULATIONS,
     AccountForecast,
     AccountHistory,
     SupplierView,
@@ -795,3 +796,28 @@ def test_two_rules_pair_on_one_partition_and_a_rule_against_itself_differs_by_ex
     assert ranking_between(a, flat).difference[0] == pytest.approx(a.departure_ranking.difference[0])
     with pytest.raises(ValueError, match="same cut"):
         ranking_between(a, run_backtest(book, end, 2021, move_out_month_by_account=moves))
+
+
+def test_a_key_rescaled_over_the_cut_averages_the_flat_hazard_there_and_over_the_window_does_not():
+    """The defect slice 11 left: the key averaged one over the fit window's months, whose 36+ share
+    is far below the cut's, so the cut's accounts were expected to leave less than the flat rule
+    says. Over a one-month horizon p IS the month's hazard, so rescaled over the cut each key's
+    mean p equals flat p on the cut's accounts; over the window it does not (the control that the
+    two populations differ here). An unknown population, or a rescale with no key, is refused."""
+    book, _, moves = _switch_book()
+    end = _month_index("2021-01")
+    for key in ({"observables": True}, {"switch_on_default": True}):
+        mean_gap = {}
+        for over in RESCALE_POPULATIONS:
+            bt = run_backtest(book, end, 2020, move_out_month_by_account=moves, rescale_over=over,
+                              **key)
+            assert bt.key_rescaled_over == over
+            mean_gap[over] = sum(f.per_customer_departure_p - f.flat_departure_p
+                                 for f in bt.forecasts) / len(bt.forecasts)
+        assert mean_gap["cut"] == pytest.approx(0.0, abs=1e-12)
+        assert abs(mean_gap["fit_window"]) > 1e-4
+    assert run_backtest(book, end, 2020).key_rescaled_over is None
+    with pytest.raises(ValueError, match="rescale_over must be one of"):
+        run_backtest(book, end, 2020, observables=True, rescale_over="book")
+    with pytest.raises(ValueError, match="none is keyed"):
+        run_backtest(book, end, 2020, rescale_over="cut")
