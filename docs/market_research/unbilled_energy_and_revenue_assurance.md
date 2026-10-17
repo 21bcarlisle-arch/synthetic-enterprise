@@ -263,9 +263,79 @@ Citizens Advice hold smart customers to a shorter standard (6 months, against 12
   for "technical and non-technical losses (e.g. theft, unregistered export)". [M] Elexon, *GSP Group
   Correction Factors* (summary). For gas, the supplier (via its shipper) is charged its UIG share.
   **In both fuels a supplier pays for unbilled energy it never supplied to any customer it knows.**
-- **GAP:** the size of the GSP group correction factor in our window, and the £ per domestic
-  customer-year a supplier pays for UIG. Both are in principle derivable from published Xoserve /
-  Elexon data; neither was derived this pass.
+- ~~**GAP:** the size of the GSP group correction factor in our window, and the £ per domestic
+  customer-year a supplier pays for UIG.~~ **Researched 2026-10-17; the answers are below.**
+
+#### What settlement charges a supplier for energy nobody was billed for (2026-10-17)
+
+The two fuels differ in kind. Gas UIG is a **volume** a domestic supplier pays for every year.
+Electricity group correction is mostly a **shape** that nets to about zero over a year. Electricity
+theft reaches the supplier through line loss factors instead.
+
+**Gas: the domestic UIG share and its price.**
+- The price cap carries a UIG allowance: an uplift on the wholesale allowance. It is set from "the
+  AUGE forecast of UIG for the Gas Year and the forecast consumption … for End User Category (EUC)
+  1ND and 1PD and Profile Classes 3 and 4 (which approximate domestic consumers)". It was **1.86%** for
+  July to September 2025, and would have been 1.88% for October to December 2025. [H] Ofgem, *Price
+  cap – consultation on the Unidentified Gas allowance in the default tariff cap*, 30 July 2025, ¶11–12.
+- Ofgem found that this under-recovered. The AUGE's bottom-up forecast covers 11 of its 25 contributors
+  and explained only **64.8%** of benchmark UIG in 2025-26, against 84.1% in 2022-23 (¶21). Ofgem
+  proposed **2.90%**: the average *post-reconciliation* UIG as a share of total throughput over gas
+  years 2022-23 and 2023-24 (**2.80%**), reallocated to domestic classes by the AUGE's weighting
+  factors (¶13, ¶25). That "would add circa **£4.30 per year**" at a benchmark of 12,000 kWh, priced
+  at the cap 14b wholesale index (¶14, fn 11–12). Suppliers' own alternative came to 2.91% (fn 19).
+  [H] same letter. Post-reconciliation figures for those gas years were then still only "circa
+  90-98%" reconciled (¶26).
+- Ofgem adopted this as a **temporary method in August 2025**. It re-ran it for October to December
+  2026 on gas years 2023-24 and 2024-25, and aims at a long-term allowance from April 2027, built on
+  Xoserve's analysis of post-reconciliation domestic UIG. [H] Ofgem, *Energy price cap – Temporary
+  Unidentified Gas allowance for cap period 17a*, 9 July 2026, ¶3–7.
+- **Derived (our arithmetic on Ofgem's figures):** a 1.04-point uplift worth £4.30 at 12,000 kWh
+  implies a wholesale index of about 3.4p/kWh in July to September 2025. At that price the whole
+  2.90% is about **£12 per domestic customer-year**. It scales with the wholesale price, so 2022's
+  price multiplies it several-fold. The sign of the price risk did not hold through the crisis,
+  though: UIG ran **negative** from March 2022 to summer 2023 (K4 above), so NDM portfolios were then
+  over-charged. Neither a per-year £ series for 2016–2025 nor the cap's own 2019–2025 percentages were
+  extracted here. The cap's Annex 2 model holds the percentages (row 31 and 38, tab '3a Allowances').
+- **Two quantities, not one.** `q6_uig_share_of_ldz_throughput` (0.025, range 0.0219–0.0381) is UIG
+  over *all* LDZ throughput. What a domestic supplier pays is the domestic-reallocated share: 2.90%
+  on the 2022-24 average. Ofgem's reallocation by the AUGE's weights took 2.80% overall to 2.90%
+  domestic, so in that period the domestic share sat slightly above the all-throughput share. A build that charges a domestic book the
+  LDZ figure undercharges it.
+
+**Electricity: the group correction is a shape, and theft sits in the loss factors.**
+- "To a first order of approximation, the volumes of energy allocated by GSPGCF sum to zero over
+  the course of a whole year, i.e. the errors in settlement are primarily shape errors rather than
+  volume errors." The annualised demand ratios across GSP groups are "centred around a value of 1.0".
+  The stated reason: "LDSOs are required to include 'non-technical losses' in their generic Line Loss
+  Factors". So the gap between units entering a network and units billed to suppliers is largely
+  "accounted for through Line Loss Factors (LLFs), not GSPGCF". [H] Elexon, *Strawman Scaling Factors
+  for GSP Group Correction*, PSRG paper, DCP0047 Attachment B, 1 October 2010, §2.1–2.3.
+- **The size of the shape:** the mean absolute deviation of GSPGCF from 1.0 across settlement periods
+  is "roughly 0.07". That is about 3.5% of NHH energy settled in the wrong half-hour, about 6 TWh a year
+  on about 180 TWh of NHH (§2.5, §3.1–3.3). Distribution losses were about 5% of units distributed,
+  with theft quoted as an "'anecdotal' figure of 1%" (Sohn Associates for Ofgem, 2009, via §6.1–6.2).
+  [H] same paper. **Era:** these are 2010 figures. Correction was extended to HH losses from April
+  2013 and to HH import from 2014 (BSC Issue 55 form, Elexon 2014 [H]). Since then, NHH no longer
+  carries the whole shape alone. No figure for our window was found.
+- **So in electricity, a supplier pays for stolen units as an uplift on its loss-adjusted settled
+  volume, pro rata to its share of the group.** It does not pay through a net annual GSPGCF charge.
+  An undetected theft on the supplier's own book costs it the unbilled units **plus** a small share
+  of everyone's theft through the LLF. A thief on a rival's book costs it only the share.
+
+**What this means for the W2_36 build (step 3 of §7):**
+1. **Gas:** charge the supplier its domestic UIG share on settled volume: 2.90% on 2022–24 data,
+   and a different figure per gas year. The negative 2022–23 period is part of the record. A flat
+   constant over the decade would erase it, so the build reads a series or carries the gap as `None`
+   by year. Whether the company may *see* its UIG charge is not in doubt: shippers get it on
+   Xoserve's invoices, and it is in the cap.
+2. **Electricity:** **no** net annual GSP correction charge on volume. Only a shape term exists, and
+   the world's settlement does not model it. The theft cost is a loss-factor uplift, and our world
+   has no line loss factors at all (no `simulation/` or `sim/` code names one). That gap is on the
+   cost side, outside unbilled energy, and is noted here only so the build does not invent a GSPGCF
+   charge to stand in for it.
+3. The price cap allowance and the world's charge must be **one number** in a run year. Otherwise
+   the company's margin carries a UIG gain or loss that real suppliers did not have on average.
 
 ### K7 Smart meter read failures
 
@@ -705,8 +775,10 @@ question.**
 3. Billing-cycle norms 2016–2025: monthly or quarterly, calendar or anniversary, by payment method.
    This sets how big K1 is. Practitioner (too obvious to anyone in the trade to be written down).
 4. The domestic/non-domestic split of the RECCo theft estimate; a detection count after 2014.
-5. The electricity GSP-group correction in our window; £ of UIG per domestic gas customer-year.
-   Both can be derived from published Xoserve/Elexon data; neither was derived in this pass.
+5. ~~The electricity GSP-group correction in our window; £ of UIG per domestic gas customer-year.~~
+   **Answered 2026-10-17 (K6):** domestic UIG is 2.90% on 2022–24 data, about £12 per year at 2025
+   prices. GSPGCF nets to about zero over a year, and electricity theft sits in loss factors. **Still
+   open:** the cap's UIG percentage by year for 2019–2025, and a GSPGCF figure from inside our window.
 6. How often crossed meters and meter faults happen across the population, and the fast/slow split.
    Researched 2026-10-17: the legal limits and the disputed-meter shares (2003–2014, 2011) are now
    in K5. They bound the referred population only. No 2016–2025 series was found.
@@ -736,7 +808,11 @@ text is the Ofgem decision of 5 March 2018, read here.
    16 electricity spans. All 16 are voids and none is a lead, so it raises no charge. The run draws
    no theft (the world's theft is a study), so the switch-on arm cannot yet find one. The other
    registers are still unreached.
-6. The back-billing module cites the wrong licence condition and leaves out microbusinesses.
+6. ~~The back-billing module cites the wrong licence condition and leaves out microbusinesses.~~
+   **Corrected 2026-10-17:** it was fixed on 2026-10-05 (`65329aa39`), and this entry was never
+   updated. `company/billing/back_billing.py` now cites SLC 21BA and covers microbusinesses from
+   1 November 2018. Whether a customer is a microbusiness is the caller's fact, and no production
+   caller supplies it yet (the registered gap `microbusiness_back_billing_cap`).
 7. The world's closing read is always actual (`simulation/meter_reads.final_read_for`, added
    2026-10-17). Published practice makes it actual only "sometimes" (§4a). So every incoming
    account's opening read is actual whenever a closing read exists, and the empty-period flag
@@ -841,6 +917,14 @@ non-payment.
 - Energy UK, *Energy UK Explains: Back billing*: <https://www.energy-uk.org.uk/publications/energy-uk-explains-back-billing/> [M].
 - Citizens Advice, *How the scores are worked out* (star rating) [M].
 - Elexon, *GSP Group Correction Factors* (BSC settlement page) [M].
+- Elexon, *Strawman Scaling Factors for GSP Group Correction*, PSRG, DCP0047 Attachment B, v0.1,
+  1 October 2010: <https://assets.elexon.co.uk/wp-content/uploads/sites/11/2012/02/28172513/dcp0047_attachment_b.pdf>. Read as text [H].
+- Elexon, BSC Issue 55 form, *Review of the approach to the calculation and application of GSP Group
+  Correction Scaling Weights*, 2014: <https://assets.elexon.co.uk/wp-content/uploads/sites/11/2014/02/28164701/Issue_55_Form_v1.0.pdf>. Read as text [H].
+- Ofgem, *Price cap – consultation on the Unidentified Gas allowance in the default tariff cap*,
+  30 July 2025: <https://www.ofgem.gov.uk/sites/default/files/2025-07/Energy-price-cap-additional-wholesale-allowance-unidentified-gas.pdf>. Read as text [H].
+- Ofgem, *Energy price cap – Temporary Unidentified Gas allowance for cap period 17a*, 9 July 2026:
+  <https://www.ofgem.gov.uk/sites/default/files/2026-07/Energy-price-cap-update-for-the-unidentified-gas-allowance-October-to-December-2026.pdf>. Read as text [H].
 - Ofgem, SPAA CP10/190, *Process for the resolution of crossed meters* [M].
 - NMRO, *Electricity Meters – Disputed Meter Accuracy Report, determinations 2003–2014*, June 2015:
   <https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/454144/Electricity_Determination_Report_2003-2014.pdf>. Read as text [H].

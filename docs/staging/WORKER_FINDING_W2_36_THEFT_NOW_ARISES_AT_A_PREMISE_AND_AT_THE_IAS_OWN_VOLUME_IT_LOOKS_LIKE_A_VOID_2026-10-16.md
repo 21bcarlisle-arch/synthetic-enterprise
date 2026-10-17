@@ -312,3 +312,20 @@ no gas account has an empty span between two actual reads, and no named electric
 world's theft in the settled run, not only in the study. Until then the assessed-charge column can
 only be exercised by the control's synthetic lead (Appendix 7 method 1, priced at the account's own
 billed commodity rate). Turning the switch on is a separate commit, after the 19 Oct publish is read.
+
+## K6 knowledge first: what settlement charges a supplier for unbilled energy (worker, 2026-10-17)
+
+Knowledge only. No code was touched, because world builds wait for the 19 Oct publish.
+`unbilled_energy_and_revenue_assurance.md` §K6, "What settlement charges a supplier for energy nobody
+was billed for", closes §6 gap 5:
+- **Gas:** the price cap's domestic UIG allowance moved from 1.86% to **2.90%** (Ofgem, 30 July 2025;
+  temporary method adopted August 2025 and re-run for October to December 2026). That is post-reconciliation
+  UIG, averaged over two gas years, reallocated to domestic classes. It is about £12 per customer-year at
+  2025 wholesale. The register's `q6_uig_share_of_ldz_throughput` is the all-throughput share, a
+  different quantity.
+- **Electricity:** GSPGCF nets to about zero over a year. It is a shape error, mean absolute 0.07
+  per period in 2010. Theft reaches suppliers through line loss factors, and the world has none.
+  So the step-3 build charges gas UIG by year and adds **no** net annual GSP correction charge.
+
+Also corrected beside the claim: §6 code gap 6 (back-billing cites "SLC 31A") was fixed on
+2026-10-05 and was still listed as open.
