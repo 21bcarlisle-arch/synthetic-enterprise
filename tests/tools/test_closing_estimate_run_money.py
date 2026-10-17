@@ -2,7 +2,7 @@
 
 import pytest
 
-from tools.closing_estimate_run_money import closing_accounts, summarise
+from tools.closing_estimate_run_money import closing_accounts, summarise, what_closure_shows
 
 
 def _bill(cid, end, basis, billed, true=None, commodity="electricity"):
@@ -68,3 +68,44 @@ def test_a_read_log_out_of_step_with_the_bills_is_refused_by_name():
     book["meter_read_log"] = book["meter_read_log"][::-1]
     with pytest.raises(ValueError, match="out of step"):
         closing_accounts(book)
+
+
+def _month(cid, i, basis, billed, true=None):
+    year, month = 2019 + (i // 12), i % 12 + 1
+    bill = _bill(cid, f"{year}-{month:02d}-28", basis, billed, true)
+    bill["period_start"] = f"{year}-{month:02d}-01"
+    return bill
+
+
+def test_every_disposition_of_open_money_is_reachable():
+    """The partition first: a pricing that sent all money to one disposition passes each leg below."""
+    shown = [what_closure_shows([_month("A", i, "estimated", 10, 20) for i in range(24)], 24),
+             what_closure_shows([_month("B", 0, "estimated", 10, 20)], 1)["new_demand_gbp"],
+             what_closure_shows([_month("C", 0, "estimated", 10, 20)], 1, [10.0], 50.0)]
+    assert shown[0]["added_bar_gbp"] > 0 and shown[1] > 0 and shown[2]["absorbed_gbp"] > 0
+
+
+def test_an_undercharge_older_than_twelve_months_is_barred_and_the_rest_is_asked_for():
+    """Defect named: the bar is skipped, or it bars the energy inside the window as well."""
+    bills = [_month("A", i, "estimated", 10, 20) for i in range(24)]
+    shown = what_closure_shows(bills, 24)
+    assert shown["gbp"] == pytest.approx(240.0)
+    assert shown["added_bar_gbp"] == pytest.approx(120.0, abs=2.0)
+    assert shown["new_demand_gbp"] == pytest.approx(shown["gbp"] - shown["added_bar_gbp"])
+
+
+def test_a_direct_debit_credit_absorbs_an_undercharge_and_only_the_excess_is_a_new_demand():
+    """Defect named: the balance is ignored, so a smaller refund is reported as a bill after leaving."""
+    bills = [_month("C", 0, "estimated", 10, 70)]
+    shown = what_closure_shows(bills, 1, [10.0], 50.0)
+    assert shown["absorbed_gbp"] == pytest.approx(50.0)
+    assert shown["new_demand_gbp"] == pytest.approx(10.0)
+
+
+def test_an_overcharge_on_a_settled_account_is_owed_in_full_and_never_barred():
+    """Defect named: 21BA is applied to a credit owed, which it does not bar."""
+    bills = [_month("D", i, "estimated", 20, 10) for i in range(24)]
+    shown = what_closure_shows(bills, 24)
+    assert shown["gbp"] == pytest.approx(-240.0)
+    assert shown["added_bar_gbp"] == 0 and shown["new_demand_gbp"] == 0
+    assert shown["absorbed_gbp"] == pytest.approx(-240.0)

@@ -23,18 +23,21 @@ The read log is aligned with the bills one to one (the assembly appends both in 
 LIMITS. A held estimate went out as nothing (`_resolve_catchup` reconciles it as billed 0), but the
 bill list keeps its estimated total, so a held bill's billed side is overstated here. Where the
 book carries `catchup_raw_delta_gbp` the settled sum is checked against it and the mismatches are
-counted. Money is raw: the SLC 21BA bar and the direct-debit balance are not applied.
+counted. `summarise` is raw money; `departing_view` applies the SLC 21BA bar and the direct-debit
+balance (below).
 
-    python3 -m tools.closing_estimate_run_money RUN_OUTPUT [RUN_OUTPUT ...]
+    python3 -m tools.closing_estimate_run_money [--departing] RUN_OUTPUT [RUN_OUTPUT ...]
 """
 
 from __future__ import annotations
 
+import datetime as dt
 import gzip
 import json
 from collections import defaultdict
 from pathlib import Path
 
+from company.interfaces.bill_assembly import barred_at_charge_recovery
 from simulation.household import households_whose_account_closed, supply_points_that_left
 
 
@@ -120,17 +123,120 @@ def summarise(rows: list[dict]) -> dict:
             "settled_mismatch_gbp": round(sum(r["gbp"] - r["book_raw_delta_gbp"] for r in mismatched), 2)}
 
 
+def _period(bill: dict) -> tuple[dt.date, dt.date]:
+    end = dt.date.fromisoformat(bill["period_end"][:10])
+    start = bill.get("period_start")
+    return (dt.date.fromisoformat(start[:10]) if start else end.replace(day=1)), end
+
+
+def what_closure_shows(bills: list[dict], run_bills: int, collected: list[float] | None = None,
+                       balance_gbp: float = 0.0) -> dict:
+    """An open run's money as it would land if it were trued up at the last bill.
+
+    `bills` is the supply point's bills in period order; the last `run_bills` are the open run.
+    `collected` is what the direct debit took per bill and `balance_gbp` the billed-basis balance at
+    the last bill (positive is credit); without them the account pays what it is billed and leaves
+    with nothing owed either way. The 21BA bar is taken at the last bill's end, capped at the debit
+    the demand seeks, and counted over what the billed balance already barred, so it is the bar the
+    open money ADDS. An overcharge is never barred. Returns the money (true - billed), the bar it
+    adds, the new demand (what is asked of someone who has left, beyond what the billed balance
+    already asked) and the rest, which the balance absorbs as a smaller refund or a smaller debt."""
+    run = bills[len(bills) - run_bills:] if run_bills else []
+    money = sum(b["true_total_amount_gbp"] - b["total_amount_gbp"] for b in run)
+    recovered = collected if collected is not None else [b["total_amount_gbp"] for b in bills]
+    in_run = {id(b) for b in run}
+    billed_periods, true_periods = [], []
+    for bill, took in zip(bills, recovered):
+        start, end = _period(bill)
+        billed_periods.append((start, end, bill["total_amount_gbp"], took))
+        true = bill["true_total_amount_gbp"] if id(bill) in in_run else bill["total_amount_gbp"]
+        true_periods.append((start, end, true, took))
+    demand_date = _period(bills[-1])[1]
+    debit_before, debit_after = max(-balance_gbp, 0.0), max(money - balance_gbp, 0.0)
+    barred_before = min(debit_before, barred_at_charge_recovery(billed_periods, demand_date))
+    barred_after = min(debit_after, barred_at_charge_recovery(true_periods, demand_date))
+    new_demand = (debit_after - barred_after) - (debit_before - barred_before)
+    added_bar = barred_after - barred_before
+    return {"gbp": round(money, 2), "added_bar_gbp": round(added_bar, 2),
+            "new_demand_gbp": round(new_demand, 2),
+            "absorbed_gbp": round(money - added_bar - new_demand, 2)}
+
+
+def departing_view(run_output: dict, rows: list[dict] | None = None) -> dict:
+    """`what_closure_shows` over every open closing run, by fuel and direction, beside the raw money.
+
+    The direct-debit book is rebuilt (`simulation.dd_balance_book.build_dd_balance_book`) over the
+    closed set `review_arms_from_run` uses, and its summary is checked against the run's own: a
+    rebuild that does not reproduce the published book is not one whose balances can be read."""
+    from simulation.dd_balance_book import build_dd_balance_book, forecast_inputs_from_run
+
+    rows = closing_accounts(run_output) if rows is None else rows
+    bills = run_output["bills"]
+    last_month: dict[str, str] = {}
+    for b in bills:
+        last_month[b["customer_id"]] = max(last_month.get(b["customer_id"], ""), b["period_end"][:7])
+    run_end = max(last_month.values())
+    closed = {cid for cid, month in last_month.items() if month < run_end}
+    book = build_dd_balance_book(bills, run_output.get("opening_dd_by_customer"), closed,
+                                 **forecast_inputs_from_run(run_output))
+    published = (run_output.get("dd_balance_book") or {}).get("summary") or {}
+    rebuilt = book.summary()
+    keys = ("n_customers", "portfolio_final_balance_gbp", "back_billing_barred_at_final_bills_gbp")
+    reproduced = all(published.get(k) == rebuilt.get(k) for k in keys)
+    by_cust: dict[str, list[dict]] = defaultdict(list)
+    for b in bills:
+        by_cust[b["customer_id"]].append(b)
+    table: dict = {}
+    accounts = []
+    no_dd_balance = 0
+    for row in rows:
+        if row["outcome"] != "open" or row["run_bills"] == 0:
+            continue
+        account_bills = sorted(by_cust[row["customer_id"]], key=lambda b: b["period_end"])
+        points = book.trajectories.get(row["customer_id"])
+        if points is not None and len(points) == len(account_bills):
+            channel = "direct_debit"
+            shown = what_closure_shows(account_bills, row["run_bills"],
+                                       [p.collected_gbp * p.n_collections for p in points],
+                                       points[-1].balance_gbp)
+        else:
+            no_dd_balance += row["payment_channel"] == "direct_debit"
+            channel = "no_dd_balance"
+            shown = what_closure_shows(account_bills, row["run_bills"])
+        direction = "undercharge" if shown["gbp"] > 0 else "overcharge" if shown["gbp"] < 0 else "nil"
+        accounts.append({"customer_id": row["customer_id"], "commodity": row["commodity"],
+                         "channel": channel, "run_bills": row["run_bills"], **shown})
+        cell = table.setdefault(row["commodity"], {}).setdefault(direction, {}).setdefault(
+            channel, {"accounts": 0, "with_added_bar": 0, "with_new_demand": 0,
+                      "with_new_demand_over_10": 0, "gbp": 0.0,
+                      "added_bar_gbp": 0.0, "new_demand_gbp": 0.0, "absorbed_gbp": 0.0})
+        cell["accounts"] += 1
+        cell["with_added_bar"] += abs(shown["added_bar_gbp"]) >= 0.01
+        cell["with_new_demand"] += shown["new_demand_gbp"] >= 0.01
+        cell["with_new_demand_over_10"] += shown["new_demand_gbp"] > 10
+        for k in ("gbp", "added_bar_gbp", "new_demand_gbp", "absorbed_gbp"):
+            cell[k] = round(cell[k] + shown[k], 2)
+    accounts.sort(key=lambda a: -abs(a["gbp"]))
+    return {"dd_book_reproduced": reproduced, "dd_book_published": {k: published.get(k) for k in keys},
+            "dd_book_rebuilt": {k: rebuilt.get(k) for k in keys},
+            "dd_channel_without_a_balance": no_dd_balance,
+            "by_fuel_direction_channel": table, "largest_accounts": accounts[:10]}
+
+
 def main(argv: list[str] | None = None) -> int:
     import argparse
 
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument("--departing", action="store_true",
+                        help="apply the 21BA bar and the direct-debit balance to the open runs")
     parser.add_argument("run_outputs", nargs="+")
     args = parser.parse_args(argv)
     for path in args.run_outputs:
         run_output = load_run_output(path)
         stamp = (run_output.get("producing_commit") or {}).get("commit")
-        print(json.dumps({"run_output": str(path), "producing_commit": stamp,
-                          **summarise(closing_accounts(run_output))}, indent=1))
+        rows = closing_accounts(run_output)
+        view = departing_view(run_output, rows) if args.departing else summarise(rows)
+        print(json.dumps({"run_output": str(path), "producing_commit": stamp, **view}, indent=1))
     return 0
 
 
