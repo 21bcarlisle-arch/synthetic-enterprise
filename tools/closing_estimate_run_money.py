@@ -26,7 +26,7 @@ book carries `catchup_raw_delta_gbp` the settled sum is checked against it and t
 counted. `summarise` is raw money; `departing_view` applies the SLC 21BA bar and the direct-debit
 balance (below).
 
-    python3 -m tools.closing_estimate_run_money [--departing] RUN_OUTPUT [RUN_OUTPUT ...]
+    python3 -m tools.closing_estimate_run_money [--departing | --read-duty] RUN_OUTPUT [RUN_OUTPUT ...]
 """
 
 from __future__ import annotations
@@ -276,6 +276,83 @@ def dispute_reach(run_output: dict, arm: str = "ceiling") -> dict:
             "runs": reached}
 
 
+def duty_year_dates(bills: list[dict]) -> set[tuple[str, str]]:
+    """(account, period_end) of each SLC 21B.4 register row where the duty applies."""
+    from company.billing.read_duty_register import read_duty_register
+
+    return {(r["account_id"], r["date"]) for r in read_duty_register(bills) if r["duty_applies"]}
+
+
+def year_split(run: list[dict], year_dates: set[tuple[str, str]]) -> tuple[int | None, float]:
+    """Where in an open run of estimates the 21B.4 year fell, and the money (true - billed) up to it.
+
+    `year_dates` is `duty_year_dates` over the run's bills. Returns
+    (None, 0.0) for a run that closed inside the year."""
+    at = next((i for i, b in enumerate(run) if (b["customer_id"], b["period_end"]) in year_dates), None)
+    return at, (_run_money(run[:at + 1])[0] if at is not None else 0.0)
+
+
+def read_duty_reach(run_output: dict) -> dict:
+    """How much of the open closing money sits on runs that crossed the SLC 21B.4 year before closure.
+
+    An open run crossed the year if `company.billing.read_duty_register` wrote a row on one of its
+    bills: the company could see the year pass while the customer was on supply. The run's money is
+    split at that bill. Bills up to it are what a read at the year would have trued up on supply,
+    all inside 21BA's 12 months; bills after it would have begun a fresh run. A decomposition, not
+    a counterfactual: whether a request at the year gets a read is a GAP, and the world cannot
+    answer one."""
+    from simulation.household import household_of
+    from simulation.meter_reads import is_hard_to_read
+
+    rows = closing_accounts(run_output)
+    view = departing_view(run_output, rows, keep_accounts=True)
+    shown = {a["customer_id"]: a for a in view["accounts"]}
+    year_dates = duty_year_dates(run_output["bills"])
+    by_cust: dict[str, list[dict]] = defaultdict(list)
+    for b in run_output["bills"]:
+        by_cust[b["customer_id"]].append(b)
+    switched = set(run_output.get("churned_billing_accounts") or [])
+    movers = {m["household"] for m in run_output.get("home_move_outs") or []}
+    table: dict = {}
+    crossed = []
+    for row in rows:
+        a = shown.get(row["customer_id"])
+        if a is None:
+            continue
+        run = sorted(by_cust[row["customer_id"]], key=lambda b: b["period_end"])[-row["run_bills"]:]
+        at, to_year = year_split(run, year_dates)
+        state = "crossed_the_year" if at is not None else "closed_inside_the_year"
+        cell = table.setdefault(state, {"runs": 0, "gbp": 0.0, "new_demand_gbp": 0.0,
+                                        "undercharge_runs": 0, "undercharge_gbp": 0.0,
+                                        "undercharge_new_demand_gbp": 0.0})
+        cell["runs"] += 1
+        cell["gbp"] = round(cell["gbp"] + a["gbp"], 2)
+        cell["new_demand_gbp"] = round(cell["new_demand_gbp"] + a["new_demand_gbp"], 2)
+        if a["gbp"] > 0:
+            cell["undercharge_runs"] += 1
+            cell["undercharge_gbp"] = round(cell["undercharge_gbp"] + a["gbp"], 2)
+            cell["undercharge_new_demand_gbp"] = round(
+                cell["undercharge_new_demand_gbp"] + a["new_demand_gbp"], 2)
+        if at is None:
+            continue
+        hh = household_of(row["customer_id"])
+        crossed.append({
+            "customer_id": row["customer_id"], "commodity": row["commodity"],
+            "channel": a["channel"], "run_bills": row["run_bills"],
+            "year_bill": run[at]["period_end"][:10], "last_period_end": row["last_period_end"][:10],
+            "left_by": "move" if hh in movers else "switch" if hh in switched else "other",
+            "hard_to_read": is_hard_to_read(row["customer_id"]),
+            "gbp": a["gbp"], "gbp_to_the_year": round(to_year, 2),
+            "gbp_after_the_year": round(a["gbp"] - to_year, 2),
+            "added_bar_gbp": a["added_bar_gbp"], "new_demand_gbp": a["new_demand_gbp"]})
+    crossed.sort(key=lambda r: -r["new_demand_gbp"])
+    return {"dd_book_reproduced": view["dd_book_reproduced"], "by_state": table,
+            "open_new_demand_gbp": round(sum(c["new_demand_gbp"] for c in table.values()), 2),
+            "undercharge_new_demand_gbp": round(
+                sum(c["undercharge_new_demand_gbp"] for c in table.values()), 2),
+            "crossed": crossed}
+
+
 def main(argv: list[str] | None = None) -> int:
     import argparse
 
@@ -284,13 +361,16 @@ def main(argv: list[str] | None = None) -> int:
                         help="apply the 21BA bar and the direct-debit balance to the open runs")
     parser.add_argument("--dispute", choices=("register", "ceiling"),
                         help="what a disputed switch read returns of the over-threshold switcher money")
+    parser.add_argument("--read-duty", action="store_true",
+                        help="split the open money by whether its run crossed the SLC 21B.4 year")
     parser.add_argument("run_outputs", nargs="+")
     args = parser.parse_args(argv)
     for path in args.run_outputs:
         run_output = load_run_output(path)
         stamp = (run_output.get("producing_commit") or {}).get("commit")
         rows = closing_accounts(run_output)
-        view = (dispute_reach(run_output, args.dispute) if args.dispute
+        view = (read_duty_reach(run_output) if args.read_duty
+                else dispute_reach(run_output, args.dispute) if args.dispute
                 else departing_view(run_output, rows) if args.departing else summarise(rows))
         print(json.dumps({"run_output": str(path), "producing_commit": stamp, **view}, indent=1))
     return 0
