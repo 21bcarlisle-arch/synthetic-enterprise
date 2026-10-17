@@ -182,3 +182,21 @@ def test_the_company_review_recovers_a_balance_it_seeks_and_loses_one_it_never_a
             and default.seek_balance_at_review is desk.REVIEW_SEEKS_BALANCE), (
         seeks.review_step_ups, seeks.barred_by_customer, never.barred_by_customer,
         default.seek_balance_at_review)
+
+
+def test_the_publishers_rebuild_closes_an_account_whose_last_bill_predates_the_run_end():
+    # The run output carries no churned ids, so the publish closes an account by its own bills.
+    # Both legs must be reachable: a later bill elsewhere closes it (bar at the final bill), and
+    # with none it stays open (an exposure). Fires on: every account read as closed, or none.
+    from simulation.dd_balance_book import review_arms_from_run
+
+    later = dict(SHORT[-1], customer_id="OTHER", period_start="2023-01-01",
+                 period_end="2023-01-28")
+    gone = review_arms_from_run({"bills": SHORT + [later], "opening_dd_by_customer": OPENING})
+    open_ = review_arms_from_run({"bills": SHORT, "opening_dd_by_customer": OPENING})
+    closed_row = next(a for a in gone["never_seeks"]["accounts"] if a["customer_id"] == DD)
+    open_row = next(a for a in open_["never_seeks"]["accounts"] if a["customer_id"] == DD)
+    assert (closed_row["closed"] and closed_row["barred_gbp"] > 0
+            and not open_row["closed"] and open_row["exposure_gbp"] > 0
+            and open_["seeks"]["review_step_ups"]
+            and review_arms_from_run({"bills": SHORT}) is None), (closed_row, open_row)

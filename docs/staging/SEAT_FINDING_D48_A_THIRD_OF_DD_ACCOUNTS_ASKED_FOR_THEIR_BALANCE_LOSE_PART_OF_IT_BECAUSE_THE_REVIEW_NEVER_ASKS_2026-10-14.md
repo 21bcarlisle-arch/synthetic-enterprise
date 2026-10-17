@@ -4,6 +4,7 @@
 # A third of direct-debit accounts asked for their balance lose part of it to the 12-month limit, because only the final bill ever asks (2026-10-14)
 
 **Fate (2026-10-14):** ATOM -- company, next week, with the DD engine: the review never asks for the balance (seek_balance_at_review false).
+**Fate (2026-10-17):** condition (a) MET. The /capabilities/ billing section now shows both arms of the toggle, from the real feed: each arm's barred share beside its open exposure and their sum, plus money barred by year on each arm and the review step-up (median, mean, p90). The publisher rebuilds the arms from the run's own bills (`simulation/dd_balance_book.review_arms_from_run` -> `company/billing/billing_accuracy.dd_review_arms`), so every publish carries them. Door test: `site/test_the_billing_accuracy_reaches_the_reader.py::test_the_published_feeds_review_arms_reach_the_reader`. The p90s on the page use nearest rank and differ from the table below by up to £1.4 (2017: £13.96 against £12.60); the counts, medians and means match it. **The turn-on is READY for after the 2026-10-19 publish has landed and been read:** one line, `REVIEW_SEEKS_BALANCE = True`, in its own commit. Condition (b) is still a separate decision.
 
 *From D48 Expert Hour, 2026-10-14. Adjudication: `SEAT_FINDING_D48_THE_EXPERT_HOUR_FAILS_ON_THE_CLAIM_NOT_THE_MEASURE_2026-10-14.md`. Not fixed in the turn that found it.*
 

@@ -324,6 +324,33 @@ def forecast_inputs_from_run(run: Mapping) -> dict:
             "term_forwards": run.get("basis_risk_terms")}
 
 
+def review_arms_from_run(run: Mapping) -> dict | None:
+    """One finished run's DD book rebuilt on both arms of ``seek_balance_at_review``, in the rows
+    ``billing_accuracy.dd_review_arms`` reads. None when the run carries no bills or openings.
+
+    The run's ``churned_ids`` come from phase 2b state no run output carries, so an account is
+    closed here when its last bill predates the run's last billed month. On the 2248e3baf run
+    that reproduces the published no-seek line exactly (153 of 422, £33,769.62); the run's own
+    churned billing accounts do not (96 accounts, £22,928)."""
+    bills, opening = run.get("bills"), run.get("opening_dd_by_customer")
+    if not bills or not opening:
+        return None
+    last_by_cust: dict[str, str] = {}
+    for b in bills:
+        month = b["period_end"][:7]
+        if month > last_by_cust.get(b["customer_id"], ""):
+            last_by_cust[b["customer_id"]] = month
+    run_end = max(last_by_cust.values())
+    closed = {cid for cid, month in last_by_cust.items() if month < run_end}
+    out = {}
+    for name, seek in (("never_seeks", False), ("seeks", True)):
+        book = build_dd_balance_book(bills, opening, closed, seek_balance_at_review=seek,
+                                     **forecast_inputs_from_run(run))
+        out[name] = {"accounts": book.back_billing_accounts, "bar_actions": book.bar_actions,
+                     "review_step_ups": book.review_step_ups}
+    return out
+
+
 def build_dd_balance_book(
     bills: list[dict],
     opening_dd_gbp: Mapping[str, float] | None = None,

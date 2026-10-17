@@ -4689,6 +4689,7 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
   correction later. Everything here comes from the supplier's own bills and reads.</p>
   <div id="billacc-fuels"></div>
   <p id="billacc-dd" style="margin:14px 0 0;"></p>
+  <div id="billacc-ddarms"></div>
   <p id="billacc-snapshot" style="margin:14px 0 0;"></p>
   <p id="billacc-readduty" style="margin:14px 0 0;"></p>
   <div id="billacc-yearend"></div>
@@ -4781,6 +4782,44 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
           + esc(dd.open_accounts) + " accounts are still open, with " + gbp(dd.open_exposure_gbp)
           + " that would be barred if the balance were asked for now. That is an exposure, not "
           + "a loss. Amounts include VAT.");
+      /* Both arms of the review toggle. Seeking the balance asks more accounts, so its barred
+         share can rise while the money lost falls: the share never appears without the open
+         exposure and their sum beside it (D48, 2026-10-16). */
+      var ra = d.direct_debit_review_arms || {};
+      var pence = function (v) {
+        return v === null || v === undefined || isNaN(v) ? "&mdash;" : "£" + v.toFixed(2);
+      };
+      $("billacc-ddarms").innerHTML = !ra.available
+        ? '<p style="margin:14px 0 0;"><strong>The annual review, asking for the balance or not.'
+          + '</strong> Not available, so absent rather than zero. ' + esc(ra.reason) + '</p>'
+        : table("The annual review, asking for the balance or not: the same bills, booked both "
+            + "ways", ["", "Accounts asked", "Lost some", "Share (95%)", "Barred",
+              "Still open, would be barred", "Barred plus open"],
+            [["never_seeks", "Never asks (as run)"], ["seeks", "Asks at each review"]]
+              .map(function (a) {
+                var x = ra.arms[a[0]];
+                return tr([a[1], esc(x.accounts_met_recovery_action), esc(x.accounts_barred),
+                  pct(x.share_barred) + range(x.share_barred_ci95, pct), gbp(x.barred_gbp),
+                  gbp(x.open_exposure_gbp), gbp(x.barred_plus_open_exposure_gbp)]);
+              }).join(""))
+          + '<p style="margin:8px 0 0;">Asking at the review asks more accounts, so the share '
+          + 'that lose some can rise while the money lost falls. Read the last column: money '
+          + 'barred plus money still open that would be barred the moment anyone asks.</p>'
+          + table("By year: money barred on each arm, and the monthly step-up the review adds "
+            + "to a household's debit to recover a balance", ["Year", "Barred, never asks",
+              "Barred, asks", "Reviews stepped up", "Step-up median", "Mean", "90th percentile"],
+            ra.by_year.map(function (y) {
+              return tr([esc(y.year),
+                gbp(y.never_seeks_barred_gbp) + " (" + esc(y.never_seeks_accounts_barred) + ")",
+                gbp(y.seeks_barred_gbp) + " (" + esc(y.seeks_accounts_barred) + ")",
+                esc(y.reviews_stepped_up), pence(y.step_up_median_gbp),
+                pence(y.step_up_mean_gbp), pence(y.step_up_p90_gbp)]);
+            }).join(""))
+          + '<p style="margin:8px 0 0;">Accounts barred in brackets. A step-up is a twelfth of '
+          + 'the debit balance a review finds, after the barred part is written off, counted '
+          + 'per month over the reviews that found one. It is the household\'s side of the '
+          + 'trade: the supplier keeps money it would otherwise lose, and the household pays '
+          + 'it back through a higher debit. Amounts include VAT.</p>';
       var band = d.published_median_supplier_share_no_read_bill_in_12 || [];
       $("billacc-snapshot").innerHTML = "<strong>Accounts with no bill on a read in the last "
         + "12 months, at " + esc(d.snapshot_month) + ".</strong> "

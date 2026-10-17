@@ -16,6 +16,9 @@ R15 -- the mutations, each run and reverted:
   * render the DD money line without its intervals -> `test_the_dd_money_line_reaches_the_reader_with_its_bound` reds.
   * render the DD barred money in the fuels table -> `test_the_dd_money_line_is_never_a_row_of_the_k3_table` reds.
   * drop the `billacc-readduty` render, or count prepayment rows as the duty's -> `test_the_read_duty_register_reaches_the_reader_beside_the_snapshot` reds.
+  * drop the open-exposure or the barred-plus-open column of `billacc-ddarms`, or the step-up
+    columns -> `test_both_review_arms_reach_the_reader_with_the_exposure_beside_the_share` and
+    `test_the_published_feeds_review_arms_reach_the_reader` red.
 The null rung, `test_an_unavailable_feed_renders_an_absence_and_never_a_zero`, stays green
 through all four.
 """
@@ -34,7 +37,7 @@ SITE = Path(__file__).resolve().parent
 HARNESS = SITE / "_live_harness.mjs"
 DOOR_REL = "site/capabilities/index.html"
 FEED_REL = "site/data/billing_accuracy.json"
-PANELS = ("billacc-fuels", "billacc-dd", "billacc-snapshot", "billacc-readduty", "billacc-yearend",
+PANELS = ("billacc-fuels", "billacc-dd", "billacc-ddarms", "billacc-snapshot", "billacc-readduty", "billacc-yearend",
           "billacc-example", "billacc-note")
 
 
@@ -83,7 +86,32 @@ def _year_unread(cid: str, channel: str) -> list[dict]:
              "payment_channel": channel} for m in range(1, 13)]
 
 
-def _feed(dd_line: dict | None = _DD_LINE, read_duty: bool = True) -> dict:
+def _arms() -> dict:
+    """Two books over the same bills: the review that seeks asks more accounts and loses less."""
+    def acct(cid, closed, met, barred, exposure):
+        return {"customer_id": cid, "closed": closed, "met_recovery_action": met,
+                "barred_gbp": barred, "exposure_gbp": exposure}
+    never = {"accounts": [acct("A", True, True, 100.0, 0.0), acct("B", True, True, 0.0, 0.0),
+                          acct("C", False, False, 0.0, 400.0), acct("D", False, False, 0.0, 0.0)],
+             "bar_actions": [{"customer_id": "A", "date": "2023-05-01", "amount_gbp": 100.0,
+                              "action": "final_bill"}],
+             "review_step_ups": []}
+    seeks = {"accounts": [acct("A", True, True, 60.0, 0.0), acct("B", True, True, 0.0, 0.0),
+                          acct("C", False, True, 30.0, 0.0), acct("D", False, True, 20.0, 0.0)],
+             "bar_actions": [{"customer_id": "A", "date": "2022-05-01", "amount_gbp": 60.0,
+                              "action": "review"},
+                             {"customer_id": "C", "date": "2023-02-01", "amount_gbp": 30.0,
+                              "action": "review"},
+                             {"customer_id": "D", "date": "2023-03-01", "amount_gbp": 20.0,
+                              "action": "review"}],
+             "review_step_ups": [{"customer_id": c, "date": d, "step_up_gbp": v}
+                                 for c, d, v in (("A", "2023-01-01", 10.0), ("C", "2023-02-01", 55.0),
+                                                 ("D", "2023-03-01", 70.0), ("B", "2023-04-01", 0.0))]}
+    return {"never_seeks": never, "seeks": seeks}
+
+
+def _feed(dd_line: dict | None = _DD_LINE, read_duty: bool = True,
+          arms: dict | None = None) -> dict:
     """An available feed in the shape `published_view` writes: the decade capture's electricity
     snapshot (2 of 48) and one year-end grade."""
     from company.billing.billing_accuracy import published_view
@@ -111,6 +139,9 @@ def _feed(dd_line: dict | None = _DD_LINE, read_duty: bool = True) -> dict:
                            "K1_year_end_grades": {"electricity": [grade]},
                            "accounts": [account], "direct_debit_money_line": dd_line},
                           "run_output_test.json")
+    from company.billing.billing_accuracy import dd_review_arms
+
+    view["direct_debit_review_arms"] = dd_review_arms(_arms() if arms is None else arms or None)
     if read_duty:
         # Set beside the view rather than handed in as `bills`, which would re-grade K1 above.
         view["read_duty_register"] = read_duty_summary(
@@ -200,3 +231,41 @@ def test_a_feed_without_the_read_duty_register_renders_its_absence_and_never_a_z
     text = _render(feed)["billacc-readduty"]
     assert "absent rather than zero" in text and "times" not in text
     assert published_view(None)["available"] is False
+
+
+def test_both_review_arms_reach_the_reader_with_the_exposure_beside_the_share(shown):
+    """Seeking the balance at the review raises the barred SHARE (more accounts asked) while it
+    lowers the money lost (D48, 2026-10-16). Fires on: the open exposure or the sum dropped, so the
+    share reads alone, or the step-up by year dropped."""
+    text = shown["billacc-ddarms"]
+    # never: 1 of 2 asked, £100 barred, £400 open -> £500. seeks: 3 of 4, £110, nothing open.
+    assert "Never asks (as run) 2 1 50.0%" in text and "£100 £400 £500" in text
+    assert "Asks at each review 4 3 75.0%" in text and "£110 £0 £110" in text
+    # 2023: never bars £100 on A; seeks bars £50 on C and D; three reviews found a debit (B's
+    # zero step-up is not one): median £55, mean £45, p90 £70.
+    assert "2023 £100 (1) £50 (2) 3 £55.00 £45.00 £70.00" in text
+    assert "2022 £0 (0) £60 (1) 0" in text
+
+
+def test_a_feed_without_the_review_arms_renders_their_absence_and_never_a_zero():
+    text = _render(_feed(arms={}))["billacc-ddarms"]
+    assert "absent rather than zero" in text and "£" not in text
+
+
+def test_the_published_feeds_review_arms_reach_the_reader():
+    """The real feed, not a fixture: whatever the published run's two arms say is what the reader
+    meets, each arm's share beside its open exposure and their sum."""
+    live = published_json(FEED_REL)
+    arms = (live.get("direct_debit_review_arms") or {})
+    if not arms.get("available"):
+        pytest.fail("the published billing feed carries no review arms: {}".format(
+            arms.get("reason", "the key is absent")))
+    text = _render(live)["billacc-ddarms"]
+    for name in ("never_seeks", "seeks"):
+        x = arms["arms"][name]
+        assert "{:,} {:,}".format(x["accounts_met_recovery_action"], x["accounts_barred"]) in text
+        assert "£{:,} £{:,} £{:,}".format(*(round(x[k]) for k in (
+            "barred_gbp", "open_exposure_gbp", "barred_plus_open_exposure_gbp"))) in text
+    stepped = [y for y in arms["by_year"] if y["step_up_median_gbp"] is not None]
+    assert stepped, "no year carries a step-up, so the household's side cannot be shown"
+    assert "£{:.2f}".format(stepped[-1]["step_up_median_gbp"]) in text

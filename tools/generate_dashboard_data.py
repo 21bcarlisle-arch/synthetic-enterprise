@@ -2611,10 +2611,16 @@ def _write_dd_opening_arms_feed(feed):
 
 def _write_billing_accuracy_feed(feed, data, source):
     """D48's measure for the /capabilities/ door. `published_view` decides what a reader meets,
-    including the named absence when the run output predates the key."""
-    from company.billing.billing_accuracy import published_view
+    including the named absence when the run output predates the key.
+
+    The review-toggle arms are rebuilt here from the run's own bills, not read from the run: the
+    run books one arm, and the page must show both before the toggle is turned (D48, 2026-10-16)."""
+    from company.billing.billing_accuracy import dd_review_arms, published_view
+    from simulation.dd_balance_book import review_arms_from_run
 
     block = published_view(data.get("billing_accuracy"), source, data.get("bills"))
+    if block.get("available"):
+        block["direct_debit_review_arms"] = dd_review_arms(review_arms_from_run(data))
     feed.parent.mkdir(parents=True, exist_ok=True)
     feed.write_text(json.dumps(block, indent=2, sort_keys=True) + "\n")
     print(f"Wrote {feed} (available={block.get('available')})")

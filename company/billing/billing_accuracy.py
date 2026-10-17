@@ -53,13 +53,15 @@ exposure, not a loss, and is shown apart. The control that it stays apart is
 
 from __future__ import annotations
 
+import math
+import statistics
 from collections.abc import Iterable
 
 from company.billing.read_duty_register import read_duty_summary
 
 __all__ = [
     "KINDS", "NO_READ_BILL_RUN", "PUBLISHED_MEDIAN_SUPPLIER_SHARE_NO_READ_BILL_IN_12",
-    "account_billing_accuracy", "billing_accuracy_summary", "direct_debit_money_line",
+    "account_billing_accuracy", "billing_accuracy_summary", "dd_review_arms", "direct_debit_money_line",
     "estimated_billing_outstanding_grade", "published_view",
 ]
 
@@ -190,6 +192,59 @@ def direct_debit_money_line(accounts: list[dict] | None, *, unmeasured_accounts:
         "open_exposure_gbp": round(sum(a["exposure_gbp"] for a in accounts
                                        if not a["closed"]), 2),
     }
+
+
+def _nearest_rank(sorted_values: list[float], q: float) -> float:
+    return sorted_values[max(0, math.ceil(len(sorted_values) * q) - 1)]
+
+
+def dd_review_arms(arms: dict[str, dict] | None) -> dict:
+    """The money line on both arms of the review toggle, with what each arm leaves open and, by
+    year, what it bars and the step-up it puts on a household's debit.
+
+    `arms` maps "never_seeks" and "seeks" to one DD balance book each, over the same bills:
+    `{accounts, bar_actions, review_step_ups}`, the book's own rows. Seeking the balance asks more
+    accounts, so its barred SHARE can rise while the money lost falls; the reader is shown the share,
+    the open exposure and their sum together, or the share alone reads the wrong way
+    (D48, 2026-10-16). A step-up is the monthly amount a review added to recover a debit balance,
+    over the reviews that found one. None is an absence, never a zero."""
+    if arms is None:
+        return {"available": False, "reason": (
+            "the publish could not rebuild the direct-debit book on both arms of the review "
+            "toggle: the run output carries no bills or no opening debits")}
+    out: dict = {"available": True, "unit": "gbp_gross_of_vat", "arms": {}, "by_year": []}
+    years: dict[str, dict] = {}
+    for name in ("never_seeks", "seeks"):
+        book = arms[name]
+        line = direct_debit_money_line(book["accounts"], seek_balance_at_review=name == "seeks")
+        line["barred_plus_open_exposure_gbp"] = round(line["barred_gbp"]
+                                                      + line["open_exposure_gbp"], 2)
+        out["arms"][name] = line
+        for action in book["bar_actions"]:
+            row = years.setdefault(action["date"][:4], {})
+            arm = row.setdefault(name, {"barred_gbp": 0.0, "accounts": set()})
+            arm["barred_gbp"] += action["amount_gbp"]
+            arm["accounts"].add(action["customer_id"])
+        if name == "seeks":
+            for step in book["review_step_ups"]:
+                if step["step_up_gbp"] > 0:
+                    years.setdefault(step["date"][:4], {}).setdefault(
+                        "step_ups", []).append(step["step_up_gbp"])
+    for year in sorted(years):
+        row = years[year]
+        steps = sorted(row.get("step_ups", []))
+        out["by_year"].append({
+            "year": year,
+            **{f"{name}_barred_gbp": round(row[name]["barred_gbp"], 2) if name in row else 0.0
+               for name in ("never_seeks", "seeks")},
+            **{f"{name}_accounts_barred": len(row[name]["accounts"]) if name in row else 0
+               for name in ("never_seeks", "seeks")},
+            "reviews_stepped_up": len(steps),
+            "step_up_median_gbp": statistics.median(steps) if steps else None,
+            "step_up_mean_gbp": sum(steps) / len(steps) if steps else None,
+            "step_up_p90_gbp": _nearest_rank(steps, 0.9) if steps else None,
+        })
+    return out
 
 
 def billing_accuracy_summary(bills: Iterable[dict], direct_debit: dict | None = None) -> dict:

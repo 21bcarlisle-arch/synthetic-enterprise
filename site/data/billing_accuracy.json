@@ -291,6 +291,161 @@
     "unit": "gbp_gross_of_vat",
     "unmeasured_accounts": 21
   },
+  "direct_debit_review_arms": {
+    "arms": {
+      "never_seeks": {
+        "accounts_barred": 153,
+        "accounts_met_recovery_action": 422,
+        "available": true,
+        "barred_gbp": 33769.62,
+        "barred_plus_open_exposure_gbp": 84066.43,
+        "dd_accounts": 695,
+        "mean_barred_gbp": 80.0227962085308,
+        "mean_barred_gbp_ci95": [
+          53.038903065652036,
+          107.00668935140958
+        ],
+        "mean_ci_method": "normal_approximation",
+        "open_accounts": 273,
+        "open_exposure_gbp": 50296.81,
+        "seek_balance_at_review": false,
+        "share_barred": 0.36255924170616116,
+        "share_barred_ci95": [
+          0.31812249651263286,
+          0.4094756563193224
+        ],
+        "unit": "gbp_gross_of_vat",
+        "unmeasured_accounts": 0
+      },
+      "seeks": {
+        "accounts_barred": 239,
+        "accounts_met_recovery_action": 610,
+        "available": true,
+        "barred_gbp": 33385.73,
+        "barred_plus_open_exposure_gbp": 33386.75,
+        "dd_accounts": 695,
+        "mean_barred_gbp": 54.73070491803279,
+        "mean_barred_gbp_ci95": [
+          38.03594253241012,
+          71.42546730365547
+        ],
+        "mean_ci_method": "normal_approximation",
+        "open_accounts": 273,
+        "open_exposure_gbp": 1.02,
+        "seek_balance_at_review": true,
+        "share_barred": 0.3918032786885246,
+        "share_barred_ci95": [
+          0.3538576651674226,
+          0.431103096133117
+        ],
+        "unit": "gbp_gross_of_vat",
+        "unmeasured_accounts": 0
+      }
+    },
+    "available": true,
+    "by_year": [
+      {
+        "never_seeks_accounts_barred": 0,
+        "never_seeks_barred_gbp": 0.0,
+        "reviews_stepped_up": 127,
+        "seeks_accounts_barred": 0,
+        "seeks_barred_gbp": 0.0,
+        "step_up_mean_gbp": 7.054566929133858,
+        "step_up_median_gbp": 4.59,
+        "step_up_p90_gbp": 13.96,
+        "year": "2017"
+      },
+      {
+        "never_seeks_accounts_barred": 13,
+        "never_seeks_barred_gbp": 1060.59,
+        "reviews_stepped_up": 169,
+        "seeks_accounts_barred": 34,
+        "seeks_barred_gbp": 2300.57,
+        "step_up_mean_gbp": 7.665680473372781,
+        "step_up_median_gbp": 5.24,
+        "step_up_p90_gbp": 16.27,
+        "year": "2018"
+      },
+      {
+        "never_seeks_accounts_barred": 37,
+        "never_seeks_barred_gbp": 4109.76,
+        "reviews_stepped_up": 162,
+        "seeks_accounts_barred": 76,
+        "seeks_barred_gbp": 2346.15,
+        "step_up_mean_gbp": 5.402530864197531,
+        "step_up_median_gbp": 4.005,
+        "step_up_p90_gbp": 11.05,
+        "year": "2019"
+      },
+      {
+        "never_seeks_accounts_barred": 30,
+        "never_seeks_barred_gbp": 8170.39,
+        "reviews_stepped_up": 87,
+        "seeks_accounts_barred": 39,
+        "seeks_barred_gbp": 6372.14,
+        "step_up_mean_gbp": 5.097126436781609,
+        "step_up_median_gbp": 2.96,
+        "step_up_p90_gbp": 12.05,
+        "year": "2020"
+      },
+      {
+        "never_seeks_accounts_barred": 14,
+        "never_seeks_barred_gbp": 1260.06,
+        "reviews_stepped_up": 63,
+        "seeks_accounts_barred": 10,
+        "seeks_barred_gbp": 342.6,
+        "step_up_mean_gbp": 8.565079365079365,
+        "step_up_median_gbp": 2.57,
+        "step_up_p90_gbp": 16.36,
+        "year": "2021"
+      },
+      {
+        "never_seeks_accounts_barred": 9,
+        "never_seeks_barred_gbp": 788.68,
+        "reviews_stepped_up": 179,
+        "seeks_accounts_barred": 37,
+        "seeks_barred_gbp": 1909.16,
+        "step_up_mean_gbp": 14.535921787709496,
+        "step_up_median_gbp": 11.97,
+        "step_up_p90_gbp": 27.94,
+        "year": "2022"
+      },
+      {
+        "never_seeks_accounts_barred": 15,
+        "never_seeks_barred_gbp": 4273.57,
+        "reviews_stepped_up": 220,
+        "seeks_accounts_barred": 150,
+        "seeks_barred_gbp": 17864.89,
+        "step_up_mean_gbp": 65.35863636363636,
+        "step_up_median_gbp": 55.010000000000005,
+        "step_up_p90_gbp": 109.67,
+        "year": "2023"
+      },
+      {
+        "never_seeks_accounts_barred": 25,
+        "never_seeks_barred_gbp": 11118.35,
+        "reviews_stepped_up": 38,
+        "seeks_accounts_barred": 20,
+        "seeks_barred_gbp": 2250.22,
+        "step_up_mean_gbp": 15.046052631578947,
+        "step_up_median_gbp": 9.235,
+        "step_up_p90_gbp": 43.24,
+        "year": "2024"
+      },
+      {
+        "never_seeks_accounts_barred": 10,
+        "never_seeks_barred_gbp": 2988.22,
+        "reviews_stepped_up": 6,
+        "seeks_accounts_barred": 0,
+        "seeks_barred_gbp": 0.0,
+        "step_up_mean_gbp": 6.585,
+        "step_up_median_gbp": 7.145,
+        "step_up_p90_gbp": 10.98,
+        "year": "2025"
+      }
+    ],
+    "unit": "gbp_gross_of_vat"
+  },
   "example_account": {
     "account_id": "PROS-2016-0187g",
     "barred_kwh": 1450.5876669627726,
