@@ -1029,9 +1029,14 @@ def drawn_without_landing(cutoff: float | None = None, now: float | None = None,
             continue
         refused = row.get(TOMBSTONE_REFUSED) or {}
         # A RELEASE THE TOMBSTONE REFUSED IS LISTED EVEN OVER A LEDGER LANDING: that landing is the
-        # one `focus_tombstone_refusal` found no commit on origin for.
+        # one `focus_tombstone_refusal` found no commit on origin for. BUT ONLY WHILE IT STILL HOLDS:
+        # the refusal is a reading taken at release time and nothing ever clears it, so a worktree
+        # landing promoted 20 seconds after its release read `not_done` for good
+        # (`the-fabric-homes-summer-swing-against-published-heating-shapes`, e6cdc9af9, 2026-10-17).
+        # Re-asked here, so the row leaves the list the moment origin carries its landing.
         if (float(row.get("last_landing_at") or 0.0) >= drawn
-                and float(refused.get("at") or 0.0) < drawn):
+                and (float(refused.get("at") or 0.0) < drawn
+                     or focus_tombstone_refusal(str(fid), path) is None)):
             continue
         out.append({"id": str(fid), "drawn_at": drawn,
                     "hours_since_draw": round((stamp - drawn) / 3600.0, 1),

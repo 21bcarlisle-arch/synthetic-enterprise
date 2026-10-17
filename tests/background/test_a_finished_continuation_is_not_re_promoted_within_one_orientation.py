@@ -449,5 +449,11 @@ def test_a_focus_row_is_tombstoned_only_when_a_commit_on_origin_binds_it(tmp_pat
     assert "no commit on origin/main binds it" in listed[unbound]["released"]
     assert "released" not in listed.get(bound, {})
 
+    # THE REFUSAL IS A READING, NOT A VERDICT: once the landing reaches origin the row leaves the
+    # list, with nobody re-running the release (e6cdc9af9 was promoted 20 s after its refusal).
+    git("update-ref", delivery_lane.PUBLISHED_REF, "HEAD")
+    listed = {r["id"] for r in delivery_lane.drawn_without_landing(cutoff=0.0, now=10**10)}
+    assert unbound not in listed, "a cured refusal still lists its row as drawn and never landed"
+
     ledger.write_text(json.dumps({unbound: {"premise_spent": {"commit": "abc"}}}))
     assert delivery_lane.focus_tombstone_refusal(unbound) is None
