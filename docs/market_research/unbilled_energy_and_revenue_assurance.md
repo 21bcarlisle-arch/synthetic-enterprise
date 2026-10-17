@@ -209,9 +209,40 @@ Citizens Advice hold smart customers to a shorter standard (6 months, against 12
 - **Definition (Ofgem, SPAA CP10/190):** a customer billed for a meter point (MPRN) that is not
   measuring consumption at their premises; commonest in adjacent properties and blocks of flats,
   arising at install or later work. [M] search summary of the Ofgem SPAA decision page.
-- **Counts: GAP.** No published annual number of crossed meters or faulty-meter disputes found.
+- **Counts of crossed meters: GAP.** No published count or rate of crossed meters, and no rule on
+  whether correcting a crossed meter is an ordinary back-bill (21BA's 12 months) or an exception.
   "Consumption meter error" in gas UIG is −15 to −149 GWh (net over-recording, i.e. it *reduces*
-  UIG), [H] AUG table. Electricity meter-accuracy statistics: GAP.
+  UIG), [H] AUG table.
+- **The legal limit (researched 2026-10-17).** An in-service meter is held to the limit it met when
+  new; the regulator states there is "no additional tolerance" in service. Electricity meters on GB
+  national approval: **+2.5% to −3.5%** across the load range [H] NMRO 2015 §3.1–3.2. MID meters
+  (most new and smart installs) are tighter and load-point specific: Class A ±2.5% at minimum current
+  and ±2.0% at 1/5 and full load; B and C tighter still [H] OPSS IST Handbook 3.7, Tables 3–5. Gas,
+  SI 1983/684 domestic mechanical: **±2%** at maximum and at 20% of maximum flow; domestic electronic
+  adds ±3% at minimum flow [H] NMO 2011 §3.2. MID gas Class 1.5: ±3.0% [H] IST Handbook.
+- **Disputed meters, examined (researched 2026-10-17).** This is the only published count, and it is
+  a count of meters **someone already suspected**. Every report says the sample "is not representative
+  of the whole meter population", so it is not a fault rate.
+  - Electricity, 2003–2014: 2,345 meters were referred for determination under Schedule 7. 2,188 (93%)
+    registered correctly and were correctly installed. 21 (0.9%) were outside the limits by under 5%,
+    and 55 (2.3%) by over 5%, fast or slow. 73 (3.1%) had other failures: multiple-register faults,
+    tamper evidence, demagnetisation, and component failure [H] NMRO 2015 §4.1. The fast/slow split was
+    not recovered from the chart: **GAP**. It decides the sign. A slow meter is unbilled energy; a fast
+    meter overbills the customer.
+  - Domestic gas: of 1,276 disputed meters in 2003/04, 64% were accurate [H] Ofgem 2004. Of 1,288 in
+    2011, 76% were accurate [H] NMO 2011.
+  - **For 2016–2025: GAP.** Each report promised an annual series, and no successor after the 2015
+    report was found. OPSS's guidance says only that the "vast majority" tested in 2021 were accurate
+    [M]. At about 100–300 electricity referrals a year against over 28 million meters, disputes are a
+    rare door. **What share of faulty meters are never disputed is not published.**
+- **Smart meters.** DESNZ publishes the operating mode (end-2025: 7.7% of smart meters in traditional
+  mode) and never recording accuracy. A smart-meter metrology fault rate is a **GAP**. Keep it apart
+  from the comms-failure figure (K7). They are two different things.
+- **What this means for the world build (K8).** No published number gives the population share of
+  meters recording outside the limit, or the direction of the error. A world K5 therefore carries its
+  prevalence as a named `None` until it is sourced. The legal limit (±2–3.5%) is the band an *accurate*
+  meter may sit in, and it is established. The disputed-meter shares bound only the referred
+  population.
 
 ### K6 Settlement versus billing
 
@@ -434,7 +465,9 @@ question.**
 4. The domestic/non-domestic split of the RECCo theft estimate; a detection count after 2014.
 5. The electricity GSP-group correction in our window; £ of UIG per domestic gas customer-year.
    Both can be derived from published Xoserve/Elexon data; neither was derived in this pass.
-6. How often crossed meters and meter faults happen.
+6. How often crossed meters and meter faults happen across the population, and the fast/slow split.
+   Researched 2026-10-17: the legal limits and the disputed-meter shares (2003–2014, 2011) are now
+   in K5. They bound the referred population only. No 2016–2025 series was found.
 7. A second supplier's unbilled balance (only Centrica was read).
 8. Per-supplier Citizens Advice billing-accuracy percentages 2016–2025 (published, not extracted).
 9. The exact gas reconciliation window (the AUGE says four years; the Xoserve summary said 24
@@ -530,6 +563,15 @@ non-payment.
 - Citizens Advice, *How the scores are worked out* (star rating) [M].
 - Elexon, *GSP Group Correction Factors* (BSC settlement page) [M].
 - Ofgem, SPAA CP10/190, *Process for the resolution of crossed meters* [M].
+- NMRO, *Electricity Meters – Disputed Meter Accuracy Report, determinations 2003–2014*, June 2015:
+  <https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/454144/Electricity_Determination_Report_2003-2014.pdf>. Read as text [H].
+- NMO, *Gas Meters – Disputed Meter Accuracy, 1 January–31 December 2011*:
+  <https://assets.publishing.service.gov.uk/media/5a7c4fa8e5274a2041cf3261/gas-meter-dispute-report-2011v1.pdf>. Read as text [H].
+- Ofgem, *Gas Meters – Disputed Meter Accuracy, 1 February 2003–1 January 2004*, May 2004:
+  <https://www.ofgem.gov.uk/sites/default/files/docs/2004/06/12304_0.pdf> [H].
+- OPSS, *In-Service Testing Handbook* 3.7: <https://assets.publishing.service.gov.uk/media/66bb4394a3c2a28abb50e0d4/In-service-testing-handbook-3.7.pdf> [H];
+  OPSS guidance, *Electricity meter accuracy disputes* and *Gas meter accuracy and disputes* (gov.uk) [M].
+- DESNZ, *Smart Meters in Great Britain, Quarterly Update December 2025* [H].
 - Repo documents read and relied on: `elexon_settlement_run_timetable_verified.md`,
   `meter_read_latency_estimation_2026.md`, `how_far_a_settled_eac_sits_from_next_years_use.md`,
   `settlement_rebilling_best_practice.md`, `unbilled_revenue_accrual_e3.md`.
