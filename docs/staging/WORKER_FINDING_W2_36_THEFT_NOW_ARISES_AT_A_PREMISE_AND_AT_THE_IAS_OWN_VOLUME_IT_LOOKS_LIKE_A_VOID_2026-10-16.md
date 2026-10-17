@@ -170,3 +170,99 @@ and grades: `records/WORKER_PREREG_W2_36_WHAT_THE_STRUCTURAL_FLAGS_FIND_2026-10-
   screening gas, and reading a short window as annual each red the control. Dropping the probe's
   void share reds the probe control. A placebo and one equivalence (resetting a span only at an
   actual read, which the loop already does) stay green.
+
+## GAP 1 read: the ten flaggers are electric-heated, and their swing is outside the published range because their level is (worker, 2026-10-17)
+
+Draw `the-fabric-homes-summer-swing-against-published-heating-shapes`. Measurement only; no world
+code was touched. This was not pre-registered: the reading came first. The build it leads to is
+pre-registered in `WORKER_FINDING_AN_ELECTRIC_HEATED_FABRIC_HOME_PRICES_ITS_PRIOR_BILL_AT_THE_GAS_RATE_AND_RUNS_TWO_TO_FOUR_TIMES_SERL_2026-10-17.md`.
+
+**Population.** Same published run (`78f77c34e`). The ten accounts with the most own-reads flags
+under 0.65 hold 239 of the 377. Heating and tenure come from the world's household register
+(`HouseholdDemandRegister`). An `OCC-` account is matched to its premise's outgoing account by move
+date. Each month's figure is true kWh per day over whole calendar-month billed periods.
+
+**The comparator.** The gas finding's SERL series is for gas-heated homes. **Nine of the ten are
+not gas-heated**: five storage, two direct electric, one air-source heat pump, one unresolved. SERL's
+aggregated tables (figshare 25472560, v2) give electric-heated homes only as an annual level
+(Figure_46 for 2022, Figure_13 for 2023), not by month. So the published range for their swing is
+built from SERL alone:
+- the base is the gas-heated homes' electricity median by month (Figure_4);
+- heating and hot water take the shape of the same homes' gas median by month (Figure_4: DJ/JJA
+  9.4 in 2021, 10.8 in 2022, 9.5 in 2023);
+- they are sized to the electric-heated quartiles.
+
+DJ/JJA is the mean of December and January over the mean of June to August.
+
+| SERL-anchored DJ/JJA | p25 | median | p75 |
+|---|---|---|---|
+| Storage radiators, 2022 (6.9 / 12.5 / 17.5 kWh/day) | 1.35 | 2.83 | **3.83** |
+| Storage radiators, 2023 (8.0 / 11.9 / 16.7) | 1.69 | 2.61 | 3.47 |
+| Electric radiators, 2022 (6.7 / 10.6 / 15.6) | 1.35 | 2.40 | 3.48 |
+| "Other electric", 2022 (9.9 / 15.4 / 21.3) | 2.20 | 3.45 | 4.42 |
+
+**The ten, by month** (kWh/day, pooled 2016–2025):
+
+| Account | Heating, tenure | Jan | Apr | Jul | Oct | Dec | DJ/JJA | kWh/yr |
+|---|---|---|---|---|---|---|---|---|
+| SYN-2016-127 | direct, owner | 64.7 | 32.3 | 12.6 | 33.1 | 61.8 | 4.90 | 12,849 |
+| PROS-2017-0336 | storage, owner | 154.9 | 62.1 | 9.6 | 50.6 | 138.6 | **15.01** | 24,733 |
+| SYN-2016-064 | storage, owner | 68.1 | 40.2 | 12.3 | 43.7 | 66.3 | 4.51 | 14,967 |
+| SYN-2016-435 | storage, private | 57.4 | 22.1 | 8.2 | 23.8 | 52.1 | 6.77 | 10,243 |
+| OCC-d8e674fa38de | gas (premise C8), owner; `hh_metered_reads` | 54.5 | 34.5 | 11.1 | 27.8 | 49.7 | 4.28 | 11,594 |
+| PROS-2020-0189 | storage, private | 41.1 | 19.1 | 8.1 | 18.4 | 40.2 | 4.95 | 8,025 |
+| OCC-6414723cb77a | unresolved, private | 56.2 | 20.1 | 7.9 | 18.8 | 50.0 | 6.73 | 9,493 |
+| SYN-2016-012 | storage, private | 29.6 | 10.9 | 7.1 | 14.3 | 28.0 | 4.06 | 5,650 |
+| SYN-2016-269 | heat pump, owner; legacy profile | 39.0 | 27.1 | 14.0 | 23.8 | 38.5 | 2.66 | 9,560 |
+| PROS-2019-0246 | direct, owner | 53.1 | 20.1 | 12.2 | 20.0 | 48.4 | 4.28 | 9,627 |
+
+**Their classes** (median per account, pooled; full table in `/var/tmp/fabswing/measure.out`):
+
+| Class | n | DJ/JJA median [p25–p75] | JJA ÷ annual mean |
+|---|---|---|---|
+| Storage, fabric, all tenures | 15 | 2.55 [2.09–4.95] | 0.62 |
+| Storage, fabric, owner | 9 | 2.11 [2.08–4.51] | 0.71 |
+| Storage, fabric, private renter | 5 | 4.06 [2.10–4.95] | 0.46 |
+| Direct electric, fabric (all owner) | 5 | 4.28 [2.83–4.90] | 0.45 |
+| Storage or direct, legacy profile | 19 | 1.39 | 0.84 |
+| Gas-heated, fabric | 204 | 1.16 [1.09–1.25] | 0.94 |
+| Gas-heated, legacy profile | 187 | 1.39 | 0.84 |
+
+**Verdict: outside the published range.** Nine of the ten (median 4.9) are above SERL's storage
+p75 of 3.83. Only the heat pump (2.66) is inside. **The level is the main cause, not the shape.**
+- Within one year, each home's DJ/JJA can be set beside the SERL envelope **at its own level**.
+  For four of the ten (SYN-2016-127, SYN-2016-064, PROS-2019-0246, OCC-d8e674fa38de) it sits at or below
+  that envelope in every year but one. Their swing is what published heating seasons give a home that uses that much.
+- **What no published figure supports is how much they use.** They use 15–75 kWh/day, against
+  SERL's storage p75 of 17.5 (2022) and electric-radiator p75 of 15.6. Nine of the ten are above
+  those p75s every year; SYN-2016-012 (14.8–16.2) is the exception. Of the fabric storage homes with a whole year, the median uses 19.6 kWh/day
+  in 2022 and 42.3 in 2023. SERL's medians are 12.5 and 11.9. The fabric direct-electric homes use
+  29 against 10.6.
+- **A shape excess remains in five.** At their own level, SYN-2016-435, PROS-2020-0189,
+  OCC-6414723cb77a and SYN-2016-012 are 1.2–1.6 times steeper than the envelope.
+  PROS-2017-0336 is about 2.2 times steeper. Its 15.0 is above the gas heating-and-hot-water
+  shape's own DJ/JJA of 9.5–10.8, so even a home that was all heating could not reach it on that
+  shape. Its summer is 9 kWh/day under a 24.7 MWh year.
+- **Tenure** splits the storage class: private renters are at 4.06, owners at 2.11. The five
+  storage homes rented privately carry four of the ten.
+
+**What this says about the 1,939.** It is inflated, and by a world defect, not by the screen. The
+flags concentrate where the world's electric-heated homes use two to four times what SERL measures.
+A home at SERL's storage p75 would still swing 3.5–3.8 against the company's legacy-profile
+expectation of 1.39, so electric-heated homes would still flag in summer. **I cannot yet say** how
+far 1,939 falls. The build finding carries the prediction.
+
+**The same reading on the gas question.** Fabric gas-heated homes read DJ/JJA 1.16 against SERL's
+1.33–1.35 for gas-heated homes' electricity: **too flat**, which is the carried row
+`a-gas-heated-homes-electricity-has-no-season`, measured again on the run book. The two misses run
+in **opposite directions**, so no single cause explains both. The gas-heated miss does not inflate
+the screen, because a flatter summer is flagged less.
+
+**GAPs.**
+1. No published monthly series for electric-heated homes was read. The envelope assumes their
+   heating takes the season of gas-heated homes' gas. Possible sources are HES R66141 §15.3
+   (Fig. 544–545, all electric heating) and Elexon PC2 coefficients (not in the repo).
+2. OCC-d8e674fa38de's premise was matched by move date. The register gives that premise gas heating,
+   but its trace is `hh_metered_reads`, not the fabric path. Its 11.6 MWh with a steep winter is
+   not explained here.
+3. Fabric electric-heated homes with a whole calendar year are few: 4 storage and 2 direct in 2022.
