@@ -148,7 +148,91 @@ For each credit-meter household (not PPM; see "Out of scope" below), in each bil
 income ladder to the year being run, with an ONS series (CPIH for the floor, and earnings or the
 HBAI median for income). Until that is wired, it must carry the gap as a named, explicit refusal
 rather than mixing 2026 pounds with 2016 bills. **Which deflator: GAP, to be researched before
-the build. Not to be picked.**
+the build. Not to be picked.** *Researched 2026-10-17: see the next section. The floor's deflator
+is settled. The income ladder's is settled for earnings, and its bottom-decile split is still a GAP.*
+
+### The price level, researched (2026-10-17): the floor already holds energy, and the bottom of the ladder is not earnings
+
+**First, what the floor contains.** JRF's 2026/27 basket (JRF/Trussell, *Guarantee our
+essentials*, itemised table) is per week:
+
+| | Food | **Electricity and gas** | Water | Clothes | Communications | Travel | Sundries | Total |
+|---|---|---|---|---|---|---|---|---|
+| Single | 42 | **24** | 7 | 7 | 8 | 21 | 13 | 120 |
+| Couple | 74 | **33** | 11 | 11 | 11 | 42 | 20 | 205 |
+
+So `_ESSENTIALS_GUARANTEE_SINGLE` (£520/month) already holds **£104/month of energy**, and the couple
+figure holds £143. The mechanism above pays the month's energy bill out of the margin, so as written
+it would **count energy twice**: once at the 2026/27 level inside the floor, and again at the run
+year's own bill. In 2022 the double count is also wrong in direction. A floor deflated by all-items
+CPIH carries the energy shock in its index, and so does the bill. **Ruling: the floor the build uses
+is the basket without electricity and gas**, £425/month single and £732/month couple at 2026/27
+prices. The world's own bill takes energy's place. This is a definition, not a tuning: the floor is
+"essentials other than the bill being modelled".
+
+**The floor's deflator: each basket line on its own CPIH division.** ONS MM23, 2015=100, release
+16-09-2026: food L523 (01), clothing L525 (03), transport L529 (07), communication L52A (08),
+sundries on L527 (05, furnishings and household goods), water on all-items L522. The base is the
+mean of April to August 2026, the months of 2026/27 published so far. Two lines are mapped by
+choice, not by source. JRF does not itemise "sundries", so 05 is the nearest division. The CPIH
+water class's CDID was not reached (ONS rate-limited the fetch), so water, 6% of the basket, rides
+on all-items CPIH. Annual averages:
+
+| Year | Single, ex-energy, GBP/month | Couple, ex-energy, GBP/month | Basket factor | All-items CPIH factor | AWE (KAB9) factor |
+|---|---|---|---|---|---|
+| 2016 | 300 | 516 | 0.708 | 0.709 | 0.655 |
+| 2017 | 309 | 531 | 0.727 | 0.727 | 0.670 |
+| 2018 | 316 | 544 | 0.744 | 0.744 | 0.690 |
+| 2019 | 321 | 552 | 0.755 | 0.757 | 0.714 |
+| 2020 | 323 | 555 | 0.760 | 0.764 | 0.725 |
+| 2021 | 331 | 570 | 0.779 | 0.783 | 0.769 |
+| 2022 | 363 | 628 | 0.856 | 0.846 | 0.817 |
+| 2023 | 393 | 678 | 0.926 | 0.903 | 0.874 |
+| 2024 | 400 | 690 | 0.943 | 0.933 | 0.920 |
+| 2025 | 413 | 711 | 0.972 | 0.969 | 0.966 |
+
+The basket tracks all-items CPIH to within half a point, except in 2022-23, where food runs it 1-2
+points higher. So the division mapping matters little, and the energy split matters a lot. The floor
+the code uses today (£520) is **£220 a month too high in 2016** for a single adult (£300 ex-energy,
+plus the year's own bill).
+
+**The income ladder's deflator: earnings for earners, the uprating rule for the bottom.** AWE whole
+economy total pay (KAB9, LMS, mean of April to July 2026 as base) is the published monthly series
+nearest a household's earned income. It rises faster than prices before 2021 (real wages grew) and
+slower in 2022-23. But the deciles where the margin goes negative live mostly on benefits, and those
+followed neither AWE nor CPIH. Most working-age benefits rise each April by the previous
+September's CPI (Resolution Foundation, *Benefit uprating policy for April 2026*: "September
+inflation is usually used to uprate most benefits the following April"). They were frozen from April
+2016 to April 2019 (Welfare Reform and Work Act 2016), then uprated by 1.7% (2020), 0.5% (2021),
+3.1% (2022), 10.1% (2023), 6.7% (2024), 1.7% (2025) and 3.8% (2026). The September CPI rates
+derived from the rounded D7BT index agree with these to within 0.1 point. That path, against the
+ex-energy basket, with 2026/27 = 1:
+
+| Year | 2016 | 2017 | 2018 | 2019 | 2020 | 2021 | **2022** | **2023** | 2024 | 2025 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Benefit-path factor (calendar average) | 0.765 | 0.765 | 0.765 | 0.765 | 0.775 | 0.781 | 0.800 | 0.867 | 0.932 | 0.959 |
+| Real, against the ex-energy basket | 1.081 | 1.053 | 1.029 | 1.014 | 1.020 | 1.003 | **0.935** | **0.937** | 0.989 | 0.987 |
+
+**What this says, before any energy bill.** A household on benefits loses **6.5% of its real
+non-energy purchasing power in 2022-23**, because April 2022's 3.1% was set by September 2021's
+inflation. The freeze takes 8% off it between 2016 and 2021. A single deflator on the whole ladder,
+AWE or CPIH, makes both invisible. This is a crisis channel of its own, on top of the bill, and it
+falls on exactly the deciles the budget puts under water.
+
+**What stays a GAP.**
+- **Which deciles of the ladder follow the benefit path, and in what share.** HBAI publishes income
+  by source by decile. That cut has not been fetched. Until it is, the build either indexes the
+  whole ladder on AWE and names the omission, or carries the bottom-decile path with an R10 share,
+  labelled. It must not blend the two silently.
+- **One-off support.** The £20 UC uplift (2020-21), the £400 EBSS (Oct 2022 to Mar 2023), and the
+  2022-23 cost-of-living payments are not in the uprating path. The EBSS already reaches the world
+  through the bill. The others do not.
+- **Pensions** rose by the triple lock, not by the September rule. The ladder does not separate
+  pensioner households.
+
+**Raw series** (ONS MM23 L522, L523, L525, L527, L529, L52A, D7BT; LMS KAB9; fetched 2026-10-17)
+are harness-side knowledge only. No world or company code reads them (W6). The build transcribes
+the annual factors above as cited constants.
 
 ### Do households with a negative margin before 2022 build up debt too? Yes, and this is the cost
 

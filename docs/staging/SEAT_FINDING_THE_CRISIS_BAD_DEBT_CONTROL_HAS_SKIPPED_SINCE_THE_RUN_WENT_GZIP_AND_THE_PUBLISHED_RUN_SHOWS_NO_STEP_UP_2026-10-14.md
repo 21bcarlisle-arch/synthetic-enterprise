@@ -464,3 +464,32 @@ The comment is corrected in the same commit. This finding's header also cites "1
 recorded in `ASSUMPTIONS.md`. No 1.3% figure is recorded there. The 2.3-to-2.8% figure that is
 recorded is Centrica's FY2025 movement, as corrected on 10-15. The crisis anchor is the 1.1% (2021)
 to 2.1-2.9% (2022-23) series in `bad_debt_provisioning.md` §3.2.
+
+## 2026-10-17: drawn again as BLOCKING; the cause's build waits for the publish, and its one GAP is researched
+
+**Why nothing in the world moved this turn.** The level gap goes back to the world's non-payment.
+Its fix (the budget decides how much of the bill is paid, month after month) is filed in
+`WORKER_FINDING_THE_WORLDS_PAYMENT_DRAW_HAS_NO_PRICE_INPUT_..._2026-10-16.md` as the first world
+change **after the 2026-10-19 publish**, with R1-R4 pre-registered. That is a world change, so it
+is not started before the publish. The one thing left to do before it was its named GAP: which
+deflator brings the 2026/27 essentials floor and income ladder to each run year.
+
+**Researched**, in `docs/market_research/household_budget_w2_4.md`, section "The price level,
+researched (2026-10-17)". Two results bear on this finding:
+- **The floor already holds the energy bill.** JRF's £120/£205 a week includes £24/£33 of
+  electricity and gas. A build that pays the bill out of income minus that floor counts energy
+  twice. The build's floor is the basket without energy, deflated line by line on CPIH divisions:
+  £300 a month single in 2016, £363 in 2022 and £425 at 2026/27.
+- **The bottom of the ladder has a crisis of its own.** Benefits rise by the previous September's
+  CPI, so April 2022's 3.1% put a benefit household's real non-energy purchasing power **6.5% under
+  2021** in both 2022 and 2023, before any bill. That is the 2022-23 window this control grades.
+  A single deflator on the ladder (AWE or CPIH) would hide it.
+
+**Prediction for the build, filed now:** with the bottom deciles on the uprating path, the share of
+households under water rises in 2022-23 by more than the bill alone gives (the 2026-10-16 probe:
++1.7 points under the EPG), and falls back by 2024. If the uprating path adds less than 0.5 points
+at Q4 2022, the bottom deciles are mostly not benefit-led in the ladder's shape, and the HBAI
+income-by-source cut (still a GAP) decides it.
+
+**Status:** OPEN and BLOCKING, unchanged. The next move is the post-publish build, not this lane's
+next tick.

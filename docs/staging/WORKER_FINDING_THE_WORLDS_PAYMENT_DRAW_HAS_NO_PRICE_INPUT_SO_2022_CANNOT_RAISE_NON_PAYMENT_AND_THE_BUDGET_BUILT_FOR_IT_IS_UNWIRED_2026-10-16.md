@@ -242,3 +242,12 @@ origin of every part (sourced, R10 shape or GAP), the pre-2022 negative-margin c
 evidence on how long arrears last. **The build is ready to start after the 2026-10-19 publish**,
 as the first world change after it. It has one named GAP to research first: the deflator for the
 2026/27 essentials floor and income ladder. R1-R4 above are its pre-registration.
+
+**The GAP, researched (2026-10-17).** `household_budget_w2_4.md`, section "The price level,
+researched". The floor already holds £24/£33 a week of electricity and gas, so the build's floor
+is the basket without energy, deflated line by line on CPIH divisions (£300 a month single in 2016,
+£425 at 2026/27). The ladder takes AWE for earners and the April benefit-uprating path for the
+bottom. That path puts a benefit household 6.5% under 2021 in real non-energy terms in 2022-23,
+before any bill. Which deciles follow which path is still a GAP (HBAI income by source). The build
+must name that GAP, not blend the two paths silently. R1-R4 were filed before this research, and
+they stand as written. A move that comes from the uprating path is reported apart from the bill.
