@@ -79,6 +79,14 @@ standard-credit bill-shock population, where the bill itself is the shock. The S
    (`departure_risks.SVT_INERTIA_ANNUAL_RECENT`). That is above the world's fixed-term rate. So
    slice 10's "fixed below one on both causes" is a pooled-decade ratio set against a one-wave 2025
    ratio. Neither is wrong, and they are not the same quantity.
+
+   **CORRECTED 2026-10-17, same day, beside the claim:** the world's drawn ratio and the survey's
+   are not the same quantity **in any era**, so 2.61 against 2.8 is not agreement. CIM records
+   tariff at interview (A13, now verified), and its ratio is an identity in where switchers land,
+   `L(1−F)/((1−L)F)`. The pre-switch gradient does not enter it. The CMA's 2015 survey (supplier
+   records, also post-switch) gives 1.9–4.3 pre-crisis by the same identity. On that instrument the
+   world's pre-crisis rates read about 1.0–1.95, and its 2024–25 rates read well above 2.8. See
+   `docs/market_research/switching_gradient_by_tariff_and_payment_what_the_record_can_grade.md` §1.
 3. **Whether the world's pre-crisis default rate is too high is a GAP, not a finding.** The source
    behind the inertia band says *"Direct published SVT vs fixed churn rates by tariff type are not
    available"* (`svt_rates_active_passive_2016_2025.md` §4, confidence M). CIM w6 is the first split
@@ -89,6 +97,8 @@ standard-credit bill-shock population, where the bill itself is the shock. The S
    at interview, a household that has just switched is likely to be on a new fix. Part of the 2.8
    would then be switchers landing on fixes, which no losing supplier sees beforehand. The workbook
    is not on disk and this pass did not re-fetch it. Labelled **unverified**.
+   **VERIFIED 2026-10-17:** tariff type is A13, asked in the present tense at interview. The
+   contamination is total rather than partial: see the knowledge page's §1a.
 
 ## Each prediction beside its result (wrong ones kept)
 
@@ -151,6 +161,9 @@ where nothing on file says what the real split was.
 
 - Find a published fixed vs SVT switching split for 2016–2020: Ofgem's 2016–2019 engagement surveys,
   or CMA Appendix 9.1.
+- **Done 2026-10-17. Neither has a pre-switch split, and no consumer survey can supply one.** The GAP
+  stands with a proved reason. The admissible test is to emulate the instrument in the world
+  (knowledge page §1c).
 - Do this before touching `SVT_INERTIA_ANNUAL_RECENT`.
 
 ## Method, for the next session
