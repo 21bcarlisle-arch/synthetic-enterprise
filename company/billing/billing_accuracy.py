@@ -256,8 +256,8 @@ def billing_accuracy_summary(bills: Iterable[dict], direct_debit: dict | None = 
     bills = list(bills)
     rows = account_billing_accuracy(bills)
     # The snapshot is the last billed month. The accounts in it are the ones still on supply at
-    # the end; a leaver's last bill is on a forced final read, so including leavers would
-    # flatter the share.
+    # the end; a leaver's last bill asks for a closing read, which a smart meter in smart mode
+    # always answers, so including leavers would flatter the share slightly.
     snapshot = max((row["last_period_end"][:7] for row in rows), default=None)
     by_fuel: dict[str, dict] = {}
     for row in rows:

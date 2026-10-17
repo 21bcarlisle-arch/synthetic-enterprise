@@ -122,7 +122,8 @@ _PROBE = textwrap.dedent(
                      consecutive_estimated_count):
             return _Read()
 
-        def final_read_for(self, customer_id, period_end, meter_type, true_consumption_kwh):
+        def final_read_for(self, customer_id, period_end, meter_type, true_consumption_kwh,
+                           consecutive_estimated_count):
             return _Read()
 
 
@@ -269,7 +270,8 @@ def test_mutation_isinstance_alone_would_wave_a_reordered_feed_through():
                      true_consumption_kwh):
             raise AssertionError("not called")
 
-        def final_read_for(self, customer_id, period_end, meter_type, true_consumption_kwh):
+        def final_read_for(self, customer_id, period_end, meter_type, true_consumption_kwh,
+                           consecutive_estimated_count):
             raise AssertionError("not called")
 
     assert isinstance(ReorderedFeed(), ReadArrivalFeed), (

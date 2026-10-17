@@ -262,15 +262,21 @@ def test_main_grades_the_ledgers_billed_on_estimate_position_it_hands_back(main_
         ledger["estimated_billing_outstanding_gbp"], abs=0.005 * len(ledger["by_customer"]) + 0.01)
 
 
-def test_main_window_holds_a_churned_accounts_final_read(main_result):
-    # The live counterpart of the forced-estimate proof below: a churned account's last bill
-    # resolves on an actual read (SLC 21B). Without a churned account in the window the override
-    # is untested by the one run this file pays for. Read BY HOUSEHOLD: the roster is keyed by
-    # household and bills by supply point, so matching the bill's own id skipped every gas leg,
-    # which is how 17 of them closed on an estimate unseen (2026-09-30).
+def test_main_window_closes_a_churned_account_on_an_actual_read_only_where_the_world_has_a_reason(
+        main_result):
+    # The live counterpart of the forced-closing-read proof below: a churned account's last bill is
+    # on an actual read exactly where its period's own read was actual or its smart meter is in
+    # smart mode (no customer-given read is drawn while that share is a GAP). Both sides must be
+    # present, so a rule that answers actual always, or never, cannot pass. Read BY HOUSEHOLD: the
+    # roster is keyed by household and bills by supply point, so matching the bill's own id
+    # skipped every gas leg (2026-09-30).
+    import simulation.meter_reads as mr
     from simulation.household import household_of
 
+    assert mr.CLOSING_READ_CUSTOMER_GIVEN_SHARE is None, "the share is sourced: widen this leg"
     churned = set(main_result["phase2b"]["churned_billing_accounts"])
+    meter_type = {(e["customer_id"], e["period_end"]): e["meter_type"]
+                  for e in main_result["meter_read_log"]}
     last_bill = {}
     for bill in main_result["bills"]:
         if household_of(bill["customer_id"]) in churned:
@@ -278,8 +284,18 @@ def test_main_window_holds_a_churned_accounts_final_read(main_result):
             if prior is None or bill["period_end"] > prior["period_end"]:
                 last_bill[bill["customer_id"]] = bill
     assert last_bill, "no churned account billed in the fixture's window"
-    not_final_read = [c for c, b in last_bill.items() if b["billing_basis"] != "actual"]
-    assert not_final_read == [], f"churned accounts closed on an estimate: {not_final_read[:5]}"
+    wrong, bases = [], set()
+    for cid, bill in last_bill.items():
+        meter = meter_type[(cid, bill["period_end"])]
+        expected = "actual" if (
+            (meter == "smart" and not mr.is_not_in_smart_mode(cid))
+            or mr.simulate_read(cid, bill["period_end"], meter, 0.0, 0).status == "actual"
+        ) else "estimated"
+        bases.add(bill["billing_basis"])
+        if bill["billing_basis"] != expected:
+            wrong.append((cid, meter, bill["billing_basis"]))
+    assert wrong == [], f"closing reads off the rule: {wrong[:5]}"
+    assert bases == {"actual", "estimated"}, f"only {bases} closings in the window"
 
 
 def test_read_log_cannot_be_re_derived_without_losing_the_final_read_override():
@@ -287,15 +303,16 @@ def test_read_log_cannot_be_re_derived_without_losing_the_final_read_override():
 
     MUTATE: re-derive the read log from the seed (the pre-2026-08-15 pipeline
     path, `generate_meter_read_log`) instead of projecting the events the
-    bills were assembled from. The SLC 21B final-read override is applied only
+    bills were assembled from. The closing read is requested only
     by the billing call site, so the re-derived log MUST disagree -- and the
     class control MUST fire on it.
 
     CORRECT: the projected log agrees on every row and the control is clean.
 
-    Reads are pinned all-estimated so the override is guaranteed to fire on
-    the churned account's final bill (the live run's own 3-of-3 rate, made
-    deterministic rather than left to the seed).
+    Reads are pinned all-estimated, and the customer-given closing read (a
+    GAP, so None in a run) is pinned to always, so the closing read is
+    guaranteed to be actual on the churned account's final bill while the
+    seed's own read for that period is estimated.
     """
     import simulation.meter_reads as mr
     from company.compliance.population_sanity import check_read_log_matches_billing_basis
@@ -304,6 +321,8 @@ def test_read_log_cannot_be_re_derived_without_losing_the_final_read_override():
     original_actual_prob = mr.TRADITIONAL_ACTUAL_READ_PROBABILITY
     original_not_comm = mr.SMART_METER_NOT_COMMUNICATING_RATE
     original_hard_prob = mr.HARD_TO_READ_ACTUAL_READ_PROBABILITY
+    original_given = mr.CLOSING_READ_CUSTOMER_GIVEN_SHARE
+    mr.CLOSING_READ_CUSTOMER_GIVEN_SHARE = 1.0
     mr.TRADITIONAL_ACTUAL_READ_PROBABILITY = 0.0
     mr.HARD_TO_READ_ACTUAL_READ_PROBABILITY = 0.0
     mr.SMART_METER_NOT_COMMUNICATING_RATE = 1.0
@@ -314,7 +333,7 @@ def test_read_log_cannot_be_re_derived_without_losing_the_final_read_override():
 
         projected = mr.meter_read_log_from_events(events)
         assert [b["billing_basis"] for b in bills] == [e["status"] for e in projected]
-        assert projected[-1]["status"] == "actual", "the SLC 21B override did not fire"
+        assert projected[-1]["status"] == "actual", "the closing read was not actual"
         assert check_read_log_matches_billing_basis(bills, projected) == []
 
         re_derived = mr.generate_meter_read_log(bills, {"C1": "traditional"})
@@ -327,6 +346,7 @@ def test_read_log_cannot_be_re_derived_without_losing_the_final_read_override():
         mr.TRADITIONAL_ACTUAL_READ_PROBABILITY = original_actual_prob
         mr.SMART_METER_NOT_COMMUNICATING_RATE = original_not_comm
         mr.HARD_TO_READ_ACTUAL_READ_PROBABILITY = original_hard_prob
+        mr.CLOSING_READ_CUSTOMER_GIVEN_SHARE = original_given
 
 
 def test_main_produces_contact_centre_log(main_result):
@@ -771,6 +791,9 @@ def force_estimated_reads(monkeypatch):
     monkeypatch.setattr(mr, "TRADITIONAL_ACTUAL_READ_PROBABILITY", 0.0)
     monkeypatch.setattr(mr, "HARD_TO_READ_ACTUAL_READ_PROBABILITY", 0.0)
     monkeypatch.setattr(mr, "SMART_METER_NOT_COMMUNICATING_RATE", 1.0)
+    # And every closing read given by the customer (a GAP share, None in a run): these tests ask
+    # what a closing account's actual final read does, not how often one is had.
+    monkeypatch.setattr(mr, "CLOSING_READ_CUSTOMER_GIVEN_SHARE", 1.0)
 
 
 def _short_run_records(cid="C1", n_months=10, start_year=2022, start_month=1):
@@ -788,7 +811,7 @@ def test_churned_account_forces_final_read_resolution(force_estimated_reads):
     """Without churned_ids, a run of estimated bills (no read is ever
     forced, W2_36) stays estimated forever -- the true-vs-billed delta is never recovered.
     A churning/succeeding account must instead force its own LAST bill to
-    resolve on a final read (Ofgem SLC 21B), same real mechanism
+    resolve on a final read (SLC 27.17 final bill), same real mechanism
     company/billing/account_closure.py's receive_final_read() models."""
     records = _short_run_records(n_months=10)
 
@@ -883,6 +906,7 @@ def test_billing_accuracy_finds_the_barred_energy_the_read_process_makes_and_non
         m.setattr(mr, "TRADITIONAL_ACTUAL_READ_PROBABILITY", 0.0)
         m.setattr(mr, "HARD_TO_READ_ACTUAL_READ_PROBABILITY", 0.0)
         m.setattr(mr, "SMART_METER_NOT_COMMUNICATING_RATE", 1.0)
+        m.setattr(mr, "CLOSING_READ_CUSTOMER_GIVEN_SHARE", 1.0)
         m.setattr(mr, "simulate_read", opening_read_actual)
         estimating = billing_accuracy(build_monthly_bills(records, churned_ids={"C4"}))
     with monkeypatch.context() as m:

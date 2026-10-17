@@ -588,7 +588,7 @@ def households_whose_account_closed(phase2b_result: Mapping) -> set[str]:
 
     A move is not a registration loss, because the supplier keeps the premise on deemed terms, so
     `run_phase2b` keeps movers off `churned_billing_accounts`. The MOVER'S ACCOUNT still closes on
-    the move date. It gets the SLC 21B final read, the final bill that asks for the closing
+    the move date. It gets the closing-read request, the final bill that asks for the closing
     balance, the SLC 14 refund of any credit, and the write-off at close. Until 2026-10-10 none of
     these reached a mover: an unpaid final bill sat as a stayer's live arrears, and a credit was
     never refunded. The incoming occupant is supplied under its own id, so it is not swept in.

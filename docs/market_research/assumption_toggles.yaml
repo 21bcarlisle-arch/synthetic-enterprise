@@ -1077,6 +1077,36 @@ toggles:
       detail: Level published; the dropout hazard and duration are not (a GAP), so persistence is a code finding.
     verdict: RESOLVED for the level
 
+  - id: q6_closing_read_customer_given_share
+    question: Q6 read access and theft
+    meaning: >-
+      P(a household leaving supply, by moving or switching, gives its own meter read for the day
+      supply ends | its meter is not read remotely that day). With a smart meter in smart mode the
+      closing read is actual without it; otherwise the closing read is an estimate unless the
+      customer gives one (home_moves.md s.3 and s.8.4; BSCP504 s.4.4.1 falls back to an estimate at
+      a change of supplier). simulation/meter_reads.simulate_final_read reads this row.
+    default: null
+    default_reason: >-
+      GAP. home_moves.md s.8 and the Citizens Advice moving-home guidance say a final read is given
+      "sometimes"; no source read gives the share, for a move or a switch. Until filled, no
+      customer-own closing read is drawn: a closing read that is not remote is the period's
+      ordinary read, so the estimate at the boundary reaches the final bill (seat finding
+      2026-10-17, the world's closing read is always actual).
+    low: null
+    high: null
+    basis_default: None published.
+    basis_low: None published.
+    basis_high: None published.
+    feeds: [W2_36_unbilled_energy_arises_the_way_it_does_in_reality]
+    sensitivity:
+      kind: argued
+      detail: >-
+        Moves how often a final bill resolves the run of estimates before it, and so how much
+        estimation error at closure reaches a final bill (the CoT dispute seed), and how often an
+        incoming occupier's account opens on an actual read. Practitioner question: what share of
+        movers and switchers give a read the supplier accepts?
+    verdict: MATTERS_AND_RESOLVABLE
+
   - id: q6_read_visit_access_failure_rate
     question: Q6 read access and theft
     meaning: >-

@@ -16,6 +16,7 @@ from simulation.meter_reads import (
     is_hard_to_read,
     is_not_in_smart_mode,
     meter_type_for_customer,
+    simulate_final_read,
     simulate_read,
     solve_easy_rate,
 )
@@ -88,6 +89,36 @@ def test_a_long_estimated_run_does_not_force_a_read():
         args = ("C6", f"20{yr}-01-31", "traditional", 300.0)
         assert simulate_read(*args, 0).status == simulate_read(*args, 500).status
         assert simulate_read(*args, 500).forced_catch_up is False
+
+
+def test_a_closing_read_is_actual_only_where_the_world_has_a_reason(monkeypatch):
+    """Defect caught (2026-10-17): every closing read answered actual, so the estimate at a
+    move-out or switch never reached a final bill. A smart meter in smart mode is read remotely
+    on the day; a traditional meter, or a smart one out of smart mode, gets the period's ordinary
+    read; a customer-given read fires only once its share is sourced. One partition, so a rule
+    that answers actual always, or never, cannot pass."""
+    smart_on = next(f"S{i}" for i in range(500) if not is_not_in_smart_mode(f"S{i}"))
+    smart_off = next(f"S{i}" for i in range(500) if is_not_in_smart_mode(f"S{i}"))
+    periods = [f"20{yr}-{m:02d}-28" for yr in range(16, 26) for m in (1, 7)]
+
+    def closing(cid, meter, period):
+        return simulate_final_read(cid, period, meter, 300.0, 3)
+
+    assert all(closing(smart_on, "smart", p).status == "actual" for p in periods)
+    late = next(f"2020-{m:02d}-{d:02d}" for m in range(1, 13) for d in range(1, 29)
+                if simulate_read(smart_on, f"2020-{m:02d}-{d:02d}", "smart", 300.0, 3).status
+                == "estimated")
+    assert closing(smart_on, "smart", late).status == "actual", "a late remote read stays late"
+    for cid, meter in (("T1", "traditional"), (smart_off, "smart")):
+        events = [closing(cid, meter, p) for p in periods]
+        assert events == [simulate_read(cid, p, meter, 300.0, 3) for p in periods]
+        assert any(e.status == "estimated" for e in events), (cid, "no estimate reached")
+        assert all(e.consecutive_estimated_count == 4 for e in events if e.status == "estimated")
+
+    assert mr.CLOSING_READ_CUSTOMER_GIVEN_SHARE is None and mr.CLOSING_READ_CUSTOMER_GIVEN_GAP
+    monkeypatch.setattr(mr, "CLOSING_READ_CUSTOMER_GIVEN_SHARE", 1.0)
+    given = closing("T1", "traditional", periods[0])
+    assert (given.status, given.delay_days, given.forced_catch_up) == ("actual", 0, True)
 
 
 def _traditional_history(cid, months=60):

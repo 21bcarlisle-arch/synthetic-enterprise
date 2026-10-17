@@ -129,11 +129,13 @@ class ReadArrivalFeed(Protocol):
         period_end: str,
         meter_type: str,
         true_consumption_kwh: float,
+        consecutive_estimated_count: int,
     ) -> ReadArrival:
-        """A closing read for an account leaving supply (SLC 21B final bill).
+        """The read on the day an account leaves supply (SLC 27.17 final bill).
 
-        The company decides WHEN one is demanded; the feed says what such a
-        read looks like, because constructing a read is the world's business.
+        The company decides WHEN one is asked for; the feed says whether it got
+        one. It may answer estimated: a closing read is actual only where the
+        meter is read remotely or the customer gives one.
         """
 
 
@@ -525,11 +527,12 @@ def build_monthly_bills(
     `churned_ids` (D3 step 2 Expert-Hour finding, 2026-07-12): accounts that
     churn/succeed mid a run of estimated bills would otherwise carry that
     unresolved true-vs-billed delta into oblivion -- no more bills ever
-    arrive to fold a catch-up onto. Real UK practice (Ofgem SLC 21B) requires
-    a final bill at supply end, normally on a final read -- modelled here as
-    forcing the customer's LAST bill in this dataset to resolve as if that
-    final read had arrived, same as `company/billing/account_closure.py`'s
-    own (separately unwired) `receive_final_read()` concept.
+    arrive to fold a catch-up onto. SLC 27.17 requires a final bill within 6
+    weeks of supply end, so the customer's LAST bill in this dataset asks the
+    feed for a closing read. The read is actual only sometimes (a smart meter
+    in smart mode, or a read the customer gives: home_moves.md s.3); when it
+    is not, the final bill is on an estimate and the run before it stays
+    unresolved, as a real one does.
 
     `read_events_out` (2026-08-15, EP8 finding "the meter seam is computed
     twice"): an optional sink the caller passes to receive the `MeterReadEvent`
@@ -591,7 +594,7 @@ def build_monthly_bills(
         # 2026-08-15 (EP8 finding, docs/design/simplifications/
         # EP8_adapter_dcc_duis.yaml finding 2): this used to say "the identical
         # seed means the two always agree", and that was FALSE -- this call
-        # site alone applies the SLC 21B final-read override below, so a
+        # site alone applies the SLC 27.17 final-read request below, so a
         # separately re-derived log disagreed on every churned account's final
         # bill (3 of 3 overrides in the 2026-08-14 run). THIS is now the only
         # place the decision is made: the events are handed back through
@@ -623,13 +626,12 @@ def build_monthly_bills(
                 and is_final_bill_for_customer
                 and customer_id in churned_ids
             ):
-                # SLC 21B final-bill-at-closure: force this closing account's
-                # last-ever bill to resolve on a final read rather than
-                # leaving a run of estimated bills (and their unresolved
-                # true-vs-billed delta) permanently unreconciled.
+                # SLC 27.17 final bill: ask for a closing read for this
+                # account's last-ever bill. The world answers estimated unless
+                # it has a reason the read is actual (`simulate_final_read`).
                 event = read_feed.final_read_for(
                     customer_id, true_bill["period_end"], meter_type,
-                    true_bill["total_consumption_kwh"],
+                    true_bill["total_consumption_kwh"], consecutive_estimated,
                 )
             if event.status == "actual":
                 bill = _annotate_billing_basis(true_bill, event, true_bill)

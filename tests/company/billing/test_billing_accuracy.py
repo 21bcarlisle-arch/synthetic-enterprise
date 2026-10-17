@@ -86,7 +86,7 @@ class _ScriptedFeed:
             return _Read("actual", None, 0)
         return _Read("estimated", None, consecutive + 1)
 
-    def final_read_for(self, customer_id, period_end, meter_type, true_kwh):
+    def final_read_for(self, customer_id, period_end, meter_type, true_kwh, consecutive):
         return _Read("actual", None, 0)
 
 

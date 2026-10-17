@@ -46,3 +46,15 @@ modelled as a certainty to close the estimation run (the comment says so). This 
 (b) Real suppliers do get an actual read at most move-outs. No source read here says so, and the
 published guidance tells movers to give a read *because* the supplier may otherwise estimate.
 (c) The SLC citation is right under an older numbering. Even so, it would not make the read actual.
+
+## Remedy landed (2026-10-17)
+
+`simulation/meter_reads.simulate_final_read` now makes the closing read actual for a smart meter in
+smart mode. For any other meter it returns the period's ordinary read. The customer-given share is
+carried by name as the register's GAP row `q6_closing_read_customer_given_share`. The company's
+comment now cites SLC 27.17. On a replay over the run book, 45 of 137 electricity move-out boundary
+reads stay actual. 320 closure true-ups no longer happen, so those runs end on an estimated final
+bill. Graded in `records/WORKER_PREREG_W2_36_THE_CLOSING_READ_IS_ACTUAL_ONLY_WITH_A_REASON_2026-10-17.md`.
+Still open: the money those runs carry on a final bill, which needs a fresh run. Also, elsewhere in
+`company/` the 6-week final bill is cited as "SLC 21B" (`account_closure.py`,
+`slc_compliance_tracker.py`). Those comments were not changed here.

@@ -3,7 +3,7 @@
 `churned_billing_accounts` is keyed by household (`C1`); bills are keyed by supply point (`C1`,
 `C1g`). Every consumer in `run_phase4c_on_phase2b.main` and `generate_billing_ledger` asked
 `bill["customer_id"] in roster`, so a gas leg of a leaving household read as a stayer. It got no
-SLC 21B final read, and the arrears engine priced its unpaid bills as a stayer's. On the
+final read, and the arrears engine priced its unpaid bills as a stayer's. On the
 2026-09-28 book that was 28 gas legs, and 17 of them closed on an estimate. The
 `defect4` gate caught it as `PROS-2020-0132` 2021: billed 47.83 against a margin of 69.18.
 
@@ -11,13 +11,13 @@ Each control names the defect it fails on:
 
 * the partition fails if the helper returns the roster alone (the defect) or every supply point
   (a leaver set that swallows the stayers);
-* the bill-assembly control fails if the helper's set stops reaching the final-read override.
-  It runs the real assembly with every read forced to an estimate, so only that override can make
-  a closing bill actual. The bare-roster arm is asserted too: it shows the gas leg really does
+* the bill-assembly control fails if the helper's set stops reaching the closing-read request.
+  It runs the real assembly with every read forced to an estimate and every closing read given,
+  so only that request can make a closing bill actual. The bare-roster arm is asserted too: it shows the gas leg really does
   close on an estimate when the id does not match, so the repaired arm is not green by accident.
 
 `main()`'s own wiring is held by `test_run_phase4c_on_phase2b.py::
-test_main_window_holds_a_churned_accounts_final_read`, which reads the live run by household.
+test_main_window_closes_a_churned_account_on_an_actual_read_only_where_the_world_has_a_reason`, which reads the live run by household.
 """
 import calendar
 
@@ -40,6 +40,9 @@ def every_read_estimated(monkeypatch):
     monkeypatch.setattr(mr, "TRADITIONAL_ACTUAL_READ_PROBABILITY", 0.0)
     monkeypatch.setattr(mr, "HARD_TO_READ_ACTUAL_READ_PROBABILITY", 0.0)
     monkeypatch.setattr(mr, "SMART_METER_NOT_COMMUNICATING_RATE", 1.0)
+    # Every closing read given by the customer (a GAP share, None in a run), so a closing bill is
+    # actual exactly where the closing read was asked for.
+    monkeypatch.setattr(mr, "CLOSING_READ_CUSTOMER_GIVEN_SHARE", 1.0)
 
 
 def _month_records(cid, year, month, kwh):

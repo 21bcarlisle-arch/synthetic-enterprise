@@ -349,6 +349,50 @@ def simulate_read(
     )
 
 
+# Share of leavers whose meter is not read remotely that give their own closing read (register
+# q6_closing_read_customer_given_share). A GAP, so None, and `simulate_final_read` draws none.
+CLOSING_READ_CUSTOMER_GIVEN_SHARE, CLOSING_READ_CUSTOMER_GIVEN_GAP = assumption_toggle_or_gap(
+    "q6_closing_read_customer_given_share")
+
+
+def simulate_final_read(
+    customer_id: str,
+    period_end: str,
+    meter_type: str,
+    true_consumption_kwh: float,
+    consecutive_estimated_count: int,
+) -> MeterReadEvent:
+    """The read on the day an account leaves supply, asked for because the period's own read was
+    not actual.
+
+    A move-out's or switch's closing read is actual only SOMETIMES (home_moves.md s.3, s.8.4;
+    BSCP504 s.4.4.1 falls back to an estimate). Until 2026-10-17 this answered actual
+    unconditionally, so 408 closing reads on the run book were actual that the meter's own read
+    process had not made actual, and the estimation error at closure never reached a final bill.
+
+    The world has two reasons to make it actual. A smart meter in smart mode is read remotely on
+    the day. A customer may give a read, at a share that is a GAP
+    (`CLOSING_READ_CUSTOMER_GIVEN_GAP`), so none is drawn until it is sourced. Otherwise the
+    answer is the period's ordinary read, which is estimated.
+    """
+    if meter_type == "smart" and not is_not_in_smart_mode(customer_id):
+        given = True
+    elif CLOSING_READ_CUSTOMER_GIVEN_SHARE is not None:
+        rng = random.Random(f"closingread_{customer_id}_{period_end}")
+        given = rng.random() < CLOSING_READ_CUSTOMER_GIVEN_SHARE
+    else:
+        given = False
+    if not given:
+        return simulate_read(customer_id, period_end, meter_type, true_consumption_kwh,
+                             consecutive_estimated_count)
+    return MeterReadEvent(
+        customer_id=customer_id, period_end=period_end,
+        meter_type=meter_type, delay_days=0, status="actual",
+        true_consumption_kwh=true_consumption_kwh,
+        consecutive_estimated_count=0, forced_catch_up=True,
+    )
+
+
 def read_event_to_log_entry(event: MeterReadEvent) -> dict:
     """The one serialisation of a read event into a published log entry.
 
@@ -458,16 +502,14 @@ class SimulatedReadFeed:
         period_end: str,
         meter_type: str,
         true_consumption_kwh: float,
+        consecutive_estimated_count: int,
     ) -> MeterReadEvent:
         """A closing read for an account leaving supply.
 
-        The company decides WHEN to demand one (SLC 21B final bill); what such a
-        read looks like is the world's business, which is why the construction
-        lives here and not in the billing code.
+        The company decides WHEN to ask for one (the SLC 27.17 final bill); whether
+        it gets one is the world's business: `simulate_final_read`.
         """
-        return MeterReadEvent(
-            customer_id=customer_id, period_end=period_end,
-            meter_type=meter_type, delay_days=0, status="actual",
-            true_consumption_kwh=true_consumption_kwh,
-            consecutive_estimated_count=0, forced_catch_up=True,
+        return simulate_final_read(
+            customer_id, period_end, meter_type, true_consumption_kwh,
+            consecutive_estimated_count,
         )
