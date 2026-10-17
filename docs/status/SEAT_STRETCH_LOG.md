@@ -8,6 +8,173 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-18 — orientation: Two doors from a per-customer forecast to a per-customer decision landed this stretch
+
+<!-- head: 2649e869c524 -->
+
+*Written by the orientation seat from its own record (2026-10-17T23:20:15.427531+00:00; 9 commits, 5 substantive, since 2026-10-17T08:22:36.779386+00:00).*
+
+Commit split (product code by path): 1 supplier, 0 world, 1 both, 7 other.
+
+## What the stretch meant
+
+Two doors from a per-customer forecast to a per-customer decision landed this stretch. Both are dormant, so the thesis has its first decisions that use inference, and none of them fires yet in a published run. C35's retention rise (4a40365d3) rescues 211 of 780 advice cases on the published book's 260 renewals, at both B11 hazard ends. The page said 314, and the shortfall is explained beside it: the 104 world rescues before 2019 have no published default tariff to read. The read instruction at the 11th estimate (6e9dc90f8) cuts the 21BA bar on the crossed runs from GBP 3,929 to GBP 5 at the read end, and moves nothing at the no-access end. Per-customer against flat is unchanged, because EP17 still waits on the director's seed row. The bigger result is that the director found the book itself wrong. It is 1% dual fuel against a published 72-83%, and every gas home is split-supply by construction. The cause is a placeholder coin that the repo's own 21 June page already contradicted. So every per-customer CLV, hazard and cost-to-serve figure argued this month was computed on households GB does not have. That includes C34's 18 cases and C35's 780. In that sense the stretch went backwards: more of what we believed is now unattributed. The correction is built: a knowledge page, a census, a prereg with its predictions graded (228 homes against 223 predicted, 67.5% dual against 71%), and a control. But it has sat uncommitted in the shared tree since about 11:19Z, with no claim in either store and no commit. It was never drawn, so no block of this brief could list it. It also turns a collections-journey test red in that tree. Landing it is the first item. I chose to let the 19 Oct publish carry it rather than publish a third week on a book he called fantastically wrong. The cost is that the publish stops being a one-variable reading. Balance: supplier 1, both 1, world 0, other 7. Of the other, the two B7 pages are world knowledge: the recovery coin runs a 19-month median against its own cited 6, and no household changes its membership. Tick mode has been slow since 10:18Z and stays slow until the publish (worker-tick at most every 4h), which accounts for only 9 commits. All three previous focus items were drawn. C35 and the read instruction landed and leave focus. The bind item's real work is ab4c9042d: the ledger no longer lists the fabric-homes row, so that wrong row is now corrected. The bind id is now listed not_done because its prose named no path, and it drops out of the 24h window at 09:26Z. The 08:22 orientation's seat commit 19855ded is on no remote ref, and its stretch-log entry is not on origin. That is the carried trace row happening again.
+
+## What went wrong
+
+- NOT corrected: THE MACHINE'S, CARRIED. The coupled-triad gate now excludes twinless L3 targets, and its refusal reaches only the supervisor journal. 20:22: Unchanged. 23:21: Unchanged. 02:21: Unchanged. 05:22: Unchanged. 08:22: Unchanged. 23:20: Unchanged.
+- NOT corrected: THE WORLD'S, CARRIED. A gas-heated fabric home's electricity has no season against SERL. 20:22: Unchanged. It waits for the post-publish world builds. 23:21: Focus item 4 measures the fabric homes' summer swing, which bears on this directly. 02:21: Measured (e6cdc9af9): fabric gas-heated homes read too flat (DJ/JJA 1.16 against 1.33-1.35), which confirms the row. The build is filed for after the publish. 05:22: Unchanged. The build stays filed for after the publish. 08:22: Unchanged. A sibling W2_30 defect (electric fabric homes priced at the gas rate) is filed for the same post-publish build. 23:20: Unchanged. It is still filed for after the publish.
+- NOT corrected: THE MACHINE'S, CARRIED. longjob-save-eight was declared at 50 minutes and has held its admission for 4h46m. 20:22: Two long jobs ran this stretch (nonpay2022-capture, -capture2) and both finished successfully, so there was no new instance. The expiry is still not built. 23:21: No launch_long_job job started or ended this stretch. Still not built. 02:21: retention-rise-probe finished successfully, and closing-estimate-money-run is 18 minutes in. No overrun, and still not built. 05:22: closing-estimate-money-run ran 115 minutes against a declared 115 and finished successfully. No overrun, and still not built. 08:22: No launch_long_job job started or ended. Still not built. 23:20: No launch_long_job job started or ended. Still not built.
+- NOT corrected: THE MACHINE'S, CARRIED. A held estimate was netted at its draft amount when the next actual read caught up, so seven customer-years were credited for estimates never sent. 20:22: Fixed on origin. The published book carries it until the 2026-10-19 publish. 23:21: Unchanged until that publish. 02:21: Unchanged until that publish. 05:22: Unchanged until that publish. 08:22: Unchanged until that publish. 23:20: Unchanged until that publish.
+- NOT corrected: THE MACHINE'S, CARRIED. The 08:20 orientation's record never reached origin, and a seat killed by the host leaves no trace of itself in delivery-seat-log.md. 20:22: No seat was killed this stretch, and the trace is not built. 23:21: Still no instance, and still not built. 02:21: Still no instance, and still not built. 05:22: Still no instance, and still not built. 08:22: Still no instance, and still not built. 23:20: A new instance. The 08:22 orientation's seat commit 19855ded (08:41Z) is on no remote ref. Its DIRECTION.yaml reached origin through 4cf0f8628, but its SEAT_STRETCH_LOG entry did not. Still not built.
+- corrected: THE MACHINE'S, CARRIED. The draw ledger lists the-fabric-homes-summer-swing-against-published-heating-shapes as not_done. Its measurement landed in e6cdc9af9 (on origin, 01:27Z) inside its window, in a commit already bound to another row, so the ledger credited the work to that row and reads this item as never done. 08:22: The brief now reads it as retired without a landing. Focus item 3 binds it. 23:20: Fixed by ab4c9042d, which lists a refused tombstone only while the refusal still holds. The row is gone from this brief's 24h drawn-never-landed block.
+- NOT corrected: THE MACHINE'S, THIS STRETCH. The director's BLOCKING dual-fuel steer was built in the shared tree from 09:43Z to 11:19Z, with knowledge, census, prereg, predictions and a control, and then nothing landed it. It has held no claim in either store for 12 hours. Because it came through the advisor channel with no atom and was never drawn, no block of the seat's brief could see it. In that tree it also turns a collections-journey test red.
+- NOT corrected: THE MACHINE'S, THIS STRETCH. The bind item that was meant to clear a ledger row is now itself listed not_done (CANNOT ANSWER), because its prose named no tracked path. Its work is ab4c9042d. Disposable: it leaves the 24h window at 09:26Z.
+- NOT corrected: THE SEAT'S, CARRIED FROM EARLIER RECORDS. Every per-customer figure the seat reasoned from this month, including C34's 18 cases and C35's 314 of 780, was read off a book that is 1% dual fuel. The seat never asked whether the book's fuel mix was plausible, although the repo held the 21 June page that answers it. The figures stand as computed, but they describe households GB does not have.
+
+## Chosen against
+
+- Holding the dual-fuel correction until after the 19 Oct publish, as the last record held every world build.
+- Switching on C35's retention rise, the read instruction, REVIEW_SEEKS_BALANCE, the theft screen, or W-A before the publish.
+- Re-counting C35's rescue cases or C34's 18 cases on the dual book now.
+- Moving the harness 60-home panel to meter-first, and anchoring DEFAULT_BAND_WEIGHTS from NEED.
+- The B7 world defects: a recovery coin with a 19-month median against its cited 6, no household composition change, and no sole-occupant death exit.
+- Binding bind-the-fabric-homes-measurement-to-its-draw to ab4c9042d.
+- The crisis bad-debt BLOCKING finding, the electric fabric home priced at the gas rate (W2_30), the long-job expiry, the coupled-triad refusal surface, and a worker-seat-manager heartbeat.
+
+## Focus for the next stretch
+
+- `land-the-dual-fuel-book-correction`
+- `a-dual-household-is-one-decision-to-the-company`
+- `wire-the-read-instruction-into-the-published-run`
+
+---
+
+## 2026-10-17 — orientation skipped: tick mode slow: delivery-seat spawns at most every 12h; last spawn 2026-10-17T08:25Z, next from 2026-10-17T20:25Z
+
+<!-- head: bd2414577961 -->
+
+*Written by the orientation seat from its own record (2026-10-17T20:21:06.161165+00:00; 8 commits, 4 substantive, since 2026-10-17T08:22:36.779386+00:00).*
+
+Commit split (product code by path): 1 supplier, 0 world, 1 both, 6 other.
+
+The seat did not orient, so there is no reading of this stretch against the thesis. Its recorded reason: tick mode slow: delivery-seat spawns at most every 12h; last spawn 2026-10-17T08:25Z, next from 2026-10-17T20:25Z
+
+---
+
+## 2026-10-17 — orientation skipped: tick mode slow: delivery-seat spawns at most every 12h; last spawn 2026-10-17T08:25Z, next from 2026-10-17T20:25Z
+
+<!-- head: 6e9dc90f8581 -->
+
+*Written by the orientation seat from its own record (2026-10-17T17:20:31.437393+00:00; 7 commits, 3 substantive, since 2026-10-17T08:22:36.779386+00:00).*
+
+Commit split (product code by path): 1 supplier, 0 world, 1 both, 5 other.
+
+The seat did not orient, so there is no reading of this stretch against the thesis. Its recorded reason: tick mode slow: delivery-seat spawns at most every 12h; last spawn 2026-10-17T08:25Z, next from 2026-10-17T20:25Z
+
+---
+
+## 2026-10-17 — orientation skipped: tick mode slow: delivery-seat spawns at most every 12h; last spawn 2026-10-17T08:25Z, next from 2026-10-17T20:25Z
+
+<!-- head: 6e9dc90f8581 -->
+
+*Written by the orientation seat from its own record (2026-10-17T14:21:48.050579+00:00; 7 commits, 3 substantive, since 2026-10-17T08:22:36.779386+00:00).*
+
+Commit split (product code by path): 1 supplier, 0 world, 1 both, 5 other.
+
+The seat did not orient, so there is no reading of this stretch against the thesis. Its recorded reason: tick mode slow: delivery-seat spawns at most every 12h; last spawn 2026-10-17T08:25Z, next from 2026-10-17T20:25Z
+
+---
+
+## 2026-10-17 — orientation skipped: tick mode slow: delivery-seat spawns at most every 12h; last spawn 2026-10-17T08:25Z, next from 2026-10-17T20:25Z
+
+<!-- head: bc900a5d5f2d -->
+
+*Written by the orientation seat from its own record (2026-10-17T11:24:46.580094+00:00; 6 commits, 2 substantive, since 2026-10-17T08:22:36.779386+00:00).*
+
+Commit split (product code by path): 1 supplier, 0 world, 0 both, 5 other.
+
+The seat did not orient, so there is no reading of this stretch against the thesis. Its recorded reason: tick mode slow: delivery-seat spawns at most every 12h; last spawn 2026-10-17T08:25Z, next from 2026-10-17T20:25Z
+
+---
+
+## 2026-10-17 — The opening book was 1% dual fuel; the account now takes its home's fuel
+
+<!-- head: bc900a5d5f2d -->
+
+**Director steer 17 Oct: the opening book was 1% dual fuel. Researched, corrected, and now held by a control.**
+
+- **Knowledge page:** `docs/market_research/how_a_gb_domestic_book_splits_by_fuel_and_how_a_two_fuel_home_switches.md`.
+  - CMA final report ¶10: 20m dual, 8m electricity-only and 3m gas-only customers.
+  - GfK: 72% of homes take one supplier for both fuels.
+  - Ofgem 2017: homes with gas switch both fuels at once, ~90%.
+  - Challengers run 80–90%+ dual; Octopus G/E is 0.80.
+- **Census, drawn founders, default seed:**
+  - Before: 382 homes, none dual, 28% gas-only, 93% gas homes.
+  - After: 220 homes holding the same 382 supply points; 73.6% dual; 83.6% gas homes. Eight seeds pooled: 76.4% dual.
+  - The trickle takes the same shape. Campaign wins were already ~100% dual (published ~90%).
+  - Departures were already household-level. Home move and debt are not yet re-measured.
+- **Root cause:**
+  - The 13 July placeholder named no anchor page, though a 21 June page had the answer.
+  - The 26 Aug ruling was fixed only in the funnel, where it was seen.
+  - The 16 Sept finding took 28% gas-only as a fact about the world.
+  - No control compared the book with the published record while it grew 13 → 400.
+- **Mechanism:** `tests/simulation/test_the_opening_book_bears_the_published_fuel_split.py`, at the production founder count over eight seeds. Mutation-proven:
+  - three seeds was too few to catch the heating defect, so it is eight;
+  - P(dual)=0, meter-first off and the old coin each red it.
+- **Sweep:**
+  - commodity coin: retired;
+  - founder heating: meter-first;
+  - `DEFAULT_BAND_WEIGHTS`: a named GAP, with NEED as the anchor;
+  - the harness panel's 90.7% gas: handed on with its pinned values.
+- **Pre-registered predictions** all held at 0.83. The constant then moved to 0.90 on the advisor's supplier evidence, and that is reported as a second step.
+- **Published figures** move at the next run.
+- **Proposal:** whether 400 founders means supply points (held) or households is raised as `the-founder-number-has-two-readings-now`.
+
+---
+
+## 2026-10-17 — orientation: Inference now has a faint positive signal and still no decision that uses it, so the thesis did not move this stretch
+
+<!-- head: a70364b0cb86 -->
+
+*Written by the orientation seat from its own record (2026-10-17T08:22:36.779386+00:00; 24 commits, 10 substantive, since 2026-10-17T05:22:08.800265+00:00).*
+
+Commit split (product code by path): 3 supplier, 1 world, 1 both, 19 other.
+
+## What the stretch meant
+
+Inference now has a faint positive signal and still no decision that uses it, so the thesis did not move this stretch. It did not go backwards either. B11 slices 11-13 (e3cd17232, 51ec26010, 73f98aecd) keyed the switch hazard on months on the default tariff, which a real supplier holds. Switchers rank better than flat beyond the 95% bound at 2023 only (+0.103, lower bound +0.002), and at no cut against the contract-year rule. So the answer is cannot tell, leaning the key, and by its prereg the key does not yet enter EP17's arm. The LEVEL is a separate and harder result. The flat rule over-predicts held-back departure by +0.24, +0.18 and +0.07 at the three cuts. The cause is that the 2017-20 switching regime ended, and no fit window chosen from inside the book cures it: the after-crisis window flips 2023 to -0.089. The book cannot identify a per-customer level for margin or CLV without a regime band from the published record. The world measurement half-confirmed the worry that the world is rigged against observable targeting. The payment gradient is drawn (PPM:DD 0.52) and comes through at fixed-term ends (0.50 against the published 0.55). It is lost on the SVT drift route, which carries most switching (0.98). The fix, W-A, is filed for after the publish with its predictions. The tariff gradient turned out to be a matter of era, not selection: about 2.6 in 2024-25 against the published 2.8. Read through the CMA's own instrument, the pre-crisis world sits inside the CMA's 1.9-4.3. That corrects my last record, which said fixed here mostly means a first term. C34's holdout reader landed (d42796112), and on this book it rightly decides nothing. What the stretch makes plain: forecasting has been tested thirteen slices deep while no per-customer decision fires. Next best action advises nobody, because our floor refuses every positive-sum case (the director's open c34 row), and EP17 waits on his seed row. Only one door from forecast to decision is ours to build without him. The director minted C35 on 2026-10-15 as "not a ruling from me", and his c34 row has stood five days with the sharing price as the recommended option. A Fixed Retention Tariff rise is the one form of share the world already answers, through its price response at renewal. So it goes first, dormant behind a switch that defaults off, and the c34 row stays open for him to choose the floor change instead. The second supplier item is billing accuracy: the company still asks for no read before the SLC 21B.4 year passes, and half the open closing money (GBP 1,762 of 3,471) sits on runs that crossed it. Balance: supplier 3, both 1, world 1, other 19. Of the other, about nine are B11 preregs and findings (supplier) and about eight are switching-gradient and W2_36 knowledge (world), so supplier and world were roughly even, against 15:1 a week ago. All three previous focus items were drawn and landed (e3cd17232, cde2e7da7, 10c787fa0), so all three leave focus. The advisor's reading-reviewer trial, which the director said yes to at 08:56 BST, was claimed at 08:07Z by the worker tick now running (ADVISOR_TRIAL_READING_REVIEWER). It is in hand, so I have not issued it a second time. Publishing is held until 2026-10-19T03:00Z, and every world build and both switch-ons wait for that.
+
+## What went wrong
+
+- NOT corrected: THE MACHINE'S, CARRIED. The coupled-triad gate now excludes twinless L3 targets, and its refusal reaches only the supervisor journal. 20:22: Unchanged. 23:21: Unchanged. 02:21: Unchanged. 05:22: Unchanged. 08:22: Unchanged.
+- NOT corrected: THE WORLD'S, CARRIED. A gas-heated fabric home's electricity has no season against SERL. 20:22: Unchanged. It waits for the post-publish world builds. 23:21: Focus item 4 measures the fabric homes' summer swing, which bears on this directly. 02:21: Measured (e6cdc9af9): fabric gas-heated homes read too flat (DJ/JJA 1.16 against 1.33-1.35), which confirms the row. The build is filed for after the publish. 05:22: Unchanged. The build stays filed for after the publish. 08:22: Unchanged. A sibling W2_30 defect (electric fabric homes priced at the gas rate) is filed for the same post-publish build.
+- NOT corrected: THE MACHINE'S, CARRIED. longjob-save-eight was declared at 50 minutes and has held its admission for 4h46m. 20:22: Two long jobs ran this stretch (nonpay2022-capture, -capture2) and both finished successfully, so there was no new instance. The expiry is still not built. 23:21: No launch_long_job job started or ended this stretch. Still not built. 02:21: retention-rise-probe finished successfully, and closing-estimate-money-run is 18 minutes in. No overrun, and still not built. 05:22: closing-estimate-money-run ran 115 minutes against a declared 115 and finished successfully. No overrun, and still not built. 08:22: No launch_long_job job started or ended. Still not built.
+- NOT corrected: THE MACHINE'S, CARRIED. A held estimate was netted at its draft amount when the next actual read caught up, so seven customer-years were credited for estimates never sent. 20:22: Fixed on origin. The published book carries it until the 2026-10-19 publish. 23:21: Unchanged until that publish. 02:21: Unchanged until that publish. 05:22: Unchanged until that publish. 08:22: Unchanged until that publish.
+- NOT corrected: THE MACHINE'S, CARRIED. The 08:20 orientation's record never reached origin, and a seat killed by the host leaves no trace of itself in delivery-seat-log.md. 20:22: No seat was killed this stretch, and the trace is not built. 23:21: Still no instance, and still not built. 02:21: Still no instance, and still not built. 05:22: Still no instance, and still not built. 08:22: Still no instance, and still not built.
+- NOT corrected: THE MACHINE'S, CARRIED. The draw ledger lists the-fabric-homes-summer-swing-against-published-heating-shapes as not_done. Its measurement landed in e6cdc9af9 (on origin, 01:27Z) inside its window, in a commit already bound to another row, so the ledger credited the work to that row and reads this item as never done. 08:22: The brief now reads it as retired without a landing. Focus item 3 binds it.
+- corrected: THE SEAT'S, THIS STRETCH. The 05:22 record said 'fixed' in this world mostly means a customer's first term, which is selection (c). The measurement (cde2e7da7, 8debdb0ad) found it is mostly era: about 2.6 in 2024-25 and 0.6 in 2016-20, and (c) adds a little. Corrected by the finding, and restated in the 08:22 thesis_read.
+- corrected: THE MACHINE'S, THIS STRETCH. B11 slice 12 said the fit window holds the 2021-22 crisis exits. At cut 2020 it holds none, and at the later cuts 2021-22 contribute about zero to the excess. Corrected beside the claim in slice 13 (73f98aecd).
+- corrected: THE MACHINE'S, THIS STRETCH. The switching-gradient knowledge page put the world's fixed:SVT ratio through the CMA instrument at 1.0-1.95, at or below the CMA band. The emulation reads 1.98-3.70, inside it, and also shows the instrument is blind to the pre-switch gradient. Corrected in 8debdb0ad and 66e06c223.
+
+## Chosen against
+
+- Switching on REVIEW_SEEKS_BALANCE and the theft screen, and building W-A (the payment channel on the SVT drift hazard), before the publish.
+- Issuing the advisor's reading-reviewer trial as a Lane 0 item.
+- A B11 slice 14 giving the switch-term level a regime band from the published GB record through the seam.
+- Keying payment method or tariff again, and anything that pre-empts EP17's fresh-seed verdict.
+- Loosening C34's floor, or running the C34 contact holdout.
+- The crisis bad-debt BLOCKING finding, the electric fabric home priced at the gas rate (W2_30), the legacy-EAC registry, and the always-actual closing read.
+- The long-job expiry, the coupled-triad refusal surface, the killed-seat trace, and a worker-seat-manager heartbeat.
+
+## Focus for the next stretch
+
+- `c35-the-share-travels-as-a-retention-tariff-rise`
+- `the-company-instructs-a-read-before-the-21b4-year`
+- `bind-the-fabric-homes-measurement-to-its-draw`
+
+---
+
 ## 2026-10-17 — orientation: For the first time in ten slices, inference was tested on what a real supplier holds, and the answer is "cannot tell"
 
 <!-- head: f10a51da278b -->
