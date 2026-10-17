@@ -288,6 +288,92 @@ for m in (5, 15, 30):
                   None if dk is None else (round(dk, 2), paid_k <= g*12*H/12))
 ```
 
+### 4b. The count on the world's own renewals (measured 2026-10-17)
+
+§4a showed that the 18 constructed cases do not describe the world's book. This section counts again,
+one renewal at a time, on the same probe. It was pre-registered in
+`docs/staging/records/SEAT_PREREG_THE_RETENTION_RISE_RESCUE_COUNTED_PER_RENEWAL_UNDER_THE_DEFAULT_2026-10-17.md`
+before the count was run.
+
+**The method.** Every one of the 260 renewals (192 accounts) is graded, and each one supplies its own
+inputs:
+
+- **Margin:** its own flat renewal margin, as billed to a stayer.
+- **Hazard:** its own monthly hazard, 1 − P(stay)^(1/12).
+- **The rise:** placed on its own level grid. The world's P(stay) and the billed price are read there.
+- **The cap:** only what a stayer is actually billed counts as collected, so the rise is capped at
+  the default.
+
+Our side is `value_change`, unchanged, at a 48-month horizon, for each of the page's three effects.
+The count has two arms. The **world arm** adds the rise's own effect on staying, read from the grid.
+The **module arm** holds the hazard fixed.
+
+**The count.** A rise counts as a rescue when it brings our side to ≥ 0 and is actually billed:
+
+| effect (gives up £/mo, hazard cut) | world arm | module arm | accounts (world) |
+|---|---|---|---|
+| £2, 0.1 pt | **110 / 260 (42%)** | 113 | 95 / 192 |
+| £2, 0.3 pt | **112 / 260 (43%)** | 113 | 95 / 192 |
+| £3, 0.3 pt | **92 / 260 (35%)** | 94 | 81 / 192 |
+| all cases | **314 / 780 (40%)** | 320 | |
+
+- **Reading the hazard as (1 − P)/12, §4a's convention,** changes no count by more than one.
+- **148 renewals (57%) are rescued under no effect.** In 94 of them the flat renewal already sits at
+  or above the default, so no rise can be billed. In 53 the room is under £2 a month. Only 1 has
+  room of £2 or more and still fails.
+- **Every rescued case clears the household's floor.** At the median the household keeps 53–54% of
+  its gross benefit (quartiles 46–60%).
+- **The rise needed is almost exactly what the advice gives up:** median £1.99–3.00 a month. The
+  world's flat margin is thin (quartiles −£0.05 / £0.72 / £1.69 a month) and its hazard is high (h0
+  quartiles 3.2 / 4.1 / 4.9% a month). So a hazard cut of 0.1–0.3 points is worth almost nothing to
+  us, and the sharing price in practice charges back what the advice cost us.
+- **The year decides it.** For effect (£2, 0.3 pt) the count is:
+
+  | renewals starting in | rescued |
+  |---|---|
+  | 2020 | 39 of 40 |
+  | 2019 | 20 of 28 |
+  | 2017 | 28 of 99 |
+  | 2021 | 4 of 29 |
+  | 2024–25 | 8 of 24 |
+
+  No renewal on the default book starts in 2022. The headroom under the default is a property of the
+  cap against cost in that year, not of the household.
+
+**A trap the world arm springs, excluded above.** Counted naively, the world arm rescues *more* than
+the module arm: 126, 128 and 105. The 13–16 extra cases all collect £0. They are renewals already at
+or over the default, where we lose money on every month supplied. There the "rise" is declined onto
+the default and billed to nobody. It reaches zero only because the higher offer drives some of
+those households away. That is shedding an account, not sharing value, so it is not counted.
+
+**Graded against the predictions:**
+
+- **Q1 held.** The module arm rescues 43%, 43% and 36%.
+- **Q2 refuted as stated.** The naive world arm sits above the module arm, for the reason in the
+  trap above. With that excluded, it sits 1–3 renewals below.
+- **Q3 held.** 100% of rescued cases clear the floor.
+- **Q4 refuted, the other way round.** Below-median-margin renewals are rescued *less* often (37%
+  against 50%, module arm). A low flat margin goes with a flat that is already at the default, not
+  with room under it.
+- **Q5 held, on the wrong reason.** No renewal needs zero rise. That is because giving up £g always
+  costs us, and a hazard cut costs us too wherever the margin is below g. The pre-registration
+  credited it to negative-margin renewals.
+
+**What this answers for the open row.** On the world's own book a sharing rise rescues **40% of
+advice cases (314 of 780), across 95 of 192 accounts**. The 18-case figures (10 of 18 at Deller's
+slope, 18 of 18 at the world's) do not describe this book. What decides a case is whether the
+account's fixed renewal sits at least £g a month under the default. That fails in most renewals
+from 2021 onward and in nearly none in 2020. In the world arm the price's own effect on staying
+moves the count by 1–3 renewals.
+
+**What a design would have to read.** The default's headroom per account, in the year of the
+renewal. The company can read it: the cap is published. **I cannot yet say** whether the 57% of
+renewals no rise can reach would be better served by the one-off fee (C35, sibling page) or by no
+advice at all. That needs the fee's own count on the same book.
+
+Script: `/var/tmp/retention_rise/per_renewal.py`. It is not in the tree; its logic is stated
+above. `python3 <script> <probe json> [linear]`, from the repo root with `PYTHONPATH=.`.
+
 ## 5. Gaps, in one place
 
 1. Each case's headroom under the cap, if it is on a default tariff (§1).
