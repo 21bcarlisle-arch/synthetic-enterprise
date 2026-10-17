@@ -162,7 +162,8 @@ def what_closure_shows(bills: list[dict], run_bills: int, collected: list[float]
             "absorbed_gbp": round(money - added_bar - new_demand, 2)}
 
 
-def departing_view(run_output: dict, rows: list[dict] | None = None) -> dict:
+def departing_view(run_output: dict, rows: list[dict] | None = None,
+                   keep_accounts: bool = False) -> dict:
     """`what_closure_shows` over every open closing run, by fuel and direction, beside the raw money.
 
     The direct-debit book is rebuilt (`simulation.dd_balance_book.build_dd_balance_book`) over the
@@ -217,10 +218,62 @@ def departing_view(run_output: dict, rows: list[dict] | None = None) -> dict:
         for k in ("gbp", "added_bar_gbp", "new_demand_gbp", "absorbed_gbp"):
             cell[k] = round(cell[k] + shown[k], 2)
     accounts.sort(key=lambda a: -abs(a["gbp"]))
-    return {"dd_book_reproduced": reproduced, "dd_book_published": {k: published.get(k) for k in keys},
+    kept = {"accounts": accounts} if keep_accounts else {}
+    return {**kept, "dd_book_reproduced": reproduced, "dd_book_published": {k: published.get(k) for k in keys},
             "dd_book_rebuilt": {k: rebuilt.get(k) for k in keys},
             "dd_channel_without_a_balance": no_dd_balance,
             "by_fuel_direction_channel": table, "largest_accounts": accounts[:10]}
+
+
+def dispute_reach(run_output: dict, arm: str = "ceiling") -> dict:
+    """How much of the switcher closing-estimate money a disputed switch read returns.
+
+    For each open switcher run (a household on `churned_billing_accounts` and not a home mover),
+    the world's `switch_read_dispute` draws the gaining supplier's first read from the switch date
+    and decides the dispute under `arm`. A disputed run's money comes back as the amended final bill
+    REC Schedule 30 8.1(b) asks for, priced as `what_closure_shows` prices it (21BA bar and DD balance
+    kept: whether the amended bill is a back-bill is a GAP, and keeping the bar errs against it).
+    The agreed read is taken as the true register, which is the ceiling's own assumption: a real one
+    is deemed backwards from the gaining supplier's read. Runs whose 12 months reach past the run's
+    end are counted as censored, not as unreached."""
+    from simulation.household import household_of
+    from simulation.meter_reads import SWITCH_READ_DISPUTE_THRESHOLD_KWH, switch_read_dispute
+
+    rows = closing_accounts(run_output)
+    view = departing_view(run_output, rows, keep_accounts=True)
+    shown = {a["customer_id"]: a for a in view["accounts"]}
+    switched = set(run_output.get("churned_billing_accounts") or [])
+    movers = {m["household"] for m in run_output.get("home_move_outs") or []}
+    run_end = max(b["period_end"][:10] for b in run_output["bills"])
+    table: dict = {}
+    reached = []
+    for row in rows:
+        hh = household_of(row["customer_id"])
+        if row["customer_id"] not in shown or hh not in switched or hh in movers:
+            continue
+        a = shown[row["customer_id"]]
+        over = row["kwh"] > SWITCH_READ_DISPUTE_THRESHOLD_KWH[row["commodity"]]
+        if a["gbp"] <= 0 or not over:
+            continue
+        verdict = switch_read_dispute(row["customer_id"], row["commodity"], row["last_period_end"],
+                                      row["meter_type"] or "traditional", row["kwh"], arm=arm)
+        window_end = dt.date.fromisoformat(row["last_period_end"][:10]).replace(
+            year=int(row["last_period_end"][:4]) + 1).isoformat()
+        state = ("disputed" if verdict["disputed"] else
+                 "censored" if window_end > run_end and verdict["first_read_period_end"] is None
+                 else "no_first_read" if verdict["first_read_period_end"] is None else "not_raised")
+        cell = table.setdefault(state, {"runs": 0, "new_demand_gbp": 0.0, "gbp": 0.0})
+        cell["runs"] += 1
+        cell["new_demand_gbp"] = round(cell["new_demand_gbp"] + a["new_demand_gbp"], 2)
+        cell["gbp"] = round(cell["gbp"] + a["gbp"], 2)
+        reached.append({"customer_id": row["customer_id"], "commodity": row["commodity"],
+                        "last_period_end": row["last_period_end"], "kwh": row["kwh"],
+                        "run_bills": row["run_bills"], "new_demand_gbp": a["new_demand_gbp"],
+                        "state": state, "first_read": verdict["first_read_period_end"]})
+    reached.sort(key=lambda r: -r["new_demand_gbp"])
+    return {"arm": arm, "dd_book_reproduced": view["dd_book_reproduced"], "by_state": table,
+            "seed_new_demand_gbp": round(sum(c["new_demand_gbp"] for c in table.values()), 2),
+            "runs": reached}
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -229,13 +282,16 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--departing", action="store_true",
                         help="apply the 21BA bar and the direct-debit balance to the open runs")
+    parser.add_argument("--dispute", choices=("register", "ceiling"),
+                        help="what a disputed switch read returns of the over-threshold switcher money")
     parser.add_argument("run_outputs", nargs="+")
     args = parser.parse_args(argv)
     for path in args.run_outputs:
         run_output = load_run_output(path)
         stamp = (run_output.get("producing_commit") or {}).get("commit")
         rows = closing_accounts(run_output)
-        view = departing_view(run_output, rows) if args.departing else summarise(rows)
+        view = (dispute_reach(run_output, args.dispute) if args.dispute
+                else departing_view(run_output, rows) if args.departing else summarise(rows))
         print(json.dumps({"run_output": str(path), "producing_commit": stamp, **view}, indent=1))
     return 0
 

@@ -534,6 +534,19 @@ where the REC says offer an accommodation, and £415 sits on movers, which only 
 correction could reach. The world draws no gaining supplier, so it raises no D0300 and no dispute
 ever arrives. The seed stays a ceiling until the world models the gaining supplier's first read.
 
+**The world leg, and what it reaches** (added 2026-10-17;
+`docs/staging/records/SEAT_PREREG_HOW_MUCH_OF_THE_DISPUTE_SEED_A_GAINING_SUPPLIERS_FIRST_READ_REACHES_2026-10-17.md`).
+`simulation/meter_reads.gaining_supplier_first_read` draws the first actual read from the meter's
+ordinary read process. It uses the same household, read class and smart-mode state, month by month
+from the switch date, with no new cadence. `switch_read_dispute` makes a dispute possible only for
+an undercharge over the threshold whose first read falls inside 12 months. The default reads the
+GAP row `q6_switch_read_dispute_share` and raises none. The `ceiling` arm raises every possible one.
+On the graded run, the ceiling reaches **£701 of the £2,222, across 12 of the 17 runs**. The other
+£1,522 sits on 5 households whose next supplier also gets no read within the 12 months. C7 (£1,431)
+is one of them, in the hard-to-read class. So the read process limits the seed more than the
+dispute rate does. The ceiling assumes the agreed read is the true register and keeps the 21BA bar.
+Nothing in a run raises the dispute yet: the company has no amended-final-bill path (REC 8.1(b)).
+
 ### 4b. What a supplier must do with an account its screen flags
 
 Added 2026-10-17, before the billing run was given the screen (K8). The duties are sourced in
@@ -704,7 +717,9 @@ question.**
 10. Disputed switch reads: a yearly count and the share upheld (none published; the gas CDSP called
     volumes "unknown" in 2022); the distribution of the gaining supplier's first actual read
     inside the 12-month rule bound. The in-force REC Schedule 30 and UNC Section M wording was read
-    on 2026-10-17 and is no longer a gap (§4a).
+    on 2026-10-17 and is no longer a gap (§4a). The world now draws the first read from §K2's read
+    process and runs the dispute only as a ceiling arm; the share raised is register row
+    `q6_switch_read_dispute_share`, null.
 
 **Commons gap:** `docs/domain_artefact_library/regulatory/` has no artefact for SLC 21BA. The primary
 text is the Ofgem decision of 5 March 2018, read here.

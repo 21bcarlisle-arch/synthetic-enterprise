@@ -304,3 +304,67 @@ def test_a_theft_that_hides_nothing_is_refused_by_name():
 
 def test_a_premises_theft_is_its_own_and_repeats():
     assert mr.premise_theft_months("P42", 60) == mr.premise_theft_months("P42", 60)
+
+
+def _switch_population(n=400, arm="ceiling", kwh=1000.0, commodity="electricity"):
+    return [mr.switch_read_dispute(f"SW{i}", commodity, "2018-03-14", "traditional", kwh, arm=arm)
+            for i in range(n)]
+
+
+def test_every_disposition_of_a_switch_read_is_reachable_under_the_ceiling():
+    """Defect named: a leg whose window or threshold refuses everything, or admits everything."""
+    over = _switch_population()
+    under = _switch_population(kwh=200.0)
+    assert any(v["disputed"] for v in over)
+    assert any(v["first_read_period_end"] is None and not v["disputed"] for v in over)
+    assert not any(v["disputed"] for v in under) and any(v["first_read_period_end"] for v in under)
+
+
+def test_the_gaining_suppliers_first_read_is_the_meters_ordinary_read_process(monkeypatch):
+    """Defect named: a switch-specific cadence, or a read class that does not outlive the account."""
+    first = mr.gaining_supplier_first_read("SW1", "2018-03-14", "traditional")
+    expected = next((e for e in mr._month_ends_after("2018-03-14", 12)
+                     if mr.simulate_read("SW1", e, "traditional", 0.0, 0).status == "actual"), None)
+    assert first == expected
+    monkeypatch.setattr(mr, "TRADITIONAL_ACTUAL_READ_PROBABILITY", 0.0)
+    monkeypatch.setattr(mr, "HARD_TO_READ_ACTUAL_READ_PROBABILITY", 0.0)
+    assert mr.gaining_supplier_first_read("SW1", "2018-03-14", "traditional") is None
+
+
+def test_the_window_starts_at_the_switch_and_holds_twelve_month_ends():
+    """Defect named: a window counted from the wrong month, or one month long or short."""
+    assert mr._month_ends_after("2018-03-14", 12)[0] == "2018-03-31"
+    assert mr._month_ends_after("2018-03-31", 12)[0] == "2018-04-30"
+    assert mr._month_ends_after("2018-03-31", 12)[-1] == "2019-03-31"
+    assert mr._month_ends_after("2019-12-05", 2) == ["2019-12-31", "2020-01-31"]
+
+
+def test_an_overcharge_is_never_disputed_and_the_gas_threshold_is_its_own():
+    """Defect named: the losing supplier, holding no read, disputes; or gas uses electricity's 250."""
+    assert not any(v["disputed"] for v in _switch_population(kwh=-5000.0))
+    assert not any(v["disputed"] for v in _switch_population(kwh=1000.0, commodity="gas"))
+    assert any(v["disputed"] for v in _switch_population(kwh=1300.0, commodity="gas"))
+
+
+def test_the_register_arm_draws_no_dispute_while_the_share_is_a_gap_and_draws_at_it_once_filled(monkeypatch):
+    """Defect named: the GAP drawing a dispute rate nobody published, or a filled row being ignored."""
+    if mr.SWITCH_READ_DISPUTE_SHARE is None:
+        verdicts = _switch_population(arm="register")
+        assert any(v["possible"] for v in verdicts) and not any(v["disputed"] for v in verdicts)
+        assert "GAP" in next(v["reason"] for v in verdicts if v["possible"])
+    monkeypatch.setattr(mr, "SWITCH_READ_DISPUTE_SHARE", 0.5)
+    verdicts = [v for v in _switch_population(arm="register") if v["possible"]]
+    share = sum(v["disputed"] for v in verdicts) / len(verdicts)
+    assert 0.35 < share < 0.65
+
+
+def test_an_unknown_arm_is_refused_by_name():
+    with pytest.raises(ValueError, match="arm"):
+        mr.switch_read_dispute("SW1", "electricity", "2018-03-14", "traditional", 1000.0, arm="always")
+
+
+def test_switchers_left_unread_for_the_window_are_the_registered_12_month_no_read_share():
+    """Defect named: a window of the wrong length, or a first read drawn off the calibrated process."""
+    unread = sum(mr.gaining_supplier_first_read(f"SWR{i}", "2018-03-14", "traditional") is None
+                 for i in range(3000)) / 3000
+    assert abs(unread - mr.NO_READ_12M_SHARE) < 0.02
