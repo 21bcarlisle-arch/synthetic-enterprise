@@ -657,6 +657,14 @@ Schedule 7. The quotations above are the candidates for it.
 7. (2026-10-17) **No gas must-read.** UNC M5.10 has the Transporter attempt a read on a Class 4
    Annual Read meter after 24 months without one, at the shipper's cost. The world has no such
    attempt, so gas runs of 38 and 48 estimates exist on the graded run (§2.7).
+   **Built 2026-10-17** (`simulation/meter_reads.must_read_due`): the attempt falls on a traditional
+   gas bill with 24 or more estimates before it, and is published as `must_read_attempted`. Its
+   outcome reads `q6_read_visit_access_failure_rate`, which is null, so the register arm reads nothing
+   and no bill moves. The `ceiling` arm (`SimulatedReadFeed(must_read_arm="ceiling")`) reads every
+   attempt. On the graded run (`tools.closing_estimate_run_money --must-read`) it reaches 4 gas
+   accounts with 56 attempts, two of them still on supply, and at most **£39.91** of new demand on the
+   two closing runs. A smart gas meter is a Monthly Read Meter (M5.9.1(d)), and M5.10.1's trigger
+   for it was not read (**GAP**), so it has no must-read.
 
 ## 7. Toggles set
 

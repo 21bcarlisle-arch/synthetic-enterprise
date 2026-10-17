@@ -58,6 +58,7 @@ class MeterReadMessage:
     true_consumption_kwh: Optional[float] = None
     consecutive_estimated_count: int = 0
     forced_catch_up: bool = False
+    must_read_attempted: bool = False  # UNC M5.10 gas must-read (simulation/meter_reads.py)
     schema_version: str = SCHEMA_VERSION
 
     @property
@@ -90,6 +91,7 @@ class MeterReadMessage:
             true_consumption_kwh=entry.get("true_consumption_kwh"),
             consecutive_estimated_count=entry.get("consecutive_estimated_count", 0),
             forced_catch_up=entry.get("forced_catch_up", False),
+            must_read_attempted=entry.get("must_read_attempted", False),
             schema_version=entry.get("schema_version", SCHEMA_VERSION),
         )
 
@@ -110,6 +112,7 @@ class MeterReadMessage:
             "true_consumption_kwh": self.true_consumption_kwh,
             "consecutive_estimated_count": self.consecutive_estimated_count,
             "forced_catch_up": self.forced_catch_up,
+            "must_read_attempted": self.must_read_attempted,
         }
         if include_schema_version:
             entry["schema_version"] = self.schema_version

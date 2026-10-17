@@ -26,7 +26,7 @@ book carries `catchup_raw_delta_gbp` the settled sum is checked against it and t
 counted. `summarise` is raw money; `departing_view` applies the SLC 21BA bar and the direct-debit
 balance (below).
 
-    python3 -m tools.closing_estimate_run_money [--departing | --read-duty] RUN_OUTPUT [RUN_OUTPUT ...]
+    python3 -m tools.closing_estimate_run_money [--departing | --read-duty | --must-read] RUN_OUTPUT [RUN_OUTPUT ...]
 """
 
 from __future__ import annotations
@@ -353,6 +353,73 @@ def read_duty_reach(run_output: dict) -> dict:
             "crossed": crossed}
 
 
+def must_read_reach(run_output: dict) -> dict:
+    """Where the UNC M5.10 gas must-read falls on a run's own bills, and what its ceiling arm reaches.
+
+    An attempt falls on an estimated bill that `simulation.meter_reads.must_read_due` names: gas, a
+    traditional meter, 24 or more estimates before it. Under the register arm (the visit outcome is a
+    GAP) no attempt reads, so the bills are the run's own and every attempt is counted. Under the
+    ceiling arm each attempt reads, which ends the run of estimates there: the 24 before it are trued
+    up on supply and a fresh run starts. A decomposition of this run's money, not a re-run: a closing
+    run keeps only the estimates after its last ceiling read, so its `new_demand_gbp` is the most
+    the ceiling can take off it."""
+    from simulation.meter_reads import MUST_READ_UNREAD_MONTHS, must_read_due
+
+    reads = run_output["meter_read_log"]
+    bills = run_output["bills"]
+    if len(reads) != len(bills):
+        raise ValueError(f"read log ({len(reads)}) and bills ({len(bills)}) are not aligned")
+    by_account: dict[str, list[tuple[dict, dict]]] = defaultdict(list)
+    for bill, read in zip(bills, reads):
+        by_account[bill["customer_id"]].append((bill, read))
+    rows = closing_accounts(run_output)
+    closing = {r["customer_id"]: r for r in rows if r["outcome"] == "open"}
+    shown = {a["customer_id"]: a for a in departing_view(run_output, rows, keep_accounts=True)["accounts"]}
+    attempts = {"gas": 0, "electricity": 0}
+    accounts = []
+    for cid, pairs in by_account.items():
+        pairs.sort(key=lambda p: p[0]["period_end"])
+        incoming, hits = 0, []
+        for i, (bill, read) in enumerate(pairs):
+            if bill.get("billing_basis") != "estimated":
+                incoming = 0
+                continue
+            if must_read_due(bill.get("commodity", "electricity"), read.get("meter_type"), incoming):
+                hits.append(i)
+            incoming += 1
+        if not hits:
+            continue
+        commodity = pairs[0][0].get("commodity", "electricity")
+        attempts[commodity] = attempts.get(commodity, 0) + len(hits)
+        # Ceiling: an attempt reads, so the next falls MUST_READ_UNREAD_MONTHS + 1 bills later.
+        ceiling, nxt = [], None
+        for i in hits:
+            if nxt is None or i >= nxt:
+                ceiling.append(i)
+                nxt = i + MUST_READ_UNREAD_MONTHS + 1
+        open_row = closing.get(cid)
+        tail_gbp = None
+        if open_row is not None:
+            run = [b for b, _ in pairs][-open_row["run_bills"]:]
+            start = len(pairs) - open_row["run_bills"]
+            last = max((i for i in ceiling if i >= start), default=None)
+            tail_gbp = round(_run_money(run[last - start + 1:])[0], 2) if last is not None else None
+        accounts.append({
+            "customer_id": cid, "commodity": commodity, "bills": len(pairs),
+            "register_attempts": len(hits), "first_attempt": pairs[hits[0]][0]["period_end"][:10],
+            "ceiling_reads": len(ceiling), "closing_open_run": open_row is not None,
+            "open_run_bills": open_row["run_bills"] if open_row else None,
+            "open_gbp": open_row["gbp"] if open_row else None,
+            "open_gbp_after_ceiling": tail_gbp,
+            "new_demand_gbp": (shown.get(cid) or {}).get("new_demand_gbp") if open_row else None})
+    accounts.sort(key=lambda a: -a["register_attempts"])
+    on_closing = [a for a in accounts if a["closing_open_run"]]
+    return {"register_attempts_by_fuel": attempts, "accounts_reached": len(accounts),
+            "closing_runs_reached": len(on_closing),
+            "ceiling_new_demand_bound_gbp": round(sum(a["new_demand_gbp"] or 0.0 for a in on_closing), 2),
+            "accounts": accounts}
+
+
 def main(argv: list[str] | None = None) -> int:
     import argparse
 
@@ -363,13 +430,16 @@ def main(argv: list[str] | None = None) -> int:
                         help="what a disputed switch read returns of the over-threshold switcher money")
     parser.add_argument("--read-duty", action="store_true",
                         help="split the open money by whether its run crossed the SLC 21B.4 year")
+    parser.add_argument("--must-read", action="store_true",
+                        help="where the UNC M5.10 gas must-read falls, and what its ceiling arm reaches")
     parser.add_argument("run_outputs", nargs="+")
     args = parser.parse_args(argv)
     for path in args.run_outputs:
         run_output = load_run_output(path)
         stamp = (run_output.get("producing_commit") or {}).get("commit")
         rows = closing_accounts(run_output)
-        view = (read_duty_reach(run_output) if args.read_duty
+        view = (must_read_reach(run_output) if args.must_read
+                else read_duty_reach(run_output) if args.read_duty
                 else dispute_reach(run_output, args.dispute) if args.dispute
                 else departing_view(run_output, rows) if args.departing else summarise(rows))
         print(json.dumps({"run_output": str(path), "producing_commit": stamp, **view}, indent=1))

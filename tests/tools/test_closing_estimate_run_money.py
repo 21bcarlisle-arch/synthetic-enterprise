@@ -138,3 +138,26 @@ def test_a_prepayment_run_past_the_year_is_outside_the_duty_and_never_splits():
     from tools.closing_estimate_run_money import year_split
     run = _run_of_estimates("P", 15, channel="prepayment")
     assert year_split(run, _year_dates(run)) == (None, 0.0)
+
+
+def test_the_must_read_grade_counts_gas_attempts_only_and_the_ceiling_leaves_the_tail_after_its_read():
+    """Defect named: an attempt counted on electricity or a smart meter, an offset of one, or a ceiling
+    that clears the whole open run rather than the 24 estimates before its read."""
+    from tools.closing_estimate_run_money import must_read_reach
+
+    pairs = []
+    for cid, commodity, meter in (("C1g", "gas", "traditional"), ("C1", "electricity", "traditional"),
+                                  ("C2g", "gas", "smart")):
+        for i in range(30):
+            bill = _month(cid, i, "estimated", 10.0, 11.0)
+            bill["commodity"] = commodity
+            read = _read(bill)
+            read["meter_type"] = meter
+            pairs.append((bill, read))
+    view = must_read_reach(_run_output(pairs, churned=("C1", "C2")))
+    assert view["register_attempts_by_fuel"] == {"gas": 6, "electricity": 0}
+    (row,) = view["accounts"]
+    assert row["customer_id"] == "C1g" and row["ceiling_reads"] == 1
+    assert row["first_attempt"] == pairs[24][0]["period_end"]
+    assert row["open_gbp"] == pytest.approx(30.0)
+    assert row["open_gbp_after_ceiling"] == pytest.approx(5.0)

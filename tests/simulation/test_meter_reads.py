@@ -368,3 +368,68 @@ def test_switchers_left_unread_for_the_window_are_the_registered_12_month_no_rea
     unread = sum(mr.gaining_supplier_first_read(f"SWR{i}", "2018-03-14", "traditional") is None
                  for i in range(3000)) / 3000
     assert abs(unread - mr.NO_READ_12M_SHARE) < 0.02
+
+
+# --- The gas must-read (UNC M5.10) -------------------------------------------------------------
+
+def _missed(prefix, n=400, period_end="2019-06-30"):
+    """Ids whose ordinary read for the period does not arrive (an electricity call never attempts)."""
+    return [cid for cid in (f"{prefix}{i}" for i in range(n))
+            if mr.simulate_read(cid, period_end, "traditional", 100.0, 30).status == "estimated"]
+
+
+def test_every_disposition_of_a_must_read_is_reachable():
+    """The partition first: a trigger that never fires, or always reads, passes every test below."""
+    cid = _missed("MR")[0]
+    ceiling = mr.simulate_read(cid, "2019-06-30", "traditional", 100.0, 24, commodity="gas",
+                               must_read_arm="ceiling")
+    register = mr.simulate_read(cid, "2019-06-30", "traditional", 100.0, 24, commodity="gas")
+    not_due = mr.simulate_read(cid, "2019-06-30", "traditional", 100.0, 23, commodity="gas",
+                               must_read_arm="ceiling")
+    assert ceiling.must_read_attempted and ceiling.status == "actual"
+    assert ceiling.consecutive_estimated_count == 0
+    assert register.must_read_attempted and register.status == "estimated"
+    assert not not_due.must_read_attempted and not_due.status == "estimated"
+
+
+def test_the_must_read_falls_on_the_period_after_24_unread_months_on_a_traditional_gas_annual_read_meter():
+    """Defect named: an offset of one, or a must-read given to electricity, a smart meter or a Monthly
+    Read meter, none of which M5.10.1(b) names."""
+    assert not mr.must_read_due("gas", "traditional", 23)
+    assert mr.must_read_due("gas", "traditional", 24) and mr.must_read_due("gas", "traditional", 60)
+    assert not mr.must_read_due("electricity", "traditional", 60)
+    assert not mr.must_read_due("gas", "smart", 60)
+    assert not mr.must_read_due("gas", "traditional", 60, aq_kwh=mr.MONTHLY_READ_AQ_KWH)
+    assert mr.must_read_due("gas", "traditional", 60, aq_kwh=12_000.0)
+
+
+def test_the_register_arm_changes_no_read_while_the_visit_outcome_is_a_gap_and_draws_at_it_once_filled(monkeypatch):
+    """Defect named: the GAP reading as a visit that always or never reads, or the must-read's draw
+    disturbing the ordinary read stream."""
+    ids = [f"MRG{i}" for i in range(600)]
+    for cid in ids:
+        gas = mr.simulate_read(cid, "2019-06-30", "traditional", 100.0, 30, commodity="gas")
+        elec = mr.simulate_read(cid, "2019-06-30", "traditional", 100.0, 30)
+        assert (gas.status, gas.delay_days) == (elec.status, elec.delay_days)
+    if mr.READ_VISIT_ACCESS_FAILURE_RATE is None:
+        assert "GAP" in mr.READ_VISIT_ACCESS_FAILURE_GAP
+    monkeypatch.setattr(mr, "READ_VISIT_ACCESS_FAILURE_RATE", 0.5)
+    missed = _missed("MRG", 600)
+    read = sum(mr.simulate_read(cid, "2019-06-30", "traditional", 100.0, 30,
+                                commodity="gas").status == "actual" for cid in missed) / len(missed)
+    assert 0.38 < read < 0.62
+
+
+def test_the_feed_takes_the_fuel_from_the_record_it_is_handed_and_carries_the_arm():
+    """Defect named: the feed never learns a meter is gas, so the must-read cannot fire in a run; or
+    the closing read skips it."""
+    cid = _missed("MRF")[0]
+    feed = mr.SimulatedReadFeed(must_read_arm="ceiling")
+    meter_type = feed.meter_type_for({"customer_id": cid, "commodity": "gas", "aq_kwh": 11_500.0})
+    assert feed.read_for(cid, "2019-06-30", meter_type, 100.0, 24).must_read_attempted
+    assert feed.final_read_for(cid, "2019-06-30", meter_type, 100.0, 24).status == "actual"
+    assert not mr.SimulatedReadFeed().read_for(cid, "2019-06-30", meter_type, 100.0, 24).must_read_attempted
+    assert mr.read_event_to_log_entry(
+        feed.read_for(cid, "2019-06-30", meter_type, 100.0, 24))["must_read_attempted"] is True
+    with pytest.raises(ValueError, match="arm"):
+        mr.SimulatedReadFeed(must_read_arm="always")

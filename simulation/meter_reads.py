@@ -257,6 +257,44 @@ def premise_theft_study(premise_id: str, true_monthly_kwh: list[float],
     }
 
 
+# --- The gas must-read (UNC TPD M5.10, W2_36 2026-10-17) ----------------------------------------
+# read_access_and_theft_duties.md s.2.7. A traditional domestic gas meter is an Annual Read Meter
+# (M5.9.1(b); monthly only at an AQ of 293,000 kWh, never a home). At the end of a month with no valid
+# read in the preceding 24 months the CDSP notifies the Transporter, which attempts a read at the
+# shipper's cost (M5.10.1(b), 5.10.2). The attempt falls on the period after that month: a bill that
+# arrives with 24 estimates before it. A smart gas meter is a monthly-read meter (M5.9.1(d)) and
+# M5.10.1's trigger for it was not read, so it is not given one.
+MUST_READ_UNREAD_MONTHS = 24
+# The AQ at which a Class 4 meter becomes Monthly Read (M5.9.1(b)); below it, Annual Read.
+MONTHLY_READ_AQ_KWH = 293_000.0
+
+# Whether the visit gets a read. A GAP, so None: the `register` arm attempts and reads nothing, and
+# publishes the attempt; the `ceiling` arm reads every attempt and is an upper bound, never an estimate.
+READ_VISIT_ACCESS_FAILURE_RATE, READ_VISIT_ACCESS_FAILURE_GAP = assumption_toggle_or_gap(
+    "q6_read_visit_access_failure_rate")
+MUST_READ_ARMS = ("register", "ceiling")
+
+
+def must_read_due(commodity: str, meter_type: str, consecutive_estimated_count: int,
+                  aq_kwh: Optional[float] = None) -> bool:
+    """Whether M5.10 has the Transporter attempt a read on this period. An AQ not given is a home's."""
+    annual_read = aq_kwh is None or aq_kwh < MONTHLY_READ_AQ_KWH
+    return (commodity == "gas" and meter_type == "traditional" and annual_read
+            and consecutive_estimated_count >= MUST_READ_UNREAD_MONTHS)
+
+
+def must_read_reads(customer_id: str, period_end: str, arm: str = "register") -> bool:
+    """Whether a due must-read visit gets a read."""
+    if arm not in MUST_READ_ARMS:
+        raise ValueError(f"arm {arm!r} is not one of {MUST_READ_ARMS}")
+    if arm == "ceiling":
+        return True
+    if READ_VISIT_ACCESS_FAILURE_RATE is None:
+        return False
+    return (random.Random(f"mustread_{customer_id}_{period_end}").random()
+            >= READ_VISIT_ACCESS_FAILURE_RATE)
+
+
 @dataclass(frozen=True)
 class MeterReadEvent:
     customer_id: str
@@ -268,6 +306,7 @@ class MeterReadEvent:
     true_consumption_kwh: Optional[float] = None
     consecutive_estimated_count: int = 0
     forced_catch_up: bool = False
+    must_read_attempted: bool = False
 
 
 def meter_type_for_customer(customer: dict) -> str:
@@ -298,6 +337,9 @@ def simulate_read(
     meter_type: str,
     true_consumption_kwh: float,
     consecutive_estimated_count: int,
+    commodity: str = "electricity",
+    must_read_arm: str = "register",
+    aq_kwh: Optional[float] = None,
 ) -> MeterReadEvent:
     """Simulate one customer-period's meter-read arrival.
 
@@ -338,6 +380,15 @@ def simulate_read(
             consecutive_estimated_count=0,
         )
 
+    # Drawn after the ordinary read, from its own key, so the ordinary stream is unchanged.
+    attempted = must_read_due(commodity, meter_type, consecutive_estimated_count, aq_kwh)
+    if attempted and must_read_reads(customer_id, period_end, must_read_arm):
+        return MeterReadEvent(
+            customer_id=customer_id, period_end=period_end, meter_type=meter_type,
+            delay_days=0, status="actual", true_consumption_kwh=true_consumption_kwh,
+            consecutive_estimated_count=0, must_read_attempted=True,
+        )
+
     return MeterReadEvent(
         customer_id=customer_id,
         period_end=period_end,
@@ -347,6 +398,7 @@ def simulate_read(
         true_consumption_kwh=true_consumption_kwh,
         consecutive_estimated_count=consecutive_estimated_count + 1,
         forced_catch_up=False,
+        must_read_attempted=attempted,
     )
 
 
@@ -362,6 +414,7 @@ def simulate_final_read(
     meter_type: str,
     true_consumption_kwh: float,
     consecutive_estimated_count: int,
+    **meter,
 ) -> MeterReadEvent:
     """The read on the day an account leaves supply, asked for because the period's own read was
     not actual.
@@ -385,7 +438,7 @@ def simulate_final_read(
         given = False
     if not given:
         return simulate_read(customer_id, period_end, meter_type, true_consumption_kwh,
-                             consecutive_estimated_count)
+                             consecutive_estimated_count, **meter)
     return MeterReadEvent(
         customer_id=customer_id, period_end=period_end,
         meter_type=meter_type, delay_days=0, status="actual",
@@ -485,6 +538,7 @@ def read_event_to_log_entry(event: MeterReadEvent) -> dict:
         "true_consumption_kwh": event.true_consumption_kwh,
         "consecutive_estimated_count": event.consecutive_estimated_count,
         "forced_catch_up": event.forced_catch_up,
+        "must_read_attempted": event.must_read_attempted,
     }
 
 
@@ -553,11 +607,28 @@ class SimulatedReadFeed:
     arguments in the same order the billing code used inline before the move, so
     the identical objects come back and no run's numbers change. Any physics
     added here would be physics the old inline path did not have.
+
+    The one exception is the gas must-read (UNC M5.10), which needs the meter's fuel and AQ. The
+    company's Protocol does not pass them, and a real feed knows which meter it reads, so the feed
+    keeps them from the record `meter_type_for` is handed. The register arm changes no read while
+    `q6_read_visit_access_failure_rate` is null; `must_read_arm="ceiling"` is the upper bound.
     """
+
+    def __init__(self, must_read_arm: str = "register"):
+        if must_read_arm not in MUST_READ_ARMS:
+            raise ValueError(f"arm {must_read_arm!r} is not one of {MUST_READ_ARMS}")
+        self.must_read_arm = must_read_arm
+        self._meter: dict[str, dict] = {}
 
     def meter_type_for(self, customer: Optional[dict]) -> str:
         """Carries the inline path's own `if customer_data else` fallback."""
+        if customer and customer.get("customer_id"):
+            self._meter[customer["customer_id"]] = {
+                "commodity": customer.get("commodity", "electricity"), "aq_kwh": customer.get("aq_kwh")}
         return meter_type_for_customer(customer) if customer else "traditional"
+
+    def _meter_of(self, customer_id: str) -> dict:
+        return {**self._meter.get(customer_id, {}), "must_read_arm": self.must_read_arm}
 
     def read_for(
         self,
@@ -569,7 +640,7 @@ class SimulatedReadFeed:
     ) -> MeterReadEvent:
         return simulate_read(
             customer_id, period_end, meter_type, true_consumption_kwh,
-            consecutive_estimated_count,
+            consecutive_estimated_count, **self._meter_of(customer_id),
         )
 
     def final_read_for(
@@ -587,5 +658,5 @@ class SimulatedReadFeed:
         """
         return simulate_final_read(
             customer_id, period_end, meter_type, true_consumption_kwh,
-            consecutive_estimated_count,
+            consecutive_estimated_count, **self._meter_of(customer_id),
         )
