@@ -74,6 +74,7 @@ matching simulation/feedback_survey.py's convention.
 """
 from __future__ import annotations
 
+import dataclasses
 import datetime as dt
 import math
 import random
@@ -283,16 +284,35 @@ def must_read_due(commodity: str, meter_type: str, consecutive_estimated_count: 
             and consecutive_estimated_count >= MUST_READ_UNREAD_MONTHS)
 
 
-def must_read_reads(customer_id: str, period_end: str, arm: str = "register") -> bool:
-    """Whether a due must-read visit gets a read."""
+def must_read_reads(customer_id: str, period_end: str, arm: str = "register",
+                    key: str = "mustread") -> bool:
+    """Whether a due read visit gets a read. `key` keeps each kind of visit's draw apart."""
     if arm not in MUST_READ_ARMS:
         raise ValueError(f"arm {arm!r} is not one of {MUST_READ_ARMS}")
     if arm == "ceiling":
         return True
     if READ_VISIT_ACCESS_FAILURE_RATE is None:
         return False
-    return (random.Random(f"mustread_{customer_id}_{period_end}").random()
+    return (random.Random(f"{key}_{customer_id}_{period_end}").random()
             >= READ_VISIT_ACCESS_FAILURE_RATE)
+
+
+def simulate_instructed_read(customer_id: str, period_end: str, meter_type: str,
+                             true_consumption_kwh: float, consecutive_estimated_count: int,
+                             arm: str = "register", **meter) -> MeterReadEvent:
+    """The visit for a read the company instructed (SLC 21B.4, read_access_and_theft_duties.md s.2.8).
+
+    The company asks only where the period's own read was not actual, so this is that read, drawn
+    again from the same key, and then the visit. The visit is the must-read's: its outcome is
+    `q6_read_visit_access_failure_rate`, a GAP, so `register` reads nothing (the no-access end) and
+    `ceiling` reads every visit (the read end, an upper bound). `meter` is the feed's fuel and AQ,
+    passed through so a gas must-read due in the same period is still drawn."""
+    event = simulate_read(customer_id, period_end, meter_type, true_consumption_kwh,
+                          consecutive_estimated_count, **meter)
+    if event.status == "actual" or not must_read_reads(customer_id, period_end, arm, key="instructed"):
+        return event
+    return dataclasses.replace(event, delay_days=0, status="actual", consecutive_estimated_count=0,
+                               forced_catch_up=False)
 
 
 @dataclass(frozen=True)
@@ -614,10 +634,12 @@ class SimulatedReadFeed:
     `q6_read_visit_access_failure_rate` is null; `must_read_arm="ceiling"` is the upper bound.
     """
 
-    def __init__(self, must_read_arm: str = "register"):
-        if must_read_arm not in MUST_READ_ARMS:
-            raise ValueError(f"arm {must_read_arm!r} is not one of {MUST_READ_ARMS}")
+    def __init__(self, must_read_arm: str = "register", instructed_read_arm: str = "register"):
+        for arm in (must_read_arm, instructed_read_arm):
+            if arm not in MUST_READ_ARMS:
+                raise ValueError(f"arm {arm!r} is not one of {MUST_READ_ARMS}")
         self.must_read_arm = must_read_arm
+        self.instructed_read_arm = instructed_read_arm
         self._meter: dict[str, dict] = {}
 
     def meter_type_for(self, customer: Optional[dict]) -> str:
@@ -659,4 +681,19 @@ class SimulatedReadFeed:
         return simulate_final_read(
             customer_id, period_end, meter_type, true_consumption_kwh,
             consecutive_estimated_count, **self._meter_of(customer_id),
+        )
+
+    def instructed_read_for(
+        self,
+        customer_id: str,
+        period_end: str,
+        meter_type: str,
+        true_consumption_kwh: float,
+        consecutive_estimated_count: int,
+    ) -> MeterReadEvent:
+        """The visit for a read the company instructed: `simulate_instructed_read`, at this feed's arm."""
+        return simulate_instructed_read(
+            customer_id, period_end, meter_type, true_consumption_kwh,
+            consecutive_estimated_count, arm=self.instructed_read_arm,
+            **self._meter_of(customer_id),
         )

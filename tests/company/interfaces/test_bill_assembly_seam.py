@@ -55,7 +55,7 @@ from simulation.meter_reads import SimulatedReadFeed
 
 REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 
-_FEED_METHODS = ("meter_type_for", "read_for", "final_read_for")
+_FEED_METHODS = ("meter_type_for", "read_for", "final_read_for", "instructed_read_for")
 
 
 # --------------------------------------------------------------------------
@@ -261,7 +261,7 @@ def test_mutation_isinstance_alone_would_wave_a_reordered_feed_through():
     """
 
     class ReorderedFeed:
-        """Same three methods; `read_for`'s last two parameters swapped."""
+        """Same four methods; `read_for`'s last two parameters swapped."""
 
         def meter_type_for(self, customer):
             return "traditional"
@@ -272,6 +272,10 @@ def test_mutation_isinstance_alone_would_wave_a_reordered_feed_through():
 
         def final_read_for(self, customer_id, period_end, meter_type, true_consumption_kwh,
                            consecutive_estimated_count):
+            raise AssertionError("not called")
+
+        def instructed_read_for(self, customer_id, period_end, meter_type, true_consumption_kwh,
+                                consecutive_estimated_count):
             raise AssertionError("not called")
 
     assert isinstance(ReorderedFeed(), ReadArrivalFeed), (

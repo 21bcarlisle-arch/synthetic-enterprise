@@ -161,3 +161,17 @@ def test_the_must_read_grade_counts_gas_attempts_only_and_the_ceiling_leaves_the
     assert row["first_attempt"] == pairs[24][0]["period_end"]
     assert row["open_gbp"] == pytest.approx(30.0)
     assert row["open_gbp_after_ceiling"] == pytest.approx(5.0)
+
+
+def test_the_grade_places_the_instructed_visit_where_the_billing_run_does():
+    """Defect named: the grade's visits one bill early or late against `build_monthly_bills`
+    (read_instruction_due on the estimates before the bill), once per run instead of once a year,
+    or on prepayment."""
+    from tools.closing_estimate_run_money import _instruction_visits
+
+    def account(channel):
+        return [{"billing_basis": "actual", "payment_channel": channel}] + [
+            {"billing_basis": "estimated", "payment_channel": channel}] * 30
+
+    assert (_instruction_visits(account("direct_debit")), _instruction_visits(account("prepayment"))) == (
+        [12, 24], [])

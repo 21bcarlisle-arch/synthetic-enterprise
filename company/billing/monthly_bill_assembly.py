@@ -66,6 +66,7 @@ from company.billing.back_billing import (
     barred_unrecovered_gbp,
 )
 from company.billing.pre_bill_validation import validate_bill
+from company.billing.read_duty_register import read_instruction_due
 from company.billing.theft_indicator import screen_billing_run
 from company.billing.unread_month_estimate import estimate_unread_kwh, opening_estimate_kwh
 from company.interfaces.supply_book import registered_point as get_customer
@@ -137,6 +138,19 @@ class ReadArrivalFeed(Protocol):
         The company decides WHEN one is asked for; the feed says whether it got
         one. It may answer estimated: a closing read is actual only where the
         meter is read remotely or the customer gives one.
+        """
+
+    def instructed_read_for(
+        self,
+        customer_id: str,
+        period_end: str,
+        meter_type: str,
+        true_consumption_kwh: float,
+        consecutive_estimated_count: int,
+    ) -> ReadArrival:
+        """The visit for a read the company instructed (SLC 21B.4: an NHHDC special read, D0005;
+        a gas meter-reading agent's visit). Asked only under `instruct_reads=True`, and only where
+        the period's own read was not actual. Whether the visit gets a read is the feed's answer.
         """
 
 
@@ -486,6 +500,7 @@ def build_monthly_bills(
     premise_listing_feed: Callable[[dict], bool | None] | None = None,
     theft_screen_out: list | None = None,
     tenancy_links: dict[str, str] | None = None,
+    instruct_reads: bool = False,
 ) -> list[dict]:
     """Group the supplier's own settled records into one bill per customer per
     calendar month, in chronological order, via
@@ -569,6 +584,12 @@ def build_monthly_bills(
     means not answered -- and read only by
     the pre-bill exception queue (`pre_bill_validation.release_confirmed_domestic`). Omitted, no
     bill carries the key and nothing is released.
+
+    `instruct_reads` (2026-10-17, read_access_and_theft_duties.md s.2.8): the SLC 21B.4 step. On the
+    bill `read_duty_register.read_instruction_due` names, the company instructs a read, and in the
+    next period, if no read arrived anyway, asks the feed for the visit (`instructed_read_for`). The
+    bill the visit fell in carries `read_instruction_raised` (the date) and
+    `read_instruction_outcome`. Off by default, and off nothing here asks for a visit.
     """
     churned_ids = churned_ids or set()
     by_customer_month: dict[str, dict[str, list[dict]]] = {}
@@ -611,6 +632,7 @@ def build_monthly_bills(
         previous_bill_total_gbp = None
         trailing_actual_periods: list[tuple[date, date, float]] = []
         consecutive_estimated = 0
+        previous_period_end = None
         pending_estimated_run: list[dict] = []
         sorted_months = sorted(months)
         for month_idx, month in enumerate(sorted_months):
@@ -625,6 +647,13 @@ def build_monthly_bills(
                 customer_id, true_bill["period_end"], meter_type,
                 true_bill["total_consumption_kwh"], consecutive_estimated,
             )
+            # The instruction was raised on the last bill, the visit falls in this period.
+            instructed = instruct_reads and read_instruction_due(consecutive_estimated, payment_channel)
+            if instructed and event.status != "actual":
+                event = read_feed.instructed_read_for(
+                    customer_id, true_bill["period_end"], meter_type,
+                    true_bill["total_consumption_kwh"], consecutive_estimated,
+                )
             is_final_bill_for_customer = month_idx == len(sorted_months) - 1
             if (
                 event.status != "actual"
@@ -820,6 +849,11 @@ def build_monthly_bills(
                 bill["void_owner_charge_gbp"] = void_gbp
                 bill["void_owner_share"] = (
                     min(1.0, void_gbp / revenue_gbp) if revenue_gbp > 0 else 1.0)
+            if instructed:
+                bill["read_instruction_raised"] = previous_period_end
+                bill["read_instruction_outcome"] = (
+                    "actual" if event.status == "actual" else "no_read")
+            previous_period_end = bill["period_end"]
             bills.append(bill)
             if theft_screen_out is not None:
                 screen_periods.setdefault(customer_id, []).append({

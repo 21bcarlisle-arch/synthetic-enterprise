@@ -26,7 +26,7 @@ book carries `catchup_raw_delta_gbp` the settled sum is checked against it and t
 counted. `summarise` is raw money; `departing_view` applies the SLC 21BA bar and the direct-debit
 balance (below).
 
-    python3 -m tools.closing_estimate_run_money [--departing | --read-duty | --must-read] RUN_OUTPUT [RUN_OUTPUT ...]
+    python3 -m tools.closing_estimate_run_money [--departing | --read-duty [--instructed-read] | --must-read] RUN_OUTPUT [RUN_OUTPUT ...]
 """
 
 from __future__ import annotations
@@ -195,18 +195,19 @@ def departing_view(run_output: dict, rows: list[dict] | None = None,
             continue
         account_bills = sorted(by_cust[row["customer_id"]], key=lambda b: b["period_end"])
         points = book.trajectories.get(row["customer_id"])
+        collected, balance = None, 0.0
         if points is not None and len(points) == len(account_bills):
             channel = "direct_debit"
-            shown = what_closure_shows(account_bills, row["run_bills"],
-                                       [p.collected_gbp * p.n_collections for p in points],
-                                       points[-1].balance_gbp)
+            collected = [p.collected_gbp * p.n_collections for p in points]
+            balance = points[-1].balance_gbp
         else:
             no_dd_balance += row["payment_channel"] == "direct_debit"
             channel = "no_dd_balance"
-            shown = what_closure_shows(account_bills, row["run_bills"])
+        shown = what_closure_shows(account_bills, row["run_bills"], collected, balance)
         direction = "undercharge" if shown["gbp"] > 0 else "overcharge" if shown["gbp"] < 0 else "nil"
         accounts.append({"customer_id": row["customer_id"], "commodity": row["commodity"],
-                         "channel": channel, "run_bills": row["run_bills"], **shown})
+                         "channel": channel, "run_bills": row["run_bills"], **shown,
+                         **({"collected": collected, "balance_gbp": balance} if keep_accounts else {})})
         cell = table.setdefault(row["commodity"], {}).setdefault(direction, {}).setdefault(
             channel, {"accounts": 0, "with_added_bar": 0, "with_new_demand": 0,
                       "with_new_demand_over_10": 0, "gbp": 0.0,
@@ -353,6 +354,106 @@ def read_duty_reach(run_output: dict) -> dict:
             "crossed": crossed}
 
 
+def _instruction_visits(bills: list[dict]) -> list[int]:
+    """Indices of an account's bills (period order) on which an instructed read's visit falls:
+    `read_instruction_due` on the estimates in a row before it. An actual bill ends a run and asks
+    for no visit, so these are the same bills at either access end."""
+    from company.billing.read_duty_register import read_instruction_due
+
+    visits, incoming = [], 0
+    for i, bill in enumerate(bills):
+        if bill.get("billing_basis") != "estimated":
+            incoming = 0
+            continue
+        if read_instruction_due(incoming, bill.get("payment_channel")):
+            visits.append(i)
+        incoming += 1
+    return visits
+
+
+def read_instruction_reach(run_output: dict) -> dict:
+    """What the company's read instruction at the 11th estimate (read_access_and_theft_duties.md
+    s.2.8) reaches on a run's own bills, at both access ends. The visit's outcome is a GAP.
+
+    `no_access`: no visit reads, so the bills are the run's own. The instructions are counted, the
+    open closing money and its 21BA bar are `departing_view`'s, and the on-supply bar is what the
+    run's catch-ups wrote off on runs of 12 or more. `read`: every visit reads, so the run is trued
+    up on supply at the visit and a fresh run starts. What a visit trues up is barred over its own
+    periods at the visit's date. An open closing run keeps only the estimates after its last visit,
+    priced by `what_closure_shows` with the run's own collections and closing balance.
+
+    A decomposition, not a re-run, and the read end is an upper bound. After a read, a real run
+    would re-estimate from it and its direct debit would be reviewed, and neither is modelled here."""
+    from company.billing.read_duty_register import read_duty_register
+
+    bills = run_output["bills"]
+    by_cust: dict[str, list[dict]] = defaultdict(list)
+    for b in bills:
+        by_cust[b["customer_id"]].append(b)
+    for account in by_cust.values():
+        account.sort(key=lambda b: b["period_end"])
+    rows = closing_accounts(run_output)
+    view = departing_view(run_output, rows, keep_accounts=True)
+    shown = {a["customer_id"]: a for a in view["accounts"]}
+    instructions: dict[str, int] = defaultdict(int)
+    prepayment_instructions = 0
+    read_trued_up_gbp = read_trued_up_bar_gbp = 0.0
+    on_supply_bar_no_access = 0.0
+    visits_of: dict[str, list[int]] = {}
+    for cid, account in by_cust.items():
+        visits = _instruction_visits(account)
+        visits_of[cid] = visits
+        for i in visits:
+            instructions[account[i].get("commodity", "electricity")] += 1
+            prepayment_instructions += account[i].get("payment_channel") == "prepayment"
+            start = i
+            while start > 0 and account[start - 1].get("billing_basis") == "estimated" and (
+                    start - 1) not in visits:
+                start -= 1
+            trued = account[start:i + 1]
+            read_trued_up_gbp += _run_money(trued)[0]
+            read_trued_up_bar_gbp += barred_at_charge_recovery(
+                [(*_period(b), b["true_total_amount_gbp"], b["total_amount_gbp"]) for b in trued],
+                _period(account[i])[1])
+        on_supply_bar_no_access += sum(
+            b.get("catchup_written_off_gbp") or 0.0 for b in account
+            if (b.get("catchup_periods_covered") or 0) >= 12)
+    ends = {"no_access": defaultdict(float), "read": defaultdict(float)}
+    runs_reached = 0
+    for row in rows:
+        a = shown.get(row["customer_id"])
+        if a is None:
+            continue
+        account = by_cust[row["customer_id"]]
+        start = len(account) - row["run_bills"]
+        last = max((i for i in visits_of[row["customer_id"]] if i >= start), default=None)
+        if last is None:
+            at_read = a
+        else:
+            runs_reached += 1
+            tail = len(account) - last - 1
+            at_read = (what_closure_shows(account, tail, a["collected"], a["balance_gbp"]) if tail
+                       else {"gbp": 0.0, "added_bar_gbp": 0.0, "new_demand_gbp": 0.0})
+        # Signed by the run as billed, so both ends count the same runs.
+        direction = "undercharge_" if a["gbp"] > 0 else "overcharge_"
+        for end, money in (("no_access", a), ("read", at_read)):
+            for k in ("gbp", "added_bar_gbp", "new_demand_gbp"):
+                ends[end][k] += money[k]
+                ends[end][direction + k] += money[k]
+                if last is not None:
+                    ends[end]["reached_" + k] += money[k]
+                    ends[end]["reached_" + direction + k] += money[k]
+    duty_rows = sum(r["duty_applies"] for r in read_duty_register(bills))
+    rounded = {end: {k: round(v, 2) for k, v in cell.items()} for end, cell in ends.items()}
+    rounded["no_access"]["on_supply_bar_on_runs_of_12_or_more_gbp"] = round(on_supply_bar_no_access, 2)
+    rounded["read"]["trued_up_at_visits_gbp"] = round(read_trued_up_gbp, 2)
+    rounded["read"]["bar_on_what_visits_true_up_gbp"] = round(read_trued_up_bar_gbp, 2)
+    return {"dd_book_reproduced": view["dd_book_reproduced"],
+            "instructions_by_fuel": dict(instructions), "prepayment_instructions": prepayment_instructions,
+            "duty_register_rows": duty_rows, "open_closing_runs_reached": runs_reached,
+            "by_end": rounded}
+
+
 def must_read_reach(run_output: dict) -> dict:
     """Where the UNC M5.10 gas must-read falls on a run's own bills, and what its ceiling arm reaches.
 
@@ -430,6 +531,8 @@ def main(argv: list[str] | None = None) -> int:
                         help="what a disputed switch read returns of the over-threshold switcher money")
     parser.add_argument("--read-duty", action="store_true",
                         help="split the open money by whether its run crossed the SLC 21B.4 year")
+    parser.add_argument("--instructed-read", action="store_true",
+                        help="with --read-duty: the company's read instruction at the 11th estimate, at both access ends")
     parser.add_argument("--must-read", action="store_true",
                         help="where the UNC M5.10 gas must-read falls, and what its ceiling arm reaches")
     parser.add_argument("run_outputs", nargs="+")
@@ -439,6 +542,7 @@ def main(argv: list[str] | None = None) -> int:
         stamp = (run_output.get("producing_commit") or {}).get("commit")
         rows = closing_accounts(run_output)
         view = (must_read_reach(run_output) if args.must_read
+                else read_instruction_reach(run_output) if args.read_duty and args.instructed_read
                 else read_duty_reach(run_output) if args.read_duty
                 else dispute_reach(run_output, args.dispute) if args.dispute
                 else departing_view(run_output, rows) if args.departing else summarise(rows))

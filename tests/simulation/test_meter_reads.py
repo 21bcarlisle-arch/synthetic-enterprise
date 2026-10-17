@@ -433,3 +433,28 @@ def test_the_feed_takes_the_fuel_from_the_record_it_is_handed_and_carries_the_ar
         feed.read_for(cid, "2019-06-30", meter_type, 100.0, 24))["must_read_attempted"] is True
     with pytest.raises(ValueError, match="arm"):
         mr.SimulatedReadFeed(must_read_arm="always")
+
+
+def test_an_instructed_visit_reads_at_the_ceiling_finds_no_access_under_the_gap_and_keeps_its_own_arm():
+    """Defect named (read_access_and_theft_duties.md s.2.8): the visit for a company-instructed read
+    reading at a midpoint while its outcome is a GAP, replacing a read that arrived anyway, or
+    sharing the gas must-read's arm so one end of one turns on the other."""
+    cid = _missed("MRI")[0]
+    period = "2019-06-30"
+    ordinary = mr.simulate_read(cid, period, "traditional", 100.0, 11)
+    no_access = mr.SimulatedReadFeed().instructed_read_for(cid, period, "traditional", 100.0, 11)
+    feed = mr.SimulatedReadFeed(instructed_read_arm="ceiling")
+    feed.meter_type_for({"customer_id": cid, "commodity": "gas", "aq_kwh": 11_500.0})
+    read = feed.instructed_read_for(cid, period, "traditional", 100.0, 11)
+    arrived = next(c for c in (f"MRA{i}" for i in range(400)) if mr.simulate_read(
+        c, period, "traditional", 100.0, 11).status == "actual")
+    assert (
+        no_access == ordinary if mr.READ_VISIT_ACCESS_FAILURE_RATE is None else True,
+        (read.status, read.consecutive_estimated_count, read.delay_days),
+        mr.SimulatedReadFeed(instructed_read_arm="ceiling").instructed_read_for(
+            arrived, period, "traditional", 100.0, 11) == mr.simulate_read(
+            arrived, period, "traditional", 100.0, 11),
+        (feed.must_read_arm, feed.read_for(cid, period, "traditional", 100.0, 30).status),
+    ) == (True, ("actual", 0, 0), True, ("register", ordinary.status))
+    with pytest.raises(ValueError, match="arm"):
+        mr.SimulatedReadFeed(instructed_read_arm="always")

@@ -279,6 +279,8 @@ decision names the supplier's own read attempt as the remedy (§2.4) and does no
 is a practitioner question. It also waits on the world: a request changes nothing until a household
 can answer it (order of work, item 3). Until both exist, the register's row is the only thing the
 company does at the year, and it does not stand in for the effort the duty asks for.
+*2026-10-17: the timing is still a GAP. The company's instruction at the 11th estimate, and how
+the world answers it at both ends, are in §2.8.*
 
 ### 2.7 What the industry codes do at the year and after it (read 2026-10-17)
 
@@ -366,6 +368,63 @@ Section M v6.01 (8 March 2024) [H]:
    record 21B.4 and 21BA.2(c) need. It changes no bill until the world can answer.
 3. **Practitioner question, unchanged (§7):** of read visits to traditional credit meters, what
    share fail, and of those, how many are no-one home, refused, or a meter you cannot get to?
+
+### 2.8 When in a run a supplier asks for a read, and how: the company's instruction (2026-10-17)
+
+*Knowledge for direction item `the-company-instructs-a-read-before-the-21b4-year` (K8), written
+before the build.*
+
+**What is published about HOW.** The routes a supplier uses are established. The timing is not.
+- **The customer's own read** counts towards 21B.4 (§2.1). If the supplier rejects a customer read
+  as not reasonably accurate, "it must take all reasonable steps to obtain a new reading from the
+  customer" [H] (Ofgem, *Supply licence guide: Metering, billing and payments*, updated 21 February
+  2019, SLC 21B). That is the one published rule that says what a supplier does next, and it is
+  about a rejected read, not an absent one.
+- **Electricity: an instruction to the data collector.** A "Supplier request" is a valid reason
+  for a read outside the agreed schedule. A failed visit comes back as a D0004 with a Site Visit
+  Check Code (02 not occupied, 20 no access, and others), and the supplier answers with D0005
+  "Instruction on Action" [H] (BSCP504 v53.0 §3.3.10, §4.15; §2.7).
+- **Gas: the shipper's own read.** M5.9.9 says the shipper "shall secure" a valid read every 12
+  months. M5.10 adds a Transporter read at 24 months [H] (§2.7). A gas supplier's own visit before
+  the year runs through its meter-reading agent. No code text read names the flow.
+- **Ofgem's backstop.** "If consumers do not respond to requests for meter readings, the
+  backstop measure should be that suppliers take a meter reading themselves" [H] (2018 decision,
+  §2.4). It names a request first and then a visit, in that order.
+- **A Priority Services Register household that cannot read its meter** is owed a supplier read
+  as a free service [H] (licence guide, SLC 26). How often is in SLC 26 itself, which was not read
+  for this page [M].
+
+**GAP: WHEN.** Nothing read says at which bill in a run of estimates a supplier first asks for a
+read, or when it moves from asking the customer to sending someone. Not the licence, not the
+licence guide, not the 2018 decision, and not BSCP504. "Reasonable steps" is not defined. The
+suppliers' "every 6 months" site visit (§2.1) is their own description of a schedule, not a rule
+about a run that has gone unread. This stays a practitioner question (§7).
+
+**The design's choice, and why it is not a picked number.** The company instructs one read, dated
+on the bill that is the **11th estimate in a row**. The visit falls in the next period, which is the
+12th bill since the last read and still inside the licence's year. If the visit gets a read, the
+year closes with a read. If it does not, the 12th estimate is billed, the 21B.4 register writes
+its row (§2.6), and the instruction is the dated evidence that a step was taken. One bill earlier
+would be a choice. This is the last bill from which the step can still meet the year, so it is
+derived from the licence's period and the one-bill cadence. That makes it the **latest** compliant
+timing, not a good one: a real supplier probably asks sooner and more than once. Erring late errs
+against the thesis that asking helps (F11). A run that goes on unread gets a fresh instruction at
+each later year: the 23rd estimate, the 35th, and so on. Prepayment is outside 21B.4 and gets
+none. A smart meter gets one too: a meter out of smart mode is read like a traditional one.
+
+**How the world answers.** Through the visit mechanism the gas must-read built
+(`simulation/meter_reads.py`, 367f20023). Whether a visit gets a read is
+`q6_read_visit_access_failure_rate`, which is null (§2.5, "Access failure per read visit", GAP).
+So the world is run at **both ends and never at a midpoint**: `no_access` (no visit reads; the run
+bills as if there had been no instruction) and `read` (every visit reads; an upper bound, not an
+estimate). The instruction is behind a switch that defaults off, so a run without it bills byte for
+byte as before.
+
+**What it does not do.** It does not touch the 21BA.2(c) exception. A visit that fails for no
+access is not evidence of obstruction: Ofgem asks for "reasonable requests to physically access the
+meter" that the consumer "ignore[s] or refuse[s]" (§2.4), and the world cannot tell no-one-home from
+a refusal (§2.5 GAP). It sends no self-read prompt either, because the world has no household that
+answers one. That is a world change, filed for after the publish and not built here.
 
 ## 3. Theft
 
@@ -975,6 +1034,9 @@ All read as text this session [H] unless marked.
 - Courts and Tribunals Judiciary, *Directions … warrants for pre-payment meters* (revised
   2024/2025).
 - DESNZ, *Tough new rules force suppliers to fix faulty smart meters*, 10 March 2026.
+- Ofgem, *Supply licence guide: Metering, billing and payments*, 30 Nov 2017, updated 21 Feb
+  2019, SLC 21B and SLC 26:
+  <https://www.ofgem.gov.uk/sites/default/files/docs/2019/02/licence_guide_metering_billing_and_payments_1.pdf>.
 - Repo documents relied on: `unbilled_energy_and_revenue_assurance.md`,
   `practitioner_questions_as_assumption_toggles.md` (Q2), `meter_read_latency_estimation_2026.md`.
 
