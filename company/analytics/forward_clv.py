@@ -89,13 +89,24 @@ over a multi-year horizon every account crosses about as many anniversaries, so 
 nothing to separate. The default stays the contract-year table by the rule written before the
 grade (docs/staging/SEAT_FINDING_B11_THE_TERM_END_KEY_HOLDS_THE_LEVEL_AND_RANKS_NO_BETTER_OVER_THE_WHOLE_HORIZON_2026-10-11.md).
 
+WHAT A SUPPLIER HOLDS (slice 10). ``observables=True`` keys the per-customer hazard on the
+company's own tariff record, its bills' payment channel and the months an account has sat on the
+default, each a published switching ratio shrunk toward the book's own (``observable_multipliers``).
+Its renormalisation holds the flat level over the fit window only: months on default advance over
+the horizon into the lower band, so the level drifts below the flat rule's, and a margin verdict
+under this key is partly that drift. On one book at cuts 2020/2022/2023 the switchers could not be
+told apart from flat; the months-on-default prior carried what ranking there was, and the book's
+own fixed and prepayment ratios ran opposite to the published ones
+(docs/staging/WORKER_FINDING_B11_THE_HAZARD_THAT_SEES_WHAT_A_SUPPLIER_HOLDS_CANNOT_YET_TELL_SWITCHERS_APART_2026-10-17.md).
+
 THE BOUND. Every comparison is paired over the same accounts: the mean of
 (per-customer absolute error − flat absolute error) with a normal-approximation 95%
 interval on that mean. An interval that straddles zero is reported as "cannot tell",
 not as a win for whichever side the point estimate favours.
 
 EPISTEMIC WALL. Reads only the supplier's own per-account ledger and roster from a run's
-report JSON. No world state, no socket.
+report JSON -- its term record and bills included, never the payment truth the world logs
+beside them. No world state, no socket.
 """
 
 from __future__ import annotations
@@ -103,7 +114,7 @@ from __future__ import annotations
 import json
 import math
 from collections import defaultdict
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import date, timedelta
 from pathlib import Path
 from statistics import NormalDist
@@ -119,6 +130,9 @@ __all__ = [
     "LIMITATION_NO_MOVE_REGISTER",
     "LIMITATION_SWITCH_LEVEL_IS_THE_REGIME",
     "AccountHistory",
+    "OBSERVABLE_PRIORS",
+    "ObservableMultiplier",
+    "SupplierView",
     "Backtest",
     "OutcomeGrade",
     "PairedComparison",
@@ -126,6 +140,8 @@ __all__ = [
     "book_from_run_output",
     "load_book",
     "move_outs_from_run_output",
+    "observable_level",
+    "observable_multipliers",
     "regime_boundary_month",
     "run_backtest",
     "backtest_run_output",
@@ -182,12 +198,23 @@ def _month_label(idx: int) -> str:
 
 
 @dataclass(frozen=True)
+class SupplierView:
+    """What the supplier's own records say about an account in one month (slice 10)."""
+
+    tariff: str  # "fixed" or "default"
+    payment: str | None  # the channel on its latest bill; None before any bill and with none
+    months_on_default: int  # consecutive months on default up to and including this one
+
+
+@dataclass(frozen=True)
 class AccountHistory:
     """One billing account's supplied months and the margin each earned."""
 
     account_id: str
     segment: str
     monthly_net_gbp: Mapping[int, float]  # month index -> net margin that month
+    # Slice 10. Month index -> the supplier's view that month; empty when the book carries none.
+    observed: Mapping[int, SupplierView] = field(default_factory=dict)
 
     @property
     def first_month(self) -> int:
@@ -207,6 +234,7 @@ def book_from_run_output(run_output: Mapping) -> tuple[list[AccountHistory], int
     is "still supplied", never "departed".
     """
     lifetime = run_output.get("per_customer_lifetime", {})
+    views = _supplier_views(run_output)
     monthly: dict[str, dict[int, float]] = defaultdict(lambda: defaultdict(float))
     fuels: dict[str, set[str]] = defaultdict(set)
     segment_of: dict[str, str] = {}
@@ -223,10 +251,50 @@ def book_from_run_output(run_output: Mapping) -> tuple[list[AccountHistory], int
         held = fuels[acct]
         fuel = "dual" if {"electricity", "gas"} <= held else "+".join(sorted(held))
         accounts.append(
-            AccountHistory(acct, f"{segment_of[acct]} {fuel}", dict(months))
+            AccountHistory(acct, f"{segment_of[acct]} {fuel}", dict(months),
+                           views(acct, sorted(months)))
         )
     book_end = max(a.last_month for a in accounts)
     return sorted(accounts, key=lambda a: a.account_id), book_end
+
+
+def _supplier_views(run_output: Mapping):
+    """`(account, its supplied months) -> {month: SupplierView}` from the company's own records:
+    the term record (`account_state_log`) for the tariff, and its bills' `payment_channel`.
+
+    A month is FIXED when any of the account's legs is in a fixed term on the 15th. Months on
+    default restart at every fixed month. The channel is the latest bill's starting on or before
+    the month, else the account's first bill's: a supplier knows how a customer pays from sign-up.
+    A book with no term record gives every account an empty view, never a guessed one.
+    """
+    terms = run_output.get("account_state_log")
+    if not terms:
+        return lambda acct, months: {}
+    fixed_spans: dict[str, list[tuple[str, str]]] = defaultdict(list)
+    for t in terms:
+        if t.get("tariff_type") == "fixed":
+            fixed_spans[t["billing_account"]].append((t["term_start"], t["term_end"]))
+    channel: dict[str, dict[int, str]] = defaultdict(dict)
+    for b in run_output.get("bills", ()):
+        if b.get("payment_channel"):
+            channel[_billing_account_id(b["customer_id"])][
+                _month_index(b["period_start"][:7])] = b["payment_channel"]
+
+    def views(acct: str, months: Sequence[int]) -> dict[int, SupplierView]:
+        spans = fixed_spans.get(acct, ())
+        paid = sorted(channel.get(acct, {}).items())
+        out: dict[int, SupplierView] = {}
+        on_default = 0
+        for m in months:
+            mid = f"{_month_label(m)}-15"
+            fixed = any(s <= mid < e for s, e in spans)
+            on_default = 0 if fixed else on_default + 1
+            known = [c for pm, c in paid if pm <= m]
+            pay = known[-1] if known else (paid[0][1] if paid else None)
+            out[m] = SupplierView("fixed" if fixed else "default", pay, on_default)
+        return out
+
+    return views
 
 
 def move_outs_from_run_output(run_output: Mapping) -> dict[str, int] | None:
@@ -446,6 +514,9 @@ class Backtest:
     # to the flat departure p, so the all-cause level miss is split between the causes, not re-fit.
     departure_incidence_by_cause: Mapping[str, tuple[float, float]] | None = None
     departure_calibration_by_cause: Mapping[str, tuple[float, tuple[float, float] | None]] | None = None
+    # Slice 10. None unless the per-customer hazard was keyed on the supplier's view: each
+    # observable's levels with the book's ratio, the prior, the weight and the multiplier used.
+    observable_multipliers: Mapping[str, Mapping[str, "ObservableMultiplier"]] | None = None
 
 
 def regime_boundary_month(
@@ -710,6 +781,128 @@ def pooled_ratio(ratios: Sequence[StandardisedRatio]) -> StandardisedRatio:
                              o / x if x > 0 else None, _poisson_ratio_interval(o, x))
 
 
+# Each level's switching rate against its observable's reference level, as a prior with its 95%
+# range: (prior, low, high). Sources and the ranges' derivation are in
+# docs/market_research/observable_correlates_of_price_responsiveness.md (A1, A2, A5, table C):
+# Ofgem CIM wave 6 Table 56 question C4 for tariff and payment, ranges the sampling interval on the
+# log ratio from the cell bases (what_a_supplier_can_observe_about_switching_propensity_cim_w6.md
+# section 3); the Ofgem CMOL trial control arm (Fig. 11) for 3+ years on the default against 1-3,
+# whose band bases are not on file, so its range assumes a third of N=137,876 split evenly.
+# Every prior measures SWITCHING; the hazard it multiplies is all-cause.
+OBSERVABLE_PRIORS: Mapping[str, tuple[str, Mapping[str, tuple[float, float, float]]]] = {
+    "tariff": ("default", {"fixed": (2.80, 1.93, 4.06)}),
+    "payment": ("direct_debit", {"standard_credit": (1.02, 0.67, 1.54),
+                                 "prepayment": (0.55, 0.33, 0.93)}),
+    "months_on_default": ("under_36", {"36_plus": (0.54, 0.44, 0.66)}),
+}
+# CMOL's band edge: its tenure bands are 1-3 years and 3+ years on the default.
+_DEFAULT_BAND_EDGE_MONTHS = 36
+
+
+def observable_level(observable: str, view: SupplierView) -> str:
+    if observable == "tariff":
+        return view.tariff
+    if observable == "payment":
+        return view.payment or "unknown"
+    if observable == "months_on_default":
+        return "36_plus" if view.months_on_default >= _DEFAULT_BAND_EDGE_MONTHS else "under_36"
+    raise ValueError(f"no observable {observable!r}: one of {sorted(OBSERVABLE_PRIORS)}")
+
+
+@dataclass(frozen=True)
+class ObservableMultiplier:
+    """One level's departure multiplier against its observable's reference level (slice 10).
+
+    ``book_ratio`` is the fit window's exits over those its calendar years' rates give, relative to
+    the reference level's same ratio; None where either has nothing to divide. ``weight`` is
+    ``n/(n+k)`` with ``n`` the level's expected exits and ``k = 1/(prior * se^2)``, the gamma prior
+    the published range implies, so ``k`` is read, not chosen. ``multiplier`` is the blend.
+    """
+
+    observable: str
+    level: str
+    months_at_risk: int
+    observed: int
+    expected: float
+    book_ratio: float | None
+    prior: float | None  # None for the reference level and for a level no source covers
+    prior_range: tuple[float, float] | None
+    k: float | None
+    weight: float
+    multiplier: float
+
+
+def observable_multipliers(
+    accounts: Sequence[AccountHistory], fit_end: int, censored: frozenset[str] = frozenset(),
+    fit_start: int | None = None,
+) -> dict[str, dict[str, ObservableMultiplier]]:
+    """Every observable level's multiplier, fitted on the fit window's months and shrunk to its prior.
+
+    Expected exits are at each calendar year's rate over the whole book, so a level that merely
+    lived through a high-churn year is not read as carrying it. A level no source covers (a
+    payment channel the record cannot name) is held at one.
+    """
+    start = fit_start if fit_start is not None else min(a.first_month for a in accounts)
+    at_risk_y: dict[int, int] = defaultdict(int)
+    exits_y: dict[int, int] = defaultdict(int)
+    rows = []
+    for a in accounts:
+        if a.first_month > fit_end or a.last_month < start:
+            continue
+        months = range(max(a.first_month, start), min(a.last_month, fit_end) + 1)
+        exited = a.last_month < fit_end and a.account_id not in censored
+        for m in months:
+            at_risk_y[m // 12] += 1
+        if exited:
+            exits_y[a.last_month // 12] += 1
+        rows.append((a, months, exited))
+    rate = {y: exits_y[y] / n for y, n in at_risk_y.items()}
+    out: dict[str, dict[str, ObservableMultiplier]] = {}
+    for obs, (ref, priors) in OBSERVABLE_PRIORS.items():
+        risk: dict[str, int] = defaultdict(int)
+        o: dict[str, int] = defaultdict(int)
+        e: dict[str, float] = defaultdict(float)
+        for a, months, exited in rows:
+            if not a.observed:
+                raise ValueError(
+                    f"account {a.account_id} carries no supplier view: the book has no term "
+                    "record, so an observable hazard has nothing to read"
+                )
+            for m in months:
+                lvl = observable_level(obs, a.observed[m])
+                risk[lvl] += 1
+                e[lvl] += rate[m // 12]
+            if exited:
+                o[observable_level(obs, a.observed[a.last_month])] += 1
+        ref_ratio = o[ref] / e[ref] if e[ref] > 0 else None
+        levels: dict[str, ObservableMultiplier] = {}
+        for lvl in sorted(set(risk) | {ref} | set(priors)):
+            book = (None if ref_ratio in (None, 0.0) or e[lvl] <= 0
+                    else (o[lvl] / e[lvl]) / ref_ratio)
+            if lvl == ref or lvl not in priors:
+                levels[lvl] = ObservableMultiplier(obs, lvl, risk[lvl], o[lvl], e[lvl], book,
+                                                   None, None, None, 0.0, 1.0)
+                continue
+            prior, lo, hi = priors[lvl]
+            se = (math.log(hi) - math.log(lo)) / (2 * _TWO_SIDED_95)
+            k = 1.0 / (prior * se * se)
+            w = 0.0 if book is None else e[lvl] / (e[lvl] + k)
+            levels[lvl] = ObservableMultiplier(
+                obs, lvl, risk[lvl], o[lvl], e[lvl], book, prior, (lo, hi), k, w,
+                w * (book or 0.0) + (1 - w) * prior)
+        out[obs] = levels
+    return out
+
+
+def _view_multiplier(mults: Mapping[str, Mapping[str, ObservableMultiplier]],
+                     view: SupplierView) -> float:
+    product = 1.0
+    for obs, levels in mults.items():
+        lvl = levels.get(observable_level(obs, view))
+        product *= 1.0 if lvl is None else lvl.multiplier
+    return product
+
+
 def run_backtest(
     accounts: Sequence[AccountHistory],
     book_end: int,
@@ -719,6 +912,7 @@ def run_backtest(
     move_out_month_by_account: Mapping[str, int] | None = None,
     hazard_fit_from_year: int | None = None,
     tenure_key: str = "contract_year",
+    observables: bool = False,
 ) -> Backtest:
     """Fit on months up to December of `cut_year`; forecast and grade every later month.
 
@@ -741,7 +935,14 @@ def run_backtest(
 
     `tenure_key` (slice 9) is the per-customer hazard's tenure key: the contract-year table, or
     "term_end" -- the segment's flat hazard times its term phase's calendar-standardised ratio.
+
+    `observables` (slice 10) replaces the per-customer hazard with the segment's flat hazard times
+    the product of the account's ``observable_multipliers`` at the cut, rescaled per segment so the
+    fit window expects the flat rule's exits. Months on default advance over the horizon; tariff
+    and channel are held at the cut. It replaces the tenure key, so both together are refused.
     """
+    if observables and tenure_key != "contract_year":
+        raise ValueError("observables replace the tenure key: give one per-customer hazard")
     if tenure_key not in TENURE_KEYS:
         raise ValueError(f"tenure_key must be one of {TENURE_KEYS}, not {tenure_key!r}")
     fit_end = _month_index(f"{cut_year}-12")
@@ -787,6 +988,20 @@ def run_backtest(
     by_cy, by_seg_h, seg_ratio = _fit_hazards(accounts, fit_end, fit_start=hazard_start)
     phase_ratio = (None if tenure_key == "contract_year"
                    else term_phase_ratios(accounts, fit_end, fit_start=hazard_start))
+    obs_mults = (observable_multipliers(accounts, fit_end, fit_start=hazard_start)
+                 if observables else None)
+    seg_scale: dict[str, float] = {}
+    if obs_mults is not None:
+        # The new key moves WHERE an exit is expected, never how many: over the fit window each
+        # segment's months expect the flat rule's exits.
+        lo = hazard_start if hazard_start is not None else first
+        months_seg: dict[str, int] = defaultdict(int)
+        mult_seg: dict[str, float] = defaultdict(float)
+        for a in accounts:
+            for m in range(max(a.first_month, lo), min(a.last_month, fit_end) + 1):
+                months_seg[a.segment] += 1
+                mult_seg[a.segment] += _view_multiplier(obs_mults, a.observed[m])
+        seg_scale = {s: months_seg[s] / mult_seg[s] for s in months_seg if mult_seg[s] > 0}
     horizon = book_end - fit_end
     excluded = {"joined after the cut (no fit history)": 0, "left before the cut": 0}
     forecasts: list[AccountForecast] = []
@@ -810,14 +1025,20 @@ def run_backtest(
         s_pc = s_fl = 1.0
         pc_total = fl_total = 0.0
         h_fl = by_seg_h.get(a.segment, 0.0)
+        at_cut = a.observed.get(fit_end) if obs_mults is not None else None
         for step in range(horizon):
             # Margin is earned in a month the account starts supplied; departure takes
             # effect at the month's end, as the fit counted it.
             pc_total += s_pc * pc_margin_rate
             fl_total += s_fl * fl_margin_rate
-            h_pc = (seg_ratio[a.segment] * _hazard_at(by_cy, tenure + step)
-                    if phase_ratio is None
-                    else h_fl * phase_ratio[term_phase(tenure + step)].ratio)
+            if at_cut is not None:
+                view = (at_cut if at_cut.tariff == "fixed" else SupplierView(
+                    at_cut.tariff, at_cut.payment, at_cut.months_on_default + step + 1))
+                h_pc = h_fl * seg_scale.get(a.segment, 1.0) * _view_multiplier(obs_mults, view)
+            elif phase_ratio is None:
+                h_pc = seg_ratio[a.segment] * _hazard_at(by_cy, tenure + step)
+            else:
+                h_pc = h_fl * phase_ratio[term_phase(tenure + step)].ratio
             s_pc *= 1 - min(1.0, h_pc)
             s_fl *= 1 - h_fl
         realised = sum(v for m, v in a.monthly_net_gbp.items() if m > fit_end)
@@ -977,6 +1198,7 @@ def run_backtest(
         departure_calibration_by_cause=calibration_by_cause,
         tenure_key=tenure_key,
         term_phase_ratio=phase_ratio,
+        observable_multipliers=obs_mults,
     )
 
 
@@ -991,6 +1213,7 @@ def backtest_run_output(
     wholesale_gas_by_month: Mapping[str, float] | None = None,
     hazard_fit_from_year: int | None = None,
     tenure_key: str = "contract_year",
+    observables: bool = False,
 ) -> Backtest:
     """A run's book, split by departure cause where it carries a move-out register. The caller hands in the wholesale series
     (`SimInterface.monthly_wholesale_prices("gas")`); importing the live interface here would
@@ -1000,7 +1223,7 @@ def backtest_run_output(
     return run_backtest(
         *book_from_run_output(run_output), cut_year, margin_fit_end_year,
         wholesale_gas_by_month, move_outs_from_run_output(run_output), hazard_fit_from_year,
-        tenure_key,
+        tenure_key, observables,
     )
 
 

@@ -3,6 +3,7 @@ puts the flat rule beside it on the same accounts."""
 
 from __future__ import annotations
 
+import math
 from pathlib import Path
 
 import pytest
@@ -13,17 +14,22 @@ from company.analytics.forward_clv import (
     LIMITATION_DEPARTURE_CAUSE,
     LIMITATION_NO_MOVE_REGISTER,
     LIMITATION_SWITCH_LEVEL_IS_THE_REGIME,
+    OBSERVABLE_PRIORS,
     AccountForecast,
     AccountHistory,
+    SupplierView,
     _fit_hazards,
     _hazard_at,
     _month_index,
     _paired,
     _ranking,
     backtest_run_output,
+    book_from_run_output,
     exit_cells,
     load_book,
     move_outs_from_run_output,
+    observable_level,
+    observable_multipliers,
     pooled_ratio,
     regime_boundary_month,
     run_backtest,
@@ -620,3 +626,88 @@ def test_the_term_end_key_raises_p_only_for_an_account_whose_term_ends_in_the_ho
     assert default.tenure_key == "contract_year" and default.term_phase_ratio is None
     with pytest.raises(ValueError, match="tenure_key must be one of"):
         run_backtest(book, end, 2020, tenure_key="calendar_year")
+
+
+def test_the_supplier_view_is_read_from_the_companys_terms_and_bills_and_every_level_is_reachable():
+    """The defect: a view that never marks a month fixed, never carries a channel, or never lets
+    months on default pass the band edge, so the rare levels the hazard keys on cannot be taken.
+    One book reaches all of them, and a fixed month restarts the count."""
+    run = {
+        "per_customer_lifetime": {"H1": {"commodity": "electricity", "segment": "resi"}},
+        "years": {"2016": {"per_customer_monthly": {
+            "H1": {f"{y}-{m:02d}": {"net_gbp": 1.0} for y in range(2016, 2021) for m in range(1, 13)}}}},
+        "account_state_log": [
+            {"billing_account": "H1", "tariff_type": "fixed", "term_start": "2016-01-01",
+             "term_end": "2017-01-01"},
+            {"billing_account": "H1", "tariff_type": "svt", "term_start": "2017-01-01",
+             "term_end": "2021-01-01"},
+        ],
+        "bills": [{"customer_id": "H1", "period_start": "2016-03-01", "payment_channel": "prepayment"},
+                  {"customer_id": "H1", "period_start": "2019-06-01",
+                   "payment_channel": "standard_credit"}],
+    }
+    (acct,), _ = book_from_run_output(run)
+    v = acct.observed
+    assert v[_month_index("2016-12")] == SupplierView("fixed", "prepayment", 0)
+    assert v[_month_index("2016-01")].payment == "prepayment"  # known from sign-up
+    assert v[_month_index("2017-01")].months_on_default == 1
+    assert v[_month_index("2019-12")] == SupplierView("default", "standard_credit", 36)
+    levels = {(o, observable_level(o, x)) for x in v.values() for o in OBSERVABLE_PRIORS}
+    for obs, (ref, priors) in OBSERVABLE_PRIORS.items():
+        assert (obs, ref) in levels or obs == "payment"
+    assert {("tariff", "fixed"), ("payment", "prepayment"), ("payment", "standard_credit"),
+            ("months_on_default", "36_plus"), ("months_on_default", "under_36")} <= levels
+    (bare,), _ = book_from_run_output({k: run[k] for k in ("per_customer_lifetime", "years")})
+    assert bare.observed == {}
+
+
+def _viewed(aid, start, end, tariff, payment, leave=False):
+    lo, hi = _month_index(start), _month_index(end)
+    return AccountHistory(aid, "resi electricity", {m: 1.0 for m in range(lo, hi + 1)},
+                          {m: SupplierView(tariff, payment, 0 if tariff == "fixed" else m - lo + 1)
+                           for m in range(lo, hi + 1)})
+
+
+def _observed_book():
+    """Six of ten prepayment accounts leave in the fit window, two of ten direct-debit ones, all
+    past 36 months on the default."""
+    return ([_viewed(f"P{i}", "2016-01", "2019-06" if i < 6 else "2021-03", "default",
+                     "prepayment") for i in range(10)]
+            + [_viewed(f"D{i}", "2016-01", "2019-06" if i < 2 else "2021-03", "default",
+                       "direct_debit") for i in range(10)])
+
+
+def test_a_multiplier_is_shrunk_from_the_book_toward_its_prior_by_a_weight_read_from_the_range():
+    """The defect: a multiplier that is the prior whatever the book says, or the book whatever
+    the evidence weighs. Prepayment leaving far above direct debit reads a book ratio above one;
+    the multiplier lies strictly between it and the 0.55 prior, at n/(n+k) with k from the range."""
+    m = observable_multipliers(_observed_book(), _month_index("2019-12"))["payment"]
+    pp, dd = m["prepayment"], m["direct_debit"]
+    prior, lo, hi = OBSERVABLE_PRIORS["payment"][1]["prepayment"]
+    assert dd.multiplier == 1.0 and pp.prior == prior and pp.book_ratio > 1.0
+    assert 0.0 < pp.weight < 1.0 and pp.weight == pytest.approx(pp.expected / (pp.expected + pp.k))
+    assert pp.k == pytest.approx(1.0 / (prior * ((math.log(hi) - math.log(lo)) / 3.919928) ** 2),
+                                 rel=1e-4)
+    assert prior < pp.multiplier < pp.book_ratio
+    # An exit is read at the level the account held when it left, not when it joined.
+    band = observable_multipliers(_observed_book(), _month_index("2019-12"))["months_on_default"]
+    assert band["36_plus"].observed == 8 and band["under_36"].observed == 0
+
+
+def test_the_observables_key_moves_only_the_per_customer_p_and_is_refused_without_a_view():
+    """The defect: a key that reaches the forecast without moving it, moves the flat rule too,
+    or adds exits rather than placing them. Two accounts alike but for their channel get
+    different per-customer p and one flat p; the default rule is untouched; a book without a
+    view and a key given with a tenure key are each refused with their reason."""
+    book = _observed_book()
+    end = _month_index("2021-03")
+    bt = run_backtest(book, end, 2020, observables=True)
+    by = {f.account_id: f for f in bt.forecasts}
+    assert by["P7"].per_customer_departure_p != by["D5"].per_customer_departure_p
+    assert by["P7"].flat_departure_p == by["D5"].flat_departure_p
+    assert set(bt.observable_multipliers) == set(OBSERVABLE_PRIORS)
+    assert run_backtest(book, end, 2020).observable_multipliers is None
+    with pytest.raises(ValueError, match="carries no supplier view"):
+        run_backtest(_book(), _month_index("2025-06"), 2020, observables=True)
+    with pytest.raises(ValueError, match="observables replace the tenure key"):
+        run_backtest(book, end, 2020, tenure_key="term_end", observables=True)
