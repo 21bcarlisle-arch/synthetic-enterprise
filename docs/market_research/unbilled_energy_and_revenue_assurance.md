@@ -415,6 +415,63 @@ supplier holds an actual read on the day an incoming occupier's account opens.
    `docs/staging/records/WORKER_PREREG_W2_36_THE_OPENING_READ_AT_A_CHANGE_OF_TENANCY_2026-10-17.md`.
 
 
+**What trues up a closing read after supply ends** (added 2026-10-17, before the dispute seed was
+given any realisation route; K8). A closing estimate becomes the deemed read: "a valid Old Supplier
+Estimated reading … must be used" (§4.4.1, above). The question is what can replace it later.
+- **Electricity: the disputed change-of-supplier read.** "The new Supplier can dispute the change
+  of Supplier reading at any point up to twelve months after the change of Supplier, where in the
+  Supplier's view there is difference of more than 250kWh" (BSCP504 v53.0 §4.4.1(b)) [H]. The old
+  supplier may also dispute within 12 months of SSD (steps 3.2.6.36 new supplier, 3.2.6.37 old
+  supplier, both on the D0300 flow). The old supplier has no read of its own after the loss, so its
+  first option is to "send a request to the new Supplier to provide an actual Meter register
+  reading" [H]. If the suppliers cannot agree, the new data collector takes a current read and
+  deems the switch-date read backwards from it. A revision under 250 kWh is not entered into
+  settlement [H]. "The CoS reading is assumed to be correct by the Old Supplier, until the Old
+  Supplier disputes" it (footnote 22) [H]. After the 12 months, the read can be replaced only by
+  mutual agreement between the two suppliers or by an authorised BSC Trading Dispute (§4.14.5) [H].
+- **Gas: the Shipper/Supplier Agreed Read.** The incoming shipper provides the opening read. A
+  replacement "must be Agreed between the Incoming and Outgoing Shipper" (UNC TPD Section M, as
+  summarised to the DWG). Under SPAA Schedule 11, "disputes need to be initiated within 12 months
+  of the CoS" and resolved within 70 business days. Where the volume is 1,200 kWh or less, the
+  outgoing supplier is encouraged to accept [M, Joint Office DWG paper, Jan 2020].
+- **Who may raise it, and the customer's part.** The REC switch-read exceptions schedule (Ofgem
+  consultation draft, Oct 2018) lets "the Consumer, Losing Supplier or Gaining Supplier" raise a
+  dispute within 12 months. A consumer may contact either supplier. Under 1,200 kWh (gas) or 250 kWh
+  (electricity), the supplier "shall not dispute … unless the Consumer specifically requests a new
+  Switch Meter Reading, but should instead attempt to resolve the dispute with an accommodation
+  e.g. cash allowance". Both suppliers then bill on the agreed read. "Where the Losing Supplier
+  presents the Consumer with an amended final account as a result of a dispute", it explains how
+  the read was set (§§3.5–3.6, 4.1, 4.3) [M: a draft; the in-force REC text was not read].
+- **A home mover has no such route.** A change of tenancy with the same supplier has no second
+  supplier and no D0300. The closing read is the supplier's own (above), so nothing in industry
+  process sets a window or a threshold for correcting it. The SLC 21BA 12-month bar still applies to
+  any demand (§K3) [reasoning from the sources above].
+- **Which side has the reason to dispute** [reasoning]. An undercharging closing estimate puts the
+  register at the switch below the true one. The gaining supplier's first actual read then carries
+  the missed kWh onto its own customer's bill, so the gaining supplier, or the customer, has a
+  reason to dispute it. An overcharging closing estimate is the reverse. The gaining supplier gains,
+  and only the losing supplier has a reason to dispute, but it holds no read. **For a switcher, the
+  household pays for the same kWh either way.** A dispute moves them between the two suppliers'
+  bills. The household's own position changes only by the difference in rates and by any 21BA bar.
+  That makes most of a corrected switch read a transfer between suppliers, not value created (M2).
+
+**GAPs:** the in-force REC wording (after 2021) and the in-force UNC Section M text, which were not
+read directly; how many disputed switch reads are raised a year, and what share are upheld (no
+published count found); how soon a gaining supplier gets its first actual read after the switch
+(this sets when, inside the 12 months, a dispute could arrive); whether an amended final account
+after a dispute is treated as a back-bill under 21BA when it reaches beyond 12 months.
+
+**Measured on the graded run output** (`/var/tmp/closing-money-run-20261017.json`, cc23de757;
+`docs/staging/records/SEAT_PREREG_WHICH_OPEN_CLOSING_RUNS_A_DISPUTED_SWITCH_READ_COULD_EVER_REACH_2026-10-17.md`).
+Of the 403 open closing runs, 265 are switchers, 132 home movers and 6 on both lists. The £3,471
+dispute seed (`8cd8e9954`) is new demand summed over the undercharge runs. Of it, **£2,222 across 17
+switcher runs passes the dispute threshold**, so a dispute from the gaining supplier could ever
+reach it. C7 alone is £1,431. None of those 17 runs closed within 12 months of the run's end. **The
+other £1,248, across 193 runs, has no industry route:** £833 sits on switchers under the threshold,
+where the REC says offer an accommodation, and £415 sits on movers, which only the supplier's own
+correction could reach. The world draws no gaining supplier, so it raises no D0300 and no dispute
+ever arrives. The seed stays a ceiling until the world models the gaining supplier's first read.
+
 ### 4b. What a supplier must do with an account its screen flags
 
 Added 2026-10-17, before the billing run was given the screen (K8). The duties are sourced in
@@ -582,6 +639,8 @@ question.**
 8. Per-supplier Citizens Advice billing-accuracy percentages 2016–2025 (published, not extracted).
 9. The exact gas reconciliation window (the AUGE says four years; the Xoserve summary said 24
    months).
+10. Disputed switch reads: a yearly count and the share upheld; how soon a gaining supplier first
+    reads the meter; the in-force REC and UNC Section M wording (§4a, 2026-10-17).
 
 **Commons gap:** `docs/domain_artefact_library/regulatory/` has no artefact for SLC 21BA. The primary
 text is the Ofgem decision of 5 March 2018, read here.
@@ -678,6 +737,10 @@ non-payment.
 - Elexon, *BSCP504 Non-Half Hourly Data Collection for SVA Metering Systems Registered in SMRS*,
   v53.0, 1 October 2024, §4.4.1 and §4.15.4–4.15.5:
   <https://www.mhhsprogramme.co.uk/api/documentlibrary/Background%20Programme%20Context/P478_BSCP504_v53.1.pdf>. Read as text [H].
+- Ofgem, *REC v2.0 – Switch Meter Reading Exceptions* (consultation draft schedule, 15 Oct 2018):
+  <https://www.ofgem.gov.uk/sites/default/files/docs/2018/10/rec_v2.0_-_switch_meter_reading_exceptions.pdf>. Read as text [M: draft].
+- Joint Office, DWG, *Issue: Shipper / Supplier Agreed Readings* (Jan 2020; UNC Section M, SPAA Schedule 11, ICoSS rules):
+  <https://gasgovernance.co.uk/sites/default/files/related-files/2023-08/AOB%206.1%20SAR%20Discussion%20V2.0.pdf> [M].
 - Joint Office, *Final Modification Report 0427S* (estimated opening reads, 7 to 10 days):
   <https://www.gasgovernance.co.uk/sites/default/files/ggf/Final%20Modification%20Report%200427S%20v2.0.pdf> [M, search summary].
 - Joint Office, UNC 0282 decision (gas vacant sites): <https://www.gasgovernance.co.uk/sites/default/files/ggf/UNC282D.pdf> [M].
