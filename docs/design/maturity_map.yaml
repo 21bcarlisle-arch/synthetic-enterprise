@@ -2087,9 +2087,11 @@
   # upsell and carbon advice, judged by CLV, rather than as a fixed ranking of measures." For a
   # customer in arrears the right action is a decision like a retention offer or an insulation
   # suggestion. Graded on EFFECT against tools/decision_probe.py's true counterfactual.
-  # L1 2026-10-06 (7211bc03a), dormant. 2026-10-16: hazard_estimate_from_holdout reads uplift from a coin-drawn holdout. NEXT: a run holds out the W2_39 contact.
+  # L1 2026-10-06 (7211bc03a), dormant. 2026-10-16: hazard_estimate_from_holdout reads uplift; svt_contact_holdout_share holds the W2_39 contact out.
   dial_inherited: 75
   provenance: director_ruling
+  blocked_on: null
+  block_reason: "PARKED by the seat 2026-10-17: no build left before a book that can decide. The published run holds 681 default-tariff accounts in a decade (about 6,000 needed); at 12 months a 50% holdout decides only 8.3 points (research 6.2). Debt waits on a world that answers a plan offer. Unpark when either exists."
   depends_on: [B11_forward_clv_backtested_on_held_back_history]
   couples_with: [W2_39_households_respond_to_contact_including_badly, B8_discovered_price_sensitivity_holdout]
   file_scope: ['company/crm/next_best_action.py', 'tests/company/crm/test_next_best_action.py',

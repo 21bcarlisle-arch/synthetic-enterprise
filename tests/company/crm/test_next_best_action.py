@@ -181,5 +181,37 @@ def test_the_holdout_coin_holds_its_share_per_account_and_the_reader_counts_each
         {"customer_id": "B", "event_date": "2016-02-01", "contact_arm": "holdout", "event_type": "stayed"},
         {"customer_id": "C", "event_date": "2016-02-01", "contact_arm": None, "event_type": "stayed"},
     ]
-    assert holdout_observations(rows) == [{"arm": "treated", "stayed": False},
-                                          {"arm": "holdout", "stayed": True}]
+    assert holdout_observations(rows, 1, "2030-01-01") == [{"arm": "treated", "stayed": False},
+                                                         {"arm": "holdout", "stayed": True}]
+
+
+def test_the_holdout_reader_grades_the_window_the_door_converts_and_drops_what_it_cannot_see():
+    """DEFECT: the reader grades each account's first segment, a window of its own length, while
+    the door converts every row over one `window_months`: a loss on the second segment inside the
+    window reads as staying and the hazard is understated (research §6.2, ~8x at 12 months). Or an
+    account whose window runs past the run's end is graded as stayed before the company can see it.
+
+    MUTATION: grading `r["event_type"]` of the first segment reds row A; dropping the
+    `end > until` check reds the length.
+    """
+    def seg(cid, d, arm, ev):
+        return {"customer_id": cid, "event_date": d, "contact_arm": arm, "event_type": ev}
+
+    rows = [
+        seg("A", "2016-01-10", "treated", "stayed"),   # lost on its second segment, inside 12m
+        seg("A", "2016-02-20", "treated", "churned"),
+        seg("B", "2016-01-10", "holdout", "stayed"),   # lost after its 12 months: it stayed
+        seg("B", "2017-03-01", "holdout", "churned"),
+        seg("C", "2016-01-31", "treated", "stayed"),   # window ends 2017-01-31, inside the run
+        seg("D", "2024-12-01", "holdout", "stayed"),   # window runs past the run's end: unseen
+    ]
+    assert holdout_observations(rows, 12, "2025-06-07") == [
+        {"arm": "treated", "stayed": False},
+        {"arm": "holdout", "stayed": True},
+        {"arm": "treated", "stayed": True},
+    ]
+    # Over one month A's loss falls outside its window, and D is now seen in full.
+    assert holdout_observations(rows, 1, "2025-06-07")[0] == {"arm": "treated", "stayed": True}
+    assert len(holdout_observations(rows, 1, "2025-06-07")) == 4
+    with pytest.raises(ValueError):
+        holdout_observations(rows, 0, "2025-06-07")

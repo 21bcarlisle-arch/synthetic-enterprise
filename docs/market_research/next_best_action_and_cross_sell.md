@@ -477,7 +477,9 @@ Printed at real inputs: a 2-point stay effect over 12 months is about 0.002/mont
 Deciding it needs about 3,000 accounts per arm (800 decides 4 points, 200 decides neither).
 **I cannot yet say** whether a run's default-tariff stock is that large. No run yet holds out the
 W2_39 contact (`DecisionPolicy.svt_contact_instrument` writes to everybody), so the function is
-dormant.
+dormant. *(Measured 2026-10-17: it is not. The
+published run, `bdd6d1657`, 2016 to June 2025, holds 681 distinct default-tariff accounts in the whole
+decade, against about 6,000 needed. See "The window the holdout reads" below.)*
 
 **The run can now hold the contact out (2026-10-16).** `DecisionPolicy.svt_contact_holdout_share`
 keeps that share of default-tariff accounts out of the W2_39 letter. The coin is the company's own
@@ -491,6 +493,34 @@ keeps that share of default-tariff accounts out of the W2_39 letter. The coin is
   a supplier's holdout share; the size that decides a 2-point effect (about 3,000 a side) is the
   constraint, not a number to borrow.
 The door is wired but no run has used it yet, so the level stays at 1.
+
+**The window the holdout reads (2026-10-17).** The reader and the door did not share a window.
+`holdout_observations` graded each account over its *first* segment, which in the published run is
+a median of 43 days and differs from account to account. `hazard_estimate_from_holdout` converts
+every row with one `window_months`. Paired at 12 months, that would have understated the hazard
+about eightfold. The reader now takes the same `window_months` and grades a fixed window: an
+account stayed if no departure is dated within that many months of its first assigned segment.
+An account whose window runs past the last date the run observed is dropped, because the company
+cannot yet see whether it stayed. A loss is dated at the segment the departure was rolled on,
+which is what the company books.
+
+Printed on the published run (`bdd6d1657`), with each account's first segment as its start:
+
+| Outcome window | Accounts with the whole window | Baseline loss | Smallest effect a 50% holdout decides (80% power) |
+|---|---|---|---|
+| first segment (median 43 days) | 681 | 2.6% | 3.4 points |
+| 12 months | 651 | 17.2% | 8.3 points |
+
+The first segment's 3.4 points is a large effect on a 43-day window: it means more than doubling
+the loss. Over 12 months, 8.3 points is about half the baseline. §3.1's randomised trials move
+engagement by low single figures. **So at the run's book size the holdout returns `None`, which is
+the right answer**: a real supplier with 681 default-tariff accounts could not tell either. The
+book, not the instrument, is what has to grow. Five seeds at this size would pool about 3,400 accounts, but
+the pooled estimate is an instrument reading across worlds, not something one company could know.
+It can grade whether the door reads the truth. It cannot be a decision input. As a placebo, a 50% coin laid over the published
+run's rows, where nothing was sent and the true effect is zero, gives the door "spans zero" at both
+windows: [-3.2, +3.0] points over the first month, and [-9.6, +2.0] over 12 months (353 contacted,
+298 held out).
 
 ### 6.3 World side: how households respond to offers
 

@@ -95,6 +95,7 @@ def test_a_held_out_account_gets_no_contact_and_the_run_reads_back_both_arms(_ar
                 assert r["event_type"] == none[_key(r)]["event_type"]
         else:
             assert r["contact_instrument"] == _INSTRUMENT
-    obs = holdout_observations(_arms["holdout"])
+    # One month, read as if the run were seen to its end: the window is the unit test's subject.
+    obs = holdout_observations(_arms["holdout"], 1, "9999-12-31")
     assert {o["arm"] for o in obs} == {"treated", "holdout"}
     assert len(obs) == len({r["customer_id"] for r in _arms["holdout"]})

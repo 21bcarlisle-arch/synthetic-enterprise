@@ -66,7 +66,9 @@ the company never holds the truth argument.
 from __future__ import annotations
 
 import hashlib
+from calendar import monthrange
 from dataclasses import dataclass
+from datetime import date
 from enum import Enum
 from typing import Mapping, Sequence
 
@@ -273,20 +275,36 @@ def in_contact_holdout(account_id: str, share: float, salt: str) -> bool:
     return int.from_bytes(digest[:8], "big") / 2 ** 64 < share
 
 
-def holdout_observations(svt_decisions) -> list[dict]:
+def holdout_observations(svt_decisions, window_months: int, observed_until: str) -> list[dict]:
     """A run's default-tariff decisions as rows for `hazard_estimate_from_holdout`.
 
-    Only rows the coin assigned (``contact_arm`` set) count, and only each account's FIRST such
-    segment: the arm is held per account, so a later segment of the same account is not an
-    independent draw, and one that follows a departure cannot exist. ``stayed`` is whether the
-    account was still ours at the segment's end, which the company sees as a loss or no loss.
+    Pass the door the same `window_months`: an account ``stayed`` if no departure is dated within
+    that many months of its FIRST assigned segment. The arm is held per account, so its later
+    segments are one draw, not fresh ones. An account whose window ends after `observed_until`
+    (ISO date) is dropped, since the company cannot yet see whether it stayed. Grading the first
+    segment alone gave each account its own window (a median 43 days on the published run) and
+    understated the hazard about eightfold at 12 months (research §6.2).
     """
-    seen, rows = set(), []
+    if window_months < 1:
+        raise ValueError(f"a holdout window must be at least one month, got {window_months}")
+    until = date.fromisoformat(observed_until)
+    starts, arms, lost = {}, {}, {}
     for r in sorted(svt_decisions, key=lambda r: r["event_date"]):
-        if r.get("contact_arm") is None or r["customer_id"] in seen:
+        if r.get("contact_arm") is None:
             continue
-        seen.add(r["customer_id"])
-        rows.append({"arm": r["contact_arm"], "stayed": r["event_type"] == "stayed"})
+        cid = r["customer_id"]
+        if cid not in starts:
+            starts[cid], arms[cid] = date.fromisoformat(r["event_date"]), r["contact_arm"]
+        if r["event_type"] == "churned":
+            lost.setdefault(cid, date.fromisoformat(r["event_date"]))
+    rows = []
+    for cid, t0 in starts.items():
+        months = t0.year * 12 + t0.month - 1 + window_months
+        y, m = divmod(months, 12)
+        end = date(y, m + 1, min(t0.day, monthrange(y, m + 1)[1]))
+        if end > until:
+            continue
+        rows.append({"arm": arms[cid], "stayed": not (cid in lost and lost[cid] < end)})
     return rows
 
 
