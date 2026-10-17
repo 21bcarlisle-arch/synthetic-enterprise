@@ -132,6 +132,25 @@ def test_an_empty_period_is_judged_only_between_two_actual_reads_and_by_who_was_
     assert "Ofgem" not in named[0]["message"] and "SLC 12A" in named[0]["message"]
 
 
+def test_an_incoming_account_is_judged_from_its_opening_read_only_when_that_read_is_actual():
+    """Defect: the first span is never judged however it opened, or is judged from an estimate,
+    or the closing read is taken from a period that does not end on the boundary."""
+    from company.billing.theft_indicator import boundary_read_status, empty_period_flags
+
+    outgoing = [_period(1, 300), {**_period(2, 0, "estimated"), "period_end": "2020-02-14"}]
+    ends_read = [_period(1, 300), {**_period(2, 0), "period_end": "2020-02-14"}]
+    # Each reading of the boundary is reachable before any is graded.
+    assert ([boundary_read_status(ends_read, "2020-02-15"), boundary_read_status(outgoing, "2020-02-15"),
+             boundary_read_status(ends_read, "2020-02-20")] == ["actual", "estimated", None])
+
+    stub = [_period(3, 0, void_owner_share=1.0), _period(4, 300)]
+    named = [_period(3, 0), _period(4, 300)]
+    assert [f["status"] for f in empty_period_flags(stub, "actual")] == ["void"]
+    assert [f["status"] for f in empty_period_flags(named, "actual")] == ["investigate"]
+    assert empty_period_flags(named, "actual")[0]["span_start"] == "2020-03-01"
+    assert empty_period_flags(named, "estimated") == empty_period_flags(named) == []
+
+
 def test_the_annual_window_refuses_a_short_window_and_holds_no_cut_of_its_own():
     """Defect: a month is read as a year, or the window classifies on a cut nobody sourced."""
     from company.billing.theft_indicator import (

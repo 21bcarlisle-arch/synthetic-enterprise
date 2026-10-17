@@ -109,3 +109,18 @@ def test_the_empty_period_flag_finds_thefts_and_never_a_void_alone():
     assert "void" not in table["empty_period"] and "neither" not in table["empty_period"], table
     assert table["annual_default_classified"] == {}, "the annual window classified on its own cut"
     assert table["annual_under_0.65"].get("theft", 0) > 0 and "void" not in table["annual_under_0.65"]
+
+
+def test_an_incoming_account_is_linked_to_its_outgoing_one_and_an_ambiguous_match_is_left_unlinked():
+    """Defect: the probe guesses between two move-outs on one day, or ignores the published link."""
+    from tools.theft_void_screen_probe import _outgoing_accounts
+
+    accounts = {"OCC-a": [{"period_start": "2020-03-01"}], "OCC-b": [{"period_start": "2020-05-01"}]}
+    outs = [{"customer_id": c, "commodity": "electricity", "move_date": d}
+            for c, d in (("C1", "2020-03-01"), ("C2", "2020-05-01"), ("C3", "2020-05-01"))]
+    run = {"home_move_outs": outs, "opening_registry_kwh_by_customer": {"C2": 9.0, "C3": 9.0, "OCC-b": 9.0}}
+    assert _outgoing_accounts(run, accounts) == ({"OCC-a": "C1"}, 1)
+    run["opening_registry_kwh_by_customer"]["C3"] = 8.0
+    assert _outgoing_accounts(run, accounts) == ({"OCC-a": "C1", "OCC-b": "C2"}, 0)
+    published = {"home_move_ins": [{"customer_id": "OCC-b", "commodity": "electricity", "premise": "C3"}]}
+    assert _outgoing_accounts({**run, **published}, accounts) == ({"OCC-b": "C3"}, 1)

@@ -353,6 +353,36 @@ definition below, and it is a design choice, not a published one.
 cut; a positive definition of "occupied"; the rate at which empty periods on named electricity
 accounts are confirmed theft (TRAS publishes outcomes by payment method only).
 
+**The opening read at a change of tenancy** (added 2026-10-17, before the flag was given one; K8).
+The empty-period flag needs an actual read at each end of a span, so the question is whether a
+supplier holds an actual read on the day an incoming occupier's account opens.
+- **With the same supplier, no industry process sets the read.** BSCP504 v53.0 (Oct 2024) names a
+  change of tenancy only to end a Long Term Vacant period: "the date of the change of tenancy should
+  be used as the end date" (§4.15.5), and a CoT is a reason the site stops qualifying (§4.15.4) [H].
+  Its read-taking rules are for a change of **supplier**. A CoT with the incumbent sends no
+  registration flow (`home_moves.md` §3). The read is the supplier's own.
+- **The change-of-supplier rule is the published precedent for an opening read.** The read is taken
+  "within the SSD ±5 days" from actual reads in precedence remote, meter operator final, data
+  collector, then customer own. If none is valid by SSD+5, "a valid Old Supplier Estimated reading
+  … must be used", and the new data collector deems one by SSD+8 (BSCP504 §4.4.1, step 3.2.6.11)
+  [H]. Gas has the same shape: the incoming shipper submits the opening read, or an estimated
+  opening read within 10 days (UNC 0427S, 7 days before it) [M]. **So an opening read always
+  exists, and it is either actual or deemed.**
+- **At a CoT the opening read is the outgoing account's closing read.** The meter does not change,
+  so one read closes one account and opens the next (`home_moves.md` §3). It is actual if the
+  customer gave one, or if a smart meter was read remotely on the day. Otherwise it is estimated
+  (§8.2 there: a final read is actual "sometimes") [M, Citizens Advice and supplier guidance].
+  **GAP:** the share of change-of-tenancy boundary reads that are actual. None found.
+
+**What the design takes from it** (`company/billing/theft_indicator.py`):
+4. **An incoming account opens on the outgoing account's closing read.** `boundary_read_status`
+   reads that read off the outgoing account at the same meter point, if its period ends the day
+   before the account opens. `empty_period_flags(periods, opening_read_status)` judges the first
+   span only when that read is **actual**. A deemed opening read is the supplier's own guess, so a
+   zero advance from it is not measured. Without a closing read on the boundary, nothing is judged.
+   Graded on the run book in
+   `docs/staging/records/WORKER_PREREG_W2_36_THE_OPENING_READ_AT_A_CHANGE_OF_TENANCY_2026-10-17.md`.
+
 ---
 
 ## 5. What our code does
@@ -421,6 +451,11 @@ text is the Ofgem decision of 5 March 2018, read here.
 4. `EP5_settlement_true_ups` (settlement corrections landing in the books) is unbuilt.
 5. The UIG and theft registers are built and never reached, and nothing world-side feeds them.
 6. The back-billing module cites the wrong licence condition and leaves out microbusinesses.
+7. The world's closing read is always actual (`simulation/meter_reads.final_read_for`, added
+   2026-10-17). Published practice makes it actual only "sometimes" (§4a). So every incoming
+   account's opening read is actual whenever a closing read exists, and the empty-period flag
+   judges more first periods on the run book than a real book would allow. Filed as
+   `SEAT_FINDING_THE_WORLDS_CLOSING_READ_IS_ALWAYS_ACTUAL_2026-10-17.md`.
 
 ---
 
@@ -481,6 +516,11 @@ non-payment.
   <https://www.ofgem.gov.uk/ofgem-publications/88276/openletter-treatmentoflowandzeroconsumersofgas.pdf>. Read as text [H].
 - Elexon, *P245 Modification Proposal: Changes to Long Term Vacant Site Timescales*, 23 October 2009:
   <https://assets.elexon.co.uk/wp-content/uploads/2012/02/28171042/p245_long_term_vacant_site_timescales.pdf>. Read as text [H].
+- Elexon, *BSCP504 Non-Half Hourly Data Collection for SVA Metering Systems Registered in SMRS*,
+  v53.0, 1 October 2024, §4.4.1 and §4.15.4–4.15.5:
+  <https://www.mhhsprogramme.co.uk/api/documentlibrary/Background%20Programme%20Context/P478_BSCP504_v53.1.pdf>. Read as text [H].
+- Joint Office, *Final Modification Report 0427S* (estimated opening reads, 7 to 10 days):
+  <https://www.gasgovernance.co.uk/sites/default/files/ggf/Final%20Modification%20Report%200427S%20v2.0.pdf> [M, search summary].
 - Joint Office, UNC 0282 decision (gas vacant sites): <https://www.gasgovernance.co.uk/sites/default/files/ggf/UNC282D.pdf> [M].
 - Ofgem, SPAA CP13/239 *TRAS Arrangements: TRAS Product* decision, 2013 [H, letter text]; ENGIE,
   *Energy Theft Risk Assessment Service* customer notice [M].

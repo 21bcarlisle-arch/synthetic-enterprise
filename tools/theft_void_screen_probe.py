@@ -28,6 +28,10 @@ move date and makes its rows before `void_end` the owner's, at 0 kWh. The run do
 to the void (the void starts on the account's first day). An owner's move, whose void is a GAP,
 has its first period filed there too; it rarely flags, as it is used.
 Pre-registration: docs/staging/records/WORKER_PREREG_W2_36_WHAT_THE_SCREEN_FLAGS_AMONG_OCCUPIED_HOMES_2026-10-16.md.
+
+The structural run table opens each incoming account on its outgoing account's closing read, as a
+supplier would (§4a, the opening read at a change of tenancy).
+Pre-registration: docs/staging/records/WORKER_PREREG_W2_36_THE_OPENING_READ_AT_A_CHANGE_OF_TENANCY_2026-10-17.md.
 """
 
 from __future__ import annotations
@@ -37,7 +41,12 @@ import datetime as dt
 from collections import Counter
 
 from company.billing.monthly_bill_assembly import ESTIMATE_WINDOW_READS
-from company.billing.theft_indicator import annual_window, classify_anomaly, empty_period_flags
+from company.billing.theft_indicator import (
+    annual_window,
+    boundary_read_status,
+    classify_anomaly,
+    empty_period_flags,
+)
 from company.billing.unread_month_estimate import estimate_unread_kwh, opening_estimate_kwh
 from sim.customer_state_layer import Occupancy, TenureType, draw_home_move, void_end
 from simulation.meter_reads import THEFT_UNREGISTERED_SHARE, premise_theft_months
@@ -215,10 +224,10 @@ def occupied_screen_table(run_output: dict) -> dict:
     }
 
 
-def _empty_period_causes(periods: list[dict], causes: dict) -> Counter:
+def _empty_period_causes(periods: list[dict], causes: dict, opening: str | None = None) -> Counter:
     # The company's flag is asked with its own fields only; the cause it is filed under is the world's.
     out = Counter()
-    for flag in empty_period_flags(periods):
+    for flag in empty_period_flags(periods, opening):
         if flag["status"] == "investigate":
             out[causes[flag["span_end"]] or "neither"] += 1
     return out
@@ -257,6 +266,29 @@ def structural_table(tenure: TenureType, n_premises: int, base_seed: int = 42,
     }}
 
 
+def _outgoing_accounts(run_output: dict, accounts: dict) -> tuple[dict, int]:
+    """Each incoming electricity account's outgoing account at the same meter point, and how many
+    could not be linked. A supplier knows this from its own book (`incoming_occupant_of`). Runs
+    before `home_move_ins` was published are matched on move date and registry EAC, and a match
+    that is still ambiguous is left unlinked rather than guessed."""
+    incoming = {cid: min(p["period_start"] for p in ps) for cid, ps in accounts.items()
+                if cid.startswith("OCC-")}
+    if "home_move_ins" in run_output:
+        links = {m["customer_id"]: m["premise"] for m in run_output["home_move_ins"]
+                 if m["commodity"] == "electricity" and m["customer_id"] in incoming}
+        return links, len(incoming) - len(links)
+    registry = run_output.get("opening_registry_kwh_by_customer") or {}
+    links = {}
+    for cid, opened_on in incoming.items():
+        found = [m["customer_id"] for m in run_output.get("home_move_outs", [])
+                 if m["commodity"] == "electricity" and m["move_date"] == opened_on]
+        if len(found) > 1:
+            found = [f for f in found if registry.get(f) is not None and registry.get(f) == registry.get(cid)]
+        if len(found) == 1:
+            links[cid] = found[0]
+    return links, len(incoming) - len(links)
+
+
 def structural_run_table(run_output: dict) -> dict:
     """The two structural flags on a run's electricity book: occupied homes and incoming-account voids."""
     reads = {(r["customer_id"], r["period_end"]): r for r in run_output["meter_read_log"]}
@@ -270,16 +302,22 @@ def structural_run_table(run_output: dict) -> dict:
             "period_start": bill["period_start"], "period_end": bill["period_end"],
             "read_status": read["status"], "registered_kwh": float(read["true_consumption_kwh"]),
             "void_owner_share": bill.get("void_owner_share"), "occupier_share": bill.get("occupier_share")})
-    empty, statuses = Counter(), Counter()
+    outgoing, unlinked = _outgoing_accounts(run_output, accounts)
+    empty, statuses, openings = Counter(), Counter(), Counter()
     for cid, periods in accounts.items():
         causes, in_void = {}, cid.startswith("OCC-")
         for p in sorted(periods, key=lambda p: p["period_start"]):
             causes[p["period_end"]] = "void" if in_void else "occupied"
             if p["registered_kwh"] > 0:
                 in_void = False
-        for flag in empty_period_flags(periods):
+        opening = None
+        if cid in outgoing:
+            opened_on = min(p["period_start"] for p in periods)
+            opening = boundary_read_status(accounts.get(outgoing[cid], []), opened_on)
+            openings[str(opening)] += 1
+        for flag in empty_period_flags(periods, opening):
             statuses[f'{causes[flag["span_end"]]}/{flag["status"]}'] += 1
-        empty += _empty_period_causes(periods, causes)
+        empty += _empty_period_causes(periods, causes, opening)
     annual_default, annual_cut = Counter(), Counter()
     for account in occupied_windows(run_output):
         for row in account["annual"]:
@@ -292,6 +330,8 @@ def structural_run_table(run_output: dict) -> dict:
     premise_years = sum(m["days"] for a in occupied_windows(run_output) for m in a["monthly"]) / 365.25
     scale = 10_000 / premise_years if premise_years else 0.0
     return {"accounts": len(accounts), "premise_years": round(premise_years, 1),
+            "incoming_accounts_by_opening_read": dict(openings),
+            "incoming_accounts_unlinked": unlinked,
             "zero_advance_spans_by_cause_and_status": dict(statuses),
             "per_10k_premise_years": {
                 "empty_period": {k: round(v * scale, 1) for k, v in sorted(empty.items())},

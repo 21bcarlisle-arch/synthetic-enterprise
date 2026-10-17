@@ -18,6 +18,8 @@ company-observable data (invoices + EAC).
 
 from __future__ import annotations
 
+import datetime as dt
+
 #: UNSOURCED, so None. The 0.40 ("investigate") and 0.65 ("watch") ratios this held were typed
 #: with no source, and no published actual/EAC screening threshold was found
 #: (read_access_and_theft_duties.md §5). A screen tuned to a supplier's own investigation
@@ -137,7 +139,7 @@ def _named_occupier(period: dict) -> bool:
             and float(period.get("occupier_share") or 0.0) < 1.0)
 
 
-def empty_period_flags(periods: list[dict]) -> list[dict]:
+def empty_period_flags(periods: list[dict], opening_read_status: str | None = None) -> list[dict]:
     """Spans of zero advance between two consecutive actual reads on a named occupier's account.
 
     `periods` is one account's billing periods in any order, each with `period_start`,
@@ -148,12 +150,14 @@ def empty_period_flags(periods: list[dict]) -> list[dict]:
 
     Electricity only: up to 2% of occupied homes use no gas at all (Ofgem, 20 June 2014), so a gas
     empty period is reported "not_screened" rather than flagged. A span before the first actual
-    read has no opening read and is not judged.
+    read is judged only if `opening_read_status` is "actual": the read the account opened on. At a
+    change of tenancy that is the outgoing account's closing read (`boundary_read_status`). An
+    estimated opening read is the company's own guess, so a zero advance from it is not measured.
     """
     rows = sorted(periods, key=lambda p: p["period_start"])
     flags: list[dict] = []
     span: list[dict] = []
-    seen_actual = False
+    seen_actual = opening_read_status == "actual"
     for p in rows:
         span.append(p)
         if p.get("read_status") != "actual":
@@ -183,6 +187,19 @@ def empty_period_flags(periods: list[dict]) -> list[dict]:
         seen_actual = True
         span = []
     return flags
+
+
+def boundary_read_status(outgoing_periods: list[dict], opened_on: str) -> str | None:
+    """The status of the read an incoming account opens on: the outgoing account's closing read.
+
+    With the same supplier a change of tenancy has no industry read process (BSCP504 names it only
+    to end a Long Term Vacant period, §4.15.5). The meter does not change, so the one read closes
+    one account and opens the next. That read is the outgoing account's last read, if its period
+    ends the day before `opened_on`. Otherwise the boundary is unread and this returns None.
+    """
+    day_before = (dt.date.fromisoformat(opened_on) - dt.timedelta(days=1)).isoformat()
+    at_boundary = [p for p in outgoing_periods if p["period_end"] == day_before]
+    return at_boundary[-1].get("read_status") if at_boundary else None
 
 
 def annual_window(registered_kwh: float, expected_kwh: float, days: int,
