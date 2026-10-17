@@ -429,19 +429,60 @@ Estimated reading … must be used" (§4.4.1, above). The question is what can r
   settlement [H]. "The CoS reading is assumed to be correct by the Old Supplier, until the Old
   Supplier disputes" it (footnote 22) [H]. After the 12 months, the read can be replaced only by
   mutual agreement between the two suppliers or by an authorised BSC Trading Dispute (§4.14.5) [H].
-- **Gas: the Shipper/Supplier Agreed Read.** The incoming shipper provides the opening read. A
-  replacement "must be Agreed between the Incoming and Outgoing Shipper" (UNC TPD Section M, as
-  summarised to the DWG). Under SPAA Schedule 11, "disputes need to be initiated within 12 months
-  of the CoS" and resolved within 70 business days. Where the volume is 1,200 kWh or less, the
-  outgoing supplier is encouraged to accept [M, Joint Office DWG paper, Jan 2020].
-- **Who may raise it, and the customer's part.** The REC switch-read exceptions schedule (Ofgem
-  consultation draft, Oct 2018) lets "the Consumer, Losing Supplier or Gaining Supplier" raise a
-  dispute within 12 months. A consumer may contact either supplier. Under 1,200 kWh (gas) or 250 kWh
-  (electricity), the supplier "shall not dispute … unless the Consumer specifically requests a new
-  Switch Meter Reading, but should instead attempt to resolve the dispute with an accommodation
-  e.g. cash allowance". Both suppliers then bill on the agreed read. "Where the Losing Supplier
-  presents the Consumer with an amended final account as a result of a dispute", it explains how
-  the read was set (§§3.5–3.6, 4.1, 4.3) [M: a draft; the in-force REC text was not read].
+- **Gas: the Agreed Opening Meter Reading, and since 0811S a corrective one** (UNC TPD Section M
+  v6.01, 8 March 2024, read as text 2026-10-17) [H]. The incoming shipper must submit a valid
+  opening read by "the 10th Business Day after the Supply Point Registration Date" for a Class 3
+  or 4 meter (M5.13.3(b)). Otherwise the CDSP estimates one "for a Read Date which is the Supply
+  Point Registration Date" (M5.13.7(c)). The withdrawing shipper "may (if it has bona fide and
+  material grounds for doing so)" object (M5.13.10). A replacement is an "Agreed Opening Meter
+  Reading … agreed between the Proposing User and the Withdrawing User" (M5.13.11). It cannot
+  replace an opening read the registered user itself submitted for the registration date
+  (M5.13.11). Section M sets no 12-month window of its own. Modification 0811S added a one-sided
+  route "at any time more than two months after the date of the Opening Meter Reading" where no
+  agreed read exists. The withdrawing shipper, or the proposing shipper outside the wider tolerance
+  band, notifies a Corrective Opening Meter Reading. It stands unless the other side rejects it
+  within 20 Supply Point Systems Business Days (M5.13.17–5.13.21). The 12-month window and the
+  1,200 kWh threshold come from the supply side: SPAA Schedule 11 then (Joint Office DWG paper,
+  Jan 2020) [M], and REC Schedule 30 now (next bullet) [H].
+- **Who may raise it, and the customer's part** (REC Schedule 30, *Resolution of Consumer-Facing
+  Switching and Billing Problems*, v1.1, effective 4 November 2022, Section C; read as text
+  2026-10-17 through the MHHS programme's redline of it, quoting only the base wording) [H].
+  Section C covers a read "disputed by the Consumer, Losing Supplier or Gaining Supplier … and
+  12 months have not passed since the Supply Effective From Date (or later, where the Energy
+  Suppliers have bilaterally agreed to follow this process)" (7.3(a)). It is mandatory for domestic
+  suppliers, for NHH electricity and for gas. A supplier "may initiate" the procedure (9.2). Where
+  the consumer disputes, the supplier "shall endeavour to reach an agreement with the Consumer
+  without invoking this disputes process" (9.3). The supplier the consumer contacted applies the
+  threshold (9.4). At 1,200 kWh or less for gas, or 250 kWh or less for electricity, it "shall not
+  dispute … unless the Consumer specifically requests a new Switch Meter Reading, but shall instead
+  attempt to resolve the dispute with an accommodation (e.g. cash allowance to the Consumer)". Above
+  the threshold, or if the consumer refuses the accommodation, it "shall initiate a dispute". If
+  both suppliers raise it, the gaining supplier's request takes precedence (9.7). Once a read is
+  agreed, the consumer is "sent amended opening and / or closing bills covering the full disputed
+  period … corrected for the full period of erroneous data, regardless of whether an equivalent
+  correction is applied within settlements" (8.1(b)). The 2018 draft said "should" where the
+  in-force text says "shall" on the accommodation. Otherwise it matches.
+- **What this means for who starts a dispute** [reasoning from the REC text above]. The only
+  "shall initiate" in Section C hangs on the supplier "contacted by the Consumer" (9.4). A
+  supplier's own dispute, with no consumer contact, is a "may" (9.2). So nothing in the code makes a
+  dispute certain when a switch read is wrong by more than the threshold. A dispute needs a consumer
+  who notices, or a supplier that chooses to act, inside 12 months.
+- **When the gaining supplier first reads a non-smart meter.** No published distribution was found;
+  the rules set the bounds. **Gas** [H, Section M v6.01]: "the User shall use its reasonable
+  endeavours to secure that a Valid Meter Reading is obtained and provided to the CDSP at least once
+  in the first 12 month period of ownership" (M5.9.10). Failing that, "at least once in the first
+  24 months of ownership" (M5.9.11). **Electricity** [H, BSCP504 v53.0]: "Suppliers aren't required
+  to read Metering Systems Profile Class 1 to 4 every three months … Suppliers may determine reading
+  frequency to meet billing requirements and performance standards" (§4.20, which covers remotely
+  read meters; for a meter read by hand, the binding rule is SLC 21B.4 below). Where the switch read fails or
+  is missing, the new data collector deems it from "one or two new actual Meter register readings …
+  obtained either in line with the reading cycle for that Metering System or obtained as special
+  readings". Both reads must fall "within 12 months of the change of Supplier" (§4.5.2). **Both
+  fuels** [H, commons `slc_21b_21ba_reads_and_back_billing.md`]: SLC 21B.4 says "take all
+  reasonable steps to obtain a meter reading … at least once every year". Before the switch date a
+  customer read is accepted from five days before to five days after (supplier guidance) [M]. So
+  the first actual read after a switch comes from the gaining supplier's ordinary read process,
+  with no switch-specific read obligation. The rules aim it at 12 months at most.
 - **A home mover has no such route.** A change of tenancy with the same supplier has no second
   supplier and no D0300. The closing read is the supplier's own (above), so nothing in industry
   process sets a window or a threshold for correcting it. The SLC 21BA 12-month bar still applies to
@@ -455,11 +496,32 @@ Estimated reading … must be used" (§4.4.1, above). The question is what can r
   bills. The household's own position changes only by the difference in rates and by any 21BA bar.
   That makes most of a corrected switch read a transfer between suppliers, not value created (M2).
 
-**GAPs:** the in-force REC wording (after 2021) and the in-force UNC Section M text, which were not
-read directly; how many disputed switch reads are raised a year, and what share are upheld (no
-published count found); how soon a gaining supplier gets its first actual read after the switch
-(this sets when, inside the 12 months, a dispute could arrive); whether an amended final account
-after a dispute is treated as a back-bill under 21BA when it reaches beyond 12 months.
+**GAPs** (narrowed 2026-10-17; the in-force REC and UNC wording is now read, above):
+- **How many disputed switch reads are raised a year, and what share are upheld.** Searched: Elexon
+  PAB headline reports, RECCo performance-assurance pages, the Xoserve PARR schedules and the
+  ombudsman's annual data. No count found. In December 2022 the gas CDSP itself said "the possible
+  volumes for this process are currently unknown" (UNC 0811S Workgroup Report, ROM assessment) [H].
+  0811S created a monthly PARR report counting Corrective Opening Meter Readings, with rejection
+  shares, by peer and in industry total (PARR Schedule 2A/2B draft, 2023) [H]. If its industry
+  totals are ever published, that is the first gas count. It counts only the exceptions route,
+  not every agreed read.
+- **The distribution of the gaining supplier's first actual read** inside the 12-month bound above.
+  It is the same quantity as the ordinary read cadence of a traditional meter (§K2's read classes),
+  started at the switch date. Practitioner.
+- **Whether an amended final account after a dispute counts as a back-bill under 21BA.** REC 8.1(b)
+  asks for correction "for the full period of erroneous data", and the dispute window runs 12 months
+  from the switch, so an amended final bill can reach energy more than 12 months old. Neither text
+  read says how the two meet.
+
+**What a world build can take from this, and what it must not invent** [reasoning]. The first-read
+leg needs no new number: draw the gaining supplier's first actual read from the read process the
+world already runs for a traditional meter, starting at the switch date. Mark the 12-month bound
+as the rule, not the cadence. A dispute rate has no published anchor. The REC text makes a
+dispute conditional on a consumer noticing or a supplier choosing, not automatic above the
+threshold. So "every over-threshold undercharge found by a first read inside 12 months is disputed"
+is an upper bound, and it is the only honest one. Any result built on it for the £2,222 seed is a
+ceiling and must be published as one. The rate stays a GAP row that draws nothing until it is
+sourced.
 
 **Measured on the graded run output** (`/var/tmp/closing-money-run-20261017.json`, cc23de757;
 `docs/staging/records/SEAT_PREREG_WHICH_OPEN_CLOSING_RUNS_A_DISPUTED_SWITCH_READ_COULD_EVER_REACH_2026-10-17.md`).
@@ -639,8 +701,10 @@ question.**
 8. Per-supplier Citizens Advice billing-accuracy percentages 2016–2025 (published, not extracted).
 9. The exact gas reconciliation window (the AUGE says four years; the Xoserve summary said 24
    months).
-10. Disputed switch reads: a yearly count and the share upheld; how soon a gaining supplier first
-    reads the meter; the in-force REC and UNC Section M wording (§4a, 2026-10-17).
+10. Disputed switch reads: a yearly count and the share upheld (none published; the gas CDSP called
+    volumes "unknown" in 2022); the distribution of the gaining supplier's first actual read
+    inside the 12-month rule bound. The in-force REC Schedule 30 and UNC Section M wording was read
+    on 2026-10-17 and is no longer a gap (§4a).
 
 **Commons gap:** `docs/domain_artefact_library/regulatory/` has no artefact for SLC 21BA. The primary
 text is the Ofgem decision of 5 March 2018, read here.
@@ -735,12 +799,23 @@ non-payment.
 - Elexon, *P245 Modification Proposal: Changes to Long Term Vacant Site Timescales*, 23 October 2009:
   <https://assets.elexon.co.uk/wp-content/uploads/2012/02/28171042/p245_long_term_vacant_site_timescales.pdf>. Read as text [H].
 - Elexon, *BSCP504 Non-Half Hourly Data Collection for SVA Metering Systems Registered in SMRS*,
-  v53.0, 1 October 2024, §4.4.1 and §4.15.4–4.15.5:
+  v53.0, 1 October 2024, §4.4.1, §4.5.2, §4.15.4–4.15.5 and §4.20:
   <https://www.mhhsprogramme.co.uk/api/documentlibrary/Background%20Programme%20Context/P478_BSCP504_v53.1.pdf>. Read as text [H].
 - Ofgem, *REC v2.0 – Switch Meter Reading Exceptions* (consultation draft schedule, 15 Oct 2018):
   <https://www.ofgem.gov.uk/sites/default/files/docs/2018/10/rec_v2.0_-_switch_meter_reading_exceptions.pdf>. Read as text [M: draft].
 - Joint Office, DWG, *Issue: Shipper / Supplier Agreed Readings* (Jan 2020; UNC Section M, SPAA Schedule 11, ICoSS rules):
-  <https://gasgovernance.co.uk/sites/default/files/related-files/2023-08/AOB%206.1%20SAR%20Discussion%20V2.0.pdf> [M].
+  <https://gasgovernance.co.uk/sites/default/files/related-files/2023-08/AOB%206.1%20SAR%20Discussion%20V2.0.pdf>.
+  Read as text 2026-10-17 [H for what it says; [M] for the SPAA rules it summarises].
+- RECCo, *REC Schedule 30 – Resolution of Consumer-Facing Switching and Billing Problems*, v1.1,
+  effective 4 November 2022, Section C. Read as text 2026-10-17 in the MHHS programme's redline
+  (MHHS-DEL1516 v0.3), base wording only:
+  <https://www.mhhsprogramme.co.uk/uploads/eed6956a-6182-4795-9a38-799fad2361c2/MHHS-DEL1516-REC_Schedule_30_-_Resolution_of_Consumer_Facing_Switching_and_Billing_Issues_v0.3.pdf> [H].
+- Joint Office, *UNC TPD Section M – Supply Point Metering*, v6.01, 8 March 2024, M5.9.9–5.9.12 and
+  M5.13: <https://gasgovernance.co.uk/sites/default/files/related-files/2024-03/15_tpd_section_m_-_supply_point_metering.pdf>. Read as text [H].
+- Joint Office, *UNC 0811S Workgroup Report* (Shipper Agreed Read exceptions), 12 December 2022:
+  <https://gasgovernance.co.uk/sites/default/files/2023-05/302.12%20a%29%20Workgroup%20Report%200811.pdf>;
+  and *Draft PARR Reports – Modification 0811S* (2023):
+  <https://gasgovernance.co.uk/sites/default/files/2023-07/5.2%20b%2529%20DRAFT%20PARR%20Reports%20-%20Modification%200811S%20-%20For%20Review.pdf>. Both read as text [H].
 - Joint Office, *Final Modification Report 0427S* (estimated opening reads, 7 to 10 days):
   <https://www.gasgovernance.co.uk/sites/default/files/ggf/Final%20Modification%20Report%200427S%20v2.0.pdf> [M, search summary].
 - Joint Office, UNC 0282 decision (gas vacant sites): <https://www.gasgovernance.co.uk/sites/default/files/ggf/UNC282D.pdf> [M].
