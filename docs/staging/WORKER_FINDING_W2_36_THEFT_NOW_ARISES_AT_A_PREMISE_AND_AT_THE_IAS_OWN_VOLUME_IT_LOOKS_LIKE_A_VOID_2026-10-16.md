@@ -137,6 +137,10 @@ Beside the earlier table, per 10,000 premise-years:
 
 **Fate (2026-10-16, after this slice):** ATOM -- W2_36's remaining kinds (K5 meter faults, K6
 settlement against billing) stand. GAP 1 is the next fidelity question for this screen.
+**K5 knowledge first (worker, 2026-10-17).** `unbilled_energy_and_revenue_assurance.md` §K5 now
+carries the legal in-service limits and the only published counts, which cover disputed meters
+(2003–2014 electricity, 2011 gas). No population fault rate or fast/slow split is published, so a
+world K5 build, after the 2026-10-19 publish, carries its prevalence as a named `None`.
 
 ## The company's screen now has two structural flags, and neither needed a ratio cut (seat, 2026-10-17)
 
