@@ -23,6 +23,8 @@ from company.crm.next_best_action import (
     forward_value,
     grade,
     hazard_estimate_from_holdout,
+    holdout_observations,
+    in_contact_holdout,
 )
 
 H = 36
@@ -160,3 +162,24 @@ def test_a_holdout_sets_the_hazard_only_when_its_interval_decides_and_can_decide
     assert one_arm.hazard_change_per_month is None and "holds no decision" in one_arm.unknown_because
     with pytest.raises(ValueError):
         hazard_estimate_from_holdout(T, holdout(10, 1.0, 1.0), 0, 50.0, 0.0)
+
+
+def test_the_holdout_coin_holds_its_share_per_account_and_the_reader_counts_each_account_once():
+    """DEFECT: the coin ignores its share (everyone or no one held out), varies within a run for
+    one account, or the reader counts an account's later segments as fresh draws."""
+    ids = [f"C{i:05d}" for i in range(4000)]
+    held = [in_contact_holdout(a, 0.25, "s1") for a in ids]
+    assert 0.22 < sum(held) / len(ids) < 0.28
+    assert held == [in_contact_holdout(a, 0.25, "s1") for a in ids]
+    assert held != [in_contact_holdout(a, 0.25, "s2") for a in ids]
+    assert not any(in_contact_holdout(a, 0.0, "s1") for a in ids[:200])
+    with pytest.raises(ValueError):
+        in_contact_holdout("C1", 1.5, "s1")
+    rows = [
+        {"customer_id": "A", "event_date": "2017-01-01", "contact_arm": "treated", "event_type": "stayed"},
+        {"customer_id": "A", "event_date": "2016-01-01", "contact_arm": "treated", "event_type": "churned"},
+        {"customer_id": "B", "event_date": "2016-02-01", "contact_arm": "holdout", "event_type": "stayed"},
+        {"customer_id": "C", "event_date": "2016-02-01", "contact_arm": None, "event_type": "stayed"},
+    ]
+    assert holdout_observations(rows) == [{"arm": "treated", "stayed": False},
+                                          {"arm": "holdout", "stayed": True}]

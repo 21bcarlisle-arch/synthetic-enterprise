@@ -143,6 +143,7 @@ FIELD_CONSUMPTION = {
     "retention_runs_holdout": {"via": "run_argument"},
     "retention_cut_sizing": {"via": "run_argument"},
     "svt_contact_instrument": {"via": "run_argument"},
+    "svt_contact_holdout_share": {"via": "run_argument"},
     "save_offer_cut_share": {"via": "run_argument"},
     "move_with_us_offers": {"via": "run_argument"},
     "theft_screen_in_billing_run": {"via": "run_argument"},

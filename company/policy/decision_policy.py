@@ -185,6 +185,12 @@ class DecisionPolicy:
     #: against: everybody, the same letter. `None` sends nothing, so no standing policy moves.
     svt_contact_instrument: str | None = None
 
+    #: C34 (2026-10-16): the share of default-tariff accounts the company keeps OUT of that
+    #: contact, by its own coin (`company.crm.next_best_action.in_contact_holdout`), so the run can
+    #: measure what the contact did against who was left alone. Read only with an instrument set.
+    #: `None` holds nobody out, so no standing policy moves; an experiment names its share.
+    svt_contact_holdout_share: float | None = None
+
     #: (2026-10-08) the cut, as a share of the renewal unit rate, of the Fixed Retention Tariff
     #: offered on a CSS Invitation to Intervene (`company.crm.save_offer`). A share and not GBP/MWh
     #: because one cut must mean the same thing on both fuels, and it is the form of the toggle that

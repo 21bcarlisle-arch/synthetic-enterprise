@@ -479,6 +479,19 @@ Deciding it needs about 3,000 accounts per arm (800 decides 4 points, 200 decide
 W2_39 contact (`DecisionPolicy.svt_contact_instrument` writes to everybody), so the function is
 dormant.
 
+**The run can now hold the contact out (2026-10-16).** `DecisionPolicy.svt_contact_holdout_share`
+keeps that share of default-tariff accounts out of the W2_39 letter. The coin is the company's own
+(`next_best_action.in_contact_holdout`), and the design makes three choices:
+- **One draw per account, held for the run**, as a real holdout group is. A sha256 of run and
+  account, not a random stream, so it takes none of the world's draws and the uncontacted roll of a
+  held-out account is the one it always was.
+- **Each account counts once, at its first assigned segment** (`holdout_observations`). Its later
+  segments share its arm, so they are not independent draws.
+- **The share is the experiment's to name.** No standing policy sets it. No published source gives
+  a supplier's holdout share; the size that decides a 2-point effect (about 3,000 a side) is the
+  constraint, not a number to borrow.
+The door is wired but no run has used it yet, so the level stays at 1.
+
 ### 6.3 World side: how households respond to offers
 
 | offer | world response | where |

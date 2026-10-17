@@ -28,9 +28,11 @@ def _run(policy, tmp_path_factory):
 @pytest.fixture(scope="module")
 def _arms(tmp_path_factory):
     contacted = replace(CURRENT_POLICY, name="svt_contact_test", svt_contact_instrument=_INSTRUMENT)
+    held = replace(contacted, name="svt_contact_holdout_test", svt_contact_holdout_share=0.5)
     return {
         "none": _run(CURRENT_POLICY, tmp_path_factory)["svt_decisions"],
         "contact": _run(contacted, tmp_path_factory)["svt_decisions"],
+        "holdout": _run(held, tmp_path_factory)["svt_decisions"],
     }
 
 
@@ -71,3 +73,28 @@ def test_a_sent_contact_reaches_every_segment_and_keeps_its_uncontacted_outcome(
             assert r["event_type"] == "churned" and r["departure_cause"] == "svt_inertia"
         lifted += r["realized_churn_probability"] > r["sim_p_depart_uncontacted"]
     assert lifted, "a contact that woke nobody on any segment means the response was not reached"
+
+
+def test_a_held_out_account_gets_no_contact_and_the_run_reads_back_both_arms(_arms):
+    """C34. DEFECT: the coin is drawn but the send still goes to a held-out account (the holdout
+    measures nothing), or the arm never reaches the row (the company cannot read its own holdout).
+
+    MUTATION: sending regardless of the arm reds the held-out roll equality; dropping
+    `contact_arm` from the row empties both arms.
+    """
+    from company.crm.next_best_action import holdout_observations
+
+    none = {_key(r): r for r in _arms["none"]}
+    arms = {r["contact_arm"] for r in _arms["holdout"]}
+    assert arms == {"treated", "holdout"}, "both arms must occur or this control is vacuous"
+    for r in _arms["holdout"]:
+        if r["contact_arm"] == "holdout":
+            assert r["contact_instrument"] is None
+            assert r["realized_churn_probability"] == r["sim_p_depart_uncontacted"]
+            if _key(r) in none:
+                assert r["event_type"] == none[_key(r)]["event_type"]
+        else:
+            assert r["contact_instrument"] == _INSTRUMENT
+    obs = holdout_observations(_arms["holdout"])
+    assert {o["arm"] for o in obs} == {"treated", "holdout"}
+    assert len(obs) == len({r["customer_id"] for r in _arms["holdout"]})

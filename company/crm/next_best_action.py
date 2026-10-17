@@ -36,6 +36,8 @@ to its own customer (research §7 gap 1), and the company runs no holdout that c
 never chosen — so with today's inputs every non-debt decision is "nothing", and says why.
 `hazard_estimate_from_holdout` is the first door that fills one: it reads an action's hazard
 effect from a coin-drawn holdout, and only when the holdout's interval decides.
+`in_contact_holdout` is the coin a run draws to keep that holdout, and `holdout_observations`
+reads the run's default-tariff decisions back into the rows the door takes.
 
 THE FLAT BASELINE is B11's flat rule carried over: ONE action for every account, the one with the
 best mean estimated effect across the book. The per-customer rule has to beat it on the TRUE
@@ -63,6 +65,7 @@ the company never holds the truth argument.
 """
 from __future__ import annotations
 
+import hashlib
 from dataclasses import dataclass
 from enum import Enum
 from typing import Mapping, Sequence
@@ -254,6 +257,37 @@ def hazard_estimate_from_holdout(action: Action, observations, window_months: in
         "estimated from it")
     return ActionEstimate(action, customer_benefit_gbp_per_year, margin_change_gbp_per_month, dh,
                           unknown)
+
+
+def in_contact_holdout(account_id: str, share: float, salt: str) -> bool:
+    """The company's own coin: is this account kept out of a contact programme?
+
+    One draw per account, held for the whole run, as a real holdout group is. A hash and not a
+    random stream, so the coin consumes none of the world's draws and an account's arm does not
+    depend on the order accounts are met. `salt` names the run, so seeds hold out different
+    accounts.
+    """
+    if not 0.0 <= share <= 1.0:
+        raise ValueError(f"a holdout share is a fraction of accounts, got {share}")
+    digest = hashlib.sha256(f"{salt}|{account_id}".encode()).digest()
+    return int.from_bytes(digest[:8], "big") / 2 ** 64 < share
+
+
+def holdout_observations(svt_decisions) -> list[dict]:
+    """A run's default-tariff decisions as rows for `hazard_estimate_from_holdout`.
+
+    Only rows the coin assigned (``contact_arm`` set) count, and only each account's FIRST such
+    segment: the arm is held per account, so a later segment of the same account is not an
+    independent draw, and one that follows a departure cannot exist. ``stayed`` is whether the
+    account was still ours at the segment's end, which the company sees as a loss or no loss.
+    """
+    seen, rows = set(), []
+    for r in sorted(svt_decisions, key=lambda r: r["event_date"]):
+        if r.get("contact_arm") is None or r["customer_id"] in seen:
+            continue
+        seen.add(r["customer_id"])
+        rows.append({"arm": r["contact_arm"], "stayed": r["event_type"] == "stayed"})
+    return rows
 
 
 def _scored(state: AccountState, horizon_months: int):

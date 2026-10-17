@@ -2345,7 +2345,11 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     # A contact about a missed payment reaches the same store (`contact_response`, early contact).
     _payment_triad.contacts_received = _contacts_received
     _svt_contact_instrument = policy.svt_contact_instrument
+    # C34: the company's own coin keeps a share of that stock out of the contact, so what the
+    # contact did can be read against who was left alone. `None` holds nobody out.
+    _svt_contact_holdout_share = policy.svt_contact_holdout_share
     if _svt_contact_instrument is not None:
+        from company.interfaces.contact_programme import contact_arm
         from company.interfaces.sim_interface import LiveSimInterface
         _contact_seam = LiveSimInterface(contacts_received=_contacts_received)
     churned_billing_accounts: set[str] = set()
@@ -2993,9 +2997,14 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             # the seam cannot reach this roll. With nothing received, `_svt_p_depart` is untouched
             # and the draw below is the one it always was.
             _svt_p_uncontacted = _svt_p_depart
+            _svt_contact_arm = None
             if _svt_contact_instrument is not None:
-                _contact_seam.send_contact(
-                    billing_account, date.fromisoformat(term_start_str), _svt_contact_instrument)
+                _svt_contact_arm = contact_arm(
+                    billing_account, _svt_contact_holdout_share, f"svt_contact_{run_base_seed()}")
+                if _svt_contact_arm != "holdout":
+                    _contact_seam.send_contact(
+                        billing_account, date.fromisoformat(term_start_str),
+                        _svt_contact_instrument)
             _svt_contact = _contacts_received.instrument_reaching(
                 billing_account, date.fromisoformat(term_start_str),
                 date.fromisoformat(term_end_str))
@@ -3076,6 +3085,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 # arrived: the true counterfactual an uplift estimate is graded against, ground
                 # truth, and never read by company code.
                 "contact_instrument": _svt_contact,
+                # C34. The company's own coin: "treated", "holdout", or None with no holdout run.
+                "contact_arm": _svt_contact_arm,
                 "sim_p_depart_uncontacted": round(_svt_p_uncontacted, 6),
                 "sim_churn_if_choosing": (
                     round(_svt_churn_if_choosing, 6)
