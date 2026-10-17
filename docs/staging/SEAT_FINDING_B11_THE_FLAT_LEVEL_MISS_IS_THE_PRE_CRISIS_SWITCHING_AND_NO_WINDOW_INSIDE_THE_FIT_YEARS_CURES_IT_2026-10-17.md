@@ -128,10 +128,38 @@ wording is still true. The string is also rendered into `saas/reporting/annual_r
 section, so rewording it would move a published surface, and this one-book result does not earn
 that.
 
+## The book's switching against the published record (added after landing; not pre-registered)
+
+*Corrected beside the claim: this section first read "research the GB switching record by year".
+That record was already in the knowledge map's "Switching rates" row: DESNZ QEP table 2.7.1, over
+all GB domestic electricity accounts.* The book's switch rate is annualised as 1 − (1 − h)^12:
+
+| year | book | published | ratio |
+|---|---|---|---|
+| 2016 | 4.4% | 15.82% | 0.28 |
+| 2017 | 19.4% | 18.20% | 1.06 |
+| 2018 | 18.9% | 19.06% | 0.99 |
+| 2019 | 16.8% | 20.82% | 0.81 |
+| 2020 | 17.6% | 20.21% | 0.87 |
+| 2021 | 9.7% | 15.57% | 0.62 |
+| 2022 | 1.2% | 3.06% | 0.39 |
+| 2023 | 4.2% | 6.33% | 0.66 |
+| 2024 | 6.1% | 9.03% | 0.68 |
+| 2025 (to June) | 7.7% | 10.40% | 0.74 |
+
+**The regime the flat level misses is the GB record's own regime, and the world reproduces its
+shape.** Across 2017–20 the book sits at 0.8–1.1× the record. From 2021 on it sits at 0.4–0.7×. So
+the world's post-crisis trough is about 1.4× deeper than the record's, relative to its pre-crisis
+level: a post/pre ratio of 0.25 in the book against 0.37 in the record. 2016 is low because the
+book was founded that year, and a first-year fixed-term book has little to switch out of. The
+second effect, the deeper trough, makes the slice's level miss larger than a supplier on the real
+record would have seen. It does not change the miss's direction or its cause. The knowledge map
+already carries the world's departure level against this record as a separate, open subject ("The
+world's departure LEVEL" row), so nothing new is filed for it here.
+
 ## Next (not done here)
 
-- Before any per-customer level is consumed, research the GB switching record by year, 2016–2025
-  (Ofgem's switching data, Energy UK's monthly figures). Then check whether this book's per-year
-  switch rates track it. If they do, the world's regime is right and the open question is only how
-  the company bands it. If they do not, it is a world-fidelity finding for `simulation/`. Per
-  K8, this is knowledge first.
+- **Company side.** A switch-term level that carries a regime band from the published record, as
+  the record stood at the cut, is the candidate design. It would have to reach the company as an
+  observable through `company/interfaces/sim_interface.py`, never as a fetched runtime input (W6).
+  It waits for the level's first consumer.
