@@ -124,3 +124,28 @@ def test_an_incoming_account_is_linked_to_its_outgoing_one_and_an_ambiguous_matc
     assert _outgoing_accounts(run, accounts) == ({"OCC-a": "C1", "OCC-b": "C2"}, 0)
     published = {"home_move_ins": [{"customer_id": "OCC-b", "commodity": "electricity", "premise": "C3"}]}
     assert _outgoing_accounts({**run, **published}, accounts) == ({"OCC-b": "C3"}, 1)
+
+
+def test_the_billing_screen_table_feeds_the_read_advance_and_counts_each_act():
+    """Defect: the table hands the screen each month's use instead of the register's advance at a
+    read (so a zero month between estimates reads as an empty span), or drops a fuel or an act."""
+    from tools.theft_void_screen_probe import billing_screen_table
+
+    def month(cid, m, kwh, status="actual", commodity="electricity", **extra):
+        end = f"2020-{m:02d}-28"
+        bill = {"customer_id": cid, "commodity": commodity, "period_start": f"2020-{m:02d}-01",
+                "period_end": end, "total_consumption_kwh": kwh, "commodity_amount_gbp": kwh * 0.2,
+                **extra}
+        return bill, {"customer_id": cid, "period_end": end, "status": status, "true_consumption_kwh": kwh}
+
+    rows = [month("C1", 1, 300), month("C1", 2, 0), month("C1", 3, 300),
+            month("C2", 1, 300), month("C2", 2, 0, "estimated"), month("C2", 3, 300),
+            month("C3", 1, 300), month("C3", 2, 0, void_owner_share=1.0), month("C3", 3, 300),
+            month("G1", 1, 300, commodity="gas"), month("G1", 2, 0, commodity="gas")]
+    table = billing_screen_table({"bills": [b for b, _ in rows], "meter_read_log": [r for _, r in rows],
+                                  "home_move_outs": []})["by_commodity_status_act"]
+    assert {k: v["flags"] for k, v in table.items()} == {
+        "electricity/investigate/refer_for_investigation": 1, "electricity/void/bill_the_void": 1,
+        "gas/not_screened/none": 1}
+    lead = table["electricity/investigate/refer_for_investigation"]
+    assert lead["assessed_unrecorded_kwh"] > 0 and lead["world_unrecorded_kwh"] == 0

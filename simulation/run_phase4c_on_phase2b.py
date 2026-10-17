@@ -274,6 +274,8 @@ def build_monthly_bills(
     all_records: list[dict],
     churned_ids: set[str] | None = None,
     read_events_out: list | None = None,
+    theft_screen_out: list | None = None,
+    tenancy_links: dict[str, str] | None = None,
 ) -> list[dict]:
     """Run the SUPPLIER's monthly billing over this run's settled records.
 
@@ -304,7 +306,23 @@ def build_monthly_bills(
         read_events_out=read_events_out,
         payment_channel_feed=simulated_payment_channel,
         premise_listing_feed=simulated_council_tax_listing,
+        theft_screen_out=theft_screen_out, tenancy_links=tenancy_links,
     )
+
+
+def theft_screen_request(policy, phase2b_result: dict) -> tuple[list | None, dict[str, str]]:
+    """What the billing run is handed for the company's theft screen (W2_36), by the company switch.
+
+    Off (`DecisionPolicy.theft_screen_in_billing_run`, the default) hands no list, so the run
+    computes and publishes nothing new. On hands a list for the flags and each incoming account's
+    outgoing account at the same meter point: a change of tenancy on the company's own book.
+    """
+    # The default resolves exactly as run_phase2b resolves it, through the crossing it already holds.
+    from simulation.run_phase2b import CURRENT_POLICY
+
+    if not (policy or CURRENT_POLICY).theft_screen_in_billing_run:
+        return None, {}
+    return [], {m["customer_id"]: m["premise"] for m in phase2b_result.get("home_move_ins", [])}
 
 
 def _serialize_dd_collection_book(book) -> dict:
@@ -342,7 +360,9 @@ def main(report_end: str | None = None, policy=None):
     # assembled from (2026-08-15, EP8 finding) -- the published read log is a
     # projection of these, not a second re-derivation of the same decision.
     billed_read_events: list = []
-    bills = build_monthly_bills(all_records, churned_ids, read_events_out=billed_read_events)
+    theft_screen, tenancy_links = theft_screen_request(policy, phase2b_result)
+    bills = build_monthly_bills(all_records, churned_ids, read_events_out=billed_read_events,
+                                theft_screen_out=theft_screen, tenancy_links=tenancy_links)
 
     # W5_1_banking_payment_rails L2->L3 (2026-07-12): the rails-timed DD
     # collection book (mandate setup/collection/amendment, real AUDDIS/ARUDD/
@@ -712,6 +732,7 @@ def main(report_end: str | None = None, policy=None):
         "dd_back_billing_if_review_seeks_balance": dd_back_billing_if_review_seeks_balance,
         "dd_level_collection_book": dd_level_collection_book.serialise(),
         "meter_read_log": meter_read_log,
+        **({"theft_screen": theft_screen} if theft_screen is not None else {}),
         # D48: billed against what the reads later showed, by kind -- read off the assembled
         # bills, the same set the read log above is projected from.
         "billing_accuracy": billing_accuracy(bills, direct_debit_money_line(

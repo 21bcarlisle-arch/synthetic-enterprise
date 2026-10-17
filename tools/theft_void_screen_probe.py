@@ -46,6 +46,7 @@ from company.billing.theft_indicator import (
     boundary_read_status,
     classify_anomaly,
     empty_period_flags,
+    screen_billing_run,
 )
 from company.billing.unread_month_estimate import estimate_unread_kwh, opening_estimate_kwh
 from sim.customer_state_layer import Occupancy, TenureType, draw_home_move, void_end
@@ -340,6 +341,64 @@ def structural_run_table(run_output: dict) -> dict:
             }}
 
 
+def billing_screen_table(run_output: dict) -> dict:
+    """What the billing run's theft screen would flag and act on, switched on, over a run's book.
+
+    The same `screen_billing_run` the company's billing run calls, fed the book's own bills and
+    reads in the shape the billing run builds: on an actual read, the meter's advance since the
+    last actual read; on an estimate, nothing. Both fuels. Beside each act, the HARNESS prints the
+    energy the world says went unrecorded over the flagged spans (true use less registered). The
+    run draws no theft, so registered equals true use and that column measures only the screen.
+    """
+    reads = {(r["customer_id"], r["period_end"]): r for r in run_output["meter_read_log"]}
+    periods: dict[str, list] = {}
+    true_kwh: dict[tuple, float] = {}
+    advance: dict[str, float] = {}
+    for bill in sorted(run_output["bills"], key=lambda b: (b["customer_id"], b["period_start"])):
+        read = reads.get((bill["customer_id"], bill["period_end"]))
+        if read is None:
+            continue
+        cid, used = bill["customer_id"], float(read["true_consumption_kwh"])
+        true_kwh[(cid, bill["period_end"])] = used
+        advance[cid] = advance.get(cid, 0.0) + used
+        actual = read["status"] == "actual"
+        periods.setdefault(cid, []).append({
+            "customer_id": cid, "commodity": bill["commodity"],
+            "period_start": bill["period_start"], "period_end": bill["period_end"],
+            "read_status": read["status"], "registered_kwh": advance[cid] if actual else 0.0,
+            "void_owner_share": bill.get("void_owner_share"),
+            "occupier_share": bill.get("occupier_share"),
+            "billed_kwh": bill["total_consumption_kwh"],
+            "commodity_amount_gbp": bill["commodity_amount_gbp"]})
+        if actual:
+            advance[cid] = 0.0
+    electricity = {c: ps for c, ps in periods.items() if ps[0]["commodity"] == "electricity"}
+    outgoing, unlinked = _outgoing_accounts(run_output, electricity)
+    rows = screen_billing_run(periods, outgoing, run_output.get("opening_registry_kwh_by_customer"))
+    acts: dict[str, dict] = {}
+    for r in rows:
+        a = acts.setdefault(f'{r["commodity"]}/{r["status"]}/{r["act"]}', {
+            "flags": 0, "accounts": set(), "assessed_unrecorded_kwh": 0.0, "assessed_value_gbp": 0.0,
+            "unassessed": 0, "world_unrecorded_kwh": 0.0})
+        a["flags"] += 1
+        a["accounts"].add(r["customer_id"])
+        if r["assessed_unrecorded_kwh"] is None or r["assessed_value_gbp"] is None:
+            a["unassessed"] += 1
+        else:
+            a["assessed_unrecorded_kwh"] += r["assessed_unrecorded_kwh"]
+            a["assessed_value_gbp"] += r["assessed_value_gbp"]
+        span = [p for p in periods[r["customer_id"]]
+                if r["span_start"] <= p["period_start"] and p["period_end"] <= r["span_end"]]
+        a["world_unrecorded_kwh"] += sum(true_kwh[(r["customer_id"], p["period_end"])] for p in span)
+    return {"accounts": len(periods), "bills": sum(len(ps) for ps in periods.values()),
+            "incoming_electricity_accounts_unlinked": unlinked,
+            "by_commodity_status_act": {k: {**v, "accounts": len(v["accounts"]),
+                                            "assessed_unrecorded_kwh": round(v["assessed_unrecorded_kwh"], 1),
+                                            "assessed_value_gbp": round(v["assessed_value_gbp"], 2),
+                                            "world_unrecorded_kwh": round(v["world_unrecorded_kwh"], 1)}
+                                        for k, v in sorted(acts.items())}}
+
+
 if __name__ == "__main__":
     import argparse
     import json
@@ -350,7 +409,14 @@ if __name__ == "__main__":
     parser.add_argument("--occupied-run", help="a run output; prices the occupied-home flags instead")
     parser.add_argument("--structural", action="store_true",
                         help="grade the empty-period and annual-window flags instead of the ratio screen")
+    parser.add_argument("--billing-screen", action="store_true",
+                        help="with --occupied-run: what the billing run's screen would flag and act on")
     args = parser.parse_args()
+    if args.occupied_run and args.billing_screen:
+        from tools.run_output_store import load_run_output
+
+        print(json.dumps(billing_screen_table(load_run_output(args.occupied_run)), indent=1))
+        raise SystemExit(0)
     if args.occupied_run:
         from tools.run_output_store import load_run_output
 

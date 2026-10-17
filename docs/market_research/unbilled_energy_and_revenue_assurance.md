@@ -414,6 +414,116 @@ supplier holds an actual read on the day an incoming occupier's account opens.
    Graded on the run book in
    `docs/staging/records/WORKER_PREREG_W2_36_THE_OPENING_READ_AT_A_CHANGE_OF_TENANCY_2026-10-17.md`.
 
+
+### 4b. What a supplier must do with an account its screen flags
+
+Added 2026-10-17, before the billing run was given the screen (K8). The duties are sourced in
+`read_access_and_theft_duties.md` §2.4 and §3.1–3.3 and are quoted from there; the visit and the
+assessment are read here from the electricity Revenue Protection Code of Practice (RPCoP), DCUSA
+Schedule 23, Version 5.11 [H, read as text, 71 pp.].
+
+**1. A flag is a lead, and the duty it engages is an investigation.**
+- SLC 12A.5 asks "all reasonable steps to detect and prevent" theft, and **12A.6 asks for an
+  investigation where there are "reasonable grounds to suspect"** [H, via the duties page §3.1].
+  SLC 12.1 asks the same of electricity metering [H, same]. No condition says that a supplier's own
+  screen *is* reasonable grounds, so whether one empty period meets 12A.6 is the supplier's
+  judgement: **GAP**, unpublished.
+- The RPCoP puts the work on the supplier: "The Supplier shall investigate and resolve all cases of
+  Theft of Electricity other than Theft in Conveyance. Where theft is identified, the Supplier shall
+  seek to recover the Relevant Costs from the Perpetrator, and shall (to the extent possible under
+  the BSC) arrange for the stolen electricity to be entered into Settlement" (§4, OBLIGATION) [H].
+
+**2. The TRAS referral.** The supplier is party to REC Schedule 7 (SLC 12A.7). TRAS takes a monthly
+extract of the whole book and returns risk scores (§4a above) [M]. A screen's flag therefore sits
+*alongside* the TRAS score: the supplier reads both before it spends a visit. **GAP:** whether a
+supplier may or must feed its own flag into TRAS, and how TRAS weighs it. Not published. Since
+R0173 (approved 22 May 2025), TDIS pays for desktop investigations and site visits whatever their
+outcome [H, via the duties page]. So in 2025 a visit to a flagged account earns something even when
+no theft is found. Before that, it earned nothing.
+
+**3. The site visit.** All [H], RPCoP:
+- **Unannounced.** The revenue protection agent "visits the Premises without prior notification,
+  provides appropriate identification … and requests entry to inspect" (§9). Police may be asked
+  to attend if a breach of the peace is likely.
+- **Care with vulnerable people.** People with a disability, a mental health condition, or under 18
+  "should not be interviewed alone" (§9). §13 asks reasonable steps to identify a Vulnerable
+  Customer, and SLC 12A.11(a)–(d) set the safeguards [H, via the duties page].
+- **A warrant only after refusal.** "Where access to the Premises has not been gained after
+  reasonable attempts have been made, the Party should seek to obtain a warrant" (§9). It is
+  granted under the Rights of Entry (Gas and Electricity Boards) Act 1954 and Schedule 6 of the
+  Electricity Act. Refusing a reader is lawful; obstructing a warranted entry is the offence
+  (duties page §2.2).
+- **Make safe first.** "safety is paramount" (§3.3(a)). Tampered equipment is rectified "as soon as
+  reasonable practicable", and supply may be de-energised meanwhile (§15.2). The supplier should
+  "consider all available options for the maintenance of supply, including fitting a prepayment
+  meter and payment by instalments" (§15.4).
+
+**4. How the unbilled energy is assessed.** The assessment "is carried out in a systematic,
+reasonable, consistent and transparent way" (§15.3, OBLIGATION) [H]. Appendix 7 lists five
+methods, "in no particular order", saying "No one single method is necessarily appropriate in all
+cases" [H]. §15.3's best practice nonetheless recommends following "the order as set out in
+Appendix 7":
+1. past consumption history, where there is "an obvious step change following an earlier
+   established level or pattern";
+2. an audit of appliances, with the customer's permission, on standard consumption figures;
+3. "typical consumption levels for the type of property", by premises type, tariff, occupants,
+   other fuels and location;
+4. monitoring ongoing consumption;
+5. a load test.
+
+How long the theft ran is to be agreed with the customer where possible. It is bounded by "when the
+meter was last inspected", and "Length of occupancy should be confirmed and validated" (App. 7
+§2.4). The supplier sets the final assessment and tells the distributor (§2.2). It should be
+completed on site where possible, or issued as an interim and then a final assessment (§15.2).
+
+**5. How it is billed, and whether the back-billing limit applies.**
+- **What is charged.** The "Relevant Costs" are the value of the energy taken, the cost of
+  repairing or replacing equipment, and the investigation (§3.3(b), §15.5) [H]. Only "direct and
+  reasonably foreseeable costs … Such costs should not be a penalty" (§15.4) [H]. Invoices carry
+  VAT and Climate Change Levy as statute requires (§15.5) [H]. The supplier enters the assessed
+  units into settlement and pays for them (§4) [H].
+- **Payment must be evidenced first.** SLC 12A.11(g): evidence, on the balance of probabilities,
+  that the theft was this customer's "intentional act or … culpable negligence" **before requiring
+  payment**. 12A.11(h) asks a plain-language explanation of the assessment, the charge, and how to
+  dispute it [H, via the duties page]. The customer is told of their right to go to the Energy
+  Ombudsman (RPCoP App. 7 §2.5) [H].
+- **Ability to pay.** Instalments take ability to pay into account (SLC 12A.11(b)). The RPCoP adds
+  case-by-case handling and monitoring of broken arrangements (§15.7) [H].
+- **The 12-month limit does not apply where the customer is at fault.** SLC 21BA.2(c) lifts it
+  where recovery was prevented by "obstructive or manifestly unreasonable behaviour of the Domestic
+  Customer". Ofgem's 2018 decision names "stealing electricity or gas" as its example [H, via the
+  duties page §2.4]. **No licence cap replaces it.** The evidence test of 12A.11(g) does that work.
+  A general limitation period applies [M, Limitation Act not read]. The "3-year theft back-bill"
+  some modules typed has no source (duties page §2.4).
+- **What is recovered in practice.** Ofgem's 2014 model assumed **20–30%** recovered on domestic
+  cases [H, IA Table 5], and a proactive investigation is confirmed **15%** of the time [H, TEM].
+  Both are an era's averages, not this book's.
+
+**6. What a void, and a zero gas period, call for.** No theft act. A void is billed as it is
+already billed: the owner's deemed charge, or "the occupier" (B7). And nothing was consumed
+unbilled, because the meter did not advance and the premise was empty. A zero gas period is
+ordinary in up to 2% of occupied homes (§4a), so no duty is engaged.
+
+**What the design takes from it** (`company/billing/theft_indicator.screen_billing_run`, called from
+`company/billing/monthly_bill_assembly.build_monthly_bills` behind
+`DecisionPolicy.theft_screen_in_billing_run`, default off):
+5. Each flag is recorded with its act: `investigate` → `refer_for_investigation`, `void` →
+   `bill_the_void`, gas `not_screened` → `none`. The billing run raises no charge from a flag.
+   Under 12A.11(g) nothing may be charged before an investigation confirms the theft, and the
+   company has no investigation yet.
+6. For a lead, the record carries **what the act would charge if confirmed**. The unrecorded kWh is
+   assessed by Appendix 7 method 1 (the account's own daily level over its earlier read-to-read
+   spans) or, failing that, method 3 (the registry EAC/AQ, the company's only typical figure for the
+   property). It is valued at the account's own billed commodity rate, with no 21BA cap. Neither
+   the 15% nor the 20–30% is applied: they are an era's averages, and the gross charge is the
+   quantity a supplier's investigation decides on.
+
+**GAPs carried:** whether a supplier's own flag meets 12A.6's "reasonable grounds"; how TRAS uses a
+supplier's flag; the cost of a desktop investigation and a site visit to a supplier in 2016–2025
+(Ofgem 2014 gives £200–400 an investigation, a model input); the current REC Schedule 8 (Unbilled
+Energy Code of Practice) text, which succeeded DCUSA Schedule 23 at REC v2.0 [M, the supplier
+copy fetched returned a web page, not the document]; the gas code's assessment methods (not read).
+
 ---
 
 ## 5. What our code does
@@ -436,7 +546,7 @@ revenue assurance has nothing to find here, and kinds K4, K5 and most of K6 cann
 | K1 accrual | `saas/ledger.py:unbilled_revenue_accrual` (L309) → `saas/reporting/annual_report.py:_section_unbilled_revenue_accrual`. A second implementation, `company/finance/revenue_accruals.py` (`RevenueAccrualsLedger`) with `company/finance/period_reconciliation.py`, has **no non-test caller**. `E3_accrual_restatement` is closed at 2/2 with its Expert Hour `not_attempted` | Yes (report only) | **Mis-defined.** It adds up the *whole amount* of every estimated bill that no catch-up covers yet. That is the *billed-on-estimate* part of Centrica's "unread revenue", not "unbilled revenue" (consumed and not yet billed). It does not measure the estimate's error, and it does not measure consumption since the last bill. Bills are calendar-month (`monthly_bill_assembly._billing_month`) with a 5-day read cutoff, so true period-end unbilled consumption is close to zero by construction. **Update 2026-10-05 (D48 slice 2):** renamed `estimated_billing_outstanding` by another lane the same day. It also kept, for ever, every estimate a read had closed with a correction under the £5 materiality threshold: 83% of the decade run's £93,059. Corrected: a read now ends the run. `company/billing/billing_accuracy.estimated_billing_outstanding_grade` grades each run open at a month end against its later read. Decade run, runs open at a year end: net +10% (electricity), +24% (gas) of the run's billed kWh under-billed. At a June month end: −2% and −26%. The trailing-mean estimate carries the season into every period-end position. **Update 2026-10-06 (D48 slice 3):** the company now shapes its own estimate by a published monthly profile (`company/billing/unread_month_estimate.py`, sources in `how_a_supplier_shapes_an_estimate_for_an_unread_month.md`). Same world, one variable: December net +3.2% (electricity) and −6.5% (gas); June +1.6% and −3.8%. Gas gross fell from 53% to 16%; electricity gross did not fall |
 | K2 estimate and true-up | `simulation/meter_reads.py::simulate_read` (world) → `company/billing/monthly_bill_assembly.build_monthly_bills` (`_annotate_billing_basis` L183, `_resolve_catchup` L211), called from `simulation/run_phase4c_on_phase2b.py:337`. `D3_catchup_rebilling` closed 3/3, Expert Hour passed | Yes | **Built, and the shape is sound.** The estimate is the mean of the customer's last 3 actual periods (`ESTIMATE_TRAILING_WINDOW = 3`), so a winter estimate made from autumn actuals undershoots and the seasons produce real catch-ups. Smart not-communicating is 10%, blended across fuels where DESNZ gives 4.7% electricity and 9.1% gas in traditional mode. A traditional meter gets an actual read with probability **1/6 per month, independently each month** (the code flags this as unverified). **Update 2026-10-05:** superseded by W2_36 slice 2 (`977e17453`): two read classes from the assumption register's Q2 rows. D48 slice 1 now measures K2 company-side (`company/billing/billing_accuracy.py`). It reads each bill's basis and a read-time true-up stamped by `_resolve_catchup`, never the world's use. First real run, 2016–2020: 61% of electricity kWh and 59% of gas kWh billed on estimates. **Update 2026-10-06 (D48 slices 3–4):** the world no longer estimates. `simulate_read` reports status only. The company estimates every unread period itself in `company/billing/unread_month_estimate.py`: from its own last three reads shaped by the published profile, or before its first read from the registry EAC/AQ spread by that profile |
 | K3 back-bill | `company/billing/back_billing.py` (365-day cap, pro-rata write-off), invoked by `_resolve_catchup` | Yes | **Can bind only at the margin.** `meter_reads.MAX_CONSECUTIVE_ESTIMATED_PERIODS = 12` forces an actual read after 12 estimated months, so no unread run goes much past the cap (whether a 12-month run plus the read lag ever crosses 365 days was not measured). The world enforces the regulation as if it were physics. In reality a meter can go unread for years (no access, a crossed meter, an account never billed), and that is exactly when 21BA costs the supplier money. Two more problems: the module calls the rule "SLC 31A" and treats it as domestic-only, but Ofgem's decision inserts **SLC 21BA** and extends it to microbusinesses from late 2018 (§2 K3). **Correction 2026-10-05:** the forced read at 12 is gone (W2_36 slice 2, `977e17453`), so the cap now binds from the run. D48 slice 1 measures the barred energy by days, as the money cap is. First real run, 2016–2020: 0.36% of electricity and 0.05% of gas undercharge kWh barred. Full decade (D48 slice 2, 2016 to mid-2025, 175 accounts): **1.05% and 1.25%** (17 and 6 barred true-ups). This is not the W2_36 sweep's 5.5%, which is a different quantity |
-| K4 theft, unregistered, unknown occupier, UIG | Company-side registers: `company/billing/theft_risk_scoring_register.py`, `revenue_protection_register.py` (3-year theft back-bill), `revenue_protection_visit_register.py`, `energy_theft_book.py`, `theft_indicator.py` (**no caller**), `company/market/uig_allocation_register.py` (**no caller**, and not on the maturity map), `company/crm/change_of_tenancy_register.py`. **World side: nothing for theft, UIG, unregistered, shipperless or crossed meters anywhere in `sim/` or `simulation/`** (grep) | No | **Absent from the world.** The company has scaffolding to detect things the world never generates, so every register here can only ever read empty. **Update 2026-10-05 (W2_36 slice 3):** the unknown-occupier part now arises in the world when home moves are on. Each move-out carries `unnamed_kwh_expected`: the meter point's annual quantity × `q1_unnamed_months_per_cot` / 12 (`sim/customer_state_layer.py`). Since B7 slice 3 the incoming deemed leg is settled and billed from the move date, and since B7 slice 4 the part inside the window (`unnamed_until`) is booked as occupier debt (`occupier_debt_gbp`), not as paid. Recovery of that debt: GAP. Theft, unregistered and UIG are still absent. **Update 2026-10-16 (W2_36 theft study):** theft now arises at a premise in `simulation/meter_reads.py` (`premise_theft_months`, `premise_theft_study`), as the director ruled on 2026-10-08: a minutes-tier study, not a settled book. Each premise holds a theft state as a stationary two-state chain. The stock is `q6_theft_prevalence_domestic_electricity`, and its turnover is `q6_theft_months_before_detection`, read as the 2011–14 world's mean duration with that era's detection already in it. While a theft runs, the meter registers `1 − q6_theft_share_of_premise_use_unregistered` of true use. No run reads it. **Update 2026-10-16 (screen graded, `tools/theft_void_screen_probe.py`):** an actual/expected ratio screen cannot tell a theft from a void by the ratio, only by the window. An empty calendar month is a theft about nine times in ten; a month under 0.65 flags more private voids than thefts. The third source, occupied homes, is priced on the published run's own book against the company's own expectation (its last three actual reads shaped by the published profile). No occupied home empties a month or a year. But under 0.65 a month flags about 1,800 times per 10,000 premise-years, mostly April to September, and mostly in weather-driven (`fabric_physics`) homes whose seasonal swing is steeper than the profile. That is the expectation's shape error, not low use, and it is more flags than private voids (1,740) or thefts (about 1,100) produce at that cut. In the run a void sits on the incoming account's first stub, so a billing-period screen sees it as an empty period. Whether the world's summer-to-winter swing in those homes matches published heating-season shapes: GAP. Unregistered and UIG are still absent |
+| K4 theft, unregistered, unknown occupier, UIG | Company-side registers: `company/billing/theft_risk_scoring_register.py`, `revenue_protection_register.py` (3-year theft back-bill), `revenue_protection_visit_register.py`, `energy_theft_book.py`, `theft_indicator.py` (called by the billing run since 2026-10-17, behind a switch that defaults off: §4b), `company/market/uig_allocation_register.py` (**no caller**, and not on the maturity map), `company/crm/change_of_tenancy_register.py`. **World side: nothing for theft, UIG, unregistered, shipperless or crossed meters anywhere in `sim/` or `simulation/`** (grep) | No | **Absent from the world.** The company has scaffolding to detect things the world never generates, so every register here can only ever read empty. **Update 2026-10-05 (W2_36 slice 3):** the unknown-occupier part now arises in the world when home moves are on. Each move-out carries `unnamed_kwh_expected`: the meter point's annual quantity × `q1_unnamed_months_per_cot` / 12 (`sim/customer_state_layer.py`). Since B7 slice 3 the incoming deemed leg is settled and billed from the move date, and since B7 slice 4 the part inside the window (`unnamed_until`) is booked as occupier debt (`occupier_debt_gbp`), not as paid. Recovery of that debt: GAP. Theft, unregistered and UIG are still absent. **Update 2026-10-16 (W2_36 theft study):** theft now arises at a premise in `simulation/meter_reads.py` (`premise_theft_months`, `premise_theft_study`), as the director ruled on 2026-10-08: a minutes-tier study, not a settled book. Each premise holds a theft state as a stationary two-state chain. The stock is `q6_theft_prevalence_domestic_electricity`, and its turnover is `q6_theft_months_before_detection`, read as the 2011–14 world's mean duration with that era's detection already in it. While a theft runs, the meter registers `1 − q6_theft_share_of_premise_use_unregistered` of true use. No run reads it. **Update 2026-10-16 (screen graded, `tools/theft_void_screen_probe.py`):** an actual/expected ratio screen cannot tell a theft from a void by the ratio, only by the window. An empty calendar month is a theft about nine times in ten; a month under 0.65 flags more private voids than thefts. The third source, occupied homes, is priced on the published run's own book against the company's own expectation (its last three actual reads shaped by the published profile). No occupied home empties a month or a year. But under 0.65 a month flags about 1,800 times per 10,000 premise-years, mostly April to September, and mostly in weather-driven (`fabric_physics`) homes whose seasonal swing is steeper than the profile. That is the expectation's shape error, not low use, and it is more flags than private voids (1,740) or thefts (about 1,100) produce at that cut. In the run a void sits on the incoming account's first stub, so a billing-period screen sees it as an empty period. Whether the world's summer-to-winter swing in those homes matches published heating-season shapes: GAP. Unregistered and UIG are still absent |
 | K5 meter faults, crossed meters | `company/billing/meter_dispute.py` (`METER_FAULT`); nothing for crossed meters | Not established | Absent from the world |
 | K6 settlement vs billing | `company/regulatory/settlement_reconciliation.py` (Elexon run months, now correct at RF 14), `simulation/settlement_timetable.py`, `simulation/settlement_run_series.py`; `tools/generate_margin_bridge.py` (a money bridge between settlement margin and ledger margin). `EP5_settlement_true_ups` is **0/3, idle** | Reporting only | The revision series is derived from the *billing* estimate and resolves to truth at RF, so by design it does not change the final value. Nothing compares billed kWh to settled kWh (no such module, per grep). No GSP correction and no UIG charge reach cost. The variance bands (±0.5% HH, ±4% NHH) are still uncited (knowledge map) |
 | K7 smart read failure | `SMART_METER_NOT_COMMUNICATING_RATE = 0.10`, drawn independently for each customer-period | Yes | It takes a stock (DESNZ, end-2024) and uses it as an independent monthly probability. In reality traditional mode is a *state* a meter stays in (lost WAN, or not adopted after a switch). Neither the hazard nor the persistence is published (§2 K7) |
@@ -483,6 +593,11 @@ text is the Ofgem decision of 5 March 2018, read here.
 3. The forced read at 12 months makes the back-billing cap unreachable.
 4. `EP5_settlement_true_ups` (settlement corrections landing in the books) is unbuilt.
 5. The UIG and theft registers are built and never reached, and nothing world-side feeds them.
+   **Update 2026-10-17:** `theft_indicator`'s empty-period screen is now called by the billing
+   run, behind a switch that defaults off (§4b). On the published run book, switched on, it flags
+   16 electricity spans. All 16 are voids and none is a lead, so it raises no charge. The run draws
+   no theft (the world's theft is a study), so the switch-on arm cannot yet find one. The other
+   registers are still unreached.
 6. The back-billing module cites the wrong licence condition and leaves out microbusinesses.
 7. The world's closing read is always actual (`simulation/meter_reads.final_read_for`, added
    2026-10-17). Published practice makes it actual only "sometimes" (§4a). So every incoming
@@ -541,6 +656,9 @@ non-payment.
   <https://www.gasgovernance.co.uk/sites/default/files/related-files/2024-03/final_aug_statement_2024-2025.pdf>. Read as text [H].
 - Ofgem, *Tackling Electricity Theft: the way forward*, Impact Assessment, March 2014:
   <https://www.ofgem.gov.uk/sites/default/files/docs/2014/03/electricitytheft-iafinal_0.pdf>. Read as text [H].
+- DCUSA, *Schedule 23 – Revenue Protection Code of Practice*, Version 5.11:
+  <https://dcusa-cdn-1.s3.eu-west-2.amazonaws.com/wp-content/uploads/2019/08/20104215/Schedule-23-Revenue-Protection-Code-Of-Practice-v1-0.pdf>.
+  Read as text 2026-10-17 [H]: §3.3, §4, §9, §13, §15.2–15.7, Appendix 7.
 - RECCo, *New report estimates energy theft costs consumers up to £1.4bn yearly*:
   <https://retailenergycode.co.uk/energy-theft-costs-consumers-up-to-1-4-billion-yearly/> [H, page text].
 - Ofgem, *Overview of questionnaire responses on theft of energy*, 26 March 2012:

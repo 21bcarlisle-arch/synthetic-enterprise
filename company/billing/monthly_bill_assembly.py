@@ -66,6 +66,7 @@ from company.billing.back_billing import (
     barred_unrecovered_gbp,
 )
 from company.billing.pre_bill_validation import validate_bill
+from company.billing.theft_indicator import screen_billing_run
 from company.billing.unread_month_estimate import estimate_unread_kwh, opening_estimate_kwh
 from company.interfaces.supply_book import registered_point as get_customer
 from saas.bill_generator import (
@@ -483,6 +484,8 @@ def build_monthly_bills(
     read_events_out: list | None = None,
     payment_channel_feed: Callable[[dict], str | None] | None = None,
     premise_listing_feed: Callable[[dict], bool | None] | None = None,
+    theft_screen_out: list | None = None,
+    tenancy_links: dict[str, str] | None = None,
 ) -> list[dict]:
     """Group the supplier's own settled records into one bill per customer per
     calendar month, in chronological order, via
@@ -575,6 +578,8 @@ def build_monthly_bills(
         by_customer_month.setdefault(customer_id, {}).setdefault(month, []).append(record)
 
     bills = []
+    screen_periods: dict[str, list[dict]] = {}
+    screen_registry_kwh: dict[str, float | None] = {}
     for customer_id, months in by_customer_month.items():
         customer_data = get_customer(customer_id)
         contract_type = customer_data.get("contract_type", "fixed_1yr")
@@ -635,6 +640,10 @@ def build_monthly_bills(
                 )
             if event.status == "actual":
                 bill = _annotate_billing_basis(true_bill, event, true_bill)
+                # The register's advance since the last actual read: the one consumption figure a
+                # read gives a supplier. Taken before the catch-up empties the pending run.
+                read_advance_kwh = true_bill["total_consumption_kwh"] + sum(
+                    p["used_kwh"] for p in pending_estimated_run)
                 # D3 step 2: this real read resolves any pending run of
                 # estimated bills since the last one -- fold the reconciled
                 # correction (capped per SLC 21BA where it's an
@@ -812,6 +821,20 @@ def build_monthly_bills(
                 bill["void_owner_share"] = (
                     min(1.0, void_gbp / revenue_gbp) if revenue_gbp > 0 else 1.0)
             bills.append(bill)
+            if theft_screen_out is not None:
+                screen_periods.setdefault(customer_id, []).append({
+                    "customer_id": customer_id, "commodity": commodity,
+                    "period_start": bill["period_start"], "period_end": bill["period_end"],
+                    "read_status": event.status,
+                    "registered_kwh": read_advance_kwh if event.status == "actual" else 0.0,
+                    "void_owner_share": bill.get("void_owner_share"),
+                    "occupier_share": bill.get("occupier_share"),
+                    "billed_kwh": bill["total_consumption_kwh"],
+                    "commodity_amount_gbp": bill["commodity_amount_gbp"],
+                })
+                screen_registry_kwh[customer_id] = (
+                    (customer_data or {}).get("eac_kwh") if commodity == "electricity"
+                    else (customer_data or {}).get("aq_kwh"))
             # One event per bill, in bills order -- appended here, in the same
             # step that appends the bill, so the two lists cannot fall out of
             # alignment by construction (the caller joins them positionally).
@@ -881,6 +904,12 @@ def build_monthly_bills(
             mom_pct is not None and mom_pct >= 0.20 and yoy_pct < 0.20
             and not prior_month_was_shock
         )
+
+    # W2_36: the theft screen reaches the billing run. The caller hands a list only when the company
+    # switch is on (`DecisionPolicy.theft_screen_in_billing_run`), so no bill above moves either way.
+    if theft_screen_out is not None:
+        theft_screen_out.extend(
+            screen_billing_run(screen_periods, tenancy_links, screen_registry_kwh))
 
     if premise_listing_feed is not None:
         listed_by_customer: dict[str, bool | None] = {}

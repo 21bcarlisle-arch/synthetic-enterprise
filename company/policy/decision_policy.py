@@ -200,6 +200,12 @@ class DecisionPolicy:
     #: it; an experiment does (`tools/move_with_us_arms.py`).
     move_with_us_offers: bool = False
 
+    #: (2026-10-17, W2_36) the monthly billing run calls the theft screen
+    #: (`company.billing.theft_indicator.screen_billing_run`) on every account and records each flag
+    #: with the act `unbilled_energy_and_revenue_assurance.md` §4b names. Off on every standing
+    #: policy until the 19 Oct publish is read, so that reading stays one variable.
+    theft_screen_in_billing_run: bool = False
+
     #: (2026-10-10) how the company sizes a save when no experiment names a cut: "price_match"
     #: meets the market's best published deal, never below the company's own cost floor
     #: (`company.crm.save_offer.price_match_save_rate`). Every input is published or the company's

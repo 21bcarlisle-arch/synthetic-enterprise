@@ -270,3 +270,45 @@ the screen, because a flatter summer is flagged less.
    but its trace is `hh_metered_reads`, not the fabric path. Its 11.6 MWh with a steep winter is
    not explained here.
 3. Fabric electric-heated homes with a whole calendar year are few: 4 storage and 2 direct in 2022.
+
+## The screen reaches the billing run, behind a switch that is off (worker, 2026-10-17)
+
+**What was built.** Knowledge first: `unbilled_energy_and_revenue_assurance.md` §4b, what a
+supplier must do with a flagged account. It is read from DCUSA Schedule 23 (the Revenue Protection
+Code of Practice, v5.11) and the duties page. A lead engages an SLC 12A.6 investigation alongside
+the TRAS score. The visit is unannounced, with a warrant only after access fails. The unrecorded
+units are assessed by RPCoP Appendix 7. Nothing is charged before 12A.11(g)'s evidence of intent
+or culpable negligence, and 21BA's 12-month limit does not apply (21BA.2(c)).
+`company/billing/monthly_bill_assembly.build_monthly_bills` now calls
+`theft_indicator.screen_billing_run` on every account it bills. That calls `boundary_read_status`
+for an incoming account and `empty_period_flags` for every account, and records each flag with its
+act. It runs only when the caller hands it a list, and `simulation/run_phase4c_on_phase2b`
+hands one only under `DecisionPolicy.theft_screen_in_billing_run`, which is False everywhere. So
+the 19 Oct publish computes nothing new and not one bill moves (the control asserts the bills are
+equal either way). Control: `tests/company/billing/test_the_theft_screen_reaches_the_billing_run.py`.
+It goes red when the run stops calling the screen, when the boundary read is not consulted, and
+when a void is filed as a lead (three in-process mutants, all red).
+
+**What the switch-on arm would flag and act on, on the published run book** (`run_output_latest.json`,
+78f77c34e; `python3 -m tools.theft_void_screen_probe --occupied-run docs/reports/run_output_latest.json --billing-screen`).
+The probe feeds the same `screen_billing_run` the book's own bills and reads, in the billing run's
+shape. 987 accounts and 38,854 bills; 4 incoming electricity accounts could not be linked.
+
+| Fuel / status / act | Flags | Accounts | Assessed unrecorded kWh | Assessed charge (£) | Unrecorded kWh, world's truth |
+|---|---|---|---|---|---|
+| electricity / void / `bill_the_void` | 16 | 16 | 0 | 0.00 | 0 |
+| electricity / investigate / `refer_for_investigation` | 0 | 0 | 0 | 0.00 | 0 |
+| gas / not_screened / `none` | 0 | 0 | 0 | 0.00 | 0 |
+
+**Reading.** Switched on, the screen would refer no account and recover nothing. That is the right
+answer for this book, not a dead screen. The run draws no theft (the world's theft is a study,
+`premise_theft_study`), so there is nothing unrecorded to find, and the 16 voids are correctly kept
+off the lead list. This was not pre-registered. It repeats the seat's structural grade of the same
+day on the same book (16 spans, all `void`, 0 `investigate`), now reached through the billing
+run's own function. Two instruments agree. The other three zeros are not evidence of anything:
+no gas account has an empty span between two actual reads, and no named electricity account does.
+
+**What it cannot yet say.** What the screen would recover on a book with theft in it. That needs the
+world's theft in the settled run, not only in the study. Until then the assessed-charge column can
+only be exercised by the control's synthetic lead (Appendix 7 method 1, priced at the account's own
+billed commodity rate). Turning the switch on is a separate commit, after the 19 Oct publish is read.

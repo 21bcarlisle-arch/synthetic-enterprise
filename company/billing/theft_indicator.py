@@ -227,3 +227,97 @@ def annual_window(registered_kwh: float, expected_kwh: float, days: int,
                             "investigate under SLC 12A.6 alongside the TRAS score.")}
     return {"status": "ok", "ratio": round(ratio, 3),
             "message": f"Registered use over {days} days is {ratio:.0%} of expected."}
+
+
+# THE BILLING RUN'S CALL (2026-10-17). Knowledge: unbilled_energy_and_revenue_assurance.md §4b,
+# what a supplier must do with an account its screen flags. Each status maps to the act that page
+# names. Only `investigate` is a theft lead; the act it starts is an investigation, not a charge.
+ACT_FOR_STATUS = {
+    "investigate": "refer_for_investigation",
+    "void": "bill_the_void",
+    "not_screened": "none",
+}
+
+_ACT_TEXT = {
+    "refer_for_investigation": (
+        "Investigate (SLC 12A.6): desktop review alongside the TRAS score, then an unannounced "
+        "site visit by a revenue protection agent, and a warrant if access is refused after "
+        "reasonable attempts (RPCoP §9). Only on confirmation: assess the unrecorded units (RPCoP "
+        "Appendix 7) and bill the Relevant Costs, evidencing intent or culpable negligence first "
+        "(SLC 12A.11(g)). SLC 21BA's 12-month limit does not apply (21BA.2(c))."),
+    "bill_the_void": (
+        "No theft act. The void is the owner's deemed charge or 'the occupier''s bill (B7); "
+        "nothing was consumed unbilled."),
+    "none": "No act. Zero gas use is ordinary in an occupied home.",
+}
+
+
+def _span_assessment(span_days: int, prior_actual: list[tuple[int, float]],
+                     registry_kwh: float | None) -> tuple[float | None, str | None]:
+    # RPCoP Appendix 7 §1.1 first: the account's own established level before the change, as a
+    # daily rate over its earlier read-to-read spans. §1.3 next: typical use for the property,
+    # which is all the registry EAC/AQ is. Neither: unassessed, never a typed figure.
+    days = sum(d for d, _ in prior_actual)
+    kwh = sum(k for _, k in prior_actual)
+    if days > 0 and kwh > 0:
+        return round(kwh / days * span_days, 1), "prior_history"
+    if registry_kwh:
+        return round(registry_kwh / 365.0 * span_days, 1), "registry_typical"
+    return None, None
+
+
+def screen_billing_run(periods_by_account: dict[str, list[dict]],
+                       outgoing_of: dict[str, str] | None = None,
+                       registry_kwh_by_account: dict[str, float | None] | None = None) -> list[dict]:
+    """Run the empty-period flag over every account the billing run billed, and record the act.
+
+    `periods_by_account` is each account's billing periods in the shape `empty_period_flags` reads,
+    plus `billed_kwh` and `commodity_amount_gbp` from the bill. `registered_kwh` is the meter's
+    advance since the last actual read, on the period that read closes, and 0 on an estimated one:
+    the register is all a supplier holds until it is read. `outgoing_of` names, for an incoming
+    account, the outgoing account at the same meter point (a change of tenancy on our own book),
+    so its first span opens on that account's closing read (`boundary_read_status`).
+
+    Each row is a flag with its act and, for a lead, what the act would charge if the theft were
+    confirmed: the unrecorded kWh assessed by RPCoP Appendix 7 and its value at the account's own
+    billed commodity rate (standing charges are already billed, VAT is not added). That is the
+    charge raised on confirmation, not what is collected: neither the confirmation rate nor the
+    recovery rate is applied here.
+    """
+    outgoing_of = outgoing_of or {}
+    registry_kwh_by_account = registry_kwh_by_account or {}
+    rows: list[dict] = []
+    for cid, periods in periods_by_account.items():
+        ordered = sorted(periods, key=lambda p: p["period_start"])
+        opening = None
+        if cid in outgoing_of:
+            opening = boundary_read_status(periods_by_account.get(outgoing_of[cid], []),
+                                           ordered[0]["period_start"])
+        billed_kwh = sum(float(p.get("billed_kwh") or 0.0) for p in ordered)
+        billed_gbp = sum(float(p.get("commodity_amount_gbp") or 0.0) for p in ordered)
+        rate = billed_gbp / billed_kwh if billed_kwh > 0 else None
+        for flag in empty_period_flags(ordered, opening):
+            act = ACT_FOR_STATUS[flag["status"]]
+            row = {**flag, "opening_read_status": opening, "act": act, "act_text": _ACT_TEXT[act],
+                   "assessed_unrecorded_kwh": 0.0, "assessment_method": None,
+                   "assessed_value_gbp": 0.0}
+            if act == "refer_for_investigation":
+                span_days = (dt.date.fromisoformat(flag["span_end"])
+                             - dt.date.fromisoformat(flag["span_start"])).days + 1
+                prior, start = [], None
+                for p in ordered:
+                    if p["period_start"] >= flag["span_start"]:
+                        break
+                    start = start or p["period_start"]
+                    if p.get("read_status") == "actual":
+                        days = (dt.date.fromisoformat(p["period_end"])
+                                - dt.date.fromisoformat(start)).days + 1
+                        prior.append((days, float(p.get("registered_kwh") or 0.0)))
+                        start = None
+                kwh, method = _span_assessment(span_days, prior, registry_kwh_by_account.get(cid))
+                row["assessed_unrecorded_kwh"] = kwh
+                row["assessment_method"] = method
+                row["assessed_value_gbp"] = (round(kwh * rate, 2)
+                                             if kwh is not None and rate is not None else None)
+            rows.append(row)
+    return rows
