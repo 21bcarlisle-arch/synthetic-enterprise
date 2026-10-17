@@ -115,6 +115,15 @@ would read high. The table is only suggestive. `L` for the world's own leavers i
 because the world does not follow a departed household onto its next tariff, and the 6-month CIM
 window is approximated by halving annual rates.
 
+**MEASURED 2026-10-17, same day, beside the claim: the arithmetic above was wrong.** The instrument,
+emulated on the same book (closed cohort, 12 months, March 2016 – February 2021 pooled), reads
+**1.98 / 3.27 / 3.70** at L = 0.43 / 0.593 / 0.63: inside the CMA's 1.9–4.3, just under the CMA at
+each matched L. The 0.41 above is the exposure share; the fixed share at interview is 0.31, because
+fixed terms roll to default inside the year. A power control then shows the instrument barely sees
+the pre-switch gradient (g from 0.3 to 2.8 moves it 3.06 → 3.40), so the pass grades the stock share
+F, not the split. See
+`docs/staging/SEAT_FINDING_READ_THROUGH_THE_SURVEY_INSTRUMENT_THE_PRE_CRISIS_WORLD_SITS_INSIDE_THE_CMA_BAND_AND_THE_INSTRUMENT_CANNOT_SEE_THE_GRADIENT_2026-10-17.md`.
+
 ### 1c. The GAP, restated with its reason
 
 **A pre-switch fixed vs default departure split is not published for any GB year this pass could
@@ -132,6 +141,9 @@ no "my fixed term ended" code, which was the other possible route and was checke
 in the world. Take `L` from the CMA (0.28–0.63, supplier records, 12 months) as an exogenous input.
 Compute the world's post-switch ratio over 2015-like years. Grade it against 1.9–4.3. That is a test
 the world can fail, and the drawn-ratio comparison was never one.
+**Run 2026-10-17:** it passes, and the power control shows the pass grades F, not the gradient.
+No emulation of this instrument can grade the pre-switch split either; the GAP's only closure is a
+supplier-returned loss series cut by tariff at loss.
 
 ---
 

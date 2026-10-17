@@ -87,6 +87,9 @@ standard-credit bill-shock population, where the bill itself is the shock. The S
    records, also post-switch) gives 1.9–4.3 pre-crisis by the same identity. On that instrument the
    world's pre-crisis rates read about 1.0–1.95, and its 2024–25 rates read well above 2.8. See
    `docs/market_research/switching_gradient_by_tariff_and_payment_what_the_record_can_grade.md` §1.
+   **MEASURED 2026-10-17:** the "about 1.0–1.95" above was arithmetic and is wrong. Emulated, the
+   pre-crisis world reads 1.98–3.70, inside the CMA's band, and the instrument cannot see the
+   pre-switch gradient: `SEAT_FINDING_READ_THROUGH_THE_SURVEY_INSTRUMENT_THE_PRE_CRISIS_WORLD_SITS_INSIDE_THE_CMA_BAND_AND_THE_INSTRUMENT_CANNOT_SEE_THE_GRADIENT_2026-10-17.md`.
 3. **Whether the world's pre-crisis default rate is too high is a GAP, not a finding.** The source
    behind the inertia band says *"Direct published SVT vs fixed churn rates by tariff type are not
    available"* (`svt_rates_active_passive_2016_2025.md` §4, confidence M). CIM w6 is the first split
