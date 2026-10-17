@@ -604,6 +604,14 @@ text is the Ofgem decision of 5 March 2018, read here.
    account's opening read is actual whenever a closing read exists, and the empty-period flag
    judges more first periods on the run book than a real book would allow. Filed as
    `SEAT_FINDING_THE_WORLDS_CLOSING_READ_IS_ALWAYS_ACTUAL_2026-10-17.md`.
+   **Corrected 2026-10-17:** fixed in code by `600be30bc`, the same morning, and this entry was not
+   updated by the two later commits to this page. `simulate_final_read` now makes the closing read
+   actual only for a smart meter in smart mode. Any other meter takes the period's ordinary read. The
+   customer-given share is the register's GAP row `q6_closing_read_customer_given_share`, which draws
+   nothing until sourced. On a replay over the run book, 45 of 137 electricity move-out boundary reads
+   stay actual and judged void stubs fall from 17 to 11. The published run book (78f77c34e) predates
+   the fix, so the switch-on table in §4b and the 16 void spans were read on always-actual closing
+   reads. The 19 Oct publish is the first book on the corrected rule.
 
 ---
 
