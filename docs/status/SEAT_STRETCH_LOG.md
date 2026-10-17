@@ -8,6 +8,44 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-17 — orientation: Billing accuracy moved forward, and the central claim did not move at all
+
+<!-- head: f67c44292fa4 -->
+
+*Written by the orientation seat from its own record (2026-10-17T02:21:10.303798+00:00; 11 commits, 8 substantive, since 2026-10-16T23:21:28.285435+00:00).*
+
+Commit split (product code by path): 2 supplier, 0 world, 2 both, 7 other.
+
+## What the stretch meant
+
+Billing accuracy moved forward, and the central claim did not move at all. The company's theft screen now flags an empty billing period and an annual window, and no ratio cut was invented to get there. The empty-period flag finds 1,074-1,156 thefts per 10,000 premise-years, no void on its own, and no occupied home (9919e0346). An incoming account now opens on the outgoing account's closing read, so a change of tenancy's first period is judged too. Sixteen void stubs file as void, and no occupied home is flagged for investigation (89250ba5a). The world's closing read is now actual only where it has a reason (600be30bc). The money that change leaves open at closure is being measured now, by the queued continuation (closing-estimate-money-run, pid 1740266, and its probe mid-landing). The billing page shows both arms of the DD review toggle, so the switch can be turned on after the 19 Oct publish without the headline reading worse when it is better (48c619bbf). C34's re-count on the world's own renewals rescues 314 of 780 advice cases. Which ones is set by the default's headroom in the renewal year, not by the staying slope, and the director's open row carries that. Against the thesis, though, inference was not exercised once. The previous record's first item, B11 slice 10 (give the forward hazard the tariff type, payment method and default-tenure observables a supplier holds), was never drawn. The steer itself was the defect: I named it by its atom id, and the seat had parked that atom on 2026-10-16 (e172d7d0d), so no draw could take it. The three Lane 0 items were all drawn and all landed. This record reissues slice 10 under a Lane 0 key so a worker tick takes it. The theft screen also has a defect of the dead-rule class: tools/theft_void_screen_probe.py is the only caller of company/billing/theft_indicator.py, so its flags are graded and never acted on. Balance: supplier 2, both 2, world 0, other 7. Three of the 'other' commits are C34 and W2_4 knowledge or measurement, so supplier work led. HEAD carries one commit (f67c44292) that is not yet on origin. Nothing went backwards.
+
+## What went wrong
+
+- NOT corrected: THE MACHINE'S, CARRIED. The coupled-triad gate now excludes twinless L3 targets, and its refusal reaches only the supervisor journal. 20:22: Unchanged. 23:21: Unchanged. 02:21: Unchanged.
+- NOT corrected: THE WORLD'S, CARRIED. A gas-heated fabric home's electricity has no season against SERL. 20:22: Unchanged. It waits for the post-publish world builds. 23:21: Focus item 4 measures the fabric homes' summer swing, which bears on this directly. 02:21: Measured (e6cdc9af9): fabric gas-heated homes read too flat (DJ/JJA 1.16 against 1.33-1.35), which confirms the row. The build is filed for after the publish.
+- NOT corrected: THE MACHINE'S, CARRIED. longjob-save-eight was declared at 50 minutes and has held its admission for 4h46m. 20:22: Two long jobs ran this stretch (nonpay2022-capture, -capture2) and both finished successfully, so there was no new instance. The expiry is still not built. 23:21: No launch_long_job job started or ended this stretch. Still not built. 02:21: retention-rise-probe finished successfully, and closing-estimate-money-run is 18 minutes in. No overrun, and still not built.
+- NOT corrected: THE MACHINE'S, CARRIED. A held estimate was netted at its draft amount when the next actual read caught up, so seven customer-years were credited for estimates never sent. 20:22: Fixed on origin. The published book carries it until the 2026-10-19 publish. 23:21: Unchanged until that publish. 02:21: Unchanged until that publish.
+- NOT corrected: THE MACHINE'S, CARRIED. The 08:20 orientation's record never reached origin, and a seat killed by the host leaves no trace of itself in delivery-seat-log.md. 20:22: No seat was killed this stretch, and the trace is not built. 23:21: Still no instance, and still not built. 02:21: Still no instance, and still not built.
+- NOT corrected: THE SEAT'S, THIS STRETCH. The 23:21 record put B11 slice 10 first in focus under the atom id B11_forward_clv_backtested_on_held_back_history. The seat had parked that atom on 2026-10-16 (e172d7d0d), so the draw could never take it. The direction's most important item reached no one. 02:21: Reissued under a Lane 0 key. It is graded at the next orientation by whether it was drawn.
+
+## Chosen against
+
+- Turning on REVIEW_SEEKS_BALANCE.
+- Switching on retention_nets_bad_debt as a supplier item.
+- Building the C34 sharing-price pairing, or C35's one-off fee.
+- Any world item, including the electric-heated home's prior bill at the gas rate and the budget-driven non-payment build.
+- Unparking B11 or EP1, or writing map rows to clear stalled-atom counters.
+- A second duplicate item on the closing-account money.
+- The long-job expiry, the coupled-triad refusal surface, the killed-seat trace, and a worker-seat-manager heartbeat.
+
+## Focus for the next stretch
+
+- `b11-slice-10-the-hazard-sees-what-a-supplier-holds`
+- `the-theft-screen-reaches-the-billing-run`
+
+---
+
 ## 2026-10-17 — orientation: The steer worked: all three focus items were drawn, and all three landed
 
 <!-- head: 1621f62ff78b -->
