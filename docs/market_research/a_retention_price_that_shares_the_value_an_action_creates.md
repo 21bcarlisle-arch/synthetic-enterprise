@@ -185,6 +185,86 @@ priced at the cap.
 responds like Deller's switchers. No published source measures a bundle. That is the measurement a
 holdout would make (`hazard_estimate_from_holdout`, B8).
 
+### 4a. What the world says (measured 2026-10-17)
+
+Pre-registered in `docs/staging/records/SEAT_PREREG_THE_WORLDS_STAYING_SLOPE_UNDER_A_RETENTION_RISE_2026-10-17.md`,
+before this analysis. The instrument is `tools/decision_probe.py` on the default book: 260 renewals,
+192 accounts. At each renewal the world was asked its true P(stay) at the offer, with nothing else
+changed. A rise of £d a month is placed at margin £M a month over each decision's own base, for the
+page's bands M = 5, 15 and 30. That gives 443 graded band-decisions over 179 accounts. The rest fall
+off the probe's grid, mostly at M = 30.
+
+**The slope: the world's own, not Deller's.** The median fall in P(stay) per £/yr of rise, at
+d = £2/month, is:
+
+| band | median slope | share ≥ 0.0015 |
+|---|---|---|
+| M = 5 | 0.00064 | 19% |
+| M = 15 | 0.00070 | 25% |
+| M = 30 | 0.00065 | 8% |
+| pooled | **0.00065** | 20% |
+
+- Both fuels give similar figures: electricity 0.00062–0.00068, gas 0.00041–0.00087 (gas n = 10–30).
+- The pooled median is below **0.00085**, where the page's count starts to fall. At 0.00065 the
+  arithmetic above rescues **18 of 18**, and 17 of 18 also clear the household's floor.
+- 38% of decisions are individually steeper than 0.00085.
+- The slope per £ is steeper for small users: electricity at M = 15 gives 0.00134, 0.00070 and
+  0.00048 by volume tercile. A £ a month is a bigger rate step on a small bill. The world responds
+  to the rate, so its slope per £/yr scales roughly with 1/volume.
+
+**The binding constraint is not the slope. It is that a stayer is never billed a fix above the
+default.** In the world, a domestic household that stays and is offered a fixed renewal above the
+default goes onto the default instead (`DECLINE_A_FIX_ABOVE_THE_DEFAULT`, `run_phase2b`). The share
+of a £2 rise that a stayer is billed was measured:
+
+- Under half of it is collected in **67%** of decisions at M = 5, **86%** at M = 15 and **94%** at
+  M = 30.
+- The room between the company's flat renewal offer and the default is **£1.35 a month at the
+  median** (p10 −£5.90, p90 +£12.38).
+- The rises the table needs are £0.01–2.73 a month holding the hazard, and £2.00–4.09 with the
+  price's own effect. A stayer can be billed a rise of £1 in 53% of renewals, £2 in 43%, £2.73 in
+  37% and £4 in 30%.
+
+**The page's bands sit above the world's book.**
+
+- The company's flat renewal margin is £0.64 / £1.33 / £2.27 a month (quartiles), against the
+  page's £5–30.
+- The default leaves room for a £5 margin in 35% of renewals, £15 in 9%, and £30 in 1%.
+- The world's P(stay) at renewal is 0.54 / 0.61 / 0.68 (quartiles). Read as (1 − P)/12, almost
+  every decision is in the page's 3% hazard band. The 0.5% band holds 2–4 decisions per margin
+  band and could not be graded.
+
+**Graded against the predictions:**
+
+- **P1 held.** The median is 0.00064–0.00070 in every band.
+- **P2 held pooled (19.6%) and was refuted in the M = 15 band (25%).**
+- **P3 refuted at M = 5:** the slope rises slightly with d, from 0.00063 to 0.00068. It held at
+  M = 15 (0.00074 → 0.00063). At M = 30 it is flat.
+- **P4 ungradable:** see the hazard band above.
+- **P5 held, and is the result.**
+
+**What this answers for the open row.** The slope question resolves towards the count of 18/18,
+not 10/18. That count is about the arithmetic, though, and the arithmetic assumed something the
+world does not allow: that the household pays the rise. In the world a sharing rise is collectable
+only where the fixed renewal sits at least that far below the default. That is 37–53% of renewals
+for the rises the table needs, and it is fewest exactly where the page's margins are high. So
+**whether a sharing price rescues a case is decided first by the default's headroom on that
+account, and only then by the slope.** A design would have to read that headroom per account; the
+company can read it, since the default is published. The world's rule is a behavioural one: a
+household that stays declines a fix that costs more than doing nothing. It was pre-registered and
+graded on 2026-10-02 (`DECLINE_A_FIX_ABOVE_THE_DEFAULT`). **GAP:** whether the licence also stops a
+supplier rolling a passive household onto a fix dearer than the default has not been read into
+this page or the commons. Until it is, the rule stands on behaviour alone.
+
+**Correction to §4's table, beside it.** The "FRT: yes" column is lawful in form. In the world it
+is billed only where the FRT stays at or under the default the household would otherwise pay. The
+column does not say that, and it should be read with this section.
+
+Scripts: `/var/tmp/retention_rise/bands.py` and `rescue.py`. They are not in the tree, and their
+logic is stated above. One bug was fixed in `bands.py` before grading: its "collected" share was
+divided by 12 twice, which read every decision as collecting under a twelfth of the rise. The P5
+figures above are after the fix.
+
 **Reproduce:** from the repo root, `PYTHONPATH=. python3` the snippet below.
 
 ```python
@@ -217,7 +297,10 @@ for m in (5, 15, 30):
 5. The longest permitted fix (§3d).
 6. The household's benefit horizon from supplier advice (inherited, §6.1).
 7. The staying response to a bundle of advice and a higher price. The Deller slope is a bound, not
-   a measure (§4).
+   a measure (§4). The world's own price-only slope at a rise is now measured: 0.00065 per £/yr at
+   the median (§4a). The bundle is still unmeasured.
+8. Whether the licence stops a passive household being rolled onto a fix dearer than the default
+   (§4a). The world's decline-and-stay rule rests on behaviour alone.
 
 ## Sources
 
