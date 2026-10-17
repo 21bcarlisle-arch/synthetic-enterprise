@@ -3,6 +3,7 @@ puts the flat rule beside it on the same accounts."""
 
 from __future__ import annotations
 
+import dataclasses
 import math
 from pathlib import Path
 
@@ -31,6 +32,7 @@ from company.analytics.forward_clv import (
     observable_level,
     observable_multipliers,
     pooled_ratio,
+    ranking_between,
     regime_boundary_month,
     run_backtest,
     standardised_ratios,
@@ -711,3 +713,85 @@ def test_the_observables_key_moves_only_the_per_customer_p_and_is_refused_withou
         run_backtest(_book(), _month_index("2025-06"), 2020, observables=True)
     with pytest.raises(ValueError, match="observables replace the tenure key"):
         run_backtest(book, end, 2020, tenure_key="term_end", observables=True)
+
+
+def test_the_view_is_held_at_the_cut_so_months_on_default_do_not_cross_the_band_over_the_horizon():
+    """The defect slice 10 shipped: months on default advanced over the horizon, so an account
+    crossed into the 36+ band after the fit window was rescaled, and the level fell by 0.04-0.08.
+    Two accounts alike at the cut but for 1 and 30 months on the default, both under 36, get one
+    per-customer p over a 54-month horizon."""
+    book = _observed_book() + [_viewed("J1", "2020-12", "2025-06", "default", "direct_debit"),
+                               _viewed("J2", "2018-07", "2025-06", "default", "direct_debit")]
+    bt = run_backtest(book, _month_index("2025-06"), 2020, observables=True)
+    by = {f.account_id: f for f in bt.forecasts}
+    cut = _month_index("2020-12")
+    assert [a.observed[cut].months_on_default for a in book[-2:]] == [1, 30]
+    assert by["J1"].per_customer_departure_p == pytest.approx(by["J2"].per_customer_departure_p)
+    assert by["J1"].per_customer_departure_p != by["J1"].flat_departure_p
+
+
+def _switch_book():
+    """Fit window to 2020-12, held back to 2023-12. Switches leave in both bands in the fit
+    window, moves leave past 36 months; held back there are switchers and movers past 36 months,
+    switchers under 36, and stayers in both bands."""
+    def acct(aid, start, end):
+        return _viewed(aid, start, end, "default", "direct_debit")
+    book = ([acct(f"W{i}", "2016-01", "2019-06") for i in range(4)]       # switch, 36+
+            + [acct(f"U{i}", "2016-01", "2017-06") for i in range(4)]     # switch, under 36
+            + [acct(f"M{i}", "2016-01", "2019-09") for i in range(6)]     # move, 36+
+            + [acct(f"L{i}", "2016-01", "2022-03") for i in range(6)]     # 36+ at the cut
+            + [acct(f"Y{i}", "2018-06", "2022-03" if i < 3 else "2023-12") for i in range(6)]
+            + [acct(f"S{i}", "2016-01", "2023-12") for i in range(6)])
+    moves = {f"M{i}": _month_index("2019-09") for i in range(6)}
+    moves |= {f"L{i}": _month_index("2022-03") for i in range(3, 6)}
+    return book, _month_index("2023-12"), moves
+
+
+def test_the_switch_key_places_switch_exits_by_band_and_leaves_the_move_part_flat():
+    """The defect: a key that reaches nothing, reads moves as switches, or is the prior whatever
+    the book says. The multiplier counts the fit window's SWITCH exits past 36 months (4, the 6
+    moves censored) and lies strictly between the book's ratio and the 0.54 prior; two accounts
+    alike but for their band at the cut get different p and one flat p; a book whose every exit
+    is a move keys nothing, so per-customer p IS flat p; both outcomes are reachable."""
+    book, end, moves = _switch_book()
+    bt = run_backtest(book, end, 2020, move_out_month_by_account=moves, switch_on_default=True)
+    assert bt.switch_keyed_on_default and set(bt.observable_multipliers) == {"months_on_default"}
+    band = bt.observable_multipliers["months_on_default"]["36_plus"]
+    prior = OBSERVABLE_PRIORS["months_on_default"][1]["36_plus"][0]
+    assert band.observed == 4 and band.book_ratio is not None and band.book_ratio != prior
+    assert min(band.book_ratio, prior) < band.multiplier < max(band.book_ratio, prior)
+    by = {f.account_id: f for f in bt.forecasts}
+    assert by["S0"].flat_departure_p == by["Y4"].flat_departure_p
+    assert by["S0"].per_customer_departure_p < by["Y4"].per_customer_departure_p
+    assert {"switcher", "mover", "stayer"} <= set(bt.outcome_of.values())
+    only_moves = {a.account_id: a.last_month for a in book if a.last_month < end}
+    flat_only = run_backtest(book, end, 2020, move_out_month_by_account=only_moves,
+                             switch_on_default=True)
+    assert all(f.per_customer_departure_p == pytest.approx(f.flat_departure_p)
+               for f in flat_only.forecasts)
+    with pytest.raises(ValueError, match="without a move-out register"):
+        run_backtest(book, end, 2020, switch_on_default=True)
+    with pytest.raises(ValueError, match="two per-customer hazards"):
+        run_backtest(book, end, 2020, move_out_month_by_account=moves, observables=True,
+                     switch_on_default=True)
+
+
+def test_two_rules_pair_on_one_partition_and_a_rule_against_itself_differs_by_exactly_nothing():
+    """The defect: a pairing that drops the covariance, so a rule against itself still earns an
+    interval, or that pairs two rules over different accounts. A rule against itself differs by
+    0 with a zero-width interval; against the flat rule it reproduces the per-customer-vs-flat
+    grade; different cuts are refused."""
+    book, end, moves = _switch_book()
+    a = run_backtest(book, end, 2020, move_out_month_by_account=moves, switch_on_default=True)
+    same = ranking_between(a, a, "switcher")
+    assert same.difference == (0.0, (0.0, 0.0)) and same.verdict.startswith("cannot tell")
+    flat = dataclasses.replace(a, forecasts=tuple(
+        dataclasses.replace(f, per_customer_departure_p=f.flat_departure_p) for f in a.forecasts))
+    for outcome in ("switcher", "mover"):
+        got = ranking_between(a, flat, outcome)
+        want = a.error_by_outcome[outcome].ranking_against_stayers
+        assert got.difference[0] == pytest.approx(want.difference[0])
+        assert got.difference[1] == pytest.approx(want.difference[1])
+    assert ranking_between(a, flat).difference[0] == pytest.approx(a.departure_ranking.difference[0])
+    with pytest.raises(ValueError, match="same cut"):
+        ranking_between(a, run_backtest(book, end, 2021, move_out_month_by_account=moves))

@@ -142,6 +142,7 @@ __all__ = [
     "move_outs_from_run_output",
     "observable_level",
     "observable_multipliers",
+    "ranking_between",
     "regime_boundary_month",
     "run_backtest",
     "backtest_run_output",
@@ -377,15 +378,24 @@ def _cov(a: Sequence[float], b: Sequence[float]) -> float:
 
 def _ranking(departers: Sequence["AccountForecast"],
              stayers: Sequence["AccountForecast"]) -> Ranking:
-    m, n = len(departers), len(stayers)
+    return _paired_auc([f.per_customer_departure_p for f in departers],
+                       [f.per_customer_departure_p for f in stayers],
+                       [f.flat_departure_p for f in departers],
+                       [f.flat_departure_p for f in stayers])
+
+
+def _paired_auc(pos_a: Sequence[float], neg_a: Sequence[float], pos_b: Sequence[float],
+                neg_b: Sequence[float], names: tuple[str, str] = ("per-customer", "flat"),
+                ) -> Ranking:
+    """Two scores over the SAME departers and stayers, in the same order: each AUC and the paired
+    difference (a minus b) with DeLong's covariance. The Ranking's first rule is a, its second b."""
+    m, n = len(pos_a), len(neg_a)
     if m < 2 or n < 2:
         nan = (float("nan"), None)
         return Ranking(m, n, nan, nan, nan,
                        f"cannot tell: {m} departer(s) and {n} stayer(s), an interval needs two of each")
-    pc10, pc01 = _placements([f.per_customer_departure_p for f in departers],
-                             [f.per_customer_departure_p for f in stayers])
-    fl10, fl01 = _placements([f.flat_departure_p for f in departers],
-                             [f.flat_departure_p for f in stayers])
+    pc10, pc01 = _placements(pos_a, neg_a)
+    fl10, fl01 = _placements(pos_b, neg_b)
 
     def bound(mean: float, var: float) -> tuple[float, tuple[float, float]]:
         half = _TWO_SIDED_95 * math.sqrt(max(var, 0.0))
@@ -397,9 +407,33 @@ def _ranking(departers: Sequence["AccountForecast"],
     cov = _cov(pc10, fl10) / m + _cov(pc01, fl01) / n
     diff = bound(auc_pc - auc_fl, var_pc + var_fl - 2 * cov)
     lo, hi = diff[1]
-    verdict = ("per-customer ranks better" if lo > 0 else "flat ranks better" if hi < 0
+    verdict = (f"{names[0]} ranks better" if lo > 0 else f"{names[1]} ranks better" if hi < 0
                else "cannot tell: the 95% interval straddles zero")
     return Ranking(m, n, bound(auc_pc, var_pc), bound(auc_fl, var_fl), diff, verdict)
+
+
+def ranking_between(a: "Backtest", b: "Backtest", outcome: str | None = None,
+                    names: tuple[str, str] = ("a", "b")) -> Ranking:
+    """Rule a's per-customer p against rule b's, paired on the same graded accounts (slice 11):
+    `outcome` ("switcher", "mover") ranks that outcome's departers against the stayers, None the
+    whole book. Two runs on different accounts or cuts are refused -- that pairing is not one."""
+    fa = {f.account_id: f for f in a.forecasts}
+    fb = {f.account_id: f for f in b.forecasts}
+    if a.cut_year != b.cut_year or fa.keys() != fb.keys():
+        raise ValueError("two rules pair only on the same cut and the same graded accounts")
+    if outcome is None:
+        groups = {"pos": [i for i, f in fa.items() if f.departed],
+                  "neg": [i for i, f in fa.items() if not f.departed]}
+    else:
+        if a.error_by_outcome is None or outcome not in HELD_BACK_OUTCOMES[1:]:
+            raise ValueError(f"outcome {outcome!r} needs a move register and one of "
+                             f"{HELD_BACK_OUTCOMES[1:]}")
+        groups = {"pos": [i for i in fa if a.outcome_of[i] == outcome],
+                  "neg": [i for i in fa if a.outcome_of[i] == "stayer"]}
+    return _paired_auc([fa[i].per_customer_departure_p for i in groups["pos"]],
+                       [fa[i].per_customer_departure_p for i in groups["neg"]],
+                       [fb[i].per_customer_departure_p for i in groups["pos"]],
+                       [fb[i].per_customer_departure_p for i in groups["neg"]], names)
 
 
 def _paired(metric: str, pc: Sequence[float], fl: Sequence[float]) -> PairedComparison:
@@ -517,6 +551,10 @@ class Backtest:
     # Slice 10. None unless the per-customer hazard was keyed on the supplier's view: each
     # observable's levels with the book's ratio, the prior, the weight and the multiplier used.
     observable_multipliers: Mapping[str, Mapping[str, "ObservableMultiplier"]] | None = None
+    # Slice 11. With a register, each graded account's held-back outcome, so `ranking_between` can
+    # pair two rules on one partition; and whether the per-customer hazard keyed only its switch part.
+    outcome_of: Mapping[str, str] | None = None
+    switch_keyed_on_default: bool = False
 
 
 def regime_boundary_month(
@@ -834,14 +872,17 @@ class ObservableMultiplier:
 
 def observable_multipliers(
     accounts: Sequence[AccountHistory], fit_end: int, censored: frozenset[str] = frozenset(),
-    fit_start: int | None = None,
+    fit_start: int | None = None, only: Sequence[str] | None = None,
 ) -> dict[str, dict[str, ObservableMultiplier]]:
     """Every observable level's multiplier, fitted on the fit window's months and shrunk to its prior.
 
     Expected exits are at each calendar year's rate over the whole book, so a level that merely
     lived through a high-churn year is not read as carrying it. A level no source covers (a
-    payment channel the record cannot name) is held at one.
+    payment channel the record cannot name) is held at one. `only` keys a subset of observables.
     """
+    if only is not None and not set(only) <= set(OBSERVABLE_PRIORS):
+        raise ValueError(f"no observable(s) {sorted(set(only) - set(OBSERVABLE_PRIORS))}: "
+                         f"one of {sorted(OBSERVABLE_PRIORS)}")
     start = fit_start if fit_start is not None else min(a.first_month for a in accounts)
     at_risk_y: dict[int, int] = defaultdict(int)
     exits_y: dict[int, int] = defaultdict(int)
@@ -859,6 +900,8 @@ def observable_multipliers(
     rate = {y: exits_y[y] / n for y, n in at_risk_y.items()}
     out: dict[str, dict[str, ObservableMultiplier]] = {}
     for obs, (ref, priors) in OBSERVABLE_PRIORS.items():
+        if only is not None and obs not in only:
+            continue
         risk: dict[str, int] = defaultdict(int)
         o: dict[str, int] = defaultdict(int)
         e: dict[str, float] = defaultdict(float)
@@ -913,6 +956,7 @@ def run_backtest(
     hazard_fit_from_year: int | None = None,
     tenure_key: str = "contract_year",
     observables: bool = False,
+    switch_on_default: bool = False,
 ) -> Backtest:
     """Fit on months up to December of `cut_year`; forecast and grade every later month.
 
@@ -938,11 +982,22 @@ def run_backtest(
 
     `observables` (slice 10) replaces the per-customer hazard with the segment's flat hazard times
     the product of the account's ``observable_multipliers`` at the cut, rescaled per segment so the
-    fit window expects the flat rule's exits. Months on default advance over the horizon; tariff
-    and channel are held at the cut. It replaces the tenure key, so both together are refused.
+    fit window expects the flat rule's exits. The whole view, months on default included, is held
+    at the cut (slice 11: advancing them carried accounts into the 36+ band after the rescale, and
+    the level fell by 0.04-0.08). It replaces the tenure key, so both together are refused.
+
+    `switch_on_default` (slice 11) keys only the SWITCH part: the segment's move hazard plus its
+    switch hazard (moves censored) times the 36+ months-on-default multiplier fitted on switches,
+    rescaled so the fit window expects the flat rule's switch exits. It needs the register.
     """
-    if observables and tenure_key != "contract_year":
+    if (observables or switch_on_default) and tenure_key != "contract_year":
         raise ValueError("observables replace the tenure key: give one per-customer hazard")
+    if observables and switch_on_default:
+        raise ValueError("observables and switch_on_default are two per-customer hazards: give one")
+    if switch_on_default and move_out_month_by_account is None:
+        raise ValueError(
+            "switch_on_default keys the switch hazard, and without a move-out register no "
+            "departure can be told to be a switch")
     if tenure_key not in TENURE_KEYS:
         raise ValueError(f"tenure_key must be one of {TENURE_KEYS}, not {tenure_key!r}")
     fit_end = _month_index(f"{cut_year}-12")
@@ -988,12 +1043,21 @@ def run_backtest(
     by_cy, by_seg_h, seg_ratio = _fit_hazards(accounts, fit_end, fit_start=hazard_start)
     phase_ratio = (None if tenure_key == "contract_year"
                    else term_phase_ratios(accounts, fit_end, fit_start=hazard_start))
-    obs_mults = (observable_multipliers(accounts, fit_end, fit_start=hazard_start)
-                 if observables else None)
+    moved = (None if move_out_month_by_account is None else frozenset(
+        a.account_id for a in accounts
+        if move_out_month_by_account.get(a.account_id) == a.last_month))
+    h_switch_seg: dict[str, float] = {}
+    if switch_on_default:
+        h_switch_seg = _fit_hazards(accounts, fit_end, moved, hazard_start)[1]
+        obs_mults = observable_multipliers(accounts, fit_end, moved, hazard_start,
+                                           only=("months_on_default",))
+    else:
+        obs_mults = (observable_multipliers(accounts, fit_end, fit_start=hazard_start)
+                     if observables else None)
     seg_scale: dict[str, float] = {}
     if obs_mults is not None:
         # The new key moves WHERE an exit is expected, never how many: over the fit window each
-        # segment's months expect the flat rule's exits.
+        # segment's months expect the flat rule's exits (its switch exits, when only those are keyed).
         lo = hazard_start if hazard_start is not None else first
         months_seg: dict[str, int] = defaultdict(int)
         mult_seg: dict[str, float] = defaultdict(float)
@@ -1026,15 +1090,17 @@ def run_backtest(
         pc_total = fl_total = 0.0
         h_fl = by_seg_h.get(a.segment, 0.0)
         at_cut = a.observed.get(fit_end) if obs_mults is not None else None
+        key_at_cut = 1.0 if at_cut is None else _view_multiplier(obs_mults, at_cut)
         for step in range(horizon):
             # Margin is earned in a month the account starts supplied; departure takes
             # effect at the month's end, as the fit counted it.
             pc_total += s_pc * pc_margin_rate
             fl_total += s_fl * fl_margin_rate
-            if at_cut is not None:
-                view = (at_cut if at_cut.tariff == "fixed" else SupplierView(
-                    at_cut.tariff, at_cut.payment, at_cut.months_on_default + step + 1))
-                h_pc = h_fl * seg_scale.get(a.segment, 1.0) * _view_multiplier(obs_mults, view)
+            if at_cut is not None and switch_on_default:
+                h_sw = h_switch_seg.get(a.segment, 0.0)
+                h_pc = h_fl - h_sw + h_sw * seg_scale.get(a.segment, 1.0) * key_at_cut
+            elif at_cut is not None:
+                h_pc = h_fl * seg_scale.get(a.segment, 1.0) * key_at_cut
             elif phase_ratio is None:
                 h_pc = seg_ratio[a.segment] * _hazard_at(by_cy, tenure + step)
             else:
@@ -1080,17 +1146,13 @@ def run_backtest(
     by_cause: dict[str, dict[str, int]] | None = None
     switch_by_cy: dict[int, float] | None = None
     by_outcome: dict[str, OutcomeGrade] | None = None
-    moved: frozenset[str] | None = None
     incidence_by_cause: dict[str, tuple[float, float]] | None = None
     calibration_by_cause: dict[str, tuple[float, tuple[float, float] | None]] | None = None
+    left_by: dict[str, str] | None = None
     if move_out_month_by_account is None:
         limitations = [LIMITATION_DEPARTURE_CAUSE, LIMITATION_NO_MOVE_REGISTER]
     else:
         limitations = [LIMITATION_SWITCH_LEVEL_IS_THE_REGIME]
-        moved = frozenset(
-            a.account_id for a in accounts
-            if move_out_month_by_account.get(a.account_id) == a.last_month
-        )
         by_cause = {w: {"switch": 0, "move": 0} for w in ("fit", "held_back")}
         for a in accounts:
             if a.last_month >= book_end:
@@ -1199,6 +1261,8 @@ def run_backtest(
         tenure_key=tenure_key,
         term_phase_ratio=phase_ratio,
         observable_multipliers=obs_mults,
+        outcome_of=left_by,
+        switch_keyed_on_default=switch_on_default,
     )
 
 
@@ -1214,6 +1278,7 @@ def backtest_run_output(
     hazard_fit_from_year: int | None = None,
     tenure_key: str = "contract_year",
     observables: bool = False,
+    switch_on_default: bool = False,
 ) -> Backtest:
     """A run's book, split by departure cause where it carries a move-out register. The caller hands in the wholesale series
     (`SimInterface.monthly_wholesale_prices("gas")`); importing the live interface here would
@@ -1223,7 +1288,7 @@ def backtest_run_output(
     return run_backtest(
         *book_from_run_output(run_output), cut_year, margin_fit_end_year,
         wholesale_gas_by_month, move_outs_from_run_output(run_output), hazard_fit_from_year,
-        tenure_key, observables,
+        tenure_key, observables, switch_on_default,
     )
 
 
