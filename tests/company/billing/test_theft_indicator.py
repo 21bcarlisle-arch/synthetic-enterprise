@@ -102,3 +102,53 @@ def test_investigate_message_does_not_send_theft_to_ofgem():
     message = classify_anomaly(500, 3500, **CUTS)["message"]
     assert "Ofgem" not in message
     assert "SLC 12A" in message and "TRAS" in message
+
+
+# --- the structural flags (2026-10-17, unbilled_energy_and_revenue_assurance.md §4a) ---
+
+def _period(month, kwh, status="actual", commodity="electricity", **shares):
+    return {"customer_id": "C1", "commodity": commodity, "period_start": f"2020-{month:02d}-01",
+            "period_end": f"2020-{month:02d}-28", "read_status": status, "registered_kwh": kwh,
+            **shares}
+
+
+def test_an_empty_period_is_judged_only_between_two_actual_reads_and_by_who_was_named():
+    """Defect: the flag fires on use, judges a span with no opening read, splits a span at an
+    estimate, files a void or a gas meter as a theft lead, or can never fire at all."""
+    from company.billing.theft_indicator import empty_period_flags
+
+    named = empty_period_flags([_period(1, 300), _period(2, 0, "estimated"), _period(3, 0)])
+    void = empty_period_flags([_period(1, 300), _period(2, 0, void_owner_share=1.0)])
+    unnamed = empty_period_flags([_period(1, 300), _period(2, 0, occupier_share=1.0)])
+    gas = empty_period_flags([_period(1, 300, commodity="gas"), _period(2, 0, commodity="gas")])
+    # The whole partition is reachable before any leg is graded.
+    assert ([f["status"] for f in named + void + unnamed + gas]
+            == ["investigate", "void", "void", "not_screened"])
+    assert named[0]["periods"] == 2 and named[0]["span_start"] == "2020-02-01"
+    # A part-void period still has a named occupier on it.
+    assert empty_period_flags([_period(1, 300), _period(2, 0, void_owner_share=0.4)])[0]["status"] == "investigate"
+    assert empty_period_flags([_period(1, 0), _period(2, 300), _period(3, 5)]) == []
+    assert empty_period_flags([_period(1, 300), _period(2, 0, "estimated"), _period(3, 40)]) == []
+    assert "Ofgem" not in named[0]["message"] and "SLC 12A" in named[0]["message"]
+
+
+def test_the_annual_window_refuses_a_short_window_and_holds_no_cut_of_its_own():
+    """Defect: a month is read as a year, or the window classifies on a cut nobody sourced."""
+    from company.billing.theft_indicator import (
+        _ANNUAL_WINDOW_CUT,
+        ANNUAL_WINDOW_MIN_DAYS,
+        annual_window,
+    )
+
+    assert annual_window(100, 1000, ANNUAL_WINDOW_MIN_DAYS - 1, 0.5)["status"] == "not_annual"
+    assert annual_window(100, 0, 365, 0.5)["status"] == "no_data"
+    assert annual_window(100, 1000, 365, 0.5)["status"] == "investigate"
+    assert annual_window(900, 1000, 365, 0.5)["status"] == "ok"
+    # Keyed to the property, not today's value: a module cut must be one the page publishes.
+    if _ANNUAL_WINDOW_CUT is None:
+        assert annual_window(100, 1000, 365)["status"] == "unscreened"
+    else:
+        from pathlib import Path
+
+        page = Path(__file__).resolve().parents[3] / "docs/market_research/unbilled_energy_and_revenue_assurance.md"
+        assert str(_ANNUAL_WINDOW_CUT) in page.read_text().split("### 4a.")[1].split("## 5.")[0]

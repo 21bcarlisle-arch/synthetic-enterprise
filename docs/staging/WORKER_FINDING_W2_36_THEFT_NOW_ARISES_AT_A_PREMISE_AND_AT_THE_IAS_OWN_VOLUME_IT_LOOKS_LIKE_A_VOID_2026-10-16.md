@@ -137,3 +137,36 @@ Beside the earlier table, per 10,000 premise-years:
 
 **Fate (2026-10-16, after this slice):** ATOM -- W2_36's remaining kinds (K5 meter faults, K6
 settlement against billing) stand. GAP 1 is the next fidelity question for this screen.
+
+## The company's screen now has two structural flags, and neither needed a ratio cut (seat, 2026-10-17)
+
+Knowledge first: `unbilled_energy_and_revenue_assurance.md` §4a. No licence condition or code
+prescribes a screening window or cut. The BSC's Long Term Vacant rule defines a void by its
+*absence* of an occupier: two "Site Not Occupied" visits 75–215 days apart (P245). Up to 2% of
+occupied homes use no gas (Ofgem, 20 June 2014). The flags are in `company/billing/theft_indicator.py`:
+- `empty_period_flags`: zero advance between two actual reads on an **electricity** account while a
+  named occupier was liable. A gas empty period is `not_screened`, and a period wholly the owner's
+  void or "the occupier"'s is filed `void`.
+- `annual_window`: at least 360 days of registered use over the company's own expectation. Its cut
+  is `None`, so at default it reports `unscreened`.
+
+Graded with this probe (`--structural`), beside the ratio screen's table above. Pre-registration
+and grades: `records/WORKER_PREREG_W2_36_WHAT_THE_STRUCTURAL_FLAGS_FIND_2026-10-17.md`.
+
+| Per 10,000 premise-years | theft | theft and void in one month | void alone | occupied (run book) |
+|---|---|---|---|---|
+| Ratio screen, month under 0.05 (earlier) | about 1,100 | n/a | 0.2–112 | 0 |
+| **Empty period, named occupier** | 1,074–1,156 | 0–26 | **0** | **0** |
+| Annual window, default | unscreened | unscreened | unscreened | unscreened |
+| Annual window at 0.65 (instrument only) | 84–107 | 6–19 | 0 | 0 |
+
+- The empty-period flag keeps the empty-month screen's theft count and drops its voids, with no
+  threshold. It uses the occupier, as published vacancy practice does, instead of a ratio.
+- **Not yet shown on a run:** the run book's void stubs are never judged, because the company has
+  no opening read before an incoming account's first period. A real change of tenancy has one (an
+  occupier's opening read). Whether the company should hold it is the next question here. The
+  named-occupier leg is proven by the unit control and the synthetic table.
+- Mutation record: the flag that always reads a named occupier, judging a span with no opening read,
+  screening gas, and reading a short window as annual each red the control. Dropping the probe's
+  void share reds the probe control. A placebo and one equivalence (resetting a span only at an
+  actual read, which the loop already does) stay green.

@@ -37,7 +37,7 @@ import datetime as dt
 from collections import Counter
 
 from company.billing.monthly_bill_assembly import ESTIMATE_WINDOW_READS
-from company.billing.theft_indicator import classify_anomaly
+from company.billing.theft_indicator import annual_window, classify_anomaly, empty_period_flags
 from company.billing.unread_month_estimate import estimate_unread_kwh, opening_estimate_kwh
 from sim.customer_state_layer import Occupancy, TenureType, draw_home_move, void_end
 from simulation.meter_reads import THEFT_UNREGISTERED_SHARE, premise_theft_months
@@ -97,8 +97,8 @@ def premise_windows(premise_id: str, tenure: TenureType, base_seed: int = 42,
     for (year, month), empty_days, stole in zip(MONTHS, empty, stealing):
         days = calendar.monthrange(year, month)[1]
         ratio = (1.0 - empty_days / days) * ((1.0 - unregistered_share) if stole else 1.0)
-        monthly.append({"year": year, "days": days, "ratio": ratio,
-                        "cause": _cause(stole, empty_days > 0)})
+        monthly.append({"year": year, "month": month, "days": days, "empty_days": empty_days,
+                        "ratio": ratio, "cause": _cause(stole, empty_days > 0)})
     annual = []
     for year in range(FIRST_YEAR, LAST_YEAR + 1):
         rows = [r for r in monthly if r["year"] == year]
@@ -215,6 +215,91 @@ def occupied_screen_table(run_output: dict) -> dict:
     }
 
 
+def _empty_period_causes(periods: list[dict], causes: dict) -> Counter:
+    # The company's flag is asked with its own fields only; the cause it is filed under is the world's.
+    out = Counter()
+    for flag in empty_period_flags(periods):
+        if flag["status"] == "investigate":
+            out[causes[flag["span_end"]] or "neither"] += 1
+    return out
+
+
+def structural_table(tenure: TenureType, n_premises: int, base_seed: int = 42,
+                     setting: str = "default") -> dict:
+    """The two structural flags on the synthetic premises, per 10,000 premise-years, by cause.
+
+    Every month is an actual read (a smart read). A wholly void month is the owner's (B7 slice 6), so
+    it carries `void_owner_share` 1; any occupied day leaves a named occupier on the period."""
+    empty, annual_default, annual_cut = Counter(), Counter(), Counter()
+    for i in range(n_premises):
+        windows = premise_windows(f"PREM-{tenure.value}-{i}", tenure, base_seed, setting)
+        periods, causes = [], {}
+        for r in windows["monthly"]:
+            start = dt.date(r["year"], r["month"], 1).isoformat()
+            end = dt.date(r["year"], r["month"], r["days"]).isoformat()
+            periods.append({"period_start": start, "period_end": end, "commodity": "electricity",
+                            "read_status": "actual", "registered_kwh": r["ratio"] * 3100.0 / 12,
+                            "void_owner_share": 1.0 if r["empty_days"] == r["days"] else 0.0})
+            causes[end] = r["cause"]
+        empty += _empty_period_causes(periods, causes)
+        for row in windows["annual"]:
+            days = 366 if calendar.isleap(row["year"]) else 365
+            cause = row["cause"] or "neither"
+            if annual_window(row["ratio"] * 3100.0, 3100.0, days)["status"] != "unscreened":
+                annual_default[cause] += 1
+            if annual_window(row["ratio"] * 3100.0, 3100.0, days, investigate_below=CUTS[2])["status"] == "investigate":
+                annual_cut[cause] += 1
+    scale = 10_000 / (n_premises * (LAST_YEAR - FIRST_YEAR + 1))
+    return {"tenure": tenure.value, "setting": setting, "per_10k_premise_years": {
+        "empty_period": {k: round(v * scale, 1) for k, v in sorted(empty.items())},
+        "annual_default_classified": {k: round(v * scale, 1) for k, v in sorted(annual_default.items())},
+        f"annual_under_{CUTS[2]}": {k: round(v * scale, 1) for k, v in sorted(annual_cut.items())},
+    }}
+
+
+def structural_run_table(run_output: dict) -> dict:
+    """The two structural flags on a run's electricity book: occupied homes and incoming-account voids."""
+    reads = {(r["customer_id"], r["period_end"]): r for r in run_output["meter_read_log"]}
+    accounts: dict[str, list] = {}
+    for bill in run_output["bills"]:
+        read = reads.get((bill["customer_id"], bill["period_end"]))
+        if bill["commodity"] != "electricity" or read is None:
+            continue
+        accounts.setdefault(bill["customer_id"], []).append({
+            "customer_id": bill["customer_id"], "commodity": "electricity",
+            "period_start": bill["period_start"], "period_end": bill["period_end"],
+            "read_status": read["status"], "registered_kwh": float(read["true_consumption_kwh"]),
+            "void_owner_share": bill.get("void_owner_share"), "occupier_share": bill.get("occupier_share")})
+    empty, statuses = Counter(), Counter()
+    for cid, periods in accounts.items():
+        causes, in_void = {}, cid.startswith("OCC-")
+        for p in sorted(periods, key=lambda p: p["period_start"]):
+            causes[p["period_end"]] = "void" if in_void else "occupied"
+            if p["registered_kwh"] > 0:
+                in_void = False
+        for flag in empty_period_flags(periods):
+            statuses[f'{causes[flag["span_end"]]}/{flag["status"]}'] += 1
+        empty += _empty_period_causes(periods, causes)
+    annual_default, annual_cut = Counter(), Counter()
+    for account in occupied_windows(run_output):
+        for row in account["annual"]:
+            ms = [m for m in account["monthly"] if m["year"] == row["year"]]
+            kwh, expected = sum(m["kwh"] for m in ms), sum(m["expected"] for m in ms)
+            if annual_window(kwh, expected, row["days"])["status"] != "unscreened":
+                annual_default[row["cause"]] += 1
+            if annual_window(kwh, expected, row["days"], investigate_below=CUTS[2])["status"] == "investigate":
+                annual_cut[row["cause"]] += 1
+    premise_years = sum(m["days"] for a in occupied_windows(run_output) for m in a["monthly"]) / 365.25
+    scale = 10_000 / premise_years if premise_years else 0.0
+    return {"accounts": len(accounts), "premise_years": round(premise_years, 1),
+            "zero_advance_spans_by_cause_and_status": dict(statuses),
+            "per_10k_premise_years": {
+                "empty_period": {k: round(v * scale, 1) for k, v in sorted(empty.items())},
+                "annual_default_classified": {k: round(v * scale, 1) for k, v in sorted(annual_default.items())},
+                f"annual_under_{CUTS[2]}": {k: round(v * scale, 1) for k, v in sorted(annual_cut.items())},
+            }}
+
+
 if __name__ == "__main__":
     import argparse
     import json
@@ -223,11 +308,15 @@ if __name__ == "__main__":
     parser.add_argument("--premises", type=int, default=5000)
     parser.add_argument("--setting", default="default")
     parser.add_argument("--occupied-run", help="a run output; prices the occupied-home flags instead")
+    parser.add_argument("--structural", action="store_true",
+                        help="grade the empty-period and annual-window flags instead of the ratio screen")
     args = parser.parse_args()
     if args.occupied_run:
         from tools.run_output_store import load_run_output
 
-        print(json.dumps(occupied_screen_table(load_run_output(args.occupied_run)), indent=1))
+        table = structural_run_table if args.structural else occupied_screen_table
+        print(json.dumps(table(load_run_output(args.occupied_run)), indent=1))
         raise SystemExit(0)
     for t in TenureType:
-        print(json.dumps(screen_table(t, args.premises, setting=args.setting), indent=1))
+        table = structural_table if args.structural else screen_table
+        print(json.dumps(table(t, args.premises, setting=args.setting), indent=1))

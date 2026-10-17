@@ -292,6 +292,67 @@ What suppliers and their auditors do, from the evidence read:
 for a well-run domestic supplier. The closest published standards are the Citizens Advice >98%
 five-star billing-accuracy threshold [M], and Elexon's 97% NHH-on-actuals at RF [H].
 
+### 4a. Screening low and zero consumption for theft: the window, and what "occupied" means
+
+Added 2026-10-17, before the company's two structural flags were built (K8). The duties are in
+`read_access_and_theft_duties.md` §3.1 and are only summarised here: SLC 12.1 (electricity) asks
+"all reasonable steps to detect and prevent" theft, interference and damage; SLC 12A.5–12A.6 ask the
+same and an investigation where there are "reasonable grounds to suspect"; 12A.7 puts the supplier
+in REC Schedule 7 (TRAS, ETTOS, TDIS) [H, via that page]. **No licence condition or code read
+prescribes how a supplier screens its own consumption data, over what window, or at what cut.**
+
+**What is published about the screen.**
+- **Supplier analytics is one lead source among several, and a small one.** Ofgem's 2010
+  questionnaire (published 26 March 2012), electricity, weighted by theft cases found: data
+  collector 26%, meter operator 21%, the DNO's Revenue Protection Service (RPS) 14%, supplier
+  "analysis" **8%**, other (revenue protection officers, tip-offs, housing associations, police, new
+  tenants) 24%. Gas: "analysis" 9%. Ofgem added that the RPO-generated share "will, to some extent,
+  be data driven" [H]. The 85% gas figure in §3.2 of the duties page pools tip-offs with analysis.
+- **TRAS takes a monthly extract of the whole portfolio** (address, account, last billed amount,
+  arrears) and returns risk scores [M, ENGIE's TRAS notice; SPAA CP13/239]. Its "Relevant
+  Information" list was explicitly provisional in the 2013 decision, and the scoring model is the
+  provider's (Experian's). **GAP:** which consumption features TRAS scores, and over what window.
+- **How long a theft runs before detection:** domestic gas "approximately 2 years and 4 months"
+  (2010 questionnaire, Table 6) [H]; electricity "just under 2 years", with spikes at 365 and 730
+  days where suppliers cut off their recording (TEM 2023 §3.1) [H, via the duties page]. A window
+  of a year or more therefore sees most thefts whole; a month sees about one twenty-fourth of one.
+- **What a void looks like in published practice.** The BSC's Long Term Vacant process (P196, 2007;
+  window amended by P245, 2009) lets a supplier settle a non-half-hourly site at zero only after its
+  data collector has twice reported a failed read coded **02 "Site Not Occupied"** (D0004, J0024),
+  the visits **75 to 215 calendar days apart**; any other code resets the clock. The window was
+  chosen to fit quarterly and six-monthly read cycles [H, P245 proposal form]. Gas has the same
+  shape: two visits 75–215 days apart, then zero commodity charges with the AQ kept for capacity
+  [M, UNC 0282 decision summary].
+- **Zero gas use in an occupied home is ordinary.** Ofgem's open letter of 20 June 2014: "a maximum
+  of 323,000 zero gas consuming domestic meters", 2% of domestic gas meters, including homes that
+  have a meter and do not use it, and periodic zero-users such as seasonal homeowners [H].
+
+**What "occupied account" means.** Published practice defines the negative only: a site is *not
+occupied* when the industry's evidence says so (two "Site Not Occupied" visits, or a notified
+change of tenancy). **GAP:** no published positive definition of an occupied account for theft
+screening. What a real supplier holds is whether the account has a **named** liable occupier, or is
+billed to "the occupier" or charged to the owner for a void (B7, §5 K4). That is the design's
+definition below, and it is a design choice, not a published one.
+
+**What this design takes from it, and why** (`company/billing/theft_indicator.py`):
+1. **An empty period on a named occupier's electricity account is a lead without a cut.** Zero
+   advance between two actual reads needs no threshold: it is zero. A named occupier rules out the
+   void that would otherwise explain it, because published practice treats a void as an *absence*
+   of an occupier. Electricity only: an occupied home's fridge and standby keep an electricity
+   meter turning, but a gas meter in an occupied home is idle in up to 2% of homes (Ofgem 2014), so
+   a gas empty period is not evidence of anything and the flag reports gas as not screened.
+2. **The annual window is at least 360 days of the company's own expectation.** That window is a
+   design choice, not a published one (**GAP**: the screening window). It is chosen because
+   published thefts run about two years, voids run about a month, and a year removes the seasonal
+   shape error the W2_36 probe found in a monthly expectation.
+3. **The annual window's cut stays `None`.** No published actual/expected cut was found here or in
+   the duties page (§5). Without a caller's cut the window is reported `unscreened`, as the ratio
+   screen already is.
+
+**GAPs carried:** TRAS's consumption features and window; any published actual/expected screening
+cut; a positive definition of "occupied"; the rate at which empty periods on named electricity
+accounts are confirmed theft (TRAS publishes outcomes by payment method only).
+
 ---
 
 ## 5. What our code does
@@ -414,6 +475,15 @@ non-payment.
   <https://www.ofgem.gov.uk/sites/default/files/docs/2014/03/electricitytheft-iafinal_0.pdf>. Read as text [H].
 - RECCo, *New report estimates energy theft costs consumers up to £1.4bn yearly*:
   <https://retailenergycode.co.uk/energy-theft-costs-consumers-up-to-1-4-billion-yearly/> [H, page text].
+- Ofgem, *Overview of questionnaire responses on theft of energy*, 26 March 2012:
+  <https://www.ofgem.gov.uk/sites/default/files/docs/2012/03/overview-of-questionnaire-responses-on-theft-of-energy_0.pdf>. Read as text [H].
+- Ofgem, *Open letter: Treatment of low and zero consumers of gas*, 20 June 2014:
+  <https://www.ofgem.gov.uk/ofgem-publications/88276/openletter-treatmentoflowandzeroconsumersofgas.pdf>. Read as text [H].
+- Elexon, *P245 Modification Proposal: Changes to Long Term Vacant Site Timescales*, 23 October 2009:
+  <https://assets.elexon.co.uk/wp-content/uploads/2012/02/28171042/p245_long_term_vacant_site_timescales.pdf>. Read as text [H].
+- Joint Office, UNC 0282 decision (gas vacant sites): <https://www.gasgovernance.co.uk/sites/default/files/ggf/UNC282D.pdf> [M].
+- Ofgem, SPAA CP13/239 *TRAS Arrangements: TRAS Product* decision, 2013 [H, letter text]; ENGIE,
+  *Energy Theft Risk Assessment Service* customer notice [M].
 - Xoserve, *Unidentified Gas (UIG)*: <https://www.xoserve.com/help-centre/demand-attribution/unidentified-gas-uig/> [M].
 - Energy Ombudsman, *Annual data 2025*: <https://www.energyombudsman.org/news/energy-ombudsman-annual-data-2025> [M].
 - Energy UK, *Energy UK Explains: Back billing*: <https://www.energy-uk.org.uk/publications/energy-uk-explains-back-billing/> [M].

@@ -112,3 +112,101 @@ def screen_portfolio(
         "unscreened": sum(1 for r in results if r["status"] == "unscreened"),
         "results": sorted(results, key=lambda r: (r.get("ratio") or 9999)),
     }
+
+
+# --- Structural flags (2026-10-17) -------------------------------------------------------------
+# Knowledge: docs/market_research/unbilled_energy_and_revenue_assurance.md §4a. W2_36's probe found
+# that a ratio cannot tell a theft from a void; length and the occupier can. Neither flag below
+# needs a typed ratio cut.
+
+#: The shortest span read as an annual window. A design choice, not a published one (§4a GAP: no
+#: screening window is published): thefts run about two years and voids about a month, and a year
+#: cancels the seasonal shape error of a monthly expectation. 360, not 365, so twelve monthly
+#: periods that start on the 1st always qualify.
+ANNUAL_WINDOW_MIN_DAYS = 360
+
+#: UNSOURCED, so None, as the ratio screen's thresholds are: no published actual/expected cut was
+#: found (§4a). Without a caller's cut the annual window is reported "unscreened".
+_ANNUAL_WINDOW_CUT: float | None = None
+
+
+def _named_occupier(period: dict) -> bool:
+    # A void is the owner's (B7 slice 6) and an unnamed stretch is "the occupier"'s (slice 5); a
+    # period wholly either has nobody named. A share below 1 means someone named held part of it.
+    return (float(period.get("void_owner_share") or 0.0) < 1.0
+            and float(period.get("occupier_share") or 0.0) < 1.0)
+
+
+def empty_period_flags(periods: list[dict]) -> list[dict]:
+    """Spans of zero advance between two consecutive actual reads on a named occupier's account.
+
+    `periods` is one account's billing periods in any order, each with `period_start`,
+    `period_end`, `commodity`, `read_status` ("actual"/"estimated"), `registered_kwh` (the
+    period's metered advance as the company knows it once read), and the bill's
+    `void_owner_share` / `occupier_share` when present. The span runs from the period after one
+    actual read to the next actual read, so a meter read twice a year is judged over six months.
+
+    Electricity only: up to 2% of occupied homes use no gas at all (Ofgem, 20 June 2014), so a gas
+    empty period is reported "not_screened" rather than flagged. A span before the first actual
+    read has no opening read and is not judged.
+    """
+    rows = sorted(periods, key=lambda p: p["period_start"])
+    flags: list[dict] = []
+    span: list[dict] = []
+    seen_actual = False
+    for p in rows:
+        span.append(p)
+        if p.get("read_status") != "actual":
+            continue
+        if seen_actual and sum(float(r.get("registered_kwh") or 0.0) for r in span) == 0.0:
+            named = any(_named_occupier(r) for r in span)
+            commodity = p.get("commodity")
+            if commodity != "electricity":
+                status, reason = "not_screened", (
+                    "Zero gas advance; up to 2% of occupied homes use no gas (Ofgem 2014), so "
+                    "an empty gas period is not a theft lead.")
+            elif not named:
+                status, reason = "void", (
+                    "Zero advance with nobody named: the owner's void or 'the occupier', "
+                    "which explains it.")
+            else:
+                status, reason = "investigate", (
+                    "Zero advance between two actual reads while a named occupier was liable. "
+                    "A lead, not a finding: investigate where there are reasonable grounds "
+                    "(SLC 12A.6), alongside the TRAS score.")
+            flags.append({
+                "customer_id": p.get("customer_id"), "commodity": commodity,
+                "span_start": span[0]["period_start"], "span_end": p["period_end"],
+                "periods": len(span), "named_occupier": named,
+                "status": status, "message": reason,
+            })
+        seen_actual = True
+        span = []
+    return flags
+
+
+def annual_window(registered_kwh: float, expected_kwh: float, days: int,
+                  investigate_below: float | None = None) -> dict:
+    """A window of at least ANNUAL_WINDOW_MIN_DAYS: registered over the company's own expectation.
+
+    Returns status not_annual / no_data / unscreened / investigate / ok. The cut is the caller's;
+    the module holds none (`_ANNUAL_WINDOW_CUT` is None until §4a sources one).
+    """
+    if days < ANNUAL_WINDOW_MIN_DAYS:
+        return {"status": "not_annual", "ratio": None,
+                "message": f"{days} days is not an annual window ({ANNUAL_WINDOW_MIN_DAYS} needed)."}
+    if expected_kwh <= 0:
+        return {"status": "no_data", "ratio": None, "message": "No expectation to compare against."}
+    ratio = registered_kwh / expected_kwh
+    cut = investigate_below if investigate_below is not None else _ANNUAL_WINDOW_CUT
+    if cut is None:
+        return {"status": "unscreened", "ratio": round(ratio, 3),
+                "message": (f"Registered use over {days} days is {ratio:.0%} of expected. Not "
+                            "classified: no sourced annual cut exists and none was supplied.")}
+    if ratio < cut:
+        return {"status": "investigate", "ratio": round(ratio, 3),
+                "message": (f"Registered use over {days} days is {ratio:.0%} of expected. A year "
+                            "is too long for a void and too long for the season to explain; "
+                            "investigate under SLC 12A.6 alongside the TRAS score.")}
+    return {"status": "ok", "ratio": round(ratio, 3),
+            "message": f"Registered use over {days} days is {ratio:.0%} of expected."}

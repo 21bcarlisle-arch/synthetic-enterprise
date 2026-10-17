@@ -97,3 +97,15 @@ def test_occupied_homes_flag_by_shape_and_a_void_on_the_incoming_account_is_not_
     assert all(4 <= m["month"] <= 10 for m in peaky), peaky
     # The shape error is a month's, not the year's: the annual window does not flag it.
     assert not [y for y in rows["PEAKY"]["annual"] if _flagged(y["ratio"], 0.65)]
+
+
+def test_the_empty_period_flag_finds_thefts_and_never_a_void_alone():
+    """Defect: the company's structural flag files a wholly void month as a theft lead, flags a
+    home that is using, or never reaches a theft, so the table beside the ratio screen is vacuous."""
+    from tools.theft_void_screen_probe import structural_table
+
+    table = structural_table(TenureType.SOCIAL_RENTER, 200)["per_10k_premise_years"]
+    assert table["empty_period"].get("theft", 0) > 0, table
+    assert "void" not in table["empty_period"] and "neither" not in table["empty_period"], table
+    assert table["annual_default_classified"] == {}, "the annual window classified on its own cut"
+    assert table["annual_under_0.65"].get("theft", 0) > 0 and "void" not in table["annual_under_0.65"]
