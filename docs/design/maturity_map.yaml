@@ -607,7 +607,7 @@
   file_scope: ['company/analytics/clv_three_horizon.py', 'tests/company/analytics/test_clv_three_horizon.py', 'company/analytics/customer_value_view.py', 'tools/couple_clv.py', 'tests/tools/test_couple_clv.py']
   simplifications_count: 19   # 2026-10-01 LEVEL STAYS 2. Ledger row landed 7a8e651cd: gap 1.081 n=69 (H2 on the book's tenure-year life table). Best single scale leaves 0.991: no per-account information left to recover company-side. Tenure is unrankable because the world holds no tenure signal (world lane); the margin ranking is the fuel split. See SEAT_FINDING_EP1_LEGS_THEN_RATE_*.
   blocked_on: null
-  block_reason: null   # 2026-10-15: unblocked by the EP17 ruling; the legs-then-rate RANKING replication waits for EP17 to switch, the rest runs on the fixed draw.
+  block_reason: "PARKED by the worker 2026-10-17: no worker work left before L3. Level and margin are fixed on the fixed draw (7e2503507, 127c007f0, 9d6ad4551); what is left is the legs-then-rate ranking replication, which needs EP17 to vary (after the 10-19 publish) on seeds only the director lists (for_the_director ep17-s-flat-against-per-customer-comparison). The rate change waits on his open row the-clv-discount-rate-and-terminal-value. Unpark when either is answered."
 - id: EP2_variance_learning_loop
   title: "Expected minus realised, fed back into belief"
   notes_rehomed: [gain, name, origin_note]
