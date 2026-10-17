@@ -102,6 +102,11 @@ gap is the misreporting, not the world. The 6-month windows hold only 5–12 swi
    payment gradient at all. Unlike tariff, payment method rarely changes for a household that does
    not switch, so the answer is not known in advance. W-A is still graded against its own filed
    prediction after the 19 Oct publish.
+   **Answered 2026-10-17, knowledge only:** the payment instrument does see the pre-switch gradient,
+   scaled by `(1 − m)`, where `m` is the share of PPM switchers landing on credit. `m` is not published.
+   Pre-crisis it is low by mechanism, with a ceiling of about 0.2–0.3. 0.55 grades W-A's 0.50–0.70
+   band only if `m` ≲ 0.12. A drawn 0.70–0.85 would miss the prediction, not the record. See the K8
+   page, §2a (`docs/market_research/switching_gradient_by_tariff_and_payment_what_the_record_can_grade.md`).
 
 ## Method, for the next session
 
