@@ -212,6 +212,13 @@ class DecisionPolicy:
     #: policy until the 19 Oct publish is read, so that reading stays one variable.
     theft_screen_in_billing_run: bool = False
 
+    #: C35 (2026-10-17): at a renewal, an advice action that costs us may travel with the smallest
+    #: monthly rise on the Fixed Retention Tariff that brings our side to zero, capped by the
+    #: headroom under the published default (`company.crm.next_best_action.price_retention_rise`).
+    #: Off on every standing policy; switching it on is its own one-variable item after the 19 Oct
+    #: publish.
+    next_best_action_shares_by_retention_rise: bool = False
+
     #: (2026-10-10) how the company sizes a save when no experiment names a cut: "price_match"
     #: meets the market's best published deal, never below the company's own cost floor
     #: (`company.crm.save_offer.price_match_save_rate`). Every input is published or the company's

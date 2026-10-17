@@ -374,6 +374,50 @@ advice at all. That needs the fee's own count on the same book.
 Script: `/var/tmp/retention_rise/per_renewal.py`. It is not in the tree; its logic is stated
 above. `python3 <script> <probe json> [linear]`, from the repo root with `PYTHONPATH=.`.
 
+### 4c. The choices the build makes (`next_best_action.price_retention_rise`, 2026-10-17)
+
+The build gives the company §4b's decision using only what it holds. Where §4b read the world, the
+build makes these choices:
+
+- **The cap is the published default, not the rate a stayer is billed.** Headroom is the published
+  default unit rate minus our own Fixed Retention Tariff offer, ex VAT, times the account's annual
+  volume over 12 (`save_offer.published_default_rate_ex_vat`). Through the EPG the published rate
+  is EPG-net. That is what the household pays, so it is the comparison it makes.
+- **Before 2019 the cap is unknown, and the rise is refused.** Ofgem published no per-fuel default
+  unit rate before the cap; it published a dual-fuel annual bill only (`svt_rates_active_passive_2016_2025.md`
+  §1a). The company could read its own default tariff instead, but no such record crosses the seam
+  today. So the rise fails closed and names the GAP. It does not borrow the world's table.
+- **The hazard is the company's forecast.** It is B11's per-account departure p, turned into a
+  constant monthly hazard and read at both ends slice 13 brackets: the full fit window, and the
+  cut-year window. Neither end is preferred. Slice 13 found the level is not identified at the cut.
+- **The staying response is the published slope**, 0.0015 P(stay) per £/yr, applied as +0.0015·d to
+  the monthly hazard. It overstates the world's own response (§4a: 0.00065), which errs against us
+  (F11).
+- **Our floor holds twice, and a shed account is not a share.** The smallest rise must bring our side
+  to ≥ 0 both with the hazard held and with the slope applied. A rise that clears zero only because
+  it drives a loss-making account away is refused. That is §4b's trap, stated as a rule.
+- **The household's floor** is the rise paid over its expected supplied months, at most its benefit
+  over the horizon.
+- **It is off by default** (`DecisionPolicy.next_best_action_shares_by_retention_rise`). With it
+  off, `decide` is unchanged.
+
+### 4d. The count through the company's own code (DEVELOPMENT, 2026-10-17)
+
+This is §4b's 260 renewals, priced by `price_retention_rise` on the company's own inputs
+(`python3 -m tools.retention_rise_count <probe json>`). The prediction and the grades are in
+`docs/staging/records/SEAT_PREREG_C35_THE_RETENTION_RISE_THROUGH_THE_COMPANYS_OWN_CODE_AT_BOTH_HAZARD_ENDS_2026-10-17.md`.
+
+- **The count is 211 of 780 (27%), at both hazard ends.** It is 71, 71 and 69 for the three effects.
+  The hazard end changes the rise and what the household keeps (median 40% of its gross benefit on
+  the full window, 38% on the cut-year window). It changes no case.
+- **314 − 211 = 103.** The world rescues 104 cases before 2019, and there the company has no
+  published default to read, so it refuses. One case runs the other way, and its cause is not
+  established.
+- **From 2019 the company's count matches the world arm to within one case** (71/71, 71/71, 69/68).
+  The headroom under the published cap is the world's own headroom, read from the company's side.
+- **Of the 372 cases from 2019, 158 are refused because the rise needed is above the headroom.** None
+  is refused on the household's floor.
+
 ## 5. Gaps, in one place
 
 1. Each case's headroom under the cap, if it is on a default tariff (§1).
@@ -387,6 +431,9 @@ above. `python3 <script> <probe json> [linear]`, from the repo root with `PYTHON
    the median (§4a). The bundle is still unmeasured.
 8. Whether the licence stops a passive household being rolled onto a fix dearer than the default
    (§4a). The world's decline-and-stay rule rests on behaviour alone.
+9. The default a household would roll onto before 2019, as the company could know it (§4c). No
+   per-fuel default was published, and the company's own default-tariff record does not cross the
+   seam. The rise is refused there, which accounts for 104 of §4b's 314 cases.
 
 ## Sources
 

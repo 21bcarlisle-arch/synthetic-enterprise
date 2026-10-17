@@ -147,6 +147,7 @@ FIELD_CONSUMPTION = {
     "save_offer_cut_share": {"via": "run_argument"},
     "move_with_us_offers": {"via": "run_argument"},
     "theft_screen_in_billing_run": {"via": "run_argument"},
+    "next_best_action_shares_by_retention_rise": {"via": "run_argument"},
     "save_offer_sizing": {"via": "run_argument"},
     "use_var_hedge_decision": {"via": "run_argument"},
     # Threaded correctly already: run_phase2b.py calls

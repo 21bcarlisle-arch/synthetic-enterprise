@@ -59,6 +59,18 @@ has tried and observed, so it searches those points and no grid of its own. No p
 the action stays priced as C34 prices it, which is the honest default: C35 adds nothing it
 cannot see.
 
+THE SECOND SHAPE OF SHARE: A RISE ON A FIXED RETENTION TARIFF AT RENEWAL (C35, 2026-10-17;
+`a_retention_price_that_shares_the_value_an_action_creates.md` §4c). The share travels as a
+monthly rise on the fix offered at renewal, paid only in the months the household stays. That is
+lawful as a Fixed Retention Tariff under the SLC 22B derogation, which sets no price rule (§2). It
+is the smallest rise that brings our side to at least zero, and it must do that twice: once with
+the hazard held, and once with the price's own effect on staying added at the published slope. A
+rise that clears zero only by driving a loss-making account away is shedding the account, not
+sharing value (§4b's trap). It is capped by the headroom under the published default: a stayer
+offered a fix dearer than the default goes onto the default instead (§4a). Before 2019 no
+per-fuel default was published, so the headroom is unknown and the rise is refused. It is off unless
+the policy names it (`DecisionPolicy.next_best_action_shares_by_retention_rise`).
+
 EPISTEMIC WALL. Pure functions of the company's own estimates. No world state, no socket. Grading
 against a true counterfactual (`grade`) is a harness instrument, as `tools/decision_probe.py` is:
 the company never holds the truth argument.
@@ -66,18 +78,33 @@ the company never holds the truth argument.
 from __future__ import annotations
 
 import hashlib
+import math
 from calendar import monthrange
 from dataclasses import dataclass
 from datetime import date
 from enum import Enum
-from typing import Mapping, Sequence
+from typing import TYPE_CHECKING, Mapping, Sequence
 
 from company.analytics.forward_clv import PairedComparison, _paired
+
+if TYPE_CHECKING:
+    from company.policy.decision_policy import DecisionPolicy
 
 # SLC 27.5B: proactive contact is required after two consecutive missed monthly payments. Quoted
 # in docs/domain_artefact_library/regulatory/pricing_differentiation_permissions.md C1-C2 and
 # docs/market_research/next_best_action_and_cross_sell.md §4.4.
 SLC_27_5B_CONSECUTIVE_MISSED_MONTHLY_PAYMENTS = 2
+
+# The fall in P(stay at renewal) per GBP a year of price gap, within one household: Deller et al.
+# (2021), Energy Journal 42(3), average marginal effect 0.0013-0.0016, read at its midpoint
+# (docs/market_research/retention_slope_per_pound_of_renewal_cut.md §1). Measured on opted-in
+# switchers, so it overstates an inactive book's response; the world's own is 0.00065 at the
+# median (a_retention_price_that_shares_the_value_an_action_creates.md §4a). A rise of GBP d a
+# month adds this times d to the monthly hazard.
+PUBLISHED_RENEWAL_STAYING_SLOPE_PER_GBP_YEAR = 0.0015
+
+# A rise is priced to the penny, the unit a tariff is quoted in.
+_RISE_STEP_GBP_PER_MONTH = 0.01
 
 
 class Action(str, Enum):
@@ -149,6 +176,34 @@ class SharePrice:
 
 
 @dataclass(frozen=True)
+class RenewalTerms:
+    """What the company holds about one account at its renewal, to price a rise on its fix.
+
+    Rates are GBP/MWh ex VAT. ``published_default_gbp_per_mwh`` is the published default for the
+    account's fuel on the renewal date (`company.crm.save_offer.published_default_rate_ex_vat`);
+    None means none was published, as before 2019.
+    """
+
+    fixed_offer_gbp_per_mwh: float
+    published_default_gbp_per_mwh: float | None
+    annual_mwh: float | None
+
+    def headroom_gbp_per_month(self) -> float | None:
+        if self.published_default_gbp_per_mwh is None or not self.annual_mwh:
+            return None
+        return (self.published_default_gbp_per_mwh - self.fixed_offer_gbp_per_mwh) * self.annual_mwh / 12.0
+
+
+@dataclass(frozen=True)
+class RetentionRise:
+    rise_gbp_per_month: float
+    headroom_gbp_per_month: float
+    value_change_gbp: float
+    customer_benefit_kept_gbp: float
+    expected_joint_value_gbp: float
+
+
+@dataclass(frozen=True)
 class AccountState:
     account_id: str
     monthly_margin_gbp: float
@@ -156,6 +211,7 @@ class AccountState:
     consecutive_missed_monthly_payments: int
     estimates: tuple[ActionEstimate, ...]
     share_responses: tuple[ShareResponse, ...] = ()
+    renewal: RenewalTerms | None = None
 
 
 @dataclass(frozen=True)
@@ -166,7 +222,7 @@ class Decision:
     customer_benefit_gbp_per_year: float
     reason: str
     unscored: tuple[tuple[Action, str], ...] = ()
-    share: SharePrice | None = None
+    share: SharePrice | RetentionRise | None = None
 
 
 def forward_value(monthly_margin_gbp: float, monthly_hazard: float, horizon_months: int) -> float:
@@ -226,6 +282,57 @@ def price_share(state: AccountState, est: ActionEstimate, response: ShareRespons
     if best is None:
         return None, "no tried share leaves both the customer and us no worse off"
     return best, ""
+
+
+def price_retention_rise(state: AccountState, est: ActionEstimate, terms: RenewalTerms,
+                         horizon_months: int,
+                         slope_per_gbp_year: float = PUBLISHED_RENEWAL_STAYING_SLOPE_PER_GBP_YEAR,
+                         ) -> tuple[RetentionRise | None, str]:
+    """The smallest monthly rise on the renewal fix that brings our side to at least zero, or None and why.
+
+    Our side is held to zero twice: with the hazard held, and with ``slope_per_gbp_year`` x rise
+    added to it. The rise must sit within the headroom under the published default, and the
+    household must keep at least nothing: its benefit over the horizon, less the rise paid over
+    its expected supplied months.
+    """
+    headroom = terms.headroom_gbp_per_month()
+    if headroom is None:
+        why = ("no published default for this fuel on the renewal date" if terms.annual_mwh
+               else "the account's annual volume is unknown")
+        return None, f"{why}, so the headroom under the default is unknown and no rise is offered"
+    benefit = est.customer_benefit_gbp_per_year * horizon_months / 12.0
+
+    def ours(rise: float, slope: float) -> float:
+        hazard = min(1.0 - state.monthly_departure_hazard,
+                     est.hazard_change_per_month + slope * rise)
+        return value_change(state, ActionEstimate(est.action, est.customer_benefit_gbp_per_year,
+                                                  est.margin_change_gbp_per_month + rise, hazard),
+                            horizon_months)
+
+    # With the hazard held, our side rises one-for-one with the rise over the supplied months.
+    held = ours(0.0, 0.0)
+    supplied = forward_value(1.0, state.monthly_departure_hazard + est.hazard_change_per_month,
+                             horizon_months)
+    rise = 0.0 if held >= 0.0 else round(
+        math.ceil(-held / supplied / _RISE_STEP_GBP_PER_MONTH - 1e-9) * _RISE_STEP_GBP_PER_MONTH, 2)
+    if rise > headroom:
+        return None, (f"the rise our side needs ({rise:.2f} GBP/month) is above the headroom under "
+                      f"the default ({headroom:.2f} GBP/month): a stayer would decline it onto the default")
+    while ours(rise, 0.0) < 0.0 or ours(rise, slope_per_gbp_year) < 0.0:
+        rise = round(rise + _RISE_STEP_GBP_PER_MONTH, 2)
+        if rise > headroom:
+            return None, ("no rise within the headroom under the default "
+                          f"({headroom:.2f} GBP/month) brings our side to zero once the price's own "
+                          "effect on staying is counted")
+    hazard = min(1.0 - state.monthly_departure_hazard,
+                 est.hazard_change_per_month + slope_per_gbp_year * rise)
+    paid = rise * forward_value(1.0, state.monthly_departure_hazard + hazard, horizon_months)
+    kept = benefit - paid
+    if kept < 0.0:
+        return None, (f"a {rise:.2f} GBP/month rise takes {paid:.2f} GBP, more than the advice gives "
+                      f"the household ({benefit:.2f} GBP over the horizon)")
+    v = ours(rise, slope_per_gbp_year)
+    return RetentionRise(rise, headroom, v, kept, v + kept), ""
 
 
 def hazard_estimate_from_holdout(action: Action, observations, window_months: int,
@@ -332,8 +439,9 @@ def _debt_constraint(state: AccountState, horizon_months: int) -> Decision | Non
     )
 
 
-def decide(state: AccountState, horizon_months: int) -> Decision:
-    """The per-customer rule."""
+def decide(state: AccountState, horizon_months: int,
+           policy: "DecisionPolicy | None" = None) -> Decision:
+    """The per-customer rule. ``policy`` is the run's; only its retention-rise switch is read."""
     forced = _debt_constraint(state, horizon_months)
     if forced is not None:
         return forced
@@ -347,6 +455,16 @@ def decide(state: AccountState, horizon_months: int) -> Decision:
                 unscored += ((est.action, f"share: {why}"),)
             else:
                 priced.append((est, price))
+    if (policy is not None and policy.next_best_action_shares_by_retention_rise
+            and state.renewal is not None):
+        for est, v in scored:
+            if v >= 0.0 or est.customer_benefit_gbp_per_year < 0.0 or est.action is Action.DEBT_SUPPORT:
+                continue
+            rise, why = price_retention_rise(state, est, state.renewal, horizon_months)
+            if rise is None:
+                unscored += ((est.action, f"retention rise: {why}"),)
+            else:
+                priced.append((est, rise))
     if priced:
         unpriced = [(e, v) for e, v in scored if e.action not in responses]
         return _decide_with_shares(state, unpriced, priced, unscored, horizon_months)
@@ -375,14 +493,22 @@ def _decide_with_shares(state, unpriced, priced, unscored, horizon_months) -> De
              for e, v in unpriced if e.customer_benefit_gbp_per_year >= 0.0 and v >= 0.0]
     cands += [(p.expected_joint_value_gbp, p.expected_value_change_gbp,
                p.expected_customer_benefit_gbp * 12.0 / horizon_months, e.action, p)
+              if isinstance(p, SharePrice) else
+              (p.expected_joint_value_gbp, p.value_change_gbp,
+               p.customer_benefit_kept_gbp * 12.0 / horizon_months, e.action, p)
               for e, p in priced]
     joint, v, cb, action, price = max(cands, key=lambda c: (c[0], c[1]))
     if joint <= 0.0:
         return Decision(state.account_id, Action.NOTHING, 0.0, 0.0,
                         "no action that leaves both sides no worse off creates any value", unscored)
-    why = (f"largest expected joint value, offered at a {price.share:.0%} share of the household's "
-           f"benefit (fee {price.fee_gbp:.2f} GBP, take-up {price.take_up:.0%})" if price
-           else "largest joint value among actions that leave both sides no worse off")
+    if isinstance(price, RetentionRise):
+        why = (f"largest expected joint value, offered with a {price.rise_gbp_per_month:.2f} GBP/month "
+               f"rise on the renewal fix (headroom {price.headroom_gbp_per_month:.2f} GBP/month)")
+    elif price:
+        why = (f"largest expected joint value, offered at a {price.share:.0%} share of the household's "
+               f"benefit (fee {price.fee_gbp:.2f} GBP, take-up {price.take_up:.0%})")
+    else:
+        why = "largest joint value among actions that leave both sides no worse off"
     return Decision(state.account_id, action, v, cb, why, unscored, price)
 
 
