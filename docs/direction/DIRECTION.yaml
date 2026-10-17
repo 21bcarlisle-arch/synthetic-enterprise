@@ -245,3 +245,17 @@ for_the_director:
   status: open
   resolution: ''
   evidence: tools/book_seed_authorisation.py refuses unlisted seeds; seed census in the prereg's 'Population seeds' section
+- id: reading-reviewer-trial-your-08-56-yes
+  raised: '2026-10-17'
+  kind: strategy
+  what: 'Reading-reviewer trial (your 08:56 ''Yes''): a blind Opus reader caught 1 of 5 known-bad commits
+    strictly, 3 of 5 by location; when two readers both said NEEDS_WORK it flagged 4 of 5 bad commits
+    and 0 of 5 clean ones, and it caught every dead-mechanism and second-implementation instance in the
+    set'
+  proposal: No commit gate. Run two blind Opus readers, non-blocking, only on commits that add a new module
+    or a rule something else already computes. File a finding only when both readers raise it, and check
+    it like any finding. Score it for two weeks in judge_validation; stop if under half the filed findings
+    are confirmed. It is a standing compute spend, so it waits for your go.
+  status: open
+  resolution: ''
+  evidence: docs/staging/advisor/done/ADVISOR_TRIAL_WOULD_A_READING_REVIEWER_HAVE_CAUGHT_OUR_KNOWN_BAD_COMMITS_2026-10-17.md

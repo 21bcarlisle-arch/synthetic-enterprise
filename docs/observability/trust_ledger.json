@@ -48,5 +48,225 @@
     "subject": "G14_half_hourly_grid_carbon_intensity_aligned_to_settlement",
     "task_class": "docs_discovery",
     "verdict": "pass"
+  },
+  {
+    "defects_found_post_close": 1,
+    "evaluated_at": "2026-10-17",
+    "evaluator_name": "phase-close-evaluator",
+    "notes": "ADVISOR TRIAL (blind retrospective review, Opus, at the commit's own tree). label=bad. partial: flagged FOOTPRINT_BASIS vs loss-corrected label, believed NESO [post-close defect x1 discovered 2026-10-17] known defect introduced by this commit, later found and fixed; the reviewer passed it",
+    "rework_required": true,
+    "subject": "reading-reviewer-trial-2026-10-17:09e2bf07f:armA",
+    "task_class": "docs_discovery",
+    "verdict": "pass"
+  },
+  {
+    "defects_found_post_close": 1,
+    "evaluated_at": "2026-10-17",
+    "evaluator_name": "phase-close-evaluator",
+    "notes": "ADVISOR TRIAL (blind retrospective review, Opus, at the commit's own tree). label=bad. partial: same as A [post-close defect x1 discovered 2026-10-17] known defect introduced by this commit, later found and fixed; the reviewer passed it",
+    "rework_required": true,
+    "subject": "reading-reviewer-trial-2026-10-17:09e2bf07f:armB",
+    "task_class": "docs_discovery",
+    "verdict": "pass"
+  },
+  {
+    "defects_found_post_close": 0,
+    "evaluated_at": "2026-10-17",
+    "evaluator_name": "phase-close-evaluator",
+    "notes": "ADVISOR TRIAL (blind retrospective review, Opus, at the commit's own tree). label=bad. key missed (first-200-chars truncation); MAJOR on another subject-mismatch",
+    "rework_required": false,
+    "subject": "reading-reviewer-trial-2026-10-17:b8767ebc1:armA",
+    "task_class": "harness_supervisor",
+    "verdict": "needs_work"
+  },
+  {
+    "defects_found_post_close": 0,
+    "evaluated_at": "2026-10-17",
+    "evaluator_name": "phase-close-evaluator",
+    "notes": "ADVISOR TRIAL (blind retrospective review, Opus, at the commit's own tree). label=bad. key missed; same MAJOR as A",
+    "rework_required": false,
+    "subject": "reading-reviewer-trial-2026-10-17:b8767ebc1:armB",
+    "task_class": "harness_supervisor",
+    "verdict": "needs_work"
+  },
+  {
+    "defects_found_post_close": 0,
+    "evaluated_at": "2026-10-17",
+    "evaluator_name": "phase-close-evaluator",
+    "notes": "ADVISOR TRIAL (blind retrospective review, Opus, at the commit's own tree). label=bad. key missed (_MODULES fixture tuple); MAJOR preservation-slot exhaustion, live at HEAD",
+    "rework_required": false,
+    "subject": "reading-reviewer-trial-2026-10-17:5f6a4f15f:armA",
+    "task_class": "harness_supervisor",
+    "verdict": "needs_work"
+  },
+  {
+    "defects_found_post_close": 0,
+    "evaluated_at": "2026-10-17",
+    "evaluator_name": "phase-close-evaluator",
+    "notes": "ADVISOR TRIAL (blind retrospective review, Opus, at the commit's own tree). label=bad. key missed; same MAJOR as A",
+    "rework_required": false,
+    "subject": "reading-reviewer-trial-2026-10-17:5f6a4f15f:armB",
+    "task_class": "harness_supervisor",
+    "verdict": "needs_work"
+  },
+  {
+    "defects_found_post_close": 1,
+    "evaluated_at": "2026-10-17",
+    "evaluator_name": "phase-close-evaluator",
+    "notes": "ADVISOR TRIAL (blind retrospective review, Opus, at the commit's own tree). label=bad-contaminated. contaminated case; named ex-VAT vs inc-VAT mismatch as MINOR but attributed it to earlier code [post-close defect x1 discovered 2026-10-17] known defect introduced by this commit, later found and fixed; the reviewer passed it",
+    "rework_required": true,
+    "subject": "reading-reviewer-trial-2026-10-17:58ec2d508:armA",
+    "task_class": "pricing",
+    "verdict": "pass"
+  },
+  {
+    "defects_found_post_close": 1,
+    "evaluated_at": "2026-10-17",
+    "evaluator_name": "phase-close-evaluator",
+    "notes": "ADVISOR TRIAL (blind retrospective review, Opus, at the commit's own tree). label=bad-contaminated. contaminated case; missed [post-close defect x1 discovered 2026-10-17] known defect introduced by this commit, later found and fixed; the reviewer passed it",
+    "rework_required": true,
+    "subject": "reading-reviewer-trial-2026-10-17:58ec2d508:armB",
+    "task_class": "pricing",
+    "verdict": "pass"
+  },
+  {
+    "defects_found_post_close": 0,
+    "evaluated_at": "2026-10-17",
+    "evaluator_name": "phase-close-evaluator",
+    "notes": "ADVISOR TRIAL (blind retrospective review, Opus, at the commit's own tree). label=bad. CATCH (rated MINOR): flat RETENTION_EFFECTIVENESS unsourced and blind to discount size",
+    "rework_required": false,
+    "subject": "reading-reviewer-trial-2026-10-17:f9a22843d:armA",
+    "task_class": "pricing",
+    "verdict": "needs_work"
+  },
+  {
+    "defects_found_post_close": 0,
+    "evaluated_at": "2026-10-17",
+    "evaluator_name": "phase-close-evaluator",
+    "notes": "ADVISOR TRIAL (blind retrospective review, Opus, at the commit's own tree). label=bad. CATCH (MAJOR): same",
+    "rework_required": false,
+    "subject": "reading-reviewer-trial-2026-10-17:f9a22843d:armB",
+    "task_class": "pricing",
+    "verdict": "needs_work"
+  },
+  {
+    "defects_found_post_close": 0,
+    "evaluated_at": "2026-10-17",
+    "evaluator_name": "phase-close-evaluator",
+    "notes": "ADVISOR TRIAL (blind retrospective review, Opus, at the commit's own tree). label=bad. partial: second standing-charge rule in bill path collides with settlement; not named as double count",
+    "rework_required": false,
+    "subject": "reading-reviewer-trial-2026-10-17:ac6b841fb:armA",
+    "task_class": "billing",
+    "verdict": "needs_work"
+  },
+  {
+    "defects_found_post_close": 0,
+    "evaluated_at": "2026-10-17",
+    "evaluator_name": "phase-close-evaluator",
+    "notes": "ADVISOR TRIAL (blind retrospective review, Opus, at the commit's own tree). label=bad. partial: same as A",
+    "rework_required": false,
+    "subject": "reading-reviewer-trial-2026-10-17:ac6b841fb:armB",
+    "task_class": "billing",
+    "verdict": "needs_work"
+  },
+  {
+    "defects_found_post_close": 0,
+    "evaluated_at": "2026-10-17",
+    "evaluator_name": "phase-close-evaluator",
+    "notes": "ADVISOR TRIAL (blind retrospective review, Opus, at the commit's own tree). label=clean. clean commit; MAJOR withdrawn lump keeps settled_on (inert at None basis)",
+    "rework_required": false,
+    "subject": "reading-reviewer-trial-2026-10-17:1aa97f1a4:armA",
+    "task_class": "billing",
+    "verdict": "needs_work"
+  },
+  {
+    "defects_found_post_close": 0,
+    "evaluated_at": "2026-10-17",
+    "evaluator_name": "phase-close-evaluator",
+    "notes": "ADVISOR TRIAL (blind retrospective review, Opus, at the commit's own tree). label=clean. clean commit; 2 MINOR",
+    "rework_required": false,
+    "subject": "reading-reviewer-trial-2026-10-17:1aa97f1a4:armB",
+    "task_class": "billing",
+    "verdict": "pass"
+  },
+  {
+    "defects_found_post_close": 0,
+    "evaluated_at": "2026-10-17",
+    "evaluator_name": "phase-close-evaluator",
+    "notes": "ADVISOR TRIAL (blind retrospective review, Opus, at the commit's own tree). label=clean. clean commit; 2 MINOR incl draws ledger unlocked",
+    "rework_required": false,
+    "subject": "reading-reviewer-trial-2026-10-17:2d3b87a6b:armA",
+    "task_class": "harness_supervisor",
+    "verdict": "pass"
+  },
+  {
+    "defects_found_post_close": 0,
+    "evaluated_at": "2026-10-17",
+    "evaluator_name": "phase-close-evaluator",
+    "notes": "ADVISOR TRIAL (blind retrospective review, Opus, at the commit's own tree). label=clean. clean commit; MAJOR draws ledger unlocked (author-disclosed residue)",
+    "rework_required": false,
+    "subject": "reading-reviewer-trial-2026-10-17:2d3b87a6b:armB",
+    "task_class": "harness_supervisor",
+    "verdict": "needs_work"
+  },
+  {
+    "defects_found_post_close": 0,
+    "evaluated_at": "2026-10-17",
+    "evaluator_name": "phase-close-evaluator",
+    "notes": "ADVISOR TRIAL (blind retrospective review, Opus, at the commit's own tree). label=clean. clean commit; MAJOR job-loss rate at flattering lower bound (disclosed)",
+    "rework_required": false,
+    "subject": "reading-reviewer-trial-2026-10-17:e150225c9:armA",
+    "task_class": "docs_discovery",
+    "verdict": "needs_work"
+  },
+  {
+    "defects_found_post_close": 0,
+    "evaluated_at": "2026-10-17",
+    "evaluator_name": "phase-close-evaluator",
+    "notes": "ADVISOR TRIAL (blind retrospective review, Opus, at the commit's own tree). label=clean. clean commit; same issue as MINOR",
+    "rework_required": false,
+    "subject": "reading-reviewer-trial-2026-10-17:e150225c9:armB",
+    "task_class": "docs_discovery",
+    "verdict": "pass"
+  },
+  {
+    "defects_found_post_close": 0,
+    "evaluated_at": "2026-10-17",
+    "evaluator_name": "phase-close-evaluator",
+    "notes": "ADVISOR TRIAL (blind retrospective review, Opus, at the commit's own tree). label=clean. clean commit; MAJOR earlier-revision clearing can undo a deliberate revert",
+    "rework_required": false,
+    "subject": "reading-reviewer-trial-2026-10-17:c42bae117:armA",
+    "task_class": "harness_supervisor",
+    "verdict": "needs_work"
+  },
+  {
+    "defects_found_post_close": 0,
+    "evaluated_at": "2026-10-17",
+    "evaluator_name": "phase-close-evaluator",
+    "notes": "ADVISOR TRIAL (blind retrospective review, Opus, at the commit's own tree). label=clean. clean commit; same issue as MINOR",
+    "rework_required": false,
+    "subject": "reading-reviewer-trial-2026-10-17:c42bae117:armB",
+    "task_class": "harness_supervisor",
+    "verdict": "pass"
+  },
+  {
+    "defects_found_post_close": 0,
+    "evaluated_at": "2026-10-17",
+    "evaluator_name": "phase-close-evaluator",
+    "notes": "ADVISOR TRIAL (blind retrospective review, Opus, at the commit's own tree). label=clean. clean commit; MAJOR ageing predictor still counts paid-off failed bills, live at HEAD",
+    "rework_required": false,
+    "subject": "reading-reviewer-trial-2026-10-17:471ab8960:armA",
+    "task_class": "billing",
+    "verdict": "needs_work"
+  },
+  {
+    "defects_found_post_close": 0,
+    "evaluated_at": "2026-10-17",
+    "evaluator_name": "phase-close-evaluator",
+    "notes": "ADVISOR TRIAL (blind retrospective review, Opus, at the commit's own tree). label=clean. clean commit; 2 MINOR",
+    "rework_required": false,
+    "subject": "reading-reviewer-trial-2026-10-17:471ab8960:armB",
+    "task_class": "billing",
+    "verdict": "pass"
   }
 ]
