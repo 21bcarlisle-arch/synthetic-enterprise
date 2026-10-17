@@ -109,3 +109,32 @@ def test_an_overcharge_on_a_settled_account_is_owed_in_full_and_never_barred():
     assert shown["gbp"] == pytest.approx(-240.0)
     assert shown["added_bar_gbp"] == 0 and shown["new_demand_gbp"] == 0
     assert shown["absorbed_gbp"] == pytest.approx(-240.0)
+
+
+def _run_of_estimates(cid, n, channel="direct_debit"):
+    bills = [_bill(cid, f"{2020 + i // 12}-{i % 12 + 1:02d}-28", "estimated", 10, 20) for i in range(n)]
+    for i, b in enumerate(bills):
+        b.update(consecutive_estimated_count=i + 1, payment_channel=channel)
+    return bills
+
+
+def _year_dates(bills):
+    from tools.closing_estimate_run_money import duty_year_dates
+    return duty_year_dates(bills)
+
+
+def test_a_run_past_the_licence_year_splits_at_its_twelfth_bill_and_a_shorter_one_does_not():
+    """The partition first: a split that never found the year, or found it everywhere, passes either
+    leg alone. Defect named: the money up to the year is not bills 1-12."""
+    from tools.closing_estimate_run_money import year_split
+    long_run, short_run = _run_of_estimates("L", 15), _run_of_estimates("S", 11)
+    dates = _year_dates(long_run + short_run)
+    assert year_split(long_run, dates) == (11, pytest.approx(120.0))
+    assert year_split(short_run, dates) == (None, 0.0)
+
+
+def test_a_prepayment_run_past_the_year_is_outside_the_duty_and_never_splits():
+    """Defect named: the split counts a run SLC 21B.4 does not apply to."""
+    from tools.closing_estimate_run_money import year_split
+    run = _run_of_estimates("P", 15, channel="prepayment")
+    assert year_split(run, _year_dates(run)) == (None, 0.0)

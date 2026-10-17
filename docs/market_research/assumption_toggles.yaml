@@ -1107,6 +1107,36 @@ toggles:
         movers and switchers give a read the supplier accepts?
     verdict: MATTERS_AND_RESOLVABLE
 
+  - id: q6_switch_read_dispute_share
+    question: Q6 read access and theft
+    meaning: >-
+      P(a switch read is disputed | the losing supplier's closing estimate undercharged by more than
+      the REC Schedule 30 9.4 threshold, 250 kWh electricity or 1,200 kWh gas, and the gaining
+      supplier's first actual read falls within 12 months of the switch). The read itself is the
+      meter's ordinary read process (simulation/meter_reads.gaining_supplier_first_read), so this is
+      the only new quantity the dispute leg needs. simulation/meter_reads.switch_read_dispute reads it.
+    default: null
+    default_reason: >-
+      GAP. REC Schedule 30 v1.1 makes a dispute a "shall" only for the supplier a consumer contacted
+      (9.4); a supplier's own dispute is a "may" (9.2). No count of disputed switch reads is published
+      (Elexon PAB, RECCo, Xoserve PARR and ombudsman data searched 2026-10-17), and the gas CDSP called
+      the volumes "currently unknown" (UNC 0811S workgroup report, Dec 2022). Until filled, no dispute
+      is drawn; every-case-disputed is run only as the ceiling arm.
+    low: null
+    high: null
+    basis_default: None published.
+    basis_low: None published.
+    basis_high: None published.
+    feeds: [W2_36_unbilled_energy_arises_the_way_it_does_in_reality]
+    sensitivity:
+      kind: argued
+      detail: >-
+        Scales how much of the over-threshold switcher closing-estimate money (the dispute seed) ever
+        comes back to the losing supplier as an amended final bill. Bounded above by the ceiling arm.
+        Practitioner question: what share of over-threshold wrong switch reads does a gaining
+        supplier dispute, and how many does a customer raise?
+    verdict: MATTERS_AND_RESOLVABLE
+
   - id: q6_read_visit_access_failure_rate
     question: Q6 read access and theft
     meaning: >-

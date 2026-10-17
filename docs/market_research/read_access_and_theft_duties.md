@@ -280,6 +280,93 @@ is a practitioner question. It also waits on the world: a request changes nothin
 can answer it (order of work, item 3). Until both exist, the register's row is the only thing the
 company does at the year, and it does not stand in for the effort the duty asks for.
 
+### 2.7 What the industry codes do at the year and after it (read 2026-10-17)
+
+*Read for direction item `c7-forty-two-month-estimate-run-needs-a-read-request-not-a-dispute`.
+The licence asks for effort. The question here is whether a code below the licence says what
+happens when the effort fails.*
+
+**Gas: the code is stronger than the licence, and it has a third-party backstop.** UNC TPD
+Section M v6.01 (8 March 2024) [H]:
+- **A traditional domestic gas meter is an Annual Read Meter.** A Class 4 meter is read monthly only
+  where the supply point's AQ is at least 293,000 kWh or the shipper elects it. Otherwise "the Meter
+  Read Frequency … (an 'Annual Read Meter') is annual" (M5.9.1(b)–(c)). A smart or advanced meter is
+  read "no greater than monthly", with all reasonable steps to submit a read each month (M5.9.1(d)).
+- **The year is a "shall secure", not "reasonable steps".** "Each User shall secure, in relation to
+  Annual Read Meters, that a Valid Meter Reading is obtained and provided to the CDSP at least once
+  in every 12 month period for each Annual Read Meter where the Supply Point has been in the
+  Registered User's ownership for more than 12 months" (M5.9.9). It "also appl[ies] to Pre-payment
+  Meters" (M5.9.14), which 21B.4 does not. The User is the shipper. For a domestic supplier that
+  ships its own gas, the duty is its own.
+- **At 24 months the Transporter reads the meter, at the shipper's cost.** Where at the end of any
+  month no valid read has a read date within "the preceding 24 months" for "a Class 4 Annual Read
+  Supply Meter" (M5.10.1(b)), the CDSP notifies the Transporter and the User. The Transporter "will,
+  unless it appears to the Transporter (in its sole discretion) that the circumstances are such that
+  it would be inappropriate to do so, use reasonable endeavours to obtain a Meter Reading", and the
+  User "shall, irrespective of whether the User remains the Registered User … pay … a charge in
+  accordance with the Transporter's Metering Charging Statement" (M5.10.2). The industry name is a
+  "must read" [M, name only].
+- **The shipper can head it off only with evidence of its own steps.** It must notify that it is
+  taking steps and give the expected read date. It must give "a copy of a warrant … or a copy of an
+  application for such a warrant", or show "that a Meter Reading can be obtained without such a
+  warrant". It must then submit a valid read by the 20th business day (M5.10.6).
+- **Persistent failure is managed, not fined.** For material or persistent failure of M5.9.9–5.9.12
+  the Transporter may require an explanation, a remedy plan, and finally a scheme under which it
+  obtains reads "at the User's expense" (M5.10.8).
+
+**Electricity: no third-party backstop.** The read is the supplier's to instruct. BSCP504 v53.0
+(1 October 2024) [H]:
+- The data collector (NHHDC) records reads "Collected as a regular schedule read" and reads
+  "obtained outside the collection schedule agreed by its Associated Supplier". The schedule is the
+  supplier's to agree. "a Supplier request" is a valid reason for a special read (§3.3.10).
+- **A failed visit goes back to the supplier as a coded flow.** D0004 "Notification of Failure to
+  Obtain Reading" carries a Site Visit Check Code (J0024). The codes include 02 "Site not occupied",
+  18 "Unsafe Premises", 19 "Call not made on routine visit", 20 "No access" and 28 "Unable to gain
+  access due to insufficient address details" (§4.15, which lists them for the Long Term Vacant
+  test; the full code list is in the data catalogue, not read). The supplier answers with D0005 "Instruction on Action" (§3.3.10).
+- **The collector must flag the long-unread meter.** Its controls must identify "Meters which have
+  not had a physical reading within the minimum period established by the BSC" (§4.18). That
+  period sits in the BSC itself, which was not read (**GAP**).
+- The settlement incentive stays the one in §2.1: 97% of NHH energy on actual reads by RF.
+
+**What this establishes, and what it does not.**
+- In electricity, the step at the year is the supplier's own instruction to its data collector, and
+  each failed attempt leaves a coded D0004. **That trail is the evidence 21B.4 effort needs and the
+  evidence 21BA.2(c) needs (§2.4).** One mechanism serves both.
+- In gas, the code goes further than the licence. A year unread is a shortfall against a "shall
+  secure". At 24 months a read is attempted by someone else, whatever the supplier did.
+- **Not established:** what a supplier sends, and when, between the last read and the year (§2.6 GAP,
+  unchanged). How often a must-read or a special-read visit gets a read (`q6_read_visit_access_failure_rate`,
+  null). The must-read charge, which is in each Transporter's Metering Charging Statement (not read).
+
+**What it is worth on the graded run** (`/var/tmp/closing-money-run-20261017.json`, cc23de757;
+`python3 -m tools.closing_estimate_run_money --read-duty`, graded in
+`docs/staging/records/SEAT_PREREG_HOW_MUCH_OF_THE_OPEN_CLOSING_MONEY_CROSSED_THE_21B4_YEAR_BEFORE_CLOSURE_2026-10-17.md`):
+- 25 of the 403 open closing runs crossed the year before the account closed. 12 of them are
+  undercharges, and they carry **£1,761.88 of the £3,470.63** new demand (50.8%). C7 alone is
+  £1,431.26.
+- The other **£1,708.75 sits on 198 runs that closed inside the year**. No 21B.4 duty fell due on
+  them, so no read request at the year reaches them. Only the closing read itself could.
+- **The 21BA bar takes £3,929.05 on the 12 crossed undercharge runs**, £3,586.08 of it on C7. A read
+  at the year would have trued up bills 1–12 on supply and inside 12 months: £1,771.59 of their
+  £5,776.61. Recovering it is a transfer from the household to the supplier (M2). The value an
+  earlier read creates is a shorter run of estimates and a smaller correction, not the pounds.
+- **Two gas runs went past 24 months unread** (SYN-2016-167, 48 bills; SYN-2016-471, 38). Under
+  M5.10 a Transporter read would have been attempted at month 24. **The world has no such attempt.
+  This is a fidelity gap in the world, from a published rule** (§6, code gap 7).
+
+**What a build can take from this.**
+1. **World: the gas must-read.** The trigger is published (24 months unread, Class 4 Annual Read)
+   and needs no new number. The outcome does not: whether the visit gets a read is the null
+   access-failure rate. The hard-to-read class's 0.02 a month already describes what visits achieve
+   for that class. Until the rate is set the leg should draw no extra read, which errs against the
+   read-request thesis (F11), and publish the trigger count.
+2. **Company: the request at the year.** At its register row the company can record an instruction
+   for a special read (electricity) or a step towards the M5.9.9 read (gas). That gives it the
+   record 21B.4 and 21BA.2(c) need. It changes no bill until the world can answer.
+3. **Practitioner question, unchanged (§7):** of read visits to traditional credit meters, what
+   share fail, and of those, how many are no-one home, refused, or a meter you cannot get to?
+
 ## 3. Theft
 
 ### 3.1 The duties
@@ -567,6 +654,9 @@ Schedule 7. The quotations above are the candidates for it.
 5. **The smart not-in-smart-mode rate** is a constant typed in code, drawn independently each
    month. It is not in the register, and it is a state in reality.
 6. `meter_assets.py` reads the wall clock.
+7. (2026-10-17) **No gas must-read.** UNC M5.10 has the Transporter attempt a read on a Class 4
+   Annual Read meter after 24 months without one, at the shipper's cost. The world has no such
+   attempt, so gas runs of 38 and 48 estimates exist on the graded run (§2.7).
 
 ## 7. Toggles set
 
@@ -898,3 +988,9 @@ All read as text this session [H] unless marked.
 - Alt HAN Co, home page (undated, read 2026-10-08): <https://www.althanco.com/>
 - Ofgem, statutory consultation 16 Nov 2017 (¶2.28) and decision 5 Mar 2018 (pp.8, 10), as listed
   above, re-read for §9.
+- Joint Office, *UNC TPD Section M – Supply Point Metering*, v6.01, 8 March 2024, M5.9.1, M5.9.7–5.9.14
+  and M5.10.1–5.10.8, read as text 2026-10-17 for §2.7:
+  <https://gasgovernance.co.uk/sites/default/files/related-files/2024-03/15_tpd_section_m_-_supply_point_metering.pdf>.
+- Elexon, *BSCP504 Non-Half Hourly Data Collection for SVA Metering Systems Registered in SMRS*,
+  v53.0, 1 October 2024, §3.3.10, §4.15, §4.18, read as text 2026-10-17 for §2.7:
+  <https://www.mhhsprogramme.co.uk/api/documentlibrary/Background%20Programme%20Context/P478_BSCP504_v53.1.pdf>.

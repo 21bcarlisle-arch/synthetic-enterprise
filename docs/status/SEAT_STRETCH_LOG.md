@@ -8,6 +8,47 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-17 — orientation: For the first time in ten slices, inference was tested on what a real supplier holds, and the answer is "cannot tell"
+
+<!-- head: f10a51da278b -->
+
+*Written by the orientation seat from its own record (2026-10-17T05:22:08.800265+00:00; 15 commits, 9 substantive, since 2026-10-17T02:21:10.303798+00:00).*
+
+Commit split (product code by path): 1 supplier, 1 world, 1 both, 12 other.
+
+## What the stretch meant
+
+For the first time in ten slices, inference was tested on what a real supplier holds, and the answer is "cannot tell". That is honest, and it is not yet a result against the thesis. B11 slice 10 (5f57b9042) gave the departure hazard tariff type, payment method and months on the default tariff, read only from the company's own term record and bills. It cannot rank switchers above the flat rule beyond the 95% bound at any of 2020, 2022 or 2023. The finding's addendum shows why this is not the end of the question. Split by cause, months on default reproduces the published switching gradient on switches alone (0.68 and 0.50, against CMOL's 0.54). Moves run the other way, and the all-cause hazard washed the two together. So the prior was right and the hazard it multiplied was the wrong quantity. Slice 10 also found a level drift in its own rule (P2, wrong at every cut). Two published gradients the world is said to carry do not show up in who switches away: prepayment switches at about direct debit's rate, not 0.55x, and "fixed" in this world mostly means a customer's first term. If the world does not produce the departure correlates the record says real customers have, then targeting by observable is rigged to fail here. That is the director's 2026-10-08 worry from the other side, and it makes a world measurement the second item. Billing accuracy moved too. The theft screen now reaches the monthly billing run behind a switch that defaults off (3161365d3). The money an estimated final bill leaves open at closure is priced at GBP 3,471 of GBP 13,467 (8cd8e9954). A gaining supplier's first read could reach at most GBP 701 of the GBP 2,222 dispute seed, and only at the every-case ceiling (bc4c80fca). That continuation correctly refused to build a dispute path, because the dispute moves money between suppliers rather than creating any. Balance: supplier 1, both 1, world 1, other 12. Most of the "other" commits are a run of five self-issued W2_36 continuations in three hours, each narrowing the same closing money. It is billing work, but on the world's side and at falling pounds. After the read-duty split now landing (surgical_land 3365466), I am not ordering any more of it until the publish. Both previous focus items were drawn and both landed, so both leave focus. The last stretch's seat error is therefore corrected: slice 10, reissued under a Lane 0 key, was drawn and landed. Correction of a brief reading: the fabric-homes item the ledger lists as not_done did its work in e6cdc9af9 (on origin, 01:27Z), inside a commit credited to another row. The work is not missing. The C34 holdout door is landing now (surgical_land 3270648), and its own message says no run on this book can decide a 2-point effect. Nothing went backwards. The director's console line "86%" is a reading, and it sets pace, not work.
+
+## What went wrong
+
+- NOT corrected: THE MACHINE'S, CARRIED. The coupled-triad gate now excludes twinless L3 targets, and its refusal reaches only the supervisor journal. 20:22: Unchanged. 23:21: Unchanged. 02:21: Unchanged. 05:22: Unchanged.
+- NOT corrected: THE WORLD'S, CARRIED. A gas-heated fabric home's electricity has no season against SERL. 20:22: Unchanged. It waits for the post-publish world builds. 23:21: Focus item 4 measures the fabric homes' summer swing, which bears on this directly. 02:21: Measured (e6cdc9af9): fabric gas-heated homes read too flat (DJ/JJA 1.16 against 1.33-1.35), which confirms the row. The build is filed for after the publish. 05:22: Unchanged. The build stays filed for after the publish.
+- NOT corrected: THE MACHINE'S, CARRIED. longjob-save-eight was declared at 50 minutes and has held its admission for 4h46m. 20:22: Two long jobs ran this stretch (nonpay2022-capture, -capture2) and both finished successfully, so there was no new instance. The expiry is still not built. 23:21: No launch_long_job job started or ended this stretch. Still not built. 02:21: retention-rise-probe finished successfully, and closing-estimate-money-run is 18 minutes in. No overrun, and still not built. 05:22: closing-estimate-money-run ran 115 minutes against a declared 115 and finished successfully. No overrun, and still not built.
+- NOT corrected: THE MACHINE'S, CARRIED. A held estimate was netted at its draft amount when the next actual read caught up, so seven customer-years were credited for estimates never sent. 20:22: Fixed on origin. The published book carries it until the 2026-10-19 publish. 23:21: Unchanged until that publish. 02:21: Unchanged until that publish. 05:22: Unchanged until that publish.
+- NOT corrected: THE MACHINE'S, CARRIED. The 08:20 orientation's record never reached origin, and a seat killed by the host leaves no trace of itself in delivery-seat-log.md. 20:22: No seat was killed this stretch, and the trace is not built. 23:21: Still no instance, and still not built. 02:21: Still no instance, and still not built. 05:22: Still no instance, and still not built.
+- corrected: THE SEAT'S, THIS STRETCH. The 23:21 record put B11 slice 10 first in focus under the atom id B11_forward_clv_backtested_on_held_back_history. The seat had parked that atom on 2026-10-16 (e172d7d0d), so the draw could never take it. The direction's most important item reached no one. 02:21: Reissued under a Lane 0 key. It is graded at the next orientation by whether it was drawn. 05:22: Drawn and landed as 5f57b9042. The steer reached the draw.
+- NOT corrected: THE MACHINE'S, THIS STRETCH. The draw ledger lists the-fabric-homes-summer-swing-against-published-heating-shapes as not_done. Its measurement landed in e6cdc9af9 (on origin, 01:27Z) inside its window, in a commit already bound to another row, so the ledger credited the work to that row and reads this item as never done.
+
+## Chosen against
+
+- More W2_36 closing-money continuations after the read-duty split now landing (surgical_land 3365466), including a world leg that answers a read request and gas's 24-month must-read.
+- A company amended-final-bill or switch-read dispute path.
+- A run that uses the C34 contact holdout.
+- Slice 10's other P2 remedy (renormalising against the horizon's advancing months), and keying tariff or payment method again.
+- Turning on REVIEW_SEEKS_BALANCE or the theft screen now.
+- The crisis bad-debt BLOCKING finding.
+- Building the C34 sharing price or C35's fee, unparking B11 or EP1, and writing map rows to clear stalled counters.
+- The long-job expiry, the coupled-triad refusal surface, the killed-seat trace, and a worker-seat-manager heartbeat.
+
+## Focus for the next stretch
+
+- `b11-slice-11-the-switch-hazard-keyed-on-months-on-default`
+- `the-worlds-switching-gradient-by-payment-and-tariff`
+- `the-two-post-publish-switch-ons-pre-registered`
+
+---
+
 ## 2026-10-17 — orientation: Billing accuracy moved forward, and the central claim did not move at all
 
 <!-- head: f67c44292fa4 -->

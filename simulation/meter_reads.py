@@ -74,6 +74,7 @@ matching simulation/feedback_survey.py's convention.
 """
 from __future__ import annotations
 
+import datetime as dt
 import math
 import random
 from dataclasses import dataclass
@@ -391,6 +392,81 @@ def simulate_final_read(
         true_consumption_kwh=true_consumption_kwh,
         consecutive_estimated_count=0, forced_catch_up=True,
     )
+
+
+# --- The gaining supplier's first read, and a disputed switch read (W2_36, 2026-10-17) ----------
+# unbilled_energy_and_revenue_assurance.md s.4a. A switch read can be disputed within 12 months of
+# the switch (REC Schedule 30 v1.1 7.3(a); BSCP504 v53.0 s.4.4.1(b)) where it is wrong by more than
+# the threshold (REC Schedule 30 9.4: 250 kWh electricity, 1,200 kWh gas).
+SWITCH_READ_DISPUTE_WINDOW_MONTHS = 12
+SWITCH_READ_DISPUTE_THRESHOLD_KWH = {"electricity": 250.0, "gas": 1200.0}
+
+# Share of possible disputes actually raised. A GAP: REC 9.4 makes a dispute a "shall" only on a
+# consumer contact, and no count of disputed switch reads is published. None draws no dispute;
+# the `ceiling` arm raises every possible one and is an upper bound, never an estimate.
+SWITCH_READ_DISPUTE_SHARE, SWITCH_READ_DISPUTE_GAP = assumption_toggle_or_gap(
+    "q6_switch_read_dispute_share")
+SWITCH_READ_DISPUTE_ARMS = ("register", "ceiling")
+
+
+def _month_ends_after(day: str, n: int) -> list[str]:
+    """The next `n` calendar month ends after `day` (ISO), as bills write them."""
+    year, month = int(day[:4]), int(day[5:7])
+    ends = []
+    while len(ends) < n:
+        nxt_year, nxt_month = (year + 1, 1) if month == 12 else (year, month + 1)
+        end = (dt.date(nxt_year, nxt_month, 1) - dt.timedelta(days=1)).isoformat()
+        if end > day[:10]:
+            ends.append(end)
+        year, month = nxt_year, nxt_month
+    return ends
+
+
+def gaining_supplier_first_read(customer_id: str, switch_date: str, meter_type: str,
+                                months: int = SWITCH_READ_DISPUTE_WINDOW_MONTHS) -> Optional[str]:
+    """The period end of the gaining supplier's first actual read within `months` of the switch,
+    or None.
+
+    No switch-specific read obligation exists (SLC 21B.4; BSCP504 s.4.5.2 deems from reads "in line
+    with the reading cycle"), so the read is the meter's ordinary one: `simulate_read` for the same
+    household, whose read class and smart-mode state are drawn from its id and outlive the account.
+    """
+    for period_end in _month_ends_after(switch_date, months):
+        if simulate_read(customer_id, period_end, meter_type, 0.0, 0).status == "actual":
+            return period_end
+    return None
+
+
+def switch_read_dispute(customer_id: str, commodity: str, switch_date: str, meter_type: str,
+                        closing_error_kwh: float, arm: str = "register") -> dict:
+    """Whether the gaining supplier disputes a switch read the losing supplier deemed by estimate.
+
+    `closing_error_kwh` is true minus billed over the open run of estimates the closing estimate
+    ended: positive means the deemed register is low, so the gaining supplier's first actual read
+    puts the missed kWh on its own customer's bill and it, or the customer, has the reason to
+    dispute. An overcharge is the losing supplier's to dispute, and it holds no read after the loss,
+    so it is never raised here. `arm="register"` reads the GAP row and raises nothing while it is
+    empty; `arm="ceiling"` raises every possible dispute.
+    """
+    if arm not in SWITCH_READ_DISPUTE_ARMS:
+        raise ValueError(f"arm {arm!r} is not one of {SWITCH_READ_DISPUTE_ARMS}")
+    first_read = gaining_supplier_first_read(customer_id, switch_date, meter_type)
+    threshold = SWITCH_READ_DISPUTE_THRESHOLD_KWH[commodity]
+    possible = first_read is not None and closing_error_kwh > threshold
+    if not possible:
+        reason = ("no actual read within 12 months of the switch" if first_read is None
+                  else f"undercharge of {closing_error_kwh:.0f} kWh is not over {threshold:.0f} kWh")
+        disputed = False
+    elif arm == "ceiling":
+        disputed, reason = True, "ceiling arm: every possible dispute is raised"
+    elif SWITCH_READ_DISPUTE_SHARE is None:
+        disputed, reason = False, f"dispute share is a GAP: {SWITCH_READ_DISPUTE_GAP}"
+    else:
+        disputed = (random.Random(f"switchdispute_{customer_id}_{switch_date}").random()
+                    < SWITCH_READ_DISPUTE_SHARE)
+        reason = f"drawn at the register's share {SWITCH_READ_DISPUTE_SHARE}"
+    return {"first_read_period_end": first_read, "possible": possible,
+            "disputed": disputed, "reason": reason}
 
 
 def read_event_to_log_entry(event: MeterReadEvent) -> dict:
