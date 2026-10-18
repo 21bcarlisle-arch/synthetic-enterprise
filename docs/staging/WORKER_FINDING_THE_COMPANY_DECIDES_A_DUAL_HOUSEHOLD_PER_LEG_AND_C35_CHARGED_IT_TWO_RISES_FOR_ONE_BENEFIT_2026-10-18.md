@@ -152,3 +152,20 @@ landing.
   deal it is leaving for is quoted on the combined bill (§8a, §4). The re-asked roll would see the
   decision leg's rate scaled by Σ v·save / Σ v·renewal. That is a sim change, decided blind to company
   results. It needs its own prediction filed before the run.
+
+## 6. Item 3, netting across legs: knowledge landed (2026-10-18)
+
+The fuel page's new §8b answers the K4 question from the published record. **Since 22 Jan 2021, SLC
+27.8D requires every domestic contract to give the customer a right to offset its credit against
+debt on any other supply contract, gas included.** It came from Ofgem's Supplier Licensing Review,
+17 Nov 2020, §5.7. The licence gives the supplier no such right and does not forbid one. EDF's
+terms (cl. 17.e) let either side net. SLC 27.16's Credit is defined per contract. Two points are
+**GAP**: whether a DD review nets the legs, and whether the other fuel's debt is a "fair and
+reasonable" ground to withhold a refund. The exact practitioner question for the advisor channel
+is in §8b. §8's Collections row is corrected beside the claim.
+
+So today's per-leg collections chase debt that a dual household may, from 2021, lawfully set
+against its credit. Nothing is built yet. The prediction of how many households this touches on the
+publish run was filed before that run was read:
+`docs/staging/records/SEAT_PREREG_HOW_MANY_DUAL_HOUSEHOLDS_HOLD_A_CREDIT_ON_ONE_FUEL_AND_A_DEBT_ON_THE_OTHER_ON_THE_PUBLISH_RUN_2026-10-18.md`.
+The netting build is a later item: §8b's choices (a) to (c). It is sized by that reading.

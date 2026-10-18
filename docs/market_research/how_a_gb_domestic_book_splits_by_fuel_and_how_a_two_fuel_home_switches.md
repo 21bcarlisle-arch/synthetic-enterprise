@@ -183,7 +183,7 @@ pair.
 | **One renewal / retention offer?** | SLC 31I.5(b): a price-change or end-of-fixed-term notice "may be provided as a **Combined** Relevant Contract Change Notice where the Domestic Customer is subject to a Dual Fuel Account". It must meet each fuel's requirements "in a single document". Optional, not required. | Fixes are sold and renewed as dual-fuel products, with one term and one end date. Each fuel's rates are still set per fuel, because the cap is per fuel (§4). | Rule read. Practice of a single end date is **GAP** for a measured share. |
 | **A loss on one fuel: what does it say about the other?** | **Objections are per fuel.** SLC 14.4(a) lets the electricity supplier block a transfer when Outstanding Charges are due, and "Charges" means Charges for the Supply of Electricity (SLC 1). So a gas debt cannot block the electricity switch under the electricity licence. Ofgem's 2016 objections review saw the duplication: debt-objected customers are "around half the number of objections raised (partly because of dual fuel customers trying to switch gas and electricity accounts ...)". | A loss notification arrives per meter point. By §4, 17 of 18 switching dual homes move both fuels, and 96% of those move them at once. **A loss notice on one fuel of a dual household is therefore, about nine times in ten, the household leaving.** The other fuel's notice follows within days, or has already arrived. | Mechanism read. Departure symmetry is **inferred** (§4, §7). |
 | **The final bill** | SLC 27.17: a final bill within 6 weeks of the transfer or termination, **per fuel's contract**. A move-out ends both contracts at once, because the premises is the same. | One closing statement for the account. | Rule read. |
-| **Collections** | Debt is owed per fuel's Charges, and the ability-to-pay duty (27.8) is per customer. | Payment plans, when the payer holds both fuels, are set against the account balance. | **GAP:** no published practice on netting one fuel's credit against the other's debit. |
+| **Collections** | Debt is owed per fuel's Charges, and the ability-to-pay duty (27.8) is per customer. **Since 22 Jan 2021, SLC 27.8D gives the customer a contractual right to offset one contract's credit against debt on any other supply contract, gas included (§8b).** | Payment plans, when the payer holds both fuels, are set against the account balance. At least one large supplier's terms let **either side** net across accounts (§8b). | Rule read (§8b). *Corrected 2026-10-18: this row said "no published practice on netting"; the licence itself has a netting right.* How often suppliers net unprompted is still **GAP**. |
 
 **What this means for the company's decisions.** The licence makes the rate, the objection and the
 final bill per fuel. It makes everything that rests on the customer's own position per household:
@@ -254,6 +254,61 @@ pair of loss notices on one date: 341 of 447 households (76%) and 682 of 788 poi
 - **Off by default** (`DecisionPolicy.save_offer_decides_per_household`) until the world can weigh
   the pair. Under the switch off the company answers exactly as it does today.
 
+### 8b. One fuel in credit, the other in arrears: may the supplier net them?
+
+*Added 2026-10-18, before any netting build (K8), for item 3 of
+`docs/staging/WORKER_FINDING_THE_COMPANY_DECIDES_A_DUAL_HOUSEHOLD_PER_LEG_AND_C35_CHARGED_IT_TWO_RISES_FOR_ONE_BENEFIT_2026-10-18.md`
+§4. Read this pass at source: the electricity SLCs consolidated to 1 Aug 2025 (SLC 27 in full,
+27.1–27.18) and to 14 Apr 2022 (27.8D present); Ofgem's Supplier Licensing Review decision of
+17 Nov 2020, §5; Ofgem's DD compliance review progress update (2 Feb 2023); Ofgem's letter to the
+ESNZ Committee on credit balances (29 Nov 2023); Citizens Advice, "Claim back credit from your
+energy supplier"; EDF Energy, Residential Terms & Conditions R1436.06/24.v4 (June 2024). The gas
+licence was not retrieved (its 2025 URL served HTML); the 2020 decision drafts 27.8D for both
+licences with "[gas/electricity]".*
+
+**Answer: the customer may, by licence; the supplier may, by its own terms; and nothing published
+says a direct debit review must.**
+
+| Question | What the published record says | Status |
+|---|---|---|
+| **May the customer net them?** | **Yes, since 22 Jan 2021.** SLC 27.8D: the licensee must ensure the terms of each Domestic Supply Contract provide "for the right for the customer to offset any amount owing to the customer pursuant to the contract against any amounts owed by the customer under any other Domestic Supply Contract or under any contract for the supply of gas to premises (whether or not the licensee continues to hold an Electricity Supply Licence or Gas Supply Licence)". 27.8E makes it survive the licence's end. It came from the Supplier Licensing Review (decision 17 Nov 2020, §5.7; in force 22 Jan 2021, "some suppliers may need additional time", §5.6). Its purpose was supplier failure: an administrator chasing a debt must honour the customer's credit (§5.1–5.2). | Rule read. |
+| **May the supplier net them without being asked?** | **The licence neither grants nor forbids it.** 27.8D is the customer's right. EDF's residential terms (cl. 17.e) grant it both ways: "Either of us can use any credit you have on any energy account with us to pay off debt you owe us or our group companies, including in relation to other energy accounts." | Rule read; one supplier's terms read. Share of suppliers with such a term: **GAP**. |
+| **Is the credit per fuel?** | **Yes.** SLC 27.16 defines "Credit" as the amount by which payments "under or in accordance with the relevant Domestic Supply Contract" exceed the Charges due "under that Domestic Supply Contract". Each fuel is its own contract (§8). | Rule read. |
+| **May a refund of one fuel's credit be withheld for the other's debt?** | SLC 27.16: the supplier must refund accumulated Credit on request "save where it is fair and reasonable in all the circumstances" not to, and must give its reasons. No Ofgem text read says another contract's debt is, or is not, such a reason. Citizens Advice gives only "a small amount of credit on your account during summer" as an example of a good reason. | **GAP** (the rule is read; its application to cross-fuel debt is not published). |
+| **Must the direct debit review net them?** | **Nothing says so.** SLC 27.15 sets "the fixed amount of the regular direct debit payment" per contract, on the quantity "of electricity" supplied under it. Ofgem's Feb 2023 update speaks of "a consumer account" in credit (lower the DD toward zero over 12 months) or in debit (commonly add it to the DD over 12 months) and does not say whether an account means one fuel or both. Its Nov 2023 letter's "net balance" is net of unbilled consumption, not of the other fuel. | **GAP.** |
+| **Ability to pay** | SLC 27.8 and 27.8A: instalments must reflect "the Domestic Customer's ability to pay", using "all available information". A household's credit on the other fuel is information about what it can pay. | Rule read. Using that credit is an inference, not a rule. |
+
+**Before 2021.** For 2016 to 21 Jan 2021 of the run window, no licence condition gave the customer
+a netting right. Netting then rested only on the contract terms. Pre-2021 terms were not read:
+**GAP**.
+
+**What follows for the company.**
+- When a dual household holds a credit on one leg and a debt on the other, it has a right, from
+  2021, to have one set against the other. A supplier that chases the debt while holding the credit
+  is chasing money that the household can lawfully set off. A supplier that refunds the credit while
+  the other leg is in arrears pays out money that it may lawfully keep. Both are the billing
+  accuracy problem in the finding's §4 item 3.
+- A supplier that nets unprompted is acting on its own terms, not on a licence duty. So netting is
+  a design choice the rules allow. It is not a choice the rules require.
+- **The design choices are left to the build item, and nothing is built here.** Three open choices,
+  each allowed: (a) net only when the customer asks (the licence floor); (b) net at the points
+  where money moves: before a refund is paid, before a debt is chased, at the final bill; (c) also
+  size one DD from the household's combined balance at the annual review. Only (a) is required.
+  (c) needs the review GAP above answered first.
+
+**GAP, as the practitioner question for the advisor channel (K4: the published record was read
+first; the answer is not in it):**
+
+> "Take a dual-fuel household on one supplier, paying both fuels by fixed direct debit, which is
+> £120 in credit on gas and £80 in arrears on electricity. In practice, does a GB supplier:
+> (1) net the two automatically, and if so, when: at each bill, at the annual DD review, or only
+> before a refund or a debt action;
+> (2) set one combined DD from the combined balance at the review, or review each fuel's DD on its
+> own balance; and
+> (3) when the household asks for the gas credit back, treat the electricity arrears as the 'fair
+> and reasonable' ground under SLC 27.16 to keep the credit?
+> And did this change when SLC 27.8D came in, in January 2021?"
+
 ## Sources
 
 - CMA, *Energy market investigation: Summary of provisional findings report*, 7 July 2015, ¶9 and
@@ -282,5 +337,18 @@ pair of loss notices on one date: 341 of 447 households (76%) and 682 of 788 poi
   objections). https://www.ofgem.gov.uk/system/files/docs/2016/07/decision_on_review_of_domestic_objections.pdf
 - Energy UK, *Energy Switch Guarantee* (energy-uk.org.uk/our-work/energy-switch-guarantee/), the
   commitments as listed by the save page's S11, read 2026-10-08.
+- Ofgem, *Supplier Licensing Review: Ongoing requirements and exit arrangements*, decision,
+  17 Nov 2020, §5.1–5.7 (SLC 27.8C–E; in force 22 Jan 2021).
+  https://www.ofgem.gov.uk/sites/default/files/docs/2020/11/201117_-_slr_decision_doc_final_v.2.pdf
+- Ofgem, *Electricity Supply SLC amendments*, consolidated to 14 April 2022 (27.8D present).
+  https://www.ofgem.gov.uk/sites/default/files/2022-05/Electricity%20Supply%20SLC%20amendments.pdf
+- Ofgem, *Direct Debit Market Compliance Review: Progress Update*, 2 Feb 2023.
+  https://www.ofgem.gov.uk/decision/direct-debit-market-compliance-review-progress-update
+- Ofgem, letter to the Chair of the ESNZ Committee on customer credit balances, 29 Nov 2023.
+  https://www.ofgem.gov.uk/sites/default/files/2023-12/ESNZ%20Committee%20letter%20on%20CCBs.pdf
+- Citizens Advice, *Claim back credit from your energy supplier*, read 2026-10-18.
+  https://www.citizensadvice.org.uk/consumer/energy/energy-supply/claim-back-credit/claim-back-credit-from-your-energy-supplier/
+- EDF Energy, *Residential Terms & Conditions*, R1436.06/24.v4, cl. 17.e.
+  https://www.edfenergy.com/sites/default/files/r1436.pdf
 - MoneySuperMarket, response to Ofgem, April 2014 (dual-fuel discount applies once both supplies
   transfer). https://www.ofgem.gov.uk/sites/default/files/docs/2014/04/moneysupermarket_response_0.pdf

@@ -391,7 +391,10 @@ require the balance to be recovered, and it sets no period. "Commonly" means som
    says whether a supplier lengthens it when the step-up is large (2023's median in the run is £55
    a month), or moves the balance to a separate SLC 27.8 repayment plan instead.
 3. **A credit balance.** Ofgem names two treatments, refund or a lower debit. This build recovers
-   only debits; a credit is handled as before.
+   only debits; a credit is handled as before. Where the other fuel of the same household is in
+   debit, SLC 27.8D (from 22 Jan 2021) gives the customer a right to offset the two. Whether the
+   review itself nets them is not published: see
+   `how_a_gb_domestic_book_splits_by_fuel_and_how_a_two_fuel_home_switches.md` §8b.
 
 **Built.** `company/billing/dd_review.py::REVIEW_SEEKS_BALANCE` (default False until the
 2026-10-19 publish lands), `BALANCE_RECOVERY_MONTHS = 12` from the sentence above, and
