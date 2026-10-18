@@ -324,6 +324,19 @@ def forecast_inputs_from_run(run: Mapping) -> dict:
             "term_forwards": run.get("basis_risk_terms")}
 
 
+def closed_ids_from_bills(bills: list[dict]) -> tuple[set[str], str]:
+    """The accounts a finished run closed, and the run's last billed month: an account is closed
+    when its last bill predates that month. See ``review_arms_from_run`` for why this, and not the
+    run's own churn list, is the set that reproduces the published book."""
+    last_by_cust: dict[str, str] = {}
+    for b in bills:
+        month = b["period_end"][:7]
+        if month > last_by_cust.get(b["customer_id"], ""):
+            last_by_cust[b["customer_id"]] = month
+    run_end = max(last_by_cust.values())
+    return {cid for cid, month in last_by_cust.items() if month < run_end}, run_end
+
+
 def review_arms_from_run(run: Mapping) -> dict | None:
     """One finished run's DD book rebuilt on both arms of ``seek_balance_at_review``, in the rows
     ``billing_accuracy.dd_review_arms`` reads. None when the run carries no bills or openings.
@@ -335,13 +348,7 @@ def review_arms_from_run(run: Mapping) -> dict | None:
     bills, opening = run.get("bills"), run.get("opening_dd_by_customer")
     if not bills or not opening:
         return None
-    last_by_cust: dict[str, str] = {}
-    for b in bills:
-        month = b["period_end"][:7]
-        if month > last_by_cust.get(b["customer_id"], ""):
-            last_by_cust[b["customer_id"]] = month
-    run_end = max(last_by_cust.values())
-    closed = {cid for cid, month in last_by_cust.items() if month < run_end}
+    closed, _ = closed_ids_from_bills(bills)
     out = {}
     for name, seek in (("never_seeks", False), ("seeks", True)):
         book = build_dd_balance_book(bills, opening, closed, seek_balance_at_review=seek,

@@ -78,3 +78,7 @@ households is **£15–£90 (point £40).** The electricity leg is usually the s
 
 To be graded by the reader of the publish run. Write the result **below** this line, and do not
 edit the predictions above.
+
+*Instrument, built 2026-10-18 before the publish run and tested on synthetic fixtures only:
+`python3 -m tools.dual_leg_opposite_signs <the §0 run>` prints N1 to N5 on both arms. The book's
+closed set cannot move these readings (bars are taken after the balance points are written).*
