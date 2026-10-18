@@ -110,3 +110,45 @@ two.
 
 Switching `next_best_action_decides_per_household` on is its own one-variable item after the 19 Oct
 publish, together with C35's own switch.
+
+## 5. Item 1, the save on the loss notice: knowledge and company side landed (2026-10-18)
+
+**Knowledge (K8).** Fuel page §8a. One save may cover both fuels: nothing read forbids it, and SLC 1's
+Dual Fuel Discount allows pricing the pair. The decisive published fact is that the gap the save
+matches is Ofgem's **dual-fuel** bill gap. A household's reason to leave is measured on both fuels,
+and a one-fuel match answers it on one fuel's share of the bill. How a household weighs a one-fuel
+save is still **GAP**.
+
+**The split does change the decision, so this is not the "already decides correctly" case.** The
+run rolls a dual household's departure once, on electricity, and sends both points' loss notices.
+The company answers electricity's alone, on electricity's floor. The gas Invitation is filed and
+never read. Pair count on the live book at `27b6798ec` (`live_population()`, 6.3 s): **341 of 447
+households (76%) are dual, all 341 on one acquisition date**. So every dual departure is a pair of
+notices on one date.
+
+**Built** (`company/crm/save_offer.py`):
+- `SaveLeg` and `household_save_rates` match every leg to its fuel's default × (1 − gap), never above
+  its renewal. The match stands while the household's summed margin over cost is ≥ 0. Otherwise
+  each leg is floored on its own.
+- `save_rates_for_decision` sits behind **`DecisionPolicy.save_offer_decides_per_household`, default
+  False**, declared `run_argument`.
+
+**Controls:** `tests/company/crm/test_a_dual_household_is_one_save_decision.py`.
+- One partition control: off answers {X}, on answers {X, Xg}, and on reaches the matched, floored and
+  none branches.
+- Off equals `price_match_save_rate` across floors either side of the match.
+- Named mutation: household headroom → per-leg floor. It turned 2 tests red and was restored.
+
+**Off path.** No run code changed in this commit, so the run's off path is byte-identical by
+construction. The switch has **no run consumer yet**, the same shape C35's switch had at its first
+landing.
+
+**Next, in order** (item 1's remainder):
+- **1b. The run** reads the switch. At the save site it builds a `SaveLeg` per point from
+  `supply_points_on_supply`, answers every held notice, and carries the gas leg's save rate to that
+  leg's term.
+- **1c. The world weighs the pair.** This is a world fidelity choice under the §8a GAP. The stated
+  belief proposed: the household weighs a save by its effect on its **combined bill**, because the
+  deal it is leaving for is quoted on the combined bill (§8a, §4). The re-asked roll would see the
+  decision leg's rate scaled by Σ v·save / Σ v·renewal. That is a sim change, decided blind to company
+  results. It needs its own prediction filed before the run.

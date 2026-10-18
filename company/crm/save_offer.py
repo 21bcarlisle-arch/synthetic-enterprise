@@ -31,6 +31,10 @@ import json
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from company.policy.decision_policy import DecisionPolicy
 
 #: The only positions a save offer may be varied by (director, 2026-10-08). A renewal price may
 #: vary by neither.
@@ -187,3 +191,72 @@ def save_offer_on_invitation(pending_notice: dict, renewal_unit_rate_gbp_per_mwh
             renewal_unit_rate_gbp_per_mwh, cut_share, acquisition_route=acquisition_route,
             months_on_default=months_on_default, vulnerable=vulnerable),
     )
+
+
+@dataclass(frozen=True)
+class SaveLeg:
+    """One supply point of a household whose Invitation to Intervene the company holds."""
+    supply_point_id: str
+    renewal_unit_rate: float | None  # GBP/MWh, the rate struck for the renewal being left
+    published_default_rate: float | None  # this fuel's, ex VAT
+    cost_floor: float | None
+    annual_mwh: float | None  # the company's own EAC for the point
+
+
+def household_save_rates(legs: "list[SaveLeg] | tuple[SaveLeg, ...]",
+                         best_deal_gap_share: float | None) -> tuple[dict[str, float] | None, str]:
+    """ONE SAVE FOR A HOUSEHOLD LEAVING WITH EVERY LEG (2026-10-18): `({point: save rate}, reason)`,
+    or `(None, reason)` where nothing is offered.
+
+    The gap matched is Ofgem's dual-fuel bill gap, so the household is leaving for a deal on both
+    fuels; a match on one leg answers half its reason (fuel page §8a). Each leg is matched to its own
+    fuel's published default x (1 - gap), never above its renewal. The match stands while the
+    HOUSEHOLD keeps a margin over cost, sum(annual MWh x (save - floor)) >= 0, so one leg may sit
+    under its own floor when the other carries it (SLC 1's Dual Fuel Discount allows pricing the
+    pair; that it is done is a design choice, not documented practice). Otherwise every leg falls
+    back to its own floor, which is `price_match_save_rate`'s answer leg by leg.
+
+    Position-free, like the per-leg match, so a vulnerable household is offered what its twin is."""
+    if best_deal_gap_share is None or best_deal_gap_share <= 0.0:
+        return None, "the market had nothing cheaper than the default"
+    unknown = [leg.supply_point_id for leg in legs
+               if None in (leg.renewal_unit_rate, leg.published_default_rate, leg.cost_floor,
+                           leg.annual_mwh)]
+    if unknown:
+        return None, f"no household headroom: {', '.join(unknown)} lacks a rate, floor or volume"
+    match = {leg.supply_point_id: min(leg.renewal_unit_rate,
+                                      leg.published_default_rate * (1.0 - best_deal_gap_share))
+             for leg in legs}
+    headroom = sum(leg.annual_mwh * (match[leg.supply_point_id] - leg.cost_floor) for leg in legs)
+    if headroom >= 0.0:
+        rates, reason = match, "matched on every leg; the household keeps a margin"
+    else:
+        rates = {leg.supply_point_id: min(leg.renewal_unit_rate,
+                                          max(leg.cost_floor, match[leg.supply_point_id]))
+                 for leg in legs}
+        reason = f"floored per leg; the full match loses GBP {-headroom:.2f}/yr on the household"
+    offered = {point: rate for point, rate in rates.items()
+               if rate < next(leg.renewal_unit_rate for leg in legs if leg.supply_point_id == point)}
+    if not offered:
+        return None, "no leg's match beats its renewal"
+    return offered, reason
+
+
+def save_rates_for_decision(legs: "list[SaveLeg] | tuple[SaveLeg, ...]",
+                            best_deal_gap_share: float | None,
+                            policy: "DecisionPolicy | None") -> dict[str, float]:
+    """The price-match saves the company makes on one departure, keyed by supply point.
+
+    `legs[0]` is the point whose notice the run answers today. Off
+    (`DecisionPolicy.save_offer_decides_per_household` False), only that point is answered, on its
+    own floor, exactly as `price_match_save_rate`; the other legs' Invitations go unanswered. On,
+    every leg is answered by `household_save_rates`."""
+    if not legs:
+        return {}
+    if policy is None or not policy.save_offer_decides_per_household:
+        first = legs[0]
+        rate = price_match_save_rate(first.renewal_unit_rate, first.published_default_rate,
+                                     best_deal_gap_share, first.cost_floor)
+        return {} if rate is None else {first.supply_point_id: rate}
+    rates, _reason = household_save_rates(legs, best_deal_gap_share)
+    return rates or {}

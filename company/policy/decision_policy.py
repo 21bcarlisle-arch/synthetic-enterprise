@@ -233,6 +233,12 @@ class DecisionPolicy:
     #: policy until the 19 Oct publish is read.
     next_best_action_decides_per_household: bool = False
 
+    #: (2026-10-18) the save on a loss notice answers every leg of a household leaving with both
+    #: fuels, matched against Ofgem's dual-fuel gap and floored on the household's summed margin
+    #: (`company.crm.save_offer.save_rates_for_decision`; fuel page §8a). Off on every standing
+    #: policy: the world still weighs a save on the electricity leg's rate alone.
+    save_offer_decides_per_household: bool = False
+
     #: (2026-10-10) how the company sizes a save when no experiment names a cut: "price_match"
     #: meets the market's best published deal, never below the company's own cost floor
     #: (`company.crm.save_offer.price_match_save_rate`). Every input is published or the company's

@@ -207,6 +207,53 @@ fuel's margin, values the departure at about half of what is actually leaving.
   `docs/staging/` names it, and the fix sits behind a default-off decision-policy switch until it is
   measured.
 
+### 8a. A save made to a household that is leaving with both fuels
+
+*Added 2026-10-18, before the household save in `company/crm/save_offer.py` was built (K8).
+Searched this pass: SLC 14 and 14A (read for the save page and re-read here for objections), Energy
+UK's Energy Switch Guarantee, the CMA's 2016 final report, and
+`a_save_offer_against_the_switching_rules_and_the_seam.md` §1c, §6 and §7.*
+
+| Question | What the rules or published evidence say | Status |
+|---|---|---|
+| **May one save cover both fuels?** | Yes. Nothing read forbids it. A save is a Fixed Retention Tariff under the SLC 22B derogation (save page §1d), and SLC 1's **Dual Fuel Discount** lets a supplier price a tariff on the basis that the Same Domestic Customer takes both fuels. Each fuel's rate must still be set and shown per fuel (SLC 31H, 31I.5(b), §8). | Rule read. |
+| **May the loser block either leg to keep the other?** | No. Objections are per fuel and only for that fuel's Outstanding Charges (SLC 14.4(a), §8). A save works only if the household chooses to stay (save page §1c). | Rule read. |
+| **Does the Switch Guarantee say anything about saves?** | No. Its commitments cover the switch itself: no interruption, free, 21 days at most, the gainer arranges it, and an accurate final bill. A 2014 MoneySuperMarket response to Ofgem says a dual-fuel discount only applies once both supplies have transferred, because the two fuels transfer separately (found by search; the PDF was not read in full). | Read. Nothing on saves. |
+| **What is the household leaving for?** | **A dual-fuel deal.** The best-deal gap the save matches is Ofgem's own series, and *"All figures are based on a typical domestic dual fuel customer paying by direct debit"* (`cheapest_fix_against_the_default_tariff_gb_2016_2025.md` §0). By §4, about nine switching homes in ten move both fuels together. | Published (the gap). Inferred for a departure (§4). |
+| **How does a household weigh a save on one fuel when it is leaving with both?** | **Not published.** No survey, regulator or practitioner source found separates a one-fuel save from a two-fuel save, or gives the share of saves that keep both legs (§4 GAP). | **GAP.** |
+
+**What follows from what is published.** The household's reason to leave is measured on its combined
+bill: the market's cheapest dual-fuel deal against the default. A save that matches that gap on one
+fuel answers the reason only on that fuel's share of the bill, and the household is asked to stay on
+both fuels for it. A save that answers the reason matches the gap on **both** legs. Neither the rules
+nor any published practice prevents that. The supplier then needs a second check: whether the save
+loses money **on the household**, which is the sum of both legs' margins at the save rates, and not
+on each leg alone. That is the same reasoning as C35 (§8).
+
+**What our code does (discovery, not evidence).** The world rolls a dual household's departure once,
+on its electricity leg (`simulation.customer_events.departure_decision_leg`), and sends a loss
+notice for **every** point the household holds (`run_phase2b`, `supply_points_on_supply`). The
+company then answers only the electricity point's notice. It prices the save on electricity's
+renewal rate and electricity's floor. The gas point's Invitation to Intervene is received and filed,
+and nothing reads it. The world's re-asked roll weighs only the electricity rate. Measured on the
+live book at `27b6798ec` (`live_population()`, 6.3 s): **788 supply points in 447 households, 341
+of them dual, and all 341 hold both legs from one acquisition date.** So every dual departure is a
+pair of loss notices on one date: 341 of 447 households (76%) and 682 of 788 points.
+
+**Design choices the household save makes, and why.**
+- **One offer per billing account, over every leg whose notice the company holds.** Each leg keeps
+  its own fuel's rate (the licence sets rates per fuel). Each leg's target is that fuel's published
+  default × (1 − the published dual-fuel gap). No leg is ever offered more than its renewal.
+- **The floor is the household's.** The match stands where the household's summed margin over cost
+  at the save rates is at least zero: Σ annual consumption × (save rate − cost floor) ≥ 0. Where it
+  is not, each leg falls back to its own floor, which is today's per-leg answer. This is a design
+  choice. The rules allow it (Dual Fuel Discount), but it is not documented practice.
+- **The household's own weighing stays the world's.** How a household weighs the pair is the GAP
+  above. The company's offer must not depend on it. Wiring the world to weigh both legs' rates
+  belongs to the run, and is the next item in the finding.
+- **Off by default** (`DecisionPolicy.save_offer_decides_per_household`) until the world can weigh
+  the pair. Under the switch off the company answers exactly as it does today.
+
 ## Sources
 
 - CMA, *Energy market investigation: Summary of provisional findings report*, 7 July 2015, ¶9 and
@@ -233,3 +280,7 @@ fuel's margin, values the departure at about half of what is actually leaving.
   https://www.ofgem.gov.uk/sites/default/files/2023-03/Electricity%20Supply%20Standard%20Consolidated%20Licence%20Conditions%20-%20Current.pdf
 - Ofgem, *Decision on review of domestic objections*, July 2016 (the dual-fuel doubling of debt
   objections). https://www.ofgem.gov.uk/system/files/docs/2016/07/decision_on_review_of_domestic_objections.pdf
+- Energy UK, *Energy Switch Guarantee* (energy-uk.org.uk/our-work/energy-switch-guarantee/), the
+  commitments as listed by the save page's S11, read 2026-10-08.
+- MoneySuperMarket, response to Ofgem, April 2014 (dual-fuel discount applies once both supplies
+  transfer). https://www.ofgem.gov.uk/sites/default/files/docs/2014/04/moneysupermarket_response_0.pdf
