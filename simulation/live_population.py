@@ -225,7 +225,7 @@ def live_population(base_seed: Optional[int] = None) -> List[dict]:
     book = static
 
     if draw_population_enabled():
-        drawn = [_trickle_dict(sc) for sc in _drawn_trickle(seed)]
+        drawn = [rec for sc in _drawn_trickle(seed) for rec in _trickle_records(sc)]
         # ACTIVATION (2026-08-13): register the drawn points on the supply book before
         # handing them back. Iterating a book you cannot then RESOLVE BY ID is what
         # broke the home-move path -- `run_phase2b` looks a winning account back up
@@ -486,6 +486,20 @@ def _drawn_trickle(seed: int):
     return [sc for sc in drawn if sc.commodity != "gas" or (
         getattr(getattr(sc, "premise", None), "commodity", "gas") == "gas"
         and _gas_aq_kwh(sc.customer_id, sc.consumption_band) is not None)]
+
+
+def _trickle_records(sc) -> List[dict]:
+    """A trickle arrival's records: its account, plus the gas leg when the home came to us dual.
+
+    A dual-fuel arrival is one household with two supply points, `X` and `Xg`, the convention a
+    won home and a drawn founder already follow (director steer 2026-10-17).
+    """
+    record = _trickle_dict(sc)
+    if getattr(sc, "fuel_arrangement", None) == "dual":
+        leg = _gas_leg_for(sc, record)
+        if leg is not None:
+            return [record, leg]
+    return [record]
 
 
 def _trickle_dict(sc) -> dict:
@@ -877,7 +891,7 @@ def _drawn_founder_pairs(seed: int) -> "List[tuple]":
     wanted = founder_accounts() - _founder_roster_size()
     if wanted <= 0:
         return []
-    from simulation.population_draw import iter_acquisition_events
+    from simulation.population_draw import FUEL_DUAL, iter_acquisition_events
 
     # NO SEGMENT SKIP IN THIS LOOP (2026-08-30). Skipping a non-served account WHILE DRAWING
     # made the dial consume the stream at a different rate: suspend a segment and the loop walks
@@ -885,7 +899,7 @@ def _drawn_founder_pairs(seed: int) -> "List[tuple]":
     # founders. Measured before the repair, one seed: 26 residential accounts existed only when
     # I&C was suspended. The world draws its founders; `live_population` decides which of them
     # this company serves.
-    out: List[tuple] = []
+    homes: List[List[tuple]] = []
     for customer in iter_acquisition_events(
         seed + _FOUNDER_SEED_OFFSET,
         start_year=FOUNDER_ACQUISITION_YEAR,
@@ -896,24 +910,12 @@ def _drawn_founder_pairs(seed: int) -> "List[tuple]":
         seasonal_dates=True,
     ):
         record = customer.to_customer_dict()
-        # A DRAWN FOUNDER CAN BE A GAS ACCOUNT IN ITS OWN RIGHT, unlike a campaign win, which
-        # is always won on electricity and picks up gas as a second leg. `draw_population`
-        # gives the account the fuel its dwelling is heated on, and five of the hand-authored
-        # thirteen are gas accounts too -- so this is an ordinary shape, not a new one. What it
-        # needs is the AQ that `to_customer_dict()` does not carry: without it the first drawn
-        # gas founder takes `run_phase2b.TOTAL_GAS_AQ` down with a `KeyError`, which is how
-        # this was found.
         premise = getattr(customer, "premise", None)
         if record.get("commodity") == "gas":
-            # NO GAS METER, NO GAS ACCOUNT -- the same predicate `_gas_leg_for` applies to a
-            # campaign win, and for the same reason (2026-09-25). The record's `commodity` is
-            # one draw and the premise's is another, derived from the dwelling's own heating
-            # system; they disagree. At the live seed three founders were gas accounts on
-            # storage- or direct-electric homes, each settled on a ~9.5 MWh AQ whose physics
-            # burned nothing (`SEAT_FINDING_THREE_ELECTRICALLY_HEATED_HOMES_HOLD_A_GAS_
-            # CONTRACT_...`). The house is the world's, so the contract follows what is
-            # plumbed in. SKIPPED like an unpriceable band below, so the next candidate takes
-            # the slot and no founder is relabelled into a fuel it was never drawn on.
+            # A GAS-ONLY FOUNDER IS A SPLIT HOME whose electricity is with a rival: the draw gives
+            # the gas leg only to a home with a gas meter, so this record needs only the AQ that
+            # `to_customer_dict()` does not carry. Without it `run_phase2b.TOTAL_GAS_AQ` raises
+            # `KeyError`. The meter predicate stays as the guard `_gas_leg_for` also applies.
             if premise is not None and getattr(premise, "commodity", None) != "gas":
                 continue
             aq = _gas_aq_kwh(record["customer_id"], record.get("consumption_band"))
@@ -925,22 +927,50 @@ def _drawn_founder_pairs(seed: int) -> "List[tuple]":
                 continue
             record = {**record, "aq_kwh": aq,
                       "cv_factor": GAS_CV_FACTOR, "cf": GAS_CORRECTION_FACTOR}
-        out.append((record, premise))
-    # SPREAD THROUGH THE YEAR, NOT TRUNCATED TO ITS START (2026-10-03). The stream is in DATE
-    # order, so keeping the first `wanted` eligible candidates kept the first ~1/headroom of 2016:
-    # every drawn founder began between 1 January and 14 August, none in September-December, and
-    # their renewals bunched the same way for a decade. The real record has switching in every
-    # month, peaking in October (DESNZ QEP Table 2.7.1, `docs/market_research/
-    # gb_domestic_switching_by_calendar_month.md`). Taking every 1-in-r of the whole eligible
-    # sequence keeps the draw's own spread of dates. Systematic and deterministic, so no random
-    # stream is consumed and a re-run takes the same founders. The dates themselves follow 2016's
-    # published switching months (`seasonal_dates=True`), so the year is not flat either: January
-    # is its trough and October its peak. Thinning picks by POSITION, so it keeps the same
-    # households whichever way their dates were drawn.
-    if len(out) > wanted:
-        # Integer positions, so exactly `wanted` are kept -- a float rate loses one to rounding.
-        out = [out[(k * len(out)) // wanted] for k in range(wanted)]
-    return out
+        home = [(record, premise)]
+        if getattr(customer, "fuel_arrangement", None) == FUEL_DUAL:
+            # ONE HOUSEHOLD, TWO SUPPLY POINTS, the campaign's convention: `X` and `Xg` share the
+            # premise and one billing account. Built by the same accessor a won home uses.
+            leg = _gas_leg_for(customer, record)
+            if leg is None:
+                continue
+            home.append((leg, premise))
+        homes.append(home)
+    return _founders_spread_through_the_year(homes, wanted)
+
+
+def _founders_spread_through_the_year(homes: List[List[tuple]], wanted: int) -> List[tuple]:
+    """Exactly `wanted` records, taken a WHOLE HOME at a time, spread through the year.
+
+    SPREAD THROUGH THE YEAR, NOT TRUNCATED TO ITS START (2026-10-03). The stream is in DATE order,
+    so keeping the first `wanted` eligible candidates kept the first ~1/headroom of 2016: every
+    drawn founder began between 1 January and 14 August, and their renewals bunched the same way
+    for a decade. The real record has switching in every month, peaking in October (DESNZ QEP
+    Table 2.7.1, `docs/market_research/gb_domestic_switching_by_calendar_month.md`).
+
+    BY HOME SINCE 2026-10-17, because a dual-fuel home is two records and thinning by record would
+    split it. Homes are visited at evenly spaced positions first, then the rest in date order; a
+    home joins when its records still fit. A dual home that would overshoot by one is passed over
+    for a later single-fuel one, so the director's number is met exactly. Deterministic, no
+    random stream consumed.
+    """
+    total = sum(len(h) for h in homes)
+    if total <= wanted:
+        return [pair for h in homes for pair in h]
+    n = len(homes)
+    m = max(1, min(n, (n * wanted) // total))
+    first = sorted({(k * n) // m for k in range(m)})
+    spread = set(first)
+    order = first + [i for i in range(n) if i not in spread]
+    taken: set = set()
+    count = 0
+    for i in order:
+        if count + len(homes[i]) <= wanted:
+            taken.add(i)
+            count += len(homes[i])
+        if count == wanted:
+            break
+    return [pair for i in sorted(taken) for pair in homes[i]]
 
 
 #: A named offset for the founder draw's seed. DEFENSIVE, NOT LOAD-BEARING, and the difference was
@@ -1017,7 +1047,7 @@ def _pre_growth_book(seed: int) -> List[dict]:
     static = founder_book(seed)
     if not draw_population_enabled():
         return static
-    return static + [_trickle_dict(sc) for sc in _drawn_trickle(seed)]
+    return static + [rec for sc in _drawn_trickle(seed) for rec in _trickle_records(sc)]
 
 
 # The run's last reported day, as the campaign's quote cutoff.
@@ -1383,6 +1413,10 @@ def _live_homes(base_seed: Optional[int] = None) -> dict:
         for sc in _drawn_trickle(seed)
         if sc.premise is not None
     }
+    # A DUAL ARRIVAL'S GAS LEG IS THE SAME HOME (2026-10-17), as a won home's is below.
+    for sc in _drawn_trickle(seed):
+        if sc.premise is not None and getattr(sc, "fuel_arrangement", None) == "dual":
+            premises[f"{sc.customer_id}g"] = (sc.premise, sc.output_area)
     # A FOUNDER IS STILL A HOME, for the identical reason the won homes below are: the
     # director's founder book puts drawn accounts on the supplied book, and a supplied
     # customer the world drew no dwelling for makes `build_properties` raise

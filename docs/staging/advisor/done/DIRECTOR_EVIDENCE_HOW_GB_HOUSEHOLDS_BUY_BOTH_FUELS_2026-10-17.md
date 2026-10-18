@@ -96,3 +96,28 @@ Poesys opened in 2016 as a challenger. On the evidence, its book should look lik
 5. **Wire the 75% finding, and its successors, into a book-composition check** that runs every Monday. A finding that checks nothing is how this survived.
 
 — Advisor research for the director, 17 Oct 2026, at his request (10:56 BST, quoted above). The sources are primary or regulatory; quotes are as the research passes reported them, so confirm them before you rely on them.
+
+## Done
+
+*Worker tick, 17 Oct, with the steer it is attached to. The report is
+`docs/staging/WORKER_FINDING_THE_OPENING_BOOK_WAS_ONE_PERCENT_DUAL_FUEL_AND_NOW_BEARS_THE_PUBLISHED_SPLIT_2026-10-17.md`.*
+
+- **Confirmed in the primary documents this session:**
+  - CMA final report ¶10: 20m / 8m / 3m.
+  - CMA PF Summary ¶9 (Jan 2015): 19m / 8m / 4m.
+  - GfK ¶41: 72%, and the 15%/17% conflict is real; both are kept as the range.
+  - Ofgem CES 2017: 89% have both fuels; 96% of both-fuel switchers moved both at once; 1 point in 18 moved one fuel.
+  - Octopus CSS FY25: 7,273k / 5,844k points.
+- **Not re-read; cited as this file's:** UW 80%, First Utility >90%, Centrica 2023, and the ex-PES CSS figures.
+- **What it changed.** It filled the knowledge page's challenger gap, and the founders moved from the market-wide 0.83 to the challenger/switching 0.90 of gas homes dual, with 0.83 as the range floor. Its §5 asks are answered in the report:
+  1. Draw households: done.
+  2. Opening mix from evidence for a challenger: done.
+  3. Exits as a household: departure confirmed; home move and debt not yet re-measured.
+  4. Premise gas share: meter-first on the book's homes; the harness panel is handed on.
+  5. Composition check: a commit-gate test, mutation-proven, not a Monday ceremony. It runs on every commit, which is stronger.
+- **Gaps still open:**
+  - OVO, Bulb, Good Energy, Ecotricity and Co-op splits;
+  - split supply after 2017;
+  - partial losses.
+
+  The mechanics this file found (per-fuel registration, erroneous transfers ~0.5%, debt objections) are the stated causes of the 10% split remainder.

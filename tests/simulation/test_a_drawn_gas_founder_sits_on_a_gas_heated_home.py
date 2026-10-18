@@ -22,9 +22,7 @@ def founders():
     return lp._drawn_founder_pairs(SEED)
 
 
-def test_the_disagreement_the_guard_refuses_really_occurs_in_the_founder_draw(founders):
-    """Reachability first: a guard over a case the draw never produces passes vacuously."""
-    wanted = len(founders)
+def _gas_on_non_gas_homes(wanted: int, **weights) -> int:
     seen = disagree = 0
     for customer in iter_acquisition_events(
         SEED + lp._FOUNDER_SEED_OFFSET,
@@ -33,6 +31,7 @@ def test_the_disagreement_the_guard_refuses_really_occurs_in_the_founder_draw(fo
         acquisitions_per_year_lambda=float(wanted) * lp._FOUNDER_DRAW_HEADROOM,
         draw_region=True,
         assign_cohorts=True,
+        **weights,
     ):
         premise = getattr(customer, "premise", None)
         if customer.to_customer_dict().get("commodity") == "gas" and premise is not None:
@@ -40,9 +39,19 @@ def test_the_disagreement_the_guard_refuses_really_occurs_in_the_founder_draw(fo
         seen += 1
         if seen >= wanted * 2:
             break
-    assert disagree > 0, (
-        "no founder candidate is drawn as a gas account on a non-gas premise, so the guard in "
-        "_drawn_founder_pairs is unreachable and every test below passes for nothing")
+    return disagree
+
+
+def test_the_disagreement_is_closed_at_the_draw_and_a_forced_fuel_still_produces_it(founders):
+    """Reachability first, and since 2026-10-17 the case lives in the DRAW, not the founder loop.
+
+    The account now takes its home's fuel (`population_draw.fuel_arrangement`), so the default
+    draw cannot put gas on a home with no gas meter. A caller that forces the fuel by explicit
+    weights still can, and that is the control showing the zero below is not vacuous.
+    """
+    wanted = len(founders)
+    assert _gas_on_non_gas_homes(wanted, commodity_weights={"gas": 1.0}) > 0
+    assert _gas_on_non_gas_homes(wanted) == 0
 
 
 def test_every_drawn_gas_founder_sits_on_a_gas_heated_home(founders):

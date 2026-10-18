@@ -369,6 +369,11 @@ EHS_AT3_5_FUEL_BY_GAS_METER: dict[bool, dict[str, int]] = {
     False: {"gas": 147, "electrical": 1795, "oil": 897, "communal": 411, "solid": 113},
 }
 HEATING_GIVEN_SUPPLY_SOURCE = "EHS 2017-18 Energy Report, Annex Table 3.5 (main fuel by gas meter)"
+#: P(gas meter), England, from the same table: 20,586 of 23,949 thousand dwellings = 86.0%. DESNZ's
+#: 2024 subnational report puts GB domestic properties off the gas grid at 16% (84%), the range's
+#: other end. The per-customer draw (`draw_premise`) reads it; the stock draws NEED's own flag.
+EHS_AT3_5_GAS_METER_SHARE = sum(EHS_AT3_5_FUEL_BY_GAS_METER[True].values()) / (
+    sum(EHS_AT3_5_FUEL_BY_GAS_METER[True].values()) + sum(EHS_AT3_5_FUEL_BY_GAS_METER[False].values()))
 
 
 def heating_weights_given_supply(has_mains_gas_supply: bool) -> dict[HeatingSystem, float]:
@@ -921,16 +926,30 @@ def draw_premise(
     base_seed: int,
     as_of: dt.date,
     joint: Mapping[Cell, float] | None = None,
+    meter_first: bool = False,
 ) -> DrawnPremise:
     """Draw ONE premise. Keyed on `premise_id`, so it is identical whatever else
-    is in the population (C-S2) and whatever order the population is built in."""
+    is in the population (C-S2) and whatever order the population is built in.
+
+    `meter_first=True` is the BOOK's home (an account's own dwelling, `population_draw.
+    _draw_dwelling`): gas meter drawn first, heating given it. False keeps the harness panel
+    (`draw_premise_population`) on its pinned draw until it is re-keyed -- a GAP, handed on."""
     fitted = joint if joint is not None else raked_joint()
     ptype, era, band = _weighted_choice(
         _substream(base_seed, f"{premise_id}:cell"), fitted
     )
-    heating = _weighted_choice(
-        _substream(base_seed, f"{premise_id}:heating"), published_heating_weights()
-    )
+    # THE METER FIRST, THEN WHAT BURNS (director steer 2026-10-17), the order the stock path has
+    # kept since W2_20. Heating used to come from `published_heating_weights()`, which drops oil,
+    # communal and solid fuel and so made 90.7% of these homes gas; the drawn founders came out
+    # 93% gas homes against EHS's 86.0% metered. A home's gas account follows its meter.
+    has_supply = None
+    heating_weights = published_heating_weights()
+    if meter_first:
+        has_supply = (
+            _substream(base_seed, f"{premise_id}:gas_meter").random() < EHS_AT3_5_GAS_METER_SHARE
+        )
+        heating_weights = heating_weights_given_supply(has_supply)
+    heating = _weighted_choice(_substream(base_seed, f"{premise_id}:heating"), heating_weights)
     bedrooms = _weighted_choice(
         _substream(base_seed, f"{premise_id}:bedrooms"),
         _BEDROOM_WEIGHTS_BY_PROPERTY_TYPE[ptype],
@@ -948,6 +967,7 @@ def draw_premise(
         bedrooms=bedrooms,
         heating_system=heating,
         boiler_age=_boiler_age_for(era, heating),
+        has_mains_gas_supply=has_supply,
         has_solar=False,
         solar_kwp=0.0,
         solar_install_year=None,

@@ -88,3 +88,39 @@ On 16 Sept, `SEAT_RESULT_THE_LAST_158_REFUSED_RENEWALS_ARE_EIGHTEEN_GAS_ONLY_ACC
    Raise anything that would change a ruling as a proposal, with the evidence.
 
 — Director steer, 17 Oct 2026, from his chat words above. The advisor drafted it and measured the founder book.
+
+## Done
+
+*Worker tick, 17 Oct. Full report:
+`docs/staging/WORKER_FINDING_THE_OPENING_BOOK_WAS_ONE_PERCENT_DUAL_FUEL_AND_NOW_BEARS_THE_PUBLISHED_SPLIT_2026-10-17.md`.*
+
+- **1. Knowledge.** `docs/market_research/how_a_gb_domestic_book_splits_by_fuel_and_how_a_two_fuel_home_switches.md`:
+  - CMA PF ¶9: 19m of 23m gas customers are dual.
+  - CMA/GfK ¶41: 72% of homes one supplier, 9% split, 15–17% no gas.
+  - Ofgem CES 2017: switching homes with gas move both fuels together, ~90%.
+  - EHS/DESNZ: 14–16% no gas.
+  - The steer's reading holds on every point. The repo already had a 21 June page saying ~75%.
+- **2. Census, founders at the production shape, default seed.** Before: 382 homes, 0 dual. After: 220 homes, 73.6% dual, 83.6% gas homes; eight seeds pooled read 76.4% dual. Founders and the trickle take the challenger/switching shape, 0.90 of gas homes dual. They were first built at the market-wide 0.83; the advisor's supplier-accounts evidence (10:03 UTC) moved them, and both are reported.
+  - **Campaign wins:** 100% dual on gas homes, against a published ~90%. Unchanged; this is the one remaining departure, in the dual-heavy direction.
+  - **Exits:** departures are household-level already.
+  - **Not re-measured:** home moves, debt and save, for a dual home.
+  - **Housing stock:** the founders' homes were 93% gas because `draw_premise` drew heating from `published_heating_weights()`, which drops oil, communal and solid fuel. They now draw the gas meter first (EHS 86.0%). The harness's 60-home panel has the same defect, and is handed on with its pinned values.
+- **3. Cause.**
+  - The placeholder named no anchor page.
+  - The 26 Aug ruling was fixed only in the funnel where it was seen.
+  - The 16 Sept finding took 28% gas-only as a fact about the world.
+  - No control compared the book with the published record while it grew 13 → 400.
+
+  **Mechanism:** `tests/simulation/test_the_opening_book_bears_the_published_fuel_split.py`, run at the production founder count over eight seeds, against published bands. Mutation-proven (P(dual)=0, meter-first off and the old coin each red it).
+- **4. Sweep.**
+  - Commodity coin: retired.
+  - Founder heating weights: replaced.
+  - `DEFAULT_BAND_WEIGHTS`: named a GAP, with NEED as the anchor to measure next.
+  - Segment and lambda: not fidelity shares.
+  - Combi/storage splits: labelled GAPs.
+- **5. Correction.**
+  - Freeze-then-solve, decided before any supplier result. It is now the held EP17 draw.
+  - Predictions were filed first in `docs/staging/records/WORKER_PREREG_WHAT_DRAWING_THE_FUEL_FROM_THE_HOME_DOES_TO_THE_OPENING_BOOK_2026-10-17.md`, and all landed inside their ranges.
+  - The 400 is held as supply points, so the founders now hold ~233 households.
+  - Whether he meant 400 households is raised as `the-founder-number-has-two-readings-now`, with the recommendation to keep supply points.
+- **6. Not yet:** the published run figures move at the next run on this code.

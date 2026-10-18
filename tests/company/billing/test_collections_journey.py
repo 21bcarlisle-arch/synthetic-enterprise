@@ -293,8 +293,12 @@ def test_the_order_check_refuses_an_unlawful_walk(stages, exit, why):
 #: fall inside it. Measured 2016-10-04 at this end: 12 journeys, 5 cured (4 with no reminder),
 #: 5 reminded, 5 arrangements offered. The old end (03-02) predates any day-7 reminder. Moved to
 #: 07-31 for W2_42 (2026-10-16): the first live 90-day prepayment offer falls on 2016-07-27, and
-#: the 05-31 end reached no step past day 28.
-LIVE_WINDOW_END = "2016-07-31"
+#: the 05-31 end reached no step past day 28. Moved to 12-31 when the book began drawing its fuel
+#: from the home (2026-10-18): the 07-31 reach was ONE account, SYN-2016-016, which the redraw no
+#: longer founds, and no end through 10-31 reaches day 90 on the new book. At 12-31 the first offer
+#: falls on 2016-10-26 (SYN-2016-073g, again one account). The end also moves the campaign's quote
+#: cutoff and so the book, which is why the reaching ends are not nested.
+LIVE_WINDOW_END = "2016-12-31"
 
 
 @pytest.fixture(scope="module")

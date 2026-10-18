@@ -62,9 +62,10 @@ HONEST SIMPLIFICATIONS (R10, dated)
   overwhelmingly residential accounts BY COUNT -- I&C is a small number of
   large accounts), OVERRIDABLE via the `segment_weights` argument with a real
   marginal at integration. Not claimed as anchored.
-- 2026-07-13: consumption-BAND selection weights and commodity-mix weights are
-  likewise documented placeholders, overridable. Only the band RANGES (TDCV)
-  and the DD SHARE are anchored.
+- 2026-07-13: consumption-BAND selection weights are likewise a documented
+  placeholder, overridable. Only the band RANGES (TDCV) and the DD SHARE are
+  anchored. The commodity-mix placeholder was retired 2026-10-17: an account's
+  fuel is now its home's (`fuel_arrangement`), from published shares.
 """
 from __future__ import annotations
 
@@ -166,7 +167,30 @@ _PLACEHOLDER_REGION = "UNKNOWN_SYNTHETIC"
 # per-switch fee -- is real world-building with its own anchor requirements, and it is on the
 # roadmap (docs/design/CHOICE_AND_CHANNEL_ROADMAP.md, C4). It is not a weight.
 DEFAULT_SEGMENT_WEIGHTS: Dict[str, float] = {"resi": 1.00}
-DEFAULT_COMMODITY_WEIGHTS: Dict[str, float] = {"electricity": 0.72, "gas": 0.28}
+
+# THE FUEL IS THE HOME'S, NOT A COIN ON THE ACCOUNT (director steer, 2026-10-17). Until then every
+# drawn account took its fuel from `{"electricity": 0.72, "gas": 0.28}`, a "documented placeholder"
+# since 13 July. That made the 400-founder book 1% dual fuel, with 357 of its 382 drawn gas homes
+# split between us and an unseen rival. Published: 19m of 23m GB gas customers bought both fuels
+# from one supplier (CMA EMI PF Summary ¶9, Jan 2015), and ~90% of switching homes with gas moved
+# both together (Ofgem Consumer Engagement Survey 2017 §3). Sources, ranges and gaps:
+# docs/market_research/how_a_gb_domestic_book_splits_by_fuel_and_how_a_two_fuel_home_switches.md
+#
+# A HOME WITH NO GAS METER HOLDS ELECTRICITY ONLY; one with a meter is DUAL with the probability
+# below, and otherwise split supply, where we hold either its electricity or its gas (half each).
+# ONE SHAPE FOR EVERY DRAWN ROUTE, founders included: Poesys is a challenger, and a challenger's book
+# is built of switchers. Challengers run 80-90%+ dual (Utility Warehouse 80%, First Utility over
+# 90%, CMA EMI App. 2.2); the market-wide 83% of gas homes is pulled down by the ex-incumbents' legacy
+# single-fuel tails (Centrica 2023: ~21% gas only) and is the range's floor.
+#: P(both fuels with us | gas meter). Central 0.90 (Ofgem CES 2017 §3: 17 of 18 points switched both,
+#: 96% of those at once; Utility Warehouse's 80% of customers over ~86% gas homes is 0.93). Range
+#: 0.83 (market stock, CMA PF ¶9) to 0.94.
+P_DUAL_GIVEN_GAS = 0.90
+#: Which leg a split home's account is with us. CMA PF ¶9 implies ~4m split electricity customers
+#: against 4m gas-only, so half each; 2017 does not say which fuel a one-fuel switcher moves.
+P_GAS_LEG_GIVEN_SPLIT = 0.5
+FUEL_DUAL = "dual"
+
 DEFAULT_BAND_WEIGHTS: Dict[str, float] = {"LOW": 0.30, "MEDIUM": 0.45, "HIGH": 0.25}
 
 # Acquisition cadence -- DIRECTOR CURRICULUM "PROFILE B: TRICKLE CONTINUATION"
@@ -357,6 +381,10 @@ class SyntheticCustomer:
     # discovers a home through `company.crm.property_discovery`, and is now free to
     # be wrong about it.
     premise: Optional["DrawnPremise"] = None
+    # "dual" when this home buys both fuels from us, else the one fuel `commodity` names. NOT
+    # rendered: the supplier sees a dual home as its gas leg record (`<id>g`), which the book's
+    # builder adds, never as a flag. None when the caller forced a fuel by explicit weights.
+    fuel_arrangement: Optional[str] = None
 
     # THE METER THE SUPPLIER HAS INSTALLED AT THIS SUPPLY POINT, and it is an OBSERVABLE rather
     # than hidden truth like `cohort` and `premise` above -- a supplier reads its own meter type
@@ -444,8 +472,36 @@ def _draw_dwelling(
     from simulation.premise_population import draw_premise
 
     return draw_premise(
-        customer_id, base_seed=base_seed, as_of=acquisition_date, joint=joint
+        customer_id, base_seed=base_seed, as_of=acquisition_date, joint=joint, meter_first=True
     )
+
+
+def _claim_or_draw_premise(customer_id, segment, acquisition_date, base_seed, premise_joint,
+                           claim_premise):
+    """The home this account holds: a claimed stock slot for a domestic point, else its own draw."""
+    if claim_premise is not None and segment == "resi":
+        return claim_premise(customer_id)
+    return _draw_dwelling(
+        customer_id,
+        segment=segment,
+        acquisition_date=acquisition_date,
+        base_seed=base_seed,
+        joint=premise_joint,
+    )
+
+
+def fuel_arrangement(premise, customer_id: str, base_seed: int) -> str:
+    """"dual", "electricity" or "gas": what this home buys from us, read off its own gas meter.
+
+    No premise, or no gas meter (`DrawnPremise.commodity`), is electricity only. Its own substream,
+    so it moves nothing else the draw produces.
+    """
+    if premise is None or getattr(premise, "commodity", None) != "gas":
+        return "electricity"
+    rng = _substream(base_seed, f"{customer_id}:fuel_arrangement")
+    if rng.random() < P_DUAL_GIVEN_GAS:
+        return FUEL_DUAL
+    return "gas" if rng.random() < P_GAS_LEG_GIVEN_SPLIT else "electricity"
 
 
 def _draw_one(
@@ -453,7 +509,7 @@ def _draw_one(
     customer_id: str,
     acquisition_date: dt.date,
     segment_weights: Mapping[str, float],
-    commodity_weights: Mapping[str, float],
+    commodity_weights: Optional[Mapping[str, float]],
     band_weights: Mapping[str, float],
     region: str,
     base_seed: int,
@@ -462,8 +518,25 @@ def _draw_one(
     claim_premise: Optional[Callable[[str], "DrawnPremise"]] = None,
 ) -> SyntheticCustomer:
     segment = _weighted_choice(rng, segment_weights)
-    commodity = _weighted_choice(rng, commodity_weights)
+    # ONE UNIFORM IS STILL CONSUMED where the retired commodity coin drew, so band, EAC and payment
+    # method keep their values and the fuel is the one variable that moves. Explicit weights (the
+    # campaign's ELECTRICITY_ONLY) still decide the fuel themselves.
+    if commodity_weights is not None:
+        commodity = _weighted_choice(rng, commodity_weights)
+    else:
+        rng.random()
+        commodity = None
     band = _weighted_choice(rng, band_weights)
+    if commodity is None:
+        # The dwelling draw is on its own substream (or a positional stock claim), so drawing it
+        # before the EAC changes nothing about either.
+        premise = _claim_or_draw_premise(
+            customer_id, segment, acquisition_date, base_seed, premise_joint, claim_premise)
+        arrangement = fuel_arrangement(premise, customer_id, base_seed)
+        commodity = "electricity" if arrangement == FUEL_DUAL else arrangement
+    else:
+        premise = None
+        arrangement = None
     low, high = TDCV_BANDS_KWH[commodity][band]
     eac = round(rng.uniform(low, high), 1)
     dd_share = DD_SHARE_ELEC if commodity == "electricity" else DD_SHARE_GAS
@@ -491,16 +564,9 @@ def _draw_one(
     # stock is an England HOUSING-stock draw). Claiming for a non-resi point would
     # burn a premise that no account then holds -- it would leave the remainder
     # quietly short by a premise that is neither won nor unwon.
-    if claim_premise is not None and segment == "resi":
-        premise = claim_premise(customer_id)
-    else:
-        premise = _draw_dwelling(
-            customer_id,
-            segment=segment,
-            acquisition_date=acquisition_date,
-            base_seed=base_seed,
-            joint=premise_joint,
-        )
+    if arrangement is None:
+        premise = _claim_or_draw_premise(
+            customer_id, segment, acquisition_date, base_seed, premise_joint, claim_premise)
     return SyntheticCustomer(
         customer_id=customer_id,
         acquisition_date=acquisition_date.isoformat(),
@@ -512,6 +578,7 @@ def _draw_one(
         region=region,
         cohort=cohort,
         premise=premise,
+        fuel_arrangement=arrangement,
         # DRAWN AGAINST THE PUBLISHED GB PENETRATION FOR THE ACQUISITION YEAR, on its own RNG
         # substream (C-S2) so adding it leaves every other drawn attribute byte-identical. The
         # curve is `simulation.premise_population.smart_meter_penetration` -- DESNZ Q4 2024 Smart
@@ -645,7 +712,7 @@ def iter_acquisition_events(
             "each premise twice."
         )
     segment_weights = segment_weights or DEFAULT_SEGMENT_WEIGHTS
-    commodity_weights = commodity_weights or DEFAULT_COMMODITY_WEIGHTS
+    # commodity_weights=None: each account takes its home's fuel arrangement (`fuel_arrangement`).
     band_weights = band_weights or DEFAULT_BAND_WEIGHTS
     # Load the curriculum ONCE (not per customer) when drawing regions.
     region_curriculum = _load_cohort_curriculum() if draw_region else None

@@ -127,7 +127,8 @@ def _campaign(select: bool | None, funnel, quotes: int = 60):
         accounts_held_at_start=14, horizon_end=HORIZON, credit_bureau=None,
         cost_per_quote_gbp={"resi": 20.0, "SME": 50.0}, run_funnel=funnel,
         quote_budget_fn=lambda net_assets_gbp, accounts_held, quotes_issued_to_date=0,
-        wins_to_date=0: {"quotes": quotes, "binding": "capital", "headroom_gbp": net_assets_gbp},
+        wins_to_date=0, as_of=None: {
+            "quotes": quotes, "binding": "capital", "headroom_gbp": net_assets_gbp},
         customer_year_budget=100_000.0,
     )
     if select is not None:

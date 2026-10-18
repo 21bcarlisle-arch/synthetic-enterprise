@@ -244,7 +244,12 @@ def test_wall_re_proven_post_cohort_activation(monkeypatch):
     # against its own draw and not against a subject that mixes the two -- otherwise this
     # assertion measures the founder count and stops being about activation at all.
     founder_ids = {c["customer_id"] for c in lp.founder_book(lp._DEFAULT_BASE_SEED)}
-    trickle_syn = [c for c in syn if c["customer_id"] not in founder_ids]
+    # One HOUSEHOLD per drawn arrival: a dual-fuel arrival is `X` plus its gas leg `Xg`
+    # (2026-10-17), so the 1:1 is taken over households, not supply points.
+    trickle_points = [c for c in syn if c["customer_id"] not in founder_ids]
+    trickle_syn = [c for c in trickle_points if not (c.get("commodity") == "gas"
+                   and c["customer_id"].endswith("g")
+                   and any(o["customer_id"] == c["customer_id"][:-1] for o in trickle_points))]
     assert len(trickle_syn) == len(sim_truth), (
         "the observable SYN-* trickle must be 1:1 with the cohort-bearing draw"
     )

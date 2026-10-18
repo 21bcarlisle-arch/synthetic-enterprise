@@ -76,7 +76,6 @@ from typing import Iterator, Mapping, Optional, Sequence
 
 from simulation.population_draw import (
     DEFAULT_BAND_WEIGHTS,
-    DEFAULT_COMMODITY_WEIGHTS,
     DEFAULT_SEGMENT_WEIGHTS,
     GB_DOMESTIC_TRANSFERS_BY_MONTH_THOUSANDS,
     SyntheticCustomer,
@@ -368,7 +367,7 @@ def iter_prospects(
             customer_id=pid,
             acquisition_date=in_market,
             segment_weights=segment_weights or DEFAULT_SEGMENT_WEIGHTS,
-            commodity_weights=commodity_weights or DEFAULT_COMMODITY_WEIGHTS,
+            commodity_weights=commodity_weights or ELECTRICITY_ONLY,
             band_weights=band_weights or DEFAULT_BAND_WEIGHTS,
             region=region,
             base_seed=base_seed,
