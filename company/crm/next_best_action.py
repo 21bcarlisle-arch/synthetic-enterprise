@@ -71,6 +71,14 @@ offered a fix dearer than the default goes onto the default instead (§4a). Befo
 per-fuel default was published, so the headroom is unknown and the rise is refused. It is off unless
 the policy names it (`DecisionPolicy.next_best_action_shares_by_retention_rise`).
 
+A DUAL-FUEL HOUSEHOLD IS ONE DECISION (2026-10-18). Each fuel renews as its own row, but the
+household leaves with both about nine times in ten, and the advice benefit is the household's
+(`how_a_gb_domestic_book_splits_by_fuel_and_how_a_two_fuel_home_switches.md` §8). Decided per leg,
+one household's advice is costed twice and its rise is taken twice against one benefit.
+`states_for_decision` merges the legs of one billing account that reach a decision together:
+margin summed, one hazard, and the headroom of both legs under the default. It is off unless the
+policy names it (`DecisionPolicy.next_best_action_decides_per_household`).
+
 EPISTEMIC WALL. Pure functions of the company's own estimates. No world state, no socket. Grading
 against a true counterfactual (`grade`) is a harness instrument, as `tools/decision_probe.py` is:
 the company never holds the truth argument.
@@ -211,7 +219,76 @@ class AccountState:
     consecutive_missed_monthly_payments: int
     estimates: tuple[ActionEstimate, ...]
     share_responses: tuple[ShareResponse, ...] = ()
-    renewal: RenewalTerms | None = None
+    renewal: "RenewalTerms | HouseholdRenewalTerms | None" = None
+
+
+@dataclass(frozen=True)
+class HouseholdRenewalTerms:
+    """Both legs' renewal terms read as one household's, as a combined notice sends them (SLC 31I.5(b)).
+
+    The rates stay per fuel. Only the room for a rise is the household's: the sum of each leg's
+    headroom under its own fuel's default, and unknown if either leg's is.
+    """
+
+    legs: tuple[RenewalTerms, ...]
+
+    @property
+    def annual_mwh(self) -> float | None:
+        if any(not t.annual_mwh for t in self.legs):
+            return None
+        return sum(t.annual_mwh for t in self.legs)
+
+    def headroom_gbp_per_month(self) -> float | None:
+        rooms = [t.headroom_gbp_per_month() for t in self.legs]
+        return None if None in rooms else sum(rooms)
+
+
+def household_state(legs: Sequence[AccountState]) -> AccountState:
+    """One billing account's legs, deciding together, as one account.
+
+    Margin is summed. The hazard and the estimates must already be the household's (B11 forecasts
+    the billing account; advice is given to the household), so legs that disagree are refused rather
+    than averaged. A missed-payment run on either leg is the household's. If any leg has renewal
+    terms, every leg must.
+    """
+    first = legs[0]
+    for leg in legs[1:]:
+        if leg.account_id != first.account_id:
+            raise ValueError(f"legs of two accounts ({first.account_id}, {leg.account_id}) are not one household")
+        if leg.monthly_departure_hazard != first.monthly_departure_hazard:
+            raise ValueError(f"{first.account_id}: its legs carry two departure hazards, and a household "
+                             "leaves once, so there is no one hazard to decide on")
+        if leg.estimates != first.estimates or leg.share_responses != first.share_responses:
+            raise ValueError(f"{first.account_id}: its legs carry different action estimates, and the "
+                             "advice is given to the household, so there is no one estimate to decide on")
+    terms = [leg.renewal for leg in legs]
+    if any(t is not None for t in terms) and None in terms:
+        raise ValueError(f"{first.account_id}: one leg renews and another does not, so they do not "
+                         "reach this decision together")
+    return AccountState(
+        first.account_id,
+        sum(leg.monthly_margin_gbp for leg in legs),
+        first.monthly_departure_hazard,
+        max(leg.consecutive_missed_monthly_payments for leg in legs),
+        first.estimates,
+        first.share_responses,
+        None if terms[0] is None else HouseholdRenewalTerms(tuple(terms)),
+    )
+
+
+def states_for_decision(leg_states: Sequence[AccountState],
+                        policy: "DecisionPolicy | None") -> list[AccountState]:
+    """The states C34/C35 decide on: the legs as given, or one per billing account.
+
+    ``leg_states`` are the legs that reach a decision together (one renewal date). Off, they are
+    returned unchanged and in order, so a run that does not ask is untouched.
+    """
+    if policy is None or not policy.next_best_action_decides_per_household:
+        return list(leg_states)
+    groups: dict[str, list[AccountState]] = {}
+    for state in leg_states:
+        groups.setdefault(state.account_id, []).append(state)
+    return [g[0] if len(g) == 1 else household_state(g) for g in groups.values()]
 
 
 @dataclass(frozen=True)
@@ -284,7 +361,8 @@ def price_share(state: AccountState, est: ActionEstimate, response: ShareRespons
     return best, ""
 
 
-def price_retention_rise(state: AccountState, est: ActionEstimate, terms: RenewalTerms,
+def price_retention_rise(state: AccountState, est: ActionEstimate,
+                         terms: "RenewalTerms | HouseholdRenewalTerms",
                          horizon_months: int,
                          slope_per_gbp_year: float = PUBLISHED_RENEWAL_STAYING_SLOPE_PER_GBP_YEAR,
                          ) -> tuple[RetentionRise | None, str]:

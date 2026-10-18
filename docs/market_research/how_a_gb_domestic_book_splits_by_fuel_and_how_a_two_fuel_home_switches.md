@@ -162,6 +162,51 @@ and it is built: `tests/simulation/test_the_opening_book_bears_the_published_fue
   stopped publishing a dual-fuel share in its retail indicators after these; none was found for
   2020–2025.
 
+## 8. What a supplier does with a customer who takes both fuels
+
+*Added 2026-10-18, before the census of the company's decision routes (K8). Licence text read this
+session in Ofgem's consolidated electricity supply standard conditions, "Consolidated to 1 August
+2025". The gas licence mirrors it, and its paragraph numbers were not re-read here.*
+
+**The licence knows the dual-fuel customer as one person.** SLC 1 defines the **Same Domestic
+Customer** as one who "can reasonably be identified as being the same person which is supplied with
+both electricity and gas from the licensee ... at the same Domestic Premises". It also defines a
+**Dual Fuel Discount** as one applied "on the basis that the Same Domestic Customer is supplied with
+both". So the regulator expects the supplier to recognise the household and allows it to price the
+pair.
+
+| Question | What the rules require or allow | Practice | Status |
+|---|---|---|---|
+| **One account?** | The licence speaks of a "Dual Fuel Account" (SLC 31H, 31I.5(b)) without requiring one. Each fuel is still its own supply contract, and its own registration (MPAN / MPRN, §4). | Suppliers hold one customer account with two supply points. This is universal in published supplier sign-up journeys, and no supplier is found publishing a share. | Practice: **GAP** for a measured share. Practitioner-obvious. |
+| **One bill?** | Allowed. SLC 31H lets a Dual Fuel Account carry **one** optical label holding both fuels' data items. Each fuel's consumption, charges and comparison must still be shown. | A single combined bill or statement. | Allowed; practice is **GAP** for a measured share. |
+| **One direct debit?** | No condition requires or forbids it. SLC 27.8 requires instalments to reflect the customer's **ability to pay**, which is a fact about the payer and not about a fuel. | One DD amount covering both fuels is the common practice. Some suppliers show a per-fuel split of it. | **GAP:** no published share of dual accounts on one DD. Practitioner-obvious, as with the half-month DD (CLAUDE.md, K4). |
+| **One renewal / retention offer?** | SLC 31I.5(b): a price-change or end-of-fixed-term notice "may be provided as a **Combined** Relevant Contract Change Notice where the Domestic Customer is subject to a Dual Fuel Account". It must meet each fuel's requirements "in a single document". Optional, not required. | Fixes are sold and renewed as dual-fuel products, with one term and one end date. Each fuel's rates are still set per fuel, because the cap is per fuel (§4). | Rule read. Practice of a single end date is **GAP** for a measured share. |
+| **A loss on one fuel: what does it say about the other?** | **Objections are per fuel.** SLC 14.4(a) lets the electricity supplier block a transfer when Outstanding Charges are due, and "Charges" means Charges for the Supply of Electricity (SLC 1). So a gas debt cannot block the electricity switch under the electricity licence. Ofgem's 2016 objections review saw the duplication: debt-objected customers are "around half the number of objections raised (partly because of dual fuel customers trying to switch gas and electricity accounts ...)". | A loss notification arrives per meter point. By §4, 17 of 18 switching dual homes move both fuels, and 96% of those move them at once. **A loss notice on one fuel of a dual household is therefore, about nine times in ten, the household leaving.** The other fuel's notice follows within days, or has already arrived. | Mechanism read. Departure symmetry is **inferred** (§4, §7). |
+| **The final bill** | SLC 27.17: a final bill within 6 weeks of the transfer or termination, **per fuel's contract**. A move-out ends both contracts at once, because the premises is the same. | One closing statement for the account. | Rule read. |
+| **Collections** | Debt is owed per fuel's Charges, and the ability-to-pay duty (27.8) is per customer. | Payment plans, when the payer holds both fuels, are set against the account balance. | **GAP:** no published practice on netting one fuel's credit against the other's debit. |
+
+**What this means for the company's decisions.** The licence makes the rate, the objection and the
+final bill per fuel. It makes everything that rests on the customer's own position per household:
+ability to pay, the household's ability to recognise the bundle, and above all its **decision to
+stay or leave**, which by §4 is one decision about nine times in ten. So a supplier decision that
+rests on whether the customer stays has two sides that must be read together:
+- what the household is worth, from both legs' margins;
+- whether it leaves, which is one hazard and not two.
+
+Such decisions include a save, a retention price, a renewal cut and an advice offer. A decision
+priced on one leg prices half a household. A save made on one fuel's loss notice, sized on that
+fuel's margin, values the departure at about half of what is actually leaving.
+
+**Design choices the build makes (K8), and why.**
+- The household is the company's **billing account** (`billing_account`), which the world fills
+  from the premises. That is the "Same Domestic Customer" of SLC 1, as a real supplier would
+  recognise it at sign-up. It never reads `simulation.household.household_of` (the epistemic wall).
+- Rates and objections stay per fuel, as the licence sets them.
+- A decision on staying or leaving, and the value at stake in it, is taken once per billing
+  account over the sum of its legs. Where a route still decides per leg, the census in
+  `docs/staging/` names it, and the fix sits behind a default-off decision-policy switch until it is
+  measured.
+
 ## Sources
 
 - CMA, *Energy market investigation: Summary of provisional findings report*, 7 July 2015, ¶9 and
@@ -183,3 +228,8 @@ and it is built: `tests/simulation/test_the_opening_book_bears_the_published_fue
 - DESNZ, *Subnational electricity and gas consumption summary report 2024*.
   https://www.gov.uk/government/statistics/subnational-electricity-and-gas-consumption-summary-report-2024
 - EHS 2017-18 Energy Report, Annex Table 3.5, as transcribed in `simulation/premise_population.py`.
+- Ofgem, *Electricity supply licence: standard conditions*, consolidated to 1 August 2025 (SLC 1
+  definitions of Same Domestic Customer and Dual Fuel Discount; 14.4; 27.8; 27.17; 31H; 31I.5).
+  https://www.ofgem.gov.uk/sites/default/files/2023-03/Electricity%20Supply%20Standard%20Consolidated%20Licence%20Conditions%20-%20Current.pdf
+- Ofgem, *Decision on review of domestic objections*, July 2016 (the dual-fuel doubling of debt
+  objections). https://www.ofgem.gov.uk/system/files/docs/2016/07/decision_on_review_of_domestic_objections.pdf

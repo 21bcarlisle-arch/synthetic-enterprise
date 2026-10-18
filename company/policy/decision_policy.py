@@ -219,6 +219,14 @@ class DecisionPolicy:
     #: publish.
     next_best_action_shares_by_retention_rise: bool = False
 
+    #: (2026-10-18) C34/C35 decide once per billing account, over both legs, where a dual-fuel
+    #: household's two legs reach the decision on one date (`company.crm.next_best_action.
+    #: states_for_decision`). A household leaves with both fuels about nine times in ten
+    #: (`how_a_gb_domestic_book_splits_by_fuel_and_how_a_two_fuel_home_switches.md` §4, §8), so a
+    #: per-leg decision charges one household's advice and its rise twice. Off on every standing
+    #: policy until the 19 Oct publish is read.
+    next_best_action_decides_per_household: bool = False
+
     #: (2026-10-10) how the company sizes a save when no experiment names a cut: "price_match"
     #: meets the market's best published deal, never below the company's own cost floor
     #: (`company.crm.save_offer.price_match_save_rate`). Every input is published or the company's
