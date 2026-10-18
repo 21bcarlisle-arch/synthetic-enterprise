@@ -276,6 +276,8 @@ def build_monthly_bills(
     read_events_out: list | None = None,
     theft_screen_out: list | None = None,
     tenancy_links: dict[str, str] | None = None,
+    instruct_reads: bool | None = None,
+    instructed_read_arm: str = "register",
 ) -> list[dict]:
     """Run the SUPPLIER's monthly billing over this run's settled records.
 
@@ -300,9 +302,20 @@ def build_monthly_bills(
     `payment_channel_feed` (2026-09-01): `simulated_payment_channel` above — the world's answer to
     "how does this household pay us", which is what decides which definition of bill shock applies
     to it. It changes no bill arithmetic; it attributes one.
+
+    `instruct_reads` (2026-10-18): the company's SLC 21B.4 read instruction. None takes the standing
+    policy's switch (`read_instruction_request`), so the in-loop callers that rebuild bills without a
+    policy (the DD review, the collection book's stop notice) bill as the published run does when the
+    standing policy turns it on. An experiment policy handed to `main` reaches only the published
+    bills. `instructed_read_arm` is the world's access bound for the visit: `register` finds no
+    access while `q6_read_visit_access_failure_rate` is null, `ceiling` reads every visit; only the
+    published bills take a non-default arm.
     """
+    if instruct_reads is None:
+        instruct_reads = read_instruction_request(None)
     return assemble_monthly_bills(
-        all_records, SimulatedReadFeed(), churned_ids=churned_ids,
+        all_records, SimulatedReadFeed(instructed_read_arm=instructed_read_arm),
+        churned_ids=churned_ids, instruct_reads=instruct_reads,
         read_events_out=read_events_out,
         payment_channel_feed=simulated_payment_channel,
         premise_listing_feed=simulated_council_tax_listing,
@@ -325,6 +338,16 @@ def theft_screen_request(policy, phase2b_result: dict) -> tuple[list | None, dic
     return [], {m["customer_id"]: m["premise"] for m in phase2b_result.get("home_move_ins", [])}
 
 
+def read_instruction_request(policy) -> bool:
+    """Whether the billing run instructs reads at the 11th estimate, by the company switch.
+
+    Off (`DecisionPolicy.instruct_reads_in_billing_run`, the default) bills exactly as before.
+    """
+    from simulation.run_phase2b import CURRENT_POLICY
+
+    return bool((policy or CURRENT_POLICY).instruct_reads_in_billing_run)
+
+
 def _serialize_dd_collection_book(book) -> dict:
     """JSON-safe form of a DirectDebitBook for the run-output surface
     (2026-07-12, W5_1_banking_payment_rails L2->L3: this atom's decisive
@@ -341,7 +364,7 @@ def _serialize_dd_collection_book(book) -> dict:
     }
 
 
-def main(report_end: str | None = None, policy=None):
+def main(report_end: str | None = None, policy=None, instructed_read_arm: str = "register"):
     phase2b_result = run_phase2b(report_end=report_end, policy=policy)
     all_records = phase2b_result["all_records"]
 
@@ -362,7 +385,9 @@ def main(report_end: str | None = None, policy=None):
     billed_read_events: list = []
     theft_screen, tenancy_links = theft_screen_request(policy, phase2b_result)
     bills = build_monthly_bills(all_records, churned_ids, read_events_out=billed_read_events,
-                                theft_screen_out=theft_screen, tenancy_links=tenancy_links)
+                                theft_screen_out=theft_screen, tenancy_links=tenancy_links,
+                                instruct_reads=read_instruction_request(policy),
+                                instructed_read_arm=instructed_read_arm)
 
     # W5_1_banking_payment_rails L2->L3 (2026-07-12): the rails-timed DD
     # collection book (mandate setup/collection/amendment, real AUDDIS/ARUDD/

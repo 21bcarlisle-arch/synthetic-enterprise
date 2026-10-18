@@ -848,12 +848,12 @@ def test_an_estimated_run_past_12_months_is_not_forced_and_its_final_read_meets_
 
     real_read = mr.simulate_read
 
-    def opening_read_actual(customer_id, period_end, meter_type, kwh, *rest):
+    def opening_read_actual(customer_id, period_end, meter_type, kwh, *rest, **meter):
         if period_end == "2022-01-31":
             return mr.MeterReadEvent(customer_id=customer_id, period_end=period_end,
                                      meter_type=meter_type, delay_days=0, status="actual",
                                      true_consumption_kwh=kwh, consecutive_estimated_count=0)
-        return real_read(customer_id, period_end, meter_type, kwh, *rest)
+        return real_read(customer_id, period_end, meter_type, kwh, *rest, **meter)
 
     monkeypatch.setattr(mr, "simulate_read", opening_read_actual)
     def run(cid):
@@ -889,12 +889,12 @@ def test_billing_accuracy_finds_the_barred_energy_the_read_process_makes_and_non
 
     real_read = mr.simulate_read
 
-    def opening_read_actual(customer_id, period_end, meter_type, kwh, *rest):
+    def opening_read_actual(customer_id, period_end, meter_type, kwh, *rest, **meter):
         if period_end == "2022-01-31":
             return mr.MeterReadEvent(customer_id=customer_id, period_end=period_end,
                                      meter_type=meter_type, delay_days=0, status="actual",
                                      true_consumption_kwh=kwh, consecutive_estimated_count=0)
-        return real_read(customer_id, period_end, meter_type, kwh, *rest)
+        return real_read(customer_id, period_end, meter_type, kwh, *rest, **meter)
 
     records = []
     for i in range(16):

@@ -212,6 +212,12 @@ class DecisionPolicy:
     #: policy until the 19 Oct publish is read, so that reading stays one variable.
     theft_screen_in_billing_run: bool = False
 
+    #: (2026-10-18) the monthly billing run instructs a read on the 11th estimate in a row, the last
+    #: bill from which a visit can still meet the SLC 21B.4 year (`company.billing.read_duty_register.
+    #: read_instruction_due`, `read_access_and_theft_duties.md` s.2.8). Off on every standing policy
+    #: until the 19 Oct publish is read, so that reading stays one variable.
+    instruct_reads_in_billing_run: bool = False
+
     #: C35 (2026-10-17): at a renewal, an advice action that costs us may travel with the smallest
     #: monthly rise on the Fixed Retention Tariff that brings our side to zero, capped by the
     #: headroom under the published default (`company.crm.next_best_action.price_retention_rise`).
