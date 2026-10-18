@@ -156,3 +156,9 @@ the book. That is why 10-31 misses a rung that 12-31 reaches.
 produces fewer 90-day debtors than the published record has not been established here. With about
 110 journeys, the change from one to zero cannot be told from noise. It belongs with the §2 item
 that is not yet re-measured (debt exits for a dual household).
+
+**Re-checked on origin `d96d33f3d`, 18 Oct, after the C35 dual-household change landed on top.**
+A re-drawn `land-the-dual-fuel-book-correction` found this change already landed as `c136809f5`, so
+nothing was rebuilt. The census at seed 20260724 is unchanged: 382 records, 220 homes, 162 dual, 48
+electricity only, 10 gas only. `test_collections_journey.py` and the fuel-split control both pass
+(37 passed). Both director advisor files are in `advisor/done/`.
