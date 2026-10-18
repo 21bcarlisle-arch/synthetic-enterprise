@@ -8,6 +8,83 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-18 — orientation: The book now holds households GB actually has, and the published run will carry it
+
+<!-- head: 316fbe5cdf8a -->
+
+*Written by the orientation seat from its own record (2026-10-18T11:21:30.839209+00:00; 7 commits, 4 substantive, since 2026-10-17T23:20:15.427531+00:00).*
+
+Commit split (product code by path): 1 supplier, 1 world, 1 both, 4 other.
+
+## What the stretch meant
+
+The book now holds households GB actually has, and the published run will carry it. That is the stretch's result, and it is a precondition rather than progress on the thesis. The dual-fuel correction (c136809f5, 01:14Z) is on origin before the 19 Oct publish: drawn founders open 220 homes, 73.6% dual and 83.6% on gas, against the published 72-90%. The previous record predicted about 220 and about 74%. The collections-journey test is green on the landed code (0697a37a8). The live book now draws 788 supply points in 447 households, 341 of them dual. Two supplier doors followed. C35 now decides a dual household once instead of per leg (d96d33f3d). Per leg, it charged a household two retention rises for one advice benefit, leaving it GBP 55.8 worse off at the median legs. The SLC 21B.4 read instruction now reaches the published run (301ab175b), and its switch-on predictions at both access ends are filed. Both doors default off. So, against the thesis: the supplier has more correct per-customer doors than a day ago, and the published run still makes no decision from inference, because none of them is switched on. The baseline comparison has not moved either: EP17 still waits on the director's seed row. The census in d96d33f3d also shows that every other customer route still decides per leg: the save on a loss notice, renewal pricing, the DD review, collections and the move-with-us offer. Those routes are this focus. Nothing went backwards. Balance: supplier 1, both 1, world 1, other 4. The world commit was the director's rung-zero book correction, and the B7 page is world knowledge. All three previous focus items were drawn and landed, so all three leave focus, and the three wrong rows they carried close below. Tick mode is slow until 2026-10-19T03:00Z: worker-tick spawns at most every 4h. The focus is therefore three items, each finishable in one tick without a full run. The sim-runner's run at 316fbe5cd (pid 2603248, 51 min in) is the first on the dual book. It also carries the held-estimate fix, so its figures move on several variables at once. Only the book census can be attributed to the book alone. That is why item 1 files the supplier figures' predictions before anyone reads that output. The C34/C35/B11 figures carried in the seat's own wrong row are re-counted from it after the publish, and that row stays open until they are. The BLOCKING crisis bad-debt finding is unchanged; its cause's build is the first world change after the publish. naive-organ has been quiet for 5h14m while the other seven daemons wrote within 3h, so this is not a frozen guest. A new LATENT alarm (supervisor granting turns, HEAD red register 15 owed) is noted and not worked under slow mode.
+
+## What went wrong
+
+- NOT corrected: THE MACHINE'S, CARRIED. The coupled-triad gate now excludes twinless L3 targets, and its refusal reaches only the supervisor journal. 20:22: Unchanged. 23:21: Unchanged. 02:21: Unchanged. 05:22: Unchanged. 08:22: Unchanged. 23:20: Unchanged. 11:21: Unchanged.
+- NOT corrected: THE WORLD'S, CARRIED. A gas-heated fabric home's electricity has no season against SERL. 20:22: Unchanged. It waits for the post-publish world builds. 23:21: Focus item 4 measures the fabric homes' summer swing, which bears on this directly. 02:21: Measured (e6cdc9af9): fabric gas-heated homes read too flat (DJ/JJA 1.16 against 1.33-1.35), which confirms the row. The build is filed for after the publish. 05:22: Unchanged. The build stays filed for after the publish. 08:22: Unchanged. A sibling W2_30 defect (electric fabric homes priced at the gas rate) is filed for the same post-publish build. 23:20: Unchanged. It is still filed for after the publish. 11:21: Unchanged; still filed for after the publish.
+- NOT corrected: THE MACHINE'S, CARRIED. longjob-save-eight was declared at 50 minutes and has held its admission for 4h46m. 20:22: Two long jobs ran this stretch (nonpay2022-capture, -capture2) and both finished successfully, so there was no new instance. The expiry is still not built. 23:21: No launch_long_job job started or ended this stretch. Still not built. 02:21: retention-rise-probe finished successfully, and closing-estimate-money-run is 18 minutes in. No overrun, and still not built. 05:22: closing-estimate-money-run ran 115 minutes against a declared 115 and finished successfully. No overrun, and still not built. 08:22: No launch_long_job job started or ended. Still not built. 23:20: No launch_long_job job started or ended. Still not built. 11:21: No launch_long_job job started or ended. Still not built.
+- NOT corrected: THE MACHINE'S, CARRIED. A held estimate was netted at its draft amount when the next actual read caught up, so seven customer-years were credited for estimates never sent. 20:22: Fixed on origin. The published book carries it until the 2026-10-19 publish. 23:21: Unchanged until that publish. 02:21: Unchanged until that publish. 05:22: Unchanged until that publish. 08:22: Unchanged until that publish. 23:20: Unchanged until that publish. 11:21: Unchanged until that publish; the run at 316fbe5cd carries the fix.
+- NOT corrected: THE MACHINE'S, CARRIED. The 08:20 orientation's record never reached origin, and a seat killed by the host leaves no trace of itself in delivery-seat-log.md. 20:22: No seat was killed this stretch, and the trace is not built. 23:21: Still no instance, and still not built. 02:21: Still no instance, and still not built. 05:22: Still no instance, and still not built. 08:22: Still no instance, and still not built. 23:20: A new instance. The 08:22 orientation's seat commit 19855ded (08:41Z) is on no remote ref. Its DIRECTION.yaml reached origin through 4cf0f8628, but its SEAT_STRETCH_LOG entry did not. Still not built. 11:21: No new instance; the 23:20 seat commit a40f0b165 is on origin. Still not built.
+- corrected: THE MACHINE'S, THIS STRETCH. The director's BLOCKING dual-fuel steer was built in the shared tree from 09:43Z to 11:19Z, with knowledge, census, prereg, predictions and a control, and then nothing landed it. It has held no claim in either store for 12 hours. Because it came through the advisor channel with no atom and was never drawn, no block of the seat's brief could see it. In that tree it also turns a collections-journey test red. 11:21: Landed as c136809f5 (01:14Z), re-checked in 0697a37a8 with the collections journey green.
+- corrected: THE MACHINE'S, THIS STRETCH. The bind item that was meant to clear a ledger row is now itself listed not_done (CANNOT ANSWER), because its prose named no tracked path. Its work is ab4c9042d. Disposable: it leaves the 24h window at 09:26Z. 11:21: It has left the window, and this brief's 24h drawn-never-landed block is empty.
+- NOT corrected: THE SEAT'S, CARRIED FROM EARLIER RECORDS. Every per-customer figure the seat reasoned from this month, including C34's 18 cases and C35's 314 of 780, was read off a book that is 1% dual fuel. The seat never asked whether the book's fuel mix was plausible, although the repo held the 21 June page that answers it. The figures stand as computed, but they describe households GB does not have. 11:21: The book is corrected (c136809f5). The figures are re-taken from the first run on it after the publish, with focus item 1 filing their predictions first.
+- NOT corrected: THE COMPANY'S, THIS STRETCH. C35 decided a dual-fuel household per leg, so at the median legs it charged two retention rises (GBP 2.06 and 2.09 a month) for one advice benefit, leaving the household GBP 55.8 worse off while each leg reported that the household floor held. Found by the census in d96d33f3d. The fix is behind next_best_action_decides_per_household, which defaults off, so the default path still carries the defect until the post-publish switch-on.
+
+## Chosen against
+
+- Switching on C35's retention rise, next_best_action_decides_per_household or the read instruction before the publish.
+- Any further B11 slice on the published 772-account book (a regime band for the switch level, a re-key).
+- Per-household renewal pricing, the census's second route.
+- The post-publish world builds: the crisis bad-debt cause (the payment draw's price input), the fabric homes' season, W2_30's electric fabric homes priced at the gas rate, and the B7 recovery coin and household changes.
+- The supervisor's repeating alarm (HEAD red register 15 owed), the long-job expiry, the coupled-triad refusal surface and the seat-kill trace.
+- Reaping or landing the four b12 worktrees whose salvage commits are on no remote.
+
+## Focus for the next stretch
+
+- `predict-the-supplier-figures-on-the-first-dual-fuel-run`
+- `the-save-on-a-loss-notice-answers-the-household`
+- `may-a-supplier-net-one-fuels-credit-against-the-others-debt`
+
+---
+
+## 2026-10-18 — orientation skipped: tick mode slow: delivery-seat spawns at most every 12h; last spawn 2026-10-17T23:22Z, next from 2026-10-18T11:22Z
+
+<!-- head: 17a866aa9178 -->
+
+*Written by the orientation seat from its own record (2026-10-18T08:24:48.033927+00:00; 6 commits, 3 substantive, since 2026-10-17T23:20:15.427531+00:00).*
+
+Commit split (product code by path): 1 supplier, 1 world, 1 both, 3 other.
+
+The seat did not orient, so there is no reading of this stretch against the thesis. Its recorded reason: tick mode slow: delivery-seat spawns at most every 12h; last spawn 2026-10-17T23:22Z, next from 2026-10-18T11:22Z
+
+---
+
+## 2026-10-18 — orientation skipped: tick mode slow: delivery-seat spawns at most every 12h; last spawn 2026-10-17T23:22Z, next from 2026-10-18T11:22Z
+
+<!-- head: 0697a37a88d0 -->
+
+*Written by the orientation seat from its own record (2026-10-18T05:20:49.461631+00:00; 4 commits, 2 substantive, since 2026-10-17T23:20:15.427531+00:00).*
+
+Commit split (product code by path): 1 supplier, 1 world, 0 both, 2 other.
+
+The seat did not orient, so there is no reading of this stretch against the thesis. Its recorded reason: tick mode slow: delivery-seat spawns at most every 12h; last spawn 2026-10-17T23:22Z, next from 2026-10-18T11:22Z
+
+---
+
+## 2026-10-18 — orientation skipped: tick mode slow: delivery-seat spawns at most every 12h; last spawn 2026-10-17T23:22Z, next from 2026-10-18T11:22Z
+
+<!-- head: d96d33f3dee3 -->
+
+*Written by the orientation seat from its own record (2026-10-18T02:21:20.684692+00:00; 2 commits, 1 substantive, since 2026-10-17T23:20:15.427531+00:00).*
+
+Commit split (product code by path): 0 supplier, 1 world, 0 both, 1 other.
+
+The seat did not orient, so there is no reading of this stretch against the thesis. Its recorded reason: tick mode slow: delivery-seat spawns at most every 12h; last spawn 2026-10-17T23:22Z, next from 2026-10-18T11:22Z
+
+---
+
 ## 2026-10-18 — orientation: Two doors from a per-customer forecast to a per-customer decision landed this stretch
 
 <!-- head: 2649e869c524 -->
