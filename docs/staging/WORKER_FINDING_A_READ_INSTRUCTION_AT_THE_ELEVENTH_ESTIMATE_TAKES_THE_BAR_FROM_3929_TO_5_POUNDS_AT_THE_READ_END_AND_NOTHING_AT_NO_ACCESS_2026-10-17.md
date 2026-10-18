@@ -79,6 +79,10 @@ decomposition, and the read end is an upper bound.
 2. **A self-read prompt, and a household that answers it.** That is a world change (§2.8).
 3. **Wiring the switch into `run_phase2b`**, so a published run can carry it, once the director's
    order puts billing accuracy's chase on the published path.
+   - **Done, 301ab175b (2026-10-18).** The switch is `DecisionPolicy.instruct_reads_in_billing_run`,
+     and it is off. The run's bills are assembled in `run_phase4c_on_phase2b`, so it is wired there,
+     not in `run_phase2b`. Items 1 and 3 now need only the switch-on run, and its predictions are
+     filed in `records/WORKER_PREREG_THE_READ_INSTRUCTION_ON_A_PUBLISHED_RUN_AT_BOTH_ACCESS_ENDS_2026-10-18.md`.
 
 ## Seen in passing
 
