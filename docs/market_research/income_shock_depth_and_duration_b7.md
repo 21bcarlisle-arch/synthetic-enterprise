@@ -49,7 +49,9 @@ more. So exit slows as a spell lengthens (duration dependence). Because long spe
 over-represented in a stock, the median of spells **as they start** is at or below the stock
 figure. **Stated belief, with a range:** median completed spell 3 to 6 months. About one in four
 people out of work have been out more than a year. Duration dependence is real but unmeasured here.
-**GAP:** the completed-spell distribution from LFS flows (X02) has not been read.
+**GAP:** the completed-spell distribution from LFS flows (X02) has not been read. *(Read 2026-10-18,
+§6. The flows bound the median but do not give the distribution. "About one in four" is a share of
+the stock, not of new spells; see §6.)*
 
 ## 3. The depth: how much income falls
 
@@ -105,6 +107,11 @@ what a few months at -60 to -70% of one earner's pay, plus a lower wage after re
 
 1. Split HIGH into `out_of_work` (monthly exit hazard; median 3-6 months; about 25% still out after
    12 months) and `scarred` (income below the old level for years; level from Bedük, re-read first).
+   **Corrected 2026-10-18 (§6):** the 25% is the share of the *stock* out of work over a year. A
+   build that draws one spell per job loss needs the share of *new* spells that last over a year,
+   which is about 4-15%. Drawing 25% per event would roughly double the long tail. The scar fades:
+   Bedük's abstract says the household loss "gradually diminish[es] and disappear[s] over the long
+   run", so `scarred` needs an exit too.
 2. Draw the replacement rate per household on its own substream (`income_shock_magnitude`, kept
    separate from the onset stream, as the FRAME requires). Give it to the W2_4 budget as income, not
    as a new payment probability.
@@ -115,8 +122,87 @@ what a few months at -60 to -70% of one earner's pay, plus a lower wage after re
    move earlier (in the spell) and get smaller per event. The book's total arrears change by less than
    ±15%. If they fall by more than that, the scar is too light.
 
+## 6. The two GAPs, read (2026-10-18, worker tick; the world build is still held to the publish)
+
+### 6.1 The exit hazard, from LFS flows
+
+**Source:** ONS X02, LFS flows estimates, sheet "Labour market flows hazard rate" (published 18 Aug
+2026, data to Apr-Jun 2026). It gives the share of people unemployed in one quarter who are still
+unemployed, in work, or inactive in the next. People aged 16-64, UK, seasonally adjusted.
+Annual means of the quarterly rates:
+
+| year | still unemployed | to work | to inactive | median of a constant hazard, any exit | the same, exit to work only | still out after 12m, constant hazard |
+|---|---|---|---|---|---|---|
+| 2016 | 53.1% | 28.2% | 18.6% | 3.3 months | 6.3 months | 7.9% |
+| 2019 | 48.2% | 31.5% | 19.7% | 2.9 | 5.5 | 5.4% |
+| 2021 | 46.8% | 32.8% | 20.0% | 2.7 | 5.2 | 4.8% |
+| 2022 | 44.4% | 31.9% | 23.4% | 2.6 | 5.4 | 3.9% |
+| 2023 | 42.2% | 34.4% | 22.8% | 2.4 | 4.9 | 3.2% |
+| 2025 | 50.9% | 28.7% | 20.1% | 3.1 | 6.2 | 6.7% |
+
+**What this counts.** It covers every person unemployed at the first quarter, whatever their elapsed
+duration, so it is a hazard over the stock. Two exits are different experiences for a household
+budget. Exit to work restores earnings. Exit to inactivity (sickness, caring, giving up the search)
+usually does not. So the "any exit" median is a floor for the income shock, and the "to work only"
+median is closer to it.
+
+**The flows and the duration stock do not reconcile.** Both are ONS LFS, 2016-2025. About half the
+stock leaves each quarter (flows), yet 21-28% of the stock has been out over a year (§2). A
+constant hazard predicts only 3-8% over a year. That is the duration dependence §2 inferred, and it
+is large. A two-type mixture fitted to three moments (stock share up to 6 months 0.60, share over
+12 months 0.245, quarterly still-unemployed 0.485) does not converge to an interior solution. The
+short type hits its bound (a monthly exit of 0.99). The long type is about **6-15% of new spells**,
+with a monthly exit of about **0.06-0.08** (a median of about 9-11 months). The three-year fits
+(2016, 2022, 2023) bracket the same range. **I cannot yet say** which source the gap comes from.
+One candidate is response error in the flows: a person recorded as unemployed, then inactive, then
+unemployed again counts as two exits and two entries. That would make the flows' exit rate an upper
+bound. Another is that geometric types are the wrong shape. Neither is established here.
+
+**What the build can rely on, as a stated belief with a range:**
+- Median time from job loss to work: **3 to 6 months** (unchanged from §2, now bounded on both sides
+  by two ONS sources).
+- Share of new spells still out of work at 12 months: **about 4-15%**, not the stock's 25%. A long
+  type of about a tenth of job losers carries almost all of the long-term unemployment.
+- The 2022-23 crisis did not lengthen spells. Exit to work was at its decade high (34.4% a quarter
+  in 2023). So the crisis reaches a household through the bill and the benefit uprating
+  (`household_budget_w2_4.md`, 2026-10-17), not through longer unemployment.
+
+### 6.2 The scar's depth and shape, from Bedük et al.
+
+**Source re-read:** the abstract (Bristol Research Portal, CC BY; DOI 10.1093/ser/mwaf066). Every
+full-text copy refused the fetch (OUP and utupub.fi, HTTP 403), so the year-by-year UK estimates are
+still unread. The abstract says "survey and administrative data" for the four countries, 1990-2018,
+and a dynamic difference-in-differences model. Which UK survey is used is unread.
+- "Job loss reduces household income by about 17% in the UK and 5–6% in other countries during the
+  first year. **These losses gradually diminish and disappear over the long run.**"
+- "Market compensation (i.e., re-employment) is the main source of compensation." Household
+  compensation, such as a partner working more, "largely substitutes for weaker market and state
+  protections".
+
+**Corrected beside §3 and §5:** §3 says the cumulative loss over five years was about 35%. That
+figure is from the press release, and it fits a loss that fades. For example, 17%, 10%, 5%, 2% and
+1% over five years add up to 35% of one year's income. That path is an illustration, not a reading. §5 said "below the old level for
+years", which reads as permanent, and that is wrong. The press release's "jobs paying 40% less" is
+quoted by excerpt only, and its unit (hourly pay, earnings, or the job loser's own income) is
+unknown. **It is not load-bearing.**
+
+**What the build can rely on:** `scarred` is a state with an exit. Household income starts about 17%
+under its old level in year one and returns to it over about five years. **GAP:** the year-by-year
+UK path (years 2-5) needs the full text, and a reader whose fetch is not refused.
+
+### 6.3 What changes in §5's prediction
+
+Prediction 4 assumed the stock's 25% as the per-event tail. With the per-event tail at 4-15%, the
+out-of-work stock after the build falls by more than three quarters against today's 19-month median
+coin. **Restated, before any build:** the stock of households in `out_of_work` falls by 75-90%. The
+book's total arrears change by less than ±15%. If they fall by more than that, the fading scar is
+too light or fades too fast. That is the side to check first, because a shorter shock errs for the
+thesis (F11).
+
 ## Sources
 
+- ONS, X02: Labour Force Survey flows estimates, `x02aug2026.xls`, sheet "Labour market flows hazard rate" (https://www.ons.gov.uk/employmentandlabourmarket/peopleinwork/employmentandemployeetypes/datasets/labourforcesurveyflowsestimatesx02), fetched 2026-10-18.
+- Bedük, Fasang, Harkness et al. (2025), Insurance against risk?, Socio-Economic Review, mwaf066, abstract via https://research-information.bris.ac.uk/en/publications/insurance-against-risk-cost-and-compensation-of-job-loss-in-diffe/ (full text refused, 403), read 2026-10-18.
 - ONS, LFS unemployment by duration: YBWF, YBWG, YBWH, YBWL (`/employmentandlabourmarket/peoplenotinwork/unemployment/timeseries/<cdid>/lms`), fetched 2026-10-17.
 - IFS, Unemployment benefits and household spending: new evidence from UK bank account data, https://ifs.org.uk/publications/unemployment-benefits-and-household-spending-new-evidence-uk-bank-account-data (read via search excerpt; fetch refused 403).
 - IFS press release, https://ifs.org.uk/news/newly-unemployed-see-living-standards-fall-and-financial-distress-increase-despite-benefits (read via search excerpt).
