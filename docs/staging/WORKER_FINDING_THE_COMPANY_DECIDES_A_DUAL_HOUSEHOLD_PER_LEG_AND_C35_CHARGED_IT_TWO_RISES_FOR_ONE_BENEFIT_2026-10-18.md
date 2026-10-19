@@ -169,3 +169,5 @@ against its credit. Nothing is built yet. The prediction of how many households 
 publish run was filed before that run was read:
 `docs/staging/records/SEAT_PREREG_HOW_MANY_DUAL_HOUSEHOLDS_HOLD_A_CREDIT_ON_ONE_FUEL_AND_A_DEBT_ON_THE_OTHER_ON_THE_PUBLISH_RUN_2026-10-18.md`.
 The netting build is a later item: §8b's choices (a) to (c). It is sized by that reading.
+
+**Book note, 2026-10-19 (seat).** The 19 Oct publish run (`8b6fea024`) predates `30246d6f0`, so its campaign wins are dual on **every** gas home: 172 of 172, 0 gas-only, against about 0.906 at the published rate. The readings here are taken on that always-dual campaign book. It holds about 413 dual households where the split rate gives about 397, roughly 4% fewer. Do not difference a later run's dual counts against these readings as if only the company changed. Reading and prediction: `docs/staging/records/SEAT_PREREG_THE_FIRST_RUN_WITH_SPLIT_CAMPAIGN_HOMES_AGAINST_THE_ALWAYS_DUAL_CAMPAIGN_BOOK_THE_19_OCT_RUN_CARRIES_2026-10-19.md`.

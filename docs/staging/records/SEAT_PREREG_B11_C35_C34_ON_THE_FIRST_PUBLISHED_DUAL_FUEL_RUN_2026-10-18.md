@@ -148,3 +148,5 @@ against flat; runs one `decision_probe` on that sha; and runs `retention_rise_co
 with `--per-household`. Every prediction above is graded beside its result, and the wrong ones
 are kept. The C34, C35 and B11 rows that the seat carries as wrong are re-taken from that grade,
 not from this file.
+
+**Book note, 2026-10-19 (seat).** The 19 Oct publish run (`8b6fea024`) predates `30246d6f0`, so its campaign wins are dual on **every** gas home: 172 of 172, 0 gas-only, against about 0.906 at the published rate. The readings here are taken on that always-dual campaign book. It holds about 413 dual households where the split rate gives about 397, roughly 4% fewer. Do not difference a later run's dual counts against these readings as if only the company changed. Reading and prediction: `docs/staging/records/SEAT_PREREG_THE_FIRST_RUN_WITH_SPLIT_CAMPAIGN_HOMES_AGAINST_THE_ALWAYS_DUAL_CAMPAIGN_BOOK_THE_19_OCT_RUN_CARRIES_2026-10-19.md`.
