@@ -8,6 +8,61 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-19 — orientation: Nothing moved against the thesis this stretch, and nothing went backwards
+
+<!-- head: 31274b93f829 -->
+
+*Written by the orientation seat from its own record (2026-10-19T05:22:33.070254+00:00; 3 commits, 0 substantive, since 2026-10-18T23:21:48.063796+00:00).*
+
+Commit split (product code by path): 0 supplier, 0 world, 0 both, 3 other.
+
+## What the stretch meant
+
+Nothing moved against the thesis this stretch, and nothing went backwards. It was the overnight wait for the publish run: 3 commits, none substantive (supplier 0, world 0, other 3), and two of them are the director's own Monday words. The publish run started at 03:30Z on 8b6fea024 and finished at 05:12Z. process_run_complete is turning it into the published book now, so the first published dual-fuel book will be on origin within the hour. That is the moment this month's per-customer figures (C34's 18 cases, C35's 314 of 780, B11) can be re-taken against predictions that were filed before anyone read the answer. All four previous focus items were drawn, so the steer bit. But three of them were gated on the publish in prose only, so they were drawn before their premise and released empty. That is a new wrong row, and the gates are now embargoes on continuations. The payment draw's price input (item 2) is being built: its paired off/on capture arms are running now in /var/tmp/budgetpay. Against the thesis, the published run still makes no decision from inference. Four correct per-customer doors sit default off, and EP17's flat-against-per-customer baseline still waits on the director's seed listing, so 'it beats average' cannot yet be said or refuted. The director's two Monday inputs set the week. The week has reset, so it is time to hit feature hard, payment-engine sequence first. And a BLOCKING steer, which he approved: the 1%-dual book was not missing knowledge, it was knowledge nothing checked the world against. So world constants must cite an anchor or a range, population pages must carry claims the world is tested against, and a change to who is in the world must re-run them. That is the same class as the seat's carried 1%-dual row. It enters as item 3, ahead of any change to the population draw or the book size. The founder-count reading stays at 400 supply points until he rules. naive-organ has been quiet for 1h40m while the other daemons wrote within minutes, so the guest is not frozen.
+
+## What went wrong
+
+- NOT corrected: THE MACHINE'S, CARRIED. The coupled-triad gate now excludes twinless L3 targets, and its refusal reaches only the supervisor journal. 20:22: Unchanged. 23:21: Unchanged. 02:21: Unchanged. 05:22: Unchanged. 08:22: Unchanged. 23:20: Unchanged. 11:21: Unchanged. 23:21: Unchanged. 05:22: Unchanged.
+- NOT corrected: THE WORLD'S, CARRIED. A gas-heated fabric home's electricity has no season against SERL. 20:22: Unchanged. It waits for the post-publish world builds. 23:21: Focus item 4 measures the fabric homes' summer swing, which bears on this directly. 02:21: Measured (e6cdc9af9): fabric gas-heated homes read too flat (DJ/JJA 1.16 against 1.33-1.35), which confirms the row. The build is filed for after the publish. 05:22: Unchanged. The build stays filed for after the publish. 08:22: Unchanged. A sibling W2_30 defect (electric fabric homes priced at the gas rate) is filed for the same post-publish build. 23:20: Unchanged. It is still filed for after the publish. 11:21: Unchanged; still filed for after the publish. 23:21: Unchanged; filed for after the publish, behind item 4. 05:22: Unchanged; filed behind item 2, the payment draw, as the next world build.
+- NOT corrected: THE MACHINE'S, CARRIED. longjob-save-eight was declared at 50 minutes and has held its admission for 4h46m. 20:22: Two long jobs ran this stretch (nonpay2022-capture, -capture2) and both finished successfully, so there was no new instance. The expiry is still not built. 23:21: No launch_long_job job started or ended this stretch. Still not built. 02:21: retention-rise-probe finished successfully, and closing-estimate-money-run is 18 minutes in. No overrun, and still not built. 05:22: closing-estimate-money-run ran 115 minutes against a declared 115 and finished successfully. No overrun, and still not built. 08:22: No launch_long_job job started or ended. Still not built. 23:20: No launch_long_job job started or ended. Still not built. 11:21: No launch_long_job job started or ended. Still not built. 23:21: No launch_long_job job started or ended. Still not built. 05:22: No launch_long_job job started or ended. Still not built.
+- NOT corrected: THE MACHINE'S, CARRIED. A held estimate was netted at its draft amount when the next actual read caught up, so seven customer-years were credited for estimates never sent. 20:22: Fixed on origin. The published book carries it until the 2026-10-19 publish. 23:21: Unchanged until that publish. 02:21: Unchanged until that publish. 05:22: Unchanged until that publish. 08:22: Unchanged until that publish. 23:20: Unchanged until that publish. 11:21: Unchanged until that publish; the run at 316fbe5cd carries the fix. 23:21: Unchanged until the publish. The publish run (complete about 05:00Z) carries the fix, and item 1's grade is where this row closes. 05:22: The publish run finished at 05:12Z on 8b6fea024, which carries the fix. It is being processed now, and this row closes when that publish commit is on origin and item 1 grades it.
+- NOT corrected: THE MACHINE'S, CARRIED. The 08:20 orientation's record never reached origin, and a seat killed by the host leaves no trace of itself in delivery-seat-log.md. 20:22: No seat was killed this stretch, and the trace is not built. 23:21: Still no instance, and still not built. 02:21: Still no instance, and still not built. 05:22: Still no instance, and still not built. 08:22: Still no instance, and still not built. 23:20: A new instance. The 08:22 orientation's seat commit 19855ded (08:41Z) is on no remote ref. Its DIRECTION.yaml reached origin through 4cf0f8628, but its SEAT_STRETCH_LOG entry did not. Still not built. 11:21: No new instance; the 23:20 seat commit a40f0b165 is on origin. Still not built. 23:21: No new instance; the 11:21 seat commit d21526456 is on origin. Still not built. 05:22: No new instance; the 23:21 seat commit 8b6fea024 is on origin. Still not built.
+- NOT corrected: THE SEAT'S, CARRIED FROM EARLIER RECORDS. Every per-customer figure the seat reasoned from this month, including C34's 18 cases and C35's 314 of 780, was read off a book that is 1% dual fuel. The seat never asked whether the book's fuel mix was plausible, although the repo held the 21 June page that answers it. The figures stand as computed, but they describe households GB does not have. 11:21: The book is corrected (c136809f5). The figures are re-taken from the first run on it after the publish, with focus item 1 filing their predictions first. 23:21: Unchanged. Both preregs reached origin (27b6798ec, c8e55febc) before any dual-book run was read; item 1 grades them on the publish run. 05:22: The publish run on the dual book is complete (8b6fea024, 05:12Z). Item 1 grades both preregs on it, and this row closes on that commit.
+- NOT corrected: THE COMPANY'S, THIS STRETCH. C35 decided a dual-fuel household per leg, so at the median legs it charged two retention rises (GBP 2.06 and 2.09 a month) for one advice benefit, leaving the household GBP 55.8 worse off while each leg reported that the household floor held. Found by the census in d96d33f3d. The fix is behind next_best_action_decides_per_household, which defaults off, so the default path still carries the defect until the post-publish switch-on. 23:21: Corrected beside the claim. The retention rise itself (next_best_action_shares_by_retention_rise) is off on every standing policy, so the default path charges no household any rise; the per-leg defect is latent until that switch, not live. Item 2 switches per-household on first, so the rise can never run per leg. 05:22: Unchanged and still latent; item 3 is the switch-on.
+- corrected: THE SEAT'S, THIS STRETCH. The 23:21 record put three items gated on the publish (the grade, the per-household switch-on, the dual offset) into focus with their gate written only in prose. The draw cannot read prose, so all three were drawn and released between 02:38Z and 04:17Z, before their premise existed, and three ticks landed nothing. It is the same class as the director's 19 Oct steer: a condition stated where nothing checks it.
+
+## Chosen against
+
+- Switching on the C35 retention rise, the read instruction or the household save this week.
+- Fixing every unanchored world constant the item 3 register finds.
+- The fabric homes' season and W2_30's electric fabric homes priced at the gas rate.
+- Any change to the founder count or the prospect cap, including the 400-households reading.
+- Per-household renewal pricing, the census's second route.
+- The long-job expiry, the coupled-triad refusal surface and the seat-kill trace.
+- Reaping or landing the four b12 worktrees' salvage commits.
+
+## Focus for the next stretch
+
+- `grade-the-dual-fuel-preregs-after-the-publish-run`
+- `the-payment-draw-takes-a-price-input`
+- `knowledge-that-checks-the-world`
+- `switch-on-nba-per-household-after-the-grade`
+- `honour-the-dual-customers-offset-right-in-collections`
+
+---
+
+## 2026-10-19 — orientation skipped: no substantive commit, no level move, no director input, no blocking finding, and the live direction is still inside its window -- there is nothing this stretc
+
+<!-- head: 8b6fea024741 -->
+
+*Written by the orientation seat from its own record (2026-10-19T02:22:48.084502+00:00; 1 commits, 0 substantive, since 2026-10-18T23:21:48.063796+00:00).*
+
+Commit split (product code by path): 0 supplier, 0 world, 0 both, 1 other.
+
+The seat did not orient, so there is no reading of this stretch against the thesis. Its recorded reason: no substantive commit, no level move, no director input, no blocking finding, and the live direction is still inside its window -- there is nothing this stretch to orient on
+
+---
+
 ## 2026-10-19 — orientation: All three previous focus items were drawn and landed, so all three leave focus
 
 <!-- head: c8e55febc83d -->
