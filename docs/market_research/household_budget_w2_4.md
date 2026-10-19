@@ -281,3 +281,95 @@ the next layer is the essentials and housing shapes, not this mechanism.
   to attribute to either.
 - PPM households (no arrears on consumption; self-disconnection is a separate mechanism).
 - Repayment plans (the toggles are off; W2_38).
+
+## 2026-10-19: how an under-water spell ends in the record, and the exit the world builds first (K8)
+
+**Why this section exists.** The paired grade of 19 Oct
+(`docs/staging/WORKER_FINDING_THE_WORLDS_PAYMENT_DRAW_HAS_NO_PRICE_INPUT_..._2026-10-16.md`, section
+2026-10-19) found that a household the budget puts under water never leaves that state. Its debt
+grows by one bill a month without limit: 80 unpaid bills at Q4 2023, and 14 of the 26 such
+electricity accounts never settle a late bill. The margin is fixed for life. Income decile, housing
+cost and composition are drawn once and only deflated by year. **Correction to the item that drew
+this work:** the "83% settle, median 119 days" figure is the *world's* own measurement from before
+the build ("The world today", above), not a published one. The published durations are the
+~22-month recovery figures above.
+
+### What ends an under-water spell, by route
+
+| Route | Who acts | What the record says | Rate or size | In the world today |
+|---|---|---|---|---|
+| **Income recovers** (job, hours, benefit award, household change) | household | DWP *Income Dynamics 2010 to 2024*, Understanding Society: of individuals in relative low income (below 60% of median) one year, **36% AHC (40% BHC) are not the next**, 2022/23 → 2023/24. Working-age 39% AHC, pensioners 35% AHC. Entry 9% AHC. Earlier BHPS series, 1991-2008: 32% | ~1 in 3 a year | **absent**: margin fixed for life |
+| Persistence (the check on that rate) | — | Same release: **11% AHC** of individuals in low income in at least 3 of 4 years (2020/21-2023/24). It says persistent rates are lower than HBAI's single-year rates. HBAI 2022/23 single-year AHC rate: 21% (14.3m). Ratio ≈ 0.52 (derived across two surveys, rough) | ratio ~0.5 | — |
+| **Spending compresses below a normative floor** (going without) | household | Citizens Advice debt clients, Sep 2023: **half are in a negative budget** (just over a third in 2019). The average client is **£28 a month in the red**, from a £21 surplus four years earlier. Energy and council tax arrears are the commonest problem debts (50% of clients). A negative budget measured on actual spending is small. A margin measured against JRF's *normative* floor can be hundreds of pounds a month. | GAP: what share of a normative shortfall shows up as energy non-payment rather than going without | **absent**: the JRF floor is spent in full before energy |
+| Consumption falls (rationing, self-disconnection) | household | Self-disconnection is the PPM form (`debt_and_collections.md` §2). Credit-meter rationing reduces the bill but cannot reach zero | GAP for credit meters | absent; out of scope (demand layer) |
+| Repayment arrangement on ability to pay | supplier, SLC 27.8 | ~40% of large-supplier credit plans had at least one miss in 2015. Recovery on arrangement 53-185 weeks by supplier (2018), ~22 months weighted | `debt_and_collections.md` §3 | company side; world plan toggles off (W2_38) |
+| PPM for debt, Fuel Direct | supplier, DWP | 30-58% of repayers on a PPM (Q4 2021-Q4 2023). Fuel Direct takes 5% of the UC standard allowance (~£17-33 a month) | `debt_and_collections.md` §2-3 | company side, not reached (`UNREACHED_EXITS`) |
+| Write-off, Debt Relief Scheme | supplier, Ofgem | DRS: up to **£500m** for about **195,000** customers who built arrears in the crisis (consultation 2025, launch 2026) | — | company side |
+
+**What the record says, in one line.** An under-water spell ends mostly through the household's
+income moving, at about a third a year, and through supplier routes that bound how far the debt
+grows. A household does not stay under water for ten years at full normative essentials.
+
+### The exit the world builds first: income moves each year
+
+**Choice.** The household's income is re-read each calendar year. With probability
+`INCOME_MOVE_PER_YEAR` it takes a fresh draw from the existing ladder (decile and position in band),
+on a new appended salt per year. Otherwise it keeps the previous year's draw. Composition, housing
+and the savings drawn at entry do not move. Because a fresh draw comes from the same ladder, **the
+stationary distribution is the existing one, so the under-water share each year is unchanged.** The
+level question stays W2_38's and the floor's, below, and is not moved by this build.
+
+**Origin of the number.** `INCOME_MOVE_PER_YEAR = 0.41` is *calibrated*, not cited. It is the value
+at which the drawn population's exit from under water at 2021 prices equals DWP's 36% AHC exit
+(20,000 ids, `margin_in_year < 0`; 5.3% under water). Printed at real inputs before the build:
+
+| Re-draw probability | Exit from under water, one year | Under water ≥3 of 4 years ÷ under water in a year |
+|---|---|---|
+| 0.20 | 0.17 | — |
+| 0.40 | 0.35 | — |
+| **0.41** | **0.36** | **0.57** |
+| 0.60 | 0.53 | — |
+| 1.00 | 0.91 | — |
+
+The range 0.36-0.45 spans the published exits 32% (BHPS 1991-2008) to 40% (BHC 2022/23). The
+persistence column is an **independent check** that the calibration did not use: 0.57 against the
+record's ~0.52. A ±1-decile step was also printed and rejected. It needs a 0.62 move rate to reach
+the same exit, and gives a persistence ratio of 0.66, further from the record.
+
+**R10 shapes and GAPs, said plainly.**
+- *Under water ≠ low income.* The rate is DWP's exit from below 60% of median AHC, applied to
+  exits from a negative margin. The two populations overlap at the bottom deciles. They are not the
+  same, and that is a GAP.
+- *A fresh draw can jump deciles.* Most real exits land just above the line. The DWP release
+  publishes quintile movements over 2015/16-2023/24, not year to year (GAP). The persistence check
+  is the guard on this.
+- *The calendar year is the clock.* DWP's waves are annual interviews about a year apart. This is a
+  simplification.
+- *Savings are not re-drawn.* A household that exits carries whatever money the book left it.
+
+### What this build does not do, and the next layer
+
+**The normative floor is spent in full before energy.** Citizens Advice's negative-budget clients
+are about £28 a month short on actual spending. The world's under-water households are short
+against JRF's normative basket, by more. This is the most likely cause of R3's chronic heads excess
+(+1.2 points in 2016, +3.8 by 2021), and **GAP: no published source found this pass says how much of
+a normative shortfall a household turns into energy non-payment rather than going without.** It is
+the next question, before any number. The company-side exits (arrangement, PPM, Fuel Direct,
+write-off) are W2_38's and `UNREACHED_EXITS`'s.
+
+### Predictions, written before the build is run (electricity, Q4, one seed, the on arm against `world3_on.json`)
+
+- **U1, the exit exists.** Of electricity accounts the budget ever leaves a bill unpaid, the share
+  that never settle a late bill falls from 54% (14/26) to **30% or less**.
+- **U2, pounds.** £ behind per account behind at Q4 2023 falls from £1,200 to **£400-1,000**.
+- **U3, heads: not fixed by this.** Q4 2022 ON-OFF stays **above +3 points**. R3 stays refuted, and
+  the switch stays off until the floor question above is answered. If U3 fails (≤ +3), the
+  lifetime margin carried the excess and the floor is not the next layer. Say so beside this line.
+- **U4, the serial signature holds.** P(unpaid → unpaid) among the households the budget leaves
+  under water stays **≥ 0.9**, because a spell's months are still consecutive.
+
+Sources: [DWP Income Dynamics 2010 to 2024](https://www.gov.uk/government/statistics/income-dynamics-2010-to-2024/income-dynamics-income-movements-and-the-persistence-of-low-income-2010-to-2024);
+[ISER summary of the 1991-2008 series](https://www.iser.essex.ac.uk/?p=231042);
+[Citizens Advice, "One in four people behind on at least one bill", Sep 2023](https://www.citizensadvice.org.uk/about-us/about-us1/media/press-releases/one-in-four-people-behind-on-at-least-one-bill-as-uk-households-fall-22-billion-in-the-red/);
+HBAI 2022/23 AHC rate as reported by [Leeds Observatory](https://observatory.leeds.gov.uk/leeds-poverty-fact-book/relative-and-absolute-poverty/) (secondary, not re-read at DWP);
+DRS figures as reported by [moneytothemasses](https://moneytothemasses.com/news/plans-to-write-off-500m-of-energy-debt-who-will-qualify) (secondary; primary in `debt_and_collections.md` §2.1).
