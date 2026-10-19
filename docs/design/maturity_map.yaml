@@ -2096,7 +2096,8 @@
   couples_with: [W2_39_households_respond_to_contact_including_badly, B8_discovered_price_sensitivity_holdout]
   file_scope: ['company/crm/next_best_action.py', 'tests/company/crm/test_next_best_action.py',
     'docs/market_research/next_best_action_and_cross_sell.md',
-    'docs/market_research/household_carbon_and_the_measures_that_save_it.md']
+    'docs/market_research/household_carbon_and_the_measures_that_save_it.md',
+    'tests/company/interfaces/test_c34_decides_at_the_renewal_roll_per_household_and_records_only.py']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a supplier whose debt desk, retention desk and energy-advice team each send the same customer a different letter in the same week."
 

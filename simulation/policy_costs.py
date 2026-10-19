@@ -62,6 +62,11 @@ _RO_COST_BY_OY_START: dict[int, float] = {
 # CfD Interim Levy Rate annual average (£/MWh) by calendar year.
 # Negative in 2022: wholesale prices exceeded CfD strike prices, so LCCC
 # rebated suppliers. Source: EMR Settlement Ltd quarterly announcements.
+# EVIDENCE RANGE: each row is one point inside the band
+# `docs/market_research/historical_policy_costs_2016_2024.md` §2 gives for that year (2016
+# 0.0-0.3, 2019 3.5-4.5, 2020 3.0-4.5, 2022 -3 to -8, 2023 5-8, 2024 10-12; 2017, 2018 and 2021
+# are the page's point estimates). GAP: no row is re-derived from the quarterly ILRs themselves,
+# so a year's day-weighted mean is not established; the page's sources are EMR Settlement and LCCC.
 _CFD_LEVY_BY_YEAR: dict[int, float] = {
     2016: 0.1,
     2017: 1.3,
@@ -580,7 +585,9 @@ _ELEC_SC_PENCE_PER_DAY_BY_YEAR: dict[int, float] = {
     2025: 51.23,  # 59.57p to March, 49.63p from April, 46.82p from July, 49.04p from October
 }
 
-# Daily gas standing charge, pence/day EX-VAT. Source and basis: as the electricity table above.
+# Daily gas standing charge, pence/day EX-VAT. Source and basis: as the electricity table above --
+# Ofgem default tariff cap level model v1.31, sheet `Gas_Other_Nil`, re-derived row by row in
+# `tests/simulation/test_standing_charge_reproduces_the_cap_model.py`; 2016-2018 are notional.
 _GAS_SC_PENCE_PER_DAY_BY_YEAR: dict[int, float] = {
     2016: 20.93,  # notional (pre-cap back-cast)
     2017: 21.28,  # notional

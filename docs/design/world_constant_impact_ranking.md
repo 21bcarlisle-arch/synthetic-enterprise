@@ -134,10 +134,65 @@ value the draw uses): `_ELEC_FALLBACK`, `_GAS_FALLBACK`, `WORLD_MAX_CHURN_PROBAB
 `simulation/demand_model.py::HEATING_BASE_TEMP_C` (the DESNZ Energy Trends section 7 base of 15.5 C).
 Unit and convention constants, not ranked: anchoring them takes one line each.
 
-## The production-run screen (next increment)
+## The production-run screen, settlement loop (measured 19 Oct, 20:30-22:36)
 
-The book draw cannot see settled consumption or money. `tools/world_constant_reach.py --arm` scales
-every reached bare constant in one module by 1.1 and reruns the short window, read against the
-published figures (`total_gross`, `total_bad_debt`, churn, summed kWh). Pre-registered (P6-P9) in
-`docs/staging/records/SEAT_PREREG_WHICH_OF_THE_446_BARE_WORLD_CONSTANTS_A_PRODUCTION_RUN_READS_2026-10-19.md`.
-Its ranking replaces this table's order for everything outside the book draw.
+`tools/world_constant_reach.py --arm` scales every reached bare constant in one module by 1.1 (a
+container summing to one moves mass onto its first entry) and reruns the short window
+(`report_end=2017-06-30`, default book). This pass ran `run_phase2b.main`, the settlement loop
+alone. **Its bad-debt column is a transient the published entry overwrites** (see the published-entry
+pre-registration), so only `total_gross` and kWh are read from it. Three baseline arms, one of them
+40 minutes later, agree with each other in all 48 figures to the last digit.
+
+| module | consts | gross | kWh | largest single figure |
+|---|---|---|---|---|
+| `simulation/premise_trace.py` | 52 | 3.11% | 1.65% | `cm_levy_gbp` 6.3% |
+| `simulation/live_population.py` | 3 | 3.10% | 5.50% | `svt_departures` 20% |
+| `sim/weather_hdd.py` | 1 | 2.37% | 6.93% | `unhedged_mwh` 9.5% |
+| `simulation/fabric_physics.py` | 39 | 1.31% | 0.36% | `hedge_pnl_gbp` 23% |
+| `simulation/policy_costs.py` | 3 | 1.21% | 0 | `gas_standing_charge_gbp` 10% |
+| `simulation/population_draw.py` | 11 | 0.90% | 1.36% | `occupier_debt_gbp` 3.2% |
+| `sim/weather_price_sensitivity.py` | 2 | 0.48% | 0 | `hedge_pnl_gbp` 42% |
+| `simulation/household_segments.py` | 1 | 0.28% | 0.36% | `void_owner_charge_gbp` 16% |
+| `sim/weather_world.py` | 1 | 0.23% | 0.08% | `hedge_pnl_gbp` 2.5% |
+| `simulation/acquisition_funnel.py` | 4 | 0.12% | 1.14% | `void_owner_charge_gbp` 16% |
+| `simulation/demand_model.py` | 13 | 0.11% | 0.14% | `hedge_pnl_gbp` 13% |
+| `simulation/gas_settlement.py` | 1 | 0.05% | 0.20% | |
+| `simulation/demand_response.py` | 2 | 0.02% | 0 | |
+
+Twenty-eight further modules moved no settlement figure by more than 0.01% under the push.
+`simulation/premise_population.py` could not be pushed as a module: its own guard refused the
+scaled EPC marginal ("sums to 1.0210 ... a wrong share, not a rounded one"), which is the guard
+working, so that module has to be split one constant at a time. Three modules (`run_phase2b`,
+`satisfaction_churn`, `sim_satisfaction`) were not reached before the screen was stopped.
+
+**Read this way.** The live-population and HDD rows are the CV, CF and 15.5 C base, anchored on this
+claim already, so what they confirm is that those were the right first anchors. **`policy_costs` is
+three tables moving gross 1.2%**: two were sourced and read as bare. The gas standing charge was
+re-derived from Ofgem's cap model, but its comment only pointed at the table above it. The CfD levy
+was a point inside a sourced band with no label saying so. Both are now anchored, with
+`household_segments::TENURE_POPULATION_SHARE` (EHS 2023-24, already in `ASSUMPTIONS.md`). Register
+435 -> 431, with `population_draw::DD_SHARE_GAS` (DESNZ QEP, unseen beneath `DD_SHARE_ELEC`). `_SME_SC_MULTIPLIER` (1.5) has no source anywhere in the tree. It stays registered as a GAP,
+not as a range, because a range nobody published is the same invention with a wider label.
+
+**What stays open from this table, in order:** `premise_trace` and `fabric_physics` (91 constants
+between them, so they need a one-at-a-time split before any one of them can be ranked), then
+`sim/weather_price_sensitivity.py`'s cold-spell threshold and multiplier (moves hedge P&L 42%;
+the module docstring calls them "seed estimates"; nothing in the commons publishes a forward-price
+response to a cold spell, so this is a research question, not an anchor).
+`sim/weather_world.py::MAX_SNAP_KM` is a refusal tolerance, not a world quantity, yet moving it
+from 5 to 5.5 km moved gross 0.23%. The reason, from its one caller: a premise beyond it is
+marked "no cell" by `simulation/fabric_demand_path.py::site_for` and leaves the fabric-physics
+demand path for the fallback. So the tolerance decides how much of the book is fabric-driven. No
+source can anchor it. The remedy the module already names is adding the missing cells
+(`fabric_demand_path.ADD_THE_CELL_REMEDY`), after which the tolerance moves nothing. It stays
+registered.
+
+## The production-run screen, published entry (running)
+
+The same screen under `--entry published`, the entry `tools/run_annual_report.py` publishes
+through, was launched 19 Oct 22:39. Pre-registered P10-P13 in
+`docs/staging/records/SEAT_PREREG_WHAT_THE_PUBLISHED_ENTRY_READS_THAT_THE_SETTLEMENT_LOOP_ALONE_CANNOT_2026-10-19.md`.
+**P10 is graded and refuted.** On the current register the published entry reaches 240 constants,
+against 229 for the settlement loop: 11 more (`contact_propensity` 6, `contact_centre` 4,
+`run_phase4c_on_phase2b` 1), short of the predicted 250-300. The bad-debt ranking comes from this
+screen, not from the table above.

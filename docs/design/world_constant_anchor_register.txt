@@ -231,7 +231,6 @@ simulation/household_demand.py::IC_BASE_EAC_KWH
 simulation/household_demand.py::RESI_BASE_EAC_KWH
 simulation/household_demand.py::SME_BASE_EAC_KWH
 simulation/household_demand_shape.py::MIN_HDD_SPREAD_FOR_IDENTIFIABILITY
-simulation/household_segments.py::TENURE_POPULATION_SHARE
 simulation/life_events.py::_BOILER_REPLACE_PROB_MID
 simulation/life_events.py::_BOILER_REPLACE_PROB_NEW
 simulation/life_events.py::_BOILER_REPLACE_PROB_OLD
@@ -259,12 +258,9 @@ simulation/payment_method_dynamics.py::DEBT_TRIGGER_GBP
 simulation/payment_timing.py::_BAD_DEBT_MULTIPLIER
 simulation/payment_timing.py::_DD_FAILURE_PROBABILITY
 simulation/payment_timing.py::_ON_TIME_PROBABILITY
-simulation/policy_costs.py::_CFD_LEVY_BY_YEAR
 simulation/policy_costs.py::_DUOS_IC_BY_YEAR
 simulation/policy_costs.py::_GAS_CCL_RATE_BY_YEAR
-simulation/policy_costs.py::_GAS_SC_PENCE_PER_DAY_BY_YEAR
 simulation/policy_costs.py::_SME_SC_MULTIPLIER
-simulation/population_draw.py::DD_SHARE_GAS
 simulation/population_draw.py::DEFAULT_ACQUISITIONS_PER_YEAR_LAMBDA
 simulation/population_draw.py::_ACCOMMODATION_NATIONAL
 simulation/population_draw.py::_ACCOMMODATION_TILT_BY_TENURE

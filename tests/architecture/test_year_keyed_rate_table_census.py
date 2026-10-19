@@ -167,6 +167,16 @@ _PINNED: dict[str, str] = {
 
 # status "published_unpinned": a real publication exists; no commons pin yet. RATCHETED DOWN.
 _PUBLISHED_UNPINNED: dict[str, str] = {
+    "simulation/household_budget.py::_BASKET_EX_ENERGY_FACTOR":
+        "ONS MM23 CPIH divisions ex-energy, rebased to 2026/27 = 1, transcribed from "
+        "docs/market_research/household_budget_w2_4.md. The pin is the index series in the commons.",
+    "simulation/household_budget.py::_CPIH_FACTOR":
+        "ONS MM23 all-items CPIH, rebased to 2026/27 = 1; same page, same repair.",
+    "simulation/household_budget.py::_AWE_FACTOR":
+        "ONS LMS KAB9 whole-economy AWE, rebased to 2026/27 = 1; same page, same repair.",
+    "simulation/household_budget.py::_BENEFIT_PATH_FACTOR":
+        "the April uprating path (previous September's CPI, frozen 2016-2019): published DWP "
+        "uprating statements, calendar-averaged, so the pin carries the averaging as a reading.",
     "simulation/policy_costs.py::_CFD_LEVY_BY_YEAR":
         "LCCC/EMRS publish the interim levy rate per quarter; the table is an annual average, "
         "so the pin must carry the averaging as a stated reading.",
@@ -450,7 +460,10 @@ _BAND_PINNED: dict[str, str] = {
 # `_SVT_ELEC_PRECAP_PENCE_PER_KWH` is new to the census on the same day and went to _BAND_PINNED
 # with its own control written for it. A new table arriving unclassified is how this ratchet went UP
 # last time.
-_MAX_PUBLISHED_UNPINNED = 35  # 38 -> 37 on 2026-09-07 (a51): the CM supplier
+# 35 -> 39 on 2026-10-19, CHARGED, not paid: 78a36a84c added household_budget's four price-level
+# tables unclassified, which reddened this leg for every commit importing a censused module. They
+# are published series with no commons pin, so this is the true bucket; pinning them pays it back.
+_MAX_PUBLISHED_UNPINNED = 39  # 38 -> 37 on 2026-09-07 (a51): the CM supplier
 # obligation rate came off, re-founded on Ofgem Annex 9 in the commons. The ratchet coming down is
 # the point -- pinning a table is the only sanctioned way to move this number.
 #
