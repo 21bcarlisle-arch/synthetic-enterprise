@@ -65,3 +65,32 @@ retained dual homes, which is a transfer to the household and not created value.
 
 O1, S1 and D1 are graded in the build commit. P1 needs a run past 2023-Q3, which is not part of DONE
 for this claim. If no such run is read, P1 stays ungraded here, and this file says so.
+
+## Grade, 2026-10-19 (build commit; short window to 2017-06-30, CURRENT_POLICY, fixed seed)
+
+The prereg landed as `b244ae11e`. All three arms ran on that commit: the parent from a clean
+worktree, and the build as that commit plus the three code files.
+
+- **O1 held.** The off arm at the build and the run at its parent give run-output JSON that is
+  byte-identical (`cmp`, 5,636,752 bytes each).
+- **S1 held, digit for digit.**
+  - The on arm equals the off arm in all 89 top-level keys except `save_on_loss_notice_log`.
+  - Its 12 rows equal the off arm's once the two new fields are stripped.
+  - 12 departures reached the save site. 0 held an Invitation, so 0 households were decided on one
+    offer and 0 on two.
+- **Not predicted, read from the same run:** the run built two legs for 10 of the 12 departures and
+  one leg for 2. So the leg assembly finds the riding gas term on real schedules, which the window
+  could not show through a decision.
+- **D1 held** (`tests/simulation/test_the_household_save_answers_both_notices_at_the_roll.py`). The on
+  branch reaches a decision answering both points, and that is asserted first. Five mutations each
+  turned it red:
+  - the held-notice filter dropped (1 red);
+  - the riding leg never built (2);
+  - the door ignores the switch (1);
+  - a default-tariff riding leg admitted (1);
+  - the decision leg's own Invitation not required (1).
+- **An equivalence, not a missing test:** passing kWh where MWh is wanted stays green. Both legs scale
+  together, and the household rule reads only the sign of the summed headroom.
+- **Not shown by any run here: the carry.** That is the other leg billed its save when it is priced.
+  No save can be taken before 2023-Q3, so the carry is first exercised by P1's run.
+- **P1 is not graded.** It needs a run past 2023-Q3.

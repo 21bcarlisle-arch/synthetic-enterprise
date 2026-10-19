@@ -87,8 +87,10 @@ from company.interfaces.renewal_rate_chain import (
     portfolio_position,
 )
 from company.interfaces.save_offer import (
+    SaveLeg,
     published_best_deal_gap_share,
     published_default_rate_ex_vat,
+    request_household_save,
     request_save_offer,
 )
 from company.interfaces.statutory_obligations import build_statutory_obligations
@@ -1254,6 +1256,35 @@ def _price_match_inputs(term: dict, commodity: str, term_start_str: str,
     }
 
 
+def _household_save_legs(cid: str, commodity: str, term: dict, term_start_str: str,
+                         unit_rate: float, company_fwd: float | None, company_eac: float | None,
+                         points: list, elec_schedules: dict, gas_schedules: dict,
+                         settled) -> list:
+    """THE LEGS ONE HOUSEHOLD SAVE IS DECIDED OVER (fuel page §8a, step 1b): the departure leg first,
+    then each other point of the household starting a fixed term on the same date. Every input is
+    the company's: the offer as struck for the start, the published default ex VAT, the cost floor,
+    and the company's own annual volume (never the settled fold's true kWh)."""
+    def leg(point, fuel, leg_term, rate, fwd, kwh):
+        inputs = _price_match_inputs(leg_term, fuel, term_start_str, fwd)
+        return SaveLeg(supply_point_id=point, renewal_unit_rate=rate,
+                       published_default_rate=inputs["published_default_rate"],
+                       cost_floor=inputs["cost_floor"],
+                       annual_mwh=None if kwh is None else kwh / 1000.0)
+    legs = [leg(cid, commodity, term, unit_rate, company_fwd, company_eac)]
+    for point, fuel in points:
+        if point == cid:
+            continue
+        schedule = (elec_schedules if fuel == "electricity" else gas_schedules).get(point, ())
+        other = next((t for t in schedule if t["acquisition_date"] == term_start_str), None)
+        if other is None or other.get("tariff_type", "fixed") != "fixed":
+            continue
+        legs.append(leg(point, fuel, other, other["unit_rate_gbp_per_mwh"],
+                        other.get("company_forward_price_gbp_per_mwh",
+                                  other["forward_price_gbp_per_mwh"]),
+                        _company_volume_reading(point, term_start_str, settled, fuel)["kwh"]))
+    return legs
+
+
 def _account_state_svt_rate(commodity: str, term_start_str: str) -> float | None:
     """The default-tariff rate the account-state record carries for THIS leg's fuel.
 
@@ -2403,6 +2434,17 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     _save_offers_on = save_offers_active()
     _save_scale = world_save_response_scale() if _save_offers_on else 1.0
     save_on_loss_notice_log: list[dict] = []
+    # ONE SAVE ANSWERS EVERY NOTICE A HOUSEHOLD SENT (fuel page §8a, step 1b). The household rule is
+    # a price match, so a cut-share experiment cannot run under it; refused rather than ignored.
+    _save_decides_per_household = policy.save_offer_decides_per_household
+    if _save_decides_per_household and (policy.save_offer_cut_share is not None
+                                        or policy.save_offer_sizing != "price_match"):
+        raise ValueError(
+            "save_offer_decides_per_household prices a household by price match; this policy sizes "
+            f"saves by cut share {policy.save_offer_cut_share!r} / sizing "
+            f"{policy.save_offer_sizing!r}, which the household rule does not implement")
+    # A saved household's other legs, billed their save when priced: (point, start) -> rate.
+    _household_save_carry: dict[tuple[str, str], float] = {}
     _move_out_by_household: dict[str, date | None] = {}
     # THE MOVE-OUT NOTICE (`interface/contracts/move_out_notice_seam.py`): our household tells us,
     # two Working Days before its move, and the company files it in its own register. Only a
@@ -2907,6 +2949,14 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         )
         _renewal_outcome = None
         _held_on_a_save = False
+        # THE OTHER LEG OF A HOUSEHOLD SAVED AT ITS ROLL is supplied at its save (fuel page §8a). The
+        # save was priced on this leg's offer as first struck; where the chain has since gone lower,
+        # the lower rate stands, because a save never raises a price.
+        _carried_save = _household_save_carry.pop((cid, term_start_str), None)
+        if _carried_save is not None and not _spliced and _carried_save < unit_rate:
+            unit_rate = billed_rate_when_saved(unit_rate, _carried_save)
+            _held_on_a_save = True
+            _offer_vs_default = None
 
         # Phase 11a: record basis risk (company estimate vs sim ground truth)
         basis_risk_terms.append({
@@ -3848,10 +3898,20 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                             [(cid, date.fromisoformat(_first_day))], run_base_seed())):
                         _psr_register.receive_registration_wire(_wire)
                 _save_inputs = _price_match_inputs(term, commodity, term_start_str, company_fwd)
-                _save_rate, _known_vulnerable = request_save_offer(
-                    _change_of_supplier_register, cid, term_start_str, unit_rate,
-                    policy.save_offer_cut_share, psr_register=_psr_register,
-                    sizing=policy.save_offer_sizing, **_save_inputs)
+                if _save_decides_per_household:
+                    _household_legs = _household_save_legs(
+                        cid, commodity, term, term_start_str, unit_rate, company_fwd, company_eac,
+                        _points, elec_schedules, gas_schedules, settled_fold)
+                    _household_rates, _known_vulnerable = request_household_save(
+                        _change_of_supplier_register, _household_legs, term_start_str,
+                        _save_inputs["published_best_deal_gap_share"], policy,
+                        psr_register=_psr_register)
+                    _save_rate = _household_rates.get(cid)
+                else:
+                    _save_rate, _known_vulnerable = request_save_offer(
+                        _change_of_supplier_register, cid, term_start_str, unit_rate,
+                        policy.save_offer_cut_share, psr_register=_psr_register,
+                        sizing=policy.save_offer_sizing, **_save_inputs)
                 _asked = roll_lifecycle_event(
                     cid, term_start_str, commodity,
                     **{**_roll_kwargs, "new_rate_gbp_per_mwh": _save_rate},
@@ -3877,8 +3937,14 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     "saved": _saved,
                     "known_vulnerable": _known_vulnerable,
                     "eac_kwh": company_eac,
-                })
+                } | ({"household_legs": len(_household_legs),
+                      "household_save_rates": _household_rates}
+                     if _save_decides_per_household else {}))
                 if _saved:
+                    if _save_decides_per_household:
+                        for _point, _rate in _household_rates.items():
+                            if _point != cid:
+                                _household_save_carry[(_point, term_start_str)] = _rate
                     unit_rate = billed_rate_when_saved(unit_rate, _save_rate)
                     _held_on_a_save = True
                     _portfolio_margins.account_held_on_a_save(billing_account)
