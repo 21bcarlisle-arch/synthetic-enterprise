@@ -107,7 +107,7 @@ if TYPE_CHECKING:  # the dwelling type only — `premise_population` is imported
 # ASSUMPTIONS.md -- "Direct Debit was 72% of standard electricity customers and
 # 75% of gas customers".
 DD_SHARE_ELEC = 0.72
-DD_SHARE_GAS = 0.75
+DD_SHARE_GAS = 0.75  # the same DESNZ QEP June 2026 row as DD_SHARE_ELEC above
 
 # TDCV consumption bands (Ofgem TDCV 2026 review). SOURCE OF TRUTH:
 # company/compliance/domain_invariants.py::TDCV_{ELEC,GAS}_{LOW,MEDIUM,HIGH}

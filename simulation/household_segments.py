@@ -584,7 +584,8 @@ class TenureType(str, Enum):
 
 # Layer 2 dimension 3 (tenure, 2026-07-09): EHS 2023-24 Headline Report on
 # Demographics and Household Resilience, Chapter 1 "Trends in tenure"
-# (MHCLG, fetched 2026-07-08, see ASSUMPTIONS.md) -- England housing tenure
+# (MHCLG, fetched 2026-07-08, `docs/market_research/ASSUMPTIONS.md` row "Tenure
+# split") -- England housing tenure
 # split: owner-occupier 65% (35% outright + 30% mortgagors, combined here
 # since this module doesn't yet model outright-vs-mortgaged), private
 # renters 19%, social renters 16% (10% housing association + 6% local

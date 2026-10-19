@@ -295,7 +295,11 @@ def test_MUTATION_the_run_FEEDS_and_READS_the_ledger_and_feeds_it_AFTER_the_roll
     assert "CompanyPositionLedger()" in src, "no ledger is created by the run"
     assert "position_ledger=_competitor_position_ledger" in src, "the run does not pass it"
     assert "_competitor_position_ledger.observe(" in src, "the run never feeds it"
-    assert "_competitor_position_ledger.observe(term_start_str, unit_rate, commodity=commodity)" in src, (
+    # Keyed to the property (the leg's fuel is passed), not to one spelling of the rate: cc258be0a
+    # feeds the pre-save `_rate_the_rival_sees` across two lines, and a literal pinned to
+    # `unit_rate` went red while the call stayed right.
+    assert re.search(r"_competitor_position_ledger\.observe\(\s*term_start_str,\s*\w+,\s*"
+                     r"commodity=commodity\s*\)", src), (
         "the run feeds the ledger without the leg's fuel, so a gas strike can reach the rival"
     )
     # THE FLOOR MUST NOT BE INERT IN THE LIVE PATH. `wholesale_gbp_per_mwh=None` is a legal
