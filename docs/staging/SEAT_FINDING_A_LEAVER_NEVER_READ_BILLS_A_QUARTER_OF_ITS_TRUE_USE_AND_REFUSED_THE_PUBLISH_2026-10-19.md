@@ -76,6 +76,12 @@ new run's sample replaced the old one, and origin's side never touched that dire
 Now due, from the list below: delete the 12 `KNOWN_OPEN_INVERSIONS` rows that no longer invert,
 since origin's committed ledger is now the 19 Oct one.
 
+**Done 19 Oct (delivery seat).** The sweep was re-run on origin's committed ledger and sample,
+both from 2a195224b. Of the 16 named rows, only C7 2016–2019 still invert. Nine of the other
+twelve now bill above their gross, and three are no longer account-years in the book. All twelve
+are deleted, along with their two reason constants; C7's four stay. Mutation: with C7 2019
+removed from the set, the gate is red on exactly `('C7', 2019, 299.46, 745.2)`.
+
 ## Owed, and not decided here
 
 - **Which explanation to fix.** In ranked order:

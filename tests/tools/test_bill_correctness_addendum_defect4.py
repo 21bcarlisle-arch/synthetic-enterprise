@@ -125,42 +125,17 @@ def test_billed_total_helper_sums_by_customer_and_year():
     assert totals[("C1", 2021)] == 90.0
 
 
-# THE THREE INVERSIONS STILL OPEN ON THE 2026-09-28 BOOK, each with its cause. They are named
-# rather than xfailed so that any OTHER inversion still reds the gate. An entry that stops
-# inverting excuses nothing, so it rots harmlessly, but delete it when its cause lands. See
-# docs/staging/WORKER_FINDING_A_LEAVING_HOUSEHOLDS_GAS_LEG_READ_AS_A_STAYER_AND_CLOSED_ON_AN_ESTIMATE_2026-09-30.md
-_HELD_ESTIMATE_NETTED = (
-    "held estimates leave the ledger but the catch-up still nets them: WORKER_FINDING_NINE_CUSTOMER_YEARS_BILL_LESS_THAN_THEIR_GROSS_MARGIN_AT_ORIGIN_2026-10-14.md"
-)
-# The two OCC- rows have no held bill (measured 2026-10-15, SEAT_PREREG_A_HELD_ESTIMATE_IS_KNOWN_AT_
-# ASSEMBLY_2026-10-15.md P3): each is a 6-8 day December stub, and the netting below spreads a later
-# catch-up CREDIT over the whole run by day, which takes a few pence out of the stub. The assembly
-# now prices a void stub's estimate at its own tariff (back_billing_and_liability.md §14); delete
-# both rows with the first landing whose committed ledger was billed by that code.
-_STUB_TAKES_A_DAY_SHARE_OF_A_LATER_CREDIT = (
-    "void stub (B7): billed its standing charge with its EAC estimate at 0p, so a later "
-    "over-estimate credit, spread by day, takes a share the stub never over-billed; D46"
-)
+# THE INVERSIONS STILL OPEN ON THE 2026-10-19 BOOK (8b6fea024, committed 2a195224b), each with its
+# cause. They are named rather than xfailed so that any OTHER inversion still reds the gate. Delete a
+# row with the first landing whose committed ledger no longer inverts it: a stale name is a hole
+# exactly where the defect would recur. The twelve rows named on the 28 Sep - 15 Oct books were
+# deleted on 2026-10-19 after re-running this sweep on the 19 Oct ledger: nine billed above their
+# gross and three no longer appear as account-years.
 _NEVER_READ_THEN_CLOSED_ON_AN_ESTIMATE = (
     "never read in 42 bills, then closed on an estimate: "
     "SEAT_FINDING_A_LEAVER_NEVER_READ_BILLS_A_QUARTER_OF_ITS_TRUE_USE_AND_REFUSED_THE_PUBLISH_2026-10-19.md"
 )
 KNOWN_OPEN_INVERSIONS = {
-    # Red at origin 440ebe1f6 on the 2248e3baf book, before anyone touched this file; the nine
-    # are named so the gate keeps its teeth for a TENTH while the BLOCKING finding is worked.
-    ("OCC-25ff8966357a", 2022): _STUB_TAKES_A_DAY_SHARE_OF_A_LATER_CREDIT,
-    ("OCC-b7693802f91c", 2016): _STUB_TAKES_A_DAY_SHARE_OF_A_LATER_CREDIT,
-    ("PROS-2017-0117", 2018): _HELD_ESTIMATE_NETTED,
-    ("PROS-2017-0336", 2017): _HELD_ESTIMATE_NETTED,
-    ("PROS-2017-0336", 2018): _HELD_ESTIMATE_NETTED,
-    ("PROS-2017-0336", 2019): _HELD_ESTIMATE_NETTED,
-    ("PROS-2017-0336", 2020): _HELD_ESTIMATE_NETTED,
-    ("PROS-2017-0336", 2023): _HELD_ESTIMATE_NETTED,
-    ("PROS-2025-0106", 2025): _HELD_ESTIMATE_NETTED,
-    ("PROS-2020-0132", 2021): "gas leg of a leaver closed on an estimate; fixed in code, clears on "
-                              "the next published run",
-    ("PROS-2016-0092", 2017): "the leaver's final actual bill is held by validate_bills",
-    ("PROS-2016-0098", 2020): "the leaver's final actual bill is held by validate_bills",
     # Red on the 2026-10-19 run (8b6fea024), which refused its publish on these four. 42 estimates
     # in a row at the 3,100 kWh EAC against 13,230 kWh true in 2016, never read (the 21B.4 read
     # instruction is off in the standing policy), then closed on an estimate since 2026-10-17.
