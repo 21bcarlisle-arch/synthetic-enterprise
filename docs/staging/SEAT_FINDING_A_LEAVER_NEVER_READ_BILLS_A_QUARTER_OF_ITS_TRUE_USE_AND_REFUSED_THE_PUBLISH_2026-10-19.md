@@ -58,6 +58,24 @@ still holds for them.
   book and still inverts on them. They go in the first commit after the 19 Oct ledger is
   committed.
 
+## The re-drive (19 Oct, 08:45–09:15Z)
+
+Nothing re-attempted the refused publish after dc4dc0e10 answered its red. The cause is filed as
+`SEAT_FINDING_A_REFUSED_PUBLISH_WHOSE_RED_IS_LATER_ANSWERED_IS_NEVER_RE_ATTEMPTED_2026-10-19.md`.
+Re-run by hand on the archived marker, the run's outputs were still byte-identical to
+8b6fea024's. **The hook chain passed it with no new red.** It committed locally as 2a195224b
+(net £555,900). The push was rejected non-fast-forward because origin had moved by two commits,
+neither on its paths, and the publisher deferred delivery (rc=80, `committed_delivery_deferred`).
+`background.origin_reconcile` then refused the merge on the shared tree (`REFUSED_GATE`, rc=1). Its
+`detail` is cut off before the red is named, so the cause there is not established. The same merge
+(2a195224b into origin's 9038dd065), built and gated in an origin-based worktree, landed as
+f8f3d0fd5 and was promoted. **2a195224b is on origin/main: the 19 Oct dual-fuel book is
+published.** The deletions in it (163 `site/data/customers/` files) are the publish's own: the
+new run's sample replaced the old one, and origin's side never touched that directory.
+
+Now due, from the list below: delete the 12 `KNOWN_OPEN_INVERSIONS` rows that no longer invert,
+since origin's committed ledger is now the 19 Oct one.
+
 ## Owed, and not decided here
 
 - **Which explanation to fix.** In ranked order:
