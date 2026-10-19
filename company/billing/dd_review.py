@@ -160,6 +160,38 @@ def review_balance_step_up(debit_gbp: float, seeks_balance: bool | None = None) 
     return debit_gbp / BALANCE_RECOVERY_MONTHS
 
 
+#: SLC 27.8D, in force 22 Jan 2021 (Ofgem, Supplier Licensing Review decision, 17 Nov 2020, §5.6-5.7):
+#: every domestic contract gives the customer the right to offset its credit against debt on any
+#: other supply contract, gas included. Before it, netting rested on contract terms we have not
+#: read (fuel page §8b GAP), so the company offers nothing earlier.
+OFFSET_RIGHT_IN_FORCE_FROM = date(2021, 1, 22)
+
+
+def dual_fuel_offset_amount(recoverable_debit_gbp: float, other_leg_credit_gbp: float, on: date,
+                         offers: bool) -> float:
+    """What the company sets off from a household's credit on its other fuel against this leg's
+    debt, at a charge recovery action on `on` (the review that seeks the balance, or the final bill).
+
+    `recoverable_debit_gbp` is the debt the action would seek AFTER the part SLC 21BA bars, so a
+    credit is never used to recover a barred charge. The offset is the smaller of the two: where the
+    other leg's credit is at least as large, nothing is left to chase and the leg is not escalated.
+    Zero when the company does not offer (`DecisionPolicy.dd_review_offsets_dual_fuel_legs`), before
+    the right existed, or when either side is empty. Fuel page §8b, "Design choices"."""
+    if not offers or on < OFFSET_RIGHT_IN_FORCE_FROM:
+        return 0.0
+    if recoverable_debit_gbp <= 0.0 or other_leg_credit_gbp <= 0.0:
+        return 0.0
+    return min(recoverable_debit_gbp, other_leg_credit_gbp)
+
+
+def billing_account_of(customer_id: str) -> str:
+    """The billing account a leg belongs to: both fuels of one household bill under one account
+    (`saas.customer_reaction._billing_account_id`, the one implementation)."""
+    from saas.customer_reaction import _billing_account_id
+
+    return _billing_account_id(customer_id)
+
+
 #: How the annual review sizes next year's debit. `last_year_spend` resets it to what the completed
 #: year cost at the prices it was billed at. `consumption_at_rates_in_force` prices that year's
 #: billed kWh and days at the rates on the first bill of the year being set (SLC 27.15, "most

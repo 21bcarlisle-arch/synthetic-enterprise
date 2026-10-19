@@ -151,6 +151,7 @@ FIELD_CONSUMPTION = {
     "next_best_action_shares_by_retention_rise": {"via": "run_argument"},
     "next_best_action_decides_per_household": {"via": "run_argument"},
     "save_offer_decides_per_household": {"via": "run_argument"},
+    "dd_review_offsets_dual_fuel_legs": {"via": "run_argument"},
     "save_offer_sizing": {"via": "run_argument"},
     "use_var_hedge_decision": {"via": "run_argument"},
     # Threaded correctly already: run_phase2b.py calls

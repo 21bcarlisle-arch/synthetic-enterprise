@@ -171,7 +171,11 @@ def _dd_customer_bills():
 #: formed from records the supplier holds; how the forward rate is formed stays behind the door.
 #: `review_seeks_balance` and `review_balance_step_up` joined 2026-10-16: whether the review asks for
 #: the balance, and the amount added to the letter when it does -- the recovery period stays behind.
-SANCTIONED_DOORS = ["DEFAULT_REVIEW_RULE", "REVIEW_RULES", "forward_readings_by_fuel",
+#: `dual_fuel_offset` and `billing_account_of` joined 2026-10-19 (SLC 27.8D, fuel page §8b): the
+#: amount the supplier sets off from a household's other-fuel credit at a recovery action, and which
+#: legs it bills as one household -- both told to the customer; the switch and the date stay behind.
+SANCTIONED_DOORS = ["DEFAULT_REVIEW_RULE", "REVIEW_RULES", "billing_account_of", "dual_fuel_offset",
+                    "forward_readings_by_fuel",
                     "opening_monthly_amount", "review_balance_step_up", "review_forecast_inputs",
                     "review_seeks_balance", "reviewed_monthly_amount",
                     "reviewed_monthly_amount_at_rates", "reviewed_standing",

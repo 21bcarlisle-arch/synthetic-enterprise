@@ -239,6 +239,14 @@ class DecisionPolicy:
     #: policy: the world still weighs a save on the electricity leg's rate alone.
     save_offer_decides_per_household: bool = False
 
+    #: (2026-10-19) SLC 27.8D, from 22 Jan 2021: a dual household may set its credit on one fuel
+    #: against its debt on the other. On, the DD book's charge recovery actions (a review that seeks
+    #: the balance, a closed leg's final bill) offer that offset after the SLC 21BA bar and seek only
+    #: the rest, so a leg whose other leg holds a credit at least as large is not stepped up
+    #: (`simulation.dd_balance_book.build_dd_balance_book`, `company.billing.dd_review.
+    #: dual_fuel_offset_amount`; fuel page §8b). Off on every standing policy until it is measured.
+    dd_review_offsets_dual_fuel_legs: bool = False
+
     #: (2026-10-10) how the company sizes a save when no experiment names a cut: "price_match"
     #: meets the market's best published deal, never below the company's own cost floor
     #: (`company.crm.save_offer.price_match_save_rate`). Every input is published or the company's

@@ -338,6 +338,15 @@ def theft_screen_request(policy, phase2b_result: dict) -> tuple[list | None, dic
     return [], {m["customer_id"]: m["premise"] for m in phase2b_result.get("home_move_ins", [])}
 
 
+def dual_fuel_offset_request(policy) -> bool:
+    """Whether the DD book sets a dual household's credit on one fuel against its debt on the other,
+    by the company switch. Off (`DecisionPolicy.dd_review_offsets_dual_fuel_legs`, the default)
+    builds the book exactly as before."""
+    from simulation.run_phase2b import CURRENT_POLICY
+
+    return bool((policy or CURRENT_POLICY).dd_review_offsets_dual_fuel_legs)
+
+
 def read_instruction_request(policy) -> bool:
     """Whether the billing run instructs reads at the 11th estimate, by the company switch.
 
@@ -450,10 +459,13 @@ def main(report_end: str | None = None, policy=None, instructed_read_arm: str = 
     # The term records and forward readings are read only by the `own_forecast_plus_balance`
     # review rule; under the default rule they change nothing.
     dd_book_terms = forecast_inputs_from_run(phase2b_result)
-    dd_balance_book = build_dd_balance_book(bills, opening_dd, churned_ids, **dd_book_terms)
+    offsets_dual_fuel_legs = dual_fuel_offset_request(policy)
+    dd_balance_book = build_dd_balance_book(bills, opening_dd, churned_ids, **dd_book_terms,
+                                            offsets_dual_fuel_legs=offsets_dual_fuel_legs)
     dd_back_billing_if_review_seeks_balance = {
         k: v for k, v in build_dd_balance_book(
             bills, opening_dd, churned_ids, seek_balance_at_review=True, **dd_book_terms,
+            offsets_dual_fuel_legs=offsets_dual_fuel_legs,
         ).summary().items()
         if k.startswith("back_billing_") or k in ("seek_balance_at_review", "n_customers_barred")
     }

@@ -107,13 +107,15 @@ from __future__ import annotations
 
 import dataclasses
 from dataclasses import dataclass, field
-from datetime import date
+from datetime import date, timedelta
 from typing import Mapping
 
 from company.interfaces.bill_assembly import barred_at_charge_recovery
 from company.interfaces.dd_review_outcome import (  # noqa: F401 -- REVIEW_RULES re-exported for tools
     DEFAULT_REVIEW_RULE,
     REVIEW_RULES,
+    billing_account_of,
+    dual_fuel_offset,
     forward_readings_by_fuel,
     review_balance_step_up,
     review_forecast_inputs,
@@ -188,6 +190,11 @@ class DDBalanceBook:
     #: monthly amount the recovery added to the debit (the household's side of the trade). Not
     #: serialised.
     review_step_ups: list = field(default_factory=list)
+    #: Whether the book set a dual household's credit on one fuel against its debt on the other
+    #: (`build_dd_balance_book(offsets_dual_fuel_legs=True)`), and one row per offset made --
+    #: `{billing_account, debit_leg, credit_leg, action, date, offset_gbp}`. Summarised only when on.
+    offsets_dual_fuel_legs: bool = False
+    dual_fuel_offsets: list = field(default_factory=list)
     #: One row per DD account with a set debit -- `{customer_id, closed, met_recovery_action,
     #: barred_gbp, exposure_gbp}` -- so D48 can bound the bar over the accounts that could carry one
     #: (`company/billing/billing_accuracy.direct_debit_money_line`).
@@ -247,6 +254,9 @@ class DDBalanceBook:
             "back_billing_barred_if_sought_at_run_end_gbp": round(
                 self.barred_if_sought_at_run_end_gbp, 2),
             "n_customers_barred": sum(1 for v in self.barred_by_customer.values() if v > 0),
+            **({"dual_fuel_offsets_gbp": round(sum(r["offset_gbp"] for r in self.dual_fuel_offsets), 2),
+                "n_dual_fuel_offsets": len(self.dual_fuel_offsets)}
+               if self.offsets_dual_fuel_legs else {}),
         }
 
     def serialise(self) -> dict:
@@ -366,6 +376,7 @@ def build_dd_balance_book(
     review_rule: str = DEFAULT_REVIEW_RULE,
     term_records: list[dict] | None = None,
     term_forwards: list[dict] | None = None,
+    offsets_dual_fuel_legs: bool = False,
 ) -> DDBalanceBook:
     """Carry each direct-debit customer's level-DD credit/debit balance
     tick-by-tick and aggregate the portfolio held-credit liability over time.
@@ -398,6 +409,14 @@ def build_dd_balance_book(
     * an account still open at the run's end has had no action seeking its old balance, so its
       figure is an exposure, not a loss: ``barred_if_sought_at_run_end_gbp``.
 
+    SLC 27.8D AT THE SAME ACTIONS, when ``offsets_dual_fuel_legs`` (the company's
+    ``DecisionPolicy.dd_review_offsets_dual_fuel_legs``; off by default, and then nothing below
+    runs). From 22 Jan 2021 a dual household may set its credit on one fuel against its debt on the
+    other. At a review that seeks a leg's debit, and at a closed leg's final bill, the bar is taken
+    first; the company then offers the household's credit on its other leg against what remains
+    (``dual_fuel_offset``), and only the rest is sought. A review leg covered in full is not stepped
+    up. The credit leg's balance falls by the same amount from its next bill. Fuel page §8b.
+
     The true charge of an estimated period is the supplier's own (`_true_charges`): the run's total
     is known at the read, its split is the company's estimate shape. Each bar taken is listed in
     ``bar_actions`` and written off on the ledger; the held-credit balance itself is still not
@@ -413,6 +432,96 @@ def build_dd_balance_book(
     rate. See the module docstring for the wall-clean basis
     and the exact consistency with ``dd_collection_book`` / ``dd_review_runner``.
     """
+    args = (bills, opening_dd_gbp, closed_ids, seek_balance_at_review, review_rule, term_records,
+            term_forwards)
+    if offsets_dual_fuel_legs:
+        return _book_with_dual_fuel_offsets(*args)
+    return _build_book(*args)
+
+
+#: The offsets settle one household action per pass, in date order; a household has at most a
+#: review a year and one final bill, so a run that has not settled by here has a defect.
+_MAX_OFFSET_PASSES = 64
+
+
+def _book_with_dual_fuel_offsets(*args) -> DDBalanceBook:
+    """The book with each dual household's offsets settled in date order. An offset moves both
+    legs' later balances, so each pass fixes every household's earliest action whose offset is not
+    yet the one its balances call for, drops that household's later offsets, and rebuilds."""
+    offsets: dict[str, dict[date, float]] = {}
+    for _ in range(_MAX_OFFSET_PASSES):
+        trace: dict[str, dict] = {"positions": {}, "actions": {}}
+        book = _build_book(*args, offsets=offsets, trace=trace)
+        rows, changed = _settle_next_offsets(trace, offsets)
+        if not changed:
+            book.offsets_dual_fuel_legs = True
+            book.dual_fuel_offsets = rows
+            return book
+    raise RuntimeError(f"dual-fuel offsets did not settle in {_MAX_OFFSET_PASSES} passes: each "
+                       "pass should fix one more action per household, so this is a defect")
+
+
+def _credit_before(positions: list, key: date) -> float:
+    """A leg's credit after its last bill ending before ``key`` (0 when it holds none)."""
+    held = [bal for end, bal in positions if end < key]
+    return max(0.0, held[-1]) if held else 0.0
+
+
+def _settle_next_offsets(trace: dict, offsets: dict) -> tuple[list, bool]:
+    """Compare each household's actions, in date order, with the offsets the last pass applied.
+    Fix the first that differs and drop the household's later offsets; report every offset made.
+    ``offsets[leg][key]`` is + on the debit leg at its action and - on the credit leg's draw."""
+    positions, actions = trace["positions"], trace["actions"]
+    households: dict[str, list[str]] = {}
+    for cid in sorted(positions):
+        households.setdefault(billing_account_of(cid), []).append(cid)
+    rows: list[dict] = []
+    changed = False
+    for account, legs in households.items():
+        if len(legs) != 2:
+            continue
+        acts = sorted((key, kind, leg, recoverable, on)
+                      for leg in legs for kind, key, recoverable, on in actions.get(leg, []))
+        for key, kind, leg, recoverable, on in acts:
+            other = legs[1] if leg == legs[0] else legs[0]
+            last_end = positions[other][-1][0] if positions[other] else None
+            # The other leg's credit is there to set off only while that supply is still ours: at a
+            # review it must bill on or after the review; at a final bill it may close the same day.
+            open_then = last_end is not None and last_end >= (on if kind == "final_bill" else key)
+            credit = _credit_before(positions[other], key) if open_then else 0.0
+            want = dual_fuel_offset(recoverable, credit, on, True)
+            # Only a + entry is this leg's own offset; a - entry at the same date is what the other
+            # leg's final bill drew from it when both close on one day.
+            have = max(0.0, offsets.get(leg, {}).get(key, 0.0))
+            if abs(want - have) > 1e-9:
+                for cid in legs:
+                    offsets[cid] = {k: v for k, v in offsets.get(cid, {}).items() if k < key}
+                if want > 0.0:
+                    offsets[leg][key] = want
+                    offsets[other][key] = -want
+                changed = True
+                break
+            if want > 0.0:
+                rows.append({"billing_account": account, "debit_leg": leg, "credit_leg": other,
+                             "action": kind, "date": on.isoformat(), "offset_gbp": round(want, 2)})
+    return rows, changed
+
+
+def _build_book(
+    bills: list[dict],
+    opening_dd_gbp: Mapping[str, float] | None,
+    closed_ids: set[str] | None,
+    seek_balance_at_review: bool | None,
+    review_rule: str,
+    term_records: list[dict] | None,
+    term_forwards: list[dict] | None,
+    offsets: Mapping[str, Mapping[date, float]] | None = None,
+    trace: dict | None = None,
+) -> DDBalanceBook:
+    """`build_dd_balance_book` itself. ``offsets`` and ``trace`` are given only by
+    `_book_with_dual_fuel_offsets`: the offsets to apply (keyed by the action's date: + on the
+    debit leg, - drawn from the credit leg before its first bill ending on or after it), and a dict
+    to record each leg's positions and recovery actions in."""
     # Group the company's OWN issued bills by customer, direct-debit only --
     # the same population gate dd_collection_book applies (a customer with no DD
     # mandate holds no seasonal DD credit).
@@ -523,7 +632,14 @@ def build_dd_balance_book(
         month_balance: dict[str, float] = {}
         prev_d: date | None = None
         prev_wi = 0
+        own = (offsets or {}).get(cid, {})
+        draws = sorted((k, v) for k, v in own.items() if v < 0)
+        if trace is not None:
+            trace["positions"][cid] = []
+            trace["actions"][cid] = []
         for (d, amt), (_, start, true_charge) in zip(seq, truth):
+            while draws and draws[0][0] <= d:
+                balance += draws.pop(0)[1]
             wi = _months_between(anchor, d) // 12
             if seek_balance_at_review and wi != prev_wi and balance < 0:
                 barred = min(-balance, barred_at_charge_recovery(
@@ -536,10 +652,17 @@ def build_dd_balance_book(
                     book.bar_actions.append({"customer_id": cid, "date": start.isoformat(),
                                              "amount_gbp": round(barred, 2), "action": "review"})
                 barred_here += barred
+                if trace is not None:
+                    trace["actions"][cid].append(("review", start, -balance, start))
+                set_off = own.get(start, 0.0) if offsets is not None else 0.0
+                if set_off > 0.0:
+                    _settle_oldest_first(recovery, set_off)
+                    balance += set_off
                 step_up = review_balance_step_up(-balance, True)
-                standing_dd_by_window[wi] += step_up
-                book.review_step_ups.append({"customer_id": cid, "date": start.isoformat(),
-                                             "step_up_gbp": round(step_up, 2)})
+                if offsets is None or step_up > 0.0:
+                    standing_dd_by_window[wi] += step_up
+                    book.review_step_ups.append({"customer_id": cid, "date": start.isoformat(),
+                                                 "step_up_gbp": round(step_up, 2)})
             prev_wi = wi
             # A level DD is collected MONTHLY however often the customer is
             # billed (C-S5). Collect one standing DD per month the bill period
@@ -564,9 +687,16 @@ def build_dd_balance_book(
             # If a customer has >1 bill in a calendar month, the LAST wins (the
             # end-of-month position) -- deterministic under the sorted seq.
             month_balance[month] = balance
+            if trace is not None:
+                trace["positions"][cid].append((d, balance))
         closing = min(max(0.0, -balance), barred_at_charge_recovery(
             [tuple(p) for p in recovery], seq[-1][0]))
         met = closed_ids is not None and cid in closed_ids
+        if met and trace is not None:
+            # The final bill's own action: what it seeks after the bar, keyed the day after it so the
+            # other leg's credit is read after its own bills to that date.
+            trace["actions"][cid].append(("final_bill", seq[-1][0] + timedelta(days=1),
+                                          max(0.0, -balance) - closing, seq[-1][0]))
         if met:
             book.barred_at_final_bills_gbp += closing
             barred_here += closing

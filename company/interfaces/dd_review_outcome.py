@@ -94,6 +94,8 @@ from company.billing.dd_review import DEFAULT_REVIEW_RULE, REVIEW_RULES
 __all__ = [
     "DEFAULT_REVIEW_RULE",
     "REVIEW_RULES",
+    "billing_account_of",
+    "dual_fuel_offset",
     "forward_readings_by_fuel",
     "opening_monthly_amount",
     "reviewed_monthly_amount",
@@ -112,6 +114,21 @@ def review_seeks_balance() -> bool:
     from company.billing.dd_review import REVIEW_SEEKS_BALANCE
 
     return REVIEW_SEEKS_BALANCE
+
+
+def dual_fuel_offset(recoverable_debit: float, other_leg_credit: float, on, offers: bool) -> float:
+    """What the supplier sets off from a household's credit on its other fuel against this leg's
+    recoverable debt at a charge recovery action. See `company.billing.dd_review.dual_fuel_offset_amount`."""
+    from company.billing.dd_review import dual_fuel_offset_amount
+
+    return dual_fuel_offset_amount(recoverable_debit, other_leg_credit, on, offers)
+
+
+def billing_account_of(customer_id: str) -> str:
+    """The supplier's billing account for one leg. See `company.billing.dd_review.billing_account_of`."""
+    from company.billing.dd_review import billing_account_of as _billing_account_of
+
+    return _billing_account_of(customer_id)
 
 
 def review_balance_step_up(debit: float, seeks_balance: bool | None = None) -> float:

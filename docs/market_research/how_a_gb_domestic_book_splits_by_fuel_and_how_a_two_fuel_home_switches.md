@@ -341,6 +341,52 @@ first; the answer is not in it):**
 > and reasonable' ground under SLC 27.16 to keep the credit?
 > And did this change when SLC 27.8D came in, in January 2021?"
 
+**Design choices the offset makes (K8), and why.** *Added 2026-10-19, before the offset was built
+in `simulation/dd_balance_book.py` behind `DecisionPolicy.dd_review_offsets_dual_fuel_legs`
+(default off). It takes choice (b) above. (c) still waits on the review GAP.*
+
+- **Where it acts.** It acts at the two actions where the company seeks a direct debit leg's debit:
+  the annual review, when it seeks the balance (`dd_review.REVIEW_SEEKS_BALANCE`), and a closed leg's
+  final bill. *What our code does (discovery, not evidence):* these are the only places a level-DD
+  debit is asked for. The in-run dunning desk (`arrears_engine.select_dunning_step`) reads one leg's
+  ledger of missed payments. That ledger takes each bill as billed, so it carries no level-DD credit
+  to set off. An offset there would need the other leg's ledger. It is not built, and it waits until
+  a reading shows a desk escalation on a leg whose other ledger is in credit.
+- **The bar comes first.** SLC 21BA's bar is taken on the debit first, as today. The offset is the
+  smaller of what is left to seek and the other leg's credit. So a credit never pays a charge the
+  supplier may not recover. Whether SLC 21BA reaches a set-off at all is **GAP**. This order is the
+  one that errs against the company.
+- **The company offers the offset unprompted, at the action.** The licence gives the right to the
+  customer (27.8D) and lets a supplier's terms net both ways (EDF cl. 17.e). The company does not
+  wait to be asked. How many suppliers net unprompted is **GAP**.
+- **The household is taken to accept.** The credit it holds is set against a debt it owes, and the
+  right is its own. Nothing published gives a share of households who decline (**GAP**).
+- **A leg covered in full is not escalated.** Where the other leg's credit is at least the debt left
+  after the bar, the review adds no step-up. Where it covers part, the step-up recovers only the rest
+  over 12 months.
+- **The credit leg pays exactly what it spends.** Each contract keeps its own balance (SLC 27.16).
+  The credit leg's balance falls by the offset from its next bill. The debit leg's oldest unbarred
+  shortfall is settled first. A later bar then finds less old debt, so the bars fall when the switch
+  is on. That is a real effect: the debt was recovered before it aged.
+- **Only while both supplies are the company's.** At a review the other leg must still be billing.
+  At a final bill it may close on the same day, which is how a dual household leaves (§4).
+- **From 22 Jan 2021 only.** No offset is offered at an action dated earlier. Pre-2021 contract
+  terms were not read (**GAP**), and inventing a netting habit for them would be a number picked
+  because a number was needed.
+- **Off by default.** With the switch off, a leg is booked as if its household had no other fuel,
+  byte for byte.
+
+**What it touches on the publish run** (`run_output_8b6fea024_20261019T033010Z`, read through
+`tools/dual_leg_opposite_signs` and the book with the switch on; the prereg's grade is item 1's).
+Of 289 dual households with both legs on DD, 114 are open at run end, and 12 of those (0.105) hold
+opposite signs then. Across the run, 250 of 289 (0.87) hold opposite signs in at least one month, so
+the right is common, not rare. The money it moves is small, because the bar takes old debt first:
+- **On the standing review (never seeks the balance):** the final bill is the only action. 8
+  households are offset, £263.91 in all.
+- **On the review that seeks:** 72 review offsets (£2,754.62) and 4 at final bills (£86.69), in 65
+  households. 47 of 1,146 review step-ups are never made, because the other leg covers the debt. The
+  review bars fall from £26,750 to £26,041.
+
 ## Sources
 
 - CMA, *Energy market investigation: Summary of provisional findings report*, 7 July 2015, ¶9 and
