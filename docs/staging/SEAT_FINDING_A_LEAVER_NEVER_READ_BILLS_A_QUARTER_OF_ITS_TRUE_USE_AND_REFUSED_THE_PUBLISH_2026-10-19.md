@@ -210,3 +210,22 @@ Legs (c) and (b) are still open. Each needs the K8 page first.
   beside "about 2x" above: that compared C7 with its EV against an anchor without one. Without
   the EV it is 1.45x. The remedy is to regenerate the files, not to rescale a constant. It is
   still to be run only after (d) is graded. Its prediction is on the page.
+
+### Leg (b)'s knowledge page written (worker, 19 Oct)
+
+`unbilled_energy_and_revenue_assurance.md` K6, "What a losing supplier is settled on for its last
+span". For the losing supplier, consumed = settled = billed, all at the CoS read. A low estimated
+CoS read moves energy to the gaining supplier's book; it is not a loss. The build choice: the world
+scales a churned leg's last-span volumes (revenue, wholesale, levies; not the standing charge) to
+the CoS-read advance, keeping the true profile. No dispute is modelled, a named simplification with
+the dispute share as a GAP. The prediction is filed there: about −£4,600 net settled margin on the
+275 estimate-closed legs, C7 2016–2019 clearing without a forced read, and the 130 actual-closed legs
+moving by under £1 each.
+
+**A further incoherence, not folded into (b):** C7 is drawn with a smart meter and HH demand, yet
+its meter returned 42 estimates out of 42. A meter that settles on its own interval data has a read
+the supplier can bill. Which side is wrong, the read stream or the settlement class, is a question
+for the meter-read model.
+
+Legs (d) and (c) are unchanged: (d) waits for a published run carrying 6208ea6dd; (c) waits on (d).
+The build of (b) is not started here.
