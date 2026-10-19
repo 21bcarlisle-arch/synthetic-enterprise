@@ -153,6 +153,12 @@ landing.
   decision leg's rate scaled by Σ v·save / Σ v·renewal. That is a sim change, decided blind to company
   results. It needs its own prediction filed before the run.
 
+**1b built (2026-10-19, night).** `simulation/run_phase2b.py::_household_save_legs` builds the legs at
+the save site. `company/interfaces/save_offer.py::request_household_save` answers the held notices
+through `save_rates_for_decision`. A saved household's other leg is billed its save when it is priced.
+Graded against prereg `docs/staging/records/SEAT_PREREG_THE_SAVE_OFFER_RUN_READS_ITS_SWITCH_AND_ANSWERS_BOTH_NOTICES_2026-10-19.md`
+(`b244ae11e`). 1c is not built.
+
 ## 6. Item 3, netting across legs: knowledge landed (2026-10-18)
 
 The fuel page's new §8b answers the K4 question from the published record. **Since 22 Jan 2021, SLC

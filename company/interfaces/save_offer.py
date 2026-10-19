@@ -29,14 +29,23 @@ from __future__ import annotations
 
 from company.crm.cos_process import CoSRegister
 from company.crm.save_offer import (
+    SaveLeg,
     price_match_save_rate,
     published_best_deal_gap_share,
     published_default_rate_ex_vat,
     save_offer_on_invitation,
+    save_rates_for_decision,
 )
 from company.regulatory.priority_services_register import PriorityServicesRegister
 
-__all__ = ["published_best_deal_gap_share", "published_default_rate_ex_vat", "request_save_offer"]
+__all__ = ["SaveLeg", "published_best_deal_gap_share", "published_default_rate_ex_vat",
+           "request_household_save", "request_save_offer"]
+
+
+def _known_vulnerable(psr_register: PriorityServicesRegister | None, supply_point_id: str,
+                      supply_effective_from: str) -> bool:
+    record = None if psr_register is None else psr_register.get_record(supply_point_id)
+    return record is not None and record.registration_date.isoformat() <= supply_effective_from
 
 
 def request_save_offer(register: CoSRegister, supply_point_id: str, supply_effective_from: str,
@@ -53,9 +62,7 @@ def request_save_offer(register: CoSRegister, supply_point_id: str, supply_effec
     policy's (`DecisionPolicy.save_offer_cut_share`, `.save_offer_sizing`), handed in by the run
     that holds it. Under `sizing == "price_match"` the three published or company-held values size
     the save (`company.crm.save_offer.price_match_save_rate`): plain values, as at the renewal door."""
-    record = None if psr_register is None else psr_register.get_record(supply_point_id)
-    vulnerable = (record is not None
-                  and record.registration_date.isoformat() <= supply_effective_from)
+    vulnerable = _known_vulnerable(psr_register, supply_point_id, supply_effective_from)
     held = [n for n in register.pending_switches_notified()
             if n["supply_point_id"] == supply_point_id
             and n["supply_effective_from"] == supply_effective_from]
@@ -67,3 +74,22 @@ def request_save_offer(register: CoSRegister, supply_point_id: str, supply_effec
     offer = save_offer_on_invitation(held[-1], renewal_unit_rate,
                                      cut_share, vulnerable=vulnerable, price_match_rate=match)
     return (None if offer is None else offer.save_unit_rate), vulnerable
+
+
+def request_household_save(register: CoSRegister, legs: "list[SaveLeg]", supply_effective_from: str,
+                           published_best_deal_gap_share: float | None, policy,
+                           psr_register: PriorityServicesRegister | None = None,
+                           ) -> tuple[dict[str, float], bool]:
+    """({supply point: save rate} for one departure, whether the company knew the household to be
+    vulnerable). `legs[0]` is the point whose departure the run rolled; the others are the
+    household's points starting a term on the same date (fuel page §8a, "Where the run answers both
+    notices"). A leg whose Invitation the company does not hold is not the company's to answer, so
+    it is dropped; without the decision leg's own Invitation nothing is answered. The decision is
+    `company.crm.save_offer.save_rates_for_decision` under the run's policy."""
+    vulnerable = _known_vulnerable(psr_register, legs[0].supply_point_id, supply_effective_from)
+    held = {n["supply_point_id"] for n in register.pending_switches_notified()
+            if n["supply_effective_from"] == supply_effective_from}
+    if legs[0].supply_point_id not in held:
+        return {}, vulnerable
+    answered = [leg for leg in legs if leg.supply_point_id in held]
+    return save_rates_for_decision(answered, published_best_deal_gap_share, policy), vulnerable
