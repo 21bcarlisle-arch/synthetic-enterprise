@@ -488,15 +488,33 @@ def budget_in_year(budget: HouseholdBudget, year: int,
     return budget
 
 
+def core_in_year(budget: HouseholdBudget, year: int) -> float:
+    """The ex-energy, ex-housing basket in `year`'s own pounds: the part of the floor a household
+    short of money can go without."""
+    return _CORE_EX_ENERGY_BY_COMPOSITION[budget.composition] * _factor(_BASKET_EX_ENERGY_FACTOR, year)
+
+
 def margin_in_year(budget: HouseholdBudget, year: int,
                    benefit_path_deciles: Sequence[int] = BENEFIT_PATH_DECILES) -> float:
     """Income less every essential except energy, in `year`'s own pounds. May be negative."""
     income_path = (_BENEFIT_PATH_FACTOR if budget.income_decile in benefit_path_deciles
                    else _AWE_FACTOR)
     income = budget.monthly_disposable_income * _factor(income_path, year)
-    floor = (_CORE_EX_ENERGY_BY_COMPOSITION[budget.composition] * _factor(_BASKET_EX_ENERGY_FACTOR, year)
-             + budget.housing_cost_monthly * _factor(_CPIH_FACTOR, year))
+    floor = core_in_year(budget, year) + budget.housing_cost_monthly * _factor(_CPIH_FACTOR, year)
     return round(income - floor, 2)
+
+
+# WHAT A HOUSEHOLD SHORT OF MONEY CUTS (2026-10-20). Origin: `docs/market_research/household_budget_w2_4.md`,
+# "what a household short of money cuts, and in what order". Housing is protected: ONS OPN June 2023
+# has 6% of adults behind on energy and 2% on rent or mortgage, with about as many finding each hard
+# to afford. Food and energy are cut together: JRF's winter 2022-23 tracker has 4.3m of the 4.7m
+# low-income households in arrears also going without essentials. Off, the core basket is paid in
+# full before energy and energy takes the whole shortfall. On, money left after housing is shared
+# between the basket and what is owed on energy in proportion to their sizes, so each is short by
+# the same fraction. No new number: the split is the two amounts themselves. GAP: no source says
+# how a pound of shortfall divides between going without and arrears; pro rata is the
+# no-priority stance between the two, not a measured one.
+ENERGY_SHARES_THE_SHORTFALL = False
 
 
 class BudgetPaymentBook:
@@ -515,9 +533,12 @@ class BudgetPaymentBook:
     """
 
     def __init__(self, benefit_path_deciles: Sequence[int] = BENEFIT_PATH_DECILES,
-                 income_move_per_year: float = INCOME_MOVE_PER_YEAR):
+                 income_move_per_year: float = INCOME_MOVE_PER_YEAR,
+                 energy_shares_the_shortfall: Optional[bool] = None):
         self._benefit_path_deciles = tuple(benefit_path_deciles)
         self._income_move_per_year = income_move_per_year
+        self._shares = (ENERGY_SHARES_THE_SHORTFALL if energy_shares_the_shortfall is None
+                        else energy_shares_the_shortfall)
         self._legs: Dict[str, dict] = {}
 
     def settle_month(self, *, supply_point: str, household: str, year: int, amount_gbp: float,
@@ -535,7 +556,14 @@ class BudgetPaymentBook:
         # A bill is in pence, and `allocate_debt_payments` pays in pence. An unrounded amount left a
         # GBP 17.441972 bill unpaid against GBP 17.44 paid out of GBP 15k, about half of all bills.
         owed = st["unpaid"] + [(ref, round(float(amount_gbp), 2))]
-        paid = allocate_debt_payments(cash, {"energy_arrears": sum(a for _, a in owed)})["energy_arrears"]
+        owed_total = sum(a for _, a in owed)
+        if self._shares and cash < owed_total:
+            # Short: what is left after housing is shared with the basket, pro rata. The basket's
+            # part is spent (gone without, not saved), so `cash` becomes energy's part alone.
+            core = core_in_year(budget, year) * share
+            after_housing = cash + core
+            cash = max(0.0, after_housing) * owed_total / (core + owed_total)
+        paid = allocate_debt_payments(cash, {"energy_arrears": owed_total})["energy_arrears"]
         cleared, spent = [], 0.0
         for bill_ref, amount in owed:
             if round(spent + amount, 2) > paid:
