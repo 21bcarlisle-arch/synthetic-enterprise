@@ -111,3 +111,11 @@ read. If the run is not read, they stay ungraded here, and this file says so.
 - Full window, default seed, phase 2b only. The renewal log is written there, and phase 4c does not
   touch it. Unit `longjob-c34-renewal-on-arm-8b6fea024`. The script and grader are in
   `/var/tmp/se-c34-grade-out/`. The predictions above are unchanged.
+- **Correction, ~22:20 BST.** That unit died at import: the script did not put the worktree on
+  `sys.path`. Its log is `run.first-importerror.log`, and nothing was read from it. The fixed script
+  is queued as `longjob-c34-renewal-on-arm-8b6fea024-r3` (`launch3q.out`, retrying every 60 s for
+  up to 10 h). The box is full: the weekly `sim_runner` run holds 7 GB and the executor's
+  `world_constant_reach` holds 4 GB. **To grade:** once `/var/tmp/se-c34-grade-out/on_arm.json`
+  exists, run `python3 /var/tmp/se-c34-grade-out/grade.py /var/tmp/se-c34-grade-out/on_arm.json
+  docs/reports/run_output_ad8afadc5_20261019T132751Z.json` from the repo root, then read P1–P4 and
+  the book check against its lines.
