@@ -123,6 +123,93 @@ not a reason to raise the rate. **Corrected beside the claim:** the first draft 
 (same tick, before landing) predicted that births and divorces together would move the mean by less
 than 0.05. Its own birth rate gives about +0.2. That is why item 2 now holds births back.
 
+## 5. How a GB supplier handles a deceased customer's account (K8, before the slice (e) build)
+
+**2026-10-19, worker tick (B7 drawn).** Item 1 of §4 asked for this before any code. Regulation
+was searched first (K4). No licence condition is written for bereavement, so most of this is
+published supplier practice, and the gaps are labelled.
+
+**What a death is, for the supplier.** It is a **credit exit that has a named counterparty**. A
+move-out loses its counterparty ("gone away"), and the next user is an unnamed occupier. A death
+keeps one: the estate, through an executor or administrator, owes the bill up to the date of death
+and the charges at the empty home after it. These are three experiences, and the build keeps them
+apart:
+
+| | who owes it | what the supplier sees | when |
+|---|---|---|---|
+| use up to the date of death | the estate (an unsecured debt of the estate) | a bereavement notice, a death date, usually a read "on or close to the date of death" | days to weeks after the death. **GAP:** no published lag |
+| standing charge and any use while the home is empty | the estate, as the owner of the empty home | the account in the estate's name, or still in the deceased's | until the home is sold or let |
+| a survivor who lived there (not a sole-occupant death) | the survivor, from the date of death | a change of account holder | at notification. Out of scope for the sole-occupant slice |
+
+**What the rules require.**
+- **No bereavement licence condition exists.** The duties that reach it are general: the Standards
+  of Conduct (SLC 0, treat each customer fairly), SLC 26's Priority Services Register, whose
+  temporary "life changes" category names bereavement (UKPN's published PSR terms, which follow the
+  industry needs codes), and the SLC 27 ability-to-pay duties that apply to any arrears. The PSR's
+  rules are in `docs/domain_artefact_library/regulatory/psr_eligibility_and_disconnection_protection.md`.
+- **The estate's liability is general law, not energy law.** Bills outstanding at death are debts
+  of the estate, paid before it is distributed. They come after funeral and testamentary expenses
+  and after secured creditors (secondary guides: Willsafe; CPAG's adviser guidance, as the search
+  returned it). One guide says utility bills rank above credit cards "by convention". That is not a
+  legal ranking, because unsecured debts rank equally, and it is **not taken here**. Family members
+  are not liable unless they were joint holders (`debt_and_collections.md` P6).
+- **Tell Us Once does not reach energy suppliers.** GOV.UK lists the government bodies it notifies.
+  Utilities have to be contacted "separately", so notification is **per supplier and voluntary**.
+  Third-party services (Settld, Life Ledger, NotifyNow) have reduced the lag for the suppliers that
+  joined them. **GAP:** what share of deaths reaches a supplier through each route, and how fast.
+
+**What published practice says.**
+- **A death certificate is enough to notify.** Probate is not needed at that stage. The supplier
+  asks for a read near the date of death, closes the account and sends the final bill "to the
+  person dealing with the deceased's estate". This comes from search summaries of the ScottishPower,
+  So Energy and British Gas help pages. Each page refused the fetch or came back empty this tick, so
+  none of it was read at source.
+- **Collection waits for probate.** Suppliers "will often be prepared to wait until probate is
+  granted before demanding payment" (CPJ Field). There is no published hold length. Probate is the
+  clock in practice: HMCTS took **about 12 weeks** from application to grant at the end of 2023,
+  **over 8 weeks** at the end of June 2024 and **just over 4 weeks** in December 2024 (GOV.UK press
+  release, 14 Feb 2025). The application itself usually follows the death by months. **GAP:** death
+  to application.
+- **The home stands empty until it is sold or let.** A probate sale averages about **10.5 months**
+  against about 6 for an ordinary sale (estate-agent figure, Property Reporter; **secondary, method
+  not published**). Standing charges accrue all that time, on the estate.
+- **A DD fails on its own.** When the bank is told of the death, the mandate is cancelled, and Bacs
+  returns reason code 2, "payer deceased" (ADDACS, ARUDD). The supplier learns of the death even if
+  nobody contacts it, though without a death date.
+
+**Unknown, labelled.**
+- **GAP: the share of estates that are insolvent** and leave the final bill unpaid. No published
+  supplier figure (`debt_and_collections.md` P6 says the same about the scale of deceased-customer
+  debt). It is the one number that decides the exit's loss. It is **not** the move-out's gone-away
+  rate, because the debtor has not gone away.
+- **GAP: the notification lag**, and the share of deaths no one ever reports to the supplier.
+- **GAP: the empty spell for a rented home** whose sole tenant dies. The landlord ends the tenancy
+  and re-lets, so it is probably nearer the W2_40 void than the 10.5-month probate sale. Not
+  sourced.
+
+**Choices for the build, and why.**
+1. **The death ends the occupancy through the move-out's exit machinery, with three legs swapped**
+   (`sim/customer_state_layer.py`). The close, the final read (or an estimate when none is taken)
+   and the re-occupation after a void are reused. What changes: (a) the final bill's payer is the
+   estate, so the **gone-away leg does not apply**; (b) the unpaid share is the insolvent-estate
+   share, which is a GAP, so the code carries it as `None` with its reason and **does not borrow
+   the move-out's 0.12**; (c) the empty spell is **not unnamed occupier debt**. The estate is a
+   named payer for the standing charge, so it is billed and not booked as W2_12 occupier exposure.
+2. **The death date is world truth.** The company sees a bereavement contact, a Bacs code-2 DD
+   cancellation and a final read near the date. It does not see the date until it is told, and it
+   never sees the cause. The move-out's `FORBIDDEN_TRUTH_FIELDS` discipline applies.
+3. **Owner-occupied and rented homes take different empty spells**: the probate sale for an owner
+   occupier, and the W2_40 void for a tenant, with the rented case named as an unsourced choice
+   (F11: the shorter void errs against the company's revenue, which is the safe direction for a
+   void billed to the estate).
+4. **The hazard is sole-occupant mortality, on its own named substream** (`customer_state`
+   namespace, `sole_occupant_death`). It only reaches households the world has as one person aged
+   65 or over. The 0.6-0.7% floor in §2 is a share of all households, not a hazard per eligible
+   home, so the build must derive the per-home hazard from the 65+ mortality rate. It must not
+   divide the floor by the book's single-pensioner share and call that sourced.
+
+The §4 prediction (35-60 deaths on the founder book) stands as filed.
+
 ## Sources
 
 - ISER, *British Household Panel Survey User Manual, Volume A* (UK Data Service SN 6614),
@@ -136,3 +223,14 @@ than 0.05. Its own birth rate gives about +0.2. That is why item 2 now holds bir
   age (about 57% at 20, about 10% at 30), as reported from it. Half had left by 24 in 2021 (21 in
   2011), from Census 2021 reporting.
 - DESNZ NEED 2023 consumption by number of adults, via `occupancy_consumption_volume_shape_w2_13.md` §2.
+- GOV.UK, *Probate waiting times halved thanks to government push* (press release, 14 Feb 2025):
+  12 weeks at the end of 2023, over 8 weeks at the end of June 2024, just over 4 weeks in Dec 2024.
+- GOV.UK, *What to do after someone dies: organisations you need to contact and Tell Us Once*: the
+  bodies Tell Us Once notifies; utilities are to be contacted separately.
+- Bacs reason codes as published by bureaux (Acquired, Nuapay, GoCardless): code 2, "payer
+  deceased", in AUDDIS, ADDACS and ARUDD.
+- UK Power Networks, *About the Priority Services Register*: temporary registration for life
+  changes including bereavement.
+- Secondary practice guides, read via search summaries only: Willsafe (*What happens to utility
+  bills when someone dies*), CPJ Field (same title), Property Reporter (*Navigating the sale of a
+  probate property*: about 10.5 months against about 6).
