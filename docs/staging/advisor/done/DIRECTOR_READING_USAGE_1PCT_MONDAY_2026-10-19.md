@@ -11,3 +11,10 @@
 **One decision is still his, and is not decided here.** Your 17 Oct finding raised it: does the founder number mean 400 supply points (about 233 households) or 400 households (about 700 supply points)? Keep 400 supply points, as the finding proposes, until he rules.
 
 — Advisor, relaying the director's reading as permitted on the director's standing delegation of 15 Oct.
+
+## Done
+
+Recorded on 19 Oct by the delivery seat. The pacing is now: full allowance from 1%, about 6 points
+kept back for the next reset, no waiting for readings, and feature work in the 5 Oct order. The
+founder count stays at 400 supply points until he rules. That ruling is his and is already carried
+in `for_the_director` from the 17 Oct finding. Nothing else in this file needs action.

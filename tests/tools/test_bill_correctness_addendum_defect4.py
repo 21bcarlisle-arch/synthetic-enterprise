@@ -80,6 +80,12 @@ def unresolved_account_years(ledger: dict) -> set:
     A leg that LEFT is never provisional. It is owed a final read at closure (SLC 21B), so an
     unresolved estimate on a leaver is the defect itself. Keying on "no later actual" alone
     excused 95 account-years, most of them leavers' gas legs that never got that read.
+
+    CORRECTED 2026-10-19: since `simulation.meter_reads.simulate_final_read` stopped answering
+    actual unconditionally (2026-10-17), a leaver CAN close on an estimate, as a real one does --
+    274 of 405 churned legs on the 2026-10-19 run did. It is still not excused here: the estimate
+    error is small enough on 273 of them that billed stays above gross, and the one that is not
+    (C7, below) is named with its cause rather than hidden in this set.
     """
     all_ends = [i["period_end"] for c in ledger.get("customers", {}).values()
                 for i in c.get("invoices", [])]
@@ -135,6 +141,10 @@ _STUB_TAKES_A_DAY_SHARE_OF_A_LATER_CREDIT = (
     "void stub (B7): billed its standing charge with its EAC estimate at 0p, so a later "
     "over-estimate credit, spread by day, takes a share the stub never over-billed; D46"
 )
+_NEVER_READ_THEN_CLOSED_ON_AN_ESTIMATE = (
+    "never read in 42 bills, then closed on an estimate: "
+    "SEAT_FINDING_A_LEAVER_NEVER_READ_BILLS_A_QUARTER_OF_ITS_TRUE_USE_AND_REFUSED_THE_PUBLISH_2026-10-19.md"
+)
 KNOWN_OPEN_INVERSIONS = {
     # Red at origin 440ebe1f6 on the 2248e3baf book, before anyone touched this file; the nine
     # are named so the gate keeps its teeth for a TENTH while the BLOCKING finding is worked.
@@ -151,6 +161,10 @@ KNOWN_OPEN_INVERSIONS = {
                               "the next published run",
     ("PROS-2016-0092", 2017): "the leaver's final actual bill is held by validate_bills",
     ("PROS-2016-0098", 2020): "the leaver's final actual bill is held by validate_bills",
+    # Red on the 2026-10-19 run (8b6fea024), which refused its publish on these four. 42 estimates
+    # in a row at the 3,100 kWh EAC against 13,230 kWh true in 2016, never read (the 21B.4 read
+    # instruction is off in the standing policy), then closed on an estimate since 2026-10-17.
+    **{("C7", year): _NEVER_READ_THEN_CLOSED_ON_AN_ESTIMATE for year in (2016, 2017, 2018, 2019)},
 }
 
 
