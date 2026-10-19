@@ -150,3 +150,49 @@ are kept. The C34, C35 and B11 rows that the seat carries as wrong are re-taken 
 not from this file.
 
 **Book note, 2026-10-19 (seat).** The 19 Oct publish run (`8b6fea024`) predates `30246d6f0`, so its campaign wins are dual on **every** gas home: 172 of 172, 0 gas-only, against about 0.906 at the published rate. The readings here are taken on that always-dual campaign book. It holds about 413 dual households where the split rate gives about 397, roughly 4% fewer. Do not difference a later run's dual counts against these readings as if only the company changed. Reading and prediction: `docs/staging/records/SEAT_PREREG_THE_FIRST_RUN_WITH_SPLIT_CAMPAIGN_HOMES_AGAINST_THE_ALWAYS_DUAL_CAMPAIGN_BOOK_THE_19_OCT_RUN_CARRIES_2026-10-19.md`.
+
+## 6. Grade, 2026-10-19 (seat): P0 and B11. C35 and C34 wait on the probe
+
+**The run.** The publish is `2a195224b` (merged as `f8f3d0fd5`). Its `run_output_latest.json.gz` is
+`run_output_8b6fea024_20261019T033010Z.json`, so the run sha is **`8b6fea024`**.
+
+**Void rule (§0).** Between `d21526456` and `8b6fea024`, no commit touches `forward_clv.py`,
+`next_best_action.py`, `retention_rise_count.py` or the population draw. Two commits touch the
+supplier. `c002699e7` adds `save_offer.household_save_rates` behind a new
+`DecisionPolicy.save_offer_decides_per_household`, default False. `c8e55febc` factors
+`closed_ids_from_bills` out of `dd_balance_book` without changing what it returns. Neither changes
+a default these readings pass through, so the grade is not voided. P0 was measured anyway rather
+than argued.
+
+Instrument: `backtest_run_output(path, cut, switch_on_default=True, rescale_over="fit_window")`.
+Calibration is read from `departure_calibration`. Ranking is per-customer against flat: whole book
+from `departure_ranking`, and by outcome from `error_by_outcome[o].ranking_against_stayers`.
+
+| cut | graded (dual / elec / gas) | flat cal. | key cal. | whole book key − flat | switchers | movers |
+|---|---|---|---|---|---|---|
+| 2020 | 184 (132 / 46 / 6) | +0.242 | +0.219 | +0.046 (−0.011, +0.102) | 48: +0.052 (−0.010, +0.113) | 27: +0.035 (−0.050, +0.119) |
+| 2022 | 192 (134 / 53 / 5) | +0.177 | +0.156 | +0.032 (−0.036, +0.100) | 26: +0.037 (−0.043, +0.117) | 16: +0.024 (−0.084, +0.133) |
+| 2023 | 201 (146 / 50 / 5) | +0.088 | +0.066 | +0.075 (−0.013, +0.162) | 20: +0.040 (−0.069, +0.149) | 12: **+0.133 (+0.008, +0.258)** |
+
+- **P0 (publish run equals the `17a866aa9` run): HELD.** The same script on
+  `run_output_17a866aa9_20261018T074212Z.json` prints every figure above identically, to the digit.
+- **B1 (graded 125–175 at each cut): WRONG, too low at every cut.** The graded counts are
+  184 / 192 / 201. The share I held fixed did hold: graded plus excluded is **550** accounts at
+  every cut, and 184/550 = 0.33. What was wrong is the household count. I scaled from 447, but
+  this run's campaign is dual on every gas home (book note above), and its book merges to 550
+  billing accounts.
+- **B2 (flat calibration positive at every cut, order 2020 > 2022 > 2023, each within ±0.06 of the
+  old value): HELD.** The readings are +0.242 / +0.177 / +0.088, against old values of
+  +0.241 / +0.181 / +0.072.
+- **B3 (the whole-book 2023 clearance survives; switchers at 2023 cannot tell; nothing clears at
+  2020 or 2022): WRONG on its main claim.** The whole book at 2023 is +0.075 (−0.013, +0.162), which
+  cannot tell. The point fell from +0.133, and the interval widened as predicted. Switchers at 2023
+  cannot tell: HELD. Nothing clears at 2020 or 2022: HELD. **The one clearance left is movers at
+  2023** (12 departers), and that is not a retention lever. EP17's rule reads **not yet**, and the
+  switch key now clears flat on no outcome a retention action acts on, at any cut.
+- **B4 (dual segments appear and hold about 3/4 of graded households): HELD.** The shares are
+  0.72 / 0.70 / 0.73. The dual segment's flat hazard sits above the electricity segment's at every
+  cut: 0.0204 against 0.0172 at 2020, and 0.0168 against 0.0129 at 2023.
+
+**Seat rows that took B11 from the old book** must now be re-taken from this table. That applies
+especially to anything citing the whole-book 2023 clearance (+0.133).
