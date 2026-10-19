@@ -251,3 +251,65 @@ bottom. That path puts a benefit household 6.5% under 2021 in real non-energy te
 before any bill. Which deciles follow which path is still a GAP (HBAI income by source). The build
 must name that GAP, not blend the two paths silently. R1-R4 were filed before this research, and
 they stand as written. A move that comes from the uprating path is reported apart from the bill.
+
+## 2026-10-19: R1-R4 graded on the paired run. Two hold, two are refuted on the high side, and the switch stays off
+
+**The build** is 718a631a1 (`BUDGET_DECIDES_PAYMENT`, shipped False), plus f8fdb99cc (it pays in
+pence). **The run** is world-only, to 2024-12-31, one dice draw, with the switch off and then on.
+Off: `/var/tmp/budgetpay/world2_off.json`. On: `world3_on.json`, re-captured after the pence fix;
+the first on capture is void (f8fdb99cc). The on arm's tree matches origin's three build files
+except for comments and the position of one import. The off arm needs no re-run, because a
+switch-off world never reaches the book. Grader: `/var/tmp/budgetpay/grade3.py`. **Caveats, said
+first:** this is one seed, not the pooled seeds R1-R4 were written for. The two arms do not hold
+quite the same accounts (935 off, 933 on, because payment feeds back into churn). And the heads
+are small, 182-260 active electricity accounts a year.
+
+Electricity, Q4. "Behind" means a bill unpaid more than 91 days. Each arm shows accounts active
+in December, the number behind, their share with its account-clustered interval, and £ behind per
+account behind:
+
+| Q4 | OFF | ON | ON-OFF (points) |
+|---|---|---|---|
+| 2016 | 260, 6, 2.3% (0.8-4.2), £43 | 260, 9, 3.5% (1.5-5.8), £78 | +1.2 |
+| 2019 | 190, 11, 5.8% (2.6-9.5), £76 | 189, 12, 6.3% (3.2-10.1), £185 | +0.6 |
+| 2021 | 183, 14, 7.7% (3.8-11.5), £89 | 184, 21, 11.4% (7.1-16.3), £345 | +3.8 |
+| 2022 | 192, 20, 10.4% (6.2-15.1), £90 | 193, 29, 15.0% (10.4-20.2), £529 | +4.6 |
+| 2023 | 201, 22, 10.9% (7.0-15.4), £138 | 202, 35, 17.3% (12.4-22.8), £1,200 | +6.4 |
+| 2024 | 212, 21, 9.9% (6.1-14.2), £145 | 213, 34, 16.0% (11.3-21.1), £1,652 | +6.1 |
+
+- **R1, pounds: refuted, high.** £1,200 at Q4 2023, against a predicted £200-400. Ofgem's figure
+  is £1,303. The world now sits near the record, but for the wrong reason (see below).
+- **R2, crisis shape: holds, and overshoots.** Q4 2023 / Q4 2021 is 3.48 (off arm 1.55; record
+  1.44).
+- **R3, heads: refuted, high.** +4.6 points at Q4 2022, past the +3 refutation line. On one seed
+  the interval is about ±5 points, so this reading cannot place R3 inside or outside its range.
+  But the gap's shape does not depend on the seed: +1.2 in 2016, +3.8 by 2021, before any crisis.
+  Q2 2022 (11.8%) no longer sits below Q4 2021 (11.4%), as predicted.
+- **R4, serial signature: holds.** P(next month unpaid, given this month unpaid) is 0.987 among the
+  households the budget put under water (n=832 month pairs). Off, it was 0.059 (n=17); over all
+  accounts it goes from 0.021 to 0.752.
+
+**What the table says the layer does.** The budget ever left a bill unpaid for 47 accounts (26 of
+them electricity). Those households carry 66% of Q4 £ behind in 2019, 83% in 2021, 89% in 2022 and
+93% in 2023. 14 of the 26 electricity ones never settle a single late bill. At Q4 2023 the largest
+debts run to 80 unpaid bills (£3,891) and £6,333 over 12 bills. So a household under water stays
+under water, and its debt grows by a bill a month without limit. That is the refutation clause's
+case for R3: **"the negative-margin share is too large for the record's heads, and the level comes
+first."** The pre-crisis gap grows every year (+1.2 to +3.8 points from 2016 to 2021), so the
+excess is chronic negative margin that never cures. It is not a crisis response: the
+difference-in-differences between Q4 2022 and Q4 2021 is only +0.8 points. The record's debt
+accumulates too, but through repayment arrangements and cure. 83% of spells settle, at a median
+of 119 days (R1's own note). In the on world, a budget-under-water spell does not settle.
+
+**What this grade cannot say.** The uprating path's own share of the 2022 move needs an arm with
+that path off (the BLOCKING finding's 10-17 prediction). Whether the company's crisis bad-debt
+validator steps up needs a full run with the switch on, and this capture is world-only. Both are
+"cannot yet say".
+
+**Ruling.** `BUDGET_DECIDES_PAYMENT` stays False. The mechanism produces the serial signature it
+was built for (R4) and the record's pounds level (R1, by magnitude). It does that with no exit
+from negative margin. The next layer is what ends an under-water spell in the record: an
+affordable repayment arrangement (ability to pay, SLC 27), consumption falling under a debt, and
+the household's own budget adjusting. That is knowledge first (K8). It needs no new number until
+the published practice is read. Handed on as
+`the-under-water-household-has-no-exit-so-the-budget-switch-stays-off`.

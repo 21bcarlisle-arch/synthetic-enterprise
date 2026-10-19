@@ -493,3 +493,24 @@ income-by-source cut (still a GAP) decides it.
 
 **Status:** OPEN and BLOCKING, unchanged. The next move is the post-publish build, not this lane's
 next tick.
+
+## 2026-10-19: the post-publish build is graded, and it does not clear this finding
+
+The cause's build landed as 718a631a1 and f8fdb99cc: the budget decides how much of the bill is
+paid, behind `BUDGET_DECIDES_PAYMENT`, which ships False. The reader fix this finding asked to land
+with it was already on origin (2026-10-14 evening, above), so nothing was owed there. The grade
+is in the payment-draw finding, section "2026-10-19: R1-R4 graded on the paired run". It is one
+seed, world-only. R2 and R4 hold. R1 (£1,200 at Q4 2023, predicted £200-400) and R3 (+4.6 points
+at Q4 2022, refutation line +3) are refuted on the high side, because a household the budget puts
+under water never leaves it.
+
+**The 10-17 prediction (the uprating path adds at least 0.5 points at Q4 2022): cannot yet say.**
+Separating it needs an arm with the uprating path off. The on arm's whole move over Q4 2021 to
+Q4 2022 is only +0.8 points beyond the off arm's.
+
+**The validator: not re-graded.** The capture is world-only and the switch ships off, so no
+published run carries the mechanism. The switch stays off until the no-exit defect is fixed
+(`the-under-water-household-has-no-exit-so-the-budget-switch-stays-off`).
+
+**Status:** OPEN and BLOCKING. The cause's first layer is built and graded. What still blocks is
+the exit from negative margin, then a switch-on run graded by this validator.
