@@ -62,3 +62,41 @@ it as always.
   arrangement through the founders' P(dual | gas) coin rather than attaching the gas leg always. It
   moves the published book and the value arms, so it is handed on as its own item. It is a fidelity
   change and does not touch a ruling's intent.
+
+## The world change, 2026-10-19 (direction item `the-campaign-wins-split-homes-at-the-published-rate`)
+
+Built: `_won_customer_dicts` draws each won home's arrangement through
+`population_draw.fuel_arrangement` on the won premise (`_won_fuel_arrangement`); `_live_homes`
+registers a `g` leg only for a dual win. Knowledge first: fuel-split page §5a, which says why a split
+win can be either fuel.
+
+### Pre-registration (written before re-measuring)
+
+The coin runs after the win on its own substream, so the winners are the same homes.
+
+1. Campaign `homes` stays 1,750 and `gas_home_share` stays 81.7%: the premises do not move.
+2. `dual_share_of_gas_homes` about 0.90, within [0.81, 0.96]. On about 1,430 gas homes, sd is about
+   0.8 points.
+3. `dual_share_of_homes` about 0.817 x 0.90 = 0.735, within [0.70, 0.85].
+4. `gas_only_share_of_homes` about 0.817 x 0.05 = 4.1%, within [0, 15%].
+5. Accounts fall from 3,180 to about 1,750 + 0.90 x 1,430 = 3,037.
+6. Founders and trickle rows are byte-identical to the table above.
+
+### Result
+
+| route | accounts | homes | dual of homes | dual of gas homes | gas homes | gas-only of homes | DD |
+|---|---|---|---|---|---|---|---|
+| founders | — | — | 76.4% | 90.0% | 84.9% | 3.9% | 72.1% |
+| trickle | — | — | 74.2% | 88.5% | 83.9% | 3.2% | 74.1% |
+| campaign | 3,045 | 1,750 | 74.0% | 90.6% | 81.7% | 3.7% | 71.4% |
+
+1. Confirmed: 1,750 homes, 81.7% gas homes.
+2. Confirmed: 90.6%, holds.
+3. Confirmed: 74.0% against 73.5% predicted.
+4. Confirmed: 3.7% against 4.1%.
+5. Confirmed: 3,045 against about 3,037.
+6. Confirmed: founders and trickle percentages unchanged.
+
+`KNOWN_ROUTE_GAPS` is empty; every route holds every claim. Gas accounts on the campaign route fall
+from about 1,430 to 1,360, and 1,685 electricity accounts remain (65 fewer, the gas-only split
+wins). **The finding is closed by this change.**

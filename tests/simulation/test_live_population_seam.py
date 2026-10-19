@@ -580,9 +580,15 @@ def test_the_growth_mandate_adds_WON_accounts_on_top_of_the_drawn_cohort(monkeyp
     assert all(c["commodity"] in ("electricity", "gas") for c in won)
     elec_ids = {c["customer_id"] for c in won if c["commodity"] == "electricity"}
     gas = [c for c in won if c["commodity"] == "gas"]
-    assert gas, "no won home took a gas leg; the book is single-fuel again"
-    assert all(g["customer_id"][:-1] in elec_ids for g in gas), (
+    legs = [g for g in gas if g["customer_id"].endswith("g")]
+    assert legs, "no won home took a gas leg; the book is single-fuel again"
+    assert all(g["customer_id"][:-1] in elec_ids for g in legs), (
         "a gas leg with no electricity account beside it is not a dual-fuel household")
+    # SPLIT HOMES, 2026-10-19: a won gas home is dual at P(dual | gas) and otherwise one account.
+    # A gas-only win is the home's own id with no electricity account beside it.
+    gas_only = [g for g in gas if not g["customer_id"].endswith("g")]
+    assert gas_only and not {g["customer_id"] for g in gas_only} & elec_ids, (
+        "no won home is gas-only, or a gas-only win also holds electricity: every gas win dual again")
 
 
 def test_the_growth_mandate_OFF_is_byte_identical_to_the_draw_alone(monkeypatch):
