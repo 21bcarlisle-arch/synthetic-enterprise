@@ -211,3 +211,54 @@ wins added the rest. Grade and figures:
 `SEAT_PREREG_WHY_THE_SWITCH_KEY_LOST_ITS_2023_WHOLE_BOOK_CLEARANCE_ON_THE_DUAL_BOOK_2026-10-19.md`.
 No supplier build is filed. The instrument change (grade the key within segment) is
 `docs/staging/WORKER_FINDING_THE_SWITCH_KEYS_WHOLE_BOOK_GAIN_OVER_FLAT_WAS_TWO_THIRDS_FLATS_OWN_INVERTED_GAS_SEGMENT_2026-10-19.md`.
+
+## 8. Grade, 2026-10-19 (seat): C35 and C34
+
+**Instrument.** `tools.decision_probe` at `8b6fea024` (worktree `/var/tmp/probe-8b6fea024`, whose
+later commits are salvage commits of `docs/context-handshake-latest.md` only, so no code is touched),
+written to `/var/tmp/dualgrade/probe_8b6fea024.json`. Then `tools.retention_rise_count` on that probe
+and `run_output_8b6fea024_20261019T033010Z.json`, without and with `--per-household`.
+
+| | renewal rows | decisions | rescued / cases | by effect | no default | rise our side needs | needs no rise | kept (median) |
+|---|---|---|---|---|---|---|---|---|
+| off, full window | 182 | 182 | 144 / 546 | 49 / 49 / 46 | 294 | 105 | 3 | 0.345 |
+| off, cut year | 182 | 182 | 144 / 546 | 49 / 49 / 46 | 294 | 106 | 2 | 0.310 |
+| on, full window | 182 | **182** | 144 / 546 | 49 / 49 / 46 | 294 | 105 | 3 | 0.345 |
+| on, cut year | 182 | **182** | 144 / 546 | 49 / 49 / 46 | 294 | 106 | 2 | 0.310 |
+
+**Off and on are identical, and the reason was not foreseen.** Of the 182 rows, 178 are electricity
+and 4 are gas. All 4 gas rows belong to opening founders (`SYN-2016-009`, `-163`, `-332`), and none
+belongs to a dual household's gas leg. 129 of the 178 electricity rows are dual households whose gas
+leg is absent. No `(billing_account, term_start)` group holds two rows. The probe writes a row only
+when the world calls `roll_lifecycle_event`, and **the world draws a dual household's renewal once,
+on electricity** (the 18 Oct worker finding §5). The run's whole lifecycle stream agrees: 370
+electricity events against 13 gas, and no `…g` id among them. So on this book the C35 instrument
+sees each dual household once, through its electricity leg's margin and headroom only. The gas leg's
+margin and its headroom under the gas default are missing. **This is not a per-household count. It
+is a per-household decision costed on one leg.** Filed as
+`docs/staging/SEAT_FINDING_THE_DECISION_PROBE_SEES_A_DUAL_HOUSEHOLD_ONLY_THROUGH_ITS_ELECTRICITY_LEG_SO_C35_PER_HOUSEHOLD_MERGES_NOTHING_2026-10-19.md`.
+
+- **C1 (per leg: rows 220–320; pre-2019 share 40–60%; rescued 22–35% of cases; from 2019, more
+  rescued than the old 57%): rows WRONG, the rest HELD in number.** There are 182 rows, below the
+  range. I scaled rows with supply points, and a dual household's gas leg is not a row (above). The
+  pre-2019 share is 98/182 = 54%. Rescued is 144/546 = 26%. From 2019 the rate is 144/252 = 57.1%,
+  against the old 56.7%. That is "more" by 0.4 pt, which is noise, and **the reason I gave is
+  refuted**: gas headroom cannot lower refusals when no dual gas leg is in the instrument.
+- **C2 (decisions 0.55–0.60 × rows; rescued on/off 0.60–0.80): WRONG.** Both are 1.00. The
+  instrument has no pair to merge.
+- **C3 (kept on within −0.05…+0.02 of off; off within ±0.08 of 0.40): HELD on full window, WRONG
+  on cut year.** On equals off exactly, but vacuously. Off is 0.345 on the full window (−0.055) and
+  0.310 on the cut year (−0.090, outside).
+- **C4 (rescued differs by ≤10 between hazard ends): HELD.** The difference is 0, as on the old book.
+- **C5 (no "two hazards" or "two estimates" refusals; one leg renewing alone in ≤10% of dual
+  groups): HELD, but vacuous.** No group was merged.
+- **J1 (C34's floor refuses ≥97% of cases, off and on): HELD.** 546 − 0 − 3 = 543, which is 99.5%.
+- **J2 (needs no rise ≤3% off, ≤5% on): HELD.** 3/546 = 0.5% on both.
+- **J3 (no refusals on the household floor): HELD.** None appear.
+
+**What the 1%-dual wrong row is re-taken to.** C35 on the dual book reads **144/546 rescued at both
+hazard ends** (old 211/780). C34's floor refuses 543/546 (old 777/780). Both are now **costed on the
+electricity leg of each dual household**, so they are not yet a household reading. The per-household
+switch cannot be graded on this instrument until the probe writes the gas leg beside its electricity
+roll. Honest counts from `/var/tmp/retention_rise/per_renewal.py`: rescued with the rise actually
+billed 91/182 (g=2, c=0.1 pt, module), all electricity.
