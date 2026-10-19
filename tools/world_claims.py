@@ -71,12 +71,7 @@ ROUTES = ("founders", "trickle", "campaign")
 #: this, so fixing one forces its removal and a new one cannot appear unseen. The founders' route is
 #: the gate and has no entry. The trickle is about 30 homes over the eight seeds, so a trickle verdict
 #: is a coarse check, not a precise one.
-KNOWN_ROUTE_GAPS = {
-    ("campaign", "dual_share_of_gas_homes"):
-        "docs/staging/SEAT_FINDING_THE_FUEL_CLAIMS_ARE_MEASURED_ON_THE_FOUNDERS_ONLY_AND_THE_"
-        "CAMPAIGN_ROUTE_WINS_EVERY_GAS_HOME_DUAL_2026-10-19.md -- `_gas_leg_for` makes every won "
-        "gas home dual (100.0%), so no campaign win is a split home",
-}
+KNOWN_ROUTE_GAPS: dict = {}
 
 
 def route_gaps(route: str, results: list[dict]) -> set:

@@ -125,6 +125,29 @@ challenger, and a challenger's book is built of switchers.
 | | P(home has a gas meter) | **0.86** | 0.84–0.86 | EHS AT3.5; DESNZ 2024 |
 | A home with no gas | electricity only | 1.0 | — | by construction |
 
+**The campaign is the third route, and until 19 Oct it did not bear this shape.** It quoted every
+prospect for electricity, then `_gas_leg_for` added a gas leg to every won home with a gas meter. So
+100.0% of its won gas homes were dual, measured over 1,750 homes and 8 seeds
+(`tools/world_claims.py`). Every published book in §5 has split homes; none is 1.0. A campaign win
+now takes its fuel from the same coin as a founder or a trickle arrival
+(`population_draw.fuel_arrangement`), drawn on the won home's own premise:
+
+- **dual** (0.90 of gas homes): electricity and gas, one household, two supply points `X` and `Xg`;
+- **split, electricity with us** (half the remainder): the electricity account only, and the home's
+  gas stays with a rival;
+- **split, gas with us** (the other half): the gas account only, under the home's own id `X`, as a
+  gas-only founder is.
+
+*Why both fuels and not electricity alone.* The campaign's quote is drawn as electricity because
+the prospect draw needs a fuel to draw an EAC. But the win does not read the fuel: the funnel
+decides on the credit check, the price differential and the prospect's own elasticity, none of
+which is per fuel. So a gas-only win is no less consistent with the quote than an
+electricity-only one, and the published split (CMA PF ¶9: about 4m split electricity against 4m
+gas-only) is even. Making every split win electricity-only would give the campaign no gas-only
+accounts. That is the same "always" shape this change removes, only on the other fuel. **GAP:** no
+published figure says which fuel a one-fuel switcher moves (§4, Ofgem 2017 gives no fuel), so the
+even split is the market stock's shape applied to switchers.
+
 **Corrected the same day:** a first draft of this page gave the founders the market-wide 0.83
 ("a held book"), and called the challenger split a GAP. The advisor's supplier-accounts research,
 landed at 10:03 UTC, fills that gap, and the founders now take the challenger shape. The
@@ -133,8 +156,9 @@ pre-registration records both.
 ## 5b. What the drawn world is checked against
 
 These are the figures above, stated as claims the drawn book must bear. `tools/world_claims.py`
-reads this block and measures the founders the production draw makes at the production founder
-count, pooled over eight seeds (about 1,700 homes). A claim outside its band fails
+reads this block and measures each route into the book (founders, trickle, campaign) as the
+production draw makes it, pooled over eight seeds (about 1,700 homes for the founders and for the
+campaign, about 30 for the trickle). A claim outside its band fails
 `tests/tools/test_world_claims.py`, and it is printed in the Monday step. Each band is the published
 range, widened by 3 sd of sampling noise at that pool size (about 2 to 2.5 points). Change a figure
 here and the check moves with it. This block is the only place the band is written.
