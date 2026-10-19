@@ -71,3 +71,21 @@ read. If the run is not read, they stay ungraded here, and this file says so.
   licence to switch it on.
 - **P1 two-leg count near 0.** The riding-leg join would not be reaching the gas leg, which is the
   same instrument defect `608c0d0fa` fixed in the probe.
+
+## Grade, 2026-10-19 (build commit; short window to 2017-06-30, CURRENT_POLICY, fixed seed)
+
+- **O1 held.** The off arm at the build's code and a run at its parent (`c52f83113`, the same code as
+  `ab169e127`) give run-output JSON that is identical byte for byte (`cmp`), stamps included.
+- **On moves no world quantity.** The on arm equals the off arm in every one of the 96 top-level
+  keys, apart from the new `next_best_action_renewal_log`.
+- **D1 held.** The log holds 96 rows: 32 households × 3 effects. 1 row is advised: `PROS-2016-0170`,
+  a two-leg household at £38.19/month and h = 0.034, under (£2, 0.3 pt). 95 rows are refused by the
+  floor, with the stated reason, and 0 are unscored.
+- **13 of the 32 households carry two legs.** That equals the 13 riding gas legs the probe wrote in
+  the same window (`608c0d0fa`).
+- **A defect found on the first on-arm run, and fixed before landing.** When a household declined
+  the fix, the engine withdrew that term and spliced default-tariff segments on the same start. The
+  splice passed the hook again, so 8 gas legs joined twice (`legs: 3`) and their margin counted
+  twice. Now the first observation of each leg stands, because the notice carries the fix as first
+  offered. A control covers this, and both of its guards were mutated red.
+- **P1–P4 are not graded.** They need the full on-arm run of the 19 Oct book.
