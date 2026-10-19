@@ -35,3 +35,22 @@ That is a harness change and needs no world change. It is not built here. **Next
 builds it pre-registers the on-against-off difference first, using the prediction in
 `SEAT_PREREG_SWITCHING_NBA_PER_HOUSEHOLD_ON_THE_STANDING_POLICY_CHANGES_NO_DECISION_IN_ANY_RUN_2026-10-19.md`
 (N3).
+
+## Built, 2026-10-19 (seat, claim `the-decision-probe-writes-a-dual-households-gas-leg-at-its-electricity-roll`)
+
+**The fix needed one correction.** The gas leg's offer is not held at the electricity roll. The run
+pops terms in `(term_start, cid)` order, and `X` sorts before `Xg`, so the gas leg is priced *after*
+the roll. So the probe records the electricity row at the roll. When the same account's gas leg is
+priced on that start, it writes the gas leg's row there (`riding_leg_row`, marked `rides_on`). The
+row carries its own offers, base, volume and stayer's bill. It takes the world's P(stay) from the
+electricity row, because the world draws the household's departure on that leg alone.
+
+**What it cannot cover.** A household that leaves at the electricity roll never prices its gas leg,
+so per household reads only the dual households that stayed on the reference path. At `8b6fea024`
+that was 77 of 129. Short window to 2017-06-30: 47 rows, of which 13 are riding gas legs.
+
+The printed scores stay over the rolled legs only. Controls are in
+`tests/tools/test_the_decision_probe_writes_a_dual_households_gas_leg_beside_its_roll.py`, plus a
+wiring leg in the reference-run test. A mutation that never writes the riding row turns that test
+red. Pre-registration and grade:
+`docs/staging/records/SEAT_PREREG_THE_DECISION_PROBE_WRITES_A_DUAL_HOUSEHOLDS_GAS_LEG_AND_C35_PER_HOUSEHOLD_MERGES_2026-10-19.md`.

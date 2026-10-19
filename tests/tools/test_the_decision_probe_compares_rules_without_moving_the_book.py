@@ -63,6 +63,13 @@ def test_the_probe_leaves_the_reference_run_exactly_as_a_plain_run_leaves_it():
     plain_events = sorted((e["customer_id"], e["event_date"], e["event_type"])
                           for e in plain["customer_events"] if isinstance(e, dict))
     assert dp.LAST_REFERENCE_EVENTS == plain_events
+    # A dual household's gas leg is priced after its electricity roll and never rolled: the probe
+    # must write it beside that roll, or C34/C35 per household has no pair to merge.
+    rolled = {(r["billing_account"], r["term_start"], r["customer_id"]) for r in rows
+              if not r.get("rides_on")}
+    riding = [r for r in rows if r.get("rides_on")]
+    assert riding, "no dual household's gas leg was written beside its electricity roll"
+    assert all((r["billing_account"], r["term_start"], r["rides_on"]) in rolled for r in riding)
 
 
 def test_the_blind_rule_strips_arguments_the_pricing_door_really_takes():

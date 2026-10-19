@@ -124,6 +124,10 @@ def probe(report_end: str | None = None, roll_seed: int | None = None) -> list[d
 
     offers: dict[tuple, dict] = {}
     rows: list[dict] = []
+    # (billing account, term start) -> the electricity row just written and the household's own
+    # records, for the leg that rides on that roll. A household that left at the roll never prices
+    # its other leg, so its entry is never taken: per household is read over households that stayed.
+    rolled_legs: dict[tuple, tuple] = {}
     # The run loop asks through the typed record since 2026-10-12 (`decide_renewal`), so the probe
     # wraps that door and varies the record, not a keyword dict.
     real_price, real_roll = runner.decide_renewal, runner.roll_lifecycle_event
@@ -152,7 +156,7 @@ def probe(report_end: str | None = None, roll_seed: int | None = None) -> list[d
                     at_level = real_price(inputs)
                 levels[level] = at_level.unit_rate_gbp_per_mwh
                 believed_at_level[level] = _believed(at_level)
-            offers[(inputs.customer_id, inputs.term_start[:10], inputs.commodity)] = {
+            held = {
                 "billing_account": inputs.billing_account,
                 "base_gbp_per_mwh": float(inputs.struck_unit_rate_per_mwh)
                 - TARGET_MARGIN_GBP_PER_MWH,
@@ -177,6 +181,19 @@ def probe(report_end: str | None = None, roll_seed: int | None = None) -> list[d
                 # measured per decision. None where the arm declined or did not price.
                 "believed_p_retain": _believed(value),
             }
+            key = (inputs.billing_account, inputs.term_start[:10])
+            if inputs.commodity != "electricity" and key in rolled_legs:
+                # A LEG THAT RIDES ON ITS HOUSEHOLD'S ELECTRICITY ROLL. The world draws a dual
+                # household's renewal once, on electricity, which sorts first at one term start,
+                # so this leg is priced AFTER that roll and is never rolled itself. Written here,
+                # beside the row it rides on, so C34/C35 per household has the pair to merge.
+                elec_row, household_records = rolled_legs.pop(key)
+                rows.append(riding_leg_row(
+                    elec_row, held, inputs.customer_id, inputs.term_start[:10], inputs.commodity,
+                    _annual_mwh(household_records, inputs.customer_id, inputs.commodity,
+                                inputs.term_start)))
+            else:
+                offers[(inputs.customer_id, inputs.term_start[:10], inputs.commodity)] = held
         return result
 
     def rolled(cid, term_start_str, commodity, records=None, customers=None, **kw):
@@ -225,6 +242,8 @@ def probe(report_end: str | None = None, roll_seed: int | None = None) -> list[d
                                                         held["declinable"]), 4)}
                            for lv, o in held["levels"].items()},
         })
+        if commodity == "electricity":
+            rolled_legs[(held["billing_account"], term_start_str[:10])] = (rows[-1], records)
         return event
 
     runner.decide_renewal, runner.roll_lifecycle_event = priced, rolled
@@ -285,6 +304,38 @@ def probe(report_end: str | None = None, roll_seed: int | None = None) -> list[d
         # keeping them is worth beyond this term. An estimate, scored as a range, never alone.
         r["reference_renewals_after"] = later[k] - seen[k]
     return rows
+
+
+def riding_leg_row(elec_row: dict, held: dict, cid: str, term_start: str, commodity: str,
+                   annual_mwh: float | None) -> dict:
+    """The row of a leg priced at its household's renewal but never rolled: its own offers, base,
+    volume and stayer's bill, with the world's P(stay) taken from the electricity row it rides on.
+    That is the world's own rule, not a stand-in for one: the household's departure is drawn on the
+    electricity leg at that leg's offer, so under each rule this leg is kept exactly when the
+    household is. The world's decline-a-fix rule does reach this leg, so its stayer's bill is
+    its own."""
+    return {
+        "customer_id": cid, "billing_account": held["billing_account"],
+        "term_start": term_start, "commodity": commodity, "annual_mwh": annual_mwh,
+        "rides_on": elec_row["customer_id"],
+        "base_gbp_per_mwh": round(held["base_gbp_per_mwh"], 4),
+        "offer_gbp_per_mwh": {k: round(v, 4) for k, v in held["offer"].items()},
+        "stayer_pays_gbp_per_mwh": {
+            k: round(stayer_pays(v, term_start, commodity, held["declinable"]), 4)
+            for k, v in held["offer"].items()},
+        "true_p_retain": dict(elec_row["true_p_retain"]),
+        "old_rate_gbp_per_mwh": None,
+        "learned_delta": held["learned_delta"],
+        "believed_p_retain_value": held["believed_p_retain"],
+        "believed_p_retain_capped": held["believed_p_retain_capped"],
+        "believed_p_retain_capped_learned": held["believed_p_retain_capped_learned"],
+        "level_grid": {str(lv): {"offer": round(o, 4),
+                                 "p": elec_row["level_grid"][str(lv)]["p"],
+                                 "believed": held["believed_at_level"][lv],
+                                 "paid": round(stayer_pays(o, term_start, commodity,
+                                                           held["declinable"]), 4)}
+                       for lv, o in held["levels"].items()},
+    }
 
 
 def term_bad_debt_shares(rows: list[dict], bills: list[dict], write_offs: dict) -> None:
@@ -550,9 +601,13 @@ def main(argv=None) -> int:
     if refusal:
         print(f"REFUSED: {refusal}")
         return 2
+    # The scores below stay over the legs the world rolls, as they were before a riding leg was a
+    # row, so a run's score is comparable across that change. The riding legs are in `rows`.
+    rows, all_rows = [r for r in rows if not r.get("rides_on")], rows
     level = value_median_margin(rows)
     levelled = with_level(rows, level) if level is not None else []
-    result = {"rows": rows, "book_seed": args.book_seed,
+    result = {"rows": all_rows, "riding_legs": len(all_rows) - len(rows),
+              "book_seed": args.book_seed,
               "value_median_margin_gbp_per_mwh": level,
               "score_value_vs_flat": {
                   "margin_only": score(rows, bad_debt=False),
