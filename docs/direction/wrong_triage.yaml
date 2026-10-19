@@ -411,3 +411,14 @@ items:
     fate: accept
     reason: These chains are one-off /var/tmp scripts, the same class as a-hand-written-driver-is-not-checked-against-the-api.
       None has run since 2026-10-13, and a checker for ad-hoc chains would cost more than every instance so far.
+  - id: a-killed-seat-leaves-no-trace-in-its-own-log
+    problem: A seat killed by the host leaves no trace in delivery-seat-log.md, and one orientation's stretch-log entry never reached origin.
+    match:
+    - a seat killed by the host leaves no trace
+    first_seen: '2026-10-16'
+    fate: accept
+    owner: ''
+    reason: 'The harm was a seat record stranded off origin, and the brief now reports that at every orientation
+      (seat_commit_not_on_origin). A killed seat with nothing committed loses nothing. There has been one instance,
+      19855ded on 16 Oct, and twelve stretches since with none. Accepted 2026-10-20 by the delivery seat; reopen
+      on a second stranded seat commit the brief fails to name.'
