@@ -541,7 +541,8 @@ def member(seed: int, founders: int, out: Path, shape: str = "all_wins",
     camp = getattr(lp, "LAST_CAMPAIGN", {}) or {}
     meta = {
         "seed": seed, "run_base_seed": lp._RUN_BASE_SEED, "foreign_seed": foreign,
-        "founders": founders, "sample_rate": camp.get("settlement_sample_rate"),
+        "founders": founders, "founder_unit": lp.founder_unit(),
+        "sample_rate": camp.get("settlement_sample_rate"),
         "shape": shape, "budget_customer_years": SHAPES[shape]["budget"],
         "policy": run_policy.name,
         "retention_offers": len(run_output["phase2b"].get("retention_log") or []),
@@ -876,7 +877,8 @@ def main(argv: list[str] | None = None) -> int:
         founders = {r["customer_id"] for r in lp.founder_book(lp._DEFAULT_BASE_SEED)}
         mix = mix_of_report(json.loads(args.report.read_text(encoding="utf-8")), founders,
                             args.wins_scale)
-        mix.update(source=args.source, founder_accounts=lp.founder_accounts())
+        mix.update(source=args.source, founder_accounts=lp.founder_accounts(),
+                   founder_unit=lp.founder_unit())
         args.out.write_text(json.dumps(mix, indent=1), encoding="utf-8")
         print(json.dumps(mix))
         return 0

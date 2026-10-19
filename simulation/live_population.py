@@ -810,7 +810,7 @@ def _campaign_key(seed: int) -> tuple:
     # The two responsiveness switches (director, 2026-10-08) change WHICH prospects win, so a
     # campaign resolved under one arm must not be handed back under another in the same process.
     return (seed, tuple(sorted(served_segments())), draw_population_enabled(), founder_accounts(),
-            acquisition_selects_on_own_responsiveness(), sensitivity_level_draw())
+            founder_unit(), acquisition_selects_on_own_responsiveness(), sensitivity_level_draw())
 
 
 #: The founder-book curriculum file. R13: the number lives in a director-authored artefact, not
@@ -825,8 +825,36 @@ FOUNDER_BOOK_PATH = Path(__file__).resolve().parent.parent / "docs" / "design" /
 FOUNDER_ACQUISITION_YEAR = 2016
 
 
+#: The two units `founder_accounts` can be counted in. `supply_points` is the meaning the number
+#: has always had (a dual-fuel home is two); `households` counts a dual-fuel home once, which is
+#: the director's 2026-10-19 16:37 ruling ("founders are households, if memory allows"). The
+#: YAML's `founder_unit` picks one; absent or unrecognised reads as `supply_points`, so a typo
+#: leaves the book the size it was rather than nearly doubling it.
+FOUNDER_UNITS = ("supply_points", "households")
+
+
+def _founder_book_yaml() -> Optional[dict]:
+    try:
+        import yaml
+
+        loaded = yaml.safe_load(FOUNDER_BOOK_PATH.read_text(encoding="utf-8"))
+    except Exception:
+        return None
+    return loaded if isinstance(loaded, dict) else None
+
+
+def founder_unit() -> str:
+    """What `founder_accounts()` counts: `supply_points` (default) or `households`."""
+    loaded = _founder_book_yaml() or {}
+    unit = loaded.get("founder_unit", FOUNDER_UNITS[0])
+    return unit if unit in FOUNDER_UNITS else FOUNDER_UNITS[0]
+
+
 def founder_accounts() -> int:
     """How many accounts the supplier launches holding. Director's number, or the roster's size.
+
+    IN `founder_unit()`'S UNIT, and so are both bounds and the roster it is floored at: the
+    roster is 18 supply points in 13 homes, so a households book of 400 holds 387 drawn homes.
 
     FAILS TOWARD THE ROSTER, NEVER TOWARD ZERO. An unreadable, malformed or out-of-range file
     leaves the opening book exactly as it was before the curriculum act -- the hand-authored
@@ -835,14 +863,9 @@ def founder_accounts() -> int:
     """
     # The WORLD's roster (2026-08-30): this value sizes the world's opening book, and a
     # fallback that shrank with the segment dial would move the draw with it.
-    roster = len(_STATIC_ROSTER)
-    try:
-        import yaml
-
-        loaded = yaml.safe_load(FOUNDER_BOOK_PATH.read_text(encoding="utf-8"))
-    except Exception:
-        return roster
-    if not isinstance(loaded, dict):
+    roster = _founder_roster_size()
+    loaded = _founder_book_yaml()
+    if loaded is None:
         return roster
     wanted = loaded.get("founder_accounts")
     lo = loaded.get("min_founder_accounts", roster)
@@ -936,10 +959,11 @@ def _drawn_founder_pairs(seed: int) -> "List[tuple]":
                 continue
             home.append((leg, premise))
         homes.append(home)
-    return _founders_spread_through_the_year(homes, wanted)
+    return _founders_spread_through_the_year(homes, wanted, by_home=founder_unit() == "households")
 
 
-def _founders_spread_through_the_year(homes: List[List[tuple]], wanted: int) -> List[tuple]:
+def _founders_spread_through_the_year(homes: List[List[tuple]], wanted: int,
+                                      by_home: bool = False) -> List[tuple]:
     """Exactly `wanted` records, taken a WHOLE HOME at a time, spread through the year.
 
     SPREAD THROUGH THE YEAR, NOT TRUNCATED TO ITS START (2026-10-03). The stream is in DATE order,
@@ -953,8 +977,13 @@ def _founders_spread_through_the_year(homes: List[List[tuple]], wanted: int) -> 
     home joins when its records still fit. A dual home that would overshoot by one is passed over
     for a later single-fuel one, so the director's number is met exactly. Deterministic, no
     random stream consumed.
+
+    `by_home` makes `wanted` a number of HOMES (founder_unit `households`): each home weighs one
+    whatever its fuels, so the same walk takes exactly `wanted` homes and no dual home is passed
+    over for fitting.
     """
-    total = sum(len(h) for h in homes)
+    size = (lambda h: 1) if by_home else len
+    total = sum(size(h) for h in homes)
     if total <= wanted:
         return [pair for h in homes for pair in h]
     n = len(homes)
@@ -965,9 +994,9 @@ def _founders_spread_through_the_year(homes: List[List[tuple]], wanted: int) -> 
     taken: set = set()
     count = 0
     for i in order:
-        if count + len(homes[i]) <= wanted:
+        if count + size(homes[i]) <= wanted:
             taken.add(i)
-            count += len(homes[i])
+            count += size(homes[i])
         if count == wanted:
             break
     return [pair for i in sorted(taken) for pair in homes[i]]
@@ -1002,7 +1031,7 @@ def founder_book(seed: int) -> List[dict]:
     the segment choice is applied once, at the company's book, in `live_population`.
     """
     static = list(_STATIC_ROSTER)
-    if founder_accounts() <= len(static):
+    if founder_accounts() <= _founder_roster_size():
         return static
     # GATED ON THE DRAW, and here rather than at each call site so the two sides of the book
     # cannot disagree again. Drawn founders come out of `population_draw.iter_acquisition_events`
@@ -1026,7 +1055,13 @@ def _founder_roster_size() -> int:
     UNFILTERED SINCE 2026-08-30. Counting the SERVED roster here made the top-up size a function
     of the segment dial: suspend a segment, the roster shrinks, `wanted` grows, and the world
     draws a different set of founders. That is the dial reaching into the draw.
+
+    IN `founder_unit()`'S UNIT: 18 supply points, or the 13 homes they belong to.
     """
+    if founder_unit() == "households":
+        from simulation.household import household_of
+
+        return len({household_of(r["customer_id"]) for r in _STATIC_ROSTER})
     return len(_STATIC_ROSTER)
 
 

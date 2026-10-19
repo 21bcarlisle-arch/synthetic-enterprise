@@ -278,3 +278,48 @@ def test_the_curriculum_file_records_who_decided_and_when():
     assert loaded["decided_by"] == "director"
     assert loaded["decided_on"] == "2026-10-08"
     assert isinstance(loaded["version"], int)
+
+
+# ── the unit the number counts (director, 2026-10-19 16:37: "founders are households") ──────
+
+def _book_in(monkeypatch, tmp_path, body: str) -> list:
+    path = tmp_path / "FOUNDER_BOOK.yaml"
+    path.write_text(body, encoding="utf-8")
+    monkeypatch.setattr(lp, "FOUNDER_BOOK_PATH", path)
+    return lp.founder_book(SEED)
+
+
+def test_a_households_book_holds_exactly_that_many_homes_counting_the_rosters_own(
+        monkeypatch, tmp_path):
+    """Fires on: the draw or the spread still counting records under `households`, which fills
+    80 supply points (fewer than 80 homes), and on the roster being counted as 18 rather than
+    its 13 homes. The supply-point arm is asserted beside it so a unit that is never read cannot
+    pass by both arms meaning the same thing."""
+    from simulation.household import household_of
+
+    body = "founder_accounts: 80\nmin_founder_accounts: 13\nmax_founder_accounts: 500\n"
+    by_record = _book_in(monkeypatch, tmp_path, body)
+    by_home = _book_in(monkeypatch, tmp_path, body + "founder_unit: households\n")
+    assert lp.founder_unit() == "households" and lp._founder_roster_size() == 13
+    homes = {household_of(r["customer_id"]) for r in by_home}
+    assert len(homes) == lp.founder_accounts() == 80
+    assert len(by_home) > 80, "no dual-fuel home was drawn -- the unit has nothing to tell apart"
+    assert {r["customer_id"] for r in lp._STATIC_ROSTER} <= {r["customer_id"] for r in by_home}
+    assert len(by_record) == 80
+    assert len({household_of(r["customer_id"]) for r in by_record}) < 80
+
+
+def test_an_unrecognised_unit_reads_as_supply_points_never_as_households(monkeypatch, tmp_path):
+    """A typo must leave the book the size it was, not nearly double it."""
+    for unit in ("household", "homes", "1", "[households]"):
+        _book_in(monkeypatch, tmp_path, f"founder_accounts: 40\nfounder_unit: {unit}\n")
+        assert lp.founder_unit() == "supply_points", unit
+    _book_in(monkeypatch, tmp_path, "founder_accounts: 40\n")
+    assert lp.founder_unit() == "supply_points"
+
+
+def test_a_households_number_below_the_rosters_homes_keeps_the_roster(monkeypatch, tmp_path):
+    book = _book_in(monkeypatch, tmp_path, "founder_accounts: 5\nmin_founder_accounts: 1\n"
+                                           "founder_unit: households\n")
+    assert lp.founder_accounts() == 13
+    assert [r["customer_id"] for r in book] == [r["customer_id"] for r in lp._STATIC_ROSTER]

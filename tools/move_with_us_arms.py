@@ -45,8 +45,8 @@ def run_arm(arm: str, out: Path, k: float | None, founders: int | None, budget: 
 
     # THE BOOK SIZE IS PATCHED BEFORE THE RUN MODULE IS IMPORTED: `run_phase2b` builds its roster
     # at import, so patching after it draws dwellings for one book and supplies another.
+    import simulation.live_population as lp
     if founders is not None:
-        import simulation.live_population as lp
         lp.founder_accounts = lambda: founders  # noqa: E731 -- this process only
     if budget is not None:
         import simulation.net_new_acquisition as nna
@@ -68,7 +68,8 @@ def run_arm(arm: str, out: Path, k: float | None, founders: int | None, budget: 
                            gap_ledger_path=Path(scratch) / "gap_ledger.json")
     summary = {
         "arm": arm, "head": head, "take_up_scale": k if arm == "on" else None,
-        "founders": founders, "budget": budget, "seconds": round(time.time() - t0, 1),
+        "founders": founders, "founder_unit": lp.founder_unit(), "budget": budget,
+        "seconds": round(time.time() - t0, 1),
         "total_net": result.get("total_net"), "total_gross": result.get("total_gross"),
         "final_treasury": result.get("final_treasury"),
         "account_state": [{key: a.get(key) for key in _STATE_KEYS}

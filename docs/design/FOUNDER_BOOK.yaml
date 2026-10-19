@@ -86,3 +86,13 @@ founder_accounts: 400
 #: is Option 4 of the priced menu and was not chosen.
 min_founder_accounts: 13
 max_founder_accounts: 500
+
+#: WHAT THE NUMBER COUNTS. `supply_points` (today's meaning: a dual-fuel home is two) or
+#: `households` (a dual-fuel home is one; the roster's 18 supply points are 13 homes). The two
+#: bounds above are read in the same unit. Absent or unrecognised reads as `supply_points`.
+#: Director, 2026-10-19 16:37: founders are households, "if memory allows". It fits
+#: (docs/staging/records/SEAT_PREREG_WHAT_400_FOUNDER_HOUSEHOLDS_COST_IN_MEMORY_AND_TIME_MEASURED_ON_SMALL_BOOKS_2026-10-19.md),
+#: but 400 households is 689 supply points at the run's seed, and their committed years exhaust
+#: the 5,000 settlement budget alone, so the switch waits on his answer to the for_the_director
+#: row `your-400-household-founder-ruling-fits-in`. Switching is this one word.
+founder_unit: supply_points
