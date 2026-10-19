@@ -106,6 +106,20 @@ window, start at `void_end`. The void starts on the move date, so the SLC 24.1 t
 gave no notice is not modelled. No cash arrives for the void charge: the supplier has no landlord
 record to bill (back_billing_and_liability.md s.9.5). It is not collected as a named payer's bill.
 
+A SOLE OCCUPANT'S DEATH (B7 slice (e)1, `household_composition_change_b7.md` §5-§6)
+--------------------------------------------------------------------------------
+The other credit exit. It is not a move: the counterparty is not gone away but named (the estate),
+so the move-out's gone-away leg does not apply, and the exit is ONE credit exit plus ONE deemed
+entry (whoever lives there next), not two. `draw_sole_occupant_death` draws it, on its own
+`sole_occupant_death` and `death_date` substreams, only for a home the world holds as one person
+with a pensioner present. The hazard is ONS mortality at 65-74 and 75+, weighted by the age mix of
+people who live alone (`SOLE_OCCUPANT_DEATH_HAZARD_BY_YEAR`). Two things stay GAPs and are carried,
+not filled: the share of estates that leave the final bill unpaid (`insolvent_share` is None with
+its reason, and the move-out's 0.12 is not borrowed), and when the next occupant arrives (the
+incoming start is None, as a move's is). NOT YET IN THE RUN: nothing calls this, so it is
+FAIL-SILENT until the wiring slice, which needs the estate's final bill and the empty home billed
+to a named payer, not booked as occupier debt (§5, choices 1(b)-(c)).
+
 WALL. Everything here is ground truth. The move date, the occupancy ids and the void are exactly
 what a supplier cannot see; the seam that will let the company see the shadows (a final read, a
 cancelled DD, settled volume at a premise with nobody contracted) is a later slice.
@@ -139,7 +153,8 @@ NAMESPACE = "customer_state"
 
 #: Every substream this layer may draw from. Adding a name must leave every other stream's draws
 #: byte-identical — the key includes the name, so it does.
-SUBSTREAMS: tuple[str, ...] = ("move_hazard", "move_date", "move_destination", "incoming_occupant")
+SUBSTREAMS: tuple[str, ...] = ("move_hazard", "move_date", "move_destination", "incoming_occupant",
+                               "sole_occupant_death", "death_date")
 
 #: The legal relationship both entries start on. Not a product label: the PRODUCT a deemed arrival
 #: is priced on is `ARRIVAL_DEFAULT_TARIFF_TYPE` (see `simulation/arrival_route.py` on why that
@@ -314,6 +329,118 @@ def account_move_out(customer: Optional[dict], supply_start: dt.date, supply_end
     return first_move_out(Occupancy.of_customer(cid, tenure_for_customer(cid)),
                           supply_start, supply_end, base_seed)
 
+
+
+#: Annual probability that a sole occupant aged 65 or over dies, by registration year.
+#: DERIVED, not typed: ONS *Deaths registered in England and Wales: 2025* (annual reference tables,
+#: Table 10 age-specific rates and Table 3 deaths by single year of age). Each band's population is
+#: its deaths over its rate, giving q(65-74) and q(75+); the two are weighted by the people living
+#: alone at 65-74 and 75+ in that year (ONS *Families and households in the UK: 2025*, Table 6).
+#: The derivation and its checks are in `docs/market_research/household_composition_change_b7.md`
+#: §6. A FLOOR, two ways: inside each band, people living alone are older than the band, and the
+#: rates are for everyone, not for those living alone (deaths by living arrangement are a GAP).
+#: 2020 is the record's COVID year, and it is kept.
+SOLE_OCCUPANT_DEATH_HAZARD_BY_YEAR: dict[int, float] = {
+    2016: 0.0492, 2017: 0.0507, 2018: 0.0496, 2019: 0.0487, 2020: 0.0544,
+    2021: 0.0508, 2022: 0.0485, 2023: 0.0479, 2024: 0.0452, 2025: 0.0454,
+}
+
+ESTATE_PAYER = "estate"
+
+ESTATE_INSOLVENT_SHARE_UNKNOWN_REASON = (
+    "no published share of estates that leave an energy final bill unpaid "
+    "(household_composition_change_b7.md §5; debt_and_collections.md P6); the move-out's "
+    "gone-away rate does not apply, because the debtor is named and has not gone away"
+)
+
+REOCCUPATION_UNKNOWN_REASON = (
+    "how long a home stands empty after its sole occupant dies is not established for a rented "
+    "home, and the owner-occupier probate-sale figure is secondary (household_composition_change_b7.md §5)"
+)
+
+
+@dataclass(frozen=True)
+class SoleOccupantDeath:
+    """A credit exit with a named payer, then one deemed entry when someone next lives there."""
+
+    death_date: dt.date
+    ended: OccupancyEnded
+    incoming: OccupancyStarted
+    payer: str = ESTATE_PAYER
+    insolvent_share: Optional[float] = None
+    insolvent_share_unknown_reason: str = ESTATE_INSOLVENT_SHARE_UNKNOWN_REASON
+    data_regime: str = "synthetic"
+
+    @property
+    def transitions(self) -> tuple:
+        return (self.ended, self.incoming)
+
+
+def sole_occupant_death_hazard(year: int) -> float:
+    """The year's hazard. A year outside the record raises: extrapolating mortality is a choice."""
+    if year not in SOLE_OCCUPANT_DEATH_HAZARD_BY_YEAR:
+        raise ValueError(
+            f"no sole-occupant death hazard for {year}: the ONS series read covers "
+            f"{min(SOLE_OCCUPANT_DEATH_HAZARD_BY_YEAR)}-{max(SOLE_OCCUPANT_DEATH_HAZARD_BY_YEAR)}"
+        )
+    return SOLE_OCCUPANT_DEATH_HAZARD_BY_YEAR[year]
+
+
+def is_sole_pensioner_home(people_count: int, pensioner_present: bool) -> bool:
+    """One person, and a pensioner present: the only home whose death ends the occupancy.
+
+    A death in a larger home is a change of account holder, not a credit exit, and is out of scope.
+    """
+    if isinstance(people_count, bool) or not isinstance(people_count, int) or people_count < 1:
+        raise ValueError(f"people_count must be a positive int, got {people_count!r}")
+    if not isinstance(pensioner_present, bool):
+        raise TypeError(f"pensioner_present must be a bool, got {pensioner_present!r}")
+    return people_count == 1 and pensioner_present
+
+
+def draw_sole_occupant_death(occupancy: Occupancy, year: int, base_seed: int, *,
+                             people_count: int, pensioner_present: bool
+                             ) -> Optional[SoleOccupantDeath]:
+    """Whether the sole occupant of `occupancy` dies during `year`, and the two transitions if so."""
+    if not is_sole_pensioner_home(people_count, pensioner_present):
+        return None
+    hazard = sole_occupant_death_hazard(year)
+    key = (occupancy.premise_id, occupancy.occupancy_id, str(year))
+    if _substream(base_seed, "sole_occupant_death", *key).random() >= hazard:
+        return None
+    first = dt.date(year, 1, 1)
+    days_in_year = (dt.date(year + 1, 1, 1) - first).days
+    death_date = first + dt.timedelta(
+        days=_substream(base_seed, "death_date", *key).randrange(days_in_year))
+    # The next occupant's id comes off the same stream a move's incoming occupant does, so a
+    # premise's successor is one identity whichever exit vacated it.
+    return SoleOccupantDeath(
+        death_date=death_date,
+        ended=OccupancyEnded(occupancy.premise_id, occupancy.occupancy_id, death_date),
+        incoming=OccupancyStarted(
+            premise_id=occupancy.premise_id,
+            occupancy_id=_derived_id("OCC", base_seed, "incoming_occupant", *key),
+            starts_no_earlier_than=death_date, start_date=None,
+            start_date_unknown_reason=REOCCUPATION_UNKNOWN_REASON,
+        ),
+    )
+
+
+def first_sole_occupant_death(occupancy: Occupancy, supply_start: dt.date, supply_end: dt.date,
+                              base_seed: int, *, people_count: int, pensioner_present: bool
+                              ) -> Optional[SoleOccupantDeath]:
+    """The death strictly inside (supply_start, supply_end), or None. Same window rule as a move."""
+    if supply_end <= supply_start:
+        raise ValueError(f"empty supply window {supply_start} .. {supply_end}")
+    # `supply_end` is exclusive, so a window ending on 1 January asks nothing of that year, and
+    # must not: the year may lie past the record, where the hazard refuses.
+    last_year = (supply_end - dt.timedelta(days=1)).year
+    for year in range(supply_start.year, last_year + 1):
+        death = draw_sole_occupant_death(occupancy, year, base_seed, people_count=people_count,
+                                         pensioner_present=pensioner_present)
+        if death is not None and supply_start < death.death_date < supply_end:
+            return death
+    return None
 
 
 def unnamed_months_per_move(setting: str = "default") -> float:

@@ -302,3 +302,109 @@ def test_the_incoming_account_is_the_premises_meter_under_a_new_occupancy():
     assert "successor_of" not in record
     assert not {"occupancy_start_unknown_reason", "start_date", "move_date"} & set(record)
     assert gas_leg["customer_id"] == "C9g" and gas_leg["tariff_type"] == "fixed"
+
+
+# ── B7 slice (e)1: a sole occupant's death ───────────────────────────────────────────────────
+
+from sim.customer_state_layer import (  # noqa: E402
+    ESTATE_PAYER,
+    SOLE_OCCUPANT_DEATH_HAZARD_BY_YEAR,
+    draw_sole_occupant_death,
+    first_sole_occupant_death,
+    is_sole_pensioner_home,
+    sole_occupant_death_hazard,
+)
+
+
+def _deaths(year: int = 2020, n: int = N, *, people: int = 1, pensioner: bool = True):
+    return [draw_sole_occupant_death(Occupancy.of_customer(f"D{i}", TenureType.OWNER_OCCUPIER),
+                                     year, 13, people_count=people, pensioner_present=pensioner)
+            for i in range(n)]
+
+
+def test_a_death_can_be_drawn_and_only_a_sole_pensioner_home_can_draw_one():
+    """Defect: an eligibility guard that refuses everything passes every per-death assertion;
+    one that admits everything kills the occupant of a family home and ends their account."""
+    eligible = _deaths()
+    assert any(d is None for d in eligible) and any(d is not None for d in eligible)
+    assert all(d is None for d in _deaths(people=2))
+    assert all(d is None for d in _deaths(pensioner=False))
+
+
+def test_the_drawn_rate_is_the_derived_hazard_within_its_sampling_bound():
+    """Defect: the hazard restated, read from the wrong year, or detached from its table. Graded
+    against the TABLE, not `sole_occupant_death_hazard`: a draw checked against the function it
+    calls agrees with any number that function returns (a 0.0065 mutant passed that way)."""
+    n = 20000
+    for year in (2019, 2020):
+        p = SOLE_OCCUPANT_DEATH_HAZARD_BY_YEAR[year]
+        observed = sum(d is not None for d in _deaths(year, n)) / n
+        assert abs(observed - p) < 4 * math.sqrt(p * (1 - p) / n), year
+
+
+def test_the_hazard_covers_the_run_window_and_refuses_outside_it():
+    """Defect: a year past the ONS series silently borrows a neighbour, or reads zero."""
+    assert set(SOLE_OCCUPANT_DEATH_HAZARD_BY_YEAR) == set(range(2016, 2026))
+    with pytest.raises(ValueError, match="2016-2025"):
+        sole_occupant_death_hazard(2026)
+
+
+def test_the_hazard_is_mortality_per_home_not_the_household_floor():
+    """Defect: the 0.6-0.7% share of ALL households typed in as the per-home hazard (§5 choice 4).
+    And the record's COVID year flattened away."""
+    assert all(0.04 < h < 0.06 for h in SOLE_OCCUPANT_DEATH_HAZARD_BY_YEAR.values())
+    assert max(SOLE_OCCUPANT_DEATH_HAZARD_BY_YEAR, key=SOLE_OCCUPANT_DEATH_HAZARD_BY_YEAR.get) == 2020
+
+
+def test_a_death_is_one_credit_exit_with_a_named_payer_and_one_deemed_entry():
+    death = next(d for d in _deaths() if d is not None)
+    ended, incoming = death.transitions
+    assert isinstance(ended, OccupancyEnded) and isinstance(incoming, OccupancyStarted)
+    assert ended.premise_id == incoming.premise_id
+    assert ended.occupancy_id != incoming.occupancy_id
+    assert ended.end_date == death.death_date == incoming.starts_no_earlier_than
+    assert incoming.terms == DEEMED_TERMS
+    assert incoming.start_date is None and incoming.start_date_unknown_reason
+    assert death.payer == ESTATE_PAYER
+
+
+def test_the_insolvent_estate_share_is_a_named_gap_not_the_movers_gone_away_rate():
+    """Defect: the move-out's 0.12 borrowed for a debtor who has not gone away (§5 choice 1(b))."""
+    death = next(d for d in _deaths() if d is not None)
+    assert death.insolvent_share is None
+    assert "gone-away" in death.insolvent_share_unknown_reason
+
+
+def test_a_window_ending_on_new_year_does_not_ask_the_year_past_the_record():
+    occ = Occupancy.of_customer("D7", TenureType.OWNER_OCCUPIER)
+    first_sole_occupant_death(occ, dt.date(2016, 1, 1), dt.date(2026, 1, 1), 13,
+                              people_count=1, pensioner_present=True)
+    with pytest.raises(ValueError, match="2016-2025"):
+        first_sole_occupant_death(occ, dt.date(2016, 1, 1), dt.date(2026, 1, 2), 13,
+                                  people_count=1, pensioner_present=True)
+
+
+def test_the_first_death_falls_inside_the_window_and_is_the_yearly_draw_unchanged():
+    for i in range(400):
+        occ = Occupancy.of_customer(f"W{i}", TenureType.SOCIAL_RENTER)
+        found = first_sole_occupant_death(occ, dt.date(2017, 3, 1), dt.date(2024, 6, 1), 9,
+                                          people_count=1, pensioner_present=True)
+        if found is None:
+            continue
+        assert dt.date(2017, 3, 1) < found.death_date < dt.date(2024, 6, 1)
+        assert found == draw_sole_occupant_death(occ, found.death_date.year, 9, people_count=1,
+                                                 pensioner_present=True)
+
+
+def test_adding_the_death_streams_left_every_move_draw_identical(monkeypatch):
+    """Defect: the death draw keyed on a move stream, so turning deaths on re-picks who moves."""
+    before = _moves(TenureType.PRIVATE_RENTER, n=1500)
+    trimmed = tuple(s for s in csl.SUBSTREAMS if s not in ("sole_occupant_death", "death_date"))
+    monkeypatch.setattr(csl, "SUBSTREAMS", trimmed)
+    assert _moves(TenureType.PRIVATE_RENTER, n=1500) == before
+
+
+@pytest.mark.parametrize("people, pensioner", [(0, True), (True, True), (1.0, True), (1, 1)])
+def test_a_malformed_home_fails_closed(people, pensioner):
+    with pytest.raises((ValueError, TypeError)):
+        is_sole_pensioner_home(people, pensioner)

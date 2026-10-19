@@ -210,7 +210,76 @@ apart:
 
 The §4 prediction (35-60 deaths on the founder book) stands as filed.
 
+## 6. The per-home hazard, derived, and the slice (e)1 build (2026-10-19, worker tick)
+
+§5 choice 4 asked for the hazard per eligible home from 65+ mortality, not from the 0.6-0.7%
+household floor. It is derived here from two ONS tables, both read at source this tick
+(`.xlsx` downloads).
+
+**Method.** ONS *Deaths registered in England and Wales: 2025* (annual reference tables) gives,
+for 2016-2025, Table 10 age-specific death rates per 1,000 by five-year band (65-69 ... 90+) and
+Table 3 deaths by single year of age. A band's population is its deaths x 1,000 over its rate, so
+no separate population file is needed. Check: the implied 65+ population is 10.45m in 2016 and
+11.49m in 2023, against Census 2021's 11.1m for England and Wales. From those, q(65-74) and
+q(75+) are each band's deaths over its population. They are weighted by the people **living
+alone** at 65-74 and at 75+ that year (ONS *Families and households in the UK: 2025*, Table 6;
+2023: 1.748m and 2.466m, so 59% of people aged 65+ who live alone are 75 or over).
+
+| year | q(65-74) | q(75+) | living alone, 65-74 / 75+ (000s) | hazard per sole-pensioner home |
+|---|---|---|---|---|
+| 2016 | 1.53% | 7.56% | 1,592 / 2,052 | **4.92%** |
+| 2017 | 1.52% | 7.63% | 1,589 / 2,199 | **5.07%** |
+| 2018 | 1.53% | 7.57% | 1,678 / 2,200 | **4.96%** |
+| 2019 | 1.49% | 7.20% | 1,647 / 2,376 | **4.87%** |
+| 2020 | 1.68% | 8.19% | 1,744 / 2,378 | **5.44%** |
+| 2021 | 1.66% | 7.55% | 1,764 / 2,438 | **5.08%** |
+| 2022 | 1.57% | 7.23% | 1,784 / 2,454 | **4.85%** |
+| 2023 | 1.55% | 7.08% | 1,748 / 2,466 | **4.79%** |
+| 2024 | 1.48% | 6.75% | 1,824 / 2,484 | **4.52%** |
+| 2025 | 1.44% | 6.68% | 1,732 / 2,522 | **4.54%** |
+
+**What it counts, and why it is a floor.** It assumes a person living alone at 75+ dies at the
+rate of everyone aged 75+. People living alone at 75+ are older than that band on average (more
+of them are widowed, at 85+), so the true hazard is higher. The deaths are England and Wales and
+the weights are UK; the age mix of living alone is taken as the same. **GAP:** deaths by living
+arrangement (the Census 2021 linked mortality study). The 2020 COVID year is part of the record and
+stays in the table. Checked against §2: 4.2m x 4.8% is about 200k a year, inside §2's 170-210k.
+
+**The world's eligible population is under-drawn.** Measured on the live book (426 domestic
+electricity homes, `live_population()` and `build_properties`): 126 are one-person (29.6%,
+TS017's 30.1%), and 39 of those have a pensioner present (**9.2% of homes**). The published share
+is 4.2m of 28.4m, **14.8%**. The cause: `composition_cuts_for` draws pensioner presence
+independently of household size (its docstring names the joint as a gap). But FAH publishes it:
+half of the people who live alone are 65+, against the world's 31%. That is a fix to the draw, not
+to this hazard. It is not made here, because it moves the daytime demand cut too. It belongs to
+`W2_19_who_lives_where_money_and_composition`, whose subject is exactly the people joint the world
+draws as independent marginals.
+
+**Built (slice (e)1).** `sim/customer_state_layer.draw_sole_occupant_death`: one credit exit
+(`OccupancyEnded`, payer the estate, `insolvent_share` None with its reason) plus one deemed entry
+(the next occupant, start None with its reason), on the `sole_occupant_death` and `death_date`
+substreams. It reaches only a one-person home with a pensioner present. A year outside 2016-2025
+raises. **Not wired into the run**, so it is fail-silent until the wiring slice: that slice needs
+the estate's final bill (§5 choice 1(b)) and the empty home billed to the estate (1(c)).
+
+**Prediction, filed before the book is drawn.** Over 2016-2025, with each of the 39 eligible homes
+treated as held for the whole decade, the draw gives **12 to 26 deaths** (expected about 19.5;
+Poisson ± about 2 sd). Scaled to the 426 homes, §4's 35-60 on 774 is 19-33. So the draw lands at or
+under the bottom of §4's band, and the shortfall is the under-drawn eligible share, not the
+hazard: at the published 14.8% share it would be about 31.
+
+**Graded (same tick, after the line above was written).** Run seed 20260724, window 2016-01-01 to
+2026-01-01: **19 deaths**, one or more in every year except 2024. **Held.** The first draw raised
+for 2026 on a window ending on 1 January 2026. A year with no day inside the window was being
+asked for its hazard; `first_sole_occupant_death` now stops at the window's last day.
+
 ## Sources
+
+- ONS, *Deaths registered in England and Wales: 2025* (annual reference tables,
+  `annualdeathregistrations2025.xlsx`): Table 10 age-specific rates and Table 3 deaths by single
+  year of age, 2016-2025. Read at source 2026-10-19.
+- ONS, *Families and households in the UK: 2025* (`familiesandhouseholdsuk2025.xlsx`), Table 6:
+  people living alone by age, 2016-2025. Read at source 2026-10-19.
 
 - ISER, *British Household Panel Survey User Manual, Volume A* (UK Data Service SN 6614),
   doc.ukdataservice.ac.uk/doc/6614/mrdoc/pdf/6614_bhps_user_manual_volume_a.pdf. "About one in six
