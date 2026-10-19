@@ -120,6 +120,17 @@ the EUC-average DAF; the exact Elexon PC1 or Xoserve EUC01B ALP tables (gated to
 participants); and, per §5, whether a given supplier's bill-estimate arithmetic applies any
 seasonal shape at all, as opposed to a flat /12.
 
+**Design choice, 2026-10-19: a half-hourly account is handed an EAC too.** The HH roster records
+carried no registry figure, so before a first actual read the opening estimate fell to the TDCV
+MEDIUM band: C7 was billed 3,100 kWh a year against 13,230 used. They now take the same figure a
+fabric premise does, their own first or trailing year of metered import
+(`simulation/run_phase2b.register_hh_accounts_eac`, through `registry_eac_from_own_reads`).
+**GAP:** BSCP504's EAC hand-over (s3.2.6.51) is the NHH rule. What a gaining supplier receives for
+an elective-HH domestic meter point is not established here. A meter that never communicates, as
+C7's does in this world (42 estimates of 42), could not be HH-settled in practice, so it would
+carry an NHH EAC drawn from its history. Either reading puts the figure at about the home's own
+use, and never at the class average.
+
 ## Sources
 
 - DESNZ, *Energy Trends Table 4.2*: https://www.gov.uk/government/statistics/gas-section-4-energy-trends (retrieved 2026-10-06, "Domestic" column, 2023–2025)

@@ -100,11 +100,12 @@ CUSTOMERS = [
         "segment": "SME",
     },
     # Phase 6a: HH (half-hourly metered, smart meter) resi electricity
-    # customers. eac_kwh is None -- these customers have no static
-    # "estimated annual consumption"; settlement reads real half-hourly
+    # customers. eac_kwh is None here; settlement reads real half-hourly
     # meter data (sim/hh_data/{customer_id}.csv, see
     # simulation/hh_consumption.py) and an effective EAC for hedging-volume
-    # sizing is derived from that data instead.
+    # sizing is derived from that data instead. The run writes the registry
+    # EAC from the same data (`run_phase2b.register_hh_accounts_eac`), which
+    # is what the bill estimates from before a first read.
     {
         "customer_id": "C7",
         "acquisition_date": "2016-01-01",

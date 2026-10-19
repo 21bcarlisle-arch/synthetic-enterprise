@@ -181,3 +181,20 @@ The read-instruction switch-on is **not** filed as the remedy. Its own prereg is
 and on this book it would treat C7's symptom. What it would change is now on the K8 page
 (`read_access_and_theft_duties.md` §2.8). The 12 non-inverting rows were already deleted in
 b12f10474.
+
+### Leg (d) built, not yet graded (delivery seat, 19 Oct)
+
+`simulation/run_phase2b.register_hh_accounts_eac` writes each HH record that registered no EAC
+from its own metered import, using the same `registry_eac_from_own_reads` rule a fabric premise
+uses: C7 13,179, C8 12,598 and C9 12,797 kWh, and the four I&C sites within 0.2% of their
+whole-file means. The world's demand is unchanged, because an HH account settles on its file. The
+hedge is unchanged too: `EFFECTIVE_EAC_KWH` stays on its whole-file mean, deliberately, so the
+change has one variable. The opening direct debit also moves, because it reads the same
+registration figure. Control: `tests/simulation/test_a_half_hourly_account_is_handed_its_own_eac.py`.
+Two mutations of the guard (skip every record; rewrite every HH record) both red it.
+
+**The prediction above stands and is ungraded until a published run carries this commit:** C7's
+billed/true rises from 0.23 to at least 0.9, C7 2016–2019 stop inverting, and its four
+`KNOWN_OPEN_INVERSIONS` rows can be deleted. Do not delete those rows before the run.
+
+Legs (c) and (b) are still open. Each needs the K8 page first.
