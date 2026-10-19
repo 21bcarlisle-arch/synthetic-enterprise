@@ -82,6 +82,7 @@ from datetime import date, datetime, time, timedelta, timezone
 from typing import Callable, List, Optional
 
 import simulation.contact_response as early_contact
+import simulation.household_budget as household_budget
 import simulation.world_payment_truth as world_payment_truth
 from background.gap_metric import (
     GapResult,
@@ -115,6 +116,7 @@ from interface.contracts.payment_observable_seam import (
 from interface.contracts.wall_envelope import WallRequest
 from simulation.arrears_engine import PAY_ON_RECEIPT_METHOD, mover_final_bill_outcome
 from simulation.dd_shock_response import failure_table as dd_failure_table
+from simulation.household import household_of
 from simulation.payment_behaviour_source import (
     ARREARS_REPAYMENT,
     CANCELLED_OTHER,
@@ -136,6 +138,7 @@ from simulation.payment_seam_adapter import (
     mandate_ref_for,
 )
 from simulation.plan_offer_response import HouseholdPlanBook
+from simulation.segment_vocabulary import RESIDENTIAL, normalise_segment
 from tools.couple_w2_11_d5 import (
     AS_OF_BUFFER_DAYS,
     PAYMENT_TERMS_DAYS,
@@ -748,6 +751,10 @@ class LivePaymentTriad:
         self._outcomes_by_customer: dict = {}
         self._early_checks: dict = {}
         self._early_cured: set = set()
+        # THE BUDGET'S UNPAID BILLS (`household_budget.BudgetPaymentBook`), while its switch is on:
+        # record index -> the failed event and its ids, until the household's money clears it.
+        self._budget_book = household_budget.BudgetPaymentBook()
+        self._budget_unpaid: dict = {}
         self._early_responses: list = []
         self._n_early_withdrawn = 0
         # The latest date the run is known to have lived through: the bound every journey walk
@@ -1088,6 +1095,7 @@ class LivePaymentTriad:
         dd_stopped_by: Optional[Callable[[str, date], bool]] = None,
         dd_shock_effect=None,
         moved_out_on: Optional[str] = None,
+        household_legs: int = 1,
     ) -> dict:
         """Generate the ONE canonical W2_11 payment event for this
         (customer, period), cross the seam + feed the company consumer LIVE,
@@ -1164,6 +1172,26 @@ class LivePaymentTriad:
                 if amount_gbp > 0 and part_paid > 0:
                     self._final_bill_part_share[(customer_id, due_date.isoformat()[:7])] = (
                         part_paid / amount_gbp)
+
+        # THE BUDGET DECIDES WHETHER THE BILL CAN BE PAID (`simulation/household_budget.py`, behind
+        # its switch). A credit bill the household's margin and savings cannot cover is not paid,
+        # and stays unpaid until a later month's money clears it, oldest first: the household that
+        # stops paying. A bill the budget covers keeps the per-bill draw above, which goes on
+        # meaning a transient failure. A mover's final bill is the exit model's, and a meter is
+        # paid before use.
+        budget_unpaid = False
+        budget_cleared: tuple = ()
+        if (household_budget.BUDGET_DECIDES_PAYMENT and final_exit is None
+                and method != PREPAYMENT and normalise_segment(segment) == RESIDENTIAL):
+            paid_now, budget_cleared = self._budget_book.settle_month(
+                supply_point=customer_id, household=household_of(customer_id),
+                year=due_date.year, amount_gbp=amount_gbp, legs=household_legs,
+                ref=len(self._records))
+            if not paid_now:
+                budget_unpaid = True
+                event = dataclasses.replace(event, result="failed", days_late=0, payment_date=None,
+                                            dd_failure_reason=event.dd_failure_reason
+                                            or INSUFFICIENT_FUNDS)
 
         # Post the bill into the COMPANY's own belief ledger so unpaid invoices
         # age (the ageing gap) exactly as the offline scenario does. This is the
@@ -1361,10 +1389,10 @@ class LivePaymentTriad:
         # WHAT HAPPENS AFTER THE DUE DATE (2026-10-04). The world decides now whether, and when,
         # the household pays this bill off after all -- its own substream, so no draw above moves
         # -- and the cash waits in the queue until the run reaches that day.
-        settled_on = (None if final_exit is not None
+        settled_on = (None if final_exit is not None or budget_unpaid
                       else later_settlement_date(event, segment=segment))
         window_end = due_date + timedelta(days=early_contact.EARLY_WINDOW_DAYS)
-        if (event.result == "failed" and early_contact.EARLY_CONTACT_SHARE
+        if (event.result == "failed" and not budget_unpaid and early_contact.EARLY_CONTACT_SHARE
                 and self._contacts_received is not None
                 and (settled_on is None or settled_on > window_end)):
             check_seq = -(len(self._records) + 1)
@@ -1399,6 +1427,20 @@ class LivePaymentTriad:
             days_late=event.days_late,
             settled_on=settled_on,
         ))
+        if budget_unpaid:
+            self._budget_unpaid[len(self._records) - 1] = (
+                event, account_id, invoice_ref, f"{customer_id}::p{period_index}::budget")
+        for ref in budget_cleared:
+            old_event, old_account, old_invoice, tag = self._budget_unpaid.pop(ref)
+            old_due = date.fromisoformat(old_event.due_date)
+            self._records[ref].settled_on = due_date
+            heapq.heappush(self._pending_settlements, (
+                due_date, ref,
+                dataclasses.replace(
+                    old_event, result="success", payment_method=ARREARS_REPAYMENT,
+                    days_late=(due_date - old_due).days,
+                    payment_date=due_date.isoformat(), dd_failure_reason=None),
+                old_account, old_invoice, tag))
 
         # THE COLLECTIONS JOURNEY ADVANCES TO THE PREVIOUS BILL'S DUE DATE (atom EP4). Two bounds,
         # and this date is inside both. COMPLETENESS: this account's bills post in date order and

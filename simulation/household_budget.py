@@ -292,6 +292,7 @@ class HouseholdBudget:
     savings_buffer: float                 # accessible cash savings, £
     debt_priority_order: Tuple[str, ...] = DEFAULT_DEBT_PRIORITY_ORDER
     data_regime: str = "synthetic"
+    housing_cost_monthly: float = 0.0     # the housing part of the floor, kept for `margin_in_year`
 
     @property
     def annual_disposable_income(self) -> float:
@@ -355,6 +356,7 @@ def draw_household_budget(
         essential_cost_floor_monthly=floor,
         discretionary_margin_monthly=margin,
         savings_buffer=savings,
+        housing_cost_monthly=housing,
     )
 
 
@@ -389,3 +391,128 @@ def allocate_debt_payments(
         if remaining <= 0.0:
             break
     return paid
+
+
+# ---------------------------------------------------------------------------
+# THE BUDGET DECIDES HOW MUCH OF THE BILL IS PAID (2026-10-19)
+# ---------------------------------------------------------------------------
+# Design: `docs/market_research/household_budget_w2_4.md`, "2026-10-16: design for the next build"
+# and "The price level, researched (2026-10-17)". Diagnosis and pre-registration (R1-R4):
+# `docs/staging/WORKER_FINDING_THE_WORLDS_PAYMENT_DRAW_HAS_NO_PRICE_INPUT_..._2026-10-16.md`.
+#
+# The floor above holds JRF's whole basket, which includes £24/£33 a week of electricity and gas.
+# A margin that pays the world's own energy bill must leave energy out of the floor, or energy is
+# counted twice: these are the basket's other lines, summed (JRF/Trussell itemised table, 2026/27).
+_CORE_EX_ENERGY_SINGLE = round((42 + 7 + 7 + 8 + 21 + 13) * 52 / 12, 2)   # 424.67
+_CORE_EX_ENERGY_COUPLE = round((74 + 11 + 11 + 11 + 42 + 20) * 52 / 12, 2)  # 732.33
+
+_CORE_EX_ENERGY_BY_COMPOSITION: Dict[str, float] = {
+    Composition.SINGLE.value: _CORE_EX_ENERGY_SINGLE,
+    Composition.COUPLE.value: _CORE_EX_ENERGY_COUPLE,
+    Composition.SINGLE_PARENT.value: _CORE_EX_ENERGY_SINGLE + _CHILD_ESSENTIALS_ADDON,
+    Composition.COUPLE_PARENT.value: _CORE_EX_ENERGY_COUPLE + _CHILD_ESSENTIALS_ADDON,
+}
+
+# Each run year's price level against 2026/27 (= 1), annual averages, transcribed from the knowledge
+# page's tables (ONS MM23 and LMS, fetched 2026-10-17; harness-side, never read at runtime, W6).
+# The ex-energy basket on its CPIH divisions deflates the floor.
+_BASKET_EX_ENERGY_FACTOR: Dict[int, float] = {
+    2016: 0.708, 2017: 0.727, 2018: 0.744, 2019: 0.755, 2020: 0.760,
+    2021: 0.779, 2022: 0.856, 2023: 0.926, 2024: 0.943, 2025: 0.972,
+}
+# All-items CPIH carries housing. GAP: the page researched no rent or housing-cost series (ONS
+# PIPR / IPHRP not fetched); the housing draw is itself an R10 shape, so CPIH is the named stand-in.
+_CPIH_FACTOR: Dict[int, float] = {
+    2016: 0.709, 2017: 0.727, 2018: 0.744, 2019: 0.757, 2020: 0.764,
+    2021: 0.783, 2022: 0.846, 2023: 0.903, 2024: 0.933, 2025: 0.969,
+}
+# AWE whole-economy total pay (KAB9) carries earned income (docs/market_research/household_budget_w2_4.md,
+# "The price level, researched", the AWE column).
+_AWE_FACTOR: Dict[int, float] = {
+    2016: 0.655, 2017: 0.670, 2018: 0.690, 2019: 0.714, 2020: 0.725,
+    2021: 0.769, 2022: 0.817, 2023: 0.874, 2024: 0.920, 2025: 0.966,
+}
+# The April benefit-uprating path (previous September's CPI; frozen April 2016 to April 2019),
+# calendar averages (docs/market_research/household_budget_w2_4.md, the benefit-path row).
+_BENEFIT_PATH_FACTOR: Dict[int, float] = {
+    2016: 0.765, 2017: 0.765, 2018: 0.765, 2019: 0.765, 2020: 0.775,
+    2021: 0.781, 2022: 0.800, 2023: 0.867, 2024: 0.932, 2025: 0.959,
+}
+# Which deciles live on the uprating path rather than on earnings. GAP: HBAI income by source by
+# decile is not fetched. R10: the bottom quintile, the deciles whose essentials the page cites as
+# exceeding income. Named so a run can be read with the path off, never blended silently.
+BENEFIT_PATH_DECILES: Tuple[int, ...] = (1, 2)
+
+# The switch. Off: no payment path reads this module and the world is unchanged. A fidelity change,
+# graded on a fixed-seed paired run at one sha before its default moves.
+BUDGET_DECIDES_PAYMENT = False
+
+
+def _factor(table: Mapping[int, float], year: int) -> float:
+    """2026/27 and later are the floor's own prices; years before the table take its first row."""
+    if year >= 2026:
+        return 1.0
+    return table[max(year, min(table))]
+
+
+def margin_in_year(budget: HouseholdBudget, year: int,
+                   benefit_path_deciles: Sequence[int] = BENEFIT_PATH_DECILES) -> float:
+    """Income less every essential except energy, in `year`'s own pounds. May be negative."""
+    income_path = (_BENEFIT_PATH_FACTOR if budget.income_decile in benefit_path_deciles
+                   else _AWE_FACTOR)
+    income = budget.monthly_disposable_income * _factor(income_path, year)
+    floor = (_CORE_EX_ENERGY_BY_COMPOSITION[budget.composition] * _factor(_BASKET_EX_ENERGY_FACTOR, year)
+             + budget.housing_cost_monthly * _factor(_CPIH_FACTOR, year))
+    return round(income - floor, 2)
+
+
+class BudgetPaymentBook:
+    """Per supply point: what the household's money pays of each month's energy bill, and which
+    earlier unpaid bills it clears.
+
+    Keyed per LEG, never per household, because the run posts a leg's whole term at a time, so a
+    household's two legs do not arrive in date order. A dual household's margin and savings are
+    split evenly across its legs. Design choice, unsourced: the two cap bills were of a similar size
+    in 2021-23, and a split by bill would need the other leg's bill before it is posted.
+
+    Bills are paid whole, oldest first. Ofgem's arrears age by the oldest unpaid bill, and a
+    payment allocated to the oldest debt is the ledger's own fallback; money short of a whole bill
+    is held toward it. Savings are drawn while the margin is short and, once no bill is unpaid,
+    refill out of surplus only up to the buffer the household was drawn with (design choice).
+    """
+
+    def __init__(self, benefit_path_deciles: Sequence[int] = BENEFIT_PATH_DECILES):
+        self._benefit_path_deciles = tuple(benefit_path_deciles)
+        self._legs: Dict[str, dict] = {}
+
+    def settle_month(self, *, supply_point: str, household: str, year: int, amount_gbp: float,
+                     legs: int, ref) -> Tuple[bool, Tuple]:
+        """(this bill paid, refs of earlier unpaid bills paid this month, oldest first)."""
+        share = 1.0 / max(1, legs)
+        st = self._legs.get(supply_point)
+        if st is None:
+            budget = draw_household_budget(household)
+            st = self._legs[supply_point] = {
+                "budget": budget, "savings": budget.savings_buffer * share,
+                "cap": budget.savings_buffer * share, "unpaid": []}
+        cash = st["savings"] + margin_in_year(st["budget"], year, self._benefit_path_deciles) * share
+        owed = st["unpaid"] + [(ref, float(amount_gbp))]
+        paid = allocate_debt_payments(cash, {"energy_arrears": sum(a for _, a in owed)})["energy_arrears"]
+        cleared, spent = [], 0.0
+        for bill_ref, amount in owed:
+            if spent + amount > paid + 1e-9:
+                break
+            cleared.append(bill_ref)
+            spent += amount
+        st["unpaid"] = owed[len(cleared):]
+        # Money left while a bill is still unpaid is held toward it, which is what a part payment
+        # does; only a household clear of arrears stops refilling at its buffer.
+        left = max(0.0, cash - spent)
+        st["savings"] = left if st["unpaid"] else min(st["cap"], left)
+        this_paid = bool(cleared) and cleared[-1] == ref
+        earlier = tuple(cleared[:-1] if this_paid else cleared)
+        return this_paid, earlier
+
+    def unpaid_of(self, supply_point: str) -> Tuple:
+        st = self._legs.get(supply_point)
+        return tuple(st["unpaid"]) if st else ()

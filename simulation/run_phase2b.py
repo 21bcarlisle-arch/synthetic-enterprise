@@ -2011,6 +2011,13 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         for term in schedule:
             all_terms.append((term["acquisition_date"], cid, next(_term_seq), "gas", term))
     heapq.heapify(all_terms)
+    # The fuels each household is supplied, so the budget (`household_budget.BudgetPaymentBook`)
+    # can split one household's money across its legs. A move-in adds its leg below.
+    _fuels_of_household: dict = {}
+    for _leg_cid in elec_schedules:
+        _fuels_of_household.setdefault(household_of(_leg_cid), set()).add("electricity")
+    for _leg_cid in gas_schedules:
+        _fuels_of_household.setdefault(household_of(_leg_cid), set()).add("gas")
 
     # WHICH BILLING ACCOUNTS HOLD AN ELECTRICITY SUPPLY POINT IN THIS RUN, which is the only
     # input `departure_decision_leg` needs to say which leg carries an account's departure roll.
@@ -2196,6 +2203,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             dd_shock_effect=(None if not _mandate_book_live
                              else _dd_shock_book.effect(household_of(cid), held["month"])),
             moved_out_on=_moved_out_on_by_leg.get(cid),
+            household_legs=len(_fuels_of_household.get(household_of(cid), ())) or 1,
         )
         _cx_desk.observe_payment(PaymentOutcome(
             customer_id=cid,
@@ -2443,6 +2451,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         evolution_logs[leg] = []
         if commodity == "electricity":
             _accounts_with_an_electricity_leg.add(household_of(leg))
+        _fuels_of_household.setdefault(household_of(leg), set()).add(commodity)
         try:
             segments = build_svt_schedule(
                 leg, record["acquisition_date"], effective_end,
