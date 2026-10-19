@@ -71,3 +71,43 @@ read. If the run is not read, they stay ungraded here, and this file says so.
   licence to switch it on.
 - **P1 two-leg count near 0.** The riding-leg join would not be reaching the gas leg, which is the
   same instrument defect `608c0d0fa` fixed in the probe.
+
+## Grade, 2026-10-19 (build commit; short window to 2017-06-30, CURRENT_POLICY, fixed seed)
+
+- **O1 held.** The off arm at the build's code and a run at its parent (`c52f83113`, the same code as
+  `ab169e127`) give run-output JSON that is identical byte for byte (`cmp`), stamps included.
+- **On moves no world quantity.** The on arm equals the off arm in every one of the 96 top-level
+  keys, apart from the new `next_best_action_renewal_log`.
+- **D1 held.** The log holds 96 rows: 32 households × 3 effects. 1 row is advised: `PROS-2016-0170`,
+  a two-leg household at £38.19/month and h = 0.034, under (£2, 0.3 pt). 95 rows are refused by the
+  floor, with the stated reason, and 0 are unscored.
+- **13 of the 32 households carry two legs.** That equals the 13 riding gas legs the probe wrote in
+  the same window (`608c0d0fa`).
+- **A defect found on the first on-arm run, and fixed before landing.** When a household declined
+  the fix, the engine withdrew that term and spliced default-tariff segments on the same start. The
+  splice passed the hook again, so 8 gas legs joined twice (`legs: 3`) and their margin counted
+  twice. Now the first observation of each leg stands, because the notice carries the fix as first
+  offered. A control covers this, and both of its guards were mutated red.
+- **P1–P4 are not graded.** They need the full on-arm run of the 19 Oct book.
+
+## The on arm for P1–P4, as launched (2026-10-19 ~21:35 BST, before any of it is read)
+
+- **Base: `8b6fea024` itself, with 18503313a's code applied on top**, in the scratch worktree
+  `/var/tmp/se-c34-grade`. It is not run at HEAD. Between the published run and HEAD the world code
+  moved: the SLC 27.8D offset went on (`3d518bdef`), B7 deaths landed (`e0b301545`), split homes are
+  won at P(dual | gas) 0.90 (`30246d6f0`), plus HH-EAC and budget payment. A HEAD run would read a
+  different book, and the 182 and 77 would no longer be its denominators. The cherry-pick conflicted
+  only on this staging file. The code applied cleanly.
+- **Policy:** `CURRENT_POLICY` at `8b6fea024`, with `next_best_action_decides_at_renewal=True` and
+  `next_best_action_decides_per_household=True`. The second switch was off at `8b6fea024`. It went
+  on in `f6e23a535`, and the caller's design assumes it ("one row per household"). With it off, 2
+  of the caller's 16 control tests fail at this base. With it on, all 16 pass. Only
+  `states_for_decision` reads it, so it records and moves nothing.
+- **P4 reading:** the same desk's legs are decided a second time with per-household off, on the
+  same run (`per_leg_log`). P4 compares the two.
+- **Book check:** every list-valued key of the phase-2b result is length-compared with the
+  published `run_output_ad8afadc5_20261019T132751Z.json`. A difference is reported, not explained
+  away.
+- Full window, default seed, phase 2b only. The renewal log is written there, and phase 4c does not
+  touch it. Unit `longjob-c34-renewal-on-arm-8b6fea024`. The script and grader are in
+  `/var/tmp/se-c34-grade-out/`. The predictions above are unchanged.

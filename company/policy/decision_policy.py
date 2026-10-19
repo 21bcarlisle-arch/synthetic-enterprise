@@ -235,6 +235,12 @@ class DecisionPolicy:
     #: (SEAT_PREREG_SWITCHING_NBA_PER_HOUSEHOLD_ON_THE_STANDING_POLICY_CHANGES_NO_DECISION_IN_ANY_RUN).
     next_best_action_decides_per_household: bool = True
 
+    #: (2026-10-19) C34 decided at each domestic renewal roll, per household, on the company's own
+    #: churn belief, and recorded as `next_best_action_renewal_log` (`company/interfaces/
+    #: renewal_advice.py`). Records only: nothing is sent and the world is unmoved. Off on every
+    #: standing policy; off, the run is byte-identical to one without the caller.
+    next_best_action_decides_at_renewal: bool = False
+
     #: (2026-10-18) the save on a loss notice answers every leg of a household leaving with both
     #: fuels, matched against Ofgem's dual-fuel gap and floored on the household's summed margin
     #: (`company.crm.save_offer.save_rates_for_decision`; fuel page §8a). Off on every standing
