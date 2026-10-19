@@ -119,3 +119,27 @@ read. If the run is not read, they stay ungraded here, and this file says so.
   exists, run `python3 /var/tmp/se-c34-grade-out/grade.py /var/tmp/se-c34-grade-out/on_arm.json
   docs/reports/run_output_ad8afadc5_20261019T132751Z.json` from the repo root, then read P1–P4 and
   the book check against its lines.
+- **Correction, 2026-10-20 ~00:45 BST: r3 died, and r4 is running.**
+  - **Cause.** r3 was admitted at 22:16 BST and exited 1 after 18 s
+    (`run.r3-policyscope.log`). `run_phase2b._main` refused it: "given policy='current' but the
+    active policy scope is 'current'". The guard tests identity (`policy is not active_policy()`).
+    The arm is a `dataclasses.replace` of `CURRENT_POLICY`, so it keeps the name and is still a
+    different object. The fault is the script's, not the production caller's: the guard passes any
+    caller that also swaps the scope. So nothing is filed against the caller. Nothing was read
+    from r3.
+  - **The scratch worktree had also been reaped.** By 00:40 BST, `/var/tmp/se-c34-grade` was gone
+    from disk and from `git worktree list`. It was rebuilt the same way: `8b6fea024`, then
+    `git diff 18503313a^ 18503313a -- . ':!docs/staging' | git apply --3way`, applied clean, with
+    the six code and test paths of 18503313a. This time it is `git worktree lock`ed, a leg that
+    `worktree_is_live` honours.
+  - **Fix.** `run_on_arm.py` now runs `main(policy=arm)` inside `policy_scope(arm)`. Nothing else
+    changed: the policy, the P4 re-decision, the artefact path and the grader are all as before.
+  - **Dry run.** The same script with `report_end="2016-02-29"` exited 0 in the rebuilt worktree.
+    The log was empty, as it should be, because no renewal rolls in the first month.
+  - **Relaunch.** Launched as `longjob-c34-renewal-on-arm-8b6fea024-r4` at 23:43:39Z through
+    `background.launch_long_job` (`launch4q.out`). It was admitted at once, expected to take about
+    200 min, and writes the same `/var/tmp/se-c34-grade-out/on_arm.json`.
+  - **Grading.** The queued grading continuation was replaced by
+    `read-the-c34-on-arm-r4-and-grade-p1-p4`, not before 05:00 BST. The old one's 03:30 was local
+    time (02:30Z), roughly 35 min before r4 can end, and it named r3. The grading route above is
+    unchanged. The predictions are unchanged, and they are still ungraded.
