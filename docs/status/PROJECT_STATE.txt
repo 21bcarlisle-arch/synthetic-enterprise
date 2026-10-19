@@ -1,22 +1,22 @@
 # PROJECT STATE -- Synthetic Enterprise
-Generated: 2026-10-13T21:28:19Z
+Generated: 2026-10-19T08:52:36Z
 
 ## Summary
 - Current Phase: not stated in CLAUDE.md
 - Test Suite: 39,465 tests passing (unit / fast suite ~10s)
-- Company Modules: 533+ Python modules across company/
+- Company Modules: 535+ Python modules across company/
 - Simulation Window: 2016-2025 (Elexon HH settlement data)
 - Architecture: sim/ | company/ | saas/ | site/ (dashboard at poesys.net)
 
-## Latest Simulation Results (auto-processed 2026-10-13)
-- Net Margin: GBP543,474 (10-year 2016-2025)
-- Gross Margin: GBP1,388,221
-- Capital at Risk: GBP21,908
-- Treasury: GBP250,000 -> GBP793,474
-- Enterprise Value: GBP416,666 | Net after CTS: GBP368,428
+## Latest Simulation Results (auto-processed 2026-10-19)
+- Net Margin: GBP555,900 (10-year 2016-2025)
+- Gross Margin: GBP1,371,848
+- Capital at Risk: GBP22,897
+- Treasury: GBP250,000 -> GBP805,900
+- Enterprise Value: GBP438,153 | Net after CTS: GBP382,963
 - Risk Committee Interventions: 0
-- Bills Issued: 39,084
-- Retention: 78/110 offers accepted | 68 no-offer churns | 342 total churned
+- Bills Issued: 38,596
+- Retention: 59/93 offers accepted | 36 no-offer churns | 233 total churned
 
 ## Key Files (fetchable without JavaScript)
 # ADVISOR: use the github.io URLs below for verification fetches -- poesys.net (Cloudflare
@@ -30,7 +30,7 @@ Generated: 2026-10-13T21:28:19Z
 - https://21bcarlisle-arch.github.io/synthetic-enterprise/shadow/project/ -- no-JS HTML: Project overview (GitHub Pages mirror)
 - https://21bcarlisle-arch.github.io/synthetic-enterprise/shadow/sim/ -- no-JS HTML: SIM market data (GitHub Pages mirror)
 - https://21bcarlisle-arch.github.io/synthetic-enterprise/state/customer_sample.json -- per-customer ground truth (GitHub Pages mirror)
-- https://21bcarlisle-arch.github.io/synthetic-enterprise/state/billing_ledger.json -- per-customer invoice/payment/arrears ledger (GitHub Pages mirror)
+- https://21bcarlisle-arch.github.io/synthetic-enterprise/state/billing_ledger.json -- per-customer invoice/payment/arrears ledger (GitHub Pages only: over the Cloudflare Pages 25 MiB file limit, so not on poesys.net)
 - https://21bcarlisle-arch.github.io/synthetic-enterprise/state/population_anchoring.json -- SIM vs Ofgem/DESNZ benchmark validation (GitHub Pages mirror)
 - https://21bcarlisle-arch.github.io/synthetic-enterprise/state/sim_data.json -- Elexon SSP settlement data (GitHub Pages mirror)
 # Visitor surface (Cloudflare Pages, same generator pass -- not for advisor verification fetches):
@@ -40,7 +40,6 @@ Generated: 2026-10-13T21:28:19Z
 - https://poesys.net/shadow/customers/ -- no-JS HTML: Customer portal
 - https://poesys.net/shadow/project/ -- no-JS HTML: Project overview
 - https://poesys.net/shadow/sim/ -- no-JS HTML: SIM market data
-- https://poesys.net/state/billing_ledger.json -- per-customer invoice/payment/arrears ledger
 - https://poesys.net/state/population_anchoring.json -- SIM vs Ofgem/DESNZ benchmark validation
 - docs/reports/run_output_latest.json -- full run output (JSON)
 
@@ -51,5 +50,5 @@ Generated: 2026-10-13T21:28:19Z
 
 ## Key Metrics
 - Tests at start (Phase 0): 0 | Tests now: 39,465
-- Net margin all-time: GBP543,474 | Crisis survived: 2021-22
-- Retention: 78/110 offers | 68 no-offer churns
+- Net margin all-time: GBP555,900 | Crisis survived: 2021-22
+- Retention: 59/93 offers | 36 no-offer churns

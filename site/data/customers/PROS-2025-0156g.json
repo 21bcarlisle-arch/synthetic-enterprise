@@ -10,13 +10,13 @@
   "mpan": null,
   "mprn": "37578270",
   "lifetime_revenue_gbp": 4.69,
-  "lifetime_gross_gbp": 2.5,
-  "lifetime_net_gbp": 0.62,
+  "lifetime_gross_gbp": 2.51,
+  "lifetime_net_gbp": 0.63,
   "lifetime_net_after_cts_gbp": -0.13,
   "cost_to_serve_gbp": 0.75,
   "pricing_action": {
     "flag": "NET_NEGATIVE",
-    "recommended_uplift_pct": 2.8
+    "recommended_uplift_pct": 2.7
   },
   "avg_hedge_fraction": 0.85,
   "clv_gbp": null,
@@ -29,7 +29,7 @@
   "commodity_split": {
     "electricity": null,
     "gas": {
-      "net_gbp": 0.62,
+      "net_gbp": 0.63,
       "revenue_gbp": 4.69
     }
   },
@@ -38,16 +38,16 @@
     {
       "year": 2025,
       "revenue_gbp": 0,
-      "gross_gbp": 2.5,
-      "net_gbp": 0.62,
-      "tariff_min": 48.47,
-      "tariff_max": 48.47
+      "gross_gbp": 2.51,
+      "net_gbp": 0.63,
+      "tariff_min": 48.57,
+      "tariff_max": 48.57
     }
   ],
   "timeline": [],
   "invoices": [
     {
-      "id": "PROS-2025-0156g-INV20636",
+      "id": "PROS-2025-0156g-INV19520",
       "date": "2025-06-07",
       "period_start": "2025-06-03",
       "period_end": "2025-06-07",
@@ -96,17 +96,17 @@
       {
         "date": "2025-06-10",
         "type": "invoice_raised",
-        "invoice_number": 20636,
+        "invoice_number": 19520,
         "amount_gbp": 4.92,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV20636 raised",
+        "description": "Invoice INV19520 raised",
         "running_balance_gbp": 4.92
       },
       {
         "date": "2025-06-24",
         "type": "payment_received",
-        "invoice_number": 20636,
+        "invoice_number": 19520,
         "amount_gbp": -4.92,
         "info_amount_gbp": null,
         "method": "standard_credit",

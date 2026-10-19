@@ -357,7 +357,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 196,
+      "stall_consecutive_unchanged": 197,
       "forward_attachments": []
     },
     {
@@ -551,7 +551,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 323,
+      "stall_consecutive_unchanged": 948,
       "forward_attachments": []
     },
     {
@@ -593,7 +593,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 311,
+      "stall_consecutive_unchanged": 962,
       "forward_attachments": []
     },
     {
@@ -699,7 +699,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 457,
+      "stall_consecutive_unchanged": 519,
       "forward_attachments": [
         {
           "source": "docs/staging/done/PLANNER_MINTED_population_and_book_growth_2026-08-11.md",
@@ -909,7 +909,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2752,
+      "stall_consecutive_unchanged": 3712,
       "forward_attachments": []
     },
     {
@@ -1136,7 +1136,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2752,
+      "stall_consecutive_unchanged": 3712,
       "forward_attachments": []
     },
     {
@@ -1180,7 +1180,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 196,
+      "stall_consecutive_unchanged": 197,
       "forward_attachments": []
     },
     {
@@ -1204,7 +1204,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 51,
+      "stall_consecutive_unchanged": 54,
       "forward_attachments": []
     },
     {
@@ -1228,7 +1228,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 51,
+      "stall_consecutive_unchanged": 54,
       "forward_attachments": []
     },
     {
@@ -1251,7 +1251,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 48682,
+      "stall_consecutive_unchanged": 48728,
       "forward_attachments": []
     },
     {
@@ -1273,7 +1273,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2752,
+      "stall_consecutive_unchanged": 3712,
       "forward_attachments": []
     },
     {
@@ -1339,7 +1339,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2752,
+      "stall_consecutive_unchanged": 3712,
       "forward_attachments": []
     },
     {
@@ -1383,7 +1383,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2752,
+      "stall_consecutive_unchanged": 3712,
       "forward_attachments": []
     },
     {
@@ -1406,7 +1406,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2752,
+      "stall_consecutive_unchanged": 2943,
       "forward_attachments": []
     },
     {
@@ -1543,7 +1543,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 196,
+      "stall_consecutive_unchanged": 197,
       "forward_attachments": []
     },
     {
@@ -1839,7 +1839,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2752,
+      "stall_consecutive_unchanged": 3713,
       "forward_attachments": []
     },
     {
@@ -2016,7 +2016,7 @@
       "epoch": 3,
       "level_current": 1,
       "level_target": 3,
-      "loop_stage": "build",
+      "loop_stage": "idle",
       "dial_inherited": 50,
       "expert_hour_status": "not_attempted",
       "depends_on": [
@@ -2028,7 +2028,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 546,
+      "stall_consecutive_unchanged": 128,
       "forward_attachments": []
     },
     {
@@ -2074,7 +2074,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1703,
+      "stall_consecutive_unchanged": 7734,
       "forward_attachments": []
     },
     {
@@ -2120,7 +2120,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 197,
+      "stall_consecutive_unchanged": 947,
       "forward_attachments": []
     },
     {
@@ -2130,11 +2130,11 @@
       "value_stream": "meter_to_cash",
       "value_stream_label": "Meter to Cash",
       "epoch": 4,
-      "level_current": 1,
+      "level_current": 2,
       "level_target": 3,
-      "loop_stage": "idle",
+      "loop_stage": "harden",
       "dial_inherited": 100,
-      "expert_hour_status": "not_attempted",
+      "expert_hour_status": "attempted_finding_open",
       "depends_on": [],
       "couples_with": [
         "W2_36_unbilled_energy_arises_the_way_it_does_in_reality",
@@ -2144,7 +2144,98 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2753,
+      "stall_consecutive_unchanged": 2754,
+      "forward_attachments": []
+    },
+    {
+      "id": "E6_a_forward_cash_forecast_per_customer_charges_expected_loss_as_arrears_build",
+      "name": "",
+      "lane": "E_finance_treasury",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 4,
+      "level_current": 1,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 95,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [
+        "W2_41_a_household_cancels_its_mandate_as_its_own_act",
+        "W2_42_debt_reaches_prepayment_only_by_the_legal_route",
+        "DD_seasonal_cashflow_physics"
+      ],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
+    },
+    {
+      "id": "W2_41_a_household_cancels_its_mandate_as_its_own_act",
+      "name": "",
+      "lane": "W2_customer_generator",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 4,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 85,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [
+        "E6_a_forward_cash_forecast_per_customer_charges_expected_loss_as_arrears_build"
+      ],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": 1,
+      "forward_attachments": []
+    },
+    {
+      "id": "B12_writer_one_reads_its_margin_on_the_unit_rate_so_a_renewal_floor_is_its_true_unit_cost",
+      "name": "",
+      "lane": "B_commercial",
+      "value_stream": "price_to_bill",
+      "value_stream_label": "Price to Bill",
+      "epoch": 4,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 90,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [
+        "B8_discovered_price_sensitivity_holdout",
+        "W3_3_the_network_charge_splits_per_unit_and_per_day"
+      ],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
+    },
+    {
+      "id": "W3_3_the_network_charge_splits_per_unit_and_per_day",
+      "name": "",
+      "lane": "W3_industry_systems",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 4,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 80,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [
+        "B12_writer_one_reads_its_margin_on_the_unit_rate_so_a_renewal_floor_is_its_true_unit_cost"
+      ],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 73,
       "forward_attachments": []
     },
     {
@@ -2156,7 +2247,7 @@
       "epoch": 4,
       "level_current": 2,
       "level_target": 3,
-      "loop_stage": "idle",
+      "loop_stage": "build",
       "dial_inherited": 90,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
@@ -2166,7 +2257,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 346,
+      "stall_consecutive_unchanged": 22,
       "forward_attachments": []
     },
     {
@@ -2238,6 +2329,30 @@
       "forward_attachments": []
     },
     {
+      "id": "C35_the_supplier_finds_the_share_of_value_it_prices_by_optimising_joint_value_against_the_households_response",
+      "name": "",
+      "lane": "C_customer_ops",
+      "value_stream": "price_to_bill",
+      "value_stream_label": "Price to Bill",
+      "epoch": 4,
+      "level_current": 1,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 85,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "C34_next_best_action_is_one_decision_across_debt_retention_upsell_and_carbon_judged_by_clv"
+      ],
+      "couples_with": [
+        "W2_39_households_respond_to_contact_including_badly"
+      ],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 374,
+      "forward_attachments": []
+    },
+    {
       "id": "C34_next_best_action_is_one_decision_across_debt_retention_upsell_and_carbon_judged_by_clv",
       "name": "",
       "lane": "C_customer_ops",
@@ -2259,7 +2374,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 197,
+      "stall_consecutive_unchanged": 587,
       "forward_attachments": []
     },
     {
@@ -2284,7 +2399,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 322,
+      "stall_consecutive_unchanged": 686,
       "forward_attachments": []
     },
     {
@@ -8193,6 +8308,28 @@
       "stalled": true,
       "stall_consecutive_unchanged": 196,
       "forward_attachments": []
+    },
+    {
+      "id": "W2_42_debt_reaches_prepayment_only_by_the_legal_route",
+      "name": "",
+      "lane": "W2_customer_generator",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 4,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 80,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [
+        "E6_a_forward_cash_forecast_per_customer_charges_expected_loss_as_arrears_build"
+      ],
+      "chain": null,
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 170,
+      "forward_attachments": []
     }
   ],
   "lanes": {
@@ -8275,7 +8412,7 @@
       "loop_stage_now": "harden"
     }
   },
-  "total_atoms": 365,
+  "total_atoms": 371,
   "epoch2_movements": [
     {
       "id": "M1",

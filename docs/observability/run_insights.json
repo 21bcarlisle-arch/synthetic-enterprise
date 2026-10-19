@@ -1,34 +1,34 @@
 {
-  "git_hash": "2248e3baf",
-  "generated_at": "2026-10-13T21:21:25.365867+00:00",
-  "net_margin_gbp": 543473.69,
-  "executive_summary": "Business survived the full 2016-2025 window including the 2021-22 crisis. Net margin \u00a3543,474 (23.4% of total revenue -- above 2-5% benchmark). Hedging cost \u00a3825,967 vs going naked (85% mandate price). 7225 bill shock events (1740 in crisis years); 78/110 retention offers accepted.",
+  "git_hash": "8b6fea024",
+  "generated_at": "2026-10-19T08:46:12.789528+00:00",
+  "net_margin_gbp": 555900.06,
+  "executive_summary": "Business survived the full 2016-2025 window including the 2021-22 crisis. Net margin \u00a3555,900 (23.4% of total revenue -- above 2-5% benchmark). Hedging cost \u00a3826,678 vs going naked (85% mandate price). 7901 bill shock events (1822 in crisis years); 59/93 retention offers accepted.",
   "insights": [
     {
       "area": "trading",
-      "headline": "Hedging cost \u00a3825,967 vs going naked (85% mandate price)",
-      "narrative": "Whole-run commodity basis: actual net \u00a3446,579 vs naked \u00a31,272,546. The 85% minimum hedge mandate cost \u00a3825,967 over the 10-year window. Worst year: 2023 (hedging cost \u00a3159,597 vs naked). Hedging reduces variance (survival objective) at the cost of expected P&L.",
+      "headline": "Hedging cost \u00a3826,678 vs going naked (85% mandate price)",
+      "narrative": "Whole-run commodity basis: actual net \u00a3453,768 vs naked \u00a31,280,446. The 85% minimum hedge mandate cost \u00a3826,678 over the 10-year window. Worst year: 2023 (hedging cost \u00a3160,197 vs naked). Hedging reduces variance (survival objective) at the cost of expected P&L.",
       "key_metrics": {
-        "whole_run_actual_net_gbp": 446578.85,
-        "whole_run_naked_net_gbp": 1272546.31,
-        "hedging_cost_gbp": -825967.46,
+        "whole_run_actual_net_gbp": 453767.5,
+        "whole_run_naked_net_gbp": 1280445.99,
+        "hedging_cost_gbp": -826678.48,
         "worst_year": "2023",
-        "worst_year_cost_gbp": -159596.98
+        "worst_year_cost_gbp": -160197.28
       }
     },
     {
       "area": "customers",
-      "headline": "7225 bill shock events (1740 in crisis years); 78/110 retention offers accepted",
-      "narrative": "Bill shocks across 2016-2025: 7225 events, 1555 extreme (>100%). 2021-22 accounted for 1740 shocks as wholesale prices spiked. Retention: 78/110 offers accepted (71%); 68 customers churned without an offer (margin guard blocked). Enterprise value: \u00a3416,666 across 231 accounts.",
+      "headline": "7901 bill shock events (1822 in crisis years); 59/93 retention offers accepted",
+      "narrative": "Bill shocks across 2016-2025: 7901 events, 1582 extreme (>100%). 2021-22 accounted for 1822 shocks as wholesale prices spiked. Retention: 59/93 offers accepted (63%); 36 customers churned without an offer (margin guard blocked). Enterprise value: \u00a3438,153 across 182 accounts.",
       "key_metrics": {
-        "total_bill_shocks": 7225,
-        "crisis_year_shocks": 1740,
-        "extreme_shocks_over_100pct": 1555,
-        "retention_offers": 110,
-        "retained": 78,
-        "no_offer_churns": 68,
-        "total_churned": 342,
-        "enterprise_value_gbp": 416665.62
+        "total_bill_shocks": 7901,
+        "crisis_year_shocks": 1822,
+        "extreme_shocks_over_100pct": 1582,
+        "retention_offers": 93,
+        "retained": 59,
+        "no_offer_churns": 36,
+        "total_churned": 233,
+        "enterprise_value_gbp": 438153.13
       }
     },
     {
@@ -44,36 +44,36 @@
     },
     {
       "area": "financial",
-      "headline": "Net margin \u00a3543,474 (23.4% of total revenue -- above 2-5% benchmark)",
-      "narrative": "Gross margin \u00a31,388,221, net \u00a3543,474 (23.4% of revenue). Industry benchmark: 2-5% -- this business sits above that range. I&C customers contribute 0% of net margin (\u00a30); residential 100% (\u00a3543,474). Cost to serve: \u00a3175,046; net after CTS: \u00a3368,428.",
+      "headline": "Net margin \u00a3555,900 (23.4% of total revenue -- above 2-5% benchmark)",
+      "narrative": "Gross margin \u00a31,371,848, net \u00a3555,900 (23.4% of revenue). Industry benchmark: 2-5% -- this business sits above that range. I&C customers contribute 0% of net margin (\u00a30); residential 100% (\u00a3555,900). Cost to serve: \u00a3172,937; net after CTS: \u00a3382,963.",
       "key_metrics": {
-        "net_margin_gbp": 543473.69,
-        "gross_margin_gbp": 1388221.22,
-        "revenue_gbp": 2325472.52,
-        "net_margin_pct": 23.37,
+        "net_margin_gbp": 555900.06,
+        "gross_margin_gbp": 1371847.9,
+        "revenue_gbp": 2372091.77,
+        "net_margin_pct": 23.44,
         "ic_net_margin_gbp": 0,
         "ic_net_pct_of_total": 0.0,
-        "cost_to_serve_gbp": 175045.84,
-        "net_after_cost_to_serve_gbp": 368427.84
+        "cost_to_serve_gbp": 172937.14,
+        "net_after_cost_to_serve_gbp": 382962.93
       }
     },
     {
       "area": "operations",
-      "headline": "39084 bills issued; service quality 0.923/1.0, clarity 0.874/1.0",
-      "narrative": "39084 bills issued over 2016-2025 (avg 3908/yr). Service quality: 0.923 (excellent). Bill clarity: 0.874 (good). Cost to serve: \u00a3175,046 portfolio total, \u00a3758/account/run.",
+      "headline": "38596 bills issued; service quality 0.920/1.0, clarity 0.866/1.0",
+      "narrative": "38596 bills issued over 2016-2025 (avg 3860/yr). Service quality: 0.920 (excellent). Bill clarity: 0.866 (good). Cost to serve: \u00a3172,937 portfolio total, \u00a3950/account/run.",
       "key_metrics": {
-        "bills_total": 39084,
-        "avg_clarity": 0.8735,
-        "service_quality_score": 0.9235,
-        "cost_to_serve_gbp": 175045.84,
-        "cost_to_serve_per_account_gbp": 757.77
+        "bills_total": 38596,
+        "avg_clarity": 0.8664,
+        "service_quality_score": 0.9201,
+        "cost_to_serve_gbp": 172937.14,
+        "cost_to_serve_per_account_gbp": 950.2
       }
     }
   ],
-  "coherence_narrative": "The dominant theme is crisis survival. The business survived the full 2016-2025 window including the 2021-22 energy crisis, with the 85% hedge mandate cost \u00a3825,967 vs going naked, 1740 bill shocks in the 2021-22 crisis, and 78/110 retention offers accepted. net margin \u00a3543,474 (23.4% of revenue -- above 2-5% benchmark), with I&C customers contributing 0% of net margin. The hedging mandate limited worst-case downside at the cost of expected P&L in calmer years; the I&C book was the primary profit engine throughout. The book is well-diversified between residential and I&C segments.",
+  "coherence_narrative": "The dominant theme is crisis survival. The business survived the full 2016-2025 window including the 2021-22 energy crisis, with the 85% hedge mandate cost \u00a3826,678 vs going naked, 1822 bill shocks in the 2021-22 crisis, and 59/93 retention offers accepted. net margin \u00a3555,900 (23.4% of revenue -- above 2-5% benchmark), with I&C customers contributing 0% of net margin. The hedging mandate limited worst-case downside at the cost of expected P&L in calmer years; the I&C book was the primary profit engine throughout. The book is well-diversified between residential and I&C segments.",
   "recommended_actions": [
     "I&C margin share 0%: diversified book -- maintain residential acquisition to keep I&C below 70% dependency",
-    "Hedge cost \u00a3825,967 over 10 years -- mandate is a survival insurance premium, not an expected-value strategy",
-    "1740 crisis-year bill shocks: consider tariff smoothing mechanism to spread 2021-22 wholesale spike across 2020-2023 for residential customers"
+    "Hedge cost \u00a3826,678 over 10 years -- mandate is a survival insurance premium, not an expected-value strategy",
+    "1822 crisis-year bill shocks: consider tariff smoothing mechanism to spread 2021-22 wholesale spike across 2020-2023 for residential customers"
   ]
 }

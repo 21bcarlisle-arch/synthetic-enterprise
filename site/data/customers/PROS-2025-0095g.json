@@ -66,7 +66,7 @@
   ],
   "invoices": [
     {
-      "id": "PROS-2025-0095g-INV20617",
+      "id": "PROS-2025-0095g-INV19501",
       "date": "2025-04-30",
       "period_start": "2025-04-08",
       "period_end": "2025-04-30",
@@ -109,7 +109,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2025-0095g-INV20618",
+      "id": "PROS-2025-0095g-INV19502",
       "date": "2025-05-31",
       "period_start": "2025-05-01",
       "period_end": "2025-05-31",
@@ -152,7 +152,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2025-0095g-INV20619",
+      "id": "PROS-2025-0095g-INV19503",
       "date": "2025-06-07",
       "period_start": "2025-06-01",
       "period_end": "2025-06-07",
@@ -201,17 +201,17 @@
       {
         "date": "2025-05-01",
         "type": "invoice_raised",
-        "invoice_number": 20617,
+        "invoice_number": 19501,
         "amount_gbp": 66.57,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV20617 raised",
+        "description": "Invoice INV19501 raised",
         "running_balance_gbp": 66.57
       },
       {
         "date": "2025-05-15",
         "type": "payment_received",
-        "invoice_number": 20617,
+        "invoice_number": 19501,
         "amount_gbp": -66.57,
         "info_amount_gbp": null,
         "method": "standard_credit",
@@ -221,27 +221,27 @@
       {
         "date": "2025-06-04",
         "type": "invoice_raised",
-        "invoice_number": 20618,
+        "invoice_number": 19502,
         "amount_gbp": 50.01,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV20618 raised",
+        "description": "Invoice INV19502 raised",
         "running_balance_gbp": 50.01
       },
       {
         "date": "2025-06-12",
         "type": "invoice_raised",
-        "invoice_number": 20619,
+        "invoice_number": 19503,
         "amount_gbp": 8.17,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV20619 raised",
+        "description": "Invoice INV19503 raised",
         "running_balance_gbp": 58.18
       },
       {
         "date": "2025-06-18",
         "type": "payment_received",
-        "invoice_number": 20618,
+        "invoice_number": 19502,
         "amount_gbp": -50.01,
         "info_amount_gbp": null,
         "method": "standard_credit",

@@ -38,10 +38,10 @@
   },
   "dual_fuel_combined": {
     "gas_account_id": "PROS-2025-0156g",
-    "gas_lifetime_net_gbp": 0.62,
+    "gas_lifetime_net_gbp": 0.63,
     "gas_lifetime_revenue_gbp": 4.69,
     "combined_net_gbp": 4.13,
-    "combined_revenue_gbp": 16.39
+    "combined_revenue_gbp": 16.4
   },
   "annual_pnl": [
     {
@@ -56,7 +56,7 @@
   "timeline": [],
   "invoices": [
     {
-      "id": "PROS-2025-0156-INV20635",
+      "id": "PROS-2025-0156-INV19519",
       "date": "2025-06-07",
       "period_start": "2025-06-03",
       "period_end": "2025-06-07",
@@ -105,17 +105,17 @@
       {
         "date": "2025-06-09",
         "type": "invoice_raised",
-        "invoice_number": 20635,
+        "invoice_number": 19519,
         "amount_gbp": 12.29,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV20635 raised",
+        "description": "Invoice INV19519 raised",
         "running_balance_gbp": 12.29
       },
       {
         "date": "2025-06-23",
         "type": "payment_received",
-        "invoice_number": 20635,
+        "invoice_number": 19519,
         "amount_gbp": -12.29,
         "info_amount_gbp": null,
         "method": "standard_credit",

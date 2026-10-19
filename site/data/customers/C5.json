@@ -541,30 +541,30 @@
       "period_start": "2016-12-01",
       "period_end": "2016-12-30",
       "commodity": "electricity",
-      "consumption_kwh": 1963.8,
+      "consumption_kwh": 1565.5,
       "unit_rate_p_per_kwh": 7.726,
-      "commodity_amount_gbp": 151.72,
+      "commodity_amount_gbp": 120.95,
       "standing_charge_gbp": 8.65,
       "days_in_period": 30,
       "standing_charge_gbp_per_day": 0.2883,
-      "non_commodity_amount_gbp": 78.63,
-      "vat_gbp": 47.8,
-      "amount_gbp": 286.8,
+      "non_commodity_amount_gbp": 62.68,
+      "vat_gbp": 38.46,
+      "amount_gbp": 230.74,
       "status": "PAID",
       "outstanding_gbp": 0.0,
       "credit_applied_gbp": null,
       "meter_serial": "M00040455",
       "mpan": "1000000000120",
       "mprn": null,
-      "read_type": "A",
+      "read_type": "E",
       "opening_read_kwh": 15369.2,
-      "closing_read_kwh": 17333.0,
+      "closing_read_kwh": 16934.7,
       "registers": [
         {
           "register_id": "1",
           "label": "Anytime",
-          "consumption_kwh": 1963.8,
-          "amount_gbp": 151.72,
+          "consumption_kwh": 1565.5,
+          "amount_gbp": 120.95,
           "unit_rate_p_per_kwh": 7.726
         }
       ],
@@ -598,7 +598,7 @@
         "invoice_number": 105,
         "amount_gbp": -303.13,
         "info_amount_gbp": null,
-        "method": "bacs",
+        "method": "standard_credit",
         "description": "Payment received",
         "running_balance_gbp": 0.0
       },
@@ -618,7 +618,7 @@
         "invoice_number": 106,
         "amount_gbp": -249.96,
         "info_amount_gbp": null,
-        "method": "bacs",
+        "method": "standard_credit",
         "description": "Payment received",
         "running_balance_gbp": 0.0
       },
@@ -638,7 +638,7 @@
         "invoice_number": 107,
         "amount_gbp": -257.41,
         "info_amount_gbp": null,
-        "method": "bacs",
+        "method": "standard_credit",
         "description": "Payment received",
         "running_balance_gbp": 0.0
       },
@@ -658,7 +658,7 @@
         "invoice_number": 108,
         "amount_gbp": -230.57,
         "info_amount_gbp": null,
-        "method": "bacs",
+        "method": "standard_credit",
         "description": "Payment received",
         "running_balance_gbp": 0.0
       },
@@ -673,16 +673,6 @@
         "running_balance_gbp": 206.84
       },
       {
-        "date": "2016-06-18",
-        "type": "payment_received",
-        "invoice_number": 109,
-        "amount_gbp": -206.84,
-        "info_amount_gbp": null,
-        "method": "bacs",
-        "description": "Payment received",
-        "running_balance_gbp": 0.0
-      },
-      {
         "date": "2016-07-04",
         "type": "invoice_raised",
         "invoice_number": 110,
@@ -690,7 +680,7 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV110 raised",
-        "running_balance_gbp": 149.75
+        "running_balance_gbp": 356.59
       },
       {
         "date": "2016-07-18",
@@ -698,7 +688,17 @@
         "invoice_number": 110,
         "amount_gbp": -149.75,
         "info_amount_gbp": null,
-        "method": "bacs",
+        "method": "standard_credit",
+        "description": "Payment received",
+        "running_balance_gbp": 206.84
+      },
+      {
+        "date": "2016-08-02",
+        "type": "payment_received",
+        "invoice_number": 109,
+        "amount_gbp": -206.84,
+        "info_amount_gbp": null,
+        "method": "standard_credit",
         "description": "Payment received",
         "running_balance_gbp": 0.0
       },
@@ -718,7 +718,7 @@
         "invoice_number": 111,
         "amount_gbp": -118.78,
         "info_amount_gbp": null,
-        "method": "bacs",
+        "method": "standard_credit",
         "description": "Payment received",
         "running_balance_gbp": 0.0
       },
@@ -733,16 +733,6 @@
         "running_balance_gbp": 167.6
       },
       {
-        "date": "2016-09-17",
-        "type": "payment_received",
-        "invoice_number": 112,
-        "amount_gbp": -167.6,
-        "info_amount_gbp": null,
-        "method": "bacs",
-        "description": "Payment received",
-        "running_balance_gbp": 0.0
-      },
-      {
         "date": "2016-10-05",
         "type": "invoice_raised",
         "invoice_number": 113,
@@ -750,6 +740,16 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV113 raised",
+        "running_balance_gbp": 241.06
+      },
+      {
+        "date": "2016-10-07",
+        "type": "payment_received",
+        "invoice_number": 112,
+        "amount_gbp": -167.6,
+        "info_amount_gbp": null,
+        "method": "standard_credit",
+        "description": "Payment received",
         "running_balance_gbp": 73.46
       },
       {
@@ -758,7 +758,7 @@
         "invoice_number": 113,
         "amount_gbp": -73.46,
         "info_amount_gbp": null,
-        "method": "bacs",
+        "method": "standard_credit",
         "description": "Payment received",
         "running_balance_gbp": 0.0
       },
@@ -778,7 +778,7 @@
         "invoice_number": 114,
         "amount_gbp": -162.44,
         "info_amount_gbp": null,
-        "method": "bacs",
+        "method": "standard_credit",
         "description": "Payment received",
         "running_balance_gbp": 0.0
       },
@@ -798,7 +798,7 @@
         "invoice_number": 115,
         "amount_gbp": -304.85,
         "info_amount_gbp": null,
-        "method": "bacs",
+        "method": "standard_credit",
         "description": "Payment received",
         "running_balance_gbp": 0.0
       },
@@ -806,26 +806,26 @@
         "date": "2017-01-10",
         "type": "invoice_raised",
         "invoice_number": 116,
-        "amount_gbp": 286.8,
+        "amount_gbp": 230.74,
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV116 raised",
-        "running_balance_gbp": 286.8
+        "running_balance_gbp": 230.74
       },
       {
-        "date": "2017-01-24",
+        "date": "2017-02-08",
         "type": "payment_received",
         "invoice_number": 116,
-        "amount_gbp": -286.8,
+        "amount_gbp": -230.74,
         "info_amount_gbp": null,
-        "method": "bacs",
+        "method": "standard_credit",
         "description": "Payment received",
         "running_balance_gbp": 0.0
       }
     ],
     "current_balance_gbp": 0.0,
-    "total_billed_gbp": 2511.59,
-    "total_collected_gbp": 2511.59,
+    "total_billed_gbp": 2455.53,
+    "total_collected_gbp": 2455.53,
     "total_written_off_gross_gbp": 0,
     "total_recovered_gbp": 0
   },
@@ -878,7 +878,7 @@
       },
       {
         "month": "2016-12",
-        "kwh": 1963.7
+        "kwh": 1565.5
       }
     ],
     "has_hh_data": false
@@ -899,9 +899,9 @@
       "customer_id": "C5",
       "date": "2016-12-31",
       "event_type": "outcome_churned",
-      "description": "Renewal outcome: CHURNED -- company believed 9% churn risk at decision time, SIM realized probability was 85%.",
-      "company_belief": 0.086,
-      "sim_truth": 0.854,
+      "description": "Renewal outcome: CHURNED -- company believed 9% churn risk at decision time, SIM realized probability was 92%.",
+      "company_belief": 0.093,
+      "sim_truth": 0.919,
       "amount_gbp": null,
       "outcome": "churned",
       "framing_type": null

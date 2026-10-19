@@ -1,53 +1,5 @@
 [
   {
-    "git_hash": "6371f89d1",
-    "generated_at": "2026-09-17T16:22:46.921987+00:00",
-    "net_margin_gbp": 157270.68,
-    "executive_summary": "Business survived the full 2016-2025 window including the 2021-22 crisis. Net margin \u00a3157,271 (19.3% of total revenue -- above 2-5% benchmark). Hedging cost \u00a3223,129 vs going naked (85% mandate price). 1459 bill shock events (380 in crisis years); 21/35 retention offers accepted.",
-    "headline_metrics": {
-      "trading": {
-        "whole_run_actual_net_gbp": 142760.85,
-        "whole_run_naked_net_gbp": 365889.99,
-        "hedging_cost_gbp": -223129.14,
-        "worst_year": "2023",
-        "worst_year_cost_gbp": -42500.64
-      },
-      "customers": {
-        "total_bill_shocks": 1459,
-        "crisis_year_shocks": 380,
-        "extreme_shocks_over_100pct": 551,
-        "retention_offers": 35,
-        "retained": 21,
-        "no_offer_churns": 26,
-        "total_churned": 87,
-        "enterprise_value_gbp": 145076.33
-      },
-      "risk": {
-        "committee_interventions_total": 0,
-        "crisis_year_interventions": 0,
-        "survived": true,
-        "administration_event": null
-      },
-      "financial": {
-        "net_margin_gbp": 157270.68,
-        "gross_margin_gbp": 397734.64,
-        "revenue_gbp": 816181.31,
-        "net_margin_pct": 19.27,
-        "ic_net_margin_gbp": 0,
-        "ic_net_pct_of_total": 0.0,
-        "cost_to_serve_gbp": 45864.01,
-        "net_after_cost_to_serve_gbp": 111406.68
-      },
-      "operations": {
-        "bills_total": 10131,
-        "avg_clarity": 0.8731,
-        "service_quality_score": 0.9286,
-        "cost_to_serve_gbp": 45864.01,
-        "cost_to_serve_per_account_gbp": 833.89
-      }
-    }
-  },
-  {
     "git_hash": "797c3164f",
     "generated_at": "2026-09-17T18:18:17.432437+00:00",
     "net_margin_gbp": 157806.88,
@@ -4796,6 +4748,54 @@
         "service_quality_score": 0.9235,
         "cost_to_serve_gbp": 175045.84,
         "cost_to_serve_per_account_gbp": 757.77
+      }
+    }
+  },
+  {
+    "git_hash": "8b6fea024",
+    "generated_at": "2026-10-19T08:46:12.789528+00:00",
+    "net_margin_gbp": 555900.06,
+    "executive_summary": "Business survived the full 2016-2025 window including the 2021-22 crisis. Net margin \u00a3555,900 (23.4% of total revenue -- above 2-5% benchmark). Hedging cost \u00a3826,678 vs going naked (85% mandate price). 7901 bill shock events (1822 in crisis years); 59/93 retention offers accepted.",
+    "headline_metrics": {
+      "trading": {
+        "whole_run_actual_net_gbp": 453767.5,
+        "whole_run_naked_net_gbp": 1280445.99,
+        "hedging_cost_gbp": -826678.48,
+        "worst_year": "2023",
+        "worst_year_cost_gbp": -160197.28
+      },
+      "customers": {
+        "total_bill_shocks": 7901,
+        "crisis_year_shocks": 1822,
+        "extreme_shocks_over_100pct": 1582,
+        "retention_offers": 93,
+        "retained": 59,
+        "no_offer_churns": 36,
+        "total_churned": 233,
+        "enterprise_value_gbp": 438153.13
+      },
+      "risk": {
+        "committee_interventions_total": 0,
+        "crisis_year_interventions": 0,
+        "survived": true,
+        "administration_event": null
+      },
+      "financial": {
+        "net_margin_gbp": 555900.06,
+        "gross_margin_gbp": 1371847.9,
+        "revenue_gbp": 2372091.77,
+        "net_margin_pct": 23.44,
+        "ic_net_margin_gbp": 0,
+        "ic_net_pct_of_total": 0.0,
+        "cost_to_serve_gbp": 172937.14,
+        "net_after_cost_to_serve_gbp": 382962.93
+      },
+      "operations": {
+        "bills_total": 38596,
+        "avg_clarity": 0.8664,
+        "service_quality_score": 0.9201,
+        "cost_to_serve_gbp": 172937.14,
+        "cost_to_serve_per_account_gbp": 950.2
       }
     }
   }

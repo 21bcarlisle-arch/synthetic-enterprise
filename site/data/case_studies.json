@@ -1,14 +1,14 @@
 {
   "meta": {
-    "generated_at": "2026-10-13T21:22:32Z",
-    "git_commit": "2248e3baf",
-    "household_count": 774,
+    "generated_at": "2026-10-19T08:47:16Z",
+    "git_commit": "8b6fea024",
+    "household_count": 550,
     "note": "Auto-curated from real per-household timeline/reaction-chain/churn-accuracy data (WEBSITE_AS_SHOWCASE.md tab 4) -- no household is hand-picked."
   },
   "cases": [
     {
       "category": "Most eventful journey",
-      "headline": "51 timeline + reaction-chain entries on record",
+      "headline": "53 timeline + reaction-chain entries on record",
       "wall_side": "sim",
       "account_id": "PROS-2016-0098",
       "base_account_id": "PROS-2016-0098",
@@ -21,35 +21,35 @@
     },
     {
       "category": "Largest company-vs-SIM churn divergence",
-      "headline": "100.0 percentage points apart at the 2023 renewal (sim 0.0% vs company 100.0%)",
+      "headline": "100.0 percentage points apart at the 2024 renewal (sim 0.0% vs company 100.0%)",
       "wall_side": "sim",
-      "account_id": "SYN-2016-529",
-      "base_account_id": "SYN-2016-529",
+      "account_id": "SYN-2016-270",
+      "base_account_id": "SYN-2016-270",
       "segment": "resi",
       "commodity": "gas",
       "link": {
-        "acc": "SYN-2016-529",
+        "acc": "SYN-2016-270",
         "tab": "timeline",
-        "year": 2023
+        "year": 2024
       }
     },
     {
       "category": "Retention save, then churned anyway",
       "headline": "The company offered retention and won, then lost the account regardless",
       "wall_side": "company",
-      "account_id": "PROS-2019-0310",
-      "base_account_id": "PROS-2019-0310",
+      "account_id": "SYN-2016-306",
+      "base_account_id": "SYN-2016-306",
       "segment": "resi",
       "commodity": "electricity",
       "link": {
-        "acc": "PROS-2019-0310",
+        "acc": "SYN-2016-306",
         "tab": "timeline",
         "year": 2024
       }
     },
     {
       "category": "Heaviest arrears cascade",
-      "headline": "2 debt write-off event(s) in the arrears cascade",
+      "headline": "3 debt write-off event(s) in the arrears cascade",
       "wall_side": "company",
       "account_id": "OCC-17ff099218d5",
       "base_account_id": "OCC-17ff099218d5",
@@ -77,16 +77,16 @@
     },
     {
       "category": "Silent-middle churn risk",
-      "headline": "True satisfaction fell 30.0 percentage points (76.0% in 2020 to 46.0% in 2025) but never once answered a survey -- invisible to the company's measurement instrument",
+      "headline": "True satisfaction fell 22.0 percentage points (73.1% in 2017 to 51.1% in 2024) but never once answered a survey -- invisible to the company's measurement instrument",
       "wall_side": "sim",
-      "account_id": "SYN-2016-187",
-      "base_account_id": "SYN-2016-187",
+      "account_id": "PROS-2016-0092",
+      "base_account_id": "PROS-2016-0092",
       "segment": "resi",
       "commodity": "electricity",
       "link": {
-        "acc": "SYN-2016-187",
+        "acc": "PROS-2016-0092",
         "tab": "timeline",
-        "year": 2025
+        "year": 2024
       }
     }
   ]
