@@ -310,6 +310,29 @@ pair of loss notices on one date: 341 of 447 households (76%) and 682 of 788 poi
 - **Off by default** (`DecisionPolicy.save_offer_decides_per_household`) until the world can weigh
   the pair. Under the switch off the company answers exactly as it does today.
 
+**Where the run answers both notices (step 1b; added 2026-10-19, before the run caller was built).**
+Nothing new was searched for this step. It is a choice about where in our run the one decision is
+taken, and what each leg's inputs are at that moment. The rules above already allow it.
+- **When.** At the departure roll on the decision leg, once the loss notices are filed. A supplier
+  answers an Invitation to Intervene inside the objection window (save page §1c). Both legs' notices
+  carry the same effective date, so both are answered in that one reply. A leg whose notice the
+  company does not hold is left out of the decision. Before CSS (requests from 18 July 2022) no
+  notice arrives in time, so no household is decided at all.
+- **Each leg's inputs are what the company holds when it answers.** These are the leg's renewal offer
+  as struck for that start, its fuel's published default ex VAT, its cost floor (`term_cost_floor`),
+  and the company's own annual volume for the point. **Design choice, and a limit of our run:** the
+  other leg's renewal offer is read as first struck for the start. The run's later adjustments to that
+  leg's rate (premium, cap clamp) are applied only when that leg is priced, after the roll. A real
+  supplier would have issued both renewal notices together, so it would hold both final offers.
+  Where the later adjustment lands **below** the save, the leg is billed the lower rate. A save never
+  raises a price.
+- **What carries.** A household saved at the roll keeps both legs. The other leg is billed its save
+  rate for that term. It does not teach the stayers' premium, for the same reason the decision leg's
+  save does not. No rival's ledger reads it.
+- **What does not change in 1b.** The world still re-asks the departure roll on the decision leg's
+  rate alone. Weighing the combined bill is step 1c: a world fidelity choice under the GAP above, with
+  its own prediction filed first.
+
 ### 8b. One fuel in credit, the other in arrears: may the supplier net them?
 
 *Added 2026-10-18, before any netting build (K8), for item 3 of
