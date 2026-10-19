@@ -671,7 +671,7 @@ module name outside `tests/`.
 
 | Path | What it does | Verdict |
 |---|---|---|
-| `simulation/meter_reads.py` | Two read classes (W2_36 slice 2). The hard-to-read share comes from `q2_persistent_unread_share`; the easy rate is solved to `q2_no_read_12m_share`. Hard class reads at 0.02 a month. Smart not-communicating is 0.10, drawn independently each month. | **Right:** the forced read and 1-in-6 are gone, and the calibration is to published moments. **Wrong:** a read *arrives* by probability. There is no visit, no self-read, no access refusal, and **no supplier lever**. Ofgem's own remedy (the supplier takes the read itself) cannot be modelled, and the 21BA.2(c) exception can never be evidenced. **Wrong:** smart not-in-smart-mode is a *state* that persists, with a 2–15% spread by supplier (§2.3). The code draws it afresh each month and types its own 0.10, which is not in the register. **Open:** the hard-to-read class is keyed to `customer_id`. Locked cupboards and landlord keys are *premises* traits that outlive a tenant (Ofgem 2018 p.8). |
+| `simulation/meter_reads.py` | Two read classes (W2_36 slice 2). The hard-to-read share comes from `q2_persistent_unread_share`; the easy rate is solved to `q2_no_read_12m_share`. Hard class reads at 0.02 a month. Smart not-communicating is 0.10, drawn independently each month. | **Right:** the forced read and 1-in-6 are gone, and the calibration is to published moments. **Wrong:** a read *arrives* by probability. There is no visit, no self-read, no access refusal, and **no supplier lever**. Ofgem's own remedy (the supplier takes the read itself) cannot be modelled, and the 21BA.2(c) exception can never be evidenced. ~~**Wrong:** smart not-in-smart-mode is a *state* that persists, with a 2–15% spread by supplier (§2.3). The code draws it afresh each month and types its own 0.10, which is not in the register.~~ **Corrected 2026-10-07 (W2_36):** the share is read from `q6_smart_not_in_smart_mode_share` and held per account for life; the exit hazard stays unpublished (gap 9), so none is invented. A smart home's 12-month no-read share went from 0.0000 to 0.0073 of windows. **Open:** the hard-to-read class is keyed to `customer_id`. Locked cupboards and landlord keys are *premises* traits that outlive a tenant (Ofgem 2018 p.8). |
 | (none) | Theft, tamper, unregistered use, UIG, GSP-correction smear | **Missing.** `grep -i theft\|tamper\|obstruct` over `sim/` and `simulation/` returns nothing relevant. Settlement equals true consumption (unbilled doc §5), so neither the smear nor detected theft can exist. |
 
 **Company (`company/`).**
@@ -734,8 +734,8 @@ Schedule 7. The quotations above are the candidates for it.
 4. **Five theft and warrant modules carry unsourced or wrong regulatory claims** (GS(SS)5, a
    3-year cap, "report to Ofgem", the April 2023 "ban", UIG 0.5–2%). Four have no production
    caller.
-5. **The smart not-in-smart-mode rate** is a constant typed in code, drawn independently each
-   month. It is not in the register, and it is a state in reality.
+5. ~~**The smart not-in-smart-mode rate** is a constant typed in code, drawn independently each
+   month.~~ Closed 2026-10-07 (W2_36): read from the register and held as a state.
 6. `meter_assets.py` reads the wall clock.
 7. (2026-10-17) **No gas must-read.** UNC M5.10 has the Transporter attempt a read on a Class 4
    Annual Read meter after 24 months without one, at the shipper's cost. The world has no such

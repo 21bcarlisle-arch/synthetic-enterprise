@@ -171,3 +171,29 @@ publish run was filed before that run was read:
 The netting build is a later item: §8b's choices (a) to (c). It is sized by that reading.
 
 **Book note, 2026-10-19 (seat).** The 19 Oct publish run (`8b6fea024`) predates `30246d6f0`, so its campaign wins are dual on **every** gas home: 172 of 172, 0 gas-only, against about 0.906 at the published rate. The readings here are taken on that always-dual campaign book. It holds about 413 dual households where the split rate gives about 397, roughly 4% fewer. Do not difference a later run's dual counts against these readings as if only the company changed. Reading and prediction: `docs/staging/records/SEAT_PREREG_THE_FIRST_RUN_WITH_SPLIT_CAMPAIGN_HOMES_AGAINST_THE_ALWAYS_DUAL_CAMPAIGN_BOOK_THE_19_OCT_RUN_CARRIES_2026-10-19.md`.
+
+## 7. Item 3, netting across legs: built, default off (2026-10-19)
+
+The design is in fuel page §8b, "Design choices the offset makes". It is choice (b): the company
+offers the household's credit on its other fuel at the two actions where it seeks a DD leg's debit.
+Those are the review, when it seeks the balance, and a closed leg's final bill. The SLC 21BA bar is
+taken first, and no offset is made before 22 Jan 2021. It sits behind
+`DecisionPolicy.dd_review_offsets_dual_fuel_legs`, which is off. The rule is
+`company.billing.dd_review.dual_fuel_offset_amount`. The book is `simulation/dd_balance_book.py`,
+which settles each household's offsets in date order. The control is
+`tests/simulation/test_a_dual_household_may_offset_one_fuels_credit_against_the_others_debt.py`.
+
+**Size, read on the publish run `8b6fea024_20261019T033010Z` before item 1's grade:** N2 = 12 of
+114 open households (0.105), at the low edge of the predicted 0.10–0.35, so the gate to build
+passed. N4 = 250 of 289 (0.87). On the standing review the switch offsets 8 final bills (£263.91).
+On the review that seeks, it makes 76 offsets (£2,841.31) in 65 households and leaves out 47 of
+1,146 step-ups. So the right is common and the money is small. The bar has already taken most debt
+old enough to matter.
+
+**Not built, and why.** The in-run dunning desk (`arrears_engine.select_dunning_step`) reads one
+leg's ledger of missed payments. That ledger holds no level-DD credit, so there is nothing yet to
+offset there. Building it waits for a reading of how often the desk escalates a leg whose other
+ledger is in credit.
+
+**Next, one variable:** switching the offset on belongs with switching `REVIEW_SEEKS_BALANCE` on,
+because only the seeking review gives it more than eight final bills to act on.
