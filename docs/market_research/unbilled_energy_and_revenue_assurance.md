@@ -337,6 +337,73 @@ theft reaches the supplier through line loss factors instead.
 3. The price cap allowance and the world's charge must be **one number** in a run year. Otherwise
    the company's margin carries a UIG gain or loss that real suppliers did not have on average.
 
+#### What a losing supplier is settled on for its last span (2026-10-19, K8 for leg (b) of the leaver finding)
+
+Asked by `SEAT_FINDING_A_LEAVER_NEVER_READ_BILLS_A_QUARTER_OF_ITS_TRUE_USE_AND_REFUSED_THE_PUBLISH_2026-10-19.md`,
+leg (b). This section is written before any build. The rules are already quoted in §4a ("What
+trues up a closing read after supply ends" and "The opening read at a change of tenancy"); here
+they are set against our code, and the design choices are stated.
+
+**What the rules require** (§4a, BSCP504 v53.0 §4.4.1, UNC TPD M5.13, REC Schedule 30).
+- The change-of-supplier read closes the losing supplier and opens the gaining one. It is actual
+  if one is valid within SSD ±5 days, otherwise "a valid Old Supplier Estimated reading … must be
+  used" and is deemed. Gas works the same way through the opening read the CDSP estimates.
+- The losing supplier's NHH settled volume for its last span is the advance from its last
+  settled read to that CoS read. Energy recorded after the CoS read is the gaining supplier's: once
+  the gaining supplier takes its first actual read, the residual lands on its customer's bill and in
+  its settlement. "The CoS reading is assumed to be correct by the Old Supplier, until the Old
+  Supplier disputes" it.
+- The read changes only through a dispute inside 12 months. Electricity needs a difference over
+  250 kWh, gas over 1,200 kWh. The only "shall initiate" falls on the supplier the consumer
+  contacted (REC Sch 30 9.4); a supplier's own dispute is a "may". An agreed replacement read
+  amends the closing bill too (8.1(b)).
+
+**So, for the losing supplier: consumed = settled = billed, all at the CoS read.** An estimated
+CoS read that is too low is not a loss to the losing supplier. It bills less and is charged less,
+and the difference moves to the gaining supplier's book at its first actual read. That is a
+transfer between suppliers, priced by the dispute rule. The losing supplier creates no value and
+loses none.
+
+**What our code does instead.** `simulation/hedged_settlement.run_hedged_term` forms
+`revenue_gbp` and `wholesale_cost_gbp` on `consumption_mwh`, the world's true demand, for every
+half-hour of the term, including a churned leg's last span. The company's ledger bills the
+leaver to the CoS read, which since 2026-10-17 can be an estimate
+(`simulation.meter_reads.simulate_final_read`). So on a churned leg that closes on an estimate,
+`margin_gbp` counts revenue on energy the company never billed and wholesale on energy it would not
+have been charged for. Measured on the 19 Oct book (finding, "Measured"): all 275 estimate-closed
+legs carry it, netting about £4,605, of which C7 is about £5,000 on the undercharge side.
+
+**Choices for the build, and why.**
+1. **The world settles a churned leg's last span on the CoS-read advance, not on true demand.**
+   The span is from the leg's last actual (or last settled) read to its exit. Within it, scale every
+   volume field of each settled row by (CoS read − opening read of the span) / (true kWh over the
+   span). The profile stays the true one; only the level moves to the read. This keeps the shape
+   and makes the span's total equal the billed total. It is a **world** change (W7: the world
+   settles as GB settlement does), so it is decided blind to the P&L, and its sign is not looked at
+   first.
+2. **Scaling hits revenue and wholesale together**, and the levies with them, because every
+   per-MWh charge on a supplier's NHH volume is on its settled volume. The standing charge does not
+   scale: it is per day, and the leaver is billed for its days.
+3. **No dispute is modelled in the first build.** It is a named simplification. A dispute needs a
+   consumer who notices, or a supplier that chooses to act, so no rule makes it certain. **GAP:**
+   the share of CoS reads disputed, by size of error. Because a dispute moves value between two
+   suppliers and creates none, leaving it out moves little in expectation. It does drop the
+   variance on legs like C7, which F11 says to name and not to hide.
+4. **A half-hourly-settled meter is different, and is out of scope here.** Its settlement is its
+   own interval data, not a read advance, so the losing supplier is settled on exactly what it
+   supplied, and that same data is a read it can bill. C7 is drawn with a smart meter and HH demand,
+   yet returned 42 estimates out of 42. A meter that settles on its data but never yields a billing
+   read cannot be both. Which side is wrong (the read stream or the settlement class) is a question
+   for the meter-read model. It is recorded in the leaver finding and is not folded in here.
+5. **The gaining supplier's side is outside the book** and is not modelled. The residual leaves
+   with the customer.
+
+**Prediction for that build, filed now.** On the 19 Oct book, the 275 estimate-closed churned legs'
+settled margin moves by about −£4,600 in total (the measured net), and C7 2016–2019 billed/gross
+moves above 1 without any read being forced. The 130 legs that closed on an actual read move by
+less than £1 each: their CoS read is the true advance, up to the read's own rounding. If any of
+those 130 moves by more, the span's opening read is mis-located.
+
 ### K7 Smart meter read failures
 
 - See K2: ~10% of installed smart meters not in smart mode end-2024; domestic traditional-mode
