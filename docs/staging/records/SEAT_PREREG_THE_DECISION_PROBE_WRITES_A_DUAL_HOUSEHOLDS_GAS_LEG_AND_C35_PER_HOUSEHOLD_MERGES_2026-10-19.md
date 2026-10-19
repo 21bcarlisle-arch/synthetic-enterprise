@@ -68,3 +68,13 @@ the probe writes.
 ## Grade
 
 *(filled after the run, beside the predictions, without revising them)*
+
+**Not yet gradable (17:15 BST, worker).** The first full probe on the changed code (`/var/tmp/gasleg`)
+never finished. It was a child of the 16:05 seat turn, and it died with that turn when
+`seat-executor.service` exited at 16:49. Its log stops at 2020-04-07 and it wrote no `probe.json`.
+It was relaunched at 17:12 BST as the systemd unit `longjob-gasleg-probe-2fe180d52`, so it now
+survives its launcher. It runs in a clean worktree at origin/main `2fe180d52`, which contains
+`608c0d0fa`, on the default book. Output goes to `/var/tmp/se-gasleg-grade-out/probe.json`. The
+last full probe took 3 h at a 3.6 GB peak, so expect it around 20:15–20:45 BST. To grade, run
+`cd /var/tmp/se-gasleg-grade && python3 /var/tmp/se-gasleg-grade-out/grade.py
+/home/rich/synthetic-enterprise/docs/reports/run_output_ad8afadc5_20261019T132751Z.json`, then read G1–G7 against its lines. The predictions above are unchanged.
