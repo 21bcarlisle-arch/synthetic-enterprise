@@ -20,7 +20,7 @@ from sim.risk_engine import (
     SIGMA_STRESSED_POST_REFORM,
     SIGMA_STRESSED_PRE_REFORM,
     WACC,
-    Z_SCORE_90_CONFIDENCE,
+    Z_SCORE_95_ONE_TAILED,
     assess_term_risk,
     calculate_active_collateral,
     calculate_sigma_recent,
@@ -126,7 +126,7 @@ def test_hedging_hold_reasoning_describes_noise():
 
 
 def test_risk_z_score_constant():
-    assert Z_SCORE_90_CONFIDENCE == pytest.approx(1.645)
+    assert Z_SCORE_95_ONE_TAILED == pytest.approx(1.645)
 
 
 def test_risk_wacc_constant():
@@ -161,7 +161,7 @@ def test_risk_calculate_var_exact_formula():
     sigma = 1.0
     volume_kwh = 1000.0  # = 1 MWh
     price = 10.0
-    expected = Z_SCORE_90_CONFIDENCE * sigma * (volume_kwh / 1000.0) * price
+    expected = Z_SCORE_95_ONE_TAILED * sigma * (volume_kwh / 1000.0) * price
     assert calculate_var(sigma, volume_kwh, price) == pytest.approx(expected)
 
 

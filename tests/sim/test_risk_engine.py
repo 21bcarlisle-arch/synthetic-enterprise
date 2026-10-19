@@ -64,7 +64,7 @@ def test_administration_triggers_at_zero_treasury():
 
 
 from sim.risk_engine import (
-    Z_SCORE_90_CONFIDENCE,
+    Z_SCORE_95_ONE_TAILED,
     WACC,
     SIGMA_STRESSED_PRE_REFORM,
     SIGMA_STRESSED_POST_REFORM,
@@ -76,7 +76,7 @@ from sim.risk_engine import (
 
 
 def test_z_score_90_confidence():
-    assert Z_SCORE_90_CONFIDENCE == 1.645
+    assert Z_SCORE_95_ONE_TAILED == 1.645
 
 
 def test_wacc_is_10_percent():
@@ -92,7 +92,7 @@ def test_var_formula_matches_z_sigma_price_volume():
     volume_kwh = 2000.0
     price = 100.0
     result = calculate_var(sigma, volume_kwh, price)
-    expected = Z_SCORE_90_CONFIDENCE * sigma * price * (volume_kwh / 1000.0)
+    expected = Z_SCORE_95_ONE_TAILED * sigma * price * (volume_kwh / 1000.0)
     assert abs(result - expected) < 1e-6
 
 

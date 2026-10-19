@@ -191,6 +191,18 @@ P_DUAL_GIVEN_GAS = 0.90
 P_GAS_LEG_GIVEN_SPLIT = 0.5
 FUEL_DUAL = "dual"
 
+# EVIDENCE RANGE, NOT A PUBLISHED SHARE. The three bands are Ofgem's TDCV points, and Ofgem defines
+# them as quartiles: LOW is the 25th percentile of household consumption, MEDIUM the median, HIGH the
+# 75th (Ofgem, "Typical Domestic Consumption Values: Call for Input", Feb 2023, Methodology: "low
+# and high values based on the first and third quartiles"). No source gives a share of homes "in" a
+# quartile POINT, so these masses are a choice about how three points stand in for a distribution.
+# Giving each point the homes nearest it on the CDF gives 0.375 / 0.25 / 0.375; this draw's 0.30 /
+# 0.45 / 0.25 is narrower and leans low, against a distribution Ofgem calls positively skewed
+# (mean above median). Range: LOW and HIGH each 0.25-0.375, MEDIUM the remainder. GAP: the draw
+# spans only the interquartile range (each band is a +/-200 kWh window), so no home sits below P25
+# or above P75; the remedy is to draw the EAC from the published percentile table, not to tune these.
+# It is read by every drawn account and levels a legacy home's settled demand (finding of 16 Oct,
+# SEAT_FINDING_A_LEGACY_HOME_IS_HANDED_ITS_DRAWN_BAND_AS_ITS_EAC_..._2026-10-16.md).
 DEFAULT_BAND_WEIGHTS: Dict[str, float] = {"LOW": 0.30, "MEDIUM": 0.45, "HIGH": 0.25}
 
 # Acquisition cadence -- DIRECTOR CURRICULUM "PROFILE B: TRICKLE CONTINUATION"

@@ -3,7 +3,6 @@
 # tests/architecture/test_a_world_constant_cites_its_anchor_or_is_a_labelled_range.py.
 # Anchor one (cite its page or source, or label it EVIDENCE RANGE) and strike its line here.
 # Director steer 19 Oct 2026, item 1. DEFAULT_BAND_WEIGHTS is the first entry.
-simulation/population_draw.py::DEFAULT_BAND_WEIGHTS
 sim/flex_dispatch.py::DEFAULT_AVAILABILITY_CALL_PERCENTILE
 sim/flex_dispatch.py::DEFAULT_DELIVERY_DISPERSION
 sim/flex_dispatch.py::DEFAULT_ENROLLED_MW
@@ -49,7 +48,6 @@ sim/risk_committee.py::VAR_BREACH_MULTIPLIER
 sim/risk_committee_rules.py::CRISIS_SIGMA_THRESHOLD
 sim/risk_engine.py::SIGMA_STRESSED_POST_REFORM
 sim/risk_engine.py::WACC
-sim/risk_engine.py::Z_SCORE_90_CONFIDENCE
 sim/scenario/gas_scenario_generator.py::THERM_KWH
 sim/ssp_tail_target.py::EXCEEDANCE_THRESHOLDS_GBP
 sim/weather_engine.py::SOLAR_CLOUD_ATTENUATION_K
