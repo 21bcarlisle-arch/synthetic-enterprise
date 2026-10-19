@@ -187,6 +187,32 @@ source can anchor it. The remedy the module already names is adding the missing 
 (`fabric_demand_path.ADD_THE_CELL_REMEDY`), after which the tolerance moves nothing. It stays
 registered.
 
+## `fabric_physics` against RdSAP 10, SAP 10.3 and Approved Documents L/F (19 Oct)
+
+`docs/market_research/what_rdsap_and_sap_publish_for_a_homes_fabric_by_age_band.md` reads the
+module's fabric tables against the published defaults, which were fetched. RdSAP 10 Table 6 was
+re-read by hand for a spot-check, and it holds: "cavity as built" is 1.5 through band E (1967-75)
+and 1.0 only from 1976. **Anchored, comments only:** `_FRAME_FACTOR` (RdSAP 10 Table 24, 0.7),
+`_GROUND_U_FLOOR` (ADL1 2026 Table 3.1, 0.18), and `_MINIMUM_VENTILATION_ACH` (EVIDENCE RANGE,
+ADF1 2026 Table 1.3). Register 431 -> 428.
+
+**Contradicted, and deliberately NOT cited.** A citation beside a number the source contradicts
+would discharge the scan and launder the error:
+
+- `_WALL_U_BY_ERA` 1965-1980: 1.0, against 1.5 through 1975.
+- `_ROOF_U_BY_ERA` 1945-1964 and 1965-1980: 1.5 and 0.68, against 2.3 and 1.5.
+- `_WINDOW_U_BY_ERA` 1981-2000: 2.0, against 2.8.
+- `_SOLAR_TRANSMITTANCE`: 0.55, against 0.63-0.85.
+- `_ROOF_U_FLOOR`: 0.13, against 0.15-0.16.
+- `_BOILER_EFFICIENCY` NEW: 0.90, above Table 4b's 84% ceiling.
+
+The post-2000 rows are each one value across a 26-year span that RdSAP splits into five bands. The
+remedy is the module reading RdSAP's own age bands, not six retuned numbers. That is a world
+fidelity change and moves settled consumption, so it is K8-then-build work: this page is the K8
+half. GAPs the page could not close: heat-pump COP (no field trial fetched), design external
+temperature, oversize factor, floor area by dwelling type, and infiltration (RdSAP computes it
+from several terms, not by age alone).
+
 ## The production-run screen, published entry (running)
 
 The same screen under `--entry published`, the entry `tools/run_annual_report.py` publishes

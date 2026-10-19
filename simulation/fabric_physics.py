@@ -558,6 +558,10 @@ _INSULATION_U_MULTIPLIER: dict[InsulationLevel, float] = {
 # which would double-count the age band and the insulation flag against each other.
 _WALL_U_FLOOR = 0.25
 _ROOF_U_FLOOR = 0.13
+# The ground floor is Approved Document L 2026 Vol 1 Table 3.1's limiting floor U-value, exactly:
+# `docs/market_research/what_rdsap_and_sap_publish_for_a_homes_fabric_by_age_band.md`.
+# The wall and roof floors above are NOT anchored: that page finds 0.25 and 0.13 off the retrofit
+# limits (0.30, 0.15-0.16).
 _GROUND_U_FLOOR = 0.18
 
 
@@ -574,6 +578,9 @@ _INFILTRATION_ACH_BY_ERA: dict[BuildEra, float] = {
     BuildEra.ERA_1981_2000: 0.55,
     BuildEra.POST_2000: 0.45,
 }
+# EVIDENCE RANGE: Approved Document F 2026 Vol 1 Table 1.3 (by bedrooms) and 0.3 l/s per m2 imply
+# ~0.43-0.78 ACH over this module's floor areas:
+# `docs/market_research/what_rdsap_and_sap_publish_for_a_homes_fabric_by_age_band.md`.
 _MINIMUM_VENTILATION_ACH = 0.50
 
 # `domain-knowledge` — SAP 10.2 / BREDEM adjust a dwelling's infiltration rate by a WIND FACTOR:
@@ -626,6 +633,8 @@ _STOREY_HEIGHT_M = 2.4
 _WALL_AREA_RATIO = 1.15       # external wall area per m^2 of floor, 2-storey
 _WINDOW_AREA_RATIO = 0.15
 _SOLAR_TRANSMITTANCE = 0.55   # glazing g-value
+# RdSAP 10 Table 24, wood or PVC-U frame:
+# `docs/market_research/what_rdsap_and_sap_publish_for_a_homes_fabric_by_age_band.md`.
 _FRAME_FACTOR = 0.70
 _SOLAR_SPLIT_TO_AIR = 0.40    # f_i in the 2R2C equations
 
