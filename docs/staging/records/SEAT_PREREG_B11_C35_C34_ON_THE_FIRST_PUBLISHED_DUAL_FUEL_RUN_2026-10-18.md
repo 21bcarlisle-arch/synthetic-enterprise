@@ -196,3 +196,18 @@ from `departure_ranking`, and by outcome from `error_by_outcome[o].ranking_again
 
 **Seat rows that took B11 from the old book** must now be re-taken from this table. That applies
 especially to anything citing the whole-book 2023 clearance (+0.133).
+
+## 7. Why the whole-book 2023 clearance went (worker, 2026-10-19)
+
+It was neither the sample nor the dual leg. **About 65% of the old +0.133 came from
+cross-segment pairs where flat ranked worse than chance (0.409).** The old book's `resi gas`
+segment carried the highest flat p and 2 departures in 37, and the key's 36+ band reordered
+those homes. On the dual book those homes are dual, flat's cross-segment AUC is 0.545, and that
+credit is gone. Of the fall of 0.058, 0.044 is that term and 0.014 is the within-segment term
+(+0.108 → +0.075, inside noise). **The key's own AUC rose, 0.580 → 0.592.** Subsampling the old
+run to 201 accounts leaves the point at +0.1325 (SD 0.022, 0.45% of draws ≤ +0.075). Dual and
+single cannot be told apart (+0.068 against +0.117). Also, the old graded book was 33% dual at 2023. The 1% was its opening founders, and campaign
+wins added the rest. Grade and figures:
+`SEAT_PREREG_WHY_THE_SWITCH_KEY_LOST_ITS_2023_WHOLE_BOOK_CLEARANCE_ON_THE_DUAL_BOOK_2026-10-19.md`.
+No supplier build is filed. The instrument change (grade the key within segment) is
+`docs/staging/WORKER_FINDING_THE_SWITCH_KEYS_WHOLE_BOOK_GAIN_OVER_FLAT_WAS_TWO_THIRDS_FLATS_OWN_INVERTED_GAS_SEGMENT_2026-10-19.md`.
