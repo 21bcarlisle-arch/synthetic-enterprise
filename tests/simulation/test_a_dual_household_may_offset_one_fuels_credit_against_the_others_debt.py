@@ -15,6 +15,8 @@ Named mutations, run 2026-10-19 in a scratch worktree and restored:
   the credit-moved leg and two rows of the rule's table red (4 failed, 8 passed).
 - `build_dd_balance_book`: `if offsets_dual_fuel_legs:` -> `if True:` (offsets taken with the switch
   off) turns both off-arm controls, the partition and the credit-moved leg red (4 failed, 8 passed).
+- `DecisionPolicy.dd_review_offsets_dual_fuel_legs` default `True` -> `False` (2026-10-19, after the
+  on-arm grade) turns `test_every_standing_policy_offers_the_offset` red on all seven policies.
 """
 from __future__ import annotations
 
@@ -23,8 +25,20 @@ from datetime import date
 import pytest
 
 from company.billing.dd_review import OFFSET_RIGHT_IN_FORCE_FROM, dual_fuel_offset_amount
-from company.policy.decision_policy import CURRENT_POLICY
+from company.policy.decision_policy import (
+    CURRENT_POLICY,
+    FLAT_SUPPLIER_POLICY,
+    NAIVE_POLICY,
+    VALUE_ARM_CAPPED_LEARNED_POLICY,
+    VALUE_ARM_CAPPED_POLICY,
+    VALUE_ARM_LEARNED_POLICY,
+    VALUE_ARM_POLICY,
+)
 from simulation.dd_balance_book import build_dd_balance_book
+from simulation.run_phase4c_on_phase2b import dual_fuel_offset_request
+
+STANDING = (CURRENT_POLICY, NAIVE_POLICY, VALUE_ARM_POLICY, VALUE_ARM_LEARNED_POLICY,
+            VALUE_ARM_CAPPED_POLICY, VALUE_ARM_CAPPED_LEARNED_POLICY, FLAT_SUPPLIER_POLICY)
 
 
 def _bills(cid, commodity, amounts, y0, m0):
@@ -58,8 +72,12 @@ def _view(book):
             {c: [p.balance_gbp for p in pts] for c, pts in book.trajectories.items()})
 
 
-def test_the_switch_stands_off_on_the_standing_policy():
-    assert CURRENT_POLICY.dd_review_offsets_dual_fuel_legs is False
+@pytest.mark.parametrize("policy", STANDING, ids=lambda p: p.name)
+def test_every_standing_policy_offers_the_offset(policy):
+    """Keyed to the property: the run asks the policy (`dual_fuel_offset_request`), and every
+    standing policy offers the offset, graded on in the verdict record's §1. The off branch stays
+    reachable through `build_dd_balance_book(offsets_dual_fuel_legs=False)`, tested below."""
+    assert dual_fuel_offset_request(policy) is True
 
 
 @pytest.mark.parametrize("seek", [False, True])

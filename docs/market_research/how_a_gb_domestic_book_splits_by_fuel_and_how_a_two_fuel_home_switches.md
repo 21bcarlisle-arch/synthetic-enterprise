@@ -397,8 +397,11 @@ in `simulation/dd_balance_book.py` behind `DecisionPolicy.dd_review_offsets_dual
 - **From 22 Jan 2021 only.** No offset is offered at an action dated earlier. Pre-2021 contract
   terms were not read (**GAP**), and inventing a netting habit for them would be a number picked
   because a number was needed.
-- **Off by default.** With the switch off, a leg is booked as if its household had no other fuel,
-  byte for byte.
+- **Off by default, then on.** With the switch off, a leg is booked as if its household had no
+  other fuel, byte for byte. *Switched on for every standing policy on 2026-10-19*, after its on
+  arm was graded against a stated rule on `ad8afadc5`. On the never-seeks review it acts only at a
+  dual leaver's final bills: 8 offsets, £263.65, and no barred pound moves
+  (`docs/staging/records/SEAT_VERDICT_EACH_DEFAULT_OFF_DUAL_FUEL_SWITCH_ON_WITH_ITS_GRADE_OR_OFF_WITH_ITS_REASON_2026-10-19.md` §3).
 
 **What it touches on the publish run** (`run_output_8b6fea024_20261019T033010Z`, read through
 `tools/dual_leg_opposite_signs` and the book with the switch on; the prereg's grade is item 1's).

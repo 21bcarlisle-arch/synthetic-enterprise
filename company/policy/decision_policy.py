@@ -246,8 +246,12 @@ class DecisionPolicy:
     #: the balance, a closed leg's final bill) offer that offset after the SLC 21BA bar and seek only
     #: the rest, so a leg whose other leg holds a credit at least as large is not stepped up
     #: (`simulation.dd_balance_book.build_dd_balance_book`, `company.billing.dd_review.
-    #: dual_fuel_offset_amount`; fuel page §8b). Off on every standing policy until it is measured.
-    dd_review_offsets_dual_fuel_legs: bool = False
+    #: dual_fuel_offset_amount`; fuel page §8b). On for every standing policy since its on arm was
+    #: graded (2026-10-19, `docs/staging/records/SEAT_VERDICT_EACH_DEFAULT_OFF_DUAL_FUEL_SWITCH_ON_
+    #: WITH_ITS_GRADE_OR_OFF_WITH_ITS_REASON_2026-10-19.md` §1): on the never-seeks review it acts
+    #: only at final bills and moves no barred pound. With `REVIEW_SEEKS_BALANCE` on it also acts at
+    #: reviews and the bars fall, so whoever decides that switch reads this one's seeks arm too.
+    dd_review_offsets_dual_fuel_legs: bool = True
 
     #: (2026-10-10) how the company sizes a save when no experiment names a cut: "price_match"
     #: meets the market's best published deal, never below the company's own cost floor
