@@ -10,6 +10,10 @@ gas GBP 1.85 on 11.5 MWh) and the C35 page's first advice effect.
 NAMED MUTATION: in `household_state`, replace `sum(leg.monthly_margin_gbp for leg in legs)` with
 `first.monthly_margin_gbp`. Then `test_on_the_household_is_charged_one_rise_it_can_afford` goes red,
 because the merged decision prices one leg and its rise no longer matches the household's.
+
+SECOND NAMED MUTATION (the switch-on, 2026-10-19): set the dataclass default of
+`DecisionPolicy.next_best_action_decides_per_household` back to False. Then
+`test_every_standing_policy_decides_a_dual_household_once` goes red on every standing policy.
 """
 from __future__ import annotations
 
@@ -26,7 +30,15 @@ from company.crm.next_best_action import (
     decide,
     states_for_decision,
 )
-from company.policy.decision_policy import CURRENT_POLICY
+from company.policy.decision_policy import (
+    CURRENT_POLICY,
+    FLAT_SUPPLIER_POLICY,
+    NAIVE_POLICY,
+    VALUE_ARM_CAPPED_LEARNED_POLICY,
+    VALUE_ARM_CAPPED_POLICY,
+    VALUE_ARM_LEARNED_POLICY,
+    VALUE_ARM_POLICY,
+)
 
 H = 48
 HAZARD = 0.01
@@ -42,23 +54,35 @@ def _rises(states, policy):
     return [decide(s, H, policy).share for s in states_for_decision(states, policy)]
 
 
-def test_the_switch_is_off_on_every_standing_policy_and_off_returns_the_legs_untouched():
-    assert CURRENT_POLICY.next_best_action_decides_per_household is False
+STANDING = (CURRENT_POLICY, NAIVE_POLICY, VALUE_ARM_POLICY, VALUE_ARM_LEARNED_POLICY,
+            VALUE_ARM_CAPPED_POLICY, VALUE_ARM_CAPPED_LEARNED_POLICY, FLAT_SUPPLIER_POLICY)
+PER_LEG = dataclasses.replace(RISE_ON, next_best_action_decides_per_household=False)
+
+
+@pytest.mark.parametrize("policy", STANDING, ids=lambda p: p.name)
+def test_every_standing_policy_decides_a_dual_household_once(policy):
+    """The property, not the boolean: a dual household's two legs are one state, a single leg one."""
+    (household, single) = states_for_decision([ELEC, GAS, SINGLE], policy)
+    assert isinstance(household.renewal, HouseholdRenewalTerms) and single is SINGLE
+    assert household.monthly_margin_gbp == pytest.approx(ELEC.monthly_margin_gbp + GAS.monthly_margin_gbp)
+
+
+def test_off_returns_the_legs_untouched():
     legs = [ELEC, GAS, SINGLE]
-    assert states_for_decision(legs, RISE_ON) == legs
-    assert all(a is b for a, b in zip(states_for_decision(legs, RISE_ON), legs))
+    assert states_for_decision(legs, PER_LEG) == legs
+    assert all(a is b for a, b in zip(states_for_decision(legs, PER_LEG), legs))
     assert states_for_decision(legs, None) == legs
 
 
 def test_both_branches_are_reachable_and_they_disagree():
     """The partition first: a dual household decides twice off and once on, a single leg once both ways."""
-    off, on = _rises([ELEC, GAS, SINGLE], RISE_ON), _rises([ELEC, GAS, SINGLE], PER_HOUSEHOLD)
+    off, on = _rises([ELEC, GAS, SINGLE], PER_LEG), _rises([ELEC, GAS, SINGLE], PER_HOUSEHOLD)
     assert len(off) == 3 and len(on) == 2 and all(r is not None for r in off + on)
 
 
 def test_off_the_household_pays_two_rises_for_one_benefit():
     """The defect, kept visible: each leg's rise is affordable alone and the pair is not."""
-    first, second = _rises([ELEC, GAS], RISE_ON)
+    first, second = _rises([ELEC, GAS], PER_LEG)
     benefit = ADVICE[0].customer_benefit_gbp_per_year * H / 12.0
     assert first.customer_benefit_kept_gbp > 0.0 and second.customer_benefit_kept_gbp > 0.0
     paid = (benefit - first.customer_benefit_kept_gbp) + (benefit - second.customer_benefit_kept_gbp)

@@ -229,9 +229,11 @@ class DecisionPolicy:
     #: household's two legs reach the decision on one date (`company.crm.next_best_action.
     #: states_for_decision`). A household leaves with both fuels about nine times in ten
     #: (`how_a_gb_domestic_book_splits_by_fuel_and_how_a_two_fuel_home_switches.md` §4, §8), so a
-    #: per-leg decision charges one household's advice and its rise twice. Off on every standing
-    #: policy until the 19 Oct publish is read.
-    next_best_action_decides_per_household: bool = False
+    #: per-leg decision charges one household's advice and its rise twice. On for every standing
+    #: policy since 2026-10-19. No engine path decides C34/C35 yet, so this moves no run. It is on so
+    #: that the first caller wired in, and any rise switched on through it, decides per household
+    #: (SEAT_PREREG_SWITCHING_NBA_PER_HOUSEHOLD_ON_THE_STANDING_POLICY_CHANGES_NO_DECISION_IN_ANY_RUN).
+    next_best_action_decides_per_household: bool = True
 
     #: (2026-10-18) the save on a loss notice answers every leg of a household leaving with both
     #: fuels, matched against Ofgem's dual-fuel gap and floored on the household's summed margin
