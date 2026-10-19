@@ -187,7 +187,38 @@ def sites(root: Path | None = None, keys: set[str] | None = None) -> dict[str, l
     return out
 
 
-def run(report_end: str | None, out: Path, root: Path | None = None) -> dict:
+#: Which run is monitored or perturbed. `published` is the entry the annual report takes
+#: (`tools/run_annual_report.py` calls `run_phase4c_on_phase2b.main`): billing, the emergent
+#: arrears that OVERWRITE every `bad_debt_gbp` the settlement loop accrued, and churn. `phase2b` is
+#: the settlement loop alone, which is what this instrument ran first -- a constant read only at
+#: billing reads as unreached there, and its bad-debt column is the transient in-loop accrual.
+ENTRIES = ("published", "phase2b")
+
+
+def _production_run(report_end: str | None, entry: str, tmp: Path) -> dict:
+    """One run through `entry`, its coupled-gap ledger kept out of the tree. Returns phase 2b's
+    result, which the published entry has already rewritten in place (emergent bad debt), with the
+    published entry's bills attached as `_bills`."""
+    if entry not in ENTRIES:
+        raise ValueError(f"entry {entry!r} is not one of {ENTRIES}")
+    from simulation import run_phase2b
+    ledger = tmp / "coupled_gap_ledger.json"
+    if entry == "phase2b":
+        return run_phase2b.main(report_end=report_end, gap_ledger_path=ledger)
+    from simulation import run_phase4c_on_phase2b as p4c
+    inner = p4c.run_phase2b
+    p4c.run_phase2b = lambda **kw: inner(gap_ledger_path=ledger, **kw)
+    try:
+        out = p4c.main(report_end=report_end)
+    finally:
+        p4c.run_phase2b = inner
+    result = out["phase2b"]
+    result["_bills"] = out.get("bills") or []
+    return result
+
+
+def run(report_end: str | None, out: Path, root: Path | None = None,
+        entry: str = "published") -> dict:
     """One monitored production run; returns `{key: [executed function sites]}` and writes `out`."""
     root = PROJECT if root is None else root
     table = sites(root)
@@ -211,11 +242,9 @@ def run(report_end: str | None, out: Path, root: Path | None = None) -> dict:
     mon.set_events(tool, mon.events.LINE)
     import tempfile
 
-    from simulation import run_phase2b
     try:
         with tempfile.TemporaryDirectory() as tmp:
-            run_phase2b.main(report_end=report_end,
-                             gap_ledger_path=Path(tmp) / "coupled_gap_ledger.json")
+            _production_run(report_end, entry, Path(tmp))
     finally:
         mon.set_events(tool, 0)
         mon.free_tool_id(tool)
@@ -225,6 +254,7 @@ def run(report_end: str | None, out: Path, root: Path | None = None) -> dict:
             reached.setdefault(key, []).append(f"{Path(k[0]).relative_to(root.resolve())}:{k[1]}")
     record = {
         "report_end": report_end,
+        "entry": entry,
         "registered": len(table),
         "with_function_site": sum(1 for rows in table.values()
                                   if any(r["kind"] in ("function", "default") for r in rows)),
@@ -283,6 +313,17 @@ def _figures(result: dict) -> dict:
                 sums[k] = sums.get(k, 0.0) + float(v)
     out = {f"sum:{k}": round(v, 6) for k, v in sums.items()}
     out["records"] = len(result.get("all_records") or [])
+    bills = result.get("_bills") or []
+    if isinstance(bills, dict):  # keyed by account
+        bills = [b for v in bills.values() for b in (v if isinstance(v, list) else [v])]
+    if bills:
+        out["bills"] = len(bills)
+        bsums: dict[str, float] = {}
+        for b in bills:
+            for k, v in (b.items() if isinstance(b, dict) else ()):
+                if isinstance(v, (int, float)) and not isinstance(v, bool):
+                    bsums[k] = bsums.get(k, 0.0) + float(v)
+        out.update({f"bills:{k}": round(v, 6) for k, v in bsums.items()})
     out["churned_billing_accounts"] = len(result.get("churned_billing_accounts") or [])
     out["svt_departures"] = len(result.get("svt_departures") or [])
     for k in ("total_gross", "total_capital", "total_bad_debt"):
@@ -292,7 +333,7 @@ def _figures(result: dict) -> dict:
 
 
 def arm(keys: list[str], scale: float, report_end: str | None, out: Path,
-        root: Path | None = None) -> dict:
+        root: Path | None = None, entry: str = "published") -> dict:
     """One production run with the named constants' floats scaled, served from patched source.
 
     The patch is applied at import by a meta-path finder, so every binding -- a derived table, a
@@ -332,16 +373,13 @@ def arm(keys: list[str], scale: float, report_end: str | None, out: Path,
             return None
 
     sys.meta_path.insert(0, _Finder())
-    from simulation import run_phase2b
     error = None
     try:
         with tempfile.TemporaryDirectory() as tmp:
-            result = run_phase2b.main(report_end=report_end,
-                                      gap_ledger_path=Path(tmp) / "coupled_gap_ledger.json")
-        figures = _figures(result)
+            figures = _figures(_production_run(report_end, entry, Path(tmp)))
     except Exception as exc:  # a refusal under the perturbation is itself the reading
         figures, error = {}, f"{type(exc).__name__}: {exc}"[:500]
-    record = {"keys": keys, "scale": scale, "report_end": report_end,
+    record = {"keys": keys, "scale": scale, "report_end": report_end, "entry": entry,
               "figures": figures, "error": error}
     out.write_text(json.dumps(record, indent=1), encoding="utf-8")
     return record
@@ -356,14 +394,15 @@ def _main() -> int:  # pragma: no cover - operator surface
     ap.add_argument("--arm", default=None,
                     help="comma-separated keys to scale ('' is the baseline arm)")
     ap.add_argument("--scale", type=float, default=1.1)
+    ap.add_argument("--entry", choices=ENTRIES, default="published")
     args = ap.parse_args()
     if args.arm is not None:
         keys = [k for k in args.arm.split(",") if k]
-        rec = arm(keys, args.scale, args.report_end, args.out)
+        rec = arm(keys, args.scale, args.report_end, args.out, entry=args.entry)
         print(f"arm {len(keys)} keys x{args.scale}: error={rec['error']}  -> {args.out}")
         return 0
     if args.run:
-        rec = run(args.report_end, args.out)
+        rec = run(args.report_end, args.out, entry=args.entry)
         print(f"registered {rec['registered']}  with a function site {rec['with_function_site']}  "
               f"reached {len(rec['reached'])}  -> {args.out}")
         return 0

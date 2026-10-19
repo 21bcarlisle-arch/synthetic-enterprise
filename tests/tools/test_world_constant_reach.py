@@ -77,3 +77,37 @@ def test_scaling_a_distribution_moves_mass_and_a_share_never_passes_one(tmp_path
     assert _value(out, "S") == 1.0
     assert abs(_value(out, "K") - 2.75) < 1e-9
     assert _value(_scaled_source(p, set(), 1.1), "W") == {"a": 0.3, "b": 0.45, "c": 0.25}
+
+
+def test_the_published_entry_runs_billing_and_reads_the_bad_debt_billing_rewrote(tmp_path, monkeypatch):
+    """Defect: the instrument ran `run_phase2b.main` alone, so every constant read only at billing
+    read as unreached and its bad-debt column was the in-loop accrual the published run overwrites.
+    The published entry must go through phase 4c, keep its ledger out of the tree, and hand back the
+    rewritten records with the bills."""
+    import sys
+    import types
+
+    import simulation
+    from tools.world_constant_reach import _figures, _production_run
+
+    seen = {}
+
+    def fake_2b(**kw):
+        seen["ledger"] = kw.get("gap_ledger_path")
+        return {"all_records": [{"bad_debt_gbp": 1.0}], "total_bad_debt": 1.0}
+
+    def fake_main(report_end=None):
+        r = p4c.run_phase2b(report_end=report_end)
+        r["all_records"][0]["bad_debt_gbp"] = 9.0  # billing's emergent rewrite, in place
+        return {"phase2b": r, "bills": {"A": [{"total_gbp": 5.0}, {"total_gbp": 7.0}]}}
+
+    p4c = types.SimpleNamespace(run_phase2b=fake_2b, main=fake_main)
+    monkeypatch.setitem(sys.modules, "simulation.run_phase4c_on_phase2b", p4c)
+    monkeypatch.setattr(simulation, "run_phase4c_on_phase2b", p4c, raising=False)
+    figs = _figures(_production_run("2017-06-30", "published", tmp_path))
+    assert seen["ledger"] == tmp_path / "coupled_gap_ledger.json"
+    assert figs["sum:bad_debt_gbp"] == 9.0
+    assert figs["bills"] == 2 and figs["bills:total_gbp"] == 12.0
+    assert p4c.run_phase2b is fake_2b  # the hook is undone
+    with __import__("pytest").raises(ValueError, match="not one of"):
+        _production_run(None, "phase4", tmp_path)
