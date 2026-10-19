@@ -1,191 +1,338 @@
 version: 1
-oriented_at: "2026-10-19T08:23:26.318960+00:00"
-thesis_read: >-
-  The machine delivered this stretch, and the thesis did not move, because the one thing everything waits on did
-  not happen. Seven commits carried work. Two of the previous focus items are finished and leave focus. The
-  director's 19 Oct knowledge steer landed in full: 446 bare world constants registered (7cb23588e), population
-  pages that carry claims the drawn world is checked against (cb38f8ca4), and the two Low Carbon tables shown to
-  be two sourced facts (7549b0a09). The dual household's SLC 27.8D offset is built, default off (b529875b1). The
-  payment draw's price input is landing right now through surgical_land, with its paired capture arms still
-  running. The split was supplier 1, both 1, other 7, world 0. So supplier work was thin, but nothing went to
-  world fidelity that blocks no result. The checks also earned their keep at once: the claim check found that the
-  campaign route wins every gas home as dual (100% against a published 81-96%), a new world wrong row now in
-  hand. Against the thesis, though, the stretch went nowhere, and my 05:22 record was wrong. It said the first
-  published dual-fuel book would be on origin within the hour. The publish commit was refused at 06:35Z by the
-  defect4 gate on one leaver, C7: a never-read, closed-on-estimate account billed at 23% of its true use. The
-  gate was answered at 06:56Z (dc4dc0e10), and the publisher's state now reads the cited red as DEAD at HEAD. But
-  nothing has re-attempted the publish in the 1.5h since, and nothing will: the marker is archived, and the retry
-  waits for an identical run that is not queued. Origin's run output is still the 13 Oct book, 130h old. So the
-  grade of both preregs, the closing of three carried wrong rows (the held estimate, the 1%-dual figures, the C35
-  per-leg charge), the per-household switch-on, and every per-customer figure the thesis is judged on are all
-  parked behind one re-drive. That is item 1. Item 2 is the supplier question the refusal raised. C7 is not a
-  gate problem. 274 of 405 churned legs now close on an estimate, and the company's read duty is off in the
-  standing policy. Billing accuracy is first in the director's order, and which of the three filed explanations
-  is true is settled by measuring, not by switching something on. The previous focus was steered: 3 of 5 drawn.
-  Item 3 was refused 10 times because the executor's own worktree held its paths, and that was the item being
-  worked, not a wrong refusal. The flat-supplier baseline (EP17/B11) is built and still waits on the director's
-  seed listing, so whether per-customer beats flat can still be neither said nor refuted.
+oriented_at: '2026-10-19T11:22:12.315300+00:00'
+thesis_read: 'The block cleared, and what it uncovered is a step back for the thesis. Behind it was the first per-customer
+  reading taken on households GB actually has. The 19 Oct dual-fuel book is on origin (2a195224b, merged f8f3d0fd5).
+  It went out by hand: the publisher never retried it after its red was answered, so that wrong row''s instance
+  is closed and its class is not. Both previous focus items are finished and leave focus. The B11 grade (f00fdb040)
+  is the reading that matters. On the dual book, the per-customer switch key against flat at 2023 over the whole
+  book is +0.075 (-0.013, +0.162) on 201 graded households. It was +0.133 and cleared on the 1%-dual book. So the
+  one clearance the thesis had for inference over the whole book is gone, and only movers at 2023 still clear. P0
+  held: no supplier change moved B11 between the two runs, so the book''s fuel mix did this, not our code. Whether
+  the signal is weaker on dual homes or just noisier on a smaller sample is not yet known, and that is item 2. The
+  other gradings came back like this. The leaver grade (b139ed649) found the C7 class''s cause in the world: half-hourly
+  roster accounts register no EAC, so C7 is billed at a 3,100 kWh TDCV against 13,230 kWh true. The read duty is
+  not the cause; it reaches only 22 of 275 legs. That world fix is landing now through surgical_land, with its grade
+  queued. The budget-decides-payment build was graded (c43df1237) and refuted high: under-water households never
+  left it. An exit was added at DWP''s published rate (78a36a84c), the switch stays off, and the on arm is being
+  re-captured now. The campaign now wins split homes at 90.6% dual (30246d6f0). The split was supplier 0, world
+  4, other 13. Every substantive commit was world fidelity or the grading of it. Each one blocked a named supplier
+  result (the publish, the leaver, the payment draw), but supplier code did not move this stretch. One seat error
+  came to light: the per-household next-best-action switch-on, which the 08:23 record said was queued, is in no
+  live queue. The 23:21 orientation embargoed it nine hours out, past the six-hour expiry, so it lapsed unseen,
+  and the 08:23 record never asked live(). It is item 1. The previous focus was drawn and both items landed. The
+  held-estimate row closes: the published book now carries the fix. The campaign-dual row closes on 30246d6f0.'
 stretch_reviewed:
-  since: "2026-10-19T05:22:33.070254+00:00"
-  commits: 9
-  substantive: 5
+  since: '2026-10-19T08:23:26.318960+00:00'
+  commits: 17
+  substantive: 7
 focus:
-- id: publish-the-19-oct-dual-fuel-run
-  lane: D_billing_metering
+- id: switch-on-nba-per-household-after-the-c35-grade
+  lane: C_customer_ops
   side: supplier
-  what: Re-drive the publish of the 03:30Z run (git=8b6fea024, marker docs/staging/done/run_complete_20261019T033010Z.md),
-    whose commit was refused at 06:35Z (rc=77, commit_refused) by tests/tools/test_bill_correctness_addendum_defect4.py
-    on account C7. dc4dc0e10 has since named C7's four years, and .publish_gate_state.json reads that
-    citation as dead at HEAD. First, `ps` for a running process_run_complete and for sim-runner, and confirm
-    that git log -1 -- docs/reports/run_output_latest.json.gz on origin/main is still ed3dadd9d (13 Oct).
-    If either shows the publish under way or landed, stop. Then confirm the run's outputs that the publisher
-    reads are still the 8b6fea024 run's and were not overwritten by a later run. Re-run the publisher
-    on the marker (`python3 background/process_run_complete.py <marker>`, restoring the marker to where
-    main() expects it if needed), in the background, and act on its exit. If it refuses again, record
-    the new red in the BLOCKING finding docs/staging/SEAT_FINDING_A_LEAVER_NEVER_READ_BILLS_A_QUARTER_OF_ITS_TRUE_USE_AND_REFUSED_THE_PUBLISH_2026-10-19.md
-    and fix it as a class there. Do not weaken the gate. In the same pass, file in docs/staging/ the finding
-    that a refused publish whose red is later answered is never re-attempted. It should name what in background/process_run_complete.py
-    would re-arm it, and should not build that fix.
-  why: It is the single block on this week's supplier results. The prereg grade (queued continuation,
-    embargoed 11:00 BST), the per-household switch-on behind it, and three carried wrong rows all wait
-    on a published dual-fuel book that has existed since 05:12Z. DONE when a commit after 2026-10-19T03:00Z
-    touching docs/reports/run_output_latest.json.gz is on origin/main and the no-retry finding is filed.
-    The other possibility is that the BLOCKING finding records a new red, with its class fix landed and
-    a second publish attempt made.
-  written_at: 1792398569.943
-- id: the-leaver-closes-on-an-estimate-and-which-cause-is-true
-  lane: D_billing_metering
+  what: 'Finish the C35/C34 grade of docs/staging/records/SEAT_PREREG_B11_C35_C34_ON_THE_FIRST_PUBLISHED_DUAL_FUEL_RUN_2026-10-18.md
+    and then switch on per-household next best action. tools.decision_probe (pid 3859395, writing /var/tmp/dualgrade/probe_8b6fea024.json,
+    at 2019-08 after 63 min, so roughly 13:15Z) is already running: do not relaunch it. Wait on it with
+    tools/wait_for (never pgrep), then run the steps in /var/tmp/dualgrade/grade_c35.sh (tools.retention_rise_count,
+    without and with --per-household) and grade C35 and C34''s floor refusals beside their predictions,
+    without editing them. Land that grade. Then, in this order, each on origin before the next: file in
+    docs/staging/records/ a prediction of what setting DecisionPolicy.next_best_action_decides_per_household
+    (company/policy/decision_policy.py:234) to True on the standing policy changes on this book, giving
+    how many dual households'' decisions change and in which direction; flip it; and land a control whose
+    named mutation reds it. If the probe dies, read its log before relaunching, and leave /var/tmp/probe-8b6fea024
+    alone until the probe ends.'
+  why: The switch-on fixes a company defect (one household's advice charged twice per leg) and must be
+    on before any retention rise is ever switched on. Its continuation lapsed unseen past the 6h embargo
+    expiry, so nothing will draw it unless this item does. The C35/C34 re-take is the last uncorrected
+    leg of the 1%-dual wrong row. DONE when the C35/C34 grade, the prediction, the flip and its mutation-proven
+    control are on origin, with the prediction's commit before the flip's.
+  written_at: 1792409328.615
+- id: why-the-switch-key-lost-its-2023-whole-book-clearance-on-the-dual-book
+  lane: B_commercial
   side: supplier
-  what: 'Settle by measurement which of the three ranked explanations in the BLOCKING leaver finding (docs/staging/SEAT_FINDING_A_LEAVER_NEVER_READ_BILLS_A_QUARTER_OF_ITS_TRUE_USE_AND_REFUSED_THE_PUBLISH_2026-10-19.md,
-    ''Owed'') explains C7 and the 274 of 405 churned legs that closed on an estimate. Write the predictions
-    into the finding before measuring. (a) The read duty: on the 19 Oct ledger, count how many of those
-    legs reached an 11th consecutive estimate, so would have been instructed under DecisionPolicy.instruct_reads_in_billing_run,
-    and price the billed gap with and without it, using the read-instruction finding docs/staging/WORKER_FINDING_A_READ_INSTRUCTION_AT_THE_ELEVENTH_ESTIMATE_*_2026-10-17.md
-    as the method. (b) The change-of-supply read: find whether simulation settles the losing supplier
-    on true volume while company/ bills it on the estimated CoS read. State the GB rule from the regulation
-    commons (the deemed or agreed CoS read binds both suppliers) and cite it. (c) C7''s 13,230 kWh: check
-    it against the anchor register and the household-size consumption anchors in docs/market_research/.
-    Then amend the read-duty knowledge page (K8) with what the measurement says the switch-on would change.
-    Do not flip the switch.'
-  why: 'Billing accuracy (unbilled energy and back-billing on leavers) is first in the director''s supplier
-    order, and this is the live instance of it: a leaver billed a quarter of its use with no catch-up
-    ever. The gate was answered by naming the instance, so the class is still open. DONE when the finding
-    records each prediction graded beside its measurement, names the cause or causes that hold with their
-    share of the 274, and files the remedy as its own item: a policy switch-on with a prediction, or a
-    world fix with its unblocks. Once the publish has landed, the same commit also deletes the 12 KNOWN_OPEN_INVERSIONS
-    rows the finding says no longer invert.'
-  written_at: 1792398569.943
+  what: 'On run 8b6fea024 (docs/reports/run_output_8b6fea024_20261019T033010Z.json, via backtest_run_output
+    with the same switch key, switch_on_default=True, rescale_over="fit_window"), find out why the 2023
+    whole-book switch key against flat fell from +0.133 (+0.056, +0.209) on the 1%-dual book to +0.075
+    (-0.013, +0.162). File the predictions first, in a new prereg in docs/staging/records/. Then measure
+    three things. (a) Sample: the AUC difference re-taken on the old run restricted to a random 201 of
+    its 266 graded households, many draws, to see what a sample this size alone does to the point and
+    its width. (b) Fuel: the AUC difference split into dual and single-fuel households at 2023, and whether
+    the key''s inputs read anything about a household''s second leg or its gas bill. (c) The 2020 and
+    2022 cuts, split the same way. Write the result into the B11 finding that f00fdb040 graded. If (b)
+    shows the key is blind to the dual leg, file the supplier change as its own item, with K8 first. Do
+    not change the key in this item.'
+  why: 'This is the thesis''s central reading, inference against a flat baseline, and on a GB-shaped book
+    it no longer clears. "Smaller sample" and "the key does not see the dual leg" call for opposite remedies:
+    more seeds (the ep17 concern, which is his) or a supplier build (which is ours). DONE when the finding
+    names which explanation the measurement supports, with each prediction graded beside it, and the remedy
+    is filed or the cause stated as "cannot tell" with its width.'
+  written_at: 1792409328.615
+- id: a-refused-publish-is-re-attempted-once-its-red-is-dead
+  lane: H_harness
+  side: other
+  what: 'Build the re-arm described in docs/staging/SEAT_FINDING_A_REFUSED_PUBLISH_WHOSE_RED_IS_LATER_ANSWERED_IS_NEVER_RE_ATTEMPTED_2026-10-19.md,
+    and do not widen any gate. The fix: background/background_worker.py::process_leftover_run_markers
+    also considers a done/ marker that carries `publish-outcome: did-not-land`, whose run outputs on disk
+    are still that marker''s producing run, and whose .publish_gate_state.json citation reads dead at
+    HEAD. It re-attempts each such marker once, and only when no newer run has been published. Knowledge
+    page first (K8, the publish path''s page). Assert the rare branch CAN be taken (a synthetic refused-then-answered
+    marker is re-attempted) before asserting the refusals: an older marker, or overwritten outputs, are
+    not re-attempted. Mutation-prove each.'
+  why: 'This is the second instance (13 Oct and 19 Oct), and both times a human re-drove the publish by
+    hand. The next two supplier grades are queued behind publishes: the split-campaign run, and the HH-EAC
+    run that clears the BLOCKING leaver finding. A refusal there would stall them the same way. DONE when
+    the re-arm is on origin with its controls and the finding moves to done/.'
+  written_at: 1792409328.615
 not_now:
-  - what: Putting the prereg grade and the per-household next-best-action switch-on in focus.
-    why: >-
-      Both are already queued as continuations with embargoes and a git-checkable premise
-      (grade-the-dual-fuel-preregs-once-the-19-oct-run-publishes, switch-on-nba-per-household-after-the-grade).
-      Listing them again in focus is exactly what had three ticks draw publish-gated items before their premise
-      at 02:38-04:17Z. Item 1 is what makes their premise true.
-  - what: Switching on instruct_reads_in_billing_run to close the C7 class now.
-    why: >-
-      One switch-on per graded reading, and per-household next best action is next in that line. Item 2 also may
-      find the cause is the world's CoS read (b), not the company's duty. A switch flipped before that is known
-      would fix the symptom on the wrong side of the wall.
-  - what: The fabric homes' season and W2_30's electric fabric homes at the gas rate.
-    why: >-
-      Two world changes are already in flight: the payment draw's price input, landing now, and the campaign's
-      split homes, being worked in the executor. A third would make none of them attributable. The season is next
-      after both grade.
-  - what: Re-arming the publisher's retry in code this stretch.
-    why: >-
-      Item 1 re-drives this instance by hand and files the class. Building the re-arm into a 11,000-line publisher
-      while the instance itself is unpublished would put a publisher change ahead of the publish it is for.
-  - what: Fixing the 446 registered bare world constants.
-    why: The steer registers them, and a sweep would move the world in hundreds of variables at once. They are paid down one anchor at a time, worst first.
-  - what: Reaping the four b12 worktrees and /var/tmp/se-budgetpay-land.
-    why: >-
-      The b12 four are held under B12 locks. se-budgetpay-land's salvage df1fa6106 belongs to the payment-draw
-      landing in flight now, and its owner line says to remove it after landing. That is that lane's job, after
-      `landed <sha>`, never before.
-  - what: The long-job expiry, the coupled-triad refusal surface and the seat-kill trace.
-    why: No new instance cost supplier work this stretch, and each already has a fate in wrong_triage.yaml.
+- what: Grading the HH-EAC registration and the split-campaign run in focus.
+  why: Both are queued continuations with git-checkable premises. The HH-EAC fix is in surgical_land now (pid 39362),
+    and the split run has not been published. Listing them again would invite a draw before their premise, which
+    is how the switch-on was lost.
+- what: Switching on BUDGET_DECIDES_PAYMENT.
+  why: R1 and R3 were refuted high, and the exit (78a36a84c) is graded only once the on arm being re-captured now
+    (capture_arm2.py, world4_on_income_moves.json) finishes. U1-U4 are already pre-registered. Flipping it before
+    that would make the second world change in one book unattributable.
+- what: The fabric homes' season and W2_30's electric fabric homes at the gas rate.
+  why: 'Three world changes are in flight: HH-EAC, the under-water exit and split campaign homes. A fourth would
+    make none of them attributable, and the season blocks no supplier result. It is next after the HH-EAC grade.'
+- what: B8_discovered_price_sensitivity_holdout, stalled since 2026-10-13.
+  why: It is supplier work in the director's order, but item 2 asks first whether the per-customer signal survives
+    the dual book at all. Building a price-sensitivity holdout on a key that may be blind to the dual leg would
+    repeat the 1%-dual error one level up.
+- what: Reaping the b12 worktrees, /var/tmp/se-budgetpay-land and /var/tmp/probe-8b6fea024.
+  why: The b12 four are held under B12 locks. se-budgetpay-land's work landed as 718a631a1, and its own owner line
+    says to remove it after the grade, which is that lane's job. probe-8b6fea024 is unlocked but may host the running
+    decision_probe that item 1 needs. Its salvage commits are disposable once the probe ends.
+- what: The long-job expiry, the coupled-triad refusal surface and the seat-kill trace.
+  why: No new instance cost supplier work this stretch, and each already has a fate in wrong_triage.yaml or is under
+    seven days old.
 wrong:
-  - what: "THE MACHINE'S, CARRIED. The coupled-triad gate now excludes twinless L3 targets, and its refusal reaches only the supervisor journal. 20:22: Unchanged. 23:21: Unchanged. 02:21: Unchanged. 05:22: Unchanged. 08:22: Unchanged. 23:20: Unchanged. 11:21: Unchanged. 23:21: Unchanged. 05:22: Unchanged. 08:23: Unchanged."
-    corrected: false
-  - what: "THE WORLD'S, CARRIED. A gas-heated fabric home's electricity has no season against SERL. 20:22: Unchanged. It waits for the post-publish world builds. 23:21: Focus item 4 measures the fabric homes' summer swing, which bears on this directly. 02:21: Measured (e6cdc9af9): fabric gas-heated homes read too flat (DJ/JJA 1.16 against 1.33-1.35), which confirms the row. The build is filed for after the publish. 05:22: Unchanged. The build stays filed for after the publish. 08:22: Unchanged. A sibling W2_30 defect (electric fabric homes priced at the gas rate) is filed for the same post-publish build. 23:20: Unchanged. It is still filed for after the publish. 11:21: Unchanged; still filed for after the publish. 23:21: Unchanged; filed for after the publish, behind item 4. 05:22: Unchanged; filed behind item 2, the payment draw, as the next world build. 08:23: Unchanged; filed behind the payment draw and the campaign split-homes change, both in flight."
-    corrected: false
-  - what: "THE MACHINE'S, CARRIED. longjob-save-eight was declared at 50 minutes and has held its admission for 4h46m. 20:22: Two long jobs ran this stretch (nonpay2022-capture, -capture2) and both finished successfully, so there was no new instance. The expiry is still not built. 23:21: No launch_long_job job started or ended this stretch. Still not built. 02:21: retention-rise-probe finished successfully, and closing-estimate-money-run is 18 minutes in. No overrun, and still not built. 05:22: closing-estimate-money-run ran 115 minutes against a declared 115 and finished successfully. No overrun, and still not built. 08:22: No launch_long_job job started or ended. Still not built. 23:20: No launch_long_job job started or ended. Still not built. 11:21: No launch_long_job job started or ended. Still not built. 23:21: No launch_long_job job started or ended. Still not built. 05:22: No launch_long_job job started or ended. Still not built. 08:23: No launch_long_job job started or ended. The two capture_arm2 jobs were launched by hand, outside the register. Still not built."
-    corrected: false
-  - what: "THE MACHINE'S, CARRIED. A held estimate was netted at its draft amount when the next actual read caught up, so seven customer-years were credited for estimates never sent. 20:22: Fixed on origin. The published book carries it until the 2026-10-19 publish. 23:21: Unchanged until that publish. 02:21: Unchanged until that publish. 05:22: Unchanged until that publish. 08:22: Unchanged until that publish. 23:20: Unchanged until that publish. 11:21: Unchanged until that publish; the run at 316fbe5cd carries the fix. 23:21: Unchanged until the publish. The publish run (complete about 05:00Z) carries the fix, and item 1's grade is where this row closes. 05:22: The publish run finished at 05:12Z on 8b6fea024, which carries the fix. It is being processed now, and this row closes when that publish commit is on origin and item 1 grades it. 08:23: The publish commit was refused at 06:35Z on C7, and it has not been re-attempted. Still open; focus item 1 re-drives it."
-    corrected: false
-  - what: "THE MACHINE'S, CARRIED. The 08:20 orientation's record never reached origin, and a seat killed by the host leaves no trace of itself in delivery-seat-log.md. 20:22: No seat was killed this stretch, and the trace is not built. 23:21: Still no instance, and still not built. 02:21: Still no instance, and still not built. 05:22: Still no instance, and still not built. 08:22: Still no instance, and still not built. 23:20: A new instance. The 08:22 orientation's seat commit 19855ded (08:41Z) is on no remote ref. Its DIRECTION.yaml reached origin through 4cf0f8628, but its SEAT_STRETCH_LOG entry did not. Still not built. 11:21: No new instance; the 23:20 seat commit a40f0b165 is on origin. Still not built. 23:21: No new instance; the 11:21 seat commit d21526456 is on origin. Still not built. 05:22: No new instance; the 23:21 seat commit 8b6fea024 is on origin. Still not built. 08:23: No new instance; the 05:22 seat commit ee6025ad4 is on origin. Still not built."
-    corrected: false
-  - what: "THE SEAT'S, CARRIED FROM EARLIER RECORDS. Every per-customer figure the seat reasoned from this month, including C34's 18 cases and C35's 314 of 780, was read off a book that is 1% dual fuel. The seat never asked whether the book's fuel mix was plausible, although the repo held the 21 June page that answers it. The figures stand as computed, but they describe households GB does not have. 11:21: The book is corrected (c136809f5). The figures are re-taken from the first run on it after the publish, with focus item 1 filing their predictions first. 23:21: Unchanged. Both preregs reached origin (27b6798ec, c8e55febc) before any dual-book run was read; item 1 grades them on the publish run. 05:22: The publish run on the dual book is complete (8b6fea024, 05:12Z). Item 1 grades both preregs on it, and this row closes on that commit. 08:23: Not closed. The publish was refused at 06:35Z. The grade is queued behind focus item 1's re-drive."
-    corrected: false
-  - what: "THE COMPANY'S, THIS STRETCH. C35 decided a dual-fuel household per leg, so at the median legs it charged two retention rises (GBP 2.06 and 2.09 a month) for one advice benefit, leaving the household GBP 55.8 worse off while each leg reported that the household floor held. Found by the census in d96d33f3d. The fix is behind next_best_action_decides_per_household, which defaults off, so the default path still carries the defect until the post-publish switch-on. 23:21: Corrected beside the claim. The retention rise itself (next_best_action_shares_by_retention_rise) is off on every standing policy, so the default path charges no household any rise; the per-leg defect is latent until that switch, not live. Item 2 switches per-household on first, so the rise can never run per leg. 05:22: Unchanged and still latent; item 3 is the switch-on. 08:23: Unchanged and still latent. The switch-on is a queued continuation behind the grade, which is behind the publish."
-    corrected: false
-  - what: "THE MACHINE'S, THIS STRETCH. A publish commit refused by a gate red that is answered afterwards is never re-attempted. The 8b6fea024 run was refused at 06:35Z. dc4dc0e10 answered the red at 06:56Z, and .publish_gate_state.json reads the citation as dead at HEAD. But the marker is archived, and the publisher's re-attempt waits for an identical run that nothing queues, so the first dual-fuel book sat unpublished for 1.5h and counting, with origin's book 130h old. The seat compounded it: the 05:22 record told the director the book would be on origin within the hour, without asking what would re-drive it if refused. Focus item 1 re-drives this instance and files the class."
-    corrected: false
-  - what: "THE WORLD'S, THIS STRETCH. The growth campaign attaches a gas leg to every won home whose premise has gas, with no draw (_gas_leg_for), so the campaign route wins every gas home as dual: 100.0% against the published 81-96%, and no gas-only accounts. Found by the new route claim check (SEAT_FINDING_THE_FUEL_CLAIMS_ARE_MEASURED_ON_THE_FOUNDERS_ONLY_*_2026-10-19). Named in KNOWN_ROUTE_GAPS. The world change (the founders' P(dual | gas) coin) is a queued continuation, being worked in /var/tmp/se-seat-executor now."
-    corrected: false
+- what: 'THE MACHINE''S, CARRIED. The coupled-triad gate now excludes twinless L3 targets, and its refusal reaches
+    only the supervisor journal. 20:22: Unchanged. 23:21: Unchanged. 02:21: Unchanged. 05:22: Unchanged. 08:22:
+    Unchanged. 23:20: Unchanged. 11:21: Unchanged. 23:21: Unchanged. 05:22: Unchanged. 08:23: Unchanged. 11:22:
+    Unchanged.'
+  corrected: false
+- what: 'THE WORLD''S, CARRIED. A gas-heated fabric home''s electricity has no season against SERL. 20:22: Unchanged.
+    It waits for the post-publish world builds. 23:21: Focus item 4 measures the fabric homes'' summer swing, which
+    bears on this directly. 02:21: Measured (e6cdc9af9): fabric gas-heated homes read too flat (DJ/JJA 1.16 against
+    1.33-1.35), which confirms the row. The build is filed for after the publish. 05:22: Unchanged. The build stays
+    filed for after the publish. 08:22: Unchanged. A sibling W2_30 defect (electric fabric homes priced at the gas
+    rate) is filed for the same post-publish build. 23:20: Unchanged. It is still filed for after the publish. 11:21:
+    Unchanged; still filed for after the publish. 23:21: Unchanged; filed for after the publish, behind item 4.
+    05:22: Unchanged; filed behind item 2, the payment draw, as the next world build. 08:23: Unchanged; filed behind
+    the payment draw and the campaign split-homes change, both in flight. 11:22: Unchanged. It is filed behind the
+    HH-EAC registration, which is landing now; the under-water exit and the split campaign homes are also in flight.'
+  corrected: false
+- what: 'THE MACHINE''S, CARRIED. longjob-save-eight was declared at 50 minutes and has held its admission for 4h46m.
+    20:22: Two long jobs ran this stretch (nonpay2022-capture, -capture2) and both finished successfully, so there
+    was no new instance. The expiry is still not built. 23:21: No launch_long_job job started or ended this stretch.
+    Still not built. 02:21: retention-rise-probe finished successfully, and closing-estimate-money-run is 18 minutes
+    in. No overrun, and still not built. 05:22: closing-estimate-money-run ran 115 minutes against a declared 115
+    and finished successfully. No overrun, and still not built. 08:22: No launch_long_job job started or ended.
+    Still not built. 23:20: No launch_long_job job started or ended. Still not built. 11:21: No launch_long_job
+    job started or ended. Still not built. 23:21: No launch_long_job job started or ended. Still not built. 05:22:
+    No launch_long_job job started or ended. Still not built. 08:23: No launch_long_job job started or ended. The
+    two capture_arm2 jobs were launched by hand, outside the register. Still not built. 11:22: Three budgetpay arms
+    ran through the register and finished successfully, with no overrun. tools.decision_probe has been running 1h03m.
+    Still not built.'
+  corrected: false
+- what: 'THE MACHINE''S, CARRIED. A held estimate was netted at its draft amount when the next actual read caught
+    up, so seven customer-years were credited for estimates never sent. 20:22: Fixed on origin. The published book
+    carries it until the 2026-10-19 publish. 23:21: Unchanged until that publish. 02:21: Unchanged until that publish.
+    05:22: Unchanged until that publish. 08:22: Unchanged until that publish. 23:20: Unchanged until that publish.
+    11:21: Unchanged until that publish; the run at 316fbe5cd carries the fix. 23:21: Unchanged until the publish.
+    The publish run (complete about 05:00Z) carries the fix, and item 1''s grade is where this row closes. 05:22:
+    The publish run finished at 05:12Z on 8b6fea024, which carries the fix. It is being processed now, and this
+    row closes when that publish commit is on origin and item 1 grades it. 08:23: The publish commit was refused
+    at 06:35Z on C7, and it has not been re-attempted. Still open; focus item 1 re-drives it. 11:22: Corrected.
+    The 8b6fea024 run carries the fix, and its publish is on origin (2a195224b, merged f8f3d0fd5), so the published
+    book no longer credits unsent estimates.'
+  corrected: true
+- what: 'THE MACHINE''S, CARRIED. The 08:20 orientation''s record never reached origin, and a seat killed by the
+    host leaves no trace of itself in delivery-seat-log.md. 20:22: No seat was killed this stretch, and the trace
+    is not built. 23:21: Still no instance, and still not built. 02:21: Still no instance, and still not built.
+    05:22: Still no instance, and still not built. 08:22: Still no instance, and still not built. 23:20: A new instance.
+    The 08:22 orientation''s seat commit 19855ded (08:41Z) is on no remote ref. Its DIRECTION.yaml reached origin
+    through 4cf0f8628, but its SEAT_STRETCH_LOG entry did not. Still not built. 11:21: No new instance; the 23:20
+    seat commit a40f0b165 is on origin. Still not built. 23:21: No new instance; the 11:21 seat commit d21526456
+    is on origin. Still not built. 05:22: No new instance; the 23:21 seat commit 8b6fea024 is on origin. Still not
+    built. 08:23: No new instance; the 05:22 seat commit ee6025ad4 is on origin. Still not built. 11:22: No new
+    instance; the 08:23 seat commit 07d01bfc7 is on origin (ac605c878). Still not built.'
+  corrected: false
+- what: 'THE SEAT''S, CARRIED FROM EARLIER RECORDS. Every per-customer figure the seat reasoned from this month,
+    including C34''s 18 cases and C35''s 314 of 780, was read off a book that is 1% dual fuel. The seat never asked
+    whether the book''s fuel mix was plausible, although the repo held the 21 June page that answers it. The figures
+    stand as computed, but they describe households GB does not have. 11:21: The book is corrected (c136809f5).
+    The figures are re-taken from the first run on it after the publish, with focus item 1 filing their predictions
+    first. 23:21: Unchanged. Both preregs reached origin (27b6798ec, c8e55febc) before any dual-book run was read;
+    item 1 grades them on the publish run. 05:22: The publish run on the dual book is complete (8b6fea024, 05:12Z).
+    Item 1 grades both preregs on it, and this row closes on that commit. 08:23: Not closed. The publish was refused
+    at 06:35Z. The grade is queued behind focus item 1''s re-drive. 11:22: Half re-taken. B11 and N1-N5 are graded
+    on the dual book (f00fdb040): the 2023 whole-book clearance does not survive. C35''s 314 of 780 and C34''s 18
+    wait on the running decision_probe, and focus item 1 grades them.'
+  corrected: false
+- what: 'THE COMPANY''S, THIS STRETCH. C35 decided a dual-fuel household per leg, so at the median legs it charged
+    two retention rises (GBP 2.06 and 2.09 a month) for one advice benefit, leaving the household GBP 55.8 worse
+    off while each leg reported that the household floor held. Found by the census in d96d33f3d. The fix is behind
+    next_best_action_decides_per_household, which defaults off, so the default path still carries the defect until
+    the post-publish switch-on. 23:21: Corrected beside the claim. The retention rise itself (next_best_action_shares_by_retention_rise)
+    is off on every standing policy, so the default path charges no household any rise; the per-leg defect is latent
+    until that switch, not live. Item 2 switches per-household on first, so the rise can never run per leg. 05:22:
+    Unchanged and still latent; item 3 is the switch-on. 08:23: Unchanged and still latent. The switch-on is a queued
+    continuation behind the grade, which is behind the publish. 11:22: Unchanged and still latent. The switch-on
+    continuation lapsed unseen (see the seat''s switch-on row); focus item 1 re-issues it.'
+  corrected: false
+- what: 'THE MACHINE''S, THIS STRETCH. A publish commit refused by a gate red that is answered afterwards is never
+    re-attempted. The 8b6fea024 run was refused at 06:35Z. dc4dc0e10 answered the red at 06:56Z, and .publish_gate_state.json
+    reads the citation as dead at HEAD. But the marker is archived, and the publisher''s re-attempt waits for an
+    identical run that nothing queues, so the first dual-fuel book sat unpublished for 1.5h and counting, with origin''s
+    book 130h old. The seat compounded it: the 05:22 record told the director the book would be on origin within
+    the hour, without asking what would re-drive it if refused. Focus item 1 re-drives this instance and files the
+    class. 11:22: Instance closed: the publish was re-driven by hand and reached origin at 09:15 (2a195224b). Class
+    open: filed as its second instance (ad8afadc5, 13 Oct was the first) and still unbuilt. Focus item 3 builds
+    the re-arm.'
+  corrected: false
+- what: 'THE WORLD''S, THIS STRETCH. The growth campaign attaches a gas leg to every won home whose premise has
+    gas, with no draw (_gas_leg_for), so the campaign route wins every gas home as dual: 100.0% against the published
+    81-96%, and no gas-only accounts. Found by the new route claim check (SEAT_FINDING_THE_FUEL_CLAIMS_ARE_MEASURED_ON_THE_FOUNDERS_ONLY_*_2026-10-19).
+    Named in KNOWN_ROUTE_GAPS. The world change (the founders'' P(dual | gas) coin) is a queued continuation, being
+    worked in /var/tmp/se-seat-executor now. 11:22: Corrected (30246d6f0): campaign wins draw P(dual | gas), 90.6%
+    dual over 8 seeds (band 81-96%) and 3.7% gas-only. KNOWN_ROUTE_GAPS is empty. The first published run carrying
+    it is graded by a queued continuation.'
+  corrected: true
+- what: THE SEAT'S, THIS STRETCH. The 23:21 orientation re-issued the per-household next-best-action switch-on as
+    switch-on-nba-per-household-after-the-grade, embargoed to 08:30Z, about nine hours after it was written. That
+    is past a continuation's six-hour expiry, so it lapsed without ever being offered. The 08:23 record then told
+    the director it was a queued continuation behind the grade, without reading seat_continuation.live(). The defect
+    fix it carries has no route to the draw except focus item 1.
+  corrected: false
+- what: 'THE WORLD''S, THIS STRETCH. The budget-decides-payment build put households under water for life: margin
+    drawn once, debt growing by a bill a month to 80 bills by Q4 2023, and Q4 2022 heads +4.6 points over the off
+    arm (c43df1237). It is caught behind its default-off switch, and an exit at DWP''s 36% was added (78a36a84c).
+    It stays open until the on arm is re-graded against U1-U4.'
+  corrected: false
 for_the_director:
-  - id: c34-now-ranks-next-best-action-on
-    raised: "2026-10-12"
-    kind: canon_intent
-    what: C34 now ranks next best action on joint value with a no-loss floor on both sides, as ruled (C7, eeb38abc3), and it still advises nobody at realistic inputs. Across the C34 finding's own B11-scale inputs (margin GBP 5-30 a month, hazard 0.5-3% a month, 48 months, advice giving up GBP 2-3 a month and cutting the hazard 0.1-0.3 points), joint value is positive in all 18 cases (+GBP 13 to +107) and our side is negative in all 18, so our floor refuses every one. The ranking key changed and no decision did.
-    proposal: "Keep both floors, and let an advice action that creates value but costs us travel with a price that shares it: the renewal or retention price is set so that our side of that action is at least zero, which is M2's created-then-shared. That is a pricing-lever change (step 5), not a C34 change, so I would build it next week as an atom, knowledge page first, and grade it on fresh seeds. If you would rather loosen our floor to 'joint value exceeds what we give up', say so; that one is a one-line change and I would measure it the same way. Measured since: on the world's book the price can only be collected where the renewal sits under the default, so the build must read each account's headroom under the cap, and it reaches 40% of cases; the other 60% need the one-off fee (C35) or the floor change."
-    status: open
-    resolution: ""
-    evidence: "docs/market_research/next_best_action_and_cross_sell.md section 6.1; landed eeb38abc3. Measured 2026-10-16, docs/market_research/a_retention_price_that_shares_the_value_an_action_creates.md section 4 (18-row table): a rise on a Fixed Retention Tariff (lawful in form, depth unregulated under the SLC 22B derogation to 31 March 2027) brings our side to zero in 18 of 18 cases holding the hazard, at GBP 0.01-2.73 a month; 10 of 18 once the rise's own effect on staying is added at the published slope (none of the six GBP 30-margin cases); 0 of 18 on a default tariff priced at the cap. The rescue is a transfer: joint value is unchanged. Re-counted 2026-10-17 on the world's own 260 renewals (same page, section 4b): each renewal at its own margin, hazard and staying response, with the rise capped at what a stayer is billed under the default. A sharing rise rescues 314 of 780 advice cases (40%), 95 of 192 accounts; 148 renewals (57%) under no effect, 94 of them already at or over the default. It is set by the default's headroom in the renewal year (2020: 39 of 40; 2021: 4 of 29), not by the slope, which moves the count by 1-3."
-  - id: canon-h1-owes-r16-and-r17-section
-    raised: "2026-10-12"
-    kind: canon_intent
-    what: Canon H1 owes R16 and R17 (section 15 item 10). Their text is found verbatim in the CLAUDE.md commits that introduced them (9251474f9, eaffdb81e), and the mechanisms both name are still live.
-    proposal: Ratify both as written, so the numbered set becomes R1-R17. In the canon text, put G12's 'recorded, never authorised' beside R16's older word 'authorization'. The text and the evidence are in the proposal file.
-    status: open
-    resolution: ""
-    evidence: docs/staging/SEAT_PROPOSAL_R16_AND_R17_FOUND_RATIFY_AS_WRITTEN_2026-10-12.md
-  - id: a-direction-item-s-why-claimed-the
-    raised: "2026-10-12"
-    kind: strategy
-    what: "A direction item's WHY claimed the capital target 'throttles for nine years the growth the thesis is judged on.' Measured on seed 42 (campaign-only resolve, 403-founder book, 2016-2025): binding is prospect_ceiling or market in every single year, at £0, £115 and £130 alike -- capital has never been the constraint this book's growth is sized against, before or after the capital-115/C14 dating fix."
-    proposal: Land the capital-115 correction and the C14 dating fix on their own merits (they are correct factual corrections regardless), but do not treat them as having unthrottled growth -- they haven't. If growth is meant to be capital-judged, the lever to look at is PROSPECTS_PER_YEAR (400) or the founder book size, both of which bind in every year of the shipped run.
-    status: open
-    resolution: ""
-    evidence: "docs/staging/done/SEAT_FINDING_SEVERAL_CONSUMPTION_FORECASTS_A_WALL_LEAK_IN_HEDGE_VOLUME_AND_THE_CAPITAL_TARGET_IS_115_2026-10-11.md §3b: _resolve_campaign(_pre_growth_book(42), 42, persist=False) run twice in one process (flat £115 from 2016 vs C14-dated), by_year binding is prospect_ceiling (8 years) or market (2 years) in BOTH arms, never capital."
-  - id: canon-w3-leaves-open-how-far-the
-    raised: "2026-10-13"
-    kind: canon_intent
-    what: "Canon W3 leaves open how far the world's price responsiveness may correlate with signals a supplier holds (section 15, owed item 4). Published evidence puts the large correlations on whether a household LOOKS at prices: 2.8x for fixed against default, 3.4x for credit against traditional prepayment, 0.54x for 3+ years on the default tariff. The world already carries those. Nothing published sizes a correlation with how far a household MOVES once it looks."
-    proposal: "Two changes, smallest first. (1) Selection at acquisition, with no new number: a prospect enters the market weighted by its own active-renewal probability, so the link between acquisition channel and later responsiveness emerges from draws the world already has. Recommended. (2) Optionally, couple the price-sensitivity segment to the engagement rank, run at both ends (independent and fully coupled) with the strength kept as a GAP, never a midpoint. Not recommended: a past-switching term, which the only trial puts at x0.94. Your decision 6 already settles the adjacent pricing question. Both are graded on fresh seeds with predictions filed first."
-    status: open
-    resolution: ""
-    evidence: docs/market_research/observable_correlates_of_price_responsiveness.md section C
-  - id: the-clv-discount-rate-and-terminal-value
-    raised: "2026-10-13"
-    kind: strategy
-    what: "The CLV discount rate and terminal-value method (canon section 15, owed item 9). The code carries a flat 0.10, labelled a simplification. Published GB evidence: CMA 2016 retail WACC 9.3-11.5% (2007-14 data); CEPA for Ofgem 2022, 9.28-10.88% in normal conditions and 12.23-14.94% stressed; Ofgem's adopted cost of capital 12.3% from October 2023. Marketing science: a tenure-varying survival curve to a long horizon, since a hard cutoff and a flat rate to infinity each bias it."
-    proposal: "Keep 0.10 as the normal-conditions anchor for 2016 to September 2023, since it sits inside the CMA and CEPA bands. From October 2023 use Ofgem's 12.3%, so the rate follows the record rather than one number for ten years. Report every published CLV at both ends of the band, 9.3% and 12.3%. Move the terminal value to the survival-curve form when CLV is next touched. It is a company parameter, so this changes no world value."
-    status: open
-    resolution: ""
-    evidence: docs/market_research/clv_discount_rate_and_terminal_value_for_a_gb_supplier.md
-  - id: ep17-s-flat-against-per-customer-comparison
-    raised: "2026-10-16"
-    kind: reserved
-    what: "EP17's flat-against-per-customer comparison needs six fresh book seeds, and every seed you authorised (61101-61112) has already been read under some arm. Your 2026-10-15 ruling says 'a fresh draw per run', but the activation record lists exact seeds and only you write it."
-    proposal: "List 61113-61118 in docs/design/curriculum/varied_population_draw_activation.json under your 2026-10-15 ruling. The predictions are already filed (docs/staging/records/PREREG_B11_PER_CUSTOMER_AGAINST_FLAT_ON_VARIED_DRAWS_2026-10-16.md), and the flat arm's door is being built meanwhile. Say 'yes' and the seat writes the listing quoting you."
-    status: open
-    resolution: ""
-    evidence: tools/book_seed_authorisation.py refuses unlisted seeds; seed census in the prereg's 'Population seeds' section
-  - id: reading-reviewer-trial-your-08-56-yes
-    raised: "2026-10-17"
-    kind: strategy
-    what: "Reading-reviewer trial (your 08:56 'Yes'): a blind Opus reader caught 1 of 5 known-bad commits strictly, 3 of 5 by location; when two readers both said NEEDS_WORK it flagged 4 of 5 bad commits and 0 of 5 clean ones, and it caught every dead-mechanism and second-implementation instance in the set"
-    proposal: "No commit gate. Run two blind Opus readers, non-blocking, only on commits that add a new module or a rule something else already computes. File a finding only when both readers raise it, and check it like any finding. Score it for two weeks in judge_validation; stop if under half the filed findings are confirmed. It is a standing compute spend, so it waits for your go."
-    status: open
-    resolution: ""
-    evidence: docs/staging/advisor/done/ADVISOR_TRIAL_WOULD_A_READING_REVIEWER_HAVE_CAUGHT_OUR_KNOWN_BAD_COMMITS_2026-10-17.md
-  - id: the-founder-number-has-two-readings-now
-    raised: "2026-10-17"
-    kind: canon_intent
-    what: "The founder number has two readings now that founders are dual-fuel households: 400 supply points (FOUNDER_BOOK.yaml's definition, held) is ~233 households; 400 households would be ~700 supply points."
-    proposal: "Keep 400 supply points: it is what FOUNDER_BOOK.yaml defines and what the settlement budget counts, so the dual-fuel correction is one variable and the campaign is not squeezed. Say 'households' if you meant homes and the count is re-set to ~700 points."
-    status: open
-    resolution: ""
-    evidence: docs/staging/WORKER_FINDING_THE_OPENING_BOOK_WAS_ONE_PERCENT_DUAL_FUEL_AND_NOW_BEARS_THE_PUBLISHED_SPLIT_2026-10-17.md section 6
+- id: c34-now-ranks-next-best-action-on
+  raised: '2026-10-12'
+  kind: canon_intent
+  what: C34 now ranks next best action on joint value with a no-loss floor on both sides, as ruled (C7, eeb38abc3),
+    and it still advises nobody at realistic inputs. Across the C34 finding's own B11-scale inputs (margin GBP 5-30
+    a month, hazard 0.5-3% a month, 48 months, advice giving up GBP 2-3 a month and cutting the hazard 0.1-0.3 points),
+    joint value is positive in all 18 cases (+GBP 13 to +107) and our side is negative in all 18, so our floor refuses
+    every one. The ranking key changed and no decision did.
+  proposal: 'Keep both floors, and let an advice action that creates value but costs us travel with a price that
+    shares it: the renewal or retention price is set so that our side of that action is at least zero, which is
+    M2''s created-then-shared. That is a pricing-lever change (step 5), not a C34 change, so I would build it next
+    week as an atom, knowledge page first, and grade it on fresh seeds. If you would rather loosen our floor to
+    ''joint value exceeds what we give up'', say so; that one is a one-line change and I would measure it the same
+    way. Measured since: on the world''s book the price can only be collected where the renewal sits under the default,
+    so the build must read each account''s headroom under the cap, and it reaches 40% of cases; the other 60% need
+    the one-off fee (C35) or the floor change.'
+  status: open
+  resolution: ''
+  evidence: 'docs/market_research/next_best_action_and_cross_sell.md section 6.1; landed eeb38abc3. Measured 2026-10-16,
+    docs/market_research/a_retention_price_that_shares_the_value_an_action_creates.md section 4 (18-row table):
+    a rise on a Fixed Retention Tariff (lawful in form, depth unregulated under the SLC 22B derogation to 31 March
+    2027) brings our side to zero in 18 of 18 cases holding the hazard, at GBP 0.01-2.73 a month; 10 of 18 once
+    the rise''s own effect on staying is added at the published slope (none of the six GBP 30-margin cases); 0 of
+    18 on a default tariff priced at the cap. The rescue is a transfer: joint value is unchanged. Re-counted 2026-10-17
+    on the world''s own 260 renewals (same page, section 4b): each renewal at its own margin, hazard and staying
+    response, with the rise capped at what a stayer is billed under the default. A sharing rise rescues 314 of 780
+    advice cases (40%), 95 of 192 accounts; 148 renewals (57%) under no effect, 94 of them already at or over the
+    default. It is set by the default''s headroom in the renewal year (2020: 39 of 40; 2021: 4 of 29), not by the
+    slope, which moves the count by 1-3.'
+- id: canon-h1-owes-r16-and-r17-section
+  raised: '2026-10-12'
+  kind: canon_intent
+  what: Canon H1 owes R16 and R17 (section 15 item 10). Their text is found verbatim in the CLAUDE.md commits that
+    introduced them (9251474f9, eaffdb81e), and the mechanisms both name are still live.
+  proposal: Ratify both as written, so the numbered set becomes R1-R17. In the canon text, put G12's 'recorded,
+    never authorised' beside R16's older word 'authorization'. The text and the evidence are in the proposal file.
+  status: open
+  resolution: ''
+  evidence: docs/staging/SEAT_PROPOSAL_R16_AND_R17_FOUND_RATIFY_AS_WRITTEN_2026-10-12.md
+- id: a-direction-item-s-why-claimed-the
+  raised: '2026-10-12'
+  kind: strategy
+  what: 'A direction item''s WHY claimed the capital target ''throttles for nine years the growth the thesis is
+    judged on.'' Measured on seed 42 (campaign-only resolve, 403-founder book, 2016-2025): binding is prospect_ceiling
+    or market in every single year, at £0, £115 and £130 alike -- capital has never been the constraint this book''s
+    growth is sized against, before or after the capital-115/C14 dating fix.'
+  proposal: Land the capital-115 correction and the C14 dating fix on their own merits (they are correct factual
+    corrections regardless), but do not treat them as having unthrottled growth -- they haven't. If growth is meant
+    to be capital-judged, the lever to look at is PROSPECTS_PER_YEAR (400) or the founder book size, both of which
+    bind in every year of the shipped run.
+  status: open
+  resolution: ''
+  evidence: 'docs/staging/done/SEAT_FINDING_SEVERAL_CONSUMPTION_FORECASTS_A_WALL_LEAK_IN_HEDGE_VOLUME_AND_THE_CAPITAL_TARGET_IS_115_2026-10-11.md
+    §3b: _resolve_campaign(_pre_growth_book(42), 42, persist=False) run twice in one process (flat £115 from 2016
+    vs C14-dated), by_year binding is prospect_ceiling (8 years) or market (2 years) in BOTH arms, never capital.'
+- id: canon-w3-leaves-open-how-far-the
+  raised: '2026-10-13'
+  kind: canon_intent
+  what: 'Canon W3 leaves open how far the world''s price responsiveness may correlate with signals a supplier holds
+    (section 15, owed item 4). Published evidence puts the large correlations on whether a household LOOKS at prices:
+    2.8x for fixed against default, 3.4x for credit against traditional prepayment, 0.54x for 3+ years on the default
+    tariff. The world already carries those. Nothing published sizes a correlation with how far a household MOVES
+    once it looks.'
+  proposal: 'Two changes, smallest first. (1) Selection at acquisition, with no new number: a prospect enters the
+    market weighted by its own active-renewal probability, so the link between acquisition channel and later responsiveness
+    emerges from draws the world already has. Recommended. (2) Optionally, couple the price-sensitivity segment
+    to the engagement rank, run at both ends (independent and fully coupled) with the strength kept as a GAP, never
+    a midpoint. Not recommended: a past-switching term, which the only trial puts at x0.94. Your decision 6 already
+    settles the adjacent pricing question. Both are graded on fresh seeds with predictions filed first.'
+  status: open
+  resolution: ''
+  evidence: docs/market_research/observable_correlates_of_price_responsiveness.md section C
+- id: the-clv-discount-rate-and-terminal-value
+  raised: '2026-10-13'
+  kind: strategy
+  what: 'The CLV discount rate and terminal-value method (canon section 15, owed item 9). The code carries a flat
+    0.10, labelled a simplification. Published GB evidence: CMA 2016 retail WACC 9.3-11.5% (2007-14 data); CEPA
+    for Ofgem 2022, 9.28-10.88% in normal conditions and 12.23-14.94% stressed; Ofgem''s adopted cost of capital
+    12.3% from October 2023. Marketing science: a tenure-varying survival curve to a long horizon, since a hard
+    cutoff and a flat rate to infinity each bias it.'
+  proposal: Keep 0.10 as the normal-conditions anchor for 2016 to September 2023, since it sits inside the CMA and
+    CEPA bands. From October 2023 use Ofgem's 12.3%, so the rate follows the record rather than one number for ten
+    years. Report every published CLV at both ends of the band, 9.3% and 12.3%. Move the terminal value to the survival-curve
+    form when CLV is next touched. It is a company parameter, so this changes no world value.
+  status: open
+  resolution: ''
+  evidence: docs/market_research/clv_discount_rate_and_terminal_value_for_a_gb_supplier.md
+- id: ep17-s-flat-against-per-customer-comparison
+  raised: '2026-10-16'
+  kind: reserved
+  what: EP17's flat-against-per-customer comparison needs six fresh book seeds, and every seed you authorised (61101-61112)
+    has already been read under some arm. Your 2026-10-15 ruling says 'a fresh draw per run', but the activation
+    record lists exact seeds and only you write it.
+  proposal: List 61113-61118 in docs/design/curriculum/varied_population_draw_activation.json under your 2026-10-15
+    ruling. The predictions are already filed (docs/staging/records/PREREG_B11_PER_CUSTOMER_AGAINST_FLAT_ON_VARIED_DRAWS_2026-10-16.md),
+    and the flat arm's door is being built meanwhile. Say 'yes' and the seat writes the listing quoting you.
+  status: open
+  resolution: ''
+  evidence: tools/book_seed_authorisation.py refuses unlisted seeds; seed census in the prereg's 'Population seeds'
+    section
+- id: reading-reviewer-trial-your-08-56-yes
+  raised: '2026-10-17'
+  kind: strategy
+  what: 'Reading-reviewer trial (your 08:56 ''Yes''): a blind Opus reader caught 1 of 5 known-bad commits strictly,
+    3 of 5 by location; when two readers both said NEEDS_WORK it flagged 4 of 5 bad commits and 0 of 5 clean ones,
+    and it caught every dead-mechanism and second-implementation instance in the set'
+  proposal: No commit gate. Run two blind Opus readers, non-blocking, only on commits that add a new module or a
+    rule something else already computes. File a finding only when both readers raise it, and check it like any
+    finding. Score it for two weeks in judge_validation; stop if under half the filed findings are confirmed. It
+    is a standing compute spend, so it waits for your go.
+  status: open
+  resolution: ''
+  evidence: docs/staging/advisor/done/ADVISOR_TRIAL_WOULD_A_READING_REVIEWER_HAVE_CAUGHT_OUR_KNOWN_BAD_COMMITS_2026-10-17.md
+- id: the-founder-number-has-two-readings-now
+  raised: '2026-10-17'
+  kind: canon_intent
+  what: 'The founder number has two readings now that founders are dual-fuel households: 400 supply points (FOUNDER_BOOK.yaml''s
+    definition, held) is ~233 households; 400 households would be ~700 supply points.'
+  proposal: 'Keep 400 supply points: it is what FOUNDER_BOOK.yaml defines and what the settlement budget counts,
+    so the dual-fuel correction is one variable and the campaign is not squeezed. Say ''households'' if you meant
+    homes and the count is re-set to ~700 points.'
+  status: open
+  resolution: ''
+  evidence: docs/staging/WORKER_FINDING_THE_OPENING_BOOK_WAS_ONE_PERCENT_DUAL_FUEL_AND_NOW_BEARS_THE_PUBLISHED_SPLIT_2026-10-17.md
+    section 6
