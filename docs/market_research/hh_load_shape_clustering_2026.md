@@ -246,3 +246,57 @@ compact derived CSVs above are sufficient to reproduce every number in this docu
 `docs/staging/BACKGROUND_LANE_AND_WALL.md`), 2026-07-08. Research + a proposal only — no
 `simulation/`, `company/`, or `saas/` files touched; `docs/market_research/ASSUMPTIONS.md`
 deliberately left unedited per the task's stated concurrent-edit-safety constraint.*
+
+## 8. The authored storage-heated HH homes against Archetype B (K8, 19 Oct 2026)
+
+Written for leg (c) of `docs/staging/SEAT_FINDING_A_LEAVER_NEVER_READ_BILLS_A_QUARTER_OF_ITS_TRUE_USE_AND_REFUSED_THE_PUBLISH_2026-10-19.md`,
+before any change to `sim/hh_data/`. Nothing is built here.
+
+**What the anchor says.** Archetype B's ten homes, per household mean daily kWh, from
+`household_shapes_and_archetype_2013.csv`: 9.1, 11.8, 13.0, 16.7, 18.0, 18.7, 19.3, 20.7, 24.2,
+34.9. That is a mean of 18.62, a median of 18.72, and a range of 9.1–34.9 kWh/day, or about
+3,300–12,700 kWh/yr. The anchor has no household size, no floor area and no EV flag (§6), and
+it is the 2013 London sample.
+
+**What the world has.** The three storage-heated HH homes are `sim/hh_data/C7-C9.csv`. They
+were written once, on 2026-06-15 (b6a6508b7), by `tools/generate_hh_data.py`, and have never
+been regenerated. Here they are measured against the same generator run on today's
+`build_demand_shape` and today's dwelling records, over 2016–2024 (kWh/yr):
+
+| Home | Dwelling | File | Model today | of which EV | today without EV, kWh/day |
+|---|---|---|---|---|---|
+| C7 | 1 person, 1-bed flat, London, EV | 12,810 | 9,149 | 2,920 | 17.05 |
+| C8 | 4 people, 3-bed semi, Manchester | 11,838 | 13,185 | — | 36.10 |
+| C9 | 1 person, 2-bed flat, Glasgow | 12,379 | 7,687 | — | 21.04 |
+
+**What this establishes.** The files are size-blind because they are a stale snapshot. The model
+they were drawn from was not size-blind then and is not now. The W2_13 occupancy volume factor
+that now scales base load and heating by headcount postdates them. As it stands today the model
+puts C7 without its EV at the anchor's median and C9 inside the range. C8 (four people) sits
+just above the anchor's top home. With n=10 and household size unknown, that is a GAP and not
+a defect. The storage term (`ELEC_HEATING_KWH_PER_DEGREE_DAY["electric_storage"]`, 3.0) does
+not need rescaling to bring C7 or C9 inside the anchor.
+
+**Correction, beside the claim in the leaver finding.** "C7 is 36.2 kWh/day, about 2x" compared
+a figure that includes the EV with an anchor that has none. C7's file without its EV is about
+27 kWh/day, or 1.45x the anchor median. The figure that has drifted is the file, against the
+model.
+
+**The choice, and why.** Leg (c) is done by regenerating the three files from today's model
+(`python3 -m tools.generate_hh_data`, which writes C7-C9 only; the `C_IC*` files are not
+touched). No constant changes. It runs only after leg (d) is graded on a published run. The
+regeneration moves C7's world demand from about 12,800 to about 9,150 kWh/yr, and through
+`register_hh_accounts_eac` it also moves C7's registered EAC, so landing it alongside (d) would
+make (d) unattributable. **Prediction for (c), written before running it:** C7's, C8's and C9's
+annual volumes land within 3% of the "model today" column above. C7's billed/true is unchanged
+in direction, because its EAC follows its own file.
+
+**GAPs, not decided here:**
+- Storage heat scales with headcount and degree-days, not with the dwelling's heat loss (floor
+  area, fabric). C9's two bedrooms get more heat than C7's one only because Glasgow is colder.
+  A published anchor for electric-storage space-heating kWh by floor area has not been found
+  here.
+- `EV_CHARGING_KWH_PER_NIGHT` (8.0, every night, 2,920 kWh/yr) has not been weighed against any
+  source here.
+- The anchor is 2013. How much domestic electric-heating use moved between 2013 and 2016–2025 has
+  not been established.

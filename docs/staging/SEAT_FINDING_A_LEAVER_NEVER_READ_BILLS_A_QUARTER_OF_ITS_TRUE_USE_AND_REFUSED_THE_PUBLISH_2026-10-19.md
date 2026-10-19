@@ -198,3 +198,15 @@ billed/true rises from 0.23 to at least 0.9, C7 2016–2019 stop inverting, and 
 `KNOWN_OPEN_INVERSIONS` rows can be deleted. Do not delete those rows before the run.
 
 Legs (c) and (b) are still open. Each needs the K8 page first.
+
+### Leg (d) still ungraded; leg (c)'s knowledge page written (worker, 19 Oct 14:20 BST)
+
+- **(d) cannot be graded yet.** No run carries 6208ea6dd. The latest run outputs are both
+  8b6fea024, and the runner has deferred every cycle since 12:37Z behind
+  `longjob-c35-probe-8b6fea024`. The four C7 `KNOWN_OPEN_INVERSIONS` rows stay.
+- **(c) is reframed by measurement.** `hh_load_shape_clustering_2026.md` §8: the C7-C9 files are a
+  stale 15 Jun snapshot. Run on today's model, C7 comes out at 9,149 kWh/yr (17.05 kWh/day
+  without its EV, which is the anchor's median), C9 at 7,687 and C8 at 13,185. Correction,
+  beside "about 2x" above: that compared C7 with its EV against an anchor without one. Without
+  the EV it is 1.45x. The remedy is to regenerate the files, not to rescale a constant. It is
+  still to be run only after (d) is graded. Its prediction is on the page.
