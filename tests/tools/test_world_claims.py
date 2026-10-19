@@ -74,3 +74,21 @@ def test_the_table_names_a_red_claim_first(book):
     rows = rows + [{**rows[0], "id": "impossible", "band": [2.0, 3.0]}]
     table = wc.render(wc.check(book, rows)).splitlines()
     assert table[2].startswith("| `impossible` |") and "**GAP**" in table[2], table
+
+
+@pytest.mark.parametrize("route", ["trickle", "campaign"])
+def test_each_other_route_into_the_book_fails_only_its_named_gaps(route):
+    """The founders are not the only way a home arrives. Each route is measured on its own, and
+    the claims it fails must be exactly the ones `KNOWN_ROUTE_GAPS` names: a new gap reds, and so
+    does a fixed one that is still listed."""
+    results = wc.check(wc.drawn_book(route=route))
+    assert {r["verdict"] for r in results} <= {"holds", "GAP"}, wc.failures(results)
+    known = {cid for (r, cid) in wc.KNOWN_ROUTE_GAPS if r == route}
+    assert wc.route_gaps(route, results) == known, wc.failures(results)
+
+
+def test_every_route_is_a_route_drawn_book_can_assemble():
+    assert set(wc.ROUTES) == {"founders", "trickle", "campaign"}
+    assert {r for (r, _) in wc.KNOWN_ROUTE_GAPS} <= set(wc.ROUTES)
+    with pytest.raises(ValueError):
+        wc.drawn_book(seeds=wc.SEEDS[:1], route="no_such_route")

@@ -1,33 +1,26 @@
-"""Reconciliation VIEW over the two published UK grid fuel-mix tables.
+"""What the annual report's two `Low Carbon %` columns each measure, stated where they are read.
 
-WHY THIS EXISTS. The annual report publishes a `Low Carbon %` column twice, for the same years,
-under the same metric name, from two independently maintained tables:
+The report publishes `Low Carbon %` in two sections, for overlapping years, from two tables:
 
-* `company/regulatory/carbon_emissions.py::UK_GRID_FUEL_MIX` — 8 buckets, renders the
-  **Carbon Emissions Reporting Observatory** (and, via the per-fuel factors, its intensity series).
-* `company/billing/fuel_mix.py::_FUEL_MIX_BY_YEAR` — 5 buckets, renders the
-  **UK Grid Fuel Mix Disclosure**.
+* `company/regulatory/carbon_emissions.py::UK_GRID_FUEL_MIX` renders the **Carbon Emissions
+  Reporting Observatory**. Since 2026-10-19 it is the UK GENERATION mix, DUKES 5.6.C, calendar year.
+* `company/billing/fuel_mix.py::_FUEL_MIX_BY_YEAR` renders the **UK Grid Fuel Mix Disclosure**.
+  Since 2026-10-19 it is DESNZ's FMD UK fuel mix: SUPPLY basis, imports at the European Attribute
+  Mix, 1 April to 31 March.
 
-They disagree by up to 3.4pp and the sign of the difference flips across the decade
-(`docs/staging/done/WORKER_FINDING_TWO_PUBLISHED_FUEL_MIX_TABLES_DISAGREE_ON_LOW_CARBON_2026-08-14.md`,
-archived on discharge — the path moved with it, so this citation is not one of the 66 dead ones).
-At most one is right. Choosing which would revalue a published table on the guesser's authority,
-with no fetched source to justify it — `EP13_adapter_carbon_intensity` is the atom that sources it
-properly, and it is epoch-3 parked. So the finding's *second* discharge is taken here: **the
-limitation is stated in the report itself**, where the reader of the two tables is, rather than
-only in a finding document they will never see.
+TWO FACTS, NOT ONE. Until 2026-10-19 this module said "at most one is right": both were undated hand
+tables up to 3.4pp apart, and choosing one would have revalued a published table on a guess. Both
+sources have now been fetched, and DESNZ's own disclosure table says the two differ by construction
+(its note 5). So both are right about different things, and the note says what each one is. The
+sources, vintages and gap are in
+`docs/market_research/two_uk_electricity_fuel_mixes_generation_and_disclosure.md`.
 
-THIS MODULE DECLARES NO THIRD SERIES. Every number below is READ from the two owners at call time.
-That is the whole design: a disclosure note carrying hardcoded divergence figures would be a third
-copy of the same disagreement, decaying silently the first time either table is edited — the exact
-shape `tools/grid_intensity_guard.py` exists to prevent. Edit either table and the published
-sentence moves with it; make them agree and the note says they agree.
+THIS MODULE DECLARES NO THIRD SERIES. Every number in the note is read from the two owners at call
+time, so an edit to either table moves the published sentence with it.
 
-BASIS. The comparison is like-for-like, which is what makes the residue a *data* disagreement
-rather than a definitional one: both sides count renewable + nuclear + biomass. The Observatory's
-`low_carbon_pct` sums wind/solar/hydro + nuclear + biomass explicitly; the Disclosure's single
-`renewable` bucket already includes biomass (2023: 47.8% against the Observatory's 35.0% renewable
-+ 10.0% biomass = 45.0%). Neither table is a partial mix — both sum to 100.0% in all ten years.
+BASIS of the comparison: both sides count renewable (bioenergy included) + nuclear. The Observatory
+sums wind/solar/hydro + nuclear + biomass. The Disclosure's single `renewable` bucket already
+includes biomass.
 """
 
 from __future__ import annotations
@@ -40,10 +33,16 @@ from typing import List, Optional
 OBSERVATORY_SECTION = "Carbon Emissions Reporting Observatory"
 DISCLOSURE_SECTION = "UK Grid Fuel Mix Disclosure"
 
-#: Where each side comes from, for the note's provenance clause. Both cite the same publisher and
-#: NEITHER carries a vintage — which is itself the reason they are allowed to differ silently.
-OBSERVATORY_ORIGIN = "company/regulatory/carbon_emissions.py::UK_GRID_FUEL_MIX (8 buckets)"
-DISCLOSURE_ORIGIN = "company/billing/fuel_mix.py::_FUEL_MIX_BY_YEAR (5 buckets)"
+#: Where each side comes from, with its basis and vintage, for the note's provenance clause.
+OBSERVATORY_ORIGIN = (
+    "the UK generation mix (DESNZ DUKES Table 5.6.C, calendar year, generation only, no imports; "
+    "published 30 July 2026)"
+)
+DISCLOSURE_ORIGIN = (
+    "the UK Fuel Mix Disclosure comparison mix (DESNZ Fuel mix disclosure data table, 1 April to "
+    "31 March, electricity supplied including imports at the European Attribute Mix; one edition "
+    "per period, 2019/20 to 2025/26)"
+)
 
 
 @dataclass(frozen=True)
@@ -94,54 +93,38 @@ def worst_divergence() -> Optional[LowCarbonDivergence]:
     return max(rows, key=lambda r: r.abs_diff_pp)
 
 
-def sign_flips() -> bool:
-    """True when neither table is uniformly the higher one.
-
-    This is the load-bearing distinction and the reason the note cannot say "a definitional
-    difference". A constant offset would be one definition stated once; an alternating one is two
-    independently maintained series.
-    """
-    diffs = [r.diff_pp for r in reconcile_low_carbon() if r.diff_pp != 0.0]
-    return any(d > 0 for d in diffs) and any(d < 0 for d in diffs)
-
-
 def divergence_note(section: str) -> str:
-    """The disclosure paragraph rendered under `section`'s table, DERIVED from both tables.
+    """The paragraph rendered under `section`'s table, DERIVED from both tables.
 
-    Returns "" when there is nothing to disclose — no overlapping years, or the two tables agree
-    everywhere. A note that renders unconditionally would still be there after a reconciliation and
-    would then be false, so the absence of a residue must be able to silence it.
+    Returns "" only when the two share no years, so there is nothing to compare. When they share
+    years the note always renders, because what it says first (two different quantities) is true
+    whatever the figures are.
     """
     if section not in (OBSERVATORY_SECTION, DISCLOSURE_SECTION):
         raise ValueError(f"unknown section {section!r}")
 
+    rows = reconcile_low_carbon()
     worst = worst_divergence()
-    if worst is None or worst.abs_diff_pp == 0.0:
+    if worst is None:
         return ""
 
     other = DISCLOSURE_SECTION if section == OBSERVATORY_SECTION else OBSERVATORY_SECTION
     this_origin = OBSERVATORY_ORIGIN if section == OBSERVATORY_SECTION else DISCLOSURE_ORIGIN
     other_origin = DISCLOSURE_ORIGIN if section == OBSERVATORY_SECTION else OBSERVATORY_ORIGIN
-    higher = OBSERVATORY_SECTION if worst.diff_pp > 0 else DISCLOSURE_SECTION
-
-    flip_clause = (
-        "and neither section is consistently the higher one across the decade, so this is two "
-        "differently-sourced mixes rather than one definitional difference"
-        if sign_flips()
-        else "in the same direction in every year of disagreement"
-    )
+    if worst.abs_diff_pp == 0.0:
+        gap = "In the years both cover, they happen to agree."
+    else:
+        higher = OBSERVATORY_SECTION if worst.diff_pp > 0 else DISCLOSURE_SECTION
+        gap = (
+            f"Over {rows[0].year}-{rows[-1].year} they differ by up to {worst.abs_diff_pp:.1f}pp "
+            f"({worst.year}: {worst.observatory_pct:.1f}% in the {OBSERVATORY_SECTION}, "
+            f"{worst.disclosure_pct:.1f}% in the {DISCLOSURE_SECTION}, the {higher} higher)."
+        )
 
     return (
-        f"> **Unreconciled with the {other} section.** This report publishes `Low Carbon %` for "
-        f"the same years in both sections, from two separately maintained tables — this one from "
-        f"{this_origin}, the other from {other_origin}. They differ by up to "
-        f"{worst.abs_diff_pp:.1f}pp ({worst.year}: {worst.observatory_pct:.1f}% in the "
-        f"{OBSERVATORY_SECTION}, {worst.disclosure_pct:.1f}% in the {DISCLOSURE_SECTION}, the "
-        f"{higher} higher), {flip_clause}. Both count renewable + nuclear + biomass, so the "
-        f"difference is in the underlying mix and not in the definition; both sum to 100%. "
-        f"**At most one of the two is right, and this report does not assert which** — neither "
-        f"table carries a publication vintage, and no external source has been fetched to "
-        f"adjudicate them. The figures are unchanged rather than silently reconciled to a guess; "
-        f"sourcing them is `EP13_adapter_carbon_intensity`. The grid INTENSITY column has a single "
-        f"owner and is not affected: it is NESO's published series, not either mix."
+        f"> **Not the same figure as the {other} section.** This section's `Low Carbon %` is "
+        f"{this_origin}; the other section's is {other_origin}. Both count renewables (bioenergy "
+        f"included) plus nuclear, but they are two different quantities, and DESNZ notes that they "
+        f"differ. The disclosure basis adds imports and runs April to March. {gap} The grid "
+        f"INTENSITY column is neither mix: it is NESO's published series."
     )

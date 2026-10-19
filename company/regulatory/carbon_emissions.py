@@ -26,9 +26,9 @@ and was 5-47% high in every whole year 2017-2024. The finding that made this mod
 asked for "a single sourced series ... cited to a named publication and vintage"; the 08-14
 repair kept the hand table only because no source had been fetched. One now has.
 
-THE MIX TABLE STAYS, FOR DECOMPOSITION ONLY. `UK_GRID_FUEL_MIX` still renders the annual report's
-`Low Carbon %` column and is reconciled against the other fuel-mix table in
-`fuel_mix_reconciliation.py`. It has NO level role: nothing may multiply it by
+THE MIX TABLE STAYS, FOR DECOMPOSITION ONLY. `UK_GRID_FUEL_MIX` (DUKES 5.6.C generation shares
+since 2026-10-19) still renders the annual report's `Low Carbon %` column, and
+`fuel_mix_reconciliation.py` states its difference from the supply-basis disclosure mix. It has NO level role: nothing may multiply it by
 `_EMISSION_FACTORS_G_CO2_PER_KWH` to get a national intensity. `FuelMixRecord` remains a generic
 mix calculator for a mix a caller supplies.
 
@@ -78,12 +78,14 @@ class FuelMixRecord:
     hydro_pct: float
     biomass_pct: float
     imports_pct: float
+    #: Oil, other fuels and storage, which a generation mix carries and has no factor for here.
+    other_pct: float = 0.0
 
     @property
     def total_pct(self) -> float:
         return round(self.coal_pct + self.gas_pct + self.nuclear_pct +
                       self.wind_pct + self.solar_pct + self.hydro_pct +
-                      self.biomass_pct + self.imports_pct, 1)
+                      self.biomass_pct + self.imports_pct + self.other_pct, 1)
 
     @property
     def renewable_pct(self) -> float:
@@ -108,23 +110,27 @@ class FuelMixRecord:
         return round(intensity, 1)
 
 
-#: The UK national generation fuel mix, percent by year. DECOMPOSITION ONLY since 2026-10-05: it
-#: renders `Low Carbon %` and nothing else. Its `emission_intensity_g_per_kwh` is not the national
-#: level and no caller may use it as one -- the level is `grid_intensity_g_co2e_per_kwh(year)`.
-#: Moved here 2026-08-14 from a local inside `annual_report._section_carbon_emissions`; values
-#: unsourced ("DESNZ/National Grid annual fuel mix data", no vintage), and the guard keeps it the
-#: single owned mix.
+#: The UK GENERATION fuel mix, percent by calendar year: DESNZ, DUKES Table 5.6.C "Shares of
+#: electricity generated", All generating companies, `DUKES_5.6.xlsx` published 30 July 2026
+#: (revisions period 2017-2024), fetched 2026-10-19. wind = onshore + offshore; biomass = thermal
+#: renewables (bioenergy); other = oil + other fuels + storage; imports 0, as generation has none.
+#: Not the supply-basis mix a supplier discloses: that is `company/billing/fuel_mix.py`, a different
+#: fact. Until 2026-10-19 this held undated whole-number guesses with a 3-8% imports bucket. Tested
+#: against `docs/market_research/two_uk_electricity_fuel_mixes_generation_and_disclosure.md`.
+#: DECOMPOSITION ONLY since 2026-10-05: it renders `Low Carbon %` and nothing else. Its
+#: `emission_intensity_g_per_kwh` is not the national level and no caller may use it as one -- the
+#: level is `grid_intensity_g_co2e_per_kwh(year)`.
 UK_GRID_FUEL_MIX: Dict[int, 'FuelMixRecord'] = {
-    2016: FuelMixRecord(2016, coal_pct=9.0, gas_pct=42.0, nuclear_pct=21.0, wind_pct=11.0, solar_pct=3.0, hydro_pct=2.0, biomass_pct=8.0, imports_pct=4.0),
-    2017: FuelMixRecord(2017, coal_pct=7.0, gas_pct=40.0, nuclear_pct=21.0, wind_pct=15.0, solar_pct=3.0, hydro_pct=2.0, biomass_pct=8.0, imports_pct=4.0),
-    2018: FuelMixRecord(2018, coal_pct=5.0, gas_pct=39.0, nuclear_pct=20.0, wind_pct=17.0, solar_pct=3.0, hydro_pct=2.0, biomass_pct=9.0, imports_pct=5.0),
-    2019: FuelMixRecord(2019, coal_pct=2.0, gas_pct=37.0, nuclear_pct=19.0, wind_pct=20.0, solar_pct=4.0, hydro_pct=2.0, biomass_pct=12.0, imports_pct=4.0),
-    2020: FuelMixRecord(2020, coal_pct=1.0, gas_pct=33.0, nuclear_pct=17.0, wind_pct=24.0, solar_pct=4.0, hydro_pct=2.0, biomass_pct=12.0, imports_pct=7.0),
-    2021: FuelMixRecord(2021, coal_pct=2.0, gas_pct=36.0, nuclear_pct=17.0, wind_pct=22.0, solar_pct=4.0, hydro_pct=2.0, biomass_pct=11.0, imports_pct=6.0),
-    2022: FuelMixRecord(2022, coal_pct=2.0, gas_pct=38.0, nuclear_pct=17.0, wind_pct=26.0, solar_pct=4.0, hydro_pct=2.0, biomass_pct=8.0, imports_pct=3.0),
-    2023: FuelMixRecord(2023, coal_pct=1.0, gas_pct=32.0, nuclear_pct=14.0, wind_pct=28.0, solar_pct=5.0, hydro_pct=2.0, biomass_pct=10.0, imports_pct=8.0),
-    2024: FuelMixRecord(2024, coal_pct=0.0, gas_pct=29.0, nuclear_pct=14.0, wind_pct=32.0, solar_pct=5.0, hydro_pct=2.0, biomass_pct=11.0, imports_pct=7.0),
-    2025: FuelMixRecord(2025, coal_pct=0.0, gas_pct=25.0, nuclear_pct=13.0, wind_pct=36.0, solar_pct=6.0, hydro_pct=3.0, biomass_pct=10.0, imports_pct=7.0),
+    2016: FuelMixRecord(2016, coal_pct=9.04, gas_pct=42.27, nuclear_pct=21.15, wind_pct=10.96, solar_pct=3.06, hydro_pct=1.58, biomass_pct=8.86, imports_pct=0.0, other_pct=3.07),
+    2017: FuelMixRecord(2017, coal_pct=6.66, gas_pct=40.43, nuclear_pct=20.8, wind_pct=14.67, solar_pct=3.39, hydro_pct=1.74, biomass_pct=9.43, imports_pct=0.0, other_pct=2.87),
+    2018: FuelMixRecord(2018, coal_pct=5.04, gas_pct=39.4, nuclear_pct=19.49, wind_pct=17.05, solar_pct=3.8, hydro_pct=1.63, biomass_pct=10.52, imports_pct=0.0, other_pct=3.07),
+    2019: FuelMixRecord(2019, coal_pct=2.11, gas_pct=40.68, nuclear_pct=17.17, wind_pct=19.51, solar_pct=3.8, hydro_pct=1.81, biomass_pct=11.47, imports_pct=0.0, other_pct=3.44),
+    2020: FuelMixRecord(2020, coal_pct=1.84, gas_pct=36.06, nuclear_pct=16.19, wind_pct=24.37, solar_pct=4.04, hydro_pct=2.22, biomass_pct=12.43, imports_pct=0.0, other_pct=2.85),
+    2021: FuelMixRecord(2021, coal_pct=2.2, gas_pct=39.9, nuclear_pct=14.97, wind_pct=21.09, solar_pct=3.94, hydro_pct=1.76, biomass_pct=12.99, imports_pct=0.0, other_pct=3.15),
+    2022: FuelMixRecord(2022, coal_pct=1.83, gas_pct=38.74, nuclear_pct=14.59, wind_pct=24.7, solar_pct=4.31, hydro_pct=1.56, biomass_pct=11.07, imports_pct=0.0, other_pct=3.2),
+    2023: FuelMixRecord(2023, coal_pct=1.24, gas_pct=34.57, nuclear_pct=13.8, wind_pct=28.13, solar_pct=5.06, hydro_pct=1.91, biomass_pct=11.59, imports_pct=0.0, other_pct=3.69),
+    2024: FuelMixRecord(2024, coal_pct=0.71, gas_pct=30.56, nuclear_pct=14.19, wind_pct=29.23, solar_pct=5.24, hydro_pct=2.0, biomass_pct=14.03, imports_pct=0.0, other_pct=4.03),
+    2025: FuelMixRecord(2025, coal_pct=0.0, gas_pct=31.75, nuclear_pct=12.21, wind_pct=29.44, solar_pct=6.86, hydro_pct=1.83, biomass_pct=13.98, imports_pct=0.0, other_pct=3.92),
 }
 
 #: THE ONE HOME OF THE GAS FACTOR. DESNZ, *Greenhouse gas reporting: conversion factors*, flat

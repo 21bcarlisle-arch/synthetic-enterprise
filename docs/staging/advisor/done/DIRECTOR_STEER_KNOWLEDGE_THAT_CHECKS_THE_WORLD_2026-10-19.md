@@ -42,3 +42,34 @@ One stretch-log entry with:
 Raise anything that would change a ruling as a proposal.
 
 — Director steer, 19 Oct 2026, from his chat words above. The drafting is the advisor's.
+
+## Done
+
+*Delivery seat, 2026-10-19.* Items 1 to 3 landed earlier today: `tools/world_constant_anchors.py`
+(anchor or range, 446 bare constants registered, `DEFAULT_BAND_WEIGHTS` first) and
+`tools/world_claims.py` (the population pages carry `world-claims` blocks, which are re-run when
+who is in the world changes).
+
+**Item 4, one home per fact: the two fuel-mix tables.** Both DESNZ sources were fetched. They are
+**two facts**: DESNZ's own disclosure table says its supply-basis mix "differs from the UK
+generation mix published in UK Energy Trends and [DUKES]". Neither old table was what it claimed.
+The "FMD" table was a generation mix, and the Observatory table was undated whole numbers with an
+imports bucket. Each now has one source:
+- `UK_GRID_FUEL_MIX`: DUKES 5.6.C generation shares, published 30 July 2026.
+- `_FUEL_MIX_BY_YEAR`: the FMD UK mix, 2019/20 to 2025/26. 2016/17 to 2018/19 are a stated GAP.
+
+The report's note now names each basis instead of "at most one is right".
+`tests/company/regulatory/test_the_two_fuel_mixes_are_their_published_sources.py` holds both tables
+to the page's fetched block (three mutations, each red). Knowledge page:
+`docs/market_research/two_uk_electricity_fuel_mixes_generation_and_disclosure.md`.
+
+These published figures move:
+- Observatory `Low Carbon %`: up to 3.7 points (2025: 68 → 64.3).
+- FMD section: up to 7.2 points (2024: 65.5 → 58.3).
+- "Renewable majority" no longer fires: 48.0% at peak on the supply basis.
+
+**Also:** `world_claims` now measures the trickle and campaign routes too. On first run the campaign
+went red: 100% of won gas homes are dual against a published 81–96%. It is registered in
+`KNOWN_ROUTE_GAPS` and filed as
+`docs/staging/SEAT_FINDING_THE_FUEL_CLAIMS_ARE_MEASURED_ON_THE_FOUNDERS_ONLY_AND_THE_CAMPAIGN_ROUTE_WINS_EVERY_GAS_HOME_DUAL_2026-10-19.md`.
+The world fix is handed on.

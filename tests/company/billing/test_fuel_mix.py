@@ -4,14 +4,15 @@ import pytest
 from company.billing.fuel_mix import get_fuel_mix, fuel_mix_summary
 
 
-def test_fuel_mix_2016_renewable():
-    mix = get_fuel_mix(2016)
-    assert mix["renewable"] == 24.6
+def test_fuel_mix_2019_renewable():
+    # DESNZ FMD UK mix, 1 April 2019 to 31 March 2020
+    mix = get_fuel_mix(2019)
+    assert mix["renewable"] == 37.9
 
 
-def test_fuel_mix_2025_renewable_majority():
+def test_fuel_mix_2025_renewable_is_the_2025_26_edition():
     mix = get_fuel_mix(2025)
-    assert mix["renewable"] > 50.0
+    assert mix["renewable"] == 48.0
 
 
 def test_fuel_mix_sums_to_100():
@@ -34,9 +35,9 @@ def test_low_carbon_includes_nuclear():
 
 
 def test_renewable_trend_direction():
-    s = fuel_mix_summary(2024)
-    # Renewables grew 2023-2024
-    assert s["trend_direction"] == "up"
+    # FMD renewables 43.2 (2023/24) -> 42.1 (2024/25) -> 48.0 (2025/26): a real fall, then a rise
+    assert fuel_mix_summary(2024)["trend_direction"] == "down"
+    assert fuel_mix_summary(2025)["trend_direction"] == "up"
 
 
 def test_regulatory_route_has_fuel_mix():
@@ -55,17 +56,17 @@ def test_regulatory_template_has_fuel_section():
     assert "Renewable" in html
 
 
-def test_prior_year_fallback():
-    # Year before data range returns 2016 values
-    mix = get_fuel_mix(2010)
-    assert mix["renewable"] == 24.6
+def test_a_period_before_the_fetched_editions_is_absent():
+    # No clamping: a year with no DESNZ edition held has no disclosure mix
+    assert get_fuel_mix(2010) is None
+    assert get_fuel_mix(2016) is None
 
 
 # --- Phase KU depth tests ---
 
 def test_fuel_mix_2022_renewable():
     mix = get_fuel_mix(2022)
-    assert mix['renewable'] == pytest.approx(40.5)
+    assert mix['renewable'] == pytest.approx(40.8)
 
 
 def test_fuel_mix_has_nuclear():

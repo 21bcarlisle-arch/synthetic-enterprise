@@ -11,8 +11,9 @@ copies it is a second home that can drift. The bands are published ranges, widen
 sampling noise of the pooled draw where the page says so. They are not the draw's own constants, so
 moving a constant inside its range stays green and a book that leaves the record goes red.
 
-THE MEASURES ARE HERE, one function per name, over the book the production draw makes at the
-production founder count, pooled over `SEEDS`. A claim naming a measure nobody wrote is refused by
+THE MEASURES ARE HERE, one function per name, over each route into the book (`ROUTES`: the
+founders at the production founder count, the trickle, the campaign's winners), pooled over
+`SEEDS`. A route's known gap is named in `KNOWN_ROUTE_GAPS`. A claim naming a measure nobody wrote is refused by
 name. That is a claim nobody can check, which is the state the 21 June figure sat in for three
 months.
 
@@ -59,24 +60,68 @@ def claims(root: Path | None = None) -> list[dict]:
     return out
 
 
-def drawn_book(seeds=SEEDS) -> list[tuple[dict, object]]:
-    """`(record, premise)` pairs of the drawn founders at the production founder count, pooled
-    over `seeds`, with ids made unique per seed. Draws in-process (~2 s a seed)."""
-    previous = os.environ.get("SE_DRAW_POPULATION")
+#: The three ways a home enters the book. `founders` is the opening portfolio; `trickle` is the
+#: Profile-B arrival stream; `campaign` is the homes the growth campaign wins. Each is measured on
+#: its own, because a claim that holds on the pool can fail on one route and be hidden by the others.
+ROUTES = ("founders", "trickle", "campaign")
+
+
+#: A claim that does not hold on one route, named rather than hidden, with the finding that carries
+#: it. It may only SHRINK: `tests/tools/test_world_claims.py` reds when a route's gaps differ from
+#: this, so fixing one forces its removal and a new one cannot appear unseen. The founders' route is
+#: the gate and has no entry. The trickle is about 30 homes over the eight seeds, so a trickle verdict
+#: is a coarse check, not a precise one.
+KNOWN_ROUTE_GAPS = {
+    ("campaign", "dual_share_of_gas_homes"):
+        "docs/staging/SEAT_FINDING_THE_FUEL_CLAIMS_ARE_MEASURED_ON_THE_FOUNDERS_ONLY_AND_THE_"
+        "CAMPAIGN_ROUTE_WINS_EVERY_GAS_HOME_DUAL_2026-10-19.md -- `_gas_leg_for` makes every won "
+        "gas home dual (100.0%), so no campaign win is a split home",
+}
+
+
+def route_gaps(route: str, results: list[dict]) -> set:
+    """The claim ids that do not hold on `route`, the set `KNOWN_ROUTE_GAPS` is compared with."""
+    return {r["id"] for r in results if r["verdict"] != "holds"}
+
+
+def _route_pairs(route: str, seed: int, lp) -> list:
+    """`(record, premise)` for one route and seed, as the production book assembles it."""
+    if route == "founders":
+        return list(lp._drawn_founder_pairs(seed))
+    if route == "trickle":
+        return [(rec, sc.premise) for sc in lp._drawn_trickle(seed) for rec in lp._trickle_records(sc)]
+    if route == "campaign":
+        outcome = lp._campaign(lp._pre_growth_book(seed), seed)
+        winners = {p.customer_id: p for p, _ in outcome["winners"]}
+        return [(rec, winners[rec["customer_id"].rstrip("g")].premise)
+                for rec in lp._won_customer_dicts(outcome)]
+    raise ValueError(f"unknown route {route!r}; routes are {ROUTES}")
+
+
+def drawn_book(seeds=SEEDS, route: str = "founders") -> list[tuple[dict, object]]:
+    """`(record, premise)` pairs of one route into the book, pooled over `seeds`, with ids made
+    unique per seed. Draws in-process (founders ~2 s a seed, trickle ~2 s, campaign ~4 s).
+
+    The draw and growth flags are forced on for the call, so each route is the one a production
+    run with both activated would assemble, whatever this process's environment says.
+    """
+    saved = {k: os.environ.get(k) for k in ("SE_DRAW_POPULATION", "SE_GROW_BOOK")}
     os.environ["SE_DRAW_POPULATION"] = "1"
+    os.environ["SE_GROW_BOOK"] = "1"
     try:
         from simulation import live_population as lp
 
         pooled = []
         for seed in seeds:
             pooled += [({**r, "customer_id": f"{seed}:{r['customer_id']}"}, p)
-                       for r, p in lp._drawn_founder_pairs(seed)]
+                       for r, p in _route_pairs(route, seed, lp)]
         return pooled
     finally:
-        if previous is None:
-            os.environ.pop("SE_DRAW_POPULATION", None)
-        else:
-            os.environ["SE_DRAW_POPULATION"] = previous
+        for k, v in saved.items():
+            if v is None:
+                os.environ.pop(k, None)
+            else:
+                os.environ[k] = v
 
 
 def _homes(book) -> dict:
@@ -179,11 +224,17 @@ def render(results: list[dict]) -> str:
 
 
 def _main() -> int:  # pragma: no cover - operator surface
-    results = check(drawn_book())
-    print(render(results))
-    bad = failures(results)
-    print(f"\n{len(results)} claim(s) on {len(PAGES)} page(s); {len(bad)} not holding")
-    return 1 if bad else 0
+    rc = 0
+    for route in ROUTES:
+        results = check(drawn_book(route=route))
+        print(f"\n### {route}\n")
+        print(render(results))
+        known = {cid for (r, cid) in KNOWN_ROUTE_GAPS if r == route}
+        new = route_gaps(route, results) - known
+        print(f"\n{len(results)} claim(s); {len(route_gaps(route, results))} not holding, "
+              f"{len(new)} not in KNOWN_ROUTE_GAPS")
+        rc = 1 if new else rc
+    return rc
 
 
 if __name__ == "__main__":  # pragma: no cover

@@ -31,7 +31,7 @@ THREE ARMS, because each historical instance would have escaped the other two:
   pass that wrote arms 1 and 2, because measuring the residue immediately found a FOURTH published
   table the first two both missed: `company/billing/fuel_mix.py::_FUEL_MIX_BY_YEAR`, whose values
   are `{"renewable": ..., "gas": ...}` literals. It renders the annual report's OTHER fuel-mix
-  section, and the two published sections disagree — see the ratchet below.
+  section, which since 2026-10-19 is a different sourced quantity — see the ratchet below.
 
 All three walk the whole AST, not module scope: a function body is where the published copy hid.
 
@@ -108,19 +108,18 @@ MIX_RECORD_CALLS = ("FuelMixRecord", "FuelMixSnapshot")
 #: here without editing this file in a reviewed commit. A guard whose exemption list can grow
 #: silently is the R15 fail-open shape; this one cannot.
 #:
-#: WHY THIS ONE IS NOT FIXED IN THE SAME PASS. Reconciling it means choosing which of two
-#: PUBLISHED tables is the source, and they disagree: the annual report's two sections each
-#: publish a `Low Carbon %` column for the same years, differing by up to 3.4pp (2023: 59% in the
-#: Carbon Emissions Reporting Observatory, 62.4% in the UK Grid Fuel Mix Disclosure), with the
-#: sign of the difference flipping across the decade. Picking a winner without a fetched source
-#: would revalue a published table on the guesser's authority — the exact move the finding that
-#: created this guard refused to make. It is filed as its own finding and is EP13's to source.
+#: WHY THIS ONE STAYS (2026-10-19). It is not a second copy of the generation mix. It is a different
+#: quantity: DESNZ's Fuel Mix Disclosure UK mix, on a supply basis, with imports at the European
+#: Attribute Mix, April to March, which a supplier must disclose. Until 2026-10-19 both tables were
+#: undated hand tables up to 3.4pp apart, and this entry said reconciling them needed a sourced
+#: answer. Both are now fetched, and DESNZ says the two differ by construction
+#: (docs/market_research/two_uk_electricity_fuel_mixes_generation_and_disclosure.md). The entry
+#: remains so that a THIRD year-keyed mix still reds.
 KNOWN_SECOND_SERIES = {
     "company/billing/fuel_mix.py::_FUEL_MIX_BY_YEAR":
-        "the annual report's OTHER published fuel-mix table (UK Grid Fuel Mix Disclosure "
-        "section, 5 buckets). Reconciling it against UK_GRID_FUEL_MIX (8 buckets) revalues one "
-        "of two published sections and needs a sourced answer -- WORKER_FINDING_TWO_PUBLISHED_"
-        "FUEL_MIX_TABLES_DISAGREE_ON_LOW_CARBON_2026-08-14.md",
+        "the FMD UK fuel mix (supply basis, imports at the European Attribute Mix, April-March), "
+        "a different quantity from UK_GRID_FUEL_MIX's generation mix (DUKES 5.6.C) -- "
+        "docs/market_research/two_uk_electricity_fuel_mixes_generation_and_disclosure.md",
 }
 
 

@@ -6659,7 +6659,8 @@ def _section_carbon_emissions(data: dict) -> str:
     lines.append("Scope 1 emissions from gas supply (183g CO2/kWh, DESNZ). Grid intensity: NESO's published national "
                  "series, demand-weighted annual mean, generation basis (T&D losses not included), "
                  "CO2 at the generator "
-                 "(docs/market_data/grid_intensity_feed.json). Low Carbon %: annual fuel mix table, unsourced vintage.")
+                 "(docs/market_data/grid_intensity_feed.json). Low Carbon %: UK generation mix, DESNZ DUKES "
+                 "Table 5.6.C (published 30 July 2026), calendar year.")
     lines.append("")
     lines.append("| Year | Elec MWh | Grid Intensity | Elec CO2 (t) | Gas MWh | Gas CO2 (t) | Total CO2 (t) | Low Carbon % |")
     lines.append("|------|----------|---------------|-------------|---------|------------|-------------|-------------|")
@@ -6726,10 +6727,9 @@ def _section_carbon_emissions(data: dict) -> str:
             "covers only part of the year, so those rows carry no electricity CO2 and are not in "
             "the total."
         )
-    # This report publishes `Low Carbon %` TWICE for the same years, from two tables that disagree
-    # by up to 3.4pp with the sign flipping. Stating that under the table is the finding's own
-    # second discharge; the alternative -- picking a winner with no fetched source -- would revalue
-    # a published section on the guesser's authority. DERIVED from both tables, never narrated.
+    # This report publishes `Low Carbon %` twice: the generation mix here, the supply-basis
+    # disclosure mix in the FMD section. Two sourced quantities that differ by construction; the
+    # note says which is which. DERIVED from both tables, never narrated.
     _note = _fuel_mix_divergence_note(_RECON_OBSERVATORY)
     if _note:
         lines.extend(["", _note])
@@ -7991,19 +7991,27 @@ def _section_var_treasury_evolution(data: dict) -> str:
     return "\n".join(lines)
 
 def _section_fuel_mix_disclosure(data: dict) -> str:
-    """Phase BX: Annual UK grid fuel mix disclosure (Ofgem FMD requirement)."""
-    from company.billing.fuel_mix import get_fuel_mix
+    """Phase BX: the UK fuel mix a supplier discloses beside its own (FMD, supply licence condition 21).
+
+    DESNZ's FMD UK mix: supply basis, imports at the European Attribute Mix, 1 April to 31 March,
+    one edition per period. Until 2026-10-19 this section printed a generation mix under this
+    heading (docs/market_research/two_uk_electricity_fuel_mixes_generation_and_disclosure.md). A
+    period with no fetched edition is printed as a gap, never filled from a neighbouring year.
+    """
+    from company.billing.fuel_mix import disclosure_period, get_fuel_mix
     years = data.get("years", {})
     if not years:
         return ""
     rows = []
+    gaps = []
     for yr in sorted(years.keys()):
         try:
             yr_int = int(yr)
-            mix = get_fuel_mix(yr_int)
-        except Exception:
+        except (TypeError, ValueError):
             continue
+        mix = get_fuel_mix(yr_int)
         if not mix:
+            gaps.append(disclosure_period(yr_int))
             continue
         ren = mix.get("renewable", 0.0)
         nuc = mix.get("nuclear", 0.0)
@@ -8011,36 +8019,45 @@ def _section_fuel_mix_disclosure(data: dict) -> str:
         coal = mix.get("coal", 0.0)
         other = mix.get("other", 0.0)
         low_carbon = ren + nuc
-        rows.append((yr, ren, nuc, gas, coal, other, low_carbon))
-    if not rows:
+        rows.append((disclosure_period(yr_int), ren, nuc, gas, coal, other, low_carbon))
+    if not rows and not gaps:
         return ""
-    peak_ren_yr, peak_ren = max(((r[0], r[1]) for r in rows), key=lambda x: x[1])
-    first_majority_ren = next((r[0] for r in rows if r[1] >= 50.0), None)
     lines = [
         "## UK Grid Fuel Mix Disclosure (Ofgem FMD)",
         "",
-        "Company's disclosed fuel mix per year (UK national grid average — Ofgem FMD requirement).",
+        "The UK fuel mix a supplier discloses beside its own (Electricity (Fuel Mix Disclosure) "
+        "Regulations 2005, supply licence condition 21): DESNZ Fuel mix disclosure data table, "
+        "electricity supplied including imports at the European Attribute Mix, 1 April to 31 March.",
         "",
-        "| Year | Renewable % | Nuclear % | Gas % | Coal % | Other % | Low-Carbon % |",
+        "| Period | Renewable % | Nuclear % | Gas % | Coal % | Other % | Low-Carbon % |",
         "|------|------------|----------|-------|--------|---------|-------------|",
     ]
-    for yr, ren, nuc, gas, coal, other, lc in rows:
+    for period, ren, nuc, gas, coal, other, lc in rows:
         lines.append("| {} | {:.1f}% | {:.1f}% | {:.1f}% | {:.1f}% | {:.1f}% | **{:.1f}%** |".format(
-            yr, ren, nuc, gas, coal, other, lc))
+            period, ren, nuc, gas, coal, other, lc))
     lines.extend([""])
-    lines.append("**Peak renewable share: {} ({:.1f}%)**".format(peak_ren_yr, peak_ren))
-    if first_majority_ren:
-        lines.append("**Renewable majority first achieved: {}**".format(first_majority_ren))
-    else:
-        lines.append("**Renewable majority not achieved in simulation period.**")
+    if gaps:
+        lines.append(
+            "> **No published edition held for {}.** These periods are left out, not filled from "
+            "another year or from the generation mix.".format(", ".join(gaps))
+        )
+        lines.append("")
+    if rows:
+        peak_ren_period, peak_ren = max(((r[0], r[1]) for r in rows), key=lambda x: x[1])
+        first_majority_ren = next((r[0] for r in rows if r[1] >= 50.0), None)
+        lines.append("**Peak renewable share: {} ({:.1f}%)**".format(peak_ren_period, peak_ren))
+        if first_majority_ren:
+            lines.append("**Renewable majority first achieved: {}**".format(first_majority_ren))
+        else:
+            lines.append("**Renewable majority not reached on the supply basis in these periods.**")
     lines.extend([
         "",
-        "> UK grid fuel mix disclosed per Ofgem FMD regulations; published annually.",
         "> Suppliers with 100% renewable tariffs must hold REGOs matching total supply.",
         "",
     ])
-    # The other half of the same disclosure -- see `_section_carbon_emissions`. Both sections carry
-    # it, because a reader who reaches only one of the two tables is the reader being misled.
+    # The other half of the same statement -- see `_section_carbon_emissions`. Both sections carry
+    # it, because a reader who reaches only one of the two tables is the one who would take them
+    # for the same figure.
     _note = _fuel_mix_divergence_note(_RECON_DISCLOSURE)
     if _note:
         lines.extend([_note, ""])

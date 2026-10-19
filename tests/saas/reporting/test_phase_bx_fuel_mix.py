@@ -29,55 +29,62 @@ def test_ofgem_fmd_mentioned():
 # 4. Year row present
 def test_year_row():
     d = _data(2022)
-    assert "| 2022 |" in _section_fuel_mix_disclosure(d)
+    assert "| 2022/23 |" in _section_fuel_mix_disclosure(d)
 
 
 # 5. Renewable percentage shown
 def test_renewable_pct_shown():
     d = _data(2022)
     result = _section_fuel_mix_disclosure(d)
-    assert "40.5%" in result or "%" in result
+    assert "40.8%" in result
 
 
 # 6. Low-carbon column computed
 def test_low_carbon_computed():
-    d = _data(2016)
+    d = _data(2019)
     result = _section_fuel_mix_disclosure(d)
-    # 2016: ren=24.6% + nuc=20.9% = 45.5%
-    assert "45.5%" in result
+    # 2019/20: ren=37.9% + nuc=16.6% = 54.5%
+    assert "54.5%" in result
+
+
+def test_a_period_with_no_edition_is_named_as_a_gap_not_filled():
+    result = _section_fuel_mix_disclosure(_data(2016, 2019))
+    assert "| 2016/17 |" not in result
+    assert "No published edition held for 2016/17" in result
+    assert "| 2019/20 |" in result
 
 
 # 7. Peak renewable year flagged
 def test_peak_renewable_year():
-    d = _data(2016, 2025)
+    d = _data(2019, 2025)
     result = _section_fuel_mix_disclosure(d)
-    # 2025 has 55% renewable vs 2016 at 24.6%
-    assert "Peak renewable share: 2025" in result
+    # 2025/26 has 48.0% renewable vs 2019/20 at 37.9%
+    assert "Peak renewable share: 2025/26" in result
 
 
 # 8. Multiple years sorted
 def test_years_sorted():
-    d = _data(2019, 2016)
+    d = _data(2023, 2019)
     result = _section_fuel_mix_disclosure(d)
-    pos_2016 = result.find("| 2016 |")
-    pos_2019 = result.find("| 2019 |")
-    assert pos_2016 < pos_2019
+    pos_2019 = result.find("| 2019/20 |")
+    pos_2023 = result.find("| 2023/24 |")
+    assert -1 < pos_2019 < pos_2023
 
 
 # 9. Renewable majority note
 def test_renewable_majority_note():
-    d = _data(2016, 2025)
+    d = _data(2019, 2025)
     result = _section_fuel_mix_disclosure(d)
-    # 2025 has 55% renewable (>= 50%), so majority achieved
-    assert "majority" in result.lower()
+    # On the supply basis renewables peak at 48.0% (2025/26): no majority
+    assert "majority not reached" in result.lower()
 
 
 # 10. Gas percentage shown
 def test_gas_pct_shown():
     d = _data(2022)
     result = _section_fuel_mix_disclosure(d)
-    # 2022 gas = 37.8%
-    assert "37.8%" in result
+    # 2022/23 gas = 39.3%
+    assert "39.3%" in result
 
 
 # 11. REGO note present
@@ -89,10 +96,10 @@ def test_rego_note():
 
 # 12. Coal percentage shown
 def test_coal_pct_shown():
-    d = _data(2016)
+    d = _data(2023)
     result = _section_fuel_mix_disclosure(d)
-    # 2016 coal = 9.0%
-    assert "9.0%" in result
+    # 2023/24 coal = 6.3% (imports at the European Attribute Mix)
+    assert "6.3%" in result
 
 
 # 13. Peak renewable year shown
