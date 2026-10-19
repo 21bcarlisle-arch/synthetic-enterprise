@@ -194,6 +194,7 @@ BUILD_ERA_SOURCE = (
 # EHS 2022-23 Energy Chapter AT1_2 (MHCLG, July 2024). A and B are reported
 # together at 3.3% and are drawn as one cell; the stored letter is "B".
 EPC_BANDS: tuple[str, ...] = ("AB", "C", "D", "E", "F", "G")
+# EHS 2022-23 AT1_2 (MHCLG), recorded in docs/market_research/ASSUMPTIONS.md (EPC band row).
 PUBLISHED_EPC_BAND_SHARE: dict[str, float] = {
     "AB": 0.033,
     "C": 0.448,
@@ -414,8 +415,8 @@ def heating_weights_given_supply(has_mains_gas_supply: bool) -> dict[HeatingSyst
 # measurement window gives 54.3% smart, times 0.90 communicating = 48.9% of
 # premises on a daily read. The interpolation is stated as an interpolation.
 # ---------------------------------------------------------------------------
-_SMART_SHARE_2016 = 0.106
-_SMART_SHARE_2024 = 0.689
+_SMART_SHARE_2016 = 0.106  # DESNZ Q4 2024 Smart Meters Statistics, Table 5a
+_SMART_SHARE_2024 = 0.689  # DESNZ Q4 2024 Smart Meters Statistics, Table 5a
 _SMART_COMMUNICATING_RATE = 0.90
 CADENCE_SOURCE = (
     "DESNZ Q4 2024 Smart Meters Statistics Table 5a (10.6% 2016 -> 68.9% 2024, "

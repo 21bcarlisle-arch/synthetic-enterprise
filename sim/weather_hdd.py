@@ -57,6 +57,8 @@ from dataclasses import dataclass, field
 from datetime import date, timedelta
 from typing import Mapping
 
+# The GB heating degree-day base: DESNZ Energy Trends section 7 (weather) counts heating degree days
+# below 15.5 C (Energy Trends, June 2011 methodology article). https://www.gov.uk/government/statistics/energy-trends-section-7-weather
 HDD_BASE_TEMP_C = 15.5
 
 # UK 1991-2020 HDD climate normals (base 15.5°C, England & Wales).

@@ -1254,7 +1254,16 @@ def _resolve_campaign(book: List[dict], seed: int, *, persist: bool = True,
 #: `cv_factor = 39.5` and `cf = 1.02264` -- the GB standard calorific value and volume
 #: correction. Read off the roster rather than invented, and constant there, so a drawn leg
 #: that used anything else would be a different kind of meter for no stated reason.
+#: EVIDENCE RANGE. The calorific value is not one GB number: each LDZ's daily CV is the
+#: flow-weighted average of its input points, and a supplier bills at it subject to capping at the
+#: lowest LDZ average + 1 MJ/m3 (Gas (Calculation of Thermal Energy) Regulations 1996, SI 1996/439
+#: as amended; UNC OAD Section F). 39.5 MJ/m3 is one representative point inside that daily band.
+#: GAP: the 2016-2025 LDZ daily CV range is published by National Gas and not transcribed here.
+#: It moves every gas kWh one for one (one-at-a-time sensitivity, 19 Oct 2026).
 GAS_CV_FACTOR = 39.5
+#: The statutory standard volume correction factor for a meter under 732,000 kWh a year,
+#: Gas (Calculation of Thermal Energy) Regulations 1996 (SI 1996/439 as amended,
+#: https://www.legislation.gov.uk/uksi/1996/439), assuming standard temperature, pressure and altitude.
 GAS_CORRECTION_FACTOR = 1.02264
 
 

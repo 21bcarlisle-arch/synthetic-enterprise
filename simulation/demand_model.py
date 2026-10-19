@@ -57,6 +57,8 @@ from simulation.rng_substream import substream
 PERIODS_PER_DAY = 48
 
 # --- Heating/cooling degree days (UK convention) ---
+# 15.5 C is the GB base DESNZ Energy Trends section 7 counts degree days from:
+# https://www.gov.uk/government/statistics/energy-trends-section-7-weather
 HEATING_BASE_TEMP_C = 15.5
 COOLING_BASE_TEMP_C = 22.0
 

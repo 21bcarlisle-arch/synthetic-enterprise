@@ -110,6 +110,7 @@ from simulation.svt_product import SVT_TARIFF_TYPE
 #: 25.0m households in England — owner occupied 16.2m (65%), private rented 4.7m (19%), social
 #: rented 4.1m (16%). Same edition as the move flows below, deliberately: a rate whose numerator
 #: and denominator come from different survey years is two publications differenced.
+#: Knowledge page: docs/market_research/home_moves.md.
 EHS_HOUSEHOLDS_BY_TENURE_MILLIONS: dict[TenureType, float] = {
     TenureType.OWNER_OCCUPIER: 16.2,
     TenureType.PRIVATE_RENTER: 4.7,
@@ -123,6 +124,7 @@ EHS_HOUSEHOLDS_BY_TENURE_MILLIONS: dict[TenureType, float] = {
 #:   social rented   149k within tenure +  40k new households                              = 189k
 #: These are the flows the report breaks out. They sum to 1.622m against the same report's headline
 #: 1.8m movers; `move_rate_reconciliation()` carries the difference as a declared gap.
+#: Knowledge page: docs/market_research/home_moves.md.
 EHS_MOVES_INTO_TENURE_MILLIONS: dict[TenureType, float] = {
     TenureType.OWNER_OCCUPIER: 0.611,
     TenureType.PRIVATE_RENTER: 0.822,
