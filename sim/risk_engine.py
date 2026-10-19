@@ -44,7 +44,11 @@ from datetime import date, timedelta
 
 from sim.forward_curve import records_in_window
 
-Z_SCORE_90_CONFIDENCE = 1.645      # one-tailed 90% confidence z-score for VaR
+# The standard normal's 95th percentile, Phi^-1(0.95) = 1.6449, so VaR here is ONE-TAILED 95% (the
+# same level as company/trading/hedge_decision.py's z_95). Until 19 Oct 2026 this was named and
+# documented as "90% one-tailed", which is 1.2816; the value was always the 95% one and is unchanged.
+# Source: NIST/SEMATECH e-Handbook, https://www.itl.nist.gov/div898/handbook/eda/section3/eda3671.htm
+Z_SCORE_95_ONE_TAILED = 1.645
 SIGMA_RECENT_LOOKBACK_DAYS = 365   # trailing window for the "current conditions" volatility view
 SIGMA_STRESSED_PRE_REFORM = 0.50   # regulatory floor before Ofgem's post-crisis reform (lax, historically accurate)
 SIGMA_STRESSED_POST_REFORM = 1.50  # regulatory floor from 2023-01-01 onwards (tightened after the 2021-2022 crisis)
@@ -131,15 +135,15 @@ def get_sigma_stressed(reference_date: str) -> float:
 def calculate_var(sigma: float, naked_volume_kwh: float, forward_price_gbp_per_mwh: float) -> float:
     """Value-at-Risk in GBP for one volatility view of one naked exposure.
 
-    VaR = Z_SCORE_90_CONFIDENCE * sigma * (naked_volume_kwh / 1000) * forward_price_gbp_per_mwh
+    VaR = Z_SCORE_95_ONE_TAILED * sigma * (naked_volume_kwh / 1000) * forward_price_gbp_per_mwh
 
     Dividing naked_volume_kwh by 1000 converts it to MWh so the result is
     unit-consistent: a dimensionless sigma, times a volume in MWh, times a
     price in GBP/MWh, gives a monetary figure in GBP — the capital a risk
     desk would need to hold against this exposure being sigma standard
-    deviations worse than expected, at 90% one-tailed confidence.
+    deviations worse than expected, at 95% one-tailed confidence.
     """
-    return Z_SCORE_90_CONFIDENCE * sigma * (naked_volume_kwh / 1000) * forward_price_gbp_per_mwh
+    return Z_SCORE_95_ONE_TAILED * sigma * (naked_volume_kwh / 1000) * forward_price_gbp_per_mwh
 
 
 def calculate_active_collateral(var_current: float, var_stressed: float) -> float:
