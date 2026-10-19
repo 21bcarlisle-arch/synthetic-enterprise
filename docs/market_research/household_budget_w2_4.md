@@ -373,3 +373,44 @@ Sources: [DWP Income Dynamics 2010 to 2024](https://www.gov.uk/government/statis
 [Citizens Advice, "One in four people behind on at least one bill", Sep 2023](https://www.citizensadvice.org.uk/about-us/about-us1/media/press-releases/one-in-four-people-behind-on-at-least-one-bill-as-uk-households-fall-22-billion-in-the-red/);
 HBAI 2022/23 AHC rate as reported by [Leeds Observatory](https://observatory.leeds.gov.uk/leeds-poverty-fact-book/relative-and-absolute-poverty/) (secondary, not re-read at DWP);
 DRS figures as reported by [moneytothemasses](https://moneytothemasses.com/news/plans-to-write-off-500m-of-energy-debt-who-will-qualify) (secondary; primary in `debt_and_collections.md` §2.1).
+
+### U1-U4 graded (2026-10-19): the exit works, and the level is what keeps the switch off
+
+**The run.** World-only to 2024-12-31, one dice draw, switch on, at 78a36a84c (the capture's tree
+was that commit's bytes). Off arm `world2_off.json` and pre-exit on arm `world3_on.json` as on
+19 Oct. New on arm `/var/tmp/budgetpay/world4_on_income_moves.json`. Grader
+`/var/tmp/budgetpay/grade4.py`, which re-prints the 19 Oct readings exactly from `world3_on.json`
+(14/26, £1,200, +4.6, 80 bills) before it reads the new arm. **Caveats, first:** one seed, about
+±5 points on heads; 916 accounts against 933, because payment feeds back into churn.
+
+| Q4, electricity | OFF | ON, no exit (19 Oct) | ON, income moves |
+|---|---|---|---|
+| 2016 | 2.3%, £43 | 3.5%, £78 | 3.5%, £78 |
+| 2019 | 5.8%, £76 | 6.3%, £185 | 7.4%, £318 |
+| 2021 | 7.7%, £89 | 11.4%, £345 | 9.8%, £352 |
+| 2022 | 10.4%, £90 | 15.0%, £529 | 13.5%, £298 |
+| 2023 | 10.9%, £138 | 17.3%, £1,200 | 13.9%, £828 |
+| 2024 | 9.9%, £145 | 16.0%, £1,652 | 12.2%, £863 |
+
+- **U1, the exit exists: holds.** 7 of 31 (23%) budget-under-water electricity accounts never settle
+  a late bill, down from 14 of 26 (54%).
+- **U2, pounds: holds.** £828 at Q4 2023, down from £1,200 (Ofgem £1,303).
+- **U3, heads not fixed: holds, at the line.** +3.1 points at Q4 2022, against the +3 line. On one
+  seed this cannot tell +3.1 from +2.9. The readable part does not depend on the seed: the
+  pre-crisis excess is +1.0 to +2.7 points every year from 2016 to 2021, down from up to +3.8.
+- **U4, serial signature: holds.** P(unpaid → unpaid) among the under-water accounts is 0.929
+  (n=566), from 0.987.
+- R1 (£200-400) stays refuted high at £828. R2 is 2.35 (record 1.44). The diff-in-diff, Q4 2022
+  less Q4 2021, is +0.9 points, against +0.8 before.
+
+**The 80-bill account is the persistent tail, not a defect.** `PROS-2016-0394` is a decile-1
+couple with £1,043 of housing. Its one move before 2024, in 2019, drew decile 1 again. Its 2024
+move draws decile 6, with a margin of +£1,825. One account in 31 under water for eight years
+against a 0.59 yearly stay rate is about what chance gives (0.59^7 ≈ 2.5% per account, plus repeat
+draws into the bottom).
+
+**Ruling.** `BUDGET_DECIDES_PAYMENT` stays False. The spell now ends at the published rate, and the
+pounds fall towards the record. What is left is the **level**: a chronic pre-crisis heads excess,
+and R1 still high. That is the floor question above: a household spends JRF's normative basket in
+full before it pays for energy. Filed as
+`docs/staging/WORKER_FINDING_THE_BUDGET_SPENDS_THE_NORMATIVE_FLOOR_IN_FULL_BEFORE_ENERGY_SO_THE_PRE_CRISIS_HEADS_RUN_HIGH_2026-10-19.md`.
