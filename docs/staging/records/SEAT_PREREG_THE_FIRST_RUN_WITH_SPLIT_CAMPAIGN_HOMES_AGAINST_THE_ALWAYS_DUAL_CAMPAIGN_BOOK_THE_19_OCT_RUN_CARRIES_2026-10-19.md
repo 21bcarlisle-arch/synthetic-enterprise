@@ -78,3 +78,11 @@ Same instrument (§1). The first run is the one whose `producing_commit.commit` 
   between `8b6fea024` and that sha changes home counts. In that case, compare shares only, and say so.
 
 Grade below this line. Do not edit the predictions above.
+
+**Not gradable yet. Checked by a worker tick at 2026-10-19 09:57Z.** The newest publish on origin is still
+`2a195224b` (git=`8b6fea024`), and `8b6fea024` does not descend from `30246d6f0`. No sim run is in
+flight. `sim-runner` has deferred every cycle since about 08:00Z to the budget-pay arm long jobs
+(`longjob-budgetpay-arm-off` and then `longjob-budgetpay-arm-on-pennyfix2`, the second started 09:30Z).
+A run takes about 5.5 h from launch to publish (the 19 Oct one started at 03:30Z and published at 09:15Z),
+so the first gradable run cannot land before about 15:30Z. Nothing was graded on an older run. The
+hand-off is re-issued as `grade-the-first-split-campaign-run-when-it-publishes`, with a draw embargo.
