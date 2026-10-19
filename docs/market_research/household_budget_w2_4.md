@@ -300,7 +300,7 @@ the build ("The world today", above), not a published one. The published duratio
 |---|---|---|---|---|
 | **Income recovers** (job, hours, benefit award, household change) | household | DWP *Income Dynamics 2010 to 2024*, Understanding Society: of individuals in relative low income (below 60% of median) one year, **36% AHC (40% BHC) are not the next**, 2022/23 → 2023/24. Working-age 39% AHC, pensioners 35% AHC. Entry 9% AHC. Earlier BHPS series, 1991-2008: 32% | ~1 in 3 a year | **absent**: margin fixed for life |
 | Persistence (the check on that rate) | — | Same release: **11% AHC** of individuals in low income in at least 3 of 4 years (2020/21-2023/24). It says persistent rates are lower than HBAI's single-year rates. HBAI 2022/23 single-year AHC rate: 21% (14.3m). Ratio ≈ 0.52 (derived across two surveys, rough) | ratio ~0.5 | — |
-| **Spending compresses below a normative floor** (going without) | household | Citizens Advice debt clients, Sep 2023: **half are in a negative budget** (just over a third in 2019). The average client is **£28 a month in the red**, from a £21 surplus four years earlier. Energy and council tax arrears are the commonest problem debts (50% of clients). A negative budget measured on actual spending is small. A margin measured against JRF's *normative* floor can be hundreds of pounds a month. | GAP: what share of a normative shortfall shows up as energy non-payment rather than going without | **absent**: the JRF floor is spent in full before energy |
+| **Spending compresses below a normative floor** (going without) | household | Citizens Advice debt clients, Sep 2023: **half are in a negative budget** (just over a third in 2019). The average client is **£28 a month in the red**, from a £21 surplus four years earlier. Energy and council tax arrears are the commonest problem debts (50% of clients). *Corrected 2026-10-20: the £28 is the mean over all clients, not the negative-budget ones; StepChange's negative-budget clients average −£464 a month (2023). See "what a household short of money cuts", below.* A margin measured against JRF's *normative* floor can be hundreds of pounds a month. | GAP: what share of a normative shortfall shows up as energy non-payment rather than going without | **absent**: the JRF floor is spent in full before energy |
 | Consumption falls (rationing, self-disconnection) | household | Self-disconnection is the PPM form (`debt_and_collections.md` §2). Credit-meter rationing reduces the bill but cannot reach zero | GAP for credit meters | absent; out of scope (demand layer) |
 | Repayment arrangement on ability to pay | supplier, SLC 27.8 | ~40% of large-supplier credit plans had at least one miss in 2015. Recovery on arrangement 53-185 weeks by supplier (2018), ~22 months weighted | `debt_and_collections.md` §3 | company side; world plan toggles off (W2_38) |
 | PPM for debt, Fuel Direct | supplier, DWP | 30-58% of repayers on a PPM (Q4 2021-Q4 2023). Fuel Direct takes 5% of the UC standard allowance (~£17-33 a month) | `debt_and_collections.md` §2-3 | company side, not reached (`UNREACHED_EXITS`) |
@@ -350,7 +350,7 @@ the same exit, and gives a persistence ratio of 0.66, further from the record.
 ### What this build does not do, and the next layer
 
 **The normative floor is spent in full before energy.** Citizens Advice's negative-budget clients
-are about £28 a month short on actual spending. The world's under-water households are short
+are about £28 a month short on actual spending *(corrected 2026-10-20: that is the mean over all clients; the negative-budget ones are about £464 short, StepChange 2023, below)*. The world's under-water households are short
 against JRF's normative basket, by more. This is the most likely cause of R3's chronic heads excess
 (+1.2 points in 2016, +3.8 by 2021), and **GAP: no published source found this pass says how much of
 a normative shortfall a household turns into energy non-payment rather than going without.** It is
@@ -414,3 +414,76 @@ pounds fall towards the record. What is left is the **level**: a chronic pre-cri
 and R1 still high. That is the floor question above: a household spends JRF's normative basket in
 full before it pays for energy. Filed as
 `docs/staging/WORKER_FINDING_THE_BUDGET_SPENDS_THE_NORMATIVE_FLOOR_IN_FULL_BEFORE_ENERGY_SO_THE_PRE_CRISIS_HEADS_RUN_HIGH_2026-10-19.md`.
+
+## 2026-10-20: what a household short of money cuts, and in what order (K8, knowledge before the arm)
+
+**The question** (from `docs/staging/WORKER_FINDING_THE_BUDGET_SPENDS_THE_NORMATIVE_FLOOR_IN_FULL_BEFORE_ENERGY_SO_THE_PRE_CRISIS_HEADS_RUN_HIGH_2026-10-19.md`):
+when a GB household's money falls short of its essentials, which goes unpaid or uncut first,
+and how much of a normative floor does it spend before energy arrears begin?
+
+**Correction first, beside the claims above.** The rows above (the route table and "What this
+build does not do") read Citizens Advice's "£28 a month in the red" as the shortfall of the
+negative-budget clients, and so argued that a shortfall on actual spending is small. It is the
+mean over **all** debt clients, of whom about half are in surplus (the release: "the average
+person the charity helps with debt is £28 in the red"). Among the negative-budget clients
+themselves the shortfall is hundreds of pounds a month: StepChange's clients with a negative
+budget after advice, on its Standard Financial Statement budgets, which are actual spending capped
+at the SFS guideline figures, averaged **−£464 a month in 2023 and −£532 in 2024** (30% of
+clients). So a shortfall measured on actual spending is not small, and the finding's premise that
+the floor overstates spending by hundreds of pounds is not established.
+
+### What the record says
+
+| Question | Evidence | Reading |
+|---|---|---|
+| Is housing paid before energy? | ONS OPN, 14-25 June 2023: **6%** of adults behind on gas or electricity, **2%** behind on rent or mortgage, while 47% and 43% found each very or somewhat hard to afford | **Yes.** About as many struggle with each, and three times as many are behind on energy. Housing is protected. |
+| Which bill slips most? | FCA Financial Lives recontact, January 2023: utility bills the most commonly missed (**8.6%** of UK adults), then credit cards (4.8%), council tax (4.4%). Citizens Advice, Sep 2023: energy and council tax arrears the commonest problem debts (50% of debt clients have one or both) | Energy is the bill that slips first. That is consistent with it being paid *after* the things a household protects, not before them. |
+| Are food and energy cut one after the other, or together? | JRF cost of living tracker, winter 2022-23, bottom 40% of incomes: **62%** going without essentials (7.2m), **41%** in arrears (4.7m), **37%** both (4.3m). So 91% of the households in arrears are also going without, and 60% of those going without are also in arrears | **Together.** A household in arrears has nearly always cut its essentials too, so the essentials are *not* spent in full before arrears begin. Nor is energy paid in full before essentials are cut: 2.9m go without with no arrears, and 4.3m do both. |
+| What do households cut when costs rise? | ONS OPN, 11-22 January 2023, of adults whose costs rose: **59%** using less gas or electricity, **46%** spending less on food and essentials, 23% using savings | Both lines compress at once. |
+| Debt advice's own order | StepChange / MoneyHelper / Citizens Advice (above): essential living costs, including energy, are budgeted first, then priority debts (energy arrears inside), then non-priority | A normative rule for what advice tells a household to do, not a measured description of what it does before advice. |
+
+### What this establishes, and what it does not
+
+- **Established.** Housing first. Then food and the other essentials and energy are short
+  *together*: no published series shows either one paid in full while the other takes the whole
+  shortfall. The world today does the second of those (JRF's ex-energy basket in full, then energy
+  takes the whole shortfall), so the order it encodes is contradicted by JRF's overlap.
+- **GAP: how a pound of shortfall divides between going without and energy arrears.** No source
+  found publishes it. JRF and ONS publish *heads* (who goes without, who is in arrears), never the
+  pounds of each. Candidate evidence not read this pass: the Living Costs and Food Survey at the
+  bottom decile (actual spend on food against the JRF basket), Trussell *Hunger in the UK*.
+- **GAP: what share of a normative floor is spent before arrears begin.** Not published. The SFS
+  guidelines (LCF actual spending of lower-income households) and JRF's MIS are compared in
+  Loughborough's *Comparing SFS spending guidelines with MIS: 2024 update*, which could not be
+  read this pass (HTTP 403). Those figures would bound how far below the floor actual spending
+  sits.
+
+### The choice the arm makes, and why
+
+With no measured split, the arm takes the **no-priority** stance between the basket and energy:
+money left after housing is shared between the core basket and what is owed on energy **pro rata
+to their sizes**, so each is short by the same fraction. It is the one order that reproduces JRF's
+"both at once" without a new number. The split is the two amounts themselves. It is a stated
+belief, not a measurement. The other two orders the record allows are bounds. Basket first is
+today's code, contradicted by the overlap. Energy first is debt advice's rule, and contradicted
+by energy being the commonest missed bill. Code: `ENERGY_SHARES_THE_SHORTFALL` in
+`simulation/household_budget.py`, default False, read only while `BUDGET_DECIDES_PAYMENT` is on.
+
+Printed at real inputs before the run (20,000 drawn households, savings ignored, one electricity
+leg). The share of households short is the same under both orders, because the order does not
+change who is short. What changes is how much of the bill goes unpaid:
+
+| Year, monthly bill | Households short | Energy short, £/month, basket first (today) | Energy short, £/month, pro rata | Short by the whole bill: today / pro rata |
+|---|---|---|---|---|
+| 2019, £55 | 6.4% | £190 | £17 | 5.2% / 0.0% |
+| 2022, £95 | 9.0% | £256 | £34 | 6.9% / 0.0% |
+
+Today a short household pays nothing toward its bill. Pro rata it pays about two thirds to three
+quarters of each bill and falls behind by the rest.
+
+Sources: [ONS OPN, 14-25 June 2023](https://www.ons.gov.uk/peoplepopulationandcommunity/wellbeing/bulletins/publicopinionsandsocialtrendsgreatbritain/14to25june2023);
+[ONS OPN, 11-22 January 2023](https://www.ons.gov.uk/peoplepopulationandcommunity/wellbeing/bulletins/publicopinionsandsocialtrendsgreatbritain/11to22january2023);
+[FCA Financial Lives cost of living recontact](https://www.fca.org.uk/publication/financial-lives/financial-lives-cost-of-living-jan-2024-recontact-survey-findings.pdf) (January 2023 rates as reported in secondary coverage; the PDF not re-read this pass);
+JRF, *Going under and without: JRF's cost of living tracker, winter 2022/23* (read from a mirrored copy of the PDF, [michaelharrison.org.uk](https://michaelharrison.org.uk/wp-content/uploads/2022/12/Going-under-and-without-JRFs-cost-of-living-tracker-winter-2022-23.pdf), pp. 3-10; the jrf.org.uk original not re-read);
+[StepChange, household bills arrears surge (2024 data)](https://www.stepchange.org/media-centre/press-releases/household-bills-arrears-surge.aspx);
+[Citizens Advice, Sep 2023](https://www.citizensadvice.org.uk/about-us/about-us1/media/press-releases/one-in-four-people-behind-on-at-least-one-bill-as-uk-households-fall-22-billion-in-the-red/).

@@ -231,3 +231,44 @@ def test_the_book_reads_the_moving_income_defect_an_exit_the_payment_path_never_
                                   amount_gbp=60.0, legs=1, ref=ref)
         paid[move] = len(book.unpaid_of(cid))
     assert paid[hb.INCOME_MOVE_PER_YEAR] < paid[0.0], paid
+
+
+# WHAT A HOUSEHOLD SHORT OF MONEY CUTS (2026-10-20): `household_budget_w2_4.md`, "what a household
+# short of money cuts, and in what order". Pro rata between the basket and energy, behind a switch.
+
+def _unpaid_after_a_year(cid, shares, amount=60.0):
+    book = hb.BudgetPaymentBook(energy_shares_the_shortfall=shares)
+    cleared = 0
+    for r in range(12):
+        _, earlier = book.settle_month(supply_point=cid, household=household_of(cid), year=2022,
+                                       amount_gbp=amount, legs=1, ref=r)
+        cleared += len(earlier)
+    return len(book.unpaid_of(cid)), cleared
+
+
+def test_the_shared_shortfall_ships_off_defect_a_world_change_landed_before_its_paired_grade():
+    assert hb.ENERGY_SHARES_THE_SHORTFALL is False
+    assert hb.BudgetPaymentBook()._shares is False
+
+
+def test_sharing_the_shortfall_pays_part_of_each_bill_defect_a_branch_no_household_reaches():
+    """The partition first: on, an under-water household both falls behind AND clears an earlier
+    bill within a year; off, the same household clears nothing. A switch that the book never
+    reads, or that pays everything, fails one leg."""
+    under, _, comfortable = _ids_by_margin(2022)
+    on = [_unpaid_after_a_year(cid, True) for cid in under[:6]]
+    off = [_unpaid_after_a_year(cid, False) for cid in under[:6]]
+    assert any(u > 0 for u, _ in on) and any(c > 0 for _, c in on), on
+    assert all(c == 0 for _, c in off), off
+    assert sum(u for u, _ in on) < sum(u for u, _ in off), (on, off)
+    # A household that is not short is untouched by the order.
+    assert _unpaid_after_a_year(comfortable[0], True) == _unpaid_after_a_year(comfortable[0], False)
+
+
+def test_the_basket_share_is_spent_not_saved_defect_going_without_banks_the_money():
+    """On, money the basket takes while short is gone: a household short every month never
+    accumulates enough to clear its whole backlog. If the basket's part were held as savings,
+    the on arm would pay energy in full and the shortfall would vanish."""
+    under, _, _ = _ids_by_margin(2022)
+    unpaid, _ = _unpaid_after_a_year(under[0], True)
+    assert unpaid >= 1
