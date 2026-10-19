@@ -208,9 +208,9 @@
       "non_commodity_amount_gbp": 45.2,
       "vat_gbp": 26.09,
       "amount_gbp": 33.72,
-      "status": "PAID",
+      "status": "WRITTEN_OFF",
       "outstanding_gbp": 0.0,
-      "credit_applied_gbp": null,
+      "credit_applied_gbp": 0.0,
       "meter_serial": "M00040486",
       "mpan": "1000000000121",
       "mprn": null,
@@ -543,42 +543,42 @@
       "period_start": "2017-03-01",
       "period_end": "2017-03-31",
       "commodity": "electricity",
-      "consumption_kwh": 2214.7,
-      "unit_rate_p_per_kwh": 6.6036,
-      "commodity_amount_gbp": 146.25,
+      "consumption_kwh": 1959.9,
+      "unit_rate_p_per_kwh": 6.604,
+      "commodity_amount_gbp": 129.43,
       "standing_charge_gbp": 8.81,
       "days_in_period": 31,
       "standing_charge_gbp_per_day": 0.2842,
-      "non_commodity_amount_gbp": 92.08,
-      "vat_gbp": 49.43,
-      "amount_gbp": 393.12,
+      "non_commodity_amount_gbp": 81.49,
+      "vat_gbp": 43.95,
+      "amount_gbp": 263.68,
       "status": "PAID",
       "outstanding_gbp": 0.0,
       "credit_applied_gbp": null,
       "meter_serial": "M00040486",
       "mpan": "1000000000121",
       "mprn": null,
-      "read_type": "A",
+      "read_type": "E",
       "opening_read_kwh": 20096.0,
-      "closing_read_kwh": 22310.7,
+      "closing_read_kwh": 22055.9,
       "registers": [
         {
           "register_id": "1",
           "label": "Anytime",
-          "consumption_kwh": 2214.7,
-          "amount_gbp": 146.25,
-          "unit_rate_p_per_kwh": 6.6036
+          "consumption_kwh": 1959.9,
+          "amount_gbp": 129.43,
+          "unit_rate_p_per_kwh": 6.604
         }
       ],
-      "catchup_applied": true,
-      "catchup_period_start": "2016-08-01",
-      "catchup_period_end": "2017-02-28",
-      "catchup_periods_covered": 7,
-      "catchup_direction": "undercharge",
-      "catchup_raw_delta_gbp": 96.55,
-      "catchup_adjustment_gbp": 96.55,
-      "catchup_written_off_gbp": 0.0,
-      "catchup_back_billing_cap_applied": false
+      "catchup_applied": false,
+      "catchup_period_start": null,
+      "catchup_period_end": null,
+      "catchup_periods_covered": null,
+      "catchup_direction": null,
+      "catchup_raw_delta_gbp": null,
+      "catchup_adjustment_gbp": null,
+      "catchup_written_off_gbp": null,
+      "catchup_back_billing_cap_applied": null
     }
   ],
   "ledger": {
@@ -600,7 +600,7 @@
         "invoice_number": 117,
         "amount_gbp": -278.66,
         "info_amount_gbp": null,
-        "method": "bacs",
+        "method": "prepayment",
         "description": "Payment received",
         "running_balance_gbp": 0.0
       },
@@ -620,7 +620,7 @@
         "invoice_number": 118,
         "amount_gbp": -249.68,
         "info_amount_gbp": null,
-        "method": "bacs",
+        "method": "prepayment",
         "description": "Payment received",
         "running_balance_gbp": 0.0
       },
@@ -640,7 +640,7 @@
         "invoice_number": 119,
         "amount_gbp": -232.19,
         "info_amount_gbp": null,
-        "method": "bacs",
+        "method": "prepayment",
         "description": "Payment received",
         "running_balance_gbp": 0.0
       },
@@ -655,14 +655,24 @@
         "running_balance_gbp": 33.72
       },
       {
-        "date": "2016-08-14",
-        "type": "payment_received",
+        "date": "2016-08-21",
+        "type": "notice",
         "invoice_number": 120,
-        "amount_gbp": -33.72,
+        "amount_gbp": 0.0,
         "info_amount_gbp": null,
-        "method": "bacs",
-        "description": "Payment received",
-        "running_balance_gbp": 0.0
+        "method": "prepayment",
+        "description": "First overdue notice -- GBP33.71 outstanding",
+        "running_balance_gbp": 33.72
+      },
+      {
+        "date": "2016-09-04",
+        "type": "notice",
+        "invoice_number": 120,
+        "amount_gbp": 0.0,
+        "info_amount_gbp": null,
+        "method": "prepayment",
+        "description": "Second notice -- payment plan offered",
+        "running_balance_gbp": 33.72
       },
       {
         "date": "2016-09-07",
@@ -672,7 +682,7 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV121 raised",
-        "running_balance_gbp": 203.89
+        "running_balance_gbp": 237.61
       },
       {
         "date": "2016-09-21",
@@ -680,9 +690,9 @@
         "invoice_number": 121,
         "amount_gbp": -203.89,
         "info_amount_gbp": null,
-        "method": "bacs",
+        "method": "prepayment",
         "description": "Payment received",
-        "running_balance_gbp": 0.0
+        "running_balance_gbp": 33.72
       },
       {
         "date": "2016-10-01",
@@ -692,7 +702,7 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV122 raised",
-        "running_balance_gbp": 212.97
+        "running_balance_gbp": 246.69
       },
       {
         "date": "2016-10-15",
@@ -700,9 +710,9 @@
         "invoice_number": 122,
         "amount_gbp": -212.97,
         "info_amount_gbp": null,
-        "method": "bacs",
+        "method": "prepayment",
         "description": "Payment received",
-        "running_balance_gbp": 0.0
+        "running_balance_gbp": 33.72
       },
       {
         "date": "2016-11-01",
@@ -712,17 +722,7 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV123 raised",
-        "running_balance_gbp": 237.75
-      },
-      {
-        "date": "2016-11-15",
-        "type": "payment_received",
-        "invoice_number": 123,
-        "amount_gbp": -237.75,
-        "info_amount_gbp": null,
-        "method": "bacs",
-        "description": "Payment received",
-        "running_balance_gbp": 0.0
+        "running_balance_gbp": 271.47
       },
       {
         "date": "2016-12-03",
@@ -732,7 +732,17 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV124 raised",
-        "running_balance_gbp": 278.19
+        "running_balance_gbp": 549.66
+      },
+      {
+        "date": "2016-12-06",
+        "type": "payment_received",
+        "invoice_number": 123,
+        "amount_gbp": -237.75,
+        "info_amount_gbp": null,
+        "method": "prepayment",
+        "description": "Payment received",
+        "running_balance_gbp": 311.91
       },
       {
         "date": "2016-12-17",
@@ -740,9 +750,9 @@
         "invoice_number": 124,
         "amount_gbp": -278.19,
         "info_amount_gbp": null,
-        "method": "bacs",
+        "method": "prepayment",
         "description": "Payment received",
-        "running_balance_gbp": 0.0
+        "running_balance_gbp": 33.72
       },
       {
         "date": "2017-01-04",
@@ -752,7 +762,7 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV125 raised",
-        "running_balance_gbp": 294.36
+        "running_balance_gbp": 328.08
       },
       {
         "date": "2017-01-18",
@@ -760,9 +770,9 @@
         "invoice_number": 125,
         "amount_gbp": -294.36,
         "info_amount_gbp": null,
-        "method": "bacs",
+        "method": "prepayment",
         "description": "Payment received",
-        "running_balance_gbp": 0.0
+        "running_balance_gbp": 33.72
       },
       {
         "date": "2017-02-02",
@@ -772,7 +782,7 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV126 raised",
-        "running_balance_gbp": 310.6
+        "running_balance_gbp": 344.32
       },
       {
         "date": "2017-02-16",
@@ -780,9 +790,9 @@
         "invoice_number": 126,
         "amount_gbp": -310.6,
         "info_amount_gbp": null,
-        "method": "bacs",
+        "method": "prepayment",
         "description": "Payment received",
-        "running_balance_gbp": 0.0
+        "running_balance_gbp": 33.72
       },
       {
         "date": "2017-03-02",
@@ -792,7 +802,7 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV127 raised",
-        "running_balance_gbp": 255.73
+        "running_balance_gbp": 289.45
       },
       {
         "date": "2017-03-16",
@@ -800,36 +810,56 @@
         "invoice_number": 127,
         "amount_gbp": -255.73,
         "info_amount_gbp": null,
-        "method": "bacs",
+        "method": "prepayment",
         "description": "Payment received",
-        "running_balance_gbp": 0.0
+        "running_balance_gbp": 33.72
       },
       {
         "date": "2017-04-05",
         "type": "invoice_raised",
         "invoice_number": 128,
-        "amount_gbp": 393.12,
+        "amount_gbp": 263.68,
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV128 raised",
-        "running_balance_gbp": 393.12
+        "running_balance_gbp": 297.4
+      },
+      {
+        "date": "2017-04-14",
+        "type": "write_off",
+        "invoice_number": 120,
+        "amount_gbp": -33.71,
+        "info_amount_gbp": null,
+        "method": null,
+        "description": "Debt written off -- bad debt provision raised",
+        "running_balance_gbp": 263.69
       },
       {
         "date": "2017-04-19",
         "type": "payment_received",
         "invoice_number": 128,
-        "amount_gbp": -393.12,
+        "amount_gbp": -263.68,
         "info_amount_gbp": null,
-        "method": "bacs",
+        "method": "prepayment",
         "description": "Payment received",
-        "running_balance_gbp": 0.0
+        "running_balance_gbp": 0.01
+      },
+      {
+        "date": "2017-11-10",
+        "type": "recovery_note",
+        "invoice_number": 120,
+        "amount_gbp": 0.0,
+        "info_amount_gbp": 4.11,
+        "method": "dca",
+        "description": "DCA recovered GBP4.11 (12.2% of the balance written off)",
+        "running_balance_gbp": 0.01
       }
     ],
-    "current_balance_gbp": 0.0,
-    "total_billed_gbp": 2980.86,
-    "total_collected_gbp": 2980.86,
-    "total_written_off_gross_gbp": 0,
-    "total_recovered_gbp": 0
+    "current_balance_gbp": 0.01,
+    "total_billed_gbp": 2851.42,
+    "total_collected_gbp": 2817.7,
+    "total_written_off_gross_gbp": 33.71,
+    "total_recovered_gbp": 4.11
   },
   "consumption": {
     "unit": "kWh",
@@ -880,12 +910,45 @@
       },
       {
         "month": "2017-03",
-        "kwh": 2214.6
+        "kwh": 1959.9
       }
     ],
     "has_hh_data": false
   },
   "reaction_chain": [
+    {
+      "customer_id": "C6",
+      "date": "2016-08-14",
+      "event_type": "arrears_payment_missed",
+      "description": "Prepayment meter -- no vend recorded",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 33.71,
+      "outcome": "PAYMENT_MISSED",
+      "framing_type": null
+    },
+    {
+      "customer_id": "C6",
+      "date": "2016-08-21",
+      "event_type": "arrears_first_notice",
+      "description": "First overdue notice -- GBP33.71 outstanding",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 33.71,
+      "outcome": "FIRST_NOTICE",
+      "framing_type": null
+    },
+    {
+      "customer_id": "C6",
+      "date": "2016-09-04",
+      "event_type": "arrears_second_notice",
+      "description": "Second notice -- payment plan offered",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 33.71,
+      "outcome": "SECOND_NOTICE",
+      "framing_type": null
+    },
     {
       "customer_id": "C6",
       "date": "2017-04-01",
@@ -901,11 +964,44 @@
       "customer_id": "C6",
       "date": "2017-04-01",
       "event_type": "outcome_churned",
-      "description": "Renewal outcome: CHURNED -- company believed 26% churn risk at decision time, SIM realized probability was 38%.",
-      "company_belief": 0.258,
-      "sim_truth": 0.379,
+      "description": "Renewal outcome: CHURNED -- company believed 26% churn risk at decision time, SIM realized probability was 37%.",
+      "company_belief": 0.257,
+      "sim_truth": 0.372,
       "amount_gbp": null,
       "outcome": "churned",
+      "framing_type": null
+    },
+    {
+      "customer_id": "C6",
+      "date": "2017-04-14",
+      "event_type": "arrears_written_off",
+      "description": "Debt written off -- bad debt provision raised",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 33.71,
+      "outcome": "WRITTEN_OFF",
+      "framing_type": null
+    },
+    {
+      "customer_id": "C6",
+      "date": "2017-05-14",
+      "event_type": "arrears_placed_with_dca",
+      "description": "Debt placed with third-party debt collection agency",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 33.71,
+      "outcome": "PLACED_WITH_DCA",
+      "framing_type": null
+    },
+    {
+      "customer_id": "C6",
+      "date": "2017-11-10",
+      "event_type": "arrears_recovered",
+      "description": "DCA recovered GBP4.11 (12.2% of the balance written off)",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 33.71,
+      "outcome": "RECOVERED",
       "framing_type": null
     }
   ]

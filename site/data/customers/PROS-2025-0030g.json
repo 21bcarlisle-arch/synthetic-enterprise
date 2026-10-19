@@ -54,7 +54,7 @@
   ],
   "invoices": [
     {
-      "id": "PROS-2025-0030g-INV20566",
+      "id": "PROS-2025-0030g-INV19450",
       "date": "2025-02-28",
       "period_start": "2025-02-13",
       "period_end": "2025-02-28",
@@ -68,9 +68,9 @@
       "non_commodity_amount_gbp": 10.14,
       "vat_gbp": 3.3,
       "amount_gbp": 69.27,
-      "status": "UNPAID",
-      "outstanding_gbp": 69.28,
-      "credit_applied_gbp": -0.0,
+      "status": "PAID",
+      "outstanding_gbp": 0.0,
+      "credit_applied_gbp": null,
       "meter_serial": "M00038068",
       "mpan": null,
       "mprn": "0000015521",
@@ -97,7 +97,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2025-0030g-INV20567",
+      "id": "PROS-2025-0030g-INV19451",
       "date": "2025-03-31",
       "period_start": "2025-03-01",
       "period_end": "2025-03-31",
@@ -140,7 +140,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2025-0030g-INV20568",
+      "id": "PROS-2025-0030g-INV19452",
       "date": "2025-04-30",
       "period_start": "2025-04-01",
       "period_end": "2025-04-30",
@@ -183,7 +183,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2025-0030g-INV20569",
+      "id": "PROS-2025-0030g-INV19453",
       "date": "2025-05-31",
       "period_start": "2025-05-01",
       "period_end": "2025-05-31",
@@ -226,7 +226,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2025-0030g-INV20570",
+      "id": "PROS-2025-0030g-INV19454",
       "date": "2025-06-07",
       "period_start": "2025-06-01",
       "period_end": "2025-06-07",
@@ -275,127 +275,107 @@
       {
         "date": "2025-03-01",
         "type": "invoice_raised",
-        "invoice_number": 20566,
+        "invoice_number": 19450,
         "amount_gbp": 69.27,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV20566 raised",
+        "description": "Invoice INV19450 raised",
         "running_balance_gbp": 69.27
       },
       {
         "date": "2025-03-15",
-        "type": "payment_failed",
-        "invoice_number": 20566,
-        "amount_gbp": 0.0,
+        "type": "payment_received",
+        "invoice_number": 19450,
+        "amount_gbp": -69.27,
         "info_amount_gbp": null,
         "method": "direct_debit",
-        "description": "Direct debit returned",
-        "running_balance_gbp": 69.27
-      },
-      {
-        "date": "2025-03-22",
-        "type": "notice",
-        "invoice_number": 20566,
-        "amount_gbp": 0.0,
-        "info_amount_gbp": null,
-        "method": "direct_debit",
-        "description": "First overdue notice -- GBP69.28 outstanding",
-        "running_balance_gbp": 69.27
+        "description": "Payment received",
+        "running_balance_gbp": 0.0
       },
       {
         "date": "2025-04-01",
         "type": "invoice_raised",
-        "invoice_number": 20567,
+        "invoice_number": 19451,
         "amount_gbp": 112.77,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV20567 raised",
-        "running_balance_gbp": 182.04
-      },
-      {
-        "date": "2025-04-05",
-        "type": "notice",
-        "invoice_number": 20566,
-        "amount_gbp": 0.0,
-        "info_amount_gbp": null,
-        "method": "direct_debit",
-        "description": "Second notice -- payment plan offered",
-        "running_balance_gbp": 182.04
+        "description": "Invoice INV19451 raised",
+        "running_balance_gbp": 112.77
       },
       {
         "date": "2025-04-15",
         "type": "payment_received",
-        "invoice_number": 20567,
+        "invoice_number": 19451,
         "amount_gbp": -112.77,
         "info_amount_gbp": null,
         "method": "direct_debit",
         "description": "Payment received",
-        "running_balance_gbp": 69.27
+        "running_balance_gbp": 0.0
       },
       {
         "date": "2025-04-30",
         "type": "invoice_raised",
-        "invoice_number": 20568,
+        "invoice_number": 19452,
         "amount_gbp": 61.88,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV20568 raised",
-        "running_balance_gbp": 131.15
+        "description": "Invoice INV19452 raised",
+        "running_balance_gbp": 61.88
       },
       {
         "date": "2025-05-14",
         "type": "payment_received",
-        "invoice_number": 20568,
+        "invoice_number": 19452,
         "amount_gbp": -61.88,
         "info_amount_gbp": null,
         "method": "direct_debit",
         "description": "Payment received",
-        "running_balance_gbp": 69.27
+        "running_balance_gbp": 0.0
       },
       {
         "date": "2025-06-01",
         "type": "invoice_raised",
-        "invoice_number": 20569,
+        "invoice_number": 19453,
         "amount_gbp": 37.01,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV20569 raised",
-        "running_balance_gbp": 106.28
+        "description": "Invoice INV19453 raised",
+        "running_balance_gbp": 37.01
       },
       {
         "date": "2025-06-11",
         "type": "invoice_raised",
-        "invoice_number": 20570,
+        "invoice_number": 19454,
         "amount_gbp": 6.24,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV20570 raised",
-        "running_balance_gbp": 112.52
+        "description": "Invoice INV19454 raised",
+        "running_balance_gbp": 43.25
       },
       {
         "date": "2025-06-15",
         "type": "payment_received",
-        "invoice_number": 20569,
+        "invoice_number": 19453,
         "amount_gbp": -37.01,
         "info_amount_gbp": null,
         "method": "direct_debit",
         "description": "Payment received",
-        "running_balance_gbp": 75.51
+        "running_balance_gbp": 6.24
       },
       {
         "date": "2025-06-25",
         "type": "payment_received",
-        "invoice_number": 20570,
+        "invoice_number": 19454,
         "amount_gbp": -6.24,
         "info_amount_gbp": null,
         "method": "direct_debit",
         "description": "Payment received",
-        "running_balance_gbp": 69.27
+        "running_balance_gbp": 0.0
       }
     ],
-    "current_balance_gbp": 69.27,
+    "current_balance_gbp": 0.0,
     "total_billed_gbp": 287.17,
-    "total_collected_gbp": 217.9,
+    "total_collected_gbp": 287.17,
     "total_written_off_gross_gbp": 0,
     "total_recovered_gbp": 0
   },
@@ -425,50 +405,5 @@
     ],
     "has_hh_data": false
   },
-  "reaction_chain": [
-    {
-      "customer_id": "PROS-2025-0030",
-      "date": "2025-03-15",
-      "event_type": "arrears_dd_failed",
-      "description": "Direct debit returned",
-      "company_belief": null,
-      "sim_truth": null,
-      "amount_gbp": 69.28,
-      "outcome": "DD_FAILED",
-      "framing_type": null
-    },
-    {
-      "customer_id": "PROS-2025-0030",
-      "date": "2025-03-22",
-      "event_type": "arrears_first_notice",
-      "description": "First overdue notice -- GBP69.28 outstanding",
-      "company_belief": null,
-      "sim_truth": null,
-      "amount_gbp": 69.28,
-      "outcome": "FIRST_NOTICE",
-      "framing_type": null
-    },
-    {
-      "customer_id": "PROS-2025-0030",
-      "date": "2025-04-05",
-      "event_type": "arrears_second_notice",
-      "description": "Second notice -- payment plan offered",
-      "company_belief": null,
-      "sim_truth": null,
-      "amount_gbp": 69.28,
-      "outcome": "SECOND_NOTICE",
-      "framing_type": null
-    },
-    {
-      "customer_id": "PROS-2025-0030",
-      "date": "2025-04-05",
-      "event_type": "arrears_balance_open",
-      "description": "Balance still open -- GBP69.28 unpaid, with no payment or arrangement against it",
-      "company_belief": null,
-      "sim_truth": null,
-      "amount_gbp": 69.28,
-      "outcome": "BALANCE_OPEN",
-      "framing_type": null
-    }
-  ]
+  "reaction_chain": []
 }

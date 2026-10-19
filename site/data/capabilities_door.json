@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-13T21:28:14Z",
- "git_commit": "aa824294216bc3c2abee8b6ad1b2203ce060c670",
+ "generated_at": "2026-10-19T08:52:31Z",
+ "git_commit": "30246d6f09f45eafb52e53600574b79b2b4b4fce",
  "published_from": {
-  "commit": "aa824294216bc3c2abee8b6ad1b2203ce060c670",
+  "commit": "30246d6f09f45eafb52e53600574b79b2b4b4fce",
   "tree_was_clean": true,
   "inputs_are_the_committed_bytes": true,
   "inputs": [
@@ -99,7 +99,7 @@
     ],
     "evidence": null,
     "checks": {
-     "checks": 396,
+     "checks": 400,
      "covered": 2,
      "of": 2
     }
@@ -386,11 +386,9 @@
     "name": "Debt and cash flow modelled per home",
     "what": "Provisioning built up home by home, with the rules for how a payment clears against old and new charges made explicit, and a debt trajectory per home so that beating the forecast is something a manager can actually be measured on.",
     "test": "Does the predicted arrears trajectory match what truly happened, and how fast and how accurately was hardship told apart from choice?",
-    "testable_now": false,
-    "status": "Waits on the order in which a payment clears old and new charges",
-    "waits_on": [
-     "the order in which a payment clears old and new charges"
-    ],
+    "testable_now": true,
+    "status": "Testable now",
+    "waits_on": [],
     "unmodelled": [],
     "rests_on": [
      "W2_9_segment_debt_tnc",
@@ -399,7 +397,7 @@
      "W2_31_people_phase1_the_physical_layer_stands_alone"
     ],
     "needs_total": 4,
-    "needs_met": 3
+    "needs_met": 4
    },
    {
     "gate": "Whether they pay",
@@ -444,9 +442,8 @@
     "what": "Forecasts from the building rather than from a national average profile, a monthly payment that is right from the first month, and a mode where the customer names the bill they want and is shown the levers that reach it.",
     "test": "Forecast accuracy by house type against the truth, and what accurate, controllable bills do to bill shock, arrears onset and leaving.",
     "testable_now": false,
-    "status": "Waits on a first monthly payment sized to a seasonal year, the cash-flow shape a seasonal bill produces and whether a household acts on a prompt about its own bill",
+    "status": "Waits on the cash-flow shape a seasonal bill produces and whether a household acts on a prompt about its own bill",
     "waits_on": [
-     "a first monthly payment sized to a seasonal year",
      "the cash-flow shape a seasonal bill produces",
      "whether a household acts on a prompt about its own bill"
     ],
@@ -459,7 +456,7 @@
      "W2_25_people_phase2_shape_and_attitudes"
     ],
     "needs_total": 5,
-    "needs_met": 2
+    "needs_met": 3
    },
    {
     "gate": "Whether they stay",
@@ -687,9 +684,8 @@
     "what": "Controlling vehicles, batteries and heat pumps where the customer has agreed, and sharing the revenue that flexibility earns.",
     "test": "Value captured per class of asset, and how many customers consent \u2014 noting that solar alone stays uneconomic unless paired.",
     "testable_now": false,
-    "status": "Waits on where vehicles and heat pumps actually are, a consented route to a customer's own meter and whether a household will let its heating be controlled",
+    "status": "Waits on a consented route to a customer's own meter and whether a household will let its heating be controlled",
     "waits_on": [
-     "where vehicles and heat pumps actually are",
      "a consented route to a customer's own meter",
      "whether a household will let its heating be controlled"
     ],
@@ -701,7 +697,7 @@
      "W2_25_people_phase2_shape_and_attitudes"
     ],
     "needs_total": 4,
-    "needs_met": 1
+    "needs_met": 2
    },
    {
     "gate": "Value beyond the bill",
@@ -710,10 +706,9 @@
     "what": "Heating, hot water, the car and everything else separated out, the way a bank app separates spending.",
     "test": "Accuracy of the split against the true consumption of each asset.",
     "testable_now": false,
-    "status": "Waits on consumption broken down by what used it, not just the total and the same breakdown on the people side rather than a total",
+    "status": "Waits on consumption broken down by what used it, not just the total",
     "waits_on": [
-     "consumption broken down by what used it, not just the total",
-     "the same breakdown on the people side rather than a total"
+     "consumption broken down by what used it, not just the total"
     ],
     "unmodelled": [],
     "rests_on": [
@@ -721,7 +716,7 @@
      "W2_31_people_phase1_the_physical_layer_stands_alone"
     ],
     "needs_total": 2,
-    "needs_met": 0
+    "needs_met": 1
    },
    {
     "gate": "Value beyond the bill",
@@ -779,11 +774,9 @@
       "name": "Debt and cash flow modelled per home",
       "what": "Provisioning built up home by home, with the rules for how a payment clears against old and new charges made explicit, and a debt trajectory per home so that beating the forecast is something a manager can actually be measured on.",
       "test": "Does the predicted arrears trajectory match what truly happened, and how fast and how accurately was hardship told apart from choice?",
-      "testable_now": false,
-      "status": "Waits on the order in which a payment clears old and new charges",
-      "waits_on": [
-       "the order in which a payment clears old and new charges"
-      ],
+      "testable_now": true,
+      "status": "Testable now",
+      "waits_on": [],
       "unmodelled": [],
       "rests_on": [
        "W2_9_segment_debt_tnc",
@@ -792,7 +785,7 @@
        "W2_31_people_phase1_the_physical_layer_stands_alone"
       ],
       "needs_total": 4,
-      "needs_met": 3
+      "needs_met": 4
      },
      {
       "gate": "Whether they pay",
@@ -842,9 +835,8 @@
       "what": "Forecasts from the building rather than from a national average profile, a monthly payment that is right from the first month, and a mode where the customer names the bill they want and is shown the levers that reach it.",
       "test": "Forecast accuracy by house type against the truth, and what accurate, controllable bills do to bill shock, arrears onset and leaving.",
       "testable_now": false,
-      "status": "Waits on a first monthly payment sized to a seasonal year, the cash-flow shape a seasonal bill produces and whether a household acts on a prompt about its own bill",
+      "status": "Waits on the cash-flow shape a seasonal bill produces and whether a household acts on a prompt about its own bill",
       "waits_on": [
-       "a first monthly payment sized to a seasonal year",
        "the cash-flow shape a seasonal bill produces",
        "whether a household acts on a prompt about its own bill"
       ],
@@ -857,7 +849,7 @@
        "W2_25_people_phase2_shape_and_attitudes"
       ],
       "needs_total": 5,
-      "needs_met": 2
+      "needs_met": 3
      },
      {
       "gate": "Whether they stay",
@@ -1095,9 +1087,8 @@
       "what": "Controlling vehicles, batteries and heat pumps where the customer has agreed, and sharing the revenue that flexibility earns.",
       "test": "Value captured per class of asset, and how many customers consent \u2014 noting that solar alone stays uneconomic unless paired.",
       "testable_now": false,
-      "status": "Waits on where vehicles and heat pumps actually are, a consented route to a customer's own meter and whether a household will let its heating be controlled",
+      "status": "Waits on a consented route to a customer's own meter and whether a household will let its heating be controlled",
       "waits_on": [
-       "where vehicles and heat pumps actually are",
        "a consented route to a customer's own meter",
        "whether a household will let its heating be controlled"
       ],
@@ -1109,7 +1100,7 @@
        "W2_25_people_phase2_shape_and_attitudes"
       ],
       "needs_total": 4,
-      "needs_met": 1
+      "needs_met": 2
      },
      {
       "gate": "Value beyond the bill",
@@ -1118,10 +1109,9 @@
       "what": "Heating, hot water, the car and everything else separated out, the way a bank app separates spending.",
       "test": "Accuracy of the split against the true consumption of each asset.",
       "testable_now": false,
-      "status": "Waits on consumption broken down by what used it, not just the total and the same breakdown on the people side rather than a total",
+      "status": "Waits on consumption broken down by what used it, not just the total",
       "waits_on": [
-       "consumption broken down by what used it, not just the total",
-       "the same breakdown on the people side rather than a total"
+       "consumption broken down by what used it, not just the total"
       ],
       "unmodelled": [],
       "rests_on": [
@@ -1129,7 +1119,7 @@
        "W2_31_people_phase1_the_physical_layer_stands_alone"
       ],
       "needs_total": 2,
-      "needs_met": 0
+      "needs_met": 1
      },
      {
       "gate": "Value beyond the bill",
@@ -1180,8 +1170,8 @@
    }
   ],
   "tally": {
-   "testable_now": 1,
-   "waiting": 18,
+   "testable_now": 2,
+   "waiting": 17,
    "unmodelled_truths": 2
   }
  },
@@ -1336,6 +1326,10 @@
    "describes": "The company's COLLECTIONS-COMMUNICATION surface \u2014 the one place the world may learn the tone of a dunning letter it received."
   },
   {
+   "module": "contact_programme",
+   "describes": "The company's CONTACT-PROGRAMME door: which arm of a contact programme an account is in."
+  },
+  {
    "module": "counterparty_collateral",
    "describes": "Seam: the world hands over the book and the public prices, and takes back a position."
   },
@@ -1464,21 +1458,21 @@
  "scale": {
   "figures": [
    {
-    "value": 127,
+    "value": 774,
     "basis": "accounts in the live customer feed",
     "source": "site/data/customers.json",
-    "as_of": "2026-10-05T21:17:17Z"
+    "as_of": "2026-10-13T21:28:47Z"
    },
    {
-    "value": 172,
+    "value": 987,
     "basis": "book size used by the break-even analysis",
     "source": "site/data/dashboard.json",
     "as_of": "2016-2025"
    }
   ],
   "agree": false,
-  "low": 127,
-  "high": 172,
+  "low": 774,
+  "high": 987,
   "real_world": "A real GB supplier serves hundreds of thousands to millions of homes."
  },
  "gaps": [
@@ -1491,8 +1485,8 @@
     "when": "being worked on now",
     "waiting_on_count": 0
    },
-   "title": "The book is 127\u2013172 customers",
-   "what": "Everything on this page is true of a supplier with 127\u2013172 accounts. A real GB supplier serves hundreds of thousands to millions of homes. Scale is the largest single gap between this and a real energy retailer, and nothing above will tell you that, because every item can be genuinely built at this size. The project's own feeds do not currently agree on the exact figure \u2014 127 (accounts in the live customer feed), 172 (book size used by the break-even analysis) \u2014 and that disagreement is itself unreconciled."
+   "title": "The book is 774\u2013987 customers",
+   "what": "Everything on this page is true of a supplier with 774\u2013987 accounts. A real GB supplier serves hundreds of thousands to millions of homes. Scale is the largest single gap between this and a real energy retailer, and nothing above will tell you that, because every item can be genuinely built at this size. The project's own feeds do not currently agree on the exact figure \u2014 774 (accounts in the live customer feed), 987 (book size used by the break-even analysis) \u2014 and that disagreement is itself unreconciled."
   },
   {
    "plan": {

@@ -38,10 +38,10 @@
   },
   "dual_fuel_combined": {
     "gas_account_id": "PROS-2024-0110g",
-    "gas_lifetime_net_gbp": 1.52,
-    "gas_lifetime_revenue_gbp": 5.15,
+    "gas_lifetime_net_gbp": 1.53,
+    "gas_lifetime_revenue_gbp": 5.16,
     "combined_net_gbp": 5.24,
-    "combined_revenue_gbp": 13.86
+    "combined_revenue_gbp": 13.87
   },
   "annual_pnl": [
     {
@@ -69,7 +69,7 @@
   ],
   "invoices": [
     {
-      "id": "PROS-2024-0110-INV20247",
+      "id": "PROS-2024-0110-INV19131",
       "date": "2024-05-08",
       "period_start": "2024-05-03",
       "period_end": "2024-05-08",
@@ -83,9 +83,9 @@
       "non_commodity_amount_gbp": 1.84,
       "vat_gbp": 0.44,
       "amount_gbp": 9.16,
-      "status": "UNPAID",
-      "outstanding_gbp": 7.27,
-      "credit_applied_gbp": 0.0,
+      "status": "PAID",
+      "outstanding_gbp": 0.0,
+      "credit_applied_gbp": null,
       "meter_serial": "M00061783",
       "mpan": "1000000000808",
       "mprn": null,
@@ -118,57 +118,27 @@
       {
         "date": "2024-05-09",
         "type": "invoice_raised",
-        "invoice_number": 20247,
+        "invoice_number": 19131,
         "amount_gbp": 9.16,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV20247 raised",
+        "description": "Invoice INV19131 raised",
         "running_balance_gbp": 9.16
       },
       {
         "date": "2024-05-23",
         "type": "payment_received",
-        "invoice_number": 20247,
-        "amount_gbp": -1.87,
+        "invoice_number": 19131,
+        "amount_gbp": -9.16,
         "info_amount_gbp": null,
         "method": "direct_debit",
-        "description": "Part payment received",
-        "running_balance_gbp": 7.29
-      },
-      {
-        "date": "2024-05-23",
-        "type": "payment_failed",
-        "invoice_number": 20247,
-        "amount_gbp": 0.0,
-        "info_amount_gbp": null,
-        "method": "direct_debit",
-        "description": "Direct debit returned",
-        "running_balance_gbp": 7.29
-      },
-      {
-        "date": "2024-05-30",
-        "type": "notice",
-        "invoice_number": 20247,
-        "amount_gbp": 0.0,
-        "info_amount_gbp": null,
-        "method": "direct_debit",
-        "description": "First overdue notice -- GBP7.27 outstanding",
-        "running_balance_gbp": 7.29
-      },
-      {
-        "date": "2024-06-13",
-        "type": "notice",
-        "invoice_number": 20247,
-        "amount_gbp": 0.0,
-        "info_amount_gbp": null,
-        "method": "direct_debit",
-        "description": "Second notice -- payment plan offered",
-        "running_balance_gbp": 7.29
+        "description": "Payment received",
+        "running_balance_gbp": 0.0
       }
     ],
-    "current_balance_gbp": 7.29,
+    "current_balance_gbp": 0.0,
     "total_billed_gbp": 9.16,
-    "total_collected_gbp": 1.87,
+    "total_collected_gbp": 9.16,
     "total_written_off_gross_gbp": 0,
     "total_recovered_gbp": 0
   },
@@ -182,50 +152,5 @@
     ],
     "has_hh_data": false
   },
-  "reaction_chain": [
-    {
-      "customer_id": "PROS-2024-0110",
-      "date": "2024-05-23",
-      "event_type": "arrears_dd_failed",
-      "description": "Direct debit returned",
-      "company_belief": null,
-      "sim_truth": null,
-      "amount_gbp": 7.27,
-      "outcome": "DD_FAILED",
-      "framing_type": null
-    },
-    {
-      "customer_id": "PROS-2024-0110",
-      "date": "2024-05-30",
-      "event_type": "arrears_first_notice",
-      "description": "First overdue notice -- GBP7.27 outstanding",
-      "company_belief": null,
-      "sim_truth": null,
-      "amount_gbp": 7.27,
-      "outcome": "FIRST_NOTICE",
-      "framing_type": null
-    },
-    {
-      "customer_id": "PROS-2024-0110",
-      "date": "2024-06-13",
-      "event_type": "arrears_second_notice",
-      "description": "Second notice -- payment plan offered",
-      "company_belief": null,
-      "sim_truth": null,
-      "amount_gbp": 7.27,
-      "outcome": "SECOND_NOTICE",
-      "framing_type": null
-    },
-    {
-      "customer_id": "PROS-2024-0110",
-      "date": "2024-06-13",
-      "event_type": "arrears_balance_open",
-      "description": "Balance still open -- GBP7.27 unpaid, with no payment or arrangement against it",
-      "company_belief": null,
-      "sim_truth": null,
-      "amount_gbp": 7.27,
-      "outcome": "BALANCE_OPEN",
-      "framing_type": null
-    }
-  ]
+  "reaction_chain": []
 }

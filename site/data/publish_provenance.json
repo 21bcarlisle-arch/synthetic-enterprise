@@ -12,32 +12,32 @@
     "open_findings": 21
   },
   "last_verified": {
-    "generated_at": "2026-10-13T21:32:10Z",
-    "git_commit": "2248e3baf",
+    "generated_at": "2026-10-19T08:55:40Z",
+    "git_commit": "8b6fea024",
     "population": {
-      "accounts": 989,
-      "bills": 39084,
-      "total_revenue_gbp": 2345472.46
+      "accounts": 963,
+      "bills": 38596,
+      "total_revenue_gbp": 2378270.43
     },
-    "run_id": "run_output_2248e3baf_20261013T134447Z.json",
+    "run_id": "run_output_8b6fea024_20261019T033010Z.json",
     "run_retained": true,
-    "verified_at": "2026-10-13T21:32:10Z"
+    "verified_at": "2026-10-19T08:55:40Z"
   },
-  "paused_reason": "scoped publish-path gate refused at git=8b6fea024 and NO test returned a verdict -- the suite is UNJUDGED, not red, and no test is implicated",
-  "paused_since": "2026-10-19T05:23:12Z",
+  "paused_reason": null,
+  "paused_since": null,
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-10-13T21:32:10Z",
-    "git_commit": "2248e3baf",
+    "generated_at": "2026-10-19T08:55:40Z",
+    "git_commit": "8b6fea024",
     "population": {
-      "accounts": 989,
-      "bills": 39084,
-      "total_revenue_gbp": 2345472.46
+      "accounts": 963,
+      "bills": 38596,
+      "total_revenue_gbp": 2378270.43
     },
-    "run_id": "run_output_2248e3baf_20261013T134447Z.json",
+    "run_id": "run_output_8b6fea024_20261019T033010Z.json",
     "run_retained": true,
-    "verified_at": "2026-10-13T21:32:10Z"
+    "verified_at": "2026-10-19T08:55:40Z"
   },
-  "verification_state": "paused",
-  "written_at": "2026-10-19T05:23:12Z"
+  "verification_state": "verified",
+  "written_at": "2026-10-19T08:55:40Z"
 }

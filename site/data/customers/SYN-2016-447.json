@@ -3,7 +3,7 @@
   "base_account_id": "SYN-2016-447",
   "segment": "resi",
   "commodity": "electricity",
-  "is_dual_fuel": false,
+  "is_dual_fuel": true,
   "acquisition_date": "2016-10-08",
   "tariff_name": "Standard Variable (Electricity)",
   "meter_type": "Traditional",
@@ -12,10 +12,10 @@
     "bottom_line": "19697370991"
   },
   "mprn": null,
-  "lifetime_revenue_gbp": 30.94,
-  "lifetime_gross_gbp": 20.47,
-  "lifetime_net_gbp": 3.63,
-  "lifetime_net_after_cts_gbp": 0.01,
+  "lifetime_revenue_gbp": 34.96,
+  "lifetime_gross_gbp": 23.1,
+  "lifetime_net_gbp": 4.07,
+  "lifetime_net_after_cts_gbp": 0.45,
   "cost_to_serve_gbp": 3.62,
   "pricing_action": {
     "flag": "MARGIN_SQUEEZE",
@@ -31,20 +31,26 @@
   "forward_looking_account_id": "SYN-2016-447",
   "commodity_split": {
     "electricity": {
-      "net_gbp": 3.63,
-      "revenue_gbp": 30.94
+      "net_gbp": 4.07,
+      "revenue_gbp": 34.96
     },
     "gas": null
   },
-  "dual_fuel_combined": null,
+  "dual_fuel_combined": {
+    "gas_account_id": "SYN-2016-447g",
+    "gas_lifetime_net_gbp": 6.85,
+    "gas_lifetime_revenue_gbp": 17.99,
+    "combined_net_gbp": 10.92,
+    "combined_revenue_gbp": 52.94
+  },
   "annual_pnl": [
     {
       "year": 2016,
       "revenue_gbp": 0,
-      "gross_gbp": 20.47,
-      "net_gbp": 3.63,
-      "tariff_min": 100.94,
-      "tariff_max": 100.94
+      "gross_gbp": 23.1,
+      "net_gbp": 4.07,
+      "tariff_min": 102.96,
+      "tariff_max": 102.96
     }
   ],
   "timeline": [
@@ -57,20 +63,20 @@
   ],
   "invoices": [
     {
-      "id": "SYN-2016-447-INV34526",
+      "id": "SYN-2016-447-INV34201",
       "date": "2016-10-31",
       "period_start": "2016-10-08",
       "period_end": "2016-10-31",
       "commodity": "electricity",
-      "consumption_kwh": 260.8,
-      "unit_rate_p_per_kwh": 4.893,
-      "commodity_amount_gbp": 12.76,
+      "consumption_kwh": 294.7,
+      "unit_rate_p_per_kwh": 5.097,
+      "commodity_amount_gbp": 15.02,
       "standing_charge_gbp": 4.61,
       "days_in_period": 24,
       "standing_charge_gbp_per_day": 0.192,
-      "non_commodity_amount_gbp": 13.56,
-      "vat_gbp": 1.55,
-      "amount_gbp": 32.48,
+      "non_commodity_amount_gbp": 15.33,
+      "vat_gbp": 1.75,
+      "amount_gbp": 36.71,
       "status": "PAID",
       "outstanding_gbp": 0.0,
       "credit_applied_gbp": null,
@@ -79,14 +85,14 @@
       "mprn": null,
       "read_type": "A",
       "opening_read_kwh": 0.0,
-      "closing_read_kwh": 260.8,
+      "closing_read_kwh": 294.7,
       "registers": [
         {
           "register_id": "1",
           "label": "Anytime",
-          "consumption_kwh": 260.8,
-          "amount_gbp": 12.76,
-          "unit_rate_p_per_kwh": 4.893
+          "consumption_kwh": 294.7,
+          "amount_gbp": 15.02,
+          "unit_rate_p_per_kwh": 5.097
         }
       ],
       "catchup_applied": false,
@@ -106,18 +112,18 @@
       {
         "date": "2016-10-31",
         "type": "invoice_raised",
-        "invoice_number": 34526,
-        "amount_gbp": 32.48,
+        "invoice_number": 34201,
+        "amount_gbp": 36.71,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV34526 raised",
-        "running_balance_gbp": 32.48
+        "description": "Invoice INV34201 raised",
+        "running_balance_gbp": 36.71
       },
       {
-        "date": "2016-11-19",
+        "date": "2016-11-14",
         "type": "payment_received",
-        "invoice_number": 34526,
-        "amount_gbp": -32.48,
+        "invoice_number": 34201,
+        "amount_gbp": -36.71,
         "info_amount_gbp": null,
         "method": "direct_debit",
         "description": "Payment received",
@@ -125,8 +131,8 @@
       }
     ],
     "current_balance_gbp": 0.0,
-    "total_billed_gbp": 32.48,
-    "total_collected_gbp": 32.48,
+    "total_billed_gbp": 36.71,
+    "total_collected_gbp": 36.71,
     "total_written_off_gross_gbp": 0,
     "total_recovered_gbp": 0
   },
@@ -135,7 +141,7 @@
     "monthly": [
       {
         "month": "2016-10",
-        "kwh": 260.8
+        "kwh": 294.7
       }
     ],
     "has_hh_data": false
