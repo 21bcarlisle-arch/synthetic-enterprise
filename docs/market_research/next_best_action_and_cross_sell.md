@@ -431,6 +431,51 @@ Tariff (lawful in form, depth unregulated) it brings our side to zero in 18 of 1
 10 of 18 once the rise's own effect on staying is added at the published slope; 0 of 18 on a default
 tariff priced at the cap.
 
+**Where a real supplier makes this decision: at the renewal notice (amended 2026-10-19, K8 for the
+engine caller of C34).**
+- **The rule.** The end of a fixed term is a Relevant Contract Change. SLC 22C.3 → 31I.1(c), 31I.2
+  require notice "at an appropriate time … designed to prompt" an informed choice. The old fixed
+  42–49-day rule became this principle in Ofgem's 2018 customer-communications decision
+  (`what_a_renewal_decision_is_for_a_gb_domestic_customer.md`, table row "Notice before the term
+  end").
+- **Why the decision sits there.** The notice is the one contact every fixed-term household must
+  receive. It already carries the renewal price. A bespoke retention price is lawful only at the end
+  of a fixed term (§4.1). So the notice is where a supplier decides whether to add advice and what
+  to charge for the fix.
+- **A dual-fuel household gets one notice.** It may be a combined notice for both fuels (SLC
+  31I.5(b)), so the decision is the household's, not one per fuel.
+- **What it may read there.** Only its own records (§5, "seen by right"):
+  - the renewal price it is about to offer, and its own forward cost for the term;
+  - its own consumption estimate for the account;
+  - its own churn belief for this renewal, built from tenure, rate change, payment history,
+    arrears, satisfaction and payment method;
+  - the published default for the fuel.
+- **What it may not read.** It never sees the household's own probability of staying, a
+  competitor's offer to the household, or the counterfactual.
+
+**What the engine caller does, and the choices it makes (2026-10-19).**
+`company/interfaces/renewal_advice.py` is the caller, behind `DecisionPolicy.next_best_action_decides_at_renewal`
+(default False). It decides at each domestic renewal roll on the leg that carries the household's
+departure. When the same account's other leg is priced on the same start date, that leg joins the
+decision. The legs are decided per household through `states_for_decision`. The design makes five
+choices, and each one is ours:
+- **The hazard is the company's own renewal churn belief** (`estimate_renewal_churn`, the same
+  belief the retention guard reads), spread as a constant monthly hazard over a 12-month term:
+  `h = 1 − (1 − p)^(1/12)`. This is B11's shape. It is never the world's roll or its P(stay).
+- **The margin is the one the retention guard already uses:** (offered rate − the term's company
+  forward) × the company's consumption estimate, per month.
+- **The advice effect is unknown, so the caller decides under each of the three stated effects**
+  of `a_retention_price_that_shares_the_value_an_action_creates.md` §4. Each run writes one row per
+  household per effect. The company's own holdout cannot decide an effect at this book size (§6.2:
+  681 default-tariff accounts against about 6,000 needed). So these rows are a decision under a
+  stated range, not under an estimate. That is said on every row.
+- **It records and does not act.** No letter is sent and nothing reaches the world. Off, the run
+  is unchanged to the byte. On, it adds one list to the run output.
+- **A household that leaves at the roll never prices its other leg, so it is decided on one leg.**
+  The world prices the second leg only after the roll. The row says how many legs it carries.
+GAP: no published source gives how a supplier's advice at the renewal notice moves P(stay) or what it
+gives up. This is §7 gap 1, unchanged.
+
 ### 6.2 What the company knows about uplift
 
 **Only propensity.** Every churn quantity on the company side is P(leave), or P(leave given a
