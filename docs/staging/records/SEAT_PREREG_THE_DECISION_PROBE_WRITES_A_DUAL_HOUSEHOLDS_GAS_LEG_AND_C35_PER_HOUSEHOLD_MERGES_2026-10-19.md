@@ -78,3 +78,44 @@ survives its launcher. It runs in a clean worktree at origin/main `2fe180d52`, w
 last full probe took 3 h at a 3.6 GB peak, so expect it around 20:15–20:45 BST. To grade, run
 `cd /var/tmp/se-gasleg-grade && python3 /var/tmp/se-gasleg-grade-out/grade.py
 /home/rich/synthetic-enterprise/docs/reports/run_output_ad8afadc5_20261019T132751Z.json`, then read G1–G7 against its lines. The predictions above are unchanged.
+
+**Graded 2026-10-19 ~21:30 BST (worker).** The unit `longjob-gasleg-probe-2fe180d52` finished at
+20:20 BST. It ran for 3 h 8 min with a 5.9 GB peak, against the 3.6 GB the last probe used. It
+wrote `probe.json`. The grading worktree had been reaped, so it was re-created at `2fe180d52`.
+`grade.py` was then run as written, against `run_output_ad8afadc5_20261019T132751Z.json`. A second
+script (`/tmp/gasleg_extra.py`) made the per-leg splits that G1, G5 and G7 need.
+
+- **G1 (riding gas rows 55–95, all gas, each riding its own electricity roll): HELD.** There are 75
+  riding rows, all gas. All 75 have a `rides_on` equal to the `customer_id` of an electricity roll
+  on the same billing account and `term_start`, and 0 ride without that roll. The "0 on a departure"
+  leg is **by construction, not measured.** The probe row does not carry the reference path's
+  departure, and I did not join it to `account_state_log`.
+- **G2 (rolled 165–200, ≤4 gas): WRONG by one on gas.** There are 182 rolled rows, inside the
+  range: 177 electricity and **5 gas**. I did not check which account the fifth gas-only roll is.
+- **G3 (off decisions = rows, on = rows − riding, exactly): HELD.** Off gives 257 = 257. On gives
+  182 = 257 − 75, the same on both hazard ends. Every riding row merged with its roll, and nothing
+  else merged. The two partitions add up: 193+420+151+4+3 = 771 = 3×257, and 142+294+105+5 = 546 =
+  3×182.
+- **G4 (rescued on ≤ off): HELD.** On is 142 and off is 193, at both hazard ends.
+- **G5 (paired households: "needs no rise" on ≥ off; headroom refusals on < off on the electricity
+  legs): HELD, narrowly.** Over the 75 paired households (full window; the cut year is the same):
+  - "needs no rise": 2 on, against 1 off across both legs and 0 off on the electricity legs alone.
+  - Refusals at or above the headroom (`the rise our side needs` + `no rise within the headroom`):
+    35 on, against 37 off on the electricity legs alone. The gas legs alone have 47.
+  - **Rescued on per household is 62/225, exactly what the electricity legs alone rescued off
+    (62/225).** The gas legs alone rescue 51/225. Merging adds no rescues beyond the electricity
+    leg on this book. I cannot yet say whether it is the same 62 cases.
+- **G6 (C34's floor refuses ≥95%, off and on): HELD.** I used the same arithmetic as J1 in
+  `SEAT_PREREG_B11_C35_C34_ON_THE_FIRST_PUBLISHED_DUAL_FUEL_RUN_2026-10-18.md`: cases − needs no
+  rise − no rise within the headroom. Off: 771 − 4 − 3 = 764/771 = 99.1%. On: 546 − 5 − 0 = 541/546
+  = 99.1%. That is the record's formula, not a run of the C34 caller.
+- **G7 (pre-2019 riding rows refuse on "no default", as their electricity rows do): HELD.** 42 of
+  the 75 riding rows date before 2019. All 42 have no published gas default, and all 42 of their
+  electricity rolls have no electricity default. All 33 riding rows from 2019 on have a gas default.
+
+**Per-household reading.** It covers only dual households that stayed through the electricity roll.
+The 52-of-129 share that left at the roll at `8b6fea024` has no gas row, as stated above. C35
+rescues 142/546 (26.0%) of cases on and 193/771 (25.0%) off, at both hazard ends. Off is over
+257 rows. On is over 182 decisions, which is 75 households, each counted once.
+`next_best_action_decides_per_household` is now gradable. On this book it changes the count of
+decisions, not the rate at which a decision is rescued.
