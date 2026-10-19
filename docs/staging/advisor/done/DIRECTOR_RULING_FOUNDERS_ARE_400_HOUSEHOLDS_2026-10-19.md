@@ -24,3 +24,26 @@ One stretch-log entry with:
 - the published figures it moves.
 
 — Director ruling, 19 Oct 2026, his words above; the drafting is the advisor's.
+
+## Done
+
+Done by the delivery seat on 19 Oct, 17:30Z. The memory condition was measured the cheap way: two
+founders-only points, 100 and 200 homes, run one after the other through `launch_long_job` with
+the reaper untouched. The result is graded in
+`docs/staging/records/SEAT_PREREG_WHAT_400_FOUNDER_HOUSEHOLDS_COST_IN_MEMORY_AND_TIME_MEASURED_ON_SMALL_BOOKS_2026-10-19.md`.
+
+**It fits.** At 400 homes the run uses about 4,180 MB with today's budget, or about 5,350–5,540 MB
+with the budget raised to keep the campaign's room. The allowance is 6,008 MB.
+
+**The switch is not made yet**, for a reason the ruling does not cover. 400 homes are 697 supply
+points, and they commit 6,603 customer-years. That is more than the whole 5,000 settlement
+budget, so the campaign would be admitted no win in any year. The budget question is raised to
+him as `your-400-household-founder-ruling-fits-in` in `for_the_director`. It recommends households
+with the budget raised to about 7,800, which is the logic of his 9 Oct approval. The holding
+position until he rules is 400 supply points, unchanged.
+
+**Owed when he answers:** `FOUNDER_BOOK.yaml` with the his-words trailer, the world claims re-run,
+the census before and after on seed 20260724, and the EP17 held draw. The household-counting
+mechanism they need is handed off as
+`the-founder-book-can-count-households-behind-its-yaml-default-unchanged`, so his "yes" is one
+commit. The stretch-log entry is filed.

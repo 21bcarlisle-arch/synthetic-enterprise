@@ -406,3 +406,31 @@ for_the_director:
   evidence: docs/staging/WORKER_FINDING_THE_OPENING_BOOK_WAS_ONE_PERCENT_DUAL_FUEL_AND_NOW_BEARS_THE_PUBLISHED_SPLIT_2026-10-17.md
     section 6
   resolved: '2026-10-19'
+- id: your-400-household-founder-ruling-fits-in
+  raised: '2026-10-19'
+  kind: reserved
+  what: 'Your 400-household founder ruling fits in memory, but at today''s settlement budget (5,000 customer-years)
+    it ends campaign growth. 400 homes are 697 supply points, and they commit 6,603 customer-years by
+    themselves, more than the whole budget, so the campaign is admitted no win in any year. Measured on
+    small books (100 and 200 homes): 1,906 MB and 2,656 MB peak. Scaled to 400 homes: about 4,180 MB with
+    the budget held, and about 5,350-5,540 MB with it raised to keep the campaign''s room, against a 6,008
+    MB allowance.'
+  proposal: Switch the founder count to 400 households and raise SETTLEMENT_CUSTOMER_YEAR_BUDGET alongside,
+    from 5,000 to about 7,800, so the campaign keeps the roughly 1,200 customer-years it has today. Then
+    re-run the world claims, record the census before and after on seed 20260724, and record the new held
+    draw (EP17).
+  recommendation: 'I recommend switching to households with the budget raised to about 7,800. Evidence:
+    founder customer-years cost about 0.46 MB each on a fixed base of about 1,160 MB; campaign customer-years
+    cost about 1 MB each (the ad8afadc5 production run at 4,065 MB, and 9 Oct); so the raised shape extrapolates
+    to 5,350-5,540 MB, 8-11% under the allowance, at about 2.4 h a run against today''s 1.6 h. That is
+    the logic you approved on 9 Oct: the budget is raised alongside because founders'' committed years
+    count against it. Trade-off: memory headroom falls from about 30% to about 10%, and a run takes about
+    50% longer. The alternative, households at budget 5,000, uses about 4,180 MB but books no campaign
+    win for the whole window, so the growth story and every acquisition reading go silent. Holding position
+    until you rule: 400 supply points (about 233 homes) as now, which is safe because nothing changes.
+    Would change it: a first production run at the raised shape peaking above 6,008 MB (the reaper is
+    the net), in which case I would bring back the largest budget that fits.'
+  status: open
+  resolution: ''
+  evidence: docs/staging/records/SEAT_PREREG_WHAT_400_FOUNDER_HOUSEHOLDS_COST_IN_MEMORY_AND_TIME_MEASURED_ON_SMALL_BOOKS_2026-10-19.md
+    section 4

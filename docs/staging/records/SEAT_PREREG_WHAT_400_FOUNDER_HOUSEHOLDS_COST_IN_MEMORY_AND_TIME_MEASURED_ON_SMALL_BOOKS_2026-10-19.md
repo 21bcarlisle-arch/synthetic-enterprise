@@ -69,3 +69,61 @@ which is 6,008 MB at 24,032 MB.
 ## 4. Grade
 
 *(To be filled in below this line, beside the predictions. No prediction is edited.)*
+
+### Measured (longjob-founder-households-memory-probe, 15:54–17:28Z, scratch worktree at 2fe180d52, seed 20260724)
+
+Founders-only, budget 0, full window, the live path's compute. Both points are clean: exit 0, ten
+years reported, no producer in flight at start or end, and the campaign record agrees.
+
+| Point | Committed cy | Peak RSS | Peak anon | Wall | Accounts after 2025 |
+|---|---|---|---|---|---|
+| 100 homes (171 records) | 1,630.2 | **1,905.6 MB** | 1,808.1 MB | **1,240.9 s** | 777 |
+| 200 homes (344 records) | 3,267.8 | **2,656.2 MB** | 2,521.3 MB | **2,682.4 s** | 967 |
+
+**Cross-check against the box.** A 2-second sampler on the unit's cgroup `memory.stat` read an
+anon peak of 2,530 MB during the 200-home point, which matches the child's own 2,521 MB. No
+process outside the probe's view holds memory. The unit's `memory.peak` of 5.27 GB, read during
+the 100-home point, includes page cache, so it is not the figure R7 budgets.
+
+**A third point, on current code, from production.** Today's `ad8afadc5` run used 400 records and
+the campaign at a budget of 5,000. It peaked at 4,065.4 MB in 5,743 s (`sim-runner-log.md`). The
+founder line puts its 3,793.5 founder cy at 2,897 MB. That leaves about 1,170 MB for the
+campaign's roughly 1,200 cy, about 0.97 MB per campaign cy. The 9 Oct marginal was 1.13. **A
+campaign customer-year costs about twice a founder customer-year.**
+
+### Scale-up (R8)
+
+The founder line through the two points is **peak ≈ 1,160 MB + 0.458 MB/cy**. Wall time grows
+slightly faster than linear (×2.16 for ×2.00 cy), so time is scaled as a power of committed cy,
+with exponent 1.11.
+
+| Shape, 400 homes (697 records, 6,603 founder cy) | Peak RSS | Wall | Campaign wins |
+|---|---|---|---|
+| **A.** Budget held at 5,000 (founders exceed it, so no win is admitted) | **≈ 4,180 MB** | ≈ 5,850 s | **0 in every year** |
+| **B.** Budget raised to ≈ 7,800 (the campaign keeps today's ~1,200 cy) | **≈ 5,350–5,540 MB** | ≈ 8,600 s | about today's (221 of 613 funnel wins on 9 Oct) |
+| Allowance: 0.25 × guest 24,032 MB | **6,008 MB** | weekly publish, so time does not bind | |
+
+### Grade
+
+- **H1 refuted, low.** The 200-home peak is 1.39× the 100-home peak, not 1.5–2.3×. A fixed base of
+  about 1,160 MB was larger than I allowed for. Wall time is 2.16×.
+- **H2 holds.** 1,906 MB is inside 1,400–2,600, and 2,656 MB is inside 2,200–3,800.
+- **H3 half refuted.** 1,241 s is below 1,500–3,500 (faster). 2,682 s is inside 2,500–5,500.
+- **H4 refuted, low.** About 4,180 MB, below the 4,500–6,500 band. It sits about 1,830 MB under
+  the allowance.
+- **H5 refuted.** With the campaign's room kept, the peak is about 5,350–5,540 MB, which is
+  *inside* 6,008 MB by 470–660 MB (8–11%). I predicted it would exceed. The two-to-one cost of
+  campaign customer-years against founder ones is what I did not know.
+
+**Branch taken: it fits.** As decided in §3 before measuring, nothing in `FOUNDER_BOOK.yaml`
+moves yet. At today's budget, 400 households admit no campaign win in any year. That is a second
+consequence of the ruling, beyond the memory condition. It goes to him as a `for_the_director`
+row with a recommendation. **I recommend B:** households, with the budget raised alongside to
+about 7,800. This is the same move as his 9 Oct approval, which raised the budget "alongside
+because the founders' own committed years count against it". The first production run on B is
+the confirming measurement, and the reaper stays as the safety net.
+
+**Not measured, and said so.** The scale-up extrapolates the founder line twofold past its upper
+point. A power-law fit (exponent 0.48) would put A at about 3,720 MB, so the linear figure is the
+conservative one. B's campaign term borrows the per-cy cost of campaign customer-years from
+`ad8afadc5` and 9 Oct, not from a run at 400 homes.

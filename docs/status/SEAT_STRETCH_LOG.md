@@ -8,6 +8,39 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-19 — 400 founder households fit in memory; the switch waits on the settlement budget, which they exhaust by themselves
+
+<!-- head: c57d93ba5b5e -->
+
+**The director's 19 Oct 16:37 ruling, "Households, as long as it doesn't create a memory problem".**
+Measured the cheap way (R8): two founders-only points, run one after the other through
+`launch_long_job`, with the reaper untouched.
+- 100 homes: 1,906 MB, 1,241 s.
+- 200 homes: 2,656 MB, 2,682 s.
+- A cgroup anon sampler agrees with the child's own figure.
+Today's production run (`ad8afadc5`) gives a third point: 4,065 MB.
+
+**Census, seed 20260724.** Today: 400 records = 233 homes, 167 dual (0.717), 3,794 committed cy.
+At 400 homes: 697 records, 296 dual (0.738), 6,603 committed cy.
+
+**Branch: it fits.** About 4,180 MB at today's budget, or about 5,350–5,540 MB with the budget
+raised to keep the campaign's room, against a 6,008 MB allowance.
+
+**The switch is held.** At today's 5,000-cy budget the founders alone exceed it, so the campaign
+would be admitted no win in any year. That consequence was not in the ruling. It is raised as
+`your-400-household-founder-ruling-fits-in`, recommending households with the budget raised to
+about 7,800. That is the logic of his 9 Oct approval.
+
+**Published figures it would move.** Nothing has moved. On the switch, every book figure moves:
+homes 233 → 401 founders, and supply points about +300. The world claims and the EP17 held draw
+are re-recorded then.
+
+**Predictions.** Four of five were wrong. A ~1,160 MB fixed base and campaign customer-years
+costing twice founder ones are what I did not know. Graded in
+`docs/staging/records/SEAT_PREREG_WHAT_400_FOUNDER_HOUSEHOLDS_COST_IN_MEMORY_AND_TIME_MEASURED_ON_SMALL_BOOKS_2026-10-19.md`.
+
+---
+
 ## 2026-10-19 — orientation: The evidence for the thesis went backwards this stretch, and the stretch found out why
 
 <!-- head: 3e0f624a6f16 -->
