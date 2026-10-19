@@ -130,6 +130,38 @@ challenger, and a challenger's book is built of switchers.
 landed at 10:03 UTC, fills that gap, and the founders now take the challenger shape. The
 pre-registration records both.
 
+## 5b. What the drawn world is checked against
+
+These are the figures above, stated as claims the drawn book must bear. `tools/world_claims.py`
+reads this block and measures the founders the production draw makes at the production founder
+count, pooled over eight seeds (about 1,700 homes). A claim outside its band fails
+`tests/tools/test_world_claims.py`, and it is printed in the Monday step. Each band is the published
+range, widened by 3 sd of sampling noise at that pool size (about 2 to 2.5 points). Change a figure
+here and the check moves with it. This block is the only place the band is written.
+
+```world-claims
+- id: dual_share_of_homes
+  measure: dual_share_of_homes
+  band: [0.70, 0.85]
+  source: "Floor: the whole market, 72% of households (CMA/GfK 2014 ¶41). Ceiling: a challenger built by switching, 80% (UW) to 90%+ (First Utility) of customers dual (CMA EMI App. 2.2), at 84-86% gas homes. §2, §5."
+- id: dual_share_of_gas_homes
+  measure: dual_share_of_gas_homes
+  band: [0.81, 0.96]
+  source: "§5a: P(both fuels with us | home has gas) 0.83 (market stock, CMA PF ¶9) to 0.94 (Ofgem CES 2017 §3; UW, First Utility)."
+- id: gas_home_share
+  measure: gas_home_share
+  band: [0.815, 0.885]
+  source: "§3: P(gas meter) 84% (DESNZ subnational 2024) to 86% (EHS 2017-18 AT3.5). The off-grid share is its complement, 14-16%."
+- id: gas_only_share_of_homes
+  measure: gas_only_share_of_homes
+  band: [0.0, 0.15]
+  source: "§2: a gas-only account is a split home's gas leg, 4m of 31m supplier customers (13%, CMA PF ¶9)."
+- id: gas_only_homes_without_gas
+  measure: gas_only_homes_without_gas
+  band: [0.0, 0.0]
+  source: "§2: Ofgem CES 2017 finds under 1% of households with gas and no electricity, so a gas-only account is a split home whose electricity is elsewhere. It sits on a home with a gas meter."
+```
+
 ## 6. Why the placeholder held for three months
 
 Three separate failures, each with its own evidence:

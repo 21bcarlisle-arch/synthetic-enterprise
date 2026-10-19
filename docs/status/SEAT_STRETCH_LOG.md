@@ -8,6 +8,28 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-19 — Knowledge pages now carry claims the drawn world is checked against
+
+<!-- head: dc4dc0e10408 -->
+
+**Director steer 19 Oct, knowledge that checks the world: items 1 to 3 built, item 4 handed on.**
+
+- **Item 1, anchor or range** (landed earlier today, `tools/world_constant_anchors.py`): **446** bare world constants are registered by name in `docs/design/world_constant_anchor_register.txt`, controlled as an exact set, with `DEFAULT_BAND_WEIGHTS` first.
+- **Item 2, pages carry checks.** Each population page now has a `world-claims` block that states the figure, its band and its source. `tools/world_claims.py` measures every claim on the founder book the production draw makes at the production founder count, over 8 seeds pooled (1,732 homes, 3,056 accounts). The band is written only on the page. `tests/simulation/test_the_opening_book_bears_the_published_fuel_split.py` used to carry its own copy and now reads the page.
+  - Fuel page §5b: dual share of homes 76.4% (band 70–85%); dual share of gas homes 90.0% (81–96%); gas homes 84.9% (81.5–88.5%), with off-grid as the complement; gas-only homes 3.9% (≤15%); gas-only on a home without gas 0.0% (must be 0).
+  - Payment-method page: direct-debit share of accounts 72.1% (66.5–75.5%). **GAP:** the published shares read so far start in 2020, while the founders open in 2016.
+  - **Red on first run: none.** The 17 Oct fix had already brought the book inside the bands, so a green first run says nothing about whether the check works. The mutation proof below does.
+  - **Mutation-proven on the production draw, not a fixture:**
+    - `P_DUAL_GIVEN_GAS` 0.90 to 0.50 reds three claims.
+    - The same constant at 1.0 reds only the conditional claim, so the homes-level band alone would have missed it.
+    - DD shares at 0.50 red the payment claim.
+    - In the tests, a band edited on the page reds the check. The partition control reaches holds, GAP and UNCHECKABLE, and an empty denominator reads UNCHECKABLE, not 0%.
+  - The Monday step prints the full table, red first, ahead of its end-to-end check. It says NOT MEASURED if the draw raises.
+- **Item 3, a change to who is in the world re-runs them.** The commit gate's `SUBJECT_TESTS` maps five subjects to `tests/tools/test_world_claims.py` (about 4 s): `FOUNDER_BOOK.yaml` (the founder count), `live_population.py`, `population_draw.py`, `premise_population.py`, and `net_new_acquisition.py` (the prospect cap). An edit to either page selects the test through the data surface. **GAP:** the claims measure the founder book only. The trickle and campaign routes' own composition is not yet measured.
+- **Item 4, one home per fact: not done.** `company/regulatory/fuel_mix_reconciliation.py` already shows the two Low Carbon % tables are like-for-like (both count biomass) and differ in their data by up to 3.4 points. Neither cites a vintage. Picking the right one needs the DESNZ source fetched and written up first (K8). Handed on as `one-low-carbon-table-from-a-fetched-source`.
+
+---
+
 ## 2026-10-19 — orientation: Nothing moved against the thesis this stretch, and nothing went backwards
 
 <!-- head: 31274b93f829 -->

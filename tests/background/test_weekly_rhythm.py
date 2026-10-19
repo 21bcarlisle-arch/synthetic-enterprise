@@ -579,3 +579,23 @@ def test_a_step_six_days_late_is_not_lapsed(rhythm):
     wr.tick(now=_at(2026, 9, 7))
     assert wr.tick(now=_at(2026, 9, 13))["action"] != "LAPSED"
     assert wr.read_baton()["due_on"] == "2026-09-07"
+
+
+def test_the_monday_step_prints_the_pages_claims_and_says_when_it_cannot(monkeypatch):
+    """Director steer 2026-10-19, item 2: the Monday step compares the world with each claim.
+    DEFECT: a section that rendered "hold" whatever happened, or vanished when the draw raised."""
+    from tools import world_claims
+
+    real = world_claims.check
+    monkeypatch.setattr(world_claims, "drawn_book", lambda: [])
+    monkeypatch.setattr(world_claims, "check", lambda book: real(book, [
+        {"id": "x", "measure": "direct_debit_share_of_accounts", "band": [0.5, 0.6],
+         "page": "p.md", "source": "s"}]))
+    text = "\n".join(wr._world_claims_section())
+    assert "RED: 1 of 1" in text and "UNCHECKABLE" in text, text
+
+    def boom():
+        raise OSError("no draw")
+    monkeypatch.setattr(world_claims, "drawn_book", boom)
+    text = "\n".join(wr._world_claims_section())
+    assert "NOT MEASURED" in text and "no draw" in text, text

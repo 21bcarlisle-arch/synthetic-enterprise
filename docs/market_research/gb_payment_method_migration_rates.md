@@ -333,3 +333,23 @@ side for the day one does.
 - a per-household self-disconnection rate on a meter fitted for debt (only stocks over all smart PPM
   customers are published: 564,191 electricity in Q2 2026);
 - prepayment back to credit on the SLC 28.1A reassessment (a supplier act; no flow published).
+
+## What the drawn world is checked against (2026-10-19)
+
+The direct-debit share above, stated as a claim the drawn founder book must bear.
+`tools/world_claims.py` reads this block and measures the accounts the production draw makes at the
+production founder count, pooled over eight seeds (about 3,000 accounts). It fails
+`tests/tools/test_world_claims.py` outside the band. The band is DESNZ's 69% (Sept 2020) to 73%
+(Sept 2025), widened by 3 sd of sampling noise at that pool size (about 2.5 points).
+
+**GAP:** the founders open in 2016, and the published shares read here start in 2020. The 2016 to
+2019 DD share was not read this session. QEP table 2.2 holds it, and it is the next thing to pull.
+The prepayment-against-standard-credit split of the remainder is not checked, because it is not
+established (row above) and the draw does not separate it: every non-DD founder is `other`.
+
+```world-claims
+- id: direct_debit_share_of_accounts
+  measure: direct_debit_share_of_accounts
+  band: [0.665, 0.755]
+  source: "DESNZ Quarterly Energy Prices, Dec 2025 commentary, p.9: standard electricity DD 69% (Sept 2020) to 72% (Sept 2025), gas to 73%."
+```

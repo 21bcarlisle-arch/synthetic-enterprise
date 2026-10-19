@@ -500,6 +500,7 @@ def _step_body(step: str, due_on: date, overdue: list[dict]) -> str:
     if step == MONDAY_STEP:
         from background.director_concerns import end_to_end_section
         lines += end_to_end_section()
+        lines += _world_claims_section()
         lines += _canon_against_canon_section()
         lines += _merge_pressure_section()
         lines += _run_cost_section()
@@ -549,6 +550,25 @@ def _merge_pressure_section(days: float = 7.0) -> list[str]:
             "**Ask why it recurs, not how to clear it.** If one kind or one path dominates, that is "
             "the next item; if the wait has not fallen since the last change aimed at it, say so.",
             ""]
+
+
+def _world_claims_section() -> list[str]:
+    """THE POPULATION PAGES' CLAIMS AGAINST THE DRAWN WORLD (director steer, 2026-10-19, item 2:
+    "The Monday end-to-end step compares the world with each claim and goes red on a gap"). The
+    commit gate already refuses a gap; this puts the whole table in front of the end-to-end check,
+    so a claim near its edge is read before it crosses."""
+    try:
+        from tools import world_claims
+        results = world_claims.check(world_claims.drawn_book())
+        bad = world_claims.failures(results)
+        measured = world_claims.render(results)
+        verdict = (f"**RED: {len(bad)} of {len(results)} claim(s) do not hold.** Each is a gap "
+                   "between a page and the world. Say in the end-to-end check which is wrong."
+                   if bad else f"All {len(results)} claim(s) hold.")
+    except Exception as exc:  # noqa: BLE001 -- a review that cannot measure says so on its face
+        measured, verdict = "", (f"**NOT MEASURED** -- `tools.world_claims` raised "
+                                 f"{type(exc).__name__}: {exc}")
+    return ["## The knowledge pages' claims against the drawn world", "", verdict, "", measured, ""]
 
 
 def _run_cost_section(days: float = 7.0) -> list[str]:

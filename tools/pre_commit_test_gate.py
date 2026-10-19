@@ -572,6 +572,15 @@ SUBJECT_TESTS = {
        for module in ("company/pricing/value_based_renewal.py", "company/pricing/default_belief.py",
                       "company/pricing/discovered_price_sensitivity.py",
                       "company/crm/enriched_churn_estimate.py")},
+    # A change to WHO IS IN THE WORLD re-asks the population pages' claims (director steer,
+    # 2026-10-19, item 3): the book went 13 -> 80 -> 400 founders with nothing re-asking the fuel
+    # page. The founder count, the founders' draw, the fuel/payment draw, the premise draw, and the
+    # prospect cap. ~4s. The claims measure the founder book only; the arrival routes' own
+    # composition is the named gap in `tools/world_claims.py`.
+    **{subject: ["tests/tools/test_world_claims.py"]
+       for subject in ("docs/design/FOUNDER_BOOK.yaml", "simulation/live_population.py",
+                       "simulation/population_draw.py", "simulation/premise_population.py",
+                       "simulation/net_new_acquisition.py")},
 }
 
 # A staged path under any of these = a code/config change that could break a control or its own
