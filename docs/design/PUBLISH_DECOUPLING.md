@@ -127,6 +127,45 @@ down with it. Making the banner's own path hook-independent is the obvious follo
 NOT done here — hook bypass is a WALL (2026-08-09 ruling), so it needs a designed narrow path,
 not a `--no-verify`.
 
+## A REFUSED PUBLISH WHOSE RED IS LATER ANSWERED (re-arm, 2026-10-19)
+
+**What happened.** Twice (13 Oct, 19 Oct) a publish was refused at the commit, its one red was
+answered at HEAD within hours (`.publish_gate_state.json` read `citation_at_head: dead`), and
+nothing re-attempted it. A human re-drove it by hand both times. Finding:
+`SEAT_FINDING_A_REFUSED_PUBLISH_WHOSE_RED_IS_LATER_ANSWERED_IS_NEVER_RE_ATTEMPTED_2026-10-19.md`.
+
+**Why nothing retried it.** `process_run_complete` archives the marker into `done/` *before* the
+commit and stamps it `publish-outcome: did-not-land` after a refusal.
+`background_worker.process_leftover_run_markers`, the only retry route, globbed `staging/` alone.
+Skipping the fingerprint re-arms only a *new* run, and sim_runner was deferring on memory.
+
+**What the re-arm does.** `background_worker.refused_marker_to_rearm` adds at most ONE `done/`
+marker to the sweep's population, and only when ALL of these hold. Each refusal is logged with its
+reason:
+
+1. The latest recorded failure reads `citation_at_head: dead`. The red that refused it now passes.
+2. No publish has landed since that failure (`last_landed_publish` is older than the failure's
+   `ts`). A landed publish, of this run or a later one, means nothing is owed.
+3. The `done/` marker whose `Git:` names that failure's `git_hash` says `did-not-land`.
+4. That marker is newer than the supersession frontier, so no later run has published.
+5. It carries no `publish-rearmed` tag. **Once per marker:** the tag is written into the marker
+   before the publisher is invoked. A re-attempt that fails again is not re-queued, which closes
+   the livelock `OPS_run_marker_sweep_livelock` paid for once. The sweep state file is not used for
+   this, because `_check_zero_progress` resets it to `{}` on an empty queue.
+6. `run_output_latest.json` is still byte-identical to the marker's own run JSON. If a later run
+   overwrote it, the publish would mix two runs' surfaces. That later run's own marker is the
+   right thing to publish.
+
+The re-attempt then goes through the same publisher, the same hooks, the same weekly window and
+the same newest-first ordering. **No gate is widened.**
+
+**Known bound.** A lock-skip spends the one re-attempt, because the tag is written before the
+invocation. A lock-skip means another publisher holds the run lock, which in practice is a newer
+run publishing, and that overtakes this one. A re-attempt that lands leaves the old
+`did-not-land` tag in the committed marker. The 19 Oct hand re-drive did the same (2a195224b).
+So the supersession frontier still under-reads that run as unpublished. Guard 2 is what keeps the
+re-arm from firing on it again. The frontier fault is filed separately and not fixed here.
+
 ## FOLLOW-ON (normal priority, per the sequencing doc)
 
 Ruling item 2's full annotation panel (a `/health` surface the banner links to) and polish.

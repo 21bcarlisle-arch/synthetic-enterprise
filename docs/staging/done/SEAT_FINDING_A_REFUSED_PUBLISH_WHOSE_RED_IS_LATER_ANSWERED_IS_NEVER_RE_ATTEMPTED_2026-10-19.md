@@ -78,3 +78,21 @@ whoever builds the re-arm should check that a re-queued publish can actually be 
 - This does not weaken the gate. The re-attempt goes through the same hooks.
 - The re-drive this finding came from is recorded in the BLOCKING finding
   `SEAT_FINDING_A_LEAVER_NEVER_READ_BILLS_A_QUARTER_OF_ITS_TRUE_USE_AND_REFUSED_THE_PUBLISH_2026-10-19.md`.
+
+## Resolution (worker, 19 Oct 2026)
+
+Built as the second option above: `background_worker.refused_marker_to_rearm`, read by
+`process_leftover_run_markers`. It adds at most one done/ marker to the sweep when the last
+refusal's citation reads dead, no publish has landed since, the marker is newer than the frontier,
+it has not been re-attempted, and `run_output_latest.json` is still that marker's run. Design:
+`docs/design/PUBLISH_DECOUPLING.md`. Controls (all seven mutations killed):
+`tests/background/test_a_refused_publish_is_re_attempted_once_its_red_is_dead.py`. No gate is
+widened.
+
+Checked against the real 19 Oct state. Today it refuses ("a publish has landed since the last
+refusal"). With the 09:15Z hand landing removed from the gate state, it picks
+`run_complete_20261019T033010Z.md`, the marker the human re-drove.
+
+Not fixed here: the re-driven publish committed the marker with its old did-not-land tag, so the
+frontier under-reads that run. That finding and the delivery-leg stall above have moved to
+`WORKER_FINDING_A_RE_DRIVEN_PUBLISH_KEEPS_ITS_REFUSAL_TAG_SO_THE_FRONTIER_UNDER_READS_IT_2026-10-19.md`.

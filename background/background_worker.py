@@ -134,6 +134,78 @@ def classify_markers(markers, newest_published):
     return superseded, pending
 
 
+PUBLISH_GATE_STATE_FILE = Path("docs/observability/.publish_gate_state.json")
+RUN_OUTPUT_LATEST = Path("docs/reports/run_output_latest.json")
+# Avoids every string in staging_archive_policy.RECORD_MARKERS, as the did-not-land note does.
+PUBLISH_REARMED_TAG = "<!-- publish-rearmed:"
+
+
+def refused_marker_to_rearm(done_dir: Path, newest_published: str | None,
+                            gate_state: dict | None = None,
+                            latest_output: Path | None = None) -> tuple[Path | None, str]:
+    """`(marker, reason)`: the ONE refused publish this sweep may re-attempt, or `(None, why not)`.
+
+    A refused publish archives its marker into done/ before the commit, so a glob of staging/
+    never sees it again. When the red that refused it is later answered at HEAD, nothing
+    re-attempted it (13 Oct, 19 Oct: both re-driven by hand). Design and each guard's reason:
+    docs/design/PUBLISH_DECOUPLING.md "A REFUSED PUBLISH WHOSE RED IS LATER ANSWERED"."""
+    import filecmp
+
+    from background import staging_archive_policy
+    if gate_state is None:
+        try:
+            gate_state = json.loads(PUBLISH_GATE_STATE_FILE.read_text())
+        except (OSError, ValueError) as exc:
+            return None, f"publish gate state unreadable ({exc})"
+    failures = (gate_state or {}).get("failures") or []
+    if not failures:
+        return None, "no refused publish is recorded"
+    last = failures[-1]
+    if last.get("citation_at_head") != "dead":
+        return None, (f"the last refusal's citation reads {last.get('citation_at_head')!r} at "
+                      f"HEAD, not 'dead' -- its red is not shown answered")
+    landed, failed_at = gate_state.get("last_landed_publish"), last.get("ts")
+    if landed is not None and (failed_at is None or landed >= failed_at):
+        return None, "a publish has landed since the last refusal, so nothing is owed"
+    git_hash = last.get("git_hash")
+    if not git_hash:
+        return None, "the last refusal names no git_hash, so no marker can be tied to it"
+    candidates = []
+    for path in Path(done_dir).glob("run_complete_*.md"):
+        try:
+            text = path.read_text(errors="replace")
+        except OSError:
+            continue
+        if f"\nGit: {git_hash}" in text and staging_archive_policy.publish_did_not_land(path):
+            candidates.append((path, text))
+    if not candidates:
+        return None, f"no did-not-land marker in done/ names {git_hash}"
+    marker, text = max(candidates, key=lambda c: c[0].name)
+    stamp = _marker_stamp(marker.name)
+    if not stamp or (newest_published and stamp <= newest_published):
+        return None, f"{marker.name} is overtaken by published run {newest_published}"
+    if PUBLISH_REARMED_TAG in text:
+        return None, f"{marker.name} was already re-attempted once"
+    run_json = next((Path(line[6:].strip()) for line in text.splitlines()
+                     if line.startswith("JSON: ")), None)
+    latest = latest_output if latest_output is not None else RUN_OUTPUT_LATEST
+    try:
+        same = bool(run_json) and filecmp.cmp(run_json, latest, shallow=False)
+    except OSError:
+        same = False
+    if not same:
+        return None, (f"{latest.name} is no longer {marker.name}'s run output ({run_json}), so "
+                      f"a re-attempt would publish a mix of two runs")
+    return marker, f"{marker.name}'s refusal (git {git_hash}) now reads dead at HEAD"
+
+
+def _stamp_rearmed(marker: Path) -> None:
+    with open(marker, "a") as fh:
+        fh.write(f"\n{PUBLISH_REARMED_TAG} at={datetime.now(timezone.utc).isoformat()} -->\n"
+                 "Re-attempted once by background_worker.process_leftover_run_markers, because "
+                 "the red that refused it read dead at HEAD.\n")
+
+
 def retire_superseded_marker(marker: Path, newest_published: str, done_dir: Path) -> bool:
     """Move a superseded marker to done/ with the reason RECORDED IN THE FILE.
 
@@ -392,6 +464,14 @@ def process_leftover_run_markers():
     unconditional (not gated behind queue state, peak-hours, or any other
     check) for the regression guard on this exact property."""
     markers = sorted(STAGING_DIR.glob("run_complete_*.md"))
+    done_dir = STAGING_DIR / "done"
+    newest_published = _newest_published_stamp(done_dir)
+    # The refused publish whose red was later answered sits in done/, out of the glob above.
+    # It joins the population as a done/ path, which the publisher accepts as it is.
+    rearm, why = refused_marker_to_rearm(done_dir, newest_published)
+    if rearm is not None:
+        log(f"Re-arming a refused publish: {why}")
+        markers = sorted(markers + [rearm], key=lambda p: p.name)
     if not markers:
         _check_zero_progress([])
         return
@@ -403,8 +483,6 @@ def process_leftover_run_markers():
     # has already overtaken is RETIRED, not retried forever. Retiring is a
     # rename, not a pipeline run, so it needs no run lock and cannot be
     # lock-skipped -- which is what turned this sweep into a livelock.
-    done_dir = STAGING_DIR / "done"
-    newest_published = _newest_published_stamp(done_dir)
     superseded, pending = classify_markers(markers, newest_published)
 
     if superseded:
@@ -439,6 +517,8 @@ def process_leftover_run_markers():
         f"({order[0].name} first of {len(order)})")
     processor = Path(__file__).parent / "process_run_complete.py"
     for position, marker in enumerate(order):
+        if marker == rearm:
+            _stamp_rearmed(marker)   # before the call: a re-attempt that fails is not re-queued
         try:
             result = subprocess.run(
                 [sys.executable, str(processor), str(marker)],
