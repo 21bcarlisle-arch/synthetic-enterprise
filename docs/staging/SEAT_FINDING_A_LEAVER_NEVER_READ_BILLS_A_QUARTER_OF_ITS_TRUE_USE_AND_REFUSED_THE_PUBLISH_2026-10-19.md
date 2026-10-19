@@ -229,3 +229,38 @@ for the meter-read model.
 
 Legs (d) and (c) are unchanged: (d) waits for a published run carrying 6208ea6dd; (c) waits on (d).
 The build of (b) is not started here.
+
+### Leg (d) GRADED: held, on the unpublished 59e1658d6 run (worker, 19 Oct 23:10 BST)
+
+Run: `docs/reports/run_output_59e1658d6_20261019T200818Z.json` (20:08Z, **UNPUBLISHED**; the
+publish window is closed until 26 Oct). 6208ea6dd is an ancestor of 59e1658d6. The ledger and
+customer sample were regenerated from that run into a scratch directory with the publishers' own
+`generate()` functions, and the defect-4 sweep was run over them. The baseline arm,
+`run_output_ad8afadc5_20261019T132751Z.json`, lacks 6208ea6dd.
+
+| Prediction (filed above, before the run) | ad8afadc5 (no fix) | 59e1658d6 (fix) | Grade |
+|---|---|---|---|
+| C7 billed/true rises from 0.23 to ≥ 0.9 | 0.236 (2016: 3,100 billed / 13,230 true kWh) | **1.003** (13,179 / 13,230) | **Held** |
+| C7 2016–2019 stop inverting | billed £459 / £529 / £486 / £299 vs gross £1,131 / £1,292 / £992 / £745 | billed **£1,711 / £2,011 / £1,817 / £1,136**, same gross | **Held**, all four |
+| The four `KNOWN_OPEN_INVERSIONS` rows can go | sweep red on exactly these 4 when they are removed | **0 inversions** across the book with them removed | **Held** |
+
+It was one variable. Billed totals across the whole book moved +£4,903 (£2,471,811 → £2,476,714),
+about C7's own change, and the true totals are identical (£1,647,726). C7 still returns 42
+estimates out of 42. Its estimate is now right, but it is still never read; that is the
+read-stream incoherence noted under leg (b), and it is untouched here.
+
+**The rows were not deleted by hand.** The gate reads the COMMITTED ledger, which is still the
+8b6fea024 book, and on that book C7 still inverts (re-run just now: 4 red with the rows removed).
+Deleting the rows now would red every lane until 26 Oct. Instead,
+`EXCUSED_UNTIL_THE_BOOK_CARRIES` in `tests/tools/test_bill_correctness_addendum_defect4.py` keys
+each C7 row to 6208ea6dd. The excuse holds only while the committed sample's `meta.git_commit`
+lacks that commit. It lapses by itself on the first publish carrying the fix, and it also lapses
+when git cannot place the book. Control:
+`test_a_fixed_rows_excuse_holds_on_a_book_without_the_fix_and_lapses_on_one_with_it` (both
+branches, plus None and an unknown sha). The two mutations (always-carries, never-carries) each
+red it. A pre-fix book relabelled as 59e1658d6 reds the sweep. The rows themselves can be
+deleted as tidying once the 26 Oct publish lands. They are inert from then on.
+
+**Next leg: (c)**, regenerating the stale C7–C9 HH files (`hh_load_shape_clustering_2026.md` §8,
+prediction on that page). It is not started in this turn. (b) stays open behind its K6 page.
+(d) no longer blocks: C7 was 67% of the open undercharge, and it now bills at true.

@@ -25,6 +25,7 @@ match" confusion the director hit can't recur silently.
 """
 import json
 import re
+import subprocess
 from collections import defaultdict
 from datetime import date, timedelta
 from pathlib import Path
@@ -139,8 +140,33 @@ KNOWN_OPEN_INVERSIONS = {
     # Red on the 2026-10-19 run (8b6fea024), which refused its publish on these four. 42 estimates
     # in a row at the 3,100 kWh EAC against 13,230 kWh true in 2016, never read (the 21B.4 read
     # instruction is off in the standing policy), then closed on an estimate since 2026-10-17.
+    # FIXED by 6208ea6dd (the HH account registers its own EAC) and GRADED on the unpublished
+    # 59e1658d6 run: C7 billed/true 0.236 -> 1.003, all four years above gross, 0 inversions in the
+    # book. Kept only while the COMMITTED ledger predates the fix; see `_excused`.
     **{("C7", year): _NEVER_READ_THEN_CLOSED_ON_AN_ESTIMATE for year in (2016, 2017, 2018, 2019)},
 }
+# Rows that lapse by themselves the moment the committed book carries their fix. Deleting them by
+# hand before that publish would red every lane on a ledger that still inverts; leaving them after
+# it would be a hole exactly where the defect would recur.
+EXCUSED_UNTIL_THE_BOOK_CARRIES = {("C7", year): "6208ea6dd" for year in (2016, 2017, 2018, 2019)}
+
+
+def _book_carries(fix_commit: str, book_commit) -> bool:
+    """Whether the run behind the committed book contains `fix_commit`. If git cannot say (no
+    commit recorded, or one this clone does not have), the answer is True: the excuse lapses and
+    the gate reds, rather than excusing a book nobody can place."""
+    if not book_commit:
+        return True
+    probe = subprocess.run(["git", "merge-base", "--is-ancestor", fix_commit, book_commit],
+                           cwd=PROJECT, capture_output=True)
+    return probe.returncode != 1
+
+
+def _excused(key, book_commit) -> bool:
+    if key not in KNOWN_OPEN_INVERSIONS:
+        return False
+    fix = EXCUSED_UNTIL_THE_BOOK_CARRIES.get(key)
+    return fix is None or not _book_carries(fix, book_commit)
 
 
 @pytest.mark.skipif(not LEDGER_PATH.exists() or not SAMPLE_PATH.exists(),
@@ -216,6 +242,7 @@ def test_billed_total_never_less_than_gross_margin_for_any_real_customer_year():
     # A provisional year is left out, not passed: see `unresolved_account_years`. The control
     # below asks that the exclusion stays a small minority, so it cannot quietly empty the gate.
     provisional = unresolved_account_years(ledger)
+    book_commit = sample.get("meta", {}).get("git_commit")
 
     violations = []
     checked = 0
@@ -225,7 +252,7 @@ def test_billed_total_never_less_than_gross_margin_for_any_real_customer_year():
         if total is None:
             continue
         checked += 1
-        if total < gross - 0.01 and (account, year) not in KNOWN_OPEN_INVERSIONS:
+        if total < gross - 0.01 and not _excused((account, year), book_commit):
             violations.append((account, year, round(total, 2), round(gross, 2)))
 
     assert checked > 0, "no customer-year pairs matched between the two files -- gate is vacuous"
@@ -360,6 +387,16 @@ def test_the_gate_still_fires_on_an_inversion_catchup_cannot_explain():
     assert violations == [("BROKEN", 2021)], (
         "netting catch-up swallowed a real inversion -- the repair is now a fail-open"
     )
+
+
+def test_a_fixed_rows_excuse_holds_on_a_book_without_the_fix_and_lapses_on_one_with_it():
+    """The C7 rows must be able to take BOTH branches: excused on the 8b6fea024 book, which lacks
+    6208ea6dd and still inverts, and NOT excused on 59e1658d6, which carries it and was graded
+    clean. A guard that excused everything, or nothing, would pass a one-sided test."""
+    key = ("C7", 2016)
+    verdicts = {book: _excused(key, book) for book in ("8b6fea024", "59e1658d6", None, "0" * 9)}
+    assert verdicts == {"8b6fea024": True, "59e1658d6": False, None: False, "0" * 9: False}, verdicts
+    assert _excused(("NOT_A_ROW", 2016), "8b6fea024") is False
 
 
 def test_EVERY_negative_invoice_in_the_live_ledger_is_catchup_explained():
