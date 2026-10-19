@@ -143,6 +143,7 @@ __all__ = [
     "observable_level",
     "observable_multipliers",
     "ranking_between",
+    "WithinSegmentRanking",
     "regime_boundary_month",
     "run_backtest",
     "backtest_run_output",
@@ -394,22 +395,95 @@ def _paired_auc(pos_a: Sequence[float], neg_a: Sequence[float], pos_b: Sequence[
         nan = (float("nan"), None)
         return Ranking(m, n, nan, nan, nan,
                        f"cannot tell: {m} departer(s) and {n} stayer(s), an interval needs two of each")
+    auc_pc, auc_fl, var_pc, var_fl, cov = _delong_components(pos_a, neg_a, pos_b, neg_b)
+    diff = _bound(auc_pc - auc_fl, var_pc + var_fl - 2 * cov)
+    return Ranking(m, n, _bound(auc_pc, var_pc), _bound(auc_fl, var_fl), diff,
+                   _ranking_verdict(diff, names))
+
+
+def _bound(mean: float, var: float) -> tuple[float, tuple[float, float]]:
+    half = _TWO_SIDED_95 * math.sqrt(max(var, 0.0))
+    return mean, (mean - half, mean + half)
+
+
+def _ranking_verdict(diff: tuple[float, tuple[float, float]], names: tuple[str, str]) -> str:
+    lo, hi = diff[1]
+    return (f"{names[0]} ranks better" if lo > 0 else f"{names[1]} ranks better" if hi < 0
+            else "cannot tell: the 95% interval straddles zero")
+
+
+def _delong_components(pos_a: Sequence[float], neg_a: Sequence[float], pos_b: Sequence[float],
+                       neg_b: Sequence[float]) -> tuple[float, float, float, float, float]:
+    """Each rule's AUC, each one's DeLong variance, and their covariance, over two or more of each."""
+    m, n = len(pos_a), len(neg_a)
     pc10, pc01 = _placements(pos_a, neg_a)
     fl10, fl01 = _placements(pos_b, neg_b)
+    return (sum(pc10) / m, sum(fl10) / m,
+            _cov(pc10, pc10) / m + _cov(pc01, pc01) / n,
+            _cov(fl10, fl10) / m + _cov(fl01, fl01) / n,
+            _cov(pc10, fl10) / m + _cov(pc01, fl01) / n)
 
-    def bound(mean: float, var: float) -> tuple[float, tuple[float, float]]:
-        half = _TWO_SIDED_95 * math.sqrt(max(var, 0.0))
-        return mean, (mean - half, mean + half)
 
-    auc_pc, auc_fl = sum(pc10) / m, sum(fl10) / m
-    var_pc = _cov(pc10, pc10) / m + _cov(pc01, pc01) / n
-    var_fl = _cov(fl10, fl10) / m + _cov(fl01, fl01) / n
-    cov = _cov(pc10, fl10) / m + _cov(pc01, fl01) / n
-    diff = bound(auc_pc - auc_fl, var_pc + var_fl - 2 * cov)
-    lo, hi = diff[1]
-    verdict = (f"{names[0]} ranks better" if lo > 0 else f"{names[1]} ranks better" if hi < 0
-               else "cannot tell: the 95% interval straddles zero")
-    return Ranking(m, n, bound(auc_pc, var_pc), bound(auc_fl, var_fl), diff, verdict)
+@dataclass(frozen=True)
+class WithinSegmentRanking:
+    """The Ranking restricted to departer-stayer pairs in the same segment.
+
+    Flat gives one p per segment, so over these pairs it scores exactly 0.5 and the difference is
+    the key's own information. The whole-book difference also counts pairs across segments, where
+    flat ranks by segment hazard and can sit below chance: a key that merely undoes that ordering
+    gains there with nothing known about any one customer. Report this beside the whole book,
+    never in its place.
+
+    A stratified DeLong, not a bootstrap: segments hold disjoint accounts, so the per-segment
+    estimates are independent and the term's variance is the pair-weighted sum of each segment's
+    paired DeLong variance -- deterministic, and graded by the same code as the whole-book figure.
+    A segment with fewer than two departers or two stayers has no DeLong variance; its pairs are
+    left out and counted in `pairs_excluded`, its reason in `segments_excluded`.
+    """
+
+    pairs: int
+    pairs_excluded: int
+    segments_graded: Mapping[str, tuple[int, int]]
+    segments_excluded: Mapping[str, str]
+    per_customer: tuple[float, tuple[float, float] | None]
+    flat: tuple[float, tuple[float, float] | None]
+    difference: tuple[float, tuple[float, float] | None]
+    verdict: str
+
+
+def _ranking_within_segment(departers: Sequence["AccountForecast"],
+                            stayers: Sequence["AccountForecast"],
+                            names: tuple[str, str] = ("per-customer", "flat"),
+                            ) -> WithinSegmentRanking:
+    by_seg: dict[str, tuple[list, list]] = defaultdict(lambda: ([], []))
+    for f in departers:
+        by_seg[f.segment][0].append(f)
+    for f in stayers:
+        by_seg[f.segment][1].append(f)
+    parts, graded, excluded, dropped = [], {}, {}, 0
+    for seg, (pos, neg) in sorted(by_seg.items()):
+        m, n = len(pos), len(neg)
+        if m < 2 or n < 2:
+            dropped += m * n
+            excluded[seg] = f"{m} departer(s) and {n} stayer(s), an interval needs two of each"
+            continue
+        graded[seg] = (m, n)
+        parts.append((m * n, _delong_components(
+            [f.per_customer_departure_p for f in pos], [f.per_customer_departure_p for f in neg],
+            [f.flat_departure_p for f in pos], [f.flat_departure_p for f in neg])))
+    total = sum(w for w, _ in parts)
+    if not total:
+        nan = (float("nan"), None)
+        return WithinSegmentRanking(0, dropped, graded, excluded, nan, nan, nan,
+                                    "cannot tell: no segment holds two departers and two stayers")
+    auc_a = sum(w * c[0] for w, c in parts) / total
+    auc_b = sum(w * c[1] for w, c in parts) / total
+    var_a = sum(w * w * c[2] for w, c in parts) / total ** 2
+    var_b = sum(w * w * c[3] for w, c in parts) / total ** 2
+    var_d = sum(w * w * (c[2] + c[3] - 2 * c[4]) for w, c in parts) / total ** 2
+    diff = _bound(auc_a - auc_b, var_d)
+    return WithinSegmentRanking(total, dropped, graded, excluded, _bound(auc_a, var_a),
+                                _bound(auc_b, var_b), diff, _ranking_verdict(diff, names))
 
 
 def ranking_between(a: "Backtest", b: "Backtest", outcome: str | None = None,
@@ -533,6 +607,10 @@ class Backtest:
     departure_calibration: Mapping[str, tuple[float, tuple[float, float] | None]] | None = None
     # Departed against stayed over the whole graded book: the ranking, which the level cannot buy.
     departure_ranking: Ranking | None = None
+    # The same ranking over same-segment pairs only, where flat is 0.5 by construction: the term
+    # "the key clears flat" is graded on. The whole-book figure also credits the key for flat's
+    # cross-segment ordering (WORKER_FINDING_THE_SWITCH_KEYS_WHOLE_BOOK_GAIN_..._2026-10-19).
+    departure_ranking_within_segment: WithinSegmentRanking | None = None
     # The book's own departure record by calendar year, every account on supply: months at risk,
     # departures, and (with a register) switches and moves. A reading of the ledger, not a forecast.
     departures_by_calendar_year: Mapping[int, Mapping[str, int]] | None = None
@@ -1271,6 +1349,8 @@ def run_backtest(
         },
         departure_ranking=_ranking([f for f in forecasts if f.departed],
                                    [f for f in forecasts if not f.departed]),
+        departure_ranking_within_segment=_ranking_within_segment(
+            [f for f in forecasts if f.departed], [f for f in forecasts if not f.departed]),
         departures_by_calendar_year={y: dict(r) for y, r in sorted(by_year.items())},
         hazard_fit_months=(_month_label(first if hazard_start is None else hazard_start),
                            _month_label(fit_end)),
@@ -1336,6 +1416,7 @@ if __name__ == "__main__":  # pragma: no cover - a reading aid, not a door
     print(f"hazard window {bt.hazard_fit_months}")
     print(f"departure calibration (mean p - realised) {bt.departure_calibration}")
     print(f"departure ranking {bt.departure_ranking}")
+    print(f"departure ranking within segment {bt.departure_ranking_within_segment}")
     print(f"flat incidence by cause (predicted, realised) {bt.departure_incidence_by_cause}")
     print(f"flat calibration by cause {bt.departure_calibration_by_cause}")
     for year, row in (bt.departures_by_calendar_year or {}).items():

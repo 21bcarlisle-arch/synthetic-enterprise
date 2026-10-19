@@ -35,3 +35,11 @@ be 0.
 grades B11 across varied population draws. Each draw re-cuts which segments flat mis-orders, so
 its whole-book difference carries this credit as a varying term. Read its spread across draws
 next to the within-segment term, or a wide spread will be read as seed noise in the key.
+
+**Built and read (2026-10-19 ~18:55 BST, worker).** `Backtest.departure_ranking_within_segment`
+(`WithinSegmentRanking`, stratified DeLong) now prints beside `departure_ranking`. The control is
+`test_a_key_that_only_reorders_segments_clears_flat_on_the_whole_book_and_not_within`, and the
+mutation `within-pairs-across-segments` reds it. The read on `8b6fea024` and `ad8afadc5` (unpublished)
+gives: **2020 clears** (+0.061 (+0.002, +0.120); +0.065 (+0.005, +0.125)), **2022 and 2023 cannot
+tell**. **B11: cannot tell at this width.** Grade and reasons:
+`docs/staging/records/SEAT_PREREG_B11_THE_WITHIN_SEGMENT_TERM_ON_8B6FEA024_AND_AD8AFADC5_2026-10-19.md`.

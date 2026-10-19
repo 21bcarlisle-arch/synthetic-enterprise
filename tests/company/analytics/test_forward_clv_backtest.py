@@ -25,6 +25,7 @@ from company.analytics.forward_clv import (
     _month_index,
     _paired,
     _ranking,
+    _ranking_within_segment,
     backtest_run_output,
     book_from_run_output,
     exit_cells,
@@ -421,6 +422,62 @@ def test_every_ranking_verdict_is_reachable():
     }
     assert "per-customer ranks better" in verdicts and "flat ranks better" in verdicts
     assert sum(v.startswith("cannot tell") for v in verdicts) == 2
+
+
+def _seg_fc(aid, segment, pc, fl, departed):
+    return AccountForecast(aid, segment, 60, 0.0, 0.0, 0.0, 0.0, pc, fl, departed)
+
+
+def test_a_key_that_only_reorders_segments_clears_flat_on_the_whole_book_and_not_within():
+    """The finding's control (WORKER_FINDING_THE_SWITCH_KEYS_WHOLE_BOOK_GAIN_..._2026-10-19): two
+    segments, flat's order the reverse of their departure rates, and a key that is a constant
+    multiplier of flat within each segment. The key knows nothing about any one customer, so the
+    within-segment difference is 0 while the whole-book difference is above 0.
+    Mutation `within-pairs-across-segments` (group every account into one segment in
+    `_ranking_within_segment`) makes the within term equal the whole book's and reds this."""
+    quiet = [_seg_fc(f"Q{i}", "resi gas", 0.30 * 0.3, 0.30, i < 2) for i in range(12)]
+    leaky = [_seg_fc(f"L{i}", "resi electricity", 0.10 * 4.0, 0.10, i < 8) for i in range(12)]
+    book = quiet + leaky
+    leavers, stayers = [f for f in book if f.departed], [f for f in book if not f.departed]
+    whole = _ranking(leavers, stayers)
+    within = _ranking_within_segment(leavers, stayers)
+    assert whole.flat[0] < 0.5 < whole.per_customer[0]
+    assert whole.difference[0] > 0
+    assert within.per_customer[0] == within.flat[0] == 0.5
+    assert within.difference[0] == 0.0
+    assert within.verdict.startswith("cannot tell")
+    assert within.pairs == 2 * 10 + 8 * 4 and within.pairs_excluded == 0
+
+
+def test_one_segment_makes_the_within_term_the_whole_book_and_a_thin_segment_is_counted_out():
+    """With one segment the stratified DeLong must be the whole-book DeLong exactly (the weights
+    and variances are not re-derived wrongly), and a segment under two departers is excluded with
+    its pairs counted -- asserting the exclusion branch can be taken before what it does."""
+    leave = [_seg_fc(f"D{i}", "resi dual", 0.5 + 0.02 * (i % 5), 0.5 + 0.01 * (i % 3), True)
+             for i in range(9)]
+    stay = [_seg_fc(f"S{i}", "resi dual", 0.48 + 0.015 * (i % 7), 0.5 + 0.01 * (i % 4), False)
+            for i in range(14)]
+    whole, within = _ranking(leave, stay), _ranking_within_segment(leave, stay)
+    for attr in ("per_customer", "flat", "difference"):
+        assert getattr(within, attr)[0] == pytest.approx(getattr(whole, attr)[0])
+        assert getattr(within, attr)[1] == pytest.approx(getattr(whole, attr)[1])
+    assert within.verdict == whole.verdict
+    thin = [_seg_fc("T0", "sme electricity", 0.9, 0.2, True),
+            _seg_fc("T1", "sme electricity", 0.1, 0.2, False),
+            _seg_fc("T2", "sme electricity", 0.1, 0.2, False)]
+    split = _ranking_within_segment(leave + thin[:1], stay + thin[1:])
+    assert split.segments_excluded.keys() == {"sme electricity"}
+    assert split.pairs_excluded == 1 * 2 and split.pairs == 9 * 14
+    assert split.difference[0] == pytest.approx(whole.difference[0])
+    empty = _ranking_within_segment(thin[:1], thin[1:])
+    assert empty.pairs == 0 and empty.verdict.startswith("cannot tell: no segment")
+
+
+def test_the_backtest_reports_the_within_segment_term_beside_the_whole_book():
+    bt = run_backtest(_book(), _month_index("2025-06"))
+    w, r = bt.departure_ranking_within_segment, bt.departure_ranking
+    assert w is not None and r is not None
+    assert w.pairs + w.pairs_excluded <= r.departers * r.stayers
 
 
 def test_calibration_in_the_large_is_mean_p_minus_the_realised_rate():
