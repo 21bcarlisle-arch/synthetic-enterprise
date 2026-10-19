@@ -414,6 +414,24 @@ _DRAWN_REGISTRY_EAC_KWH: dict[str, float | None] = {
 _DRAWN_EFFECTIVE_EAC_KWH: dict[str, float] = dict(EFFECTIVE_EAC_KWH)
 
 
+def register_hh_accounts_eac(
+    customers: list[dict], hh_consumption_by_customer: dict[str, dict[str, list[float]]],
+) -> list[tuple[str, float, str]]:
+    """Write the registry EAC a gaining supplier is handed into each half-hourly record that
+    registered none, from its own metered import (`registry_eac_from_own_reads`). Returns
+    `(customer_id, kwh, basis)` for each record it wrote; a record already registered is left."""
+    written = []
+    for c in customers:
+        if not is_hh_customer(c) or c["eac_kwh"] is not None:
+            continue
+        reads = hh_consumption_by_customer[c["customer_id"]]
+        eac, basis = registry_eac_from_own_reads(
+            hh_shape_fn(reads), list(reads), c["acquisition_date"])
+        c["eac_kwh"] = round(eac, 1)
+        written.append((c["customer_id"], c["eac_kwh"], basis))
+    return written
+
+
 def start_from_the_drawn_book() -> None:
     """Put back what a previous run in this process wrote into module-level book state: the
     registry EACs, `EFFECTIVE_EAC_KWH`, and the run's own acquisitions."""
@@ -1942,6 +1960,20 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
               f"{_fab_customer.get('eac_kwh')} -> own reads {_own_eac:.0f} kWh ({_own_basis[:22]})")
         _fab_customer["eac_kwh"] = round(_own_eac, 1)
         EFFECTIVE_EAC_KWH[_fab_cid] = _fab_customer["eac_kwh"]
+
+    # A HALF-HOURLY ACCOUNT IS HANDED AN EAC TOO (2026-10-19). The HH roster records carry
+    # `eac_kwh: None`, so before its first actual read the bill fell back to the TDCV MEDIUM
+    # band: C7 billed 3,100 kWh a year against 13,230 used, and was 67% of the open closing
+    # undercharge on the 19 Oct book
+    # (docs/staging/SEAT_FINDING_A_LEAVER_NEVER_READ_BILLS_A_QUARTER_OF_ITS_TRUE_USE_AND_REFUSED_THE_PUBLISH_2026-10-19.md).
+    # The registration is the same rule as a fabric premise's, read through the same shape
+    # settlement uses. Demand is untouched: an HH account settles on its file, never on its EAC.
+    # EFFECTIVE_EAC_KWH is left on its whole-file mean deliberately, so the hedge is not a
+    # second variable in this change (C7 12,802 vs 13,179 kWh; the I&C sites within 0.2%).
+    for _hh_cid, _hh_eac, _hh_basis in register_hh_accounts_eac(
+            ELEC_CUSTOMERS, hh_consumption_by_customer):
+        print(f"  registry EAC {_hh_cid} [HH]: none registered -> own reads {_hh_eac:.0f} kWh "
+              f"({_hh_basis[:22]})")
 
     def _lookback_temps_fn(cid):
         weather_means = weather_by_customer[cid]
