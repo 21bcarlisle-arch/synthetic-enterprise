@@ -707,6 +707,29 @@ def canon_doc_lacks_where_it_lands(name: str, text: str) -> bool:
     return not any(line.strip().lower() == "## where this lands" for line in text.splitlines())
 
 
+#: The last set of unrecommended concern ids flagged, so a row is logged once per change and not
+#: every cycle while it waits.
+_LAST_UNRECOMMENDED: tuple[str, ...] = ()
+
+
+def flag_concerns_without_recommendation(record=None) -> list[str]:
+    """Log every OPEN `for_the_director` row that has no "I recommend X" (director, 19 Oct 16:38:
+    *"Even items that are reserved for me I'd prefer it to make a considered recommendation"*).
+    Returns the reasons. Flagged, not refused: the record is the orienting seat's to write."""
+    global _LAST_UNRECOMMENDED
+    from background import direction, director_concerns
+
+    rows = director_concerns.open_rows(director_concerns.read_raw() if record is None else record)
+    reasons = [r for r in (direction.concern_lacks_recommendation(row) for row in rows) if r]
+    ids = tuple(sorted(str(row.get("id")) for row in rows
+                       if direction.concern_lacks_recommendation(row)))
+    if ids != _LAST_UNRECOMMENDED:
+        for reason in reasons:
+            log(f"FLAGGED {reason}")
+        _LAST_UNRECOMMENDED = ids
+    return reasons
+
+
 def check_once(seen: set[str]) -> set[str]:
     """Check docs/staging/ once. Notifies (filename only) for any file not in
     `seen`, logs each notification, queues any genuinely new actionable
@@ -738,6 +761,11 @@ def check_once(seen: set[str]) -> set[str]:
         acknowledge_arrivals()
     except Exception as exc:  # noqa: BLE001 -- never take down the scan that finds staged work
         log(f"advisor channel arrival check failed: {type(exc).__name__}: {exc}")
+
+    try:
+        flag_concerns_without_recommendation()
+    except Exception as exc:  # noqa: BLE001 -- never take down the scan that finds staged work
+        log(f"concern recommendation check failed: {type(exc).__name__}: {exc}")
 
     files = current_files()
     new_files = sorted(files - seen)

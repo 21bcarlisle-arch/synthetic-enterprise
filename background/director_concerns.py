@@ -10,7 +10,8 @@ THE LIST IS `DIRECTION.yaml`'s `for_the_director`, and that record is rewritten 
 seat every stretch. So a concern written there would vanish at the next rewrite unless something
 carries it. Three halves, each a mechanism:
 
-  * THIS CLI writes a row with a stable `id`, refuses one with no proposal, and runs
+  * THIS CLI writes a row with a stable `id`, refuses one with no proposal or no recommendation
+    (director, 19 Oct: reserved items too arrive with "I recommend X"), and runs
     `recommendation_guard.check_message` over `what` + `proposal` so a bare ask never enters the
     list. It edits ONLY the `for_the_director` block of the file, so the rest of the record stays
     byte-identical, and it never commits -- it prints the pathspec to land.
@@ -127,7 +128,10 @@ def carry_problems(before, after) -> list[str]:
                 "vanishes from the director's list unanswered")
         elif new.get("status") == "open" and any(
                 str(new.get(k) or "").strip() != str(row.get(k) or "").strip()
-                for k in ("what", "proposal")):
+                # A recommendation may be ADDED to a carried row (the 19 Oct backfill), never
+                # dropped or reworded under him once it is there.
+                for k in ("what", "proposal") + (
+                    ("recommendation",) if str(row.get("recommendation") or "").strip() else ())):
             problems.append(
                 f"for_the_director rewrote the open concern {rid!r} -- carry it verbatim, or "
                 "withdraw it with a resolution and raise the new wording under a new id")
@@ -252,8 +256,10 @@ def _today(now: datetime | None) -> str:
 
 
 def raise_concern(kind: str, what: str, proposal: str, evidence: str | None = None, *,
-                  path: Path | None = None, now: datetime | None = None) -> dict:
-    """Append an OPEN concern. Refuses one with no proposal, an unknown kind, or a bare ask."""
+                  recommendation: str = "", path: Path | None = None,
+                  now: datetime | None = None) -> dict:
+    """Append an OPEN concern. Refuses one with no proposal, no recommendation, an unknown kind, or
+    a bare ask."""
     from background.recommendation_guard import RecommendationRequired, check_message
 
     path = path or direction_mod.DIRECTION_PATH
@@ -272,6 +278,11 @@ def raise_concern(kind: str, what: str, proposal: str, evidence: str | None = No
         raise ConcernRefused(
             "recommendation_guard refused it as a bare ask -- state the concern and what you "
             f"propose rather than asking: {exc}") from exc
+    recommendation = (recommendation or "").strip()
+    lacks = direction_mod.concern_lacks_recommendation(
+        {"id": "the new concern", "status": "open", "recommendation": recommendation})
+    if lacks:
+        raise ConcernRefused(lacks)
     text = path.read_text(encoding="utf-8")
     record = read_raw(path)
     if record is None:
@@ -279,7 +290,7 @@ def raise_concern(kind: str, what: str, proposal: str, evidence: str | None = No
     rows = [dict(r) for r in rows_of(record)]
     row = {"id": _unique_id(_slug(what), {str(r.get("id")) for r in rows}),
            "raised": _today(now), "kind": kind, "what": what, "proposal": proposal,
-           "status": "open", "resolution": ""}
+           "recommendation": recommendation, "status": "open", "resolution": ""}
     if evidence:
         row["evidence"] = evidence.strip()
     _write(path, text, rows + [row])
@@ -322,20 +333,24 @@ def main(argv=None) -> int:
     ap.add_argument("--what")
     ap.add_argument("--proposal")
     ap.add_argument("--evidence")
+    ap.add_argument("--recommendation",
+                    help="'I recommend X', with the evidence, the trade-off, the holding position "
+                         "until he rules and what would change it")
     ap.add_argument("--resolution")
     args = ap.parse_args(argv)
     try:
         if args.list:
             for r in rows_of(read_raw()):
-                print("[{}] {} ({}, raised {}): {}\n    proposal: {}{}".format(
+                print("[{}] {} ({}, raised {}): {}\n    proposal: {}\n    recommendation: {}{}".format(
                     r.get("status"), r.get("id"), r.get("kind"), r.get("raised"), r.get("what"),
-                    r.get("proposal"),
+                    r.get("proposal"), r.get("recommendation") or "(none)",
                     f"\n    resolution: {r['resolution']}" if r.get("resolution") else ""))
             return 0
         if args.raise_:
             if not args.kind:
                 raise ConcernRefused("--raise needs --kind")
-            row = raise_concern(args.kind, args.what or "", args.proposal or "", args.evidence)
+            row = raise_concern(args.kind, args.what or "", args.proposal or "", args.evidence,
+                                recommendation=args.recommendation or "")
         else:
             rid = args.answer or args.withdraw
             row = resolve(rid, "answered" if args.answer else "withdrawn", args.resolution or "")

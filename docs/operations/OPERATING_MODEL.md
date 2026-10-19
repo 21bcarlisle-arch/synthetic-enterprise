@@ -30,7 +30,8 @@ credentials, security posture and the safety controls that protect real people; 
 or irrecoverable data. "Everything else: act, record how to reverse it, say what you did." →
 `RESERVED_CATEGORIES` in `background/one_way_door.py`. **G9:** designs that would change something
 he ruled, change a curriculum value, or that he has asked to see before building wait for his go;
-everything else goes knowledge page first (K8), then build, then tell him.
+everything else goes knowledge page first (K8), then build, then tell him. What waits still arrives
+with a considered recommendation: G9.
 
 **Own the end-to-end check:** canon, logic, work and findings read together, as hypotheses under
 test, stated and unstated. When something surprises you, consider every explanation the evidence

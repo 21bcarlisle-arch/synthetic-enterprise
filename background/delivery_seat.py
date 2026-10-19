@@ -144,6 +144,7 @@ WHAT TO PRODUCE: overwrite `docs/direction/DIRECTION.yaml` with exactly this sha
         kind: strategy|vision|canon_intent|reserved
         what: <the concern, stated -- not asked>
         proposal: <the change you propose, or "investigate: <what>">
+        recommendation: <"I recommend X": evidence, trade-off, holding position until he rules, what would change it>
         status: open|answered|withdrawn
         resolution: <empty while open; his words, dated, or why it was withdrawn>
 
@@ -171,7 +172,8 @@ RULES ON THE CONTENT, and the record is refused if it breaks them:
     list and never blocks the queue."* A row belongs here for the four reserved classes (real
     money, real people, an irretractable public claim in the company's name, a real person's
     safety) OR a concern about strategy, vision or canon intent -- and EVERY row carries a
-    `proposal`. A row with no proposal, no id or no status is REFUSED. Everything else is yours
+    `proposal` and a `recommendation` (director, 19 Oct: *"Even items that are reserved for me I'd
+    prefer it to make a considered recommendation"*; a holding position is not one). A row with no proposal, no id or no status is REFUSED. Everything else is yours
     to decide and record; interrupting him with what you should have decided is a failure.
   * OPEN ROWS ARE CARRIED FORWARD VERBATIM. The brief hands you `previous_for_the_director`, the
     open rows of the current record. Every one must appear in yours under the same `id`: still
@@ -2931,7 +2933,8 @@ def orient(now: datetime | None = None, dry_run: bool = False) -> dict:
         # THE WHOLE ROW, NOT ITS `what` (2026-10-04): the id is what the next orientation pages
         # against, and the status and resolution are the half of a concern the director reads.
         "for_the_director": [
-            {k: r.get(k) for k in ("id", "kind", "what", "proposal", "status", "resolution")}
+            {k: r.get(k) for k in ("id", "kind", "what", "proposal", "recommendation", "status",
+                                   "resolution")}
             for r in (parsed.for_the_director if parsed else ())],
         "thesis_read": parsed.thesis_read if parsed else "",
         "out_of_scope_writes": out_of_scope_writes(),

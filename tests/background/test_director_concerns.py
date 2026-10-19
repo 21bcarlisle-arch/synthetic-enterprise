@@ -18,6 +18,7 @@ from background import director_concerns as dc
 
 GOOD_WHAT = "The canon reads value-sharing as a fixed split; the code learns it per household."
 GOOD_PROPOSAL = "investigate: whether the canon meant a fixed split"
+GOOD_RECOMMENDATION = "I recommend a learned split; holding the fixed one until he rules"
 
 
 def _record(**over) -> dict:
@@ -60,13 +61,14 @@ def test_raising_REFUSES_a_concern_with_no_proposal_or_a_bare_ask(record_file, k
     MUTATION (must fire): drop the `check_message` call, or the empty-proposal clause."""
     before = record_file.read_text(encoding="utf-8")
     if refused_for is None:
-        row = dc.raise_concern(kind, what, proposal, "docs/design/THE_MODEL_ON_A_PAGE.md")
+        row = dc.raise_concern(kind, what, proposal, "docs/design/THE_MODEL_ON_A_PAGE.md",
+                               recommendation=GOOD_RECOMMENDATION)
         assert row["status"] == "open" and row["id"] and row["raised"]
         assert dc.open_rows(dc.read_raw()) == [row]
         assert d.validate(dc.read_raw()) == []
     else:
         with pytest.raises(dc.ConcernRefused, match=refused_for):
-            dc.raise_concern(kind, what, proposal)
+            dc.raise_concern(kind, what, proposal, recommendation=GOOD_RECOMMENDATION)
         assert record_file.read_text(encoding="utf-8") == before, "a refusal still wrote"
 
 
@@ -75,15 +77,15 @@ def test_raising_edits_ONLY_the_concerns_block_and_ids_stay_unique(record_file):
     concurrent reader. Everything outside `for_the_director` must be byte-identical."""
     before = record_file.read_text(encoding="utf-8")
     head = before.split("for_the_director:")[0]
-    a = dc.raise_concern("vision", GOOD_WHAT, GOOD_PROPOSAL)
-    b = dc.raise_concern("vision", GOOD_WHAT, GOOD_PROPOSAL)
+    a = dc.raise_concern("vision", GOOD_WHAT, GOOD_PROPOSAL, recommendation=GOOD_RECOMMENDATION)
+    b = dc.raise_concern("vision", GOOD_WHAT, GOOD_PROPOSAL, recommendation=GOOD_RECOMMENDATION)
     after = record_file.read_text(encoding="utf-8")
     assert after.startswith(head), "the edit touched the record outside its own block"
     assert a["id"] != b["id"] and b["id"].startswith(a["id"])
 
 
 def test_answering_and_withdrawing_need_a_resolution(record_file):
-    row = dc.raise_concern("strategy", GOOD_WHAT, GOOD_PROPOSAL)
+    row = dc.raise_concern("strategy", GOOD_WHAT, GOOD_PROPOSAL, recommendation=GOOD_RECOMMENDATION)
     with pytest.raises(dc.ConcernRefused, match="needs a resolution"):
         dc.resolve(row["id"], "answered", " ")
     with pytest.raises(dc.ConcernRefused, match="no concern with id"):
@@ -97,10 +99,56 @@ def test_the_cli_refuses_with_a_named_reason_and_prints_the_pathspec(record_file
     assert dc.main(["--raise", "--kind", "strategy", "--what", GOOD_WHAT]) == 2
     assert "needs a proposal" in capsys.readouterr().err
     assert dc.main(["--raise", "--kind", "strategy", "--what", GOOD_WHAT,
-                    "--proposal", GOOD_PROPOSAL]) == 0
+                    "--proposal", GOOD_PROPOSAL, "--recommendation", GOOD_RECOMMENDATION]) == 0
     out = capsys.readouterr().out
     assert "open:" in out and "surgical_land" in out and "DIRECTION.yaml" in out
     assert dc.main(["--list"]) == 0 and GOOD_PROPOSAL in capsys.readouterr().out
+
+
+@pytest.mark.parametrize("recommendation, refused_for", [
+    (GOOD_RECOMMENDATION, None),                                       # the passing branch
+    ("", "has no recommendation"),
+    ("Options: hold 400 supply points, or count households", "recommends nothing"),
+])
+def test_a_concern_with_no_recommendation_is_REFUSED_at_raise_and_FLAGGED_by_the_watcher(
+        record_file, recommendation, refused_for):
+    """Defect (director, 19 Oct 16:38: *"Even items that are reserved for me I'd prefer it to make
+    a considered recommendation"*): a row reaches him with a holding position or a neutral list of
+    options and no view on the question. One partition over both legs: the raise refuses it and
+    writes nothing, and the staging watcher flags an open row carrying the same text; the passing
+    row is written and flagged by neither, so neither leg refuses everything.
+
+    MUTATION (must fire): return None from `direction.concern_lacks_recommendation`, or drop its
+    `_RECOMMENDS` clause, or drop the call in `raise_concern`."""
+    from background import staging_watcher as sw
+
+    before = record_file.read_text(encoding="utf-8")
+    row = dict(_OPEN, recommendation=recommendation)
+    flagged = sw.flag_concerns_without_recommendation(_record(for_the_director=[row]))
+    if refused_for is None:
+        written = dc.raise_concern("reserved", GOOD_WHAT, GOOD_PROPOSAL,
+                                   recommendation=recommendation)
+        assert dc.read_raw()["for_the_director"][-1]["recommendation"] == GOOD_RECOMMENDATION
+        assert written["status"] == "open" and flagged == []
+    else:
+        with pytest.raises(dc.ConcernRefused, match=refused_for):
+            dc.raise_concern("reserved", GOOD_WHAT, GOOD_PROPOSAL, recommendation=recommendation)
+        assert record_file.read_text(encoding="utf-8") == before, "a refusal still wrote"
+        assert len(flagged) == 1 and refused_for in flagged[0] and "canon-split" in flagged[0]
+    closed = dict(row, status="answered", resolution="Rich: yes")
+    assert sw.flag_concerns_without_recommendation(_record(for_the_director=[closed])) == [], (
+        "an answered row was flagged: he has already ruled on it")
+
+
+def test_a_carried_row_may_GAIN_a_recommendation_but_never_lose_one():
+    """The 19 Oct backfill adds a recommendation to rows already waiting; a later rewrite that
+    drops or rewords it is refused like a reworded `what`. MUTATION (must fire): drop the
+    `("recommendation",)` clause from `carry_problems`."""
+    bare, rec = dict(_OPEN), dict(_OPEN, recommendation=GOOD_RECOMMENDATION)
+    assert dc.carry_problems(_record(for_the_director=[bare]),
+                             _record(for_the_director=[rec])) == []
+    lost = dc.carry_problems(_record(for_the_director=[rec]), _record(for_the_director=[bare]))
+    assert len(lost) == 1 and "rewrote the open concern" in lost[0]
 
 
 # ── carrying ─────────────────────────────────────────────────────────────────
@@ -176,7 +224,7 @@ def test_the_seat_REFUSES_and_RESTORES_a_record_that_drops_an_open_concern(monke
     carried row is not re-paged.
 
     MUTATION (must fire): drop `+ dropped` from the problems in `orient`, or the restore."""
-    dc.raise_concern("canon_intent", GOOD_WHAT, GOOD_PROPOSAL)
+    dc.raise_concern("canon_intent", GOOD_WHAT, GOOD_PROPOSAL, recommendation=GOOD_RECOMMENDATION)
     raised = record_file.read_bytes()
     pages: list = []
 
@@ -220,7 +268,7 @@ def test_a_record_that_did_not_reach_origin_ends_the_orientation_REFUSED_and_PAG
 def test_the_brief_and_prompt_hand_the_open_concerns_back(record_file):
     """Defect: the carry check refuses a dropped concern the session was never shown. The open
     rows reach the prompt as a sentence ABOVE the truncated JSON, as `previous_wrong` does."""
-    dc.raise_concern("vision", GOOD_WHAT, GOOD_PROPOSAL)
+    dc.raise_concern("vision", GOOD_WHAT, GOOD_PROPOSAL, recommendation=GOOD_RECOMMENDATION)
     rows = dc.open_rows(dc.read_raw())
     text = seat._prompt({"previous_for_the_director": rows, "shape": {}, "running": {},
                          "ended": {}})

@@ -168,6 +168,32 @@ def _concern_problems(rows) -> list[str]:
     return problems
 
 
+#: A RESERVED DECISION STILL ARRIVES WITH A RECOMMENDATION (director, 2026-10-19 16:38): *"Even items
+#: that are reserved for me I'd prefer it to make a considered recommendation"*. `proposal` can be a
+#: holding position ("hold 400 supply points until he rules") and still pass, which is how the
+#: 17 Oct founder row reached him with no view on the question itself. So an OPEN row also carries
+#: `recommendation`, said plainly as "I recommend X". NOT a `validate` refusal: the orienting seat
+#: writes this file every stretch and a refusal there restores the previous record; the staging
+#: watcher flags the row instead, and `director_concerns.raise_concern` refuses one at write time.
+_RECOMMENDS = re.compile(r"\brecommend", re.IGNORECASE)
+
+
+def concern_lacks_recommendation(row) -> str | None:
+    """Why this OPEN concern row has no usable recommendation, or None. Closed rows are not asked:
+    he has answered them."""
+    if not isinstance(row, dict) or row.get("status") != "open":
+        return None
+    text = str(row.get("recommendation") or "").strip()
+    rid = row.get("id")
+    if not text:
+        return (f"for_the_director row {rid!r} has no recommendation -- a decision reserved to the "
+                "director still arrives with 'I recommend X' (director, 19 Oct 16:38)")
+    if not _RECOMMENDS.search(text):
+        return (f"for_the_director row {rid!r} has a recommendation that recommends nothing -- say "
+                "'I recommend X'; a neutral list of options does not meet it")
+    return None
+
+
 @dataclass(frozen=True)
 class Direction:
     """A parsed, VALIDATED direction record. Constructing one is not a claim that its advice is

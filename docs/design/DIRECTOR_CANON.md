@@ -344,6 +344,7 @@ Everything else: act, record how to reverse it, say what you did.
 **G9. What waits for his go (ruled 12 Oct, decision 10).**
 - These wait: designs that would change something he ruled, change a curriculum value, or that he has asked to see before building.
 - Everything else goes knowledge page first (K8), then build, then tell him.
+- **What waits still arrives with a recommendation (his words, 19 Oct, 16:38 BST):** "Ps. Even items that are reserved for me I'd prefer it to make a considered recommendation". Enforced by the `recommendation` field on `for_the_director` rows (`background/director_concerns.py`, flagged by `background/staging_watcher.py`).
 
 **G10. Silence is validation; review comes afterwards.** "Silence is not a block, not a queue, not a reason to wait." "I'll read what you did and correct you afterwards". *(16 July to 11 Oct)*
 
