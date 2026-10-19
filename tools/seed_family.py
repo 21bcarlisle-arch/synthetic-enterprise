@@ -73,6 +73,12 @@ one. The level member refuses before running where the source is missing, refuse
 member, another seed, another commit, or carries no median: a level arm at a number this book did
 not produce separates nothing.
 
+THE B11 GRADE (2026-10-19). Every member stamps `b11_ranking`: at 2020, 2022 and 2023, the switch
+key's departure ranking minus flat's, over the whole book and over same-segment pairs, read off its
+own run (`b11_book`) with the key the dual books were graded with (27ca9dc7a). The member keeps no run
+output, so the stamp is the only way the term survives the run. `readout` pools the within term
+over the books it is given, books being independent strata. One book cannot narrow it.
+
 THE SEED IS A BOOK SEED, so any seed but the default is EP17_varied_population_draw, the
 director's. The launcher and the member both refuse a foreign seed his record does not list, and
 the member refuses a run whose `_RUN_BASE_SEED` is not the seed it was asked for. A foreign book
@@ -458,6 +464,109 @@ def _supply_points() -> list[dict]:
     return out
 
 
+#: B11's departure-ranking cuts, read with the key the dual books were graded on (27ca9dc7a).
+B11_CUTS = (2020, 2022, 2023)
+B11_KEY = {"switch_on_default": True, "rescale_over": "fit_window"}
+
+
+def _difference(diff) -> list:
+    """`(point, (lo, hi))` as JSON: NaN and a missing interval become None, never a number."""
+    point, interval = diff
+    lo, hi = interval or (None, None)
+    return [None if point is None or math.isnan(point) else round(point, 6),
+            None if lo is None else round(lo, 6), None if hi is None else round(hi, 6)]
+
+
+def b11_book(run: dict, customers=()) -> dict:
+    """The fields `forward_clv.book_from_run_output` reads, from the run itself: each leg's net
+    margin by month and its fuel off the settled records (a record naming no fuel is electricity,
+    as `_fold_records` reads it), its segment off the supply points, and the three registers as
+    the run carries them. Never the rendered report: a report is not a thing other code reads
+    (director, 2026-08-19, `annual_report_import_ratchet`)."""
+    phase2b = run["phase2b"]
+    segment = {c.get("customer_id"): c.get("segment") for c in customers}
+    monthly: dict[str, dict[str, dict]] = {}
+    lifetime: dict[str, dict] = {}
+    for rec in phase2b["all_records"]:
+        cid = rec["customer_id"]
+        month = monthly.setdefault(cid, {}).setdefault(str(rec["settlement_date"])[:7],
+                                                       {"net_gbp": 0.0})
+        month["net_gbp"] += float(rec.get("net_margin_gbp") or 0.0)
+        lifetime.setdefault(cid, {"commodity": rec.get("commodity", "electricity"),
+                                  "segment": segment.get(cid) or rec.get("segment")})
+    return {"years": {"all": {"per_customer_monthly": monthly}},
+            "per_customer_lifetime": lifetime,
+            "account_state_log": phase2b.get("account_state_log", []),
+            "bills": run.get("bills", []), "home_move_outs": phase2b.get("home_move_outs")}
+
+
+def b11_ranking(report: dict, cuts=B11_CUTS) -> dict:
+    """Per cut, the key's departure ranking minus flat's over the whole graded book and over
+    same-segment pairs only (`Backtest.departure_ranking_within_segment`), from a book in the
+    shape `book_from_run_output` reads: a member's `b11_book`, or a published run output. The
+    within term is what "the key clears flat" is graded on, and one book read twice cannot narrow
+    it, so each member keeps it for `readout` to pool. The member does not keep its run output, so
+    this is the only place the term can be read. A cut the book cannot grade keeps its reason."""
+    from company.analytics.forward_clv import (
+        book_from_run_output,
+        move_outs_from_run_output,
+        run_backtest,
+    )
+    book, moves = book_from_run_output(report), move_outs_from_run_output(report)
+    out = {}
+    for cut in cuts:
+        try:
+            bt = run_backtest(*book, cut, move_out_month_by_account=moves, **B11_KEY)
+        except ValueError as exc:
+            out[str(cut)] = {"refused": str(exc)}
+            continue
+        whole, within = bt.departure_ranking, bt.departure_ranking_within_segment
+        out[str(cut)] = {
+            "graded": bt.accounts_graded, "departed": sum(f.departed for f in bt.forecasts),
+            "whole": _difference(whole.difference) if whole else None,
+            "within": _difference(within.difference) if within else None,
+            "within_pairs": within.pairs if within else 0,
+            "pairs_excluded": within.pairs_excluded if within else 0,
+        }
+    return out
+
+
+def pool_b11(metas: list[dict], cuts=B11_CUTS) -> dict:
+    """Each cut's within-segment term pooled over books. Books are disjoint homes in separate
+    worlds, so each is a stratum: the pooled term is the pair-weighted mean and its variance
+    `sum w_b^2 var_b`, the rule the term already uses across segments inside one book. A book
+    with no interval at a cut (refused, no stamp, or no segment of two and two) is named beside
+    the figure, not pooled. Whole-book only: `readout --where` does not reach it."""
+    from company.analytics.forward_clv import _TWO_SIDED_95 as z
+    out = {}
+    for cut in cuts:
+        parts, unpooled = [], {}
+        for m in metas:
+            stamp = m.get("b11_ranking") or {}
+            cell = stamp.get(str(cut))
+            within = (cell or {}).get("within")
+            if not within or within[1] is None or not cell.get("within_pairs"):
+                unpooled[m["seed"]] = (cell or stamp).get("refused") or (
+                    "no within-segment interval" if cell else "member carries no B11 stamp")
+                continue
+            parts.append((cell["within_pairs"], within[0], (within[2] - within[1]) / (2 * z)))
+        total = sum(w for w, _, _ in parts)
+        if not total:
+            out[str(cut)] = {"books": 0, "unpooled": unpooled,
+                             "verdict": "cannot tell: no book holds an interval at this cut"}
+            continue
+        point = sum(w * d for w, d, _ in parts) / total
+        half = z * math.sqrt(sum((w * se) ** 2 for w, _, se in parts)) / total
+        lo, hi = point - half, point + half
+        out[str(cut)] = {
+            "books": len(parts), "pairs": total, "unpooled": unpooled,
+            "within": [round(point, 6), round(lo, 6), round(hi, 6)],
+            "verdict": ("the key ranks better" if lo > 0 else "flat ranks better" if hi < 0
+                        else "cannot tell: the 95% interval straddles zero"),
+        }
+    return out
+
+
 def run_book(policy) -> dict:
     """The run, under `policy`: entered as the active policy AND passed, so the collections seam
     (which reads the active one) and the run loop (which is handed one) agree."""
@@ -529,7 +638,8 @@ def member(seed: int, founders: int, out: Path, shape: str = "all_wins",
 
     payments = list(triads[-1].records) if triads else []
     try:
-        rows, totals = home_rows(seed, run_output, payments, founder_ids, _supply_points())
+        supply_points = _supply_points()
+        rows, totals = home_rows(seed, run_output, payments, founder_ids, supply_points)
     except Exception:
         # Thirty-five minutes of book is not lost to a shape error in the table: keep its inputs.
         import pickle
@@ -538,6 +648,10 @@ def member(seed: int, founders: int, out: Path, shape: str = "all_wins",
                          "payments": [{k: getattr(p, k) for k in p.__slots__} for p in payments]},
                         fh, protocol=5)
         raise
+    try:
+        b11 = b11_ranking(b11_book(run_output, supply_points))
+    except Exception as exc:  # the grade is read off the book; it never costs the book
+        b11 = {"refused": f"{type(exc).__name__}: {exc}"}
     camp = getattr(lp, "LAST_CAMPAIGN", {}) or {}
     meta = {
         "seed": seed, "run_base_seed": lp._RUN_BASE_SEED, "foreign_seed": foreign,
@@ -559,6 +673,7 @@ def member(seed: int, founders: int, out: Path, shape: str = "all_wins",
         "peak_cgroup_mb": _cgroup_peak_mb(),
         "ru_maxrss_mb": resource.getrusage(resource.RUSAGE_SELF).ru_maxrss // 1024,
         "commit": _head(),
+        "b11_ranking": b11,
     }
     refusal = member_refusal(seed, meta)
     meta["refused"] = refusal
@@ -909,8 +1024,8 @@ def main(argv: list[str] | None = None) -> int:
         rows = [r for r in rows if r.get(col) == val]
     mixes = [json.loads(m.read_text(encoding="utf-8")) for m in args.mix]
     policy = pooled[0].get("policy", UNSTAMPED_POLICY) if pooled else None
-    print(json.dumps({"refused_members": refused, "policy": policy, **readout(rows, mixes)},
-                     indent=1))
+    print(json.dumps({"refused_members": refused, "policy": policy, **readout(rows, mixes),
+                      "b11_within_segment": pool_b11(pooled)}, indent=1))
     return 0
 
 

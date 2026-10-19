@@ -515,3 +515,90 @@ def test_a_level_launch_reads_every_source_first_and_hands_each_member_its_direc
                   launcher=lambda name, argv, **k: argvs.append(argv) or {"unit": name},
                   record=None, policy=sf.LEVEL_POLICY, level_from=tmp_path)
     assert argvs == []
+
+
+# --- B11: the within-segment term, stamped per member and pooled over independent books --------
+
+def _stamped(seed, point, half, pairs=100):
+    return {"seed": seed, "b11_ranking": {str(c): {"within": [point, point - half, point + half],
+                                                   "within_pairs": pairs} for c in sf.B11_CUTS}}
+
+
+@pytest.mark.skipif(not (sf.PROJECT_DIR / "docs/reports/run_output_latest.json").exists()
+                    and not (sf.PROJECT_DIR / "docs/reports/run_output_latest.json.gz").exists(),
+                    reason="no run output in this checkout")
+def test_the_member_stamp_is_the_within_segment_grade_the_dual_books_were_read_with(tmp_path):
+    """The defect: a member graded with another key than 27ca9dc7a's read, so the pooled term and
+    the dual books' table would disagree about what they measure."""
+    from company.analytics.forward_clv import backtest_run_output
+    from tools.run_output_store import as_plain_file
+    path = as_plain_file(sf.PROJECT_DIR / "docs/reports/run_output_latest.json", tmp_path)
+    cell = sf.b11_ranking(json.loads(path.read_text()), cuts=(2020,))["2020"]
+    bt = backtest_run_output(path, 2020, switch_on_default=True, rescale_over="fit_window")
+    within = bt.departure_ranking_within_segment
+    assert cell["within"] == sf._difference(within.difference)
+    assert cell["within_pairs"] == within.pairs and cell["within"][1] is not None
+    # The rescale is one constant per segment, so it cannot move the within term (an equivalence
+    # by construction): only the whole-book term can tell which population the key was read over.
+    assert cell["whole"] == sf._difference(bt.departure_ranking.difference)
+
+
+def test_a_cut_the_book_cannot_grade_keeps_its_reason():
+    book = {"years": {"2016": {"per_customer_monthly": {"C1": {"2016-01": {"net_gbp": 1.0}}}}}}
+    assert "move-out register" in sf.b11_ranking(book, cuts=(2016,))["2016"]["refused"]
+    book["home_move_outs"] = []
+    assert "no held-back months" in sf.b11_ranking(book, cuts=(2016,))["2016"]["refused"]
+
+
+def test_independent_books_pool_narrower_and_a_book_without_an_interval_is_named_not_pooled():
+    pooled = sf.pool_b11([_stamped(1, 0.06, 0.06), _stamped(2, 0.06, 0.06), {"seed": 3},
+                          {"seed": 4, "b11_ranking": {"refused": "ValueError: x"}}])["2020"]
+    assert pooled["books"] == 2 and pooled["pairs"] == 200
+    assert pooled["within"][0] == pytest.approx(0.06)
+    assert pooled["within"][2] - pooled["within"][0] == pytest.approx(0.06 / 2 ** 0.5, rel=1e-4)
+    assert pooled["unpooled"] == {3: "member carries no B11 stamp", 4: "ValueError: x"}
+    weighted = sf.pool_b11([_stamped(1, 0.0, 0.1, pairs=300), _stamped(2, 0.1, 0.1)])["2020"]
+    assert weighted["within"][0] == pytest.approx(0.025)
+
+
+def test_every_pooled_verdict_is_reachable():
+    """The partition first: a pool that could only say "cannot tell" passes every other leg."""
+    verdicts = {sf.pool_b11(books)["2022"]["verdict"].split(":")[0] for books in (
+        [_stamped(1, 0.05, 0.04)], [_stamped(1, -0.05, 0.04)], [_stamped(1, 0.0, 0.04)], [])}
+    assert verdicts == {"the key ranks better", "flat ranks better", "cannot tell"}
+
+
+def test_the_readout_prints_the_pooled_term_beside_the_homes(tmp_path, capsys):
+    rows, _ = sf.home_rows(_DEFAULT_BASE_SEED, _valued_run(), [], founders=set(),
+                           svt_rate_for=_rate)
+    (tmp_path / "a").mkdir()
+    (tmp_path / "a" / f"member_{_DEFAULT_BASE_SEED}.json").write_text(json.dumps(
+        {**GOOD, **_stamped(_DEFAULT_BASE_SEED, 0.07, 0.05)}))
+    sf.write_table(rows, tmp_path / "a" / f"homes_{_DEFAULT_BASE_SEED}.csv")
+    assert sf.main(["readout", str(tmp_path / "a")]) == 0
+    term = json.loads(capsys.readouterr().out)["b11_within_segment"]["2023"]
+    assert term["books"] == 1 and term["verdict"] == "the key ranks better"
+
+
+def test_the_members_book_is_folded_from_its_own_run_into_the_shape_the_backtest_reads():
+    """The defect: a member handing the backtest a book whose legs lost their segment, fuel or
+    month, or a register the run carried -- every cut would then grade another book."""
+    from company.analytics.forward_clv import book_from_run_output, move_outs_from_run_output
+    run = _valued_run()
+    run["phase2b"]["home_move_outs"] = [{"household": "C3", "move_date": "2019-02-01"}]
+    run["phase2b"]["all_records"].append({**run["phase2b"]["all_records"][2],
+                                          "settlement_date": "2018-01-20"})
+    run["bills"] = [{"customer_id": "C1", "period_start": "2018-01-01",
+                     "payment_channel": "direct_debit"}]
+    run["phase2b"]["account_state_log"] = [{"billing_account": "C1", "tariff_type": "fixed",
+                                            "term_start": "2017-06-01", "term_end": "2019-06-01"}]
+    report = sf.b11_book(run, [{"customer_id": "C2", "segment": "SME"}])
+    accounts = {a.account_id: a for a in book_from_run_output(report)[0]}
+    assert {k: a.segment for k, a in accounts.items()} == {
+        "C1": "resi dual", "C2": "SME electricity", "C3": "resi electricity"}
+    assert sorted(accounts["C3"].monthly_net_gbp.values()) == [5.0, 5.0]
+    assert list(accounts["C2"].monthly_net_gbp.values()) == [40.0]  # two days, one month
+    assert accounts["C1"].monthly_net_gbp == {accounts["C1"].first_month: 37.5 + 15.0}
+    seen = accounts["C1"].observed[accounts["C1"].first_month]
+    assert (seen.tariff, seen.payment) == ("fixed", "direct_debit")
+    assert move_outs_from_run_output(report) == {"C3": move_outs_from_run_output(run["phase2b"])["C3"]}
