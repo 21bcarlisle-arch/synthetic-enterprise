@@ -23,8 +23,8 @@
     "run_retained": true,
     "verified_at": "2026-10-13T21:32:10Z"
   },
-  "paused_reason": null,
-  "paused_since": null,
+  "paused_reason": "scoped publish-path gate refused at git=8b6fea024 and NO test returned a verdict -- the suite is UNJUDGED, not red, and no test is implicated",
+  "paused_since": "2026-10-19T05:23:12Z",
   "schema": 1,
   "showing_run": {
     "generated_at": "2026-10-13T21:32:10Z",
@@ -38,6 +38,6 @@
     "run_retained": true,
     "verified_at": "2026-10-13T21:32:10Z"
   },
-  "verification_state": "verified",
-  "written_at": "2026-10-13T21:32:10Z"
+  "verification_state": "paused",
+  "written_at": "2026-10-19T05:23:12Z"
 }
