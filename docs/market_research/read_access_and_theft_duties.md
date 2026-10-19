@@ -426,6 +426,30 @@ meter" that the consumer "ignore[s] or refuse[s]" (§2.4), and the world cannot 
 a refusal (§2.5 GAP). It sends no self-read prompt either, because the world has no household that
 answers one. That is a world change, filed for after the publish and not built here.
 
+**What switching it on would change, measured on the published 19 Oct book (2026-10-19).** Run
+`8b6fea024` (20261019T033010Z), `tools.closing_estimate_run_money --read-duty --instructed-read`.
+The switch is still off. This is a decomposition, not a re-run, and the read end is an upper bound.
+- **Reach.** It raises 321 instructions on the whole book: 183 electricity, 138 gas, none on
+  prepayment. 405 churned legs closed, and 275 of them closed on an estimate. Only **22 of the 275**
+  carried a run long enough (12 bills or more) for a visit to fall inside it. Most leavers' closing
+  runs are short, so the instruction rarely reaches the closing estimate.
+- **Money on the open closing runs.** The undercharge falls from £8,597 to £4,245 at the read end.
+  On the runs it reaches, it falls from £5,370 to £1,017. The 21BA bar at closure falls from £3,864
+  to £214. £4,641 is trued up at the visits, inside the year, and none of it is barred. At the
+  no-access end nothing moves.
+- **One account carries most of it.** C7's closing run is 42 estimates long and £5,000. Its
+  visits fall on bills 12, 24 and 36. At the read end that trues up 2016–2018, and those three years
+  stop inverting under the defect-4 gate. 2019's six estimates after the last visit stay open
+  (billed £299 against a margin of £745). The decomposition keeps the old estimate after a read.
+  A real run would rebase on the visit's read, and that is what would close 2019.
+- **It treats a symptom on C7, not the cause.** C7's estimate is the medium TDCV band (3,100 kWh),
+  because its registry EAC is empty. Its world use is 13,230 kWh. The world settles it on
+  half-hourly data, yet never gives the company a read. See
+  `docs/staging/SEAT_FINDING_A_LEAVER_NEVER_READ_BILLS_A_QUARTER_OF_ITS_TRUE_USE_AND_REFUSED_THE_PUBLISH_2026-10-19.md`.
+  The instruction is the licence's step, and it is worth having for the 21BA bar. But the
+  inversion would recur on any account whose estimate is wrong by a factor of four, so it is not a
+  fix for that.
+
 ## 3. Theft
 
 ### 3.1 The duties

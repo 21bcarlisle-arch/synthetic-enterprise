@@ -94,3 +94,90 @@ removed from the set, the gate is red on exactly `('C7', 2019, 299.46, 745.2)`.
     reason the 3,100 kWh estimate is so far off. Check it against the population anchors (the
     19 Oct steer's anchor register).
 - **Re-grade the preregs once the publish lands.** That is the re-issued drawn item.
+
+## Which cause holds: predictions, written before measuring (delivery seat, 19 Oct)
+
+Ledger and run: `docs/reports/run_output_8b6fea024_20261019T033010Z.json` (the published 19 Oct
+book). Population: the 274 churned legs that closed on an estimate.
+
+- **P-a1.** Fewer than half of the 274 reached an 11th consecutive estimate before closing. My
+  guess is 25-40%, so 70-110 legs. Most leavers churn inside a year, and a run of estimates is
+  broken by the ordinary read on most traditional meters.
+- **P-a2.** At the read end, the instruction trues up C7's 11th, 23rd and 35th estimates. The
+  gate's per-year comparison then clears for 2016, 2017 and 2018. 2019 stays open, because its
+  last run is shorter than 11 bills. The open closing undercharge on the 274 falls by less than
+  half, because most of that money sits in runs shorter than 11.
+- **P-b1.** The world settles the losing supplier on true consumption up to the switch, not on the
+  change-of-supply read the company bills to. So this leg is live on all 274 legs, not only on C7.
+- **P-b2.** In GB the change-of-supply read, actual or deemed, closes the old supplier's
+  settlement as well as its bill. The rest of the true volume goes to the new supplier. On the
+  GB rule, then, C7's margin would be computed on 3,100 kWh a year, and C7 would not invert.
+- **P-c1.** 13,230 kWh a year of electricity is above the DESNZ NEED 5+ adult median (4,129) by
+  more than 3x, and above Ofgem's high TDCV for profile class 1. So it is a tail draw. Either C7 is
+  electrically heated, and then it is plausible, or the draw composes multipliers that have no
+  ceiling. I lean towards composition: about 60% on (c) being a world defect.
+- **Overall.** I expect (b) to be the cause on the 274, (c) to be the reason only C7 crosses the
+  gate, and (a) to shrink C7's gap without being the root.
+
+## Measured, and graded beside each prediction (delivery seat, 19 Oct)
+
+Method: `tools.closing_estimate_run_money` (`closing_accounts`, `read_instruction_reach`) on the
+published run, restricted to the legs of `churned_billing_accounts`. That gives **405 legs, 275 of
+them closing on an estimate**. The "274" above was one short, and I have not traced why.
+
+**Correction, beside the claim in (c) above.** C7 is not a five-plus-person household.
+`simulation/dwelling_records.py` makes it **one person** in a 1-bed EPC C London flat, with
+`electric_storage` heating and an EV. Its demand provider is `hh_metered_reads`: the authored
+`sim/hh_data/C7.csv`, written once by `tools/generate_hh_data.py` from the PC1 shape run through
+`build_demand_shape`.
+
+| Prediction | Measured | Grade |
+|---|---|---|
+| P-a1: 25–40% of the 275 reach an 11th estimate | **22 of 275 (8%)** carry a closing run of 12 bills or more, so a visit falls inside it. 245 of the 275 runs are under 5 bills. | **Refuted.** Leavers' closing runs are much shorter than I guessed. |
+| P-a2: at the read end C7 2016–18 clear and 2019 stays; the open undercharge falls by less than half | C7's visits fall on bills 12, 24 and 36. True totals 2016–18 are £1,743, £1,999 and £1,806 against gross £1,131, £1,292 and £992, so those years clear. 2019 stays at £299 against £745. On all 584 closed legs, the open undercharge goes from £8,597 to £4,245 (−51%), and C7 is most of the change. | **Held on C7. Borderline on the total** (−51% against "less than half"). |
+| P-b1: the world settles the losing supplier on true volume, on all 275 | `saas/reporting/annual_report.py:451` sums `margin_gbp`, and `simulation/hedged_settlement.py:353-355` forms revenue AND wholesale on `consumption_shape`, which is true demand. Nothing clips a churned leg to its closing read (also `unbilled_energy_and_revenue_assurance.md` §5: "consumed = settled = billed after catch-up"). | **Held.** All 275 legs. |
+| P-b2: on the GB rule C7 would not invert | BSCP504 v53.0 §4.4.1: with no valid actual by SSD+5, "a valid Old Supplier Estimated reading … must be used". "The CoS reading is assumed to be correct by the Old Supplier, until the Old Supplier disputes" it (fn 22). The gaining supplier's first actual read puts the rest on its own customer's bill. The rule is quoted in `unbilled_energy_and_revenue_assurance.md` §4a. Gas: UNC TPD M5.13 (same section). On billed volume, C7's margin scales by about 0.23, to roughly £265 in 2016 against £459 billed. | **Held by arithmetic.** It was not re-run. |
+| P-c1: 13,230 kWh is a tail draw, about 60% a world defect | The commons' overnight-dominant (storage-heating) cluster of real London smart-meter homes averages **18.62 kWh/day, about 6,800 kWh/yr** (`hh_load_shape_clustering_2026.md`). C7 is 36.2 kWh/day, about **2x**, for one person in one bedroom. The other authored storage homes are the same size: C8 (4 people, 3-bed semi) 12,642 kWh and C9 (1 person, 2-bed flat) 12,834 kWh. The uplift does not scale with the dwelling. | **Held: a world defect**, not an implausible-but-real household. |
+
+**A fourth cause, not in the ranked list: (d) the estimate itself.** C7 was billed at exactly
+3,100 kWh a year. That is the medium TDCV band `company/billing/unread_month_estimate.py` falls back
+to when the registration's `eac_kwh` is empty (Jan 2016: 335 kWh = 3,100 × the January share). The
+three HH roster accounts carry `eac_kwh: None` (`saas/customers.py`). The world's own
+`EFFECTIVE_EAC_KWH` derives about 13,000 kWh from the same HH file for the hedge, but that figure
+never reaches the registration the bill reads. A real gaining supplier receives the meter point's
+EAC with the registration. A registry figure of about 13,000 would have billed C7 close to true, and
+**no read and no closing true-up would have been needed to keep it above its margin**.
+
+There is a related inconsistency in the world. C7 is settled on half-hourly data, yet its meter
+returned **42 estimates out of 42** (C8: 21 of 21 actual; C9: 33 of 33 actual). Settling on HH
+reads the supplier never receives is (b) again, in its sharpest form.
+
+### Which cause holds, and its share
+
+- **The 274 other estimate-closed legs are not a defect.** Their open runs net −£395 (undercharge
+  £2,453, overcharge −£2,849, roughly symmetric), and none of them inverts. A leaver closing on an
+  estimate is the 17 Oct fidelity change working as intended.
+- **(b) is present on all 275 (100%).** For each one the run credits revenue on energy it never
+  billed. Net, £4,605 across the 275, and C7 is £5,000 of the undercharge side. It is a definition
+  mismatch between the margin and the bill, and only C7's size makes it show.
+- **(d) × (c) is what makes C7 cross.** The estimate is out by 4.3x: 3,100 against 13,230. About
+  2x of that is the world's over-sized storage profile (c), and the rest is the empty registry EAC
+  (d). Only one of the 275 legs (C7) is affected, and it is 67% of the open undercharge.
+- **(a) is a mitigation, not the cause.** It reaches 22 of 275. On C7 it clears three of four years
+  at the read end and none at no-access, and the access rate is a GAP.
+
+### Remedy, filed as its own item
+
+`the-hh-roster-accounts-register-their-eac-and-the-leaver-settles-to-its-cos-read`, handed on
+through `background.seat_continuation`. It is a world fix with a prediction, in three legs: (d) give
+the HH roster accounts the registry EAC a gaining supplier receives; (c) scale the storage-heating
+uplift to the dwelling, against the cluster anchor, K8 first; (b) settle a leaver's final span to
+the change-of-supply read, W7 and K8 first. **Prediction for (d) alone:** C7's billed/true rises
+from 0.23 to at least 0.9, C7 2016–2019 stop inverting, and its four `KNOWN_OPEN_INVERSIONS` rows
+can be deleted.
+
+The read-instruction switch-on is **not** filed as the remedy. Its own prereg is already filed
+(`records/WORKER_PREREG_THE_READ_INSTRUCTION_ON_A_PUBLISHED_RUN_AT_BOTH_ACCESS_ENDS_2026-10-18.md`),
+and on this book it would treat C7's symptom. What it would change is now on the K8 page
+(`read_access_and_theft_duties.md` §2.8). The 12 non-inverting rows were already deleted in
+b12f10474.
