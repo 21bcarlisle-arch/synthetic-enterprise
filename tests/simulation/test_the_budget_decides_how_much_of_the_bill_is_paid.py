@@ -148,3 +148,16 @@ def test_the_triad_reaches_the_book_only_with_the_switch_on_defect_a_rule_no_pay
     off = _triad_book(monkeypatch, False)
     assert _failed(on) > len(on) // 2, on
     assert _failed(off) < len(off) // 4, off
+
+
+def test_a_sub_penny_bill_is_paid_from_ample_money_defect_rounded_payment_against_an_unrounded_bill():
+    """The run's bills carry sub-penny amounts (GBP 17.441972); the allocation pays in pence. The
+    first on-arm capture left about half of all bills unpaid this way, from households holding
+    thousands."""
+    _, _, comfortable = _ids_by_margin(2022)
+    cid = comfortable[0]
+    book = hb.BudgetPaymentBook()
+    for r, amount in enumerate((17.441972, 15.745179, 15.815389, 66.610832, 62.875984, 0.004)):
+        paid, earlier = book.settle_month(supply_point=cid, household=household_of(cid), year=2016,
+                                          amount_gbp=amount, legs=2, ref=r)
+        assert paid and not earlier, (amount, book.unpaid_of(cid))

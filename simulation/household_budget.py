@@ -496,11 +496,13 @@ class BudgetPaymentBook:
                 "budget": budget, "savings": budget.savings_buffer * share,
                 "cap": budget.savings_buffer * share, "unpaid": []}
         cash = st["savings"] + margin_in_year(st["budget"], year, self._benefit_path_deciles) * share
-        owed = st["unpaid"] + [(ref, float(amount_gbp))]
+        # A bill is in pence, and `allocate_debt_payments` pays in pence. An unrounded amount left a
+        # GBP 17.441972 bill unpaid against GBP 17.44 paid out of GBP 15k, about half of all bills.
+        owed = st["unpaid"] + [(ref, round(float(amount_gbp), 2))]
         paid = allocate_debt_payments(cash, {"energy_arrears": sum(a for _, a in owed)})["energy_arrears"]
         cleared, spent = [], 0.0
         for bill_ref, amount in owed:
-            if spent + amount > paid + 1e-9:
+            if round(spent + amount, 2) > paid:
                 break
             cleared.append(bill_ref)
             spent += amount
