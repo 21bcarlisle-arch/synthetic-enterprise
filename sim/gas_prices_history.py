@@ -36,6 +36,8 @@ FRED_URL = (
 OUTPUT_PATH = "sim/gas_data/nbp_sap.csv"
 
 GBPUSD = 1.28
+# 1 MMBtu (International Table Btu, 1,055.05585 J) is 0.293071 MWh: NIST SP 811 Appendix B,
+# https://www.nist.gov/pml/special-publication-811
 MWH_PER_MMBTU = 0.29307
 
 #: The first day of the daily record. NOT the simulation's start (2016-01-01): a contract struck on

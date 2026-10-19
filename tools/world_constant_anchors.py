@@ -125,7 +125,7 @@ _HEADER = """\
 # Written by `python3 -m tools.world_constant_anchors --write`; controlled as an EXACT SET by
 # tests/architecture/test_a_world_constant_cites_its_anchor_or_is_a_labelled_range.py.
 # Anchor one (cite its page or source, or label it EVIDENCE RANGE) and strike its line here.
-# Director steer 19 Oct 2026, item 1. DEFAULT_BAND_WEIGHTS is the first entry.
+# Director steer 19 Oct 2026, item 1. Rank by impact: docs/design/world_constant_impact_ranking.md.
 """
 
 
