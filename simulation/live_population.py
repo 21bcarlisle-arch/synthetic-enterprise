@@ -1151,6 +1151,8 @@ def _resolve_campaign(book: List[dict], seed: int, *, persist: bool = True,
         select_on_own_responsiveness=acquisition_selects_on_own_responsiveness(),
         customer_year_budget=customer_year_budget,
     )
+    # The seed the won homes' fuel coin is drawn on (`_won_customer_dicts`).
+    outcome["base_seed"] = seed
     LAST_CAMPAIGN.clear()
     LAST_CAMPAIGN.update({k: v for k, v in outcome.items() if k != "winners"})
 
@@ -1244,11 +1246,11 @@ def _gas_leg_for(prospect, elec: dict) -> dict | None:
     AQ comes from the same published table, for the same band, by the same uniform draw the
     electricity EAC uses -- not from a number anybody chose.
 
-    WHETHER a home takes gas is not a share to tune either: it is `DrawnPremise.commodity`,
-    which reads the dwelling's own drawn `heating_system`. The dual-fuel rate is therefore a
-    property of the housing stock this supplier is selling into, and it moves when the stock
-    moves -- which is what "real suppliers win both together far more often than not" should
-    look like when it is modelled rather than parameterised.
+    WHETHER a home CAN take gas is `DrawnPremise.commodity`, which reads the dwelling's own drawn
+    `heating_system`. Whether it takes both fuels FROM US is the caller's fuel coin
+    (`population_draw.fuel_arrangement`, P(dual | gas meter) 0.90). Until 2026-10-19 the campaign
+    skipped that coin and every won gas home was dual -- "far more often than not" built as
+    "always" (fuel-split page §5a).
 
     ITS OWN RNG SUBSTREAM (C-S2). The AQ is drawn from a substream salted with this
     customer's id, so adding the gas leg leaves every other drawn attribute of every other
@@ -1314,19 +1316,45 @@ def _won_customer_dicts(outcome: dict) -> List[dict]:
     contract started", because that is what the field means to every downstream consumer and
     a prospect that was quoted in March and won in April did not acquire in March.
 
-    DUAL FUEL: a won home on the mains gas network gets its gas leg here, immediately after
-    its electricity one -- see `_gas_leg_for`.
+    THE FUEL IS THE HOME'S (2026-10-19), from the coin the founders and the trickle draw through
+    (`_won_fuel_arrangement`). A dual home gets its gas leg immediately after its electricity one
+    (`_gas_leg_for`); a split home is one account, electricity or gas, under the home's own id. Until
+    then every won gas home was dual, which no published book is (fuel-split page §5a).
     """
+    seed = outcome.get("base_seed", _DEFAULT_BASE_SEED)
     won: List[dict] = []
     for prospect, won_on in outcome["winners"]:
         elec = {**prospect.to_customer_dict(),
                 "acquisition_date": won_on.isoformat(),
                 "acquisition_type": "net_new_won"}
+        arrangement = _won_fuel_arrangement(prospect, seed)
+        gas = _gas_leg_for(prospect, elec) if arrangement != "electricity" else None
+        if arrangement == "gas" and gas is not None:
+            # The gas account IS the home's account, as a gas-only founder's is: no `g` suffix,
+            # because there is no electricity account here for it to be the second leg of.
+            won.append({**gas, "customer_id": elec["customer_id"]})
+            continue
+        # A gas coin whose band the published table cannot price keeps the electricity leg the
+        # campaign quoted, the same fail-closed answer `_gas_leg_for` gives a dual home.
         won.append(elec)
-        gas = _gas_leg_for(prospect, elec)
         if gas is not None:
             won.append(gas)
     return won
+
+
+def _won_fuel_arrangement(prospect, seed: int) -> str:
+    """"dual", "electricity" or "gas": what a won home takes from us, by the founders' own coin.
+
+    The prospect was drawn as electricity (`net_new_acquisition.ELECTRICITY_ONLY`) because the draw
+    needs a fuel to draw an EAC, so its `fuel_arrangement` is None. The win reads no fuel -- the
+    funnel decides on credit, price differential and elasticity -- so the arrangement is drawn here,
+    on the won home's own premise, with `population_draw.fuel_arrangement`'s P(dual | gas meter) and
+    its even split of the remainder. One accessor, read by the book (`_won_customer_dicts`) and the
+    premise register (`_live_homes`), so the two cannot disagree about which won homes have a `g`.
+    """
+    from simulation.population_draw import fuel_arrangement
+
+    return fuel_arrangement(getattr(prospect, "premise", None), prospect.customer_id, seed)
 
 
 def campaign_quotes_paid_for(base_seed: Optional[int] = None) -> List[dict]:
@@ -1445,7 +1473,7 @@ def _live_homes(base_seed: Optional[int] = None) -> dict:
         # the world drew no dwelling for, and the alternative to raising is the supplier's
         # modal band filling one in, which is the defect B12 exists to stop. Registering the
         # same premise object under both ids is the honest answer: it IS the same house.
-        if prospect.premise.commodity == "gas":
+        if _won_fuel_arrangement(prospect, seed) == "dual":
             premises[f"{prospect.customer_id}g"] = (prospect.premise, prospect.output_area)
     return premises
 

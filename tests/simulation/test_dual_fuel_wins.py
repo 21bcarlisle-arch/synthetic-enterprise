@@ -207,23 +207,71 @@ def test_building_the_gas_leg_does_not_mutate_the_electricity_dict():
     assert elec == before
 
 
-def test_the_won_list_puts_each_gas_leg_directly_after_its_own_electricity_account():
+class _P:
+    def __init__(self, cid, commodity):
+        self.premise = _Premise(commodity)
+        self.customer_id = cid
+
+    def to_customer_dict(self):
+        return _elec(self.customer_id)
+
+
+def _won(monkeypatch, arrangements):
+    """`_won_customer_dicts` over fixture winners, with each home's fuel coin fixed by id."""
+    import datetime as dt
+
+    monkeypatch.setattr(lp, "_won_fuel_arrangement", lambda p, seed: arrangements[p.customer_id])
+    outcome = {"winners": [(_P(cid, "gas" if a != "none" else "electricity"), dt.date(2024, 3, 1))
+                           for cid, a in arrangements.items()]}
+    return lp._won_customer_dicts(outcome)
+
+
+def test_the_won_list_puts_each_gas_leg_directly_after_its_own_electricity_account(monkeypatch):
     """Ordering is not cosmetic: `live_population` hands this list to
     `register_drawn_points`, and a reader of the book should be able to see a household as a
     household."""
-    class _P:
-        def __init__(self, cid, commodity):
-            self.premise = _Premise(commodity)
-            self._cid = cid
-
-        def to_customer_dict(self):
-            return _elec(self._cid)
-
-    import datetime as dt
-    outcome = {"winners": [(_P("PROS-2024-0001", "gas"), dt.date(2024, 3, 1)),
-                           (_P("PROS-2024-0002", "electricity"), dt.date(2024, 4, 1)),
-                           (_P("PROS-2024-0003", "gas"), dt.date(2024, 5, 1))]}
-    ids = [c["customer_id"] for c in lp._won_customer_dicts(outcome)]
+    ids = [c["customer_id"] for c in _won(monkeypatch, {
+        "PROS-2024-0001": "dual", "PROS-2024-0002": "electricity", "PROS-2024-0003": "dual"})]
     assert ids == ["PROS-2024-0001", "PROS-2024-0001g",
                    "PROS-2024-0002",
                    "PROS-2024-0003", "PROS-2024-0003g"]
+
+
+# ---------------------------------------------------------------------------
+# 6. a won gas home is dual at the published rate, not always (2026-10-19)
+# ---------------------------------------------------------------------------
+
+def test_a_split_win_is_one_account_on_the_fuel_its_coin_drew(monkeypatch):
+    """Reds if a split home gets both legs (the pre-19-Oct `always dual`), or if a gas-only win
+    keeps the electricity EAC or takes a `g` id with no electricity account for it to pair with."""
+    won = {c["customer_id"]: c for c in _won(monkeypatch, {
+        "PROS-2024-0001": "electricity", "PROS-2024-0002": "gas"})}
+    assert set(won) == {"PROS-2024-0001", "PROS-2024-0002"}
+    assert won["PROS-2024-0001"]["commodity"] == "electricity"
+    gas = won["PROS-2024-0002"]
+    assert gas["commodity"] == "gas" and "eac_kwh" not in gas
+    low, high = TDCV_BANDS_KWH["gas"]["MEDIUM"]
+    assert low <= gas["aq_kwh"] <= high
+
+
+def test_the_real_campaign_wins_every_arrangement_and_registers_a_gas_leg_only_for_a_dual_home(
+        monkeypatch):
+    """One control over the partition, on the production campaign at one seed: dual, split with
+    our electricity on a gas home, and split with our gas must each occur. A coin stuck on `dual`
+    (the defect) or never `dual` reds here. And the premise register must hold a `g` exactly where
+    the book has one, or `build_properties` raises `DwellingNotDrawn` on a dual home's gas leg."""
+    monkeypatch.setenv("SE_DRAW_POPULATION", "1")
+    monkeypatch.setenv("SE_GROW_BOOK", "1")
+    seed = lp._DEFAULT_BASE_SEED
+    outcome = lp._campaign(lp._pre_growth_book(seed), seed)
+    gas_homes = {p.customer_id for p, _ in outcome["winners"]
+                 if p.premise is not None and p.premise.commodity == "gas"}
+    won = lp._won_customer_dicts(outcome)
+    by_id = {c["customer_id"]: c["commodity"] for c in won}
+    dual = {cid[:-1] for cid in by_id if cid.endswith("g")}
+    elec_split = {cid for cid in gas_homes - dual if by_id.get(cid) == "electricity"}
+    gas_split = {cid for cid in gas_homes - dual if by_id.get(cid) == "gas"}
+    assert dual and elec_split and gas_split, (len(dual), len(elec_split), len(gas_split))
+    assert dual | elec_split | gas_split == gas_homes
+    registered = {cid for cid in lp._live_homes(seed) if cid.endswith("g") and cid.startswith("PROS")}
+    assert registered == {f"{cid}g" for cid in dual}
