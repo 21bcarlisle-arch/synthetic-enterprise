@@ -86,3 +86,37 @@ flight. `sim-runner` has deferred every cycle since about 08:00Z to the budget-p
 A run takes about 5.5 h from launch to publish (the 19 Oct one started at 03:30Z and published at 09:15Z),
 so the first gradable run cannot land before about 15:30Z. Nothing was graded on an older run. The
 hand-off is re-issued as `grade-the-first-split-campaign-run-when-it-publishes`, with a draw embargo.
+
+## 5. Grade: all six hold, on the `ad8afadc5` run (delivery seat, 2026-10-19 ~16:00Z)
+
+**Which run, and why not a published one.** `run_output_ad8afadc5_20261019T132751Z.json` in the
+shared tree started at 13:27Z and completed at 15:03Z (5,743 s, peak 4,065 MB). Its
+`producing_commit.commit` is `ad8afadc5`, and `git merge-base --is-ancestor 30246d6f0 ad8afadc5`
+is true. **It has not published, and it will not this week.** The publisher held it: "HOLD (weekly
+publish window): this week's figures reached origin 2026-10-19T09:15Z; the next publish opens Mon
+2026-10-26 04:00 GMT" (`sim-runner-log.md`, 15:03Z). So no published run will exist to grade for a
+week. This is the first completed production run on the split coin, which is the question the item
+asked. Waiting a week would only re-read the same coin on a later sha. The grade is on that run,
+and is labelled unpublished. It was read with §1's instrument, fuel from `commodity`, against
+the 19 Oct publish run `8b6fea024` from the same file family.
+
+| | prediction | `ad8afadc5` | `8b6fea024` | verdict |
+|---|---|---|---|---|
+| S1 campaign dual of gas homes | 0.81–0.96 (0.906) | **0.946** | 1.000 | holds: the coin reached the run |
+| S2 campaign gas-only homes | ≥ 1, about 8 | **9** | 0 | holds |
+| S3 campaign dual of homes | 0.68–0.80 (0.74) | **0.734** | 0.804 | holds |
+| S4 campaign points per home | 1.70–1.78 | **1.734** (371 / 214) | 1.804 | holds |
+| S5 founders dual of gas / of homes | 0.85–0.98 / 0.68–0.80 | **0.948 / 0.741** | same | holds, unchanged as predicted |
+| S6 dual households, all routes | −2% to −8% against 413 | **395, −4.4%** | 413 | holds |
+
+**S6 is a like-for-like count, not only a share.** Homes across all routes are 550 on both runs,
+and campaign homes are 214 on both. The campaign won the same homes, and only their fuel
+arrangement changed: 15 dual homes became 9 gas-only and 6 more electricity-only, and the book
+lost 15 supply points (386 to 371). Successors moved 74 to 71 dual, following the homes they
+replace. So §3's "about 4% fewer dual households" is now measured, at 4.4%.
+
+**What this licenses.** Readings taken on the 19 Oct publish (`8b6fea024`) and on the next publish
+differ in the dual population by 18 households from this source alone. §3's notes stand as
+written. The 26 Oct publish will carry this run or a later one. Either way it descends from
+`30246d6f0`, so this grade is what it should reproduce at seed 20260724, unless a population
+commit lands first.
