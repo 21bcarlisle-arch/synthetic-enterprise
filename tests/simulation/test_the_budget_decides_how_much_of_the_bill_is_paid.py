@@ -16,7 +16,7 @@ def _ids_by_margin(year, n=4000):
     under, short, comfortable = [], [], []
     for i in range(n):
         cid = f"RESI{i:05d}"
-        b = hb.draw_household_budget(household_of(cid))
+        b = hb.budget_in_year(hb.draw_household_budget(household_of(cid)), year)
         m = hb.margin_in_year(b, year)
         if m < -50 and b.savings_buffer < 200:
             under.append(cid)
@@ -161,3 +161,73 @@ def test_a_sub_penny_bill_is_paid_from_ample_money_defect_rounded_payment_agains
         paid, earlier = book.settle_month(supply_point=cid, household=household_of(cid), year=2016,
                                           amount_gbp=amount, legs=2, ref=r)
         assert paid and not earlier, (amount, book.unpaid_of(cid))
+
+
+# THE INCOME MOVES EACH YEAR (2026-10-19): `household_budget_w2_4.md`, "how an under-water spell
+# ends in the record". The 19 Oct paired grade found a household under water never left it.
+
+def _under_water_paths(n=6000, years=range(2016, 2025)):
+    paths = []
+    for i in range(n):
+        b = hb.draw_household_budget(household_of(f"RESI{i:05d}"))
+        paths.append([hb.margin_in_year(hb.budget_in_year(b, y), y) < 0 for y in years])
+    return paths
+
+
+def test_an_under_water_spell_can_end_and_can_last_defect_a_margin_fixed_for_life():
+    """The partition first: some household under water in 2016 is out of it by 2024, and some
+    is still under water every year. A move rate of 1 or 0 fails one leg."""
+    paths = [p for p in _under_water_paths() if p[0]]
+    assert paths, "no household under water in 2016"
+    assert any(not all(p) for p in paths) and any(all(p) for p in paths)
+
+
+def test_the_yearly_exit_is_near_the_published_third_defect_an_exit_rate_nobody_printed():
+    """DWP Income Dynamics: 36% AHC leave low income a year (range 32-40%)."""
+    pairs = [(a, c) for p in _under_water_paths() for a, c in zip(p, p[1:]) if a]
+    exit_rate = sum(not c for _, c in pairs) / len(pairs)
+    assert 0.25 <= exit_rate <= 0.45, exit_rate
+
+
+def test_the_move_leaves_the_under_water_share_where_it_was_defect_the_exit_drains_the_level():
+    """A fresh draw from the same ladder: the share under water in 2024 is the drawn share at
+    2024 prices, within sampling noise. The level is W2_38's question, not this build's."""
+    n = 6000
+    drawn = moved = 0
+    for i in range(n):
+        b = hb.draw_household_budget(household_of(f"RESI{i:05d}"))
+        drawn += hb.margin_in_year(b, 2024) < 0
+        moved += hb.margin_in_year(hb.budget_in_year(b, 2024), 2024) < 0
+    assert abs(moved - drawn) / n < 0.015, (drawn, moved)
+
+
+def test_two_legs_read_the_same_years_income_defect_a_purse_that_depends_on_posting_order():
+    b = hb.draw_household_budget(household_of("RESI00042"))
+    later_first = [hb.budget_in_year(b, y).monthly_disposable_income for y in (2024, 2019, 2016)]
+    earlier_first = [hb.budget_in_year(b, y).monthly_disposable_income for y in (2016, 2019, 2024)]
+    assert later_first == earlier_first[::-1]
+    assert hb.budget_in_year(b, 2016) == b
+
+
+def test_the_book_reads_the_moving_income_defect_an_exit_the_payment_path_never_reaches():
+    """An under-water household whose income moves up pays again; with the move off, it never
+    does. Unwiring `budget_in_year` from `settle_month` reds this."""
+    for i in range(6000):
+        cid = f"RESI{i:05d}"
+        b = hb.draw_household_budget(household_of(cid))
+        if b.savings_buffer < 50 and hb.margin_in_year(b, 2017) < -50 and \
+                hb.margin_in_year(hb.budget_in_year(b, 2021), 2021) > 600:
+            break
+    else:
+        pytest.fail("no household under water in 2017 that recovers by 2021")
+    paid = {}
+    for move in (hb.INCOME_MOVE_PER_YEAR, 0.0):
+        book = hb.BudgetPaymentBook(income_move_per_year=move)
+        ref = 0
+        for year in (2017, 2018, 2019, 2020, 2021):
+            for _ in range(12):
+                ref += 1
+                book.settle_month(supply_point=cid, household=household_of(cid), year=year,
+                                  amount_gbp=60.0, legs=1, ref=ref)
+        paid[move] = len(book.unpaid_of(cid))
+    assert paid[hb.INCOME_MOVE_PER_YEAR] < paid[0.0], paid

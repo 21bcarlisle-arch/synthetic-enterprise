@@ -89,7 +89,7 @@ from __future__ import annotations
 
 import hashlib
 import random
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from enum import Enum
 from typing import Dict, Mapping, Optional, Sequence, Tuple
 
@@ -323,11 +323,7 @@ def draw_household_budget(
     comp_weights = composition_weights or DEFAULT_COMPOSITION_WEIGHTS
 
     # -- income (own substream) -- uniform decile draw, interpolate within band.
-    r_inc = _substream(seed, "income")
-    decile = r_inc.randint(1, 10)
-    low = ladder[decile]
-    high = ladder[decile + 1] if decile < 10 else ladder[10] * 1.5
-    income = round(r_inc.uniform(low, high), 2)
+    decile, income = _income_draw(_substream(seed, "income"), ladder)
 
     # -- composition (own substream) --
     r_comp = _substream(seed, "composition")
@@ -455,6 +451,43 @@ def _factor(table: Mapping[int, float], year: int) -> float:
     return table[max(year, min(table))]
 
 
+# THE INCOME MOVES EACH YEAR, so a household under water can leave it (2026-10-19). Design and
+# origin: `docs/market_research/household_budget_w2_4.md`, "how an under-water spell ends in the
+# record". Each calendar year after the first, the household's income takes a fresh draw from the
+# same ladder with this probability; otherwise it keeps last year's. A fresh draw from the same
+# ladder leaves the stationary distribution, and so the under-water share, where it was.
+# CALIBRATED, not cited: the value at which the drawn population's exit from under water at 2021
+# prices equals DWP Income Dynamics' 36% AHC exit from low income (2022/23 to 2023/24). Range
+# 0.36-0.45 spans the published 32% (BHPS 1991-2008) to 40% (BHC). Check it did not use: under
+# water in 3 of 4 years over under water in a year, 0.57 drawn against the record's ~0.52.
+INCOME_MOVE_PER_YEAR = 0.41
+_FIRST_INCOME_YEAR = 2016
+
+
+def _income_draw(r: random.Random, ladder: Mapping[int, float]) -> Tuple[int, float]:
+    decile = r.randint(1, 10)
+    low = ladder[decile]
+    high = ladder[decile + 1] if decile < 10 else ladder[10] * 1.5
+    return decile, round(r.uniform(low, high), 2)
+
+
+def budget_in_year(budget: HouseholdBudget, year: int,
+                   move_per_year: float = INCOME_MOVE_PER_YEAR,
+                   base_seed: Optional[int] = None) -> HouseholdBudget:
+    """The household's budget with `year`'s income: the latest year's fresh draw, if any, else the
+    drawn one. A pure function of (household, year), so a household's two legs, posted out of date
+    order, read the same income for the same year."""
+    seed = _base_seed_for(budget.customer_id, base_seed)
+    for y in range(year, _FIRST_INCOME_YEAR, -1):
+        r = _substream(seed, f"income_move:{y}")
+        if r.random() < move_per_year:
+            decile, income = _income_draw(r, MONTHLY_DISPOSABLE_INCOME_BY_DECILE)
+            return replace(budget, income_decile=decile, monthly_disposable_income=income,
+                           discretionary_margin_monthly=round(
+                               income - budget.essential_cost_floor_monthly, 2))
+    return budget
+
+
 def margin_in_year(budget: HouseholdBudget, year: int,
                    benefit_path_deciles: Sequence[int] = BENEFIT_PATH_DECILES) -> float:
     """Income less every essential except energy, in `year`'s own pounds. May be negative."""
@@ -481,8 +514,10 @@ class BudgetPaymentBook:
     refill out of surplus only up to the buffer the household was drawn with (design choice).
     """
 
-    def __init__(self, benefit_path_deciles: Sequence[int] = BENEFIT_PATH_DECILES):
+    def __init__(self, benefit_path_deciles: Sequence[int] = BENEFIT_PATH_DECILES,
+                 income_move_per_year: float = INCOME_MOVE_PER_YEAR):
         self._benefit_path_deciles = tuple(benefit_path_deciles)
+        self._income_move_per_year = income_move_per_year
         self._legs: Dict[str, dict] = {}
 
     def settle_month(self, *, supply_point: str, household: str, year: int, amount_gbp: float,
@@ -495,7 +530,8 @@ class BudgetPaymentBook:
             st = self._legs[supply_point] = {
                 "budget": budget, "savings": budget.savings_buffer * share,
                 "cap": budget.savings_buffer * share, "unpaid": []}
-        cash = st["savings"] + margin_in_year(st["budget"], year, self._benefit_path_deciles) * share
+        budget = budget_in_year(st["budget"], year, self._income_move_per_year)
+        cash = st["savings"] + margin_in_year(budget, year, self._benefit_path_deciles) * share
         # A bill is in pence, and `allocate_debt_payments` pays in pence. An unrounded amount left a
         # GBP 17.441972 bill unpaid against GBP 17.44 paid out of GBP 15k, about half of all bills.
         owed = st["unpaid"] + [(ref, round(float(amount_gbp), 2))]
