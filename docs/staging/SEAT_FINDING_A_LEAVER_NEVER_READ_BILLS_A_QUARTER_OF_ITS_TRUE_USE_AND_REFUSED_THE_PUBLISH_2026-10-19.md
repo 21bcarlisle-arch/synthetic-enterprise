@@ -287,3 +287,22 @@ HH files, and (b), which is a fix to what the margin means. Neither stops a publ
 changed the severity header myself, because the drain reads it. The recommendation is to re-file
 this as NORMAL once the 26 Oct publish lands green with the C7 rows inert, and to keep (b) and (c)
 as their own items. Next in order: (c), then (b) on the K6 design.
+
+### Leg (c) landed: the C7–C9 HH files regenerated, and the volume prediction held (worker, 20 Oct)
+
+`sim/hh_data/C7-C9.csv` were regenerated from today's model with `python3 -m tools.generate_hh_data`.
+The `C_IC*` files and every constant are unchanged. Graded against the prediction filed in
+`hh_load_shape_clustering_2026.md` §8 before the run (2016–2024 mean, kWh/yr):
+
+| Home | Old file | Predicted | Regenerated | Grade |
+|---|---|---|---|---|
+| C7 | 12,718 | 9,149 | 9,151 (+0.02%) | **Held** |
+| C8 | 11,734 | 13,185 | 13,188 (+0.02%) | **Held** |
+| C9 | 12,289 | 7,687 | 7,688 (+0.02%) | **Held** |
+
+The 90 tests that read these files pass, including the defect-4 sweep. **Still ungraded:** "C7's
+billed/true is unchanged in direction, because its EAC follows its own file". That needs a run
+carrying this commit, against the 59e1658d6 run (C7 2016 billed/true 1.003, 13,179 / 13,230 kWh).
+With true use now about 9,150, I expect C7's billed/true to stay between 0.9 and 1.1, and no C7
+account-year to invert. The book's true total should fall by about C7's 3,570 kWh/yr plus C9's
+4,600, less C8's +1,450. That is the next piece. It is a run, not a build.

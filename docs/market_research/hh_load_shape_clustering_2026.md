@@ -300,3 +300,10 @@ in direction, because its EAC follows its own file.
   source here.
 - The anchor is 2013. How much domestic electric-heating use moved between 2013 and 2016–2025 has
   not been established.
+
+**Leg (c) done, 20 Oct 2026.** The three files were regenerated with `python3 -m
+tools.generate_hh_data`. The `C_IC*` files and every constant are unchanged. The first half of the
+prediction **held**: the 2016–2024 mean is 9,151 for C7, 13,188 for C8 and 7,688 for C9 (kWh/yr),
+each +0.02% against the table. The old files' own 2016–2024 means (12,718 / 11,734 / 12,289) match
+the "File" column within 1%. The second half, that C7's billed/true keeps its direction, waits on a
+run carrying this commit and is graded in the leaver finding.
