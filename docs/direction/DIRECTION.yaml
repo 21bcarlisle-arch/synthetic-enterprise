@@ -1,120 +1,98 @@
 version: 1
-oriented_at: '2026-10-20T05:20:29.703610+00:00'
-thesis_read: 'Backwards on what we can claim, and that is the most useful result of the stretch. 8 commits, 3 substantive.
-  The classifier reads 0 supplier, 1 world, 7 other, because the stretch''s supplier work landed as grades and the classifier
-  files grades as other. No level moved. The first full-book engine reading of a per-customer decision came back (86f1ef8f4):
-  C34 at the renewal roll advised 11% of rows, P1-P3 refuted and P4 held. The grade then found why. The caller hands C34 (unit_rate
-  - company_fwd) x EAC as ''margin'', and that is the all-in tariff rate less the wholesale forward. It still carries network,
-  policy and operating costs. The advised rows were all above GBP 30 a month, and 0 of 495 at or below GBP 30 were advised,
-  so C34 advised because the margin was inflated, not because it inferred anything. That means the director''s open C34 concern
-  is still untested on the real book. Reading simulation/run_phase2b.py this orientation shows the same expression is the
-  LIVE retention guard''s expected_margin (~L3542), the riding leg (~L3330), the C34 roll (~L3521) and the missed-retention
-  log (~L4064). Meanwhile company.interfaces.renewal_offer.term_cost_floor (forward + capital + locked policy + locked network)
-  is already computed at the same roll, through _price_match_inputs. So every retention decision the company has made in production
-  weighed an overstated value at stake. That is the VAT shape again: one quantity, four implementations, all wrong the same
-  way. Elsewhere: the save offer''s P1a was refuted on 9 decided rolls, P1b held, and the household carry was never exercised
-  (bb93b4e8d). Its control is in surgical_land now (pid 3959362). The budget''s shared-shortfall ordering removed the pre-crisis
-  Q4 excess on one seed (2c361b329), and a second seed is owed before either switch can default on. Leg (c)''s HH files were
-  regenerated (6de3afb10), and its grading run (run_annual_report on 27cb8d183, pid 3677477) is 52 minutes in. The baseline
-  comparison the thesis needs (EP17, flat against per-customer) still waits on the director''s seed listing. NONE of the previous
-  focus was drawn under its own id. Items 1 and 3 were done anyway, under the live continuations they duplicated (read-the-c34-on-arm-r4-and-grade-p1-p4
-  and the-budget-orders-energy-...), so that steer was redundant rather than ignored. That was the seat''s error, and it is
-  corrected here: no focus row restates a queued continuation, and item 1 subsumes c34-renewal-margin-net-of-pass-through
-  explicitly. C35, the one genuine ask, went undrawn behind the continuations. It stays in focus, now behind the margin fix,
-  so it is not built on the wrong quantity.'
+oriented_at: '2026-10-20T08:20:18.714936+00:00'
+thesis_read: 'Forward on correctness, not yet on inference. 4 commits, 1 substantive; the classifier reads 0 supplier, 0 world,
+  1 both and 3 other, and all of it was supplier work. All three focus items were drawn. C34''s roll and riding leg now read
+  the term''s contribution, net of pass-through costs and cost to serve, instead of the spread over wholesale (a57ea3da0).
+  The same fix for the live retention guard and the missed-retention log is in surgical_land now, with its base off arm running.
+  That retires the VAT-shaped defect in four places, but it means no per-customer decision has yet been read on a true margin.
+  The thesis claim that the supplier beats average by inference still has no evidence for or against it; what we have is a
+  defect removed from under the evidence. C35''s caller is pre-registered (49c24b74f) with its arms running. Leg (c) of the
+  leaver finding was graded (5a2468fdf): C7 is billed within 0.956-1.025 of true use with no inversions, so the publish red
+  is dead at HEAD and the 26 Oct publish is the test. Leg (b), closing on an estimate, is billing accuracy and goes into focus.
+  The budget''s second seed launched at 08:19Z. No level moved. The previous focus did bite: all three were drawn, and two
+  are now live continuations, so they leave focus rather than being restated. One machine error is new: the brief said no
+  long job launched this stretch, and the register shows one did.'
 stretch_reviewed:
-  since: '2026-10-20T02:20:32.195527+00:00'
-  commits: 8
-  substantive: 3
+  since: '2026-10-20T05:20:29.703610+00:00'
+  commits: 4
+  substantive: 1
 focus:
-- id: one-contribution-margin-for-every-renewal-decision
+- id: c34-p2-reread-on-the-terms-contribution
   lane: C_customer_ops
   side: supplier
-  what: 'In simulation/run_phase2b.py, replace every ''(unit_rate - company_fwd) * eac'' margin a decision
-    reads with the term''s contribution over the cost the company already computes, unit_rate - _price_match_inputs(term,
-    commodity, term_start_str, company_fwd)[''cost_floor''] (term_cost_floor in company/interfaces/renewal_offer.py),
-    through ONE helper that all four sites call: the C34 roll (~L3521), the riding leg (~L3330), the retention
-    guard''s expected_margin (~L3542) and the missed-retention log (~L4064). Leave the hedge''s cost_per_mwh
-    (~L4358) alone. Before you subtract cost to serve, check saas/cost_to_serve.py and saas/opex_ledger.py.
-    If no sourced per-account figure reaches the company, the helper carries it as a named None-gap and
-    does not invent a number. Knowledge first: amend section 6.1 of docs/market_research/next_best_action_and_cross_sell.md
-    to say what the margin is. Print the old and new margin over the /var/tmp/se-c34-grade-out/on_arm.json
-    rows before you write the test. File a prereg for the retention guard''s offer count and the C34 P2
-    band on the corrected margin before you run anything. This subsumes the queued continuation c34-renewal-margin-net-of-pass-through:
-    claim it with seat_work_in_hand --claim, and release it (delivery_lane --release and seat_work_in_hand.release)
-    when this lands. If another tick holds it, do only the retention-guard and missed-log sites, on the
-    helper that tick lands.'
-  why: 'The retention guard is a live production per-customer decision, and it has been protecting a value
-    that includes pass-through costs. Every retention reading and the C34 grade rest on that value, so
-    nothing about inference can be said until it is fixed. This is the BLOCKING finding SEAT_FINDING_C34S_RENEWAL_MARGIN_IS_THE_ALL_IN_RATE_..._2026-10-20.md,
-    and it has the VAT shape: one quantity in four places. DONE when one helper feeds all four sites on
-    origin, the default-off C34 arm and the off book''s bytes are reported (the retention guard WILL move
-    the off book, so predict how far first), the finding is dispositioned, and the continuation is retired.'
-  written_at: 1792473936.392
+  what: Once the one-contribution helper is on origin (continuation one-contribution-margin-for-every-renewal-decision,
+    in surgical_land as pid 976535), run the C34 on arm (DecisionPolicy next_best_action_decides_at_renewal
+    on, inside policy_scope) over the full window at that commit, through tools.launch_long_job, serially
+    after the retention guard's own arms. Grade it against docs/staging/records/SEAT_PREREG_C34_P2_ON_THE_TERMS_CONTRIBUTION_2026-10-20.md
+    (0-10 advised of about 978), with the advised rows split by contribution band. Then disposition docs/staging/SEAT_FINDING_C34S_RENEWAL_MARGIN_IS_THE_ALL_IN_RATE_LESS_THE_WHOLESALE_FORWARD_SO_IT_IS_NOT_A_MARGIN_2026-10-20.md.
+    Do not start before the helper lands. If the landing is refused, this item waits; it does not rebuild
+    the helper.
+  why: The first engine reading of a per-customer decision (11% advised) was voided because the margin
+    was inflated, so the director's open C34 concern has never been tested on the real book. This re-read
+    is the first one that can say whether C34 advises anyone on a true margin, which is the input his
+    ruling on the sharing price needs. DONE when the graded P2 is on origin beside its prereg and the
+    BLOCKING finding is re-filed or closed with that evidence.
+  written_at: 1792484711.145
 - id: c35-gets-an-engine-caller-behind-a-switch-that-defaults-off
   lane: C_customer_ops
   side: supplier
-  what: 'After item 1 is on origin, give C35 (C35_the_supplier_finds_the_share_of_value_it_prices_by_optimising_joint_value_against_the_households_response)
-    an engine caller at the renewal roll, on the pattern of C34 (18503313a) and the save offer (46387b883).
-    Its margin input is item 1''s helper and nothing else, so there is no fifth implementation. It makes
-    one decision per household across both legs: read docs/staging/SEAT_FINDING_THE_DECISION_PROBE_SEES_A_DUAL_HOUSEHOLD_ONLY_THROUGH_ITS_ELECTRICITY_LEG_SO_C35_PER_HOUSEHOLD_MERGES_NOTHING_2026-10-19.md
-    first, and carry the gas leg''s margin. Knowledge first: amend docs/market_research/next_best_action_and_cross_sell.md.
-    Then file a prereg under docs/staging/records/ with O1 (the off arm byte-identical to its parent at
-    a fixed seed over a short window) and the on branch''s predictions. Then add a DecisionPolicy switch,
-    default False on every standing policy and declared in FIELD_CONSUMPTION. Grade O1 and the short-window
-    on arm in the landing commit. If item 1 is not on origin, do not start.'
-  why: It closes the last leg of the open wrong row on per-customer decisions that have no production
-    caller. It is also the C34 concern's route for the 60% of advice cases that the sharing rise cannot
-    reach. Built before item 1, it would be graded on the inflated margin that just voided C34's reading.
-    DONE when the caller is on origin with O1 held and the on arm graded, or when the prereg records why
-    C35 cannot be called at the roll.
-  written_at: 1792473936.392
-- id: the-budget-shared-shortfall-second-seed
-  lane: W2_customer_generator
-  side: world
-  unblocks: The crisis bad-debt validator (BLOCKING since 14 Oct), which can only be re-graded on a run
-    with BUDGET_DECIDES_PAYMENT on. Both budget switches stay off until a second seed holds.
-  what: Run the second seed owed by the 2026-10-20 grade in docs/market_research/household_budget_w2_4.md
-    ('Graded (2026-10-20)'), with three arms (off, basket first, and ENERGY_SHARES_THE_SHORTFALL on),
-    each through tools.launch_long_job, serially, on a seed that is not the first grade's. File the predictions
-    first under docs/staging/records/, copying the one-seed bands (Q4 ON-OFF excess within +/-1 in 2016-2021,
-    U1 about 6%, about GBP 244 behind at Q4 2023). Grade with /var/tmp/budgetpay/grade4.py, and land the
-    grade beside the predictions. If it holds, file the default-on change for both switches as its own
-    commit, with its knowledge-page line.
-  why: A one-seed result cannot default a world switch on. This is the only world work that blocks a supplier
-    result. DONE when the second-seed grade is on origin and the switches' next step is either landed
-    or refused with its reason.
-  written_at: 1792473936.392
+  what: 'Carry on with the build pre-registered in docs/staging/records/SEAT_PREREG_C35_PRICES_ITS_RISE_AT_THE_RENEWAL_ROLL_BEHIND_A_SWITCH_THAT_DEFAULTS_OFF_2026-10-20.md
+    (49c24b74f), in the worktree /var/tmp/se-c35, whose off arms are running now (/var/tmp/se-c35-out).
+    The desk carries each leg''s RenewalTerms, a dual household''s room is both legs'' headroom, and the
+    margin is the one-contribution helper and nothing else. Rebase onto that helper once it is on origin,
+    re-run O1 and O2 there, then run the on arm and grade R1-R4. When it lands, the save-offer carry continuation
+    can take simulation/run_phase2b.py: say so in the commit.'
+  why: It closes the last open per-customer decision with no production caller, and it is the C34 concern's
+    route for the 60% of advice cases the sharing rise cannot reach. Its worktree holds simulation/run_phase2b.py,
+    so the save-offer carry control is refused at every draw until it lands. DONE when the caller is on
+    origin with O1 and O2 held on the helper's base and R1-R4 graded, or when the prereg records why C35
+    cannot be called at the roll.
+  written_at: 1792484711.145
+- id: a-change-of-supply-read-settles-beside-the-true-rows
+  lane: D_billing_metering
+  side: supplier
+  what: Build leg (b) of docs/staging/SEAT_FINDING_A_LEAVER_NEVER_READ_BILLS_A_QUARTER_OF_ITS_TRUE_USE_AND_REFUSED_THE_PUBLISH_2026-10-19.md
+    on the K6 replacement design in docs/market_research/unbilled_energy_and_revenue_assurance.md (the
+    cos_read_settlement section, ~L430). Settlement rows stay true; phase 4c of simulation/run_phase2b.py
+    writes a per-leg cos_read_settlement entry once the bills exist, and every reader of settled margin
+    adds it. File the page's prediction (under GBP 1,000 of settled margin over the decade, no defect-4
+    account-year changes sign) under docs/staging/records/ before any run, then grade it on one full-window
+    run at the landing commit. Find every margin reader first and name them in the commit, so this is
+    one entry with one adder and not a sixth implementation.
+  why: Unbilled energy and closing on an estimate are first in the director's supplier order, and today
+    a leaver closed on an estimate books settled margin the company never billed. Legs (c) and (d) are
+    closed, so this is the last open leg of the finding. DONE when the entry and its readers are on origin,
+    the prediction is graded beside it, and the finding is re-filed as NORMAL or closed.
+  written_at: 1792484711.145
 not_now:
-- what: Grading leg (c)'s second half, and the leaver finding's refused publish.
-  why: Its grading run is 52 minutes in (pid 3677477, on 27cb8d183), and the continuation grade-leg-c-c7-billed-true-on-the-first-run-carrying-6de3afb10
-    is queued for it. A focus row would hand the same artefact to a second tick.
-- what: The save offer carry control as a focus item.
-  why: The continuation the-save-offer-carry-reached-by-a-control is in surgical_land now (pid 3959362). It is spent unless
-    that landing is refused.
-- what: Re-reading the C34 on arm, and amending the C34 concern's evidence with the 11% advised.
-  why: The 11% is an artefact of the inflated margin, so quoting it to the director would mislead him. The re-read follows
-    item 1, which pre-registers its P2 band first. The concern row stays verbatim, and its holding position (C34 advises nobody)
-    loses no money.
-- what: B8, the held-back price-sensitivity atom, as a Lane 0 slice.
-  why: 'Read this time: it is held at level 2 by a 2026-10-11 expert-hour FAIL, with Q5 buildable and Q8 the director''s row.
-    Its scope has not been touched since 13 Oct. It ranks behind item 1, because its price-match inputs feed the same retention
-    guard whose value at stake is about to change. A B8 build now would be graded against the margin item 1 replaces.'
-- what: The fabric gas-home season build (W2_30), and the cohort census-traits finding.
-  why: Neither blocks a supplier result. Both are world builds that would move the book under items 1 and 2 while they are
+- what: Keeping one-contribution-margin-for-every-renewal-decision and the-budget-shared-shortfall-second-seed in focus.
+  why: 'Both are live continuations under the same ids: the helper is in surgical_land (pid 976535) with its base off arm
+    running, and budget-seed2-off launched at 08:19Z. Restating a live continuation as focus is the error the seat made last
+    stretch, so they leave focus and their holders finish them. The budget item is still the only world work that blocks a
+    supplier result (the crisis bad-debt validator).'
+- what: Promoting the save-offer carry control (continuation the-save-offer-carry-reached-by-a-control) ahead of C35.
+  why: 'It has been refused 12 times because /var/tmp/se-c35 holds simulation/run_phase2b.py. The refusal is correct serialisation,
+    not a wrong hold: both builds edit the same file near the renewal roll. C35 is further along (prereg on origin, arms running),
+    so it goes first and hands the file over when it lands.'
+- what: Diagnosing the publisher refusal (26.9h, cited red dead at HEAD).
+  why: 'Read this orientation: the refused publish was the 19 Oct run on 8b6fea024, refused by the C7 defect-4 red. Leg (d)
+    fixed that, which is why the red is dead at HEAD. The hold reopens 2026-10-26T04:00, and the 26 Oct publish is the test.
+    Nothing is unattributed, so a diagnosis would find what the leaver finding already says.'
+- what: Asking the director to rule on the C34 sharing price now, with this morning's margin fix as new evidence.
+  why: His row stays verbatim. The evidence that would change the recommendation is focus item 1's re-read, and quoting a
+    margin that has not yet been read on the book would mislead him the same way the 11% would have.
+- what: B8, the held-back price-sensitivity atom, and the fabric gas-home season build (W2_30).
+  why: B8's price-match inputs feed the retention guard whose value at stake is changing in the landing now, so a B8 build
+    would be graded on a moving base. W2_30 blocks no supplier result and would move the book under items 1-3 while they are
     being graded.
-- what: Diagnosing the publisher refusal (23.9h, cited red dead at HEAD).
-  why: The publish is held by the BLOCKING leaver finding, whose grading run is in flight. Diagnosing the publisher's attribution
-    before that run settles would chase a cause that is about to change. If the refusal outlives the leg (c) grade, it is
-    next.
 - what: Reaping /var/tmp/se-budgetpay-land and the four b12 worktrees.
-  why: se-budgetpay-land's work is on origin (718a631a1, a1235d427) and is disposable. The b12 four hold their owner's locks.
+  why: se-budgetpay-land's work is on origin (718a631a1, a1235d427) and is disposable; the b12 four hold their owner's locks.
     Neither moves a result.
 wrong:
 - what: 'THE MACHINE''S, CARRIED. The coupled-triad gate now excludes twinless L3 targets, and its refusal reaches only the
     supervisor journal. 20:22: Unchanged. 23:21: Unchanged. 02:21: Unchanged. 05:22: Unchanged. 08:22: Unchanged. 23:20: Unchanged.
     11:21: Unchanged. 23:21: Unchanged. 05:22: Unchanged. 08:23: Unchanged. 11:22: Unchanged. 14:22: Unchanged. 17:22: Unchanged.
-    20:22: Unchanged. 23:20: Unchanged. 02:20: Unchanged. 05:20: Unchanged.'
+    20:22: Unchanged. 23:20: Unchanged. 02:20: Unchanged. 05:20: Unchanged. 08:20: Unchanged.'
   corrected: false
 - what: 'THE WORLD''S, CARRIED. A gas-heated fabric home''s electricity has no season against SERL. 20:22: Unchanged. It waits
     for the post-publish world builds. 23:21: Focus item 4 measures the fabric homes'' summer swing, which bears on this directly.
@@ -131,7 +109,8 @@ wrong:
     item 3) is still the next world build, and it was not drawn this stretch because the two supplier items ahead of it were.
     23:20: Unchanged. It blocks no supplier result, and it is filed behind the budget ordering (focus item 3). 02:20: Unchanged.
     It blocks no supplier result, and it is filed behind the budget grade (focus item 3). 05:20: Unchanged. It blocks no supplier
-    result, and it is filed behind the budget''s second seed (focus item 3).'
+    result, and it is filed behind the budget''s second seed (focus item 3). 08:20: Unchanged. It blocks no supplier result,
+    and it is filed behind the budget''s second seed, which launched its off arm at 08:19Z.'
   corrected: false
 - what: 'THE MACHINE''S, CARRIED. longjob-save-eight was declared at 50 minutes and has held its admission for 4h46m. 20:22:
     Two long jobs ran this stretch (nonpay2022-capture, -capture2) and both finished successfully, so there was no new instance.
@@ -150,7 +129,9 @@ wrong:
     leg (d) was graded on it. c34-renewal-on-arm-8b6fea024-r3 died after 18 seconds, which is not an overrun. No job is running
     past its declaration. Still not built. 02:20: Four jobs finished successfully (budget-arm5, c34 r4, save1c, c34). save-offer-p1-on
     is 22 minutes in, with no overrun. Still not built. 05:20: save-offer-p1-off and -p1-on finished successfully. tools.run_annual_report
-    (pid 3677477, on 27cb8d183) is 52 minutes in, with no overrun. Still not built.'
+    (pid 3677477, on 27cb8d183) is 52 minutes in, with no overrun. Still not built. 08:20: one-contrib-off-base-a57ea3da0
+    is 62 minutes in, and budget-seed2-off was just launched. The two C35 arm.py processes run outside the register. No overrun,
+    and still not built.'
   corrected: false
 - what: 'THE COMPANY''S, THIS STRETCH. A third per-customer decision has no production caller. The verdict in 3d518bdef found
     that DecisionPolicy.save_offer_decides_per_household is unwired: company.crm.save_offer.save_rates_for_decision has no
@@ -163,18 +144,21 @@ wrong:
     C35 still has no caller. 02:20: Two of three moved. The save offer''s caller is on origin (46387b883), and O1 and S1 were
     re-graded on its base (e4271755f). C35 still has no caller, and focus item 2 builds it. 05:20: C35 still has no caller
     and was not drawn. The two callers that do exist were found to read a margin that is not a margin (next row), so focus
-    item 2 builds C35 only on item 1''s helper.'
+    item 2 builds C35 only on item 1''s helper. 08:20: C35 still has no caller on origin. Its prereg landed (49c24b74f), and
+    its off arms are running in /var/tmp/se-c35-out. Focus item 2.'
   corrected: false
 - what: 'THE COMPANY''S, THIS STRETCH. Every renewal decision reads the all-in unit rate less the wholesale forward as its
     margin. That covers C34''s roll and riding leg, the live retention guard''s expected_margin, and the missed-retention
     log (simulation/run_phase2b.py ~L3330, 3521, 3542, 4064). The quantity still carries network, policy and operating costs,
     while term_cost_floor, already computed at the same roll, does not. Found grading C34 (86f1ef8f4): 0 of 495 rows at or
-    below GBP 30 a month were advised. BLOCKING. Focus item 1.'
+    below GBP 30 a month were advised. BLOCKING. Focus item 1. 08:20: Half corrected. C34''s roll and riding leg read the
+    term''s contribution on origin (a57ea3da0). The retention guard and the missed log are in surgical_land now (pid 976535),
+    and their base off arm is running (longjob-one-contrib-off-base-a57ea3da0). The C34 P2 re-read is focus item 1.'
   corrected: false
-- what: THE SEAT'S, LAST STRETCH. Two of three focus items restated live continuations (the C34 r4 grade, the budget grade),
-    so they were done under the continuations' ids, the steer read as never drawn, and C35, the one genuine ask, waited behind
-    them.
-  corrected: true
+- what: THE MACHINE'S, THIS STRETCH. The orientation brief said no launch_long_job job launched or ended in this stretch,
+    but the launch register records one-contrib-off-base-a57ea3da0 launched at 2026-10-20T07:17:59Z, inside the stretch, and
+    it is still running. A seat that trusted the line would have relaunched a running arm.
+  corrected: false
 for_the_director:
 - id: c34-now-ranks-next-best-action-on
   raised: '2026-10-12'
