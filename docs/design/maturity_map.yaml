@@ -2073,7 +2073,8 @@
   depends_on: [C34_next_best_action_is_one_decision_across_debt_retention_upsell_and_carbon_judged_by_clv]
   couples_with: [W2_39_households_respond_to_contact_including_badly]
   file_scope: ['company/crm/next_best_action.py',
-    'tests/company/crm/test_the_share_is_the_one_that_creates_the_most_joint_value.py']
+    'tests/company/crm/test_the_share_is_the_one_that_creates_the_most_joint_value.py',
+    'tests/company/interfaces/test_c35_prices_a_rise_at_the_renewal_roll_per_household.py']
   simplifications_count: 0
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a supplier pricing an energy-saving service by testing what share of the saving households will pay for, within the credit rules."
