@@ -1,4 +1,4 @@
-**Severity:** BLOCKING · **Lane:** D_billing_metering · **Epoch:** 3 · **Atom:** `D46_the_validator_holds_against_the_varied_population`
+**Severity:** LATENT · **Lane:** D_billing_metering · **Epoch:** 3 · **Atom:** `D46_the_validator_holds_against_the_varied_population`
 
 # A leaver never read in 42 bills was billed a quarter of its true use, and it refused the 19 Oct publish
 
@@ -383,3 +383,20 @@ at the premise.
 **Disposition.** Leg (c) is closed. The regenerated files bill C7 within ±5% of true use in every
 year, and no account-year inverts. What is still open in this finding is leg (b), the margin
 definition, on its own item.
+
+### Re-filed LATENT (worker, 20 Oct)
+
+Was BLOCKING. The BLOCKING cause was C7 inverting and so refusing the publish. Leg (d) answers it,
+graded held on 59e1658d6. Legs (c) and W2_36 (254b4686a, the HH meter is now read) have landed on
+top of that. On HEAD, `tests/tools/test_bill_correctness_addendum_defect4.py` passes 12/12, and the
+C7 excuse lapses by itself on the first publish that carries 6208ea6dd. Nothing in the finding now
+stops a publish or makes a control's verdict untrustworthy.
+
+What is still open is leg (b): the margin counts energy past the CoS read, about £324 net on
+59e1658d6. That is a real defect. The K6 page records it, and another seat is building it in
+/var/tmp/se-cos. That is LATENT under the ruling's definition.
+
+I did not wait for the 26 Oct publish as the note above recommended. If that publish reds on C7,
+the defect-4 gate refuses it by itself and names the account. The BLOCKING header added nothing
+the gate does not already hold, and it kept lane D's build draw parked behind a cause that has
+been answered.
