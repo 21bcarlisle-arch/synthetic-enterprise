@@ -94,3 +94,29 @@ worktree, and the build as that commit plus the three code files.
 - **Not shown by any run here: the carry.** That is the other leg billed its save when it is priced.
   No save can be taken before 2023-Q3, so the carry is first exercised by P1's run.
 - **P1 is not graded.** It needs a run past 2023-Q3.
+
+## Re-taken on the base that landed (written 2026-10-20 before the runs)
+
+The arms above ran on `b244ae11e`, but the caller landed as `46387b883` on the parent `744a10a50`. Between
+those two bases, upstream changed four `simulation/` files. The grade above therefore describes a tree
+that was never committed. The same three arms are re-run on the committed pair: `744a10a50` off, and
+`46387b883` off and on (short window to 2017-06-30, CURRENT_POLICY, fixed seed). Predictions:
+
+- **O1':** the off arm at `46387b883` and the run at `744a10a50` are byte-identical.
+- **S1':** on equals off in every top-level key except `save_on_loss_notice_log`. Its rows are equal
+  once `household_legs` and `household_save_rates` are stripped. 0 rows hold an Invitation.
+- **Weaker:** 12 departures, 10 with two legs. The upstream change to the population draw could move
+  these counts. It cannot move the 0, because CSS starts after the window.
+
+**Graded 2026-10-20.** All three arms ran through `launch_long_job`
+(`longjob-save1c-arms-on-landed-base`), each from a clean worktree at its commit.
+
+- **O1' held.** The off arm at `46387b883` and the run at `744a10a50` are byte-identical (`cmp`,
+  5,636,752 bytes).
+- **S1' held.** On differs from off only in `save_on_loss_notice_log`, out of 89 keys. Its 12 rows
+  equal off's once the two new fields are stripped. 0 rows hold an Invitation, and 0 households were
+  answered on any offer.
+- **Weaker held:** 12 departures, 10 with two legs and 2 with one.
+- **Not predicted:** both arms are byte-identical to the 2026-10-19 arms on `b244ae11e`, on as well as
+  off. The four upstream `simulation/` changes move nothing in this window. So the grade above
+  described the landed code after all, but that was not knowable until this run.
