@@ -346,16 +346,94 @@ def retention_cut_decision(observation: dict, *, cut_gbp_per_mwh: float, margin_
     p0 = est.stayed_held_out / est.held_out
     if not 0.0 < p0 < 1.0:
         return CutDecision(False, None, None, read, f"no cut: a held-out stay share of {p0} values no future")
-    margin = margin_share * sum(observation["monthly_bills"])
+    return _cut_on_value(p0, est.effect, margin_share * sum(observation["monthly_bills"]),
+                         cut_gbp_per_mwh * float(observation["billed_kwh"]) / 1000.0, read)
+
+
+def _cut_on_value(p0: float, effect: float, margin: float, cut_cost: float, read: str) -> CutDecision:
+    """The two forward values at stay share `p0` and `effect` of staying bought, and the decision."""
     lifetime = margin * (1.0 + p0 / (1.0 - p0))
-    cut_cost = cut_gbp_per_mwh * float(observation["billed_kwh"]) / 1000.0
     without = p0 * lifetime
-    with_cut = min(1.0, p0 + est.effect) * (lifetime - cut_cost)
+    with_cut = min(1.0, p0 + effect) * (lifetime - cut_cost)
     if with_cut > without:
         return CutDecision(True, with_cut, without, read,
-                           f"cut: +{est.effect:.4f} of staying is worth {with_cut - without:.2f} more than it costs")
+                           f"cut: +{effect:.4f} of staying is worth {with_cut - without:.2f} more than it costs")
     return CutDecision(False, with_cut, without, read,
-                       f"no cut: +{est.effect:.4f} of staying is worth {without - with_cut:.2f} less than the cut")
+                       f"no cut: +{effect:.4f} of staying is worth {without - with_cut:.2f} less than the cut")
+
+
+# --- B8 Q8: the company's prior on what a cut buys, from published trials ---------------------------
+#
+# The director, 2026-10-12 (canon C8, decision 7): the company may learn what an offer does from
+# published trials and from its own randomised holdout, never from the world's truth. The run's own
+# holdout cannot separate the effect from zero at the founders' scale (~30 considered renewals a year
+# against ~19,600 per arm), and a significance gate then keeps it passive for good (blind Expert Hour
+# Q8). So the run decides on expected value under a belief the published gradients start and its
+# own rows update. Knowledge page: how_households_respond_to_supplier_contact.md s.6.
+
+#: PUBLISHED, two observational gradients of 30-day switching on the annual saving available, per GBP:
+#: CMOL technical annex s.12 (0.0000522, whole sample) and CMOC s.3.42 fn.43 (+1.3% per GBP 100,
+#: contacted only). Both overstate the causal effect (the saving runs with consumption, and with it
+#: engagement; CMOC counts those who would have switched anyway), so a prior from them is generous
+#: to the offer. No trial randomises a retention offer's size.
+PUBLISHED_STAY_PER_GBP_OF_SAVING = (0.0000522, 0.00013)
+PRIOR_STAY_PER_GBP_MEAN = sum(PUBLISHED_STAY_PER_GBP_OF_SAVING) / 2
+#: BELIEF, not a published figure, and the module's one convention for a spread nothing publishes
+#: (`PRIOR_DELTA_SD`): "I could be wrong by as much as the whole gradient". Half the two figures' span
+#: was the first draft; printed, it let 800 rows showing +0.20 of staying move the belief by 0.1%,
+#: a company deaf to its own holdout over two figures from a different decision (30-day switching
+#: on default stock, not a renewal). Never sized from the world's response: that is its truth.
+PRIOR_STAY_PER_GBP_SD = PRIOR_STAY_PER_GBP_MEAN
+
+
+@dataclass(frozen=True)
+class StayPerPound:
+    """The company's belief in the staying a GBP of annual cut buys: the published prior, updated by
+    precision with its own holdout where its rows carry a comparison."""
+
+    mean: float
+    sd: float
+    own_rows: int
+    reason: str
+
+
+def stay_per_pound(rows) -> StayPerPound:
+    """The belief after `rows` (closed holdout rows, each `arm`, `stayed`, and on the treated arm the
+    `cut_gbp` it was offered). The own-book gradient is the pooled effect over the treated rows' mean
+    annual cut, its variance the Newcombe half-width over z, squared, over that cut. With no
+    comparison -- an empty arm, or no treated row carrying its cut -- the prior stands alone."""
+    from statistics import NormalDist
+
+    rows = list(rows)
+    prior = StayPerPound(PRIOR_STAY_PER_GBP_MEAN, PRIOR_STAY_PER_GBP_SD, len(rows),
+                         "published prior alone")
+    pooled = estimate_offer_effect(rows)
+    if pooled.verdict == "refused":
+        return StayPerPound(prior.mean, prior.sd, len(rows), f"published prior alone: {pooled.reason}")
+    cuts = [float(r["cut_gbp"]) for r in rows if r["arm"] == "treated" and r.get("cut_gbp")]
+    if not cuts:
+        return StayPerPound(prior.mean, prior.sd, len(rows),
+                            "published prior alone: no treated row carries the cut it was offered")
+    mean_cut = sum(cuts) / len(cuts)
+    z = NormalDist().inv_cdf(0.5 + INTERVAL_COVERAGE / 2)
+    own_sd = (pooled.high - pooled.low) / (2 * z) / mean_cut
+    own = pooled.effect / mean_cut
+    w_prior, w_own = PRIOR_STAY_PER_GBP_SD ** -2, own_sd ** -2
+    mean = (w_prior * PRIOR_STAY_PER_GBP_MEAN + w_own * own) / (w_prior + w_own)
+    return StayPerPound(mean, (w_prior + w_own) ** -0.5, len(rows),
+                        f"published prior with {pooled.treated}+{pooled.held_out} own rows, "
+                        f"own {own:.6f}/GBP at weight {w_own / (w_prior + w_own):.3f}")
+
+
+def retention_cut_on_belief(belief: StayPerPound, *, stay_belief: float, term_margin_gbp: float,
+                            cut_gbp: float) -> CutDecision:
+    """Offer the cut where the staying it buys at `belief`'s mean, valued over the household's expected
+    tenure, pays for it: expected value, never significance (Q8). `stay_belief` is the company's own
+    for this renewal -- a held-out share from a handful of rows is no share at all."""
+    read = f"{belief.reason}: {belief.mean:.6f} of staying per GBP"
+    if not 0.0 < stay_belief < 1.0:
+        return CutDecision(False, None, None, read, f"no cut: a stay belief of {stay_belief} values no future")
+    return _cut_on_value(stay_belief, belief.mean * cut_gbp, term_margin_gbp, cut_gbp, read)
 
 
 # --- B8 L3: the run's own retention holdout --------------------------------------------------------
@@ -363,8 +441,9 @@ def retention_cut_decision(observation: dict, *, cut_gbp_per_mwh: float, margin_
 # L2 decided on an estimate learned off a coin-drawn decision set the size of a national book. The
 # run's company has only its own renewals, so it runs the holdout itself: at every renewal its guard
 # would consider, it flips its own coin. The held-out half gets no offer. The other half gets the
-# offer the standing guard makes while the company's own interval is undecided -- that is the
-# experiment running -- and `retention_cut_decision` decides it once the interval says anything.
+# offer the company decides on expected value: the published prior, updated by its own closed rows
+# (B8 Q8, `retention_cut_on_belief`). Until 2026-10-20 the standing guard decided while the
+# interval was undecided, which at this scale was always.
 # A row is written only where the company WOULD have offered, on either arm
 # (`RetentionHoldout.would_offer`). The coin is flipped over every renewal the guard considers, but only the would-offer ones are the
 # experiment: keeping a held-out renewal the guard would have declined, while dropping its treated
@@ -389,8 +468,7 @@ def holdout_arm(account_id: str, event_date: str) -> str:
 #: renewal. SLC 22C fixes the notice (42-49 days before term end) and the fee-free exit window
 #: before it, not how long after the decision a loss is attributed; a practitioner case study's
 #: "six or twelve months" is advice, not evidence. While it is None no holdout row closes, so the
-#: company learns nothing from its own holdout and the standing guard decides -- which is what the
-#: founders' book already did, since its interval never decided. 0 is the old definition (stayed
+#: company learns nothing from its own holdout and the published prior decides alone. 0 is the old definition (stayed
 #: at the decision itself), kept nameable so the bias it carries can be measured against a window.
 #: Keep a window inside the term it attributes: at or past a re-fix's own term end it counts the
 #: household's NEXT renewal departure against this one (2026-10-11: nine of ten later losses sat there).
@@ -416,13 +494,15 @@ class RetentionHoldout:
 
     def record(self, *, account_id: str, event_date: str, arm: str, stayed: bool,
                payment_method: str | None, saved_on_loss_notice: bool = False,
-               renewal: str | None = None, supply_points: tuple[str, ...] = ()) -> None:
+               renewal: str | None = None, supply_points: tuple[str, ...] = (),
+               cut_gbp: float | None = None) -> None:
         """`stayed` is the decision's own stay-or-leave; the outcome is read later, at the window.
         `saved_on_loss_notice`: the household was leaving and the reactive save kept it. It
         stays `stayed` (the estimate is the renewal offer's effect with the save running, on both
         arms alike), but it is carried so a save reaching the held-out arm is counted, not hidden.
         `renewal` is one of `RENEWAL_KINDS`; `supply_points` are the account's own points, the key
-        its loss notices arrive under."""
+        its loss notices arrive under. `cut_gbp` is the annual cut the renewal was (or, held out,
+        would have been) offered: what the own-book gradient divides by."""
         kind = renewal or ("re_fixed" if stayed else "left_at_decision")
         if kind not in RENEWAL_KINDS or (kind == "left_at_decision") == bool(stayed):
             raise ValueError(f"a renewal that {'stayed' if stayed else 'left'} cannot end {kind!r}")
@@ -430,7 +510,8 @@ class RetentionHoldout:
                           "stayed_at_decision": bool(stayed), "renewal": kind,
                           "payment_method": str(payment_method),
                           "saved_on_loss_notice": bool(saved_on_loss_notice),
-                          "supply_points": tuple(supply_points) or (account_id,)})
+                          "supply_points": tuple(supply_points) or (account_id,),
+                          "cut_gbp": cut_gbp})
 
     @staticmethod
     def first_loss_after(row: dict, losses_notified) -> dict | None:
@@ -479,23 +560,20 @@ class RetentionHoldout:
 
     def decide(self, *, account_id: str, event_date: str, payment_method: str | None,
                term_margin_gbp: float, term_billed_gbp: float, billed_kwh: float,
-               cut_gbp_per_mwh: float, losses_notified=()) -> tuple[str, CutDecision | None]:
-        """`(arm, decision)` for one renewal. `decision` is None while the company's own interval
-        is undecided or refused: the standing guard then says whether it would offer. Otherwise it
-        is `retention_cut_decision` on the rows closed before today, valued at this term's own
-        margin as a share of its own billing. It is read on BOTH arms, because whether a renewal
-        belongs in the experiment (`would_offer`) must not depend on the coin."""
+               cut_gbp_per_mwh: float, stay_belief: float | None,
+               losses_notified=()) -> tuple[str, CutDecision | None]:
+        """`(arm, decision)` for one renewal: `retention_cut_on_belief` on the published prior
+        updated by the rows closed before today, at this term's own margin and the company's own
+        stay belief. None -- the standing guard decides -- only where there is nothing to value (no
+        billing, or no stay belief). It is read on BOTH arms, because whether a renewal belongs in
+        the experiment (`would_offer`) must not depend on the coin."""
         arm = holdout_arm(account_id, event_date)
-        rows = self.closed_before(event_date, losses_notified)
-        pooled = estimate_offer_effect(rows)
-        if pooled.verdict in ("undecided", "refused") or term_billed_gbp <= 0:
+        if term_billed_gbp <= 0 or stay_belief is None:
             return arm, None
-        observation = {"payment_method": str(payment_method), "monthly_bills": [term_billed_gbp],
-                       "billed_kwh": billed_kwh}
-        return arm, retention_cut_decision(
-            observation, cut_gbp_per_mwh=cut_gbp_per_mwh,
-            margin_share=term_margin_gbp / term_billed_gbp,
-            by_channel=estimate_offer_effect_by_channel(rows), pooled=pooled)
+        belief = stay_per_pound(self.closed_before(event_date, losses_notified))
+        return arm, retention_cut_on_belief(
+            belief, stay_belief=stay_belief, term_margin_gbp=term_margin_gbp,
+            cut_gbp=cut_gbp_per_mwh * billed_kwh / 1000.0)
 
     @staticmethod
     def would_offer(decision: CutDecision | None, standing_guard_offers: bool) -> bool:

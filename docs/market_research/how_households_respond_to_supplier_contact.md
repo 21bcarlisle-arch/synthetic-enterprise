@@ -295,3 +295,100 @@ households re-fixed internally with external loss unmoved. CMOL (0.024) and CMOC
 the letter instruments on default stock. In the world, about 23% of the woken leave and about 77%
 re-fix with us. Not yet compared: the external share of each trial's switchers. CMOC's 6.8% counts
 internal switches too, and no source here splits it.
+
+## 6. What a renewal cut buys, as the company's prior (B8 Q8, 2026-10-20)
+
+**The question.** The director ruled on 12 Oct (canon C8, decision 7) that the company may learn
+what a retention offer does from published trials as well as from its own randomised holdout, and
+never from the world's truth. B8's run-time holdout cannot decide on its own at the founders' scale
+(about 30 considered renewals a year, against about 19,600 per arm to separate the measured effect
+from zero). So the decision needs a prior, and the prior has to come from what is published.
+
+**What is published, and its units.** Only two figures relate staying or leaving to the size of a
+saving, both in §2.7, both per pound of *annual* saving:
+
+| source | figure | per £ of annual saving | what it counts |
+|---|---|---|---|
+| CMOL technical annex §12 | 0.0000522 per £ (s.e. 0.0000039) | 0.0000522 | 30-day switching, whole sample, default-tariff stock |
+| CMOC §3.42, fn. 43 | +1.3% per £100 | 0.00013 | 30-day switching, contacted only, default-tariff stock |
+
+No trial varies a *retention offer's* size at random. EFTC, the one fixed-term-end trial, ran at
+one level of saving (§4 item 2). The knowledge map already records retention-offer depth as
+unpublished.
+
+**What the company may take from them.** A renewal cut of £c a year narrows the saving a rival
+offers by £c. If staying responds to the saving the way switching does in these two
+cross-sections, the cut buys about g × c of staying. Here g is the gradient, between 0.0000522 and
+0.00013 per £.
+
+**Which way the evidence leans.** Both gradients are observational, and both lean the same way:
+they overstate the causal effect.
+- The saving shown rises with consumption, and consumption runs with engagement. CMOL itself
+  attributes the supplier difference mainly to the saving (§2.7).
+- CMOC's gradient is taken among contacted households only. It includes those who would have
+  switched anyway (fn. 41).
+
+So a prior built from them is generous to the offer, which is the safe direction for a claim that
+an offer does *not* pay (F11).
+
+**The build's choices, and why.**
+1. **The prior is on the gradient, as a normal.** Its mean is the midpoint of the two published
+   figures, 0.0000911 per £. **Its standard deviation is a BELIEF, not a published figure: it
+   equals the mean**, which is the module's one convention for a spread nothing publishes
+   (`PRIOR_DELTA_SD`: "I could be wrong by as much as the whole slope"). The first draft used half
+   the two figures' span (0.0000389). Printed, that let 800 rows showing +0.20 of staying move the
+   belief by 0.1%. Two figures from a different decision cannot make a company that deaf to its
+   own holdout. The spread is never sized from the world's own response, because that is the
+   world's truth. Its weight on the company's own rows, at a cut of £22.50 and a held-out stay of
+   0.75 (from `stay_per_pound`):
+
+   | own rows per arm, effect | sd 0.43× mean | sd = mean (built) | sd 3× mean |
+   |---|---|---|---|
+   | 15, +0.05 (the founders' book in a year) | 0.000 | 0.000 | 0.002 |
+   | 400, +0.05 | 0.001 | 0.005 | 0.042 |
+   | 4,000, +0.05 | 0.009 | 0.046 | 0.303 |
+   | 20,000, +0.015 (a national book) | 0.041 | 0.186 | 0.673 |
+
+   **At the founders' scale the decision is the prior's under any of these spreads.** The choice
+   bites only at national scale. There a normal prior moves slowly even against a book many times
+   off it. A heavier-tailed prior is the named simplification.
+2. **The company's own holdout updates it by precision.** The own-book gradient is the pooled
+   difference in stay share divided by the mean annual cut on the treated rows. Its variance is
+   the Newcombe interval's half-width over z, squared, over that same mean cut. With no rows, or
+   one empty arm, the prior stands alone.
+3. **The decision is expected value, not significance.** Q8 of the blind Expert Hour (2026-10-11)
+   was right that a significance gate keeps a small book passive for good. The cut is offered when
+   the posterior mean stay it buys, valued over the household's expected tenure, exceeds what it
+   costs. The valuation is L2's own `retention_cut_decision`, unchanged. Its stay share is the
+   company's own churn belief for this renewal, because a held-out share from a handful of rows
+   is no share at all.
+4. **The cut is valued in ex-VAT pounds**, and the published savings are bill pounds. The prior
+   therefore reads a cut as about 5% smaller than the household sees it. That is the conservative
+   direction for offering, and it is named rather than corrected.
+
+**What no source establishes (GAPs).**
+- A causal gradient for a retention offer at a fixed-term end.
+- Whether the response is linear in the cut. Both sources fit it as linear.
+- The window: both count 30 days, and a renewal is a single decision.
+
+**Printed at real inputs before building** (`docs/reports/run_output_latest.json.gz`,
+`retention_log`, 92 offers, the published book's own costs, margins and churn beliefs, valued as
+`retention_cut_decision` values them):
+
+| gradient per £100 of annual saving | offers that pay |
+|---|---|
+| 0.52 pp (CMOL) | 3 of 92 |
+| 1.30 pp (CMOC) | 4 of 92 |
+| 5.20 pp (10× CMOL, for scale) | 21 of 92 |
+
+The median cut is £14.63 a year and buys 0.08–0.20 pp of staying. The median break-even is about
+1.2 pp. The four that pay at CMOC's figure are households the company believes almost certain to
+leave (stay belief 0.001–0.05), or with a very large term margin (PROS-2022-0400, I&C-sized).
+**On published evidence, the renewal cut pays for almost no one.** That agrees with canon C8,
+"blanket renewal discounts are not the lever", and with B8's harness at L2, now reached from
+evidence outside the world.
+
+**Run with the holdout on (default roster, 2016-01-01 to 2017-12-31, 349 s).** Prediction, filed
+before the run: every coin-flip row is decided, and the company would offer on at most 10% of them.
+Result: 52 coin flips (26 per arm), all 52 decided, **0 of 52 would offer**. Held. Before this
+build, the standing guard decided all of these and offered on every one.

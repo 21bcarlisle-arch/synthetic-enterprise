@@ -3656,6 +3656,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                             payment_method=_company_payment_method,
                             term_margin_gbp=expected_margin, term_billed_gbp=_ret_billed,
                             billed_kwh=eac_for_ret, cut_gbp_per_mwh=unit_rate * discount_pct,
+                            # Q8: valued at its own stay belief, on the published prior (C8).
+                            stay_belief=1.0 - company_est_pre,
                             # Q10: a row's outcome is read at its window from the company's own
                             # loss notices, so a departure months after the renewal is the row's.
                             losses_notified=_change_of_supplier_register.losses_notified())
@@ -4078,7 +4080,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                         "left_at_decision" if event is not None and event["event_type"] == "churned"
                         else "declined_fix_on_default" if _renewal_outcome == RENEWAL_DECLINED_FIX
                         else "re_fixed"),
-                    supply_points=_supply_points_of_account.get(billing_account, (cid,)))
+                    supply_points=_supply_points_of_account.get(billing_account, (cid,)),
+                    cut_gbp=ret_cost)
                 retention_holdout_log[-1]["stayed_at_decision"] = (
                     _retention_holdout.rows[-1]["stayed_at_decision"])
                 retention_holdout_log[-1]["renewal"] = _retention_holdout.rows[-1]["renewal"]

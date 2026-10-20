@@ -277,8 +277,8 @@ class DecisionPolicy:
 
     #: B8 L3 (2026-10-09): the retention guard runs the company's own holdout
     #: (`discovered_price_sensitivity.RetentionHoldout`). Half the renewals it would consider get no
-    #: offer; the other half get the standing guard's offer until the company's own interval decides,
-    #: and `retention_cut_decision` after. Off on every standing policy, so no run moves.
+    #: offer; the other half get the offer the company decides on expected value, its published-trial
+    #: prior updated by its own closed rows (Q8, 2026-10-20). Off on every standing policy, so no run moves.
     retention_runs_holdout: bool = False
 
     #: B8 Q5 (2026-10-11): how the renewal cut is sized. "risk_tiers" is `retention_discount_for_risk`

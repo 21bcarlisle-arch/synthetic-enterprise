@@ -212,44 +212,53 @@ def _planted(holdout: "dps.RetentionHoldout", day: str, n: int = 400) -> None:
     """A holdout whose own interval says the offer raises staying: 0.95 treated against 0.75."""
     for i in range(n):
         holdout.record(account_id=f"T{i}", event_date=day, arm="treated", stayed=i < 0.95 * n,
-                       payment_method="direct_debit")
+                       payment_method="direct_debit", cut_gbp=_CUT_GBP)
         holdout.record(account_id=f"H{i}", event_date=day, arm="holdout", stayed=i < 0.75 * n,
                        payment_method="direct_debit")
 
 
-def _run_decide(holdout, account, day, margin):
+#: The annual cut `_run_decide` prices: GBP 7.5/MWh on 3,000 kWh.
+_CUT_GBP = 22.5
+
+
+def _run_decide(holdout, account, day, margin, *, stay=0.75, billed=1000.0):
     return holdout.decide(account_id=account, event_date=day, payment_method="direct_debit",
-                          term_margin_gbp=margin, term_billed_gbp=1000.0, billed_kwh=3000.0,
-                          cut_gbp_per_mwh=7.5)
+                          term_margin_gbp=margin, term_billed_gbp=billed, billed_kwh=3000.0,
+                          cut_gbp_per_mwh=7.5, stay_belief=stay)
 
 
 def test_the_runs_holdout_takes_every_branch_and_reads_only_rows_closed_before_today():
-    """One partition: held out; treated while the company's own interval is undecided (the standing
-    guard decides); treated and decided, cut; treated and decided, no cut. And a row dated today is
-    not yet in the book -- the same planted rows on the decision's own day leave it undecided."""
+    """One partition (B8 Q8, 2026-10-20). The run decides on expected value under the published
+    prior its own closed rows update, never on significance: on the prior alone it cuts for a
+    household it believes is leaving and not for one it believes is staying; its own rows, once
+    they say the offer works, turn the ordinary household into a cut; a thin book barely moves it;
+    a row dated today is not yet in the book; with nothing to value, the standing guard decides.
+    Defect: a significance gate returned None at every one of these on the founders' book."""
     day = "2019-06-01"
     treated, held = _account_on("treated", day), _account_on("holdout", day)
-    empty, learned, same_day = _holdout_book(), _holdout_book(), _holdout_book()
-    thin = _holdout_book()
-    _planted(learned, "2018-06-01")
-    _planted(thin, "2018-06-01", n=10)  # the founders' book: an arm of ten is undecided, not refused
+    empty, learned, same_day, thin = (_holdout_book() for _ in range(4))
+    _planted(learned, "2018-06-01", n=4000)
+    _planted(thin, "2018-06-01", n=10)
     _planted(same_day, day)
 
     outcomes = {
-        "held_out": _run_decide(learned, held, day, 100.0),
-        "learning": _run_decide(empty, treated, day, 100.0),
-        "undecided": _run_decide(thin, treated, day, 100.0),
-        "same_day": _run_decide(same_day, treated, day, 100.0),
-        "cut": _run_decide(learned, treated, day, 100.0),
-        "no_cut": _run_decide(learned, treated, day, 10.0),
+        "held_out": _run_decide(learned, held, day, 1000.0),
+        "prior_no_cut": _run_decide(empty, treated, day, 1000.0),
+        "prior_cut": _run_decide(empty, treated, day, 1000.0, stay=0.001),
+        "thin": _run_decide(thin, treated, day, 1000.0),
+        "same_day": _run_decide(same_day, treated, day, 1000.0),
+        "learned_cut": _run_decide(learned, treated, day, 1000.0),
+        "learned_no_cut": _run_decide(learned, treated, day, 100.0),
+        "nothing_to_value": _run_decide(learned, treated, day, 1000.0, billed=0.0),
     }
     # The held-out arm is decided too -- whether it is in the experiment cannot depend on the coin.
     assert outcomes["held_out"][0] == "holdout" and outcomes["held_out"][1].offer_cut
-    assert outcomes["learning"] == ("treated", None)
-    assert dps.estimate_offer_effect(thin.closed_before(day)).verdict == "undecided"
-    assert outcomes["undecided"] == ("treated", None)
-    assert outcomes["same_day"] == ("treated", None)
-    assert outcomes["cut"][1].offer_cut and not outcomes["no_cut"][1].offer_cut, outcomes
+    assert outcomes["prior_cut"][1].offer_cut and not outcomes["prior_no_cut"][1].offer_cut, outcomes
+    assert "published prior alone" in outcomes["prior_no_cut"][1].read
+    assert outcomes["same_day"][1] == outcomes["prior_no_cut"][1]
+    assert not outcomes["thin"][1].offer_cut and "own rows" in outcomes["thin"][1].read
+    assert outcomes["learned_cut"][1].offer_cut and not outcomes["learned_no_cut"][1].offer_cut
+    assert outcomes["nothing_to_value"] == ("treated", None)
 
 
 def test_a_holdout_row_is_due_on_either_arm_exactly_where_the_company_would_offer():
@@ -260,23 +269,54 @@ def test_a_holdout_row_is_due_on_either_arm_exactly_where_the_company_would_offe
     day = "2019-06-01"
     treated, held = _account_on("treated", day), _account_on("holdout", day)
     learned = _holdout_book()
-    _planted(learned, "2018-06-01")
+    _planted(learned, "2018-06-01", n=4000)
     due = {}
     for name, account in (("treated", treated), ("holdout", held)):
-        for margin in (100.0, 10.0):  # decided: cut, and decided: no cut
+        for margin in (1000.0, 100.0):  # decided: cut, and decided: no cut
             arm, decision = _run_decide(learned, account, day, margin)
             due[(name, "decided", margin)] = (arm, learned.would_offer(decision, True))
-        for guard in (True, False):  # still learning: the standing guard says
-            arm, decision = _run_decide(_holdout_book(), account, day, 100.0)
-            due[(name, "learning", guard)] = (arm, learned.would_offer(decision, guard))
+        for guard in (True, False):  # nothing to value: the standing guard says
+            arm, decision = _run_decide(_holdout_book(), account, day, 100.0, billed=0.0)
+            due[(name, "guard", guard)] = (arm, learned.would_offer(decision, guard))
     # Every branch is taken: a row due, and a row not due -- and once decided, the decision and not
     # the standing guard (which says yes on every decided leg here) is what puts it in.
     assert {v[1] for v in due.values()} == {True, False}, due
-    assert due[("treated", "decided", 100.0)][1] and not due[("treated", "decided", 10.0)][1], due
+    assert due[("treated", "decided", 1000.0)][1] and not due[("treated", "decided", 100.0)][1], due
     for (name, kind, k), (arm, is_due) in due.items():
         assert arm == name
         assert is_due == due[("holdout" if name == "treated" else "treated", kind, k)][1], due
 
+
+def test_the_published_prior_is_updated_by_precision_and_never_replaced():
+    """The belief lies strictly between the published prior and the book's own gradient, and moves
+    towards the book as its rows grow. Defects: own rows ignored (mean stays the prior), own rows
+    replacing the prior (mean equals the own gradient), and the weights swapped (a thin book
+    outweighing published evidence)."""
+    lo, hi = dps.PUBLISHED_STAY_PER_GBP_OF_SAVING
+    assert lo < dps.PRIOR_STAY_PER_GBP_MEAN < hi and dps.PRIOR_STAY_PER_GBP_SD > 0
+    day = "2019-06-01"
+    beliefs = {}
+    for n in (10, 400, 4000):
+        book = _holdout_book()
+        _planted(book, "2018-06-01", n=n)
+        beliefs[n] = dps.stay_per_pound(book.closed_before(day))
+    own = 0.20 / _CUT_GBP
+    means = [beliefs[n].mean for n in (10, 400, 4000)]
+    assert all(dps.PRIOR_STAY_PER_GBP_MEAN < m < own for m in means), means
+    assert means == sorted(means) and beliefs[4000].sd < beliefs[10].sd
+    # A thin book leaves the published evidence in charge.
+    assert means[0] - dps.PRIOR_STAY_PER_GBP_MEAN < 0.1 * (own - dps.PRIOR_STAY_PER_GBP_MEAN)
+
+
+def test_with_no_comparison_the_prior_stands_alone_and_says_why():
+    """An empty arm, or treated rows that carry no cut, leave the prior as it is, and the reason
+    names which: a gradient over a cut nobody recorded is not a gradient."""
+    one_arm = [{"arm": "treated", "stayed": True, "cut_gbp": 20.0}]
+    no_cut = [{"arm": "treated", "stayed": True}, {"arm": "holdout", "stayed": False}]
+    for rows, why in ((one_arm, "holdout arm holds no decision"), (no_cut, "carries the cut")):
+        b = dps.stay_per_pound(rows)
+        assert (b.mean, b.sd) == (dps.PRIOR_STAY_PER_GBP_MEAN, dps.PRIOR_STAY_PER_GBP_SD)
+        assert why in b.reason, b.reason
 
 def test_a_save_on_the_loss_notice_is_carried_on_the_holdout_row():
     book = dps.RetentionHoldout()
@@ -321,17 +361,19 @@ def test_a_holdout_rows_outcome_is_read_at_its_window_from_the_companys_own_loss
     assert days == {"L": None, "A": 61, "B": 122, "C": None, "D": None, "E": 70}, days
 
 
-def test_with_no_outcome_window_established_no_row_closes_and_the_standing_guard_decides():
+def test_with_no_outcome_window_established_no_row_closes_and_the_published_prior_decides_alone():
     """The window is a named gap (`RETENTION_OUTCOME_WINDOW_DAYS`), not a picked number. Under it the
-    company's own holdout learns nothing, so a book that would decide at window 0 stays undecided."""
+    company's own holdout learns nothing, so a book that would cut at window 0 decides as an empty
+    one does: on the published prior alone."""
     assert dps.RETENTION_OUTCOME_WINDOW_DAYS is None
     day = "2019-06-01"
     gap, at_decision = dps.RetentionHoldout(), _holdout_book()
-    _planted(gap, "2018-06-01")
-    _planted(at_decision, "2018-06-01")
+    _planted(gap, "2018-06-01", n=4000)
+    _planted(at_decision, "2018-06-01", n=4000)
     treated = _account_on("treated", day)
-    assert gap.closed_before(day) == [] and _run_decide(gap, treated, day, 100.0) == ("treated", None)
-    assert _run_decide(at_decision, treated, day, 100.0)[1].offer_cut
+    assert gap.closed_before(day) == []
+    assert _run_decide(gap, treated, day, 1000.0) == _run_decide(_holdout_book(), treated, day, 1000.0)
+    assert _run_decide(at_decision, treated, day, 1000.0)[1].offer_cut
 
 
 def test_a_rollover_onto_the_default_is_carried_apart_from_a_re_fix():
