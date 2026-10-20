@@ -345,3 +345,7 @@ for 2016–17 and C9 for 2016 to mid-2019, so the deltas are summed over those b
 Grader: `/var/tmp/se-legc/grade.py <run>`. It is a scratch file. It regenerates the ledger and sample
 with the publishers' own `generate()` functions into a temporary directory, then calls the defect-4
 sweep there. Baseline output: `/var/tmp/se-legc/base.json`.
+
+The grading run started 05:28 BST as `run_output_27cb8d183_20261020T042820Z.json`. 27cb8d183 is the
+prereg above, a staging-only commit on 6de3afb10, so this run is one variable against a7a32f337.
+The 05:13 cycle deferred to the save-offer long job first.
