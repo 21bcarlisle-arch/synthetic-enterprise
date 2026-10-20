@@ -62,3 +62,54 @@ households are on the book at each roll, but not the contribution any one of the
   contribution and `_cut_inputs["cost_floor"]` read the same `pre_margin_unit_rate`.
 - **R5 fails.** The guard can offer on a term that has no floor. That is a defect in the cut sizings,
   not in this change.
+
+## Grade, 2026-10-20 13:10 BST — off book at `c61d8b608`, full window, default seed
+
+Run: unit `longjob-retention-guard-contribution-grade-c61d8b608`, worktree at `c61d8b608` (its
+salvage commit touches only generated observability files). Output
+`/var/tmp/se-ret-margin/off_book.json`, log `/var/tmp/se-ret-margin/run.log`. Baseline: the
+published book, `producing_commit ad8afadc5`, 19 Oct 15:02Z.
+
+| | Predicted | Published book | `c61d8b608` | Verdict |
+|---|---|---|---|---|
+| R1 retention offers | 3–30 (point 11) | 92 | **9** | confirmed |
+| R2 retention spend | < GBP 1,300 | GBP 2,559 | **GBP 880** | confirmed |
+| R3 churned with no offer | 55–140 | 36 | **66** | confirmed |
+| R4 missed-log median margin | < GBP 0 | GBP 222 | **−GBP 42** | confirmed |
+| R5 offered rows with a `None` margin | 0 | 0 | **0** | confirmed |
+
+The nine offers: 6 retained, 3 churned despite the offer. The two largest are both PROS-2022-0400,
+the very large account the reconstruction named (contribution GBP 2,278 a year in 2023, GBP 193 in
+2024). One offered row carries a negative contribution (PROS-2018-0223 2021-07-24, −GBP 10.8 against
+a GBP 15.1 cut). The value test passed it because the acquisition cost saved is added before the
+comparison. That is the design, and it is noted rather than called a defect.
+
+### The book's net margin moved, and this run cannot say why
+
+Net margin was GBP 547,630 on the published book and is **GBP 446,884** here (log line "Net margin",
+final treasury GBP 696,884 less the GBP 250,000 start), a move of **−GBP 100,746**. This was not
+predicted. It is also not attributable to the guard change. `ad8afadc5..c61d8b608` is 91 commits,
+and several of the commits touching `company/`, `saas/` or `simulation/` are on by default:
+- `3d518bdef`: the SLC 27.8D dual-fuel offset;
+- `6208ea6dd`: the half-hourly account's own EAC;
+- `e0b301545`: sole-occupant death;
+- `78a36a84c`: income moves for an under-water household;
+- `f8fdb99cc`: the budget book pays in pence.
+
+The guard change's own direct pieces are small:
+- 83 fewer discounts save GBP 1,679 of spend.
+- The 66 churns with no offer carry −GBP 2,339 a year of contribution between them; 5 of the 66 are
+  positive.
+- Book net margin leaves cost to serve out per leg, so the 30 extra churners forgo at most about
+  GBP 55 a leg-year of book margin.
+
+**Prediction for the one-variable control, filed before it runs.** The off book at `6fe4282c0`
+(`c61d8b608`'s parent) on the same command:
+- **C1.** Its net margin is within GBP 10,000 of GBP 446,884. Most of the −GBP 100,746 is the other
+  90 commits, not the guard. The sign of the guard's own move is not predicted.
+- **C2.** It makes 60–120 retention offers. The old spread passes almost every eligible roll, as on
+  the published book.
+
+If C1 fails, the guard change moved the book by more than its direct pieces can explain. The first
+thing to read is the churn journeys of the 30 extra no-offer churners: whether their exit changed
+the collections, bad-debt or hedge positions downstream.
