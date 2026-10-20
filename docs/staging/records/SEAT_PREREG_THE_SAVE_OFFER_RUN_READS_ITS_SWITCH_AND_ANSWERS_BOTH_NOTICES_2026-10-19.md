@@ -149,3 +149,53 @@ Predictions (P1a and P1b are the original P1, unchanged):
   save site on its own.
 - **Sample.** Saves can be offered only from 2023-Q3, so I expect a few to a few dozen decided
   households, not hundreds. If fewer than 5 are decided, P1a is reported with its count and not graded.
+
+**Graded 2026-10-20** (claim `the-save-offer-carry-graded-past-2023-q3`). Both arms ran to completion
+through `launch_long_job` (`longjob-save-offer-p1-{off,on}-e4271755f`), from one clean worktree at
+`e4271755f`, on the full window to 2025-06-07. Each arm took about 88 minutes.
+
+The two arms differ in one top-level key out of 90, `save_on_loss_notice_log`. With `household_legs`
+and `household_save_rates` stripped, they differ in one row only: SYN-2016-306 at 2024-07-06 was
+offered £205.07 by the household decision against £205.96 by the per-leg price match, and was not
+saved on either arm. So the on branch moves nothing in the book on this seed.
+
+| | off | on |
+|---|---|---|
+| save-site rows | 69 | 69 |
+| Invitation held | 10 | 10 |
+| offered (decision leg) | 8 | 8 |
+| saved | 1 | 1 |
+
+- **P1a is refuted, on a small count.** 9 rolls were decided, meaning the household decision answered
+  at least one offer. Of those, 4 were answered on two offers (44%, against at least 60%). The
+  shortfall is mostly in the premise. 3 of the 9 are single-leg households (PROS-2022-0400 at two
+  rolls, and PROS-2018-0235), so the duals are 6 of 9, not the book's 76%. Of the 6 duals, 4 were
+  answered on both legs. The other 2 were answered on one leg:
+  - SYN-2016-306 on electricity only. Why the gas leg is out (a notice not held, or no headroom) is
+    not traced.
+  - PROS-2020-0081 on **gas only**. Its electricity decision leg got no rate, so
+    `_household_rates.get(cid)` is None and nobody asked the household anything. The gas offer the
+    household decision made is thrown away. This is not a defect of the build: the world weighs
+    only the decision leg, and step 1c is not built. But it is the first run evidence of the
+    case 1c must answer, a household decision whose value sits wholly on the leg that is not
+    rolling.
+- **P1b held.** No off row carries the household fields. The only billed save is at the decision site
+  (line 3948): PROS-2022-0400, £338.71 to £252.61, the decision leg alone.
+- **C1 is untested, not held.** The run's one save (PROS-2022-0400, 2023-12-21) is a single-leg
+  household. No household saved on two offers, so 0 carries were written and 0 are left at the end
+  (`carry_left: []`), and there are 0 carry-site calls. Carry-site calls would not have equalled the
+  households anyway. The carry site pops every carry but bills only where the carried rate is below
+  the chain's. The leftover count is the clean test, and it had nothing to count. **No run has yet
+  exercised the carry.** The prediction from the code still stands untested: a carry from a gas
+  decision leg would be lost, because `C1` is priced before `C1g`. Every held row here is
+  electricity, so that case did not arise either.
+- **C2 held, weakly.** No account has two save rows at one `term_start`. 3 gas legs reached the
+  save site on their own, at 2017-03-31, 2017-07-24 and 2019-01-09. Each is a different roll from any
+  electricity row, and all are before CSS.
+- **Sample.** A few decided households were predicted, and there were 9.
+
+**What this leaves.** The carry needs a saved dual household. On this seed there is 1 save in
+10 held rolls, and none on a dual home. A seed sweep at about 88 minutes and 7 GB per arm would
+probably buy fewer than one two-offer save per seed. That is a poor price for testing one dict
+pop. The cheaper evidence is a control that drives the run's term pricing with a carry
+pre-seeded. It is handed on as `the-save-offer-carry-reached-by-a-control`.
