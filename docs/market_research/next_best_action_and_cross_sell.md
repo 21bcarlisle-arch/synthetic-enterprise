@@ -462,8 +462,40 @@ choices, and each one is ours:
 - **The hazard is the company's own renewal churn belief** (`estimate_renewal_churn`, the same
   belief the retention guard reads), spread as a constant monthly hazard over a 12-month term:
   `h = 1 − (1 − p)^(1/12)`. This is B11's shape. It is never the world's roll or its P(stay).
-- **The margin is the one the retention guard already uses:** (offered rate − the term's company
-  forward) × the company's consumption estimate, per month.
+- **The margin is the term's contribution, per month (amended 2026-10-20).** It is
+  [(offered rate − the term's own pre-margin cost) × the company's consumption estimate − the
+  company's cost to serve that leg for a year] / 12.
+  - The pre-margin cost is `renewal_desk.pre_margin_unit_rate`: the company's forward, plus
+    capital, plus the policy and network costs locked into this term. The value arm and the
+    discount floor already measure a margin from it. Every one of those components is a
+    pass-through the household's unit rate recovers, and none is ours to keep.
+  - Cost to serve is `saas/cost_to_serve.FIXED_OVERHEAD_GBP_PER_YEAR` for the segment, per leg.
+    That is the same basis the settled book charges each fuel's records.
+  - Where the term does not record its locked costs, the leg has no contribution and is counted,
+    not guessed.
+  - *Corrected beside the claim:* until 2026-10-20 this bullet said "the margin is the one the
+    retention guard already uses: (offered rate − the term's company forward) × consumption".
+    That is the spread over wholesale. It still carries network, policy and capital, and it is
+    not a margin. On the r4 on-arm run its median was GBP 29.7/month. No row at GBP 30 or less
+    was advised, so it, not the churn belief, put 11.1% of rows over the floor
+    (`SEAT_FINDING_C34S_RENEWAL_MARGIN_IS_THE_ALL_IN_RATE_LESS_THE_WHOLESALE_FORWARD_SO_IT_IS_NOT_A_MARGIN_2026-10-20.md`).
+    At the strike's own TARGET margin of GBP 2/MWh the unit leg keeps about GBP 0.52/month on
+    3.1 MWh. Where nothing upstream moved the strike, the contribution is therefore about
+    −GBP 4/month per leg.
+  - **The standing charge is left out, and that is a GAP, not a zero.** Ofgem's cap model builds
+    the standing charge as the nil-consumption allowance. Since the TCR it carries the network
+    residual the unit rate no longer does (knowledge map, "Cap formula" and "Network charges").
+    The world's standing-charge table rises from 23.6p/day in 2021 to 50.1p in 2023, but its
+    per-MWh network table never gave the residual back. Crediting the whole standing charge would
+    count network twice and would rebuild most of the old margin from 2023 on. How much of the
+    standing charge a supplier keeps (opex and EBIT, against metering, network and policy) is not
+    decomposed anywhere in the commons. Leaving it out errs against our own thesis (F11): it
+    understates what retaining a household is worth to us.
+  - **The retention guard has the same defect.** `simulation/run_phase2b.py` sets
+    `expected_margin = (unit_rate − company_fwd) × EAC` and weighs it against the discount's
+    cost. That is the value it protects, so it overstates that value by the pass-through costs.
+    It is the default policy, so repairing it moves every run's retention offers. It is filed
+    separately and is not changed here.
 - **The advice effect is unknown, so the caller decides under each of the three stated effects**
   of `a_retention_price_that_shares_the_value_an_action_creates.md` §4. Each run writes one row per
   household per effect. The company's own holdout cannot decide an effect at this book size (§6.2:

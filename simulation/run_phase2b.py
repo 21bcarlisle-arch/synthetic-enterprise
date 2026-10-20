@@ -2699,7 +2699,10 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     # C34 at the renewal notice, on a policy that asks for it: records only, moves nothing.
     _renewal_advice = None
     if policy.next_best_action_decides_at_renewal:
-        from company.interfaces.renewal_advice import RenewalAdviceDesk
+        from company.interfaces.renewal_advice import (
+            RenewalAdviceDesk,
+            term_contribution_per_month,
+        )
         _renewal_advice = RenewalAdviceDesk(policy)
     # What the value test would have said where the 10-10 gate refused first. Read by nothing in
     # the loop, so it changes no outcome; it says whether the gate binds or the guard would have
@@ -3327,8 +3330,12 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 and _state_unit_rate is not None):
             _renewal_advice.observe_riding_leg(
                 account_id=billing_account, term_start=term_start_str, fuel=commodity,
-                monthly_margin_gbp=(_state_unit_rate - company_fwd)
-                * _account_state_row["company_eac_kwh"] / 1000.0 / 12.0)
+                monthly_margin_gbp=term_contribution_per_month(
+                    unit_rate_gbp_per_mwh=_state_unit_rate, term_start=term_start_str,
+                    company_forward_per_mwh=term.get("company_forward_price_gbp_per_mwh"),
+                    locked_policy_cost_per_mwh=term.get("locked_policy_cost_gbp_per_mwh"),
+                    locked_network_cost_per_mwh=term.get("locked_network_cost_gbp_per_mwh"),
+                    company_eac_kwh=_account_state_row["company_eac_kwh"]))
         # C29: EVERY domestic leg the supplier bills is on the book `engagement_at` fits, not only
         # the ones that reached a renewal offer. Enrolled at the offer instead, a household that
         # rolled to the default was never asked for and the book held only choosers: every
@@ -3514,11 +3521,17 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 ))
                 if hangover_periods > 0:
                     hangover_remaining[cid] = hangover_periods - 1
-                # C34 at the renewal notice: our margin on the offered rate, the company's own belief.
+                # C34 at the renewal notice: our contribution on the offered rate (net of the
+                # term's pass-through costs and cost to serve, §6.1), the company's own belief.
                 if _renewal_advice is not None and segment_for_churn == "resi":
                     _renewal_advice.observe_roll(
                         account_id=billing_account, term_start=term_start_str, fuel=commodity,
-                        monthly_margin_gbp=(unit_rate - company_fwd) * company_eac / 1000.0 / 12.0,
+                        monthly_margin_gbp=term_contribution_per_month(
+                            unit_rate_gbp_per_mwh=unit_rate, term_start=term_start_str,
+                            company_forward_per_mwh=term.get("company_forward_price_gbp_per_mwh"),
+                            locked_policy_cost_per_mwh=term.get("locked_policy_cost_gbp_per_mwh"),
+                            locked_network_cost_per_mwh=term.get("locked_network_cost_gbp_per_mwh"),
+                            company_eac_kwh=company_eac),
                         renewal_churn_belief=company_est_pre)
                 if company_est_pre > RETENTION_THRESHOLD:
                     eac_for_ret = company_eac  # Phase 23a: use company estimate
@@ -5542,7 +5555,9 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             "retention_holdout_outcomes": _retention_holdout.outcomes(
                 _change_of_supplier_register.losses_notified())}
            if policy.retention_runs_holdout else {}),
-        **({"next_best_action_renewal_log": _renewal_advice.decisions()}
+        **({"next_best_action_renewal_log": _renewal_advice.decisions(),
+            "next_best_action_legs_without_contribution":
+                _renewal_advice.legs_without_contribution}
            if _renewal_advice is not None else {}),
         "nudge_physics_log": nudge_physics_log,
         "retention_cost_events": retention_cost_events,

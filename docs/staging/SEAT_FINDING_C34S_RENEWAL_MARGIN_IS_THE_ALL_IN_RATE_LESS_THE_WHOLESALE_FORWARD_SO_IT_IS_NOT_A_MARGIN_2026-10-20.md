@@ -50,3 +50,18 @@ company's belief. It shows the floor was fed the wrong quantity.
 The caller is handed a margin net of pass-through and cost to serve, from a quantity the company
 already computes. §6.1 states what the margin is before it is used. The on arm is then re-read, with
 the P2 band re-predicted before the run. The switch stays off until then.
+
+## Progress, 2026-10-20 (the caller repaired, the re-read still owed)
+
+- **§6.1 states the margin first (K8).** It is the term's contribution:
+  `[(rate − pre_margin_unit_rate) × company EAC − cost to serve] / 12` per leg. The standing charge
+  is left out as a stated GAP.
+- **Both call sites now hand C34 `term_contribution_per_month`.** An AST control in
+  `tests/company/interfaces/test_c34_decides_at_the_renewal_roll_per_household_and_records_only.py`
+  holds it. A leg with no locked costs is counted, not guessed.
+- **The retention guard has the same defect.** It is filed as
+  `SEAT_FINDING_THE_RETENTION_GUARD_WEIGHS_THE_SPREAD_OVER_WHOLESALE_AS_THE_VALUE_IT_PROTECTS_2026-10-20.md`.
+- **P2 is re-predicted before any run** in
+  `records/SEAT_PREREG_C34_P2_ON_THE_TERMS_CONTRIBUTION_2026-10-20.md`: 0–10 advised of about 978.
+- **Still owed:** the on-arm re-read against that pre-registration. Until it lands, this stays
+  BLOCKING and the switch stays off.

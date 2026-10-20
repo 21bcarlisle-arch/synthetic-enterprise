@@ -5,18 +5,30 @@ Defects each control names:
   an advised row exists before it asserts any refusal;
 - a riding leg that never joins its roll leaves per household deciding on electricity alone, the
   instrument defect 608c0d0fa fixed in the probe;
-- a standing policy that turns the caller on changes every published run.
+- a standing policy that turns the caller on changes every published run;
+- a margin read as the rate less the wholesale forward still carries network, policy and capital,
+  which put 11% of the r4 rows over the floor (§6.1, amended 2026-10-20);
+- a leg whose term records no locked costs must be counted, not priced on a guess, and a desk
+  that skipped EVERY leg would pass that leg alone.
 """
 from __future__ import annotations
 
+import ast
 import dataclasses
+import inspect
 
 import pytest
 
 from company.crm.renewal_advice_desk import STATED_ADVICE_EFFECTS, monthly_hazard
-from company.interfaces.renewal_advice import RenewalAdviceDesk
+from company.interfaces.renewal_advice import RenewalAdviceDesk, term_contribution_per_month
 from company.policy import decision_policy as dp
 from company.policy.decision_policy import CURRENT_POLICY
+from company.pricing.renewal_desk import TARGET_MARGIN_GBP_PER_MWH, pre_margin_unit_rate
+from saas.cost_to_serve import FIXED_OVERHEAD_GBP_PER_YEAR
+from simulation.policy_costs import (
+    get_electricity_network_cost_per_mwh,
+    get_electricity_policy_cost_per_mwh,
+)
 
 START = "2019-01-01"
 
@@ -96,3 +108,49 @@ def test_the_hazard_is_the_companys_renewal_belief_spread_over_its_twelve_month_
                                   and isinstance(getattr(dp, n), dp.DecisionPolicy)])
 def test_no_standing_policy_turns_the_caller_on(name):
     assert getattr(dp, name).next_best_action_decides_at_renewal is False
+
+
+def _real_term(start="2019-06-01", forward=50.0):
+    return dict(term_start=start, company_forward_per_mwh=forward,
+                locked_policy_cost_per_mwh=get_electricity_policy_cost_per_mwh(start),
+                locked_network_cost_per_mwh=get_electricity_network_cost_per_mwh(start))
+
+
+def test_the_contribution_is_the_rate_over_the_terms_own_cost_less_cost_to_serve_not_over_wholesale():
+    term = _real_term()
+    rate = pre_margin_unit_rate(term["company_forward_per_mwh"], term["term_start"],
+                                term["locked_policy_cost_per_mwh"],
+                                term["locked_network_cost_per_mwh"]) + TARGET_MARGIN_GBP_PER_MWH
+    got = term_contribution_per_month(unit_rate_gbp_per_mwh=rate, company_eac_kwh=3100, **term)
+    assert got == pytest.approx(
+        (TARGET_MARGIN_GBP_PER_MWH * 3.1 - FIXED_OVERHEAD_GBP_PER_YEAR["resi"]) / 12.0)
+    # The old reading, the spread over the forward, is GBP 15+ a month on the same leg.
+    assert (rate - term["company_forward_per_mwh"]) * 3.1 / 12.0 - got > 15.0
+
+
+def test_a_leg_with_no_locked_costs_is_counted_and_a_priced_leg_still_decides():
+    no_cost = dict(_real_term(), locked_network_cost_per_mwh=None)
+    assert term_contribution_per_month(
+        unit_rate_gbp_per_mwh=200.0, company_eac_kwh=3100, **no_cost) is None
+    desk = _desk(book=((60, 0.3),))
+    desk.observe_roll(account_id="B", term_start=START, fuel="electricity",
+                      monthly_margin_gbp=None, renewal_churn_belief=0.3)
+    assert not desk.observe_riding_leg(account_id="A0", term_start=START, fuel="gas",
+                                       monthly_margin_gbp=None)
+    rows = desk.decisions()
+    # Reachability first: the priced household is still decided.
+    assert {r["account_id"] for r in rows} == {"A0"} and {r["legs"] for r in rows} == {1}
+    assert desk.legs_without_contribution == {"roll": 1, "riding": 1}
+
+
+def test_every_margin_the_run_hands_c34_is_the_terms_contribution():
+    from simulation import run_phase2b
+
+    tree = ast.parse(inspect.getsource(run_phase2b))
+    handed = [kw.value for node in ast.walk(tree) if isinstance(node, ast.Call)
+              and isinstance(node.func, ast.Attribute)
+              and node.func.attr in ("observe_roll", "observe_riding_leg")
+              for kw in node.keywords if kw.arg == "monthly_margin_gbp"]
+    assert len(handed) == 2
+    assert all(isinstance(v, ast.Call) and getattr(v.func, "id", None)
+               == "term_contribution_per_month" for v in handed)
