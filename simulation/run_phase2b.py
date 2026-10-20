@@ -1285,6 +1285,38 @@ def _household_save_legs(cid: str, commodity: str, term: dict, term_start_str: s
     return legs
 
 
+def _write_household_save_carry(carry: dict, rates: dict, decision_point: str,
+                                term_start_str: str) -> None:
+    """Carry a saved household's rate to each of its OTHER legs, to be billed when that leg's term
+    is priced (fuel page §8a). The term heap pops on `(term_start, supply point id)`, so a carry is
+    only ever read if its point sorts AFTER the deciding point: one sorting before it was priced
+    already on this date and the carry would sit unread, the save silently unbilled on that leg.
+
+    Today that cannot arise: a household is `C1` plus `C1g`, and gas decides only where there is no
+    electricity point (`departure_decision_leg`), so the only riding leg is `C1g`, after `C1`. The
+    refusal is what keeps it true if a household ever gains a point that sorts first."""
+    for point, rate in rates.items():
+        if point == decision_point:
+            continue
+        if point <= decision_point:
+            raise ValueError(
+                f"household save carry to {point!r} on {term_start_str} cannot be billed: the term "
+                f"heap prices {point!r} before the deciding leg {decision_point!r} on a shared start")
+        carry[(point, term_start_str)] = rate
+
+
+def _take_household_save_carry(carry: dict, cid: str, term_start_str: str, unit_rate: float,
+                               *, spliced: bool) -> float | None:
+    """The rate this leg is billed on its household's save, or None where it is billed the chain's
+    rate. The carry is consumed either way. The save was priced on this leg's offer as first struck;
+    where the chain has since gone lower, the lower rate stands, because a save never raises a
+    price. A spliced default-tariff segment is not the fixed term the save was struck against."""
+    carried = carry.pop((cid, term_start_str), None)
+    if carried is None or spliced or carried >= unit_rate:
+        return None
+    return billed_rate_when_saved(unit_rate, carried)
+
+
 def _account_state_svt_rate(commodity: str, term_start_str: str) -> float | None:
     """The default-tariff rate the account-state record carries for THIS leg's fuel.
 
@@ -2955,9 +2987,10 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         # THE OTHER LEG OF A HOUSEHOLD SAVED AT ITS ROLL is supplied at its save (fuel page §8a). The
         # save was priced on this leg's offer as first struck; where the chain has since gone lower,
         # the lower rate stands, because a save never raises a price.
-        _carried_save = _household_save_carry.pop((cid, term_start_str), None)
-        if _carried_save is not None and not _spliced and _carried_save < unit_rate:
-            unit_rate = billed_rate_when_saved(unit_rate, _carried_save)
+        _carried_billed = _take_household_save_carry(
+            _household_save_carry, cid, term_start_str, unit_rate, spliced=_spliced)
+        if _carried_billed is not None:
+            unit_rate = _carried_billed
             _held_on_a_save = True
             _offer_vs_default = None
 
@@ -3955,9 +3988,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                      if _save_decides_per_household else {}))
                 if _saved:
                     if _save_decides_per_household:
-                        for _point, _rate in _household_rates.items():
-                            if _point != cid:
-                                _household_save_carry[(_point, term_start_str)] = _rate
+                        _write_household_save_carry(
+                            _household_save_carry, _household_rates, cid, term_start_str)
                     unit_rate = billed_rate_when_saved(unit_rate, _save_rate)
                     _held_on_a_save = True
                     _portfolio_margins.account_held_on_a_save(billing_account)

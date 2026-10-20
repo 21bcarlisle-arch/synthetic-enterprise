@@ -199,3 +199,12 @@ saved on either arm. So the on branch moves nothing in the book on this seed.
 probably buy fewer than one two-offer save per seed. That is a poor price for testing one dict
 pop. The cheaper evidence is a control that drives the run's term pricing with a carry
 pre-seeded. It is handed on as `the-save-offer-carry-reached-by-a-control`.
+
+**The carry, reached by a control (2026-10-20).** `tests/simulation/test_the_household_save_carry_bills_the_riding_leg.py`
+drives the run's carry write and take (`_write_household_save_carry`, `_take_household_save_carry`,
+extracted from the term loop unchanged) on the real household decision: the riding gas leg is billed
+its carried rate; a carry above the chain's rate, or on a spliced default segment, is consumed and not
+billed. **The gas-decision loss above cannot arise**, and the prediction is withdrawn: a household is
+`C1` plus `C1g`, and `departure_decision_leg` returns gas only where there is no electricity point, so
+a gas decision leg has no leg to carry to. The write now refuses, by name, any carry to a point the
+heap has already priced, so a household that gains an earlier-sorting point fails loudly.
