@@ -535,3 +535,25 @@ over it, so whether the level is right is a separate, open question.
 move only on a second seed. That means three arms on a new dice draw: off, basket first and shared,
 about 85 minutes each, run serially. They are owed next. The housing draw (R10) is not the next
 cause, because this seed shows no pre-crisis excess left for it to explain.
+
+### Graded, second seed (2026-10-20): the shared shortfall holds, and both switches default on
+
+Three arms (off, basket first, shared) on dice seed 2, world-only to 2024-12-31 at `5a2468fdf`. The
+prereg is `docs/staging/records/SEAT_PREREG_THE_SHARED_SHORTFALL_ON_A_SECOND_DICE_SEED_2026-10-20.md`
+and the result, with its table, is
+`docs/staging/records/SEAT_RESULT_THE_SHARED_SHORTFALL_HOLDS_ON_A_SECOND_DICE_SEED_2026-10-20.md`.
+Every band holds. Shared-off in Q4 2016-2021 runs from -0.5 to +0.9. U1 is 6%. Pounds behind at
+Q4 2023 are £302. The diff-in-diff is +2.1. U4 is 0.926. Basket-off is above +1 in 5 of 6 years
+and £1,011 at Q4 2023. The under-water set is the same 55 accounts.
+
+**What the second seed can and cannot show.** The dice reach only the payment noise around the
+budget. The off arm moves in every year (Q4 2022: 14 heads against seed 1's 20), but U1 and U4 repeat
+seed 1 exactly, because the budget, not the dice, decides an under-water household's payment. Two
+seeds therefore bound the noise around the budget. They do not bound a re-draw of the budget
+population, which stays an open robustness question.
+
+**Ruling: `BUDGET_DECIDES_PAYMENT` and `ENERGY_SHARES_THE_SHORTFALL` default True**
+(`simulation/household_budget.py`), in their own commit. Pro rata is still the stated belief from
+the GAP above, not a measured split. On this seed, the off world's Q4 2022 heads share falls rather
+than rises. The crisis shows in the pounds behind (£94, then £142, then £302), not in the share of
+heads.

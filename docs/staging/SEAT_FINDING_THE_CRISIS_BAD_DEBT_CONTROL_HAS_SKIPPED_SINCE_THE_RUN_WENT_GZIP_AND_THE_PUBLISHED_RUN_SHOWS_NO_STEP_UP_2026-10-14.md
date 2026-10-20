@@ -514,3 +514,22 @@ published run carries the mechanism. The switch stays off until the no-exit defe
 
 **Status:** OPEN and BLOCKING. The cause's first layer is built and graded. What still blocks is
 the exit from negative margin, then a switch-on run graded by this validator.
+
+## 2026-10-20: the budget switches pass their second seed and default on
+
+The exit from negative margin was built (78a36a84c), the shortfall is now shared (15a497992), and
+both are now graded on two dice seeds:
+`docs/staging/records/SEAT_RESULT_THE_SHARED_SHORTFALL_HOLDS_ON_A_SECOND_DICE_SEED_2026-10-20.md`.
+`BUDGET_DECIDES_PAYMENT` and `ENERGY_SHARES_THE_SHORTFALL` default True in their own commit. So the
+next published run is the first to carry the mechanism, and the switch-on run this finding waits
+for comes from the weekly publish. It is not built in this lane.
+
+**Prediction for the validator, filed before that run exists.** The level stays far under the real
+1-3% of revenue band. World-only, the shared arm's pounds behind per account behind at Q4 2023 are
+£302, against Ofgem's £1,303. The crisis shows in pounds, not in the share of heads: on seed 2 the
+off world's Q4 2022 heads share falls. I expect the validator's headline basis to step up in 2022-23
+for the first time, but to stay below the band. If it does not step up at all, the company's charge
+is not reading the world's arrears, and the cause is on the company side.
+
+**Status:** OPEN and BLOCKING until a published run with the switches on is graded by
+`validate_run_output`.

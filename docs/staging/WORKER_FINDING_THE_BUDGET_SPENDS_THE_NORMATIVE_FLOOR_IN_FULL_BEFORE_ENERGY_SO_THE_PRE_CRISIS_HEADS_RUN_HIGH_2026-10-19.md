@@ -35,3 +35,8 @@ paired run (`/var/tmp/budgetpay/grade4.py`).
 
 **Not this finding:** the company-side exits (arrangement, PPM, Fuel Direct, write-off), which are
 W2_38's and `UNREACHED_EXITS`'s, and the stress drift (its own finding, 2026-10-16).
+
+**Second seed graded (2026-10-20): it holds, and both switches default on.** Every band in the prereg
+holds on dice seed 2: shared-off from -0.5 to +0.9 in Q4 2016-2021, U1 6%, £302 at Q4 2023. See
+`docs/staging/records/SEAT_RESULT_THE_SHARED_SHORTFALL_HOLDS_ON_A_SECOND_DICE_SEED_2026-10-20.md`.
+The GAP above still stands: pro rata is a stated belief.
