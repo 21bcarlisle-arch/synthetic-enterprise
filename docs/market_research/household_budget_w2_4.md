@@ -487,3 +487,51 @@ Sources: [ONS OPN, 14-25 June 2023](https://www.ons.gov.uk/peoplepopulationandco
 JRF, *Going under and without: JRF's cost of living tracker, winter 2022/23* (read from a mirrored copy of the PDF, [michaelharrison.org.uk](https://michaelharrison.org.uk/wp-content/uploads/2022/12/Going-under-and-without-JRFs-cost-of-living-tracker-winter-2022-23.pdf), pp. 3-10; the jrf.org.uk original not re-read);
 [StepChange, household bills arrears surge (2024 data)](https://www.stepchange.org/media-centre/press-releases/household-bills-arrears-surge.aspx);
 [Citizens Advice, Sep 2023](https://www.citizensadvice.org.uk/about-us/about-us1/media/press-releases/one-in-four-people-behind-on-at-least-one-bill-as-uk-households-fall-22-billion-in-the-red/).
+
+### Graded (2026-10-20): sharing the shortfall removes the pre-crisis excess, on one seed
+
+**The run.** As pre-registered in
+`docs/staging/records/SEAT_PREREG_THE_BUDGET_SHARES_THE_SHORTFALL_BETWEEN_THE_BASKET_AND_ENERGY_2026-10-20.md`:
+world-only to 2024-12-31, one dice draw, both switches on, at 78a36a84c plus only the
+`ENERGY_SHARES_THE_SHORTFALL` change. Output `/var/tmp/budgetpay/world5_on_shared_shortfall.json`
+(wall 4,998 s, 918 accounts, 55 ever under water, 31 electricity). The arm's worktree had been
+removed by grading time, so the grader read `account_clustered` from the main tree
+(`grade5b.py`, which differs from `grade5.py` only in that path). It re-printed `world4`'s 23% U1
+and £828 exactly before reading the new arm. **Caveats, first:** one seed. Each pre-crisis Q4
+difference is 0 to 2 accounts out of about 200, well inside each arm's interval.
+
+| Q4, electricity | OFF | ON, basket first (`world4`) | ON, shared shortfall | Shared ON-OFF |
+|---|---|---|---|---|
+| 2016 | 2.3%, £43 | 3.5%, £78 | 2.3%, £43 | +0.0 |
+| 2017 | 4.4%, £55 | 7.1%, £131 | 5.3%, £53 | +0.9 |
+| 2018 | 5.3%, £63 | 6.3%, £252 | 4.3%, £63 | -1.0 |
+| 2019 | 5.8%, £76 | 7.4%, £318 | 5.8%, £74 | +0.0 |
+| 2020 | 6.6%, £100 | 7.7%, £324 | 6.6%, £101 | +0.0 |
+| 2021 | 7.7%, £89 | 9.8%, £352 | 7.1%, £92 | -0.5 |
+| 2022 | 10.4%, £90 | 13.5%, £298 | 11.5%, £115 | +1.0 |
+| 2023 | 10.9%, £138 | 13.9%, £828 | 11.4%, £244 | +0.5 |
+| 2024 | 9.9%, £145 | 12.2%, £863 | 10.4%, £164 | +0.5 |
+
+- **The finding's prediction (filed 2026-10-19): holds.** The excess is under +1 point in every Q4
+  from 2016 to 2021 (largest +0.9, in 2017), and U1 is 6%, against a limit of 30%.
+- **S1, my prediction that at least one year stays above +1: refuted.** I expected aged debt to
+  arrive later but still arrive in most spells. It mostly does not reach 91 days before the spell
+  ends. The order was the excess, and the housing draw is not implicated on this seed.
+- **S2, U1 at 10% or less: holds.** 2 of 31 (6%) under-water electricity accounts never settle a
+  late bill, against 7 of 31 in `world4`.
+- **S3, £200-500 at Q4 2023: holds.** £244, against £828. R1's £200-400 now holds too, but it is
+  far under Ofgem's £1,303 per account behind.
+- **S4, U3 at +0.5 to +2.5 at Q4 2022: holds.** +1.0, against +3.1.
+- **S5, U4 at 0.9 or more: holds.** 0.926 (n=529).
+- **The crisis step-up survives.** The diff-in-diff, Q4 2022 less Q4 2021, is +1.6 points (+0.9 in
+  `world4`). R2, the £ ratio of Q4 2023 to Q4 2021, is 2.64 against the record's 1.44: the pounds
+  build mainly in 2023 (£115 at Q4 2022, £324 at Q2 2023).
+
+**What this does not settle.** One seed cannot bound a paired difference of one or two accounts. Pro
+rata is still a stated belief (the GAP above stands). The pounds now sit under the record, not
+over it, so whether the level is right is a separate, open question.
+
+**Ruling.** Both switches stay False. Per the prereg, `ENERGY_SHARES_THE_SHORTFALL` is a candidate to
+move only on a second seed. That means three arms on a new dice draw: off, basket first and shared,
+about 85 minutes each, run serially. They are owed next. The housing draw (R10) is not the next
+cause, because this seed shows no pre-crisis excess left for it to explain.

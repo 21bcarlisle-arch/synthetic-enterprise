@@ -3,6 +3,13 @@
 
 # The budget spends the normative floor in full before energy, so the pre-crisis heads run high and the switch stays off
 
+**Graded 2026-10-20, one seed: the prediction below holds.** With `ENERGY_SHARES_THE_SHORTFALL` on
+(15a497992), the pre-crisis Q4 ON-OFF excess is between -1.0 and +0.9 in every year 2016-2021, U1 is
+6%, and £ per account behind at Q4 2023 is £244. The order was the excess, so the housing draw is not
+the next cause. Both switches stay off until a second seed. That seed (three arms: off, basket
+first, shared) is what remains owed. Grade:
+`docs/market_research/household_budget_w2_4.md`, "Graded (2026-10-20)".
+
 **What is established.** Behind `BUDGET_DECIDES_PAYMENT`, an under-water household's spell now ends
 at DWP's published 36% a year (78a36a84c). On the paired run, U1-U4 hold. The share that never
 settle falls from 54% to 23%. £ per account behind at Q4 2023 is £828 (Ofgem £1,303). What is
