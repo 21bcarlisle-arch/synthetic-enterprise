@@ -3,7 +3,7 @@
 # Pre-registration: the settlement curve at 400 founder households, budget 7,700 (2026-10-20)
 
 Written before the probe. Acts on the director's ruling of 20 Oct 17:40
-(`docs/staging/advisor/DIRECTOR_RULING_FOUNDER_HOUSEHOLDS_WITH_BUDGET_RAISED_2026-10-20.md`).
+(`docs/staging/advisor/done/DIRECTOR_RULING_FOUNDER_HOUSEHOLDS_WITH_BUDGET_RAISED_2026-10-20.md`).
 
 ## 1. The budget, derived rather than typed
 

@@ -33,3 +33,15 @@ The director's words, from chat on Tue 20 Oct:
   `docs/staging/records/SEAT_PREREG_THE_SETTLEMENT_CURVE_AT_400_FOUNDER_HOUSEHOLDS_AND_A_BUDGET_OF_7700_2026-10-20.md`.
   When it completes: grade it, land the slope file together with `founder_unit: households` and the
   budget, then do steps 3–5. The continuation `founder-households-switch-after-the-curve` carries this.
+
+## Moved to done/ by the channel's refusal (worker tick, 20 Oct). The ruling stands.
+
+The advisor channel refused this file because "the commit that staged it (e81c55a05) is not signed
+by the advisor's pinned key". That is true, but it is not a reason to doubt the ruling. The advisor
+staged the ruling in `dbb56caae`. `e81c55a05` is the seat's own commit, which appended the In-hand
+section above. The channel checks only the newest commit that touched the path, so any seat append
+to an advisor file makes that file refused. In future, record in-hand notes in `docs/staging/records/`
+and leave the advisor's file alone.
+
+Steps 1, 3, 4 and 5 are still owed. The continuation `founder-households-switch-after-the-curve`
+carries them and now points here. When they are done, add a Done section below.
