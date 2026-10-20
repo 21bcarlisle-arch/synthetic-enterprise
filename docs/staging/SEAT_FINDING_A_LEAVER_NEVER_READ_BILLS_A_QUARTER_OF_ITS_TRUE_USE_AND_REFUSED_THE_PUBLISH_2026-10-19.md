@@ -306,3 +306,42 @@ carrying this commit, against the 59e1658d6 run (C7 2016 billed/true 1.003, 13,1
 With true use now about 9,150, I expect C7's billed/true to stay between 0.9 and 1.1, and no C7
 account-year to invert. The book's true total should fall by about C7's 3,570 kWh/yr plus C9's
 4,600, less C8's +1,450. That is the next piece. It is a run, not a build.
+
+### Leg (c)'s second half: the prediction sharpened before the run (worker, 20 Oct 04:40 BST)
+
+No run carries 6de3afb10 yet. The sim-runner's next run starts at about 05:13 BST on HEAD, which is
+6de3afb10. The baseline is `run_output_a7a32f337_20261020T011829Z.json`: same simulation, sim,
+company and saas code, with the old files. 59e1658d6 differs in 16 world files, so it is not the
+baseline.
+
+**Measured on the baseline first.** Its true kWh for C7–C9 matches the OLD files summed over its
+own bill periods to within 5 kWh in every account-year (C7 2016: 13,230 against 13,231). True use
+is the file, so the change in volume can be predicted exactly instead of "about". The "per year"
+figures above do not apply to the book as they stand. The book holds C7 for 2016 to mid-2019, C8
+for 2016–17 and C9 for 2016 to mid-2019, so the deltas are summed over those bill periods only:
+
+| Account-year | Baseline true kWh | New file over the same bills | Delta |
+|---|---|---|---|
+| C7 2016 / 17 / 18 / 19 | 13,230 / 12,744 / 12,894 / 7,257 | 9,419 / 9,150 / 9,314 / 4,995 | −13,253 |
+| C8 2016 / 17 | 7,703 / 10,653 | 8,239 / 11,852 | +1,735 |
+| C9 2016 / 17 / 18 / 19 | 5,452 / 12,320 / 12,640 / 4,339 | 3,318 / 7,643 / 8,019 / 2,798 | −12,979 |
+
+**Predictions, filed before the run:**
+
+- **V1.** Book electricity true kWh moves by −5,409 (2016), −7,074 (2017), −8,211 (2018) and
+  −3,804 (2019), −24,498 in all, within ±50 kWh. It moves by 0 in 2020–2025, and gas does not
+  move. *Refuted if* any other account-year's true kWh moves. That would mean the change reached
+  past these three homes. The fall-back is that a home's tenure moved. C7–C9 leave by churn, and
+  churn reads the bill. A tenure that moves is a second variable, and I will say so rather than
+  grade V1 through it.
+- **R1.** C7 still bills 42 estimates out of 42. Its billed/true is between 0.9 and 1.1 in every
+  year it is on supply. On the baseline the ratios are 0.996, 1.034, 1.022 and 0.925, and 2019 is
+  the one nearest the edge.
+- **R2.** The defect-4 sweep, with `KNOWN_OPEN_INVERSIONS` and the excuse emptied, finds 0
+  inversions on the new run's regenerated ledger and sample. It finds 0 on the baseline too, which
+  was measured just now.
+- C8 and C9 stay at 1.000. All of their bills are actual.
+
+Grader: `/var/tmp/se-legc/grade.py <run>`. It is a scratch file. It regenerates the ledger and sample
+with the publishers' own `generate()` functions into a temporary directory, then calls the defect-4
+sweep there. Baseline output: `/var/tmp/se-legc/base.json`.
