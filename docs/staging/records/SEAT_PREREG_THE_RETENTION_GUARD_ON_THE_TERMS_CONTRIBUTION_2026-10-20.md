@@ -113,3 +113,32 @@ The guard change's own direct pieces are small:
 If C1 fails, the guard change moved the book by more than its direct pieces can explain. The first
 thing to read is the churn journeys of the 30 extra no-offer churners: whether their exit changed
 the collections, bad-debt or hedge positions downstream.
+
+## Grade of the one-variable control, 2026-10-20 17:20 BST — off book at `6fe4282c0`
+
+Run: unit `longjob-retention-guard-parent-control-6fe4282c0`. It started at 14:35 and finished at
+16:12 BST (1 h 37 min wall clock, 5.7 GB peak). Artefact `/var/tmp/se-ret-margin/parent_off.json`,
+log `/var/tmp/se-ret-margin/parent.log`. The worktree it ran in has since been removed, so the commit
+it ran at rests on two things: the script's own docstring, and the retention counts below. Those
+counts match the published pre-guard book exactly, and the guard at `c61d8b608` cannot produce them.
+
+| | Predicted | `6fe4282c0` (parent) | `c61d8b608` | Verdict |
+|---|---|---|---|---|
+| C1 net margin | within GBP 10,000 of GBP 446,884 | **GBP 447,689** | GBP 446,884 | confirmed (+GBP 805) |
+| C2 retention offers | 60–120 | **92** (58 retained, 34 churned despite) | 9 | confirmed |
+
+Other figures from the parent run:
+- Retention spend was GBP 2,526, against GBP 2,559 on the published book.
+- Churns with no offer were 36, the same as the published book.
+- Gross margin was GBP 1,352,137 and bad debt GBP 101,898.
+
+**Attribution.** Of the −GBP 100,746 between the published `ad8afadc5` book and `c61d8b608`, the
+guard change accounts for **−GBP 805**, about 0.8%. The other **−GBP 99,941** comes from the 90
+commits in `ad8afadc5..6fe4282c0`. The guard's direct pieces were bounded beforehand: GBP 1,679 of
+spend saved against the contribution of the 30 extra churners. A net −GBP 805 sits inside that
+bound, so the guard needs no further explanation and the "if C1 fails" path does not apply.
+
+**What this leaves open.** The −GBP 99,941 is unattributed. It is spread across the five default-on
+commits listed above, plus anything else in that range, and this control cannot split it further.
+The next step is to bisect the range on net margin, starting with the five named commits. That is
+handed on as a separate item.
