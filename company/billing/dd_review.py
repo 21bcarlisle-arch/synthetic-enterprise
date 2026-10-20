@@ -142,10 +142,11 @@ def simple_balance_after_window(entering_balance_gbp: float, standing_gbp: float
 #: Whether the annual review asks for the debit balance it finds and recovers it through the debit.
 #: Ofgem (Direct Debit Market Compliance Review: Progress Update, 2 Feb 2023): "where a consumer
 #: account is in a debit position, suppliers commonly add this amount on to the Direct Debit amount
-#: and smooth the cost over the next 12 months." So True is the published practice; False is the
-#: review as it ran until now, kept as the default until the 2026-10-19 publish lands. Source and
-#: GAPs: docs/market_research/what_a_supplier_holds_to_size_a_direct_debit.md §8.
-REVIEW_SEEKS_BALANCE = False
+#: and smooth the cost over the next 12 months." So True is the published practice. False, the review
+#: that never asks, was the default until the 2026-10-19 publish (2a195224b) carried both arms on
+#: the billing page: on that book, seeking cut barred-plus-open-exposure from GBP 82.6k to 29.2k.
+#: Source and GAPs: docs/market_research/what_a_supplier_holds_to_size_a_direct_debit.md §8.
+REVIEW_SEEKS_BALANCE = True
 #: The same Ofgem sentence: "smooth the cost over the next 12 months".
 BALANCE_RECOVERY_MONTHS = 12
 

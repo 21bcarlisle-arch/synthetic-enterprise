@@ -453,8 +453,9 @@ def main(report_end: str | None = None, policy=None, instructed_read_arm: str = 
     #
     # SLC 21BA at a direct debit's charge recovery actions (2026-10-06): the final bill of an account
     # that left asks for its closing balance, so `churned_ids` names those actions. Whether the annual
-    # review also seeks the balance is the director's assumption toggle; the book runs as the review
-    # is (it does not), and the other arm is published beside it so the bar can be read across both.
+    # review also seeks the balance is the company's switch (`dd_review.REVIEW_SEEKS_BALANCE`, on
+    # since 2026-10-20); the book runs as the switch says, and `review_arms_from_run` publishes both
+    # arms beside it so the bar can be read across them.
     #
     # The term records and forward readings are read only by the `own_forecast_plus_balance`
     # review rule; under the default rule they change nothing.

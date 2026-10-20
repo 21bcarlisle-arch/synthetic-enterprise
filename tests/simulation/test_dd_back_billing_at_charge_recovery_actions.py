@@ -59,7 +59,7 @@ def test_a_review_that_never_seeks_the_balance_bars_at_the_final_bill_and_one_th
 
 
 def test_an_open_accounts_bar_is_an_exposure_not_a_loss():
-    book = build_dd_balance_book(SHORT, OPENING, closed_ids=set())
+    book = build_dd_balance_book(SHORT, OPENING, closed_ids=set(), seek_balance_at_review=False)
     assert book.barred_at_final_bills_gbp == 0
     assert book.barred_if_sought_at_run_end_gbp > 0
 
@@ -122,12 +122,13 @@ def test_the_true_charge_is_the_suppliers_own_and_never_the_worlds():
 
 
 def test_each_bar_taken_is_written_off_on_the_ledger_and_an_exposure_is_not():
-    book = build_dd_balance_book(SHORT, OPENING, {DD})
+    book = build_dd_balance_book(SHORT, OPENING, {DD}, seek_balance_at_review=False)
     assert [a["action"] for a in book.bar_actions] == ["final_bill"]
     assert sum(a["amount_gbp"] for a in book.bar_actions) == round(book.barred_at_final_bills_gbp, 2)
     seeks = build_dd_balance_book(SHORT, OPENING, {DD}, seek_balance_at_review=True)
     assert {a["action"] for a in seeks.bar_actions} >= {"review"}
-    assert build_dd_balance_book(SHORT, OPENING, closed_ids=set()).bar_actions == []
+    assert build_dd_balance_book(SHORT, OPENING, closed_ids=set(),
+                                 seek_balance_at_review=False).bar_actions == []
 
     records: list[dict] = []
     bills = [{**b, "total_consumption_kwh": 100.0} for b in SHORT]
@@ -141,8 +142,10 @@ def test_each_bar_taken_is_written_off_on_the_ledger_and_an_exposure_is_not():
 
 
 def test_each_dd_account_carries_its_recovery_outcome_for_the_d48_money_line():
-    closed_never = build_dd_balance_book(SHORT, OPENING, {DD}).back_billing_accounts
-    open_never = build_dd_balance_book(SHORT, OPENING, set()).back_billing_accounts
+    closed_never = build_dd_balance_book(SHORT, OPENING, {DD},
+                                         seek_balance_at_review=False).back_billing_accounts
+    open_never = build_dd_balance_book(SHORT, OPENING, set(),
+                                       seek_balance_at_review=False).back_billing_accounts
     open_seeks = build_dd_balance_book(SHORT, OPENING, set(),
                                        seek_balance_at_review=True).back_billing_accounts
     # A final bill is an action; an open account meets one only when the review seeks the balance.

@@ -11,15 +11,15 @@ itself flips False on a hand-built varying schedule.
 """
 from __future__ import annotations
 
-from simulation.dd_payment_day import staggered_payment_day
 from company.interfaces.dd_review_outcome import reviewed_monthly_amount
 from simulation.dd_balance_book import build_dd_balance_book
 from simulation.dd_level_collection_book import (
-    build_dd_level_collection_book,
+    _SAMPLE_SCHEDULE_CUSTOMERS,
     DDLevelCollectionBook,
     LevelCollection,
-    _SAMPLE_SCHEDULE_CUSTOMERS,
+    build_dd_level_collection_book,
 )
+from simulation.dd_payment_day import staggered_payment_day
 
 
 def _bill(cid, period_end, amount, segment="resi", commodity="electricity"):
@@ -89,9 +89,10 @@ def _opening_from_first_bill(bills: list[dict]) -> dict:
     return first
 
 
-def _level_book(bills):
+def _level_book(bills, seek_balance_at_review=None):
     return build_dd_level_collection_book(
-        build_dd_balance_book(bills, _opening_from_first_bill(bills))
+        build_dd_balance_book(bills, _opening_from_first_bill(bills),
+                              seek_balance_at_review=seek_balance_at_review)
     )
 
 
@@ -127,7 +128,8 @@ def test_re_estimation_moves_the_fixed_amount_between_years():
     # Year 1 standing = reviewed_monthly_amount(2300) != 100.
     y0 = [100] + [200] * 11
     y1 = [150] * 12
-    book = _level_book(_monthly_bills(_DD_ID, y0 + y1))
+    # The review that resets to last year's spend and nothing else; seeking adds a step-up on top.
+    book = _level_book(_monthly_bills(_DD_ID, y0 + y1), seek_balance_at_review=False)
     cols = book.schedules[_DD_ID]
     year0_amt = round(cols[0].amount_gbp, 2)
     year1_amt = round(cols[12].amount_gbp, 2)
