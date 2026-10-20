@@ -1924,9 +1924,11 @@
   lane: B_commercial
   value_stream: price_to_bill
   epoch: 4
-  level_current: 0
+  level_current: 1
   level_target: 2
   loop_stage: build
+  # L1 2026-10-20: all three clauses built, reached from run_phase2b and mutation-proven (ledger).
+  # Clause 2 nets the standing charge as the cap constructs it (revenue == cost); L2 needs W3_3.
   # MINTED 2026-10-14 from SEAT_FINDING_RENEWALS_SIT_AT_THEIR_COST_FLOOR_BECAUSE_* (d30dafffe), fix 1:
   # 21/21 held electricity renewals sat at a floor that counts network cost the standing charge
   # already recovers, and writer 1 reads the standing charge as margin. K8 first: what the 8% target
@@ -1937,7 +1939,8 @@
   depends_on: []
   couples_with: [B8_discovered_price_sensitivity_holdout, W3_3_the_network_charge_splits_per_unit_and_per_day]
   file_scope: ['company/pricing/renewal_rate_chain.py',
-    'tests/company/pricing/test_writer_one_reads_its_margin_on_the_unit_rate.py']
+    'tests/company/pricing/test_writer_one_reads_its_margin_on_the_unit_rate.py',
+    'tests/company/pricing/test_writer_one_reads_the_unit_rate_margin_against_its_own_strike.py']
   simplifications_count: 0
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a pricing analyst noticing the margin report counts standing-charge income as profit while the cost floor counts the network cost twice."
