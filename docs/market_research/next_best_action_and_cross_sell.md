@@ -482,15 +482,75 @@ choices, and each one is ours:
     At the strike's own TARGET margin of GBP 2/MWh the unit leg keeps about GBP 0.52/month on
     3.1 MWh. Where nothing upstream moved the strike, the contribution is therefore about
     −GBP 4/month per leg.
-  - **The standing charge is left out, and that is a GAP, not a zero.** Ofgem's cap model builds
-    the standing charge as the nil-consumption allowance. Since the TCR it carries the network
-    residual the unit rate no longer does (knowledge map, "Cap formula" and "Network charges").
-    The world's standing-charge table rises from 23.6p/day in 2021 to 50.1p in 2023, but its
-    per-MWh network table never gave the residual back. Crediting the whole standing charge would
-    count network twice and would rebuild most of the old margin from 2023 on. How much of the
-    standing charge a supplier keeps (opex and EBIT, against metering, network and policy) is not
-    decomposed anywhere in the commons. Leaving it out errs against our own thesis (F11): it
-    understates what retaining a household is worth to us.
+  - **The standing charge's operating-cost allowance is credited; the rest of the standing
+    charge is not (amended 2026-10-20, third landing).** Ofgem's cap model builds the standing
+    charge as the nil-consumption allowance. Since the TCR it carries the network residual the
+    unit rate no longer does (knowledge map, "Cap formula" and "Network charges"). The world's
+    standing-charge table rises from 23.6p/day in 2021 to 50.1p in 2023, but its per-MWh network
+    table never gave the residual back. Crediting the whole standing charge would count network
+    twice and would rebuild most of the old margin from 2023 on.
+    - *Corrected beside the claim:* until 2026-10-20 this bullet said how much of the standing
+      charge a supplier keeps "is not decomposed anywhere in the commons". The cap level model
+      that `tools/ofgem_cap_unit_rate_composition.py` reads already decomposes it, component by
+      component, in its `*_Nil` sheets. It also said leaving the standing charge out "errs
+      against our own thesis (F11)". That holds for the level, but not in this use. The
+      contribution charges the full GBP 55 cost to serve against none of the revenue built to
+      recover it, so 85% of legs read negative and every renewal decision that reads the
+      quantity advises nobody, for a reason unrelated to the household
+      (`SEAT_FINDING_THE_MEDIAN_RENEWAL_READS_NEGATIVE_BECAUSE_THE_CONTRIBUTION_CHARGES_THE_COST_THE_STANDING_CHARGE_RECOVERS_AND_CREDITS_NONE_OF_IT_2026-10-20.md`).
+    - **What the nil column carries.** Ofgem cap level model v1.31, direct debit
+      (`ElecSingle_Other_Nil`, `Gas_Other_Nil`). Values are the mean of the sheet's 15 regional
+      rows, in £/yr ex VAT. Columns before January 2019 are
+      Ofgem's own back-casts; the cap was not in force.
+
+      | Cap period from | Elec opex | Elec EBIT | Elec headroom | Elec nil total | Gas opex | Gas EBIT | Gas headroom | Gas nil total |
+      |---|---|---|---|---|---|---|---|---|
+      | Apr 2016 | 38.97 | 1.32 | 0.74 | 70.17 | 63.80 | 1.43 | 1.10 | 76.37 |
+      | Apr 2017 | 39.66 | 1.29 | 0.75 | 68.57 | 64.94 | 1.46 | 1.12 | 77.70 |
+      | Apr 2018 | 40.75 | 1.36 | 0.80 | 72.24 | 66.72 | 1.52 | 1.18 | 81.43 |
+      | Apr 2019 | 41.57 | 1.53 | 0.94 | 81.40 | 68.06 | 1.73 | 1.33 | 92.19 |
+      | Apr 2020 | 42.11 | 1.59 | 0.97 | 84.76 | 68.95 | 1.78 | 1.37 | 95.05 |
+      | Apr 2021 | 42.46 | 1.62 | 1.00 | 86.52 | 69.52 | 1.73 | 1.33 | 92.47 |
+      | Apr 2022 | 44.52 | 2.97 | 1.06 | 157.60 | 72.89 | 1.77 | 1.37 | 94.62 |
+      | Apr 2023 | 48.63 | 3.48 | 1.17 | 184.12 | 79.62 | 1.90 | 1.46 | 101.20 |
+      | Oct 2023 | 50.22 | 4.37 | 1.19 | 185.51 | 82.23 | 2.52 | 1.49 | 102.96 |
+      | Apr 2024 | 50.65 | 4.98 | 1.21 | 204.73 | 82.93 | 2.68 | 1.49 | 103.57 |
+      | Apr 2025 | 52.43 | 4.62 | 1.27 | 183.55 | 85.85 | 2.87 | 1.60 | 110.92 |
+      | Jul 2025 | 45.77 (CO) | 4.46 | 1.13 | 173.37 | 72.31 (CO) | 2.72 | 1.45 | 100.55 |
+      | Oct 2025 | 46.89 (CO) | 4.47 | 1.24 | 181.47 | 74.07 (CO) | 2.96 | 1.64 | 113.50 |
+
+      Every half-year and quarter from April 2015 to October 2026 is printed by the reader in
+      the build commit and carried in `company/crm/renewal_advice_desk.py`. The rest of the nil
+      column is network (NC), policy (PC), the smart-meter allowances (SMNCC, PAAC, PAP) and the
+      adjustment allowance. On electricity the network row grows from GBP 16.5 in 2019 to
+      GBP 95.2 in 2025: that growth is the TCR residual.
+    - **Ofgem split the opex row in July 2025.** From cap period July–September 2025, OC is
+      replaced by core operating costs (CO), industry costs (IC) and debt-related costs (DRC).
+      PAAC and PAP stop. In July 2025 the three were GBP 45.77 / 9.16 / 5.52 on electricity and
+      GBP 72.31 / 10.62 / 3.23 on gas.
+    - **The design credits, per leg, the nil-column opex for its fuel at the cap period in force
+      on the term's start.**
+      - It is OC to June 2025, and CO alone from July 2025.
+      - It credits no network, policy, SMNCC, EBIT or headroom. Network and policy are already
+        locked per MWh in the floor, and adding the post-TCR residual counts them twice. SMNCC is
+        a smart-meter pass-through. EBIT and headroom are margin, not the recovery of a cost we
+        charge.
+      - **The period is the one in force at the start**, not a blend over the term: on the
+        notice date that is the cap a supplier can read, and later periods are not yet published.
+      - **Direct debit**, the payment method the book mostly settles on. The standard-credit nil
+        opex is higher, so this errs low.
+      - **CO alone from July 2025, not CO + IC + DRC.** GBP 55 counts billing, IT, customer service
+        and smart-meter operation (`saas/cost_to_serve.py`), which is what CO is. The quantity
+        nets no bad debt (DRC's subject), and it nets no industry charges (IC).
+    - **GAP, stated with its direction.** Before July 2025, OC bundles the costs that CO, IC and
+      DRC later separate, so it credits some recovery of bad debt and industry costs that the
+      quantity never charges. Ofgem's own split bounds the bias at the boundary. CO was 76% of
+      CO + IC + DRC on electricity and 84% on gas. So pre-July-2025 legs are credited up to about
+      GBP 13 (electricity) or GBP 14 (gas) a year more than the cost the quantity nets. This errs
+      FOR our thesis, which is why it is stated here rather than left. A reading scaled by those
+      shares is the lower bound the pre-registration carries.
+    - **GAP: non-domestic segments get no credit.** The domestic cap does not cover them, and no
+      commons source decomposes an SME standing charge. The quantity for them is unchanged.
   - **The retention guard reads the same contribution, per year (amended 2026-10-20, second
     landing).** What a retention offer protects is what the retained term contributes, so the
     guard's `expected_margin` and the missed-retention log's `expected_term_margin_gbp` are

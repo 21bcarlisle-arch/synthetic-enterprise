@@ -45,3 +45,24 @@ it. The count of retention offers and the retained-margin result are predicted b
   `records/SEAT_PREREG_THE_RETENTION_GUARD_ON_THE_TERMS_CONTRIBUTION_2026-10-20.md`.
 - **Still owed:** the full-window default-policy run graded against that file. It is handed on as
   `grade-the-contribution-margin-on-the-off-book-and-the-c34-arm`. It closes this finding.
+
+## Crediting the standing charge's opex makes the guard refuse nothing it can size (20 Oct 2026)
+
+The contribution now credits Ofgem's nil-consumption opex (§6.1, third landing;
+`records/SEAT_PREREG_CREDITING_THE_STANDING_CHARGE_OPEX_IN_THE_TERM_CONTRIBUTION_2026-10-20.md`).
+Printing the guard at real inputs, before any run:
+- A risk-tier cut is capped at the term's floor, so it costs at most the margin over the floor.
+- The value it protects is that margin + the credit (£41.57 on 2019 electricity) − £55 + the
+  £27.50 replacement spend avoided, which is the margin + £14.07.
+- On `CURRENT_POLICY` (no bad-debt netting, no engagement weight), value is therefore above cost
+  on every resi renewal where a cut can be sized, on both fuels and in every period of the table.
+- About 11 of the 92 offers would survive on the contribution alone. With the credit, every resi one
+  of the 92 is predicted to survive again (P4b in the note above; not yet run).
+
+**The credit is right, and it exposes what the guard has always lacked.** The guard weighs the
+whole term as if the offer certainly keeps the household. It carries no weight for the chance that
+the offer changes the outcome. With the value honest, only that missing weight decides, and it is
+missing on the default policy. The weight exists, off by default: C29's engagement
+(`retention_weighs_engagement`) and the holdout's measured uplift (B8). Turning one on is a policy
+change for its own pre-registered run. It is not a rider on this landing, and this finding stays
+open for it.
