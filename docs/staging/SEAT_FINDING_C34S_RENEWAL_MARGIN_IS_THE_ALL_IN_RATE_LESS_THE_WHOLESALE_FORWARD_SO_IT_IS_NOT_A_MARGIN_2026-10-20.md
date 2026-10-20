@@ -94,3 +94,7 @@ the P2 band re-predicted before the run. The switch stays off until then.
 - **Nothing measurable is left on this finding.** The switch stays off, because it records only
   and moves no money. The one open thread is the attribution of the book's −GBP 100,746 net-margin
   move, and that belongs to the retention grade's C1/C2 control, not here.
+  *Corrected 2026-10-20 18:30 BST: there was no such move. GBP 547,630 is the published book's
+  settled-realised net, and the off-book figures are on the provisioned clock. Like for like, the
+  book moved +GBP 148 (`records/SEAT_PREREG_THE_RETENTION_GUARD_ON_THE_TERMS_CONTRIBUTION_2026-10-20.md`,
+  Correction). Nothing is open.*

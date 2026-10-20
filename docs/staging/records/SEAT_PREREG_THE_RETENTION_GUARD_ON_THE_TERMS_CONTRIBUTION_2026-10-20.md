@@ -142,3 +142,33 @@ bound, so the guard needs no further explanation and the "if C1 fails" path does
 commits listed above, plus anything else in that range, and this control cannot split it further.
 The next step is to bisect the range on net margin, starting with the five named commits. That is
 handed on as a separate item.
+
+## Correction, 2026-10-20 18:30 BST: there was no −GBP 100k move. Two clocks were differenced.
+
+**The claim above is wrong, and it is kept beside this correction rather than revised.** "Net margin
+was GBP 547,630 on the published book" read `total_net_gbp` from
+`docs/reports/run_output_ad8afadc5_20261019T132751Z.json`. That figure carries the clock
+`settled-realised` (`figure_clocks`), so its bad debt is GBP 1,747.65 of realised write-off. The
+figures it was differenced against (GBP 446,884 and GBP 447,689) are `run_phase2b`'s printed
+`Net margin:` line. That line nets the provisioned bad debt (GBP 101,898). The published run's
+own reading on that clock is in the same JSON, as `provisioned_net_gbp`, and is GBP 447,540.67. The
+published run printed it as well. `journalctl --user -u sim-runner` for 19 Oct 13:20–16:10 shows
+`Gross margin: £1352372.56`, `Bad debt: £101837.45` and `Net margin: £447540.67`.
+
+| Like for like (provisioned clock, printed by `run_phase2b`) | Gross | Bad debt | Net margin |
+|---|---|---|---|
+| `ad8afadc5`, published | 1,352,372.56 | 101,837.45 | **447,540.67** |
+| `6fe4282c0`, parent control | 1,352,136.88 | 101,897.50 | **447,688.76** (**+148.09**) |
+| `c61d8b608`, guard | — | — | **446,883.96** (**−656.67**) |
+
+The basis gap explains the "−GBP 100,746" to the penny. 447,540.67 − 547,630.47 = −100,089.80,
+which is exactly −(101,837.45 − 1,747.65), the provisioned bad debt less the realised. The 90
+commits `ad8afadc5..6fe4282c0` moved the book by **+GBP 148**, and the guard moved it by **−GBP 805**
+(C1 above stands). No bisect is owed, and none was run. No commit was pre-registered as the carrier,
+because this decomposition answered the question before a first run was needed. Saying so is
+better than filing a prediction after the answer.
+
+**The cause, as a class.** Before dividing or differencing two figures, say what each counts. Here
+the two had the same name, "net margin", and different clocks, and the JSON carried the clock
+beside the figure the whole time. Compare `provisioned_net_gbp` to the printed line, or
+`total_net_gbp` to `total_net_gbp`, never one with the other.

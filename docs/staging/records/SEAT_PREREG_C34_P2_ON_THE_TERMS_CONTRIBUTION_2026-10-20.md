@@ -83,7 +83,10 @@ offers (9), retention spend and no-offer churns (66). That is the design: the sw
 sends nothing. It is also a placebo control on the off book's figure. The −GBP 100,746 move against
 the published book is not run noise, and attributing it is still owed to C1/C2 beside the retention
 grade. That control (`longjob-retention-guard-parent-control-6fe4282c0`, at `6fe4282c0`,
-`/var/tmp/se-ret-margin/parent_off.json`) launched 14:35 BST.
+`/var/tmp/se-ret-margin/parent_off.json`) launched 14:35 BST. *Corrected 2026-10-20 18:30 BST: the −GBP 100,746
+was two clocks differenced, the published settled-realised net against the provisioned printed line.
+Like for like, the move is −GBP 657, of which the guard is −GBP 805
+(`SEAT_PREREG_THE_RETENTION_GUARD_ON_THE_TERMS_CONTRIBUTION_2026-10-20.md`, Correction).*
 
 **What this does and does not settle.** C34's floor binds once it reads what the supplier keeps
 (it advises 0.4% of rolls). With the standing charge left out, the contribution is a lower bound
