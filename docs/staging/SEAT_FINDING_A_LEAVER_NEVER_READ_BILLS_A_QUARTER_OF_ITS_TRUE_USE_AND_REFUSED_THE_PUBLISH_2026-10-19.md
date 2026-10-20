@@ -349,3 +349,37 @@ sweep there. Baseline output: `/var/tmp/se-legc/base.json`.
 The grading run started 05:28 BST as `run_output_27cb8d183_20261020T042820Z.json`. 27cb8d183 is the
 prereg above, a staging-only commit on 6de3afb10, so this run is one variable against a7a32f337.
 The 05:13 cycle deferred to the save-offer long job first.
+
+### Leg (c)'s second half graded: R1, R2 and C8/C9 held; V1 refuted by C8's next occupant (seat, 20 Oct 08:50 BST)
+
+Run: `run_output_27cb8d183_20261020T042820Z.json` (stamped 27cb8d183, no imports off-commit,
+**UNPUBLISHED**), graded with the pre-registered `/var/tmp/se-legc/grade.py` against
+`run_output_a7a32f337_20261020T011829Z.json`.
+
+| Prediction | Result | Grade |
+|---|---|---|
+| R1: C7 bills 42/42 estimates, billed/true in 0.9–1.1 every year | 42/42; 0.996 / 1.025 / 1.007 / 0.956 (2016–19) | **Held** |
+| R2: defect-4 sweep, list and excuse emptied, finds 0 inversions | 0 | **Held** |
+| C8 and C9 stay at 1.000, all bills actual | 1.000 every year; 0/21 and 0/33 estimated | **Held** |
+| Per-home true kWh deltas (C7 −13,253, C8 +1,735, C9 −12,979) | −13,251, +1,735, −12,978 | **Held** |
+| V1: book electricity true kWh −5,409 / −7,074 / −8,211 / −3,804 for 2016–19 and 0 for 2020–25 | −5,409 / −7,073 / −6,581 / −2,286, then +1,540 / +1,752 / +1,515 / +1,350 / +1,394 / +1,003 | **Refuted** |
+
+**Why V1 failed.** It was not the fall-back I named, a tenure that moved. Every tenure is identical
+in both runs, and no account is present in only one of them. A fourth account moved:
+`OCC-d8e674fa38de`, acquired 2017-12-14, the day after C8 left on 2017-12-13, metered from
+`hh_metered_reads`. `sim/customer_state_layer.py` gives an incoming occupant the vacated
+`premise_id`, so C8's successor reads C8's file. Summing the C8 file change (new minus
+`6de3afb10^`) over that account's own bills reproduces its delta to within 1 kWh in every year
+2019–2025 (+1,519 / 1,539 / 1,752 / 1,515 / 1,351 / 1,395 / 1,003). In 2018 it gives +1,652 against
++1,625, and it adds a 137 kWh stub to 2017 that the run puts in 2018. That is the first bill's
+boundary day, not a second cause.
+
+**What the prediction got wrong.** A home's HH file belongs to the PREMISE, not to the account. I
+summed the deltas over the named accounts' tenures, and the premise outlived C8 by eight years.
+The same holds for C7 and C9. They show no successor here only because neither premise was
+re-won in this book. Anyone predicting the effect of a file change should sum over every account
+at the premise.
+
+**Disposition.** Leg (c) is closed. The regenerated files bill C7 within ±5% of true use in every
+year, and no account-year inverts. What is still open in this finding is leg (b), the margin
+definition, on its own item.
