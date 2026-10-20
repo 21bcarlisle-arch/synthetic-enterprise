@@ -396,8 +396,10 @@ require the balance to be recovered, and it sets no period. "Commonly" means som
    review itself nets them is not published: see
    `how_a_gb_domestic_book_splits_by_fuel_and_how_a_two_fuel_home_switches.md` §8b.
 
-**Built.** `company/billing/dd_review.py::REVIEW_SEEKS_BALANCE` (default False until the
-2026-10-19 publish lands), `BALANCE_RECOVERY_MONTHS = 12` from the sentence above, and
+**Built.** `company/billing/dd_review.py::REVIEW_SEEKS_BALANCE` (True from 2026-10-20. On the
+19 Oct published book, seeking cut barred-plus-open-exposure from £82.6k to £29.2k. The barred
+share rose from 34.7% to 39.2% because 204 more accounts are asked. Under
+`own_forecast_plus_balance`, which already adds the balance, the review does not also seek it.), `BALANCE_RECOVERY_MONTHS = 12` from the sentence above, and
 `review_balance_step_up`, reached by `simulation/dd_balance_book.py` through
 `company/interfaces/dd_review_outcome.py`. The book's `seek_balance_at_review` now defaults to the
 company's switch.

@@ -205,8 +205,13 @@ def decompose(bills: list[dict], opening_dd: Mapping[str, float], month: str,
     `term_records` / `term_forwards` are the run's `account_state_log` / `basis_risk_terms`, passed
     to the book and to each account's legs alike. Raises if any account's legs do not sum to the
     balance the book itself carries for it.
+
+    The book decomposed is the one whose review never seeks the balance, whatever the company's
+    `REVIEW_SEEKS_BALANCE` says. The identity above has no leg for the review's SLC 21BA bar or its
+    step-up, so on the seeking book the legs would not sum (they refuse, by the check below).
+    The output names that arm in `seek_balance_at_review`. The seeking legs are a gap.
     """
-    book = build_dd_balance_book(bills, opening_dd, review_rule=rule,
+    book = build_dd_balance_book(bills, opening_dd, seek_balance_at_review=False, review_rule=rule,
                                  term_records=term_records, term_forwards=term_forwards)
     terms_by_cust: dict[str, list[Mapping]] = {}
     for t in term_records or []:
@@ -250,7 +255,8 @@ def decompose(bills: list[dict], opening_dd: Mapping[str, float], month: str,
         "current_window_opened_apr_sep": [c for c in per if not per[c]["winter_start"]],
     }
     series = {m["month"]: m["portfolio_balance_gbp"] for m in book.serialise()["monthly_held_credit_series"]}
-    return {"month": month, "review_rule": rule, "book_portfolio_balance_gbp": round(series.get(month, 0.0), 2),
+    return {"month": month, "review_rule": rule, "seek_balance_at_review": False,
+            "book_portfolio_balance_gbp": round(series.get(month, 0.0), 2),
             "collection_failure_note": "structural zero: the book collects the standing amount "
                                        "every month and never reads dd_collection_book",
             "forecast_legs": {"reviews": book.forecast_reviews,
