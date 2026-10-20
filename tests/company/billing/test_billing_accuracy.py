@@ -21,8 +21,10 @@ from company.billing.billing_accuracy import (
     direct_debit_money_line,
     estimated_billing_outstanding_grade,
     published_view,
+    unbilled_accrual,
 )
 from company.billing.monthly_bill_assembly import build_monthly_bills
+from company.interfaces.bill_assembly import billing_accuracy as billing_accuracy_door
 
 FLAT_ESTIMATE_KWH = 200.0
 MONTHS = 16
@@ -185,7 +187,7 @@ def test_an_immaterial_true_up_is_still_measured():
 def test_the_summary_totals_by_fuel_and_names_its_shares():
     summary = billing_accuracy_summary(_bills(actual_after_opening=False))
     elec = summary["by_fuel"]["electricity"]
-    assert set(summary["kinds"]) == {"K1", "K2", "K3"}
+    assert set(summary["kinds"]) == {"K1", "K2", "K3", "K1_unbilled"}
     assert elec["accounts"] == 1 and elec["snapshot_accounts"] == 1
     assert elec["snapshot_no_read_bill_in_12"] == 0
     assert elec["K2_estimated_share_of_billed_kwh"] == pytest.approx(
@@ -438,3 +440,64 @@ def test_a_missing_dd_money_line_is_an_absence_with_its_reason_never_a_zero():
                          direct_debit_money_line=None)):
         line = published_view(summary)["direct_debit_money_line"]
         assert line["available"] is False and line["reason"] and "barred_gbp" not in line
+
+
+def _bill(cid, period_end, basis, kwh, total=100.0, vat=5.0, commodity="electricity", **extra):
+    return {"customer_id": cid, "period_end": period_end, "billing_basis": basis,
+            "total_consumption_kwh": kwh, "total_amount_gbp": total, "vat_gbp": vat,
+            "commodity": commodity, **extra}
+
+
+def test_the_unbilled_accrual_takes_every_branch_and_counts_only_energy_never_issued():
+    """Defect caught: an accrual that counts every held bill, or none, or an issued one. Each
+    branch is asserted reachable in one statement before what it holds: a held estimate a read
+    ended (out), a held estimate no read ended on a closed account (in, older than 12 months), a
+    held actual-read bill whose catch-up went out with nobody (in, with its chargeable true-up),
+    an issued estimate (out), and a fuel with nothing held (a zero row, not an absence)."""
+    bills = [
+        _bill("C1", "2023-02-28", "estimated", 200.0),
+        _bill("C1", "2023-03-31", "actual", 210.0),
+        _bill("C2", "2022-03-31", "estimated", 400.0, total=60.0, vat=3.0),
+        _bill("C3", "2023-05-31", "actual", 300.0, total=90.0, vat=4.0, catchup_applied=True,
+              read_true_up_kwh=50.0, read_true_up_barred_kwh=10.0),
+        _bill("C3", "2023-06-30", "actual", 280.0),
+        _bill("C4", "2023-06-30", "estimated", 250.0),
+        _bill("C5", "2023-06-30", "actual", 900.0, commodity="gas"),
+    ]
+    held = {("C1", "2023-02-28"), ("C2", "2022-03-31"), ("C3", "2023-05-31")}
+    accrual = unbilled_accrual(bills, held, "2023-06")
+    elec, gas = accrual["by_fuel"]["electricity"], accrual["by_fuel"]["gas"]
+
+    assert (elec["held_estimates"], elec["held_actuals"], elec["accounts"]) == (1, 1, 2), elec
+    assert elec["kwh"] == pytest.approx(400.0 + 300.0 + 50.0 - 10.0)
+    assert elec["gbp"] == pytest.approx((60.0 - 3.0) + (90.0 - 4.0))
+    assert elec["older_than_12_months_kwh"] == pytest.approx(400.0)
+    assert elec["closed_account_kwh"] == pytest.approx(400.0)
+    assert gas == {"accounts": 0, "held_estimates": 0, "held_actuals": 0, "kwh": 0.0, "gbp": 0.0,
+                   "older_than_12_months_kwh": 0.0, "closed_account_kwh": 0.0}
+    # Before C1's read, its held estimate is still unbilled.
+    assert unbilled_accrual(bills, held, "2023-02")["by_fuel"]["electricity"]["held_estimates"] == 2
+
+
+def test_the_run_door_carries_the_accrual_and_it_counts_a_bill_the_gate_held():
+    """Defect caught: the accrual dropped from the summary, or the door that decides issuance not
+    naming the held bills. Both arms in one statement: the company's own bills, all issued, accrue
+    nothing; the same bills with one estimate the pre-bill gate holds (its total no longer foots)
+    accrue exactly that estimate's energy at the run's last month."""
+    issued = _bills(actual_after_opening=False, closed=False)
+    one_held = [dict(b) for b in issued]
+    victim = next(b for b in one_held if b["billing_basis"] == "estimated")
+    victim["total_amount_gbp"] += 1000.0
+
+    def last(bills):
+        accrual = billing_accuracy_door(bills)["K1_unbilled_accrual"]
+        return accrual["available"] and accrual["month_ends"][-1]["by_fuel"]["electricity"]
+
+    clean, held = last(issued), last(one_held)
+    assert (clean["kwh"] == 0 and held["held_estimates"] == 1
+            and held["kwh"] == pytest.approx(victim["total_consumption_kwh"])), (clean, held)
+
+
+def test_a_summary_without_the_held_set_publishes_the_accrual_as_an_absence():
+    accrual = billing_accuracy_summary(_bills(actual_after_opening=False))["K1_unbilled_accrual"]
+    assert accrual["available"] is False and "held" in accrual["reason"]

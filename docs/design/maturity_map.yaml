@@ -1853,7 +1853,7 @@
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a supplier that books revenue on estimated reads for a year and learns what it actually sold when the smart meter finally reports."
 - id: D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used
-  title: "the company measures what it billed against what was used, by kind, from what a real supplier can see: estimated versus actual reads, true-ups and back-billing limits; the accrual is a GAP, not yet computed"
+  title: "the company measures what it billed against what was used, by kind, from what a real supplier can see: estimated versus actual reads, true-ups, back-billing limits and the unbilled accrual"
   lane: D_billing_metering
   value_stream: meter_to_cash
   epoch: 4

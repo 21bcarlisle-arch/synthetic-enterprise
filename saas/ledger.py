@@ -327,10 +327,43 @@ def make_revenue_restatement_event(bill: dict[str, Any]) -> dict[str, Any]:
 
 #: Why `unbilled_revenue_gbp` is None in `estimated_billing_outstanding`'s result.
 UNBILLED_REVENUE_NOT_COMPUTED = (
-    "not computed: unbilled revenue is energy USED but not yet BILLED, priced; nothing here "
+    "not computed here: unbilled revenue is energy USED but not yet BILLED, priced; nothing here "
     "measures consumption since each account's last bill. The figure beside it counts bills "
-    "ISSUED on an estimate and not yet trued up, which is a different quantity"
+    "ISSUED on an estimate and not yet trued up, which is a different quantity. Unbilled energy is "
+    "company.billing.billing_accuracy.unbilled_accrual"
 )
+
+
+def open_estimated_bills(bills: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """The estimated bills in `bills` whose run no read has ended: no bill for the same customer has
+    a `catchup_applied` range covering the period, and no later bill for it is on an actual read.
+
+    The one statement of "a read ends the run", read by `estimated_billing_outstanding` (the whole
+    issued set) and by `company.billing.billing_accuracy.unbilled_accrual` (the estimates the
+    pre-bill gate held, against every read the company received).
+    """
+    by_customer_estimated: dict[str, list[dict[str, Any]]] = {}
+    resolved_ranges: dict[str, list[tuple[str, str]]] = {}
+    last_read: dict[str, str] = {}
+    for b in bills:
+        cid = b["customer_id"]
+        if b.get("billing_basis") == "estimated":
+            by_customer_estimated.setdefault(cid, []).append(b)
+        elif b.get("billing_basis") == "actual":
+            last_read[cid] = max(last_read.get(cid, ""), b.get("period_end", ""))
+        if b.get("catchup_applied"):
+            resolved_ranges.setdefault(cid, []).append(
+                (b.get("catchup_period_start", ""), b.get("catchup_period_end", ""))
+            )
+    open_bills = []
+    for cid, est_bills in by_customer_estimated.items():
+        ranges = resolved_ranges.get(cid, [])
+        for b in est_bills:
+            period_end = b.get("period_end", "")
+            if not (any(start <= period_end <= end for start, end in ranges)
+                    or period_end < last_read.get(cid, "")):
+                open_bills.append(b)
+    return open_bills
 
 
 def estimated_billing_outstanding(bills: list[dict[str, Any]]) -> dict[str, Any]:
@@ -363,36 +396,18 @@ def estimated_billing_outstanding(bills: list[dict[str, Any]]) -> dict[str, Any]
     `by_customer` (customer_id -> outstanding GBP, only customers with a non-zero balance),
     `unbilled_revenue_gbp` (None) and `unbilled_revenue_reason`.
     """
-    by_customer_estimated: dict[str, list[dict[str, Any]]] = {}
-    resolved_ranges: dict[str, list[tuple[str, str]]] = {}
-    last_read: dict[str, str] = {}
-    for b in bills:
+    open_bills = open_estimated_bills(bills)
+    per_customer: dict[str, float] = {}
+    for b in open_bills:
         cid = b["customer_id"]
-        if b.get("billing_basis") == "estimated":
-            by_customer_estimated.setdefault(cid, []).append(b)
-        elif b.get("billing_basis") == "actual":
-            last_read[cid] = max(last_read.get(cid, ""), b.get("period_end", ""))
-        if b.get("catchup_applied"):
-            resolved_ranges.setdefault(cid, []).append(
-                (b.get("catchup_period_start", ""), b.get("catchup_period_end", ""))
-            )
-
+        per_customer[cid] = per_customer.get(cid, 0.0) + b.get("total_amount_gbp", 0.0)
     unbilled_total = 0.0
-    outstanding_count = 0
     by_customer: dict[str, float] = {}
-    for cid, est_bills in by_customer_estimated.items():
-        ranges = resolved_ranges.get(cid, [])
-        customer_total = 0.0
-        for b in est_bills:
-            period_end = b.get("period_end", "")
-            resolved = (any(start <= period_end <= end for start, end in ranges)
-                        or period_end < last_read.get(cid, ""))
-            if not resolved:
-                customer_total += b.get("total_amount_gbp", 0.0)
-                outstanding_count += 1
+    for cid, customer_total in per_customer.items():
         if customer_total:
             by_customer[cid] = round(customer_total, 2)
             unbilled_total += customer_total
+    outstanding_count = len(open_bills)
 
     return {
         "estimated_billing_outstanding_gbp": round(unbilled_total, 2),

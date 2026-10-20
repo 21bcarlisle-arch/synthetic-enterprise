@@ -3,6 +3,8 @@
 
 # D48's Expert Hour fails, and the level stays at L2. The measure is honest; the row claims an accrual and a settlement reconciliation it does not do, and the estimated share barely moves through the smart roll-out (2026-10-14)
 
+**Update 2026-10-20 (delivery seat): MAJOR #2 is discharged.** The unbilled accrual is built and reached from the run (`company/billing/billing_accuracy.unbilled_accrual`), and the title claims it again. Evidence and the year-end table: `SEAT_FINDING_D48_THE_UNBILLED_ACCRUAL_IS_THE_ENERGY_THE_PRE_BILL_GATE_HELD_2026-10-20.md`. MAJOR #1 (settlement) stays a GAP.
+
 **Fate (2026-10-14):** ATOM -- D48 stays at L2, harden. The two row-claim MAJORs are fixed in this commit (title: the accrual is a GAP; twin: reads, not settled kWh). The measure findings are the next harden work.
 
 *Worker tick, 2026-10-14. This was run from the brief `SEAT_BRIEF_D48_EXPERT_HOUR_A_REVENUE_ASSURANCE_LEAD_JUDGES_BILLED_AGAINST_USED_2026-10-14.md` (now in done/).*

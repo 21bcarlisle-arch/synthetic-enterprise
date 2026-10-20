@@ -55,9 +55,11 @@ def issued_bills(bills: list) -> list:
 def billing_accuracy(bills: list, direct_debit: dict | None = None) -> dict:
     """D48: what the supplier billed against what its reads later showed, by kind, read from the
     bills this door returned and nothing the world holds back (`company/billing/billing_accuracy.py`).
-    `direct_debit` is the DD money line, carried beside K3 and never folded into it.
+    `direct_debit` is the DD money line, carried beside K3 and never folded into it. The bills
+    the pre-bill gate held are named here, where issuance is decided, for the unbilled accrual.
     """
-    return billing_accuracy_summary(bills, direct_debit)
+    held = {(r.customer_id, r.period_end) for r in validate_bills(bills)[1]}
+    return billing_accuracy_summary(bills, direct_debit, held)
 
 
 __all__ = [

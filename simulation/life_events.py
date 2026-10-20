@@ -202,7 +202,9 @@ _INCOME_RECOVERY_ANNUAL_PROB = 0.50
 # 13.7% of the time (band 4-15%). 4 is the longest median the band allows before the 12-month tail
 # leaves it, so of the admissible spells it is the one that errs against the thesis (F11).
 _JOB_LOSS_SPELL_LONG_TYPE_SHARE = 0.10
+# EVIDENCE RANGE 0.06-0.08 a month (income_shock_depth_and_duration_b7.md s6.1).
 _JOB_LOSS_SPELL_LONG_TYPE_MONTHLY_EXIT = 0.07
+# EVIDENCE RANGE 3-6 months, the top the 12-month tail admits (same page, s6.1).
 _JOB_LOSS_SPELL_MEDIAN_MONTHS = 4.0
 _JOB_LOSS_SPELL_SHORT_TYPE_MONTHLY_EXIT = 1.0 - (
     (0.5 - _JOB_LOSS_SPELL_LONG_TYPE_SHARE

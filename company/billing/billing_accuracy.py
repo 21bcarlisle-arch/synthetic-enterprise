@@ -36,8 +36,16 @@ each open run by what its next actual read showed. Beside it, `closed_immaterial
 estimates a read closed with a correction too small to bill. Until 2026-10-05 the ledger kept
 those as outstanding, because it keyed only on `catchup_applied`, which only a material
 correction sets: 83% of the decade run's figure.
-True unbilled revenue (used and not yet billed) is still not computed. K4-K7 cannot arise in the
-run yet (note §5).
+UNBILLED ENERGY (K1 proper, 2026-10-20) is `unbilled_accrual`: per account at a month end, the
+company's own figure for each period (the actual read, or the estimate already on the bill: its last
+reads shaped by the profile, else the registry EAC/AQ or TDCV, `unread_month_estimate.py`) less what
+it ISSUED. Every account is billed each calendar month to the month end, so in this run that is
+exactly the bills the pre-bill gate held. A held estimate is unbilled until an actual read ends its
+run, the rule `saas.ledger.open_estimated_bills` states once for both figures; a held actual-read
+bill, with any catch-up it carried, is never billed. It is not re-estimated with a second
+estimator: the gap between two of the company's estimators is not energy used and not billed.
+Billed-on-estimate (above) and unbilled are Centrica's two halves of "unread revenue"; they count
+different bills and are never summed here. K4-K7 cannot arise in the run yet (note §5).
 
 THE DIRECT-DEBIT MONEY LINE sits beside K3 and is never added to it. For a direct-debit account the
 statement is not a demand, so no kWh is barred at a catch-up and K3 is pay-on-bill energy only.
@@ -58,11 +66,12 @@ import statistics
 from collections.abc import Iterable
 
 from company.billing.read_duty_register import read_duty_summary
+from saas.ledger import open_estimated_bills
 
 __all__ = [
     "KINDS", "NO_READ_BILL_RUN", "PUBLISHED_MEDIAN_SUPPLIER_SHARE_NO_READ_BILL_IN_12",
     "account_billing_accuracy", "billing_accuracy_summary", "dd_review_arms", "direct_debit_money_line",
-    "estimated_billing_outstanding_grade", "published_view",
+    "estimated_billing_outstanding_grade", "published_view", "unbilled_accrual",
 ]
 
 #: The kinds this module measures, keyed to the knowledge note's ids.
@@ -70,6 +79,7 @@ KINDS = {
     "K1": "billed on estimate and not yet trued up at a month end, graded by the later read",
     "K2": "estimated bills and their true-up at the actual read",
     "K3": "energy barred by the 12-month back-billing limit (SLC 21BA)",
+    "K1_unbilled": "energy the company counts as used and has not issued a bill for, at a month end",
 }
 
 #: Twelve consecutive bills with none on an actual read. This is the Citizens Advice
@@ -247,12 +257,14 @@ def dd_review_arms(arms: dict[str, dict] | None) -> dict:
     return out
 
 
-def billing_accuracy_summary(bills: Iterable[dict], direct_debit: dict | None = None) -> dict:
+def billing_accuracy_summary(bills: Iterable[dict], direct_debit: dict | None = None,
+                             held: set[tuple[str, str]] | None = None) -> dict:
     """The per-account rows plus a total per fuel and kind. A share whose denominator is zero is
     None: no estimates billed or no undercharge to bar says nothing about accuracy.
 
     `direct_debit` is `direct_debit_money_line`'s output, carried beside the kinds and never mixed
-    into `by_fuel`. None publishes as its named absence."""
+    into `by_fuel`. None publishes as its named absence. `held` is the (customer_id, period_end)
+    of every bill the pre-bill gate did not issue; None publishes the accrual as an absence."""
     bills = list(bills)
     rows = account_billing_accuracy(bills)
     # The snapshot is the last billed month. The accounts in it are the ones still on supply at
@@ -290,7 +302,78 @@ def billing_accuracy_summary(bills: Iterable[dict], direct_debit: dict | None = 
         "direct_debit_money_line": direct_debit or direct_debit_money_line(None),
         # Per fuel, so a share never adds a kWh of gas to a kWh of electricity.
         "K1_year_end_grades": _k1_year_end_grades(bills),
+        "K1_unbilled_accrual": _k1_unbilled_by_month_end(bills, held),
     }
+
+
+def _k1_unbilled_by_month_end(bills: list[dict], held: set[tuple[str, str]] | None) -> dict:
+    """The accrual at every year end inside the run and at its last billed month."""
+    if held is None:
+        return {"available": False, "reason": (
+            "the caller passed no held-bill set, so what was issued cannot be told from what was "
+            "assembled")}
+    last = max((b["period_end"][:7] for b in bills), default=None)
+    months = sorted({b["period_end"][:7] for b in bills if b["period_end"][5:7] == "12"} | (
+        {last} if last else set()))
+    return {"available": True, "unit_kwh": "kwh", "unit_gbp": "gbp_net_of_vat",
+            "month_ends": [unbilled_accrual(bills, held, month) for month in months]}
+
+
+def unbilled_accrual(bills: Iterable[dict], held: set[tuple[str, str]],
+                     as_of: str | None = None) -> dict:
+    """Energy the company counts as used by the end of month `as_of` (YYYY-MM; default the last
+    billed month) and has not issued a bill for, per fuel, in kWh and at the held bill's own price
+    net of VAT.
+
+    `held` is the (customer_id, period_end) of each bill the pre-bill gate did not issue. A held
+    estimate is open while no read billed by `as_of` has ended its run (`open_estimated_bills`, the
+    rule the billed-on-estimate figure uses). A held actual-read bill stays open: no catch-up covers
+    a read period, and a catch-up the held bill carried went out with nobody, so its chargeable
+    true-up is counted with it. `older_than_12_months_kwh` is the part a domestic catch-up could no
+    longer recover (SLC 21BA); `closed_account_kwh` the part on accounts with no bill after `as_of`
+    and none in the run's last month, which no later bill can carry.
+    """
+    bills = list(bills)
+    last = max((b["period_end"][:7] for b in bills), default="")
+    as_of = as_of or last
+    window = [b for b in bills if b["period_end"][:7] <= as_of]
+    held_now = [b for b in window if (b["customer_id"], b["period_end"]) in held]
+    open_estimates = open_estimated_bills(
+        [b for b in held_now if b["billing_basis"] == "estimated"]
+        + [b for b in window if b["billing_basis"] != "estimated"])
+    open_bills = open_estimates + [b for b in held_now if b["billing_basis"] != "estimated"]
+    final_month = {}
+    for b in bills:
+        final_month[b["customer_id"]] = max(final_month.get(b["customer_id"], ""), b["period_end"][:7])
+    year_before = f"{int(as_of[:4]) - 1}{as_of[4:]}" if as_of else ""
+
+    # Every fuel billed by `as_of` gets a row: nothing held is a measured zero, not an absence.
+    by_fuel: dict[str, dict] = {
+        fuel: {"accounts": set(), "held_estimates": 0, "held_actuals": 0, "kwh": 0.0, "gbp": 0.0,
+               "older_than_12_months_kwh": 0.0, "closed_account_kwh": 0.0}
+        for fuel in {b.get("commodity", "electricity") for b in window}
+    }
+    for b in open_bills:
+        fuel = by_fuel[b.get("commodity", "electricity")]
+        kwh = b["total_consumption_kwh"]
+        if b["billing_basis"] == "estimated":
+            fuel["held_estimates"] += 1
+        else:
+            fuel["held_actuals"] += 1
+            if b.get("catchup_applied"):
+                kwh += (b.get("read_true_up_kwh") or 0.0) - (b.get("read_true_up_barred_kwh") or 0.0)
+        fuel["accounts"].add(b["customer_id"])
+        fuel["kwh"] += kwh
+        fuel["gbp"] += b["total_amount_gbp"] - b.get("vat_gbp", 0.0)
+        if b["period_end"][:7] < year_before:
+            fuel["older_than_12_months_kwh"] += kwh
+        if final_month[b["customer_id"]] <= as_of and final_month[b["customer_id"]] < last:
+            fuel["closed_account_kwh"] += kwh
+    for fuel in by_fuel.values():
+        fuel["accounts"] = len(fuel["accounts"])
+        for key in ("kwh", "gbp", "older_than_12_months_kwh", "closed_account_kwh"):
+            fuel[key] = round(fuel[key], 2)
+    return {"as_of": as_of, "by_fuel": by_fuel}
 
 
 def _k1_year_end_grades(bills: list[dict]) -> dict:
