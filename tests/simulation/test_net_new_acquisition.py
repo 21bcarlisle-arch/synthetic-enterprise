@@ -1370,8 +1370,12 @@ def test_b2_the_two_flags_are_INDEPENDENT_and_the_default_path_is_untouched(monk
 # RE-MEASURED 2026-10-12, a factual correction: capital held per account 130 -> 115 (Ofgem's decided
 # Capital Target; £130 was the consultation). More headroom lifts the one capital-bound year (2025)
 # off its ceiling: 3345 -> 3373 quotes, £74,356.09 -> £74,990.15, all still inside the window.
-CAMPAIGN_QUOTES_AT_SHIPPED_CONFIG = 3373
-CAMPAIGN_SPEND_AT_SHIPPED_CONFIG = 74990.15
+# RE-MEASURED 2026-10-20 at 400 founder HOUSEHOLDS (689 supply points; director's ruling 20 Oct
+# 17:40): 3373 -> 3250 quotes, £74,990.15 -> £72,262.76, all still inside the window. FEWER quotes
+# from a larger book, the opposite of the 10-09 move; which leg of the quote budget binds is not
+# yet attributed.
+CAMPAIGN_QUOTES_AT_SHIPPED_CONFIG = 3250
+CAMPAIGN_SPEND_AT_SHIPPED_CONFIG = 72262.76
 
 #: The subset the ACCOUNTS can carry: quotes dated inside [REPORT_START, REPORT_END].
 #:
@@ -1383,8 +1387,8 @@ CAMPAIGN_SPEND_AT_SHIPPED_CONFIG = 74990.15
 #:
 #: The filter is still real and still tested: `test_c_MUTATION_the_window_filter_can_actually_
 #: EXCLUDE` hands it a mid-decade `report_end` and requires it to drop the rest.
-CAMPAIGN_QUOTES_INSIDE_WINDOW = 3373
-CAMPAIGN_SPEND_INSIDE_WINDOW = 74990.15
+CAMPAIGN_QUOTES_INSIDE_WINDOW = 3250
+CAMPAIGN_SPEND_INSIDE_WINDOW = 72262.76
 
 
 def test_c_every_quote_the_campaign_paid_for_is_BOOKED_as_acquisition_spend():

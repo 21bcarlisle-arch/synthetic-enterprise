@@ -76,7 +76,7 @@ def test_the_file_cannot_SHRINK_the_hand_authored_roster(monkeypatch, tmp_path):
 
 def test_the_opening_book_is_the_number_the_director_set():
     book = lp.founder_book(SEED)
-    assert len(book) == lp.founder_accounts() == 400
+    assert lp.count_in_founder_unit(book) == lp.founder_accounts() == 400, lp.founder_unit()
 
 
 def test_every_founder_is_dated_at_the_windows_START():
@@ -182,7 +182,8 @@ def test_the_exclusion_reports_the_whole_founder_book_not_just_the_roster():
     Fires on: reverting `n_founders` to the roster's size.
     """
     verdict = lp.book_subset_verdict(SEED)
-    assert verdict["n_founders"] == 400
+    # Records, not homes: under `founder_unit: households` 400 homes are 689 supply points.
+    assert verdict["n_founders"] == len(lp.founder_book(SEED))
     assert verdict["n_founders_hand_authored"] == 13
     assert verdict["n_founders"] > verdict["n_founders_hand_authored"], (
         "the two counts are equal, so this test cannot tell whether the whole book is reported")

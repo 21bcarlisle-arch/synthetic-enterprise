@@ -1,0 +1,121 @@
+{
+  "artefact": "settlement_ceiling_probe",
+  "generated_at_utc": "2026-10-20T21:32:42.345459+00:00",
+  "subject": "simulation/net_new_acquisition.py::SETTLEMENT_CUSTOMER_YEAR_BUDGET, measured on the live path's own compute (tools.run_annual_report._run_and_extract, full window, not --fast) -- the same call background/sim_runner.py makes",
+  "git_head": "7858b89a6",
+  "git_head_as_recorded": "1178114b1",
+  "git_head_note": "Re-pointed at landing (2026-10-20). The probe recorded 1178114b1, a SALVAGE(auto) commit in its scratch worktree that is not on origin/main, so the journal leg's ancestry test could never be met by any production run. 1178114b1 differs from 7858b89a6 only in docs/design/FOUNDER_BOOK.yaml (founder_unit: households, landed with this file) and generated observability artefacts. The run's code was 7858b89a6.",
+  "headroom_before": {
+    "timestamp": "2026-10-20T16:58:02.685418+00:00",
+    "total_mb": 24032.1,
+    "available_mb": 20713.7,
+    "shmem_mb": 675.1,
+    "swap_free_mb": 6175.1,
+    "psi_some_avg60": 0.0,
+    "oom_kills_total": 18
+  },
+  "headroom_after": {
+    "timestamp": "2026-10-20T21:32:42.343171+00:00",
+    "total_mb": 24032.1,
+    "available_mb": 20185.8,
+    "shmem_mb": 441.2,
+    "swap_free_mb": 5931.8,
+    "psi_some_avg60": 0.02,
+    "oom_kills_total": 18
+  },
+  "points": [
+    {
+      "budget": 7000.0,
+      "wall_s": 7247.2,
+      "peak_rss_mb": 4444.3,
+      "peak_rss_anon_mb": 4399.4,
+      "peak_rss_file_mb": 138.9,
+      "peak_rss_shmem_mb": 0.0,
+      "rss_sample_interval_s": 0.5,
+      "exit_status": 0,
+      "ok": true,
+      "child_wall_s": 7236.34756770503,
+      "customer_years_committed": 6997.2,
+      "customer_year_budget_seen": 7000.0,
+      "wins": 78,
+      "funnel_wins": 597,
+      "wins_refused_by_settlement_budget": 519,
+      "accounts_after_final_year": 1290,
+      "settlement_bound_years": [],
+      "years_reported": 10,
+      "producer_in_flight_at_start": null,
+      "producer_in_flight_at_end": null,
+      "campaign_record_agrees": true,
+      "campaign_record_on_disk_said": 6997.2,
+      "clean": true,
+      "unclean_reasons": []
+    },
+    {
+      "budget": 7700.0,
+      "wall_s": 9232.4,
+      "peak_rss_mb": 5113.2,
+      "peak_rss_anon_mb": 5006.5,
+      "peak_rss_file_mb": 138.9,
+      "peak_rss_shmem_mb": 0.0,
+      "rss_sample_interval_s": 0.5,
+      "exit_status": 0,
+      "ok": true,
+      "child_wall_s": 9221.150352262019,
+      "customer_years_committed": 7699.3,
+      "customer_year_budget_seen": 7700.0,
+      "wins": 205,
+      "funnel_wins": 597,
+      "wins_refused_by_settlement_budget": 392,
+      "accounts_after_final_year": 1290,
+      "settlement_bound_years": [],
+      "years_reported": 10,
+      "producer_in_flight_at_start": null,
+      "producer_in_flight_at_end": null,
+      "campaign_record_agrees": true,
+      "campaign_record_on_disk_said": 7699.3,
+      "clean": true,
+      "unclean_reasons": []
+    }
+  ],
+  "marginal": [
+    {
+      "from_customer_years": 6997.2,
+      "to_customer_years": 7699.3,
+      "delta_customer_years": 702.1,
+      "marginal_s_per_customer_year": 2.8275,
+      "marginal_mb_per_customer_year": 0.9527,
+      "marginal_anon_mb_per_customer_year": 0.8647
+    }
+  ],
+  "publisher": {
+    "available": false,
+    "reason": "publish_gate_duration.jsonl not present"
+  },
+  "recommendation": {
+    "decidable": true,
+    "worst_marginal_s_per_customer_year": 2.8275,
+    "worst_marginal_mb_per_customer_year": 0.9527,
+    "measured_from": {
+      "customer_years": 6997.2,
+      "wall_s": 7247.2,
+      "peak_rss_mb": 4444.3
+    },
+    "bounds": {
+      "time": {
+        "decidable": false,
+        "reason": "publish_gate_duration.jsonl not present"
+      },
+      "memory": {
+        "guest_total_mb": 24032.1,
+        "guest_available_mb": 20713.7,
+        "share_of_guest_the_run_may_hold": 0.25,
+        "allowed_peak_rss_mb": 6008.0,
+        "customer_years": 8638.6,
+        "note": "share is of TOTAL, not AVAILABLE: the run has to fit beside daemons that come and go, and sizing to a momentary `available_mb` sets a ceiling that was true for one second."
+      }
+    },
+    "supported_customer_years": 8638.6,
+    "binding_bound": "memory",
+    "binding_bound_is_evidence": true
+  }
+}

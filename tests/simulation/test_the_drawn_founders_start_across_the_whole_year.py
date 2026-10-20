@@ -17,7 +17,12 @@ import datetime as dt
 
 import pytest
 
-from simulation.live_population import _founder_roster_size, founder_accounts, founder_book
+from simulation.live_population import (
+    _founder_roster_size,
+    count_in_founder_unit,
+    founder_accounts,
+    founder_book,
+)
 
 SEEDS = (42, 61001, 61002, 61003)
 
@@ -34,4 +39,4 @@ def test_the_last_drawn_founder_starts_in_the_last_quarter_of_the_year(seed):
 
 @pytest.mark.parametrize("seed", SEEDS)
 def test_thinning_still_delivers_the_directors_number(seed):
-    assert len(founder_book(seed)) == founder_accounts()
+    assert count_in_founder_unit(founder_book(seed)) == founder_accounts()

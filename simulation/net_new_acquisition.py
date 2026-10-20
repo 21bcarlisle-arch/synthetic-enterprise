@@ -974,7 +974,17 @@ def quote_capacity(affordable_quotes: int, pool_size: int = PROSPECTS_PER_YEAR,
 #: 0.25 x 24,032 MB it supports 6,857 (6,657 with the 227 MB production parent on the anchor).
 #: 221 of 613 funnel wins settle at this budget; the rest are carried by the weighted sample.
 #: The time bound is undecided (the probe's worktree had no publish-gate duration log).
-SETTLEMENT_CUSTOMER_YEAR_BUDGET = 5000.0
+#: RAISED 2026-10-20 TO 7,700 WITH `founder_unit: households` (director's ruling, 20 Oct 17:40:
+#: founders are 400 households, budget raised). ORIGIN: derived, not typed. At seed 20260724
+#: 400 households are 689 supply points committing 6,535.7 cy; keeping the campaign's 1,206.5 cy
+#: of room gives 7,742.2, floored to 50. The curve was RE-TAKEN AT THAT SHAPE
+#: (`settlement_ceiling_slope_20261020.json`): 6,997.2 cy -> 4,444.3 MB, 7,247 s; 7,699.3 cy ->
+#: 5,113.2 MB, 9,232 s; 0.953 MB and 2.83 s per cy; against 0.25 x 24,032 MB it supports 8,638.6.
+#: With the 227 MB production parent the 7,700 peak is 5,340 MB, 668 MB under 6,008 and outside
+#: the pre-registered 5% stop line. 205 of 597 funnel wins settle at this budget. His caveat
+#: binds: the first three production peaks are watched against 6,008 MB, and a run within 5% of
+#: it sends production back to `supply_points` with this constant at 5,000.
+SETTLEMENT_CUSTOMER_YEAR_BUDGET = 7700.0
 
 
 def _customer_years(win_date: dt.date, horizon_end: dt.date) -> float:

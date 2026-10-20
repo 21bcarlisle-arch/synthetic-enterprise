@@ -8,6 +8,64 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-20 — Founders are 400 households and the settlement budget is 7,700, on a curve measured at that shape
+
+<!-- head: 8ad5b62fbabf -->
+
+**What changed.** Founders are now 400 households (`founder_unit: households`). At seed 20260724
+that is 689 supply points. The settlement budget goes 5,000 → 7,700 customer-years. This acts on
+the director's ruling of 20 Oct 17:40
+(`docs/staging/advisor/done/DIRECTOR_RULING_FOUNDER_HOUSEHOLDS_WITH_BUDGET_RAISED_2026-10-20.md`).
+
+**The budget, derived.** The 689 founder records commit 6,535.7 cy. The campaign had 1,206.5 cy of
+room at the old shape, which gives 7,742.2, floored to 50 = 7,700. The campaign keeps 96.5% of its
+room.
+
+**The curve at the new shape** (`docs/observability/settlement_ceiling_slope_20261020.json`, both
+points clean):
+
+| Budget | Committed cy | Peak child RSS | Wall | Wins settled / funnel |
+|---|---|---|---|---|
+| 7,000 | 6,997.2 | 4,444.3 MB | 7,247 s | 78 / 597 |
+| 7,700 | 7,699.3 | 5,113.2 MB | 9,232 s | 205 / 597 |
+
+The 7,700 peak plus the 227 MB parent is 5,340 MB. That is 668 MB under the 6,008 MB allowance
+(0.25 × guest) and outside the pre-registered 5% stop line. The curve supports 8,638.6 cy. Run time
+rises from 5,481 s (the 9 Oct curve at 5,000, supply points) to 9,232 s, ×1.68 for ×1.54 committed
+cy. The pre-registration is graded beside its predictions (P1, P3, P4 hit; P2 missed low by 156 MB).
+The probe stamped a salvage-commit head that no production run could carry; the landed copy names
+`7858b89a6`, so the journal leg that carries his caveat can arm.
+
+**Census, same seed, before (supply points, 5,000) → after (households, 7,700).**
+
+| | Before | After |
+|---|---|---|
+| Founder homes | 233 | 400 |
+| Founder supply points | 400 | 689 |
+| Founder dual-fuel share | 71.7% | 72.3% |
+| Campaign quotes | 3,373 | 3,250 |
+| Funnel wins | 619 | 597 |
+| Settled campaign wins | 216 | 205 |
+| Acquisition spend | £74,990.15 | £72,262.76 |
+
+Settled wins by year, after: 32, 26, 21, 19, 23, 20, 8, 23, 22, 11 (2016–2025).
+
+`tools/world_claims.py` was run on both books (8 seeds pooled, all three routes). Every claim holds
+both before and after. Founders' dual share of homes is 76.4% → 76.0%, gas home share 84.9% →
+84.9%, and direct-debit share 72.1% → 72.0%. This is the new held draw (EP17).
+
+**Published figures it moves.** The opening book goes from 400 to 689 accounts, and the account
+count everywhere moves with it. Quotes and acquisition spend go down. I have not attributed the
+fall: a bigger book quoting fewer is the opposite of what happened on 9 Oct. Settled campaign wins
+fall from 216 to 205.
+
+**Still owed (his caveat).** Peak memory of the first three production runs at the new shape,
+against 6,008 MB. If any run comes within 5% (above 5,708 MB), or the reaper fires, production
+goes back to 400 supply points at 5,000. The continuation `founder-households-first-three-peaks`
+carries this.
+
+---
+
 ## 2026-10-20 — orientation: Forward on the supplier side, but it cannot yet show it beats the flat baseline, and one control on that baseline was found to prove nothing
 
 <!-- head: b8045dd4e2ff -->

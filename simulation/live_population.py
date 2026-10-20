@@ -1058,11 +1058,16 @@ def _founder_roster_size() -> int:
 
     IN `founder_unit()`'S UNIT: 18 supply points, or the 13 homes they belong to.
     """
+    return count_in_founder_unit(_STATIC_ROSTER)
+
+
+def count_in_founder_unit(records) -> int:
+    """How many of `records` there are in `founder_unit()`'s unit: rows, or the homes they belong to."""
     if founder_unit() == "households":
         from simulation.household import household_of
 
-        return len({household_of(r["customer_id"]) for r in _STATIC_ROSTER})
-    return len(_STATIC_ROSTER)
+        return len({household_of(r["customer_id"]) for r in records})
+    return len(records)
 
 
 def _pre_growth_book(seed: int) -> List[dict]:

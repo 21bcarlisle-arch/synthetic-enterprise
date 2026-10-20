@@ -45,3 +45,24 @@ and leave the advisor's file alone.
 
 Steps 1, 3, 4 and 5 are still owed. The continuation `founder-households-switch-after-the-curve`
 carries them and now points here. When they are done, add a Done section below.
+
+## Done (delivery seat, 20 Oct 23:10 BST)
+
+- **Step 1.** `founder_unit: households` (400 homes, 689 supply points at seed 20260724).
+  `SETTLEMENT_CUSTOMER_YEAR_BUDGET = 7700.0`, derived as 6,535.7 founder cy plus 1,206.5 campaign
+  room = 7,742.2, floored to 50. Both land with the curve re-taken at this shape,
+  `docs/observability/settlement_ceiling_slope_20261020.json`. At 7,700 the peak is 5,113.2 MB, or
+  5,340 MB with the parent. That is 668 MB under 6,008 and outside the 5% stop line. The curve
+  supports 8,638.6. The pre-registration is graded in
+  `docs/staging/records/SEAT_PREREG_THE_SETTLEMENT_CURVE_AT_400_FOUNDER_HOUSEHOLDS_AND_A_BUDGET_OF_7700_2026-10-20.md` §5.
+- **Step 4.** `tools/world_claims.py` was run over both books: every claim holds on every route,
+  before and after. Same-seed census, before → after: homes 233 → 400; supply points 400 → 689;
+  founder dual share 71.7% → 72.3%; quotes 3,373 → 3,250; settled campaign wins 216 → 205 (of
+  619 → 597 funnel); run time 5,481 s → 9,232 s. This is the new held draw.
+- **Step 5.** One stretch-log entry, `docs/status/SEAT_STRETCH_LOG.md`, 2026-10-20.
+- **Step 3 is still open, by construction.** It needs the first three production runs at the new
+  shape. The continuation `founder-households-first-three-peaks` carries it, with the rule: within
+  5% of 6,008 MB, or the reaper fires, go back to 400 supply points at 5,000 and bring a proposal.
+  The journal leg of the ceiling control
+  (`test_the_ceiling_still_fits_the_peak_systemds_own_journal_reports_today`) re-prices on those
+  peaks automatically.

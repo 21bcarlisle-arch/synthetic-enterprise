@@ -46,3 +46,31 @@ The curve is re-taken at the new shape. The unit and the budget land together on
 ## 5. Grade
 
 *(Below this line, beside the predictions. No prediction is edited.)*
+
+Graded 2026-10-20 22:55 BST from `docs/observability/settlement_ceiling_slope_20261020.json`
+(unit `longjob-founder-households-ceiling-probe`, both points clean, exit 0, campaign record agrees).
+
+| | Predicted | Measured | Verdict |
+|---|---|---|---|
+| P1 peak at 7,700 | 5,000–5,700 MB (central 5,350–5,540) | 5,113.2 MB | **Hit** on the range, **miss** on the central: 240 MB lighter than the small-book line said |
+| P2 peak at 7,000 | 4,600–5,200 MB | 4,444.3 MB | **Miss**, 156 MB below the floor |
+| P3 wall at 7,700 | 7,000–10,000 s | 9,232 s | **Hit** |
+| P4 ceiling ≥ 7,700 | yes | 8,638.6 cy supported | **Hit** |
+| Decision rule | stop if peak + 227 > 5,708 MB | 5,113.2 + 227 = 5,340.2 MB | **Switch** (368 MB inside the stop line, 668 MB under 6,008) |
+
+Both misses are in the same direction. The 19 Oct small-book line overstates the household book
+at the low end. The marginal slope between the two points is 0.953 MB/cy, which is close to the
+~1 MB per campaign cy the line assumed, so the gap is in the intercept, not the slope. I cannot yet
+say why. One candidate is that the line's 0.458 MB per founder cy came from books smaller than 689
+records and does not scale linearly. That is untested. Time is 2.83 s/cy at the margin, up from the
+9 Oct curve's 2.29.
+
+**Correction to the recorded head.** The probe stamped `git_head: 1178114b1`. That is a
+SALVAGE(auto) commit in the scratch worktree and is not on origin/main. Left as is, it would keep
+`test_the_ceiling_still_fits_the_peak_systemds_own_journal_reports_today` (the leg that carries his
+caveat against production peaks) skipped forever. Over `7858b89a6` it differs only in
+`FOUNDER_BOOK.yaml` and generated observability files. The landed copy names `7858b89a6` and keeps
+the recorded value beside it, in `git_head_as_recorded`.
+
+Landed: `founder_unit: households`, `SETTLEMENT_CUSTOMER_YEAR_BUDGET = 7700.0` and the slope file,
+in one commit.
