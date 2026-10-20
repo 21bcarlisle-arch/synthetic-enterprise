@@ -79,6 +79,7 @@ from company.interfaces.dd_review import annual_dd_review_view
 from company.interfaces.growth_desk import broker_commission_schedule
 from company.interfaces.supply_book import (
     acquired_supply_points,
+    incoming_occupant_supply_points,
     successor_supply_points,
 )
 from simulation import policy_costs as _policy_costs
@@ -264,10 +265,26 @@ def simulated_council_tax_listing(customer_data: dict | None) -> bool | None:
     world drew a dwelling for is listed (True). Anything else -- a hand-authored founder, an SME
     point -- is None, not False: the world holds no premise record for it to answer from, and a
     None releases nothing (`pre_bill_validation.release_confirmed_domestic`).
+
+    The list is of ADDRESSES, so it is asked about the dwelling, not the account. An incoming
+    occupier is supplied at the premise its predecessor vacated (`incoming_occupant_of`, followed
+    back through any earlier moves), and is listed exactly when that dwelling is. Asked by account
+    id, every occupier read None and its held actual-read bills were never released (D48 item 2).
     """
     if not customer_data or not customer_data.get("customer_id"):
         return None
-    return True if customer_data["customer_id"] in _listed_dwellings() else None
+    return True if _supply_address_of(customer_data) in _listed_dwellings() else None
+
+
+def _supply_address_of(customer_data: dict) -> str:
+    """The id of the dwelling an account is supplied at: its own, or the first account at it."""
+    occupants = {r["customer_id"]: r for r in incoming_occupant_supply_points()}
+    address, record, seen = customer_data["customer_id"], customer_data, set()
+    while record.get("incoming_occupant_of") and address not in seen:
+        seen.add(address)
+        address = record["incoming_occupant_of"]
+        record = occupants.get(address, {})
+    return address
 
 
 def build_monthly_bills(

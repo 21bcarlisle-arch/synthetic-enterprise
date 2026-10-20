@@ -139,3 +139,82 @@ names (`bill_assembly.held_bills`), so an older run output publishes both change
 
 Items 1 and 3 discharged. Item 2 (a `vat_by_segment` hold is never worked) and item 4 (K6) stay
 open.
+
+## Follow-on (open item 2): why six held actual-read bills are never released
+
+*Delivery seat, 2026-10-20, later again.*
+
+**Which part never fires.** Not the release's reach: `validate_bills` calls
+`release_confirmed_domestic` on every hold, and on the 44a21e3e8 run it already releases 21 held
+actual-read bills (`validate_bill` alone holds 67; 46 survive the queue). Not the hold reason: all
+six are `consumption_scale_only` (the implied-VAT and resi-plausibility ceilings, nothing else).
+**It is the listing.** All six bills carry no `premise_council_tax_listed`, and so do all 6,342
+bills on the run's 178 `OCC-` accounts. `simulated_council_tax_listing` answers by ACCOUNT id
+(`customer_id in live_premises()`), but a council tax listing is a fact about the supply ADDRESS.
+An incoming occupier is supplied at the dwelling its predecessor vacated
+(`incoming_occupant_of`), so the address is on the list whenever the predecessor's was; the
+lookup never asks.
+
+The six, by dwelling (link reconstructed from each OCC account's acquisition date against
+`home_move_outs`, unique for both):
+- `OCC-8c6b8bb21743` (2025-01, the GBP 310 catch-up, and 2025-02): SYN-2016-565's dwelling, which
+  is listed. The address-keyed lookup releases both.
+- `OCC-d8e674fa38de` (4 bills, 2018-2025): founder C8's home. The world holds no premise record
+  for a hand-authored founder, so the answer stays None and the four stay held. That is the
+  feed's own honest None, not this defect; filed below.
+
+**Pre-registration (written before the before/after is printed).**
+1. Held bills 46 -> 44; held actual-read bills 6 -> 4; held estimates unchanged at 40.
+2. K1_unbilled_accrual is unchanged at every year end through 2024-12 (both released bills are
+   2025) and falls at the 2025-06 run end by the two bills' 4,964 kWh, from 27,632 to 22,668.
+3. Every OCC account whose dwelling is a drawn premise reads `listed True` after the fix; the
+   founders' dwellings and their occupiers stay absent.
+
+**Fix.** `simulated_council_tax_listing` (simulation/run_phase4c_on_phase2b.py) now asks about the
+dwelling: `_supply_address_of` follows `incoming_occupant_of` back through the occupant book to the
+first account at the premise, and the answer is that dwelling's listing. World-side only; the
+company reads the same `premise_council_tax_listed` key as before. Control:
+`test_the_council_tax_listing_is_asked_about_the_dwelling_an_occupier_moved_into`. It goes red
+when the lookup is keyed by account id again, and red when only one move is followed.
+
+**Measured** at real inputs: the 44a21e3e8 run's 38,005 bills, before and after. "After" has the
+key stamped the way the fixed feed stamps it, with each OCC account's dwelling taken from the
+reconstructed link, read through the run's own door (`bill_assembly.held_bills` /
+`billing_accuracy`). This is not a re-run. The run output was stamped by the old feed, so the
+published page moves at the next run, not now.
+
+| | before | after |
+|---|---|---|
+| Held bills | 46 | 44 |
+| of which on an actual read / estimated | 6 / 40 | 4 / 40 |
+| OCC accounts read as listed | 0 of 178 | 157 of 178 |
+| K1 accrual, electricity, 2016-12 .. 2024-12 | (table above) | identical at every month end |
+| K1 accrual, electricity, 2025-06: accounts / held actuals | 3 / 6 | 2 / 4 |
+| K1 accrual, electricity, 2025-06: kWh | 27,632 | 21,402 |
+| K1 accrual, electricity, 2025-06: GBP net of VAT | 6,192 | 4,386 |
+| Gas | 0 | 0 (unchanged) |
+
+**Graded.**
+1. CONFIRMED. 46 -> 44 held, actuals 6 -> 4, estimates 40.
+2. Half right. "Unchanged through 2024-12" is CONFIRMED: 2025-06 is the only month end that
+   moved. The kWh is REFUTED: the accrual fell 6,230 kWh, not 4,964, to 21,402, not 22,668. The
+   1,266 kWh I did not predict is exactly the 2025-01 bill's `read_true_up_kwh` (1,266.10): energy
+   from the 2024-10..12 estimates, under-billed and carried by the held actual. Releasing that bill
+   releases its true-up as well. The earlier section counted "a held actual's catch-up" in the
+   accrual, and I left it out of the prediction.
+3. PLAUSIBLE, not confirmed. 157 of 178 read listed. Of the 21 that do not, 7 are occupiers of
+   founder homes (C1, C1g, C4, C4g, C8) and 2 chain through those. The other 12 are accounts my
+   reconstruction could not link uniquely (more than one move-out on the date). That is a limit of
+   this instrument, not of the feed, which follows the real link. The next run settles it.
+
+**What stays held, and why.** The four `OCC-d8e674fa38de` bills (and the founders' own
+consumption-scale holds) are at hand-authored founder homes. The world draws no premise for these,
+so the listing honestly answers None. A real supplier would look the address up. The founders
+have no address to look up, so this is a gap in the roster's data and not in billing operations.
+Open, filed here: either give the eight founder homes a drawn premise record, or let the queue
+re-segment a hold the listing cannot answer. The re-segment route is the other half of a worked
+exception queue, and nothing here does it yet. The 40 held estimates stay held by design until an
+actual read replaces them.
+
+Item 2 discharged for the defect the item named, and the founder-home remainder filed above.
+Item 4 (K6) stays open.

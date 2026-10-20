@@ -234,11 +234,14 @@ def test_main_produces_meter_read_log_matching_bills(main_result):
 def test_main_measures_billing_accuracy_from_its_own_bills(main_result):
     """D48: the run hands back the company's billed-against-read measure. Defect caught: the key
     computed from something other than the bills it sits beside, or a window too short to hold
-    one estimate and one true-up, which would make the join below vacuous."""
+    one estimate and one true-up, which would make the join below vacuous. "Billed" is issued: a
+    bill the pre-bill gate held never reached the customer, so the join is over the issued set."""
+    from company.interfaces.bill_assembly import issued_bills
+
     accuracy = main_result["billing_accuracy"]
     elec = accuracy["by_fuel"]["electricity"]
     assert elec["estimated_kwh"] > 0 and elec["true_ups"] > 0, elec
-    bills = main_result["bills"]
+    bills = issued_bills(main_result["bills"])
     assert sum(f["true_ups"] for f in accuracy["by_fuel"].values()) == sum(
         1 for b in bills if b.get("read_true_up_kwh") is not None)
     assert sum(f["estimated_kwh"] for f in accuracy["by_fuel"].values()) == pytest.approx(sum(
@@ -1028,6 +1031,26 @@ def test_the_council_tax_listing_feed_can_answer_listed_and_can_decline():
     assert simulated_council_tax_listing({"customer_id": "PROS-2016-0098"}) is True
     assert simulated_council_tax_listing({"customer_id": "NO-SUCH-PREMISE"}) is None
     assert simulated_council_tax_listing(None) is None
+
+
+def test_the_council_tax_listing_is_asked_about_the_dwelling_an_occupier_moved_into(monkeypatch):
+    """Defect: the lookup is keyed by ACCOUNT id, so an incoming occupier at a listed dwelling
+    reads None and its held actual-read bills are never released (D48 item 2: OCC-8c6b8bb21743 at
+    SYN-2016-565's home, and its GBP 310 catch-up). The address is the predecessor's, through any
+    chain of moves; an occupier at a dwelling the world holds no premise for still reads None."""
+    import simulation.run_phase4c_on_phase2b as mod
+
+    book = [
+        {"customer_id": "OCC-A", "incoming_occupant_of": "PROS-2016-0098"},
+        {"customer_id": "OCC-B", "incoming_occupant_of": "OCC-A"},
+        {"customer_id": "OCC-C", "incoming_occupant_of": "NO-SUCH-PREMISE"},
+    ]
+    monkeypatch.setattr(mod, "incoming_occupant_supply_points", lambda: book)
+
+    assert mod.simulated_council_tax_listing(book[0]) is True
+    assert mod.simulated_council_tax_listing(book[1]) is True
+    assert mod.simulated_council_tax_listing(book[2]) is None
+    assert mod.simulated_council_tax_listing({"customer_id": "OCC-A"}) is None
 
 
 def test_build_monthly_bills_hands_the_listing_feed_to_bill_assembly(monkeypatch):
