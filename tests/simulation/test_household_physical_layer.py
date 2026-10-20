@@ -355,14 +355,22 @@ _MEASURED_AT = "2025-12-31"
 
 
 @pytest.fixture(scope="module")
-def homes_at_the_end_of_the_record(drawn_households):
+def homes_at_the_end_of_the_record():
     """The book at the last day of the record, where the commercial layer has had ten years of
-    life events to move. At the draw every home is income-stress LOW and nothing can associate."""
+    life events to move. At the draw every home is income-stress LOW and nothing can associate.
+
+    Twice the draw the other legs use (n about 4,000, not 2,000). The job-loss scar (B7 slice
+    (d)) puts a MODERATE year in every era, and at n 1,954 the build-era path it dilutes reads
+    p 1e-3, too weak for the family alpha, so the control could not tell it from gone."""
     from simulation.life_events import generate_life_events, household_at_date
 
+    pop = draw_population(11, acquisitions_per_year_lambda=800.0)
     return [
-        (pid, hh, household_at_date(hh, generate_life_events(hh, 2016, 2025), _MEASURED_AT))
-        for pid, hh in drawn_households
+        (c.premise.premise_id, c.premise.household,
+         household_at_date(c.premise.household,
+                           generate_life_events(c.premise.household, 2016, 2025), _MEASURED_AT))
+        for c in pop
+        if c.premise.household.is_residential
     ]
 
 
@@ -442,7 +450,8 @@ def test_the_association_control_sees_a_merge_and_a_missing_declaration(
 
     MERGE: homes with no driveway that were LOW become HIGH one time in eight -- an asset field
     merged into the commercial layer at Cramer's V 0.137/0.149 (seeds 11/23), near the 0.105-0.114
-    the draw's real paths carry. Thinner is not detectable on this pair at n~2,000 and alpha 1e-4
+    the draw's real paths carry, read at n~2,000; the fixture is now ~4,000, which only adds power. Thinner
+    is not detectable on this pair at n~2,000 and alpha 1e-4
     (1-in-16 reads V 0.07-0.10 at p 1e-2 to 1e-4). It poisons a
     pair DECLARED ABSENT, so it is the contradiction leg that must see it. (It poisoned occupancy
     until 2026-10-03, when per-person births made occupancy a declared, carried path.)

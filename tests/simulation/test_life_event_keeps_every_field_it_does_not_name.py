@@ -35,6 +35,8 @@ _WRITES: dict[str, tuple[set[str], dict]] = {
     "smart_meter_installed": ({"has_smart_meter", "smart_meter_install_year"}, {}),
     "job_loss": ({"income_stress"}, {}),
     "income_recovery": ({"income_stress"}, {}),
+    "reemployed": ({"income_stress"}, {}),
+    "income_scar_ended": ({"income_stress"}, {}),
     "new_baby": ({"income_stress"}, {}),
     "retirement_starts": ({"income_stress"}, {}),
     "illness": ({"income_stress"}, {}),

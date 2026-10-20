@@ -22,6 +22,7 @@ import pytest
 from simulation.household import IncomeStress, make_household
 from simulation.life_events import (
     _DIVORCE_ANNUAL_PROB,
+    _DRAW_FREE_EVENTS,
     _ILLNESS_ANNUAL_PROB,
     _JOB_LOSS_ANNUAL_PROB_PER_EMPLOYED_PERSON,
     _LIFE_EVENT_SUBSTREAMS,
@@ -54,8 +55,11 @@ def test_substream_covers_every_emitted_event_type():
     for i in range(300):
         hh = _resi_hh(cid=f"C{i}")
         emitted |= {e.event_type for e in generate_life_events(hh, 2016, 2025)}
-    missing = emitted - set(_LIFE_EVENT_SUBSTREAMS)
+    missing = emitted - set(_LIFE_EVENT_SUBSTREAMS) - _DRAW_FREE_EVENTS
     assert not missing, f"emitted event types with no named substream: {missing}"
+    # A draw-free type is still emitted, and owns no stream it could share.
+    assert _DRAW_FREE_EVENTS <= emitted
+    assert not _DRAW_FREE_EVENTS & set(_LIFE_EVENT_SUBSTREAMS)
 
 
 def test_substream_is_deterministic():

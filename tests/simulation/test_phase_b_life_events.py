@@ -428,7 +428,7 @@ def test_demographic_event_set_is_exactly_the_gated_events():
     # economic/demographic events, so a future addition can't silently escape
     # the residential gate by being omitted from this set.
     assert _RESIDENTIAL_ONLY_DEMOGRAPHIC_EVENTS == frozenset({
-        "job_loss", "income_recovery", "new_baby",
+        "job_loss", "reemployed", "income_scar_ended", "income_recovery", "new_baby",
         "retirement_starts", "illness", "divorce",
     })
 

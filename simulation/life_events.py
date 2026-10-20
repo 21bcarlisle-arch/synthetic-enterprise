@@ -15,7 +15,10 @@ Event types modelled:
   generator loop below (W2_5 Expert Hour finding, 2026-07-13) -- a real
   smart-meter-rollout event generator is a separate, not-yet-built piece.
 - insulation_upgraded: loft or wall insulation improved (upgrades InsulationLevel)
-- job_loss / income_recovery: economic life event (income_stress -> HIGH / LOW)
+- job_loss: economic life event (income_stress -> HIGH), and it draws its own spell
+- reemployed: the job-loss spell ends at its drawn date (HIGH -> MODERATE, the scar)
+- income_scar_ended: the scar fades about five years later (MODERATE -> LOW)
+- income_recovery: the annual coin out of HIGH, now only for illness and the opening stock
 - new_baby: economic life event (income_stress LOW -> MODERATE)
 - retirement_starts: economic life event (income_stress LOW -> MODERATE)
 - illness: economic life event (income_stress -> HIGH, shares income_recovery's own
@@ -74,6 +77,8 @@ EventType = Literal[
     "smart_meter_installed",
     "insulation_upgraded",
     "job_loss",
+    "reemployed",
+    "income_scar_ended",
     "income_recovery",
     "new_baby",
     "retirement_starts",
@@ -182,9 +187,35 @@ _BATTERY_INSTALL_PROB_WITH_SOLAR_BY_YEAR: dict[int, float] = {
 # Source: ONS Labour Market Statistics 2016-2025
 _JOB_LOSS_ANNUAL_PROB_PER_EMPLOYED_PERSON = 0.022
 
-# Income recovery: conditional on HIGH stress; median UK unemployment spell ~6 months.
-# A household state transition, so per household is the right unit here.
+# Income recovery: conditional on HIGH stress, tried once a year. A household state transition,
+# so per household is the right unit here. Its comment used to say "median UK unemployment spell
+# ~6 months"; as written it gives a 19-month median (docs/market_research/
+# income_shock_depth_and_duration_b7.md s4). Since B7 slice (d) a JOB LOSS no longer uses it: the
+# spell is drawn below. Illness and a household already HIGH at the draw still do. GAP: no
+# published illness-spell length has been read, and the opening stock's elapsed spell is unknown.
 _INCOME_RECOVERY_ANNUAL_PROB = 0.50
+
+# The job-loss spell, a stated belief from two ONS sources (income_shock_depth_and_duration_b7.md
+# s6.1): new spells are two geometric types. A long type of about a tenth (6-15%) exits at about
+# 0.06-0.08 a month. The short type's hazard is DERIVED, so that the median time from job loss to
+# work is 4 months (the 3-6 month band). At that point a new spell is still running at 12 months
+# 13.7% of the time (band 4-15%). 4 is the longest median the band allows before the 12-month tail
+# leaves it, so of the admissible spells it is the one that errs against the thesis (F11).
+_JOB_LOSS_SPELL_LONG_TYPE_SHARE = 0.10
+_JOB_LOSS_SPELL_LONG_TYPE_MONTHLY_EXIT = 0.07
+_JOB_LOSS_SPELL_MEDIAN_MONTHS = 4.0
+_JOB_LOSS_SPELL_SHORT_TYPE_MONTHLY_EXIT = 1.0 - (
+    (0.5 - _JOB_LOSS_SPELL_LONG_TYPE_SHARE
+     * (1.0 - _JOB_LOSS_SPELL_LONG_TYPE_MONTHLY_EXIT) ** _JOB_LOSS_SPELL_MEDIAN_MONTHS)
+    / (1.0 - _JOB_LOSS_SPELL_LONG_TYPE_SHARE)
+) ** (1.0 / _JOB_LOSS_SPELL_MEDIAN_MONTHS)
+_DAYS_PER_MONTH = 365.25 / 12
+
+# The scar after re-employment (Beduk et al. 2025, s6.2): household income about 17% under its
+# old level in year one, fading to nothing over about five years. It is carried as MODERATE
+# ("reduced income") for the whole five years, which overstates the later, smaller years: the
+# error runs against the thesis (F11). GAP: the year-by-year UK path, in a full text not yet read.
+_INCOME_SCAR_YEARS = 5
 
 # New baby: UK crude birth rate 10.7 per 1,000 POPULATION (all ages, so every person in the home
 # counts toward it -- that is what makes the book's total births match the published rate).
@@ -267,6 +298,8 @@ _DIVORCE_ANNUAL_PROB = 0.0036
 # moment a future roster puts an SME/I&C account in a residential dwelling.
 _RESIDENTIAL_ONLY_DEMOGRAPHIC_EVENTS: frozenset[str] = frozenset({
     "job_loss",
+    "reemployed",
+    "income_scar_ended",
     "income_recovery",
     "new_baby",
     "retirement_starts",
@@ -296,7 +329,13 @@ _LIFE_EVENT_SUBSTREAMS: tuple[str, ...] = (
     "retirement_starts",
     "illness",
     "divorce",
+    # The job-loss spell's type and length, which date `reemployed`. Kept apart from the onset
+    # stream (the B7 FRAME): reshaping the spell must not change WHICH households lose a job.
+    "reemployed",
 )
+
+# Emitted, and draws nothing: its date is the spell's end plus the scar.
+_DRAW_FREE_EVENTS: frozenset[str] = frozenset({"income_scar_ended"})
 
 
 def _substream(base_seed: int, name: str) -> random.Random:
@@ -331,6 +370,16 @@ def _annual_prob(table: dict[int, float], year: int) -> float:
     if year >= max(table):
         return table[max(table)]
     return table[year]
+
+
+def _job_loss_spell_days(rng: random.Random) -> int:
+    """Draw one job-loss spell, in days, from the two-type mixture above (continuous geometric)."""
+    if rng.random() < _JOB_LOSS_SPELL_LONG_TYPE_SHARE:
+        hazard = _JOB_LOSS_SPELL_LONG_TYPE_MONTHLY_EXIT
+    else:
+        hazard = _JOB_LOSS_SPELL_SHORT_TYPE_MONTHLY_EXIT
+    months = math.log(1.0 - rng.random()) / math.log(1.0 - hazard)
+    return max(1, round(months * _DAYS_PER_MONTH))
 
 
 def _random_date_in_year(year: int, rng: random.Random) -> str:
@@ -439,6 +488,10 @@ def generate_life_events(
     heating = household.heating_system
     income_stress = household.income_stress
     is_retired = False
+    # A job-loss spell ends, and a scar fades, on a DATE, not on a yearly coin. Each is carried
+    # across years until the year it falls in.
+    spell_end: date | None = None
+    scar_end: date | None = None
     if household.is_residential:
         _people, _employed = _household_persons(household)
         job_loss_prob = _household_draw_prob(_JOB_LOSS_ANNUAL_PROB_PER_EMPLOYED_PERSON, _employed)
@@ -556,7 +609,33 @@ def generate_life_events(
         # _RESIDENTIAL_ONLY_DEMOGRAPHIC_EVENTS and stay inside this gate -- the
         # business-exclusion control test enforces that.
         if household.is_residential:
+            # A spell or a scar carried in from an earlier year ends first, at its own date, and
+            # the year's gates are dated after it: they read the state it leaves.
+            year_floor = date(year, 1, 1)
+            if spell_end is not None and spell_end.year == year:
+                events.append(LifeEvent(
+                    customer_id=household.customer_id,
+                    event_date=spell_end.isoformat(),
+                    event_type="reemployed",
+                    payload={},
+                ))
+                income_stress = IncomeStress.MODERATE
+                scar_end = spell_end + timedelta(days=round(_INCOME_SCAR_YEARS * 365.25))
+                year_floor, spell_end = spell_end + timedelta(days=1), None
+            elif scar_end is not None and scar_end.year == year:
+                # A retirement during the scar keeps the home on reduced income.
+                if not is_retired and income_stress == IncomeStress.MODERATE:
+                    events.append(LifeEvent(
+                        customer_id=household.customer_id,
+                        event_date=scar_end.isoformat(),
+                        event_type="income_scar_ended",
+                        payload={},
+                    ))
+                    income_stress = IncomeStress.LOW
+                year_floor, scar_end = scar_end + timedelta(days=1), None
+
             first_demographic = len(events)
+            spell_days: int | None = None
             # Job loss (only when not already in high stress)
             if income_stress != IncomeStress.HIGH:
                 _s = sub["job_loss"]
@@ -568,9 +647,11 @@ def generate_life_events(
                         payload={},
                     ))
                     income_stress = IncomeStress.HIGH
+                    spell_days = _job_loss_spell_days(sub["reemployed"])
+                    scar_end = None
 
-            # Income recovery (only when in high stress)
-            elif income_stress == IncomeStress.HIGH:
+            # Income recovery (only when in high stress that no job-loss spell is timing)
+            elif income_stress == IncomeStress.HIGH and spell_end is None:
                 _s = sub["income_recovery"]
                 if _s.random() < _INCOME_RECOVERY_ANNUAL_PROB:
                     events.append(LifeEvent(
@@ -622,6 +703,7 @@ def generate_life_events(
                         payload={},
                     ))
                     income_stress = IncomeStress.HIGH
+                    scar_end = None
 
             # Divorce (only when stable income, same gate as new_baby/retirement)
             if income_stress == IncomeStress.LOW:
@@ -635,13 +717,35 @@ def generate_life_events(
                     ))
                     income_stress = IncomeStress.MODERATE
 
-            events[first_demographic:] = _dated_in_gate_order(events[first_demographic:], year)
+            events[first_demographic:] = _dated_in_gate_order(
+                events[first_demographic:], year, year_floor,
+            )
+            if spell_days is not None:
+                job_loss_on = next(
+                    date.fromisoformat(e.event_date) for e in events[first_demographic:]
+                    if e.event_type == "job_loss"
+                )
+                spell_end = job_loss_on + timedelta(days=spell_days)
+                # A spell that ends inside its own year ends after every gate this year has read;
+                # only retirement can follow a job loss in-year, and it does not read the state.
+                if spell_end.year == year:
+                    events.append(LifeEvent(
+                        customer_id=household.customer_id,
+                        event_date=spell_end.isoformat(),
+                        event_type="reemployed",
+                        payload={},
+                    ))
+                    income_stress = IncomeStress.MODERATE
+                    scar_end = spell_end + timedelta(days=round(_INCOME_SCAR_YEARS * 365.25))
+                    spell_end = None
 
     events.sort(key=lambda e: e.event_date)
     return events
 
 
-def _dated_in_gate_order(year_events: list[LifeEvent], year: int) -> list[LifeEvent]:
+def _dated_in_gate_order(
+    year_events: list[LifeEvent], year: int, floor: date | None = None,
+) -> list[LifeEvent]:
     """Give one year's demographic events their dates in the order their gates were evaluated.
 
     Each gate above reads `income_stress` as the events BEFORE it in processing order left it, but
@@ -655,7 +759,16 @@ def _dated_in_gate_order(year_events: list[LifeEvent], year: int) -> list[LifeEv
     The fix keeps every substream's draws, so C-S2 still holds. The year's dates are sorted and
     handed out in emission order, made strictly increasing so no two events share a day. A shared
     day would leave the order to a sort's tie-break.
+
+    ``floor`` is the first day the gates may use: the day after a spell or scar carried in from an
+    earlier year ended, because the gates read the state that ending left. A date before it is
+    lifted to it. A crowded late floor can still be pushed back below it by the year-end ceiling.
     """
+    if floor is not None and floor > date(year, 1, 1):
+        year_events = [
+            replace(e, event_date=max(date.fromisoformat(e.event_date), floor).isoformat())
+            for e in year_events
+        ]
     if len(year_events) < 2:
         return year_events
     dates = sorted(date.fromisoformat(e.event_date) for e in year_events)
@@ -728,6 +841,13 @@ def apply_events(household: Household, events: list[LifeEvent]) -> Household:
 
         elif event.event_type == "income_recovery":
             state["income_stress"] = IncomeStress.LOW
+
+        elif event.event_type == "reemployed":
+            state["income_stress"] = IncomeStress.MODERATE
+
+        elif event.event_type == "income_scar_ended":
+            if state["income_stress"] == IncomeStress.MODERATE:
+                state["income_stress"] = IncomeStress.LOW
 
         elif event.event_type == "new_baby":
             if state["income_stress"] == IncomeStress.LOW:

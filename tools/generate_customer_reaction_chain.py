@@ -38,7 +38,9 @@ _PHYSICAL_EVENTS = {
     "battery_installed", "insulation_upgraded", "smart_meter_installed",
     "boiler_replaced",
 }
-_ECONOMIC_EVENTS = {"job_loss", "income_recovery", "new_baby", "retirement_starts"}
+_ECONOMIC_EVENTS = {
+    "job_loss", "reemployed", "income_scar_ended", "income_recovery", "new_baby", "retirement_starts",
+}
 
 
 def _base_id(cid):

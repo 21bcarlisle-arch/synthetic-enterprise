@@ -199,6 +199,39 @@ book's total arrears change by less than ±15%. If they fall by more than that, 
 too light or fades too fast. That is the side to check first, because a shorter shock errs for the
 thesis (F11).
 
+## 7. Built (2026-10-20, worker tick): the spell and the scar, in one build
+
+`simulation/life_events.py`. A job loss draws its spell on its own substream, `reemployed`,
+from §6.1's two types: a long tenth at 0.07 a month, and a short type whose hazard is derived so
+the median to work is 4 months. A new spell is then still running at 12 months 13.7% of the time.
+4 months is the longest median the 3-6 band allows before the 12-month tail leaves 4-15%, so it is
+the admissible spell that errs against the thesis. The spell ends on its date (`reemployed`) into
+MODERATE, the scar, and the scar ends (`income_scar_ended`) five years later, unless the home
+retired in the meantime. Illness and a household already HIGH at the draw keep the annual coin.
+No illness-spell length has been read, and the opening stock's elapsed spell is unknown.
+
+Printed on 4,000 homes from a LOW opening, 2016-2025, old against new: the spell median falls from
+16.5 to 4.0 months. Spells over 12 months fall from 70% to 12%. HIGH household-months fall 44%
+(illness is unchanged inside that), and MODERATE household-months rise 46%. Births fall 3%,
+because a scarred home is not LOW and the birth gate asks for LOW.
+
+**Not identified by the evidence:** with the long type set to zero, the derived short type still
+lands inside both bands (median 4, tail 12.5%). The bands cannot tell one type from two, so the long
+type is carried as this page's belief and nothing grades it.
+
+**Prediction, filed before any run carries this (restating §6.3 for the point built):** job-loss
+HIGH time falls about 74% (mean spell 24 months to 6.2). That is just under §6.3's 75-90%, because
+4 months is the long end of the band. The book's total arrears change by less than ±15%. If they
+fall by more, the scar is too light first. The magnitude leg (§5 choice 2, the replacement rate as
+W2_4 income) is not built. Until it is, a scar and a spell differ only in which stress state they
+hold.
+
+**How it is graded.** The next published run also carries the leaver fixes (legs (b) and (d) of the
+D-lane leaver finding), so the run alone cannot attribute an arrears move to this change. The grade
+is a paired, world-only capture with this commit and its parent, on one seed. The W2 BLOCKING
+crisis bad-debt finding is about the same arrears. Its cause, the under-water household's exit, is
+its own continuation, and this slice does not take it.
+
 ## Sources
 
 - ONS, X02: Labour Force Survey flows estimates, `x02aug2026.xls`, sheet "Labour market flows hazard rate" (https://www.ons.gov.uk/employmentandlabourmarket/peopleinwork/employmentandemployeetypes/datasets/labourforcesurveyflowsestimatesx02), fetched 2026-10-18.

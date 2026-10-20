@@ -196,10 +196,12 @@ LAYER_CORRELATIONS: tuple[LayerCorrelation, ...] = (
             "and each birth moves LOW -> MODERATE. MEASURED at 2025-12-31: chi2 44.8/6 dof, "
             "Cramer's V 0.107 (seed 11, n 1954) and 0.105 (seed 23, n 2040). Before that change "
             "it was 5.6/6 and 6.9/6, independent. The published income-by-size joint is still "
-            "unestablished; this is the birth path only."
+            "unestablished; this is the birth path only. Headcount is drawn from bedrooms, so "
+            "the same path reads through bedrooms once the sample can see it: chi2 55.4/6 at "
+            "n 3989 (seed 11, 2026-10-20)."
         ),
         in_the_world=True,
-        measured_as=("occupancy",),
+        measured_as=("occupancy", "bedrooms"),
     ),
     LayerCorrelation(
         physical="asset_ownership",
@@ -236,7 +238,10 @@ LAYER_CORRELATIONS: tuple[LayerCorrelation, ...] = (
             "age, and composition_cuts_for draws pensioner_present on the physical layer "
             "independently of that retirement, so the world holds two answers to 'is "
             "someone here retired'. Closing it needs the EHS age-of-HRP by dwelling-age "
-            "cross-tab, or the retirement keyed on the drawn pensioner instead."
+            "cross-tab, or the retirement keyed on the drawn pensioner instead. Since B7 "
+            "slice (d) a job loss leaves a five-year MODERATE scar in every era, which "
+            "dilutes it: chi2 45.2/10 to 28.8/10 at n 1954 (p 1e-3, under the control's "
+            "1e-4), and 82.0/10 at n 3989 (seed 11, 2026-10-20)."
         ),
         in_the_world=True,
         measured_as=("build_era", "boiler_age"),
