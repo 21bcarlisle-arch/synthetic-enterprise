@@ -22,6 +22,12 @@ the end of the run: one row per household per stated advice effect.
 
 The hazard is the company's belief, `h = 1 - (1 - p)^(1/12)` over a 12-month term (B11's shape).
 Nothing here reaches the world: the rows are a record, and nothing is sent.
+
+C35 AT THE SAME NOTICE (2026-10-20, §6.1 "C35 at the renewal notice"). Each leg also carries its
+renewal terms: the fix as offered, the published default for its fuel on the start (ex VAT), and the
+company's own annual volume. `decide` prices a rise on the fix only where the run's policy names
+`next_best_action_shares_by_retention_rise`; a merged household's room for it is the sum of both
+legs' headroom (`HouseholdRenewalTerms`). Off, the terms are carried and read by nothing.
 """
 from __future__ import annotations
 
@@ -32,6 +38,8 @@ from company.crm.next_best_action import (
     AccountState,
     Action,
     ActionEstimate,
+    RenewalTerms,
+    RetentionRise,
     decide,
     states_for_decision,
 )
@@ -101,7 +109,8 @@ class RenewalAdviceDesk:
         self.legs_without_contribution = {"roll": 0, "riding": 0}
 
     def observe_roll(self, *, account_id: str, term_start: str, fuel: str,
-                     monthly_margin_gbp: float | None, renewal_churn_belief: float) -> None:
+                     monthly_margin_gbp: float | None, renewal_churn_belief: float,
+                     renewal: RenewalTerms | None = None) -> None:
         """The leg the household's departure is decided on, at its renewal roll.
 
         The notice carries the fix as first offered. A declined fix is spliced into default-tariff
@@ -114,11 +123,13 @@ class RenewalAdviceDesk:
             self.legs_without_contribution["roll"] += 1
             return
         self._legs[key] = [AccountState(account_id, monthly_margin_gbp,
-                                        monthly_hazard(renewal_churn_belief), 0, ())]
+                                        monthly_hazard(renewal_churn_belief), 0, (),
+                                        renewal=renewal)]
         self._fuels[key] = [fuel]
 
     def observe_riding_leg(self, *, account_id: str, term_start: str, fuel: str,
-                           monthly_margin_gbp: float | None) -> bool:
+                           monthly_margin_gbp: float | None,
+                           renewal: RenewalTerms | None = None) -> bool:
         """The household's other leg, priced on the roll's start. False if no roll is held for it."""
         key = (account_id, term_start)
         legs = self._legs.get(key)
@@ -128,7 +139,8 @@ class RenewalAdviceDesk:
         if monthly_margin_gbp is None:
             self.legs_without_contribution["riding"] += 1
             return False
-        legs.append(dataclasses.replace(legs[0], monthly_margin_gbp=monthly_margin_gbp))
+        legs.append(dataclasses.replace(legs[0], monthly_margin_gbp=monthly_margin_gbp,
+                                        renewal=renewal))
         self._fuels[key].append(fuel)
         return True
 
@@ -146,7 +158,7 @@ class RenewalAdviceDesk:
                                          -min(cut, state.monthly_departure_hazard))
                     d = decide(dataclasses.replace(state, estimates=(est,)), HORIZON_MONTHS,
                                self._policy)
-                    rows.append({
+                    row = {
                         "account_id": account_id,
                         "term_start": term_start,
                         "fuels": its_fuels,
@@ -161,5 +173,12 @@ class RenewalAdviceDesk:
                         "value_change_gbp": round(d.value_change_gbp, 4),
                         "reason": d.reason,
                         "unscored": [[a.value, why] for a, why in d.unscored],
-                    })
+                    }
+                    # Only where C35 is asked, so a C34-only arm's rows keep their bytes.
+                    if self._policy.next_best_action_shares_by_retention_rise:
+                        room = None if state.renewal is None else state.renewal.headroom_gbp_per_month()
+                        row["headroom_gbp_per_month"] = None if room is None else round(room, 4)
+                        row["retention_rise_gbp_per_month"] = (
+                            d.share.rise_gbp_per_month if isinstance(d.share, RetentionRise) else None)
+                    rows.append(row)
         return rows

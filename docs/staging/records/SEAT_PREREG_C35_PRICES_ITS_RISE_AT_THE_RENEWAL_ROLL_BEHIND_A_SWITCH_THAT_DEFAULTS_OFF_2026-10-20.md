@@ -84,3 +84,41 @@ parent (`cmp`). Carrying the terms changes no row.
 ## How it will be graded
 
 O1, O2 and R1–R4 are graded in the landing commit, below this line, with the predictions unchanged.
+
+## Graded 2026-10-20 ~16:40 BST (the predictions above are unchanged)
+
+**The runs.** The caller was rebuilt from `/var/tmp/se-c35`'s C35 hunks onto `c61d8b608`, item 1's
+landing, and run twice at the default seed over the window to 2019-12-31:
+- C34 on, rise off: `/var/tmp/se-c35-onarm-out/build_c34.json`;
+- C34 on, rise on: `/var/tmp/se-c35-onarm-out/build_c35.json`.
+
+Both used `run_arm.py` in that directory, with the same kept keys as the retention-guard grade
+(`/var/tmp/se-ret-margin/run_both.py`), plus every output key's length. Grader:
+`/var/tmp/se-c35-onarm-out/grade.py`. The landed caller is the same hunks on origin's later trunk
+(`8e0a30ae5`). That trunk adds `ee995aadc`, the holdout's expected-value decision, which sits behind
+`retention_runs_holdout`, off on both arms, so it should not move either run. That was not re-run.
+
+| | prediction | result | verdict |
+|---|---|---|---|
+| O1 | off arm byte-equal to parent | **not run.** By construction, every hand-off sits inside `_renewal_advice is not None`, and the refusal raises only with the rise on. Not measured. | UNGRADED |
+| O2 | C34-only arm byte-equal to parent | **not run as written.** The one parent C34 arm is the full-window `/var/tmp/se-ret-margin/on_arm.json`. Over its rows starting before 2020, 519 of 525 match; 6 late-2019 rows differ by GBP 0.0001 in margin. The window end differs, so this does not isolate C35. The desk's own control (`test_carrying_the_terms_leaves_a_c34_only_arms_rows_unchanged`) holds. | UNGRADED |
+| R1 | on = C34-only in every key but the renewal log | every kept key equal, and every key's length equal | CONFIRMED (over the kept keys) |
+| R2 | same 525 rows, order, account, start, legs, margin, hazard, effect; advised stay advised with no rise; pre-2019 refusals keep the no-default reason | all hold. C34 advised 0 rows in this window. All 381 pre-2019 rows are refused with `retention rise: no published default…` | CONFIRMED (the advised leg is vacuous: 0 rows) |
+| R3 | of 2019 rows C34 refused: ≥60% risen at (GBP 2, 0.3 pt); ≥50% at (2, 0.1); ≥40% at (3, 0.3) | 34/48 = 70.8%; 38/48 = 79.2%; 37/48 = 77.1%. 109 of 144 risen overall | CONFIRMED |
+| R4 | every rise in (0, headroom] and GBP 1.50–4.50; two-leg headroom > one-leg at the median | all 109 in (0, headroom], range GBP 2.00–3.47; median headroom two-leg 15.47 (n 26) vs one-leg 8.00 (n 22) | CONFIRMED |
+
+**Unpredicted.** The smaller hazard cut (0.1 pt) is admitted more often than the larger (0.3 pt)
+at the same GBP 2 give-up: 38/48 against 34/48. The prereg had the larger cut needing the smaller
+rise. The refusal reasons show the opposite. At 0.1 pt, all 10 refusals name the headroom, with
+the rise needed at GBP 2.01–2.13. At 0.3 pt, 11 name the headroom, at GBP 2.02–2.36. The other 3
+are refused because the rise takes more (GBP 97–100) than the household keeps from the advice:
+the kept-benefit test the pre-build print found at margins of 15 or more. So the deeper cut needs
+a larger rise, not a smaller one. One reading: a household kept longer pays the advice's give-up
+for more months. The rule's arithmetic was not traced here to confirm it. *A first draft of this
+paragraph said every 2019 refusal named the headroom. The tally above corrected it before landing.*
+
+**What this licenses.** The caller is on origin behind its switch, off on every standing policy.
+Switching it on is a decision, not a fidelity fix. In 2019 it prices a rise for three quarters of
+the renewals C34 refuses, at GBP 2–3.5 a month, within the room under the default. It decides
+nothing before 2019, because no default was published, and the rows say so. These are records:
+no rise is billed, and the book is unmoved (R1).
