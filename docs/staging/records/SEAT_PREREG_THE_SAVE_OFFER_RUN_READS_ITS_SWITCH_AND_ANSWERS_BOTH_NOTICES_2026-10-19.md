@@ -120,3 +120,32 @@ that was never committed. The same three arms are re-run on the committed pair: 
 - **Not predicted:** both arms are byte-identical to the 2026-10-19 arms on `b244ae11e`, on as well as
   off. The four upstream `simulation/` changes move nothing in this window. So the grade above
   described the landed code after all, but that was not knowable until this run.
+
+## P1 and the carry: the run past 2023-Q3 (written 2026-10-20 before the runs)
+
+Claim `the-save-offer-carry-graded-past-2023-q3`. Both arms run at `e4271755f` (which holds the caller,
+`46387b883`) from one clean worktree. They use the full window (the run's default end, past 2024-06-30),
+CURRENT_POLICY, and the default seed, with the switch off and on. A scratch probe wraps
+`billed_rate_when_saved` and records each call's line, so the carry site and the decision site are
+counted apart. It also keeps a reference to `_household_save_carry` and dumps what is left in it at the
+end. No production file is changed.
+
+**What the code says before the run.** The term heap pops on `(term_start, supply point id)`, so `C1`
+is priced before `C1g` on a shared start. A carry is written at the decision leg's save and read when
+the other leg's term is priced. That works only if the other leg is popped later on the same date.
+So a household whose decision leg is electricity carries to its gas leg. A household whose decision
+leg is gas would lose its carry, because the electricity term was priced first.
+
+Predictions (P1a and P1b are the original P1, unchanged):
+
+- **P1a.** Of on-arm households answered on at least one offer, **at least 60%** are answered on two.
+- **P1b.** Off arm: every decided household is answered on one offer, the decision leg only.
+- **C1, the carry fires.** On the on arm, every saved household answered on two offers writes one
+  carry. Each carry is consumed at the other leg's pricing, so **0 carries are left at the end**, and
+  carry-site calls equal those households. If any decision leg is gas on a dual household, C1 is
+  refuted in the leftover count, and that is a defect in the caller.
+- **C2, no second decision.** No on-arm household has save-log rows on two of its legs at the same
+  `term_start`. I hold this weakly. I have not traced whether a dual household's gas leg can reach the
+  save site on its own.
+- **Sample.** Saves can be offered only from 2023-Q3, so I expect a few to a few dozen decided
+  households, not hundreds. If fewer than 5 are decided, P1a is reported with its count and not graded.
