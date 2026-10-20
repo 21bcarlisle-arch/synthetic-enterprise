@@ -1,9 +1,39 @@
 {
- "generated_at": "2026-10-20T08:25:11.330100+00:00",
+ "generated_at": "2026-10-20T11:25:42.045260+00:00",
  "seat": "delivery",
  "what_it_did": {
   "available": true,
   "commits": [
+   {
+    "sha": "c61d8b608",
+    "at": "2026-10-20T11:39:06+01:00",
+    "subject": "The retention guard weighs the term's contribution: one margin for every renewal decision",
+    "substantive": true
+   },
+   {
+    "sha": "6fe4282c0",
+    "at": "2026-10-20T10:27:42+01:00",
+    "subject": "Reach the household save carry by a control; rule out the gas-decision loss",
+    "substantive": true
+   },
+   {
+    "sha": "44a21e3e8",
+    "at": "2026-10-20T09:38:41+01:00",
+    "subject": "delivery seat: merge origin/main into the direction landing (upstream does not touch its paths)",
+    "substantive": false
+   },
+   {
+    "sha": "8bba81506",
+    "at": "2026-10-20T09:37:39+01:00",
+    "subject": "delivery seat: direction for the next stretch",
+    "substantive": false
+   },
+   {
+    "sha": "7359e7c23",
+    "at": "2026-10-20T09:29:49+01:00",
+    "subject": "Pre-register the shared shortfall's second dice seed: three arms, bands copied from seed 1",
+    "substantive": false
+   },
    {
     "sha": "5a2468fdf",
     "at": "2026-10-20T09:06:07+01:00",
@@ -213,99 +243,70 @@
     "at": "2026-10-19T21:42:03+01:00",
     "subject": "delivery seat: merge origin/main into the direction landing (upstream does not touch its paths)",
     "substantive": false
-   },
-   {
-    "sha": "f84941b39",
-    "at": "2026-10-19T21:40:58+01:00",
-    "subject": "delivery seat: direction for the next stretch",
-    "substantive": false
-   },
-   {
-    "sha": "70ace6553",
-    "at": "2026-10-19T21:34:24+01:00",
-    "subject": "C34 prereg: the P1-P4 on arm is launched on 8b6fea024 plus the caller, not at HEAD, because the world moved under the published book",
-    "substantive": false
-   },
-   {
-    "sha": "dd35d2a18",
-    "at": "2026-10-19T21:21:03+01:00",
-    "subject": "Gas-leg probe graded: per-household C35 merges exactly the 75 riding legs and rescues 142/546 on vs 193/771 off",
-    "substantive": false
-   },
-   {
-    "sha": "885338005",
-    "at": "2026-10-19T21:09:00+01:00",
-    "subject": "merge origin/main into the C34 renewal-roll caller landing (upstream does not touch its paths)",
-    "substantive": false
-   },
-   {
-    "sha": "18503313a",
-    "at": "2026-10-19T21:04:54+01:00",
-    "subject": "C34 decides at the renewal roll, per household, on the company's own churn belief, behind a switch that defaults off",
-    "substantive": true
    }
   ],
-  "substantive": 13,
-  "mechanical": 27,
+  "substantive": 14,
+  "mechanical": 26,
   "what_the_split_means": "A mechanical commit republishes an unchanged net -- the report, the dashboard, the state files. Counting those as work would make a quiet day look busy, so they are separated rather than filtered: they happened, they are just not progress."
  },
  "what_it_decided": {
   "available": true,
-  "oriented_at": "2026-10-20T08:20:18.714936+00:00",
+  "oriented_at": "2026-10-20T11:20:33.441434+00:00",
   "age_hours": 0.1,
   "expires_after_hours": 12.0,
   "live": true,
-  "thesis_read": "Forward on correctness, not yet on inference. 4 commits, 1 substantive; the classifier reads 0 supplier, 0 world, 1 both and 3 other, and all of it was supplier work. All three focus items were drawn. C34's roll and riding leg now read the term's contribution, net of pass-through costs and cost to serve, instead of the spread over wholesale (a57ea3da0). The same fix for the live retention guard and the missed-retention log is in surgical_land now, with its base off arm running. That retires the VAT-shaped defect in four places, but it means no per-customer decision has yet been read on a true margin. The thesis claim that the supplier beats average by inference still has no evidence for or against it; what we have is a defect removed from under the evidence. C35's caller is pre-registered (49c24b74f) with its arms running. Leg (c) of the leaver finding was graded (5a2468fdf): C7 is billed within 0.956-1.025 of true use with no inversions, so the publish red is dead at HEAD and the 26 Oct publish is the test. Leg (b), closing on an estimate, is billing accuracy and goes into focus. The budget's second seed launched at 08:19Z. No level moved. The previous focus did bite: all three were drawn, and two are now live continuations, so they leave focus rather than being restated. One machine error is new: the brief said no long job launched this stretch, and the register shows one did.",
+  "thesis_read": "Forward on correctness, still no evidence on inference. 5 commits, 2 substantive; the classifier reads 0 supplier, 1 world, 1 both and 3 other, but both substantive commits were supplier work: the save offer's household carry now has a control (6fe4282c0, classed world because it edits run_phase2b), and the retention guard and the missed-retention log now read the term's contribution (c61d8b608). With a57ea3da0 that puts all four renewal-margin readers on one function, so the BLOCKING margin row is corrected on origin. What it means: every per-customer renewal decision now stands on a true margin, and none has yet been read on one. The off book and C34's on arm at c61d8b608 are running now (pid 2177718, 41 min in) under continuation grade-the-contribution-margin-on-the-off-book-and-the-c34-arm, which is the C34 P2 re-read; that item leaves focus because a continuation holds it. Of the previous focus only leg (b) was drawn, and it is in surgical_land now (pid 2259344). C35 was not drawn: the draw refused it 24 times on /var/tmp/se-ret-margin/wt, whose owner is dead and whose tree no longer differs from origin in any code path, so that refusal should lift by itself. The real C35 caller is half built in /var/tmp/se-c35, owner 549600 dead, mixed with a copy of the helper that has since landed, so the steer drifted onto a dead worktree. One thing went backwards, found this orientation: the budget's second seed never ran. The last record said it launched at 08:19Z; the launch register has no budget-seed2 row, seed2_driver.log is empty since 09:27, no seed2 artefact exists and no driver is on the box. Its 14:00 grade would have found nothing. No level moved; B12 reads as self-contradicting against two builds that landed for it.",
   "focus": [
    {
-    "id": "c34-p2-reread-on-the-terms-contribution",
+    "id": "C35_the_supplier_finds_the_share_of_value_it_prices_by_optimising_joint_value_against_the_households_response",
     "lane": "C_customer_ops",
     "side": "supplier",
-    "what": "Once the one-contribution helper is on origin (continuation one-contribution-margin-for-every-renewal-decision, in surgical_land as pid 976535), run the C34 on arm (DecisionPolicy next_best_action_decides_at_renewal on, inside policy_scope) over the full window at that commit, through tools.launch_long_job, serially after the retention guard's own arms. Grade it against docs/staging/records/SEAT_PREREG_C34_P2_ON_THE_TERMS_CONTRIBUTION_2026-10-20.md (0-10 advised of about 978), with the advised rows split by contribution band. Then disposition docs/staging/SEAT_FINDING_C34S_RENEWAL_MARGIN_IS_THE_ALL_IN_RATE_LESS_THE_WHOLESALE_FORWARD_SO_IT_IS_NOT_A_MARGIN_2026-10-20.md. Do not start before the helper lands. If the landing is refused, this item waits; it does not rebuild the helper.",
-    "why": "The first engine reading of a per-customer decision (11% advised) was voided because the margin was inflated, so the director's open C34 concern has never been tested on the real book. This re-read is the first one that can say whether C34 advises anyone on a true margin, which is the input his ruling on the sharing price needs. DONE when the graded P2 is on origin beside its prereg and the BLOCKING finding is re-filed or closed with that evidence.",
-    "written_at": 1792484711.145
+    "what": "Land C35's engine caller from the dead worktree /var/tmp/se-c35 (owner 549600 is gone; HEAD 49c24b74f). Its diff carries two things: a copy of the one-contribution helper, which is already on origin as c61d8b608 and must be dropped, and the C35 hunks (company/policy/decision_policy.py's _refuse_a_rise_with_no_caller, the room-at-the-notice code in simulation/run_phase2b.py, the comment changes beside next_best_action_shares_by_retention_rise). Rebuild those C35 hunks on a fresh origin worktree at or after c61d8b608 (tools/isolate_hunks.py), not by hand-copying the whole diff. Wait for the leg (b) surgical_land (pid 2259344) to finish first, since it also changes simulation/run_phase2b.py. For O1 use the off book being written now at /var/tmp/se-ret-margin/off_book.json, which is c61d8b608 on the default policy, instead of re-running it; then run the on arm through tools.launch_long_job and grade R1-R4 of docs/staging/records/SEAT_PREREG_C35_PRICES_ITS_RISE_AT_THE_RENEWAL_ROLL_BEHIND_A_SWITCH_THAT_DEFAULTS_OFF_2026-10-20.md. After landing, remove /var/tmp/se-c35, se-c35-land and se-c35-land2 (their commits fc896dd66 and 6772c3334 are the helper, superseded by c61d8b608).",
+    "why": "C35 is the last per-customer decision with no production caller, and it is the route the director's open C34 concern names for the 60% of advice cases a sharing rise inside the cap cannot reach. The draw walked past it twice because the build sat in a dead owner's worktree. DONE when the caller is on origin behind its off switch, with O1 and R1-R4 graded beside the prereg, or the prereg records why C35 cannot be called at the roll.",
+    "written_at": 1792495541.722
    },
    {
-    "id": "c35-gets-an-engine-caller-behind-a-switch-that-defaults-off",
-    "lane": "C_customer_ops",
+    "id": "B12_writer_one_reads_its_margin_on_the_unit_rate_so_a_renewal_floor_is_its_true_unit_cost",
+    "lane": "B_commercial",
     "side": "supplier",
-    "what": "Carry on with the build pre-registered in docs/staging/records/SEAT_PREREG_C35_PRICES_ITS_RISE_AT_THE_RENEWAL_ROLL_BEHIND_A_SWITCH_THAT_DEFAULTS_OFF_2026-10-20.md (49c24b74f), in the worktree /var/tmp/se-c35, whose off arms are running now (/var/tmp/se-c35-out). The desk carries each leg's RenewalTerms, a dual household's room is both legs' headroom, and the margin is the one-contribution helper and nothing else. Rebase onto that helper once it is on origin, re-run O1 and O2 there, then run the on arm and grade R1-R4. When it lands, the save-offer carry continuation can take simulation/run_phase2b.py: say so in the commit.",
-    "why": "It closes the last open per-customer decision with no production caller, and it is the C34 concern's route for the 60% of advice cases the sharing rise cannot reach. Its worktree holds simulation/run_phase2b.py, so the save-offer carry control is refused at every draw until it lands. DONE when the caller is on origin with O1 and O2 held on the helper's base and R1-R4 graded, or when the prereg records why C35 cannot be called at the roll.",
-    "written_at": 1792484711.145
+    "what": "Settle B12's self-contradicting level. The map row reads level 0 at build, but e3b5ed01a (writer 1 reads the unit-rate margin against what its strike priced for; the save floors where writer 1 does) and badd57e8e (a fixed strike prices its own bad debt and term levies) landed for it, and tests/company/pricing/test_writer_one_reads_its_margin_on_the_unit_rate.py exists. Read the contradiction the seat brief's self_contradicting_levels pass reports for this row (background/delivery_seat.py), then check each clause of the title against company/pricing/renewal_rate_chain.py at HEAD: unit-rate margin, standing-charge revenue net of the cost it recovers, the save taking writer 1's floor. c61d8b608 states the standing charge stays out as a GAP, so check that clause especially. Then either record the level the evidence earns through tools/level_promotion_gate.py, with a control naming each built clause, or re-title the row to what is built and file the unbuilt clause as its own finding. Check headroom with python3 -m tools.maturity_map_store before writing the row.",
+    "why": "A pricing atom ruled by the director that reads 0 while two builds landed for it is the self-contradicting shape the brief flags, and it sits on the margin every renewal decision now reads. A level that can actually move is worth more than another build on top of it. DONE when B12 no longer appears under self_contradicting_levels, by a recorded level or by a corrected title with the GAP filed.",
+    "written_at": 1792495541.722
    },
    {
-    "id": "a-change-of-supply-read-settles-beside-the-true-rows",
-    "lane": "D_billing_metering",
-    "side": "supplier",
-    "what": "Build leg (b) of docs/staging/SEAT_FINDING_A_LEAVER_NEVER_READ_BILLS_A_QUARTER_OF_ITS_TRUE_USE_AND_REFUSED_THE_PUBLISH_2026-10-19.md on the K6 replacement design in docs/market_research/unbilled_energy_and_revenue_assurance.md (the cos_read_settlement section, ~L430). Settlement rows stay true; phase 4c of simulation/run_phase2b.py writes a per-leg cos_read_settlement entry once the bills exist, and every reader of settled margin adds it. File the page's prediction (under GBP 1,000 of settled margin over the decade, no defect-4 account-year changes sign) under docs/staging/records/ before any run, then grade it on one full-window run at the landing commit. Find every margin reader first and name them in the commit, so this is one entry with one adder and not a sixth implementation.",
-    "why": "Unbilled energy and closing on an estimate are first in the director's supplier order, and today a leaver closed on an estimate books settled margin the company never billed. Legs (c) and (d) are closed, so this is the last open leg of the finding. DONE when the entry and its readers are on origin, the prediction is graded beside it, and the finding is re-filed as NORMAL or closed.",
-    "written_at": 1792484711.145
+    "id": "relaunch-the-budget-second-seed-driver-now",
+    "lane": "W2_customer_generator",
+    "side": "world",
+    "unblocks": "the crisis bad-debt validator (BLOCKING: SEAT_FINDING_THE_CRISIS_BAD_DEBT_CONTROL_HAS_SKIPPED_SINCE_THE_RUN_WENT_GZIP_AND_THE_PUBLISHED_RUN_SHOWS_NO_STEP_UP_2026-10-14.md), which needs the budget switches decided",
+    "what": "The budget's second dice seed never started: no budget-seed2 row in docs/observability/.launch_records.json, /var/tmp/budgetpay/seed2_driver.log empty since 09:27, no seed2_*.json, no driver process. First read why. Run bash -n /var/tmp/budgetpay/seed2_driver.sh, check /var/tmp/budget-seed2 exists as an origin worktree, and look in the journal for a refused admission around 09:27. Fix the cause, then start the driver with setsid as its continuation describes (setsid returns at once; follow the launch_long_job unit, not setsid's exit). Admission will serialise it behind the running grade (pid 2177718). Record in the prereg (docs/staging/records/SEAT_PREREG_THE_SHARED_SHORTFALL_ON_A_SECOND_DICE_SEED_2026-10-20.md) that the arms did not run before the bands were read, so the prediction is still blind. Do not grade; the continuation the-budget-shared-shortfall-second-seed-grade does that.",
+    "why": "The continuation waits until 14:00 and then reruns the driver, which costs about three hours of a serial three-arm, roughly 5h chain for nothing. Starting it now, with the cause of the silent non-start named, is the only world work that blocks a supplier result. DONE when budget-seed2-off is live or finished in the launch register and the non-start's cause is written in the prereg.",
+    "written_at": 1792495541.722
    }
   ],
   "not_now": [
    {
-    "what": "Keeping one-contribution-margin-for-every-renewal-decision and the-budget-shared-shortfall-second-seed in focus.",
-    "why": "Both are live continuations under the same ids: the helper is in surgical_land (pid 976535) with its base off arm running, and budget-seed2-off launched at 08:19Z. Restating a live continuation as focus is the error the seat made last stretch, so they leave focus and their holders finish them. The budget item is still the only world work that blocks a supplier result (the crisis bad-debt validator)."
+    "what": "Keeping c34-p2-reread-on-the-terms-contribution and a-change-of-supply-read-settles-beside-the-true-rows in focus.",
+    "why": "Both are held now. The C34 re-read is the on arm of continuation grade-the-contribution-margin-on-the-off-book-and-the-c34-arm, whose off book is running (pid 2177718); leg (b) is in surgical_land (pid 2259344). Restating held work as focus would draw a second writer onto the same paths."
    },
    {
-    "what": "Promoting the save-offer carry control (continuation the-save-offer-carry-reached-by-a-control) ahead of C35.",
-    "why": "It has been refused 12 times because /var/tmp/se-c35 holds simulation/run_phase2b.py. The refusal is correct serialisation, not a wrong hold: both builds edit the same file near the renewal roll. C35 is further along (prereg on origin, arms running), so it goes first and hands the file over when it lands."
+    "what": "Updating the director's c34-now-ranks-next-best-action-on row with the contribution-margin result.",
+    "why": "The row stays verbatim until the P2' grade is on origin. Quoting a margin read before its arm finishes would mislead him the way the voided 11% would have. The grade's continuation carries the evidence; the next orientation can add it as the row's evidence."
    },
    {
-    "what": "Diagnosing the publisher refusal (26.9h, cited red dead at HEAD).",
-    "why": "Read this orientation: the refused publish was the 19 Oct run on 8b6fea024, refused by the C7 defect-4 red. Leg (d) fixed that, which is why the red is dead at HEAD. The hold reopens 2026-10-26T04:00, and the 26 Oct publish is the test. Nothing is unattributed, so a diagnosis would find what the leaver finding already says."
+    "what": "D48 billing accuracy's failed expert hour (the title claims the accrual, the twin claims settled kWh).",
+    "why": "Leg (b)'s cos_read_settlement entry, landing now, is the billed-against-settled quantity the twin names. Re-walking D48 before it lands would grade a tree about to change. It is next after leg (b) is on origin."
    },
    {
-    "what": "Asking the director to rule on the C34 sharing price now, with this morning's margin fix as new evidence.",
-    "why": "His row stays verbatim. The evidence that would change the recommendation is focus item 1's re-read, and quoting a margin that has not yet been read on the book would mislead him the same way the 11% would have."
+    "what": "B11 L3 and EP17's eighteen-member comparison.",
+    "why": "Parked on the director's seed listing (ep17-s-flat-against-per-customer-comparison). No worker work is left before it, and a concern never goes in focus."
    },
    {
-    "what": "B8, the held-back price-sensitivity atom, and the fabric gas-home season build (W2_30).",
-    "why": "B8's price-match inputs feed the retention guard whose value at stake is changing in the landing now, so a B8 build would be graded on a moving base. W2_30 blocks no supplier result and would move the book under items 1-3 while they are being graded."
+    "what": "Reaping the four b12 worktrees, se-budgetpay-land and se-ret-margin/wt.",
+    "why": "se-budgetpay-land's work is on origin (718a631a1) and the b12 salvages are from 15 Oct, superseded by badd57e8e and e3b5ed01a. se-ret-margin/wt is the running grade's checkout. None of them moves a result. Disposable is recorded here; C35's three are cleaned by focus item 1."
    },
    {
-    "what": "Reaping /var/tmp/se-budgetpay-land and the four b12 worktrees.",
-    "why": "se-budgetpay-land's work is on origin (718a631a1, a1235d427) and is disposable; the b12 four hold their owner's locks. Neither moves a result."
+    "what": "The fabric gas-home season build (W2_30) and its electric sibling.",
+    "why": "It blocks no supplier result, and it would move the book under the C35 and contribution grades while they run."
    }
   ],
   "for_the_director": [
@@ -417,9 +418,9 @@
   "problems": [
    {
     "key": "triage:a-coupled-triad-refusal-reaches-only-the-supervisor-log",
-    "what": "THE MACHINE'S, CARRIED. The coupled-triad gate now excludes twinless L3 targets, and its refusal reaches only the supervisor journal. 20:22: Unchanged. 23:21: Unchanged. 02:21: Unchanged. 05:22: Unchanged. 08:22: Unchanged. 23:20: Unchanged. 11:21: Unchanged. 23:21: Unchanged. 05:22: Unchanged. 08:23: Unchanged. 11:22: Unchanged. 14:22: Unchanged. 17:22: Unchanged. 20:22: Unchanged. 23:20: Unchanged. 02:20: Unchanged. 05:20: Unchanged. 08:20: Unchanged.",
-    "last_at": "2026-10-20T08:20:18.714936+00:00",
-    "first_at": "2026-10-15T14:23:37.483870+00:00",
+    "what": "THE MACHINE'S, CARRIED. The coupled-triad gate now excludes twinless L3 targets, and its refusal reaches only the supervisor journal. 20:22: Unchanged. 23:21: Unchanged. 02:21: Unchanged. 05:22: Unchanged. 08:22: Unchanged. 23:20: Unchanged. 11:21: Unchanged. 23:21: Unchanged. 05:22: Unchanged. 08:23: Unchanged. 11:22: Unchanged. 14:22: Unchanged. 17:22: Unchanged. 20:22: Unchanged. 23:20: Unchanged. 02:20: Unchanged. 05:20: Unchanged. 08:20: Unchanged. 11:20: Unchanged.",
+    "last_at": "2026-10-20T11:20:33.441434+00:00",
+    "first_at": "2026-10-15T17:25:00.128009+00:00",
     "times_listed": 24,
     "corrected": false,
     "fate": "fix",
@@ -430,9 +431,9 @@
    },
    {
     "key": "triage:a-gas-heated-homes-electricity-has-no-season",
-    "what": "THE WORLD'S, CARRIED. A gas-heated fabric home's electricity has no season against SERL. 20:22: Unchanged. It waits for the post-publish world builds. 23:21: Focus item 4 measures the fabric homes' summer swing, which bears on this directly. 02:21: Measured (e6cdc9af9): fabric gas-heated homes read too flat (DJ/JJA 1.16 against 1.33-1.35), which confirms the row. The build is filed for after the publish. 05:22: Unchanged. The build stays filed for after the publish. 08:22: Unchanged. A sibling W2_30 defect (electric fabric homes priced at the gas rate) is filed for the same post-publish build. 23:20: Unchanged. It is still filed for after the publish. 11:21: Unchanged; still filed for after the publish. 23:21: Unchanged; filed for after the publish, behind item 4. 05:22: Unchanged; filed behind item 2, the payment draw, as the next world build. 08:23: Unchanged; filed behind the payment draw and the campaign split-homes change, both in flight. 11:22: Unchanged. It is filed behind the HH-EAC registration, which is landing now; the under-water exit and the split campaign homes are also in flight. 14:22: Unchanged. It now also waits for the shared checkout to reach origin (focus item 1), so the next world run is attributable. 17:22: Unchanged. It blocks no supplier result. The budget floor (focus item 3) goes first because it blocks the crisis bad-debt validator. 20:22: Unchanged. It blocks no supplier result. The budget floor (focus item 3) is still the next world build, and it was not drawn this stretch because the two supplier items ahead of it were. 23:20: Unchanged. It blocks no supplier result, and it is filed behind the budget ordering (focus item 3). 02:20: Unchanged. It blocks no supplier result, and it is filed behind the budget grade (focus item 3). 05:20: Unchanged. It blocks no supplier result, and it is filed behind the budget's second seed (focus item 3). 08:20: Unchanged. It blocks no supplier result, and it is filed behind the budget's second seed, which launched its off arm at 08:19Z.",
-    "last_at": "2026-10-20T08:20:18.714936+00:00",
-    "first_at": "2026-10-15T14:23:37.483870+00:00",
+    "what": "THE WORLD'S, CARRIED. A gas-heated fabric home's electricity has no season against SERL. 20:22: Unchanged. It waits for the post-publish world builds. 23:21: Focus item 4 measures the fabric homes' summer swing, which bears on this directly. 02:21: Measured (e6cdc9af9): fabric gas-heated homes read too flat (DJ/JJA 1.16 against 1.33-1.35), which confirms the row. The build is filed for after the publish. 05:22: Unchanged. The build stays filed for after the publish. 08:22: Unchanged. A sibling W2_30 defect (electric fabric homes priced at the gas rate) is filed for the same post-publish build. 23:20: Unchanged. It is still filed for after the publish. 11:21: Unchanged; still filed for after the publish. 23:21: Unchanged; filed for after the publish, behind item 4. 05:22: Unchanged; filed behind item 2, the payment draw, as the next world build. 08:23: Unchanged; filed behind the payment draw and the campaign split-homes change, both in flight. 11:22: Unchanged. It is filed behind the HH-EAC registration, which is landing now; the under-water exit and the split campaign homes are also in flight. 14:22: Unchanged. It now also waits for the shared checkout to reach origin (focus item 1), so the next world run is attributable. 17:22: Unchanged. It blocks no supplier result. The budget floor (focus item 3) goes first because it blocks the crisis bad-debt validator. 20:22: Unchanged. It blocks no supplier result. The budget floor (focus item 3) is still the next world build, and it was not drawn this stretch because the two supplier items ahead of it were. 23:20: Unchanged. It blocks no supplier result, and it is filed behind the budget ordering (focus item 3). 02:20: Unchanged. It blocks no supplier result, and it is filed behind the budget grade (focus item 3). 05:20: Unchanged. It blocks no supplier result, and it is filed behind the budget's second seed (focus item 3). 08:20: Unchanged. It blocks no supplier result, and it is filed behind the budget's second seed, which launched its off arm at 08:19Z. 11:20: Unchanged. It blocks no supplier result, and it is filed behind the budget second seed, which turns out never to have started (focus item 3).",
+    "last_at": "2026-10-20T11:20:33.441434+00:00",
+    "first_at": "2026-10-15T17:25:00.128009+00:00",
     "times_listed": 24,
     "corrected": false,
     "fate": "fix",
@@ -443,9 +444,9 @@
    },
    {
     "key": "triage:a-long-job-outlives-its-declaration-and-holds-the-box",
-    "what": "THE MACHINE'S, CARRIED. longjob-save-eight was declared at 50 minutes and has held its admission for 4h46m. 20:22: Two long jobs ran this stretch (nonpay2022-capture, -capture2) and both finished successfully, so there was no new instance. The expiry is still not built. 23:21: No launch_long_job job started or ended this stretch. Still not built. 02:21: retention-rise-probe finished successfully, and closing-estimate-money-run is 18 minutes in. No overrun, and still not built. 05:22: closing-estimate-money-run ran 115 minutes against a declared 115 and finished successfully. No overrun, and still not built. 08:22: No launch_long_job job started or ended. Still not built. 23:20: No launch_long_job job started or ended. Still not built. 11:21: No launch_long_job job started or ended. Still not built. 23:21: No launch_long_job job started or ended. Still not built. 05:22: No launch_long_job job started or ended. Still not built. 08:23: No launch_long_job job started or ended. The two capture_arm2 jobs were launched by hand, outside the register. Still not built. 11:22: Three budgetpay arms ran through the register and finished successfully, with no overrun. tools.decision_probe has been running 1h03m. Still not built. 14:22: c35-probe-8b6fea024 finished successfully. tools.run_annual_report has been running 54 minutes, with no overrun. Still not built. 17:22: founder-households-memory-probe finished successfully. longjob-gasleg-probe-2fe180d52 is 71 minutes into a declared 220, with no overrun. Still not built. 20:22: gasleg-probe-2fe180d52 finished successfully, inside its declared 220 minutes. tools.run_annual_report (pid 67093, on 59e1658d6) is 14 minutes in, with no overrun. Still not built. 23:20: run_annual_report on 59e1658d6 finished, and leg (d) was graded on it. c34-renewal-on-arm-8b6fea024-r3 died after 18 seconds, which is not an overrun. No job is running past its declaration. Still not built. 02:20: Four jobs finished successfully (budget-arm5, c34 r4, save1c, c34). save-offer-p1-on is 22 minutes in, with no overrun. Still not built. 05:20: save-offer-p1-off and -p1-on finished successfully. tools.run_annual_report (pid 3677477, on 27cb8d183) is 52 minutes in, with no overrun. Still not built. 08:20: one-contrib-off-base-a57ea3da0 is 62 minutes in, and budget-seed2-off was just launched. The two C35 arm.py processes run outside the register. No overrun, and still not built.",
-    "last_at": "2026-10-20T08:20:18.714936+00:00",
-    "first_at": "2026-10-15T14:23:37.483870+00:00",
+    "what": "THE MACHINE'S, CARRIED. longjob-save-eight was declared at 50 minutes and has held its admission for 4h46m. 20:22: Two long jobs ran this stretch (nonpay2022-capture, -capture2) and both finished successfully, so there was no new instance. The expiry is still not built. 23:21: No launch_long_job job started or ended this stretch. Still not built. 02:21: retention-rise-probe finished successfully, and closing-estimate-money-run is 18 minutes in. No overrun, and still not built. 05:22: closing-estimate-money-run ran 115 minutes against a declared 115 and finished successfully. No overrun, and still not built. 08:22: No launch_long_job job started or ended. Still not built. 23:20: No launch_long_job job started or ended. Still not built. 11:21: No launch_long_job job started or ended. Still not built. 23:21: No launch_long_job job started or ended. Still not built. 05:22: No launch_long_job job started or ended. Still not built. 08:23: No launch_long_job job started or ended. The two capture_arm2 jobs were launched by hand, outside the register. Still not built. 11:22: Three budgetpay arms ran through the register and finished successfully, with no overrun. tools.decision_probe has been running 1h03m. Still not built. 14:22: c35-probe-8b6fea024 finished successfully. tools.run_annual_report has been running 54 minutes, with no overrun. Still not built. 17:22: founder-households-memory-probe finished successfully. longjob-gasleg-probe-2fe180d52 is 71 minutes into a declared 220, with no overrun. Still not built. 20:22: gasleg-probe-2fe180d52 finished successfully, inside its declared 220 minutes. tools.run_annual_report (pid 67093, on 59e1658d6) is 14 minutes in, with no overrun. Still not built. 23:20: run_annual_report on 59e1658d6 finished, and leg (d) was graded on it. c34-renewal-on-arm-8b6fea024-r3 died after 18 seconds, which is not an overrun. No job is running past its declaration. Still not built. 02:20: Four jobs finished successfully (budget-arm5, c34 r4, save1c, c34). save-offer-p1-on is 22 minutes in, with no overrun. Still not built. 05:20: save-offer-p1-off and -p1-on finished successfully. tools.run_annual_report (pid 3677477, on 27cb8d183) is 52 minutes in, with no overrun. Still not built. 08:20: one-contrib-off-base-a57ea3da0 is 62 minutes in, and budget-seed2-off was just launched. The two C35 arm.py processes run outside the register. No overrun, and still not built. 11:20: one-contrib-off-base-a57ea3da0 finished successfully. The c61d8b608 grade (run_both_at.py, pid 2177718) runs outside the register under a hand-written chain, 41 minutes in. No overrun, and still not built.",
+    "last_at": "2026-10-20T11:20:33.441434+00:00",
+    "first_at": "2026-10-15T17:25:00.128009+00:00",
     "times_listed": 24,
     "corrected": false,
     "fate": "fix",
@@ -456,10 +457,10 @@
    },
    {
     "key": "text:a third per-customer decision has no production caller",
-    "what": "THE COMPANY'S, THIS STRETCH. A third per-customer decision has no production caller. The verdict in 3d518bdef found that DecisionPolicy.save_offer_decides_per_household is unwired: company.crm.save_offer.save_rates_for_decision has no caller on origin, so switching it on changes no byte of a run. That puts it alongside C34 and C35 (60c4814af). Every per-customer save, advice and retention decision is built, controlled and graded only in harness tools. LATENT. Focus item 2 gives C34 its caller first, and the save offer's two builds follow in the order the verdict names. 20:22: Half moved. C34 now has an engine caller at the renewal roll, off by default (18503313a). The save offer and C35 still have none. Focus item 2 builds the save offer's step 1b, the next build in the verdict's order. 23:20: Still open. The save offer's prereg and K8 page landed (b244ae11e), and its caller is in surgical_land now (pid 1258042). Focus item 2 binds and grades it. C35 still has no caller. 02:20: Two of three moved. The save offer's caller is on origin (46387b883), and O1 and S1 were re-graded on its base (e4271755f). C35 still has no caller, and focus item 2 builds it. 05:20: C35 still has no caller and was not drawn. The two callers that do exist were found to read a margin that is not a margin (next row), so focus item 2 builds C35 only on item 1's helper. 08:20: C35 still has no caller on origin. Its prereg landed (49c24b74f), and its off arms are running in /var/tmp/se-c35-out. Focus item 2.",
-    "last_at": "2026-10-20T08:20:18.714936+00:00",
+    "what": "THE COMPANY'S, THIS STRETCH. A third per-customer decision has no production caller. The verdict in 3d518bdef found that DecisionPolicy.save_offer_decides_per_household is unwired: company.crm.save_offer.save_rates_for_decision has no caller on origin, so switching it on changes no byte of a run. That puts it alongside C34 and C35 (60c4814af). Every per-customer save, advice and retention decision is built, controlled and graded only in harness tools. LATENT. Focus item 2 gives C34 its caller first, and the save offer's two builds follow in the order the verdict names. 20:22: Half moved. C34 now has an engine caller at the renewal roll, off by default (18503313a). The save offer and C35 still have none. Focus item 2 builds the save offer's step 1b, the next build in the verdict's order. 23:20: Still open. The save offer's prereg and K8 page landed (b244ae11e), and its caller is in surgical_land now (pid 1258042). Focus item 2 binds and grades it. C35 still has no caller. 02:20: Two of three moved. The save offer's caller is on origin (46387b883), and O1 and S1 were re-graded on its base (e4271755f). C35 still has no caller, and focus item 2 builds it. 05:20: C35 still has no caller and was not drawn. The two callers that do exist were found to read a margin that is not a margin (next row), so focus item 2 builds C35 only on item 1's helper. 08:20: C35 still has no caller on origin. Its prereg landed (49c24b74f), and its off arms are running in /var/tmp/se-c35-out. Focus item 2. 11:20: C35 still has no caller on origin. Its build is in the dead worktree /var/tmp/se-c35, mixed with a helper copy that has since landed. Focus item 1.",
+    "last_at": "2026-10-20T11:20:33.441434+00:00",
     "first_at": "2026-10-19T17:22:52.196013+00:00",
-    "times_listed": 6,
+    "times_listed": 7,
     "corrected": false,
     "fate": null,
     "status": null,
@@ -469,11 +470,11 @@
    },
    {
     "key": "triage:retention-money-goes-to-debtors-priced-as-payers",
-    "what": "THE COMPANY'S, THIS STRETCH. Every renewal decision reads the all-in unit rate less the wholesale forward as its margin. That covers C34's roll and riding leg, the live retention guard's expected_margin, and the missed-retention log (simulation/run_phase2b.py ~L3330, 3521, 3542, 4064). The quantity still carries network, policy and operating costs, while term_cost_floor, already computed at the same roll, does not. Found grading C34 (86f1ef8f4): 0 of 495 rows at or below GBP 30 a month were advised. BLOCKING. Focus item 1. 08:20: Half corrected. C34's roll and riding leg read the term's contribution on origin (a57ea3da0). The retention guard and the missed log are in surgical_land now (pid 976535), and their base off arm is running (longjob-one-contrib-off-base-a57ea3da0). The C34 P2 re-read is focus item 1.",
-    "last_at": "2026-10-20T08:20:18.714936+00:00",
+    "what": "THE COMPANY'S, THIS STRETCH. Every renewal decision reads the all-in unit rate less the wholesale forward as its margin. That covers C34's roll and riding leg, the live retention guard's expected_margin, and the missed-retention log (simulation/run_phase2b.py ~L3330, 3521, 3542, 4064). The quantity still carries network, policy and operating costs, while term_cost_floor, already computed at the same roll, does not. Found grading C34 (86f1ef8f4): 0 of 495 rows at or below GBP 30 a month were advised. BLOCKING. Focus item 1. 08:20: Half corrected. C34's roll and riding leg read the term's contribution on origin (a57ea3da0). The retention guard and the missed log are in surgical_land now (pid 976535), and their base off arm is running (longjob-one-contrib-off-base-a57ea3da0). The C34 P2 re-read is focus item 1. 11:20: Corrected. The retention guard's expected_margin and the missed log's expected_term_margin_gbp call term_contribution_per_year on origin (c61d8b608), beside C34's a57ea3da0. All four readers use one function, with a control that the run computes no spread over company_fwd. Its effect on the book is being graded by continuation.",
+    "last_at": "2026-10-20T11:20:33.441434+00:00",
     "first_at": "2026-10-20T05:20:29.703610+00:00",
-    "times_listed": 2,
-    "corrected": false,
+    "times_listed": 3,
+    "corrected": true,
     "fate": "fix",
     "status": "open",
     "retired": false,
@@ -482,9 +483,35 @@
    },
    {
     "key": "text:the orientation brief said no launch_long_job job launched or ended in this stretch, but the launch register records one-contrib-off-base-a57ea3da0 launched at 2026-10-20t07:17:59z, inside the stretch, and it is still running",
-    "what": "THE MACHINE'S, THIS STRETCH. The orientation brief said no launch_long_job job launched or ended in this stretch, but the launch register records one-contrib-off-base-a57ea3da0 launched at 2026-10-20T07:17:59Z, inside the stretch, and it is still running. A seat that trusted the line would have relaunched a running arm.",
-    "last_at": "2026-10-20T08:20:18.714936+00:00",
+    "what": "THE MACHINE'S, THIS STRETCH. The orientation brief said no launch_long_job job launched or ended in this stretch, but the launch register records one-contrib-off-base-a57ea3da0 launched at 2026-10-20T07:17:59Z, inside the stretch, and it is still running. A seat that trusted the line would have relaunched a running arm. 11:20: This brief reports that job correctly as finished, but no commit touched the brief's launch reading, so the miss is unexplained, not fixed.",
+    "last_at": "2026-10-20T11:20:33.441434+00:00",
     "first_at": "2026-10-20T08:20:18.714936+00:00",
+    "times_listed": 2,
+    "corrected": false,
+    "fate": null,
+    "status": null,
+    "retired": false,
+    "owner": null,
+    "reason": null
+   },
+   {
+    "key": "text:the 08:20 record said the budget's second seed 'launched its off arm at 08:19z', and the carried fabric row repeated it",
+    "what": "THE SEAT'S, THIS STRETCH. The 08:20 record said the budget's second seed 'launched its off arm at 08:19Z', and the carried fabric row repeated it. The launch register has no budget-seed2 row, seed2_driver.log is empty since 09:27, and no seed2 artefact or driver exists. The seat wrote a launch it never read back, and the grade continuation was set to wait on a run that was never going to finish. Focus item 3.",
+    "last_at": "2026-10-20T11:20:33.441434+00:00",
+    "first_at": "2026-10-20T11:20:33.441434+00:00",
+    "times_listed": 1,
+    "corrected": false,
+    "fate": null,
+    "status": null,
+    "retired": false,
+    "owner": null,
+    "reason": null
+   },
+   {
+    "key": "text:the draw refused two focus items (c35 24 times, the c34 re-read 32 times) because /var/tmp/se-ret-margin/wt held simulation/run_phase2b.py",
+    "what": "THE MACHINE'S, THIS STRETCH. The draw refused two focus items (C35 24 times, the C34 re-read 32 times) because /var/tmp/se-ret-margin/wt held simulation/run_phase2b.py. Its owner pid 1697312 is dead, and after c61d8b608 landed it differs from origin only in generated files. The refusal's diff digest was taken once and never re-asked, and the real C35 build sat unseen in a different dead worktree.",
+    "last_at": "2026-10-20T11:20:33.441434+00:00",
+    "first_at": "2026-10-20T11:20:33.441434+00:00",
     "times_listed": 1,
     "corrected": false,
     "fate": null,
@@ -536,8 +563,8 @@
     "key": "triage:a-killed-seat-leaves-no-trace-in-its-own-log",
     "what": "THE MACHINE'S, CARRIED. The 08:20 orientation's record never reached origin, and a seat killed by the host leaves no trace of itself in delivery-seat-log.md. 20:22: No seat was killed this stretch, and the trace is not built. 23:21: Still no instance, and still not built. 02:21: Still no instance, and still not built. 05:22: Still no instance, and still not built. 08:22: Still no instance, and still not built. 23:20: A new instance. The 08:22 orientation's seat commit 19855ded (08:41Z) is on no remote ref. Its DIRECTION.yaml reached origin through 4cf0f8628, but its SEAT_STRETCH_LOG entry did not. Still not built. 11:21: No new instance; the 23:20 seat commit a40f0b165 is on origin. Still not built. 23:21: No new instance; the 11:21 seat commit d21526456 is on origin. Still not built. 05:22: No new instance; the 23:21 seat commit 8b6fea024 is on origin. Still not built. 08:23: No new instance; the 05:22 seat commit ee6025ad4 is on origin. Still not built. 11:22: No new instance; the 08:23 seat commit 07d01bfc7 is on origin (ac605c878). Still not built. 14:22: No new instance; the 11:22 seat commit 3eef4e192 is on origin. Still not built. 17:22: No new instance; the 14:22 seat commit d5b5d1523 is on origin. Still not built. 20:22: No new instance; the 17:22 seat commit 367b2e29f is on origin. Still not built.",
     "last_at": "2026-10-19T20:22:06.450334+00:00",
-    "first_at": "2026-10-15T14:23:37.483870+00:00",
-    "times_listed": 20,
+    "first_at": "2026-10-15T17:25:00.128009+00:00",
+    "times_listed": 19,
     "corrected": false,
     "fate": "accept",
     "status": null,
@@ -835,8 +862,8 @@
     "key": "triage:a-tombstone-retires-a-row-without-checking-its-done",
     "what": "THE MACHINE'S, CARRIED. A focus-row tombstone still retires a row without asking its DONE. 17:22: One retirement, the C7 item, at 15:00Z, two minutes after its DONE landed (c3f015034). That is consistent a fourth time, and still a case that cannot show the defect. Focus four.",
     "last_at": "2026-10-16T17:22:58.283644+00:00",
-    "first_at": "2026-10-15T14:23:37.483870+00:00",
-    "times_listed": 5,
+    "first_at": "2026-10-15T17:25:00.128009+00:00",
+    "times_listed": 4,
     "corrected": false,
     "fate": "fix",
     "status": "already_fixed",
@@ -913,8 +940,8 @@
     "key": "triage:the-draw-ledger-cannot-tell-mid-landing-from-not-done",
     "what": "THE MACHINE'S, CARRIED. The draw ledger reads the same for work never started and for work mid-landing, because it asks only origin by path. 14:22: Unchanged, and no instance this stretch. Focus four.",
     "last_at": "2026-10-16T14:22:31.865021+00:00",
-    "first_at": "2026-10-15T14:23:37.483870+00:00",
-    "times_listed": 4,
+    "first_at": "2026-10-15T17:25:00.128009+00:00",
+    "times_listed": 3,
     "corrected": false,
     "fate": "fix",
     "status": "already_fixed",
@@ -926,8 +953,8 @@
     "key": "triage:the-draw-ledger-credits-an-item-by-path-overlap",
     "what": "THE MACHINE'S, CARRIED. The draw ledger credits or denies an item by path overlap, not by its work. 14:22: No Lane 0 item went unlanded in 24h, so the 8a1a7a51a instance has aged out. The class is focus four.",
     "last_at": "2026-10-16T14:22:31.865021+00:00",
-    "first_at": "2026-10-15T14:23:37.483870+00:00",
-    "times_listed": 4,
+    "first_at": "2026-10-15T17:25:00.128009+00:00",
+    "times_listed": 3,
     "corrected": false,
     "fate": "fix",
     "status": "already_fixed",
@@ -991,8 +1018,8 @@
     "key": "triage:a-hold-condition-is-not-reasked-when-its-premise-moves",
     "what": "THE MACHINE'S, CARRIED. A held change's hold condition is not re-asked when its premise moves. Owner: SEAT_FINDING_A_HOLD_OR_A_TOMBSTONE_STATES_ITS_CONDITION_IN_PROSE_AND_NOTHING_RE_ASKS_IT. 14:23: CORRECTED, 56d7cf77b runs and the brief carries stale_holds. 17:25: Still corrected. stale_holds again names E5, PB6, C30 and C31.",
     "last_at": "2026-10-15T17:25:00.128009+00:00",
-    "first_at": "2026-10-15T14:23:37.483870+00:00",
-    "times_listed": 2,
+    "first_at": "2026-10-15T17:25:00.128009+00:00",
+    "times_listed": 1,
     "corrected": true,
     "fate": "fix",
     "status": "already_fixed",
@@ -1004,8 +1031,8 @@
     "key": "triage:one-item-lands-twice-on-origin-and-the-shared-head",
     "what": "THE MACHINE'S, CARRIED. One item can land twice, on origin through surgical_land and as a local commit on the shared HEAD. Owner: SEAT_FINDING_ONE_ITEM_LANDS_TWICE_AND_THE_SHARED_HEAD_FORKS_FROM_ORIGIN. 14:23: CORRECTED (ed7e89d12). 17:25: Still corrected. HEAD and origin read 0 0. de736bb97 counted zero plain commits on a behind main since 10-13, and dropped the second door's hook as superseded.",
     "last_at": "2026-10-15T17:25:00.128009+00:00",
-    "first_at": "2026-10-15T14:23:37.483870+00:00",
-    "times_listed": 2,
+    "first_at": "2026-10-15T17:25:00.128009+00:00",
+    "times_listed": 1,
     "corrected": true,
     "fate": "fix",
     "status": "open",
@@ -1017,8 +1044,8 @@
     "key": "triage:a-parked-atom-is-still-drawn",
     "what": "THE MACHINE'S, CARRIED. A parked atom is still counted as drawn. H45 is PARKED and the counter still moves. Readings before 08:20 are in docs/direction/decisions.jsonl and this file's git history. 14:23: Re-applied as 99d2bd2a1, not on origin. 17:25: CORRECTED. 47e544e24 is on origin: a block_reason starting PARKED excludes the row from every draw. H45 is absent from this brief's atoms_drawn and from its stalled list.",
     "last_at": "2026-10-15T17:25:00.128009+00:00",
-    "first_at": "2026-10-15T14:23:37.483870+00:00",
-    "times_listed": 2,
+    "first_at": "2026-10-15T17:25:00.128009+00:00",
+    "times_listed": 1,
     "corrected": true,
     "fate": "fix",
     "status": "open",
@@ -1030,8 +1057,8 @@
     "key": "text:a held estimate was netted at its draft amount when the next actual read caught up, so seven customer-years on the published book were credited for estimates never sent (pros-2017-0336: -gbp 271.29 against gbp 789.74 truly owed)",
     "what": "THE MACHINE'S, NEW. A held estimate was netted at its draft amount when the next actual read caught up, so seven customer-years on the published book were credited for estimates never sent (PROS-2017-0336: -GBP 271.29 against GBP 789.74 truly owed). Readings before 08:20 are in docs/direction/decisions.jsonl and this file's git history. 14:23: Graded on three shared accounts (9b4178f6a). PROS-2017-0336 waits on the 81c12 arms. 17:25: X0 finished at 15:11Z. The grade is the continuation at 18:30.",
     "last_at": "2026-10-15T17:25:00.128009+00:00",
-    "first_at": "2026-10-15T14:23:37.483870+00:00",
-    "times_listed": 2,
+    "first_at": "2026-10-15T17:25:00.128009+00:00",
+    "times_listed": 1,
     "corrected": false,
     "fate": null,
     "status": null,
@@ -1056,8 +1083,8 @@
     "key": "text:two statement controls (test_the_statement_shows_how_each_bill_reached_its_number.py: the event walk's close, and vat on catch-up bills) are red at origin on the published 2248e3baf ledger, and no census holds them",
     "what": "THE MACHINE'S, NEW. Two statement controls (test_the_statement_shows_how_each_bill_reached_its_number.py: the event walk's close, and VAT on catch-up bills) are red at origin on the published 2248e3baf ledger, and no census holds them. 14:23: Unchanged. 17:25: Unchanged and not drawn. A third real-book control is red at the same publish (ledger against P&L write-offs, 48 accounts, 66b23fe38), and its fix is landing. Focus two.",
     "last_at": "2026-10-15T17:25:00.128009+00:00",
-    "first_at": "2026-10-15T14:23:37.483870+00:00",
-    "times_listed": 2,
+    "first_at": "2026-10-15T17:25:00.128009+00:00",
+    "times_listed": 1,
     "corrected": false,
     "fate": null,
     "status": null,
@@ -1069,8 +1096,8 @@
     "key": "text:a run's producing_commit names head at process start, not the bytes it imported",
     "what": "THE MACHINE'S, NEW. A run's producing_commit names HEAD at process start, not the bytes it imported. Run A (run_output_2248e3baf_20261013T134447Z.json) was drawn by uncommitted 81c129fe8 copies, which cost a 108-minute placebo (554bacacf). 17:25: CORRECTED. The publish already refused (c701d8605). 66b23fe38 adds the one-variable arm refusal, with a control mutation-proven four ways, and a census of 21 publishes: only the live one is dirty. The live site's figures stay from it until the 2026-10-19 publish.",
     "last_at": "2026-10-15T17:25:00.128009+00:00",
-    "first_at": "2026-10-15T14:23:37.483870+00:00",
-    "times_listed": 2,
+    "first_at": "2026-10-15T17:25:00.128009+00:00",
+    "times_listed": 1,
     "corrected": true,
     "fate": null,
     "status": null,
@@ -1082,8 +1109,8 @@
     "key": "text:the director's staged steer (director_steer_stretch_log_and_deck_2026-10-15.md, 09:50 bst) sat undrawn in the staging root until 14:00 while worker turns spent the day on w1_29 texture work",
     "what": "THE MACHINE'S, NEW. The director's staged steer (DIRECTOR_STEER_STRETCH_LOG_AND_DECK_2026-10-15.md, 09:50 BST) sat undrawn in the staging root until 14:00 while worker turns spent the day on W1_29 texture work. 17:25: CORRECTED. The advisor channel landed (4a581cd72, 7bc3e3d3a). A file in docs/staging/advisor/ under his pinned signature is drawn first by every lane, and that steer moved to done/ actioned (b1c20f2d7).",
     "last_at": "2026-10-15T17:25:00.128009+00:00",
-    "first_at": "2026-10-15T14:23:37.483870+00:00",
-    "times_listed": 2,
+    "first_at": "2026-10-15T17:25:00.128009+00:00",
+    "times_listed": 1,
     "corrected": true,
     "fate": null,
     "status": null,
@@ -1103,33 +1130,60 @@
     "retired": false,
     "owner": null,
     "reason": null
-   },
-   {
-    "key": "text:the write-off two-arm run (longjob writeoff-two-arm-61109) is recorded as result=success status=0, and it never graded: both arms read 'no crisis-year (2022, 2023) data present', so the pre-registered question was never asked",
-    "what": "THE MACHINE'S, NEW. The write-off two-arm run (longjob writeoff-two-arm-61109) is recorded as Result=success status=0, and it never graded: both arms read 'no crisis-year (2022, 2023) data present', so the pre-registered question was never asked. The launch register cannot tell a run that answered from a run whose grade had nothing to read. Readings before 08:20 are in docs/direction/decisions.jsonl and this file's git history. 11:21: Half answered, and the class recurred. The re-run graded predictions 1 and 2 (136e0eda3). Prediction 3's grader then read an empty management_accounts block and returned a vacuous FAIL, the same shape. r3 is queued. The register still records both as success. 14:23: CORRECTED for this run. r3 graded prediction 3 on a populated block (417800d6e): 0.104% and 0.107%, step-up x0.52. The register class sits under the accepted triage row a-long-job-chain-reads-a-refusal-artefact-as-a-finished-leg.",
-    "last_at": "2026-10-15T14:23:37.483870+00:00",
-    "first_at": "2026-10-15T14:23:37.483870+00:00",
-    "times_listed": 1,
-    "corrected": true,
-    "fate": null,
-    "status": null,
-    "retired": false,
-    "owner": null,
-    "reason": null
    }
   ],
-  "distinct": 54,
+  "distinct": 55,
   "triaged": 12,
   "triaged_by_fate": {
    "fix": 10,
    "fold": 0,
    "accept": 2
   },
-  "untriaged": 42,
-  "distinct_open": 12,
-  "rows": 215,
+  "untriaged": 43,
+  "distinct_open": 14,
+  "rows": 208,
   "triage_register": "read",
   "entries": [
+   {
+    "at": "2026-10-20T11:20:33.441434+00:00",
+    "corrected": false,
+    "problem": "triage:a-coupled-triad-refusal-reaches-only-the-supervisor-log"
+   },
+   {
+    "at": "2026-10-20T11:20:33.441434+00:00",
+    "corrected": false,
+    "problem": "triage:a-gas-heated-homes-electricity-has-no-season"
+   },
+   {
+    "at": "2026-10-20T11:20:33.441434+00:00",
+    "corrected": false,
+    "problem": "triage:a-long-job-outlives-its-declaration-and-holds-the-box"
+   },
+   {
+    "at": "2026-10-20T11:20:33.441434+00:00",
+    "corrected": false,
+    "problem": "text:a third per-customer decision has no production caller"
+   },
+   {
+    "at": "2026-10-20T11:20:33.441434+00:00",
+    "corrected": true,
+    "problem": "triage:retention-money-goes-to-debtors-priced-as-payers"
+   },
+   {
+    "at": "2026-10-20T11:20:33.441434+00:00",
+    "corrected": false,
+    "problem": "text:the orientation brief said no launch_long_job job launched or ended in this stretch, but the launch register records one-contrib-off-base-a57ea3da0 launched at 2026-10-20t07:17:59z, inside the stretch, and it is still running"
+   },
+   {
+    "at": "2026-10-20T11:20:33.441434+00:00",
+    "corrected": false,
+    "problem": "text:the 08:20 record said the budget's second seed 'launched its off arm at 08:19z', and the carried fabric row repeated it"
+   },
+   {
+    "at": "2026-10-20T11:20:33.441434+00:00",
+    "corrected": false,
+    "problem": "text:the draw refused two focus items (c35 24 times, the c34 re-read 32 times) because /var/tmp/se-ret-margin/wt held simulation/run_phase2b.py"
+   },
    {
     "at": "2026-10-20T08:20:18.714936+00:00",
     "corrected": false,
@@ -2129,81 +2183,6 @@
     "at": "2026-10-15T17:25:00.128009+00:00",
     "corrected": false,
     "problem": "text:a worker tick holding b12-the-strike-prices-its-bad-debt-and-the-levy-it-will-be-billed was killed at its timeout at 17:04z with supplier code uncommitted (company/pricing/renewal_rate_chain.py, +64)"
-   },
-   {
-    "at": "2026-10-15T14:23:37.483870+00:00",
-    "corrected": true,
-    "problem": "triage:a-hold-condition-is-not-reasked-when-its-premise-moves"
-   },
-   {
-    "at": "2026-10-15T14:23:37.483870+00:00",
-    "corrected": true,
-    "problem": "triage:one-item-lands-twice-on-origin-and-the-shared-head"
-   },
-   {
-    "at": "2026-10-15T14:23:37.483870+00:00",
-    "corrected": false,
-    "problem": "triage:the-draw-ledger-cannot-tell-mid-landing-from-not-done"
-   },
-   {
-    "at": "2026-10-15T14:23:37.483870+00:00",
-    "corrected": false,
-    "problem": "triage:a-tombstone-retires-a-row-without-checking-its-done"
-   },
-   {
-    "at": "2026-10-15T14:23:37.483870+00:00",
-    "corrected": false,
-    "problem": "triage:a-parked-atom-is-still-drawn"
-   },
-   {
-    "at": "2026-10-15T14:23:37.483870+00:00",
-    "corrected": false,
-    "problem": "triage:a-coupled-triad-refusal-reaches-only-the-supervisor-log"
-   },
-   {
-    "at": "2026-10-15T14:23:37.483870+00:00",
-    "corrected": false,
-    "problem": "triage:a-gas-heated-homes-electricity-has-no-season"
-   },
-   {
-    "at": "2026-10-15T14:23:37.483870+00:00",
-    "corrected": false,
-    "problem": "triage:the-draw-ledger-credits-an-item-by-path-overlap"
-   },
-   {
-    "at": "2026-10-15T14:23:37.483870+00:00",
-    "corrected": false,
-    "problem": "triage:a-long-job-outlives-its-declaration-and-holds-the-box"
-   },
-   {
-    "at": "2026-10-15T14:23:37.483870+00:00",
-    "corrected": false,
-    "problem": "text:a held estimate was netted at its draft amount when the next actual read caught up, so seven customer-years on the published book were credited for estimates never sent (pros-2017-0336: -gbp 271.29 against gbp 789.74 truly owed)"
-   },
-   {
-    "at": "2026-10-15T14:23:37.483870+00:00",
-    "corrected": true,
-    "problem": "text:the write-off two-arm run (longjob writeoff-two-arm-61109) is recorded as result=success status=0, and it never graded: both arms read 'no crisis-year (2022, 2023) data present', so the pre-registered question was never asked"
-   },
-   {
-    "at": "2026-10-15T14:23:37.483870+00:00",
-    "corrected": false,
-    "problem": "triage:a-killed-seat-leaves-no-trace-in-its-own-log"
-   },
-   {
-    "at": "2026-10-15T14:23:37.483870+00:00",
-    "corrected": false,
-    "problem": "text:two statement controls (test_the_statement_shows_how_each_bill_reached_its_number.py: the event walk's close, and vat on catch-up bills) are red at origin on the published 2248e3baf ledger, and no census holds them"
-   },
-   {
-    "at": "2026-10-15T14:23:37.483870+00:00",
-    "corrected": false,
-    "problem": "text:a run's producing_commit names head at process start, not the bytes it imported"
-   },
-   {
-    "at": "2026-10-15T14:23:37.483870+00:00",
-    "corrected": false,
-    "problem": "text:the director's staged steer (director_steer_stretch_log_and_deck_2026-10-15.md, 09:50 bst) sat undrawn in the staging root until 14:00 while worker turns spent the day on w1_29 texture work"
    }
   ],
   "refused_own_records": [
@@ -2212,18 +2191,44 @@
     "problems": []
    }
   ],
-  "outstanding": 171,
-  "corrected": 44,
+  "outstanding": 166,
+  "corrected": 42,
   "correction_not_recorded": 0,
   "empty_means": ""
  },
  "what_next": {
   "focus": [
-   "c34-p2-reread-on-the-terms-contribution",
-   "c35-gets-an-engine-caller-behind-a-switch-that-defaults-off",
-   "a-change-of-supply-read-settles-beside-the-true-rows"
+   "C35_the_supplier_finds_the_share_of_value_it_prices_by_optimising_joint_value_against_the_households_response",
+   "B12_writer_one_reads_its_margin_on_the_unit_rate_so_a_renewal_floor_is_its_true_unit_cost",
+   "relaunch-the-budget-second-seed-driver-now"
   ],
   "steer_checks": [
+   {
+    "by_class": {
+     "lane_0": {
+      "drawn": [
+       "a-change-of-supply-read-settles-beside-the-true-rows"
+      ],
+      "focus": [
+       "c34-p2-reread-on-the-terms-contribution",
+       "c35-gets-an-engine-caller-behind-a-switch-that-defaults-off",
+       "a-change-of-supply-read-settles-beside-the-true-rows"
+      ],
+      "steered": true
+     }
+    },
+    "drawn": [
+     "a-change-of-supply-read-settles-beside-the-true-rows"
+    ],
+    "focus": [
+     "c34-p2-reread-on-the-terms-contribution",
+     "c35-gets-an-engine-caller-behind-a-switch-that-defaults-off",
+     "a-change-of-supply-read-settles-beside-the-true-rows"
+    ],
+    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-10-20T08:20:18.714936+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
+    "steered": true,
+    "window": "this stretch only -- the 3.0h since 2026-10-20T08:20:18.714936+00:00"
+   },
    {
     "by_class": {
      "lane_0": {
@@ -2335,34 +2340,6 @@
     "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-10-19T20:22:06.450334+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
     "steered": true,
     "window": "this stretch only -- the 3.0h since 2026-10-19T20:22:06.450334+00:00"
-   },
-   {
-    "by_class": {
-     "lane_0": {
-      "drawn": [
-       "b11-the-within-segment-term-says-whether-per-customer-clears-flat",
-       "c34-gets-an-engine-caller-at-the-renewal-roll-off-by-default"
-      ],
-      "focus": [
-       "b11-the-within-segment-term-says-whether-per-customer-clears-flat",
-       "c34-gets-an-engine-caller-at-the-renewal-roll-off-by-default",
-       "the-budget-orders-energy-as-a-priority-bill-before-the-full-normative-floor"
-      ],
-      "steered": true
-     }
-    },
-    "drawn": [
-     "b11-the-within-segment-term-says-whether-per-customer-clears-flat",
-     "c34-gets-an-engine-caller-at-the-renewal-roll-off-by-default"
-    ],
-    "focus": [
-     "b11-the-within-segment-term-says-whether-per-customer-clears-flat",
-     "c34-gets-an-engine-caller-at-the-renewal-roll-off-by-default",
-     "the-budget-orders-energy-as-a-priority-bill-before-the-full-normative-floor"
-    ],
-    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-10-19T17:22:52.196013+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
-    "steered": true,
-    "window": "this stretch only -- the 3.0h since 2026-10-19T17:22:52.196013+00:00"
    }
   ],
   "steered_recently": true,
@@ -2489,7 +2466,7 @@
     },
     {
      "date": "2026-10-20",
-     "commit": "5a2468fdf",
+     "commit": "c61d8b608",
      "population": 77,
      "chained": 77,
      "minted": 61,
