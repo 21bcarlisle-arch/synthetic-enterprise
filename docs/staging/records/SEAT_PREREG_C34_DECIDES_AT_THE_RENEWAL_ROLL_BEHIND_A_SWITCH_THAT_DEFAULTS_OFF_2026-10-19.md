@@ -143,3 +143,64 @@ read. If the run is not read, they stay ungraded here, and this file says so.
     `read-the-c34-on-arm-r4-and-grade-p1-p4`, not before 05:00 BST. The old one's 03:30 was local
     time (02:30Z), roughly 35 min before r4 can end, and it named r3. The grading route above is
     unchanged. The predictions are unchanged, and they are still ungraded.
+
+## Grade of P1–P4, 2026-10-20 ~05:35 BST (r4, read after its end; predictions above unchanged)
+
+**The run.** Unit `longjob-c34-renewal-on-arm-8b6fea024-r4` ran to the end ("OUTCOME: SURVIVED —
+full window completed") and wrote `on_arm.json` at 02:14 BST (about 90 min, not the expected 200) (978 household rows, 1,503 per-leg
+rows). It was graded with `grade.py` as stated above. The published file is not in a fresh worktree,
+so it was read from the shared tree's `docs/reports/`. The grader's output is
+`/var/tmp/se-c34-grade-out/grade.out`.
+
+| | Predicted | Read | Verdict |
+|---|---|---|---|
+| P1 households | 182 ± 15 | **326** (314 with electricity, 12 gas only) | **REFUTED** |
+| P1 two-leg | 77 ± 15 | **175** | **REFUTED, upward** (the design refutation, "near 0", does not fire) |
+| P2 advised | 0–15 of ~546 (≤ 3%) | **109 / 978 = 11.1%** | **REFUTED, and above the 10% design line** |
+| P3 floor-refused | ≥ 97% | 869 / 978 = 88.9% | **REFUTED** |
+| P3 unscored | 0 | 0 | held |
+| P4 household ≥ leg | per household advises at least as much | 109 rows vs 56 per leg; 0 leg-advised cases lost per household | **held** |
+
+Advised rows by effect: (£2, 0.3 pt) 83, (£3, 0.3 pt) 23, (£2, 0.1 pt) 3. Household margin median is
+£29.7/month, p90 £59.6, max £448. Hazard median is 0.032, p90 0.096, max 1.0.
+
+**P1's denominator was the wrong instrument, and that is my error in writing it.** The 182 were
+`tools.decision_probe` rows, written only where `decide_renewal` priced a term *and*
+`roll_lifecycle_event` rolled it (178 electricity, 4 founder gas). The caller hooks every domestic
+roll on the departure leg with a prior rate. Those two populations were never the same, and I set
+the band as though they were. The two-leg count is high because the caller's riding-leg join is
+working. It is not near 0.
+
+**The book check: the on-arm book is not the published book.** 18 of the 47 list-valued keys
+differ, all upward and all by about 1–3%. Examples: `account_state_log` 11,920 vs 11,743;
+`demand_provider_by_customer` 539 vs 530; `home_move_outs` 196 vs 193. Acquisitions (11), churned
+billing accounts (233) and churn journeys (383) are equal. **I cannot yet say why.** At least three
+things differ from the 03:30Z weekly run:
+- the switches (O1 showed that on equals off, but only on the short window);
+- untracked data on disk in the scratch worktree compared with the shared tree;
+- the runner entry point (`main()` directly vs `sim_runner`).
+
+Before it is attributed, the one-variable run is an off arm in the same scratch worktree with the
+same script. A ~1.5% larger book cannot move P2 from ≤3% to 11%, so the grades stand on this book.
+
+**What drove P2, read post hoc from the same artefact. This is not a prediction.**
+- Of the 495 rows at a household margin ≤ £30/month (the B11 range §6.1 measured), **0** are advised.
+- Above £30, 109 of 483 are advised. Every advised row is above £30.
+- The advised rows' median hazard is 0.023, inside B11's 0.5–3%/month.
+- So the prereg's stated mechanism for a P2 refutation, "the company's belief would run far hotter
+  than B11's", is **not** what happened. The margin input is.
+- That margin is `(unit_rate − company_fwd) × EAC / 12`.
+  - `unit_rate` is the all-in tariff rate: £252.6/MWh for PROS-2022-0400 on 2023-12-21, against a
+    £273.5 default-tariff rate.
+  - `company_fwd` is `estimate_forward_price`, the company's wholesale forward.
+  - So the "margin" still contains network, policy costs and opex. No household in the log has a
+    negative margin, including through 2021–22.
+- Filed as `SEAT_FINDING_C34S_RENEWAL_MARGIN_IS_THE_ALL_IN_RATE_LESS_THE_WHOLESALE_FORWARD_SO_IT_IS_NOT_A_MARGIN_2026-10-20.md`.
+
+**Also seen:** two households carry a renewal churn belief of 1.0, so h = 1.0 (SYN-2016-270
+2024-06-10, SYN-2016-388 2024-09-01). There are no renewal decisions in 2022. Both are noted and
+not chased here.
+
+**What this means for the switch:** it stays off. The 11% does not show that C34 can be switched on
+safely. It is the decision rule applied to a margin that is not a margin. Whether C34's floor binds
+on the company's own belief cannot be graded until the margin is the supplier's contribution.
