@@ -97,3 +97,45 @@ billing-failure part of K1. That gap is stated in the note's K1 row, not filled 
      That is a billing-operations gap, not something to fix in the measure.
   3. The accrual is not yet on the billing page (`published_view`). The summary carries it.
   4. Billed against settled (K6) stays a GAP: settled volume does not cross the seam.
+
+## Follow-on (open items 1 and 3): held bills leave "billed", the accrual reaches the page
+
+*Delivery seat, 2026-10-20, later the same day.*
+
+**Definition first.** "Billed" means issued: a bill the customer received. The per-account rows
+(K2's billed and estimated kWh, the true-ups, K3's barred energy) and the K1 billed-on-estimate
+grades are therefore read over the issued set, the one `saas.ledger.estimated_billing_outstanding`
+already uses. The held bills are the accrual's alone, so the two halves of unread revenue count
+disjoint bills by construction, not by a note on the page.
+
+**Pre-registration (written before the before/after was printed).**
+1. Gas: every K2 figure is unchanged (no gas bill was held).
+2. Electricity: K2's estimated share of billed kWh moves by less than 0.5 percentage points, and
+   down (40 of the 46 held are estimates, so estimated kWh loses proportionally more than billed).
+3. Electricity's K1 year-end outstanding falls at the year ends where held estimates were open
+   (2017-2025), by roughly the accrual's held-estimate £ at that month end.
+
+**Measured** at real inputs, the 44a21e3e8 run's 38,005 bills (46 held), the same bills before
+(held set empty) and after:
+
+| Fuel | Billed kWh | Estimated kWh | K2 estimated share | Snapshot no-read | K3 barred share |
+|---|---|---|---|---|---|
+| electricity | 6,145,724 -> 6,021,639 | 4,153,261 -> 4,042,716 | 67.58% -> 67.14% | 6/175 -> 6/175 | 0.259% -> 0.260% |
+| gas | 14,710,733 (unchanged) | 9,966,238 (unchanged) | 67.75% (unchanged) | 7/132 | 0.877% (unchanged) |
+
+Electricity K1 outstanding on estimate, before -> after: 2017-12 £45,157 -> £44,225; 2019-12
+£70,172 -> £64,031; 2022-12 £131,919 -> £130,203; 2024-12 £109,102 -> £107,386 (2016-12
+unchanged, nothing held yet). The fall is gross of VAT; the accrual at the same dates is net of
+VAT and includes the held reads, so the two match roughly, not exactly, as they should.
+
+**Graded.** 1 CONFIRMED (gas identical). 2 CONFIRMED (-0.44 pp, down). 3 CONFIRMED (falls at
+every year end from 2017, by about the held estimates' value).
+
+**Published.** `site/data/billing_accuracy.json` regenerated from the run it already published
+(8b6fea024; the 44a21e3e8 run stays held for the weekly window): electricity K2 67.60% -> 67.06%,
+and the accrual table, 2025-06: 5 held estimates and 2 held reads, 19,055 kWh, £3,441 net of VAT.
+`published_view` now rebuilds the summary from the run's bills and the held set the issuance door
+names (`bill_assembly.held_bills`), so an older run output publishes both changes without a re-run.
+
+Items 1 and 3 discharged. Item 2 (a `vat_by_segment` hold is never worked) and item 4 (K6) stay
+open.

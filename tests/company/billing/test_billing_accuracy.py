@@ -501,3 +501,48 @@ def test_the_run_door_carries_the_accrual_and_it_counts_a_bill_the_gate_held():
 def test_a_summary_without_the_held_set_publishes_the_accrual_as_an_absence():
     accrual = billing_accuracy_summary(_bills(actual_after_opening=False))["K1_unbilled_accrual"]
     assert accrual["available"] is False and "held" in accrual["reason"]
+
+
+def test_a_held_bill_is_never_counted_as_billed():
+    """Defect caught: `account_billing_accuracy` or the K1 grades reading a bill the pre-bill gate
+    held, which nobody received, as billed. The held arm must be reachable first: the door names
+    the bill as held and the accrual carries it. Then, against the same bills all issued, billed
+    and estimated kWh fall by exactly its energy and the billed-on-estimate grades lose it, so the
+    two halves of unread revenue never count one bill."""
+    issued = _bills(actual_after_opening=False, closed=False)
+    one_held = [dict(b) for b in issued]
+    victim = next(b for b in one_held if b["billing_basis"] == "estimated")
+    victim["total_amount_gbp"] += 1000.0
+    clean, held = billing_accuracy_door(issued), billing_accuracy_door(one_held)
+    accrued = held["K1_unbilled_accrual"]["month_ends"][-1]["by_fuel"]["electricity"]
+    assert accrued["held_estimates"] == 1, accrued
+
+    c, h = clean["by_fuel"]["electricity"], held["by_fuel"]["electricity"]
+    kwh = victim["total_consumption_kwh"]
+    assert h["billed_kwh"] == pytest.approx(c["billed_kwh"] - kwh)
+    assert h["estimated_kwh"] == pytest.approx(c["estimated_kwh"] - kwh)
+    open_bills = [g["outstanding_bills"] for g in clean["K1_year_end_grades"]["electricity"]
+                  if g["as_of"] >= victim["period_end"][:7]]
+    held_open = [g["outstanding_bills"] for g in held["K1_year_end_grades"]["electricity"]
+                 if g["as_of"] >= victim["period_end"][:7]]
+    assert open_bills and all(n == o - 1 for n, o in zip(held_open, open_bills)), (
+        open_bills, held_open)
+
+
+def test_the_published_view_rebuilds_from_the_bills_with_the_held_set_and_carries_the_accrual():
+    """Defect caught: a run output written before the accrual publishes it absent, and counts its
+    held bills as billed, even though the publish holds the bills and the held set. Both arms:
+    without the held set the accrual is a named absence; with it the view is rebuilt."""
+    from company.interfaces.bill_assembly import held_bills
+
+    issued = _bills(actual_after_opening=False, closed=False)
+    one_held = [dict(b) for b in issued]
+    victim = next(b for b in one_held if b["billing_basis"] == "estimated")
+    victim["total_amount_gbp"] += 1000.0
+    stale = billing_accuracy_summary(one_held)  # an older run: no held set, accrual absent
+    absent = published_view(stale, "old.json", one_held)
+    rebuilt = published_view(stale, "old.json", one_held, held_bills(one_held))
+    assert absent["K1_unbilled_accrual"]["available"] is False and absent["K1_unbilled_accrual"]["reason"]
+    assert rebuilt["K1_unbilled_accrual"]["available"] is True
+    assert rebuilt["by_fuel"]["electricity"]["billed_kwh"] == pytest.approx(
+        stale["by_fuel"]["electricity"]["billed_kwh"] - victim["total_consumption_kwh"])

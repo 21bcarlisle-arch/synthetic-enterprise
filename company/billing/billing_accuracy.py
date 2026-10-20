@@ -97,7 +97,8 @@ _Z95 = 1.959964
 
 
 def account_billing_accuracy(bills: Iterable[dict]) -> list[dict]:
-    """One row per account, in first-seen order, built from that account's bills in period order."""
+    """One row per account, in first-seen order, built from that account's bills in period order.
+    Pass issued bills: a bill the pre-bill gate held reached nobody, so it was never billed."""
     by_account: dict[str, list[dict]] = {}
     for bill in bills:
         by_account.setdefault(bill["customer_id"], []).append(bill)
@@ -264,9 +265,12 @@ def billing_accuracy_summary(bills: Iterable[dict], direct_debit: dict | None = 
 
     `direct_debit` is `direct_debit_money_line`'s output, carried beside the kinds and never mixed
     into `by_fuel`. None publishes as its named absence. `held` is the (customer_id, period_end)
-    of every bill the pre-bill gate did not issue; None publishes the accrual as an absence."""
+    of every bill the pre-bill gate did not issue; None publishes the accrual as an absence.
+    Everything but the accrual is read over the issued bills, so billed-on-estimate and unbilled
+    never count the same bill."""
     bills = list(bills)
-    rows = account_billing_accuracy(bills)
+    issued = [b for b in bills if (b["customer_id"], b["period_end"]) not in (held or ())]
+    rows = account_billing_accuracy(issued)
     # The snapshot is the last billed month. The accounts in it are the ones still on supply at
     # the end; a leaver's last bill asks for a closing read, which a smart meter in smart mode
     # always answers, so including leavers would flatter the share slightly.
@@ -301,7 +305,7 @@ def billing_accuracy_summary(bills: Iterable[dict], direct_debit: dict | None = 
         "kinds": dict(KINDS), "snapshot_month": snapshot, "by_fuel": by_fuel, "accounts": rows,
         "direct_debit_money_line": direct_debit or direct_debit_money_line(None),
         # Per fuel, so a share never adds a kWh of gas to a kWh of electricity.
-        "K1_year_end_grades": _k1_year_end_grades(bills),
+        "K1_year_end_grades": _k1_year_end_grades(issued),
         "K1_unbilled_accrual": _k1_unbilled_by_month_end(bills, held),
     }
 
@@ -408,7 +412,8 @@ def _against_published(interval: list[float] | None) -> str:
 
 
 def published_view(summary: dict | None, source: str | None = None,
-                   bills: list[dict] | None = None) -> dict:
+                   bills: list[dict] | None = None,
+                   held: set[tuple[str, str]] | None = None) -> dict:
     """What a reader of the site meets: the per-fuel figures with their denominators, the K2
     snapshot with a 95% interval set beside the published median supplier, the K1 year-end grades,
     and one named account. A summary that is missing or empty is published as an absence with its
@@ -416,14 +421,19 @@ def published_view(summary: dict | None, source: str | None = None,
 
     `bills`, when given, are the run's own bills: K1 is then graded from them by this code, so a
     run output that predates a grade field (the largest run's share) still publishes it. The SLC
-    21B.4 register (`read_duty_register`) is read from the same bills, and is absent without them."""
+    21B.4 register (`read_duty_register`) is read from the same bills, and is absent without them.
+    With `held` (the bills the pre-bill gate did not issue) as well, the whole summary is rebuilt
+    from them, so a run output that predates the accrual publishes it and counts no held bill as
+    billed."""
     if not summary or not summary.get("by_fuel"):
         return {"available": False, "source": source, "reason": (
             "the run output this publish read carries no billing-accuracy measure, so there is "
             "nothing to show; it was added to the run output on 2026-10-06 and appears at the "
             "next run")}
+    if bills and held is not None:
+        summary = billing_accuracy_summary(bills, summary.get("direct_debit_money_line"), held)
     k1 = summary.get("K1_year_end_grades", {})
-    if bills:
+    if bills and held is None:
         k1 = _k1_year_end_grades(bills)
     fuels = {}
     for fuel, f in sorted(summary["by_fuel"].items()):
@@ -465,6 +475,10 @@ def published_view(summary: dict | None, source: str | None = None,
         "direct_debit_money_line": summary.get("direct_debit_money_line")
         or direct_debit_money_line(None),
         "read_duty_register": read_duty,
+        # Never added to the billed-on-estimate grades above: they count different bills.
+        "K1_unbilled_accrual": summary.get("K1_unbilled_accrual") or {"available": False, "reason": (
+            "the run output this publish read predates the accrual, and the publish was handed no "
+            "held-bill set to compute it from")},
     }
 
 

@@ -2616,9 +2616,14 @@ def _write_billing_accuracy_feed(feed, data, source):
     The review-toggle arms are rebuilt here from the run's own bills, not read from the run: the
     run books one arm, and the page must show both before the toggle is turned (D48, 2026-10-16)."""
     from company.billing.billing_accuracy import dd_review_arms, published_view
+    from company.interfaces.bill_assembly import held_bills
     from simulation.dd_balance_book import review_arms_from_run
 
-    block = published_view(data.get("billing_accuracy"), source, data.get("bills"))
+    # The held set is named by the issuance door, so the accrual and the "billed" figures are
+    # published from this run's bills even when its output predates them.
+    bills = data.get("bills")
+    block = published_view(data.get("billing_accuracy"), source, bills,
+                           held_bills(bills) if bills else None)
     if block.get("available"):
         block["direct_debit_review_arms"] = dd_review_arms(review_arms_from_run(data))
     feed.parent.mkdir(parents=True, exist_ok=True)

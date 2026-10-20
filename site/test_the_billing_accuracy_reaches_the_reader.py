@@ -19,6 +19,9 @@ R15 -- the mutations, each run and reverted:
   * drop the open-exposure or the barred-plus-open column of `billacc-ddarms`, or the step-up
     columns -> `test_both_review_arms_reach_the_reader_with_the_exposure_beside_the_share` and
     `test_the_published_feeds_review_arms_reach_the_reader` red.
+  * drop the `billacc-unbilled` render, or its held-on-a-read column ->
+    `test_the_unbilled_accrual_reaches_the_reader_and_never_inside_the_estimate_tables` and
+    `test_the_published_feeds_unbilled_accrual_reaches_the_reader` red.
 The null rung, `test_an_unavailable_feed_renders_an_absence_and_never_a_zero`, stays green
 through all four.
 """
@@ -38,7 +41,7 @@ HARNESS = SITE / "_live_harness.mjs"
 DOOR_REL = "site/capabilities/index.html"
 FEED_REL = "site/data/billing_accuracy.json"
 PANELS = ("billacc-fuels", "billacc-dd", "billacc-ddarms", "billacc-snapshot", "billacc-readduty", "billacc-yearend",
-          "billacc-example", "billacc-note")
+          "billacc-unbilled", "billacc-example", "billacc-note")
 
 
 def _text(fragment: str) -> str:
@@ -110,8 +113,25 @@ def _arms() -> dict:
     return {"never_seeks": never, "seeks": seeks}
 
 
+def _accrual() -> dict:
+    """Through the company's own accrual: a closed account's held estimate (400 kWh, over a year
+    old by 2023-06), and a held read whose catch-up went out with nobody (300 + 50 - 10 kWh)."""
+    from company.billing.billing_accuracy import unbilled_accrual
+
+    def bill(cid, end, basis, kwh, total, vat, **extra):
+        return {"customer_id": cid, "period_end": end, "billing_basis": basis, "commodity": "electricity",
+                "total_consumption_kwh": kwh, "total_amount_gbp": total, "vat_gbp": vat, **extra}
+    bills = [bill("C2", "2022-03-31", "estimated", 400.0, 60.0, 3.0),
+             bill("C3", "2023-05-31", "actual", 300.0, 90.0, 4.0, catchup_applied=True,
+                  read_true_up_kwh=50.0, read_true_up_barred_kwh=10.0),
+             bill("C3", "2023-06-30", "actual", 280.0, 80.0, 4.0)]
+    held = {("C2", "2022-03-31"), ("C3", "2023-05-31")}
+    return {"available": True, "unit_kwh": "kwh", "unit_gbp": "gbp_net_of_vat",
+            "month_ends": [unbilled_accrual(bills, held, "2023-06")]}
+
+
 def _feed(dd_line: dict | None = _DD_LINE, read_duty: bool = True,
-          arms: dict | None = None) -> dict:
+          arms: dict | None = None, accrual: bool = True) -> dict:
     """An available feed in the shape `published_view` writes: the decade capture's electricity
     snapshot (2 of 48) and one year-end grade."""
     from company.billing.billing_accuracy import published_view
@@ -142,6 +162,8 @@ def _feed(dd_line: dict | None = _DD_LINE, read_duty: bool = True,
     from company.billing.billing_accuracy import dd_review_arms
 
     view["direct_debit_review_arms"] = dd_review_arms(_arms() if arms is None else arms or None)
+    if accrual:
+        view["K1_unbilled_accrual"] = _accrual()
     if read_duty:
         # Set beside the view rather than handed in as `bills`, which would re-grade K1 above.
         view["read_duty_register"] = read_duty_summary(
@@ -269,3 +291,39 @@ def test_the_published_feeds_review_arms_reach_the_reader():
     stepped = [y for y in arms["by_year"] if y["step_up_median_gbp"] is not None]
     assert stepped, "no year carries a step-up, so the household's side cannot be shown"
     assert "£{:.2f}".format(stepped[-1]["step_up_median_gbp"]) in text
+
+
+def test_the_unbilled_accrual_reaches_the_reader_and_never_inside_the_estimate_tables(shown):
+    """Energy no issued bill charged (D48, 2026-10-20). Fires on: the panel dropped, a column
+    dropped, or the accrual's energy shown inside the billed-on-estimate tables it is never
+    added to."""
+    text = shown["billacc-unbilled"]
+    assert "electricity 2023-06 2 1 1 740 kWh £143 400 kWh 400 kWh" in text
+    assert "never added to the figure open on estimate" in text
+    assert "740 kWh" not in shown["billacc-yearend"] and "740 kWh" not in shown["billacc-fuels"]
+
+
+def test_a_feed_without_the_accrual_renders_its_absence_and_never_a_zero():
+    from company.billing.billing_accuracy import published_view
+
+    feed = _feed(accrual=False)
+    assert feed["K1_unbilled_accrual"]["available"] is False  # the view was handed no bills
+    text = _render(feed)["billacc-unbilled"]
+    assert "absent rather than zero" in text and "kWh" not in text
+    assert published_view(None)["available"] is False
+
+
+def test_the_published_feeds_unbilled_accrual_reaches_the_reader():
+    """The real feed: whatever the published run's accrual is at its last month end is what the
+    reader meets, every column of it."""
+    live = published_json(FEED_REL)
+    accrual = live.get("K1_unbilled_accrual") or {}
+    if not accrual.get("available"):
+        pytest.fail("the published billing feed carries no unbilled accrual: {}".format(
+            accrual.get("reason", "the key is absent")))
+    last = accrual["month_ends"][-1]
+    x = last["by_fuel"]["electricity"]
+    row = "electricity {} {:,} {:,} {:,} {:,} kWh £{:,} {:,} kWh {:,} kWh".format(
+        last["as_of"], x["accounts"], x["held_estimates"], x["held_actuals"], round(x["kwh"]),
+        round(x["gbp"]), round(x["older_than_12_months_kwh"]), round(x["closed_account_kwh"]))
+    assert row in _render(live)["billacc-unbilled"]

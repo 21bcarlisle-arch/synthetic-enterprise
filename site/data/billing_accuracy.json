@@ -1,4 +1,241 @@
 {
+  "K1_unbilled_accrual": {
+    "available": true,
+    "month_ends": [
+      {
+        "as_of": "2016-12",
+        "by_fuel": {
+          "electricity": {
+            "accounts": 0,
+            "closed_account_kwh": 0.0,
+            "gbp": 0.0,
+            "held_actuals": 0,
+            "held_estimates": 0,
+            "kwh": 0.0,
+            "older_than_12_months_kwh": 0.0
+          },
+          "gas": {
+            "accounts": 0,
+            "closed_account_kwh": 0.0,
+            "gbp": 0.0,
+            "held_actuals": 0,
+            "held_estimates": 0,
+            "kwh": 0.0,
+            "older_than_12_months_kwh": 0.0
+          }
+        }
+      },
+      {
+        "as_of": "2017-12",
+        "by_fuel": {
+          "electricity": {
+            "accounts": 2,
+            "closed_account_kwh": 0.0,
+            "gbp": 887.59,
+            "held_actuals": 0,
+            "held_estimates": 2,
+            "kwh": 7146.44,
+            "older_than_12_months_kwh": 0.0
+          },
+          "gas": {
+            "accounts": 0,
+            "closed_account_kwh": 0.0,
+            "gbp": 0.0,
+            "held_actuals": 0,
+            "held_estimates": 0,
+            "kwh": 0.0,
+            "older_than_12_months_kwh": 0.0
+          }
+        }
+      },
+      {
+        "as_of": "2018-12",
+        "by_fuel": {
+          "electricity": {
+            "accounts": 2,
+            "closed_account_kwh": 12824.78,
+            "gbp": 2155.73,
+            "held_actuals": 0,
+            "held_estimates": 6,
+            "kwh": 16321.13,
+            "older_than_12_months_kwh": 0.0
+          },
+          "gas": {
+            "accounts": 0,
+            "closed_account_kwh": 0.0,
+            "gbp": 0.0,
+            "held_actuals": 0,
+            "held_estimates": 0,
+            "kwh": 0.0,
+            "older_than_12_months_kwh": 0.0
+          }
+        }
+      },
+      {
+        "as_of": "2019-12",
+        "by_fuel": {
+          "electricity": {
+            "accounts": 2,
+            "closed_account_kwh": 12824.78,
+            "gbp": 5848.7,
+            "held_actuals": 0,
+            "held_estimates": 14,
+            "kwh": 36679.52,
+            "older_than_12_months_kwh": 12824.78
+          },
+          "gas": {
+            "accounts": 0,
+            "closed_account_kwh": 0.0,
+            "gbp": 0.0,
+            "held_actuals": 0,
+            "held_estimates": 0,
+            "kwh": 0.0,
+            "older_than_12_months_kwh": 0.0
+          }
+        }
+      },
+      {
+        "as_of": "2020-12",
+        "by_fuel": {
+          "electricity": {
+            "accounts": 2,
+            "closed_account_kwh": 12824.78,
+            "gbp": 2490.32,
+            "held_actuals": 0,
+            "held_estimates": 7,
+            "kwh": 17964.88,
+            "older_than_12_months_kwh": 12824.78
+          },
+          "gas": {
+            "accounts": 0,
+            "closed_account_kwh": 0.0,
+            "gbp": 0.0,
+            "held_actuals": 0,
+            "held_estimates": 0,
+            "kwh": 0.0,
+            "older_than_12_months_kwh": 0.0
+          }
+        }
+      },
+      {
+        "as_of": "2021-12",
+        "by_fuel": {
+          "electricity": {
+            "accounts": 1,
+            "closed_account_kwh": 12824.78,
+            "gbp": 1634.79,
+            "held_actuals": 0,
+            "held_estimates": 5,
+            "kwh": 12824.78,
+            "older_than_12_months_kwh": 12824.78
+          },
+          "gas": {
+            "accounts": 0,
+            "closed_account_kwh": 0.0,
+            "gbp": 0.0,
+            "held_actuals": 0,
+            "held_estimates": 0,
+            "kwh": 0.0,
+            "older_than_12_months_kwh": 0.0
+          }
+        }
+      },
+      {
+        "as_of": "2022-12",
+        "by_fuel": {
+          "electricity": {
+            "accounts": 1,
+            "closed_account_kwh": 12824.78,
+            "gbp": 1634.79,
+            "held_actuals": 0,
+            "held_estimates": 5,
+            "kwh": 12824.78,
+            "older_than_12_months_kwh": 12824.78
+          },
+          "gas": {
+            "accounts": 0,
+            "closed_account_kwh": 0.0,
+            "gbp": 0.0,
+            "held_actuals": 0,
+            "held_estimates": 0,
+            "kwh": 0.0,
+            "older_than_12_months_kwh": 0.0
+          }
+        }
+      },
+      {
+        "as_of": "2023-12",
+        "by_fuel": {
+          "electricity": {
+            "accounts": 2,
+            "closed_account_kwh": 12824.78,
+            "gbp": 2156.24,
+            "held_actuals": 0,
+            "held_estimates": 6,
+            "kwh": 14975.4,
+            "older_than_12_months_kwh": 12824.78
+          },
+          "gas": {
+            "accounts": 0,
+            "closed_account_kwh": 0.0,
+            "gbp": 0.0,
+            "held_actuals": 0,
+            "held_estimates": 0,
+            "kwh": 0.0,
+            "older_than_12_months_kwh": 0.0
+          }
+        }
+      },
+      {
+        "as_of": "2024-12",
+        "by_fuel": {
+          "electricity": {
+            "accounts": 1,
+            "closed_account_kwh": 12824.78,
+            "gbp": 1634.79,
+            "held_actuals": 0,
+            "held_estimates": 5,
+            "kwh": 12824.78,
+            "older_than_12_months_kwh": 12824.78
+          },
+          "gas": {
+            "accounts": 0,
+            "closed_account_kwh": 0.0,
+            "gbp": 0.0,
+            "held_actuals": 0,
+            "held_estimates": 0,
+            "kwh": 0.0,
+            "older_than_12_months_kwh": 0.0
+          }
+        }
+      },
+      {
+        "as_of": "2025-06",
+        "by_fuel": {
+          "electricity": {
+            "accounts": 2,
+            "closed_account_kwh": 12824.78,
+            "gbp": 3440.87,
+            "held_actuals": 2,
+            "held_estimates": 5,
+            "kwh": 19054.56,
+            "older_than_12_months_kwh": 12824.78
+          },
+          "gas": {
+            "accounts": 0,
+            "closed_account_kwh": 0.0,
+            "gbp": 0.0,
+            "held_actuals": 0,
+            "held_estimates": 0,
+            "kwh": 0.0,
+            "older_than_12_months_kwh": 0.0
+          }
+        }
+      }
+    ],
+    "unit_gbp": "gbp_net_of_vat",
+    "unit_kwh": "kwh"
+  },
   "available": true,
   "by_fuel": {
     "electricity": {
@@ -17,39 +254,39 @@
         },
         {
           "as_of": "2017-12",
-          "graded_gross_true_up_share": 0.14540160162052296,
-          "graded_largest_run_account": "PROS-2017-0336",
-          "graded_largest_run_share_of_net": 0.32989573371952324,
-          "graded_net_true_up_share": 0.08851912417079452,
-          "graded_net_true_up_share_without_largest_run": 0.05931704275426068,
-          "graded_runs": 143,
-          "never_read_runs": 72,
-          "outstanding_bills": 997,
-          "outstanding_gbp": 43805.904348162905
+          "graded_gross_true_up_share": 0.11619952020398912,
+          "graded_largest_run_account": "PROS-2017-0233",
+          "graded_largest_run_share_of_net": 0.3314432185823209,
+          "graded_net_true_up_share": 0.05931704275426068,
+          "graded_net_true_up_share_without_largest_run": 0.040596373166803104,
+          "graded_runs": 142,
+          "never_read_runs": 71,
+          "outstanding_bills": 995,
+          "outstanding_gbp": 42873.93070786125
         },
         {
           "as_of": "2018-12",
-          "graded_gross_true_up_share": 0.11846130186245071,
-          "graded_largest_run_account": "PROS-2017-0336",
-          "graded_largest_run_share_of_net": 0.8051092068315927,
-          "graded_net_true_up_share": 0.03739181302891394,
-          "graded_net_true_up_share_without_largest_run": 0.007287320099209824,
-          "graded_runs": 129,
-          "never_read_runs": 104,
-          "outstanding_bills": 1076,
-          "outstanding_gbp": 51246.82176463035
+          "graded_gross_true_up_share": 0.08835680893274657,
+          "graded_largest_run_account": "PROS-2017-0233",
+          "graded_largest_run_share_of_net": 2.831249454104765,
+          "graded_net_true_up_share": 0.007287320099209821,
+          "graded_net_true_up_share_without_largest_run": -0.013677093095376723,
+          "graded_runs": 128,
+          "never_read_runs": 103,
+          "outstanding_bills": 1070,
+          "outstanding_gbp": 48983.308829416914
         },
         {
           "as_of": "2019-12",
-          "graded_gross_true_up_share": 0.1777948727913166,
-          "graded_largest_run_account": "PROS-2017-0336",
-          "graded_largest_run_share_of_net": 0.9539384427896843,
-          "graded_net_true_up_share": 0.09826854798797417,
-          "graded_net_true_up_share_without_largest_run": 0.004526402345122729,
-          "graded_runs": 123,
-          "never_read_runs": 137,
-          "outstanding_bills": 1205,
-          "outstanding_gbp": 68132.1437464253
+          "graded_gross_true_up_share": 0.08405272714846523,
+          "graded_largest_run_account": "SYN-2016-565",
+          "graded_largest_run_share_of_net": 2.952004735092278,
+          "graded_net_true_up_share": 0.004526402345122753,
+          "graded_net_true_up_share_without_largest_run": -0.008969632029146421,
+          "graded_runs": 122,
+          "never_read_runs": 136,
+          "outstanding_bills": 1191,
+          "outstanding_gbp": 61991.006088738424
         },
         {
           "as_of": "2020-12",
@@ -59,9 +296,9 @@
           "graded_net_true_up_share": 0.036636638162807794,
           "graded_net_true_up_share_without_largest_run": -0.029379037923015088,
           "graded_runs": 115,
-          "never_read_runs": 165,
-          "outstanding_bills": 1343,
-          "outstanding_gbp": 67722.189982743
+          "never_read_runs": 164,
+          "outstanding_bills": 1336,
+          "outstanding_gbp": 65107.34957430614
         },
         {
           "as_of": "2021-12",
@@ -71,9 +308,9 @@
           "graded_net_true_up_share": 0.037579469981564875,
           "graded_net_true_up_share_without_largest_run": 0.01300720566672797,
           "graded_runs": 121,
-          "never_read_runs": 184,
-          "outstanding_bills": 1452,
-          "outstanding_gbp": 75802.07513034828
+          "never_read_runs": 183,
+          "outstanding_bills": 1447,
+          "outstanding_gbp": 74085.54300691147
         },
         {
           "as_of": "2022-12",
@@ -83,43 +320,43 @@
           "graded_net_true_up_share": 0.03662908937915365,
           "graded_net_true_up_share_without_largest_run": 0.012891018861750364,
           "graded_runs": 130,
-          "never_read_runs": 192,
-          "outstanding_bills": 1633,
-          "outstanding_gbp": 132051.1712599238
+          "never_read_runs": 191,
+          "outstanding_bills": 1628,
+          "outstanding_gbp": 130334.63913648695
         },
         {
           "as_of": "2023-12",
-          "graded_gross_true_up_share": 0.11197814608017703,
+          "graded_gross_true_up_share": 0.09889359858138637,
           "graded_largest_run_account": "PROS-2017-0336",
-          "graded_largest_run_share_of_net": 0.4148192825384711,
-          "graded_net_true_up_share": 0.04659760794363851,
-          "graded_net_true_up_share_without_largest_run": 0.02826923444351472,
-          "graded_runs": 124,
-          "never_read_runs": 205,
-          "outstanding_bills": 1604,
-          "outstanding_gbp": 125902.56891917092
+          "graded_largest_run_share_of_net": 0.5767777110956377,
+          "graded_net_true_up_share": 0.033513060444847836,
+          "graded_net_true_up_share_without_largest_run": 0.014704255450927952,
+          "graded_runs": 123,
+          "never_read_runs": 204,
+          "outstanding_bills": 1598,
+          "outstanding_gbp": 123638.52121233425
         },
         {
           "as_of": "2024-12",
-          "graded_gross_true_up_share": 0.15214303351036748,
+          "graded_gross_true_up_share": 0.14813643788493994,
           "graded_largest_run_account": "PROS-2017-0336",
-          "graded_largest_run_share_of_net": 0.6814871802761794,
-          "graded_net_true_up_share": 0.0681438144886112,
-          "graded_net_true_up_share_without_largest_run": 0.02296798031150276,
-          "graded_runs": 94,
+          "graded_largest_run_share_of_net": 0.756671948448143,
+          "graded_net_true_up_share": 0.06253992208728984,
+          "graded_net_true_up_share_without_largest_run": 0.01612129414673736,
+          "graded_runs": 93,
           "never_read_runs": 252,
-          "outstanding_bills": 1583,
-          "outstanding_gbp": 107543.17030795717
+          "outstanding_bills": 1578,
+          "outstanding_gbp": 105826.63818452031
         }
       ],
-      "K2_estimated_share_of_billed_kwh": 0.6759787626317213,
-      "K3_barred_share_of_undercharge_kwh": 0.002568961880782095,
+      "K2_estimated_share_of_billed_kwh": 0.6706377532674985,
+      "K3_barred_share_of_undercharge_kwh": 0.002579588702038734,
       "accounts": 539,
       "barred_kwh": 789.538670534123,
       "barred_true_ups": 14,
-      "billed_kwh": 6193624.26964437,
-      "estimated_kwh": 4186758.4699999997,
-      "open_estimated_kwh": 426613.73000000033,
+      "billed_kwh": 6078116.539278862,
+      "estimated_kwh": 4076214.4199999995,
+      "open_estimated_kwh": 413788.95000000007,
       "overcharge_kwh": 157567.68757443057,
       "snapshot": {
         "accounts": 177,
@@ -131,8 +368,8 @@
         "no_read_bill_in_12": 6,
         "share": 0.03389830508474576
       },
-      "true_ups": 2986,
-      "undercharge_kwh": 307337.63565762044
+      "true_ups": 2985,
+      "undercharge_kwh": 306071.53377207945
     },
     "gas": {
       "K1_year_end_grades": [
@@ -466,6 +703,7 @@
   },
   "kinds": {
     "K1": "billed on estimate and not yet trued up at a month end, graded by the later read",
+    "K1_unbilled": "energy the company counts as used and has not issued a bill for, at a month end",
     "K2": "estimated bills and their true-up at the actual read",
     "K3": "energy barred by the 12-month back-billing limit (SLC 21BA)"
   },

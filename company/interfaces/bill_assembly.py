@@ -52,17 +52,21 @@ def issued_bills(bills: list) -> list:
     return validate_bills(bills)[0]
 
 
+def held_bills(bills: list) -> set[tuple[str, str]]:
+    """The (customer_id, period_end) of each bill the pre-bill gate holds: assembled, never sent."""
+    return {(r.customer_id, r.period_end) for r in validate_bills(bills)[1]}
+
+
 def billing_accuracy(bills: list, direct_debit: dict | None = None) -> dict:
     """D48: what the supplier billed against what its reads later showed, by kind, read from the
     bills this door returned and nothing the world holds back (`company/billing/billing_accuracy.py`).
     `direct_debit` is the DD money line, carried beside K3 and never folded into it. The bills
     the pre-bill gate held are named here, where issuance is decided, for the unbilled accrual.
     """
-    held = {(r.customer_id, r.period_end) for r in validate_bills(bills)[1]}
-    return billing_accuracy_summary(bills, direct_debit, held)
+    return billing_accuracy_summary(bills, direct_debit, held_bills(bills))
 
 
 __all__ = [
     "ReadArrival", "ReadArrivalFeed", "assemble_monthly_bills", "barred_at_charge_recovery",
-    "billing_accuracy", "direct_debit_money_line", "issued_bills",
+    "billing_accuracy", "direct_debit_money_line", "held_bills", "issued_bills",
 ]

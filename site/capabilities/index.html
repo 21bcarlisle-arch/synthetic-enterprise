@@ -4693,6 +4693,7 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
   <p id="billacc-snapshot" style="margin:14px 0 0;"></p>
   <p id="billacc-readduty" style="margin:14px 0 0;"></p>
   <div id="billacc-yearend"></div>
+  <div id="billacc-unbilled"></div>
   <p id="billacc-example" style="margin:14px 0 0;font-size:13px;"></p>
   <p id="billacc-note" class="stamp" style="margin-top:12px;"></p>
 </section>
@@ -4865,6 +4866,29 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
               pct(g.graded_net_true_up_share_without_largest_run)]);
           }).join("");
         }).join(""));
+      /* Unbilled: energy no issued bill charged. It counts the bills the pre-bill gate held, which
+         the table above leaves out, so the two are never added together (D48, 2026-10-20). */
+      var ua = d.K1_unbilled_accrual || {};
+      $("billacc-unbilled").innerHTML = !ua.available
+        ? '<p style="margin:14px 0 0;"><strong>Unbilled energy at each year end.</strong> Not '
+          + 'available, so absent rather than zero. ' + esc(ua.reason) + '</p>'
+        : table("Unbilled energy at each year end: used, and on no bill anyone received",
+            ["", "Month end", "Accounts", "Held on an estimate", "Held on a read", "Unbilled",
+             "Value, net of VAT", "Of which over 12 months old", "Of which on closed accounts"],
+            ua.month_ends.map(function (m) {
+              return Object.keys(m.by_fuel).sort().map(function (f) {
+                var x = m.by_fuel[f];
+                return tr([esc(f), esc(m.as_of), esc(x.accounts), esc(x.held_estimates),
+                  esc(x.held_actuals), kwh(x.kwh), gbp(x.gbp), kwh(x.older_than_12_months_kwh),
+                  kwh(x.closed_account_kwh)]);
+              }).join("");
+            }).join(""))
+          + '<p style="margin:8px 0 0;">Every account here is billed to each month end, so energy '
+          + 'goes unbilled only when the pre-bill check holds a bill and nobody releases it. A '
+          + 'held estimate stays unbilled until a read&rsquo;s catch-up bills it; a held bill on '
+          + 'a read is never billed. These bills are not in the tables above, which count only '
+          + 'bills that were sent, so this is never added to the figure open on estimate. The '
+          + 'part over 12 months old could no longer be billed to a household.</p>';
       var e = d.example_account;
       $("billacc-example").innerHTML = e ? "<strong>One account.</strong> " + esc(e.account_id)
         + " (" + esc(e.fuel) + "): " + esc(e.estimated_bills) + " of " + esc(e.bills)
