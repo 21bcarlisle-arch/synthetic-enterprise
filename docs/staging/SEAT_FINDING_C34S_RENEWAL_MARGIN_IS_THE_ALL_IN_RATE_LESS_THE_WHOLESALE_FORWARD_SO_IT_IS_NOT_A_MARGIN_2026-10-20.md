@@ -1,4 +1,4 @@
-**Severity:** BLOCKING · **Lane:** C_customer_ops · **Epoch:** 4 · **Atom:** `C34_next_best_action_is_one_decision_across_debt_retention_upsell_and_carbon_judged_by_clv`
+**Severity:** LATENT · **Lane:** C_customer_ops · **Epoch:** 4 · **Atom:** `C34_next_best_action_is_one_decision_across_debt_retention_upsell_and_carbon_judged_by_clv`
 
 # C34's renewal margin is the all-in rate less the wholesale forward, so it is not a margin, and it is what put 11% of rows over the floor
 
@@ -65,3 +65,21 @@ the P2 band re-predicted before the run. The switch stays off until then.
   `records/SEAT_PREREG_C34_P2_ON_THE_TERMS_CONTRIBUTION_2026-10-20.md`: 0–10 advised of about 978.
 - **Still owed:** the on-arm re-read against that pre-registration. Until it lands, this stays
   BLOCKING and the switch stays off.
+
+## Disposition, 2026-10-20 (second landing): the quantity is one, the grades are owed
+
+- **One function feeds all four sites.** The retention guard's `expected_margin` and the
+  missed-retention log now read `term_contribution_per_year`, and C34's monthly value is that over
+  12. `tests/simulation/test_every_renewal_decision_weighs_the_terms_contribution.py` holds that
+  no site in the run computes a spread over the company's forward. Each control was
+  mutation-checked red.
+- **Re-filed BLOCKING → LATENT.** BLOCKING said nothing about inference could be read while the
+  decisions weighed a value that is not a margin. That is no longer true at any site. What is left
+  is two measurements, not a defect:
+  - the off book on the default policy, graded against
+    `records/SEAT_PREREG_THE_RETENTION_GUARD_ON_THE_TERMS_CONTRIBUTION_2026-10-20.md`
+    (offers 92 → 3–30);
+  - the C34 on arm on that book, graded against P2′ in
+    `records/SEAT_PREREG_C34_P2_ON_THE_TERMS_CONTRIBUTION_2026-10-20.md` (restated unchanged).
+  The switch stays off until the second is read. Both runs are handed on as continuation
+  `grade-the-contribution-margin-on-the-off-book-and-the-c34-arm`.

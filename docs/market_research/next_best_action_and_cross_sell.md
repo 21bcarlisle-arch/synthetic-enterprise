@@ -491,11 +491,21 @@ choices, and each one is ours:
     standing charge a supplier keeps (opex and EBIT, against metering, network and policy) is not
     decomposed anywhere in the commons. Leaving it out errs against our own thesis (F11): it
     understates what retaining a household is worth to us.
-  - **The retention guard has the same defect.** `simulation/run_phase2b.py` sets
-    `expected_margin = (unit_rate − company_fwd) × EAC` and weighs it against the discount's
-    cost. That is the value it protects, so it overstates that value by the pass-through costs.
-    It is the default policy, so repairing it moves every run's retention offers. It is filed
-    separately and is not changed here.
+  - **The retention guard reads the same contribution, per year (amended 2026-10-20, second
+    landing).** What a retention offer protects is what the retained term contributes, so the
+    guard's `expected_margin` and the missed-retention log's `expected_term_margin_gbp` are
+    `term_contribution_per_year`; C34's monthly value is that over 12. One function feeds all
+    four sites, and the run computes no spread over the company's forward anywhere.
+    The hedge's `cost_per_mwh` is a cost, not a margin, and is unchanged.
+    - The value weighed against a cut is the contribution plus the replacement spend avoided
+      (`replacement_cost_avoided_gbp`). An offer survives only where an upstream writer raised the
+      strike above its cost, or on a very large account.
+    - *Corrected beside the claim:* until this landing the bullet said the guard weighed
+      `(unit_rate − company_fwd) × EAC`. On the published 19 Oct book that read a median of
+      GBP 290 a year over its 92 offers; the contribution reads −GBP 31. The cut is floored at
+      cost, and the spread always exceeded it, so the guard could never refuse on value. It is the
+      default policy, and the offer count is pre-registered at
+      `records/SEAT_PREREG_THE_RETENTION_GUARD_ON_THE_TERMS_CONTRIBUTION_2026-10-20.md` (3–30).
 - **The advice effect is unknown, so the caller decides under each of the three stated effects**
   of `a_retention_price_that_shares_the_value_an_action_creates.md` §4. Each run writes one row per
   household per effect. The company's own holdout cannot decide an effect at this book size (§6.2:

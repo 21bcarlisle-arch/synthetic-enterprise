@@ -89,12 +89,12 @@ class CounterfactualMiss:
     sim_churn_probability: float
     random_roll: float
     effective_p_retain: float
-    expected_term_margin_gbp: float
+    expected_term_margin_gbp: float | None
     segment: str
     counterfactual_retained: bool
-    retention_cost_gbp: float
-    value_recovered_gbp: float
-    net_value_of_offer_gbp: float
+    retention_cost_gbp: float | None
+    value_recovered_gbp: float | None
+    net_value_of_offer_gbp: float | None
     was_worth_offering: bool
     intervention_class: str = "detection_gate"
     assumed_discount_pct: float = _DETECTION_GATE_HYPOTHETICAL_DISCOUNT_PCT
@@ -195,8 +195,11 @@ def compute_counterfactual_retention(
         cost = margin_sacrificed_gbp(
             miss.get("expected_term_revenue_gbp"), assumed_discount_pct, counterfactual_retained,
         )
-        value_recovered = expected_margin if counterfactual_retained else 0.0
-        net_value = None if cost is None else value_recovered - cost
+        # The run logs the term's contribution, None where the term recorded no cost to value it
+        # against: that miss is unpriced, like one with no revenue, never a zero.
+        value_recovered = (None if expected_margin is None
+                           else expected_margin if counterfactual_retained else 0.0)
+        net_value = None if cost is None or value_recovered is None else value_recovered - cost
 
         misses.append(CounterfactualMiss(
             customer_id=cid,
@@ -216,8 +219,10 @@ def compute_counterfactual_retention(
             assumed_discount_pct=assumed_discount_pct,
         ))
 
-    total_at_stake = sum(m.expected_term_margin_gbp for m in misses)
-    total_recoverable = sum(m.value_recovered_gbp for m in misses)
+    total_at_stake = sum(m.expected_term_margin_gbp for m in misses
+                         if m.expected_term_margin_gbp is not None)
+    total_recoverable = sum(m.value_recovered_gbp for m in misses
+                            if m.value_recovered_gbp is not None)
     total_net = sum(m.net_value_of_offer_gbp for m in misses if m.was_worth_offering)
     recoverable_count = sum(1 for m in misses if m.was_worth_offering)
     retained_count = sum(1 for m in misses if m.counterfactual_retained)
@@ -232,7 +237,7 @@ def compute_counterfactual_retention(
         # ON THE SURFACE, not in a footnote. A miss with no term revenue cannot be priced, and a
         # report that silently drops those reads as a complete one. If this is not zero, every
         # total above is over a SUBSET and the reader is entitled to know how big a subset.
-        misses_that_could_not_be_priced=sum(1 for m in misses if m.retention_cost_gbp is None),
+        misses_that_could_not_be_priced=sum(1 for m in misses if m.net_value_of_offer_gbp is None),
     )
 
 
@@ -275,8 +280,11 @@ def compute_counterfactual_lift_by_class(
         cost = margin_sacrificed_gbp(
             miss.get("expected_term_revenue_gbp"), assumed_discount_pct, counterfactual_retained,
         )
-        value_recovered = expected_margin if counterfactual_retained else 0.0
-        net_value = None if cost is None else value_recovered - cost
+        # The run logs the term's contribution, None where the term recorded no cost to value it
+        # against: that miss is unpriced, like one with no revenue, never a zero.
+        value_recovered = (None if expected_margin is None
+                           else expected_margin if counterfactual_retained else 0.0)
+        net_value = None if cost is None or value_recovered is None else value_recovered - cost
 
         misses.append(CounterfactualMiss(
             customer_id=cid,
@@ -306,7 +314,7 @@ def compute_counterfactual_lift_by_class(
         # PRICEABLE ONLY, and the count of the rest travels on the row. Summing `None` as zero
         # is the fail-open shape this whole change exists to remove: it would report a class as
         # costing nothing when what happened is that we could not price it.
-        priced = [m for m in cls_misses if m.retention_cost_gbp is not None]
+        priced = [m for m in cls_misses if m.net_value_of_offer_gbp is not None]
         total_cost = sum(m.retention_cost_gbp for m in priced)
         total_net = sum(m.net_value_of_offer_gbp for m in priced)
         by_class.append(InterventionClassLift(
@@ -315,10 +323,10 @@ def compute_counterfactual_lift_by_class(
             assumed_discount_pct=cls_misses[0].assumed_discount_pct,
             assumed_effectiveness=effectiveness_for_discount(cls_misses[0].assumed_discount_pct),
             miss_count=len(cls_misses),
-            total_expected_margin_at_stake_gbp=sum(m.expected_term_margin_gbp for m in cls_misses),
+            total_expected_margin_at_stake_gbp=sum(m.expected_term_margin_gbp for m in priced),
             total_offer_cost_gbp=total_cost,
             would_have_been_retained_count=sum(1 for m in cls_misses if m.counterfactual_retained),
-            total_value_recovered_gbp=sum(m.value_recovered_gbp for m in cls_misses),
+            total_value_recovered_gbp=sum(m.value_recovered_gbp for m in priced),
             net_value_gbp=total_net,
             lift_per_pound=(total_net / total_cost) if total_cost > 0 else None,
             misses_that_could_not_be_priced=len(cls_misses) - len(priced),

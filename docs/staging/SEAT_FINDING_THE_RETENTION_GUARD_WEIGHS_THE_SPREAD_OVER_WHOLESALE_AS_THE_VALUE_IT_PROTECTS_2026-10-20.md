@@ -32,3 +32,16 @@ defaults off.
 The guard reads `term_contribution_per_month` (`company/interfaces/renewal_advice.py`) × 12,
 or the same quantity through one shared function. The standing-charge GAP stated in §6.1 goes with
 it. The count of retention offers and the retained-margin result are predicted before the run.
+
+## Repaired, 2026-10-20; the run's grade is owed
+
+- **The guard reads the contribution.** `expected_margin` is `term_contribution_per_year`, the one
+  function C34 reads per month. The missed-retention log writes the same value.
+  `counterfactual_retention` counts a `None` margin as unpriced and never sums it as zero, although
+  no renewal route writes a fixed term without its locked costs today.
+- **The off book will move.** Before any run, `/var/tmp/se-ret-margin/reconstruct.py` rebuilt the
+  92 offers on the 19 Oct book. The median value goes from GBP 290 a year to −GBP 31, and about 11
+  of the 92 would still be offered. The prediction is filed at
+  `records/SEAT_PREREG_THE_RETENTION_GUARD_ON_THE_TERMS_CONTRIBUTION_2026-10-20.md`.
+- **Still owed:** the full-window default-policy run graded against that file. It is handed on as
+  `grade-the-contribution-margin-on-the-off-book-and-the-c34-arm`. It closes this finding.

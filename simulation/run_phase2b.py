@@ -2729,12 +2729,15 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     _retention_holdout = new_retention_holdout() if policy.retention_runs_holdout else None
     retention_holdout_log: list[dict] = []
     # C34 at the renewal notice, on a policy that asks for it: records only, moves nothing.
+    # The term's contribution is the one margin every renewal decision weighs (C34, the retention
+    # guard, the missed-retention log), so it is imported whether or not C34 is on.
+    from company.interfaces.renewal_advice import (
+        RenewalAdviceDesk,
+        term_contribution_per_month,
+        term_contribution_per_year,
+    )
     _renewal_advice = None
     if policy.next_best_action_decides_at_renewal:
-        from company.interfaces.renewal_advice import (
-            RenewalAdviceDesk,
-            term_contribution_per_month,
-        )
         _renewal_advice = RenewalAdviceDesk(policy)
     # What the value test would have said where the 10-10 gate refused first. Read by nothing in
     # the loop, so it changes no outcome; it says whether the gate binds or the guard would have
@@ -3585,7 +3588,15 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     _market_beats_the_fix = _cut is not None
                     _would_be_discount_pct = discount_pct
                     ret_cost = unit_rate * discount_pct * eac_for_ret / 1000.0
-                    expected_margin = (unit_rate - company_fwd) * eac_for_ret / 1000.0
+                    # What retaining protects is the term's contribution, not the spread over
+                    # wholesale, which still carries the pass-through costs (§6.1, 2026-10-20).
+                    # None only where the term has no floor, and then both sizings gave no cut.
+                    expected_margin = term_contribution_per_year(
+                        unit_rate_gbp_per_mwh=unit_rate, term_start=term_start_str,
+                        company_forward_per_mwh=term.get("company_forward_price_gbp_per_mwh"),
+                        locked_policy_cost_per_mwh=term.get("locked_policy_cost_gbp_per_mwh"),
+                        locked_network_cost_per_mwh=term.get("locked_network_cost_gbp_per_mwh"),
+                        company_eac_kwh=eac_for_ret, segment=segment_for_churn)
                     # Phase 15b: include acquisition cost savings in the offer guard.
                     # If the customer churns, the company spends acq_cost on a replacement
                     # attempt (whether it wins or not). So the true value protected by
@@ -3663,7 +3674,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                         default_belief_rate=_ret_default_belief, billed=_ret_billed)
                     # Whether it WOULD offer is read before the coin matters, on both arms: only
                     # those renewals are the experiment, so a row is due on either arm exactly then.
-                    _would_offer = (
+                    _would_offer = _value_protected is not None and (
                         _retention_holdout.would_offer(_cut_decision, _value_protected > ret_cost)
                         if _retention_holdout is not None else _value_protected > ret_cost)
                     _holdout_would_offer = _holdout_arm is not None and _would_offer
@@ -4106,7 +4117,19 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                             "customer_id": billing_account,
                             "event_date": term_start_str,
                             "company_churn_estimate": company_est_pre,
-                            "expected_term_margin_gbp": (unit_rate - company_fwd) * eac_missed / 1000.0,
+                            # The guard's own value. None only where a fixed term records no
+                            # locked costs, which no renewal route writes today.
+                            "expected_term_margin_gbp": term_contribution_per_year(
+                                unit_rate_gbp_per_mwh=unit_rate, term_start=term_start_str,
+                                company_forward_per_mwh=term.get(
+                                    "company_forward_price_gbp_per_mwh"),
+                                locked_policy_cost_per_mwh=term.get(
+                                    "locked_policy_cost_gbp_per_mwh"),
+                                locked_network_cost_per_mwh=term.get(
+                                    "locked_network_cost_gbp_per_mwh"),
+                                company_eac_kwh=eac_missed,
+                                segment=(get_customer(billing_account) or {}).get(
+                                    "segment", "resi")),
                             # THE DENOMINATOR OF A DISCOUNT (2026-08-28, roadmap R3). A retention
                             # offer is a price cut, so its cost is a share of REVENUE -- not of
                             # margin, which is a few per cent of it, and not a flat sum. Without

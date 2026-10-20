@@ -163,14 +163,22 @@ def test_no_offer_churn_log_entries_have_reason(sim_result_2017):
 
 
 def test_retention_log_offers_are_economically_rational(sim_result_2017):
-    """Every offer in the retention_log must have expected_margin > retention_cost."""
+    """Every offer in the retention_log passed the guard: what retaining protects exceeds the cut.
+
+    What it protects is the term's contribution plus the replacement spend avoided (Phase 15b),
+    netted of bad debt and weighted by engagement where the policy does either. This asked for
+    margin > cost alone, which held only while the margin was the spread over wholesale (2026-10-20).
+    """
     result = sim_result_2017
     for entry in result["retention_log"]:
-        exp_m = entry.get("expected_term_margin_gbp", 0.0)
-        cost = entry.get("retention_cost_gbp", 0.0)
-        assert exp_m > cost, (
+        exp_m = entry["expected_term_margin_gbp"]
+        cost = entry["retention_cost_gbp"]
+        value = exp_m - entry.get("bad_debt_charge_gbp", 0.0) + entry["acq_cost_saved_gbp"]
+        if entry.get("engagement_estimate") is not None:
+            value *= entry["engagement_estimate"]
+        assert value > cost, (
             f"{entry['customer_id']} {entry['event_date']}: "
-            f"offer made with margin £{exp_m:.2f} < cost £{cost:.2f}"
+            f"offer made protecting £{value:.2f} < cost £{cost:.2f}"
         )
 
 

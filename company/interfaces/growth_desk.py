@@ -397,10 +397,10 @@ def retention_engagement(account_id: str, as_of: str, *, terms, departures, chan
     return None if est is None else est.estimate
 
 
-def retention_value_protected(expected_margin: float, acq_cost_saved: float,
+def retention_value_protected(expected_margin: float | None, acq_cost_saved: float,
                                   engagement: float | None, *,
                                   default_belief_rate: float | None = None,
-                                  billed: float = 0.0) -> float:
+                                  billed: float = 0.0) -> float | None:
     """What the retention guard weighs against the offer's cost. Unweighted when `engagement` is
     `None`, and un-netted when `default_belief_rate` is `None`: both are every standing policy.
 
@@ -408,9 +408,14 @@ def retention_value_protected(expected_margin: float, acq_cost_saved: float,
     term's billing on the base the value arm falls back to (`value_based_renewal`, unit rate x EAC).
     Standing charge and VAT are outside that base, so the charge is understated and the guard errs
     towards offering.
+
+    `None` where the term has no contribution (`term_contribution_per_year`: no locked costs on
+    the term), so there is nothing to weigh and no offer, never a value of zero.
     """
     from company.crm.engagement_estimate import value_protected
 
+    if expected_margin is None:
+        return None
     charge = retention_bad_debt_charge(default_belief_rate, billed) or 0.0
     return value_protected(expected_margin - charge, acq_cost_saved, engagement)
 

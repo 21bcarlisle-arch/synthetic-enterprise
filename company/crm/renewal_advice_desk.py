@@ -57,25 +57,33 @@ _EFFECT_SOURCE = ("stated range, a_retention_price_that_shares_the_value_an_acti
                   "no company estimate (the holdout cannot decide one at this book size)")
 
 
-def term_contribution_per_month(
+def term_contribution_per_year(
     *, unit_rate_gbp_per_mwh: float, term_start: str, company_forward_per_mwh: float | None,
     locked_policy_cost_per_mwh: float | None, locked_network_cost_per_mwh: float | None,
     company_eac_kwh: float, segment: str = "resi",
 ) -> float | None:
-    """What this leg contributes to us a month: the unit rate over the term's own pre-margin cost,
-    on the company's volume, less a year's cost to serve the leg, over 12.
+    """What this leg contributes to us over a year: the unit rate over the term's own pre-margin
+    cost, on the company's volume, less a year's cost to serve the leg.
 
     Not `unit_rate - forward`: that spread still carries the network, policy and capital costs the
     rate passes through (§6.1, amended 2026-10-20). The standing charge is left out as a stated GAP
     there, because the cap builds it to carry the network residual. `None` where the term does not
-    record its locked costs, so the leg is counted rather than priced on a guess.
+    record its locked costs, so the leg is counted rather than priced on a guess. Every renewal
+    decision that weighs a margin reads this one function: C34 per month, the retention guard and
+    the missed-retention log per year.
     """
     cost = pre_margin_unit_rate(company_forward_per_mwh, term_start,
                                 locked_policy_cost_per_mwh, locked_network_cost_per_mwh)
     if cost is None:
         return None
     return ((unit_rate_gbp_per_mwh - cost) * company_eac_kwh / 1000.0
-            - FIXED_OVERHEAD_GBP_PER_YEAR[segment]) / 12.0
+            - FIXED_OVERHEAD_GBP_PER_YEAR[segment])
+
+
+def term_contribution_per_month(**term) -> float | None:
+    """`term_contribution_per_year` over 12, the unit C34 weighs against its monthly effects."""
+    year = term_contribution_per_year(**term)
+    return None if year is None else year / 12.0
 
 
 def monthly_hazard(renewal_churn_belief: float) -> float:
