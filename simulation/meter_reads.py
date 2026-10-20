@@ -195,6 +195,16 @@ def is_not_in_smart_mode(customer_id: str) -> bool:
     """
     return random.Random(f"smartmode_{customer_id}").random() < SMART_METER_NOT_COMMUNICATING_RATE
 
+
+def is_communicating(customer_id: str, meter_type: str, half_hourly: bool = False) -> bool:
+    """Whether the meter is read remotely this period.
+
+    A half-hourly-settled account is settled on its own interval data, and that data is a read
+    the supplier can bill, so its id's smart-mode draw does not apply. Before 2026-10-20 C7
+    (metering "HH") drew traditional mode and billed 42 estimates out of 42 while the world
+    settled it on every half hour (read_access_and_theft_duties.md s.2.3)."""
+    return meter_type == "smart" and (half_hourly or not is_not_in_smart_mode(customer_id))
+
 # --- Theft at a premise (W2_36, 2026-10-16) ---------------------------------
 # The director's ruling of 2026-10-08: theft is "a premise-level study in the minutes tier", not
 # a settled book. At 1% prevalence and 5.8% a year detection about 52,000 customer-years buy 30
@@ -360,6 +370,7 @@ def simulate_read(
     commodity: str = "electricity",
     must_read_arm: str = "register",
     aq_kwh: Optional[float] = None,
+    half_hourly: bool = False,
 ) -> MeterReadEvent:
     """Simulate one customer-period's meter-read arrival.
 
@@ -378,7 +389,7 @@ def simulate_read(
     """
     rng = random.Random(f"meterread_{customer_id}_{period_end}")
 
-    communicating = meter_type == "smart" and not is_not_in_smart_mode(customer_id)
+    communicating = is_communicating(customer_id, meter_type, half_hourly)
 
     if communicating:
         arrived_actual = True
@@ -449,7 +460,7 @@ def simulate_final_read(
     (`CLOSING_READ_CUSTOMER_GIVEN_GAP`), so none is drawn until it is sourced. Otherwise the
     answer is the period's ordinary read, which is estimated.
     """
-    if meter_type == "smart" and not is_not_in_smart_mode(customer_id):
+    if is_communicating(customer_id, meter_type, meter.get("half_hourly", False)):
         given = True
     elif CLOSING_READ_CUSTOMER_GIVEN_SHARE is not None:
         rng = random.Random(f"closingread_{customer_id}_{period_end}")
@@ -646,7 +657,8 @@ class SimulatedReadFeed:
         """Carries the inline path's own `if customer_data else` fallback."""
         if customer and customer.get("customer_id"):
             self._meter[customer["customer_id"]] = {
-                "commodity": customer.get("commodity", "electricity"), "aq_kwh": customer.get("aq_kwh")}
+                "commodity": customer.get("commodity", "electricity"), "aq_kwh": customer.get("aq_kwh"),
+                "half_hourly": customer.get("metering") == "HH"}
         return meter_type_for_customer(customer) if customer else "traditional"
 
     def _meter_of(self, customer_id: str) -> dict:

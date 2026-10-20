@@ -183,6 +183,17 @@ Each of these is a different thing, measured and acted on differently.
   March 2026. Within our window the duty was "all reasonable steps" with no time limit.
 - **GAP:** the hazard of a working smart meter dropping out of smart mode, and how long it stays
   out. DESNZ and Ofgem publish stocks, not transitions.
+- **A half-hourly-settled meter is read by construction (build choice, 2026-10-20).** Settlement
+  on half-hourly data needs that data collected from the meter, and the same data gives a register
+  read the supplier can bill. A meter cannot be settled on every half hour and also be one the
+  supplier never reads. So `simulation/meter_reads.is_communicating` treats a `metering: "HH"`
+  record as in smart mode whatever its id drew. Before this, C7 drew traditional mode, billed 42
+  estimates out of 42, and was still settled on its interval file
+  (`SEAT_FINDING_A_LEAVER_NEVER_READ_BILLS_A_QUARTER_OF_ITS_TRUE_USE_AND_REFUSED_THE_PUBLISH_2026-10-19.md`).
+  **Simplification, named:** an HH meter's comms loss is not modelled. In reality the half-hourly
+  data collector estimates the missing intervals and the bill falls back to an estimate. [M, the
+  BSCP502 estimation rules were not re-read this pass.] **GAP:** how often an HH-settled domestic
+  meter loses its data feed, and for how long.
 
 ### 2.4 When access is refused or fails, and how that meets back-billing
 

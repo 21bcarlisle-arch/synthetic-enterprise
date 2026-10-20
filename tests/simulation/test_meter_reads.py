@@ -458,3 +458,28 @@ def test_an_instructed_visit_reads_at_the_ceiling_finds_no_access_under_the_gap_
     ) == (True, ("actual", 0, 0), True, ("register", ordinary.status))
     with pytest.raises(ValueError, match="arm"):
         mr.SimulatedReadFeed(instructed_read_arm="always")
+
+
+def test_a_half_hourly_settled_meter_is_read_whatever_its_ids_smart_mode_draw():
+    """Defect caught (2026-10-20): C7 is metering "HH" and settled on every half hour, yet its id
+    drew traditional mode, so it billed 42 estimates out of 42. A meter settled on its own interval
+    data has a read the supplier can bill. The partition: an HH record out of smart mode reads
+    actual, the same id without the HH flag stays read-exposed, and an HH flag on a traditional
+    meter changes nothing, so neither an always-actual nor a never-actual rule can pass."""
+    assert mr.is_not_in_smart_mode("C7"), "the control's subject must draw traditional mode"
+    periods = [f"20{yr}-{m:02d}-28" for yr in range(16, 26) for m in range(1, 13)]
+    feed = mr.SimulatedReadFeed()
+    hh = feed.meter_type_for({"customer_id": "C7", "metering": "HH"})
+    assert hh == "smart"
+    reads = [feed.read_for("C7", p, hh, 300.0, 0) for p in periods]
+    assert all(r.delay_days > mr.READ_CUTOFF_DAYS_AFTER_PERIOD_END for r in reads
+               if r.status == "estimated"), "only a late remote read may miss the bill"
+    assert sum(r.status == "actual" for r in reads) >= 0.9 * len(reads)
+    assert all(feed.final_read_for("C7", p, hh, 300.0, 3).status == "actual" for p in periods)
+
+    plain = mr.SimulatedReadFeed()
+    plain.meter_type_for({"customer_id": "C7", "smart_meter": True})
+    assert sum(plain.read_for("C7", p, "smart", 300.0, 0).status == "actual"
+               for p in periods) < 0.5 * len(periods), "out of smart mode it reads like a dumb meter"
+    assert [simulate_read("T1", p, "traditional", 300.0, 0, half_hourly=True) for p in periods] \
+        == [simulate_read("T1", p, "traditional", 300.0, 0) for p in periods]
