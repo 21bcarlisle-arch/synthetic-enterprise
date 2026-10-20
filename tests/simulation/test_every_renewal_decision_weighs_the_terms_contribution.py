@@ -34,7 +34,8 @@ from simulation.policy_costs import (
 def _real_term(start="2019-06-01", forward=50.0):
     return dict(term_start=start, company_forward_per_mwh=forward,
                 locked_policy_cost_per_mwh=get_electricity_policy_cost_per_mwh(start),
-                locked_network_cost_per_mwh=get_electricity_network_cost_per_mwh(start))
+                locked_network_cost_per_mwh=get_electricity_network_cost_per_mwh(start),
+                fuel="electricity")
 
 
 def _run_tree():
@@ -75,7 +76,8 @@ def test_c34s_monthly_value_is_the_guards_yearly_value_over_twelve():
     assert term_contribution_per_year(**dict(term, locked_policy_cost_per_mwh=None)) is None
 
 
-def _guard_offers(rate: float, *, kwh: float = 3100.0, tier: float = 0.03) -> bool:
+def _guard_offers(rate: float, *, kwh: float = 3100.0, tier: float = 0.03,
+                  default_belief_rate: float | None = None) -> bool:
     term = _real_term()
     floor = pre_margin_unit_rate(term["company_forward_per_mwh"], term["term_start"],
                                  term["locked_policy_cost_per_mwh"],
@@ -85,20 +87,26 @@ def _guard_offers(rate: float, *, kwh: float = 3100.0, tier: float = 0.03) -> bo
     cost = rate * cut * kwh / 1000.0
     value = retention_value_protected(
         term_contribution_per_year(unit_rate_gbp_per_mwh=rate, company_eac_kwh=kwh, **term),
-        replacement_cost_avoided_gbp(segment="resi", counted_in_guard=True), None)
+        replacement_cost_avoided_gbp(segment="resi", counted_in_guard=True), None,
+        default_belief_rate=default_belief_rate, billed=rate * kwh / 1000.0)
     return value > cost
 
 
-def test_the_guard_still_offers_where_the_strike_sits_well_above_cost_and_refuses_an_unmoved_one():
+def test_the_guard_still_offers_where_the_strike_sits_well_above_cost_and_refuses_an_unmoved_debtor():
     term = _real_term()
     floor = pre_margin_unit_rate(term["company_forward_per_mwh"], term["term_start"],
                                  term["locked_policy_cost_per_mwh"],
                                  term["locked_network_cost_per_mwh"])
     # The offering branch first: a strike an upstream writer raised GBP 30/MWh over cost buys a 3% cut.
     assert _guard_offers(floor + 30.0)
-    # An unmoved strike contributes GBP 2/MWh less cost to serve, so nothing it protects pays for a
-    # cut. On the spread it read GBP 100+ a year and was offered.
-    assert not _guard_offers(floor + TARGET_MARGIN_GBP_PER_MWH + 1.0)
+    # An unmoved strike now contributes about -GBP 4 a year once the standing charge's opex is
+    # credited (§6.1, 2026-10-20), and the replacement spend avoided carries it over a cut that only
+    # sells down to the floor; so the same strike is offered at the resi base rate and refused once
+    # the 2022 bad-debt belief is netted. On the spread over wholesale it read GBP 230 a year and
+    # was offered at both.
+    unmoved = floor + TARGET_MARGIN_GBP_PER_MWH + 1.0
+    assert _guard_offers(unmoved, default_belief_rate=0.02)
+    assert not _guard_offers(unmoved, default_belief_rate=0.08)
 
 
 def test_a_missed_retention_with_no_contribution_is_counted_unpriced_not_summed_as_zero():

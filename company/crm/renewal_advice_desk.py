@@ -49,7 +49,8 @@ from saas.cost_to_serve import FIXED_OVERHEAD_GBP_PER_YEAR
 if TYPE_CHECKING:
     from company.policy.decision_policy import DecisionPolicy
 
-__all__ = ["RenewalAdviceDesk", "STATED_ADVICE_EFFECTS", "term_contribution_per_month"]
+__all__ = ["RenewalAdviceDesk", "STATED_ADVICE_EFFECTS", "STANDING_CHARGE_OPEX_GBP_PER_YEAR",
+           "term_contribution_per_month"]
 
 # The horizon C34 was graded on: docs/market_research/next_best_action_and_cross_sell.md §6.1
 # ("48 months") and a_retention_price_that_shares_the_value_an_action_creates.md §4.
@@ -65,27 +66,72 @@ _EFFECT_SOURCE = ("stated range, a_retention_price_that_shares_the_value_an_acti
                   "no company estimate (the holdout cannot decide one at this book size)")
 
 
+# THE STANDING CHARGE'S OPEX ALLOWANCE, £/yr ex VAT, by fuel, as (cap period start, allowance).
+# Ofgem default tariff cap level model v1.31, `ElecSingle_Other_Nil` / `Gas_Other_Nil` (direct
+# debit), mean of the 15 regional rows: OC to June 2025, CO from July 2025, when Ofgem split OC into
+# CO, IC and DRC. Rows before January 2019 are Ofgem's own back-casts. The table and why only this
+# row is credited: docs/market_research/next_best_action_and_cross_sell.md §6.1 (2026-10-20).
+STANDING_CHARGE_OPEX_GBP_PER_YEAR: dict[str, tuple[tuple[str, float], ...]] = {
+    "electricity": (
+        ("2015-04-01", 38.77), ("2015-10-01", 38.85), ("2016-04-01", 38.97), ("2016-10-01", 39.20),
+        ("2017-04-01", 39.66), ("2017-10-01", 40.17), ("2018-04-01", 40.75), ("2018-10-01", 41.10),
+        ("2019-04-01", 41.57), ("2019-10-01", 41.88), ("2020-04-01", 42.11), ("2020-10-01", 42.23),
+        ("2021-04-01", 42.46), ("2021-10-01", 43.24), ("2022-04-01", 44.52), ("2022-10-01", 46.77),
+        ("2023-04-01", 48.63), ("2023-10-01", 50.22), ("2024-04-01", 50.65), ("2024-10-01", 51.62),
+        ("2025-04-01", 52.43), ("2025-07-01", 45.77), ("2025-10-01", 46.89), ("2026-04-01", 47.39),
+        ("2026-10-01", 48.21),
+    ),
+    "gas": (
+        ("2015-04-01", 63.48), ("2015-10-01", 63.61), ("2016-04-01", 63.80), ("2016-10-01", 64.18),
+        ("2017-04-01", 64.94), ("2017-10-01", 65.77), ("2018-04-01", 66.72), ("2018-10-01", 67.30),
+        ("2019-04-01", 68.06), ("2019-10-01", 68.57), ("2020-04-01", 68.95), ("2020-10-01", 69.14),
+        ("2021-04-01", 69.52), ("2021-10-01", 70.79), ("2022-04-01", 72.89), ("2022-10-01", 76.57),
+        ("2023-04-01", 79.62), ("2023-10-01", 82.23), ("2024-04-01", 82.93), ("2024-10-01", 84.52),
+        ("2025-04-01", 85.85), ("2025-07-01", 72.31), ("2025-10-01", 74.07), ("2026-04-01", 74.87),
+        ("2026-10-01", 76.16),
+    ),
+}
+
+
+def standing_charge_opex_per_year(fuel: str, term_start: str) -> float:
+    """The cap's nil-consumption opex for `fuel` in the period in force on `term_start`.
+
+    The period in force at the start, not a blend over the term: on the notice date that is the cap
+    a supplier can read. A start before the first period takes the first.
+    """
+    schedule = STANDING_CHARGE_OPEX_GBP_PER_YEAR[fuel]
+    allowance = schedule[0][1]
+    for starts, value in schedule:
+        if term_start[:10] >= starts:
+            allowance = value
+    return allowance
+
+
 def term_contribution_per_year(
     *, unit_rate_gbp_per_mwh: float, term_start: str, company_forward_per_mwh: float | None,
     locked_policy_cost_per_mwh: float | None, locked_network_cost_per_mwh: float | None,
-    company_eac_kwh: float, segment: str = "resi",
+    company_eac_kwh: float, fuel: str, segment: str = "resi",
 ) -> float | None:
     """What this leg contributes to us over a year: the unit rate over the term's own pre-margin
-    cost, on the company's volume, less a year's cost to serve the leg.
+    cost, on the company's volume, plus the standing charge's opex allowance, less a year's cost to
+    serve the leg.
 
     Not `unit_rate - forward`: that spread still carries the network, policy and capital costs the
-    rate passes through (§6.1, amended 2026-10-20). The standing charge is left out as a stated GAP
-    there, because the cap builds it to carry the network residual. `None` where the term does not
-    record its locked costs, so the leg is counted rather than priced on a guess. Every renewal
-    decision that weighs a margin reads this one function: C34 per month, the retention guard and
-    the missed-retention log per year.
+    rate passes through (§6.1, amended 2026-10-20). Of the standing charge only the opex row is
+    credited, because it is what the cap builds to recover the cost to serve netted here; the rest
+    is network residual, policy and smart-meter pass-through. Resi only: the domestic cap does not
+    cover other segments, and nothing in the commons decomposes their standing charge (a GAP).
+    `None` where the term does not record its locked costs, so the leg is counted rather than
+    priced on a guess. Every renewal decision that weighs a margin reads this one function: C34 per
+    month, the retention guard and the missed-retention log per year.
     """
     cost = pre_margin_unit_rate(company_forward_per_mwh, term_start,
                                 locked_policy_cost_per_mwh, locked_network_cost_per_mwh)
     if cost is None:
         return None
+    recovered = standing_charge_opex_per_year(fuel, term_start) if segment == "resi" else 0.0
     return ((unit_rate_gbp_per_mwh - cost) * company_eac_kwh / 1000.0
-            - FIXED_OVERHEAD_GBP_PER_YEAR[segment])
+            + recovered - FIXED_OVERHEAD_GBP_PER_YEAR[segment])
 
 
 def term_contribution_per_month(**term) -> float | None:

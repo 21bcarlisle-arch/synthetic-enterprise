@@ -3395,7 +3395,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     company_forward_per_mwh=term.get("company_forward_price_gbp_per_mwh"),
                     locked_policy_cost_per_mwh=term.get("locked_policy_cost_gbp_per_mwh"),
                     locked_network_cost_per_mwh=term.get("locked_network_cost_gbp_per_mwh"),
-                    company_eac_kwh=_account_state_row["company_eac_kwh"]),
+                    company_eac_kwh=_account_state_row["company_eac_kwh"], fuel=commodity),
                 renewal=_renewal_terms(commodity, term_start_str, _state_unit_rate,
                                        _account_state_row["company_eac_kwh"]))
         # C29: EVERY domestic leg the supplier bills is on the book `engagement_at` fits, not only
@@ -3593,7 +3593,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                             company_forward_per_mwh=term.get("company_forward_price_gbp_per_mwh"),
                             locked_policy_cost_per_mwh=term.get("locked_policy_cost_gbp_per_mwh"),
                             locked_network_cost_per_mwh=term.get("locked_network_cost_gbp_per_mwh"),
-                            company_eac_kwh=company_eac),
+                            company_eac_kwh=company_eac, fuel=commodity),
                         renewal_churn_belief=company_est_pre,
                         renewal=_renewal_terms(commodity, term_start_str, unit_rate, company_eac))
                 if company_est_pre > RETENTION_THRESHOLD:
@@ -3623,7 +3623,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                         company_forward_per_mwh=term.get("company_forward_price_gbp_per_mwh"),
                         locked_policy_cost_per_mwh=term.get("locked_policy_cost_gbp_per_mwh"),
                         locked_network_cost_per_mwh=term.get("locked_network_cost_gbp_per_mwh"),
-                        company_eac_kwh=eac_for_ret, segment=segment_for_churn)
+                        company_eac_kwh=eac_for_ret, fuel=commodity, segment=segment_for_churn)
                     # Phase 15b: include acquisition cost savings in the offer guard.
                     # If the customer churns, the company spends acq_cost on a replacement
                     # attempt (whether it wins or not). So the true value protected by
@@ -4157,7 +4157,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                                     "locked_policy_cost_gbp_per_mwh"),
                                 locked_network_cost_per_mwh=term.get(
                                     "locked_network_cost_gbp_per_mwh"),
-                                company_eac_kwh=eac_missed,
+                                company_eac_kwh=eac_missed, fuel=commodity,
                                 segment=(get_customer(billing_account) or {}).get(
                                     "segment", "resi")),
                             # THE DENOMINATOR OF A DISCOUNT (2026-08-28, roadmap R3). A retention
