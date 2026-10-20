@@ -19,3 +19,17 @@ The director's words, from chat on Tue 20 Oct:
 5. **Report** in one stretch-log entry: the budget figure and how it was derived, the census before and after, peak memory and wall time for each of the first runs, and the published figures it moves.
 
 — Director ruling, 20 Oct 2026, his words above; the drafting is the advisor's.
+
+## In hand (worker tick, 20 Oct 16:58Z). Do not start it again.
+
+- Step 2 is done. The row is answered (`director_concerns --answer`).
+- The budget is derived from the book at seed 20260724: 6,535.7 founder cy (689 records) plus the
+  campaign's 1,206.5 cy room gives 7,742.2. It ships at **7,700**.
+- **Step 1 waits on a curve.** `test_the_settlement_ceiling_does_not_outrun_the_measured_memory_curve`
+  prices the ceiling from the newest slope file. The 9 Oct curve supports about 6,857, so 7,700 cannot
+  land on it. The curve is re-taken at the new shape by `longjob-founder-households-ceiling-probe`
+  (points 7,000 and 7,700, worktree `/var/tmp/se-hh-probe`, log `/var/tmp/se-hh-probe-probe.log`,
+  about 4.7 h). The pre-registration and its decision rule are in
+  `docs/staging/records/SEAT_PREREG_THE_SETTLEMENT_CURVE_AT_400_FOUNDER_HOUSEHOLDS_AND_A_BUDGET_OF_7700_2026-10-20.md`.
+  When it completes: grade it, land the slope file together with `founder_unit: households` and the
+  budget, then do steps 3–5. The continuation `founder-households-switch-after-the-curve` carries this.
