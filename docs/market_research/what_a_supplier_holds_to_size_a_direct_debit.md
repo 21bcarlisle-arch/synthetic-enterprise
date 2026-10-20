@@ -395,6 +395,13 @@ require the balance to be recovered, and it sets no period. "Commonly" means som
    debit, SLC 27.8D (from 22 Jan 2021) gives the customer a right to offset the two. Whether the
    review itself nets them is not published: see
    `how_a_gb_domestic_book_splits_by_fuel_and_how_a_two_fuel_home_switches.md` §8b.
+4. **The household's response to a step-up.** The run builds the DD book after the world has run
+   (phase 4c). No household's churn, arrears or payment draw therefore reads a review's step-up.
+   The 2023 step-ups (median about £55 a month on the 19 Oct book, on top of the price rise)
+   are published but press back on nothing. The share of households that cancel a direct debit,
+   or leave, after a step-up of a given size has NOT been searched for yet. The company's measured cost of
+   seeking is therefore a lower bound (F11). Prediction for the first run that seeks:
+   `docs/staging/records/WORKER_PREREG_THE_DD_REVIEW_SEEKS_THE_BALANCE_BY_DEFAULT_2026-10-20.md`.
 
 **Built.** `company/billing/dd_review.py::REVIEW_SEEKS_BALANCE` (True from 2026-10-20. On the
 19 Oct published book, seeking cut barred-plus-open-exposure from £82.6k to £29.2k. The barred
