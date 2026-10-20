@@ -1,4 +1,4 @@
-**Severity:** LATENT · **Lane:** C_customer_ops · **Epoch:** 4 · **Atom:** `C34_next_best_action_is_one_decision_across_debt_retention_upsell_and_carbon_judged_by_clv`
+**Severity:** RECORDED · **Lane:** C_customer_ops · **Epoch:** 4 · **Atom:** `C34_next_best_action_is_one_decision_across_debt_retention_upsell_and_carbon_judged_by_clv`
 
 # C34's renewal margin is the all-in rate less the wholesale forward, so it is not a margin, and it is what put 11% of rows over the floor
 
@@ -83,3 +83,14 @@ the P2 band re-predicted before the run. The switch stays off until then.
     `records/SEAT_PREREG_C34_P2_ON_THE_TERMS_CONTRIBUTION_2026-10-20.md` (restated unchanged).
   The switch stays off until the second is read. Both runs are handed on as continuation
   `grade-the-contribution-margin-on-the-off-book-and-the-c34-arm`.
+
+## Disposition, 2026-10-20 (third): both grades read, LATENT → RECORDED
+
+- **The off book was graded in `42d4e8e3d`.** R1–R5 confirmed: offers 92 → 9.
+- **The C34 on arm is graded beside P2′** in
+  `records/SEAT_PREREG_C34_P2_ON_THE_TERMS_CONTRIBUTION_2026-10-20.md`. P2′a–d are all confirmed:
+  4 of 972 rows advised, median household contribution −GBP 3.91 a month, 85.8% negative, and 2 of
+  1,467 legs without a contribution.
+- **Nothing measurable is left on this finding.** The switch stays off, because it records only
+  and moves no money. The one open thread is the attribution of the book's −GBP 100,746 net-margin
+  move, and that belongs to the retention grade's C1/C2 control, not here.

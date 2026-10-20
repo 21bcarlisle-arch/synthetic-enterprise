@@ -54,3 +54,40 @@ A confirmation shows that C34's floor binds once it reads what the supplier keep
 show that advice is worthless. With the standing charge out, the contribution is a lower bound
 (F11). Whether a positive-sum action should be paired with a price that shares its value remains
 the director's question (M2).
+
+## Grade, 2026-10-20 14:40 BST — on arm at `c61d8b608`, full window, default seed
+
+Run: second leg of unit `longjob-retention-guard-contribution-grade-c61d8b608`, the same worktree
+and command as the graded off book with `next_best_action_decides_at_renewal` and
+`next_best_action_decides_per_household` on. Output `/var/tmp/se-ret-margin/on_arm.json`, log
+`/var/tmp/se-ret-margin/run.log` (second half).
+
+| | Predicted | `c61d8b608` on arm | Verdict |
+|---|---|---|---|
+| P2′a advised rows | 0–10 of ~978, ≤ 1% | **4 of 972 (0.41%)** | confirmed |
+| P2′b median household contribution | −GBP 10 to −GBP 2 /month | **−GBP 3.91** | confirmed |
+| P2′c households with a negative contribution | ≥ 60% | **85.8%** of 324 | confirmed |
+| P2′d legs without a contribution | ≤ 5% of rolls | **2 of 1,467 legs** (0 rolls, 2 riding legs) | confirmed |
+
+The four advised rows are two renewals, both 2023:
+- PROS-2022-0248, dual fuel, 2023-08-10: contribution GBP 34.5/month, the GBP 2/month give-up, value
+  change GBP 7.6.
+- PROS-2022-0400, electricity, 2023-12-21: the very large account the retention grade also named
+  (GBP 189.9/month). Three action rows were advised, value changes GBP 1.8 to GBP 55.0.
+
+Both are what the inputs section said would be the only ones: a large account, or a strike well
+above its cost.
+
+**The book is unmoved, to the penny.** Net margin is GBP 446,883.96 on both arms, and so are
+offers (9), retention spend and no-offer churns (66). That is the design: the switch records and
+sends nothing. It is also a placebo control on the off book's figure. The −GBP 100,746 move against
+the published book is not run noise, and attributing it is still owed to C1/C2 beside the retention
+grade. That control (`longjob-retention-guard-parent-control-6fe4282c0`, at `6fe4282c0`,
+`/var/tmp/se-ret-margin/parent_off.json`) launched 14:35 BST.
+
+**What this does and does not settle.** C34's floor binds once it reads what the supplier keeps
+(it advises 0.4% of rolls). With the standing charge left out, the contribution is a lower bound
+(F11), so "0.4%" is a floor on how often advice clears it, not an estimate. Switching it on would
+move no money, because it records only. That makes the switch a question of whether the log is
+worth its run time, not of value. The question that would move money stays the director's (M2):
+should a positive-sum action be paired with a price that shares its value?
