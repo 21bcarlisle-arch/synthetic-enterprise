@@ -4,7 +4,15 @@ The defect each leg names: an arm labelled "flat" that still sends retention off
 churn belief, or splits its letters by segment, measures per-customer PRICING inside a company
 that targets per customer in both arms -- the narrower claim
 `SEAT_FINDING_B11_THE_FLAT_SUPPLIER_ARM_HAS_NO_DOOR_ON_A_VARIED_BOOK_2026-10-16` found the value
-cycle's A/B was making. Field values alone cannot show it: the reachability leg runs the year.
+cycle's A/B was making. Field values alone cannot show it: the reachability leg runs the window.
+
+The reachability half is keyed to the CUT, not to an offer. Through 2016 the run holds three
+renewals, all below the churn threshold, so neither arm reached the guard and both read (0, 0)
+however the flat arm behaved. Since `c61d8b608` the guard prices the term's contribution, and
+current's offers depend on that economics. Whether a renewal past the threshold is given a cut
+does not. Through 2017, current gives 24 renewals a cut (23 churners withheld as uneconomical,
+one offer) and flat stops the same 23 at the cut (2026-10-20 measurement,
+`docs/staging/SEAT_FINDING_THE_FLAT_SUPPLIER_REACHABILITY_LEG_IS_KEYED_TO_THE_CUT_2026-10-20.md`).
 """
 from __future__ import annotations
 
@@ -24,7 +32,11 @@ from company.policy.decision_policy import (
 #: The fields that hold a per-customer view, and the name.
 PER_CUSTOMER_FIELDS = {"name", "retention_discount_mode", "flat_discount_pct", "retention_tiers",
                        "framing_mode", "tone_mode"}
-WINDOW_END = "2016-12-31"
+WINDOW_END = "2017-12-31"
+#: The withheld reasons a renewal can carry WITHOUT being given a cut. Any other reason was
+#: asked after the cut, so an unknown new reason counts against the flat arm.
+STOPPED_BEFORE_THE_CUT = {"below_threshold", "the_fix_has_no_room_above_its_cost_floor",
+                          "the_fix_already_meets_the_best_published_deal"}
 
 
 def _differing(a, b) -> set[str]:
@@ -64,13 +76,20 @@ def offers_by_arm():
     for policy in (CURRENT_POLICY, FLAT_SUPPLIER_POLICY):
         with policy_scope(policy):
             run = run_phase2b(report_end=WINDOW_END, policy=policy)
-        out[policy.name] = (len(run["retention_log"]), len(run["retention_cost_events"]))
+        reasons = [e.get("no_offer_reason") for e in run["no_offer_churn_log"]]
+        out[policy.name] = {
+            "offers": (len(run["retention_log"]), len(run["retention_cost_events"])),
+            "past_the_cut": sum(r not in STOPPED_BEFORE_THE_CUT for r in reasons),
+            "no_room": reasons.count("the_fix_has_no_room_above_its_cost_floor"),
+        }
     return out
 
 
 def test_a_run_under_the_flat_supplier_makes_no_retention_offer(offers_by_arm):
-    """DEFECT: the flat arm's fields are right and the run still offers, through a route the
-    fields do not reach. Current offers in the same window, so the zero is the policy's."""
-    offers, costs = offers_by_arm["current"]
-    assert offers > 0 and costs > 0, offers_by_arm
-    assert offers_by_arm["flat_supplier"] == (0, 0), offers_by_arm
+    """DEFECT: the flat arm's fields are right and the run still offers, or still sizes a cut,
+    through a route the fields do not reach. Current gives renewals a cut in the same window, and
+    flat stops some at the cut, so the zero is the policy's and both branches were taken."""
+    current, flat = offers_by_arm["current"], offers_by_arm["flat_supplier"]
+    assert current["offers"][0] + current["past_the_cut"] > 0, offers_by_arm
+    assert flat["no_room"] > 0, offers_by_arm
+    assert flat["offers"] == (0, 0) and flat["past_the_cut"] == 0, offers_by_arm
