@@ -1317,6 +1317,29 @@ def _take_household_save_carry(carry: dict, cid: str, term_start_str: str, unit_
     return billed_rate_when_saved(unit_rate, carried)
 
 
+def _renewal_terms(commodity: str, term_start_str: str, unit_rate: float,
+                   company_eac_kwh: float | None):
+    """C35'S ROOM AT THE NOTICE (2026-10-20, §6.1 "C35 at the renewal notice"): the fix as offered,
+    the published default for this fuel on the start (ex VAT, the price match's reading) and the
+    company's own annual volume. A rise above the headroom between them sends a stayer to the
+    default. None where no default was published (before 2019) or no volume is held: unknown, not
+    zero."""
+    from company.interfaces.renewal_advice import RenewalTerms
+
+    return RenewalTerms(unit_rate, published_default_rate_ex_vat(commodity, term_start_str),
+                        None if not company_eac_kwh else company_eac_kwh / 1000.0)
+
+
+def _refuse_a_rise_with_no_caller(policy) -> None:
+    """The rise is priced only by C34's desk at the notice. Asked for without it, no engine path
+    would price one and the run would read as if the rise had been tried."""
+    if policy.next_best_action_shares_by_retention_rise and not policy.next_best_action_decides_at_renewal:
+        raise ValueError(
+            "next_best_action_shares_by_retention_rise is priced at the renewal notice by C34's desk, "
+            "and this policy leaves next_best_action_decides_at_renewal off, so no rise would be "
+            "priced: switch both on, or neither")
+
+
 def _account_state_svt_rate(commodity: str, term_start_str: str) -> float | None:
     """The default-tariff rate the account-state record carries for THIS leg's fuel.
 
@@ -2737,6 +2760,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         term_contribution_per_year,
     )
     _renewal_advice = None
+    _refuse_a_rise_with_no_caller(policy)
     if policy.next_best_action_decides_at_renewal:
         _renewal_advice = RenewalAdviceDesk(policy)
     # What the value test would have said where the 10-10 gate refused first. Read by nothing in
@@ -3371,7 +3395,9 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     company_forward_per_mwh=term.get("company_forward_price_gbp_per_mwh"),
                     locked_policy_cost_per_mwh=term.get("locked_policy_cost_gbp_per_mwh"),
                     locked_network_cost_per_mwh=term.get("locked_network_cost_gbp_per_mwh"),
-                    company_eac_kwh=_account_state_row["company_eac_kwh"]))
+                    company_eac_kwh=_account_state_row["company_eac_kwh"]),
+                renewal=_renewal_terms(commodity, term_start_str, _state_unit_rate,
+                                       _account_state_row["company_eac_kwh"]))
         # C29: EVERY domestic leg the supplier bills is on the book `engagement_at` fits, not only
         # the ones that reached a renewal offer. Enrolled at the offer instead, a household that
         # rolled to the default was never asked for and the book held only choosers: every
@@ -3568,7 +3594,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                             locked_policy_cost_per_mwh=term.get("locked_policy_cost_gbp_per_mwh"),
                             locked_network_cost_per_mwh=term.get("locked_network_cost_gbp_per_mwh"),
                             company_eac_kwh=company_eac),
-                        renewal_churn_belief=company_est_pre)
+                        renewal_churn_belief=company_est_pre,
+                        renewal=_renewal_terms(commodity, term_start_str, unit_rate, company_eac))
                 if company_est_pre > RETENTION_THRESHOLD:
                     eac_for_ret = company_eac  # Phase 23a: use company estimate
                     # B8 Q5: sized against the best published deal on the day, as the save is, or

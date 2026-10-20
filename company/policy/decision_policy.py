@@ -221,8 +221,9 @@ class DecisionPolicy:
     #: C35 (2026-10-17): at a renewal, an advice action that costs us may travel with the smallest
     #: monthly rise on the Fixed Retention Tariff that brings our side to zero, capped by the
     #: headroom under the published default (`company.crm.next_best_action.price_retention_rise`).
-    #: Off on every standing policy; switching it on is its own one-variable item after the 19 Oct
-    #: publish.
+    #: Off on every standing policy. Its engine caller (2026-10-20) is C34's desk at the renewal
+    #: notice, which carries each leg's room under the default; the run refuses it on without
+    #: `next_best_action_decides_at_renewal`, which would leave nothing to price it.
     next_best_action_shares_by_retention_rise: bool = False
 
     #: (2026-10-18) C34/C35 decide once per billing account, over both legs, where a dual-fuel
@@ -230,8 +231,9 @@ class DecisionPolicy:
     #: states_for_decision`). A household leaves with both fuels about nine times in ten
     #: (`how_a_gb_domestic_book_splits_by_fuel_and_how_a_two_fuel_home_switches.md` §4, §8), so a
     #: per-leg decision charges one household's advice and its rise twice. On for every standing
-    #: policy since 2026-10-19. No engine path decides C34/C35 yet, so this moves no run. It is on so
-    #: that the first caller wired in, and any rise switched on through it, decides per household
+    #: policy since 2026-10-19. It moves no run on a standing policy, because the only engine path
+    #: (C34's desk, and C35's rise through it) is off there. It is on so that the caller, and any
+    #: rise switched on through it, decides per household
     #: (SEAT_PREREG_SWITCHING_NBA_PER_HOUSEHOLD_ON_THE_STANDING_POLICY_CHANGES_NO_DECISION_IN_ANY_RUN).
     next_best_action_decides_per_household: bool = True
 

@@ -515,6 +515,40 @@ choices, and each one is ours:
   is unchanged to the byte. On, it adds one list to the run output.
 - **A household that leaves at the roll never prices its other leg, so it is decided on one leg.**
   The world prices the second leg only after the roll. The row says how many legs it carries.
+
+**C35 at the renewal notice (amended 2026-10-20, K8 for C35's engine caller).** The rise on the fix
+(`next_best_action.price_retention_rise`; `a_retention_price_that_shares_the_value_an_action_creates.md`
+§4c) is priced at the same notice by the same desk, behind the rise's own switch,
+`DecisionPolicy.next_best_action_shares_by_retention_rise` (default False). The design makes five
+choices, and each one is ours:
+- **No second margin.** The rise is priced against the margin C34 already decides on: the term's
+  contribution above, through the run's one helper. A margin of its own would be a fifth
+  implementation of one quantity.
+- **What the notice adds is the room under the default.** Each leg carries its renewal terms: the
+  fix as offered (ex VAT), the published default for its fuel on the start date (ex VAT, the price
+  match's reading), and the company's own annual volume. The headroom is
+  (default − offer) × volume / 12. A stayer offered a fix dearer than the default takes the default
+  instead (§4a of that page). So the rise cannot exceed this headroom.
+- **A dual household's room is both legs'.** One notice may carry both fuels (SLC 31I.5(b)). The
+  rise is the household's, so its room is the sum of each leg's headroom under its own fuel's
+  default (`HouseholdRenewalTerms`). It is unknown if either leg's is unknown. The gas leg's
+  margin already rides with the household (C34 above). C35 adds its headroom.
+- **Before 2019 the rise is refused, and the row says so.** No per-fuel default was published
+  before the cap of 1 January 2019, so the headroom is unknown. It is not zero, and it is not the
+  standard variable tariff. The rise is refused with that reason.
+- **The rise switch on with C34's caller off is refused by the run.** Otherwise it would be
+  ignored, with no engine path and no byte moved.
+
+**Measured before the build (2026-10-20), on the input only.** On the 19 Oct published book
+(`run_output_ad8afadc5`), the headroom of fixed terms under the published default ex VAT has a
+per-leg median of about GBP 8–9/month in 2019–2020, and 86–100% of legs have at least GBP 2. It
+falls to about 0–2 in 2021–2022 and recovers to about 3–9 from 2023. The rise our side needs on the
+corrected contribution (about −GBP 4/month per leg) is about the advice's own give-up, GBP 2–3.3
+a month. So the room binds in 2021–2022 and mostly does not in 2019–2020.
+
+GAP, unchanged: the headroom counts the unit rate only. The fix's standing charge against the
+default's is not compared, for the same reason the contribution leaves it out.
+
 GAP: no published source gives how a supplier's advice at the renewal notice moves P(stay) or what it
 gives up. This is §7 gap 1, unchanged.
 
