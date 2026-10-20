@@ -432,6 +432,16 @@ def build_dd_balance_book(
     rate. See the module docstring for the wall-clean basis
     and the exact consistency with ``dd_collection_book`` / ``dd_review_runner``.
     """
+    # `own_forecast_plus_balance` already adds the balance it finds to the debit it sets
+    # (`reviewed_standing`'s `balance_to_clear_gbp`), so a review that also stepped the debit up by
+    # a twelfth of the balance would recover it twice. Left to the company's switch, that rule's
+    # review does not seek separately; asked for explicitly, the pair is refused.
+    if review_rule == "own_forecast_plus_balance":
+        if seek_balance_at_review:
+            raise ValueError(
+                "seek_balance_at_review=True with review_rule='own_forecast_plus_balance' would "
+                "recover the review's debit balance twice: that rule already adds it to the debit")
+        seek_balance_at_review = False
     args = (bills, opening_dd_gbp, closed_ids, seek_balance_at_review, review_rule, term_records,
             term_forwards)
     if offsets_dual_fuel_legs:
