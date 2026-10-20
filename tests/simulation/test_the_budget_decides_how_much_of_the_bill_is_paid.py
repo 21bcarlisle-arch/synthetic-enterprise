@@ -3,6 +3,7 @@
 Design: `docs/market_research/household_budget_w2_4.md`, "2026-10-16: design for the next build".
 Each control names the defect it catches."""
 from datetime import date
+from pathlib import Path
 
 import pytest
 
@@ -27,8 +28,20 @@ def _ids_by_margin(year, n=4000):
     return under, short, comfortable
 
 
-def test_the_switch_ships_off_defect_a_world_change_landed_before_its_paired_grade():
-    assert hb.BUDGET_DECIDES_PAYMENT is False
+_TWO_SEED_GRADE = ("docs/staging/records/"
+                   "SEAT_RESULT_THE_SHARED_SHORTFALL_HOLDS_ON_A_SECOND_DICE_SEED_2026-10-20.md")
+
+
+def test_a_switch_defaults_on_only_beside_its_graded_result_defect_a_world_change_landed_before_its_paired_grade():
+    """A default-on switch names the graded result that moved it, and that result is in the tree.
+    Keyed to the property, not to today's value: a switch off needs nothing, and one on without its
+    grade reds."""
+    source = Path(hb.__file__).read_text()
+    root = Path(hb.__file__).resolve().parents[1]
+    for name in ("BUDGET_DECIDES_PAYMENT", "ENERGY_SHARES_THE_SHORTFALL"):
+        if getattr(hb, name):
+            assert (root / _TWO_SEED_GRADE).is_file(), name
+            assert _TWO_SEED_GRADE.rsplit("/", 1)[1] in source, name
 
 
 def test_the_floor_leaves_energy_out_defect_energy_counted_in_the_floor_and_again_as_the_bill():
@@ -90,9 +103,10 @@ def test_every_branch_of_the_book_is_reachable_defect_a_book_that_pays_everythin
 
 
 def test_a_household_under_water_misses_month_after_month_defect_one_miss_then_resume():
+    # The basket-first arm: energy takes the whole shortfall. Shared, it pays part (its own test).
     under, short, _ = _ids_by_margin(2022)
     cid = under[0]
-    book = hb.BudgetPaymentBook()
+    book = hb.BudgetPaymentBook(energy_shares_the_shortfall=False)
     results = [book.settle_month(supply_point=cid, household=household_of(cid), year=2022,
                                  amount_gbp=120.0, legs=1, ref=m)[0] for m in range(12)]
     assert results.count(False) >= 11, results
@@ -108,9 +122,10 @@ def test_a_comfortable_household_pays_every_bill_defect_the_budget_fails_everyon
 
 
 def test_arrears_clear_oldest_first_defect_a_newer_bill_paid_while_an_older_one_ages():
+    # Basket-first, so the three large bills all stay unpaid until the small ones begin.
     under, short, _ = _ids_by_margin(2022)
     cid = short[0]
-    book = hb.BudgetPaymentBook()
+    book = hb.BudgetPaymentBook(energy_shares_the_shortfall=False)
     for r in (1, 2, 3):
         assert not book.settle_month(supply_point=cid, household=household_of(cid), year=2022,
                                      amount_gbp=500.0, legs=1, ref=r)[0]
@@ -122,6 +137,20 @@ def test_arrears_clear_oldest_first_defect_a_newer_bill_paid_while_an_older_one_
             break
     assert earlier[:1] == (1,), earlier
     assert list(earlier) == sorted(earlier)
+
+
+@pytest.mark.parametrize("shares", (False, True))
+def test_every_bill_clears_in_date_order_in_both_arms_defect_a_newer_bill_paid_first(shares):
+    under, short, _ = _ids_by_margin(2022)
+    cid = short[0]
+    book = hb.BudgetPaymentBook(energy_shares_the_shortfall=shares)
+    order = []
+    for r, amount in enumerate((500.0, 500.0, 500.0) + (1.0,) * 40, start=1):
+        paid, earlier = book.settle_month(supply_point=cid, household=household_of(cid),
+                                          year=2022, amount_gbp=amount, legs=1, ref=r)
+        order += list(earlier) + ([r] if paid else [])
+    assert order[:3] == [1, 2, 3], order
+    assert order == sorted(order), order
 
 
 def _triad_book(monkeypatch, on):
@@ -246,9 +275,10 @@ def _unpaid_after_a_year(cid, shares, amount=60.0):
     return len(book.unpaid_of(cid)), cleared
 
 
-def test_the_shared_shortfall_ships_off_defect_a_world_change_landed_before_its_paired_grade():
-    assert hb.ENERGY_SHARES_THE_SHORTFALL is False
-    assert hb.BudgetPaymentBook()._shares is False
+def test_the_book_follows_the_module_switch_defect_a_book_that_ignores_the_default(monkeypatch):
+    for on in (True, False):
+        monkeypatch.setattr(hb, "ENERGY_SHARES_THE_SHORTFALL", on)
+        assert hb.BudgetPaymentBook()._shares is on
 
 
 def test_sharing_the_shortfall_pays_part_of_each_bill_defect_a_branch_no_household_reaches():

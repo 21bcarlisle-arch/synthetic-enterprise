@@ -585,6 +585,10 @@ def test_R15_MUTANT_an_unexercised_channel_reports_undefined_not_zero(monkeypatc
     later settlements switched off."""
     monkeypatch.setattr(lpt, "generate_payment_method", lambda cid, fuel=None: "direct_debit")
     monkeypatch.setattr(lpt, "later_settlement_date", lambda *a, **k: None)
+    # Since 2026-10-20 the household budget clears earlier unpaid bills too, by the same kind of
+    # unreferenced push payment, so it is switched off for the same reason.
+    import simulation.household_budget as hb
+    monkeypatch.setattr(hb, "BUDGET_DECIDES_PAYMENT", False)
     attr = _build_triad().measure()["remittance_attribution"]
 
     assert attr["n_ambiguous_credits"] == 0
@@ -1703,7 +1707,7 @@ def test_q3_MUTATION_the_company_REFUSES_an_acknowledgement_it_never_asked_for()
     assert triad._consumer.observe_interim(genuine) is False
 
 
-def test_q3_EVERY_PUBLISHED_FIGURE_IS_UNCHANGED_BY_THE_NEW_LEGS():
+def test_q3_EVERY_PUBLISHED_FIGURE_IS_UNCHANGED_BY_THE_NEW_LEGS(monkeypatch):
     """THE HONEST HEADLINE, measured rather than hedged. The request and interim
     legs buy STRUCTURE and a new detectable; they must not move a belief. An
     acknowledgement resolves nothing, so a version of this that shifted a
@@ -1735,15 +1739,29 @@ def test_q3_EVERY_PUBLISHED_FIGURE_IS_UNCHANGED_BY_THE_NEW_LEGS():
 
     RE-PINNED 2026-10-09 FOR A FIFTH WORLD CHANGE: the never-repaid share is by payment method
     (Centrica's provision on live balances past 90 days: DD 7.4%), not the debt-blocked cohort's 0.5.
-    Only ageing moves (0.3857259762 -> 0.351584462); a flat 0.5 reproduces it exactly."""
+    Only ageing moves (0.3857259762 -> 0.351584462); a flat 0.5 reproduces it exactly.
+
+    RE-PINNED 2026-10-20 FOR A SIXTH WORLD CHANGE: the household budget decides whether a bill can be
+    paid, and the shortfall is shared with the basket (simulation/household_budget.py, both switches
+    on after a two-seed grade). With BUDGET_DECIDES_PAYMENT off, this test reproduces the
+    2026-10-09 values exactly. Every block after the first holds that, so the budget is off below."""
     triad = _build_triad()
     result = triad.measure()
     assert result is not None
-    assert round(result["detection"].gap, 10) == 0.0192307692  # was 0.009375: DD failure level sourced
-    assert round(result["detection_latency"].gap, 6) == 1.717391  # was 1.549839: same cause
-    assert round(result["belief"].gap, 10) == 0.0615384615  # was 0.0666666667: same cause
-    assert round(result["belief_population_mix"].gap, 10) == 0.0533333333  # was 0.1066666667: same cause
-    assert round(result["ageing"].gap, 10) == 0.351584462  # was 0.3857259762: share by method
+    assert round(result["detection"].gap, 10) == 0.0194444444  # was 0.0192307692: the budget decides
+    assert round(result["detection_latency"].gap, 6) == 1.716981  # was 1.717391: same cause
+    assert round(result["belief"].gap, 10) == 0.0597014925  # was 0.0615384615: same cause
+    assert round(result["belief_population_mix"].gap, 10) == 0.0533333333
+    assert round(result["ageing"].gap, 10) == 0.3538416076  # was 0.351584462: same cause
+
+    import simulation.household_budget as hb
+    monkeypatch.setattr(hb, "BUDGET_DECIDES_PAYMENT", False)
+    no_budget = _build_triad().measure()
+    assert round(no_budget["detection"].gap, 10) == 0.0192307692
+    assert round(no_budget["detection_latency"].gap, 6) == 1.717391
+    assert round(no_budget["belief"].gap, 10) == 0.0615384615
+    assert round(no_budget["belief_population_mix"].gap, 10) == 0.0533333333
+    assert round(no_budget["ageing"].gap, 10) == 0.351584462
 
     from simulation import payment_behaviour_source as pbs
     with pytest.MonkeyPatch.context() as mp:

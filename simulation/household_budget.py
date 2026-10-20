@@ -439,9 +439,10 @@ _BENEFIT_PATH_FACTOR: Dict[int, float] = {
 # exceeding income. Named so a run can be read with the path off, never blended silently.
 BENEFIT_PATH_DECILES: Tuple[int, ...] = (1, 2)
 
-# The switch. Off: no payment path reads this module and the world is unchanged. A fidelity change,
-# graded on a fixed-seed paired run at one sha before its default moves.
-BUDGET_DECIDES_PAYMENT = False
+# The switch. Off: no payment path reads this module and the world is unchanged. On by default since
+# 2026-10-20, when it was graded on two dice seeds of a fixed-seed paired run
+# (docs/staging/records/SEAT_RESULT_THE_SHARED_SHORTFALL_HOLDS_ON_A_SECOND_DICE_SEED_2026-10-20.md).
+BUDGET_DECIDES_PAYMENT = True
 
 
 def _factor(table: Mapping[int, float], year: int) -> float:
@@ -513,8 +514,10 @@ def margin_in_year(budget: HouseholdBudget, year: int,
 # between the basket and what is owed on energy in proportion to their sizes, so each is short by
 # the same fraction. No new number: the split is the two amounts themselves. GAP: no source says
 # how a pound of shortfall divides between going without and arrears; pro rata is the
-# no-priority stance between the two, not a measured one.
-ENERGY_SHARES_THE_SHORTFALL = False
+# no-priority stance between the two, not a measured one. On by default since 2026-10-20, on the
+# same two-seed grade as BUDGET_DECIDES_PAYMENT; basket-first left a +1 to +2.7 point pre-crisis
+# excess on both seeds.
+ENERGY_SHARES_THE_SHORTFALL = True
 
 
 class BudgetPaymentBook:

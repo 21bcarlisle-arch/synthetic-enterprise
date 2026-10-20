@@ -212,4 +212,9 @@ def test_a_live_run_cures_some_unpaid_bills_and_leaves_others_unpaid(_live_run):
     later = [r for r in cured if r not in re_presented]
     assert re_presented and later, (len(re_presented), len(later))
     assert all(r.payment_method == DIRECT_DEBIT for r in re_presented)
-    assert all(r.settled_on > r.due_date + timedelta(days=28) for r in later)
+    # Re-keyed 2026-10-20: the household budget also clears an unpaid bill, on a LATER bill's due
+    # date for the same supply point, which can be exactly 28 days on (a February bill).
+    due_dates = {(r.customer_id, r.due_date) for r in _live_run["_triad_records"]}
+    assert all(r.settled_on > r.due_date + timedelta(days=28)
+               or (r.settled_on > r.due_date and (r.customer_id, r.settled_on) in due_dates)
+               for r in later)

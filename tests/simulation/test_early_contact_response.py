@@ -73,6 +73,11 @@ def test_the_store_finds_only_a_difficulty_contact_inside_the_window():
 
 def _contacted_book(monkeypatch, share, contact):
     monkeypatch.setattr(cr, "EARLY_CONTACT_SHARE", share)
+    # The contact replaces the later-settlement lump. The household budget clears an unpaid bill
+    # from a later month's money, which is a different route with its own controls
+    # (tests/simulation/test_the_budget_decides_how_much_of_the_bill_is_paid.py), so it is off here.
+    import simulation.household_budget as hb
+    monkeypatch.setattr(hb, "BUDGET_DECIDES_PAYMENT", False)
     triad = LivePaymentTriad()
     triad.contacts_received = ContactsReceived()
     failed = []
