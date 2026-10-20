@@ -36,6 +36,27 @@ paired with each other and not with seed 1's arms. The grader's control
 to argv) was run first on `world2_off`, `world4` and `world5`. It re-printed seed 1 exactly: basket
 U1 23% and £828; shared U1 6%, £244, and an excess of +0.9 at most in 2016-2021.
 
+## Why the arms did not start until 12:58 (added 2026-10-20, before any arm finished)
+
+The driver was started twice from a seat-executor turn: at 09:19 and again at 09:27, each time with
+`setsid nohup`. Neither attempt reached admission. Both times the driver was alive at the turn's last
+look, still inside `launch_long_job` with nothing in its log. The 09:27 attempt was seen alive at
+09:30:41. At 09:30:56 `seat-executor.service` finished, and the unit runs with
+`KillMode=control-group`. **`setsid` makes a new session, not a new cgroup**, so systemd's teardown
+killed the driver and its launcher. No `longjob-` unit was ever made, so the launch register got no
+row. The scratch worktree `/var/tmp/budget-seed2` had not been locked, and it was gone by 12:57.
+Even if the driver had survived, its next arm would have been refused for a missing workdir.
+
+The fix is to start the driver as a transient user unit of its own (`systemd-run --user
+--unit=budget-seed2-driver …`), and to recreate the worktree at `5a2468fdf` and lock it. The off arm
+was admitted at once (14.8 of 23.0 GB) and launched as `longjob-budget-seed2-off` at 11:58Z. Its
+cgroup is verified separate from the launcher's. The register row reads live. Shared and basket
+follow serially.
+
+**The prediction is still blind.** No arm of this seed had run, let alone finished, when the bands
+below were written or when this note was added. Not one seed-2 output existed until the off arm
+writes `seed2_off.json`.
+
 ## Predictions (bands copied from the one-seed grade)
 
 Shared arm, against off on the same seed:
