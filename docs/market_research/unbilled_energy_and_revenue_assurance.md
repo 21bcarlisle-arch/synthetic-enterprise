@@ -404,6 +404,55 @@ moves above 1 without any read being forced. The 130 legs that closed on an actu
 less than £1 each: their CoS read is the true advance, up to the read's own rounding. If any of
 those 130 moves by more, the span's opening read is mis-located.
 
+**Re-read before building (worker, 20 Oct): choice 1 cannot be built as written, and the stake has
+shrunk.**
+
+*Choice 1 collides with the bill.* The bill is built from the same settlement rows that the margin
+sums. `saas/bill_generator.generate_bill` takes the commodity amount as `sum(revenue_gbp) −
+sum(standing_charge_gbp)` and the use as `sum(consumption_kwh)`. An estimated bill reuses that
+true bill's unit rate (`company/billing/monthly_bill_assembly.py`, `true_bill`). Bills are
+assembled only after the run: in phase 4c (`simulation/run_phase4c_on_phase2b.build_monthly_bills`),
+and again by `tools/generate_billing_ledger` from the run output. Neither can see a scaled row as
+anything but the household's use. So the two ways of scaling a row both fail:
+
+- **Scale `consumption_kwh` and the money together.** The bill's "true" side then becomes the CoS
+  read, and the true-versus-billed gap a revenue-assurance screen measures (D48) goes to zero
+  by construction. `simulate_read` is also handed the scaled kWh.
+- **Scale the money and keep `consumption_kwh`.** The bill's unit rate falls by the scale, and an
+  estimated final bill is billed at the wrong rate.
+
+A third problem: the CoS read is only known once the bill run has decided that the last read is
+estimated. That run is the company's `final_read_for` call, made after the run, so the world cannot
+scale anything while it settles.
+
+*The build shape this implies.* The rows stay true; that is the household's use, and the bill
+reads it. The world adds the settlement view **beside** the rows: a per-leg
+`cos_read_settlement` entry written in phase 4c once the bills exist. It holds the span (the
+trailing estimated run), the billed kWh, the true kWh, the scale, and the change in settled margin.
+The settled change is the scale minus 1, times the span's volume-proportional margin: revenue less
+the standing charge, less wholesale, policy and network costs. The capital cost and the hedge P&L
+are left out, because a forward's P&L is on its own notional, not on the customer's settled
+volume. Margin readers (`saas/reporting/annual_report.py`, and the defect-4 sweep's gross) then
+add the entry. This choice is new here and replaces choice 1's "scale every volume field of each
+settled row".
+
+*The stake, measured on the current base.* By `tools.closing_estimate_run_money.summarise` on
+`run_output_59e1658d6_20261019T200818Z.json`, the unpublished book carrying 6208ea6dd (C7's own
+registry EAC, leg (d)), the open estimate-closed runs over all 574 closing supply points are:
+
+| | undercharge | overcharge | net (true − billed) |
+|---|---|---|---|
+| electricity | £2,022 / 10,431 kWh (118) | −£1,698 / −9,664 kWh (101) | £324 / 767 kWh |
+| gas | £1,612 / 43,016 kWh (99) | −£2,131 / −36,946 kWh (68) | −£519 / 6,070 kWh |
+
+On 8b6fea024, the electricity undercharge was £6,957 and 45,998 kWh. C7 accounted for about
+£4,900 of that, and leg (d) has removed it. **The revised prediction replaces the −£4,600 above:**
+on a book carrying 6208ea6dd, the settlement view moves the whole book's settled margin by under
+£1,000 in absolute value over the decade. That is under 0.2% of its £555,900 net, and no account
+year changes sign against the defect-4 gate. So leg (b) is now a fix to what the margin means, worth
+little money. It no longer blocks the publish or lane D. It waits behind leg (c) and is not built in
+this turn.
+
 ### K7 Smart meter read failures
 
 - See K2: ~10% of installed smart meters not in smart mode end-2024; domestic traditional-mode

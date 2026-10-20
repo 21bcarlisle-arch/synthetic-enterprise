@@ -264,3 +264,26 @@ deleted as tidying once the 26 Oct publish lands. They are inert from then on.
 **Next leg: (c)**, regenerating the stale C7–C9 HH files (`hh_load_shape_clustering_2026.md` §8,
 prediction on that page). It is not started in this turn. (b) stays open behind its K6 page.
 (d) no longer blocks: C7 was 67% of the open undercharge, and it now bills at true.
+
+### Leg (b) re-read before its build: it no longer blocks, and choice 1 cannot be built as written (worker, 20 Oct)
+
+Drawn as the W2_36 build. Before building, I checked K6's choice 1 against the code. It cannot be
+built as written: the bill is built from the same settlement rows that the margin sums
+(`saas/bill_generator.generate_bill` reads `revenue_gbp` and `consumption_kwh`). Scaling those
+rows either zeroes the true-versus-billed gap or bills the estimate at the wrong unit rate. The CoS
+read is also known only after the bill run. K6 now carries the replacement design: rows stay true,
+and phase 4c writes a per-leg `cos_read_settlement` entry beside them that margin readers add.
+
+On the current base the money is small. On 59e1658d6 (carrying leg (d)), the open estimate-closed
+runs net £324 / 767 kWh on electricity and −£519 / 6,070 kWh on gas. On 8b6fea024 the electricity
+undercharge was £6,957; on 59e1658d6 it is £2,022, and C7 was most of the difference. The
+replacement prediction is on the K6 page: under £1,000 of settled margin over the decade, and no
+defect-4 account-year changes sign.
+
+**What this means for the severity.** The BLOCKING cause, C7 inverting and refusing the publish, is
+answered by leg (d), graded held on 59e1658d6. Its rows are excused until the 26 Oct publish carries
+6208ea6dd, and the excuse lapses by itself then. What is left is (c), which regenerates the stale
+HH files, and (b), which is a fix to what the margin means. Neither stops a publish. I have not
+changed the severity header myself, because the drain reads it. The recommendation is to re-file
+this as NORMAL once the 26 Oct publish lands green with the C7 rows inert, and to keep (b) and (c)
+as their own items. Next in order: (c), then (b) on the K6 design.
