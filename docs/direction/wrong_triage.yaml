@@ -422,3 +422,15 @@ items:
       (seat_commit_not_on_origin). A killed seat with nothing committed loses nothing. There has been one instance,
       19855ded on 16 Oct, and twelve stretches since with none. Accepted 2026-10-20 by the delivery seat; reopen
       on a second stranded seat commit the brief fails to name.'
+  - id: a-policy-scope-refusal-names-both-policies-current
+    problem: The C34 on arm died at run_phase2b's policy_scope guard, and the refusal named both policies 'current', so it read as contradicting itself.
+    match:
+    - policy_scope guard
+    - names both policies 'current'
+    first_seen: '2026-10-19'
+    fate: accept
+    owner: ''
+    reason: 'The guard fired correctly. r4, wrapped in policy_scope(arm), ran to exit 0 and wrote on_arm.json at
+      2026-10-20 01:14Z, and the cause is recorded in the C34 prereg''s correction paragraph (a7a32f337). Only an arm
+      script written by hand meets the wording, and the fix costs a full gated run_phase2b cycle. Accepted 2026-10-20
+      by the delivery seat; reopen as fix on a second arm that dies on it.'
