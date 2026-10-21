@@ -655,3 +655,127 @@ still in `/var/tmp/se-baddebt-off-out/`.
 
 **Status:** OPEN and BLOCKING, on the level alone. Attribution is done. The next grade is the
 published copy of the switch-on run, with the `_TENTH_OF_REAL` reason re-worded in that commit.
+
+## 2026-10-21 (night): the 2.5x shortfall is arrears volume, not provision rate. The next step is the world's (W2_38)
+
+Read only. Both arms are at ec7fd9942, read through `tools/run_output_store.load_run_output`. The switch-on
+run is the archived copy `docs/reports/run_output_ec7fd9942_20261020T213420Z.json`. The shared tree's
+plain `run_output_latest.json` has moved on to 8e99f83cd since the 10-21 grade. The switches-off arm
+is `/var/tmp/se-baddebt-off-out/off.json`. The charge is `_ifrs9_charge_series`'s own: the movement in
+year-end stock, plus write-offs, less recoveries.
+
+**Quarter-ends are not readable.** `company_provision.by_date` publishes year-ends only (ten dates,
+plus a closing at 2025-06-07). So everything below is at 31 December. A quarterly split needs the run
+to publish the stock quarterly, and no published run does.
+
+### (ii) The rate: the company applies one matrix in every year
+
+On every date in both arms the company provides at Centrica's **2025** Note 17 rates. Live DD is
+0/0/0%. Pay on receipt (PoR) is 4.5/15.1/50.3% for <30/30-90/>90 days. Final bill is 31.6/57.6/87.8%.
+The published rates moved (`bad_debt_provisioning.md` §3.1). PoR >90 was 52.6% in 2021, **62.9%** in
+2022 and **63.4%** in 2023. DD >90 was **34.8%** in 2022, an outlier that the page says not to read
+as a matrix rate. Final >90 was 79.5% and then 85.8%. So the rate leg is a real defect: the crisis
+years are provided at the post-crisis rates.
+
+**How much it matters.** I re-provided the company's own balances, band by band, at each year's
+published rates (2019-2025 columns), with write-offs unchanged:
+
+| on arm | stock, own rates | stock, published rates | charge, own | charge, published rates | % revenue, own | % revenue, published |
+|---|---|---|---|---|---|---|
+| 2021 | 646 | 677 | 262 | 352 | 0.15% | 0.20% |
+| 2022 | 2,380 | 2,316 | 1,825 | 1,729 | 0.53% | 0.50% |
+| 2023 | 3,869 | 4,276 | 1,529 | 1,999 | 0.31% | 0.40% |
+| 2024 | 2,931 | 2,994 | -380 | -723 | -0.12% | -0.23% |
+
+**On the 2022-23 window this moves the charge from 0.400% to 0.445% of revenue, a factor of 1.11.**
+2022's DD rate cannot bite, because no live DD balance in either arm is ever 30 days old (see (i)).
+**Upper bound:** Centrica's macroeconomic overlay was 7%, 22% and 21% of its closing provision in
+2021, 2022 and 2023 (§3.2: 30/426, 125/567, 175/850). Whether that overlay already sits inside the
+band rates is not disclosed, which is the page's own GAP. If I add the whole overlay on top of the
+published rates anyway, the window comes to **0.544%, a factor of 1.36**. Even that is still under
+the 1% floor.
+
+### (i) The volume: the arrears are the right size and the wrong age and kind
+
+The company's book against Centrica's, both as a share of revenue. Centrica's denominator is
+derived as charge divided by its published charge-%-of-revenue (234/2.1%, 396/2.7%), so it is UK
+energy-supply revenue against a UK and Ireland residential roll-forward. These are derived,
+indicative figures.
+
+| 31 Dec | gross receivable / revenue | provision stock / revenue | final-bill (closed) balance / revenue | PoR >90d / PoR balance | live DD aged >=30d |
+|---|---|---|---|---|---|
+| Centrica 2022 | 8.9% | **5.1%** | **1.8%** | ~60% (implied by its 41.7% PoR coverage) | GBP 66m >90d, 20% of DD gross |
+| company on, 2022 | 8.8% | 0.69% | **0.01%** | **8.8%** | **0** |
+| Centrica 2023 | 11.3% | **5.8%** | **1.9%** | ~75% (50.9% coverage) | 4.1% coverage, GBP not split |
+| company on, 2023 | 4.5% | 0.78% | **0.11%** | **30.6%** | **0** |
+| company off, 2022 / 2023 | 5.9% / 3.2% | 0.26% / 0.33% | 0.01% / 0.07% | 2.1% / 15.8% | 0 / 0 |
+
+The ~60% and ~75% PoR >90 shares come from Centrica's PoR coverage against its own band rates, with the two younger bands taken at about 8% between them.
+Centrica does not print the GBP by age band, so these are derived. GAP: neither our pages nor
+Note 17 publish an age-banded GBP split.
+
+**Reading.** The switch-on run puts the right *amount* of money in the receivable in 2022: 8.8%
+of revenue against 8.9%. What it lacks is debt that **stays unpaid and leaves with the customer**.
+- The closed-account balance is a hundredth to a twentieth of Centrica's share, and that is the
+  bucket provided at 75-90%.
+- Live PoR debt is young. Centrica's live PoR book is mostly over 90 days.
+- No DD account ever carries a balance aged 30 days or more. Whether that is the world (a failed DD
+  is always re-presented and paid) or the company (the method register re-files a failed-DD account
+  as PoR) is **not traced**.
+
+The provision stock runs about 7x under Centrica's per pound of revenue. Rate explains 1.0x of
+that: published rates on our balances give 0.67% and 0.86% against 0.69% and 0.78%. **Volume
+explains the rest.**
+
+### The split
+
+| gap measured to | shortfall | rate factor (published band rates, up to whole overlay) | volume factor (the rest) |
+|---|---|---|---|
+| the 1% floor | x2.50 | x1.11, at most x1.36 | **x2.25, at least x1.84** |
+| Centrica's 2022-23 charge, 2.44% of revenue (derived: 630 / 25.8bn) | x6.10 | x1.11, at most x1.36 | **x5.5, at least x4.5** |
+
+In log share, volume is at least 66% of the floor gap and at least 83% of the gap to Centrica. On
+the central reading, with no overlay double-count, those are 89% and 94%. **The side is the world
+(W2_38).**
+
+E6's D1-fixed roll rates can only re-weight balances that exist. Even at Centrica's 2022 rates plus
+the whole overlay, no matrix lifts 0.40% past 0.54%. The rate leg is still owed: the frozen 2025
+matrix should be dated or learned. But it is the smaller leg, and it is E6's.
+
+### Why 2024's charge is negative: the switch-on world pays the old debt off
+
+On the switch-on run, 2024's stock falls GBP 938 and write-offs add GBP 558, giving a charge of
+-GBP 380. The fall is almost all the **live PoR >90-day balance, which drops from 4,589 to 1,942
+(-2,647; x50.3% = -1,331 of stock)**. The 30-90 day band barely moves (5,676 to 5,252), and the
+final-bill balance rises only 577. So aged live debt is *paid*. It is not written off and it does not
+leave with the customer. The mechanism is `simulation/household_budget.BudgetPaymentBook.settle_month`
+at ec7fd9942. It pays unpaid bills **whole, oldest first**, out of any month's surplus, and it holds
+part-payments toward the oldest bill. In 2024 three of its inputs turn favourable together:
+- the bill falls, because the cap comes off its 2023 level;
+- the benefit-path deciles' income factor rises 0.867 to 0.932 (+7.5%, `_BENEFIT_PATH_FACTOR`);
+- AWE rises 0.874 to 0.920;
+- meanwhile the floor rises only about 2-3% (basket 0.926 to 0.943, CPIH 0.903 to 0.933);
+- the 0.41-a-year income re-draw (78a36a84c) lifts some households out of negative margin.
+
+Any household back in surplus clears its oldest bills first, and that empties the >90 bucket first.
+
+**The record went the other way.** Centrica's 2024 charge was still +GBP 245m (2.6%), and its stock
+rose from 850 to 984. Ofgem's arrears kept rising to GBP 4.43bn by June 2025 (`ASSUMPTIONS.md` row
+78). Aged debt (>12 months) is 52-65% of the stock, and PPM repayment plans average 6.6-7 years
+(`ASSUMPTIONS.md`, the 2026-10-04 arrears-prevalence row). **Which of the three 2024 inputs carries
+the release I cannot yet say.** The one-variable arms are `BENEFIT_PATH_DECILES = ()` and
+`INCOME_MOVE_PER_YEAR = 0`, each alone at ec7fd9942. Prediction, filed before either exists: the
+release is mostly the falling bill and the rising benefit path acting through oldest-first whole-bill
+clearance. With the income re-draw at 0, 2024 still releases (charge < 0). It is the same defect as
+the volume leg: real debt, once old, is not paid off out of a margin that has just turned positive.
+
+### Next step (world side)
+
+Filed as `WORKER_FINDING_THE_WORLDS_ARREARS_CLEAR_OLDEST_FIRST_OUT_OF_ANY_SURPLUS_SO_DEBT_NEVER_AGES_OR_LEAVES_WITH_THE_CUSTOMER_2026-10-21.md`
+on W2_38. It grades the world's arrears **age**, not only their prevalence, against the sourced 52-65%
+aged >12 months, and it asks why so little debt leaves with a closing account. This finding is the
+supplier result it unblocks. The rate leg (a dated or learned matrix in place of the 2025 one) stays
+E6's and is second in order: on these numbers it is worth x1.11 to x1.36 at most.
+
+**Status:** OPEN and BLOCKING. The split names the world. Nothing in `simulation/` changes in this
+section.
