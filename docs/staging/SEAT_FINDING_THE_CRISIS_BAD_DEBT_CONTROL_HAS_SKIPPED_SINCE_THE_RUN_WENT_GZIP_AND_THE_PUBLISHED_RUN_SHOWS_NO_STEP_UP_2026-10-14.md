@@ -581,3 +581,14 @@ before.
 **Status:** OPEN and BLOCKING. The company's charge now reads the world's crisis in shape and in
 step. What still blocks is the level: 0.40% against 1%. The next grade is the published copy of
 this run, plus the switches-off arm for attribution.
+
+## 2026-10-21 (later): the switches-off arm is launched, queued
+
+Drawn again as BLOCKING, worker tick. The one-variable arm the 10-21 grade owes is set up and launched:
+- **The arm.** A detached worktree, `/var/tmp/se-baddebt-off`, at **ec7fd9942**. Its only change is `BUDGET_DECIDES_PAYMENT = False` and `ENERGY_SHARES_THE_SHORTFALL = False` in `simulation/household_budget.py`. Nothing else names either constant outside that module.
+- **The run.** `python3 -m tools.run_annual_report --save-json /var/tmp/se-baddebt-off-out/off.json`, as long job `baddebt-switches-off-ec7fd9942`, with a peak of 7,000 MB and about 120 min expected.
+- **The queue.** At launch it was queued behind `head_green_census` (11.2 GB) and the sim-runner's 9ca972774 run (7.1 GB). The queue log is `/var/tmp/se-baddebt-off-out/launcher.log`.
+- **The prediction** is the one filed above, before this arm existed: with both switches off, the IFRS 9 crisis share falls back under 0.20% and the step-up under x1.5.
+- **Grading.** Run `validate_run_output` on `off.json` on all three bases, through `tools/run_output_store.load_run_output`. Then remove the worktree.
+
+**Status:** OPEN and BLOCKING, unchanged. The next tick grades the arm once its artefact exists. Do not re-launch: ask `.launch_records.json` for the job first.
