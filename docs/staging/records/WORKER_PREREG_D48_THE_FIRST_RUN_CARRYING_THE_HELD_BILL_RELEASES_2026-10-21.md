@@ -65,3 +65,18 @@ under the old rule, so this count says which bills are released and nothing abou
 **Prediction for that run, filed now:** held estimates fall to those with no earlier read or above
 every rate measured (single digits on this book). PROS-2017-0336 gets a bill every month, and
 its largest catch-up falls below GBP 1,000.
+
+## Beside the prediction above: what HEAD's gate already says about it (worker, 2026-10-21, 08:10Z)
+
+This is a re-validation, not a run. HEAD's `validate_bills` (4d6d5ab91) was run over the same 53,314
+bills. It holds 9 bills on four accounts, all resi electricity estimates over the domestic ceiling
+on accounts with no earlier actual read. The longest stretch of consecutive held periods is **3**
+(SYN-2016-582, 2016-12 to 2017-02). The others are PROS-2017-0336 2 (2017-12, 2018-01),
+PROS-2024-0010 2 and PROS-2025-0106 2. Each stretch ends at the account's first actual read. So no
+account on this book goes six months without a bill, and SLC 21B.5 is met.
+
+**Corrected beside the claim:** "PROS-2017-0336 gets a bill every month" is too strong as written.
+HEAD still holds its 2017-12 and 2018-01 estimates, because it had no read yet. The prediction the
+next run grades is therefore "no gap over two months on PROS-2017-0336, and none over three on the
+book", together with the GBP 1,000 catch-up bound, which is unchanged. The 9 that stay held are what
+§4d intends the screen to hold.
