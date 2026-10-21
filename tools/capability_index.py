@@ -157,6 +157,7 @@ from __future__ import annotations
 
 import argparse
 import ast
+import functools
 import io
 import json
 import re
@@ -656,15 +657,21 @@ def _docstring_spans(text: str) -> list[tuple[int, int]]:
     return spans
 
 
+@functools.lru_cache(maxsize=4)
+def _line_starts(text: str) -> tuple[int, ...]:
+    return (0, *(m.end() for m in re.finditer("\n", text)))
+
+
 def _offset_of(text: str, lineno: int) -> int:
-    """Character offset of 1-based `lineno`'s first character."""
-    off = 0
-    for _ in range(lineno - 1):
-        nxt = text.find("\n", off)
-        if nxt < 0:
-            return len(text)
-        off = nxt + 1
-    return off
+    """Character offset of 1-based `lineno`'s first character.
+
+    From a line-start table built once per text. Walking the text from its start on every call
+    made this quadratic: 179k calls over 3,389 sources, half of the index's 28 s (2026-10-21).
+    """
+    if lineno <= 1:
+        return 0
+    starts = _line_starts(text)
+    return starts[lineno - 1] if lineno - 1 < len(starts) else len(text)
 
 
 def _prose_spans(text: str) -> list[tuple[int, int]]:
