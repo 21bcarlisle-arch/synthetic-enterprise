@@ -211,3 +211,55 @@ def test_the_LEDGER_ACCUMULATES_ACROSS_RUNS(tmp_path):
     assert ledger["runs"] == 2
     assert ledger["visits"] == {"a & b": 2, "c & d": 1}
     assert json.loads(path.read_text(encoding="utf-8")) == ledger
+
+
+def _whole_grid_axes(grid):
+    """The pre-2026-10-21 build, kept as the oracle: every axis over every (cell, case) pair."""
+    from simulation import fabric_physics as fp
+    from tools import demand_case_coverage as dcc
+
+    params, hdd = np.asarray(grid["case_params"]), np.asarray(grid["cell_hdd"])
+    wind, solar_index = np.asarray(grid["cell_wind"]), np.asarray(grid["cell_solar_index"])
+    demand, sensitivity = np.asarray(grid["demand"]), np.asarray(grid["sensitivity"])
+    reference_solar, hours = dcc._reference_solar_kwh_per_m2(), len(dcc.DOYS) * 24.0
+    full = np.asarray(dcc.house_cases(insulation_override="FULL")[1])
+    winter_hdd_down = dcc._seasonal_hdd(
+        sfs._winter_temp_from_hdd(hdd), setpoint_c=dcc.SETPOINT_C - sfs.TURNDOWN_C)
+    gross = sensitivity * hdd[:, None]
+    solar = params[None, :, 3] * reference_solar * solar_index[:, None]
+    internal = params[None, :, 4] * hours
+    with np.errstate(divide="ignore", invalid="ignore"):
+        offset_share = np.where(gross > 0.0, solar / np.maximum(gross, 1e-9), 0.0)
+    retro = np.empty_like(demand)
+    for i in range(full.shape[0]):
+        fabric, raw_ach, volume, aperture, internal_kw = full[i]
+        ach = np.maximum(raw_ach * (wind / fp.SAP_REFERENCE_WIND_MS), fp._MINIMUM_VENTILATION_ACH)
+        hlc = (fabric + 0.33 * ach * volume) / 1000.0
+        retro[:, i] = np.maximum(
+            0.0, hlc * hdd * 24.0 - aperture * reference_solar * solar_index - internal_kw * hours)
+    turndown = np.maximum(
+        0.0, demand - np.maximum(0.0, sensitivity * winter_hdd_down[:, None] - solar - internal))
+    return np.stack([demand.ravel(), sensitivity.ravel(), offset_share.ravel(),
+                     np.maximum(0.0, demand - retro).ravel(), turndown.ravel()], axis=1)
+
+
+@pytest.mark.parametrize("sample", [500, 10**9], ids=["drawn", "every_row"])
+def test_the_ROWS_FIRST_build_is_the_WHOLE_GRID_build_read_at_the_drawn_rows(sample):
+    """The space is built at the drawn rows only, because the whole-grid build held ~5 GB for a
+    200,000-row sample and was the nightly census's peak. That is only an optimisation while every
+    axis at a drawn row is bit-identical to the whole grid's. Before this control existed, a
+    turn-down axis computed at the WRONG degree-days passed every test in this directory.
+    """
+    from tools import demand_case_coverage as dcc
+
+    full = dcc.demand_grid()
+    cells = np.arange(0, len(full["cell_hdd"]), 479)       # ~300 cells spread over the stock
+    grid = {k: (np.asarray(v)[cells] if k in ("demand", "sensitivity", "weights", "cell_hdd",
+                                             "cell_wind", "cell_solar_index") else v)
+            for k, v in full.items()}
+
+    space = sfs.output_space(grid, sample=sample)
+    oracle = _whole_grid_axes(grid)
+    assert space["values"].shape[0] == min(sample, int((np.asarray(grid["weights"]) > 0).sum()))
+    assert (space["values"][:, 4] > 0).any(), "no drawn row has a turn-down saving to compare"
+    assert np.array_equal(space["values"], oracle[space["index"]])

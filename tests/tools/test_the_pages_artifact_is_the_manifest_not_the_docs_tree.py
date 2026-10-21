@@ -77,9 +77,16 @@ def _referenced_pages_urls() -> dict[str, set[str]]:
         if rel.startswith(("docs/observability/", "docs/snapshots/", "docs/staging/")):
             continue
         try:
-            text = searchable((PROJECT / rel).read_text(encoding="utf-8", errors="replace"))
+            raw = (PROJECT / rel).read_text(encoding="utf-8", errors="replace")
         except (OSError, UnicodeError):
             continue
+        # Asked of the RAW text before `searchable()`, which `ast.parse`s it: a 60 MB JSON parses
+        # as a Python literal, and building that AST to learn it holds no URL was this test's
+        # 3.8 GB peak. Blanking only removes text, so this cannot hide a URL that is there. The
+        # substring census reads this as a raw scan; it is frozen there as a widening prefilter.
+        if PAGES_ROOT not in raw:
+            continue
+        text = searchable(raw)
         if PAGES_ROOT not in text:
             continue
         for tail in pat.findall(text):

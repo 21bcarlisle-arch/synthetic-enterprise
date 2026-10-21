@@ -199,41 +199,45 @@ def output_space(grid=None, sample: int = 200_000, seed: int = 0) -> dict:
     winter_hdd_down = dcc._seasonal_hdd(
         _winter_temp_from_hdd(hdd), setpoint_c=dcc.SETPOINT_C - TURNDOWN_C)
 
-    gross = sensitivity * hdd[:, None]
-    solar = params[None, :, 3] * reference_solar * solar_index[:, None]
-    internal = params[None, :, 4] * hours
+    # ROWS FIRST, AXES SECOND. The draw's probabilities are the grid weights alone, so the rows can
+    # be chosen before any axis exists, and the five axes are then computed at those rows only.
+    # Building them over all 39.3m pairs first held ~5 GB of float64 for a sample of 200,000, and
+    # was the nightly census's peak. The per-element arithmetic is unchanged, so the result is
+    # bit-identical: docs/staging/records/SEAT_PREREG_THE_TWO_CENSUS_SPIKES_MEASURED_ALONE_2026-10-21.md.
+    weights = np.asarray(grid["weights"]).ravel()
+    keep = np.flatnonzero(weights > 0)
+    rng = np.random.default_rng(seed)
+    index = keep
+    row_weights = weights[keep]
+    if len(keep) > sample:
+        pick = rng.choice(len(keep), size=sample, replace=True, p=row_weights / row_weights.sum())
+        index, row_weights = keep[pick], np.ones(sample)
+
+    n_cases = int(params.shape[0])
+    cell, case = index // n_cases, index % n_cases
+    demand = demand.ravel()[index]
+    sensitivity = sensitivity.ravel()[index]
+    gross = sensitivity * hdd[cell]
+    solar = params[case, 3] * reference_solar * solar_index[cell]
+    internal = params[case, 4] * hours
     with np.errstate(divide="ignore", invalid="ignore"):
         offset_share = np.where(gross > 0.0, solar / np.maximum(gross, 1e-9), 0.0)
 
-    retro = np.empty_like(demand)
-    for i in range(full_params.shape[0]):
-        fabric, raw_ach, volume, aperture, internal_kw = full_params[i]
-        ach = np.maximum(raw_ach * (wind / fp.SAP_REFERENCE_WIND_MS), fp._MINIMUM_VENTILATION_ACH)
-        hlc = (fabric + 0.33 * ach * volume) / 1000.0
-        retro[:, i] = np.maximum(
-            0.0, hlc * hdd * 24.0 - aperture * reference_solar * solar_index - internal_kw * hours)
+    fabric, raw_ach, volume, aperture, internal_kw = full_params[case].T
+    ach = np.maximum(raw_ach * (wind[cell] / fp.SAP_REFERENCE_WIND_MS), fp._MINIMUM_VENTILATION_ACH)
+    hlc = (fabric + 0.33 * ach * volume) / 1000.0
+    retro = np.maximum(
+        0.0, hlc * hdd[cell] * 24.0 - aperture * reference_solar * solar_index[cell]
+        - internal_kw * hours)
 
     turndown = np.maximum(
-        0.0, demand - np.maximum(0.0, sensitivity * winter_hdd_down[:, None] - solar - internal))
+        0.0, demand - np.maximum(0.0, sensitivity * winter_hdd_down[cell] - solar - internal))
 
-    values = np.stack([
-        demand.ravel(),
-        sensitivity.ravel(),
-        offset_share.ravel(),
-        np.maximum(0.0, demand - retro).ravel(),
-        turndown.ravel(),
-    ], axis=1)
-    weights = np.asarray(grid["weights"]).ravel()
-
-    keep = np.flatnonzero(weights > 0)
-    values, weights = values[keep], weights[keep]
-    rng = np.random.default_rng(seed)
-    index = keep
-    if len(values) > sample:
-        pick = rng.choice(len(values), size=sample, replace=True, p=weights / weights.sum())
-        values, weights, index = values[pick], np.ones(sample), keep[pick]
+    values = np.stack([demand, sensitivity, offset_share, np.maximum(0.0, demand - retro),
+                       turndown], axis=1)
+    weights = row_weights
     return {"values": values, "weights": weights, "axes": AXES, "index": index,
-            "n_cases": int(params.shape[0]), "case_params": params,
+            "n_cases": n_cases, "case_params": params,
             "cell_hdd": hdd, "cell_wind": wind, "cell_solar_index": solar_index}
 
 
