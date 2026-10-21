@@ -592,3 +592,24 @@ Drawn again as BLOCKING, worker tick. The one-variable arm the 10-21 grade owes 
 - **Grading.** Run `validate_run_output` on `off.json` on all three bases, through `tools/run_output_store.load_run_output`. Then remove the worktree.
 
 **Status:** OPEN and BLOCKING, unchanged. The next tick grades the arm once its artefact exists. Do not re-launch: ask `.launch_records.json` for the job first.
+
+## 2026-10-21 (05:36Z): that launch died queued; relaunched behind the per-customer-switch arms
+
+The launch above never ran. At 05:35Z there was no `baddebt` process, no `longjob-baddebt-*` unit and
+no `.launch_records.json` row, and the worktree `/var/tmp/se-baddebt-off` had gone too: it was never
+locked, so it was pruned. The launcher was still queued for memory, so it had not yet made its own
+unit. It ran inside the tick's cgroup and died when the tick ended. Its last words are the QUEUED
+line in `/var/tmp/se-baddebt-off-out/launcher.log`. The relaunch went in at **05:36Z**:
+- the worktree was rebuilt at ec7fd9942 with the same two constants set to `False`, and is now
+  `git worktree lock`ed;
+- a driver unit, `relaunch-driver-baddebt-1021.service`, runs `/var/tmp/se-relaunch-1021/driver2.sh
+  baddebt` in its own cgroup;
+- it waits while `longjob-per-customer-switch-arms-8fbb641d8` is active, writing a QUEUED line to
+  `/var/tmp/se-relaunch-1021/baddebt.log` every 5 min, then calls `launch_long_job` for
+  `baddebt-switches-off-ec7fd9942` with the same command, peak and artefact as above, logging to
+  `/var/tmp/se-baddebt-off-out/off.log`.
+
+When the job's follow ends, the driver hands off the grade as the continuation
+`grade-the-baddebt-switches-off-arm-ec7fd9942`. It is filed then, not now, because a continuation
+lives only 6h and this job ends later than that. The prediction and the grading are unchanged. If the job is missing, ask the driver unit
+before relaunching anything.
