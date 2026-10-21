@@ -375,6 +375,7 @@ shapes. That is the next measurement, and it is filed as a hand-off, not built h
 | W-A (channel on the drift hazard) | Knowledge page done (§2). Build after 19 Oct against the finding's filed prediction. Aim 0.50–0.70, not 0.55. |
 | PPM→credit landing at a switch (`m`, §2a) | **GAP, bounded pre-crisis**: dumb-PPM switchers keep PPM (CMA ¶9.213), and the whole PPM→credit flow is about 3–4%/yr of PPM accounts, so `m` ≲ 0.2–0.3 pre-crisis and unbounded for 2025. 0.55 grades W-A's 0.50–0.70 only if `m` ≲ 0.12. A drawn 0.70–0.85 misses the prediction but not the record. |
 | W-B (convert vs shop) | Knowledge page done (§3). Needs the default-route external share, which is a GAP. φ was the wrong quantity. Diagnostic first. |
+| Annual default-tariff departure rate, and the world's drift and anniversary rule (§6, 2026-10-21) | **Sourced from three RCT control arms**: external 12–23%/yr recent on the default, 7–15%/yr at 3+ years (2019–20 market). World drift 0.20/0.10 is **inside**; the anniversary's missing roll is **inside**; the post-roll spike stays the one named gap (outside, about 3× low). Fix-end annual rate is a GAP. |
 | Leaving at fix end vs from the default (§5, 2026-10-21) | **Direction sourced** (EFTC 2019 against CMOL 2017: exposure is at the fix's end). **The annual ratio is a GAP**, and so is decline-then-default vs rolled. The company's switch learns the size from its own book. |
 
 ---
@@ -437,3 +438,152 @@ and suppliers differ, and the end-of-fix figure counts requests, not completions
   §10) and an arms run that carries it say otherwise. Whether the world is right to roll no departure
   at a default anniversary is a world question, decided blind to that grade. The EFTC external 6% is
   the published check on it, and is already a named gap (§4a of the SVT page).
+
+---
+
+## 6. How often a default-tariff household leaves in a year, against a household at the end of a fix, and whether the world's rule is inside the record (added 2026-10-21)
+
+**Wanted.** The annual rate at which GB households on a default tariff leave their supplier,
+2016–2025, set against the rate for households at the end of a fixed term. Then a verdict on the
+world's rule, read without looking at any company result: C1b's drift
+(`svt_product.inertia_hazard_for_term` → `departure_risks.svt_inertia_hazard`, called from the SVT
+branch of `run_phase2b`), and the absence of any departure roll at a default anniversary or after a
+declined fix (`customer_events.departure_rolled_at_renewal`, `renewal_outcome`). Claim
+`size-the-departure-risk-on-a-default-tariff-roll`. Nothing in `simulation/` is changed by this
+section.
+
+### 6.1 What the record measures directly: three randomised control arms
+
+No GB source publishes an annual departure rate cut by the tariff a household was on (§1 shows why
+the surveys cannot supply one). Three Ofgem trials, though, each ran a **no-contact control arm drawn
+from supplier records of default-tariff households**. A control arm is a direct reading of how fast
+those households move with nobody prompting them.
+
+| trial (fetched and read) | population | window | control arm, any move | external (left the supplier) |
+|---|---|---|---|---|
+| **CMOL**, *Cheaper Market Offers Letter trial* (Nov 2017), Fig. 11–12; on file in `does_a_disengaged_household_leave_the_default_tariff_less_at_the_same_tenure.md` §1 | 2 suppliers, dual-fuel SVT for ≥ 1 year; debt, opt-outs and non-standard meters excluded | 30 days, Jun–Aug 2017 | 1.0% (1–3 yrs 1.3%, 3+ yrs 0.7%) | ~0.7% (text: external 0.4 pts above internal) |
+| **CMOC**, *Cheaper Market Offers Communications trials* report (Sep 2019), ¶3.22, Fig. 6, Fig. 14–15, Table 2. `ofgem.gov.uk/sites/default/files/docs/2019/09/cmoc_report_final_updated_template_0.pdf`, read 2026-10-21; Fig. 14–15 read off the rendered page 45 | 5 suppliers (3 large, 2 medium), N ≈ 581,000, default for ≥ 3 months, **minimal exclusions** (PPM 28%, debt 7%) | 30 days, summer 2018 | **2.9%**. By time on default: 3–6 months **5.9%**, 6 months–3 yrs **3.6%**, 3+ yrs **2.2%**. Price-capped (PPM/vulnerable) 1.8% | **1.5%** (internal 1.4%) |
+| **Collective switch**, *Active Choice Collective Switch Trial* (Nov 2018); on file in `is_a_newly_rolled_default_household_as_sticky_as_svt_stock.md` | 1 Big Six supplier, SVT ≥ 3 yrs (mean 6.5) | ~9 weeks, Feb–Apr 2018 | 2.6% | not published |
+
+**Annualised.** Constant hazard, `1 − (1 − p)^(365.25/days)`. A summer window is corrected by
+1/0.964, because Jun–Aug switching averages 0.964 of the annual monthly mean (`gb_domestic_
+switching_by_calendar_month.md`, 2016–2025 monthly means). Each figure is then restated to the
+2019–20 market by the world's own whole-market series (`market_switching_multiplier`, 2017 = 0.887
+and 2018 = 0.929 of the 2019–20 mean). That restatement is the only step that uses world code, and
+it uses only the published series the code holds.
+
+| external departures from the default, per year, 2019–20 market | recent on default | 3+ years on default |
+|---|---|---|
+| CMOL 2017 (assumes the 0.7 external share of the pooled arm holds in each band) | 1–3 yrs: **12%** | **7%** |
+| CMOC 2018 (assumes the 0.52 external share of the pooled arm holds in each band) | 6 months–3 yrs: **23%** (3–6 months: 35%) | **15%** |
+| Collective switch 2018 (all-route, so an upper bound on external) | — | ≤ 15% |
+| **Published range** | **12–23%** | **7–15%** |
+
+Pooled across bands, without restatement: **8.5%** external a year (CMOL 2017) and **17%** (CMOC
+2018). The two trials disagree by about 2× in consecutive summers. The likeliest causes are stated
+in the reports themselves: CMOL excluded debt and non-dual-fuel accounts and drew from two suppliers,
+while CMOC took almost everyone, from five suppliers, in the summer the cap was legislated. This
+2× spread is the record's own spread. It is the range, and neither end is the answer.
+
+**Confidence.** H that default households leave at a steady rate of order 1% a month with nobody
+prompting them, and that the rate falls with time on the default (CMOC's 5.9 → 3.6 → 2.2 is
+monotone; CMOL's 0.54 ratio agrees). M on the annual level, since each figure is one summer
+annualised. The per-band external shares are assumptions, labelled above, because neither report
+splits external by tenure.
+
+### 6.2 What the record says about the end of a fix
+
+- **EFTC 2019** (on file, §5 and `svt_rates_active_passive_2016_2025.md` §4a): of households that
+  had not acted a few days before their fix ended, **6% external and 14% internal in the 6 weeks
+  after**. Supplier A's own baseline is 16% any move in 30 days.
+- **TNS BMRB/Ofgem 2016 engagement survey**, quoted in Ofgem, *Default tariffs for domestic customers
+  at the end of fixed-term contracts* (Aug 2017) ¶2.8. Read 2026-10-21 at
+  `ofgem.gov.uk/system/files/docs/2017/08/default_tariffs_for_domestic_customers_at_the_end_of_fixed-term_contracts.pdf`.
+  After an end-of-fixed-term notice, **25% "looked into switching supplier"**, against 10% after a
+  bill. These are self-reports of looking, not switches. The same paragraph says default-tariff
+  households "continue to receive bills and annual summaries, which contain the cheapest tariff
+  message, so they will receive some prompts".
+- **GAP: the share of fixed-term enders who leave the supplier**, per term end or per year. Ofgem
+  gathered suppliers' roll-over rates by RFI for EFTC (¶3.13) and did not publish them. No other
+  source was found.
+- **GAP: an annual ratio of fix-end departures to default departures.** The direction is sourced
+  (§5): 6% external in 6 weeks after a roll, against about 1.5% in 30 days for settled default
+  stock, so roughly 3× per unit time in the weeks after the end. CMOC's 3–6 month band shows the
+  same mobility still decaying months later. The level over a year is not published.
+
+### 6.3 The world's rule, read at real inputs
+
+**The drift** (`svt_inertia_hazard`). 0.20 a year under 3 years on the default and 0.10 a year
+from 3 years, both re-levelled by the market series to 2019–20. Each is multiplied by an
+engagement factor that preserves the mean (active/passive 1.153, disengaged 0.623) and by
+`action_propensity`. This was printed at the rule level with the live constants. In the
+2019–20 market the bands run 0.23 / 0.12 for active households and 0.13 / 0.06 for disengaged ones,
+before propensity.
+
+**Realised**, census of the latest world run (`docs/reports/run_output_latest.json`, producing commit
+`76a29bd92`, `svt_decisions`, decision leg, 9,197 SVT segments). The census reads only world-side
+fields: `realized_churn_probability`, `event_type`, `sim_years_on_svt` and `sim_segment_days`.
+
+| market year | SVT account-years | exits | per account-year | recent band (expected) | 3+ yrs band (expected) |
+|---|---|---|---|---|---|
+| 2017 | 223.5 | 46 | 0.206 | 0.200 | — (no stint is 3 yrs old yet) |
+| 2018 | 264.5 | 58 | 0.219 | 0.206 | — |
+| 2019 | 233.1 | 57 | 0.245 | 0.221 | 0.097 |
+| 2020 | 179.6 | 35 | 0.195 | 0.215 | 0.102 |
+| 2021 | 191.0 | 19 | 0.099 | 0.160 | 0.076 |
+| 2022 | 220.5 | 5 | 0.023 | 0.030 | 0.014 |
+| 2023 | 229.2 | 13 | 0.057 | 0.063 | 0.031 |
+| 2024 | 203.6 | 11 | 0.054 | 0.091 | 0.044 |
+| 2025 (part) | 89.9 | 4 | 0.045 | 0.103 | 0.052 |
+| **2019 on** | **1,346.9** | **144** | **0.107** | | |
+
+**The anniversary and the declined fix.** A household on the default draws no departure at its
+anniversary. The anniversary carries only the conversion to a fix, and all of the household's exits
+come through the drift. A household that declines a fix has already had its departure roll at that
+fix's end, since the decline is one of `renewal_outcome`'s three outcomes. It then starts a fresh
+stint on the default, in the recent band.
+
+### 6.4 Verdict
+
+1. **The drift is INSIDE the published range in both bands, and errs against the company where it
+   errs at all.** Recent band: 0.20–0.22 against 12–23%, at the top. 3+ years: 0.10 against 7–15%,
+   mid-range. Above CMOL 2017 and level with CMOC 2018. The world's 2017–18 SVT book is all recent
+   band. That is faithful for a supplier founded in 2016, whose default customers cannot yet have
+   been there three years. It is a composition fact, not a rule defect.
+2. **No departure roll at a default anniversary is INSIDE.** No published source puts a spike there.
+   A default tariff has no term, so the rules give no end-of-term notice (§5). The three control arms
+   are flat 30-day and 9-week flows that already contain the prompts a default household does get
+   (bills, annual summaries, the cheapest-tariff message), and the drift is sized against those flows.
+   A roll at the anniversary would also count twice what the drift already carries. 91214c720 measured
+   that double count at +29%.
+   *Caveat, GAP:* a supplier's own fix offer to a default household is itself a prompt. CMOC shows that
+   a prompt naming cheaper tariffs moves external switching from 1.5% to 3.9% in 30 days, but CMOC
+   letters always listed competitor tariffs. **No source measures an own-supplier-only offer's effect
+   on leaving.**
+3. **No second roll after a declined fix is INSIDE by construction.** The exposure at the fix's end
+   was rolled. What is outside is the weeks that follow. The fresh stint runs about 1.3–2.1% over
+   42 days against EFTC's 6% external, so it is about 3× low. That was filed and sized on 2026-10-02
+   at 2–4 exits a run
+   (`docs/staging/done/WORKER_FINDING_THE_END_OF_FIX_SPIKE_IS_WORTH_TWO_TO_FOUR_EXITS_A_RUN_AND_IS_A_NAMED_GAP_2026-10-02.md`),
+   and stays a named gap. It does not touch the anniversary rule: the missing exits fall in the first
+   weeks after a roll, not at the next anniversary.
+4. **No world finding is filed, because the rule is not outside the record.** This section is the
+   evidence for the unblock the work item names: on the published evidence, a default-tariff roll that
+   loses almost nobody at the roll itself is how the GB market behaves. Default households leave
+   steadily through the year, at 7–23% a year depending on time on the default, and not at their
+   anniversary.
+5. **The work item's "6 in 176 a year from 2019" is not reproduced here,** and its source was not
+   read, because the claim keeps this pass blind to company results. The whole world book drifts at
+   **0.107 a year from 2019** (144 exits in 1,347 SVT account-years, 2019 to mid-2025, crisis
+   included). Whoever holds the 6-in-176 figure should check its denominator before comparing it with
+   §6.1. If it is per SVT account-year over 2019–20, 3.4% would be below the 7% floor of the
+   long-stayer band. Averaged over 2019–2025, it would sit inside the crisis-scaled record.
+
+### 6.5 GAPs this pass leaves
+
+- Default-household departures in 2022–2025 measured directly. No control arm ran in those years.
+  The world scales the 2019–20 bands by the whole-market series, so in those years it tracks the
+  market, not a default-specific figure.
+- The external share by tenure band in either trial (assumed equal to the pooled arm, above).
+- Fix-end departures per ender, and their annual ratio to default departures (§6.2).
+- An own-supplier fix offer's effect on a default household's leaving (§6.4 item 2).

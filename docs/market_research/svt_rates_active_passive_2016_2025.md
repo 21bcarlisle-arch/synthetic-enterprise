@@ -129,6 +129,13 @@ Post-2023 recovery: ~one-third of customers on fixed deals by Jul 2025 (Ofgem St
 
 Direct published SVT vs fixed churn rates by tariff type are not available; these are structural inferences:
 
+*Correction 2026-10-21, beside the claim:* for the default side, three Ofgem RCT control arms (CMOL
+2017, CMOC 2018, collective switch 2018) now read these two rows directly: external 12–23% a year
+recent on the default, 7–15% at 3+ years, 2019–20 market. The world's 0.20 / 0.10 sits inside both.
+The fixed-at-expiry rows stay inference (GAP). See
+`switching_gradient_by_tariff_and_payment_what_the_record_can_grade.md` §6.
+
+
 | Customer type | Estimated annual churn | Basis |
 |---|---|---|
 | SVT long-stayer (3+ years) | ~5–10% | Ofgem engagement surveys: most inert segment |
