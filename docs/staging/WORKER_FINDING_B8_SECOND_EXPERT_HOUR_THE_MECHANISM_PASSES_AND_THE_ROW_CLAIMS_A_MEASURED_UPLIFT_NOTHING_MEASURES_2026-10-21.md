@@ -54,3 +54,42 @@ So the decision is the published prior's. That is an honest outcome, and arguabl
 4. **Q9 and Q14** are knowledge and printing, and do not block.
 
 Reverse: this commit adds a finding, one ledger row, one simplification entry and the map row's `expert_hour.last`. Revert it to undo. No code or policy moves.
+
+## 2026-10-21 (07:20Z): Q6 pre-registration, written before the table is printed
+
+**What is measured.** There are three quantities, each in pounds per year, on the published run's `retention_log`
+(ad8afadc5, 92 offers, 2016-2025). For every row, `c` = `retention_cost_gbp` (the cut), `p0` = 1 - `company_churn_estimate`
+(the company's own stay belief), `L` = `expected_term_margin_gbp`. Each row is valued as `_cut_on_value` values it, so
+V(theta) = (p0 + theta c)(L/(1-p0) - c) - p0 L/(1-p0), where theta is the true stay bought per GBP.
+1. **Holdout cost (today's design).** Half the expected value of the offers the prior says pay, `0.5 x sum max(0, V(mu))`. That is what the held-out arm gives up, in expectation, under the company's own belief.
+2. **EVPI.** The expected value of PERFECT information on theta under the prior N(mu, sd = mu): `sum E[max(0, V(theta))] - max(0, V(mu))`, in closed form. No holdout at any size can be worth more than this.
+3. **Decision-relevant scale.** The households per arm needed to tell the median row's break-even effect from zero at the module's own 95%/80%, converted to a book size at the run's own rate of would-offer rows per household-year.
+
+**Prediction.** EVPI is under GBP 5 a year for the 400-home book. The holdout cost is under GBP 10 a year. The book size at which one arm reaches the decision-relevant count is over 100,000 households.
+**What refutes it.** EVPI over GBP 5 a year refutes the prediction, and would mean the prior's spread leaves real money on the table. A book size under 100,000 also refutes it.
+**A structural point, noted before printing.** A row is written only where the company would offer. So today's holdout randomises only among renewals the prior already says pay, and it gathers no evidence at all on the roughly 88 of 92 where the prior says no. That is the side where a wrong prior would cost money.
+
+## 2026-10-21 (07:30Z): Q6 graded. The holdout costs about as much as perfect information is worth, and buys almost none of it
+
+Printed on the published `retention_log` (ad8afadc5, 92 offers over 10 years), with the module's own constants. The holdout cost and EVPI are per year.
+
+| belief on theta | offers that pay | EV of the paying offers | holdout cost/yr | EVPI/yr |
+|---|---|---|---|---|
+| prior midpoint, sd = mean (the run's) | 4/92 | GBP 199.10 | **GBP 9.95** | **GBP 10.18** |
+| CMOL end | 3/92 | 32.36 | 1.62 | 15.41 |
+| CMOC end | 4/92 | 393.64 | 19.68 | 5.14 |
+| midpoint, sd = 3x mean | 4/92 | 199.10 | 9.95 | 46.60 |
+| midpoint, sd = 5x mean (the reviewer's Q14 range) | 4/92 | 199.10 | 9.95 | 86.20 |
+
+- **The median row** breaks even at 0.000860 stay per GBP, which is **9.4x the prior mean**, and the prior gives that probability 0. Telling its break-even effect (0.0069 of staying, p0 0.529) from zero at the module's 95%/80% needs **83,160 decisions per arm**. The run makes 9.2 offers a year, so that is about 18,000 years of this book's offer flow, or a book millions of homes in size for one year.
+- **Where the EVPI sits.** 99.6% of it sits on the **4 rows the prior already says cut**, and 95% on one prospect (PROS-2022-0400, with term margins of GBP 5,380 and GBP 3,512). There the risk is that the prior is too generous and the cut is wasted. The 88 no-cut rows together carry under GBP 0.50 of EVPI over the decade.
+
+**The prediction, graded.**
+- "EVPI under GBP 5/yr": **refuted** on the high side, at GBP 10.18. It is one household's large margin, not the book.
+- "Holdout cost under GBP 10/yr": **held**, just, at GBP 9.95.
+- "Book over 100,000 households": **held** by an order of magnitude and more.
+- **The structural point is corrected beside the claim.** I wrote that today's holdout "gathers no evidence on the side where a wrong prior would cost money". That is wrong. The money at risk is on the cut side, which the holdout does randomise. The no-cut side is worth almost nothing to learn about, because the prior puts no weight near those rows' break-even.
+
+**What it means for the row.** At the founders' scale the holdout costs about GBP 10 a year, which is the whole of EVPI. EVPI is the ceiling on what any information is worth, and a holdout yielding about 0.4 rows a year captures a vanishing share of it. So **holdout off on every standing policy is the value-maximising setting at this scale**, not a gap. This closes Q6 with a number. The L3 claim the row can honestly make: the company decides on expected value under a published prior, prices what an experiment would cost and be worth, and declines it below the scale where it pays. That reword is the seat's pass on the row (item 1 above), and it is still not done here.
+
+Probe: the pre-registration's V(theta) and EVPI formulas, run over `tools.run_output_store.load_run_output('docs/reports/run_output_latest.json.gz')['retention_log']`. EVPI is the normal closed form E[max(0, A+B theta)] = m Phi(m/s) + s phi(m/s), with m = A+B mu and s = B sd. It takes about 5 s.

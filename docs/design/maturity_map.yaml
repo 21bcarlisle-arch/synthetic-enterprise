@@ -521,7 +521,7 @@
   provenance: proposal
   file_scope: [company/pricing/discovered_price_sensitivity.py, tests/company/test_discovered_price_sensitivity.py, simulation/coin_drawn_decision_set.py, tests/simulation/test_coin_drawn_decision_set.py]
   depends_on: []
-  simplifications_count: 11
+  simplifications_count: 12
   expert_hour: {status: attempted_finding_open, last: '2026-10-21 second blind pass, 14 questions. FAIL, held at 2, on the claim: no mechanism defect, but no holdout row closes, so nothing measures the uplift the row names. Simplification record.', findings: []}
   real_world_twin: "a retail energy CRM that has no idea who is price-sensitive: it learns only from who opened the email, who took the fixed-price offer, who churned after a price rise -- and the honest ones run a holdout so they can tell whether the retention campaign did anything at all, because the treated group would partly have stayed anyway"
   records_rehomed: [evidence]
