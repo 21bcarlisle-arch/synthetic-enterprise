@@ -287,7 +287,7 @@ This measurement does not include the founder-home fix (claim
 authored homes, which releases the four `OCC-d8e674fa38de` bills at C8's semi. It is **built and
 not landed**: its turn ended at 02:15 BST with no commit, and the work survives only as salvage
 commit `9dc0cf4b0` (`SALVAGE(auto)`, the seat's `/var/tmp/se-seat-executor` fork). Re-apply it,
-don't rebuild it. With both fixes in place, the 2025-06 accrual is the two `OCC-8c6b8bb21743` bills
+don't rebuild it. *(Later, 2026-10-21: re-applied and landed. See "Follow-on (founder homes)" below.)* With both fixes in place, the 2025-06 accrual is the two `OCC-8c6b8bb21743` bills
 that item 2 released in code (6,230 kWh). The run was stamped by the old feed, so they still read
 held here, and the next run settles them. The published page moves at the next run, as items 2 and
 3 did.
@@ -300,3 +300,69 @@ held here, and the next run settles them. The published page moves at the next r
   own period end, not at the final bill's. On this run that misdates one bill at one year end
   (2017-12, 3,120 kWh). It is a dating error in a grade, and it is not built here.
 - A dispute of the closing read is not modelled, by the same choice as the leaver's settlement leg.
+
+## Follow-on (founder homes): the four held bills at C8's semi are released
+
+*Delivery seat, 2026-10-21 (built); worker, 2026-10-21 (landed). Claim `d48-a-ceiling-hold-the-listing-cannot-answer-is-never-worked`.
+Pre-registration: `docs/staging/records/SEAT_PREREG_THE_FOUNDER_HOMES_ARE_ON_THE_COUNCIL_TAX_LIST_2026-10-21.md`.*
+
+**Which route.** The world side. The premise above, that "the world holds no premise record" for a
+founder, was half true. The founders draw no premise, but the world authored each resi founder as a
+dwelling (`home_type`: urban_flat, suburban_semi, tenement_flat, rural_detached). C8 is a 3-bed
+Manchester semi. Every GB dwelling is on a council tax list (VAT Notice 701/19; the Scottish Assessors
+keep the list for the Glasgow founders). So the honest world answer is True, and the None was the
+feed not asking. `simulated_council_tax_listing` now also lists an address in `_authored_dwellings`.
+That set is the roster records whose `home_type` is a dwelling type in
+`dwelling_records.PROPERTY_TYPE_BY_HOME_TYPE`: C1-C4, C7-C9 and the gas legs. C5, C6 and the I&C
+points stay None. Control:
+`test_a_founder_authored_as_a_home_is_on_the_list_and_a_business_founder_is_not`. It goes red when
+the founder clause is dropped, and red when every authored founder is listed. Both mutations were
+run. K8 section: `docs/market_research/unbilled_energy_and_revenue_assurance.md` §4c, with a
+paragraph published on the unbilled-energy page.
+
+**Why not the other route.** A run refuses a resi electricity account with no dwelling
+(`build_properties` raises `DwellingNotDrawn`). So once authored homes answer, no domestic hold in
+this world reaches the queue without a listing answer. A contact/certificate or re-segmentation step
+would be a mechanism nothing reaches. It is recorded as a design choice and a GAP in §4c: an address
+genuinely off the list, such as a new build before banding, is not modelled.
+
+**Measured** with item 2's method: the 44a21e3e8 run's 38,005 bills, stamped the way the fixed feed
+stamps them, through `bill_assembly.held_bills` / `billing_accuracy`. This is not a re-run.
+
+| Month end | before: accounts / held actuals / kWh / GBP | after |
+|---|---|---|
+| 2017-12 | 2 / 0 / 7,146 / 888 | unchanged |
+| 2018-12 | 3 / 1 / 18,293 / 2,539 | 2 / 0 / 16,321 / 2,156 |
+| 2019-12 | 3 / 1 / 38,651 / 6,232 | 2 / 0 / 36,680 / 5,849 |
+| 2020-12 | 3 / 1 / 19,937 / 2,873 | 2 / 0 / 17,965 / 2,490 |
+| 2021-12 | 2 / 2 / 17,024 / 2,414 | 1 / 0 / 12,825 / 1,635 |
+| 2022-12 | 2 / 3 / 19,186 / 3,774 | 1 / 0 / 12,825 / 1,635 |
+| 2023-12 | 3 / 3 / 21,337 / 4,295 | 2 / 0 / 14,975 / 2,156 |
+| 2024-12 | 2 / 3 / 19,186 / 3,774 | 1 / 0 / 12,825 / 1,635 |
+| 2025-06 | 2 / 4 / 21,402 / 4,386 | 1 / 0 / 12,825 / 1,635 |
+
+Held bills 44 -> 40, all 40 estimates. Gas stays zero. From 2021-12 to the run end, K1 is now exactly
+the closed account's 12,825 kWh of held 2018 estimates. The closed-account fix (7a266cb76, the
+section above) releases those. It landed after this measurement was taken, so this table's "before"
+does not include it. With item 2, the closed-account fix and this one all in place, the 2025-06
+held-actual accrual is the two `OCC-8c6b8bb21743` bills item 2 released in code. They still read held
+here only because the run was stamped by the old feed.
+
+*Re-applied 2026-10-21 by a worker tick from salvage commit `9dc0cf4b0`. The turn that built it was
+killed at 02:15 BST before it committed. The code, the control, the K8 section and these numbers are
+that turn's. Only this paragraph and the sentence above it are new.*
+
+**Graded.**
+1. CONFIRMED. 44 -> 40 held, actuals 4 -> 0, estimates 40.
+2. CONFIRMED. Held actuals are 0 at every month end. The first move is 2018-12. At 2025-06 the
+   accrual fell 8,577 kWh, which is the four bills' kWh (1,972 + 2,227 + 2,162 + 2,216). None of
+   the four carried a `read_true_up_kwh`.
+3. REFUTED AS MEASURED, and the refutation is the instrument's. Outside a run, 288 resi `PROS-`
+   accounts in the 44a21e3e8 bills read None. HEAD's campaign draws a different winner set from the
+   code that produced that run: 371 PROS ids are in the run's bills and 358 in HEAD's draw, of which
+   228 are shared. 8927e9345 (founders as 400 households) landed after the run. Inside a run the
+   winners are the run's own, and `build_properties` refuses any resi electricity account without a
+   dwelling. So "no resi hold without an answer" holds by construction for electricity. It is not
+   measured here. The next run settles it.
+
+The published page moves at the next run, as item 2's did.
