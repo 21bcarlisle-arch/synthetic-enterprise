@@ -274,6 +274,13 @@ class CompetitivePressureLedger:
     #: customers.
     slope_sums: dict[tuple[str, str, int], dict] = field(default_factory=dict)
     pending_move_by_account: dict[str, tuple[str, str, int, float]] = field(default_factory=dict)
+    #: (2026-10-21) THE SAME OBSERVED-OVER-EXPECTED, SPLIT BY THE TERM NOW ENDING: a fix, a
+    #: default-tariff stint, or a default stint entered by refusing our fix at an earlier roll
+    #: (`churn_desk.ENDING_TERM_TYPES`). Per (type, year): renewals, the belief held on them BEFORE
+    #: this conditioning, and how many of those accounts were then lost at a renewal. A loss is
+    #: attributed to the account's latest roll through its own id, as B8 attributes a price move.
+    ending_term_sums: dict[tuple[str, int], dict] = field(default_factory=dict)
+    pending_ending_term_by_account: dict[str, tuple[str, int]] = field(default_factory=dict)
 
     def arm_loss_reporting(self) -> None:
         """Declare that departures WILL be reported to this ledger for the rest of the run.
@@ -360,6 +367,51 @@ class CompetitivePressureLedger:
         sums["spx"] += p * x
         self.pending_move_by_account[str(account_id)] = key + (x,)
 
+    def observe_ending_term(self, renewal_year: Optional[int], ending_term_type: Optional[str],
+                            account_id: Optional[str], believed_p_leave: float) -> None:
+        """Book one renewal under the type of the term it ends, with the UNCONDITIONED belief, so
+        the multiplier never learns from its own output. Silent when any part is unknown."""
+        if None in (renewal_year, ending_term_type, account_id):
+            return
+        p = float(believed_p_leave)
+        if not math.isfinite(p):
+            return
+        key = (str(ending_term_type), int(renewal_year))
+        sums = self.ending_term_sums.setdefault(key, {"n": 0, "sp": 0.0, "losses": 0})
+        sums["n"] += 1
+        sums["sp"] += max(0.0, min(1.0, p))
+        self.pending_ending_term_by_account[str(account_id)] = key
+
+    def ending_term_multiplier(
+        self, ending_term_type: Optional[str], renewal_year: Optional[int]
+    ) -> tuple[Optional[float], str]:
+        """Observed over expected renewal losses for one ending-term type, over closed years.
+
+        `(None, reason)` wherever there is nothing to learn from; the caller then leaves the
+        belief as it was. Only the Jeffreys continuity correction is applied, and no prior: no
+        published source sizes how much leaving differs by the tariff a household is coming off
+        (`docs/market_research/switching_gradient_by_tariff_and_payment_what_the_record_can_grade.md`
+        §1c and §5), so there is no prior width to weigh the book against. A type the company
+        has never lost anyone from reads (0.5 / (n + 1)) over its mean belief, small but not zero.
+        """
+        if ending_term_type is None or renewal_year is None:
+            return None, "no ending-term type or renewal year"
+        if not self.loss_reporting_armed:
+            return None, "departures are not being reported to this ledger"
+        n, sp, losses = 0, 0.0, 0
+        for (kind, year), sums in self.ending_term_sums.items():
+            if kind == ending_term_type and year < int(renewal_year):
+                n += sums["n"]
+                sp += sums["sp"]
+                losses += sums["losses"]
+        if n <= 0:
+            return None, f"no closed renewals ending a {ending_term_type} term"
+        if sp <= 0.0:
+            return None, f"predicted zero losses on {n} closed {ending_term_type} renewals"
+        ratio = ((losses + _CONTINUITY_SUCCESSES) / (n + _CONTINUITY_TRIALS)) / (sp / n)
+        return ratio, (f"{losses} losses against {sp:.2f} predicted on {n} closed "
+                       f"{ending_term_type} renewals")
+
     def closed_slope_sums(self, payment_method: str, fuel: str, renewal_year: int) -> dict:
         """B8's sums for one channel and fuel over years STRICTLY before `renewal_year`."""
         out = {"n": 0, "sx": 0.0, "sxx": 0.0, "sp": 0.0, "spx": 0.0, "losses": 0, "loss_x": 0.0}
@@ -391,6 +443,10 @@ class CompetitivePressureLedger:
             key = (str(payment_method), year)
             self.losses_by_method[key] = self.losses_by_method.get(key, 0) + 1
             self.method_loss_reporting_armed = True
+        if account_id:
+            ending = self.pending_ending_term_by_account.pop(str(account_id), None)
+            if ending is not None and ending in self.ending_term_sums:
+                self.ending_term_sums[ending]["losses"] += 1
         # B8: the departure is booked against the price move of the renewal it left through.
         pending = self.pending_move_by_account.pop(str(account_id), None) if account_id else None
         if pending is not None:

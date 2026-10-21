@@ -688,3 +688,72 @@ draws, seed 7, and the paired difference over the same states.
   below 0.742 with the paired bound below 0, price position is the next term, ahead of any advice
   build. If the lower bound does not clear 0.5, the mechanism, not the roll type, is wrong. The
   first suspect is then the roll-date-only loss feed.
+
+**Result (computed 20:43–20:55Z, after the predictions above were on origin at 3e281075a; one seed,
+one book).** The conditioned belief is computed by `ending_term_multiplier` and
+`condition_on_ending_term` themselves, on a ledger fed only the pre-2019 desk states and `all_on`'s
+roll-date losses dated before 2019-01-01.
+
+| fit, pre-2019 (what the company sees at 2019-01-01) | renewals | lost at a roll | mean belief | multiplier |
+|---|---|---|---|---|
+| `fixed` | 132 | 52 | 0.392 | **1.006** |
+| `default` | 46 | 0 | 0.491 | **0.022** |
+| `default_after_declined_fix` | 4 | 0 | 0.501 | 0.199 |
+
+| graded on the 268 states from 2019 (46 leavers), clustered 95% | AUC | paired differences |
+|---|---|---|
+| belief (current) | 0.333 [0.253, 0.426] | |
+| rate vs SVT | 0.594 [0.479, 0.709] | |
+| roll type + price, §9's definition, reproduced | 0.742 [0.652, 0.830] | |
+| **conditioned belief, switch on, fit before 2019** | **0.819 [0.757, 0.877]** | − belief [+0.386, +0.579]; − rate vs SVT [+0.105, +0.353]; − §9's roll + price **+0.077 [−0.014, +0.173]** |
+| the same, read online (each year from the years before it) | 0.833 [0.773, 0.889] | |
+| roll type alone, this section's definition | 0.835 [0.783, 0.881] | |
+| roll type + price, this section's definition | 0.799 [0.730, 0.864] | conditioned − this: [−0.049, +0.100] |
+
+By type, from 2019: `fixed` 42 of 96 leave (mean belief 0.189, conditioned 0.190); `default` 3 of
+152 (0.388 becomes 0.026); `default_after_declined_fix` 1 of 20 (0.363 becomes 0.103).
+
+**What it says.** The current belief ranks backwards because it puts its highest beliefs on the
+default-tariff rolls. Those are 57% of the states and lose 2% a year. The company's own pre-2019
+book has already lost 52 at fix-end rolls and none at default rolls. A multiplier read off that
+history moves 0.388 to 0.026 on the default rolls and leaves the fix-end level where it was
+(m = 1.006). Inside the fix-end rolls the belief still ranks at chance (0.515, against rate vs
+SVT's 0.611). That is why the conditioned belief sits just under the roll type alone. The
+belief's own ordering inside a type adds nothing. The level it now takes from the type is all
+of the gain.
+
+**Two definitions of roll type, and why §9's comparator reads lower.** §9 marked a state "fix" only
+where the book holds the electricity leg's new term at `term_start`. A fix declined at that roll
+has its book row withdrawn (the splice), so §9 counted it as "not a fix". This section reads the
+decision leg's latest term before the roll. The two disagree on only 4 of 268 states from 2019,
+but they fit different pre-2019 weights. The item's 0.742 is §9's definition, reproduced exactly
+above.
+
+**Grading P10.**
+- **P10a HELD.** 0.819, inside 0.72–0.86, point 0.80. The lower bound, 0.757, clears 0.5.
+- **P10b HELD on all three legs.** Against the belief and against rate vs SVT the paired bound is
+  above 0. Against roll type + price the point is +0.077 on §9's comparator (+0.020 on this
+  section's), and the bound spans 0, as filed.
+- **P10c HELD.** No pre-2019 roll-date loss follows a default term. `m_default` = 0.022 < 0.15.
+- **P10d HELD in direction, void in size.** 1 of 20 against 3 of 152 is one leaver. Nothing can be
+  read from it.
+- **P10e HELD at the edge.** The mean conditioned belief is 0.090 against 0.172 realised (0.082
+  apart, inside 0.10). It under-predicts because only roll-date losses reach the ledger. The 4
+  leavers on default rolls all leave after the roll, and SVT-drift departures are never booked. The belief is "P(leave at
+  this renewal)", so this is its definition, not a leak. But a 365-day reader of it will read low.
+
+**By the decision rule: the switch is the belief's first rebuild,** and it is the arm the next
+per-customer arms run should carry (`renewal_belief_by_ending_term=True` beside `all_on`). This
+section flips nothing. Price position is not shown to add to it on 46 leavers. Inside fix-end
+rolls it is the only observable near the world's ceiling (§9: 0.62 against about 0.65), so it is
+the next term, and it is graded where it matters (fix-end rolls), not over the whole desk.
+
+**What this does not settle.** One seed. The fit population is the desk's (resi rolls with a
+contribution). In a run the ledger books every renewal the belief is asked about, so its counts
+will be larger. No control holds the run loop's leg: a run that stops handing the type over reads
+"off". The controls hold the desk, the ledger and the mapper (two mutants, each red). The
+mapper's import into `run_phase2b` is pinned by identity, which is a name, not a consumer. **The
+world question §9 named is unchanged.** If the world is wrong to roll no departure at a default
+anniversary (EFTC 2019 gives 6% external in the six weeks after a fix lapses: knowledge page §5),
+then this multiplier learns the world's rule, not the market's. Under that reading 0.022 is the
+number most exposed. Scripts: `/tmp/pcs10/{grade,diff,ref9}.py`, scratch only and not landed.

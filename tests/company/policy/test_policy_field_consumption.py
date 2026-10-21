@@ -149,6 +149,7 @@ FIELD_CONSUMPTION = {
     "theft_screen_in_billing_run": {"via": "run_argument"},
     "instruct_reads_in_billing_run": {"via": "run_argument"},
     "next_best_action_shares_by_retention_rise": {"via": "run_argument"},
+    "renewal_belief_by_ending_term": {"via": "run_argument"},
     "next_best_action_decides_per_household": {"via": "run_argument"},
     "next_best_action_decides_at_renewal": {"via": "run_argument"},
     "save_offer_decides_per_household": {"via": "run_argument"},

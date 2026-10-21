@@ -375,3 +375,65 @@ shapes. That is the next measurement, and it is filed as a hand-off, not built h
 | W-A (channel on the drift hazard) | Knowledge page done (§2). Build after 19 Oct against the finding's filed prediction. Aim 0.50–0.70, not 0.55. |
 | PPM→credit landing at a switch (`m`, §2a) | **GAP, bounded pre-crisis**: dumb-PPM switchers keep PPM (CMA ¶9.213), and the whole PPM→credit flow is about 3–4%/yr of PPM accounts, so `m` ≲ 0.2–0.3 pre-crisis and unbounded for 2025. 0.55 grades W-A's 0.50–0.70 only if `m` ≲ 0.12. A drawn 0.70–0.85 misses the prediction but not the record. |
 | W-B (convert vs shop) | Knowledge page done (§3). Needs the default-route external share, which is a GAP. φ was the wrong quantity. Diagnostic first. |
+| Leaving at fix end vs from the default (§5, 2026-10-21) | **Direction sourced** (EFTC 2019 against CMOL 2017: exposure is at the fix's end). **The annual ratio is a GAP**, and so is decline-then-default vs rolled. The company's switch learns the size from its own book. |
+
+---
+
+## 5. Leaving at the end of a fix against leaving from the default tariff (added 2026-10-21)
+
+**Wanted.** The company's renewal churn belief is asked once per renewal. At that point the
+company knows the tariff of the term that is ending: a fix, a default-tariff stint, or a default
+stint that began when the household refused our fix. The belief ignores this. This section asks
+what the published GB record says about how leaving differs between those three. It is the K8
+page for the default-off switch `DecisionPolicy.renewal_belief_by_ending_term`
+(`company/crm/churn_desk.py`, `CompetitivePressureLedger.ending_term_multiplier`).
+
+### What the rules require
+
+The rules set the prompt, not a rate. A fixed-term household gets an end-of-term notice inside a
+fixed window before the fix ends, carrying its options. The company models this as SLC 22's 42–49
+day window in `company/crm/renewal_notice_register.py`. A default-tariff household gets no
+term-end prompt at all, because it has no term. So the two populations are prompted differently
+by construction. Nothing in the rules sizes the difference in who leaves.
+
+### What published evidence says
+
+| source | what it measures | result | kind |
+|---|---|---|---|
+| Ofgem, *End of Fixed Term Communications Trial* (27 Sep 2019), Fig. 4.1, ¶4.1 (control arm; already on file at `svt_rates_active_passive_2016_2025.md` §4a) | ~20,000 one-year fixes at one supplier ending 28 Feb 2019, households that had not acted a few days before; switch **requests** in the 6 weeks after | 19% any change: ~14 pts re-fix with the same supplier, **6 pts to another supplier**; the rest stayed on the default | supplier records, RCT; a 6-week flow; one supplier, one month |
+| Ofgem, *Cheaper Market Offers Letter* trial (Nov 2017), Fig. 11–12, control arm (on file, §4a) | households on the default for at least a year, 30 days | **~1%** any change: ~0.7 pts external, ~0.3 pts internal | supplier records, RCT; a 30-day flow; two suppliers |
+| CMA, *Energy market investigation, final report* (24 Jun 2016), ¶8.242 and fn 128 (research pass 2026-10-21) | the share of the Six Large Energy Firms' default book on it for a year or less | at least 22% (gas) and 18% (electricity), "which partly reflects the effect of such reversion" from fixes | supplier records; a **stock**, and an upper bound (three suppliers measured tenure with the supplier, not on the default) |
+| CMA App. 9.1, Ofgem 2018, CIM w6 (§1 above) | switching by tariff **at interview** | fixed households switch 1.9–4.3× more | survey; the tariff after the switch, so an identity in where switchers land (§1a) |
+
+**What the record establishes.** In the weeks after a fix ends, households act at a far higher
+rate than settled default households do over a comparable window: 6% external in 6 weeks against
+about 0.7% in 30 days. The mix also reverses. At fix end, re-fixing with the incumbent outweighs
+leaving by about 2:1. On a settled default, leaving outweighs re-fixing. The direction is sourced
+and is what the renewal belief should carry: **the end of a fix is the moment of exposure, and a
+default anniversary is not one.** The levels cannot be divided into a ratio. The windows, years
+and suppliers differ, and the end-of-fix figure counts requests, not completions.
+
+### What is unknown (GAP)
+
+- **GAP: the annual pre-switch departure rate at the end of a fix against from the default.** No
+  GB source publishes losses cut by the tariff the household was on when it left (§1c restates
+  why the surveys cannot supply one). The two trials give a direction and no annual ratio.
+- **GAP: whether a household that refused a fix and sat on the default leaves differently from
+  one that rolled there passively.** No source cuts by this. The CMA's "reversion" stock and the
+  EFTC control arm both pool the two.
+- **GAP: how fast the end-of-fix spike decays** (as §4a of the SVT page already says).
+
+### Which choices the design makes, and why
+
+- **The size is learned from the company's own book, never set.** With no published ratio there is
+  no prior to put on it, so the switch applies no prior and no shrinkage. Per ending-term type, it
+  takes the company's own observed-over-expected renewal losses over closed years, with the
+  Jeffreys correction the competitive-pressure ledger already uses. It applies the result in
+  survival space. A type the company has never lost anyone from reads small, not zero.
+- **The third type is a refusal at an EARLIER roll, never at this one.** A fix declined at this
+  roll is written only for a household that stayed, so it would mark non-leavers by construction.
+- **It stays off** until the out-of-sample grade
+  (`docs/staging/records/SEAT_PREREG_THE_PER_CUSTOMER_SWITCHES_ON_TOGETHER_AGAINST_FLAT_2026-10-21.md`
+  §10) and an arms run that carries it say otherwise. Whether the world is right to roll no departure
+  at a default anniversary is a world question, decided blind to that grade. The EFTC external 6% is
+  the published check on it, and is already a named gap (§4a of the SVT page).

@@ -104,6 +104,47 @@ class RenewalObservation:
     account_id: str | None = None
     term_start: str | None = None
     fuel: str | None = None
+    #: (2026-10-21) The tariff type of the decision leg's term NOW ENDING, one of
+    #: `ENDING_TERM_TYPES`, read off the company's own book before the roll. None (every standing
+    #: policy) leaves the estimate bit-for-bit unchanged. Never the outcome of THIS roll: a fix
+    #: declined here is written only for a household that stayed, so it would mark non-leavers.
+    ending_term_type: str | None = None
+
+
+#: The term a renewal ends. A household coming off a fix is at the one point the market prompts
+#: it; one on the default tariff converts at an anniversary with no such prompt; and one whose
+#: default stint began by refusing our fix has told us something about our offers.
+ENDING_TERM_FIXED = "fixed"
+ENDING_TERM_DEFAULT = "default"
+ENDING_TERM_DEFAULT_AFTER_DECLINED_FIX = "default_after_declined_fix"
+ENDING_TERM_TYPES = (ENDING_TERM_FIXED, ENDING_TERM_DEFAULT, ENDING_TERM_DEFAULT_AFTER_DECLINED_FIX)
+
+
+def ending_term_type(previous_tariff_type: str | None, *, previous_term_spliced: bool,
+                     default_tariff_type: str) -> str | None:
+    """Which of `ENDING_TERM_TYPES` a renewal ends, from the previous term on our own book.
+
+    None where there is no previous term, or it is neither a fix nor the default (a deemed or
+    pass-through term is not a renewal the belief is asked about).
+    """
+    if previous_tariff_type == "fixed":
+        return ENDING_TERM_FIXED
+    if previous_tariff_type == default_tariff_type:
+        return ENDING_TERM_DEFAULT_AFTER_DECLINED_FIX if previous_term_spliced else ENDING_TERM_DEFAULT
+    return None
+
+
+def condition_on_ending_term(p_leave: float, multiplier: float | None) -> float:
+    """The belief scaled by its type's observed-over-expected, in survival space.
+
+    `1 - (1 - p) ** m`: about `p * m` for a small belief, never outside [0, 1], and order-preserving
+    within a type, so what the type changes is the level and what the belief still ranks is the
+    household inside it.
+    """
+    if multiplier is None:
+        return p_leave
+    p = min(max(p_leave, 0.0), 1.0)
+    return 1.0 - (1.0 - p) ** multiplier
 
 
 def estimate_renewal_churn(observation: RenewalObservation) -> float:
@@ -133,6 +174,14 @@ def estimate_renewal_churn(observation: RenewalObservation) -> float:
             pre_factor_p_leave=_pre_engagement_estimate(observation, estimate),
         )
         _book_price_response(ledger, observation, estimate)
+        # BOOKED UNCONDITIONED, and every learner above read the same unconditioned number, so
+        # switching this on moves no other belief's evidence.
+        if observation.ending_term_type is not None:
+            ledger.observe_ending_term(observation.renewal_year, observation.ending_term_type,
+                                       observation.account_id, estimate)
+            multiplier, _ = ledger.ending_term_multiplier(observation.ending_term_type,
+                                                          observation.renewal_year)
+            return round(condition_on_ending_term(estimate, multiplier), _ESTIMATE_DP)
     return estimate
 
 
@@ -289,6 +338,7 @@ __all__ = [
     "active_pressure_ledger",
     "pressure_ledger_scope",
     "crisis_hangover_periods",
+    "ending_term_type",
     "estimate_churn_without_rate_history",
     "estimate_renewal_churn",
     "estimate_secondary_fuel_churn",

@@ -227,6 +227,13 @@ class DecisionPolicy:
     #: `next_best_action_decides_at_renewal`, which would leave nothing to price it.
     next_best_action_shares_by_retention_rise: bool = False
 
+    #: (2026-10-21) The renewal churn belief is scaled by the company's own observed-over-expected
+    #: losses for the type of term the renewal ends: a fix, a default stint, or a default stint
+    #: entered by refusing our fix (`company.crm.churn_desk.ENDING_TERM_TYPES`). Off on every
+    #: standing policy; graded out of sample in
+    #: `docs/staging/records/SEAT_PREREG_THE_PER_CUSTOMER_SWITCHES_ON_TOGETHER_AGAINST_FLAT_2026-10-21.md` §10.
+    renewal_belief_by_ending_term: bool = False
+
     #: (2026-10-18) C34/C35 decide once per billing account, over both legs, where a dual-fuel
     #: household's two legs reach the decision on one date (`company.crm.next_best_action.
     #: states_for_decision`). A household leaves with both fuels about nine times in ten

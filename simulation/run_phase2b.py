@@ -38,6 +38,7 @@ from company.interfaces.churn_estimation import (
     SvtSegmentObservation,
     active_pressure_ledger,
     crisis_hangover_periods,
+    ending_term_type,
     estimate_churn_without_rate_history,
     estimate_renewal_churn,
     estimate_secondary_fuel_churn,
@@ -2698,6 +2699,9 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     # in between has demonstrably shopped, which is the whole thing the band is measuring.
     _svt_stint_start: dict[str, str] = {}
     _last_tariff_type: dict[str, str] = {}
+    #: Whether each leg's last term was a default segment spliced in by a declined fix, so the
+    #: company can tell the default stint a refusal began from one it was rolled onto.
+    _last_term_spliced: dict[str, bool] = {}
     _svt_departures: list[dict] = []
     #: EVERY SVT segment decision, not only the ones that ended in a departure. `_svt_departures`
     #: is the numerator; nothing can be graded on a numerator. A hazard or a belief is scored over
@@ -3339,6 +3343,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         # Read BEFORE the overwrite: the renewal roll below asks what this term converted FROM.
         _previous_tariff_type = _last_tariff_type.get(cid)
         _last_tariff_type[cid] = term_tariff_type
+        _previous_term_spliced = _last_term_spliced.get(cid, False)
+        _last_term_spliced[cid] = _spliced
 
         # ACCOUNT STATE, WRITTEN FOR EVERY TERM AND NOT ONLY FOR THE ONES THAT RENEWED.
         # Placed HERE, above the renewal gate, for two reasons that are both properties and not
@@ -3580,6 +3586,12 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     account_id=billing_account,
                     term_start=term_start_str,
                     fuel=commodity,
+                    # The company's own book, before the roll; None on every standing policy.
+                    ending_term_type=(
+                        ending_term_type(_previous_tariff_type,
+                                         previous_term_spliced=_previous_term_spliced,
+                                         default_tariff_type=SVT_TARIFF_TYPE)
+                        if policy.renewal_belief_by_ending_term else None),
                 ))
                 if hangover_periods > 0:
                     hangover_remaining[cid] = hangover_periods - 1
@@ -4365,6 +4377,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 _last_tariff_type.pop(cid, None)
             else:
                 _last_tariff_type[cid] = _previous_tariff_type
+            _last_term_spliced[cid] = _previous_term_spliced
             _default_end = min(
                 date.fromisoformat(term_start_str) + timedelta(days=CONTRACT_LENGTH_DAYS - 1),
                 date.fromisoformat(effective_end),
