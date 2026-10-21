@@ -117,3 +117,74 @@ The trace is in the BLOCKING finding, section "the trace". In short:
 What remains here is the world's indebted-leaver **flow**, which falls from about £1k a year (2017-18) to £100-324
 (2022-23). The leaver census in the BLOCKING finding's next step asks whether that is founder-book selection or a
 world rule.
+
+## 2026-10-21 (night): the leaver census by route. A world rule, the one the record has: switching froze. Not selection, not the debt objection
+
+**Instrument.** `/var/tmp/leaver_routes/dump2.py` re-runs the BLOCKING finding's `dump.py` configuration (shared tree,
+HEAD 7a7ad95dc, both budget switches on, default dice, to 2023-12-31) and also keeps the run's move-out, SVT-exit and
+renewal logs, which the first dump dropped. So the item's "needs no compute" was wrong: the leave route was not in any
+existing output. It reproduced the same world exactly: 45,555 records, and the same leaver and debt totals as the
+landed census. `census2.py` reads it. A leaver and its debt are defined as in that census: last bill at least 62 days
+before the end, and the world's unpaid pounds 62 days after it. The route is the log event within 120 days of the
+last bill. 4 of 1,060 leavers (2017-2023) match no route. One book, one dice seed, unpublished.
+
+| year | accounts on supply | movers: left / in debt / GBP | switch at renewal | switch by SVT exit | switching rate (DESNZ) | in-debt share of leavers | renewal rolls / objection-eligible / blocked |
+|---|---|---|---|---|---|---|---|
+| 2017 | 798 | 32 / 1 / 21 | 63 / 2 / 154 | 94 / 7 / 890 | 19.7% (18.2%) | 5.0% | 128 / 9 / 1 |
+| 2018 | 666 | 35 / 8 / 428 | 23 / 4 / 122 | 103 / 11 / 565 | 18.9% (19.1%) | 14.2% | 107 / 4 / 0 |
+| 2019 | 572 | 36 / 10 / 466 | 10 / 0 / 0 | 83 / 10 / 362 | 16.3% (20.8%) | 15.3% | 86 / 2 / 1 |
+| 2020 | 513 | 37 / 5 / 174 | 23 / 2 / 40 | 53 / 2 / 145 | 14.8% (20.2%) | 8.0% | 60 / 7 / 1 |
+| 2021 | 463 | 26 / 4 / 130 | 13 / 1 / 136 | 25 / 2 / 85 | 8.2% (15.6%) | 12.1% | 69 / 7 / 3 |
+| 2022 | 430 | 18 / 3 / 192 | 0 / 0 / 0 | 9 / 0 / 0 | **2.1% (3.05%)** | 11.1% | **0** / 0 / 0 |
+| 2023 | 458 | 13 / 1 / 154 | 0 / 0 / 0 | 17 / 2 / 178 | **3.7% (6.3%)** | 10.0% | 26 / 1 / 0 |
+
+The switching rate is the world's switchers over accounts on supply. The bracket is
+`docs/domain_artefact_library/regulatory/gb_domestic_switching_rate.json`, the whole-market rate over all accounts,
+which is the same basis.
+
+**Answers to what the item asked.**
+- **Selection: no.** The in-debt share of leavers runs 5-15% with no trend and no crisis break. Indebted households
+  leave as often as before. There are just far fewer leavers.
+- **The debt objection: not the mechanism.** It blocks 0-3 departures a year, and **none in 2022-23**. In 2022 the
+  world made no renewal roll at all. The world applies SLC 14 at the renewal roll only (`simulation/debt_objection.py`,
+  gap 6), and every crisis switch was an SVT exit, which it never blocks. If it did block them at its 28.3%, it would
+  stop about 0.6 of 2023's two indebted SVT leavers. That is under GBP 60.
+- **The world rule: the switching freeze, sized like the record.** The world's switching fell from 19-20% (2017-18,
+  record 18-19%) to 2.1% and 3.7% (record 3.05% and 6.3%). Both crisis years read below the record, but on 9 and 17
+  switchers. In 2019-21 the world sits 4-7 points under the record, and that gap is the departure anchor's, not this
+  item's.
+- **Movers held roughly steady.** Electricity move-outs per electricity account were 3.9-6.7% a year from 2017 to
+  2022, then 2.3% [0.8-4.9] in 2023 (Poisson 95%). That interval overlaps 2017's [2.3-6.2]. Moves fall in every tenure
+  (from the move-ins' `vacated_tenure`), so this is not renters leaving a closed book first. A move cannot be
+  objected to in the world. Movers' debt per indebted leaver rose from GBP 21-53 (2017-19) to GBP 64 and 154.
+- **Arrears age at closing.** The oldest unpaid bill's age at the closing date, median over indebted leavers: movers
+  48 days in most years (the final bill itself), 413 in 2022. Switchers 110-353 days. On 1-11 leavers a cell, these
+  are descriptions, not estimates.
+
+**Against `docs/market_research/bad_debt_provisioning.md`, 2021-2023.**
+- The world made 8, 3 and 3 indebted leavers, leaving GBP 378, 192 and 332.
+- Centrica's final-bill gross receivable is GBP 162m, 201m and 280m: +24% and +39% a year while switching froze.
+- Centrica publishes no final-bill **flow** and no **count** of indebted leavers. That is a **GAP**, so the flow
+  cannot be graded.
+- Graded on a stock instead: the world's closed-account debt over 91 days (never written off, from "the trace") as a
+  share of world gross receivable is 27%, 10% and 14%. Centrica's final-bill share is 27%, 20% and 17%. That matches in
+  2021 and runs about half in 2022 and two-thirds in 2023. But in 2022-23 the world's denominator is the live
+  receivable, and that grew 3.5x. So the stock is short because the live book swelled, not because leavers stopped
+  carrying debt.
+- The real final-bill stock still grew 73% over two frozen years. No published figure says which route carried it.
+  The candidates are movers (whose move rate does not freeze), bigger crisis bills, and a write-off period Centrica
+  does not disclose (GAP, `bad_debt_provisioning.md` §3.1). Each of these is a **GAP**.
+
+**Verdict.** The crisis fall in new leaver debt follows a **world rule**, and it is the record's: the 2022-23
+switching freeze, reproduced at about the published size. It is **not selection**. It is not the debt objection, which
+is nearly inert, and inert by construction in the crisis because only SVT exits happened. The pounds a real supplier
+lost in the crisis were on live accounts, and the BLOCKING finding's "leaver census" section already put the world's
+remaining shortfall there: the **depth** of live arrears.
+
+**The world change it implies: none for the step-up.** The nearest candidate is not crisis-shaped.
+`simulation/payment_behaviour_source.py` gap 7 says a switcher's final bill recovers at the stayer's rate, where
+Centrica provisions final bills at 71-86%. That moves the leaver-debt **level** in every year, and with only 9-17
+switchers a year in 2022-23 it cannot make a step. It stays a named gap, not a build. Also noted, not built: SLC 14 is
+recorded in `docs/market_research/domestic_debt_objection_rates_gb.md`, but the regulation commons
+(`docs/domain_artefact_library/regulatory/`) holds no SLC 14 artefact.
+
