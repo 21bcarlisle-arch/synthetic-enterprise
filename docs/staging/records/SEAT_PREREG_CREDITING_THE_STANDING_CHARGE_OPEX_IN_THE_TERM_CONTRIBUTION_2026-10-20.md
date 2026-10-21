@@ -82,3 +82,7 @@ If P4 fails with a falling offer count, the guard reads the contribution through
 other than `expected_margin`. That has to be found before the C34 switch is regraded. If P1
 lands below +£0.50, the spread moved more than the credit, and the owed rate-route attribution
 (P1 of the earlier note, refuted) comes ahead of everything else on this subject.
+
+*21 Oct 05:36Z: the arms died queued twice and were relaunched behind the per-customer-switch arms.
+The launch history and the grading plan are in
+`SEAT_RESULT_CREDITING_THE_STANDING_CHARGE_OPEX_IN_THE_TERM_CONTRIBUTION_2026-10-21.md`.*

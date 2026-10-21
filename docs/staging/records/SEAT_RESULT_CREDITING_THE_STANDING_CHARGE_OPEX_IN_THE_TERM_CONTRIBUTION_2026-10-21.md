@@ -36,6 +36,20 @@ written while they were still queued.
 - **P6.** Per-leg median by renewal year, on the `credit` arm. It holds if 2023 has the highest
   median, and 2020 the lowest of 2017–2021.
 
+## The second launch died queued too; relaunched 21 Oct 05:36Z
+
+At 05:35Z `scopex-opex-credit-arms` did not exist either: there was no process, no `longjob-*`
+unit, no `.launch_records.json` row and no `credit`/`nocredit` output. It went the same way as the
+first launch. The launcher was still queued for memory, so it had no unit of its own, and it died
+with the tick's cgroup. The relaunch went in at **05:36Z**. It runs as a driver unit in its own
+cgroup, `relaunch-driver-scopex-1021.service` (`/var/tmp/se-relaunch-1021/driver2.sh scopex`), and
+writes a QUEUED line to `/var/tmp/se-relaunch-1021/scopex.log` every 5 min while
+`longjob-per-customer-switch-arms-8fbb641d8` is active. After that it launches
+`scopex-opex-credit-arms-ec7fd9942`: `run_both.sh` in the same locked worktree, at a 7,000 MB
+peak, with the artefact `/var/tmp/se-scopex/nocredit.json`, which is written last. When the follow ends,
+the driver hands off the grade as the continuation `grade-the-opex-credit-arms-ec7fd9942`, at that
+point because a continuation lives only 6h. The arms, the probe and the grading above are unchanged.
+
 ## Grades
 
 Owed. Filled from the two arms when the job completes.
