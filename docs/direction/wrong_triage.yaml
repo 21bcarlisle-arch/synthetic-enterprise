@@ -434,3 +434,12 @@ items:
       2026-10-20 01:14Z, and the cause is recorded in the C34 prereg''s correction paragraph (a7a32f337). Only an arm
       script written by hand meets the wording, and the fix costs a full gated run_phase2b cycle. Accepted 2026-10-20
       by the delivery seat; reopen as fix on a second arm that dies on it.'
+  - id: the-brief-says-none-launched-when-it-read-only-endings
+    problem: "The brief prints 'no launch_long_job job launched or ended' whenever no job ended, because it reads only endings, while the register holds launches inside the stretch."
+    match:
+    - The orientation brief said no launch_long_job job launched or ended
+    first_seen: '2026-10-20'
+    fate: fix
+    status: open
+    owner: background/delivery_seat.py (ended_sentence; focus item the-brief-says-none-launched-when-it-read-only-endings, 2026-10-21)
+    reason: 'Cause read 2026-10-21: the empty branch of ended_sentence claims launches it never reads. Recurred with read-instruction-off/-register (23:45:39Z) and -ceiling (00:19:13Z) in the register.'
