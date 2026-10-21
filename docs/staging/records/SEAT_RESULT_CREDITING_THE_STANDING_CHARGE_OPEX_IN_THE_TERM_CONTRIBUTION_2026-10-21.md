@@ -50,6 +50,25 @@ peak, with the artefact `/var/tmp/se-scopex/nocredit.json`, which is written las
 the driver hands off the grade as the continuation `grade-the-opex-credit-arms-ec7fd9942`, at that
 point because a continuation lives only 6h. The arms, the probe and the grading above are unchanged.
 
+## The third launch ran, and both arms died on import in 15 s; relaunched 21 Oct 15:18Z
+
+The job ran this time (14:52Z, `Result=success`, 15 s) but wrote no artefact. Both `credit.log` and
+`nocredit.log` say `ModuleNotFoundError: No module named 'company'`. The cause is the probe, not
+the code under test. A script's `sys.path[0]` is its own directory (`/var/tmp/se-scopex`), not the
+cwd that `run_both.sh` changes into, and the launch sets no `PYTHONPATH`. The retnet probe already
+carries the same fix. The probe now puts the cwd (the locked worktree at `ec7fd9942`) at the front
+of `sys.path`, and nothing else changes. The arms, the patch and the grading above are unchanged.
+The failed logs and status are kept beside it as `*.failed-1021*`. The import path was checked in
+the worktree before the relaunch.
+
+The relaunch is `relaunch-driver-scopex-1021.service` again, now running `driver3.sh`. That is
+`driver2.sh` with the continuation id changed to `grade-the-opex-credit-arms-ec7fd9942-r2`, because
+releasing this draw retires a continuation filed under its own id. At 15:18Z it is queued in
+`longjob-scopex-opex-credit-arms-ec7fd9942-queued` behind a landing. Its log is
+`/var/tmp/longjob-scopex-opex-credit-arms-ec7fd9942-queued.log`. The retnet driver still waits on
+this unit, so it stays behind it.
+
 ## Grades
 
-Owed. Filled from the two arms when the job completes.
+Owed. Filled from the two arms when the job completes, under the continuation
+`grade-the-opex-credit-arms-ec7fd9942-r2`.
