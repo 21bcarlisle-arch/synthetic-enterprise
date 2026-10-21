@@ -234,3 +234,55 @@ Whether the review recovery is the world's job (payment allocation) or the compa
 seam question here. It goes to `interface-steward` before any build. Either way the depth grade (§2.5a) stands. The
 record's debtors owe most of a year's bill, and a household paying every bill on time cannot be made to owe that by
 any allocation rule.
+
+### 2026-10-21 (late, after 23:50): the year-plus pool is the per-bill draw. The budget's own debt always clears inside a year
+
+This answers the "next step (world, read-only)" above from code and records, with no new run. The instrument is
+`/var/tmp/leaver_trace/paths.py` and `season.py`, on the same dump.
+
+**Two paths fail a bill, and they cure differently.** See `background/live_payment_triad.py`, around the
+`BudgetPaymentBook.settle_month` call.
+- **The budget path.** The household's margin and savings cannot cover the bill. The bill stays unpaid until a later
+  month's money clears it, oldest first, so it blocks every later bill. It is settled on a later bill's due date.
+- **The per-bill path.** `generate_payment_event` fails a bill the budget *covered*. Its cure is
+  `payment_behaviour_source.later_settlement_date`: DD re-presentation at day 14, else a lump at due + 28 days + 3
+  months or + 22 months, else never (7.4% DD, 50.3% standard credit). This path does not read the household's money.
+
+The two are classified by their settlement date. Settled on a later bill's due date of the same account counts as
+budget. Due + 14 counts as re-presented. Any other date counts as a later settlement.
+
+| path | failed bills | median days to cure | p90 | >91 days | >365 days |
+|---|---|---|---|---|---|
+| budget-cleared | 882 | 61 | 122 | 25% | **0%** |
+| DD re-presented | 204 | 14 | 14 | 0% | 0% |
+| later_settlement | 271 | 120 | 698 | 100% | 25% |
+| never settled | 196 | - | - | - | - |
+
+**The 199 bills unpaid for more than a year, by path:** 67 are later_settlement, 133 never settled and 2 are
+budget-cleared. Of the 101 that sit beside a year of on-time later payments, **99 are per-bill**. The other 2 are
+borderline classifications. "Never settled" also holds up to 48 budget bills still open at the run's end, but those
+are followed only by failed bills, so none of them is among the 99.
+
+**So the "parked bill" is the per-bill path, and it carries a money inconsistency.** The budget book spends the
+household's cash on a bill the per-bill draw then fails. The same bill is paid again later by a lump that touches no
+budget. One bill has two payment truths, and the household pays it twice. This is a seam/world question, filed for
+`interface-steward` with the 23:50 allocation question, not built here.
+
+**The budget path is where accumulation would have to come from, and it does not accumulate.** Its 882 failures sit
+on **79 of 1,200 accounts**, about 11 each, and the account at the median has 17% of its bills failed. The peak owed
+at once is a median of 2 bills (max 7). Every one clears inside a year, and the clearing is not seasonal: cures are
+spread across all twelve months. These are households whose margin hovers around their bill. They fall one or two
+bills behind, catch up, and fall behind again. None has a sustained mean deficit, which is what the record's
+accumulating, deepening average arrears require.
+
+**What it changes.** The build question narrows to one world quantity. The question is no longer cure time, or
+allocation. It is **whether the world draws any credit household whose margin, net of energy, stays below its energy
+bill for a year or more**. Two things are read next, both world-side and blind to company results.
+1. The margin distribution itself, from `household_budget.margin_in_year` per year for the drawn book.
+2. Against it, the published share of households in persistent energy arrears. The source is §2.5a, plus the
+   pages' JRF and ONS OPN rows.
+
+The per-bill path's 22-month lump is gap 4 ("per bill, not per household") of `payment_behaviour_source.py`, already
+named. It is what makes the pool persist, and it cannot make it deepen.
+
+**Status:** OPEN (LATENT), carrying the BLOCKING finding's world side.

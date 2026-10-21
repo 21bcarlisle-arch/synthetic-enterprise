@@ -1036,3 +1036,17 @@ down to cover it. Tracing that is the next step. It is a world-side read, decide
 grade is the depth column against Ofgem's average arrears.
 
 **Status:** OPEN and BLOCKING.
+
+## 2026-10-21 (late): which world path makes the pool. The budget's debt never passes a year; the per-bill draw's does
+
+The table is in the world finding, section "the year-plus pool is the per-bill draw". It comes from records only, on
+the same dump. Bills the **budget** fails (882, on 79 accounts) cure in a median 61 days, and **none** lasts more than
+365. This is where the 61-day figure in "depth graded" comes from. Every bill unpaid for more than a year that sits
+beside on-time later payments (99 of 101) comes from the **per-bill** draw: `later_settlement_date`'s 22-month lump
+or never-repaid. It does not come from a household without money.
+
+So the world has no household whose shortfall persists. The x4-6 depth gap is a **margin-distribution** question: does
+the world draw any credit household whose margin stays below its energy bill for a year? It is no longer a
+cure-time question. It is world-side, decided blind to company results, and graded on the depth column.
+
+**Status:** OPEN and BLOCKING.
