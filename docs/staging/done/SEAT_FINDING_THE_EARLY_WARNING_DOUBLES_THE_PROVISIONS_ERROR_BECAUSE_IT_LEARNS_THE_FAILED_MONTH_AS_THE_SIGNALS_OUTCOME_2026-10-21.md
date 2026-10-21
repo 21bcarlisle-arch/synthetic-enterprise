@@ -93,6 +93,15 @@ the realised 12-month shortfall is GBP 0: these households do pay.
 
 ## Owed
 
+**Both actioned 2026-10-21** (direction item `e6-the-early-warning-learns-the-next-month-not-the-failed-one`):
+a signal carries the month it is about, is read only for a first step at lag 0 or 1 from it, and is
+learned on that step from accounts in missed state 0 at the step's start. D2 is decided on the
+knowledge page, choice 6: the guard stays on the chain's state. Re-graded on the same capture,
+pre-registered in `docs/staging/records/SEAT_PREREG_THE_EARLY_WARNING_LEARNED_ON_THE_STEP_IT_IS_READ_FOR_2026-10-21.md`:
+like-for-like on 120 quarter-end and 415 mid-month signal-read accounts, MAE off 1.81 / 3.52, as
+built 3.89 / 6.13, fixed 1.95 / 3.73. Worst book move 0.7% / 1.1%. About neutral, slightly worse
+than the chain alone. Still not worth wiring on this book.
+
 1. **Fix D1 in `company/finance/cash_forecast_provision.py`**: learn each signal's outcome on the
    step the reading applies it to (the month after the one it is about). Use a control that fails
    on today's label: a code 0 whose own month misses and whose next month pays must learn `pay`.

@@ -140,8 +140,8 @@ def test_a_household_one_bill_behind_that_pays_monthly_misses_no_payment_defect_
     each later bill is unpaid on its due date, and none of those is a missed payment."""
     book, method, signals_of = _book()
     assert sum(g for _, g in cfp.fifo_unpaid_bills(book.ledger("CAN0"), AS_OF)) > 0
-    assert [k for _, k in signals_of("CAN0", AS_OF) if k == cfp.SIGNAL_MANUAL_MISSED] == []
-    assert [k for _, k in signals_of("MANSTOP0", AS_OF) if k == cfp.SIGNAL_MANUAL_MISSED]
+    assert [s for s in signals_of("CAN0", AS_OF) if s.kind == cfp.SIGNAL_MANUAL_MISSED] == []
+    assert [s for s in signals_of("MANSTOP0", AS_OF) if s.kind == cfp.SIGNAL_MANUAL_MISSED]
 
 
 @pytest.mark.parametrize("reason", [r for r in R if r != R.INSUFFICIENT_FUNDS])
@@ -195,5 +195,78 @@ def test_a_return_not_yet_observed_is_not_read_defect_look_ahead_on_the_bacs_fee
     _, on, _, _ = _both([("S0", "dd", R.INSUFFICIENT_FUNDS)], as_of=as_of)
     assert on["S0"].signal is None
     _, _, signals_of = _book([("S0", "dd", R.INSUFFICIENT_FUNDS)])
-    assert [d for d, _ in signals_of("S0", as_of) if d > _day(28)] == []
-    assert [d for d, _ in signals_of("S0", as_of + dt.timedelta(days=1)) if d > _day(28)]
+    assert [s for s in signals_of("S0", as_of) if s.arrived > _day(28)] == []
+    assert [s for s in signals_of("S0", as_of + dt.timedelta(days=1)) if s.arrived > _day(28)]
+
+
+def _book_on_the_28th():
+    """The run's own geometry: a bill on the 1st, the direct debit value-dated the 28th, its ARUDD
+    line seen the 29th, the forecast read at a month-end. One return each in March 2019: WOB* pay
+    again from April; STOP* never pay again; D2* missed January's collection and settle a bill on
+    the 10th of March, so they stay one bill behind, March counts paid, and they pay in April.
+    Subjects returned in March 2020, read at 2020-03-31."""
+    book, fails = LedgerBook(), {}
+    months = [dt.date(2018 + (k // 12), k % 12 + 1, 1) for k in range(27)]
+
+    def account(a, returned, paid_after, settled_on_10th=False):
+        for first in months:
+            book.post(LedgerEvent(f"{a}-b{first}", a, LedgerEventType.BILL_DEBIT, 60.0, first, TT))
+            collect = first.replace(day=28)
+            if first == returned:
+                fails.setdefault(a, []).append(DDFailureObservation(
+                    f"M-{a}", a, 60.0, R.INSUFFICIENT_FUNDS, R.INSUFFICIENT_FUNDS.value, collect,
+                    dt.datetime.combine(collect + dt.timedelta(days=1), dt.time(8))))
+                if settled_on_10th:
+                    book.post(LedgerEvent(f"{a}-s{first}", a, LedgerEventType.PAYMENT_CREDIT, 60.0,
+                                          first.replace(day=10), TT))
+            elif settled_on_10th and first == returned.replace(month=1):
+                continue
+            elif returned is None or first < returned or paid_after:
+                book.post(LedgerEvent(f"{a}-p{first}", a, LedgerEventType.PAYMENT_CREDIT, 60.0, collect, TT))
+
+    for i in range(8):
+        account(f"PAY{i}", None, True)
+    for i in range(4):
+        account(f"WOB{i}", dt.date(2019, 3, 1), True)
+        account(f"STOP{i}", dt.date(2019, 3, 1), False)
+        account(f"D2{i}", dt.date(2019, 3, 1), True, settled_on_10th=True)
+    account("D2S", dt.date(2020, 3, 1), True, settled_on_10th=True)
+    account("WOBS", dt.date(2020, 3, 1), True)
+
+    def signals_of(a, on):
+        return cfp.early_warning_signals(book.ledger(a), fails.get(a, []), as_of=on,
+                                         payment_method_of=lambda *_: "direct_debit")
+    return book, signals_of
+
+
+def test_a_signal_is_learned_on_the_step_the_reading_applies_it_to_defect_the_failed_month_learned_as_the_outcome():
+    """A return on the 28th is read at the month-end for NEXT month (lag 1): the failed month is
+    already the chain's. So lag 1 is learned from next month, and only from households the month-end
+    reading would apply it to (missed state 0 there: D2*, who pay). WOB* and STOP* failed March; that
+    month is learned at lag 0 (a reading inside the month) and is never what a lag-1 read sees."""
+    book, signals_of = _book_on_the_28th()
+    as_of = dt.date(2020, 3, 31)
+    rr = cfp.learn(book, as_of=as_of, payment_method_of=lambda *_: "direct_debit", signals_of=signals_of)
+    lag0 = rr.signal_counts[("direct_debit", (cfp.SIGNAL_CODE_0, 0))]
+    lag1 = rr.signal_counts[("direct_debit", (cfp.SIGNAL_CODE_0, 1))]
+    assert lag0 == {"pay": 4.0, "miss": 8.0, "close": 0.0}, lag0
+    assert lag1 == {"pay": 4.0, "miss": 0.0, "close": 0.0}, lag1
+    sig = cfp.signal_at(signals_of("D2S", as_of), as_of)
+    assert sig.kind == cfp.SIGNAL_CODE_0 and cfp._lag(sig, dt.date(2020, 4, 30)) == 1
+    off = cfp.book_provision(book, as_of=as_of, payment_method_of=lambda *_: "direct_debit")
+    on = cfp.book_provision(book, as_of=as_of, payment_method_of=lambda *_: "direct_debit",
+                            signals_of=signals_of)
+    off, on = ({a.account_id: a for a in b.accounts} for b in (off, on))
+    assert on["D2S"].signal == cfp.SIGNAL_CODE_0 and on["D2S"].missed_state == 0
+    assert on["D2S"].expected_loss_gbp < off["D2S"].expected_loss_gbp
+    assert on["WOBS"].missed_state == 1 and on["WOBS"].signal is None
+    assert on["WOBS"] == off["WOBS"]
+
+
+def test_a_signal_about_a_month_before_the_steps_last_is_not_read_defect_a_stale_signal_reads_as_a_gap():
+    """February's collection, value-dated the 28th and returned on 2 March, is inside the 31-day
+    window at 31 March -- but that forecast's first step is April, two months on, a step nothing
+    learns. It is the 15 March forecast's signal (first step March, lag 1), not the month-end's."""
+    s = cfp.Signal(dt.date(2019, 3, 2), cfp.SIGNAL_CODE_0, dt.date(2019, 2, 28))
+    assert cfp.signal_at([s], dt.date(2019, 3, 15)) == s
+    assert cfp.signal_at([s], dt.date(2019, 3, 31)) is None
