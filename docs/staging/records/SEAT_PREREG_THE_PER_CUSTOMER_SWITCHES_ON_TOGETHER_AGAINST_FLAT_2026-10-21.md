@@ -627,3 +627,64 @@ those readers should be keyed by household or the world should emit the gas leg'
 unasked.
 
 Scripts: `/tmp/pcs9/{grade,score,diag,s4,s4leak,eof,last}.py`, scratch only and not landed.
+
+## 10. The renewal churn belief, conditioned on the term now ending (2026-10-21, no run launched)
+
+*The rebuild §9 named: the company holds the tariff type of the term that is ending, and its belief
+ignores it. This section grades a default-off switch that conditions the belief on it, fitted only
+on what the company could see before 2019 and graded on §7's 268 states from 2019.*
+
+**One correction to the item, found before any outcome was read.** The item lists three roll
+types (fix, default/SVT conversion, declined fix) and says the company knows each before the roll.
+Two of them it does. **A fix declined AT THIS ROLL is not one of them:** `declined_fix_event` is
+written only for a household that *stayed* (`event_type` is always `renewed`, and
+`customer_events.declined_fix_event` raises on any other), at the roll's own date. Used as a
+feature, it would mark non-leavers by construction. What the company does know before the roll is
+whether the default stint now ending *began* with a fix the household declined at an earlier roll.
+So the three types are, all read off the decision leg's previous term:
+- **`fixed`**: the term ending is a fix (the end-of-fix renewal).
+- **`default`**: the term ending is a default-tariff stint the household was rolled or placed on.
+- **`default_after_declined_fix`**: the term ending is a default-tariff stint spliced in because the
+  household refused our fix at an earlier roll (`_DECLINED_FIX_SPLICE`).
+
+**The mechanism (built to the design below before scoring).** Per type, the company keeps the
+renewals it priced, the belief it held on each, and how many of those accounts it then lost at a
+renewal. These are the same competitive losses `CompetitivePressureLedger` already books, attributed
+to the account's roll as B8 attributes its price moves. For a renewal in year Y, it reads only rolls
+from years before Y. The multiplier is observed over expected, with the ledger's own Jeffreys
+continuity correction: `m = ((losses + 0.5) / (n + 1)) / (Σ belief / n)`. It is applied in survival
+space, `p' = 1 − (1 − p)^m`, so the order within a type is the belief's own and `p'` stays in [0, 1].
+No prior and no shrinkage are applied. A type with no closed renewals is left unconditioned. The
+belief is booked into every existing learner *before* conditioning, so the switch moves no other
+learner's evidence.
+
+**Grade.** Population and outcome as §7–§9: desk states at risk under `flat`, leavers under `flat`
+within 365 days, fuels from the book. The fit reproduces what the company sees at 2019-01-01: the
+182 pre-2019 desk states with their `all_on` beliefs, and `all_on`'s own roll-date departures dated
+before 2019-01-01. Only departures at a roll reach the ledger. The SVT-drift departures in
+`svt_departures` do not, so the fit does not see them either. The conditioned belief is computed by
+the company's own functions on those counters. Bounds as before: account-clustered bootstrap, 1,000
+draws, seed 7, and the paired difference over the same states.
+
+**Predictions (filed 2026-10-21 before any count by type or outcome was computed).**
+- **P10a.** The conditioned belief, 2019+: AUC point 0.80, range 0.72–0.86. Lower bound above 0.5:
+  97%. Reason: §9's unfitted binary roll type reads 0.818 with half-credit ties. A chance-level
+  ordering inside each type breaks those ties at the same expected value, so separation near 0.8
+  is kept if `m_fixed` lifts every end-of-fix belief above every default one.
+- **P10b.** Paired against the current belief (0.333): bound above 0, 99%. Against rate vs SVT
+  (0.594): bound above 0, 85%. Against roll type + price (0.742): point +0.05, and the paired bound
+  spans 0, 70%.
+- **P10c.** No pre-2019 roll-date departure in `all_on` follows a default-tariff term, because the
+  world rolls no departure there (`departure_rolled_at_renewal`): 90%. So `m_default` is set by the
+  continuity correction alone, and lies below 0.15: 85%.
+- **P10d.** From 2019, under `flat`, the `default_after_declined_fix` states leave more often than the
+  `default` states within 365 days: 55%. This is near a coin, because a refusal marks engagement and
+  a stay at once.
+- **P10e.** Calibration: the mean conditioned belief from 2019 is within 0.10 of the realised rate
+  (46/268 = 0.172): 60%. The current belief's mean is 0.357 against 0.244 over all states.
+- **Decision rule, fixed now.** If P10a's lower bound clears 0.5 and the paired bound against the
+  current belief is above 0, the switch is the belief's first rebuild. It is then the arm the next
+  per-customer arms run should carry. This section flips nothing. If the conditioned belief reads
+  below 0.742 with the paired bound below 0, price position is the next term, ahead of any advice
+  build. If the lower bound does not clear 0.5, the mechanism, not the roll type, is wrong. The
+  first suspect is then the roll-date-only loss feed.
