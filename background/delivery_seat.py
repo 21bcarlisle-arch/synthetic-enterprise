@@ -1623,6 +1623,7 @@ def _continuation_queue(now: datetime, since: datetime) -> dict:
     predicates instead of leaving each session to hand-roll one.
     """
     from background import seat_continuation
+    from background.delivery_lane import awaited_paths
 
     t = now.timestamp()
     try:
@@ -1634,7 +1635,8 @@ def _continuation_queue(now: datetime, since: datetime) -> dict:
     return {
         "readable": True,
         "offered": [{"id": i.get("id"), "what": str(i.get("what") or "")[:200],
-                     "hours_old": round((t - float(i.get("written_at") or 0.0)) / 3600.0, 1)}
+                     "hours_old": round((t - float(i.get("written_at") or 0.0)) / 3600.0, 1),
+                     "waits_for": awaited_paths(i)}
                     for i in offered],
         # A RETIREMENT IS A FINISH, not a queue entry. Scoped to the stretch because an older one
         # is history; tombstones are kept and labelled, since a focus row finished this stretch is
@@ -1913,8 +1915,10 @@ def _render_continuation_queue(queue: dict | None) -> str:
         "\n\nTHE CONTINUATION QUEUE, read through `seat_continuation.live()` -- exactly what the "
         "draw will offer, {} row(s). A row that is not listed here is NOT queued, whatever the "
         "raw store holds:\n\n".format(len(offered))
-        + ("\n".join("- {} ({}h old): {}".format(r["id"], r["hours_old"], r["what"])
-                      for r in offered) or "- (none)")
+        + ("\n".join("- {} ({}h old{}): {}".format(
+            r["id"], r["hours_old"],
+            "".join("; HELD until {} exists".format(p) for p in r.get("waits_for") or []),
+            r["what"]) for r in offered) or "- (none)")
         + "\n\nRETIRED THIS STRETCH -- finished by the tick that held them; not queued, not "
           "owed:\n\n"
         + ("\n".join("- {} at {}{}".format(r["id"], r["retired_at"],

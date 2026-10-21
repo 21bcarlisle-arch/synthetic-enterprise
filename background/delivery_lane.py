@@ -4879,13 +4879,51 @@ def embargoed_until(item: dict, *, dated_only: bool = False) -> float | None:
         return None
 
 
+#: The second embargo form: `DO NOT DRAW BEFORE /abs/path EXISTS`. A time stamp is a guess about
+#: how long a run takes; the file a grade reads is the premise itself. Four grade continuations in
+#: two days (2026-10-20/21) were handed out before their arms finished. Absolute paths only -- a
+#: relative one resolves against whichever cwd the draw happens to run in.
+_EMBARGO_PATH = re.compile(
+    r"do\s+not\s+(?:draw|start)\s+before\s+\*{0,2}(?P<path>/[^\s`*]+?)\*{0,2}\s+exists\b",
+    re.IGNORECASE)
+
+
+def awaited_paths(item: dict) -> list[str]:
+    """The absolute paths this item says it must not be drawn before, that do not exist yet.
+
+    A phrase opened by a backtick is QUOTED, not given: an item describing this grammar (the one
+    that built it did) would otherwise hold itself until its example path appeared -- and unlike a
+    quoted past date, a quoted path that never appears is not inert. The dated grammar can afford
+    to read quotations; this one cannot.
+
+    NEVER RAISES, and an unreadable item awaits nothing -- `embargoed_until`'s fail-open argument.
+    A path that never appears does not hold the work for ever: the continuation store's own expiry
+    (`seat_continuation.STALE_AFTER_SECONDS`) still drops it into `expired()`, where it is reported.
+    """
+    try:
+        text = " ".join(v for v in item.values() if isinstance(v, str))
+        waiting = []
+        for m in _EMBARGO_PATH.finditer(text):
+            if m.start() > 0 and text[m.start() - 1] == "`":
+                continue
+            path = m.group("path").rstrip(".,;:)")
+            if not os.path.exists(path) and path not in waiting:
+                waiting.append(path)
+        return waiting
+    except Exception:
+        return []
+
+
 def _embargoed(item: dict, now: float | None) -> bool:
-    """True while `item` is inside its own stated embargo.
+    """True while `item` is inside its own stated embargo -- a time not yet reached, OR a path not
+    yet on disk. Both forms in one item must BOTH be met.
 
     Split out from `embargoed_until` so the draw asks a QUESTION rather than repeating a
     comparison, and so the instant itself stays readable by `--embargoed` for a human asking why
     an item was not offered. A skip nothing can interrogate is the same shape as no skip at all.
     """
+    if awaited_paths(item):
+        return True
     until = embargoed_until(item)
     if until is None:
         return False
@@ -5899,6 +5937,7 @@ def main(argv=None) -> int:
         # know is worse than one that refuses, and it is the same fail-silent shape as the missing
         # guard itself.
         rows = []
+        path_holds = 0
         try:
             live_items = list(seat_continuation.live())
         except Exception:
@@ -5907,14 +5946,17 @@ def main(argv=None) -> int:
             until = embargoed_until(item)
             if until is not None:
                 rows.append((item.get("id"), until))
-        if not rows:
+            for path in awaited_paths(item):
+                path_holds += 1
+                print(f"{item.get('id')}: not before {path} exists -- HELD")
+        if not rows and not path_holds:
             # BOTH SPELLINGS ARE NAMED, because this line is where a seat whose stamp went unread
             # finds out which grammars are actually honoured. Printing only the dated one told a
             # reader that the back-referenced form was not a stamp at all, which is how it went
             # unwired for as long as it did.
             print("no live item states a draw-time embargo "
-                  "(`DO NOT DRAW BEFORE <HH:MM> on <YYYY-MM-DD>`, or `... <HH:MM>; "
-                  "do not draw this before then`)")
+                  "(`DO NOT DRAW BEFORE <HH:MM> on <YYYY-MM-DD>`, `... <HH:MM>; "
+                  "do not draw this before then`, or `DO NOT DRAW BEFORE /abs/path EXISTS`)")
             return 0
         for focus_id, until in rows:
             when = datetime.datetime.fromtimestamp(until).strftime("%Y-%m-%d %H:%M")
