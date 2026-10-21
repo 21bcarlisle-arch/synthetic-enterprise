@@ -911,3 +911,58 @@ budget clears the oldest), so the overhang never deepens. Real crisis debtors' b
 
 **Status:** OPEN and BLOCKING. The next step is the world's: grade the depth of live arrears (pounds per indebted
 live account, and its oldest-first age) against the published series, before any build.
+
+## 2026-10-21 (night, last): the depth graded. The world's debtors are about two bills deep in every year; Ofgem's are most of a year's bill, and deepening
+
+**Instrument.** `/var/tmp/leaver_trace/depth.py` reads the same world dump as the leaver census (45,555
+`PeriodRecord`s, switch-on, one book, one seed, unpublished). No new run.
+**Definitions, stated first, on Ofgem's (`debt_and_collections.md` §2.1):**
+- *Live credit account:* a bill issued in the 62 days to 31 Dec, and the latest bill's method is not prepayment.
+- *In arrears:* holds a bill unpaid more than 91 days after its due date.
+- *Balance:* all of that account's unpaid bills at 31 Dec. Ofgem's "average arrears" is the account's arrears balance.
+- *Months:* that balance over the account's own trailing-12-month mean monthly bill.
+- Ofgem counts per fuel account. Ours are supply-point accounts. So compare months and growth, not raw pounds.
+
+**Prediction.** None was filed for this table. The nearest one on record is the leaver census's "never more than about
+three bills deep" (read on the FIFO age, not the balance). It is graded below, not used as a pre-registration.
+
+| 31 Dec | live credit | in arrears | share | mean balance £ | median £ | mean £ >91d | mean months | median months | Ofgem avg elec arrears £ | Ofgem elec accounts in arrears |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2016 | 648 | 8 | 1.2% | 56 | 25 | 21 | 2.0 | 1.0 | 570 | 508k |
+| 2017 | 570 | 27 | 4.7% | 54 | 34 | 34 | 1.6 | 1.0 | 555 | 602k |
+| 2018 | 472 | 24 | 5.1% | 59 | 39 | 34 | 1.4 | 0.9 | 589 | 648k |
+| 2019 | 404 | 28 | 6.9% | 74 | 71 | 46 | 1.9 | 1.9 | 654 | 694k |
+| 2020 | 353 | 30 | 8.5% | 89 | 65 | 55 | 2.2 | 1.9 | 774 | 702k |
+| 2021 | 352 | 32 | 9.1% | 92 | 65 | 50 | 2.2 | 1.8 | 905 | 776k |
+| 2022 | 361 | 47 | 13.0% | 198 | 136 | 66 | 2.4 | 1.7 | 1,028 | 779k |
+| 2023 | 380 | 51 | 13.4% | 198 | 122 | 114 | 1.6 | 1.3 | 1,303 | 1,005k |
+
+**Graded.**
+1. **Depth is flat in bills and short.** The world's indebted account carries 1.4-2.4 months of its own bill in every
+   year, crisis included. Ofgem's average electricity arrears are £654 against a typical **dual-fuel** bill of
+   £1,179-1,254 in 2019. In 2023 they are £1,303 against £1,923-2,500 (`ofgem_cap_windows.md`). That is about half a
+   dual-fuel year's bill per *single-fuel* account, so most of a year of that fuel's bill (derived; no per-fuel typical
+   bill is on our pages, a small GAP). The depth gap is **roughly x4-6**. That is the same order as the provision volume
+   factor to Centrica (x4.5-5.5, "night" section). This is the first measured quantity that is the size of the shortfall.
+2. **Incidence runs the other way.** 13% of live credit accounts are in arrears in 2022-23. Ofgem's no-plan arrears are
+   about 3.6-4.0% of all domestic accounts (Q1 2025 to Q2 2026), and fewer before. The record's crisis is *"intensity,
+   not incidence"*: average arrears x3.1 and heads x2.3, 2016-25. The world's is mostly incidence: heads x11 from a
+   small base, and pounds x3.5 in nominal terms only, because months stay flat. The "about three bills deep" claim held.
+3. **The mechanism.** On the same dump, 556 of 648 runs of failed bills are a single bill. A failed bill is settled at
+   a median of **61 days** after its due date (p90 123; 1,357 of 1,553 settle before run end). The world's debtors are
+   *late payers who cure*. They are not non-payers whose balance accumulates. Every published debt series the commons
+   holds says the stock accumulates: PPM plans run 6.6-7 years, 52-65% of arrears are over 12 months old, and average
+   arrears rise every year.
+
+**Where this leaves the split.** No pound is lost at the seam ("the trace"). The leaver flow falls for the record's own
+reason ("leaver census"). The provision rate is worth at most x1.36 ("night"). **What is left is the world's cure
+time for a missed bill**, which is the depth. It is a W2 fidelity question, graded here against Ofgem's average-arrears
+series, blind to company results. The world-side item now carries the build question:
+`WORKER_FINDING_THE_WORLDS_ARREARS_CLEAR_OLDEST_FIRST_..._2026-10-21.md`, section "depth graded". K8 comes first. The knowledge page
+must say what published evidence constrains time-to-cure, or name the GAP. Ofgem publishes the stock's average and
+count, never a cure-time distribution. Little's law on Ofgem's own flows (`debt_and_collections.md`, "average stay of
+about one year") is the candidate anchor.
+
+**Status:** OPEN and BLOCKING. The cause is now named as one world quantity, the cure time of a missed bill (median
+61 days, against a published average stay of about a year). The next step is K8's knowledge page on that quantity,
+then a W2_38 build, then a published run graded by `validate_run_output`.

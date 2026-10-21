@@ -188,3 +188,17 @@ switchers a year in 2022-23 it cannot make a step. It stays a named gap, not a b
 recorded in `docs/market_research/domestic_debt_objection_rates_gb.md`, but the regulation commons
 (`docs/domain_artefact_library/regulatory/`) holds no SLC 14 artefact.
 
+
+## 2026-10-21 (night, last): depth graded. The world's missed bills cure in about two months; the record's arrears accumulate
+
+The full table is in the BLOCKING finding, section "the depth graded". Same dump, no new run. Every year from 2016 to
+2023, the world's live credit accounts in arrears (>91 days) carry **1.4-2.4 months** of their own bill. Ofgem's average
+electricity arrears (£555 to £1,303) are about half a dual-fuel annual bill per single-fuel account. That puts the
+world's depth at roughly x4-6 too shallow, the size of the provision volume gap. 556 of 648 failure runs are one bill.
+A failed bill settles a median of 61 days after it falls due (p90 123).
+
+**The build question this item now carries:** what sets a missed bill's cure time in
+`simulation/household_budget.BudgetPaymentBook.settle_month` and the DD-failure re-presentation, and what published
+evidence constrains it. K8 first: the knowledge page names Little's law on Ofgem's own flows ("average stay of about one
+year", `debt_and_collections.md`) as the anchor, and names a cure-time distribution as a GAP. Decide it blind to company
+results. The grade is the depth table against Ofgem's average-arrears column, not the bad-debt validator.
