@@ -104,3 +104,29 @@ feed returns "smart" for such a meter whatever the event says.
 per-customer, opex-credit, bad-debt and retention-netting arms are graded, and re-take the value
 arms in the same piece of work, because the flip moves the world digest. A continuation written now would expire
 (6 h) long before that trigger. Whoever closes the last of the four grades picks this up.
+
+## Drawn again, nothing to grade yet; the shared tree was missing the build (worker, 2026-10-21, 12:45Z)
+
+- **The money grade** for `release_on_measured_rate`, set out in the last section of
+  `docs/staging/records/WORKER_PREREG_D48_THE_FIRST_RUN_CARRYING_THE_HELD_BILL_RELEASES_2026-10-21.md`,
+  needs a run that has 4d6d5ab91 as an ancestor. No such run exists yet:
+  - The shared tree's plain run resolved at 02:54Z, before that commit.
+  - The pcs, retnet and scopex arm worktrees all predate it as well.
+  - Since 11:44Z the sim-runner has deferred every cycle to make room for long jobs. Three queued
+    drivers are lined up behind the per-customer flat arm.
+
+  The next HEAD run is therefore more than 6 h away, longer than a continuation lives, so I filed no
+  continuation. The next tick that draws D48 should check whether `resolved_at` in the plain run is
+  after 2026-10-21T07:56Z, and grade it if so.
+- **The second blind pass** waits for `SMART_METER_EXCHANGE` to be turned on. That is parked, as set
+  out above.
+- **Corrected in this tick.** My first draft of this section said the exchange build was not built.
+  That came from reading a stale disk copy, not git. In the shared tree's checkout, a60376f88's five
+  files were all at the parent's bytes or absent: this note, the knowledge page,
+  `simulation/life_events.py`, `simulation/meter_reads.py` and the exchange control. One file from
+  abe7ce533 was also absent (`test_the_flat_supplier_policy_makes_no_retention_offer.py`). The index
+  already held HEAD for all six. I wrote HEAD's bytes back to each one after checking that every disk
+  copy was absent or equal to its commit's parent, so no lane's edit was lost. To undo, take the
+  parent commit's bytes. The sim-runner's next shared-tree run would otherwise have used pre-build
+  code. That would have been harmless while the switch is off, but any later pathspec commit of
+  those files from this tree would have reverted the build.
