@@ -920,3 +920,44 @@ graded by `/tmp/pcs11/grade.py` with `ARM=` pointed at it.*
 for CURRENT_POLICY. It is proposed separately, with the seeds the money question needs, and nothing
 here flips it. If 2017 still reads above 1.6, the in-run counts for 2016 are larger than the
 reconstruction says. Then the next step is to read the ledger directly, not to widen the prior.
+
+**Launched 2026-10-21 22:53Z**, after the predictions above were on origin at `e856ddc69`. Unit
+`longjob-pcs-arm-all-on-ending-term-prior`, run from the seat-executor worktree at that commit.
+
+### 12. Grade (2026-10-22 ~00:55 BST, `all_on_ending_term_prior.json` present, stamped `e856ddc693`)
+
+| figure | flat | all_on | §11 (no prior) | §12 (prior) |
+|---|---|---|---|---|
+| `provisioned_net_gbp` | £600,902.77 | £600,806.22 | £602,027.96 | **£601,014.02** |
+| `provisioned_bad_debt_gbp` | £125,212.58 | £124,805.98 | £125,318.59 | £125,074.21 |
+| departures / saved | 353 / 1 | 354 / 1 | 353 / 1 | 354 / 1 |
+| retention offers / cost | 0 / £0 | 113 / £2,837.65 | 134 / £3,382.15 | **122 / £2,968.23** |
+| implied `fixed` m, 2017 (median, 95 states) | – | – | 3.386 | **1.215** |
+
+- **P12a HELD on all four legs.** `fixed` for 2017 is 1.215, inside 1.0–1.6 (point 1.2). From 2018
+  every year is within 0.05 of §11: 1.014 / 1.03 / 1.073 / 1.219 / 1.159 / 1.20 / 1.228, against
+  1.015 / 1.014 / 1.061 / 1.21 / 1.157 / 1.19 / 1.231. `default` from 2019 is 0.028 at most. For
+  2018 it is 0.778, against §11's 0.42. Reading back, the in-run 2016 weight is
+  `ln 1.215 / ln 3.386` = 0.16, which is the small-n weight the reconstruction implied.
+- **P12b HELD.** Default-term desk states from 2017 that are present in both arms read lower on 215
+  of 222 (96.8%). In-run AUC is 0.806 [0.745, 0.860], inside 0.76–0.85. Paired against the `all_on`
+  belief it is [+0.373, +0.562]. That is 0.013 below §11's 0.819, and the cause is the shrunk
+  2018/2019 default multipliers (0.78 and 0.51 for `default_after_declined_fix` in 2019, where
+  §11 read 0.42 and 0.35). The prior costs a little aim in the young years. That is the trade it was
+  built to make.
+- **P12c HELD on count, fix-end and cost; REFUTED by one on default-term offers.** There were 122
+  offers (range 100–125). Fix-end offers were 118 (range 102–120) and default-term offers 4,
+  against ≤ 3. Cost was £2,968.23 (range £2,500–£3,200). Fix-end offers are still 16 above
+  `all_on`, because `fixed` reads 1.01–1.23 in every year, not 1. That is the company's own
+  book, now weighed, not a picked number.
+- **P12d HELD.** 354 departures.
+- **P12e: a tie.** New − flat is **+£111.25** and new − `all_on` is +£207.80, both inside ±£1,000.
+  §11's +£1,125 against flat fell by £1,014 when only the multiplier's first years changed. I cannot
+  yet say how much of that was the 2017 offers and how much was the five-household swap §11 named.
+  It does show that §11's £1k was not a property of the switch. Erring against the thesis (F11), the
+  switch has not been shown to create value on this book.
+
+**By the decision rule: the switch is now the candidate for CURRENT_POLICY**, with the K2 defect
+§11 found removed and its aim kept (P12a, P12b). It is proposed separately, with the seeds the
+money question needs (EP17). Nothing here flips it. The grade used `/tmp/pcs11/grade.py` unchanged,
+with `ARM=` pointed at the new output, and it re-read §11's output to give the comparison column.
