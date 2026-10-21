@@ -3,6 +3,8 @@
 
 # D48's Expert Hour fails, and the level stays at L2. The measure is honest; the row claims an accrual and a settlement reconciliation it does not do, and the estimated share barely moves through the smart roll-out (2026-10-14)
 
+**Update 2026-10-21 (worker): #5 is attributed, so every MAJOR here has a disposition.** The flat estimated share is the book's meters: no meter is ever exchanged after acquisition, and smart accounts bill 6-16% on estimates. The world build is routed to W2: `WORKER_FINDING_D48_THE_ESTIMATED_SHARE_IS_FLAT_BECAUSE_NO_METER_IS_EVER_EXCHANGED_AFTER_ACQUISITION_2026-10-21.md`. **Fate (2026-10-21):** DONE -- #1 narrowed to a GAP, #2 built, #5 attributed to the world; a second blind pass waits for the meter-exchange build.
+
 **Update 2026-10-20 (delivery seat): MAJOR #2 is discharged.** The unbilled accrual is built and reached from the run (`company/billing/billing_accuracy.unbilled_accrual`), and the title claims it again. Evidence and the year-end table: `SEAT_FINDING_D48_THE_UNBILLED_ACCRUAL_IS_THE_ENERGY_THE_PRE_BILL_GATE_HELD_2026-10-20.md`. MAJOR #1 (settlement) stays a GAP.
 
 **Fate (2026-10-14):** ATOM -- D48 stays at L2, harden. The two row-claim MAJORs are fixed in this commit (title: the accrual is a GAP; twin: reads, not settled kWh). The measure findings are the next harden work.
