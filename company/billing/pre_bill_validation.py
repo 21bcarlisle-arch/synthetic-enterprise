@@ -52,6 +52,9 @@ class ValidationOutcome(str, Enum):
     #: Held on consumption scale alone in a closed account's closing run, and issued with its
     #: final bill on the closing read -- see `release_at_closing_read`.
     RELEASED_AT_CLOSURE = "released_on_the_final_bill"
+    #: Held on consumption scale alone, an estimate on a confirmed dwelling at a daily rate this
+    #: account's own meter had already measured -- see `release_on_measured_rate`.
+    RELEASED_ON_MEASURED_RATE = "released_on_the_meters_measured_rate"
 
 
 @dataclass(frozen=True)
@@ -355,6 +358,67 @@ def release_confirmed_domestic(bill: dict, result: BillValidationResult) -> dict
     return released
 
 
+def measured_daily_rates(own_bills: list) -> list[tuple[str, float]]:
+    """(period_end, kWh a day) of each actual-read bill in one account's `own_bills`, read to read.
+
+    The energy is the bill's own kWh plus what its catch-up reconciled for the estimated run before
+    it (billed and true-up): together, the register's advance since the previous read. The days run
+    from the previous actual-read bill's period end, or the account's first bill, to this one's."""
+    rates: list[tuple[str, float]] = []
+    start = None
+    for bill in sorted(own_bills, key=lambda b: b["period_end"]):
+        if start is None:
+            start = dt.date.fromisoformat(bill["period_start"])
+        if bill.get("billing_basis") != "actual":
+            continue
+        end = dt.date.fromisoformat(bill["period_end"])
+        kwh = (bill.get("total_consumption_kwh", 0.0) + (bill.get("read_true_up_billed_kwh") or 0.0)
+               + (bill.get("read_true_up_kwh") or 0.0))
+        rates.append((bill["period_end"], kwh / max((end - start).days + 1, 1)))
+        start = end + dt.timedelta(days=1)
+    return rates
+
+
+def release_on_measured_rate(
+    bill: dict, result: BillValidationResult, own_bills: list,
+) -> dict | None:
+    """A domestic ceiling hold on an estimate the account's own meter has already measured: the
+    bill to issue, or None. `own_bills` is the account's bills; only actual reads before this bill
+    are read, so the supplier knew the rate when it billed.
+
+    The listing answers the mislabel half of the ceiling, as in `release_confirmed_domestic`. The
+    volume half asks whether the estimate is wrong in scale. An earlier read-to-read rate at the same
+    meter at least as high as the estimate's says it is not, and holding it only defers the energy to
+    one late catch-up: PROS-2017-0336 went 14 months unbilled (SLC 21B.5 asks a bill twice a year).
+    An estimate above every rate measured, or before any read, stays held. No threshold is
+    introduced. Rules and choices: docs/market_research/unbilled_energy_and_revenue_assurance.md §4d.
+    The assembly's catch-up asks this same function, so a released estimate is reconciled as billed.
+    """
+    if not (result.held and result.consumption_scale_only):
+        return None
+    if bill.get("segment", "resi") != "resi":
+        return None
+    if bill.get("premise_council_tax_listed") is not True:
+        return None
+    if bill.get("billing_basis") != "estimated":
+        return None
+    prior = [rate for end, rate in measured_daily_rates(own_bills) if end < bill["period_end"]]
+    if not prior:
+        return None
+    measured = max(prior)
+    if bill.get("total_consumption_kwh", 0.0) / _days_in_period(bill) > measured:
+        return None
+    released = dict(bill)
+    released["pre_bill_release"] = {
+        "outcome": ValidationOutcome.RELEASED_ON_MEASURED_RATE.value,
+        "held_for": list(result.reasons),
+        "confirmed_by": ("supply address on the council tax list; estimate at or under a daily rate "
+                         "this meter's own earlier reads measured"),
+        "measured_kwh_per_day": measured,
+    }
+    return released
+
+
 def _closing_runs(bills: list) -> dict[tuple[str, str], tuple[dict, dict]]:
     """(customer_id, period_end) of each bill in a closed account's closing run -> (the bill, its
     final bill).
@@ -426,10 +490,21 @@ def issued_with_final_bill(bills: list) -> dict[tuple[str, str], str]:
     final bill's period end. Until then the bill was not issued, which is what the unbilled accrual
     asks. Only closing-run bills are validated, so this is cheap to ask at every month end."""
     late = {}
+    by_customer = _by_customer(bills)
     for key, (bill, final) in _closing_runs(bills).items():
-        if release_at_closing_read(bill, validate_bill(bill), final) is not None:
+        result = validate_bill(bill)
+        if release_on_measured_rate(bill, result, by_customer[key[0]]) is not None:
+            continue
+        if release_at_closing_read(bill, result, final) is not None:
             late[key] = final["period_end"]
     return late
+
+
+def _by_customer(bills: list) -> dict[str, list[dict]]:
+    by_customer: dict[str, list[dict]] = {}
+    for bill in bills:
+        by_customer.setdefault(bill.get("customer_id", ""), []).append(bill)
+    return by_customer
 
 
 def validate_bills(bills: list) -> tuple[list, list[BillValidationResult]]:
@@ -437,15 +512,20 @@ def validate_bills(bills: list) -> tuple[list, list[BillValidationResult]]:
     normal issuance unchanged; held bills are the exception queue, keyed by
     (customer_id, period_end) so a caller can look up why any given bill
     didn't issue this cycle. A consumption-scale hold the queue confirms
-    domestic (`release_confirmed_domestic`) issues, as a marked copy, and so does
-    one in a closed account's closing run (`release_at_closing_read`), on its final bill."""
+    domestic (`release_confirmed_domestic`) issues, as a marked copy, and so does an estimate at a
+    rate the meter measured (`release_on_measured_rate`) and one in a closed account's closing run
+    (`release_at_closing_read`), on its final bill."""
     passing = []
     exception_queue: list[BillValidationResult] = []
     closing = _closing_runs(bills)
+    by_customer = _by_customer(bills)
     for bill in bills:
         result = validate_bill(bill)
         if result.held:
             released = release_confirmed_domestic(bill, result)
+            if released is None:
+                released = release_on_measured_rate(
+                    bill, result, by_customer[bill.get("customer_id", "")])
             run = closing.get((bill.get("customer_id", ""), bill.get("period_end", "")))
             if released is None and run is not None:
                 released = release_at_closing_read(bill, result, run[1])

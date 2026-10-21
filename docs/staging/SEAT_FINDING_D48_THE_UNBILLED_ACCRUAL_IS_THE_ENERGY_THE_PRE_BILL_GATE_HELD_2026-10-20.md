@@ -395,3 +395,20 @@ construction: the accrual reads the same map it read before.
 
 Left open from the closed-account list: the 21BA-barred interim's write-off (GAP), and the dispute
 of the closing read (not modelled).
+
+## Follow-on (first run carrying the releases): graded, and the estimate half of the ceiling gets its release
+
+*Worker, 2026-10-21. Pre-registration and grade:
+`docs/staging/records/WORKER_PREREG_D48_THE_FIRST_RUN_CARRYING_THE_HELD_BILL_RELEASES_2026-10-21.md`.*
+
+The unpublished shared-tree run at 9ca972774 carries items 2, closed account and founder homes. All
+four predictions held. There are no held actuals at any month end, no resi electricity bill with an
+unanswered listing, and no held bill in any of the 2,734 closing-run bills. K1 differs from HEAD at
+one year end only, as ab3baa0b0 predicts.
+
+The 40 held estimates that remain are five accounts. 32 of them are PROS-2017-0336, a listed
+dwelling, which went 14 months with no bill and then got one GBP 5,067 catch-up. 31 of the 40 were
+at or under a rate the same meter had already measured. **Built:**
+`pre_bill_validation.release_on_measured_rate`, asked by the issuance door and by the assembly's
+catch-up. Rules first: `unbilled_energy_and_revenue_assurance.md` §4d (SLC 21B.5). Re-validated
+over these bills: 9 held. The money moves at the next run, as the pre-registration predicts.

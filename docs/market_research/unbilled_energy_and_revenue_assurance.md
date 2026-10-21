@@ -932,6 +932,48 @@ hold reaches the queue without a listing answer, so either route would be a mech
 reaches. **GAP:** an address genuinely missing from the list (a new build before banding, a
 conversion) is not modelled. That is the population the two steps above would serve.
 
+### 4d. A domestic-ceiling hold on an estimate at a rate the account's own meter has measured (2026-10-21, K8 for D48)
+
+Asked by the grade of the first run carrying the held-bill releases
+(`docs/staging/records/WORKER_PREREG_D48_THE_FIRST_RUN_CARRYING_THE_HELD_BILL_RELEASES_2026-10-21.md`).
+On the 9ca972774 run, 40 bills are held, all estimates and all on listed dwellings. 32 of them are
+one account, PROS-2017-0336, a listed dwelling whose meter reads 2,500-5,000 kWh a month. Each of its
+estimates is over the ceiling, so each waits for an actual read. From 2019-04 to 2020-05 it was sent
+no bill at all, then one catch-up of £5,067 for 14 periods at 2020-06-30.
+
+**What the rules require.**
+- "At least twice yearly" a bill or statement [H] SLC 21B.5 (`back_billing_and_liability.md` §12).
+  A hold that waits for a read the meter does not give for 14 months breaches it.
+- A dwelling takes the reduced VAT rate at any volume [H] HMRC VAT Notice 701/19 s.3.2.1 (§4c). So
+  once the listing answers, the only question the ceiling still asks of an estimate is whether its
+  VOLUME is wrong.
+- 21BA limits what the late catch-up can recover (§12, point 3), so a long hold also puts the
+  supplier's own revenue at risk.
+
+**What follows.** The ceiling's volume half exists to catch an estimate that is wrong in scale, such
+as a month's energy put on a seven-day stub (§4c, `release_confirmed_domestic`). It is a population
+screen with no source (`need_domestic_electricity_high_tail.md`: "observed sim population plus
+headroom"). For one account, the better evidence is that account's own meter. If an earlier actual
+read on this supply point already measured a daily rate at least as high as the estimate's, the
+estimate is not wrong in scale. Holding it protects nobody: the energy is billed anyway, later and
+all at once. An estimate above anything the meter has measured, or on an account with no actual read
+yet, is the case the screen exists for, and it stays held.
+
+**No published source** describes how a supplier's exception queue treats a high-volume estimate on
+a confirmed dwelling. **GAP.** The rule above uses no threshold. It compares the estimate with a rate
+the supplier has already measured at the same meter.
+
+**Choices for the build, and why.**
+- The measured rate is the read-to-read rate: an actual-read bill's own kWh, plus the kWh its
+  catch-up reconciled (billed and true-up), over the days from the end of the previous actual-read
+  bill to its own period end. It uses only the company's own bills from before this one, so the
+  company knew it when it billed.
+- The release is decided in one function, `pre_bill_validation.release_on_measured_rate`. Both the
+  issuance door (`validate_bills`) and the assembly's catch-up (`monthly_bill_assembly`) ask it. If
+  they disagreed, a released estimate would be counted as billed nothing, and billed a second time by
+  the next read's catch-up.
+- The released bill is a marked copy carrying `pre_bill_release`, as the other two releases are.
+
 ## 5. What our code does
 
 From a census of this worktree on 2026-10-05 (base `a52651e29`). The load-bearing claims were

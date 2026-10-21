@@ -65,7 +65,7 @@ from company.billing.back_billing import (
     RecoveryPeriod,
     barred_unrecovered_gbp,
 )
-from company.billing.pre_bill_validation import validate_bill
+from company.billing.pre_bill_validation import release_on_measured_rate, validate_bill
 from company.billing.read_duty_register import read_instruction_due
 from company.billing.theft_indicator import screen_billing_run
 from company.billing.unread_month_estimate import estimate_unread_kwh, opening_estimate_kwh
@@ -603,6 +603,8 @@ def build_monthly_bills(
     screen_registry_kwh: dict[str, float | None] = {}
     for customer_id, months in by_customer_month.items():
         customer_data = get_customer(customer_id)
+        # Looked up before the account is billed: the hold below asks it of each estimate.
+        listed = premise_listing_feed(customer_data) if premise_listing_feed is not None else None
         contract_type = customer_data.get("contract_type", "fixed_1yr")
         segment = customer_data.get("segment", "resi")
         commodity = customer_data.get("commodity", "electricity")
@@ -819,11 +821,16 @@ def build_monthly_bills(
                 # `validate_bills` holds bills after this function returns; reconciling the run as
                 # if every estimate went out credited customers for charges they never received
                 # (PROS-2017-0336: -£271.29 for 2018-03..04, a period with no invoice). The hold is
-                # asked of the same `validate_bill`, so it is decided in one place. The one estimate
+                # asked of the same `validate_bill`, and a release of the same
+                # `release_on_measured_rate`, so it is decided in one place. The other estimate
                 # released downstream is in a closed account's closing run, which no later read and
                 # so no catch-up ever reaches (`release_at_closing_read`).
                 # Licence reading: docs/market_research/back_billing_and_liability.md §12.
-                held = validate_bill(bill).held
+                if listed is not None:
+                    bill["premise_council_tax_listed"] = listed
+                result = validate_bill(bill)
+                held = result.held and release_on_measured_rate(
+                    bill, result, [b for b in bills if b["customer_id"] == customer_id]) is None
                 pending_estimated_run.append({
                     "period_start": bill["period_start"],
                     "period_end": bill["period_end"],
@@ -861,6 +868,8 @@ def build_monthly_bills(
                 bill["read_instruction_outcome"] = (
                     "actual" if event.status == "actual" else "no_read")
                 bill["read_instruction_visit_sent"] = visit_sent
+            if listed is not None:
+                bill["premise_council_tax_listed"] = listed
             previous_period_end = bill["period_end"]
             bills.append(bill)
             if theft_screen_out is not None:
@@ -952,15 +961,6 @@ def build_monthly_bills(
     if theft_screen_out is not None:
         theft_screen_out.extend(
             screen_billing_run(screen_periods, tenancy_links, screen_registry_kwh))
-
-    if premise_listing_feed is not None:
-        listed_by_customer: dict[str, bool | None] = {}
-        for bill in bills:
-            cid = bill["customer_id"]
-            if cid not in listed_by_customer:
-                listed_by_customer[cid] = premise_listing_feed(get_customer(cid))
-            if listed_by_customer[cid] is not None:
-                bill["premise_council_tax_listed"] = listed_by_customer[cid]
 
     return bills
 
