@@ -8,6 +8,26 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-21 — 2026-10-21 — founder households: first production peak at the new shape is 5,115.6 MB, under the 5,708 trigger (1 of 3)
+
+<!-- head: 9e273a69e32a -->
+
+Step 3 of the 20 Oct founder-households ruling (his caveat: watch the first three production peaks at the new shape against 6,008 MB). One of three has closed.
+
+| # | Run (git) | Carries 8927e9345 | Shape at that git | Process peak | Cgroup memory peak | Wall time | Reaper |
+|---|---|---|---|---|---|---|---|
+| 1 | 9ca972774, started 03:54:33 BST, closed 06:25:50 | yes (`merge-base --is-ancestor`) | founder_unit: households, 400; budget 7,700.0 | **5,115.6 MB** | 6.3G | 9,077 s | did not fire (no kill/OOM line in the journal) |
+
+Against the allowance: 5,115.6 MB is 892.4 MB under 6,008 MB and 592.4 MB under the 5,708 MB trigger (within 5%). The trigger is not met, so production stays at 7,700 and no fallback commit is made. It is 224 MB below the probe's 5,340 MB and 1,075.8 MB above the last old-book run (ec7fd9942, 4,039.8 MB). The held draw run time was 9,232 s, and this run took 9,077 s.
+
+Which peak counts. The cgroup peak (6.3G) is not the run's measure. Since 38f3a565f the trace build's forked workers fill whatever memory is free, so the cgroup peak measures the box (background/sim_runner.py, the comment on the process-peak line). The process peak is ru_maxrss over reaped children, which is what the ceiling's curve prices. The old-book run's cgroup peak was 5.8G, against a 4,039.8 MB process peak.
+
+Control. tests/simulation/test_net_new_acquisition.py::test_the_ceiling_still_fits_the_peak_systemds_own_journal_reports_today ran at 06:46 BST and PASSED. It was armed, not skipped: the only run in its window that carries the shape commits is this one.
+
+Still open: runs 2 and 3. Handed off under a new id. The runner is in its between-run pause: it was holding 3,571 s at 06:44 BST. The next run should therefore start around 07:44 and close around 10:15, and a third around 14:15 if the cadence holds.
+
+---
+
 ## 2026-10-21 — orientation: Forward on the thesis's comparison in form, not yet in fact, and backwards on two graded questions that I had recorded as queued
 
 <!-- head: 026b3c650d1d -->
