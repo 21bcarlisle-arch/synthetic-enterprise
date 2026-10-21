@@ -160,7 +160,6 @@ from __future__ import annotations
 
 import argparse
 import ast
-import json
 import statistics
 from datetime import datetime, timezone
 from pathlib import Path
@@ -171,7 +170,7 @@ from background.gap_metric import (
     GapResult,
     write_gap_entry,
 )
-from tools import clv_gap_selection
+from tools import clv_gap_selection, run_output_store
 
 #: The ledger key. EP1 is a COMPANY atom, and the pair it stands in is
 #: company-belief vs world-outcome rather than one map world atom -- the ledger
@@ -598,8 +597,8 @@ def load_run_output(path=None) -> dict:
     """The published run artefact. Missing/unreadable raises -- an unavailable
     input is a FAILED measurement, never an empty one that reads as clean (R15
     fail-silent)."""
-    p = Path(path) if path is not None else DEFAULT_RUN_OUTPUT
-    return json.loads(p.read_text(encoding="utf-8"))
+    # The publish commits only the .gz twin, so a plain-path read fails in every worktree.
+    return run_output_store.load_run_output(Path(path) if path is not None else DEFAULT_RUN_OUTPUT)
 
 
 def _earliest_belief(clv_snapshots: dict, account: str):
