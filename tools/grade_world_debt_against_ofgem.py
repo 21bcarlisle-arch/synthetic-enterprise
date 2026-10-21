@@ -37,9 +37,19 @@ weather, the prices and every household's method, and varies the dice. A book se
 the cast. That is EP17 and the director's (`tools/book_seed_authorisation.py`), and it is not
 reachable from here.
 
+THE AGE READING (W2_38, 2026-10-21) asks how old the >91-day stock is: of the bills unpaid at a
+quarter end and due at least 91 days before it, the share due at least 365 days before it. The
+comparator is Energy UK's aged (>12-month) arrears, 52% of the stock in 2023 and 65% in 2025
+(docs/market_research/debt_and_collections.md §2.5). Its definition is not disclosed, so the bill
+share is the primary reading (bills are of similar size, so it stands in for the pound share), and
+the account share (accounts whose oldest such bill is a year old) is printed beside it. A capture
+that carries the per-bill `bills` side table also gets the pound share. Only Q4 2023 is graded; a
+capture ending 2024-12-31 has no 2025 quarter end, so Q4 2024 is printed beside 65%, not graded.
+
 Usage:
   python3 -m tools.grade_world_debt_against_ofgem capture OUT.json [END] [DICE_SEED]  # runs the world
   python3 -m tools.grade_world_debt_against_ofgem grade OUT.json [OUT2.json ...]  # pools seeds
+  python3 -m tools.grade_world_debt_against_ofgem age OUT.json [OUT2.json ...]  # the stock's age
 """
 from __future__ import annotations
 
@@ -53,6 +63,10 @@ from datetime import date, timedelta
 # docs/market_research/gb_domestic_bill_payment_failure_and_arrears_prevalence.md.
 OFGEM_ARREARS_PLUS_DEBT_2019 = 0.051
 BEHIND_DAYS = 91
+# Energy UK, aged (>12-month) arrears as a share of arrears: 52% (2023), 65% (2025). Source:
+# docs/market_research/debt_and_collections.md §2.5. Definition (count or pounds) undisclosed.
+AGED_DAYS = 365
+ENERGY_UK_AGED_SHARE = {2023: 0.52, 2025: 0.65}
 GRADED_YEAR = 2019
 # Resamples for the clustered interval, and a fixed RNG seed so a capture always grades the same.
 BOOTSTRAP_DRAWS = 4000
@@ -220,6 +234,79 @@ def grade(raws: list, fuel: str = "electricity", year: int = GRADED_YEAR) -> dic
             "prepayment_behind": prepay, "prepayment_share_of_behind": prepay / k if k else None}
 
 
+def age_reading(raw: dict, quarter_end: date, fuel: str = "electricity", amounts: dict | None = None):
+    """The >91-day stock at one quarter end, split by age. Returns per-account rows
+    {account: (bills aged, bills behind, pounds aged, pounds behind)} over accounts holding at least
+    one bill behind; `amounts` maps (account, due iso) to pounds, and pounds are None without it."""
+    cutoff = quarter_end - timedelta(days=BEHIND_DAYS)
+    aged_line = quarter_end - timedelta(days=AGED_DAYS)
+    rows = {}
+    for a, v in raw.items():
+        if _is_gas(a) != (fuel == "gas"):
+            continue
+        ka = kb = 0
+        pa = pb = 0.0
+        for due, paid in v["spells"]:
+            d = _d(due)
+            if d <= cutoff and (paid is None or _d(paid) > quarter_end):
+                gbp = amounts.get((a, due)) if amounts is not None else None
+                kb += 1
+                pb += gbp or 0.0
+                if d <= aged_line:
+                    ka += 1
+                    pa += gbp or 0.0
+        if kb:
+            rows[a] = (ka, kb, pa if amounts is not None else None, pb if amounts is not None else None)
+    return rows
+
+
+def age_grade(raws: list, quarter_end: date, fuel: str = "electricity", amounts_list: list | None = None) -> dict:
+    """Pool one quarter end's stock over captures; the interval resamples accounts (as `grade`)."""
+    per_account: dict = {}
+    accounts_behind = accounts_aged = 0
+    pa = pb = 0.0
+    have_gbp = amounts_list is not None and all(m is not None for m in amounts_list)
+    for i, raw in enumerate(raws):
+        amounts = amounts_list[i] if have_gbp else None
+        for a, (ka, kb, gpa, gpb) in age_reading(raw, quarter_end, fuel, amounts).items():
+            accounts_behind += 1
+            accounts_aged += ka > 0
+            if have_gbp:
+                pa += gpa
+                pb += gpb
+            k0, n0 = per_account.get(a, (0, 0))
+            per_account[a] = (k0 + ka, n0 + kb)
+    k = sum(r[0] for r in per_account.values())
+    n = sum(r[1] for r in per_account.values())
+    out = {"quarter_end": quarter_end.isoformat(), "bills_aged": k, "bills_behind": n,
+           "accounts_behind": accounts_behind, "accounts_aged": accounts_aged,
+           "distinct_accounts": len(per_account)}
+    if n == 0:
+        out["verdict"] = "CANNOT TELL -- no bill is over 91 days unpaid at this quarter end"
+        return out
+    out["share"] = k / n
+    out["account_share"] = accounts_aged / accounts_behind
+    out["gbp_share"] = pa / pb if have_gbp and pb else None
+    out["clustered"] = account_clustered(per_account)
+    target = ENERGY_UK_AGED_SHARE.get(quarter_end.year) if quarter_end.month == 12 else None
+    if target is None:
+        out["verdict"] = "NOT GRADED -- Energy UK publishes no aged share for this year"
+    else:
+        lo, hi = out["clustered"]
+        out["target"] = target
+        out["verdict"] = ("MET" if lo <= target <= hi else
+                          "NOT MET, HIGH" if lo > target else "NOT MET, LOW")
+    return out
+
+
+def _amounts(capture_json: dict):
+    """(account, due iso) -> pounds from a capture's `bills` side table, or None if it has none."""
+    bills = capture_json.get("bills")
+    if not bills:
+        return None
+    return {(a, row[0]): float(row[1]) for a, rows in bills.items() for row in rows}
+
+
 def main(argv: list) -> int:
     if len(argv) >= 2 and argv[0] == "capture":
         capture(argv[1], argv[2] if len(argv) > 2 else "2019-12-31",
@@ -241,6 +328,29 @@ def main(argv: list) -> int:
                   f"  Wilson on account-quarters {wlo:.1%}-{whi:.1%}: {g['wilson_verdict']} "
                   f"(treats account-quarters as independent)\n"
                   f"  prepayment {g['prepayment_behind']} of {g['behind']} behind")
+        return 0
+    if len(argv) >= 2 and argv[0] == "age":
+        caps = [json.load(open(p)) for p in argv[1:]]
+        raws = [c["raw"] for c in caps]
+        amounts = [_amounts(c) for c in caps]
+        last = min(_d(c["end"]) for c in caps)
+        for fuel in ("electricity", "gas"):
+            print(f"{fuel}: share of the >91-day stock due a year or more before the quarter end")
+            for year in range(2017, last.year + 1):
+                qe = date(year, 12, 31)
+                if qe > last:
+                    break
+                g = age_grade(raws, qe, fuel, amounts)
+                if "share" not in g:
+                    print(f"  {qe}: {g['verdict']}")
+                    continue
+                lo, hi = g["clustered"]
+                gbp = f", pounds {g['gbp_share']:.0%}" if g["gbp_share"] is not None else ""
+                beside = (f" (Energy UK 2025: {ENERGY_UK_AGED_SHARE[2025]:.0%}, beside, not graded)"
+                          if year == 2024 else "")
+                print(f"  {qe}: bills {g['bills_aged']}/{g['bills_behind']} = {g['share']:.0%} "
+                      f"[{lo:.0%}-{hi:.0%}]; accounts {g['accounts_aged']}/{g['accounts_behind']} = "
+                      f"{g['account_share']:.0%}{gbp}; {g['verdict']}{beside}")
         return 0
     print(__doc__.split("Usage:")[1])
     return 2

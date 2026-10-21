@@ -146,3 +146,36 @@ def test_a_dice_seed_moves_payment_outcomes_and_not_the_households_method():
     assert dice.calls > 0
     assert sum(a != b for a, b in zip(before, salted)) > 0
     assert _outcomes(pbs) == before
+
+
+def test_the_age_reading_splits_the_91_day_stock_at_a_year_and_drops_settled_and_young_bills():
+    """Reds if the 365-day line moves, a settled bill stays in the stock, or a bill under 91 days
+    enters it: of the four bills here only two are behind, and one of them is a year old."""
+    from tools.grade_world_debt_against_ofgem import age_reading
+    aged = (Q4 - timedelta(days=365)).isoformat()
+    young = (Q4 - timedelta(days=364)).isoformat()
+    fresh = (Q4 - timedelta(days=90)).isoformat()
+    raw = {"ACC-1": {"months": ["2019-12"], "method": "card",
+                     "spells": [[aged, None], [young, None], [fresh, None], ["2018-01-01", "2019-11-30"]]}}
+    amounts = {("ACC-1", aged): 100.0, ("ACC-1", young): 50.0, ("ACC-1", fresh): 10.0}
+    assert age_reading(raw, Q4) == {"ACC-1": (1, 2, None, None)}
+    assert age_reading(raw, Q4, amounts=amounts) == {"ACC-1": (1, 2, 100.0, 150.0)}
+
+
+def test_the_aged_share_grades_met_high_and_low_against_energy_uk_and_only_where_it_publishes():
+    """The partition over the graded year, and the refusal where Energy UK publishes nothing."""
+    from tools.grade_world_debt_against_ofgem import ENERGY_UK_AGED_SHARE, age_grade
+    q = date(2023, 12, 31)
+
+    def book(n_aged, n_young):
+        raw = {}
+        for i in range(n_aged + n_young):
+            due = "2022-06-01" if i < n_aged else "2023-08-01"
+            raw[f"ACC-{i}"] = {"months": ["2023-12"], "method": "card", "spells": [[due, None]]}
+        return raw
+
+    target = ENERGY_UK_AGED_SHARE[2023]
+    verdicts = {age_grade([book(a, 400 - a)], q)["verdict"] for a in (40, round(400 * target), 380)}
+    assert verdicts == {"NOT MET, LOW", "MET", "NOT MET, HIGH"}
+    assert age_grade([book(10, 10)], date(2022, 12, 31))["verdict"].startswith("NOT GRADED")
+    assert age_grade([{}], q)["verdict"].startswith("CANNOT TELL")

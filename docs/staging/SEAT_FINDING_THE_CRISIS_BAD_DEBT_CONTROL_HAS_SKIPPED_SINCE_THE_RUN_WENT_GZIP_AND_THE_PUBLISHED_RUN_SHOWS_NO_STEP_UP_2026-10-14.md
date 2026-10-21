@@ -779,3 +779,17 @@ E6's and is second in order: on these numbers it is worth x1.11 to x1.36 at most
 
 **Status:** OPEN and BLOCKING. The split names the world. Nothing in `simulation/` changes in this
 section.
+
+## 2026-10-21 (late): the world's step 1 is graded, and it moves the side
+
+*Correction beside the "night" section's claim that "the side is the world (W2_38)".* The world's own
+truth was read on two existing switch-on captures (the world finding, section "step 1 graded"). The world's
+>91-day stock is not young. A year-old share of 73% of bills and 47% of pounds in Q4 2023, against Energy UK's
+52%, is at or above the record. And £1.9k-3.9k of it sits on closed accounts, nearly all of it over a year
+old. The company books about £34-540 as final-bill debt (derived), and no aged DD debt, against £450-2,200 of
+DD-method debt over 91 days in the world. Live pay-on-receipt debt roughly agrees. **So most of the volume
+leg is what the company books, not what the world holds.** The world-side repayment-plan change is withdrawn.
+The next step is the trace of where a leaver's and a failed-DD account's balance goes between the world's
+settlement and `company_provision`. The world finding's steps 2-3 now carry that, and so does E6.
+
+**Status:** OPEN and BLOCKING. The side is now the company or the seam, not the world.

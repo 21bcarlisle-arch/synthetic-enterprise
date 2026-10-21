@@ -38,3 +38,66 @@ of the arrears stock, and PPM repayment plans average 6.6-7 years.
 
 **Prediction for step 1, filed before it runs:** the world's share of >91-day arrears that are
 older than 12 months sits below 52% in 2022-23, and below 30% at Q4 2024.
+
+## 2026-10-21 (late): step 1 graded. The prediction is refuted. The world's debt does age, and it does leave with the customer
+
+**How it was read.** `python3 -m tools.grade_world_debt_against_ofgem age` (new in this commit) was run on two
+captures that already existed. No new run was made. The captures are
+`/var/tmp/budgetpay/world5_on_shared_shortfall.json` (the default dice) and `seed2_shared.json` (dice seed 2).
+Both have both budget switches on and run to 2024-12-31. Both were captured after 78a36a84c (the income
+re-draw) and 15a497992 (the shared shortfall). That is the same world as the ec7fd9942 switch-on arm: ec7fd9942
+changed only the company side. The two captures share one cast, so the interval resamples accounts across
+both. Only Q4 2023 is graded. Energy UK's 65% is for 2025, and no capture reaches a 2025 quarter end.
+
+**The share of the >91-day stock that was due a year or more before the quarter end.** Bills are counted, with
+the 95% account-clustered interval in brackets. Pounds come from each capture's `bills` side table.
+
+| Q4 | elec bills | elec pounds | gas bills | gas pounds | Energy UK |
+|---|---|---|---|---|---|
+| 2021 | 87% [78-93] | 85% | 88% [76-96] | 90% | not published |
+| 2022 | 70% [54-85] | 56% | 71% [50-91] | 64% | not published |
+| 2023 | **73% [57-88]** | **47%** | **79% [58-95]** | **60%** | **52%: NOT MET, HIGH (bills)** |
+| 2024 | 72% [55-88] | 67% | 72% [51-94] | 76% | 65% in 2025, beside |
+
+**The prediction said below 52% in 2022-23 and below 30% at Q4 2024. It is wrong.** It stays here as
+written. By bill count the world's stock is *older* than the record. By pounds it is close to the record:
+47-60% in 2023 against 52%, and 67-76% in 2024 against 65% in 2025. The pound share is lower in 2023 because
+the crisis-year bills are bigger and newer, not because old debt clears. Energy UK does not say whether its
+share counts pounds or debts, so the bill verdict is not the whole answer. On neither basis is the world's
+debt young.
+
+**Where the world's >91-day stock sits, in pounds.** A closed account here is one not billed in December. That
+is the tool's own denominator convention, and it stands in for "left".
+
+| Q4 | live accounts | of which aged | of which DD method | closed accounts | of which aged |
+|---|---|---|---|---|---|
+| 2022 (default / seed 2) | 3,790 / 3,299 | 1,525 / 977 | 757 / 450 | **1,891 / 2,984** | 1,840 / 2,692 |
+| 2023 | 7,092 / 6,830 | 2,088 / 2,778 | 2,204 / 1,803 | **2,369 / 3,107** | 1,974 / 2,918 |
+| 2024 | 4,683 / 4,098 | 2,846 / 2,451 | 1,597 / 1,324 | **3,496 / 3,868** | 2,815 / 3,230 |
+
+**What this does to the split in the BLOCKING finding.** That finding named the side as the world. On the
+world's own truth that is not right:
+- **Leavers do carry debt.** Closed accounts hold £1.9k-3.9k over 91 days, a quarter to a half of the stock,
+  and almost all of it is over a year old. The company's final-bill balance was 0.01% and 0.11% of revenue in
+  2022 and 2023. That is about £34 and £540. Revenue is derived from the seat's own figures: 1,825 / 0.53% ≈
+  £344k and 1,529 / 0.31% ≈ £493k. So the company books between a fiftieth and a quarter of the closed-account
+  debt the world holds.
+- **DD-method debt does age.** £450-2,200 of DD-method bills are over 91 days unpaid in the world. The company
+  reports no live DD balance aged 30 days or more.
+- **Live pay-on-receipt debt roughly agrees.** The world's live non-DD stock over 91 days is about £4.9k in
+  2023 and £3.1k in 2024. The company's PoR >90 bucket is 4,589 and then 1,942. The world's own 2024 fall is
+  real: its live >91-day stock drops by about a third, which is the oldest-first clearance this item
+  suspected. But its aged stock and its closed-account stock both *rise*. The total >91-day stock falls only
+  14-20% (£9.5k to £8.2k, and £9.9k to £8.0k).
+
+**So the volume gap is mostly in what the company books, not in what the world holds.** Steps 2 and 3 above
+(trace the DD zero; trace where a leaver's balance goes) are now the item, and they are the company's or the
+seam's question, not the world's. Step 4 (a world repayment-plan rate) is **withdrawn** on this evidence: the
+world's aged share is already at or above the record. What I cannot yet say: whether the company loses the
+debt when it re-files a failed DD account as PoR and when an account closes, or whether the world's settlement
+reaches the company's ledger by a route the provision does not read. Prediction for step 3, filed before it
+runs: most of the closed-account world debt never appears as a final-bill balance in the company's
+`company_provision` at all, rather than appearing and being written off early.
+
+**Caveats.** There are two dice seeds and one cast: one 400-founder book. "Closed" is "not billed in
+December", which is a proxy. The captures are not the published run, so they are labelled unpublished.
