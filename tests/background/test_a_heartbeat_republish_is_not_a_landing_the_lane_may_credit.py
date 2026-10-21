@@ -398,3 +398,20 @@ def test_the_lanes_copy_of_the_seats_stretch_log_is_the_seats_own():
     """Fires on: the two copies drifting -- the lane would then credit work to a seat record again."""
     from background import delivery_seat
     assert tuple(dl.SEAT_WRITTEN_FILES) == tuple(delivery_seat.SEAT_WRITTEN)
+
+
+def test_THE_WRITERS_REFUSAL_OF_A_SEAT_RECORD_COMMIT_NAMES_THAT_CAUSE(monkeypatch, tmp_path):
+    """Defect it names: `record_landing` refuses a commit confined to the seat's record, but
+    `refusal_reason` asked only the liveness surface, so it fell through to "the claims store refused
+    the write" (2026-10-21, a direction item whose whole deliverable was a stretch-log entry). Fires
+    on: the seat-record leg deleted from `refusal_reason`. The bind itself must still refuse, so a
+    reason produced for a commit that actually bound cannot pass."""
+    stretch_log = "docs/status/SEAT_STRETCH_LOG.md"
+    assert _bind(monkeypatch, tmp_path / "bind", [stretch_log]) == []
+    store = tmp_path / "claims.json"
+    claims_mod.claim(FOCUS_ID, "doing the thing", paths=[], path=store, now=DRAWN_AT)
+    monkeypatch.setattr(dl, "_git", _fake_git_commit([stretch_log]))
+
+    reason = dl.refusal_reason(FOCUS_ID, commit=HEARTBEAT_SHA, path=store)
+
+    assert "SEAT'S RECORD" in reason and stretch_log in reason and "--release" in reason, reason

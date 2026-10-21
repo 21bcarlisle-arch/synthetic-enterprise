@@ -3290,6 +3290,14 @@ def refusal_reason(focus_id: str, *, commit: str = "HEAD", path: Path | None = N
                     f"carries no work any claim can be credited with. This is what the `--commit` "
                     f"default of HEAD binds when a liveness republish lands between your commit "
                     f"and this call: re-run it as `--landed {focus_id} --commit <your own sha>`")
+        # `record_landing` also refuses a commit confined to the SEAT'S RECORD. Without this leg
+        # that refusal fell through to "the claims store refused the write" (2026-10-21: a
+        # direction item whose whole deliverable was a stretch-log entry), which names no cause.
+        if _is_liveness_only(paths, _liveness_surface_or_raise() | _seat_record_surface()):
+            return (f"{commit} touched only the SEAT'S RECORD ({', '.join(paths)}), which is the "
+                    f"seat writing down what it decided and never credited as an item's work. If "
+                    f"recording was the whole deliverable, --release the claim: there is nothing "
+                    f"a bind could add")
         # NOT `since`: that is now the REF parameter above, and a float landing on top of it
         # would read as the same quantity twice.
         first_drawn = _binding_instant(focus_id, rec, store)
