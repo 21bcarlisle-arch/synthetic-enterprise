@@ -402,8 +402,12 @@ def test_the_unit_name_is_fixed_and_derivable_from_the_job(tmp_path):
         llj.unit_name("///")
 
 
+#: Asked once: each spelling of the tool's name is a sighting `tools/launch_shape_census` counts.
+_NO_USER_SYSTEMD = shutil.which("systemd-run") is None
+
+
 @pytest.mark.real_subprocess
-@pytest.mark.skipif(shutil.which("systemd-run") is None, reason="no user systemd here")
+@pytest.mark.skipif(_NO_USER_SYSTEMD, reason="no user systemd here")
 def test_a_real_launch_detaches_and_logs_both_streams(tmp_path):
     """THE DOOR. Everything above runs against a fake runner and is therefore blind to whether
     these properties are ones systemd actually accepts.
@@ -527,9 +531,108 @@ def test_a_launch_with_NO_ROOM_queues_and_then_follows_rather_than_returning(mon
     monkeypatch.setattr(llj, "launch", launch)
     monkeypatch.setattr(llj, "follow_unit", lambda unit, artefact, **k: followed.append(unit) or 0)
     monkeypatch.setattr("time.sleep", slept.append)
-    base = ["--job", "x", "--artefact", "/tmp/a", "--peak-mb", "10", "--", "true"]
+    # The WAIT IN PLACE belongs only to a launcher already in its queue unit; anywhere else the
+    # wait is handed off (`test_a_queued_launch_hands_its_wait_to_a_unit_of_its_own`).
+    base = [llj.IN_QUEUE_UNIT_FLAG, "--job", "x", "--artefact", "/tmp/a", "--peak-mb", "10",
+            "--", "true"]
     assert llj.main(base) == 0
     assert len(tries) == 3 and len(slept) == 2 and followed == ["longjob-x"]
+
+
+def test_a_queued_launch_hands_its_wait_to_a_unit_of_its_own(monkeypatch):
+    """Fires on: the wait for room run in the CALLER's cgroup again -- the death of two supplier
+    arms on 2026-10-21, queued from a tick and killed with it before they had a unit or a record
+    (be60ad914). Also on: the landing hold waited out in place (90 min in the doomed cgroup), and
+    the handed-off copy handing off again instead of waiting.
+
+    The partition first: the hand-off branch is TAKEN, and the in-place branch still exists for
+    the copy running inside the queue unit."""
+    deadlines, handed, followed = [], [], []
+
+    def launch(*a, **k):
+        deadlines.append(k["landing_deadline_seconds"])
+        raise llj.NoRoom("co-resident: no room yet")
+    monkeypatch.setattr(llj, "launch", launch)
+    monkeypatch.setattr(llj, "hand_off_queue",
+                        lambda argv, job, **k: handed.append(list(argv)) or llj.queue_unit_name(job))
+    monkeypatch.setattr(llj, "follow_unit", lambda unit, artefact, **k: followed.append(unit) or 0)
+    monkeypatch.setattr("time.sleep", lambda s: (_ for _ in ()).throw(AssertionError("waited here")))
+    base = ["--job", "x", "--artefact", "/tmp/a", "--peak-mb", "10", "--", "true"]
+    llj.main(base)
+    assert handed == [base] and deadlines == [0], (handed, deadlines)
+    assert followed == ["longjob-x-queued", "longjob-x"], followed
+    handed.clear()
+    followed.clear()
+    assert llj.main(["--detach", *base]) == 0 and followed == [] and len(handed) == 1
+
+    # And the copy inside the queue unit waits in place, under the full landing hold.
+    monkeypatch.setattr("time.sleep", lambda s: (_ for _ in ()).throw(StopIteration))
+    handed.clear()
+    deadlines.clear()
+    with pytest.raises(StopIteration):
+        llj.main([llj.IN_QUEUE_UNIT_FLAG, *base])
+    assert handed == [] and deadlines == [None]
+
+
+def test_the_queue_unit_reruns_this_launch_detached_and_never_hands_off_again(tmp_path):
+    """Fires on: a queue unit that would follow (it would hold its unit for the whole job), that
+    would hand off again (a queue unit forever spawning queue units), or one started with
+    `--collect`, which throws away the record of how the wait ended."""
+    runner = _Runner()
+    argv = ["--job", "x", "--artefact", "a.json", "--peak-mb", "10", "--", "true"]
+    unit = llj.hand_off_queue(argv, "x", cwd=str(tmp_path), runner=runner,
+                              launcher_cgroup="/user.slice/app.slice/worker-tick.service")
+    assert unit == "longjob-x-queued"
+    run = next(c for c in runner.calls if f"--unit={unit}" in c)
+    assert f"--unit={unit}" in run and "--collect" not in run
+    assert f"--property=WorkingDirectory={tmp_path}" in run
+    tail = run[run.index("background.launch_long_job") + 1:]
+    assert tail == [llj.IN_QUEUE_UNIT_FLAG, "--detach", *argv], tail
+
+
+@pytest.mark.real_subprocess
+@pytest.mark.skipif(_NO_USER_SYSTEMD, reason="no user systemd here")
+def test_a_launch_queued_from_a_parent_that_then_exits_is_still_queued(tmp_path):
+    """THE DOOR for the queue. A parent unit stands in for the bounded tick: a transient service
+    with the default KillMode=control-group, so when its main process exits systemd kills
+    everything left in its cgroup -- the teardown that took two arms on 2026-10-21. The parent
+    launches a job that can never be admitted (a declared peak no box has), so it MUST queue, and
+    exits. The queue has to outlive it.
+
+    Fires on: the wait run in the parent's cgroup (the parent never exits inside the bound, and
+    nothing is left behind once it is stopped), or handed to a child of the parent rather than to
+    the user manager (the child dies with the parent)."""
+    tag = abs(hash(str(tmp_path))) % 10**8
+    job, parent = f"selftest-queued-{tag}", f"selftest-parent-{tag}"
+    queue = llj.queue_unit_name(job)
+    repo = str(Path(llj.__file__).resolve().parent.parent)
+    log = tmp_path / "parent.log"
+    try:
+        # The parent is started with this module's own argv builder, so it is the launch shape
+        # the one-launcher census already counts rather than a second hand-spelled one.
+        started = subprocess.run(llj.systemd_run_argv(
+            parent, ["python3", "-m", "background.launch_long_job", "--detach",
+                     "--job", job, "--artefact", str(tmp_path / "never.json"),
+                     "--workdir", str(tmp_path), "--peak-mb", "1e9", "--expect-minutes", "1",
+                     "--", "/bin/true"],
+            workdir=repo, log=str(log), description="selftest: a tick that queues and exits",
+            env={"PYTHONPATH": repo}), capture_output=True, text=True, timeout=60)
+        assert started.returncode == 0, started.stderr
+        for _ in range(600):
+            if not llj.name_is_held(parent):
+                break
+            time.sleep(0.1)
+        text = log.read_text(encoding="utf-8") if log.exists() else ""
+        # The branch was reached at all: the parent queued, it was not refused or admitted.
+        assert f"QUEUED in unit {queue}" in text, text[-2000:]
+        assert not llj.name_is_held(parent), "the parent must be gone for this to test anything"
+        assert llj.name_is_held(queue), (
+            f"the parent exited and took the queue with it: nothing holds `{queue}`")
+    finally:
+        for unit in (parent, queue):
+            subprocess.run(["systemctl", "--user", "stop", unit], capture_output=True, timeout=60)
+            subprocess.run(["systemctl", "--user", "reset-failed", unit],
+                           capture_output=True, timeout=60)
 
 
 def test_no_queue_and_a_refusal_waiting_cannot_cure_still_return_at_once(monkeypatch):

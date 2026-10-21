@@ -524,7 +524,8 @@ def launch(job: str, command: list, *, artefact: str, workdir: str | None = None
            records_path: Path | None = None, runner=subprocess.run,
            launched_at: str | None = None, out=None, peak_mb=None,
            wait_for_pid: int | None = None, residents=resident_census,
-           guest_total_mb=None, expect_minutes=None, run_case: dict | None = None) -> dict:
+           guest_total_mb=None, expect_minutes=None, run_case: dict | None = None,
+           landing_deadline_seconds: float | None = None) -> dict:
     """Start `command` in a transient user unit AND write its liveness record. One call, both.
 
     THE ORDER IS THE ARGUMENT, and it is the opposite of the obvious one. The record is written
@@ -593,7 +594,7 @@ def launch(job: str, command: list, *, artefact: str, workdir: str | None = None
     case_refusal = run_case_refusal(expect_minutes, run_case)
     if case_refusal:
         raise LaunchRefused(case_refusal)
-    landing_wait = _wait_for_pending_landings(say)
+    landing_wait = _wait_for_pending_landings(say, deadline_seconds=landing_deadline_seconds)
     if landing_wait:
         raise NoRoom(landing_wait)
     if guest_total_mb is None:
@@ -730,6 +731,60 @@ def follow_unit(unit: str, artefact: str | None, *, deadline_seconds: float = FO
     return 0 if exists and fields.get("Result") in ("success", None, "") else 1
 
 
+#: The internal flag a handed-off queue runs under, so it waits in place instead of handing off
+#: again. Not for callers: a launcher that is not already in a unit of its own must never wait.
+IN_QUEUE_UNIT_FLAG = "--in-queue-unit"
+
+
+def queue_unit_name(job: str) -> str:
+    """The unit a queued launch waits in: the job's own unit name, suffixed, so the
+    `longjob-*` census shows a job that is waiting as well as one that is running."""
+    return f"{unit_name(job)}-queued"
+
+
+def hand_off_queue(argv: list, job: str, *, cwd: str | None = None, runner=subprocess.run,
+                   launcher_cgroup: str | None = None) -> str:
+    """Move a launch that has to WAIT into a transient unit of its own, and return that unit.
+
+    THE DEFECT. `launch` gives the ADMITTED job a cgroup of its own; the wait for admission ran in
+    the caller's. Started from a bounded tick, the queued launcher was therefore the one process
+    the tick's KillMode=control-group teardown could still reach, and on 2026-10-21 two supplier
+    arms died that way while queued -- no process, no unit and no record, because the record is
+    written at launch and they never got there (be60ad914). The only defence left was a seat
+    noticing that a job it believed queued had no process, so every queued launch after that was
+    hand-wrapped in a driver unit. This is that wrapper, made the launcher's own behaviour.
+
+    The queue re-runs this module with the caller's own argv, plus `--detach` (its job ends at the
+    launch; the caller follows the job) and `IN_QUEUE_UNIT_FLAG` (so it waits in place rather than
+    handing off again). Run from the caller's cwd, so relative paths mean what they meant.
+    """
+    unit = queue_unit_name(job)
+    if name_is_held(unit, runner=runner):
+        raise LaunchRefused(
+            f"`{unit}` is live, so `{job}` is ALREADY QUEUED -- a second queue would launch it "
+            f"twice. Ask it: `systemctl --user status {unit}`.")
+    clear_a_corpse(unit, runner=runner)
+    log = f"/var/tmp/{unit}.log"
+    command = [sys.executable, "-m", "background.launch_long_job", IN_QUEUE_UNIT_FLAG, "--detach",
+               *argv]
+    run = systemd_run_argv(unit, command, workdir=cwd or os.getcwd(), log=log,
+                           description=f"queued launch of {job} (background.launch_long_job)",
+                           env={"PYTHONPATH": str(_REPO)})
+    try:
+        res = runner(run, capture_output=True, text=True, timeout=120)
+    except (OSError, subprocess.SubprocessError) as exc:
+        raise LaunchRefused(f"the queue could not be handed to `{unit}`: {exc}") from exc
+    if res.returncode != 0:
+        raise LaunchRefused(
+            f"the queue could not be handed to `{unit}`: systemd-run rc={res.returncode}: "
+            f"{(res.stderr or res.stdout or '').strip()[:500]}")
+    detached, why = verify_detached(unit, runner=runner, launcher_cgroup=launcher_cgroup)
+    if detached is False:
+        stop(unit, runner=runner)
+        raise LaunchRefused(f"the queue was STOPPED because its detach did not hold: {why}")
+    return unit
+
+
 def main(argv: list | None = None) -> int:
     if argv is None:
         argv = sys.argv[1:]
@@ -779,6 +834,8 @@ def main(argv: list | None = None) -> int:
                              "retry until the job fits, then launch and follow it")
     parser.add_argument("--dry-run", action="store_true",
                         help="print the launch argv and exit, launching and recording nothing")
+    parser.add_argument(IN_QUEUE_UNIT_FLAG, dest="in_queue_unit", action="store_true",
+                        help=argparse.SUPPRESS)
     parser.add_argument("command", nargs=argparse.REMAINDER)
     args = parser.parse_args(argv)
 
@@ -810,18 +867,35 @@ def main(argv: list | None = None) -> int:
 
     import time as _time
 
+    # A launcher that is not in a unit of its own asks for room ONCE, landing hold included, and
+    # hands any wait to `hand_off_queue`: a wait here dies with whatever cgroup started us.
+    hands_off = not (args.no_queue or args.in_queue_unit)
     queued_since = None
     while True:
         try:
             launch(args.job, command, artefact=args.artefact, workdir=args.workdir, log=args.log,
                    description=args.description, asserted_live_by=args.asserted_live_by, env=env,
                    peak_mb=args.peak_mb, wait_for_pid=args.wait_for_pid,
-                   expect_minutes=args.expect_minutes, run_case=run_case)
+                   expect_minutes=args.expect_minutes, run_case=run_case,
+                   landing_deadline_seconds=0 if hands_off else None)
             break
         except NoRoom as exc:
             if args.no_queue:
                 print(f"REFUSED: {exc}")
                 return 1
+            if hands_off:
+                try:
+                    queue = hand_off_queue(argv, args.job)
+                except LaunchRefused as refused:
+                    print(f"REFUSED: {refused}")
+                    return 1
+                print(f"QUEUED in unit {queue} (no room yet: {exc}). The wait survives this "
+                      f"process; its log is /var/tmp/{queue}.log", flush=True)
+                if args.detach:
+                    return 0
+                if follow_unit(queue, None, deadline_seconds=args.follow_deadline_hours * 3600) == 2:
+                    return 2
+                break
             now = _time.monotonic()
             if queued_since is None:
                 queued_since = now
