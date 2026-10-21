@@ -2,6 +2,8 @@
 
 # Pre-registration: the early-warning signals on and off, in the forward-cash-forecast provision
 
+**Graded 2026-10-21:** P1-P5 refuted, P6 held by construction. Predictions kept as written; result and causes in `docs/staging/SEAT_FINDING_THE_EARLY_WARNING_DOUBLES_THE_PROVISIONS_ERROR_BECAUSE_IT_LEARNS_THE_FAILED_MONTH_AS_THE_SIGNALS_OUTCOME_2026-10-21.md`.
+
 Written 2026-10-21, before any arm exists. **Not launched**, as the item asks. The build is
 `company/finance/cash_forecast_provision.py` (`signals_of`, default off). Its control is
 `tests/company/finance/test_the_early_warning_signals_move_the_provision.py`. The knowledge is

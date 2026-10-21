@@ -1458,6 +1458,9 @@ using them would be a picked number.
    (`company/billing/dd_collections_desk.py`, PB8). On its book, then, a second return is next
    month's collection. That always follows a missed month, so by choice 5 the signal is never read
    there. It becomes readable when the company re-presents inside the month.
+   **Corrected 2026-10-21, graded on a run:** not always. A household that settles last month's
+   returned collection on the same 28th this month's is returned has a paid month, so it is in
+   state 0 and signal 3 is read (105 account-dates on the default run's book).
 4. **A missed manual payment** means: on a bill billed on a method other than direct debit, less than
    half the bill (`PAID_MONTH_SHARE_OF_MEDIAN_BILL`, the chain's own threshold) arrived between the
    bill and its due date (`PAYMENT_TERMS_DAYS`, 14), while the account owed money. "The bill is
@@ -1472,6 +1475,10 @@ using them would be a picked number.
    than no signal.
 6. **The signal sets the first monthly step only**, the one it arrived in, with a 31-day window
    (`SIGNAL_WINDOW_DAYS`, the chain's grain, a named simplification). Later steps run on the chain.
+   **Corrected 2026-10-21, graded on a run:** the step LEARNED is the one the signal arrived in, but
+   the step the reading APPLIES it to is the next month. With every collection on the 28th, the
+   learned outcome is mostly the failed collection itself: P(miss | DD, code 0) is 80% as built and
+   18% when learned on the next month. As built, the on arm's error is about twice the off arm's.
 7. **Point in time**: a return is dated when the company observed it, not by its collection's value
    date.
 8. **Off by default.** The signals reach the provision only when a caller passes `signals_of`. The
@@ -1486,6 +1493,16 @@ GBP 60 owed, against GBP 0.56 with the signals off. A manual payer past a missed
 GBP 40.39 against GBP 0.65. A code 1 return moves nothing. Accounts with no signal are unchanged to
 the penny.
 
+### Graded on the default run's book (2026-10-21)
+
+One run at `cda47a346`, read off and on at 37 quarter-ends and 113 fifteenths, against each account's
+realised 12-month shortfall. **Not worth wiring anywhere on this book.** Where a signal is read, the
+on arm's mean absolute error is 3.75 against the off arm's 1.70 at quarter-ends, and 6.12 against 3.51
+mid-month. With the label of choice 6 corrected it is 1.86 against 1.70 and 3.68 against 3.51: about
+neutral. The chain alone is already near the realised shortfall (GBP 773 provisioned against GBP 725
+lost mid-month). This world's code-0 households mostly settle the returned amount a month or two
+later, and its bad debt runs 5-7x low (`553d7c855`), so this says nothing about real GB signals. Grade: `docs/staging/SEAT_FINDING_THE_EARLY_WARNING_DOUBLES_THE_PROVISIONS_ERROR_BECAUSE_IT_LEARNS_THE_FAILED_MONTH_AS_THE_SIGNALS_OUTCOME_2026-10-21.md`.
+
 ### GAPs this build carries rather than fills
 
 | GAP | What the build does instead |
@@ -1493,4 +1510,4 @@ the penny.
 | P(default) given a first code 0, a second code 0, a missed manual payment | learned from the book; None until the book has resolved one |
 | P(default) given an ADDACS cancellation | not read; waits for `W2_41` |
 | The cure share of a plain Bacs re-presentation on domestic energy | the company does not re-present, so it is not needed yet |
-| Whether a supplier's provision reads payment status inside the month or only at month-end | read on the forecast date; a month-end read already has the miss in the chain |
+| Whether a supplier's provision reads payment status inside the month or only at month-end | read on the forecast date; a month-end read already has the miss in the chain. **Corrected 2026-10-21:** for 31% of code-0 months it does not (cash for an older bill made the month "paid") |
