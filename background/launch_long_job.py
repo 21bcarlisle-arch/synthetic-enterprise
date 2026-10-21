@@ -835,7 +835,7 @@ def main(argv: list | None = None) -> int:
     parser.add_argument("--dry-run", action="store_true",
                         help="print the launch argv and exit, launching and recording nothing")
     parser.add_argument(IN_QUEUE_UNIT_FLAG, dest="in_queue_unit", action="store_true",
-                        help=argparse.SUPPRESS)
+                        help=argparse.SUPPRESS)  # suppression-lint: not-a-suppression SUPPRESS -- argparse hides an internal flag from --help; nothing is silenced
     parser.add_argument("command", nargs=argparse.REMAINDER)
     args = parser.parse_args(argv)
 
