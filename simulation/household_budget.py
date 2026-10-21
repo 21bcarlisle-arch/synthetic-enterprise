@@ -519,6 +519,16 @@ def margin_in_year(budget: HouseholdBudget, year: int,
 # excess on both seeds.
 ENERGY_SHARES_THE_SHORTFALL = True
 
+# SHARED ON THE MONTH'S DEMAND, NOT THE ARREARS STOCK (2026-10-22). Origin: `household_budget_w2_4.md`,
+# "2026-10-22: stock or demand". Sharing against `owed_total` lets energy's part grow with the debt,
+# so a household under water stops falling behind at C/(A-B) bills (median 1.67 over the deficit
+# account-years), where Ofgem's arrears are most of a year's bill. On, the basket is short by the
+# fraction this month's money falls short of this month's basket and bill, `min(C, C*A/(C+B))`,
+# and everything else after housing goes to energy, oldest bill first; the stock then grows while
+# the margin is below the bill. Same GAP as the switch above: pro rata is a stated belief. Off
+# until a paired world-only arm is graded against the depth column.
+THE_SHORTFALL_IS_SHARED_ON_THE_MONTHS_DEMAND = False
+
 
 class BudgetPaymentBook:
     """Per supply point: what the household's money pays of each month's energy bill, and which
@@ -537,11 +547,14 @@ class BudgetPaymentBook:
 
     def __init__(self, benefit_path_deciles: Sequence[int] = BENEFIT_PATH_DECILES,
                  income_move_per_year: float = INCOME_MOVE_PER_YEAR,
-                 energy_shares_the_shortfall: Optional[bool] = None):
+                 energy_shares_the_shortfall: Optional[bool] = None,
+                 shared_on_demand: Optional[bool] = None):
         self._benefit_path_deciles = tuple(benefit_path_deciles)
         self._income_move_per_year = income_move_per_year
         self._shares = (ENERGY_SHARES_THE_SHORTFALL if energy_shares_the_shortfall is None
                         else energy_shares_the_shortfall)
+        self._on_demand = (THE_SHORTFALL_IS_SHARED_ON_THE_MONTHS_DEMAND if shared_on_demand is None
+                           else shared_on_demand)
         self._legs: Dict[str, dict] = {}
 
     def settle_month(self, *, supply_point: str, household: str, year: int, amount_gbp: float,
@@ -564,8 +577,14 @@ class BudgetPaymentBook:
             # Short: what is left after housing is shared with the basket, pro rata. The basket's
             # part is spent (gone without, not saved), so `cash` becomes energy's part alone.
             core = core_in_year(budget, year) * share
-            after_housing = cash + core
-            cash = max(0.0, after_housing) * owed_total / (core + owed_total)
+            after_housing = max(0.0, cash + core)
+            if self._on_demand:
+                # A household that can meet this month's basket and bill keeps its basket whole and
+                # repays the backlog out of the rest; only this month's shortfall is shared.
+                bill = owed[-1][1]
+                cash = after_housing - min(core, core * after_housing / (core + bill))
+            else:
+                cash = after_housing * owed_total / (core + owed_total)
         paid = allocate_debt_payments(cash, {"energy_arrears": owed_total})["energy_arrears"]
         cleared, spent = [], 0.0
         for bill_ref, amount in owed:

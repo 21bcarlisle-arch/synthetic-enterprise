@@ -1062,3 +1062,18 @@ month's demand, not the stock; K8 amendment of `household_budget_w2_4.md` first;
 column) are in the world finding.
 
 **Status:** OPEN and BLOCKING. The cause is now a single named world rule.
+
+## 2026-10-22: the demand reading is built behind a switch, and its paired world-only arms are running
+
+K8 first: `household_budget_w2_4.md`, "2026-10-22: stock or demand". At real inputs, on the same 256
+deficit account-years, the demand reading has no cap. The stock grows a median **0.34 bills a month**
+(about 4 a year, p90 7.6), against the stock reading's fixed point of 1.67 bills. One correction to
+the build candidate above: the literal swap (`owed_total` → this month's bill) would make a
+household that can meet this month's basket and bill still go without food. The built form is
+`basket = min(C, C·A/(C+B))`, with the rest to energy. A mutation pins that difference.
+`THE_SHORTFALL_IS_SHARED_ON_THE_MONTHS_DEMAND`, default False. Pre-registration:
+`docs/staging/records/SEAT_PREREG_THE_SHORTFALL_SHARED_ON_THE_MONTHS_DEMAND_2026-10-22.md`.
+Arms: `longjob-shortfall-stock-arm` and `longjob-shortfall-demand-arm`, about 45 minutes each.
+
+**Status:** OPEN and BLOCKING. The next tick grades the two arms with `depth.py` against D1-D5. Do not
+re-launch: ask `.launch_records.json` first.
