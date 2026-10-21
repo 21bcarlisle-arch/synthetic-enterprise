@@ -215,3 +215,22 @@ knowledge section is `debt_and_collections.md` §2.5a.
 stops them missing the next bill: a margin back above zero, savings drawn down, or the per-bill draw paying while the
 budget does not bind? The grade is depth (months of bill) and bills per spell against §2.5a. It is decided blind to
 company results.
+
+### 23:50: what the parked bill is (records only, same dump)
+
+Bills left unpaid more than a year after they fell due number **199**. Every one is a per-bill `failed`.
+- **88 are direct debit**: 33 never settled, 55 settled late.
+- 54 are standard credit, never settled.
+- 27 are standing order, 15 card and 1 prepayment.
+
+In the year after the parked bill, **102 of the 199 accounts paid every later bill within 91 days.** 58 missed another,
+and 39 had no later bill.
+
+So the parked bill is the per-bill payment model, not a household that stops paying. Each world payment settles one
+named bill, so a failed bill can sit unpaid beside a year of on-time payments. That includes a successful monthly
+direct debit, which in practice credits a rolling balance and is re-set at the DD review to recover the shortfall.
+
+Whether the review recovery is the world's job (payment allocation) or the company's (the DD amount it sets) is the
+seam question here. It goes to `interface-steward` before any build. Either way the depth grade (§2.5a) stands. The
+record's debtors owe most of a year's bill, and a household paying every bill on time cannot be made to owe that by
+any allocation rule.
