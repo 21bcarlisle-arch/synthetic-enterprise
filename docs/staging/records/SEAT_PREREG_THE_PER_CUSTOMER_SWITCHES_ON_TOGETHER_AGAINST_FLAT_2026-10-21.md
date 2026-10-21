@@ -321,6 +321,9 @@ is inverted: the households it thinks most likely to leave are the least likely.
   them is the offer gate `_cut is not None`: the market beats our fix, which is a price-position
   observable. Offered states are 25% of the desk and hold 40% of its leavers. The selection
   worked through price position. The churn belief contributed nothing to it.
+  *[Corrected in §8, 2026-10-21: `all_on` sizes by `risk_tiers`, so the gate is our re-fix's
+  headroom over its own cost floor, not the market beating our fix; and 62 of the 110 leavers are
+  dual-fuel households whose gas leg never rolled because they left at the electricity roll.]*
 
 **Which carries the tie: both are short, and each is measured on its own population.**
 - **The retention tie (§6: −£97, −1 departure) is carried by the LEVER.** On the 44 would-be leavers
@@ -353,3 +356,118 @@ and grade on 2019+.
 **Housekeeping (2026-10-21 ~17:58Z).** Nothing was left to remove. `/var/tmp/se-pcs-arms` was
 already absent from disk and from `git worktree list`; another lane removed it after §6. The outputs
 stay in `/var/tmp/se-pcs-arms-out/`.
+
+## 8. Does a price-position ranker order leavers out of sample? (2026-10-21, no run launched)
+
+*Read first: `SEAT_RESULT_THE_RENEWAL_BELIEF_DOES_NOT_ORDER_WHO_LEAVES_AND_THE_GRADE_WAS_ALREADY_ON_DISK_2026-09-22.md`.
+§7's AUC 0.46 is the second time the belief has failed to rank. The first was 0.4988 on 144
+renewals, where the world's ceiling was 0.74 and **bill shock was the only world factor that ordered
+departures on its own**. A price-position ranker therefore tests a channel the first reading did not
+name as the one carrying the signal.*
+
+**Two corrections to the item, found before any outcome was read.**
+- **The fit-on-pre-2019 design cannot carry the market feature.** `published_default_rate_ex_vat`
+  is `None` before 2019-01-01, because the default tariff cap began then. So "the market's best
+  published deal beats our re-fix" (`default × (1 − gap) < unit_rate`, gap > 0) is False on all 182
+  pre-2019 states. A model fitted there gives it no weight. The market feature is graded below as a
+  fixed-sign score with nothing fitted.
+- **§7's offer gate is not the market's price.** `all_on` sizes cuts by `risk_tiers`
+  (`CURRENT_POLICY.retention_cut_sizing`), not by the price match. So `_cut is not None` above the
+  0.30 threshold means the tier cut (3–8%) fits above *our own cost floor*. That is our margin
+  position. **Correction to §7, beside its claim "the offer gate `_cut is not None`: the market beats
+  our fix":** the gate is our re-fix having headroom over its own cost, not the market beating
+  it. The rebuilt market test agrees with the actual offers on only 92 of 240 states above the
+  threshold. On every state, the desk log's `monthly_margin_gbp` (the term's contribution per month,
+  at the roll) is the observable that gate reads.
+
+**Population and outcome.** As §7: the desk states at risk under `flat`, with leavers under `flat`
+within 365 days. That is 182 pre-2019 states (64 leavers) to fit on and 268 from 2019 (46 leavers) to
+grade on. The belief reads AUC 0.333 on those 268.
+
+**Rankers (every input is company-visible at the roll).**
+- **R1, fitted.** Logistic regression on standardised `rate_vs_svt_pct` (the mean over the state's
+  legs, from `account_state_log` at `term_start`), tenure in years since the account's first term,
+  and `monthly_margin_gbp`. Fitted on pre-2019, graded on 2019+.
+- **R2, unfitted.** The market gap `(unit_rate − default_ex_vat × (1 − gap)) / unit_rate`, the
+  maximum over legs, where higher means the market undercuts us by more. Graded on 2019+ only. In
+  the crisis years the gap is 0, so there it measures our rate against the default alone.
+- **R3, unfitted.** `monthly_margin_gbp`, where higher means more likely to leave: §7's gate, as a
+  continuous score.
+
+Bounds: an account-clustered bootstrap (1,000 draws, seed 7) on each AUC, and on the paired
+difference against the belief over the same states.
+
+**Predictions (filed before any ranker was scored, 19:1xZ).**
+- **P8a.** R1 2019+ AUC point 0.60, range 0.50–0.70. Clustered lower bound above 0.5: 45%.
+- **P8b.** R2 point 0.62, range 0.50–0.75. Lower bound above 0.5: 50%.
+- **P8c.** R3 point 0.58, range 0.48–0.68.
+- **P8d.** At least one ranker beats the belief, with the lower bound of the paired difference
+  above 0: 80%. The belief is inverted, so this is the easy bar. The bar that decides is above 0.5.
+- **Decision rule, fixed now.** If any ranker's clustered lower bound clears 0.5, the advice build
+  has an aim, and that ranker is it. If none clears 0.5, the inference is the work ahead of the
+  build. It then starts from the 22 Sep reading's bill-shock channel, not from price.
+
+**Result (computed 19:15–19:45Z from `all_on` and `flat`; one seed, one book).**
+
+| ranker, graded on the 268 states from 2019 (46 leavers) | AUC | account-clustered 95% | minus belief, paired |
+|---|---|---|---|
+| belief (§7) | 0.333 | [0.253, 0.426] | — |
+| **R1 as pre-registered** (rate vs SVT, tenure, `monthly_margin_gbp`) | **0.706** | [0.621, 0.788] | [+0.23, +0.49] |
+| R2 market gap, unfitted | 0.543 | [0.439, 0.642] | [+0.11, +0.30] |
+| R3 `monthly_margin_gbp`, higher = leaves | 0.248 | [0.167, 0.337] | [−0.17, −0.01] |
+| *after the leak below is removed:* | | | |
+| rate vs SVT of the electricity leg on the book, unfitted | **0.594** | **[0.479, 0.709]** | [+0.15, +0.36] |
+| rate vs SVT + tenure, fitted pre-2019 | 0.584 | [0.486, 0.676] | |
+| household EAC from the book / household is dual-fuel | 0.473 / 0.486 | | |
+
+**R1 clears the bar, and it clears it on a leak.** The desk log's `fuels` lists the legs that
+*rolled*. When a dual-fuel household leaves at its electricity roll, its gas leg never rolls, so
+the desk state reads "electricity only" because the household left. There are 69 such states
+(dual-fuel household on the book, gas absent from the state), and **62 of them are leavers: 62 of
+§7's 110.** Anything summed over the state's legs carries that. Volume is one such feature: the desk
+legs' EAC alone ranks at 0.813 out of sample. `monthly_margin_gbp` is another, and it is what R1
+weighted most (coefficient −0.85). Read from the company's book at the roll instead, household
+volume and fuel count rank at chance (0.47, 0.49). Margin per MWh reads 0.67 over all states, but
+it flips to 0.41 on the states the leak cannot reach. So R1's 0.706 is a description of how the log
+was written, not an aim. *(The no-leak subset is selected on an outcome-caused shape, so it is a
+sensitivity reading only. On it, rate vs SVT + tenure reads 0.666 [0.511, 0.810] with 19 leavers.)*
+
+**What survives is price position, and it is weak.** The electricity leg's rate against SVT ranks
+leavers at 0.60 before 2019 and 0.59 from 2019, in the same direction on both sides of the cut.
+That stability is the belief's opposite: the belief reads 0.48 before 2019 and 0.33 after. It beats
+the belief, with the paired bound above 0. But its own bound reaches 0.479, so on 46 leavers it
+cannot be told from chance.
+
+**By the decision rule written above: the inference is the work, ahead of the build.** Read
+literally, the rule fires on R1, whose lower bound is 0.621. I am not taking that, and the reason is
+stated: R1's weight sits on a feature the outcome writes. With R1 set aside, no leak-free ranker's
+bound clears 0.5. So the renewal-advice build still has no aim. Price position is a real, stable,
+weak signal (about 0.6) and belongs in the rebuilt belief. The 22 Sep reading points at bill shock
+as the channel that carries the world's ordering (0.70 on its own), and the belief reaches bill
+shock through a term that is zero on almost every leg. That is the next place to look, not more
+price features.
+
+**Two things this changes outside §8.**
+- **§7's leaver population is 56% the leak.** The belief is not leaky: it is taken at the roll,
+  before the departure. But the leak states carry a low mean belief (0.15, against 0.34 elsewhere)
+  and are 90% leavers, and that drags §7's 0.33 below chance. It does not rescue the belief: on the
+  states the leak cannot reach, from 2019, it reads 0.452 against rate vs SVT's 0.654.
+- **Any grade or fit on `next_best_action_renewal_log` must take a household's fuels and volume
+  from the book, not from the state's legs.** The desk also values a household that leaves at its
+  electricity roll on electricity alone. Whether that is how a real desk sees the roll (the gas
+  notice goes out at the same time) or an artefact of the loop's leg order is not settled here.
+  The `flat` output also records no gas `churned` event for these households (PROS-2018-0002: the
+  electricity leg leaves on 2019-01-02, and the gas leg's term simply stops). Where the gas leg goes
+  is a question for the world's departure record, unasked.
+
+**Grading P8.**
+- **P8a, out of range and void as an aim.** 0.706 is above the 0.50–0.70 range, and the bound
+  clears 0.5, but on the leak.
+- **P8b, inside the range and below the bar.** 0.543 is inside 0.50–0.75. The lower bound, 0.439,
+  does not clear 0.5. The market gap adds nothing over our own rate against SVT.
+- **P8c, refuted.** Margin runs the other way (0.248), and its sign is the leak's.
+- **P8d, held.** Every ranker except R3 beats the belief, with the paired bound above 0. That was
+  the easy bar, as written.
+
+Scripts: `/tmp/pcs8_{feat,grade,rob,fuel,leg,clean,strat,last}.py`, scratch only and not landed.
+They reuse §7's `/tmp/pcs_split.py` definitions.
