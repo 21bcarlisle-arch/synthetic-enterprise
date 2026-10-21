@@ -1,148 +1,115 @@
 version: 1
-oriented_at: '2026-10-21T02:20:57.325479+00:00'
-thesis_read: 'Forward on billing and on the instruments, not yet on the thesis. 5 commits, 2 substantive, 0 that
-  carried no work. The brief splits them 1 supplier, 0 world, 4 other. Read by subject, all five were supplier work:
-  D48''s closed-account estimate (7a266cb76) and its page (2da5d3ee7), the read instruction''s arms tool (1a40d8b99),
-  and the opex-credit grading fix (193ae19be). No level moved. What it MEANS. (1) Billing, first in his order: a
-  held estimate on a closed account now goes out on its final bill at the closing read (7a266cb76). The last D48
-  hold, four actual-read bills at founder C8''s home, is in surgical_land now (pid 644310). D48 failed its L3 Expert
-  Hour on 14 Oct because the accrual its title claims was not built. That accrual is now built and graded (75aff1401,
-  d4af471a1), so the reason for the failure may be gone. Nobody has re-asked, which is focus item 3. (2) The licence
-  duty is being measured. All three read-instruction arms are running at 8927e9345 (2h35m in, about 11 GB), and
-  their grade is queued for 04:45. So last stretch''s item 1 was drawn, handed on and leaves focus. (3) The comparison
-  the thesis is judged on has still not run. Every per-customer decision has a production caller behind an off switch,
-  the standing-charge credit is in the code (ec7fd9942), and the honest within-segment test still reads ''cannot
-  tell'' in two of three years. The previous focus named 3 items and 1 was drawn. The other two (the book-size question
-  and the three-arm run) were not drawn. That is not yet drift, because the stretch lasted 2.9h and the one executor
-  slot was spent on item 1 and D48. They stay as items 1 and 2, with the cheap read-only measurement first, because
-  it decides whether the director''s six EP17 seeds can answer at all. (4) The opex credit''s grade did not run.
-  Its arms were held behind a landing and never started (193ae19be), so the C34 concern''s premise stays unre-read
-  for another stretch. The box is now the constraint: the read arms hold about 11 GB, the credit arms are queued
-  behind them, and the three-arm run will queue behind both. (5) The machine. The launch-reading miss I had called
-  unexplained recurred, and the brief''s own code explains it. The ''none launched or ended'' sentence reads only
-  ENDED jobs, while three launches sit in the register inside this stretch. That is a one-line instrument fix, focus
-  item 4. The publisher has reported FAILING for 41h, against a publish held to 26 Oct.'
+oriented_at: '2026-10-21T05:20:43.324106+00:00'
+thesis_read: 'Forward on the thesis''s comparison in form, not yet in fact, and backwards on two graded questions
+  that I had recorded as queued. 13 commits, 7 substantive, 1 that carried no work. The brief splits them 1 supplier,
+  1 world, 11 other. Read by subject, most were supplier: the read instruction is graded and on (a0bbbf6ea, 026b3c650),
+  the per-customer three-arm run is pre-registered (8fbb641d8), B11''s power question is answered (9ca972774), and
+  D48''s last founder hold is released (032b3dec2). No level moved, and B8''s second Expert Hour held it at L2 because
+  its row claims an uplift nothing measures (9bdd1757e). What it MEANS. (1) The thesis test is ready but not running.
+  The three arms (CURRENT, all per-customer switches on, FLAT) launched at 03:26Z and have waited 1h54m behind head_green_census,
+  a nightly test census holding 11.2 GB for 2h48m outside the register. B11 says six seeds can resolve the key against
+  flat and one 400-household book cannot, so this run is a diagnostic, and EP17''s six seeds are still the real
+  grade. That keeps the director''s seed concern live. (2) Two graded questions went backwards silently. The opex-credit
+  arms, which decide whether the median renewal is really negative and so whether the C34 concern''s evidence holds,
+  never started: their launcher is gone and no register row exists. The bad-debt switches-off arm, which grades
+  the one BLOCKING finding, vanished the same way. I had recorded both as queued. Relaunching them is item 1, because
+  two supplier questions are blocked by nothing but a dead process. (3) Billing, first in his order, moved. The
+  licence read duty is discharged and costed at GBP 3 a visit. The last C8 hold is released, so nothing that D48''s
+  14 Oct Expert Hour named as missing is still unbuilt. Nobody has re-run the Expert Hour, and that is item 2. (4)
+  The machine. Last stretch''s four focus items were all drawn; three are spent and leave focus. The brief''s launch
+  reading is fixed (ea1c46dda), and that wrong row closes. The box is the constraint on everything the thesis needs:
+  one census at 03:30 BST blocks the overnight arms every day, which is item 3. The publisher has reported FAILING
+  for 44h, against a publish held to 26 Oct.'
 stretch_reviewed:
-  since: '2026-10-20T23:24:15.597403+00:00'
-  commits: 5
-  substantive: 2
+  since: '2026-10-21T02:20:57.325479+00:00'
+  commits: 13
+  substantive: 7
 focus:
-- id: say-whether-this-book-can-ever-tell-the-key-from-flat
-  lane: B_commercial
-  side: supplier
-  what: Measure, without changing code, whether B11's within-segment test can resolve the key against
-    flat at the book's real size. On the 8b6fea024 run, read Backtest.departure_ranking_within_segment
-    (company/analytics/forward_clv.py). For 2020, 2022 and 2023, print departers, stayers, same-segment
-    pairs, segments excluded, the estimate and the interval half-width. State what each count counts before
-    dividing anything. From the stratified DeLong variance, compute how many same-segment pairs would
-    put an effect of the size measured (+0.061 to +0.075) clear of zero. Then read the departures a year
-    expected on the 400-household founder book (8927e9345, docs/staging/records/SEAT_PREREG_THE_SETTLEMENT_CURVE_AT_400_FOUNDER_HOUSEHOLDS_AND_A_BUDGET_OF_7700_2026-10-20.md).
-    Say whether one seed, or the six fresh seeds the EP17 concern asks for, reaches that pair count. Print
-    the table before writing any prose, and write it as a SEAT_FINDING in docs/staging/.
-  why: 'The thesis is judged on whether inference beats the flat rule, and on that test the only reading
-    we have is ''cannot tell'' in two of three years (27ca9dc7a). If the book is too small to tell at
-    any plausible effect size, then EP17''s six seeds cannot answer either, and what has to change is
-    the book or the test, not the key. That changes what the director is being asked to authorise. DONE
-    when a finding on origin gives the table and says, per year, how many seeds or households would resolve
-    the measured effect. Carried, not drawn last stretch: the executor''s one slot went to the read-instruction
-    arms and D48. It is read-only and needs no compute, so it goes first while the box is full.'
-  written_at: 1792549548.961
-- id: the-per-customer-switches-on-together-against-flat
+- id: relaunch-the-opex-credit-and-bad-debt-arms-that-died-queued
   lane: C_customer_ops
   side: supplier
-  what: 'Pre-register, then run, the company with its per-customer decisions switched on together against
-    itself and against flat, on the 8b6fea024 book. This is the seed-42 development book, labelled as
-    a diagnostic and not EP17''s blind grade. First read docs/staging/records/SEAT_PREREG_B11_C35_C34_ON_THE_FIRST_PUBLISHED_DUAL_FUEL_RUN_2026-10-18.md
-    and extend it if it already covers this, rather than filing a second prereg. There are three arms.
-    CURRENT_POLICY. ALL_ON: CURRENT_POLICY with next_best_action_decides_at_renewal, next_best_action_shares_by_retention_rise
-    and save_offer_decides_per_household all True, set through policy_scope. And FLAT_SUPPLIER_POLICY
-    (all in company/policy/decision_policy.py). Use an origin worktree at or after ec7fd9942. Before any
-    arm runs, file predictions for each arm: decisions taken by kind, accounts retained, the book''s provisioned
-    net margin on the cd1f976c7 like-for-like clock, and the household-side money where the run records
-    it (if it does not, name that as a GAP). Launch the arms serially through tools/launch_long_job, and
-    hand the grade on as a continuation. What is left to land: the prereg''s three-arm predictions (new,
-    or an extension of the 18 Oct prereg) and the continuation. decision_policy.py is read for the switch
-    names and is not changed. The box is full: three read-instruction arms are running, and scopex-opex-credit-arms
-    is queued behind them. Launch anyway, through launch_long_job, which serialises admission. Do not
-    wait by hand, and do not launch outside the register.'
-  why: 'All three per-customer decisions gained their production caller this week, and they have never
-    decided together on one book. The thesis''s comparison is exactly this: the same book under a per-customer
-    view against flat rules. Until it runs, ''the machinery exists'' says nothing about value created
-    or transferred (M2). DONE when the prereg with the three arms'' predictions is on origin before any
-    arm starts, and all three arms are running or finished under launch_long_job with a grading continuation
-    queued. Carried, not drawn last stretch.'
-  written_at: 1792549548.961
+  what: 'First re-ask: `ps -eo args | grep -E ''scopex|baddebt''`, docs/observability/.launch_records.json
+    and `systemctl --user list-units ''longjob-*''`. At 05:20Z none of these held either job. If that
+    is still true, relaunch both through tools/launch_long_job, started under setsid so that each launcher
+    outlives your tick. The first is the standing-charge opex-credit arms: /var/tmp/se-scopex/wt at ec7fd9942
+    plus 193ae19be''s grading, using run_both.sh and grade.py there. The second is baddebt-switches-off-ec7fd9942:
+    /var/tmp/se-baddebt-off, with the command and prediction in the crisis bad-debt finding''s 2026-10-21
+    (later) section. Queue both behind per-customer-switch-arms-8fbb641d8, and do not launch it a second
+    time. Before you end, confirm that each job''s launcher pid is alive and that its QUEUED line is still
+    being written. Then add one paragraph to each finding (the crisis bad-debt finding, and the opex credit''s
+    prereg record) saying the first launch died queued and when the relaunch went in. Hand each grade
+    on as a continuation.'
+  why: The opex credit decides whether the median renewal's -GBP 3.91 is real, and that figure is the
+    evidence behind the C34 director concern. The switches-off arm grades the one BLOCKING finding. Both
+    were recorded as queued and neither exists, so nothing will ever grade them unless someone relaunches
+    them. DONE when both jobs have a live launcher or a register row, and a grading continuation is queued
+    for each.
+  written_at: 1792560339.779
 - id: D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used
   side: supplier
-  what: 'Once the C8 ceiling-hold landing (surgical_land pid 644310, ''D48: a founder authored as a home
-    is on the council tax list'') is on origin, re-run D48''s blind L3 Expert Hour. Use .claude/skills/cold-eyes-walk/SKILL.md
-    against the published /capabilities/ billing figures and company/billing/billing_accuracy.py. The
-    14 Oct pass failed on two claims: the accrual the title names was not built, and the twin claims settled
-    kWh. Grade each of its 18 entries again now that 75aff1401, d4af471a1, 066fd2300 and 7a266cb76 are
-    on origin. Write the result as a finding in docs/staging/. If the pass clears, record the level move
-    through the phase-close skill. If it does not, rewrite the map row''s expert_hour line so it names
-    what still fails. Billed-against-settled is a stated GAP until settled volume crosses the seam. Say
-    whether the title should stop claiming it, rather than building it here. What is left to land: the
-    finding in docs/staging/, and the D48 row''s level or expert_hour line in docs/design/maturity_map.yaml.
-    company/billing/billing_accuracy.py is read and left unchanged.'
-  why: Billing accuracy is first in the director's order. D48 has gone 308 draws without its row moving
-    while seven commits built exactly what its last Expert Hour said was missing. Its counter is waiting
-    for a reading nobody has taken. DONE when a finding on origin grades the 18 entries against today's
-    code and the map row says either L3 or what still holds it at 2.
-  written_at: 1792549548.961
-- id: the-brief-says-none-launched-when-it-read-only-endings
+  what: 'Re-run D48''s blind L3 Expert Hour now that 032b3dec2 (the C8 hold released) is on origin. Use
+    .claude/skills/cold-eyes-walk/SKILL.md against the published /capabilities/ billing figures and company/billing/billing_accuracy.py.
+    Grade each of the 14 Oct pass''s 18 entries against today''s code (75aff1401, d4af471a1, 066fd2300,
+    7a266cb76, 032b3dec2, and 026b3c650 for the read duty). Write the result as a SEAT_FINDING in docs/staging/.
+    If it clears, record the level through the phase-close skill. If it does not, rewrite the row''s expert_hour
+    line in docs/design/maturity_map.yaml to name what still fails. Billed-against-settled is a stated
+    GAP: say whether the title should stop claiming it, and do not build it here. What is left to land,
+    not yet written: the finding, and the D48 row''s level or expert_hour line. billing_accuracy.py is
+    read only.'
+  why: 'Billing accuracy is first in his order. D48 has gone 348 draws without its row moving while every
+    gap its last Expert Hour named was built. Its counter is waiting for a reading. Carried: it was in
+    last stretch''s focus and the work it waited on (the C8 landing) arrived. DONE when a finding on origin
+    grades the 18 entries and the row says L3, or names what holds it at 2.'
+  written_at: 1792560339.779
+- id: the-nightly-test-census-holds-the-box-through-the-arm-window
   lane: H_harness
   side: other
-  what: 'In background/delivery_seat.py, the ended_sentence branch (around line 2174) prints ''NO launch_long_job
-    JOB LAUNCHED OR ENDED IN THIS STRETCH'' whenever ended_since() returns no ended jobs. It never reads
-    launches, but the register docs/observability/.launch_records.json carries launched_at. Make the brief
-    read launches inside the stretch from that register as well, and print them. Or, if that is not done,
-    make the empty sentence claim only what it read (''NO ... JOB ENDED''). Add one control under tests/background/
-    in which a register row launched inside the window, with nothing ended, must not produce the word
-    LAUNCHED in a ''none'' sentence. Check the control reds against today''s code. What is left to land:
-    the change to background/delivery_seat.py, which is identical to origin today because the change is
-    not yet written, and the new control.'
-  why: 'The seat graded this as an open error for two stretches as ''unexplained'', and it recurred this
-    stretch: three read-instruction launches at 23:45Z and 00:19Z sit in the register while the brief
-    said none launched. A seat that trusts that line can relaunch a running 3.7 GB arm. DONE when the
-    brief at the next orientation either lists this stretch''s launches or says only what it read, with
-    a control that fails on the old sentence. The open wrong row then closes.'
-  written_at: 1792549548.961
+  what: 'Measure, then bound, tools/head_green_census (head-green-census.timer, 03:30 local). Read its
+    peak RSS and wall time from the journal for the last seven runs, and the pytest worker count it uses.
+    At 05:20Z today it had held 11.2 GB for 2h48m, and per-customer-switch-arms-8fbb641d8 and the bad-debt
+    arm queued behind it. Then choose one of three changes and record the options in the commit: cap its
+    workers so its peak fits beside one 7 GB arm; run it through background/resource_headroom admission
+    like a long job; or move it to a window the arms do not use. Add one control showing the census''s
+    declared peak is what admission charges. Do not lengthen its interval: a daily HEAD-green measurement
+    stays. What is left to land: the change to tools/head_green_census.py or its timer, or to background/resource_headroom.py,
+    which is identical to origin today because it is not yet written, and the control.'
+  why: A health instrument is taking the memory the thesis's own comparison needs, every night, outside
+    the register that admits everything else. That is how the per-customer arms waited two hours this
+    morning. DONE when the next census run does not delay a registered supplier arm, or when a finding
+    shows, with its peak measured, why it must.
+  written_at: 1792560339.779
 not_now:
-- what: Flipping instruct_reads_in_billing_run, or any per-customer switch, to default on.
-  why: The read-instruction grade is queued for 04:45, and the three-arm run has not started. A flip before either
-    grade would be a guess that lands in the 26 Oct publish and moves every value-arm digest.
-- what: Re-reading the C34 concern's evidence now that the -GBP 3.91 is known to be partly our allocation.
-  why: The credit's arms never started (193ae19be) and are queued behind the read arms. Rewording the concern before
-    its grade would swap one unmeasured claim for another. It stays verbatim until the grade lands.
-- what: A focus row for the four queued continuations (opex-credit grade, ceiling hold, founder peaks, read-arms
-    grade).
-  why: Each already carries its evidence and its embargo. A focus row would put a second writer on the same work.
-- what: Chasing the publisher FAILING line (41h, its cited red dead at HEAD).
+- what: A focus row for the three-arm per-customer grade, the founder-peaks step 3, or the visit-cost render.
+  why: Each is a queued continuation with its own embargo and evidence, and the visit-cost render is in its commit
+    gate now (pid 2046705). A focus row would put a second writer on the same work.
+- what: Flipping any per-customer switch to default on.
+  why: The three-arm run that grades them together has not started, and B11 says one seed-42 book cannot resolve
+    the key against flat anyway. A flip now would be a guess, and it would land in the 26 Oct publish.
+- what: Measuring B8's claimed uplift, which its second Expert Hour held at L2.
+  why: It needs a held-out run, and the box cannot admit another arm until item 3. It is a level move on an atom
+    already at L2, which ranks below re-grading BLOCKING and C34 evidence that was lost.
+- what: Building the expiry for long-job declarations, the held-work digest re-ask, a premise re-ask before a continuation
+    is drawn, or the coupled-triad notice.
+  why: None cost a tick this stretch. Item 3 is the box problem that actually bit, and item 1 covers the new failure
+    by hand. If a third queued launch vanishes, a register row written at queue time becomes the fix.
+- what: The fabric gas-home season build (W2_30) or any other world build.
+  why: None blocks a supplier result, and the three-arm run needs the book to hold still.
+- what: Chasing the publisher FAILING line (44h, its cited red dead at HEAD).
   why: The publish is held to 26 Oct, and its attribution defects are folded into the publish-gate class register.
-    It goes back in focus only if 26 Oct approaches with it still red.
-- what: The crisis bad-debt BLOCKING finding as a focus item.
-  why: It is folded into E6, and its world cause (the budget floor) landed by default in 768f41ed1. Re-grading it
-    needs a full run, and the box is full with supplier arms that answer questions in his priority order.
-- what: The fabric gas-home season build (W2_30), or any other world build.
-  why: None blocks a supplier result, and item 2 needs the book to hold still under three arms.
-- what: Building the long-job expiry, the coupled-triad notice, the held-work digest re-ask, or a premise re-ask
-    before a continuation is drawn.
-  why: None cost more than a tick this stretch. Item 4 is chosen over them because it is the one whose cause is
-    now read, and it is small enough to finish.
-- what: Reaping the b12-* worktrees, se-budgetpay-land and se-read-arms.
-  why: 'The b12 and budgetpay salvages are disposable, as recorded before: their work is on origin (badd57e8e, e3b5ed01a,
-    718a631a1, 768f41ed1). se-read-arms is unlocked but holds SALVAGE commits from the arms running now, so it is
-    not disposable until the 04:45 grade. All of this is housekeeping.'
-- what: The never-drawn SITE atoms (SITE6, SITE11) and the A50 register.
-  why: Site and register tidying that changes no level the thesis is judged on.
+    It returns to focus only if 26 Oct approaches with it still red.
+- what: Reaping the b12-* worktrees, se-budgetpay-land and se-pcs-arms.
+  why: 'The b12 and budgetpay salvages are disposable, as recorded before: their work is on origin. se-pcs-arms
+    holds the SALVAGE of the three-arm tool (f8659d6a9 is on origin), so it is disposable after that run''s grade.
+    All of this is housekeeping.'
+- what: The never-drawn SITE atoms (SITE2, SITE6, SITE11) and the A50 register.
+  why: Site and register tidying that moves no level the thesis is judged on.
 wrong:
 - what: 'THE MACHINE''S, CARRIED. The coupled-triad gate now excludes twinless L3 targets, and its refusal reaches
     only the supervisor journal. 20:22: Unchanged. 23:21: Unchanged. 02:21: Unchanged. 05:22: Unchanged. 08:22:
     Unchanged. 23:20: Unchanged. 11:21: Unchanged. 23:21: Unchanged. 05:22: Unchanged. 08:23: Unchanged. 11:22:
     Unchanged. 14:22: Unchanged. 17:22: Unchanged. 20:22: Unchanged. 23:20: Unchanged. 02:20: Unchanged. 05:20:
     Unchanged. 08:20: Unchanged. 11:20: Unchanged. 14:21: Unchanged. 17:23: Unchanged. 23:24: Unchanged. 02:21:
-    Unchanged.'
+    Unchanged. 05:20: Unchanged.'
   corrected: false
 - what: 'THE WORLD''S, CARRIED. A gas-heated fabric home''s electricity has no season against SERL. 20:22: Unchanged.
     It waits for the post-publish world builds. 23:21: Focus item 4 measures the fabric homes'' summer swing, which
@@ -170,7 +137,8 @@ wrong:
     the flip. 23:24: Unchanged. It blocks no supplier result. It is filed behind the three-arm per-customer run
     (focus item 3), so the book does not move under it. 02:21: Unchanged. It blocks no supplier result. It stays
     behind the three-arm per-customer run (focus item 2), which has not started, so the book does not move under
-    it.'
+    it. 05:20: Unchanged. It blocks no supplier result. It stays behind the three-arm per-customer run, which launched
+    at 03:26Z and is still waiting for admission, so the book does not move under it.'
   corrected: false
 - what: 'THE MACHINE''S, CARRIED. longjob-save-eight was declared at 50 minutes and has held its admission for 4h46m.
     20:22: Two long jobs ran this stretch (nonpay2022-capture, -capture2) and both finished successfully, so there
@@ -203,7 +171,9 @@ wrong:
     in. No overrun, and still not built. 23:24: founder-households-ceiling-probe finished successfully. No launch_long_job
     unit is running. No overrun, and still not built. 02:21: No register job ended. scopex-opex-credit-arms (launcher
     pid 288326) has waited 1h04m for admission behind the three read-instruction arms (about 11 GB). Waiting is
-    the admission working, not an overrun. Still not built.'
+    the admission working, not an overrun. Still not built. 05:20: The three read-instruction arms finished successfully.
+    per-customer-switch-arms-8fbb641d8 has waited 1h54m for admission behind head_green_census (pid 845286, 11.2
+    GB, 2h48m), which runs outside the register. Waiting is the admission working, not an overrun. Still not built.'
   corrected: false
 - what: 'THE MACHINE''S, THIS STRETCH. The orientation brief said no launch_long_job job launched or ended in this
     stretch, but the launch register records one-contrib-off-base-a57ea3da0 launched at 2026-10-20T07:17:59Z, inside
@@ -216,8 +186,10 @@ wrong:
     unexplained. 02:21: Recurred, and the cause is now read. This brief says no job ''LAUNCHED OR ENDED'', but the
     register records read-instruction-off and -register launched at 23:45:39Z and -ceiling at 00:19:13Z, all inside
     the stretch. background/delivery_seat.py prints that sentence whenever ended_since() returns no ENDED jobs.
-    It never reads launches, so the sentence claims something it did not measure. Focus item 4 fixes it.'
-  corrected: false
+    It never reads launches, so the sentence claims something it did not measure. Focus item 4 fixes it. 05:20:
+    Fixed by ea1c46dda. This brief lists per-customer-switch-arms-8fbb641d8 as launched and still live, and tests/background/test_the_brief_says_none_launched_only_when_the_register_shows_none.py
+    fails on the old sentence.'
+  corrected: true
 - what: 'THE MACHINE''S, THIS STRETCH. The draw refused two focus items (C35 24 times, the C34 re-read 32 times)
     because /var/tmp/se-ret-margin/wt held simulation/run_phase2b.py. Its owner pid 1697312 is dead, and after c61d8b608
     landed it differs from origin only in generated files. The refusal''s diff digest was taken once and never re-asked,
@@ -228,7 +200,8 @@ wrong:
     23:24: repair-the-flat-arms-reachability-control was refused 12 times by /var/tmp/se-seat-executor. That holder
     was doing the item''s own work (abe7ce533 landed 2 minutes after the last refusal), so this refusal was right.
     No commit makes the check re-ask its digest, so it is not fixed. 02:21: No refusal this stretch. No commit makes
-    the check re-ask its digest, so it is not fixed.'
+    the check re-ask its digest, so it is not fixed. 05:20: No refusal this stretch. No commit makes the check re-ask
+    its digest, so it is not fixed.'
   corrected: false
 - what: 'THE MACHINE''S, THIS STRETCH. The continuation the-budget-second-seed-grade-after-the-unit-driver is still
     queued for 18:20, but b8045dd4e graded the second seed at 17:17. A queued continuation is not re-asked when
@@ -237,14 +210,23 @@ wrong:
     drawn after abe7ce533 had spent it (732b2e116). Both ticks dispositioned the item, but nothing re-asks a premise
     before the draw. Not fixed. 02:21: No instance this stretch. grade-the-standing-charge-opex-credit-against-its-prereg
     becomes drawable at 02:00, but both of its arms are still queued (193ae19be), so a tick drawn now has nothing
-    to grade. That is the same shape: nothing re-asks a premise before the draw. Not fixed.'
+    to grade. That is the same shape: nothing re-asks a premise before the draw. Not fixed. 05:20: No instance seen
+    this stretch. Nothing re-asks a premise before the draw, so it is not fixed.'
   corrected: false
 - what: 'THE COMPANY''S, THIS STRETCH. The term contribution charged the operating cost the standing charge recovers
     and credited none of it (f04bd6102), so the median renewal read -GBP 3.91 a month by construction. Every per-customer
     renewal decision read that figure, and so did the C34 concern''s evidence. ec7fd9942 credits it, and its grade
     is queued for 02:00, so this row stays open until that grade. 02:21: Still open. The arms first launched at
     22:31 never started. 193ae19be fixed how they are graded and relaunched them as scopex-opex-credit-arms, which
-    is queued behind the read-instruction arms. The row stays open until that grade.'
+    is queued behind the read-instruction arms. The row stays open until that grade. 05:20: Still open, and the
+    grade is further away than recorded. scopex-opex-credit-arms never started and is no longer queued: its launcher
+    (pid 288326) is gone and the launch register holds no row for it. Focus item 1 relaunches it.'
+  corrected: false
+- what: 'THE MACHINE''S, THIS STRETCH. Two queued supplier arms vanished without starting and left no trace in the
+    launch register: scopex-opex-credit-arms (launcher pid 288326, queued behind the read arms, per 193ae19be) and
+    baddebt-switches-off-ec7fd9942 (243260b63, queued behind head_green_census, last log line QUEUED). Neither has
+    a process, a unit or a register row now. The register records a job only once it is admitted, so a launcher
+    that dies while queued (most likely with the tick that started it) leaves no row, and the brief cannot see it.'
   corrected: false
 for_the_director:
 - id: c34-now-ranks-next-best-action-on
