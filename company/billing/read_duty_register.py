@@ -146,6 +146,9 @@ def read_duty_summary(bills: Iterable[dict]) -> dict:
             "instructions": len(instructions), "visits": visits,
             "charged_gbp": round(visits * READ_VISIT_PRICE_GBP_PER_VISIT, 2),
             "upper_bound_gbp": round(visits * READ_VISIT_PRICE_UPPER_GBP_PER_VISIT, 2),
+            # Published so the page prints the prices the figures were charged at, not its own copy.
+            "price_gbp_per_visit": READ_VISIT_PRICE_GBP_PER_VISIT,
+            "upper_price_gbp_per_visit": READ_VISIT_PRICE_UPPER_GBP_PER_VISIT,
             "basis": "an area round per visit, charged; an appointment per visit, the bound "
                      "(read_access_and_theft_duties.md s.2.9: which a supplier sends is a GAP)"}
     return {"year_bills": READ_DUTY_YEAR_BILLS, "by_fuel": by_fuel, "visit_cost": visit_cost}
