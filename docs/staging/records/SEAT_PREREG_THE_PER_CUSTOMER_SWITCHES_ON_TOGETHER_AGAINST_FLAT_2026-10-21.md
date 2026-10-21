@@ -471,3 +471,159 @@ price features.
 
 Scripts: `/tmp/pcs8_{feat,grade,rob,fuel,leg,clean,strat,last}.py`, scratch only and not landed.
 They reuse §7's `/tmp/pcs_split.py` definitions.
+
+## 9. Can the company see the bill shock that orders renewal departures? (2026-10-21, no run launched)
+
+*The question §8 left: the world orders renewal departures by bill shock (22 Sep, 0.70 alone), and
+the belief reaches it through a term that is almost always zero. Is the gap modelling or
+observability? If a company-visible shock observable ranks §7's leavers out of sample, the belief has
+a rebuild path. If the world's own shock ranks them and nothing the company sees does, the gap is
+observability.*
+
+**What the world's shock is (`simulation/experienced_bill_shock.py`), read before writing.** It is
+one per household per renewal, over the twelve months before the roll. **Direct debit:** the DD
+the review sets from this year's spend, against the DD set from last year's (in year one, against
+the sign-up amount). **Standard credit:** this year's mean monthly bill against last year's (in year
+one, against the quote). The shock is a rise above 15%. Prepayment is out of scope. Every input is
+something a supplier holds (its bills, its DD review), but the world reads settlement revenue on
+*true* consumption, and the company bills on its reads and estimates.
+
+**Population and outcome:** as §7 and §8. Desk states at risk under `flat`, leavers under `flat`
+within 365 days. Fit on 182 pre-2019 states, grade on 268 from 2019 (46 leavers). The household's
+fuels and volume come from the book (`account_state_log`, the latest term per fuel on or before
+`term_start`), never from the state's legs.
+
+**Observables. Each is household-level (both legs), reads only artefacts dated before `term_start`,
+and never reads a `true_*` field.**
+- **S1, its own shock count.** The household's bills with `period_end` < `term_start` in the
+  previous 365 days that have `bill_shock_yoy_pct` > 0.15 and are not `bill_shock_likely_seasonal`.
+- **S2, the DD change.** On the household's latest `annual_dd_review` events (all legs, dated in
+  the 365 days before `term_start`): Σ recommended / Σ current − 1. Direct-debit households only.
+- **S3, the trailing-year bill rise.** Mean monthly `total_amount_gbp` (summed over legs) for bills
+  ending in the 12 months before `term_start`, against the 12 months before that. In year one,
+  against `opening_dd_by_customer` summed over legs. This is the company's copy of the world's
+  definition, read from its billed amounts.
+- **S4, the bill change it is about to send.** Σ over the book's fuels of (the new term's unit rate
+  − the previous term's) × `company_eac_kwh`, as a share of S3's trailing-year annual bill.
+- **C, composite, fitted pre-2019.** Logistic regression on the electricity leg's rate vs SVT plus
+  S2 (0 for non-DD), S3 and S4, standardised. Graded on 2019+.
+- **Placebo L.** The number of bills in S3's window. A leaver's billing history should not be
+  shorter before the roll. If L ranks, the bill window leaks.
+- **Reference W, an instrument, never a ranker.** The world's own `sim_experienced_bill_shock`
+  (and `sim_bill_shock_base`) from `flat`'s `customer_events` at the state's roll. This is the
+  ceiling a company copy could reach.
+
+Bounds: an account-clustered bootstrap (1,000 draws, seed 7), the paired difference against the
+belief, and against rate vs SVT alone (0.594 [0.479, 0.709]).
+
+**Predictions (filed before any observable was computed, 18:14Z).**
+- **P9a.** S3, 2019+: AUC point 0.60, range 0.50–0.70. Chance the lower bound clears 0.5: 35%.
+- **P9b.** S2 on DD households: point 0.58, range 0.48–0.68.
+- **P9c.** S1: point 0.55, range 0.45–0.65. It counts months, the retired quantity, and the
+  seasonal flag removes some of what the world counts.
+- **P9d.** S4: point 0.52, range 0.40–0.65. Rises are book-wide in the crisis, when departures are
+  suppressed.
+- **P9e.** C: point 0.63, range 0.52–0.72. Lower bound clears 0.5: 45%. Beats rate vs SVT alone with
+  the paired bound above 0: 25%.
+- **P9f.** W on these states: point 0.68, range 0.58–0.80. Placebo L inside 0.45–0.55.
+- **Decision rule, fixed now.** (i) If S2, S3 or C clears 0.5, that is the belief's rebuild path.
+  (ii) If W ranks (lower bound above 0.5) and no company observable clears 0.5, the gap is
+  observability: what the company bills is not what the household experienced. Its size is W
+  minus S3. (iii) If W does not rank on this population either, then 22 Sep's 0.70 does not carry
+  to this book, and bill shock is not the aim here. (iv) If L ranks, every bill-window reading is
+  void until the leak is named.
+
+**Result (computed 18:15–18:24Z from `all_on` and `flat`; one seed, one book).**
+
+*Rule (iv) fired first, and the leak is named.* On the window as pre-registered (bills ending in the
+365 days before `term_start`), placebo L ranked leavers at **0.933**. 90 of 110 leavers had 13
+billed months, against 1 of 340 stayers. **The departure writes a final bill dated before the
+roll.** PROS-2018-0002 rolls on 2019-01-02, and its final bills run 2019-01-01 to 2019-01-01:
+£1.13 for electricity, and a −£27.22 actual-read credit for gas. The bills are `all_on`'s, and
+`all_on`'s departure at the roll is `flat`'s (§7: 37 of 37), so any artefact written by the leaving
+can predate `term_start`. That short bill pulls the trailing-year mean down, which is why S3 first
+read inverted. **Remedy:** every bill window is now the 12 full calendar months before the roll's
+month, by `period_start`. After it, L reads 0.500. Everything below uses the remedied window.
+
+| graded on the 268 states from 2019 (46 leavers), clustered 95% | AUC | minus rate vs SVT, paired |
+|---|---|---|
+| belief | 0.333 [0.253, 0.426] | [−0.36, −0.15] |
+| rate vs SVT, electricity leg (§8) | 0.594 [0.479, 0.709] | — |
+| S1 own shock count | 0.412 [0.328, 0.504] | [−0.34, −0.03] |
+| S2 DD change (195 DD states with a review, 29 leavers) | 0.435 [0.322, 0.549] | [−0.31, +0.11] |
+| S3 trailing-year bill rise | **0.337** [0.258, 0.416] | [−0.39, −0.12] |
+| S4 bill change about to be sent | 0.625 [0.534, 0.710] | [−0.06, +0.12] |
+| C fitted pre-2019 (rate vs SVT, S2, S3, S4) | 0.608 [0.512, 0.699] | [−0.05, +0.08] |
+| W, the world's own shock (instrument; 209 states where it is defined, all years) | 0.495 [0.415, 0.581] | |
+| placebo L / placebo DD-review count | 0.500 / 0.427 [0.350, 0.505] | |
+| **the roll type: the term now ending was a fix** (company-visible, unfitted) | **0.818 [0.760, 0.868]** | **[+0.09, +0.35]** |
+| roll type + rate vs SVT, fitted pre-2019 | 0.742 [0.652, 0.830] | [+0.10, +0.20] |
+
+**Bill shock does not order departures on this book, not even in the world's own record.** The
+company's copy of the world's quantity is close: S3 correlates 0.936 with the world's
+`rise_fraction` where both exist. So what the company bills is not the gap. The world's shock
+itself ranks at chance: 18 of 38 shocked states leave, and 76 of 171 unshocked ones do. Its
+factor `sim_bill_shock_base` reads 0.510, while the world's `realized_churn_probability` reads
+0.809 on the same 450 states. S3's 2019 inversion is the era: in 2019–21Q3 it reads 0.27; in the
+crisis, bills rose 67% and 2 of 34 states left. S4's 0.625 is mostly the roll type (below).
+
+**Why 22 Sep's 0.70 does not carry.** 22 Sep graded the world's old month-count base, before
+PB4 (2026-10-01) swapped it for one shock per year. On the end-of-fix rolls here, the month-count
+base, which still rides on the event, reads 0.548, and the PB4 base 0.520. The 0.70 was a
+different book, on a quantity the world has since retired. §8's pointer to bill shock rested on
+that reading and is withdrawn here.
+
+**What does order departures is when the roll happens.** In `flat`, the world rolls departure dice
+only at `renewal` occasions, the end of a fix: 181 desk states, 93 of them leavers. At
+`svt_conversion` (150) and `declined_fix` (119) it rolls none, and those events carry no factor
+fields. Of the 18 leavers whose electricity leg's previous term was not a fix, 11 left on SVT
+drift (`svt_inertia`). The other 7 left the same day at a `renewal` roll that the electricity
+leg's previous term does not mark as a fix. Which leg's term the world read there is not traced. From 2019,
+end-of-fix rolls lose 40 of 92 households, and the other rolls lose 6 of 176. **The belief has it
+backwards:** its mean is 0.193 on end-of-fix rolls and 0.378 on the others. That inversion is §7's
+0.333. The company knows the previous term's tariff type before the roll, so this is not a leak.
+Pre-2019 the roll type reads 0.597, because more of that era's leavers drift from SVT.
+
+**Inside end-of-fix rolls (2019+, 92 states, 40 leavers), almost nothing ranks.** The belief reads
+0.504. Rate vs SVT reads 0.621 [0.501, 0.740]. S1, S2, S3 and S4e read 0.44–0.53, and the world's
+shock base 0.502. Even the world's own `realized_churn_probability` reads only 0.653 [0.535,
+0.762]. That is the ceiling: within the rolls that matter, the world holds little orderable
+signal, and price position is the only company observable near it.
+
+**Grading P9.**
+- **P9a REFUTED.** S3 reads 0.337, below 0.50–0.70, inverted by the era.
+- **P9b REFUTED.** S2 reads 0.435, below the 0.48 floor.
+- **P9c REFUTED.** S1 reads 0.412, below the 0.45 floor.
+- **P9d HELD in range, void in reason.** S4 reads 0.625, but it is the roll type. On the electricity
+  leg inside end-of-fix rolls, it reads 0.524.
+- **P9e HELD in range.** C reads 0.608, and its bound (0.512) clears 0.5, but C weighs S4. It does
+  not beat rate vs SVT (the 25% leg did not happen).
+- **P9f REFUTED.** W reads 0.495, below 0.58–0.80. Placebo L was 0.933 on the pre-registered
+  window: the leak, as rule (iv) anticipated.
+
+**By the decision rule.** (iv) fired and was remedied. (i) is satisfied only by C, whose weight
+is S4, which is the roll type, so no bill-shock observable is the rebuild path. **(iii) holds:
+the world's own shock does not rank on this population, so bill shock is not the aim here.** The
+renewal-advice build's aim is the roll type plus price position (0.742, fitted pre-2019, beats
+rate vs SVT alone with the paired bound above 0). The first rebuild of the belief is to condition
+on the roll type. That is a modelling gap, not an observability gap: the company holds the
+tariff type and does not use it. Inside end-of-fix rolls the ceiling is about 0.65, so advice
+there is aimed by price position or not at all. **Whether the world is right** to roll no departure
+risk at an SVT conversion, and to let SVT drift lose only 6 of 176 a year from 2019, is a world
+question decided blind to these results. It is not settled here. A published figure on switching
+from default tariffs against at fix end would settle it.
+
+**Named, not fixed: why `flat` records no gas `churned` event for a dual household that leaves at
+its electricity roll.** `simulation/run_phase2b.py` rolls one departure per household on the leg
+`departure_decision_leg` returns (`simulation/customer_events.py`): electricity for every account
+that holds an electricity leg. The household-level skip ("Phase 6b: skip churned accounts", in
+the term loop) then drops the gas leg's next term without emitting anything. PROS-2018-0002:
+one `churned` row (electricity, 2019-01-02, cause `dissatisfaction`); the gas term ends 2019-01-02
+with no successor and no event. So the gas leg's departure exists only by the absence of its next
+term. Any reader that counts departures per leg (gas churn rates, `company_gas_churn_log`'s
+grading) undercounts gas, and the desk sees the household as electricity-only at the roll (§8).
+In `flat`'s book the electricity leg also carries a 2019-01-02 term after the departure. Whether
+those readers should be keyed by household or the world should emit the gas leg's event is
+unasked.
+
+Scripts: `/tmp/pcs9/{grade,score,diag,s4,s4leak,eof,last}.py`, scratch only and not landed.
