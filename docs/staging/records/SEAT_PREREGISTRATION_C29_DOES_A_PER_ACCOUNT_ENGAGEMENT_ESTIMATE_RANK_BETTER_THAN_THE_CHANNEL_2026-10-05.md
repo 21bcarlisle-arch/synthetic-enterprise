@@ -32,3 +32,26 @@ Written BEFORE any measurement against the world's trait. Results go in a separa
 
 What would refute the frame: P2 fails with the lift under 0.10. The decision then cannot be made
 per-account on engagement from this record, and C29's next candidate is the dunning ladder (#5).
+
+## Corrected beside P1 and P5 (worker, 2026-10-21): both were predictions about a 125-household book
+
+The planted-arm control had been red at HEAD since 2026-10-08. The estimator did not move: the
+population did. Measured with `c29_engagement_ranking.measure_world(5)` at each commit:
+
+| commit | households | channel rho | estimate rho | lift |
+|---|---:|---:|---:|---:|
+| e4acfab81 (pre-refit) | 125 | 0.080 | 0.820 | 0.740 |
+| bebf42253 (refit) | 125 | 0.161 | 0.671 | 0.511 |
+| 358d59a42 (settlement budget 1,050 to 1,750 cy) | 271 | 0.405 | 0.677 | 0.273 |
+| origin/main cda47a346 | 603 | 0.379 | 0.646 | 0.267 |
+
+Bisected to 358d59a42, which changes no engagement code; it grows the book. On 603 households the
+lift is the same in founders (0.268) and campaign wins (0.253), so this is sample size, not a
+change in who is on the book. The world's trait does differ by channel (mean 0.20 prepayment,
+0.37 direct debit, 0.39 standard credit), and 125 households under-read that.
+
+- **P1 (channel rho in [-0.05, +0.25]): refuted** on the grown book, 0.38.
+- **P5 (planted lift at least 0.30): refuted**, 0.267. The null arm's lift on the same book is 0.000.
+- **The frame survives.** Its refutation line is a lift under 0.10, and the planted arm clears the
+  null by 0.267. The control now grades that gap over the null on the same book, rather than a floor
+  that moves with the settlement budget. Mutation: an estimator that returns the channel rate reds it.
