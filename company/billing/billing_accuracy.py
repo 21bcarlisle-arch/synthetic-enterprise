@@ -302,16 +302,18 @@ def billing_accuracy_summary(bills: Iterable[dict], direct_debit: dict | None = 
         fuel["K3_barred_share_of_undercharge_kwh"] = (
             fuel["barred_kwh"] / fuel["undercharge_kwh"] if fuel["undercharge_kwh"] else None
         )
+    late = issued_with_final_bill(bills)
     return {
         "kinds": dict(KINDS), "snapshot_month": snapshot, "by_fuel": by_fuel, "accounts": rows,
         "direct_debit_money_line": direct_debit or direct_debit_money_line(None),
         # Per fuel, so a share never adds a kWh of gas to a kWh of electricity.
-        "K1_year_end_grades": _k1_year_end_grades(issued),
-        "K1_unbilled_accrual": _k1_unbilled_by_month_end(bills, held),
+        "K1_year_end_grades": _k1_year_end_grades(issued, late),
+        "K1_unbilled_accrual": _k1_unbilled_by_month_end(bills, held, late),
     }
 
 
-def _k1_unbilled_by_month_end(bills: list[dict], held: set[tuple[str, str]] | None) -> dict:
+def _k1_unbilled_by_month_end(bills: list[dict], held: set[tuple[str, str]] | None,
+                              late: dict[tuple[str, str], str]) -> dict:
     """The accrual at every year end inside the run and at its last billed month."""
     if held is None:
         return {"available": False, "reason": (
@@ -320,7 +322,6 @@ def _k1_unbilled_by_month_end(bills: list[dict], held: set[tuple[str, str]] | No
     last = max((b["period_end"][:7] for b in bills), default=None)
     months = sorted({b["period_end"][:7] for b in bills if b["period_end"][5:7] == "12"} | (
         {last} if last else set()))
-    late = issued_with_final_bill(bills)
     return {"available": True, "unit_kwh": "kwh", "unit_gbp": "gbp_net_of_vat",
             "month_ends": [unbilled_accrual(bills, held, month, late) for month in months]}
 
@@ -390,9 +391,9 @@ def unbilled_accrual(bills: Iterable[dict], held: set[tuple[str, str]],
     return {"as_of": as_of, "by_fuel": by_fuel}
 
 
-def _k1_year_end_grades(bills: list[dict]) -> dict:
+def _k1_year_end_grades(bills: list[dict], late: dict[tuple[str, str], str]) -> dict:
     return {
-        fuel: [estimated_billing_outstanding_grade(fuel_bills, month)
+        fuel: [estimated_billing_outstanding_grade(fuel_bills, month, late)
                for month in sorted({b["period_end"][:7] for b in fuel_bills
                                     if b["period_end"][5:7] == "12"})]
         for fuel, fuel_bills in _bills_by_fuel(bills).items()
@@ -444,7 +445,7 @@ def published_view(summary: dict | None, source: str | None = None,
         summary = billing_accuracy_summary(bills, summary.get("direct_debit_money_line"), held)
     k1 = summary.get("K1_year_end_grades", {})
     if bills and held is None:
-        k1 = _k1_year_end_grades(bills)
+        k1 = _k1_year_end_grades(bills, issued_with_final_bill(bills))
     fuels = {}
     for fuel, f in sorted(summary["by_fuel"].items()):
         interval = _wilson(f["snapshot_no_read_bill_in_12"], f["snapshot_accounts"])
@@ -505,7 +506,9 @@ def _covers(bill: dict, period_end: str) -> bool:
             <= bill.get("catchup_period_end", ""))
 
 
-def estimated_billing_outstanding_grade(bills: Iterable[dict], as_of: str | None = None) -> dict:
+def estimated_billing_outstanding_grade(bills: Iterable[dict], as_of: str | None = None,
+                                        issued_late: dict[tuple[str, str], str] | None = None
+                                        ) -> dict:
     """The ledger's billed-on-estimate position at the end of month `as_of` (YYYY-MM; default the
     last billed month), split by what had happened to each bill by then, and graded by what the
     later reads showed.
@@ -525,17 +528,28 @@ def estimated_billing_outstanding_grade(bills: Iterable[dict], as_of: str | None
       `never_read` and is not guessed.
 
     Money is the bills' `total_amount_gbp`, as the ledger counts it. Energy is billed kWh.
+
+    A bill counts from the month it was ISSUED. A held interim released at an account's closing
+    read goes out with the final bill (`pre_bill_validation.issued_with_final_bill`, or
+    `issued_late` where the caller has it). Before that month it is the unbilled accrual's, so it
+    is not billed on estimate here.
     """
     bills = list(bills)
+    if issued_late is None:
+        issued_late = issued_with_final_bill(bills)
     if as_of is None:
         as_of = max((b["period_end"][:7] for b in bills), default=None)
+
+    def issued_month(bill: dict) -> str:
+        return issued_late.get((bill["customer_id"], bill["period_end"]), bill["period_end"])[:7]
+
     by_account: dict[str, list[dict]] = {}
     for bill in bills:
-        if bill["period_end"][:7] <= (as_of or ""):
+        if issued_month(bill) <= (as_of or ""):
             by_account.setdefault(bill["customer_id"], []).append(bill)
     later: dict[str, list[dict]] = {}
     for bill in bills:
-        if bill["period_end"][:7] > (as_of or ""):
+        if issued_month(bill) > (as_of or ""):
             later.setdefault(bill["customer_id"], []).append(bill)
 
     grade = {

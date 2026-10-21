@@ -298,7 +298,7 @@ held here, and the next run settles them. The published page moves at the next r
   K8 section.
 - The K1 billed-on-estimate grade and the per-account rows read a released interim as issued at its
   own period end, not at the final bill's. On this run that misdates one bill at one year end
-  (2017-12, 3,120 kWh). It is a dating error in a grade, and it is not built here.
+  (2017-12, 3,120 kWh). It is a dating error in a grade. *(Fixed 2026-10-21: see "Follow-on (K1 dating)" at the end.)*
 - A dispute of the closing read is not modelled, by the same choice as the leaver's settlement leg.
 
 ## Follow-on (founder homes): the four held bills at C8's semi are released
@@ -366,3 +366,32 @@ that turn's. Only this paragraph and the sentence above it are new.*
    measured here. The next run settles it.
 
 The published page moves at the next run, as item 2's did.
+
+## Follow-on (K1 dating): a closing-run interim counts as billed on estimate from the final bill's month
+
+*Worker, 2026-10-21. Pre-registration:
+`docs/staging/records/WORKER_PREREG_THE_K1_GRADE_DATES_A_CLOSING_RUN_INTERIM_AT_THE_FINAL_BILL_2026-10-21.md`.*
+
+**Fix.** `estimated_billing_outstanding_grade` now dates each bill by the month it was issued. For
+a bill in `issued_with_final_bill` that is the final bill's month; for every other bill it is the
+bill's own period end. `billing_accuracy_summary` computes the late-issue map once and passes it to
+both the grade and the accrual, so the two halves of unread revenue count disjoint bills at every
+month end. Control:
+`test_the_k1_grade_counts_a_closing_run_from_the_final_bills_month_and_never_beside_the_accrual`.
+It goes red when the grade dates by period end again (mutation run).
+
+**Measured** with the pre-registration's instrument: the 44a21e3e8 run's 38,005 bills, with
+`final_bill` stamped on each churned account's last bill. 5 bills were released at closure and 41
+are held. Before (no late map) and after were computed in one process.
+
+| Year end | before -> after |
+|---|---|
+| electricity 2017-12 | open bills 988 -> 987; open kWh 292,782 -> 289,662 (-3,120.35); outstanding GBP 44,642 -> 44,225 (-417.16); open runs 212 -> 211; never-read runs 72 -> 71, kWh -3,120.35 |
+| every other electricity year end, every gas year end | identical |
+
+**Graded.** 1 CONFIRMED: only 2017-12 moves, by PROS-2017-0117's 2017-12 interim (3,120.35 kWh,
+GBP 417.16). 2 CONFIRMED: no `graded_*` figure moves. 3 CONFIRMED: gas is identical. 4 holds by
+construction: the accrual reads the same map it read before.
+
+Left open from the closed-account list: the 21BA-barred interim's write-off (GAP), and the dispute
+of the closing read (not modelled).
