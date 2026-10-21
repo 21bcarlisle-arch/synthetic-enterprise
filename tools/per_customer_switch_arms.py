@@ -14,6 +14,8 @@ SEAT_PREREG_THE_PER_CUSTOMER_SWITCHES_ON_TOGETHER_AGAINST_FLAT_2026-10-21.md`):
   * `all_on`  -- CURRENT_POLICY with C34 at the renewal roll, C35's rise through it, and the save
                  deciding per household, all on.
   * `flat`    -- FLAT_SUPPLIER_POLICY: no targeted retention, one framing, one tone.
+  * `all_on_ending_term` -- `all_on` with the renewal churn belief conditioned on the term now
+                 ending (`renewal_belief_by_ending_term`), the arm the record's section 10 names.
 
 As in the read-instruction arms, the policy is also bound to `run_phase2b.CURRENT_POLICY`, so a
 consumer that rebuilds with no policy in hand sees the arm and not the standing one. This process
@@ -23,7 +25,7 @@ only; `company/policy/decision_policy.py` is not touched.
 carried across from the raw phase 2b result under their own names: they are what "decisions taken by kind"
 is counted from.
 
-    python3 -m tools.per_customer_switch_arms <current|all_on|flat> <out.json>
+    python3 -m tools.per_customer_switch_arms <current|all_on|flat|all_on_ending_term> <out.json>
 """
 from __future__ import annotations
 
@@ -32,9 +34,10 @@ import dataclasses
 from datetime import datetime, timezone
 from pathlib import Path
 
-ARMS = ("current", "all_on", "flat")
+ARMS = ("current", "all_on", "flat", "all_on_ending_term")
 ALL_ON_FIELDS = ("next_best_action_decides_at_renewal", "next_best_action_shares_by_retention_rise",
                  "save_offer_decides_per_household")
+ENDING_TERM_FIELDS = ALL_ON_FIELDS + ("renewal_belief_by_ending_term",)
 CARRIED_RAW_KEYS = ("next_best_action_renewal_log", "next_best_action_legs_without_contribution",
                     "save_on_loss_notice_log")
 
@@ -47,6 +50,9 @@ def arm_policy(arm: str):
     if arm == "all_on":
         return dataclasses.replace(CURRENT_POLICY, name="per_customer_all_on",
                                    **{f: True for f in ALL_ON_FIELDS})
+    if arm == "all_on_ending_term":
+        return dataclasses.replace(CURRENT_POLICY, name="per_customer_all_on_ending_term",
+                                   **{f: True for f in ENDING_TERM_FIELDS})
     if arm == "flat":
         return FLAT_SUPPLIER_POLICY
     raise SystemExit(f"REFUSED: arm {arm!r} is not one of {ARMS}")

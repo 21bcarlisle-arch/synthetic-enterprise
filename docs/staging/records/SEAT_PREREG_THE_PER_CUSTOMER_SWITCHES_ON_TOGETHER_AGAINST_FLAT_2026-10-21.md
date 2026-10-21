@@ -757,3 +757,66 @@ world question §9 named is unchanged.** If the world is wrong to roll no depart
 anniversary (EFTC 2019 gives 6% external in the six weeks after a fix lapses: knowledge page §5),
 then this multiplier learns the world's rule, not the market's. Under that reading 0.022 is the
 number most exposed. Scripts: `/tmp/pcs10/{grade,diff,ref9}.py`, scratch only and not landed.
+
+## 11. The conditioned belief in the run: `all_on_ending_term` against `all_on` and flat (filed 2026-10-21 ~21:35Z, before the arm was launched)
+
+*The arm §10's decision rule names. `tools/per_customer_switch_arms.py all_on_ending_term` is
+`all_on` plus `renewal_belief_by_ending_term=True`, nothing else (the arm control pins the
+difference to that field and the name). It runs on the code at `7a7ad95dc`, one seed, the same
+book as §6. It is graded against `all_on.json` and `flat.json` in `/var/tmp/se-pcs-arms-out/`.*
+
+**Where the switch reaches in the run (read from `simulation/run_phase2b.py` before predicting).**
+The conditioned `company_est_pre` feeds four places: the retention gate (`> RETENTION_THRESHOLD`,
+0.30), the offer's risk-tier sizing, the holdout's `stay_belief`, and the renewal desk's
+`monthly_hazard`. It also reaches the world's roll as `precomputed_company_estimate`, but there it
+is only recorded after `resolve_departure` has drawn the outcome, so it cannot move a departure.
+The multiplier for year Y reads only closed renewals from years before Y, so 2016 is unconditioned.
+
+**Setup facts read from `all_on` (no outcome of the new arm).** These are typed by §10's `kind_at`.
+- Retention offers: 113. 102 follow a `fixed` term and 11 a default-tariff term (9 `default`, 2
+  `default_after_declined_fix`). The 11 are dated 2018-12 to 2024-01 at beliefs 0.40 to 0.89, and
+  every one reads `retained`. Their cost is about £450 in total.
+- Desk states: the desk's 2019+ `default` states have a mean `monthly_hazard` of 0.0609 (p ≈ 0.53).
+  Their advised rows are 295 of 456. The `fixed` 2019+ states have 180 of 300 advised.
+  STATED_ADVICE_EFFECTS cuts the hazard by 0.001 or 0.003 a month, clamped at the household's own
+  hazard.
+
+**Predictions.**
+- **P11a, the hand-over (the control the tests cannot hold).** On desk states present in both arms
+  with a `default` or `default_after_declined_fix` ending term and `term_start` ≥ 2017-01-01,
+  `monthly_hazard` is lower in the new arm than in `all_on` on at least 95% of them: 95%. On
+  `term_start` < 2017-01-01 states it is identical on every one: 90%. A run that drops the type
+  reads identical everywhere. That is the refutation this exists for.
+- **P11b, in-run aim.** The new arm's desk belief, `p = 1 − (1 − h)^12`, is graded on §9/§10's 268
+  states from 2019 with `flat` outcomes (states absent from the new arm's desk are dropped and
+  counted). AUC point 0.81, range 0.74–0.86. Account-clustered lower bound above 0.5: 95%. The
+  in-run ledger books every renewal the belief is asked about, not only desk states, so the
+  multipliers differ from §10's. `m_default` stays below 0.15 in every year from 2018: 85%.
+- **P11c, retention.** Offers fall from 113 to between 95 and 112, point 103. The default-term
+  offers from 2017 on disappear (≤ 1 remains): 85%. The fix-end offers stay within ±8 of 102: 75%.
+  This is because `m_fixed` ≈ 1 moves only states near 0.30. Retention cost falls by £200 to £800,
+  point £450.
+- **P11d, advice.** Advised rows on 2019+ default-term states fall from 295 to below 200, point 100.
+  The cut clamps at a hazard near 0.0014, so the advice buys almost no retention and the rise needed
+  exceeds headroom more often: 80%. Fix-end advised rows stay within ±25 of 180: 75%. The desk's
+  claimed `value_change_gbp` total (§6: £121) falls: 70%.
+- **P11e, departures.** The world rolls no departure at a default-tariff renewal
+  (`departure_rolled_at_renewal`). So removing offers there removes no save. Departures are 354 ± 3:
+  80%. Save log: 1 saved, as in `all_on`: 80%.
+- **P11f, the sum against flat.** `all_on` − flat was −£96.55. The new arm − flat in
+  `provisioned_net_gbp`: point +£350, range [−£1,500, +£2,000], positive 60%. On one seed, anything
+  inside ±£1,000 is a tie and is graded as one. Against `all_on`: point +£450 (the default-term
+  discounts not given), positive 70%.
+
+**Decision rule, fixed now.** If P11a fails, the run does not carry the switch. That is a defect in
+the run loop, the next item, and nothing else here is graded. If P11a holds and P11b's lower bound
+clears 0.5, the switch is shown to carry its aim into the run. It becomes the candidate for
+CURRENT_POLICY. That is a policy change (G9-free: no director ruling names this field), but it is
+proposed separately, not flipped here. If the money against flat is a tie, as I expect, the
+finding is that better aim alone does not create value on this book. The next lever is then the one
+§6 named, sending the desk's advice to the world as an act. It does not come from refining the
+belief further.
+
+**Launched 2026-10-21 21:39Z.** Unit `longjob-pcs-arm-all-on-ending-term`. It runs from the locked worktree
+`/var/tmp/se-pcs-arms4` (HEAD `7a7ad95dc` plus this commit's arm-tool change, no other diff) and
+writes `/var/tmp/se-pcs-arms-out/all_on_ending_term.{json,log}`. Expect about 2.5 h, as §6's arms took.
