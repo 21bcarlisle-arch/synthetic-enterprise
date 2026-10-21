@@ -235,7 +235,9 @@ items:
     times_listed: 10
     fate: fix
     owner: "docs/staging/SEAT_FINDING_THE_DRAWS_REFUSALS_AND_ITS_DRAWS_OF_PARKED_ATOMS_REACH_ONLY_THE_SUPERVISOR_JOURNAL_2026-10-07.md"
-    status: open
+    status: already_fixed
+    fixed_by: "the commit adding tests/background/test_the_brief_names_each_stalled_atoms_draw_hold_reason.py"
+    reason: "The brief now runs the supervisor's build_atom_hold_reasons once, prints each stalled atom's draw reason beside its stop_reason, and counts and names the atoms held by coupled_triad_l3_wall (5 on 2026-10-21); a failed computation prints that it failed."
   - id: the-brief-does-not-name-daemons-running-replaced-code
     problem: "The brief reported the checkout's divergence but not which running daemons run code origin has replaced."
     match: ["which running daemons were started from code", "names no daemon that runs replaced code"]

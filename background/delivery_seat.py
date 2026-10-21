@@ -1508,8 +1508,33 @@ def atoms_drawn_since(since: datetime) -> list[str]:
                   if isinstance(row, dict) and float(row.get("last_drawn_at") or 0.0) >= cutoff)
 
 
+def atom_hold_reasons() -> dict:
+    """The supervisor's own draw classifier, `build_atom_hold_reasons`, run once for the brief:
+    `{"reasons": {atom_id: reason}}`, or `{"error": why}` when it could not be computed.
+
+    The coupled-triad L3 wall removed atoms from every BUILD draw and said so only in the
+    supervisor journal, so the seat could not tell an atom held by a gate from one that was
+    DRAWABLE and simply losing the draw (E6, 2026-10-21). The map is loaded HERE, whole (closed
+    half included, as the supervisor loads it), because the classifier answers `{}` for an
+    unreadable map, and an empty answer printed as "nothing held" is the one reading this exists
+    to rule out."""
+    try:
+        from background.supervisor import MATURITY_MAP_PATH, build_atom_hold_reasons
+        return {"reasons": build_atom_hold_reasons(map_store.load_atoms(MATURITY_MAP_PATH))}
+    except Exception as exc:  # noqa: BLE001 - the brief must not fail on its own diagnostic
+        return {"error": f"{type(exc).__name__}: {exc}"[:200]}
+
+
+def _draw_reason(atom_id: str, hold: dict) -> str:
+    if "error" in hold:
+        return f"the draw's hold reasons could not be computed ({hold['error']})"
+    return (hold.get("reasons") or {}).get(
+        atom_id, "unclassified -- the draw classifies only BUILD-stage atoms below target")
+
+
 def atoms_stalled_with_reason(since: datetime, focus: tuple = (),
-                              now: datetime | None = None) -> list[dict]:
+                              now: datetime | None = None,
+                              hold: dict | None = None) -> list[dict]:
     """Stalled atoms the draw took in the stretch, AND stalled atoms in focus, each with the
     `stop_reason` the supervisor wrote beside its counter (`_atom_stop_reason`).
 
@@ -1541,7 +1566,8 @@ def atoms_stalled_with_reason(since: datetime, focus: tuple = (),
         reason = ((drawn and row.get("stop_reason"))
                   or _stop_reason_read_now(aid, row, now or datetime.now(timezone.utc)))
         rows.append({"id": aid, "consecutive_unchanged": row.get("consecutive_unchanged"),
-                     "drawn_this_stretch": drawn, "stop_reason": reason})
+                     "drawn_this_stretch": drawn, "stop_reason": reason,
+                     "draw_reason": _draw_reason(aid, hold if hold is not None else {})})
     return rows
 
 
@@ -1665,6 +1691,7 @@ def build_brief(now: datetime | None = None) -> dict:
     since = stretch_since(now)
     divergence = branch_divergence()
     commits = commits_since(since)
+    hold = atom_hold_reasons()  # once: the stalled rows and the wall count read the same answer
     previous = last_written_record() or {}
     last_tick = last_orientation() or {}
     prev_levels = previous.get("map_levels") or {}
@@ -1712,7 +1739,8 @@ def build_brief(now: datetime | None = None) -> dict:
         # AND THE ATOMS THE DRAW KEEPS TAKING WITHOUT MOVING, each with its reason, for the same
         # truncation reason: a counter alone sent the seat back to the same steer for three stretches.
         "atoms_stalled_with_reason": atoms_stalled_with_reason(
-            since, prev_focus + tuple(live.focus if live else ()), now),
+            since, prev_focus + tuple(live.focus if live else ()), now, hold),
+        "atom_hold_reasons": hold,
         # AND THE HANDOFF QUEUE, THIRD and for the same truncation reason: read through `live()`,
         # never the raw store -- see `_continuation_queue` for the focus row a raw read cost.
         "continuation_queue": _continuation_queue(now, since),
@@ -2054,11 +2082,22 @@ def _prompt(brief: dict) -> str:
             "git over the atom's own file_scope. A focus atom marked 'not drawn' is one the "
             "anti-livelock draw has stopped taking, so nothing reaches it unless a Lane 0 slice "
             "names it. Working the atom happens through such a slice, not through the draw:\n\n"
-            + "\n".join("- {} ({} unchanged draws{}): {}".format(
+            + "\n".join("- {} ({} unchanged draws{}): {}{}".format(
                 r.get("id"), r.get("consecutive_unchanged"),
                 "" if r.get("drawn_this_stretch", True) else "; not drawn this stretch",
-                r.get("stop_reason"))
+                r.get("stop_reason"),
+                f" || draw: {r['draw_reason']}" if r.get("draw_reason") else "")
                 for r in stalled_rows))
+    hold = brief.get("atom_hold_reasons")
+    if isinstance(hold, dict):
+        if "error" in hold:
+            steered += ("\n\nATOMS HELD BY THE COUPLED-TRIAD L3 WALL: cannot say -- the draw's "
+                        f"hold reasons could not be computed ({hold['error']}).")
+        else:
+            walled = sorted(a for a, r in (hold.get("reasons") or {}).items()
+                            if str(r).startswith("coupled_triad_l3_wall"))
+            steered += ("\n\nATOMS HELD BY THE COUPLED-TRIAD L3 WALL: {} -- {}.".format(
+                len(walled), ", ".join(walled) if walled else "none"))
     # THE LANDING DOOR'S VERDICT ON THE ITEMS YOU ARE ABOUT TO CARRY FORWARD, and it is a SENTENCE
     # for the same reason the two blocks above are: a key buried in 60k of JSON is a key that gets
     # read on the quiet stretches and skipped on the busy ones. This is the WRITE-TIME half of
