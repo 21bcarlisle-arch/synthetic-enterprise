@@ -613,3 +613,45 @@ When the job's follow ends, the driver hands off the grade as the continuation
 `grade-the-baddebt-switches-off-arm-ec7fd9942`. It is filed then, not now, because a continuation
 lives only 6h and this job ends later than that. The prediction and the grading are unchanged. If the job is missing, ask the driver unit
 before relaunching anything.
+
+## 2026-10-21 (evening): the switches-off arm, graded. The prediction holds, and the switches are the move
+
+The arm finished (`off.json`, stamped `producing_commit` ec7fd9942, `imports_off_commit` naming only
+`simulation/household_budget.py`; that file's diff is the two constants set to `False`, nothing else).
+`validate_run_output` on it, read through `tools/run_output_store.load_run_output`, beside the
+switch-on run at the same commit:
+
+| basis | on (ec7fd9942) crisis / step-up | **off (ec7fd9942)** crisis / step-up | published ad8afadc5 |
+|---|---|---|---|
+| headline | 0.0606% / x0.30 | **0.0313% / x0.56** | 0.0391% / x0.70 |
+| pnl_accrual | 2.0435% / x1.02 | **2.0436% / x1.02** | — |
+| ifrs9_charge | 0.4000% / x1.83 | **0.1433% / x1.49** | 0.1564% / x1.38 |
+
+The IFRS 9 charge by year, off arm, in GBP (on arm in brackets): 2021 158 (262), 2022 **420** (1,825),
+2023 **781** (1,529), 2024 **494** (-380). Revenue matches to within 0.1% (2022: 343,663 against 343,923).
+
+**The prediction, graded.** "With both off, the IFRS 9 crisis share falls back under 0.20% and the
+step-up under x1.5": **held on both legs.** 0.143% is under 0.20%. The step-up, x1.49, is under x1.5
+by a hair, so that leg is not evidence of much on its own. The level leg is the one that carries weight.
+
+**What this decides.**
+- **The budget switches are what raised the crisis charge.** Off, the IFRS 9 crisis share is 0.143%,
+  within 0.013 points of the published ad8afadc5 run (0.156%). So the 30 other `sim/`/`simulation/`
+  commits between the two runs move it by about a twentieth of what the switches move it (0.143% →
+  0.400%). One variable, one commit, same revenue.
+- **2024's negative charge is the switches too.** Off, 2024 charges +GBP 494; on, it releases
+  GBP 380. That fits the 10-20 exit from negative margin letting arrears clear, and it is now
+  attributed to the switches. The mechanism inside them is still not traced.
+- **pnl_accrual does not move at all** (2.0435% against 2.0436%). That basis does not read the
+  world's arrears, which agrees with the 10-15 trace (it is the seed's 2% accrual).
+- **Headline halves with the switches off** but it falls in the crisis either way, so the
+  switches do not explain why behavioural write-offs fail to step up.
+
+**What still blocks** is unchanged: the level. Even with the switches on, 0.40% is 2.5x under the
+1% floor. The switches explain the shape and roughly 2.8x of the level, not the rest of the gap.
+
+The worktree `/var/tmp/se-baddebt-off` was unlocked and removed after grading. The artefact is
+still in `/var/tmp/se-baddebt-off-out/`.
+
+**Status:** OPEN and BLOCKING, on the level alone. Attribution is done. The next grade is the
+published copy of the switch-on run, with the `_TENTH_OF_REAL` reason re-worded in that commit.
