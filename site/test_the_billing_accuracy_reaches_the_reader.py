@@ -22,6 +22,9 @@ R15 -- the mutations, each run and reverted:
   * drop the open-exposure or the barred-plus-open column of `billacc-ddarms`, or the step-up
     columns -> `test_both_review_arms_reach_the_reader_with_the_exposure_beside_the_share` and
     `test_the_published_feeds_review_arms_reach_the_reader` red.
+  * drop the `billacc-k2split` render, or either meter's column, or the DESNZ comparator ->
+    `test_the_estimated_share_by_year_and_meter_reaches_the_reader` reds; render a feed without
+    the split as a figure -> `test_a_feed_without_the_meter_split_renders_its_absence_and_never_a_zero` reds.
   * drop the `billacc-unbilled` render, or its held-on-a-read column ->
     `test_the_unbilled_accrual_reaches_the_reader_and_never_inside_the_estimate_tables` and
     `test_the_published_feeds_unbilled_accrual_reaches_the_reader` red.
@@ -43,7 +46,7 @@ SITE = Path(__file__).resolve().parent
 HARNESS = SITE / "_live_harness.mjs"
 DOOR_REL = "site/capabilities/index.html"
 FEED_REL = "site/data/billing_accuracy.json"
-PANELS = ("billacc-fuels", "billacc-dd", "billacc-ddarms", "billacc-snapshot", "billacc-readduty", "billacc-yearend",
+PANELS = ("billacc-fuels", "billacc-k2split", "billacc-dd", "billacc-ddarms", "billacc-snapshot", "billacc-readduty", "billacc-yearend",
           "billacc-unbilled", "billacc-example", "billacc-note")
 
 
@@ -139,6 +142,22 @@ def _accrual() -> dict:
             "month_ends": [unbilled_accrual(bills, held, "2023-06")]}
 
 
+def _meter_split() -> dict:
+    """Through the company's own split: one smart account (1 of 4 billed on estimates) and one
+    traditional (3 of 4), in 2024."""
+    from company.billing.billing_accuracy import estimated_share_by_year_and_meter
+
+    bills, types = [], {}
+    for cid, kind, bases in (("S", "smart", "eaaa"), ("T", "traditional", "eeea")):
+        for m, basis in enumerate(bases, start=1):
+            end = f"2024-{m:02d}-28"
+            bills.append({"customer_id": cid, "period_end": end, "commodity": "electricity",
+                          "billing_basis": "estimated" if basis == "e" else "actual",
+                          "total_consumption_kwh": 100.0})
+            types[(cid, end)] = kind
+    return estimated_share_by_year_and_meter(bills, types)
+
+
 def _feed(dd_line: dict | None = _DD_LINE, read_duty: bool = True,
           arms: dict | None = None, accrual: bool = True) -> dict:
     """An available feed in the shape `published_view` writes: the decade capture's electricity
@@ -173,6 +192,7 @@ def _feed(dd_line: dict | None = _DD_LINE, read_duty: bool = True,
     view["direct_debit_review_arms"] = dd_review_arms(_arms() if arms is None else arms or None)
     if accrual:
         view["K1_unbilled_accrual"] = _accrual()
+    view["K2_by_year_and_meter_type"] = _meter_split()
     if read_duty:
         # Set beside the view rather than handed in as `bills`, which would re-grade K1 above.
         view["read_duty_register"] = read_duty_summary(
@@ -371,3 +391,18 @@ def test_the_published_feeds_unbilled_accrual_reaches_the_reader():
         last["as_of"], x["accounts"], x["held_estimates"], x["held_actuals"], round(x["kwh"]),
         round(x["gbp"]), round(x["older_than_12_months_kwh"]), round(x["closed_account_kwh"]))
     assert row in _render(live)["billacc-unbilled"]
+
+
+def test_the_estimated_share_by_year_and_meter_reaches_the_reader(shown):
+    text = shown["billacc-k2split"]
+    # Year, accounts, blended, traditional share of accounts, smart, traditional.
+    assert "2024 2 50.0% 50.0% 25.0% 75.0%" in text
+    assert "Nationally 35.8% of domestic electricity meters" in text
+
+
+def test_a_feed_without_the_meter_split_renders_its_absence_and_never_a_zero():
+    feed = _feed()
+    del feed["K2_by_year_and_meter_type"]
+    text = _render(feed)["billacc-k2split"]
+    assert "absent rather than zero" in text and "next publish" in text
+    assert "%" not in text

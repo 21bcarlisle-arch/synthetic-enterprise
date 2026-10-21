@@ -72,7 +72,8 @@ from saas.ledger import open_estimated_bills
 __all__ = [
     "KINDS", "NO_READ_BILL_RUN", "PUBLISHED_MEDIAN_SUPPLIER_SHARE_NO_READ_BILL_IN_12",
     "account_billing_accuracy", "billing_accuracy_summary", "dd_review_arms", "direct_debit_money_line",
-    "estimated_billing_outstanding_grade", "published_view", "unbilled_accrual",
+    "estimated_billing_outstanding_grade", "estimated_share_by_year_and_meter", "published_view",
+    "unbilled_accrual",
 ]
 
 #: The kinds this module measures, keyed to the knowledge note's ids.
@@ -93,6 +94,13 @@ NO_READ_BILL_RUN = 12
 #: accounts, 94.80% (2017 Q1) and 94.40% (Q2) of consumers had a bill reflecting a meter reading in
 #: the past year. Held as the share WITHOUT one, the quantity the snapshot measures.
 PUBLISHED_MEDIAN_SUPPLIER_SHARE_NO_READ_BILL_IN_12 = (1 - 0.9480, 1 - 0.9440)
+
+#: Domestic meters a supplier cannot read remotely (dumb, or smart in traditional mode), end 2024,
+#: per fuel. DESNZ, *Smart Meter Statistics in Great Britain: Q4 2024*, read in
+#: `docs/market_research/unbilled_energy_and_revenue_assurance.md` §2 K2. It is exposure, not an
+#: estimate rate, and it is the national stock: set beside the book's own traditional share only so
+#: a reader can see whether the estimated share is the book's meters or its reading.
+PUBLISHED_TRADITIONAL_SHARE_OF_DOMESTIC_METERS_END_2024 = {"electricity": 0.358, "gas": 0.453}
 
 _Z95 = 1.959964
 
@@ -312,6 +320,64 @@ def billing_accuracy_summary(bills: Iterable[dict], direct_debit: dict | None = 
     }
 
 
+def estimated_share_by_year_and_meter(bills: Iterable[dict],
+                                      meter_types: dict[tuple[str, str], str] | None) -> dict:
+    """K2 per fuel and calendar year of the period end, split by the meter type the supplier holds
+    for the supply point in that period. Pass issued bills.
+
+    One blended estimated share mixes two different things: how often a traditional meter is read,
+    and how many of the book's meters are traditional. A smart meter in smart mode is read every
+    month, so the blend moves with the book's meters even if the reading never changes. Split, a
+    reader can tell which one moved (SEAT_FINDING_D48_THE_ESTIMATED_SHARE_FALLS_ONLY_TEN_POINTS_*).
+
+    `meter_types` maps (customer_id, period_end) to the meter type, a fact on the national metering
+    record the supplier reads, not the world's use. A bill it does not name is counted as
+    "unknown", never guessed. None publishes the split as an absence."""
+    if meter_types is None:
+        return {"available": False, "reason": (
+            "the publish was handed no meter type per bill, so the estimated share cannot be split "
+            "by meter")}
+    by_fuel: dict[str, dict[str, dict]] = {}
+    # Each account's meter at its last bill in the year: a count of meters, as DESNZ's is.
+    last_in_year: dict[tuple[str, str, str], tuple[str, str]] = {}
+    for bill in bills:
+        year = bill["period_end"][:4]
+        fuel = bill.get("commodity", "electricity")
+        kind = meter_types.get((bill["customer_id"], bill["period_end"]), "unknown")
+        key = (fuel, year, bill["customer_id"])
+        if key not in last_in_year or bill["period_end"] > last_in_year[key][0]:
+            last_in_year[key] = (bill["period_end"], kind)
+        row = by_fuel.setdefault(fuel, {}).setdefault(year, {})
+        cell = row.setdefault(kind, {"bill_count": 0, "billed_kwh": 0.0, "estimated_kwh": 0.0})
+        kwh = bill["total_consumption_kwh"]
+        cell["bill_count"] += 1
+        cell["billed_kwh"] += kwh
+        if bill["billing_basis"] == "estimated":
+            cell["estimated_kwh"] += kwh
+    out: dict[str, list[dict]] = {}
+    for fuel, years in sorted(by_fuel.items()):
+        rows = []
+        for year, kinds in sorted(years.items()):
+            billed = sum(c["billed_kwh"] for c in kinds.values())
+            estimated = sum(c["estimated_kwh"] for c in kinds.values())
+            for cell in kinds.values():
+                cell["estimated_share"] = (cell["estimated_kwh"] / cell["billed_kwh"]
+                                           if cell["billed_kwh"] else None)
+            meters = [k for (f, y, _), (_, k) in last_in_year.items() if f == fuel and y == year]
+            rows.append({
+                "year": year, "billed_kwh": billed, "estimated_kwh": estimated,
+                "estimated_share": estimated / billed if billed else None,
+                "accounts": len(meters),
+                "traditional_share_of_accounts": (
+                    sum(k == "traditional" for k in meters) / len(meters) if meters else None),
+                "by_meter_type": kinds,
+            })
+        out[fuel] = rows
+    return {"available": True, "by_fuel": out,
+            "published_traditional_share_of_domestic_meters_end_2024":
+                dict(PUBLISHED_TRADITIONAL_SHARE_OF_DOMESTIC_METERS_END_2024)}
+
+
 def _k1_unbilled_by_month_end(bills: list[dict], held: set[tuple[str, str]] | None,
                               late: dict[tuple[str, str], str]) -> dict:
     """The accrual at every year end inside the run and at its last billed month."""
@@ -424,7 +490,8 @@ def _against_published(interval: list[float] | None) -> str:
 
 def published_view(summary: dict | None, source: str | None = None,
                    bills: list[dict] | None = None,
-                   held: set[tuple[str, str]] | None = None) -> dict:
+                   held: set[tuple[str, str]] | None = None,
+                   meter_types: dict[tuple[str, str], str] | None = None) -> dict:
     """What a reader of the site meets: the per-fuel figures with their denominators, the K2
     snapshot with a 95% interval set beside the published median supplier, the K1 year-end grades,
     and one named account. A summary that is missing or empty is published as an absence with its
@@ -435,7 +502,8 @@ def published_view(summary: dict | None, source: str | None = None,
     21B.4 register (`read_duty_register`) is read from the same bills, and is absent without them.
     With `held` (the bills the pre-bill gate did not issue) as well, the whole summary is rebuilt
     from them, so a run output that predates the accrual publishes it and counts no held bill as
-    billed."""
+    billed. `meter_types` splits K2 by year and meter (`estimated_share_by_year_and_meter`), over
+    the issued bills; without it, or without bills, the split is an absence."""
     if not summary or not summary.get("by_fuel"):
         return {"available": False, "source": source, "reason": (
             "the run output this publish read carries no billing-accuracy measure, so there is "
@@ -486,6 +554,9 @@ def published_view(summary: dict | None, source: str | None = None,
         "direct_debit_money_line": summary.get("direct_debit_money_line")
         or direct_debit_money_line(None),
         "read_duty_register": read_duty,
+        "K2_by_year_and_meter_type": estimated_share_by_year_and_meter(
+            [b for b in bills if (b["customer_id"], b["period_end"]) not in (held or ())],
+            meter_types) if bills else estimated_share_by_year_and_meter((), None),
         # Never added to the billed-on-estimate grades above: they count different bills.
         "K1_unbilled_accrual": summary.get("K1_unbilled_accrual") or {"available": False, "reason": (
             "the run output this publish read predates the accrual, and the publish was handed no "

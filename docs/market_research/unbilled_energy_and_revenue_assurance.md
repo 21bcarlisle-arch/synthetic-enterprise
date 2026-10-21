@@ -120,6 +120,17 @@ Citizens Advice hold smart customers to a shorter standard (6 months, against 12
   months) of NHH energy.** [H] Elexon, *Settlement Timetable*, 2014, slide 2, read in
   `elexon_settlement_run_timetable_verified.md`. This is the best published curve for how fast
   estimated consumption is replaced by actual consumption, market-wide.
+- **Design choice, K2 is published split by meter (2026-10-21, K8 for D48).** The two sources above
+  measure different things: BEIS's 6% is a rate among smart customers, DESNZ's 35.8% / 45.3% a share
+  of meters. A supplier's blended estimated share is (its traditional share) × (how often those
+  meters go unread), plus the smart remainder, so one blended figure cannot say which of the two moved.
+  `billing_accuracy.estimated_share_by_year_and_meter` splits it per fuel and year by the meter type
+  the supplier holds for the supply point (a national metering record fact, not use). Its share of
+  ACCOUNTS on a traditional meter, counted at each account's last bill of the year, is set beside
+  DESNZ's end-2024 share of METERS, which is a like count. A bill with no meter type on record is
+  "unknown", never guessed. On the 8b6fea024 run: smart meters 7–16% of kWh on estimates, traditional
+  75–82%, and 71% of the book's electricity accounts traditional in 2024 against 35.8% nationally
+  (`WORKER_FINDING_D48_THE_ESTIMATED_SHARE_IS_FLAT_BECAUSE_NO_METER_IS_EVER_EXCHANGED_AFTER_ACQUISITION_2026-10-21.md`).
 - **GAP:** the size distribution of a true-up (£ or kWh per catch-up, share positive vs negative).
   Nothing published was found. The 2018 decision records that suppliers write off "parts of
   estimated bills" under the limit, but gives no amount.

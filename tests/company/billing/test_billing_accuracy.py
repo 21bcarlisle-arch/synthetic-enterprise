@@ -20,6 +20,7 @@ from company.billing.billing_accuracy import (
     billing_accuracy_summary,
     direct_debit_money_line,
     estimated_billing_outstanding_grade,
+    estimated_share_by_year_and_meter,
     published_view,
     unbilled_accrual,
 )
@@ -546,3 +547,67 @@ def test_the_published_view_rebuilds_from_the_bills_with_the_held_set_and_carrie
     assert rebuilt["K1_unbilled_accrual"]["available"] is True
     assert rebuilt["by_fuel"]["electricity"]["billed_kwh"] == pytest.approx(
         stale["by_fuel"]["electricity"]["billed_kwh"] - victim["total_consumption_kwh"])
+
+
+def _split_bills():
+    """S is smart all year (one estimate of four), T traditional (three of four), X has no meter
+    type on record, and E is exchanged to smart at its last bill of 2024."""
+    bills, types = [], {}
+    for cid, kind, bases in (("S", "smart", "eaaa"), ("T", "traditional", "eeea"),
+                             ("X", None, "ea"), ("E", "traditional", "eee")):
+        for m, basis in enumerate(bases, start=1):
+            end = f"2024-{m:02d}-28"
+            bills.append(_bill(cid, end, "estimated" if basis == "e" else "actual", 100.0))
+            if kind:
+                types[(cid, end)] = kind
+    types[("E", "2024-03-28")] = "smart"
+    return bills, types
+
+
+def test_the_estimated_share_splits_by_meter_and_counts_meters_at_the_years_last_bill():
+    """Defect caught: one blended K2 reads 67% on a book whose smart meters bill about 8% on
+    estimates and whose traditional meters about 80%, so a reader cannot tell the reading from the
+    book's meters (Expert Hour 2026-10-14, #5). Every branch taken: smart, traditional, a bill with
+    no meter type (counted as unknown, never guessed), and an exchange inside the year (the meter at
+    the account's last bill is the one counted)."""
+    bills, types = _split_bills()
+    row = estimated_share_by_year_and_meter(bills, types)["by_fuel"]["electricity"][0]
+    kinds = row["by_meter_type"]
+    assert set(kinds) == {"smart", "traditional", "unknown"}
+    assert kinds["smart"]["estimated_share"] == pytest.approx(2 / 5)  # S's 1 of 4, E's last 1
+    assert kinds["traditional"]["estimated_share"] == pytest.approx(5 / 6)  # T's 3 of 4, E's 2
+    assert kinds["unknown"]["estimated_share"] == pytest.approx(1 / 2)
+    assert row["estimated_share"] == pytest.approx(8 / 13)
+    assert row["accounts"] == 4
+    assert row["traditional_share_of_accounts"] == pytest.approx(1 / 4)  # T only: E ends smart
+
+
+def test_the_split_reads_the_meter_type_and_never_the_worlds_use():
+    """Defect caught: the split reading `true_consumption_kwh`, the world's use on an estimated bill."""
+    bills, types = _split_bills()
+    before = estimated_share_by_year_and_meter(bills, types)
+    for b in bills:
+        b["true_consumption_kwh"] = 9999.0
+    assert estimated_share_by_year_and_meter(bills, types) == before
+
+
+def test_the_published_split_is_an_absence_without_meter_types_and_counts_no_held_bill():
+    """Both arms: no meter types publishes a named absence and no figure; with them the split is
+    read over the issued bills only, as the rest of the view is."""
+    from company.interfaces.bill_assembly import held_bills
+
+    issued = _bills(actual_after_opening=False, closed=False)
+    one_held = [dict(b) for b in issued]
+    next(b for b in one_held if b["billing_basis"] == "estimated")["total_amount_gbp"] += 1000.0
+    summary = billing_accuracy_summary(one_held)
+    assert held_bills(one_held), "the fixture must hold a bill or the issued-only leg proves nothing"
+    absent = published_view(summary, "x.json", one_held, held_bills(one_held))
+    assert absent["K2_by_year_and_meter_type"]["available"] is False
+    assert absent["K2_by_year_and_meter_type"]["reason"] and "by_fuel" not in absent["K2_by_year_and_meter_type"]
+    types = {(b["customer_id"], b["period_end"]): "traditional" for b in one_held}
+    split = published_view(summary, "x.json", one_held, held_bills(one_held), types)
+    rows = split["K2_by_year_and_meter_type"]["by_fuel"]["electricity"]
+    assert sum(r["billed_kwh"] for r in rows) == pytest.approx(
+        split["by_fuel"]["electricity"]["billed_kwh"])
+    assert split["K2_by_year_and_meter_type"]["published_traditional_share_of_domestic_meters_end_2024"] == {
+        "electricity": 0.358, "gas": 0.453}

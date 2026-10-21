@@ -2622,8 +2622,12 @@ def _write_billing_accuracy_feed(feed, data, source):
     # The held set is named by the issuance door, so the accrual and the "billed" figures are
     # published from this run's bills even when its output predates them.
     bills = data.get("bills")
+    # Only the meter type crosses: the read log also carries the world's use, which is not read.
+    read_log = data.get("meter_read_log")
+    meter_types = ({(m["customer_id"], m["period_end"]): m["meter_type"] for m in read_log}
+                   if read_log else None)
     block = published_view(data.get("billing_accuracy"), source, bills,
-                           held_bills(bills) if bills else None)
+                           held_bills(bills) if bills else None, meter_types)
     if block.get("available"):
         block["direct_debit_review_arms"] = dd_review_arms(review_arms_from_run(data))
     feed.parent.mkdir(parents=True, exist_ok=True)

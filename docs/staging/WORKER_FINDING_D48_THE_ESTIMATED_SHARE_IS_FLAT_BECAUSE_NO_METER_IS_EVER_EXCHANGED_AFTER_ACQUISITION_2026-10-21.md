@@ -74,3 +74,14 @@ metering database. So it crosses the seam as an observable, as the acquisition s
   arms' digest controls. It needs its own turn.
 
 **Status:** OPEN. Disqualifier #5 is attributed. The world build is routed to W2 as described above.
+
+## Company half, built (worker, 2026-10-21)
+
+The published K2 is now split per fuel and year by meter type, with the book's share of accounts on
+a traditional meter beside DESNZ's end-2024 national share of meters
+(`billing_accuracy.estimated_share_by_year_and_meter`, the /capabilities/ panel `billacc-k2split`,
+knowledge note §2 K2). A reader sees the reading rates hold and the book's meters stay traditional.
+It reaches the page at the next publish: the committed run gz is a different book from the
+published feed, so the feed was not hand-regenerated. Until then the panel names its absence.
+The world build above is unchanged and still routed to W2.
+

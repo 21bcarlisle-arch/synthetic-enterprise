@@ -4688,6 +4688,7 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
   what a household actually used in a month it did not read. It only sees the size of the
   correction later. Everything here comes from the supplier's own bills and reads.</p>
   <div id="billacc-fuels"></div>
+  <div id="billacc-k2split"></div>
   <p id="billacc-dd" style="margin:14px 0 0;"></p>
   <div id="billacc-ddarms"></div>
   <p id="billacc-snapshot" style="margin:14px 0 0;"></p>
@@ -4758,6 +4759,28 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
             kwh(x.barred_kwh) + " (" + pct(x.K3_barred_share_of_undercharge_kwh)
               + " of undercharge, " + esc(x.barred_true_ups) + " corrections)"]);
         }).join(""));
+      /* The blended share mixes how often a traditional meter is read with how many of the
+         book's meters are traditional, so it is split by the meter the supplier holds. */
+      var ks = d.K2_by_year_and_meter_type || {};
+      var nat = ks.published_traditional_share_of_domestic_meters_end_2024 || {};
+      var mshare = function (r, k) { return pct(((r.by_meter_type || {})[k] || {}).estimated_share); };
+      $("billacc-k2split").innerHTML = !ks.available
+        ? '<p style="margin:14px 0 0;"><strong>Billed on estimates, by year and meter.</strong> '
+          + 'Not available, so absent rather than zero. ' + esc(ks.reason
+            || "The published feed predates this split, so it appears at the next publish.")
+          + '</p>'
+        : Object.keys(ks.by_fuel || {}).sort().map(function (f) {
+            return table("Billed on estimates by year and meter: " + esc(f)
+              + ". Nationally " + pct(nat[f]) + " of domestic " + esc(f) + " meters could not be "
+              + "read remotely at the end of 2024 (DESNZ)",
+              ["Year", "Accounts", "Billed on estimates", "Accounts on a traditional meter",
+               "Smart meters: billed on estimates", "Traditional meters: billed on estimates"],
+              ks.by_fuel[f].map(function (r) {
+                return tr([esc(r.year), esc(r.accounts), pct(r.estimated_share),
+                  pct(r.traditional_share_of_accounts), mshare(r, "smart"),
+                  mshare(r, "traditional")]);
+              }).join(""));
+          }).join("");
       /* Direct debit's bar is money a debit could not ask for, not energy, so it is its own
          line and never a row of the table above. */
       var dd = d.direct_debit_money_line || {};
