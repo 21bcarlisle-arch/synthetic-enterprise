@@ -887,3 +887,36 @@ rate a supplier could hold as a prior. EFTC 2019 is on the knowledge page §5. T
 between that prior, with the ledger's counts shrinking toward it, and a minimum closed-renewal count
 before a type's multiplier applies, the latter refusing with a named reason. After that the arm
 reruns. The money question stays open, and seeds are what answer it (EP17).
+
+## 12. The ending-term multiplier shrunk towards the belief: `all_on_ending_term` again (filed 2026-10-21 ~22:55Z, before the arm was launched)
+
+*§11's defect: with no prior, the 2016 closed fix-ends set m = 3.39 for 2017. The desk-state
+reconstruction puts that at 2 renewals and 1 loss. The knowledge page now gives the multiplier a width
+(`docs/market_research/switching_gradient_by_tariff_and_payment_what_the_record_can_grade.md` §5a).
+EFTC's fix-end window against CMOC's default flow is 2.9× at the lower published end, so the prior
+variance in log space is (ln 2.9 / 2)² = 0.28. The multiplier is now `ratio^w`, with the ledger's own
+`w = V_prior / (V_prior + V_evidence)`, centred on 1. No minimum count is used: that would be a picked
+number. The arm, book and seed are §11's. Only `ending_term_multiplier` differs. The output goes to
+`/var/tmp/se-pcs-arms-out/all_on_ending_term_prior.json`, so §11's file stays as evidence. It is
+graded by `/tmp/pcs11/grade.py` with `ARM=` pointed at it.*
+
+**Predictions (no outcome of this arm read).**
+- **P12a, the defect itself.** The implied `fixed` multiplier for 2017 (median, as §11 measured it)
+  is between 1.0 and 1.6, point 1.2: 85%. `fixed` from 2018 is within 0.05 of §11's 1.01–1.23 in each
+  year: 80%. `default` from 2019 is below 0.10 in every year: 85%. For 2018 it is above §11's 0.42:
+  85%.
+- **P12b, the hand-over and the aim.** Default-term desk states from 2018 that are present in both
+  arms read lower than `all_on` on at least 95% of them: 90%. The in-run AUC on §9's 268 states is
+  0.815, range 0.76–0.85. Its clustered lower bound is above 0.5: 97%.
+- **P12c, retention (the leg §11 refuted).** Offers number 112, range 100–125 (`all_on` 113, §11 134).
+  Fix-end offers are 102–120: 75%. Default-term offers are ≤ 3: 85%. Cost is £2,850, range £2,500–£3,200
+  (`all_on` £2,837.65, §11 £3,382.15).
+- **P12d, departures.** 353 ± 3: 80%.
+- **P12e, money.** On one seed, anything within ±£1,000 of flat is a tie. Point against flat +£300,
+  and graded as a tie unless outside the band. This section cannot answer the money question. Seeds
+  answer it (EP17).
+
+**Decision rule, fixed now.** If P12a's 2017 leg holds and P12b holds, the switch is the candidate
+for CURRENT_POLICY. It is proposed separately, with the seeds the money question needs, and nothing
+here flips it. If 2017 still reads above 1.6, the in-run counts for 2016 are larger than the
+reconstruction says. Then the next step is to read the ledger directly, not to widen the prior.

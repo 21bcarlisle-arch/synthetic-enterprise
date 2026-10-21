@@ -133,3 +133,24 @@ def test_the_switch_is_off_on_the_standing_policy_and_the_run_imports_the_desks_
     assert default["renewal_belief_by_ending_term"] is False
     assert CURRENT_POLICY.renewal_belief_by_ending_term is False
     assert run_phase2b.ending_term_type is churn_desk.ending_term_type
+
+
+def test_a_young_book_is_shrunk_towards_the_belief_and_an_established_one_is_not():
+    """Prereg §11: two closed 2016 fix-ends, one lost, set m = 3.39 for 2017 with no prior. Both
+    ends of the weight must be reachable: a weight stuck near 0 (the prior ignored nothing) or near
+    1 (the book believed whole) each pass one leg, never both. Reds if the shrinkage is removed."""
+    young = CompetitivePressureLedger()
+    young.arm_loss_reporting()
+    young.observe_ending_term(2016, ENDING_TERM_FIXED, "Y-0", 0.23)
+    young.observe_ending_term(2016, ENDING_TERM_FIXED, "Y-1", 0.23)
+    young.observe_competitive_loss(2016, account_id="Y-0")
+    unshrunk = ((1 + 0.5) / (2 + 1)) / 0.23
+    m_young, why = young.ending_term_multiplier(ENDING_TERM_FIXED, 2017)
+    assert 1.0 < m_young < 1.0 + 0.25 * (unshrunk - 1.0), (m_young, why)
+    assert "weight" in why
+    established = CompetitivePressureLedger()
+    established.arm_loss_reporting()
+    _book(established, ENDING_TERM_DEFAULT, 100, 0)
+    m_est, _ = established.ending_term_multiplier(ENDING_TERM_DEFAULT, 2019)
+    raw = ((0 + 0.5) / (100 + 1)) / 0.3
+    assert raw < m_est < raw * 1.5

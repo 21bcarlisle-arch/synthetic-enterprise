@@ -80,6 +80,18 @@ PRIOR_LOG_VARIANCE: float = statistics.pvariance(
     [math.log(m) for m in MARKET_SWITCHING_MULTIPLIER_BY_YEAR.values()]
 )
 
+#: THE WIDTH OF THE ENDING-TERM PRIOR, from the published per-window external move of each type
+#: (`docs/market_research/switching_gradient_by_tariff_and_payment_what_the_record_can_grade.md`
+#: §5a): Ofgem EFTC 2019's 6% in the 6 weeks after a fix ends, against Ofgem CMOC 2019's 1.5% in
+#: 30 days off the default -- the LOWER published end of the fix-end:default ratio, so it shrinks
+#: harder (F11). Two types a factor R apart each sit ln(R)/2 from a pooled belief. The prior's
+#: centre is 1, the belief left as it was; only its width comes from the record.
+_EFTC_FIX_END_EXTERNAL_SIX_WEEKS: float = 0.06
+_CMOC_DEFAULT_EXTERNAL_THIRTY_DAYS: float = 0.015
+ENDING_TERM_PRIOR_LOG_VARIANCE: float = (math.log(
+    (1.0 - (1.0 - _EFTC_FIX_END_EXTERNAL_SIX_WEEKS) ** (30.0 / 42.0))
+    / _CMOC_DEFAULT_EXTERNAL_THIRTY_DAYS) / 2.0) ** 2
+
 #: Jeffreys/Anscombe continuity correction on the realised loss count. Without it a window in
 #: which nobody left gives `log(0)` and a window in which everybody left gives zero variance --
 #: both of which are FAIL-OPEN shapes (one refuses a real observation, the other believes an
@@ -388,11 +400,11 @@ class CompetitivePressureLedger:
         """Observed over expected renewal losses for one ending-term type, over closed years.
 
         `(None, reason)` wherever there is nothing to learn from; the caller then leaves the
-        belief as it was. Only the Jeffreys continuity correction is applied, and no prior: no
-        published source sizes how much leaving differs by the tariff a household is coming off
-        (`docs/market_research/switching_gradient_by_tariff_and_payment_what_the_record_can_grade.md`
-        §1c and §5), so there is no prior width to weigh the book against. A type the company
-        has never lost anyone from reads (0.5 / (n + 1)) over its mean belief, small but not zero.
+        belief as it was. The Jeffreys-corrected ratio is shrunk towards 1 by the ledger's own
+        precision weighting, against `ENDING_TERM_PRIOR_LOG_VARIANCE`. Unshrunk, two closed 2016
+        fix-ends set a 3.39 for all of 2017 in the run (prereg §11); the same rule at the same
+        counts now reads about 1.1, and a type with a hundred closed renewals barely moves. A type
+        the company has never lost anyone from still reads below 1, small but not zero.
         """
         if ending_term_type is None or renewal_year is None:
             return None, "no ending-term type or renewal year"
@@ -409,8 +421,10 @@ class CompetitivePressureLedger:
         if sp <= 0.0:
             return None, f"predicted zero losses on {n} closed {ending_term_type} renewals"
         ratio = ((losses + _CONTINUITY_SUCCESSES) / (n + _CONTINUITY_TRIALS)) / (sp / n)
-        return ratio, (f"{losses} losses against {sp:.2f} predicted on {n} closed "
-                       f"{ending_term_type} renewals")
+        weight = log_space_update_weight(n, sp / n, ENDING_TERM_PRIOR_LOG_VARIANCE)
+        return precision_weighted_posterior(1.0, ratio, weight), (
+            f"{losses} losses against {sp:.2f} predicted on {n} closed {ending_term_type} "
+            f"renewals: ratio {ratio:.3f} at weight {weight:.2f} against the prior")
 
     def closed_slope_sums(self, payment_method: str, fuel: str, renewal_year: int) -> dict:
         """B8's sums for one channel and fuel over years STRICTLY before `renewal_year`."""

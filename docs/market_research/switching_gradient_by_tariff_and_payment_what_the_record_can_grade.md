@@ -426,11 +426,16 @@ and suppliers differ, and the end-of-fix figure counts requests, not completions
 
 ### Which choices the design makes, and why
 
-- **The size is learned from the company's own book, never set.** With no published ratio there is
-  no prior to put on it, so the switch applies no prior and no shrinkage. Per ending-term type, it
+- **The size is learned from the company's own book, never set.** Per ending-term type, it
   takes the company's own observed-over-expected renewal losses over closed years, with the
   Jeffreys correction the competitive-pressure ledger already uses. It applies the result in
   survival space. A type the company has never lost anyone from reads small, not zero.
+  *Corrected 2026-10-21, beside the claim:* this bullet first said that with no published ratio
+  "there is no prior to put on it", so the switch applied no prior and no shrinkage. In the run
+  that let two closed fix-end renewals from 2016 set a multiplier of 3.39 for all of 2017
+  (prereg §11). There is no published *level* for the multiplier. There is a published *width*
+  for it, and §5a sets it out. The multiplier now shrinks towards 1, meaning the belief left as it
+  was, by the ledger's own precision-weighting rule.
 - **The third type is a refusal at an EARLIER roll, never at this one.** A fix declined at this
   roll is written only for a household that stayed, so it would mark non-leavers by construction.
 - **It stays off** until the out-of-sample grade
@@ -438,6 +443,61 @@ and suppliers differ, and the end-of-fix figure counts requests, not completions
   §10) and an arms run that carries it say otherwise. Whether the world is right to roll no departure
   at a default anniversary is a world question, decided blind to that grade. The EFTC external 6% is
   the published check on it, and is already a named gap (§4a of the SVT page).
+
+### 5a. The width the record gives the multiplier, and the shrinkage it supports (added 2026-10-21)
+
+**Wanted.** A prior the ending-term multiplier can be weighed against, so that one closed year of
+a young book cannot set it alone. The multiplier is observed-over-expected *against the company's
+own belief*, so its centre is not a published quantity. "The belief was right for this type" is
+`m = 1`, and that is the only centre with no number picked in it. What is wanted from the record
+is the **scale**: how far apart can the leaving of two ending-term types be?
+
+**Published rates a supplier could hold, per comparable window** (all on file above or in §6):
+
+| type of term now ending | source | external move | per 30 days |
+|---|---|---|---|
+| a fix | EFTC 2019, control arm (§5) | 6% in the 6 weeks after the fix ended | **4.3%** (`1 − 0.94^(30/42)`) |
+| a default stint, 3 months+ | CMOC 2019, control arm (§6.1) | 1.5% in 30 days | **1.5%** |
+| a default stint, 1 year+ | CMOL 2017, control arm (§6.1) | ~0.7% in 30 days | **0.7%** |
+
+So the record puts the fix-end window at **2.9× to 6.2×** the default flow over a window of the
+same length. Each is one supplier-records RCT control arm, so this range is the record's own
+spread, not a confidence interval.
+
+**From ratio to width.** A belief that ignores the type is calibrated, at best, on the pooled book.
+If two types differ by a factor `R`, then on an even split each sits `ln(R)/2` in log space from the
+pooled level. So the scale on which one type's multiplier can sit away from 1 is `ln(R)/2`. The
+design takes `R` at the **lower** published end (2.9). That gives a prior standard deviation of 0.53
+in log space and a variance of **0.28**. The upper end gives 0.83. The lower end shrinks harder, which
+errs against the switch (F11).
+
+**The rule** is the one `CompetitivePressureLedger` already uses for its other two beliefs:
+`m = ratio^w` with `w = V_prior / (V_prior + V_evidence)`, and `V_evidence = (1 − p̄)/(n·p̄)`
+evaluated under the null at the type's mean belief. No minimum count is used. A minimum count would
+be a picked number (K2), and the weight already falls to near 0 at small `n` for the same reason a
+count floor would exist.
+
+**Printed at real inputs** (the desk-state reconstruction of the in-run ledger. Counts are n renewals,
+L losses and Σ belief, then the multiplier with no prior → with the prior):
+
+| fit | n | L | Σ belief | no prior | w | with prior |
+|---|---|---|---|---|---|---|
+| `fixed`, for 2017 (2016 closed) | 2 | 1 | 0.46 | 2.17 | 0.14 | **1.12** |
+| `default`, for 2018 | 1 | 0 | 0.59 | 0.42 | 0.29 | 0.78 |
+| `fixed`, for 2019 | 132 | 52 | 51.8 | 1.006 | 0.96 | 1.006 |
+| `default`, for 2019 | 46 | 0 | 22.6 | 0.022 | 0.93 | 0.029 |
+| `default_after_declined_fix`, for 2019 | 4 | 0 | 2.01 | 0.20 | 0.53 | 0.42 |
+
+The prior bites where the book is young and leaves the established years almost where they were.
+
+**GAPs this leaves.**
+- **GAP: the per-ender share of fix-ends that leave, and an annual ratio** (as §5 and §6.2 say).
+  The width above uses windows of equal length, not a per-renewal ratio.
+- **GAP: any published difference between a `default` stint and a `default_after_declined_fix`
+  stint.** That type takes the same width, which is a stated belief, not a source.
+- **GAP: whether the even-split step holds.** It is exact only for an even split in log terms.
+  An uneven book puts the minority type further from the pooled level. That would argue a wider
+  prior for the minority type, and the design does not take it.
 
 ---
 
