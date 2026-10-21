@@ -101,3 +101,19 @@ runs: most of the closed-account world debt never appears as a final-bill balanc
 
 **Caveats.** There are two dice seeds and one cast: one 400-founder book. "Closed" is "not billed in
 December", which is a proxy. The captures are not the published run, so they are labelled unpublished.
+
+## 2026-10-21 (late evening): steps 2 and 3 traced. The step-3 prediction is refuted
+
+The trace is in the BLOCKING finding, section "the trace". In short:
+- **Step 2.** The DD zero is the company's bucketing rule: a DD bill unpaid at 30 days or more is filed on the
+  pay-on-receipt row. It is not a lost pound.
+- **Step 3.** Every closed-account pound reaches the company. The company holds it, then writes it off at 365
+  days, and world closed debt equals company held plus written off, to the penny in 2018-19. The prediction above
+  ("never appears") is wrong, and it stays here as written.
+- **Beside step 1's grade.** The age table above is per bill. The company ages its rolling balances oldest
+  first, and on the same pounds that gives a >91-day stock 2-10x smaller. Which convention Energy UK's 52% uses is
+  a GAP. So "older than the record" holds on the per-bill convention only.
+
+What remains here is the world's indebted-leaver **flow**, which falls from about £1k a year (2017-18) to £100-324
+(2022-23). The leaver census in the BLOCKING finding's next step asks whether that is founder-book selection or a
+world rule.

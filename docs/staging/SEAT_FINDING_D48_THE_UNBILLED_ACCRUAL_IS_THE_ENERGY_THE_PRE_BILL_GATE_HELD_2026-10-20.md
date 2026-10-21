@@ -412,3 +412,30 @@ at or under a rate the same meter had already measured. **Built:**
 `pre_bill_validation.release_on_measured_rate`, asked by the issuance door and by the assembly's
 catch-up. Rules first: `unbilled_energy_and_revenue_assurance.md` §4d (SLC 21B.5). Re-validated
 over these bills: 9 held. The money moves at the next run, as the pre-registration predicts.
+
+## The money grade for `release_on_measured_rate`, on the first run that carries it (worker, 2026-10-21, evening)
+
+The shared tree's plain run is at **8e99f83cd** (generated 15:57Z), which has 4d6d5ab91 as an ancestor. It is
+unpublished. The instrument is the one the pre-registration names: `bill_assembly.held_bills` over the run's
+53,314 bills.
+
+| prediction (records/WORKER_PREREG_D48_..._2026-10-21.md, as corrected 08:10Z) | run | verdict |
+|---|---|---|
+| held estimates fall to single digits | **9**, on 4 accounts, all estimates, 0 actuals | HELD |
+| no gap over two months on PROS-2017-0336 | 2017-12 and 2018-01 held, then released at its first actual read | HELD |
+| none over three on the book | longest is 3 (SYN-2016-582, 2016-12 to 2017-02) | HELD |
+| PROS-2017-0336's largest catch-up below GBP 1,000 | **cannot be graded from this run** | NOT GRADED |
+
+This is the same 9-bill set that HEAD's re-validation named at 08:10Z, so the run agrees with the gate's own
+reading. The 2019-04 to 2020-05 silence on PROS-2017-0336 is gone: each of those months now carries its own
+estimated bill (GBP 426-654).
+
+**Why the fourth does not grade.** The published `bills` rows drop the `catchup_*` fields that
+`monthly_bill_assembly` stamps, so the catch-up adjustment cannot be read. The only figure available is the bill
+total. The account's 2018-02 actual bill is GBP 1,809, against GBP 495-555 for its neighbouring months. That
+excess (~GBP 1,250) is about the two held months (GBP 516 + 546) plus a true-up. If that inference is right, the
+bound is narrowly **not met**. But it is an inference from totals, and it is not recorded as a grade. Grading it
+needs the catch-up fields carried on the published bill, or the run re-assembled. The two held months are what
+§4d intends the screen to hold (no earlier read), so a two-month catch-up of ~GBP 1.1k is the rule working, not a
+defect. The GBP 1,000 bound was set before the 08:10Z correction left these two months held. It should be read
+as "no more than the held months", not as a number.

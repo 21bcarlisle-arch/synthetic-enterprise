@@ -793,3 +793,70 @@ The next step is the trace of where a leaver's and a failed-DD account's balance
 settlement and `company_provision`. The world finding's steps 2-3 now carry that, and so does E6.
 
 **Status:** OPEN and BLOCKING. The side is now the company or the seam, not the world.
+
+## 2026-10-21 (late evening): the trace. No pound is lost between the world and the company; the side is the world's leaver-debt FLOW and an ageing convention
+
+*Correction beside the "late" section's "the side is now the company or the seam". The trace below refutes it.*
+
+**Instrument.** `/var/tmp/leaver_trace/probe.py` runs `run_phase2b.main` (the shared tree's disk at
+2026-10-21 18:44Z, HEAD ce0640dd0, both budget switches on, default dice) and keeps the `LivePaymentTriad`. At each 31 December it reads the
+world's own `PeriodRecord`s, joined to the company ledger's bill amounts by `invoice_ref`, beside the company's
+`fifo_unpaid_bills` on the same ledger. "Closed" uses the company's rule (no bill in 62 days) on both sides. One
+book and one dice seed. Unpublished.
+
+**Predictions, filed before the run.** The world finding's prediction for step 3 was "most closed-account debt
+never appears in `company_provision`". Mine was that it appears and is written off at the 365-day convention, and
+that the DD zero is the bucketing rule.
+
+| 31 Dec | world live, all ages | company live, all ages | world live >91d (per bill) | company live >91d (FIFO) | world closed >91d | company closed held | company closed written off to date |
+|---|---|---|---|---|---|---|---|
+| 2018 | 6,637.46 | 6,637.43 | 806 | 25 | 2,098.63 | 1,009.73 | 1,088.94 |
+| 2019 | 9,161.37 | 9,161.33 | 1,287 | 186 | 2,400.69 | 438.71 | 1,962.01 |
+| 2020 | 6,385.39 | 6,385.33 | 1,656 | 233 | 2,926.94 | 239.13 | 2,677.07 |
+| 2021 | 8,110.46 | 8,110.45 | 1,605 | 149 | 3,051.30 | 303.81 | 2,778.30 |
+| 2022 | 28,374.08 | 28,374.07 | 3,094 | 605 | 3,151.17 | 74.92 | 3,107.06 |
+| 2023 | 20,748.55 | 20,748.52 | 5,825 | 2,580 | 3,474.87 | 206.49 | 3,299.19 |
+
+**What it says.**
+1. **Live money all reaches the company.** World and company live receivables agree to a few pence at every year
+   end. Nothing is lost at the seam.
+2. **Closed-account debt all reaches the company.** World closed debt equals company held plus company written
+   off, to the penny in 2018-19 and within 1% after that (recoveries on reopened accounts). The world finding's
+   step-3 prediction is **refuted**. Mine **held**: the company holds the debt, then writes it off at 365 days.
+   The "final-bill balance 0.01% / 0.11% of revenue" in the "night" section left the write-offs out. The money is
+   in `written_off_to_date_gbp`, and so in the charge, but in the year it was written off.
+3. **The DD zero is the bucketing rule.** `provision_stock` files a DD bill unpaid at 30 days or more under the
+   pay-on-receipt row (`_live_rate`, `DIRECT_DEBIT_REPRESENTATION_WINDOW_DAYS = 30`). So "no live DD balance
+   aged 30 days" is true by construction, and the world's DD-method arrears are inside the PoR >90 bucket. It is
+   a labelling choice. No pound is missing.
+4. **Live age differs by convention.** The world grader ages each bill on its own. The company's rolling ledger
+   allocates every payment oldest first, so a household that misses one bill and then pays each new one carries
+   the same pounds, aged as the newest bill. On the same pounds the company's >91-day stock is 10-44% of the
+   world's per-bill reading. Which convention Energy UK's 52% and Centrica's bands use is not published, which is
+   a **GAP**. Oldest-first is the rolling-balance practice the company models. So this is not a defect in either
+   side, but the W2_38 age grade (world "older than the record") was read on the per-bill convention, and that
+   needs saying beside it.
+
+**Why there is no step-up.** New closed-account debt in the world, year on year: about +1,040 (2017), +1,056
+(2018), +302 (2019), +526 (2020), +124 (2021), **+100 (2022)**, **+324 (2023)**. The count of indebted closed
+accounts goes 12, 30, 41, 50, 53, **55, 58**. The world makes most of its leaver debt in 2017-18. The company
+writes it off a year later, so its charge lands in 2018-2021, the **pre-crisis** window. That raises the
+denominator of the validator's ratio. The crisis then adds almost no new leaver debt. So the absent step-up is:
+(a) the world's **flow** of indebted leavers falls through the decade, when the record has it rising (Ofgem's
+arrears rose from 2021); and (b) the 365-day write-off clock moves early leaver debt into the baseline years.
+Before (a) is called a defect, it needs reading as possibly a book-composition effect: indebted founders leave
+early, and the payers stay.
+
+**What I cannot yet say.** Whether (a) is selection on a closed 400-founder book (one cast) or a world rule that
+stops indebted households leaving in 2022-23. Real switching froze in 2022, which would lower the flow there
+legitimately, but moves did not. **Prediction, filed before it runs:** by year, leavers' count and share with
+debt over 91 days. The share with debt falls from 2017 to 2021, independently of the crisis, i.e. selection.
+Leavers with debt per 100 accounts on supply in 2022-23 is below 2017-18's.
+
+**Next step.** That leaver census, read off the same probe: the triad's records and the run's churn log. It is
+one cheap run. Then, depending on the answer, a W2 world question (indebted leavers' flow against Ofgem's
+arrears series) or a statement that one founder book cannot show the step-up. The E6 rate leg (a dated matrix)
+stays second, as before.
+
+**Status:** OPEN and BLOCKING. The side moves back to the world, now named precisely: the leaver-debt **flow**,
+not the stock's age and not the seam.
