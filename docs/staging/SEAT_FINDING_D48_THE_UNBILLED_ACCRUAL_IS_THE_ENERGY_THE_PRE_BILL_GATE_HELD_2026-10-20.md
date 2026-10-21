@@ -439,3 +439,55 @@ needs the catch-up fields carried on the published bill, or the run re-assembled
 §4d intends the screen to hold (no earlier read), so a two-month catch-up of ~GBP 1.1k is the rule working, not a
 defect. The GBP 1,000 bound was set before the 08:10Z correction left these two months held. It should be read
 as "no more than the held months", not as a number.
+
+## Back-billing graded on the 8e99f83cd run: the catch-up fields were on the published row all along (worker, 2026-10-21, late)
+
+*Claim `carry-the-catch-up-on-the-published-bill-and-grade-back-billing`.*
+
+**Correction to the section above, beside its claim.** "The published `bills` rows drop the
+`catchup_*` fields" is wrong. On `docs/reports/run_output_8e99f83cd_20261021T145456Z.json`, 4,445
+of 53,314 rows carry the full set: `catchup_period_start/end`, `catchup_periods_covered`,
+`catchup_unbilled_periods`, `catchup_raw_delta_gbp`, `catchup_adjustment_gbp`,
+`catchup_written_off_gbp`, `catchup_back_billing_cap_applied` and `catchup_back_billing_basis`.
+`extract_report_data` passes `bills` through whole. The keys are present only on rows where a
+catch-up fired, so a reader of `bills[0]` sees none. So the item's field change is spent and no
+control was added: there is no trim to guard. The fourth prediction is graded below from the row.
+
+**PROS-2017-0336, the ungraded fourth prediction.** The 2018-02-28 actual bill carries the two held
+months: `catchup_unbilled_periods` 2, covering 2017-12-01..2018-01-31, undercharge, **GBP 1,171.79**.
+So "below GBP 1,000" is **NOT MET** (the inference from totals, ~GBP 1,250, was close). As the
+section above says, two held months is the screen doing what §4d intends. The account's
+**largest catch-up on the run is GBP 4,224.94**, on the 2023-03-31 bill: 21 issued estimates,
+2021-06-01..2023-02-28, undercharge, on direct debit, not capped on the bill. Next are GBP 2,179.81
+(2025-03, 7 months) and an overcharge of -GBP 2,035.05 (2020-06, 14 months).
+
+**Every catch-up reaching back more than 12 months.** "Reaches back" means its covered period
+starts before the bill's period end less 12 months. That is SLC 21BA.1's window, read from the
+bill's date (`back_billing_and_liability.md` §1; commons
+`regulatory/slc_21b_21ba_reads_and_back_billing.md`). The K8 page states the rule (§K3), so it needed
+no amendment.
+
+| | catch-ups | of which |
+|---|---|---|
+| reach back >12 months | **371** of 4,445 | 203 overcharge (a refund, not barred), **168 undercharge** |
+| undercharge, pay on bill (standard credit, prepayment) | 39 | 35 capped on the bill (GBP 638.62 written off, all after May 2018); 4 uncapped, all billed before 1 May 2018 (21BA.2(a)) |
+| undercharge, direct debit | 129 on 112 accounts, GBP 11,347.79 on the bills | by design not capped on the bill (basis `direct_debit_barred_at_the_charge_recovery_action`); 15 before May 2018 |
+| held by the pre-bill gate | 0 | |
+
+So **no pay-on-bill catch-up after the rule takes effect breaches 21BA.** The 129 direct-debit
+catch-ups are the published design. On DD a bill is a statement, not a demand (Ombudsman stance;
+Ofgem's 7 May 2020 letter). 21BA bars the shortfall in DD money at the recovery action (the review
+that resets the DD, or the final bill), not the catch-up line (`back_billing_and_liability.md`
+§1 consequences 2-3). To read those bars I rebuilt the DD balance book from this run's bills and
+openings (`dd_balance_book.build_dd_balance_book`, closed set by `closed_ids_from_bills`, review
+seeks the balance, dual-fuel offsets on). It reproduces the published summary to the penny: GBP
+23,660.42 at reviews, GBP 2,936.96 at final bills, 289 customers barred. Of the 112 DD accounts with
+an over-12-month undercharge, 65 had some bar and 5 are not in the book. PROS-2017-0336's GBP 4,225
+became one bar of **GBP 114.38**, at the 2023-10-01 review: the DD money it had collected covered
+the rest (Ombudsman Scenario B).
+
+**What the published surface still cannot say.** The per-account `bar_actions` are not in the run
+output. Only the summary is, so "was this account's back-bill barred" needs the rebuild above. It
+takes about a minute and is exact, so publishing them is a convenience and is not filed as a gap.
+Nothing here counts the energy older than 12 months inside a DD catch-up: the bar is money short
+at the action, by design.
