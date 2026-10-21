@@ -820,3 +820,70 @@ belief further.
 **Launched 2026-10-21 21:39Z.** Unit `longjob-pcs-arm-all-on-ending-term`. It runs from the locked worktree
 `/var/tmp/se-pcs-arms4` (HEAD `7a7ad95dc` plus this commit's arm-tool change, no other diff) and
 writes `/var/tmp/se-pcs-arms-out/all_on_ending_term.{json,log}`. Expect about 2.5 h, as §6's arms took.
+
+### 11. Grade (2026-10-21 ~22:40Z, `all_on_ending_term.json` present, rc=0)
+
+**What ran.** Unit `longjob-pcs-arm-all-on-ending-term`, 21:39–22:32Z (53 min). The output stamps
+`7a7ad95dc` and tags `all_on_ending_term`. Graded by `/tmp/pcs11/grade.py`, which reuses §10's
+`kind_at`, §9's 268 rows and the same bootstrap. Run with `all_on.json` in place of the new arm as a
+placebo, it reproduces §6 to the penny and reads "hand-over failed": no state lower, AUC 0.333.
+
+| figure | flat | all_on | all_on_ending_term |
+|---|---|---|---|
+| `provisioned_net_gbp` | £600,902.77 | £600,806.22 | **£602,027.96** |
+| `provisioned_bad_debt_gbp` | £125,212.58 | £124,805.98 | £125,318.59 |
+| departures | 353 | 354 | 353 |
+| retention offers / cost | 0 / £0 | 113 / £2,837.65 | **134 / £3,382.15** |
+| desk rows / claimed value | – | 1,362 / £121.0 | 1,368 / £112.5 |
+| bills | 53,256 | 53,314 | 53,446 |
+
+- **P11a HELD: the run loop hands the type over.** On default-term desk states from 2017, present in
+  both arms, `monthly_hazard` is lower on 216 of 222 (97.3%). That is 194 of 198 `default` and 22
+  of 24 `default_after_declined_fix`. The 6 that are not lower include the one 2017 `default` state,
+  where the multiplier is unconditioned because 2016 closed no default renewal. The pre-2017 leg
+  holds on 2 of 2 states, both identical. That is a small population and is read as such. Fix-end
+  states from 2017 read **higher** on 222 of 229. I did not predict that, and the next bullet is why.
+- **The in-run multipliers, implied per state as `ln(1−p')/ln(1−p)` (median by type and year).**
+  `default` reads 0.42 in 2018 (fit on 2017 alone), then 0.022 in 2019, falling to 0.006 by 2025.
+  §10 read 0.022 offline. **`fixed` reads 3.39 in 2017, fit on 2016's closed renewals alone,** then
+  1.01 to 1.23 from 2018. §10's design applies "no prior and no shrinkage". So in the run's first
+  conditioned year, one year of the company's own history triples the fix-end hazard in survival
+  space. Offline §10 fitted at 2019-01-01 only, so it never met this year.
+- **P11b HELD.** In-run AUC is 0.819 [0.757, 0.873] on all 268 states. Paired against the `all_on`
+  belief it is [+0.383, +0.578]. The mean belief is 0.092 against 0.172 realised, the under-read
+  §10's P10e named.
+- **P11c REFUTED on count, direction and cost.** Offers rose to 134 (range 95–112). Default-term
+  offers fell from 11 to 3, against "≤ 1". The 2 `default_after_declined_fix` offers that remain are
+  dated 2018-12 and 2019-03, where that type's multiplier was still 0.90 and 0.35. Fix-end offers
+  rose from 102 to 131, against ±8. Cost rose £544, where I predicted a fall of £450. The cause is
+  the 2017 fix-end multiplier above. It was in the design §10 published, and I missed it when I
+  wrote §11.
+- **P11d HELD.** Advised 2019+ default rows fell from 295 to 160 (below 200; my point was 100). Fix-end
+  rows went from 180 to 175 (±25). Claimed value went from £121.0 to £112.5.
+- **P11e HELD on count; its reasoning is REFUTED.** Departures are 353 and 1 save, both in range.
+  But the departure sets differ by five households. Under the new arm SYN-2016-399 and SYN-2016-541
+  leave, as they do under flat. Under `all_on` PROS-2016-0098, SYN-2016-369 and OCC-d69e9e947a9e
+  leave instead. SYN-2016-541's `all_on` offer was a **default-term** one (2023-11-24, belief
+  0.74). Without it the household leaves later. So "the world rolls no departure at a default
+  renewal, so a default-term offer buys nothing" is wrong: the offer's rate carries into the
+  later SVT-drift hazard. PROS-2016-0098 gets a second offer (2021-03-30) under the new arm and
+  stays.
+- **P11f: in range, outside the tie band, NOT attributable.** New − flat is **+£1,125.18** (range
+  [−£1,500, +£2,000], point +£350). New − `all_on` is +£1,221.73 (point +£450). Revenue is £7.8k
+  higher on 132 more bills, and bad debt £513 higher. More than one thing changed: the 2017 fix-end
+  offers, the withdrawn default-term offers, and which five households leave. **I cannot yet say**
+  whether better aim made the money. Five households trading places on one seed is the same size
+  of swap as flat against `current` in §6 (F2). So I grade it as book divergence until seeds
+  separate it. Erring against the thesis (F11), the reading is a tie of about £1k on one seed, not
+  value created.
+
+**By the decision rule.** P11a holds and P11b's bound clears 0.5. The switch carries its aim into
+the run. **It is not yet the candidate for CURRENT_POLICY** that the rule names, because the run
+showed a defect the offline grade could not reach. The first conditioned year reads a multiplier of
+3.39 off one year of history. That is a number the mechanism picks for itself because a number
+was needed, which is the K2 failure, and it is what moved the offers and their cost. The next step
+is knowledge first (K8): what published evidence gives as the fix-end and default-tariff switching
+rate a supplier could hold as a prior. EFTC 2019 is on the knowledge page §5. The step then decides
+between that prior, with the ledger's counts shrinking toward it, and a minimum closed-renewal count
+before a type's multiplier applies, the latter refusing with a named reason. After that the arm
+reruns. The money question stays open, and seeds are what answer it (EP17).
