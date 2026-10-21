@@ -1433,8 +1433,9 @@ never produced.
 
 No row has a published figure. So none is typed in. **Each lift is learned from the company's own
 book**, the way `company/pricing/default_belief.py` learns default by method and arrears state. The
-learned quantity is P(pays / misses / closes in the monthly step the signal arrived in | payment
-method, signal), counted at each signal's own date. Each cell is shrunk to the book's pooled outcome
+learned quantity is P(pays / misses / closes in the monthly step a reading applies the signal to |
+payment method, signal, that step's lag from the month the signal is about), counted from accounts
+in missed state 0 at that step's start (choice 6, amended 2026-10-21). Each cell is shrunk to the book's pooled outcome
 after that signal across methods (`PRIOR_TRANSITIONS`). **A signal the book has never resolved is a
 GAP**: the account's provision is None with that reason, and the book total is None. It is never
 filled with a prior. The vendor cure figures above are not used. They are SME or a ceiling, and
@@ -1473,12 +1474,35 @@ using them would be a picked number.
    taken out.** The first draft took signalled months out of the chain. Printed at the fixture, that
    stripped the bad history from missed states 1-3, and a fresh code 0 then provisioned at *less*
    than no signal.
-6. **The signal sets the first monthly step only**, the one it arrived in, with a 31-day window
-   (`SIGNAL_WINDOW_DAYS`, the chain's grain, a named simplification). Later steps run on the chain.
-   **Corrected 2026-10-21, graded on a run:** the step LEARNED is the one the signal arrived in, but
-   the step the reading APPLIES it to is the next month. With every collection on the 28th, the
-   learned outcome is mostly the failed collection itself: P(miss | DD, code 0) is 80% as built and
-   18% when learned on the next month. As built, the on arm's error is about twice the off arm's.
+6. **The signal sets the first monthly step only, and is learned on that same step, from the same
+   population.** *(Amended 2026-10-21, the build's fix for D1 and its answer to D2.)* A signal now
+   carries the month it is ABOUT: the returned collection's value date, or the missed bill's due
+   date. A forecast reads it only if it arrived in the 31 days to the forecast date
+   (`SIGNAL_WINDOW_DAYS`) and the forecast's first step is that month (lag 0, a read inside it) or
+   the month after (lag 1). The book learns each lag on exactly that step, from accounts in missed
+   state 0 at the step's START, which is the reading's own guard (choice 5) at the reading's own
+   position. A lag-1 cell is never pooled with a lag-0 cell (`SIGNAL_LAGS`, a named
+   simplification: lag 2 and later are the chain's). Later steps run on the chain.
+   - **Why the lag is keyed rather than fixed at "the next month".** In the run's world every
+     collection is on the 28th and every read is a month-end or a 15th, so every read there is lag
+     1. A supplier collecting on a household-chosen date (real GB practice) and reading inside the
+     month is lag 0, and for that read the failed month IS the step being forecast. One cell for
+     both is the original defect from the other side.
+   - **The original label, kept beside its correction (graded 2026-10-21 on a run):** the step
+     learned was the one the signal arrived in, while the reading applied it to the next month.
+     With every collection on the 28th, the learned outcome was mostly the failed collection
+     itself: P(miss | DD, code 0) was 80% as built and 18% when learned on the next month. As
+     built, the on arm's error was about twice the off arm's.
+   - **D2: the guard stays on the chain's missed state, not on the FIFO age of the oldest unpaid
+     bill.** A household one collection behind that pays every month is in state 0 (31% of code-0
+     months on the run's book: cash for an older bill made the month "paid"). A FIFO-age guard
+     would be a second definition of "behind" beside the chain's, read at the forecast date and
+     learned on a population the chain does not use. With learning guarded at the step's start,
+     the lag-1 cell is learned on exactly the households the month-end reading applies it to,
+     these ones included, so whatever they do is what the cell says. The household whose returned
+     month left it unpaid is in state 1 at the month-end: the chain carries it and the signal is
+     neither read nor learned at lag 1. **GAP:** whether a FIFO-age guard would forecast better is
+     untested; it is a one-variable arm on the same capture if a caller ever wires the switch.
 7. **Point in time**: a return is dated when the company observed it, not by its collection's value
    date.
 8. **Off by default.** The signals reach the provision only when a caller passes `signals_of`. The
@@ -1490,7 +1514,7 @@ using them would be a picked number.
 **Printed at the fixture (2026-10-21), as a sanity check, not evidence about the world:** a
 direct-debit account 16 days into a bill whose collection came back code 0 provisions GBP 21.54 of
 GBP 60 owed, against GBP 0.56 with the signals off. A manual payer past a missed due date provisions
-GBP 40.39 against GBP 0.65. A code 1 return moves nothing. Accounts with no signal are unchanged to
+GBP 40.39 against GBP 0.65 (both unchanged by the choice-6 fix: that fixture reads at lag 0). A code 1 return moves nothing. Accounts with no signal are unchanged to
 the penny.
 
 ### Graded on the default run's book (2026-10-21)
@@ -1501,7 +1525,14 @@ on arm's mean absolute error is 3.75 against the off arm's 1.70 at quarter-ends,
 mid-month. With the label of choice 6 corrected it is 1.86 against 1.70 and 3.68 against 3.51: about
 neutral. The chain alone is already near the realised shortfall (GBP 773 provisioned against GBP 725
 lost mid-month). This world's code-0 households mostly settle the returned amount a month or two
-later, and its bad debt runs 5-7x low (`553d7c855`), so this says nothing about real GB signals. Grade: `docs/staging/SEAT_FINDING_THE_EARLY_WARNING_DOUBLES_THE_PROVISIONS_ERROR_BECAUSE_IT_LEARNS_THE_FAILED_MONTH_AS_THE_SIGNALS_OUTCOME_2026-10-21.md`.
+later, and its bad debt runs 5-7x low (`553d7c855`), so this says nothing about real GB signals. Grade: `docs/staging/done/SEAT_FINDING_THE_EARLY_WARNING_DOUBLES_THE_PROVISIONS_ERROR_BECAUSE_IT_LEARNS_THE_FAILED_MONTH_AS_THE_SIGNALS_OUTCOME_2026-10-21.md`.
+
+**Re-graded with choice 6 amended (2026-10-21, same capture, pre-registered).** On the account-dates
+every arm reads (120 quarter-end, 415 mid-month), MAE is off 1.81 / 3.52, as built 3.89 / 6.13,
+fixed 1.95 / 3.73. The worst book-total move is 0.7% / 1.1%, against 10.4% / 11.1% as built. The
+lag-1 cell learns P(miss | DD, code 0) = 22% (19 of 87), and the failed month, lag 0, 84%. The
+early warning is now honest about what it predicts, and on this book it predicts slightly worse
+than the chain alone. It stays off. Grade: `docs/staging/records/SEAT_PREREG_THE_EARLY_WARNING_LEARNED_ON_THE_STEP_IT_IS_READ_FOR_2026-10-21.md`.
 
 ### GAPs this build carries rather than fills
 
@@ -1510,4 +1541,4 @@ later, and its bad debt runs 5-7x low (`553d7c855`), so this says nothing about 
 | P(default) given a first code 0, a second code 0, a missed manual payment | learned from the book; None until the book has resolved one |
 | P(default) given an ADDACS cancellation | not read; waits for `W2_41` |
 | The cure share of a plain Bacs re-presentation on domestic energy | the company does not re-present, so it is not needed yet |
-| Whether a supplier's provision reads payment status inside the month or only at month-end | read on the forecast date; a month-end read already has the miss in the chain. **Corrected 2026-10-21:** for 31% of code-0 months it does not (cash for an older bill made the month "paid") |
+| Whether a supplier's provision reads payment status inside the month or only at month-end | read on the forecast date; a month-end read already has the miss in the chain. **Corrected 2026-10-21:** for 31% of code-0 months it does not (cash for an older bill made the month "paid"); choice 6 now learns those households at lag 1, on the month the reading applies the signal to |
