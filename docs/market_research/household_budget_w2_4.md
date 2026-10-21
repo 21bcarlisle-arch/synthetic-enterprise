@@ -557,3 +557,48 @@ population, which stays an open robustness question.
 the GAP above, not a measured split. On this seed, the off world's Q4 2022 heads share falls rather
 than rises. The crisis shows in the pounds behind (£94, then £142, then £302), not in the share of
 heads.
+
+## 2026-10-22: stock or demand. What the pro-rata line shares against (K8, knowledge before the arm)
+
+**The question** (from the crisis bad-debt finding, "the depth is the shortfall rule's fixed point", and
+the world finding on parked arrears, 2026-10-21): when a household is short, is its shortfall shared
+between the basket and energy in proportion to **what it owes on energy in total** (the arrears stock
+plus this month's bill), or to **this month's demand** (this month's bill)?
+
+**What the record can say.** Nothing direct. The JRF and ONS rows above establish that food and energy
+are short *together* and that housing is protected. They publish heads, never pounds, and nothing about
+how a household weighs an old balance against a new bill. What the record does say is the outcome a
+rule must be able to reach: Ofgem's average electricity arrears are **£555 (2017) to £1,303 (2023)**
+per account in arrears, about most of a year of that fuel's bill, and **rising every year**
+(`debt_and_collections.md` §2.5a). Debt advice (StepChange, Citizens Advice) budgets a household's
+essentials and its current energy use first, then offers what is left against arrears: a demand
+reading, but normative, not a measurement of what households do before advice.
+
+**What the stock reading does, measured.** Sharing against the stock lets energy's part `A·O/(C+O)`
+grow as the debt `O` grows, so the debt stops at `O*/B = C/(A−B)` bills. Over the 256 credit
+account-years whose margin is below their bill (world dump to 2023), that cap is a median **1.67
+bills** (p90 3.49), and the world's live arrears are 1.4-2.4 months of bill at every 31 December
+against the record's most of a year. A household with a large backlog also cuts food to repay it even
+when this month's money covers this month's basket and bill. No source supports that, and debt
+advice says the opposite.
+
+**What the demand reading does, printed at real inputs before the build** (same 256 account-years,
+`/var/tmp/leaver_trace/demand.py`). Energy's part is `A·B/(C+B)` while `A < C+B`, so the stock grows
+by `1 − A/(C+B)` bills a month with no cap: a median **0.34** (p25 0.15, p90 0.63), about **4 bills a
+year** (p90 7.6). The spell is ended by the income move (0.41 a year, above), not by the rule.
+2016-23 medians run 0.24-0.40 a month, with no crisis step in the rate itself; the crisis enters
+through more households having `A < C+B` and through larger bills.
+
+**The choice, and why.** The demand reading: the basket is short by the fraction this month's money
+falls short of this month's basket and bill, `basket = min(C, C·A/(C+B))`, and everything else after
+housing goes to energy, oldest bill first. A household that can meet this month keeps its basket
+whole and repays the backlog out of the rest. It is still a stated belief. **GAP (unchanged): how a
+pound of shortfall divides between going without and arrears.** This changes only what the pro-rata
+line is pro rata *to*. Code: `THE_SHORTFALL_IS_SHARED_ON_THE_MONTHS_DEMAND` in
+`simulation/household_budget.py`, default False, read only inside `ENERGY_SHARES_THE_SHORTFALL`. It is
+decided blind to company results and graded world-only on the depth column. Pre-registration:
+`docs/staging/records/SEAT_PREREG_THE_SHORTFALL_SHARED_ON_THE_MONTHS_DEMAND_2026-10-22.md`.
+
+**What can refute it.** Overshoot is the risk the stock reading never had: with no cap, a household
+under water for several years can owe several years of bills, and the record's average is under one.
+The pre-registration bounds it from above as well as below.

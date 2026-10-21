@@ -302,3 +302,56 @@ def test_the_basket_share_is_spent_not_saved_defect_going_without_banks_the_mone
     under, _, _ = _ids_by_margin(2022)
     unpaid, _ = _unpaid_after_a_year(under[0], True)
     assert unpaid >= 1
+
+
+# SHARED ON THE MONTH'S DEMAND (2026-10-22): `household_budget_w2_4.md`, "2026-10-22: stock or demand".
+
+def _unpaid_on(cid, on_demand, months=12, amount=60.0):
+    book = hb.BudgetPaymentBook(energy_shares_the_shortfall=True, shared_on_demand=on_demand)
+    for r in range(months):
+        book.settle_month(supply_point=cid, household=household_of(cid), year=2022,
+                          amount_gbp=amount, legs=1, ref=r)
+    return len(book.unpaid_of(cid))
+
+
+def test_the_demand_switch_is_read_and_off_until_graded_defect_a_world_change_with_no_paired_arm(monkeypatch):
+    for on in (True, False):
+        monkeypatch.setattr(hb, "THE_SHORTFALL_IS_SHARED_ON_THE_MONTHS_DEMAND", on)
+        assert hb.BudgetPaymentBook()._on_demand is on
+    monkeypatch.undo()
+    if hb.THE_SHORTFALL_IS_SHARED_ON_THE_MONTHS_DEMAND:
+        records = Path(hb.__file__).resolve().parents[1] / "docs/staging/records"
+        assert list(records.glob("*_RESULT_*SHARED_ON_THE_MONTHS_DEMAND*")), "on with no graded arm"
+
+
+def test_on_demand_the_backlog_deepens_past_the_stock_rules_cap_defect_energy_share_grows_with_the_debt():
+    """The partition: over households under water in 2022, the demand rule leaves MORE bills unpaid
+    after two years than the stock rule for at least one, and never fewer. A demand branch that is
+    never taken, or that pays more than the stock rule, fails."""
+    under, _, comfortable = _ids_by_margin(2022)
+    pairs = [(_unpaid_on(cid, True, 24), _unpaid_on(cid, False, 24)) for cid in under[:6]]
+    assert any(d > s for d, s in pairs), pairs
+    assert all(d >= s for d, s in pairs), pairs
+    assert _unpaid_on(comfortable[0], True) == _unpaid_on(comfortable[0], False) == 0
+
+
+def test_on_demand_a_household_short_only_of_its_backlog_keeps_its_basket_defect_food_cut_to_repay_stock():
+    """A household whose money after housing covers this month's basket and bill is not short this
+    month: energy gets everything after the basket, so its backlog clears no slower than if the
+    basket were paid first and faster than the stock rule allows it to grow. Built with a backlog
+    the stock rule would make it starve the basket to repay."""
+    _, short, _ = _ids_by_margin(2022)
+    cid = short[0]
+    b = hb.budget_in_year(hb.draw_household_budget(household_of(cid)), 2022)
+    margin = hb.margin_in_year(b, 2022)
+    assert 0 < margin
+    bill = round(margin / 2, 2)
+    book = hb.BudgetPaymentBook(energy_shares_the_shortfall=True, shared_on_demand=True)
+    st = {"budget": hb.draw_household_budget(household_of(cid)), "savings": 0.0, "cap": 0.0,
+          "unpaid": [("old", round(margin * 3, 2))]}
+    book._legs[cid] = st
+    paid, earlier = book.settle_month(supply_point=cid, household=household_of(cid), year=2022,
+                                      amount_gbp=bill, legs=1, ref="now")
+    # Everything after the basket, `margin`, is energy's: not enough for the old bill, so it is held.
+    assert not paid and earlier == ()
+    assert book._legs[cid]["savings"] == pytest.approx(margin, abs=0.01)
