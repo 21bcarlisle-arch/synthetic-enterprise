@@ -316,11 +316,13 @@ items:
     match:
     - was declared at 50 minutes and has held its admission
     first_seen: '2026-10-10'
-    fate: fix
-    status: open
-    owner: background/resource_headroom.py
-    reason: 'Live again on 2026-10-12: sim-runner deferred every cycle from 14:54 to past 16:43 to resident
-      long jobs, and the week''s publish waits on it. A declaration needs an expiry the admission enforces.'
+    fate: accept
+    owner: ''
+    reason: 'Accepted 2026-10-21 by the delivery seat, was fix/open (background/resource_headroom.py). Live
+      on 2026-10-12 (sim-runner deferred 14:54 to past 16:43). Since then about 40 register jobs ended
+      with none past its declaration; every long wait read in that time was admission working, not an
+      overrun. The expiry is unbuilt and the row had grown 30 tails of "still not built". Reopen as fix
+      on the first register job that runs past its declared minutes.'
   - id: the-seat-named-a-job-it-had-not-read
     problem: The seat named a running job that did not exist, without reading the launch record.
     match:
