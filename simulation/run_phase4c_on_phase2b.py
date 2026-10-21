@@ -262,9 +262,10 @@ def simulated_council_tax_listing(customer_data: dict | None) -> bool | None:
     """The world's answer to the supplier's council-tax lookup on one supply address.
 
     Every premise in the drawn stock is an England HOUSING-stock dwelling, so every account the
-    world drew a dwelling for is listed (True). Anything else -- a hand-authored founder, an SME
-    point -- is None, not False: the world holds no premise record for it to answer from, and a
-    None releases nothing (`pre_bill_validation.release_confirmed_domestic`).
+    world drew a dwelling for is listed (True), and so is a hand-authored founder authored as a home
+    (`_authored_dwellings`). Anything else -- an SME point, a business founder -- is None, not
+    False: the world holds no premise record for it to answer from, and a None releases nothing
+    (`pre_bill_validation.release_confirmed_domestic`).
 
     The list is of ADDRESSES, so it is asked about the dwelling, not the account. An incoming
     occupier is supplied at the premise its predecessor vacated (`incoming_occupant_of`, followed
@@ -273,7 +274,28 @@ def simulated_council_tax_listing(customer_data: dict | None) -> bool | None:
     """
     if not customer_data or not customer_data.get("customer_id"):
         return None
-    return True if _supply_address_of(customer_data) in _listed_dwellings() else None
+    address = _supply_address_of(customer_data)
+    if address in _listed_dwellings() or address in _authored_dwellings():
+        return True
+    return None
+
+
+@functools.lru_cache(maxsize=1)
+def _authored_dwellings() -> frozenset:
+    """The hand-authored founders whose world record is a home: a flat, a semi, a detached house.
+
+    They draw no premise, but the world authored each as a dwelling (`home_type`, which
+    `dwelling_records.PROPERTY_TYPE_BY_HOME_TYPE` maps), and every GB dwelling is on a council tax
+    list. Read as None, a founder's home and every occupier after it held its actual-read ceiling
+    bills for good: OCC-d8e674fa38de at C8's semi, 2018-2025 (D48). A small office or a warehouse
+    is not a home type, so it stays None.
+    """
+    from simulation.dwelling_records import PROPERTY_TYPE_BY_HOME_TYPE
+
+    return frozenset(
+        c["customer_id"] for c in _PHASE2B_CUSTOMERS
+        if c.get("home_type") in PROPERTY_TYPE_BY_HOME_TYPE
+    )
 
 
 def _supply_address_of(customer_data: dict) -> str:

@@ -900,6 +900,38 @@ copy fetched returned a web page, not the document]; the gas code's assessment m
 
 ---
 
+### 4c. A domestic-ceiling hold the council tax list cannot answer (2026-10-21, K8 for D48)
+
+**What the rules require.** The VAT reduced rate on fuel and power applies to a "qualifying use":
+supply to a dwelling, or supply under the de minimis. The de minimis is 33 kWh a day or 1,000 kWh a
+month of electricity, and 145 kWh a day or 4,397 kWh a month of gas [H] HMRC, *VAT Notice 701/19*,
+s.3.2.1, 4.2, 5.2. "The provider must be certain that the supply is to a dwelling" (s.3.2.1). A
+supplier that applies the reduced rate wrongly "and cannot satisfy us that you have taken reasonable
+steps" pays the VAT it undercharged (s.3.1). Where a premises is in mixed use, the supplier "should
+obtain a certificate from your customer" declaring the qualifying percentage (s.3.5). In England and
+Wales the council tax list is public. In Scotland the list is kept by the Scottish Assessors, also
+public, and searchable by address [H] gov.scot, *Council tax*. So a dwelling anywhere in GB is
+somewhere a supplier can look up.
+
+**What follows for a hold the list cannot answer.** No published source describes a supplier's
+exception queue for this. Two steps follow from the rules above. (1) An address absent from the list
+is a reason to ask the customer, not to bill at 20%: the guidance puts the burden on reasonable
+steps, and its own instrument for an uncertain premises is the customer's declaration. (2) An answer
+of "not a dwelling" is a business supply. The account is re-segmented, and the bill issues at the
+standard rate. No published source gives the time a supplier takes over either step.
+
+**What the model does, and why.** In this world every domestic supply point is at a dwelling the
+world either drew (`live_premises`) or authored (the hand-authored founders' `home_type`), and a run
+refuses a resi electricity account with neither (`dwelling_records.build_properties` raises
+`DwellingNotDrawn`). So the world's listing answers for every domestic address it supplies.
+Until 2026-10-21 it did not answer for the authored ones. The four held actual-read bills on
+OCC-d8e674fa38de, at founder C8's semi, were held for that reason and no other.
+`simulation/run_phase4c_on_phase2b._authored_dwellings` is the fix. **Design choice:** the
+contact/certificate route and the re-segmentation route are not built. In this world no domestic
+hold reaches the queue without a listing answer, so either route would be a mechanism nothing
+reaches. **GAP:** an address genuinely missing from the list (a new build before banding, a
+conversion) is not modelled. That is the population the two steps above would serve.
+
 ## 5. What our code does
 
 From a census of this worktree on 2026-10-05 (base `a52651e29`). The load-bearing claims were

@@ -584,9 +584,11 @@ def test_actual_read_bills_are_byte_identical_to_pre_d3(force_actual_reads):
     # not, so these two differ BY CONSTRUCTION. They are an attribution, not a figure — and the
     # money fields, `bill_shock_pct` and `clarity_score` all stay in the compared set, which is
     # what makes this test the check that the channel changed no arithmetic.
+    # `premise_council_tax_listed` likewise (2026-10-21): C1 is a founder authored as a home, so the
+    # world's listing now answers for it. It is read only by the exception queue, never by a charge.
     added_keys = {
         "billing_basis", "bill_shock_yoy_pct", "bill_shock_likely_seasonal",
-        "payment_channel", "bill_shock_population",
+        "payment_channel", "bill_shock_population", "premise_council_tax_listed",
     }
     assert len(new_bills) == len(old_bills)
     for nb, ob in zip(new_bills, old_bills):
@@ -1051,6 +1053,23 @@ def test_the_council_tax_listing_is_asked_about_the_dwelling_an_occupier_moved_i
     assert mod.simulated_council_tax_listing(book[1]) is True
     assert mod.simulated_council_tax_listing(book[2]) is None
     assert mod.simulated_council_tax_listing({"customer_id": "OCC-A"}) is None
+
+
+def test_a_founder_authored_as_a_home_is_on_the_list_and_a_business_founder_is_not(monkeypatch):
+    """Defect: the lookup reads only the drawn premises, so a hand-authored founder's home and every
+    occupier after it read None, and their held actual-read bills are never released (D48:
+    OCC-d8e674fa38de at C8's semi, four bills 2018-2025). Or it lists every founder, and a warehouse
+    (C6, the SME-as-Household class the ceiling exists for) reads as a dwelling."""
+    import simulation.run_phase4c_on_phase2b as mod
+
+    book = [{"customer_id": "OCC-AT-C8", "incoming_occupant_of": "C8"}]
+    monkeypatch.setattr(mod, "incoming_occupant_supply_points", lambda: book)
+
+    assert mod.simulated_council_tax_listing({"customer_id": "C8"}) is True
+    assert mod.simulated_council_tax_listing({"customer_id": "C4g"}) is True
+    assert mod.simulated_council_tax_listing(book[0]) is True
+    assert mod.simulated_council_tax_listing({"customer_id": "C6"}) is None
+    assert mod.simulated_council_tax_listing({"customer_id": "C_IC4"}) is None
 
 
 def test_build_monthly_bills_hands_the_listing_feed_to_bill_assembly(monkeypatch):
