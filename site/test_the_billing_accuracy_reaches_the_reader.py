@@ -16,6 +16,9 @@ R15 -- the mutations, each run and reverted:
   * render the DD money line without its intervals -> `test_the_dd_money_line_reaches_the_reader_with_its_bound` reds.
   * render the DD barred money in the fuels table -> `test_the_dd_money_line_is_never_a_row_of_the_k3_table` reds.
   * drop the `billacc-readduty` render, or count prepayment rows as the duty's -> `test_the_read_duty_register_reaches_the_reader_beside_the_snapshot` reds.
+  * drop the visit cost or its bound, charge instructions not visits, or type the prices into the
+    page -> `test_the_read_visit_cost_reaches_the_reader_with_its_bound` reds; render a missing or
+    unknown visit count as a figure -> `test_a_feed_without_a_visit_count_renders_its_absence_and_never_a_zero` reds.
   * drop the open-exposure or the barred-plus-open column of `billacc-ddarms`, or the step-up
     columns -> `test_both_review_arms_reach_the_reader_with_the_exposure_beside_the_share` and
     `test_the_published_feeds_review_arms_reach_the_reader` red.
@@ -82,11 +85,17 @@ _DD_LINE = {
 }
 
 
-def _year_unread(cid: str, channel: str) -> list[dict]:
-    """Twelve estimated bills in a row on one account: one register row."""
-    return [{"customer_id": cid, "commodity": "electricity", "billing_basis": "estimated",
-             "period_end": f"2024-{m:02d}-28", "consecutive_estimated_count": m,
-             "payment_channel": channel} for m in range(1, 13)]
+def _year_unread(cid: str, channel: str, visit_sent: bool | None = None) -> list[dict]:
+    """Twelve estimated bills in a row on one account: one register row. With `visit_sent`, the
+    12th bill's period carries the read instruction the 11th raised, as `build_monthly_bills`
+    writes it (the fixture keeps the run unread either way, so the register row stands)."""
+    bills = [{"customer_id": cid, "commodity": "electricity", "billing_basis": "estimated",
+              "period_end": f"2024-{m:02d}-28", "consecutive_estimated_count": m,
+              "payment_channel": channel} for m in range(1, 13)]
+    if visit_sent is not None:
+        bills[-1].update(read_instruction_raised="2024-11-28", read_instruction_outcome="no_access",
+                         read_instruction_visit_sent=visit_sent)
+    return bills
 
 
 def _arms() -> dict:
@@ -167,7 +176,8 @@ def _feed(dd_line: dict | None = _DD_LINE, read_duty: bool = True,
     if read_duty:
         # Set beside the view rather than handed in as `bills`, which would re-grade K1 above.
         view["read_duty_register"] = read_duty_summary(
-            _year_unread("A", "direct_debit") + _year_unread("B", "standard_credit")
+            _year_unread("A", "direct_debit", visit_sent=True)
+            + _year_unread("B", "standard_credit", visit_sent=False)
             + _year_unread("P", "prepayment"))
     return view
 
@@ -243,6 +253,40 @@ def test_the_read_duty_register_reaches_the_reader_beside_the_snapshot(shown):
     text = shown["billacc-readduty"]
     assert "electricity: 2 times, on 2 accounts" in text
     assert "SLC 21B.4" in text and "(1 electricity)" in text
+
+
+def test_the_read_visit_cost_reaches_the_reader_with_its_bound(shown):
+    """026b3c650 charges each read visit sent at an area round, with an appointment as the bound,
+    and no page showed either (2026-10-21). Fires on: the cost dropped, the bound dropped, the
+    instructions charged rather than the visits, or the prices typed into the page instead of read
+    from the feed."""
+    text = shown["billacc-readduty"]
+    assert "instructed 2 reads" in text and "and 1 sent a visit" in text
+    assert "at £3.00: £3.00" in text and "at £17.50, it would be £17.50" in text
+    assert "account 6100" in text and "not charged" in text
+    assert "keeps no record of any step" not in text
+
+
+@pytest.mark.parametrize("cost, shows, never", [
+    (None, "not in this feed, so absent rather than zero", "account 6100"),
+    ({"instructions": 0, "visits": 0, "charged_gbp": 0.0, "upper_bound_gbp": 0.0,
+      "price_gbp_per_visit": 3.0, "upper_price_gbp_per_visit": 17.5},
+     "instructed no read", "account 6100"),
+    ({"instructions": 582, "visits": None, "reason": "these bills predate 2026-10-21"},
+     "582 read instructions were raised", "£"),
+])
+def test_a_feed_without_a_visit_count_renders_its_absence_and_never_a_zero(cost, shows, never):
+    """A published run from before the visit flag says which instructions sent a visit for none of
+    them, and a run with the instruction off sent none; neither is a cost of zero visits. The
+    second arm also proves the old no-step sentence is still reachable."""
+    feed = _feed()
+    if cost is None:
+        feed["read_duty_register"].pop("visit_cost")
+    else:
+        feed["read_duty_register"]["visit_cost"] = cost
+    text = _render(feed)["billacc-readduty"]
+    assert shows in text and never not in text
+    assert ("keeps no record of any step" in text) == (cost is None or cost["instructions"] == 0)
 
 
 def test_a_feed_without_the_read_duty_register_renders_its_absence_and_never_a_zero():

@@ -4836,6 +4836,40 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
         + "out, because a twelve-month window cannot be read on them.";
       /* The snapshot asks of one month; the SLC 21B.4 register counts every year that passed. */
       var rd = d.read_duty_register || {};
+      /* What the step costs (2026-10-21): each visit sent is charged as an area round; an
+         appointment is the bound, because which one a supplier sends is a GAP
+         (read_access_and_theft_duties.md s.2.9). An instruction whose ordinary read came in
+         first sent no visit, so visits, not instructions, are what is charged. */
+      var vc = rd.visit_cost;
+      var money2 = function (v) {
+        return v === null || v === undefined || isNaN(v) ? "&mdash;" : "£" + v.toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      };
+      var visitCost = function () {
+        if (!vc) {
+          return "<strong>What the read visits cost:</strong> not in this feed, so absent rather "
+            + "than zero. It was published before visits were counted (2026-10-21).";
+        }
+        if (vc.instructions === 0) {
+          return "<strong>What the read visits cost:</strong> this run instructed no read, so no "
+            + "visit was sent or charged.";
+        }
+        if (vc.visits === null || vc.visits === undefined) {
+          return "<strong>What the read visits cost:</strong> " + esc(vc.instructions)
+            + " read instructions were raised. How many sent a visit is not known, so the cost "
+            + "is absent rather than zero: " + esc(vc.reason) + ".";
+        }
+        return "<strong>What the read visits cost:</strong> the supplier instructed "
+          + esc(vc.instructions) + " reads, on the 11th estimate in a row, and " + esc(vc.visits)
+          + " sent a visit. The rest sent none, because the ordinary read came in first. "
+          + "Each visit is charged as a routine read on an area round, at "
+          + money2(vc.price_gbp_per_visit) + ": " + money2(vc.charged_gbp)
+          + ", booked to operating costs (account 6100). If every visit were a booked "
+          + "appointment, at " + money2(vc.upper_price_gbp_per_visit) + ", it would be "
+          + money2(vc.upper_bound_gbp)
+          + ". No published source says which of the two a supplier sends, so the higher figure "
+          + "is shown as the bound and is not charged. Both prices are meter operators' figures from "
+          + "before 2015, quoted by Ofgem in 2015, and are used unchanged for every year.";
+      };
       $("billacc-readduty").innerHTML = "<strong>A year past the last read, over the whole run."
         + "</strong> "
         + (rd.available === false || !rd.by_fuel
@@ -4846,11 +4880,16 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
           }).join("; ")
           + ". Each is a run of " + esc(rd.year_bills) + " estimated bills in a row with no "
           + "actual read. The licence (SLC 21B.4) asks a supplier to take all reasonable steps to "
-          + "get a read at least once a year. This supplier keeps no record of any step, so each "
-          + "is a year it cannot show it tried. Prepayment is outside that duty and is left out ("
+          + "get a read at least once a year. "
+          + (vc && vc.instructions > 0
+            ? "The step this supplier takes is the read instruction below. "
+            : "This supplier keeps no record of any step, so each is a year it cannot show it "
+              + "tried. ")
+          + "Prepayment is outside that duty and is left out ("
           + Object.keys(rd.by_fuel).sort().map(function (f) {
             return esc(rd.by_fuel[f].prepayment_rows) + " " + esc(f);
-          }).join(", ") + "). The figure above asks only of the accounts on supply in one month.");
+          }).join(", ") + "). The figure above asks only of the accounts on supply in one month. "
+          + visitCost());
       $("billacc-yearend").innerHTML = table(
         "At each year end: what was billed on estimates and still open, and what the next read showed",
         ["", "Year end", "Open on estimate", "Runs graded", "Runs never read",
