@@ -1405,3 +1405,92 @@ days at most about 0.2%. At Octopus the gross receivable is 44% covered, against
 The 2026-10-12 fidelity check puts the cause in the world: the world writes off a fifth to a
 seventh of what a large supplier does per pound billed. A write-off cannot create a loss the world
 never produced.
+
+## Early warning in the forward-cash-forecast provision: which signals move P(paid) before the age band, and by how much (2026-10-21)
+
+*The second slice of the payment-and-debt engine, §9c of the 2026-10-11 seat proposal. The build is
+`company/finance/cash_forecast_provision.py`, the section above's first slice. Its control is
+`tests/company/finance/test_the_early_warning_signals_move_the_provision.py`.*
+
+### What the rules require (ESTABLISHED, already quoted on this page)
+
+- **The estimate must use what the entity knows now.** IFRS 9 5.5.17(c) and B5.5.52 (rule 5 in the
+  section above): history is the anchor, adjusted for current conditions, and *"directionally
+  consistent with ... payment status"*. A returned direct debit or a missed due date is a change in
+  payment status that the company holds on the day it arrives. A provision that ignores it until the
+  bill is 91 days old fails the "current conditions" leg. It does not fail the arithmetic.
+- **A shortfall is a shortfall whenever it is learned** (B5.5.28, rule 1). The signal moves the
+  expected cash. It does not move the definition of loss.
+
+### What is published on each signal's lift (the evidence)
+
+| Signal (§9c) | Arrives | Published P(default or cure) given the signal | Source |
+|---|---|---|---|
+| 1. A cancelled mandate (ADDACS 0/1) | the working day after the bank inputs it | **NOT ESTABLISHED** | `dd_failure_basis_and_live_arrears_provision_rates.md` §6 |
+| 2. ARUDD code 0, "refer to payer" | about S+3 to S+4 | **NOT ESTABLISHED**: no published P(default given a first code 0) | same, §2 and §6 |
+| 3. A re-presentation returned code 0 again | inside one month of the original | **NOT ESTABLISHED**: cure share vendor-only (22% Jellyfish SME; up to 70% a ceiling) | same, §3 |
+| 4. A missed manual payment | its due date | **NOT ESTABLISHED** for GB domestic energy | none found |
+
+No row has a published figure. So none is typed in. **Each lift is learned from the company's own
+book**, the way `company/pricing/default_belief.py` learns default by method and arrears state. The
+learned quantity is P(pays / misses / closes in the monthly step the signal arrived in | payment
+method, signal), counted at each signal's own date. Each cell is shrunk to the book's pooled outcome
+after that signal across methods (`PRIOR_TRANSITIONS`). **A signal the book has never resolved is a
+GAP**: the account's provision is None with that reason, and the book total is None. It is never
+filled with a prior. The vendor cure figures above are not used. They are SME or a ceiling, and
+using them would be a picked number.
+
+### The build's choices (company side)
+
+1. **Signals 2-4 only.** Signal 1's whole value is that it arrives *before* a collection fails. The
+   world does not yet produce that. A household's cancellation reaches the company as an ARUDD 1 on
+   the next collection, with an ADDACS a day behind it (`simulation/payment_seam_adapter.py`,
+   `MandateNotificationStream`; `simulation/dd_shock_response.py`). Atom `W2_41` (a household cancels
+   its mandate as its own act, seen the way Bacs tells it) is at level 0. A reader for an advice that
+   never leads would add no lead time, so it waits for `W2_41`.
+2. **Only code 0 is about money, and only code 0 is read.** The code is the real ARUDD code the seam
+   carries (`interface/contracts/payment_observable_seam.py::arudd_reason_code_for`, read through `payment_observation_consumer.is_refer_to_payer`). Codes 1, 2, 3
+   and the unsourced categories are administration, the company's own errors, a death or a departure
+   (§6 implication 3). They are never pooled into a "DD failure" signal. The control parametrises
+   over every other category.
+3. **Signal 3 is "a second code 0 on the same mandate inside one month of the first collection"**
+   (the Bacs re-presentation window, §3). This company does not yet re-present
+   (`company/billing/dd_collections_desk.py`, PB8). On its book, then, a second return is next
+   month's collection. That always follows a missed month, so by choice 5 the signal is never read
+   there. It becomes readable when the company re-presents inside the month.
+4. **A missed manual payment** means: on a bill billed on a method other than direct debit, less than
+   half the bill (`PAID_MONTH_SHARE_OF_MEDIAN_BILL`, the chain's own threshold) arrived between the
+   bill and its due date (`PAYMENT_TERMS_DAYS`, 14), while the account owed money. "The bill is
+   unpaid by FIFO on its due date" was tried first and rejected when its numbers were printed. It
+   fires every month on a household that fell one bill behind and pays every bill since.
+5. **A signal is read only while the account's missed-month state is 0.** It is early warning only
+   while the track record does not yet carry it. After a missed month, the roll-rate chain has it.
+   Reading the signal as well would count one miss twice, and it would apply a cell learned mostly
+   on fresh misses to chronic debtors. **The chain is learned beside the signals, never with them
+   taken out.** The first draft took signalled months out of the chain. Printed at the fixture, that
+   stripped the bad history from missed states 1-3, and a fresh code 0 then provisioned at *less*
+   than no signal.
+6. **The signal sets the first monthly step only**, the one it arrived in, with a 31-day window
+   (`SIGNAL_WINDOW_DAYS`, the chain's grain, a named simplification). Later steps run on the chain.
+7. **Point in time**: a return is dated when the company observed it, not by its collection's value
+   date.
+8. **Off by default.** The signals reach the provision only when a caller passes `signals_of`. The
+   module has no production caller: the run's provision is the age-band stock in
+   `company/pricing/default_belief.py`, and this engine is graded beside it (choice 6 of the first
+   slice). So no queued arm's book can move. A `DecisionPolicy` field would have no reader. The
+   switch is the argument.
+
+**Printed at the fixture (2026-10-21), as a sanity check, not evidence about the world:** a
+direct-debit account 16 days into a bill whose collection came back code 0 provisions GBP 21.54 of
+GBP 60 owed, against GBP 0.56 with the signals off. A manual payer past a missed due date provisions
+GBP 40.39 against GBP 0.65. A code 1 return moves nothing. Accounts with no signal are unchanged to
+the penny.
+
+### GAPs this build carries rather than fills
+
+| GAP | What the build does instead |
+|---|---|
+| P(default) given a first code 0, a second code 0, a missed manual payment | learned from the book; None until the book has resolved one |
+| P(default) given an ADDACS cancellation | not read; waits for `W2_41` |
+| The cure share of a plain Bacs re-presentation on domestic energy | the company does not re-present, so it is not needed yet |
+| Whether a supplier's provision reads payment status inside the month or only at month-end | read on the forecast date; a month-end read already has the miss in the chain |

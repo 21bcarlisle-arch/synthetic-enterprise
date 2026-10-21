@@ -454,5 +454,11 @@ submission (S):
 - the AUDDIS rejection codes, the full current ADDACS list, and whether the scheme caps the number
   of re-presentations.
 
+**2026-10-21:** the forward-cash-forecast provision now learns P(paid) after a code 0, after a
+second code 0 inside the month, and after a missed manual payment from the company's own book. Where
+the book has never resolved one, it carries the GAP as None (`bad_debt_provisioning.md`, "Early
+warning in the forward-cash-forecast provision"). ADDACS is not read: the world sends it only behind
+an ARUDD 1 (`W2_41`, level 0).
+
 All of these are behind the Bacs login or held as supplier data. **The fastest route is the
 practitioner leg**: a supplier's payments team, or the director.

@@ -182,6 +182,7 @@ from interface.contracts.payment_observable_seam import (
     UNSOLICITED_PAYLOAD_TYPES,
     AddacsAdvice,
     AddacsAdviceType,
+    AruddReasonCode,
     AuddisReport,
     AuddisStatus,
     BacsArruddOutcome,
@@ -190,6 +191,7 @@ from interface.contracts.payment_observable_seam import (
     PaymentNotification,
     RemittanceAdvice,
     SettlementConfirmation,
+    arudd_reason_code_for,
 )
 from interface.contracts.wall_envelope import (
     WallInterim,
@@ -280,6 +282,12 @@ class DDFailureObservation:
     reason_text: str
     value_date: dt.date
     observed_at: dt.datetime
+
+
+def is_refer_to_payer(observation: DDFailureObservation) -> bool:
+    """The bank returned this collection with ARUDD code 0, "refer to payer": the one return
+    about money. Read off the real code the reason denotes, so no other code joins it."""
+    return arudd_reason_code_for(observation.reason_category) == AruddReasonCode.REFER_TO_PAYER
 
 
 @dataclass(frozen=True)

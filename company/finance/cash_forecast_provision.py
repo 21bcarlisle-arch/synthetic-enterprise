@@ -19,6 +19,20 @@ THE FORECAST, month by month over `HORIZON_MONTHS`:
   closes next month | payment method on the company's register, consecutive months missed 0/1/2/3+);
 - after a close, the learned share of the closing balance the company later recovers.
 
+EARLY WARNING (§9c, second slice; default off). Three signals a real supplier receives move an
+account's P(paid) in the month they arrive, before missed months age into the 91-day band: an ARUDD
+return with code 0 ("refer to payer", the one return about money); a second code 0 on the same
+mandate inside the one-month re-presentation window; and a missed manual payment (a bill still unpaid
+on its due date). Other return codes are administration, the supplier's own errors, a death or a
+departure, and are never pooled with code 0. No lift is published for any of them
+(`dd_failure_basis_and_live_arrears_provision_rates.md` §6, GAPs), so each is LEARNED: the book's own
+next-month outcomes after that signal. A signal the book has never resolved leaves the account's
+provision None with its reason. Signal 1 of §9c, a cancelled mandate (ADDACS 0/1) arriving before any
+collection fails, is not read: the world sends ADDACS only a day behind an ARUDD 1 return
+(`W2_41`, level 0), so it would carry no lead. Off unless the caller passes `signals_of`. Rules,
+evidence and choices: `docs/market_research/bad_debt_provisioning.md`, "Early warning in the
+forward-cash-forecast provision" (2026-10-21).
+
 POINT IN TIME. Everything is learned from the company's ledger and method register as of the forecast
 date: a transition is read only once its month, and the close window after it, have passed. With no
 resolved transition anywhere in the book the provision is None with its reason -- "cannot tell" -- not
@@ -37,6 +51,8 @@ from typing import Callable, Dict, Iterable, List, Optional, Tuple
 
 from company.billing.account_ledger import AccountLedger, LedgerBook, LedgerEventType
 from company.billing.arrears_engine import fifo_unpaid_bills
+from company.billing.invoice import PAYMENT_TERMS_DAYS
+from company.billing.payment_observation_consumer import is_refer_to_payer
 from company.pricing.default_belief import CLOSED_IF_UNBILLED_DAYS
 
 #: The write-off point: the forecast runs this many months and money still owed at its end, by an
@@ -68,6 +84,23 @@ PRIOR_CLOSED_ACCOUNTS = 1.0
 #: A post-close recovery is read over this many days after the account's last bill.
 POST_CLOSE_RECOVERY_DAYS = 365
 
+#: The early-warning signals, strongest first: when two fall in one window the first listed is read.
+SIGNAL_CODE_0_AGAIN = "arudd_code_0_again_inside_a_month"
+SIGNAL_CODE_0 = "arudd_code_0_refer_to_payer"
+SIGNAL_MANUAL_MISSED = "manual_payment_missed_on_due_date"
+SIGNALS = (SIGNAL_CODE_0_AGAIN, SIGNAL_CODE_0, SIGNAL_MANUAL_MISSED)
+
+#: NAMED SIMPLIFICATION: a signal is read for the monthly step it arrived in, the chain's own grain:
+#: one that arrived in the 31 days to a date is that date's signal. It is read only while the
+#: account's missed state is 0 -- it is early warning only while the track record does not yet carry
+#: it; after a missed month the roll-rate chain does. So a signal 3 that follows a missed month (this
+#: company's case: it does not re-present inside the month) is never read.
+SIGNAL_WINDOW_DAYS = 31
+
+#: Signals per account known by a date: `(date the company learned it, signal)`. None switches the
+#: early warning off and every reading is the first slice's.
+SignalsOf = Callable[[str, dt.date], Iterable[Tuple[dt.date, str]]]
+
 _CASH = LedgerEventType.PAYMENT_CREDIT
 _BILL = LedgerEventType.BILL_DEBIT
 
@@ -85,6 +118,54 @@ def month_ends(start: dt.date, end: dt.date) -> List[dt.date]:
 def _month_end(d: dt.date) -> dt.date:
     nxt = (d.replace(day=28) + dt.timedelta(days=4)).replace(day=1)
     return nxt - dt.timedelta(days=1)
+
+
+def _one_month_on(d: dt.date) -> dt.date:
+    y, m = (d.year + (d.month == 12), d.month % 12 + 1)
+    return min(d.replace(year=y, month=m, day=1) + dt.timedelta(days=d.day - 1), _month_end(dt.date(y, m, 1)))
+
+
+def early_warning_signals(ledger: AccountLedger, dd_failures: Iterable, *, as_of: dt.date,
+                          payment_method_of: Callable[[str, dt.date], Optional[str]]
+                          ) -> List[Tuple[dt.date, str]]:
+    """The signals this account had sent by `as_of`, read only from what reached the company: its
+    ARUDD failure records (`payment_observation_consumer.DDFailureObservation`: the bank's reason,
+    the collection's value date, when it was observed) and its own ledger and method register.
+
+    A code 0 counts as "again" when an earlier code 0 on the same mandate was for a collection no
+    more than one month before (the Bacs re-presentation window). This company does not yet
+    re-present (`dd_collections_desk`), so on its book "again" is next month's collection returned
+    as well -- the two read alike on the ARUDD feed, and the learned lift is the book's either way.
+    A manual payment is missed when, on a bill billed on a method other than direct debit, less than
+    `PAID_MONTH_SHARE_OF_MEDIAN_BILL` of it arrived between the bill and its due date
+    (`PAYMENT_TERMS_DAYS` on, the company's own terms) while the account owed money -- not "the bill
+    is unpaid by FIFO", which fires every month on a household one bill behind that pays each month."""
+    out: List[Tuple[dt.date, str]] = []
+    code_0 = sorted((f for f in dd_failures
+                     if is_refer_to_payer(f) and f.observed_at.date() <= as_of),
+                    key=lambda f: (f.value_date, f.observed_at))
+    last_by_mandate: Dict[str, dt.date] = {}
+    for f in code_0:
+        prev = last_by_mandate.get(f.mandate_ref)
+        again = prev is not None and f.value_date <= _one_month_on(prev)
+        out.append((f.observed_at.date(), SIGNAL_CODE_0_AGAIN if again else SIGNAL_CODE_0))
+        last_by_mandate[f.mandate_ref] = f.value_date
+    hist = _History.of(ledger, as_of)
+    for billed, gbp in hist.bills:
+        due = billed + dt.timedelta(days=PAYMENT_TERMS_DAYS)
+        if gbp <= 0 or due > as_of or payment_method_of(ledger.account_id, billed) in (None, "direct_debit"):
+            continue
+        paid = hist.cash_in(billed - dt.timedelta(days=1), due)
+        if paid < PAID_MONTH_SHARE_OF_MEDIAN_BILL * gbp and sum(g for _, g in fifo_unpaid_bills(ledger, due)) > 0.005:
+            out.append((due, SIGNAL_MANUAL_MISSED))
+    return sorted(out)
+
+
+def signal_at(signals: Iterable[Tuple[dt.date, str]], on: dt.date) -> Optional[str]:
+    """The strongest signal that arrived in the `SIGNAL_WINDOW_DAYS` to `on`, or None."""
+    lo = on - dt.timedelta(days=SIGNAL_WINDOW_DAYS)
+    seen = {k for d, k in signals if lo < d <= on}
+    return next((k for k in SIGNALS if k in seen), None)
 
 
 @dataclass(frozen=True)
@@ -145,6 +226,10 @@ class RollRates:
     """What the book has shown, as of a date: next-month outcomes by (method, missed state)."""
     as_of: dt.date
     counts: Dict[Tuple[str, int], Dict[str, float]] = field(default_factory=dict)
+    #: Outcomes of the monthly step a signal arrived in, learned at the signal's own date from
+    #: accounts in missed state 0, by (method, signal). Beside `counts`, never taken out of it, so
+    #: the chain is the first slice's whether the early warning is on or off. Empty when off.
+    signal_counts: Dict[Tuple[str, str], Dict[str, float]] = field(default_factory=dict)
     cash_ratio_num: float = 0.0       # cash received in paid months ...
     cash_ratio_den: float = 0.0       # ... over the amount due those months
     closed_due_gbp: float = 0.0       # balances owed at close, resolved
@@ -155,18 +240,22 @@ class RollRates:
     def transitions(self) -> int:
         return int(sum(sum(c.values()) for c in self.counts.values()))
 
-    def probabilities(self, method: str, state: int) -> Optional[Dict[str, float]]:
-        """P(pay / miss / close next month), the cell shrunk to the book's pooled state. None when the
-        book has never seen a transition out of this missed state."""
+    def probabilities(self, method: str, state: int,
+                      signal: Optional[str] = None) -> Optional[Dict[str, float]]:
+        """P(pay / miss / close next month), the cell shrunk to the book's pooled state -- or, after a
+        signal, to the book's pooled outcomes after that signal. None when the book has never seen a
+        transition out of this missed state (or after this signal)."""
         pooled = {"pay": 0.0, "miss": 0.0, "close": 0.0}
-        for (_m, s), c in self.counts.items():
-            if s == state:
+        table = self.counts if signal is None else self.signal_counts
+        key = state if signal is None else signal
+        for (_m, s), c in table.items():
+            if s == key:
                 for k in pooled:
                     pooled[k] += c.get(k, 0.0)
         n_pool = sum(pooled.values())
         if n_pool == 0:
             return None
-        cell = self.counts.get((method, state), {})
+        cell = table.get((method, key), {})
         n_cell = sum(cell.values())
         out = {}
         for k in pooled:
@@ -212,13 +301,16 @@ def expected_bill(hist: _History, on: dt.date, month_end: dt.date) -> float:
 
 
 def learn(book: LedgerBook, *, as_of: dt.date,
-          payment_method_of: Callable[[str, dt.date], Optional[str]]) -> RollRates:
-    """Every transition the company could have resolved by `as_of`, off its own ledger."""
+          payment_method_of: Callable[[str, dt.date], Optional[str]],
+          signals_of: Optional[SignalsOf] = None) -> RollRates:
+    """Every transition the company could have resolved by `as_of`, off its own ledger. With
+    `signals_of`, the steps signals arrived in are learned as well, beside the chain."""
     rr = RollRates(as_of=as_of)
     for account in book.accounts():
         hist = _History.of(book.ledger(account), as_of)
         if not hist.bills:
             continue
+        signals = list(signals_of(account, as_of)) if signals_of is not None else []
         first = hist.bills[0][0]
         for m in month_ends(first, as_of):
             nxt = _month_end(m + dt.timedelta(days=1))
@@ -244,6 +336,8 @@ def learn(book: LedgerBook, *, as_of: dt.date,
                     rr.cash_ratio_den += _amount_due(hist, method, m, nxt)
             cell = rr.counts.setdefault((method, state), {"pay": 0.0, "miss": 0.0, "close": 0.0})
             cell[outcome] += 1
+        if signals:
+            _learn_signals(rr, hist, account, signals, as_of, payment_method_of)
         last = hist.last_bill(as_of)
         if last is not None and last + dt.timedelta(days=POST_CLOSE_RECOVERY_DAYS) <= as_of:
             due = sum(g for _, g in fifo_unpaid_bills(book.ledger(account), last))
@@ -253,6 +347,36 @@ def learn(book: LedgerBook, *, as_of: dt.date,
                 rr.closed_recovered_gbp += min(due, got)
                 rr.closed_accounts += 1
     return rr
+
+
+def _step_outcome(hist: _History, on: dt.date, as_of: dt.date) -> Optional[str]:
+    """The outcome of the monthly step from `on` to the next month-end, once `as_of` can tell."""
+    end = _month_end(on + dt.timedelta(days=1))
+    if end + dt.timedelta(days=CLOSED_IF_UNBILLED_DAYS) > as_of:
+        return None
+    if not any(on < d for d, _ in hist.bills):
+        return "close"
+    paid = _paid(hist, end)
+    return None if paid is None else ("pay" if paid else "miss")
+
+
+def _learn_signals(rr: RollRates, hist: _History, account: str,
+                   signals: List[Tuple[dt.date, str]], as_of: dt.date,
+                   payment_method_of: Callable[[str, dt.date], Optional[str]]) -> None:
+    """Each step's first signal, from an account in missed state 0, and what that step did."""
+    steps = set()
+    for d, _ in sorted(signals):
+        end = _month_end(d + dt.timedelta(days=1))
+        if end in steps or d > as_of or _closed(hist, d) or missed_state(hist, d) != 0:
+            continue
+        method = payment_method_of(account, d)
+        outcome = None if method is None else _step_outcome(hist, d, as_of)
+        if outcome is None:
+            continue
+        steps.add(end)
+        cell = rr.signal_counts.setdefault((method, signal_at(signals, d)),
+                                           {"pay": 0.0, "miss": 0.0, "close": 0.0})
+        cell[outcome] += 1
 
 
 @dataclass(frozen=True)
@@ -265,19 +389,24 @@ class AccountProvision:
     closed: bool
     expected_loss_gbp: Optional[float]
     reason: Optional[str] = None
+    signal: Optional[str] = None  # the early-warning signal read at the forecast date, if any
 
 
 def account_provision(ledger: AccountLedger, *, as_of: dt.date, method: Optional[str],
-                      rates: RollRates) -> AccountProvision:
-    """The expected unpaid part of what this account owes at `as_of`, at the write-off point."""
+                      rates: RollRates, signal: Optional[str] = None) -> AccountProvision:
+    """The expected unpaid part of what this account owes at `as_of`, at the write-off point. A
+    `signal` read at `as_of`, while the account has missed no month, sets the first month's outcome
+    from what the book's steps after that signal did."""
     hist = _History.of(ledger, as_of)
     unpaid = [(d, g) for d, g in fifo_unpaid_bills(ledger, as_of) if g > 0.005]
     owed = round(sum(g for _, g in unpaid), 2)
     oldest = (as_of - unpaid[0][0]).days if unpaid else 0
     closed = _closed(hist, as_of)
     state = missed_state(hist, as_of)
+    if state != 0:
+        signal = None
     base = dict(account_id=ledger.account_id, owed_gbp=owed, oldest_unpaid_days=oldest,
-                method=method, missed_state=state, closed=closed)
+                method=method, missed_state=state, closed=closed, signal=signal)
     if owed <= 0:
         return AccountProvision(**base, expected_loss_gbp=0.0)
     recovery = rates.post_close_recovery
@@ -299,11 +428,16 @@ def account_provision(ledger: AccountLedger, *, as_of: dt.date, method: Optional
     # because cash beyond `owed` no longer changes the loss.
     dist: Dict[Tuple[int, float], float] = {(state, 0.0): 1.0}
     loss = 0.0
-    for m in months[1:]:
+    for i, m in enumerate(months[1:]):
         due = _amount_due(hist, method, as_of, m) * ratio
         nxt: Dict[Tuple[int, float], float] = {}
+        first_signal = signal if i == 0 else None
         for (s, cash), p in dist.items():
-            probs = rates.probabilities(method, s)
+            probs = rates.probabilities(method, s, first_signal)
+            if probs is None and first_signal is not None:
+                return AccountProvision(**base, expected_loss_gbp=None, reason=(
+                    f"the book has resolved no month after a {first_signal} by {as_of}: its lift is "
+                    "a GAP (none published, none yet learned)"))
             if probs is None:
                 return AccountProvision(**base, expected_loss_gbp=None, reason=(
                     f"the book has resolved no transition out of {s} missed month(s) by {as_of}"))
@@ -346,13 +480,16 @@ class BookProvision:
 
 def book_provision(book: LedgerBook, *, as_of: dt.date,
                    payment_method_of: Callable[[str, dt.date], Optional[str]],
-                   accounts: Optional[Iterable[str]] = None) -> BookProvision:
-    """Every account's expected-loss provision at `as_of`, rolled up to the book."""
-    rates = learn(book, as_of=as_of, payment_method_of=payment_method_of)
+                   accounts: Optional[Iterable[str]] = None,
+                   signals_of: Optional[SignalsOf] = None) -> BookProvision:
+    """Every account's expected-loss provision at `as_of`, rolled up to the book. `signals_of`
+    switches the early warning on; without it the reading is the first slice's, unchanged."""
+    rates = learn(book, as_of=as_of, payment_method_of=payment_method_of, signals_of=signals_of)
     chosen = list(accounts) if accounts is not None else book.accounts()
-    rows = tuple(account_provision(book.ledger(a), as_of=as_of,
-                                   method=payment_method_of(a, as_of), rates=rates)
-                 for a in chosen)
+    rows = tuple(account_provision(
+        book.ledger(a), as_of=as_of, method=payment_method_of(a, as_of), rates=rates,
+        signal=signal_at(signals_of(a, as_of), as_of) if signals_of is not None else None)
+        for a in chosen)
     reason = None if rates.transitions else (
         f"the book has resolved no month's payment outcome by {as_of}: cannot tell")
     return BookProvision(as_of=as_of, accounts=rows, transitions_learned=rates.transitions,
