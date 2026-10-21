@@ -1050,3 +1050,15 @@ the world draw any credit household whose margin stays below its energy bill for
 cure-time question. It is world-side, decided blind to company results, and graded on the depth column.
 
 **Status:** OPEN and BLOCKING.
+
+## 2026-10-21 (23:25): the depth is the shortfall rule's fixed point, about 1.7 bills. One design choice, already labelled GAP
+
+`ENERGY_SHARES_THE_SHORTFALL` shares the money left after housing between the core basket and the whole arrears
+**stock**, pro rata. Energy's share therefore grows as the debt grows, and the debt stops at `C/(A−B)` bills. Over the
+256 credit account-years whose margin is below their bill (7-13% a year), that fixed point is a median of **1.67 bills**
+(p90 3.49). It was predicted at 1-3 bills, and the prediction held. That is the depth table's 1.4-2.4 months. The
+world does draw sustained deficits. Its rule caps how deep they go. The table and the build candidate (share on the
+month's demand, not the stock; K8 amendment of `household_budget_w2_4.md` first; one variable; graded on the depth
+column) are in the world finding.
+
+**Status:** OPEN and BLOCKING. The cause is now a single named world rule.

@@ -286,3 +286,43 @@ The per-bill path's 22-month lump is gap 4 ("per bill, not per household") of `p
 named. It is what makes the pool persist, and it cannot make it deepen.
 
 **Status:** OPEN (LATENT), carrying the BLOCKING finding's world side.
+
+### 2026-10-21 (23:25): why the budget's debt never deepens. The shortfall rule caps it at a fixed point, about 1.7 bills
+
+**Pre-registration (filed in the turn before the count, stated here because the count followed in the same turn).**
+The fixed-point depth `C/(A-B)` has a median of 1-3 bills over the deficit account-years. That would match the
+observed peak, a median of 2 bills owed at once.
+
+**Instrument.** `/var/tmp/leaver_trace/margin.py`, on the same dump. It computes `household_budget.margin_in_year`
+per credit account-year, split across the household's legs, against that account's own mean monthly bill.
+
+| year | credit account-years | margin < 0 | margin < bill | money after housing < bill | savings < one bill |
+|---|---|---|---|---|---|
+| 2017 | 523 | 6% | 7% | 0% | 8% |
+| 2019 | 365 | 7% | 9% | 0% | 8% |
+| 2021 | 313 | 7% | 9% | 0% | 9% |
+| 2022 | 342 | 7% | 10% | 1% | 10% |
+| 2023 | 350 | 7% | 13% | 0% | 9% |
+
+The world does draw sustained deficits. 7-13% of credit account-years have a margin below their bill in every month
+of the year. What the world does not draw is a household whose money after housing (margin + core basket) is below
+its bill. Almost none exists.
+
+**The mechanism.** `ENERGY_SHARES_THE_SHORTFALL` shares the money after housing, `A`, between the basket `C` and
+`owed_total` pro rata. `owed_total` is the whole unpaid stock plus this month's bill. Energy's share,
+`A·O/(C+O)`, therefore grows as the debt grows. The debt stops growing where that share equals the bill `B`, at
+`O* = B·C/(A−B)`, which is a depth of **`C/(A−B)` bills**. Over the 256 deficit account-years that depth is a median of
+**1.67 bills** (p25 1.23, p75 2.23, p90 3.49). Two account-years have none (`A < B`). **The prediction held.** That is
+the depth table's 1.4-2.4 months and the observed peak's median of 2. It also explains why no budget bill passes a year.
+
+**So the x4-6 depth gap is one design choice, and the code already labels it a GAP.** The rule shares the shortfall
+in proportion to the arrears STOCK. The more a household owes, the more food it gives up to pay energy, until the debt
+is capped near two bills. The record's depth (most of a year's bill, deepening every year) needs the shortfall shared
+on the month's **demand** instead: this bill plus any agreed instalment. The stock would then go on growing while
+`margin < bill`. The basket must still not be counted twice: the knowledge page's ONS OPN / JRF rows say households
+cut food and energy together.
+
+**Build candidate (world, W2_38; K8 first).** Before any code, amend `household_budget_w2_4.md`, "what a household
+short of money cuts", to state stock vs demand and what the JRF/ONS rows can and cannot say about it. Then flip one
+variable: `owed_total` → this month's bill in the pro-rata line only. Pre-register against the depth column before the
+run. It is decided blind to company results.
