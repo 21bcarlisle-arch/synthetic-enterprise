@@ -1099,9 +1099,15 @@ def ended_since(since: datetime, register: Path | None = None) -> dict:
     if ll.prior_unreadable(verdict):
         return {"available": False, "why": "the launch register at {} could not be read "
                 "({})".format(register or ll.RECORDS_PATH, verdict)}
-    rows = []
+    rows, launched_live = [], []
     for r in records:
         if r.get("claim") in (ll.LIVE, None):
+            # A LAUNCH IS AN EVENT TOO. These used to be skipped silently, and the empty sentence
+            # then said "none LAUNCHED" about a stretch with three arms running from it.
+            began = _stamp(r.get("launched_at"))
+            if began is not None and began >= since:
+                launched_live.append({"job": r.get("job"), "unit": r.get("unit"),
+                                      "launched_at": r.get("launched_at"), "log": r.get("log")})
             continue
         exited = _stamp(r.get("exited_at"))
         settled = _stamp(r.get("settled_at"))
@@ -1125,8 +1131,10 @@ def ended_since(since: datetime, register: Path | None = None) -> dict:
             "log": r.get("log"), "artefact": r.get("artefact"),
         })
     rows.sort(key=lambda x: (x["claim"] != ll.DIED, x["ended_at"] or x["ended_by"] or ""))
+    launched_live.sort(key=lambda x: x["launched_at"])
     return {"available": True, "since": since.isoformat(), "jobs": rows,
-            "died": [x for x in rows if x["claim"] == ll.DIED]}
+            "died": [x for x in rows if x["claim"] == ll.DIED],
+            "launched_live": launched_live}
 
 
 def findings_now() -> dict:
@@ -2169,10 +2177,13 @@ def _prompt(brief: dict) -> str:
         ended_sentence = (
             "\n\nWHICH LONG JOBS ENDED COULD NOT BE READ ({}) -- so 'none died' is NOT what this "
             "says.".format(ended.get("why", "the reading was not taken")))
-    elif not ended.get("jobs"):
+    elif not ended.get("jobs") and not ended.get("launched_live"):
         ended_sentence = (
             "\n\nNO `launch_long_job` JOB LAUNCHED OR ENDED IN THIS STRETCH, read from the launch "
             "register and not inferred from what is still running.")
+    elif not ended.get("jobs"):
+        ended_sentence = (
+            "\n\nNO `launch_long_job` JOB ENDED IN THIS STRETCH, read from the launch register.")
     else:
         def _when(j):
             if j["ended_at"]:
@@ -2188,6 +2199,12 @@ def _prompt(brief: dict) -> str:
                     "DIED" if j["claim"] == "died" else j["claim"], j["job"], _when(j),
                     j["result"] or "?", j["exit_status"] or "?", j["log"] or "none")
                 for j in ended["jobs"]))
+    if ended.get("available", False) and ended.get("launched_live"):
+        ended_sentence += (
+            "\n\nLAUNCHED IN THIS STRETCH AND STILL LIVE BY THE REGISTER -- DO NOT RELAUNCH THESE; "
+            "check the list of what is on the box before assuming one has stopped:\n\n"
+            + "\n".join("  {:<40} launched {}  log {}".format(
+                j["job"], j["launched_at"], j["log"] or "none") for j in ended["launched_live"]))
     queue_sentence = _render_continuation_queue(brief.get("continuation_queue"))
     concerns = brief.get("previous_for_the_director") or []
     carried = (
