@@ -208,6 +208,39 @@ self-curing lateness and future arrears are mixed together. **No published sourc
 - **Collection cost.** *"The average cost for collecting debt is 3 pence per £1 of debt and
   arrears"*, from the 2024 average debt administration cost (DRS impact assessment, fn 6).
 
+### 2.5a "Time to cure" names three different quantities: say which (2026-10-21)
+
+These three must not be compared across one another. Each has its own record anchor.
+
+| Quantity | Population | Record | Source |
+|---|---|---|---|
+| **Cure of a failed bill** | every bill that fails or is paid late | **GAP.** No per-bill cure distribution is published. Ofgem never counts lateness that cures before 91 days. | `gb_domestic_bill_payment_failure_and_arrears_prevalence.md` l. 44, 283 |
+| **Stay in the pool** | accounts more than 91 days in arrears, or on an arrangement | **about 2 years** (Little's law, 2018: 1,309,768 / 658,363 = 1.99, derived). It agrees with "more than 22 months" to recover (DRS IA, Nov 2025, §3.10) and with 95 weeks entry-weighted (Ofgem SOR 2018, derived). | same file §(e)3, §(f) |
+| **Depth: how far behind** | accounts in the pool | average electricity arrears **£555 (2017) to £1,303 (2023)**. That is about half a typical dual-fuel annual bill per single-fuel account, so most of a year of that fuel's bill (derived). It rises every year. | §2.1; `ofgem_cap_windows.md` |
+
+**What these imply about accumulation (derived).** An account that stays about two years and owes most of a year's bill
+is not one missed bill parked. It goes on missing or part-paying bills while it is in the pool. Recovery of debt more
+than 12 months old fell from 31% to 9% between 2022-23 and 2024-25 (Energy UK Fig. 5), and the share of aged arrears rose
+from 52% to 65%. **The number of bills missed per spell is not published (GAP).** The depth over the bill is the only
+published proxy.
+
+**The convention matters.** A per-bill reading (each bill aged on its own) and a rolling balance read oldest-first give
+different ages for the same pounds. A household that misses one bill and then pays every later bill is in the pool
+indefinitely on the per-bill reading. Read oldest-first, it is one bill behind and never more than 91 days old. Which
+convention Ofgem's and Energy UK's age figures use is not published (GAP; `SEAT_FINDING_THE_CRISIS_BAD_DEBT_...`,
+"the trace").
+
+**What the world does (2026-10-21, one book, one seed, switch-on, unpublished).**
+- A failed bill cures at a median of 61 days.
+- The pool stay has a KM median of 28 days and a Little's-law stay of 0.5-0.9 years. A quarter of spells pass a year.
+- 81% of spells hold a single bill crossing 91 days, and so do 67% of the year-plus spells.
+- The depth is 1.4-2.4 months of bill in every year.
+
+So the world has the persistence and lacks the accumulation. **The design choice this page fixes for the build:** grade
+the world on **depth** (months of bill per account in the pool, against Ofgem's average arrears) and on bills per
+spell. Do not grade it on the per-bill cure time, which has no record anchor. Do not grade it on stay alone, which
+depends on the convention.
+
 ### 2.6 Loss: bad-debt charge and the price-cap allowance
 
 **Supplier P&L (Centrica plc, ARA 2025).**

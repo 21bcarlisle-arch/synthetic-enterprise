@@ -202,3 +202,16 @@ A failed bill settles a median of 61 days after it falls due (p90 123).
 evidence constrains it. K8 first: the knowledge page names Little's law on Ofgem's own flows ("average stay of about one
 year", `debt_and_collections.md`) as the anchor, and names a cure-time distribution as a GAP. Decide it blind to company
 results. The grade is the depth table against Ofgem's average-arrears column, not the bad-debt validator.
+
+## 2026-10-21 (23:35): the build question is accumulation, not cure time
+
+*Correcting the question stated in "depth graded", beside it.* The 61-day per-bill cure has no record anchor. The pool
+stay is the comparable quantity, and it is 0.5-0.9 years by Little's law against the record's 1.99, with a quarter of
+spells passing a year. **81% of spells hold a single bill crossing 91 days.** The world parks one old bill and pays
+every later one. The record's debtors keep missing. The table is in the BLOCKING finding, "Graded (23:35)". The
+knowledge section is `debt_and_collections.md` §2.5a.
+
+**Next step (world, read-only):** for households in a year-plus spell, read the budget state month by month. What
+stops them missing the next bill: a margin back above zero, savings drawn down, or the per-bill draw paying while the
+budget does not bind? The grade is depth (months of bill) and bills per spell against §2.5a. It is decided blind to
+company results.

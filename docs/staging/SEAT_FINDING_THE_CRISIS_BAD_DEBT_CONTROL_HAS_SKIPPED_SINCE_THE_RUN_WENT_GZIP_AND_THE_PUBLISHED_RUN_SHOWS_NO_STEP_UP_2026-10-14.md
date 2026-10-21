@@ -966,3 +966,73 @@ about one year") is the candidate anchor.
 **Status:** OPEN and BLOCKING. The cause is now named as one world quantity, the cure time of a missed bill (median
 61 days, against a published average stay of about a year). The next step is K8's knowledge page on that quantity,
 then a W2_38 build, then a published run graded by `validate_run_output`.
+
+## 2026-10-21 (23:20): say what "cure time" is before the build. Pre-registration, filed before the count
+
+*A correction to the "depth graded" section's framing, beside it.* That section set the world's median cure of **61 days**
+against the record's "average stay of about one year". Those two figures count different things:
+- **61 days** is measured over **every failed bill**. Most of those are transient lateness that cures before 91 days.
+  Ofgem never counts that population (`gb_domestic_bill_payment_failure_and_arrears_prevalence.md`, l. 44, 283).
+- **About one to two years** is a stay in Ofgem's **pool**. It counts accounts more than 91 days in arrears, or on an
+  arrangement. Little's law on the 2018 stock and flow gives 1.99 years
+  (`gb_domestic_bill_payment_failure_and_arrears_prevalence.md` §(f)). That agrees with the DRS IA's "more than 22
+  months" to recover and the entry-weighted 95 weeks.
+
+So the comparable world quantity is the **stay in the >91-day pool**: from the day an account first holds a bill unpaid
+more than 91 days past due until the day it holds none. Comparing every failed bill's cure with the pool's stay would set
+a build target from a ratio whose two sides count different populations.
+
+**Instrument.** `/var/tmp/leaver_trace/stay.py`. It reads the same dump (switch-on, one book, one seed, unpublished),
+with the same `unpaid` rule as `depth.py` and evaluated daily. A spell is closed when the account holds no bill >91 days
+unpaid. Spells still open at the run's end, or at the account's last bill + 62 days, are censored. Two readings:
+(a) Little's law, the mean pool over 2017-2023 divided by entries a year; (b) the Kaplan-Meier median stay.
+
+**Prediction, filed before the script exists:**
+1. The world's Little's-law stay in the >91-day pool is **under 0.5 years** in 2017-2023, i.e. at least **x4 shorter**
+   than the record's 1.99 years.
+2. The KM median spell is **under 90 days**.
+3. The crisis years (spells entering 2022-23) are **not longer** than 2017-19's by more than 1.5x. The record's own
+   intensity rose, and recovery of debt over 12 months old fell from 31% to 9% (Energy UK Fig. 5).
+
+If (1) holds, the build target is the pool stay, graded on this instrument against 1.99 years. It is not the per-bill
+cure.
+
+### Graded (23:35): the stay is about x2-3 short, not x10. What is short is accumulation: 81% of spells hold one bill
+
+`stay.py` and `accum.py` (same dump; 333 spells after the close stop: 243 cured, 39 closed, 51 censored):
+
+| entry window | spells | KM median stay (days) | p75 | p90 | share >= 1 year | Little's law (years) |
+|---|---|---|---|---|---|---|
+| 2016-19 | 173 | 28 | 293 | 746 | 24% | 0.48 (2017-19) |
+| 2020-21 | 66 | 28 | 605 | 1,067 | 29% | - |
+| 2022-23 | 94 (30 censored) | 30 | 214 | 459 | 17% (censored short) | 0.91 |
+
+At each 31 December, most of the world's pool is spells already **more than a year old**: 12 of 24 (2018), 21 of 32
+(2021) and 25 of 47 (2022).
+
+**Against the pre-registration:**
+1. Little's-law stay under 0.5 years over 2017-23: **REFUTED.** It is 0.70 years. It was 0.48 in 2017-19 and is 0.91
+   in 2022-23, against the record's 1.99. The pool grew over the window, so Little's law here reads high.
+2. KM median under 90 days: **HELD.** It is 28-30 days.
+3. Crisis spells not more than 1.5x longer: **HELD on the median** (30 against 28). On Little's law it is 1.9x. That
+   ratio is carried by the stock of pre-crisis long spells, and 30 of the 94 crisis entries are censored.
+
+**What the prediction did not name.** The pool is **bimodal**. Most spells cure in a month. A quarter persist past a
+year, so the world does have the persistence population. What it lacks is accumulation. Bills crossing 91 days, per
+spell: **mean 1.54 and median 1.** 81% of spells hold a single bill. So do 67% of spells lasting a year or more. A
+world household in a long spell has **one old bill parked while it pays every later bill.** That explains why the
+depth is about two months of bill however long the stay runs ("depth graded").
+
+It is also partly the per-bill convention. A rolling balance allocates oldest-first, which is what the company models.
+On that allocation the same household is one bill behind, aged as the newest bill, and never in the >91-day pool.
+That accounts for the 10-44% FIFO-to-per-bill ratio in "the trace".
+
+**So the build question changes from cure time to accumulation.** Once a household is in the pool, does it go on
+missing bills? The record says yes: the average arrears are about half a dual-fuel year's bill per single-fuel account,
+which is most of a year of that fuel, and that average rose every year 2016-25. The world says no. The knowledge
+section is `debt_and_collections.md` §2.5a (this commit). What stops a world household going on missing bills is
+**not traced**. The candidates are a budget margin that rarely stays negative for several months, and savings drawn
+down to cover it. Tracing that is the next step. It is a world-side read, decided blind to company results, and the
+grade is the depth column against Ofgem's average arrears.
+
+**Status:** OPEN and BLOCKING.
