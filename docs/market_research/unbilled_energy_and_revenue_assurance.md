@@ -453,6 +453,62 @@ year changes sign against the defect-4 gate. So leg (b) is now a fix to what the
 little money. It no longer blocks the publish or lane D. It waits behind leg (c) and is not built in
 this turn.
 
+#### A held bill on an account that closes (2026-10-21, K8 for D48)
+
+Asked by `SEAT_FINDING_D48_THE_UNBILLED_ACCRUAL_IS_THE_ENERGY_THE_PRE_BILL_GATE_HELD_2026-10-20.md`.
+On the 44a21e3e8 run, from 2021-12 to the run end, the whole of K1's accrual is one leaver's
+held estimates: PROS-2017-0117, 2017-12 to its exit on 2018-04-11, 12,825 kWh and £1,635 net. The
+domestic-ceiling hold waits for an actual read. On a closed account none comes. Written before any
+build.
+
+**What the rules require.**
+- SLC 27.17: "all reasonable steps to send a final Bill … within 6 weeks" of the transfer or
+  termination (read in `home_moves.md`, electricity SLC p.246). The final bill is the closing
+  statement. It runs from the last billed read to the closing read.
+- The closing read for a losing supplier is the change-of-supplier read. It is actual if one is
+  valid within SSD ±5 days. Otherwise it is the Old Supplier Estimated read, which is deemed. The
+  losing supplier is settled on the advance to it. It changes only through a dispute within 12
+  months, over 250 kWh for electricity or 1,200 kWh for gas (the section above, and §4a).
+- SLC 21BA.1: the final bill may recover only units "consumed within the 12 months preceding" it.
+  A supplier failing to work its own hold is not a 21BA.2 exception. Ofgem says not giving a read
+  is not obstruction either (`slc_21b_21ba_reads_and_back_billing.md`, S4 p.10).
+
+**What follows for a held estimate once the account closes.**
+1. The read the hold waits for will never reach this supplier. After the exit, the meter's next
+   read belongs to the gaining supplier. "Held until an actual read replaces it" becomes a hold
+   nothing can end.
+2. For the losing supplier, the closing read settles the volume question that the ceiling raised.
+   Even an estimated closing read is the one it is settled on, so billing it matches what the
+   supplier pays for. Withholding the bill does not protect the customer from a wrong volume. The
+   published remedy for a wrong closing read is the dispute, which the customer or either supplier
+   may raise.
+3. The closing read does not settle the other defect the ceiling catches, a business premise
+   labelled domestic. That still needs the council tax listing (`release_confirmed_domestic`).
+4. An interim estimate the gate held between the last read and the closing read goes out on the
+   final bill. That makes the final bill's date the date the energy was billed.
+5. An interim older than 12 months at the final bill is barred. It is never billed, so it is a
+   write-off, not unbilled energy waiting to be billed.
+
+No published source describes how a supplier's exception queue handles a final bill, or how long
+it takes. **GAP.**
+
+**Choices for the build, and why.**
+- `build_monthly_bills` stamps `final_bill: True` on a churned account's last bill. Closure is a
+  fact the company already acts on when it asks for the closing read.
+- `pre_bill_validation.validate_bills` releases a held bill when every reason is consumption
+  scale, the account is resi, the address is listed, and the bill is in the account's closing run:
+  the estimated bills after its last actual read, through a final bill that is itself on an
+  estimate. If the final read is actual, its catch-up already carries the held energy, as before.
+  The released copy carries `pre_bill_release` with `issued_with_final_bill`.
+- The accrual counts a bill released this way as unbilled at any month end before the final
+  bill's month.
+- **21BA:** an interim any part of which is outside the 12 months before the final bill
+  (`BackBillingAssessment.cap_applies`) stays held. This is conservative: the part a pro-rated copy
+  could still recover is not billed. Its energy stays in the accrual's over-12-months column.
+  **GAP:** that barred energy is not yet booked to the write-off register.
+- **Not built:** a dispute of the closing read. As in the section above, a dispute moves value
+  between suppliers and creates none.
+
 ### K7 Smart meter read failures
 
 - See K2: ~10% of installed smart meters not in smart mode end-2024; domestic traditional-mode

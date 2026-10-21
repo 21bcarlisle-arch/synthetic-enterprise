@@ -65,6 +65,7 @@ import math
 import statistics
 from collections.abc import Iterable
 
+from company.billing.pre_bill_validation import issued_with_final_bill
 from company.billing.read_duty_register import read_duty_summary
 from saas.ledger import open_estimated_bills
 
@@ -319,12 +320,14 @@ def _k1_unbilled_by_month_end(bills: list[dict], held: set[tuple[str, str]] | No
     last = max((b["period_end"][:7] for b in bills), default=None)
     months = sorted({b["period_end"][:7] for b in bills if b["period_end"][5:7] == "12"} | (
         {last} if last else set()))
+    late = issued_with_final_bill(bills)
     return {"available": True, "unit_kwh": "kwh", "unit_gbp": "gbp_net_of_vat",
-            "month_ends": [unbilled_accrual(bills, held, month) for month in months]}
+            "month_ends": [unbilled_accrual(bills, held, month, late) for month in months]}
 
 
 def unbilled_accrual(bills: Iterable[dict], held: set[tuple[str, str]],
-                     as_of: str | None = None) -> dict:
+                     as_of: str | None = None,
+                     issued_late: dict[tuple[str, str], str] | None = None) -> dict:
     """Energy the company counts as used by the end of month `as_of` (YYYY-MM; default the last
     billed month) and has not issued a bill for, per fuel, in kWh and at the held bill's own price
     net of VAT.
@@ -336,10 +339,17 @@ def unbilled_accrual(bills: Iterable[dict], held: set[tuple[str, str]],
     true-up is counted with it. `older_than_12_months_kwh` is the part a domestic catch-up could no
     longer recover (SLC 21BA); `closed_account_kwh` the part on accounts with no bill after `as_of`
     and none in the run's last month, which no later bill can carry.
+
+    A held bill in a closed account's closing run goes out on the final bill
+    (`pre_bill_validation.issued_with_final_bill`, or `issued_late` where the caller has it), so
+    it is held at every month end before the final bill's month and issued from then.
     """
     bills = list(bills)
+    if issued_late is None:
+        issued_late = issued_with_final_bill(bills)
     last = max((b["period_end"][:7] for b in bills), default="")
     as_of = as_of or last
+    held = set(held) | {key for key, final in issued_late.items() if final[:7] > as_of}
     window = [b for b in bills if b["period_end"][:7] <= as_of]
     held_now = [b for b in window if (b["customer_id"], b["period_end"]) in held]
     open_estimates = open_estimated_bills(

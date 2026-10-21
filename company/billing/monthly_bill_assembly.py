@@ -817,8 +817,9 @@ def build_monthly_bills(
                 # `validate_bills` holds bills after this function returns; reconciling the run as
                 # if every estimate went out credited customers for charges they never received
                 # (PROS-2017-0336: -£271.29 for 2018-03..04, a period with no invoice). The hold is
-                # asked of the same `validate_bill`, so it is decided in one place; an estimate is
-                # never released downstream (`release_confirmed_domestic` takes an actual read).
+                # asked of the same `validate_bill`, so it is decided in one place. The one estimate
+                # released downstream is in a closed account's closing run, which no later read and
+                # so no catch-up ever reaches (`release_at_closing_read`).
                 # Licence reading: docs/market_research/back_billing_and_liability.md §12.
                 held = validate_bill(bill).held
                 pending_estimated_run.append({
@@ -849,6 +850,10 @@ def build_monthly_bills(
                 bill["void_owner_charge_gbp"] = void_gbp
                 bill["void_owner_share"] = (
                     min(1.0, void_gbp / revenue_gbp) if revenue_gbp > 0 else 1.0)
+            if is_final_bill_for_customer and customer_id in churned_ids:
+                # The SLC 27.17 final bill. The exception queue reads it: a hold in the estimated
+                # run it closes can wait for no later read (`pre_bill_validation._closing_runs`).
+                bill["final_bill"] = True
             if instructed:
                 bill["read_instruction_raised"] = previous_period_end
                 bill["read_instruction_outcome"] = (

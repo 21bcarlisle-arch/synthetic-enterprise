@@ -127,3 +127,96 @@ def test_the_billing_run_stamps_the_listing_feed_and_omitting_it_stamps_nothing(
     assert asked == ["C1"], "the lookup is made once per account, not once per bill"
     bare = build_monthly_bills(records, SimulatedReadFeed())
     assert all("premise_council_tax_listed" not in b for b in bare)
+
+
+# --- A held estimate on a closed account (2026-10-21) -------------------------------------------
+# docs/market_research/unbilled_energy_and_revenue_assurance.md, K6, "A held bill on an account that
+# closes". After the exit no read reaches this supplier, so the closing run goes out on the final
+# bill at the closing read, unless SLC 21BA bars it.
+
+def _month(customer_id, start, end, basis="estimated", **overrides):
+    bill = _winter_bill_on_an_electric_heated_house(
+        customer_id=customer_id, period_start=start, period_end=end, billing_basis=basis,
+        **overrides)
+    bill["total_amount_gbp"] = round(
+        bill["commodity_amount_gbp"] + bill["standing_charge_gbp"] + bill["vat_gbp"], 2)
+    return bill
+
+
+def _leaver(customer_id="LEAVER", final_basis="estimated", **overrides):
+    """PROS-2017-0117's shape: a read in November, four held estimates, an estimated final bill."""
+    return [
+        _month(customer_id, "2017-11-01", "2017-11-30", "actual", total_consumption_kwh=300.0,
+               **overrides),
+        _month(customer_id, "2017-12-01", "2017-12-31", **overrides),
+        _month(customer_id, "2018-01-01", "2018-01-31", **overrides),
+        _month(customer_id, "2018-02-01", "2018-02-28", **overrides),
+        _month(customer_id, "2018-03-01", "2018-03-31", **overrides),
+        _month(customer_id, "2018-04-01", "2018-04-30", final_basis, final_bill=True, **overrides),
+    ]
+
+
+def test_every_leg_of_the_closing_run_release_is_reachable():
+    """One partition over the whole queue. The release is taken, and each refusal is taken: an open
+    account, an unlisted address, a final bill on an actual read (its catch-up carries the energy)
+    and an interim 21BA bars at the final bill."""
+    old = [
+        _month("OLD", "2018-04-01", "2018-04-30", "actual", total_consumption_kwh=300.0),
+        _month("OLD", "2018-05-01", "2018-05-31"),
+        _month("OLD", "2019-05-01", "2019-05-31"),
+        _month("OLD", "2019-06-01", "2019-06-30", final_bill=True),
+    ]
+    open_account = _leaver("OPEN")
+    del open_account[-1]["final_bill"]
+    bills = (_leaver() + open_account + _leaver("UNL", premise_council_tax_listed=None)
+             + _leaver("READ", final_basis="actual") + old)
+    passing, held = validate_bills(bills)
+    at_closure = {(b["customer_id"], b["period_end"]) for b in passing
+                  if b.get("pre_bill_release", {}).get("outcome")
+                  == ValidationOutcome.RELEASED_AT_CLOSURE.value}
+    assert at_closure == {
+        ("LEAVER", "2017-12-31"), ("LEAVER", "2018-01-31"), ("LEAVER", "2018-02-28"),
+        ("LEAVER", "2018-03-31"), ("LEAVER", "2018-04-30"),
+        ("OLD", "2019-05-31"), ("OLD", "2019-06-30"),
+    }
+    still = {(r.customer_id, r.period_end) for r in held}
+    assert {c for c, _ in still} == {"OPEN", "UNL", "READ", "OLD"}
+    assert ("OLD", "2018-05-31") in still, "over 12 months before the final bill: barred, held"
+    released = next(b for b in passing if (b["customer_id"], b["period_end"]) == ("LEAVER", "2017-12-31"))
+    assert released["pre_bill_release"]["issued_with_final_bill"] == "2018-04-30"
+
+
+def test_the_accrual_holds_a_closing_run_until_the_final_bills_month():
+    from company.billing.billing_accuracy import unbilled_accrual
+    from company.interfaces.bill_assembly import held_bills
+
+    bills = _leaver()
+    held = held_bills(bills)
+    assert held == set(), "the whole closing run is released"
+    before = unbilled_accrual(bills, held, "2018-03")["by_fuel"]["electricity"]
+    assert before["held_estimates"] == 4
+    assert before["kwh"] == 4 * 5070.0
+    on_the_final = unbilled_accrual(bills, held, "2018-04")["by_fuel"]["electricity"]
+    assert on_the_final["held_estimates"] == 0 and on_the_final["kwh"] == 0.0
+
+
+def test_the_billing_run_stamps_only_a_churned_accounts_last_bill_as_final():
+    from simulation.meter_reads import SimulatedReadFeed
+
+    records = [
+        {
+            "customer_id": "C1",
+            "settlement_date": f"2023-0{m}-01",
+            "settlement_period": 1,
+            "consumption_kwh": 300.0,
+            "unit_rate_gbp_per_mwh": 200.0,
+            "revenue_gbp": 60.0,
+            "wholesale_cost_gbp": 0.0,
+            "margin_gbp": 0.0,
+        }
+        for m in (1, 2, 3)
+    ]
+    churned = build_monthly_bills(records, SimulatedReadFeed(), churned_ids={"C1"})
+    assert [bool(b.get("final_bill")) for b in churned] == [False, False, True]
+    staying = build_monthly_bills(records, SimulatedReadFeed())
+    assert not any(b.get("final_bill") for b in staying)

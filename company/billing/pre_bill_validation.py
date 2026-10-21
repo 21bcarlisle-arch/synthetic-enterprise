@@ -23,9 +23,11 @@ follow-up, not built in this pass.
 """
 from __future__ import annotations
 
+import datetime as dt
 from dataclasses import dataclass, field
 from enum import Enum
 
+from company.billing.back_billing import BackBillingAssessment, BackBillingReason
 from company.compliance.domain_invariants import (
     _FOOTING_COMPONENT_KEYS,
     check_back_billing_cap_respected,
@@ -47,6 +49,9 @@ class ValidationOutcome(str, Enum):
     #: Held on consumption scale alone, then confirmed a domestic dwelling on an actual read and
     #: issued -- see `release_confirmed_domestic`. The hold's reasons stay on the result.
     RELEASED = "released_confirmed_domestic"
+    #: Held on consumption scale alone in a closed account's closing run, and issued with its
+    #: final bill on the closing read -- see `release_at_closing_read`.
+    RELEASED_AT_CLOSURE = "released_on_the_final_bill"
 
 
 @dataclass(frozen=True)
@@ -350,18 +355,100 @@ def release_confirmed_domestic(bill: dict, result: BillValidationResult) -> dict
     return released
 
 
+def _closing_runs(bills: list) -> dict[tuple[str, str], tuple[dict, dict]]:
+    """(customer_id, period_end) of each bill in a closed account's closing run -> (the bill, its
+    final bill).
+
+    The closing run is the estimated bills after the account's last actual read, through its final
+    bill (`final_bill`, stamped by `monthly_bill_assembly.build_monthly_bills`). A final bill on an
+    actual read is that last read, so its run is empty: its catch-up carries the energy."""
+    by_customer: dict[str, list[dict]] = {}
+    for bill in bills:
+        by_customer.setdefault(bill.get("customer_id", ""), []).append(bill)
+    runs: dict[tuple[str, str], tuple[dict, dict]] = {}
+    for customer_id, own in by_customer.items():
+        final = next((b for b in own if b.get("final_bill")), None)
+        if final is None:
+            continue
+        last_read = max(
+            (b["period_end"] for b in own if b.get("billing_basis") == "actual"), default="")
+        for b in own:
+            if (b.get("billing_basis") == "estimated"
+                    and last_read < b["period_end"] <= final["period_end"]):
+                runs[(customer_id, b["period_end"])] = (b, final)
+    return runs
+
+
+def release_at_closing_read(
+    bill: dict, result: BillValidationResult, final_bill: dict,
+) -> dict | None:
+    """A domestic ceiling hold in a closed account's closing run: the bill to issue on the final
+    bill, or None. `final_bill` is the account's final bill, whose closing run this bill is in.
+
+    The volume half of the ceiling waits for an actual read, and after closure none reaches this
+    supplier: the meter's next read is the gaining supplier's. The closing read is the one the
+    losing supplier is settled on, and it moves only by dispute, so billing it is billing what the
+    supplier is charged for. The mislabel half still needs the listing, as `release_confirmed_domestic`
+    does. A held interim goes out on the final bill (SLC 27.17), so its billing date is the final
+    bill's, and SLC 21BA bars it if any part of it is over 12 months before that: it stays held.
+    Rules and choices: docs/market_research/unbilled_energy_and_revenue_assurance.md, K6, "A held
+    bill on an account that closes".
+    """
+    if not (result.held and result.consumption_scale_only):
+        return None
+    if bill.get("segment", "resi") != "resi":
+        return None
+    if bill.get("premise_council_tax_listed") is not True:
+        return None
+    barred = BackBillingAssessment(
+        account_id=bill.get("customer_id", ""),
+        billing_date=dt.date.fromisoformat(final_bill["period_end"]),
+        consumption_period_start=dt.date.fromisoformat(bill["period_start"]),
+        consumption_period_end=dt.date.fromisoformat(bill["period_end"]),
+        billed_amount_gbp=bill.get("total_amount_gbp", 0.0),
+        reason=BackBillingReason.SUPPLIER_ERROR,
+    ).cap_applies
+    if barred:
+        return None
+    released = dict(bill)
+    released["pre_bill_release"] = {
+        "outcome": ValidationOutcome.RELEASED_AT_CLOSURE.value,
+        "held_for": list(result.reasons),
+        "confirmed_by": ("supply address on the council tax list; account closed, billed to its "
+                         "closing read, the read the losing supplier is settled on"),
+        "issued_with_final_bill": final_bill["period_end"],
+    }
+    return released
+
+
+def issued_with_final_bill(bills: list) -> dict[tuple[str, str], str]:
+    """(customer_id, period_end) of each held bill `validate_bills` issues on a final bill -> that
+    final bill's period end. Until then the bill was not issued, which is what the unbilled accrual
+    asks. Only closing-run bills are validated, so this is cheap to ask at every month end."""
+    late = {}
+    for key, (bill, final) in _closing_runs(bills).items():
+        if release_at_closing_read(bill, validate_bill(bill), final) is not None:
+            late[key] = final["period_end"]
+    return late
+
+
 def validate_bills(bills: list) -> tuple[list, list[BillValidationResult]]:
     """Partition `bills` into (passing, held) -- passing bills proceed to
     normal issuance unchanged; held bills are the exception queue, keyed by
     (customer_id, period_end) so a caller can look up why any given bill
     didn't issue this cycle. A consumption-scale hold the queue confirms
-    domestic (`release_confirmed_domestic`) issues, as a marked copy."""
+    domestic (`release_confirmed_domestic`) issues, as a marked copy, and so does
+    one in a closed account's closing run (`release_at_closing_read`), on its final bill."""
     passing = []
     exception_queue: list[BillValidationResult] = []
+    closing = _closing_runs(bills)
     for bill in bills:
         result = validate_bill(bill)
         if result.held:
             released = release_confirmed_domestic(bill, result)
+            run = closing.get((bill.get("customer_id", ""), bill.get("period_end", "")))
+            if released is None and run is not None:
+                released = release_at_closing_read(bill, result, run[1])
             if released is not None:
                 passing.append(released)
             else:
