@@ -76,6 +76,7 @@ from __future__ import annotations
 
 import dataclasses
 import datetime as dt
+import functools
 import math
 import random
 from dataclasses import dataclass
@@ -88,9 +89,16 @@ ASSUMPTION_TOGGLES_PATH = (
     Path(__file__).resolve().parent.parent / "docs" / "market_research" / "assumption_toggles.yaml")
 
 
+@functools.lru_cache(maxsize=4)
+def _toggle_rows(text: str) -> list:
+    # Keyed on the file's TEXT, not its path: a run asks ~260 times and the parse was 45 s of
+    # one, while an edited file or a test's own register still parses afresh. Callers only read.
+    return yaml.safe_load(text)["toggles"]
+
+
 def assumption_toggle(toggle_id: str, setting: str = "default") -> float:
     """One setting (`default`, `low` or `high`) of a registered assumption toggle."""
-    rows = yaml.safe_load(ASSUMPTION_TOGGLES_PATH.read_text())["toggles"]
+    rows = _toggle_rows(ASSUMPTION_TOGGLES_PATH.read_text())
     for row in rows:
         if row["id"] == toggle_id:
             return float(row[setting])
@@ -101,7 +109,7 @@ def assumption_toggle_or_gap(
         toggle_id: str, setting: str = "default") -> tuple[Optional[float], Optional[str]]:
     """(value, None), or (None, the row's `default_reason`) when the register holds a GAP there.
     `assumption_toggle` raises on a null, which is right for a row nobody expects to be empty."""
-    rows = yaml.safe_load(ASSUMPTION_TOGGLES_PATH.read_text())["toggles"]
+    rows = _toggle_rows(ASSUMPTION_TOGGLES_PATH.read_text())
     for row in rows:
         if row["id"] == toggle_id:
             if row[setting] is None:

@@ -5110,9 +5110,15 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         print(f"  {commodity:12s}: gross=£{gross:.2f}  capital=£{cap:.2f}  net=£{net:.2f}")
 
     print("\n=== Per-customer lifetime P&L ===")
+    # One pass, in book order, so each customer's sums add the same floats in the same order as
+    # the per-customer filter did. That filter read the whole book once per customer: ~600m row
+    # reads on a run to 2018-09, and quadratic in the book.
+    _records_by_cid: dict[str, list] = defaultdict(list)
+    for r in all_records:
+        _records_by_cid[r["customer_id"]].append(r)
     for c in ELEC_CUSTOMERS + GAS_CUSTOMERS:
         cid = c["customer_id"]
-        recs = [r for r in all_records if r["customer_id"] == cid]
+        recs = _records_by_cid.get(cid, [])
         gross = sum(r["margin_gbp"] for r in recs)
         cap = sum(r["capital_cost_gbp"] for r in recs)
         net = sum(r["net_margin_gbp"] for r in recs)

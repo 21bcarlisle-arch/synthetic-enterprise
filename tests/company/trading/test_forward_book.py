@@ -151,3 +151,15 @@ class TestTradingBook:
         r2 = book.settle_period("C2", "2022-01-01", 1000.0, 60.0)
         assert r1.pnl_gbp == pytest.approx(18.0)   # (80-60)*0.9
         assert r2.pnl_gbp == pytest.approx(-9.0)   # (50-60)*0.9
+
+    def test_settle_period_matches_the_FIRST_contract_opened_under_its_term(self):
+        # The indexed lookup must answer as the list scan did: the first contract under a
+        # (customer, term) wins, a second term of the same customer is a different key, and a
+        # term with no contract settles nothing.
+        book = TradingBook()
+        book.open_hedge(_contract("C1", "2022-01-01", agreed=80.0))
+        book.open_hedge(_contract("C1", "2022-01-01", agreed=10.0))
+        book.open_hedge(_contract("C1", "2023-01-01", agreed=50.0))
+        assert book.settle_period("C1", "2022-01-01", 1000.0, 60.0).pnl_gbp == pytest.approx(18.0)
+        assert book.settle_period("C1", "2023-01-01", 1000.0, 60.0).pnl_gbp == pytest.approx(-9.0)
+        assert book.settle_period("C1", "2024-01-01", 1000.0, 60.0) == HedgePnL(0.0, 0.0)
