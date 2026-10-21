@@ -85,3 +85,22 @@ It reaches the page at the next publish: the committed run gz is a different boo
 published feed, so the feed was not hand-regenerated. Until then the panel names its absence.
 The world build above is unchanged and still routed to W2.
 
+
+## World build, landed behind a switch (worker, 2026-10-21)
+
+Knowledge first: `unbilled_energy_and_revenue_assurance.md` §4e (the DESNZ stock, the conditional
+hazard, and the GAP that no published series separates in-book installs from the national stock).
+`life_events.smart_meter_installed_event` emits the existing event per premise at
+h(y) = (p(y) − p(y−1)) / (1 − p(y−1)), 8.2% (2017) to 19.0% (2024), and 0 in 2025 where the series is held flat.
+`meter_reads.SimulatedReadFeed` reads each period with the meter in force at its end. A dual-fuel
+home's two legs are exchanged in one visit. The control is
+`tests/simulation/test_a_meter_already_on_supply_is_exchanged_for_a_smart_one.py`: every
+acquisition cohort from 2016 to 2023 reaches DESNZ's 68.9% within four binomial standard errors.
+Without exchanges a 2016 cohort sits outside that band. Four of five mutations go red. The fifth
+(re-exchanging a meter already smart at acquisition) stays green, and that is an equivalence: the
+feed returns "smart" for such a meter whatever the event says.
+
+**`meter_reads.SMART_METER_EXCHANGE` is False.** PARKED, not handed off: turn it on only once the
+per-customer, opex-credit, bad-debt and retention-netting arms are graded, and re-take the value
+arms in the same piece of work, because the flip moves the world digest. A continuation written now would expire
+(6 h) long before that trigger. Whoever closes the last of the four grades picks this up.

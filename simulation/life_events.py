@@ -10,10 +10,10 @@ Event types modelled:
 - boiler_replaced: old boiler replaced with new (resets boiler_age to NEW)
 - heat_pump_installed: gas boiler replaced with heat pump (changes heating_system)
 - battery_installed: battery storage added (typically after solar install)
-- smart_meter_installed: smart meter fitted (if not already) -- NOTE: this event type
-  is defined and handled by apply_events() but is NOT currently emitted by the
-  generator loop below (W2_5 Expert Hour finding, 2026-07-13) -- a real
-  smart-meter-rollout event generator is a separate, not-yet-built piece.
+- smart_meter_installed: smart meter fitted (if not already). Not emitted by the
+  per-household generator loop below: `smart_meter_installed_event` emits it per
+  PREMISE, and the read feed acts on it behind `meter_reads.SMART_METER_EXCHANGE`
+  (default off until the value arms are re-taken).
 - insulation_upgraded: loft or wall insulation improved (upgrades InsulationLevel)
 - job_loss: economic life event (income_stress -> HIGH), and it draws its own spell
 - reemployed: the job-loss spell ends at its drawn date (HIGH -> MODERATE, the scar)
@@ -743,6 +743,49 @@ def generate_life_events(
 
     events.sort(key=lambda e: e.event_date)
     return events
+
+
+SMART_METER_EXCHANGE_STREAM = "smart_meter_exchange"
+
+
+def smart_meter_exchange_hazard(year: int) -> float:
+    """Chance a meter still traditional at the start of `year` is exchanged for a smart one in it.
+
+    The conditional hazard (p(y) - p(y-1)) / (1 - p(y-1)) on the DESNZ installed stock
+    (`premise_population.smart_meter_penetration`). A cohort drawn smart at p(A) on acquisition and
+    exchanged at this hazard after it is smart at p(Y) at the end of every later year Y: the
+    product telescopes. Knowledge: unbilled_energy_and_revenue_assurance.md s.4e, with the GAP
+    that no published series separates in-book installs from the national stock.
+    """
+    from simulation.premise_population import smart_meter_penetration
+
+    before = smart_meter_penetration(year - 1)
+    if before >= 1.0:
+        return 0.0
+    return max(0.0, smart_meter_penetration(year) - before) / (1.0 - before)
+
+
+def smart_meter_installed_event(
+    premise_id: str, base_seed: int, acquired: date, smart_at_acquisition: bool,
+    last_year: int = 2025,
+) -> LifeEvent | None:
+    """The `smart_meter_installed` event for a supply point already on supply, or None.
+
+    Keyed on the PREMISE, so the two legs of a dual-fuel home are exchanged in one visit. Its own
+    `rng_substream` stream, keyed per premise, so it moves no other draw and is independent of the
+    order premises are asked in. A meter smart at acquisition is never exchanged; the first exchange
+    can fall in the year after acquisition, because the acquisition draw already stood at p(A).
+    """
+    if smart_at_acquisition:
+        return None
+    from simulation.rng_substream import substream
+
+    rng = substream(SMART_METER_EXCHANGE_STREAM, premise_id, base_seed)
+    for year in range(acquired.year + 1, last_year + 1):
+        if rng.random() < smart_meter_exchange_hazard(year):
+            return LifeEvent(premise_id, _random_date_in_year(year, rng), "smart_meter_installed",
+                             {"reason": "exchange"})
+    return None
 
 
 def _dated_in_gate_order(

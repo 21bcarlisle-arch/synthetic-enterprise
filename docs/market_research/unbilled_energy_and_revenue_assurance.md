@@ -985,6 +985,64 @@ the supplier has already measured at the same meter.
   the next read's catch-up.
 - The released bill is a marked copy carrying `pre_bill_release`, as the other two releases are.
 
+### 4e. A meter already on supply is exchanged for a smart one (2026-10-21, K8 for W2 / D48)
+
+Asked by the measure of the 8b6fea024 run: 0 of 945 accounts changed meter type in their life, so
+the book was 29% smart in 2024 against 68.9% nationally, and K2's blended estimated share stayed flat
+(`WORKER_FINDING_D48_THE_ESTIMATED_SHARE_IS_FLAT_BECAUSE_NO_METER_IS_EVER_EXCHANGED_AFTER_ACQUISITION_2026-10-21.md`).
+The meter was drawn once, at acquisition, and nothing changed it afterwards.
+
+**What the published record says.**
+- The national installed stock of domestic smart meters: 10.6% (2016) to 68.9% (2024). [H] DESNZ,
+  *Smart Meter Statistics in Great Britain: Q4 2024*, Table 5a. This is already the series behind
+  `premise_population.smart_meter_penetration`, interpolated linearly between the two ends and held
+  flat outside them.
+- Nearly all of that stock was fitted to premises that were already on supply. The roll-out was an
+  exchange programme: suppliers fitted smart meters at their own customers' existing supply points,
+  under the roll-out duty in their licences (an "all reasonable steps" duty to 2020, then annual
+  install targets from 2022). [M] The licence condition numbers and target levels were not read this
+  pass: **GAP**, the next read is the commons. A meter fitted when a supply point is first connected
+  is a small share of the flow.
+- A meter exchange is a fact the supplier holds about its own supply point. The meter's details
+  are on the national metering record and arrive in the industry flows, and the supplier, or its
+  installer, fitted it.
+
+**The conditional hazard.** If the stock reads p(y) at the end of year y, and only meters still
+traditional can be exchanged, then the chance that a traditional meter is exchanged during year y
+is h(y) = (p(y) − p(y−1)) / (1 − p(y−1)). For a household drawn smart at acquisition with
+probability p(A) and exchanged at h(y) in each later year, the chance of being smart at the end of
+year Y is 1 − (1 − p(A)) · Π(1 − h(y)) = p(Y), because the product telescopes. So every cohort, of
+any acquisition year, carries the national stock. On the linear series h runs from 8.2% (2017) to
+19.0% (2024) and is 0 in 2025, where the series is held flat.
+
+**GAP: in-book versus national.** No published series separates a supplier's installs at its own
+supply points from the national stock. For example, there is no evidence on whether switchers are
+fitted faster or slower, whether a small supplier's install rate differs from a large one's (DESNZ
+does publish the smart-mode share by supplier size, §K7, but not the install hazard), or whether
+prepayment or vulnerable households are fitted at a different rate. The national hazard is the
+stated belief. It is a belief about an average, not a measured supplier rate.
+
+**Choices for the build, and why.**
+- **Where it is drawn.** `life_events.smart_meter_installed_event` emits the `smart_meter_installed`
+  event that already existed and that `apply_events` already handled. It draws from its own
+  per-premise substream, so no other draw moves. The draw is keyed on the premise, not the account,
+  so a dual-fuel home's two legs are exchanged in the same visit, which is how a dual install is
+  done.
+- **Where it acts.** The world's read feed (`meter_reads.SimulatedReadFeed`) reads every period
+  against the meter in force at that period's end, not the acquisition stamp. The meter on the wall
+  decides how the read arrives. The company is not asked what it thinks the meter is.
+- **What the company sees.** Each read event already carries the meter that took it, and the
+  published meter-read log is projected from those events. After an exchange, the supply point's
+  reads arrive from a smart meter. That is the observable, the same fact the acquisition stamp
+  already rendered, and no future date crosses the wall: the company learns of an exchange only from
+  a read taken after it.
+- **Behind a switch, default off.** Turning it on moves every traditional account's reads after its
+  exchange date, which moves the world digest. The per-customer, opex-credit, bad-debt and
+  retention-netting arms are being graded on the current world. So the switch lands off, and turning
+  it on waits for those grades and the value-arms re-take that follows.
+- **Not built:** a smart meter that drops back into traditional mode (§K7, hazard unpublished), and
+  a different hazard for gas, which follows the same series because the repository holds one.
+
 ## 5. What our code does
 
 From a census of this worktree on 2026-10-05 (base `a52651e29`). The load-bearing claims were

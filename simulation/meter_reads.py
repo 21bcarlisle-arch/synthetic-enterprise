@@ -285,6 +285,12 @@ READ_VISIT_ACCESS_FAILURE_RATE, READ_VISIT_ACCESS_FAILURE_GAP = assumption_toggl
     "q6_read_visit_access_failure_rate")
 MUST_READ_ARMS = ("register", "ceiling")
 
+# A traditional meter already on supply is exchanged for a smart one at the DESNZ stock's conditional
+# hazard (`life_events.smart_meter_installed_event`; unbilled_energy_and_revenue_assurance.md s.4e).
+# OFF until the per-customer, opex-credit, bad-debt and retention-netting arms are graded: turning it
+# on moves the world digest, so the value arms are re-taken with it.
+SMART_METER_EXCHANGE = False
+
 
 def must_read_due(commodity: str, meter_type: str, consecutive_estimated_count: int,
                   aq_kwh: Optional[float] = None) -> bool:
@@ -645,13 +651,18 @@ class SimulatedReadFeed:
     `q6_read_visit_access_failure_rate` is null; `must_read_arm="ceiling"` is the upper bound.
     """
 
-    def __init__(self, must_read_arm: str = "register", instructed_read_arm: str = "register"):
+    def __init__(self, must_read_arm: str = "register", instructed_read_arm: str = "register",
+                 smart_meter_exchange: Optional[bool] = None, base_seed: Optional[int] = None):
         for arm in (must_read_arm, instructed_read_arm):
             if arm not in MUST_READ_ARMS:
                 raise ValueError(f"arm {arm!r} is not one of {MUST_READ_ARMS}")
         self.must_read_arm = must_read_arm
         self.instructed_read_arm = instructed_read_arm
+        self.smart_meter_exchange = (SMART_METER_EXCHANGE if smart_meter_exchange is None
+                                     else smart_meter_exchange)
+        self._base_seed = base_seed
         self._meter: dict[str, dict] = {}
+        self._exchanged_on: dict[str, Optional[str]] = {}
 
     def meter_type_for(self, customer: Optional[dict]) -> str:
         """Carries the inline path's own `if customer_data else` fallback."""
@@ -659,7 +670,45 @@ class SimulatedReadFeed:
             self._meter[customer["customer_id"]] = {
                 "commodity": customer.get("commodity", "electricity"), "aq_kwh": customer.get("aq_kwh"),
                 "half_hourly": customer.get("metering") == "HH"}
-        return meter_type_for_customer(customer) if customer else "traditional"
+        if not customer:
+            return "traditional"
+        meter_type = meter_type_for_customer(customer)
+        if self.smart_meter_exchange and customer.get("customer_id"):
+            self._record_exchange(customer, meter_type)
+        return meter_type
+
+    def _record_exchange(self, customer: dict, meter_type: str) -> None:
+        """The date this supply point's meter is exchanged for a smart one, or None if never.
+
+        Keyed on the premise: a gas leg `<id>g` is its electricity leg's home, and one visit fits
+        both. An account with no acquisition date on record is left alone rather than guessed.
+        """
+        cid = customer["customer_id"]
+        acquired = str(customer.get("acquisition_date") or "")[:10]
+        if not acquired:
+            self._exchanged_on[cid] = None
+            return
+        from simulation.life_events import smart_meter_installed_event
+
+        if self._base_seed is None:
+            from simulation.live_population import run_base_seed
+
+            self._base_seed = run_base_seed()
+        premise = cid[:-1] if customer.get("commodity") == "gas" and cid.endswith("g") else cid
+        event = smart_meter_installed_event(
+            premise, self._base_seed, dt.date.fromisoformat(acquired), meter_type == "smart")
+        self._exchanged_on[cid] = event.event_date if event else None
+
+    def meter_in_force(self, customer_id: str, period_end: str, meter_type: str) -> str:
+        """The meter on the wall at `period_end`. The world reads with it, not with what it was told.
+
+        Off (`SMART_METER_EXCHANGE`, the default), or for an account `meter_type_for` never saw, it
+        is the meter type passed in, so every read is byte-identical to the switch's absence.
+        """
+        exchanged = self._exchanged_on.get(customer_id)
+        if exchanged is not None and str(period_end)[:10] >= exchanged:
+            return "smart"
+        return meter_type
 
     def _meter_of(self, customer_id: str) -> dict:
         return {**self._meter.get(customer_id, {}), "must_read_arm": self.must_read_arm}
@@ -673,7 +722,8 @@ class SimulatedReadFeed:
         consecutive_estimated_count: int,
     ) -> MeterReadEvent:
         return simulate_read(
-            customer_id, period_end, meter_type, true_consumption_kwh,
+            customer_id, period_end, self.meter_in_force(customer_id, period_end, meter_type),
+            true_consumption_kwh,
             consecutive_estimated_count, **self._meter_of(customer_id),
         )
 
@@ -691,7 +741,8 @@ class SimulatedReadFeed:
         it gets one is the world's business: `simulate_final_read`.
         """
         return simulate_final_read(
-            customer_id, period_end, meter_type, true_consumption_kwh,
+            customer_id, period_end, self.meter_in_force(customer_id, period_end, meter_type),
+            true_consumption_kwh,
             consecutive_estimated_count, **self._meter_of(customer_id),
         )
 
@@ -705,7 +756,8 @@ class SimulatedReadFeed:
     ) -> MeterReadEvent:
         """The visit for a read the company instructed: `simulate_instructed_read`, at this feed's arm."""
         return simulate_instructed_read(
-            customer_id, period_end, meter_type, true_consumption_kwh,
+            customer_id, period_end, self.meter_in_force(customer_id, period_end, meter_type),
+            true_consumption_kwh,
             consecutive_estimated_count, arm=self.instructed_read_arm,
             **self._meter_of(customer_id),
         )
