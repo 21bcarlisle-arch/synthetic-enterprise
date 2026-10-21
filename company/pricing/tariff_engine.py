@@ -31,6 +31,7 @@ triggers a portfolio-wide premium lift that carries into 2023-24.
 """
 
 import statistics
+from bisect import bisect_left, bisect_right
 from datetime import date, timedelta
 
 COMPANY_LOOKBACK_DAYS = 120
@@ -106,7 +107,90 @@ REGIME_PREMIUM_MIN = -0.05       # cap downward discount at -5%
 REGIME_MIN_RECORDS = 20          # minimum records in each window to compute ratio
 
 
-def _daily_means_for_window(
+class _DailyIndex:
+    """One price-record list grouped by day, so a window is a bisection rather than a full scan.
+
+    WHY (2026-10-21): every `get_forward_price` call walked the whole 168k-record SSP history
+    seven times to read a window of a few hundred days -- 37M `date.fromisoformat` calls to price
+    one household's 38 terms, 10.6 s of its 11.0 s schedule, and the bulk of the nightly census's
+    simulation setups. The answer is unchanged: each day's mean is the same `statistics.mean`
+    over the same floats in record order, computed once and kept.
+
+    Built only for a list whose keys are canonical `YYYY-MM-DD` and already in order. Only then do
+    chronological order, first-appearance order and string-sort order coincide. Any other list
+    takes the original scan, so no input can get a different answer from this path.
+    """
+
+    __slots__ = ("records", "n", "first", "last", "dates", "keys", "prices", "cum", "_means")
+
+    def __init__(self, records: list[dict]):
+        self.records, self.n = records, len(records)
+        self.first, self.last = records[0], records[-1]
+        self.dates: list[date] = []
+        self.keys: list[str] = []
+        self.prices: list[list] = []
+        for r in records:
+            key = r["settlementDate"]
+            if self.keys and key == self.keys[-1]:
+                self.prices[-1].append(r["systemSellPrice"])
+                continue
+            if self.keys and key < self.keys[-1]:
+                raise _NotIndexable
+            d = date.fromisoformat(key)
+            if d.isoformat() != key:
+                raise _NotIndexable
+            self.dates.append(d)
+            self.keys.append(key)
+            self.prices.append([r["systemSellPrice"]])
+        self.cum = [0]
+        for v in self.prices:
+            self.cum.append(self.cum[-1] + len(v))
+        self._means: dict[int, float] = {}
+
+    def holds(self, records: list[dict]) -> bool:
+        return (self.records is records and len(records) == self.n
+                and records[0] is self.first and records[-1] is self.last)
+
+    def span(self, start: date, end: date) -> tuple[int, int]:
+        return bisect_left(self.dates, start), bisect_right(self.dates, end)
+
+    def means(self, lo: int, hi: int) -> list[float]:
+        out = []
+        for i in range(lo, hi):
+            m = self._means.get(i)
+            if m is None:
+                m = self._means[i] = statistics.mean(self.prices[i])
+            out.append(m)
+        return out
+
+
+class _NotIndexable(Exception):
+    pass
+
+
+#: Keyed on the list's identity; the entry holds the list, so the id cannot be reused while it is
+#: cached. Bounded because tests build many short-lived lists.
+_INDEXES: dict[int, _DailyIndex | None] = {}
+_INDEX_CAP = 8
+
+
+def _daily_index(price_records: list[dict]) -> _DailyIndex | None:
+    if not price_records:
+        return None
+    entry = _INDEXES.get(id(price_records))
+    if isinstance(entry, _DailyIndex) and entry.holds(price_records):
+        return entry
+    try:
+        entry = _DailyIndex(price_records)
+    except _NotIndexable:
+        return None
+    if len(_INDEXES) >= _INDEX_CAP:
+        _INDEXES.pop(next(iter(_INDEXES)))
+    _INDEXES[id(price_records)] = entry
+    return entry
+
+
+def _scan_daily_means_for_window(
     price_records: list[dict],
     window_start: date,
     window_end: date,
@@ -117,6 +201,17 @@ def _daily_means_for_window(
         if window_start <= d <= window_end:
             daily.setdefault(r["settlementDate"], []).append(r["systemSellPrice"])
     return [statistics.mean(v) for v in daily.values()]
+
+
+def _daily_means_for_window(
+    price_records: list[dict],
+    window_start: date,
+    window_end: date,
+) -> list[float]:
+    index = _daily_index(price_records)
+    if index is None:
+        return _scan_daily_means_for_window(price_records, window_start, window_end)
+    return index.means(*index.span(window_start, window_end))
 
 
 def _compute_ewma(daily_means: list[float], half_life_days: int = EWMA_HALF_LIFE_DAYS) -> float:
@@ -157,6 +252,9 @@ def _estimate_term_structure_slope(
     long_end = short_start - timedelta(days=1)
 
     def _chronological_means(window_start: date, window_end: date) -> list[float]:
+        index = _daily_index(price_records)
+        if index is not None:
+            return index.means(*index.span(window_start, window_end))
         daily: dict[str, list[float]] = {}
         for r in price_records:
             d = date.fromisoformat(r["settlementDate"])
@@ -309,22 +407,31 @@ class CompanyTariffEngine:
         end_lookback = start_date - timedelta(days=1)
         start_lookback = start_date - timedelta(days=lookback_days)
 
-        filtered = [
-            r for r in price_records
-            if start_lookback <= date.fromisoformat(r["settlementDate"]) <= end_lookback
-        ]
+        index = _daily_index(price_records)
+        if index is not None:
+            lo, hi = index.span(start_lookback, end_lookback)
+            found = index.cum[hi] - index.cum[lo]
+        else:
+            filtered = [
+                r for r in price_records
+                if start_lookback <= date.fromisoformat(r["settlementDate"]) <= end_lookback
+            ]
+            found = len(filtered)
 
-        if len(filtered) < MIN_RECORDS_FOR_ESTIMATE:
+        if found < MIN_RECORDS_FOR_ESTIMATE:
             raise ValueError(
                 f"Insufficient price records for company estimate at {delivery_date}: "
-                f"found {len(filtered)}, need at least {MIN_RECORDS_FOR_ESTIMATE}"
+                f"found {found}, need at least {MIN_RECORDS_FOR_ESTIMATE}"
             )
 
-        daily: dict[str, list[float]] = {}
-        for r in filtered:
-            daily.setdefault(r["settlementDate"], []).append(r["systemSellPrice"])
-        # Phase 49: sort chronologically so EWMA weights recent prices higher.
-        daily_means = [statistics.mean(v) for v in dict(sorted(daily.items())).values()]
+        if index is not None:
+            daily_means = index.means(lo, hi)
+        else:
+            daily: dict[str, list[float]] = {}
+            for r in filtered:
+                daily.setdefault(r["settlementDate"], []).append(r["systemSellPrice"])
+            # Phase 49: sort chronologically so EWMA weights recent prices higher.
+            daily_means = [statistics.mean(v) for v in dict(sorted(daily.items())).values()]
 
         # Phase 49: EWMA base (replaces simple mean) — faster regime adaptation.
         base = _compute_ewma(daily_means)
