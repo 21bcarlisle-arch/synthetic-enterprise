@@ -247,3 +247,109 @@ fresh seeds are the blind grade.
 **Housekeeping.** The `/var/tmp/se-pcs-arms` worktree has been read in full by this grade and can be
 unlocked and removed. The outputs stay in `/var/tmp/se-pcs-arms-out/` (not evidence held anywhere
 else; ~500 MB).
+
+## 7. Splitting the tie: inference or lever (2026-10-21, no run launched)
+
+**Does any output carry the belief per decision state? Yes.** `next_best_action_renewal_log` has one
+`monthly_hazard` per (account, `term_start`). `RenewalAdviceDesk.observe_roll` sets it to
+`monthly_hazard(company_est_pre)`, which is the company's own renewal churn belief spread over 12
+months. So the belief inverts exactly: `p = 1 − (1 − h)^12`. It is the belief the retention gate
+reads at the same roll, taken before any offer. The population is the desk's: residential rolls
+that carry a term contribution. That is 454 decision states on 263 billing accounts, read from
+`all_on`. It is not every renewal in the book.
+
+**Definitions.**
+- **Leaver.** A billing account with a `churned` event in `customer_events` or `svt_departures` on
+  any of its legs, dated within 365 days on or after the decision state's `term_start`, and with no
+  `home_move_outs` row for the account before that departure in the window. Every
+  `departure_cause` in the vocabulary is a switching risk (bill_shock, price_position,
+  dissatisfaction, svt_inertia). A move-out is a separate journey (`home_move_outs`). Gas leg
+  `<id>g` maps to account `<id>`.
+- **At risk under flat.** The account is still supplied under `flat` at `term_start`: no `flat`
+  departure or move-out dated before it. States whose account had already gone under flat are
+  dropped from (a) and counted.
+- **Targeted (b).** An account with a `retention_log` row under `all_on`, or a save-log row with
+  `saved` true. The outcome is read in the 365 days from the offer's date (`event_date` /
+  `term_start`): did it leave under `flat`, and did it leave under `all_on`.
+
+**Predictions, written before any count below was computed (17:37Z).**
+- **P7a.** Base rate: 5–15% of at-risk states are leavers under flat, point 9% (~40 leavers).
+  AUC 0.55–0.75, point 0.65. The top decile of belief holds 15–35% of leavers, point 22%. With
+  ~40 leavers, the AUC's standard error is about ±0.05, so an AUC below ~0.60 cannot be told from
+  chance.
+- **P7b.** Of the targeted accounts (about 100), 5–20 would have left under flat, point 10. Of
+  those, 1–4 stayed under `all_on`, point 2, consistent with §6's account-by-account F2 reading.
+- **P7c. Which carries the tie: the lever, about 65%.** The belief ranks leavers better than chance,
+  but the offers convert few of the would-be leavers they reach. If the AUC's lower bound is below
+  0.6, the inference carries the tie, and the renewal-advice build that §6 recommends would test
+  nothing until the belief improves.
+
+**Result (computed 17:40–17:55Z from the three outputs; one seed, one book).**
+
+*(a) Inference: the company's renewal churn belief ranks flat-arm leavers at chance or worse.*
+
+| reading (desk states at risk under flat) | value |
+|---|---|
+| states / accounts / dropped as already gone under flat | 450 / 263 / 4 |
+| leavers (365 days from `term_start`) | 110 (24.4%); 94 of them leave on the roll's own date |
+| **AUC of belief for leaving** | **0.461**, 95% [0.400, 0.522] (Hanley–McNeil); account-clustered bootstrap [0.398, 0.524] |
+| top belief decile (45 states): share of all leavers | **11 of 110 = 10.0%** (Wilson 5.7–17.0%); its leave rate 24.4%, equal to the base |
+| roll-only outcome (leaves on `term_start`) | AUC 0.412 |
+| outcome read under `all_on` instead | AUC 0.442 |
+| pre-2019 / 2019+ | 0.482 (182 states, 64 leavers) / **0.333** (268, 46) |
+| leave rate by belief band [0,.05) [.05,.1) [.1,.2) [.2,.4) [.4,1] | 3/11, 11/34, 20/78, 43/169, 33/158: flat to falling |
+| mean belief vs realised | 0.357 vs 0.244 |
+
+The outcome *can* be ranked. On `flat`'s `customer_events` (555 rows, 95 churned), the world's own
+`realized_churn_probability` ranks them at AUC 0.898. The company estimate on the same rows ranks
+them at 0.531. So the gap is the company's inference, not noise in the world. From 2019 the belief
+is inverted: the households it thinks most likely to leave are the least likely.
+
+*(b) Lever: the offers reached leavers, and kept almost none.*
+- 113 retention offers on 97 accounts, plus the one save. Every offered roll is a desk state. Within
+  365 days of an offer, **44 accounts would have left under flat**. At the offered roll itself, 37
+  leave under flat and the same 37 leave under `all_on`. **The offer kept no one at the roll it
+  priced.**
+- **4 of the 44 stayed under `all_on`** in the window (9%): SYN-2016-115, PROS-2016-0263,
+  SYN-2016-399 and SYN-2016-541. All four left under flat months later on `svt_inertia`. That fits
+  a household that, without the offer, declined the fix and drifted out of default. Under `all_on`,
+  SYN-2016-115 still left about two months after its flat date, and SYN-2016-399 moved out in
+  October 2019. That leaves **2 durable: PROS-2016-0263 (to 2023) and SYN-2016-541 (still
+  supplied)**. That is §6's "about two", now counted per household.
+- **What reached the leavers was not the belief.** Among states with belief ≥ 0.30 (the retention
+  threshold), the 112 offered left at 39.3% (44) and the 127 not offered at 6.3% (8). What separates
+  them is the offer gate `_cut is not None`: the market beats our fix, which is a price-position
+  observable. Offered states are 25% of the desk and hold 40% of its leavers. The selection
+  worked through price position. The churn belief contributed nothing to it.
+
+**Which carries the tie: both are short, and each is measured on its own population.**
+- **The retention tie (§6: −£97, −1 departure) is carried by the LEVER.** On the 44 would-be leavers
+  the offers reached (out of 110 leavers in 450 states), conversion was 4, and 0 at the roll. A
+  better belief could not have bought more from that offer. The reach was already 1.6× the base
+  rate, through the price gate.
+- **The next build is blocked by the INFERENCE.** The desk's advice, and C35's rise, are weighed
+  through `monthly_hazard`, which is this belief. With AUC 0.46 (upper bound 0.52), advice ranked
+  or valued by it is targeted no better than at random. The £121 of claimed `value_change_gbp` is
+  priced on a hazard that does not predict leaving. **So sending the advice as an act the world
+  answers (§6's recommendation) would test the lever with a random aim.** The belief should rank
+  first. The cheapest candidate is the price-position observable that already selects 39% against 6%.
+
+**Grading P7.**
+- **P7a REFUTED.** The base rate is 24.4%, not 5–15%. The AUC is 0.46, below the 0.55–0.75 range.
+  The top decile holds 10% of leavers, not 15–35%.
+- **P7b REFUTED on the first count, HELD on the second.** 44 would-be leavers, not 5–20 (the base
+  rate was wrong by the same factor). 4 stayed, inside 1–4; 2 are durable, the point.
+- **P7c HELD for the tie, REFUTED in its reason.** The lever carries the retention tie, but not
+  because "the belief ranks leavers better than chance". It ranks them no better than chance, so the
+  tripwire I wrote (AUC lower bound below 0.6) fires: the renewal-advice build tests nothing until
+  the belief improves.
+
+**Not settled here.** One seed. `churn_model_performance` in the same output reports
+`prevented_churn_saves: 76`. That is the retention-log "retained" count, which (b) shows saved no
+one at the roll. It is a surface claiming saves it cannot see. Whether a belief rebuilt on price
+position ranks out of sample is the next question, and it needs no run: refit on pre-2019 states
+and grade on 2019+.
+
+**Housekeeping (2026-10-21 ~17:58Z).** Nothing was left to remove. `/var/tmp/se-pcs-arms` was
+already absent from disk and from `git worktree list`; another lane removed it after §6. The outputs
+stay in `/var/tmp/se-pcs-arms-out/`.
