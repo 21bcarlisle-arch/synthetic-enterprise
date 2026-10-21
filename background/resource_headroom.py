@@ -162,7 +162,11 @@ CLASS_WEIGHTS_MB = {
     # peak (6.4G..8.5G) is a FLOOR on a truncated suite, not the job's size. Budgeted at the
     # largest COMPLETE run, 10.9G (11,162 MB). A cgroup peak, so it counts page cache as
     # sim_run's does.
-    "head_green_census": 11162,
+    # RE-DERIVED 2026-10-21 from the same reader over -30d: six runs retained (10-16..10-21),
+    # max 11,981 MB (10-16, 11.7G, 3h49m). weight_drift had read "under" on every run since
+    # 10-02 and nothing re-derived it. The rise changes no arm verdict -- census plus one 7 GB
+    # arm fits either way, plus two never did -- it only stops a third 4 GB tenant squeezing in.
+    "head_green_census": 11981,
     # tools/pre_commit_test_gate.py's pytest, whole process tree (forked trace workers included),
     # by PSS. ORIGIN: measured 2026-10-08 on a run-heavy selection -- the run-phase2b event-log,
     # run-phase2b, home-move, void, fabric-demand and wall-census files, 414 tests, 11 min -- at
