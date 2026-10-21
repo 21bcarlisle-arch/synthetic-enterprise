@@ -860,3 +860,54 @@ stays second, as before.
 
 **Status:** OPEN and BLOCKING. The side moves back to the world, now named precisely: the leaver-debt **flow**,
 not the stock's age and not the seam.
+
+## 2026-10-21 (night, later): the leaver census. Not selection: the leavers stop leaving, and the debt stays live, where it is never more than about three bills deep
+
+**Instrument.** `/var/tmp/leaver_trace/dump.py` is the same run configuration as "the trace", re-run to dump every
+world `PeriodRecord` with its billed amount (45,555 records). `census.py` reads it.
+**Definitions, stated first:**
+- A *leaver in Y* is an account whose last bill was issued in Y, at least 62 days before the run's end.
+- *Debt left* is the world's unpaid pounds on its bills 62 days after that last bill, which is the day the
+  company files it closed.
+- *On supply in Y* means billed in Y.
+
+| year | on supply | leavers | leaver rate | indebted leavers | per 100 on supply | share of leavers indebted | debt left (GBP) | live accounts with world debt >91d at 1 Jan |
+|---|---|---|---|---|---|---|---|---|
+| 2017 | 798 | 201 | 25.2% | 11 | 1.38 | 5.5% | 1,070 | 1.1% |
+| 2018 | 666 | 162 | 24.3% | 23 | 3.45 | 14.2% | 1,115 | 4.1% |
+| 2019 | 572 | 131 | 22.9% | 20 | 3.50 | 15.3% | 828 | 4.0% |
+| 2020 | 513 | 113 | 22.0% | 9 | 1.75 | 8.0% | 360 | 4.7% |
+| 2021 | 463 | 66 | 14.3% | 8 | 1.73 | 12.1% | 378 | 6.5% |
+| 2022 | 430 | 27 | **6.3%** | 3 | 0.70 | 11.1% | 192 | 7.4% |
+| 2023 | 458 | 30 | **6.6%** | 3 | 0.66 | 10.0% | 332 | **10.0%** |
+
+**Graded against the prediction filed in "the trace":**
+- "The share of leavers with debt falls from 2017 to 2021, i.e. selection." **REFUTED.** It runs 5-15% with no
+  trend.
+- "Indebted leavers per 100 in 2022-23 are below 2017-18." **HELD**, but not for the predicted reason. The
+  *leaver rate* collapses from 22-25% to 6-7%.
+
+The direction matches the record: switching froze in 2022, and an indebted customer can be refused a switch. The
+size of the real collapse is an unfetched GAP (`ASSUMPTIONS.md`, the "post-2022 switching collapse" row). So the
+crisis debt **stays on live accounts**. The share of live accounts holding world debt over 91 days rises from 4%
+to 7.4% and then 10%. That is where a real supplier's crisis charge sat as well: Centrica's live PoR >90 band.
+
+**And on live accounts the company reads it young, and rightly by its convention.** A FIFO reconstruction from the
+dump reproduces the company's >91-day live figures exactly (186, 605 and 2,580 in 2019, 2022 and 2023). On that
+reading, the live balance billed more than 105 days ago is **2.0%** of the live receivable in 2019, **2.1%** in
+2022 and **12.4%** in 2023. Centrica's implied PoR >90 share is ~60% and ~75%. So, cash-wise, the world's live
+debtors are almost never more than about three bills behind. They miss bills, and then pay the later ones (or the
+budget clears the oldest), so the overhang never deepens. Real crisis debtors' balances deepened.
+
+**Where this leaves the split.**
+- The seam loses nothing ("the trace").
+- The leaver-debt flow falls for a reason the record shares, in direction.
+- What is left is the **depth** of live arrears: how far behind an indebted household gets before it pays again.
+  That is a world question (W2_38), and a fidelity one, decided blind to company results.
+- The comparator has to be a published *balance-age* or *debt-per-indebted-customer* series, read on the
+  oldest-first convention. Ofgem's average arrears per indebted account, rising through 2022-25, is the candidate
+  in `ASSUMPTIONS.md`'s arrears rows. The knowledge page comes first (K8).
+- No world change in this section.
+
+**Status:** OPEN and BLOCKING. The next step is the world's: grade the depth of live arrears (pounds per indebted
+live account, and its oldest-first age) against the published series, before any build.
