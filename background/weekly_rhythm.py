@@ -620,7 +620,7 @@ def _finding_body(step: str, due_on: date, today: date, overdue: list[dict]) -> 
     late = (today - due_on).days
     names = ", ".join(r["id"] for r in overdue) or "none"
     return "\n".join([
-        "**Severity:** LATENT · **Lane:** H_harness · **Epoch:** 3 · **Atom:** none — weekly rhythm",
+        "**Severity:** LATENT · **Lane:** H_harness · **Epoch:** unassigned · **Atom:** `unminted` (weekly rhythm)",
         "",
         f"# The weekly {step.replace('_', ' ')} was due {due_on.isoformat()} and has not fired",
         "",
@@ -639,7 +639,7 @@ def _finding_body(step: str, due_on: date, today: date, overdue: list[dict]) -> 
         "`python3 -m background.weekly_rhythm --close`, which arms the next step and is the only "
         "thing that does.",
         "",
-        "**Discharged:** when the step is closed, which archives this document to `done/` as well "
+        "**Discharges when** the step is closed, which archives this document to `done/` as well "
         "as the step's own. Filed ONCE per due date — the baton records that it was — so a step "
         "that stays open does not mint a document a day.",
         "",
