@@ -1077,3 +1077,15 @@ Arms: `longjob-shortfall-stock-arm` and `longjob-shortfall-demand-arm`, about 45
 
 **Status:** OPEN and BLOCKING. The next tick grades the two arms with `depth.py` against D1-D5. Do not
 re-launch: ask `.launch_records.json` first.
+
+## 2026-10-22 (00:55 BST): seed 1 graded. The stock reading was what held the depth down
+
+All five bands hold (result record `SEAT_RESULT_THE_SHORTFALL_SHARED_ON_THE_MONTHS_DEMAND_SEED_1_2026-10-22.md`).
+Depth rises from 1.4-2.4 to 3.3-6.8 months. £ at Q4 2023 rises from £198 to £580 (record £1,303),
+with no overshoot. That confirms the named cause on one seed. It does not clear this finding. The
+pounds stay about 2.2x short, the median is unchanged, and depth falls after 2019 where the record's
+rises. Seed 2 is queued (`longjob-shortfall-{stock,demand}-arm-s2`).
+
+**Status:** OPEN and BLOCKING. Next: grade seed 2 against D1-D5. If it holds, default the switch on in
+its own commit, beside both result records, then re-grade this finding's validator on the next
+published run.
