@@ -145,3 +145,5 @@ rules", is answered here only for retention offers and saves. The next build is 
 the renewal desk's advice to the world as an observable act. It goes knowledge page first (K8). I
 have not filed it as an atom in this commit. The grade will say whether the recorded decisions
 are frequent enough to be worth sending (A2).
+
+**2026-10-21 ~09:20Z — the arms' worktree is locked.** `git worktree lock` on `/var/tmp/se-pcs-arms`, reason naming this record, because an unlocked worktree is what got the bad-debt arm's worktree pruned last stretch. When locked: the `current` arm had been running since 07:22Z after `run_three_arms.sh` waited 14,145 s for pid 845286. `current.log` was still being written; `all_on` and `flat` follow it in order. The worktree's HEAD is `0f2b04c84`, which descends from `8fbb641d8`, so the arms run the code this record pre-registered plus later commits. Run `git worktree unlock` and remove it once the grade has read all three outputs.
