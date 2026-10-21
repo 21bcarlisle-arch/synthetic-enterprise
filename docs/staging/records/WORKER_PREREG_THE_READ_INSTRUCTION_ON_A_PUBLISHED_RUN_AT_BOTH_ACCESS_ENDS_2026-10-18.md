@@ -76,3 +76,48 @@ The switch-on is the only change. Seed, book and code stay at the publish's comm
 ## Graded
 
 *(after the run, below this line; nothing above is to be edited)*
+
+### Graded 2026-10-21, on three run outputs at 8927e9345
+
+The three arms are `tools/read_instruction_arms.py` `off`, `register` and `ceiling`. They were run
+by `background.launch_long_job` from `/var/tmp/se-read-arms`, and each unit exited 0. The outputs
+are `/var/tmp/se-read-arms-out/{off,register,ceiling}.json`. The instrument is
+`python3 -m tools.closing_estimate_run_money --read-duty`, without `--instructed-read`.
+
+Instruction counts, write-offs and C7 come straight from the bills. Instructions are bills that
+carry `read_instruction_raised`. Duty rows are `read_duty_register(...)["duty_applies"]`. The
+write-off is `catchup_written_off_gbp` on catch-ups covering 12 or more periods.
+
+- **Baseline.** As the item directs, predictions 2 to 7 use the `off` arm. 8927e9345 added 400
+  founder households after the 19 Oct publish.
+- **Caveat.** `dd_book_reproduced` is **false** in all three outputs. It was true on 17 Oct. The
+  21BA-bar figures below therefore come from a DD book the instrument could not rebuild. The read
+  end's bar of £0 does not depend on that book, because no run crosses the year at that end.
+
+| # | Predicted | Measured | Verdict |
+|---|---|---|---|
+| 1 | off reproduces the 19 Oct publish, figure for figure | 8b6fea024 publish: 38,596 bills, net margin £765,188. Off at 8927e9345: 53,314 bills, £959,111 | **REFUTED**, by the book change (400 founder households). Not a finding |
+| 2 | no-access end moves no money; only `read_instruction_*` differs | Run outputs equal in every key once `read_instruction_*`, stamps and `generated_at` are set aside. Instrument output identical: undercharge new demand £4,344.29 at both. Write-off at 12+ identical: credit £388.47, prepayment £250.15 | **CONFIRMED** |
+| 3 | instructions 1.0–1.4× duty rows; 0 on prepayment | 582 at each end (electricity 337, gas 245) / 435 duty rows = **1.34**. Prepayment **0** | **CONFIRMED** (near the top of the band) |
+| 4 | read-end open closing undercharge new demand is 0.40–0.65 of no-access; refuted above 0.70 | £4,101.50 / £4,344.29 = **0.944** | **REFUTED, high** |
+| 5 | 21BA bar at closure on crossed undercharge runs, read end, under 1% of no-access | read end: **no run crosses the year** (`crossed: []`), so **£0**. No-access end: £412.80 | **CONFIRMED** (0%) |
+| 6 | credit write-off on 12+ runs at read end £0; prepayment equals no-access | credit **£0.00** (was £388.47). Prepayment **£250.15** = £250.15 | **CONFIRMED** |
+| 7 | C7's tail after its last visit under £200 at the read end | **£0**. C7 has 42 bills, all `actual`, and no estimate run, so no visit is ever due | **CONFIRMED, but not by the instruction.** 80e30f67a's leg (d) fix already removed C7's estimate run in `off` |
+
+**Why 4 missed.** The prediction assumed a large, reachable crossed stock. On 17 Oct the crossed
+runs held £1,761.88 of £3,470.63 (51%), and most of that was C7. Here they hold **£341.67 of
+£4,344.29 (7.9%)**. The other £4,002.62 sits on runs that close inside the year. Those never reach
+an 11th estimate, and an instruction cannot touch money it never reaches. C7 is no longer on an
+estimate run at all (leg d), so the reachable stock the ratio was built on is spent.
+
+- The read end removes £242.79. That is 71% of the reachable £341.67.
+- The "re-estimate after a visit" effect (list item 1) is **not visible**. Run on this book,
+  `--instructed-read` decomposes the read end to £4,076.07. The real re-run gives £4,101.50, which
+  is £25.43 *higher*, not lower.
+
+**Not explained (I cannot yet say).**
+- The re-run raises 582 instructions. The 17 Oct-style decomposition run on `off` counts 469.
+  Each counter applies its own rule, and the gap is unreconciled.
+- At the no-access end, 113 of 582 instructed visits record outcome `actual`, yet the money is
+  identical to the penny. That fits the prereg's mechanism, "the period's own read drawn again on
+  the same key", but I have not traced it.
