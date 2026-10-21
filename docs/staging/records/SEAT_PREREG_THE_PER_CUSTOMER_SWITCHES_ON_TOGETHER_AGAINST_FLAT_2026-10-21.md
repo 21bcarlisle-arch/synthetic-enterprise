@@ -1,6 +1,7 @@
 # Pre-registration: the per-customer switches on together, against CURRENT and against flat
 
-**Written 2026-10-21 ~04:30Z, before any arm runs.** Claim `the-per-customer-switches-on-together-against-flat`
+**Written 2026-10-21 ~04:30Z, before any arm runs.** *(Correction, at grading: "~04:30Z" was BST.
+The prereg landed at about 03:15Z, and the arms started after it — arm `current` at 07:22:07Z.)* Claim `the-per-customer-switches-on-together-against-flat`
 (Lane 0, seat). DEVELOPMENT: one book, the default seed. A diagnostic, not EP17's blind grade.
 
 **Why a new file and not an extension of the 18 Oct prereg.**
@@ -147,3 +148,102 @@ have not filed it as an atom in this commit. The grade will say whether the reco
 are frequent enough to be worth sending (A2).
 
 **2026-10-21 ~09:20Z — the arms' worktree is locked.** `git worktree lock` on `/var/tmp/se-pcs-arms`, reason naming this record, because an unlocked worktree is what got the bad-debt arm's worktree pruned last stretch. When locked: the `current` arm had been running since 07:22Z after `run_three_arms.sh` waited 14,145 s for pid 845286. `current.log` was still being written; `all_on` and `flat` follow it in order. The worktree's HEAD is `0f2b04c84`, which descends from `8fbb641d8`, so the arms run the code this record pre-registered plus later commits. Run `git worktree unlock` and remove it once the grade has read all three outputs.
+
+## 6. Grade (2026-10-21 ~15:10Z, all three outputs present)
+
+**What ran.** `run_three_arms.log`: `current` 07:22–09:48Z, `all_on` 09:48–12:21Z, `flat`
+12:21–14:51Z, all rc=0. Every output stamps `producing_commit` `d846185c1`, a fork-salvage child of
+`8fbb641d8`. The only `simulation/`, `company/`, `saas/` or `sim/` change between `9ca972774` (the
+commit §0 names) and the worktree's HEAD `0f2b04c84` is `f8659d6a9`, which adds the arm tool itself.
+So the arms ran the code that was pre-registered. One seed, one book: every difference below is a
+point reading with no interval.
+
+| figure (§1 definitions) | current | all_on | flat |
+|---|---|---|---|
+| `provisioned_net_gbp` | £600,806.22 | £600,806.22 | £600,902.77 |
+| `provisioned_bad_debt_gbp` | £124,805.98 | £124,805.98 | £125,212.58 |
+| departures (`churned_billing_accounts`) | 354 | 354 | 353 |
+| retention offers: retained / despite | 113: 76 / 37 | 113: 76 / 37 | 0 |
+| retention cost | £2,837.65 | £2,837.65 | £0 |
+| household paid us (inc VAT) / bills | £3,133,805.35 / 53,314 | identical | £3,139,341.17 / 53,256 |
+| save log: rows / Invitation / saved | 96 / 15 / 1 | 96 / 15 / 1 | 94 / 15 / 1 |
+| renewal desk rows: nothing / tariff_advice | absent | 848 / 514 | absent |
+
+**K: `current` against the anchor**
+- **K1 HELD, exactly.** 113 offers, 76 retained, 354 departures. These are the anchor's figures, not
+  just within ±3.
+- **K2 HELD, exactly.** Provisioned net and household paid equal the `8927e9345` off arm to the
+  penny. So the two D48 commits (`7a266cb76`, `032b3dec2`) move nothing on this book. That is
+  stronger than I predicted: I expected a small upward move.
+- **K3 HELD.** There is no renewal-desk key. The save log has 96 rows (inside 40–100), 15 hold an
+  Invitation (at the ≤15 bound) and 1 is saved.
+
+**A: `all_on` against `current`**
+- **A1 REFUTED, above the range.** 1,362 rows (454 decision states × 3 stated effects), against
+  750–1,300.
+- **A2 REFUTED, by a factor of about 13 over the bound.** 514 of 1,362 rows advised (37.7%), against
+  "at most 3%, point 1%". By decision state, 177 of 454 (39%), and 164 of those 177 are advised under
+  all three stated effects. **The cause is C35's rise, not the opex credit.** 508 of the 514 advised
+  rows carry a `retention_rise_gbp_per_month` (median £2.09 a month, against a median headroom of
+  £14.32 under the default). Advice with no rise is 6 rows (0.44%), which matches the 0.41% that
+  C34 alone gave before the credit. So my tripwire ("above 10%, the opex-credit result is wrong too")
+  does not fire as written. Above 10% is explained by the second switch I folded into A2's reasoning
+  and then left out of its arithmetic. A rise sized to recover the household's stated give-up turns
+  "neither side no worse off" into "both sides no worse off" for most 2019+ states. That was the
+  rise's purpose, and I under-read it.
+  - **The claim is frequent but small.** Averaging the three stated effects per advised state, the
+    claimed `value_change_gbp` sums to **£121 over the whole run** (median £0.11 per state, max
+    £30.91). It is a counterfactual claim (A7), not money.
+- **A3 HELD.** All 546 pre-2019 rows carry no rise, each refusing with "no published default for
+  this fuel on the renewal date". From 2019, 508 of 816 rows carry a rise (62%). Of the 2019+ rows
+  C34 alone would refuse (all but the 6 no-rise advised rows), 508 of 810 (63%) carry one: ≥50%,
+  where the 20 Oct window gave 70.8%. Every remaining 2019+ refusal is "the rise our side needs is
+  above the headroom". *Side reading:* no row has a 2022 `term_start`, so the desk decided nothing in
+  the crisis year.
+- **A4 REFUTED as worded.** 848 rows carry a non-empty `unscored` list: every `nothing` row, 546 of
+  them for no published default and 302 for the rise exceeding headroom. Two legs are also in
+  `next_best_action_legs_without_contribution`. If A4 meant "a row with no reason", it holds: every
+  `unscored` entry names its reason. The wording I filed does not say that, so it stands refuted.
+- **A5 HELD.** `retention_log` is byte-identical. The save site has the same 96 keys. Every row
+  differs only in the added `household_save_rates` / `household_legs`, and 2 rows (≤3) carry a
+  different save price and `p_stay_at_save`: PROS-2022-0237 and SYN-2016-353, both electricity
+  terms from 2024. Their save outcome is unchanged.
+- **A6 HELD, the 70% branch.** The bills, departures, retention log, provisioned net and bad debt
+  are byte-identical. The top-level keys that differ are exactly the renewal-desk logs, the save
+  log, the arm tag and the run stamps.
+- **A7 HELD by construction, and kept.** Nothing in the desk log was sent. The £121 is not summed
+  into any book figure.
+
+**F: `flat` against `current`**
+- **F1 HELD.** `retention_log` is empty and the cost is £0. The run is valid for F2–F5.
+- **F2 REFUTED, wrong sign.** Departures are **353 under flat, one fewer than `current`**, against
+  +2…+25 (point +10). Account by account, 3 left only under `current` (PROS-2016-0098 and
+  SYN-2016-387, both "retained" by a 2017/2018 offer and gone later anyway; OCC-d69e9e947a9e, a
+  successor occupant) and 2 left only under flat (SYN-2016-399 and SYN-2016-541, both "retained" by
+  an offer under `current`). **On this book the 76 "retained" outcomes trace to about 2 households
+  whose departure the offer plausibly prevented,** and a divergent book then returned two others.
+  §1's warning was the right one: a retention-log "retained" is not a save.
+- **F3 HELD, inside the range on the side I did not point at.** current − flat = **−£96.55** (flat
+  ahead), inside [−£4,000, +£8,000] but below the +£1,000 point. Flat gives no discounts (£2.84k),
+  and the one fewer departure nets out to about zero. Not the flattering surprise (F11). On one seed,
+  this is a tie.
+- **F4 HELD.** Provisioned bad debt is +£406.59 under flat (+0.33%), inside ±5%.
+- **F5 the GAP stands, read with its caveat.** Household paid is £5,535.82 *higher* under flat, on 58
+  fewer bills. That fits the discounts not given plus a different book after the rolls diverge. It
+  is not differenced as household value: a leaver's next supplier is outside the run, and the
+  discounts under `current` are a transfer, not value created (M2).
+
+**What the grade settles (§5's question).** On this book, targeted retention against flat rules is
+a tie for us: −£97, −1 departure. It amounts to £2.8k transferred to households for about two kept.
+That is evidence the per-customer retention offer creates no value here, and it errs against the
+thesis, as F11 asks. The renewal desk's recorded advice, the question A2 was to settle, **is
+frequent enough to be worth sending: 39% of decision states from 2019. It is worth sending only
+with C35's rise attached, because without the rise it is 0.4%.** The claimed joint value is pennies
+a state (£121 over the run). So the build that sends the advice as an act the world answers is
+worth building as a *test*: whether the world's response is larger than the stated range. On these
+claimed values, it is not worth building as a source of value. Both remain one seed. EP17's six
+fresh seeds are the blind grade.
+
+**Housekeeping.** The `/var/tmp/se-pcs-arms` worktree has been read in full by this grade and can be
+unlocked and removed. The outputs stay in `/var/tmp/se-pcs-arms-out/` (not evidence held anywhere
+else; ~500 MB).
