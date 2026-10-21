@@ -253,7 +253,11 @@ for_the_director:
     slope, which moves the count by 1-3. Measured 2026-10-20 on the term''s contribution (b8c665948, C34 on arm
     at c61d8b608, full window): C34 advises 4 of 972 renewal rows; the median household contribution is -GBP 3.91
     a month and 85.8% of 324 households are negative, so our side of almost every renewal is below zero before any
-    advice is costed.'
+    advice is costed. CORRECTED 2026-10-21 by the opex-credit grade: that figure charged the cost the standing charge
+    recovers and credited none of it. Credited (ec7fd9942, full window, one variable against its control), the median
+    household is +GBP 2.29 a month and 16.6% of 325 are negative. C34 still advises 4 of 975 rows, because every
+    stated effect gives up at least GBP 2 a month, so the advice count and this recommendation stand. The sentence
+    that our side is below zero on almost every renewal does not.'
   recommendation: 'I recommend the sharing retention price, not loosening our floor. Evidence: our side is negative
     in 18 of 18 B11-scale cases; a sharing rise rescues 314 of 780 advice cases (40%) on the world''s own renewals
     (a_retention_price_that_shares_the_value_an_action_creates.md section 4b). Trade-off: it reaches only renewals

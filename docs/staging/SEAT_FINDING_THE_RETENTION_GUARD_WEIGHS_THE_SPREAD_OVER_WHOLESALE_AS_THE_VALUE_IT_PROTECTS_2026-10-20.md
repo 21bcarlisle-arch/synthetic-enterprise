@@ -57,7 +57,10 @@ Printing the guard at real inputs, before any run:
 - On `CURRENT_POLICY` (no bad-debt netting, no engagement weight), value is therefore above cost
   on every resi renewal where a cut can be sized, on both fuels and in every period of the table.
 - About 11 of the 92 offers would survive on the contribution alone. With the credit, every resi one
-  of the 92 is predicted to survive again (P4b in the note above; not yet run).
+  of the 92 is predicted to survive again (P4b in the note above). *Measured 21 Oct on the full window
+  at `ec7fd9942`: the guard sized 233 resi cuts and offered all 233, against 47 of 243 without the
+  credit; offers 7 → 95, departures 236 → 235. Graded in
+  `records/SEAT_RESULT_CREDITING_THE_STANDING_CHARGE_OPEX_IN_THE_TERM_CONTRIBUTION_2026-10-21.md`.*
 
 **The credit is right, and it exposes what the guard has always lacked.** The guard weighs the
 whole term as if the offer certainly keeps the household. It carries no weight for the chance that

@@ -70,5 +70,61 @@ this unit, so it stays behind it.
 
 ## Grades
 
-Owed. Filled from the two arms when the job completes, under the continuation
-`grade-the-opex-credit-arms-ec7fd9942-r2`.
+Graded 21 Oct 2026 from `/var/tmp/se-scopex/{credit,nocredit}.json`. Both arms are stamped
+`ec7fd9942b68`, the job's `status` reads `done`, and nocredit finished at 19:23 local.
+`python3 /var/tmp/se-scopex/grade.py` printed the figures below.
+
+**The control is clean.** The `nocredit` arm reproduces the 768f41ed1 baseline exactly: 487 held
+legs, a median of −£2.89 a month, 85.0% negative, and 4 rows advised. So the patch is the only
+variable between the arms.
+
+| | credit | nocredit | Predicted | Grade |
+|---|---|---|---|---|
+| P1 median leg £/mo | **+1.54** (493 legs) | −2.89 (487) | +0.50 to +2.50 | **holds** |
+| P1 share negative | **26.4%** | 85.0% | 15–40% | **holds** |
+| P2 median household £/mo | **+2.29** (325 states, 16.6% negative) | −3.66 (321, 85.0%) | +1.00 to +3.50 | **holds** |
+| P3 advised | **4 / 975 = 0.41%** | 4 / 963 = 0.42% | ≤ 2% | **holds** |
+| P4 retention offers | **95** (£2,642.77) | 7 (£781.50) | credit ≥ nocredit | **holds** |
+| P4b resi sized cuts offered | **233 / 233 = 100%** (value − cost min +£11.70, median +£25.03) | 47 / 243 = 19.3% | 100% on credit | **holds** |
+| P5 book net | **£444,034.64** | £442,032.15 | \|Δ\| < 1%, falling | **magnitude holds, direction REFUTED**: +£2,002.49 = **+0.453%** |
+| P6 by renewal year | 2023 **+9.30** highest; 2020 **−0.02**, lowest of 2017–21 (17: +1.25, 18: +1.23, 19: +1.61, 21: +2.09) | 2023 +4.27; 2020 −3.66 | 2023 top, 2020 bottom | **holds** |
+
+Every guard reading with a sized cut carried `acq` > 0 in both arms. No SME or I&C cut was sized,
+so P4b's resi filter excluded nothing.
+
+### What it settles
+
+- **The median renewal's −£3.91 was an artefact of how it was built, not a property of the book.**
+  With the standing charge's nil-consumption opex credited, the median household decision state
+  is **+£2.29 a month** and 16.6% are negative, against −£3.66 and 85.0% on the same code without
+  the credit. The C34 concern's sentence "our side of almost every renewal is below zero before
+  any advice is costed" rested on that figure. It is corrected beside the claim in
+  `docs/direction/DIRECTION.yaml`.
+- **C34 still advises almost nobody (0.41%), and the credit is not why.** P3 reasoned this before
+  either arm ran: every stated effect gives up at least £2 a month, which is at or above the
+  median contribution even after the credit. A positive contribution removes one reason to
+  advise nobody and supplies none to advise.
+- **As P4b predicted, the retention guard no longer refuses anything for resi on the default
+  policy.** It sized 233 resi cuts and offered all 233. The closest case still cleared by £11.70.
+  Offers rose from 7 to 95 and their cost from £782 to £2,643, while departures moved from 236 to
+  235. So about 88 more offers bought, at most, one more stay. This is the measured form of
+  `SEAT_FINDING_THE_RETENTION_GUARD_WEIGHS_THE_SPREAD_OVER_WHOLESALE_AS_THE_VALUE_IT_PROTECTS_2026-10-20.md`:
+  the guard has no weight for the chance that the offer changes the outcome. That finding's note
+  is updated with this count.
+
+### P5, refuted: what the prediction said and what happened
+
+The prediction said book net would fall, if it moved at all, because more discounts are given.
+Discounts did rise by £1,861. But gross rose by £6,004.83 (£1,334,743.75 → £1,340,748.58), so net
+rose by £2,002.49. One departure fewer and six more held legs both point the same way: some
+discounts kept or extended a supply that otherwise ended. **I cannot yet say** how the £6.0k
+splits between the one account that stayed and longer terms on accounts that left later. The probe
+saved churn counts, not the roster. One seed, one book; a 0.45% move sits inside what a single
+departure can carry. The written prediction stays as it was, refuted on direction and right on
+magnitude.
+
+### What would change this
+
+Nothing here touches the C34 switch's grade, which is still off by default. The next lever is the
+missing outcome weight in the retention guard (C29's `retention_weighs_engagement`, or B8's
+measured uplift). Turning it on is a policy change and needs its own pre-registered run.
