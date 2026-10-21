@@ -640,6 +640,9 @@ def declined_fix_event(
 def households_own_records(household: str, records: list[dict]) -> list[dict]:
     """The settlement records of every supply point in `household` (`simulation.household.
     household_of`), in their original order. What a renewal roll reads, and all it reads."""
+    grouped = getattr(records, "rows_grouped", None)
+    if grouped is not None:
+        return grouped("customer_id", household_of).get(household)
     return [r for r in records if household_of(r.get("customer_id", "")) == household]
 
 

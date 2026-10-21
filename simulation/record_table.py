@@ -181,6 +181,8 @@ class RecordTable(Sequence):
         self._row_schema = array("I")
         #: key -> [kind, store]; every store has exactly `_n` slots
         self._cols: dict = {}
+        #: (column, key_fn) -> [rows indexed so far, {key: [row positions]}]; see `rows_grouped`
+        self._groups: dict = {}
         if rows:
             self.extend(rows)
 
@@ -202,7 +204,13 @@ class RecordTable(Sequence):
         col[1] = [bool(x) for x in store] if kind == "b" else list(store)
         col[0] = "o"
 
+    def _drop_groups_on(self, key) -> None:
+        if self._groups:
+            for gk in [gk for gk in self._groups if gk[0] == key]:
+                del self._groups[gk]
+
     def _set(self, i: int, key, value) -> None:
+        self._drop_groups_on(key)
         vk = _kind(value)
         col = self._cols.get(key)
         if col is None:
@@ -215,6 +223,7 @@ class RecordTable(Sequence):
             self._row_schema[i] = self._schema_id(self._schemas[sid] + (key,))
 
     def _delete(self, i: int, key) -> None:
+        self._drop_groups_on(key)
         sid = self._row_schema[i]
         if key not in self._schema_sets[sid]:
             raise KeyError(key)
@@ -265,6 +274,28 @@ class RecordTable(Sequence):
 
     def append(self, row) -> None:
         self.extend([row])
+
+    def rows_grouped(self, column, key_fn, default="") -> dict:
+        """`key_fn(row.get(column, default))` -> that key's rows, each list in table order.
+
+        WHY: a renewal asked "which rows are this account's" by scanning the whole book, once per
+        renewal -- O(book x renewals), and the book grows with every term (cProfile 2026-10-21:
+        `estimate_prior_term_net_margin` 157 s and `households_own_records` 56 s of one census
+        fixture arm). The index is built once and caught up over appended rows only, so the answer
+        is the comprehension's answer, row for row and in its order. Any write to `column` (a row's
+        value set, deleted or the row replaced) drops every index on it; the next ask rebuilds.
+        `key_fn` must be a pure function of the value and the same object on every ask -- it is
+        part of the index's key, so a fresh lambda per call rebuilds every time.
+        """
+        entry = self._groups.get((column, key_fn))
+        if entry is None:
+            entry = self._groups[(column, key_fn)] = [0, {}]
+        done, groups = entry
+        if done < self._n:
+            for i in range(done, self._n):
+                groups.setdefault(key_fn(Row(self, i).get(column, default)), []).append(i)
+            entry[0] = self._n
+        return _GroupView(self, groups)
 
     # ---- the Sequence ---------------------------------------------------------------------------
     def __len__(self) -> int:
@@ -343,6 +374,20 @@ class RecordTable(Sequence):
         return f"<RecordTable {self._n} rows x {len(self._cols)} columns>"
 
 
+class _GroupView:
+    """What `rows_grouped` returns: `.get(key)` gives that key's rows as a fresh list of `Row`s."""
+
+    __slots__ = ("_t", "_groups")
+
+    def __init__(self, table: RecordTable, groups: dict) -> None:
+        self._t = table
+        self._groups = groups
+
+    def get(self, key) -> list:
+        t = self._t
+        return [Row(t, i) for i in self._groups.get(key, ())]
+
+
 def _rebuild(schemas, row_schema, cols, n) -> RecordTable:
     t = RecordTable()
     for keys in schemas:
@@ -350,6 +395,7 @@ def _rebuild(schemas, row_schema, cols, n) -> RecordTable:
     t._row_schema = array("I", row_schema)
     t._cols = {k: [c[0], c[1]] for k, c in cols.items()}
     t._n = n
+    t._groups = {}
     return t
 
 

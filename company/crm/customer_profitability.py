@@ -191,6 +191,11 @@ MIN_RECORDS_FOR_JUDGEMENT: int = 3
 NET_NEGATIVE_UPLIFT_GBP_PER_MWH: float = 5.0
 
 
+def _billing_key(customer_id) -> str:
+    """The billing account a settled row's `customer_id` bills under -- the filter's own test."""
+    return _billing_account_id(customer_id or "")
+
+
 def estimate_prior_term_net_margin(
     cid: str,
     term_start_str: str,
@@ -209,8 +214,15 @@ def estimate_prior_term_net_margin(
       - No matching records exist
       - The most recent prior term has fewer than MIN_RECORDS_FOR_JUDGEMENT records
     """
+    # THE ACCOUNT'S OWN ROWS, asked of the book's index when it keeps one: the run's settled book
+    # (`simulation/record_table.py::RecordTable.rows_grouped`) groups by the same key the filter
+    # below tests, in book order, so the filter sees the same rows in the same order and the sum
+    # is the same float. A plain list has no index and is scanned whole, as it always was.
+    grouped = getattr(all_records, "rows_grouped", None)
+    candidates = (grouped("customer_id", _billing_key).get(cid)
+                  if grouped is not None else all_records)
     eligible = [
-        r for r in all_records
+        r for r in candidates
         # A RECORD BELONGS TO THIS ACCOUNT IF IT BILLS UNDER IT, and string equality is not
         # that test (2026-09-07). Settled rows are stamped with the SUPPLY POINT
         # (`simulation/hedged_settlement.py`, `simulation/gas_settlement.py`), and writer 3 is
