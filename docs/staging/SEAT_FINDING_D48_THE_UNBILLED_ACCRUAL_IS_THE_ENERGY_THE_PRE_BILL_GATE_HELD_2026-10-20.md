@@ -218,3 +218,85 @@ actual read replaces them.
 
 Item 2 discharged for the defect the item named, and the founder-home remainder filed above.
 Item 4 (K6) stays open.
+
+## Follow-on (closed account): the leaver's held estimates go out on its final bill
+
+*Worker, 2026-10-21. Claim `d48-a-held-estimate-on-a-closed-account-is-never-worked`.
+Pre-registration: `docs/staging/records/WORKER_PREREG_A_HELD_ESTIMATE_ON_A_CLOSED_ACCOUNT_GOES_OUT_ON_THE_FINAL_BILL_2026-10-21.md`.
+K8: `docs/market_research/unbilled_energy_and_revenue_assurance.md`, K6, "A held bill on an
+account that closes".*
+
+**What the hold was.** PROS-2017-0117 is on the council tax list (`premise_council_tax_listed`
+True on every bill). The listing was never what held it. Its four interim estimates (2017-12 to
+2018-03) and its estimated final bill (2018-04-11) were each over the domestic ceiling. A ceiling
+hold on an estimate waits for an actual read, and after the exit no read reaches the losing
+supplier. Its closing read is the CoS read, actual or Old Supplier Estimated, and it is settled on
+that read. The read moves only through a dispute. SLC 27.17 wants the final bill within 6 weeks,
+running to that read.
+
+**Fix.** `build_monthly_bills` stamps `final_bill` on a churned account's last bill. The queue now
+releases a hold in the account's closing run, meaning the estimated bills after its last actual
+read through the final bill, when four things hold: every reason is consumption scale, the account
+is resi, the address is listed, and SLC 21BA does not bar the bill at the final bill's date
+(`pre_bill_validation.release_at_closing_read`). The released copy carries `issued_with_final_bill`.
+The accrual counts such a bill as unbilled until the final bill's month
+(`issued_with_final_bill`), so the 2017-12 to 2018-03 month ends still show it.
+
+**Controls.** `test_every_leg_of_the_closing_run_release_is_reachable` covers the whole partition
+in one call: released, open account, unlisted, final on an actual read, and barred by 21BA.
+`test_the_accrual_holds_a_closing_run_until_the_final_bills_month` and
+`test_the_billing_run_stamps_only_a_churned_accounts_last_bill_as_final` cover the other two legs.
+Six mutations were run. Five went red: the release dropped, the 21BA bar dropped, the listing check
+dropped, the accrual's late issue dropped, and the stamp dropped. The sixth, dropping the
+"final bill is an estimate" test from `_closing_runs`, stayed green. That is an EQUIVALENCE, not a
+missing test. A final bill on an actual read is the last read, so its run is already empty. The
+clause was redundant and has been deleted.
+
+**Measured** on the 44a21e3e8 run's 38,005 bills, with `final_bill` stamped the way the changed
+assembly stamps it (each churned account's last bill), through `bill_assembly.held_bills` /
+`billing_accuracy`. This is not a re-run.
+
+| Month end | before: accounts / held est. / held act. / kWh / GBP / closed-account kWh | after |
+|---|---|---|
+| 2017-12 | 2 / 2 / 0 / 7,146 / 888 / 0 | unchanged |
+| 2018-12 | 3 / 6 / 1 / 18,293 / 2,539 / 12,825 | 2 / 1 / 1 / 5,468 / 904 / 0 |
+| 2019-12 | 3 / 14 / 1 / 38,651 / 6,232 / 12,825 | 2 / 9 / 1 / 25,827 / 4,597 / 0 |
+| 2021-12 | 2 / 5 / 2 / 17,024 / 2,414 / 12,825 | 1 / 0 / 2 / 4,199 / 779 / 0 |
+| 2024-12 | 2 / 5 / 3 / 19,186 / 3,774 / 12,825 | 1 / 0 / 3 / 6,361 / 2,139 / 0 |
+| 2025-06 | 3 / 5 / 6 / 27,632 / 6,192 / 12,825 | 2 / 0 / 6 / 14,807 / 4,557 / 0 |
+
+At 2018-03 the accrual still holds the four interims (18,212 kWh). At 2018-04 they are gone.
+Held bills fell 46 -> 41, and gas stays zero.
+
+**Where the energy went: unbilled -> billed on estimate.** This is the one other figure that moves,
+and it is the correct move. A final bill on an estimated closing read is billed on an estimate that
+no read will true up. The other leavers whose final bill was on an estimate sit in the same place.
+Electricity K2 rose from 67.14% to 67.21% (billed kWh +12,825, estimated kWh +12,825). K1's
+billed-on-estimate outstanding gained the account's 12,825 kWh / about GBP 1,716 gross of VAT at
+every year end from 2018-12. Unread revenue (billed-on-estimate plus unbilled) is unchanged; the
+energy changed halves. No other account's figures moved.
+
+**Graded.**
+1. CONFIRMED. Exactly the five PROS-2017-0117 bills were released. No other bill changed state.
+2. CONFIRMED. 2016-12 and 2017-12 are unchanged. Every later year end falls by 12,825 kWh and
+   GBP 1,635. `closed_account_kwh` is 0 at every month end.
+3. CONFIRMED. Nothing was barred: the run spans under five months.
+
+This measurement does not include the founder-home fix (claim
+`d48-a-ceiling-hold-the-listing-cannot-answer-is-never-worked`). That fix lists the founders'
+authored homes, which releases the four `OCC-d8e674fa38de` bills at C8's semi. It is **built and
+not landed**: its turn ended at 02:15 BST with no commit, and the work survives only as salvage
+commit `9dc0cf4b0` (`SALVAGE(auto)`, the seat's `/var/tmp/se-seat-executor` fork). Re-apply it,
+don't rebuild it. With both fixes in place, the 2025-06 accrual is the two `OCC-8c6b8bb21743` bills
+that item 2 released in code (6,230 kWh). The run was stamped by the old feed, so they still read
+held here, and the next run settles them. The published page moves at the next run, as items 2 and
+3 did.
+
+**Left open, named.**
+- An interim that 21BA bars at the final bill stays held. Its energy shows in the accrual's
+  over-12-months column, but it is not booked to the write-off register. **GAP**, recorded in the
+  K8 section.
+- The K1 billed-on-estimate grade and the per-account rows read a released interim as issued at its
+  own period end, not at the final bill's. On this run that misdates one bill at one year end
+  (2017-12, 3,120 kWh). It is a dating error in a grade, and it is not built here.
+- A dispute of the closing read is not modelled, by the same choice as the leaver's settlement leg.
