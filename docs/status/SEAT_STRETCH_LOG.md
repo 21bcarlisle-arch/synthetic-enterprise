@@ -8,6 +8,43 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-21 — Founder households, step 3: no run at the new shape has closed yet, and the ceiling's journal leg was passing on the old book's peak
+
+<!-- head: 551b025aba6f -->
+
+Step 3 of the 400-household ruling (`docs/staging/advisor/done/DIRECTOR_RULING_FOUNDER_HOUSEHOLDS_WITH_BUDGET_RAISED_2026-10-20.md`)
+asks for the peak of each of the first three production runs at the new shape, against 6,008 MB.
+**Read at 04:35 BST on 21 Oct: none has closed.**
+
+| sim-runner lifetime | code | carries 8927e9345 | process peak | systemd memory peak |
+|---|---|---|---|---|
+| 20 Oct 21:44 to 21 Oct 00:14 | ec7fd9942 | **no** (old shape: 400 supply points, budget 5,000) | 4,039.8 MB | 5.8G |
+| 00:14 to 02:14 | none ran | n/a | n/a | 13.5M (deferred) |
+| 02:14 to 03:44 | none ran | n/a | n/a | 14M (deferred) |
+| started 03:54 | 9ca972774 | yes | running | running |
+
+The runner was deferred from 00:41 to 03:49 by long-job admission. The admitted job was
+`longjob-read-instruction-ceiling-8927e9345`, declared at 7,000 MB, which ran for 130 minutes against its
+declared 120. That job ran on the new code. systemd reports a 6.1G cgroup peak for it, but it is an
+experiment arm, not a sim-runner run, and a cgroup peak is not the process figure the 6,008 allowance
+is set against. The pre-switch run shows the gap: 5.8G cgroup against 4,039.8 MB process. So it is
+recorded here and is not one of the three. No reaper fired and the rule did not trip. The founder
+unit and budget stay as they are.
+
+**The ceiling's journal leg was green for the wrong reason, and is fixed.**
+`test_the_ceiling_still_fits_the_peak_systemds_own_journal_reports_today` counted a peak when its
+run carried the curve's `git_head`. That head is 7858b89a6, the commit the probe worktree sat on with the
+400-household shape still uncommitted, and it is older than 8927e9345, which landed the shape.
+So ec7fd9942's 4,039.8 MB peak from the lighter old book re-priced the ceiling for 7,700 and passed. A
+peak now counts only when its run also carries the last commit that set `founder_unit`/`founder_accounts`
+and the last commit that set the budget. Against the same journal the leg now skips as UNAVAILABLE.
+The mutation, keying on the curve head alone, passed on this same journal before the fix.
+The 03:54 run carries all three commits, so the leg arms when that run closes.
+
+Hand-off: `founder-households-first-three-peaks-2`, to read the 03:54 run and the next two.
+
+---
+
 ## 2026-10-21 — orientation: Forward on billing and on the instruments, not yet on the thesis
 
 <!-- head: 2da5d3ee740f -->

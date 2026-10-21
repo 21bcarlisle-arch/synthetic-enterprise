@@ -1859,11 +1859,31 @@ def test_the_ceiling_still_fits_the_peak_systemds_own_journal_reports_today():
             "depend on this leg and has already run."
         )
 
+    # The curve's git_head is not enough: the 2026-10-20 curve was measured at 7858b89a6 with the
+    # 400-household shape UNCOMMITTED, and 8927e9345 landed that shape afterwards. Keyed to the
+    # curve head alone, an ec7fd9942 run of the old 400-supply-point book (4,039.8 MB) re-priced
+    # the ceiling for 7,700 and passed -- a lighter book vouching for a heavier one. A peak speaks
+    # about the curve only when its run also carries the commits that set the shape it prices.
+    repo = pathlib.Path(__file__).resolve().parents[2]
+
+    def last_change(pattern, path):
+        out = subprocess.run(
+            ["git", "log", "-1", "--format=%H", f"-G{pattern}", "--", path],
+            cwd=repo, capture_output=True, text=True,
+        ).stdout.strip()
+        assert out, f"no commit ever set {pattern!r} in {path}, so the shape cannot be dated"
+        return out
+
+    required = [
+        curve_head,
+        last_change(r"^(founder_unit|founder_accounts):", "docs/design/FOUNDER_BOOK.yaml"),
+        last_change(r"^SETTLEMENT_CUSTOMER_YEAR_BUDGET = ", "simulation/net_new_acquisition.py"),
+    ]
+
     def carries_the_curve(sha):
-        return subprocess.run(
-            ["git", "merge-base", "--is-ancestor", curve_head, sha],
-            cwd=pathlib.Path(__file__).resolve().parents[2], capture_output=True,
-        ).returncode == 0
+        return all(subprocess.run(
+            ["git", "merge-base", "--is-ancestor", need, sha], cwd=repo, capture_output=True,
+        ).returncode == 0 for need in required)
 
     closed, current = _peaks_by_the_code_they_ran(journal_text, unit)
     # No live reading: a running run has no process peak until it completes.
@@ -1872,7 +1892,8 @@ def test_the_ceiling_still_fits_the_peak_systemds_own_journal_reports_today():
         pytest.skip(
             f"UNAVAILABLE, not clean: none of the {len(closed)} run process peak(s) {unit} logged in "
             f"{since}, nor the running lifetime (runs {', '.join(current) or 'none yet'}), ran only "
-            f"code carrying {curve_head}, the code the curve was measured on, so no production "
+            f"code carrying {', '.join(r[:9] for r in required)}, the code and shape the curve "
+            "was measured on, so no production "
             "peak yet speaks about this curve. It arms on the first lifetime that does."
         )
     observed = max(peaks)
