@@ -82,3 +82,38 @@ book", together with the GBP 1,000 catch-up bound, which is unchanged. The 9 tha
 §4d intends the screen to hold.
 
 **The run that grades the filed prediction (worker, 2026-10-21, 14:45Z).** It is the retention-netting pair's OFF arm: CURRENT_POLICY on the full book in /var/tmp/se-retnet/wt at **1ac35d918**, which carries 4d6d5ab91 (`git merge-base --is-ancestor 4d6d5ab91 1ac35d918` exits 0). The arm is not started yet: it is queued behind scopex and baddebt, with no `status` and no `off.log` at 14:40Z. After off.json, /var/tmp/se-retnet/probe.py now rebuilds the bills with phase4c's own `build_monthly_bills` and writes the bills (`billing_basis`, `final_bill`, `period_end`), `held_bills` and `billing_accuracy` (K1 month ends; the DD money line is left out, because it needs phase4c's balance book) to /var/tmp/se-retnet/off_bills.json.gz. If that step fails, it writes off_bills.error and exits 0. run_both.sh then files `grade-d48-held-bill-releases-on-the-retnet-off-arm`, held until that file exists. Both edits were proven on a 40-household 2016 sub-book in a scratch worktree at 1ac35d918: 4,793 bills, 47 final, 0 held, and the handoff was filed into a temp store with its path hold read back. **Found and fixed on the way:** the probe could not import `simulation` as launched. A script's sys.path[0] is its own directory, and the unit sets no PYTHONPATH, so both retnet arms would have died at import. probe.py now puts its cwd, the locked worktree, first on the path.
+
+## Graded on the retnet off arm (worker, 2026-10-21, 21:50Z)
+
+Read from /var/tmp/se-retnet/off_bills.json.gz: arm `off`, CURRENT_POLICY, head 1ac35d918 (carries
+4d6d5ab91), read instruction on. 53,314 bills, 854 final bills, 9 held. No off_bills.error. The DD
+money line is omitted by design. A "gap" here means consecutive months whose bill the pre-bill gate
+held, so the customer was sent nothing for them.
+
+1. **Held estimates in single digits, only those with no earlier read or above every measured
+   rate: HELD.** 9 held, down from 40, all resi electricity estimates. None has a measured
+   read-to-read rate before it: SYN-2016-582 (3), PROS-2024-0010 (2) and PROS-2025-0106 (2) have no
+   earlier actual read at all, and PROS-2017-0336 (2, 2017-12 and 2018-01) has one actual read
+   (2017-11), which is not enough to measure a rate. It is the same 9 that HEAD's re-validation
+   named at 08:10Z.
+2. **No gap over two months on PROS-2017-0336, none over three on the book: HELD.** PROS-2017-0336's
+   longest gap is 2 months, and the book's is 3 (SYN-2016-582, 2016-12 to 2017-02). The 2019-04 to
+   2020-05 gap is gone. PROS-2017-0336 has 93 bills from 2017-10 to 2025-06 with no month missing.
+3. **PROS-2017-0336's largest catch-up under GBP 1,000: REFUTED.** Its only held-bill catch-up is
+   the 2018-02-28 bill for 2 periods: GBP 1,809.12 in total, of which the catch-up adjustment is
+   GBP 1,171.79. It is above GBP 1,000 on either measure. The earlier figure was GBP 5,067 for 14
+   periods, so the catch-up fell by about 64% but did not get under the bound. The prediction
+   priced two held months at an ordinary bill, but this meter uses 4,000-5,000 kWh a month, so two
+   months of its energy alone is over GBP 1,000. The bound was wrong for this account, while the
+   mechanism behaved as §4d intends.
+
+**What the grade turned up, which the predictions did not ask.**
+- **Held energy is billed at the first actual read, not at the next bill that is sent.**
+  SYN-2016-582 gets bills again from 2017-03 as estimates, but its 3 held periods are not charged
+  until the actual read on 2017-07-31, seven months after the first held month. Each of the 4
+  catch-ups works this way (PROS-2024-0010: held 2024-01 and 02, charged 2024-05). SLC 21B.5 is
+  still met, but the unbilled accrual carries that energy for longer than the gap in bills shows.
+- **PROS-2017-0336's largest bill is a read true-up, not a held catch-up.** On 2023-03-31 it is
+  billed GBP 6,036.85, which includes a GBP 4,224.94 undercharge after 21 consecutive estimates
+  (8,351 kWh trued up). That is the book's largest catch-up. It falls under the read-instruction
+  and estimate-accuracy question, not the pre-bill gate's.
