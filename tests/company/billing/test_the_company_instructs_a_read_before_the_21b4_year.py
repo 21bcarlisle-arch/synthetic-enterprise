@@ -20,8 +20,17 @@ from __future__ import annotations
 import calendar
 from dataclasses import dataclass
 
+import pytest
+
 from company.billing.monthly_bill_assembly import build_monthly_bills
-from company.billing.read_duty_register import read_duty_register, read_instruction_register
+from company.billing.read_duty_register import (
+    read_duty_register,
+    read_duty_summary,
+    read_instruction_register,
+    read_visit_cost_schedule,
+)
+from company.finance.accounting_close import close_the_books
+from company.finance.double_entry import build_journal
 
 MONTHS = [(yr, mo) for yr in (2023, 2024) for mo in range(1, 13)] + [(2025, m) for m in (1, 2, 3)]
 ACCOUNTS = ("C1", "C2", "C3", "C4", "C5")
@@ -122,3 +131,60 @@ def test_off_by_default_the_run_bills_byte_for_byte_as_before_and_asks_for_no_vi
     assert default == _bills(_Feed(), instruct_reads=False)
     assert not any(k.startswith("read_instruction") for b in default for k in b)
     assert read_instruction_register(default) == []
+
+
+def test_a_visit_is_charged_in_its_month_only_where_one_went_out():
+    """Defect (2026-10-21, s.2.9): the instruction performs the 21B.4 step for nothing (an invented
+    zero, K2), or charges an instruction whose ordinary read came in first and so sent no visit
+    (C5's January 2024). The partition: off charges nothing; on charges each visit the feed was
+    asked for, at £3, whether it read (C1, C2) or found no access (C3, C5), with £17.50 the bound.
+
+    Mutations, each run and reverted: the `visit_sent` skip dropped (C5's January is charged), the
+    schedule dated by `raised` not the visit period, and the price set to the bound. Each reds this."""
+    feed = _Feed()
+    bills = _bills(feed, instruct_reads=True)
+    schedule = read_visit_cost_schedule(bills)
+    cost = read_duty_summary(bills)["visit_cost"]
+    assert (
+        read_visit_cost_schedule(_bills(_Feed(), instruct_reads=False)),
+        schedule, sum(e["amount_gbp"] for e in schedule) == 3.0 * len(feed.visits),
+        (cost["instructions"], cost["visits"], cost["charged_gbp"], cost["upper_bound_gbp"]),
+    ) == (
+        [],
+        [{"month": "2024-01", "amount_gbp": 6.0}, {"month": "2024-12", "amount_gbp": 3.0},
+         {"month": "2025-01", "amount_gbp": 9.0}],
+        True,
+        (7, 6, 18.0, 105.0),
+    )
+
+
+def test_bills_that_predate_the_visit_flag_publish_no_visit_count_rather_than_one_per_instruction():
+    """Defect: a pre-2026-10-21 run output, which never said whether a visit went out, is published
+    as if every instruction sent one (582 where 469 went out on the 8927e9345 register arm)."""
+    bills = _bills(_Feed(), instruct_reads=True)
+    for bill in bills:
+        bill.pop("read_instruction_visit_sent", None)
+    cost = read_duty_summary(bills)["visit_cost"]
+    assert (cost["instructions"], cost["visits"], "charged_gbp" in cost) == (7, None, False)
+
+
+def test_the_close_posts_the_visits_to_account_6100_and_off_the_operating_margin():
+    """Defect: the schedule is computed and never booked, so the published P&L shows the duty done
+    for free. The close of the same bills with and without the instruction differs by the visits."""
+    records = _records()
+    on = close_the_books(records, _bills(_Feed(), instruct_reads=True))
+    off = close_the_books(records, _bills(_Feed(), instruct_reads=False))
+    posted = [e for e in on.events if e["event_type"] == "read_visit_cost_event"]
+    assert (
+        [e for e in off.events if e["event_type"] == "read_visit_cost_event"],
+        sorted((e["month"], e["amount_gbp"]) for e in posted),
+        on.pnl.get("read_visit_cost_gbp"),
+    ) == (
+        [], [("2024-01", -6.0), ("2024-12", -3.0), ("2025-01", -9.0)], 18.0,
+    )
+    journal = [(j["debit_account"], j["credit_account"], j["amount_gbp"])
+               for j in build_journal(posted)]
+    assert journal == [("6100", "1001", 6.0), ("6100", "1001", 3.0), ("6100", "1001", 9.0)]
+    assert on.pnl["operating_net_margin_gbp"] == pytest.approx(
+        on.pnl["net_margin_gbp"] - 18.0 - on.pnl.get("acquisition_spend_gbp", 0.0)
+        - on.pnl.get("fixed_cost_gbp", 0.0) - on.pnl.get("cost_to_serve_gbp", 0.0))

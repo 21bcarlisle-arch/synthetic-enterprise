@@ -230,6 +230,19 @@ def make_cost_to_serve_event(month: str, amount_gbp: float) -> dict[str, Any]:
     }
 
 
+def make_read_visit_cost_event(month: str, amount_gbp: float) -> dict[str, Any]:
+    """Cash out: the month's instructed meter-read visits, the SLC 21B.4 step
+    (`company.billing.read_duty_register.read_visit_cost_schedule`). Account 6100 beside
+    `cost_to_serve_event`, with its own type so the P&L can show what the duty costs."""
+    return {
+        "transaction_id": _tid("read_visit_cost", month),
+        "event_type": "read_visit_cost_event",
+        "timestamp": month + "-01",
+        "month": month,
+        "amount_gbp": -amount_gbp,
+    }
+
+
 def make_non_commodity_cost_event(bill: dict[str, Any]) -> dict[str, Any]:
     """Cash out: network/levy pass-through remitted to network operators.
 
@@ -605,6 +618,10 @@ def derive_pnl(events: list[dict[str, Any]]) -> dict[str, float]:
         cts_cost = -sum(e["amount_gbp"] for e in cts_events)
         result["cost_to_serve_gbp"] = cts_cost
 
+    visit_events = [e for e in events if e["event_type"] == "read_visit_cost_event"]
+    if visit_events:
+        result["read_visit_cost_gbp"] = -sum(e["amount_gbp"] for e in visit_events)
+
     write_off_events = [e for e in events if e["event_type"] == "back_billing_write_off_event"]
     if write_off_events or dd_barred:
         result["back_billing_write_off_gbp"] = sum(
@@ -616,11 +633,12 @@ def derive_pnl(events: list[dict[str, Any]]) -> dict[str, float]:
         result["revenue_restated_gbp"] = sum(e["restated_gbp"] for e in restatement_events)
         result["revenue_restatement_count"] = len(restatement_events)
 
-    if acq_events or fixed_events or cts_events:
+    if acq_events or fixed_events or cts_events or visit_events:
         acq = result.get("acquisition_spend_gbp", 0.0)
         fixed = result.get("fixed_cost_gbp", 0.0)
         cts = result.get("cost_to_serve_gbp", 0.0)
-        result["operating_net_margin_gbp"] = net - acq - fixed - cts
+        visits = result.get("read_visit_cost_gbp", 0.0)
+        result["operating_net_margin_gbp"] = net - acq - fixed - cts - visits
 
     return result
 

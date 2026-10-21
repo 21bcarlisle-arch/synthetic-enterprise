@@ -214,9 +214,10 @@ class DecisionPolicy:
 
     #: (2026-10-18) the monthly billing run instructs a read on the 11th estimate in a row, the last
     #: bill from which a visit can still meet the SLC 21B.4 year (`company.billing.read_duty_register.
-    #: read_instruction_due`, `read_access_and_theft_duties.md` s.2.8). Off on every standing policy
-    #: until the 19 Oct publish is read, so that reading stays one variable.
-    instruct_reads_in_billing_run: bool = False
+    #: read_instruction_due`, `read_access_and_theft_duties.md` s.2.8). On for every standing policy
+    #: since 2026-10-21, with each visit charged at the area-round price (s.2.9): SLC 21B.4 is a
+    #: licence duty, and the arms graded at 8927e9345 found it moves no money at no access.
+    instruct_reads_in_billing_run: bool = True
 
     #: C35 (2026-10-17): at a renewal, an advice action that costs us may travel with the smallest
     #: monthly rise on the Fixed Retention Tariff that brings our side to zero, capped by the

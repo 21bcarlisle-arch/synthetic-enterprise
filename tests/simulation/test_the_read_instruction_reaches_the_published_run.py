@@ -1,4 +1,5 @@
-"""The published run carries the company's SLC 21B.4 read instruction, off unless the policy asks.
+"""The published run carries the company's SLC 21B.4 read instruction when the policy asks, and the
+standing policy asks (2026-10-21, with each visit charged: `read_access_and_theft_duties.md` s.2.9).
 
 Defect this guards (2026-10-18, direction item `wire-the-read-instruction-into-the-published-run`):
 6e9dc90f8 put `instruct_reads` on the company's bill assembly, but the run's own billing door
@@ -11,7 +12,8 @@ own, and an instructed visit reads.
 
 Mutations, each run and reverted: `main` dropping `instruct_reads=` from its call, the wrapper
 dropping it before `assemble_monthly_bills`, and the wrapper's None resolving to True. The first
-two red the chain test, the last reds the off-path test.
+two red the chain test, the last reds the off-path test. The off path is read under a standing
+policy patched off, so it stays one variable now that the standing policy is on.
 """
 
 from __future__ import annotations
@@ -82,12 +84,19 @@ def _on(policy):
     return dataclasses.replace(policy, instruct_reads_in_billing_run=True)
 
 
+def _off(policy):
+    return dataclasses.replace(policy, instruct_reads_in_billing_run=False)
+
+
 def _instructions(bills):
     return [b["period_end"] for b in bills if "read_instruction_raised" in b]
 
 
-def test_off_the_run_bills_byte_for_byte_as_the_company_does_without_the_switch(scripted_world):
-    """Defect: the off path moves (the 19 Oct publish would no longer be one variable)."""
+def test_off_the_run_bills_byte_for_byte_as_the_company_does_without_the_switch(scripted_world,
+                                                                                monkeypatch):
+    """Defect: the off path moves, or the wrapper's None stops reading the standing policy."""
+    monkeypatch.setattr(run_phase2b, "CURRENT_POLICY", _off(run_phase2b.CURRENT_POLICY))
+
     def dump(bills):
         return json.dumps(bills, sort_keys=True, default=str)
 
@@ -118,13 +127,16 @@ def test_the_switch_reaches_the_seam_from_main_and_from_the_standing_policy(scri
         return dict(seen)
 
     standing = run_phase2b.CURRENT_POLICY
-    off_bills = run4c.build_monthly_bills(_records())
-    monkeypatch.setattr(run_phase2b, "CURRENT_POLICY", _on(standing))
     standing_on_bills = run4c.build_monthly_bills(_records())
+    monkeypatch.setattr(run_phase2b, "CURRENT_POLICY", _off(standing))
+    off_bills = run4c.build_monthly_bills(_records())
     assert (
-        run_main(standing), run_main(_on(standing), "ceiling"),
+        standing.instruct_reads_in_billing_run,
+        run_main(_off(standing)), run_main(standing), run_main(_on(standing), "ceiling"),
         _instructions(off_bills), _instructions(standing_on_bills),
     ) == (
-        {"instruct_reads": False, "arm": "register"}, {"instruct_reads": True, "arm": "ceiling"},
+        True,
+        {"instruct_reads": False, "arm": "register"}, {"instruct_reads": True, "arm": "register"},
+        {"instruct_reads": True, "arm": "ceiling"},
         [], ["2024-01-31"],
     )

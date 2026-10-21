@@ -461,6 +461,68 @@ The switch is still off. This is a decomposition, not a re-run, and the read end
   inversion would recur on any account whose estimate is wrong by a factor of four, so it is not a
   fix for that.
 
+### 2.9 What an instructed visit costs the company, and which visit it is (2026-10-21)
+
+*Knowledge for direction item `flip-the-read-instruction-on-with-its-visit-cost` (K8), written
+before the build. The arms that motivate it were graded at 8927e9345. At no access the instruction
+moves no money; at the read end it discharges every 21B.4 row. It raised 582 instructions over the
+ten years and charged nothing for any of them
+(`docs/staging/SEAT_FINDING_THE_READ_INSTRUCTION_PERFORMS_21B4_FOR_NO_MONEY_AT_NO_ACCESS_SO_FLIP_IT_ONLY_WITH_THE_VISIT_COST_2026-10-21.md`).*
+
+**What is published.** Two prices, both from meter operators to DECC, both pre-2015, read through
+Ofgem's 2015 consultation and not from the DECC impact assessment itself (§2.1):
+- **£3 per meter**, a routine inspection on an area-based round;
+- **£17.50 per site**, a scheduled-appointment visit to a high-risk meter.
+
+Nothing read gives a post-2015 figure, a gas figure separate from electricity, or the cost of a
+failed visit as distinct from a successful one.
+
+**GAP: which visit a supplier sends at the 11th estimate.** This is §2.6's "chase before the year"
+again, now asked about cost. No source read says whether a supplier's first visit to a long-unread
+credit meter is a round or an appointment. None says after how many failed rounds it moves to an
+appointment either. The DECC description ties the £17.50 to a *high-risk* meter. Nothing in the
+company's view marks a meter high-risk at the 11th estimate: it has no access history (§2.8, "How
+the world answers"), and the theft screen is off. This stays a practitioner question.
+
+**The design's choice.**
+- Each instruction is charged **£3**, the area round, as the central figure. **£17.50**, the
+  appointment, is the stated upper bound and is published beside it, with no midpoint between them.
+  - The round is the central figure because the instruction targets an unread meter, not a flagged
+    one, and the £17.50 is described as the price for the flagged case.
+  - The bound is published because the GAP above could put the real figure at either end.
+- **A visit is charged whether or not it gets a read.** A round that finds no-one home has still
+  been run.
+- **An instruction that sent no visit is not charged.** The billing run sends the visit only when
+  the period's ordinary read has not already come in
+  (`monthly_bill_assembly`, `read_instruction_visit_sent`). On the graded `register` arm, 113 of
+  the 582 instructions had their own read arrive first. That is the "113 no-access visits record
+  outcome actual" the finding left unexplained. So **469** visits went out. That equals the 469
+  instructions `closing_estimate_run_money --instructed-read` counts on the same book, the other
+  gap the finding left open. Over the graded book, the bound is 469 × £3 = **£1,407** to
+  469 × £17.50 = **£8,207.50** over ten years. The finding's £1,746–£10,185 counted instructions
+  as visits. *Corrected here, 2026-10-21.* At the `no_access` end, which is the honest end while `q6_read_visit_access_failure_rate`
+  is null, the cost is the whole money effect.
+- **It is charged in the month of the visit period**, the bill that carries
+  `read_instruction_raised`, as cost-to-serve (account 6100, `read_visit_cost_event`).
+- **SIMPLIFIED: nominal 2015 prices for every year from 2016 to 2025.** To do it properly would
+  need a dated series of meter-reading contract prices, or at least an operator price for one later
+  year to index from. No deflator is applied, because applying CPI to a contract price would make
+  up a pass-through nobody has measured. The direction is known: it understates the cost in later
+  years.
+
+**What the cost does not reach.** The visit type does not change what the world answers. In
+practice an appointment is booked to find someone home, so its access rate is probably higher than
+a round's. The world has one access rate for both, and that rate is null. Charging £17.50 would
+therefore buy nothing that £3 does not, which is one more reason the round is the central figure.
+
+**Where it shows, and where it does not.** The cost posts to the company's ledger. It moves
+`operating_net_margin_gbp`, which is the P&L the dashboard and the annual report publish. It does
+**not** move `net_margin_gbp` on the world's settled records, and that is the figure
+`tools/run_value_cycle_ab.py` sums into the value arms' `total_net_gbp` (the settled-realised
+clock). So the value arms cannot see this line at all, on either side of an arm. That is the same
+blindness every account-6100 cost already has on that clock, and it is recorded in §6, not fixed
+here.
+
 ## 3. Theft
 
 ### 3.1 The duties
@@ -731,6 +793,8 @@ cap reads the licence condition correctly for every case that does not involve o
     traditional meters, and the Load Shaping Service's estimation method (§8.2).
 11. (2026-10-08) The relative risk of persistent no-access by tenure, landlord, building type or
     vulnerability, and the spread of the 2017 read-billed rate across suppliers (§9).
+12. (2026-10-21) Which visit a supplier sends at the 11th estimate (round or appointment), when
+    it moves from one to the other, and any post-2015 or gas-specific price for either (§2.9).
 
 **Commons gap.** `docs/domain_artefact_library/regulatory/` holds none of the texts read here:
 SLC 12, 12A, 21B or 21BA, the 1954 Act s.1–2, Sch 6 para 7 and 10, Sch 2B para 23 and 28, or REC
@@ -748,6 +812,10 @@ Schedule 7. The quotations above are the candidates for it.
 5. ~~**The smart not-in-smart-mode rate** is a constant typed in code, drawn independently each
    month.~~ Closed 2026-10-07 (W2_36): read from the register and held as a state.
 6. `meter_assets.py` reads the wall clock.
+6a. (2026-10-21) **The value arms' settled-realised clock omits the ledger's cost-to-serve.**
+    `run_value_cycle_ab` sums `net_margin_gbp` from the settled records. A cost the company books to
+    account 6100, the read-visit cost among them (§2.9), moves the published operating margin and
+    no arm.
 7. (2026-10-17) **No gas must-read.** UNC M5.10 has the Transporter attempt a read on a Class 4
    Annual Read meter after 24 months without one, at the shipper's cost. The world has no such
    attempt, so gas runs of 38 and 48 estimates exist on the graded run (§2.7).

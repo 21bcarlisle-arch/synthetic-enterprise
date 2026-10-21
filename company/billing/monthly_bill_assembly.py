@@ -649,7 +649,9 @@ def build_monthly_bills(
             )
             # The instruction was raised on the last bill, the visit falls in this period.
             instructed = instruct_reads and read_instruction_due(consecutive_estimated, payment_channel)
-            if instructed and event.status != "actual":
+            # A visit goes out only when the ordinary read has not already come in; it is what costs.
+            visit_sent = instructed and event.status != "actual"
+            if visit_sent:
                 event = read_feed.instructed_read_for(
                     customer_id, true_bill["period_end"], meter_type,
                     true_bill["total_consumption_kwh"], consecutive_estimated,
@@ -858,6 +860,7 @@ def build_monthly_bills(
                 bill["read_instruction_raised"] = previous_period_end
                 bill["read_instruction_outcome"] = (
                     "actual" if event.status == "actual" else "no_read")
+                bill["read_instruction_visit_sent"] = visit_sent
             previous_period_end = bill["period_end"]
             bills.append(bill)
             if theft_screen_out is not None:

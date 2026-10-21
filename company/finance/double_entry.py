@@ -194,6 +194,10 @@ def _entry_in_the_normal_direction(event: dict[str, Any]) -> dict[str, Any] | No
         return _entry(eid, ts, "6100", "1001", amount,
                       f"Cost to serve: {event.get('month', ts)}", et)
 
+    if et == "read_visit_cost_event":
+        return _entry(eid, ts, "6100", "1001", amount,
+                      f"Meter read visits: {event.get('month', ts)}", et)
+
     return None
 
 

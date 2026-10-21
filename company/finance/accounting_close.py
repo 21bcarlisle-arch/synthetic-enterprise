@@ -67,6 +67,7 @@ from typing import Any
 
 import saas.payment_behaviour as _default_payment_model
 from company.billing.pre_bill_validation import validate_bills
+from company.billing.read_duty_register import read_visit_cost_schedule
 from company.compliance.domain_invariants import check_billed_clock_reconciles
 from saas.ledger import (
     build_ledger,
@@ -75,6 +76,7 @@ from saas.ledger import (
     make_broker_commission_event,
     make_cost_to_serve_event,
     make_dd_back_billing_write_off_event,
+    make_read_visit_cost_event,
 )
 
 __all__ = ["AccountingClose", "close_the_books"]
@@ -132,6 +134,10 @@ def close_the_books(
         `saas.payment_behaviour`.
     `back_billing_bars` — each SLC 21BA bar taken on a direct-debit balance where the debit asked
         for it (the DD balance book's `bar_actions`), written off as revenue not collected.
+
+    The SLC 21B.4 visits the billing run instructed are read off `bills` here, not handed in: each
+    bill carrying `read_instruction_raised` is one visit at the area-round price
+    (`read_duty_register.read_visit_cost_schedule`, `read_access_and_theft_duties.md` s.2.9).
     """
     model = _default_payment_model if payment_model is None else payment_model
 
@@ -149,6 +155,11 @@ def close_the_books(
             for event in (broker_commission_events or [])
         ]
         + [make_dd_back_billing_write_off_event(bar) for bar in (back_billing_bars or [])]
+        # Over every bill, held ones too: a visit costs the round whether or not its bill issues.
+        + [
+            make_read_visit_cost_event(event["month"], event["amount_gbp"])
+            for event in read_visit_cost_schedule(bills)
+        ]
     )
 
     events = build_ledger(
