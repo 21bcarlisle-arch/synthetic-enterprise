@@ -533,3 +533,51 @@ is not reading the world's arrears, and the cause is on the company side.
 
 **Status:** OPEN and BLOCKING until a published run with the switches on is graded by
 `validate_run_output`.
+
+## 2026-10-21: the first switch-on run, graded UNPUBLISHED. The 10-20 prediction is refuted on the basis it named
+
+The switch-on run this finding waits for already exists, but it is not published. The shared tree's
+plain `docs/reports/run_output_latest.json` names `producing_commit` **ec7fd9942** (resolved
+2026-10-20T21:34Z). That commit has 768f41ed1 as an ancestor, and at it both
+`BUDGET_DECIDES_PAYMENT` and `ENERGY_SHARES_THE_SHORTFALL` are `True`. The committed gz is still
+the earlier run (ad8afadc5, published as 8b6fea024 on 2026-10-19). `validate_run_output` on each,
+read through `tools/run_output_store`:
+
+| run | basis | crisis 2022-23 | pre-crisis 2016-19 | step-up | verdict |
+|---|---|---|---|---|---|
+| published ad8afadc5 | headline | 0.0391% | 0.0559% | x0.70 | FAIL floor + step |
+| published ad8afadc5 | ifrs9_charge | 0.1564% | 0.1133% | **x1.38** | FAIL floor |
+| **unpublished ec7fd9942** | headline | 0.0606% | 0.2026% | x0.30 | FAIL floor + step |
+| **unpublished ec7fd9942** | pnl_accrual | 2.0435% | 1.9940% | x1.02 | FAIL step (the seed 2%) |
+| **unpublished ec7fd9942** | ifrs9_charge | **0.4000%** | 0.2184% | **x1.83** | FAIL floor only |
+
+The IFRS 9 charge by year on ec7fd9942, in GBP (published ad8afadc5 in brackets): 2021 262 (83),
+**2022 1,825 (537)**, **2023 1,529 (788)**, 2024 **-380** (540). Revenue barely moves between the
+two runs (2022: 343,923 against 348,215).
+
+**The 10-20 prediction, graded.**
+- "The level stays far under the real 1-3% band": **held.** 0.40% is still 2.5x under the 1% floor.
+- "The headline basis steps up in 2022-23 for the first time": **refuted.** It falls, x0.30. The
+  prediction's fallback ("if it does not step up, the company's charge is not reading the world's
+  arrears") is refuted as well, by the IFRS 9 basis. **Corrected beside the claim:** the prediction
+  was aimed at the wrong basis. Headline grades the world's behavioural write-offs. On 10-15 this
+  finding had already recorded that real write-offs do not step up in share either (Centrica:
+  GBP 58m, 93m and 113m in 2021-23 while revenue doubled), and that an XPASS there would itself be a
+  fidelity question. The basis that reads the company's charge is `ifrs9_charge`, and it now steps
+  up x1.83, close to Centrica's ~x2. Its crisis level is 2.6x the published run's.
+- **I cannot yet say how much of that move is the budget switches.** 30 commits touch `simulation/`
+  or `sim/` between ad8afadc5 and ec7fd9942, including the shortfall order (15a497992), the B7
+  job-loss scar (b1d3860b8) and the half-hourly read (254b4686a). The one-variable version is the
+  same commit with the two switches off. Prediction, filed before that arm exists: with both off,
+  the IFRS 9 crisis share falls back under 0.20% and the step-up under x1.5.
+- **New, and unexplained:** 2024's charge is negative (-GBP 380, so the stock released). It is
+  consistent with the 10-20 exit from negative margin letting arrears clear. Not traced.
+
+**The strict xfails all still hold** (every basis fails at least one condition), so HEAD stays green.
+The `_TENTH_OF_REAL` reason now under-states the level. It becomes about two-fifths of the floor
+once this run is published, and the reason should be re-worded in the commit that publishes it, not
+before.
+
+**Status:** OPEN and BLOCKING. The company's charge now reads the world's crisis in shape and in
+step. What still blocks is the level: 0.40% against 1%. The next grade is the published copy of
+this run, plus the switches-off arm for attribution.
