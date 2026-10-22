@@ -317,6 +317,7 @@ def build_monthly_bills(
     tenancy_links: dict[str, str] | None = None,
     instruct_reads: bool | None = None,
     instructed_read_arm: str = "register",
+    annualised_advance_estimate: bool | None = None,
 ) -> list[dict]:
     """Run the SUPPLIER's monthly billing over this run's settled records.
 
@@ -352,9 +353,14 @@ def build_monthly_bills(
     """
     if instruct_reads is None:
         instruct_reads = read_instruction_request(None)
+    # The same rule as `instruct_reads`: None takes the standing policy's switch, so the DD review
+    # and the stop notice bill the estimate the published run bills.
+    if annualised_advance_estimate is None:
+        annualised_advance_estimate = annualised_estimate_request(None)
     return assemble_monthly_bills(
         all_records, SimulatedReadFeed(instructed_read_arm=instructed_read_arm),
         churned_ids=churned_ids, instruct_reads=instruct_reads,
+        annualised_advance_estimate=annualised_advance_estimate,
         read_events_out=read_events_out,
         payment_channel_feed=simulated_payment_channel,
         premise_listing_feed=simulated_council_tax_listing,
@@ -384,6 +390,15 @@ def dual_fuel_offset_request(policy) -> bool:
     from simulation.run_phase2b import CURRENT_POLICY
 
     return bool((policy or CURRENT_POLICY).dd_review_offsets_dual_fuel_legs)
+
+
+def annualised_estimate_request(policy) -> bool:
+    """Whether an unread month is estimated from the annualised register advance, by the company
+    switch. Off (`DecisionPolicy.bill_estimate_reads_the_annualised_advance`, the default) bills
+    exactly as before."""
+    from simulation.run_phase2b import CURRENT_POLICY
+
+    return bool((policy or CURRENT_POLICY).bill_estimate_reads_the_annualised_advance)
 
 
 def read_instruction_request(policy) -> bool:
@@ -435,6 +450,7 @@ def main(report_end: str | None = None, policy=None, instructed_read_arm: str = 
     bills = build_monthly_bills(all_records, churned_ids, read_events_out=billed_read_events,
                                 theft_screen_out=theft_screen, tenancy_links=tenancy_links,
                                 instruct_reads=read_instruction_request(policy),
+                                annualised_advance_estimate=annualised_estimate_request(policy),
                                 instructed_read_arm=instructed_read_arm)
 
     # W5_1_banking_payment_rails L2->L3 (2026-07-12): the rails-timed DD

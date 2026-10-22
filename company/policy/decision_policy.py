@@ -219,6 +219,12 @@ class DecisionPolicy:
     #: licence duty, and the arms graded at 8927e9345 found it moves no money at no access.
     instruct_reads_in_billing_run: bool = True
 
+    #: (2026-10-22, D48) an unread month is billed from the annual rate the account's own register
+    #: reads imply, an advance of at least 182 days (`unread_month_estimate.annualised_advance_kwh`:
+    #: the EAC/AQ from an advance), not the latest three monthly reads. Off on every standing
+    #: policy; one-variable table and prereg in `docs/staging/records/WORKER_PREREG_THE_BILL_ESTIMATE_READS_THE_ANNUALISED_ADVANCE_2026-10-22.md`.
+    bill_estimate_reads_the_annualised_advance: bool = False
+
     #: C35 (2026-10-17): at a renewal, an advice action that costs us may travel with the smallest
     #: monthly rise on the Fixed Retention Tariff that brings our side to zero, capped by the
     #: headroom under the published default (`company.crm.next_best_action.price_retention_rise`).

@@ -148,6 +148,7 @@ FIELD_CONSUMPTION = {
     "move_with_us_offers": {"via": "run_argument"},
     "theft_screen_in_billing_run": {"via": "run_argument"},
     "instruct_reads_in_billing_run": {"via": "run_argument"},
+    "bill_estimate_reads_the_annualised_advance": {"via": "run_argument"},
     "next_best_action_shares_by_retention_rise": {"via": "run_argument"},
     "renewal_belief_by_ending_term": {"via": "run_argument"},
     "retention_weighs_save_odds": {"via": "run_argument"},
