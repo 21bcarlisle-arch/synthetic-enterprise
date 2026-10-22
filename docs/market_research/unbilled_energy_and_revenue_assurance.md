@@ -464,6 +464,48 @@ year changes sign against the defect-4 gate. So leg (b) is now a fix to what the
 little money. It no longer blocks the publish or lane D. It waits behind leg (c) and is not built in
 this turn.
 
+#### What a change of supplier ends on each fuel (2026-10-22, K8 for the dual leaver)
+
+Asked by `WORKER_FINDING_A_DUAL_HOUSEHOLD_THAT_LEAVES_ON_ITS_ELECTRICITY_LEG_IS_BILLED_GAS_FOR_UP_TO_A_YEAR_SINCE_THE_BOOK_WENT_DUAL_2026-10-22.md`.
+Written before the build.
+
+**What the rules and published practice say.**
+- A dual-fuel switch is the customer moving electricity and gas "from one supplier to another on a
+  single, nominated date". [H] Ofgem Switching Programme, *Business process design: dual fuel
+  switch* (bpd_dai12, Jan 2017). Before CSS the two registration systems (MPAS for electricity,
+  UK Link for gas) ran independently, so the gaining supplier sent "two discrete" requests. CSS
+  lets it link them, with a "one fail / all fail" option that rejects both if either fails. [H]
+  Ofgem, *Dual fuel policy paper* (EDAG agenda item 6, Feb 2016) and *Work package 1: advance
+  registration and dual fuel* (Jul 2016).
+- On each fuel the switch ends the losing supplier's supply at the change-of-supplier (CoS) read
+  on that meter point's supply start date (see the losing-supplier section above: BSCP504 §4.4.1
+  for electricity, UNC TPD M5.13 for gas). The final read is taken, or deemed, at that date. The
+  last day the losing supplier bills is the day before it. Energy after the read is the gaining
+  supplier's.
+- The two fuels can switch on different dates. A request can fail on one fuel only, and a customer
+  can move one fuel only. **GAP:** how often a dual-fuel loss reaches the losing supplier as two
+  different dates. Nothing published that we found gives the share.
+
+**What our code did.** The world rolls a dual household's departure once, on its electricity leg,
+dated that leg's term start. The gas leg is ended by skipping later gas terms. A leg's whole term is
+posted at once, and since c136809f53 gas terms start days before electricity ones. So a gas term
+posted before the departure was settled and billed to its own end, up to a year after the
+household had gone.
+
+**Choices for the build, and why.**
+1. **One date for both fuels.** A departure on the decision leg ends supply on every leg of the
+   household at that date. This is the published single-nominated-date switch, and it is the case
+   the world models: the household leaves once. A one-fuel or split-date loss is the GAP above, and
+   it is not built.
+2. **The riding leg's term waits for the roll it rides on.** A gas term that has an electricity
+   term start inside it is held in the run's heap until that start has been processed. The term is
+   then posted either whole or cut to end the day before the departure. A retroactive cut was
+   rejected: by the time it could run, the term has already fed the billing, payment, treasury and
+   register views.
+3. **Each leg's own departure row** (`leg_departures`, one per supply point the switch ended). It
+   is not a second `churned` row in `customer_events`, because that log's readers count rows there
+   as households leaving.
+
 #### A held bill on an account that closes (2026-10-21, K8 for D48)
 
 Asked by `SEAT_FINDING_D48_THE_UNBILLED_ACCRUAL_IS_THE_ENERGY_THE_PRE_BILL_GATE_HELD_2026-10-20.md`.

@@ -15,6 +15,7 @@ Key differences from Phase 2a repriced:
 Delegation note: hand-written (orchestration-adjacent, per protocol).
 """
 
+import bisect
 import calendar
 import dataclasses
 import heapq
@@ -377,6 +378,13 @@ DECLINE_A_FIX_ABOVE_THE_DEFAULT: bool = True
 #: engagement seed `f"{account}_{term_index}"` has to keep agreeing with the builders'
 #: `f"{household}_{len(terms)}"` at every later boundary (PB6, 2026-09-29).
 _DECLINED_FIX_SPLICE = "declined_fix_splice"
+
+#: Stamped on a riding leg's term (a dual household's gas) that has been put back in the heap until
+#: its household's decision leg has passed a term start inside it. A leg's whole term is posted at
+#: once, and since the book went dual (c136809f53) a gas term starts days before the electricity
+#: term whose roll can end the household, so posted at its own start it billed up to a year past a
+#: departure (WORKER_FINDING_A_DUAL_HOUSEHOLD_THAT_LEAVES_..._2026-10-22).
+_HELD_FOR_THE_DECISION_LEG = "held_for_the_decision_leg"
 
 # Phase 47a: segment lookup for Ofgem cap — resi customers subject to price cap
 _RESI_CUSTOMER_IDS: frozenset[str] = frozenset(
@@ -2149,6 +2157,19 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         for term in schedule:
             all_terms.append((term["acquisition_date"], cid, next(_term_seq), "gas", term))
     heapq.heapify(all_terms)
+    #: Each supply point's term starts still in the heap, sorted, so a riding leg can ask whether
+    #: its household's decision leg has a start inside the term it is about to post. Kept by
+    #: `_push_term` and the pop at the head of the loop, the only two ways into and out of the heap.
+    _pending_starts: dict[str, list[str]] = {}
+    for _entry in all_terms:
+        _pending_starts.setdefault(_entry[1], []).append(_entry[0])
+    for _starts in _pending_starts.values():
+        _starts.sort()
+
+    def _push_term(term_start: str, leg: str, commodity: str, term: dict) -> None:
+        heapq.heappush(all_terms, (term_start, leg, next(_term_seq), commodity, term))
+        bisect.insort(_pending_starts.setdefault(leg, []), term_start)
+
     # The fuels each household is supplied, so the budget (`household_budget.BudgetPaymentBook`)
     # can split one household's money across its legs. A move-in adds its leg below.
     _fuels_of_household: dict = {}
@@ -2499,6 +2520,12 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         from company.interfaces.sim_interface import LiveSimInterface
         _contact_seam = LiveSimInterface(contacts_received=_contacts_received)
     churned_billing_accounts: set[str] = set()
+    #: The date each household's departure took effect: no leg supplies on or after it.
+    _departed_on: dict[str, str] = {}
+    _leg_departures: list[dict] = []
+
+    def _supplies_nothing(household: str, term_start: str) -> bool:
+        return household in churned_billing_accounts and term_start >= _departed_on[household]
     # B7 slice 2 (`sim/customer_state_layer.py`). Read once per run; with it off nothing below asks.
     _home_moves_on = moves_active()
     # Vulnerability as a hidden household state (`simulation/vulnerability_state.py`). Read once
@@ -2611,9 +2638,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             # The price history ends before the window does, as for a declined fix.
             segments = []
         for _segment in segments:
-            heapq.heappush(
-                all_terms, (_segment["acquisition_date"], leg, next(_term_seq), commodity, _segment)
-            )
+            _push_term(_segment["acquisition_date"], leg, commodity, _segment)
         _move_in_entry[leg] = {
             "premise": premise, "customer_id": leg, "household": household_of(leg),
             "commodity": commodity, "supply_start": _occupant_start.isoformat(),
@@ -2704,6 +2729,15 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     def _notify_registration_loss(household: str, effective_from: str,
                                   pending_already_sent: bool = False) -> None:
         _points = supply_points_on_supply(household, effective_from, elec_schedules, gas_schedules)
+        _departed_on[household] = effective_from
+        # EACH LEG'S OWN DEPARTURE, for readers that count per supply point. Not
+        # `customer_events_log`: its churned rows are counted as households leaving, and a second
+        # row for the gas leg would count every dual departure twice.
+        for _point, _fuel in _points:
+            _leg_departures.append({
+                "customer_id": _point, "household": household, "commodity": _fuel,
+                "event_type": "churned", "event_date": effective_from,
+            })
         _pending = [] if pending_already_sent else (
             _registration_loss_feed.wire_pending_notices_for_departure(_points, effective_from))
         for _wire in (
@@ -2808,6 +2842,9 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
 
     while all_terms:
         term_start_str, cid, _, commodity, term = heapq.heappop(all_terms)
+        _pending_starts[cid].remove(term_start_str)
+        if term.pop(_HELD_FOR_THE_DECISION_LEG, False):
+            term_start_str = term["acquisition_date"]
         _spliced = bool(term.get(_DECLINED_FIX_SPLICE))
         if administration_event:
             break
@@ -2826,7 +2863,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             billing_account,
             accounts_with_an_electricity_leg=_accounts_with_an_electricity_leg,
         )
-        if billing_account in churned_billing_accounts:
+        if _supplies_nothing(billing_account, term_start_str):
             if not _spliced:
                 term_indices[cid] += 1
             continue
@@ -2836,6 +2873,23 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             continue
 
         term_end_str = term.get("term_end") or _clamp_term_end(term_start_str, end_date=effective_end)
+
+        # A RIDING LEG WAITS FOR THE ROLL IT RIDES ON. The household leaves once, on its decision
+        # leg, so a gas term that a decision-leg start falls inside goes back in the heap keyed to
+        # that start; the decision leg pops first there (`C1` sorts before `C1g`). Asked again
+        # until no such start is left, then posted -- whole, or cut below at the departure.
+        if commodity != _decision_leg and billing_account not in churned_billing_accounts:
+            _decision_starts = _pending_starts.get(billing_account, ())
+            _i = bisect.bisect_right(_decision_starts, term_start_str)
+            if _i < len(_decision_starts) and _decision_starts[_i] < term_end_str[:10]:
+                term[_HELD_FOR_THE_DECISION_LEG] = True
+                _push_term(_decision_starts[_i], cid, commodity, term)
+                continue
+        # A CHANGE OF SUPPLIER ENDS EVERY FUEL ON ONE DATE: the riding leg's last day supplied is
+        # the day before its household's departure (`unbilled_energy_and_revenue_assurance.md`).
+        # `term_end` is exclusive, so it is the departure date itself.
+        if billing_account in churned_billing_accounts:
+            term_end_str = _departed_on[billing_account]
 
         # A LEG THAT MOVED WITH US is bound to its new home from this term on: weather, dwelling,
         # demand trace and the meter point's annual quantity are the destination's. The vacated
@@ -4471,10 +4525,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 _default_segments = []
             for _segment in _default_segments:
                 _segment[_DECLINED_FIX_SPLICE] = True
-                heapq.heappush(
-                    all_terms,
-                    (_segment["acquisition_date"], cid, next(_term_seq), commodity, _segment),
-                )
+                _push_term(_segment["acquisition_date"], cid, commodity, _segment)
             print(
                 f"  [DECLINED-FIX] {billing_account} {commodity} at {term_start_str} — offer "
                 f"{_offer_vs_default:+.1%} vs default; {len(_default_segments)} default segment(s)"
@@ -4516,7 +4567,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         # household's other leg, popped after this one, is skipped at the top of the loop; this leg
         # used to go on and settle its whole term, so a household that left on 1 January was
         # billed electricity to 31 March (SEAT_FINDING_ELECTRICITY_KEEPS_BILLING_..._2026-10-05).
-        if billing_account in churned_billing_accounts:
+        if _supplies_nothing(billing_account, term_start_str):
             if not _spliced:
                 term_indices[cid] += 1
             continue
@@ -5685,6 +5736,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         # the two; a reader whose subject is renewal decisions keeps reading the one above and is
         # unaffected by this commit, which is the property the separation buys.
         "svt_departures": _svt_departures,
+        #: One churned row per supply point a departure ended, the riding gas leg included.
+        "leg_departures": _leg_departures,
         # And the DECISIONS behind them — `tools/capture_departure_factors` writes these to the
         # `_svt_segment_decisions.json` companion, which is the population every SVT-route reading
         # in `tools/measure_churn_heterogeneity` is computed over.

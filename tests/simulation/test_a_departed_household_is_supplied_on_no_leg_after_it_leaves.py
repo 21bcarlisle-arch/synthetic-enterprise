@@ -53,3 +53,20 @@ def test_no_leg_settles_on_or_after_the_departure_date(_run):
         and r["settlement_date"] >= departed[household_of(r["customer_id"])]
     })
     assert after == []
+
+
+def test_every_leg_a_departure_ended_has_its_own_churned_row(_run):
+    """Defect guarded: a dual household's gas leg ended by its electricity roll with no departure
+    of its own, so a reader counting per supply point sees the gas leg as a stayer."""
+    departed = _departed_on(_run)
+    supplied_before = {
+        r["customer_id"] for r in _run["all_records"]
+        if household_of(r["customer_id"]) in departed
+        and r["settlement_date"] < departed[household_of(r["customer_id"])]
+    }
+    rows = {(e["customer_id"], e["event_date"]) for e in _run["leg_departures"]}
+    assert any(e["commodity"] == "gas" and e["customer_id"] != e["household"]
+               for e in _run["leg_departures"])
+    assert {(sp, departed[household_of(sp)]) for sp in supplied_before} <= rows
+    # A leg can also end on the day its supply began, with nothing settled before it.
+    assert all(departed[household_of(sp)] == on for sp, on in rows)
