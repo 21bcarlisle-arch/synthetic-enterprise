@@ -50,7 +50,7 @@ from __future__ import annotations
 
 import dataclasses
 from collections.abc import Callable
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from typing import Protocol, runtime_checkable
 
 from company.billing.account_adjustment_register import (
@@ -68,7 +68,12 @@ from company.billing.back_billing import (
 from company.billing.pre_bill_validation import release_on_measured_rate, validate_bill
 from company.billing.read_duty_register import read_instruction_due
 from company.billing.theft_indicator import screen_billing_run
-from company.billing.unread_month_estimate import estimate_unread_kwh, opening_estimate_kwh
+from company.billing.unread_month_estimate import (
+    annualised_advance_kwh,
+    estimate_unread_kwh,
+    opening_estimate_kwh,
+    profile_weight,
+)
 from company.interfaces.supply_book import registered_point as get_customer
 from saas.bill_generator import (
     BILL_SHOCK_PENALTY_FACTOR,
@@ -501,6 +506,7 @@ def build_monthly_bills(
     theft_screen_out: list | None = None,
     tenancy_links: dict[str, str] | None = None,
     instruct_reads: bool = False,
+    annualised_advance_estimate: bool = False,
 ) -> list[dict]:
     """Group the supplier's own settled records into one bill per customer per
     calendar month, in chronological order, via
@@ -590,6 +596,12 @@ def build_monthly_bills(
     next period, if no read arrived anyway, asks the feed for the visit (`instructed_read_for`). The
     bill the visit fell in carries `read_instruction_raised` (the date) and
     `read_instruction_outcome`. Off by default, and off nothing here asks for a visit.
+
+    `annualised_advance_estimate` (2026-10-22, unbilled_energy_and_revenue_assurance.md K2): an
+    unread month is estimated from the annual rate the company's own register reads imply
+    (`annualised_advance_kwh`, an advance of at least 182 days, the EAC/AQ-from-an-advance), spread
+    by the profile. Where no advance spans that long it falls back to the three-read window. Off by
+    default, and off the estimate is exactly the three-read window.
     """
     churned_ids = churned_ids or set()
     by_customer_month: dict[str, dict[str, list[dict]]] = {}
@@ -633,6 +645,9 @@ def build_monthly_bills(
         # every run (mixed or not), not just an all-actual one.
         previous_bill_total_gbp = None
         trailing_actual_periods: list[tuple[date, date, float]] = []
+        # (read date, register kWh) for each read that arrived, from the change-of-supply opening
+        # read at 0: what the meter has told the company, and all `annualised_advance_kwh` reads.
+        register_reads: list[tuple[date, float]] = []
         consecutive_estimated = 0
         previous_period_end = None
         pending_estimated_run: list[dict] = []
@@ -649,6 +664,9 @@ def build_monthly_bills(
                 customer_id, true_bill["period_end"], meter_type,
                 true_bill["total_consumption_kwh"], consecutive_estimated,
             )
+            if not register_reads:  # the change-of-supply opening read
+                register_reads.append(
+                    (date.fromisoformat(true_bill["period_start"]) - timedelta(days=1), 0.0))
             # The instruction was raised on the last bill, the visit falls in this period.
             instructed = instruct_reads and read_instruction_due(
                 consecutive_estimated, payment_channel, fuel=commodity)
@@ -678,6 +696,10 @@ def build_monthly_bills(
                 # read gives a supplier. Taken before the catch-up empties the pending run.
                 read_advance_kwh = true_bill["total_consumption_kwh"] + sum(
                     p["used_kwh"] for p in pending_estimated_run)
+                register_reads.append((
+                    date.fromisoformat(true_bill["period_end"]),
+                    register_reads[-1][1] + read_advance_kwh,
+                ))
                 # D3 step 2: this real read resolves any pending run of
                 # estimated bills since the last one -- fold the reconciled
                 # correction (capped per SLC 21BA where it's an
@@ -783,6 +805,12 @@ def build_monthly_bills(
                     if trailing_actual_periods
                     else opening_estimate_kwh(commodity, customer_data, *period)
                 )
+                advance = (
+                    annualised_advance_kwh(commodity, register_reads)
+                    if annualised_advance_estimate and trailing_actual_periods else None
+                )
+                if advance is not None and advance[0] > 0:
+                    shaped = advance[0] * profile_weight(commodity, *period)
                 est_kwh = round(shaped, 2) if shaped is not None else None
                 if dataclasses.is_dataclass(event):
                     event = dataclasses.replace(event, estimated_consumption_kwh=est_kwh)

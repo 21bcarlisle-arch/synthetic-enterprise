@@ -186,6 +186,55 @@ now exempts electricity prepayment only. On this run's bills that adds 29 gas pr
 instructions on 22 accounts (469 to 498 visits, £87 charged, £507.50 at the appointment bound). The
 21B.4 register still marks those rows outside the licence duty. No bill moves at `register`.*
 
+#### How published practice estimates an unread period (2026-10-22, K8 for the annualised-advance estimate)
+
+*Nothing was re-fetched for this section. The quoted lines are from
+`how_a_supplier_shapes_an_estimate_for_an_unread_month.md` §1, §3 and §5, where they were read
+first-hand on 2026-10-06.*
+
+- **Electricity: the AA and EAC under the BSC.** "The AA is an estimate of annualised consumption
+  based on consumption recorded between two meter readings at least 6 months apart … an EAC is used
+  where two such meter readings are not available … using historical information and the profile
+  information relating to the meter." (DESNZ, *Subnational methodology and guidance booklet*, §3.1.3,
+  describing the BSC's BSCP504 calculation.) The advance is divided by the Profile Class 1
+  coefficients over the days it covers, and the annual figure is spread back by the same
+  coefficients. [M] BSCP504 itself was not read; DESNZ is the published description of it.
+- **Gas: the AQ under the UNC.** "AQ is based on the consumption between two meter readings [9–36
+  months apart]. The calculation is adjusted for the impact of the actual weather experienced in
+  that period. It's then converted to a 12-month estimate." (Xoserve, *Annual Quantity (AQ)* help
+  page.) It is expressed on seasonal-normal weather, spread by the EUC's Annual Load Profile. [H]
+- **So both settlement figures are built from a long advance between two actual reads, not from
+  the latest month or quarter.** A summer read sets a summer level only when the window is a few
+  months long.
+- **GAP: what a supplier's bill estimate uses.** No supplier or Ofgem statement was found saying
+  whether a domestic bill estimate is the EAC/AQ spread by the profile, the EAC/AQ divided by 12, or
+  a supplier's own recent-use method (§5 of the shaping page, unchanged). The settlement figures are
+  the industry's published annualisation, so the design takes them as the method. It does not claim
+  that suppliers bill from them.
+- **GAP: weather correction.** The AQ removes the read window's actual weather. The company holds
+  no weather feed for billing, so its advance is not weather-corrected. A cold read year sets a high
+  rate.
+- **Design choices.** (1) One floor for both fuels: 182 days, the AA's six months. Xoserve's AQ
+  floor is nine months, so gas annualises from shorter advances than the AQ does. That difference is
+  carried here, not hidden, and the 9-month floor is the obvious variant to test next. (2) Without a
+  long enough advance, the estimate falls back to the three-read window, the stand-in for "historical
+  information" in the EAC rule. Before the first read, the registry EAC/AQ is used, as before (slice 4).
+  (3) Off by default: `DecisionPolicy.bill_estimate_reads_the_annualised_advance`.
+
+**Measured on the 76a29bd92 run, one process, changing only the method**
+(`docs/staging/records/WORKER_PREREG_THE_BILL_ESTIMATE_READS_THE_ANNUALISED_ADVANCE_2026-10-22.md`):
+over the 27 runs of 12+ estimates billed more than 25% off use, the annualised advance cuts the
+error on 16. It worsens 2 (+139% to +156%, -57% to -58%). 9 tie, because the method cannot apply
+there: there was no 182-day advance yet, or the run came before the first read. The median absolute
+error falls from 37.9% to 14.1%. No 2022-23 overcharge worsens. The case that prompted the work does
+not come out clean: PROS-2017-0336's 2021-23 run goes from billing 20% under to 22% over. Its
+advance was struck over a year when the home used more.
+Across the book, as an offline projection, the method cuts the money moved by catch-ups by 17.5%
+(£185.2k to £152.8k). It does not shrink the tail: catch-ups of £500 or more go from 30 to 31. The
+large ones move to accounts whose use has changed since the advance year. An unweather-corrected
+advance lags the household, just as a three-read window lags the season. Built default off. The arm
+pair is pre-registered in the record above.
+
 ### K3 Back-billing and the 12-month limit
 
 - **The rule.** Standard Licence Condition 21BA (electricity and gas supply licences) prevents

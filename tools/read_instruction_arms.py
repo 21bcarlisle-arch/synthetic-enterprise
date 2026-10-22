@@ -20,7 +20,11 @@ the collection book's stop notice rebuild bills with no policy and take the stan
 (`run_phase4c_on_phase2b.read_instruction_request`). This process only; the default in
 `company/policy/decision_policy.py` is not touched.
 
-    python3 -m tools.read_instruction_arms <off|register|ceiling> <out.json>
+    python3 -m tools.read_instruction_arms <off|register|ceiling> <out.json> [--annualised-advance]
+
+`--annualised-advance` (2026-10-22) also turns on `bill_estimate_reads_the_annualised_advance`, the
+same way and in this process only: `register` with and without it is the one-variable pair of
+`docs/staging/records/WORKER_PREREG_THE_BILL_ESTIMATE_READS_THE_ANNUALISED_ADVANCE_2026-10-22.md`.
 """
 from __future__ import annotations
 
@@ -32,7 +36,7 @@ from pathlib import Path
 ARMS = ("off", "register", "ceiling")
 
 
-def run_arm(arm: str, out: Path) -> Path:
+def run_arm(arm: str, out: Path, annualised_advance: bool = False) -> Path:
     if arm not in ARMS:
         raise SystemExit(f"REFUSED: arm {arm!r} is not one of {ARMS}")
     import simulation.run_phase2b as rp2b
@@ -49,6 +53,8 @@ def run_arm(arm: str, out: Path) -> Path:
     )
 
     policy = dataclasses.replace(rp2b.CURRENT_POLICY, instruct_reads_in_billing_run=(arm != "off"))
+    if annualised_advance:
+        policy = dataclasses.replace(policy, bill_estimate_reads_the_annualised_advance=True)
     rp2b.CURRENT_POLICY = policy  # this process only; see the module docstring
     code_commit = _git_commit_hash()
     code_commit_at = datetime.now(timezone.utc)
@@ -57,6 +63,7 @@ def run_arm(arm: str, out: Path) -> Path:
     data = reconcile_and_stamp(extract_report_data(raw), code_commit=code_commit, report_end=None,
                                code_commit_at=code_commit_at)
     data["_read_instruction_arm"] = arm
+    data["_bill_estimate_reads_the_annualised_advance"] = annualised_advance
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(dump_run_output(data))
     return out
@@ -66,8 +73,9 @@ def cli() -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("arm", choices=ARMS)
     parser.add_argument("out", type=Path)
+    parser.add_argument("--annualised-advance", action="store_true")
     args = parser.parse_args()
-    print(f"wrote {run_arm(args.arm, args.out)}")
+    print(f"wrote {run_arm(args.arm, args.out, args.annualised_advance)}")
 
 
 if __name__ == "__main__":
