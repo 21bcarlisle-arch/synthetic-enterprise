@@ -1078,3 +1078,95 @@ separately: offers that changed a stayer's tariff and offers that changed a depa
 the money attached. Otherwise a positive mean for the switch-without-guard arm will read as
 retention value. The grade used `/tmp/pcs13/grade.py` unchanged, with P13e's AUC from
 `/tmp/pcs11/grade.py` and `ARM=` pointed at the new output, as §12 did.
+
+## 14. The money question across dice seeds, split by channel (filed 2026-10-22, before any seeded arm was launched)
+
+*Drawn as `seeds-for-the-ending-term-switch-and-the-save-odds-guard`. §12 and §13 both left the money
+as a one-seed tie, and both decision rules want seeds (EP17) before either switch is proposed for
+CURRENT_POLICY. §13 found the −£810 came from stayers moved across the parity edge, not from
+departures. So a seeded mean is graded by channel, not as a single number.*
+
+**What is re-drawn.** `tools/per_customer_switch_arms.py ARM OUT --dice-seed N` re-draws every
+renewal roll (`churn_roll_for_renewal`, the departure an offer acts on) and every payment draw
+(`dice_seeded`, as the held-money seeds do). The roll is imported by name in `run_phase2b` and
+`retention_offer` as well as living in `customer_events`. The patch replaces every loaded binding
+of the real function, and the run is refused if the renewal or payment dice reached no draw, or if
+offers were answered and none read the seeded roll. **Held:** the book, the elasticities, and the
+SVT-inertia roll. So the seeds bound the noise in who leaves at a fix end and who pays. They do not
+bound the noise in who leaves the default tariff.
+
+**A finding beside this, not fixed here.** `tools/run_value_cycle_ab.noise_floor` with
+`redraw_key="churn_roll"` patches only `customer_events.churn_roll_for_renewal`. The same run's
+retention answer, save scale and move-with-us answers read the base roll through `run_phase2b`'s
+and `retention_offer`'s by-name bindings. Any floor published on that key re-drew the renewal and
+not the offer answering it.
+
+**The grade** is `tools/grade_per_customer_switch_seeds.py`. For each arm pair it puts each household
+into one channel. The channels are taken in order, on renewal rows paired by household, roll date
+and fuel in `customer_events`:
+- `departure`: its set of departures differs between the two arms;
+- `parity`: it stayed in both, and at some roll one arm fixed where the other declined the fix;
+- `other`: any other difference in its rows;
+- `same_choice`: identical rows, but gross can still move by a discount the household would have
+  taken anyway.
+
+Gross is `per_cid_pnl` summed per household. Net minus gross (offer cost, provision, capital) is
+printed as `unattributed`. Both controls were run before this section was filed:
+- **Placebo:** each arm against itself reads +£0.00 in every channel.
+- **The default-dice outputs reproduce §13:** save_odds − ending_term is −£810.19 net, `departure`
+  0 households, and `parity` 5 households at −£2,385.31. That is the five §13 named:
+  −2,313 − 176 − 101 + 186 + 18.
+
+**Setup facts this split shows on the default dice. These outputs were already read, so they are
+facts, not predictions.**
+
+| pair | net | departure | parity | other | same_choice |
+|---|---|---|---|---|---|
+| ending_term − flat | +£111.25 | 1h −£2,035 | 7h +£2,308 | 3h −£154 | −£109 |
+| save_odds − flat | −£698.94 | 1h −£2,035 | 3h −£60 | 3h −£158 | −£56 |
+| save_odds − ending_term | −£810.19 | 0 | 5h −£2,385 | 0 | +£66 |
+
+§12's tie against flat is not "nothing happened". One more household left in the offer arm, and
+seven stayers were moved onto fixes priced against them, and these roughly cancel. §13's sentence
+"every other account together moves −£3" does not match the +£66 `same_choice` here. I have not
+found which basis §13 used, and the 5-household figure agrees, so I leave §13 standing beside this
+note.
+
+**The draws.** Dice seeds 1, 2, 3 and 4, with all three arms of each run at ONE commit, the
+commit that lands this section. The outputs are
+`/var/tmp/se-pcs-arms-out/s{N}/{flat,all_on_ending_term,all_on_save_odds}.json`, from a locked
+worktree at that commit. The default-dice outputs are shown beside the seeds and are **not pooled**,
+because their three arms ran at three different commits, both before `7939895894` changed the
+own-book provision.
+
+**Predictions (no seeded outcome read).**
+- **P14a, the dice reach the world.** On each seed, departures in flat differ from the default
+  dice's 353 by at least 3, and the departing set differs by at least 20 accounts: 90%. A seed that
+  matches the default set has not re-drawn the roll.
+- **P14b, the parity channel is the channel the switch's money moves through.** ending_term − flat
+  `parity` gross is positive on at least 3 of the 4 seeds: 75%. The mean is +£1,500, with each seed
+  in [−£500, +£4,500]. save_odds − ending_term `parity` is negative on at least 3 of 4: 75%, mean
+  −£1,500.
+- **P14c, offers rarely change a departure.** save_odds − ending_term `departure` holds at most 3
+  households on every seed: 80%. Across the 4 seeds, the mean `departure` gross for each arm against
+  flat has a 95% interval that contains 0: 70%.
+- **P14d, money.** Each pair's mean net across the 4 seeds has a 95% interval that contains 0: 70%
+  for ending_term − flat, and 65% for save_odds − flat.
+
+**Decision rule, fixed now.** By M2, only the `departure` channel can show value created. `parity`
+moves money from households who were staying. `same_choice` moves the discount to them.
+- A switch is proposed for CURRENT_POLICY only if its `departure` gross against flat has a 4-seed
+  95% interval above zero AND its mean net against flat is at least 0.
+- If its net is positive only through `parity`, it is written up as a transfer and not proposed.
+  It also becomes a finding for the dominance rule's knowledge page: an offer that moves a stayer
+  onto a fix that later costs more than the default is the shape SLC 0 treatment-of-customers
+  reads, not a retention lever.
+- If P14a fails on a seed, that seed is void and is re-run after the patch is re-resolved. It is
+  not graded.
+- With neither switch proposed, the record says that across these draws, on this book, the
+  per-customer retention offers create no value that can be detected. That goes in the stretch log,
+  and nothing is flipped.
+
+**Launch plan.** The three arms of seed 1 run serially in one unit, about 1h and 7 GB each. Seeds 2
+to 4 are handed on as their own launches, so that one seed's 3h never holds a continuation past
+its window.
