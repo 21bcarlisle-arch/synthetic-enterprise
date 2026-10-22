@@ -34,7 +34,7 @@ from company.finance.double_entry import build_journal
 
 MONTHS = [(yr, mo) for yr in (2023, 2024) for mo in range(1, 13)] + [(2025, m) for m in (1, 2, 3)]
 ACCOUNTS = ("C1", "C2", "C3", "C4", "C5")
-VISIT_READS = {"C1": True, "C2": True, "C3": False, "C4": True, "C5": False}
+VISIT_READS = {"C1": True, "C2": True, "C3": False, "C4": True, "C4g": False, "C5": False}
 
 
 def _records():
@@ -120,6 +120,31 @@ def test_the_instruction_falls_on_the_eleventh_estimate_once_a_year_and_the_visi
          ("C5", "2025-01-31")],
         # The 21B.4 year: C3's run still reaches it, C2's never does; C4 is prepayment.
         [("C3", "2024-01-31"), ("C4", "2024-01-31"), ("C5", "2025-01-31")],
+    )
+
+
+def test_gas_prepayment_is_instructed_under_m5_9_14_and_electricity_prepayment_is_not():
+    """Defect (2026-10-22, unbilled_energy_and_revenue_assurance.md K2): the exemption covered
+    prepayment on both fuels, so the 26 gas PPM runs of 12+ estimates on the 76a29bd92 run got no
+    step. 21B.3 excludes electricity prepayment; UNC TPD M5.9.14 applies the gas annual read to it.
+    C4 (electricity) and C4g (gas) both pay by prepayment and are never read after January 2023.
+    The 21B.4 register, the licence's test, still marks both rows outside the duty.
+
+    Mutations, each run and reverted: the fuel test dropped (gas PPM exempt again), the exemption
+    dropped (electricity PPM instructed). Each reds the one assertion."""
+    feed = _Feed()
+    records = [dict(r, customer_id=cid) for cid in ("C4", "C4g")
+               for r in _records() if r["customer_id"] == "C1"]
+    bills = build_monthly_bills(records, feed, payment_channel_feed=lambda c: "prepayment",
+                                instruct_reads=True)
+    assert (
+        sorted({b["customer_id"]: b["commodity"] for b in bills}.items()),
+        [(r["account_id"], r["visit_period_end"], r["outcome"]) for r in read_instruction_register(bills)],
+        [(r["account_id"], r["duty_applies"]) for r in read_duty_register(bills)],
+    ) == (
+        [("C4", "electricity"), ("C4g", "gas")],
+        [("C4g", "2024-01-31", "no_read"), ("C4g", "2025-01-31", "no_read")],
+        [("C4", False), ("C4g", False)],
     )
 
 

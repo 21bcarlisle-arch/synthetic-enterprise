@@ -22,6 +22,8 @@ Which visit a supplier sends, a round or an appointment, is a GAP, so the upper 
 beside the central figure by `read_duty_summary`.
 
 A row on a prepayment bill is kept, marked `duty_applies` False, and left out of the duty's count.
+That is the licence's test on both fuels. The instruction is the code's on gas too: a gas prepayment
+account is instructed although its row is not 21B.4's (2026-10-22, M5.9.14).
 """
 
 from __future__ import annotations
@@ -58,11 +60,14 @@ READ_VISIT_PRICE_GBP_PER_VISIT = 3.0
 READ_VISIT_PRICE_UPPER_GBP_PER_VISIT = 17.5
 
 
-def read_instruction_due(estimates_in_a_row: int, payment_channel: str | None) -> bool:
+def read_instruction_due(estimates_in_a_row: int, payment_channel: str | None, *, fuel: str) -> bool:
     """Whether the bill just billed, the `estimates_in_a_row`-th estimate since the last read, raises
-    a read instruction for the next period. Once in each year of a run (the 11th, 23rd, 35th ...),
-    and never on prepayment, which 21B.4 excludes."""
-    return (payment_channel not in _OUTSIDE_THE_DUTY and estimates_in_a_row > 0
+    a read instruction for the next period. Once in each year of a run (the 11th, 23rd, 35th ...).
+    Never on electricity prepayment, which 21B.3 excludes; on gas prepayment it is raised, because
+    UNC TPD M5.9.14 applies the M5.9.9 annual read to prepayment meters (unbilled_energy_and_revenue_
+    assurance.md K2). `fuel` is the bill's `commodity`."""
+    exempt = fuel != "gas" and payment_channel in _OUTSIDE_THE_DUTY
+    return (not exempt and estimates_in_a_row > 0
             and estimates_in_a_row % READ_DUTY_YEAR_BILLS == READ_INSTRUCTION_AT_ESTIMATES)
 
 

@@ -365,7 +365,8 @@ def _instruction_visits(bills: list[dict]) -> list[int]:
         if bill.get("billing_basis") != "estimated":
             incoming = 0
             continue
-        if read_instruction_due(incoming, bill.get("payment_channel")):
+        if read_instruction_due(incoming, bill.get("payment_channel"),
+                                fuel=bill.get("commodity", "electricity")):
             visits.append(i)
         incoming += 1
     return visits

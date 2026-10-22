@@ -650,7 +650,8 @@ def build_monthly_bills(
                 true_bill["total_consumption_kwh"], consecutive_estimated,
             )
             # The instruction was raised on the last bill, the visit falls in this period.
-            instructed = instruct_reads and read_instruction_due(consecutive_estimated, payment_channel)
+            instructed = instruct_reads and read_instruction_due(
+                consecutive_estimated, payment_channel, fuel=commodity)
             # A visit goes out only when the ordinary read has not already come in; it is what costs.
             visit_sent = instructed and event.status != "actual"
             if visit_sent:

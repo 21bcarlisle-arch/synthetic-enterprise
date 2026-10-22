@@ -181,7 +181,10 @@ The instruction is on. It sends the 21B.4 step on every one of the 435 credit ru
 (469 visits). None reads, because the visit rate is the null GAP, drawn at its no-access end. So
 those runs are the world's access, not a company omission. Gas prepayment (26 runs) gets no step,
 although M5.9.14 asks for one: a company defect, against the code not the licence. The catch-up's
-size follows the estimate's error, not the run's length.
+size follows the estimate's error, not the run's length. *Built 2026-10-22: `read_instruction_due`
+now exempts electricity prepayment only. On this run's bills that adds 29 gas prepayment
+instructions on 22 accounts (469 to 498 visits, £87 charged, £507.50 at the appointment bound). The
+21B.4 register still marks those rows outside the licence duty. No bill moves at `register`.*
 
 ### K3 Back-billing and the 12-month limit
 
