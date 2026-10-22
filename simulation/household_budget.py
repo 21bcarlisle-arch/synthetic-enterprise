@@ -525,9 +525,11 @@ ENERGY_SHARES_THE_SHORTFALL = True
 # account-years), where Ofgem's arrears are most of a year's bill. On, the basket is short by the
 # fraction this month's money falls short of this month's basket and bill, `min(C, C*A/(C+B))`,
 # and everything else after housing goes to energy, oldest bill first; the stock then grows while
-# the margin is below the bill. Same GAP as the switch above: pro rata is a stated belief. Off
-# until a paired world-only arm is graded against the depth column.
-THE_SHORTFALL_IS_SHARED_ON_THE_MONTHS_DEMAND = False
+# the margin is below the bill. Same GAP as the switch above: pro rata is a stated belief. On by
+# default since 2026-10-22, after D1-D5 held on two dice seeds:
+# SEAT_RESULT_THE_SHORTFALL_SHARED_ON_THE_MONTHS_DEMAND_SEED_2_2026-10-22.md (depth 2.8-6.0 months
+# against 1.6-2.6, Q4 2023 £710 against £250, Ofgem £1,303).
+THE_SHORTFALL_IS_SHARED_ON_THE_MONTHS_DEMAND = True
 
 
 class BudgetPaymentBook:

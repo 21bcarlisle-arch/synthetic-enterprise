@@ -1744,7 +1744,12 @@ def test_q3_EVERY_PUBLISHED_FIGURE_IS_UNCHANGED_BY_THE_NEW_LEGS(monkeypatch):
     RE-PINNED 2026-10-20 FOR A SIXTH WORLD CHANGE: the household budget decides whether a bill can be
     paid, and the shortfall is shared with the basket (simulation/household_budget.py, both switches
     on after a two-seed grade). With BUDGET_DECIDES_PAYMENT off, this test reproduces the
-    2026-10-09 values exactly. Every block after the first holds that, so the budget is off below."""
+    2026-10-09 values exactly. Every block after the first holds that, so the budget is off below.
+
+    RE-PINNED 2026-10-22 FOR A SEVENTH WORLD CHANGE: the shortfall is shared on the month's demand,
+    not the arrears stock (THE_SHORTFALL_IS_SHARED_ON_THE_MONTHS_DEMAND on after a two-seed grade).
+    Only ageing moves (0.3538416076 -> 0.239619883). With the switch off it reproduces the
+    2026-10-20 values exactly; the second block holds that."""
     triad = _build_triad()
     result = triad.measure()
     assert result is not None
@@ -1752,9 +1757,16 @@ def test_q3_EVERY_PUBLISHED_FIGURE_IS_UNCHANGED_BY_THE_NEW_LEGS(monkeypatch):
     assert round(result["detection_latency"].gap, 6) == 1.716981  # was 1.717391: same cause
     assert round(result["belief"].gap, 10) == 0.0597014925  # was 0.0615384615: same cause
     assert round(result["belief_population_mix"].gap, 10) == 0.0533333333
-    assert round(result["ageing"].gap, 10) == 0.3538416076  # was 0.351584462: same cause
+    assert round(result["ageing"].gap, 10) == 0.239619883  # was 0.3538416076: shared on demand
 
     import simulation.household_budget as hb
+    with pytest.MonkeyPatch.context() as mp:
+        mp.setattr(hb, "THE_SHORTFALL_IS_SHARED_ON_THE_MONTHS_DEMAND", False)
+        on_stock = _build_triad().measure()
+    assert round(on_stock["detection"].gap, 10) == 0.0194444444
+    assert round(on_stock["belief"].gap, 10) == 0.0597014925
+    assert round(on_stock["ageing"].gap, 10) == 0.3538416076
+
     monkeypatch.setattr(hb, "BUDGET_DECIDES_PAYMENT", False)
     no_budget = _build_triad().measure()
     assert round(no_budget["detection"].gap, 10) == 0.0192307692

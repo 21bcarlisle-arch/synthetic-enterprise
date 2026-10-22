@@ -266,7 +266,10 @@ def test_the_book_reads_the_moving_income_defect_an_exit_the_payment_path_never_
 # short of money cuts, and in what order". Pro rata between the basket and energy, behind a switch.
 
 def _unpaid_after_a_year(cid, shares, amount=60.0):
-    book = hb.BudgetPaymentBook(energy_shares_the_shortfall=shares)
+    # The stock reading, pinned. On the demand reading a household whose margin is below zero never
+    # holds a whole bill: its held money is re-shared with the basket each month and settles below
+    # one bill. That reading has its own partition below (`_unpaid_on`).
+    book = hb.BudgetPaymentBook(energy_shares_the_shortfall=shares, shared_on_demand=False)
     cleared = 0
     for r in range(12):
         _, earlier = book.settle_month(supply_point=cid, household=household_of(cid), year=2022,
@@ -319,9 +322,15 @@ def test_the_demand_switch_is_read_and_off_until_graded_defect_a_world_change_wi
         monkeypatch.setattr(hb, "THE_SHORTFALL_IS_SHARED_ON_THE_MONTHS_DEMAND", on)
         assert hb.BudgetPaymentBook()._on_demand is on
     monkeypatch.undo()
+    # On names its two-seed grade, and the grade is in the tree. One seed's result is not enough.
     if hb.THE_SHORTFALL_IS_SHARED_ON_THE_MONTHS_DEMAND:
-        records = Path(hb.__file__).resolve().parents[1] / "docs/staging/records"
-        assert list(records.glob("*_RESULT_*SHARED_ON_THE_MONTHS_DEMAND*")), "on with no graded arm"
+        grade = _DEMAND_TWO_SEED_GRADE.rsplit("/", 1)[1]
+        assert (Path(hb.__file__).resolve().parents[1] / _DEMAND_TWO_SEED_GRADE).is_file(), grade
+        assert grade in Path(hb.__file__).read_text(), grade
+
+
+_DEMAND_TWO_SEED_GRADE = ("docs/staging/records/"
+                          "SEAT_RESULT_THE_SHORTFALL_SHARED_ON_THE_MONTHS_DEMAND_SEED_2_2026-10-22.md")
 
 
 def test_on_demand_the_backlog_deepens_past_the_stock_rules_cap_defect_energy_share_grows_with_the_debt():

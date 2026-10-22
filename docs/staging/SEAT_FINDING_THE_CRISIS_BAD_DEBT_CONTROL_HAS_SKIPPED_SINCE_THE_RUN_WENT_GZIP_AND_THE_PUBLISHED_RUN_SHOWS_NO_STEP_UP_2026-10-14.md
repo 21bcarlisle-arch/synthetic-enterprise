@@ -1089,3 +1089,21 @@ rises. Seed 2 is queued (`longjob-shortfall-{stock,demand}-arm-s2`).
 **Status:** OPEN and BLOCKING. Next: grade seed 2 against D1-D5. If it holds, default the switch on in
 its own commit, beside both result records, then re-grade this finding's validator on the next
 published run.
+
+## 2026-10-22 (early): seed 2 held, and the switch is on by default
+
+Seed 2 holds all five bands (`SEAT_RESULT_THE_SHORTFALL_SHARED_ON_THE_MONTHS_DEMAND_SEED_2_2026-10-22.md`).
+Depth runs 2.8-6.0 months against 1.6-2.6, and £ at Q4 2023 is £710 against £250. The 2019-2020 fall
+in depth repeats, so it belongs to the budget population, not the dice.
+`THE_SHORTFALL_IS_SHARED_ON_THE_MONTHS_DEMAND` now defaults on, in its own commit. In the triad, it moves
+only the ageing gap (0.354 to 0.240).
+
+The flip also showed something the pre-registration did not name, in a unit control's partition. On the demand
+reading, a household whose margin is below zero never clears a whole bill. The money it holds toward
+the bill is shared with the basket again each month, so it levels off at `(m+C)·B/C`, below one bill
+when `m < 0`. It pays nothing while it stays under water, where a real household part-pays. The depth
+grade cannot see this, because it counts pounds owed and not payments made. It is a candidate for the
+"part payments" question, and it is not changed here (one variable).
+
+**Status:** OPEN and BLOCKING. Next: re-grade this finding's validator on the first published run with
+the switch on. Two things stay open: pounds about 2x short of Ofgem, and depth falling after 2019.

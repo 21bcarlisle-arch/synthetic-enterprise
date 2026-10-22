@@ -620,3 +620,6 @@ Depth runs 2.8-6.0 against 1.6-2.6, and £ per account in arrears at 2023 is £7
 £1,303). Heads rise by 0.3-4.1 points, and no year overshoots. The fall in depth after 2019 comes back
 on this seed, so it belongs to the budget population and is not payment noise. With two seeds held, the
 switch can go on, by the same two-seed rule as `ENERGY_SHARES_THE_SHORTFALL`.
+**It is on by default from 2026-10-22.** Switched off, every world-dependent control reproduces its
+2026-10-20 values. The open questions stay open: pounds are about 2x short, and depth falls after 2019
+where the record's rises.
