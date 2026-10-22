@@ -32,3 +32,9 @@
 # Anything added here in future should have to answer the same question: whose journey breaks
 # without it, today?
 /favicon.ico /favicon.svg 301
+#
+#   /harness/module-graph/ -- the module graph became its own tab, /code/, on 22 Oct (director's
+#                    steer: "Keep the old URL working with a redirect"). The front door links
+#                    the old address until its rewrite lands.
+/harness/module-graph/ /code/ 301
+/harness/module-graph /code/ 301

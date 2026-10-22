@@ -182,6 +182,9 @@ div.doors-in { display: grid; grid-template-columns: repeat(3, 1fr); }
 details.more { margin-top: 12px; max-width: 66ch; }
 details.more summary { cursor: pointer; font-size: 12.5px; font-weight: 600; color: var(--text); }
 details.more[open] summary { margin-bottom: 4px; }
+.galaxy-link { display: block; margin: 14px 0 22px; text-decoration: none; color: var(--text); max-width: 640px; }
+.galaxy-link img { display: block; width: 100%; height: auto; background: var(--black); }
+.galaxy-link span { display: block; margin-top: 6px; font-weight: 600; }
 </style>
 </head>
 <body>
@@ -192,6 +195,7 @@ details.more[open] summary { margin-bottom: 4px; }
   <a href="./" class="nav-link active">Home</a>
   <a href="./capabilities/" class="nav-link">Capabilities</a>
   <a href="./harness/" class="nav-link">How it&rsquo;s built</a>
+  <a href="./code/" class="nav-link">The code</a>
   <a href="./knowledge/" class="nav-link">Knowledge</a>
   <a href="./explore/" class="nav-link">Explore</a>
   </span>
@@ -390,8 +394,10 @@ details.more[open] summary { margin-bottom: 4px; }
     passes gates that read the whole tree, and a check only counts once it has been shown to fail
     when the thing it guards breaks. <a href="./harness/#control-kpis">The checks that can fail
     &rarr;</a></p>
-  <p class="pitch"><a href="./harness/module-graph/">See the code: every module, every import, and
-    the wall between the world and the company &rarr;</a></p>
+  <a class="galaxy-link" href="./code/"><img src="./code/galaxy.png" width="1200" height="630"
+    loading="lazy" alt="The code as a galaxy: every module a star, every import a line, the
+    crossings of the wall in blue and red"><span>See the code: every module a star, every import a
+    line &rarr;</span></a>
   <div class="story">
     <h3>A question showed its world was wrong. It fixed it within a day.</h3>
     <p>On 17 October the director asked how many founding households take electricity only, gas

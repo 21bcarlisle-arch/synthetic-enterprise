@@ -5054,7 +5054,7 @@ def _generate_dashboard_json(json_path, git_hash="unknown"):
     # The module-graph door (director, 2026-10-09: "regenerated from HEAD on a weekly cadence").
     # This path runs once a week, inside the publish window, so riding it IS the weekly cadence.
     # A diagnostic: nothing reads the feed but the page.
-    with _ledger.step("Module graph census", ["site/data/module_graph.json"]):
+    with _ledger.step("Module graph census", ["site/data/module_graph.json", "site/code/galaxy.png"]):
         from tools.module_graph_census import write as gen_module_graph
         _mg = gen_module_graph()
         log("Generated site/data/module_graph.json ({} modules, {} edges, {} bypassing the seam)"
@@ -7169,6 +7169,11 @@ def git_commit_push(git_hash, net_margin, outcome=None):
     if site_data_dir.is_dir():
         for _gen_json in sorted(site_data_dir.glob("*.json")):
             files.append(str(_gen_json))
+    # The code tab's galaxy picture, drawn by the module-graph census step: not JSON, so the glob
+    # above misses it, and without this it would be redrawn every publish and committed by none.
+    _galaxy_png = PROJECT_DIR / "site" / "code" / "galaxy.png"
+    if _galaxy_png.exists():
+        files.append(str(_galaxy_png))
     # THE SAME CLASS, ON THE OTHER GENERATED DIRECTORY (2026-08-17, the three-day content
     # freeze). Everything above closed the orphaned-at-commit gap for `site/data/` with a glob and
     # then went straight back to hand-listing `site/state/` one path at a time -- customer_sample,
