@@ -1416,6 +1416,59 @@ def self_contradicting_levels() -> dict:
     }
 
 
+#: The runner `red_deploys_since` shells `gh` through; tests/background/conftest.py stubs it.
+_GH_RUN = subprocess.run
+
+
+def red_deploys_since(since: datetime, run=None) -> dict:
+    """Cloudflare deploy runs that went red in the stretch, each with the line that refused it.
+
+    On 2026-10-22 four deploy runs went red and only the director's advisor saw them: no key here
+    read GitHub Actions, so the seat oriented four times over a red deploy job. A red run is
+    usually the served-bytes check, not the upload (see `tools/assert_deployed_bytes_are_served`),
+    so the refusing line is carried with it. Unreadable is stated, never read as "none red".
+    """
+    run = run or _GH_RUN
+    try:
+        out = run(["gh", "run", "list", "--workflow", "deploy-pages.yml", "--limit", "40",
+                   "--json", "databaseId,conclusion,createdAt,headSha,displayTitle"],
+                  cwd=str(PROJECT_DIR), capture_output=True, text=True, timeout=60)
+        rows = json.loads(out.stdout) if out.returncode == 0 else None
+    except (OSError, subprocess.SubprocessError, ValueError) as exc:
+        return {"readable": False, "why": f"gh run list failed: {exc}"}
+    if rows is None:
+        return {"readable": False, "why": (out.stderr or "gh run list exited non-zero")[:200]}
+    red = []
+    for r in rows:
+        try:
+            at = datetime.fromisoformat(str(r.get("createdAt")).replace("Z", "+00:00"))
+        except ValueError:
+            continue
+        if r.get("conclusion") != "failure" or at < since:
+            continue
+        refused = []
+        if len(red) < 5:
+            # `gh run view --log-failed` printed nothing for these runs (2026-10-22); the job
+            # log through the API carries the check's own refusal.
+            try:
+                jobs = run(["gh", "run", "view", str(r["databaseId"]), "--json", "jobs", "-q",
+                            ".jobs[].databaseId"], cwd=str(PROJECT_DIR), capture_output=True,
+                           text=True, timeout=60).stdout.split()
+                for job in jobs[:1]:
+                    log = run(["gh", "api", f"repos/{{owner}}/{{repo}}/actions/jobs/{job}/logs"],
+                              cwd=str(PROJECT_DIR), capture_output=True, text=True, timeout=60)
+                    refused = [ln.split(" ", 1)[-1].strip()[:240] for ln in
+                               log.stdout.splitlines()
+                               if re.search(r"FAILED|STALE|REPLACED|UNCONFIRMED|RESOLVED|"
+                                            r"##\[error\]", ln)][:4]
+            except (OSError, subprocess.SubprocessError):
+                refused = ["the run's log could not be read"]
+        red.append({"run": r.get("databaseId"), "at": r.get("createdAt"),
+                    "sha": str(r.get("headSha") or "")[:9],
+                    "title": str(r.get("displayTitle") or "")[:120], "refused_by": refused})
+    return {"readable": True, "red": red}
+
+
 def publish_state() -> dict:
     try:
         from background.publish_freshness import describe, snapshot
@@ -1714,6 +1767,8 @@ def build_brief(now: datetime | None = None) -> dict:
         # THIRD, FOR THE SAME REASON: the seat's last gated record never reached origin, so the
         # steer the director reads is older than the one this brief's `previous_*` describe.
         "seat_commit_not_on_origin": seat_commit_not_on_origin(),
+        # AND A RED DEPLOY, for the same truncation reason: the site is the director's surface.
+        "deploys_red": red_deploys_since(since),
         # SECOND, AND AHEAD OF `commits`, FOR THE SAME REASON THE LINE ABOVE IS FIRST. A drawn item
         # that finished its window with nothing landed is invisible to every other key here:
         # `commits` cannot show work that was never committed, `atoms_drawn` says only that it WAS
@@ -1883,6 +1938,11 @@ def is_material(brief: dict) -> tuple[bool, str]:
         return True, "{} long job(s) died in the stretch: {}".format(
             len(died), ", ".join("{} ({})".format(r["job"], r.get("result") or "no result")
                                  for r in died[:3]))
+    red = (brief.get("deploys_red") or {}).get("red") or []
+    if red:
+        return True, "{} site deploy run(s) went red in the stretch: {}".format(
+            len(red), ", ".join("{} at {} ({})".format(r["run"], r["at"], (r["refused_by"] or [
+                "no refusing line read"])[0]) for r in red[:3]))
     stranded = brief.get("seat_commit_not_on_origin")
     if stranded:
         return True, "the last direction record ({}) never reached origin: {}".format(

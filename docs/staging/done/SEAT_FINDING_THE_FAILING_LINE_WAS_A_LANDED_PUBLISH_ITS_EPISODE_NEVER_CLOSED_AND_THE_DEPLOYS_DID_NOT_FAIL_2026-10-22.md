@@ -95,3 +95,17 @@ edge are served the stale `/` for that long. Widening the window is refuted as t
 step is to read what that edge serves at `/` (its bytes against the last few commits'
 `site/index.html`), and to fetch `/index.html` beside `/` in the check, so the two routes can be told
 apart.
+
+## Disposition (2026-10-22, worker)
+
+Everything this finding listed as owed was landed in the commit that archives it. The sweep: five
+runtime-feed readers plus `proof.deployment`, each now stating its source's age or fed fresh, under
+one mutation-proven control. Publisher state on How it's built: the freshness layer already renders
+it there, under the same bound. A red deploy now reaches the seat's brief (`deploys_red`) with the
+check's refusal line.
+
+**One question is still open: why `/` is stale on the runner's edge.** It is now instrumented rather
+than parked. `/index.html` 308s to `/`, so it cannot serve as a second route. Instead, a STALE or
+UNCONFIRMED verdict now names which of the path's last 30 commits the served bytes match, or none,
+together with the edge's status, colo, cache status and title. That line reaches the brief through
+`deploys_red`. The next red run settles it. The full account is in the steer's `## Done`.

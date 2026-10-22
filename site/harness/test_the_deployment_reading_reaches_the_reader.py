@@ -22,6 +22,7 @@ The legs, and the defect each names:
 from __future__ import annotations
 
 import json
+import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -92,9 +93,10 @@ def test_the_headline_states_the_count_a_reader_would_quote():
     stale = int(dep["summary"].get("stale", 0))
     observed = int(dep["summary"].get("observed", 0))
     if stale:
-        assert f"{stale} of {observed} observed daemons are running code behind" in html
+        assert re.search(rf"{stale} of {observed} observed daemons (are|were) running code behind", html)
     else:
-        assert f"All {observed} observed daemons are running current code." in html
+        assert (f"All {observed} observed daemons are running current code." in html
+                or f"all {observed} observed daemons were running current code." in html)
 
 
 def test_an_absent_reading_renders_a_named_refusal_not_an_empty_table():

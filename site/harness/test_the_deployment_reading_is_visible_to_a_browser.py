@@ -79,7 +79,7 @@ def test_the_visible_section_carries_the_count_a_reader_would_quote(reading):
     control to the property, not to today's answer)."""
     el = assert_visible_reading(reading, "deployment")
     text = el["text"]
-    assert "observed daemons are running" in text, (
+    assert "observed daemons are running" in text or "observed daemons were running" in text, (
         f"the visible section does not carry the headline reading at all; it reads {text[:200]!r}"
     )
     assert "running age" in text.lower() and "loaded-code age" in text.lower(), (

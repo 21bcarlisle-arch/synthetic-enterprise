@@ -53,6 +53,7 @@ from __future__ import annotations
 
 import hashlib
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -318,12 +319,69 @@ def classify(
         previous = bytes_at(base, path)
         if previous is not None and hashlib.sha256(previous).hexdigest() == got:
             return "REPLACED -- the edge is still serving the bytes this push overwrote"
+    served = what_was_served(path, got, base)
     if deployment_is_live:
         return (
             "STALE -- another asset of this same push is being served here, so this push is "
-            "live at this edge and this route is not serving it"
+            "live at this edge and this route is not serving it; " + served
         )
-    return "UNCONFIRMED (serving neither the new bytes nor the ones this push overwrote)"
+    return ("UNCONFIRMED (serving neither the new bytes nor the ones this push overwrote); "
+            + served)
+
+
+#: How far back `what_was_served` looks for the bytes a stale route is serving.
+LOOKBACK_COMMITS = 30
+
+
+def what_was_served(path: str, got: str, base: str | None) -> str:
+    """Name the bytes a route served when they were neither this push's nor its base's.
+
+    The front door went STALE on four pushes of 2026-10-22, while a fetch from the UK served the
+    new page about 90 s after the push. "Neither" left three explanations open: an older
+    deployment's page (a cached path resolution), a page we never committed (an error or
+    challenge page), or a different route. A match against this path's recent commits separates
+    the first from the other two, and the edge's own headers name which edge it was. With both
+    in the log, the next red settles the question.
+    """
+    shas = recent_commits(path)
+    for depth, sha in enumerate(shas):
+        old = bytes_at(sha, path)
+        if old is not None and hashlib.sha256(old).hexdigest() == got:
+            return f"it is the copy committed at {sha}, {depth} commit(s) back on this path; {edge(path)}"
+    return (f"it matches none of this path's last {len(shas)} commits, so it is not a page we "
+            f"published; {edge(path)}")
+
+
+def recent_commits(path: str) -> list[str]:
+    return subprocess.run(
+        ["git", "log", f"-{LOOKBACK_COMMITS}", "--format=%h", "--", path],
+        cwd=PROJECT, capture_output=True, text=True,
+    ).stdout.split()
+
+
+def edge(path: str) -> str:
+    """The responding edge, in the headers a reader's request gets: status, colo, cache state.
+
+    `/x/index.html` answers 308 to `/x/` (measured 2026-10-22), so it is not a second route to
+    the same page and is not fetched separately.
+    """
+    url = url_for(path)
+    if url is None:
+        return "edge not probed"
+    req = urllib.request.Request(f"{url}?cb=edge-{time.time_ns()}",
+                                 headers={"User-Agent": "poesys-deploy-assert"})
+    try:
+        with urllib.request.urlopen(req, timeout=20) as resp:
+            status, h, body = resp.status, resp.headers, resp.read(4096)
+    except urllib.error.HTTPError as exc:
+        status, h, body = exc.code, exc.headers, exc.read(4096)
+    except (urllib.error.URLError, OSError) as exc:
+        return f"edge did not answer ({exc})"
+    title = re.search(rb"<title>(.{0,80}?)</title>", body or b"", re.S | re.I)
+    named = repr(title.group(1).decode("utf-8", "replace").strip()) if title else "none"
+    return (f"edge: HTTP {status}, cf-ray {h.get('cf-ray', '?')}, "
+            f"cf-cache-status {h.get('cf-cache-status', '?')}, age {h.get('age', '-')}, "
+            f"title {named}")
 
 
 def fetch(url: str, nonce: str) -> bytes:

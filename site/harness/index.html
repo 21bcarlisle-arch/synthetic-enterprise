@@ -436,6 +436,18 @@ function renderDeployment(d) {
   var head = stale === 0
     ? "All " + obs + " observed daemons are running current code."
     : stale + " of " + obs + " observed daemons are running code behind the repository.";
+  /* A READING OF RUNNING PROCESSES IS ONLY PRESENT TENSE WHILE IT IS FRESH (2026-10-22). This
+     reaches the site with the weekly publish, so it said "are running current code" for up to a
+     week after anyone looked. Past the same bound as `renderReserved` it states the day it was
+     measured and refuses "now"; an unreadable stamp is too old, never fresh. */
+  var measured = Number(dep.measured_at_s) * 1000;
+  if (measured > 0 && Date.now() - measured <= PRESENT_TENSE_FRESH_FOR_MS) {
+    head += " Measured on " + new Date(measured).toISOString().slice(0, 10) + ".";
+  } else {
+    head = "When measured" + (measured > 0 ? " on " + new Date(measured).toISOString().slice(0, 10) : "") +
+      ", " + head.charAt(0).toLowerCase() + head.slice(1).replace(" are running", " were running") +
+      " That reading is too old to say what is running now.";
+  }
   var body = rows.map(function (r) {
     var verdict = r.unresolved
       ? '<span class="dot unknown"></span>cannot tell: ' + esc(r.unresolved)
@@ -1201,6 +1213,10 @@ fetch("../data/delivery.json").then(function (r) { return r.json(); }).then(func
    /harness/." The feed has been generated every cycle since and nothing rendered it. */
 function renderDirectorDelta(j) {
   var changes = j.changes || [];
+  /* The diff is counted at publish, so it is only "since" up to the day it was counted. */
+  var at = Date.parse(j.generated_at || "");
+  var day = isNaN(at) ? null : new Date(at).toISOString().slice(0, 10);
+  var fresh = !isNaN(at) && Date.now() - at <= PRESENT_TENSE_FRESH_FOR_MS;
   /* THE STAMP'S HONESTY TRAVELS WITH IT. `last_look_recorded_by` currently reads
      "bootstrap-at-build-time (not a director read receipt)" -- the baseline was set when the
      mechanism was built and nobody has marked a read since. A panel saying "since you last
@@ -1215,7 +1231,11 @@ function renderDirectorDelta(j) {
     (j.stamp_problem ? '<div class="note">' + esc(j.stamp_problem) + "</div>" : "") +
     (changes.length
       ? "<ul>" + changes.map(function (c) { return "<li>" + esc(c) + "</li>"; }).join("") + "</ul>"
-      : "<p>Nothing has moved since that position.</p>") +
+      : (fresh ? "<p>Nothing has moved since that position.</p>"
+               : "<p>Nothing had moved since that position when this was counted.</p>")) +
+    (fresh ? "<p>Counted on " + day + ".</p>"
+           : "<p>Counted " + (day ? "on " + day : "at an unrecorded time") +
+             ", which is too old to say what has moved since.</p>") +
     "<p>" + esc(j.how_the_stamp_advances || "") + "</p>";
 }
 
@@ -1229,19 +1249,20 @@ fetch("../data/director_delta.json").then(function (r) { return r.json(); }).the
    The file reaches the site with a publish, so past one weekly cadence plus a day's grace (the
    same 8 days as background/publish_freshness.STALE_AFTER_SECONDS) it can only say when it was
    counted. An unreadable stamp is treated as too old, never as fresh. */
-var RESERVED_FRESH_FOR_MS = 8 * 86400 * 1000;
+var PRESENT_TENSE_FRESH_FOR_MS = 8 * 86400 * 1000;
 function renderReserved(j) {
   var at = Date.parse((j && j.generated_at) || "");
   var day = isNaN(at) ? null : new Date(at).toISOString().slice(0, 10);
   var count = j && typeof j.open_count === "number" ? j.open_count : null;
-  var fresh = !isNaN(at) && Date.now() - at <= RESERVED_FRESH_FOR_MS;
+  var fresh = !isNaN(at) && Date.now() - at <= PRESENT_TENSE_FRESH_FOR_MS;
   var said = count === null ? null : (count
     ? "<b>" + n(count) + "</b> decision(s) were waiting on him"
     : "nothing was waiting on him");
   $("reserved-now").innerHTML = said === null
     ? "The count of decisions waiting on him could not be read, so nothing is claimed here."
     : (fresh
-        ? "Right now " + said.replace(" were ", " are ").replace(" was ", " is ") + "."
+        ? "Right now " + said.replace(" were ", " are ").replace(" was ", " is ") +
+          " (counted on " + day + ")."
         : "When this was last counted" + (day ? ", on " + day : "") + ", " + said +
           ". That count is too old to say what is waiting now.");
 }

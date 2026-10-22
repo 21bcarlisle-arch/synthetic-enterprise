@@ -8,6 +8,38 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-22 — The front-door steer closed: runtime claims carry their age, a red deploy reaches the brief
+
+<!-- head: f714a0097c8f -->
+
+The director's oldest open steer is closed: "the front door says PUBLISHING IS FAILING and it is not".
+
+**The class, not the instance.** Served pages read runtime state from five feed/reader pairs, plus
+the daemon reading inside `proof.json`. Every present-tense claim made from them now states its
+source's age and is withdrawn past a bound. Those claims are a failing publisher, "right now" waiting
+decisions, "nothing has moved", and "daemons are running current code". The bound is the feed's own
+declared bound for the banner, and 8 days on How it's built. The one exception is `delivery.json`,
+which is fed fresh because it is committed at every landing. A single control prints the census,
+reds on an unclassified reader, and asserts made-when-fresh and withdrawn-when-stale for all four
+claims in one assertion. Four mutations were run, and each one reds.
+
+**A red deploy reaches the seat.** Four red Cloudflare runs today were seen only by the advisor. The
+brief now carries `deploys_red`, with each run's refusal line, and a red run makes the stretch
+material. `gh run view --log-failed` printed nothing for these runs; the job log through the API
+carries the refusal.
+
+**'/' on the runner's edge: I cannot yet say why.** `/index.html` answers 308 to `/`, so it is not a
+second route, and the steer's suggestion to fetch it beside `/` cannot separate anything. Run
+39823685970 went STALE on `/` again, while from here both the custom domain and the deployment's own
+pages.dev URL served the new bytes. Prediction, filed before the answer: the next red will show `/`
+serving an older commit's front door from a non-UK colo, which would mean a cached path resolution.
+The check now logs which commit's bytes it was, or none, together with the edge's status, colo,
+cache status, age and title. The next red run decides it.
+
+Handed on: the dual-fuel mover (K8 first) and the builder's toolchain, as a seat continuation.
+
+---
+
 ## 2026-10-22 — The banner's false episode closed at the producer, a frozen 'Right now' count on How it's built, and a profiled home now settles on its profile
 
 <!-- head: ed071724658c -->

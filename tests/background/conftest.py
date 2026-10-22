@@ -991,3 +991,13 @@ def pytest_runtest_teardown(item, nextitem):
         ),
         pytrace=False,
     )
+
+
+@pytest.fixture(autouse=True)
+def _no_github_from_the_seat_brief(monkeypatch):
+    """`delivery_seat.build_brief` asks GitHub for red deploy runs; a test's brief must not."""
+    from background import delivery_seat
+
+    def unreadable(argv, **_):
+        return subprocess.CompletedProcess(argv, 1, "", "gh is stubbed in tests")
+    monkeypatch.setattr(delivery_seat, "_GH_RUN", unreadable)

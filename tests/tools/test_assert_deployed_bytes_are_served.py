@@ -132,6 +132,31 @@ def test_an_uncomputable_diff_fails_closed(monkeypatch, tmp_path):
 # supposed to mean the figures stopped reaching them. One sentence for two
 # worlds is what made the reds unreadable.
 # --------------------------------------------------------------------------
+@pytest.fixture(autouse=True)
+def _no_edge_probe(monkeypatch):
+    """`edge` opens a socket to the live site; the tests here stub it."""
+    monkeypatch.setattr(A, "edge", lambda path: "edge: stub")
+
+
+def test_a_route_serving_neither_names_which_past_commit_it_is_serving(monkeypatch):
+    """The front door went STALE on four pushes of 2026-10-22 and nobody could say what it was
+    serving instead. The two outcomes, an older page of ours and a page we never published, need
+    different remedies, so both must be reachable and must not read the same.
+    MUTATION: drop the match loop and the first leg reds; match unconditionally and the second
+    does."""
+    want = hashlib.sha256(b"<html>today</html>").hexdigest()
+    monkeypatch.setattr(A, "fetch", lambda url, nonce: b"<html>three back</html>")
+    monkeypatch.setattr(A, "recent_commits", lambda path: ["aaa", "bbb", "ccc", "ddd"])
+    history = {"aaa": b"<html>today</html>", "bbb": b"<html>yesterday</html>",
+               "ccc": b"<html>two back</html>", "ddd": b"<html>three back</html>"}
+    monkeypatch.setattr(A, "bytes_at", lambda ref, path: history.get(ref))
+    older = A.classify("https://poesys.net/", want, "site/index.html", "bbb", True)
+    monkeypatch.setattr(A, "fetch", lambda url, nonce: b"<html>an error page</html>")
+    foreign = A.classify("https://poesys.net/", want, "site/index.html", "bbb", True)
+    assert ("committed at ddd, 3 commit(s) back" in older and "edge: stub" in older
+            and "matches none of this path's last 4 commits" in foreign), (older, foreign)
+
+
 def _classify(monkeypatch, served, want_body, previous=None, base="BASE", live=False):
     monkeypatch.setattr(A, "fetch", lambda url, nonce: served)
     monkeypatch.setattr(A, "bytes_at", lambda ref, path: previous)

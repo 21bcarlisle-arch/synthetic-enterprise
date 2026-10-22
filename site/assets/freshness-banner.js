@@ -238,6 +238,14 @@
 
   function publisherFailureSentence(hb) {
     if (!publisherIsFailing(hb)) { return ""; }
+    /* A FAILURE IS CLAIMED ONLY FROM A RECORD THAT IS CURRENT (2026-10-22). A copy frozen at a
+       failing value and read days later said "PUBLISHING IS FAILING ... over 80.0h" on the front
+       door after the publish had landed. So the record's age, on the reader's clock against its
+       own write stamp, is stated beside the claim, and past the feed's own declared bound -- or
+       with either number missing -- the claim is not made at all. */
+    var recordAge = observedFeedAgeSeconds(hb);
+    var bound = declaredStaleAfterSeconds(hb.content_publish);
+    if (recordAge === null || bound === null || recordAge > bound) { return ""; }
     var p = hb.content_publish.publisher;
     var n = typeof p.consecutive_failures === "number" ? p.consecutive_failures : null;
     var secs = typeof p.failing_for_seconds === "number" ? p.failing_for_seconds : null;
@@ -249,6 +257,7 @@
                   : "the last " + n + " attempt" + (n === 1 ? "" : "s") + " to publish " +
                     (n === 1 ? "failed" : "all failed")) +
       (secs === null ? "" : ", over " + (secs / 3600).toFixed(1) + "h") +
+      " (recorded " + (Math.max(recordAge, 0) / 3600).toFixed(1) + "h ago)" +
       ". Nothing above this line will be replaced until that is fixed, whatever the " +
       "as-at date says." +
       publisherCauseSentence(p);
