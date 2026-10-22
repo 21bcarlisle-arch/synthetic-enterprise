@@ -18,6 +18,14 @@ SEAT_PREREG_THE_PER_CUSTOMER_SWITCHES_ON_TOGETHER_AGAINST_FLAT_2026-10-21.md`):
                  ending (`renewal_belief_by_ending_term`), the arm the record's section 10 names.
   * `all_on_save_odds` -- `all_on_ending_term` with the retention guard weighing the company's own
                  save rate per ending-term type (`retention_weighs_save_odds`), section 13.
+  * `all_on_save_odds_holdout` -- `all_on_save_odds` with that save rate learned against the
+                 company's own holdout (`retention_save_rate_learned_against_holdout`), section 15.
+
+THE OFFERS' MONEY, BY WHAT EACH OFFER CHANGED (section 15). Every output carries
+`retention_offer_money_by_channel`: the offers that changed a departure, the offers that changed a
+stayer's tariff (section 13's parity channel), and those that changed neither, each with its count
+and the offer cost the guard booked. Read off the world's own answer at the full and offered rate
+(`retention_offer_channel_log`), harness-side. By M2 only the first can be value created.
 
 As in the read-instruction arms, the policy is also bound to `run_phase2b.CURRENT_POLICY`, so a
 consumer that rebuilds with no policy in hand sees the arm and not the standing one. This process
@@ -36,7 +44,7 @@ answer read the base roll while the renewal it answers read the seeded one. A se
 payment dice reached no draw is refused rather than written as a second seed; that would be the
 default world.
 
-    python3 -m tools.per_customer_switch_arms <current|all_on|flat|all_on_ending_term|all_on_save_odds> <out.json> [--dice-seed N]
+    python3 -m tools.per_customer_switch_arms <arm> <out.json> [--dice-seed N]
 """
 from __future__ import annotations
 
@@ -47,13 +55,17 @@ import random
 from datetime import datetime, timezone
 from pathlib import Path
 
-ARMS = ("current", "all_on", "flat", "all_on_ending_term", "all_on_save_odds")
+ARMS = ("current", "all_on", "flat", "all_on_ending_term", "all_on_save_odds",
+        "all_on_save_odds_holdout")
 ALL_ON_FIELDS = ("next_best_action_decides_at_renewal", "next_best_action_shares_by_retention_rise",
                  "save_offer_decides_per_household")
 ENDING_TERM_FIELDS = ALL_ON_FIELDS + ("renewal_belief_by_ending_term",)
 SAVE_ODDS_FIELDS = ENDING_TERM_FIELDS + ("retention_weighs_save_odds",)
+SAVE_HOLDOUT_FIELDS = SAVE_ODDS_FIELDS + ("retention_save_rate_learned_against_holdout",)
 CARRIED_RAW_KEYS = ("next_best_action_renewal_log", "next_best_action_legs_without_contribution",
-                    "save_on_loss_notice_log")
+                    "save_on_loss_notice_log", "retention_offer_channel_log",
+                    "retention_save_holdout_log")
+OFFER_CHANNELS = ("changed_a_departure", "changed_a_stayers_tariff", "changed_neither")
 
 
 def arm_policy(arm: str):
@@ -70,6 +82,9 @@ def arm_policy(arm: str):
     if arm == "all_on_save_odds":
         return dataclasses.replace(CURRENT_POLICY, name="per_customer_all_on_save_odds",
                                    **{f: True for f in SAVE_ODDS_FIELDS})
+    if arm == "all_on_save_odds_holdout":
+        return dataclasses.replace(CURRENT_POLICY, name="per_customer_all_on_save_odds_holdout",
+                                   **{f: True for f in SAVE_HOLDOUT_FIELDS})
     if arm == "flat":
         return FLAT_SUPPLIER_POLICY
     raise SystemExit(f"REFUSED: arm {arm!r} is not one of {ARMS}")
@@ -126,6 +141,19 @@ def dice_refusal(seed: int, renewal_calls: dict, payment_calls: int, offers: int
     return None
 
 
+def offer_money_by_channel(channel_log) -> dict:
+    """Offers, households and booked offer cost per channel. A channel absent from the log reads
+    zero, never missing: flat makes no offers, and its zeros are the answer."""
+    out = {c: {"offers": 0, "households": set(), "offer_cost_gbp": 0.0} for c in OFFER_CHANNELS}
+    for row in channel_log or ():
+        bucket = out[row["channel"]]
+        bucket["offers"] += 1
+        bucket["households"].add(row["customer_id"])
+        bucket["offer_cost_gbp"] += row.get("retention_cost_gbp") or 0.0
+    return {c: {"offers": b["offers"], "households": len(b["households"]),
+                "offer_cost_gbp": round(b["offer_cost_gbp"], 2)} for c, b in out.items()}
+
+
 def run_arm(arm: str, out: Path, dice_seed: int | None = None) -> Path:
     policy = arm_policy(arm)
     import simulation.run_phase2b as rp2b
@@ -160,6 +188,8 @@ def run_arm(arm: str, out: Path, dice_seed: int | None = None) -> Path:
         if key in raw["phase2b"]:
             data[key] = raw["phase2b"][key]
     data["_per_customer_switch_arm"] = arm
+    data["retention_offer_money_by_channel"] = offer_money_by_channel(
+        raw["phase2b"].get("retention_offer_channel_log"))
     if dice_seed is not None:
         data["_dice_seed"] = {"seed": dice_seed, "renewal_roll_calls": renewal.calls,
                               "payment_draw_calls": payment.calls}

@@ -1181,3 +1181,71 @@ worktree, one unit per seed. Grade a seed with
 and add one `sN:...` triple per seed as each finishes. The 95% interval prints from two seeds.
 Each output's `_dice_seed` block records how many renewal-roll and payment draws the seed reached,
 per binding.
+
+## 15. The save rate learned against a holdout: `all_on_save_odds_holdout` beside `all_on_save_odds` (filed 2026-10-22, before either arm was launched)
+
+*Drawn as `the-save-rate-is-learned-against-a-holdout`. Knowledge first:
+`docs/market_research/a_save_offer_against_the_switching_rules_and_the_seam.md` §9e. Published
+practice measures a retention offer against a randomised untreated group (Ascarza 2018, JMR 55(1);
+Ascarza, Iyengar & Schleicher 2016, JMR 53(1); Ofgem's EFTC and CMOC trials). What share a GB
+retention desk holds out is a GAP. §13's save rate read 0.19 while the world kept 0 of 32.*
+
+**What changed (one field).** `retention_save_rate_learned_against_holdout`. Of the renewals the
+save-odds guard would offer on, the company's own coin (a hash of account and roll date) holds
+`SAVE_HOLDOUT_SHARE` = 0.272 out with no offer. That share is derived in §9e from the 83 offers of
+2017, their loss rate 34/83, and the break-even save rate of 0.83. From then on, `retention_save_rate`
+reads `(h − o)/h`, the holdout's loss rate h against the offered loss rate o. Both are
+Jeffreys-corrected, the rate is never below 0, and the belief does not enter it. It returns `None`
+with a reason until both groups have closed renewals of the type. The arm is
+`tools/per_customer_switch_arms.py all_on_save_odds_holdout`: `all_on_save_odds` plus this field.
+
+**Two arms at ONE commit, because more than one thing has changed since §13.** §13 ran at
+`7bab213af`. HEAD has since made the part payment the default (`6b81d3b25`) and changed the
+provision. So the control is `all_on_save_odds` re-run at the commit that lands this section, and
+§13's output is not the comparator. Default dice, the book and seed of §12/§13. Outputs:
+`/var/tmp/se-pcs-arms-out/s15/{all_on_save_odds,all_on_save_odds_holdout}.json`, serially, from a
+locked worktree at that commit.
+
+**Every output now carries `retention_offer_money_by_channel`.** It counts offers, households and
+booked offer cost under three channels: `changed_a_departure` (left at the full rate, stays at the
+offer), `changed_a_stayers_tariff` (stays either way, and only the discount takes its fix to or
+below the default: §13's parity channel), and `changed_neither`. This is read world-side from the
+world's own answer at both rates, in the harness only. `retention_save_holdout_log` lists the
+held-out renewals.
+
+**Setup facts (already read, not predictions).** On §12's output, 2017 carried 83 offers, 34 lost.
+At s = 0.272 the expected holdout in 2017 is about 22.6 of 83 (binomial sd 4.1). The SE of `h − o`
+at those sizes is about 0.12. With no true effect, `(h − o)/h` then has an SE of about 0.3 around
+0, and it is floored at 0.
+
+**Predictions (no outcome of either arm read).**
+- **P15a, the coin reaches the run and the split is exact.** In the holdout arm, 2017's offered set
+  plus its held-out set equals the control arm's 2017 offer set on (account, date): 85%. The
+  held-out share of that set is in [0.17, 0.38], point 0.27: 90%. No held-out renewal appears in
+  `retention_log`: 99%.
+- **P15b, what the holdout teaches.** The fix-end save rate first read in 2018 lies in [0, 0.45],
+  point 0. It reads exactly 0 (offers lost at least as often as the holdout): 55%. It sits below
+  §13's 0.19: 65%. Default-term types read `None` in 2018: 90%.
+- **P15c, the guard offers no more from 2018.** Fix-end offers from 2018 number 0–3 in the holdout
+  arm, point 0: 85%, against the control's 1 (§13), if the control repeats §13. Total held-out
+  renewals are 22–32: 80%.
+- **P15d, offers rarely change a departure.** In BOTH arms, `changed_a_departure` holds 0–2
+  offers: 85%, point 0 (§7 and §13 found 0 saved at the roll). `changed_a_stayers_tariff` holds
+  3–15 offers in the control, point 7: 60%. Most of the offer cost sits in `changed_neither`: 75%.
+- **P15e, departures and money.** Departures differ between the two arms by at most 4: 80%.
+  Holdout − control net is within ±£1,000, so it is a tie under EP17: 70%, point −£300. Withholding
+  an offer moves a would-be fixer onto the default, which §13 priced as about −£470 a household. The
+  discount not given is about £420 (27% of the roughly £1,550 the 2017 offers cost in §13).
+
+**Decision rule, fixed now.**
+- **If P15a fails, the coin did not reach the run.** That is the next item, and nothing is read
+  from P15b–e.
+- **If P15a holds and P15d's `changed_a_departure` is 0–2 in both arms,** the company's own
+  experiment and the world agree that the offers saved nobody. The record then says per-customer
+  retention offers on this book are transfer, not creation. The holdout switch becomes the
+  candidate to pair with the §13 guard, because it is the only form in which the company could
+  learn this as a real supplier would. Proposing it for CURRENT_POLICY waits on §14's seeds.
+- **If the holdout's save rate reads above 0.45 on a year where the world saved nobody,** the
+  read is noise at this sample size. That is written up as the holdout being too small for one year
+  at this book (§9e already says N ≤ about 65 cannot resolve it), and the share is not tuned to
+  rescue it.

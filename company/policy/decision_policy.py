@@ -240,6 +240,13 @@ class DecisionPolicy:
     #: refuses it on without `renewal_belief_by_ending_term`, which supplies the type. Prereg §13.
     retention_weighs_save_odds: bool = False
 
+    #: (2026-10-22) Of the renewals the save-odds guard would offer on, the company's own coin
+    #: (`growth_desk.retention_save_holdout_draws`, a hash of account and roll date) holds a derived
+    #: share out with no offer, and the save rate is read as the holdout's loss rate against the
+    #: offered one rather than against the belief. Off on every standing policy; the run refuses it
+    #: on without `retention_weighs_save_odds`, whose rate it feeds. Prereg §15.
+    retention_save_rate_learned_against_holdout: bool = False
+
     #: (2026-10-18) C34/C35 decide once per billing account, over both legs, where a dual-fuel
     #: household's two legs reach the decision on one date (`company.crm.next_best_action.
     #: states_for_decision`). A household leaves with both fuels about nine times in ten

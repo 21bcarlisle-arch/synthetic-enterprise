@@ -99,6 +99,51 @@ ENDING_TERM_PRIOR_LOG_VARIANCE: float = (math.log(
 _CONTINUITY_SUCCESSES: float = 0.5
 _CONTINUITY_TRIALS: float = 1.0
 
+#: THE SHARE OF GUARD-PASSING RENEWALS HELD OUT TO LEARN THE SAVE RATE (2026-10-22), derived and
+#: not picked: `docs/market_research/a_save_offer_against_the_switching_rules_and_the_seam.md` §9e.
+#: BELIEF inputs, the company's own book on §12's run (prereg §13), graded by the holdout itself:
+#: 83 offers in the one year the guard made them in volume, 34 of them lost, and an aggregate
+#: break-even save rate (offer cost over belief x value protected) of 0.83. The offered loss rate
+#: stands in for the holdout's, which is the lower of the two if offers save, so the share errs
+#: larger -- towards learning (F11).
+_SAVE_HOLDOUT_OFFERS_A_YEAR: int = 83
+_SAVE_HOLDOUT_LOSS_RATE: float = 34 / 83
+_SAVE_HOLDOUT_BREAK_EVEN_SAVE_RATE: float = 0.83
+#: Two-sided 5% and 80% power, the published convention for sizing a two-arm comparison; not a
+#: domain figure.
+_SAVE_HOLDOUT_Z: float = 1.959964 + 0.841621
+
+
+def save_holdout_share(offers_a_year: float, loss_rate: float, break_even_save_rate: float) -> float:
+    """The smallest holdout share at which one year's offers resolve the break-even difference in
+    loss rate (`loss_rate x break_even_save_rate`) between held-out and offered renewals.
+
+    The difference's variance is `h(1-h)/N x (1/s + 1/(1-s))`, least at s = 0.5. Where even 0.5
+    cannot resolve it in a year, 0.5 is returned: the comparison then needs more than one year at
+    any share, and the even split gets there soonest."""
+    target = loss_rate * break_even_save_rate / _SAVE_HOLDOUT_Z
+    spread = loss_rate * (1.0 - loss_rate)
+    if offers_a_year <= 0 or target <= 0.0 or spread <= 0.0:
+        return 0.5
+    k = offers_a_year * target * target / spread  # the most 1/s + 1/(1-s) may be
+    if k <= 4.0:
+        return 0.5
+    return (1.0 - math.sqrt(1.0 - 4.0 / k)) / 2.0
+
+
+SAVE_HOLDOUT_SHARE: float = save_holdout_share(
+    _SAVE_HOLDOUT_OFFERS_A_YEAR, _SAVE_HOLDOUT_LOSS_RATE, _SAVE_HOLDOUT_BREAK_EVEN_SAVE_RATE)
+
+
+def save_holdout_draws(account_id: str, event_date: str, share: float = SAVE_HOLDOUT_SHARE) -> bool:
+    """The company's own coin for a renewal the retention guard would offer on: True holds it out.
+    Seeded on the account and the roll date, so a re-run flips the same coin, and salted apart from
+    B8's `holdout_arm` so the two coins are independent where both run."""
+    import hashlib
+
+    digest = hashlib.sha256(f"save_rate_holdout::{account_id}::{event_date}".encode()).digest()
+    return int.from_bytes(digest[:8], "big") / 2 ** 64 < share
+
 
 def log_space_update_weight(
     n: float, p_expected: float, prior_log_variance: float = PRIOR_LOG_VARIANCE
@@ -298,6 +343,12 @@ class CompetitivePressureLedger:
     #: were lost at that renewal. What `retention_save_rate` reads.
     retention_offer_sums: dict[tuple[str, int], dict] = field(default_factory=dict)
     pending_offer_by_account: dict[str, tuple[str, int]] = field(default_factory=dict)
+    #: (2026-10-22) The renewals the guard would have offered on and the company's coin held out,
+    #: counted the same way. Once `save_holdout_armed`, `retention_save_rate` reads these against
+    #: the offered sums and never against the belief.
+    retention_holdout_sums: dict[tuple[str, int], dict] = field(default_factory=dict)
+    pending_holdout_by_account: dict[str, tuple[str, int]] = field(default_factory=dict)
+    save_holdout_armed: bool = False
 
     def arm_loss_reporting(self) -> None:
         """Declare that departures WILL be reported to this ledger for the rest of the run.
@@ -400,6 +451,7 @@ class CompetitivePressureLedger:
         self.pending_ending_term_by_account[str(account_id)] = key
         # A new roll closes the last one's offer: a loss from here on is this renewal's, not that.
         self.pending_offer_by_account.pop(str(account_id), None)
+        self.pending_holdout_by_account.pop(str(account_id), None)
 
     def observe_retention_offer(self, renewal_year: Optional[int], ending_term_type: Optional[str],
                                 account_id: Optional[str], believed_p_leave: float) -> None:
@@ -417,6 +469,54 @@ class CompetitivePressureLedger:
         sums["sp"] += max(0.0, min(1.0, p))
         self.pending_offer_by_account[str(account_id)] = key
 
+    def arm_save_holdout(self) -> None:
+        """Declare that this run holds out renewals to learn the save rate. From here the save rate
+        is read only against the holdout, and refuses until the holdout has closed renewals: an
+        empty holdout is not a group nobody left."""
+        self.save_holdout_armed = True
+
+    def observe_retention_holdout(self, renewal_year: Optional[int], ending_term_type: Optional[str],
+                                  account_id: Optional[str], believed_p_leave: float) -> None:
+        """Book one renewal the guard would have offered on and the coin held out. Silent when any
+        part is unknown, as `observe_retention_offer`."""
+        if None in (renewal_year, ending_term_type, account_id):
+            return
+        p = float(believed_p_leave)
+        if not math.isfinite(p):
+            return
+        key = (str(ending_term_type), int(renewal_year))
+        sums = self.retention_holdout_sums.setdefault(key, {"n": 0, "sp": 0.0, "losses": 0})
+        sums["n"] += 1
+        sums["sp"] += max(0.0, min(1.0, p))
+        self.pending_holdout_by_account[str(account_id)] = key
+
+    def _closed_sums(self, sums_by_key: dict, ending_term_type: str,
+                     renewal_year: int) -> tuple[int, float, int]:
+        n, sp, losses = 0, 0.0, 0
+        for (kind, year), sums in sums_by_key.items():
+            if kind == ending_term_type and year < renewal_year:
+                n += sums["n"]
+                sp += sums["sp"]
+                losses += sums["losses"]
+        return n, sp, losses
+
+    def _save_rate_against_holdout(self, ending_term_type: str,
+                                   renewal_year: int) -> tuple[Optional[float], str]:
+        """`(h - o) / h`: the holdout's loss rate minus the offered loss rate, as a share of the
+        holdout's, both Jeffreys-corrected, never below 0. A share and not the bare difference,
+        because the guard multiplies it by THIS household's belief: belief x (h - o)/h is the saves
+        expected of one offer, and the per-customer ranking survives. Knowledge: §9e."""
+        n_h, _, l_h = self._closed_sums(self.retention_holdout_sums, ending_term_type, renewal_year)
+        n_o, _, l_o = self._closed_sums(self.retention_offer_sums, ending_term_type, renewal_year)
+        if n_h <= 0 or n_o <= 0:
+            return None, (f"no closed holdout and offered renewals ending a {ending_term_type} "
+                          f"term to compare ({n_h} held out, {n_o} offered)")
+        h = (l_h + _CONTINUITY_SUCCESSES) / (n_h + _CONTINUITY_TRIALS)
+        o = (l_o + _CONTINUITY_SUCCESSES) / (n_o + _CONTINUITY_TRIALS)
+        return max(0.0, (h - o) / h), (
+            f"holdout lost {l_h} of {n_h} ({h:.3f}), offered lost {l_o} of {n_o} ({o:.3f}) "
+            f"ending a {ending_term_type} term: difference {h - o:+.3f}")
+
     def retention_save_rate(
         self, ending_term_type: Optional[str], renewal_year: Optional[int]
     ) -> tuple[Optional[float], str]:
@@ -425,19 +525,19 @@ class CompetitivePressureLedger:
 
         `(None, reason)` where there is nothing to learn from, and the caller keeps its standing
         guard so evidence can accrue. A belief that under-reads the offered tail reads here as a
-        low save rate; only a holdout separates the two, and the error offers less (F11).
+        low save rate; only a holdout separates the two, and the error offers less (F11). Once
+        `arm_save_holdout` has run, the rate is read against the held-out renewals instead
+        (`_save_rate_against_holdout`), and the belief no longer enters it.
         Knowledge: `docs/market_research/a_save_offer_against_the_switching_rules_and_the_seam.md` §9.
         """
         if ending_term_type is None or renewal_year is None:
             return None, "no ending-term type or renewal year"
         if not self.loss_reporting_armed:
             return None, "departures are not being reported to this ledger"
-        n, sp, losses = 0, 0.0, 0
-        for (kind, year), sums in self.retention_offer_sums.items():
-            if kind == ending_term_type and year < int(renewal_year):
-                n += sums["n"]
-                sp += sums["sp"]
-                losses += sums["losses"]
+        if self.save_holdout_armed:
+            return self._save_rate_against_holdout(str(ending_term_type), int(renewal_year))
+        n, sp, losses = self._closed_sums(
+            self.retention_offer_sums, str(ending_term_type), int(renewal_year))
         if n <= 0:
             return None, f"no closed retention offers ending a {ending_term_type} term"
         if sp <= 0.0:
@@ -517,6 +617,9 @@ class CompetitivePressureLedger:
             offered = self.pending_offer_by_account.pop(str(account_id), None)
             if offered is not None and offered in self.retention_offer_sums:
                 self.retention_offer_sums[offered]["losses"] += 1
+            held = self.pending_holdout_by_account.pop(str(account_id), None)
+            if held is not None and held in self.retention_holdout_sums:
+                self.retention_holdout_sums[held]["losses"] += 1
         # B8: the departure is booked against the price move of the renewal it left through.
         pending = self.pending_move_by_account.pop(str(account_id), None) if account_id else None
         if pending is not None:

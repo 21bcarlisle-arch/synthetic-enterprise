@@ -61,6 +61,7 @@ from company.interfaces.growth_desk import (
     book_acquisition_gate,
     book_acquisition_spend,
     book_retention_cost,
+    book_retention_holdout,
     book_retention_offer,
     decide_acquisition,
     growth_mandate_label,
@@ -73,6 +74,7 @@ from company.interfaces.growth_desk import (
     retention_cut_share_at_risk_tiers,
     retention_engagement,
     retention_offer_can_buy_anything,
+    retention_save_holdout_draws,
     retention_value_protected,
     retention_value_weighed_by_save_odds,
 )
@@ -1351,6 +1353,11 @@ def _refuse_save_odds_with_no_ending_term(policy) -> None:
         raise ValueError(
             "retention_weighs_save_odds learns its save rate per ending-term type, and this policy "
             "leaves renewal_belief_by_ending_term off, so no type would reach it: switch both on")
+    if policy.retention_save_rate_learned_against_holdout and not policy.retention_weighs_save_odds:
+        raise ValueError(
+            "retention_save_rate_learned_against_holdout feeds the save rate the save-odds guard "
+            "weighs, and this policy leaves retention_weighs_save_odds off, so nothing would read "
+            "it and the held-out households would lose their offer for nothing: switch both on")
 
 
 def _account_state_svt_rate(commodity: str, term_start_str: str) -> float | None:
@@ -2764,6 +2771,9 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     # Phase 12b: retention cost events and log
     retention_cost_events: list[dict] = []
     retention_log: list[dict] = []
+    # World-side: what each offer changed (harness only), and the save rate's own holdout.
+    retention_offer_channel_log: list[dict] = []
+    retention_save_holdout_log: list[dict] = []
     # B8 L3: the company's own retention holdout, on a policy that runs one.
     _retention_holdout = new_retention_holdout() if policy.retention_runs_holdout else None
     retention_holdout_log: list[dict] = []
@@ -3759,6 +3769,22 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                             # half of them first; the verdict here is the guard's alone.
                             "holdout_would_have_drawn": _retention_holdout is not None,
                         })
+                    elif (_would_offer and _holdout_arm != "holdout"
+                          and policy.retention_save_rate_learned_against_holdout
+                          and retention_save_holdout_draws(billing_account, term_start_str)):
+                        # (2026-10-22) THE SAVE RATE'S OWN HOLDOUT: a renewal the guard would offer
+                        # on, held out by the company's coin, so the save rate can be read as the
+                        # holdout's losses against the offered ones (prereg §15).
+                        _no_offer_reason = "held_out_to_learn_the_save_rate"
+                        book_retention_holdout(
+                            renewal_year=_renewal_year, ending_term_type=_ending_term_type,
+                            account_id=billing_account, belief=company_est_pre)
+                        retention_save_holdout_log.append({
+                            "customer_id": billing_account, "event_date": term_start_str,
+                            "commodity": commodity, "ending_term_type": _ending_term_type,
+                            "company_churn_estimate": company_est_pre,
+                            "retention_cost_gbp_not_spent": ret_cost,
+                        })
                     elif _holdout_arm != "holdout" and _would_offer:
                         # THE OFFER REACHES THE WORLD AS ITS RATE (director, 2026-10-09), answered
                         # at the roll below by `simulation.retention_offer`. It reached it as a flat,
@@ -3967,6 +3993,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             # (`test_retention_cost_events_are_minted_but_never_reach_the_pnl`), so the run's book
             # was never charged a penny for an offer. The decision leg only, as the save's cut.
             if _retention_offer is not None:
+                _event_at_full_rate = event
+                _full_position_vs_default = _offer_vs_default
                 event = ask_world_at_offer(
                     roll_lifecycle_event, cid, term_start_str, commodity, _roll_kwargs or {},
                     event, discount_pct=_retention_offer[0],
@@ -3986,6 +4014,27 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 if _offer_vs_default is not None:
                     _offer_vs_default = position_vs_default(
                         unit_rate, term_start_str, commodity=commodity)
+                # WHAT THE OFFER CHANGED, read world-side for the harness and by no company code
+                # (prereg §13/§15): a departure (the household left at the full rate and stays at
+                # the offer), a stayer's tariff (it stays either way, and only the discount takes
+                # its fix to or below the default), or neither (the discount went to a choice it
+                # would have made anyway).
+                _left_at_full = (_event_at_full_rate is not None
+                                 and _event_at_full_rate["event_type"] == "churned")
+                _left_at_offer = event is not None and event["event_type"] == "churned"
+                retention_offer_channel_log.append({
+                    "customer_id": billing_account, "cid": cid, "event_date": term_start_str,
+                    "commodity": commodity,
+                    "retention_cost_gbp": retention_log[-1]["retention_cost_gbp"]
+                    if retention_log else None,
+                    "channel": (
+                        "changed_a_departure" if _left_at_full and not _left_at_offer
+                        else "changed_a_stayers_tariff" if (
+                            not _left_at_full and _full_position_vs_default is not None
+                            and _full_position_vs_default > 0
+                            and _offer_vs_default is not None and _offer_vs_default <= 0)
+                        else "changed_neither"),
+                })
                 # Its thinner margin does not teach the book's premium, for the reason a save's
                 # does not (director, 2026-10-08): stayers must not pay for the discount.
                 _held_on_a_save = event is None or event["event_type"] == "renewed"
@@ -5682,6 +5731,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         "company_event_log": _build_company_event_log(
             customer_events_log, fresh_acquisitions),
         "retention_log": retention_log,
+        "retention_offer_channel_log": retention_offer_channel_log,
+        "retention_save_holdout_log": retention_save_holdout_log,
         **({"retention_holdout_log": retention_holdout_log,
             # Q10: each row's days to its first later loss, so any window can be read off the run.
             "retention_holdout_outcomes": _retention_holdout.outcomes(

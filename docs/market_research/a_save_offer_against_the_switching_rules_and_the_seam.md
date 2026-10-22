@@ -708,3 +708,54 @@ This is a save rate **conditional on would-have-left**. Two figures nearby are n
 - **The decision.** An offer is made only where the belief at the roll × the save rate × the value
   the guard already protects (the term contribution, net of the bad-debt charge and plus the
   replacement cost avoided where those switches are on) exceeds the offer's cost. The field is default off.
+
+### 9e. Measuring a retention offer against a randomised hold-out (2026-10-22)
+
+Written under K8 before the save-rate holdout was built
+(`docs/staging/records/SEAT_PREREG_THE_PER_CUSTOMER_SWITCHES_ON_TOGETHER_AGAINST_FLAT_2026-10-21.md` §15).
+Why it is needed: on §12's run, the §9d save rate read 0.19 while the world kept 0 of the 32 offers
+it was asked about. The only money the offers made came from moving stayers onto fixes, which M2
+calls transfer.
+
+**What published practice says.**
+
+| finding | source | bearing |
+|---|---|---|
+| Targeting retention by **churn risk** can be ineffective. The customers most likely to leave are not the ones an intervention moves most. Targeting by **lift**, measured as treated churn against a randomised untreated group, reduces churn more than targeting by risk. Shown on a wireless carrier and a membership organisation. | Ascarza, "Retention Futility: Targeting High-Risk Customers Might Be Ineffective", *Journal of Marketing Research* 55(1), 2018 (AMA 2023 Weitz–Winer–O'Dell award) | **This is the company's position.** The belief ranks leavers (AUC 0.806), and the save rate it multiplies cannot be read from offered accounts alone. |
+| A proactive retention contact can **raise** churn. In a randomised field experiment where some customers were sent plan recommendations and some were not, 6% of the control churned in the next three months against 10% of the treated. | Ascarza, Iyengar & Schleicher, "The Perils of Proactive Churn Prevention Using Plan Recommendations", *JMR* 53(1), 2016 | An offer's effect has no floor at zero, so only a comparison can tell its sign. The build floors the save rate at 0 for the guard, and reports the signed difference in its reason. |
+| GB energy itself measures supplier contacts this way. Ofgem's EFTC and CMOC trials randomised which households received a supplier's letter or offer, and they report treated against control. | Ofgem EFTC 2019 §4.1; CMOC 2019 (`how_households_respond_to_supplier_contact.md` §2) | The regulator's own standard for "did the contact move switching" is a randomised control. The company holding out its own customers is that design, run on its own book. |
+
+**GAPs, labelled.**
+- **GAP: what share a GB energy retention desk holds out, if it holds any out.** No published source
+  found. The share below is derived, not borrowed.
+- **GAP: whether withholding a discretionary retention discount from a random group meets SLC 0
+  (Standards of Conduct, fair treatment).** §6 records the Fixed Retention Tariff derogation, which
+  permits a retention fix for existing customers. No rule found obliges a supplier to offer one. Ofgem's own trials randomised contacts. No Ofgem decision found addresses
+  a supplier-run holdout. A practitioner question if it ever leaves the simulation, and it cannot
+  leave it (G5).
+
+**What the build chooses (`retention_save_rate_learned_against_holdout`, default off).**
+- **Who is held out.** Only renewals the save-odds guard would offer on. The coin is the company's
+  own: a hash of the account id and the roll date (`competitive_pressure.save_holdout_draws`). It is
+  salted apart from B8's `holdout_arm`, so the two coins are independent. Both groups are chosen by
+  the same guard, so they share one belief distribution, and their difference is the offer's effect.
+- **The rate.** Per ending-term type, over closed years: the holdout's loss rate h minus the offered
+  loss rate o, both Jeffreys-corrected, as a share of h: `(h − o)/h`, never below 0. It is a share
+  and not the bare difference because the guard multiplies it by this household's belief.
+  belief × (h − o)/h is the saves expected of one offer, so the per-customer ranking survives. It
+  returns `None` with its reason until both groups have closed renewals of that type. The belief
+  no longer enters the rate.
+- **The share, derived.** The comparison must resolve the break-even difference in one year. An
+  offer pays where belief × save × value > cost, so the save rate it must clear is cost ÷ (belief ×
+  value). On §12's run that is 0.83 in aggregate over the 83 offers of 2017, the one year the guard
+  offered in volume (34 of them were lost; later years run 1 to 24 offers). The difference to resolve
+  is h × 0.83, with h taken as the offered loss rate 34/83. If offers save, that is the lower of the
+  two rates, so the share errs larger, towards learning. At the two-sided 5% / 80% convention
+  (z = 2.80), the variance `h(1−h)/N × (1/s + 1/(1−s))` must be at most (0.83h/2.80)². That gives
+  **s = 0.27** at N = 83. At N = 300 it would be 0.06. At N ≤ about 65 no share resolves it in one
+  year, and the even split (0.5), which gets there soonest, is used. This is in code as
+  `save_holdout_share` and is printed by its test, so a new book moves it by its inputs, not by
+  hand.
+- **What it says plainly.** A break-even save rate of 0.83 means an offer must keep five in six of
+  the losses the company predicts to pay. Little survives that bar. The holdout is how the company
+  would learn this from its own book rather than from its belief.

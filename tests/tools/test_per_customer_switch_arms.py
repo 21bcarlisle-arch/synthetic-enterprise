@@ -30,6 +30,9 @@ def test_each_arm_differs_from_current_in_exactly_its_own_fields():
         "name", "renewal_belief_by_ending_term"}
     assert _differing(arms.arm_policy("all_on_save_odds"), arms.arm_policy("all_on_ending_term")) == {
         "name", "retention_weighs_save_odds"}
+    assert _differing(arms.arm_policy("all_on_save_odds_holdout"),
+                      arms.arm_policy("all_on_save_odds")) == {
+        "name", "retention_save_rate_learned_against_holdout"}
     assert arms.arm_policy("flat") == FLAT_SUPPLIER_POLICY
     assert _differing(arms.arm_policy("flat"), CURRENT_POLICY)  # flat is not the control
 
@@ -57,10 +60,23 @@ def test_every_arm_is_reachable_bound_where_policy_less_callers_see_it_and_keeps
         assert "next_best_action_renewal_log" in out.read_text()
     names = [arms.arm_policy(a).name for a in arms.ARMS]
     assert calls == [(n, n) for n in names]
-    assert len(set(names)) == len(arms.ARMS) == 5
+    assert len(set(names)) == len(arms.ARMS) == 6
 
 
 def test_an_unknown_arm_is_refused_by_name(seen):
     _, tmp_path = seen
     with pytest.raises(SystemExit, match="not one of"):
         arms.run_arm("half", tmp_path / "x.json")
+
+
+def test_the_offers_money_is_split_by_what_each_offer_changed():
+    """Every channel reads, zeros included, and a stayer's tariff is never counted as a save."""
+    log = [{"customer_id": "A", "channel": "changed_a_departure", "retention_cost_gbp": 5.0},
+           {"customer_id": "B", "channel": "changed_a_stayers_tariff", "retention_cost_gbp": 3.0},
+           {"customer_id": "B", "channel": "changed_a_stayers_tariff", "retention_cost_gbp": 2.0}]
+    split = arms.offer_money_by_channel(log)
+    assert split["changed_a_departure"] == {"offers": 1, "households": 1, "offer_cost_gbp": 5.0}
+    assert split["changed_a_stayers_tariff"] == {"offers": 2, "households": 1, "offer_cost_gbp": 5.0}
+    assert split["changed_neither"]["offers"] == 0
+    assert arms.offer_money_by_channel(None) == {
+        c: {"offers": 0, "households": 0, "offer_cost_gbp": 0.0} for c in arms.OFFER_CHANNELS}

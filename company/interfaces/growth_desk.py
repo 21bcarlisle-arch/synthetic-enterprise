@@ -54,6 +54,7 @@ __all__ = [
     "book_acquisition_gate",
     "book_acquisition_spend",
     "book_retention_cost",
+    "book_retention_holdout",
     "book_retention_offer",
     "broker_commission_schedule",
     "decide_acquisition",
@@ -64,6 +65,7 @@ __all__ = [
     "retention_cut_share_at_price_match",
     "retention_engagement",
     "retention_offer_can_buy_anything",
+    "retention_save_holdout_draws",
     "retention_value_protected",
     "retention_value_weighed_by_save_odds",
 ]
@@ -456,6 +458,31 @@ def book_retention_offer(*, renewal_year: int | None, ending_term_type: str | No
     ledger = active_pressure_ledger()
     if ledger is not None:
         ledger.observe_retention_offer(renewal_year, ending_term_type, account_id, belief)
+
+
+def retention_save_holdout_draws(account_id: str, event_date: str) -> bool:
+    """(2026-10-22) Whether the company's own coin holds this renewal out, of the ones the guard
+    would offer on, at `competitive_pressure.SAVE_HOLDOUT_SHARE` (derived on
+    `docs/market_research/a_save_offer_against_the_switching_rules_and_the_seam.md` §9e). Arms the
+    run's ledger to read its save rate against the holdout, so a run that holds out can never learn
+    the rate from the belief instead."""
+    from company.crm.competitive_pressure import active_pressure_ledger, save_holdout_draws
+
+    ledger = active_pressure_ledger()
+    if ledger is not None:
+        ledger.arm_save_holdout()
+    return save_holdout_draws(account_id, event_date)
+
+
+def book_retention_holdout(*, renewal_year: int | None, ending_term_type: str | None,
+                           account_id: str, belief: float) -> None:
+    """Book a renewal the coin held out, so its loss reaches `retention_save_rate` beside the
+    offered ones. The world reports the loss through the same ledger, by the company's own id."""
+    from company.crm.competitive_pressure import active_pressure_ledger
+
+    ledger = active_pressure_ledger()
+    if ledger is not None:
+        ledger.observe_retention_holdout(renewal_year, ending_term_type, account_id, belief)
 
 
 def retention_bad_debt_charge(default_belief_rate: float | None, billed: float) -> float | None:
