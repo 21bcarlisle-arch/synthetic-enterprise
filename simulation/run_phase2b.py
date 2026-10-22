@@ -148,6 +148,7 @@ from sim.gas_prices_history import RECORD_START as NBP_RECORD_START
 from sim.gas_prices_history import SHORT_RECORD_REASON as NBP_SHORT_RECORD_REASON
 from sim.gas_prices_history import load_nbp_history
 from sim.profile_class_1 import load_pc1_shape
+from sim.profile_class_2 import load_pc2_shape
 from sim.profile_class_3 import load_pc3_shape
 from sim.risk_committee import RiskCommitteeMonitor
 from sim.risk_engine import assess_term_risk, is_administration_triggered
@@ -231,7 +232,7 @@ from simulation.hh_consumption import (
     is_hh_customer,
     load_hh_consumption,
 )
-from simulation.household import household_of
+from simulation.household import HeatingSystem, household_of
 from simulation.household_demand import HouseholdDemandRegister
 from simulation.household_demand_shape import seasonal_gas_splits_for_book
 from simulation.household_segments import active_renewal_probability_for_customer
@@ -521,14 +522,38 @@ EARLIEST_SSP_DATE = SSP_RECORD_START
 COMMITTEE_COOLDOWN_PERIODS = 1440
 COMMITTEE_COOLDOWN_DAYS = 30  # calendar-day cooldown; replaces record-count approach
 
-SHAPE_LOADERS = {1: load_pc1_shape, 3: load_pc3_shape}
+SHAPE_LOADERS = {1: load_pc1_shape, 2: load_pc2_shape, 3: load_pc3_shape}
+
+
+def registered_profile_class(customer: dict, household_register, as_of: str) -> int:
+    """The profile class this home's meter point was registered on, as the world holds it.
+
+    In 2016-2025 the class followed the METER: a domestic meter with an off-peak register was PC2,
+    "Domestic Economy 7" (docs/data-sources/profile-class-2.md). The world puts a two-rate meter in
+    a home only where its heating needs one -- a storage heater charges overnight on it
+    (`fabric_physics.storage_charge_kwh`) -- so a home drawn with `ELECTRIC_STORAGE` is PC2 and
+    every other domestic home keeps the roster's class. E7 meters in gas-heated or direct-electric
+    homes are a GAP (G2, G3 there), not a zero anyone measured.
+
+    Read from the drawn household at `as_of` (the start of supply), never from
+    `dwelling_records.build_properties`, whose `heating_system` is `electric_storage` by DEFAULT
+    for any home without a gas account and so would register oil-, heat-pump- and communal-heated
+    homes on E7. A home the world drew no household for keeps the roster's class.
+    """
+    roster = customer.get("profile_class", 1)
+    if roster != 1:
+        return roster
+    household = household_register.household_at_date(customer["customer_id"], as_of)
+    if household is not None and household.heating_system == HeatingSystem.ELECTRIC_STORAGE:
+        return 2
+    return roster
 
 #: Profile classes whose published base shape is a DOMESTIC average, and for which
 #: an account's own annual consumption is therefore the right level. PC1 is
-#: "domestic unrestricted"; PC3 is non-domestic and its two SME accounts keep the
+#: "domestic unrestricted", PC2 "domestic Economy 7"; PC3 is non-domestic and its two SME accounts keep the
 #: published Group Average Demand level until the same question is answered for a
 #: non-domestic profile from its own evidence, which is a separate piece of work.
-_EAC_LEVELLED_PROFILE_CLASSES = frozenset({1})
+_EAC_LEVELLED_PROFILE_CLASSES = frozenset({1, 2})
 
 
 def _base_profile_eac(customer: dict) -> float | None:
@@ -2022,7 +2047,9 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 battery_dispatch=_fabric_battery_dispatch_for(_fab_cid),
             ),
             _weather_adjusted_shape_fn(
-                SHAPE_LOADERS[_legacy_customer.get("profile_class", 1)],
+                SHAPE_LOADERS[registered_profile_class(
+                    _legacy_customer, household_demand_register,
+                    max(_legacy_customer.get("acquisition_date") or REPORT_START, REPORT_START))],
                 weather_by_customer[_fab_cid],
                 properties.get(_fab_cid, DEFAULT_PROPERTY),
                 cloud_cover_means=cloud_cover_by_customer.get(_fab_cid),
@@ -4718,7 +4745,9 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 demand_provider_by_customer[cid] = FABRIC_PROVIDER
             else:
                 demand_provider_by_customer[cid] = LEGACY_PROVIDER
-                profile_class = customer.get("profile_class", 1)
+                profile_class = registered_profile_class(
+                    customer, household_demand_register,
+                    max(customer.get("acquisition_date") or REPORT_START, REPORT_START))
                 property_record = properties.get(cid, DEFAULT_PROPERTY)
                 # Phase O: always pass cloud cover + latitude — any resi customer
                 # can acquire solar via a life event (Phase B), so irradiance must be

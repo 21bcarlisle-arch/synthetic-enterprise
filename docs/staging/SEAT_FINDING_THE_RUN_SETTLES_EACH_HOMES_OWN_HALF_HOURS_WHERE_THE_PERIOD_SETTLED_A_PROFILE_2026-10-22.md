@@ -56,3 +56,41 @@ makes it material, so step 2 stands.
 Step 2 needs two things first: a PC2 table in `sim/data/`, and a rule that registers a storage or
 E7-shaped home on PC2. Today every domestic home is PC1, and against PC1 a storage-heated home
 shows a spurious −£91 a year.
+
+## Registration built (22 Oct 2026, later)
+
+The two prerequisites are in: `sim/data/profile_class_2_gad.csv` (UKERC, verbatim; provenance
+`docs/data-sources/profile-class-2.md`) and `run_phase2b.registered_profile_class`, which registers
+a home the world drew with `ELECTRIC_STORAGE` heating on PC2. The registration keys on the drawn
+household, not on `build_properties`. That record defaults to `electric_storage` for every home
+without a gas account, and at HEAD it says `electric_storage` for 85 homes the world drew with gas,
+communal, oil or heat-pump heating. Census at HEAD: 36 of 568 non-HH resi homes are drawn
+storage-heated.
+
+**Prediction, written before the re-run of `tools/profile_settlement_timing_probe` with the rule
+in place:**
+
+- R1. Between 5 and 17 legacy-path homes move to PC2. The rest of the 36 are fabric homes.
+- R2. A legacy home that moves to PC2 still shows mean |Δ| under £5 a year, because on the legacy
+  path both arms are its profile.
+- R3. The book Δ moves from −0.54% to between 0.0% and +0.5% of SSP cost. Registration by heating
+  system is not the same cut as the earlier "night-heavy ≥ 38%" one, so it will not land exactly on
+  +0.23%.
+
+**Graded (same day, 12-minute re-run at the rule, one seed, HEAD book):**
+
+- R1 **holds, at its top edge.** 17 legacy homes move to PC2. The other 19 storage homes are the 19
+  night-heavy fabric homes the first measurement found by shape. The heating rule and the shape
+  cut agree home for home, and the 9 day-heated electric homes stay on PC1, which is right.
+- R2 **holds.** Legacy PC2 mean |Δ| is £1.1 a year (−0.38%).
+- R3 **holds.** The book is +0.24% (£3,096 on £1.306m). The night-heavy fabric homes now read
+  −£16.9 a year against their own class, not −£91.
+- **What the rule changes in the run itself:** the 17 legacy storage homes' settled SSP cost
+  falls from £37,420 to £34,838 (−6.9%, about −£18 per home-year), because their legacy shape is
+  now night-loaded. Fabric homes are unchanged: they still settle their own trace, which is what
+  step 2 is for.
+
+Step 2 is not built. `hedged_settlement.run_hedged_term` uses one `consumption_shape` for
+revenue, wholesale cost, levies and billed kWh, so settling on the profile needs a second,
+settled shape. That shape goes to the wholesale and imbalance legs only, trued up to the home's
+own volume over the term. It is handed off as a continuation.

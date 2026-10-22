@@ -10,12 +10,11 @@ The shapes come from the run's own builders, wired as `run_phase2b.main` wires t
 lives inside `main()`, so it is copied here in the same order rather than imported. If `main`
 changes how a premise's shape is built, this copy has to follow it.
 
-THE PROFILE CLASS IS THE TRAP. The run registers every domestic home as PC1. A storage-heated home
-puts most of its volume overnight, and in the period it was registered on PC2 (Economy 7). Read
-against PC1, such a home shows about -£90 a year of "timing value", and that is entirely the wrong
-profile. `--pc2-csv` takes the UKERC PC2 GAD table (same archive and layout as
-`sim/data/profile_class_1_gad.csv`) and grades the electrically heated homes against both. Each
-row carries the home's overnight share, so the split can be read off.
+THE PROFILE CLASS IS THE TRAP. Read against PC1, a storage-heated home shows about -£90 a year of
+"timing value", and that is entirely the wrong profile. Since 2026-10-22 each home is graded on the
+class `run_phase2b.registered_profile_class` registers it on (PC2 for a drawn storage-heated home).
+`--pc2-csv` still grades every electrically heated fabric home against PC2 as well, whatever it is
+registered on; it defaults to the tree's own table, `sim/data/profile_class_2_gad.csv`.
 
 DELIBERATELY DORMANT (orphan_baseline.json): a one-off measurement taken by hand. It takes about
 12 minutes over the full book.
@@ -30,6 +29,8 @@ import statistics
 from collections import defaultdict
 from datetime import date
 from functools import lru_cache
+
+from sim.profile_class_2 import CSV_PATH as PC2_CSV
 
 #: Settlement periods 1-14, 00:00-07:00: the overnight window used to tell a storage/E7-shaped home
 #: from a day-heated one. Descriptive only -- it splits the report and gates nothing.
@@ -106,7 +107,8 @@ def _book_shapes(r, limit):
         cid = c["customer_id"]
         if r.is_hh_customer(c):
             continue  # elective HH settlement was real for these
-        pc = c.get("profile_class", 1)
+        pc = r.registered_profile_class(
+            c, register, max(c.get("acquisition_date") or r.REPORT_START, r.REPORT_START))
         if cid in fabric:
             series = fabric[cid]
             shape = r.fabric_shape_fn(series, "electricity", battery_dispatch=battery_for(cid))
@@ -187,7 +189,7 @@ def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument("--limit", type=int)
     ap.add_argument("--json")
-    ap.add_argument("--pc2-csv", help="UKERC ProfileClass2.csv (not in the tree; see docstring)")
+    ap.add_argument("--pc2-csv", default=PC2_CSV, help="a PC2 GAD table (default: the tree's)")
     a = ap.parse_args(argv)
     rows = measure(a.limit, a.pc2_csv)
     report(rows)
