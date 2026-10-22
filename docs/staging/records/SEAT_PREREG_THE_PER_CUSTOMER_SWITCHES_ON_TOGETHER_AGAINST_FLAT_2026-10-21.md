@@ -1241,6 +1241,72 @@ worktree `/var/tmp/se-pcs-arms14` (`bc1e6ad78`). Its unit log is `/var/tmp/se-pc
 and its artefact is `s2/all_on_save_odds.json`. Seeds 3, 4 and 5 are each handed on as their own
 launch.
 
+### 14. Seed 2 (graded 2026-10-22 ~11:45 BST; unit rc=0, all three `s2/*.rc` 0, every arm stamped `bc1e6ad780`)
+
+Graded with `python3 -m tools.grade_per_customer_switch_seeds s2:...` from a worktree at origin/main
+`766d26fc6e`, seed 2 alone. Seed 1 is not pooled.
+
+**What the dice blocks say.** `customer_events` binding: 229 / 347 / 318 seeded renewal rolls
+(flat / ending_term / save_odds). `retention_offer` binding: 0 / 114 / 86. Payment draws: 54,096 /
+54,374 / 54,206. The `run_phase2b` binding read 0 in every arm again, as on seed 1.
+
+**P14a′, the binding leg: PASSED.** I compared the `churned` events (account, `event_date[:10]`)
+in `s2/flat.json` with those in `s1/flat.json`. Both are at `bc1e6ad780`, and only the seed
+differs. Seed 1 has 92 such events and seed 2 has 91. 56 are only in seed 1 and 55 only in seed 2,
+so the symmetric difference is **111**, against a bound of at least 20. Seed 2 is valid.
+
+**The original P14a, reported and not relied on: both legs pass.** Flat's `churned_billing_accounts`
+count is **357**, against the default dice's 353. The difference is 4, and the bound was at least 3.
+The departing set differs from the default's by 22 accounts that left only under the default and 26
+that left only under seed 2, against a bound of at least 20. Against seed 1's flat it differs by 23
+and 27. The count leg passes this time by one account. That fits seed 1's reading that the total
+barely moves, so it is no evidence that the count leg can see the dice.
+
+| pair (seed 2) | net | gross | unattributed | departure | parity | other | same_choice |
+|---|---|---|---|---|---|---|---|
+| ending_term − flat | +£2,989 | +£7,398 | −£4,409 | 3h +£2,905 | 5h −£25 | 4h +£2,891 | 433h +£1,627 |
+| save_odds − flat | +£1,537 | +£2,259 | −£723 | 2h −£2,285 | 4h −£120 | 4h +£2,891 | 410h +£1,773 |
+| save_odds − ending_term | −£1,453 | −£5,139 | +£3,686 | 1h −£5,190 | 1h −£93 | 0 | 165h +£144 |
+
+**Per-seed legs, counted (one of four graded seeds):**
+- **P14b, ending_term − flat `parity` positive:** −£24.52, **the wrong sign**. It is inside
+  [−£500, +£4,500]. This is the second seed, counting void seed 1, where the parity channel is near
+  zero rather than the +£2,308 the default dice showed.
+- **P14b, save_odds − ending_term `parity` negative:** −£93.10, **negative as predicted**. It is
+  inside the default dice's range, though far below the predicted mean of −£1,500.
+- **P14c, save_odds − ending_term `departure` holds at most 3 households:** 1 household, **held**.
+- The 4-seed legs (the P14b means, the P14c interval, P14d) wait for seeds 3 to 5.
+
+**What the departure channel holds, household by household, read from the rows.** These are reads,
+not predictions.
+- `SYN-2016-425` is the one save. In flat it left at its 2018-09-24 electricity fix end. Under
+  ending_term it fixed, and fixed again in 2019 and 2020. Its gross is +£5,190. Under save_odds it
+  left, as it did in flat. That one household is the whole save_odds − ending_term `departure` line
+  (−£5,190). Both offer arms keep the other two departure households alike. Under save_odds that
+  roll carries `retention_offered: false`, with the company's churn estimate at 0.34. So the guard
+  made no offer to the one household whose save was worth the most money on this seed.
+- `SYN-2016-387` (gas, −£2,061) and `SYN-2016-609` (gas, −£224) left in both offer arms in 2019 and
+  stayed in flat. At their 2018 roll, flat records `declined_fix` and both offer arms record
+  `svt_conversion`. So the offer arms' departure gross against flat is a save of +£5,190 in
+  ending_term only, against two extra gas leavers at −£2,285 in both arms.
+- The four `other` households, +£2,891, are the same in both offer arms. The largest is
+  `SYN-2016-369`, at +£2,753. Each has a roll that flat records as `declined_fix` and the offer arms
+  record as `svt_conversion`. I have not established whether that is a real difference in what the
+  household did, or the same default rollover labelled differently by the arm that runs the offer
+  path. If it is only labelling, the grader's `parity` test misses these households, and the `other`
+  line is mostly parity-shaped money. **This is handed on as a grader question, not settled here.**
+
+**The seed 1 note on gross recurs.** In save_odds − ending_term the whole difference is that one
+departure: gross −£5,190, and net minus gross +£3,686, so net is −£1,453. Gross overstates the
+net effect of one departure by about 3.6 times here, against about 2.4 times on seed 1. The
+`unattributed` line is still not split by household, so this is the same unestablished reading. The
+grade by gross stands as filed.
+
+**Seed 3 launched 2026-10-22 10:44Z** as `longjob-pcs-arms-s14-seed3`. It runs `run_seed.sh 3` from
+the locked worktree `/var/tmp/se-pcs-arms14` (`bc1e6ad78`), admitted beside the live
+`head-crisis-989ce4f1c2` run. Its unit log is `/var/tmp/se-pcs-arms-out/s3_unit.log`, and its
+artefact is `s3/all_on_save_odds.json`. Seeds 4 and 5 are each handed on as their own launch.
+
 ## 15. The save rate learned against a holdout: `all_on_save_odds_holdout` beside `all_on_save_odds` (filed 2026-10-22, before either arm was launched)
 
 *Drawn as `the-save-rate-is-learned-against-a-holdout`. Knowledge first:
