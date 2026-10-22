@@ -447,6 +447,7 @@ def publisher_refusal(now: float | None = None, *, path: Path | None = None) -> 
     p = PUBLISH_GATE_STATE_FILE if path is None else path
     unknown = {"state": "unknown", "consecutive_failures": None, "failing_for_seconds": None,
                "clean_publishes_this_episode": None, "cited_red_at_head": None,
+               "superseded_by_landed_publish": None,
                "held_refusal": None,
                "held_refusal_reason": ("the publisher's state could not be read, so no refusal "
                                        "record was inspected")}
@@ -483,7 +484,18 @@ def publisher_refusal(now: float | None = None, *, path: Path | None = None) -> 
     hold = state.get("publish_hold") if isinstance(state.get("publish_hold"), dict) else None
     closed_by = (state.get("episode_closed_by")
                  if isinstance(state.get("episode_closed_by"), dict) else None)
-    if failures >= 1:
+    # A PUBLISH THAT LANDED INSIDE THE EPISODE ENDS ITS CLAIM TO BE FAILING (2026-10-22). The
+    # episode opened at 2026-10-19T05:29Z on two gate refusals; the publish then LANDED at 09:15Z
+    # through a route that never called `record_publish_gate_success`, so `episode_failures` stood
+    # at 2 and every page read "PUBLISHING IS FAILING ... over 80.0h" for three days over figures
+    # that had reached the site. `last_landed_publish` is keyed to git's own answer for the
+    # content on origin (`landed_publish_count`), so a landing after the episode's start with no
+    # failure since is evidence against interest the other way: those attempts were superseded.
+    landed = recorded_instant_seconds(state.get("last_landed_publish"))
+    since_landed = state.get("failures_since_landed_publish")
+    superseded = (started is not None and landed is not None and landed >= started
+                  and since_landed == 0 and not isinstance(since_landed, bool))
+    if failures >= 1 and not superseded:
         reading = "failing"
     elif hold is not None:
         reading = "held"
@@ -495,6 +507,7 @@ def publisher_refusal(now: float | None = None, *, path: Path | None = None) -> 
         "state": reading,
         "hold_next_opens": hold.get("next_opens") if hold else None,
         "episode_closed_by": closed_by.get("rule") if closed_by else None,
+        "superseded_by_landed_publish": bool(failures >= 1 and superseded),
         "consecutive_failures": failures,
         "failing_for_seconds": None if started is None else round(max(0.0, now - started), 1),
         "clean_publishes_this_episode": clean,

@@ -642,3 +642,18 @@ def test_a_reference_page_carries_no_hold_either():
     out = render(heartbeat=_heartbeat_with_publisher(_publisher(
         "held", hold_next_opens="2026-10-05T04:00:00+01:00")), figures="none")
     assert "held" not in out["text"]
+
+
+def test_a_failure_record_older_than_the_publish_beside_it_makes_no_failure_claim():
+    """THE DEFECT (2026-10-22): the site's heartbeat copy, written 07:56Z on 19 Oct and reading
+    "failing", sat beside a publish verified at 08:55Z, and the page said PUBLISHING IS FAILING
+    over the figures that publish delivered. Both legs: the same record written AFTER the
+    verification still speaks (the fixture heartbeat is stamped 17:52:31Z)."""
+    hb = _heartbeat_with_publisher(_failing_publisher())
+    after = dict(VERIFIED_PROVENANCE, showing_run={
+        "run_id": "run_output_f232c3480_20260813T164721Z.json",
+        "verified_at": "2026-08-13T18:30:00Z"})
+    superseded = render(prov=after, heartbeat=hb)
+    standing = render(heartbeat=hb)
+    assert "PUBLISHING IS FAILING" not in superseded["text"] and superseded["state"] != "stale"
+    assert "PUBLISHING IS FAILING" in standing["text"] and standing["state"] == "stale"

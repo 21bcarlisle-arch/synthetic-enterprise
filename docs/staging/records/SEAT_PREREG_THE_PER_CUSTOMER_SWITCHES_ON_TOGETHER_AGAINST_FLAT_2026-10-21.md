@@ -1540,3 +1540,63 @@ serially from a locked worktree at the commit that lands this section. Nothing g
 lower-bound, control, flat. The unit is `longjob-pcs-arms-s16` and the script is
 `/var/tmp/se-pcs-arms16-out/run_s16.sh`. Each arm writes `<arm>.json`, `.log` and `.rc` under
 `/var/tmp/se-pcs-arms16-out/`. Seed 3 of §14 shares the machine, so expect about 3.5 h.
+
+**Grade, P16a–d (2026-10-22 ~13:35Z; lower-bound and control rc 0, flat still running).** Both
+outputs are stamped `4eb192b604`. Read by `/var/tmp/se-pcs-arms16-out/grade_s16.py`, with flat made
+optional until it lands. Placebo: with the control's output standing in for the lower-bound arm, the
+P16a legs go red (66 offers, 0 lower-bound rows, 22 holdout rows). So the legs can fail.
+
+| | Predicted | Measured | |
+|---|---|---|---|
+| P16a guard offers, every year | 0 | 0 | held |
+| P16a lower-bound log rows | ≥ 50 | 161 | held |
+| P16a refusals | all `not_yet_learned` | 161 of 161; interval `None` on every row | held |
+| P16a holdout log | empty | 0 rows | held |
+| P16b control 2017 offers / held out | 62 ± 4 / 21 ± 4 | 62 / 21 (plus 4 offers in 2018) | held |
+| P16b control `changed_a_departure` | 0–1 | 0 (7 changed a stayer's tariff for £145; 59 changed neither, £763) | held |
+| P16c departures, lower-bound − control | ±5, point +1 | 354 − 354 = 0, the same accounts | held; point missed by 1 |
+| P16d net, lower-bound − control | ±£1,500, point +£300 | +£106.73 (control's offer cost £907.96) | held |
+
+**Reading, by the decision rule fixed above.** P16a held, lower-bound − control ≥ 0, and the
+control's `changed_a_departure` is 0. On this book and seed, then, a company acting only on what it
+can infer makes no retention offers and loses nothing measurable by it. That is M2's transfer,
+measured: £908 offered, no departure changed, and the net difference is +£107, which a single seed
+cannot tell from a tie (EP17's ±£1,000). The lower-bound guard becomes the candidate to pair with
+§13–§15, and any proposal for CURRENT_POLICY waits on seeds, as §14 fixed. One thing the gap does
+show: the net moved by only £107 of the £908 the offers cost, so about £800 of the offer cost came
+back through other channels. The likely route is the 7 stayers whose tariff the offers moved. That
+is not attributed here, and it is a single-seed difference. P16e (lower-bound − flat) follows when
+flat lands.
+
+**Grade, P16e (2026-10-22 ~15:30Z; flat rc 0, stamped `4eb192b604` like the other two).** Same
+grader, all three arms read.
+
+| | Predicted | Measured | |
+|---|---|---|---|
+| P16e net, lower-bound − flat | [−£3,500, +£2,000], point −£700 | **£0.00**: £599,456.33 both | held; point wrong |
+| control − flat | not predicted | −£106.73 | |
+| departures, all three arms | not predicted | 354, the same accounts in each | |
+
+**The point was wrong in kind, not in size: the lower-bound arm is flat in outcome.** I compared
+all 132 top-level keys of the two outputs. 115 are identical, and the 17 that differ are logs and
+stamps: `next_best_action_renewal_log`, `save_on_loss_notice_log`, `retention_gate_value_test_log`,
+`no_offer_churn_log`, `retention_save_rate_lower_bound_log`, the shadow-retention pair,
+`company_event_log`, `customer_events`, the churn-model diagnostics, `generated_at` and the commit
+stamp. Every outcome field is byte-identical: `bills`, `years`, `per_cid_pnl`, `ledger_pnl`,
+`churned_billing_accounts`, `dd_balance_book`, `svt_decisions`, `svt_departures` and the
+management accounts. So with the offers removed, C34's advice, C35's rise, the per-household save
+and the ending-term belief still **decided** things, because their logs differ, but none of those
+decisions changed one bill or one departure on this seed at `4eb192b604`. §14's `save_odds − flat`
+seeded mean of −£1,617 therefore came from the retention offers alone, because nothing else in the
+stack reaches an outcome here.
+
+**What this means for the M2 question §16 asked.** Is a per-customer stack that makes no retention
+offers worse than one that pays stayers? On this seed it is better by £107, and it is
+indistinguishable from flat because it is flat. The record does **not** say that per-customer
+inference loses nothing. It says that on this book and seed, the inference the company holds today
+reaches no outcome except through offers, and the offers are transfer (£908 spent, 0 departures
+changed). That is a stronger finding than the tie P16e allowed for, and it moves the next question:
+why do the four non-offer switches decide without acting? Either their actions are gated off
+downstream, or the book gives them no case to act on. I cannot yet say which; that is the next
+item, and it is one-variable (one switch at a time against flat, reading where its log's decisions
+stop short of a bill). Nothing here goes to CURRENT_POLICY.
