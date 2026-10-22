@@ -1134,3 +1134,39 @@ Arms: `longjob-held-{off,on}-arm`, about 50 minutes each.
 
 **Status:** OPEN and BLOCKING. Next: grade both arms against H1-H5. Do not re-launch: ask
 `.launch_records.json` first.
+
+## 2026-10-22 (morning): the held-money arms were graded and the switch is on. Prediction for the 10-26 publish, filed first
+
+**Correction to the status above.** The H1-H5 grade it asks for is done. Both seeds held, and
+`HELD_MONEY_IS_A_PART_PAYMENT` defaults on in 6b81d3b25a (record
+`SEAT_RESULT_HELD_MONEY_IS_A_PART_PAYMENT_SEED_2_2026-10-22.md`). So the world now carries three
+changes that no company run has seen: the budget switches, the demand reading and part payments.
+The arm outputs are world-only traces (`records/events`), not run outputs, so `validate_run_output`
+cannot read them. The first run that can be graded is the weekly publish, which opens
+2026-10-26 04:00 GMT (`.publish_gate_state.json`). It is not launched here: the publish produces it
+anyway, four days later, at no cost.
+
+**What the pools say, seed 2, accounts in arrears × mean £ at 31 Dec.** The stock column of the
+demand record stands in for ec7fd9942's world. The held-on counts are the demand counts scaled by
+the share ratio.
+
+| | stock (≈ ec7fd9942) | held-on (HEAD) | ratio |
+|---|---|---|---|
+| pre-crisis pool, 2016-19 summed | ~£6,400 | ~£17,000 | ~x2.7 |
+| crisis pool, 2022 + 2023 summed | ~£18,400 | ~£32,900 | ~x1.8 |
+
+**Prediction (IFRS 9 charge basis, read through `run_output_store.load_run_output`):**
+1. **Level: still FAIL.** The crisis share rises from 0.40% (ec7fd9942) to **0.50-0.80%** of revenue.
+   It stays under the 1.0% floor. *Refuted if ≥ 1.0%.*
+2. **Step-up: falls.** From x1.83 to **x1.1-1.5**. The new mechanisms deepen pre-crisis arrears more
+   than crisis arrears. *Refuted if it rises above x1.83.* Below x1.2 it would fail the second
+   leg for the first time, and that would be the expected direction, not a regression.
+3. **2024 stays negative or near zero.** Part payments let the old debt clear, as the switches did.
+
+Caveats, said now: the pools are one dice seed, the publish runs default dice, and a provision
+charge is a flow, not a stock. So the ranges are wide on purpose. If (2) is refuted upward, the
+charge is not tracking the arrears stock by year, and the next question is the matrix's
+ageing buckets, not the world.
+
+**Status:** OPEN and BLOCKING. Next: grade this prediction on the 2026-10-26 published run. Do not
+launch a full run for it before then.
