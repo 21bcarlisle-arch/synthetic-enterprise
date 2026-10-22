@@ -55,6 +55,35 @@ from simulation.policy_costs import (
 from simulation.tou_periods import is_peak_period
 
 
+def _settled_volumes(start, end, consumption_shape, settled_shape, price_lookup):
+    """{(date_str, period): settled kWh} for a profiled home, or None when it settles its own shape.
+
+    2016-2025 settled a non-half-hourly meter on its annual volume spread over its Profile Class
+    coefficients, and reconciliation corrected the VOLUME, never the shape. So the settled shape is
+    trued up to the home's own volume over the term's priced periods: what it changes is WHEN the
+    energy was bought, not how much. A term whose profile sums to nothing settles its own shape
+    rather than dividing by zero.
+    """
+    if settled_shape is None:
+        return None
+    own_total = prof_total = 0.0
+    profile = {}
+    d = start
+    while d < end:
+        ds = d.isoformat()
+        own, prof = consumption_shape(ds), settled_shape(ds)
+        for period in range(1, 49):
+            if (ds, period) in price_lookup:
+                own_total += own[period - 1]
+                prof_total += prof[period - 1]
+                profile[(ds, period)] = prof[period - 1]
+        d += timedelta(days=1)
+    if prof_total <= 0:
+        return None
+    k = own_total / prof_total
+    return {key: q * k for key, q in profile.items()}
+
+
 def run_hedged_term(
     customer_id: str,
     term_start_date: str,
@@ -68,6 +97,7 @@ def run_hedged_term(
     tou_rates: tuple[float, float] | None = None,
     segment: str = "resi",
     pass_through: bool = False,
+    settled_shape=None,
 ) -> list[dict]:
     """Settle one customer's one contract term, hedge-aware, for every
     calendar date in [term_start_date, term_end_date) and every settlement
@@ -122,6 +152,11 @@ def run_hedged_term(
       network_cost_gbp = DUoS + TNUoS for resi/SME; DUoS only for I&C
         (Phase 29a — I&C Triad TNUoS tracked separately in triad.py)
       net_margin_gbp = margin_gbp - policy_cost_gbp - network_cost_gbp - capital_cost_gbp
+
+    settled_shape, when given, is the shape the home was SETTLED on (its registered profile) where
+    consumption_shape is what it used. The hedged and unhedged volumes and the wholesale cost are
+    priced on it, trued up to the home's own volume over the term (`_settled_volumes`); revenue,
+    levies, network and `consumption_kwh` stay on the meter. Each row then carries `settled_kwh`.
     """
     start = date.fromisoformat(term_start_date)
     end = date.fromisoformat(term_end_date)
@@ -130,6 +165,7 @@ def run_hedged_term(
         (record["settlementDate"], record["settlementPeriod"]): record["systemSellPrice"]
         for record in system_price_records
     }
+    settled_kwh_at = _settled_volumes(start, end, consumption_shape, settled_shape, price_lookup)
 
     records = []
     current_date = start
@@ -148,13 +184,20 @@ def run_hedged_term(
                 period_rate = peak_rate if is_peak_period(date_str, period) else offpeak_rate
             else:
                 period_rate = fixed_tariff_rate_gbp_per_mwh
+            settled_kwh = (consumption_kwh if settled_kwh_at is None
+                           else settled_kwh_at[(date_str, period)])
             settled = settle_hedged_period(
-                consumption_kwh,
+                settled_kwh,
                 period_rate,
                 hedge_price_gbp_per_mwh,
                 hedge_fraction,
                 spot_price,
             )
+            if settled_kwh_at is not None:
+                # Billed on the meter, bought on the profile.
+                own_revenue = consumption_kwh / 1000 * period_rate
+                settled = dict(settled, revenue_gbp=own_revenue,
+                               margin_gbp=own_revenue - settled["wholesale_cost_gbp"])
 
             # Phase 21a: RO + CfD levy for this settlement date's year.
             # Uses actual settlement year, not term-start year, so cross-year
@@ -238,6 +281,8 @@ def run_hedged_term(
                 "network_cost_gbp": network_cost,
                 "standing_charge_gbp": sc_per_period,
             })
+            if settled_kwh_at is not None:
+                records[-1]["settled_kwh"] = settled_kwh
 
         current_date += timedelta(days=1)
 
@@ -275,6 +320,7 @@ def run_deemed_term(
     system_price_records: list[dict],
     segment: str = "resi",
     commodity: str = "electricity",
+    settled_shape=None,
 ) -> list[dict]:
     """Phase 40c: settle an out-of-contract deemed period.
 
@@ -301,6 +347,8 @@ def run_deemed_term(
     Wholesale cost = spot × consumption
     Gross margin = revenue − wholesale cost (can be negative once capped)
     Net margin = gross margin − policy cost − network cost
+
+    settled_shape: as in `run_hedged_term` -- the wholesale cost is spot × the settled volume.
     """
     start = date.fromisoformat(term_start_date)
     end = date.fromisoformat(term_end_date)
@@ -309,6 +357,7 @@ def run_deemed_term(
         (record["settlementDate"], record["settlementPeriod"]): record["systemSellPrice"]
         for record in system_price_records
     }
+    settled_kwh_at = _settled_volumes(start, end, consumption_shape, settled_shape, price_lookup)
 
     records = []
     current_date = start
@@ -350,8 +399,10 @@ def run_deemed_term(
                 if _cap is not None:
                     billed_rate_gbp_per_mwh = min(uncapped_rate_gbp_per_mwh, _cap)
 
+            settled_kwh = (consumption_kwh if settled_kwh_at is None
+                           else settled_kwh_at[(date_str, period)])
             revenue_gbp = billed_rate_gbp_per_mwh * consumption_mwh
-            wholesale_cost_gbp = spot_price * consumption_mwh
+            wholesale_cost_gbp = spot_price * settled_kwh / 1000.0
             margin_gbp = revenue_gbp - wholesale_cost_gbp
 
             ro_levy = get_ro_cost_per_mwh(date_str) * consumption_mwh
@@ -381,7 +432,7 @@ def run_deemed_term(
                 "hedge_price_gbp_per_mwh": None,
                 "hedge_fraction": 0.0,
                 "hedged_volume_kwh": 0.0,
-                "unhedged_volume_kwh": consumption_kwh,
+                "unhedged_volume_kwh": settled_kwh,
                 "revenue_gbp": revenue_gbp,
                 "wholesale_cost_gbp": wholesale_cost_gbp,
                 "margin_gbp": margin_gbp,
@@ -399,6 +450,8 @@ def run_deemed_term(
                 ),
                 "tariff_type": "deemed",
             })
+            if settled_kwh_at is not None:
+                records[-1]["settled_kwh"] = settled_kwh
 
         current_date += timedelta(days=1)
 

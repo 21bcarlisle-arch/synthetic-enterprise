@@ -94,3 +94,16 @@ Step 2 is not built. `hedged_settlement.run_hedged_term` uses one `consumption_s
 revenue, wholesale cost, levies and billed kWh, so settling on the profile needs a second,
 settled shape. That shape goes to the wholesale and imbalance legs only, trued up to the home's
 own volume over the term. It is handed off as a continuation.
+
+## Step 2 built (22 Oct 2026, evening)
+
+A fabric home without HH settlement is now billed on its own trace and bought on its registered
+profile, trued up to its own volume over each term (`hedged_settlement._settled_volumes`, passed
+from the fabric branch of `run_phase2b` to `run_hedged_term` and `run_deemed_term`). Legacy homes,
+HH and I&C sites, time-of-use terms and a mover's carried term keep their own shape, each for the
+reason in the pre-registration
+(`docs/staging/records/SEAT_PREREGISTRATION_A_PROFILED_HOME_SETTLES_ITS_OWN_VOLUME_ON_ITS_REGISTERED_PROFILE_2026-10-22.md`).
+P15a and P15b held at full book. The run-level effect after hedging is ungraded until a run
+publishes. The PC3 SMEs' +£100 a year does not move: it is the weather adjustment against the raw
+1997 table, which the profile's missing temperature regression leaves as a GAP. This finding's
+done-means is met. It stays open only until that run is graded.

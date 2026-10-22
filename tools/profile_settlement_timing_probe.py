@@ -123,13 +123,29 @@ def _book_shapes(r, limit):
         yield c, pc, group, lru_cache(maxsize=None)(shape), end
 
 
-def measure(limit=None, pc2_csv=None):
+def through_settlement(shape, profile, records, dates):
+    """(gross wholesale cost on the profile minus on the own shape, max |revenue difference|) from
+    `hedged_settlement.run_deemed_term` itself over `dates` -- the run's own writer, so P15a of
+    SEAT_PREREGISTRATION_A_PROFILED_HOME_SETTLES_ITS_OWN_VOLUME_ON_ITS_REGISTERED_PROFILE_2026-10-22
+    grades the build rather than this file's arithmetic."""
+    from simulation.hedged_settlement import run_deemed_term
+    end = date.fromordinal(date.fromisoformat(dates[-1]).toordinal() + 1).isoformat()
+    a = run_deemed_term("probe", dates[0], end, 0.0, shape, records)
+    b = run_deemed_term("probe", dates[0], end, 0.0, shape, records, settled_shape=profile)
+    cost = sum(x["wholesale_cost_gbp"] for x in b) - sum(x["wholesale_cost_gbp"] for x in a)
+    return cost, max((abs(x["revenue_gbp"] - y["revenue_gbp"]) for x, y in zip(a, b)), default=0.0)
+
+
+def measure(limit=None, pc2_csv=None, settle=False):
     import simulation.run_phase2b as r
     from sim.profile_class_1 import load_pc1_shape
 
     pc2 = lru_cache(maxsize=None)(lambda d: load_pc1_shape(d, pc2_csv)) if pc2_csv else None
     records = r.get_cached_prices(r.SSP_RECORD_START, r.REPORT_END)
     prices = {(x["settlementDate"], x["settlementPeriod"]): x["systemSellPrice"] for x in records}
+    records_by_year = defaultdict(list)
+    for x in records:
+        records_by_year[x["settlementDate"][:4]].append(x)
     rows = []
     for c, pc, group, shape, end in _book_shapes(r, limit):
         profile = lru_cache(maxsize=None)(r.SHAPE_LOADERS[pc])
@@ -148,6 +164,9 @@ def measure(limit=None, pc2_csv=None):
             row = {"customer_id": c["customer_id"], "group": group, "pc": pc, "year": year,
                    "days": len(dates), "overnight_share": night, "kwh": kwh,
                    "own_cost": own, "prof_cost": prof, "delta": own - prof}
+            if settle and group.startswith("fabric_"):
+                row["settled_cost_move"], row["revenue_moved"] = through_settlement(
+                    shape, profile, records_by_year[year], dates)
             if pc2 and group == "fabric_electricity_heated":
                 alt = year_delta(shape, pc2, prices, dates)
                 row["delta_pc2"] = alt[1] - alt[2]
@@ -178,6 +197,22 @@ def report(rows):
         sel = [x for x in eh if keep(x["overnight_share"])]
         line(sel, f"  elec-heated {label} vs PC1")
         line(sel, f"  elec-heated {label} vs PC2", "delta_pc2")
+    st = [x for x in rows if "settled_cost_move" in x]
+    if st:
+        worst = max(abs(x["settled_cost_move"] + x["delta"]) for x in st)
+        print(f"THROUGH run_deemed_term: {len(st)} fabric home-years, max |move + Δ| £{worst:.4f}, "
+              f"max |revenue moved| £{max(x['revenue_moved'] for x in st):.6f}")
+        for g in sorted({x["group"] for x in st}):
+            sel = [x for x in st if x["group"] == g]
+            full = [x["settled_cost_move"] for x in sel if x["days"] >= 365]
+            print(f"  {g:34s} cost move £{sum(x['settled_cost_move'] for x in sel):,.0f}"
+                  + (f" | full-yr mean £{statistics.mean(full):+.1f}" if full else ""))
+        for label, keep in (("night-heavy (>=38% overnight)", lambda s: s >= 0.38),
+                            ("day-heated (<30% overnight)", lambda s: s < 0.30)):
+            full = [x["settled_cost_move"] for x in st if x["group"] == "fabric_electricity_heated"
+                    and keep(x["overnight_share"]) and x["days"] >= 365]
+            if full:
+                print(f"  elec-heated {label:30s} full-yr mean cost move £{statistics.mean(full):+.1f}")
     if eh:
         swap = sum(x["delta_pc2"] - x["delta"] for x in eh if x["overnight_share"] >= 0.38)
         own = sum(x["own_cost"] for x in rows)
@@ -190,8 +225,10 @@ def main(argv=None):
     ap.add_argument("--limit", type=int)
     ap.add_argument("--json")
     ap.add_argument("--pc2-csv", default=PC2_CSV, help="a PC2 GAD table (default: the tree's)")
+    ap.add_argument("--through-settlement", action="store_true",
+                    help="also settle each fabric home-year through run_deemed_term (P15a/b)")
     a = ap.parse_args(argv)
-    rows = measure(a.limit, a.pc2_csv)
+    rows = measure(a.limit, a.pc2_csv, settle=a.through_settlement)
     report(rows)
     if a.json:
         with open(a.json, "w") as f:

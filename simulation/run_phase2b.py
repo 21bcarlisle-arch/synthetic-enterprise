@@ -4725,6 +4725,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             # The company's volume: its own arrived reads, else the declared EAC. No household
             # multiplier -- the household's assets are the world's; see `_company_eac_estimate`.
             eac_kwh = _company_eac_estimate(cid, term_start_str, settled_fold)
+            settled_shape_fn = None
             if is_hh_customer(customer):
                 shape_fn = hh_shape_fn(hh_consumption_by_customer[cid])
                 # Phase MT: I&C customers reduce demand 25% during Triad risk windows.
@@ -4743,6 +4744,13 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     battery_dispatch=_fabric_battery_dispatch_for(cid),
                 )
                 demand_provider_by_customer[cid] = FABRIC_PROVIDER
+                # A non-HH meter of 2016-2025 was SETTLED on its volume x its registered profile,
+                # not on its own half hours (SEAT_PREREGISTRATION_A_PROFILED_HOME_SETTLES_ITS_OWN_
+                # VOLUME_ON_ITS_REGISTERED_PROFILE_2026-10-22.md). The legacy branch below needs no
+                # such shape: its demand already IS its class's profile, weather-adjusted.
+                settled_shape_fn = SHAPE_LOADERS[registered_profile_class(
+                    customer, household_demand_register,
+                    max(customer.get("acquisition_date") or REPORT_START, REPORT_START))]
             else:
                 demand_provider_by_customer[cid] = LEGACY_PROVIDER
                 profile_class = registered_profile_class(
@@ -4765,6 +4773,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             # trace after it (`_supply_at_new_home`). Only on this one term; later terms read the
             # new home's data directly.
             if _carried_from is not None:
+                settled_shape_fn = None  # two homes' shapes spliced; left on its own trace
                 shape_fn = _shape_across_a_move(
                     shape_fn,
                     fabric_shape_fn(_relocation_pending[cid]["series"], "electricity",
@@ -4779,6 +4788,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 term_records = run_deemed_term(
                     cid, term_start_str, term_end_str, deemed_premium,
                     shape_fn, elec_records, segment=cust_segment, commodity=commodity,
+                    settled_shape=settled_shape_fn,
                 )
             elif term_tariff_type == "flex":
                 # Phase 41a: flex/trading tariff — reference price (7-day rolling spot) + markup.
@@ -4863,6 +4873,9 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     risk["monthly_cost_of_capital_gbp"], effective_shape_fn, elec_records,
                     tou_rates=tou_rates, segment=cust_segment,
                     pass_through=(term_tariff_type == "pass_through"),
+                    # A time-of-use term needed HH data to settle (P300, Measurement Class F), so
+                    # it keeps its own shifted shape.
+                    settled_shape=(settled_shape_fn if tou_rates is None else None),
                 )
                 # Phase 43a: open a forward contract in the company trading book.
                 # agreed_price = forward_price, the market's own PIT forward quote
@@ -4887,9 +4900,10 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     )
                     # Add hedge_pnl_gbp per settlement record (decomposed from supply margin).
                     for rec in term_records:
-                        spot = rec.get("wholesale_cost_gbp", 0.0) / (rec["consumption_kwh"] / 1000.0) if rec["consumption_kwh"] > 0 else 0.0
+                        _bought = rec.get("settled_kwh", rec["consumption_kwh"])
+                        spot = rec.get("wholesale_cost_gbp", 0.0) / (_bought / 1000.0) if _bought > 0 else 0.0
                         rec["hedge_pnl_gbp"] = round(hedge_desk.settle_period_pnl_gbp(
-                            cid, term_start_str, rec["consumption_kwh"], spot
+                            cid, term_start_str, _bought, spot
                         ), 6)
             for rec in term_records:
                 rec["data_regime"] = "historical"
