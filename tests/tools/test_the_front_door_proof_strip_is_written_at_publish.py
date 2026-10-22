@@ -65,3 +65,14 @@ def test_a_page_without_the_markers_is_left_alone(tmp_path):
     assert page.read_text() == "<html>no markers</html>"
     assert not g.write_front_door_proof_strip(_run(["C1"]), _dashboard(LIFETIME),
                                               tmp_path / "none.html", tmp_path / "sim.json")
+
+
+def test_a_last_year_the_record_ends_inside_is_not_called_a_calendar_year():
+    """Defect: "10 calendar years" over a price record that ends 7 Jun 2025 (cold reader,
+    2026-10-22). Both legs: a record ending 31 Dec keeps the plain label."""
+    part = dict(SIM, period_to="2017-06-07")
+    figures, _ = g.proof_strip_figures(_run(["C1"]), _dashboard(LIFETIME), part)
+    assert figures[1][1] == "2 years, lived in order; 2017 runs to 7 Jun 2017"
+    whole = dict(SIM, period_to="2017-12-31")
+    figures, _ = g.proof_strip_figures(_run(["C1"]), _dashboard(LIFETIME), whole)
+    assert figures[1][1] == "2 calendar years, lived in order"

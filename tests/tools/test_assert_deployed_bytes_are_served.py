@@ -300,3 +300,54 @@ def test_an_unsent_oversized_file_is_reported_and_not_waited_on(monkeypatch, tmp
     assert "NOT DEPLOYED" in out and "https://poesys.net/state/ledger.json" in out
     assert not any(url.endswith("ledger.json") for url, _ in seen)
     assert any(url == "https://poesys.net/" for url, _ in seen)
+
+
+# --------------------------------------------------------------------------
+# Build-only scripts stay off the deploy (director's front-door steer, item 9, 2026-10-22).
+# --------------------------------------------------------------------------
+@pytest.mark.parametrize("path", [
+    "site/test_home_door.py", "site/ia_register.py", "site/knowledge/review_state.py",
+    "site/_live_harness.mjs", "site/harness/_render_harness.mjs",
+])
+def test_a_build_only_script_is_never_awaited_after_the_deploy(path):
+    """It is never staged, so polling for it would red every deploy that touches a test."""
+    assert A.url_for(path) is None
+
+
+def test_the_real_site_stages_with_no_build_only_file_and_keeps_its_pages(tmp_path, capsys):
+    """Over the real `site/`: the stage passes, ships none of the ~70 scripts, and still ships
+    the front door and its scripts -- a stage that drops everything also ships no `.py`."""
+    dest = tmp_path / "out"
+    assert A.stage(str(dest)) == 0, capsys.readouterr().err
+    # Read by suffix here, not through `A.is_build_only`: a predicate that went blind would
+    # also blind a read-back made through it.
+    shipped = [p for p in dest.rglob("*") if p.suffix in (".py", ".pyc")
+               or (p.name.startswith("_") and p.suffix == ".mjs")]
+    assert shipped == []
+    assert A.shipped_build_only(str(dest)) == []
+    assert (dest / "index.html").is_file()
+    assert any(p.suffix == ".js" for p in dest.rglob("*.js"))
+    assert "left out" in capsys.readouterr().out
+
+
+def test_the_stage_FAILS_when_a_build_only_file_reaches_the_staged_tree(monkeypatch, tmp_path,
+                                                                       capsys):
+    """The read-back is the check, not the ignore rule: break the copy so it ignores nothing
+    and the stage must refuse, naming the file."""
+    monkeypatch.setattr(A, "PROJECT", str(tmp_path))
+    (tmp_path / "site").mkdir()
+    (tmp_path / "site" / "index.html").write_bytes(b"page")
+    (tmp_path / "site" / "test_door.py").write_bytes(b"def test(): pass")
+    real_copytree = A.shutil.copytree
+    monkeypatch.setattr(A.shutil, "copytree",
+                        lambda src, dest, ignore=None: real_copytree(src, dest))
+    assert A.stage(str(tmp_path / "out")) == 1
+    assert "test_door.py" in capsys.readouterr().err
+
+
+def test_the_github_pages_manifest_publishes_no_script_either():
+    """The steer named "the Pages manifest" too. GitHub Pages serves `docs/` by a named list,
+    never `site/`; this keeps a script from being added to that list."""
+    from tools import pages_publish_manifest as manifest
+    assert manifest.PUBLISHED
+    assert [p for p in manifest.PUBLISHED if p.endswith((".py", ".mjs"))] == []

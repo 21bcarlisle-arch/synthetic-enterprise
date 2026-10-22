@@ -89,6 +89,7 @@ import json
 import re
 import sys
 from dataclasses import dataclass, field
+from html.parser import HTMLParser
 from pathlib import Path
 from typing import Any, Callable, Iterator
 
@@ -588,6 +589,149 @@ def note_line(root: Path | None = None, *, write_report: bool = True) -> str:
             f"{named}{more}{'' if not more else ''}. Full report: `{DEFAULT_REPORT}`.")
 
 
+# --------------------------------------------------------------------------------------
+# THE SITE LEG: canon against the served pages, not only against the standing documents.
+#
+# Director's front-door steer, 2026-10-22, Checks: "no superseded line presented as current on
+# any served page, and quoted canon lines verbatim". The register above binds a page's claim to
+# the CODE; this leg binds a served page's words to the CANON, so it needs no register rows.
+#
+# It reads what a reader sees: visible HTML text, with `<script>`, `<style>` and comments
+# skipped. The first sweep (item 1) hit "cheapest tonne" only inside an HTML comment explaining
+# its withdrawal, which is not presented to anyone. Text a page's JavaScript writes at load is
+# NOT read here -- that is the door tests' subject, and this leg says so rather than claiming it.
+# --------------------------------------------------------------------------------------
+
+CANON_DOC = "docs/design/DIRECTOR_CANON.md"     # also spelled out in `site_drift`, for the census
+SITE_ROOT = "site"
+
+#: Framings canon §16 marks superseded (and the withdrawn headline item 1 replaced). A served page
+#: may still TELL their history: wrap that text in an element carrying `data-canon-history`, which
+#: makes the choice visible in the page source rather than a silent allowance here.
+SUPERSEDED_ON_SITE: tuple[tuple[str, str], ...] = (
+    ("cheapest tonne", "the July carbon-abatement headline; CO1 and canon v4 decision 4"),
+    ("carbon abatement through personalisation", "the 19 July mission; §16 Mission"),
+    ("grown toward go-live", "the first mission; §16 Mission"),
+    ("non-commercial", "the 21 July mission; §16 Mission"),
+    ("public domain", "the 21 July mission; §16 Mission"),
+    ("80 founders", "the book before 6 Oct; §16 Book size"),
+    ("director twin", "the twin as approver; §16, void since 29 July"),
+)
+
+#: A canon quote is policed on a page only once the page has started to quote it: these many
+#: opening words, verbatim, commit the page to the whole line. Fewer would match ordinary prose
+#: ("The enterprise value is"); the M1 opening is seven words before it can be anything else.
+QUOTE_OPENING_WORDS = 7
+QUOTE_MIN_WORDS = 10
+
+
+class _VisibleText(HTMLParser):
+    SKIP = {"script", "style", "noscript", "template"}
+
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.parts: list[str] = []
+        self._stack: list[tuple[str, bool]] = []    # (tag, hides its text)
+
+    def handle_starttag(self, tag, attrs):
+        if tag in {"br", "img", "meta", "link", "input", "hr", "wbr", "source", "area", "col"}:
+            self.parts.append(" ")
+            return
+        hides = tag in self.SKIP or any(k == "data-canon-history" for k, _ in attrs)
+        self._stack.append((tag, hides))
+        self.parts.append(" ")
+
+    def handle_endtag(self, tag):
+        for i in range(len(self._stack) - 1, -1, -1):
+            if self._stack[i][0] == tag:
+                del self._stack[i:]
+                break
+        self.parts.append(" ")
+
+    def handle_data(self, data):
+        if not any(hides for _, hides in self._stack):
+            self.parts.append(data)
+
+
+def _plain(text: str) -> str:
+    text = text.replace("\u201c", '"').replace("\u201d", '"').replace("\u2018", "'").replace("\u2019", "'")
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def visible_text(html: str) -> str:
+    parser = _VisibleText()
+    parser.feed(html)
+    parser.close()
+    return _plain(" ".join(parser.parts))
+
+
+def canon_quotes(canon_text: str) -> list[str]:
+    """Every double-quoted canon line of at least QUOTE_MIN_WORDS words, whitespace-normalised.
+
+    An opening quote is one at the start of a line or after a space or bracket, followed by a
+    letter, so the gap between two quotes ('", "') is never read as a quote itself.
+    """
+    flat = _plain(canon_text)
+    found = re.findall(r'(?:(?<=^)|(?<=[\s(]))"([A-Za-z][^"]*?)"', flat)
+    return sorted({q.strip() for q in found if len(q.split()) >= QUOTE_MIN_WORDS})
+
+
+def served_pages(root: Path) -> list[Path]:
+    site = root / SITE_ROOT
+    return sorted(p for p in site.rglob("*.html")
+                  if not (set(p.relative_to(site).parts) & SKIP_DIRS))
+
+
+def site_drift(root: Path) -> dict[str, Any]:
+    """{superseded: [...], misquoted: [...], pages, quotes} over every served `site/**/*.html`.
+
+    Raises ProbeError when the canon cannot be read or yields no quotes (fail closed: a leg that
+    found nothing to check must not read as a page that drifted nowhere). A root with no `site/`
+    is a fixture tree, not this repository, and is reported as `pages: 0`.
+    """
+    if not (root / SITE_ROOT).is_dir():
+        return {"pages": 0, "quotes": 0, "superseded": [], "misquoted": []}
+    canon = root / "docs/design/DIRECTOR_CANON.md"      # markdown, never Python source
+    try:
+        quotes = canon_quotes(canon.read_text(encoding="utf-8"))
+    except OSError as exc:
+        raise ProbeError(f"the site leg cannot read {CANON_DOC}: {exc}") from exc
+    if not quotes:
+        raise ProbeError(f"the site leg found no quoted canon line in {CANON_DOC}")
+    superseded, misquoted = [], []
+    pages = served_pages(root)
+    for page in pages:
+        if page.suffix != ".html":
+            continue
+        rel = page.relative_to(root).as_posix()
+        text = visible_text(page.read_text(encoding="utf-8", errors="replace"))
+        lower = text.lower()
+        for phrase, why in SUPERSEDED_ON_SITE:
+            if phrase in lower:
+                superseded.append({"page": rel, "phrase": phrase, "why": why})
+        for quote in quotes:
+            opening = " ".join(quote.split()[:QUOTE_OPENING_WORDS])
+            if opening in text and quote not in text:
+                at = text.index(opening)
+                misquoted.append({"page": rel, "canon": quote,
+                                  "page_reads": text[at:at + len(quote) + 20]})
+    return {"pages": len(pages), "quotes": len(quotes),
+            "superseded": superseded, "misquoted": misquoted}
+
+
+def _render_site(site: dict[str, Any]) -> str:
+    lines = ["", f"SITE LEG -- {site['pages']} served page(s) against {site['quotes']} canon "
+                 "quote(s) and the superseded framings (visible HTML text only)"]
+    for row in site["superseded"]:
+        lines.append(f"  [SUPERSEDED] {row['page']}: {row['phrase']!r} -- {row['why']}")
+    for row in site["misquoted"]:
+        lines.append(f"  [MISQUOTED ] {row['page']}: canon {row['canon']!r}")
+        lines.append(f"               page reads {row['page_reads']!r}")
+    if not (site["superseded"] or site["misquoted"]):
+        lines.append("  every served page holds")
+    return "\n".join(lines)
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--root", default=str(REPO_ROOT), help="repo root to check")
@@ -601,18 +745,22 @@ def main(argv: list[str] | None = None) -> int:
     register = Path(args.register) if args.register else root / DEFAULT_REGISTER
     try:
         verdicts, report = run(root, register)
+        report["site"] = site_drift(root)
     except ProbeError as exc:
         print(f"CANON DRIFT CHECK UNAVAILABLE: {exc}", file=sys.stderr)
         return 2  # an unavailable check is a FAILED check (R15 fail-silent)
 
-    print(json.dumps(report, indent=2) if args.json else _render(verdicts, report["removed"]))
+    print(json.dumps(report, indent=2) if args.json
+          else _render(verdicts, report["removed"]) + _render_site(report["site"]))
     if args.write_report:
         out = root / DEFAULT_REPORT
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     # A claim that LEFT is a failure of the same rank as a claim that drifted -- the whole point of
     # the rung is that deleting the row must not be cheaper than fixing the page.
-    return 1 if (any(v.verdict in DRIFT_VERDICTS for v in verdicts) or report["removed"]) else 0
+    site_drifted = report["site"]["superseded"] or report["site"]["misquoted"]
+    return 1 if (any(v.verdict in DRIFT_VERDICTS for v in verdicts) or report["removed"]
+                 or site_drifted) else 0
 
 
 if __name__ == "__main__":

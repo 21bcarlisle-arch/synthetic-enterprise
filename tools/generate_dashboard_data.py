@@ -3075,8 +3075,13 @@ def proof_strip_figures(data, dashboard, sim_meta):
         clock = "settled year by year"
         if crisis:
             clock += ", the {}&ndash;{} gas crisis included".format(crisis[0], str(crisis[-1])[-2:])
-        figures.append(("{}&ndash;{}".format(min(years), max(years)),
-                        "{} calendar years, lived in order".format(len(years)), clock))
+        label = "{} calendar years, lived in order".format(len(years))
+        # A cold reader (2026-10-22) took "10 calendar years" as ten whole years; the price
+        # record ends 7 Jun 2025, so the last year is part of one and the label says so.
+        if p_to and str(p_to)[:4] == str(max(years)) and str(p_to)[5:10] != "12-31":
+            label = "{} years, lived in order; {} runs to {}".format(
+                len(years), max(years), _day(p_to))
+        figures.append(("{}&ndash;{}".format(min(years), max(years)), label, clock))
     else:
         missing.append("the years (no annual accounts in this run)")
 

@@ -28,6 +28,8 @@ jobs:
         # Staged without any file over Pages' 25 MiB limit, which refuses the WHOLE upload
         # (run 38474007478: one 57.7 MiB ledger held every page on a week-old snapshot).
         # Each file left out is printed as a ::warning:: -- see PAGES_MAX_FILE_BYTES.
+        # The site lane's tests, helpers and node harnesses (`*.py`, `_*.mjs`) are left out too,
+        # and the stage FAILS if one reaches the staged tree -- see `is_build_only`.
         run: |
           python3 tools/assert_deployed_bytes_are_served.py --stage _pages_deploy
           npx wrangler pages deploy _pages_deploy --project-name=poesys-net --commit-dirty=true

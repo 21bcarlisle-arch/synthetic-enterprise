@@ -129,6 +129,22 @@ NOT_ASSETS = {"_headers", "_redirects", "_routes.json", "functions"}
 PAGES_MAX_FILE_BYTES = 25 * 1024 * 1024
 
 
+#: Scripts that run on the build machine and never in a reader's browser: the site lane's tests,
+#: its helpers (`ia_register.py`, `moap_*.py`) and its node harnesses (`_*.mjs`). About seventy
+#: of them were served as text until 2026-10-22, when the director's front-door steer (item 9)
+#: asked for them to be left out. No served page links to one -- checked over every `site/**`
+#: `.html` and `.js` the day this landed. A browser module a page DOES load must not start with
+#: `_` and end `.mjs`, or the stage drops it and that page's door tests red.
+def is_build_only(rel: str) -> bool:
+    parts = rel.replace(os.sep, "/").split("/")
+    name = parts[-1]
+    return (
+        "__pycache__" in parts
+        or name.endswith((".py", ".pyc"))
+        or (name.startswith("_") and name.endswith(".mjs"))
+    )
+
+
 def oversized(root: str) -> list[tuple[str, int]]:
     """[(path relative to `root`, size)] for every file Pages would refuse."""
     found = []
@@ -142,21 +158,54 @@ def oversized(root: str) -> list[tuple[str, int]]:
 
 
 def stage(dest: str) -> int:
-    """Copy `site/` to `dest` minus the files Pages would refuse, naming each one left out.
+    """Copy `site/` to `dest` minus the files Pages would refuse and the build-only scripts.
 
-    A `::warning::` per file, so the omission is on the run's surface and not only in its log.
+    A `::warning::` per oversized file, so the omission is on the run's surface and not only in
+    its log. The build-only scripts are left out by design and counted in one line.
+
+    Then the staged tree is read back, and the stage FAILS if any build-only file is in it --
+    the check is on what would be uploaded, not on the ignore rule that was meant to produce it.
     """
     src = os.path.join(PROJECT, "site")
     left_out = oversized(src)
     skip = {os.path.join(src, rel) for rel, _ in left_out}
-    shutil.copytree(src, dest, ignore=lambda d, names: [
-        n for n in names if os.path.join(d, n) in skip
-    ])
+    dropped: list[str] = []
+
+    def ignore(d: str, names: list[str]) -> list[str]:
+        out = []
+        for n in names:
+            full = os.path.join(d, n)
+            if full in skip:
+                out.append(n)
+            elif is_build_only(os.path.relpath(full, src)):
+                out.append(n)
+                dropped.append(n)
+        return out
+
+    shutil.copytree(src, dest, ignore=ignore)
     for rel, size in left_out:
         print(f"::warning::NOT DEPLOYED -- site/{rel} is {size / 2**20:.1f} MiB, over Pages' "
               f"{PAGES_MAX_FILE_BYTES // 2**20} MiB per-file limit; readers keep whatever "
               f"copy the edge last had")
+    print(f"left out {len(dropped)} build-only script(s) and cache dir(s) (tests, helpers, "
+          f"node harnesses): they run on the build machine, never in a reader's browser")
+    shipped = shipped_build_only(dest)
+    if shipped:
+        print("::error::BUILD-ONLY FILES IN THE STAGED SITE -- these would be served to readers:\n  "
+              + "\n  ".join(shipped), file=sys.stderr)
+        return 1
     return 0
+
+
+def shipped_build_only(root: str) -> list[str]:
+    """Every build-only file under `root`, relative to it. Empty is the only passing answer."""
+    found = []
+    for dirpath, dirnames, names in os.walk(root):
+        for name in dirnames + names:
+            rel = os.path.relpath(os.path.join(dirpath, name), root)
+            if is_build_only(rel):
+                found.append(rel)
+    return sorted(found)
 
 
 def changed_files(base: str | None) -> list[tuple[str, str]]:
@@ -190,6 +239,8 @@ def url_for(path: str) -> str | None:
     """
     rel = path[len("site/"):]
     if not rel or rel.split("/")[0] in NOT_ASSETS or os.path.basename(rel) in NOT_ASSETS:
+        return None
+    if is_build_only(rel):      # never staged, so never awaited
         return None
     if rel == "index.html":
         return f"{HOST}/"
