@@ -67,6 +67,7 @@ __all__ = [
     "retention_offer_can_buy_anything",
     "retention_save_holdout_draws",
     "retention_value_protected",
+    "retention_value_at_save_rate_lower_bound",
     "retention_value_weighed_by_save_odds",
 ]
 
@@ -447,6 +448,53 @@ def retention_value_weighed_by_save_odds(value_protected: float | None, *, belie
     if rate is None:
         return value_protected, None, reason
     return max(0.0, min(1.0, belief)) * rate * value_protected, rate, reason
+
+
+#: Why the lower-bound guard made no offer, by the part of its partition that refused. The run
+#: logs these as `no_offer_reason`.
+SAVE_RATE_NOT_LEARNED = "the_save_rate_is_not_yet_learned"
+SAVE_RATE_INTERVAL_INCLUDES_ZERO = "the_save_rate_interval_includes_zero"
+SAVE_RATE_LOWER_BOUND_DOES_NOT_PAY = "the_save_rate_lower_bound_does_not_pay"
+
+
+def save_rate_lower_bound_decides(interval: tuple[float, float, float] | None, *,
+                                  belief: float, value_protected: float | None,
+                                  offer_cost: float) -> tuple[bool, str | None]:
+    """(2026-10-22) The guard that acts on what its save rate can show and no more:
+    `(offer, refusal)`. An offer only where belief x the interval's LOWER bound x the value
+    protected exceeds the offer's cost. No offer while there is no interval, none where the
+    interval includes zero, and none where the lower bound is above zero but does not pay; each
+    refusal is named. Knowledge: §9f of
+    `docs/market_research/a_save_offer_against_the_switching_rules_and_the_seam.md`."""
+    if interval is None or value_protected is None:
+        return False, SAVE_RATE_NOT_LEARNED
+    lower = interval[1]
+    if lower <= 0.0:
+        return False, SAVE_RATE_INTERVAL_INCLUDES_ZERO
+    if max(0.0, min(1.0, belief)) * lower * value_protected <= offer_cost:
+        return False, SAVE_RATE_LOWER_BOUND_DOES_NOT_PAY
+    return True, None
+
+
+def retention_value_at_save_rate_lower_bound(
+        value_protected: float | None, *, belief: float, ending_term_type: str | None,
+        renewal_year: int | None, offer_cost: float,
+) -> tuple[float | None, tuple[float, float, float] | None, str | None, str]:
+    """The run's door to `save_rate_lower_bound_decides`: `(value, interval, refusal, reason)`.
+    `value` is belief x lower bound x value protected where the guard offers, and `None` where it
+    refuses, so the caller's value test can never offer on a refusal. `reason` is the ledger's."""
+    from company.crm.competitive_pressure import active_pressure_ledger
+
+    ledger = active_pressure_ledger()
+    if ledger is None:
+        interval, reason = None, "no pressure ledger in scope"
+    else:
+        interval, reason = ledger.retention_save_rate_interval(ending_term_type, renewal_year)
+    offers, refusal = save_rate_lower_bound_decides(
+        interval, belief=belief, value_protected=value_protected, offer_cost=offer_cost)
+    if not offers:
+        return None, interval, refusal, reason
+    return max(0.0, min(1.0, belief)) * interval[1] * value_protected, interval, None, reason
 
 
 def book_retention_offer(*, renewal_year: int | None, ending_term_type: str | None,

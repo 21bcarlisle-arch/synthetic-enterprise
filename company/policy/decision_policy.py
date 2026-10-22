@@ -247,6 +247,14 @@ class DecisionPolicy:
     #: on without `retention_weighs_save_odds`, whose rate it feeds. Prereg §15.
     retention_save_rate_learned_against_holdout: bool = False
 
+    #: (2026-10-22) The guard offers only where the belief x the LOWER bound of the holdout save
+    #: rate's 95% interval x the value protected beats the offer's cost
+    #: (`growth_desk.save_rate_lower_bound_decides`). No offer while the rate is unlearned or its
+    #: interval includes zero, each with its reason. Off on every standing policy; the run refuses
+    #: it on without `retention_save_rate_learned_against_holdout`, the only rate with an interval.
+    #: Prereg §16.
+    retention_offers_on_the_save_rate_lower_bound: bool = False
+
     #: (2026-10-18) C34/C35 decide once per billing account, over both legs, where a dual-fuel
     #: household's two legs reach the decision on one date (`company.crm.next_best_action.
     #: states_for_decision`). A household leaves with both fuels about nine times in ten

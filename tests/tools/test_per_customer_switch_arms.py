@@ -33,6 +33,9 @@ def test_each_arm_differs_from_current_in_exactly_its_own_fields():
     assert _differing(arms.arm_policy("all_on_save_odds_holdout"),
                       arms.arm_policy("all_on_save_odds")) == {
         "name", "retention_save_rate_learned_against_holdout"}
+    assert _differing(arms.arm_policy("all_on_save_odds_lower_bound"),
+                      arms.arm_policy("all_on_save_odds_holdout")) == {
+        "name", "retention_offers_on_the_save_rate_lower_bound"}
     assert arms.arm_policy("flat") == FLAT_SUPPLIER_POLICY
     assert _differing(arms.arm_policy("flat"), CURRENT_POLICY)  # flat is not the control
 
@@ -60,7 +63,7 @@ def test_every_arm_is_reachable_bound_where_policy_less_callers_see_it_and_keeps
         assert "next_best_action_renewal_log" in out.read_text()
     names = [arms.arm_policy(a).name for a in arms.ARMS]
     assert calls == [(n, n) for n in names]
-    assert len(set(names)) == len(arms.ARMS) == 6
+    assert len(set(names)) == len(arms.ARMS) == 7
 
 
 def test_an_unknown_arm_is_refused_by_name(seen):

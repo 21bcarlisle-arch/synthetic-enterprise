@@ -112,6 +112,9 @@ _SAVE_HOLDOUT_BREAK_EVEN_SAVE_RATE: float = 0.83
 #: Two-sided 5% and 80% power, the published convention for sizing a two-arm comparison; not a
 #: domain figure.
 _SAVE_HOLDOUT_Z: float = 1.959964 + 0.841621
+#: Two-sided 95%, the published convention for a confidence interval; not a domain figure. The
+#: interval it sets on the save rate is Katz's log interval on the risk ratio (§9f).
+_SAVE_RATE_INTERVAL_Z: float = 1.959964
 
 
 def save_holdout_share(offers_a_year: float, loss_rate: float, break_even_save_rate: float) -> float:
@@ -516,6 +519,41 @@ class CompetitivePressureLedger:
         return max(0.0, (h - o) / h), (
             f"holdout lost {l_h} of {n_h} ({h:.3f}), offered lost {l_o} of {n_o} ({o:.3f}) "
             f"ending a {ending_term_type} term: difference {h - o:+.3f}")
+
+    def retention_save_rate_interval(
+        self, ending_term_type: Optional[str], renewal_year: Optional[int]
+    ) -> tuple[Optional[tuple[float, float, float]], str]:
+        """`((point, lower, upper), reason)` for the holdout's save rate `1 - o/h`, or `(None,
+        reason)` wherever `retention_save_rate` would refuse. Not floored: a lower bound at or
+        below zero is the interval including zero, and the guard reads it as such.
+
+        The method is Katz's log interval on the risk ratio `o/h` (Katz et al., Biometrics 34,
+        1978), on the same Jeffreys-corrected proportions as the point: `var(log o/h) =
+        (1-o)/((n_o+1) o) + (1-h)/((n_h+1) h)`, at `_SAVE_RATE_INTERVAL_Z`. A save rate is one
+        minus that ratio, so its bounds are one minus the ratio's. Knowledge: §9f."""
+        if ending_term_type is None or renewal_year is None:
+            return None, "no ending-term type or renewal year"
+        if not self.loss_reporting_armed:
+            return None, "departures are not being reported to this ledger"
+        if not self.save_holdout_armed:
+            return None, "no holdout: a save rate read against the belief has no interval"
+        kind, year = str(ending_term_type), int(renewal_year)
+        n_h, _, l_h = self._closed_sums(self.retention_holdout_sums, kind, year)
+        n_o, _, l_o = self._closed_sums(self.retention_offer_sums, kind, year)
+        if n_h <= 0 or n_o <= 0:
+            return None, (f"no closed holdout and offered renewals ending a {kind} "
+                          f"term to compare ({n_h} held out, {n_o} offered)")
+        h = (l_h + _CONTINUITY_SUCCESSES) / (n_h + _CONTINUITY_TRIALS)
+        o = (l_o + _CONTINUITY_SUCCESSES) / (n_o + _CONTINUITY_TRIALS)
+        ratio = o / h
+        spread = _SAVE_RATE_INTERVAL_Z * math.sqrt(
+            (1.0 - o) / ((n_o + _CONTINUITY_TRIALS) * o)
+            + (1.0 - h) / ((n_h + _CONTINUITY_TRIALS) * h))
+        point = 1.0 - ratio
+        lower, upper = 1.0 - ratio * math.exp(spread), 1.0 - ratio * math.exp(-spread)
+        return (point, lower, upper), (
+            f"holdout lost {l_h} of {n_h}, offered lost {l_o} of {n_o} ending a {kind} term: "
+            f"save rate {point:+.3f}, 95% interval [{lower:+.3f}, {upper:+.3f}]")
 
     def retention_save_rate(
         self, ending_term_type: Optional[str], renewal_year: Optional[int]

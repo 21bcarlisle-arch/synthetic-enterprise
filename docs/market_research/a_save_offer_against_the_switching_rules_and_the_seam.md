@@ -760,6 +760,71 @@ calls transfer.
   the losses the company predicts to pay. Little survives that bar. The holdout is how the company
   would learn this from its own book rather than from its belief.
 
+### 9f. Deciding while the save rate cannot be told from zero (2026-10-22)
+
+Written under K8 before the lower-bound guard was built
+(`docs/staging/records/SEAT_PREREG_THE_PER_CUSTOMER_SWITCHES_ON_TOGETHER_AGAINST_FLAT_2026-10-21.md` §16).
+Why it is needed: on §15's holdout arm the holdout lost 8 of 21 and the offered group lost 26 of 62.
+The point save rate was −0.09, floored to 0. Nothing in the guard said how wide the doubt was. Where
+the rate had no holdout yet (`None`), the guard fell back to its standing value test, and that test
+offers. The world kept nobody in either arm (`changed_a_departure` 0). Every pound of offer cost
+landed on a stayer, which M2 calls transfer.
+
+**What the guard did before this section, read from the code (origin/main 4d82dce3b).**
+- **Rate `None`** (no closed holdout or no closed offers of the type):
+  `growth_desk.retention_value_weighed_by_save_odds` returns the value protected unweighed. The
+  standing test `value > cost` then decides, and it offers.
+- **Holdout difference whose interval includes zero:** there was no interval. `(h − o)/h` was used
+  as a point, floored at 0. A point of 0 offers nothing. A positive point offers wherever belief ×
+  point × value beats the cost, however few renewals it rests on.
+
+**What published practice says.** These are citations from the literature. None was re-fetched
+for this section.
+
+| finding | source | bearing |
+|---|---|---|
+| Retention targeting should rank by the **lift** measured against a randomised untreated group, not by risk. | Ascarza 2018, *JMR* 55(1) (§9e) | The quantity is a treatment effect, and only a comparison estimates it. |
+| **Uplift modelling** is the practice of estimating that lift per customer from treated and control groups. Its reviews treat the control group as standing infrastructure, kept for as long as the model is used. | Radcliffe & Surry, "Real-world uplift modelling with significance-based uplift trees", Stochastic Solutions white paper, 2011; Gutierrez & Gérardy, "Causal inference and uplift modelling: a review", *PMLR* 67, 2017; Devriendt, Moldovan & Verbeke, *Big Data* 6(1), 2018 | A guard that stops treating also stops learning. The control group is how the estimate keeps going (see the GAP below). |
+| A rule that treats only when the effect is **significant** is not the welfare-best rule in general. Under minimax regret, treating whenever the estimate favours treatment does better when sample sizes are modest. | Manski, "Statistical treatment rules for heterogeneous populations", *Econometrica* 72(4), 2004; Kitagawa & Tetenov, "Who should be treated? Empirical welfare maximization methods for treatment choice", *Econometrica* 86(2), 2018 | **This counts against the rule built here.** The rule below is the conservative one, and F11 is why it is chosen: when the evidence is ambiguous, erring against our own thesis is the safe direction. A lower-bound rule can only under-claim the value that offers create. |
+| The interval for a ratio of two proportions: Katz's log method, `var(log RR) = (1−p₁)/(n₁p₁) + (1−p₂)/(n₂p₂)`. | Katz, Baptista, Azen & Pike, "Obtaining confidence intervals for the risk ratio in cohort studies", *Biometrics* 34(3), 1978 | This is the method used, so the width comes from the counts and not from a picked figure. |
+
+**GAPs, labelled.**
+- **GAP: what a GB energy retention desk does while a retention offer's effect is unresolved.**
+  Does it keep offering, stop, or keep a standing experiment? No published source found.
+- **GAP: the size of a standing experiment budget.** The sources say to keep a control group. None
+  found says how many treated offers a supplier should fund to keep learning once the guard has
+  stopped offering on value.
+- **A consequence, stated and not hidden.** The lower-bound guard below makes no offer while the
+  rate is unlearned. The holdout's coin is tossed only on renewals the guard would offer on. So **from
+  a cold start the guard never offers, and it can never learn a rate.** Its offer branch is
+  reachable only on a ledger that already holds closed offered and held-out renewals, for example a
+  run that switched it on after a learning stretch. That is what the direction asked for: no offer
+  while the rate is `None`. Learning again needs an explicit, bounded experiment kept apart from
+  the value decision, as the uplift literature keeps its control group. It is raised for the
+  director (`for_the_director`) and not built here.
+
+**What the build chooses (`retention_offers_on_the_save_rate_lower_bound`, default off).**
+- **The interval.** `CompetitivePressureLedger.retention_save_rate_interval`. On the same
+  Jeffreys-corrected proportions as §9e's point (`h = (l_h + ½)/(n_h + 1)`, the same for `o`), the
+  save rate is `1 − o/h`. Its 95% bounds are `1 − (o/h)·exp(±1.96·se)`, with Katz's `se` on
+  `(n + 1)`. The bounds are not floored: a lower bound at or below 0 is the interval including zero.
+  At §15's counts it reads **−0.089, [−0.986, +0.403]**. The test prints it.
+- **The decision, a partition with a named reason in each part** (`growth_desk.save_rate_lower_bound_decides`):
+  no interval → no offer (`the_save_rate_is_not_yet_learned`); lower ≤ 0 → no offer
+  (`the_save_rate_interval_includes_zero`); belief × lower × value ≤ cost → no offer
+  (`the_save_rate_lower_bound_does_not_pay`); otherwise offer. The run logs each decision in
+  `retention_save_rate_lower_bound_log`, with the interval and the ledger's reason. That closes, for
+  this arm, the instrument gap §15g named (the holdout-side rate reached no output row).
+- **What it says plainly.** At §9e's break-even save rate of 0.83, a lower bound has to clear the
+  same bar the point had to. Printed at §15's group sizes (21 held out, 62 offered), the lower bound
+  clears 0.83 only where the holdout lost 16 of 21 and the offered group at most 1 of 62, or the
+  holdout lost all 21 and the offered group at most 4. That is a loss rate about ten times lower
+  among the offered. §15 measured 0.42 offered against 0.39 held out. This guard will almost never
+  offer here. (The bound is not monotone at zero offered losses. At 16 of 21 it reads 0.831 at 0
+  offered losses and 0.843 at 1, because Katz's variance grows as a corrected proportion nears
+  zero. The effect is about a hundredth, and it errs towards refusing.) That is the claim to
+  test: that on this book, acting only on what the company can infer means making no retention offers.
+
 ## 10. Does a roll offer reach the leaving household's choice? A trace (2026-10-22)
 
 Prereg §7(b) found that 37 households left at the very roll they were offered on, under both `flat`

@@ -76,6 +76,7 @@ from company.interfaces.growth_desk import (
     retention_engagement,
     retention_offer_can_buy_anything,
     retention_save_holdout_draws,
+    retention_value_at_save_rate_lower_bound,
     retention_value_protected,
     retention_value_weighed_by_save_odds,
 )
@@ -1366,6 +1367,12 @@ def _refuse_save_odds_with_no_ending_term(policy) -> None:
             "retention_save_rate_learned_against_holdout feeds the save rate the save-odds guard "
             "weighs, and this policy leaves retention_weighs_save_odds off, so nothing would read "
             "it and the held-out households would lose their offer for nothing: switch both on")
+    if (policy.retention_offers_on_the_save_rate_lower_bound
+            and not policy.retention_save_rate_learned_against_holdout):
+        raise ValueError(
+            "retention_offers_on_the_save_rate_lower_bound reads the interval of the holdout's "
+            "save rate, and this policy leaves retention_save_rate_learned_against_holdout off, so "
+            "there is no interval and the guard would never offer: switch both on")
 
 
 def _account_state_svt_rate(commodity: str, term_start_str: str) -> float | None:
@@ -2808,6 +2815,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     # World-side: what each offer changed (harness only), and the save rate's own holdout.
     retention_offer_channel_log: list[dict] = []
     retention_save_holdout_log: list[dict] = []
+    retention_save_rate_lower_bound_log: list[dict] = []
     # B8 L3: the company's own retention holdout, on a policy that runs one.
     _retention_holdout = new_retention_holdout() if policy.retention_runs_holdout else None
     retention_holdout_log: list[dict] = []
@@ -3794,7 +3802,26 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     # (2026-10-22) Weighed by the chance the offer saves anything: the belief x the
                     # company's own save rate on past offers ending this type of term.
                     _save_rate = None
-                    if policy.retention_weighs_save_odds:
+                    _save_rate_refusal = None
+                    if policy.retention_offers_on_the_save_rate_lower_bound:
+                        # (2026-10-22) Only on what the holdout can show: the interval's lower
+                        # bound must pay, and an unlearned rate offers nothing (prereg §16).
+                        _value_protected, _interval, _save_rate_refusal, _save_rate_reason = (
+                            retention_value_at_save_rate_lower_bound(
+                                _value_protected, belief=company_est_pre,
+                                ending_term_type=_ending_term_type, renewal_year=_renewal_year,
+                                offer_cost=ret_cost))
+                        _save_rate = None if _interval is None else _interval[1]
+                        retention_save_rate_lower_bound_log.append({
+                            "customer_id": billing_account, "event_date": term_start_str,
+                            "ending_term_type": _ending_term_type,
+                            "company_churn_estimate": company_est_pre,
+                            "save_rate_interval": (None if _interval is None
+                                                   else [round(v, 4) for v in _interval]),
+                            "offer_cost_gbp": round(ret_cost, 2),
+                            "refusal": _save_rate_refusal, "reason": _save_rate_reason,
+                        })
+                    elif policy.retention_weighs_save_odds:
                         _value_protected, _save_rate, _save_rate_reason = (
                             retention_value_weighed_by_save_odds(
                                 _value_protected, belief=company_est_pre,
@@ -3816,9 +3843,12 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                         _no_offer_reason = "the_discount_cannot_win_the_fix"
                         retention_gate_value_test_log.append({
                             "customer_id": billing_account, "event_date": term_start_str,
-                            "value_protected_gbp": round(_value_protected, 2),
+                            # None where the lower-bound guard refused (prereg §16).
+                            "value_protected_gbp": (None if _value_protected is None
+                                                    else round(_value_protected, 2)),
                             "offer_cost_gbp": round(ret_cost, 2),
-                            "value_test_would_offer": _value_protected > ret_cost,
+                            "value_test_would_offer": (_value_protected is not None
+                                                       and _value_protected > ret_cost),
                             # On a holdout policy the coin, not this test, would have decided
                             # half of them first; the verdict here is the guard's alone.
                             "holdout_would_have_drawn": _retention_holdout is not None,
@@ -3884,7 +3914,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                         })
                     else:
                         _no_offer_reason = (
-                            "held_out" if _holdout_arm == "holdout" and _would_offer else "uneconomical")
+                            "held_out" if _holdout_arm == "holdout" and _would_offer
+                            else _save_rate_refusal or "uneconomical")
             # Phase NQ: industry base rate floor when no prior rate exists
             if company_est_pre is None:
                 company_est_pre = estimate_churn_without_rate_history()
@@ -5786,6 +5817,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         "retention_log": retention_log,
         "retention_offer_channel_log": retention_offer_channel_log,
         "retention_save_holdout_log": retention_save_holdout_log,
+        "retention_save_rate_lower_bound_log": retention_save_rate_lower_bound_log,
         **({"retention_holdout_log": retention_holdout_log,
             # Q10: each row's days to its first later loss, so any window can be read off the run.
             "retention_holdout_outcomes": _retention_holdout.outcomes(

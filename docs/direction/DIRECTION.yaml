@@ -513,3 +513,24 @@ for_the_director:
     and run by AI'' and M11 asserted, not substantiated, and asked first for a repository link. The repository
     is public today (gh api: visibility public). REPO_PRIVATE_AND_IP (docs/design/REPO_PRIVATE_AND_IP_PHASE1_FINDINGS.md,
     July) once planned to make it private. The site links it nowhere.'
+- id: the-retention-guard-you-asked-for-offer
+  raised: '2026-10-22'
+  kind: strategy
+  what: The retention guard you asked for (offer only where the save rate's lower bound pays, none while
+    it is unlearned) can never learn from a cold start. The holdout coin is tossed only on renewals the
+    guard would offer on, so with no offers there is no interval, and no interval means no offers. It
+    is built default off, as you asked.
+  proposal: 'Keep a small randomised experiment that is separate from the value decision: while the rate
+    is unlearned or its interval includes zero, the company''s coin offers a capped number of renewals
+    a year as an experiment, with its cost booked as the cost of learning, and stops early once the interval''s
+    upper bound cannot pay (futility). Uplift practice keeps a standing control group the same way.'
+  recommendation: 'I recommend running §16 as built first. It asks whether making no retention offers
+    is worse than paying stayers, which is the M2 question, and it costs nothing to learn. Only if §16
+    shows the offers bought something the departure channel misses would I build the bounded experiment.
+    The trade-off: holding the literal rule means the company stops learning its save rate. Holding position:
+    the field stays default off. What would change my view: P16d below -£1,000.'
+  status: open
+  resolution: ''
+  evidence: Prereg §16 and knowledge §9f of a_save_offer_against_the_switching_rules_and_the_seam.md.
+    On §15's holdout (8 of 21 lost held out, 26 of 62 offered) the 95% interval is [-0.99, +0.40]. Clearing
+    the 0.83 break-even needs roughly ten times fewer offered losses than held-out losses.

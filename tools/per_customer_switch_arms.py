@@ -20,6 +20,9 @@ SEAT_PREREG_THE_PER_CUSTOMER_SWITCHES_ON_TOGETHER_AGAINST_FLAT_2026-10-21.md`):
                  save rate per ending-term type (`retention_weighs_save_odds`), section 13.
   * `all_on_save_odds_holdout` -- `all_on_save_odds` with that save rate learned against the
                  company's own holdout (`retention_save_rate_learned_against_holdout`), section 15.
+  * `all_on_save_odds_lower_bound` -- `all_on_save_odds_holdout` with the guard offering only where
+                 the save rate's lower bound pays (`retention_offers_on_the_save_rate_lower_bound`),
+                 section 16.
 
 THE OFFERS' MONEY, BY WHAT EACH OFFER CHANGED (section 15). Every output carries
 `retention_offer_money_by_channel`: the offers that changed a departure, the offers that changed a
@@ -56,15 +59,16 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 ARMS = ("current", "all_on", "flat", "all_on_ending_term", "all_on_save_odds",
-        "all_on_save_odds_holdout")
+        "all_on_save_odds_holdout", "all_on_save_odds_lower_bound")
 ALL_ON_FIELDS = ("next_best_action_decides_at_renewal", "next_best_action_shares_by_retention_rise",
                  "save_offer_decides_per_household")
 ENDING_TERM_FIELDS = ALL_ON_FIELDS + ("renewal_belief_by_ending_term",)
 SAVE_ODDS_FIELDS = ENDING_TERM_FIELDS + ("retention_weighs_save_odds",)
 SAVE_HOLDOUT_FIELDS = SAVE_ODDS_FIELDS + ("retention_save_rate_learned_against_holdout",)
+LOWER_BOUND_FIELDS = SAVE_HOLDOUT_FIELDS + ("retention_offers_on_the_save_rate_lower_bound",)
 CARRIED_RAW_KEYS = ("next_best_action_renewal_log", "next_best_action_legs_without_contribution",
                     "save_on_loss_notice_log", "retention_offer_channel_log",
-                    "retention_save_holdout_log")
+                    "retention_save_holdout_log", "retention_save_rate_lower_bound_log")
 OFFER_CHANNELS = ("changed_a_departure", "changed_a_stayers_tariff", "changed_neither")
 
 
@@ -85,6 +89,9 @@ def arm_policy(arm: str):
     if arm == "all_on_save_odds_holdout":
         return dataclasses.replace(CURRENT_POLICY, name="per_customer_all_on_save_odds_holdout",
                                    **{f: True for f in SAVE_HOLDOUT_FIELDS})
+    if arm == "all_on_save_odds_lower_bound":
+        return dataclasses.replace(CURRENT_POLICY, name="per_customer_all_on_save_odds_lower_bound",
+                                   **{f: True for f in LOWER_BOUND_FIELDS})
     if arm == "flat":
         return FLAT_SUPPLIER_POLICY
     raise SystemExit(f"REFUSED: arm {arm!r} is not one of {ARMS}")

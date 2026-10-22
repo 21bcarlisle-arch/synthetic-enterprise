@@ -1377,3 +1377,77 @@ Proposing it for CURRENT_POLICY waits on §14's seeds, as fixed. The >0.45 noise
 arise. Still owed: write the holdout-side rate and its reason onto each refusal row
 (`no_offer_churn_log` or `retention_save_holdout_log`). That would make P15b a reading rather than
 a rebuild.
+
+## 16. The guard offers only where its save rate's lower bound pays: `all_on_save_odds_lower_bound` beside `all_on_save_odds_holdout` and `flat` (filed 2026-10-22, before any arm was launched)
+
+*Drawn as `the-retention-guard-when-its-save-rate-cannot-be-told-from-zero`. Knowledge first:
+`docs/market_research/a_save_offer_against_the_switching_rules_and_the_seam.md` §9f. §15's grade
+(4d82dce3b) found the offers saved nobody: `changed_a_departure` was 0 in both arms, and the holdout
+rate was −0.09, floored to 0. Uplift practice keeps a control group. Manski (2004) and Kitagawa &
+Tetenov (2018) count against a significance-gated rule, and F11 is why it is chosen anyway.*
+
+**What the guard did before, read from the code.** Where the save rate is `None`, the value is
+returned unweighed and the standing test offers. Where the holdout's difference cannot be told from
+zero, there was no interval. A floored point of 0 offered nothing, and any positive point offered
+however few renewals it rested on.
+
+**What changed (one field).** `retention_offers_on_the_save_rate_lower_bound`. The ledger's
+`retention_save_rate_interval` gives Katz's 95% log interval on `o/h`, on the same
+Jeffreys-corrected proportions as the point. At §15's counts it reads −0.089, [−0.986, +0.403]. The
+guard (`growth_desk.save_rate_lower_bound_decides`) offers only where belief × lower × value > cost.
+Otherwise it refuses with one of `the_save_rate_is_not_yet_learned`,
+`the_save_rate_interval_includes_zero` or `the_save_rate_lower_bound_does_not_pay`. That reason
+becomes the renewal's `no_offer_reason`, and each decision is a row of
+`retention_save_rate_lower_bound_log`. The run refuses the field without
+`retention_save_rate_learned_against_holdout`. The arm is `tools/per_customer_switch_arms.py
+all_on_save_odds_lower_bound`, which is `all_on_save_odds_holdout` plus this field. The control is
+`test_the_retention_guard_offers_only_where_its_save_rates_lower_bound_pays.py`. It runs one
+reachability assertion over all four parts, and mutating the bound to the point, the unlearned
+refusal to an offer, or the zero test each turns it red.
+
+**Setup fact, read from the code, not a prediction: from a cold start this guard never offers.**
+The holdout's coin is tossed only on renewals the guard would offer on. With no closed offers there
+is no interval, so there is no offer and no coin, and the ledger never fills. The offer branch is
+reachable in the run only on a ledger that is already populated. The direction asked for exactly
+this ("while the rate is None, the guard makes no offer"). The arm therefore asks the M2 question
+directly: **is a per-customer stack that makes no retention offers worse than one that pays stayers?**
+Whether the company should fund a bounded experiment, so that it can learn at all, is raised for the
+director and not built here.
+
+**Three arms at ONE commit, default dice.** `all_on_save_odds_holdout` is re-run as the control,
+because HEAD has moved since §15's `fdec35bd9` (D48 among other changes). `flat` is re-run as the M2
+comparator. The book and seed are those of §12–§15. Outputs go to
+`/var/tmp/se-pcs-arms16-out/{all_on_save_odds_holdout,all_on_save_odds_lower_bound,flat}.json`, run
+serially from a locked worktree at the commit that lands this section. Nothing goes in
+`/var/tmp/se-pcs-arms-out`.
+
+**Predictions (no outcome of any arm read).**
+- **P16a, the cold start, as the code says.** The lower-bound arm's `retention_log` holds 0 offers
+  from the renewal guard in every year: 90%. `retention_save_rate_lower_bound_log` holds at least 50
+  rows: 85%. Every row's refusal is `the_save_rate_is_not_yet_learned`: 90%.
+  `retention_save_holdout_log` is empty: 90%.
+- **P16b, the control repeats §15.** In 2017 the control has 62 ± 4 offers and 21 ± 4 held out:
+  80%. Its `changed_a_departure` is 0–1: 85%.
+- **P16c, departures.** Lower-bound − control departures are within ±5: 80%. Point +1, the one
+  §15 departure the control's offers prevented.
+- **P16d, money against the control.** Lower-bound − control `provisioned_net_gbp` is within
+  ±£1,500: 65%. Point +£300. The control's offer cost (§15: £906) is not spent, against some
+  stayers moving from fix to default. **I cannot predict the sign.** §15's −£300 was refuted by
+  +£578, and the mechanism behind that prediction (−£470 a fixer moved to default) is not trusted
+  here.
+- **P16e, money against flat.** Lower-bound − flat is in [−£3,500, +£2,000]: 60%. Point −£700. The
+  arm still carries C34's advice, C35's rise, the per-household save and the ending-term belief, and
+  §14 put `save_odds − flat` at a seeded mean of −£1,617 [−£4,371, +£2,754]. On one seed anything
+  within ±£1,000 is a tie (EP17).
+
+**Decision rule, fixed now.**
+- **If P16a fails (any guard offer, or any refusal other than "not yet learned"),** the cold-start
+  reading of the code is wrong. That is the next item, and nothing is read from P16b–e.
+- **If P16a holds and lower-bound − control ≥ 0 with `changed_a_departure` 0 in the control,**
+  the record says that on this book, a company acting only on what it can infer makes no retention
+  offers and loses nothing by it. That is M2's transfer, measured. The lower-bound guard then becomes
+  the candidate to pair with §13–§15, and proposing it for CURRENT_POLICY waits on seeds, as §14
+  fixed.
+- **If P16a holds and lower-bound − control < −£1,000,** the offers were buying something the
+  departure channel does not see. That is read through `changed_a_stayers_tariff` before any claim
+  is made, because by M2 a stayer's tariff moved is transfer whatever its sign.
