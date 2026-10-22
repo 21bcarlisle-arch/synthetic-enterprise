@@ -8,6 +8,104 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-22 — The front door leads with the ambition and what has been built; the gaps moved to Capabilities, none deleted
+
+<!-- head: 40676171f020 -->
+
+**What the director asked** (22 Oct, 14:57): "the claims are really weak they mostly point to faings
+in the model. The home page is not an impressive summary of what the ambition is and just how much
+has been achieved." Sections 1 and 2 item 2 (no banner; the build strip) had landed earlier today.
+This is the remainder: the page rebuilt to the agreed order, and the gaps moved, none deleted.
+
+**The new structure, top to bottom.**
+1. The ambition: "Can AI build and run an energy supplier on its own, and find value for each
+   household?", one sentence on what it is, then M1 and M11 verbatim.
+2. What has been built: the build strip (commits, Python files and tests, lines, knowledge pages
+   from research notes, counted from git at publish), then the run strip (168,026 half hours, the
+   years, households on the book), each with its clock. Both are written at publish by
+   `tools/generate_dashboard_data.py`, and neither carries a typed figure.
+3. A whole supplier, end to end: ten lines, each stated as what it does, each with a link and a
+   `data-test` naming the tests that hold it. The control is
+   `site/test_the_front_doors_capability_grid_names_a_test_for_every_line.py`: it reds when a line
+   names no test, or a test that no longer exists. A live mutation (a renamed test path) went red.
+   - Winning customers -> knowledge/acquisition-and-retention-economics (acquisition journey,
+     credit assessment, switch governance with its 14-day cooling-off, change of supplier)
+   - Pricing under the cap -> knowledge/price-cap (an SVT segment held at the published cap; renewal desk)
+   - Hedging -> knowledge/hedging-forward-market (hedge policy; forward book)
+   - Half-hourly settlement -> knowledge/imbalance-cashout-settlement (settlement; hedged settlement)
+   - Billing -> explore/#spine (ledger and invoicing wiring; account ledger)
+   - Direct debits, SLC 27.15 and 27.8D -> capabilities/#dd-opening (the two DD review seams; the
+     opening DD is never the first issued bill)
+   - Collections and debt, IFRS 9 -> knowledge/debt-and-collections (collections journey; cash
+     forecast provision; closed-balance write-off)
+   - Back-billing and read duties, SLC 21BA and 21B.4 -> knowledge/back-billing-and-liability
+   - Capital adequacy -> capabilities/#supplier (capital adequacy tests)
+   - Household carbon per half hour -> explore/#used (half-hourly footprint; the gas leg)
+4. A world it cannot see into: the hidden traits, per-home physics under local weather, life
+   changes and moves, and the wall. The segment check's `data-mix-claim` now sits here. The model
+   on one page follows, unchanged except for one corrected sentence (below).
+5. Built and run by AI: the build loop, the checks that must be able to fail, a link to the code
+   graph, and the dual-fuel episode.
+6. The open question, in one line, carrying `data-selection-verdict` and `data-selection-draws`,
+   so the publish gates still hold it to `value_arms.json`. Then "What is not built yet ->" and
+   "What we know is wrong ->", and three doors.
+
+**Where each moved caveat now lives:** `site/capabilities/#not-built`, a new section after "What
+the lists above cannot tell you". It holds "No customers. No licence.", the claim with the
+£273/tCO2e yardstick and the NOT YET MEASURED tag, time defined but unmeasured, one of three
+channels built, emissions against abatement, all six per-domain "Not yet" lines with their Knowledge
+links, and how the book came to be households and what sets its size. The home's carbon figures
+filled by script were dropped from the moved text rather than re-scripted; they remain on Explore.
+`site/test_home_door.py` now holds those sentences on Capabilities, and holds the front door to
+its link to them.
+
+**Corrections made on the way, each from checking a claim against the code:**
+- The steer filed SLC 27.8D under collections. It is the right to offset credit on one supply
+  contract against debt on another, in force from 22 Jan 2021 (`company/billing/dd_review.py`),
+  so it sits on the direct-debit line.
+- "Billing on three clocks" has no test that states it, so the billing line says what is tested:
+  one ledger, with every invoice and payment reconciled to it.
+- The moap node said "Real weather ... drives the actual half-hourly wholesale prices". The prices
+  are replayed history, and weather drives demand. Corrected.
+
+**The cold readers.** Two fresh instances had only the page's visible text: a GB supplier veteran
+and a senior engineer who builds agent systems. They were asked the three questions and the
+fourth, "how impressive is this, and why?".
+- Energy, summary: "It's an AI-built toy supplier running ten years of real GB prices with
+  admirable honesty about its gaps, but it can't go bust yet and hasn't answered its own
+  question." On impressiveness: "As a demonstration of AI building software, it is genuinely
+  striking. A coherent quote-to-cash-to-collections stack with regulatory hooks, kept up by AI, is
+  not trivial. As a supplier model it is early."
+- Tech, summary: "It's an AI-built, million-line simulation of a UK energy supplier run against
+  real 2015–25 prices, carefully honest about its gaps, that hasn't yet answered the one question
+  it exists to answer." On impressiveness: "As an agentic-engineering artefact it is moderately to
+  very impressive, if true ... As an energy or ML result it is not yet impressive."
+- Against the steer's test: neither summary leads with the failings. Both open with what it is and
+  that AI built it, and both end on the unanswered question. Both readers also said the "what it
+  has shown" column is thin, and the tech reader read 13,853 commits and 1.16M lines "as likely
+  evidence of sprawl as of achievement". That is a finding about the evidence, not the layout:
+  the page has nothing it can lead with as a result until the value question resolves.
+- Fixed from their points, each checked against the code: the record ends in June 2025, not at
+  the end of 2025; "Every function" became "the core functions", with a link to what is missing;
+  the cap binds from January 2019, on unit rate and standing charge; settlement takes the hedged
+  share at its forward price and only the rest at the system price; the IFRS 9 provision is
+  forward-looking, from a cash forecast; capital is tested against the thresholds in Ofgem's 2023
+  FRA consultation (`company/risk/capital_adequacy.py`); gas carbon is a combustion factor, not
+  grid intensity; the dual-fuel heading now credits the question that found it; weather drives
+  demand, not prices.
+- Not fixed, handed on: the proof strip's "10 calendar years" label is generated, and the generator
+  already rewrites it for a partial year at the next publish. "Nothing in the world can yet push it
+  under" is the energy reader's sharpest point: a crisis replay that cannot kill the supplier. It
+  stays where it is, true and stated. The missing functions they listed (network charges, policy
+  levies, prepayment, the Priority Services Register, complaints) are not on the grid because they
+  are not claimed.
+
+**Not done:** the code-galaxy tab (the 15:01 steer). The home page links to the existing module
+graph at `harness/module-graph/` from "Built and run by AI", without the thumbnail. The tab, the
+force-directed view, the redirect, the caption and the thumbnail are handed on.
+
+---
+
 ## 2026-10-22 — The front-door steer closed: runtime claims carry their age, a red deploy reaches the brief
 
 <!-- head: f714a0097c8f -->

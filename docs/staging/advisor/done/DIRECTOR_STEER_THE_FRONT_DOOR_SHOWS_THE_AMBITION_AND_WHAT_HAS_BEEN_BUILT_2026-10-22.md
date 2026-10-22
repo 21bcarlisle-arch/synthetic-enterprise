@@ -57,3 +57,23 @@ One stretch-log entry with:
 - the cold readers' answers.
 
 — Director steer, 22 Oct 2026, his words above; the drafting is the advisor's.
+
+## Done
+
+- **Section 1** (no banner; one clock line written at publish): e825e8099.
+- **Section 2 item 2** (what has been built, counted from git at publish): bd2ec5e1b.
+- **Section 2, the rest** (this commit): `site/index.html` now runs in the agreed order. That is the
+  ambition with M1 and M11, then the build and run strips, then a ten-line capability grid, then
+  the world it cannot see into, then built and run by AI, then the open question in one line. Each
+  grid line links to its page and names its tests in `data-test`. The tests are held by
+  `site/test_the_front_doors_capability_grid_names_a_test_for_every_line.py`. The "Not yet" lines,
+  the not-built paragraphs, "No customers. No licence." and the book's composition moved, none
+  deleted, to `site/capabilities/#not-built`. The front door keeps "What is not built yet ->" and
+  "What we know is wrong ->".
+- **Section 3**: the cold-reader test was re-run with an energy reader and a tech reader and the
+  fourth question. Neither summary leads with the failings. Both readers found the "shown" column
+  thin, and the page cannot fix that until the value question resolves. Nine of their factual
+  points were checked against the code and fixed. The answers, the fixes, and what was handed on
+  are in the stretch-log entry "The front door leads with the ambition and what has been built".
+- **Not done here:** the code-galaxy tab (the companion steer of 15:01). The home links to the
+  existing module graph for now, and the tab is handed on as its own item.

@@ -38,6 +38,7 @@ HERE = Path(__file__).resolve().parent
 # and not `HEAD`.
 INDEX_REL = "site/index.html"
 DASHBOARD_REL = "site/data/dashboard.json"
+CAPABILITIES_REL = "site/capabilities/index.html"
 
 # DIRECTOR_RULING_FRONT_MISSION_BLOCK (2026-07-24): the front door no longer renders
 # any live figure -- it leads with the idea (the personalisation-abatement mission),
@@ -79,32 +80,20 @@ def test_no_cohort_financials_lead_the_front_door():
 # guards on the rendered markup (the block carries no live figure to render).
 # ---------------------------------------------------------------------------
 def test_mission_block_leads_with_score_and_yardstick():
+    """The mission is on the front door, and the account of what it does not yet deliver is one
+    click away on Capabilities (director steer of 22 Oct 2026: "the claims are really weak they
+    mostly point to failings in the model"; the gaps moved there, none deleted). The front door
+    names money, time and carbon, so this reds if the page that says which of them is unmeasured
+    stops carrying that account, or the front door stops linking to it."""
     text = published_blob(INDEX_REL)
-    _flat = text.replace("\n    ", " ")
-    # SCAN WHAT A READER SEES, NOT THE SOURCE. An HTML comment recording WHICH sentence was
-    # superseded necessarily quotes that sentence, so a raw-source scan for it fires on the
-    # provenance note that exists to explain the change -- the same defect shape found in
-    # tools/abolished_block_classes.py on 2026-08-28, where a repair note naming dead acts
-    # tripped the guard against dead acts. A claim is what renders; a comment renders nothing.
-    #
-    # AND SCAN THE BODY, NOT THE HEAD. Caught by mutation on 2026-08-28: the first version of
-    # this control asserted "money, time and carbon" against the whole file, and DELETING "time"
-    # from the visible mission sentence still passed -- because <meta name="description"> carries
-    # the same words and a reader never sees it. A control satisfied by a string in the document
-    # head is FAIL-SILENT about the claim on the page (R15). Both scans below are body-only.
+    # SCAN WHAT A READER SEES, NOT THE SOURCE: a comment recording which sentence was superseded
+    # necessarily quotes it.
     rendered = re.sub(r"<!--.*?-->", "", text, flags=re.S)
-    body = rendered.split("</head>", 1)[-1].replace("\n    ", " ")
+    body = rendered.split("</head>", 1)[-1].replace("\n    ", " ").replace("\n  ", " ")
     rendered = rendered.replace("\n    ", " ")
     assert "<meta name=\"description\"" in text and "money, time and carbon" not in body.split("<body")[0], (
         "the head/body split this control depends on has moved"
     )
-    # THE MISSION SENTENCE CHANGED ON 2026-08-28 (director, direct; CLAUDE.md + THE MODEL ON A
-    # PAGE §The mission). This control's SUBJECT moved with it rather than the control being
-    # relaxed -- it used to pin "carbon abatement through personalisation", which the director
-    # has superseded, and pinning a superseded sentence is worse than pinning none.
-    #
-    # What the 2026-07-24 ruling required STRUCTURALLY is unchanged and still pinned below: the
-    # claim, its score, its yardstick, and its number honestly absent.
     assert "carbon abatement through personalisation" not in rendered, (
         "the front door still publishes the mission sentence the director superseded on 2026-08-28"
     )
@@ -114,51 +103,28 @@ def test_mission_block_leads_with_score_and_yardstick():
     assert "money, time and carbon" in body, (
         "the front door names fewer than the mission's three currencies"
     )
-    # Carbon is now ONE currency of three rather than the whole mission, and it keeps its score
-    # and its externally-set yardstick -- that is the part of the old ruling that survives intact.
-    assert "273/tCO&#8322;e (2025)" in body, "the £273/tCO2e (2025) government yardstick is not on the front door"
-    assert "per tonne of CO&#8322;e saved" in body
-    # The honest state of what the mission promises and has not built. A mission published with
-    # two of three channels unbuilt, and no note saying so, is the claim-status defect THE MODEL
-    # ON A PAGE's own reading rule names.
-    # TIME'S HONEST STATE MOVED ON 2026-10-22, and the subject moved with it. "Time does not appear
-    # in this project at all" contradicted canon M3: time is defined (household minutes per kind
-    # of activity, ruled 12 Oct) but nothing in the run counts it. The page must say both halves.
-    assert "Time does not appear in this" not in body, (
-        "the front door still says time does not exist here, which contradicts canon M3"
-    )
-    assert "Time is defined but not yet measured" in body, (
-        "the front door claims to save time without saying nothing measures it yet"
-    )
-    # The withdrawn July headline (canon §16; CO1 makes £/tCO2e a diagnostic, not the headline).
     assert "cheapest tonne" not in rendered, "the front door leads with the withdrawn carbon headline"
-    assert "only <strong>tariffs</strong> reaches one today" in body, (
-        "the front door names three channels without saying only one reaches a household"
+    assert 'href="./capabilities/#not-built"' in body, (
+        "the front door names three currencies and no longer links to what is not built"
     )
-    # THE HONEST STATE, AND IT CHANGED ON 2026-08-25 -- so this control's SUBJECT changed with
-    # it rather than the control being relaxed. It used to pin the literal "designed, not yet
-    # instrumented", which was true while nothing multiplied a meter read by a grid intensity.
-    # The half-hourly instrument now runs (EP13, sim/grid_carbon_intensity.py ->
-    # company/carbon/half_hourly_footprint.py), so that sentence had become false and pinning a
-    # false sentence is worse than pinning none.
-    #
-    # What must stay true is the DISTINCTION the caveat exists to draw, and it is now two
-    # claims rather than one: emissions are measured, and the SCORE -- pounds per tonne
-    # ABATED -- still is not, because abatement needs a counterfactual this book cannot supply.
-    assert "designed, not yet instrumented" not in text.replace("\n    ", " "), (
-        "the front door still says the carbon ledger is not instrumented, and it is"
+
+    caps = published_blob(CAPABILITIES_REL)
+    gaps = caps[caps.index('<section id="not-built">'):]
+    gaps = gaps[: gaps.index("</section>")].replace("\n    ", " ")
+    assert "273/tCO&#8322;e (2025)" in gaps, "the £273/tCO2e (2025) yardstick has no home"
+    assert "per tonne of CO&#8322;e saved" in gaps
+    assert "Time is defined but not yet measured" in gaps, (
+        "the site claims to save time without saying nothing measures it yet"
     )
-    assert "NOT YET MEASURED" in text, "the score's honest tag has gone from the front door"
-    assert "Abatement\n    is not emissions" in text or \
-        "Abatement is not emissions" in text.replace("\n    ", " "), (
-            "the front door no longer distinguishes abatement from emissions, so a reader has "
-            "every reason to read the kilograms as the score"
-        )
-    # NUMBER-FREE IN THE MARKUP. Both carbon sentences are filled from
-    # site/data/explore_carbon.json at render time; a figure typed into this file would go stale
-    # against a generated one, which is the defect this project files against itself most often.
-    assert 'id="carbon-worst"></span>' in text, "the worst-case figure is not a filled span"
-    assert 'id="carbon-coverage"' in text, "the coverage figure is not a filled span"
+    assert "only <strong>tariffs</strong> reaches one today" in gaps, (
+        "the site names three channels without saying only one reaches a household"
+    )
+    assert "NOT YET MEASURED" in gaps, "carbon saved's honest tag has gone"
+    assert "Abatement is not emissions" in gaps, (
+        "the site no longer distinguishes abatement from emissions"
+    )
+    assert "No customers. No licence." in gaps, "the licence disclosure has no home"
+    assert gaps.count("<b>Not yet:</b>") >= 6, "the per-domain 'Not yet' lines did not all move"
 
 
 def test_cost_arbitrage_leg_no_longer_leads_the_front_door():
@@ -275,4 +241,4 @@ def test_no_subject_of_this_file_is_read_from_the_working_tree():
     passing on a front door that had been repaired in this tree and never published. The scanner's
     own teeth are proved in `site/test_the_published_bytes_reader.py`.
     """
-    refuse_working_tree_reads(__file__, (INDEX_REL, DASHBOARD_REL))
+    refuse_working_tree_reads(__file__, (INDEX_REL, DASHBOARD_REL, CAPABILITIES_REL))

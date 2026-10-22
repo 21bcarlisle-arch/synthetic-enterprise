@@ -67,6 +67,10 @@ td.who { font-weight: 600; white-space: nowrap; }
 .fig { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; min-width: 120px; }
 .fig-v { font-size: 20px; font-weight: 800; }
 .fig-k { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+.notbuilt-dl { max-width: 760px; margin: 0 0 20px; font-size: 13px; line-height: 1.6; }
+.notbuilt-dl dt { font-weight: 700; margin-top: 12px; }
+.notbuilt-dl dd { margin: 4px 0 0; color: var(--muted); }
+#not-built .side-h { margin-top: 22px; }
 .note { font-size: 12px; color: var(--muted); max-width: 760px; margin-top: 10px; }
 .inline-link { color: var(--blue); text-decoration: none; border-bottom: 1px dashed var(--border); }
 .inline-link:hover { border-bottom-color: var(--blue); }
@@ -141,6 +145,118 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
   dates as forecasts and the test as the gate, so what is stated is what the work is waiting
   on.</p>
   <div id="gaps"></div>
+
+  <!-- WHAT IS NOT BUILT YET (director steer of 22 Oct 2026, "the front door shows the ambition and
+       what has been built"): these paragraphs led the front door until that day. They moved here
+       whole, none deleted, and the front door keeps one link to this anchor. Hand-authored prose
+       about the repository; no run figure is typed in it. -->
+  <section id="not-built">
+  <h2 class="sec">What is not built yet</h2>
+  <p class="sec-lede"><strong>No customers. No licence. A running simulator.</strong> A fully
+    autonomous licensed supplier will not be permitted, because a licence needs accountable humans,
+    and we say so up front. Autonomy is the <em>how</em>, not the headline. The mistakes it made
+    and corrected are kept on <a href="../harness/#not-proven">What we know is wrong</a>.</p>
+
+  <h3 class="side-h">The claim, and what a household saves &middot; CARBON SAVED: NOT YET MEASURED</h3>
+  <p class="sec-lede"><strong>The claim, falsifiable:</strong> that you create value fastest by
+    knowing each household well &mdash; shifting when it draws power, fitting the right assets,
+    pricing the right tariff, having the right conversation &mdash; and that the value is real only
+    if the household keeps a share of it. Every line of company code has to answer one question:
+    <em>could a real supplier know this?</em></p>
+  <p class="sec-lede">A household is saved <strong>money, time and carbon</strong>. Carbon's job is
+    to show each household what it has saved and could save in CO&#8322;. Inside the company, the
+    same saving is also priced in <strong>&pound; per tonne of CO&#8322;e saved</strong>, against the
+    UK government's carbon appraisal value, <strong>&pound;273/tCO&#8322;e (2025)</strong>, in 2022
+    prices. That price is a diagnostic, not the headline.</p>
+  <p class="sec-lede"><strong>The money side has been run.</strong> The same book went through the same world three ways: on flat rules, on the
+    per-customer decision engine, and on a single flat margin set at the level the per-customer arm
+    actually charged. Only the gap between the last two is value made rather than moved. Whether the per-customer
+    engine chooses better, and by how much, is set out with its spread in
+    <a href="#value-arms">the value arms below</a>.</p>
+  <p class="sec-lede"><strong>Two of the three currencies, and two of the three channels, are not
+    built.</strong> Only money has ever been <em>optimised</em> here, and only our side of it. What a
+    household <em>saved</em> by being with us is measured against the published default tariff, at
+    its own metered volumes, but it is a diagnostic and nothing yet decides anything by it.
+    <strong>Time is defined but not yet measured.</strong> It means a household's effort, counted in
+    its own unit (household minutes for each kind of task: shopping around, sorting out a problem,
+    recovering from one, routine admin) and never turned into pounds. Nothing in the run counts those
+    minutes yet. And of the three ways value is meant to reach a household &mdash; personalised
+    modelling, tariffs, advice &mdash; only <strong>tariffs</strong> reaches one today: the modelling
+    that exists is the supplier's opinion about its customers rather than a model offered to them,
+    and the advice code has no recipient.</p>
+  <p class="sec-lede"><strong>Why carbon saved still says NOT YET MEASURED.</strong> Where a household
+    has half-hourly reads, each half hour is multiplied by what the grid was actually burning in it.
+    That is <strong>emissions</strong>, and emissions are measurable
+    (<a href="../explore/#used">see it on one household</a>). Abatement is not emissions. It is what
+    a household did <em>not</em> emit because of something we did, which needs a claim about a world
+    that did not happen &mdash; a randomised holdout, a matched comparison, or a weather-normalised
+    before-and-after. At the current number of half-hourly reads none of those is viable, and in
+    this decade almost every domestic meter was settled on a standard profile rather than its own
+    half hours. The number that would change this fastest is not a model: it is meters.</p>
+
+  <h3 class="side-h">Against how a real GB supplier works</h3>
+  <p class="sec-lede">What is modelled faithfully today and what is not yet, each line linked to
+    the Knowledge page that sources it. When one of those pages changes its account, its line here
+    is owed the same change.</p>
+    <dl class="notbuilt-dl">
+      <dt><a href="../knowledge/imbalance-cashout-settlement/">Settlement</a></dt>
+      <dd><b>Faithful today:</b> every half hour is settled against the real published Elexon
+        system price, imbalance is a real cost line, and the settled truth reaches the company
+        months late, as it does in the industry.<br>
+        <b>Not yet:</b> Supplier Volume Allocation and the reconciliation run calendar are
+        modelled by their effect on the figures, not in their full detail.<br>
+        <b>Profiles:</b> in 2016&ndash;2025 almost every home was settled on a standard profile
+        (98.5% of meters in May 2022, by Elexon's count), and half-hourly settlement for homes
+        began only in late 2025. The run now does the same: a home is billed on its own meter,
+        but its energy is bought on its registered profile class, trued up to its own volume
+        over each contract. Until 22 Oct 2026 the run settled each home's own half hours instead, which
+        moved an electrically heated home's cost by &pound;35&ndash;150 a year against its
+        profile and the whole book by +0.2%.</dd>
+      <dt><a href="../knowledge/price-cap/">The price cap</a></dt>
+      <dd><b>Faithful today:</b> the cap limits unit rates and standing charges, not the bill,
+        and its headline describes a typical home at typical use. Both are checked against
+        Ofgem's own material.<br>
+        <b>Not yet:</b> the cap's published levels are not yet ingested as a series, and the
+        wholesale allowance's method has not been read line by line.</dd>
+      <dt><a href="../knowledge/hedging-forward-market/">Hedging</a></dt>
+      <dd><b>Faithful today:</b> the company hedges to a mandate, layered across terms, and its
+        realised cost is reported against going unhedged, including the calm years in which the
+        hedge lost money and the 2021&ndash;22 crisis it was bought for.<br>
+        <b>Not yet:</b> no options, no trading views and no cross-commodity hedging; collateral
+        is a cash constraint, and the counterparty credit process is simplified.</dd>
+      <dt><a href="../knowledge/debt-and-collections/">Debt</a></dt>
+      <dd><b>Faithful today:</b> billing and collections run every month, and the world's stock
+        of debt more than 91 days old matches what Ofgem publishes.<br>
+        <b>Not yet:</b> write-offs per pound billed are well below a large supplier's, the world
+        generates no prepayment debt, and its payment-failure rates are not yet sourced.</dd>
+      <dt><a href="../knowledge/home-moves/">Home moves</a></dt>
+      <dd><b>Faithful today:</b> a household that moves keeps its region at least as often as the
+        published lower bound, and its new home's use comes from the new dwelling, not the old
+        one.<br>
+        <b>Not yet:</b> only the electricity supply follows the household; the gas supply ends at
+        the move. The value of a mover offer, time on a deemed contract and an empty home's use
+        are gaps in the published record, so each is reported as a range.</dd>
+      <dt><a href="../knowledge/how-households-choose/">Dual fuel</a></dt>
+      <dd><b>Faithful today:</b> most homes with gas buy both fuels from one supplier, and the
+        book now draws its households that way from the CMA and Ofgem figures; a dual-fuel
+        account's gas and electricity are one house, not two.<br>
+        <b>Not yet:</b> the move rule above, so a dual-fuel household that moves leaves as an
+        electricity-only one.</dd>
+    </dl>
+
+  <h3 class="side-h">Whose book this is, and what sets its size</h3>
+  <p class="sec-lede">Until late August 2026 the book was a handful of industrial and commercial
+    accounts carrying almost all of the revenue, so a household mission was being funded by a book
+    that was not about households. The director <strong>suspended industrial and commercial
+    supply</strong>. The capability is still built and still tested &mdash; half-hourly settlement,
+    Triad curtailment, the flexibility revenue book, the DUoS/TNUoS split &mdash; but the company has
+    stopped serving those accounts, which is a different thing from deleting them.</p>
+  <p class="sec-lede"><strong>Its size is set by this machine, not by the market.</strong> The book
+    starts from a set of founder households drawn when the run begins, and grows by what the company
+    wins. How large it can be is limited by how much one run on this computer can settle, not by the
+    supplier's capital or by demand. We would rather say so than let a small or flattening book read
+    as a commercial result.</p>
+  </section>
 
   <h2 class="sec">Where the simulation would meet the real industry</h2>
   <p class="sec-lede">The supplier never reaches into the world; it reads and writes through named

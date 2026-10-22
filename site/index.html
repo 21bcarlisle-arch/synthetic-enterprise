@@ -173,6 +173,10 @@ div.doors-in { display: grid; grid-template-columns: repeat(3, 1fr); }
 .story p { margin-top: 6px; font-size: 13.5px; line-height: 1.6; color: var(--muted); }
 .story a { color: var(--text); text-decoration: none; border-bottom: 1px solid var(--border); }
 .story a:hover { border-bottom-color: var(--text); }
+.bookmix h2 { font-size: 17px; font-weight: 700; letter-spacing: -0.01em; }
+#capabilities-grid { padding: 30px 0; border-bottom: 1px solid var(--text); }
+#by-ai .pitch a { color: var(--text); }
+#open-question { margin: 26px 0 0; font-size: 14px; }
 
 /* the long accounts, one click down: <details> needs no script, and nothing in it is removed */
 details.more { margin-top: 12px; max-width: 66ch; }
@@ -203,18 +207,17 @@ details.more[open] summary { margin-bottom: 4px; }
 
 
 <section class="hero">
-  <!-- CORRECTED 2026-10-22 (director steer, the front door for a newcomer): the old headline,
-       "to find the cheapest tonne of carbon left", was the withdrawn July framing. Canon v4 CO1
-       makes pounds per tonne an internal diagnostic, and M11 (ruled 12 Oct, decision 14) puts the
-       mission on the front door with the project's own claim beside it. Both are quoted verbatim
-       from docs/design/DIRECTOR_CANON.md. -->
-  <h1>A simulated GB energy supplier, built and run by AI, living through ten years of the real market.</h1>
-  <p class="pitch">It settles every half hour of 2016&ndash;2025 against real Elexon and NESO
-    data, the 2021&ndash;22 gas crisis included, and it can only learn what a real supplier could
-    learn: meter reads, market feeds, customer contacts, bills and regulatory publications. It
-    never sees the simulation's own internals. Its decisions are made by the code the AI wrote
-    and maintains, not by a language model at run time: the company's code cannot reach the
-    internet at all.</p>
+  <!-- REBUILT 2026-10-22 (director, 14:57: "The home page is not an impressive summary of what
+       the ambition is and just how much has been achieved"). The agreed order, top to bottom: the
+       ambition, what has been built, the capability grid, the world it cannot see into, built and
+       run by AI, the open question in one line. The gaps moved, none deleted, to
+       ./capabilities/#not-built; this page keeps one link to them. The mission (M1) and the
+       project's own claim (M11) are quoted verbatim from docs/design/DIRECTOR_CANON.md. -->
+  <h1>Can AI build and run an energy supplier on its own, and find value for each household?</h1>
+  <p class="pitch">Poesys is a simulated GB energy supplier, built and run by AI, living through
+    ten years of the real market. It settles every half hour of the real market record, from 2016 to
+    June 2025, against Elexon and NESO data, the 2021&ndash;22 gas crisis included. Its decisions are made by the
+    code the AI wrote and maintains, not by a language model at run time.</p>
   <p class="pitch"><strong>The mission:</strong> &ldquo;We are creating enterprise value by
     automating ways to find individual customers we can create value for, and sharing in that
     value &mdash; by saving them money, time and carbon, through personalised modelling, tariffs
@@ -222,18 +225,22 @@ details.more[open] summary { margin-bottom: 4px; }
   <p class="pitch"><strong>And the project's own claim, beside it:</strong> that software can be
     grown and can maintain itself, rather than only be written.
     <a href="./harness/">How it builds itself &rarr;</a></p>
-  <p class="honesty"><strong>No customers. No licence. A running simulator</strong> -- a fully
-    autonomous licensed supplier will not be permitted, because a licence needs accountable
-    humans, and we say so up front. Autonomy is the <em>how</em>, not the headline.</p>
 </section>
 
-<!-- THE PROOF STRIP (director steer 22 Oct 2026, items 3 and 8). It replaced the three live
-     figures added 2026-08-20, which a script filled after load, so a reader without JavaScript,
-     a search engine or a link preview saw a loading line and no figure. Everything
-     between the two markers is written into this file at publish by
-     tools/generate_dashboard_data.py::write_front_door_proof_strip, from the run being
-     published. Do not type a figure here: the next publish overwrites it. The book size and the
-     years are still the figures the publish gate's population check guards. -->
+<!-- THE TWO STRIPS BELOW ARE WRITTEN AT PUBLISH by tools/generate_dashboard_data.py
+     (write_front_door_build_strip from git, write_front_door_proof_strip from the run being
+     published). Do not type a figure between their markers: the next publish overwrites it. The
+     book size and the years are the figures the publish gate's population check guards. -->
+<section class="livefigs" id="built">
+  <div class="bl">What has been built, counted at publish</div>
+<!-- BUILD-STRIP:START (written at publish by tools/generate_dashboard_data.py -- do not hand-edit) -->
+<div class="lf-row">
+  <div class="lf"><div class="v">13,853</div><div class="l">commits since the repository began on 7 Jun 2026</div><div class="c">451 of them in the last seven days; counted from git at e825e8099, 22 Oct 2026</div></div>
+  <div class="lf"><div class="v">3,462</div><div class="l">Python files, written and maintained by AI</div><div class="c">2,145 of them test files; 1,156,404 lines in all; counted from git at e825e8099, 22 Oct 2026</div></div>
+  <div class="lf"><div class="v">33</div><div class="l">published knowledge pages on how the GB market and its households work</div><div class="c">built from 177 sourced research notes; counted from git at e825e8099, 22 Oct 2026</div></div>
+</div>
+<!-- BUILD-STRIP:END -->
+</section>
 <section class="livefigs" id="livefigs">
   <div class="bl">What it has run, from the latest publish</div>
 <!-- PROOF-STRIP:START (written at publish by tools/generate_dashboard_data.py -- do not hand-edit) -->
@@ -246,222 +253,90 @@ details.more[open] summary { margin-bottom: 4px; }
 <!-- PROOF-STRIP:END -->
 </section>
 
-<!-- WHAT HAS BEEN BUILT (director, 22 Oct 2026 14:57: "just how much has been achieved"). The
-     figures between the markers are counted from git at publish by
-     tools/generate_dashboard_data.py::write_front_door_build_strip. Do not type one here. -->
-<section class="livefigs" id="built">
-  <div class="bl">What has been built, counted at publish</div>
-<!-- BUILD-STRIP:START (written at publish by tools/generate_dashboard_data.py -- do not hand-edit) -->
-<div class="lf-row">
-  <div class="lf"><div class="v">13,853</div><div class="l">commits since the repository began on 7 Jun 2026</div><div class="c">451 of them in the last seven days; counted from git at e825e8099, 22 Oct 2026</div></div>
-  <div class="lf"><div class="v">3,462</div><div class="l">Python files, written and maintained by AI</div><div class="c">2,145 of them test files; 1,156,404 lines in all; counted from git at e825e8099, 22 Oct 2026</div></div>
-  <div class="lf"><div class="v">33</div><div class="l">published knowledge pages on how the GB market and its households work</div><div class="c">built from 177 sourced research notes; counted from git at e825e8099, 22 Oct 2026</div></div>
-</div>
-<!-- BUILD-STRIP:END -->
+<!-- THE CAPABILITY GRID (steer item 3). Each line says what the supplier does, links to where a
+     reader can see it, and names in data-test the test that holds the claim;
+     site/test_the_front_doors_capability_grid_names_a_test_for_every_line.py reds on a line
+     with no test or a test that no longer exists. A line whose test is deleted is a claim with
+     no evidence left. -->
+<section class="aud" id="capabilities-grid">
+  <h2>A whole supplier, end to end</h2>
+  <p class="aud-lede">The core functions of a GB household supplier, each tested, each linked to
+    the page that shows it. What it does not do yet is listed, in full, on
+    <a href="./capabilities/#not-built">Capabilities</a>.</p>
+  <dl class="fidelity capgrid">
+    <dt><a href="./knowledge/acquisition-and-retention-economics/">Winning customers</a></dt>
+    <dd data-test="tests/company/crm/test_acquisition_journey.py tests/company/crm/test_credit_assessment_register.py tests/company/market/test_switch_governance.py tests/company/crm/test_cos_process.py">Quotes
+      each household, checks its credit, carries it through the 14-day cooling-off period and the
+      change of supplier, objections included. Most quotes lose, and the book is only what it
+      wins.</dd>
+    <dt><a href="./knowledge/price-cap/">Pricing under the cap</a></dt>
+    <dd data-test="tests/company/pricing/test_an_svt_segment_is_held_at_the_published_cap.py tests/company/pricing/test_renewal_desk.py">Prices
+      fixed and variable tariffs at each renewal, and from the cap's start in January 2019 holds
+      every default tariff's unit rate and standing charge at or under Ofgem's published level,
+      recomputed from the cap series itself.</dd>
+    <dt><a href="./knowledge/hedging-forward-market/">Hedging the wholesale book</a></dt>
+    <dd data-test="tests/company/risk/test_hedge_policy.py tests/company/trading/test_forward_book.py">Buys
+      forward to a mandate, layered across terms, and reports the realised cost against going
+      unhedged, in the calm years and through the crisis.</dd>
+    <dt><a href="./knowledge/imbalance-cashout-settlement/">Half-hourly settlement</a></dt>
+    <dd data-test="tests/simulation/test_settlement.py tests/simulation/test_hedged_settlement.py">Settles
+      every half hour: the hedged share at its forward price, the rest at the real Elexon system
+      price, each home bought on its registered profile class and trued up to its own volume,
+      with the settled truth arriving months late, as it does in the industry.</dd>
+    <dt><a href="./explore/#spine">Billing</a></dt>
+    <dd data-test="tests/company/billing/test_ledger_invoicing_wiring.py tests/company/billing/test_account_ledger_characterization.py">Bills
+      every account monthly on one customer ledger, and reconciles every invoice and payment to
+      it.</dd>
+    <dt><a href="./capabilities/#dd-opening">Direct debits set and reviewed</a></dt>
+    <dd data-test="tests/company/interfaces/test_dd_review_seam.py tests/company/interfaces/test_dd_review_outcome_seam.py tests/company/billing/test_the_opening_dd_is_never_the_first_issued_bill.py">Sets
+      each household's first direct debit from an estimate of its year, reviews it on the
+      licence's terms (SLC 27.15), and from January 2021 lets a household's credit on one fuel
+      offset its debt on the other (SLC 27.8D).</dd>
+    <dt><a href="./knowledge/debt-and-collections/">Collections and debt</a></dt>
+    <dd data-test="tests/company/billing/test_collections_journey.py tests/company/finance/test_cash_forecast_provision.py tests/company/billing/test_closed_balance_write_off.py">Ages
+      what is owed, chases it, writes off what is lost, and carries an expected-loss provision
+      drawn from a forward forecast of every account's cash (IFRS 9).</dd>
+    <dt><a href="./knowledge/back-billing-and-liability/">Back-billing and read duties</a></dt>
+    <dd data-test="tests/company/billing/test_back_billing.py tests/company/billing/test_read_duty_register.py tests/company/billing/test_the_company_instructs_a_read_before_the_21b4_year.py">Never
+      back-bills a household for energy used more than twelve months before the bill when the
+      delay was the supplier's (SLC 21BA), and instructs a meter visit when a year passes on
+      estimates, as the read duty requires (SLC 21B.4).</dd>
+    <dt><a href="./capabilities/#supplier">Capital adequacy</a></dt>
+    <dd data-test="tests/company/risk/test_capital_adequacy.py">Tests its own capital against the
+      thresholds in Ofgem's 2023 financial resilience consultation: a wind-down reserve, a
+      margin-call buffer and a capital ratio.</dd>
+    <dt><a href="./explore/#used">Household carbon, per half hour</a></dt>
+    <dd data-test="tests/company/carbon/test_half_hourly_footprint.py tests/company/carbon/test_household_carbon_has_a_gas_leg.py">Multiplies
+      each half hour of a home's electricity, where it has the reads, by what the grid was
+      actually burning in it, and adds its gas at the published combustion factor, so a
+      household can see its own footprint move.</dd>
+  </dl>
 </section>
 
-<!-- WHAT IT HAS FOUND (steer item 4): real findings, framed as they happened, each linked to
-     its evidence. Chosen on the steer's test: a domain reader would respect it. No run figure
-     is typed here; the percentages in the first are published sources, and a fact about the
-     record, not a run output. -->
-<section class="stories">
-  <h2>What it has found</h2>
-  <div class="story">
-    <h3>The book was 1% dual fuel. Published sources say about 72%.</h3>
-    <p>On 17 October the director asked a plain question: how many of the founding households
-      take electricity only, gas only, or both? The answer was 1% both. A coin set when the book
-      was 13 accounts had been picking each founder's fuel on its own. The CMA's 2014 household
-      survey puts 72% of all homes on one supplier for both fuels, and Ofgem's 2017 survey, the
-      latest to publish the figure, puts 91% of homes with both on one supplier. Within a day the system researched the published record, rebuilt the founders as
-      homes that buy both fuels where they have gas, and added checks that measure the routes
-      into the book against those sources. The next published run was a dual-fuel book. The
-      lesson was ours too: the question came from a person, and the checks exist so the next one
-      will not have to.
-      <a href="./knowledge/how-households-choose/">How households buy both fuels &rarr;</a></p>
-  </div>
-  <div class="story">
-    <h3>Is the profit from choosing better, or from charging more?</h3>
-    <p>A supplier that prices each household individually and makes more money has not shown it
-      created any value: it may simply have charged more. So the same book was run through the
-      same world three ways: flat rules, the per-customer engine, and flat rules at the margin
-      the engine actually charged. Only the gap between the last two is value made. The answer
-      so far is <em>we cannot tell yet</em>, and the page says that rather than the flattering
-      reading. <a href="./capabilities/#value-arms">The three runs and their spread &rarr;</a></p>
-  </div>
-  <div class="story">
-    <h3>When a home uses power changes its carbon.</h3>
-    <!-- CORRECTED 2026-10-22 (the energy cold reader): this read "Each household's metered half
-         hours", but the published run has a half-hourly read for 3 of 963 accounts, and the
-         decade's domestic meters were profile-settled. Sources:
-         docs/market_research/four_front_door_domain_points_from_the_energy_cold_read_2026-10-22.md -->
-    <p>Where the company holds a household's half-hourly meter reads, each half hour is multiplied
-      by what the grid was actually burning in it. Few homes have them: in this decade almost
-      every domestic meter was settled on a standard profile, not on its own half hours. Against
-      the annual-average factor most footprints use, the same home's footprint moves, sometimes
-      a long way on a single day. Carbon saved, which needs a
-      counterfactual, is not claimed. <a href="./explore/#used">See it on one household
-      &rarr;</a></p>
-  </div>
-</section>
-
-<!-- WHOSE BOOK THIS IS (SITE_EH1_segment_disclosure 2026-07-30, scope item 2: "The revenue mix
-     is stated BEFORE the mission claim ... and on the front door").
-
-     WHY IT IS HERE AND NOT LOWER: a cold-eyes Expert Hour failed the SITE1 atom on exactly this
-     ordering. The front door, the mission, the score, the personalisation thesis and the one
-     drilled-into account were ALL residential -- "I&C" appeared zero times on this page -- while
-     the book behind every published figure earns essentially all of its revenue from a handful of
-     industrial & commercial accounts. Every figure carried its clock (R14) and none carried its
-     segment. A reader who meets the household-carbon mission before meeting the book's composition
-     has been misled by ordering alone, so the composition now comes first.
-
-     NO LIVE FIGURE, NO INLINE SCRIPT: this surface deliberately renders neither (the documented
-     post-condition of DIRECTOR_RULING_FRONT_MISSION_BLOCK, guarded by site/test_front_door_brand.py).
-     So the claim below is a hand-authored THRESHOLD claim, and `data-mix-claim` is its machine-
-     readable form: tools/generate_dashboard_data.py::_check_front_door_segment_claim recomputes the
-     real share from the run's own segment split every publish and FAILS the publish if this sentence
-     stops being true. The sentence cannot silently rot into a false public claim (one-way door 3).
-
-     NOT a cohort-£ figure (RC7 wall): a share of revenue and an account count, never a £ total. -->
+<!-- THE WORLD (steer item 4). data-mix-claim below is the machine-readable form of "this book is
+     households": tools/generate_dashboard_data.py::_check_front_door_segment_claim recomputes the
+     non-domestic revenue share every publish and FAILS the publish if the sentence stops being
+     true. -->
 <section class="bookmix" data-mix-claim="non_domestic_revenue_share_lt_5">
-  <div class="bl">Whose book this is</div>
-  <p><strong>This book is households, and most of them take both electricity and gas, as most
-    British homes do.</strong> The supplier below is real in the sense that matters here: it
-    settles, prices, hedges, bills and collects against the actual market record. Every
-    per-customer figure on this site is a figure about a household.</p>
-  <details class="more"><summary>How the book came to be households, how it grows, and what sets its size</summary>
-  <p>It was not always so. Until late August 2026 the book was a handful of industrial and
-    commercial accounts carrying almost all of the revenue, so a household mission was being
-    funded by a book that was not about households. The director <strong>suspended industrial and
-    commercial supply</strong>. The capability is still built and still tested &mdash; half-hourly
-    settlement, Triad curtailment, the flexibility revenue book, the DUoS/TNUoS split &mdash; but
-    the company has stopped serving those accounts, which is a different thing from deleting
-    them.</p>
-  <p><strong>It grows because it is won.</strong> Each new account was quoted, credit-checked and
-    carried through a statutory cooling-off period, and most quotes lost &mdash; there are years in
-    the run that won nothing. Nothing is assigned to this company; a growth curve that cannot be
-    lost is not a growth curve.</p>
-  <p><strong>And its size is set by this machine, not by the market.</strong> The book starts from
-    a set of founder households drawn when the run begins, and grows by what the company wins. How large it can be is
-    limited by how much one run on this computer can settle, not by the supplier's capital or by
-    demand. We would rather say so than let a small or flattening book read as a commercial
-    result. The first measurement of that limit is written up in the repository, in the
-    settlement-ceiling note of 24 August 2026. Account counts and per-segment economics are on
-    <a href="./capabilities/">Capabilities</a>.</p>
-  </details>
-</section>
-
-<!-- MISSION block (DIRECTOR_RULING_FRONT_MISSION_BLOCK 2026-07-24): the falsifiable claim on
-     the front door is the personalisation-abatement claim itself -- its score named, its
-     yardstick named, its number honestly ABSENT until the instrument runs. It REPLACED the
-     cost-to-serve arbitrage leg that used to lead here (recasting the company as cheap-therefore-
-     green, the wrong thesis); that leg lives on /proof#economics-anchor intact. Uses the .thesis
-     styling; carries NO cohort-derived £ (£273 is a government appraisal value, not a run figure). -->
-<section class="thesis">
-  <!-- CORRECTED 2026-10-22: this heading read "The score: £ per tonne of CO2e abated". Canon v4
-       CO1 (ruled 12 Oct, decision 4): carbon's job is to show a household what it has saved and
-       could save, and £/tCO2e is an internal diagnostic, not the public headline. -->
-  <h2>The claim, and what a household saves <span class="tag tag-prov">CARBON SAVED: NOT YET MEASURED</span></h2>
-  <p class="hypo"><strong>The claim, falsifiable:</strong> that you create value fastest by knowing each
-    household well &mdash; shifting when it draws power, fitting the right assets, pricing the right tariff,
-    having the right conversation &mdash; and that the value is real only if the household keeps a share of
-    it. Run as a real autonomous supplier inside a faithful simulation of the actual UK market. Every line
-    of company code has to answer one question: <em>could a real supplier know this?</em></p>
-  <p class="thesis-sentence">A household is saved <strong>money, time and carbon</strong>. Carbon's job
-    is to show each household what it has saved and could save in CO&#8322;. Inside the company,
-    the same saving is also priced in <strong>&pound; per tonne of CO&#8322;e saved</strong>,
-    against the UK government's carbon appraisal value, <strong>&pound;273/tCO&#8322;e
-    (2025)</strong>, in 2022 prices. That price is a diagnostic, not the headline.</p>
-  <p class="hypo"><strong>The money side has been run: we cannot tell yet.</strong> Time is not yet
-    measured, only one of the three ways to reach a household (tariffs) works today, and carbon
-    saved is not yet measured. Each is set out below, in full.</p>
-  <details class="more"><summary>The full account: the three runs, what is and is not built, and why carbon saved is not yet measured</summary>
-  <!-- THE CLAIM ABOVE HAS BEEN PUT TO A RUN, AND THE RUN DECLINED TO NAME A DIRECTION.
-       Added 2026-09-09, sweeping every live surface against the nine-seed floor. Until today this
-       door stated the personalisation claim as an open hypothesis and the `NOT YET MEASURED` tag
-       above it was about the CARBON score -- so a reader met "you create value fastest by knowing
-       each household well" with no signal that the MONEY side had been measured and had come back
-       "we cannot tell". A hypothesis a reader cannot tell has been tested reads as one nobody has
-       tested yet, which is the more flattering of the two and the wrong one.
-
-       WHY THIS PARAGRAPH CARRIES NO NUMBER, DELIBERATELY, and this is not squeamishness:
-       (1) RC7 (DIRECTOR_RULING_IDEA_FIRST_EXTERNAL_REGISTER 2026-07-24) -- no cohort-derived pound
-           aggregate leads a public surface, "a share of revenue and an account count, never a
-           total". The selection leg and its band are both cohort-derived pound totals.
-       (2) A hand-typed figure beside a generated one is the defect this project files against
-           itself most often, and /capabilities/#value-arms RETIRED its own prose copy of this
-           band on 2026-09-08 for exactly that reason -- one fact with two homes gets edited on
-           two days for two reasons. Re-typing it here would rebuild the shape that page just
-           demolished. The band's one home is the band table on Capabilities.
-       So this door carries the VERDICT and a pointer, and Capabilities carries the figures.
-
-       AND IT IS KEYED TO THE PROPERTY, NOT TO TODAY'S ANSWER. `data-selection-verdict` is the
-       machine-readable form of the sentence, and
-       tools/generate_dashboard_data.py::_check_front_door_selection_verdict recomputes it from
-       `value_arms.json -> current_world.selection_leg.resolved` every publish and FAILS the
-       publish if this sentence stops being true -- in EITHER direction. If more seeds ever
-       resolve the leg, this paragraph goes red for claiming a refusal the evidence no longer
-       supports; it does not quietly become a stale disclaimer that flatters us by understating
-       what we know. Same mechanism as `data-mix-claim` two sections up, same reason. -->
-  <p class="hypo" data-selection-verdict="withheld" data-selection-draws="3"><strong>And the money side of that claim has
-    now been run, with this result: we cannot tell yet.</strong> The same book was put through the
-    same world three times &mdash; on flat rules, on the per-customer decision engine, and on a
-    single flat margin set at the level the per-customer arm actually charged. That third run is
-    what separates <em>choosing better</em>, which would be value made, from <em>charging
-    more</em>, which only moves it. In the world as now fitted to the published switching record,
-    the choosing leg was re-drawn three times over nothing but each household's hidden price
-    sensitivity, by the code this page is published from. It came out above zero on all three
-    draws, but only one of the three clears the spread between them, so a direction would rest on
-    which draw the run happened to make, and this page states none. Most of the advantage the book
-    does show is the price level, which is value moved rather than made. The claim above remains
-    the claim. It is not yet the finding.
-    <a href="./capabilities/#value-arms">The three runs, the split and the three-draw band
-    &rarr;</a></p>
-  <!-- MISSION REWRITE 2026-08-28 (director, direct; supersedes DIRECTOR_RULING_FRONT_MISSION_BLOCK's
-       "carbon abatement through personalisation" sentence, not its STRUCTURE -- claim, score,
-       yardstick, number honestly absent, all kept). The paragraph below is the honest state of the
-       other two currencies and of the three channels; it is hand-authored PROSE about what exists in
-       the repository, carries no run figure, and is checked by docs/design/THE_MODEL_ON_A_PAGE.md
-       (atoms A47, C30, C31). -->
-  <p class="thesis-caveat"><strong>Two of the three currencies, and two of the three channels, are not
-    built.</strong> Only money has ever been <em>optimised</em> here, and only our side of it. What a
-    household <em>saved</em> by being with us is now measured &mdash; against the published default
-    tariff, at that household's own metered volumes &mdash; but it is a diagnostic and nothing yet
-    decides anything by it. That is a different question from the money result above: this compares
-    the household with the default tariff, not our pricing with simpler rules. <strong>Time is defined but not yet measured.</strong> It means a
-    household's effort, counted in its own unit (household minutes for each kind of task: shopping
-    around, sorting out a problem, recovering from one, routine admin) and never turned into
-    pounds. Nothing in the run counts those minutes yet. And of the
-    three ways value is meant to reach a household &mdash;
-    personalised modelling, tariffs, advice &mdash; only <strong>tariffs</strong> reaches one today: the
-    modelling that exists is the supplier's opinion about its customers rather than a model offered to
-    them, and the advice code has no recipient. Said here rather than in a footnote, because a mission
-    with two thirds of its channels unbuilt is the kind of thing a company usually declines to
-    mention.</p>
-  <!-- EVERY NUMBER IN THE NEXT TWO PARAGRAPHS IS FILLED FROM site/data/explore_carbon.json, never
-       typed here. A hand-authored figure beside a generated one is the defect this project files
-       against itself most often, and the worst place to make it is the paragraph explaining why a
-       different figure is honestly absent. The fallback text carries NO number at all. -->
-  <p class="thesis-caveat"><strong>The honest state, plainly.</strong> The half-hourly instrument now
-    runs: where a household has half-hourly meter reads, they are multiplied by what the grid was
-    actually burning in each half hour<span id="carbon-worst"></span>. That is <strong>emissions</strong>, and emissions
-    are measurable. <a href="./explore/#used">See it on a real household &rarr;</a></p>
-  <p class="thesis-caveat"><strong>Why carbon saved still says NOT YET MEASURED.</strong> Abatement
-    is not emissions. It is what a household did <em>not</em> emit because of something we did, which
-    needs a claim about a world that did not happen &mdash; a randomised holdout, a matched comparison,
-    or a weather-normalised before-and-after. <span id="carbon-coverage">At the current number of
-    half-hourly reads</span> none of those is viable, and the honest thing is to say so rather than
-    publish an engineering estimate with a measurement's confidence. The number that would change this
-    fastest is not a model: it is meters.</p>
-  </details>
+  <h2>A world it cannot see into</h2>
+  <p><strong>Behind the supplier is a synthetic Britain.</strong> Its households carry traits the
+    company is never told: how sensitive each is to price, how it pays, how green it is. Each home
+    has its own building physics, heated under the weather of its own place. Lives change:
+    homes take on heat pumps, solar and electric cars, and households move. All of it plays out
+    against the real market record.</p>
+  <p><strong>The company learns that world only as a real supplier would</strong>: meter reads,
+    market feeds, payments, complaints and published regulation, and nothing else. A wall in the
+    code stops it reading the simulation's own truth, and the company's code cannot reach the
+    internet at all. The book it serves is households, most of them on both fuels, as most British
+    homes are.</p>
 </section>
 
 <section class="moap">
   <h2>The whole model on one page</h2>
-  <p class="lead">The world, what the company can see of it, the company, and the score &mdash; the whole supplier on one page. Below the
+  <p class="lead">The world, what the company can see of it, the company, and the score. Below the
     diagram, every part is listed in plain words with its build stage &mdash; <strong>Live</strong>,
     <strong>Building</strong>, or <strong>Planned</strong> &mdash; one sentence each, and one click to
-    a &ldquo;look at this&rdquo; view. You see the idea and the honest state of it in one read.</p>
+    a &ldquo;look at this&rdquo; view.</p>
   <figure>
     <img src="./assets/model-on-a-page.svg"
          alt="A one-page schematic of the poesys model, read top to bottom. Governance: one human director sets the mission and the irreversible calls; a board holds six stances in tension; AI builders design, build, test and deploy; an automated system of checks and a running build plan builds and steers everything below. The World (sim ground truth, behind the wall): real weather drives half-hourly price and demand over the 2016-25 record of 168k periods including the crisis, over a population of households drawn fresh every run, each with a metered life and three hidden traits of which only one expresses -- the world records more heterogeneity than it expresses; the world moves ahead of the books and settlement lands months late; ground truth never crosses the wall, and cohorts are drawn for learning value not headcount. The Wall: ground truth never crosses; everything else is an interface flow in one of two directions -- inbound (market feeds, forecasts with error, meter reads, payments, complaints and replies, late settlement) and outbound (bills, offers, messages); the company touches the world only through what it sends. The Company (sees only through the wall): acquire, forecast the book, price tariffs, hedge forward, bill out, collect, settle late and learn from the true-up -- one integrated agentic stack across trading, finance, billing, CRM, operations and debt; bills run on three clocks, billed, settled and banked, with truth arriving months behind the money; it can be wrong, and it must not be guaranteed to live -- though no mechanism presses yet. The Score: survive (a hard constraint judged worst-case), earn (probability-weighted expected value), and abate (grid intensity times household use, in pounds per tonne of CO2e).">
@@ -478,7 +353,7 @@ details.more[open] summary { margin-bottom: 4px; }
     </div>
     <div class="node">
       <div class="node-head"><span class="node-name">The world</span><span class="stage stage-building">Building</span></div>
-      <p class="node-say">Real weather over 2016&ndash;2025 drives the actual half-hourly wholesale prices &mdash; 168,000 settlement periods, including the 2021&ndash;22 gas crisis. That price record is real. Per-home demand is part-way there. Where the weather store covers a household's location, its electricity is drawn half hour by half hour from a thermal model of its own building under its own local weather, and its gas is split between heating and everything else by the same model. Homes outside that coverage still use one national shape rescaled, so they look too smooth, and a crowd of them does not vary the way a real street does.</p>
+      <p class="node-say">The actual half-hourly wholesale prices of 2016&ndash;2025 are replayed as they happened &mdash; 168,000 settlement periods, including the 2021&ndash;22 gas crisis. Real weather drives each home's demand, not the prices. Per-home demand is part-way there. Where the weather store covers a household's location, its electricity is drawn half hour by half hour from a thermal model of its own building under its own local weather, and its gas is split between heating and everything else by the same model. Homes outside that coverage still use one national shape rescaled, so they look too smooth, and a crowd of them does not vary the way a real street does.</p>
       <a class="node-look" href="./capabilities/#world">Look: how far the world has actually got &rarr;</a>
     </div>
     <div class="node">
@@ -504,111 +379,65 @@ details.more[open] summary { margin-bottom: 4px; }
   </div>
 </section>
 
-<!-- TWO WAYS IN (director's steer, 22 Oct, item 5: "Speak to both audiences by name"). Each
-     "faithful today / not yet" line is a summary of the linked Knowledge page's own scope and
-     gap sections; when one of those pages changes its account, this line is owed the same change.
-     No figure is typed here. -->
-<div class="sec">Two ways in</div>
-<div class="audiences">
-  <div class="aud" id="for-energy">
-    <h2>If you work in energy</h2>
-    <p class="aud-lede">What is modelled faithfully today, what is not yet, and how each compares
-      with how a real GB supplier works. Each line links to the page that sources it.</p>
-    <dl class="fidelity">
-      <dt><a href="./knowledge/imbalance-cashout-settlement/">Settlement</a></dt>
-      <dd><b>Faithful today:</b> every half hour is settled against the real published Elexon
-        system price, imbalance is a real cost line, and the settled truth reaches the company
-        months late, as it does in the industry.<br>
-        <b>Not yet:</b> Supplier Volume Allocation and the reconciliation run calendar are
-        modelled by their effect on the figures, not in their full detail.<br>
-        <b>Profiles:</b> in 2016&ndash;2025 almost every home was settled on a standard profile
-        (98.5% of meters in May 2022, by Elexon's count), and half-hourly settlement for homes
-        began only in late 2025. The run now does the same: a home is billed on its own meter,
-        but its energy is bought on its registered profile class, trued up to its own volume
-        over each contract. Until 22 Oct 2026 the run settled each home's own half hours instead, which
-        moved an electrically heated home's cost by &pound;35&ndash;150 a year against its
-        profile and the whole book by +0.2%.</dd>
-      <dt><a href="./knowledge/price-cap/">The price cap</a></dt>
-      <dd><b>Faithful today:</b> the cap limits unit rates and standing charges, not the bill,
-        and its headline describes a typical home at typical use. Both are checked against
-        Ofgem's own material.<br>
-        <b>Not yet:</b> the cap's published levels are not yet ingested as a series, and the
-        wholesale allowance's method has not been read line by line.</dd>
-      <dt><a href="./knowledge/hedging-forward-market/">Hedging</a></dt>
-      <dd><b>Faithful today:</b> the company hedges to a mandate, layered across terms, and its
-        realised cost is reported against going unhedged, including the calm years in which the
-        hedge lost money and the 2021&ndash;22 crisis it was bought for.<br>
-        <b>Not yet:</b> no options, no trading views and no cross-commodity hedging; collateral
-        is a cash constraint, and the counterparty credit process is simplified.</dd>
-      <dt><a href="./knowledge/debt-and-collections/">Debt</a></dt>
-      <dd><b>Faithful today:</b> billing and collections run every month, and the world's stock
-        of debt more than 91 days old matches what Ofgem publishes.<br>
-        <b>Not yet:</b> write-offs per pound billed are well below a large supplier's, the world
-        generates no prepayment debt, and its payment-failure rates are not yet sourced.</dd>
-      <dt><a href="./knowledge/home-moves/">Home moves</a></dt>
-      <dd><b>Faithful today:</b> a household that moves keeps its region at least as often as the
-        published lower bound, and its new home's use comes from the new dwelling, not the old
-        one.<br>
-        <b>Not yet:</b> only the electricity supply follows the household; the gas supply ends at
-        the move. The value of a mover offer, time on a deemed contract and an empty home's use
-        are gaps in the published record, so each is reported as a range.</dd>
-      <dt><a href="./knowledge/how-households-choose/">Dual fuel</a></dt>
-      <dd><b>Faithful today:</b> most homes with gas buy both fuels from one supplier, and the
-        book now draws its households that way from the CMA and Ofgem figures; a dual-fuel
-        account's gas and electricity are one house, not two.<br>
-        <b>Not yet:</b> the move rule above, so a dual-fuel household that moves leaves as an
-        electricity-only one.</dd>
-    </dl>
-    <div class="doors-in">
-      <a class="door" href="./knowledge/">
-        <div class="dp">The domain</div>
-        <div class="dt">Knowledge &gt;</div>
-        <div class="dd">How the GB electricity and gas market actually works, written from published
-          sources for someone who does not work in energy.</div>
-      </a>
-      <a class="door" href="./capabilities/">
-        <div class="dp">How far along is this?</div>
-        <div class="dt">Capabilities &gt;</div>
-        <div class="dd">The simulated world and the supplier inside it, side by side, with what
-          exists today and what does not, and every place the simulation would be swapped for a
-          real counterparty.</div>
-      </a>
-      <a class="door" href="./explore/">
-        <div class="dp">See it working</div>
-        <div class="dt">Explore &gt;</div>
-        <div class="dd">One household followed from the day its tariff was priced to the day its
-          worth was judged, with what the world knew set against what the supplier believed.</div>
-      </a>
-    </div>
+<!-- BUILT AND RUN BY AI (steer item 5). The dual-fuel episode stays as the system finding and
+     fixing its own world within a day. The percentages in it are published sources, not run
+     output. -->
+<section class="stories" id="by-ai">
+  <h2>Built and run by AI</h2>
+  <p class="pitch">AI sessions design, write, test and land the code, several at once in one
+    repository, and run the company inside the world. One human sets the mission and the few
+    decisions that cannot be undone. What makes that trustworthy is the checks: every change
+    passes gates that read the whole tree, and a check only counts once it has been shown to fail
+    when the thing it guards breaks. <a href="./harness/#control-kpis">The checks that can fail
+    &rarr;</a></p>
+  <p class="pitch"><a href="./harness/module-graph/">See the code: every module, every import, and
+    the wall between the world and the company &rarr;</a></p>
+  <div class="story">
+    <h3>A question showed its world was wrong. It fixed it within a day.</h3>
+    <p>On 17 October the director asked how many founding households take electricity only, gas
+      only, or both. The answer was 1% both. A coin set when the book was 13 accounts had been
+      picking each founder's fuel on its own. The CMA's 2014 household survey puts 72% of all
+      homes on one supplier for both fuels, and Ofgem's 2017 survey, the latest to publish the
+      figure, puts 91% of homes with both on one supplier. Within a day the system researched the
+      published record, rebuilt the founders as homes that buy both fuels where they have gas, and
+      added checks that measure the routes into the book against those sources. The next
+      published run was a dual-fuel book.
+      <a href="./knowledge/how-households-choose/">How households buy both fuels &rarr;</a></p>
   </div>
-  <div class="aud" id="for-tech">
-    <h2>If you work in tech</h2>
-    <p class="aud-lede">The build is the other half of the claim. AI sessions design, write, test
-      and land the code, several at once in one repository; one human sets direction and the few
-      calls that cannot be undone. What makes that trustworthy is not the model but the checks
-      around it: every change passes gates that read the whole tree, and a check only counts if it
-      has been shown to fail when the thing it guards breaks.</p>
-    <div class="doors-in">
-      <a class="door" href="./harness/#control-kpis">
-        <div class="dp">Checks that can fail</div>
-        <div class="dt">How it&rsquo;s built &gt;</div>
-        <div class="dd">The delivery record, how the work is chosen, the rules the project has had
-          to write for itself, and what a human actually decided.</div>
-      </a>
-      <a class="door" href="./harness/#not-proven">
-        <div class="dp">Where it goes wrong</div>
-        <div class="dt">What we know is wrong &gt;</div>
-        <div class="dd">The open defects and the mistakes it made and corrected, kept beside the
-          claims they touched rather than quietly revised.</div>
-      </a>
-      <a class="door" href="./harness/module-graph/">
-        <div class="dp">The code</div>
-        <div class="dt">How the code is wired &gt;</div>
-        <div class="dd">The module graph, with the one boundary that stops the company seeing
-          inside the simulated world.</div>
-      </a>
-    </div>
-  </div>
+</section>
+
+<!-- THE OPEN QUESTION, ONE LINE (steer item 6). data-selection-verdict and data-selection-draws
+     are recomputed from value_arms.json at every publish by
+     tools/generate_dashboard_data.py::_check_front_door_selection_verdict and its draws twin,
+     which FAIL the publish if either stops being true, and the draws gate also needs the count
+     spelled in the prose ("three"). The full account lives on Capabilities. -->
+<p class="hypo" id="open-question" data-selection-verdict="withheld" data-selection-draws="3"><strong>The
+  open question:</strong> does knowing each household create value, or only move it? The money
+  side has been run three times over the households' hidden traits, and the answer is not in yet.
+  <a href="./capabilities/#value-arms">The runs &rarr;</a></p>
+
+<p class="also"><a href="./capabilities/#not-built">What is not built yet &rarr;</a>
+  &middot; <a href="./harness/#not-proven">What we know is wrong &rarr;</a></p>
+
+<div class="doors-in">
+  <a class="door" href="./knowledge/">
+    <div class="dp">The domain</div>
+    <div class="dt">Knowledge &gt;</div>
+    <div class="dd">How the GB electricity and gas market actually works, written from published
+      sources.</div>
+  </a>
+  <a class="door" href="./capabilities/">
+    <div class="dp">How far along is this?</div>
+    <div class="dt">Capabilities &gt;</div>
+    <div class="dd">The world and the supplier side by side: what exists, what does not, and where
+      the simulation would meet a real counterparty.</div>
+  </a>
+  <a class="door" href="./explore/">
+    <div class="dp">See it working</div>
+    <div class="dt">Explore &gt;</div>
+    <div class="dd">One household followed from the day its tariff was priced to the day its worth
+      was judged.</div>
+  </a>
 </div>
 
 <footer class="foot">
@@ -618,31 +447,5 @@ details.more[open] summary { margin-bottom: 4px; }
 
 </div></div>
 <footer style="max-width:1060px;margin:0 auto;padding:16px 56px 30px;font-size:11px;color:var(--muted);">&copy; 2026 Poesys Platforms. All rights reserved. &middot; <a href="./privacy/" style="color:var(--muted);">Privacy</a></footer>
-<script>
-(function () {
-  /* The two carbon sentences above, filled from the generated file. On any failure the spans
-     stay as authored -- which is a sentence with no number in it, never a stale one. */
-  fetch("./data/explore_carbon.json").then(function (r) { return r.json(); }).then(function (c) {
-    var measured = (c.accounts || []).filter(function (a) { return a.timing_effect_pct !== undefined; });
-    var worst = measured.reduce(function (a, b) {
-      return a === null || Math.abs(b.timing_effect_pct) > Math.abs(a.timing_effect_pct) ? b : a;
-    }, null);
-    if (worst) {
-      var el = document.getElementById("carbon-worst");
-      if (el) el.innerHTML = ", and on its hardest day one household emitted <strong>" +
-        Math.abs(worst.timing_effect_pct).toFixed(0) + "% " +
-        (worst.timing_effect_pct >= 0 ? "more" : "less") +
-        "</strong> than the annual-average method reports";
-    }
-    var n = c.counts || {};
-    var total = (n.measured || 0) + (n.profiled || 0) + (n.uncovered || 0);
-    if (total) {
-      var cov = document.getElementById("carbon-coverage");
-      if (cov) cov.innerHTML = "At <strong>" + (n.measured || 0) + " of " + total +
-        " accounts</strong> with a half-hourly read,";
-    }
-  }).catch(function () { /* the authored, number-free sentence stands */ });
-})();
-</script>
 </body>
 </html>
