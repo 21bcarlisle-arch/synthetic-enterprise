@@ -648,3 +648,63 @@ costs us to serve the household. That finding shows the reverse: **the floor ove
 
 **Design choices this page makes:** none. Capping the tier cut to keep a save reserve is not
 proposed while the floor itself is wrong.
+
+## 9. How often a retention offer keeps a household that would have left (2026-10-22)
+
+Written first under K8, before the retention guard learns to weigh its own save odds
+(`docs/staging/records/SEAT_PREREG_THE_PER_CUSTOMER_SWITCHES_ON_TOGETHER_AGAINST_FLAT_2026-10-21.md` §13).
+No new source was fetched for this section. It gathers what §2, §5, §7 and the sibling pages already
+established, and labels the rest.
+
+### 9a. The quantity, stated before any figure
+
+> Of the households that would have left at this renewal without an offer, the share that stay
+> because of one.
+
+This is a save rate **conditional on would-have-left**. Two figures nearby are not it.
+- **P(stay | offered)** counts every household that would have stayed anyway. Reading that as a save
+  rate is the error that let `churn_model_performance.prevented_churn_saves` report 76 saves where
+  §7 of the prereg found 0 at the roll.
+- **The lift in any switching from a contact** (EFTC) counts internal re-fixes. A re-fix with the
+  same supplier is not a household kept from leaving.
+
+### 9b. What is published
+
+| finding | what it measures | source | bearing on 9a |
+|---|---|---|---|
+| A supplier's own end-of-fix letter moved switching from 19% to 28%. Internal went 14% → 23%; **external stayed at 6% in both arms** | a contact's effect on where a household goes, n = 19,553, one supplier, 2019 | Ofgem EFTC trial §4.1 (`how_households_respond_to_supplier_contact.md` §2.1) | **The only randomised figure for a supplier contact at a fixed-term end, and it shows no fall in external loss.** The letter carried no discount, so it bounds a contact, not an offer. |
+| Retention tariffs ran 25–36% (electricity) and 25–28% (gas) below rollover, 2012–14 | how deep a negotiated retention price was | CMA EMI final report §279 (§7b above) | microbusiness; a depth, not a rate of saves |
+| Customer-initiated stops through the losing supplier: 0.4–1.3% of domestic switches | a save on a loss notice, pre-CSS, at most | Ofgem 2016 RFI (§5c above) | a reactive save after the switch has started, not a proactive offer at the roll |
+| A home-mover retention programme raised retention from ~5% to ~30% | a journey redesign for movers | BFY Group case study, 2023 (§2a above) | a different journey (moving home) and consultancy marketing |
+
+### 9c. GAPs, labelled
+
+- **GAP: the save rate of a proactive, discounted retention offer at a domestic fixed-term end.**
+  No GB source found reports it with a counterfactual. It is not established by any row in 9b.
+- **GAP: whether the rate differs between a fixed term ending and a default-tariff stint.** EFTC
+  splits its effect by previous tariff (fixed 0.130, SVT 0.105 woken share, §2.2 of the sibling page),
+  but that is the woken share of any switch, not a save.
+- **GAP (practitioner):** what a GB retention desk counts as a save, and over what window. The
+  outcome-window question is already open on the knowledge map's *retention outcome window* row.
+
+### 9d. What the build chooses, and why
+
+- **The company learns its own save rate, because nothing published sets one.** Per type of term
+  ending, over offers made in years before the roll, it reads observed losses among the accounts it
+  offered against the losses its own belief predicted for them. The save rate is one minus that
+  ratio, with Jeffreys' correction on the losses, and it is never below zero. This is the
+  observed-over-expected the ending-term multiplier already uses
+  (`company/crm/competitive_pressure.py`), asked only of the offered accounts.
+- **What this cannot separate, said plainly.** Without a holdout, a save and a belief that
+  under-reads its offered tail look the same. The offers are selected on belief above 0.30 and on a
+  cut being available. If the belief under-reads that tail, the save rate reads low and the guard
+  offers less. That is the safe direction (F11). The company's own holdout
+  (`RetentionHoldout`) is the instrument that would separate the two, and it closes no row while
+  `RETENTION_OUTCOME_WINDOW_DAYS` is `None`.
+- **No prior is used, and no published rate is borrowed.** EFTC's external 6% → 6% is a contact
+  without a discount. Using it as a prior of zero would decide the question before any evidence
+  arrived. Where a type has no closed offers yet, the guard stays as it was, so the evidence can
+  accrue. That is a fall-back with a named reason, not a value.
+- **The decision.** An offer is made only where the belief at the roll × the save rate × the value
+  the guard already protects (the term contribution, net of the bad-debt charge and plus the
+  replacement cost avoided where those switches are on) exceeds the offer's cost. The field is default off.

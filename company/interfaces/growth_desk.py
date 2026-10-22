@@ -54,6 +54,7 @@ __all__ = [
     "book_acquisition_gate",
     "book_acquisition_spend",
     "book_retention_cost",
+    "book_retention_offer",
     "broker_commission_schedule",
     "decide_acquisition",
     "growth_mandate_label",
@@ -64,6 +65,7 @@ __all__ = [
     "retention_engagement",
     "retention_offer_can_buy_anything",
     "retention_value_protected",
+    "retention_value_weighed_by_save_odds",
 ]
 
 
@@ -418,6 +420,42 @@ def retention_value_protected(expected_margin: float | None, acq_cost_saved: flo
         return None
     charge = retention_bad_debt_charge(default_belief_rate, billed) or 0.0
     return value_protected(expected_margin - charge, acq_cost_saved, engagement)
+
+
+def retention_value_weighed_by_save_odds(value_protected: float | None, *, belief: float,
+                                         ending_term_type: str | None,
+                                         renewal_year: int | None) -> tuple[float | None, float | None, str]:
+    """(2026-10-22) What the guard weighs once it asks whether an offer can save anything: the
+    belief at the roll x the company's own save rate for this ending-term type x the value the
+    guard protects. Returns `(value, save_rate, reason)`.
+
+    Where the company has no closed offers of this type to learn from, `value_protected` comes back
+    unweighed with the reason, so the standing guard decides while evidence accrues. The save rate
+    is `CompetitivePressureLedger.retention_save_rate`; the knowledge is
+    `docs/market_research/a_save_offer_against_the_switching_rules_and_the_seam.md` §9.
+    """
+    from company.crm.competitive_pressure import active_pressure_ledger
+
+    if value_protected is None:
+        return None, None, "no value to protect"
+    ledger = active_pressure_ledger()
+    if ledger is None:
+        return value_protected, None, "no pressure ledger in scope"
+    rate, reason = ledger.retention_save_rate(ending_term_type, renewal_year)
+    if rate is None:
+        return value_protected, None, reason
+    return max(0.0, min(1.0, belief)) * rate * value_protected, rate, reason
+
+
+def book_retention_offer(*, renewal_year: int | None, ending_term_type: str | None,
+                         account_id: str, belief: float) -> None:
+    """Book an offer the guard made, so `retention_value_weighed_by_save_odds` can learn from its
+    outcome. The world reports the loss through the same ledger, by the company's own account id."""
+    from company.crm.competitive_pressure import active_pressure_ledger
+
+    ledger = active_pressure_ledger()
+    if ledger is not None:
+        ledger.observe_retention_offer(renewal_year, ending_term_type, account_id, belief)
 
 
 def retention_bad_debt_charge(default_belief_rate: float | None, billed: float) -> float | None:

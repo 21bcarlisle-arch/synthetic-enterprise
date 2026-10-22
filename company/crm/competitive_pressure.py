@@ -293,6 +293,11 @@ class CompetitivePressureLedger:
     #: attributed to the account's latest roll through its own id, as B8 attributes a price move.
     ending_term_sums: dict[tuple[str, int], dict] = field(default_factory=dict)
     pending_ending_term_by_account: dict[str, tuple[str, int]] = field(default_factory=dict)
+    #: (2026-10-22) THE SAME AGAIN, ASKED ONLY OF THE RENEWALS WE MADE A RETENTION OFFER ON: per
+    #: (ending-term type, year), offers, the belief held at the roll, and how many of those accounts
+    #: were lost at that renewal. What `retention_save_rate` reads.
+    retention_offer_sums: dict[tuple[str, int], dict] = field(default_factory=dict)
+    pending_offer_by_account: dict[str, tuple[str, int]] = field(default_factory=dict)
 
     def arm_loss_reporting(self) -> None:
         """Declare that departures WILL be reported to this ledger for the rest of the run.
@@ -393,6 +398,54 @@ class CompetitivePressureLedger:
         sums["n"] += 1
         sums["sp"] += max(0.0, min(1.0, p))
         self.pending_ending_term_by_account[str(account_id)] = key
+        # A new roll closes the last one's offer: a loss from here on is this renewal's, not that.
+        self.pending_offer_by_account.pop(str(account_id), None)
+
+    def observe_retention_offer(self, renewal_year: Optional[int], ending_term_type: Optional[str],
+                                account_id: Optional[str], believed_p_leave: float) -> None:
+        """Book one retention offer under the type of the term it ends, with the belief the guard
+        weighed it on. Booked after this roll's `observe_ending_term`, which clears any older offer
+        for the account. Silent when any part is unknown."""
+        if None in (renewal_year, ending_term_type, account_id):
+            return
+        p = float(believed_p_leave)
+        if not math.isfinite(p):
+            return
+        key = (str(ending_term_type), int(renewal_year))
+        sums = self.retention_offer_sums.setdefault(key, {"n": 0, "sp": 0.0, "losses": 0})
+        sums["n"] += 1
+        sums["sp"] += max(0.0, min(1.0, p))
+        self.pending_offer_by_account[str(account_id)] = key
+
+    def retention_save_rate(
+        self, ending_term_type: Optional[str], renewal_year: Optional[int]
+    ) -> tuple[Optional[float], str]:
+        """Of the offered accounts the belief expected to lose, the share the company kept, over
+        closed years: `1 - observed / expected`, Jeffreys-corrected on the losses, never below 0.
+
+        `(None, reason)` where there is nothing to learn from, and the caller keeps its standing
+        guard so evidence can accrue. A belief that under-reads the offered tail reads here as a
+        low save rate; only a holdout separates the two, and the error offers less (F11).
+        Knowledge: `docs/market_research/a_save_offer_against_the_switching_rules_and_the_seam.md` §9.
+        """
+        if ending_term_type is None or renewal_year is None:
+            return None, "no ending-term type or renewal year"
+        if not self.loss_reporting_armed:
+            return None, "departures are not being reported to this ledger"
+        n, sp, losses = 0, 0.0, 0
+        for (kind, year), sums in self.retention_offer_sums.items():
+            if kind == ending_term_type and year < int(renewal_year):
+                n += sums["n"]
+                sp += sums["sp"]
+                losses += sums["losses"]
+        if n <= 0:
+            return None, f"no closed retention offers ending a {ending_term_type} term"
+        if sp <= 0.0:
+            return None, f"predicted zero losses on {n} closed {ending_term_type} offers"
+        ratio = ((losses + _CONTINUITY_SUCCESSES) / (n + _CONTINUITY_TRIALS)) / (sp / n)
+        return max(0.0, 1.0 - ratio), (
+            f"{losses} losses against {sp:.2f} predicted on {n} closed {ending_term_type} "
+            f"offers: observed over expected {ratio:.3f}")
 
     def ending_term_multiplier(
         self, ending_term_type: Optional[str], renewal_year: Optional[int]
@@ -461,6 +514,9 @@ class CompetitivePressureLedger:
             ending = self.pending_ending_term_by_account.pop(str(account_id), None)
             if ending is not None and ending in self.ending_term_sums:
                 self.ending_term_sums[ending]["losses"] += 1
+            offered = self.pending_offer_by_account.pop(str(account_id), None)
+            if offered is not None and offered in self.retention_offer_sums:
+                self.retention_offer_sums[offered]["losses"] += 1
         # B8: the departure is booked against the price move of the renewal it left through.
         pending = self.pending_move_by_account.pop(str(account_id), None) if account_id else None
         if pending is not None:

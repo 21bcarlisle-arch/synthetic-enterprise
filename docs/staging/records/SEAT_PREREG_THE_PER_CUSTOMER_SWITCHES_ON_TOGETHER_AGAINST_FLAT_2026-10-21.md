@@ -961,3 +961,55 @@ reconstruction says. Then the next step is to read the ledger directly, not to w
 §11 found removed and its aim kept (P12a, P12b). It is proposed separately, with the seeds the
 money question needs (EP17). Nothing here flips it. The grade used `/tmp/pcs11/grade.py` unchanged,
 with `ARM=` pointed at the new output, and it re-read §11's output to give the comparison column.
+
+## 13. The retention guard weighs its own save odds: `all_on_save_odds` against §12 and flat (filed 2026-10-22, before the arm was launched)
+
+*Drawn as `the-retention-guard-weighs-its-save-odds-by-the-ending-term-belief`. §12 held P12a's 2017 leg
+and P12b, so the item proceeds. Knowledge first:
+`docs/market_research/a_save_offer_against_the_switching_rules_and_the_seam.md` §9. No published source
+gives the save rate of a discounted retention offer at a domestic fix end (GAP). The one randomised
+supplier contact, EFTC, moved external loss 6% → 6%.*
+
+**What changed (one field).** `retention_weighs_save_odds`. With it on, the guard's value is
+belief at the roll × the company's own save rate × the value it already protects. The save rate is
+per ending-term type, over offers in years before the roll: `1 − observed/expected` losses on the
+accounts it offered, Jeffreys-corrected, floored at 0. Where a type has no closed offers, the
+standing guard decides. The arm is `tools/per_customer_switch_arms.py all_on_save_odds`, which is
+§12's `all_on_ending_term` plus this field and nothing else. The book and seed are §12's. Output:
+`/var/tmp/se-pcs-arms-out/all_on_save_odds.json`.
+
+**Setup facts read from §12's output (`all_on_ending_term_prior.json`), not from this arm.**
+`/tmp/pcs13/setup.py` reconstructs the rate from `retention_log` outcomes by §10's `kind_at`.
+- Offers by type and year: fixed 2017 83 (42.1 predicted losses, 34 lost), fixed 2018 20,
+  fixed 2019–2025 15, default 2018 3, default_after_declined_fix 2018 1. No offers were made in 2016.
+- So 2017 decides on the fall-back. From 2018 the fix-end save rate reads 0.19 (0.18–0.24 by 2025).
+  Default-term types first have closed offers in 2019, when no default-term offer was made.
+- At s = 0.19, belief × s × value beats cost on 0 or 1 of the 35 fix-end offers from 2018. The median
+  belief is 0.46, but value protected is £14–£120 against costs of £0.4–£107.
+- **A limit the design carries, named now.** Once the guard stops offering on a type, no new offers
+  close, and the rate freezes at what 2017 taught. Only a holdout, or offers made to explore, would
+  re-open it. This arm cannot test whether the rate would have risen.
+
+**Predictions (no outcome of this arm read).**
+- **P13a, the hand-over.** The 2017 offer set (account, date) is identical to §12's 83: 85%. Every
+  offer from 2018 that follows a fix carries a `save_rate` in the log: 95%. A run in which no
+  2018+ offer carries one, while 2018+ offers stay near §12's 35, has dropped the field.
+- **P13b, retention.** Fix-end offers from 2018 number 0–4 (§12: 35), point 1: 85%. Default-term
+  offers in 2018 number 3–5, point 4 (fall-back): 80%. Total offers are 85–92, point 88. Cost is
+  £1,450–£1,950, point £1,650 (§12 £2,968.23).
+- **P13c, departures.** 354 ± 4: 80%. Per §7, the offers kept no one at the roll they priced, so
+  withdrawing them should move only the few that carry into a later SVT-drift hazard. Point 355.
+- **P13d, money.** The discount not given is about £1,300. New − §12 is +£800, range
+  [−£1,000, +£2,000], positive 70%. New − flat is +£900. On one seed anything within ±£1,000 of flat is
+  a tie and is graded as one (EP17). This section cannot answer whether the guard creates value.
+- **P13e, the aim is untouched.** The desk's beliefs are the same as §12's on the states present in
+  both arms (AUC on §9's 268 states within 0.01 of 0.806): 85%. The field reads the belief and does not
+  write it.
+
+**Decision rule, fixed now.** If P13a fails, the run does not carry the field, and that is the next
+item. If P13a and P13b hold, the company's own evidence says its fix-end offers save about one in
+five of the losses it predicts, and that this pays on almost none of them. The guard is then a
+candidate beside the §12 switch, proposed with seeds, and nothing is flipped here. If P13c fails
+upward (more than 358 departures), the offers were saving households that the outcome-at-the-roll
+reading in §7 missed. In that case the save rate's definition is wrong before its value is, and that
+is written up before any seeds are run.

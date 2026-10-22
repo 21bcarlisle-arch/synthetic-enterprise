@@ -61,6 +61,7 @@ from company.interfaces.growth_desk import (
     book_acquisition_gate,
     book_acquisition_spend,
     book_retention_cost,
+    book_retention_offer,
     decide_acquisition,
     growth_mandate_label,
     mandate_permits_replacement,
@@ -73,6 +74,7 @@ from company.interfaces.growth_desk import (
     retention_engagement,
     retention_offer_can_buy_anything,
     retention_value_protected,
+    retention_value_weighed_by_save_odds,
 )
 from company.interfaces.hedge_desk import build_hedge_desk, hedge_mandate
 from company.interfaces.move_with_us import request_move_with_us_offer
@@ -1339,6 +1341,16 @@ def _refuse_a_rise_with_no_caller(policy) -> None:
             "next_best_action_shares_by_retention_rise is priced at the renewal notice by C34's desk, "
             "and this policy leaves next_best_action_decides_at_renewal off, so no rise would be "
             "priced: switch both on, or neither")
+
+
+def _refuse_save_odds_with_no_ending_term(policy) -> None:
+    """The save rate is learned per type of term ending, and only the ending-term belief supplies
+    the type. Asked for without it, every offer would read "no type" and the guard would run as
+    if the save odds had been weighed."""
+    if policy.retention_weighs_save_odds and not policy.renewal_belief_by_ending_term:
+        raise ValueError(
+            "retention_weighs_save_odds learns its save rate per ending-term type, and this policy "
+            "leaves renewal_belief_by_ending_term off, so no type would reach it: switch both on")
 
 
 def _account_state_svt_rate(commodity: str, term_start_str: str) -> float | None:
@@ -2765,6 +2777,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     )
     _renewal_advice = None
     _refuse_a_rise_with_no_caller(policy)
+    _refuse_save_odds_with_no_ending_term(policy)
     if policy.next_best_action_decides_at_renewal:
         _renewal_advice = RenewalAdviceDesk(policy)
     # What the value test would have said where the 10-10 gate refused first. Read by nothing in
@@ -3531,6 +3544,11 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 # Phase 33: passive renewers use SVT-inertia constants; active use full model.
                 # I&C customers are always active (brokers shop every renewal — no passive roll).
                 _renewal_year = int(term_start_str[:4])
+                _ending_term_type = (
+                    ending_term_type(_previous_tariff_type,
+                                     previous_term_spliced=_previous_term_spliced,
+                                     default_tariff_type=SVT_TARIFF_TYPE)
+                    if policy.renewal_belief_by_ending_term else None)
                 # Phase QK: signal collection (shock count, behaviour score, satisfaction
                 # decay/record) runs for EVERY renewal, not just active ones -- these are
                 # observable state updates independent of which estimate formula applies.
@@ -3587,11 +3605,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     term_start=term_start_str,
                     fuel=commodity,
                     # The company's own book, before the roll; None on every standing policy.
-                    ending_term_type=(
-                        ending_term_type(_previous_tariff_type,
-                                         previous_term_spliced=_previous_term_spliced,
-                                         default_tariff_type=SVT_TARIFF_TYPE)
-                        if policy.renewal_belief_by_ending_term else None),
+                    ending_term_type=_ending_term_type,
                 ))
                 if hangover_periods > 0:
                     hangover_remaining[cid] = hangover_periods - 1
@@ -3713,6 +3727,14 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     _value_protected = retention_value_protected(
                         expected_margin, acq_cost_saved, _engagement,
                         default_belief_rate=_ret_default_belief, billed=_ret_billed)
+                    # (2026-10-22) Weighed by the chance the offer saves anything: the belief x the
+                    # company's own save rate on past offers ending this type of term.
+                    _save_rate = None
+                    if policy.retention_weighs_save_odds:
+                        _value_protected, _save_rate, _save_rate_reason = (
+                            retention_value_weighed_by_save_odds(
+                                _value_protected, belief=company_est_pre,
+                                ending_term_type=_ending_term_type, renewal_year=_renewal_year))
                     # Whether it WOULD offer is read before the coin matters, on both arms: only
                     # those renewals are the experiment, so a row is due on either arm exactly then.
                     _would_offer = _value_protected is not None and (
@@ -3756,6 +3778,10 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                                 company_churn_estimate=company_est_pre,
                             )
                         )
+                        if policy.retention_weighs_save_odds:
+                            book_retention_offer(
+                                renewal_year=_renewal_year, ending_term_type=_ending_term_type,
+                                account_id=billing_account, belief=company_est_pre)
                         retention_log.append({
                             "customer_id": billing_account,
                             "event_date": term_start_str,
@@ -3770,6 +3796,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                             "outcome": "pending",
                             **({"engagement_estimate": round(_engagement, 4)}
                                if _engagement is not None else {}),
+                            **({"save_rate": round(_save_rate, 4)}
+                               if _save_rate is not None else {}),
                             **({"bad_debt_charge_gbp": round(retention_bad_debt_charge(
                                 _ret_default_belief, _ret_billed), 2)}
                                if _ret_default_belief is not None else {}),

@@ -234,6 +234,12 @@ class DecisionPolicy:
     #: `docs/staging/records/SEAT_PREREG_THE_PER_CUSTOMER_SWITCHES_ON_TOGETHER_AGAINST_FLAT_2026-10-21.md` §10.
     renewal_belief_by_ending_term: bool = False
 
+    #: (2026-10-22) The retention guard offers only where the belief at the roll x the company's own
+    #: save rate for the ending-term type x the value it protects beats the offer's cost
+    #: (`growth_desk.retention_value_weighed_by_save_odds`). Off on every standing policy; the run
+    #: refuses it on without `renewal_belief_by_ending_term`, which supplies the type. Prereg §13.
+    retention_weighs_save_odds: bool = False
+
     #: (2026-10-18) C34/C35 decide once per billing account, over both legs, where a dual-fuel
     #: household's two legs reach the decision on one date (`company.crm.next_best_action.
     #: states_for_decision`). A household leaves with both fuels about nine times in ten
