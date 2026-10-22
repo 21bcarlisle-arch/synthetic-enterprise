@@ -1677,3 +1677,48 @@ why do the four non-offer switches decide without acting? Either their actions a
 downstream, or the book gives them no case to act on. I cannot yet say which; that is the next
 item, and it is one-variable (one switch at a time against flat, reading where its log's decisions
 stop short of a bill). Nothing here goes to CURRENT_POLICY.
+
+## 17. Why the four non-offer switches decide without acting (2026-10-22 ~19:30 BST, no run launched)
+
+*Drawn as `why-the-four-non-offer-switches-decide-without-acting`. The item asked for runs that
+switch one field at a time against flat, written to `/var/tmp/se-pcs-arms17-out/`. **None was
+launched, and here is why.** §16's lower-bound arm and flat are byte-identical on every outcome
+field. So the same renewals, the same loss notices and the same households reach each switch in
+both arms. Each switch's own log in the lower-bound arm is therefore already its one-variable
+reading on this book and seed. A one-switch run would repeat it at about an hour per arm (R5). Read
+from `/var/tmp/se-pcs-arms16-out/` (stamped `4eb192b604`) and the code at `40676171f0`.*
+
+**Prediction written before the logs were read:** C34 and C35 are gated by construction. The
+ending-term belief has no consumer once offers are gone. The per-household save is the only one
+that can act. **The prediction held on all four.** It is not independent evidence, because §0
+correction 2 had already said the first two.
+
+| switch | what it decided (lower-bound arm) | where it stops short of a bill | kind |
+|---|---|---|---|
+| C34 `next_best_action_decides_at_renewal` | 1,362 renewal rows; tariff advice on 325, claimed value change £305.76 | `RenewalAdviceDesk.observe_roll` only appends to `next_best_action_renewal_log`. Nothing is sent, so the world never sees the advice (`decision_policy.py`: "Records only: nothing is sent and the world is unmoved") | **wiring gate**, by design |
+| C35 `next_best_action_shares_by_retention_rise` | a rise on 321 rows, £792.40 a month in total | priced only inside C34's desk, into the same log; the run refuses C35 on without C34 | **wiring gate**, inherited from C34 |
+| ending-term belief `renewal_belief_by_ending_term` | scaled `company_est_pre` on 190 renewals over the retention threshold (161 rows in the lower-bound log: 120 fixed, 37 default, 4 default after a declined fix; 29 in the gate value-test log) | `company_est_pre` has 3 consumers: C34's desk (records), the retention guard (offers, every one refused at cold start in this arm, none possible in flat) and event and diagnostic logs. In `customer_events.renewal_outcome` it is read **after** `resolve_departure`, as an error diagnostic, so it never reaches the roll | **wiring**: the belief is an input to an offer decision and nothing else |
+| per-household save `save_offer_decides_per_household` | 95 loss notices (identical households in both arms); 60 from two-leg households; a household rate on 12; the save rate changed on **2** | It acts in the world: it changes the matched rate the household is asked about. The book gives it almost no case. 52 of the 84 unpriced notices predate the cap (no published default to match until 2019). Where it did reprice (PROS-2022-0237 and SYN-2016-353, both Jul–Aug 2024), the household floor cut the match by £2.02 and £3.75/MWh and lifted `p_stay_at_save` by 0.010 and 0.011. Neither stayed. The one save in either arm (PROS-2022-0400, Dec 2023, single leg) is the same in both | **the book**: live, but on 2 cases out of 95, each moved by about one percentage point |
+
+**Also found: flat's other two differences reach nothing either.** Flat differs from the
+lower-bound arm in `framing_mode` and `tone_mode` as well, both `ab_test` in CURRENT_POLICY. Framing
+is read only inside a retention offer (`run_phase2b.py`, `framing_type_for`), so it falls with the
+offers. Tone is the dunning-letter tone. It reaches the world only through
+`arrears_engine.payment_outcome`. Since `ded298ecd2` (12 Oct, `world_payment_truth.UNIFIED = True`),
+a bill the triad has decided takes `told` and never calls `payment_outcome`. Only the fallback bills
+read the tone. On §16's book, flat's firm-only tone and CURRENT's split leave `total_bad_debt_gbp`,
+`payment_health_series` and `dd_balance_book` byte-identical. Filed as
+`SEAT_FINDING_THE_COLLECTIONS_TONE_REACHES_NO_PAYMENT_SINCE_THE_WORLD_WENT_TO_ONE_PAYMENT_TRUTH_2026-10-22.md`.
+
+**What this answers, for M2.** The question was whether the four switches are gated off or the book
+gives them no case. Three are gated off: two by design, and the belief because the offer was its
+only act. One, the save, is live, and the book gives it two cases. So the per-customer inference
+the company holds today has exactly two routes into the world: the retention offer (transfer, §15
+and §16) and the per-household save (two cases, no stay changed). **On this book, "per-customer
+inference creates value" cannot be tested until an act carries C34's advice to the household.**
+That is a build the world must answer: an advice letter and the household's response to it. Its
+knowledge page comes first (K8). It is not done here. Nothing goes to CURRENT_POLICY.
+
+**What would refute this.** A one-switch run (flat plus the per-household save, at `4eb192b604`,
+default dice) with any outcome field different from flat. Predicted byte-identical on `bills`,
+`per_cid_pnl` and `churned_billing_accounts`: 90%.
