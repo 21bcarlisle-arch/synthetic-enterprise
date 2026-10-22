@@ -52,7 +52,9 @@ def test_the_rewrite_replaces_only_the_bytes_between_the_markers(tmp_path):
     assert "stale bytes" not in out and out.endswith("<p>after</p></body></html>")
     assert out.count(g.PROOF_STRIP_START) == 1 and out.count(g.PROOF_STRIP_END) == 1
     # the unreadable source is said on the page, not filled in
-    assert "half-hourly period count" in out and "from run abc" in out
+    assert "half-hourly period count" in out and "(run abc;" in out
+    # the front door's only clock (director, 22 Oct 2026): the run's date and the cadence
+    assert "Figures from the run of 19 Oct 2026 &middot; published every Monday" in out
 
 
 def test_a_page_without_the_markers_is_left_alone(tmp_path):
@@ -76,3 +78,44 @@ def test_a_last_year_the_record_ends_inside_is_not_called_a_calendar_year():
     whole = dict(SIM, period_to="2017-12-31")
     figures, _ = g.proof_strip_figures(_run(["C1"]), _dashboard(LIFETIME), whole)
     assert figures[1][1] == "2 calendar years, lived in order"
+
+
+# ── THE BUILD STRIP: what has been built, counted from git at publish (director, 22 Oct 14:57) ──
+def _repo(tmp_path, files):
+    import subprocess
+    root = tmp_path / "repo"
+    for rel in files:
+        (root / rel).parent.mkdir(parents=True, exist_ok=True)
+        (root / rel).write_text("a\nb\n")
+    env = {"GIT_AUTHOR_NAME": "t", "GIT_AUTHOR_EMAIL": "t@t", "GIT_COMMITTER_NAME": "t",
+           "GIT_COMMITTER_EMAIL": "t@t", "PATH": "/usr/bin:/bin"}
+    for cmd in (["init", "-q"], ["add", "-A"], ["commit", "-qm", "one"],
+                ["commit", "-q", "--allow-empty", "-m", "two"]):
+        subprocess.run(["git", "-C", str(root), *cmd], check=True, env=env)
+    return root
+
+
+def test_the_build_figures_are_counted_from_the_repository_and_name_what_they_count(tmp_path):
+    """Defect: a typed or stale build figure. Two repositories that differ by one file must
+    render different counts, and a test file is counted inside the Python files, not beside."""
+    base = ["a.py", "tests/test_a.py", "site/knowledge/x/index.html", "site/knowledge/index.html",
+            "docs/market_research/n.md"]
+    figures, missing = g.build_scale_figures(_repo(tmp_path, base))
+    assert missing == []
+    assert [f[0] for f in figures] == ["2", "2", "1"], figures
+    assert figures[1][2].startswith("1 of them test files; 4 lines in all; counted from git at ")
+    assert "built from 1 sourced research notes" in figures[2][2]
+    more, _ = g.build_scale_figures(_repo(tmp_path / "b", base + ["b.py"]))
+    assert more[1][0] == "3"
+
+
+def test_a_build_strip_with_no_readable_git_names_each_gap_and_shows_no_number(tmp_path):
+    """The other leg of the partition: no repository means no figure, and the strip says why."""
+    figures, missing = g.build_scale_figures(tmp_path / "not-a-repo")
+    assert figures == [] and len(missing) == 2
+    page = tmp_path / "site" / "index.html"
+    page.parent.mkdir()
+    page.write_text("x\n" + g.BUILD_STRIP_START + "\nstale\n" + g.BUILD_STRIP_END + "\ny")
+    assert g.write_front_door_build_strip(page)
+    out = page.read_text()
+    assert "stale" not in out and "could not be read: the commit count" in out

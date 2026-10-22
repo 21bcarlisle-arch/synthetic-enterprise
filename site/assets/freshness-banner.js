@@ -223,6 +223,19 @@
     return !!p && p.state === "failing";
   }
 
+  /* A FAILURE RECORD WRITTEN BEFORE THE PUBLISH THAT SHIPPED THIS PAGE IS NOT ABOUT IT
+     (2026-10-22). The site's own copy of the heartbeat was snapshotted at 07:56Z on 19 Oct,
+     reading "failing", and the publish it rode out on was verified at 08:55Z. Every page that
+     fell back to that copy then said PUBLISHING IS FAILING over the very figures that publish
+     delivered. A record older than the verification it sits beside cannot describe it, so it
+     makes no failure claim; the frozen-feed check below still speaks if nothing arrives after. */
+  function failureRecordPredatesThePublish(hb, d) {
+    var written = writtenAt(hb);
+    var verified = d && d.showing_run && typeof d.showing_run.verified_at === "string"
+      ? Date.parse(d.showing_run.verified_at) : NaN;
+    return written !== null && !isNaN(verified) && written < verified;
+  }
+
   function publisherFailureSentence(hb) {
     if (!publisherIsFailing(hb)) { return ""; }
     var p = hb.content_publish.publisher;
@@ -445,7 +458,8 @@
     if (deployedHb === undefined) { deployedHb = hb; }
     var noFigures = carriesNoFigures();
     var stale = (unknown || noFigures) ? "" : stalenessSentence(hb);
-    var failing = (unknown || noFigures) ? "" : publisherFailureSentence(hb);
+    var superseded = failureRecordPredatesThePublish(hb, d);
+    var failing = (unknown || noFigures || superseded) ? "" : publisherFailureSentence(hb);
     var held = (unknown || noFigures) ? "" : publisherHeldSentence(hb);
     /* The frozen-feed check is the only one that survives the channel going dark, so it is
        asked even though the two above have already been asked. A reference page still asserts
@@ -464,7 +478,7 @@
        refusal says the thing that would meet it is broken; the write stamp says nothing has
        reached the reader at all. Any of the three is enough to make the bar loud. */
     var publishIsDown = !(unknown || noFigures) &&
-      (!!notArriving || isStalePublish(hb) || publisherIsFailing(hb));
+      (!!notArriving || isStalePublish(hb) || (publisherIsFailing(hb) && !superseded));
     var bar = document.createElement("div");
     bar.className = "poesys-freshness";
     /* A stale publish OUTRANKS a green verification for the banner's state, because it outranks

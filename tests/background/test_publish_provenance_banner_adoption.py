@@ -26,6 +26,7 @@ uncovered, including the front door. That is `test_the_typed_five_were_blind_to_
 """
 from __future__ import annotations
 
+import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -223,3 +224,40 @@ def test_the_typed_five_were_blind_to_nineteen_pages(tmp_path: Path):
     assert "index.html" in {v.split()[0] for v in violations}, (
         "the front door read dashboard.json and carried no banner, while the typed list "
         "documented it as exempt for rendering no live figure")
+
+
+# ── THE FRONT DOOR'S ROUTE: a publish-written clock line instead of the banner ─────────────────
+# Director, 22 Oct 2026 14:57: no banner on the front door, one quiet line under the figures.
+CLOCK = ('<!-- PROOF-STRIP:START (written at publish) -->\n<p class="lf-prov">Figures from the run '
+         'of 19 Oct 2026 &middot; published every Monday</p>\n<!-- PROOF-STRIP:END -->')
+
+
+def _unbannered(site: Path, extra: str) -> list:
+    """The baseline page with its banner tag swapped for `extra`, written fresh each call so one
+    leg's page cannot carry into the next."""
+    (site / "capabilities" / "index.html").write_text(
+        _page(extra + "\n" + LIVE_READ.format(hop="../")), encoding="utf-8")
+    return prov.banner_adoption_violations(site, NO_EXEMPT)
+
+
+def test_a_page_with_the_publish_written_clock_and_no_banner_is_accepted_and_one_without_is_not(
+        site: Path):
+    """Both legs in one control: a rule that accepted every unbannered page would pass the first
+    alone, and one that accepted none would pass the second alone."""
+    assert _unbannered(site, CLOCK) == []
+    assert any("loads no freshness banner" in v
+               for v in _unbannered(site, CLOCK.replace("19 Oct 2026", "")))
+
+
+def test_the_clock_line_counts_only_between_the_generators_markers(site: Path):
+    """Defect: a hand-typed "Figures from the run of ..." sentence anywhere on a page passes for
+    the publish-written one, and the date it carries then never moves."""
+    loose = CLOCK.replace("<!-- PROOF-STRIP:START (written at publish) -->", "")
+    assert any("loads no freshness banner" in v for v in _unbannered(site, loose))
+
+
+def test_the_shipped_front_door_carries_no_banner_and_states_its_clock():
+    """The ruling itself, against the shipped page: the banner is gone, and the line is there."""
+    text = (prov.PROJECT_DIR / "site" / "index.html").read_text(encoding="utf-8")
+    assert "freshness-banner.js" not in re.sub(r"<!--.*?-->", "", text, flags=re.DOTALL)
+    assert prov.states_its_clock_at_publish(text)
