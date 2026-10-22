@@ -602,3 +602,13 @@ decided blind to company results and graded world-only on the depth column. Pre-
 **What can refute it.** Overshoot is the risk the stock reading never had: with no cap, a household
 under water for several years can owe several years of bills, and the record's average is under one.
 The pre-registration bounds it from above as well as below.
+
+### Graded, seed 1 (2026-10-22): the demand reading doubles the depth, inside every band
+
+World-only to 2023-12-31. Result:
+`docs/staging/records/SEAT_RESULT_THE_SHORTFALL_SHARED_ON_THE_MONTHS_DEMAND_SEED_1_2026-10-22.md`. The
+mean months behind at 31 December rise from 1.4-2.4 to 3.3-6.8, and £ per account in arrears at 2023
+from £198 to £580 (Ofgem £1,303). Heads rise by 0.3-4.1 points, and there is no overshoot. All five
+pre-registered bands hold. The median is nearly unchanged, so the gain is the persistent-deficit tail.
+Depth falls after 2019, where the record's rises, and that is not yet explained. **The switch stays
+off until the queued second seed is graded.**

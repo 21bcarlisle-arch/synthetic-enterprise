@@ -41,3 +41,16 @@ trailing mean monthly bill, over credit accounts with a bill unpaid more than 91
 D1 and D2 together decide the switch. If D1 holds and D2 overshoots, the next step is the
 supplier routes that bound debt in the record (repayment plans, Fuel Direct), not reverting to the
 stock reading. One seed, so a paired second-seed arm is owed before any default moves.
+
+## Seed 1 graded (2026-10-22, 00:55 BST): D1-D5 all hold
+
+Full table in the result record,
+`docs/staging/records/SEAT_RESULT_THE_SHORTFALL_SHARED_ON_THE_MONTHS_DEMAND_SEED_1_2026-10-22.md`.
+
+## Seed 2, pre-registered before launch
+
+The same two arms on dice seed 2 (`dump_arm.py ARM 2023-12-31 OUT 2`, which wraps the run in
+`grade_world_debt_against_ofgem.dice_seeded(2)` and refuses a seed that reached no draw). Outputs:
+`/var/tmp/leaver_trace/arm_{stock,demand}_s2.json`. **D1-D5 apply unchanged.** What the seed can show
+is the same as the shared-shortfall second seed: it re-draws the payment noise around the budget, not
+which households the budget puts under water. So it bounds the noise, not the budget population.
