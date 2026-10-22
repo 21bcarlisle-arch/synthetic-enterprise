@@ -257,8 +257,8 @@ details.more[open] summary { margin-bottom: 4px; }
     <p>On 17 October the director asked a plain question: how many of the founding households
       take electricity only, gas only, or both? The answer was 1% both. A coin set when the book
       was 13 accounts had been picking each founder's fuel on its own. The CMA's 2014 household
-      survey puts 72% of all homes, and about nine in ten homes with gas, on one supplier for both
-      fuels. Within a day the system researched the published record, rebuilt the founders as
+      survey puts 72% of all homes on one supplier for both fuels, and Ofgem's 2017 survey, the
+      latest to publish the figure, puts 91% of homes with both on one supplier. Within a day the system researched the published record, rebuilt the founders as
       homes that buy both fuels where they have gas, and added checks that measure the routes
       into the book against those sources. The next published run was a dual-fuel book. The
       lesson was ours too: the question came from a person, and the checks exist so the next one
@@ -276,9 +276,15 @@ details.more[open] summary { margin-bottom: 4px; }
   </div>
   <div class="story">
     <h3>When a home uses power changes its carbon.</h3>
-    <p>Each household's metered half hours are multiplied by what the grid was actually burning in
-      each of them. Against the annual-average factor most footprints use, the same home's
-      footprint moves, sometimes a long way on a single day. Carbon saved, which needs a
+    <!-- CORRECTED 2026-10-22 (the energy cold reader): this read "Each household's metered half
+         hours", but the published run has a half-hourly read for 3 of 963 accounts, and the
+         decade's domestic meters were profile-settled. Sources:
+         docs/market_research/four_front_door_domain_points_from_the_energy_cold_read_2026-10-22.md -->
+    <p>Where the company holds a household's half-hourly meter reads, each half hour is multiplied
+      by what the grid was actually burning in it. Few homes have them: in this decade almost
+      every domestic meter was settled on a standard profile, not on its own half hours. Against
+      the annual-average factor most footprints use, the same home's footprint moves, sometimes
+      a long way on a single day. Carbon saved, which needs a
       counterfactual, is not claimed. <a href="./explore/#used">See it on one household
       &rarr;</a></p>
   </div>
@@ -351,7 +357,7 @@ details.more[open] summary { margin-bottom: 4px; }
     is to show each household what it has saved and could save in CO&#8322;. Inside the company,
     the same saving is also priced in <strong>&pound; per tonne of CO&#8322;e saved</strong>,
     against the UK government's carbon appraisal value, <strong>&pound;273/tCO&#8322;e
-    (2025)</strong>. That price is a diagnostic, not the headline.</p>
+    (2025)</strong>, in 2022 prices. That price is a diagnostic, not the headline.</p>
   <p class="hypo"><strong>The money side has been run: we cannot tell yet.</strong> Time is not yet
     measured, only one of the three ways to reach a household (tariffs) works today, and carbon
     saved is not yet measured. Each is set out below, in full.</p>
@@ -423,8 +429,8 @@ details.more[open] summary { margin-bottom: 4px; }
        against itself most often, and the worst place to make it is the paragraph explaining why a
        different figure is honestly absent. The fallback text carries NO number at all. -->
   <p class="thesis-caveat"><strong>The honest state, plainly.</strong> The half-hourly instrument now
-    runs: a household's metered half hours are multiplied by what the grid was actually burning in
-    each of them<span id="carbon-worst"></span>. That is <strong>emissions</strong>, and emissions
+    runs: where a household has half-hourly meter reads, they are multiplied by what the grid was
+    actually burning in each half hour<span id="carbon-worst"></span>. That is <strong>emissions</strong>, and emissions
     are measurable. <a href="./explore/#used">See it on a real household &rarr;</a></p>
   <p class="thesis-caveat"><strong>Why carbon saved still says NOT YET MEASURED.</strong> Abatement
     is not emissions. It is what a household did <em>not</em> emit because of something we did, which
@@ -478,7 +484,7 @@ details.more[open] summary { margin-bottom: 4px; }
     </div>
     <div class="node">
       <div class="node-head"><span class="node-name">The score</span><span class="stage stage-building">Building</span></div>
-      <p class="node-say">Three tests: survive a worst-case shock, earn on a probability-weighted basis, and abate &mdash; cut carbon per household, priced in &pound; per tonne. Survive and earn run today. Household emissions are measured: each home&rsquo;s metered half hours against what the grid was actually burning. Abatement, meaning what a household did not emit because of something we did, is not yet measured, and the site says so rather than pretend.</p>
+      <p class="node-say">Three tests: survive a worst-case shock, earn on a probability-weighted basis, and abate &mdash; cut carbon per household, priced in &pound; per tonne. Survive and earn run today. Household emissions are measured: a home&rsquo;s half-hourly reads, where the company has them, against what the grid was actually burning. Abatement, meaning what a household did not emit because of something we did, is not yet measured, and the site says so rather than pretend.</p>
       <a class="node-look" href="./harness/#not-proven">Look: what we know is wrong &rarr;</a>
     </div>
   </div>
@@ -500,7 +506,12 @@ details.more[open] summary { margin-bottom: 4px; }
         system price, imbalance is a real cost line, and the settled truth reaches the company
         months late, as it does in the industry.<br>
         <b>Not yet:</b> Supplier Volume Allocation and the reconciliation run calendar are
-        modelled by their effect on the figures, not in their full detail.</dd>
+        modelled by their effect on the figures, not in their full detail. In 2016&ndash;2025
+        almost every home was settled on a standard profile (98.5% of meters in May 2022, by
+        Elexon's count). Half-hourly settlement for homes began only in late 2025, after the
+        record ends. The run settles each home's own half hours, so it charges a supplier for
+        timing that one of the period was not charged for. How much that is worth is not yet
+        measured.</dd>
       <dt><a href="./knowledge/price-cap/">The price cap</a></dt>
       <dd><b>Faithful today:</b> the cap limits unit rates and standing charges, not the bill,
         and its headline describes a typical home at typical use. Both are checked against

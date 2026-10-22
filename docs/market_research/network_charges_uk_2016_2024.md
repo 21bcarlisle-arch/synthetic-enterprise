@@ -157,6 +157,13 @@ Source: NESO Final TNUoS Tariff statements (PDFs) and NESO data portal CSV
 | 2023/24 | 0.489 (post-TCR)       | 1.079 (post-TCR)          | ~0.27              | H    |
 | 2024/25 | 0.644                  | 1.130                     | ~0.35              | H    |
 
+**CORRECTED 2026-10-22** (`four_front_door_domain_points_from_the_energy_cold_read_2026-10-22.md`
+§2, read from NESO's *Final TNUoS Tariffs for 2023/24*, Table 10). The five consumption bands below
+are **wrong for domestic**. NESO has **one** domestic residual band, £0.119264/site/day (≈ £43.53/yr),
+and the banded structure applies to non-domestic sites (LV_NoMIC_1–4, LV1–4, HV, EHV). The table is
+kept as written so the error stays visible. The §7c arithmetic that uses it is wrong for the same
+reason.
+
 **CRITICAL: Targeted Charging Review (TCR) / CMP343 — effective April 2023:**
 Ofgem restructured how TNUoS residual is recovered from NHH customers. The residual element
 (historically ~6–8 p/kWh of the NHH tariff) moved from a volumetric per-kWh charge to a
@@ -253,6 +260,11 @@ Triad-based TNUoS gives I&C customers strong incentive to reduce demand at Triad
 
 Post-TCR (from Apr 2023): Triad methodology retained for HH customers. The TCR changes
 applied specifically to NHH residual (domestic/small business).
+**CORRECTED 2026-10-22:** the TCR moved the residual off Triad for HH sites too (CMP343: "both HH
+and NHH"). Only the locational element is still charged on Triad demand, and it is floored at zero.
+For 2023/24 that is an average of £5.59/kW, £0/kW in zones 1–7, and £7.65/kW at most (zone 14),
+against about £63.75/kW above. NESO *Final TNUoS Tariffs for 2023/24*, §8 and Table 9; see
+`four_front_door_domain_points_from_the_energy_cold_read_2026-10-22.md` §2.
 
 ### 6b. HH-Metered I&C Customers — DUoS
 

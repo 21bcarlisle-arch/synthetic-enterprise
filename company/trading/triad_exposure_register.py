@@ -11,6 +11,18 @@ Triad charging formula (simplified):
   TNUoS charge = (customer MW demand during each Triad ÷ 2) * TNUoS tariff (£/kW/yr)
   TNUoS tariff: ~£70-100/kW/yr for residential Zone 14 (South East England)
 
+CORRECTED 2026-10-22: the two lines above describe TNUoS before April 2023, and the
+residential tariff was never charged per kW of Triad demand (domestic sites were NHH,
+settled on 4-7pm kWh). From 2023-24 the TCR (CMP343) moved the demand RESIDUAL to a fixed
+p/site/day banded charge for HH and NHH sites alike. Only the LOCATIONAL element is still
+charged on Triad demand: for 2023-24, £5.59/kW on average, floored at £0/kW in zones 1-7,
+and £7.65/kW at most (NESO Final TNUoS Tariffs 2023/24, §8 and Table 9). So the 2023-24 and
+2024-25 seasons below are real Triad seasons, but a pre-TCR tariff applied to them
+overstates the charge roughly tenfold. Source and full table:
+docs/market_research/four_front_door_domain_points_from_the_energy_cold_read_2026-10-22.md §2.
+The default tariff on CustomerTriadExposure is one such pre-TCR figure. Filed as
+docs/staging/SEAT_FINDING_THE_TRIAD_RATE_TABLES_CARRY_THE_PRE_TCR_CHARGE_PAST_APRIL_2023_2026-10-22.md.
+
 Why this matters:
 - TNUoS is a pass-through cost (supplier cannot avoid it)
 - But suppliers who warn customers (ToU, I&C) to reduce demand during Triad
