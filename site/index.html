@@ -208,11 +208,13 @@ details.more[open] summary { margin-bottom: 4px; }
        makes pounds per tonne an internal diagnostic, and M11 (ruled 12 Oct, decision 14) puts the
        mission on the front door with the project's own claim beside it. Both are quoted verbatim
        from docs/design/DIRECTOR_CANON.md. -->
-  <h1>A GB energy supplier, built and run by AI, living through ten years of the real market.</h1>
+  <h1>A simulated GB energy supplier, built and run by AI, living through ten years of the real market.</h1>
   <p class="pitch">It settles every half hour of 2016&ndash;2025 against real Elexon and NESO
     data, the 2021&ndash;22 gas crisis included, and it can only learn what a real supplier could
     learn: meter reads, market feeds, customer contacts, bills and regulatory publications. It
-    never sees the simulation's own internals.</p>
+    never sees the simulation's own internals. Its decisions are made by the code the AI wrote
+    and maintains, not by a language model at run time: the company's code cannot reach the
+    internet at all.</p>
   <p class="pitch"><strong>The mission:</strong> &ldquo;We are creating enterprise value by
     automating ways to find individual customers we can create value for, and sharing in that
     value &mdash; by saving them money, time and carbon, through personalised modelling, tariffs
@@ -320,11 +322,11 @@ details.more[open] summary { margin-bottom: 4px; }
     the run that won nothing. Nothing is assigned to this company; a growth curve that cannot be
     lost is not a growth curve.</p>
   <p><strong>And its size is set by this machine, not by the market.</strong> The book starts from
-    a fixed set of founder households and grows by what the company wins. How large it can be is
+    a set of founder households drawn when the run begins, and grows by what the company wins. How large it can be is
     limited by how much one run on this computer can settle, not by the supplier's capital or by
     demand. We would rather say so than let a small or flattening book read as a commercial
-    result. The first measurement of that limit is written up in the repository as
-    <em>SETTLEMENT_CEILING_2026-08-24</em>. Account counts and per-segment economics are on
+    result. The first measurement of that limit is written up in the repository, in the
+    settlement-ceiling note of 24 August 2026. Account counts and per-segment economics are on
     <a href="./capabilities/">Capabilities</a>.</p>
   </details>
 </section>
@@ -405,7 +407,8 @@ details.more[open] summary { margin-bottom: 4px; }
     built.</strong> Only money has ever been <em>optimised</em> here, and only our side of it. What a
     household <em>saved</em> by being with us is now measured &mdash; against the published default
     tariff, at that household's own metered volumes &mdash; but it is a diagnostic and nothing yet
-    decides anything by it. <strong>Time is defined but not yet measured.</strong> It means a
+    decides anything by it. That is a different question from the money result above: this compares
+    the household with the default tariff, not our pricing with simpler rules. <strong>Time is defined but not yet measured.</strong> It means a
     household's effort, counted in its own unit (household minutes for each kind of task: shopping
     around, sorting out a problem, recovering from one, routine admin) and never turned into
     pounds. Nothing in the run counts those minutes yet. And of the
@@ -438,12 +441,12 @@ details.more[open] summary { margin-bottom: 4px; }
   <p class="lead">The world, what the company can see of it, the company, and the score &mdash; the whole supplier on one page. Below the
     diagram, every part is listed in plain words with its build stage &mdash; <strong>Live</strong>,
     <strong>Building</strong>, or <strong>Planned</strong> &mdash; one sentence each, and one click to
-    a &ldquo;look at this&rdquo; view. You see the idea and the honest state of it in one read, no
-    glossary needed.</p>
+    a &ldquo;look at this&rdquo; view. You see the idea and the honest state of it in one read.</p>
   <figure>
     <img src="./assets/model-on-a-page.svg"
          alt="A one-page schematic of the poesys model, read top to bottom. Governance: one human director sets the mission and the irreversible calls; a board holds six stances in tension; AI builders design, build, test and deploy; an automated system of checks and a running build plan builds and steers everything below. The World (sim ground truth, behind the wall): real weather drives half-hourly price and demand over the 2016-25 record of 168k periods including the crisis, over a population of households drawn fresh every run, each with a metered life and three hidden traits of which only one expresses -- the world records more heterogeneity than it expresses; the world moves ahead of the books and settlement lands months late; ground truth never crosses the wall, and cohorts are drawn for learning value not headcount. The Wall: ground truth never crosses; everything else is an interface flow in one of two directions -- inbound (market feeds, forecasts with error, meter reads, payments, complaints and replies, late settlement) and outbound (bills, offers, messages); the company touches the world only through what it sends. The Company (sees only through the wall): acquire, forecast the book, price tariffs, hedge forward, bill out, collect, settle late and learn from the true-up -- one integrated agentic stack across trading, finance, billing, CRM, operations and debt; bills run on three clocks, billed, settled and banked, with truth arriving months behind the money; it can be wrong, and it must not be guaranteed to live -- though no mechanism presses yet. The Score: survive (a hard constraint judged worst-case), earn (probability-weighted expected value), and abate (grid intensity times household use, in pounds per tonne of CO2e).">
-    <figcaption>Source: docs/design/THE_MODEL_ON_A_PAGE.md (director-canon, v4). Each part's build
+    <figcaption>Source: the project's one-page model, docs/design/THE_MODEL_ON_A_PAGE.md, kept in line with
+      the director's canon. Each part's build
       stage is spelled out in plain words in the list below &mdash; the colour only reinforces it.</figcaption>
   </figure>
 

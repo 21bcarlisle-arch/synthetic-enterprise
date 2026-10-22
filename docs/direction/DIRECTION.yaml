@@ -493,3 +493,23 @@ for_the_director:
   evidence: site/test_front_door_brand.py::test_no_effort_metrics_on_the_surface goes red on 'tests collected';
     docs/staging/advisor/done/DIRECTOR_STEER_THE_FRONT_DOOR_FOR_A_NEWCOMER_IN_ENERGY_OR_TECH_2026-10-22.md,
     closing note
+- id: the-front-door-asserts-m11-software-that
+  raised: '2026-10-22'
+  kind: strategy
+  what: The front door asserts M11 (software that grows and maintains itself) but links no evidence for
+    it. I am holding back a link to the public GitHub repository until you rule, because of the July plan
+    to make the repository private.
+  proposal: Add one link, 'Read the code and its history', from the front door and from How it builds
+    itself to github.com/21bcarlisle-arch/synthetic-enterprise, unless the private-repository plan is
+    still live.
+  recommendation: I recommend adding the link. It is the cheapest substantiation of M11 there is, and
+    one edit undoes it. The trade-off is that the front door would advertise a repository that a July
+    plan meant to make private. Until you rule, the page carries no link, and nothing else waits on this.
+    If the private plan is live, I withdraw this proposal and make the point on How it builds itself from
+    its own published record.
+  status: open
+  resolution: ''
+  evidence: 'Cold-reader test of 22 Oct (front-door steer, Checks): the technologist reader found ''built
+    and run by AI'' and M11 asserted, not substantiated, and asked first for a repository link. The repository
+    is public today (gh api: visibility public). REPO_PRIVATE_AND_IP (docs/design/REPO_PRIVATE_AND_IP_PHASE1_FINDINGS.md,
+    July) once planned to make it private. The site links it nowhere.'

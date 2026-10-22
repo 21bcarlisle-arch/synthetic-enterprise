@@ -8,6 +8,70 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-22 — The front door steer, done: two cold readers both took it for a real company, and what the page now says because of them
+
+<!-- head: 53ff7189b9d0 -->
+
+The director's front-door steer of 22 Oct ("Do it", 07:29 BST) is done, apart from two points that wait on him or on research, listed at the end. Five landings: 5765c102d (item 1), 420a5b67d (items 2, 3, 4, 7, 8), 2259b7b39 (items 5, 6), 0caf19169 (item 9, the canon-against-site check and the proof-strip label), and the cold-reader fixes landed with this entry.
+
+**Each stale claim, before and after** (item 1, in full in the steer's Progress section):
+- Headline. "An energy company built and run by AI, to find the cheapest tonne of carbon left" became what it is in two lines, then M1 verbatim, then M11. After the cold read it begins "A simulated GB energy supplier".
+- Whose book this is. "As of 24 August … more than 98% of the revenue" became households, mostly dual fuel, with the I&C suspension told as history.
+- Time. "Time does not appear in this project at all" became "Time is defined but not yet measured" (M3).
+- The world. "Every property is one national shape rescaled" became the per-building thermal model where the weather store covers a home, and the national shape elsewhere.
+- Carbon. "The carbon meter is designed but not yet wired" became: household emissions are measured, abatement is not (CO4).
+- Knowledge. The dead "results live on Proof" became Capabilities and Explore.
+- Explore's "a supplier with this few accounts" was checked and still holds.
+
+**The front door now reads:** what it is (two lines), M1, M11, the proof strip, "what it has found", two ways in (energy, tech), whose book this is, then the claim. The long caveats sit one click down, each under a one-line pointer. None was deleted.
+
+**Proof strip sources.** All three figures are written into the HTML at publish by `generate_dashboard_data.write_front_door_proof_strip`, none typed:
+- half-hourly periods: `site/data/sim_data.json` metadata (Elexon system prices);
+- the years: the run's annual accounts;
+- households: the run's final-year book, counted per household, not per fuel account.
+
+"Days since a human wrote code" is left out, because git authorship cannot tell a human from a machine here. "Tests and commits" is left out because RC5 bans effort metrics on the front door, and that conflict is in `for_the_director`. The cold reader read "10 calendar years" as ten whole years, but the record ends 7 Jun 2025. The label now says so (0caf19169) and changes at Monday's publish.
+
+**Stories, and why each was chosen:**
+- The 17–19 Oct dual-fuel episode: a real defect against a published 72%, found by his question and fixed with checks inside a day.
+- The three-arm value test: "we cannot tell yet", the canon's own credible result.
+- Half-hourly carbon timing: a real measured difference, honestly scoped.
+
+**Vocabulary** (2259b7b39):
+- "wall" became "what the company can see";
+- "seams, where the curtain is" became "where the simulation would meet the real industry";
+- "rungs" became "sources", and "atoms" became "build-plan items";
+- Harness became "How it's built", same URL, second in the nav.
+
+The machinery page keeps its terms, with each one defined once. After the cold read, three more internal names left the front door: "SETTLEMENT_CEILING_2026-08-24", "director-canon, v4" and "no glossary needed".
+
+**No-JS render.** The strip and headline figures are in the published bytes. `site/test_home_door.py` reds if a script fills them again.
+
+**Deploy exclusion and its check** (0caf19169):
+- `--stage` leaves out the 65 test and helper `.py` files and the five `_*.mjs` harnesses, then reads the staged tree back and fails if one got through.
+- The post-deploy check no longer waits on them.
+- No page links any of them.
+- The GitHub Pages manifest publishes `docs/` only, and a test keeps scripts out of it.
+- Copies already at the edge may linger in Pages' cache. A deploy cannot prove those gone.
+
+**Canon against site.** `canon_drift_check` now reads all 41 served pages as visible text against 147 canon quotes and the §16 superseded framings. All hold. M1 is the one quote a page starts, and the front door carries it verbatim. Text written by a page's JavaScript is not read here; that is the door tests' job. Four mutations each went red.
+
+**Cold-reader answers.** Two fresh readers had only the front door's visible text: an energy professional and a technologist.
+- *What is this?* Both got it right in the end, and both first read it as a real company: the hero said "supplier" and "No customers" came a paragraph later. Fixed: "A simulated…". The technologist could not tell whether a language model makes the decisions at run time. Fixed: one sentence says the code the AI wrote decides, and that code cannot reach the internet.
+- *What has it shown?* Both found the three-arm test the one strong design, with a null result. Both called the dual-fuel story a bug report, which is honest but not a result. The energy reader called half-hourly carbon trivial to anyone who has used the carbon-intensity API.
+- *Why believe it?* Both trusted the publish stamps and "we cannot tell yet". The energy reader's sharpest line: "hides nothing" above a page with no margin, bad debt or £ saved. Those figures are kept off the front door on purpose (RC7: no cohort £ there) and live on Capabilities and Explore. The technologist found M11 asserted, not substantiated, and asked for a repository link. That waits on him: the repository is public, but a July plan meant to make it private. Raised in `for_the_director` with a recommendation to link it.
+- Also fixed: "a fixed set of founder households" beside "a fresh mix every run" (founders are drawn per seed); the two meanings of "saved" (against the default tariff, against simpler rules) are now told apart.
+
+**Not fixed, and why:**
+- The energy reader said domestic supply was mostly profile-settled in that decade, so "each household's metered half hours" overstates the data a 2018 supplier had.
+- The same reader said Triads ended in April 2023. That is only partly right as I understand TCR, and it is unverified.
+- The 2014 CMA survey behind the dual-fuel story has newer Ofgem figures.
+- The £273/tCO₂e needs its price base year.
+
+Each of these needs published evidence before the page changes (K1, K4), so they are handed on as one research item, not guessed at here.
+
+---
+
 ## 2026-10-22 — orientation: Sideways, not backwards
 
 <!-- head: c79371e8f819 -->

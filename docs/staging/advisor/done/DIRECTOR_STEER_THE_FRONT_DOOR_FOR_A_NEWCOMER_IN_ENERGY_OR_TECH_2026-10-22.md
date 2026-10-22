@@ -108,3 +108,30 @@ file's signature.
   one-line pointer. None was deleted.
 - **Not done here:** items 5, 6 and 9, the canon-against-site check, and the cold-reader review. They are
   handed on.
+
+## Done 2026-10-22: items 5, 6 and 9, the two Checks, and the Report
+
+- **Items 5 and 6** are 2259b7b39, built by the seat-executor. That turn timed out before promoting it, so it was re-landed by merge, unchanged.
+- **Item 9 and the canon-against-site check** are 0caf19169.
+- **The cold-reader review**, its fixes and the Report land with this section. The Report is the stretch-log entry "The front door steer, done".
+
+**What done meant here:**
+- Every item has a landed change, or a named reason it has none.
+- Both Checks are mechanised or recorded.
+- Each cold-reader point was either fixed or handed on with the reason.
+
+**Cold-reader review.** Two fresh readers had only the front door's visible text, and the same three questions: an energy professional and a technologist. Their full answers are summarised in the stretch-log entry.
+
+Fixed:
+- "simulated" is in the headline;
+- one sentence says what makes the decisions at run time;
+- the founder contradiction is resolved;
+- the two meanings of "saved" are told apart;
+- three internal names are gone;
+- the "calendar years" label is corrected.
+
+Two points wait:
+- **A repository link as the evidence for M11.** It is in `for_the_director`, recommended, because a July plan meant to make the repository private.
+- **Four domain points** need published evidence before the page moves: profile settlement, Triad after TCR, the 2014 CMA source, and the £273 price base. They are handed on as one research item.
+
+**No figure was typed.** The only figure change is the generated proof-strip label.
