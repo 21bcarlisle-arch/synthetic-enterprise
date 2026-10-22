@@ -54,14 +54,15 @@ def _indent_of(inner: str, default: str = "  ") -> str:
     return m.group(1) if m else default
 
 
-def render_page(html: str, area: str) -> str:
-    """The page with its nav region rendered from the register. Idempotent."""
+def render_page(html: str, area: str, depth: int = 0) -> str:
+    """The page with its nav region rendered from the register. Idempotent. `depth` is levels
+    below `area` (1 for a Knowledge topic page), passed through to `ia_register.render_nav`."""
     m = _NAV_BLOCK.search(html)
     if not m:
         raise ValueError(f"{area}: no site-level <nav> block found")
     open_tag, inner, close_tag = m.group(1), m.group(2), m.group(3)
     indent = _indent_of(inner)
-    block = reg.render_nav(area, indent=indent)
+    block = reg.render_nav(area, indent=indent, depth=depth)
 
     if _MARKED.search(inner):
         new_inner = _MARKED.sub(lambda _: block, inner, count=1)
@@ -88,24 +89,53 @@ def pages(site: Path = reg.SITE) -> list[tuple[str, Path]]:
     return out
 
 
-def stale(site: Path = reg.SITE) -> list[str]:
-    """Areas whose committed nav is not what the register renders."""
-    bad = []
-    for area, path in pages(site):
+def sub_pages(site: Path = reg.SITE) -> list[tuple[str, int, str, Path]]:
+    """(area, depth, url, path) for every page BELOW an area's index that already carries the
+    marked nav block -- the Knowledge topic pages, /harness/module-graph/ -- plus an exempt
+    area's own index (/privacy/), which carries the nav but is not a tab.
+
+    Before 2026-10-22 `pages()` was the whole population, so these pages were rendered once by
+    hand and then drifted: the "How it's built" rename reached five pages and left 35 naming
+    "Harness" in the old order. Only pages with the marker are taken: a page with no marked
+    block is the canonical-nav test's to refuse, not this tool's to rewrite."""
+    out = []
+    for path in sorted(site.rglob("index.html")):
+        parts = path.relative_to(site).parts[:-1]
+        if not parts or (len(parts) == 1 and f"/{parts[0]}/" not in reg.NAV_EXEMPT):
+            continue  # an area's own index: pages() owns it
+        area = f"/{parts[0]}/"
+        if area in reg.GENERATED_NAV:
+            continue
         html = path.read_text(encoding="utf-8")
-        if render_page(html, area) != html:
-            bad.append(area)
+        if reg.NAV_START not in html:
+            continue
+        out.append((area, len(parts) - 1, "/" + "/".join(parts) + "/", path))
+    return out
+
+
+def population(site: Path = reg.SITE) -> list[tuple[str, int, str, Path]]:
+    """(area, depth, url, path) for every page whose nav this tool renders."""
+    return [(a, 0, a, p) for a, p in pages(site)] + sub_pages(site)
+
+
+def stale(site: Path = reg.SITE) -> list[str]:
+    """Pages (by URL) whose committed nav is not what the register renders."""
+    bad = []
+    for area, depth, url, path in population(site):
+        html = path.read_text(encoding="utf-8")
+        if render_page(html, area, depth) != html:
+            bad.append(url)
     return bad
 
 
 def write(site: Path = reg.SITE) -> list[str]:
     changed = []
-    for area, path in pages(site):
+    for area, depth, url, path in population(site):
         html = path.read_text(encoding="utf-8")
-        new = render_page(html, area)
+        new = render_page(html, area, depth)
         if new != html:
             path.write_text(new, encoding="utf-8")
-            changed.append(area)
+            changed.append(url)
     return changed
 
 

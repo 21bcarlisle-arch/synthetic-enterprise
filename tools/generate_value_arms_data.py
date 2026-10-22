@@ -6079,7 +6079,7 @@ WITHDRAWN_CLAIMS = [{
              "reading — the company's belief is this book's departure hazard and the band is the "
              "market's switching rate, and a supplier that retains better than average sits far "
              "outside the band without being wrong. The distance still publishes, as a distance; "
-             "no accuracy reading replaces it, and none is available on this side of the wall."),
+             "no accuracy reading replaces it, and none is available to a supplier, who cannot see the world's true hazard."),
 }, {
     "withdrawn_on": "2026-08-30",
     "the_words": ("Below 0.50 means the company's own belief about who will leave ranks customers "

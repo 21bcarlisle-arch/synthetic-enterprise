@@ -67,10 +67,10 @@ footer { max-width: 860px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
   <!-- IA-NAV:START (rendered from site/ia_register.py -- do not hand-edit) -->
   <span class="doors">
   <a href="../" class="nav-link">Home</a>
-  <a href="./" class="nav-link active">Knowledge</a>
   <a href="../capabilities/" class="nav-link">Capabilities</a>
+  <a href="../harness/" class="nav-link">How it&rsquo;s built</a>
+  <a href="./" class="nav-link active">Knowledge</a>
   <a href="../explore/" class="nav-link">Explore</a>
-  <a href="../harness/" class="nav-link">Harness</a>
   </span>
   <!-- IA-NAV:END -->
 </nav>
@@ -82,6 +82,8 @@ footer { max-width: 860px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
     reference material, not company results; the company's results are on
     <a class="inline-link" href="../capabilities/">Capabilities</a> and
     <a class="inline-link" href="../explore/">Explore</a>.
+    Under each card, the short codes name the items in the project's build plan
+    (called <em>atoms</em> internally) that build the mechanism the page describes.
   </p>
 
   <div class="sec">The topics</div>
@@ -321,9 +323,9 @@ function atomsLine(topic){
   var a = topic && topic.atoms;
   if (Array.isArray(a) && a.length) { return "Built by: " + a.join(" \u00b7 "); }
   if (typeof a === "string" && a.indexOf("none -- ") === 0 && a.length > 8) {
-    return "Built by no atom: " + a.slice(8);
+    return "Built by no build-plan item yet: " + a.slice(8);
   }
-  return "No atom named: nobody has recorded which atom builds this.";
+  return "Not recorded: nobody has noted which build-plan item builds this.";
 }
 
 function renderAtoms(feed){

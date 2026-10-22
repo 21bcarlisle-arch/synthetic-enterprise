@@ -669,8 +669,8 @@ def basis_precedence_view(resolved_split: Mapping[str, int],
         "unaccounted_for": unaccounted,
         "statement": (
             "SLC 27.15 orders the information a supplier must size a direct debit from, best "
-            "first. At the instant an account OPENS this company can walk {n_walked} of those "
-            "rungs; {n_excluded} it cannot reach at all, and those are not zeros — they are "
+            "first. At the instant an account OPENS this company can use {n_walked} of those "
+            "sources; {n_excluded} it cannot reach at all, and those are not zeros — they are "
             "absences with reasons, given below.".format(
                 n_walked=len(walked), n_excluded=len(excluded))
         ),

@@ -298,7 +298,11 @@ def test_MUTATION_a_hand_edited_nav_fires(tree):
     # correctly reported no drift -- a MUTATION test that mutates nothing and passes for the
     # wrong reason, which is the FAIL-SILENT shape R15 names. Taking a label from the register
     # means the corruption is always real.
-    label = next(i.label for i in reg.CANONICAL_NAV if i.area != "/")
+    # ...and not the victim's OWN tab, which renders `nav-link active` and so is not matched by
+    # the replace below (2026-10-22: Capabilities moved to first after Home, and the victim is
+    # the Capabilities page).
+    victim_area = "/" if victim.parent == tree else "/" + victim.parent.relative_to(tree).as_posix() + "/"
+    label = next(i.label for i in reg.CANONICAL_NAV if i.area not in ("/", victim_area))
     before = victim.read_text()
     after = before.replace(f'class="nav-link">{label}</a>', f'class="nav-link">{label}XX</a>')
     assert after != before, (
@@ -306,7 +310,6 @@ def test_MUTATION_a_hand_edited_nav_fires(tree):
         "would pass without testing anything"
     )
     victim.write_text(after)
-    victim_area = "/" if victim.parent == tree else "/" + victim.parent.relative_to(tree).as_posix() + "/"
     assert victim_area in renderer.stale(tree)
 
 
@@ -344,7 +347,10 @@ def test_MUTATION_moving_a_tab_in_the_register_makes_every_page_stale(tree):
     # took the site to five nav-rendered pages -- so the control failed for the one reason it
     # must not, a legitimate IA change. What it actually has to prove is that the move reaches
     # EVERY page that renders the nav, whatever that number is today.
-    nav_pages = [area for area, _ in renderer.pages()]
+    # The population is every page the renderer owns, sub-pages included (2026-10-22), not only
+    # the area indexes `pages()` lists.
+    nav_pages = [url for _, _, url, _ in renderer.population(tree)]
+    assert len(nav_pages) > len(renderer.pages(tree)), "the sub-pages left the population"
     assert sorted(after) == sorted(nav_pages), (
         f"a tab move reached {sorted(after)} but the nav is rendered on {sorted(nav_pages)} -- "
         "a page that does not go stale is a page whose nav does not derive from the register"

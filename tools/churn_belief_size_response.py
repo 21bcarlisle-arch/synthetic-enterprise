@@ -862,8 +862,8 @@ def report(book: dict) -> dict:
         "reading": _reading(k, part, dist, arms),
         "not_a_target": (
             "R12. A belief that does not vary in a dimension is a diagnostic about the belief. "
-            "Nothing here instructs the company to make it vary, and the epistemic wall is "
-            "untouched either way: a supplier meters its own customers, which is why the world's "
+            "Nothing here instructs the company to make it vary, and what the company may see "
+            "is unchanged either way: a supplier meters its own customers, which is why the world's "
             "own `churn_position_multiplier` calls consumption something the company can "
             "legitimately act on."),
     }
