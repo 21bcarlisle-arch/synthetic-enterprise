@@ -1534,3 +1534,9 @@ serially from a locked worktree at the commit that lands this section. Nothing g
 - **If P16a holds and lower-bound − control < −£1,000,** the offers were buying something the
   departure channel does not see. That is read through `changed_a_stayers_tariff` before any claim
   is made, because by M2 a stayer's tariff moved is transfer whatever its sign.
+
+**Launched 2026-10-22 ~11:25Z, no outcome read.** All three arms run serially from the locked worktree
+`/var/tmp/se-pcs-arms16` at `4eb192b60` (origin/main, after `766d26fc6`), in this order:
+lower-bound, control, flat. The unit is `longjob-pcs-arms-s16` and the script is
+`/var/tmp/se-pcs-arms16-out/run_s16.sh`. Each arm writes `<arm>.json`, `.log` and `.rc` under
+`/var/tmp/se-pcs-arms16-out/`. Seed 3 of §14 shares the machine, so expect about 3.5 h.
