@@ -2434,6 +2434,7 @@ def generate(run_json_path=None):
     if front_door.exists():
         write_front_door_proof_strip(data, dashboard, front_door,
                                      OUTPUT_PATH.parent / "sim_data.json")
+        write_front_door_build_strip(front_door)
     return consistency_ok
 
 
@@ -3131,6 +3132,94 @@ def render_proof_strip(figures, missing, generated_at, source_file):
             _html.escape("; ".join(missing)))
     return '{}\n<div class="lf-row">\n{}\n</div>\n<p class="lf-prov">{}</p>\n{}'.format(
         PROOF_STRIP_START, cells, prov, PROOF_STRIP_END)
+
+
+# ── WHAT HAS BEEN BUILT, COUNTED AT PUBLISH ────────────────────────────────────────────────
+# Director, 22 Oct 2026 14:57: "The home page is not an impressive summary of what the ambition
+# is and just how much has been achieved". The shape he agreed lists the build's scale on the
+# front door, which answers the RC5 row `your-22-oct-front-door-steer-lists` ("a 'put them on the
+# front' from you would change this"). Each figure is counted from git at the commit being
+# published, so it carries that commit and date as its clock. Each one says what it counts:
+# "Python files" is every tracked `.py`, tests included, and the test files are counted inside it.
+BUILD_STRIP_START = ("<!-- BUILD-STRIP:START (written at publish by "
+                     "tools/generate_dashboard_data.py -- do not hand-edit) -->")
+BUILD_STRIP_END = "<!-- BUILD-STRIP:END -->"
+
+
+def _git_out(root, *args):
+    try:
+        return subprocess.run(["git", "-C", str(root), *args], capture_output=True, text=True,
+                              timeout=60, check=True).stdout
+    except (OSError, subprocess.SubprocessError):
+        return None
+
+
+def build_scale_figures(root):
+    """[(value, label, clock)] and [what was left out, and why], counted from git at HEAD."""
+    figures, missing = [], []
+    head = (_git_out(root, "rev-parse", "--short=9", "HEAD") or "").strip()
+    when = (_git_out(root, "log", "-1", "--format=%cs", "HEAD") or "").strip()
+    clock = "counted from git at {}, {}".format(head, _day(when)) if head and when else None
+    total = (_git_out(root, "rev-list", "--count", "HEAD") or "").strip()
+    first = (_git_out(root, "log", "--reverse", "--format=%cs", "HEAD") or "").split("\n")[0]
+    week = (_git_out(root, "rev-list", "--count", "--since=7 days ago", "HEAD") or "").strip()
+    if clock and total.isdigit() and first and week.isdigit():
+        figures.append(("{:,}".format(int(total)),
+                        "commits since the repository began on {}".format(_day(first)),
+                        "{:,} of them in the last seven days; {}".format(int(week), clock)))
+    else:
+        missing.append("the commit count (git could not be read)")
+    files = _git_out(root, "ls-files", "-z")
+    if clock and files is not None:
+        tracked = [f for f in files.split("\0") if f]
+        py = [f for f in tracked if f.endswith(".py")]
+        tests = [f for f in py if f.rsplit("/", 1)[-1].startswith("test_")]
+        lines = 0
+        for f in py:
+            try:
+                with open(Path(root) / f, "rb") as fh:
+                    lines += sum(1 for _ in fh)
+            except OSError:
+                pass
+        figures.append(("{:,}".format(len(py)), "Python files, written and maintained by AI",
+                        "{:,} of them test files; {:,} lines in all; {}".format(
+                            len(tests), lines, clock)))
+        pages = [f for f in tracked
+                 if f.startswith("site/knowledge/") and f.endswith("/index.html")
+                 and f != "site/knowledge/index.html"]
+        notes = [f for f in tracked if f.startswith("docs/market_research/") and f.endswith(".md")]
+        figures.append(("{:,}".format(len(pages)), "published knowledge pages on how the GB market "
+                        "and its households work", "built from {:,} sourced research notes; {}"
+                        .format(len(notes), clock)))
+    else:
+        missing.append("the file and page counts (git could not be read)")
+    return figures, missing
+
+
+def write_front_door_build_strip(front_door_path):
+    """Rewrite the build strip between its markers. True if written; False if not."""
+    try:
+        page = front_door_path.read_text(encoding="utf-8")
+    except OSError:
+        return False
+    start, end = page.find(BUILD_STRIP_START), page.find(BUILD_STRIP_END)
+    if start < 0 or end < start:
+        print("FRONT-DOOR BUILD STRIP NOT WRITTEN: {} does not carry both markers".format(
+            front_door_path), file=sys.stderr)
+        return False
+    figures, missing = build_scale_figures(front_door_path.resolve().parent.parent)
+    import html as _html
+    cells = "\n".join(
+        '  <div class="lf"><div class="v">{}</div><div class="l">{}</div>'
+        '<div class="c">{}</div></div>'.format(v, _html.escape(lab), _html.escape(c))
+        for v, lab, c in figures)
+    tail = ("" if not missing else '\n<p class="lf-prov">Not shown, because its source could '
+            'not be read: {}.</p>'.format(_html.escape("; ".join(missing))))
+    block = '{}\n<div class="lf-row">\n{}\n</div>{}\n{}'.format(
+        BUILD_STRIP_START, cells, tail, BUILD_STRIP_END)
+    front_door_path.write_text(page[:start] + block + page[end + len(BUILD_STRIP_END):],
+                               encoding="utf-8")
+    return True
 
 
 def write_front_door_proof_strip(data, dashboard, front_door_path, sim_data_path):

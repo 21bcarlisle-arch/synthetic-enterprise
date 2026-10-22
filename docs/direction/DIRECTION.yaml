@@ -503,11 +503,18 @@ for_the_director:
     until you rule: the front door carries three outcome figures (half-hourly periods, years, households)
     and no effort figure. A ''put them on the front'' from you would change this, as a one-line edit to
     the brand test plus the renderer.'
-  status: open
-  resolution: ''
+  status: answered
+  resolution: 'Answered by the director''s 14:57 BST steer of 22 Oct (''The home page is not an impressive
+    summary of what the ambition is and just how much has been achieved''). The advisor relays the shape
+    he agreed, which puts the build''s scale on the front door: commits, Python files, test files, knowledge
+    pages and research notes (docs/staging/advisor/DIRECTOR_STEER_THE_FRONT_DOOR_SHOWS_THE_AMBITION_AND_WHAT_HAS_BEEN_BUILT_2026-10-22.md,
+    section 2 item 2). Built as a strip counted from git at publish (tools/generate_dashboard_data.py::write_front_door_build_strip).
+    RC5''s banned phrases (tests passing, tests collected, commits/day) stay banned, and site/test_front_door_brand.py
+    is unchanged.'
   evidence: site/test_front_door_brand.py::test_no_effort_metrics_on_the_surface goes red on 'tests collected';
     docs/staging/advisor/done/DIRECTOR_STEER_THE_FRONT_DOOR_FOR_A_NEWCOMER_IN_ENERGY_OR_TECH_2026-10-22.md,
     closing note
+  resolved: '2026-10-22'
 - id: the-front-door-asserts-m11-software-that
   raised: '2026-10-22'
   kind: strategy
