@@ -10331,7 +10331,8 @@ def recorded_cause_standing(state, *, fork_fn=None):
 
 
 def close_episode_if_cause_cleared(*, now=None, fork_fn=None):
-    """Close an open episode on the first cycle its recorded cause no longer holds.
+    """Close an open episode on the first cycle its recorded cause no longer holds, or on the first
+    cycle git shows the figures reached origin after it began (`publish_landed`).
 
     Returns the standing it read, or None when no episode was open. The close is an EVIDENCED
     close in `guard_episode`'s sense -- the evidence is the re-ask above, independent of the
@@ -10341,8 +10342,29 @@ def close_episode_if_cause_cleared(*, now=None, fork_fn=None):
         state = _read_publish_gate_state()
         if state.get("state_unavailable") or not state.get("episode_failures"):
             return None
-        standing, why = recorded_cause_standing(state, fork_fn=fork_fn)
-        if standing != "cleared":
+        # A PUBLISH THAT LANDED BY ANOTHER ROUTE CLOSES THE EPISODE TOO (2026-10-22). Every cause
+        # outside REASKABLE_CAUSE_LEG says "only a publish can close this episode", and the only
+        # publish this file could see was its own clean exit. On 2026-10-19 the publisher's commit
+        # 2a195224b was merged onto origin by a seat (f8f3d0fd5), so no clean exit was recorded:
+        # the figures reached origin at 09:15Z, 3.8h after `wedge_since`, and the front door read
+        # "PUBLISHING IS FAILING ... over 80.0h" for three days on an episode the landing had
+        # ended. Git's own date for the figures on origin is the evidence, the same subject
+        # `landed_publish_count` resets on. Known miss, shared with that count: a hand edit to a
+        # CONTENT_PATHS file also moves it.
+        landed = _landed_publish_ts()
+        since = recorded_instant_seconds(state.get("wedge_since"))
+        if landed is not None and since is not None and landed > since:
+            standing = "landed"
+            why = ("figures reached origin at {} by git's own date, after the episode began at {}"
+                   .format(datetime.fromtimestamp(landed, timezone.utc).strftime("%Y-%m-%dT%H:%MZ"),
+                           datetime.fromtimestamp(since, timezone.utc).strftime("%Y-%m-%dT%H:%MZ")))
+        else:
+            standing, why = recorded_cause_standing(state, fork_fn=fork_fn)
+        if standing == "landed":
+            rule = "publish_landed"
+        elif standing == "cleared":
+            rule = "cause_cleared"
+        else:
             log("Publish gate: the open episode stays open -- {}".format(why))
             return standing
         stamp = float(now) if now is not None else time.time()
@@ -10350,12 +10372,12 @@ def close_episode_if_cause_cleared(*, now=None, fork_fn=None):
         closed.update({"failures": [], "alerted_at": None, "wedge_since": None,
                        "episode_failures": 0, "episode_clean_publishes": 0,
                        "cited_findings": [], "suspects": {}, "blocking_tests": [],
-                       "episode_closed_by": {"rule": "cause_cleared", "reason": why,
+                       "episode_closed_by": {"rule": rule, "reason": why,
                                              "episode_failures": state.get("episode_failures"),
                                              "wedge_since": state.get("wedge_since"),
                                              "ts": stamp}})
         _write_publish_gate_state(closed, episode_closed=True)
-        log("Publish gate: episode CLOSED because its cause cleared -- {}".format(why))
+        log("Publish gate: episode CLOSED ({}) -- {}".format(rule, why))
         return standing
     except Exception as exc:  # noqa: BLE001 -- a monitoring step may not break the pipeline
         log("close_episode_if_cause_cleared error (swallowed; episode left as found): {}"
