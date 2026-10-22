@@ -135,6 +135,54 @@ Citizens Advice hold smart customers to a shorter standard (6 months, against 12
   Nothing published was found. The 2018 decision records that suppliers write off "parts of
   estimated bills" under the limit, but gives no amount.
 
+#### What a supplier must do as estimates run on (2026-10-22, for the D48 long-run census)
+
+*Nothing was re-fetched for this section. Each quoted line is from the regulation commons,
+`docs/domain_artefact_library/regulatory/slc_21b_21ba_reads_and_back_billing.md`, or from
+`read_access_and_theft_duties.md` §2.4, §2.7 and §2.8, where it was read first-hand.*
+
+- **The licence's duty is effort, once a year.** SLC 21B.4: "take all reasonable steps to obtain a
+  meter reading (including any meter reading transmitted electronically from a meter to the
+  licensee or provided by the Customer and accepted by the licensee) for each of its Customers at
+  least once every year". It does not apply to prepayment (21B.3). A customer's read and a smart
+  meter's transmitted read both meet it. It requires an attempt to obtain a read. It does not
+  require a visit, and it does not require a read to result. [H] (commons, S1/S2.)
+- **Gas goes further, and covers prepayment.** UNC TPD M5.9.9 says the shipper "shall secure" a
+  valid read at least once every 12 months for each Annual Read Meter. M5.9.14 applies that to
+  prepayment meters. At 24 months unread the Transporter attempts a "must read" at the shipper's
+  cost (M5.10). [H] (`read_access_and_theft_duties.md` §2.7.)
+- **Electricity has no backstop from a third party.** The supplier instructs its data collector. A
+  failed visit comes back as a D0004 with a Site Visit Check Code (20 "No access", 02 "Site not
+  occupied", and others). The supplier answers with a D0005 "Instruction on Action". [H] (BSCP504
+  v53.0, §2.7.)
+- **The order Ofgem names is a request, then a supplier read.** "If consumers do not respond to
+  requests for meter readings, the backstop measure should be that suppliers take a meter reading
+  themselves." [H] (2018 decision, §2.4.)
+- **What the run costs the supplier when it ends.** 21BA bars energy consumed more than 12 months
+  before the charge recovery action. Not reading is not an exception. "We do not consider a consumer
+  to be obstructive or manifestly unreasonable when he or she does not supply a meter reading." Only
+  21BA.2(c) shifts the cost, and only on evidence the supplier kept of its own access requests. [H]
+  (commons.)
+- **What an estimate should be built from.** Elexon's EAC (BSCP504) and Xoserve's AQ review both
+  annualise a meter advance between two actual reads. The company already has that step,
+  `annualised_advance_kwh` (an advance of at least 182 days, in `company/billing/unread_month_estimate.py`).
+  The monthly bill estimate does not use it. It re-levels on the latest three monthly read periods.
+- **GAP: the cadence after a failed attempt.** No source read says when, or how often, a supplier
+  repeats a request or a visit after a D0004 no-access, or when it moves from asking the customer to
+  sending someone. "All reasonable steps" is not defined (§2.8 GAP, unchanged).
+- **GAP: how often a visit reads** (`q6_read_visit_access_failure_rate`, null; §2.5).
+- **GAP: whether a traditional electricity prepayment meter returns register reads** through its
+  key or card at a vend. The practitioner's question. Nothing was read on it.
+- **GAP: the BSC's own minimum period** within which a meter must have a physical read (BSCP504
+  §4.18 points to it; the BSC was not read).
+
+**What the 76a29bd92 run shows against this** (`docs/staging/records/WORKER_RESULT_EVERY_RUN_OF_TWELVE_ESTIMATES_ON_THE_76A29BD92_RUN_OUTLIVES_ITS_READ_VISIT_BECAUSE_NO_VISIT_CAN_READ_2026-10-22.md`).
+The instruction is on. It sends the 21B.4 step on every one of the 435 credit runs that reach a year
+(469 visits). None reads, because the visit rate is the null GAP, drawn at its no-access end. So
+those runs are the world's access, not a company omission. Gas prepayment (26 runs) gets no step,
+although M5.9.14 asks for one: a company defect, against the code not the licence. The catch-up's
+size follows the estimate's error, not the run's length.
+
 ### K3 Back-billing and the 12-month limit
 
 - **The rule.** Standard Licence Condition 21BA (electricity and gas supply licences) prevents
