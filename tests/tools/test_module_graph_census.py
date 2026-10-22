@@ -113,3 +113,44 @@ def test_nothing_but_the_weekly_publish_reads_the_census():
                 if "tools.module_graph_census" in names:
                     importers.add(rel)
     assert importers == {"background/process_run_complete.py"}, importers
+
+
+def _galaxy_census(tmp_path):
+    files = dict(_BASE, **{"tools/lonely.py": "z = 3\n", "tools/lonely2.py": "z = 4\n"})
+    return mg.census(_tree(tmp_path, files))
+
+
+def test_the_galaxy_places_every_module_and_rings_the_unwired_ones_outside_the_wired(tmp_path):
+    """Defect: a galaxy that loses stars, or drops the unwired modules among the wired ones, so
+    the picture says the code is more connected than it is. The two partitions are asked to be
+    TAKEN first: the fixture must hold both wired and unwired modules, or the ring proves nothing."""
+    c = _galaxy_census(tmp_path)
+    xy = mg.galaxy_layout(c["nodes"], c["edge_list"])
+    assert len(xy) == len(c["nodes"])
+    radius = [((x - 500) ** 2 + (y - 500) ** 2) ** 0.5 for x, y in xy]
+    wired = [r for r, n in zip(radius, c["nodes"]) if n["edges"]]
+    unwired = [r for r, n in zip(radius, c["nodes"]) if not n["edges"]]
+    assert wired and unwired, "the fixture must exercise both kinds of star"
+    assert all(0 <= v <= 1000 for p in xy for v in p)
+    assert max(wired) < min(unwired), (max(wired), min(unwired))
+    assert len({tuple(p) for p in xy}) == len(xy), "two stars drawn on one spot"
+
+
+def test_the_galaxy_is_the_same_picture_for_the_same_code(tmp_path):
+    """Defect: an unseeded layout redraws the sky every publish, so week-on-week the picture
+    moves when the code has not."""
+    c = _galaxy_census(tmp_path)
+    assert mg.galaxy_layout(c["nodes"], c["edge_list"]) == mg.galaxy_layout(c["nodes"], c["edge_list"])
+
+
+def test_write_draws_the_thumbnail_and_carries_a_layout_per_module(tmp_path, monkeypatch):
+    """Defect: the page's link preview and the home page's thumbnail point at a picture the
+    publish never draws, or the feed ships without the layout the galaxy view reads."""
+    c = _galaxy_census(tmp_path / "tree")
+    monkeypatch.setattr(mg, "census_at_head", lambda repo=None, rev="HEAD": dict(c, commit="abc"))
+    out = mg.write(tmp_path / "feed.json", thumbnail=tmp_path / "galaxy.png")
+    assert len(out["galaxy"]) == len(out["nodes"])
+    assert {n["side"] for n in out["nodes"]} <= {"company", "world", "machinery"}
+    from PIL import Image
+    with Image.open(tmp_path / "galaxy.png") as img:
+        assert img.size == (1200, 630)

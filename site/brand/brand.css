@@ -182,3 +182,11 @@
    * 360px in headless chromium: the old values push Home 21px off the left edge; these leave 11px. */
   .site-nav .nav-link { padding: 5px 4px; font-size: 11.5px; }
 }
+/* SIX doors since "The code" became a tab (22 Oct) and six do not share a 360px row at any
+ * readable size: measured in headless chromium, one row put Home 30px off the left edge, where
+ * no reader can reach it. So the narrowest phones take the doors as two deliberate rows of
+ * three, still right-aligned, and nothing overflows. */
+@media (max-width: 420px) {
+  .site-nav .doors { display: grid; grid-template-columns: repeat(3, auto); justify-content: end; row-gap: 2px; }
+  .site-nav .nav-link { text-align: right; }
+}

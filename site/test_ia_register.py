@@ -474,16 +474,25 @@ def test_MUTATION_a_new_internal_door_reaches_site_reachability_without_editing_
 # three above were approximating.
 def test_the_only_redirects_left_are_the_ones_a_reader_actually_needs():
     """A guard on the SHAPE, not the count: this file is where redirects come back one
-    convenient exception at a time. Both survivors are paths a browser or a person produces
-    unprompted -- not URLs preserved because deleting them felt risky."""
+    convenient exception at a time. Each survivor is a path a browser produces unprompted, or
+    one the director asked to keep working -- not a URL preserved because deleting it felt risky."""
     lines = [l.strip() for l in (SITE / "_redirects").read_text(encoding="utf-8").splitlines()
              if l.strip() and not l.strip().startswith("#")]
-    assert len(lines) <= 1, (
-        f"{len(lines)} redirect rules; the ruling of 2026-08-20 left ONE. A new one needs an "
-        f"answer to 'whose journey breaks without it, today?' -- not a page that used to exist. "
-        f"Rules: {lines}"
-    )
+    # Each rule a reader needs, with the answer to "whose journey breaks without it, today?".
+    # The 2026-08-20 ruling left one; the director asked for the second on 22 Oct ("Keep the old
+    # URL working with a redirect") when the module graph became its own tab, while the front
+    # door still linked the old address.
+    needed = {
+        "/favicon.ico": "browsers request it unprompted",
+        "/harness/module-graph/": "the director's steer of 22 Oct; the front door linked it",
+        "/harness/module-graph": "the same address typed without its slash",
+    }
     sources = [l.split()[0] for l in lines]
+    unexplained = [rule for rule in lines if rule.split()[0] not in needed]
+    assert not unexplained, (
+        f"redirect rule(s) with no recorded reader: {unexplained}. A new one needs an answer to "
+        f"'whose journey breaks without it, today?' -- not a page that used to exist."
+    )
     assert any("favicon" in s for s in sources), "the favicon rule went -- browsers request it unprompted"
     # The www rule was kept for half a day on the reasoning that "people type www", then deleted
     # once checked: www.poesys.net has no DNS record, so the rule could never fire. If it comes

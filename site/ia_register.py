@@ -172,6 +172,10 @@ CANONICAL_NAV: tuple[NavItem, ...] = (
     NavItem("Home", "/"),
     NavItem("Capabilities", "/capabilities/"),
     NavItem("How it&rsquo;s built", "/harness/"),
+    # SIX, director's steer of 22 Oct ("I also want a tab with the code galaxy map"): the module
+    # graph left /harness/module-graph/ for a tab of its own. Short label, so the row still has
+    # to be measured at 360px rather than assumed to fit.
+    NavItem("The code", "/code/"),
     NavItem("Knowledge", "/knowledge/"),
     NavItem("Explore", "/explore/"),
 )

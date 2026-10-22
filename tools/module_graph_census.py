@@ -38,6 +38,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import subprocess
 import sys
 from collections import Counter
@@ -52,6 +53,9 @@ from tools import epistemic_wall as wall  # noqa: E402
 from tools import select_impacted_tests as graph  # noqa: E402
 
 OUTPUT = ROOT / "site" / "data" / "module_graph.json"
+#: The galaxy's static picture: the code tab's link-preview image and the home page's thumbnail,
+#: so the picture shows without JavaScript (director's steer, 22 Oct 2026).
+THUMBNAIL = ROOT / "site" / "code" / "galaxy.png"
 
 # The layers are the import graph's own roots less its test root: one list, so a root added
 # there is a layer here without an edit.
@@ -175,6 +179,102 @@ def census(root: Path) -> dict:
     }
 
 
+def galaxy_layout(nodes: list[dict], edges: list[list[int]], size: float = 1000.0,
+                  iterations: int = 300, seed: int = 7) -> list[list[float]]:
+    """A force-directed position for every module, in a `size` square: the code tab's galaxy.
+
+    Presentation only: the census figures above do not depend on it. Computed here, once a week,
+    so a phone draws a settled picture and does not run 300 rounds of physics. Modules with an
+    import edge are laid out by Fruchterman-Reingold (each repels every other, each import pulls
+    its two ends together, a gravity term stops small islands drifting off). Modules with no
+    edge have nothing to place them by, so they form a halo round the outside and do not settle
+    at random among the wired ones. Seeded, so the same code draws the same picture.
+    """
+    import numpy as np
+
+    n = len(nodes)
+    rng = np.random.default_rng(seed)
+    wired = np.array([nd.get("edges", 0) > 0 for nd in nodes], dtype=bool)
+    idx = np.flatnonzero(wired)
+    out = np.zeros((n, 2))
+    if len(idx):
+        remap = np.full(n, -1)
+        remap[idx] = np.arange(len(idx))
+        e = remap[np.array([edge[:2] for edge in edges], dtype=int).reshape(-1, 2)]
+        e = e[(e >= 0).all(1)]
+        mass = np.array([1.0 + math.sqrt(nodes[g].get("loc") or 0) / 12 for g in idx])
+        ang, rad = rng.uniform(0, 2 * np.pi, len(idx)), np.sqrt(rng.uniform(0, 1, len(idx)))
+        pos = np.c_[rad * np.cos(ang), rad * np.sin(ang)]
+        k = 1.4 / math.sqrt(len(idx))
+        temp = 0.1
+        for _ in range(iterations):
+            delta = pos[:, None, :] - pos[None, :, :]
+            dist2 = (delta ** 2).sum(-1) + 1e-6
+            disp = (delta / dist2[..., None] * (k * k) * mass[None, :, None]).sum(1)
+            ev = pos[e[:, 0]] - pos[e[:, 1]]
+            pull = ev * np.sqrt((ev ** 2).sum(-1))[:, None] / k
+            np.add.at(disp, e[:, 0], -pull)
+            np.add.at(disp, e[:, 1], pull)
+            disp -= pos * 0.6 * np.sqrt((pos ** 2).sum(-1))[:, None]
+            step = np.sqrt((disp ** 2).sum(-1))[:, None] + 1e-9
+            pos += disp / step * np.minimum(step, temp)
+            temp = max(0.002, temp * 0.985)
+        pos -= np.median(pos, 0)
+        # Scale by the bulk, not the extremes, then compress the radius softly, so a two-module
+        # island far out does not shrink the whole galaxy to a dot.
+        rr = np.sqrt((pos ** 2).sum(-1))
+        pos = pos / (np.quantile(rr, 0.9) or 1.0) * 0.26
+        rr = np.sqrt((pos ** 2).sum(-1))[:, None] + 1e-12
+        out[idx] = pos / rr * 0.39 * np.tanh(rr / 0.39)
+    halo = np.flatnonzero(~wired)
+    a, r = rng.uniform(0, 2 * np.pi, len(halo)), rng.uniform(0.42, 0.48, len(halo))
+    out[halo] = np.c_[r * np.cos(a), r * np.sin(a)]
+    return [[round(float(x), 1), round(float(y), 1)] for x, y in (out + 0.5) * size]
+
+
+def render_thumbnail(out: dict, path: Path = THUMBNAIL) -> Path:
+    """The galaxy as a 1200 x 630 PNG (the link-preview shape), drawn from `out["galaxy"]`.
+
+    Colours are brand tokens: black ground, stars in white (company), grey (world) and dim grey
+    (machinery); blue a crossing through the seam, red one round it, drawn last so they show.
+    """
+    from PIL import Image, ImageDraw
+
+    width, height = 1200, 630
+    img = Image.new("RGB", (width, height), "#0A0A0A")
+    draw = ImageDraw.Draw(img, "RGBA")
+    scale, ox = height / 1000, (width - height) / 2
+    xy = [(ox + x * scale, y * scale) for x, y in out["galaxy"]]
+    kinds = out["edge_kinds"]
+    for s, t, k in out["edge_list"]:
+        if kinds[k] == "internal":
+            draw.line([xy[s], xy[t]], fill=(217, 217, 217, 30), width=1)
+    star = {"company": (255, 255, 255, 235), "world": (170, 170, 170, 235)}
+    for i, nd in enumerate(out["nodes"]):
+        r = (0.6 + math.sqrt(nd.get("loc") or 0) / 14) * scale * 1.6
+        fill = star.get(side_of(nd["module"]), (125, 125, 125, 235))
+        if not nd.get("edges"):
+            fill = fill[:3] + (110,)
+        x, y = xy[i]
+        draw.ellipse([x - r, y - r, x + r, y + r], fill=fill)
+    for s, t, k in out["edge_list"]:
+        if kinds[k] != "internal":
+            draw.line([xy[s], xy[t]], width=2 if kinds[k] == "seam" else 3,
+                      fill=(0, 71, 255, 255) if kinds[k] == "seam" else (225, 25, 0, 255))
+    path.parent.mkdir(parents=True, exist_ok=True)
+    img.save(path, optimize=True)
+    return path
+
+
+def side_of(module: str) -> str:
+    """"company", "world" or "machinery" -- the wall's own predicates, for colouring a star."""
+    if wall.is_company_module(module):
+        return "company"
+    if wall.is_sim_module(module):
+        return "world"
+    return "machinery"
+
+
 def census_at_head(repo: Path = ROOT, rev: str = "HEAD") -> dict:
     """The census of the COMMITTED tree at `rev` -- what a fresh clone would show."""
     sha = subprocess.run(["git", "-C", str(repo), "rev-parse", rev], capture_output=True,
@@ -196,8 +296,9 @@ def _delta(new: dict, old: dict | None) -> dict | None:
     return d
 
 
-def write(path: Path = OUTPUT, repo: Path = ROOT) -> dict:
-    """Regenerate the door's feed from HEAD, carrying a week-on-week delta from the last one."""
+def write(path: Path = OUTPUT, repo: Path = ROOT, thumbnail: Path | None = THUMBNAIL) -> dict:
+    """Regenerate the door's feed from HEAD, carrying a week-on-week delta from the last one,
+    with the galaxy's layout and its static picture."""
     try:
         previous = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, ValueError):
@@ -205,6 +306,11 @@ def write(path: Path = OUTPUT, repo: Path = ROOT) -> dict:
     out = census_at_head(repo)
     out["generated_at"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     out["week_on_week"] = _delta(out, previous)
+    out["galaxy"] = galaxy_layout(out["nodes"], out["edge_list"])
+    for nd in out["nodes"]:
+        nd["side"] = side_of(nd["module"])
+    if thumbnail is not None:
+        render_thumbnail(out, thumbnail)
     path.write_text(json.dumps(out, separators=(",", ":")) + "\n", encoding="utf-8")
     return out
 
