@@ -759,3 +759,70 @@ calls transfer.
 - **What it says plainly.** A break-even save rate of 0.83 means an offer must keep five in six of
   the losses the company predicts to pay. Little survives that bar. The holdout is how the company
   would learn this from its own book rather than from its belief.
+
+## 10. Does a roll offer reach the leaving household's choice? A trace (2026-10-22)
+
+Prereg §7(b) found that 37 households left at the very roll they were offered on, under both `flat`
+and `all_on`. The question was whether the world's departure decision reads the discounted price, or
+a price set before the offer. Two readings were possible: a stated world behaviour (a household that
+has decided to leave at a fix-end ignores the incumbent's re-fix), or an ordering defect (the offer
+arrives after the decision). **It is neither.** The offer reaches the decision. It is too small to
+move it.
+
+**The trace** (line numbers at origin/main 2b81e1466; the run was drawn at 0f2b04c84, which carries
+the same path):
+1. The company sizes the cut before the world rolls. `retention_cut_share_at_risk_tiers`
+   (`simulation/run_phase2b.py:3698`) produces the cut, and the offer is assembled as
+   `_retention_offer` at :3851.
+2. The world rolls the renewal at the full re-fix rate (`roll_lifecycle_event`, :4041).
+3. Where an offer exists, `ask_world_at_offer` (:4052, `simulation/retention_offer.py`) asks the
+   same function again. Every argument is unchanged except `new_rate_gbp_per_mwh`, which becomes
+   `offered_rate(...)`. The household's one renewal roll is `churn_roll_for_renewal(account, date)`.
+   `stays_at_offer` keeps the household iff `roll ≤ P(stay | full)`, or the framing-scaled
+   `P(stay | offered)` covers its roll (`household_takes_save`).
+4. The kept event is the answer at the offered rate. Its logged `price_differential_vs_market_reference`
+   is the offered position.
+
+There is no rule that a decided leaver ignores a re-fix, and none was stated. The nearest published
+evidence, EFTC's external 6% → 6% (§9b), is a contact without a discount, so it cannot source one.
+
+**What the decision saw, for five of the 37** (from `/var/tmp/se-pcs-arms-out/all_on.json`, rows
+with `retention_offered`). The position is the inc-VAT offer against the household's own fuel's
+default. "Without" is the full re-fix, `(1 + d_offered)/(1 − discount) − 1`.
+
+| account | roll | fuel | cause | discount | position without | position with | P(stay) without | P(stay) with | roll |
+|---|---|---|---|---|---|---|---|---|---|
+| SYN-2016-382 | 2017-08-23 | elec | bill_shock | 3.00% | −12.32% | −14.95% | 0.6987 | 0.7014 | 0.7161 |
+| PROS-2017-0183 | 2018-06-19 | elec | bill_shock | 3.00% | −3.86% | −6.74% | 0.7251 | 0.7373 | 0.7534 |
+| SYN-2016-018 | 2017-01-11 | elec | bill_shock | 1.33% | +8.36% | +6.92% | 0.6811 | 0.6835 | 0.7176 |
+| SYN-2016-557 | 2017-12-02 | elec | price_position | 5.00% | +16.80% | +10.96% | 0.4303 | 0.5132 | 0.8426 |
+| SYN-2016-539 | 2017-11-23 | elec | price_position | 3.00% | +15.72% | +12.25% | 0.3319 | 0.4063 | 0.8253 |
+
+The first three are the closest any leaver came. Each needed 1.7 to 3.7 points more P(stay) than the
+offer gave.
+
+**Across all of them.** There are 112 offered rows: 101 renewal rolls and 11 default-tariff
+conversions, which carry no roll. Of the 37 leavers, 19 left on `price_position`, 13 on
+`bill_shock` and 5 on `dissatisfaction`. The median discount is 3.0% (maximum 8%). It moves
+P(stay) by a median of **0.77 points**, a mean of 1.29 and a maximum of 8.3. On a leaver, the
+median gap between its roll and P(stay | full) is 18 points; the smallest is 1.7. **Expected saves
+among the 37, given they lose at the full rate, are 1.0, so 0 of 37 is unremarkable** (P(0) ≈
+e⁻¹ ≈ 0.37). Over all 101 rolled offers the expected number of saves is 1.3. One save occurred:
+PROS-2016-0263, 2021-09-15 (roll 0.5961, P(stay) 0.5745 → 0.6089 at the offered rate, 0.6189 with
+framing). §7(b) read it as durable. §7's "0 at the roll" was counted on accounts that also left
+under `flat` at that roll, and this one did not, so the two counts agree. Some leavers sit 12–15%
+below the default and still leave on `bill_shock` with P(stay) about 0.70. For them the price lever
+has almost nothing left to move.
+
+**What follows.**
+- **Item 2's holdout does not learn zero by construction.** It learns that a 3% re-fix keeps about
+  one household in a hundred offers. That is the world's own price response at the offered rate,
+  which is the response every pricing arm already runs on. On one book it will not resolve that
+  from zero. §9e's derivation needs more than about 65 offers a year to resolve a save rate of 0.83,
+  and a rate of about 0.03 needs far more.
+- **The retention lever, C34's advice and C35's price stay testable.** Each reaches the same
+  `roll_lifecycle_event` through the offered rate. Below about 8% the lever is weak, not absent.
+- **Not answered here, and not a defect found:** whether the world's price response at a few per
+  cent is right in size. That is the per-household elasticity and the pounds-scaled curve in
+  `simulation/customer_events.py`, sourced on their own pages. The GAP in §9c (no published save
+  rate for a discounted proactive offer at a fixed-term end) is still the binding one.
