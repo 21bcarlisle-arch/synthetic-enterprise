@@ -93,8 +93,8 @@ def expected_line(topic: dict) -> str:
     if isinstance(a, list) and a:
         return "Built by: " + " · ".join(a)
     if isinstance(a, str) and a.startswith(NONE_PREFIX) and len(a) > len(NONE_PREFIX):
-        return "Built by no atom: " + a[len(NONE_PREFIX):]
-    return "No atom named: nobody has recorded which atom builds this."
+        return "Built by no build-plan item yet: " + a[len(NONE_PREFIX):]
+    return "Not recorded: nobody has noted which build-plan item builds this."
 
 
 def _render(feeds: dict) -> dict:
@@ -172,7 +172,7 @@ def test_MUTATION_a_topic_with_no_field_is_shown_as_the_gap(feed):
     rendered = _render({FEED_URL: doctored})
     for t in doctored["topics"]:
         el = rendered.get(f"atoms-{t['id']}")
-        assert el and el["textContent"].startswith("No atom named"), (
+        assert el and el["textContent"].startswith("Not recorded"), (
             f"{t['id']} names no atom and the page shows {el and el['textContent']!r}"
         )
 

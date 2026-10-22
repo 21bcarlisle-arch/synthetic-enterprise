@@ -178,5 +178,7 @@
   .site-nav .nav-logo,
   .site-nav .nav-logo.wordmark { margin-right: 0; font-size: 17px; text-align: left; }
   .site-nav .doors { margin-left: auto; gap: 1px; justify-content: flex-end; width: 100%; }
-  .site-nav .nav-link { padding: 5px 6px; font-size: 12px; }
+  /* 4px / 11.5px, not 6px / 12px, since "Harness" became "How it's built" (22 Oct). Measured at
+   * 360px in headless chromium: the old values push Home 21px off the left edge; these leave 11px. */
+  .site-nav .nav-link { padding: 5px 4px; font-size: 11.5px; }
 }

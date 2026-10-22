@@ -162,11 +162,18 @@ CANONICAL_NAV: tuple[NavItem, ...] = (
     # NOTHING IS DELETED. /world/, /company/ and /proof/ keep their pages and their content and
     # enforced: a declared parent that does not actually link to its child is a violation, so a
     # fold cannot become a quiet orphaning.
+    #
+    # TWO WAYS IN, side by side after Home (director's steer, 22 Oct: "Speak to both audiences by
+    # name"). Capabilities is the energy reader's door; /harness/ is the technologist's, renamed in
+    # plain words with its URL kept. The longer label fits 360px only because brand.css narrowed
+    # the phone padding in the same change -- measured in headless chromium, not argued.
+    # The apostrophe is `&rsquo;`, not `'`: a bare quote inside the nav desyncs the string-blanking
+    # parser in tools/explore_wall_sides.py, which reads the whole page as if it were script.
     NavItem("Home", "/"),
-    NavItem("Knowledge", "/knowledge/"),
     NavItem("Capabilities", "/capabilities/"),
+    NavItem("How it&rsquo;s built", "/harness/"),
+    NavItem("Knowledge", "/knowledge/"),
     NavItem("Explore", "/explore/"),
-    NavItem("Harness", "/harness/"),
 )
 
 
