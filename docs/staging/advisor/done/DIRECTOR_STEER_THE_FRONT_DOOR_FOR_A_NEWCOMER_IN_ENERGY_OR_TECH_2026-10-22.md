@@ -75,3 +75,36 @@ Each stale claim, before → after:
 - **Knowledge intro.** Before: "the results live on Proof", a page that no longer exists. After: Capabilities and Explore.
 - **Explore, "A supplier with this few accounts…".** Checked and left as it is. A book of a few hundred households is still not a realistic business.
 - **Canon §16 sweep.** Every served `site/**/*.html` was searched for the superseded mission framings ("cheapest tonne", "carbon abatement through", "non-commercial", "public domain", "grown toward go-live", "80 founders"). The only hit was the headline above. The mechanised canon-against-site check is handed on.
+
+## Moved to done/ 2026-10-22: the channel refused it, correctly; items 2, 3, 4, 7 and 8 landed
+
+**Why it moved.** On its next read, the advisor channel refused the file. The last origin commit to touch
+it, 5765c102d, is not advisor-signed. That commit is the seat's own item-1 landing, which appended the
+Progress section above. The commit that staged it, 8486305f24, verifies against
+`tools/advisor_allowed_signers` ("Good git signature for advisor"). The diff from 8486305f24 to origin
+removes nothing; it only appends. So the refusal is the rule working as designed (`provenance()`: a file
+edited after the advisor staged it is not drawn), not a sign of tampering. The steer had already been drawn
+and acted on under his "Do it" of 07:29. What remains is carried as a continuation, not by this file.
+**Lesson:** progress on an advisor file belongs in a commit message or a sibling note. An append voids the
+file's signature.
+
+**What landed with this move** (`site/index.html`, `tools/generate_dashboard_data.py`):
+- **(2)** The opening has said what the project is in two lines, then M1, then M11, since item 1. The page
+  order is now: what it is, the proof strip, what it has found, whose book this is, then the claim.
+- **(3, 8)** The proof strip is written into the HTML at publish by
+  `generate_dashboard_data.write_front_door_proof_strip`, between two markers. It replaced the three
+  script-filled live figures, so the page shows them with JavaScript off. It carries three figures, each
+  with its clock: 168,026 half-hourly periods (Elexon system prices, 7 Nov 2015 to 7 Jun 2025); 2016–2025,
+  the 2021–22 crisis included; and 227 households on the book in 2025, with 392 fuel accounts and 548
+  households served across the run. Two of the steer's candidates are left out. "Days since a human last
+  wrote code": git authorship cannot tell a human from a machine here. "Tests and commits": RC5 bans effort
+  metrics on the front door (`site/test_front_door_brand.py`), so the conflict is raised in
+  `for_the_director`.
+- **(4)** "What it has found" holds three stories. The first is the 17–19 Oct dual-fuel episode, told with
+  the director's question as what found it. The second is the three-arm value test ("we cannot tell yet").
+  The third is half-hourly carbon timing. Each links to its evidence.
+- **(7)** The history of the book, and the long accounts of the value runs, the unbuilt currencies and
+  channels, and why carbon saved is unmeasured, are one click down in `<details>`. Each sits under a
+  one-line pointer. None was deleted.
+- **Not done here:** items 5, 6 and 9, the canon-against-site check, and the cold-reader review. They are
+  handed on.

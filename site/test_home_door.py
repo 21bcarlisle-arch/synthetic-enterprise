@@ -249,6 +249,24 @@ def test_model_on_a_page_diagram_hosted_and_resolves():
         assert movement.lower() in alt.lower(), f"alt text omits the {movement!r} movement"
 
 
+def test_the_front_door_carries_its_figures_without_javascript():
+    """Director steer of 22 Oct 2026, item 8: "Loading the latest run..." showed a search engine,
+    a link preview or a script-blocked reader nothing. The proof strip is now written into the
+    HTML at publish (`tools/generate_dashboard_data.py::write_front_door_proof_strip`), so the
+    published bytes themselves must hold every figure and its clock. Reds if the strip goes back
+    to being filled by a script, or is published empty."""
+    html = published_blob(INDEX_REL)
+    start = html.find("<!-- PROOF-STRIP:START")
+    end = html.find("<!-- PROOF-STRIP:END -->")
+    assert 0 <= start < end, "the front door has lost the proof strip's markers"
+    cells = re.findall(r'<div class="lf"><div class="v">([^<]+)</div><div class="l">([^<]+)</div>'
+                       r'<div class="c">([^<]+)</div></div>', html[start:end])
+    assert len(cells) >= 3, f"the published strip holds {len(cells)} figures, not three or more"
+    assert all(value.strip() and clock.strip() for value, _label, clock in cells), cells
+    assert "Loading the latest run" not in html
+    assert 'getElementById("lf-row")' not in html, "a script fills the strip again"
+
+
 def test_no_subject_of_this_file_is_read_from_the_working_tree():
     """THE RELAPSE GUARD: this file's own AST, rather than my having been careful.
 

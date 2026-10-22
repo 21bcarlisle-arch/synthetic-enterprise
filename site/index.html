@@ -145,15 +145,29 @@ nav.doors a.active { color: var(--text); font-weight: 700; }
 .foot { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px;
   padding: 24px 0 30px; font-size: 11px; color: var(--muted); }
 
-.livefigs { max-width: 1060px; margin: 0 auto; padding: 0 56px 8px; }
+.livefigs { padding: 26px 0 22px; border-bottom: 1px solid var(--text); }
 .livefigs .bl { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
 .lf-row { display: flex; flex-wrap: wrap; gap: 12px; }
-.lf { border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; min-width: 170px; background: var(--surface); }
+.lf { border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; flex: 1 1 170px; background: var(--surface); }
 .lf .v { font-size: 24px; font-weight: 600; line-height: 1.1; }
 .lf .l { font-size: 12px; color: var(--muted); margin-top: 3px; }
 .lf .c { font-size: 11px; color: var(--muted); margin-top: 5px; }
-.lf-prov { max-width: 1060px; font-size: 11px; color: var(--muted); margin-top: 10px; }
-@media (max-width: 640px) { .livefigs { padding: 0 14px 8px; } .lf { min-width: 100%; } }
+.lf-prov { font-size: 11px; color: var(--muted); margin-top: 10px; }
+@media (max-width: 640px) { .lf { flex-basis: 100%; } }
+
+/* what it has found -- short stories, each ending in its evidence */
+.stories { padding: 30px 0; border-bottom: 1px solid var(--text); }
+.stories h2 { font-size: 17px; font-weight: 700; letter-spacing: -0.01em; }
+.story { margin-top: 18px; max-width: 66ch; }
+.story h3 { font-size: 14px; font-weight: 700; }
+.story p { margin-top: 6px; font-size: 13.5px; line-height: 1.6; color: var(--muted); }
+.story a { color: var(--text); text-decoration: none; border-bottom: 1px solid var(--border); }
+.story a:hover { border-bottom-color: var(--text); }
+
+/* the long accounts, one click down: <details> needs no script, and nothing in it is removed */
+details.more { margin-top: 12px; max-width: 66ch; }
+details.more summary { cursor: pointer; font-size: 12.5px; font-weight: 600; color: var(--text); }
+details.more[open] summary { margin-bottom: 4px; }
 </style>
 </head>
 <body>
@@ -201,6 +215,63 @@ nav.doors a.active { color: var(--text); font-weight: 700; }
     humans, and we say so up front. Autonomy is the <em>how</em>, not the headline.</p>
 </section>
 
+<!-- THE PROOF STRIP (director steer 22 Oct 2026, items 3 and 8). It replaced the three live
+     figures added 2026-08-20, which a script filled after load, so a reader without JavaScript,
+     a search engine or a link preview saw a loading line and no figure. Everything
+     between the two markers is written into this file at publish by
+     tools/generate_dashboard_data.py::write_front_door_proof_strip, from the run being
+     published. Do not type a figure here: the next publish overwrites it. The book size and the
+     years are still the figures the publish gate's population check guards. -->
+<section class="livefigs" id="livefigs">
+  <div class="bl">What it has run, from the latest publish</div>
+<!-- PROOF-STRIP:START (written at publish by tools/generate_dashboard_data.py -- do not hand-edit) -->
+<div class="lf-row">
+  <div class="lf"><div class="v">168,026</div><div class="l">half-hourly periods of the real GB market</div><div class="c">one Elexon system price per half hour, 7 Nov 2015 to 7 Jun 2025</div></div>
+  <div class="lf"><div class="v">2016&ndash;2025</div><div class="l">10 calendar years, lived in order</div><div class="c">settled year by year, the 2021&ndash;22 gas crisis included</div></div>
+  <div class="lf"><div class="v">227</div><div class="l">households on the book in 2025, the run's last year</div><div class="c">392 fuel accounts between them; 548 households served over the whole run</div></div>
+</div>
+<p class="lf-prov">Written into this page at publish, 19 Oct 2026 08:46 UTC, from run 8b6fea024_20261019T033010Z. No figure here is typed by hand.</p>
+<!-- PROOF-STRIP:END -->
+</section>
+
+<!-- WHAT IT HAS FOUND (steer item 4): real findings, framed as they happened, each linked to
+     its evidence. Chosen on the steer's test: a domain reader would respect it. No run figure
+     is typed here; the percentages in the first are published sources, and a fact about the
+     record, not a run output. -->
+<section class="stories">
+  <h2>What it has found</h2>
+  <div class="story">
+    <h3>The book was 1% dual fuel. Published sources say about 72%.</h3>
+    <p>On 17 October the director asked a plain question: how many of the founding households
+      take electricity only, gas only, or both? The answer was 1% both. A coin set when the book
+      was 13 accounts had been picking each founder's fuel on its own. The CMA's 2014 household
+      survey puts 72% of all homes, and about nine in ten homes with gas, on one supplier for both
+      fuels. Within a day the system researched the published record, rebuilt the founders as
+      homes that buy both fuels where they have gas, and added checks that measure the routes
+      into the book against those sources. The next published run was a dual-fuel book. The
+      lesson was ours too: the question came from a person, and the checks exist so the next one
+      will not have to.
+      <a href="./knowledge/how-households-choose/">How households buy both fuels &rarr;</a></p>
+  </div>
+  <div class="story">
+    <h3>Is the profit from choosing better, or from charging more?</h3>
+    <p>A supplier that prices each household individually and makes more money has not shown it
+      created any value: it may simply have charged more. So the same book was run through the
+      same world three ways: flat rules, the per-customer engine, and flat rules at the margin
+      the engine actually charged. Only the gap between the last two is value made. The answer
+      so far is <em>we cannot tell yet</em>, and the page says that rather than the flattering
+      reading. <a href="./capabilities/#value-arms">The three runs and their spread &rarr;</a></p>
+  </div>
+  <div class="story">
+    <h3>When a home uses power changes its carbon.</h3>
+    <p>Each household's metered half hours are multiplied by what the grid was actually burning in
+      each of them. Against the annual-average factor most footprints use, the same home's
+      footprint moves, sometimes a long way on a single day. Carbon saved, which needs a
+      counterfactual, is not claimed. <a href="./explore/#used">See it on one household
+      &rarr;</a></p>
+  </div>
+</section>
+
 <!-- WHOSE BOOK THIS IS (SITE_EH1_segment_disclosure 2026-07-30, scope item 2: "The revenue mix
      is stated BEFORE the mission claim ... and on the front door").
 
@@ -226,6 +297,7 @@ nav.doors a.active { color: var(--text); font-weight: 700; }
     British homes do.</strong> The supplier below is real in the sense that matters here: it
     settles, prices, hedges, bills and collects against the actual market record. Every
     per-customer figure on this site is a figure about a household.</p>
+  <details class="more"><summary>How the book came to be households, how it grows, and what sets its size</summary>
   <p>It was not always so. Until late August 2026 the book was a handful of industrial and
     commercial accounts carrying almost all of the revenue, so a household mission was being
     funded by a book that was not about households. The director <strong>suspended industrial and
@@ -244,19 +316,7 @@ nav.doors a.active { color: var(--text); font-weight: 700; }
     result. The first measurement of that limit is written up in the repository as
     <em>SETTLEMENT_CEILING_2026-08-24</em>. Account counts and per-segment economics are on
     <a href="./capabilities/">Capabilities</a>.</p>
-</section>
-
-<!-- THREE LIVE FIGURES (brief §4, Home: "three live figures with their date and provenance").
-     Added 2026-08-20. Not decoration and not a dashboard: these are the numbers whose
-     correctness the publish gate's seven remaining checks actually guard, and after the fold
-     retired /proof/ and /world/ they were guarded on no page a reader could open. A check whose
-     figure has no reader must not block publishing (director's rule, same day) -- so either the
-     checks go or the figures get a home. They get a home.
-     Every figure carries its clock, per R14: a basis-less number is a defect, not a style. -->
-<section class="livefigs" id="livefigs">
-  <div class="bl">Where the company stands, from the latest run</div>
-  <div class="lf-row" id="lf-row">Loading the latest run&hellip;</div>
-  <p class="lf-prov" id="lf-prov"></p>
+  </details>
 </section>
 
 <!-- MISSION block (DIRECTOR_RULING_FRONT_MISSION_BLOCK 2026-07-24): the falsifiable claim on
@@ -275,6 +335,15 @@ nav.doors a.active { color: var(--text); font-weight: 700; }
     having the right conversation &mdash; and that the value is real only if the household keeps a share of
     it. Run as a real autonomous supplier inside a faithful simulation of the actual UK market. Every line
     of company code has to answer one question: <em>could a real supplier know this?</em></p>
+  <p class="thesis-sentence">A household is saved <strong>money, time and carbon</strong>. Carbon's job
+    is to show each household what it has saved and could save in CO&#8322;. Inside the company,
+    the same saving is also priced in <strong>&pound; per tonne of CO&#8322;e saved</strong>,
+    against the UK government's carbon appraisal value, <strong>&pound;273/tCO&#8322;e
+    (2025)</strong>. That price is a diagnostic, not the headline.</p>
+  <p class="hypo"><strong>The money side has been run: we cannot tell yet.</strong> Time is not yet
+    measured, only one of the three ways to reach a household (tariffs) works today, and carbon
+    saved is not yet measured. Each is set out below, in full.</p>
+  <details class="more"><summary>The full account: the three runs, what is and is not built, and why carbon saved is not yet measured</summary>
   <!-- THE CLAIM ABOVE HAS BEEN PUT TO A RUN, AND THE RUN DECLINED TO NAME A DIRECTION.
        Added 2026-09-09, sweeping every live surface against the nine-seed floor. Until today this
        door stated the personalisation claim as an open hypothesis and the `NOT YET MEASURED` tag
@@ -316,11 +385,6 @@ nav.doors a.active { color: var(--text); font-weight: 700; }
     the claim. It is not yet the finding.
     <a href="./capabilities/#value-arms">The three runs, the split and the three-draw band
     &rarr;</a></p>
-  <p class="thesis-sentence">A household is saved <strong>money, time and carbon</strong>. Carbon's job
-    is to show each household what it has saved and could save in CO&#8322;. Inside the company,
-    the same saving is also priced in <strong>&pound; per tonne of CO&#8322;e saved</strong>,
-    against the UK government's carbon appraisal value, <strong>&pound;273/tCO&#8322;e
-    (2025)</strong>. That price is a diagnostic, not the headline.</p>
   <!-- MISSION REWRITE 2026-08-28 (director, direct; supersedes DIRECTOR_RULING_FRONT_MISSION_BLOCK's
        "carbon abatement through personalisation" sentence, not its STRUCTURE -- claim, score,
        yardstick, number honestly absent, all kept). The paragraph below is the honest state of the
@@ -356,6 +420,7 @@ nav.doors a.active { color: var(--text); font-weight: 700; }
     half-hourly reads</span> none of those is viable, and the honest thing is to say so rather than
     publish an engineering estimate with a measurement's confidence. The number that would change this
     fastest is not a model: it is meters.</p>
+  </details>
 </section>
 
 <section class="moap">
@@ -436,48 +501,6 @@ nav.doors a.active { color: var(--text); font-weight: 700; }
 <footer style="max-width:1060px;margin:0 auto;padding:16px 56px 30px;font-size:11px;color:var(--muted);">&copy; 2026 Poesys Platforms. All rights reserved. &middot; <a href="./privacy/" style="color:var(--muted);">Privacy</a></footer>
 <script>
 (function () {
-  var row = document.getElementById("lf-row"), prov = document.getElementById("lf-prov");
-  function gbp(v) { return v === null || v === undefined || isNaN(v) ? null
-    : "\u00a3" + Math.round(Number(v)).toLocaleString("en-GB"); }
-  function card(v, label, clock) {
-    return '<div class="lf"><div class="v">' + v + '</div><div class="l">' + label +
-      '</div><div class="c">' + clock + "</div></div>";
-  }
-  fetch("./data/dashboard.json").then(function (r) { return r.json(); }).then(function (d) {
-    var p = d.portfolio || {}, meta = d.meta || {};
-    // No cohort-pound field is read on this door at all (RC7): not rendered, not looked up.
-    var basis = {};
-    var accounts = ((d.customers || {}).lifetime || {});
-    var n = Array.isArray(accounts) ? accounts.length : Object.keys(accounts).length;
-    var cards = [];
-    if (n) cards.push(card(n, "accounts on the book", "every account, not a sample"));
-    // RC7 (director ruling, 2026-07-24): no cohort-derived pound aggregate may lead a public
-    // surface -- "a share of revenue and an account count, never a total". So the margin
-    // figures the 2026-08-17 brief also asks for are deliberately NOT here; that conflict is
-    // the director's to resolve, not this page's.
-    var years = ((d.financial || {}).annual || []).length;
-    if (years) cards.push(card(years, "years of real settlement data", "2016 to 2025, half-hourly"));
-    var span = (basis.clock ? basis.clock + " clock" : "clock unstated");
-    if (p.period_coverage_fraction !== undefined && p.period_coverage_fraction !== null)
-      cards.push(card(Math.round(p.period_coverage_fraction * 100) + "%",
-        "of that window actually settled", span));
-    if (!cards.length) {
-      row.textContent = "The latest run's figures could not be read, so none are shown.";
-      return;
-    }
-    row.innerHTML = cards.join("");
-    var when = meta.generated_at ? new Date(meta.generated_at) : null;
-    prov.innerHTML = "Generated " +
-      (when && !isNaN(when) ? when.toLocaleString("en-GB", {day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit"}) : "at an unknown time") +
-      " from run " + String(meta.source_file || "unknown").replace(/^run_output_/, "").replace(/\.json$/, "") +
-      ". Carbon ABATED is still not published here \u2014 that needs a counterfactual and there is " +
-      "none. Carbon EMITTED now is, half hour by half hour, on the accounts whose meters can say " +
-      'when \u2014 see <a href="./explore/#used">Explore</a> and ' +
-      '<a href="./harness/#not-proven">what we know is wrong</a>.';
-  }).catch(function () {
-    row.textContent = "The latest run's figures could not be loaded, so none are shown rather than a stale number.";
-  });
-
   /* The two carbon sentences above, filled from the generated file. On any failure the spans
      stay as authored -- which is a sentence with no number in it, never a stale one. */
   fetch("./data/explore_carbon.json").then(function (r) { return r.json(); }).then(function (c) {

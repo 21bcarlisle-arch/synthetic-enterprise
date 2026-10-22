@@ -2426,6 +2426,13 @@ def generate(run_json_path=None):
 
     size_kb = OUTPUT_PATH.stat().st_size / 1024
     print(f"Wrote {OUTPUT_PATH} ({size_kb:.1f} KB)")
+
+    # The front door is a SIBLING of the output's folder, so a redirected OUTPUT_PATH finds none
+    # and writes nothing.
+    front_door = OUTPUT_PATH.parent.parent / "index.html"
+    if front_door.exists():
+        write_front_door_proof_strip(data, dashboard, front_door,
+                                     OUTPUT_PATH.parent / "sim_data.json")
     return consistency_ok
 
 
@@ -3013,6 +3020,129 @@ def _check_front_door_selection_verdict(
                 file=sys.stderr,
             )
             return False
+    return True
+
+
+# ── THE FRONT DOOR'S PROOF STRIP, WRITTEN INTO THE HTML AT PUBLISH ─────────────────────────
+# Director steer of 22 Oct 2026, items 3 and 8: a few figures near the top, "generated at publish
+# and never typed", each with its clock, and present in the HTML itself so a search engine, a
+# link preview or a script-blocked reader sees them. Until then the block said "Loading the latest
+# run..." and a script filled it, so without JavaScript the front door showed no figure at all.
+#
+# The bytes between the two markers are this function's, and nobody else's. It rewrites them in
+# place, and it writes only a front door that already carries both markers: a test that redirects
+# OUTPUT_PATH to a temp dir finds no `index.html` beside it, so it can never rewrite the tracked
+# page. A figure whose source cannot be read is LEFT OUT and named in the strip's last line,
+# never shown as a stale or invented number.
+#
+# Two of the steer's candidates are left out on purpose. "Days since a human last wrote code" is
+# allowed only "if the record supports that claim", and it does not: git authorship here does not
+# tell a human from a machine (the authors are "t", "Claude" and the daemons' own names). "Tests
+# and commits" are effort metrics, which RC5 keeps off this page
+# (site/test_front_door_brand.py::test_no_effort_metrics_on_the_surface); the conflict between
+# the two rulings is raised with the director rather than settled here.
+PROOF_STRIP_START = ("<!-- PROOF-STRIP:START (written at publish by "
+                     "tools/generate_dashboard_data.py -- do not hand-edit) -->")
+PROOF_STRIP_END = "<!-- PROOF-STRIP:END -->"
+
+
+def _day(iso):
+    """'2015-11-07' -> '7 Nov 2015'; anything unparseable comes back as it was."""
+    try:
+        d = date.fromisoformat(str(iso)[:10])
+    except ValueError:
+        return str(iso)
+    return "{} {}".format(d.day, d.strftime("%b %Y"))
+
+
+def proof_strip_figures(data, dashboard, sim_meta):
+    """[(value, label, clock)] and [what was left out, and why]. Every value is read, none typed."""
+    figures, missing = [], []
+
+    records = (sim_meta or {}).get("total_records")
+    p_from, p_to = (sim_meta or {}).get("period_from"), (sim_meta or {}).get("period_to")
+    if records and p_from and p_to:
+        figures.append(("{:,}".format(records), "half-hourly periods of the real GB market",
+                        "one Elexon system price per half hour, {} to {}".format(
+                            _day(p_from), _day(p_to))))
+    else:
+        missing.append("the half-hourly period count (site/data/sim_data.json unreadable)")
+
+    years = [row.get("year") for row in dashboard.get("financial", {}).get("annual", [])
+             if row.get("year") is not None]
+    if years:
+        crisis = (sim_meta or {}).get("crisis_years") or []
+        clock = "settled year by year"
+        if crisis:
+            clock += ", the {}&ndash;{} gas crisis included".format(crisis[0], str(crisis[-1])[-2:])
+        figures.append(("{}&ndash;{}".format(min(years), max(years)),
+                        "{} calendar years, lived in order".format(len(years)), clock))
+    else:
+        missing.append("the years (no annual accounts in this run)")
+
+    active = _final_year_active_ids(data)
+    lifetime = dashboard.get("customers", {}).get("lifetime", {}) or {}
+    if active and lifetime:
+        from saas.opex_ledger import _household_base_id
+        resi = {_household_base_id(cid) for cid in active
+                if (lifetime.get(cid) or {}).get("segment") == "resi"}
+        served = {_household_base_id(cid) for cid, row in lifetime.items()
+                  if row.get("segment") == "resi"}
+        last_year = sorted(data.get("years", {}))[-1]
+        figures.append(("{:,}".format(len(resi)),
+                        "households on the book in {}, the run's last year".format(last_year),
+                        "{:,} fuel accounts between them; {:,} households served over the "
+                        "whole run".format(len(active), len(served))))
+    else:
+        missing.append("the household count (the run names no final-year book)")
+
+    return figures, missing
+
+
+def render_proof_strip(figures, missing, generated_at, source_file):
+    import html as _html
+    cells = "\n".join(
+        '  <div class="lf"><div class="v">{}</div><div class="l">{}</div>'
+        '<div class="c">{}</div></div>'.format(value, label, clock)
+        for value, label, clock in figures)
+    run = _html.escape(str(source_file or "an unnamed run")
+                       .replace("run_output_", "").replace(".json", ""))
+    when = generated_at or "an unrecorded time"
+    try:
+        stamp = datetime.fromisoformat(str(when).replace("Z", "+00:00"))
+        when = "{} {} UTC".format(_day(stamp.date().isoformat()), stamp.strftime("%H:%M"))
+    except ValueError:
+        pass
+    prov = ("Written into this page at publish, {}, from run {}. No figure here is typed by "
+            "hand.".format(_html.escape(str(when)), run))
+    if missing:
+        prov += " Not shown, because its source could not be read: {}.".format(
+            _html.escape("; ".join(missing)))
+    return '{}\n<div class="lf-row">\n{}\n</div>\n<p class="lf-prov">{}</p>\n{}'.format(
+        PROOF_STRIP_START, cells, prov, PROOF_STRIP_END)
+
+
+def write_front_door_proof_strip(data, dashboard, front_door_path, sim_data_path):
+    """Rewrite the strip between the markers. True if written; False, with the reason, if not."""
+    try:
+        page = front_door_path.read_text(encoding="utf-8")
+    except OSError:
+        return False  # no front door beside this output: a redirected test, not a publish
+    start, end = page.find(PROOF_STRIP_START), page.find(PROOF_STRIP_END)
+    if start < 0 or end < start:
+        print("FRONT-DOOR PROOF STRIP NOT WRITTEN: {} does not carry both markers, so the "
+              "strip has nowhere to go and the page keeps what it had".format(front_door_path),
+              file=sys.stderr)
+        return False
+    try:
+        sim_meta = json.loads(sim_data_path.read_text(encoding="utf-8")).get("metadata", {})
+    except (OSError, ValueError):
+        sim_meta = {}
+    figures, missing = proof_strip_figures(data, dashboard, sim_meta)
+    meta = dashboard.get("meta", {})
+    block = render_proof_strip(figures, missing, meta.get("generated_at"), meta.get("source_file"))
+    front_door_path.write_text(page[:start] + block + page[end + len(PROOF_STRIP_END):],
+                               encoding="utf-8")
     return True
 
 
