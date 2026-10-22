@@ -1013,3 +1013,10 @@ candidate beside the §12 switch, proposed with seeds, and nothing is flipped he
 upward (more than 358 departures), the offers were saving households that the outcome-at-the-roll
 reading in §7 missed. In that case the save rate's definition is wrong before its value is, and that
 is written up before any seeds are run.
+
+**Launched 2026-10-22 01:29 BST**, after the predictions above were on origin at `7bab213af` (field and
+predictions in `0674199b8`). Unit `longjob-pcs-arm-all-on-save-odds`, run from the locked worktree
+`/var/tmp/se-pcs-arms13` (detached at `7bab213af`), writing
+`/var/tmp/se-pcs-arms-out/all_on_save_odds.{json,log}`. Expect about an hour, as §12 took. The grade
+script is `/tmp/pcs13/grade.py`. Its placebo, with §12's output standing in for the new arm, reads §12
+back to the penny: the 2017 set identical, 35 fix-end offers from 2018 with no `save_rate`, +£0.00.
