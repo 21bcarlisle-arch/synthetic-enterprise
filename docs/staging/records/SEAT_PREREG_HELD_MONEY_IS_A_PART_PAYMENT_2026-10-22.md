@@ -43,3 +43,16 @@ control's 25-60%. H3-H4 are its cost: depth and pounds move away from Ofgem. If 
 goes on after a second seed whatever H3-H4 show (F11), and the depth gap is recorded as a gap the
 demand reading had been closing with households that never paid. If H2 fails (still under 80%), the
 non-payment comes from somewhere else, and the switch stays off pending that cause.
+
+## Seed 1 graded (2026-10-22, 03:05 BST): H1-H5 all hold
+
+Full table in `docs/staging/records/SEAT_RESULT_HELD_MONEY_IS_A_PART_PAYMENT_SEED_1_2026-10-22.md`.
+
+## Seed 2, pre-registered before launch
+
+The same two arms on dice seed 2: `dump_held.py ARM 2023-12-31 OUT 2`, which wraps the run in
+`grade_world_debt_against_ofgem.dice_seeded(2)` and refuses a seed that reached no draw. Outputs:
+`/var/tmp/leaver_trace/arm_held_{off,on}_s2.json`. **H1-H5 apply unchanged.** The control should
+reproduce `arm_demand_s2.json`. As with the demand reading, the seed re-draws the payment noise and not
+the budget population, so it bounds the noise. If both seeds hold, the switch defaults on in its own
+commit.
