@@ -1095,6 +1095,46 @@ def refuse_discretionary_rate_below_own_cost_floor(contracted, *, entered, cost_
             f"{cost_floor:.4f}, entered {entered}, cap {cap}): a discretionary writer in the "
             f"rate chain priced under the cost the desk struck over")
 
+# An expected credit loss is a share of money billed that will not be collected: it lies in [0, 1].
+# A REALISED bad-debt charge can be negative -- provision made on earlier consumption is released
+# when the debt is paid -- but a belief about the loss on future billing cannot be, or a debtor
+# prices as a source of value. `company/pricing/default_belief.py` learned exactly that on thin cells
+# (GOOD -0.0083, POOR -0.0046 and -0.0053 in the retention-netting pair, `df9792c57`) because its
+# observation counted the release of opening provision as negative loss. Knowledge:
+# docs/market_research/bad_debt_provisioning.md, *The expected loss on new billing*.
+EXPECTED_LOSS_BELIEF_WITHIN_ZERO_AND_ONE = StructuralInvariant(
+    id="expected_loss_belief_within_zero_and_one",
+    description=(
+        "Any expected-credit-loss belief the supplier prices or values with -- a share of future "
+        "billing it expects not to collect -- is finite and lies in [0, 1]. A negative belief "
+        "would make an account in arrears add value; one above 1 would lose more than was billed. "
+        "The realised charge, which nets releases of earlier provision, is not bound by this"
+    ),
+    source=(
+        "IFRS 9 5.5.17 (an expected credit loss is a probability-weighted shortfall of cash "
+        "flows, never a gain); Ofgem Decision App. 2 Debt-related costs, May 2025, s.4.29 "
+        "(the charge mixes current consumption with changes to earlier provisions)"
+    ),
+)
+
+
+def check_expected_loss_belief_within_zero_and_one(rate) -> bool:
+    return rate is not None and isfinite(rate) and 0.0 <= rate <= 1.0
+
+
+class ExpectedLossBeliefOutOfRangeError(Exception):
+    pass
+
+
+def refuse_expected_loss_belief_out_of_range(rate, *, where: str = "") -> None:
+    """Raise, naming the belief and where it was built, unless it is a share in [0, 1]."""
+    if not check_expected_loss_belief_within_zero_and_one(rate):
+        raise ExpectedLossBeliefOutOfRangeError(
+            f"{where}: expected-loss belief {rate!r} is outside [0, 1] "
+            f"({EXPECTED_LOSS_BELIEF_WITHIN_ZERO_AND_ONE.id}); a negative one usually means a "
+            f"release of earlier provision was learned as a loss on new billing")
+
+
 ALL_INVARIANTS: list = [
     NO_ACQUISITION_ONLY_TARIFF,
     VAT_RESIDENTIAL, VAT_SME,
@@ -1126,6 +1166,7 @@ ALL_INVARIANTS: list = [
     PAYMENT_CHANNEL_DD_CONSISTENCY,
     SUPPLY_START_NOT_BEFORE_FIRST_OBSERVABLE,
     DUNNING_REQUIRES_AN_UNCLEARED_DEBT,
+    EXPECTED_LOSS_BELIEF_WITHIN_ZERO_AND_ONE,
 ]
 
 

@@ -8,7 +8,10 @@ Defect each control names:
   * a closed account's unpaid money is provisioned on the live row (the 5-50x understatement the
     final-bill row exists to stop);
   * an outcome is read before the company could know it;
-  * an account the register answers `None` for (not one the price learns from) is learned from anyway.
+  * an account the register answers `None` for (not one the price learns from) is learned from anyway;
+  * an account that pays down arrears it began the year with is learned as a NEGATIVE loss (the
+    release of last year's provision read as this year's gain), so a thin cell of them prices a
+    debtor as a source of value (`df9792c57`).
 """
 
 import datetime as dt
@@ -40,6 +43,16 @@ def _post_year(book, acct, first, *, months, unpaid_months=(), amount=100.0):
                                   day + dt.timedelta(days=10), TT))
 
 
+def _latest(obs):
+    """Each account-year's latest reading, as `default_belief` and `tabulate` take it."""
+    out = {}
+    for o in obs:
+        key = (o.account_id, o.year_start)
+        if key not in out or o.resolved_on > out[key].resolved_on:
+            out[key] = o
+    return out
+
+
 def _observe(book, as_of, methods):
     return observe_book(book, as_of=as_of, payment_method_of=lambda a, d: methods.get(a),
                         arrears_state_at=lambda a, d: "no_debt")
@@ -52,7 +65,7 @@ def test_a_persistent_debt_is_charged_although_later_payments_clear_its_first_bi
     book = LedgerBook()
     first = dt.date(2017, 1, 1)
     _post_year(book, "LIVE", first, months=30, unpaid_months=(3, 4))
-    obs = _observe(book, dt.date(2019, 1, 1), {"LIVE": SC})
+    obs = list(_latest(_observe(book, dt.date(2019, 1, 1), {"LIVE": SC})).values())
     assert len(obs) == 2 and not any(o.closed for o in obs)
     assert sum(o.charge_gbp for o in obs) > 0.0, obs
     # Every pound of the 200 is still owed and live at the second year's end: provisioned on the
@@ -70,8 +83,12 @@ def test_a_closed_accounts_debt_is_charged_on_the_final_bill_row_in_the_year_it_
     first = dt.date(2017, 1, 1)
     _post_year(book, "GONE", first, months=12, unpaid_months=(10, 11))
     _post_year(book, "STAY", first, months=30, unpaid_months=(10, 11))
-    obs = {o.account_id: o for o in _observe(book, dt.date(2019, 1, 1), {"GONE": SC, "STAY": SC})
-           if o.year_start == first}
+    # Each account's FIRST reading of the year: STAY's is re-read a year on, when FIFO has moved the
+    # debt onto its second year's bills.
+    obs = {}
+    for o in _observe(book, dt.date(2019, 1, 1), {"GONE": SC, "STAY": SC}):
+        if o.year_start == first:
+            obs.setdefault(o.account_id, o)
     gone = obs["GONE"]
     assert gone.closed and gone.resolved_on > first + dt.timedelta(days=365)
     unpaid = fifo_unpaid_bills(book.ledger("GONE"), gone.resolved_on)
@@ -241,8 +258,12 @@ def test_a_dd_the_supplier_stopped_is_provisioned_on_the_pay_on_receipt_row_from
         return observe_book(book, as_of=dt.date(2020, 6, 1), payment_method_of=method_of,
                             arrears_state_at=lambda a, d: "no_debt")
 
-    moved = observe(stopped)
-    never = observe(lambda a, d: DD)
+    def first_readings(obs):
+        return [o for o in obs if o.resolved_on == o.year_start + dt.timedelta(days=365)
+                or o.closed and not any(p.year_start == o.year_start and p.resolved_on < o.resolved_on
+                                        for p in obs)]
+    moved = first_readings(observe(stopped))
+    never = first_readings(observe(lambda a, d: DD))
     assert asked and max(asked) <= dt.date(2020, 6, 1), "the register was asked past the decision date"
     assert any(d < stop for d in asked) and any(d >= stop for d in asked), (
         "the register was never asked on both sides of the stop, so the stop could not reach a charge")
@@ -265,3 +286,87 @@ def test_an_account_the_register_does_not_answer_for_is_not_learned_from():
 
     assert observe({"SME": SC, "HOME": DD}) == {"SME", "HOME"}, "an answered account was not read"
     assert observe({"HOME": DD}) == {"HOME"}, "an account the register does not answer for was read"
+
+
+def _paying_down(book, acct, first):
+    """Year 1: two bills unpaid. Year 2: every bill paid, and the arrears cleared in month 14."""
+    _post_year(book, acct, first, months=30, unpaid_months=(10, 11))
+    book.post(LedgerEvent(f"{acct}-catchup", acct, LedgerEventType.PAYMENT_CREDIT, 200.0,
+                          first + dt.timedelta(days=30 * 14 + 12), TT))
+
+
+def test_an_account_paying_down_its_arrears_is_never_learned_as_a_negative_loss():
+    """The defect in `df9792c57`: the year's whole charge (closing less opening provision) is
+    negative on a household that clears last year's arrears, and one such account-year in a thin
+    cell takes the belief below zero. Read by vintage, the release lowers LAST year's reading."""
+    book = LedgerBook()
+    first = dt.date(2017, 1, 1)
+    for i in range(3):
+        _paying_down(book, f"PD{i}", first)
+    raw = _observe(book, dt.date(2019, 6, 1), {f"PD{i}": SC for i in range(3)})
+    assert all(o.charge_gbp is not None and o.charge_gbp >= 0.0 for o in raw), raw
+    # The rare branch is reachable: year 1 WAS read with a loss, and its later reading released it.
+    first_reads = [o for o in raw if o.year_start == first and o.resolved_on == first + dt.timedelta(days=365)]
+    revisions = [o for o in raw if o.year_start == first and o.resolved_on > first + dt.timedelta(days=365)]
+    assert first_reads and all(o.charge_gbp > 0.0 for o in first_reads), first_reads
+    assert revisions and all(o.charge_gbp == 0.0 for o in revisions), revisions
+    # Year 2's own billing is all paid, so its loss is 0 -- not minus last year's provision.
+    year2 = [o for o in raw if o.year_start == first + dt.timedelta(days=365)]
+    assert year2 and all(o.charge_gbp == 0.0 for o in year2), year2
+    # The cell is year-2 debtors only (arrears state at year 2's start): one account-year each,
+    # the thin cell the defect showed on. The belief shrinks a 0.0 observation towards the prior.
+    debtors = default_belief(raw, decided_on=dt.date(2019, 6, 1), arrears_state="no_debt")
+    assert debtors.account_years == 3 and 0.0 <= debtors.rate < PRIOR_LOSS_RATE, debtors
+
+
+def test_the_latest_readings_sum_to_the_telescoped_charge():
+    """Nothing is lost or counted twice: an account's latest readings by year add up to what the
+    old whole-year charge summed to over the same years -- its provision now, plus write-offs."""
+    book = LedgerBook()
+    first = dt.date(2017, 1, 1)
+    _paying_down(book, "PD", first)
+    _post_year(book, "ROLL", first, months=30, unpaid_months=(3, 4))
+    on = dt.date(2019, 1, 1)
+    latest = _latest(_observe(book, on, {"PD": SC, "ROLL": SC}))
+    for acct in ("PD", "ROLL"):
+        unpaid = fifo_unpaid_bills(book.ledger(acct), on)
+        provision = sum(g * _banded_rate(RECEIVABLE_PROVISION_RATE_LIVE_PAY_ON_RECEIPT, (on - d).days)
+                        for d, g in unpaid)
+        mine = sum(o.charge_gbp for (a, _), o in latest.items() if a == acct)
+        assert abs(mine - provision) < 0.02, (acct, mine, provision)
+
+
+def test_a_negative_belief_is_refused_wherever_it_reaches_a_price():
+    """The invariant as a class: a belief below 0 (or above 1) is refused by the producer and by the
+    price that consumes it, whatever built it."""
+    import pytest
+
+    from company.compliance.domain_invariants import (
+        ExpectedLossBeliefOutOfRangeError,
+        check_expected_loss_belief_within_zero_and_one,
+        refuse_expected_loss_belief_out_of_range,
+    )
+    assert check_expected_loss_belief_within_zero_and_one(0.0)
+    assert check_expected_loss_belief_within_zero_and_one(PRIOR_LOSS_RATE)
+    for bad in (-0.0083, 1.01, float("nan"), None):
+        assert not check_expected_loss_belief_within_zero_and_one(bad), bad
+    with pytest.raises(ExpectedLossBeliefOutOfRangeError, match="release"):
+        refuse_expected_loss_belief_out_of_range(-0.0083, where="test")
+    # The producer: a hand-built negative observation (the old whole-year charge) is refused.
+    resolved = dt.date(2018, 1, 1)
+    with pytest.raises(ExpectedLossBeliefOutOfRangeError):
+        default_belief([_year("NEG", SC, -0.05, resolved)], decided_on=dt.date(2018, 2, 1),
+                       arrears_state="no_debt")
+    # The consumer, on the policy that prices with the book's rate.
+    import dataclasses
+
+    from company.policy.decision_policy import (
+        DEFAULT_BELIEF_OWN_BOOK,
+        VALUE_ARM_POLICY,
+        policy_scope,
+    )
+    with policy_scope(dataclasses.replace(VALUE_ARM_POLICY,
+                                          renewal_default_belief=DEFAULT_BELIEF_OWN_BOOK)):
+        assert _chain_rate(0.0) is not None
+        with pytest.raises(ExpectedLossBeliefOutOfRangeError):
+            _chain_rate(-0.0083)

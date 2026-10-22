@@ -1542,3 +1542,72 @@ than the chain alone. It stays off. Grade: `docs/staging/records/SEAT_PREREG_THE
 | P(default) given an ADDACS cancellation | not read; waits for `W2_41` |
 | The cure share of a plain Bacs re-presentation on domestic energy | the company does not re-present, so it is not needed yet |
 | Whether a supplier's provision reads payment status inside the month or only at month-end | read on the forecast date; a month-end read already has the miss in the chain. **Corrected 2026-10-21:** for 31% of code-0 months it does not (cash for an older bill made the month "paid"); choice 6 now learns those households at lag 1, on the month the reading applies the signal to |
+
+## The expected loss on new billing, kept apart from the release of earlier provision (2026-10-22)
+
+**Why this section.** The retention-netting pair (`df9792c57`) found `default_belief` reading a
+negative expected loss on three thin cells (GOOD -0.0083; POOR -0.0046 and -0.0053). One
+account-year's observation was the year's whole bad-debt CHARGE: closing provision less opening
+provision plus write-offs. A cell of accounts that start the year in arrears and pay it down books
+a negative charge, and with one account-year of prior weight a thin cell crosses zero. A realised
+charge can be negative, but a forward expected loss on next year's bill cannot.
+
+### What the rules and published practice say (ESTABLISHED, quoted at source above)
+
+- **The charge mixes two things, and Ofgem names both.** *"the bad debt charge includes both
+  provisions in relation to current consumption and changes to provisions made in relation to
+  previous consumption. As provisions are refined over time, the bad debt charge in any period does
+  not necessarily reflect expected costs in relation to consumption in that period"* (Appendix 2,
+  May 2025, §4.29; section 2.3). A downward correction (*"high provisions in 2023, leading to a
+  subsequent downward correction in 2024"*) is the second component, and it is negative.
+- **A matrix supplier does not separate them in its accounts.** Centrica: *"any reduction in
+  provision is reflected in a reduced charge for the relevant period, rather than in separately
+  identifiable reversals of previous provisions"*, *"due to the large number of individual
+  receivables and the matrix approach employed"* (section 2.2). That is a statement about the
+  REPORTED charge, and about why a portfolio matrix cannot split it, not a statement that the split
+  does not exist.
+- **The price is a rate on new billing.** Section 4.2: the expected loss on a customer's next year
+  is *"a charge rate (flow) from the matrix applied to what that customer is expected to owe, not
+  the coverage of today's balance"*. Ofgem's allowance is set per customer on consumption in the
+  cap period (§5.12: *"provisioning rates at the time of billing"*).
+- **The cohort view is ordinary practice** (section on the provision matrix, 2026-10-14): the loss
+  on money billed in a period is read off that money, by vintage.
+
+### What the company can read (discovery)
+
+The company's provision is per BILL: `fifo_unpaid_bills` returns each unpaid bill with its date,
+and `_provision` rates each one at its own age. So at any reading the company knows which part of
+its provision sits on bills issued in the year being observed and which on earlier bills. A
+write-off is a credit that FIFO applies to the oldest unpaid bill, so it too splits by the bills it
+cleared. **The split is readable from company data, so no floor is needed.** A floor at 0 would
+hide the defect rather than remove it, and it would still let a release drag a cell's positive
+rate towards zero.
+
+### The build's choices (company side, `company/pricing/default_belief.py`)
+
+1. **One account-year's learned loss is the provision on THAT YEAR's bills plus the write-offs FIFO
+   applied to them, read by vintage.** It is a sum of non-negative terms, so it cannot be negative.
+2. **Each later resolution of the account re-reads every earlier year**, and a reading that moved
+   is kept as a revision. The belief takes each year's latest reading known before the decision.
+   So a release lowers the reading of the year whose provision is released, and never shows up as
+   a gain on another year's billing.
+3. **Why not split one year-end reading into "this year's bills" and "earlier bills"?** It was
+   drafted that way first and printed wrong before it shipped. FIFO moves a rolling balance onto
+   the newest bills every year. A household that owes the same GBP 200 for five years would then be
+   charged it five times as new loss, and released four times on the side the belief never reads.
+   That double-counts exactly the debtors. Read by vintage, last year's reading falls to zero as its
+   bills are paid, and an account's latest readings sum to the old telescoped charge (its provision
+   now, plus write-offs). Nothing is lost or counted twice
+   (`test_the_latest_readings_sum_to_the_telescoped_charge`).
+4. **No floor.** The split is readable from company data, so a floor at 0 would hide the defect,
+   not remove it.
+5. **The invariant is a class rule** (`domain_invariants.EXPECTED_LOSS_BELIEF_WITHIN_ZERO_AND_ONE`).
+   It is refused where the belief is built (`default_belief`) and where it reaches a price
+   (`value_based_renewal`), whatever built it.
+
+### GAPs this build carries rather than fills
+
+| GAP | What the build does instead |
+|---|---|
+| Whether a supplier's pricing rate is read by vintage, or off the reported charge that nets releases in | Not published. Read by vintage, because a release is not a cost or a gain of the next year's consumption (§4.29) |
+| A year is re-read only when a later year of the same account resolves, so the newest year carries its year-end reading. A pay-on-receipt bill inside its terms then carries the 4.5% under-30-day rate (DD: 0%) until the next anniversary | Not corrected: re-reading on every decision date would cost a ledger walk per account per renewal. Its size is printed with the before/after table |

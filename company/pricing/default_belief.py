@@ -26,6 +26,19 @@ every one of its first-year bills as paid and the debt as fresh. Reading a year'
 therefore find no default on exactly the persistent debtor. The provision follows the balance
 wherever FIFO puts it, and the change in it is the loss the year added.
 
+WHAT IS LEARNED IS THE LOSS ON EACH YEAR'S OWN BILLS, READ BY VINTAGE. A year's whole charge
+mixes the provision on that year's billing with the movement on earlier years' (Ofgem App. 2 May
+2025 s.4.29, `docs/market_research/bad_debt_provisioning.md`, *The expected loss on new billing*).
+The second part is negative when an account pays down arrears it began the year with, and a thin
+cell of such accounts learned a negative expected loss: a debtor priced as a source of value
+(`df9792c57`). The provision is per bill, so the company can say which year's billing each pound
+sits on. A year's reading is the provision on its own bills plus what was written off against
+them, a sum of non-negative terms. Each later resolution of the account re-reads it, so a release
+lowers the reading of the year the provision was made on, and only that year's. A persistent
+debtor stays charged: the debt FIFO moves onto this year's bills is this year's loss, and last
+year's reading drops as its bills are paid. Over an account's years the latest readings sum to the
+telescoped charge, so nothing is lost or counted twice.
+
 The observation is dated at the year's end -- or, for an account's last year, at the date it reads
 as closed, so the jump to the final-bill row lands in the year the account left. A decision dated
 earlier cannot see it. Its covariates are what the decision at `T` could see: payment method, and
@@ -51,12 +64,18 @@ Pure: plain values and a company `LedgerBook` in, plain values out. No world imp
 
 from __future__ import annotations
 
+import dataclasses
 import datetime as dt
 from dataclasses import dataclass
 from typing import Callable, Iterable, Optional
 
 from company.billing.account_ledger import LedgerBook, LedgerEventType
-from company.billing.arrears_engine import fifo_unpaid_bills, written_off_and_recovered
+from company.billing.arrears_engine import (
+    _fifo_unpaid,
+    fifo_unpaid_bills,
+    written_off_and_recovered,
+)
+from company.compliance.domain_invariants import refuse_expected_loss_belief_out_of_range
 from company.crm.churn_model import ARREARS_STATE_UNKNOWN
 from company.pricing.value_based_renewal import (
     _LIVE_PROVISION_ROW_BY_METHOD,
@@ -126,11 +145,16 @@ def observe_book(
     arrears_state_at: Callable[[str, dt.date], str],
     memo: Optional[dict] = None,
 ) -> list[AccountYear]:
-    """Every account-year in `book` whose outcome the company knew by `as_of`, oldest first.
+    """Every reading of an account-year's loss the company had made by `as_of`, oldest first.
 
-    `memo`, if given, keeps each account-year once it has been read, keyed by account and year
-    start, so a run that asks at every renewal walks each resolved year once. What is kept is what
-    the company knew when it first read it, which is the point-in-time reading in any case.
+    A year is first read when it resolves. Each later resolution of the same account re-reads it,
+    and a reading that moved is returned as a REVISION: the same account and `year_start`, a later
+    `resolved_on`. `default_belief` and `tabulate` take the latest reading of each year that was
+    known by their date.
+
+    `memo`, if given, keeps what each resolution produced, keyed by account and year start, so a
+    run that asks at every renewal walks each resolution once. What is kept is what the company knew
+    when it first read it, which is the point-in-time reading in any case.
 
     `payment_method_of(account, date)` is the company's own method register on that date; it is
     only ever asked of dates at or before `as_of`. `None` means the account is not one the price
@@ -154,7 +178,7 @@ def observe_book(
             return payment_method_of(_account, day) or ""
         first, last = bills[0][0], bills[-1][0]
         closes_on = last + dt.timedelta(days=CLOSED_IF_UNBILLED_DAYS)
-        opened = first
+        latest: dict[dt.date, AccountYear] = {}   # each year's latest reading, by year start
         k = 0
         while True:
             start = first + dt.timedelta(days=k * OBSERVATION_YEAR_DAYS)
@@ -167,51 +191,100 @@ def observe_book(
                 break
             k += 1
             if memo is not None and (account, start) in memo:
-                kept = memo[(account, start)]
-                if kept is not None:
-                    out.append(kept)
-                    opened = kept.resolved_on
-                continue
-            billed = sum(g for d, g in bills if start <= d < end)
-            if billed <= 0.0 or payment_method_of(account, start) is None:
+                readings = memo[(account, start)]
+            else:
+                readings = _readings_at(
+                    ledger, account, latest, start=start, end=end, resolved=resolved, k=k,
+                    first=first, closes_on=closes_on, bills=bills, method_on=method_on,
+                    learned=payment_method_of(account, start) is not None,
+                    arrears_state_at=arrears_state_at)
                 if memo is not None:
-                    memo[(account, start)] = None
-                continue
-            charge = _provision(ledger, resolved, method_on(resolved), closes_on)
-            if charge is not None:
-                before = (_provision(ledger, opened, method_on(opened), closes_on)
-                          if k > 1 else 0.0)
-                written_off = sum(
-                    float(e.amount_gbp) for e in ledger.events()
-                    if e.event_type == LedgerEventType.WRITE_OFF_CREDIT and opened < e.valid_time <= resolved)
-                charge = None if before is None else charge - before + written_off
-            year = AccountYear(
-                account_id=account,
-                payment_method=method_on(start),
-                arrears_state=ARREARS_STATE_UNKNOWN if k == 1 else arrears_state_at(account, start),
-                year_start=start,
-                resolved_on=resolved,
-                billed_gbp=round(billed, 2),
-                closed=resolved >= closes_on,
-                charge_gbp=None if charge is None else round(charge, 2),
-            )
-            if memo is not None:
-                memo[(account, start)] = year
-            out.append(year)
-            opened = resolved
-    return sorted(out, key=lambda o: (o.resolved_on, o.account_id))
+                    memo[(account, start)] = readings
+            for r in readings:
+                latest[r.year_start] = r
+            out.extend(readings)
+    return sorted(out, key=lambda o: (o.resolved_on, o.account_id, o.year_start))
 
 
-def _provision(ledger, on: dt.date, method: str, closes_on: dt.date) -> Optional[float]:
-    """What the company provisions against this account's unpaid money on `on`."""
+def _readings_at(ledger, account, latest, *, start, end, resolved, k, first, closes_on, bills,
+                 method_on, learned, arrears_state_at) -> tuple:
+    """What resolving the year `[start, end)` on `resolved` adds: that year's first reading, and a
+    revision of every earlier year whose loss reads differently now."""
+    billed = sum(g for d, g in bills if start <= d < end)
+    by_year = _loss_by_year(ledger, resolved, method_on(resolved), closes_on, first)
+    readings = []
+    if billed > 0.0 and learned:
+        charge = None if by_year is None else by_year.get(start, 0.0)
+        readings.append(AccountYear(
+            account_id=account,
+            payment_method=method_on(start),
+            arrears_state=ARREARS_STATE_UNKNOWN if k == 1 else arrears_state_at(account, start),
+            year_start=start,
+            resolved_on=resolved,
+            billed_gbp=round(billed, 2),
+            closed=resolved >= closes_on,
+            charge_gbp=None if charge is None else round(charge, 2),
+        ))
+    if by_year is not None:
+        for year_start, was in latest.items():
+            now = round(by_year.get(year_start, 0.0), 2)
+            if was.charge_gbp is not None and now != was.charge_gbp:
+                readings.append(dataclasses.replace(
+                    was, resolved_on=resolved, closed=resolved >= closes_on, charge_gbp=now))
+    return tuple(readings)
+
+
+def _loss_by_year(ledger, on: dt.date, method: str, closes_on: dt.date,
+                  first: dt.date) -> Optional[dict]:
+    """The loss the company reads on `on` against each year of this account's billing, keyed by the
+    year's start: the provision on that year's unpaid bills plus what was written off against them.
+    Both are by bill, so a release of an earlier year's provision lowers that year's reading and
+    never another's. None where `_provision` reads no charge (no published live row)."""
+    def year_of(day: dt.date) -> dt.date:
+        return first + dt.timedelta(days=((day - first).days // OBSERVATION_YEAR_DAYS)
+                                    * OBSERVATION_YEAR_DAYS)
+    rated = _provision(ledger, on, method, closes_on, by_bill=True)
+    if rated is None:
+        return None
+    out: dict[dt.date, float] = {}
+    for d, p in rated:
+        out[year_of(d)] = out.get(year_of(d), 0.0) + p
+    for d, g in _written_off_by_bill(ledger, on):
+        out[year_of(d)] = out.get(year_of(d), 0.0) + g
+    return out
+
+
+def _provision(ledger, on: dt.date, method: str, closes_on: dt.date, *, by_bill: bool = False):
+    """What the company provisions against this account's unpaid money on `on`; with `by_bill`,
+    `(bill date, provision)` for each unpaid bill."""
     unpaid = [(d, g) for d, g in fifo_unpaid_bills(ledger, on) if g > 0.005]
     if on >= closes_on:
-        return sum(g * _banded_rate(RECEIVABLE_PROVISION_RATE_FINAL_BILL, (on - d).days)
-                   for d, g in unpaid)
-    live_row = _LIVE_PROVISION_ROW_BY_METHOD.get(method)
-    if live_row is None:
-        return None if unpaid else 0.0
-    return sum(g * _live_rate(live_row, (on - d).days) for d, g in unpaid)
+        rated = [(d, g * _banded_rate(RECEIVABLE_PROVISION_RATE_FINAL_BILL, (on - d).days))
+                 for d, g in unpaid]
+    else:
+        live_row = _LIVE_PROVISION_ROW_BY_METHOD.get(method)
+        if live_row is None:
+            if unpaid:
+                return None
+            rated = []
+        else:
+            rated = [(d, g * _live_rate(live_row, (on - d).days)) for d, g in unpaid]
+    return rated if by_bill else sum(p for _, p in rated)
+
+
+def _written_off_by_bill(ledger, through: dt.date) -> list[tuple]:
+    """`(bill date, GBP)` for each write-off dated on or before `through`, split over the bills it
+    cleared: a write-off is a credit, and FIFO spends it on the oldest unpaid bill."""
+    out = []
+    for e in ledger.events_through(through):
+        if e.event_type != LedgerEventType.WRITE_OFF_CREDIT:
+            continue
+        prefix = list(ledger.events_through(e.valid_time))
+        before = dict(_fifo_unpaid([x for x in prefix if x is not e]))
+        after = dict(_fifo_unpaid(prefix))
+        out.extend((d, g - after.get(d, 0.0)) for d, g in before.items()
+                   if g - after.get(d, 0.0) > 0.005)
+    return out
 
 
 #: The footings a provision stock is read on. Three are Centrica Note 17's rows; the fourth is the
@@ -324,12 +397,17 @@ def default_belief(
 ) -> DefaultBelief:
     """The expected charge share for one renewal, from outcomes the company knew BEFORE `decided_on`.
 
-    Point-in-time by construction: an observation resolved on or after the decision date is not
-    read, so a renewal priced before any outcome resolved gets exactly the prior.
+    Point-in-time by construction: a reading made on or after the decision date is not read, so a
+    renewal priced before any outcome resolved gets exactly the prior. Of each account-year, only
+    its latest reading before the decision counts.
     """
-    cell = [o for o in observations
-            if o.resolved_on < decided_on and o.arrears_state == arrears_state
-            and o.charge_gbp is not None]
+    known: dict = {}
+    for o in observations:
+        if o.resolved_on < decided_on and o.arrears_state == arrears_state:
+            key = (o.account_id, o.year_start)
+            if key not in known or o.resolved_on > known[key].resolved_on:
+                known[key] = o
+    cell = [o for o in known.values() if o.charge_gbp is not None]
     if not cell:
         return DefaultBelief(rate=PRIOR_LOSS_RATE, prior_rate=PRIOR_LOSS_RATE, account_years=0,
                              billed_gbp=0.0, charge_gbp=0.0,
@@ -339,15 +417,23 @@ def default_belief(
     n = len(cell)
     observed = charge / billed if billed > 0 else 0.0
     rate = (PRIOR_ACCOUNT_YEARS * PRIOR_LOSS_RATE + n * observed) / (PRIOR_ACCOUNT_YEARS + n)
+    refuse_expected_loss_belief_out_of_range(
+        rate, where=f"default_belief({arrears_state!r}, {decided_on}, {n} account-years)")
     return DefaultBelief(rate=rate, prior_rate=PRIOR_LOSS_RATE, account_years=n,
                          billed_gbp=round(billed, 2), charge_gbp=round(charge, 2))
 
 
 def tabulate(observations: Iterable[AccountYear]) -> dict:
     """The comparison table: the book's bad-debt charge per GBP billed, by arrears state (what the
-    belief learns on), by method x state and by method (diagnostic only), and whole-book."""
-    rows: dict = {}
+    belief learns on), by method x state and by method (diagnostic only), and whole-book. Each
+    account-year counts once, at its latest reading."""
+    latest: dict = {}
     for o in observations:
+        key = (o.account_id, o.year_start)
+        if key not in latest or o.resolved_on > latest[key].resolved_on:
+            latest[key] = o
+    rows: dict = {}
+    for o in latest.values():
         for key in (f"*|{o.arrears_state}", f"{o.payment_method}|{o.arrears_state}",
                     f"{o.payment_method}|*", "*|*"):
             r = rows.setdefault(key, {"account_years": 0, "closed": 0, "billed_gbp": 0.0,

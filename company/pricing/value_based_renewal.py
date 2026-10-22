@@ -968,6 +968,10 @@ def decide_margin(
         # persistence term would count the same debt twice. The stock term on money already owed stays: it prices the balance, and the
         # book's rate prices the year to come.
         if default_belief_rate is not None:
+            from company.compliance.domain_invariants import (
+                refuse_expected_loss_belief_out_of_range,
+            )
+            refuse_expected_loss_belief_out_of_range(default_belief_rate, where="value_based_renewal")
             costs = dataclasses.replace(costs, bad_debt_gbp=float(default_belief_rate) * max(
                 0.0, observed_revenue + (margin - current_margin) * eac_mwh))
         elif flow_rate is not None:
