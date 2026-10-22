@@ -364,3 +364,55 @@ def test_on_demand_a_household_short_only_of_its_backlog_keeps_its_basket_defect
     # Everything after the basket, `margin`, is energy's: not enough for the old bill, so it is held.
     assert not paid and earlier == ()
     assert book._legs[cid]["savings"] == pytest.approx(margin, abs=0.01)
+
+
+# HELD MONEY IS A PART PAYMENT (2026-10-22): `household_budget_w2_4.md`, "2026-10-22: held money is a
+# part payment". On the demand reading, off, money held toward an unpaid bill is shared with the basket
+# again each month, so a household whose margin is below zero never holds a whole bill.
+
+def _paid_months_on(cid, held_is_paid, months=24, amount=60.0):
+    book = hb.BudgetPaymentBook(energy_shares_the_shortfall=True, shared_on_demand=True,
+                                held_is_paid=held_is_paid)
+    paid = 0
+    for r in range(months):
+        this, earlier = book.settle_month(supply_point=cid, household=household_of(cid), year=2022,
+                                          amount_gbp=amount, legs=1, ref=r)
+        paid += bool(this or earlier)
+    return paid, len(book.unpaid_of(cid))
+
+
+def test_the_held_switch_is_read_and_off_until_graded_defect_a_world_change_with_no_paired_arm(monkeypatch):
+    for on in (True, False):
+        monkeypatch.setattr(hb, "HELD_MONEY_IS_A_PART_PAYMENT", on)
+        assert hb.BudgetPaymentBook()._held_is_paid is on
+    monkeypatch.undo()
+    # On names its graded result, and the result is in the tree (the property, not today's value).
+    if hb.HELD_MONEY_IS_A_PART_PAYMENT:
+        source = Path(hb.__file__).read_text()
+        block = source.split("HELD_MONEY_IS_A_PART_PAYMENT = ")[0].rsplit("\n\n", 1)[-1]
+        grades = [w.strip("`.,();") for w in block.split() if w.strip("`.,();").startswith("SEAT_RESULT_")]
+        assert grades, "on without a named SEAT_RESULT_ grade"
+        root = Path(hb.__file__).resolve().parents[1] / "docs/staging/records"
+        assert all((root / g).is_file() for g in grades), grades
+
+
+def test_held_money_paid_part_pays_a_household_under_water_defect_held_money_eaten_by_the_basket():
+    """The partition, over households whose 2022 margin is below zero but who have money after
+    housing: off, at least one pays NO bill once its savings are spent; on, every one of them pays
+    some bill in two years, and none ends further behind than off. A switch the book never reads,
+    or one that re-shares the held money anyway, fails the first or second leg."""
+    under = []
+    for cid in _ids_by_margin(2022)[0]:
+        b = hb.budget_in_year(hb.draw_household_budget(household_of(cid)), 2022)
+        m, core = hb.margin_in_year(b, 2022), hb.core_in_year(b, 2022)
+        if m < 0 < m + core and b.savings_buffer < 60.0:
+            under.append(cid)
+    assert len(under) >= 3, under
+    off = [_paid_months_on(cid, False) for cid in under[:6]]
+    on = [_paid_months_on(cid, True) for cid in under[:6]]
+    assert any(p == 0 for p, _ in off), off
+    assert all(p > 0 for p, _ in on), on
+    assert all(u_on <= u_off for (_, u_on), (_, u_off) in zip(on, off)), (on, off)
+    # A household with money to spare is not short, so the switch leaves it alone.
+    comfortable = _ids_by_margin(2022)[2][0]
+    assert _paid_months_on(comfortable, True) == _paid_months_on(comfortable, False)

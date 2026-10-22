@@ -623,3 +623,68 @@ switch can go on, by the same two-seed rule as `ENERGY_SHARES_THE_SHORTFALL`.
 **It is on by default from 2026-10-22.** Switched off, every world-dependent control reproduces its
 2026-10-20 values. The open questions stay open: pounds are about 2x short, and depth falls after 2019
 where the record's rises.
+
+## 2026-10-22: held money is a part payment. Does a household under water pay anything? (K8, knowledge before the arm)
+
+**The question.** On the demand reading, does a household whose margin is below zero part-pay its
+energy, or pay nothing while it stays under water?
+
+**What the build does, and how it differs from its own arithmetic.** The section above printed the
+stock growing by `1 − A/(C+B)` bills a month. That assumes energy's part `A·B/(C+B)` builds up month
+on month until it clears a bill. The code does something else. Money held toward an unpaid bill sits
+in `savings`, re-enters `after_housing` the next month, and is shared with the basket again. So it
+levels off at `(m+C)·B/C`, below one bill whenever `m < 0`, and such a household clears nothing. On
+the flat bill of a unit control, that is zero payments for as long as it is under water. With seasonal
+bills, it pays off a small summer bill now and then.
+
+**Measured (world dump, seed 2, demand on, to 2023-12-31; `/var/tmp/leaver_trace/zero_pay.py`).**
+- **26 of 257** deficit credit account-years pay nothing in the whole calendar year. All 26 have
+  `m < 0`.
+- **22** accounts go 12 months or more with a bill unpaid and no payment, and **5** go 24 months or more
+  (longest 46).
+- The stock arm has none of these.
+- Replaying the budget rule alone over the same bills (`replay_held.py`, no payment dice) gives 28 and
+  24, so the rule alone produces them.
+
+**What the record says.**
+- **DRS working paper (Aug 2025) §4.5:** about **175,000 of ~195,000** phase-1 customers (on
+  means-tested benefits, owing £100 or more) are *"already engaged"*, paying something towards their
+  ongoing usage. That is about **90%** (`gb_domestic_bill_payment_failure_and_arrears_prevalence.md`
+  §3; the paper's own counts do not add up exactly).
+- **Limitation Act s.29(5):** a part payment restarts the clock, and *"a stayer who is still paying
+  something towards the account rarely reaches it"*
+  (`how_a_gb_supplier_decides_to_write_off_a_failed_payment.md`). This is practice, not a rate.
+- **`debt_and_collections.md` §2.5a (derived):** an account in the pool about two years and owing
+  most of a year's bill "goes on missing or part-paying bills".
+- **GAP:** no published share of accounts in arrears that pay nothing over a stated window.
+
+The world against that anchor (`engaged.py`): the share of credit accounts in arrears (≥£100, a bill
+unpaid more than 91 days, live at 31 December) that paid anything in the trailing 3 months.
+
+| Year | Stock arm, seed 2 | Demand arm, seed 2 | Demand arm, seed 1 |
+|---|---|---|---|
+| 2017 | 100% (n 2) | 25% (n 12) | 40% (n 15) |
+| 2018 | 100% (n 6) | 36% (n 14) | 31% (n 13) |
+| 2019 | 100% (n 8) | 57% (n 14) | 54% (n 13) |
+| 2020 | 80% (n 5) | 67% (n 6) | 90% (n 10) |
+| 2021 | 100% (n 7) | 82% (n 11) | 79% (n 14) |
+| 2022 | 100% (n 25) | 94% (n 33) | 94% (n 32) |
+| 2023 | 100% (n 27) | 60% (n 43) | 62% (n 45) |
+
+Before 2022, most of the demand arm's pool is households paying nothing. The anchor is one figure
+from a benefit-receiving population in 2025, and the counts are small, so this is a direction and not
+a band. The fall in depth after 2019 is open in the section above. One candidate it now has is that
+this pool shrinks once its incomes move. That is not tested here.
+
+**The choice, and why.** `HELD_MONEY_IS_A_PART_PAYMENT` in `simulation/household_budget.py`, read
+only on the demand reading. On, money held toward an unpaid bill stays energy's. Only this month's
+money (margin plus any buffer not yet earmarked) is shared with the basket, so energy's part builds
+by `A·B/(C+B)` a month and clears the oldest bill when it is enough. That is the section above's own
+arithmetic, and a real part payment works the same way: once paid to the supplier, it cannot be eaten
+next month. A household with nothing left after housing (`m + C ≤ 0`) still pays nothing, which is
+the honest non-engaged group. **It is not neutral on depth.** On the replay, unpaid bills per account
+behind at 31 December roughly halve (2023: 6.9 against 10.3). So some of the depth the demand reading
+gained on 22 October came from households paying nothing, and pounds would move further from Ofgem's
+£1,303. Under F11 that is the safe direction, and it has to be graded, not assumed. Default off;
+graded world-only on paired arms:
+`docs/staging/records/SEAT_PREREG_HELD_MONEY_IS_A_PART_PAYMENT_2026-10-22.md`.

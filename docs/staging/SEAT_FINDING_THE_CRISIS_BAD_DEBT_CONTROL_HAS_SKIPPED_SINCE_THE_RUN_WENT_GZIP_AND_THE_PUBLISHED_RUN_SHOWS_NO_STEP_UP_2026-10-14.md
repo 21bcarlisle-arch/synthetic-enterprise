@@ -1107,3 +1107,30 @@ grade cannot see this, because it counts pounds owed and not payments made. It i
 
 **Status:** OPEN and BLOCKING. Next: re-grade this finding's validator on the first published run with
 the switch on. Two things stay open: pounds about 2x short of Ofgem, and depth falling after 2019.
+
+## 2026-10-22 (02:30 BST): the zero-payment population is counted, and the fix is built behind a switch
+
+**Counted (seed 2, demand arm):**
+- **26 of 257** deficit credit account-years pay nothing in the whole year, and all 26 have `m < 0`.
+- **22** accounts go 12 months or more with no payment while behind, and **5** go 24 months or more.
+- The stock arm has none.
+
+Replaying the budget rule alone reproduces them (28 and 24), so the rule is the cause. The build
+also differs from the demand section's own arithmetic. The page printed growth of `1 − A/(C+B)` bills
+a month. The code puts the held money back into the shared pot.
+
+**Against the record:**
+- The DRS working paper has about 90% of its phase-1 customers paying something towards their usage.
+- The demand arm's accounts in arrears paid anything in the last 3 months at only **25-57%** before
+  2022, and at 60% at 2023.
+- Most of the pre-crisis pool, and part of the depth the demand reading gained, comes from households
+  paying nothing.
+
+The K8 page is `household_budget_w2_4.md`, "2026-10-22: held money is a part payment". The switch is
+`HELD_MONEY_IS_A_PART_PAYMENT`, default off. The replay predicts unpaid bills at 31 December roughly
+halve, so **pounds are expected to move further from Ofgem, not closer**.
+Pre-registration: `docs/staging/records/SEAT_PREREG_HELD_MONEY_IS_A_PART_PAYMENT_2026-10-22.md`.
+Arms: `longjob-held-{off,on}-arm`, about 50 minutes each.
+
+**Status:** OPEN and BLOCKING. Next: grade both arms against H1-H5. Do not re-launch: ask
+`.launch_records.json` first.

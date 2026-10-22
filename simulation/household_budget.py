@@ -531,6 +531,16 @@ ENERGY_SHARES_THE_SHORTFALL = True
 # against 1.6-2.6, Q4 2023 £710 against £250, Ofgem £1,303).
 THE_SHORTFALL_IS_SHARED_ON_THE_MONTHS_DEMAND = True
 
+# MONEY HELD TOWARD A BILL IS A PART PAYMENT, NOT MONEY TO SHARE AGAIN (2026-10-22). Origin:
+# `household_budget_w2_4.md`, "2026-10-22: held money is a part payment". The demand reading's own
+# arithmetic (stock grows `1 - A/(C+B)` bills a month) assumes energy's part builds up month on
+# month. Off, the money held toward an unpaid bill re-enters `after_housing` and is shared with the
+# basket again, so it levels off at `(m+C)*B/C`, below one bill when the margin `m` is below zero,
+# and such a household pays nothing while under water (26 of 257 deficit account-years, seed 2).
+# On, only this month's money is shared; what is held stays energy's. Read only on the demand
+# reading. Off until graded on paired world-only arms.
+HELD_MONEY_IS_A_PART_PAYMENT = False
+
 
 class BudgetPaymentBook:
     """Per supply point: what the household's money pays of each month's energy bill, and which
@@ -550,13 +560,15 @@ class BudgetPaymentBook:
     def __init__(self, benefit_path_deciles: Sequence[int] = BENEFIT_PATH_DECILES,
                  income_move_per_year: float = INCOME_MOVE_PER_YEAR,
                  energy_shares_the_shortfall: Optional[bool] = None,
-                 shared_on_demand: Optional[bool] = None):
+                 shared_on_demand: Optional[bool] = None,
+                 held_is_paid: Optional[bool] = None):
         self._benefit_path_deciles = tuple(benefit_path_deciles)
         self._income_move_per_year = income_move_per_year
         self._shares = (ENERGY_SHARES_THE_SHORTFALL if energy_shares_the_shortfall is None
                         else energy_shares_the_shortfall)
         self._on_demand = (THE_SHORTFALL_IS_SHARED_ON_THE_MONTHS_DEMAND if shared_on_demand is None
                            else shared_on_demand)
+        self._held_is_paid = HELD_MONEY_IS_A_PART_PAYMENT if held_is_paid is None else held_is_paid
         self._legs: Dict[str, dict] = {}
 
     def settle_month(self, *, supply_point: str, household: str, year: int, amount_gbp: float,
@@ -579,12 +591,14 @@ class BudgetPaymentBook:
             # Short: what is left after housing is shared with the basket, pro rata. The basket's
             # part is spent (gone without, not saved), so `cash` becomes energy's part alone.
             core = core_in_year(budget, year) * share
-            after_housing = max(0.0, cash + core)
+            # With a bill unpaid, `savings` is what was held toward it last month.
+            held = st["savings"] if (self._on_demand and self._held_is_paid and st["unpaid"]) else 0.0
+            after_housing = max(0.0, cash - held + core)
             if self._on_demand:
                 # A household that can meet this month's basket and bill keeps its basket whole and
                 # repays the backlog out of the rest; only this month's shortfall is shared.
                 bill = owed[-1][1]
-                cash = after_housing - min(core, core * after_housing / (core + bill))
+                cash = held + after_housing - min(core, core * after_housing / (core + bill))
             else:
                 cash = after_housing * owed_total / (core + owed_total)
         paid = allocate_debt_payments(cash, {"energy_arrears": owed_total})["energy_arrears"]
