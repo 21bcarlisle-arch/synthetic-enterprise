@@ -39,3 +39,20 @@ I cannot yet say how large it is. No measurement has been made.
 
 The front door now says plainly that domestic meters of the period were settled on a profile
 (Settlement line, "Not yet").
+
+## Measured (22 Oct 2026, one seed, HEAD book)
+
+Done-means step 1 is done. See
+`docs/staging/records/SEAT_RESULT_SETTLING_EACH_HOMES_OWN_SHAPE_AGAINST_THE_PROFILE_IS_NEAR_ZERO_FOR_THE_BOOK_AND_TENS_OF_POUNDS_FOR_AN_ELECTRICALLY_HEATED_HOME_2026-10-22.md`
+(tool: `tools/profile_settlement_timing_probe.py`).
+
+**Correction to "Why it matters, and which way" above: the direction does not hold for the book.**
+With each home on its right profile class, the whole book's timing difference is +0.23% of SSP
+cost: the run charges slightly MORE than the period did. Across domestic homes only it is −0.08%.
+Legacy and gas-heated homes (517 of 572) sit within ±£4 a year. Per home, though, it is material:
+an electrically heated home reads ±£35–150 a year and an SME about +£100. The pre-registered rule
+makes it material, so step 2 stands.
+
+Step 2 needs two things first: a PC2 table in `sim/data/`, and a rule that registers a storage or
+E7-shaped home on PC2. Today every domestic home is PC1, and against PC1 a storage-heated home
+shows a spurious −£91 a year.
