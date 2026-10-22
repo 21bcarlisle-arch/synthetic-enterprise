@@ -117,3 +117,25 @@ held, so the customer was sent nothing for them.
   billed GBP 6,036.85, which includes a GBP 4,224.94 undercharge after 21 consecutive estimates
   (8,351 kWh trued up). That is the book's largest catch-up. It falls under the read-instruction
   and estimate-accuracy question, not the pre-bill gate's.
+
+## Re-graded on a HEAD full-window run (seat, 2026-10-22, 12:20 BST)
+
+This is the run that `run_annual_report` writes, not a probe rebuild. `head-crisis-989ce4f1c2` at
+**989ce4f1c2**, `/var/tmp/se-head-crisis-out/run_output.json`. It carries 4d6d5ab91, the
+post-departure gas fix 2b81e1466 and the gas-PPM read instruction c6c09641e. `held_bills` is
+recomputed over the run's own `bills`. 53,110 bills, 204 fewer gas bills than 76a29bd92. 147 of those are
+the post-departure bills 2b81e1466 removes; the other 57 are not traced (see the crisis bad-debt
+finding). 852 final bills.
+
+1. **Held estimates in single digits, only those with no measured rate: HELD again.** 9, all
+   estimates, the same four accounts and counts as the retnet off arm: SYN-2016-582 3,
+   PROS-2017-0336 2, PROS-2024-0010 2 and PROS-2025-0106 2. Held actuals are 0 at every month end of
+   the run's own `K1_unbilled_accrual`.
+2. **No gap over two months on PROS-2017-0336, none over three on the book: HELD again.**
+   PROS-2017-0336 has 93 bills from 2017-10 to 2025-06.
+3. **PROS-2017-0336's largest catch-up under GBP 1,000: REFUTED again,** for the reason already
+   given. The 2018-02-28 bill for 2 held periods totals GBP 1,812.93 (GBP 1,809.12 on the retnet
+   arm).
+
+So the probe rebuild and the run's own bills agree. The gas-PPM read instruction and the
+post-departure fix move none of the held set.

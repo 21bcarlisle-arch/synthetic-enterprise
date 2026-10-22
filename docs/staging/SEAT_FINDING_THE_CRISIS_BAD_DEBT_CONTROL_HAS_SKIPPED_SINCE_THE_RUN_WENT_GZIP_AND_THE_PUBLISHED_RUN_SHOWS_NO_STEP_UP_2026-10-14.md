@@ -1220,3 +1220,70 @@ both bases: 0.50-0.80% and x1.1-1.5 against ec7fd9942's world, and the direction
 
 **Status:** OPEN and BLOCKING. Next: grade `head-crisis-989ce4f1c2` when its artefact exists. Ask
 `.launch_records.json` for the job before relaunching anything.
+
+## 2026-10-22 (12:20 BST): the HEAD run, graded UNPUBLISHED. The level is in the predicted band; the step-up is not
+
+`head-crisis-989ce4f1c2` ran 10:13-11:08Z (55 min, not 150), Result=success, exit 0. The artefact is
+`/var/tmp/se-head-crisis-out/run_output.json`, with `producing_commit` **989ce4f1c2**. It **carries**
+the post-departure gas fix 2b81e1466 and the gas-PPM read instruction c6c09641e (both are ancestors).
+Seed 2 had ended before this run was admitted, so in the end the two did not run side by side. The
+live legs of `test_crisis_bad_debt_validator.py` (all three bases: `validate_run_output` read
+through `run_output_store`):
+
+| run | basis | crisis 2022-23 | pre-crisis 2016-19 | step-up | verdict |
+|---|---|---|---|---|---|
+| ec7fd9942 | ifrs9_charge | 0.4000% | 0.2184% | x1.83 | FAIL floor only |
+| 76a29bd92 | ifrs9_charge | 0.2263% | 0.2898% | x0.78 | FAIL floor + step |
+| **989ce4f1c2** | headline | 0.0680% | 0.6248% | x0.11 | FAIL floor + step |
+| **989ce4f1c2** | pnl_accrual | 2.0490% | 2.0034% | x1.02 | FAIL step |
+| **989ce4f1c2** | ifrs9_charge | **0.6995%** | **0.7255%** | **x0.96** | FAIL floor (by 0.30 pt) + step (by 0.24) |
+
+IFRS 9 charge by year, GBP (76a29bd92 in brackets): 2016 506 (245), 2017 **2,054** (971), 2018
+**2,527** (1,051), 2019 **1,970** (558), 2020 732 (528), 2021 279 (195), 2022 1,297 (1,282), 2023
+**5,784** (1,012), 2024 -1,678 (-285). Revenue is within 0.3% of 76a29bd92 in every year.
+
+**137cdb443's prediction, graded.**
+1. **Level 0.50-0.80%, under the 1% floor: HELD.** 0.6995%.
+2. **Step-up x1.1-1.5: REFUTED, low side.** x0.96. The prediction's reasoning was right in direction
+   (the new mechanisms deepen pre-crisis arrears more than crisis arrears) and wrong in size. The
+   pre-crisis share went from 0.22% to 0.73%, x3.3, against the ~x2.7 the pools implied. The crisis
+   share went from 0.40% to 0.70%, x1.75, close to the ~x1.8 implied. The miss is the pre-crisis
+   side, and 2017-19 now charge GBP 2.0-2.5k a year. As said there, below x1.2 the second leg fails,
+   and that is the expected direction, not a regression.
+3. **2024 negative: HELD.** -GBP 1,678. The stock releases as the crisis debt clears.
+
+**What the grade shows that the prediction did not ask.** The crisis charge is almost all 2023:
+GBP 5,784 (0.98% of revenue) against 2022's 1,297 (0.31%). 2023 alone clears x1.2 on the pre-crisis
+share (x1.35), and 2022 is under it. The real charge was 2.1% in 2022 and 2.7% in 2023 (Centrica), so
+the real step came in 2022. Here it comes a year late. That is the same lag the P&L basis showed on
+10-14. So two things now hold the leg, and they point at different fixes. (i) The 2017-19 charge is
+high, and it is not credit: the book fills in those years, and the new world mechanisms build their
+deepest pre-crisis arrears there. (ii) The 2022 charge stays flat although the price rise starts
+then. Each could be the world, or the matrix's ageing (a debt reaches the high-loss buckets a year
+after it forms). **I cannot yet say which.** The 10-22 caveat names the next question if (2) failed
+upward. It failed downward, so the question is the pre-crisis level, and it should be read against
+the world's pre-crisis arrears depth before any matrix change.
+
+**Not an attribution run.** Against 76a29bd92 it changes the demand reading, part payments, the
+post-departure gas fix and a handful of company commits at once. It says what moved, not why. The
+76a29bd92 drop against ec7fd9942 (above) is still unattributed.
+
+**Post-departure gas, full window** (households departed = churned `customer_events` plus
+`svt_departures`, 354 in both runs; bills whose period starts on or after the household's departure):
+
+| run | households | gas bills | kWh | GBP |
+|---|---|---|---|---|
+| 76a29bd92 (before 2b81e1466) | 20 | 147 | 128,550 | 4,715.70 |
+| **989ce4f1c2** | **0** | **0** | **0** | **0.00** |
+
+No gas bill straddles a departure on the HEAD run. Gas bills fell by 204 (24,123 to 23,919), and
+electricity bills are unchanged at 29,191. 147 of the 204 are the post-departure bills. The other 57
+are not traced. They are most likely the term splits that 2b81e1466 makes, but that is not measured.
+
+**The strict xfails still hold on this run** (every basis fails at least one condition), so the
+suite stays green when it is published. `_TENTH_OF_REAL` will under-state the level by then. As
+already recorded, it is re-worded in the commit that publishes the run.
+
+**Status:** OPEN and BLOCKING. The level is about 70% of the floor and the step-up is about 0.8 of
+the requirement. Next: what makes the company's 2017-19 charge so high and its 2022 charge so flat,
+read against the world's arrears by year on this run, before any change to the matrix.
