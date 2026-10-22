@@ -734,10 +734,96 @@ result turns on.
 5. *Which legs.* The electricity leg is carried. A dual-fuel household's gas leg leaves at the move,
    as before: a destination gas annual quantity and its heating-degree cell are not built. That can
    only understate the lever.
+   *(2026-10-22: the rules and the choice that replace this are §8.7, written before that build.)*
 6. *The stayers.* Every later term of a carried account is held out of the portfolio premium. The
    carried rate and the renewals priced off it would otherwise teach the stayers' prices. This is the
    same set the price-match save uses.
 7. *The vacated home* passes to its incoming occupant exactly as for any mover.
+
+### 8.7 A dual-fuel household's gas when it moves with us: the rules, the evidence, and the choices
+
+*Added 2026-10-22, before the build (K8), from the director's steer of 22 Oct (item 4b of
+`docs/staging/advisor/done/DIRECTOR_STEER_THE_FRONT_DOOR_SAYS_PUBLISHING_IS_FAILING_AND_IT_IS_NOT_2026-10-22.md`)
+and his ruling of 17 Oct that households move as households. It replaces choice 5 of §8.6 once the
+build lands. Nothing new was searched for: every rule below is already sourced in this file or in a
+sibling page, cited where it is used.*
+
+**What a gas supply is, at a move.** A supply belongs to a meter point, not to a household: an MPAN
+for electricity, an MPRN for gas. The gas register is UK Link, run by the CDSP (Xoserve). Nothing
+"moves" with a household. A supplier that follows a mover registers the meter points at the new
+address, one per fuel. Before 18 July 2022 the gaining supplier sent "two discrete" requests, one to
+MPAS and one to UK Link. Since then CSS can link them on "a single, nominated date", with a "one fail /
+all fail" option. (Ofgem Switching Programme, cited in
+`unbilled_energy_and_revenue_assurance.md`, "What a change of supplier ends on each fuel".)
+
+**What the rules require.**
+- *At the vacated home.* The gas meter keeps flowing. Whoever moves in is on the registered gas
+  supplier's deemed contract from the day they start to consume, exactly as for electricity: Gas Act
+  1986 Sch 2B para 8(1), and Ofgem's guidance ("gas and/or electricity", ¶2.10), at a rate held to
+  the cap (¶2.19). The leaver's liability ends under the gas licence's mirror of SLC 24.1 (§8.1).
+- *At the new home.* Until the household registers there, it is on the deemed contract of whoever
+  supplies each of the new home's meters, one per fuel (case B of §1, at the destination). Taking
+  us there is a switch gained on each fuel, through ordinary registration. If we already supply a
+  destination meter, that fuel is case B', handled inside the supplier.
+- *A new home may have no gas meter.* About 14 to 16% of GB homes have no mains gas supply
+  (`mains_gas_is_a_meter_fact_not_a_grid_fact_need_2026.md`: EHS AT3.5, 14.0%; DESNZ 2023, 16%).
+  A dual-fuel household moving into one of these homes arrives electricity-only. That is a true
+  outcome, not a defect, and no supplier can carry a gas leg there.
+
+**What published practice and evidence say.**
+- Inside this run's window, about 90 to 94% of switching homes with gas moved both fuels together
+  (`how_a_gb_domestic_book_splits_by_fuel_and_how_a_two_fuel_home_switches.md`). A supplier's
+  moving-home journey asks for both fuels (§8.3, practice and no number).
+- The gas annual quantity (AQ) belongs to the meter point. Since Project Nexus (UNC432, June 2017) it
+  rolls monthly from reads; before that a small site's AQ changed once a year
+  (`read_access_and_theft_duties.md`, §2.1). A gaining supplier's first estimate of a new occupier's
+  gas use is therefore the previous occupier's AQ. This is the same trap as the electricity EAC (§3).
+
+**What is unknown (GAP).**
+- G8.9: how often a mover who takes its supplier along carries one fuel only. Nothing published
+  gives it. The switching figure above is for switches, not for moves.
+- G8.10: how often the two fuels at a new home start on different dates. Before CSS, two discrete
+  registrations could land apart. The share is not published (the same GAP as the dual leaver's in
+  `unbilled_energy_and_revenue_assurance.md`).
+- G8.11: the previous occupier's AQ at the new meter. The world draws no previous occupier at a
+  destination, so the meter point holds no history from before the move.
+
+**The design's choices, and why.**
+1. *The household answers once, for every fuel it has.* The answer stays on the decision leg (§8.6,
+   choice 2). A household that moves with us is supplied at its new home on every fuel it was supplied
+   on and the new home can take, from the same move date. That is the single-nominated-date dual
+   switch, and the 90 to 94% both-fuels norm. A one-fuel carry (G8.9) and a split date (G8.10) are not
+   built. Both can only move value between the two legs, and neither creates a household.
+2. *The gas leg follows only to a home that can hold a gas account.* The test is the one the book
+   already uses to give a won home its gas leg (`live_population._gas_leg_for`): the destination
+   dwelling's `DrawnPremise.commodity` is "gas", meaning a gas burner on a mains supply, from the
+   world's own premise draw. Where it is not, the gas leg ends at the move, as today, and the
+   move-with-us log records the named reason.
+3. *What the new home burns.* In this world a gas leg's annual quantity is the household's own: its
+   TDCV band draw (`live_population._gas_aq_kwh`), scaled by its dwelling's EPC and heating system
+   (`household_demand.gas_eac_multiplier_for_date`). Its daily shape spreads that quantity on the
+   heating degree days of the premise's cell (`gas_settlement.run_gas_term`), with the heating share
+   fitted to the dwelling's own trace (W2_30). Gas demand is not read from the fabric trace. So at the
+   new home the band stays the household's, and the multiplier, the cell's weather and the heating share
+   become the new dwelling's. The weather changes on the move date. The multiplier and the heating share
+   are read once per term, as they already are, so they change from the end of the carried term, not
+   on the move date. That is a stated simplification of at most one term.
+4. *The company's first volume at the new meter.* The registered AQ stays the household's band draw.
+   Because of G8.11 there is no previous occupier's AQ to put there. So the company's first gas
+   estimate at the new home is the household's own use, which is kinder to the company than the trap
+   described above. That is a stated assumption.
+5. *The vacated gas meter* passes to its incoming occupant from the move date, after the void, as it
+   already does (`_admit_incoming_occupant`, per fuel).
+6. *What the change cannot do.* It adds no household and no offer, because the offer is still asked
+   once, on the decision leg. It changes how many supply points the book keeps after a move, and the
+   gas revenue and margin those points carry. Value-arms results taken before it are not comparable
+   with results after it on any arm where movers follow (k > 0).
+7. *A follower is not an exit.* A leg that moves with us stays our customer's account. Its bills after
+   the move are not drawn as a departing customer's final-bill exit (`arrears_engine`'s exit draw:
+   gone-away, no forwarding address). The household told us where it was going, and we supply it there.
+   Read from the code before this build: a carried electricity leg keeps its move-out stamp
+   (`run_phase2b._moved_out_on_by_leg`), and the exit draw reads that stamp for every bill from the
+   move month on. The build measures what it cost.
 
 ---
 
