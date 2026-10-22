@@ -555,6 +555,21 @@ def _renders_live_figures(text: str) -> bool:
     return bool(_DATA_REF_RE.search(_ATTR_URL_RE.sub("", text)))
 
 
+# THE FRONT DOOR STATES ITS CLOCK WITHOUT THE BANNER (director, 22 Oct 2026 14:57: "Why have a
+# banner? No need?"). The property is unchanged -- a visitor can tell how old the figures are --
+# and the front door meets it with one line written at publish by
+# `tools/generate_dashboard_data.py::render_proof_strip`. It counts only between the generator's
+# markers, so a hand-typed date elsewhere on a page cannot pass for a publish-written one.
+_PUBLISHED_CLOCK_RE = re.compile(
+    r"<!-- PROOF-STRIP:START.*?<p class=\"lf-prov\">Figures from the run of \d{1,2} \w{3} \d{4}"
+    r".*?<!-- PROOF-STRIP:END -->", re.DOTALL)
+
+
+def states_its_clock_at_publish(text: str) -> bool:
+    """Does this page carry the publish-written "Figures from the run of <date>" line?"""
+    return bool(_PUBLISHED_CLOCK_RE.search(text))
+
+
 def live_data_pages(site: Path = None, exempt: dict = None) -> tuple:
     """Every shipped page that renders live figures, as site-relative posix paths.
 
@@ -612,6 +627,8 @@ def banner_adoption_violations(site: Path = None, exempt: dict = None) -> list:
         text = page.read_text(encoding="utf-8")
         srcs = re.findall(r"""<script[^>]*\bsrc=["']([^"']+)["']""", text)
         hits = [s for s in srcs if s.split("?")[0].endswith("freshness-banner.js")]
+        if not hits and states_its_clock_at_publish(text):
+            continue
         if not hits:
             problems.append(
                 f"{rel} fetches live data and loads no freshness banner -- a visitor cannot "

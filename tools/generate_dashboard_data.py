@@ -4,6 +4,7 @@ Generate site/data/dashboard.json from the latest sim run output + Elexon SSP ca
 Called by process_run_complete.py after every full sim run, or manually:
   python3 tools/generate_dashboard_data.py [path/to/run_output.json]
 """
+import calendar
 import json
 import math
 import operator
@@ -3112,14 +3113,19 @@ def render_proof_strip(figures, missing, generated_at, source_file):
         for value, label, clock in figures)
     run = _html.escape(str(source_file or "an unnamed run")
                        .replace("run_output_", "").replace(".json", ""))
-    when = generated_at or "an unrecorded time"
-    try:
-        stamp = datetime.fromisoformat(str(when).replace("Z", "+00:00"))
-        when = "{} {} UTC".format(_day(stamp.date().isoformat()), stamp.strftime("%H:%M"))
-    except ValueError:
-        pass
-    prov = ("Written into this page at publish, {}, from run {}. No figure here is typed by "
-            "hand.".format(_html.escape(str(when)), run))
+    # THE FRONT DOOR'S ONLY CLOCK (director, 22 Oct 2026 14:57: "Why have a banner? No need?").
+    # The freshness banner is off this page; this one quiet line, written at publish, is how a
+    # reader tells how old the figures are. The run's own date comes from its file stamp, which
+    # is when the figures were made; the publish time is the fallback when the name carries none.
+    stamp = re.search(r"_(\d{8})T\d{6}Z", str(source_file or ""))
+    if stamp:
+        ran = _day("{}-{}-{}".format(stamp.group(1)[:4], stamp.group(1)[4:6], stamp.group(1)[6:]))
+    else:
+        ran = _day(generated_at) if generated_at else "an unrecorded date"
+    from background.publish_freshness import PUBLISH_WEEKDAY
+    prov = ('Figures from the run of {} &middot; published every {} '
+            '<span class="lf-run">(run {}; no figure here is typed by hand)</span>'.format(
+                _html.escape(ran), calendar.day_name[PUBLISH_WEEKDAY], run))
     if missing:
         prov += " Not shown, because its source could not be read: {}.".format(
             _html.escape("; ".join(missing)))

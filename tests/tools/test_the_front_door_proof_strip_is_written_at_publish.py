@@ -52,7 +52,9 @@ def test_the_rewrite_replaces_only_the_bytes_between_the_markers(tmp_path):
     assert "stale bytes" not in out and out.endswith("<p>after</p></body></html>")
     assert out.count(g.PROOF_STRIP_START) == 1 and out.count(g.PROOF_STRIP_END) == 1
     # the unreadable source is said on the page, not filled in
-    assert "half-hourly period count" in out and "from run abc" in out
+    assert "half-hourly period count" in out and "(run abc;" in out
+    # the front door's only clock (director, 22 Oct 2026): the run's date and the cadence
+    assert "Figures from the run of 19 Oct 2026 &middot; published every Monday" in out
 
 
 def test_a_page_without_the_markers_is_left_alone(tmp_path):
