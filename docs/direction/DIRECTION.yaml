@@ -1,210 +1,299 @@
 version: 1
-oriented_at: '2026-10-22T05:22:53.734994+00:00'
-thesis_read: 'The retention lever is now known to be nearly inert at the roll, and the money per-customer retention made against flat is transfer and noise. 10 commits, 8 carrying work, 5 substantive. The
-  brief''s split (0 supplier, 2 world, 1 both, 7 other) is by file. Read by subject, it is even: the holdout (fdec35bd9) and the section 14 seed grader (bc1e6ad78) are supplier. The dual-leaver fix (2b81e1466)
-  is a billing-accuracy defect in the world, which is first in his order. The held-money flip (6b81d3b25) is what the BLOCKING crisis bad-debt finding waits on. The roll-offer trace (f3dae1d50) is a read
-  of the world. All four items in the last focus were drawn and three landed. The fourth, D48''s practice-or-defect table, was spent before I filed it: e885e30ff and f2db4aa45 had already graded PROS-2017-0336''s
-  catch-up as two held months, the screen doing what section 4d intends. D48 is also not a BUILD-stage atom, so the draw cannot classify it, and an atom-id focus item cannot reach it. That is the seat''s
-  error, listed in wrong. No level moved. WHAT IT MEANS. (1) The lever: a roll offer does reach the leaving household''s choice, with no ordering defect. It is too small to move it. A 3% median discount
-  lifts P(stay) by 0.77 points, which is one save in 101 offers (f3dae1d50). On the default dice, section 12''s +GBP 111 against flat is one extra departure (-GBP 2,035) against seven stayers moved onto
-  fixes (+GBP 2,308) (bc1e6ad78). So on this world the per-customer company''s retention money is M2 transfer plus one coin. The thesis survives only if the company can LEARN that from what it holds and
-  then stops paying stayers. The holdout is how a real supplier learns it. It is built, default off, and its arm is running (s15). But at 27% of about 83 offers a year it resolves the break-even difference,
-  not a 1% save rate. So the next supplier question is what the guard does while its save rate cannot be told from zero (item 3). (2) Inference: the ending-term belief still ranks leavers at 0.806 in the
-  run. Section 14''s four dice seeds are running, and no policy carries the belief yet. (3) Billing accuracy: a departed dual household is now billed no gas after it leaves (9 households, 70,599 kWh, GBP
-  2,284.97 on 2016-17, now 0), and each leg''s departure has its own row. The s1 and s15 arms were launched before 2b81e1466, so their levels still carry that gas. Their paired differences stand. (4) The
-  BLOCKING crisis finding: both world switches it waited on are now default on (shortfall on the month''s demand; held money as a part payment). As pre-registered, held money moved Q4 2023 pounds further
-  from Ofgem (GBP 710 to 452, record GBP 1,303). Its validator grade needs a full HEAD run. The sim-runner has deferred every five-minute cycle since at least 04:35Z to the long-job queue, so no run carries
-  either switch. I am putting that HEAD run ahead of section 14''s seed 2 (item 2). (5) The publisher''s FAILING line is stale. The figures reached origin on 19 Oct 09:15Z, and the next window opens on
-  26 Oct 04:00Z (.publish_gate_state.json publish_hold). Nothing is wedged.'
+oriented_at: '2026-10-22T08:24:35.466585+00:00'
+thesis_read: 'Sideways, not backwards. No level moved, and no supplier capability landed this stretch.
+  There were 14 commits, 11 carrying work and 3 substantive. The brief puts all 14 under "other" because
+  it sorts by file. Read by subject: two are the director''s front-door steer (5765c102d, 420a5b67d),
+  which is his own priority, and one is D48 billing accuracy (094a70b5b). The rest are grades and pre-registrations.
+  THE STEER DRIFTED. Of the four focus items, only the D48 long-runs census was drawn and landed. The
+  HEAD run, the retention-guard interval and the meter-exchange prereg were never drawn. My HEAD-run item
+  also tried to order the run ahead of section 14''s seed 2 by asking a worker to re-stamp a queued continuation.
+  Nothing drew the item first, so the seed-1 grade (f29c54700) launched seed 2 at 07:16Z as its own text
+  said. That sequencing error is mine, listed in wrong. It is corrected below, and no ordering is needed:
+  the box has 16.6 GB free, and the sim-runner has been deferring even though its own arithmetic fits
+  (11,880 + 7,066 <= 23,008 MB). So item 2 launches the HEAD run beside seed 2. WHAT IT MEANS. (1) Per-customer
+  against flat still has no graded seed. Seed 1 is void under its own rule: P14a failed as written, because
+  flat departed 353, the same as the default. The patch did reach the world (62 of 95 fix-end departures
+  re-drawn), so seed 5 replaces seed 1, and P14a'' was filed before seed 2 output existed. The thesis''s
+  baseline comparison is therefore no further on, and the one-seed reading is still the same: the per-customer
+  money is transfer plus one coin. (2) Section 15''s holdout arms both finished (06:38Z). Its grade is
+  drawable now, and it is the first evidence of whether the company can LEARN from its own data that its
+  save offers are near-inert. Item 1 builds what the guard does while that rate cannot be told from zero.
+  (3) Billing accuracy has three findings. (a) The read instruction sent 469 visits and got 0 reads, because
+  the world''s visit-access rate is a null GAP. The lever cannot work as the world stands. (b) 26 gas
+  prepayment runs are a company defect against UNC M5.9.14. A worker tick is fixing that in the shared
+  tree now (read_duty_register.py, monthly_bill_assembly.py, edited 08:10Z). (c) Catch-up size follows
+  the estimator, not the run''s length. All 7 catch-ups of GBP 500 or more sit among the 27 runs billed
+  more than 25% off use, and the candidate cause is a three-read re-level where the company already computes
+  an annualised advance (item 3). (4) The negative bad-debt belief reproduces at 1ac35d918 (c79371e8f):
+  28 calls, all in the worsening cell in 2024-25, in cells of about 260 account-years. That is not thin
+  data, so my thin-cell guess was wrong. The vintage reading clears every call. It flipped no offer and
+  leaves the book share at 0.0022, so it is a correctness fix with no money in it. (5) The BLOCKING crisis
+  bad-debt finding has now waited 8 days, on a run that could have started at any point tonight. The inference
+  side is unchanged: the ending-term belief ranks leavers at 0.806 in the run, and no policy carries it,
+  because no seed of section 14 is graded.'
 stretch_reviewed:
-  since: '2026-10-22T02:22:49.530184+00:00'
-  commits: 10
-  substantive: 5
+  since: '2026-10-22T05:22:53.734994+00:00'
+  commits: 14
+  substantive: 3
 focus:
-- id: long-runs-of-estimated-bills-and-what-the-company-did
-  lane: D_billing_metering
-  side: supplier
-  what: 'Read-only. Load the shared tree''s docs/reports/run_output_latest.json through tools/run_output_store
-    and print its producing commit. Then establish whether DecisionPolicy.instruct_reads_in_billing_run
-    was on at that commit (git merge-base --is-ancestor against the flip commit). From the bills rows,
-    count the accounts with a run of 12 or more consecutive estimated bills on either fuel. For each run
-    give the account, fuel, payment method, meter type, the run''s length and dates, whether the company
-    sent a read visit inside it, and the catch-up that ended it (catchup_* fields). Example: PROS-2017-0336,
-    21 estimates 2021-06 to 2023-02 and a GBP 4,224.94 catch-up on direct debit. In docs/market_research/unbilled_energy_and_revenue_assurance.md,
-    state what SLC 21B.4 and published practice require a supplier to do as estimates run on (cite the
-    commons, regulatory/slc_21b_21ba_reads_and_back_billing.md), and mark GAP where nothing is published.
-    Then say in the D48 simplification record (docs/design/simplifications/D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used.yaml)
-    whether each run is practice, an access limit the world sets, or a company defect, and name the change
-    if it is a defect. Build nothing, flip nothing, launch nothing.'
-  why: Billing accuracy is first in his order, and a 21-month estimate run ending in a GBP 4,225 catch-up
-    is exactly the experience a household calls bill shock. The read instruction now runs in the billing
-    run, and nobody has asked whether it ends these runs. This replaces last stretch's D48 item, whose
-    premise was already spent. DONE when the D48 record carries the per-run table and a practice, access
-    or defect verdict for each run, with the producing commit and the read instruction's state named.
-  written_at: 1792647076.612
-- id: the-next-head-run-grades-the-crisis-bad-debt-validator
-  lane: W2_customer_generator
-  side: world
-  unblocks: E6's provision graded against the crisis step-up (the BLOCKING finding folds into E6), D48's
-    held-bill release grade on a run carrying 4d6d5ab91, and the full-window check that post-departure
-    gas reads 0
-  what: 'Make the next full-window HEAD run start before section 14''s seed 2. Its producing commit must
-    be at or after 2b81e1466, so it carries THE_SHORTFALL_IS_SHARED_ON_THE_MONTHS_DEMAND, HELD_MONEY_IS_A_PART_PAYMENT
-    and the dual-leaver fix. Ask .launch_records.json first, and do not relaunch pcs-arms-s14-seed1, pcs-arms-s15-holdout
-    or belief-vintage-probe r3. When they free admission, either let the sim-runner''s own cycle take
-    it, or launch it with launch_long_job from an origin worktree. Re-stamp the queued grade-section-14-seed-1-and-launch-seed-2
-    under a NEW id, so that seed 2 launches after the HEAD run''s exit and not before it. When the run
-    ends, grade it labelled unpublished: (a) the two live legs of tests/company/compliance/test_crisis_bad_debt_validator.py
-    against it, recorded as a new section of docs/staging/SEAT_FINDING_THE_CRISIS_BAD_DEBT_CONTROL_HAS_SKIPPED_SINCE_THE_RUN_WENT_GZIP_AND_THE_PUBLISHED_RUN_SHOWS_NO_STEP_UP_2026-10-14.md;
-    (b) the corrected prediction in docs/staging/records/WORKER_PREREG_D48_THE_FIRST_RUN_CARRYING_THE_HELD_BILL_RELEASES_2026-10-21.md;
-    (c) gas kWh billed after any departure, across the full window.'
-  why: 'The only BLOCKING finding has waited since 14 Oct on two world switches that are now both on,
-    and nothing can grade it, because the sim-runner has deferred to the arm queue all night. One run
-    answers three owed grades. It is not an attribution run: the order effect of 2b81e1466 on stayers
-    stays unmeasured, and the grade must say so. DONE when the finding carries the validator''s result
-    on that run (pass, or which leg fails and by how much), the D48 prediction is graded, and post-departure
-    gas is printed for the full window.'
-  written_at: 1792647076.612
 - id: the-retention-guard-when-its-save-rate-cannot-be-told-from-zero
   lane: B_commercial
   side: supplier
-  what: 'First read company/crm/competitive_pressure.py and company/interfaces/growth_desk.py and say
-    what the retention guard does today when retention_save_rate returns None, and when the holdout reads
-    a difference whose interval includes zero. Knowledge first (K8): in docs/market_research/a_save_offer_against_the_switching_rules_and_the_seam.md,
-    add a section on deciding under an unresolved treatment effect (published practice for retention offers
-    and uplift models, with a GAP where nothing is published). Then add a default-off DecisionPolicy field.
-    With it on, retention_save_rate carries an interval from the holdout and offered counts (a stated
-    method, not a picked width), and the guard makes an offer only where the lower bound pays for the
-    offer''s cost. While the rate is None it makes none, and says why. Add a control that reds if an offer
-    is made while the interval includes zero. Pre-register as section 16 of docs/staging/records/SEAT_PREREG_THE_PER_CUSTOMER_SWITCHES_ON_TOGETHER_AGAINST_FLAT_2026-10-21.md,
-    and do not launch its arm until section 15''s grade has landed. Do not touch /var/tmp/se-pcs-arms15
-    or /var/tmp/se-pcs-arms-out.'
-  why: f3dae1d50 measured one save in 101 roll offers. Section 14's default dice show that the per-customer
-    money against flat is seven stayers moved onto fixes, which M2 calls transfer. A company that pays
-    stayers because it cannot yet tell a save from zero is worse than flat, and the thesis needs it to
-    act on what it can infer and no more. Erring against the thesis is the safe direction (F11). DONE
-    when the field has landed default off with its control, the knowledge section is published, and section
-    16 is filed.
-  written_at: 1792647076.612
+  what: 'Carried, not drawn last stretch. Section 15''s arms are both finished (/var/tmp/se-pcs-arms-out/s15/*.rc),
+    and its grade is the queued continuation grade-prereg-s15-the-save-rate-holdout, so do not grade it
+    here. First read company/crm/competitive_pressure.py and company/interfaces/growth_desk.py, and say
+    what the retention guard does today when retention_save_rate returns None, and when the holdout''s
+    difference has an interval that includes zero. Knowledge first (K8): in docs/market_research/a_save_offer_against_the_switching_rules_and_the_seam.md,
+    add a section on deciding under an unresolved treatment effect: published practice for retention offers
+    and uplift models, with GAP where nothing is published. Then add a default-off DecisionPolicy field
+    (company/policy/decision_policy.py). With it on, retention_save_rate carries an interval computed
+    from the holdout and offered counts, by a stated method and not a picked width, and the guard offers
+    only where the interval''s lower bound pays for the offer''s cost. While the rate is None, the guard
+    makes no offer and says why. Add one control over the whole partition: an offer is made when the lower
+    bound pays, none is made when the interval includes zero, and none is made when the rate is None.
+    Pre-register it as section 16 of docs/staging/records/SEAT_PREREG_THE_PER_CUSTOMER_SWITCHES_ON_TOGETHER_AGAINST_FLAT_2026-10-21.md.
+    Do not launch its arm until section 15''s grade has landed. Do not touch /var/tmp/se-pcs-arms15 or
+    /var/tmp/se-pcs-arms-out.'
+  why: f3dae1d50 measured one save per 101 roll offers. Section 14's default dice show that the per-customer
+    money against flat is stayers moved onto fixes, which is transfer under M2. A company that pays stayers
+    because it cannot yet tell a save from zero is worse than flat. The thesis needs it to act on what
+    it can infer and no more (F11). DONE when the field and its control have landed default off, the knowledge
+    section is published, and section 16 is filed.
+  written_at: 1792657825.656
+- id: launch-the-head-run-beside-seed-2-and-grade-the-crisis-validator
+  lane: W2_customer_generator
+  side: world
+  unblocks: E6's provision graded against the crisis step-up (the BLOCKING crisis bad-debt finding folds
+    into E6), D48's held-bill release graded on a run carrying it, and the full-window check that post-departure
+    gas reads 0
+  what: Launch one full-window HEAD run NOW, beside the running pcs-arms-s14-seed2 (do not stop it, relaunch
+    it or re-order the section 14 continuations). Use tools launch_long_job from a locked origin worktree
+    at or after 2b81e1466, and read docs/observability/.launch_records.json first so you do not double-launch.
+    Free memory is 16.6 GB, and the sim-runner's own log says its declared arithmetic fits, so admission,
+    not a hand-built wait, decides. When it ends, grade it labelled unpublished. (a) Run the two live
+    legs of tests/company/compliance/test_crisis_bad_debt_validator.py against it, recorded as a new section
+    of docs/staging/SEAT_FINDING_THE_CRISIS_BAD_DEBT_CONTROL_HAS_SKIPPED_SINCE_THE_RUN_WENT_GZIP_AND_THE_PUBLISHED_RUN_SHOWS_NO_STEP_UP_2026-10-14.md,
+    against the prediction 137cdb443 filed (crisis share 0.50-0.80%, step-up x1.1-1.5). (b) Grade docs/staging/records/WORKER_PREREG_D48_THE_FIRST_RUN_CARRYING_THE_HELD_BILL_RELEASES_2026-10-21.md.
+    (c) Print gas kWh billed after any departure across the full window. If the worker's gas-PPM read
+    fix lands before the launch, name it in the run's producing commit. It changes no bill at register,
+    but the grade must say whether the run carries it.
+  why: The only BLOCKING finding has waited 8 days on two world switches that are both now on. Last stretch's
+    version of this item tried to order the run before seed 2 and was never drawn, and seed 2 launched
+    anyway. Running the two side by side removes the ordering, and one run answers three owed grades.
+    It is not an attribution run, and the grade must say so. DONE when the finding carries the validator's
+    result on that run (a pass, or which leg fails and by how much), the D48 prediction is graded, and
+    post-departure gas is printed.
+  written_at: 1792657825.656
+- id: the-bill-estimate-reads-the-annualised-advance-not-three-reads
+  lane: D_billing_metering
+  side: supplier
+  what: 'Read-only first. In docs/staging/records/WORKER_RESULT_EVERY_RUN_OF_TWELVE_ESTIMATES_ON_THE_76A29BD92_RUN_OUTLIVES_ITS_READ_VISIT_BECAUSE_NO_VISIT_CAN_READ_2026-10-22.md,
+    take the 27 runs billed more than 25% off use. For each, print the estimate error from the same run
+    output under two methods, with only the method changed: company/billing/unread_month_estimate.py estimate_unread_kwh
+    (today''s three-read re-level), and annualised_advance_kwh (at least 182 days). Knowledge first (K8):
+    in docs/market_research/unbilled_energy_and_revenue_assurance.md, state how published practice estimates
+    an unread period (the electricity EAC under the BSC, the gas AQ under the UNC), citing the commons,
+    with GAP where nothing is published. If the annualised advance cuts the error on most of the 27 and
+    does not worsen the 2022-23 overcharges, build it behind a default-off DecisionPolicy field. Add a
+    control that reds if the estimate stops reading the annualised advance when the field is on. Pre-register
+    its arm (catch-ups of GBP 500 or more, the D48 estimated-bill error by year), and do not launch the
+    arm until item 2''s run has ended. If it does not cut the error, write that in the D48 simplification
+    record and build nothing.'
+  why: Billing accuracy is first in his order. 094a70b5b showed that a catch-up's size follows the estimate,
+    not the run's length. PROS-2017-0336 billed 19,011 kWh against 24,294 used and caught up GBP 4,224.94,
+    because a summer read set a low year. That catch-up is the bill shock this project defines for a direct-debit
+    household. The read lever cannot fix it, because no visit reads in this world, so the estimator is
+    the supplier's own remaining lever. DONE when the one-variable table and the knowledge section are
+    published, and the method has either landed default off with its control and prereg, or been refused
+    in the D48 record with the numbers.
+  written_at: 1792657825.656
 - id: the-smart-meter-exchange-flip-preregistered-for-d48
   lane: W2_customer_generator
   side: world
   unblocks: 'D48 L3: the company''s estimated share measured against a book whose meters roll smart as
     the nation''s did (8e0e6bf3f: L3 waits on this flip alone)'
-  what: 'Knowledge is written (WORKER_FINDING_D48_THE_ESTIMATED_SHARE_IS_FLAT_BECAUSE_NO_METER_IS_EVER_EXCHANGED_AFTER_ACQUISITION_2026-10-21.md,
-    and the unbilled-energy page). Pre-register the flip of SMART_METER_EXCHANGE in simulation/meter_reads.py:
-    predictions for the book''s smart share by year against smart_meter_penetration, D48''s estimated
-    share by year and meter, and the DD catch-up count. Write them before any run. Name the value-arms
-    controls the world digest move will red, and price their re-take. Launch the off/on pair from a locked
-    origin worktree only after item 2''s HEAD run has started, then grade it. Flip the default in its
-    own commit only if it holds.'
-  why: 'It is the one thing between D48 (billing accuracy, first in his order) and its next level, and
-    the world change is for fidelity: in 2024 the book is 29% smart against about 69% nationally. It goes
-    after item 2 so that the HEAD run grades the BLOCKING finding on a world with one variable fewer.
-    DONE when the prereg is filed, the pair is graded, and the default is either flipped with the re-take
-    named or held with the reason.'
-  written_at: 1792647076.612
+  what: 'Carried, not drawn. The knowledge is written: WORKER_FINDING_D48_THE_ESTIMATED_SHARE_IS_FLAT_BECAUSE_NO_METER_IS_EVER_EXCHANGED_AFTER_ACQUISITION_2026-10-21.md,
+    and the unbilled-energy page. Pre-register the flip of SMART_METER_EXCHANGE in simulation/meter_reads.py,
+    writing the predictions before any run: the book''s smart share by year against smart_meter_penetration,
+    D48''s estimated share by year and meter, and the DD catch-up count. Name the value-arms controls
+    that the world-digest move will red, and price their re-take. File the prereg now. Launch the off/on
+    pair from a locked origin worktree only after item 2''s HEAD run has ended, then grade it. Flip the
+    default in its own commit, and only if the predictions hold.'
+  why: 'It is the one thing between D48 (billing accuracy, first in his order) and its next level. The
+    world change is for fidelity: in 2024 the book is 29% smart against about 69% nationally. It runs
+    after item 2, so that the BLOCKING grade sees one variable fewer. DONE when the prereg is filed, the
+    pair is graded, and the default is either flipped with the re-take named or held with the reason.'
+  written_at: 1792657825.656
 not_now:
-- what: Putting section 14's seed grades or section 15's holdout grade in focus.
-  why: Both are queued continuations that wait on their own output files (grade-section-14-seed-1-and-launch-seed-2, grade-prereg-s15-the-save-rate-holdout). Naming them here would draw a second writer.
-    Item 2 changes only when seed 2 launches, not who grades it.
-- what: Proposing renewal_belief_by_ending_term or the save-odds guard for CURRENT_POLICY now.
-  why: The section 14 seeds have not finished, and the one-seed money was transfer. A policy that pays stayers should not be standing on one seed. Item 3 decides what the guard does while the save rate
-    is unresolved, and that comes first.
-- what: Fixing the noise floor's churn-roll patch (LATENT finding 367d814a3).
-  why: Section 14 avoids it through renewal_dice_seeded, and its control holds. No published floor is yet known to have run with any of the three affected consumers on, so it changes no result in flight.
-- what: Wiring E6's early-warning signals into a production caller.
-  why: aef898e0e found them about neutral on this book, because code-0 households settle. Held money as a part payment (now on) makes more households pay something, so wiring them before item 2's run would
-    be a guess.
+- what: Putting the gas-prepayment read instruction (UNC M5.9.14) in focus.
+  why: A worker tick is building it in the shared tree right now (read_duty_register.read_instruction_due
+    gains fuel=, edited 08:10Z). A focus item would add a second writer to the same two files. It moves
+    no bill at register, so nothing waits on it.
+- what: Naming the front-door steer's remaining items (5, 6, 9 and the cold read) in focus.
+  why: They are his steer and already queued as continuations, and items 5 and 6 are in surgical_land
+    now. Naming them would draw a third writer. Two of the queued continuations overlap (see wrong), which
+    costs at most one tick dispositioning a spent premise.
+- what: Proposing renewal_belief_by_ending_term or the save-odds guard for CURRENT_POLICY.
+  why: Section 14 has no graded seed (seed 1 is void, and seeds 2-5 are still to run). A policy that pays
+    stayers should not stand on no seeds. Item 1 decides first what the guard does while its save rate
+    is unresolved.
+- what: Modelling the world's read-visit access rate (0 of 469 instructed visits read).
+  why: It decides whether the read lever can ever work, and it is a knowledge question before it is a
+    build. The estimator (item 3) moves the money on the same runs with no world change, and the meter-exchange
+    flip already holds the next world slot for D48.
+- what: Making the vintage bad-debt reading the default, or running its one-variable leg at 793989589.
+  why: c79371e8f shows that it clears every negative call and flipped no offer, and the book share is
+    0.0022 under both readings. It is correct and moves no money, so it loses to work that does.
 - what: The fabric gas-home season build (W2_30).
-  why: It blocks no supplier result. The dual-leaver fix just moved the book, and the meter-exchange flip (item 4) blocks a level, so it goes first.
-- what: Chasing the publisher's FAILING line.
-  why: It is stale. The figures reached origin on 19 Oct 09:15Z, and publish_hold opens the next window on 26 Oct 04:00Z. The cited red is dead at HEAD. Item 2 grades the run unpublished, so nothing waits
-    on a publish.
-- what: Fixing the console recorder that wrote a peer session as his verbatim words.
-  why: G8 already treats that text as data, and this seat did. It misled nothing this stretch, so it loses to billing and supplier work.
-- what: Reaping the b12-*, se-budgetpay-land and se-pcs-arms15 worktrees.
-  why: They hold salvage commits on no remote ref, and se-pcs-arms15 is the tree the live s15 arm was built from. Reaping them loses evidence, and keeping them costs only disk.
+  why: It blocks no supplier result, and two world variables (the HEAD run's switches, then the meter
+    exchange) are queued ahead of it, one at a time.
+- what: Chasing the publisher's FAILING line, or reaping the b12-*, se-budgetpay-land and se-pcs-arms15
+    worktrees.
+  why: The publisher's red is dead at HEAD, and the next window opens on 26 Oct. The worktrees hold salvage
+    commits that no remote keeps, so reaping them loses evidence, and keeping them costs only disk.
 wrong:
-- what: 'THE WORLD''S, CARRIED. A gas-heated fabric home''s electricity has no season against SERL. 20:22: Unchanged. It waits for the post-publish world builds. 23:21: Focus item 4 measures the fabric
-    homes'' summer swing, which bears on this directly. 02:21: Measured (e6cdc9af9): fabric gas-heated homes read too flat (DJ/JJA 1.16 against 1.33-1.35), which confirms the row. The build is filed for
-    after the publish. 05:22: Unchanged. The build stays filed for after the publish. 08:22: Unchanged. A sibling W2_30 defect (electric fabric homes priced at the gas rate) is filed for the same post-publish
-    build. 23:20: Unchanged. It is still filed for after the publish. 11:21: Unchanged; still filed for after the publish. 23:21: Unchanged; filed for after the publish, behind item 4. 05:22: Unchanged;
-    filed behind item 2, the payment draw, as the next world build. 08:23: Unchanged; filed behind the payment draw and the campaign split-homes change, both in flight. 11:22: Unchanged. It is filed behind
-    the HH-EAC registration, which is landing now; the under-water exit and the split campaign homes are also in flight. 14:22: Unchanged. It now also waits for the shared checkout to reach origin (focus
-    item 1), so the next world run is attributable. 17:22: Unchanged. It blocks no supplier result. The budget floor (focus item 3) goes first because it blocks the crisis bad-debt validator. 20:22: Unchanged.
-    It blocks no supplier result. The budget floor (focus item 3) is still the next world build, and it was not drawn this stretch because the two supplier items ahead of it were. 23:20: Unchanged. It blocks
-    no supplier result, and it is filed behind the budget ordering (focus item 3). 02:20: Unchanged. It blocks no supplier result, and it is filed behind the budget grade (focus item 3). 05:20: Unchanged.
-    It blocks no supplier result, and it is filed behind the budget''s second seed (focus item 3). 08:20: Unchanged. It blocks no supplier result, and it is filed behind the budget''s second seed, which
-    launched its off arm at 08:19Z. 11:20: Unchanged. It blocks no supplier result, and it is filed behind the budget second seed, which turns out never to have started (focus item 3). 14:21: Unchanged.
-    It blocks no supplier result. The budget''s second seed it was filed behind is now running (off arm finished, shared arm live), and the fabric build stays behind that grade so the book does not move
-    under it. 17:23: Unchanged. It blocks no supplier result. It is filed behind the budget switches'' default flip, which is under test now, so the book does not move under the flip. 23:24: Unchanged.
-    It blocks no supplier result. It is filed behind the three-arm per-customer run (focus item 3), so the book does not move under it. 02:21: Unchanged. It blocks no supplier result. It stays behind the
-    three-arm per-customer run (focus item 2), which has not started, so the book does not move under it. 05:20: Unchanged. It blocks no supplier result. It stays behind the three-arm per-customer run,
-    which launched at 03:26Z and is still waiting for admission, so the book does not move under it. 08:22: Unchanged. It blocks no supplier result. It stays behind the per-customer, opex-credit, bad-debt
-    and retention-netting arms, and behind the meter-exchange build (focus item 4), which does block one. 11:22: Unchanged. It blocks no supplier result. It stays behind the four queued arm sets, which
-    now run one after another until about 01:00Z tomorrow, and behind the meter-exchange flip. 14:20: Unchanged. It blocks no supplier result. It stays behind the queued arm sets (flat, then scopex, baddebt
-    and retention netting, to about 01:00Z tomorrow), so the book does not move under them. 17:24: Unchanged. It blocks no supplier result. It stays behind the two arm sets still running (scopex nocredit
-    to about 18:30Z, then the retnet pair), so the book does not move under them. Item 2 may name a different world build (W2_38 arrears volume) that does block one. 20:20: Unchanged. It blocks no supplier
-    result. The retnet pair is still running (off arm since 18:26Z), so the book does not move under it, and both world items in focus are read-only. 23:20: Unchanged. It blocks no supplier result. It stays
-    behind the shortfall stock-versus-demand pair now running, so only one world variable moves at a time. 02:22: Unchanged. It blocks no supplier result. It stays behind item 1''s dual-leaver fix and the
-    held-money seed-2 pair, so only one world variable moves at a time. 05:22: Unchanged. It blocks no supplier result. 2b81e1466 just moved the book, and the meter-exchange flip (item 4) goes first because
-    it blocks D48''s level.'
+- what: 'THE WORLD''S, CARRIED. A gas-heated fabric home''s electricity has no season against SERL. 20:22:
+    Unchanged. It waits for the post-publish world builds. 23:21: Focus item 4 measures the fabric homes''
+    summer swing, which bears on this directly. 02:21: Measured (e6cdc9af9): fabric gas-heated homes read
+    too flat (DJ/JJA 1.16 against 1.33-1.35), which confirms the row. The build is filed for after the
+    publish. 05:22: Unchanged. The build stays filed for after the publish. 08:22: Unchanged. A sibling
+    W2_30 defect (electric fabric homes priced at the gas rate) is filed for the same post-publish build.
+    23:20: Unchanged. It is still filed for after the publish. 11:21: Unchanged; still filed for after
+    the publish. 23:21: Unchanged; filed for after the publish, behind item 4. 05:22: Unchanged; filed
+    behind item 2, the payment draw, as the next world build. 08:23: Unchanged; filed behind the payment
+    draw and the campaign split-homes change, both in flight. 11:22: Unchanged. It is filed behind the
+    HH-EAC registration, which is landing now; the under-water exit and the split campaign homes are also
+    in flight. 14:22: Unchanged. It now also waits for the shared checkout to reach origin (focus item
+    1), so the next world run is attributable. 17:22: Unchanged. It blocks no supplier result. The budget
+    floor (focus item 3) goes first because it blocks the crisis bad-debt validator. 20:22: Unchanged.
+    It blocks no supplier result. The budget floor (focus item 3) is still the next world build, and it
+    was not drawn this stretch because the two supplier items ahead of it were. 23:20: Unchanged. It blocks
+    no supplier result, and it is filed behind the budget ordering (focus item 3). 02:20: Unchanged. It
+    blocks no supplier result, and it is filed behind the budget grade (focus item 3). 05:20: Unchanged.
+    It blocks no supplier result, and it is filed behind the budget''s second seed (focus item 3). 08:20:
+    Unchanged. It blocks no supplier result, and it is filed behind the budget''s second seed, which launched
+    its off arm at 08:19Z. 11:20: Unchanged. It blocks no supplier result, and it is filed behind the
+    budget second seed, which turns out never to have started (focus item 3). 14:21: Unchanged. It blocks
+    no supplier result. The budget''s second seed it was filed behind is now running (off arm finished,
+    shared arm live), and the fabric build stays behind that grade so the book does not move under it.
+    17:23: Unchanged. It blocks no supplier result. It is filed behind the budget switches'' default flip,
+    which is under test now, so the book does not move under the flip. 23:24: Unchanged. It blocks no
+    supplier result. It is filed behind the three-arm per-customer run (focus item 3), so the book does
+    not move under it. 02:21: Unchanged. It blocks no supplier result. It stays behind the three-arm per-customer
+    run (focus item 2), which has not started, so the book does not move under it. 05:20: Unchanged. It
+    blocks no supplier result. It stays behind the three-arm per-customer run, which launched at 03:26Z
+    and is still waiting for admission, so the book does not move under it. 08:22: Unchanged. It blocks
+    no supplier result. It stays behind the per-customer, opex-credit, bad-debt and retention-netting
+    arms, and behind the meter-exchange build (focus item 4), which does block one. 11:22: Unchanged.
+    It blocks no supplier result. It stays behind the four queued arm sets, which now run one after another
+    until about 01:00Z tomorrow, and behind the meter-exchange flip. 14:20: Unchanged. It blocks no supplier
+    result. It stays behind the queued arm sets (flat, then scopex, baddebt and retention netting, to
+    about 01:00Z tomorrow), so the book does not move under them. 17:24: Unchanged. It blocks no supplier
+    result. It stays behind the two arm sets still running (scopex nocredit to about 18:30Z, then the
+    retnet pair), so the book does not move under them. Item 2 may name a different world build (W2_38
+    arrears volume) that does block one. 20:20: Unchanged. It blocks no supplier result. The retnet pair
+    is still running (off arm since 18:26Z), so the book does not move under it, and both world items
+    in focus are read-only. 23:20: Unchanged. It blocks no supplier result. It stays behind the shortfall
+    stock-versus-demand pair now running, so only one world variable moves at a time. 02:22: Unchanged.
+    It blocks no supplier result. It stays behind item 1''s dual-leaver fix and the held-money seed-2
+    pair, so only one world variable moves at a time. 05:22: Unchanged. It blocks no supplier result.
+    2b81e1466 just moved the book, and the meter-exchange flip (item 4) goes first because it blocks D48''s
+    level. 08:24: Unchanged. It blocks no supplier result. It stays behind the HEAD run (item 2) and the
+    meter-exchange flip (item 4), one world variable at a time.'
   corrected: false
-- what: 'THE MACHINE''S, THIS STRETCH. The draw refused two focus items (C35 24 times, the C34 re-read 32 times) because /var/tmp/se-ret-margin/wt held simulation/run_phase2b.py. Its owner pid 1697312 is
-    dead, and after c61d8b608 landed it differs from origin only in generated files. The refusal''s diff digest was taken once and never re-asked, and the real C35 build sat unseen in a different dead worktree.
-    14:21: No refusal this stretch, but only because neither item was drawn at all. No commit makes the held-work refusal re-ask its diff digest, so it is not fixed. 17:23: Recurred. say-why-the-median-renewal-contributes-minus-3-91-a-month
-    was refused 49 times because /var/tmp/se-seat-executor changes term_contribution_per_year. That diff is C35''s caller, and the item only reads the file. Not fixed. 23:24: repair-the-flat-arms-reachability-control
-    was refused 12 times by /var/tmp/se-seat-executor. That holder was doing the item''s own work (abe7ce533 landed 2 minutes after the last refusal), so this refusal was right. No commit makes the check
-    re-ask its digest, so it is not fixed. 02:21: No refusal this stretch. No commit makes the check re-ask its digest, so it is not fixed. 05:20: No refusal this stretch. No commit makes the check re-ask
-    its digest, so it is not fixed. 08:22: No refusal this stretch. Not fixed. 11:22: the-census-peak-is-two-tests-measure-and-shrink-them was refused twice by /var/tmp/se-seat-executor. That holder''s
-    diff was the item''s own work (d12ebda3c landed 34 minutes later), so the refusal was right. No commit makes the check re-ask its digest, so it is not fixed. 14:20: No refusal this stretch. No commit
-    makes the check re-ask its digest, so it is not fixed. 17:24: No refusal this stretch. No commit makes the check re-ask its digest, so it is not fixed. 20:20: No refusal this stretch. No commit makes
-    the check re-ask its digest, so it is not fixed. 23:20: No refusal this stretch. No commit makes the check re-ask its digest, so it is not fixed. 02:22: No refusal this stretch. No commit makes the
-    check re-ask its digest, so it is not fixed. 05:22: No refusal this stretch. No commit makes the check re-ask its digest, so it is not fixed.'
+- what: 'THE MACHINE''S, THIS STRETCH. The draw refused two focus items (C35 24 times, the C34 re-read
+    32 times) because /var/tmp/se-ret-margin/wt held simulation/run_phase2b.py. Its owner pid 1697312
+    is dead, and after c61d8b608 landed it differs from origin only in generated files. The refusal''s
+    diff digest was taken once and never re-asked, and the real C35 build sat unseen in a different dead
+    worktree. 14:21: No refusal this stretch, but only because neither item was drawn at all. No commit
+    makes the held-work refusal re-ask its diff digest, so it is not fixed. 17:23: Recurred. say-why-the-median-renewal-contributes-minus-3-91-a-month
+    was refused 49 times because /var/tmp/se-seat-executor changes term_contribution_per_year. That diff
+    is C35''s caller, and the item only reads the file. Not fixed. 23:24: repair-the-flat-arms-reachability-control
+    was refused 12 times by /var/tmp/se-seat-executor. That holder was doing the item''s own work (abe7ce533
+    landed 2 minutes after the last refusal), so this refusal was right. No commit makes the check re-ask
+    its digest, so it is not fixed. 02:21: No refusal this stretch. No commit makes the check re-ask its
+    digest, so it is not fixed. 05:20: No refusal this stretch. No commit makes the check re-ask its digest,
+    so it is not fixed. 08:22: No refusal this stretch. Not fixed. 11:22: the-census-peak-is-two-tests-measure-and-shrink-them
+    was refused twice by /var/tmp/se-seat-executor. That holder''s diff was the item''s own work (d12ebda3c
+    landed 34 minutes later), so the refusal was right. No commit makes the check re-ask its digest, so
+    it is not fixed. 14:20: No refusal this stretch. No commit makes the check re-ask its digest, so it
+    is not fixed. 17:24: No refusal this stretch. No commit makes the check re-ask its digest, so it is
+    not fixed. 20:20: No refusal this stretch. No commit makes the check re-ask its digest, so it is not
+    fixed. 23:20: No refusal this stretch. No commit makes the check re-ask its digest, so it is not fixed.
+    02:22: No refusal this stretch. No commit makes the check re-ask its digest, so it is not fixed. 05:22:
+    No refusal this stretch. No commit makes the check re-ask its digest, so it is not fixed. 08:24: No
+    refusal this stretch. No commit makes the check re-ask its digest, so it is not fixed.'
   corrected: false
-- what: 'THE MACHINE''S, THIS STRETCH. The continuation the-budget-second-seed-grade-after-the-unit-driver is still queued for 18:20, but b8045dd4e graded the second seed at 17:17. A queued continuation
-    is not re-asked when another lane spends its premise first, so a tick may be handed a finished grade. 23:24: It bit twice. A tick was handed the second-seed grade after it was spent and re-graded it
-    (711359a8c), and the flat-arm repair was drawn after abe7ce533 had spent it (732b2e116). Both ticks dispositioned the item, but nothing re-asks a premise before the draw. Not fixed. 02:21: No instance
-    this stretch. grade-the-standing-charge-opex-credit-against-its-prereg becomes drawable at 02:00, but both of its arms are still queued (193ae19be), so a tick drawn now has nothing to grade. That is
-    the same shape: nothing re-asks a premise before the draw. Not fixed. 05:20: No instance seen this stretch. Nothing re-asks a premise before the draw, so it is not fixed. 08:22: Live again. grade-the-per-customer-switches-on-together-against-flat
-    becomes drawable at 09:20, but the three arms run one after another from 07:22Z, so all_on and flat will not have finished by then. A tick drawn at 09:20 would find one arm. Not fixed. 11:22: It bit
-    as predicted. The 09:20 grade was drawn, found only one arm finished, and was re-filed as grade-the-per-customer-switches-arms-after-they-finish for 15:40 local (14:40Z). The current arm took 2h26m,
-    so flat should end near 14:40Z, which leaves the new embargo with no margin. Focus item 3 builds the re-ask: a continuation that waits for the file it grades. 14:20: Half fixed. a5f9cd768 lets a continuation
-    wait for the file it grades, and the per-customer grade now waits for /var/tmp/se-pcs-arms-out/flat.rc instead of a guessed time. The other half is not fixed: nothing re-asks a premise that another
-    lane spends first. 17:24: No instance this stretch. Every grade now waits on its driver''s own exit or file. Nothing re-asks a premise that another lane spends first, so it is not fixed. 20:20: No instance
-    this stretch, and the continuation queue is empty. Nothing re-asks a premise that another lane spends first, so it is not fixed. 23:20: No instance. The one queued continuation, ending-term-belief-first-year-prior,
-    is claimed, and its rerun is live. e856ddc69 is its own work, not another lane''s. Nothing re-asks a premise that another lane spends first, so it is not fixed. 02:22: It bit in a new shape. The executor
-    drew W2_demand_negative_margin_part_payment, which was unclaimed while the worker tick was building it, and built the same rule a second time before withdrawing (4e8bc7633). The duplicate cross-checked
-    the tick''s build (0 of 1,048 accounts differ), so the compute bought a check, but nothing stopped it. Not fixed. 05:22: No machine instance this stretch. The one spent premise was the seat''s own D48
-    item, listed below. Nothing re-asks a premise another lane spends first, so it is not fixed.'
+- what: 'THE MACHINE''S, THIS STRETCH. The continuation the-budget-second-seed-grade-after-the-unit-driver
+    is still queued for 18:20, but b8045dd4e graded the second seed at 17:17. A queued continuation is
+    not re-asked when another lane spends its premise first, so a tick may be handed a finished grade.
+    23:24: It bit twice. A tick was handed the second-seed grade after it was spent and re-graded it (711359a8c),
+    and the flat-arm repair was drawn after abe7ce533 had spent it (732b2e116). Both ticks dispositioned
+    the item, but nothing re-asks a premise before the draw. Not fixed. 02:21: No instance this stretch.
+    grade-the-standing-charge-opex-credit-against-its-prereg becomes drawable at 02:00, but both of its
+    arms are still queued (193ae19be), so a tick drawn now has nothing to grade. That is the same shape:
+    nothing re-asks a premise before the draw. Not fixed. 05:20: No instance seen this stretch. Nothing
+    re-asks a premise before the draw, so it is not fixed. 08:22: Live again. grade-the-per-customer-switches-on-together-against-flat
+    becomes drawable at 09:20, but the three arms run one after another from 07:22Z, so all_on and flat
+    will not have finished by then. A tick drawn at 09:20 would find one arm. Not fixed. 11:22: It bit
+    as predicted. The 09:20 grade was drawn, found only one arm finished, and was re-filed as grade-the-per-customer-switches-arms-after-they-finish
+    for 15:40 local (14:40Z). The current arm took 2h26m, so flat should end near 14:40Z, which leaves
+    the new embargo with no margin. Focus item 3 builds the re-ask: a continuation that waits for the
+    file it grades. 14:20: Half fixed. a5f9cd768 lets a continuation wait for the file it grades, and
+    the per-customer grade now waits for /var/tmp/se-pcs-arms-out/flat.rc instead of a guessed time. The
+    other half is not fixed: nothing re-asks a premise that another lane spends first. 17:24: No instance
+    this stretch. Every grade now waits on its driver''s own exit or file. Nothing re-asks a premise that
+    another lane spends first, so it is not fixed. 20:20: No instance this stretch, and the continuation
+    queue is empty. Nothing re-asks a premise that another lane spends first, so it is not fixed. 23:20:
+    No instance. The one queued continuation, ending-term-belief-first-year-prior, is claimed, and its
+    rerun is live. e856ddc69 is its own work, not another lane''s. Nothing re-asks a premise that another
+    lane spends first, so it is not fixed. 02:22: It bit in a new shape. The executor drew W2_demand_negative_margin_part_payment,
+    which was unclaimed while the worker tick was building it, and built the same rule a second time before
+    withdrawing (4e8bc7633). The duplicate cross-checked the tick''s build (0 of 1,048 accounts differ),
+    so the compute bought a check, but nothing stopped it. Not fixed. 05:22: No machine instance this
+    stretch. The one spent premise was the seat''s own D48 item, listed below. Nothing re-asks a premise
+    another lane spends first, so it is not fixed. 08:24: Live again. site-deploy-exclusion-canon-check-and-cold-reader
+    and front-door-steer-items-5-6-9-and-the-cold-read are both queued for the steer''s item 9 and its
+    cold read. The second also carries items 5 and 6, which site-two-audiences-and-plain-vocabulary is
+    landing now. Whichever is drawn second has a spent premise, and nothing re-asks it first. Not fixed.'
   corrected: false
-- what: 'THE COMPANY''S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards. On 268 desk states from 2019 it reads AUC 0.333, and its mean is 0.193 on end-of-fix rolls,
-    where 40 of 92 households leave, against 0.378 on the other rolls, where 6 of 176 leave. The company holds each term''s tariff type before the roll and does not use it (7dc923787, 7eb9f2695). Focus
-    item 1 rebuilds it. 23:20: The fix is built, default off (7a7ad95dc): 0.819 [0.757, 0.877] out of sample from 2019, and 0.819 in the run (f16695c2a). It stays false, because no policy carries it yet,
-    and its first-year multiplier defect is graded by section 12, which is running. 02:22: Section 12 graded (a7fc5c728): with the prior, the in-run AUC is 0.806 [0.745, 0.860]. It stays false because no
-    policy carries it yet. The seeds are queued, behind item 2''s money split. 05:22: Unchanged. Section 14''s four dice seeds are running (seed 1''s all_on_save_odds arm is live), and no policy carries
-    the belief yet.'
+- what: 'THE COMPANY''S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards.
+    On 268 desk states from 2019 it reads AUC 0.333, and its mean is 0.193 on end-of-fix rolls, where
+    40 of 92 households leave, against 0.378 on the other rolls, where 6 of 176 leave. The company holds
+    each term''s tariff type before the roll and does not use it (7dc923787, 7eb9f2695). Focus item 1
+    rebuilds it. 23:20: The fix is built, default off (7a7ad95dc): 0.819 [0.757, 0.877] out of sample
+    from 2019, and 0.819 in the run (f16695c2a). It stays false, because no policy carries it yet, and
+    its first-year multiplier defect is graded by section 12, which is running. 02:22: Section 12 graded
+    (a7fc5c728): with the prior, the in-run AUC is 0.806 [0.745, 0.860]. It stays false because no policy
+    carries it yet. The seeds are queued, behind item 2''s money split. 05:22: Unchanged. Section 14''s
+    four dice seeds are running (seed 1''s all_on_save_odds arm is live), and no policy carries the belief
+    yet. 08:24: Unchanged. Section 14 seed 1 is void (P14a: flat departed 353, the same as the default),
+    so seed 5 replaces it, and seed 2 is running. No seed is graded, and no policy carries the belief.'
   corrected: false
-- what: 'THE WORLD''S, THIS STRETCH. A dual-fuel household that leaves at its electricity roll gets one churned event, on electricity. The gas leg''s departure exists only as a missing next term (simulation/run_phase2b.py,
-    departure_decision_leg). So per-leg readers undercount gas churn, and the desk log shows the household as electricity-only at the roll. That is the leak that lifted the pre-registered R1 to 0.706 (76a29bd92).
-    It is named in section 9 of the per-customer prereg and not fixed. 23:20: Unchanged. It is held behind the shortfall pair so that one world variable moves at a time. 02:22: Worse than recorded. 187c2a999
-    finds that the gas leg is also BILLED for 82 to 345 days after the departure, since c136809f53. Item 1 fixes both. 05:22: Corrected (2b81e1466). A riding leg''s term is cut at the departure, so post-departure
-    gas is 0 on 2016-17 (it was GBP 2,284.97 across 9 households). Each departure writes one churned row per supply point to leg_departures. Both named tests are green, and both mutations bite.'
-  corrected: true
-- what: 'THE SEAT''S, THIS STRETCH. Focus item 1 of 23:20 told the worker to learn the save rate as 1 minus observed over expected losses on offered accounts. That is the belief''s calibration on the offered
-    tail, not saves (the docstring the tick wrote says so). It read 0.19 while the world kept 0 of the 32 offers section 13 withdrew, and the guard''s value term could not see the channel the money actually
-    moved through: stayers moved between a fix and the default. Item 2 replaces it with a holdout. 05:22: The holdout landed default off (fdec35bd9): (h - o)/h over closed years, and a control reds if the
-    holdout''s losses stop reaching the rate. Its arm is running (s15). It stays false: with the holdout switch off, the guard still reads the old ratio, and section 15 is not graded.'
+- what: 'THE SEAT''S, THIS STRETCH. Focus item 1 of 23:20 told the worker to learn the save rate as 1
+    minus observed over expected losses on offered accounts. That is the belief''s calibration on the
+    offered tail, not saves (the docstring the tick wrote says so). It read 0.19 while the world kept
+    0 of the 32 offers section 13 withdrew, and the guard''s value term could not see the channel the
+    money actually moved through: stayers moved between a fix and the default. Item 2 replaces it with
+    a holdout. 05:22: The holdout landed default off (fdec35bd9): (h - o)/h over closed years, and a control
+    reds if the holdout''s losses stop reaching the rate. Its arm is running (s15). It stays false: with
+    the holdout switch off, the guard still reads the old ratio, and section 15 is not graded. 08:24:
+    Both section 15 arms finished at 06:38Z, and the grade is drawable now. It is not graded, and with
+    the holdout switch off the guard still reads the old ratio.'
   corrected: false
-- what: 'THE MACHINE''S, THIS STRETCH. tools/console_instruction_record.py wrote a peer Claude session''s cross-session messages (se-seat-executor-cb, 01:40Z and 01:43Z) into docs/staging/console/DIRECTOR_CONSOLE_2026-10-22.md
-    under the header ''VERBATIM CAPTURE of what he typed''. The orientation brief then listed them as director_inputs. Under G8 the machine''s own text is never his words. This seat treated it as data.
-    Not fixed. 05:22: Unchanged. No new instance this stretch. Not fixed.'
+- what: 'THE MACHINE''S, THIS STRETCH. tools/console_instruction_record.py wrote a peer Claude session''s
+    cross-session messages (se-seat-executor-cb, 01:40Z and 01:43Z) into docs/staging/console/DIRECTOR_CONSOLE_2026-10-22.md
+    under the header ''VERBATIM CAPTURE of what he typed''. The orientation brief then listed them as
+    director_inputs. Under G8 the machine''s own text is never his words. This seat treated it as data.
+    Not fixed. 05:22: Unchanged. No new instance this stretch. Not fixed. 08:24: Recurred. The 05:34:47Z
+    entry is se-seat-executor-a8''s cross-session message, recorded under the same header, and this brief
+    lists it as director_inputs. This seat treated it as data. Not fixed.'
   corrected: false
-- what: 'THE SEAT''S, THIS STRETCH. The 02:22 focus carried a D48 item whose premise was already spent. e885e30ff (21:43 BST on 21 Oct) graded PROS-2017-0336''s catch-up as two held months (GBP 1,171.79),
-    the screen doing what section 4d intends, and f2db4aa45 graded the held-bill release on the retnet off arm. The item also named D48 by atom id, which the draw cannot classify because D48 is not BUILD-stage,
-    so nothing could reach it. The seat had not read the finding''s last two sections. Corrected: the item is dropped, and the billing question it led to is item 1, filed under a lane rather than an atom
-    id.'
+- what: 'THE SEAT''S, THIS STRETCH. The 05:22 focus tried to run the HEAD run before section 14''s seed
+    2 by asking a worker to re-stamp a queued continuation. Nothing drew that item first, so the seed-1
+    grade launched seed 2 at 07:16Z as its own text said, and the BLOCKING grade lost another stretch.
+    An ordering placed in a focus item cannot bind a continuation that is already queued. Corrected: item
+    2 now launches the HEAD run beside seed 2. The box has room (16.6 GB free), so no ordering is needed.'
   corrected: true
 for_the_director:
 - id: c34-now-ranks-next-best-action-on
