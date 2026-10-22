@@ -78,3 +78,20 @@ advisor saw it.
 - Item 4: the garbled settlement sentence, and the dual-fuel mover drawn as world work, K8 first.
 - Item 5: the Claude Code package. Updating the builder's toolchain is not one of the G5 walls, but
   the seat's last stretch chose against folding it into item 1. It is left for the seat.
+
+## Measured on this turn's own push (2406226c8, run 39811209357, 16:07Z): the window is not the cause
+
+This push changed `site/index.html`. From this machine, polling `https://poesys.net/?cb=<nonce>`
+every 10 s, the new front door (with its `BUILD-STRIP` markers) was served at **16:08:45Z, about 90 s
+after the push**. Fetched with the check's own urllib and its User-Agent `poesys-deploy-assert`, it
+was byte-identical to `origin/main:site/index.html` (`cf-cache-status: DYNAMIC`). On the GitHub
+runner, the same check went red again. `/` returned HTTP 500 on attempt 0 and then **served neither
+the new bytes nor the old for the full 8 minutes**, while `/assets/freshness-banner.js` from the same
+push matched after 16 s. One deployment, so the window explains neither 90 s here nor more than 8
+minutes there. A per-edge cached resolution of the path route `/` does explain both: it is the
+hypothesis the check itself recorded on 2026-09-04 (`classify` docstring), and the runner's edge is
+not this machine's. I have only run one push, so I cannot yet say whether readers near the runner's
+edge are served the stale `/` for that long. Widening the window is refuted as the remedy. The next
+step is to read what that edge serves at `/` (its bytes against the last few commits'
+`site/index.html`), and to fetch `/index.html` beside `/` in the check, so the two routes can be told
+apart.
