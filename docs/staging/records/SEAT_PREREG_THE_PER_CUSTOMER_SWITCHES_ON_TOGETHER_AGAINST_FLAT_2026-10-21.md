@@ -1264,14 +1264,25 @@ barely moves, so it is no evidence that the count leg can see the dice.
 
 | pair (seed 2) | net | gross | unattributed | departure | parity | other | same_choice |
 |---|---|---|---|---|---|---|---|
-| ending_term − flat | +£2,989 | +£7,398 | −£4,409 | 3h +£2,905 | 5h −£25 | 4h +£2,891 | 433h +£1,627 |
-| save_odds − flat | +£1,537 | +£2,259 | −£723 | 2h −£2,285 | 4h −£120 | 4h +£2,891 | 410h +£1,773 |
+| ending_term − flat | +£2,989 | +£7,398 | −£4,409 | 3h +£2,905 | 9h +£2,866 | 0 | 433h +£1,627 |
+| save_odds − flat | +£1,537 | +£2,259 | −£723 | 2h −£2,285 | 8h +£2,771 | 0 | 410h +£1,773 |
+
+*The table is the corrected grader's. The first-graded table read `parity` 5h −£25 / 4h −£120 and
+`other` 4h +£2,891 in both rows. Nothing else moved.*
 | save_odds − ending_term | −£1,453 | −£5,139 | +£3,686 | 1h −£5,190 | 1h −£93 | 0 | 165h +£144 |
 
 **Per-seed legs, counted (one of four graded seeds):**
-- **P14b, ending_term − flat `parity` positive:** −£24.52, **the wrong sign**. It is inside
-  [−£500, +£4,500]. This is the second seed, counting void seed 1, where the parity channel is near
-  zero rather than the +£2,308 the default dice showed.
+- **P14b, ending_term − flat `parity` positive:** **+£2,866.40 over 9 households, positive as
+  predicted**, inside [−£500, +£4,500]. *Corrected the same day. I first graded this −£24.52, "the
+  wrong sign". That read the grader's `parity` line, which counted only a rolled `renewal` as a fix.
+  `svt_conversion`, the row `run_phase2b` writes when a household is not rolled and does not
+  decline, is also the household taking the fix. So the four `other` households (+£2,891) were the
+  parity edge as the section defines it. The grader is fixed to the definition filed before any
+  seed ran, not to the answer. Its new control fails when the fix is reverted. The definition
+  governs, so this leg reads +£2,866. Corrected readings: void seed 1 is +£412 over 8 households,
+  not −£30; the default dice are +£2,154 over 10, not +£2,308. The §13 control (save_odds −
+  ending_term, 5 households, −£2,385) is unchanged, and every `other` line on all three dice is now
+  0.*
 - **P14b, save_odds − ending_term `parity` negative:** −£93.10, **negative as predicted**. It is
   inside the default dice's range, though far below the predicted mean of −£1,500.
 - **P14c, save_odds − ending_term `departure` holds at most 3 households:** 1 household, **held**.
@@ -1289,12 +1300,18 @@ not predictions.
   stayed in flat. At their 2018 roll, flat records `declined_fix` and both offer arms record
   `svt_conversion`. So the offer arms' departure gross against flat is a save of +£5,190 in
   ending_term only, against two extra gas leavers at −£2,285 in both arms.
-- The four `other` households, +£2,891, are the same in both offer arms. The largest is
-  `SYN-2016-369`, at +£2,753. Each has a roll that flat records as `declined_fix` and the offer arms
-  record as `svt_conversion`. I have not established whether that is a real difference in what the
-  household did, or the same default rollover labelled differently by the arm that runs the offer
-  path. If it is only labelling, the grader's `parity` test misses these households, and the `other`
-  line is mostly parity-shaped money. **This is handed on as a grader question, not settled here.**
+- The four households first filed as `other`, +£2,891, are the same in both offer arms. The
+  largest is `SYN-2016-369`, at +£2,753. Each has a roll where flat records `declined_fix` and the
+  offer arms record `svt_conversion`. **Settled the same day: this is a real choice, not a label.**
+  In `run_phase2b`, an unrolled renewal row is `declined_fix` when `renewal_outcome` refuses the fix
+  and `svt_conversion` otherwise. So under the offer arms' pricing these households took a fix they
+  refused under flat. That is the parity edge (see the correction above). Under the corrected grader,
+  save_odds − flat `parity` is +£2,771 over 8 households.
+- **What seed 2 says against the decision rule, read and not yet counted (one seed of four).**
+  ending_term − flat net is +£2,989. Its `departure` gross is +£2,905, and that is one save
+  (+£5,190) against two extra gas leavers. Its `parity` gross is +£2,866. save_odds − flat net is
+  +£1,537, but its `departure` gross is −£2,285, so on this seed its positive net is all `parity`
+  and `same_choice`. That is the transfer shape the rule writes up and does not propose.
 
 **The seed 1 note on gross recurs.** In save_odds − ending_term the whole difference is that one
 departure: gross −£5,190, and net minus gross +£3,686, so net is −£1,453. Gross overstates the

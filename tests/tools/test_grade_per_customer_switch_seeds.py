@@ -45,6 +45,14 @@ def test_every_channel_is_reachable_and_each_household_lands_in_the_right_one():
     assert round(r["gross_gbp"], 2) == -335.0 and round(r["unattributed_gbp"], 2) == -65.0
 
 
+def test_an_svt_conversion_against_a_declined_fix_is_the_parity_edge():
+    # `svt_conversion` is the household taking the fix unrolled; filing it against a refusal as
+    # `other` hid seed 2's whole +£2,866 parity move behind a -£25 reading.
+    a = _run([("P2", "2018-02-01", "electricity", *SVT)], {"P2": 70.0}, 0.0)
+    b = _run([("P2", "2018-02-01", "electricity", *DECLINE)], {"P2": 20.0}, 0.0)
+    assert g.split(a, b)["channels"]["parity"] == {"households": 1, "gross_gbp": 50.0}
+
+
 def test_a_run_against_itself_reads_zero_in_every_channel():
     a = _run([("P1", "2018-02-01", "gas", *FIX)], {"P1g": 50.0}, 10.0)
     r = g.split(a, a)

@@ -17,10 +17,13 @@ that does not keep the channels apart would publish it as retention value.
 THE CHANNELS, one per household, decided in this order on its renewal rows paired by
 (household, roll date, fuel) in `customer_events`:
   * `departure` -- its set of departures differs between the arms.
-  * `parity`    -- it stayed in both, and at some roll one arm fixed (`renewal`, renewed) where the
-                   other declined the fix (`declined_fix`). The edge section 13 found.
-  * `other`     -- any other difference in its renewal rows: an SVT conversion against a fix, or a
-                   roll present in one arm only.
+  * `parity`    -- it stayed in both, and at some roll one arm fixed where the other declined the
+                   fix (`declined_fix`). The edge section 13 found. A fix is a rolled `renewal` OR
+                   an `svt_conversion`: `run_phase2b` writes the latter for a household that was
+                   not rolled and did not decline, so it took the fix. Until 2026-10-22 only the
+                   rolled kind counted, and every seed's `other` line was this edge.
+  * `other`     -- any other difference in its renewal rows: an SVT conversion against a rolled
+                   fix, or a roll present in one arm only.
   * `same_choice` -- identical renewal rows. Gross can still move, by the discount a stayer
                    would have taken anyway.
 Gross is `per_cid_pnl[...]["gross"]` summed over the household's supply points. The net the
@@ -72,7 +75,8 @@ def reduce_run(d: dict) -> dict:
 def channel(a_rows: dict, b_rows: dict) -> str:
     if {k for k, v in a_rows.items() if v == "left"} != {k for k, v in b_rows.items() if v == "left"}:
         return "departure"
-    if any({a_rows.get(k), b_rows.get(k)} == {"fixed", "declined_fix"} for k in a_rows):
+    if any({a_rows.get(k), b_rows.get(k)} in ({"fixed", "declined_fix"},
+                                               {"svt_conversion", "declined_fix"}) for k in a_rows):
         return "parity"
     return "other" if a_rows != b_rows else "same_choice"
 
