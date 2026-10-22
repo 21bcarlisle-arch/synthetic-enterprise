@@ -1020,3 +1020,61 @@ predictions in `0674199b8`). Unit `longjob-pcs-arm-all-on-save-odds`, run from t
 `/var/tmp/se-pcs-arms-out/all_on_save_odds.{json,log}`. Expect about an hour, as §12 took. The grade
 script is `/tmp/pcs13/grade.py`. Its placebo, with §12's output standing in for the new arm, reads §12
 back to the penny: the 2017 set identical, 35 fix-end offers from 2018 with no `save_rate`, +£0.00.
+
+### 13. Grade (2026-10-22 ~02:40 BST, `all_on_save_odds.json` present, unit rc=0, stamped `7bab213af7`)
+
+| figure | flat | §12 (`all_on_ending_term_prior`) | §13 (`all_on_save_odds`) |
+|---|---|---|---|
+| `provisioned_net_gbp` | £600,902.77 | £601,014.02 | **£600,203.83** |
+| `provisioned_bad_debt_gbp` | £125,212.58 | £125,074.21 | £124,885.18 |
+| departures | 353 | 354 | 354 (same set as §12) |
+| retention offers / cost | 0 / £0 | 122 / £2,968.23 | **88 / £1,644.07** |
+| fix-end offers from 2018 | – | 35 | **1** (`save_rate` 0.1896, 2018) |
+
+- **P13a HELD on both legs.** The 2017 offer set is identical to §12's 83 (none only in one arm). The
+  one fix-end offer from 2018 carries `save_rate` 0.1896.
+- **P13b HELD on every leg.** Fix-end offers from 2018: 1 (0–4, point 1). Default-term offers in 2018:
+  4, 3 `default` + 1 `default_after_declined_fix` (3–5, point 4). Total: 88 (85–92, point 88). Cost:
+  £1,644.07 (£1,450–£1,950, point £1,650).
+- **P13c HELD.** 354 departures, and the same set of accounts as §12. The 32 offers from 2018 that
+  §12 made and this arm withdrew (paired on account, roll and fuel in `customer_events`) changed no
+  household's choice to stay or leave. 11 left in both arms and 21 stayed in both. The company's
+  estimate is that about one in five predicted losses is saved. At the roll, the world saved none
+  of these 32, which is §7's reading again.
+- **P13d: the size of the discount held; the sign was REFUTED.** The discount not given was
+  £1,324.16 (predicted about £1,300). But new − §12 is **−£810.19**: inside the range
+  [−£1,000, +£2,000], but against the point of +£800 and the 70% I gave to a positive result.
+  New − flat is −£698.94, which is a tie under the rule (±£1,000, EP17).
+  **Where the money went:** almost all of it moved through a channel I did not predict. A
+  withdrawn offer to a household that stays either way can still change its tariff. 5 of the 21
+  households that stayed were above the default with §12's discount removed, so the dominance rule
+  (`renewal_outcome`: stay but decline a fix priced above the default) put them on the default. In §12 the
+  discount had moved them below parity, and they fixed. Example: PROS-2016-0263, at its 2018-09-16
+  roll, had the same roll (0.1911) in both arms. With the 3% discount it was −1.28% against the
+  default; without it, +1.77%. It sat on the default from then on. Those 5 households move gross by
+  about −£2.4k (0263 with its gas leg −£2,313; 0223 −£176; 0092 −£101; 517 +£186; 368 +£18). Every
+  other account together moves −£3. Revenue on them falls £3.6k, which those households did not pay
+  because they were on the default. **By M2, that is transfer, not creation.** In §12 the offers
+  earned their £810 by moving households who were not leaving onto a fix that later cost them more
+  than the default. They saved nobody. The guard's value term, belief × save rate × protected
+  value, does not price this channel, and the save rate it learns cannot see it.
+- **P13e: the AUC leg HELD; the identity leg was REFUTED.** In-run AUC on §9's 268 states is 0.805
+  [0.743, 0.859], within 0.01 of 0.806. But the desk's beliefs are identical to §12's on only 306 of
+  the 451 states present in both arms. 145 differ (2019–2025, median relative difference 1%, max
+  5.4×), and 3 states exist only in §12. The field does not write the belief, but it does change
+  the book the belief reads: the 5 households that moved to the default change which ending-term
+  type each later state carries. That is the likely cause. I did not isolate it, so I cannot yet say
+  it accounts for all 145. My prediction was wrong to equate "does not write the belief" with "the
+  belief is unchanged".
+
+**By the decision rule:** P13a and P13b held, so the company's own evidence says its fix-end offers
+save about one in five of the losses it predicts, and that this pays on almost none of them. The
+guard is a candidate beside the §12 switch, proposed with seeds, and nothing is flipped here. P13c
+did not fail upward (354, not more than 358), so §13's rule does not require the save definition to
+be rewritten first. There is one addition the rule did not foresee. The one-seed money ran against
+the guard, through the parity channel and not through saves, and that money is a transfer from
+households who were staying anyway. Erring against the thesis (F11), the seeds must report it
+separately: offers that changed a stayer's tariff and offers that changed a departure, each with
+the money attached. Otherwise a positive mean for the switch-without-guard arm will read as
+retention value. The grade used `/tmp/pcs13/grade.py` unchanged, with P13e's AUC from
+`/tmp/pcs11/grade.py` and `ARM=` pointed at the new output, as §12 did.
