@@ -179,17 +179,26 @@ nav.doors a.active { color: var(--text); font-weight: 700; }
 
 
 <section class="hero">
-  <h1>An energy company built and run by AI, to find the cheapest tonne of carbon left.</h1>
+  <!-- CORRECTED 2026-10-22 (director steer, the front door for a newcomer): the old headline,
+       "to find the cheapest tonne of carbon left", was the withdrawn July framing. Canon v4 CO1
+       makes pounds per tonne an internal diagnostic, and M11 (ruled 12 Oct, decision 14) puts the
+       mission on the front door with the project's own claim beside it. Both are quoted verbatim
+       from docs/design/DIRECTOR_CANON.md. -->
+  <h1>A GB energy supplier, built and run by AI, living through ten years of the real market.</h1>
+  <p class="pitch">It settles every half hour of 2016&ndash;2025 against real Elexon and NESO
+    data, the 2021&ndash;22 gas crisis included, and it can only learn what a real supplier could
+    learn: meter reads, market feeds, customer contacts, bills and regulatory publications. It
+    never sees the simulation's own internals.</p>
+  <p class="pitch"><strong>The mission:</strong> &ldquo;We are creating enterprise value by
+    automating ways to find individual customers we can create value for, and sharing in that
+    value &mdash; by saving them money, time and carbon, through personalised modelling, tariffs
+    and advice.&rdquo;</p>
+  <p class="pitch"><strong>And the project's own claim, beside it:</strong> that software can be
+    grown and can maintain itself, rather than only be written.
+    <a href="./harness/">How it builds itself &rarr;</a></p>
   <p class="honesty"><strong>No customers. No licence. A running simulator</strong> -- a fully
     autonomous licensed supplier will not be permitted, because a licence needs accountable
     humans, and we say so up front. Autonomy is the <em>how</em>, not the headline.</p>
-  <p class="pitch">Not a model of a company; a running one. It settles half-hourly against real
-    Elexon and NESO market data since 2016, takes only proven answers toward the real world, and
-    discovers its world the way a real supplier would -- meter reads, market feeds, customer
-    contacts, bills, regulatory publications -- never the simulation's own internals. The mission is
-    <strong>automating ways to find individual customers we can create value for, and sharing in that
-    value</strong> &mdash; saving them <strong>money, time and carbon</strong>, through personalised
-    modelling, tariffs and advice.</p>
 </section>
 
 <!-- WHOSE BOOK THIS IS (SITE_EH1_segment_disclosure 2026-07-30, scope item 2: "The revenue mix
@@ -213,28 +222,26 @@ nav.doors a.active { color: var(--text); font-weight: 700; }
      NOT a cohort-£ figure (RC7 wall): a share of revenue and an account count, never a £ total. -->
 <section class="bookmix" data-mix-claim="non_domestic_revenue_share_lt_5">
   <div class="bl">Whose book this is</div>
-  <p><strong>This book is households, as of 24 August 2026 &mdash; and it was not, until that
-    day.</strong> The supplier below is real in the sense that matters here: it settles, prices,
-    hedges, bills and collects against the actual market record. Until this week the population it
-    served was a handful of industrial and commercial accounts carrying <strong>more than 98% of
-    the revenue</strong>, with residential outnumbering them and earning a rounding error &mdash;
-    so the abatement thesis on this page was about households and the book funding it was not.</p>
-  <p>The director has <strong>suspended industrial and commercial supply</strong>. The capability
-    is still built and still tested &mdash; half-hourly settlement, Triad curtailment, the
-    flexibility revenue book, the DUoS/TNUoS split &mdash; the company has simply stopped serving
-    those accounts, which is a different thing from deleting them. What is published now is a
-    domestic book, and every per-customer figure on this site is a figure about a household.</p>
+  <p><strong>This book is households, and most of them take both electricity and gas, as most
+    British homes do.</strong> The supplier below is real in the sense that matters here: it
+    settles, prices, hedges, bills and collects against the actual market record. Every
+    per-customer figure on this site is a figure about a household.</p>
+  <p>It was not always so. Until late August 2026 the book was a handful of industrial and
+    commercial accounts carrying almost all of the revenue, so a household mission was being
+    funded by a book that was not about households. The director <strong>suspended industrial and
+    commercial supply</strong>. The capability is still built and still tested &mdash; half-hourly
+    settlement, Triad curtailment, the flexibility revenue book, the DUoS/TNUoS split &mdash; but
+    the company has stopped serving those accounts, which is a different thing from deleting
+    them.</p>
   <p><strong>It grows because it is won.</strong> Each new account was quoted, credit-checked and
     carried through a statutory cooling-off period, and most quotes lost &mdash; there are years in
     the run that won nothing. Nothing is assigned to this company; a growth curve that cannot be
     lost is not a growth curve.</p>
-  <p><strong>And the curve stops for a reason that is ours, not the market&rsquo;s.</strong> In the
-    last years of the run the book stops growing because our own settlement engine runs out of
-    wall clock, not because the supplier runs out of money or customers &mdash; it holds enough
-    capital for many times the book it has, and its funnel converts at about 19%. That limit is a
-    property of this machine and we would rather say so than let a flattening line read as a
-    commercial result. The measurement, including a cache we tried and threw away because it
-    returned one hit in fourteen thousand, is written up in the repository as
+  <p><strong>And its size is set by this machine, not by the market.</strong> The book starts from
+    a fixed set of founder households and grows by what the company wins. How large it can be is
+    limited by how much one run on this computer can settle, not by the supplier's capital or by
+    demand. We would rather say so than let a small or flattening book read as a commercial
+    result. The first measurement of that limit is written up in the repository as
     <em>SETTLEMENT_CEILING_2026-08-24</em>. Account counts and per-segment economics are on
     <a href="./capabilities/">Capabilities</a>.</p>
 </section>
@@ -259,7 +266,10 @@ nav.doors a.active { color: var(--text); font-weight: 700; }
      green, the wrong thesis); that leg lives on /proof#economics-anchor intact. Uses the .thesis
      styling; carries NO cohort-derived £ (£273 is a government appraisal value, not a run figure). -->
 <section class="thesis">
-  <h2>The score: &pound; per tonne of CO&#8322;e abated <span class="tag tag-prov">NOT YET MEASURED</span></h2>
+  <!-- CORRECTED 2026-10-22: this heading read "The score: £ per tonne of CO2e abated". Canon v4
+       CO1 (ruled 12 Oct, decision 4): carbon's job is to show a household what it has saved and
+       could save, and £/tCO2e is an internal diagnostic, not the public headline. -->
+  <h2>The claim, and what a household saves <span class="tag tag-prov">CARBON SAVED: NOT YET MEASURED</span></h2>
   <p class="hypo"><strong>The claim, falsifiable:</strong> that you create value fastest by knowing each
     household well &mdash; shifting when it draws power, fitting the right assets, pricing the right tariff,
     having the right conversation &mdash; and that the value is real only if the household keeps a share of
@@ -306,10 +316,11 @@ nav.doors a.active { color: var(--text); font-weight: 700; }
     the claim. It is not yet the finding.
     <a href="./capabilities/#value-arms">The three runs, the split and the three-draw band
     &rarr;</a></p>
-  <p class="thesis-sentence">A household is saved <strong>money, time and carbon</strong>. Carbon is the
-    currency with a yardstick already named: the score is <strong>&pound; per tonne of CO&#8322;e
-    saved</strong>, against the UK government's carbon appraisal value,
-    <strong>&pound;273/tCO&#8322;e (2025)</strong>.</p>
+  <p class="thesis-sentence">A household is saved <strong>money, time and carbon</strong>. Carbon's job
+    is to show each household what it has saved and could save in CO&#8322;. Inside the company,
+    the same saving is also priced in <strong>&pound; per tonne of CO&#8322;e saved</strong>,
+    against the UK government's carbon appraisal value, <strong>&pound;273/tCO&#8322;e
+    (2025)</strong>. That price is a diagnostic, not the headline.</p>
   <!-- MISSION REWRITE 2026-08-28 (director, direct; supersedes DIRECTOR_RULING_FRONT_MISSION_BLOCK's
        "carbon abatement through personalisation" sentence, not its STRUCTURE -- claim, score,
        yardstick, number honestly absent, all kept). The paragraph below is the honest state of the
@@ -320,7 +331,10 @@ nav.doors a.active { color: var(--text); font-weight: 700; }
     built.</strong> Only money has ever been <em>optimised</em> here, and only our side of it. What a
     household <em>saved</em> by being with us is now measured &mdash; against the published default
     tariff, at that household's own metered volumes &mdash; but it is a diagnostic and nothing yet
-    decides anything by it. <strong>Time does not appear in this project at all.</strong> And of the
+    decides anything by it. <strong>Time is defined but not yet measured.</strong> It means a
+    household's effort, counted in its own unit (household minutes for each kind of task: shopping
+    around, sorting out a problem, recovering from one, routine admin) and never turned into
+    pounds. Nothing in the run counts those minutes yet. And of the
     three ways value is meant to reach a household &mdash;
     personalised modelling, tariffs, advice &mdash; only <strong>tariffs</strong> reaches one today: the
     modelling that exists is the supplier's opinion about its customers rather than a model offered to
@@ -335,7 +349,7 @@ nav.doors a.active { color: var(--text); font-weight: 700; }
     runs: a household's metered half hours are multiplied by what the grid was actually burning in
     each of them<span id="carbon-worst"></span>. That is <strong>emissions</strong>, and emissions
     are measurable. <a href="./explore/#used">See it on a real household &rarr;</a></p>
-  <p class="thesis-caveat"><strong>Why the score above still says NOT YET MEASURED.</strong> Abatement
+  <p class="thesis-caveat"><strong>Why carbon saved still says NOT YET MEASURED.</strong> Abatement
     is not emissions. It is what a household did <em>not</em> emit because of something we did, which
     needs a claim about a world that did not happen &mdash; a randomised holdout, a matched comparison,
     or a weather-normalised before-and-after. <span id="carbon-coverage">At the current number of
@@ -366,7 +380,7 @@ nav.doors a.active { color: var(--text); font-weight: 700; }
     </div>
     <div class="node">
       <div class="node-head"><span class="node-name">The world</span><span class="stage stage-building">Building</span></div>
-      <p class="node-say">Real weather over 2016&ndash;2025 drives the actual half-hourly wholesale prices &mdash; 168,000 settlement periods, including the 2021&ndash;22 gas crisis. That price record is real. Per-home DEMAND is not there yet: today every property is one national shape rescaled, so homes look far too smooth and a crowd of them does not smooth out the way a real street does. The fabric-physics rebuild (a per-property thermal model driven by its own local weather) is the current top priority.</p>
+      <p class="node-say">Real weather over 2016&ndash;2025 drives the actual half-hourly wholesale prices &mdash; 168,000 settlement periods, including the 2021&ndash;22 gas crisis. That price record is real. Per-home demand is part-way there. Where the weather store covers a household's location, its electricity is drawn half hour by half hour from a thermal model of its own building under its own local weather, and its gas is split between heating and everything else by the same model. Homes outside that coverage still use one national shape rescaled, so they look too smooth, and a crowd of them does not vary the way a real street does.</p>
       <a class="node-look" href="./capabilities/#world">Look: how far the world has actually got &rarr;</a>
     </div>
     <div class="node">
@@ -386,7 +400,7 @@ nav.doors a.active { color: var(--text); font-weight: 700; }
     </div>
     <div class="node">
       <div class="node-head"><span class="node-name">The score</span><span class="stage stage-building">Building</span></div>
-      <p class="node-say">Three tests: survive a worst-case shock, earn on a probability-weighted basis, and abate &mdash; cut carbon per household, priced in &pound; per tonne. Survive and earn run today; the carbon meter is designed but not yet wired to live meter reads, and the site says so rather than pretend.</p>
+      <p class="node-say">Three tests: survive a worst-case shock, earn on a probability-weighted basis, and abate &mdash; cut carbon per household, priced in &pound; per tonne. Survive and earn run today. Household emissions are measured: each home&rsquo;s metered half hours against what the grid was actually burning. Abatement, meaning what a household did not emit because of something we did, is not yet measured, and the site says so rather than pretend.</p>
       <a class="node-look" href="./harness/#not-proven">Look: what we know is wrong &rarr;</a>
     </div>
   </div>

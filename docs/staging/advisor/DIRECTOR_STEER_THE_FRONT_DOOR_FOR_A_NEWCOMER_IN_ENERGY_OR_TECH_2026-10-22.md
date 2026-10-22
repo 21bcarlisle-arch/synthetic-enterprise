@@ -63,3 +63,15 @@ One stretch-log entry with:
 - the cold-reader answers.
 
 — Director steer, 22 Oct 2026, his words above; the review and drafting are the advisor's.
+
+## Progress: item 1 landed 2026-10-22 (seat executor); items 2-9 are handed on, so this file stays open
+
+Each stale claim, before → after:
+- **Headline.** Before: "An energy company built and run by AI, to find the cheapest tonne of carbon left." After: what it is, in two lines ("A GB energy supplier, built and run by AI, living through ten years of the real market", followed by what it settles and what it can see). Then M1 verbatim, then M11 beside it, linking to the Harness page. The "No customers. No licence." paragraph follows.
+- **Whose book this is.** Before: "as of 24 August 2026 … Until this week … more than 98% of the revenue". After: the book is households, most of them on both fuels. The I&C suspension is told as history. The August settlement-ceiling detail (the 19% funnel and the cache) is replaced by the standing caveat: the book's size is set by this machine, not by the market. `data-mix-claim` is unchanged, so the publish gate still recomputes it.
+- **Time.** Before: "Time does not appear in this project at all." After: "Time is defined but not yet measured", in household minutes per kind of task, never pounds (M3). `site/test_home_door.py` now pins the new state, and that pin was mutation-checked red against the old sentence.
+- **The world.** Before: "today every property is one national shape rescaled … fabric-physics rebuild is the current top priority". After: where the weather store covers a household, its electricity comes from a per-building thermal model under its own local weather, and its gas heating split comes from the same model. Outside that coverage, homes still use the rescaled national shape. On the §14 seed-1 flat run (`bc1e6ad78`), 378 of 719 electricity supply points were fabric-eligible and 329 were refused for "no weather archive". No figure is typed on the page.
+- **The carbon contradiction.** Before: "the carbon meter is designed but not yet wired". After: household emissions are measured, and abatement is not (CO4). The score heading changed from "£ per tonne abated" to the CO1 framing. £/tCO₂e and the £273 yardstick stay, as a diagnostic, not the headline.
+- **Knowledge intro.** Before: "the results live on Proof", a page that no longer exists. After: Capabilities and Explore.
+- **Explore, "A supplier with this few accounts…".** Checked and left as it is. A book of a few hundred households is still not a realistic business.
+- **Canon §16 sweep.** Every served `site/**/*.html` was searched for the superseded mission framings ("cheapest tonne", "carbon abatement through", "non-commercial", "public domain", "grown toward go-live", "80 founders"). The only hit was the headline above. The mechanised canon-against-site check is handed on.

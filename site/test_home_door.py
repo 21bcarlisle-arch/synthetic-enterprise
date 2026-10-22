@@ -121,9 +121,17 @@ def test_mission_block_leads_with_score_and_yardstick():
     # The honest state of what the mission promises and has not built. A mission published with
     # two of three channels unbuilt, and no note saying so, is the claim-status defect THE MODEL
     # ON A PAGE's own reading rule names.
-    assert "Time does not appear in this" in body, (
-        "the front door claims to save time without saying time does not exist here"
+    # TIME'S HONEST STATE MOVED ON 2026-10-22, and the subject moved with it. "Time does not appear
+    # in this project at all" contradicted canon M3: time is defined (household minutes per kind
+    # of activity, ruled 12 Oct) but nothing in the run counts it. The page must say both halves.
+    assert "Time does not appear in this" not in body, (
+        "the front door still says time does not exist here, which contradicts canon M3"
     )
+    assert "Time is defined but not yet measured" in body, (
+        "the front door claims to save time without saying nothing measures it yet"
+    )
+    # The withdrawn July headline (canon §16; CO1 makes £/tCO2e a diagnostic, not the headline).
+    assert "cheapest tonne" not in rendered, "the front door leads with the withdrawn carbon headline"
     assert "only <strong>tariffs</strong> reaches one today" in body, (
         "the front door names three channels without saying only one reaches a household"
     )
