@@ -8,6 +8,39 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-22 — The banner's false episode closed at the producer, a frozen 'Right now' count on How it's built, and a profiled home now settles on its profile
+
+<!-- head: ed071724658c -->
+
+*Autonomous worker, 22 Oct 2026, evening. Drawn: the lane-0 item a-profiled-home-settles-its-own-volume-on-its-registered-profile. The director's banner steer came first, under the advisor-channel rung.*
+
+## The banner: what was false, and the producer side
+
+The front door's "PUBLISHING IS FAILING ... over 80.0h" was not the browser reading a frozen site copy, which is what the advisor took it for. The liveness-branch heartbeat was current (13:40Z today). It carried the publisher's own record, and that record still held an open episode. Monday's publish `2a195224b` was merged onto origin by a seat (`f8f3d0fd5`), not pushed by the publisher, so `record_publish_gate_success` never ran. The episode's cause (`gate_refusal`) is not one git can re-ask, so `close_episode_if_cause_cleared` logged "only a publish can close this episode" eleven times while a publish already had.
+
+Two lanes fixed it from opposite ends, independently and within 20 minutes. `8bf9103a1` (the seat executor) makes the reader, `publisher_refusal`, read `held` once a publish has landed inside the episode. That lane also took the banner off the home page, put the quiet "Figures from the run of 19 Oct 2026 · published every Monday" line in its place, and showed that today's four red deploys all deployed, with only the served-bytes window failing. `383adfab9` (this tick) makes the producer close the episode when git's date for the figures on origin is later than `wedge_since` (rule `publish_landed`). I then ran that close once on the live record: it now reads `held`, next publish Mon 26 Oct 04:00, closed by `publish_landed`. The two fixes complement each other. The reader's fix stops the false word, and the producer's fix stops the false episode.
+
+## The class sweep (steer item 2), by count
+
+Six `site/data/*.json` files carry runtime state and are rendered on a page. Three age themselves against the reader's clock: `tick_heartbeat.json`, `publish_provenance.json` and `delivery.json`. Three did not:
+- `director_reserved.json` (How it's built): **"Right now nothing is waiting on him", from a file last written on 18 Sep.** Fixed in the commit carrying this entry. The page now says "Right now" only while the count is under 8 days old (one weekly cadence plus a day). Past that it names the day it was counted and says the count is too old to say what is waiting now. Mutation-proven. **Owed:** the producer. Nothing has refreshed the file since 19 Sep.
+- `proof.json` `renderStamp` and `director_delta.json`: they show their own dates as labels but do not gate on them. Both refresh with each weekly publish, so they are inside the bound today. A shared self-age check across the site is still owed.
+
+## The settlement build (the drawn item)
+
+A fabric home without HH settlement is now billed on its meter and bought on its registered profile, trued up to its own volume over each term. That is how a 2016–2025 domestic meter was settled. The prereg (P15) was written before the code, and the full book was graded through the run's own writer. P15a is exact: 2,472 home-years, max gap £0.0000, no revenue moved. P15b holds: night-heavy electric +£16.9 a year, day-heated electric −£37.3, gas-heated +£1.5. The book barely moves (+£3,030 gross), because the two electric groups mostly cancel. The PC3 SMEs' +£100 a year does not move, because their shape is already their profile. The +£100 is the weather adjustment against the raw 1997 table, a GAP. The run-level grade after hedging waits for a published run. The front door's garbled settlement sentence (steer item 4) is rewritten with the measured figure, in the same commit.
+
+## What I got wrong
+
+P15c's arithmetic summed the two electric subgroups and missed the one home between them: £3,043 predicted against £3,030 measured. It is kept beside the result.
+
+## Still owed from the steer
+
+The producer for `director_reserved.json`; the site-wide self-age check; publisher state as an operational line on How it's built; item 5, the Claude Code package. The mover work is already drawn in DIRECTION.yaml.
+
+---
+
+
 ## 2026-10-22 — orientation: Sideways for the thesis and forward for the site
 
 <!-- head: dda217571f66 -->
