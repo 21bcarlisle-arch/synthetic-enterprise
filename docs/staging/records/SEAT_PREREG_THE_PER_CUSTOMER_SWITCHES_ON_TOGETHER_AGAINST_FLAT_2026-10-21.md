@@ -1170,3 +1170,14 @@ moves money from households who were staying. `same_choice` moves the discount t
 **Launch plan.** The three arms of seed 1 run serially in one unit, about 1h and 7 GB each. Seeds 2
 to 4 are handed on as their own launches, so that one seed's 3h never holds a continuation past
 its window.
+
+**Seed 1 launched 2026-10-22 03:11Z**, after the predictions above were on origin at `bc1e6ad78`.
+Unit `longjob-pcs-arms-s14-seed1`, from the locked worktree `/var/tmp/se-pcs-arms14` (detached at
+`bc1e6ad78`). It runs `/var/tmp/se-pcs-arms-out/run_seed.sh 1`: flat, then all_on_ending_term,
+then all_on_save_odds, each writing `s1/<arm>.{json,log,rc}`. The unit log is
+`/var/tmp/se-pcs-arms-out/s1_unit.log`. Expect about three hours. Seeds 2 to 4 use the same script and
+worktree, one unit per seed. Grade a seed with
+`python3 -m tools.grade_per_customer_switch_seeds s1:$O/s1/flat.json:$O/s1/all_on_ending_term.json:$O/s1/all_on_save_odds.json`,
+and add one `sN:...` triple per seed as each finishes. The 95% interval prints from two seeds.
+Each output's `_dice_seed` block records how many renewal-roll and payment draws the seed reached,
+per binding.
