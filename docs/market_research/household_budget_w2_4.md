@@ -612,3 +612,11 @@ from £198 to £580 (Ofgem £1,303). Heads rise by 0.3-4.1 points, and there is 
 pre-registered bands hold. The median is nearly unchanged, so the gain is the persistent-deficit tail.
 Depth falls after 2019, where the record's rises, and that is not yet explained. **The switch stays
 off until the queued second seed is graded.**
+
+### Graded, seed 2 (2026-10-22): all five bands hold again
+
+Result: `docs/staging/records/SEAT_RESULT_THE_SHORTFALL_SHARED_ON_THE_MONTHS_DEMAND_SEED_2_2026-10-22.md`.
+Depth runs 2.8-6.0 against 1.6-2.6, and £ per account in arrears at 2023 is £710 against £250 (Ofgem
+£1,303). Heads rise by 0.3-4.1 points, and no year overshoots. The fall in depth after 2019 comes back
+on this seed, so it belongs to the budget population and is not payment noise. With two seeds held, the
+switch can go on, by the same two-seed rule as `ENERGY_SHARES_THE_SHORTFALL`.

@@ -54,3 +54,10 @@ The same two arms on dice seed 2 (`dump_arm.py ARM 2023-12-31 OUT 2`, which wrap
 `/var/tmp/leaver_trace/arm_{stock,demand}_s2.json`. **D1-D5 apply unchanged.** What the seed can show
 is the same as the shared-shortfall second seed: it re-draws the payment noise around the budget, not
 which households the budget puts under water. So it bounds the noise, not the budget population.
+
+## Seed 2 graded (2026-10-22): D1-D5 all hold
+
+Full table in `docs/staging/records/SEAT_RESULT_THE_SHORTFALL_SHARED_ON_THE_MONTHS_DEMAND_SEED_2_2026-10-22.md`.
+Depth at 2023 is 5.1 against 1.7, £710 against £250, and heads are up 4.1 points. The 2019-2020 fall in
+depth comes back (6.0 to 2.8), so it is not noise. Both seeds have now held, which meets this record's
+condition for the default to move.
