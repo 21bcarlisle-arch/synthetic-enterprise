@@ -1182,6 +1182,65 @@ and add one `sN:...` triple per seed as each finishes. The 95% interval prints f
 Each output's `_dice_seed` block records how many renewal-roll and payment draws the seed reached,
 per binding.
 
+### 14. Seed 1 (graded 2026-10-22 ~07:45 BST; unit rc=0, all three `s1/*.rc` 0, every arm stamped `bc1e6ad780`)
+
+Graded with `python3 -m tools.grade_per_customer_switch_seeds s1:...` from a worktree at origin/main
+`8486305f24`.
+
+**What the dice blocks say.** `customer_events` binding: 236 / 346 / 325 seeded renewal rolls
+(flat / ending_term / save_odds). `retention_offer` binding: 0 / 108 / 86, so it is above 0 in both
+offer arms. Payment draws: 54,487 / 54,410 / 54,410. The `run_phase2b` binding read **0 in every
+arm**. The item asked for "every binding reached", and this one was not. Nothing in these arms
+calls the roll through `run_phase2b`'s name. The run's own refusal does not need it, and nothing
+here is wrong because of it. But a seed cannot show that this binding is patched.
+
+**P14a, the dice reach the world: FAILED as written.** Flat departed **353** accounts, the same as
+the default dice's 353, so the count leg (a difference of at least 3) fails. The set leg passes:
+20 accounts left only under the default dice and 20 only under seed 1. At the event level, 62 of
+the default's 95 `churned`/`renewal` events and 59 of seed 1's 92 are not in the other run. The
+patch did reach the world. The count leg was the wrong instrument, and my prediction was wrong
+because only about 95 of the 353 departures are fix-end rolls the seed re-draws. The rest come from
+channels §14 holds, so the total barely moves. The set comparison is also confounded. The default
+flat ran at `0f2b04c84`, and `5c0eeeb489` (shared shortfall on by default) landed between that
+commit and `bc1e6ad78`.
+
+**By the rule fixed before the run, seed 1 is void.** I keep the rule. The rule's remedy, "re-run
+after the patch is re-resolved", has nothing to act on, because the patch fired. A re-run of seed 1
+at `bc1e6ad78` is deterministic and would reproduce this output. So seed 1 stays out of the pool,
+and **seed 5 is added** to keep four graded seeds (2, 3, 4, 5). The P14b and P14c legs below were
+read, and are recorded as read. They are **not counted**.
+
+| pair (seed 1, void) | net | gross | unattributed | departure | parity | other | same_choice |
+|---|---|---|---|---|---|---|---|
+| ending_term − flat | −£1,673 | −£4,433 | +£2,760 | 1h −£4,741 | 4h −£30 | 4h +£441 | 385h −£104 |
+| save_odds − flat | −£1,617 | −£4,371 | +£2,754 | 1h −£4,741 | 3h −£56 | 4h +£441 | 386h −£15 |
+| save_odds − ending_term | +£56 | +£62 | −£6 | 0 | 1h −£26 | 0 | 111h +£89 |
+
+- P14b per-seed legs (not counted): ending_term − flat `parity` was −£30, the wrong sign but inside
+  [−£500, +£4,500]. save_odds − ending_term `parity` was −£26, negative as predicted.
+- P14c per-seed leg (not counted): save_odds − ending_term `departure` held 0 households, within the
+  bound of 3.
+- **One thing this seed shows about the decision rule, whatever its status.** The rule grades
+  `departure` by **gross**. Here the one extra departure carries −£4,741 gross, and the pair's
+  net-minus-gross is +£2,760. The likeliest source is that household's own provision and cost
+  lines, which leave with it. That is **not established per household**: the grader does not split
+  `unattributed`. If it is the source, gross overstates what a departure costs by about 2.4 times.
+  The rule stands as filed. Splitting net by household for the departure channel is a grader
+  change, handed on. It is not a reading of this seed.
+
+**P14a′, filed now, before any seed 2 output exists, and binding seeds 2 to 5.** It replaces the
+count leg with a comparison at one commit. The `churned` events (account, date) in seed N's flat
+differ from seed 1's flat (the same commit, `bc1e6ad78`, with only the seed changed) by at least
+20 events in the symmetric difference: 95%. That property is the one the roll controls. A seed that
+fails it is void and is re-run as the original rule says. The original count leg is still reported
+on every seed, and nothing rests on it.
+
+**Seed 2 launched 2026-10-22 ~07:40 BST** as `longjob-pcs-arms-s14-seed2` (queued behind a landing
+in progress, `longjob-pcs-arms-s14-seed2-queued`). It runs `run_seed.sh 2` from the locked
+worktree `/var/tmp/se-pcs-arms14` (`bc1e6ad78`). Its unit log is `/var/tmp/se-pcs-arms-out/s2_unit.log`
+and its artefact is `s2/all_on_save_odds.json`. Seeds 3, 4 and 5 are each handed on as their own
+launch.
+
 ## 15. The save rate learned against a holdout: `all_on_save_odds_holdout` beside `all_on_save_odds` (filed 2026-10-22, before either arm was launched)
 
 *Drawn as `the-save-rate-is-learned-against-a-holdout`. Knowledge first:
