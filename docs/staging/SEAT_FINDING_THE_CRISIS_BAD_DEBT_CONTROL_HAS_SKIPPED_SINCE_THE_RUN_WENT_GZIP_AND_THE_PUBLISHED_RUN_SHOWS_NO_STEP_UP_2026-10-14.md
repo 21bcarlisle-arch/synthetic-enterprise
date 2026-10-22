@@ -1170,3 +1170,53 @@ ageing buckets, not the world.
 
 **Status:** OPEN and BLOCKING. Next: grade this prediction on the 2026-10-26 published run. Do not
 launch a full run for it before then.
+
+## 2026-10-22 (11:00 BST): a HEAD run is launched beside seed 2, and the run already in the shared tree moves the wrong way
+
+**Correction to the status above** ("do not launch a full run for it before then"). The delivery
+seat overruled it: one full-window run at HEAD now answers this grade, D48's held-bill prereg and
+the post-departure gas count, and it runs beside `pcs-arms-s14-seed2` rather than after it.
+- **The run.** Long job `head-crisis-989ce4f1c2`: `python3 -m tools.run_annual_report --save-json
+  /var/tmp/se-head-crisis-out/run_output.json`, from the locked worktree
+  `/var/tmp/se-head-crisis-989ce4f` at origin **989ce4f1c2**. That commit carries the budget switches,
+  the demand reading (5c0eeeb48), part payments (6b81d3b25), the post-departure gas fix (2b81e1466)
+  and the gas-PPM read instruction (c6c09641e). Peak 7,100 MB, about 150 min. At 09:52Z it was
+  queued by admission behind a landing's commit gate, in its own unit, so it outlives the tick.
+- **The grader** is `/var/tmp/se-head-crisis-out/grade.py`. It runs the three live bases of
+  `validate_run_output`, recomputes `held_bills`, and counts gas billed on or after each household's
+  departure. It was checked against the run below first.
+- **It is not an attribution run.** It changes three world mechanisms and about 20 other commits
+  against ec7fd9942 at once. Whatever it shows, the grade says what moved and not why.
+
+**Graded meanwhile, UNPUBLISHED: the shared tree's plain run, `producing_commit` 76a29bd92.** That
+run carries the budget switches (it descends from ec7fd9942) but not the demand reading or part
+payments. So it is ec7fd9942's world plus 14 commits to the world and the company, read through
+`run_output_store`:
+
+| run | basis | crisis 2022-23 | pre-crisis 2016-19 | step-up | verdict |
+|---|---|---|---|---|---|
+| ec7fd9942 (10-21 grade) | ifrs9_charge | 0.4000% | 0.2184% | x1.83 | FAIL floor only |
+| **76a29bd92** | headline | 0.0678% | 0.2363% | x0.29 | FAIL floor + step |
+| **76a29bd92** | pnl_accrual | 2.0487% | 2.0038% | x1.02 | FAIL step |
+| **76a29bd92** | ifrs9_charge | **0.2263%** | **0.2898%** | **x0.78** | FAIL floor + step |
+
+The IFRS 9 charge by year on 76a29bd92, GBP: 2016 245, 2017 971, 2018 1,051, 2019 558, 2020 528,
+2021 195, **2022 1,282, 2023 1,012**, 2024 -285. Revenue: 2022 421,868, 2023 591,570.
+
+**What this says.** The x1.83 step-up of 10-21 did not survive the next 14 commits, before any of
+the three new mechanisms. The crisis pounds fell (2022 1,825 to 1,282) while revenue rose (2022
+343,923 to 421,868), and 2017-18 now charge about GBP 1,000 a year. Those are the years the book
+fills. **I cannot yet say which commit moved it.** Two candidates lead on the evidence:
+8927e9345 made the founders 400 households (a different book, so a different fill curve in
+2016-18), and cda47a346 moved the E6 provision on early-warning signals before a miss. The order
+effect on stayers from 2b81e1466 is not in this run. The one-variable test is ec7fd9942 against
+8927e9345 with nothing else changed. It is not launched here. The HEAD run comes first, because if
+its step-up is back over x1.2 the question changes.
+
+**137cdb443's prediction is unchanged, and so is its base.** It was written against ec7fd9942, and
+76a29bd92 now says that base was not stable. So the HEAD grade will read the prediction against
+both bases: 0.50-0.80% and x1.1-1.5 against ec7fd9942's world, and the direction of move against
+76a29bd92's.
+
+**Status:** OPEN and BLOCKING. Next: grade `head-crisis-989ce4f1c2` when its artefact exists. Ask
+`.launch_records.json` for the job before relaunching anything.
