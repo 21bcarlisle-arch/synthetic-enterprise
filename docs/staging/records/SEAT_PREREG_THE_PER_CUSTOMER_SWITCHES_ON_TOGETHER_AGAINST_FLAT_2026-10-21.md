@@ -1308,3 +1308,72 @@ at those sizes is about 0.12. With no true effect, `(h − o)/h` then has an SE 
   read is noise at this sample size. That is written up as the holdout being too small for one year
   at this book (§9e already says N ≤ about 65 cannot resolve it), and the share is not tuned to
   rescue it.
+
+### 15g. Grade (2026-10-22 ~09:55 BST, both outputs present)
+
+**What ran (the launch line, not landed before launch).** `/var/tmp/se-pcs-arms-out/run_s15.sh`, unit
+`longjob-pcs-arms-s15-holdout`, from the locked worktree `/var/tmp/se-pcs-arms15` detached at
+`fdec35bd9`. It ran each arm serially as `python3 -m tools.per_customer_switch_arms <arm>
+/var/tmp/se-pcs-arms-out/s15/<arm>.json`. `all_on_save_odds` ran 04:35:54–05:36:31Z and
+`all_on_save_odds_holdout` ran 05:36:31–06:36:35Z. Both returned rc 0.
+
+**One commit, in substance.** The control stamps `fdec35bd9`. The holdout arm stamps `714164f49`,
+because two `SALVAGE(auto)` commits landed on the worktree between the arms (05:09Z and 05:35Z).
+`git diff --stat fdec35bd9 714164f49` touches only `docs/context-handshake-latest.md`, `token-log.md`
+and four `docs/observability/*.json` ledgers. Nothing changed in `company/`, `saas/`, `simulation/`,
+`sim/` or the arm tool, so the two arms ran the same code. The worktree had been removed by the time
+of grading. So `grade_s15.py` ran from the shared tree at `15f3e0e22`, and its only use there is
+`kind_at`, which feeds P15c's fix-end count.
+
+**Placebo** (`HOLD=` the control): 0 held out, held share 0.000, every money and departure delta
+0.00. The control's 2018 fix-end save rate reads 0.1896, so the control repeats §13's 0.19.
+
+| figure | control `all_on_save_odds` | holdout arm |
+|---|---|---|
+| 2017 offers / held out | 83 / – | 62 / 21 (all fixed-ending), union = control's 83 exactly |
+| 2018 offers (fix-end / default) | 5 (1 / 4) | 4 (0 / 4) |
+| held-out renewals, total | – | 22 (21 fixed 2017, 1 default 2018) |
+| `changed_a_departure` | 0 offers, £0 | 0 offers, £0 |
+| `changed_a_stayers_tariff` | 7 offers, £160.49 | 7 offers, £143.65 |
+| `changed_neither` | 81 offers, £1,482.46 | 59 offers, £762.79 |
+| offer cost | £1,642.94 | £906.44 |
+| departures | 355 | 354 (only control: SYN-2016-387) |
+| `provisioned_net_gbp` | £600,135.82 | £600,713.81 (H−C **+£577.98**) |
+
+**What the holdout taught.** The run logs no rate on the holdout side, which is an instrument gap.
+On that side the rate reaches only the guard's refusal, and no output row carries it. So I rebuilt it
+in the harness from the run's own records. Each 2017 offer and held-out renewal was joined to the
+world's `customer_events` at its roll date. For the offers this reproduces the run's own `outcome`
+field exactly (36 renewed, 26 churned). The holdout lost 8 of 21 (Jeffreys h = 0.386). The offered
+group lost 26 of 62 (o = 0.421). `(h − o)/h` = −0.09, floored to **0.000**. The offered group lost
+slightly more often than the group that got nothing.
+
+- **P15a HELD.** Offered ∪ held-out equals the control's 2017 set on (account, date): 0 only-C,
+  0 only-H. The held share is 0.253, inside [0.17, 0.38]. No held-out key appears in
+  `retention_log`. The coin reached the run.
+- **P15b HELD.** The 2018 fix-end rate is 0.000. That is in [0, 0.45], exactly 0, and below §13's
+  0.19. Default-term types read `None` in 2018 by the code path: no default-ending renewal was held
+  out and closed in 2017 (n_h = 0), so the guard kept its standing behaviour and made 4 default
+  offers, as the control did. This leg comes from the rebuild above and not from a logged value.
+- **P15c HELD.** There were 0 fix-end offers from 2018 in the holdout arm, against the control's 1.
+  Total held-out renewals were 22, at the bottom edge of 22–32.
+- **P15d HELD.** `changed_a_departure` is 0 in both arms. `changed_a_stayers_tariff` is 7 in the
+  control, on the point. `changed_neither` carries 90% of offer cost in the control and 84% in the
+  holdout arm.
+- **P15e HELD on its bands, REFUTED on its point.** Departures differ by 1. H−C is +£578, inside
+  ±£1,000, so it is a tie under EP17. I predicted −£300, and the sign is wrong. The discount not
+  given was £736, not about £420. That covers 22 offers withheld in 2017 and a fix-end offer in 2018,
+  and on this one seed it outweighed the fixer-to-default loss §13 priced at about −£470 a
+  household. With one seed and one book this is a point reading with no interval. §14's seeds are
+  what can size it.
+
+**Decision rule.** P15a holds, and `changed_a_departure` is 0 in both arms. So the company's own
+experiment and the world agree that **the offers saved nobody**. The record says per-customer
+retention offers on this book are **transfer, not creation (M2)**. Every pound of offer cost lands
+on a stayer, and most of it changes nothing at all. The holdout switch
+(`retention_save_rate_learned_against_holdout`) is now the candidate to pair with the §13 guard,
+because it is the only form in which the company could learn this the way a real supplier would.
+Proposing it for CURRENT_POLICY waits on §14's seeds, as fixed. The >0.45 noise branch did not
+arise. Still owed: write the holdout-side rate and its reason onto each refusal row
+(`no_offer_churn_log` or `retention_save_holdout_log`). That would make P15b a reading rather than
+a rebuild.
