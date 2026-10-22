@@ -169,4 +169,9 @@ actual bill, grouped by `period_start` year: the population of the table in sect
 
 ## 3. Launch
 
-*(appended below at launch)*
+Launched 2026-10-22T15:37:46Z at **30674a4bd** (the commit that landed this record and the switch),
+from the locked worktree `/var/tmp/se-annualised-arms`, as unit
+`longjob-annualised-advance-arms-30674a4bd` (`background.launch_long_job`, admitted at 7,000 MB
+peak). `control` then `annualised`, serially, by `/var/tmp/se-annualised-arms-out/run.sh`; each arm
+writes `<arm>.json`, `<arm>.log` and `<arm>.rc` there. Nothing reads or writes
+`/var/tmp/se-pcs-arms-out` or `/var/tmp/se-pcs-arms16-out`. No outcome has been read.
