@@ -175,3 +175,119 @@ from the locked worktree `/var/tmp/se-annualised-arms`, as unit
 peak). `control` then `annualised`, serially, by `/var/tmp/se-annualised-arms-out/run.sh`; each arm
 writes `<arm>.json`, `<arm>.log` and `<arm>.rc` there. Nothing reads or writes
 `/var/tmp/se-pcs-arms-out` or `/var/tmp/se-pcs-arms16-out`. No outcome has been read.
+
+## 4. Graded (2026-10-22, delivery seat): three held, two refuted, the decision rule says propose default on
+
+**Validity.** Both arms exited 0 at **30674a4bdd** (`control` 15:37:46Z to 16:38:21Z, `annualised`
+16:38:21Z to 17:41:04Z). Each payload carries its own switch: `_bill_estimate_reads_the_annualised_advance`
+is False in `control.json` and True in `annualised.json`. Both books bill 53,110 bills, and the
+error population (estimated bills after the account's first actual bill, true use above 0) holds
+the same count in every year under both arms, so the comparison is between the same bills. Graded
+in one process (a scratch script that reads both files and nothing else, not kept) against the
+instrument in section 2.
+
+| | prediction | control | annualised | verdict |
+|---|---|---|---|---|
+| **PA** tail | count of \|catch-up\| ≥ £500 within ±4 of control (point +1) | 30 | **24** (−6) | **REFUTED**, in the favourable direction: the tail improved, which I predicted it would not |
+| **PB** money moved | sum \|catch-up\| ratio in [0.70, 0.92] (point 0.83) | £187,975 | £147,136 | **HELD** at 0.783 |
+| **PC** D48 error by year | lower in ≥ 8 of 9 years 2017-2025; 2016 within ±1 pp | | | **HELD**: lower in **9 of 9**; 2016 −0.22 pp |
+| **PD** 2022-23 overcharges | negative catch-ups closing 2022-23, ratio in [0.75, 1.00] (point 0.92) | −£35,740 | −£28,241 | **HELD** at 0.790 (0.784 if keyed on the catch-up's run end, not the bill) |
+| **PE** PROS-2017-0336 | its 2021-23 catch-up becomes a credit of £2,000-£6,000 | +£4,224.94 | **−£1,451.63** | **REFUTED**: the sign turned as predicted, but the credit is below the band |
+
+### D48 estimated-bill error by year (the arms, not the projection)
+
+| year | est. bills | billed/true, control | annualised | mean \|bill err\|, control | annualised | change |
+|---|---|---|---|---|---|---|
+| 2016 | 1,585 | 1.056 | 1.063 | 19.9% | 19.7% | −0.22 pp |
+| 2017 | 4,697 | 1.008 | 1.002 | 16.2% | 15.6% | −0.59 pp |
+| 2018 | 4,457 | 0.997 | 0.986 | 16.0% | 15.0% | −0.99 pp |
+| 2019 | 3,759 | 1.006 | 0.996 | 16.9% | 15.6% | −1.31 pp |
+| 2020 | 3,369 | 1.035 | 1.017 | 17.3% | 15.6% | −1.70 pp |
+| 2021 | 3,150 | 1.011 | 0.994 | 17.2% | 16.1% | −1.08 pp |
+| 2022 | 3,157 | 1.020 | 1.014 | 15.3% | 14.6% | −0.64 pp |
+| 2023 | 3,189 | 1.019 | 1.007 | 15.4% | 14.3% | −1.09 pp |
+| 2024 | 3,113 | 1.003 | 0.987 | 14.7% | 13.3% | −1.35 pp |
+| 2025 | 1,548 | 1.001 | 0.995 | 15.6% | 14.6% | −0.98 pp |
+
+The per-bill error falls in every year. Pooled billed/true does not uniformly move toward 1: it
+does in 2017, 2019-2023 and 2025, and overshoots to the low side in 2016, 2018 and 2024 (0.986,
+0.987). The annualised estimate leans slightly low in those years; it is not a bias the
+three-read estimate was free of (it leaned high in 2020 by 3.5%).
+
+### Catch-ups by year
+
+| year | overcharges ≤ −£500, control | annualised | undercharges ≥ £500, control | annualised | overcharge sum, control | annualised | sum \|catch-up\|, control | annualised |
+|---|---|---|---|---|---|---|---|---|
+| 2016 | 0 | 0 | 0 | 0 | −1,454 | −1,497 | 5,106 | 5,122 |
+| 2017 | 1 | 1 | 3 | 3 | −8,492 | −9,051 | 20,528 | 20,262 |
+| 2018 | 1 | 1 | 3 | 3 | −8,036 | −5,884 | 17,482 | 13,827 |
+| 2019 | 0 | 0 | 1 | 3 | −6,732 | −4,780 | 14,593 | 11,574 |
+| 2020 | 1 | 0 | 1 | 0 | −8,441 | −4,316 | 14,335 | 8,694 |
+| 2021 | 0 | 0 | 1 | 1 | −6,714 | −4,530 | 12,467 | 10,220 |
+| 2022 | 0 | 0 | 1 | 1 | −10,445 | −7,780 | 17,961 | 13,882 |
+| 2023 | 6 | 2 | 4 | 2 | −25,295 | −20,461 | 45,969 | 33,104 |
+| 2024 | 2 | 2 | 2 | 2 | −15,225 | −10,562 | 27,335 | 21,136 |
+| 2025 | 1 | 1 | 2 | 2 | −6,125 | −4,714 | 12,199 | 9,317 |
+
+Catch-ups raised: 4,485 to 4,256. 2023, the year of the large overcharges, carries most of the
+gain: £500+ catch-ups 10 to 4, sum |catch-up| −£12.9k.
+
+### Every catch-up of £500 or more
+
+**Gone under the annualised arm (9), plus one sign change:** SYN-2016-565 2020-02 +£702.00; PROS-2017-0336 2020-06
+−£2,035.05; SYN-2016-487 2023-03 −£555.20; PROS-2018-0016g 2023-04 −£784.69; PROS-2018-0137g
+2023-04 +£570.16; SYN-2016-531g 2023-04 −£754.66; OCC-564700946c93 2023-09 −£630.52;
+SYN-2016-150g 2023-11 −£728.43; SYN-2016-221 2024-08 −£509.62. PROS-2017-0336's 2023-03
+catch-up stays over £500 but changes sign (below). 30 − 9 + 3 = 24.
+
+**New under the annualised arm (3):** PROS-2017-0336 2019-02 +£532.19 (was +£292.94);
+SYN-2016-565 2019-05 +£786.18 (was under £500); SYN-2016-565 2024-07 −£1,796.83 (was under £500).
+
+**Shrunk:** SYN-2016-042 +£1,117.18 → +£654.49; SYN-2016-225 2018-05 +£761.13 → +£500.12;
+SYN-2016-565 2022-07 +£1,054.21 → +£1,024.30;
+SYN-2016-565 2023-04 +£3,464.34 → +£2,435.00; SYN-2016-221 2024-01 −£1,680.65 → −£1,075.86;
+PROS-2017-0336 2025-03 +£2,179.81 → +£904.17.
+**Grew** (0336 also grew on its new 2019-02 catch-up and on one under £500, 2023-11): PROS-2017-0336 2021-05 +£576.45 → +£1,022.11; 2023-09 −£1,146.23 → −£1,451.48; 2024-07
++£1,710.29 → +£2,316.45; 2025-06 −£657.93 → −£758.60; and 2018-11 −£1,290.75 → −£1,364.81.
+**Unchanged to the penny (9):** SYN-2016-225 2017-05, SYN-2016-582 2017-07, PROS-2017-0117 2017-11,
+PROS-2017-0336 2018-02, OCC-b1aaf5ab7f3d 2018-09, PROS-2017-0233 2019-08, PROS-2022-0178 2023-06,
+PROS-2024-0010 2024-05, PROS-2025-0106 2025-06. Most are early in an account's life, consistent
+with the build falling back to three reads where no 182-day advance exists; I did not check each.
+
+### PROS-2017-0336
+
+Its 2021-06 to 2023-02 run closes at **−£1,451.63** (a credit) under the annualised arm, against
++£4,224.94 under control. The swing is £5,676.57, so the advance overshoots by about a third of the
+three-read miss, not by the +22% the section-1 projection implied (which would have
+put the credit near the middle of PE's band). Of its 14 catch-ups, the annualised arm shrinks the
+absolute value of 4, grows 7 and leaves 3 alone: its total |catch-up| goes from £15,845 to
+£11,860; the 2023-03 and 2020-06 runs carry most of the fall. It is still the book's largest
+source of catch-ups under both methods (next: SYN-2016-565, £8,461 → £8,577). A
+high-use electrically heated home whose use moves year to year is not what either method fixes.
+
+### Where the projection in section 1 was wrong
+
+The projection predicted the tail at 30 to 31 and PA was registered on it. The arm gives 24. The
+linear kWh scaling ignores everything a re-run changes besides one run's kWh. My unchecked
+hypothesis is that a smaller estimate error compounds into later runs (a nearer DD, a nearer
+opening level), which the projection cannot see. The four "new" catch-ups the
+projection listed (SYN-2016-169g, PROS-2020-0016g, SYN-2021-001, SYN-2016-565 −£2,934) did not
+appear at £500+ in the arm except SYN-2016-565's, at −£1,797. The projection under-stated the
+benefit. PE was refuted for the same reason in the other sense: the projection over-stated the
+overshoot on 0336.
+
+### The other side of the ledger (M2)
+
+Company net falls £318.89 (£716,914.02 to £716,595.13), all of it in bad debt
+(£8,265.72 to £8,584.61). Customers are billed closer to what they used and £40.8k less money moves
+by catch-up. This is accuracy, not a transfer: the bills are nearer the truth in every year. I
+cannot yet say which accounts carry the +£319 of bad debt; it is small against the catch-up change
+and I did not chase it in this turn.
+
+### Decision rule applied
+
+**PB held, PC held, and PA did not rise (it fell by 6).** The rule fixed in section 2 says the
+seat proposes default on in `for_the_director` with these arms. Raised as a concern; the switch
+stays off until he answers. **Next variant: the gas 9-month floor** (Xoserve's AQ minimum, K2
+design choice 1), then a cap on the advance's weight against the three-read level for an account
+whose recent reads diverge, the change aimed at accounts like PROS-2017-0336.

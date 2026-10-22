@@ -556,3 +556,28 @@ for_the_director:
   evidence: Prereg §16 and knowledge §9f of a_save_offer_against_the_switching_rules_and_the_seam.md.
     On §15's holdout (8 of 21 lost held out, 26 of 62 offered) the 95% interval is [-0.99, +0.40]. Clearing
     the 0.83 break-even needs roughly ten times fewer offered losses than held-out losses.
+- id: the-estimated-bill-can-read-the-customer
+  raised: '2026-10-22'
+  kind: strategy
+  what: 'The estimated bill can read the customer''s annualised advance instead of their last three reads
+    (D48, built default off). Its pre-registered arm pair is graded: per-bill estimate error falls in
+    all 10 years, money moved by catch-ups falls 22%, and catch-ups of 500 pounds or more fall from 30
+    to 24.'
+  proposal: Turn DecisionPolicy.bill_estimate_reads_the_annualised_advance on by default, for every standing
+    policy. Say 'yes' and the seat flips the default and re-pins the controls that name it.
+  recommendation: 'I recommend turning it on. Evidence: the pre-registered decision rule (PB and PC hold,
+    the tail does not rise by more than 4) is met, and the bills are nearer what customers used in every
+    year, which is billing accuracy, first in your order. Trade-off: company net falls 319 pounds, all
+    bad debt, and three new catch-ups of 500 pounds or more appear on accounts whose use moved after the
+    advance year; PROS-2017-0336 remains the largest catch-up account under both methods. Holding position:
+    the switch stays off. What would change it: the gas 9-month-floor variant, which runs next, worsening
+    the tail, or a reason from you that a billing-method change belongs on a curriculum rather than the
+    standing policy.'
+  status: open
+  resolution: ''
+  evidence: 'docs/staging/records/WORKER_PREREG_THE_BILL_ESTIMATE_READS_THE_ANNUALISED_ADVANCE_2026-10-22.md
+    section 4: two arms at 30674a4bd, one variable. PB held (sum of catch-ups 187,975 to 147,136 pounds,
+    ratio 0.78), PC held (mean estimated-bill error lower in 9 of 9 years 2017-2025, by 0.6 to 1.7 points),
+    PD held (2022-23 overcharges 0.79 of control). PA and PE were refuted in the favourable direction:
+    the tail fell by 6 rather than staying flat, and PROS-2017-0336''s +4,225 pound catch-up became a
+    1,452 pound credit, not 2,000-6,000.'
