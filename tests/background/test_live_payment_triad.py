@@ -1749,7 +1749,12 @@ def test_q3_EVERY_PUBLISHED_FIGURE_IS_UNCHANGED_BY_THE_NEW_LEGS(monkeypatch):
     RE-PINNED 2026-10-22 FOR A SEVENTH WORLD CHANGE: the shortfall is shared on the month's demand,
     not the arrears stock (THE_SHORTFALL_IS_SHARED_ON_THE_MONTHS_DEMAND on after a two-seed grade).
     Only ageing moves (0.3538416076 -> 0.239619883). With the switch off it reproduces the
-    2026-10-20 values exactly; the second block holds that."""
+    2026-10-20 values exactly; the second block holds that.
+
+    RE-PINNED 2026-10-22 FOR AN EIGHTH WORLD CHANGE: money held toward an unpaid bill is a part
+    payment, not money shared with the basket again (HELD_MONEY_IS_A_PART_PAYMENT on after a two-seed
+    grade). Only ageing moves (0.239619883 -> 0.3395124717). With the switch off it reproduces the
+    seventh change's values exactly; the block after the first holds that."""
     triad = _build_triad()
     result = triad.measure()
     assert result is not None
@@ -1757,9 +1762,16 @@ def test_q3_EVERY_PUBLISHED_FIGURE_IS_UNCHANGED_BY_THE_NEW_LEGS(monkeypatch):
     assert round(result["detection_latency"].gap, 6) == 1.716981  # was 1.717391: same cause
     assert round(result["belief"].gap, 10) == 0.0597014925  # was 0.0615384615: same cause
     assert round(result["belief_population_mix"].gap, 10) == 0.0533333333
-    assert round(result["ageing"].gap, 10) == 0.239619883  # was 0.3538416076: shared on demand
+    assert round(result["ageing"].gap, 10) == 0.3395124717  # was 0.239619883: held is paid
 
     import simulation.household_budget as hb
+    with pytest.MonkeyPatch.context() as mp:
+        mp.setattr(hb, "HELD_MONEY_IS_A_PART_PAYMENT", False)
+        held_shared = _build_triad().measure()
+    assert round(held_shared["detection"].gap, 10) == 0.0194444444
+    assert round(held_shared["belief"].gap, 10) == 0.0597014925
+    assert round(held_shared["ageing"].gap, 10) == 0.239619883
+
     with pytest.MonkeyPatch.context() as mp:
         mp.setattr(hb, "THE_SHORTFALL_IS_SHARED_ON_THE_MONTHS_DEMAND", False)
         on_stock = _build_triad().measure()

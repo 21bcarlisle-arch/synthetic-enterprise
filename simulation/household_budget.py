@@ -538,8 +538,10 @@ THE_SHORTFALL_IS_SHARED_ON_THE_MONTHS_DEMAND = True
 # basket again, so it levels off at `(m+C)*B/C`, below one bill when the margin `m` is below zero,
 # and such a household pays nothing while under water (26 of 257 deficit account-years, seed 2).
 # On, only this month's money is shared; what is held stays energy's. Read only on the demand
-# reading. Off until graded on paired world-only arms.
-HELD_MONEY_IS_A_PART_PAYMENT = False
+# reading. On by default since 2026-10-22, after H1-H5 held on two dice seeds:
+# SEAT_RESULT_HELD_MONEY_IS_A_PART_PAYMENT_SEED_2_2026-10-22.md (no-payment account-years 26 to 0,
+# arrears engagement 25-60% to 90-100% against DRS's ~90%; Q4 2023 £710 to £452, Ofgem £1,303).
+HELD_MONEY_IS_A_PART_PAYMENT = True
 
 
 class BudgetPaymentBook:
