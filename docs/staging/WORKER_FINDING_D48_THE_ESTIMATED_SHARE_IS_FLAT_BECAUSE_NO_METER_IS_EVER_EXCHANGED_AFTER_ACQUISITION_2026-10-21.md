@@ -130,3 +130,11 @@ arms in the same piece of work, because the flip moves the world digest. A conti
   parent commit's bytes. The sim-runner's next shared-tree run would otherwise have used pre-build
   code. That would have been harmless while the switch is off, but any later pathspec commit of
   those files from this tree would have reverted the build.
+
+## Drawn again, nothing to build (worker, 2026-10-22, morning)
+
+The 12:45Z checklist above is spent. The money grade and back-billing were graded on the 8e99f83cd run
+(`SEAT_FINDING_D48_THE_UNBILLED_ACCRUAL_*`, the last two sections). What is left for L3 is the second
+blind pass. It waits on the K2 split panel, which reaches the page at the 2026-10-26 publish, and on
+`SMART_METER_EXCHANGE`, which is still parked behind the four arm grades. Before then, a D48 draw has
+nothing to do but re-derive this.
