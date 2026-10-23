@@ -64,3 +64,19 @@ def is_resident_seat() -> bool:
         return resident_marker_path().is_file()
     except OSError:
         return False
+
+
+# Env vars the machine's own spawners set on the claude processes they launch
+# (seat_executor, worker_tick, delivery_seat). A process carrying one is the
+# machine on the resident box, so its prompt is never the director's -- and a
+# probe a seat runs inherits the marker, which is how a one-word `claude -p`
+# was once captured as a director console turn (F2, 2026-10-23).
+SEAT_SPAWN_MARKERS = ("SE_SEAT_EXECUTOR", "SE_SBI_WORKER", "SE_DELIVERY_SEAT")
+
+
+def spawning_seat() -> str | None:
+    """The first seat marker set in this environment, or None for a human-started session."""
+    for name in SEAT_SPAWN_MARKERS:
+        if os.environ.get(name):
+            return name
+    return None

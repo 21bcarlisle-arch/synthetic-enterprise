@@ -60,7 +60,7 @@ Savings are a share of the week's weighted spend at constant throughput. Each is
 |---|---|---|---|---|
 | E1 | `--strict-mcp-config` on the worker-tick, seat-executor and delivery-seat spawns (`model_tier.HEADLESS_FLAGS`). No unattended turn called an MCP tool in the week; 0 calls. | about 1.6% (2,500 tokens a turn) | **enacted** | empty `HEADLESS_FLAGS` in `background/model_tier.py` |
 | E2 | `tick_burn_rate --routes`, prices for Sonnet 5.5 and Fable 5.1, and the 09:45 reading in `POINT_READINGS` | under 1% directly; makes every other measure free | **enacted** | revert the commit |
-| P1 | Cut the repository's 21,600-token opening context by about half: bring the memory index back under its own limit and move detail into topic files | about 7% | proposed; next seat item | the files are in git and in the memory directory, so restore them |
+| P1 | Cut the repository's 21,600-token opening context by about half: bring the memory index back under its own limit and move detail into topic files | about 7% | **enacted 23 Oct**: 21,517 → 10,721 tokens (−50%), see below | memory: copy `MEMORY_index_before_the_2026-10-23_cut.md` back over `MEMORY.md`; `CLAUDE.md`: revert the commit |
 | P2 | Sonnet 5.5 (exactly half Opus 5.5 on every token class) for routine draws, piloted against a concurrent Opus control | up to about 15% if about a third of turns move and land at the same rate | **blocked, see F1**; pilot designed below | the pilot file's `enabled: false` |
 | P3 | Delivery-seat orientation every 6 h instead of 3 h. Each of its turns opens on about 91,000 tokens. | about 3.5% | proposed, not enacted: the seat is the only place the whole is held (director, 30 Aug) | `tick_mode` |
 | P4 | Subagents for search, census and log reading on Haiku 5.5 or Sonnet 5.5. This is already in `CLAUDE.md`. | at most about 2% (all subagents are 3.5% of spend) | standing rule | n/a |
@@ -90,6 +90,8 @@ Savings are a share of the week's weighted spend at constant throughput. Each is
 - The cause: `.claude/hooks/capture_director_console.py` asks only `is_resident_seat()` and the text classifier `is_director_prompt`, and a short plain prompt passes both.
 - It was caught in the isolated worktree and deleted unlanded. The shared tree has no copy.
 - Until it is fixed, run probes with `SE_SEAT=foreign`. The fix is for the hook to refuse when any seat marker (`SE_SEAT_EXECUTOR`, `SE_SBI_WORKER`, `SE_DELIVERY_SEAT`) is set.
+- **Fixed 23 Oct.** The hook now refuses when any of `_seat.SEAT_SPAWN_MARKERS` is set. `tests/hooks/test_seat_guard.py::TestCaptureDirectorConsoleGuard` holds the whole partition, and it reds both when the guard is removed and when it refuses everything.
+- **Not fixed, same shape:** `log_director_input.py` also guards only on `is_resident_seat()`. It hands the prompt to a classifier rather than filing it verbatim, so it was left alone.
 
 ## 6. The P2 pilot, pre-registered before launch
 
@@ -100,3 +102,26 @@ Savings are a share of the week's weighted spend at constant throughput. Each is
   - it costs at least 25% less per landed result.
 - **Revert rule.** Otherwise it reverts, and the result is said beside this rule.
 - **Prediction, written now:** it lands about 10 points below the control at about 45% lower cost per landed result, which passes. The 12–14 Oct trial (33% against 74%) was Sonnet 5 with an advisor, not Sonnet 5.5, and this prediction may be wrong for that reason.
+
+## 7. P1 result, 23 Oct
+
+**Prediction, written before measuring:** the repository adds about 21,000 tokens. Of that, the memory index is about 7,000 and `CLAUDE.md` about 6,500.
+
+**Method.** A one-word `claude -p` on Haiku 5.5 with `--strict-mcp-config` and `SE_SEAT=foreign`. Opening tokens are cache write plus cache read plus input. Each component is measured by ablation: a scratch directory holding only that component, and the worktree with `CLAUDE_CODE_DISABLE_AUTO_MEMORY=1`.
+
+| | before | after |
+|---|---|---|
+| empty directory (Claude Code itself; the control) | 25,626 | 25,626 |
+| this repository | 47,143 | 36,347 |
+| **the repository's addition** | **21,517** | **10,721** |
+| of which the memory index | 12,068 | about 1,300 |
+| of which `CLAUDE.md` | 8,468 | about 8,000 |
+| of which `.claude/` (agents, skills, hooks) | about 960 | unchanged |
+
+**The prediction was wrong on the split.** The memory index cost nearly twice what I predicted. Its long underscore filenames tokenise at about 2 characters a token, against about 3 for `CLAUDE.md`'s prose.
+
+**What changed.**
+- **Memory.** `MEMORY.md` went from 36.5 KB to 2.5 KB. It now holds seven topic-file pointers and fifteen every-turn rules. Before the cut, the 154 entries that existed only in `MEMORY.md` were appended verbatim to their sections' `index_*.md` files, and all 163 links in the old index were checked as reachable from a topic file.
+- **`CLAUDE.md`.** About 1,300 characters of machine-written anecdote were shortened: the bill-shock elaboration, the competitor-model drafts, the three-doors story, the £55 story, the qwen history and the Build line's history. No director quote, rule or pointer was removed.
+
+**Worth:** about 10,800 tokens a turn, about USD 70 a week, about 7% of spend.

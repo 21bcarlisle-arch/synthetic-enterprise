@@ -32,7 +32,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from _seat import is_resident_seat  # noqa: E402
+from _seat import is_resident_seat, spawning_seat  # noqa: E402
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent.parent
 
@@ -40,7 +40,8 @@ PROJECT_DIR = Path(__file__).resolve().parent.parent.parent
 def main() -> int:
     # Seat guard FIRST, before any read or write: `.claude/hooks/` is committed, so every session
     # on this repo runs it, and a foreign session must not write the resident seat's record.
-    if not is_resident_seat():
+    # A session a seat spawned is resident too, but its prompt is the machine's, never his.
+    if not is_resident_seat() or spawning_seat():
         return 0
     try:
         payload = json.load(sys.stdin)

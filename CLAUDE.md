@@ -84,10 +84,8 @@ write.
 experiences, measure them separately or state plainly which one you mean. A concept nobody defined,
 then differenced, published and treated as a driver, is this project's most expensive recurring
 shape — *average unit rate*, *net margin*, the journey's end having two homes, and *bill shock* are
-all the same failure. Bill shock is the clearest: for a direct-debit household the shock is a
-material DD change or a balance they do not understand, and the bill itself shocks nobody; for
-someone paying in full the shock IS the bill. Different populations, different triggers, different
-remedies — and we measured one percentage across both for months. **The cause split follows from the
+all the same failure (bill shock: a DD change for one population, the bill itself for another,
+measured as one percentage for months). **The cause split follows from the
 definition; never let the definition be inferred from the split.**
 
 **Knowledge has three sides, not two, and the third is a practitioner.** Published evidence for what
@@ -107,9 +105,8 @@ on the site, and cite the page in the build commit."
 **When the evidence is ambiguous, "erring against our own thesis is the safe direction" (F11).**
 "Every run should answer a stated question with the smallest run that can answer it" (R5).
 
-**Print the numbers at real inputs before you ship a formula.** Two plausible, wrong drafts of the
-competitor model were caught in seconds by printing a table across the real range. Neither would
-have been caught by more thinking. Do it before you write the test, not after.
+**Print the numbers at real inputs before you ship a formula** — a table across the real range
+catches in seconds what more thinking does not. Do it before you write the test, not after.
 
 **When a result moves and more than one thing changed, you cannot attribute it.** Say "I cannot yet
 say", write the prediction down, run the one-variable version, and let it refute you. A prediction
@@ -121,9 +118,7 @@ Never leave that to the reader, and never assume it is the flattering one.
 **When a branch exists to be taken rarely, assert it CAN be taken before asserting what it does.**
 Every test of a guard asks "does it refuse correctly" — and a guard that refuses *everything* passes
 all of them. Write one control over the whole partition (`assert plan["restart"] and plan["defer"]
-and plan["hold"]`) rather than a leg per branch. *Learned by entering the same trap three times in
-one afternoon through three different doors, each fix correct and each leaving the rare branch
-unreachable another way, with a log that read exactly like the mechanism working.*
+and plan["hold"]`) rather than a leg per branch.
 
 **Key a control to the property, not to today's answer.** A control pinned to the current state goes
 red when the code becomes *more* honest and stays green when the claim rots. That is exactly
@@ -292,11 +287,8 @@ and still live in another in August, and nothing anywhere able to notice.)*
 `docs/market_research/` holds the sourced anchors behind the constants; the regulation commons
 (`docs/domain_artefact_library/`) holds the published law, readable by every lane; `site/knowledge/`
 and `site/data/knowledge_topics.json` are the pages that publish it. **The answer is usually already
-here.** `saas/opex_ledger.py` held a sourced £55 acquisition cost, cited and tested, and reached no
-code for seven weeks while an invented £150 was what the campaign actually spent — and the knowledge
-map recorded the sourced figure and listed the same subject as a gap, in one file. Nothing told the
-reader to look. **When something does not add up, follow the thread** rather than routing around it:
-that gap was found by asking where one constant came from.
+here** (a sourced £55 acquisition cost sat unreached for seven weeks beside an invented £150).
+**When something does not add up, follow the thread** rather than routing around it.
 
 **Commits take more than ten minutes** — twenty pre-commit gates and three commit-msg gates, a
 test selection, the site lane. Background
@@ -346,10 +338,7 @@ procedure nobody points at is a procedure nobody runs: closing a phase or an ato
 - **Rich** — MD and board. Sets mission and direction, from the console. Does not write code.
 - **You** — the delivery seat. Design, build, review, and everything between his direction and the
   work.
-- **No local model.** qwen3:14b was evicted 2026-08-10 to reclaim memory and `ollama.service` is
-  disabled; its callers were retired 2026-09-27. Thirteen early `sim/`, `simulation/` and `saas/`
-  modules say in their docstrings that local qwen2.5-coder drafted them. Everything since was written
-  by a Claude session in this seat.
+- **No local model** (qwen evicted 2026-08-10; thirteen early modules' docstrings still name it).
 - **Other Claude sessions and daemons** — `process_run_complete`, the supervisor's ticks, the
   3-hourly orienting seat (`delivery-seat.timer`), `seat-executor`, `worker-tick` and
   `reconcile-watch`. Concurrent, in this tree, right now. `background/process_manifest.yaml` lists the
@@ -362,10 +351,8 @@ default.
 
 **Build:** 39,465 tests collected, epistemic verifier PASS. *This figure is parsed by
 `generate_dashboard_data._derive_build_from_claude_md` for the live site — correct it at each phase
-close, never delete it. It sat at 26,731 for 20 days and 1,440 commits while the real count reached
-36,838, and nothing noticed because the only check on it compared it to a second hand-typed copy of
-itself in `docs/PROJECT_OVERVIEW.md`. `startup_anchor_freshness` now floors it with the test
-functions in the git index, which no collection can be smaller than. Re-collected 2026-10-04 in an `origin/main` worktree: 39,465.*
+close, never delete it; `startup_anchor_freshness` floors it with the git index's test functions.
+Re-collected 2026-10-04 in an `origin/main` worktree: 39,465.*
 
 → Architecture and module inventory: `docs/PROJECT_OVERVIEW.md` · Phase history:
 `docs/claude/phase-history.md`

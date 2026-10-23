@@ -295,6 +295,33 @@ class TestLogDirectorInputGuard:
         assert calls  # proceeded past the guard and reached the sink
 
 
+class TestCaptureDirectorConsoleGuard:
+    """A session a seat spawned is resident but not the director: its prompt must never be filed
+    as his console words (F2, 2026-10-23: a seat's one-word `claude -p` probe was). Observed via
+    a spy on `append_turn`, so the real record is never written."""
+
+    def _run(self, monkeypatch, seat, marker=None):
+        for name in _seat.SEAT_SPAWN_MARKERS:
+            monkeypatch.delenv(name, raising=False)
+        if marker:
+            monkeypatch.setenv(marker, "1")
+        monkeypatch.setenv("SE_SEAT", seat)
+        mod = _load_fresh("capdc_seatguard", "capture_director_console.py")
+        calls = []
+        monkeypatch.setattr("tools.console_instruction_record.append_turn",
+                            lambda *a, **k: calls.append(a))
+        monkeypatch.setattr(sys, "stdin", io.StringIO(json.dumps({"prompt": "ok"})))
+        assert mod.main() == 0
+        return calls
+
+    def test_only_a_human_started_resident_session_is_captured(self, monkeypatch):
+        # The whole partition at once, so a guard that refuses everything cannot pass.
+        assert self._run(monkeypatch, "resident")
+        assert not self._run(monkeypatch, "foreign")
+        for marker in _seat.SEAT_SPAWN_MARKERS:
+            assert not self._run(monkeypatch, "resident", marker), marker
+
+
 class TestPullNextWorkGuard:
     """THE dangerous hook: it must never draw work for a foreign session. The
     guard is the first act of main(); decide() is where the draw happens, so we
