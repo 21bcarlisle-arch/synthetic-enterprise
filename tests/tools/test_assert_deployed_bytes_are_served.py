@@ -155,6 +155,58 @@ def test_a_route_serving_neither_names_which_past_commit_it_is_serving(monkeypat
     foreign = A.classify("https://poesys.net/", want, "site/index.html", "bbb", True)
     assert ("committed at ddd, 3 commit(s) back" in older and "edge: stub" in older
             and "matches none of this path's last 4 commits" in foreign), (older, foreign)
+    # 22 Oct, LAX: the right page by title, and a hash matching no commit, so "not a page we
+    # published" was a claim the evidence contradicted. Fires if that wording comes back.
+    assert "not a page we published" not in foreign and "differ from the commit's" in foreign
+
+
+_PAGE = (b"<!doctype html><html><head><title>Poesys - The code</title></head><body>"
+         + b"<p>every module a star</p>" * 20 + b"</body></html>")
+
+
+def _at_the_edge(monkeypatch, served):
+    """classify, with the served body and the deployed file both given: the shape is computed
+    from the two bodies, so neither may come from the network or the checkout."""
+    monkeypatch.setattr(A, "fetch", lambda url, nonce: served)
+    monkeypatch.setattr(A, "bytes_at", lambda ref, path: None)
+    monkeypatch.setattr(A, "recent_commits", lambda path: [])
+    monkeypatch.setattr(A, "deployed_bytes", lambda path: _PAGE)
+    return A.classify("https://poesys.net/code/", hashlib.sha256(_PAGE).hexdigest(),
+                      "site/code/index.html", "BASE", True)
+
+
+def test_a_TRUNCATED_body_is_named_with_both_lengths_and_where_it_stops(monkeypatch):
+    """Explanation 2 of the 22 Oct finding: a short read by fetch(). Fires if the shape is not
+    computed, or if a truncation is reported as something else."""
+    verdict = _at_the_edge(monkeypatch, _PAGE[:200])
+    assert verdict.startswith("STALE"), verdict
+    assert (f"served 200 bytes, deployed {len(_PAGE)}, first difference at byte 200" in verdict
+            and "TRUNCATED" in verdict and "INSERTED" not in verdict), verdict
+
+
+def test_an_INJECTED_script_is_named_with_its_offset_and_the_bytes_around_it(monkeypatch):
+    """Explanation 1: an edge transform. The file must read as intact with a block added, and
+    the block itself must be in the log, because the bytes say whose script it is."""
+    at = _PAGE.index(b"</head>")
+    script = b'<script src="/cdn-cgi/challenge-platform/x.js"></script>'
+    verdict = _at_the_edge(monkeypatch, _PAGE[:at] + script + _PAGE[at:])
+    first = at + 1      # the script and </head> share their opening "<"
+    assert (f"first difference at byte {first}" in verdict
+            and f"INSERTED: {len(script)} bytes added at offset {first}" in verdict
+            and "challenge-platform" in verdict and "TRUNCATED" not in verdict), verdict
+    # ...and the bytes BEFORE it, which say where in the page the edge put it.
+    assert verdict.count("</title></head>") == 1 and "The code</title><script" in verdict, verdict
+
+
+def test_every_shape_of_difference_is_reachable(monkeypatch):
+    """The partition, not a leg per branch: a classifier that always said one shape would pass
+    a test of that shape and read exactly like the mechanism working."""
+    at = _PAGE.index(b"<p>")
+    shapes = {A.where_bytes_differ(served, _PAGE).split("; ")[1].split(":")[0] for served in (
+        _PAGE[:100], _PAGE[:at] + b"<script></script>" + _PAGE[at:],
+        _PAGE[:at] + _PAGE[at + 10:], _PAGE.replace(b"The code", b"The c0de"))}
+    assert shapes == {"TRUNCATED", "INSERTED", "REMOVED", "REPLACED"}, shapes
+    assert "could not be read" in A.where_bytes_differ(b"x", None)
 
 
 def _classify(monkeypatch, served, want_body, previous=None, base="BASE", live=False):

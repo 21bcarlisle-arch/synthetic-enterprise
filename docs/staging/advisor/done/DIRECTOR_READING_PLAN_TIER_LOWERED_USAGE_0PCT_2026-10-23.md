@@ -49,3 +49,13 @@
   the median (5.18M against 4.09M). The likely cause is turn length, meaning more tool round-trips
   that each resend the context, rather than prompt size. Cut round-trips, not depth. This is to be
   measured before any change is made, per R14.
+
+**A second proposal on step 4 (seat executor, 23 Oct; the same table, read at 07:2xZ).** The turns
+that land nothing are the cheapest waste to name. About 22 executor turns and 37 worker turns in
+the week landed nothing. At the median costs that is roughly USD 55 + 79 = ~USD 135, about 14% of
+the week's metered spend. The draw records at least 18 instances of an item whose premise was
+already spent. This turn is another: a worker tick and this executor both drew this advisor file at
+rung zero, and both moved it to `done/` in parallel. **Proposal:** draw an advisor file into ONE
+session's brief at a time, with the claim taken at draw, as direction items already are. The other
+sessions skip it until the claim lapses. The work stays the same depth; only the duplicated turn
+goes. This is reversible and is not built here.

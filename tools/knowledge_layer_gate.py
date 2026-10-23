@@ -150,6 +150,11 @@ def verdict(name: str, text: str, known: set[str]) -> tuple[bool, str]:
 #: usually lives is how the instance that lives elsewhere escapes it.
 CANON_PREFIXES = ("DIRECTOR_CANON_", "DIRECTOR_RULING_")
 STAGING_DIR = PROJECT / "docs" / "staging"
+#: The advisor channel grants a file the director's voice only while its bytes are the advisor's
+#: signed commit (`background.advisor_channel.provenance`). Demanding a header there forced a seat
+#: to edit a ruling (ebf866ecc3), and the edit is what stripped the ruling of its authority. The
+#: declaration falls due when the seat files it into `done/`, which stays watched.
+ADVISOR_DIR = "docs/staging/advisor"
 
 
 def staged_new_research(cwd: Path | None = None) -> list[str]:
@@ -170,7 +175,9 @@ def staged_new_research(cwd: Path | None = None) -> list[str]:
     for line in done.stdout.splitlines():
         if not line.endswith(".md"):
             continue
-        name = line.rsplit("/", 1)[-1]
+        folder, name = line.rsplit("/", 1)
+        if folder == ADVISOR_DIR:
+            continue
         if line.startswith("docs/market_research/") or name.startswith(CANON_PREFIXES):
             out.append(line)
     return out

@@ -179,3 +179,26 @@ def test_THE_CANON_BACKLOG_IS_REPORTED_rather_than_retro_refused():
     assert len(backlog) > 0, (
         "no canon lacks a declaration, which is either a finished migration or a blind reader -- "
         "if it is genuinely finished, delete this assertion and say so")
+
+
+def test_an_ADVISOR_STAGED_ruling_is_not_asked_to_be_edited_because_the_edit_voids_its_authority(
+        tmp_path):
+    """ebf866ecc3: this gate refused every merge that added the advisor's 23 Oct ruling without a
+    Knowledge header, so a seat added one, and from then on `advisor_channel.provenance` refused
+    the ruling as "edited after the advisor staged it". Fires if the advisor's own folder is
+    watched again; the rest of staging, `done/` included, must still be."""
+    import subprocess
+
+    def git(*a):
+        subprocess.run(["git", *a], cwd=tmp_path, check=True, capture_output=True)
+
+    git("init", "-q")
+    git("-c", "user.email=t@t", "-c", "user.name=t", "commit", "-q", "--allow-empty", "-m", "base")
+    paths = ["docs/staging/advisor/DIRECTOR_RULING_A.md",
+             "docs/staging/advisor/done/DIRECTOR_RULING_B.md",
+             "docs/staging/DIRECTOR_RULING_C.md"]
+    for rel in paths:
+        (tmp_path / rel).parent.mkdir(parents=True, exist_ok=True)
+        (tmp_path / rel).write_text("# ruling\n")
+    git("add", "docs")
+    assert sorted(gate.staged_new_research(tmp_path)) == sorted(paths[1:])

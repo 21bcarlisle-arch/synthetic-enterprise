@@ -50,3 +50,15 @@ The original staging commit `d9faa7916` (author `Claude`) cannot be verified her
 **If the ruling is genuine, the advisor must re-stage it through a signed commit.** The content quotes
 07:03 BST, "Great. All good. Do these." Until it is re-staged, the `for_the_director` row raised by
 `7e31d8f7` stays open.
+
+**Why it was refused: the cause, found by the seat executor on 23 Oct.** `ebf866ecc` is a seat
+landing, not the advisor's. It added the `**Knowledge:**` header line, because
+`tools/knowledge_layer_gate.py` refused every merge that brought in a `DIRECTOR_RULING_` file without
+one. That edit made the file's last commit a non-advisor commit, and from then on
+`advisor_channel.provenance` could never grant it authority. `git diff d9faa7916 ebf866ecc` shows the
+header line as the only change; no word of the ruling changed. The class is fixed in the commit that
+adds this note. The knowledge gate no longer watches files the advisor stages directly in
+`docs/staging/advisor/`, and `done/` stays watched
+(`test_an_ADVISOR_STAGED_ruling_is_not_asked_to_be_edited_because_the_edit_voids_its_authority`,
+which fails both when the exemption is removed and when it is widened). So a re-staged ruling will
+now arrive without any lane needing to edit it.

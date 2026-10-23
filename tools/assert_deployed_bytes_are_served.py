@@ -310,7 +310,8 @@ def classify(
     the refusal itself gets found to be wrong -- and this one was, twice.
     """
     try:
-        got = hashlib.sha256(fetch(url, "classify")).hexdigest()
+        body = fetch(url, "classify")
+        got = hashlib.sha256(body).hexdigest()
     except (urllib.error.URLError, OSError) as exc:
         return f"UNCONFIRMED (the edge did not answer: {exc})"
     if got == want:
@@ -319,7 +320,7 @@ def classify(
         previous = bytes_at(base, path)
         if previous is not None and hashlib.sha256(previous).hexdigest() == got:
             return "REPLACED -- the edge is still serving the bytes this push overwrote"
-    served = what_was_served(path, got, base)
+    served = what_was_served(path, got, base) + "; " + where_bytes_differ(body, deployed_bytes(path))
     if deployment_is_live:
         return (
             "STALE -- another asset of this same push is being served here, so this push is "
@@ -348,8 +349,61 @@ def what_was_served(path: str, got: str, base: str | None) -> str:
         old = bytes_at(sha, path)
         if old is not None and hashlib.sha256(old).hexdigest() == got:
             return f"it is the copy committed at {sha}, {depth} commit(s) back on this path; {edge(path)}"
-    return (f"it matches none of this path's last {len(shas)} commits, so it is not a page we "
-            f"published; {edge(path)}")
+    return (f"it matches none of this path's last {len(shas)} commits: the served bytes differ "
+            f"from the commit's at this edge; {edge(path)}")
+
+
+def deployed_bytes(path: str) -> bytes | None:
+    """The checkout's copy of `path`, which is what the deploy uploaded; None if unreadable."""
+    try:
+        with open(os.path.join(PROJECT, path), "rb") as fh:
+            return fh.read()
+    except OSError:
+        return None
+
+
+#: Bytes printed either side of the first difference: enough to show a tag, not a page.
+CONTEXT_BYTES = 80
+
+
+def where_bytes_differ(served: bytes, expected: bytes | None) -> str:
+    """Where and how the served body departs from the deployed file, as one log line.
+
+    On 22 Oct the LAX edge served /code/ with the right title, but its hash matched no commit,
+    while the UK got the committed bytes (docs/staging/WORKER_FINDING_THE_RUNNERS_EDGE_SERVES_
+    THIS_PUSHS_OWN_NEW_PAGE_UNDER_A_STALE_VERDICT_..._2026-10-22.md). Three explanations fitted,
+    and the hash could not separate them. The shape of the difference can:
+
+      * TRUNCATED -- the body is a strict prefix of the file (a short read);
+      * INSERTED -- the file is intact with one block added, e.g. an edge-injected script;
+      * REMOVED -- one block of the file is missing from the middle;
+      * REPLACED -- one span differs, e.g. a stamp or re-encoded text.
+
+    The common prefix and suffix are taken without overlap, so an insertion into a repeated run
+    is still found as an insertion.
+    """
+    if expected is None:
+        return f"served {len(served)} bytes; the deployed file could not be read to compare"
+    n = min(len(served), len(expected))
+    pre = 0
+    while pre < n and served[pre] == expected[pre]:
+        pre += 1
+    suf = 0
+    while suf < n - pre and served[-1 - suf] == expected[-1 - suf]:
+        suf += 1
+    extra, missing = len(served) - pre - suf, len(expected) - pre - suf
+    if extra == 0 and suf == 0:
+        shape = f"TRUNCATED: the body ends after {len(served)} of {len(expected)} bytes"
+    elif missing == 0:
+        shape = f"INSERTED: {extra} bytes added at offset {pre}, the file otherwise intact"
+    elif extra == 0:
+        shape = f"REMOVED: {missing} bytes missing at offset {pre}"
+    else:
+        shape = f"REPLACED: {missing} bytes of the file stand as {extra} served bytes at offset {pre}"
+    lo = max(0, pre - CONTEXT_BYTES)
+    return (f"served {len(served)} bytes, deployed {len(expected)}, first difference at byte {pre}; "
+            f"{shape}; served {served[lo:pre + CONTEXT_BYTES]!r} vs deployed "
+            f"{expected[lo:pre + CONTEXT_BYTES]!r}")
 
 
 def recent_commits(path: str) -> list[str]:
