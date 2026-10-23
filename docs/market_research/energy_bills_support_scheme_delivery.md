@@ -125,3 +125,37 @@ period ending October 2022 to March 2023.
   and the IFRS 9 step-up ratio on *on* is not above *off*'s by more than 0.05.
 - **Control (can the comparison fail?).** 2016-2021 lie before the credit. If their failed shares
   differ between arms by more than 0.2 pt, the arms are not paired, and P1 to P3 are not graded.
+
+## Choice 5, graded: all three predictions hold (2026-10-23, 21:55Z)
+
+Both arms finished. Each `producing_commit` is `aed6ba8517`. **Pairing control: held.** 2016-2021
+match exactly, bill for bill, between the arms (0.00 pt apart), so P1 to P3 are graded.
+
+| figure | off (no credit) | on (credit netted) | on / off |
+|---|---|---|---|
+| winter 22-23, failed-owed share of billed | 5.06% | **4.18%** | **0.83** |
+| winter 22-23, failed-gross share (incidence) | 5.06% | 4.84% | 0.96 |
+| winter 22-23, failed bills | 107 of 2,457 | **98** | |
+| 2022, failed-owed share | 3.06% | **2.62%** | |
+| 2023, failed-owed share | 6.03% | 5.55% | |
+| IFRS 9 crisis share / step-up | 0.692% / x0.95 | **0.593% / x0.81** | |
+
+- **P1: HELD.** The ratio is 0.83, inside 0.60 to 0.90. Of the 0.88 pt fall, about 0.22 pt is
+  incidence: nine fewer winter bills fail. The other 0.66 pt is the credit netted off bills that
+  still fail.
+- **P2: HELD.** 98 failed bills against 107.
+- **P3: HELD, and the step-up falls.** EBSS lowers the 2022 failed share and creates no step. The
+  validator moves *further* from passing: the crisis share goes from 0.69% to 0.59% against the 1%
+  floor, and the step-up from x0.95 to x0.81. That is the direction this page expected. The £400
+  was real relief, and the 2022 step the validator asks for is the company's overlay (the finding's
+  step ii), not the world's.
+
+**What the prediction did not ask, and the grade shows.** The page said the credit would ease "the
+too-steep 2023". It eases only January to March 2023. From April 2023 the arms run within 0.7 pt of
+each other, and they are identical from August. The world's failed share stays at 4.9-6.8% every
+month of 2023 after the credit ends, 1.5 to 2 times its 2016-19 level of 3.2-3.8%. So EBSS does not explain the
+too-steep 2023. That question stays with the finding's steps (ii) and (iii).
+
+**The base.** These arms predate the EPG carve (another lane, landing as this is written), which
+lowers default-tariff bills in the same winter. With smaller bills the credit is a larger share of
+each one, so the size of P1 will move on the next run. The direction should not.
