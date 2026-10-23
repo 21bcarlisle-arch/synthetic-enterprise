@@ -199,3 +199,38 @@ def test_the_pinned_key_is_the_advisors_and_verifies_a_real_advisor_commit():
     r = subprocess.run(["git", "-c", f"gpg.ssh.allowedSignersFile={ac.ALLOWED_SIGNERS}",
                         "verify-commit", "cbbd01473"], cwd=str(ac.REPO_ROOT), capture_output=True)
     assert r.returncode == 0
+
+
+def test_the_draw_lists_origin_not_the_disk_a_checkout_left_behind(tmp_path, monkeypatch):
+    """Defect (23 Oct): the shared checkout sat 32-37 commits behind origin. Its draw re-offered a
+    steer origin had already moved to done/ and never saw two readings origin carried. Control over
+    the whole partition, in one folder: a file on origin but absent from disk IS offered; a file in
+    done/ on origin is NOT, though a stale copy sits at the top level on disk; a disk-only file with
+    no origin history is still named as refused (the forged-file case stays visible).
+
+    MUTATION (must fire): list `folder.iterdir()` instead of origin (the first leg reds: STEER.md is
+    gone from disk), or drop `- done` from the disk-only set (the stale leg reds)."""
+    import subprocess
+    work, signers = _origin(tmp_path, signed=True)
+    monkeypatch.setattr(ac, "ALLOWED_SIGNERS", signers)
+    monkeypatch.setattr(ac, "verify_provenance", ac.provenance)
+    folder = work / ac.ADVISOR_DIR_REL
+
+    def git(*a):
+        subprocess.run(["git", *a], cwd=str(work), check=True, capture_output=True)
+    (folder / "OLD.md").write_text(DELEGATED)
+    git("add", "-A")
+    git("commit", "-q", "-m", "stage OLD")
+    (folder / ac.DONE_SUBDIR).mkdir()
+    git("mv", f"{ac.ADVISOR_DIR_REL}/OLD.md", f"{ac.ADVISOR_DIR_REL}/{ac.DONE_SUBDIR}/OLD.md")
+    git("commit", "-q", "-m", "OLD done")
+    git("push", "-q", "origin", "HEAD:main")
+    git("fetch", "-q", "origin")
+
+    (folder / "STEER.md").unlink()               # on origin, gone from this disk
+    (folder / "OLD.md").write_text(DELEGATED)    # a stale copy of what origin has actioned
+    (folder / "LOCAL.md").write_text(DELEGATED)  # never on origin at all
+    verdicts = {i.path.name: i for i in ac.scan(work)}
+    assert verdicts["STEER.md"].drawable and verdicts["STEER.md"].attribution == "delegation"
+    assert "OLD.md" not in verdicts
+    assert not verdicts["LOCAL.md"].drawable and "not on origin" in verdicts["LOCAL.md"].refusal
