@@ -2435,6 +2435,7 @@ def generate(run_json_path=None):
         write_front_door_proof_strip(data, dashboard, front_door,
                                      OUTPUT_PATH.parent / "sim_data.json")
         write_front_door_build_strip(front_door)
+        write_run_clocks(front_door.parent, dashboard)
     return consistency_ok
 
 
@@ -3106,27 +3107,72 @@ def proof_strip_figures(data, dashboard, sim_meta):
     return figures, missing
 
 
-def render_proof_strip(figures, missing, generated_at, source_file):
+def run_clock_line(generated_at, source_file):
+    """'Figures from the run of <date> · published every <day> (run <id>; ...)', the one clock a
+    page carries. The run's date comes from its file stamp, which is when the figures were made;
+    the publish time is the fallback when the name carries none."""
     import html as _html
-    cells = "\n".join(
-        '  <div class="lf"><div class="v">{}</div><div class="l">{}</div>'
-        '<div class="c">{}</div></div>'.format(value, label, clock)
-        for value, label, clock in figures)
     run = _html.escape(str(source_file or "an unnamed run")
                        .replace("run_output_", "").replace(".json", ""))
-    # THE FRONT DOOR'S ONLY CLOCK (director, 22 Oct 2026 14:57: "Why have a banner? No need?").
-    # The freshness banner is off this page; this one quiet line, written at publish, is how a
-    # reader tells how old the figures are. The run's own date comes from its file stamp, which
-    # is when the figures were made; the publish time is the fallback when the name carries none.
     stamp = re.search(r"_(\d{8})T\d{6}Z", str(source_file or ""))
     if stamp:
         ran = _day("{}-{}-{}".format(stamp.group(1)[:4], stamp.group(1)[4:6], stamp.group(1)[6:]))
     else:
         ran = _day(generated_at) if generated_at else "an unrecorded date"
     from background.publish_freshness import PUBLISH_WEEKDAY
-    prov = ('Figures from the run of {} &middot; published every {} '
+    return ('Figures from the run of {} &middot; published every {} '
             '<span class="lf-run">(run {}; no figure here is typed by hand)</span>'.format(
                 _html.escape(ran), calendar.day_name[PUBLISH_WEEKDAY], run))
+
+
+#: Every page but the front door states its clock in this block (director, 23 Oct 2026, the other
+#: pages steer: "Remove banner"). The publisher's own state lives at the foot of How it's built.
+RUN_CLOCK_START = ("<!-- RUN-CLOCK:START (written at publish by "
+                   "tools/generate_dashboard_data.py -- do not hand-edit) -->")
+RUN_CLOCK_END = "<!-- RUN-CLOCK:END -->"
+
+
+def render_run_clock(generated_at, source_file):
+    return ('{}\n<p class="lf-prov" style="max-width:1060px;margin:24px auto 8px;padding:0 22px;'
+            'font-size:11.5px;color:var(--muted,#666)">{}</p>\n{}'.format(
+                RUN_CLOCK_START, run_clock_line(generated_at, source_file), RUN_CLOCK_END))
+
+
+def write_run_clocks(site_root, dashboard):
+    """Rewrite the run-clock block on every page carrying both markers; the count written.
+
+    A page with one marker and not the other is named, never guessed at: its block has nowhere
+    certain to go, and the page keeps what it had."""
+    meta = dashboard.get("meta", {})
+    block = render_run_clock(meta.get("generated_at"), meta.get("source_file"))
+    written = 0
+    for page in sorted(Path(site_root).rglob("*.html")):
+        text = page.read_text(encoding="utf-8")
+        start, end = text.find(RUN_CLOCK_START), text.find(RUN_CLOCK_END)
+        if start < 0 and end < 0:
+            continue
+        if start < 0 or end < start:
+            print("RUN CLOCK NOT WRITTEN: {} does not carry both markers in order".format(page),
+                  file=sys.stderr)
+            continue
+        new = text[:start] + block + text[end + len(RUN_CLOCK_END):]
+        if new != text:
+            page.write_text(new, encoding="utf-8")
+        written += 1
+    return written
+
+
+def render_proof_strip(figures, missing, generated_at, source_file):
+    import html as _html
+    cells = "\n".join(
+        '  <div class="lf"><div class="v">{}</div><div class="l">{}</div>'
+        '<div class="c">{}</div></div>'.format(value, label, clock)
+        for value, label, clock in figures)
+    # THE FRONT DOOR'S ONLY CLOCK (director, 22 Oct 2026 14:57: "Why have a banner? No need?").
+    # The freshness banner is off this page; this one quiet line, written at publish, is how a
+    # reader tells how old the figures are. The run's own date comes from its file stamp, which
+    # is when the figures were made; the publish time is the fallback when the name carries none.
+    prov = run_clock_line(generated_at, source_file)
     if missing:
         prov += " Not shown, because its source could not be read: {}.".format(
             _html.escape("; ".join(missing)))

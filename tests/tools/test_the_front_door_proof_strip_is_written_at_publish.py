@@ -119,3 +119,26 @@ def test_a_build_strip_with_no_readable_git_names_each_gap_and_shows_no_number(t
     assert g.write_front_door_build_strip(page)
     out = page.read_text()
     assert "stale" not in out and "could not be read: the commit count" in out
+
+
+def test_every_other_page_gets_its_run_clock_at_publish_and_a_half_marked_page_is_named(
+        tmp_path, capsys):
+    """The other-pages steer (director, 23 Oct 2026: "Remove banner"): each page's one clock is
+    written from the run, so it moves when the run does. Fires if the block is not rewritten, if a
+    page with no markers is touched, or if a page with one marker is guessed at silently."""
+    marked = tmp_path / "a" / "index.html"
+    marked.parent.mkdir()
+    marked.write_text("<body>x\n" + g.RUN_CLOCK_START + "\nold\n" + g.RUN_CLOCK_END + "\n</body>")
+    plain = tmp_path / "plain.html"
+    plain.write_text("<body>untouched</body>")
+    half = tmp_path / "half.html"
+    half.write_text("<body>" + g.RUN_CLOCK_START + "</body>")
+    dash = {"meta": {"generated_at": "2026-10-26T08:00:00Z",
+                     "source_file": "run_output_abc_20261026T033010Z.json"}}
+    assert g.write_run_clocks(tmp_path, dash) == 1
+    text = marked.read_text()
+    assert "Figures from the run of 26 Oct 2026" in text and "old" not in text, text
+    assert text.startswith("<body>x\n") and text.endswith(g.RUN_CLOCK_END + "\n</body>")
+    assert plain.read_text() == "<body>untouched</body>"
+    err = capsys.readouterr().err
+    assert "half.html" in err and "plain.html" not in err, err

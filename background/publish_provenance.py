@@ -565,9 +565,41 @@ _PUBLISHED_CLOCK_RE = re.compile(
     r".*?<!-- PROOF-STRIP:END -->", re.DOTALL)
 
 
+#: Every other page meets it the same way since 23 Oct 2026 (the other-pages steer: "Remove
+#: banner"), through `tools/generate_dashboard_data.py::write_run_clocks`, between its own markers.
+_RUN_CLOCK_RE = re.compile(
+    r"<!-- RUN-CLOCK:START.*?<p class=\"lf-prov\"[^>]*>Figures from the run of \d{1,2} \w{3} \d{4}"
+    r".*?<!-- RUN-CLOCK:END -->", re.DOTALL)
+
+#: The publisher's state has one home, a section at the foot of How it's built, and the banner
+#: renders into it there. Loaded anywhere else, the banner is back across the top of a page.
+STATUS_HOME = "harness/index.html"
+STATUS_MOUNT = 'id="publish-status"'
+
+
 def states_its_clock_at_publish(text: str) -> bool:
     """Does this page carry the publish-written "Figures from the run of <date>" line?"""
-    return bool(_PUBLISHED_CLOCK_RE.search(text))
+    return bool(_PUBLISHED_CLOCK_RE.search(text) or _RUN_CLOCK_RE.search(text))
+
+
+def banner_outside_its_home(site: Path = None) -> list:
+    """Every served page that loads the banner but is not the status home, plus the home itself
+    if it loads the banner with no section to mount it in (which puts it back across the top)."""
+    root = _site_dir(site)
+    problems = []
+    for page in sorted(root.rglob("*.html")):
+        rel = page.relative_to(root).as_posix()
+        text = page.read_text(encoding="utf-8", errors="replace")
+        srcs = re.findall(r"""<script[^>]*\bsrc=["']([^"']+)["']""", text)
+        if not any(src.split("?")[0].endswith("freshness-banner.js") for src in srcs):
+            continue
+        if rel != STATUS_HOME:
+            problems.append(f"{rel} loads the freshness banner; the director removed it from every "
+                            f"page on 23 Oct, and the publisher's state lives at {STATUS_HOME}")
+        elif STATUS_MOUNT not in text:
+            problems.append(f"{rel} loads the banner with no {STATUS_MOUNT} section, so it renders "
+                            "across the top of the page instead of in the status section")
+    return problems
 
 
 def live_data_pages(site: Path = None, exempt: dict = None) -> tuple:

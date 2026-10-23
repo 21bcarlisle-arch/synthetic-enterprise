@@ -539,7 +539,11 @@
       "border-bottom:2px solid var(--red,#c0392b)}";
 
     document.head.appendChild(style);
-    document.body.insertBefore(bar, document.body.firstChild);
+    /* THE STATUS HOME (director, 23 Oct 2026: "Remove banner"). One page, How it's built, keeps
+       the publisher's state in a section at its foot; every other page states its clock in a
+       line written at publish. Where that section exists the bar renders into it, not on top. */
+    var home = document.getElementById ? document.getElementById("publish-status") : null;
+    if (home) { home.appendChild(bar); } else { document.body.insertBefore(bar, document.body.firstChild); }
     STATE.rendered = true;
   }
 

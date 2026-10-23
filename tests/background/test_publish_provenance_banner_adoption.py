@@ -261,3 +261,46 @@ def test_the_shipped_front_door_carries_no_banner_and_states_its_clock():
     text = (prov.PROJECT_DIR / "site" / "index.html").read_text(encoding="utf-8")
     assert "freshness-banner.js" not in re.sub(r"<!--.*?-->", "", text, flags=re.DOTALL)
     assert prov.states_its_clock_at_publish(text)
+
+
+# ── THE OTHER PAGES' ROUTE, AND THE BANNER'S ONE HOME (director, 23 Oct 2026) ──────────────────
+# "The new home and code tabs look good. But now the other tabs look less good ... Remove banner."
+# Every page but the status home states its clock in a publish-written run-clock line; the
+# publisher's state renders in a section at the foot of How it's built.
+RUN_CLOCK = ('<!-- RUN-CLOCK:START (written at publish) -->\n<p class="lf-prov" style="x">Figures '
+             'from the run of 19 Oct 2026 &middot; published every Monday</p>\n'
+             '<!-- RUN-CLOCK:END -->')
+
+
+def test_no_served_page_but_the_status_home_loads_the_banner_and_the_home_mounts_it():
+    """The steer's own control, against the shipped site. Fires if any page loads the banner
+    again, or if How it's built loses the section the banner renders into."""
+    assert prov.banner_outside_its_home() == []
+    home = (prov.PROJECT_DIR / "site" / prov.STATUS_HOME).read_text(encoding="utf-8")
+    assert prov.STATUS_MOUNT in home and "freshness-banner.js" in home
+
+
+def test_the_banner_anywhere_else_or_unmounted_at_home_is_reported(site: Path):
+    """Both legs, and the partition between them: a page off the home is reported, the home
+    without its section is reported, and the home WITH its section is not."""
+    assert any("capabilities/index.html loads the freshness banner" in v
+               for v in prov.banner_outside_its_home(site))
+    (site / "harness").mkdir()
+    home = site / "harness" / "index.html"
+    home.write_text(_page(BANNER_TAG.format(hop="../")), encoding="utf-8")
+    assert any("no id=\"publish-status\" section" in v for v in prov.banner_outside_its_home(site))
+    home.write_text(_page(BANNER_TAG.format(hop="../")) + '<section id="publish-status"></section>',
+                    encoding="utf-8")
+    assert not any(v.startswith("harness/") for v in prov.banner_outside_its_home(site))
+
+
+def test_a_run_clock_line_answers_for_the_banner_and_a_hand_typed_one_does_not(site: Path):
+    page = site / "capabilities" / "index.html"
+    bare = page.read_text(encoding="utf-8").replace(BANNER_TAG.format(hop="../"), "")
+    page.write_text(bare.replace("</body>", RUN_CLOCK + "</body>"), encoding="utf-8")
+    assert prov.banner_adoption_violations(site, NO_EXEMPT) == []
+    page.write_text(bare.replace("</body>", RUN_CLOCK.replace("<!-- RUN-CLOCK:START (written at "
+                                                              "publish) -->", "") + "</body>"),
+                    encoding="utf-8")
+    assert any("loads no freshness banner" in v
+               for v in prov.banner_adoption_violations(site, NO_EXEMPT))
