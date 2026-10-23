@@ -262,75 +262,97 @@ def build_renewal_schedule(
                 break
 
         first_term = False
-        term_start_str = term_start.isoformat()
         # Phase 34a: company prices 42 days before term start; observable data lags by NOTICE_DAYS.
         notice_date = term_start - timedelta(days=NOTICE_DAYS)
-        notice_date_str = notice_date.isoformat()
-        lookback_temps = lookback_temps_fn(term_start_str) if lookback_temps_fn else None
-        # sim_fwd: SIM's sophisticated estimate (used for hedging, risk assessment, weather adj)
-        sim_fwd = generate_forward_price(
-            term_start_str, price_records, lookback_daily_mean_temps_c=lookback_temps
-        )
-        # Phase 30a/31a: CM + FiT levies included in policy_cost pass-through (apply to all segments).
-        # PUBLISHED schedules — what any market participant can look up for this term.
-        # B12 (2026-10-15): over the term's days as published on the notice date, not the first
-        # day's level -- settlement bills each day at its own (`published_electricity_policy_cost_over_term`).
-        policy_cost = published_electricity_policy_cost_over_term(
-            term_start, CONTRACT_LENGTH_DAYS, notice_date)
-        network_cost = get_electricity_network_cost_per_mwh(term_start_str, segment)
-        # B4_competitor_field (2026-08-24): two more published figures, handed
-        # over the same way as policy_cost/network_cost above -- the Ofgem
-        # domestic default-tariff cap (None before 2016, where no data exists)
-        # and the published aggregate market-savings signal for the term's
-        # year (docs/design/simplifications/B4_competitor_field.yaml).
-        svt_gbp_per_mwh = get_svt_elec_rate_gbp_per_mwh(term_start_str)
-        switching_multiplier = market_switching_multiplier(term_start.year)
-        # KNIFE pass 3, B7_renewal_is_a_company_decision: the world serves notice and
-        # then ASKS. What comes back is an offer — a rate, the forward the company
-        # priced off, and the two cost components it chose to lock. Which forward it
-        # used, what it locks for this product, how it priced, and whether the move
-        # needed an approval are all decided behind the door and are no longer
-        # visible from here: see company/interfaces/renewal_offer.py.
-        offer = request_renewal_offer(
-            customer_id=customer_id,
-            term_start=term_start,
-            notice_date=notice_date,
-            tariff_type=tariff_type,
-            segment=segment,
-            eac_kwh=eac_kwh,
-            observable_price_records=price_records,
-            published_policy_cost_per_mwh=policy_cost,
-            published_network_cost_per_mwh=network_cost,
-            prior_fixed_unit_rate=prev_fixed_unit_rate,
-            # The world's own estimate, handed over for the cold-start case where
-            # the company's notice-date lookback window is empty. A named leak, not
-            # an oversight — register §3a records it as owed.
-            fallback_forward_price_gbp_per_mwh=sim_fwd,
-            published_svt_gbp_per_mwh=svt_gbp_per_mwh,
-            published_market_switching_multiplier=switching_multiplier,
-        )
-        company_fwd = offer.company_forward_price_gbp_per_mwh
-        unit_rate = offer.unit_rate_gbp_per_mwh
-        if tariff_type != "flex":
-            prev_fixed_unit_rate = unit_rate
         next_start = term_start + timedelta(days=CONTRACT_LENGTH_DAYS)
-        term_dict = {
-            "customer_id": customer_id,
-            "acquisition_date": term_start_str,
-            "notice_date": notice_date_str,
-            "unit_rate_gbp_per_mwh": unit_rate,
-            "forward_price_gbp_per_mwh": sim_fwd,
-            "company_forward_price_gbp_per_mwh": company_fwd,
-            # What the company locked at signing, carried so the term's own cost floor can be read
-            # back at a save (`company.crm.save_offer.price_match_save_rate`).
-            "locked_policy_cost_gbp_per_mwh": offer.locked_policy_cost_gbp_per_mwh,
-            "locked_network_cost_gbp_per_mwh": offer.locked_network_cost_gbp_per_mwh,
-            "tariff_type": tariff_type,
-            "term_end": min(next_start, report_end + timedelta(days=1)).isoformat(),
-        }
-        if tariff_type == "flex":
+        term_dict = price_fixed_term(
+            customer_id, term_start, notice_date,
+            min(next_start, report_end + timedelta(days=1)),
+            price_records, eac_kwh,
+            policy_cost_days=CONTRACT_LENGTH_DAYS,
+            lookback_temps_fn=lookback_temps_fn, segment=segment, tariff_type=tariff_type,
+            prior_fixed_unit_rate=prev_fixed_unit_rate,
+        )
+        if tariff_type != "flex":
+            prev_fixed_unit_rate = term_dict["unit_rate_gbp_per_mwh"]
+        else:
             term_dict["flex_markup_per_mwh"] = FLEX_MARKUP_PER_MWH
         terms.append(term_dict)
         term_start = next_start
 
     return terms
+
+
+def price_fixed_term(
+    customer_id: str, term_start: date, notice_date: date, term_end: date,
+    price_records: list[dict], eac_kwh: int, *, policy_cost_days: int,
+    lookback_temps_fn=None, segment: str = "resi", tariff_type: str = "fixed",
+    prior_fixed_unit_rate: float | None = None,
+) -> dict:
+    """One electricity term, struck through the company's renewal door as of `notice_date`.
+
+    The term dict `build_renewal_schedule` appends at every boundary, lifted out so the run loop
+    can strike one at a moment the schedule never reached (C30, a woken default-tariff household
+    re-fixing; research doc §7.5a). The builder passes exactly what it always computed, so its
+    schedule is unchanged. `term_end` is exclusive, as on every builder term.
+    """
+    term_start_str = term_start.isoformat()
+    lookback_temps = lookback_temps_fn(term_start_str) if lookback_temps_fn else None
+    # sim_fwd: SIM's sophisticated estimate (used for hedging, risk assessment, weather adj)
+    sim_fwd = generate_forward_price(
+        term_start_str, price_records, lookback_daily_mean_temps_c=lookback_temps
+    )
+    # Phase 30a/31a: CM + FiT levies included in policy_cost pass-through (apply to all segments).
+    # PUBLISHED schedules — what any market participant can look up for this term.
+    # B12 (2026-10-15): over the term's days as published on the notice date, not the first
+    # day's level -- settlement bills each day at its own (`published_electricity_policy_cost_over_term`).
+    policy_cost = published_electricity_policy_cost_over_term(
+        term_start, policy_cost_days, notice_date)
+    network_cost = get_electricity_network_cost_per_mwh(term_start_str, segment)
+    # B4_competitor_field (2026-08-24): two more published figures, handed
+    # over the same way as policy_cost/network_cost above -- the Ofgem
+    # domestic default-tariff cap (None before 2016, where no data exists)
+    # and the published aggregate market-savings signal for the term's
+    # year (docs/design/simplifications/B4_competitor_field.yaml).
+    svt_gbp_per_mwh = get_svt_elec_rate_gbp_per_mwh(term_start_str)
+    switching_multiplier = market_switching_multiplier(term_start.year)
+    # KNIFE pass 3, B7_renewal_is_a_company_decision: the world serves notice and
+    # then ASKS. What comes back is an offer — a rate, the forward the company
+    # priced off, and the two cost components it chose to lock. Which forward it
+    # used, what it locks for this product, how it priced, and whether the move
+    # needed an approval are all decided behind the door and are no longer
+    # visible from here: see company/interfaces/renewal_offer.py.
+    offer = request_renewal_offer(
+        customer_id=customer_id,
+        term_start=term_start,
+        notice_date=notice_date,
+        tariff_type=tariff_type,
+        segment=segment,
+        eac_kwh=eac_kwh,
+        observable_price_records=price_records,
+        published_policy_cost_per_mwh=policy_cost,
+        published_network_cost_per_mwh=network_cost,
+        prior_fixed_unit_rate=prior_fixed_unit_rate,
+        # The world's own estimate, handed over for the cold-start case where
+        # the company's notice-date lookback window is empty. A named leak, not
+        # an oversight — register §3a records it as owed.
+        fallback_forward_price_gbp_per_mwh=sim_fwd,
+        published_svt_gbp_per_mwh=svt_gbp_per_mwh,
+        published_market_switching_multiplier=switching_multiplier,
+    )
+    company_fwd = offer.company_forward_price_gbp_per_mwh
+    unit_rate = offer.unit_rate_gbp_per_mwh
+    return {
+        "customer_id": customer_id,
+        "acquisition_date": term_start_str,
+        "notice_date": notice_date.isoformat(),
+        "unit_rate_gbp_per_mwh": unit_rate,
+        "forward_price_gbp_per_mwh": sim_fwd,
+        "company_forward_price_gbp_per_mwh": company_fwd,
+        # What the company locked at signing, carried so the term's own cost floor can be read
+        # back at a save (`company.crm.save_offer.price_match_save_rate`).
+        "locked_policy_cost_gbp_per_mwh": offer.locked_policy_cost_gbp_per_mwh,
+        "locked_network_cost_gbp_per_mwh": offer.locked_network_cost_gbp_per_mwh,
+        "tariff_type": tariff_type,
+        "term_end": term_end.isoformat(),
+    }

@@ -199,10 +199,8 @@ def svt_departure_after_contact(
     now, and the households it keeps are on a fix, where the next term end is a choice. That
     trade is the company's to weigh. The world only has to make it real.
 
-    THE RE-FIX IS NOT YET REAL (2026-10-23). This returns the departure side only, and the run loop
-    reads nothing else: a woken household that stays keeps its pre-built default segments at the
-    default rate. The trade above is half-built, and so is the household's side of any contact on this
-    route. What the re-fix needs is in the research doc's §7.5a.
+    This returns the departure side only. The re-fix side is `svt_refix_band_top`, read by the run
+    loop only while `A_WOKEN_SVT_STAYER_REFIXES` is on (research doc §7.5a).
     """
     for name, p in (("p_drift", p_drift), ("churn_if_choosing", churn_if_choosing)):
         if not 0.0 <= p <= 1.0:
@@ -214,6 +212,34 @@ def svt_departure_after_contact(
     woken = WOKEN_SHARE_OF_SVT_STOCK[instrument]
     return p_drift + (1.0 - p_drift) * woken * churn_if_choosing
 
+
+
+#: C30 (2026-10-23, research doc §7.5a). Whether a woken SVT household that did not leave re-fixes
+#: with us: the run loop strikes it a fixed term from its next default segment to its next
+#: anniversary. Off, a woken stayer keeps its pre-built default segments, exactly as before.
+A_WOKEN_SVT_STAYER_REFIXES: bool = False
+
+
+def svt_refix_band_top(
+    *, instrument: str, p_drift: float, p_contacted: float, churn_if_choosing: float,
+) -> float:
+    """The top of the re-fix band on the SVT segment's one uniform draw.
+
+    `[p_contacted, top)` is a household that would not have drifted, that the contact woke, and that
+    chose to stay: the `(1 - churn_if_choosing)` the departure side above leaves out. No new world
+    number: the same woken share and the same curve. Equal to `p_contacted` when no one is woken.
+    """
+    if instrument not in WOKEN_SHARE_OF_SVT_STOCK:
+        raise ValueError(
+            f"no woken share for instrument {instrument!r}: the sourced ones are "
+            f"{sorted(WOKEN_SHARE_OF_SVT_STOCK)}, and an unsourced contact cannot be given one")
+    top = p_contacted + (1.0 - p_drift) * WOKEN_SHARE_OF_SVT_STOCK[instrument] * (
+        1.0 - churn_if_choosing)
+    if top > 1.0 + 1e-12:
+        raise ValueError(
+            f"the re-fix band runs past 1 ({top!r}): p_contacted={p_contacted!r} is not "
+            f"svt_departure_after_contact's for p_drift={p_drift!r}")
+    return min(top, 1.0)
 
 # --- A contact early in difficulty (2026-10-12, the world lane) ----------------------------------
 #
@@ -292,6 +318,8 @@ __all__ = [
     "WOKEN_SHARE_SAVING_GRADIENT_ON_SVT_STOCK",
     "churn_if_choosing_off_svt",
     "svt_departure_after_contact",
+    "A_WOKEN_SVT_STAYER_REFIXES",
+    "svt_refix_band_top",
     "EFTC_CONTACTED_SWITCHING_SHARE",
     "EFTC_CONTROL_SWITCHING_SHARE",
     "WOKEN_SHARE_AT_FIXED_TERM_END",

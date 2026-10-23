@@ -530,6 +530,17 @@ an uncontacted one cannot. Reading the wired route before building it (`run_phas
   per-account sender on top of it, as drawn. The in-loop fixed-term builder it needs is also the
   first half of §7.4's notice-time route, so it is not wasted if that route is chosen later. Until
   it lands, a per-account SVT sender would only choose whom to lose.
+- **Built (2026-10-23, default off):** `contact_response.A_WOKEN_SVT_STAYER_REFIXES` and
+  `svt_refix_band_top`. With it on, a draw in the band strikes a fix through
+  `renewals.price_fixed_term`, the function the electricity builder now calls for every term. The
+  fix is quoted as of the contact and runs from the next cap segment to the stint's anniversary. It
+  withdraws the default segments in between, and its start rolls no departure and no decline. The
+  row says what happened in `sim_refix`, or why not. Choices that understate the household's side
+  (F11): the fix starts at the next cap segment, not on the contact date, and a contact in a stint's
+  last segment re-fixes nothing. Not built, each a GAP: the riding gas leg of a dual household stays
+  on the default, and a gas-only household cannot re-fix, because a gas fix is struck only inside
+  the gas builder. The fixed term already built at the anniversary was priced with no prior fixed
+  rate, so the company classifies that renewal against nothing.
 **GAPs.**
 - Whether SLC 31A's cheapest tariff message survives today in the form the 2016 letter kept was not
   re-read after the SSE notice.

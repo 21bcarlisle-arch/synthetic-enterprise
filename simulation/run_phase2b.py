@@ -272,7 +272,7 @@ from simulation.policy_costs import (
 from simulation.record_table import RecordTable
 from simulation.registration_loss_feed import RegistrationLossFeed, supply_points_on_supply
 from simulation.renewal_engagement import passive_churn_cap_for, rolls_active_renewal
-from simulation.renewals import NOTICE_DAYS, build_renewal_schedule
+from simulation.renewals import NOTICE_DAYS, build_renewal_schedule, price_fixed_term
 from simulation.reputation_index import ReputationEventType
 from simulation.resentment_ledger import FrictionEventType
 from simulation.retention_offer import ask_world_at_offer, offered_rate
@@ -388,6 +388,11 @@ _DECLINED_FIX_SPLICE = "declined_fix_splice"
 #: term whose roll can end the household, so posted at its own start it billed up to a year past a
 #: departure (WORKER_FINDING_A_DUAL_HOUSEHOLD_THAT_LEAVES_..._2026-10-22).
 _HELD_FOR_THE_DECISION_LEG = "held_for_the_decision_leg"
+
+#: Stamped on a fixed term the loop struck for a woken SVT household that chose to stay (C30). The
+#: household took it at the contact, so its start is not a renewal: no departure roll and no
+#: decline against the default.
+_WOKEN_REFIX = "woken_svt_stayer_refix"
 
 # Phase 47a: segment lookup for Ofgem cap — resi customers subject to price cap
 _RESI_CUSTOMER_IDS: frozenset[str] = frozenset(
@@ -2205,6 +2210,78 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         heapq.heappush(all_terms, (term_start, leg, next(_term_seq), commodity, term))
         bisect.insort(_pending_starts.setdefault(leg, []), term_start)
 
+    def _splice_a_refix(leg: str, contact_date: str, segment_end: str, stint_start: str,
+                        commodity: str) -> dict:
+        """C30, research doc §7.5a: a woken SVT stayer re-fixes from its next default segment.
+
+        The fix is quoted through `price_fixed_term` (the builders' renewal door) as of the contact,
+        and runs to the household's next anniversary, which is already in the heap and stays as
+        built. Starting at the next cap segment rather than the contact, and stopping at the
+        anniversary rather than running twelve months, both understate the household's side (F11).
+        The default segments in between are withdrawn. Returns what happened, or why not.
+        """
+        if commodity != "electricity":
+            # GAP: a gas fix is priced inside `_build_gas_renewal_schedule` (NBP, its own
+            # bootstrap refusal) and is not yet callable from here; a gas-only household stays.
+            return {"refused": "a gas fix is struck only inside the gas builder"}
+        _stint = date.fromisoformat(stint_start)
+        _seg_end = date.fromisoformat(segment_end[:10])
+        # Every SVT stint the run builds -- arrival, a passive roll, a declined fix -- is one
+        # CONTRACT_LENGTH_DAYS window from an anniversary, and consecutive stints chain, so the
+        # household's next boundary is the first whole window from the stint's start.
+        _windows = max(1, -(-(_seg_end - _stint).days // CONTRACT_LENGTH_DAYS))
+        _boundary = _stint + timedelta(days=_windows * CONTRACT_LENGTH_DAYS)
+        _fix_start, _fix_end_excl = _seg_end, min(
+            _boundary, date.fromisoformat(effective_end) + timedelta(days=1))
+        _withdrawn = [e for e in all_terms
+                      if e[1] == leg and _fix_start.isoformat() <= e[0] < _fix_end_excl.isoformat()]
+        if not _withdrawn:
+            return {"refused": (
+                "the run ends with this segment" if _fix_start >= _fix_end_excl else
+                "the contact fell in the stint's last segment, so its anniversary is the "
+                "household's next look")}
+        _starts = sorted(e[0] for e in _withdrawn)
+        _foreign = [(e[0], e[4].get("tariff_type")) for e in sorted(_withdrawn)
+                    if e[4].get("tariff_type") != SVT_TARIFF_TYPE
+                    or e[4].get(_HELD_FOR_THE_DECISION_LEG)]
+        if _starts[0] != _fix_start.isoformat():
+            # The segment was cut short of the cap boundary: a move-out inside it.
+            return {"refused": f"this segment ends at {_fix_start}, before the next default "
+                               f"segment at {_starts[0]}: the household moves out"}
+        if _foreign:
+            return {"refused": (
+                f"the window {_fix_start} to {_fix_end_excl} holds terms that are not this "
+                f"stint's default segments: {_foreign}")}
+        if not _is_domestic_leg(leg):
+            return {"refused": "the default tariff and its re-fix are domestic"}
+        if leg not in EFFECTIVE_EAC_KWH:
+            return {"refused": "no registered EAC to quote the fix on"}
+        try:
+            _fix = price_fixed_term(
+                leg, _fix_start, date.fromisoformat(contact_date), _fix_end_excl,
+                elec_records, EFFECTIVE_EAC_KWH[leg],
+                policy_cost_days=(_fix_end_excl - _fix_start).days,
+                lookback_temps_fn=_lookback_temps_fn(leg), segment="resi",
+            )
+        except ValueError as _no_history:
+            return {"refused": f"no fix could be struck: {_no_history}"}
+        _gone = {id(e) for e in _withdrawn}
+        all_terms[:] = [e for e in all_terms if id(e) not in _gone]
+        heapq.heapify(all_terms)
+        for _start in _starts:
+            _pending_starts[leg].remove(_start)
+        _fix[_WOKEN_REFIX] = True
+        _push_term(_fix_start.isoformat(), leg, commodity, _fix)
+        # The builders counted each withdrawn segment; the fix advances one when it pops, so the
+        # rest are advanced here and the engagement seed agrees with theirs at the anniversary.
+        term_indices[leg] += len(_withdrawn) - 1
+        return {
+            "fix_start": _fix_start.isoformat(),
+            "fix_end": _fix_end_excl.isoformat(),
+            "unit_rate_gbp_per_mwh": _fix["unit_rate_gbp_per_mwh"],
+            "default_segments_withdrawn": len(_withdrawn),
+        }
+
     # The fuels each household is supplied, so the budget (`household_budget.BudgetPaymentBook`)
     # can split one household's money across its legs. A move-in adds its leg below.
     _fuels_of_household: dict = {}
@@ -3139,7 +3216,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         _offer_vs_default = (
             position_vs_default(unit_rate, term_start_str, commodity=commodity)
             if (DECLINE_A_FIX_ABOVE_THE_DEFAULT and term_index >= 1 and not _spliced
-                and term_tariff_type == "fixed" and _is_domestic_leg(cid))
+                and term_tariff_type == "fixed" and _is_domestic_leg(cid)
+                and not term.get(_WOKEN_REFIX))
             else None
         )
         _renewal_outcome = None
@@ -3344,6 +3422,15 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                         instrument=_svt_contact, p_drift=_svt_p_uncontacted,
                         churn_if_choosing=_svt_churn_if_choosing,
                     )
+            import simulation.contact_response as _contact_response
+            # C30: the re-fix band sits directly above the departure band on the same draw.
+            _svt_refix_top = (
+                _contact_response.svt_refix_band_top(
+                    instrument=_svt_contact, p_drift=_svt_p_uncontacted,
+                    p_contacted=_svt_p_depart, churn_if_choosing=_svt_churn_if_choosing)
+                if _contact_response.A_WOKEN_SVT_STAYER_REFIXES
+                and _svt_churn_if_choosing is not None else None
+            )
             # READ BEFORE THE ROLL AND USED ONLY AFTER IT. This is the company's side of the
             # decision -- its own collections record on this account -- and it is deliberately
             # NOT among the `_svt_risks` above: the belief reaches no hazard, which is the only
@@ -3469,6 +3556,12 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     f"p_depart={_svt_p_depart:.4f}  roll={_svt_roll:.4f}  "
                     f"years_on_svt={_years_on_svt:.2f}"
                 )
+            elif _svt_refix_top is not None:
+                # Written only with the switch on and a contact answered, so off is byte-identical.
+                _svt_decisions[-1]["sim_refix"] = (
+                    _splice_a_refix(cid, term_start_str, term_end_str, _stint_start, commodity)
+                    if _svt_roll < _svt_refix_top else None
+                )
         # Read BEFORE the overwrite: the renewal roll below asks what this term converted FROM.
         _previous_tariff_type = _last_tariff_type.get(cid)
         _last_tariff_type[cid] = term_tariff_type
@@ -3546,7 +3639,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     billing_account, commodity, as_of=term_start_str)
 
         _renewal_event_this_term = None
-        if term_index >= 1 and commodity == _decision_leg and not _indexed_tariff:
+        if (term_index >= 1 and commodity == _decision_leg and not _indexed_tariff
+                and not term.get(_WOKEN_REFIX)):
             company_est_pre = None
             _retention_offer = None
             _holdout_arm = None
