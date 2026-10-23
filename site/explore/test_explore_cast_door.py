@@ -8,6 +8,7 @@ those move with each run.
 """
 from __future__ import annotations
 
+import html
 import json
 import re
 import subprocess
@@ -68,6 +69,13 @@ def test_the_opening_moment_shows_all_three_views_filled(out, feed):
         assert len(body.split()) > 12, "the %s view rendered almost nothing: %r" % (side, body[:200])
     first = next(s for s in feed["slots"] if s["filled"])
     assert first["moments"][first["opening"]]["title"] in stage, "the page did not open on the slot's telling moment"
+
+
+def test_the_opening_tab_says_what_its_feature_is(out, feed):
+    """The cold read asked what an "estimate trap" was. DEFECT: a glossary line in the feed that the
+    page never renders, or a slot with none."""
+    assert all(len(s.get("glossary") or "") > 20 for s in feed["slots"]), "a slot carries no glossary line"
+    assert html.escape(feed["slots"][0]["glossary"], quote=False) in _html(out, "cast-stage")
 
 
 def test_the_stamp_counts_the_slots_it_heads(out, feed):

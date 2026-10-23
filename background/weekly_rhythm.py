@@ -501,6 +501,7 @@ def _step_body(step: str, due_on: date, overdue: list[dict]) -> str:
         from background.director_concerns import end_to_end_section
         lines += end_to_end_section()
         lines += _world_claims_section()
+        lines += _explore_cast_section()
         lines += _canon_against_canon_section()
         lines += _merge_pressure_section()
         lines += _run_cost_section()
@@ -569,6 +570,30 @@ def _world_claims_section() -> list[str]:
         measured, verdict = "", (f"**NOT MEASURED** -- `tools.world_claims` raised "
                                  f"{type(exc).__name__}: {exc}")
     return ["## The knowledge pages' claims against the drawn world", "", verdict, "", measured, ""]
+
+
+def _explore_cast_section() -> list[str]:
+    """EXPLORE'S CAST AS A FEATURE-COVERAGE TEST (director steer, 2026-10-23, item 4: "Run the same
+    checks in the Monday end-to-end step, so a feature that silently stops working turns the build
+    red before a reader sees it"). Reads the published feed; `tests/tools/test_generate_explore_cast.py`
+    holds the same verdict over a fresh build, which is what reds the build."""
+    try:
+        from tools import generate_explore_cast as cast
+        feed = json.loads(cast.OUT_PATH.read_text(encoding="utf-8"))
+        v = cast.coverage_verdict(feed)
+        cov = feed.get("coverage") or {}
+        head = (f"**RED: {len(v['red'])} gap(s) no open finding accounts for.** A feature has stopped "
+                "working and nothing is working on it. Say in the end-to-end check which."
+                if v["red"] else
+                f"No unaccounted gap. {cov.get('filled')} of {cov.get('of')} slots filled.")
+    except Exception as exc:  # noqa: BLE001 -- a review that cannot measure says so on its face
+        return ["## Explore's cast: does each feature still work", "",
+                f"**NOT MEASURED** -- `tools.generate_explore_cast` raised {type(exc).__name__}: {exc}", ""]
+    lines = ["## Explore's cast: does each feature still work", "", head, ""]
+    lines += [f"- RED {x}" for x in v["red"]]
+    lines += [f"- accounted: {x}" for x in v["accounted"]]
+    lines += [f"- spent: {x}" for x in v["spent"]]
+    return lines + [""]
 
 
 def _run_cost_section(days: float = 7.0) -> list[str]:

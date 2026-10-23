@@ -1,6 +1,6 @@
 {
  "meta": {
-  "generated_at": "2026-10-23T15:21:24Z",
+  "generated_at": "2026-10-23T16:47:59Z",
   "run_generated_at": "2026-10-19T08:47:16Z",
   "run_git_commit": "8b6fea024",
   "household_count": 550,
@@ -12,6 +12,7 @@
    "feature": "The switch-in",
    "rule": "The household that switched in most recently and holds a full first quarter on record",
    "filled": true,
+   "glossary": "Switching in: a household moves its supply to this supplier, and its first bill is the first test of the new account.",
    "household": "PROS-2025-0022",
    "fuels": [
     "electricity",
@@ -311,6 +312,7 @@
    "feature": "The renewal",
    "rule": "The largest gap between the supplier's stored churn belief and the true probability at a renewal decision",
    "filled": true,
+   "glossary": "Renewal: a fixed-price tariff is ending, and the supplier decides what to offer before the household decides whether to stay.",
    "household": "SYN-2016-441",
    "fuels": [
     "electricity"
@@ -768,6 +770,7 @@
    "feature": "The estimate trap",
    "rule": "The longest run of estimated bills on one fuel that ends in a catch-up",
    "filled": true,
+   "glossary": "An estimate trap: bills are worked out from guessed meter readings until a real reading arrives and corrects the account in one step.",
    "household": "OCC-49cf03d82fea",
    "fuels": [
     "electricity"
@@ -1232,6 +1235,7 @@
    "feature": "The mover",
    "rule": "A household that moves out, takes a final bill, and is followed by a new occupant",
    "filled": false,
+   "glossary": "A home move: the leaving occupant gets a final bill, and whoever moves in next becomes the supplier's new customer at that address.",
    "reason": "No household in this run can be shown moving. The published record carries no move-out event and no final-bill marker, and the new-occupant accounts (OCC-…) are not linked to the household they replaced, so a rule cannot follow a move from one occupant to the next."
   },
   {
@@ -1239,6 +1243,7 @@
    "feature": "The debt journey",
    "rule": "The arrears journey that goes deepest: missed payment, notices, then repaid, written off or passed to an agency",
    "filled": true,
+   "glossary": "The debt journey: a bill goes unpaid, then reminders and a payment plan follow, and it ends repaid, written off or with a collection agency.",
    "household": "PROS-2021-0362",
    "fuels": [
     "electricity",
@@ -2220,6 +2225,7 @@
    "feature": "The EV home",
    "rule": "The household whose electric car moved its use the most, with the supplier's inference set against it",
    "filled": true,
+   "glossary": "An EV home: an electric car arrives, and the supplier sees it only as more electricity on the meter.",
    "household": "PROS-2021-0219",
    "fuels": [
     "electricity",
@@ -2690,6 +2696,7 @@
    "feature": "Storage heating",
    "rule": "A two-rate (profile class 2) home billed on its meter's registers",
    "filled": false,
+   "glossary": "Storage heating: heaters that charge overnight on a two-rate meter (such as Economy 7), whose night units are billed cheaper.",
    "reason": "No household in this run has a two-rate meter. Every bill in the published run is a single 'Anytime' register, so there is no profile class 2 home to show."
   },
   {
@@ -2697,6 +2704,7 @@
    "feature": "The 2022 shock",
    "rule": "The largest year-on-year rise in one month's bill through the 2022 crisis",
    "filled": true,
+   "glossary": "The 2022 shock: wholesale prices rose several times over, and the price cap and then the Energy Price Guarantee set what households paid.",
    "household": "PROS-2017-0336",
    "fuels": [
     "electricity"

@@ -205,3 +205,60 @@ def test_the_published_feed_matches_a_fresh_build_in_shape(feed):
     on_disk = json.loads(FEED.read_text(encoding="utf-8"))
     assert [s["id"] for s in on_disk["slots"]] == [s["id"] for s in feed["slots"]]
     assert on_disk["coverage"]["of"] == feed["coverage"]["of"]
+
+
+# ── The Monday verdict: a feature that stops working reds the build (steer item 4) ─────────────
+
+
+def _gapless(feed):
+    f = copy.deepcopy(feed)
+    for s in f["slots"]:
+        s["filled"] = True
+    f["coverage"]["empty"] = []
+    f["coverage"]["book_breaches"] = {}
+    return f
+
+
+def test_every_gap_the_cast_finds_is_accounted_for_by_an_open_finding(feed):
+    """The build-reddening leg: a fresh build over the published run, graded against the open rooms.
+    DEFECT: a slot that stops filling, or a rule that starts breaching, with nothing open on it."""
+    v = gen.coverage_verdict(feed)
+    assert not v["red"], "\n".join(v["red"])
+
+
+def test_the_verdict_can_be_green_and_can_be_red(feed, tmp_path):
+    """The whole partition, so a verdict that reds everything (or nothing) is caught."""
+    clean = gen.coverage_verdict(_gapless(feed), tmp_path)
+    assert not clean["red"] and not clean["accounted"] and clean["spent"]
+    assert gen.coverage_verdict(feed, tmp_path)["red"]
+
+
+def test_MUTATION_a_filled_slot_that_empties_reds(feed, tmp_path):
+    f = _gapless(feed)
+    f["coverage"]["empty"] = ["debt"]
+    red = gen.coverage_verdict(f, tmp_path)["red"]
+    assert len(red) == 1 and "slot debt" in red[0] and "no open finding" in red[0], red
+
+
+def test_MUTATION_a_rule_that_starts_breaching_reds(feed, tmp_path):
+    f = _gapless(feed)
+    f["coverage"]["book_breaches"] = {"gas_left_behind": {"households": 3, "of": 550}}
+    red = gen.coverage_verdict(f, tmp_path)["red"]
+    assert len(red) == 1 and "gas_left_behind" in red[0], red
+
+
+def test_MUTATION_a_closed_finding_with_its_gap_still_live_reds(feed, tmp_path):
+    (tmp_path / "in_progress").mkdir()
+    f = _gapless(feed)
+    f["coverage"]["book_breaches"] = {"above_cap": {"households": 1, "of": 550}}
+    assert "no longer open" in gen.coverage_verdict(f, tmp_path)["red"][0]
+    (tmp_path / "in_progress" / gen.ACCOUNTED_BY["above_cap"]).write_text("x")
+    assert not gen.coverage_verdict(f, tmp_path)["red"]
+
+
+def test_MUTATION_a_dropped_slot_or_a_broken_feed_is_red_not_clean(feed, tmp_path):
+    f = _gapless(feed)
+    f["slots"] = [s for s in f["slots"] if s["id"] != "ev"]
+    assert any("slot ev" in r for r in gen.coverage_verdict(f, tmp_path)["red"])
+    assert gen.coverage_verdict({}, tmp_path)["red"]
+    assert gen.coverage_verdict(None, tmp_path)["red"]
