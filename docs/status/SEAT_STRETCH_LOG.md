@@ -8,6 +8,26 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-23 — The code tab shows its census and a still of the galaxy before its script runs, written at publish beside the picture
+
+<!-- head: ff5c0de8b532 -->
+
+**In plain English:** The code tab now shows its figures and a picture of the galaxy the moment it opens, before any script runs, instead of "Loading the census…".
+
+*Seat executor, 23 Oct 2026. Item 7 of the director's 23 Oct 07:18 steer ("Make more appropriate for energy or tech person who is not familiar with the detail"); his item asks for one check on the code tab, which he named the standard.*
+
+**Before:** the caption above the galaxy read "Loading the census…" and the clock line under it was empty until the page's script fetched `site/data/module_graph.json`; the galaxy itself was a blank canvas until then. The layered view's figures box also held "Loading the census…", though it is hidden until a reader opens it. If the fetch failed, the caption was replaced by "nothing is shown".
+
+**After:** the caption (modules, lines, import edges, crossings through and round the seam) and its clock (commit, generated time, change since last week) are written between `CODE-CAPTION` markers by `tools/module_graph_census.write`, in the publish step that already draws `site/code/galaxy.png`, so the page, its picture and its feed come from one census. The publish commit already carries the page, because it holds the run-clock footer. The still picture shows in the galaxy's place until the live galaxy draws, then gives way to it. A failed fetch now keeps the publish-written caption and picture, and says on the clock line that the interactive views are missing. No words changed: printed side by side against the same feed, the Python caption and the page's own script (run under node) produce byte-identical text. Nothing deleted.
+
+**Controls.** `tests/tools/test_module_graph_census.py`: `write` rewrites the caption on the page beside the picture, and leaves a page without its markers untouched (both branches taken); the served page carries no "Loading" and its caption equals `caption_html` of the feed it ships with, so the control keys to the agreement, not to today's module count. Mutations: dropping the caption call from `write`, and changing one word in `caption_html`, each red one test.
+
+**Not done this turn:** no cold readers were run. The words a reader meets are the same ones the script already wrote; what changed is when they appear. A headless-browser render was attempted and hung in this sandbox, so the no-JavaScript view is checked by markup and the node run, not by a screenshot.
+
+**Still owed from the steer:** (6) Explore narrates one household and moves the small-book line to the 400-household book (read `DIRECTOR_STEER_EXPLORE_IS_A_LIVE_FEATURE_DEMO` first); Capabilities' grid and go-live table rendered into the HTML at publish. Then the steer's single report entry, and the steer file moves to `done/`.
+
+---
+
 ## 2026-10-23 — Each of the eight layers on How it's built carries its own evidence, counted at publish from the store that records it; proven able to fail is now counted over the tests
 
 <!-- head: d5cd1359dbf7 -->

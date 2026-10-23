@@ -26,6 +26,9 @@ h1 { font-size: 27px; font-weight: 700; letter-spacing: -0.4px; margin-bottom: 8
 canvas { display: block; width: 100%; touch-action: manipulation; cursor: crosshair; }
 .galaxy { width: 100vw; margin-left: calc(50% - 50vw); background: var(--black); position: relative; }
 .galaxy canvas { touch-action: none; cursor: grab; }
+/* The picture drawn at publish stands in until the live galaxy can draw. */
+.galaxy img { display: block; width: 100%; max-width: 1200px; height: auto; margin: 0 auto; }
+.galaxy canvas.pending { display: none; }
 .galaxy .hint { position: absolute; left: 14px; bottom: 10px; color: var(--grey-15); font-size: 12px; pointer-events: none; }
 .galaxy .reset { position: absolute; right: 14px; bottom: 8px; }
 .views { display: flex; gap: 0; margin: 4px 0 12px; }
@@ -81,8 +84,10 @@ ul.limits li { margin-bottom: 6px; }
   through the one sanctioned seam; red ones go round it. Laid out from the committed code at each
   publish.</p>
 
-  <p id="mg-caption" class="caption">Loading the census&hellip;</p>
-  <p id="mg-clock" class="clock"></p>
+  <!-- CODE-CAPTION:START (written at publish by tools/module_graph_census.py -- do not hand-edit) -->
+<p id="mg-caption" class="caption"><b>1,251</b> modules &middot; <b>523,088</b> lines &middot; <b>2,495</b> import edges &middot; <b>60</b> cross the wall through the seam &middot; <b>4</b> go round it &middot; all 1,251 shown</p>
+<p id="mg-clock" class="clock">// static imports at commit 1044c8fe0, generated 2026-10-22T18:12:24Z // since 2026-10-19: modules +8, edges +50, lines +5,674, round the seam 0</p>
+<!-- CODE-CAPTION:END -->
 
   <div class="views" role="group" aria-label="Choose a view">
     <button type="button" id="mg-view-galaxy" aria-pressed="true">The galaxy</button>
@@ -90,7 +95,8 @@ ul.limits li { margin-bottom: 6px; }
   </div>
 
   <div id="mg-galaxy-view">
-    <div class="galaxy"><canvas id="mg-galaxy" aria-label="The code galaxy: one star per module, sized by lines, with every import as a line"></canvas>
+    <div class="galaxy"><img id="mg-galaxy-still" src="galaxy.png" width="1200" height="630"
+      alt="The galaxy as drawn at publish: every module a star, every import a line, the crossings of the wall in blue and red"><canvas id="mg-galaxy" class="pending" aria-label="The code galaxy: one star per module, sized by lines, with every import as a line"></canvas>
       <span class="hint"><span class="long">Drag to pan &middot; pinch or scroll to zoom &middot; </span>tap a star</span>
       <button type="button" class="reset" id="mg-reset">Reset</button></div>
     <div class="controls">
@@ -109,7 +115,7 @@ ul.limits li { margin-bottom: 6px; }
     company on the right, and the machinery that builds and runs both along the foot. The bar is
     the wall: the company may only learn about the world through one sanctioned seam. This view
     exists to show what crosses it.</p>
-    <div id="mg-stats" class="term">Loading the census&hellip;</div>
+    <div id="mg-stats" class="term"></div>
     <div class="figure"><canvas id="mg-canvas" aria-label="The module graph: one dot per module, grouped by layer, with the wall between the world and the company"></canvas></div>
     <div class="controls">
       <span class="key"><span class="swatch sw-seam"></span>through the seam</span>
@@ -251,7 +257,9 @@ var SETTLE_MS = 1400;
 function galaxyRadius(n) { return 0.9 + Math.sqrt(n.loc || 0) / 11; }
 
 function initGalaxy(d) {
-  var cv = document.getElementById("mg-galaxy");
+  var cv = document.getElementById("mg-galaxy"), still = document.getElementById("mg-galaxy-still");
+  if (still) still.remove();
+  cv.classList.remove("pending");
   var g = { data: d, canvas: cv, picked: null, zoom: 1, tx: 0, ty: 0, t0: null, size: 1000,
             order: d.nodes.map(function (_n, i) { return i; }).sort(function (a, b) { return (d.nodes[a].loc || 0) - (d.nodes[b].loc || 0); }) };
   g.adj = d.nodes.map(function () { return []; });
@@ -454,8 +462,10 @@ if (typeof window !== "undefined" && window.document && document.getElementById(
     .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
     .then(render)
     .catch(function (e) {
-      // FAIL CLOSED: a missing census renders its absence, never an empty picture that reads as a clean wall.
-      set("mg-caption", "The census could not be loaded (" + esc(e) + "), so nothing is shown.");
+      // FAIL CLOSED: a missing census says so. The caption and picture written at publish stay,
+      // because they are the same census; only the live views are absent.
+      set("mg-clock", "The live census could not be loaded (" + esc(e) + "), so the caption and "
+        + "picture above are the ones written at publish, and the interactive views are not shown.");
     });
 }
 </script>

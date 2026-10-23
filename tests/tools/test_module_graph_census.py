@@ -154,3 +154,36 @@ def test_write_draws_the_thumbnail_and_carries_a_layout_per_module(tmp_path, mon
     from PIL import Image
     with Image.open(tmp_path / "galaxy.png") as img:
         assert img.size == (1200, 630)
+
+
+def test_write_puts_the_caption_on_the_page_beside_the_picture(tmp_path, monkeypatch):
+    """Defect: the code tab reads "Loading the census..." until its script runs (director's steer,
+    23 Oct 2026, item 7), or the publish rewrites the caption on a page other than the picture's.
+    Both branches are taken: a page with its markers is written, one without is left untouched."""
+    c = _galaxy_census(tmp_path / "tree")
+    monkeypatch.setattr(mg, "census_at_head", lambda repo=None, rev="HEAD": dict(c, commit="abc1234567"))
+    site = tmp_path / "code"
+    site.mkdir()
+    page = site / "index.html"
+    page.write_text("<h1>x</h1>\n" + mg.CAPTION_START + "\nold\n" + mg.CAPTION_END + "\n", encoding="utf-8")
+    out = mg.write(tmp_path / "feed.json", thumbnail=site / "galaxy.png")
+    text = page.read_text(encoding="utf-8")
+    assert "old" not in text and f"<b>{out['modules']:,}</b> modules" in text
+    assert "commit abc123456," in text
+    bare = "<h1>no markers</h1>\n"
+    page.write_text(bare, encoding="utf-8")
+    assert mg.write_caption(out, page) is False
+    assert page.read_text(encoding="utf-8") == bare
+
+
+def test_the_served_code_tab_carries_the_caption_of_the_feed_it_ships_with():
+    """Defect: the caption a reader sees before the script runs is a placeholder, or figures that
+    disagree with the census the same publish wrote. Keyed to the property -- the committed page
+    against the committed feed -- not to today's module count."""
+    import json
+    page = (REPO / "site" / "code" / "index.html").read_text(encoding="utf-8")
+    feed = json.loads((REPO / "site" / "data" / "module_graph.json").read_text(encoding="utf-8"))
+    assert "Loading" not in page
+    start, end = page.index(mg.CAPTION_START), page.index(mg.CAPTION_END)
+    assert page[start + len(mg.CAPTION_START):end].strip() == mg.caption_html(feed)
+    assert 'id="mg-galaxy-still" src="galaxy.png"' in page

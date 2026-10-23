@@ -37,6 +37,7 @@ import edges is not thereby dead.
 from __future__ import annotations
 
 import argparse
+import html
 import json
 import math
 import subprocess
@@ -56,6 +57,12 @@ OUTPUT = ROOT / "site" / "data" / "module_graph.json"
 #: The galaxy's static picture: the code tab's link-preview image and the home page's thumbnail,
 #: so the picture shows without JavaScript (director's steer, 22 Oct 2026).
 THUMBNAIL = ROOT / "site" / "code" / "galaxy.png"
+#: The caption above the galaxy, written into the code tab beside the picture, so the figures show
+#: before JavaScript runs (director's steer, 23 Oct 2026, item 7). The page is the picture's
+#: sibling, so a test that redirects the picture never rewrites the tracked page.
+CAPTION_START = ("<!-- CODE-CAPTION:START (written at publish by "
+                 "tools/module_graph_census.py -- do not hand-edit) -->")
+CAPTION_END = "<!-- CODE-CAPTION:END -->"
 
 # The layers are the import graph's own roots less its test root: one list, so a root added
 # there is a layer here without an edit.
@@ -266,6 +273,42 @@ def render_thumbnail(out: dict, path: Path = THUMBNAIL) -> Path:
     return path
 
 
+def caption_html(out: dict) -> str:
+    """The caption and clock lines, the same words the page's script writes from the feed."""
+    def fmt(n):
+        return "unknown" if n is None else f"{n:,}"
+
+    def sg(v):
+        return ("+" if v > 0 else "") + fmt(v)
+
+    c = out["crossings"]
+    caption = (f"<b>{fmt(out['modules'])}</b> modules &middot; <b>{fmt(out['loc'])}</b> lines "
+               f"&middot; <b>{fmt(out['edges'])}</b> import edges &middot; <b>{fmt(c['seam'])}</b> "
+               f"cross the wall through the seam &middot; <b>{fmt(c['bypass'])}</b> go round it"
+               + (f" &middot; all {fmt(out['modules'])} shown" if out.get("galaxy") else ""))
+    clock = (f"// static imports at commit {html.escape(str(out['commit'])[:9])}, generated "
+             f"{html.escape(str(out['generated_at']))}")
+    wk = out.get("week_on_week")
+    if wk:
+        clock += (f" // since {html.escape(str(wk.get('since') or '')[:10])}: modules "
+                  f"{sg(wk['modules'])}, edges {sg(wk['edges'])}, lines {sg(wk['loc'])}, "
+                  f"round the seam {sg(wk['bypass'])}")
+    return (f'<p id="mg-caption" class="caption">{caption}</p>\n'
+            f'<p id="mg-clock" class="clock">{clock}</p>')
+
+
+def write_caption(out: dict, page: Path) -> bool:
+    """Rewrite the caption block in `page`. False, and the page untouched, if its markers are gone."""
+    text = page.read_text(encoding="utf-8")
+    start, end = text.find(CAPTION_START), text.find(CAPTION_END)
+    if start < 0 or end < start:
+        print(f"CODE CAPTION NOT WRITTEN: {page} does not carry its markers", file=sys.stderr)
+        return False
+    page.write_text(text[:start] + CAPTION_START + "\n" + caption_html(out) + "\n" + text[end:],
+                    encoding="utf-8")
+    return True
+
+
 def side_of(module: str) -> str:
     """"company", "world" or "machinery" -- the wall's own predicates, for colouring a star."""
     if wall.is_company_module(module):
@@ -298,7 +341,7 @@ def _delta(new: dict, old: dict | None) -> dict | None:
 
 def write(path: Path = OUTPUT, repo: Path = ROOT, thumbnail: Path | None = THUMBNAIL) -> dict:
     """Regenerate the door's feed from HEAD, carrying a week-on-week delta from the last one,
-    with the galaxy's layout and its static picture."""
+    with the galaxy's layout, its static picture and the caption on the page beside it."""
     try:
         previous = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, ValueError):
@@ -311,6 +354,8 @@ def write(path: Path = OUTPUT, repo: Path = ROOT, thumbnail: Path | None = THUMB
         nd["side"] = side_of(nd["module"])
     if thumbnail is not None:
         render_thumbnail(out, thumbnail)
+        if (thumbnail.parent / "index.html").exists():
+            write_caption(out, thumbnail.parent / "index.html")
     path.write_text(json.dumps(out, separators=(",", ":")) + "\n", encoding="utf-8")
     return out
 
