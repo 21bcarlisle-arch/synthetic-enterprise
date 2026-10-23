@@ -1287,3 +1287,130 @@ already recorded, it is re-worded in the commit that publishes the run.
 **Status:** OPEN and BLOCKING. The level is about 70% of the floor and the step-up is about 0.8 of
 the requirement. Next: what makes the company's 2017-19 charge so high and its 2022 charge so flat,
 read against the world's arrears by year on this run, before any change to the matrix.
+
+## 2026-10-23: why 2016-19 is high and 2022 is flat. The matrix recognises loss in the year the debt forms; the world forms less 2022 debt per pound billed than 2017-19
+
+Read-only, on the same HEAD run (`/var/tmp/se-head-crisis-out/run_output.json`, 989ce4f1c2,
+unpublished). Instrument: `/var/tmp/crisis_age_probe/probe.py`, one process. No matrix or world
+value was changed.
+
+**What each series counts.**
+- *World arrears* are counted per bill, each bill on its own, from the run's issued bills and the
+  world's own payment truth (`per_customer_behavioral[*].world_payment_truth`: each month's outcome,
+  part payments, crossed settlements and paid plan instalments). A bill is unpaid until the truth
+  says it was paid. *Arrears* are bills unpaid for 30 days or more at 31 December. *New arrears
+  formed in Y* are the bills issued in Y that the world records as failed.
+- *Company debt by age* is `company_provision.by_date` as published: the company's own
+  oldest-first (FIFO) ledger, across every footing.
+- *The IFRS 9 charge* is the validator's own definition: the movement in year-end stock, plus
+  write-offs, less recoveries. To split it, the probe rebuilds the company's book from the same
+  bills and truth: per account, total unpaid, allocated to the newest bills (oldest first, as the
+  company does), closed after 62 days unbilled, written off 365 days after the last bill, and rated
+  on the matrix rows the company imports (`value_based_renewal`). Each bill's recognised loss at a
+  year end is its provision, or its whole balance once written off. The *new-debt charge* is the
+  loss recognised on bills issued that year. *Ageing* is the movement on bills issued earlier.
+
+**The rebuild reproduces the published book closely enough to read, but not to the penny.**
+Receivable is within 2-14% of the published figure in every year, write-offs within 6%, and the
+charge within 10% except in 2022 (rebuild 746, published 1,297) and 2023 (5,103 against 5,784).
+It pays a direct debit bill on its due date rather than modelling the company's level collections,
+and it ignores back-billing write-offs and restatements. The gaps in 2022 and 2023 run in one
+direction, so the rebuild understates the 2022 level and does not move its shape.
+
+**A. The world, by year (31 Dec)**
+
+| year | arrears >=30d GBP | households | of which >1y GBP | failed bills formed GBP | failed share of billed | households with a failed bill | households first failing |
+|---|---|---|---|---|---|---|---|
+| 2016 | 2,471 | 35 | 0 | 5,880 | 3.74% | 55 | 55 |
+| 2017 | 6,462 | 71 | 1,053 | 10,145 | 3.39% | 85 | 66 |
+| 2018 | 9,043 | 73 | 3,427 | 9,328 | 3.16% | 72 | 42 |
+| 2019 | 11,928 | 82 | 6,041 | 9,046 | 3.33% | 69 | 34 |
+| 2020 | 10,795 | 80 | 7,843 | 3,649 | 1.61% | 50 | 20 |
+| 2021 | 11,681 | 86 | 8,446 | 3,905 | 1.70% | 53 | 21 |
+| **2022** | 16,811 | 95 | 8,582 | 12,726 | **2.87%** | 49 | 14 |
+| **2023** | 28,029 | 109 | 10,139 | 35,816 | **5.77%** | 58 | 16 |
+| 2024 | 23,132 | 113 | 14,678 | 12,428 | 3.21% | 47 | 9 |
+
+By month, the world's failed share is 1.3-3.4% through September 2022, then 2.6%, 3.3% and 4.0% in
+October to December. It peaks at 6.7% in January 2023 and stays between 4.8% and 6.8% through all
+of 2023. The pounds peak with the winter bills: January 2023 alone fails GBP 7,483 of 111,946 billed.
+
+**B. The company's debt by age (published, 31 Dec, GBP)**
+
+| year | <30d | 30-90d | >90d live | final bill held | written off to date | provision |
+|---|---|---|---|---|---|---|
+| 2016 | 4,589 | 1,338 | 464 | 4 | 0 | 506 |
+| 2017 | 5,107 | 1,567 | 1,642 | 1,586 | 39 | 2,521 |
+| 2018 | 5,264 | 1,861 | 1,980 | 2,368 | 1,671 | 3,417 |
+| 2019 | 7,123 | 2,213 | 3,146 | 1,326 | 4,011 | 3,169 |
+| 2020 | 4,544 | 1,671 | 662 | 358 | 6,996 | 975 |
+| 2021 | 5,687 | 2,424 | 748 | 281 | 7,288 | 1,099 |
+| 2022 | 21,266 | 6,807 | 1,202 | 75 | 7,609 | 2,091 |
+| 2023 | 12,911 | 7,385 | 12,128 | 206 | 7,801 | 7,683 |
+| 2024 | 12,643 | 5,399 | 8,142 | 773 | 8,008 | 5,798 |
+
+**C. The IFRS 9 charge, split, and the one-variable ageing shift (GBP)**
+
+The shift adds 365 days to every age the matrix is asked for, so each bill is rated as a year
+older. Nothing else changes: not the write-off clock, not the closed rule, not the ledger. Two
+scopes are printed. *Arrears only* shifts bills unpaid 30 days or more. *All unpaid* also shifts
+bills still in their normal collection window.
+
+| year | published | rebuild | new debt | ageing of earlier bills | % revenue | +1y, arrears only | +1y, all unpaid |
+|---|---|---|---|---|---|---|---|
+| 2016 | 506 | 504 | 504 | 0 | 0.34% | 935 | 3,250 |
+| 2017 | 2,054 | 1,893 | 1,889 | +4 | 0.67% | 1,904 | 2,901 |
+| 2018 | 2,527 | 2,389 | 2,500 | -111 | 0.85% | 2,433 | 2,242 |
+| 2019 | 1,970 | 1,976 | 2,142 | -167 | 0.77% | 2,111 | 2,588 |
+| 2020 | 732 | 763 | 801 | -38 | 0.35% | 654 | -435 |
+| 2021 | 279 | 325 | 981 | -656 | 0.15% | 446 | 1,053 |
+| **2022** | 1,297 | 746 | 1,430 | -683 | 0.18% | 1,821 | 8,343 |
+| **2023** | 5,784 | 5,103 | 6,361 | -1,258 | 0.86% | 5,608 | 2,283 |
+| 2024 | -1,678 | -1,657 | 2,990 | -4,646 | -0.45% | -2,276 | -2,843 |
+
+The validator's ratio (2022-23 against 2016-19, as a share of revenue):
+
+| reading | crisis | pre-crisis | step-up | 2022 alone |
+|---|---|---|---|---|
+| published | 0.700% | 0.726% | x0.96 | 0.31% |
+| rebuild | 0.578% | 0.695% | x0.83 | 0.18% |
+| +1y, arrears only | 0.734% | 0.759% | **x0.97** | 0.43% |
+| +1y, all unpaid | 1.050% | 1.129% | x0.93 | 1.98% |
+
+(The rebuild's 2025 row reads a 31 December the run never reached, since it ends on 2025-06-07, so it
+is left out.)
+
+**What the numbers say.**
+1. **The matrix does not recognise loss a year late.** In every year almost all of the charge
+   is on bills issued that year, and the ageing of earlier debt is negative: it releases as debt
+   is paid or written off. A one-year shift on arrears leaves the step-up at x0.97 (from x0.83 on
+   the same rebuild) and lifts 2022 only to 0.43%, still under the pre-crisis 0.76%. The
+   all-unpaid shift does lift 2022 to 1.98%, but only by provisioning December 2022's
+   GBP 21k of bills still inside their collection window at 50%. That charges the price rise, not
+   debt, and its 2023 then falls to 0.39%. It is not a reading of credit, and it fails the step too.
+2. **The 2022 charge is flat because the world's 2022 non-payment is flat.** The world fails 2.87%
+   of 2022's billed pounds. That is lower than in any year from 2016 to 2019 (3.2-3.7%), and only
+   the 2020-21 trough (1.6-1.7%) is lower. Its crisis response begins in October 2022 and lands in
+   the winter bills of January to March 2023, at 5.77% for the year. So the charge lands in 2023
+   because the world's failed pounds do.
+3. **The 2016-19 charge is high because the world's pre-crisis non-payment is high,** at 3.2-3.7%
+   of billed pounds with 18-20% of accounts failing a bill in a year. It is not the book filling:
+   the rate is per pound billed, not a volume. Selection is part of it, since the households
+   failing for the first time fall from 55 and 66 in 2016-17 to 14-16 in 2022-23. But the share of
+   accounts with a failed bill holds at 18-22% throughout, so the falling count is not the whole
+   story.
+
+**Ruling.** The next change belongs to the **world**, not the matrix. Specifically, it belongs to
+the world's failed share of billed pounds by year, which runs about 3.3% (2016-19), 1.65% (2020-21),
+2.9% (2022) and 5.8% (2023). The real charge runs about 1.2% (2019), 1.1% (2021), 2.1% (2022) and
+2.7-2.9% (2023) (Centrica, `bad_debt_provisioning.md` §3.2). Against that, the world's 2022 is too
+low relative to its own 2016-19, its 2023 is too steep, and its 2016-19 is high relative to its 2021.
+**What I cannot yet tell** is which end is wrong: whether the pre-crisis level is too high or the
+2022 response too small and too late. That is not a run. It is a knowledge read: a published
+annual series for the share of domestic accounts, or of billed pounds, falling into arrears from
+2017 to 2023 (Ofgem's debt-and-arrears indicators are the first place to look), set against
+column A's "failed share of billed". Then the W2 affordability cluster (W2_4.., W2_38) decides which
+mechanism to move, blind to this charge. No matrix change is warranted on this evidence.
+
+**Status:** OPEN and BLOCKING. The side is the world. The next step is the arrears-indicator read
+against column A, before any world build.
