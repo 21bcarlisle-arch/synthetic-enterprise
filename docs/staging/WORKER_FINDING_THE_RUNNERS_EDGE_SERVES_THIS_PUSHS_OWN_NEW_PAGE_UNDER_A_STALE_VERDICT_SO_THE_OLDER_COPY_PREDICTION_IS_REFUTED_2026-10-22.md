@@ -112,3 +112,37 @@ and so does a second inserted block or a beacon anywhere else. The controls this
 should be mutation-proven. This reverses with one revert and changes no published byte. Whether the
 site should carry a visitor-analytics beacon at all is a dashboard setting about data on real
 visitors, so it is raised for the director rather than touched here.
+
+## 23 Oct: the proposal enacted — the deploy check compares only the bytes we own
+
+*Worker tick, 23 Oct 2026, lane-0 item `compare-only-the-bytes-we-own-at-the-deploy-check`.*
+
+`tools/assert_deployed_bytes_are_served.py` now has `served_is_deployed`. Before an HTML body is
+hashed, it takes out exactly one Cloudflare Web Analytics block (`EDGE_BEACON`: a `<script>` whose
+`src` starts `https://static.cloudflareinsights.com/beacon.min.js`, up to its `</script>`, with no
+second tag inside). That block must sit immediately before `</body>`, whitespace apart. The
+confirmation line then says it was removed and gives its length. The first page in each run also
+prints the block in full. The timeout verdict (`classify`) uses the same comparison. Anything else
+stays red: a beacon mid-body, two beacons, another script before `</body>`, or a beacon alongside
+any edit of ours.
+
+**What is not established.** No log holds the block past its first 80 bytes, so the matcher keys
+on the tag's structure and not on its bytes. Whether the edge adds a newline after the block is
+also unknown, so both forms are tried. The test fixture is the log's real 80-byte head plus a
+constructed tail, padded to the measured 367 bytes. The next deploy that changes HTML prints the
+real block. Swap it into `_BEACON` in `tests/tools/test_assert_deployed_bytes_are_served.py`
+then. If that run is still red with INSERTED, the real block does not fit the matcher, and the
+log shows why.
+
+**Controls, each mutation-proven:** the real-shape case passes and is logged with the full block
+once; a block with a trailing newline passes; mid-body, two blocks, another script, beacon plus an
+edit, and beacon then truncated all red; `classify` resolves the beacon-only case. Mutants killed:
+no removal, no `</body>` position check, no whitespace cut, a cut past the block, `>` refused
+inside the JSON attribute, the block printed every time, the once-flag never set, silent removal,
+and `classify` on the raw hash. One survivor was an equivalence: taking the first match or the
+last. With two blocks, one beacon either survives the removal or fails the position check, so the
+hash is red either way. The code now uses a single `search` and says so.
+
+Whether poesys.net should carry the beacon at all stays with the director
+(`poesys-net-carries-cloudflare-s-web-analytics`). This change is right either way, and one
+revert undoes it.

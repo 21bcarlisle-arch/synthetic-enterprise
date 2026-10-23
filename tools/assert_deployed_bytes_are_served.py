@@ -314,7 +314,7 @@ def classify(
         got = hashlib.sha256(body).hexdigest()
     except (urllib.error.URLError, OSError) as exc:
         return f"UNCONFIRMED (the edge did not answer: {exc})"
-    if got == want:
+    if served_is_deployed(body, want)[0]:
         return "RESOLVED after the clock ran out -- the window is too short, not the deploy"
     if base:
         previous = bytes_at(base, path)
@@ -406,6 +406,45 @@ def where_bytes_differ(served: bytes, expected: bytes | None) -> str:
             f"{expected[lo:pre + CONTEXT_BYTES]!r}")
 
 
+#: Cloudflare Web Analytics' beacon, which the edge writes into HTML responses before `</body>`.
+#: Run 39915248303 (23 Oct, deploying 75e55464c) failed 38 of 39 changed assets, every one
+#: INSERTED with 367 bytes opening `<script type="module" src="https://static.cloudflareinsights.
+#: com/beacon.min.js/vc` and the page otherwise intact; the direct files (png, json, css) never
+#: get it, which is the whole HTML/non-HTML partition the reds have shown since September. The
+#: block's tail is in no log (only 80 bytes were printed), so this matches the tag's structure,
+#: not its bytes, and `served_is_deployed` prints the block it removes. `[^<]` after the src
+#: allows a `>` inside the JSON `data-cf-beacon` attribute but never a second tag.
+EDGE_BEACON = re.compile(
+    rb"""<script\b[^<>]*?\bsrc=["']https://static\.cloudflareinsights\.com/beacon\.min\.js"""
+    rb"""[^<]*</script>"""
+)
+
+
+def served_is_deployed(served: bytes, want: str) -> tuple[bool, bytes | None]:
+    """Is `served` the deployed file, counting only the bytes we own? Returns (match, removed).
+
+    Exactly ONE beacon block, sitting immediately before `</body>` (whitespace apart), is taken
+    out before hashing; the block plus the whitespace run after it is tried too, since whether
+    the edge adds a newline with it is not in any log. Everything else must match byte for
+    byte: a beacon mid-body, a second beacon, or any other script before `</body>` stays red.
+    """
+    if hashlib.sha256(served).hexdigest() == want:
+        return True, None
+    # One block is taken out, never more: a second beacon survives and fails the hash.
+    found = EDGE_BEACON.search(served)
+    if found is None:
+        return False, None
+    start, end = found.span()
+    after = served[end:]
+    trailing = len(after) - len(after.lstrip())
+    if not after[trailing:trailing + 7].lower() == b"</body>":
+        return False, None
+    for cut in (end, end + trailing):
+        if hashlib.sha256(served[:start] + served[cut:]).hexdigest() == want:
+            return True, served[start:cut]
+    return False, None
+
+
 def recent_commits(path: str) -> list[str]:
     return subprocess.run(
         ["git", "log", f"-{LOOKBACK_COMMITS}", "--format=%h", "--", path],
@@ -491,15 +530,22 @@ def main() -> int:
 
     outstanding = dict(wanted)
     started = time.monotonic()
+    beacon_shown = False
     for attempt in range(ATTEMPTS):
         nonce = f"deploy-{os.environ.get('GITHUB_RUN_ID', 'local')}-{attempt}"
         for url, want in list(outstanding.items()):
             try:
-                got = hashlib.sha256(fetch(url, nonce)).hexdigest()
+                same, removed = served_is_deployed(fetch(url, nonce), want)
             except (urllib.error.URLError, OSError) as exc:
                 print(f"  attempt {attempt}: {url}: {exc}")
                 continue
-            if got == want:
+            if removed is not None:
+                # In full once, so a log carries the block's real bytes; its length after that.
+                print(f"  {url}: Cloudflare's analytics beacon removed before comparing "
+                      f"({len(removed)} bytes before </body>, not ours)"
+                      + ("" if beacon_shown else f": {removed!r}"))
+                beacon_shown = True
+            if same:
                 # The elapsed figure is the POINT of printing this, not decoration: the
                 # promotion latency is the number this control's timeout has to be set from,
                 # and it was guessed once already. Every green deploy now contributes an

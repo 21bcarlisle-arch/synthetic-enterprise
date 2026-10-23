@@ -428,3 +428,67 @@ def test_the_github_pages_manifest_publishes_no_script_either():
     from tools import pages_publish_manifest as manifest
     assert manifest.PUBLISHED
     assert [p for p in manifest.PUBLISHED if p.endswith((".py", ".mjs"))] == []
+
+
+# --------------------------------------------------------------------------
+# Cloudflare's analytics beacon: the one insertion that is not ours (run 39915248303, 23 Oct).
+# --------------------------------------------------------------------------
+#: The first 80 bytes are the log's, verbatim. The tail is NOT: no log printed past byte 80, so
+#: it is built to the documented attribute shape and padded to the 367 bytes the log measured,
+#: with a `>` inside the JSON. `served_is_deployed` prints the real block on the next deploy;
+#: replace this tail with it then.
+_BEACON_HEAD = b'<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vc'
+_BEACON_TAIL = b"\" data-cf-beacon='{\"r\":1,\"note\":\"a>b\",\"token\":\"%s\"}' crossorigin=\"anonymous\"></script>"
+_BEACON = _BEACON_HEAD + b"d15" + _BEACON_TAIL % (b"t" * (367 - len(_BEACON_HEAD + b"d15" + _BEACON_TAIL % b"")))
+_CLOCKED = (b"<!doctype html><html><head><title>Poesys</title></head><body><p>a page</p>\n"
+            b"<p>figures from the run of 19 Oct</p>\n<!-- RUN-CLOCK:END -->\n</body>\n</html>\n")
+
+
+def _with_beacon(at: bytes, block: bytes = _BEACON, page: bytes = _CLOCKED) -> bytes:
+    i = page.index(at)
+    return page[:i] + block + page[i:]
+
+
+def _want(page: bytes = _CLOCKED) -> str:
+    return hashlib.sha256(page).hexdigest()
+
+
+def test_the_beacon_fixture_is_the_size_the_log_measured():
+    assert len(_BEACON) == 367 and A.EDGE_BEACON.fullmatch(_BEACON)
+
+
+def test_the_real_beacon_before_body_is_not_counted_against_the_deploy(monkeypatch, tmp_path,
+                                                                        capsys):
+    """The 38 reds of run 39915248303: the page intact, one beacon before </body>. Fires if the
+    beacon is counted as ours (every HTML push red), or if it is removed without saying so."""
+    served = _with_beacon(b"</body>")
+    assert hashlib.sha256(served).hexdigest() != _want()      # the branch is actually taken
+    rc, _ = _run(monkeypatch, tmp_path,
+                 {"site/index.html": _CLOCKED, "site/code/index.html": _CLOCKED},
+                 {"https://poesys.net/": served, "https://poesys.net/code/": served})
+    out = capsys.readouterr().out
+    assert rc == 0 and "confirmed live" in out, out
+    assert out.count("analytics beacon removed before comparing (367 bytes") == 2, out
+    assert out.count("cloudflareinsights") == 1, out           # the full block, once
+
+
+def test_a_beacon_carrying_its_own_newline_is_still_one_block():
+    assert A.served_is_deployed(_with_beacon(b"</body>", _BEACON + b"\n"), _want()) == (
+        True, _BEACON + b"\n")
+
+
+@pytest.mark.parametrize("served", [
+    _with_beacon(b"<p>a page</p>"),                                     # mid-body
+    _with_beacon(b"</body>", _BEACON + _BEACON),                        # two blocks
+    _with_beacon(b"</body>", b'<script src="https://example.com/x.js"></script>'),
+    _with_beacon(b"</body>", _BEACON + b"<p>edited</p>"),               # beacon plus our own edit
+    _with_beacon(b"</body>")[:-3],                                      # beacon, then truncated
+], ids=["mid-body", "two-blocks", "another-script", "beacon-plus-edit", "beacon-truncated"])
+def test_anything_but_one_beacon_before_body_stays_red(served):
+    assert A.served_is_deployed(served, _want()) == (False, None)
+
+
+def test_the_beacon_alone_resolves_a_timed_out_route_too(monkeypatch):
+    monkeypatch.setattr(A, "fetch", lambda url, nonce: _with_beacon(b"</body>"))
+    assert A.classify("https://poesys.net/", _want(), "site/index.html", None).startswith(
+        "RESOLVED")
