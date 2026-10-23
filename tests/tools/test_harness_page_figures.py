@@ -7,6 +7,8 @@ gate count typed by hand rather than read from the hooks; a figure with no store
 """
 from __future__ import annotations
 
+import json
+import re
 import subprocess
 from datetime import date
 from pathlib import Path
@@ -96,15 +98,24 @@ def test_a_figure_with_no_store_is_named_as_not_measured_and_never_printed():
     figures, _, missing = hpf.scale_figures(ROOT, {})
     assert any("first time" in m and "not measured yet" in m for m in missing)
     assert not any("first time" in lab for _, lab, _ in figures)
-    # No control register in the feed: that figure is left out with its reason, not zeroed.
-    assert any("control register could not be read" in m for m in missing)
+    # Proven able to fail is counted over the tests, so it stands without the July register,
+    # and the register's figure is not borrowed when the feed lacks it.
+    proven = [c for _, lab, c in figures if lab == "tests proven able to fail"]
+    assert proven and "register" not in proven[0]
+    kill = {"available": True, "controls_total": 35, "mutation_proven": 33,
+            "last_verified": "2026-07-13"}
+    figures, _, _ = hpf.scale_figures(ROOT, {"control_killlist": kill})
+    assert any("33 of 35, last graded 13 Jul 2026" in c for _, _, c in figures)
 
 
-def test_both_blocks_are_written_into_a_page_carrying_the_markers(tmp_path):
+def test_every_block_is_written_into_a_page_carrying_the_markers(tmp_path):
     page = tmp_path / "site" / "harness" / "index.html"
     page.parent.mkdir(parents=True)
-    page.write_text("<p>top</p>\n{}\nSTALE\n{}\n<p>mid</p>\n{}\nSTALE\n{}\n".format(
-        hpf.SCALE_START, hpf.SCALE_END, hpf.WEEK_START, hpf.WEEK_END), encoding="utf-8")
+    layers = "".join("<li>{}\nSTALE\n{}</li>\n".format(hpf.LAYER_START.format(n),
+                                                       hpf.LAYER_END.format(n))
+                     for n in hpf.LAYER_CODE)
+    page.write_text("<p>top</p>\n{}{}\nSTALE\n{}\n<p>mid</p>\n{}\nSTALE\n{}\n".format(
+        layers, hpf.SCALE_START, hpf.SCALE_END, hpf.WEEK_START, hpf.WEEK_END), encoding="utf-8")
     # The page's root is three levels up, and git there is the real repository's when tmp is
     # not one, so make it a repository with one commit.
     _commit_all(tmp_path)
@@ -113,6 +124,7 @@ def test_both_blocks_are_written_into_a_page_carrying_the_markers(tmp_path):
     assert "STALE" not in out and "<p>top</p>" in out and "<p>mid</p>" in out
     assert "test files" in out and "Commits per week" in out
     assert "no highlight is shown" in out  # no stretch log in this tree: said, not blank
+    assert out.count('<span class="ev">') == 8
 
 
 def test_a_page_without_the_markers_is_refused_and_left_alone(tmp_path):
@@ -122,10 +134,69 @@ def test_a_page_without_the_markers_is_refused_and_left_alone(tmp_path):
     assert page.read_text(encoding="utf-8") == "<p>no markers</p>"
 
 
-def test_the_served_page_carries_both_marker_pairs():
+def test_the_served_page_carries_every_marker_pair():
     page = (ROOT / "site" / "harness" / "index.html").read_text(encoding="utf-8")
-    for marker in (hpf.SCALE_START, hpf.SCALE_END, hpf.WEEK_START, hpf.WEEK_END):
+    layers = [m.format(n) for n in hpf.LAYER_CODE for m in (hpf.LAYER_START, hpf.LAYER_END)]
+    for marker in (hpf.SCALE_START, hpf.SCALE_END, hpf.WEEK_START, hpf.WEEK_END, *layers):
         assert page.count(marker) == 1, marker
+    assert len(layers) == 16
+
+
+def _jsonl_rows(path, rows):
+    path.write_text("".join(json.dumps(r) + "\n" for r in rows) + "{torn\n", encoding="utf-8")
+
+
+def test_every_layer_counts_its_own_store_inside_the_window_and_keeps_an_older_last(tmp_path):
+    """One control over the eight boxes. Each store holds one row inside the thirty days and one
+    from 2020: the count sees only the first, and a store whose only firing is old reports that
+    day as its last. MUTATIONS: dropping the window counts 2 for the walls; reading the wrong
+    outcome word counts the passes; dropping the MUTATION marker test counts 2 test files;
+    keying the Director-doc read to the subject finds none; reading the raw text, not the code,
+    for which module a test names credits layer 1 with a docstring -- each reds an assert below."""
+    today = date.today().isoformat()
+    obs = tmp_path / "obs"
+    obs.mkdir()
+    _jsonl_rows(obs / "lane_hook_denials.jsonl",
+                [{"timestamp": today + "T01:00:00Z"}, {"timestamp": "2020-01-01T00:00:00Z"}])
+    _jsonl_rows(obs / "commit_hook_duration.jsonl",
+                [{"timestamp": today, "outcome": "refused"}, {"timestamp": today, "outcome": "pass"},
+                 {"timestamp": today, "outcome": "pass"},
+                 {"timestamp": "2020-01-01", "outcome": "refused"}])
+    _jsonl_rows(obs / "publish_gate_duration.jsonl",
+                [{"timestamp": today, "outcome": "pass"}, {"timestamp": "2020-02-03", "outcome": "fail"}])
+    _jsonl_rows(obs / "blind_review_ledger.jsonl", [{"recorded_at": today}])
+    tests = tmp_path / "tests"
+    tests.mkdir()
+    (tests / "test_gate.py").write_text('"""MUTATION: drop it."""\nimport tools.world_claims\n')
+    (tests / "test_plain.py").write_text('"""A mutation, lower case."""\nimport tools.world_claims\n')
+    (tests / "test_says.py").write_text('"""MUTATION: names one_way_door in prose only."""\n')
+    (tmp_path / "docs" / "market_research").mkdir(parents=True)
+    (tmp_path / "docs" / "market_research" / "a.md").write_text("x")
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    subprocess.run(["git", "-C", str(tmp_path), "add", "-A"], check=True)
+    subprocess.run(["git", "-C", str(tmp_path), "-c", "user.name=t", "-c", "user.email=t@t",
+                    "commit", "-q", "-m", "fix a canon typo\n\nDirector-doc: correction -- x"],
+                   check=True)
+    got = {n: dict(rows) for n, rows in hpf.layer_evidence(tmp_path, obs).items()}
+    assert sorted(got) == list(range(1, 9))
+    fired = {n: next(v for k, v in rows.items() if k.endswith("30 days")) for n, rows in got.items()}
+    assert fired[1].startswith("1 commits") and fired[2].startswith("1 sourced")
+    assert fired[3].startswith("1 tool calls") and "last {}".format(hpf._day(today)) in fired[3]
+    assert fired[4].startswith("1 of the publisher's 3 commit attempts")
+    assert fired[5].startswith("2 of 3 test files") and "2 of them added" in fired[5]
+    assert fired[6].startswith("1 blind reviews")
+    assert fired[7].startswith("0 of 1 publish gate runs") and "last 3 Feb 2020" in fired[7]
+    assert got[7]["Shown able to fail"].startswith("1 tests")
+    assert "no test" in got[1]["Shown able to fail"]
+    assert "Shown able to fail" not in got[5]  # the layer IS the count
+
+
+def test_a_layer_whose_store_is_absent_says_not_measured_and_prints_no_number(tmp_path):
+    _commit_all(tmp_path)
+    got = hpf.layer_evidence(tmp_path, tmp_path / "no_such_dir")
+    for n in (3, 4, 6, 7):
+        text = got[n][0][1]
+        assert text.startswith("not measured yet") and not re.search(r"\d", text), (n, text)
 
 
 def test_the_publish_step_calls_the_writer():

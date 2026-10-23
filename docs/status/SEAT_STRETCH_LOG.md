@@ -8,6 +8,45 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-23 — Each of the eight layers on How it's built carries its own evidence, counted at publish from the store that records it; proven able to fail is now counted over the tests
+
+<!-- head: d5cd1359dbf7 -->
+
+**In plain English:** Each of the eight layers of checks on How it's built now shows its own evidence, counted at publish: how often it fired in the last 30 days, when it last fired, and whether a test has been seen to fail on its defect.
+
+*Seat executor, 23 Oct 2026. Director, 23 Oct 09:20 (advisor channel, DIRECTOR_STEER_SHOW_THE_HARNESS_AS_A_LIVE_CONTROL_STACK): "How could you show our harness and e2e control mechanism, is very advanced".*
+
+**What each box counts, and why the units differ.** Each layer reads the one store that already records it, and its box names that unit. (1) Commits carrying the `Director-doc:` reason the director-document gate demands. (2) Sourced research documents added, each of which the knowledge gate reads. (3) Tool calls the lane hook denied; the network wall refuses by construction and leaves nothing to count. (4) Commit attempts that the publisher logged as refused; no other agent logs its gate, and the box says so. (5) Test files that record a mutation. (6) Blind reviews recorded in their ledger. (7) Publish-gate runs that stopped a publish. (8) Mistake classes registered. "Shown able to fail" counts the tests that both name the layer's own files and record a mutation. A store that is not on the machine gives "not measured yet", never a 0.
+
+**At d5cd1359d, read against the shared tree's stores:**
+- Director documents: 40 marked commits.
+- Research documents: 61 added.
+- Wall denials: 0, last on 4 Sep.
+- Publisher commit attempts: 14 of 35 refused.
+- Tests proven able to fail: 532 of 2,154.
+- Blind reviews: 10.
+- Publish-gate runs: 28 of 81 stopped a publish.
+- Mistake classes: 0 new, last on 28 Aug.
+
+The two rare layers, 3 and 8, show their numbers plainly, as the steer asks.
+
+**Layer 5 is defined over the tests now, not over the July register** (the finding was moved to done). The scale strip's "33 of 35 registered controls" became "532 tests proven able to fail", and the register's figure sits beside it. A test counts when a docstring or other string in it records a MUTATION, read through `ast.parse`. The first draft regexed the raw text (566), and the gate's census of source scans refused that commit. The 34 files with the marker only in a comment now go uncounted, which errs low. The census also caught a real defect: a test that named a layer's module only in its docstring was being credited to that layer. Which code a test names is now read through `searchable()`.
+
+**Controls.** One test covers all eight boxes over a fixture with in-window and 2020 rows. Five mutations, all red:
+- drop the window;
+- invert the refused outcome (it survived at first because the fixture held one pass and one refusal; a second pass row was added);
+- drop the MUTATION marker;
+- read the Director-doc trailer from the subject;
+- read the raw text, not the code, for which module a test names.
+
+An absent store gives words and no digit.
+
+**Still owed:** each box should link one click down to its store or latest refusal. The two follow-on steers (meaning, learning and refusals; doors, pace and balance) go in as collapsed sections after the lessons. Then one cold-reader pass over the page.
+
+**Seen in passing:** `naive_organ_log.jsonl` holds about 26,000 rows. Every one in its last stretch reads `declined_purpose`, with no `asked_at`. It could not back layer 6, so it was not used.
+
+---
+
 ## 2026-10-23 — Knowledge says what Poesys is, groups its pages into five themes, and tells you on each card why the simulation needs it
 
 <!-- head: ebc69c6da47b -->
