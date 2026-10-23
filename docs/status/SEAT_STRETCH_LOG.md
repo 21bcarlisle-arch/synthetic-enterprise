@@ -8,6 +8,22 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-23 — Standard-variable bills above the cap are two billing defects, not the check: an incoming occupant priced as non-domestic is fixed, and the EPG on the household's bill is next
+
+<!-- head: 4775b0f25a3a -->
+
+*Seat executor, 23 Oct 2026. Drawn at lane 0: `svt-bills-above-the-cap-cause-and-fix`.*
+
+**What was asked.** Explore's cast found 4,764 standard-variable bills above min(cap, EPG) on the 19 Oct run, in 199 of 550 households. Name the cause, fix the billing, and add the class invariant.
+
+**What I got wrong first.** I pre-registered that most of the 4,764 were fixed-term bills the check had misread as standard variable, cause (c). Graded on the tariff type the run records per term, 4,579 are on `svt` terms. The prediction is kept beside its result in the finding.
+
+**The two causes.** (A) 3,600 bills: an incoming occupant's account is admitted mid-run, so it was never in the frozen set of domestic accounts. The renewal chain priced its standard-variable tariff with the cap clamp off, at up to 1.38 times the cap. Not one of the 6,187 SYN or PROS standard-variable terms was over the cap. This is fixed. (B) 1,817 bills: during the EPG the household was billed the Ofgem level. That is what the supplier receives, but the Treasury paid half of it. The world already splits the two; settlement bills the wrong one. This is named, not fixed. It moves the bill-derived ledger, debt and direct debits, so it needs its own pre-registration.
+
+**The call.** I landed A, the invariant and the K8 page as one increment, rather than landing B unmeasured. The invariant grades the household's invoice, not the supplier's rate, so it is red on B today, which is correct. It is wired only as a grader (the cast), not as a pre-bill hold, so it does not hold 1,800 crisis-quarter bills before B is fixed.
+
+---
+
 ## 2026-10-23 — The advisor draw reads origin, not a checkout 37 commits behind; the new tier's point refits to about USD 10, and the pace runs normal to the Monday 03:00 reset
 
 <!-- head: 82f4b20bcbed -->

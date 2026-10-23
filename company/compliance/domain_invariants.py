@@ -49,7 +49,10 @@ from company.compliance.segment_debt_policy import (
 from company.compliance.segment_debt_policy import (
     select_debt_terms as _select_debt_terms,
 )
-from company.pricing.ofgem_price_cap import get_cap_unit_rate_gbp_per_mwh
+from company.pricing.ofgem_price_cap import (
+    get_cap_unit_rate_for_date,
+    get_cap_unit_rate_gbp_per_mwh,
+)
 
 _CAP_ANCHOR_YEARS = range(2019, 2026)
 _ELEC_CAP_BY_YEAR = {
@@ -390,6 +393,66 @@ SOLD_UNIT_RATE_WITHIN_CAP_EX_VAT = StructuralInvariant(
     ),
     source="Ofgem SLC 28AD (default tariff cap, published inc-VAT); HMRC VAT Notice 701/19",
 )
+
+
+# THE HOUSEHOLD'S SIDE OF THE SAME CEILING. The rule above grades what the supplier RECEIVES, and
+# during the EPG that is the Ofgem level because HM Treasury paid the gap. This one grades what the
+# household is CHARGED on its invoice, and that is min(Ofgem cap, EPG): the household paid the EPG
+# rate and never the Treasury's half. The two agree by construction, and an invoice that passes the
+# first and fails this one is billing the household the Treasury's share. On the 19 Oct run that
+# was 1,804 default-tariff invoices; 3,600 more were struck above the cap itself (an incoming
+# occupant read as non-domestic). SEAT_FINDING_SVT_BILLS_ABOVE_THE_CAP_ARE_TWO_DEFECTS_NOT_A_
+# GRADING_ARTEFACT_2026-10-23.md; the law, docs/market_research/default_tariff_cap_and_epg_on_the_bill.md.
+DEFAULT_TARIFF_INVOICE_WITHIN_HOUSEHOLD_CEILING = StructuralInvariant(
+    id="default_tariff_invoice_within_household_ceiling",
+    description=(
+        "A default-tariff invoice's all-in unit rate -- (commodity + non-commodity) x (1 + its own "
+        "VAT rate) / kWh, standing charge excluded -- does not exceed min(Ofgem cap, EPG) for its "
+        "period. A fixed term the household chose is outside the cap and passes."
+    ),
+    source="Ofgem SLC 28AD (default tariff cap); Energy Prices Act 2022 and the EPG scheme",
+    effective_from=date(2019, 1, 1),
+)
+
+#: The products the cap binds that this company sells or deems: its standard variable tariff and a
+#: deemed contract. Ofgem SLC 28AD names "Evergreen (SVT), Deemed, and default fixed-term" contracts.
+DEFAULT_TARIFF_TYPES = ("svt", "deemed")
+
+#: Absorbs the published cap rows' rounding to 0.1 GBP/MWh (Ofgem's p/kWh to one decimal place) and
+#: an invoice's rounding to the penny, and nothing else: 0.5% is above both and far below any defect
+#: this rule exists for. NAMED SIMPLIFICATION: to do it properly, carry Ofgem's unrounded levels.
+DEFAULT_TARIFF_CAP_ROUNDING_TOLERANCE = 0.005
+
+
+def default_tariff_invoice_excess_p_per_kwh(invoice: dict, tariff_type: str) -> Optional[float]:
+    """How far a default-tariff invoice's all-in unit rate sits above the household's ceiling, p/kWh.
+
+    0.0 when within it, or when the tariff is not a default one. None when the invoice cannot be
+    graded: no cap in force yet, no consumption, or a catch-up, whose charge covers earlier periods
+    under earlier ceilings. GB-average levels: the regional cap is not in the commons (GAP).
+    """
+    if tariff_type not in DEFAULT_TARIFF_TYPES:
+        return 0.0
+    kwh = invoice.get("consumption_kwh") or 0.0
+    net = (invoice.get("amount_gbp") or 0.0) - (invoice.get("vat_gbp") or 0.0)
+    if kwh <= 0 or net <= 0 or invoice.get("catchup_applied"):
+        return None
+    on = date.fromisoformat(str(invoice.get("period_start") or invoice["date"])[:10])
+    ceiling = get_cap_unit_rate_for_date(invoice.get("commodity") or "electricity", on, net_of_epg=True)
+    if ceiling is None:
+        return None
+    vat_rate = (invoice.get("vat_gbp") or 0.0) / net
+    unit = (invoice.get("commodity_amount_gbp") or 0.0) + (invoice.get("non_commodity_amount_gbp") or 0.0)
+    charged = 100.0 * unit * (1.0 + vat_rate) / kwh
+    ceiling_p = ceiling / 10.0
+    return max(0.0, charged - ceiling_p) if charged > ceiling_p * (1 + DEFAULT_TARIFF_CAP_ROUNDING_TOLERANCE) else 0.0
+
+
+def check_default_tariff_invoice_within_household_ceiling(invoice: dict, tariff_type: str) -> bool:
+    """False only when the invoice is gradeable and above the ceiling; an ungradeable one is not a pass
+    the caller can count -- ask `default_tariff_invoice_excess_p_per_kwh` for the None."""
+    excess = default_tariff_invoice_excess_p_per_kwh(invoice, tariff_type)
+    return excess is None or excess == 0.0
 
 
 # ADVISOR_STEER_BACKBILLING_GATE.md item 1(c): "add the cap as a pre-bill
@@ -1152,6 +1215,7 @@ ALL_INVARIANTS: list = [
     BAD_DEBT_RATE_RESI, BAD_DEBT_RATE_SME,
     BACK_BILLING_CAP_RESPECTED,
     SOLD_UNIT_RATE_WITHIN_CAP_EX_VAT,
+    DEFAULT_TARIFF_INVOICE_WITHIN_HOUSEHOLD_CEILING,
     DISCRETIONARY_RATE_NOT_BELOW_OWN_COST_FLOOR,
     BILLED_CLOCK_RECONCILES_WITH_ISSUED_BILLS,
     VAT_SEGMENT_MATCHES_CONSUMPTION,

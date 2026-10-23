@@ -2620,6 +2620,16 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     _occupant_from: dict[str, date] = {}
     _move_in_entry: dict[str, dict] = {}
 
+    # AN INCOMING OCCUPANT IS DOMESTIC WHEN ITS PREMISE WAS. `_RESI_CUSTOMER_IDS` is frozen at
+    # import, so an account admitted mid-run was never in it, and the renewal chain was told
+    # `is_domestic=False`: the cap clamp skipped every OCC- default-tariff term, 1,388 of 1,866 sat
+    # above their own window's cap (x1.15 median, up to x1.38) on the 19 Oct run
+    # (SEAT_FINDING_SVT_BILLS_ABOVE_THE_CAP_ARE_TWO_DEFECTS_NOT_A_GRADING_ARTEFACT_2026-10-23).
+    _admitted_resi_ids: set[str] = set()
+
+    def _is_domestic_leg(cid: str) -> bool:
+        return cid in _RESI_CUSTOMER_IDS or cid in _admitted_resi_ids
+
     def _known_customers() -> list[dict]:
         """The run's accounts, the incoming occupants admitted so far included. With moves off it
         is `_ALL_KNOWN_CUSTOMERS` exactly."""
@@ -2633,6 +2643,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         leg, premise = record["customer_id"], vacated_leg["customer_id"]
         if get_customer(leg) is not None:
             return
+        if record.get("segment", "resi") == "resi":
+            _admitted_resi_ids.add(leg)
         _incoming_occupant_book.append(record)
         # B7 slice 6: the vacated home stands empty for its tenure's void, read from the
         # register for the MOVER's tenure (the home vacated is theirs). The meter point's account
@@ -3083,7 +3095,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             portfolio_priced_for_rates=_portfolio_margins.priced_for(commodity),
             prior_term_margin=prev_term_margin.get(cid),
             prior_term_revenue=prev_term_revenue.get(cid, 0.0),
-            is_domestic=cid in _RESI_CUSTOMER_IDS,
+            is_domestic=_is_domestic_leg(cid),
             # `_SEGMENT_OF` already exists here for the Triad carve-out, so the fact the
             # renewal desk was missing was three lines away the whole time.
             segment=_SEGMENT_OF.get(cid, "resi"),
@@ -3100,7 +3112,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             # its own default price; before the 2019 cap there is no ceiling to read it from.
             own_default_tariff_inc_vat_per_mwh=(
                 _account_state_svt_rate(commodity, term_start_str)
-                if cid in _RESI_CUSTOMER_IDS else None),
+                if _is_domestic_leg(cid) else None),
             # THE COMPANY'S OWN OFFER for this term, read off the term dict its offer wrote, so the
             # desk can floor a discount at the cost it struck over. Deliberately NOT `company_fwd`
             # above, which falls back to the world's forward where the offer recorded none.
@@ -3122,7 +3134,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         _offer_vs_default = (
             position_vs_default(unit_rate, term_start_str, commodity=commodity)
             if (DECLINE_A_FIX_ABOVE_THE_DEFAULT and term_index >= 1 and not _spliced
-                and term_tariff_type == "fixed" and cid in _RESI_CUSTOMER_IDS)
+                and term_tariff_type == "fixed" and _is_domestic_leg(cid))
             else None
         )
         _renewal_outcome = None

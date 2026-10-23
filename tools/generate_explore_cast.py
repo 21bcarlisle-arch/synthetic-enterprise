@@ -39,6 +39,8 @@ from collections import defaultdict
 from datetime import date, datetime, timezone
 from pathlib import Path
 
+from company.compliance.domain_invariants import default_tariff_invoice_excess_p_per_kwh
+
 PROJECT = Path(__file__).resolve().parent.parent
 CUSTOMERS_DIR = PROJECT / "site" / "data" / "customers"
 SAMPLE_PATH = PROJECT / "site" / "data" / "customer_sample.json"
@@ -47,15 +49,15 @@ OUT_PATH = PROJECT / "site" / "data" / "explore_cast.json"
 PAGE_PATH = PROJECT / "site" / "explore" / "index.html"
 
 #: The Ofgem back-billing rule (SLC 21BA): a supplier may not bill for energy used more than 12
-#: months before the bill when the delay was its own. The cap's tolerance below is not a domain
-#: value: it absorbs the published rows' rounding to 0.1 £/MWh and nothing else.
+#: months before the bill when the delay was its own.
 BACKBILL_LIMIT_DAYS = 365
-CAP_ROUNDING_TOLERANCE = 0.005
 
-#: A fixed-term renewal is outside the default-tariff cap for its term, and the run records the
-#: renewal's date and rate but not its term. So the cap check reads ONLY bills dated before the
-#: household's first renewal on that fuel: the one population that can only have been on the
-#: standard variable tariff. It undercounts, which is the safe direction for a breach count.
+#: A fixed-term renewal is outside the default-tariff cap for its term. The run records each term's
+#: `tariff_type` (`account_state_log`) but the published household record does not carry it, so
+#: the cap check reads bills dated before the household's first renewal on that fuel. Graded
+#: against the recorded type on the 19 Oct run, 4,579 of that population's 4,764 breaches were on
+#: `svt` terms, so this is a proxy for the record and not the cause of the count (correction,
+#: 23 Oct: this said the run did not record the term).
 
 #: A gas leg billed this long after its electricity leg left is "left behind". One billing month
 #: plus a final-bill allowance; anything past it is a bill for a household that has gone.
@@ -207,11 +209,13 @@ def coverage_breaches(hh: dict, ev: dict, windows: list[dict], segment: str) -> 
             iso = inv.get("period_start") or inv["date"]
             if inv["date"] >= fixed_from.get(inv["fuel"], "9999"):
                 continue
+            # The rule itself is the company's invariant, so the cast and the bill are graded by
+            # one implementation of one legal requirement, not two.
+            if not default_tariff_invoice_excess_p_per_kwh({**inv, "commodity": inv["fuel"]}, "svt"):
+                continue
             ceiling = binding_ceiling_p_per_kwh(windows, inv["fuel"], iso)
             charged = _all_in_p_per_kwh(inv)
-            if ceiling is None or charged is None:
-                continue
-            if charged > ceiling * (1 + CAP_ROUNDING_TOLERANCE):
+            if ceiling is not None and charged is not None:
                 out.append({
                     "rule": "above_cap", "date": inv["date"], "fuel": inv["fuel"],
                     "text": "{} bill of {}: {:.2f}p/kWh all-in including VAT, against a ceiling of "

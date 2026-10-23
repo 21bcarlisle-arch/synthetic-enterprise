@@ -1,4 +1,4 @@
-**Severity:** LATENT · **Lane:** W3_industry_systems · **Epoch:** 4 · **Atom:** `unminted`
+**Severity:** BLOCKING · **Lane:** D_billing_metering · **Epoch:** 4 · **Atom:** `D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used`
 
 # Explore's cast finds standard-variable bills above the cap, and no mover or two-rate home to show
 
@@ -40,6 +40,11 @@ as "on standard variable", for example if acquisition was itself onto a fix. Tha
 check wrong, not the bill, and it is the first thing to rule out. (d) A regional cap above the GB
 average explains a few percent at most and cannot explain 2×. The one-variable test is to re-grade
 the same invoices against the tariff type the run records on the segment, not the timeline.
+
+**Re-graded 23 Oct (correction beside the claim):** (c) is refuted. On the run's recorded
+`tariff_type`, 4,579 of the 4,764 are `svt` invoices. The causes are A, an incoming occupant priced
+as non-domestic (3,600 invoices, fixed), and B, the EPG not passed to the household (1,817, next):
+`SEAT_FINDING_SVT_BILLS_ABOVE_THE_CAP_ARE_TWO_DEFECTS_NOT_A_GRADING_ARTEFACT_2026-10-23.md`.
 
 ## 2. The insulation that never reached the bills (mock-up check 2)
 
