@@ -639,7 +639,10 @@ def test_the_door_boots_against_its_own_feed():
     )
     assert proc.returncode == 0, proc.stderr[:500]
     out = json.loads(proc.stdout)
-    for element in ("world", "supplier", "golive", "wall", "stamp", "use-cases", "uc-tally"):
+    # The two columns and the go-live table are written into the HTML at publish since 23 Oct
+    # (tools/capabilities_page_figures.py); the script no longer touches them, and
+    # tests/tools/test_capabilities_page_figures.py holds them to this same feed.
+    for element in ("wall", "stamp", "use-cases", "uc-tally"):
         rendered = out.get(element) or {}
         content = rendered.get("innerHTML") or rendered.get("textContent") or ""
         assert content.strip(), f"#{element} rendered nothing"

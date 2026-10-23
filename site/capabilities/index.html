@@ -24,6 +24,7 @@ h3 { font-size: 15px; font-weight: 700; margin-bottom: 2px; }
 .side { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; }
 .side-h { font-size: 16px; font-weight: 700; margin-bottom: 2px; }
 .side-p { font-size: 12px; color: var(--muted); margin-bottom: 14px; }
+.side-count { font-size: 12px; font-weight: 600; margin-bottom: 10px; }
 h4.col-h { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
   color: var(--muted); margin: 16px 0 8px; padding-top: 12px; border-top: 1px solid var(--border); }
 .side h4.col-h:first-of-type { border-top: none; padding-top: 0; margin-top: 0; }
@@ -137,13 +138,49 @@ details.more summary { cursor: pointer; font-size: 13px; font-weight: 600; margi
       <h3 class="side-h">The world</h3>
       <p class="side-p">A synthetic Great Britain energy market, built on nearly ten years of real
       half-hourly settlement data.</p>
-      <div id="world"></div>
+      <div id="world">
+<!-- CAPABILITIES-WORLD:START (written at publish by tools/capabilities_page_figures.py -- do not hand-edit) -->
+<p class="side-count">10 functions: 9 live &middot; 1 building &middot; 0 planned</p>
+<h4 class="col-h">Now &middot; 9</h4>
+<div class="item"><div class="item-h">Weather that behaves like weather<span class="pill pill-live">Live</span></div><div class="item-p">A joint temperature, wind and solar signal that persists the way real weather does — cold snaps last for days rather than flickering — with regional variation that still adds up to the national picture. <span class="checks">28 automated tests are written against this.</span></div></div>
+<div class="item"><div class="item-h">Prices that come out of physics, not out of a distribution<span class="pill pill-live">Live</span></div><div class="item-p">Demand is built from weather and buildings; supply is stacked in merit order; the price is what falls out. Nothing samples a price curve directly. <span class="checks">22 automated tests are written against this.</span></div></div>
+<div class="item"><div class="item-h">Ten years of real settlement data, revealed in order<span class="pill pill-live">Live</span></div><div class="item-p">Nearly a decade of actual half-hourly GB settlement records, released to the simulation in the order they happened, so nothing inside can see a day that has not arrived. <span class="checks">62 automated tests are written against this.</span></div></div>
+<div class="item"><div class="item-h">Buildings with real thermal behaviour<span class="pill pill-live">Live</span></div><div class="item-p">Each home is modelled as a physical fabric with heat loss and thermal mass, which is why a cold week shows up differently in a well-insulated flat and a draughty semi. <span class="checks">400 automated tests are written against this.</span></div></div>
+<div class="item"><div class="item-h">Households with hidden lives<span class="pill pill-live">Live</span></div><div class="item-p">Income, essential costs, life events — job loss, illness, a new child — and the choice between paying and heating. All of it hidden from the supplier, as it is in reality. <span class="checks">66 automated tests are written against this, covering 1 of the 4 pieces of work it rests on.</span></div></div>
+<div class="item"><div class="item-h">Business customers that fail like businesses<span class="pill pill-live">Live</span></div><div class="item-p">Sector shocks, insolvency and late payment behaviour that differ from a household&#x27;s, because a struggling company does not miss a bill the way a struggling family does. <span class="noproof">Nothing published yet shows how this is checked.</span></div></div>
+<div class="item"><div class="item-h">The industry&#x27;s own settlement timetable<span class="pill pill-live">Live</span></div><div class="item-p">Volumes are not final on the day. They are trued up over months, on the real schedule. <span class="checks">38 automated tests are written against this.</span></div></div>
+<div class="item"><div class="item-h">Banking and payment rails<span class="pill pill-live">Live</span></div><div class="item-p">Direct Debit collection modelled end to end — the bank, the acquirer, and the ways a collection actually fails. <span class="checks">46 automated tests are written against this.</span></div></div>
+<div class="item"><div class="item-h">Futures beyond the real record<span class="pill pill-live">Live</span></div><div class="item-p">Worlds that run past the end of the real data, so the supplier can be tested against conditions that have not happened yet. <span class="checks">16 automated tests are written against this.</span></div></div>
+<h4 class="col-h">Next &middot; 1</h4>
+<div class="item"><div class="item-h">The price cap as a real constraint<span class="pill pill-building">Building</span></div><div class="item-p">Ofgem&#x27;s cap binds what can be charged rather than sitting in a lookup table, and it changes within the year the way the real one does.</div></div>
+<!-- CAPABILITIES-WORLD:END -->
+      </div>
     </section>
     <section class="side">
       <h3 class="side-h">The supplier</h3>
       <p class="side-p">An energy retailer operating inside that world, which can only see what a
       real supplier could see.</p>
-      <div id="supplier"></div>
+      <div id="supplier">
+<!-- CAPABILITIES-SUPPLIER:START (written at publish by tools/capabilities_page_figures.py -- do not hand-edit) -->
+<p class="side-count">14 functions: 10 live &middot; 2 building &middot; 2 planned</p>
+<h4 class="col-h">Now &middot; 10</h4>
+<div class="item"><div class="item-h">Bills that add up<span class="pill pill-live">Live</span></div><div class="item-p">Every line — unit rate, standing charge, VAT, the non-commodity costs — computed and checked to foot, with the arithmetic itself under a control that can fail. <span class="checks">94 automated tests are written against this, covering 1 of the 2 pieces of work it rests on.</span></div></div>
+<div class="item"><div class="item-h">Estimated bills, and the correction when the read arrives<span class="pill pill-live">Live</span></div><div class="item-p">Bills built on an estimate when no meter read exists, then rebilled against the truth when it turns up — including when a customer leaves mid-cycle. <span class="checks">94 automated tests are written against this.</span></div></div>
+<div class="item"><div class="item-h">Three clocks kept straight<span class="pill pill-live">Live</span></div><div class="item-p">What happened physically, what was billed, and what was settled are three different dates, and the supplier reconciles all three per bill rather than pretending they agree. <span class="noproof">Nothing published yet shows how this is checked.</span></div></div>
+<div class="item"><div class="item-h">Money matched to the right account<span class="pill pill-live">Live</span></div><div class="item-p">A payment arrives against a party, an account and an agreement. Allocating it correctly — including when the amount is ambiguous — is its own machinery. <span class="checks">19 automated tests are written against this.</span></div></div>
+<div class="item"><div class="item-h">Telling can&#x27;t-pay from won&#x27;t-pay<span class="pill pill-live">Live</span></div><div class="item-p">The supplier infers, from payment behaviour alone, whether an arrears case is hardship or choice — and it is allowed to get this wrong, which is the point. <span class="noproof">Nothing published yet shows how this is checked.</span></div></div>
+<div class="item"><div class="item-h">Noticing a customer who has stopped heating their home<span class="pill pill-live">Live</span></div><div class="item-p">A perfect payment record with collapsing consumption is a warning sign, not a good customer. The supplier detects it from the data it can actually see. <span class="noproof">Nothing published yet shows how this is checked.</span></div></div>
+<div class="item"><div class="item-h">Weather-normalised demand<span class="pill pill-live">Live</span></div><div class="item-p">Working out how much of a change in consumption was the weather and how much was the customer — an inference, from observations, that can be wrong. <span class="checks">27 automated tests are written against this.</span></div></div>
+<div class="item"><div class="item-h">A real set of books<span class="pill pill-live">Live</span></div><div class="item-p">Double-entry ledger, management accounts, and one reconciled definition of revenue used on every surface that reports it. <span class="checks">25 automated tests are written against this, covering 2 of the 3 pieces of work it rests on.</span></div></div>
+<div class="item"><div class="item-h">Hedging, and the margin it explains<span class="pill pill-live">Live</span></div><div class="item-p">Forward cover bought against the book, and a year-over-year bridge that accounts for where the margin actually went. <span class="checks">35 automated tests are written against this, covering 1 of the 2 pieces of work it rests on.</span></div></div>
+<div class="item"><div class="item-h">Its own regulatory obligations, tracked<span class="pill pill-live">Live</span></div><div class="item-p">A register of what the licence requires, checked against what the supplier is doing, with the physical-harm duties treated as the serious ones. <span class="noproof">Nothing published yet shows how this is checked.</span></div></div>
+<h4 class="col-h">Next &middot; 4</h4>
+<div class="item"><div class="item-h">Carbon measured on three ledgers<span class="pill pill-building">Building</span></div><div class="item-p">Customer, portfolio and grid carbon accounted separately — the measurement the whole premise rests on.</div></div>
+<div class="item"><div class="item-h">A pricing engine<span class="pill pill-planned">Planned</span></div><div class="item-p">Building a tariff forward from the cost stack — wholesale, losses, network, policy — rather than inheriting a price.</div></div>
+<div class="item"><div class="item-h">The collections journey, end to end<span class="pill pill-building">Building</span></div><div class="item-p">Missed payment, reminder, dunning ladder, arrangement, and the point where a debt is handed on.</div></div>
+<div class="item"><div class="item-h">Settlement true-ups on the real timetable<span class="pill pill-planned">Planned</span></div><div class="item-p">Following a volume from initial settlement through each reconciliation run, and taking the financial consequence each time it moves.</div></div>
+<!-- CAPABILITIES-SUPPLIER:END -->
+      </div>
     </section>
   </div>
 
@@ -217,10 +254,25 @@ details.more summary { cursor: pointer; font-size: 13px; font-weight: 600; margi
   stack. That boundary is the design. Going live means swapping a simulated counterparty for the
   real one behind an unchanged doorway, not rewriting the supplier. The table names each real
   counterparty, what it would take to connect, and whether its specification has been read.</p>
-  <div class="figs" id="access"></div>
+  <div class="figs" id="access">
+<!-- CAPABILITIES-ACCESS:START (written at publish by tools/capabilities_page_figures.py -- do not hand-edit) -->
+<div class="fig"><div class="fig-v">3</div><div class="fig-k">open today</div></div><div class="fig"><div class="fig-v">2</div><div class="fig-k">reachable without qualifying</div></div><div class="fig"><div class="fig-v">3</div><div class="fig-k">need a qualification we do not hold</div></div>
+<!-- CAPABILITIES-ACCESS:END -->
+  </div>
   <div class="table-scroll"><table>
     <thead><tr><th>Where the world ends</th><th>Who it becomes</th><th>To connect at all</th><th>Specification</th><th>State</th></tr></thead>
-    <tbody id="golive"></tbody>
+    <tbody id="golive">
+<!-- CAPABILITIES-GOLIVE:START (written at publish by tools/capabilities_page_figures.py -- do not hand-edit) -->
+<tr><td>Settlement and market data</td><td class="who">Elexon Insights (BMRS)</td><td><span class="pill pill-open">OPEN</span> None. Published openly, no qualification of any kind.</td><td><span class="spec-unread">not read</span></td><td><span class="pill pill-planned">Planned</span></td></tr>
+<tr><td>Smart metering</td><td class="who">DCC (DUIS service requests)</td><td><span class="pill pill-gated">GATED</span> Accession to the Smart Energy Code, SMKI certificates, and CIO/UIT testing.</td><td><span class="spec-read">read</span> DUIS v5.3 (18 Mar 2025, 543 pages) read at clause level, with its XML schema</td><td><span class="pill pill-planned">Planned</span></td></tr>
+<tr><td>Consented meter access</td><td class="who">n3rgy / DCC Other User</td><td><span class="pill pill-sandbox">SANDBOX</span> Exercisable today through a consented-access provider, without qualifying.</td><td><span class="spec-unread">not read</span></td><td><span class="pill pill-planned">Planned</span></td></tr>
+<tr><td>Gas industry systems</td><td class="who">Xoserve / UK Link (CDSP)</td><td><span class="pill pill-gated">GATED</span> A signed Data Services Contract / UK Link User Agreement; parts need shipper status.</td><td><span class="spec-unread">not read</span></td><td><span class="pill pill-planned">Planned</span></td></tr>
+<tr><td>Payment collection</td><td class="who">GoCardless (Bacs bureau)</td><td><span class="pill pill-sandbox">SANDBOX</span> A bureau route has a free sandbox; direct Bacs needs a sponsoring bank and a Service User Number.</td><td><span class="spec-unread">not read</span></td><td><span class="pill pill-planned">Planned</span></td></tr>
+<tr><td>Switching</td><td class="who">CSS (electricity) and RGMA/SPAA (gas)</td><td><span class="pill pill-gated">GATED</span> Eligibility under the Retail Energy Code, confirmed by its Code Manager.</td><td><span class="spec-unread">not read</span></td><td><span class="pill pill-building">Building</span></td></tr>
+<tr><td>Carbon intensity</td><td class="who">NESO Carbon Intensity API</td><td><span class="pill pill-open">OPEN</span> None. Free, no key.</td><td><span class="spec-unread">not read</span></td><td><span class="pill pill-building">Building</span></td></tr>
+<tr><td>Published cost stack</td><td class="who">Ofgem and network operator files</td><td><span class="pill pill-open">OPEN</span> None. Published as spreadsheets rather than as an interface.</td><td><span class="spec-unread">not read</span></td><td><span class="pill pill-planned">Planned</span></td></tr>
+<!-- CAPABILITIES-GOLIVE:END -->
+    </tbody>
   </table></div>
 
   <h2 class="sec">What a supplier can do with this world</h2>
@@ -349,57 +401,12 @@ details.more summary { cursor: pointer; font-size: 13px; font-weight: 600; margi
       .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;");
   };
-  var pill = function (s) {
-    var cls = s === "Live" ? "pill-live" : (s === "Building" ? "pill-building" : "pill-planned");
-    return '<span class="pill ' + cls + '">' + E(s) + "</span>";
-  };
-  // A built capability carries a link to the record that makes it built. Where no such
-  // record is published, it says so in words rather than linking somewhere plausible --
-  // a citation styled as a live link that proves nothing is worse than no citation.
-  // A built claim answers "how do you know?" in words, not with a link into the machine's
-  // own notes. Where nothing is published, it says that rather than pointing somewhere
-  // plausible. Links return when there is a record written for a reader to land on.
-  var item = function (e) {
-    var proof = "";
-    if (e.status === "Live") {
-      if (e.checks) {
-        // A count of tests that EXIST, not a run: nothing records when a claim's tests last
-        // ran, and the date this once showed was the largest collection ever logged.
-        proof = ' <span class="checks">' + E(e.checks.checks) +
-          ' automated tests are written against this' +
-          (e.checks.covered < e.checks.of ? ', covering ' + E(e.checks.covered) + ' of the ' +
-            E(e.checks.of) + ' pieces of work it rests on' : '') +
-          '.</span>';
-      } else {
-        proof = ' <span class="noproof">Nothing published yet shows how this is checked.</span>';
-      }
-      if (e.evidence) {
-        proof += ' <a class="inline-link proof-link" href="' + E(e.evidence) + '">see the record</a>';
-      }
-    }
-    return '<div class="item"><div class="item-h">' + E(e.name) + pill(e.status) +
-      '</div><div class="item-p">' + E(e.what) + proof + "</div></div>";
-  };
-  var column = function (entries, status, heading) {
-    var rows = entries.filter(function (e) { return status.indexOf(e.status) >= 0; });
-    if (!rows.length) { return ""; }
-    return '<h4 class="col-h">' + E(heading) + " &middot; " + rows.length + "</h4>" +
-      rows.map(item).join("");
-  };
-  var side = function (id, data) {
-    document.getElementById(id).innerHTML =
-      column(data.entries, ["Live"], "Now") +
-      column(data.entries, ["Building", "Planned"], "Next");
-  };
-
   fetch("../data/capabilities_door.json?t=" + Date.now())
     .then(function (r) { return r.json(); })
     .then(function (d) {
       document.getElementById("stamp").innerHTML =
         "Generated " + E(d.generated_at) + " at commit <code>" + E((d.git_commit || "").slice(0, 9)) +
         "</code>, from the project's own work record and the boundary walker.";
-      side("world", d.world);
-      side("supplier", d.supplier);
 
       // The use-case register. The status is never read as a stored string: it is
       // `testable_now`, which the generator computes from whether every truth the item is
@@ -452,25 +459,6 @@ details.more summary { cursor: pointer; font-size: 13px; font-weight: 600; margi
         }
         return '<div class="item"><div class="item-h">' + E(g.title) + '</div>' +
           '<div class="item-p">' + E(g.what) + "</div>" + plan + "</div>";
-      }).join("");
-
-      var at = d.go_live.access_tally || {};
-      document.getElementById("access").innerHTML = [
-        [at.OPEN, "open today"], [at.SANDBOX, "reachable without qualifying"],
-        [at.GATED, "need a qualification we do not hold"]
-      ].map(function (f) {
-        return '<div class="fig"><div class="fig-v">' + E(f[0]) + '</div><div class="fig-k">' +
-          E(f[1]) + "</div></div>";
-      }).join("");
-
-      document.getElementById("golive").innerHTML = d.go_live.seams.map(function (s) {
-        var spec = s.spec
-          ? '<span class="spec-read">read</span> ' + E(s.spec.what)
-          : '<span class="spec-unread">not read</span>';
-        return "<tr><td>" + E(s.area) + '</td><td class="who">' + E(s.counterparty) +
-          '</td><td><span class="pill pill-' + E(String(s.access).toLowerCase()) + '">' +
-          E(s.access) + "</span> " + E(s.gate) + "</td><td>" + spec + "</td><td>" +
-          pill(s.status) + "</td></tr>";
       }).join("");
 
       var w = d.wall;

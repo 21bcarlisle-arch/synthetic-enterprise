@@ -120,6 +120,8 @@ def test_the_section_survives_the_growth_feed_failing_entirely():
         pytest.skip(f"render harness unavailable: {exc}")
 
     # The pre-existing door content still rendered -- the growth section is additive, not load-bearing.
-    assert _text(out, "world") or _text(out, "supplier"), (
-        "a failing growth feed took the capability columns down with it"
+    # The capability columns themselves are written into the HTML at publish since 23 Oct, so the
+    # door's own chain is asked through the two sections its script still draws.
+    assert _text(out, "use-cases") or _text(out, "wall"), (
+        "a failing growth feed took the capabilities door's own sections down with it"
     )

@@ -5154,6 +5154,13 @@ def _generate_dashboard_json(json_path, git_hash="unknown"):
             if _row["also_changed"]:
                 log("  {} also changed {} in the clean tree -- NOT published, nobody named them"
                     .format(_row["generator"], _row["also_changed"]))
+        # The Capabilities grid and go-live table are written into the page from whichever feed
+        # is now live (director, 23 Oct 2026: "rendered static"). After the loop, so a refused
+        # feed leaves the page matching the previous honest one rather than a feed never shown.
+        from tools.capabilities_page_figures import write_capabilities_figures
+        if not write_capabilities_figures(PROJECT_DIR / "site" / "capabilities" / "index.html",
+                                          PROJECT_DIR / "site" / "data" / "capabilities_door.json"):
+            log("Capabilities page figures NOT written -- see stderr")
     except Exception as exc:
         log("Clean-tree feed publication failed: {}".format(exc))
     try:

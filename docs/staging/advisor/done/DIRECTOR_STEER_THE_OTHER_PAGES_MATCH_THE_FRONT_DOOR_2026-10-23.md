@@ -70,3 +70,15 @@ One stretch-log entry with:
 - the banner removal and its control.
 
 — Director steer, 23 Oct 2026, his words above; the page review and drafting are the advisor's.
+
+## Done
+
+Closed 23 Oct 2026 by the seat executor. The report is the stretch-log entry "The other pages match the front door, closed".
+
+- **1, banner:** 75e55464c. Off 37 pages, replaced by the publish-written footer line. The publisher's state has one home, at the foot of How it's built, and `publish_provenance.banner_outside_its_home` reds any other page that loads the banner. That control enforces "one page", not the Checks line's "none", because item 1 itself gives the state that home.
+- **2 and 3, Capabilities:** 368673a80 restructured the page. This landing writes the grid, the access tally and the go-live table into the HTML at publish (`tools/capabilities_page_figures.py`), held to the committed feed by `tests/tools/test_capabilities_page_figures.py`.
+- **4, How it's built:** ebc69c6da, with each layer's evidence in ff5c0de8b.
+- **5, Knowledge:** d5cd1359d.
+- **6, Explore:** not built here. It is replaced by `DIRECTOR_STEER_EXPLORE_IS_A_LIVE_FEATURE_DEMO_THAT_PROVES_THE_FEATURES_WORK_2026-10-23.md`, its own advisor item.
+- **7, the code tab:** 4e9c7a524. This landing also defines "world" and "company" in its lede, after its cold readers.
+- **Checks:** cold readers ran on Capabilities, How it's built, Knowledge and the code tab. No summary led with the failings, and each confusion was fixed or answered in the report. Explore's reading belongs to its own steer.

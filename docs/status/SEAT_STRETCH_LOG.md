@@ -8,6 +8,37 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-23 — The other pages match the front door, closed: Capabilities' grid and go-live table written at publish, and the steer's report
+
+<!-- head: 427e5f02175b -->
+
+**In plain English:** The Capabilities page now shows its grid of what the simulated world and supplier can do, and its table of real industry connections, the moment it opens. The director's 23 Oct steer on the other pages is closed.
+
+*Seat executor, 23 Oct 2026. The single report the director's 23 Oct 07:18 steer asks for ("The new home and code tabs look good. But now the other tabs look less good. ... Remove banner. Make more appropriate for energy or tech person who is not familiar with the detail"). Six landings: 75e55464c (item 1), 368673a80 (items 2 and 3, Capabilities), ebc69c6da and ff5c0de8b (item 4, How it's built), d5cd1359d (item 5, Knowledge), 4e9c7a524 (item 7, the code tab), and this one (the Capabilities grid at publish, and a code-tab cold-reader fix). Item 6 was not built under this steer.*
+
+**The banner (item 1, 75e55464c).** 37 served pages no longer load `freshness-banner.js`. Each ends with the front door's footer line, written at publish between RUN-CLOCK markers: "Figures from the run of <date> · published every Monday". The publisher's paused/stale/failing state has one home, a `#publish-status` section at the foot of How it's built. That page is the one place the script still loads, and it renders there instead of across the top. The control is `publish_provenance.banner_outside_its_home`. It reds any other page that loads the banner, and reds How it's built if it loads the banner without that section. **One deviation, stated:** the steer's check says "no served page loads `freshness-banner.js`". The steer's own item 1 gives the publisher's state one home on How it's built, so the control enforces "one page, at its foot", not "none".
+
+**Capabilities (items 2 and 3).** *Before:* hero, a "Loading…" stamp, Where it stands, What a supplier can do, What the lists cannot tell you, What is not built yet (opening "No customers. No licence.", four value-thesis paragraphs, Against how a real GB supplier works, the August industrial and commercial history), and Where the simulation would meet the real industry. *After:* a purpose line, then In brief. Next comes What it does, the world and supplier grid, each column now opening with its count per state. Then **Against a real GB supplier** as a table (area | faithful today | not yet | source) and **The path to a real supplier**, which names each counterparty, what connecting takes and whether its specification has been read. Then What a supplier can do. Last is What is not built yet, as one table (area | not yet | what closes it). Its four paragraphs are kept below the table, collapsed, and the industrial and commercial history is a footnote. The two internal phrases are gone. *This landing:* the grid, the access tally and the go-live table are written into the HTML at publish by `tools/capabilities_page_figures.py`, right after `publish_from_a_clean_tree` produces the feed they read. The page's script no longer draws them. `tests/tools/test_capabilities_page_figures.py` holds the served page to exactly what the committed feed renders to, so it is keyed to the feed, not to today's counts. It also takes every branch of the column (partly covered, fully covered, unchecked, linked, Building, Planned), refuses a page missing a marker and leaves it untouched, and asserts the publish step calls the writer after the feed is published. Four mutations were each caught: a state hand-edited on the page, the coverage clause made unconditional, an absent tally class printed blank instead of 0, and the publish call removed.
+
+**How it's built (item 4).** *Before:* "How this builds itself, and what it keeps getting wrong", a glossary paragraph, a "Loading the record…" stamp, and the raw delivery record above the fold. *After:* "How AI builds and runs Poesys", In brief, the eight-layer stack from idea to published page, each layer carrying its own 30-day evidence (ff5c0de8b), then the build's scale and last week in plain words, both written at publish. After those: belief and truth, moved up, and the lessons as three cards. The raw record, daemons and wiring come below, collapsed; the glossary and "For the director" are at the foot.
+
+**Knowledge (item 5).** *Before:* one flat list of 33 cards with coloured review badges and an "atoms" paragraph. *After:* a purpose line saying what Poesys is; In brief, saying the headline figures are checks the world is tested against each week (`tools/world_claims.py`); five themes, each with a line on why it matters, and every card ending "Why the simulation needs it". The review state is quiet, at each card's foot.
+
+**The code tab (item 7).** The caption and a still of the galaxy are written at publish beside the picture, so there is no "Loading the census…" (4e9c7a524). *This landing:* the lede now says what the world and the company are, because both cold readers below were stopped by it.
+
+**Explore (item 6) is not done under this steer.** The director's later steer, `DIRECTOR_STEER_EXPLORE_IS_A_LIVE_FEATURE_DEMO_THAT_PROVES_THE_FEATURES_WORK_2026-10-23.md`, replaces it and is its own advisor item.
+
+**Cold readers, per page (sonnet, page text only, one energy and one tech reader each).** No summary led with the failings.
+- *Capabilities* (368673a80). Energy read it as "a status and scope page for a simulated GB energy market with a supplier operating inside it". Tech read it as "a status and honesty page". Doorways, founders, Triad, DUoS/TNUoS and value arms confused them, and each is now glossed in place. This landing changes when the grid appears, not its words.
+- *How it's built* (ebc69c6da). Energy took from it that an AI-built supplier "can be trusted" because of its checks. Tech said it led with achievement. Undefined "Poesys" and four internal phrases confused them, all fixed.
+- *Knowledge* (d5cd1359d). Energy saw it as "about 35 short explainers"; tech called it "fairly impressive". Undefined "Poesys", undefined "the book" and a footnote about script-only labels confused them, all fixed.
+- *The code tab* (this landing). Energy saw "a visual map of a software codebase", impressive as a sign of scale, but with no energy content. Tech saw "a codebase-architecture visualisation" with "an architectural boundary measured and published rather than just claimed": "fairly impressive". Both were confused by "world" and "company", which is fixed. Tech also asked whether "round the seam 0" is a delta or a total. It is the change since last week, on a clock line already labelled "since <date>". Left as is.
+- *Explore:* not read under this steer.
+
+**Nothing deleted anywhere.** Every moved section is on the same page, lower down or collapsed.
+
+---
+
 ## 2026-10-23 — Section 14's four-seed grade: neither per-customer retention switch clears its departure interval, so both stay off
 
 <!-- head: 4e9c7a524a51 -->
