@@ -42,6 +42,7 @@ from company.billing.monthly_bill_assembly import (
     build_monthly_bills as assemble_monthly_bills,
 )
 from company.billing.pre_bill_validation import validate_bills
+from company.regulatory.energy_bill_support import ebss_credit_gbp as _scheme_credit
 
 
 def issued_bills(bills: list) -> list:
@@ -66,7 +67,18 @@ def billing_accuracy(bills: list, direct_debit: dict | None = None) -> dict:
     return billing_accuracy_summary(bills, direct_debit, held_bills(bills))
 
 
+def owed_after_scheme_credit(amount: float, segment: str, commodity: str, month: str) -> float:
+    """What the household owes for a leg-month once the supplier has applied the government's bill
+    credit (EBSS, Oct 2022 to Mar 2023). Both of the world's amount paths ask this: the held month
+    the household's budget weighs (`run_phase2b`) and the issued bill whose pounds can fail
+    (`arrears_engine`). Asking one door is what keeps the two agreeing. May go negative: a credit
+    larger than the month's charge leaves the account in credit, which nobody fails.
+    """
+    return round(amount - _scheme_credit(segment, commodity, month), 2)
+
+
 __all__ = [
     "ReadArrival", "ReadArrivalFeed", "assemble_monthly_bills", "barred_at_charge_recovery",
     "billing_accuracy", "direct_debit_money_line", "held_bills", "issued_bills",
+    "owed_after_scheme_credit",
 ]

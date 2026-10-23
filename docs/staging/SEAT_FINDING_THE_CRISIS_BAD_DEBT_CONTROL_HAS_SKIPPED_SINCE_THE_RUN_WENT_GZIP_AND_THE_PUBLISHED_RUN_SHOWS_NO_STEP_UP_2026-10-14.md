@@ -1494,3 +1494,26 @@ step appears.
 
 **Status:** still OPEN and BLOCKING. Step (i) is now a build, sized above. Steps (ii) and (iii) are
 unchanged.
+
+## 2026-10-23, step (i) built: the credit nets into both amount paths, from one door
+
+Built to `docs/market_research/energy_bills_support_scheme_delivery.md`.
+`company/regulatory/energy_bill_support.ebss_credit_gbp` returns the published instalments: GBP 66
+in October and November, GBP 67 from December to March, GBP 400 in all. It applies to domestic
+electricity only, so gas and non-domestic supply get nothing.
+`company/interfaces/bill_assembly.owed_after_scheme_credit` is the one door both paths ask:
+`run_phase2b`'s held month (what the budget weighs, floored at zero) and `arrears_engine._resolve_bills`
+(what can fail, where a month left in credit takes the existing `credit` outcome). The bill's charge
+and `revenue_gbp` do not move.
+`tests/simulation/test_ebss_nets_what_the_household_owes.py` holds the partition, the engine's
+netting and the held month's call to the same door. Each leg has been mutation-checked, and each
+one fires.
+
+**Beside design choice 4 on the page:** every payment route is credited in full. The world cannot
+tell traditional prepayment from smart, and a prepayment statement never fails here, so the
+0.71-0.82 take-up belief would move no failed pound. The unredeemed vouchers are labelled GAP in the
+function.
+
+**Not yet graded:** the page's prediction. Winter 2022-23's failed share should fall, and no 2022
+step-up should appear. That needs a run on this commit. Steps (ii) and (iii) are unchanged.
+**Status:** still OPEN and BLOCKING.

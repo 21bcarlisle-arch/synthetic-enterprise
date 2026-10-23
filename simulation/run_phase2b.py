@@ -34,6 +34,7 @@ from background.gap_metric import format_belief_summary as _format_belief_summar
 from background.gap_metric import format_detection_summary as _format_detection_summary
 from background.live_fidelity_evidence import emit_live_fidelity_evidence
 from background.live_payment_triad import LivePaymentTriad
+from company.interfaces.bill_assembly import owed_after_scheme_credit
 from company.interfaces.churn_estimation import (
     RenewalObservation,
     SvtSegmentObservation,
@@ -2387,7 +2388,11 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         _pm_rec = _payment_triad.record_period(
             customer_id=cid,
             due_date=date.fromisoformat(held["month"] + '-28'),
-            amount_gbp=held["amount_gbp"],
+            # Net of the scheme credit, from the same door the arrears engine asks, so the pounds
+            # the household's budget weighs are the pounds that can fail. A month left in credit
+            # owes nothing.
+            amount_gbp=max(0.0, owed_after_scheme_credit(
+                held["amount_gbp"], held["segment"], held["fuel"], held["month"])),
             income_stress_value=held["income_stress_value"],
             segment=held["segment"],
             fuel=held["fuel"],
