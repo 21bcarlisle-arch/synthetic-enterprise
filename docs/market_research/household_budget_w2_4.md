@@ -225,8 +225,11 @@ falls on exactly the deciles the budget puts under water.
   whole ladder on AWE and names the omission, or carries the bottom-decile path with an R10 share,
   labelled. It must not blend the two silently.
 - **One-off support.** The £20 UC uplift (2020-21), the £400 EBSS (Oct 2022 to Mar 2023), and the
-  2022-23 cost-of-living payments are not in the uprating path. The EBSS already reaches the world
-  through the bill. The others do not.
+  2022-23 cost-of-living payments are not in the uprating path. None of them reaches the world.
+  *(Corrected 2026-10-23: this said the EBSS "already reaches the world through the bill". It does
+  not. `company/regulatory/energy_bill_support.py` and `ebss_register.py` are read only by tests and
+  the dashboard generator, and no world or billing path nets the GBP 400. See the crisis bad-debt
+  finding's 2026-10-23 arrears-indicator section.)*
 - **Pensions** rose by the triple lock, not by the September rule. The ladder does not separate
   pensioner households.
 

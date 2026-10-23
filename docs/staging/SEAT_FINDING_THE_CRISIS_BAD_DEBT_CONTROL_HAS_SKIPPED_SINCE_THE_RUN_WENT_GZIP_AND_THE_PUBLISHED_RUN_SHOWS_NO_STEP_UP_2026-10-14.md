@@ -1414,3 +1414,69 @@ mechanism to move, blind to this charge. No matrix change is warranted on this e
 
 **Status:** OPEN and BLOCKING. The side is the world. The next step is the arrears-indicator read
 against column A, before any world build.
+
+## 2026-10-23 (later): the arrears-indicator read. The 2022 step is the overlay's, not the world's; the world's error is 2020-21 and persistence
+
+The read the last section asked for, as a desk comparison. No fetch was needed: Ofgem's *Debt and
+arrears indicators*, Q4 of each year, are already in `debt_and_collections.md` §2.1, and Centrica's
+overlay by year is in `bad_debt_provisioning.md` §3.2. No run, world value or matrix value was changed.
+
+**What each series counts.** Ofgem's figures are a **stock**: electricity accounts unpaid for more
+than 91 days with no plan, at 31 December. They are counted per fuel account, not per household, and
+written-off debt is excluded. The world's figures (table A above) are also a stock: bills unpaid for
+30 days or more at 31 December, per household, with nothing written off. Neither the levels nor the
+thresholds match, so no ratio between the two series is drawn. What is compared is each series'
+**change on its own previous year, per indebted account**, which takes book size out of both.
+
+| year | Ofgem avg arrears per account, GBP | change | world arrears per indebted household, GBP (A: pounds / households) | change |
+|---|---|---|---|---|
+| 2019 | 654 | | 145 | |
+| 2020 | 774 | **+18%** | 135 | **-7%** |
+| 2021 | 905 | **+17%** | 136 | **+1%** |
+| 2022 | 1,028 | +14% | 177 | +30% |
+| 2023 | 1,303 | +27% | 257 | +45% |
+| 2024 | 1,617 | **+24%** | 205 | **-20%** |
+
+Heads: Ofgem's accounts in arrears are flat from Q4 2021 to Q4 2022 (775,721 to 778,598), then rise
+29% in 2023. Ofgem attributes the Q4 2022 to Q1 2023 dip to EBSS and EPG. Arrears pounds rise 18% in
+2022 (GBP 1.11bn to 1.31bn), less than 2021's 28%, then 72% in 2023.
+
+**What this says.**
+1. **The published record has no 2022 step in formed debt. The step in the 2022 charge is the
+   overlay.** Centrica's macroeconomic overlay rose GBP 95m in 2022 against a GBP 234m charge. Take
+   it out and the 2022 charge is about 1.25% of revenue (derived: 2.1% x 139/234). 2021 was 1.1%. The
+   overlay is Group-wide, covering billed and unbilled debt, so this is indicative only. The formed
+   debt arrives in 2023, and so does the world's. **This refutes the last section's ruling that the
+   2022 shortfall belongs to the world.** The world's late timing agrees with the record. The 2022
+   step the validator asks for is a forward-looking provision that a real supplier booked on what it
+   could see in 2022: the announced cap rise and its own collections. That is the company's question,
+   and the wall allows it. `company/finance/bad_debt_provision.py` already carries the overlay
+   at its two published ends. **How a supplier sizes its overlay against observables is GAP**, as that
+   module says, and a K8 page must come before any build.
+2. **The world's 2020-21 is wrong in direction.** Published arrears per account rose 18% and 17%,
+   and Centrica's charge rose to 2.2% in 2020 (its COVID overlay). The world's per-household arrears
+   fell, and its failed share of billed pounds halved (3.3% to 1.6%). Explanations, unranked because
+   this evidence cannot separate them: (a) the COVID income shock is missing or too weak in the
+   world; (b) the 2020 pause in supplier debt collection (no disconnections, no involuntary PPM
+   installs), which is collection behaviour rather than household failure; (c) the sample, since 80
+   to 86 households is small enough for a 7% move to be noise. The halving of the flow is large
+   enough not to be noise. I cannot yet say which of (a) and (b) it is.
+3. **The world's crisis debt clears, and the record's persists.** In 2024 the world's per-household
+   arrears fall 20% while Ofgem's rise 24%. This is the 2026-10-15 worker finding
+   (`WORKER_FINDING_THE_WORLDS_2021_23_ARREARS_STEP_UP_...`), now seen on this run.
+4. **EBSS does not reach the world.** `household_budget_w2_4.md` said the GBP 400 "already reaches
+   the world through the bill". It does not. `company/regulatory/energy_bill_support.py` and
+   `ebss_register.py` are read only by tests and the dashboard generator, and no world or billing
+   path nets the credit. That claim is corrected beside it, in this commit. Without EBSS, the world's
+   October 2022 to March 2023 bills are GBP 66.67 a month too high per household. That lands in
+   exactly the window where the world's failed share peaks (6.7% in January 2023). Its direction is
+   to lower the world's too-steep 2023, but its size is not measured here. It is a fidelity item
+   (W7: world first), decided blind to the charge.
+
+**Status:** OPEN and BLOCKING, with the side now split. The 2022 step belongs to the **company**: an
+overlay driven by observables, with a K8 page first on how suppliers size it. The 2020-21 direction
+and the persistence belong to the **world**, along with EBSS, which is a plain fidelity omission.
+Next, in order: (i) EBSS into the world's bill, which is the smallest and certain; (ii) the overlay
+K8 page; (iii) the 2020-21 knowledge read, income shock against the collection pause. The validator's
+`CRISIS_YEARS = (2021, 2022)` should be re-read in light of point 1. That is a question for the step
+after (ii), not a change today.
