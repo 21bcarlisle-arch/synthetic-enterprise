@@ -191,6 +191,13 @@ class DecisionPolicy:
     #: `None` holds nobody out, so no standing policy moves; an experiment names its share.
     svt_contact_holdout_share: float | None = None
 
+    #: C30 (2026-10-23): send that contact once per default-tariff stint, at its first segment,
+    #: instead of at every segment. The company knows when its own account rolled onto its default,
+    #: so this is a per-account decision on its own record (`contact_programme.sends_at_segment`).
+    #: The first segment is the one a woken stayer's re-fix runs longest from (research doc §7.5a).
+    #: Read only with an instrument set. False keeps the flat rule, so no standing policy moves.
+    svt_contact_once_per_stint: bool = False
+
     #: (2026-10-08) the cut, as a share of the renewal unit rate, of the Fixed Retention Tariff
     #: offered on a CSS Invitation to Intervene (`company.crm.save_offer`). A share and not GBP/MWh
     #: because one cut must mean the same thing on both fuels, and it is the form of the toggle that

@@ -541,6 +541,18 @@ an uncontacted one cannot. Reading the wired route before building it (`run_phas
   on the default, and a gas-only household cannot re-fix, because a gas fix is struck only inside
   the gas builder. The fixed term already built at the anniversary was priced with no prior fixed
   rate, so the company classifies that renewal against nothing.
+- **The per-account sender (2026-10-23, default off):** `svt_contact_once_per_stint` sends the
+  policy's instrument once per default-tariff stint, at its first segment, in place of every
+  segment. The rule is the company's (`contact_programme.sends_at_segment`), read off its own record
+  of when the account rolled onto its default. Every household it reaches is passive by
+  construction: the company sees only that the fix ended and the account rolled. The first segment
+  is chosen because a re-fix struck there runs longest before the anniversary. The rule does not
+  pick households by value. C34's `decide` needs the renewal-time state it is fed in the departure
+  branch, and SVT stock never reaches that branch. Choosing within SVT stock is the next step if
+  the arm pair shows the letter creates value at all. Each re-fix row now carries the default rates
+  it withdrew and the EAC, so its household side can be graded. The arm pair and its
+  pre-registration:
+  `docs/staging/records/SEAT_PREREG_C30_THE_ONCE_PER_STINT_SVT_LETTER_GRADED_ON_BOTH_SIDES_2026-10-23.md`.
 **GAPs.**
 - Whether SLC 31A's cheapest tariff message survives today in the form the 2016 letter kept was not
   re-read after the SSE notice.
