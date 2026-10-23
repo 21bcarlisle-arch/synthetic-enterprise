@@ -1,0 +1,100 @@
+# How the Energy Bills Support Scheme reached a household's bill (Oct 2022 to Mar 2023)
+
+**Knowledge:** debt-and-collections
+
+**Asked by** the crisis bad-debt finding
+(`docs/staging/SEAT_FINDING_THE_CRISIS_BAD_DEBT_CONTROL_HAS_SKIPPED_SINCE_THE_RUN_WENT_GZIP_AND_THE_PUBLISHED_RUN_SHOWS_NO_STEP_UP_2026-10-14.md`),
+whose 2026-10-23 section found that the £400 reaches neither the world nor any billing path. This is
+next step (i) there, and the K8 page that must come before the build. Researched 2026-10-23. No code
+changes in this commit.
+
+## What the scheme required
+
+- **Who.** Every GB domestic household with a domestic electricity supply. It was paid per domestic
+  electricity account, not per household. Gas accounts got nothing. Non-domestic supply was covered
+  by the separate Energy Bill Relief Scheme, not EBSS.
+- **How much and when.** £400, in six monthly instalments, October 2022 to March 2023, each of £66
+  or £67. The constants are already carried in `company/regulatory/energy_bill_support.py`
+  (`EBSS_MONTHLY_CREDIT_GBP = 66.67`, `EBSS_MONTHS`). That module uses an even £66.67. The
+  published split is £66 in October and November and £67 from December to March, and those six add
+  up to the £400. **GAP (small):** the module's even split is £0.02 off the total. Use the
+  published split when the credit is built.
+- **Who paid.** Government funded it. The supplier applied the credit and reclaimed it. The
+  supplier's charge for the energy is unchanged. What changes is what the household owes. **The
+  credit is a receivable from government, not lost revenue and not a discount.**
+
+## How it reached the account, by payment route
+
+| route | how the £66/£67 arrived | did the household have to act? |
+|---|---|---|
+| direct debit | credited to the account each month. Some suppliers offered it as a refund instead. | no |
+| pay on receipt (standard credit) | credited to the account, shown on the bill | no |
+| smart prepayment | added to the meter as credit | no |
+| traditional prepayment | a voucher each month, by text, email or post, redeemed at a PayPoint or Post Office | **yes** |
+
+Source: the scheme's consumer guidance, as summarised by ii.co.uk, "Energy Bills Support Scheme
+takes some of sting out of soaring bills" (2022). That is a secondary source. **GAP:** the BEIS
+guidance itself was not fetched for this page.
+
+## What the published record says about take-up
+
+Only the traditional-prepayment route depended on the household acting, so it is the only route
+with a take-up figure.
+
+- **71%** of vouchers had been redeemed since launch, as of the January 2023 government release (up
+  from 65%).
+- **76%** of January's vouchers had been redeemed, per the February 2023 release: 1.7m used, around
+  1.9m still unredeemed.
+- **About 20%** of vouchers expired without being redeemed (press reading of the final figures, LBC).
+- By supplier, the January 2023 rates ran from about 85% at the best to the low end at Scottish
+  Power, Good Energy and Utilita. By region, 26% were unclaimed in Scotland and 32% in London.
+
+Sources: current-news.co.uk, "Good Energy, Utilita and Scottish Power rank amongst lowest for EBSS
+voucher redemption, says BEIS"; which.co.uk, "Thousands missing out on energy support"; End Fuel
+Poverty Coalition, "Poorest constituencies missing out"; lbc.co.uk, "Nearly 20% of energy support
+vouchers expire without being redeemed". All are secondary readings of BEIS or DESNZ releases.
+**GAP:** the final DESNZ EBSS statistics, which give the end-of-scheme redemption rate, were not
+fetched. The range above, 0.71 to 0.82, is the published bracket until they are.
+
+## Why it matters to the run
+
+Ofgem attributes the fall in the arrears count from Q2 2022 to Q1 2023 (894,732 to 663,189) to EBSS
+and the Energy Price Guarantee (`debt_and_collections.md`). The world has the EPG through the cap.
+It does not have the £400. So from October 2022 to March 2023, every world electricity bill is £66
+to £67 a month too high, in exactly the window where the world's failed share of billed pounds
+peaks (6.7% in January 2023).
+
+## What the code does today (discovery, 2026-10-23, on origin/main `7a777030e9`)
+
+- **Two amount paths reach the world. Both are gross of EBSS.**
+  1. The household's payment decision. `simulation/run_phase2b.py` sums a leg's month of
+     settlement `revenue_gbp` into `held["amount_gbp"]` and hands it to
+     `live_payment_triad.record_period`. Behind `household_budget.BUDGET_DECIDES_PAYMENT`, that
+     decides whether the household's margin can cover the bill.
+  2. The pounds that fail. The arrears engine (`arrears_engine._resolve_bills`) takes each issued
+     bill's `total_amount_gbp` from the company's bill assembly. `world_payment_truth` keeps "the
+     amounts the issued bills'" by design.
+- `company/regulatory/energy_bill_support.py` and `ebss_register.py` are reached only by tests and
+  `tools/generate_dashboard_data.py`.
+
+## The design choices the build makes, and why
+
+1. **The supplier applies the credit. It is not world income.** That is how the scheme worked, and
+   a real supplier knew every term of it (published law), so the wall allows it. It enters as a
+   credit line on the domestic electricity bill, months 2022-10 to 2023-03, at the published
+   £66/£66/£67/£67/£67/£67.
+2. **One credit, both paths.** The defect class here is the VAT rule's: one requirement, two homes.
+   The household's held amount (path 1) and the issued bill's `total_amount_gbp` (path 2) must net
+   the same pounds, from one function. A control asserts the two agree on every credited leg-month.
+3. **Revenue does not move.** The P&L books the credit as recoverable from government. Margin is
+   unchanged, and what falls is what the household owes. A build that lowers `revenue_gbp` would be
+   wrong in the other direction.
+4. **Traditional prepayment carries take-up as a stated belief.** The range is 0.71 to 0.82, drawn
+   per voucher, and an unredeemed voucher credits nothing. The world currently says "no meter is
+   changed for debt" and keeps a PPM channel. If that channel cannot tell smart from traditional,
+   the build says which it assumes and labels it.
+5. **Prediction, filed before the run.** Netting £66 to £67 off the October to March bills lowers the
+   world's failed share in winter 2022-23, and with it the too-steep 2023 the finding names. It does
+   not create the 2022 step the validator asks for. That step is the company's overlay (finding,
+   point 1). If the build's run shows a 2022 step-UP, this page's reasoning is wrong and says so
+   here.

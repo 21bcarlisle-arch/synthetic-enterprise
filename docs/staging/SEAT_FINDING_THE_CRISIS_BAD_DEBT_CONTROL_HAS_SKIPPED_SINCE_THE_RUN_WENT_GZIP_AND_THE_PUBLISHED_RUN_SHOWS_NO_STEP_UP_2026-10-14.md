@@ -1480,3 +1480,17 @@ Next, in order: (i) EBSS into the world's bill, which is the smallest and certai
 K8 page; (iii) the 2020-21 knowledge read, income shock against the collection pause. The validator's
 `CRISIS_YEARS = (2021, 2022)` should be re-read in light of point 1. That is a question for the step
 after (ii), not a change today.
+
+## 2026-10-23, step (i): the EBSS K8 page is written. The build is next
+
+`docs/market_research/energy_bills_support_scheme_delivery.md` covers what the scheme required, how
+it reached each payment route, the published voucher take-up (0.71 to 0.82, GAP on the final DESNZ
+figure), and the design choices. Discovery found **two** gross-of-EBSS amount paths into the world:
+the triad's held month (`run_phase2b` `held["amount_gbp"]`, which the budget reads) and the issued
+bill's `total_amount_gbp` (which the arrears engine fails). The build nets one credit into both,
+with a control that they agree. The credit is a receivable from government, so revenue does not
+move. The page files a prediction before any run: winter 2022-23's failed share falls, and no 2022
+step appears.
+
+**Status:** still OPEN and BLOCKING. Step (i) is now a build, sized above. Steps (ii) and (iii) are
+unchanged.
