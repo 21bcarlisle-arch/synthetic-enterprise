@@ -98,3 +98,30 @@ peaks (6.7% in January 2023).
    not create the 2022 step the validator asks for. That step is the company's overlay (finding,
    point 1). If the build's run shows a 2022 step-UP, this page's reasoning is wrong and says so
    here.
+
+## Choice 5's grading run, fixed before either arm finished (2026-10-23, 19:55Z)
+
+**The run.** Two full-window arms at origin `aed6ba8517`, which carries the build (d8129f3f6) and
+not yet the EPG carve another lane is landing. *On* is that commit as it stands. *Off* differs in
+one line: `bill_assembly.owed_after_scheme_credit` returns the gross amount. Long jobs
+`ebss-grade-on-aed6ba851` and `ebss-grade-off-aed6ba851`, artefacts in `/var/tmp/se-ebss-out/`.
+The grader is `/var/tmp/se-ebss-out/grade.py`. Run on the pre-EBSS run 989ce4f1c2, it reproduces
+the finding's table A to within 0.05 pt (2022 2.91% against 2.87%, January 2023 6.68% against 6.7%).
+
+**What each figure counts.** *Billed* is the issued bills' `total_amount_gbp`, the charge, which
+EBSS does not move. *Failed, gross* is the charge on bills the world's payment truth records as
+unpaid. That is table A's basis, and it moves only if fewer households fail. *Failed, owed* is what
+actually failed: the charge less the EBSS credit, less any part payment. *Winter* is bills with a
+period ending October 2022 to March 2023.
+
+**The predictions, sized now.** The credit is about 17% of winter's billed pounds (GBP 87.6k of
+505k on 989ce4f1c2).
+- **P1.** Winter's failed-owed share is lower on *on* than on *off*, by a ratio of 0.60 to 0.90.
+  Above 0.90 means the netting reaches almost no failing bill. Below 0.60 means it moved more than
+  the credit's pounds can, through incidence.
+- **P2.** Winter's count of failed bills on *on* is no higher than on *off*. More failures with
+  less owed refutes the budget path.
+- **P3, the page's "no 2022 step-up".** The 2022 failed-owed share on *on* is not above *off*'s,
+  and the IFRS 9 step-up ratio on *on* is not above *off*'s by more than 0.05.
+- **Control (can the comparison fail?).** 2016-2021 lie before the credit. If their failed shares
+  differ between arms by more than 0.2 pt, the arms are not paired, and P1 to P3 are not graded.
