@@ -221,9 +221,11 @@ class DecisionPolicy:
 
     #: (2026-10-22, D48) an unread month is billed from the annual rate the account's own register
     #: reads imply, an advance of at least 182 days (`unread_month_estimate.annualised_advance_kwh`:
-    #: the EAC/AQ from an advance), not the latest three monthly reads. Off on every standing
-    #: policy; one-variable table and prereg in `docs/staging/records/WORKER_PREREG_THE_BILL_ESTIMATE_READS_THE_ANNUALISED_ADVANCE_2026-10-22.md`.
-    bill_estimate_reads_the_annualised_advance: bool = False
+    #: the EAC/AQ from an advance), not the latest three monthly reads. On for every standing policy
+    #: since 2026-10-23 under the director's ruling of that day (canon G9): its pre-registered rule
+    #: was met at 7e31d8f70 (error lower in 9 of 9 years, catch-ups down 22%, the £500+ tail 30 to
+    #: 24). Table, prereg, grade and switch-on: `docs/staging/records/WORKER_PREREG_THE_BILL_ESTIMATE_READS_THE_ANNUALISED_ADVANCE_2026-10-22.md`.
+    bill_estimate_reads_the_annualised_advance: bool = True
 
     #: C35 (2026-10-17): at a renewal, an advice action that costs us may travel with the smallest
     #: monthly rise on the Fixed Retention Tariff that brings our side to zero, capped by the

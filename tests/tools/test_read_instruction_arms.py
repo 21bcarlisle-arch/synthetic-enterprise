@@ -40,3 +40,17 @@ def test_an_unknown_arm_is_refused_by_name(seen):
     _, tmp_path = seen
     with pytest.raises(SystemExit, match="not one of"):
         arms.run_arm("half", tmp_path / "x.json")
+
+
+@pytest.mark.parametrize("asked, ran", [(None, True), (True, True), (False, False)])
+def test_the_payload_stamps_the_estimate_the_arm_ran_not_the_flag(seen, asked, ran):
+    """Defect: with the annualised advance on by default (23 Oct), an arm run without the flag ran
+    it ON and stamped it OFF from the flag, so a control arm read as the three-read estimate.
+
+    MUTATION (must fire): stamp `annualised_advance` (the flag) instead of the policy's field (the
+    `None` row reds), or ignore `False` (the off row reds)."""
+    import json
+    _, tmp_path = seen
+    out = arms.run_arm("register", tmp_path / "a.json", annualised_advance=asked)
+    assert json.loads(out.read_text())["_bill_estimate_reads_the_annualised_advance"] is ran
+

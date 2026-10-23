@@ -11,7 +11,8 @@ seat every stretch. So a concern written there would vanish at the next rewrite 
 carries it. Three halves, each a mechanism:
 
   * THIS CLI writes a row with a stable `id`, refuses one with no proposal or no recommendation
-    (director, 19 Oct: reserved items too arrive with "I recommend X"), and runs
+    (director, 19 Oct: reserved items too arrive with "I recommend X"), refuses a switch-on his
+    23 Oct ruling made the machine's own (`switch_on_refusal`), and runs
     `recommendation_guard.check_message` over `what` + `proposal` so a bare ask never enters the
     list. It edits ONLY the `for_the_director` block of the file, so the rest of the record stays
     byte-identical, and it never commits -- it prints the pathspec to land.
@@ -251,6 +252,39 @@ def _write(path: Path, before_text: str, rows: list[dict]) -> None:
     path.write_text(new_text, encoding="utf-8")
 
 
+# Director's ruling, 23 Oct 2026 07:03 BST ("Great. All good. Do these.", canon G9): a default-off
+# switch whose pre-registered rule is met is the machine's to turn on, NOT a question for him -- the
+# annualised advance sat in this list for a day as exactly that. Phrase-keyed on purpose: the CLI
+# cannot grade a prereg, so it refuses the SHAPE and lets the raiser say why a switch is outside the
+# ruling (it changes a ruling, a curriculum value or a reserved action, or the world after results).
+_A_SWITCH = re.compile(r"\bDecisionPolicy\.\w+|\bswitch(?:es|ed)?\b|\bdefault\b", re.I)
+_TURNED_ON = re.compile(
+    r"\bon by default\b|\bdefault[- ]on\b|\b(?:turn|switch|flip)(?:s|ed|ing)?\b[^.;]{0,90}?\bon\b",
+    re.I)
+OUTSIDE_THE_RULING = "outside the 23 Oct ruling:"
+
+
+def switch_on_refusal(kind: str, *texts: str) -> str | None:
+    """The reason a raise is the machine's own switch-on under the 23 Oct ruling, or None.
+
+    A `reserved` concern always reaches him. Any other raise that proposes turning a switch on is
+    refused unless one of its texts carries `outside the 23 Oct ruling: <why>`."""
+    if kind == "reserved":
+        return None
+    text = " ".join(t or "" for t in texts)
+    if not (_A_SWITCH.search(text) and _TURNED_ON.search(text)):
+        return None
+    if re.search(re.escape(OUTSIDE_THE_RULING) + r"\s*\S", text, re.I):
+        return None
+    return ("this proposes turning a switch on, and under the director's ruling of 23 Oct (canon G9, "
+            "'Great. All good. Do these.') a default-off switch whose pre-registered rule was fixed "
+            "before its arms ran and is met is the machine's to turn on: flip it, put the grade, the "
+            "rule and the switch-on on one record with a control that reds if the default reverts, "
+            "and report it in the stretch log. A refuted rule keeps it off on the same record. If it "
+            "changes a ruling, a curriculum value or a reserved action, or the world after supplier "
+            f"results were seen, say so in the text as '{OUTSIDE_THE_RULING} <why>' and raise again")
+
+
 def _today(now: datetime | None) -> str:
     return (now or datetime.now(timezone.utc)).date().isoformat()
 
@@ -279,6 +313,9 @@ def raise_concern(kind: str, what: str, proposal: str, evidence: str | None = No
             "recommendation_guard refused it as a bare ask -- state the concern and what you "
             f"propose rather than asking: {exc}") from exc
     recommendation = (recommendation or "").strip()
+    machines = switch_on_refusal(kind, what, proposal, recommendation)
+    if machines:
+        raise ConcernRefused(machines)
     lacks = direction_mod.concern_lacks_recommendation(
         {"id": "the new concern", "status": "open", "recommendation": recommendation})
     if lacks:

@@ -34,31 +34,37 @@ The director's words, from chat on Fri 23 Oct:
 
 ## Done
 
-*Worker tick, 2026-10-23 06:20Z. Moved here unactioned. It was REFUSED by the advisor-channel draw.*
+*Autonomous worker, 23 Oct 2026. Actioned. This replaces a 06:20Z note that moved the file here
+unactioned; that note's refusal was wrong. It is corrected below.*
 
-The draw reports that the commit which last staged this file (`ebf866ecc`, author `t`) is not signed
-by the advisor's pinned key. The draw therefore gives this file no authority, and nothing in it has
-been acted on:
+**Why the first refusal was wrong.** The draw judged authority from the LAST commit to touch this
+file. That was `ebf866ecc` (author `t`), a lane's two-line edit adding the `**Knowledge:**` header so
+a merge would pass the knowledge gate. The edit was unsigned, so the draw refused the whole file as
+unsigned. But the advisor's own staging commit, `d9faa7916`, verifies GOOD against the pinned key:
+`git -c gpg.ssh.allowedSignersFile=tools/advisor_allowed_signers verify-commit d9faa7916`. The
+note's other claim, that `d9faa7916` "cannot be verified here" because no allowed-signers file was
+configured, was also wrong: `tools/advisor_allowed_signers` is in the tree and is what the channel
+uses. His ruling was genuine from 07:03 BST; the machine's own edit made it read as forged.
+`background/advisor_channel.py` now names that case in its refusal: the signed original, the later
+unsigned edit(s), and the diff to read. It still refuses, because authority is the signed bytes.
 
-- the annualised advance has not been switched on;
-- canon G9 has not been edited;
-- the `director_concerns` raise path has not been changed.
+**What was done, the ruling's four points:**
+1. **The annualised advance is on by default.** `DecisionPolicy.bill_estimate_reads_the_annualised_advance`
+   defaults True on every standing policy. A revert control in
+   `tests/company/billing/test_the_estimate_reads_the_annualised_advance_when_switched_on.py`
+   reds if the default goes back to off; the mutation was run and it fired. The grade, the rule
+   and the switch-on are on one record:
+   `docs/staging/records/WORKER_PREREG_THE_BILL_ESTIMATE_READS_THE_ANNUALISED_ADVANCE_2026-10-22.md`
+   §5, with the corrected section-1 projection marked beside its claim. `tools/read_instruction_arms.py`
+   now stamps the estimate an arm ran, not its flag, so a flag-less arm cannot read as the
+   three-read control. The `for_the_director` row `the-estimated-bill-can-read-the-customer` is
+   answered with his words.
+2. **The standing rule** is one line in canon G9, quoting "Great. All good. Do these.".
+3. **The raise path refuses** a switch-on proposal under the ruling, and names it as the reason
+   (`director_concerns.switch_on_refusal`). It lets through a `reserved` concern, and one whose text
+   says `outside the 23 Oct ruling: <why>`.
+4. **Reported** in the stretch log.
 
-The original staging commit `d9faa7916` (author `Claude`) cannot be verified here either, because
-`gpg.ssh.allowedSignersFile` is not configured in this tree.
-
-**If the ruling is genuine, the advisor must re-stage it through a signed commit.** The content quotes
-07:03 BST, "Great. All good. Do these." Until it is re-staged, the `for_the_director` row raised by
-`7e31d8f7` stays open.
-
-**Why it was refused: the cause, found by the seat executor on 23 Oct.** `ebf866ecc` is a seat
-landing, not the advisor's. It added the `**Knowledge:**` header line, because
-`tools/knowledge_layer_gate.py` refused every merge that brought in a `DIRECTOR_RULING_` file without
-one. That edit made the file's last commit a non-advisor commit, and from then on
-`advisor_channel.provenance` could never grant it authority. `git diff d9faa7916 ebf866ecc` shows the
-header line as the only change; no word of the ruling changed. The class is fixed in the commit that
-adds this note. The knowledge gate no longer watches files the advisor stages directly in
-`docs/staging/advisor/`, and `done/` stays watched
-(`test_an_ADVISOR_STAGED_ruling_is_not_asked_to_be_edited_because_the_edit_voids_its_authority`,
-which fails both when the exemption is removed and when it is widened). So a re-staged ruling will
-now arrive without any lane needing to edit it.
+**Left as its own prereg:** the gas nine-month floor
+(`WORKER_PREREG_THE_GAS_ESTIMATE_FLOORS_THE_ADVANCE_AT_NINE_MONTHS_2026-10-22.md`). Its build sits
+unlanded in the shared working tree and was not touched.

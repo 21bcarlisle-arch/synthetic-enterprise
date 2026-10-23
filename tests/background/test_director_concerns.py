@@ -72,6 +72,40 @@ def test_raising_REFUSES_a_concern_with_no_proposal_or_a_bare_ask(record_file, k
         assert record_file.read_text(encoding="utf-8") == before, "a refusal still wrote"
 
 
+# The row that sat open for a day before the 23 Oct ruling, in its own words.
+SWITCH_WHAT = ("The estimated bill can read the customer's annualised advance (D48, built default "
+               "off). Its pre-registered arm pair is graded and the rule is met.")
+SWITCH_PROPOSAL = ("Turn DecisionPolicy.bill_estimate_reads_the_annualised_advance on by default, "
+                   "for every standing policy.")
+
+
+@pytest.mark.parametrize("kind, proposal, refused", [
+    ("strategy", SWITCH_PROPOSAL, True),                                   # the machine's own call
+    ("strategy", SWITCH_PROPOSAL + " Outside the 23 Oct ruling: it changes a curriculum value.",
+     False),                                                               # says why it is his
+    ("reserved", SWITCH_PROPOSAL, False),                                  # a reserved act is his
+    ("strategy", GOOD_PROPOSAL, False),                                    # not a switch-on at all
+])
+def test_a_switch_on_the_23_oct_ruling_made_the_machines_is_REFUSED_at_raise(record_file, kind,
+                                                                             proposal, refused):
+    """Defect: a default-off switch whose pre-registered rule is met is raised for the director, and
+    a better bill estimate waits on him for a day -- his 23 Oct ruling made it the machine's call.
+    One control over the partition: the refusal fires, names the ruling, writes nothing; and the
+    escape clause, a reserved kind and an unrelated concern each still reach the list.
+
+    MUTATION (must fire): drop the `switch_on_refusal` call in `raise_concern` (row 1 goes green
+    where it must refuse), or make it return its reason unconditionally (rows 2-4 refuse)."""
+    before = record_file.read_text(encoding="utf-8")
+    what = SWITCH_WHAT if proposal != GOOD_PROPOSAL else GOOD_WHAT
+    if refused:
+        with pytest.raises(dc.ConcernRefused, match="ruling of 23 Oct"):
+            dc.raise_concern(kind, what, proposal, recommendation=GOOD_RECOMMENDATION)
+        assert record_file.read_text(encoding="utf-8") == before, "a refusal still wrote"
+    else:
+        row = dc.raise_concern(kind, what, proposal, recommendation=GOOD_RECOMMENDATION)
+        assert dc.open_rows(dc.read_raw())[-1] == row
+
+
 def test_raising_edits_ONLY_the_concerns_block_and_ids_stay_unique(record_file):
     """Defect: the CLI re-dumps the whole record, rewriting the seat's prose and comments under a
     concurrent reader. Everything outside `for_the_director` must be byte-identical."""

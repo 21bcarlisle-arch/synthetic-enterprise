@@ -394,8 +394,8 @@ def dual_fuel_offset_request(policy) -> bool:
 
 def annualised_estimate_request(policy) -> bool:
     """Whether an unread month is estimated from the annualised register advance, by the company
-    switch. Off (`DecisionPolicy.bill_estimate_reads_the_annualised_advance`, the default) bills
-    exactly as before."""
+    switch (`DecisionPolicy.bill_estimate_reads_the_annualised_advance`, on by default since the
+    director's ruling of 23 Oct 2026). Off bills from the latest three reads."""
     from simulation.run_phase2b import CURRENT_POLICY
 
     return bool((policy or CURRENT_POLICY).bill_estimate_reads_the_annualised_advance)

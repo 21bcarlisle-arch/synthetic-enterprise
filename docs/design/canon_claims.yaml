@@ -244,9 +244,9 @@ claims:
       module reading this figure would be the epistemic defect, not the evidence.
 
   - id: SITE_the_front_door_says_the_household_saving_is_measured
-    page: site/index.html
-    anchor: "at that household's own metered volumes"
-    claim: "the published front door tells a reader the household's saving is measured, and it is"
+    page: site/capabilities/index.html
+    anchor: "its own metered volumes"
+    claim: "the published site tells a reader the household's saving is measured, and it is"
     expects: present
     probe:
       kind: token_live
@@ -254,6 +254,9 @@ claims:
       roots: [tools, company]
       exclude: [company/analytics/household_value_share.py]
     note: >-
+      Re-pointed 2026-10-23: the sentence moved from the front door to Capabilities on 22 Oct
+      (bee0abf1a, "the gaps move to Capabilities, none deleted") and was reworded there on 23 Oct
+      (368673a80). The id keeps its old name because the test pins the register's membership.
       The same predicate as MISSION_the_household_side_of_money_is_instrumented, pointed at the
       RENDERED surface rather than the design page. Separate on purpose and for the reason SITE13
       and the two schematic claims exist: correcting a canon file does not correct what a reader

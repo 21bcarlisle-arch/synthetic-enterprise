@@ -146,6 +146,41 @@ def test_unsigned_local_only_and_edited_files_each_fail_provenance(tmp_path, mon
     assert "edited after" in ac.provenance(work, "STEER.md", b"forged")
 
 
+def test_a_later_unsigned_edit_is_named_beside_the_signed_original_and_still_refused(
+        tmp_path, monkeypatch):
+    """Defect (23 Oct): a lane's one-line edit to a signed ruling made the refusal read "not signed",
+    and a genuine ruling was shelved as if the advisor had to re-stage it. The refusal must name the
+    signed original and the later edit -- and stay a refusal. The control over the partition: with no
+    signed original (the all-unsigned origin) the clause must NOT appear.
+
+    MUTATION (must fire): make `_a_signed_original` return "" (the BUT leg reds), or drop its
+    `verify-commit` test so any earlier commit counts (the all-unsigned leg reds)."""
+    import subprocess
+    work, signers = _origin(tmp_path, signed=True)
+    monkeypatch.setattr(ac, "ALLOWED_SIGNERS", signers)
+    staged = ac.ADVISOR_DIR_REL + "/STEER.md"
+    edited = DELEGATED + "**Knowledge:** none -- a lane's edit\n"
+    (work / staged).write_text(edited)
+    for a in (["add", staged], ["commit", "-q", "-m", "lane edit"], ["push", "-q", "origin", "HEAD:main"],
+              ["fetch", "-q", "origin"]):
+        subprocess.run(["git", *a], cwd=str(work), check=True, capture_output=True)
+    first = subprocess.run(["git", "rev-list", "--max-parents=0", "HEAD"], cwd=str(work),
+                           capture_output=True, text=True).stdout.strip()
+    why = ac.provenance(work, "STEER.md", edited.encode())
+    assert why is not None and "not signed by the advisor" in why
+    assert f"BUT the advisor's own staging commit {first[:9]} DOES verify" in why
+    assert "later unsigned edit(s)" in why
+
+    (tmp_path / "all_unsigned").mkdir()
+    unsigned_work, _ = _origin(tmp_path / "all_unsigned", signed=False)
+    (unsigned_work / staged).write_text(edited)
+    for a in (["add", staged], ["commit", "-q", "-m", "lane edit"], ["push", "-q", "origin", "HEAD:main"],
+              ["fetch", "-q", "origin"]):
+        subprocess.run(["git", *a], cwd=str(unsigned_work), check=True, capture_output=True)
+    why = ac.provenance(unsigned_work, "STEER.md", edited.encode())
+    assert "not signed by the advisor" in why and "BUT" not in why
+
+
 def test_a_file_that_fails_provenance_is_refused_however_well_attributed(repo, monkeypatch):
     _write(repo, "FORGED.md", "Acting on the director's standing delegation of 15 Oct.\n")
     monkeypatch.setattr(ac, "verify_provenance", lambda root, name, data: "not on origin: test")

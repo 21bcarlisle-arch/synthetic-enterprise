@@ -111,7 +111,10 @@ carries (a different DD, different reads at different times). That is why the ar
 - **Sum of |catch-up| falls from £185.2k to £152.8k (−17.5%)**, and falls in every year but 2016.
 - **2022-23 overcharge sum falls from −£35.6k to −£32.9k.** By count, £500+ overcharges go from
   0 to 1 in 2022 and from 6 to 5 in 2023.
-- **The tail does not improve: catch-ups of £500 or more go from 30 to 31.** Most of the large
+- **The tail does not improve: catch-ups of £500 or more go from 30 to 31.** *[Corrected
+  2026-10-23, kept beside the claim: the arms in section 4 refuted this. The tail fell from 30 to
+  24, sum |catch-up| fell 21.7% (not 17.5%), and of the four "new" catch-ups listed below only
+  SYN-2016-565 reached £500+, at −£1,797. The linear projection under-stated the benefit.]* Most of the large
   three-read catch-ups shrink. New ones appear where use moved away from the advance year:
   SYN-2016-169g −£66 → +£2,214, PROS-2020-0016g +£13 → +£2,044, SYN-2021-001 −£118 → −£1,715,
   SYN-2016-565 −£424 → −£2,934.
@@ -291,3 +294,28 @@ seat proposes default on in `for_the_director` with these arms. Raised as a conc
 stays off until he answers. **Next variant: the gas 9-month floor** (Xoserve's AQ minimum, K2
 design choice 1), then a cap on the advance's weight against the three-read level for an account
 whose recent reads diverge, the change aimed at accounts like PROS-2017-0336.
+
+## 5. Switched on (2026-10-23, under the director's ruling of that day)
+
+**Built default off:** in the header above now reads as history. `DecisionPolicy.bill_estimate_reads_the_annualised_advance`
+defaults **True** on every standing policy. Authority: the director's ruling of 23 Oct, 07:03 BST,
+"Great. All good. Do these." (`docs/staging/advisor/done/DIRECTOR_RULING_SWITCH_ONS_THAT_PASS_THEIR_PREREG_ARE_YOURS_2026-10-23.md`,
+staged by advisor commit `d9faa7916`, signature GOOD against `tools/advisor_allowed_signers`), which
+closes the `for_the_director` row `the-estimated-bill-can-read-the-customer` and, by canon G9, makes
+a switch like this the machine's own call from now on.
+
+- **Grade:** section 4, at 30674a4bd. **Rule:** section 2, fixed before either arm ran. **Met:** PB
+  0.783, PC 9 of 9 years, PA fell by 6.
+- **Revert control:** `test_the_run_takes_the_switch_from_the_policy_and_the_standing_policy_turns_it_on`
+  in `tests/company/billing/test_the_estimate_reads_the_annualised_advance_when_switched_on.py` reds
+  if the field default, or the run's reading of it, goes back to off. A revert is a new
+  pre-registration, not an edit to the default.
+- **The corrected section-1 projection** is marked beside its claim in section 1.
+- **What the switch-on does not include: the gas nine-month floor.** It is its own prereg
+  (`WORKER_PREREG_THE_GAS_ESTIMATE_FLOORS_THE_ADVANCE_AT_NINE_MONTHS_2026-10-22.md`). At the time
+  of the switch-on its build sat unlanded in the shared working tree only: a
+  `bill_estimate_floors_the_gas_advance_at_nine_months` field, default off, in
+  `company/policy/decision_policy.py`, with edits to `company/billing/unread_month_estimate.py` and
+  `company/billing/monthly_bill_assembly.py`, and its prereg file untracked. It was left where it
+  was, and goes on only if its own rule is met.
+

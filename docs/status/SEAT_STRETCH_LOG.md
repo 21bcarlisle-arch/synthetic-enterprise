@@ -8,6 +8,22 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-23 — The annualised advance is on, the first switch-on the machine makes itself; a lane's edit had shelved his ruling for five hours
+
+<!-- head: 83c4fc9d6052 -->
+
+*Autonomous worker, 23 Oct 2026. Drawn at lane 0: `the-directors-23-oct-switch-on-ruling-is-verified-and-acted-on`; landed at 17:10 BST from salvage 8110457ba, unchanged but for this log, by `the-directors-23-oct-switch-on-ruling-lands-from-its-salvage`. The front-door steer filed at the same time was another seat's live claim, which was landing it, so it was left to that seat.*
+
+**Switched on under the new standing rule: the bill estimate reads the annualised advance.** It is the first switch-on under the director's 23 Oct ruling ("Great. All good. Do these."), now canon G9. An unread month is billed from the annual rate the account's own register advance implies, not from the last three reads. The rule was fixed before the arms ran, and the arms at 30674a4bd met it. Estimated-bill error was lower in 9 of 9 years. Money moved by catch-ups fell 22%. Catch-ups of £500 or more fell from 30 to 24. On the other side of the ledger, company net is down £319, all of it bad debt. A revert control reds if the default goes back to off.
+
+**Why it waited five hours.** A lane edited the signed ruling to add a header line. The draw judged the file by that last, unsigned commit, so it shelved a genuine ruling as unsigned. The refusal now names the signed original and the later edit. It still refuses, because authority is the signed bytes, but a ruling can no longer be shelved without the reason being visible.
+
+**What else moved with it.** The concerns CLI refuses to raise a switch-on that the ruling made the machine's own. A concern still reaches the director if it is `reserved`, or if it says `outside the 23 Oct ruling: <why>`. `tools/read_instruction_arms.py` had stamped its payload from the flag rather than from the policy it ran. Once the default flipped, a flag-less control arm would have run with the switch on but been labelled as the three-read estimate. It now stamps what ran. That was found by asking what else assumed the default was off.
+
+**Left alone:** the gas nine-month floor build, unlanded in the shared tree. It is its own prereg and goes on only if its own rule is met.
+
+---
+
 ## 2026-10-23 — Explore opens on eight households seen three ways, chosen by rule at publish; the rules find standard-variable bills above the cap
 
 <!-- head: 17eaac83d063 -->

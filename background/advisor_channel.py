@@ -71,10 +71,32 @@ def provenance(root: Path, name: str, data: bytes) -> str | None:
             return "no origin commit stages it"
         if _git(root, "verify-commit", commit).returncode != 0:
             return (f"the commit that staged it ({commit[:9]}) is not signed by the advisor's "
-                    "pinned key")
+                    "pinned key" + _a_signed_original(root, path, commit))
         return None
     except Exception as exc:  # noqa: BLE001
         return f"provenance could not be checked ({exc!r})"
+
+
+def _a_signed_original(root: Path, path: str, last: str) -> str:
+    """The rest of the refusal when an EARLIER commit to `path` verifies and only later unsigned
+    edits fail; empty otherwise. Still a refusal -- authority is the signed bytes, not these -- but
+    it must not read as "the ruling was never his": on 23 Oct a lane's one-line header edit
+    (ebf866ecc) left a GOOD-signed ruling (d9faa7916) refused as unsigned, and it was shelved for
+    hours as if the advisor had to re-stage it."""
+    commits = _git(root, "log", "--format=%H %an", "origin/main", "--", path).stdout.split("\n")
+    later = []
+    for line in commits:
+        sha, _, author = line.strip().partition(" ")
+        if not sha:
+            continue
+        if sha != last and _git(root, "verify-commit", sha).returncode == 0:
+            edits = ", ".join(later)
+            return (f"; BUT the advisor's own staging commit {sha[:9]} DOES verify, and only the "
+                    f"later unsigned edit(s) {edits} fail. The ruling is genuine in {sha[:9]}'s "
+                    f"bytes: read `git diff {sha[:9]} {last[:9]} -- {path}`, act on the signed "
+                    "text, and do not shelve it as unsigned")
+        later.append(f"{sha[:9]} ({author or 'unknown'})")
+    return ""
 
 
 #: Swapped for an accepting stub in tests (tests/conftest.py); the real check needs a git origin

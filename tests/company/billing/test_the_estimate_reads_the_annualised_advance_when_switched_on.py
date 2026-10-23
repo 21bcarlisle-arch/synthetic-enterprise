@@ -108,10 +108,21 @@ def test_with_no_advance_of_half_a_year_the_switch_falls_back_to_the_three_reads
     assert on == pytest.approx(_three_read("C2"), abs=0.01)
 
 
-def test_the_run_takes_the_switch_from_the_policy_and_the_standing_policy_leaves_it_off():
+def test_the_run_takes_the_switch_from_the_policy_and_the_standing_policy_turns_it_on():
+    """Defect: the default reverts to off, and the standing run bills unread months from the last
+    three reads again -- undoing a switch-on whose pre-registered rule was met (7e31d8f70) and
+    which the director's ruling of 23 Oct made the machine's to turn on (canon G9). A revert is a
+    new pre-registration, not an edit to this default.
+
+    MUTATION (must fire): set the dataclass default back to False (the field-default leg reds), or
+    make `annualised_estimate_request` ignore the policy (one of the two request legs reds)."""
+    from company.policy.decision_policy import DecisionPolicy
     from simulation.run_phase2b import CURRENT_POLICY
     from simulation.run_phase4c_on_phase2b import annualised_estimate_request
 
-    assert annualised_estimate_request(CURRENT_POLICY) is False
-    on = dataclasses.replace(CURRENT_POLICY, bill_estimate_reads_the_annualised_advance=True)
-    assert annualised_estimate_request(on) is True
+    default = {f.name: f.default for f in dataclasses.fields(DecisionPolicy)}
+    assert default["bill_estimate_reads_the_annualised_advance"] is True
+    assert annualised_estimate_request(CURRENT_POLICY) is True
+    assert annualised_estimate_request(None) is True
+    off = dataclasses.replace(CURRENT_POLICY, bill_estimate_reads_the_annualised_advance=False)
+    assert annualised_estimate_request(off) is False
