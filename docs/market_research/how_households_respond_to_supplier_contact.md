@@ -239,6 +239,9 @@ table bounds the sign. It does not size it.
 share from §2.7 (`WOKEN_SHARE_OF_SVT_STOCK`). A woken household leaves with the churn of an active
 chooser facing our premium over the market's best, felt through its own elasticity and on its own
 bill. If it does not leave, it re-fixes with us. On that segment a contact can only add departures.
+*Correction (2026-10-23, C30 draw): "re-fixes with us" is the trials' finding, not what the run
+does. Nothing in `run_phase2b.py` reads a woken household that stays: its next segment is the same
+default at the same rate. See §7.5, "What stopped the interim route".*
 
 Printed at real inputs (2017 level anchor 6.2, bill £1,100), churn of a woken household:
 
@@ -486,6 +489,47 @@ where the seam needs a new observable.
   level-1 build. It answers the M2 question now, conservatively. Leave the notice-time crossing
   until that arm shows the advice creates value worth reaching earlier.
 
+**7.5a What stopped the interim route (C30 draw, 2026-10-23, delivery seat).** The route above
+was drawn as C30's level-1 build: one default-off switch and a per-account sender in place of the
+flat `svt_contact_instrument`, with a reach test that a contacted passive household can re-fix and
+an uncontacted one cannot. Reading the wired route before building it (`run_phase2b.py` at
+`505c5f041`, the SVT branch; `contact_response.svt_departure_after_contact` and
+`svt_cause_on_the_coupled_roll`) shows **the route has no re-fix**:
+- On the coupled roll, a draw below `p_drift` is drift, a draw between `p_drift` and `p_contacted`
+  is a woken household that left on price, and **every other draw is "stayed"**. A woken household
+  that did not leave is indistinguishable from one the letter never woke. Its next default segment
+  is already in the heap, built before the loop, at the same default rate. No code reads its wake.
+- So on this route a contact can only **send households away**. The company's side is a loss of
+  margin. The household's side is a leaver's saving at a rival, and the world does not record what a
+  leaver pays next. The arm pair the draw asks for would therefore grade one side only. It could
+  not answer the M2 question it was drawn for, so neither the switch nor the arms were built:
+  that is the smallest-run rule (R5) applied to a run that cannot answer its question.
+- The household-side act §7.2 and §7.5 rely on is the EFTC one: a woken household **re-fixes with
+  its own supplier**. The run does have a route from the default back to a fix: the annual
+  anniversary roll (`renewals.build_renewal_schedule`, 2026-09-18). That roll is taken **at schedule
+  build**, before the loop, so a contact cannot reach it. It is §7.4's problem again, on SVT stock.
+- Making a woken stayer re-fix needs two things, and the second is what stops this turn:
+  1. **A fix quoted at a new moment, through an existing door.** The fix price is struck at
+     schedule build through `request_renewal_offer` (`renewals.py`, the seam's renewal door). A
+     re-fix needs that same door called **inside the loop**, at the segment's start. No new door is
+     needed, but the call moves to a new point in the run's order.
+  2. **A world splice, in the reverse direction of the declined-fix splice.** On a draw in the
+     re-fix band, the world removes the household's remaining default segments up to its next
+     scheduled boundary (`_pending_starts`) and pushes one fixed term there, at the quoted rate.
+     The next boundary is the anniversary, already decided, and it stays as built. The band needs
+     **no new world number**: on the same uniform draw it is
+     `[p_contacted, p_contacted + (1 - p_drift) x woken x (1 - churn_if_choosing))`, from §2's
+     magnitudes and the existing curve. Cutting the fix at the anniversary rather than giving it
+     twelve months understates the household's side (F11). The cost is building a fixed-term
+     record inside the loop with everything the schedule builders put on one: locked costs, the
+     forward the company priced on, and the notice. That is a run-order change, not a switch, and it
+     is more than one turn of work with its controls.
+- **Recommended next (the seat's call, not a director question):** build 1 and 2 as one
+  default-off increment, with its reach test (a contacted stayer on a re-fix draw is supplied on a
+  fix up to its next boundary; an uncontacted one is not; off is byte-identical). Then build the
+  per-account sender on top of it, as drawn. The in-loop fixed-term builder it needs is also the
+  first half of §7.4's notice-time route, so it is not wasted if that route is chosen later. Until
+  it lands, a per-account SVT sender would only choose whom to lose.
 **GAPs.**
 - Whether SLC 31A's cheapest tariff message survives today in the form the 2016 letter kept was not
   re-read after the SSE notice.

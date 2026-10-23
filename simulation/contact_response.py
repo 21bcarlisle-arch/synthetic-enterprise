@@ -198,6 +198,11 @@ def svt_departure_after_contact(
     THIS segment a contact can only add departures: waking your own default stock costs some of it
     now, and the households it keeps are on a fix, where the next term end is a choice. That
     trade is the company's to weigh. The world only has to make it real.
+
+    THE RE-FIX IS NOT YET REAL (2026-10-23). This returns the departure side only, and the run loop
+    reads nothing else: a woken household that stays keeps its pre-built default segments at the
+    default rate. The trade above is half-built, and so is the household's side of any contact on this
+    route. What the re-fix needs is in the research doc's §7.5a.
     """
     for name, p in (("p_drift", p_drift), ("churn_if_choosing", churn_if_choosing)):
         if not 0.0 <= p <= 1.0:

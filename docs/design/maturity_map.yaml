@@ -1585,7 +1585,7 @@
   dial_inherited: 45    # R4 -- DIRECTOR_CANON_RERANKING_THE_ARC_2026-09-04 §2/§5.
   provenance: director_ruling
   blocked_on: null
-  block_reason: "SEAM GAP (K8 2026-10-23, how_households_respond_to_supplier_contact.md §7.4): the world rolls term-end engagement at schedule build, before any notice-time crossing, so C34 advises only households already choosing. Next: that crossing, or §7.5's interim per-account SVT sender."
+  block_reason: "SEAM GAP (contact page §7.4, §7.5a): notice-time advice needs a crossing; the interim SVT route has no re-fix (a woken stayer keeps its default segments), so a sender there only chooses whom to lose. Next: §7.5a in-loop re-fix (renewal door at a new moment + reverse splice), default off."
   depends_on: [A47_the_score_has_no_household_side, B10_competitor_switching_response]
   couples_with: [C29_decisions_stop_being_lookup_tables]
   file_scope: ['company/crm/', 'company/pricing/switching_recommendation.py', 'simulation/', 'tests/']
