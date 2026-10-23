@@ -308,3 +308,21 @@ def test_the_lock_comment_no_longer_claims_a_protection_the_code_lacks():
     assert "_commit_pathspec(" in src, "the publish no longer scopes its commit by pathspec"
     assert 'files.append(str(DONE_DIR))' not in src, (
         "the archive DIRECTORY add is back in the publish path")
+
+
+def test_a_page_carrying_the_publish_written_clock_rides_the_publish_and_an_unclocked_one_does_not(
+        publish, tmp_path):
+    """Director, 23 Oct 2026 07:18: "Remove banner". Each page's run-clock line is rewritten at
+    publish; a page left out of the pathspec keeps last week's date on the live site, and a page
+    with no clock has no business in the publish commit."""
+    from tools.generate_dashboard_data import RUN_CLOCK_END, RUN_CLOCK_START
+    clocked = tmp_path / "site" / "knowledge" / "price-cap" / "index.html"
+    clocked.parent.mkdir(parents=True)
+    clocked.write_text(RUN_CLOCK_START + "\nx\n" + RUN_CLOCK_END, encoding="utf-8")
+    plain = tmp_path / "site" / "privacy" / "index.html"
+    plain.parent.mkdir(parents=True)
+    plain.write_text("<p>no clock</p>", encoding="utf-8")
+
+    argv = _commit_argv(publish()) or []
+    assert any(a.endswith("site/knowledge/price-cap/index.html") for a in argv)
+    assert not any(a.endswith("site/privacy/index.html") for a in argv)

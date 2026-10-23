@@ -7174,6 +7174,16 @@ def git_commit_push(git_hash, net_margin, outcome=None):
     _galaxy_png = PROJECT_DIR / "site" / "code" / "galaxy.png"
     if _galaxy_png.exists():
         files.append(str(_galaxy_png))
+    # Every page whose foot carries the publish-written run clock (director, 23 Oct 2026 07:18:
+    # "Remove banner"). `write_run_clocks` rewrites the date on each one at publish, so each must
+    # ride this commit, or its date freezes on the live site while the generator reports it written.
+    from tools.generate_dashboard_data import RUN_CLOCK_START
+    for _clocked in sorted((PROJECT_DIR / "site").rglob("*.html")):
+        try:
+            if RUN_CLOCK_START in _clocked.read_text(encoding="utf-8"):
+                files.append(str(_clocked))
+        except OSError:
+            continue
     # THE SAME CLASS, ON THE OTHER GENERATED DIRECTORY (2026-08-17, the three-day content
     # freeze). Everything above closed the orphaned-at-commit gap for `site/data/` with a glob and
     # then went straight back to hand-listing `site/state/` one path at a time -- customer_sample,
