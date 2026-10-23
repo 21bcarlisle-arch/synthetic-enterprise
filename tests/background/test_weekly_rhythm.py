@@ -599,3 +599,22 @@ def test_the_monday_step_prints_the_pages_claims_and_says_when_it_cannot(monkeyp
     monkeypatch.setattr(world_claims, "drawn_book", boom)
     text = "\n".join(wr._world_claims_section())
     assert "NOT MEASURED" in text and "no draw" in text, text
+
+
+def test_the_monday_step_grades_explores_cast_and_says_when_it_cannot(monkeypatch, tmp_path):
+    """Director steer 2026-10-23, item 4: the cast's checks run in the Monday step.
+    DEFECT: a section that read clean whatever the verdict, or vanished when the feed was missing."""
+    from tools import generate_explore_cast as cast
+
+    feed = tmp_path / "cast.json"
+    feed.write_text('{"slots": [], "coverage": {"filled": 0, "of": 0, "empty": [], "book_breaches": '
+                    '{"above_cap": {"households": 2, "of": 9}}}}')
+    monkeypatch.setattr(cast, "OUT_PATH", feed)
+    monkeypatch.setattr(cast, "STAGING", tmp_path)
+    text = "\n".join(wr._explore_cast_section())
+    assert "**RED:" in text and "above_cap" in text, text
+    assert "Explore's cast" in wr._step_body(wr.MONDAY_STEP, date(2026, 10, 26), [])
+
+    monkeypatch.setattr(cast, "OUT_PATH", tmp_path / "absent.json")
+    text = "\n".join(wr._explore_cast_section())
+    assert "NOT MEASURED" in text, text

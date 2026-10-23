@@ -476,6 +476,20 @@ def _debt_why(hh, ev, iso):
 # ── Cast rules ────────────────────────────────────────────────────────────────────────────────
 
 
+#: One plain line per tab saying what the feature IS, for a reader who does not know the trade
+#: (the cold read of 23 Oct asked what an "estimate trap" was). It defines; it does not narrate.
+GLOSSARY = {
+    "switch_in": "Switching in: a household moves its supply to this supplier, and its first bill is the first test of the new account.",
+    "renewal": "Renewal: a fixed-price tariff is ending, and the supplier decides what to offer before the household decides whether to stay.",
+    "estimate_trap": "An estimate trap: bills are worked out from guessed meter readings until a real reading arrives and corrects the account in one step.",
+    "mover": "A home move: the leaving occupant gets a final bill, and whoever moves in next becomes the supplier's new customer at that address.",
+    "debt": "The debt journey: a bill goes unpaid, then reminders and a payment plan follow, and it ends repaid, written off or with a collection agency.",
+    "ev": "An EV home: an electric car arrives, and the supplier sees it only as more electricity on the meter.",
+    "storage_heating": "Storage heating: heaters that charge overnight on a two-rate meter (such as Economy 7), whose night units are billed cheaper.",
+    "shock_2022": "The 2022 shock: wholesale prices rose several times over, and the price cap and then the Energy Price Guarantee set what households paid.",
+}
+
+
 def _cast_rules():
     """(slot id, feature, one-line rule, scorer). A scorer returns (score, keys, opening index) or None."""
     return [
@@ -700,6 +714,7 @@ def _build(customers, sample, windows):
                 best = (got, hh)
         if not best:
             slots.append({"id": slot_id, "feature": feature, "rule": rule, "filled": False,
+                          "glossary": GLOSSARY[slot_id],
                           "reason": EMPTY_REASONS.get(slot_id, "No household in this run qualifies under this rule.")})
             continue
         (score, keys, opening), hh = best
@@ -720,7 +735,7 @@ def _build(customers, sample, windows):
         first = legs[next(iter(legs))]
         span_end = max((i["date"] for i in ev["invoice"]), default=_acq(hh))
         slots.append({
-            "id": slot_id, "feature": feature, "rule": rule, "filled": True,
+            "id": slot_id, "feature": feature, "rule": rule, "filled": True, "glossary": GLOSSARY[slot_id],
             "household": hh["id"], "fuels": list(legs), "segment": first.get("segment"),
             "span": "{} to {}".format(_day(_acq(hh)), _day(span_end)),
             "story": _story_line(slot_id, hh, keys),
@@ -746,6 +761,54 @@ def _build(customers, sample, windows):
             "book_breaches": {k: {"households": v, "of": len(hhs)} for k, v in sorted(book_breaches.items())},
         },
     }
+
+
+# ── The Monday verdict (steer item 4, third bullet) ───────────────────────────────────────────
+
+STAGING = PROJECT / "docs" / "staging"
+_CAST_FINDING = ("SEAT_FINDING_EXPLORES_CAST_FINDS_STANDARD_VARIABLE_BILLS_ABOVE_THE_CAP_AND_NO_MOVER"
+                 "_OR_TWO_RATE_HOME_2026-10-23.md")
+#: Each gap the checks find today, and the open finding that accounts for it. A gap with no entry,
+#: or whose finding has left the open rooms while the gap remains, is RED: a feature has stopped
+#: working and nothing is working on it. An entry whose gap has closed is reported, never red, so
+#: the run getting more honest cannot red the build.
+ACCOUNTED_BY = {"above_cap": _CAST_FINDING, "mover": _CAST_FINDING, "storage_heating": _CAST_FINDING}
+
+
+def _open_finding(name: str, staging: Path) -> bool:
+    return (staging / name).is_file() or (staging / "in_progress" / name).is_file()
+
+
+def coverage_verdict(feed: dict | None, staging: Path | None = None) -> dict:
+    """Every empty slot and every breached rule in `feed`, graded against `ACCOUNTED_BY`.
+
+    Returns `red` (gaps no open finding accounts for), `accounted` (gaps an open finding names) and
+    `spent` (entries whose gap is gone). A feed that is missing or misshapen is red, never clean.
+    """
+    staging = staging or STAGING
+    try:
+        cov = feed["coverage"]
+        slot_ids = [s["id"] for s in feed["slots"]]
+        gaps = [("slot", sid, "no household qualifies") for sid in cov["empty"]]
+        gaps += [("rule", r, "{} of {} households".format(v["households"], v["of"]))
+                 for r, v in cov["book_breaches"].items() if v["households"]]
+    except (KeyError, TypeError, AttributeError) as exc:
+        return {"red": ["the cast feed is missing or misshapen ({!r}), so no check ran".format(exc)],
+                "accounted": [], "spent": []}
+    missing = [sid for sid, *_ in _cast_rules() if sid not in slot_ids]
+    red = ["slot {}: the feed has no such slot, so its rule did not run".format(s) for s in missing]
+    accounted = []
+    for kind, gid, what in gaps:
+        name = ACCOUNTED_BY.get(gid)
+        if name and _open_finding(name, staging):
+            accounted.append("{} {}: {} -- open in {}".format(kind, gid, what, name))
+        elif name:
+            red.append("{} {}: {} -- and its finding {} is no longer open".format(kind, gid, what, name))
+        else:
+            red.append("{} {}: {} -- and no open finding accounts for it".format(kind, gid, what))
+    live = {g[1] for g in gaps}
+    spent = ["{}: its gap has closed; drop the entry".format(k) for k in ACCOUNTED_BY if k not in live]
+    return {"red": red, "accounted": accounted, "spent": spent}
 
 
 # ── Static first render (the page shows without JavaScript) ───────────────────────────────────

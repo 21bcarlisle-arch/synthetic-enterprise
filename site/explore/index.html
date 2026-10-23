@@ -354,7 +354,8 @@ a { color: var(--teal); }
   function renderStage() {
     var s = feed.slots[slotIx];
     if (!s.filled) {
-      stage.innerHTML = "<div class=\"empty-slot\"><strong>" + esc(s.feature) + ": empty in this run.</strong> " +
+      stage.innerHTML = "<p class=\"hh gloss\">" + esc(s.glossary || "") + "</p>" +
+        "<div class=\"empty-slot\"><strong>" + esc(s.feature) + ": empty in this run.</strong> " +
         esc(s.reason) + "<p class=\"say\">The rule: " + esc(s.rule) + ".</p></div>";
       return;
     }
@@ -375,6 +376,7 @@ a { color: var(--teal); }
     stage.innerHTML =
       "<div class=\"cast-head\"><span class=\"story\">" + esc(s.feature) + "</span><span class=\"hh\">Household " + esc(s.household) +
       " · " + esc(s.fuels.join(" and ")) + " · " + esc(s.span) + "</span></div>" +
+      "<p class=\"hh gloss\">" + esc(s.glossary || "") + "</p>" +
       "<p class=\"hh\">Chosen by rule: " + esc(s.rule) + ".</p>" + strip +
       "<div class=\"moment-say\"><div class=\"when\">" + esc(m.date) + "</div><div class=\"t\">" + esc(m.title) + "</div><div>" + esc(m.story) + "</div></div>" +
       "<div class=\"views\">" +
