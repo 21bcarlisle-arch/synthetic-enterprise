@@ -483,3 +483,45 @@ def test_a_half_hourly_settled_meter_is_read_whatever_its_ids_smart_mode_draw():
                for p in periods) < 0.5 * len(periods), "out of smart mode it reads like a dumb meter"
     assert [simulate_read("T1", p, "traditional", 300.0, 0, half_hourly=True) for p in periods] \
         == [simulate_read("T1", p, "traditional", 300.0, 0) for p in periods]
+
+
+# --- W2_36 K5: a lawful meter's registration error (2026-10-23) ---------------
+
+def test_a_lawful_meter_can_hide_energy_and_overbill_and_the_register_arm_does_neither():
+    """Defect named (unbilled_energy_and_revenue_assurance.md s.K5 "World build"): a K5 study whose
+    limit arms cannot reach both directions, or whose `register` arm silently runs a meter slow or
+    fast. Both rare branches first, over every recorded band, then the centre."""
+    use = [225.0] * 12
+    for commodity, approval in mr.METER_LEGAL_ERROR_BAND:
+        slow = mr.meter_registration_study(use, commodity, approval, "slow_limit")
+        fast = mr.meter_registration_study(use, commodity, approval, "fast_limit")
+        centre = mr.meter_registration_study(use, commodity, approval, "register")
+        assert slow["unbilled_kwh"] > 0 and fast["unbilled_kwh"] < 0
+        assert centre["unbilled_kwh"] == 0 and centre["registered_kwh"] == use
+        assert sum(slow["registered_kwh"]) == pytest.approx(sum(use) * (1 + slow["error"]))
+
+
+def test_each_band_is_the_cited_legal_limit_and_the_slow_edge_is_never_wider_than_the_law():
+    """Defect named: a band that drifts from the limit the knowledge page cites, so a 'lawful' meter
+    hides more than the law lets it. Electricity national approval is asymmetric (NMRO 2015)."""
+    band = mr.METER_LEGAL_ERROR_BAND
+    assert band[("electricity", "national_approval")] == (-0.035, 0.025)
+    assert band[("electricity", "mid_class_a")] == (-0.025, 0.025)
+    assert band[("gas", "si_1983_684_mechanical")] == (-0.02, 0.02)
+    assert band[("gas", "si_1983_684_electronic")] == (-0.03, 0.03)
+    assert band[("gas", "mid_class_1_5")] == (-0.03, 0.03)
+    assert all(-0.035 <= lo < 0 < hi <= 0.03 for lo, hi in band.values())
+
+
+def test_the_out_of_limit_share_is_a_named_gap_carried_on_every_study():
+    """Defect named: an invented fault prevalence standing where the page records a GAP."""
+    r = mr.meter_registration_study([100.0], "electricity", "mid_class_a", "slow_limit")
+    assert r["out_of_limit_share"] is None and "No published share" in r["out_of_limit_gap"]
+    assert r["data_regime"] == "synthetic"
+
+
+def test_an_unknown_arm_or_an_unrecorded_approval_is_refused_by_name():
+    with pytest.raises(ValueError, match="arm"):
+        mr.meter_registration_study([100.0], "gas", "mid_class_1_5", "worst_case")
+    with pytest.raises(ValueError, match="no legal limit"):
+        mr.meter_registration_study([100.0], "gas", "national_approval")

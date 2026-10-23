@@ -355,6 +355,63 @@ pair is pre-registered in the record above.
   meter may sit in, and it is established. The disputed-meter shares bound only the referred
   population.
 
+#### World build: a lawful meter's registration error, as bounds (2026-10-23, K8 for W2_36 K5)
+
+**What the rules require.** A meter in service must stay inside the limit it met when new, with no
+added tolerance (above). Error is (registered − true) / true. A meter at its negative edge is
+**slow**: energy is used and never billed, which is K5's unbilled energy. A meter at its positive
+edge is **fast**: the customer pays for energy they did not use. That is a transfer from the
+customer, not unbilled energy, and it is published beside the slow edge so that neither is read alone.
+
+**What is established, and what the world takes from it.** `simulation/meter_reads.METER_LEGAL_ERROR_BAND`
+holds, per fuel and approval, the widest error the cited limit allows at any load point:
+electricity national approval −3.5% / +2.5% (NMRO 2015); electricity MID Class A ±2.5% (the
+minimum-current limit; ±2.0% at 1/5 and full load; IST Handbook); gas SI 1983/684 mechanical ±2%
+(at maximum and 20% of maximum flow); gas electronic ±3% (minimum flow); gas MID Class 1.5 ±3.0%.
+`meter_registration_study(true_monthly_kwh, commodity, approval, arm)` returns what one lawful meter
+registers. Only `registered_kwh` is the supplier's to see. Three arms:
+- `register`: error 0, the band's centre. This **asserts the meter exact**. That is not a
+  measurement (K2: an omission asserts zero), so the two edges are always published beside it.
+- `slow_limit` / `fast_limit`: every meter at its band's edge. These are **bounds** on what a
+  lawful meter can do, never an estimate of what a population of meters does.
+
+**Numbers at real inputs** (flat monthly use at the TDCV band ends in
+`simulation/population_draw.TDCV_BANDS_KWH`; kWh a year unbilled, negative = overbilled):
+
+| Meter | Use kWh/yr | slow limit | fast limit |
+|---|---|---|---|
+| electricity, national approval | 1,800 / 2,700 / 4,000 | +63 / +94.5 / +140 | −45 / −67.5 / −100 |
+| electricity, MID Class A | 1,800 / 2,700 / 4,000 | +45 / +67.5 / +100 | −45 / −67.5 / −100 |
+| gas, SI 1983/684 mechanical | 6,500 / 10,000 / 15,000 | +130 / +200 / +300 | −130 / −200 / −300 |
+| gas, electronic or MID 1.5 | 6,500 / 10,000 / 15,000 | +195 / +300 / +450 | −195 / −300 / −450 |
+
+The scale this puts K5 at: an electricity meter at its slow edge hides about 95 kWh a year at
+2,700 kWh. On the IA's whole-use reading (K4), a theft hides all of a home's use. So one theft
+outweighs about 30 slow-edge meters. The gas slow edge (2–3% of use) is the same size as the
+domestic UIG share (2.90%, K6). But the AUGE puts net consumption meter error at **−149 GWh**, net
+*over*-recording, on 2024-25 (K4 table). So the published evidence points the gas population's net
+error the fast way. Running the slow edge across a gas book would err in our favour on an unbilled
+figure, and F11 says to err against our own thesis. **The slow edge is therefore a bound for one
+meter and never a book's central case.**
+
+**GAPs carried in code, not filled.**
+- The share of in-service meters outside their limit, and its fast/slow split:
+  `METER_OUT_OF_LIMIT_SHARE = None` with `METER_OUT_OF_LIMIT_GAP` naming why. Every study returns
+  both, and no arm draws an out-of-limit meter.
+- Where inside its band a lawful meter sits (the in-band distribution): not published. Hence the
+  three arms rather than a draw.
+- The SI 1983/684 mechanical gas limit below 20% of maximum flow is not recorded on this page, so
+  that band may be narrower than the law.
+- Which approval a given meter in the world holds (MID applies to most new and smart installs, and
+  older traditional meters may be on either). The study takes the approval from its caller and does
+  not guess it from the meter type.
+- Crossed meters: not built. The count is a GAP (above), and a crossed pair is a different mechanism
+  (one customer billed for another's use), not a registration error.
+
+**Not wired into a run.** Like the theft study (K4), this is a premise-level study. While prevalence
+is a GAP, a run would carry the `register` arm only, and that changes nothing, so wiring it would
+move no figure and would cost a world-digest change.
+
 ### K6 Settlement versus billing
 
 - **Electricity:** settlement runs II (1 week), SF (1 month), R1 (2), R2 (4), R3 (7), **RF (14 months,
@@ -1206,7 +1263,7 @@ revenue assurance has nothing to find here, and kinds K4, K5 and most of K6 cann
 | K2 estimate and true-up | `simulation/meter_reads.py::simulate_read` (world) → `company/billing/monthly_bill_assembly.build_monthly_bills` (`_annotate_billing_basis` L183, `_resolve_catchup` L211), called from `simulation/run_phase4c_on_phase2b.py:337`. `D3_catchup_rebilling` closed 3/3, Expert Hour passed | Yes | **Built, and the shape is sound.** The estimate is the mean of the customer's last 3 actual periods (`ESTIMATE_TRAILING_WINDOW = 3`), so a winter estimate made from autumn actuals undershoots and the seasons produce real catch-ups. Smart not-communicating is 10%, blended across fuels where DESNZ gives 4.7% electricity and 9.1% gas in traditional mode. A traditional meter gets an actual read with probability **1/6 per month, independently each month** (the code flags this as unverified). **Update 2026-10-05:** superseded by W2_36 slice 2 (`977e17453`): two read classes from the assumption register's Q2 rows. D48 slice 1 now measures K2 company-side (`company/billing/billing_accuracy.py`). It reads each bill's basis and a read-time true-up stamped by `_resolve_catchup`, never the world's use. First real run, 2016–2020: 61% of electricity kWh and 59% of gas kWh billed on estimates. **Update 2026-10-06 (D48 slices 3–4):** the world no longer estimates. `simulate_read` reports status only. The company estimates every unread period itself in `company/billing/unread_month_estimate.py`: from its own last three reads shaped by the published profile, or before its first read from the registry EAC/AQ spread by that profile |
 | K3 back-bill | `company/billing/back_billing.py` (365-day cap, pro-rata write-off), invoked by `_resolve_catchup` | Yes | **Can bind only at the margin.** `meter_reads.MAX_CONSECUTIVE_ESTIMATED_PERIODS = 12` forces an actual read after 12 estimated months, so no unread run goes much past the cap (whether a 12-month run plus the read lag ever crosses 365 days was not measured). The world enforces the regulation as if it were physics. In reality a meter can go unread for years (no access, a crossed meter, an account never billed), and that is exactly when 21BA costs the supplier money. Two more problems: the module calls the rule "SLC 31A" and treats it as domestic-only, but Ofgem's decision inserts **SLC 21BA** and extends it to microbusinesses from late 2018 (§2 K3). **Correction 2026-10-05:** the forced read at 12 is gone (W2_36 slice 2, `977e17453`), so the cap now binds from the run. D48 slice 1 measures the barred energy by days, as the money cap is. First real run, 2016–2020: 0.36% of electricity and 0.05% of gas undercharge kWh barred. Full decade (D48 slice 2, 2016 to mid-2025, 175 accounts): **1.05% and 1.25%** (17 and 6 barred true-ups). This is not the W2_36 sweep's 5.5%, which is a different quantity |
 | K4 theft, unregistered, unknown occupier, UIG | Company-side registers: `company/billing/theft_risk_scoring_register.py`, `revenue_protection_register.py` (3-year theft back-bill), `revenue_protection_visit_register.py`, `energy_theft_book.py`, `theft_indicator.py` (called by the billing run since 2026-10-17, behind a switch that defaults off: §4b), `company/market/uig_allocation_register.py` (**no caller**, and not on the maturity map), `company/crm/change_of_tenancy_register.py`. **World side: nothing for theft, UIG, unregistered, shipperless or crossed meters anywhere in `sim/` or `simulation/`** (grep) | No | **Absent from the world.** The company has scaffolding to detect things the world never generates, so every register here can only ever read empty. **Update 2026-10-05 (W2_36 slice 3):** the unknown-occupier part now arises in the world when home moves are on. Each move-out carries `unnamed_kwh_expected`: the meter point's annual quantity × `q1_unnamed_months_per_cot` / 12 (`sim/customer_state_layer.py`). Since B7 slice 3 the incoming deemed leg is settled and billed from the move date, and since B7 slice 4 the part inside the window (`unnamed_until`) is booked as occupier debt (`occupier_debt_gbp`), not as paid. Recovery of that debt: GAP. Theft, unregistered and UIG are still absent. **Update 2026-10-16 (W2_36 theft study):** theft now arises at a premise in `simulation/meter_reads.py` (`premise_theft_months`, `premise_theft_study`), as the director ruled on 2026-10-08: a minutes-tier study, not a settled book. Each premise holds a theft state as a stationary two-state chain. The stock is `q6_theft_prevalence_domestic_electricity`, and its turnover is `q6_theft_months_before_detection`, read as the 2011–14 world's mean duration with that era's detection already in it. While a theft runs, the meter registers `1 − q6_theft_share_of_premise_use_unregistered` of true use. No run reads it. **Update 2026-10-16 (screen graded, `tools/theft_void_screen_probe.py`):** an actual/expected ratio screen cannot tell a theft from a void by the ratio, only by the window. An empty calendar month is a theft about nine times in ten; a month under 0.65 flags more private voids than thefts. The third source, occupied homes, is priced on the published run's own book against the company's own expectation (its last three actual reads shaped by the published profile). No occupied home empties a month or a year. But under 0.65 a month flags about 1,800 times per 10,000 premise-years, mostly April to September, and mostly in weather-driven (`fabric_physics`) homes whose seasonal swing is steeper than the profile. That is the expectation's shape error, not low use, and it is more flags than private voids (1,740) or thefts (about 1,100) produce at that cut. In the run a void sits on the incoming account's first stub, so a billing-period screen sees it as an empty period. Whether the world's summer-to-winter swing in those homes matches published heating-season shapes: GAP. Unregistered and UIG are still absent |
-| K5 meter faults, crossed meters | `company/billing/meter_dispute.py` (`METER_FAULT`); nothing for crossed meters | Not established | Absent from the world |
+| K5 meter faults, crossed meters | `company/billing/meter_dispute.py` (`METER_FAULT`); nothing for crossed meters | Not established | Absent from the world. **Update 2026-10-23 (W2_36 K5):** a lawful meter's registration error is now a world study, `simulation/meter_reads.meter_registration_study`. It covers the legal band's slow and fast edges as bounds, with the centre as the `register` arm. The out-of-limit share is a named `None` (§K5 "World build"). It is not run, and crossed meters are still absent |
 | K6 settlement vs billing | `company/regulatory/settlement_reconciliation.py` (Elexon run months, now correct at RF 14), `simulation/settlement_timetable.py`, `simulation/settlement_run_series.py`; `tools/generate_margin_bridge.py` (a money bridge between settlement margin and ledger margin). `EP5_settlement_true_ups` is **0/3, idle** | Reporting only | The revision series is derived from the *billing* estimate and resolves to truth at RF, so by design it does not change the final value. Nothing compares billed kWh to settled kWh (no such module, per grep). No GSP correction and no UIG charge reach cost. The variance bands (±0.5% HH, ±4% NHH) are still uncited (knowledge map) |
 | K7 smart read failure | `SMART_METER_NOT_COMMUNICATING_RATE = 0.10`, drawn independently for each customer-period | Yes | It takes a stock (DESNZ, end-2024) and uses it as an independent monthly probability. In reality traditional mode is a *state* a meter stays in (lost WAN, or not adopted after a switch). Neither the hazard nor the persistence is published (§2 K7) |
 

@@ -276,6 +276,71 @@ def premise_theft_study(premise_id: str, true_monthly_kwh: list[float],
     }
 
 
+# --- A meter's registration error (K5, W2_36 2026-10-23) ----------------------------------------
+# unbilled_energy_and_revenue_assurance.md s.K5, "World build". An in-service meter is held to the
+# limit it met when new, with "no additional tolerance". Error = (registered - true) / true, so a
+# negative edge is a SLOW meter (energy used and never billed) and a positive edge a FAST one (the
+# customer overbilled). Each band is the widest the cited limit allows at any load point, so the
+# limit arms are bounds on what a lawful meter can hide, never an estimate of what one does.
+METER_LEGAL_ERROR_BAND = {
+    # NMRO 2015 s.3.1-3.2: +2.5% to -3.5% across the load range.
+    ("electricity", "national_approval"): (-0.035, 0.025),
+    # OPSS IST Handbook 3.7 Tables 3-5: Class A +-2.5% at minimum current, +-2.0% at 1/5 and full load.
+    ("electricity", "mid_class_a"): (-0.025, 0.025),
+    # NMO 2011 s.3.2: SI 1983/684 domestic mechanical +-2% at maximum and 20% of maximum flow. Its
+    # limit below 20% of maximum flow is not on the page: GAP, so this band may be narrower than the law.
+    ("gas", "si_1983_684_mechanical"): (-0.02, 0.02),
+    # NMO 2011 s.3.2: domestic electronic adds +-3% at minimum flow.
+    ("gas", "si_1983_684_electronic"): (-0.03, 0.03),
+    # OPSS IST Handbook 3.7: MID Class 1.5 +-3.0%.
+    ("gas", "mid_class_1_5"): (-0.03, 0.03),
+}
+
+# Share of meters on supply recording OUTSIDE their limit, and how far. Not published for 2016-2025;
+# the disputed-meter shares (NMRO 2015 s.4.1, NMO 2011) count meters someone already suspected and
+# say so. A GAP, so None: no arm draws an out-of-limit meter until it is sourced.
+METER_OUT_OF_LIMIT_SHARE = None
+METER_OUT_OF_LIMIT_GAP = (
+    "No published share of in-service meters outside their legal limit, nor its fast/slow split, "
+    "for 2016-2025; the disputed-meter reports bound only the referred population "
+    "(unbilled_energy_and_revenue_assurance.md s.K5).")
+
+# Where inside its band a lawful meter sits is not published either. `register` puts it at the
+# band's centre, zero, which asserts the meter exact (K2: an omission asserts zero), so the two edges
+# are always published beside it as the bounds that zero sits between.
+METER_ERROR_ARMS = ("register", "slow_limit", "fast_limit")
+
+
+def meter_registration_study(true_monthly_kwh: list[float], commodity: str, approval: str,
+                             arm: str = "register") -> dict:
+    """One lawful meter's true use against what it registers, at one arm.
+
+    `registered_kwh` is what a supplier sees; `error`, `true_kwh` and `unbilled_kwh` are the world's
+    and never cross the seam. `unbilled_kwh` is negative on a fast meter: energy billed and not used.
+    """
+    if arm not in METER_ERROR_ARMS:
+        raise ValueError(f"arm {arm!r} is not one of {METER_ERROR_ARMS}")
+    try:
+        slow, fast = METER_LEGAL_ERROR_BAND[(commodity, approval)]
+    except KeyError:
+        raise ValueError(f"no legal limit is recorded for a {commodity} meter under {approval!r}; "
+                         f"recorded: {sorted(METER_LEGAL_ERROR_BAND)}") from None
+    error = {"register": 0.0, "slow_limit": slow, "fast_limit": fast}[arm]
+    registered = [kwh * (1.0 + error) for kwh in true_monthly_kwh]
+    return {
+        "data_regime": "synthetic",
+        "commodity": commodity,
+        "approval": approval,
+        "arm": arm,
+        "error": error,
+        "true_kwh": list(true_monthly_kwh),
+        "registered_kwh": registered,
+        "unbilled_kwh": sum(true_monthly_kwh) - sum(registered),
+        "out_of_limit_share": METER_OUT_OF_LIMIT_SHARE,
+        "out_of_limit_gap": METER_OUT_OF_LIMIT_GAP if METER_OUT_OF_LIMIT_SHARE is None else None,
+    }
+
+
 # --- The gas must-read (UNC TPD M5.10, W2_36 2026-10-17) ----------------------------------------
 # read_access_and_theft_duties.md s.2.7. A traditional domestic gas meter is an Annual Read Meter
 # (M5.9.1(b); monthly only at an AQ of 293,000 kWh, never a home). At the end of a month with no valid
