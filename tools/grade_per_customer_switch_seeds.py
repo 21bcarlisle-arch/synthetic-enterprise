@@ -26,9 +26,14 @@ THE CHANNELS, one per household, decided in this order on its renewal rows paire
                    fix, or a roll present in one arm only.
   * `same_choice` -- identical renewal rows. Gross can still move, by the discount a stayer
                    would have taken anyway.
-Gross is `per_cid_pnl[...]["gross"]` summed over the household's supply points. The net the
-record grades is `provisioned_net_gbp`; what gross does not explain (provision, capital, cost
-lines) is `unattributed_gbp`, printed, never folded into a channel.
+Gross is `per_cid_pnl[...]["gross"]` summed over the household's supply points; net is
+`per_cid_pnl[...]["net"]` summed the same way, the household's own capital, cost and realised bad
+debt taken off. Section 14 graded the departure channel by gross, and on seeds 1-4 gross overstated
+what one departure cost 2.4-3.6x, so each channel now carries both.
+The household nets sum to the run's realised `total_net_gbp`. The net the record grades is
+`provisioned_net_gbp`, the clock the settlement loop froze before the arrears write-back, and its
+gap to the realised sum is a book-level provision no household owns: `book_level_gbp`, printed,
+never folded into a channel. `unattributed_gbp` (provisioned net minus gross) is kept as it was.
 
     python3 -m tools.grade_per_customer_switch_seeds LABEL:FLAT.json:ENDING_TERM.json:SAVE_ODDS.json ...
 """
@@ -64,9 +69,12 @@ def reduce_run(d: dict) -> dict:
     for e in d["customer_events"]:
         rows[household(e["customer_id"])][(e["event_date"][:10], e["commodity"])] = outcome(e)
     gross = collections.defaultdict(float)
+    hh_net = collections.defaultdict(float)
     for cid, pnl in d["per_cid_pnl"].items():
         gross[household(cid)] += pnl["gross"]
-    return {"rows": dict(rows), "gross": dict(gross), "net": d["provisioned_net_gbp"],
+        hh_net[household(cid)] += pnl["net"]
+    return {"rows": dict(rows), "gross": dict(gross), "hh_net": dict(hh_net),
+            "net": d["provisioned_net_gbp"],
             "offers": len(d.get("retention_log") or ()),
             "departures": len(d["churned_billing_accounts"]),
             "arm": d.get("_per_customer_switch_arm"), "dice": d.get("_dice_seed")}
@@ -82,18 +90,22 @@ def channel(a_rows: dict, b_rows: dict) -> str:
 
 
 def split(a: dict, b: dict) -> dict:
-    """a - b, by channel. Every household with a renewal row or a gross line in either arm is in
-    exactly one channel, so the channels' gross sums to the total gross difference."""
-    out = {c: {"households": 0, "gross_gbp": 0.0} for c in CHANNELS}
+    """a - b, by channel. Every household with a renewal row or a pnl line in either arm is in
+    exactly one channel, so the channels' gross and net each sum to the total difference."""
+    out = {c: {"households": 0, "gross_gbp": 0.0, "net_gbp": 0.0} for c in CHANNELS}
     for h in set(a["rows"]) | set(b["rows"]) | set(a["gross"]) | set(b["gross"]):
         c = channel(a["rows"].get(h, {}), b["rows"].get(h, {}))
         dg = a["gross"].get(h, 0.0) - b["gross"].get(h, 0.0)
-        if c != "same_choice" or abs(dg) > 0.005:
+        dn = a["hh_net"].get(h, 0.0) - b["hh_net"].get(h, 0.0)
+        if c != "same_choice" or abs(dg) > 0.005 or abs(dn) > 0.005:
             out[c]["households"] += 1
         out[c]["gross_gbp"] += dg
+        out[c]["net_gbp"] += dn
     gross = sum(v["gross_gbp"] for v in out.values())
+    hh_net = sum(v["net_gbp"] for v in out.values())
     net = a["net"] - b["net"]
-    return {"net_gbp": net, "gross_gbp": gross, "unattributed_gbp": net - gross, "channels": out,
+    return {"net_gbp": net, "gross_gbp": gross, "unattributed_gbp": net - gross,
+            "household_net_gbp": hh_net, "book_level_gbp": net - hh_net, "channels": out,
             "departures": (a["departures"], b["departures"]), "offers": (a["offers"], b["offers"])}
 
 
@@ -118,7 +130,10 @@ def grade(seeds: dict[str, dict[str, str]]) -> dict:
         key = f"{x}-{y}"
         rows = [per_seed[s][key] for s in per_seed]
         summary[key] = {"net_gbp": mean_interval([r["net_gbp"] for r in rows]),
+                        "book_level_gbp": mean_interval([r["book_level_gbp"] for r in rows]),
                         **{c: mean_interval([r["channels"][c]["gross_gbp"] for r in rows])
+                           for c in CHANNELS},
+                        **{f"{c}_net": mean_interval([r["channels"][c]["net_gbp"] for r in rows])
                            for c in CHANNELS}}
     return {"per_seed": per_seed, "summary": summary, "seeds": len(per_seed)}
 
@@ -140,12 +155,16 @@ def cli(argv: list[str]) -> None:
         print(f"seed {label}  dice {pairs['dice']}")
         for x, y in PAIRS:
             r = pairs[f"{x}-{y}"]
-            ch = "  ".join(f"{c} {v['households']}h {v['gross_gbp']:+.2f}" for c, v in r["channels"].items())
+            ch = "  ".join(f"{c} {v['households']}h gross {v['gross_gbp']:+.2f} net {v['net_gbp']:+.2f}"
+                           for c, v in r["channels"].items())
             print(f"  {x}-{y}: net {r['net_gbp']:+.2f} (gross {r['gross_gbp']:+.2f}, unattributed "
-                  f"{r['unattributed_gbp']:+.2f}) departures {r['departures']} offers {r['offers']}\n    {ch}")
+                  f"{r['unattributed_gbp']:+.2f}; household net {r['household_net_gbp']:+.2f}, book-level "
+                  f"{r['book_level_gbp']:+.2f}) departures {r['departures']} offers {r['offers']}\n    {ch}")
     print(f"across {g['seeds']} seed(s), mean ± 95% half-width:")
     for key, s in g["summary"].items():
-        print(f"  {key}: net {_fmt(s['net_gbp'])}  " + "  ".join(f"{c} {_fmt(s[c])}" for c in CHANNELS))
+        print(f"  {key}: net {_fmt(s['net_gbp'])}  book-level {_fmt(s['book_level_gbp'])}")
+        for c in CHANNELS:
+            print(f"    {c:<12} gross {_fmt(s[c])}  net {_fmt(s[c + '_net'])}")
 
 
 if __name__ == "__main__":

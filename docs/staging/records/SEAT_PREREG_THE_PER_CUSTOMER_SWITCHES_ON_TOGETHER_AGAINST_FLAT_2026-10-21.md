@@ -1620,6 +1620,33 @@ the departures cancel. On seeds 2 to 4 they ran up to −£5,508. A grader that 
 household would change how large each `departure` reading is. It changes this verdict only if it
 lifts ending_term's interval floor by more than £1,306.
 
+### 14. The same four seeds by household net (2026-10-23, no run launched; read after the grade above, so this is a reading, not a prediction)
+
+`tools/grade_per_customer_switch_seeds.py` now sums `per_cid_pnl[...]["net"]` per household beside
+gross, so each channel carries both. The household nets sum to the run's realised `total_net_gbp`.
+What `provisioned_net_gbp` holds beyond them is the provisioned clock's book-level provision, which
+no household owns. It is printed as `book-level` and kept out of every channel. Re-run over
+`s1`–`s5` as they stand. The gross columns reproduce the table above to the pound, so the instrument
+did not move. Seeds 2–5, mean ± 95% half-width (t, 3 df):
+
+| pair (seeds 2–5), by net | departure | parity | same_choice | book-level |
+|---|---|---|---|---|
+| ending_term − flat | +£1,696 ± £2,336 | +£120 ± £1,739 | +£164 ± £632 | −£424 ± £1,170 |
+| save_odds − flat | +£157 ± £1,286 | +£38 ± £1,681 | +£61 ± £699 | +£112 ± £301 |
+| save_odds − ending_term | −£1,490 ± £3,101 | −£141 ± £175 | −£94 ± £533 | +£535 ± £995 |
+
+- **A departure is worth about half its gross.** ending_term − flat `departure` net is +£1,314,
+  +£1,280, +£3,802 and +£387 (gross +£2,905, +£3,026, +£7,946, +£595): 0.42 to 0.65 of gross. It is
+  still positive on all four seeds. Its interval is [−£640, +£4,032], so the floor rises by £666 and
+  still contains zero. **The verdict above stands: both switches stay off.**
+- `same_choice` shrinks most, from +£1,076 gross to +£164 net. The stayers' discount is mostly
+  revenue that cost-to-serve and bad debt had already spent.
+- The book-level line is the same size as the household channels and its sign moves with the seed,
+  so a net grade needs it printed beside the channels and never left as an unsplit remainder.
+
+A new prereg for more seeds of the ending-term arm should grade `departure` by net. On four seeds
+its half-width is 1.4 times its mean, as gross was, so more seeds narrow both readings alike.
+
 ## 15. The save rate learned against a holdout: `all_on_save_odds_holdout` beside `all_on_save_odds` (filed 2026-10-22, before either arm was launched)
 
 *Drawn as `the-save-rate-is-learned-against-a-holdout`. Knowledge first:
