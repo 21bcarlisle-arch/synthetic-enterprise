@@ -1886,7 +1886,22 @@ def build_brief(now: datetime | None = None) -> dict:
         # list was authored blind to it. Graded against the LIVE record, because that is the one
         # whose items are about to be carried forward or dropped.
         "live_direction_path_concerns": direction_path_check.concerns(live.raw) if live else [],
+        # THE P2 PILOT'S OWN GRADE, so its switch-on rule is read where the seat decides, not left
+        # to lapse unread at the window's end. A count of zero decisions is the reading that the
+        # executor is not running the pilot's code at all.
+        "executor_pilot": _executor_pilot_grade(),
     }
+
+
+def _executor_pilot_grade() -> dict | None:
+    """Per-arm summary and verdict from tools.executor_pilot_grade; None if it cannot be read."""
+    try:
+        from tools.executor_pilot_grade import grade
+        g = grade()
+        return {"window": g["window"], "decisions_logged": g["decisions_logged"],
+                "arms": g["arms"], "verdict": g["verdict"]}
+    except Exception:  # noqa: BLE001 -- an orientation must not be lost to a grader
+        return None
 
 
 def is_material(brief: dict) -> tuple[bool, str]:
