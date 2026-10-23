@@ -859,6 +859,33 @@
     "reason": "The original near-naked-hedging reading traced to a point-in-time volatility-calculation that could see slightly ahead of itself; once that foresight leak was closed, the apparent behaviour disappeared. The claim was retracted, not tuned away.",
     "evidence_href": "/proof/"
   },
+  "themes": [
+    {
+      "id": "markets",
+      "title": "Markets and prices",
+      "why": "Where a supplier's costs come from: the wholesale price, the costs added on top of it, and the cap on what it may charge."
+    },
+    {
+      "id": "households",
+      "title": "Households and their homes",
+      "why": "Who the customers are, what their homes use and how they behave. The simulated world has to reproduce this before any customer can be found in it."
+    },
+    {
+      "id": "customers",
+      "title": "Winning and serving customers",
+      "why": "What a customer is worth, what it costs to win and keep one, and what to offer each. This is the method Poesys exists to automate."
+    },
+    {
+      "id": "billing",
+      "title": "Metering, billing, debt and regulation",
+      "why": "How energy used becomes money collected, and the rules that apply when it does not."
+    },
+    {
+      "id": "carbon",
+      "title": "Carbon",
+      "why": "Where the carbon behind a bill comes from, in the power market and in the home."
+    }
+  ],
   "topics": [
     {
       "id": "electricity-wholesale",
@@ -882,7 +909,9 @@
       "atoms": [
         "W1_6_physics_price_signal",
         "W1_6b_merit_order_reconstruction"
-      ]
+      ],
+      "theme": "markets",
+      "why": "Most of what a supplier pays for electricity is set here, so every tariff, margin and hedge the simulated company runs starts from this price."
     },
     {
       "id": "gas-wholesale",
@@ -907,7 +936,9 @@
       },
       "atoms": [
         "SPINE_3_gas_storage_crisis_regime"
-      ]
+      ],
+      "theme": "markets",
+      "why": "Gas sets the price of the marginal power station in most hours and is most of a gas-heated home's bill, so the 2021-22 crisis cannot be reproduced without it."
     },
     {
       "id": "gb-electricity-market",
@@ -933,7 +964,9 @@
       "atoms": [
         "W3_2_settlement_timetable",
         "W1_8_zonal_locational_pricing"
-      ]
+      ],
+      "theme": "markets",
+      "why": "A supplier is settled half-hour by half-hour. The simulation keeps that clock so the company sees what a real supplier would see."
     },
     {
       "id": "merit-order-residual-demand",
@@ -959,7 +992,9 @@
       "atoms": [
         "W1_6b_merit_order_reconstruction",
         "W1_7_renewable_capacity_trends"
-      ]
+      ],
+      "theme": "markets",
+      "why": "Explains why a windy hour is cheap and a still winter evening is dear: the daily shape the company's costs follow."
     },
     {
       "id": "carbon-price",
@@ -984,7 +1019,9 @@
       },
       "atoms": [
         "W1_6b_merit_order_reconstruction"
-      ]
+      ],
+      "theme": "carbon",
+      "why": "Carbon costs reach the wholesale price through the marginal plant, so they reach every bill, whatever the household thinks about carbon."
     },
     {
       "id": "imbalance-cashout-settlement",
@@ -1018,7 +1055,9 @@
       "atoms": [
         "W3_2_settlement_timetable",
         "EP5_settlement_true_ups"
-      ]
+      ],
+      "theme": "markets",
+      "why": "A supplier that buys too little or too much pays the system price for the difference. This is the cost of forecasting a book badly."
     },
     {
       "id": "hedging-forward-market",
@@ -1045,7 +1084,9 @@
         "B3_hedge_tariff_alignment",
         "B4_traded_product_ladder",
         "G15_forward_curve_series_to_backtest_hedging_by_physics"
-      ]
+      ],
+      "theme": "markets",
+      "why": "Buying ahead is how a supplier survives a price spike. Many of the suppliers that failed in 2021-22 had not done it."
     },
     {
       "id": "price-cap",
@@ -1070,7 +1111,9 @@
       "atoms": [
         "W3_1_price_cap_binding",
         "W3_1b_intra_year_price_cap_granularity"
-      ]
+      ],
+      "theme": "markets",
+      "why": "Ofgem's cap limits what most households can be charged, so it bounds every tariff the company can offer."
     },
     {
       "id": "metering-and-reads",
@@ -1086,7 +1129,9 @@
         "D3_catchup_rebilling",
         "EP8_adapter_dcc_duis",
         "EP9_adapter_n3rgy_consented_metering"
-      ]
+      ],
+      "theme": "billing",
+      "why": "The market settles every half hour but most meters are read a few times a year. Estimated bills, catch-up bills and much debt come from that gap."
     },
     {
       "id": "non-commodity-costs",
@@ -1100,7 +1145,9 @@
       },
       "atoms": [
         "EP14_adapter_published_cost_stack"
-      ]
+      ],
+      "theme": "markets",
+      "why": "Roughly a third of a bill is networks and policy, passed through at rates the supplier does not choose. Leave it out and every margin is wrong."
     },
     {
       "id": "acquisition-and-retention-economics",
@@ -1115,7 +1162,9 @@
       "atoms": [
         "PB2_opening_book_won_not_assigned",
         "PB3_book_growth_as_earned_outcome"
-      ]
+      ],
+      "theme": "customers",
+      "why": "What it costs to win a customer and to keep one decides whether finding a particular household is worth doing."
     },
     {
       "id": "how-households-choose",
@@ -1131,7 +1180,9 @@
         "PB4_engagement_separated_from_elasticity",
         "PB5_pounds_or_percent_resolved",
         "B10_competitor_switching_response"
-      ]
+      ],
+      "theme": "households",
+      "why": "Most households sit on the default tariff and few switch. The simulated households have to be as slow to move as real ones."
     },
     {
       "id": "the-price-a-household-is-shown",
@@ -1143,7 +1194,9 @@
         "last_verified": "2026-08-30",
         "source": "Ofgem State of the Market (April 2025); Ofgem Confidence Code for domestic price comparison websites; CMA Energy Market Investigation 2016 Appendix 9.10"
       },
-      "atoms": "none -- no atom has the price a comparison site or the cap headline quotes a household as its subject; the switching atoms read the gap to the market, not what the household is shown"
+      "atoms": "none -- no atom has the price a comparison site or the cap headline quotes a household as its subject; the switching atoms read the gap to the market, not what the household is shown",
+      "theme": "markets",
+      "why": "A household deciding whether to switch compares a quoted annual figure, not its real bill. The company's offers have to be judged on the same terms."
     },
     {
       "id": "what-a-customer-is-worth",
@@ -1158,7 +1211,9 @@
       "atoms": [
         "EP1_clv_three_horizon",
         "W2_17_dual_fuel_leg_clv_attribution"
-      ]
+      ],
+      "theme": "customers",
+      "why": "The company's choice of whom to serve rests on what each customer is worth. This sets the order in which the drivers matter."
     },
     {
       "id": "weather-cells",
@@ -1179,7 +1234,9 @@
         "W1_25_the_cells_per_driver_and_what_each_driver_is_actually_for",
         "W1_27_the_cell_decision_and_the_solar_gain_check",
         "W1_28_the_weather_partition_is_joint_over_a_stock_with_varying_fabric"
-      ]
+      ],
+      "theme": "households",
+      "why": "Heating demand follows the weather, so each simulated home needs local weather fine enough to price, and no finer than it pays to be."
     },
     {
       "id": "how-many-synthetic-households",
@@ -1195,7 +1252,9 @@
         "PB1_population_target_and_its_price",
         "W2_27_how_many_household_cases_cover_demand",
         "W2_22_the_sample_is_space_filling_and_rejects_on_outputs"
-      ]
+      ],
+      "theme": "households",
+      "why": "Sets how many simulated homes it takes to stand for Britain, and why the groups that must be represented fix that number."
     },
     {
       "id": "what-a-house-does-to-its-energy",
@@ -1210,7 +1269,9 @@
       "atoms": [
         "W1_11_fabric_physics_core",
         "W2_18_the_housing_joint_the_sample_and_the_ceiling"
-      ]
+      ],
+      "theme": "households",
+      "why": "Size, fabric and heating fuel set most of a home's demand. The simulated homes have to reproduce these published patterns."
     },
     {
       "id": "who-lives-where",
@@ -1224,7 +1285,9 @@
       },
       "atoms": [
         "W2_19_who_lives_where_money_and_composition"
-      ]
+      ],
+      "theme": "households",
+      "why": "The first thing a supplier knows is an address. This says how little that reveals, and what reveals more."
     },
     {
       "id": "the-first-year-blind-spot",
@@ -1236,7 +1299,9 @@
         "last_verified": "2026-10-02",
         "source": "see the page's own sources"
       },
-      "atoms": "none -- the page is the account of a measurement defect, not a mechanism the code implements"
+      "atoms": "none -- the page is the account of a measurement defect, not a mechanism the code implements",
+      "theme": "households",
+      "why": "A worked case of one of the simulation's own measures misleading it, and how the real record exposed it."
     },
     {
       "id": "what-a-supplier-can-see-of-a-house",
@@ -1251,7 +1316,9 @@
       "atoms": [
         "W2_23_housing_phase2_what_the_company_can_see_of_a_house",
         "C14_thermal_parameter_inference"
-      ]
+      ],
+      "theme": "households",
+      "why": "The simulated company may use only what a real supplier could see. This page sets out what that is."
     },
     {
       "id": "how-houses-change",
@@ -1265,7 +1332,9 @@
       },
       "atoms": [
         "W2_24_housing_phase3_houses_change_on_their_own_timeline"
-      ]
+      ],
+      "theme": "households",
+      "why": "Homes change on their own, usually without telling their supplier. The world has to change them so the company can be surprised, as a real one is."
     },
     {
       "id": "how-households-behave-toward-a-supplier",
@@ -1279,7 +1348,9 @@
       },
       "atoms": [
         "W2_25_people_phase2_shape_and_attitudes"
-      ]
+      ],
+      "theme": "households",
+      "why": "How willing a household is to shop, to be contacted, or to let someone control its battery decides which offers can work at all."
     },
     {
       "id": "the-residual-and-the-change",
@@ -1293,7 +1364,9 @@
       },
       "atoms": [
         "W2_26_people_phase3_the_residual_and_the_change"
-      ]
+      ],
+      "theme": "households",
+      "why": "Life events change what a household needs. A supplier that is to help has to notice them, so the world has to make them happen."
     },
     {
       "id": "unbilled-energy-and-revenue-assurance",
@@ -1308,7 +1381,9 @@
       "atoms": [
         "W2_36_unbilled_energy_arises_the_way_it_does_in_reality",
         "D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used"
-      ]
+      ],
+      "theme": "billing",
+      "why": "Every supplier pays for energy it never bills. Without that leakage the company's margins would look better than any real supplier's."
     },
     {
       "id": "debt-and-collections",
@@ -1322,7 +1397,9 @@
       },
       "atoms": [
         "EP4_collections_journey"
-      ]
+      ],
+      "theme": "billing",
+      "why": "Debt is one of the largest costs a supplier carries. The company has to meet each kind of debt with the rules that govern it."
     },
     {
       "id": "home-moves",
@@ -1336,7 +1413,9 @@
       },
       "atoms": [
         "B7_customer_state_layer_moves_and_shocks"
-      ]
+      ],
+      "theme": "customers",
+      "why": "A move closes one account and opens another, and a large share of energy debt starts there. The world has to move households for the company to meet that."
     },
     {
       "id": "next-best-action-and-cross-sell",
@@ -1351,7 +1430,9 @@
       "atoms": [
         "C29_decisions_stop_being_lookup_tables",
         "B8_discovered_price_sensitivity_holdout"
-      ]
+      ],
+      "theme": "customers",
+      "why": "Choosing what to offer each customer, and when to leave them alone, is the method Poesys is built to automate."
     },
     {
       "id": "ev-solar-and-batteries-as-products",
@@ -1366,7 +1447,9 @@
       "atoms": [
         "C4_adoption_physics",
         "W1_10_ev_heatpump_geography"
-      ]
+      ],
+      "theme": "customers",
+      "why": "Cars, panels and batteries change what a home buys and when it buys it. The company has to price each differently."
     },
     {
       "id": "communications-sentiment-and-nps",
@@ -1378,7 +1461,9 @@
         "last_verified": "2026-10-05",
         "source": "see the page's own sources"
       },
-      "atoms": "none -- step 7 of the director's 2026-10-05 order; no atom builds sentiment yet, and the complaint-to-departure edge this page finds belongs with steps 2-4 when one is minted"
+      "atoms": "none -- step 7 of the director's 2026-10-05 order; no atom builds sentiment yet, and the complaint-to-departure edge this page finds belongs with steps 2-4 when one is minted",
+      "theme": "customers",
+      "why": "Complaints, satisfaction and recommendations are different things that push a customer different ways. The company must not read one as another."
     },
     {
       "id": "household-carbon-and-the-measures-that-save-it",
@@ -1394,7 +1479,9 @@
         "C30_advice_reaches_a_household",
         "W2_34_the_company_has_one_piece_of_advice_that_costs_the_customer_nothing",
         "E5_carbon_three_ledger"
-      ]
+      ],
+      "theme": "carbon",
+      "why": "Saving customers carbon is one of the three things Poesys sets out to do. This page says where a home's carbon sits and which measures move it."
     },
     {
       "id": "back-billing-and-liability",
@@ -1409,7 +1496,9 @@
       "atoms": [
         "D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used",
         "W2_36_unbilled_energy_arises_the_way_it_does_in_reality"
-      ]
+      ],
+      "theme": "billing",
+      "why": "The twelve-month back-billing rule decides who pays for energy that was never charged for, and so what a late meter read costs the company."
     },
     {
       "id": "read-access-and-theft-duties",
@@ -1424,7 +1513,9 @@
       "atoms": [
         "W2_36_unbilled_energy_arises_the_way_it_does_in_reality",
         "D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used"
-      ]
+      ],
+      "theme": "billing",
+      "why": "A supplier's duties to read meters and look for theft carry costs and limits the simulated company has to obey."
     },
     {
       "id": "bad-debt-provisioning",
@@ -1440,7 +1531,9 @@
         "W2_38_the_worlds_debt_is_graded_against_ofgems_quarterly_series",
         "B11_forward_clv_backtested_on_held_back_history",
         "EP4_collections_journey"
-      ]
+      ],
+      "theme": "billing",
+      "why": "How a supplier books money it will not collect decides the cost it reports. The company's accounts follow the same rule."
     }
   ],
   "edges": [

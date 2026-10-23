@@ -8,6 +8,26 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-23 — Knowledge says what Poesys is, groups its pages into five themes, and tells you on each card why the simulation needs it
+
+<!-- head: ebc69c6da47b -->
+
+**In plain English:** The Knowledge page now says what Poesys is, groups its pages into five themes, and tells you on each card why the simulation needs it.
+
+*Seat executor, 23 Oct 2026. Item 5 of the director's 23 Oct 07:18 steer ("Make more appropriate for energy or tech person who is not familiar with the detail").*
+
+**Before:** "Knowledge"; a paragraph calling the pages "reference material, not company results", with the word *atoms* explained up top; a note on the review badges; then 33 cards in one flat list, in no particular order, each with a coloured review badge beside its title and a monospace "Built by:" line.
+
+**After:** "Knowledge: how the GB household energy market works"; a purpose line saying what Poesys is; **In brief**, five lines: what the pages are, that the project writes them before it builds (K8), that headline figures about the simulated supplier's customers are claims with a published range that the world is checked against (`tools/world_claims.py`, the 19 Oct steer), that gaps are named rather than guessed, and how the page is laid out. A jump line to the five themes follows: **Markets and prices** (9), **Households and their homes** (10), **Winning and serving customers** (6), **Metering, billing, debt and regulation** (6), **Carbon** (2). Each theme has one line on why it matters. Each card keeps its quoted title and blurb and adds **"Why the simulation needs it."** The review label and the build-plan codes sit at the card's foot in muted type. Only "Review due" keeps a colour; "awaiting check" is italic. The notes on badges and atoms moved to the foot. Nothing deleted.
+
+**One home for the new words.** Each theme, its line, each card's theme and its why line live in `site/data/knowledge_wholesale.json` (`themes`, and `theme`/`why` on each topic). `site/knowledge/test_index_reflects_the_record.py` now grades the order, headings, placement and why lines against the record, as it already did for titles and blurbs. A mutation test moves one card and edits one why line, and both are caught.
+
+**Cold readers (sonnet, page text only).** Energy: an index of "about 35 short explainers" tied to a simulation that "writes the rules and evidence down before it builds anything". Moderately to quite impressive. The topics are specific and real (the twelve-month back-billing rule, deemed-contract debt, provision against write-off), and the world is checked against published ranges. Tech: "fairly impressive". Sources are cited, unknowns admitted, there are automated checks against real data, and each card says why it matters. Both led with what the project has. Both were confused that "Poesys" was never defined and that "the book" was undefined. Both were also confused by a foot note naming labels and codes that only appear once the script runs. All three are fixed. Both found some card titles long. Those titles are the topic pages' own headlines, quoted from the record, so shortening them is a change to each page, not to this index. Left as is.
+
+**Still owed from the steer:** (6) Explore narrates one household and moves the small-book line to the 400-household book; (7) the code tab's caption, still "Loading the census…" before its script runs, rendered at publish; Capabilities' grid and go-live table rendered into the HTML at publish. Then the steer's single report entry, and the steer file moves to `done/`.
+
+---
+
 ## 2026-10-23 — How it's built leads with how AI builds and runs Poesys: the eight-layer stack, the scale counted at publish, last week in plain English
 
 <!-- head: 63593d1153e1 -->

@@ -156,6 +156,63 @@ def test_the_card_copy_is_quoted_from_the_record(feed, markup):
         )
 
 
+_THEME_RE = re.compile(
+    r"""<section class="theme" id="theme-(?P<id>[^"]+)" data-theme="(?P=id)">\s*"""
+    r"""<h2 class="theme-h">(?P<h>.*?)</h2>\s*<p class="theme-why">(?P<why>.*?)</p>"""
+    r"""(?P<body>.*?)</section>""", re.DOTALL)
+_CARD_WHY_RE = re.compile(r"""<div class="card-why"><span class="why-k">[^<]*</span>\s*(?P<w>.*?)</div>""",
+                          re.DOTALL)
+
+
+def _themes(markup: str) -> dict[str, dict]:
+    out = {}
+    for m in _THEME_RE.finditer(markup):
+        whys = {c.group("slug"): (w.group("w").strip() if (w := _CARD_WHY_RE.search(c.group("body"))) else "")
+                for c in _CARD_RE.finditer(m.group("body"))}
+        out[m.group("id")] = {"title": htmllib.unescape(m.group("h").strip()),
+                              "why": htmllib.unescape(m.group("why").strip()),
+                              "cards": {k: htmllib.unescape(v) for k, v in whys.items()}}
+    return out
+
+
+def _theme_drift(feed: dict, markup: str) -> list[str]:
+    """Every theme heading, theme line, card placement and card 'why' line, against the record.
+    The steer of 23 Oct grouped the cards and gave each a reason; a hand-typed copy of either is
+    the stub badge again, one field over."""
+    themes, bad = _themes(markup), []
+    if [t["id"] for t in feed.get("themes", [])] != list(themes):
+        bad.append(f"theme order {list(themes)} != record {[t['id'] for t in feed.get('themes', [])]}")
+    for t in feed.get("themes", []):
+        got = themes.get(t["id"], {})
+        if (got.get("title"), got.get("why")) != (t["title"], t["why"]):
+            bad.append(f"theme {t['id']} heading or line differs from the record")
+    for topic in feed["topics"]:
+        home = themes.get(topic.get("theme"), {}).get("cards", {})
+        if topic["id"] not in home:
+            bad.append(f"{topic['id']} is not under its recorded theme {topic.get('theme')!r}")
+        elif home[topic["id"]] != topic.get("why"):
+            bad.append(f"{topic['id']} why line {home[topic['id']]!r} != record {topic.get('why')!r}")
+    return bad
+
+
+def test_the_themes_and_why_lines_are_quoted_from_the_record(feed, markup):
+    assert all(t.get("why") and t.get("theme") for t in feed["topics"]), (
+        "a topic in the record has no theme or no why line; the index cannot place it"
+    )
+    assert not _theme_drift(feed, markup), _theme_drift(feed, markup)
+
+
+def test_MUTATION_a_moved_card_and_an_edited_why_are_both_caught(feed, markup):
+    first = feed["topics"][0]
+    moved = json.loads(json.dumps(feed))
+    other = next(t["id"] for t in moved["themes"] if t["id"] != first["theme"])
+    moved["topics"][0]["theme"] = other
+    assert any("not under its recorded theme" in b for b in _theme_drift(moved, markup))
+    edited = json.loads(json.dumps(feed))
+    edited["topics"][0]["why"] += " (edited)"
+    assert any("why line" in b for b in _theme_drift(edited, markup))
+
+
 # ---------------------------------------------------------------------------
 # STATE -- the index has no opinion of its own
 # ---------------------------------------------------------------------------

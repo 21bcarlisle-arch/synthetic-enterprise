@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Poesys -- Knowledge</title>
+<title>Poesys -- Knowledge: how the GB household energy market works</title>
 <meta name="robots" content="noindex, nofollow">
 <link rel="icon" type="image/svg+xml" href="../favicon.svg">
 <link rel="stylesheet" href="../brand/brand.css">
@@ -37,13 +37,26 @@ a.card:hover { border-color: var(--teal); }
    about had been written and checked against published sources -- the index went on calling
    them unwritten for six days while each page's own header said "A written page, not a
    stub." Nothing here may state a review state; the state comes from the feed. */
-.state-badge { display: inline-block; font-size: 9px; font-weight: 700; letter-spacing: .03em;
-  border-radius: 4px; padding: 2px 6px; vertical-align: middle; margin-left: 6px;
-  color: var(--muted); border: 1px solid var(--border); }
+/* Quieter since 2026-10-23 (director's steer, item 5): the label sits at the card's foot in
+   muted type; only a page past its threshold keeps a colour, and an unchecked one is italic. */
+.state-badge { display: inline-block; font-size: 10px; color: var(--muted); margin-right: 6px; }
 .state-badge:empty { display: none; }
-.state-badge.rev-fresh { color: var(--blue); border-color: var(--blue); }
-.state-badge.rev-due { color: var(--amber); border-color: var(--amber); }
-.state-badge.rev-unchecked { color: var(--amber); border-color: var(--amber); }
+.state-badge.rev-fresh { color: var(--muted); }
+.state-badge.rev-unchecked { color: var(--muted); font-style: italic; }
+.state-badge.rev-due { color: var(--amber); }
+.card-why { font-size: 13px; color: var(--text); margin-top: 6px; }
+.why-k { font-weight: 600; }
+.card-foot { margin-top: 6px; font-size: 10px; color: var(--muted); }
+.card-foot .card-a { display: inline-block; font-size: 10px; margin-top: 0; }
+.theme { margin-top: 30px; }
+.theme-h { font-size: 19px; font-weight: 750; margin-bottom: 2px; }
+.theme-why { font-size: 13px; color: var(--muted); margin-bottom: 12px; max-width: 720px; }
+.brief { max-width: 760px; border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; margin: 0 0 18px; font-size: 13px; line-height: 1.55; }
+.brief-h { font-size: 10px; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); font-weight: 700; margin: 0 0 6px; }
+.brief ul { margin: 0; padding-left: 18px; }
+.brief li { margin: 3px 0; }
+.themes-nav { font-size: 13px; margin-bottom: 8px; }
+.themes-nav a { color: var(--blue); text-decoration: none; }
 footer { max-width: 860px; margin: 0 auto; padding: 24px 20px 40px; font-size: 11px; color: var(--muted); }
 
 /* Mobile pass. Added 2026-08-20: these pages had no breakpoint at all -- the control that
@@ -70,195 +83,277 @@ footer { max-width: 860px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
   <!-- IA-NAV:END -->
 </nav>
 <div class="wrap">
-  <h1 class="hero-h">Knowledge</h1>
+  <h1 class="hero-h">Knowledge: how the GB household energy market works</h1>
   <p class="hero-sub">
-    Background on how the GB energy market actually works — the mechanisms the
-    simulation models, explained from published sources. These pages are
-    reference material, not company results; the company's results are on
-    <a class="inline-link" href="../capabilities/">Capabilities</a> and
-    <a class="inline-link" href="../explore/">Explore</a>.
-    Under each card, the short codes name the items in the project's build plan
-    (called <em>atoms</em> internally) that build the mechanism the page describes.
+    Poesys is a simulated GB energy supplier, living through the real 2016&ndash;2025 market,
+    built to find households it can save money, time and carbon. These pages explain how the
+    British household energy market really works, from published sources: the mechanisms the
+    simulated world has to reproduce, and the rules the simulated supplier has to obey.
   </p>
 
-  <div class="sec">The topics</div>
-  <p class="muted" style="margin-bottom:12px;" id="review-note">
-    Each card carries the state of that page's last check against its published
-    source. The badge is read from the same record the page itself reads, against
-    your clock rather than the clock at publish time — so a page that goes past its
-    review threshold says so here before you click into it.
-  </p>
+  <div class="brief" id="in-brief">
+    <p class="brief-h">In brief</p>
+    <ul>
+      <li>Each page explains one mechanism, from wholesale prices to debt collection, from
+        published sources such as Ofgem, Elexon, DESNZ and the CMA.</li>
+      <li>This is what the project reads before it builds. A supplier capability is written up
+        here first: what the rules require, what the evidence says, and what is not known.</li>
+      <li><strong>Some of it is more than reading.</strong> Headline figures about the simulated
+        supplier's customers, such as how many homes take both fuels and how many pay by direct debit, are
+        written as claims with a published range. The simulated world is checked against them
+        on every change that could move them and again every Monday, and a world that leaves
+        the published range fails the build.</li>
+      <li>Where the published record does not settle a question, the page says so plainly
+        rather than filling it with a guess.</li>
+      <li>The pages are grouped into five themes below. Each card says why the simulation
+        needs it.</li>
+    </ul>
+  </div>
+
+  <nav class="themes-nav" aria-label="Themes">
+    <a href="#theme-markets">Markets and prices</a> &middot;
+    <a href="#theme-households">Households and their homes</a> &middot;
+    <a href="#theme-customers">Winning and serving customers</a> &middot;
+    <a href="#theme-billing">Metering, billing, debt and regulation</a> &middot;
+    <a href="#theme-carbon">Carbon</a>
+  </nav>
 
   <!-- REAL <a> links, not built by script (tools/site_reachability.py strips inline scripts
        before reading hrefs, on purpose: a route only JavaScript can build is not a route a
-       crawler or a reader with failed JS can follow). Card TITLE and BLURB are quoted from
-       site/data/knowledge_wholesale.json and site/knowledge/test_index_reflects_the_record.py
-       fails if either drifts from it. The badge is left EMPTY here and filled below. -->
+       crawler or a reader with failed JS can follow). Each card's title, blurb, why line and
+       theme are quoted from site/data/knowledge_wholesale.json, and
+       site/knowledge/test_index_reflects_the_record.py fails if any drifts from it. The badge
+       is left EMPTY here and filled below. -->
+  <section class="theme" id="theme-markets" data-theme="markets">
+  <h2 class="theme-h">Markets and prices</h2>
+  <p class="theme-why">Where a supplier's costs come from: the wholesale price, the costs added on top of it, and the cap on what it may charge.</p>
   <a class="card" href="./electricity-wholesale/">
-    <div class="card-h">GB electricity wholesale <span class="state-badge" id="state-electricity-wholesale"></span></div>
+    <div class="card-h">GB electricity wholesale</div>
     <div class="card-p">How the GB wholesale electricity price is set at the margin.</div>
-    <div class="card-a" id="atoms-electricity-wholesale"></div>
+    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> Most of what a supplier pays for electricity is set here, so every tariff, margin and hedge the simulated company runs starts from this price.</div>
+    <div class="card-foot"><span class="state-badge" id="state-electricity-wholesale"></span> <div class="card-a" id="atoms-electricity-wholesale"></div></div>
   </a>
   <a class="card" href="./gas-wholesale/">
-    <div class="card-h">GB gas wholesale <span class="state-badge" id="state-gas-wholesale"></span></div>
+    <div class="card-h">GB gas wholesale</div>
     <div class="card-p">The GB gas market whose price sets the marginal plant's bid for most hours -- a market in its own right, not a driver-stub of electricity.</div>
-    <div class="card-a" id="atoms-gas-wholesale"></div>
-  </a>
-  <a class="card" href="./how-many-synthetic-households/">
-    <div class="card-h">How many synthetic households represent Britain <span class="state-badge" id="state-how-many-synthetic-households"></span></div>
-    <div class="card-p">Why the sample size depends on strata rather than on variety, why adding a driver changes nothing, and what the current figure is still measured against.</div>
-    <div class="card-a" id="atoms-how-many-synthetic-households"></div>
-  </a>
-  <a class="card" href="./what-a-house-does-to-its-energy/">
-    <div class="card-h">What a house does to its energy use, and where the potential sits across Britain <span class="state-badge" id="state-what-a-house-does-to-its-energy"></span></div>
-    <div class="card-p">Size, fabric and the fuel at the meter set most of what a home uses. Where it sits sets less than you would think. And the potential to save is not where the average home is.</div>
-    <div class="card-a" id="atoms-what-a-house-does-to-its-energy"></div>
-  </a>
-  <a class="card" href="./unbilled-energy-and-revenue-assurance/">
-    <div class="card-h">Energy that was used but never correctly billed <span class="state-badge" id="state-unbilled-energy-and-revenue-assurance"></span></div>
-    <div class="card-p">Every supplier pays for more energy than it bills. Some of the gap is just timing and closes by itself. Some of it is energy nobody will ever pay for. These are different things, and a supplier can only see some of them.</div>
-    <div class="card-a" id="atoms-unbilled-energy-and-revenue-assurance"></div>
-  </a>
-  <a class="card" href="./debt-and-collections/">
-    <div class="card-h">What a GB household's energy debt is, how big it has become, and how a supplier gets paid back <span class="state-badge" id="state-debt-and-collections"></span></div>
-    <div class="card-p">Energy debt is not one thing. A missed direct debit, a bill nobody opened, a prepayment meter quietly taking a few pounds a week, and an empty flat on a deemed contract all count as debt. They have different causes, different rules and very different chances of being repaid.</div>
-    <div class="card-a" id="atoms-debt-and-collections"></div>
-  </a>
-  <a class="card" href="./home-moves/">
-    <div class="card-h">What happens to a supplier when a household moves home <span class="state-badge" id="state-home-moves"></span></div>
-    <div class="card-p">A move is two events at two addresses, often weeks apart, and in Britain the energy keeps flowing to whoever walks in. Between a fifth and two-fifths of all domestic energy debt starts there.</div>
-    <div class="card-a" id="atoms-home-moves"></div>
-  </a>
-  <a class="card" href="./next-best-action-and-cross-sell/">
-    <div class="card-h">Choosing what to do for each customer, and when doing nothing is the best choice <span class="state-badge" id="state-next-best-action-and-cross-sell"></span></div>
-    <div class="card-p">Next best action means choosing, for one customer at one moment, the action that changes the outcome most. The question is not who is likely to leave or buy. Contact can make things worse, and the evidence says it often does.</div>
-    <div class="card-a" id="atoms-next-best-action-and-cross-sell"></div>
-  </a>
-  <a class="card" href="./ev-solar-and-batteries-as-products/">
-    <div class="card-h">EV, solar and batteries: what a supplier gains, loses and can see <span class="state-badge" id="state-ev-solar-and-batteries-as-products"></span></div>
-    <div class="card-p">An electric car adds to what a household buys and solar panels take it away. A battery only moves it in time. They are three different products, and a supplier relates to each in three different ways.</div>
-    <div class="card-a" id="atoms-ev-solar-and-batteries-as-products"></div>
-  </a>
-  <a class="card" href="./communications-sentiment-and-nps/">
-    <div class="card-h">What a GB energy customer's satisfaction, complaints and recommendations are, and what they do <span class="state-badge" id="state-communications-sentiment-and-nps"></span></div>
-    <div class="card-p">Satisfaction, NPS, sentiment, complaints, Ombudsman cases and trust are six different things. Complaining is something a household does; being dissatisfied is a state it is in. On the published record they point opposite ways on whether the household leaves.</div>
-    <div class="card-a" id="atoms-communications-sentiment-and-nps"></div>
-  </a>
-  <a class="card" href="./household-carbon-and-the-measures-that-save-it/">
-    <div class="card-h">Where a gas-heated home's carbon comes from, and which measures save it <span class="state-badge" id="state-household-carbon-and-the-measures-that-save-it"></span></div>
-    <div class="card-p">On today's grid the gas boiler is five to six times the carbon of all the home's electricity. The measures that save both money and carbon are mostly heating measures; the timing measures are small on both.</div>
-    <div class="card-a" id="atoms-household-carbon-and-the-measures-that-save-it"></div>
-  </a>
-  <a class="card" href="./back-billing-and-liability/">
-    <div class="card-h">Back bills: who pays for energy that was never charged for <span class="state-badge" id="state-back-billing-and-liability"></span></div>
-    <div class="card-p">Since May 2018 a supplier can only ask a household to pay for energy used in the twelve months before it asks. What counts as asking decides who carries the rest.</div>
-    <div class="card-a" id="atoms-back-billing-and-liability"></div>
-  </a>
-  <a class="card" href="./read-access-and-theft-duties/">
-    <div class="card-h">Getting to the meter, and energy that is stolen <span class="state-badge" id="state-read-access-and-theft-duties"></span></div>
-    <div class="card-p">A supplier must try to read every meter once a year, but it cannot enter a home without consent or a warrant. It must look for theft, but finding theft costs it money. This page explains both duties, who pays when they fail, and what a supplier can see.</div>
-    <div class="card-a" id="atoms-read-access-and-theft-duties"></div>
-  </a>
-  <a class="card" href="./bad-debt-provisioning/">
-    <div class="card-h">How a GB energy supplier accounts for the bills it will never collect <span class="state-badge" id="state-bad-debt-provisioning"></span></div>
-    <div class="card-p">A provision is an estimate made today about money owed today. A write-off comes years later. The cost a supplier reports, and the cost the price cap allows, is the first, not the second.</div>
-    <div class="card-a" id="atoms-bad-debt-provisioning"></div>
-  </a>
-  <a class="card" href="./who-lives-where/">
-    <div class="card-h">Who lives where: an address explains a tenth of who is inside, and the way a household pays marks where the risk is <span class="state-badge" id="state-who-lives-where"></span></div>
-    <div class="card-p">A supplier knows a customer's address before it knows anything else. For the number of people inside, that address is worth surprisingly little. For money, the payment method a household chooses tells you more, and the reason it does is not the reason it looks like.</div>
-    <div class="card-a" id="atoms-who-lives-where"></div>
-  </a>
-  <a class="card" href="./the-first-year-blind-spot/">
-    <div class="card-h">The first-year blind spot: how a shock count that could not see year one invented a loyalty pattern <span class="state-badge" id="state-the-first-year-blind-spot"></span></div>
-    <div class="card-p">In this project's simulated world, new customers looked more loyal than long-standing ones. Real GB evidence points the other way. All of the difference came from one measure that needed a year of history, and so read zero in every household's first year.</div>
-    <div class="card-a" id="atoms-the-first-year-blind-spot"></div>
-  </a>
-  <a class="card" href="./what-a-supplier-can-see-of-a-house/">
-    <div class="card-h">What an energy supplier can see of a house <span class="state-badge" id="state-what-a-supplier-can-see-of-a-house"></span></div>
-    <div class="card-p">A supplier knows an address, a meter and a monthly total. Whether that house is worth an offer has to be inferred from that, and from an energy certificate that often does not exist.</div>
-    <div class="card-a" id="atoms-what-a-supplier-can-see-of-a-house"></div>
-  </a>
-  <a class="card" href="./how-houses-change/">
-    <div class="card-h">How houses change on their own <span class="state-badge" id="state-how-houses-change"></span></div>
-    <div class="card-p">Boilers die and are replaced, solar panels and cars arrive, homes are extended — mostly without a supplier hearing about it.</div>
-    <div class="card-a" id="atoms-how-houses-change"></div>
-  </a>
-  <a class="card" href="./how-households-behave-toward-a-supplier/">
-    <div class="card-h">How households behave toward a supplier <span class="state-badge" id="state-how-households-behave-toward-a-supplier"></span></div>
-    <div class="card-p">How readily a household shops, how it likes to be contacted, whether it would rather have a stable bill or a cheaper one that moves with the clock, and whether it will let anyone control its battery or car. The scope is decided; the research and the build are not done.</div>
-    <div class="card-a" id="atoms-how-households-behave-toward-a-supplier"></div>
-  </a>
-  <a class="card" href="./the-residual-and-the-change/">
-    <div class="card-h">How households change <span class="state-badge" id="state-the-residual-and-the-change"></span></div>
-    <div class="card-p">Jobs are lost and found, babies arrive, children leave, people buy solar panels and electric cars without anyone selling them one. And a household that is glad to be saved money is not the same as one that will buy something. The scope is decided; the research and the build are not done.</div>
-    <div class="card-a" id="atoms-the-residual-and-the-change"></div>
-  </a>
-  <a class="card" href="./metering-and-reads/">
-    <div class="card-h">Metering and meter reads <span class="state-badge" id="state-metering-and-reads"></span></div>
-    <div class="card-p">The market settles every half hour; most meters are read a few times a year.</div>
-    <div class="card-a" id="atoms-metering-and-reads"></div>
+    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> Gas sets the price of the marginal power station in most hours and is most of a gas-heated home's bill, so the 2021-22 crisis cannot be reproduced without it.</div>
+    <div class="card-foot"><span class="state-badge" id="state-gas-wholesale"></span> <div class="card-a" id="atoms-gas-wholesale"></div></div>
   </a>
   <a class="card" href="./gb-electricity-market/">
-    <div class="card-h">The GB electricity market (structure &amp; settlement) <span class="state-badge" id="state-gb-electricity-market"></span></div>
+    <div class="card-h">The GB electricity market (structure &amp; settlement)</div>
     <div class="card-p">The half-hourly settled market these prices live in.</div>
-    <div class="card-a" id="atoms-gb-electricity-market"></div>
+    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> A supplier is settled half-hour by half-hour. The simulation keeps that clock so the company sees what a real supplier would see.</div>
+    <div class="card-foot"><span class="state-badge" id="state-gb-electricity-market"></span> <div class="card-a" id="atoms-gb-electricity-market"></div></div>
   </a>
   <a class="card" href="./merit-order-residual-demand/">
-    <div class="card-h">Merit order &amp; residual demand <span class="state-badge" id="state-merit-order-residual-demand"></span></div>
+    <div class="card-h">Merit order &amp; residual demand</div>
     <div class="card-p">The cheapest-first dispatch queue and the demand left after renewables.</div>
-    <div class="card-a" id="atoms-merit-order-residual-demand"></div>
-  </a>
-  <a class="card" href="./non-commodity-costs/">
-    <div class="card-h">The non-commodity cost stack <span class="state-badge" id="state-non-commodity-costs"></span></div>
-    <div class="card-p">Network and policy costs -- roughly a third of a bill, set administratively rather than cleared in a market.</div>
-    <div class="card-a" id="atoms-non-commodity-costs"></div>
-  </a>
-  <a class="card" href="./weather-cells/">
-    <div class="card-h">Weather cells <span class="state-badge" id="state-weather-cells"></span></div>
-    <div class="card-p">How finely Britain has to be divided before every household's weather is described well enough to price -- and why the answer is a price list rather than a number.</div>
-    <div class="card-a" id="atoms-weather-cells"></div>
-  </a>
-  <a class="card" href="./carbon-price/">
-    <div class="card-h">The UK carbon price (UK ETS + CPS) <span class="state-badge" id="state-carbon-price"></span></div>
-    <div class="card-p">The traded ETS price, charged per tonne emitted, plus Carbon Price Support, charged per unit of fuel burned for generation.</div>
-    <div class="card-a" id="atoms-carbon-price"></div>
+    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> Explains why a windy hour is cheap and a still winter evening is dear: the daily shape the company's costs follow.</div>
+    <div class="card-foot"><span class="state-badge" id="state-merit-order-residual-demand"></span> <div class="card-a" id="atoms-merit-order-residual-demand"></div></div>
   </a>
   <a class="card" href="./imbalance-cashout-settlement/">
-    <div class="card-h">Imbalance &amp; cash-out <span class="state-badge" id="state-imbalance-cashout-settlement"></span></div>
+    <div class="card-h">Imbalance &amp; cash-out</div>
     <div class="card-p">How the system prices being short or long, up to the £6,000/MWh ceiling.</div>
-    <div class="card-a" id="atoms-imbalance-cashout-settlement"></div>
+    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> A supplier that buys too little or too much pays the system price for the difference. This is the cost of forecasting a book badly.</div>
+    <div class="card-foot"><span class="state-badge" id="state-imbalance-cashout-settlement"></span> <div class="card-a" id="atoms-imbalance-cashout-settlement"></div></div>
   </a>
   <a class="card" href="./hedging-forward-market/">
-    <div class="card-h">Hedging &amp; the forward market <span class="state-badge" id="state-hedging-forward-market"></span></div>
+    <div class="card-h">Hedging &amp; the forward market</div>
     <div class="card-p">How a supplier buys ahead to blunt the price it would otherwise face.</div>
-    <div class="card-a" id="atoms-hedging-forward-market"></div>
+    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> Buying ahead is how a supplier survives a price spike. Many of the suppliers that failed in 2021-22 had not done it.</div>
+    <div class="card-foot"><span class="state-badge" id="state-hedging-forward-market"></span> <div class="card-a" id="atoms-hedging-forward-market"></div></div>
+  </a>
+  <a class="card" href="./non-commodity-costs/">
+    <div class="card-h">The non-commodity cost stack</div>
+    <div class="card-p">Network and policy costs -- roughly a third of a bill, set administratively rather than cleared in a market.</div>
+    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> Roughly a third of a bill is networks and policy, passed through at rates the supplier does not choose. Leave it out and every margin is wrong.</div>
+    <div class="card-foot"><span class="state-badge" id="state-non-commodity-costs"></span> <div class="card-a" id="atoms-non-commodity-costs"></div></div>
   </a>
   <a class="card" href="./price-cap/">
-    <div class="card-h">The retail price cap <span class="state-badge" id="state-price-cap"></span></div>
+    <div class="card-h">The retail price cap</div>
     <div class="card-p">How the wholesale price reaches the household through Ofgem's cap -- a retail boundary of the wholesale domain.</div>
-    <div class="card-a" id="atoms-price-cap"></div>
-  </a>
-  <a class="card" href="./acquisition-and-retention-economics/">
-    <div class="card-h">Winning a customer, and keeping one <span class="state-badge" id="state-acquisition-and-retention-economics"></span></div>
-    <div class="card-p">Acquisition is a commission you pay someone else; retention is margin you give up yourself. Since 2022 a licence condition says so.</div>
-    <div class="card-a" id="atoms-acquisition-and-retention-economics"></div>
-  </a>
-  <a class="card" href="./how-households-choose/">
-    <div class="card-h">How a household chooses, and why most don't <span class="state-badge" id="state-how-households-choose"></span></div>
-    <div class="card-p">Almost nobody deliberately chooses a standard variable tariff and most of the country is on one -- the stock is an outcome of behaviour, not an input to it.</div>
-    <div class="card-a" id="atoms-how-households-choose"></div>
-  </a>
-  <a class="card" href="./what-a-customer-is-worth/">
-    <div class="card-h">What a customer is worth, and what drives it <span class="state-badge" id="state-what-a-customer-is-worth"></span></div>
-    <div class="card-p">Value is contribution multiplied by survival, which makes the drivers an order rather than a list: pays, stays, the size of the margin bet, then everything else.</div>
-    <div class="card-a" id="atoms-what-a-customer-is-worth"></div>
+    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> Ofgem's cap limits what most households can be charged, so it bounds every tariff the company can offer.</div>
+    <div class="card-foot"><span class="state-badge" id="state-price-cap"></span> <div class="card-a" id="atoms-price-cap"></div></div>
   </a>
   <a class="card" href="./the-price-a-household-is-shown/">
-    <div class="card-h">The price a household is shown <span class="state-badge" id="state-the-price-a-household-is-shown"></span></div>
+    <div class="card-h">The price a household is shown</div>
     <div class="card-p">The cap headline and every comparison listing quote a year's money at an assumed consumption, for a tariff whose rate may not last the year.</div>
-    <div class="card-a" id="atoms-the-price-a-household-is-shown"></div>
+    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> A household deciding whether to switch compares a quoted annual figure, not its real bill. The company's offers have to be judged on the same terms.</div>
+    <div class="card-foot"><span class="state-badge" id="state-the-price-a-household-is-shown"></span> <div class="card-a" id="atoms-the-price-a-household-is-shown"></div></div>
   </a>
+  </section>
+  <section class="theme" id="theme-households" data-theme="households">
+  <h2 class="theme-h">Households and their homes</h2>
+  <p class="theme-why">Who the customers are, what their homes use and how they behave. The simulated world has to reproduce this before any customer can be found in it.</p>
+  <a class="card" href="./how-many-synthetic-households/">
+    <div class="card-h">How many synthetic households represent Britain</div>
+    <div class="card-p">Why the sample size depends on strata rather than on variety, why adding a driver changes nothing, and what the current figure is still measured against.</div>
+    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> Sets how many simulated homes it takes to stand for Britain, and why the groups that must be represented fix that number.</div>
+    <div class="card-foot"><span class="state-badge" id="state-how-many-synthetic-households"></span> <div class="card-a" id="atoms-how-many-synthetic-households"></div></div>
+  </a>
+  <a class="card" href="./who-lives-where/">
+    <div class="card-h">Who lives where: an address explains a tenth of who is inside, and the way a household pays marks where the risk is</div>
+    <div class="card-p">A supplier knows a customer's address before it knows anything else. For the number of people inside, that address is worth surprisingly little. For money, the payment method a household chooses tells you more, and the reason it does is not the reason it looks like.</div>
+    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> The first thing a supplier knows is an address. This says how little that reveals, and what reveals more.</div>
+    <div class="card-foot"><span class="state-badge" id="state-who-lives-where"></span> <div class="card-a" id="atoms-who-lives-where"></div></div>
+  </a>
+  <a class="card" href="./what-a-house-does-to-its-energy/">
+    <div class="card-h">What a house does to its energy use, and where the potential sits across Britain</div>
+    <div class="card-p">Size, fabric and the fuel at the meter set most of what a home uses. Where it sits sets less than you would think. And the potential to save is not where the average home is.</div>
+    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> Size, fabric and heating fuel set most of a home's demand. The simulated homes have to reproduce these published patterns.</div>
+    <div class="card-foot"><span class="state-badge" id="state-what-a-house-does-to-its-energy"></span> <div class="card-a" id="atoms-what-a-house-does-to-its-energy"></div></div>
+  </a>
+  <a class="card" href="./weather-cells/">
+    <div class="card-h">Weather cells</div>
+    <div class="card-p">How finely Britain has to be divided before every household's weather is described well enough to price -- and why the answer is a price list rather than a number.</div>
+    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> Heating demand follows the weather, so each simulated home needs local weather fine enough to price, and no finer than it pays to be.</div>
+    <div class="card-foot"><span class="state-badge" id="state-weather-cells"></span> <div class="card-a" id="atoms-weather-cells"></div></div>
+  </a>
+  <a class="card" href="./how-houses-change/">
+    <div class="card-h">How houses change on their own</div>
+    <div class="card-p">Boilers die and are replaced, solar panels and cars arrive, homes are extended — mostly without a supplier hearing about it.</div>
+    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> Homes change on their own, usually without telling their supplier. The world has to change them so the company can be surprised, as a real one is.</div>
+    <div class="card-foot"><span class="state-badge" id="state-how-houses-change"></span> <div class="card-a" id="atoms-how-houses-change"></div></div>
+  </a>
+  <a class="card" href="./what-a-supplier-can-see-of-a-house/">
+    <div class="card-h">What an energy supplier can see of a house</div>
+    <div class="card-p">A supplier knows an address, a meter and a monthly total. Whether that house is worth an offer has to be inferred from that, and from an energy certificate that often does not exist.</div>
+    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> The simulated company may use only what a real supplier could see. This page sets out what that is.</div>
+    <div class="card-foot"><span class="state-badge" id="state-what-a-supplier-can-see-of-a-house"></span> <div class="card-a" id="atoms-what-a-supplier-can-see-of-a-house"></div></div>
+  </a>
+  <a class="card" href="./how-households-choose/">
+    <div class="card-h">How a household chooses, and why most don't</div>
+    <div class="card-p">Almost nobody deliberately chooses a standard variable tariff and most of the country is on one -- the stock is an outcome of behaviour, not an input to it.</div>
+    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> Most households sit on the default tariff and few switch. The simulated households have to be as slow to move as real ones.</div>
+    <div class="card-foot"><span class="state-badge" id="state-how-households-choose"></span> <div class="card-a" id="atoms-how-households-choose"></div></div>
+  </a>
+  <a class="card" href="./how-households-behave-toward-a-supplier/">
+    <div class="card-h">How households behave toward a supplier</div>
+    <div class="card-p">How readily a household shops, how it likes to be contacted, whether it would rather have a stable bill or a cheaper one that moves with the clock, and whether it will let anyone control its battery or car. The scope is decided; the research and the build are not done.</div>
+    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> How willing a household is to shop, to be contacted, or to let someone control its battery decides which offers can work at all.</div>
+    <div class="card-foot"><span class="state-badge" id="state-how-households-behave-toward-a-supplier"></span> <div class="card-a" id="atoms-how-households-behave-toward-a-supplier"></div></div>
+  </a>
+  <a class="card" href="./the-residual-and-the-change/">
+    <div class="card-h">How households change</div>
+    <div class="card-p">Jobs are lost and found, babies arrive, children leave, people buy solar panels and electric cars without anyone selling them one. And a household that is glad to be saved money is not the same as one that will buy something. The scope is decided; the research and the build are not done.</div>
+    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> Life events change what a household needs. A supplier that is to help has to notice them, so the world has to make them happen.</div>
+    <div class="card-foot"><span class="state-badge" id="state-the-residual-and-the-change"></span> <div class="card-a" id="atoms-the-residual-and-the-change"></div></div>
+  </a>
+  <a class="card" href="./the-first-year-blind-spot/">
+    <div class="card-h">The first-year blind spot: how a shock count that could not see year one invented a loyalty pattern</div>
+    <div class="card-p">In this project's simulated world, new customers looked more loyal than long-standing ones. Real GB evidence points the other way. All of the difference came from one measure that needed a year of history, and so read zero in every household's first year.</div>
+    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> A worked case of one of the simulation's own measures misleading it, and how the real record exposed it.</div>
+    <div class="card-foot"><span class="state-badge" id="state-the-first-year-blind-spot"></span> <div class="card-a" id="atoms-the-first-year-blind-spot"></div></div>
+  </a>
+  </section>
+  <section class="theme" id="theme-customers" data-theme="customers">
+  <h2 class="theme-h">Winning and serving customers</h2>
+  <p class="theme-why">What a customer is worth, what it costs to win and keep one, and what to offer each. This is the method Poesys exists to automate.</p>
+  <a class="card" href="./what-a-customer-is-worth/">
+    <div class="card-h">What a customer is worth, and what drives it</div>
+    <div class="card-p">Value is contribution multiplied by survival, which makes the drivers an order rather than a list: pays, stays, the size of the margin bet, then everything else.</div>
+    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> The company's choice of whom to serve rests on what each customer is worth. This sets the order in which the drivers matter.</div>
+    <div class="card-foot"><span class="state-badge" id="state-what-a-customer-is-worth"></span> <div class="card-a" id="atoms-what-a-customer-is-worth"></div></div>
+  </a>
+  <a class="card" href="./acquisition-and-retention-economics/">
+    <div class="card-h">Winning a customer, and keeping one</div>
+    <div class="card-p">Acquisition is a commission you pay someone else; retention is margin you give up yourself. Since 2022 a licence condition says so.</div>
+    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> What it costs to win a customer and to keep one decides whether finding a particular household is worth doing.</div>
+    <div class="card-foot"><span class="state-badge" id="state-acquisition-and-retention-economics"></span> <div class="card-a" id="atoms-acquisition-and-retention-economics"></div></div>
+  </a>
+  <a class="card" href="./next-best-action-and-cross-sell/">
+    <div class="card-h">Choosing what to do for each customer, and when doing nothing is the best choice</div>
+    <div class="card-p">Next best action means choosing, for one customer at one moment, the action that changes the outcome most. The question is not who is likely to leave or buy. Contact can make things worse, and the evidence says it often does.</div>
+    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> Choosing what to offer each customer, and when to leave them alone, is the method Poesys is built to automate.</div>
+    <div class="card-foot"><span class="state-badge" id="state-next-best-action-and-cross-sell"></span> <div class="card-a" id="atoms-next-best-action-and-cross-sell"></div></div>
+  </a>
+  <a class="card" href="./communications-sentiment-and-nps/">
+    <div class="card-h">What a GB energy customer's satisfaction, complaints and recommendations are, and what they do</div>
+    <div class="card-p">Satisfaction, NPS, sentiment, complaints, Ombudsman cases and trust are six different things. Complaining is something a household does; being dissatisfied is a state it is in. On the published record they point opposite ways on whether the household leaves.</div>
+    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> Complaints, satisfaction and recommendations are different things that push a customer different ways. The company must not read one as another.</div>
+    <div class="card-foot"><span class="state-badge" id="state-communications-sentiment-and-nps"></span> <div class="card-a" id="atoms-communications-sentiment-and-nps"></div></div>
+  </a>
+  <a class="card" href="./ev-solar-and-batteries-as-products/">
+    <div class="card-h">EV, solar and batteries: what a supplier gains, loses and can see</div>
+    <div class="card-p">An electric car adds to what a household buys and solar panels take it away. A battery only moves it in time. They are three different products, and a supplier relates to each in three different ways.</div>
+    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> Cars, panels and batteries change what a home buys and when it buys it. The company has to price each differently.</div>
+    <div class="card-foot"><span class="state-badge" id="state-ev-solar-and-batteries-as-products"></span> <div class="card-a" id="atoms-ev-solar-and-batteries-as-products"></div></div>
+  </a>
+  <a class="card" href="./home-moves/">
+    <div class="card-h">What happens to a supplier when a household moves home</div>
+    <div class="card-p">A move is two events at two addresses, often weeks apart, and in Britain the energy keeps flowing to whoever walks in. Between a fifth and two-fifths of all domestic energy debt starts there.</div>
+    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> A move closes one account and opens another, and a large share of energy debt starts there. The world has to move households for the company to meet that.</div>
+    <div class="card-foot"><span class="state-badge" id="state-home-moves"></span> <div class="card-a" id="atoms-home-moves"></div></div>
+  </a>
+  </section>
+  <section class="theme" id="theme-billing" data-theme="billing">
+  <h2 class="theme-h">Metering, billing, debt and regulation</h2>
+  <p class="theme-why">How energy used becomes money collected, and the rules that apply when it does not.</p>
+  <a class="card" href="./metering-and-reads/">
+    <div class="card-h">Metering and meter reads</div>
+    <div class="card-p">The market settles every half hour; most meters are read a few times a year.</div>
+    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> The market settles every half hour but most meters are read a few times a year. Estimated bills, catch-up bills and much debt come from that gap.</div>
+    <div class="card-foot"><span class="state-badge" id="state-metering-and-reads"></span> <div class="card-a" id="atoms-metering-and-reads"></div></div>
+  </a>
+  <a class="card" href="./unbilled-energy-and-revenue-assurance/">
+    <div class="card-h">Energy that was used but never correctly billed</div>
+    <div class="card-p">Every supplier pays for more energy than it bills. Some of the gap is just timing and closes by itself. Some of it is energy nobody will ever pay for. These are different things, and a supplier can only see some of them.</div>
+    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> Every supplier pays for energy it never bills. Without that leakage the company's margins would look better than any real supplier's.</div>
+    <div class="card-foot"><span class="state-badge" id="state-unbilled-energy-and-revenue-assurance"></span> <div class="card-a" id="atoms-unbilled-energy-and-revenue-assurance"></div></div>
+  </a>
+  <a class="card" href="./debt-and-collections/">
+    <div class="card-h">What a GB household's energy debt is, how big it has become, and how a supplier gets paid back</div>
+    <div class="card-p">Energy debt is not one thing. A missed direct debit, a bill nobody opened, a prepayment meter quietly taking a few pounds a week, and an empty flat on a deemed contract all count as debt. They have different causes, different rules and very different chances of being repaid.</div>
+    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> Debt is one of the largest costs a supplier carries. The company has to meet each kind of debt with the rules that govern it.</div>
+    <div class="card-foot"><span class="state-badge" id="state-debt-and-collections"></span> <div class="card-a" id="atoms-debt-and-collections"></div></div>
+  </a>
+  <a class="card" href="./back-billing-and-liability/">
+    <div class="card-h">Back bills: who pays for energy that was never charged for</div>
+    <div class="card-p">Since May 2018 a supplier can only ask a household to pay for energy used in the twelve months before it asks. What counts as asking decides who carries the rest.</div>
+    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> The twelve-month back-billing rule decides who pays for energy that was never charged for, and so what a late meter read costs the company.</div>
+    <div class="card-foot"><span class="state-badge" id="state-back-billing-and-liability"></span> <div class="card-a" id="atoms-back-billing-and-liability"></div></div>
+  </a>
+  <a class="card" href="./read-access-and-theft-duties/">
+    <div class="card-h">Getting to the meter, and energy that is stolen</div>
+    <div class="card-p">A supplier must try to read every meter once a year, but it cannot enter a home without consent or a warrant. It must look for theft, but finding theft costs it money. This page explains both duties, who pays when they fail, and what a supplier can see.</div>
+    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> A supplier's duties to read meters and look for theft carry costs and limits the simulated company has to obey.</div>
+    <div class="card-foot"><span class="state-badge" id="state-read-access-and-theft-duties"></span> <div class="card-a" id="atoms-read-access-and-theft-duties"></div></div>
+  </a>
+  <a class="card" href="./bad-debt-provisioning/">
+    <div class="card-h">How a GB energy supplier accounts for the bills it will never collect</div>
+    <div class="card-p">A provision is an estimate made today about money owed today. A write-off comes years later. The cost a supplier reports, and the cost the price cap allows, is the first, not the second.</div>
+    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> How a supplier books money it will not collect decides the cost it reports. The company's accounts follow the same rule.</div>
+    <div class="card-foot"><span class="state-badge" id="state-bad-debt-provisioning"></span> <div class="card-a" id="atoms-bad-debt-provisioning"></div></div>
+  </a>
+  </section>
+  <section class="theme" id="theme-carbon" data-theme="carbon">
+  <h2 class="theme-h">Carbon</h2>
+  <p class="theme-why">Where the carbon behind a bill comes from, in the power market and in the home.</p>
+  <a class="card" href="./household-carbon-and-the-measures-that-save-it/">
+    <div class="card-h">Where a gas-heated home's carbon comes from, and which measures save it</div>
+    <div class="card-p">On today's grid the gas boiler is five to six times the carbon of all the home's electricity. The measures that save both money and carbon are mostly heating measures; the timing measures are small on both.</div>
+    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> Saving customers carbon is one of the three things Poesys sets out to do. This page says where a home's carbon sits and which measures move it.</div>
+    <div class="card-foot"><span class="state-badge" id="state-household-carbon-and-the-measures-that-save-it"></span> <div class="card-a" id="atoms-household-carbon-and-the-measures-that-save-it"></div></div>
+  </a>
+  <a class="card" href="./carbon-price/">
+    <div class="card-h">The UK carbon price (UK ETS + CPS)</div>
+    <div class="card-p">The traded ETS price, charged per tonne emitted, plus Carbon Price Support, charged per unit of fuel burned for generation.</div>
+    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> Carbon costs reach the wholesale price through the marginal plant, so they reach every bill, whatever the household thinks about carbon.</div>
+    <div class="card-foot"><span class="state-badge" id="state-carbon-price"></span> <div class="card-a" id="atoms-carbon-price"></div></div>
+  </a>
+  </section>
+
+  <div class="sec">About the cards</div>
+  <p class="muted" style="margin-bottom:8px;" id="review-note">
+    Once the page has loaded, the small label at the foot of each card is the state of that page's last check against its published
+    source. It is read from the same record the page itself reads, against your clock rather
+    than the clock at publish time, so a page past its review threshold says so here before
+    you click into it.
+  </p>
+  <p class="muted">
+    The short codes beside it name the items in the project's build plan (called
+    <em>atoms</em> internally) that build the mechanism the page describes.
+  </p>
 </div>
 <script>
 // THE REVIEW RULE, mirrored from site/knowledge/review_state.py -- byte-identical to the
