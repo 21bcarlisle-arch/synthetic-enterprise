@@ -77,3 +77,38 @@ the shape. Read its log and name the explanation here. The two green runs since 
 39910239697) changed no HTML, so they say nothing. Do not narrow or loosen the assertion before
 that log is in. If it reads INSERTED with an edge script, propose (do not enact) comparing only the
 bytes we own, with the inserted block named in the log, and keep it red for any other shape.
+
+## 23 Oct: the first red run read with the instrument — INSERTED, Cloudflare's analytics beacon
+
+*Seat executor, 23 Oct 2026. Run 39915248303 (job 120287256808), deploying `75e55464c`, which
+changed 37 HTML pages. Log read via the jobs API.*
+
+**The answer.** 38 of 39 changed assets failed. Every one of the 38 printed the same shape, the
+same size, in the same place:
+
+> `INSERTED: 367 bytes added at offset 355687, the file otherwise intact; served b'...19T033010Z; no figure here is typed by hand)</span></p>\n<!-- RUN-CLOCK:END -->\n<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vc' vs deployed b'...<!-- RUN-CLOCK:END -->\n</body>\n</html>\n'`
+
+The offsets differ page by page (26353, 83574, 355687 and so on). In each case the offset is the
+byte just before `</body>`, and in each case the extra bytes are 367 long. Every response came
+from the **IAD** colo; the 22 Oct reds came from LAX.
+
+**So the explanation is the edge transform, not truncation and not a build stamp.** Cloudflare Web
+Analytics injects its beacon `<script>` before `</body>` on HTML responses. That explains the
+September partition as well: only HTML gets the beacon, so direct files (png, json, xml, css)
+confirm and every directory URL serving HTML fails. The pages we deploy are intact, byte for byte,
+apart from that one block.
+
+**Why UK fetches match byte for byte: a hypothesis, not established.** From this box (MAN) the
+same pages are identical to origin. A plausible cause is Web Analytics' "exclude EU visitor data"
+setting, if it treats UK visitors as EU. Nothing here has read that setting, and it lives on the
+Cloudflare dashboard rather than in this repo.
+
+**Proposal (not enacted, as this finding asked).** In `tools/assert_deployed_bytes_are_served.py`,
+compare only the bytes we own: before hashing an HTML body, remove exactly one block that matches
+`<script ... src="https://static.cloudflareinsights.com/beacon.min.js...">...</script>`
+immediately before `</body>`, and print in the log that it was removed. Any other shape stays red,
+and so does a second inserted block or a beacon anywhere else. The controls this needs: the real
+367-byte case from this log passes, the same block mid-body reds, and a second block reds. Each
+should be mutation-proven. This reverses with one revert and changes no published byte. Whether the
+site should carry a visitor-analytics beacon at all is a dashboard setting about data on real
+visitors, so it is raised for the director rather than touched here.

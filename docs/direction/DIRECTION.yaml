@@ -581,3 +581,18 @@ for_the_director:
     PD held (2022-23 overcharges 0.79 of control). PA and PE were refuted in the favourable direction:
     the tail fell by 6 rather than staying flat, and PROS-2017-0336''s +4,225 pound catch-up became a
     1,452 pound credit, not 2,000-6,000.'
+- id: poesys-net-carries-cloudflare-s-web-analytics
+  raised: '2026-10-23'
+  kind: reserved
+  what: 'poesys.net carries Cloudflare''s Web Analytics beacon: every HTML page served at US edges (IAD,
+    LAX) has a 367-byte cloudflareinsights script injected before </body>. It is not in the repo, and
+    it is why every deploy check has been red since September.'
+  proposal: The deploy check ignores exactly that one block and stays red for anything else (the machine's
+    own, reversible). Separately, switch Web Analytics off for the Pages project on the Cloudflare dashboard.
+  recommendation: 'I recommend you switch Web Analytics off for the Pages project: it collects data on
+    real visitors, and nothing in Poesys reads it. Keep it only if you read its dashboard yourself.'
+  status: open
+  resolution: ''
+  evidence: 'Deploy run 39915248303: 38 of 38 failing pages read INSERTED, 367 bytes at the byte before
+    </body>, starting <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js.
+    Recorded in docs/staging/WORKER_FINDING_THE_RUNNERS_EDGE_SERVES_THIS_PUSHS_OWN_NEW_PAGE_UNDER_A_STALE_VERDICT_SO_THE_OLDER_COPY_PREDICTION_IS_REFUTED_2026-10-22.md'
