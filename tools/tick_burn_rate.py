@@ -257,6 +257,8 @@ def render_changes(rows: list[dict]) -> str:
 #: from time to time. Use it with tools/tick_burn_rate.py to work out what each kind of work costs you
 #: in my points"). (UTC time, percent of the week). A point is one percent. Append a row per reading;
 #: the conversion is computed from the latest two, never typed in.
+#: The next reading on the new tier scores the predictions written before it, in
+#: docs/staging/records/SEAT_PREREG_THE_NEW_TIER_POINT_FIT_SEPARATES_ROUNDING_FROM_MODEL_MIX_2026-10-23.md.
 POINT_READINGS: tuple[tuple[str, float], ...] = (
     ("2026-10-12T13:00", 40.0),   # Monday 14:00 BST
     ("2026-10-13T07:10", 55.0),   # Tuesday 08:10 BST
