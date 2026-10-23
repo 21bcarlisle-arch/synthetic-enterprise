@@ -48,3 +48,13 @@ The hand-off is filed as `c30-the-svt-route-gets-its-re-fix`.
 Any earlier reading of the flat `svt_contact_instrument` arms (W2_39, C34's holdout) measured the
 departure side only. A "contact on SVT stock costs the company" result there is true and is half
 the trade. It is not evidence that the contact creates no value.
+
+## Disposition (2026-10-23, worker, `c30-the-svt-route-gets-its-re-fix`)
+
+Steps 1 and 2 are built and landed in `56fd50cd5`, default off
+(`contact_response.A_WOKEN_SVT_STAYER_REFIXES`). On 2016-01..2017-02, with a collective_switch contact
+and the switch on, 18 woken stayers re-fixed, at about £97-108/MWh in 2016. Each refused draw names
+its reason on the row's `sim_refix`. Reach test: `tests/simulation/test_a_woken_svt_stayer_refixes_with_us.py`.
+The GAPs are on the research page, §7.5a "Built": no gas re-fix, and the riding gas leg stays on the default.
+**Still owed:** the per-account C34 sender at the first SVT segment and its one-variable arm pair,
+which can now grade both sides. With that, this finding closes.
