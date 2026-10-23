@@ -65,3 +65,48 @@ One stretch-log entry with:
 - a cold-reader pass on the page, one energy reader and one tech reader, asking what they learned and how impressive it is.
 
 — Director steer, 23 Oct 2026, his words above; the mock-up, findings and drafting are the advisor's.
+
+## Done
+
+*Delivery seat, 23 Oct 2026 (worker tick, lane 0).*
+
+**Live on Explore, at the top of the page.** It is `site/explore/index.html`, not a new page,
+because the nav register allows only two page depths. Eight feature tabs, each a household chosen
+by a stated rule at publish by `tools/generate_explore_cast.py`, wired into `process_run_complete`
+after the case-study recommender. A 2016–2025 moment strip with ‹ ›, Play and arrow keys, opening
+on the moment the rule chose the household for. Three views side by side, stacked at phone width:
+the customer's account page, the supplier's back office as known on that date, and the
+simulation's truth. A gap strip coloured by outcome. A rule-breach line where the household breaks
+a published rule. The opening list is written into the page at publish, so it shows without
+JavaScript.
+
+**The cast on the 19 Oct run: 6 of 8 filled.** The switch-in is PROS-2025-0022. The renewal is
+SYN-2016-441: the supplier held 100% churn risk at its 2018 renewal and spent a 5% discount. The
+estimate trap is OCC-49cf03d82fea: 34 estimated bills in a row, then a £532.80 credit. The debt
+journey is PROS-2021-0362, from a missed payment through to the agency. The EV home is
+PROS-2021-0219. The 2022 shock is PROS-2017-0336: £440.53 to £1,402.76 for the same January.
+**Empty, saying why on the page:** the mover (the record has no move-out and no link from a new
+occupant to the old one) and storage heating (no bill in the run has two registers).
+
+**No look-ahead, proven.** Every supplier row is built from records dated on or before its moment
+and carries `drawn_from`. `tests/tools/test_generate_explore_cast.py` reds on any row drawn from
+later. Its mutation hands the supplier view the whole record and is caught. Beliefs are the
+company's stored `company_belief`, read back, never recomputed.
+
+**Door test.** `site/explore/test_explore_cast_door.py` runs the page's own script on the real
+feed: a tab per slot, all three views filled, the page opening on the telling moment, an empty slot
+showing its reason, and a missing feed saying so.
+
+**The three mock-up checks, answered**, all in
+`docs/staging/SEAT_FINDING_EXPLORES_CAST_FINDS_STANDARD_VARIABLE_BILLS_ABOVE_THE_CAP_AND_NO_MOVER_OR_TWO_RATE_HOME_2026-10-23.md`:
+1. **Above the cap.** Yes. 306's November 2022 bills charge exactly the Ofgem cap, not the EPG.
+   Across the book, 4,764 of 14,012 bills that can only be standard variable sit above the
+   household-facing ceiling, in 199 of 550 households. The cause is not yet attributed.
+2. **Insulation.** The actual reads do land through catch-ups. Billed gas fell 8%, not the stated
+   24%.
+3. **The unchased debt.** Two notices in 2019, then nothing until a write-off 13 days after
+   leaving. Same shape as the 27 Sep write-off finding, still present.
+
+**Not done here, and named in the finding:** wiring the checks into Monday's end-to-end step;
+rendering the customer view from `company/portal/templates/` (today the page draws it from the
+same invoices and ledger and does not claim to be the supplier's own portal); the cold-reader pass.

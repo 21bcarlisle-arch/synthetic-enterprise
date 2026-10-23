@@ -29,6 +29,7 @@ canvas { display: block; width: 100%; touch-action: manipulation; cursor: crossh
 /* The picture drawn at publish stands in until the live galaxy can draw. */
 .galaxy img { display: block; width: 100%; max-width: 1200px; height: auto; margin: 0 auto; }
 .galaxy canvas.pending { display: none; }
+.galaxy:has(canvas:not(.pending)) img { display: none; }
 .galaxy .hint { position: absolute; left: 14px; bottom: 10px; color: var(--grey-15); font-size: 12px; pointer-events: none; }
 .galaxy .reset { position: absolute; right: 14px; bottom: 8px; }
 .views { display: flex; gap: 0; margin: 4px 0 12px; }
@@ -259,8 +260,9 @@ var SETTLE_MS = 1400;
 function galaxyRadius(n) { return 0.9 + Math.sqrt(n.loc || 0) / 11; }
 
 function initGalaxy(d) {
-  var cv = document.getElementById("mg-galaxy"), still = document.getElementById("mg-galaxy-still");
-  if (still) still.remove();
+  // The still is markup only: CSS hides it once the canvas is live (`.galaxy:has(...)` above). The
+  // script deleting it made a reader-sweep subject of an element no reader is meant to keep.
+  var cv = document.getElementById("mg-galaxy");
   cv.classList.remove("pending");
   var g = { data: d, canvas: cv, picked: null, zoom: 1, tx: 0, ty: 0, t0: null, size: 1000,
             order: d.nodes.map(function (_n, i) { return i; }).sort(function (a, b) { return (d.nodes[a].loc || 0) - (d.nodes[b].loc || 0); }) };

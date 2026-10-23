@@ -5205,6 +5205,18 @@ def _generate_dashboard_json(json_path, git_hash="unknown"):
     except Exception as exc:
         log("Case-study recommender generation failed: {}".format(exc))
     try:
+        # Explore's household cast (director's steer, 23 Oct 2026): one household per supplier
+        # feature, chosen by rule from the same per-household files, so it runs after them.
+        # Each rule doubles as a check that its feature works in the run; an empty slot is a
+        # finding the page states, and the static first render is rewritten into the page.
+        from tools.generate_explore_cast import generate as gen_explore_cast
+        _cast = gen_explore_cast()
+        log("Generated site/data/explore_cast.json: {}/{} feature slots filled, empty: {}".format(
+            _cast["coverage"]["filled"], _cast["coverage"]["of"],
+            ", ".join(_cast["coverage"]["empty"]) or "none"))
+    except Exception as exc:
+        log("Explore cast generation failed: {}".format(exc))
+    try:
         # RETIRED from the cycle 2026-08-20, same reason as the evidence page above: the
         # /shadow/ mirror is deleted and this call put it straight back. It was an INTERNAL
         # surface that was nonetheless published at a second root on the public site, carrying
@@ -7122,6 +7134,10 @@ def git_commit_push(git_hash, net_margin, outcome=None):
     site_case_studies_json = PROJECT_DIR / "site" / "data" / "case_studies.json"
     if site_case_studies_json.exists():
         files.append(str(site_case_studies_json))
+    site_explore_cast_json = PROJECT_DIR / "site" / "data" / "explore_cast.json"
+    if site_explore_cast_json.exists():
+        files.append(str(site_explore_cast_json))
+        files.append(str(PROJECT_DIR / "site" / "explore" / "index.html"))
     site_track_record_json = PROJECT_DIR / "site" / "state" / "track_record_scorecard.json"
     if site_track_record_json.exists():
         files.append(str(site_track_record_json))

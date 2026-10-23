@@ -8,6 +8,28 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-23 — Explore opens on eight households seen three ways, chosen by rule at publish; the rules find standard-variable bills above the cap
+
+<!-- head: 17eaac83d063 -->
+
+**In plain English:** Explore now opens on eight households, one per thing the supplier does. Each is picked by a rule every time the site is published, and you can step through its life and see each moment three ways: what the customer saw, what the supplier knew that day, and what was really true. Two of the eight could not be filled, and the page says why. Running the rules turned up a real problem: many standard-tariff bills are above the price cap.
+
+*Worker tick, lane 0, 23 Oct 2026. The report the director's 23 Oct Explore steer asks for.*
+
+**The cast rules, and which filled on the 19 Oct run (6 of 8).** Switch-in: the most recent joiner with a full first quarter (PROS-2025-0022). Renewal: the widest stored-belief-versus-truth gap at a retention decision (SYN-2016-441, 100% held against the truth). Estimate trap: the longest estimated run on one fuel ending in a catch-up (OCC-49cf03d82fea, 34 bills, then £532.80 credited). Debt: the deepest arrears journey (PROS-2021-0362, from a miss to the agency). EV home: the largest EV usage move (PROS-2021-0219). 2022 shock: the largest year-on-year rise in one month's bill (PROS-2017-0336, £440.53 to £1,402.76). Empty and saying so on the page: the mover (no move-out event, and new occupants are not linked to the old) and storage heating (no bill has two registers).
+
+**Coverage findings**, all in `SEAT_FINDING_EXPLORES_CAST_FINDS_STANDARD_VARIABLE_BILLS_ABOVE_THE_CAP_AND_NO_MOVER_OR_TWO_RATE_HOME_2026-10-23.md`. 4,764 of 14,012 bills that can only be standard variable are above min(Ofgem cap, EPG) all-in, in 199 of 550 households and in every capped year. The 1 Oct fix `592596b44` is already in this run, so this is new. The cause is not attributed yet; four explanations are ranked in the finding, and the first to rule out is my own population reading. The EV home's car moved its use only +8%.
+
+**The three mock-up checks.** (1) 306's November 2022 bills charge exactly the Ofgem cap (51.89p and 14.76p all-in), not the EPG: the guarantee never reached the bill. (2) The actual reads do land through catch-ups, but billed gas fell 8%, not the stated 24%; an untested explanation is a winter-against-spring average in the effect line. (3) The 2019 debt had two notices, then nothing for five years, then a write-off 13 days after leaving: the 27 Sep write-off finding, still live.
+
+**No look-ahead.** Supplier rows are built only from records dated on or before the moment, each carrying `drawn_from`. A control reds on any later date, and it is mutation-proven: handing the supplier view the whole record is caught.
+
+**Mistakes worth keeping.** I first wrote the cap check against "within a year of a renewal = fixed". It counted 271 households, and the run records no term length. Narrowing to before the first renewal, which can only be standard variable, cut that to 199 and is the honest population. The switch-in rule first picked a household with 11 days of bills, because "three invoices" counted both fuels together. The cold read caught a third: the renewal-decision moment showed that same day's outcome ("RENEWED") and the new fixed tariff in the supplier column. The run dates both on the same day, so "on or before" let them through. The decision moment now reads the record as it stood before its outcome, and a mutation-proven control holds it there.
+
+**Cold-reader pass (one fresh Sonnet reader, given only the rendered text, reading twice).** *Energy reader, 4/10:* a sound device for showing what the supplier could not see. Bills above the cap read as a compliance failure presented as a quirk, which is the finding working as intended; the flag line is meant to make it unmissable. The reader also caught three wording faults, now fixed: "your fixed tariff is ending" shown to a household on standard variable, a credit printed as a negative bill, and a gap strip calling billed estimates "the truth". *Tech reader, 6/10:* the idea is clear and the open "6 of 8" reads as honest, but the jargon is heavy (PROS/OCC/SYN ids, "catch-up", "profile class 2", "resentment score"); a one-line glossary per tab is the change it most wants. Still open from the read: £/MWh tariff units, and "100%" in the company log against "99.9%" in the supplier panel. Also still owed: wiring the checks into Monday's step, and rendering the customer view from `company/portal/templates/`.
+
+---
+
 ## 2026-10-23 — The other pages match the front door, closed: Capabilities' grid and go-live table written at publish, and the steer's report
 
 <!-- head: 427e5f02175b -->

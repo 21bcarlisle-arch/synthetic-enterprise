@@ -1,0 +1,3169 @@
+{
+ "meta": {
+  "generated_at": "2026-10-23T15:21:24Z",
+  "run_generated_at": "2026-10-19T08:47:16Z",
+  "run_git_commit": "8b6fea024",
+  "household_count": 550,
+  "note": "Every household is chosen by the slot's stated rule at publish; nobody is hand-picked. The supplier column reads only records dated on or before the moment shown."
+ },
+ "slots": [
+  {
+   "id": "switch_in",
+   "feature": "The switch-in",
+   "rule": "The household that switched in most recently and holds a full first quarter on record",
+   "filled": true,
+   "household": "PROS-2025-0022",
+   "fuels": [
+    "electricity",
+    "gas"
+   ],
+   "segment": "resi",
+   "span": "1 Feb 2025 to 7 Jun 2025",
+   "story": "Joined on 1 Feb 2025 and was billed from its first month.",
+   "opening": 1,
+   "moments": [
+    {
+     "iso": "2025-02-01",
+     "date": "1 Feb 2025",
+     "kind": "joined",
+     "title": "Switched in",
+     "story": "The household joins Poesys for electricity and gas.",
+     "why": "The supplier knows the address, the meter points and how it will be paid. It knows nothing else yet.",
+     "gap": null,
+     "supplier": [
+      {
+       "k": "Customer since",
+       "v": "1 Feb 2025",
+       "drawn_from": "2025-02-01"
+      },
+      {
+       "k": "Fuels",
+       "v": "Electricity and Gas",
+       "drawn_from": "2025-02-01"
+      },
+      {
+       "k": "How they pay",
+       "v": "No payment yet",
+       "drawn_from": "2025-02-01"
+      },
+      {
+       "k": "Tariff",
+       "v": "Standard variable",
+       "drawn_from": "2025-02-01"
+      },
+      {
+       "k": "Payment record",
+       "v": "0 payments, 0 returned, 0 missed",
+       "drawn_from": "2025-02-01"
+      },
+      {
+       "k": "Meter reads",
+       "v": "0 bills, 0 on an actual read",
+       "drawn_from": "2025-02-01"
+      },
+      {
+       "k": "Balance on the books",
+       "v": "Nothing owed",
+       "drawn_from": "2025-02-01"
+      }
+     ],
+     "decision": "No decision about this household is on record yet.",
+     "truth": [
+      {
+       "k": "Household",
+       "v": "two person, owner occupier"
+      },
+      {
+       "k": "Money",
+       "v": "Income stress low"
+      },
+      {
+       "k": "Life so far",
+       "v": "Nothing recorded"
+      },
+      {
+       "k": "Smart meter",
+       "v": "Yes"
+      }
+     ],
+     "portal": {
+      "message": "Welcome to Poesys. Your electricity and gas supply started on 1 Feb 2025.",
+      "tariff": "Standard Variable",
+      "pays": "Set up at your first bill",
+      "balance": "Nothing owed",
+      "usage": [],
+      "bills": []
+     }
+    },
+    {
+     "iso": "2025-02-28",
+     "date": "28 Feb 2025",
+     "kind": "first_bill",
+     "title": "First bill",
+     "story": "The first electricity bill: £85.79 for 298 kWh, on an actual read.",
+     "why": "The amount follows from the reading and the tariff; nothing else is behind it.",
+     "gap": null,
+     "supplier": [
+      {
+       "k": "Customer since",
+       "v": "1 Feb 2025",
+       "drawn_from": "2025-02-01"
+      },
+      {
+       "k": "Fuels",
+       "v": "Electricity and Gas",
+       "drawn_from": "2025-02-01"
+      },
+      {
+       "k": "How they pay",
+       "v": "No payment yet",
+       "drawn_from": "2025-02-01"
+      },
+      {
+       "k": "Tariff",
+       "v": "Standard variable",
+       "drawn_from": "2025-02-01"
+      },
+      {
+       "k": "Payment record",
+       "v": "0 payments, 0 returned, 0 missed",
+       "drawn_from": "2025-02-01"
+      },
+      {
+       "k": "Meter reads",
+       "v": "2 bills, 2 on an actual read, last on 28 Feb 2025",
+       "drawn_from": "2025-02-28"
+      },
+      {
+       "k": "Balance on the books",
+       "v": "Nothing owed",
+       "drawn_from": "2025-02-01"
+      }
+     ],
+     "decision": "No decision about this household is on record yet.",
+     "truth": [
+      {
+       "k": "Household",
+       "v": "two person, owner occupier"
+      },
+      {
+       "k": "Money",
+       "v": "Income stress low"
+      },
+      {
+       "k": "Life so far",
+       "v": "Nothing recorded"
+      },
+      {
+       "k": "Smart meter",
+       "v": "Yes"
+      }
+     ],
+     "portal": {
+      "message": "Your first electricity bill is ready: £85.79.",
+      "tariff": "Standard Variable",
+      "pays": "Set up at your first bill",
+      "balance": "Nothing owed",
+      "usage": [
+       {
+        "month": "2025-02",
+        "e": 298,
+        "g": 1447
+       }
+      ],
+      "bills": [
+       {
+        "fuel": "gas",
+        "when": "28 Feb 2025",
+        "kwh": 1447,
+        "amount": "£100.41",
+        "badge": "Actual read"
+       },
+       {
+        "fuel": "electricity",
+        "when": "28 Feb 2025",
+        "kwh": 298,
+        "amount": "£85.79",
+        "badge": "Actual read"
+       }
+      ]
+     }
+    },
+    {
+     "iso": "2025-03-31",
+     "date": "31 Mar 2025",
+     "kind": "bill",
+     "title": "Three months in",
+     "story": "The electricity bill of 31 Mar 2025: £93.10 for 326 kWh, on an actual read.",
+     "why": "The amount follows from the reading and the tariff then in force.",
+     "gap": null,
+     "supplier": [
+      {
+       "k": "Customer since",
+       "v": "1 Feb 2025",
+       "drawn_from": "2025-02-01"
+      },
+      {
+       "k": "Fuels",
+       "v": "Electricity and Gas",
+       "drawn_from": "2025-02-01"
+      },
+      {
+       "k": "How they pay",
+       "v": "Direct debit",
+       "drawn_from": "2025-03-18"
+      },
+      {
+       "k": "Tariff",
+       "v": "Standard variable",
+       "drawn_from": "2025-02-01"
+      },
+      {
+       "k": "Payment record",
+       "v": "2 payments, 0 returned, 0 missed",
+       "drawn_from": "2025-03-18"
+      },
+      {
+       "k": "Meter reads",
+       "v": "4 bills, 4 on an actual read, last on 31 Mar 2025",
+       "drawn_from": "2025-03-31"
+      },
+      {
+       "k": "Balance on the books",
+       "v": "Nothing owed",
+       "drawn_from": "2025-03-18"
+      }
+     ],
+     "decision": "No decision about this household is on record yet.",
+     "truth": [
+      {
+       "k": "Household",
+       "v": "two person, owner occupier"
+      },
+      {
+       "k": "Money",
+       "v": "Income stress low"
+      },
+      {
+       "k": "Life so far",
+       "v": "Nothing recorded"
+      },
+      {
+       "k": "Smart meter",
+       "v": "Yes"
+      }
+     ],
+     "portal": {
+      "message": "Your electricity bill is ready: £93.10.",
+      "tariff": "Standard Variable",
+      "pays": "Direct debit",
+      "balance": "Nothing owed",
+      "usage": [
+       {
+        "month": "2025-02",
+        "e": 298,
+        "g": 1447
+       },
+       {
+        "month": "2025-03",
+        "e": 326,
+        "g": 1436
+       }
+      ],
+      "bills": [
+       {
+        "fuel": "gas",
+        "when": "31 Mar 2025",
+        "kwh": 1436,
+        "amount": "£100.70",
+        "badge": "Actual read"
+       },
+       {
+        "fuel": "electricity",
+        "when": "31 Mar 2025",
+        "kwh": 326,
+        "amount": "£93.10",
+        "badge": "Actual read"
+       },
+       {
+        "fuel": "gas",
+        "when": "28 Feb 2025",
+        "kwh": 1447,
+        "amount": "£100.41",
+        "badge": "Actual read"
+       },
+       {
+        "fuel": "electricity",
+        "when": "28 Feb 2025",
+        "kwh": 298,
+        "amount": "£85.79",
+        "badge": "Actual read"
+       }
+      ]
+     }
+    }
+   ],
+   "breaches": [],
+   "breach_count": 0
+  },
+  {
+   "id": "renewal",
+   "feature": "The renewal",
+   "rule": "The largest gap between the supplier's stored churn belief and the true probability at a renewal decision",
+   "filled": true,
+   "household": "SYN-2016-441",
+   "fuels": [
+    "electricity"
+   ],
+   "segment": "resi",
+   "span": "5 Oct 2016 to 7 Jun 2025",
+   "story": "At renewal the supplier's churn belief and the truth were furthest apart.",
+   "opening": 1,
+   "moments": [
+    {
+     "iso": "2016-10-05",
+     "date": "5 Oct 2016",
+     "kind": "joined",
+     "title": "Switched in",
+     "story": "The household joins Poesys for electricity.",
+     "why": "The supplier knows the address, the meter points and how it will be paid. It knows nothing else yet.",
+     "gap": null,
+     "supplier": [
+      {
+       "k": "Customer since",
+       "v": "5 Oct 2016",
+       "drawn_from": "2016-10-05"
+      },
+      {
+       "k": "Fuels",
+       "v": "Electricity",
+       "drawn_from": "2016-10-05"
+      },
+      {
+       "k": "How they pay",
+       "v": "No payment yet",
+       "drawn_from": "2016-10-05"
+      },
+      {
+       "k": "Tariff",
+       "v": "Standard variable",
+       "drawn_from": "2016-10-05"
+      },
+      {
+       "k": "Payment record",
+       "v": "0 payments, 0 returned, 0 missed",
+       "drawn_from": "2016-10-05"
+      },
+      {
+       "k": "Meter reads",
+       "v": "0 bills, 0 on an actual read",
+       "drawn_from": "2016-10-05"
+      },
+      {
+       "k": "Balance on the books",
+       "v": "Nothing owed",
+       "drawn_from": "2016-10-05"
+      }
+     ],
+     "decision": "No decision about this household is on record yet.",
+     "truth": [
+      {
+       "k": "Household",
+       "v": "two person, owner occupier"
+      },
+      {
+       "k": "Money",
+       "v": "Income stress low"
+      },
+      {
+       "k": "Life so far",
+       "v": "Nothing recorded"
+      },
+      {
+       "k": "Smart meter",
+       "v": "No"
+      }
+     ],
+     "portal": {
+      "message": "Welcome to Poesys. Your electricity supply started on 5 Oct 2016.",
+      "tariff": "Standard Variable",
+      "pays": "Set up at your first bill",
+      "balance": "Nothing owed",
+      "usage": [],
+      "bills": []
+     }
+    },
+    {
+     "iso": "2018-10-05",
+     "date": "5 Oct 2018",
+     "kind": "renewal_decision",
+     "title": "The renewal decision",
+     "story": "Renewal window: company estimated 100% churn risk, decided to offer a 5% discount (cost £118.01) against £1,313.26 expected term margin at risk -- expected value of offering £1,195.25. Comms framed as a loss (you will lose the discount).",
+     "why": "The simulation drew this household's real chance of leaving as 0.0%.",
+     "gap": {
+      "believed": "99.9% chance it would leave",
+      "truth": "0.0% chance it would leave",
+      "meant": "99.9 percentage points apart, so the offer was spent on a household that was not leaving",
+      "tone": "bad"
+     },
+     "supplier": [
+      {
+       "k": "Customer since",
+       "v": "5 Oct 2016",
+       "drawn_from": "2016-10-05"
+      },
+      {
+       "k": "Fuels",
+       "v": "Electricity",
+       "drawn_from": "2016-10-05"
+      },
+      {
+       "k": "How they pay",
+       "v": "Direct debit",
+       "drawn_from": "2018-09-14"
+      },
+      {
+       "k": "Tariff",
+       "v": "Standard variable",
+       "drawn_from": "2016-10-05"
+      },
+      {
+       "k": "Churn risk it held",
+       "v": "99.9% at the 5 Oct 2018 renewal",
+       "drawn_from": "2018-10-05"
+      },
+      {
+       "k": "Payment record",
+       "v": "22 payments, 0 returned, 0 missed",
+       "drawn_from": "2018-09-14"
+      },
+      {
+       "k": "Meter reads",
+       "v": "24 bills, 6 on an actual read, last on 30 Sep 2018",
+       "drawn_from": "2018-09-30"
+      },
+      {
+       "k": "Balance on the books",
+       "v": "£90.50 in credit",
+       "drawn_from": "2018-10-01"
+      }
+     ],
+     "decision": "5 Oct 2018: Renewal window: company estimated 100% churn risk, decided to offer a 5% discount (cost £118.01) against £1,313.26 expected term margin at risk -- expected value of offering £1,195.25. Comms framed as a loss (you will lose the discount).",
+     "truth": [
+      {
+       "k": "Household",
+       "v": "two person, owner occupier"
+      },
+      {
+       "k": "Money",
+       "v": "Income stress high"
+      },
+      {
+       "k": "Life so far",
+       "v": "Nothing recorded"
+      },
+      {
+       "k": "Hidden mood",
+       "v": "CONTENT (resentment score 13.0)"
+      },
+      {
+       "k": "True satisfaction",
+       "v": "65.0% in 2018"
+      },
+      {
+       "k": "Smart meter",
+       "v": "No"
+      }
+     ],
+     "portal": {
+      "message": "Your tariff is up for review. We have an offer for you.",
+      "tariff": "Standard Variable",
+      "pays": "Direct debit",
+      "balance": "£90.50 in credit",
+      "usage": [
+       {
+        "month": "2017-10",
+        "e": 1226,
+        "g": 0
+       },
+       {
+        "month": "2017-11",
+        "e": 1360,
+        "g": 0
+       },
+       {
+        "month": "2017-12",
+        "e": 1293,
+        "g": 0
+       },
+       {
+        "month": "2018-01",
+        "e": 1367,
+        "g": 0
+       },
+       {
+        "month": "2018-02",
+        "e": 1122,
+        "g": 0
+       },
+       {
+        "month": "2018-03",
+        "e": 1741,
+        "g": 0
+       },
+       {
+        "month": "2018-04",
+        "e": 1215,
+        "g": 0
+       },
+       {
+        "month": "2018-05",
+        "e": 1082,
+        "g": 0
+       },
+       {
+        "month": "2018-06",
+        "e": 1005,
+        "g": 0
+       },
+       {
+        "month": "2018-07",
+        "e": 1012,
+        "g": 0
+       },
+       {
+        "month": "2018-08",
+        "e": 1039,
+        "g": 0
+       },
+       {
+        "month": "2018-09",
+        "e": 890,
+        "g": 0
+       }
+      ],
+      "bills": [
+       {
+        "fuel": "electricity",
+        "when": "30 Sep 2018",
+        "kwh": 890,
+        "amount": "£26.99",
+        "badge": "Actual read"
+       },
+       {
+        "fuel": "electricity",
+        "when": "31 Aug 2018",
+        "kwh": 1039,
+        "amount": "£165.95",
+        "badge": "Estimated"
+       },
+       {
+        "fuel": "electricity",
+        "when": "31 Jul 2018",
+        "kwh": 1012,
+        "amount": "£161.82",
+        "badge": "Estimated"
+       },
+       {
+        "fuel": "electricity",
+        "when": "30 Jun 2018",
+        "kwh": 1005,
+        "amount": "£159.49",
+        "badge": "Estimated"
+       }
+      ]
+     }
+    },
+    {
+     "iso": "2018-10-05",
+     "date": "5 Oct 2018",
+     "kind": "outcome",
+     "title": "Renewed",
+     "story": "Renewal outcome: RENEWED -- company believed 100% churn risk at decision time",
+     "why": "The true probability on the day was 0.0%; the draw went for staying.",
+     "gap": {
+      "believed": "99.9% chance of leaving",
+      "truth": "0.0% chance of leaving",
+      "meant": "It stayed",
+      "tone": "good"
+     },
+     "supplier": [
+      {
+       "k": "Customer since",
+       "v": "5 Oct 2016",
+       "drawn_from": "2016-10-05"
+      },
+      {
+       "k": "Fuels",
+       "v": "Electricity",
+       "drawn_from": "2016-10-05"
+      },
+      {
+       "k": "How they pay",
+       "v": "Direct debit",
+       "drawn_from": "2018-09-14"
+      },
+      {
+       "k": "Tariff",
+       "v": "Fixed at 145.0 £/MWh from 5 Oct 2018",
+       "drawn_from": "2018-10-05"
+      },
+      {
+       "k": "Churn risk it held",
+       "v": "99.9% at the 5 Oct 2018 renewal",
+       "drawn_from": "2018-10-05"
+      },
+      {
+       "k": "Payment record",
+       "v": "22 payments, 0 returned, 0 missed",
+       "drawn_from": "2018-09-14"
+      },
+      {
+       "k": "Meter reads",
+       "v": "24 bills, 6 on an actual read, last on 30 Sep 2018",
+       "drawn_from": "2018-09-30"
+      },
+      {
+       "k": "Balance on the books",
+       "v": "£90.50 in credit",
+       "drawn_from": "2018-10-01"
+      }
+     ],
+     "decision": "5 Oct 2018: Renewal outcome: RENEWED -- company believed 100% churn risk at decision time",
+     "truth": [
+      {
+       "k": "Household",
+       "v": "two person, owner occupier"
+      },
+      {
+       "k": "Money",
+       "v": "Income stress high"
+      },
+      {
+       "k": "Life so far",
+       "v": "Nothing recorded"
+      },
+      {
+       "k": "Hidden mood",
+       "v": "CONTENT (resentment score 13.0)"
+      },
+      {
+       "k": "True satisfaction",
+       "v": "65.0% in 2018"
+      },
+      {
+       "k": "True chance of leaving",
+       "v": "0.0% at the 5 Oct 2018 renewal"
+      },
+      {
+       "k": "Smart meter",
+       "v": "No"
+      }
+     ],
+     "portal": {
+      "message": "Your new tariff has started.",
+      "tariff": "Fixed from 5 Oct 2018",
+      "pays": "Direct debit",
+      "balance": "£90.50 in credit",
+      "usage": [
+       {
+        "month": "2017-10",
+        "e": 1226,
+        "g": 0
+       },
+       {
+        "month": "2017-11",
+        "e": 1360,
+        "g": 0
+       },
+       {
+        "month": "2017-12",
+        "e": 1293,
+        "g": 0
+       },
+       {
+        "month": "2018-01",
+        "e": 1367,
+        "g": 0
+       },
+       {
+        "month": "2018-02",
+        "e": 1122,
+        "g": 0
+       },
+       {
+        "month": "2018-03",
+        "e": 1741,
+        "g": 0
+       },
+       {
+        "month": "2018-04",
+        "e": 1215,
+        "g": 0
+       },
+       {
+        "month": "2018-05",
+        "e": 1082,
+        "g": 0
+       },
+       {
+        "month": "2018-06",
+        "e": 1005,
+        "g": 0
+       },
+       {
+        "month": "2018-07",
+        "e": 1012,
+        "g": 0
+       },
+       {
+        "month": "2018-08",
+        "e": 1039,
+        "g": 0
+       },
+       {
+        "month": "2018-09",
+        "e": 890,
+        "g": 0
+       }
+      ],
+      "bills": [
+       {
+        "fuel": "electricity",
+        "when": "30 Sep 2018",
+        "kwh": 890,
+        "amount": "£26.99",
+        "badge": "Actual read"
+       },
+       {
+        "fuel": "electricity",
+        "when": "31 Aug 2018",
+        "kwh": 1039,
+        "amount": "£165.95",
+        "badge": "Estimated"
+       },
+       {
+        "fuel": "electricity",
+        "when": "31 Jul 2018",
+        "kwh": 1012,
+        "amount": "£161.82",
+        "badge": "Estimated"
+       },
+       {
+        "fuel": "electricity",
+        "when": "30 Jun 2018",
+        "kwh": 1005,
+        "amount": "£159.49",
+        "badge": "Estimated"
+       }
+      ]
+     }
+    }
+   ],
+   "breaches": [],
+   "breach_count": 0
+  },
+  {
+   "id": "estimate_trap",
+   "feature": "The estimate trap",
+   "rule": "The longest run of estimated bills on one fuel that ends in a catch-up",
+   "filled": true,
+   "household": "OCC-49cf03d82fea",
+   "fuels": [
+    "electricity"
+   ],
+   "segment": "resi",
+   "span": "9 Sep 2020 to 7 Jun 2025",
+   "story": "A long run of estimated bills, ended by a meter read.",
+   "opening": 2,
+   "moments": [
+    {
+     "iso": "2020-09-09",
+     "date": "9 Sep 2020",
+     "kind": "joined",
+     "title": "Switched in",
+     "story": "The household joins Poesys for electricity.",
+     "why": "The supplier knows the address, the meter points and how it will be paid. It knows nothing else yet.",
+     "gap": null,
+     "supplier": [
+      {
+       "k": "Customer since",
+       "v": "9 Sep 2020",
+       "drawn_from": "2020-09-09"
+      },
+      {
+       "k": "Fuels",
+       "v": "Electricity",
+       "drawn_from": "2020-09-09"
+      },
+      {
+       "k": "How they pay",
+       "v": "No payment yet",
+       "drawn_from": "2020-09-09"
+      },
+      {
+       "k": "Tariff",
+       "v": "Standard variable",
+       "drawn_from": "2020-09-09"
+      },
+      {
+       "k": "Payment record",
+       "v": "0 payments, 0 returned, 0 missed",
+       "drawn_from": "2020-09-09"
+      },
+      {
+       "k": "Meter reads",
+       "v": "0 bills, 0 on an actual read",
+       "drawn_from": "2020-09-09"
+      },
+      {
+       "k": "Balance on the books",
+       "v": "Nothing owed",
+       "drawn_from": "2020-09-09"
+      }
+     ],
+     "decision": "No decision about this household is on record yet.",
+     "truth": [
+      {
+       "k": "Household",
+       "v": "two person, owner occupier"
+      },
+      {
+       "k": "Money",
+       "v": "Income stress not recorded"
+      },
+      {
+       "k": "Life so far",
+       "v": "Nothing recorded"
+      },
+      {
+       "k": "Smart meter",
+       "v": "No"
+      }
+     ],
+     "portal": {
+      "message": "Welcome to Poesys. Your electricity supply started on 9 Sep 2020.",
+      "tariff": "Standard Variable",
+      "pays": "Set up at your first bill",
+      "balance": "Nothing owed",
+      "usage": [],
+      "bills": []
+     }
+    },
+    {
+     "iso": "2023-08-31",
+     "date": "31 Aug 2023",
+     "kind": "estimate_run",
+     "title": "Estimated, again",
+     "story": "34 electricity bills in a row were estimated.",
+     "why": "The meter was not read; the bills are the supplier's estimate of use, not the use.",
+     "gap": {
+      "believed": "10,296 kWh across the estimated bills",
+      "truth": "The meter had not been read since 28 Feb 2022",
+      "meant": "The difference lands on the next actual read",
+      "tone": "neutral"
+     },
+     "supplier": [
+      {
+       "k": "Customer since",
+       "v": "9 Sep 2020",
+       "drawn_from": "2020-09-09"
+      },
+      {
+       "k": "Fuels",
+       "v": "Electricity",
+       "drawn_from": "2020-09-09"
+      },
+      {
+       "k": "How they pay",
+       "v": "Direct debit",
+       "drawn_from": "2023-08-16"
+      },
+      {
+       "k": "Tariff",
+       "v": "Standard variable",
+       "drawn_from": "2020-09-09"
+      },
+      {
+       "k": "Payment record",
+       "v": "34 payments, 0 returned, 0 missed",
+       "drawn_from": "2023-08-16"
+      },
+      {
+       "k": "Meter reads",
+       "v": "36 bills, 6 on an actual read, last on 28 Feb 2022",
+       "drawn_from": "2023-08-31"
+      },
+      {
+       "k": "Balance on the books",
+       "v": "£1.32 in credit",
+       "drawn_from": "2023-08-16"
+      }
+     ],
+     "decision": "No decision about this household is on record yet.",
+     "truth": [
+      {
+       "k": "Household",
+       "v": "two person, owner occupier"
+      },
+      {
+       "k": "Money",
+       "v": "Income stress not recorded"
+      },
+      {
+       "k": "Life so far",
+       "v": "Nothing recorded"
+      },
+      {
+       "k": "Smart meter",
+       "v": "No"
+      }
+     ],
+     "portal": {
+      "message": "Your electricity bill is estimated. Send us a reading to make it accurate.",
+      "tariff": "Standard Variable",
+      "pays": "Direct debit",
+      "balance": "£1.32 in credit",
+      "usage": [
+       {
+        "month": "2022-09",
+        "e": 268,
+        "g": 0
+       },
+       {
+        "month": "2022-10",
+        "e": 300,
+        "g": 0
+       },
+       {
+        "month": "2022-11",
+        "e": 354,
+        "g": 0
+       },
+       {
+        "month": "2022-12",
+        "e": 375,
+        "g": 0
+       },
+       {
+        "month": "2023-01",
+        "e": 397,
+        "g": 0
+       },
+       {
+        "month": "2023-02",
+        "e": 326,
+        "g": 0
+       },
+       {
+        "month": "2023-03",
+        "e": 335,
+        "g": 0
+       },
+       {
+        "month": "2023-04",
+        "e": 299,
+        "g": 0
+       },
+       {
+        "month": "2023-05",
+        "e": 266,
+        "g": 0
+       },
+       {
+        "month": "2023-06",
+        "e": 247,
+        "g": 0
+       },
+       {
+        "month": "2023-07",
+        "e": 249,
+        "g": 0
+       },
+       {
+        "month": "2023-08",
+        "e": 256,
+        "g": 0
+       }
+      ],
+      "bills": [
+       {
+        "fuel": "electricity",
+        "when": "31 Aug 2023",
+        "kwh": 256,
+        "amount": "£104.83",
+        "badge": "Estimated"
+       },
+       {
+        "fuel": "electricity",
+        "when": "31 Jul 2023",
+        "kwh": 249,
+        "amount": "£102.53",
+        "badge": "Estimated"
+       },
+       {
+        "fuel": "electricity",
+        "when": "30 Jun 2023",
+        "kwh": 247,
+        "amount": "£159.62",
+        "badge": "Estimated"
+       },
+       {
+        "fuel": "electricity",
+        "when": "31 May 2023",
+        "kwh": 266,
+        "amount": "£171.25",
+        "badge": "Estimated"
+       }
+      ]
+     }
+    },
+    {
+     "iso": "2025-01-31",
+     "date": "31 Jan 2025",
+     "kind": "catch_up",
+     "title": "The catch-up",
+     "story": "An actual read on 31 Jan 2025 corrects the estimates: £532.80 credited.",
+     "why": "The estimates were above the meter by £532.80.",
+     "gap": {
+      "believed": "The estimated bills",
+      "truth": "The meter read on 31 Jan 2025",
+      "meant": "£532.80 back to the customer",
+      "tone": "good"
+     },
+     "supplier": [
+      {
+       "k": "Customer since",
+       "v": "9 Sep 2020",
+       "drawn_from": "2020-09-09"
+      },
+      {
+       "k": "Fuels",
+       "v": "Electricity",
+       "drawn_from": "2020-09-09"
+      },
+      {
+       "k": "How they pay",
+       "v": "Direct debit",
+       "drawn_from": "2025-01-14"
+      },
+      {
+       "k": "Tariff",
+       "v": "Standard variable",
+       "drawn_from": "2020-09-09"
+      },
+      {
+       "k": "Payment record",
+       "v": "51 payments, 0 returned, 0 missed",
+       "drawn_from": "2025-01-14"
+      },
+      {
+       "k": "Meter reads",
+       "v": "53 bills, 7 on an actual read, last on 31 Jan 2025",
+       "drawn_from": "2025-01-31"
+      },
+      {
+       "k": "Balance on the books",
+       "v": "£1.32 in credit",
+       "drawn_from": "2025-01-14"
+      }
+     ],
+     "decision": "No decision about this household is on record yet.",
+     "truth": [
+      {
+       "k": "Household",
+       "v": "two person, owner occupier"
+      },
+      {
+       "k": "Money",
+       "v": "Income stress not recorded"
+      },
+      {
+       "k": "Life so far",
+       "v": "Nothing recorded"
+      },
+      {
+       "k": "Smart meter",
+       "v": "No"
+      }
+     ],
+     "portal": {
+      "message": "We have a meter reading and your bill now reflects what you used.",
+      "tariff": "Standard Variable",
+      "pays": "Direct debit",
+      "balance": "£1.32 in credit",
+      "usage": [
+       {
+        "month": "2024-02",
+        "e": 326,
+        "g": 0
+       },
+       {
+        "month": "2024-03",
+        "e": 335,
+        "g": 0
+       },
+       {
+        "month": "2024-04",
+        "e": 299,
+        "g": 0
+       },
+       {
+        "month": "2024-05",
+        "e": 266,
+        "g": 0
+       },
+       {
+        "month": "2024-06",
+        "e": 247,
+        "g": 0
+       },
+       {
+        "month": "2024-07",
+        "e": 249,
+        "g": 0
+       },
+       {
+        "month": "2024-08",
+        "e": 256,
+        "g": 0
+       },
+       {
+        "month": "2024-09",
+        "e": 268,
+        "g": 0
+       },
+       {
+        "month": "2024-10",
+        "e": 300,
+        "g": 0
+       },
+       {
+        "month": "2024-11",
+        "e": 354,
+        "g": 0
+       },
+       {
+        "month": "2024-12",
+        "e": 375,
+        "g": 0
+       },
+       {
+        "month": "2025-01",
+        "e": 273,
+        "g": 0
+       }
+      ],
+      "bills": [
+       {
+        "fuel": "electricity",
+        "when": "31 Jan 2025",
+        "kwh": 273,
+        "amount": "£445.60 credit",
+        "badge": "Actual read"
+       },
+       {
+        "fuel": "electricity",
+        "when": "31 Dec 2024",
+        "kwh": 375,
+        "amount": "£110.54",
+        "badge": "Estimated"
+       },
+       {
+        "fuel": "electricity",
+        "when": "30 Nov 2024",
+        "kwh": 354,
+        "amount": "£104.82",
+        "badge": "Estimated"
+       },
+       {
+        "fuel": "electricity",
+        "when": "31 Oct 2024",
+        "kwh": 300,
+        "amount": "£92.19",
+        "badge": "Estimated"
+       }
+      ]
+     }
+    }
+   ],
+   "breaches": [
+    {
+     "rule": "above_cap",
+     "date": "2021-02-28",
+     "fuel": "electricity",
+     "text": "Electricity bill of 28 Feb 2021: 20.63p/kWh all-in including VAT, against a ceiling of 17.19p/kWh for a default tariff then (GB average; the cap is set per region)"
+    },
+    {
+     "rule": "above_cap",
+     "date": "2021-03-31",
+     "fuel": "electricity",
+     "text": "Electricity bill of 31 Mar 2021: 20.63p/kWh all-in including VAT, against a ceiling of 17.19p/kWh for a default tariff then (GB average; the cap is set per region)"
+    },
+    {
+     "rule": "above_cap",
+     "date": "2021-04-30",
+     "fuel": "electricity",
+     "text": "Electricity bill of 30 Apr 2021: 19.22p/kWh all-in including VAT, against a ceiling of 18.95p/kWh for a default tariff then (GB average; the cap is set per region)"
+    },
+    {
+     "rule": "above_cap",
+     "date": "2021-06-30",
+     "fuel": "electricity",
+     "text": "Electricity bill of 30 Jun 2021: 19.22p/kWh all-in including VAT, against a ceiling of 18.95p/kWh for a default tariff then (GB average; the cap is set per region)"
+    },
+    {
+     "rule": "above_cap",
+     "date": "2021-07-31",
+     "fuel": "electricity",
+     "text": "Electricity bill of 31 Jul 2021: 19.74p/kWh all-in including VAT, against a ceiling of 18.95p/kWh for a default tariff then (GB average; the cap is set per region)"
+    },
+    {
+     "rule": "above_cap",
+     "date": "2021-08-31",
+     "fuel": "electricity",
+     "text": "Electricity bill of 31 Aug 2021: 19.74p/kWh all-in including VAT, against a ceiling of 18.95p/kWh for a default tariff then (GB average; the cap is set per region)"
+    }
+   ],
+   "breach_count": 39
+  },
+  {
+   "id": "mover",
+   "feature": "The mover",
+   "rule": "A household that moves out, takes a final bill, and is followed by a new occupant",
+   "filled": false,
+   "reason": "No household in this run can be shown moving. The published record carries no move-out event and no final-bill marker, and the new-occupant accounts (OCC-…) are not linked to the household they replaced, so a rule cannot follow a move from one occupant to the next."
+  },
+  {
+   "id": "debt",
+   "feature": "The debt journey",
+   "rule": "The arrears journey that goes deepest: missed payment, notices, then repaid, written off or passed to an agency",
+   "filled": true,
+   "household": "PROS-2021-0362",
+   "fuels": [
+    "electricity",
+    "gas"
+   ],
+   "segment": "resi",
+   "span": "16 Oct 2021 to 14 Oct 2024",
+   "story": "From a missed payment to the end of the debt.",
+   "opening": 4,
+   "moments": [
+    {
+     "iso": "2024-09-17",
+     "date": "17 Sep 2024",
+     "kind": "debt",
+     "title": "Missed a payment",
+     "story": "Standard credit payment not received",
+     "why": "The last life event on record before this was New baby (2020-08). The record does not say it caused this.",
+     "gap": null,
+     "supplier": [
+      {
+       "k": "Customer since",
+       "v": "16 Oct 2021",
+       "drawn_from": "2021-10-16"
+      },
+      {
+       "k": "Fuels",
+       "v": "Electricity and Gas",
+       "drawn_from": "2021-10-16"
+      },
+      {
+       "k": "How they pay",
+       "v": "Pays each bill on receipt",
+       "drawn_from": "2024-09-13"
+      },
+      {
+       "k": "Tariff",
+       "v": "Fixed at 235.0 £/MWh from 16 Oct 2023",
+       "drawn_from": "2023-10-16"
+      },
+      {
+       "k": "Churn risk it held",
+       "v": "5.0% at the 16 Oct 2023 renewal",
+       "drawn_from": "2023-10-16"
+      },
+      {
+       "k": "Payment record",
+       "v": "62 payments, 0 returned, 4 missed",
+       "drawn_from": "2024-09-17"
+      },
+      {
+       "k": "Meter reads",
+       "v": "70 bills, 68 on an actual read, last on 31 Aug 2024",
+       "drawn_from": "2024-08-31"
+      },
+      {
+       "k": "Balance on the books",
+       "v": "£464.96 owed",
+       "drawn_from": "2024-09-13"
+      },
+      {
+       "k": "Debt stage",
+       "v": "Standard credit payment not received",
+       "drawn_from": "2024-09-17"
+      }
+     ],
+     "decision": "6 Sep 2024: Second notice -- payment plan offered",
+     "truth": [
+      {
+       "k": "Household",
+       "v": "one person, owner occupier"
+      },
+      {
+       "k": "Money",
+       "v": "Income stress moderate"
+      },
+      {
+       "k": "Life so far",
+       "v": "New baby (2020-08)"
+      },
+      {
+       "k": "Hidden mood",
+       "v": "CONTENT (resentment score 0.0)"
+      },
+      {
+       "k": "True satisfaction",
+       "v": "70.0% in 2024"
+      },
+      {
+       "k": "True chance of leaving",
+       "v": "0.0% at the 16 Oct 2023 renewal"
+      },
+      {
+       "k": "Smart meter",
+       "v": "Yes"
+      }
+     ],
+     "portal": {
+      "message": "Your payment did not reach us.",
+      "tariff": "Fixed from 16 Oct 2023",
+      "pays": "Pay on receipt of bill",
+      "balance": "£464.96 to pay",
+      "usage": [
+       {
+        "month": "2023-09",
+        "e": 431,
+        "g": 511
+       },
+       {
+        "month": "2023-10",
+        "e": 460,
+        "g": 1667
+       },
+       {
+        "month": "2023-11",
+        "e": 449,
+        "g": 2838
+       },
+       {
+        "month": "2023-12",
+        "e": 481,
+        "g": 3162
+       },
+       {
+        "month": "2024-01",
+        "e": 488,
+        "g": 3639
+       },
+       {
+        "month": "2024-02",
+        "e": 446,
+        "g": 2718
+       },
+       {
+        "month": "2024-03",
+        "e": 468,
+        "g": 2786
+       },
+       {
+        "month": "2024-04",
+        "e": 431,
+        "g": 2078
+       },
+       {
+        "month": "2024-05",
+        "e": 431,
+        "g": 744
+       },
+       {
+        "month": "2024-06",
+        "e": 401,
+        "g": 650
+       },
+       {
+        "month": "2024-07",
+        "e": 418,
+        "g": 356
+       },
+       {
+        "month": "2024-08",
+        "e": 404,
+        "g": 265
+       }
+      ],
+      "bills": [
+       {
+        "fuel": "gas",
+        "when": "31 Aug 2024",
+        "kwh": 265,
+        "amount": "£25.92",
+        "badge": "Actual read"
+       },
+       {
+        "fuel": "electricity",
+        "when": "31 Aug 2024",
+        "kwh": 404,
+        "amount": "£113.65",
+        "badge": "Actual read"
+       },
+       {
+        "fuel": "gas",
+        "when": "31 Jul 2024",
+        "kwh": 356,
+        "amount": "£31.66",
+        "badge": "Actual read"
+       },
+       {
+        "fuel": "electricity",
+        "when": "31 Jul 2024",
+        "kwh": 418,
+        "amount": "£117.75",
+        "badge": "Actual read"
+       }
+      ]
+     }
+    },
+    {
+     "iso": "2024-09-24",
+     "date": "24 Sep 2024",
+     "kind": "debt",
+     "title": "First notice",
+     "story": "First overdue notice -- GBP25.91 outstanding",
+     "why": "The last life event on record before this was New baby (2020-08). The record does not say it caused this.",
+     "gap": null,
+     "supplier": [
+      {
+       "k": "Customer since",
+       "v": "16 Oct 2021",
+       "drawn_from": "2021-10-16"
+      },
+      {
+       "k": "Fuels",
+       "v": "Electricity and Gas",
+       "drawn_from": "2021-10-16"
+      },
+      {
+       "k": "How they pay",
+       "v": "Pays each bill on receipt",
+       "drawn_from": "2024-09-24"
+      },
+      {
+       "k": "Tariff",
+       "v": "Fixed at 235.0 £/MWh from 16 Oct 2023",
+       "drawn_from": "2023-10-16"
+      },
+      {
+       "k": "Churn risk it held",
+       "v": "5.0% at the 16 Oct 2023 renewal",
+       "drawn_from": "2023-10-16"
+      },
+      {
+       "k": "Payment record",
+       "v": "63 payments, 0 returned, 4 missed",
+       "drawn_from": "2024-09-20"
+      },
+      {
+       "k": "Meter reads",
+       "v": "70 bills, 68 on an actual read, last on 31 Aug 2024",
+       "drawn_from": "2024-08-31"
+      },
+      {
+       "k": "Balance on the books",
+       "v": "£351.31 owed",
+       "drawn_from": "2024-09-24"
+      },
+      {
+       "k": "Debt stage",
+       "v": "First overdue notice -- GBP25.91 outstanding",
+       "drawn_from": "2024-09-24"
+      }
+     ],
+     "decision": "24 Sep 2024: First overdue notice -- £25.91 outstanding",
+     "truth": [
+      {
+       "k": "Household",
+       "v": "one person, owner occupier"
+      },
+      {
+       "k": "Money",
+       "v": "Income stress moderate"
+      },
+      {
+       "k": "Life so far",
+       "v": "New baby (2020-08)"
+      },
+      {
+       "k": "Hidden mood",
+       "v": "CONTENT (resentment score 0.0)"
+      },
+      {
+       "k": "True satisfaction",
+       "v": "70.0% in 2024"
+      },
+      {
+       "k": "True chance of leaving",
+       "v": "0.0% at the 16 Oct 2023 renewal"
+      },
+      {
+       "k": "Smart meter",
+       "v": "Yes"
+      }
+     ],
+     "portal": {
+      "message": "Your account is overdue. Please pay or call us.",
+      "tariff": "Fixed from 16 Oct 2023",
+      "pays": "Pay on receipt of bill",
+      "balance": "£351.31 to pay",
+      "usage": [
+       {
+        "month": "2023-09",
+        "e": 431,
+        "g": 511
+       },
+       {
+        "month": "2023-10",
+        "e": 460,
+        "g": 1667
+       },
+       {
+        "month": "2023-11",
+        "e": 449,
+        "g": 2838
+       },
+       {
+        "month": "2023-12",
+        "e": 481,
+        "g": 3162
+       },
+       {
+        "month": "2024-01",
+        "e": 488,
+        "g": 3639
+       },
+       {
+        "month": "2024-02",
+        "e": 446,
+        "g": 2718
+       },
+       {
+        "month": "2024-03",
+        "e": 468,
+        "g": 2786
+       },
+       {
+        "month": "2024-04",
+        "e": 431,
+        "g": 2078
+       },
+       {
+        "month": "2024-05",
+        "e": 431,
+        "g": 744
+       },
+       {
+        "month": "2024-06",
+        "e": 401,
+        "g": 650
+       },
+       {
+        "month": "2024-07",
+        "e": 418,
+        "g": 356
+       },
+       {
+        "month": "2024-08",
+        "e": 404,
+        "g": 265
+       }
+      ],
+      "bills": [
+       {
+        "fuel": "gas",
+        "when": "31 Aug 2024",
+        "kwh": 265,
+        "amount": "£25.92",
+        "badge": "Actual read"
+       },
+       {
+        "fuel": "electricity",
+        "when": "31 Aug 2024",
+        "kwh": 404,
+        "amount": "£113.65",
+        "badge": "Actual read"
+       },
+       {
+        "fuel": "gas",
+        "when": "31 Jul 2024",
+        "kwh": 356,
+        "amount": "£31.66",
+        "badge": "Actual read"
+       },
+       {
+        "fuel": "electricity",
+        "when": "31 Jul 2024",
+        "kwh": 418,
+        "amount": "£117.75",
+        "badge": "Actual read"
+       }
+      ]
+     }
+    },
+    {
+     "iso": "2024-10-08",
+     "date": "8 Oct 2024",
+     "kind": "debt",
+     "title": "Second notice",
+     "story": "Second notice -- payment plan offered",
+     "why": "The last life event on record before this was New baby (2020-08). The record does not say it caused this.",
+     "gap": null,
+     "supplier": [
+      {
+       "k": "Customer since",
+       "v": "16 Oct 2021",
+       "drawn_from": "2021-10-16"
+      },
+      {
+       "k": "Fuels",
+       "v": "Electricity and Gas",
+       "drawn_from": "2021-10-16"
+      },
+      {
+       "k": "How they pay",
+       "v": "Pays each bill on receipt",
+       "drawn_from": "2024-10-08"
+      },
+      {
+       "k": "Tariff",
+       "v": "Fixed at 235.0 £/MWh from 16 Oct 2023",
+       "drawn_from": "2023-10-16"
+      },
+      {
+       "k": "Churn risk it held",
+       "v": "5.0% at the 16 Oct 2023 renewal",
+       "drawn_from": "2023-10-16"
+      },
+      {
+       "k": "Payment record",
+       "v": "64 payments, 0 returned, 4 missed",
+       "drawn_from": "2024-10-05"
+      },
+      {
+       "k": "Meter reads",
+       "v": "72 bills, 70 on an actual read, last on 30 Sep 2024",
+       "drawn_from": "2024-09-30"
+      },
+      {
+       "k": "Balance on the books",
+       "v": "£496.70 owed",
+       "drawn_from": "2024-10-08"
+      },
+      {
+       "k": "Debt stage",
+       "v": "Second notice -- payment plan offered",
+       "drawn_from": "2024-10-08"
+      }
+     ],
+     "decision": "8 Oct 2024: Second notice -- payment plan offered",
+     "truth": [
+      {
+       "k": "Household",
+       "v": "one person, owner occupier"
+      },
+      {
+       "k": "Money",
+       "v": "Income stress moderate"
+      },
+      {
+       "k": "Life so far",
+       "v": "New baby (2020-08)"
+      },
+      {
+       "k": "Hidden mood",
+       "v": "CONTENT (resentment score 0.0)"
+      },
+      {
+       "k": "True satisfaction",
+       "v": "70.0% in 2024"
+      },
+      {
+       "k": "True chance of leaving",
+       "v": "0.0% at the 16 Oct 2023 renewal"
+      },
+      {
+       "k": "Smart meter",
+       "v": "Yes"
+      }
+     ],
+     "portal": {
+      "message": "Your account is still overdue. We can set up a payment plan.",
+      "tariff": "Fixed from 16 Oct 2023",
+      "pays": "Pay on receipt of bill",
+      "balance": "£496.70 to pay",
+      "usage": [
+       {
+        "month": "2023-10",
+        "e": 460,
+        "g": 1667
+       },
+       {
+        "month": "2023-11",
+        "e": 449,
+        "g": 2838
+       },
+       {
+        "month": "2023-12",
+        "e": 481,
+        "g": 3162
+       },
+       {
+        "month": "2024-01",
+        "e": 488,
+        "g": 3639
+       },
+       {
+        "month": "2024-02",
+        "e": 446,
+        "g": 2718
+       },
+       {
+        "month": "2024-03",
+        "e": 468,
+        "g": 2786
+       },
+       {
+        "month": "2024-04",
+        "e": 431,
+        "g": 2078
+       },
+       {
+        "month": "2024-05",
+        "e": 431,
+        "g": 744
+       },
+       {
+        "month": "2024-06",
+        "e": 401,
+        "g": 650
+       },
+       {
+        "month": "2024-07",
+        "e": 418,
+        "g": 356
+       },
+       {
+        "month": "2024-08",
+        "e": 404,
+        "g": 265
+       },
+       {
+        "month": "2024-09",
+        "e": 426,
+        "g": 1065
+       }
+      ],
+      "bills": [
+       {
+        "fuel": "gas",
+        "when": "30 Sep 2024",
+        "kwh": 1065,
+        "amount": "£75.82",
+        "badge": "Actual read"
+       },
+       {
+        "fuel": "electricity",
+        "when": "30 Sep 2024",
+        "kwh": 426,
+        "amount": "£119.32",
+        "badge": "Actual read"
+       },
+       {
+        "fuel": "gas",
+        "when": "31 Aug 2024",
+        "kwh": 265,
+        "amount": "£25.92",
+        "badge": "Actual read"
+       },
+       {
+        "fuel": "electricity",
+        "when": "31 Aug 2024",
+        "kwh": 404,
+        "amount": "£113.65",
+        "badge": "Actual read"
+       }
+      ]
+     }
+    },
+    {
+     "iso": "2024-10-28",
+     "date": "28 Oct 2024",
+     "kind": "debt",
+     "title": "Written off",
+     "story": "Debt written off -- bad debt provision raised",
+     "why": "The last life event on record before this was New baby (2020-08). The record does not say it caused this.",
+     "gap": null,
+     "supplier": [
+      {
+       "k": "Customer since",
+       "v": "16 Oct 2021",
+       "drawn_from": "2021-10-16"
+      },
+      {
+       "k": "Fuels",
+       "v": "Electricity and Gas",
+       "drawn_from": "2021-10-16"
+      },
+      {
+       "k": "How they pay",
+       "v": "Pays each bill on receipt",
+       "drawn_from": "2024-10-14"
+      },
+      {
+       "k": "Tariff",
+       "v": "Fixed at 235.0 £/MWh from 16 Oct 2023",
+       "drawn_from": "2023-10-16"
+      },
+      {
+       "k": "Churn risk it held",
+       "v": "14.5% at the 15 Oct 2024 renewal",
+       "drawn_from": "2024-10-15"
+      },
+      {
+       "k": "Payment record",
+       "v": "65 payments, 0 returned, 4 missed",
+       "drawn_from": "2024-10-14"
+      },
+      {
+       "k": "Meter reads",
+       "v": "74 bills, 72 on an actual read, last on 14 Oct 2024",
+       "drawn_from": "2024-10-14"
+      },
+      {
+       "k": "Balance on the books",
+       "v": "£351.24 owed",
+       "drawn_from": "2024-10-28"
+      },
+      {
+       "k": "Debt stage",
+       "v": "Debt written off -- bad debt provision raised",
+       "drawn_from": "2024-10-28"
+      }
+     ],
+     "decision": "28 Oct 2024: Debt written off -- bad debt provision raised",
+     "truth": [
+      {
+       "k": "Household",
+       "v": "one person, owner occupier"
+      },
+      {
+       "k": "Money",
+       "v": "Income stress moderate"
+      },
+      {
+       "k": "Life so far",
+       "v": "New baby (2020-08)"
+      },
+      {
+       "k": "Hidden mood",
+       "v": "CONTENT (resentment score 0.0)"
+      },
+      {
+       "k": "True satisfaction",
+       "v": "70.0% in 2024"
+      },
+      {
+       "k": "True chance of leaving",
+       "v": "31.7% at the 15 Oct 2024 renewal"
+      },
+      {
+       "k": "Smart meter",
+       "v": "Yes"
+      }
+     ],
+     "portal": {
+      "message": "Your account has been closed.",
+      "tariff": "Fixed from 16 Oct 2023",
+      "pays": "Pay on receipt of bill",
+      "balance": "£351.24 to pay",
+      "usage": [
+       {
+        "month": "2023-11",
+        "e": 449,
+        "g": 2838
+       },
+       {
+        "month": "2023-12",
+        "e": 481,
+        "g": 3162
+       },
+       {
+        "month": "2024-01",
+        "e": 488,
+        "g": 3639
+       },
+       {
+        "month": "2024-02",
+        "e": 446,
+        "g": 2718
+       },
+       {
+        "month": "2024-03",
+        "e": 468,
+        "g": 2786
+       },
+       {
+        "month": "2024-04",
+        "e": 431,
+        "g": 2078
+       },
+       {
+        "month": "2024-05",
+        "e": 431,
+        "g": 744
+       },
+       {
+        "month": "2024-06",
+        "e": 401,
+        "g": 650
+       },
+       {
+        "month": "2024-07",
+        "e": 418,
+        "g": 356
+       },
+       {
+        "month": "2024-08",
+        "e": 404,
+        "g": 265
+       },
+       {
+        "month": "2024-09",
+        "e": 426,
+        "g": 1065
+       },
+       {
+        "month": "2024-10",
+        "e": 203,
+        "g": 805
+       }
+      ],
+      "bills": [
+       {
+        "fuel": "gas",
+        "when": "14 Oct 2024",
+        "kwh": 805,
+        "amount": "£54.68",
+        "badge": "Actual read"
+       },
+       {
+        "fuel": "electricity",
+        "when": "14 Oct 2024",
+        "kwh": 203,
+        "amount": "£56.75",
+        "badge": "Actual read"
+       },
+       {
+        "fuel": "gas",
+        "when": "30 Sep 2024",
+        "kwh": 1065,
+        "amount": "£75.82",
+        "badge": "Actual read"
+       },
+       {
+        "fuel": "electricity",
+        "when": "30 Sep 2024",
+        "kwh": 426,
+        "amount": "£119.32",
+        "badge": "Actual read"
+       }
+      ]
+     }
+    },
+    {
+     "iso": "2024-11-27",
+     "date": "27 Nov 2024",
+     "kind": "debt",
+     "title": "Passed to an agency",
+     "story": "Debt placed with third-party debt collection agency",
+     "why": "The last life event on record before this was New baby (2020-08). The record does not say it caused this.",
+     "gap": null,
+     "supplier": [
+      {
+       "k": "Customer since",
+       "v": "16 Oct 2021",
+       "drawn_from": "2021-10-16"
+      },
+      {
+       "k": "Fuels",
+       "v": "Electricity and Gas",
+       "drawn_from": "2021-10-16"
+      },
+      {
+       "k": "How they pay",
+       "v": "Pays each bill on receipt",
+       "drawn_from": "2024-10-14"
+      },
+      {
+       "k": "Tariff",
+       "v": "Fixed at 235.0 £/MWh from 16 Oct 2023",
+       "drawn_from": "2023-10-16"
+      },
+      {
+       "k": "Churn risk it held",
+       "v": "14.5% at the 15 Oct 2024 renewal",
+       "drawn_from": "2024-10-15"
+      },
+      {
+       "k": "Payment record",
+       "v": "65 payments, 0 returned, 4 missed",
+       "drawn_from": "2024-10-14"
+      },
+      {
+       "k": "Meter reads",
+       "v": "74 bills, 72 on an actual read, last on 14 Oct 2024",
+       "drawn_from": "2024-10-14"
+      },
+      {
+       "k": "Balance on the books",
+       "v": "£351.24 owed",
+       "drawn_from": "2024-10-28"
+      },
+      {
+       "k": "Debt stage",
+       "v": "Debt placed with third-party debt collection agency",
+       "drawn_from": "2024-11-27"
+      }
+     ],
+     "decision": "27 Nov 2024: Debt placed with third-party debt collection agency",
+     "truth": [
+      {
+       "k": "Household",
+       "v": "one person, owner occupier"
+      },
+      {
+       "k": "Money",
+       "v": "Income stress moderate"
+      },
+      {
+       "k": "Life so far",
+       "v": "New baby (2020-08)"
+      },
+      {
+       "k": "Hidden mood",
+       "v": "CONTENT (resentment score 0.0)"
+      },
+      {
+       "k": "True satisfaction",
+       "v": "70.0% in 2024"
+      },
+      {
+       "k": "True chance of leaving",
+       "v": "31.7% at the 15 Oct 2024 renewal"
+      },
+      {
+       "k": "Smart meter",
+       "v": "Yes"
+      }
+     ],
+     "portal": {
+      "message": "Your closed account has been passed to a collection agency.",
+      "tariff": "Fixed from 16 Oct 2023",
+      "pays": "Pay on receipt of bill",
+      "balance": "£351.24 to pay",
+      "usage": [
+       {
+        "month": "2023-11",
+        "e": 449,
+        "g": 2838
+       },
+       {
+        "month": "2023-12",
+        "e": 481,
+        "g": 3162
+       },
+       {
+        "month": "2024-01",
+        "e": 488,
+        "g": 3639
+       },
+       {
+        "month": "2024-02",
+        "e": 446,
+        "g": 2718
+       },
+       {
+        "month": "2024-03",
+        "e": 468,
+        "g": 2786
+       },
+       {
+        "month": "2024-04",
+        "e": 431,
+        "g": 2078
+       },
+       {
+        "month": "2024-05",
+        "e": 431,
+        "g": 744
+       },
+       {
+        "month": "2024-06",
+        "e": 401,
+        "g": 650
+       },
+       {
+        "month": "2024-07",
+        "e": 418,
+        "g": 356
+       },
+       {
+        "month": "2024-08",
+        "e": 404,
+        "g": 265
+       },
+       {
+        "month": "2024-09",
+        "e": 426,
+        "g": 1065
+       },
+       {
+        "month": "2024-10",
+        "e": 203,
+        "g": 805
+       }
+      ],
+      "bills": [
+       {
+        "fuel": "gas",
+        "when": "14 Oct 2024",
+        "kwh": 805,
+        "amount": "£54.68",
+        "badge": "Actual read"
+       },
+       {
+        "fuel": "electricity",
+        "when": "14 Oct 2024",
+        "kwh": 203,
+        "amount": "£56.75",
+        "badge": "Actual read"
+       },
+       {
+        "fuel": "gas",
+        "when": "30 Sep 2024",
+        "kwh": 1065,
+        "amount": "£75.82",
+        "badge": "Actual read"
+       },
+       {
+        "fuel": "electricity",
+        "when": "30 Sep 2024",
+        "kwh": 426,
+        "amount": "£119.32",
+        "badge": "Actual read"
+       }
+      ]
+     }
+    }
+   ],
+   "breaches": [
+    {
+     "rule": "above_cap",
+     "date": "2022-10-31",
+     "fuel": "electricity",
+     "text": "Electricity bill of 31 Oct 2022: 47.46p/kWh all-in including VAT, against a ceiling of 34.00p/kWh for a default tariff then (GB average; the cap is set per region)"
+    },
+    {
+     "rule": "above_cap",
+     "date": "2022-11-30",
+     "fuel": "electricity",
+     "text": "Electricity bill of 30 Nov 2022: 47.79p/kWh all-in including VAT, against a ceiling of 34.00p/kWh for a default tariff then (GB average; the cap is set per region)"
+    },
+    {
+     "rule": "above_cap",
+     "date": "2022-11-30",
+     "fuel": "gas",
+     "text": "Gas bill of 30 Nov 2022: 14.76p/kWh all-in including VAT, against a ceiling of 10.32p/kWh for a default tariff then (GB average; the cap is set per region)"
+    },
+    {
+     "rule": "above_cap",
+     "date": "2022-12-31",
+     "fuel": "electricity",
+     "text": "Electricity bill of 31 Dec 2022: 47.51p/kWh all-in including VAT, against a ceiling of 34.00p/kWh for a default tariff then (GB average; the cap is set per region)"
+    },
+    {
+     "rule": "above_cap",
+     "date": "2022-12-31",
+     "fuel": "gas",
+     "text": "Gas bill of 31 Dec 2022: 14.76p/kWh all-in including VAT, against a ceiling of 10.32p/kWh for a default tariff then (GB average; the cap is set per region)"
+    },
+    {
+     "rule": "above_cap",
+     "date": "2023-01-31",
+     "fuel": "electricity",
+     "text": "Electricity bill of 31 Jan 2023: 64.84p/kWh all-in including VAT, against a ceiling of 34.00p/kWh for a default tariff then (GB average; the cap is set per region)"
+    }
+   ],
+   "breach_count": 17
+  },
+  {
+   "id": "ev",
+   "feature": "The EV home",
+   "rule": "The household whose electric car moved its use the most, with the supplier's inference set against it",
+   "filled": true,
+   "household": "PROS-2021-0219",
+   "fuels": [
+    "electricity",
+    "gas"
+   ],
+   "segment": "resi",
+   "span": "15 Jun 2021 to 7 Jun 2025",
+   "story": "An electric car arrives; the supplier sees only the meter.",
+   "opening": 1,
+   "moments": [
+    {
+     "iso": "2021-06-15",
+     "date": "15 Jun 2021",
+     "kind": "joined",
+     "title": "Switched in",
+     "story": "The household joins Poesys for electricity and gas.",
+     "why": "The supplier knows the address, the meter points and how it will be paid. It knows nothing else yet.",
+     "gap": null,
+     "supplier": [
+      {
+       "k": "Customer since",
+       "v": "15 Jun 2021",
+       "drawn_from": "2021-06-15"
+      },
+      {
+       "k": "Fuels",
+       "v": "Electricity and Gas",
+       "drawn_from": "2021-06-15"
+      },
+      {
+       "k": "How they pay",
+       "v": "No payment yet",
+       "drawn_from": "2021-06-15"
+      },
+      {
+       "k": "Tariff",
+       "v": "Standard variable",
+       "drawn_from": "2021-06-15"
+      },
+      {
+       "k": "Payment record",
+       "v": "0 payments, 0 returned, 0 missed",
+       "drawn_from": "2021-06-15"
+      },
+      {
+       "k": "Meter reads",
+       "v": "0 bills, 0 on an actual read",
+       "drawn_from": "2021-06-15"
+      },
+      {
+       "k": "Balance on the books",
+       "v": "Nothing owed",
+       "drawn_from": "2021-06-15"
+      }
+     ],
+     "decision": "No decision about this household is on record yet.",
+     "truth": [
+      {
+       "k": "Household",
+       "v": "two person, owner occupier"
+      },
+      {
+       "k": "Money",
+       "v": "Income stress low"
+      },
+      {
+       "k": "Life so far",
+       "v": "Nothing recorded"
+      },
+      {
+       "k": "Smart meter",
+       "v": "No"
+      }
+     ],
+     "portal": {
+      "message": "Welcome to Poesys. Your electricity and gas supply started on 15 Jun 2021.",
+      "tariff": "Standard Variable",
+      "pays": "Set up at your first bill",
+      "balance": "Nothing owed",
+      "usage": [],
+      "bills": []
+     }
+    },
+    {
+     "iso": "2024-08-09",
+     "date": "9 Aug 2024",
+     "kind": "life_event",
+     "title": "EV acquired",
+     "story": "EV acquired: Usage moved +8% (avg 99 kWh/mo -> 108 kWh/mo)",
+     "why": "This is in the simulation only. Usage moved +8% (avg 99 kWh/mo -> 108 kWh/mo)",
+     "gap": {
+      "believed": "Nothing changed",
+      "truth": "EV acquired — Usage moved +8% (avg 99 kWh/mo -> 108 kWh/mo)",
+      "meant": "The supplier can only learn this from the meter, later",
+      "tone": "neutral"
+     },
+     "supplier": [
+      {
+       "k": "Customer since",
+       "v": "15 Jun 2021",
+       "drawn_from": "2021-06-15"
+      },
+      {
+       "k": "Fuels",
+       "v": "Electricity and Gas",
+       "drawn_from": "2021-06-15"
+      },
+      {
+       "k": "How they pay",
+       "v": "Direct debit",
+       "drawn_from": "2024-07-18"
+      },
+      {
+       "k": "Tariff",
+       "v": "Standard variable",
+       "drawn_from": "2021-06-15"
+      },
+      {
+       "k": "Payment record",
+       "v": "74 payments, 0 returned, 0 missed",
+       "drawn_from": "2024-07-18"
+      },
+      {
+       "k": "Meter reads",
+       "v": "76 bills, 20 on an actual read, last on 30 Jun 2024",
+       "drawn_from": "2024-07-31"
+      },
+      {
+       "k": "Balance on the books",
+       "v": "£55.62 owed",
+       "drawn_from": "2024-08-03"
+      }
+     ],
+     "decision": "No decision about this household is on record yet.",
+     "truth": [
+      {
+       "k": "Household",
+       "v": "two person, owner occupier"
+      },
+      {
+       "k": "Money",
+       "v": "Income stress low"
+      },
+      {
+       "k": "Life so far",
+       "v": "EV acquired (2024-08)"
+      },
+      {
+       "k": "Smart meter",
+       "v": "No"
+      }
+     ],
+     "portal": {
+      "message": "No message: nothing the supplier can see happened today.",
+      "tariff": "Standard Variable",
+      "pays": "Direct debit",
+      "balance": "£55.62 to pay",
+      "usage": [
+       {
+        "month": "2023-08",
+        "e": 100,
+        "g": 95
+       },
+       {
+        "month": "2023-09",
+        "e": 105,
+        "g": 142
+       },
+       {
+        "month": "2023-10",
+        "e": 118,
+        "g": 295
+       },
+       {
+        "month": "2023-11",
+        "e": 140,
+        "g": 507
+       },
+       {
+        "month": "2023-12",
+        "e": 145,
+        "g": 572
+       },
+       {
+        "month": "2024-01",
+        "e": 143,
+        "g": 746
+       },
+       {
+        "month": "2024-02",
+        "e": 122,
+        "g": 550
+       },
+       {
+        "month": "2024-03",
+        "e": 142,
+        "g": 547
+       },
+       {
+        "month": "2024-04",
+        "e": 117,
+        "g": 329
+       },
+       {
+        "month": "2024-05",
+        "e": 104,
+        "g": 172
+       },
+       {
+        "month": "2024-06",
+        "e": 97,
+        "g": 195
+       },
+       {
+        "month": "2024-07",
+        "e": 98,
+        "g": 108
+       }
+      ],
+      "bills": [
+       {
+        "fuel": "gas",
+        "when": "31 Jul 2024",
+        "kwh": 108,
+        "amount": "£15.25",
+        "badge": "Estimated"
+       },
+       {
+        "fuel": "electricity",
+        "when": "31 Jul 2024",
+        "kwh": 98,
+        "amount": "£40.37",
+        "badge": "Estimated"
+       },
+       {
+        "fuel": "gas",
+        "when": "30 Jun 2024",
+        "kwh": 195,
+        "amount": "£31.14",
+        "badge": "Actual read"
+       },
+       {
+        "fuel": "electricity",
+        "when": "30 Jun 2024",
+        "kwh": 97,
+        "amount": "£41.69",
+        "badge": "Estimated"
+       }
+      ]
+     }
+    },
+    {
+     "iso": "2024-12-31",
+     "date": "31 Dec 2024",
+     "kind": "catch_up",
+     "title": "The catch-up",
+     "story": "An actual read on 31 Dec 2024 corrects the estimates: £158.10 added.",
+     "why": "The estimates were below the meter by £158.10.",
+     "gap": {
+      "believed": "The estimated bills",
+      "truth": "The meter read on 31 Dec 2024",
+      "meant": "£158.10 owed in one bill",
+      "tone": "bad"
+     },
+     "supplier": [
+      {
+       "k": "Customer since",
+       "v": "15 Jun 2021",
+       "drawn_from": "2021-06-15"
+      },
+      {
+       "k": "Fuels",
+       "v": "Electricity and Gas",
+       "drawn_from": "2021-06-15"
+      },
+      {
+       "k": "How they pay",
+       "v": "Direct debit",
+       "drawn_from": "2024-12-16"
+      },
+      {
+       "k": "Tariff",
+       "v": "Standard variable",
+       "drawn_from": "2021-06-15"
+      },
+      {
+       "k": "Payment record",
+       "v": "83 payments, 1 returned, 0 missed",
+       "drawn_from": "2024-12-16"
+      },
+      {
+       "k": "Meter reads",
+       "v": "86 bills, 22 on an actual read, last on 31 Dec 2024",
+       "drawn_from": "2024-12-31"
+      },
+      {
+       "k": "Balance on the books",
+       "v": "£95.08 owed",
+       "drawn_from": "2024-12-31"
+      },
+      {
+       "k": "Debt stage",
+       "v": "Balance still open -- GBP41.45 unpaid, with no payment or arrangement against it",
+       "drawn_from": "2024-11-05"
+      }
+     ],
+     "decision": "5 Nov 2024: Second notice -- payment plan offered",
+     "truth": [
+      {
+       "k": "Household",
+       "v": "two person, owner occupier"
+      },
+      {
+       "k": "Money",
+       "v": "Income stress low"
+      },
+      {
+       "k": "Life so far",
+       "v": "EV acquired (2024-08)"
+      },
+      {
+       "k": "Smart meter",
+       "v": "No"
+      }
+     ],
+     "portal": {
+      "message": "We have a meter reading and your bill now reflects what you used.",
+      "tariff": "Standard Variable",
+      "pays": "Direct debit",
+      "balance": "£95.08 to pay",
+      "usage": [
+       {
+        "month": "2024-01",
+        "e": 143,
+        "g": 746
+       },
+       {
+        "month": "2024-02",
+        "e": 122,
+        "g": 550
+       },
+       {
+        "month": "2024-03",
+        "e": 142,
+        "g": 547
+       },
+       {
+        "month": "2024-04",
+        "e": 117,
+        "g": 329
+       },
+       {
+        "month": "2024-05",
+        "e": 104,
+        "g": 172
+       },
+       {
+        "month": "2024-06",
+        "e": 97,
+        "g": 195
+       },
+       {
+        "month": "2024-07",
+        "e": 98,
+        "g": 108
+       },
+       {
+        "month": "2024-08",
+        "e": 100,
+        "g": 107
+       },
+       {
+        "month": "2024-09",
+        "e": 105,
+        "g": 160
+       },
+       {
+        "month": "2024-10",
+        "e": 118,
+        "g": 287
+       },
+       {
+        "month": "2024-11",
+        "e": 139,
+        "g": 572
+       },
+       {
+        "month": "2024-12",
+        "e": 325,
+        "g": 711
+       }
+      ],
+      "bills": [
+       {
+        "fuel": "gas",
+        "when": "31 Dec 2024",
+        "kwh": 711,
+        "amount": "£53.64",
+        "badge": "Estimated"
+       },
+       {
+        "fuel": "electricity",
+        "when": "31 Dec 2024",
+        "kwh": 325,
+        "amount": "£256.40",
+        "badge": "Actual read"
+       },
+       {
+        "fuel": "gas",
+        "when": "30 Nov 2024",
+        "kwh": 572,
+        "amount": "£44.66",
+        "badge": "Estimated"
+       },
+       {
+        "fuel": "electricity",
+        "when": "30 Nov 2024",
+        "kwh": 139,
+        "amount": "£51.96",
+        "badge": "Estimated"
+       }
+      ]
+     }
+    }
+   ],
+   "breaches": [
+    {
+     "rule": "above_cap",
+     "date": "2022-10-31",
+     "fuel": "electricity",
+     "text": "Electricity bill of 31 Oct 2022: 51.92p/kWh all-in including VAT, against a ceiling of 34.00p/kWh for a default tariff then (GB average; the cap is set per region)"
+    },
+    {
+     "rule": "above_cap",
+     "date": "2022-10-31",
+     "fuel": "gas",
+     "text": "Gas bill of 31 Oct 2022: 14.76p/kWh all-in including VAT, against a ceiling of 10.32p/kWh for a default tariff then (GB average; the cap is set per region)"
+    },
+    {
+     "rule": "above_cap",
+     "date": "2022-11-30",
+     "fuel": "electricity",
+     "text": "Electricity bill of 30 Nov 2022: 51.88p/kWh all-in including VAT, against a ceiling of 34.00p/kWh for a default tariff then (GB average; the cap is set per region)"
+    },
+    {
+     "rule": "above_cap",
+     "date": "2022-11-30",
+     "fuel": "gas",
+     "text": "Gas bill of 30 Nov 2022: 14.76p/kWh all-in including VAT, against a ceiling of 10.32p/kWh for a default tariff then (GB average; the cap is set per region)"
+    },
+    {
+     "rule": "above_cap",
+     "date": "2022-12-31",
+     "fuel": "electricity",
+     "text": "Electricity bill of 31 Dec 2022: 51.88p/kWh all-in including VAT, against a ceiling of 34.00p/kWh for a default tariff then (GB average; the cap is set per region)"
+    },
+    {
+     "rule": "above_cap",
+     "date": "2022-12-31",
+     "fuel": "gas",
+     "text": "Gas bill of 31 Dec 2022: 14.76p/kWh all-in including VAT, against a ceiling of 10.32p/kWh for a default tariff then (GB average; the cap is set per region)"
+    }
+   ],
+   "breach_count": 15
+  },
+  {
+   "id": "storage_heating",
+   "feature": "Storage heating",
+   "rule": "A two-rate (profile class 2) home billed on its meter's registers",
+   "filled": false,
+   "reason": "No household in this run has a two-rate meter. Every bill in the published run is a single 'Anytime' register, so there is no profile class 2 home to show."
+  },
+  {
+   "id": "shock_2022",
+   "feature": "The 2022 shock",
+   "rule": "The largest year-on-year rise in one month's bill through the 2022 crisis",
+   "filled": true,
+   "household": "PROS-2017-0336",
+   "fuels": [
+    "electricity"
+   ],
+   "segment": "resi",
+   "span": "25 Oct 2017 to 7 Jun 2025",
+   "story": "The 2022 crisis reaches one household's bill.",
+   "opening": 2,
+   "moments": [
+    {
+     "iso": "2017-10-25",
+     "date": "25 Oct 2017",
+     "kind": "joined",
+     "title": "Switched in",
+     "story": "The household joins Poesys for electricity.",
+     "why": "The supplier knows the address, the meter points and how it will be paid. It knows nothing else yet.",
+     "gap": null,
+     "supplier": [
+      {
+       "k": "Customer since",
+       "v": "25 Oct 2017",
+       "drawn_from": "2017-10-25"
+      },
+      {
+       "k": "Fuels",
+       "v": "Electricity",
+       "drawn_from": "2017-10-25"
+      },
+      {
+       "k": "How they pay",
+       "v": "No payment yet",
+       "drawn_from": "2017-10-25"
+      },
+      {
+       "k": "Tariff",
+       "v": "Standard variable",
+       "drawn_from": "2017-10-25"
+      },
+      {
+       "k": "Payment record",
+       "v": "0 payments, 0 returned, 0 missed",
+       "drawn_from": "2017-10-25"
+      },
+      {
+       "k": "Meter reads",
+       "v": "0 bills, 0 on an actual read",
+       "drawn_from": "2017-10-25"
+      },
+      {
+       "k": "Balance on the books",
+       "v": "Nothing owed",
+       "drawn_from": "2017-10-25"
+      }
+     ],
+     "decision": "No decision about this household is on record yet.",
+     "truth": [
+      {
+       "k": "Household",
+       "v": "three to four person, owner occupier"
+      },
+      {
+       "k": "Money",
+       "v": "Income stress low"
+      },
+      {
+       "k": "Life so far",
+       "v": "Nothing recorded"
+      },
+      {
+       "k": "Smart meter",
+       "v": "No"
+      }
+     ],
+     "portal": {
+      "message": "Welcome to Poesys. Your electricity supply started on 25 Oct 2017.",
+      "tariff": "Standard Variable",
+      "pays": "Set up at your first bill",
+      "balance": "Nothing owed",
+      "usage": [],
+      "bills": []
+     }
+    },
+    {
+     "iso": "2022-01-31",
+     "date": "31 Jan 2022",
+     "kind": "bill",
+     "title": "A year earlier",
+     "story": "The electricity bill of 31 Jan 2022: £440.53 for 2,055 kWh, estimated.",
+     "why": "The amount follows from the reading and the tariff then in force.",
+     "gap": null,
+     "supplier": [
+      {
+       "k": "Customer since",
+       "v": "25 Oct 2017",
+       "drawn_from": "2017-10-25"
+      },
+      {
+       "k": "Fuels",
+       "v": "Electricity",
+       "drawn_from": "2017-10-25"
+      },
+      {
+       "k": "How they pay",
+       "v": "Direct debit",
+       "drawn_from": "2022-01-19"
+      },
+      {
+       "k": "Tariff",
+       "v": "Standard variable",
+       "drawn_from": "2017-10-25"
+      },
+      {
+       "k": "Payment record",
+       "v": "20 payments, 0 returned, 0 missed",
+       "drawn_from": "2022-01-19"
+      },
+      {
+       "k": "Meter reads",
+       "v": "21 bills, 8 on an actual read, last on 31 May 2021",
+       "drawn_from": "2022-01-31"
+      },
+      {
+       "k": "Balance on the books",
+       "v": "Nothing owed",
+       "drawn_from": "2022-01-19"
+      }
+     ],
+     "decision": "No decision about this household is on record yet.",
+     "truth": [
+      {
+       "k": "Household",
+       "v": "three to four person, owner occupier"
+      },
+      {
+       "k": "Money",
+       "v": "Income stress low"
+      },
+      {
+       "k": "Life so far",
+       "v": "Nothing recorded"
+      },
+      {
+       "k": "Smart meter",
+       "v": "No"
+      }
+     ],
+     "portal": {
+      "message": "Your electricity bill is ready: £440.53.",
+      "tariff": "Standard Variable",
+      "pays": "Direct debit",
+      "balance": "Nothing owed",
+      "usage": [
+       {
+        "month": "2020-08",
+        "e": 1800,
+        "g": 0
+       },
+       {
+        "month": "2020-09",
+        "e": 1888,
+        "g": 0
+       },
+       {
+        "month": "2020-10",
+        "e": 2116,
+        "g": 0
+       },
+       {
+        "month": "2021-05",
+        "e": 1321,
+        "g": 0
+       },
+       {
+        "month": "2021-06",
+        "e": 1279,
+        "g": 0
+       },
+       {
+        "month": "2021-07",
+        "e": 1289,
+        "g": 0
+       },
+       {
+        "month": "2021-08",
+        "e": 1323,
+        "g": 0
+       },
+       {
+        "month": "2021-09",
+        "e": 1388,
+        "g": 0
+       },
+       {
+        "month": "2021-10",
+        "e": 1555,
+        "g": 0
+       },
+       {
+        "month": "2021-11",
+        "e": 1834,
+        "g": 0
+       },
+       {
+        "month": "2021-12",
+        "e": 1943,
+        "g": 0
+       },
+       {
+        "month": "2022-01",
+        "e": 2055,
+        "g": 0
+       }
+      ],
+      "bills": [
+       {
+        "fuel": "electricity",
+        "when": "31 Jan 2022",
+        "kwh": 2055,
+        "amount": "£440.53",
+        "badge": "Estimated"
+       },
+       {
+        "fuel": "electricity",
+        "when": "31 Dec 2021",
+        "kwh": 1943,
+        "amount": "£411.78",
+        "badge": "Estimated"
+       },
+       {
+        "fuel": "electricity",
+        "when": "30 Nov 2021",
+        "kwh": 1834,
+        "amount": "£388.99",
+        "badge": "Estimated"
+       },
+       {
+        "fuel": "electricity",
+        "when": "31 Oct 2021",
+        "kwh": 1555,
+        "amount": "£331.12",
+        "badge": "Estimated"
+       }
+      ]
+     }
+    },
+    {
+     "iso": "2023-01-31",
+     "date": "31 Jan 2023",
+     "kind": "shock_2022",
+     "title": "The 2022 shock",
+     "story": "The electricity bill for January 2023 was £1,402.76, against £440.53 a year earlier.",
+     "why": "Wholesale prices rose; the household's use did not explain the change.",
+     "gap": {
+      "believed": "Bill of £1,402.76",
+      "truth": "Billed use 2,055 kWh, against 2,055 kWh a year before",
+      "meant": "218% more for the same month",
+      "tone": "bad"
+     },
+     "supplier": [
+      {
+       "k": "Customer since",
+       "v": "25 Oct 2017",
+       "drawn_from": "2017-10-25"
+      },
+      {
+       "k": "Fuels",
+       "v": "Electricity",
+       "drawn_from": "2017-10-25"
+      },
+      {
+       "k": "How they pay",
+       "v": "Direct debit",
+       "drawn_from": "2023-01-21"
+      },
+      {
+       "k": "Tariff",
+       "v": "Standard variable",
+       "drawn_from": "2017-10-25"
+      },
+      {
+       "k": "Payment record",
+       "v": "32 payments, 0 returned, 0 missed",
+       "drawn_from": "2023-01-21"
+      },
+      {
+       "k": "Meter reads",
+       "v": "33 bills, 8 on an actual read, last on 31 May 2021",
+       "drawn_from": "2023-01-31"
+      },
+      {
+       "k": "Balance on the books",
+       "v": "Nothing owed",
+       "drawn_from": "2023-01-21"
+      }
+     ],
+     "decision": "No decision about this household is on record yet.",
+     "truth": [
+      {
+       "k": "Household",
+       "v": "three to four person, owner occupier"
+      },
+      {
+       "k": "Money",
+       "v": "Income stress low"
+      },
+      {
+       "k": "Life so far",
+       "v": "Nothing recorded"
+      },
+      {
+       "k": "Smart meter",
+       "v": "No"
+      }
+     ],
+     "portal": {
+      "message": "Your bill has changed because energy prices have changed.",
+      "tariff": "Standard Variable",
+      "pays": "Direct debit",
+      "balance": "Nothing owed",
+      "usage": [
+       {
+        "month": "2022-02",
+        "e": 1686,
+        "g": 0
+       },
+       {
+        "month": "2022-03",
+        "e": 1734,
+        "g": 0
+       },
+       {
+        "month": "2022-04",
+        "e": 1547,
+        "g": 0
+       },
+       {
+        "month": "2022-05",
+        "e": 1378,
+        "g": 0
+       },
+       {
+        "month": "2022-06",
+        "e": 1279,
+        "g": 0
+       },
+       {
+        "month": "2022-07",
+        "e": 1289,
+        "g": 0
+       },
+       {
+        "month": "2022-08",
+        "e": 1323,
+        "g": 0
+       },
+       {
+        "month": "2022-09",
+        "e": 1388,
+        "g": 0
+       },
+       {
+        "month": "2022-10",
+        "e": 1555,
+        "g": 0
+       },
+       {
+        "month": "2022-11",
+        "e": 1834,
+        "g": 0
+       },
+       {
+        "month": "2022-12",
+        "e": 1943,
+        "g": 0
+       },
+       {
+        "month": "2023-01",
+        "e": 2055,
+        "g": 0
+       }
+      ],
+      "bills": [
+       {
+        "fuel": "electricity",
+        "when": "31 Jan 2023",
+        "kwh": 2055,
+        "amount": "£1,402.76",
+        "badge": "Estimated"
+       },
+       {
+        "fuel": "electricity",
+        "when": "31 Dec 2022",
+        "kwh": 1943,
+        "amount": "£1,021.22",
+        "badge": "Estimated"
+       },
+       {
+        "fuel": "electricity",
+        "when": "30 Nov 2022",
+        "kwh": 1834,
+        "amount": "£964.56",
+        "badge": "Estimated"
+       },
+       {
+        "fuel": "electricity",
+        "when": "31 Oct 2022",
+        "kwh": 1555,
+        "amount": "£819.98",
+        "badge": "Estimated"
+       }
+      ]
+     }
+    }
+   ],
+   "breaches": [
+    {
+     "rule": "above_cap",
+     "date": "2022-10-31",
+     "fuel": "electricity",
+     "text": "Electricity bill of 31 Oct 2022: 51.89p/kWh all-in including VAT, against a ceiling of 34.00p/kWh for a default tariff then (GB average; the cap is set per region)"
+    },
+    {
+     "rule": "above_cap",
+     "date": "2022-11-30",
+     "fuel": "electricity",
+     "text": "Electricity bill of 30 Nov 2022: 51.89p/kWh all-in including VAT, against a ceiling of 34.00p/kWh for a default tariff then (GB average; the cap is set per region)"
+    },
+    {
+     "rule": "above_cap",
+     "date": "2022-12-31",
+     "fuel": "electricity",
+     "text": "Electricity bill of 31 Dec 2022: 51.89p/kWh all-in including VAT, against a ceiling of 34.00p/kWh for a default tariff then (GB average; the cap is set per region)"
+    },
+    {
+     "rule": "above_cap",
+     "date": "2023-01-31",
+     "fuel": "electricity",
+     "text": "Electricity bill of 31 Jan 2023: 67.47p/kWh all-in including VAT, against a ceiling of 34.00p/kWh for a default tariff then (GB average; the cap is set per region)"
+    },
+    {
+     "rule": "above_cap",
+     "date": "2023-02-28",
+     "fuel": "electricity",
+     "text": "Electricity bill of 28 Feb 2023: 67.47p/kWh all-in including VAT, against a ceiling of 34.00p/kWh for a default tariff then (GB average; the cap is set per region)"
+    },
+    {
+     "rule": "above_cap",
+     "date": "2023-04-30",
+     "fuel": "electricity",
+     "text": "Electricity bill of 30 Apr 2023: 50.60p/kWh all-in including VAT, against a ceiling of 34.00p/kWh for a default tariff then (GB average; the cap is set per region)"
+    }
+   ],
+   "breach_count": 7
+  }
+ ],
+ "coverage": {
+  "filled": 6,
+  "of": 8,
+  "empty": [
+   "mover",
+   "storage_heating"
+  ],
+  "book_breaches": {
+   "above_cap": {
+    "households": 199,
+    "of": 550
+   }
+  }
+ }
+}

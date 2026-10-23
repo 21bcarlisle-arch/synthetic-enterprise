@@ -74,6 +74,8 @@ def _render(first_group: str, carbon: dict | None = None) -> dict:
         "../data/weather.json": _load(WEATHER),
         "../data/explore_hh_days.json": _load(HH_DAYS),
         "../data/explore_carbon.json": _load(CARBON) if carbon is None else carbon,
+        # The household cast above the walk (director's steer, 23 Oct) asks for its own feed.
+        "../data/explore_cast.json": _load(SITE / "data" / "explore_cast.json"),
     }
     for customer in book["customers"]:
         for leg in (customer.get("legs") or {}).values():
