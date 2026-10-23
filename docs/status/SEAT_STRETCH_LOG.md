@@ -8,9 +8,33 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-23 — How it's built leads with how AI builds and runs Poesys: the eight-layer stack, the scale counted at publish, last week in plain English
+
+<!-- head: 63593d1153e1 -->
+
+**In plain English:** The How it's built page now opens with the eight layers of checks every change passes through, the build's scale counted at publish, and last week's work in plain words.
+
+*Seat executor, 23 Oct 2026. Item 4 of the director's 23 Oct 07:18 steer ("Make more appropriate for energy or tech person who is not familiar with the detail"), built as one page with the control-stack steer per the advisor's note.*
+
+**Before:** "How this builds itself, and what it keeps getting wrong"; a glossary paragraph; a "Loading the record…" stamp; the raw delivery record (did / decided / got wrong / next, three ceilings); what changed since the director last looked; how work is chosen; what we know is wrong; daemons; wiring; belief and truth; corrections; rules; checks; what a human decided.
+
+**After:** "How AI builds and runs Poesys"; a purpose line naming what Poesys is; In brief (five lines, no typed figures); the stamp, empty until filled; **From an idea to a published page**, eight layers each naming its enforcing file; **The scale of it**, four figures and a commits-per-week chart written at publish by `tools/harness_page_figures.py` from git, the hook files and `proof.json`; **Last week**, written at publish from this log; belief and truth, with its figures above its prose; **Lessons**, three cards (20 Aug cache, 4 Sep stale daemons, five off-target controls), each with what happened and the rule it left; what a human decided; how work is chosen; checks; corrections; rules; what we know is wrong; the full delivery record; wiring; daemons; then the glossary and "For the director" at the foot. Nothing deleted. Long prose sits in closed `<details>`. Every element the page's script writes stays open, because `site/test_every_door_element_a_reader_meets.py` requires a reader to see it.
+
+**Not measured, so not printed:** the share of changes that passed the gates first time. A refused gate run leaves no record, and the page says so. The control register's "33 of 35 proven" was last graded on 13 Jul, and the page shows that date. A cold reader called it stale, and they are right: it is a finding, not a page fix.
+
+**Last week's lines** come from an `**In plain English:**` line when an entry carries one. Otherwise they are the title up to its first semicolon. Run-on titles and repeat subjects are skipped. I added plain lines to the six entries the list draws on.
+
+**Cold readers (sonnet, page text only).** Energy: the page shows "an AI-built, AI-run simulated energy supplier can be trusted" because of its checks. Moderately impressive; nothing here shows the supplier is any good. Tech: led with achievement. It "publishes its failures", measures belief against truth, counts checks by proven failure, and lists what the human may not delegate, which is the answer to the control-stack steer's extra question. Both were confused by "Poesys" being undefined, "ratchets freeze existing debt", "world/company pairs", "The code galaxy gets its own tab" and "The opening book was 1% dual fuel". All of those are fixed, and the purpose line now points to Capabilities for what the supplier does.
+
+**Still owed on this page:** each layer's own evidence (30-day firings, last fired, able to fail), from the control-stack steer.
+
+---
+
 ## 2026-10-22 — The code galaxy gets its own tab; the front-door draw was another lane's live claim
 
 <!-- head: bee0abf1a8bb -->
+
+**In plain English:** A new tab, The code, draws every module of the codebase as a star and every import between them as a line, laid out at each publish.
 
 *Autonomous worker, 22 Oct 2026, evening. Drawn: lane-0 `the-front-door-leads-with-the-ambition-and-what-has-been-built`, which turned out to be the seat executor's live claim `the-front-door-ambition-rewrite-after-the-build-strip` under another id. That executor started 3 minutes before this tick, in `/var/tmp/se-seat-executor`. I released my id with nothing built (record: `docs/staging/done/WORKER_RESULT_THE_FRONT_DOOR_AMBITION_DRAW_IS_THE_SEAT_EXECUTORS_LIVE_CLAIM_UNDER_ANOTHER_ID_2026-10-22.md`) and took the other rung-zero steer, the code galaxy, in a scope that stays out of the front door's body.*
 
@@ -25,6 +49,8 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 ## 2026-10-22 — The front door leads with the ambition and what has been built; the gaps moved to Capabilities, none deleted
 
 <!-- head: 40676171f020 -->
+
+**In plain English:** The home page now leads with what Poesys is for and how much has been built, and the gaps moved one click down to Capabilities.
 
 **What the director asked** (22 Oct, 14:57): "the claims are really weak they mostly point to faings
 in the model. The home page is not an impressive summary of what the ambition is and just how much
@@ -918,6 +944,8 @@ Forward, and the supplier's half of the comparison is now built end to end, but 
 
 <!-- head: 8ad5b62fbabf -->
 
+**In plain English:** The supplier now opens in 2016 with a book of 400 households, and the run's budget was raised so they can all be settled.
+
 **What changed.** Founders are now 400 households (`founder_unit: households`). At seed 20260724
 that is 689 supply points. The settlement budget goes 5,000 → 7,700 customer-years. This acts on
 the director's ruling of 20 Oct 17:40
@@ -1338,6 +1366,8 @@ The thesis did not move this stretch. The one supplier commit was small but real
 
 <!-- head: c57d93ba5b5e -->
 
+**In plain English:** Before the opening book grew to 400 households, it was measured to fit in this machine's memory.
+
 **The director's 19 Oct 16:37 ruling, "Households, as long as it doesn't create a memory problem".**
 Measured the cheap way (R8): two founders-only points, run one after the other through
 `launch_long_job`, with the reaper untouched.
@@ -1499,6 +1529,8 @@ The machine delivered this stretch, and the thesis did not move, because the one
 ## 2026-10-19 — Knowledge pages now carry claims the drawn world is checked against
 
 <!-- head: dc4dc0e10408 -->
+
+**In plain English:** The Knowledge pages now state published GB figures, such as how many homes take both fuels, that the simulated population is checked against.
 
 **Director steer 19 Oct, knowledge that checks the world: items 1 to 3 built, item 4 handed on.**
 
@@ -1820,6 +1852,8 @@ The seat did not orient, so there is no reading of this stretch against the thes
 ## 2026-10-17 — The opening book was 1% dual fuel; the account now takes its home's fuel
 
 <!-- head: bc900a5d5f2d -->
+
+**In plain English:** The simulated customer book had almost no homes taking gas and electricity together; each account now takes the fuels its home really uses, matching the published GB split.
 
 **Director steer 17 Oct: the opening book was 1% dual fuel. Researched, corrected, and now held by a control.**
 

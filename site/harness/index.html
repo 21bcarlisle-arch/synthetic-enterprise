@@ -58,6 +58,37 @@ th { font-size: 11px; letter-spacing: .04em; text-transform: uppercase; color: v
   color: var(--muted); font-size: 13px; }
 a { color: var(--teal); }
 
+.brief { border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; margin: 0 0 22px; font-size: 13px; line-height: 1.55; max-width: 760px; }
+.brief-h { font-size: 10px; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); font-weight: 700; margin: 0 0 6px; }
+.brief ul { margin: 0; padding-left: 18px; }
+.brief li { margin: 3px 0; }
+.stamp:empty { display: none; }
+.stack { list-style: none; counter-reset: layer; margin: 0; padding: 0; }
+.stack li { counter-increment: layer; position: relative; background: var(--surface); border: 1px solid var(--border);
+  border-left: 3px solid var(--teal); border-radius: 6px; padding: 9px 14px 9px 44px; margin-bottom: 6px; font-size: 13px; }
+.stack li::before { content: counter(layer); position: absolute; left: 14px; top: 9px; font-weight: 700; color: var(--teal); }
+.stack .held { display: block; font-size: 11px; color: var(--muted); margin-top: 3px; }
+.stack code, .held code { font-size: 11px; overflow-wrap: anywhere; }
+.lf-row { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 12px; }
+.lf { border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; flex: 1 1 170px; background: var(--surface); }
+.lf .v { font-size: 24px; font-weight: 600; line-height: 1.1; }
+.lf .l { font-size: 12px; color: var(--muted); margin-top: 3px; }
+.lf .c { font-size: 11px; color: var(--muted); margin-top: 5px; }
+.lf-prov { font-size: 11px; color: var(--muted); margin-top: 10px; }
+.timeline { margin: 6px 0 0; }
+.timeline figcaption { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+.timeline svg { width: 100%; height: 120px; display: block; }
+.timeline rect { fill: var(--teal); }
+.timeline rect:hover { opacity: .75; }
+.tl-axis { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin-top: 3px; }
+.week { padding-left: 18px; }
+.week li { margin: 4px 0; max-width: 68ch; }
+.week .wd { color: var(--muted); font-size: 12px; margin-right: 4px; }
+details.more { margin: 0 0 12px; }
+details.more summary, .timeline summary { cursor: pointer; color: var(--teal); font-size: 13px; margin-bottom: 8px; }
+.lessons .card h3 { font-size: 15px; }
+
+@media (max-width: 640px) { .lf { flex-basis: 100%; } }
 @media (max-width: 640px) { .wasnow { grid-template-columns: 1fr; } main { padding: 18px 13px 60px; } }
 </style>
 </head>
@@ -76,31 +107,345 @@ a { color: var(--teal); }
   <!-- IA-NAV:END -->
 </nav>
 <main>
-  <h1>How this builds itself, and what it keeps getting wrong</h1>
+  <h1>How AI builds and runs Poesys</h1>
   <p class="purpose">
-    Everything else on this site is the thing that was built. This page is the machine that
-    builds it — how work is chosen, how a claim is refused when its evidence is missing, and
-    the honest record of what has broken. It is the part of the project with the most to say
-    to someone who does not care about energy at all.
+    Poesys is a simulated GB energy supplier, living through the real 2016&ndash;2025 market, and
+    it is built and operated by AI agents with one human setting direction. This page shows the
+    system of checks between an agent's idea and a published claim, how much it has built, and
+    what it learned from what broke. What the supplier itself can do is on
+    <a href="../capabilities/">Capabilities</a>.
   </p>
-  <p class="purpose">
-    <b>Words this page uses</b>, because the record below is written in the project's own terms.
-    An <b>atom</b> is one named unit of the build plan, such as D48, and its <b>level</b> is how
-    far it has got. A <b>rung</b> is one step on a ladder of evidence: a smaller, weaker test that
-    has to hold before the next, stronger one counts. A <b>stretch</b> is the few hours between two
-    of the delivery seat's readings, described below. The <b>wall</b> is the rule that the company
-    only sees what a real supplier could see, and a <b>seam</b> is one of the named doorways it
-    sees through.
-  </p>
+  <div class="brief" id="in-brief">
+    <p class="brief-h">In brief</p>
+    <ul>
+      <li><strong>One human, many agents.</strong> A director sets the purpose. AI agents write
+        the direction, the code, the tests and this site, and run the simulation, continuously.</li>
+      <li><strong>Eight layers of checks.</strong> Every change passes through them on its way from
+        an idea to the published page. The stack below names the code file that enforces each one.</li>
+      <li><strong>Checks are proven able to fail.</strong> A check counts only once it has been seen
+        catching its own defect, put back on purpose. A check that cannot fail is treated as
+        worse than none.</li>
+      <li><strong>A measurement a real supplier cannot make.</strong> Because the world is simulated,
+        the gap between what the supplier believes about its customers and what is true can be measured. It is shown below.</li>
+      <li><strong>The mistakes are published.</strong> Each became a rule that now runs as code.</li>
+    </ul>
+  </div>
 
-  <div class="stamp" id="stamp">Loading the record…</div>
+  <div class="stamp" id="stamp"></div>
 
-  <section>
-    <h2>The delivery record</h2>
+  <section id="stack">
+    <h2>From an idea to a published page</h2>
+    <p class="sub">
+      Everything an agent proposes passes down this stack before a reader sees it. Each layer is
+      enforced by code that refuses, not by a reviewer who approves, and each names the file that
+      does it.
+    </p>
+    <ol class="stack">
+      <li><b>Direction.</b> The director sets purpose, and his rulings are kept in his own words.
+        A planning agent turns them into priorities and never writes code. No agent spends real
+        money, contacts a real person or makes a real-world commitment: those are walls, not approvals.
+        <span class="held">Held by <code>background/one_way_door.py</code> and
+        <code>background/advisor_channel.py</code>, which accepts only files signed with a pinned key.</span></li>
+      <li><b>Knowledge before build.</b> Every price, rate or threshold in the code must say where
+        it came from, and a sourced figure must actually be used. A published knowledge page comes
+        before a new capability.
+        <span class="held">Held by <code>tests/architecture/test_a_domain_constant_carries_its_origin.py</code>
+        and <code>tools/knowledge_layer_gate.py</code>.</span></li>
+      <li><b>The walls.</b> The simulated supplier can know only what a real supplier could know,
+        and it cannot open a network connection. The simulated world's hidden truth never reaches it.
+        <span class="held">Held by <code>company/interfaces/sim_interface.py</code>, the one doorway,
+        and <code>tools/company_network_isolation.py</code>.</span></li>
+      <li><b>The commit gate.</b> Every commit runs a chain of checks before it is written, and
+        another on its message. Limits on size and known shortcuts are frozen at today's level, and any growth is refused. Skipping the
+        gate is never allowed.
+        <span class="held">Held by <code>tools/git-hooks/</code>; the count is in the figures below.</span></li>
+      <li><b>Proof the checks work.</b> Each control is shown failing on its own defect by putting
+        that defect back.
+        <span class="held">Held by <code>docs/design/control_registry.json</code> and the tests that
+        name their own defect.</span></li>
+      <li><b>Independent judgement.</b> Fresh AI reviewers with no memory of the build read
+        finished work cold, as an outsider would, before a phase of work or a public page is closed.
+        <span class="held">Held by <code>.claude/agents/phase-close-evaluator.md</code> and the
+        cold-eyes review in <code>.claude/skills/cold-eyes-walk/</code>.</span></li>
+      <li><b>The published state.</b> What was deployed is fetched back and compared byte for byte
+        with what a reader is served. Each page's own code is run against the real data in the tests.
+        The simulated world is checked against the published figures its Knowledge pages cite.
+        <span class="held">Held by <code>tools/assert_deployed_bytes_are_served.py</code> and
+        <code>tools/world_claims.py</code>.</span></li>
+      <li><b>Learning.</b> A mistake is fixed as a class, not an instance, and becomes a rule that
+        runs. A check that keeps refusing becomes work, not a retry. Each week a review reads the
+        rules, the code and the findings together.
+        <span class="held">Held by <code>background/finding_classes.py</code> and
+        <code>background/weekly_rhythm.py</code>. The lessons below are this layer's record.</span></li>
+    </ol>
+  </section>
+
+  <section id="scale">
+    <h2>The scale of it, counted at publish</h2>
+    <p class="sub">Each figure is counted from the repository at the commit being published, and
+      says what it counts.</p>
+<!-- HARNESS-SCALE:START (written at publish by tools/harness_page_figures.py -- do not hand-edit) -->
+<div class="lf-row">
+  <div class="lf"><div class="v">462</div><div class="l">commits landed in the last seven days</div><div class="c">about 66 a day; counted from git at 63593d115, 23 Oct 2026</div></div>
+  <div class="lf"><div class="v">2,154</div><div class="l">test files</div><div class="c">of 3,472 Python files in all; counted from git at 63593d115, 23 Oct 2026</div></div>
+  <div class="lf"><div class="v">23</div><div class="l">checks every commit must pass</div><div class="c">20 before the commit is written and 3 on its message, counted from the hook files at 63593d115</div></div>
+  <div class="lf"><div class="v">33 of 35</div><div class="l">registered controls proven able to fail</div><div class="c">each shown firing by putting its own defect back; the register was last graded 13 Jul 2026</div></div>
+</div>
+<figure class="timeline"><figcaption>Commits per week since the repository began</figcaption><svg viewBox="0 0 640 120" role="img" aria-label="Commits per week, 1 Jun 2026 to 19 Oct 2026, peaking at 1,430" preserveAspectRatio="none"><rect x="0.0" y="119.0" width="28.6" height="1.0" rx="2"><title>Week of 1 Jun 2026: 9 commits</title></rect><rect x="30.6" y="109.7" width="28.6" height="10.3" rx="2"><title>Week of 8 Jun 2026: 123 commits</title></rect><rect x="61.1" y="104.8" width="28.6" height="15.2" rx="2"><title>Week of 15 Jun 2026: 181 commits</title></rect><rect x="91.7" y="49.8" width="28.6" height="70.2" rx="2"><title>Week of 22 Jun 2026: 837 commits</title></rect><rect x="122.3" y="0.0" width="28.6" height="120.0" rx="2"><title>Week of 29 Jun 2026: 1,430 commits</title></rect><rect x="152.9" y="44.2" width="28.6" height="75.8" rx="2"><title>Week of 6 Jul 2026: 903 commits</title></rect><rect x="183.4" y="18.0" width="28.6" height="102.0" rx="2"><title>Week of 13 Jul 2026: 1,215 commits</title></rect><rect x="214.0" y="34.9" width="28.6" height="85.1" rx="2"><title>Week of 20 Jul 2026: 1,014 commits</title></rect><rect x="244.6" y="39.7" width="28.6" height="80.3" rx="2"><title>Week of 27 Jul 2026: 957 commits</title></rect><rect x="275.1" y="88.4" width="28.6" height="31.6" rx="2"><title>Week of 3 Aug 2026: 377 commits</title></rect><rect x="305.7" y="67.9" width="28.6" height="52.1" rx="2"><title>Week of 10 Aug 2026: 621 commits</title></rect><rect x="336.3" y="78.2" width="28.6" height="41.8" rx="2"><title>Week of 17 Aug 2026: 498 commits</title></rect><rect x="366.9" y="80.3" width="28.6" height="39.7" rx="2"><title>Week of 24 Aug 2026: 473 commits</title></rect><rect x="397.4" y="33.6" width="28.6" height="86.4" rx="2"><title>Week of 31 Aug 2026: 1,030 commits</title></rect><rect x="428.0" y="77.1" width="28.6" height="42.9" rx="2"><title>Week of 7 Sep 2026: 511 commits</title></rect><rect x="458.6" y="70.7" width="28.6" height="49.3" rx="2"><title>Week of 14 Sep 2026: 587 commits</title></rect><rect x="489.1" y="58.2" width="28.6" height="61.8" rx="2"><title>Week of 21 Sep 2026: 737 commits</title></rect><rect x="519.7" y="43.8" width="28.6" height="76.2" rx="2"><title>Week of 28 Sep 2026: 908 commits</title></rect><rect x="550.3" y="66.4" width="28.6" height="53.6" rx="2"><title>Week of 5 Oct 2026: 639 commits</title></rect><rect x="580.9" y="78.8" width="28.6" height="41.2" rx="2"><title>Week of 12 Oct 2026: 491 commits</title></rect><rect x="611.4" y="90.3" width="28.6" height="29.7" rx="2"><title>Week of 19 Oct 2026: 354 commits</title></rect></svg><div class="tl-axis"><span>1 Jun 2026</span><span>busiest week: 1,430</span><span>19 Oct 2026</span></div><details><summary>The same figures as a table</summary><div class="table-scroll"><table><thead><tr><th>Week of</th><th>Commits</th></tr></thead><tbody><tr><td>1 Jun 2026</td><td>9</td></tr><tr><td>8 Jun 2026</td><td>123</td></tr><tr><td>15 Jun 2026</td><td>181</td></tr><tr><td>22 Jun 2026</td><td>837</td></tr><tr><td>29 Jun 2026</td><td>1,430</td></tr><tr><td>6 Jul 2026</td><td>903</td></tr><tr><td>13 Jul 2026</td><td>1,215</td></tr><tr><td>20 Jul 2026</td><td>1,014</td></tr><tr><td>27 Jul 2026</td><td>957</td></tr><tr><td>3 Aug 2026</td><td>377</td></tr><tr><td>10 Aug 2026</td><td>621</td></tr><tr><td>17 Aug 2026</td><td>498</td></tr><tr><td>24 Aug 2026</td><td>473</td></tr><tr><td>31 Aug 2026</td><td>1,030</td></tr><tr><td>7 Sep 2026</td><td>511</td></tr><tr><td>14 Sep 2026</td><td>587</td></tr><tr><td>21 Sep 2026</td><td>737</td></tr><tr><td>28 Sep 2026</td><td>908</td></tr><tr><td>5 Oct 2026</td><td>639</td></tr><tr><td>12 Oct 2026</td><td>491</td></tr><tr><td>19 Oct 2026</td><td>354</td></tr></tbody></table></div></details></figure>
+<p class="lf-prov">Not shown: the share of changes that passed the gates first time (a refused gate run leaves no record, so this is not measured yet).</p>
+<!-- HARNESS-SCALE:END -->
+  </section>
+
+  <section id="last-week">
+    <h2>Last week</h2>
+    <p class="sub">Pieces of work finished in the seven days to this publish, each in the words its
+      builder wrote in the build log. The <em>book</em> is the supplier's customers.</p>
+<!-- HARNESS-WEEK:START (written at publish by tools/harness_page_figures.py -- do not hand-edit) -->
+<ul class="week">
+  <li><span class="wd">23 Oct 2026</span> The How it&#x27;s built page now opens with the eight layers of checks every change passes through, the build&#x27;s scale counted at publish, and last week&#x27;s work in plain words.</li>
+  <li><span class="wd">22 Oct 2026</span> A new tab, The code, draws every module of the codebase as a star and every import between them as a line, laid out at each publish.</li>
+  <li><span class="wd">22 Oct 2026</span> The home page now leads with what Poesys is for and how much has been built, and the gaps moved one click down to Capabilities.</li>
+  <li><span class="wd">20 Oct 2026</span> The supplier now opens in 2016 with a book of 400 households, and the run&#x27;s budget was raised so they can all be settled.</li>
+  <li><span class="wd">19 Oct 2026</span> Before the opening book grew to 400 households, it was measured to fit in this machine&#x27;s memory.</li>
+  <li><span class="wd">19 Oct 2026</span> The Knowledge pages now state published GB figures, such as how many homes take both fuels, that the simulated population is checked against.</li>
+  <li><span class="wd">17 Oct 2026</span> The simulated customer book had almost no homes taking gas and electricity together; each account now takes the fuels its home really uses, matching the published GB split.</li>
+</ul>
+<!-- HARNESS-WEEK:END -->
+  </section>
+
+  <section id="belief">
+    <h2>Where belief and truth diverge</h2>
+    <p class="sub">
+      The company inside the simulation cannot see the world it lives in — it infers. This is the
+      measured size of the gap between what it believes and what is actually true, which is the
+      only number on the site that could not exist outside a simulation.
+    </p>
+    <div class="kpis" id="gap-kpis"></div>
+    <div id="gap-note"></div>
+    <details class="more"><summary>How the gap is measured</summary>
+    <p>
+      The gap is measured, not asserted, and the measurement is deliberately made against
+      something the company has no way to reach. Its picture of the world is assembled only from
+      what a real supplier could observe: prices it was quoted, meter readings it received, bills
+      it issued, payments that arrived or did not. Ground truth sits on the other side of a wall
+      the company has no call into, and the two are compared afterwards, here, by the harness.
+    </p>
+    <p>
+      Where they diverge, the company is left wrong on purpose. A supplier that discovers its own
+      error the instant it makes one is not a supplier — it is a lookup table with a story
+      attached. The interesting question is not whether the company is right; it is how long it
+      takes to notice it was wrong, and what that costs in the meantime.
+    </p>
+    </details>
+  </section>
+
+  <section id="lessons">
+    <h2>Lessons it learned the hard way</h2>
+    <p class="sub">Each one cost something, and each left a rule behind that now runs as code. The
+      full story of each sits in the sections below.</p>
+    <div class="lessons">
+      <div class="card"><div class="meta">20 August 2026</div>
+        <h3>The site that looked broken and was not</h3>
+        <p><b>What happened.</b> The site appeared to fail up to 47% of page loads. Four
+          explanations were tested and each was wrong. The host's analytics were counting one kind
+          of request twice, and the site had been healthy throughout.</p>
+        <p><b>The rule it left.</b> When explanations keep dying, check the instrument before
+          proposing another. And a check through a cache can confirm something is there but never
+          that it is gone, so every live check now asks the source.</p></div>
+      <div class="card"><div class="meta">4 September 2026</div>
+        <h3>Green tests, stale code</h3>
+        <p><b>What happened.</b> Ten of eleven background processes were running code up to eleven
+          days old, while every health check called them healthy. A passing test proves the code
+          is right, not that it is the code running.</p>
+        <p><b>The rule it left.</b> Each process is graded on whether any module it loaded has
+          changed since it started, and is restarted when one has.</p></div>
+      <div class="card"><div class="meta">August 2026</div>
+        <h3>Five checks, all pointed slightly off-target</h3>
+        <p><b>What happened.</b> In one day, five checks that existed, were wired in and looked
+          right were found catching nothing. One reported its own failure and then exited as a
+          success, so months of deploys were recorded green.</p>
+        <p><b>The rule it left.</b> A check counts only once it has been seen failing on its own
+          defect. Checks are counted by that, not by whether they exist.</p></div>
+    </div>
+  </section>
+
+  <section id="human">
+    <h2>What a human actually decided</h2>
+    <p class="sub">Reserved to the director, and nothing else is.</p>
+    <p>
+      Four classes of decision are the director's and cannot be taken by the builder under any
+      circumstances: <b>spending real money</b>, <b>contacting a real person</b>, <b>making an
+      irretractable public claim in the company's name</b>, and <b>anything touching a real
+      person's safety</b>. Everything else — architecture, sequencing, what to build, what to
+      delete, what to publish — is decided and acted on autonomously, and reported afterwards.
+    </p>
+    <p id="reserved-now"></p>
+    <p>
+      That list is short on purpose. An earlier version of this project had a large apparatus of
+      approvals, gates and ratifications, and its measured effect was that work stopped waiting
+      for a human who was asleep. It was removed, and the removal is itself enforced: a control
+      refuses to register any new item as needing the director's approval unless it falls in one
+      of those four classes.
+    </p>
+  </section>
+
+  <section id="chosen">
+    <h2>How the work is chosen</h2>
+    <p class="sub">In plain English, because the machinery is the subject here.</p>
+    <details class="more"><summary>How the queue is ordered, in four paragraphs</summary>
+    <p>
+      There are two seats. A <b>director</b> decides what matters and rules on anything
+      irreversible; he does not write code. A <b>builder</b> — this system — designs, builds,
+      checks and ships everything else, on its own, continuously.
+    </p>
+    <p>
+      Work is held as a map of small pieces, each with a claimed level of maturity and the
+      evidence that would have to exist for that claim to hold. The builder draws from the map
+      rather than from a plan, so the order of work follows what is now provable rather than
+      what was scheduled months ago. A piece cannot claim a higher level without leaving a
+      record of why; a claim with no record is refused at the point of commit, not at review.
+    </p>
+    <p>
+      The rule that does the most work is the dullest one: <b>a check that cannot fail is worse
+      than no check at all</b>. Every control has to be shown firing on the exact defect it
+      claims to catch, by deliberately reintroducing that defect. Most of the entries in the
+      record below were found that way — a control that looked right, passed, and was measuring
+      nothing.
+    </p>
+    <p>
+      What actually orders the queue is not a plan. Plans exist and are kept, but a date in one
+      has never been allowed to shorten a check or promote a piece of work: when a date and a
+      test disagree, the date is the thing that is wrong. What wins instead is whichever piece
+      of work most shortens the distance between doing something and finding out whether it was
+      right — because that distance, compounded, is the whole difference between a system that
+      improves and one that merely accumulates.
+    </p>
+    </details>
+  </section>
+
+  <section id="checks">
+    <h2>Checks that can actually fail</h2>
+    <p class="sub">
+      Every control in the system, graded on whether it has been proven to fire on its own
+      named defect. The ones that have not are counted rather than quietly trusted.
+    </p>
+    <details class="more"><summary>The three ways a check passes while meaning nothing</summary>
+    <p>
+      There are three ways a check passes while meaning nothing, and this project has shipped all
+      three. It can derive the value it is checking from the same place it checks against, so it
+      can only ever agree with itself. It can pass when its input is missing, empty or malformed.
+      Or it can pass when the checker itself could not run — which is the worst of the three,
+      because an unavailable check and a satisfied one look identical from outside.
+    </p>
+    <p>
+      A live example, removed the same day this was written: the step that cleared this site's
+      cache after every deploy had been misconfigured since the day it was added. It reported its
+      own failure and then exited successfully, so every deploy for months was recorded green
+      while the step did nothing at all. It has been replaced by a check that fetches what was
+      just published and compares it, byte for byte, against what a reader is actually served.
+    </p>
+    </details>
+    <div class="kpis" id="control-kpis"></div>
+  </section>
+
+  <section id="corrections-sec">
+    <h2>What we got wrong, and corrected</h2>
+    <p class="sub">
+      Published claims that turned out to be false, with what replaced them. A project that
+      never lists any of these is not being checked.
+    </p>
+    <details class="more"><summary>The rule that shapes this list</summary>
+    <p>
+      One rule shapes this list more than any other, and it was learned the hard way. A check
+      that observes <b>new</b> content is trustworthy; a check that concludes something is
+      <b>absent</b> is not. A cached copy of a page can be old, but it can never be newer than
+      when it was stored — so through a cache, "this is gone" and "I am looking at a stale copy"
+      are the same observation. On 20 August, eight deleted pages went on being served to readers
+      for a day after every published check had confirmed them removed. Every live check this
+      project makes now carries a one-off marker that a cache cannot answer, so the question can
+      only be settled by asking the source.
+    </p>
+    </details>
+    <div id="corrections"></div>
+  </section>
+
+  <section id="rules-sec">
+    <h2>The rules this project has had to mint</h2>
+    <p class="sub">
+      Each of these exists because something broke. They are kept in the order they were
+      learned, with the failure that caused them, because the failure is the useful half.
+    </p>
+    <details class="more"><summary>Why a rule counts only when it runs</summary>
+    <p>
+      A rule earns its place here only by being converted into something that runs. Written
+      rules decay — this project has watched several of them do it, always the same way: the
+      rule stays in the document, everyone agrees with it, and the behaviour drifts back
+      because nothing was checking. So the test applied to every rule below is whether you
+      could delete the sentence and still have the rule hold. If not, it isn't a rule yet.
+    </p>
+    <p>
+      The most useful thing this list has taught is about the shape of failures, rather than
+      any single entry. Almost nothing here was caused by a <i>missing</i> check. In one day of
+      August 2026 five separate controls were found to be present, correct in intent, wired in,
+      and pointed slightly off-target: a cache-clearing step that reported its own failure and
+      then exited successfully, so months of deployments were recorded green; a rule requiring
+      a change to be recorded alongside the code, enforced only by a check that never ran on
+      that code; a guard that reported "I could not ask" as "the answer is empty"; a batch of
+      timeouts that turned out to be an artefact of the measuring instrument rather than the
+      thing measured; and a stall detector whose notion of progress was satisfied by other
+      people's work.
+    </p>
+    <p>
+      Every one of those reads as green until something forces a second look. That is why the
+      section below counts controls by whether they have been <i>proven to fail</i> rather than
+      by whether they exist, and why the entries here name the failure and not just the
+      remedy — a rule remembered without its failure is the first step back to not having it.
+    </p>
+    </details>
+    <div class="table-scroll"><table id="rules"><thead><tr>
+      <th>Learned</th><th>The rule</th><th>What caused it</th>
+    </tr></thead><tbody></tbody></table></div>
+  </section>
+
+  <section id="known-wrong">
+    <h2>What we know is wrong</h2>
+    <p class="sub">Standing weaknesses, stated here rather than discovered by a reader.</p>
+    <details class="more"><summary>The 20 August episode in full</summary>
+    <p>
+      Two kinds of wrong live in a project like this, and they are not equally interesting. The
+      first is something that does not work yet — a gap, listed below, with no pretence that it
+      is finished. The second is something that works and is believed for the wrong reason. That
+      is the kind that does damage, because nobody goes looking for it.
+    </p>
+    <p>
+      The second kind is only ever caught by a measurement that could have come out the other
+      way. On 20 August this site appeared to be failing between eleven and forty-seven per cent
+      of its page loads. Four explanations were proposed, and each one was tested, and each one
+      was wrong: a caching header, a stale purge, a theory that the failures were only this
+      machine's own checks, and a routing pattern that held across eight hundred observations and
+      broke at fourteen hundred. None of it was real — the hosting provider's analytics were
+      recording every request of one protocol twice, and the second copy read as a timeout. The
+      site had been healthy throughout.
+    </p>
+    <p>
+      Two things were worth more than the answer. An observed pattern is still only a theory
+      about the next observation, however many observations it already survived. And when four
+      explanations about a mechanism die in a row, the next move is not a fifth one — it is to
+      check whether the instrument means what you think it means. The four wrong turns are kept
+      in the record deliberately: a project that publishes only the theories that turned out
+      right is showing you its results, not its method.
+    </p>
+    </details>
+    <div id="not-proven"></div>
+  </section>
+
+  <section id="record">
+    <h2>The full delivery record</h2>
     <p class="sub">
       What the machine did, what it decided, what it got wrong, and what it is doing next —
       in that order, because that is the order the questions get asked in.
     </p>
+    <details class="more"><summary>How the three kinds of agent divide the work</summary>
     <p>
       Three things run here. A <b>tick</b> wakes on a timer, takes one piece of work, does it and
       exits. A <b>builder's seat</b> works when a human hands it a turn. Neither of those decides
@@ -110,6 +455,7 @@ a { color: var(--teal); }
       stop any work being picked up at all, which is deliberate — a wrong instruction should slow
       this machine down, never wedge it.
     </p>
+    </details>
     <div class="kpis" id="delivery-kpis"></div>
 
     <h3>What it did</h3>
@@ -155,78 +501,17 @@ a { color: var(--teal); }
     <div id="delivery-product-ceiling"></div>
   </section>
 
-  <section>
-    <h2>What has changed since the director last looked</h2>
+  <section id="wired">
+    <h2>How the code is wired</h2>
     <p class="sub">
-      A standing diff against a recorded position, so nothing has to be re-read to find the part
-      that moved.
-    </p>
-    <div id="director-delta">Loading the delta…</div>
-  </section>
-
-  <section>
-    <h2>How the work is chosen</h2>
-    <p class="sub">In plain English, because the machinery is the subject here.</p>
-    <p>
-      There are two seats. A <b>director</b> decides what matters and rules on anything
-      irreversible; he does not write code. A <b>builder</b> — this system — designs, builds,
-      checks and ships everything else, on its own, continuously.
-    </p>
-    <p>
-      Work is held as a map of small pieces, each with a claimed level of maturity and the
-      evidence that would have to exist for that claim to hold. The builder draws from the map
-      rather than from a plan, so the order of work follows what is now provable rather than
-      what was scheduled months ago. A piece cannot claim a higher level without leaving a
-      record of why; a claim with no record is refused at the point of commit, not at review.
-    </p>
-    <p>
-      The rule that does the most work is the dullest one: <b>a check that cannot fail is worse
-      than no check at all</b>. Every control has to be shown firing on the exact defect it
-      claims to catch, by deliberately reintroducing that defect. Most of the entries in the
-      record below were found that way — a control that looked right, passed, and was measuring
-      nothing.
-    </p>
-    <p>
-      What actually orders the queue is not a plan. Plans exist and are kept, but a date in one
-      has never been allowed to shorten a check or promote a piece of work: when a date and a
-      test disagree, the date is the thing that is wrong. What wins instead is whichever piece
-      of work most shortens the distance between doing something and finding out whether it was
-      right — because that distance, compounded, is the whole difference between a system that
-      improves and one that merely accumulates.
+      Every module as a dot and every import as a line, redrawn each week from the committed code,
+      so the architecture can be watched as it grows. What it exists to show is the wall: which
+      imports cross between the world and the company through the sanctioned seam, and which go
+      round it. <a href="../code/">See the code, every module a star &gt;</a>
     </p>
   </section>
 
-  <section>
-    <h2>What we know is wrong</h2>
-    <p class="sub">Standing weaknesses, stated here rather than discovered by a reader.</p>
-    <p>
-      Two kinds of wrong live in a project like this, and they are not equally interesting. The
-      first is something that does not work yet — a gap, listed below, with no pretence that it
-      is finished. The second is something that works and is believed for the wrong reason. That
-      is the kind that does damage, because nobody goes looking for it.
-    </p>
-    <p>
-      The second kind is only ever caught by a measurement that could have come out the other
-      way. On 20 August this site appeared to be failing between eleven and forty-seven per cent
-      of its page loads. Four explanations were proposed, and each one was tested, and each one
-      was wrong: a caching header, a stale purge, a theory that the failures were only this
-      machine's own checks, and a routing pattern that held across eight hundred observations and
-      broke at fourteen hundred. None of it was real — the hosting provider's analytics were
-      recording every request of one protocol twice, and the second copy read as a timeout. The
-      site had been healthy throughout.
-    </p>
-    <p>
-      Two things were worth more than the answer. An observed pattern is still only a theory
-      about the next observation, however many observations it already survived. And when four
-      explanations about a mechanism die in a row, the next move is not a fifth one — it is to
-      check whether the instrument means what you think it means. The four wrong turns are kept
-      in the record deliberately: a project that publishes only the theories that turned out
-      right is showing you its results, not its method.
-    </p>
-    <div id="not-proven"></div>
-  </section>
-
-  <section>
+  <section id="daemons">
     <h2>What code each daemon is actually running</h2>
     <p class="sub">
       A green test proves the code is right. It proves nothing whatever about the code being
@@ -243,137 +528,6 @@ a { color: var(--teal); }
     <div id="deployment"></div>
   </section>
 
-  <section>
-    <h2>How the code is wired</h2>
-    <p class="sub">
-      Every module as a dot and every import as a line, redrawn each week from the committed code,
-      so the architecture can be watched as it grows. What it exists to show is the wall: which
-      imports cross between the world and the company through the sanctioned seam, and which go
-      round it. <a href="../code/">See the code, every module a star &gt;</a>
-    </p>
-  </section>
-
-  <section>
-    <h2>Where belief and truth diverge</h2>
-    <p class="sub">
-      The company inside the simulation cannot see the world it lives in — it infers. This is the
-      measured size of the gap between what it believes and what is actually true, which is the
-      only number on the site that could not exist outside a simulation.
-    </p>
-    <p>
-      The gap is measured, not asserted, and the measurement is deliberately made against
-      something the company has no way to reach. Its picture of the world is assembled only from
-      what a real supplier could observe: prices it was quoted, meter readings it received, bills
-      it issued, payments that arrived or did not. Ground truth sits on the other side of a wall
-      the company has no call into, and the two are compared afterwards, here, by the harness.
-    </p>
-    <p>
-      Where they diverge, the company is left wrong on purpose. A supplier that discovers its own
-      error the instant it makes one is not a supplier — it is a lookup table with a story
-      attached. The interesting question is not whether the company is right; it is how long it
-      takes to notice it was wrong, and what that costs in the meantime.
-    </p>
-    <div class="kpis" id="gap-kpis"></div>
-    <div id="gap-note"></div>
-  </section>
-
-  <section>
-    <h2>What we got wrong, and corrected</h2>
-    <p class="sub">
-      Published claims that turned out to be false, with what replaced them. A project that
-      never lists any of these is not being checked.
-    </p>
-    <p>
-      One rule shapes this list more than any other, and it was learned the hard way. A check
-      that observes <b>new</b> content is trustworthy; a check that concludes something is
-      <b>absent</b> is not. A cached copy of a page can be old, but it can never be newer than
-      when it was stored — so through a cache, "this is gone" and "I am looking at a stale copy"
-      are the same observation. On 20 August, eight deleted pages went on being served to readers
-      for a day after every published check had confirmed them removed. Every live check this
-      project makes now carries a one-off marker that a cache cannot answer, so the question can
-      only be settled by asking the source.
-    </p>
-    <div id="corrections"></div>
-  </section>
-
-  <section>
-    <h2>The rules this project has had to mint</h2>
-    <p class="sub">
-      Each of these exists because something broke. They are kept in the order they were
-      learned, with the failure that caused them, because the failure is the useful half.
-    </p>
-    <p>
-      A rule earns its place here only by being converted into something that runs. Written
-      rules decay — this project has watched several of them do it, always the same way: the
-      rule stays in the document, everyone agrees with it, and the behaviour drifts back
-      because nothing was checking. So the test applied to every rule below is whether you
-      could delete the sentence and still have the rule hold. If not, it isn't a rule yet.
-    </p>
-    <p>
-      The most useful thing this list has taught is about the shape of failures, rather than
-      any single entry. Almost nothing here was caused by a <i>missing</i> check. In one day of
-      August 2026 five separate controls were found to be present, correct in intent, wired in,
-      and pointed slightly off-target: a cache-clearing step that reported its own failure and
-      then exited successfully, so months of deployments were recorded green; a rule requiring
-      a change to be recorded alongside the code, enforced only by a check that never ran on
-      that code; a guard that reported "I could not ask" as "the answer is empty"; a batch of
-      timeouts that turned out to be an artefact of the measuring instrument rather than the
-      thing measured; and a stall detector whose notion of progress was satisfied by other
-      people's work.
-    </p>
-    <p>
-      Every one of those reads as green until something forces a second look. That is why the
-      section below counts controls by whether they have been <i>proven to fail</i> rather than
-      by whether they exist, and why the entries here name the failure and not just the
-      remedy — a rule remembered without its failure is the first step back to not having it.
-    </p>
-    <div class="table-scroll"><table id="rules"><thead><tr>
-      <th>Learned</th><th>The rule</th><th>What caused it</th>
-    </tr></thead><tbody></tbody></table></div>
-  </section>
-
-  <section>
-    <h2>Checks that can actually fail</h2>
-    <p class="sub">
-      Every control in the system, graded on whether it has been proven to fire on its own
-      named defect. The ones that have not are counted rather than quietly trusted.
-    </p>
-    <p>
-      There are three ways a check passes while meaning nothing, and this project has shipped all
-      three. It can derive the value it is checking from the same place it checks against, so it
-      can only ever agree with itself. It can pass when its input is missing, empty or malformed.
-      Or it can pass when the checker itself could not run — which is the worst of the three,
-      because an unavailable check and a satisfied one look identical from outside.
-    </p>
-    <p>
-      A live example, removed the same day this was written: the step that cleared this site's
-      cache after every deploy had been misconfigured since the day it was added. It reported its
-      own failure and then exited successfully, so every deploy for months was recorded green
-      while the step did nothing at all. It has been replaced by a check that fetches what was
-      just published and compares it, byte for byte, against what a reader is actually served.
-    </p>
-    <div class="kpis" id="control-kpis"></div>
-  </section>
-
-  <section>
-    <h2>What a human actually decided</h2>
-    <p class="sub">Reserved to the director, and nothing else is.</p>
-    <p>
-      Four classes of decision are the director's and cannot be taken by the builder under any
-      circumstances: <b>spending real money</b>, <b>contacting a real person</b>, <b>making an
-      irretractable public claim in the company's name</b>, and <b>anything touching a real
-      person's safety</b>. Everything else — architecture, sequencing, what to build, what to
-      delete, what to publish — is decided and acted on autonomously, and reported afterwards.
-    </p>
-    <p id="reserved-now"></p>
-    <p>
-      That list is short on purpose. An earlier version of this project had a large apparatus of
-      approvals, gates and ratifications, and its measured effect was that work stopped waiting
-      for a human who was asleep. It was removed, and the removal is itself enforced: a control
-      refuses to register any new item as needing the director's approval unless it falls in one
-      of those four classes.
-    </p>
-  </section>
 
   <div class="note">
     <strong>What this page is not.</strong> It is not a dashboard, and there is no view behind it
@@ -381,6 +535,28 @@ a { color: var(--teal); }
     how the system checks itself, but they are written for the machine and reading them tells you
     less than the numbers above.
   </div>
+
+  <section id="glossary">
+    <h2>Words the full record uses</h2>
+  <p>
+    The full record above is written in the project's own terms.
+    An <b>atom</b> is one named unit of the build plan, such as D48, and its <b>level</b> is how
+    far it has got. A <b>rung</b> is one step on a ladder of evidence: a smaller, weaker test that
+    has to hold before the next, stronger one counts. A <b>stretch</b> is the few hours between two
+    of the delivery seat's readings, described below. The <b>wall</b> is the rule that the company
+    only sees what a real supplier could see, and a <b>seam</b> is one of the named doorways it
+    sees through.
+  </p>
+  </section>
+
+  <section id="for-the-director">
+    <h2>For the director: what has changed since he last looked</h2>
+    <p class="sub">
+      A standing diff against a recorded position, so nothing has to be re-read to find the part
+      that moved.
+    </p>
+    <div id="director-delta">Loading the delta…</div>
+  </section>
 </main>
 
 <script>
@@ -504,7 +680,7 @@ function renderGaps(d) {
     return;
   }
   $("gap-kpis").innerHTML =
-    kpi(n(g.pair_count), "world/company pairs") +
+    kpi(n(g.pair_count), "things the supplier has to infer about its world") +
     kpi(n(g.measured), "with the gap measured") +
     kpi(n(g.unmeasured), "not yet measured") +
     kpi(n(g.worse_than_blind_count), "where the company does worse than guessing");

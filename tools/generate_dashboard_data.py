@@ -2436,6 +2436,9 @@ def generate(run_json_path=None):
                                      OUTPUT_PATH.parent / "sim_data.json")
         write_front_door_build_strip(front_door)
         write_run_clocks(front_door.parent, dashboard)
+        from tools.harness_page_figures import write_harness_figures
+        write_harness_figures(front_door.parent / "harness" / "index.html",
+                              OUTPUT_PATH.parent / "proof.json")
     return consistency_ok
 
 
