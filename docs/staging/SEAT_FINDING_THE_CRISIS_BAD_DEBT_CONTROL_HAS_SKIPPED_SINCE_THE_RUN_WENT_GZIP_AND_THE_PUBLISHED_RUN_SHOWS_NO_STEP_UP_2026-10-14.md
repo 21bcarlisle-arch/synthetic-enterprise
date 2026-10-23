@@ -1517,3 +1517,21 @@ function.
 **Not yet graded:** the page's prediction. Winter 2022-23's failed share should fall, and no 2022
 step-up should appear. That needs a run on this commit. Steps (ii) and (iii) are unchanged.
 **Status:** still OPEN and BLOCKING.
+
+## 2026-10-23 (22:00Z): step (i) graded. EBSS lowers the winter failed share, and the step-up falls with it
+
+Two paired full-window arms ran at `aed6ba8517`: the credit netted, and the credit withheld in one
+line. The thresholds were filed in 4dcbe4292 before either arm finished. The full grade is on
+`docs/market_research/energy_bills_support_scheme_delivery.md`, under "Choice 5, graded". 2016-21
+match exactly between the arms. Winter 22-23's failed-owed share goes from 5.06% to 4.18% (on/off
+0.83, predicted 0.60-0.90). Failed winter bills go from 107 to 98. The IFRS 9 crisis share goes from
+0.692% to **0.593%**, and the step-up from x0.95 to **x0.81**.
+
+**For this finding.** Step (i) was right to build and it moves the validator further from passing.
+That is the honest direction: the world now carries relief that the real 2022 had. Two things now
+stand. (a) The 2022 step is the company's overlay, step (ii). (b) The world's 2023 is still too
+steep after the credit ends: 4.9-6.8% failed in every month from April to December 2023, with the
+arms identical from August. EBSS does not explain it. Neither number has been re-read on the EPG
+carve's base, which lands after these arms.
+
+**Status:** OPEN and BLOCKING. Step (i) is built and graded. Steps (ii) and (iii) are unchanged.
