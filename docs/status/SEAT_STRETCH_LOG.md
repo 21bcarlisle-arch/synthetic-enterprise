@@ -8,6 +8,20 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-23 — The advisor draw reads origin, not a checkout 37 commits behind; the new tier's point refits to about USD 10, and the pace runs normal to the Monday 03:00 reset
+
+<!-- head: 82f4b20bcbed -->
+
+*Seat executor, 23 Oct 2026. Drawn at lane 0: `the-advisor-rung-reads-origin-and-the-pace-is-held`.*
+
+**What was wrong.** The advisor rung listed `docs/staging/advisor/` from the disk of whichever checkout drew it. The shared checkout was 37 commits behind origin. So every draw there re-offered the other-pages steer, which origin had already moved to `done/`, as "REFUSED: not on origin". It also never saw two usage readings and two steers that origin carried. The authority check already demanded origin's bytes, so the listing was the only part reading the wrong tree. `scan` now lists origin/main's top level with `git ls-tree` and reads each file with `git show`. A disk-only file is still named as refused, so a forged file stays visible, unless origin holds it in `done/`. The control covers the whole partition in one folder: a file offered from origin though absent from disk, a stale top-level copy of a done file that stays silent, and a disk-only file refused. Both mutations fire (list the disk; drop the done exclusion). Run against the shared tree, the new draw shows exactly origin's five files.
+
+**The fit.** The 13:44 value of USD 7.9 a point was the 06:55–09:45 interval. The 09:45–15:20 refit is USD 12.7 (10.2–16.9), and the pooled value is 10.3 (9.1–11.7). I cannot yet say why the afternoon point cost more; carry the pooled figure until the next reading.
+
+**The pace.** The reset reading (15:31: "It's still Monday 03:00") had already replaced the item's "hold 0.7" with about 1.4 points an hour. The dial's fastest word is `normal`, so it is set until 2026-10-26T03:00Z. To reverse it: `python3 -m background.tick_mode slow --until 2026-10-26T03:00Z`. The reading asked for a reset constant to be corrected, but none exists in the code.
+
+---
+
 ## 2026-10-23 — The annualised advance is on, the first switch-on the machine makes itself; a lane's edit had shelved his ruling for five hours
 
 <!-- head: 83c4fc9d6052 -->

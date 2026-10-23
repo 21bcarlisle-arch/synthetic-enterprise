@@ -130,20 +130,66 @@ def attribution_of(text: str) -> tuple[str | None, str | None]:
                   "of 15 Oct\" nor quotes his chat words with the time")
 
 
+def _origin_names(root: Path, sub: str) -> set[str] | None:
+    """The `.md` names origin/main holds directly under `sub`, or None when this root has no
+    origin/main to ask (a test's bare folder), so the caller falls back to the disk."""
+    listed = _git(root, "ls-tree", "--name-only", "origin/main", f"{sub}/")
+    if listed.returncode != 0 or not _git(root, "rev-parse", "-q", "--verify",
+                                          "origin/main").stdout.strip():
+        return None
+    return {n.rsplit("/", 1)[-1] for n in listed.stdout.splitlines() if n.endswith(".md")}
+
+
+def _listing(root: Path) -> dict[str, bytes | None]:
+    """Name -> bytes to judge (None = unreadable), read from ORIGIN, not the checkout's disk.
+
+    Defect (23 Oct): the shared checkout sat 32-37 commits behind origin, so the draw offered a
+    steer origin had already moved to done/ (refused as "not on origin") and never saw two readings
+    and a steer origin carried. The authority check already demands origin's bytes, so origin's
+    tree is the only listing that can agree with it. A disk-only file is still named as refused --
+    the forged-file case must stay visible -- unless origin holds it in done/: that is a stale copy
+    of an actioned file, and offering it again is the noise this replaces."""
+    folder = root / ADVISOR_DIR_REL
+    top = _origin_names(root, ADVISOR_DIR_REL)
+    disk = ({p.name for p in folder.iterdir() if p.is_file() and p.suffix == ".md"}
+            if folder.is_dir() else set())
+    if top is None:
+        out: dict[str, bytes | None] = {}
+        for name in disk:
+            try:
+                out[name] = (folder / name).read_bytes()
+            except OSError:
+                out[name] = None
+        return out
+    done = _origin_names(root, f"{ADVISOR_DIR_REL}/{DONE_SUBDIR}") or set()
+    out = {}
+    for name in top:
+        shown = _git(root, "show", f"origin/main:{ADVISOR_DIR_REL}/{name}", text=False)
+        out[name] = shown.stdout if shown.returncode == 0 else None
+    for name in disk - top - done:
+        try:
+            out[name] = (folder / name).read_bytes()
+        except OSError:
+            out[name] = None
+    return out
+
+
 def scan(repo_root: Path | str | None = None) -> list[AdvisorFile]:
-    """Every file at the folder's top level, oldest name first, each judged drawable or refused."""
+    """Every file at the folder's top level ON ORIGIN (see `_listing`), oldest name first, each
+    judged drawable or refused."""
     root = Path(repo_root if repo_root is not None else REPO_ROOT)
     folder = root / ADVISOR_DIR_REL
-    if not folder.is_dir():
-        return []
     out = []
-    for path in sorted(p for p in folder.iterdir() if p.is_file() and p.suffix == ".md"):
+    for name, data in sorted(_listing(root).items()):
+        path = folder / name
         try:
-            text = path.read_text(encoding="utf-8")
+            if data is None:
+                raise OSError("no bytes")
+            text = data.decode("utf-8")
         except (OSError, UnicodeDecodeError) as exc:
             out.append(AdvisorFile(path, None, f"unreadable: {exc}"))
             continue
-        why = verify_provenance(root, path.name, text.encode("utf-8"))
+        why = verify_provenance(root, name, data)
         if why:
             out.append(AdvisorFile(path, None, why))
             continue
