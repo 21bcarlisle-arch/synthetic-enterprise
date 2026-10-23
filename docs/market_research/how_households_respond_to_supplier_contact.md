@@ -392,3 +392,105 @@ evidence outside the world.
 before the run: every coin-flip row is decided, and the company would offer on at most 10% of them.
 Result: 52 coin flips (26 per arm), all 52 decided, **0 of 52 would offer**. Held. Before this
 build, the standing guard decided all of these and offered on every one.
+
+## 7. How a supplier's tariff advice reaches a household, and why C34's cannot yet (C30 K8, 2026-10-23)
+
+*Drawn as `the-advice-c34-records-reaches-the-household-k8-then-build`. Prereg §17
+(`docs/staging/records/SEAT_PREREG_THE_PER_CUSTOMER_SWITCHES_ON_TOGETHER_AGAINST_FLAT_2026-10-21.md`,
+1044c8fe0) found that C34 records tariff advice on 325 renewal rows and sends none. This section
+says how such advice reaches a real household, and what a household does with it. It then says why
+the build stops here: the seam has no moment at which the company could send it to a household
+the evidence says it would move.*
+
+**7.1 The channels the licence prescribes.**
+- **The renewal notice** (SLC 22C.3 → 31I; §4.5 of `next_best_action_and_cross_sell.md`). Every
+  household reaching the end of a fix must get it, "at an appropriate time … designed to prompt" a
+  choice. The 42–49-day rule became this principle in Ofgem's 2018 communications decision. The
+  notice carries the renewal price and the default the household will roll onto. This is the
+  one contact that is **already in the world's baseline**, because every household gets it.
+- **The cheapest tariff message (SLC 31A, with 25C).** Bills and annual statements state the
+  tariff the household is on, its annual spend, and what it would save on the supplier's own
+  cheapest tariff. Ofgem's 2016–17 review of the RMR "simpler choices" rules **kept** the message
+  and removed only the prescription behind its annual-cost figure (Ofgem supplier letter,
+  *Removal of simpler RMR rules*, 14 Apr 2016). A later Ofgem enforcement notice against SSE
+  still cites 31A for it. Like the notice, it reaches everyone, so it is baseline too.
+- **What a supplier adds by choice.** Anything beyond those two: an extra letter, an email, a
+  reminder. Under SLC 0 it must not mislead. Email or SMS needs PECR consent or the soft opt-in
+  (§4.5 of the cross-sell page). **The per-household decision C34 makes is a decision about this
+  addition.** It cannot be about the notice, which goes to every household anyway.
+
+**7.2 What a household does with an added contact.** This is the trial evidence in §§2.1–2.7,
+nothing new. EFTC's treatment was exactly such an addition: a letter or email a few days before the
+term end, *on top of* the statutory notice. It woke 0.111 of the households that would not have
+chosen (§2.2). The woken households re-fixed with their own supplier, and external loss did not
+move (§2.1). Between boundaries, a letter wakes 0.024–0.040 of default-tariff stock (§2.7).
+NUDGE_PHYSICS_BENCHMARKS.md adds nothing specific to energy tariff advice beyond the default-bias
+range (15–35%), which the EFTC control arm already embodies. **On this evidence the household that
+advice moves is the inert one, and it moves through being woken, not through the advice's content.**
+A household that was already going to choose chooses the same way, letter or not. The world already
+encodes this: `engaged_probability_after_contact` leaves an engaged household engaged, and the
+coupled roll gives a chooser the same outcome contacted or not.
+
+**7.3 Why C34's advice, sent as it stands, would reach no household that can respond.** I read
+the code at `0f59944ac` and counted §16's lower-bound arm (`/var/tmp/se-pcs-arms16-out/`, electricity):
+- **The world decides who is inert before the company exists in the run.** A resi household's
+  term-end engagement roll (`rolls_active_renewal`) is taken in the schedule builders
+  (`renewals.build_renewal_schedule`; `_build_gas_renewal_schedule`). They run for every household
+  before the main loop (`run_phase2b.py` ~2133). A passive household is written straight onto an
+  SVT stint. **427** electricity fixed-term ends went that way in the arm: 187 in 2017, 2–58 in
+  other years, and some of them inside the FTC withdrawal window, where no contact could wake them.
+- **C34 decides only on the households already choosing.** `RenewalAdviceDesk.observe_roll` is
+  reached from the departure branch. Since PB6 that branch is reached only by active resi
+  decisions (`active_renewal_probability_at_a_decision`). That is **454** (household, term) decisions
+  in the arm, with advice on **128** of them. §17's 325 counts rows, one per stated advice effect
+  (three per decision), so it is the same population counted three times.
+- So the published response is null on C34's entire population. Its households would have
+  chosen anyway (§7.2). The population the evidence says a contact moves, the 427, was settled
+  before the notice moment. Even at EFTC's 0.111, that is about **47 wakeable households over ten
+  years** (fewer once the FTC window is taken out), and C34 can never see them.
+
+**7.4 THE SEAM GAP that stops the build.** To deliver advice where it can act, the company has to
+decide **at the notice**, 42–49 days before the term end, for every fixed-term household. The
+world's term-end roll must then read what arrived (`ContactsReceived`), as the SVT roll already
+does. Two things are missing:
+1. **A notice-time crossing.** The seam has no event saying "this account's fix ends on D, the
+   renewal price is R", delivered to the company *before* the world rolls the household's
+   engagement. Today the world rolls engagement while building the schedule, and the company first
+   hears of the renewal at the roll itself, after it.
+2. **The company's state at the notice date.** C34's inputs are the contribution at the offered
+   rate, the churn belief, arrears, satisfaction and shock count. All are computed in the main loop
+   as it walks each account's terms, after every schedule is built. Moving the term-end roll into
+   the loop, or adding an earlier company pass, is a structural change to the run's order. It
+   is not a switch.
+
+`send_contact` itself suffices for the send. `ContactsReceived.receive` would also need a
+fixed-term-end instrument keyed to `WOKEN_SHARE_AT_FIXED_TERM_END` (sourced, EFTC). That is a
+small change, and only useful once item 1 exists. **No build was started**, as the item instructs
+where the seam needs a new observable.
+
+**7.5 Design choices this page commits to, for when the crossing exists.**
+- The advice is an *added* contact at the notice. The statutory notice and the cheapest-tariff
+  message stay in the baseline for every household, and they are not the company's lever.
+- The world's answer is EFTC's woken share on the coupled roll (`rolls_active_renewal_after_contact`).
+  No new world number is needed: every magnitude here is §2's.
+- The company decides **who** to send it to. Its value is household-side (an inert household
+  re-fixing instead of paying the default) as well as company-side (the woken re-fix internally,
+  §2.1). That is the first act in this book whose household side does not come out of the company's
+  side, which is the M2 test the flat-against-per-customer comparison needs.
+- The cheaper interim route, if the director prefers it: send C34-style advice per account at the
+  **start of a passive household's first SVT segment**, through the wired SVT route (§5, CMOC's
+  0.040). That needs no new crossing, only a per-account sender in place of the flat
+  `svt_contact_instrument`. It moves a household *after* it has paid at least one segment on the
+  default, so it understates what a notice-time advice would create. That understatement errs
+  against the thesis (F11). **Recommended next:** build this route first, default off, as C30's
+  level-1 build. It answers the M2 question now, conservatively. Leave the notice-time crossing
+  until that arm shows the advice creates value worth reaching earlier.
+
+**GAPs.**
+- Whether SLC 31A's cheapest tariff message survives today in the form the 2016 letter kept was not
+  re-read after the SSE notice.
+- No trial isolates the *content* of tariff advice (which tariff it names) from the wake. CMOC's 71%
+  of switchers picked a tariff the letter did not list (communications page §3.5). That says
+  content matters little, and it is the reason the world answers the wake only.
+- The woken share at a fixed-term end for a household already sent the statutory notice by
+  *this* supplier is EFTC's single-supplier figure. Supplier-to-supplier variation is unpublished.
