@@ -1,13 +1,40 @@
 from __future__ import annotations
+
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional
-
 
 EBSS_MONTHLY_CREDIT_GBP = 66.67
 EBSS_TOTAL_CREDIT_GBP = 400.0
 EBSS_ALT_FUEL_CREDIT_GBP = 100.0
 EBSS_MONTHS = ["2022-10", "2022-11", "2022-12", "2023-01", "2023-02", "2023-03"]
+
+
+#: The published instalments: GBP 66 in October and November 2022, GBP 67 from December to March,
+#: adding to the GBP 400 (`docs/market_research/energy_bills_support_scheme_delivery.md`). The
+#: even 66.67 above is the register's older figure and is GBP 0.02 off the total.
+EBSS_INSTALMENT_GBP = {
+    "2022-10": 66.0, "2022-11": 66.0, "2022-12": 67.0,
+    "2023-01": 67.0, "2023-02": 67.0, "2023-03": 67.0,
+}
+
+
+def ebss_credit_gbp(segment: str, commodity: str, month: str) -> float:
+    """The scheme credit a domestic electricity account carried in `month` ("YYYY-MM"), else 0.
+
+    Paid per domestic electricity account, never on gas and never on non-domestic supply. The
+    supplier applied it and reclaimed it from government, so it lowers what the household owes and
+    leaves the supplier's charge, and its revenue, where they were. Every amount path that asks what
+    a household owes for a month nets it through this one function (the VAT rule's lesson: one
+    requirement, one home).
+
+    Every payment route is credited in full. The page's 0.71-0.82 voucher take-up applies only to
+    traditional prepayment, which the world cannot tell from smart, and a prepayment statement
+    never fails there (`arrears_engine.PREPAYMENT_METHOD`), so the take-up belief moves no failed
+    pound. GAP: the unredeemed vouchers, about a fifth of traditional PPM's, are not modelled.
+    """
+    if segment != "resi" or commodity != "electricity":
+        return 0.0
+    return EBSS_INSTALMENT_GBP.get(month, 0.0)
 
 
 class EBSSCreditType(str, Enum):

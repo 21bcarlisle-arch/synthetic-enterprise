@@ -869,6 +869,7 @@ def _resolve_bills(bills: list[dict], behavioral: dict, seed: int) -> list[dict]
     order. The one place the engine draws an outcome, so every consumer below reads the same one.
     """
     import simulation.world_payment_truth as wpt
+    from company.interfaces.bill_assembly import owed_after_scheme_credit
     from simulation.dd_collection_book import supplier_dd_stops
     from simulation.dd_shock_response import RECORD_KEY as SHOCK_RECORD_KEY
     from simulation.dd_shock_response import bill_effect, failure_table
@@ -899,6 +900,8 @@ def _resolve_bills(bills: list[dict], behavioral: dict, seed: int) -> list[dict]
             amount = round(amount * (1.0 - occupier_share), 2)
         period_end = bill["period_end"]
         commodity = bill.get("commodity", "electricity")
+        # The bill's charge is unchanged by EBSS; what the named payer owes is net of it.
+        amount = owed_after_scheme_credit(amount, segment, commodity, period_end[:7])
         due_date = date.fromisoformat(period_end) + timedelta(days=PAYMENT_TERMS_DAYS)
         if amount <= 0:
             # A credit bill has nothing to collect, so it can neither fail nor acknowledge a debt.
