@@ -8,6 +8,24 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-23 — Section 14's four-seed grade: neither per-customer retention switch clears its departure interval, so both stay off
+
+<!-- head: 4e9c7a524a51 -->
+
+**In plain English:** We tested twice, on four sets of dice, whether tailoring each customer's retention offer to what the company believes about them creates value against a supplier that treats everyone alike. Neither version passed the test we set before the runs: on this book, any value they create is too small to tell apart from chance. Both stay switched off.
+
+*Seat executor, 23 Oct 2026. Section 14 of `docs/staging/records/SEAT_PREREG_THE_PER_CUSTOMER_SWITCHES_ON_TOGETHER_AGAINST_FLAT_2026-10-21.md`, seed 5 graded and the four-seed grade (seeds 2 to 5) written under the rule fixed on 22 Oct before any seeded arm ran.*
+
+**The result.** Seed 5 is valid (P14a′: 125 events differ from seed 1). Across the four seeds, the ending-term belief nets +£1,556 ± £2,104 against flat, and its `departure` channel nets +£3,618 ± £4,924. That channel is positive on every seed, but its interval contains zero. The save-odds guard nets +£367 ± £1,707, with `departure` at +£614 ± £3,289. The rule needs `departure` above zero AND net at least 0, so **neither switch is proposed. As the rule says: across these draws, on this book, the per-customer retention offers create no value that can be detected.** Under the director's 23 Oct ruling, point 3, a refuted rule leaves the switch off on the same record, with the reason. Nothing is flipped, and nothing is raised.
+
+**What I got wrong.** P14b predicted that the switch's money would move through `parity`, stayers put onto fixes, positive on at least 3 of 4 seeds with a mean of +£1,500. It was positive on 2 of 4, with a mean of +£309. Seed 5 read −£2,085, and one household (`SYN-2016-145`, a 2019 fix it declined under flat) carried −£5,293 of that. Why that fix cost so much is not traced. Parity is the noisiest channel, not the one the money moves through.
+
+**Stated beside the grade.** Flat and the offer arms also differ in collections tone. The tone reaches no payment, since one payment truth (`ded298ecd2`, an ancestor of the arms' commit), as §17 found (`1044c8fe0`). So the comparison is the offers alone. That rests on the code path. It was not re-measured on these arms.
+
+**Next.** A new rule asking more seeds of the ending-term arm would be a new pre-registration. It is not worth its compute until a grader splits net per household, because gross overstates what one departure costs by 2 to 3.6 times on seeds 1 to 4.
+
+---
+
 ## 2026-10-23 — The code tab shows its census and a still of the galaxy before its script runs, written at publish beside the picture
 
 <!-- head: ff5c0de8b532 -->

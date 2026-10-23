@@ -1494,6 +1494,132 @@ locked worktree `/var/tmp/se-pcs-arms14` (`bc1e6ad78`). Its unit log is
 `/var/tmp/se-pcs-arms-out/s5_unit.log` and its artefact is `s5/all_on_save_odds.json`. Its grade is
 the 4-seed grade under the decision rule above.
 
+### 14. Seed 5 (graded 2026-10-23 ~11:30Z; all three `s5/*.rc` 0, written 21:03Z to 22:50Z on 22 Oct)
+
+Graded with `python3 -m tools.grade_per_customer_switch_seeds s2:... s3:... s4:... s5:...` from a
+worktree at origin/main `4e9c7a524a`. The grader's last change is `9fc1145201`, the parity-edge
+correction. Seed 1 is not pooled. The seed 2, 3 and 4 lines that run printed match their tables above
+to the pound. *An earlier draw of this grade (about 23:40Z) landed nothing. No unreachable commit
+touching this record is newer than 22 Oct 11:13, and no `/var/tmp` worktree holds a seed 5
+section, so this grade is the first one written.*
+
+**What the dice blocks say.** `customer_events` binding: 230 / 358 / 327 seeded renewal rolls
+(flat / ending_term / save_odds). `retention_offer` binding: 0 / 123 / 92. Payment draws: 54,967 /
+55,128 / 55,128. The `run_phase2b` binding read 0 in every arm, as on seeds 1 to 4.
+
+**P14a′, the binding leg: PASSED.** I compared the `churned` events (account, `event_date[:10]`) in
+`s5/flat.json` with those in `s1/flat.json`, both at `bc1e6ad780`. Seed 1 has 92 such events and
+seed 5 has 91. 63 are only in seed 1 and 62 only in seed 5, so the symmetric difference is **125**,
+against a bound of at least 20. Seed 5 is valid.
+
+**The original P14a, reported and not relied on: both legs pass.** Flat's
+`churned_billing_accounts` is **349**, against the default dice's 353, a difference of 4 (bound: at
+least 3). The departing set differs from the default's by 30 accounts that left only under the
+default and 26 that left only under seed 5 (bound: at least 20). Against seed 1's flat it differs by
+the same 30 and 26.
+
+| pair (seed 5) | net | gross | unattributed | departure | parity | other | same_choice |
+|---|---|---|---|---|---|---|---|
+| ending_term − flat | −£196 | −£265 | +£68 | 3h +£595 | 14h −£2,085 | 0 | 425h +£1,225 |
+| save_odds − flat | −£207 | −£237 | +£30 | 3h +£595 | 11h −£2,070 | 0 | 422h +£1,238 |
+| save_odds − ending_term | −£11 | +£28 | −£39 | 0 | 4h −£27 | 0 | 101h +£55 |
+
+**What the rows hold.** These are reads, not predictions.
+- `departure` holds the same three households in both offer arms. One is a save: `SYN-2016-331`
+  left flat at its 2017-07-18 electricity fix end, fixed under both offer arms, and left a year
+  later (+£650). Against it, `PROS-2016-0046` left flat at 2018-02-16 and declined the fix instead
+  under the offer arms (+£169). `SYN-2016-609` left on gas at 2019-12-27 in both offer arms and stayed
+  in flat (−£223). **609 now leaves from the offer arms' 2018 fix on four seeds of four**, at the same
+  date and gross each time. save_odds − ending_term `departure` is empty: no high-value save turned
+  on the guard this time.
+- **`parity` is the seed's story, and one household carries it.** `SYN-2016-145` declined the fix at
+  its 2019-03-20 electricity roll in flat and took it (`svt_conversion`) under both offer arms: gross
+  −£5,293. Without it, ending_term − flat `parity` would be +£3,209. *Why that one fix cost £5,293
+  is not traced. A fix taken in 2019 that runs into the 2021–22 wholesale rise is the obvious
+  candidate. I have not read its term or tariff, so it stays a candidate.* `SYN-2016-369` (+£2,751)
+  is the same positive parity household as on seed 2. `SYN-2016-387` again fixes rather than leaves
+  at 2019-08-25, as on seed 4 (−£69), which keeps seed 4's refutation of seed 3's "held channel"
+  reading.
+
+**Per-seed legs, counted (four of four graded seeds):**
+- **P14b, ending_term − flat `parity` positive:** −£2,084.88 over 14 households. **The wrong sign,
+  and outside the predicted per-seed range [−£500, +£4,500].**
+- **P14b, save_odds − ending_term `parity` negative:** −£27.37 over 4 households, **negative as
+  predicted**.
+- **P14c, save_odds − ending_term `departure` holds at most 3 households:** 0 households, **held**.
+
+### 14. The four-seed grade (seeds 2, 3, 4 and 5), under the rule fixed before the arms ran
+
+Mean ± 95% half-width (t, 3 degrees of freedom, 3.182):
+
+| pair (seeds 2–5) | net | departure | parity | same_choice |
+|---|---|---|---|---|
+| ending_term − flat | +£1,556 ± £2,104 | +£3,618 ± £4,924 | +£309 ± £3,255 | +£1,076 ± £1,612 |
+| save_odds − flat | +£367 ± £1,707 | +£614 ± £3,289 | +£233 ± £3,188 | +£610 ± £1,686 |
+| save_odds − ending_term | −£1,189 ± £1,882 | −£2,957 ± £5,025 | −£133 ± £174 | −£456 ± £1,690 |
+
+`other` is £0 on every pair on every seed.
+
+**The predictions:**
+
+| | prediction | result | verdict |
+|---|---|---|---|
+| P14a′ | each seed's flat `churned` events differ from seed 1's by ≥ 20 (95%) | 111, 113, 119, 125 | **held**, all four seeds valid |
+| P14a (original, not relied on) | count differs from 353 by ≥ 3, set by ≥ 20 (90%) | count 4, 11, 3, 4; set per side short only on seed 4 (18) | not relied on |
+| P14b leg 1 | ending_term − flat `parity` > 0 on ≥ 3 of 4, mean +£1,500, each in [−£500, +£4,500] (75%) | +£2,866, +£594, −£140, −£2,085: 2 of 4, mean +£309, seed 5 outside the range | **refuted** |
+| P14b leg 2 | save_odds − ending_term `parity` < 0 on ≥ 3 of 4, mean −£1,500 (75%) | −£93, −£284, −£126, −£27: 4 of 4, mean −£133 | **sign held, size wrong by an order of magnitude** |
+| P14c leg 1 | save_odds − ending_term `departure` ≤ 3 households on every seed (80%) | 1, 2, 3, 0 | **held** |
+| P14c leg 2 | each arm's `departure` against flat has a 4-seed interval containing 0 (70%) | ending_term [−£1,306, +£8,542]; save_odds [−£2,675, +£3,903] | **held** |
+| P14d | each pair's mean net against flat has an interval containing 0 (70%, 65%) | ending_term [−£548, +£3,660]; save_odds [−£1,340, +£2,074] | **held** |
+
+P14b's premise, that the switch's money moves through `parity`, is refuted. Parity is the noisiest
+channel (±£3,255). On seed 5 a single household's fix moved it by £5,293, more than its 4-seed mean
+moved in either direction.
+
+**The decision rule, applied as filed.** A switch is proposed only if its `departure` gross against
+flat has a 4-seed 95% interval above zero AND its mean net against flat is at least 0.
+- **`renewal_belief_by_ending_term` (the ending_term arm): NOT PROPOSED.** Mean net is +£1,556,
+  which is ≥ 0. But its `departure` interval is +£3,618 ± £4,924, which is [−£1,306, +£8,542] and
+  contains zero. `departure` is positive on all four seeds (+£2,905, +£3,026, +£7,946, +£595). The
+  rule asks for the interval, though, and the interval fails. The money is a mixture: departures
+  most seeds, and `same_choice` discounts and `parity` the rest. Nothing on this record separates
+  value created from value moved at the bar the rule set.
+- **`retention_weighs_save_odds` (the save_odds arm): NOT PROPOSED.** Mean net is +£367 (≥ 0), but
+  `departure` is +£614 ± £3,289, which straddles zero widely. Against ending_term it loses −£1,189
+  net. Its whole `departure` deficit is the guard declining the most valuable save on two seeds
+  (`SYN-2016-425` at 0.34 and `SYN-2016-206` at 0.348).
+- **The rule's own closing clause applies:** neither switch is proposed. So across these four draws,
+  on this book, **the per-customer retention offers create no value that can be detected.** This
+  does not say that they create none. ending_term's `departure` point estimate is positive on every
+  seed. On four seeds the interval is roughly 1.4 times its mean, so it cannot clear zero. A new rule
+  that asks more seeds of the same arm is a new pre-registration (ruling of 23 Oct, point 3). This
+  rule may not be rewritten now that its arms are read.
+
+**Under the director's 23 Oct ruling.** Point 2 makes a switch-on the machine's only where "the grade
+meets" the rule fixed before the arms ran. Here it does not, for either switch. By point 3, "a switch
+whose rule is refuted stays off, on the same record, with the reason". **Both stay off.**
+`CURRENT_POLICY.renewal_belief_by_ending_term` and `CURRENT_POLICY.retention_weighs_save_odds` read
+`False` at `4e9c7a524a`, and nothing is flipped. The reason is the line above: `departure` interval
+contains zero. No raise goes to the director, because there is nothing to decide.
+
+**What else differs between flat and the offer arms: the collections tone, which reaches no
+payment.** Flat is `FLAT_SUPPLIER_POLICY`. The offer arms are `CURRENT_POLICY` plus their switches.
+So beside the offers they also differ in `tone_mode` (flat's firm-only against CURRENT's `ab_test`
+split) and in `framing_mode`. Framing is read only inside a retention offer, so it is part of what
+the offer arms test. Tone is the dunning-letter tone. §17 (`1044c8fe0`) found that it reaches the
+world only through `arrears_engine.payment_outcome`, which a triad-decided bill never calls since
+`world_payment_truth.UNIFIED = True` (`ded298ecd2`). That commit is an ancestor of the arms' commit
+`bc1e6ad78`, and `UNIFIED = True` stands there. So every column above is the offers and the
+per-customer switches, with no tone effect mixed in. *§17's byte-identical check was run on §16's
+book at `4eb192b604`, not on these arms. Here the tone's inertness rests on the same code path, not
+on a re-measurement.*
+
+**The gross caveat, one last time.** The rule grades `departure` by gross, and `unattributed` is
+still not split by household. On seed 5 the unattributed lines are small (+£68, +£30, −£39) because
+the departures cancel. On seeds 2 to 4 they ran up to −£5,508. A grader that splits net per
+household would change how large each `departure` reading is. It changes this verdict only if it
+lifts ending_term's interval floor by more than £1,306.
+
 ## 15. The save rate learned against a holdout: `all_on_save_odds_holdout` beside `all_on_save_odds` (filed 2026-10-22, before either arm was launched)
 
 *Drawn as `the-save-rate-is-learned-against-a-holdout`. Knowledge first:
