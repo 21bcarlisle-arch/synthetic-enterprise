@@ -122,3 +122,34 @@ def test_the_points_conversion_counts_subagents_and_sessions_started_before_the_
     assert B.usd_per_point((("2026-10-12T13:00", 40.0),), tmp_path, since="") is None
     # A reading from before the tier change is the old tier's and never fits the new one.
     assert B.usd_per_point(pair, tmp_path, since="2026-10-12T14:00") is None
+
+
+def test_spend_is_split_by_route_with_forks_under_their_parent_and_advisor_draws_apart(tmp_path):
+    """Fires if a subagent's spend is filed under no route or under the wrong one, if an advisor
+    draw is not told from a map draw, or if an unpriced model reads as zero spend rather than
+    being counted."""
+    d = tmp_path / "proj"
+    (d / "w" / "subagents").mkdir(parents=True)
+    out = lambda i, model="claude-opus-5-5": {  # noqa: E731
+        "type": "assistant", "timestamp": "2026-10-20T10:00:00Z",
+        "message": {"id": i, "model": model, "usage": {"input_tokens": 0, "output_tokens": 1_000_000}}}
+    user = lambda text: {"type": "user", "timestamp": "2026-10-20T09:00:00Z",  # noqa: E731
+                         "message": {"content": text}}
+    landed = {"type": "user", "message": {"content": [
+        {"type": "tool_result", "content": "[surgical-land] landed abcdef1 (3 paths)"}]}}
+    (d / "w.jsonl").write_text("\n".join(json.dumps(r) for r in (
+        user("You are the autonomous worker, woken by a scheduled tick"), out("w1"), landed)))
+    (d / "w" / "subagents" / "a.jsonl").write_text("\n".join(json.dumps(r) for r in (
+        out("s1", "claude-sonnet-5-5"), out("s2", "claude-haiku-5-5"))))
+    (d / "x.jsonl").write_text("\n".join(json.dumps(r) for r in (
+        user("You are the delivery seat, continuing work autonomously ... docs/staging/advisor/X.md"),
+        out("x1"))))
+    routes = B.spend_by_route("2026-10-20T00:00", "2026-10-21T00:00", tmp_path)
+    assert set(routes) == {"worker_tick", "worker_tick / subagent", "seat_executor (advisor item)"}, routes
+    assert routes["worker_tick"] == {**routes["worker_tick"], "usd": 20.0, "landed": 1, "sessions": 1}
+    # Sonnet 5.5 output is USD 10 per million; Haiku 5.5 has no single list price and is counted, not zeroed.
+    assert routes["worker_tick / subagent"]["usd"] == 10.0
+    assert routes["worker_tick / subagent"]["unpriced_messages"] == 1
+    assert routes["seat_executor (advisor item)"]["landed"] == 0
+    total = B.weighted_usd_between("2026-10-20T00:00", "2026-10-21T00:00", tmp_path)
+    assert sum(r["usd"] for r in routes.values()) == total == 50.0

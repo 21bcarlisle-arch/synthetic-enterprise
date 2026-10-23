@@ -114,6 +114,7 @@ WORKTREE = Path(os.environ.get("SE_EXECUTOR_WORKTREE", "/var/tmp/se-seat-executo
 #: wedged session frees the lane the same hour.
 SESSION_TIMEOUT_SECONDS = 90 * 60
 
+from background.model_tier import HEADLESS_FLAGS  # noqa: E402
 from background.model_tier import OPUS as _OPUS_TIER  # noqa: E402 -- the one named model
 
 MODEL = os.environ.get("SE_EXECUTOR_MODEL", _OPUS_TIER)
@@ -987,7 +988,7 @@ def run_once(*, dry_run: bool = False, now: float | None = None) -> tuple[bool, 
             pass
         try:
             proc = subprocess.run(
-                [claude_bin, "-p", "--dangerously-skip-permissions", "--model", MODEL,
+                [claude_bin, "-p", "--dangerously-skip-permissions", *HEADLESS_FLAGS, "--model", MODEL,
                  prompt],
                 cwd=str(worktree), capture_output=True, text=True,
                 timeout=SESSION_TIMEOUT_SECONDS,

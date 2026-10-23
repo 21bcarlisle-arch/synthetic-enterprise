@@ -477,7 +477,8 @@ def apply_advisor_trial(model: str, decision: "object | None") -> "tuple[str, st
 
 
 def spawn_argv(claude_bin: str, model: str, advisor: "str | None", prompt: str) -> list[str]:
-    argv = [claude_bin, "-p", "--dangerously-skip-permissions", "--model", model]
+    from background.model_tier import HEADLESS_FLAGS
+    argv = [claude_bin, "-p", "--dangerously-skip-permissions", *HEADLESS_FLAGS, "--model", model]
     if advisor:
         argv += ["--advisor", advisor]
     return argv + [prompt]

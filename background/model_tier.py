@@ -74,6 +74,14 @@ OPUS = "claude-opus-5-5"
 # modules each pinned `claude-opus-5` after the director's console had moved to 5.5.
 SONNET = "claude-sonnet-5"
 
+#: FLAGS EVERY UNATTENDED `claude -p` SPAWN CARRIES (2026-10-23, the cheaper-per-landed-result
+#: steer). `--strict-mcp-config` loads no MCP server the spawn does not name, and it names none: the
+#: account's connectors put about 2,500 tokens of tool definitions into every turn's opening
+#: context (measured with two `claude -p` probes, 16,923 against 14,384 tokens written), which each
+#: turn then re-reads on every message, and 0 unattended turns called an MCP tool in the week to
+#: 23 Oct. REVERSE by emptying this tuple; nothing else changes.
+HEADLESS_FLAGS: tuple[str, ...] = ("--strict-mcp-config",)
+
 # ANTHROPIC'S DOCUMENTED FIX FOR OPUS 5.5 IN HEADLESS RUNS, adapted (2026-09-27). Opus 5.5 keeps the
 # user updated as it works, and some updates end the turn with text rather than a tool call; a
 # `claude -p` run treats that as the end of the task and stops partway through. Source:

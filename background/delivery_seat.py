@@ -58,6 +58,7 @@ STAGING_DIR = PROJECT_DIR / "docs" / "staging"
 #: The model. Orientation is judgement about what matters, which is the definition of the OPUS
 #: tier in CLAUDE.md's routing rule -- it is never mechanical volume and must never be tiered down
 #: on the grounds that it runs on a timer.
+from background.model_tier import HEADLESS_FLAGS  # noqa: E402
 from background.model_tier import OPUS as _OPUS_TIER  # noqa: E402 -- the one named model
 
 MODEL = _OPUS_TIER
@@ -2365,7 +2366,7 @@ def run_session(brief: dict) -> tuple[bool, str]:
     env = dict(os.environ, DISABLE_AUTOUPDATER="1", SE_DELIVERY_SEAT="1")
     try:
         proc = subprocess.run(
-            [claude_bin, "-p", "--dangerously-skip-permissions", "--model", MODEL],
+            [claude_bin, "-p", "--dangerously-skip-permissions", *HEADLESS_FLAGS, "--model", MODEL],
             input=_prompt(brief), cwd=str(PROJECT_DIR), capture_output=True, text=True,
             timeout=SESSION_TIMEOUT_SECONDS, env=env,
         )

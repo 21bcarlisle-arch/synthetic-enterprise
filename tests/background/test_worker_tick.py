@@ -380,3 +380,12 @@ def test_a_failed_invocation_says_why_in_the_tick_log(tmp_path, monkeypatch):
     assert rc == 1
     assert "usage limit reached" in wt._why_it_exited(rc)
     assert wt._why_it_exited(0) == ""
+
+
+def test_an_unattended_spawn_loads_no_mcp_server():
+    """Fires if the tick's spawn drops the shared headless flags: the account's MCP connectors cost
+    about 2,500 opening-context tokens per turn and no unattended turn calls one."""
+    from background import model_tier as mt
+    argv = wt.spawn_argv("claude", mt.OPUS, None, "P")
+    assert "--strict-mcp-config" in mt.HEADLESS_FLAGS
+    assert all(flag in argv for flag in mt.HEADLESS_FLAGS) and argv[-1] == "P"

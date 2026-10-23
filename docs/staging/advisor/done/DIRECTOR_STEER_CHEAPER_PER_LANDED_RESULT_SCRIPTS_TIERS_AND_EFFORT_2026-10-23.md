@@ -44,3 +44,20 @@ From chat on Fri 23 Oct:
    If the conclusion is that the work needs the bigger plan, bring that as a recommendation (G9).
 
 — Director steer, 23 Oct 2026, his words above; the advisor's answer is summarised as he read it; drafting is the advisor's.
+
+## Done
+
+*Seat executor, 2026-10-23 ~13:00Z. The full answer is `docs/staging/records/SEAT_PROPOSAL_CHEAPER_PER_LANDED_RESULT_ON_THE_NEW_TIER_2026-10-23.md`.*
+
+- **Spend by route** is now a script: `python3 -m tools.tick_burn_rate --routes FROM TO`.
+  - Worker tick: 48.5% of last week's spend.
+  - Executor: 29.8% on map draws and 9.7% on advisor items. Advisor items cost 44% more per landed result.
+  - Delivery seat: 7.1%. Forks and subagents: 3.5%.
+- **Scripts first.** The mechanical share is small, at most about 4%. The tokens go into reading code
+  and writing reasoning, and into the fixed opening context each turn re-reads on every message.
+- **Enacted:** `--strict-mcp-config` on the three unattended spawns, about 1.6%. No turn called an MCP
+  tool all week. To reverse, empty `model_tier.HEADLESS_FLAGS`.
+- **Effort is already medium** on unattended turns, so that lever is spent.
+- **Model tiers.** The Sonnet routing could not be reached: all 250 worker doorbells were forced to Opus
+  by their reactive reasons (F1). The Sonnet 5.5 pilot is pre-registered in the proposal and handed on.
+- **No local model**, as steered.

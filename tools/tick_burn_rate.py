@@ -70,7 +70,12 @@ KINDS = (
 PRICE = {
     "claude-opus-5-5": (4.0, 20.0, 5.0, 8.0, 0.20),
     "claude-opus-5": (5.0, 25.0, 6.25, 10.0, 0.50),
+    "claude-sonnet-5-5": (2.0, 10.0, 2.50, 4.0, 0.10),   # read 2026-10-23: half Opus 5.5 on every class
     "claude-sonnet-5": (2.0, 10.0, 2.50, 4.0, 0.20),
+    "claude-fable-5-1": (10.0, 50.0, 12.50, 20.0, 0.25),
+    # Haiku 5.5 is NOT here: its list price is tiered by prompt length (USD 0.10/0.50 input up to and
+    # over 100k tokens), which one row cannot carry. A Haiku 5.5 message reads as unpriced -- counted
+    # by `spend_by_route`, never silently zero.
     "claude-haiku-4-5-20251001": (1.0, 5.0, 1.25, 2.0, 0.10),
 }
 
@@ -257,6 +262,7 @@ POINT_READINGS: tuple[tuple[str, float], ...] = (
     ("2026-10-13T07:10", 55.0),   # Tuesday 08:10 BST
     ("2026-10-13T16:00", 59.0),   # Tuesday 17:00 BST
     ("2026-10-23T05:55", 0.0),    # Friday 06:55 BST: "moved to a lower tier ... reset ... 0% usage"
+    ("2026-10-23T08:45", 4.0),    # Friday 09:45 BST: "4%"
 )
 
 #: The plan moved to a lower tier at this reading (director, 23 Oct 06:55 BST), so a point is a
@@ -324,13 +330,90 @@ def usd_per_point(readings=POINT_READINGS, root: Path = PROJECTS,
     return weighted_usd_between(t0, t1, root) / (p1 - p0)
 
 
+def spend_by_route(t0: str, t1: str, root: Path = PROJECTS) -> dict:
+    """Every priced message between two UTC instants, attributed to the ROUTE that spent it: its
+    session's kind, or that kind plus ` / subagent` for a fork or subagent transcript, which is
+    filed under its parent session's directory. Per route: weighted USD by token class, the
+    sessions that spent inside the window, and how many of them landed. Counted once per message
+    id, exactly as `weighted_usd_between` counts, so the routes sum to its total."""
+    sessions: dict[str, tuple[str, bool]] = {}
+    for path in root.glob("*/*.jsonl"):
+        t = read_turn(path)
+        if t is None:
+            sessions[path.stem] = ("other", False)
+            continue
+        # An executor turn drawn from the advisor channel is its own route: the director asked for
+        # "advisor draws" beside the lanes, and the drawn prompt names the advisor file it acts on.
+        advisor = t["kind"] == "seat_executor" and "docs/staging/advisor/" in t.get("opening", "")
+        sessions[path.stem] = (t["kind"] + (" (advisor item)" if advisor else ""), t["landed"])
+    out: dict = defaultdict(lambda: {"usd": defaultdict(float), "sessions": set(), "landed": set(),
+                                     "unpriced_messages": 0})
+    seen: set = set()
+    paths = [(p, False) for p in root.glob("*/*.jsonl")] + [(p, True) for p in root.glob("*/*/subagents/*.jsonl")]
+    for path, sub in paths:
+        sid = path.parent.parent.name if sub else path.stem
+        kind, landed = sessions.get(sid, ("other", False))
+        r = out[kind + (" / subagent" if sub else "")]
+        for line in path.read_text(errors="replace").splitlines():
+            if '"assistant"' not in line:
+                continue
+            try:
+                row = json.loads(line)
+            except ValueError:
+                continue
+            ts, msg = row.get("timestamp") or "", row.get("message") or {}
+            if row.get("type") != "assistant" or not (t0 <= ts < t1) or not msg.get("usage"):
+                continue
+            if msg.get("model") == "<synthetic>" or msg.get("id") in seen:
+                continue
+            seen.add(msg.get("id"))
+            price, u = PRICE.get(msg.get("model") or ""), msg["usage"]
+            r["sessions"].add(sid)
+            if landed and not sub:
+                r["landed"].add(sid)
+            if not price:
+                r["unpriced_messages"] += 1
+                continue
+            cc = u.get("cache_creation") or {}
+            w5 = int(cc.get("ephemeral_5m_input_tokens", 0) or 0)
+            w1 = int(cc.get("ephemeral_1h_input_tokens", 0) or 0)
+            if not (w5 or w1):
+                w5 = int(u.get("cache_creation_input_tokens", 0) or 0)
+            for cls, n, p in (("input", u.get("input_tokens"), price[0]), ("output", u.get("output_tokens"), price[1]),
+                              ("write_5m", w5, price[2]), ("write_1h", w1, price[3]),
+                              ("cache_read", u.get("cache_read_input_tokens"), price[4])):
+                r["usd"][cls] += int(n or 0) * p / 1e6
+    return {k: {"usd": round(sum(v["usd"].values()), 2), "by_class": {c: round(x, 2) for c, x in v["usd"].items()},
+                "sessions": len(v["sessions"]), "landed": len(v["landed"]),
+                "unpriced_messages": v["unpriced_messages"]} for k, v in out.items() if v["sessions"]}
+
+
+def render_routes(t0: str, t1: str, root: Path = PROJECTS) -> str:
+    routes = spend_by_route(t0, t1, root)
+    total = sum(r["usd"] for r in routes.values()) or 1.0
+    lines = [f"Spend by route, {t0} to {t1} UTC (weighted USD, every transcript and subagent):", "",
+             "| route | weighted $ | share | sessions | landed | $ per landed | output / 1h write / 5m write / read | unpriced msgs |",
+             "|---|---|---|---|---|---|---|---|"]
+    for k, r in sorted(routes.items(), key=lambda kv: -kv[1]["usd"]):
+        c = r["by_class"]
+        mix = " / ".join(f"{round(100 * c.get(x, 0) / (r['usd'] or 1))}%" for x in ("output", "write_1h", "write_5m", "cache_read"))
+        per = f"{r['usd'] / r['landed']:.2f}" if r["landed"] else "n/a"
+        lines.append(f"| {k} | {r['usd']:.1f} | {100 * r['usd'] / total:.1f}% | {r['sessions']} | {r['landed']} | {per} | {mix} | {r['unpriced_messages']} |")
+    return "\n".join(lines)
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--days", type=float, default=7.0)
     ap.add_argument("--json", action="store_true")
     ap.add_argument("--points", action="store_true",
                     help="the USD-per-point conversion from the director's last two readings")
+    ap.add_argument("--routes", nargs=2, metavar=("FROM", "TO"),
+                    help="spend by route between two UTC instants, e.g. 2026-10-16T05:55 2026-10-23T05:55")
     a = ap.parse_args(argv)
+    if a.routes:
+        print(render_routes(*a.routes))
+        return 0
     if a.points:
         per = usd_per_point()
         print(f"no conversion: fewer than two readings on the tier since {TIER_CHANGED_AT}" if per is None
