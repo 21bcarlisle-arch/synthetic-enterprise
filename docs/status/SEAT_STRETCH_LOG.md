@@ -8,6 +8,29 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-23 — The shared checkout cannot fast-forward yet: what is left in the way is the gas nine-month floor's unlanded build and the seat's own files
+
+<!-- head: ca71818349e0 -->
+
+*Autonomous worker, 23 Oct 2026. Drawn at lane 0: `the-shared-checkout-advances-to-origin`.*
+
+**What was asked.** Fast-forward the shared checkout (52 behind origin) without touching another lane's work. Close the other-pages steer.
+
+**The steer was already closed.** Origin carries it in `advisor/done/`. The shared tree's copy at the root is HEAD's, and the fast-forward moves it. Nothing to do by hand.
+
+**Cleared.** Two files went back to the base. `tools/tick_burn_rate.py` and its test were the 06:55 tier-change draft, which origin supersedes. Both are preserved at `refs/preserved/refresh-to-head/shared-checkout-advance` (05bacc7c9). Four untracked staging copies were removed. Two were byte-identical to origin: the SVT-two-defects finding and console 22 Oct. Two were older drafts origin extends: the C30 finding, and Explore's cast before its re-grade. Each one's blob is kept under `refs/preserved/shared-checkout-advance/<name>`.
+
+**The fast-forward refused, and the refusal is left to stand.** These are the paths it named, and whose they are:
+- **The gas nine-month floor, unlanded since 22 Oct 20:35.** The paths are `company/policy/decision_policy.py`, `simulation/run_phase4c_on_phase2b.py`, `tools/read_instruction_arms.py`, `tests/tools/test_read_instruction_arms.py`, and the `**_` kwarg in `tests/company/billing/test_the_estimate_reads_the_annualised_advance_when_switched_on.py`. The rest of the build is in `company/billing/monthly_bill_assembly.py`, with the untracked test and its prereg, `WORKER_PREREG_THE_GAS_ESTIMATE_FLOORS_THE_ADVANCE_AT_NINE_MONTHS_2026-10-22.md`. The prereg names the owner as a worker lane. No process holds it. `refresh_to_head` graded `read_instruction_arms.py` "refreshable" even though the copy carries the `--gas-nine-month-floor` lines. The names check misses option and keyword names, so a `--write` there would have discarded live work. Not refreshed.
+- **The seat's own files.** `docs/direction/DIRECTION.yaml` is left to the seat's commit. The shared copy of `docs/status/SEAT_STRETCH_LOG.md` holds orientation entries origin lacks: 140 names, holder work.
+- **`docs/market_research/household_budget_w2_4.md`.** This is the arrears grade of 22 Oct. It is holder work, but by the clock it predates `6dcea614d`. Whoever owns it must read that landing before landing it.
+- **Two `advisor/done/` files the shared INDEX has staged as renames.** These are the plan-tier reading and the switch-on ruling. The working copies are older than origin's, and the ruling copy still reads "refused". No door reaches a staged rename whose index and worktree differ.
+- **Clear at the fast-forward.** Four copies are identical to origin: `tools/console_instruction_record.py`, `tools/grade_per_customer_switch_seeds.py`, and two tests. `tests/tools/test_console_instruction_record.py` differs from origin by one blank line.
+
+**Still not done.** HEAD is still behind origin. It moves when the gas-floor lane lands or yields. Until then, any run launched from the shared tree lacks 4bc21e920 (the over-cap fix).
+
+---
+
 ## 2026-10-23 — Standard-variable bills above the cap are two billing defects, not the check: an incoming occupant priced as non-domestic is fixed, and the EPG on the household's bill is next
 
 <!-- head: 4775b0f25a3a -->
