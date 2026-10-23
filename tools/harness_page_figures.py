@@ -25,7 +25,7 @@ import html
 import json
 import re
 import sys
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from pathlib import Path
 
 from tools.generate_dashboard_data import _day, _git_out
@@ -325,14 +325,14 @@ def layer_evidence(root, obs_dir=None):
     # commit carries a marked reason, so every marked commit is one the gate held.
     n, last = git_firings(r"^Director-doc:", True)
     fired(1, "{:,} commits changed a director document and carried the marked reason the gate "
-             "demands; last {}. A refused one leaves no record.".format(n, _day(last or "never")))
+             "demands; last {}. Refusals are not logged, so they are not counted.".format(n, _day(last or "never")))
     # 2. Knowledge: a new research document is refused unless it says which knowledge page it
     # feeds, so each one added is one the gate read.
     added = _added_since(root, since)
     research = {f: d for f, d in added.items()
                 if f.startswith("docs/market_research/") and f.endswith(".md")}
     fired(2, "{:,} sourced research documents added, each refused unless it names the knowledge "
-             "page it feeds; last {}. A refused one leaves no record.".format(
+             "page it feeds; last {}. Refusals are not logged, so they are not counted.".format(
                  len(research), _day(max(research.values(), default="never"))))
     # 3. The walls: the network wall refuses by construction and leaves nothing to count; the
     # lane hook logs each tool call it denies.
@@ -398,6 +398,159 @@ def layer_evidence(root, obs_dir=None):
     return out
 
 
+FOLLOW_START = ("<!-- HARNESS-{}:START (written at publish by "
+                "tools/harness_page_figures.py -- do not hand-edit) -->")
+FOLLOW_END = "<!-- HARNESS-{}:END -->"
+#: A commit is the PRODUCT's when any path it changes is the world or the supplier; everything
+#: else -- the harness, the site, the records -- is the machine that builds them.
+PRODUCT_DIRS = ("company/", "saas/", "sim/", "simulation/")
+# The balance trend's span: two months of weeks reads as a trend and fits a phone line.
+BALANCE_WEEKS = 8
+
+
+def _head_yaml(root, path):
+    import yaml
+    text = _git_out(root, "show", "HEAD:{}".format(path))
+    try:
+        return yaml.safe_load(text) if text else None
+    except yaml.YAMLError:
+        return None
+
+
+def product_share_by_week(root, weeks=BALANCE_WEEKS):
+    """[(monday iso, product commits, all commits)] for the last `weeks` weeks to HEAD, or None."""
+    try:
+        end = date.fromisoformat((_git_out(root, "log", "-1", "--format=%cs", "HEAD") or "").strip())
+    except ValueError:
+        return None
+    # From a Monday, so the first week counted is a whole one.
+    start = end - timedelta(days=end.weekday(), weeks=weeks - 1)
+    log = _git_out(root, "log", "--name-only", "--format=%x00%cs",
+                   "--since={}T00:00:00".format(start.isoformat()), "HEAD")
+    if not log:
+        return None
+    tally = {}
+    for block in log.split("\0")[1:]:
+        lines = [x.strip() for x in block.strip().splitlines() if x.strip()]
+        try:
+            d = date.fromisoformat(lines[0])
+        except (IndexError, ValueError):
+            continue
+        monday = (d - timedelta(days=d.weekday())).isoformat()
+        row = tally.setdefault(monday, [0, 0])
+        row[1] += 1
+        row[0] += int(any(f.startswith(PRODUCT_DIRS) for f in lines[1:]))
+    return [(m, p, n) for m, (p, n) in sorted(tally.items())][-weeks:]
+
+
+def follow_on_figures(root, obs_dir=None):
+    """{"MEANING": [(label, value)], "DOORS": [...]}: the two follow-on sections' live figures.
+
+    Each reads the store that already records it, at the published commit where it is in git;
+    a store that cannot be read is named, never filled."""
+    root = Path(root)
+    obs = Path(obs_dir) if obs_dir else root / "docs" / "observability"
+    meaning, doors = [], []
+    canon = _head_yaml(root, "docs/design/canon_claims.yaml")
+    inv = _git_out(root, "show", "HEAD:company/compliance/domain_invariants.py")
+    try:
+        from tools.world_claims import claims
+        world = len(claims(root))
+    except Exception:  # noqa: BLE001 -- an unreadable claim set is a line that says so
+        world = None
+    meaning.append(("Concepts checked where parts meet", "; ".join([
+        "{:,} claims on the canon page checked against the code".format(len(canon["claims"]))
+        if isinstance(canon, dict) and canon.get("claims") else
+        "the canon claims could not be read",
+        "{:,} named checks that refuse an impossible state in the supplier's records".format(
+            len(re.findall(r"^def (?:check|refuse)_", inv, re.M))) if inv else
+        "the supplier's invariants could not be read",
+        "{:,} figures from the Knowledge pages tested against the simulated world".format(world)
+        if world is not None else "the Knowledge pages' claims could not be read"])))
+    since = (date.fromisoformat((_git_out(root, "log", "-1", "--format=%cs", "HEAD")
+                                 or "1970-01-01").strip()) - timedelta(days=WINDOW_DAYS)).isoformat()
+    added = _added_since(root, since)
+    findings = [f for f in added if f.startswith("docs/staging/") and "FINDING" in f.upper()]
+    classes = _git_out(root, "ls-tree", "--name-only", "HEAD", "docs/staging/reference/") or ""
+    n_class = sum(1 for f in classes.split() if f.rsplit("/", 1)[-1].startswith("CLASS_"))
+    ratchets = _ratchets(root)
+    meaning.append(("Experience to knowledge to a check", (
+        "{:,} findings filed to the work queue in the last {} days; {:,} class documents that "
+        "consolidate the recurring ones; {} ratchet tests, which freeze an old backlog and fail "
+        "only when it grows".format(
+            len(findings), WINDOW_DAYS, n_class,
+            "{:,}".format(len(ratchets)) if ratchets is not None else "an uncounted number of"))))
+    try:
+        from background import judge_validation, trust_ledger
+        ledger = json.loads((obs / trust_ledger.LEDGER_PATH.name).read_text(encoding="utf-8"))
+        o = judge_validation.outcome_error_rates(ledger)["overall"]
+        meaning.append(("Judging the judges", (
+            "{:,} sign-offs by fresh reviewers have been followed up, including a blind trial on "
+            "commits known to be bad; {:,} of them let through a defect found afterwards. A "
+            "sample this small measures the reviewers roughly, and is shown because it is the "
+            "real count".format(o["passes"],
+                                                            o["passes_with_later_defect"]))))
+    except Exception:  # noqa: BLE001 -- an absent ledger is a line that says so
+        meaning.append(("Judging the judges",
+                        "not measured yet: the reviewers' outcome ledger is not on this machine"))
+    try:
+        from background.one_way_door import RESERVED_CATEGORIES
+        n_doors = "{:,}".format(len(RESERVED_CATEGORIES))
+    except Exception:  # noqa: BLE001
+        n_doors = "an unread number of"
+    direction = _head_yaml(root, "docs/direction/DIRECTION.yaml") or {}
+    rows = direction.get("for_the_director") or []
+    raised = sum(1 for r in rows if str(r.get("raised", "")) >= since)
+    doors.append(("Two-way doors", (
+        "{} kinds of action are reserved to a human; {:,} questions raised to the director in "
+        "the last {} days, {:,} still open, none of which stops other work. How many actions "
+        "proceeded without asking is not recorded, so it is not measured yet".format(
+            n_doors, raised, WINDOW_DAYS, sum(1 for r in rows if r.get("status") == "open")))))
+    try:
+        from background.tick_mode import ROUTES
+        tiers = _jsonl(obs / "model_tier_log.jsonl")
+        if tiers is None:
+            spend = "the model-tier log is not on this machine"
+        else:
+            cut = datetime.fromisoformat(since).timestamp()
+            recent = [r for r in tiers if r.get("outcome") == "SPAWNED"
+                      and isinstance(r.get("ts"), (int, float)) and r["ts"] >= cut]
+            top = sum(1 for r in recent if r.get("tier") == "opus")
+            spend = ("{:,} sessions started in the last {} days, {} on the top model".format(
+                len(recent), WINDOW_DAYS, "{:.0%}".format(top / len(recent)))
+                if recent else "not measured yet: the model-tier log's last entry is {}, before "
+                "this window".format(_day(max((datetime.fromtimestamp(r["ts"]).date().isoformat()
+                                               for r in tiers if isinstance(r.get("ts"),
+                                                                            (int, float))),
+                                              default="never"))))
+        doors.append(("Effort and pace", (
+            "{:,} unattended routes can start an AI session, and nothing else spends; {}".format(
+                len(ROUTES), spend))))
+    except Exception:  # noqa: BLE001
+        doors.append(("Effort and pace", "not measured yet: the route list could not be read"))
+    weeks = product_share_by_week(root)
+    if weeks:
+        doors.append(("How work is balanced", (
+            "share of commits that changed the world or the supplier, by week: {}. Every other "
+            "commit changed the machine that builds them".format(", ".join(
+                "{} {:.0%}".format(_day(m).rsplit(" ", 1)[0], p / n) for m, p, n in weeks if n)))))
+    else:
+        doors.append(("How work is balanced", "not measured yet: git could not be read"))
+    return {"MEANING": meaning, "DOORS": doors}
+
+
+def _ratchets(root):
+    """Test files under tests/ whose name says they are a ratchet, at HEAD; None if unreadable."""
+    files = _git_out(root, "ls-files", "tests/")
+    if files is None:
+        return None
+    return [f for f in files.split() if "ratchet" in f.rsplit("/", 1)[-1] and f.endswith(".py")]
+
+
+def render_follow_on(rows):
+    return '<ul class="fo">\n{}\n</ul>'.format("\n".join(
+        '  <li><b>{}:</b> {}.</li>'.format(html.escape(lab), html.escape(val)) for lab, val in rows))
+
 def render_layer(rows):
     return '<span class="ev">{}</span>'.format("".join(
         '<span><b>{}:</b> {}</span>'.format(html.escape(lab), html.escape(val))
@@ -443,6 +596,9 @@ def write_harness_figures(harness_path, proof_path, obs_dir=None):
     out = out and _replace(out, WEEK_START, WEEK_END, week)
     for n, rows in layer_evidence(root, obs_dir).items():
         out = out and _replace(out, LAYER_START.format(n), LAYER_END.format(n), render_layer(rows))
+    for key, rows in follow_on_figures(root, obs_dir).items():
+        out = out and _replace(out, FOLLOW_START.format(key), FOLLOW_END.format(key),
+                               render_follow_on(rows))
     if out is None:
         print("HOW IT'S BUILT FIGURES NOT WRITTEN: {} does not carry every pair of markers".format(
             harness_path), file=sys.stderr)

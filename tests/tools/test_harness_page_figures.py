@@ -116,6 +116,9 @@ def test_every_block_is_written_into_a_page_carrying_the_markers(tmp_path):
                      for n in hpf.LAYER_CODE)
     page.write_text("<p>top</p>\n{}{}\nSTALE\n{}\n<p>mid</p>\n{}\nSTALE\n{}\n".format(
         layers, hpf.SCALE_START, hpf.SCALE_END, hpf.WEEK_START, hpf.WEEK_END), encoding="utf-8")
+    with page.open("a", encoding="utf-8") as f:
+        for key in ("MEANING", "DOORS"):
+            f.write("{}\nSTALE\n{}\n".format(hpf.FOLLOW_START.format(key), hpf.FOLLOW_END.format(key)))
     # The page's root is three levels up, and git there is the real repository's when tmp is
     # not one, so make it a repository with one commit.
     _commit_all(tmp_path)
@@ -125,6 +128,7 @@ def test_every_block_is_written_into_a_page_carrying_the_markers(tmp_path):
     assert "test files" in out and "Commits per week" in out
     assert "no highlight is shown" in out  # no stretch log in this tree: said, not blank
     assert out.count('<span class="ev">') == 8
+    assert out.count('<ul class="fo">') == 2
 
 
 def test_a_page_without_the_markers_is_refused_and_left_alone(tmp_path):
@@ -137,7 +141,8 @@ def test_a_page_without_the_markers_is_refused_and_left_alone(tmp_path):
 def test_the_served_page_carries_every_marker_pair():
     page = (ROOT / "site" / "harness" / "index.html").read_text(encoding="utf-8")
     layers = [m.format(n) for n in hpf.LAYER_CODE for m in (hpf.LAYER_START, hpf.LAYER_END)]
-    for marker in (hpf.SCALE_START, hpf.SCALE_END, hpf.WEEK_START, hpf.WEEK_END, *layers):
+    follow = [m.format(k) for k in ("MEANING", "DOORS") for m in (hpf.FOLLOW_START, hpf.FOLLOW_END)]
+    for marker in (hpf.SCALE_START, hpf.SCALE_END, hpf.WEEK_START, hpf.WEEK_END, *layers, *follow):
         assert page.count(marker) == 1, marker
     assert len(layers) == 16
 
@@ -202,3 +207,65 @@ def test_a_layer_whose_store_is_absent_says_not_measured_and_prints_no_number(tm
 def test_the_publish_step_calls_the_writer():
     code = searchable((ROOT / "tools" / "generate_dashboard_data.py").read_text(encoding="utf-8"))
     assert "write_harness_figures(" in code
+
+
+def _commit(root, path, day):
+    f = root / path
+    f.parent.mkdir(parents=True, exist_ok=True)
+    f.write_text(path + day, encoding="utf-8")
+    env = {"GIT_COMMITTER_DATE": day + "T12:00:00", "GIT_AUTHOR_DATE": day + "T12:00:00",
+           "PATH": "/usr/bin:/bin"}
+    subprocess.run(["git", "-C", str(root), "add", "-A"], check=True)
+    subprocess.run(["git", "-C", str(root), "-c", "user.name=t", "-c", "user.email=t@t", "commit",
+                    "-q", "-m", path], check=True, env=env)
+
+
+def test_the_balance_counts_a_commit_as_product_only_when_it_changes_the_world_or_the_supplier(tmp_path):
+    """One control over the partition: in one week a supplier commit, a world commit and a site
+    commit, so the share must be strictly between nothing and everything (both branches taken),
+    and exactly two thirds. A week entirely before the window is not counted, and the first week counted is a whole one, from its Monday. MUTATIONS: counting
+    every commit as product gives 100%; matching `sim` without its slash counts `simple/` as the
+    world; dropping the Monday alignment lets a partial first week in -- each reds an assert."""
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    _commit(tmp_path, "site/old.html", "2026-01-05")
+    _commit(tmp_path, "site/tuesday.html", "2026-10-13")
+    _commit(tmp_path, "company/billing/a.py", "2026-10-19")
+    _commit(tmp_path, "simulation/b.py", "2026-10-20")
+    _commit(tmp_path, "simple/c.py", "2026-10-21")
+    weeks = hpf.product_share_by_week(tmp_path, weeks=2)
+    assert weeks == [("2026-10-12", 0, 1), ("2026-10-19", 2, 3)], weeks
+    p, n = weeks[1][1:]
+    assert 0 < p < n
+
+
+def test_the_follow_on_figures_name_an_absent_store_and_print_no_number_for_it(tmp_path):
+    """The reviewers' ledger and the model-tier log live outside git; with neither present, their
+    lines say not measured / not on this machine and carry no digit. The tier log's last entry,
+    when it predates the window, is said as such rather than read as no sessions started.
+    MUTATION: reading `recent` as zero sessions prints "0 sessions started" -- reds below."""
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    _commit(tmp_path, "company/a.py", date.today().isoformat())
+    got = hpf.follow_on_figures(tmp_path, tmp_path / "no_such_dir")
+    judges = dict(got["MEANING"])["Judging the judges"]
+    assert judges.startswith("not measured yet") and not re.search(r"\d", judges)
+    assert "not on this machine" in dict(got["DOORS"])["Effort and pace"]
+    obs = tmp_path / "obs"
+    obs.mkdir()
+    _jsonl_rows(obs / "model_tier_log.jsonl",
+                [{"ts": 1577880000.0, "outcome": "SPAWNED", "tier": "opus"}])
+    pace = dict(hpf.follow_on_figures(tmp_path, obs)["DOORS"])["Effort and pace"]
+    assert "last entry is 1 Jan 2020" in pace and "sessions started" not in pace
+
+
+def test_every_stack_box_links_one_click_down_to_a_record_that_exists():
+    """Each of the eight boxes carries one link down, to an anchor on this page or a page on the
+    site, and every anchor it names exists. MUTATION: renaming `#checks` to `#check` reds."""
+    page = (ROOT / "site" / "harness" / "index.html").read_text(encoding="utf-8")
+    stack = page[page.index('<ol class="stack">'):page.index("</ol>", page.index('<ol class="stack">'))]
+    hrefs = re.findall(r'<a class="down" href="([^"]+)"', stack)
+    assert len(hrefs) == len(hpf.LAYER_CODE) == 8
+    for href in hrefs:
+        if href.startswith("#"):
+            assert 'id="{}"'.format(href[1:]) in page, href
+        else:
+            assert (ROOT / "site" / "harness" / href / "index.html").resolve().exists(), href
