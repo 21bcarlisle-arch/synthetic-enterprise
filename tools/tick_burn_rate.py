@@ -256,7 +256,12 @@ POINT_READINGS: tuple[tuple[str, float], ...] = (
     ("2026-10-12T13:00", 40.0),   # Monday 14:00 BST
     ("2026-10-13T07:10", 55.0),   # Tuesday 08:10 BST
     ("2026-10-13T16:00", 59.0),   # Tuesday 17:00 BST
+    ("2026-10-23T05:55", 0.0),    # Friday 06:55 BST: "moved to a lower tier ... reset ... 0% usage"
 )
+
+#: The plan moved to a lower tier at this reading (director, 23 Oct 06:55 BST), so a point is a
+#: smaller amount of work after it and the readings before it fit the old tier only.
+TIER_CHANGED_AT = "2026-10-23T05:55"
 
 
 def weighted_usd_between(t0: str, t1: str, root: Path = PROJECTS) -> float:
@@ -306,9 +311,11 @@ def _priced(u: dict, model: str | None) -> float:
     return usd
 
 
-def usd_per_point(readings=POINT_READINGS, root: Path = PROJECTS) -> float | None:
-    """Weighted USD per point of the director's weekly allowance, from his latest two readings.
-    None when there are fewer than two, or no points passed between them."""
+def usd_per_point(readings=POINT_READINGS, root: Path = PROJECTS,
+                  since: str = TIER_CHANGED_AT) -> float | None:
+    """Weighted USD per point of the director's weekly allowance, from his latest two readings on
+    the current tier. None when there are fewer than two, or no points passed between them."""
+    readings = tuple(r for r in readings if r[0] >= since)
     if len(readings) < 2:
         return None
     (t0, p0), (t1, p1) = readings[-2], readings[-1]
@@ -326,7 +333,7 @@ def main(argv=None) -> int:
     a = ap.parse_args(argv)
     if a.points:
         per = usd_per_point()
-        print("no conversion: fewer than two readings" if per is None
+        print(f"no conversion: fewer than two readings on the tier since {TIER_CHANGED_AT}" if per is None
               else f"one point = USD {per:.1f} weighted (from {POINT_READINGS[-2][0]} "
                    f"to {POINT_READINGS[-1][0]}, all transcripts and subagents)")
         return 0

@@ -148,6 +148,15 @@ _NOT_THE_DIRECTOR = (
     "[SYSTEM NOTIFICATION",
     "<task-notification>",
     "Caveat:",
+    # A PEER CLAUDE SESSION'S MESSAGE (2026-10-22). Delivered into the user role in two shapes:
+    # queued as the bare `<cross-session-message from=... from-name="se-seat-executor-...">`,
+    # then delivered wrapped in the harness's own "Another Claude session sent a message:" line.
+    # Only the transcript's `attachment` record carries `origin.kind == "peer"`, and neither
+    # shape this module reads has it, so the text is the only signal. Three seat-executor
+    # messages were filed here as his words on 22 Oct, and the orientation brief twice listed
+    # one as a director input.
+    "<cross-session-",
+    "Another Claude session sent a message",
 )
 #: Prompts the MACHINE injects into the user role. These are not the harness quoting itself
 #: (that is `_NOT_THE_DIRECTOR` above) -- they are whole turns a daemon writes to drive a

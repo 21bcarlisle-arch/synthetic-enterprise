@@ -20,3 +20,32 @@
 4. **Find what costs the most.** This tier makes cost per landed result matter more. Break down the week's spend by route: worker ticks, seat turns, delivery seat, long jobs, probes. Name the most expensive per landed result, and make one proposal to cut waste there, without making the work shallower (R14: "I'd rather spend the tokens than get shallower work").
 
 — Advisor, relaying the director's reading and his plan change on the director's standing delegation of 15 Oct, with his words quoted above.
+
+## Done
+
+*Worker tick, 2026-10-23 06:20Z.*
+
+- **Step 1, the reading is recorded.** `tools/tick_burn_rate.py` `POINT_READINGS` carries 0% at
+  2026-10-23T05:55Z (06:55 BST). A new `TIER_CHANGED_AT` stamp means `usd_per_point` fits only
+  readings taken on the current tier. Before this change, the old 12–13 Oct pair would still have
+  produced the stale USD 26.6 per point. `--points` now prints "no conversion: fewer than two readings
+  on the tier since 2026-10-23T05:55" until the advisor relays a second reading. The control in
+  `tests/tools/test_tick_burn_rate.py` reds when the tier filter is removed (mutation run, 1 failed).
+- **Weighted spend at the reading's stamp is 0 by construction. By 06:18Z it was USD 3.78** (all
+  transcripts and subagents). That gives the next reading its numerator.
+- **Step 2, pacing.** No fit exists yet. Width is unchanged and nothing is held for Monday.
+- **Step 3, projection.** This is owed from the second reading. It cannot be made from one reading.
+- **Step 4, the costliest route per landed result.** Measured over the last 7 days, on the old tier,
+  with `python3 -m tools.tick_burn_rate --days 7`:
+  - worker_tick: USD 485.04 over 188 turns, 79% landed, so about USD 3.27 per landing.
+  - seat_executor: USD 392.68 over 135 turns, 84% landed, so about USD 3.46 per landing.
+  - delivery_seat: USD 70.34 over 41 orientations. It does not land.
+  - One "other" session cost USD 34.68 on its own, with 81.6M cache-read tokens.
+
+  Cache reads dominate every route. The median tick reads 4.1M cached tokens against 134k fresh. Per
+  landing, the seat executor is the costliest route.
+
+  **Proposal.** Find what makes an executor turn read 1.1M more cached tokens than a worker tick at
+  the median (5.18M against 4.09M). The likely cause is turn length, meaning more tool round-trips
+  that each resend the context, rather than prompt size. Cut round-trips, not depth. This is to be
+  measured before any change is made, per R14.

@@ -48,3 +48,17 @@ def test_a_freshly_touched_capture_holding_only_old_turns_is_silence(tmp_path, m
     # The partition's other arm is reachable: a staged file is still named, so the empty console
     # read above is the capture being silent, not the whole reader being dead.
     assert seat.director_inputs(SINCE, NOW) == ["from_rich_steer.md"]
+
+
+def test_a_peer_sessions_message_already_in_a_capture_is_not_a_director_input(tmp_path, monkeypatch):
+    """The 22 Oct capture holds se-seat-executor messages filed before the capture refused them;
+    the brief listed one as his input. Mutation: drop the `is_director_prompt` skip."""
+    monkeypatch.setattr(seat, "STAGING_DIR", tmp_path)
+    path = tmp_path / "console" / "DIRECTOR_CONSOLE_2026-09-27.md"
+    _capture(path, ["2026-09-27T13:06:46.280Z"])
+    path.write_text(path.read_text() + "\n### 2026-09-27T14:00:00.000Z\n\n"
+                    "> <cross-session-message from-name=\"se-seat-executor-cb\">the work is yours\n",
+                    encoding="utf-8")
+
+    assert seat.director_inputs(SINCE, NOW) == [
+        "console/DIRECTOR_CONSOLE_2026-09-27.md@2026-09-27T13:06:46.280Z"]

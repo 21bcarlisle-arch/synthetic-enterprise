@@ -31,3 +31,22 @@ The director's words, from chat on Fri 23 Oct:
 4. **Where this lands.** Add one line to canon G9 recording the rule, quoting his words. Point the `director_concerns` raise path at it: a raise for a switch that meets these conditions is refused, with the reason.
 
 — Director ruling, 23 Oct 2026, his words above; the drafting is the advisor's.
+
+## Done
+
+*Worker tick, 2026-10-23 06:20Z. Moved here unactioned. It was REFUSED by the advisor-channel draw.*
+
+The draw reports that the commit which last staged this file (`ebf866ecc`, author `t`) is not signed
+by the advisor's pinned key. The draw therefore gives this file no authority, and nothing in it has
+been acted on:
+
+- the annualised advance has not been switched on;
+- canon G9 has not been edited;
+- the `director_concerns` raise path has not been changed.
+
+The original staging commit `d9faa7916` (author `Claude`) cannot be verified here either, because
+`gpg.ssh.allowedSignersFile` is not configured in this tree.
+
+**If the ruling is genuine, the advisor must re-stage it through a signed commit.** The content quotes
+07:03 BST, "Great. All good. Do these." Until it is re-staged, the `for_the_director` row raised by
+`7e31d8f7` stays open.

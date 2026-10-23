@@ -117,5 +117,8 @@ def test_the_points_conversion_counts_subagents_and_sessions_started_before_the_
     (d / "sess" / "subagents" / "x.jsonl").write_text(json.dumps(msg("s1", "2026-10-12T15:00:00Z")))
     # Opus 5.5 output is USD 20 per million: m1 and s1 count once each, the early message not at all.
     assert B.weighted_usd_between("2026-10-12T13:00", "2026-10-13T07:10", tmp_path) == 40.0
-    assert B.usd_per_point((("2026-10-12T13:00", 40.0), ("2026-10-13T07:10", 42.0)), tmp_path) == 20.0
-    assert B.usd_per_point((("2026-10-12T13:00", 40.0),), tmp_path) is None
+    pair = (("2026-10-12T13:00", 40.0), ("2026-10-13T07:10", 42.0))
+    assert B.usd_per_point(pair, tmp_path, since="") == 20.0
+    assert B.usd_per_point((("2026-10-12T13:00", 40.0),), tmp_path, since="") is None
+    # A reading from before the tier change is the old tier's and never fits the new one.
+    assert B.usd_per_point(pair, tmp_path, since="2026-10-12T14:00") is None

@@ -171,6 +171,7 @@ def test_the_worker_calls_it():
     """The no-caller class. `resource_headroom` sat unwired for nine days after being built for
     a real outage; this is built for one too."""
     import inspect
+
     from background import background_worker
     src = inspect.getsource(background_worker.main)
     assert "console_instruction_record" in src, (
@@ -242,6 +243,25 @@ def test_harness_scaffolding_is_STILL_not_the_director_when_it_arrives_queued(tm
     ])
 
     assert [t[1] for t in cir.director_turns(cir.newest_transcript(d))] == ["a real turn"]
+
+
+def test_MUTATION_a_peer_sessions_message_is_NOT_the_director_in_either_shape(tmp_path):
+    """G8: the machine's own text is never his words. On 2026-10-22 three se-seat-executor
+    messages were filed under 'VERBATIM CAPTURE of what he typed', both queued (the bare
+    `<cross-session-message>`) and delivered (wrapped in "Another Claude session sent a message:").
+
+    MUTATION (must fire): drop either peer prefix from `_NOT_THE_DIRECTOR`.
+    """
+    peer = ('<cross-session-message from="uds:/run/user/1000/cc-socks/1.sock" '
+            'from-name="se-seat-executor-cb" from-mode="bypass">\nthe work is yours.\n'
+            '</cross-session-message>')
+    d = _transcript(tmp_path, [
+        _line("user", "move EP1 to build", ts="2026-10-22T01:00:00.000Z"),
+        _queued(peer, ts="2026-10-22T01:40:23.930Z"),
+        _line("user", "Another Claude session sent a message:\n" + peer, ts="2026-10-22T01:40:24.071Z"),
+    ])
+
+    assert [t[1] for t in cir.director_turns(cir.newest_transcript(d))] == ["move EP1 to build"]
 
 
 # ---------------------------------------------------------------------------
