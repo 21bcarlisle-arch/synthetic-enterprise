@@ -123,3 +123,109 @@ remnant is larger, (c) is not the main cause and (b) is next.
 remnant is 4,579 of the population (96%), not under 953. (c) is not the cause; the causes are above.
 **A belief above was also wrong:** `svt` terms are not settled by `run_deemed_term`. They are settled
 by `run_hedged_term` at the renewal chain's rate, so the world's deemed clamp never reached them.
+
+## Item 3, the 502 bills that do not reproduce their term's struck rate: prediction, filed before the read
+
+Written 23 Oct 2026, before any of the 502 was looked at one by one. The read compares each over-ceiling
+`svt` invoice's (commodity + non-commodity) × (1 + its own VAT) ÷ kWh with its `account_state_log`
+term's `unit_rate_gbp_per_mwh` × (1 + VAT), as the earlier split did.
+
+**The 66 struck at the cap ex-VAT and billed above it.** Predicted cause: the term's rate was struck
+at the cap of the window it started in, and the invoice falls in a LATER window whose cap is lower.
+The default rate was not moved down when the cap fell. Predicted: at least 50 of the 66 have an
+invoice window different from the term-start window, with a lower ceiling.
+
+**The 436 in A and B (314 and 122).** Predicted cause: the invoice does not carry one rate. Either a
+term boundary falls inside the invoice period, so the bill blends two terms, or the world re-prices the
+SVT segment inside a term (`simulation/svt_product.py` segments by cap window) and the state log
+records only the term's first rate. Predicted: at least 60% of the 436 have a term boundary or a cap
+window change inside, or before, the invoice period within the same term. If fewer, the bill carries
+something the term's rate does not, such as a levy or adder line, and that is a billing defect.
+
+## Item 3, result (added after the read; the prediction above is unedited)
+
+**Both predictions refuted.** Re-read on the published books of `8b6fea024` (`site/data/customers/`,
+the cast's own source) with the class invariant: the same 5,492 of 26,496 `svt` invoices over the ceiling, in 244
+households. (26,496 counts every invoice inside a recorded `svt` term. The 18,374 above was a
+narrower base. The numerator agrees.) **501** do not reproduce their term's rate within 1%: 310 in A,
+132 in B, and 59 struck at the cap. That is not 436 and 66, because the 1% edge falls differently on rounded invoices.
+
+- **The cap did not fall under any of the 59.** Each sits in its term's own window, which has the
+  same cap as its start. The 50-of-66 prediction got none.
+- **No term boundary lies inside 492 of the 501**, and the state log's SVT terms are already cap
+  quarters (`svt_product.py`). The 60% prediction got 9 (2%).
+
+**The cause is a ToU pair on the default tariff.** All 501 are electricity; gas reproduces every time.
+Within one term, the bill's unit rate moves month to month around the struck rate (OCC-104d24fa71c2,
+struck 174.0: Aug 171.8, Sep 176.6), and the term's total lands back on it. That is a peak/off-peak
+pair priced "revenue-neutral at 30/70", read at each month's own peak share. `run_phase2b` asks
+`request_tou_offer` on every electricity term, and `tou_desk.offers_tou` is
+`saas.smart_meter_rollout.is_tou_eligible`, which reads the meter only (`smart_meter` or HH). So
+**every term of a smart-metered home is settled as ToU, the default tariff included**, and the renewal
+chain grades it against the multi-register cap through the same predicate. The run does not export
+the flag, so the partition is by its footprint. A smart meter sends actual reads:
+
+| resi electricity accounts | terms | median of each account's median |bill rate / struck − 1| | accounts > 1% |
+|---|---|---|---|
+| actual reads ≥ estimates | svt | 1.44% | 91% of 47 |
+| actual reads ≥ estimates | fixed | 1.67% | 95% of 59 |
+| mostly estimated | svt | 0.01% | 2% of 346 |
+| mostly estimated | fixed | 0.02% | 3% of 277 |
+
+**476 of the 501 are on the 127 actual-read accounts** (304 A, 116 B, 56 at the cap). The other 25 are
+estimates on 7 accounts, at 0.97–1.01 of the struck rate. That fits an estimate scaled from ToU-priced
+records (`_estimated_settlement_records` keeps the month's rate), but it is not verified. **GAP:** the run does not
+export `smart_meter`.
+
+**What it means for the cap.** For A and B, the ToU pair moves how far over the bill sits, not
+whether: the term's rate is already over. For the 59 at the cap, the pair alone puts a month's bill
+over. SLC 28AD.4 grades a Multi-Register Tariff at its Assumed Consumption Split, not bill by bill
+(`docs/domain_artefact_library/regulatory/slc_28ad_multi_register_cap_test.md`). Struck at the cap,
+the pair is at the cap at its split, so **these 59 are not a cap breach. They are the invariant grading
+a multi-register bill per invoice, which the cap does not do.** No billing fix lands for item 3, and the
+partition control is unchanged.
+
+**What it does expose, ranked as items 5 and 6 below, not fixed here:**
+
+5. **Who is on ToU, and why.** A household rolled onto the default tariff with a smart meter is
+   billed two rates it never chose. Whether a supplier can do that is a K8 question for the
+   knowledge layer. The candidates are the SLC 47 consent rules on half-hourly data and the
+   definition of a Multi-Register Tariff as a contractual arrangement. It also decides which cap the
+   renewal chain grades against. Before that is settled, the household-ceiling invariant cannot
+   tell a ToU invoice from a single-rate one.
+6. **The invoice shows one register for a two-rate charge.** Every one of the 501 carries a
+   single `Anytime` register at the blended rate. A ToU bill that does not show its rates cannot be
+   checked by the household. Where an invoice carries its registers, the invariant can grade a ToU
+   bill at its split and stop misgrading it.
+
+## Earlier flat-against-per-customer readings, and the books they ran on
+
+Cause A entered with `8359d5acd4` (6 Oct): an incoming occupant was supplied on the default tariff,
+under the frozen domestic set. Cause B entered with `592596b44f` (2 Oct): the SVT strike was held at
+the Ofgem level through the EPG. Both stand until `4bc21e920` (23 Oct; A fixed) and the EPG landing (B).
+**So every run produced from 6 Oct to 23 Oct ran on a book with both, and every run from 2 Oct
+carries B.** That covers each flat-against-per-customer reading in that window:
+
+- the B11 per-customer-against-flat draws (prereg 16 Oct);
+- the renewal-churn belief's section 14 seeds 1-5 and the four-seed grade (19-23 Oct);
+- the shortfall-shared seeds (20-22 Oct);
+- the per-customer switches together against flat (prereg 21 Oct).
+
+Each arm pair shares its world, so both arms carried the over-cap bills. **The difference between
+arms is affected only where an arm changes who is an incoming occupant on the default tariff, or who
+is on SVT through the EPG quarters.** Departure and default-roll arms do exactly that. Their GBP
+differences are not trusted until the fresh run is graded. Their signs are not called wrong either.
+
+## Status, 23 Oct, late evening
+
+- Item 3: explained above (ToU pair on the default tariff), with 25 labelled GAP.
+- Item 1, the EPG: held by the seat executor (pid 1378640, `epg-reaches-the-household-bill`,
+  restarted 21:52 after its first attempt ran out of time at 20:22). Nothing of it is on origin, so
+  **the fresh run is not launched.** The draw's premise, "pid 1127827 is landing it", was spent: that
+  pid exited with nothing landed.
+- Item 2, the fresh run and its re-grade: waits on item 1. The grade is
+  `python3 -m tools.grade_svt_invoices_over_ceiling <run_output>`. It applies the class invariant to every
+  bill inside a recorded default-tariff term, reads the run output alone, and prints its denominator.
+  **Its baseline on `8b6fea024`:** 5,488 of 18,398 gradeable default-tariff bills, 244 households,
+  3,051 outside the EPG windows. That is within 0.1% of the 5,492 / 18,374 / 3,055 above, which were
+  counted on rounded invoices. The prediction above is compared against this tool's figures.
