@@ -124,7 +124,12 @@ def test_mission_block_leads_with_score_and_yardstick():
         "the site no longer distinguishes abatement from emissions"
     )
     assert "No customers. No licence." in gaps, "the licence disclosure has no home"
-    assert gaps.count("<b>Not yet:</b>") >= 6, "the per-domain 'Not yet' lines did not all move"
+    # The per-domain lines moved up on 23 Oct into their own table (steer "the other pages match
+    # the front door", item 3.2); the not-built section points to it.
+    assert 'href="#against"' in gaps, "what is not built no longer points to the per-domain lines"
+    against = caps[caps.index('<section id="against">'):]
+    against = against[: against.index("</section>")]
+    assert against.count("<b>Not yet:</b>") >= 6, "the per-domain 'Not yet' lines did not all move"
 
 
 def test_cost_arbitrage_leg_no_longer_leads_the_front_door():

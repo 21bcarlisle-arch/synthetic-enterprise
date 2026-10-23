@@ -79,6 +79,13 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
   main, .wrap, article, .page { padding-left: 14px; padding-right: 14px; }
   h1 { font-size: 24px; }
 }
+.brief { max-width: 760px; border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; margin: 0 0 18px; font-size: 13px; line-height: 1.55; }
+.brief-h { font-size: 10px; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); font-weight: 700; margin: 0 0 6px; }
+.brief ul { margin: 0; padding-left: 18px; }
+.brief li { margin: 3px 0; }
+details.more { max-width: 760px; margin: 8px 0 18px; }
+details.more summary { cursor: pointer; font-size: 13px; font-weight: 600; margin-bottom: 8px; }
+.footnote { font-size: 11px; color: var(--muted); max-width: 760px; margin: 6px 0 16px; }
 .table-scroll { overflow-x: auto; }
 </style>
 </head>
@@ -98,15 +105,33 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
 </nav>
 <div class="wrap">
   <h1 class="hero-h">Capabilities</h1>
-  <p class="hero-sub">This page answers one question — how far along is this, really? — for both
-  halves of the project: the simulated energy world, and the supplier living inside it. Everything
-  marked <em>planned</em> below does not exist yet.</p>
-  <p class="stamp" id="stamp">Loading&hellip;</p>
+  <p class="hero-sub">What the simulated GB energy world and the supplier inside it can do today,
+  how that compares with a real GB supplier, and what it would take to connect it to the real
+  industry.</p>
+  <div class="brief" id="in-brief">
+    <p class="brief-h">In brief</p>
+    <ul>
+      <li><strong>Two halves.</strong> A synthetic Great Britain energy market built on the real
+        2016&ndash;2025 half-hourly record, and an energy supplier inside it that can see only what
+        a real supplier could see.</li>
+      <li><strong>Every state below is computed, not written.</strong> Each function reads Live,
+        Building or Planned from the recorded state of the work behind it.</li>
+      <li><strong>Measured against the real industry.</strong> Settlement, the price cap, hedging,
+        debt, home moves and dual fuel are each compared with how a GB supplier actually works,
+        line by line, with the source.</li>
+      <li><strong>Built to go live behind fixed doorways.</strong> The supplier reaches its world
+        only through named connections, so going live swaps a simulated counterparty for a real
+        one rather than rewriting the supplier.</li>
+      <li><strong>What it is not yet:</strong> a licensed supplier with customers. The gaps are
+        listed one table down, each with what closes it.</li>
+    </ul>
+  </div>
+  <p class="stamp" id="stamp"></p>
 
-  <h2 class="sec">Where it stands</h2>
-  <p class="sec-lede">Each item is written in plain English; its state is not written at all. It is
-  computed from the recorded maturity of the underlying work, using the same rule the architecture
-  diagram uses, so this page cannot claim more than the record carries.</p>
+  <h2 class="sec">What it does: the world and the supplier, side by side</h2>
+  <p class="sec-lede">Each function is written in plain English; its state is not written at all.
+  It is computed from the recorded maturity of the underlying work, using the same rule the
+  architecture diagram uses, so this page cannot claim more than the record carries.</p>
   <div class="sides">
     <section class="side">
       <h3 class="side-h">The world</h3>
@@ -122,6 +147,82 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
     </section>
   </div>
 
+  <!-- AGAINST A REAL GB SUPPLIER (director steer of 23 Oct 2026, "the other pages match the front
+       door", item 3.2): this was a definition list inside "What is not built yet"; it moved up
+       whole as a table, every line kept. Hand-authored prose; no run figure is typed in it. -->
+  <section id="against">
+  <h2 class="sec">Against a real GB supplier</h2>
+  <p class="sec-lede">What is modelled faithfully today and what is not yet, area by area, each
+    linked to the Knowledge page that sources it. When one of those pages changes its account, its
+    line here is updated to match.</p>
+  <div class="table-scroll"><table class="against">
+    <thead><tr><th>Area</th><th>Faithful today</th><th>Not yet</th><th>Source</th></tr></thead>
+    <tbody>
+      <tr><td class="who">Settlement</td>
+        <td>Every half hour is settled against the real published Elexon system price, imbalance
+        is a real cost line, and the settled truth reaches the company months late, as it does in
+        the industry. <b>Profiles:</b> in 2016&ndash;2025 almost every home was settled on a
+        standard profile (98.5% of meters in May 2022, by Elexon's count), and half-hourly
+        settlement for homes began only in late 2025. The run now does the same: a home is billed
+        on its own meter, but its energy is bought on its registered profile class, trued up to
+        its own volume over each contract. Until 22 Oct 2026 the run settled each home's own half
+        hours instead, which moved an electrically heated home's cost by &pound;35&ndash;150 a
+        year against its profile and the whole book by +0.2%.</td>
+        <td><b>Not yet:</b> Supplier Volume Allocation and the reconciliation run calendar are
+        modelled by their effect on the figures, not in their full detail.</td>
+        <td><a href="../knowledge/imbalance-cashout-settlement/">Imbalance and settlement</a></td></tr>
+      <tr><td class="who">The price cap</td>
+        <td>The cap limits unit rates and standing charges, not the bill, and its headline
+        describes a typical home at typical use. Both are checked against Ofgem's own
+        material.</td>
+        <td><b>Not yet:</b> the cap's published levels are not yet ingested as a series, and the
+        wholesale allowance's method has not been read line by line.</td>
+        <td><a href="../knowledge/price-cap/">The price cap</a></td></tr>
+      <tr><td class="who">Hedging</td>
+        <td>The company hedges to a mandate, layered across terms, and its realised cost is
+        reported against going unhedged, including the calm years in which the hedge lost money
+        and the 2021&ndash;22 crisis it was bought for.</td>
+        <td><b>Not yet:</b> no options, no trading views and no cross-commodity hedging;
+        collateral is a cash constraint, and the counterparty credit process is simplified.</td>
+        <td><a href="../knowledge/hedging-forward-market/">Hedging and the forward market</a></td></tr>
+      <tr><td class="who">Debt</td>
+        <td>Billing and collections run every month, and the world's stock of debt more than 91
+        days old matches what Ofgem publishes.</td>
+        <td><b>Not yet:</b> write-offs per pound billed are well below a large supplier's, the
+        world generates no prepayment debt, and its payment-failure rates are not yet
+        sourced.</td>
+        <td><a href="../knowledge/debt-and-collections/">Debt and collections</a></td></tr>
+      <tr><td class="who">Home moves</td>
+        <td>A household that moves keeps its region at least as often as the published lower
+        bound, and its new home's use comes from the new dwelling, not the old one.</td>
+        <td><b>Not yet:</b> only the electricity supply follows the household; the gas supply
+        ends at the move. The value of a mover offer, time on a deemed contract and an empty
+        home's use are gaps in the published record, so each is reported as a range.</td>
+        <td><a href="../knowledge/home-moves/">Home moves</a></td></tr>
+      <tr><td class="who">Dual fuel</td>
+        <td>Most homes with gas buy both fuels from one supplier, and the book now draws its
+        households that way from the CMA and Ofgem figures; a dual-fuel account's gas and
+        electricity are one house, not two.</td>
+        <td><b>Not yet:</b> the move rule above, so a dual-fuel household that moves leaves as an
+        electricity-only one.</td>
+        <td><a href="../knowledge/how-households-choose/">How households choose</a></td></tr>
+    </tbody>
+  </table></div>
+  </section>
+
+  <h2 class="sec">The path to a real supplier</h2>
+  <p class="sec-lede">The supplier never reaches into the world. It reads and writes through named
+  doorways (typed interfaces, one per counterparty), the same way a real supplier reaches the industry: settlement data, smart meters, gas
+  registration, switching, direct-debit collection, carbon intensity and the published cost
+  stack. That boundary is the design. Going live means swapping a simulated counterparty for the
+  real one behind an unchanged doorway, not rewriting the supplier. The table names each real
+  counterparty, what it would take to connect, and whether its specification has been read.</p>
+  <div class="figs" id="access"></div>
+  <div class="table-scroll"><table>
+    <thead><tr><th>Where the world ends</th><th>Who it becomes</th><th>To connect at all</th><th>Specification</th><th>State</th></tr></thead>
+    <tbody id="golive"></tbody>
+  </table></div>
+
   <h2 class="sec">What a supplier can do with this world</h2>
   <p class="sec-lede">The two columns above say how much has been built. This register says what it
   is <em>for</em> &mdash; the things an energy supplier could actually do here, grouped by the
@@ -135,25 +236,41 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
   <div class="figs" id="uc-tally"></div>
   <div id="use-cases"></div>
 
-  <h2 class="sec">What the lists above cannot tell you</h2>
-  <p class="sec-lede">Not a summary of the columns &mdash; the gaps no single capability can
-  express. Each one names the work that closes it and where that work stands, because a gap
-  with no plan beside it is a confession rather than a plan. No dates: this project treats
-  dates as forecasts and the test as the gate, so what is stated is what the work is waiting
-  on.</p>
-  <div id="gaps"></div>
-
   <!-- WHAT IS NOT BUILT YET (director steer of 22 Oct 2026, "the front door shows the ambition and
        what has been built"): these paragraphs led the front door until that day. They moved here
-       whole, none deleted, and the front door keeps one link to this anchor. Hand-authored prose
-       about the repository; no run figure is typed in it. -->
+       whole, none deleted, and the front door keeps one link to this anchor. On 23 Oct ("the other
+       pages match the front door", item 3.4) they were condensed into one table, with the full
+       paragraphs kept below it, collapsed. Hand-authored prose; no run figure is typed in it. -->
   <section id="not-built">
   <h2 class="sec">What is not built yet</h2>
   <p class="sec-lede"><strong>No customers. No licence. A running simulator.</strong> A fully
     autonomous licensed supplier will not be permitted, because a licence needs accountable humans,
-    and we say so up front. Autonomy is the <em>how</em>, not the headline. The mistakes it made
-    and corrected are kept on <a href="../harness/#not-proven">What we know is wrong</a>.</p>
+    and we say so up front. Autonomy is the <em>how</em>, not the headline.</p>
+  <div class="table-scroll"><table>
+    <thead><tr><th>Area</th><th>Not yet</th><th>What closes it</th></tr></thead>
+    <tbody>
+      <tr><td class="who">Customers and a licence</td><td>No real customers, no supply licence.</td>
+        <td>Accountable humans holding a licence; the supplier connects through the doorways
+        above.</td></tr>
+      <tr><td class="who">Time saved</td><td>Defined, never measured.</td>
+        <td>Counting household minutes for each kind of task inside the run.</td></tr>
+      <tr><td class="who">Carbon saved</td><td>Emissions are measured; abatement is not.</td>
+        <td>A holdout, a matched comparison or a weather-normalised before-and-after, which needs
+        more half-hourly meters.</td></tr>
+      <tr><td class="who">Advice and modelling for the household</td><td>Only tariffs reach a
+        household today.</td>
+        <td>A model offered to the customer, and advice with a recipient.</td></tr>
+      <tr><td class="who">Each industry area</td><td>The &ldquo;Not yet&rdquo; column of
+        <a href="#against">Against a real GB supplier</a>.</td>
+        <td>The work named on each area's Knowledge page.</td></tr>
+    </tbody>
+  </table></div>
+  <p class="sec-lede">Whether deciding customer by customer creates value, rather than moving it, is
+    measured in <a href="#value-arms">the value test below</a>, which runs the same book three ways; the mistakes made and corrected
+    along the way are kept on <a href="../harness/#not-proven">What we know is wrong</a>.</p>
 
+  <details class="more">
+  <summary>The claim, the three currencies and carbon saved, in full</summary>
   <h3 class="side-h">The claim, and what a household saves &middot; CARBON SAVED: NOT YET MEASURED</h3>
   <p class="sec-lede"><strong>The claim, falsifiable:</strong> that you create value fastest by
     knowing each household well &mdash; shifting when it draws power, fitting the right assets,
@@ -190,83 +307,26 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
     before-and-after. At the current number of half-hourly reads none of those is viable, and in
     this decade almost every domestic meter was settled on a standard profile rather than its own
     half hours. The number that would change this fastest is not a model: it is meters.</p>
+  </details>
 
-  <h3 class="side-h">Against how a real GB supplier works</h3>
-  <p class="sec-lede">What is modelled faithfully today and what is not yet, each line linked to
-    the Knowledge page that sources it. When one of those pages changes its account, its line here
-    is owed the same change.</p>
-    <dl class="notbuilt-dl">
-      <dt><a href="../knowledge/imbalance-cashout-settlement/">Settlement</a></dt>
-      <dd><b>Faithful today:</b> every half hour is settled against the real published Elexon
-        system price, imbalance is a real cost line, and the settled truth reaches the company
-        months late, as it does in the industry.<br>
-        <b>Not yet:</b> Supplier Volume Allocation and the reconciliation run calendar are
-        modelled by their effect on the figures, not in their full detail.<br>
-        <b>Profiles:</b> in 2016&ndash;2025 almost every home was settled on a standard profile
-        (98.5% of meters in May 2022, by Elexon's count), and half-hourly settlement for homes
-        began only in late 2025. The run now does the same: a home is billed on its own meter,
-        but its energy is bought on its registered profile class, trued up to its own volume
-        over each contract. Until 22 Oct 2026 the run settled each home's own half hours instead, which
-        moved an electrically heated home's cost by &pound;35&ndash;150 a year against its
-        profile and the whole book by +0.2%.</dd>
-      <dt><a href="../knowledge/price-cap/">The price cap</a></dt>
-      <dd><b>Faithful today:</b> the cap limits unit rates and standing charges, not the bill,
-        and its headline describes a typical home at typical use. Both are checked against
-        Ofgem's own material.<br>
-        <b>Not yet:</b> the cap's published levels are not yet ingested as a series, and the
-        wholesale allowance's method has not been read line by line.</dd>
-      <dt><a href="../knowledge/hedging-forward-market/">Hedging</a></dt>
-      <dd><b>Faithful today:</b> the company hedges to a mandate, layered across terms, and its
-        realised cost is reported against going unhedged, including the calm years in which the
-        hedge lost money and the 2021&ndash;22 crisis it was bought for.<br>
-        <b>Not yet:</b> no options, no trading views and no cross-commodity hedging; collateral
-        is a cash constraint, and the counterparty credit process is simplified.</dd>
-      <dt><a href="../knowledge/debt-and-collections/">Debt</a></dt>
-      <dd><b>Faithful today:</b> billing and collections run every month, and the world's stock
-        of debt more than 91 days old matches what Ofgem publishes.<br>
-        <b>Not yet:</b> write-offs per pound billed are well below a large supplier's, the world
-        generates no prepayment debt, and its payment-failure rates are not yet sourced.</dd>
-      <dt><a href="../knowledge/home-moves/">Home moves</a></dt>
-      <dd><b>Faithful today:</b> a household that moves keeps its region at least as often as the
-        published lower bound, and its new home's use comes from the new dwelling, not the old
-        one.<br>
-        <b>Not yet:</b> only the electricity supply follows the household; the gas supply ends at
-        the move. The value of a mover offer, time on a deemed contract and an empty home's use
-        are gaps in the published record, so each is reported as a range.</dd>
-      <dt><a href="../knowledge/how-households-choose/">Dual fuel</a></dt>
-      <dd><b>Faithful today:</b> most homes with gas buy both fuels from one supplier, and the
-        book now draws its households that way from the CMA and Ofgem figures; a dual-fuel
-        account's gas and electricity are one house, not two.<br>
-        <b>Not yet:</b> the move rule above, so a dual-fuel household that moves leaves as an
-        electricity-only one.</dd>
-    </dl>
+  <h3 class="side-h">What the record says is still open</h3>
+  <p class="sec-lede">The gaps no single capability can express, each with the work that closes it
+  and where that work stands. What is stated is what the work is waiting on.</p>
+  <div id="gaps"></div>
 
   <h3 class="side-h">Whose book this is, and what sets its size</h3>
-  <p class="sec-lede">Until late August 2026 the book was a handful of industrial and commercial
-    accounts carrying almost all of the revenue, so a household mission was being funded by a book
-    that was not about households. The director <strong>suspended industrial and commercial
-    supply</strong>. The capability is still built and still tested &mdash; half-hourly settlement,
-    Triad curtailment, the flexibility revenue book, the DUoS/TNUoS split &mdash; but the company has
-    stopped serving those accounts, which is a different thing from deleting them.</p>
   <p class="sec-lede"><strong>Its size is set by this machine, not by the market.</strong> The book
-    starts from a set of founder households drawn when the run begins, and grows by what the company
+    starts from a set of households (the founders) drawn when the run begins, and grows by what the company
     wins. How large it can be is limited by how much one run on this computer can settle, not by the
     supplier's capital or by demand. We would rather say so than let a small or flattening book read
     as a commercial result.</p>
+  <p class="footnote">Until late August 2026 the book was a handful of industrial and commercial
+    accounts carrying almost all of the revenue, so a household mission was being funded by a book
+    that was not about households. The director <strong>suspended industrial and commercial
+    supply</strong>. The capability is still built and still tested &mdash; half-hourly settlement,
+    cutting demand at the three winter peaks that set transmission charges (Triad), the flexibility revenue book, the split of network charges between distribution and transmission (DUoS/TNUoS) &mdash; but the company has
+    stopped serving those accounts, which is a different thing from deleting them.</p>
   </section>
-
-  <h2 class="sec">Where the simulation would meet the real industry</h2>
-  <p class="sec-lede">The supplier never reaches into the world; it reads and writes through named
-  doorways, the same way a real supplier reaches the industry. That boundary is the point of the
-  design: going live means swapping a simulated counterparty for a real one behind an unchanged
-  doorway, not rewriting the supplier. None of these connections is built &mdash; but they are not
-  equally distant, so the table says what it would take to connect and whether the real
-  specification has actually been read.</p>
-  <div class="figs" id="access"></div>
-  <div class="table-scroll"><table>
-    <thead><tr><th>Where the world ends</th><th>Who it becomes</th><th>To connect at all</th><th>Specification</th><th>State</th></tr></thead>
-    <tbody id="golive"></tbody>
-  </table></div>
 
   <h2 class="sec">How solid the boundary is</h2>
   <p class="sec-lede">The boundary is not a promise; it is measured, and the measurement is allowed
