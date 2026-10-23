@@ -2280,6 +2280,13 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             "fix_end": _fix_end_excl.isoformat(),
             "unit_rate_gbp_per_mwh": _fix["unit_rate_gbp_per_mwh"],
             "default_segments_withdrawn": len(_withdrawn),
+            # What the household would have paid instead, ex VAT as the fix is, so its side of
+            # the re-fix can be graded off this row: the household's share, net of any EPG.
+            "withdrawn_default_rates": [
+                [e[0], e[4].get("term_end"), e[4].get(
+                    "household_charged_unit_rate_gbp_per_mwh", e[4].get("unit_rate_gbp_per_mwh"))]
+                for e in sorted(_withdrawn)],
+            "eac_kwh": EFFECTIVE_EAC_KWH[leg],
         }
 
     # The fuels each household is supplied, so the budget (`household_budget.BudgetPaymentBook`)
@@ -2632,7 +2639,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     # contact did can be read against who was left alone. `None` holds nobody out.
     _svt_contact_holdout_share = policy.svt_contact_holdout_share
     if _svt_contact_instrument is not None:
-        from company.interfaces.contact_programme import contact_arm
+        from company.interfaces.contact_programme import contact_arm, sends_at_segment
         from company.interfaces.sim_interface import LiveSimInterface
         _contact_seam = LiveSimInterface(contacts_received=_contacts_received)
     churned_billing_accounts: set[str] = set()
@@ -3368,7 +3375,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             # and the draw below is the one it always was.
             _svt_p_uncontacted = _svt_p_depart
             _svt_contact_arm = None
-            if _svt_contact_instrument is not None:
+            if _svt_contact_instrument is not None and sends_at_segment(
+                    term_start_str, _stint_start, policy.svt_contact_once_per_stint):
                 _svt_contact_arm = contact_arm(
                     billing_account, _svt_contact_holdout_share, f"svt_contact_{run_base_seed()}")
                 if _svt_contact_arm != "holdout":
