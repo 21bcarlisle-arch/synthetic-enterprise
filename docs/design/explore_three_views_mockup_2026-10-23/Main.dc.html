@@ -1,0 +1,493 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Explore — one household, three views</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;background:#F4F4F4;color:#0A0A0A;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif}
+a{color:#0047FF}a:hover{color:#0A0A0A}
+button{font-family:inherit}
+</style>
+</helmet>
+<div style="box-sizing: border-box; width: 100%; min-height: 100vh; background: #F4F4F4; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #0A0A0A">
+
+  <header style="background: #FFFFFF; border-bottom: 1px solid #D9D9D9">
+    <div style="max-width: 1360px; margin: 0 auto; padding: 14px 24px; display: flex; flex-wrap: wrap; align-items: center; gap: 24px">
+      <div style="font-size: 22px; font-weight: 700; letter-spacing: -0.5px">poesys.</div>
+      <nav aria-label="Main" style="display: flex; flex-wrap: wrap; gap: 18px; font-size: 14px">
+        <a href="#" style="color: #666666; text-decoration: none">Home</a>
+        <a href="#" style="color: #666666; text-decoration: none">Capabilities</a>
+        <a href="#" style="color: #666666; text-decoration: none">How it’s built</a>
+        <a href="#" style="color: #666666; text-decoration: none">The code</a>
+        <a href="#" style="color: #666666; text-decoration: none">Knowledge</a>
+        <a href="#" style="color: #0A0A0A; text-decoration: none; font-weight: 600; border-bottom: 2px solid #0A0A0A; padding-bottom: 2px">Explore</a>
+      </nav>
+    </div>
+  </header>
+
+  <main style="max-width: 1360px; margin: 0 auto; padding: 32px 24px 48px; display: flex; flex-direction: column; gap: 24px">
+
+    <section style="display: flex; flex-direction: column; gap: 8px">
+      <h1 style="margin: 0; font-size: 34px; font-weight: 700; letter-spacing: -0.5px">Meet the households</h1>
+      <p style="margin: 0; font-size: 17px; line-height: 1.5; color: #333333; max-width: 860px">Each household below is a real account from the latest run, chosen by rule because its story shows the supplier at work. Step through its life and see it three ways: what the customer saw, what the supplier believed, and what was really going on.</p>
+    </section>
+
+    <section aria-label="Choose a household" style="display: flex; flex-wrap: wrap; gap: 10px">
+      <sc-for list="{{cast}}" as="c" hint-placeholder-count="6">
+        <button onClick="{{c.pick}}" style="{{c.style}}">
+          <span style="display: block; font-size: 12px; font-weight: 600; letter-spacing: 0.4px; text-transform: uppercase">{{c.tag}}</span>
+          <span style="display: block; font-size: 14px; margin-top: 2px">{{c.label}}</span>
+        </button>
+      </sc-for>
+    </section>
+
+    <sc-if value="{{isPlaceholder}}" hint-placeholder-val="{{false}}">
+      <div style="background: #FFFFFF; border: 1px dashed #999999; border-radius: 10px; padding: 32px; font-size: 16px; color: #333333">[Cast member chosen by rule at publish: {{placeholderLabel}}. In the mock-up only the first household is filled from the run.]</div>
+    </sc-if>
+
+    <sc-if value="{{isReal}}" hint-placeholder-val="{{true}}">
+    <div style="display: flex; flex-direction: column; gap: 24px">
+
+    <section style="background: #FFFFFF; border: 1px solid #D9D9D9; border-radius: 10px; padding: 22px 24px; display: flex; flex-direction: column; gap: 18px">
+      <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 12px">
+        <div style="display: flex; flex-direction: column; gap: 4px">
+          <div style="font-size: 12px; font-weight: 600; letter-spacing: 0.4px; text-transform: uppercase; color: #666666">Household SYN-2016-306 · dual fuel · July 2016 to July 2024</div>
+          <h2 style="margin: 0; font-size: 24px; font-weight: 700">Saved when it didn’t need saving, missed when it mattered</h2>
+        </div>
+        <div style="display: flex; gap: 8px">
+          <button onClick="{{prev}}" aria-label="Previous moment" style="min-width: 44px; height: 44px; border: 1px solid #0A0A0A; background: #FFFFFF; border-radius: 6px; font-size: 18px; cursor: pointer">‹</button>
+          <button onClick="{{togglePlay}}" style="height: 44px; padding: 0 18px; border: 1px solid #0A0A0A; background: #0A0A0A; color: #FFFFFF; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer">{{playLabel}}</button>
+          <button onClick="{{next}}" aria-label="Next moment" style="min-width: 44px; height: 44px; border: 1px solid #0A0A0A; background: #FFFFFF; border-radius: 6px; font-size: 18px; cursor: pointer">›</button>
+        </div>
+      </div>
+
+      <div style="position: relative; height: 74px">
+        <div style="position: absolute; left: 0; right: 0; top: 22px; height: 2px; background: #D9D9D9"></div>
+        <div style="{{progressStyle}}"></div>
+        <sc-for list="{{years}}" as="y" hint-placeholder-count="10">
+          <div style="{{y.style}}">{{y.label}}</div>
+        </sc-for>
+        <sc-for list="{{markers}}" as="m" hint-placeholder-count="6">
+          <button onClick="{{m.pick}}" aria-label="{{m.aria}}" style="{{m.style}}"></button>
+        </sc-for>
+      </div>
+
+      <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: baseline; border-top: 1px solid #EEEEEE; padding-top: 14px">
+        <div style="font-size: 14px; font-weight: 600; color: #666666; min-width: 120px">{{m.date}} · {{m.step}}</div>
+        <div style="flex: 999 1 560px; min-width: 0">
+          <div style="font-size: 20px; font-weight: 700">{{m.title}}</div>
+          <div style="font-size: 16px; line-height: 1.5; color: #333333; margin-top: 4px">{{m.story}}</div>
+        </div>
+      </div>
+    </section>
+
+    <div role="tablist" aria-label="Choose a view" style="display: flex; flex-wrap: wrap; gap: 8px">
+      <sc-for list="{{views}}" as="v" hint-placeholder-count="4">
+        <button role="tab" aria-selected="{{v.sel}}" onClick="{{v.pick}}" style="{{v.style}}">{{v.label}}</button>
+      </sc-for>
+    </div>
+
+    <div style="{{gridStyle}}">
+
+      <sc-if value="{{showPortal}}" hint-placeholder-val="{{true}}">
+      <section aria-label="What the customer sees" style="background: #FFFFFF; border: 1px solid #D9D9D9; border-radius: 10px; overflow: hidden; display: flex; flex-direction: column">
+        <div style="background: #0A0A0A; color: #FFFFFF; padding: 12px 18px; display: flex; justify-content: space-between; align-items: center">
+          <span style="font-weight: 700; font-size: 17px">poesys. <span style="font-weight: 400; font-size: 13px; color: #CCCCCC">My account</span></span>
+          <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.4px; text-transform: uppercase; background: #FFF0C9; color: #0A0A0A; padding: 3px 8px; border-radius: 4px">Simulated household</span>
+        </div>
+        <div style="padding: 18px; display: flex; flex-direction: column; gap: 16px">
+          <div style="font-size: 12px; font-weight: 600; letter-spacing: 0.4px; text-transform: uppercase; color: #666666">What the customer sees</div>
+          <sc-if value="{{m.hasMessage}}" hint-placeholder-val="{{true}}">
+            <div style="background: #DCE7FF; border-radius: 8px; padding: 12px 14px; font-size: 15px; line-height: 1.45">{{m.portal.message}}</div>
+          </sc-if>
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+            <div style="border: 1px solid #EEEEEE; border-radius: 8px; padding: 12px">
+              <div style="font-size: 12px; color: #666666">Your tariff</div>
+              <div style="font-size: 15px; font-weight: 600; margin-top: 4px">{{m.portal.tariff}}</div>
+            </div>
+            <div style="border: 1px solid #EEEEEE; border-radius: 8px; padding: 12px">
+              <div style="font-size: 12px; color: #666666">How you pay</div>
+              <div style="font-size: 15px; font-weight: 600; margin-top: 4px">Pay on receipt of bill</div>
+            </div>
+          </div>
+          <div style="border: 1px solid #EEEEEE; border-radius: 8px; padding: 12px">
+            <div style="font-size: 12px; color: #666666">Your account</div>
+            <div style="font-size: 15px; font-weight: 600; margin-top: 4px">{{m.portal.balance}}</div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 8px">
+            <div style="font-size: 14px; font-weight: 600">Your usage, last 12 months <span style="font-weight: 400; color: #666666">(electricity to 700 kWh, gas to 5,000 kWh)</span></div>
+            <div style="display: flex; gap: 14px; font-size: 12px; color: #666666"><span><span style="display: inline-block; width: 10px; height: 10px; background: #0A0A0A; margin-right: 5px"></span>Electricity</span><span><span style="display: inline-block; width: 10px; height: 10px; background: #0047FF; margin-right: 5px"></span>Gas</span></div>
+            <div style="display: flex; align-items: flex-end; gap: 4px; height: 96px; border-bottom: 1px solid #D9D9D9">
+              <sc-for list="{{bars}}" as="b" hint-placeholder-count="12">
+                <div style="flex: 1 1 0; display: flex; align-items: flex-end; gap: 1px; height: 100%" title="{{b.title}}">
+                  <div style="{{b.eStyle}}"></div>
+                  <div style="{{b.gStyle}}"></div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 11px; color: #666666"><span>{{barsFrom}}</span><span>{{barsTo}}</span></div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 6px">
+            <div style="font-size: 14px; font-weight: 600">Latest bills</div>
+            <sc-for list="{{m.portal.bills}}" as="bl" hint-placeholder-count="2">
+              <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; border-top: 1px solid #EEEEEE; padding-top: 8px; font-size: 14px">
+                <span>{{bl.fuel}} · {{bl.when}}</span>
+                <span style="color: #666666">{{bl.kwh}}</span>
+                <span style="{{bl.badgeStyle}}">{{bl.badge}}</span>
+                <span style="font-weight: 600">{{bl.amount}}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </section>
+      </sc-if>
+
+      <sc-if value="{{showSupplier}}" hint-placeholder-val="{{true}}">
+      <section aria-label="What the supplier sees" style="background: #FFFFFF; border: 1px solid #D9D9D9; border-radius: 10px; overflow: hidden; display: flex; flex-direction: column">
+        <div style="background: #F4F4F4; border-bottom: 1px solid #D9D9D9; padding: 12px 18px; display: flex; justify-content: space-between; align-items: center">
+          <span style="font-weight: 700; font-size: 15px">Back office · account SYN-2016-306</span>
+          <span style="font-size: 12px; color: #666666">{{m.asKnown}}</span>
+        </div>
+        <div style="padding: 18px; display: flex; flex-direction: column; gap: 14px">
+          <div style="font-size: 12px; font-weight: 600; letter-spacing: 0.4px; text-transform: uppercase; color: #666666">What the supplier knows and infers</div>
+          <sc-for list="{{m.supplier}}" as="r" hint-placeholder-count="6">
+            <div style="display: flex; justify-content: space-between; gap: 12px; border-top: 1px solid #EEEEEE; padding-top: 10px">
+              <span style="font-size: 14px; color: #666666; flex: 0 0 42%">{{r.k}}</span>
+              <span style="font-size: 14px; font-weight: 600; text-align: right">{{r.v}}</span>
+            </div>
+          </sc-for>
+          <div style="background: #F4F4F4; border-radius: 8px; padding: 12px 14px">
+            <div style="font-size: 12px; font-weight: 600; color: #666666">Decision log</div>
+            <div style="font-size: 14px; line-height: 1.45; margin-top: 4px">{{m.decision}}</div>
+          </div>
+        </div>
+      </section>
+      </sc-if>
+
+      <sc-if value="{{showTruth}}" hint-placeholder-val="{{true}}">
+      <section aria-label="What is really true" style="background: #0A0A0A; color: #FFFFFF; border-radius: 10px; overflow: hidden; display: flex; flex-direction: column">
+        <div style="border-bottom: 1px solid #333333; padding: 12px 18px; display: flex; justify-content: space-between; align-items: center">
+          <span style="font-weight: 700; font-size: 15px">The simulation · ground truth</span>
+          <span style="font-size: 12px; color: #BBBBBB">never seen by the supplier</span>
+        </div>
+        <div style="padding: 18px; display: flex; flex-direction: column; gap: 14px">
+          <div style="font-size: 12px; font-weight: 600; letter-spacing: 0.4px; text-transform: uppercase; color: #BBBBBB">What is really going on</div>
+          <sc-for list="{{m.truth}}" as="t" hint-placeholder-count="6">
+            <div style="display: flex; justify-content: space-between; gap: 12px; border-top: 1px solid #2A2A2A; padding-top: 10px">
+              <span style="font-size: 14px; color: #BBBBBB; flex: 0 0 42%">{{t.k}}</span>
+              <span style="font-size: 14px; font-weight: 600; text-align: right">{{t.v}}</span>
+            </div>
+          </sc-for>
+          <div style="background: #1C1C1C; border-radius: 8px; padding: 12px 14px">
+            <div style="font-size: 12px; font-weight: 600; color: #BBBBBB">Why, really</div>
+            <div style="font-size: 14px; line-height: 1.45; margin-top: 4px">{{m.why}}</div>
+          </div>
+        </div>
+      </section>
+      </sc-if>
+    </div>
+
+    <section aria-label="The gap at this moment" style="{{gapStyle}}">
+      <div style="font-size: 12px; font-weight: 600; letter-spacing: 0.4px; text-transform: uppercase">The gap at this moment</div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-top: 10px">
+        <div><div style="font-size: 13px; color: #333333">The supplier believed</div><div style="font-size: 20px; font-weight: 700; margin-top: 2px">{{m.gap.believed}}</div></div>
+        <div><div style="font-size: 13px; color: #333333">The truth was</div><div style="font-size: 20px; font-weight: 700; margin-top: 2px">{{m.gap.truth}}</div></div>
+        <div><div style="font-size: 13px; color: #333333">What it cost or meant</div><div style="font-size: 16px; font-weight: 600; margin-top: 2px; line-height: 1.4">{{m.gap.meant}}</div></div>
+      </div>
+    </section>
+
+    </div>
+    </sc-if>
+
+    <footer style="font-size: 13px; color: #666666; line-height: 1.5; border-top: 1px solid #D9D9D9; padding-top: 14px">Simulated household from the run of 19 Oct 2026 · every figure is taken from that run at publish · the supplier column shows only what it held on the date shown.</footer>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1640}}'>
+var MONTHLY = {"e":{"2016-07":199,"2016-08":416,"2016-09":436,"2016-10":489,"2016-11":577,"2016-12":611,"2017-01":646,"2017-02":530,"2017-03":545,"2017-04":486,"2017-05":436,"2017-06":404,"2017-07":407,"2017-08":412,"2017-09":428,"2017-10":494,"2017-11":553,"2017-12":620,"2018-01":582,"2018-02":521,"2018-03":539,"2018-04":470,"2018-05":423,"2018-06":395,"2018-07":392,"2018-08":399,"2018-09":417,"2018-10":470,"2018-11":527,"2018-12":621,"2019-01":620,"2019-02":525,"2019-03":539,"2019-04":467,"2019-05":433,"2019-06":405,"2019-07":417,"2019-08":422,"2019-09":440,"2019-10":484,"2019-11":549,"2019-12":620,"2020-01":656,"2020-02":554,"2020-03":556,"2020-04":494,"2020-05":449,"2020-06":411,"2020-07":411,"2020-08":426,"2020-09":444,"2020-10":496,"2020-11":562,"2020-12":609,"2021-01":656,"2021-02":554,"2021-03":556,"2021-04":494,"2021-05":449,"2021-06":411,"2021-07":411,"2021-08":426,"2021-09":444,"2021-10":474,"2021-11":562,"2021-12":584,"2022-01":643,"2022-02":402,"2022-03":520,"2022-04":464,"2022-05":423,"2022-06":388,"2022-07":387,"2022-08":81,"2022-09":398,"2022-10":440,"2022-11":519,"2022-12":555,"2023-01":582,"2023-02":491,"2023-03":492,"2023-04":438,"2023-05":398,"2023-06":367,"2023-07":365,"2023-08":372,"2023-09":388,"2023-10":387,"2023-11":487,"2023-12":523,"2024-01":543,"2024-02":456,"2024-03":464,"2024-04":409,"2024-05":364,"2024-06":338,"2024-07":55},"g":{"2016-07":268,"2016-08":628,"2016-09":941,"2016-10":1956,"2016-11":3358,"2016-12":4175,"2017-01":3415,"2017-02":2806,"2017-03":2571,"2017-04":1645,"2017-05":857,"2017-06":546,"2017-07":487,"2017-08":628,"2017-09":741,"2017-10":1540,"2017-11":2643,"2017-12":3287,"2018-01":3682,"2018-02":2829,"2018-03":2580,"2018-04":1651,"2018-05":860,"2018-06":803,"2018-07":542,"2018-08":533,"2018-09":866,"2018-10":1648,"2018-11":2829,"2018-12":3518,"2019-01":3941,"2019-02":3102,"2019-03":2809,"2019-04":1922,"2019-05":1001,"2019-06":637,"2019-07":569,"2019-08":628,"2019-09":819,"2019-10":1719,"2019-11":2906,"2019-12":3613,"2020-01":4047,"2020-02":3186,"2020-03":2920,"2020-04":1868,"2020-05":1541,"2020-06":750,"2020-07":670,"2020-08":658,"2020-09":866,"2020-10":2006,"2020-11":3444,"2020-12":4283,"2021-01":4798,"2021-02":2829,"2021-03":3074,"2021-04":1967,"2021-05":1025,"2021-06":803,"2021-07":539,"2021-08":628,"2021-09":798,"2021-10":1658,"2021-11":2847,"2021-12":3540,"2022-01":3415,"2022-02":2963,"2022-03":2716,"2022-04":1738,"2022-05":905,"2022-06":576,"2022-07":514,"2022-08":506,"2022-09":757,"2022-10":1574,"2022-11":2703,"2022-12":3342,"2023-01":3644,"2023-02":2868,"2023-03":2628,"2023-04":2132,"2023-05":908,"2023-06":578,"2023-07":516,"2023-08":628,"2023-09":825,"2023-10":1714,"2023-11":2515,"2023-12":3585,"2024-01":4016,"2024-02":3161,"2024-03":2809,"2024-04":1746,"2024-05":910,"2024-06":579,"2024-07":83}};
+
+var MOMENTS = [
+  { iso: "2016-07-08", date: "8 Jul 2016", title: "Switched in",
+    story: "A family of three or four joins Poesys for both fuels, paying each bill as it arrives. Six months earlier one of them lost their job. Nobody at the supplier knows that.",
+    portal: { message: "Welcome to Poesys. Your electricity and gas switch completed on 8 July 2016. Your first bills will arrive at the end of the month.", tariff: "Standard Variable, electricity and gas", balance: "Nothing owed yet", bills: [] },
+    asKnown: "as known on 8 Jul 2016",
+    supplier: [
+      { k: "Customer since", v: "8 Jul 2016" },
+      { k: "Fuels", v: "Electricity and gas, one account" },
+      { k: "Payment method", v: "Standard credit (pays on receipt)" },
+      { k: "Meter", v: "Traditional, no smart data" },
+      { k: "Payment record", v: "None yet" }
+    ],
+    decision: "Account opened. Bills will be estimated from the meter points’ annual consumption until actual reads arrive.",
+    truth: [
+      { k: "Household", v: "3–4 people, owner-occupiers" },
+      { k: "Finances", v: "High income stress after a job loss (Jan 2016)" },
+      { k: "Fuel poverty", v: "Yes" },
+      { k: "Engagement", v: "Active: reads its post, will shop around" },
+      { k: "Hidden mood", v: "Neutral" }
+    ],
+    why: "It joined six months after a job loss, with high income stress and in fuel poverty. It missed three payments in its first year.",
+    gap: { believed: "A routine new dual-fuel customer", truth: "A household under financial strain", meant: "Missed payments follow in Aug and Dec 2016 and Feb 2017. The supplier only learns it from the missed payments themselves.", tone: "amber" } },
+
+  { iso: "2017-07-08", date: "8 Jul 2017", title: "First renewal: a discount it didn’t need",
+    story: "At the first anniversary the supplier’s churn model flags the account as very likely to leave, so it offers a 7% discount to keep it.",
+    portal: { message: "Good news: we’d like to offer you 7% off your energy for the next year. No action needed, it’s applied automatically.", tariff: "Standard Variable, electricity and gas", balance: "Up to date", bills: [
+      { fuel: "Electricity", when: "Jul 2017", kwh: "407 kWh", amount: "£55.88", est: true },
+      { fuel: "Gas", when: "Jul 2017", kwh: "487 kWh", amount: "£19.77", est: true } ] },
+    asKnown: "as known on 8 Jul 2017",
+    supplier: [
+      { k: "Churn risk (model)", v: "82%" },
+      { k: "Term margin at risk", v: "£468.89" },
+      { k: "Next best action", v: "Retention offer: 7% discount" },
+      { k: "Offer cost", v: "£56.65" },
+      { k: "Payment record", v: "3 missed payments in 12 months" },
+      { k: "Meter reads", v: "2 actual, 11 estimated" }
+    ],
+    decision: "Expected value of offering: +£412.24 against doing nothing. Message framed as a gain (‘save with this discount’). Outcome: renewed.",
+    truth: [
+      { k: "True chance of leaving", v: "24%" },
+      { k: "Hidden mood", v: "Irritated (resentment 18 of 100)" },
+      { k: "Finances", v: "Still under high stress" },
+      { k: "Retention offer needed?", v: "Unlikely at a 24% risk" }
+    ],
+    why: "It was irritated, but its true chance of leaving was 24%, not 82%. The discount went mostly to a customer who was staying anyway.",
+    gap: { believed: "82% likely to leave", truth: "24% likely to leave", meant: "A £56.65 discount spent largely on a customer who would have stayed. Value moved, not made.", tone: "red" } },
+
+  { iso: "2019-12-26", date: "26 Dec 2019", title: "Finances recover, quietly",
+    story: "The household’s income recovers. The supplier can’t see that, but it can see the payments: late payment falls from every bill to fewer than half.",
+    portal: { message: "Your gas and electricity are on track. Tip: send us a meter reading to make sure your bills are accurate.", tariff: "Standard Variable, electricity and gas", balance: "£85.35 overdue from 2018–19 (electricity £68.50, gas £16.85)", bills: [
+      { fuel: "Electricity", when: "Dec 2019", kwh: "620 kWh", amount: "£92.98", est: true },
+      { fuel: "Gas", when: "Dec 2019", kwh: "3,613 kWh", amount: "£101.80", est: true } ] },
+    asKnown: "as known on 26 Dec 2019",
+    supplier: [
+      { k: "Churn risk at Jul 2019 renewal", v: "28%" },
+      { k: "Payment record", v: "No missed payment since May 2019" },
+      { k: "Overdue balance", v: "£85.35" },
+      { k: "Meter reads", v: "9 actual, 33 estimated" },
+      { k: "Inferred", v: "Payment behaviour improving" }
+    ],
+    decision: "No action at the 2019 renewal: risk below the offer threshold. The old debt stays on the account at a low collection priority.",
+    truth: [
+      { k: "Finances", v: "Income stress high → low" },
+      { k: "Late-payment rate", v: "100% → 42%" },
+      { k: "Hidden mood", v: "Content (resentment 0)" },
+      { k: "True chance of leaving (2019)", v: "0%" }
+    ],
+    why: "Its income stress fell from high to low, and its late-payment rate from 100% to 42%. The supplier sees the payments improve, never the reason, and the small old debt is not chased.",
+    gap: { believed: "28% likely to leave", truth: "0% likely to leave", meant: "Inference from payments works here: the supplier rightly made no offer.", tone: "green" } },
+
+  { iso: "2022-02-17", date: "17 Feb 2022", title: "Insulated, and still billed on estimates",
+    story: "The household insulates its home. Its real use falls by about a fifth, but most of its bills are estimates, so the supplier keeps billing at the old level.",
+    portal: { message: "Your bill is estimated. Submit a meter reading so we can bill you for what you actually use.", tariff: "Standard Variable, electricity and gas", balance: "£85.35 overdue from 2018–19", bills: [
+      { fuel: "Electricity", when: "Mar 2022", kwh: "520 kWh", amount: "£121.32", est: true },
+      { fuel: "Gas", when: "Mar 2022", kwh: "2,716 kWh", amount: "£118.99", est: true } ] },
+    asKnown: "as known on 31 Mar 2022",
+    supplier: [
+      { k: "Meter reads", v: "11 actual, 58 estimated (electricity)" },
+      { k: "Last actual read", v: "Electricity Feb 2022 · gas Jan 2022" },
+      { k: "Billed, last 12 months", v: "5,919 kWh elec · 22,898 kWh gas" },
+      { k: "Inferred", v: "No change in use detected yet" }
+    ],
+    decision: "Estimates continue from the previous annual consumption. The change will only show at the next actual reads: electricity Aug 2022, gas Dec 2022.",
+    truth: [
+      { k: "Life event", v: "Insulation upgraded" },
+      { k: "Real use, electricity", v: "−20% (608 → 489 kWh a month)" },
+      { k: "Real use, gas", v: "−24% (3,267 → 2,472 kWh a month)" },
+      { k: "Hidden mood", v: "Content" }
+    ],
+    why: "Insulation cut its use sharply. With estimated bills, the household pays for energy it no longer uses until a read catches up.",
+    gap: { believed: "Use unchanged", truth: "Use down about a fifth", meant: "Over-billing builds up as credit. It comes back as credit bills in Oct 2023, netted against later bills.", tone: "amber" } },
+
+  { iso: "2022-11-30", date: "Nov 2022", title: "The crisis bill",
+    story: "Wholesale prices peak. The same household’s November bills came to £171 in 2019; in November 2022 they come to £689.",
+    portal: { message: "Energy prices have risen sharply. If you’re worried about paying, contact us: we can set up a payment plan.", tariff: "Standard Variable, electricity and gas", balance: "£85.35 overdue from 2018–19", bills: [
+      { fuel: "Electricity", when: "Nov 2022", kwh: "519 kWh", amount: "£282.19", est: true },
+      { fuel: "Gas", when: "Nov 2022", kwh: "2,703 kWh", amount: "£407.08", est: true } ] },
+    asKnown: "as known on 30 Nov 2022",
+    supplier: [
+      { k: "Bills, last 12 months", v: "£3,276 (both fuels)" },
+      { k: "Payments", v: "All paid on time" },
+      { k: "Meter reads", v: "12 actual, 65 estimated (electricity)" },
+      { k: "Inferred", v: "Low credit risk now" }
+    ],
+    decision: "No intervention: the account pays in full. The year’s net margin on electricity is thin, at £31.",
+    truth: [
+      { k: "Finances", v: "Coping: income stress low" },
+      { k: "Real use", v: "Below what it is billed for (insulated)" },
+      { k: "Hidden mood", v: "Content" }
+    ],
+    why: "It can pay, so it does. Part of what it pays is estimate, not energy.",
+    gap: { believed: "Use as estimated", truth: "Paying for energy it didn’t use", meant: "The crisis made the estimate gap expensive, for the customer first.", tone: "amber" } },
+
+  { iso: "2024-07-06", date: "6 Jul 2024", title: "It leaves, and the model didn’t see it coming",
+    story: "At the 2024 renewal the supplier rates the household safe. It leaves. Its five-year-old debt is written off and passed to a collection agency.",
+    portal: { message: "We’re sorry to see you go. Your final bills are below. Thank you for being with Poesys.", tariff: "Account closed 6 July 2024", balance: "Final bills paid · £85.35 old balance written off", bills: [
+      { fuel: "Electricity", when: "Final, Jul 2024", kwh: "55 kWh", amount: "£17.56", est: true },
+      { fuel: "Gas", when: "Final, Jul 2024", kwh: "83 kWh", amount: "£6.60", est: true } ] },
+    asKnown: "as known on 6 Jul 2024",
+    supplier: [
+      { k: "Churn risk (model)", v: "11%" },
+      { k: "Next best action", v: "None: below offer threshold" },
+      { k: "Outcome", v: "Lost on the renewal" },
+      { k: "Debt", v: "£85.35 written off, sent to an agency" },
+      { k: "Recovered", v: "£10.42 (12%) by Feb 2025" },
+      { k: "Lifetime net margin", v: "£2,792 across both fuels" }
+    ],
+    decision: "Renewal 2024: no offer made, risk 11%. Loss notice received. Final bills on estimated reads.",
+    truth: [
+      { k: "True chance of leaving", v: "48%" },
+      { k: "Hidden mood", v: "Content (resentment 1)" },
+      { k: "Engagement", v: "Active, finances restored" }
+    ],
+    why: "The simulation gave it a 48% chance of leaving at this renewal: an engaged household whose finances had recovered. The supplier’s model put it at 11%.",
+    gap: { believed: "11% likely to leave", truth: "48% likely to leave", meant: "The save went to the wrong year: an offer in 2017 that wasn’t needed, none in 2024 when it was.", tone: "red" } }
+];
+
+var CAST = [
+  { tag: "The renewal", label: "Saved, then lost anyway" },
+  { tag: "The estimate trap", label: "Billed on estimates for years" },
+  { tag: "The mover", label: "Moves home mid-contract" },
+  { tag: "The debt journey", label: "From missed bill to payment plan" },
+  { tag: "The EV home", label: "A car on the overnight load" },
+  { tag: "Storage heating", label: "An Economy 7 home" }
+];
+
+var TONES = {
+  red:   { bg: "#FFDDD6", bar: "#E11900" },
+  amber: { bg: "#FFF0C9", bar: "#AA6700" },
+  green: { bg: "#D6F2E0", bar: "#00873C" }
+};
+
+function pos(iso) {
+  var t0 = Date.UTC(2016, 0, 1), t1 = Date.UTC(2026, 0, 1);
+  var p = iso.split("-");
+  var t = Date.UTC(+p[0], +p[1] - 1, +p[2]);
+  return Math.max(0, Math.min(100, (t - t0) / (t1 - t0) * 100));
+}
+
+function monthKey(y, m) { return y + "-" + (m < 10 ? "0" + m : "" + m); }
+var MONTH_NAMES = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { i: 1, view: "all", cast: 0, playing: false };
+    this.timer = null;
+  }
+  componentWillUnmount() { if (this.timer) { clearInterval(this.timer); } }
+  go(i) { this.setState({ i: Math.max(0, Math.min(MOMENTS.length - 1, i)) }); }
+  togglePlay() {
+    if (this.state.playing) {
+      clearInterval(this.timer); this.timer = null; this.setState({ playing: false }); return;
+    }
+    var self = this;
+    if (this.state.i >= MOMENTS.length - 1) { this.setState({ i: 0 }); }
+    this.setState({ playing: true });
+    this.timer = setInterval(function () {
+      if (self.state.i >= MOMENTS.length - 1) { clearInterval(self.timer); self.timer = null; self.setState({ playing: false }); return; }
+      self.setState({ i: self.state.i + 1 });
+    }, 3200);
+  }
+  renderVals() {
+    var self = this, st = this.state, mo = MOMENTS[st.i];
+    var tone = TONES[mo.gap.tone];
+
+    var m = Object.assign({}, mo, {
+      step: "Moment " + (st.i + 1) + " of " + MOMENTS.length,
+      hasMessage: !!mo.portal.message,
+      portal: Object.assign({}, mo.portal, {
+        bills: mo.portal.bills.length ? mo.portal.bills.map(function (b) {
+          return Object.assign({}, b, {
+            badge: b.est ? "Estimated" : "Actual read",
+            badgeStyle: "font-size: 11px; font-weight: 600; padding: 2px 7px; border-radius: 4px; background: " + (b.est ? "#FFF0C9" : "#D6F2E0") + "; color: #0A0A0A"
+          });
+        }) : [{ fuel: "No bills yet", when: "", kwh: "", amount: "", badge: "", badgeStyle: "display: none" }]
+      })
+    });
+
+    // 12 months of usage ending at the moment
+    var p = mo.iso.split("-"), y = +p[0], mth = +p[1];
+    var months = [];
+    for (var k = 11; k >= 0; k--) {
+      var mm = mth - k, yy = y;
+      while (mm < 1) { mm += 12; yy -= 1; }
+      months.push([yy, mm]);
+    }
+    var maxE = 700, maxG = 5000;
+    var bars = months.map(function (ym) {
+      var key = monthKey(ym[0], ym[1]);
+      var e = MONTHLY.e[key];
+      var has = typeof e === "number";
+      var gv = MONTHLY.g[key];
+      var h = has ? Math.round(Math.max(2, e / maxE * 92)) : 0;
+      var hg = (typeof gv === "number") ? Math.round(Math.max(2, gv / maxG * 92)) : 0;
+      return {
+        title: MONTH_NAMES[ym[1] - 1] + " " + ym[0] + (has ? ": " + e + " kWh electricity, " + gv + " kWh gas" : ": not yet a customer"),
+        eStyle: "flex: 1 1 0; background: #0A0A0A; height: " + h + "px",
+        gStyle: "flex: 1 1 0; background: #0047FF; height: " + hg + "px"
+      };
+    });
+
+    var years = [];
+    for (var yr = 2016; yr <= 2025; yr++) {
+      years.push({ label: "" + yr, style: "position: absolute; top: 46px; left: " + pos(yr + "-01-01") + "%; font-size: 12px; color: #666666" });
+    }
+    var markers = MOMENTS.map(function (x, j) {
+      var on = j === st.i, past = j < st.i;
+      var size = on ? 20 : 14;
+      return {
+        aria: x.date + ": " + x.title,
+        pick: function () { self.go(j); },
+        style: "position: absolute; top: " + (23 - size / 2) + "px; left: calc(" + pos(x.iso) + "% - " + (size / 2) + "px); width: " + size + "px; height: " + size + "px; border-radius: 50%; border: 2px solid #0A0A0A; background: " + (on ? "#0047FF" : (past ? "#0A0A0A" : "#FFFFFF")) + "; padding: 0; cursor: pointer"
+      };
+    });
+
+    var VIEWS = [["all", "All three, side by side"], ["portal", "What the customer sees"], ["supplier", "What the supplier sees"], ["truth", "What’s really true"]];
+    var views = VIEWS.map(function (v) {
+      var on = st.view === v[0];
+      return {
+        label: v[1], sel: on ? "true" : "false",
+        pick: function () { self.setState({ view: v[0] }); },
+        style: "min-height: 44px; padding: 0 16px; border-radius: 22px; border: 1px solid #0A0A0A; font-size: 14px; font-weight: 600; cursor: pointer; background: " + (on ? "#0A0A0A" : "#FFFFFF") + "; color: " + (on ? "#FFFFFF" : "#0A0A0A")
+      };
+    });
+
+    var cast = CAST.map(function (c, j) {
+      var on = st.cast === j;
+      return {
+        tag: c.tag, label: c.label,
+        pick: function () { self.setState({ cast: j }); },
+        style: "text-align: left; min-height: 56px; padding: 8px 14px; border-radius: 8px; cursor: pointer; border: 1px solid " + (on ? "#0A0A0A" : "#D9D9D9") + "; background: " + (on ? "#0A0A0A" : "#FFFFFF") + "; color: " + (on ? "#FFFFFF" : "#0A0A0A")
+      };
+    });
+
+    var all = st.view === "all";
+    return {
+      m: m, bars: bars, years: years, markers: markers, views: views, cast: cast,
+      barsFrom: MONTH_NAMES[months[0][1] - 1] + " " + months[0][0],
+      barsTo: MONTH_NAMES[months[11][1] - 1] + " " + months[11][0],
+      isReal: st.cast === 0, isPlaceholder: st.cast !== 0,
+      placeholderLabel: CAST[st.cast].tag + ": " + CAST[st.cast].label,
+      showPortal: all || st.view === "portal",
+      showSupplier: all || st.view === "supplier",
+      showTruth: all || st.view === "truth",
+      gridStyle: all
+        ? "display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 18px; align-items: start"
+        : "display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; max-width: 760px",
+      gapStyle: "background: " + tone.bg + "; border-left: 0; border-top: 4px solid " + tone.bar + "; border-radius: 10px; padding: 18px 22px",
+      progressStyle: "position: absolute; left: 0; top: 22px; height: 2px; background: #0A0A0A; width: " + pos(mo.iso) + "%",
+      playLabel: st.playing ? "Pause" : "Play the story",
+      prev: function () { self.go(st.i - 1); },
+      next: function () { self.go(st.i + 1); },
+      togglePlay: function () { self.togglePlay(); }
+    };
+  }
+}
+</script>
+</body>
+</html>
