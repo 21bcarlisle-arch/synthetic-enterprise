@@ -25,7 +25,7 @@ from pathlib import Path
 # repo (background/director_input_log.py). A foreign session must not write to
 # that channel -- make the hooks dir importable, then import the guard.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from _seat import is_resident_seat  # noqa: E402
+from _seat import is_resident_seat, spawning_seat  # noqa: E402
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(PROJECT_DIR))
@@ -64,7 +64,9 @@ def _load_env_file() -> None:
 
 def main() -> int:
     # Seat guard FIRST: inert (no log write/push, no output) in any foreign seat.
-    if not is_resident_seat():
+    # A session a seat spawned is resident too, but its prompt is the machine's, never his:
+    # before this, 1,149 of the log's last 5,000 entries were tick and seat prompts (F2).
+    if not is_resident_seat() or spawning_seat():
         return 0
     try:
         payload = json.load(sys.stdin)

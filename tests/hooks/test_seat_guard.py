@@ -269,7 +269,11 @@ class TestLogDirectorInputGuard:
     ops repo, so we never let it run; we only assert whether the hook REACHED
     it."""
 
-    def _setup(self, monkeypatch):
+    def _setup(self, monkeypatch, marker=None):
+        for name in _seat.SEAT_SPAWN_MARKERS:
+            monkeypatch.delenv(name, raising=False)
+        if marker:
+            monkeypatch.setenv(marker, "1")
         mod = _load_fresh("logdi_seatguard", "log_director_input.py")
         calls = []
         monkeypatch.setattr(
@@ -293,6 +297,18 @@ class TestLogDirectorInputGuard:
         mod, calls = self._setup(monkeypatch)
         assert mod.main() == 0
         assert calls  # proceeded past the guard and reached the sink
+
+    def test_only_a_human_started_resident_session_is_logged(self, monkeypatch):
+        # The whole partition at once, so a guard that refuses everything cannot pass.
+        def logged(seat, marker=None):
+            monkeypatch.setenv("SE_SEAT", seat)
+            mod, calls = self._setup(monkeypatch, marker)
+            assert mod.main() == 0
+            return calls
+        assert logged("resident")
+        assert not logged("foreign")
+        for marker in _seat.SEAT_SPAWN_MARKERS:
+            assert not logged("resident", marker), marker
 
 
 class TestCaptureDirectorConsoleGuard:
