@@ -1,5 +1,7 @@
 **Severity:** BLOCKING · **Lane:** A_strategy_governance · **Epoch:** unassigned · **Atom:** `unminted`
 
+**Knowledge:** none -- a governance ruling on who switches defaults on; it states no domain understanding a Knowledge page would carry
+
 # [DIRECTOR-RULING] The annualised advance goes on by default, and a switch-on that passes its own pre-registered rule is the machine's call (2026-10-23)
 
 **Type:** RULING, through the advisor channel. It answers the `for_the_director` row raised by `7e31d8f7`, the annualised-advance default-on. It also sets a standing rule. The advisor put this to the director:
