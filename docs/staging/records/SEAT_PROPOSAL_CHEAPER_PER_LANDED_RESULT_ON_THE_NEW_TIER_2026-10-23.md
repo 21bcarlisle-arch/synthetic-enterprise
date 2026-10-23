@@ -84,6 +84,8 @@ Savings are a share of the week's weighted spend at constant throughput. Each is
 - The cause: the tick's doorbell joins the reactive reasons (the HEAD-red register on 240 of them) with the drawn item. A reserved marker anywhere forces Opus, so no drawn item can ever be classed as routine.
 - The pilot window also expired on 19 Aug. Re-enabling it would therefore save exactly nothing.
 - Before P2 can run, the classifier must grade the drawn item apart from the reactive reasons, and a control must assert that the Sonnet branch CAN be taken.
+- **Fixed 23 Oct.** `model_tier.classify` now grades the drawn item (after `; ALSO -- `) apart from the reactive reasons. If only the drawn item is cheap, the Sonnet turn is handed only the drawn item, and the reactive reasons wait for the next Opus tick. `test_the_sonnet_branch_can_be_taken_on_a_real_worker_doorbell` holds both legs on the 23 Oct doorbell shape.
+- **What this does not change.** The worker tick's drawn item is almost always a maturity-map BUILD draw, which is a level move and stays Opus by the director's 12 Aug rule. Its pilot classes also expired on 19 Aug. So the worker tick is now reachable but still all Opus. P2's saving rides on the executor pilot below.
 
 **F2: a headless `claude -p` in the repository is captured as the director's console words.**
 - Measuring the opening context, a one-word `claude -p` probe run in this worktree (it inherited `SE_SEAT_EXECUTOR=1`) was written to `docs/staging/DIRECTOR_CONSOLE_2026-10-23.md` as a verbatim director turn.
@@ -102,6 +104,8 @@ Savings are a share of the week's weighted spend at constant throughput. Each is
   - it costs at least 25% less per landed result.
 - **Revert rule.** Otherwise it reverts, and the result is said beside this rule.
 - **Prediction, written now:** it lands about 10 points below the control at about 45% lower cost per landed result, which passes. The 12–14 Oct trial (33% against 74%) was Sonnet 5 with an advisor, not Sonnet 5.5, and this prediction may be wrong for that reason.
+- **Opened 23 Oct**, as designed above: `model_tier.executor_arm`, declared in `docs/observability/executor_tier_pilot.yaml` (one in 4; window 23 Oct to 6 Nov; fails closed to Opus outside it). Reserved items are excluded before the hash. Over the 860 work ids the executor has ever run, the hash puts 214 (24.9%) in the Sonnet arm. Each decision is logged to `model_tier_log.jsonl` with `route: seat_executor`, its arm and its work id. A Sonnet turn is not handed the advisor channel's rung zero, which carries director steers; the next Opus turn reads it. `SE_EXECUTOR_MODEL`, if set, overrides the pilot.
+- **Not yet built:** the grader for the switch-on rule. It joins the log's arm to `seat-executor-log.md`'s outcome by work id, and cost comes from `tick_burn_rate --routes`. It is due before 20 turns accumulate in each arm, about 6 Nov.
 
 ## 7. P1 result, 23 Oct
 

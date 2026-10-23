@@ -27,6 +27,11 @@ import pytest
 
 from background import model_tier as mt
 
+from .test_a_lane_0_item_claimed_after_compose_is_not_dispatched_twice import (  # noqa: F401
+    stores,
+    turn,
+)
+
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SUPERVISOR = REPO_ROOT / "background" / "supervisor.py"
 
@@ -115,12 +120,137 @@ def test_a_mixed_doorbell_is_opus_even_though_a_pilot_class_is_present(live_conf
     assert "level_move" in d.classes
 
 
-def test_pilot_order_does_not_matter(live_config):
-    """Mutation guard on 'first match wins': the same two items in the other order, same answer."""
+def test_reserved_work_never_reaches_a_sonnet_prompt_in_either_order(live_config):
+    """Mutation guard on 'first match wins'. A reserved DRAWN item is Opus. A reserved REACTIVE
+    reason ahead of a cheap drawn item may go to Sonnet only if it is cut out of the prompt."""
     a = "STALE-GAP-ROW self-refill (RUNG 4b): re-take rows; ALSO -- LANE 1 BUILD: X (level 0->2)"
     b = "LANE 1 BUILD: X (level 0->2); ALSO -- STALE-GAP-ROW self-refill (RUNG 4b): re-take rows"
     assert mt.classify(a, config=live_config).model == mt.OPUS
-    assert mt.classify(b, config=live_config).model == mt.OPUS
+    d = mt.classify(b, config=live_config)
+    assert d.model == mt.SONNET and "LANE 1 BUILD" not in d.prompt_reason
+
+
+# --- 2b. The drawn item is graded apart from the reactive reasons (F1, 2026-10-23) -------------
+
+#: The worker tick's real doorbell shape on 23 Oct: the HEAD-red register and staged findings
+#: lead, and the drawn item follows `; ALSO -- ` (supervisor.find_work).
+REACTIVE = ("HEAD_RED_REGISTER.md: 3 owed, longest-standing red has stood 5 consecutive census "
+            "run(s) since 2026-10-10 (observed 2026-10-23); unprocessed staging -- "
+            "SEAT_FINDING_THE_RETENTION_GUARD_2026-10-20.md, WORKER_FINDING_THE_ARREARS_2026-10-21.md")
+
+
+def test_the_sonnet_branch_can_be_taken_on_a_real_worker_doorbell(live_config):
+    """THE CONTROL F1 ASKED FOR, over the whole partition. Defect: every one of 250 worker
+    doorbells was forced to Opus by the reactive reasons, so no drawn item could be graded
+    routine. Mutation: make `classify` return `whole` unconditionally and the Sonnet leg reds;
+    drop the reserved check on the drawn item and the Opus leg reds."""
+    cheap = mt.classify(REACTIVE + "; ALSO -- STALE-GAP-ROW self-refill (RUNG 4b): re-take 2 rows",
+                        config=live_config)
+    dear = mt.classify(REACTIVE + "; ALSO -- self-refill from maturity map (dial-weighted): D31 -- x "
+                       "(level 0->2)", config=live_config)
+    assert cheap.model == mt.SONNET and dear.model == mt.OPUS
+    assert cheap.prompt_reason == "STALE-GAP-ROW self-refill (RUNG 4b): re-take 2 rows"
+    assert "finding_disposition" in cheap.why and "finding_disposition" in dear.classes
+    assert not any(m in cheap.prompt_reason for m, _c, _w in mt.RESERVED)
+
+
+def test_a_drawn_item_graded_alone_still_needs_its_class_enabled(tmp_path):
+    """Grading apart widens what is LOOKED AT, never what is enabled: an expired pilot is Opus."""
+    expired = tmp_path / "p.yaml"
+    expired.write_text("ends: '2026-08-19'\nclasses:\n  stale_gap_row: {enabled: true}\n")
+    d = mt.classify(REACTIVE + "; ALSO -- STALE-GAP-ROW self-refill (RUNG 4b): x", config=expired)
+    assert d.model == mt.OPUS and d.prompt_reason == ""
+
+
+def test_the_worker_tick_hands_a_sonnet_turn_only_the_drawn_item(monkeypatch):
+    """Wiring. Mutation: compose the prompt from `reason` again and the reactive text reaches the
+    cheaper turn."""
+    import subprocess
+
+    from background import worker_tick as wt
+    d = mt.TierDecision(model=mt.SONNET, tier="sonnet", prompt_reason="THE DRAWN ITEM")
+    seen = {}
+    monkeypatch.setattr(wt, "_resolve_claude", lambda: "/bin/true")
+    monkeypatch.setattr(wt, "choose_model", lambda reason: (mt.SONNET, d))
+    monkeypatch.setattr(wt, "apply_advisor_trial", lambda model, decision: (model, None))
+    monkeypatch.setattr(mt, "log_decision", lambda *a, **k: None)
+    real = subprocess.Popen
+    monkeypatch.setattr(subprocess, "Popen", lambda argv, **k: (
+        seen.setdefault("argv", argv) if argv[0] == "/bin/true" else real(argv, **k)))
+    wt.spawn_invocation("HEAD_RED_REGISTER.md: 3 owed; ALSO -- THE DRAWN ITEM")
+    assert seen["argv"][-1].endswith("THE DRAWN ITEM") and "HEAD_RED_REGISTER" not in seen["argv"][-1]
+
+
+# --- 2c. The P2 executor pilot (proposal section 6) --------------------------------------------
+
+def _executor_config(tmp_path, **over):
+    cfg = {"enabled": "true", "starts": "'2026-10-23'", "ends": "'2099-01-01'", "one_in": "4", **over}
+    p = tmp_path / "executor.yaml"
+    p.write_text("".join(f"{k}: {v}\n" for k, v in cfg.items()))
+    return p
+
+
+#: A real seat-executor doorbell shape (delivery_lane.doorbell's Lane 0 preamble).
+LANE_0 = ("LANE 0 DELIVERY -- the delivery seat's own decision, drawn AHEAD of the dial-weighted "
+          "lanes. WORK: tidy the explore page's captions WHY: the director asked")
+
+
+def _ids_in(arm, config):
+    return [i for i in (f"item-{n}" for n in range(200))
+            if mt.executor_arm(LANE_0, i, config=config).arm == arm]
+
+
+def test_every_executor_arm_can_be_taken(tmp_path):
+    """The whole partition in one control: a guard that sent everything to Opus would pass every
+    'refuses correctly' test. Mutation: return the control arm unconditionally and `sonnet` is
+    empty; drop the reserved check and `reserved` is never produced."""
+    live = _executor_config(tmp_path)
+    arms = {mt.executor_arm(LANE_0, i, config=live).arm for i in (f"item-{n}" for n in range(40))}
+    arms.add(mt.executor_arm(LANE_0 + " (level 1->2) LANE 1 BUILD", "item-0", config=live).arm)
+    arms.add(mt.executor_arm(LANE_0, "item-0", config=tmp_path / "absent.yaml").arm)
+    assert arms == {"sonnet", "control", "reserved", "off"}
+    share = len(_ids_in("sonnet", live)) / 200
+    assert 0.15 < share < 0.35, share
+
+
+def test_the_executor_sonnet_arm_is_the_named_model_and_reserved_beats_the_hash(tmp_path):
+    live = _executor_config(tmp_path)
+    sonnet_id = _ids_in("sonnet", live)[0]
+    d = mt.executor_arm(LANE_0, sonnet_id, config=live)
+    assert (d.model, d.tier, d.work_id) == ("claude-sonnet-5-5", "sonnet", sonnet_id)
+    for marker, _cls, _why in mt.RESERVED:
+        assert mt.executor_arm(LANE_0 + " " + marker, sonnet_id, config=live).model == mt.OPUS, marker
+
+
+@pytest.mark.parametrize("over", [{"enabled": "false"}, {"ends": "'2026-10-22'"},
+                                  {"starts": "'2099-01-01'"}, {"one_in": "1"}, {"one_in": "x"}])
+def test_the_executor_pilot_fails_closed_toward_opus(tmp_path, over):
+    live = _executor_config(tmp_path, **over)
+    assert all(mt.executor_arm(LANE_0, f"item-{n}", config=live).model == mt.OPUS for n in range(40))
+
+
+def test_the_committed_executor_pilot_declares_a_bounded_window():
+    import yaml
+    data = yaml.safe_load(mt.EXECUTOR_PILOT.read_text(encoding="utf-8"))
+    assert len(str(data["starts"])) == len(str(data["ends"])) == 10 and data["starts"] <= data["ends"]
+    assert isinstance(data["one_in"], int) and data["one_in"] >= 2
+
+
+def test_the_seat_executor_runs_the_arm_and_cuts_rung_zero_from_a_sonnet_turn(tmp_path, monkeypatch):
+    """Wiring. Mutation: run every turn on MODEL again, or keep rung zero in the Sonnet prompt."""
+    from background import seat_executor as se
+    live = _executor_config(tmp_path)
+    monkeypatch.setattr(mt, "EXECUTOR_PILOT", live)
+    monkeypatch.delenv("SE_EXECUTOR_MODEL", raising=False)
+    sonnet_id, control_id = _ids_in("sonnet", live)[0], _ids_in("control", live)[0]
+    assert se.choose_model({"id": sonnet_id}, LANE_0)[0] == mt.SONNET
+    assert se.choose_model({"id": control_id}, LANE_0)[0] == mt.OPUS
+    monkeypatch.setenv("SE_EXECUTOR_MODEL", "claude-opus-5-5")
+    assert se.choose_model({"id": sonnet_id}, LANE_0) == (se.MODEL, None)
+    import background.advisor_channel as ac
+    monkeypatch.setattr(ac, "prefix", lambda *a, **k: "RUNG ZERO TEXT\n\n")
+    assert "RUNG ZERO TEXT" not in se.build_prompt({}, bell=LANE_0, rung_zero=False)
+    assert "RUNG ZERO TEXT" in se.build_prompt({}, bell=LANE_0)
 
 
 def test_staging_with_one_finding_among_many_receipts_is_opus(live_config):
@@ -332,3 +462,22 @@ def test_the_committed_advisor_trial_names_models_the_burn_tool_can_price():
     from tools.tick_burn_rate import PRICE
     data = yaml.safe_load(mt.ADVISOR_TRIAL.read_text())
     assert data["main"] in PRICE and data["advisor"] in PRICE, data
+
+
+def test_run_once_spawns_the_arms_model_and_no_rung_zero_on_the_sonnet_arm(turn, monkeypatch):  # noqa: F811
+    """Wiring through the real `run_once`, both arms. Mutation: pass `rung_zero=True` again, or
+    spawn on MODEL again, and the Sonnet leg reds; the control leg proves rung zero still reaches
+    an Opus turn."""
+    import background.advisor_channel as ac
+    from background import seat_executor as se
+    _during_build, sessions = turn
+    monkeypatch.setattr(ac, "prefix", lambda *a, **k: "RUNG ZERO TEXT\n\n")
+    monkeypatch.setattr(mt, "log_decision", lambda *a, **k: None)
+    for arm, model in (("sonnet", mt.SONNET), ("control", mt.OPUS)):
+        d = mt.TierDecision(model=model, tier="sonnet" if arm == "sonnet" else "opus", arm=arm)
+        monkeypatch.setattr(se, "choose_model", lambda item, bell, _d=d: (_d.model, _d))
+        sessions.clear()
+        se.run_once()
+        cmd = sessions[0]
+        assert cmd[cmd.index("--model") + 1] == model
+        assert ("RUNG ZERO TEXT" in cmd[-1]) is (arm == "control"), arm

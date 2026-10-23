@@ -549,7 +549,10 @@ def spawn_invocation(reason: str) -> "subprocess.Popen | None":
             log_decision(decision, reason)
         except Exception:  # pragma: no cover - measurement must never wedge the tick
             pass
-    prompt = compose_prompt(reason)
+    # A Sonnet turn graded on the drawn item alone is handed the drawn item alone: the reactive
+    # reasons ahead of it are judgment work and wait for the next Opus tick (model_tier.classify).
+    prompt = compose_prompt((decision.prompt_reason if decision is not None and decision.tier == "sonnet"
+                             else "") or reason)
     try:
         try:
             out = LAST_OUTPUT_FILE.open("wb")

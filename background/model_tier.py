@@ -66,13 +66,16 @@ TIER_LOG = PROJECT_DIR / "docs" / "observability" / "model_tier_log.jsonl"
 ADVISOR_TRIAL = PROJECT_DIR / "docs" / "observability" / "advisor_trial.yaml"
 #: The director's bound on the trial: "at most seven days". A window drawn wider is refused whole.
 ADVISOR_TRIAL_MAX_DAYS = 7
+EXECUTOR_PILOT = PROJECT_DIR / "docs" / "observability" / "executor_tier_pilot.yaml"
 
 OPUS = "claude-opus-5-5"
 # THE ONE PLACE THE OPUS-TIER MODEL IS NAMED (2026-09-27). Opus 5.5 is $4/$20 per M tokens against
 # Opus 5's $5/$25 and, per Anthropic, matches Opus 5 at `high` effort at its own default `medium` in
 # fewer tokens. Every unattended seat reads this constant rather than holding its own copy -- seven
 # modules each pinned `claude-opus-5` after the director's console had moved to 5.5.
-SONNET = "claude-sonnet-5"
+# Sonnet 5.5 is exactly half Opus 5.5 on every token class (tools/tick_burn_rate.py PRICES, read
+# 2026-10-23). It was `claude-sonnet-5` until the executor pilot opened.
+SONNET = "claude-sonnet-5-5"
 
 #: FLAGS EVERY UNATTENDED `claude -p` SPAWN CARRIES (2026-10-23, the cheaper-per-landed-result
 #: steer). `--strict-mcp-config` loads no MCP server the spawn does not name, and it names none: the
@@ -173,6 +176,12 @@ class TierDecision:
     why: str = ""
     reason_sha: str = ""
     advisor: str = ""                          # set only inside the advisor trial's window
+    #: What the spawned turn is handed. Empty means the whole doorbell. Set only when the drawn
+    #: item was graded apart from reactive reasons that are NOT cheap work: those are dropped from
+    #: the prompt and the next Opus tick, which re-derives them, does them instead.
+    prompt_reason: str = ""
+    arm: str = ""                              # executor pilot: sonnet | control | reserved | off
+    work_id: str = ""
 
     @property
     def is_pilot(self) -> bool:
@@ -237,8 +246,59 @@ def _staging_is_receipts_only(reason: str) -> bool | None:
     return all(Path(n).name.startswith(RECEIPT_PREFIXES) for n in names)
 
 
+#: How `supervisor.find_work` joins its reactive reasons (agenda, HEAD-red register, staged
+#: findings) to the item it drew from the lanes: `f"{primary}; ALSO -- {refill}"`.
+ALSO = "; ALSO -- "
+
+
+def split_doorbell(reason: str) -> tuple[str, str]:
+    """(reactive, drawn). With no ALSO clause the whole doorbell is what was drawn."""
+    text = reason or ""
+    if ALSO in text:
+        reactive, drawn = text.split(ALSO, 1)
+        return reactive, drawn
+    return "", text
+
+
 def classify(reason: str, *, config: Path | None = None, today: str | None = None) -> TierDecision:
-    """Choose the model for one drawn doorbell.
+    """Choose the model for one doorbell, grading the DRAWN item apart from the reactive reasons.
+
+    F1 (2026-10-23): 240 of 250 worker doorbells LEAD with the HEAD-red register and staged findings
+    -- reactive reasons that are judgment work -- so grading the whole string put every tick on
+    Opus and no drawn item could ever be graded routine. Now: if the whole doorbell is cheap, it
+    goes to Sonnet whole, as before. If it is not, but the drawn item alone is, the turn goes to
+    Sonnet carrying ONLY the drawn item (`prompt_reason`); the reactive reasons are left on disk
+    for the next Opus tick. The safety property moves from "the max over everything in the
+    doorbell" to "nothing reserved is ever in a Sonnet turn's prompt", which is the property the
+    max was standing in for.
+    """
+    whole = _grade(reason, config=config, today=today)
+    reactive, drawn = split_doorbell(reason)
+    if whole.tier == "sonnet" or not reactive:
+        return whole
+    alone = _grade(drawn, config=config, today=today)
+    if alone.tier != "sonnet":
+        return whole
+    alone.reason_sha = whole.reason_sha
+    alone.prompt_reason = drawn
+    alone.why += ("; graded apart from the reactive reasons ahead of it (" + ", ".join(whole.classes)
+                  + "), which are left for the next Opus tick")
+    return alone
+
+
+def _reserved(text: str) -> tuple[list[str], list[str]]:
+    """(reserved markers hit, reserved classes) -- the staging list counts only when it holds
+    something needing judgment."""
+    hits = [marker for marker, _cls, _why in RESERVED if marker in text]
+    classes = sorted({cls for marker, cls, _ in RESERVED if marker in text})
+    if _staging_is_receipts_only(text) is False:
+        hits.append(_STAGING_MARKER.strip())
+        classes = sorted(set(classes) | {"finding_disposition"})
+    return hits, classes
+
+
+def _grade(reason: str, *, config: Path | None = None, today: str | None = None) -> TierDecision:
+    """Choose the model for one doorbell taken whole.
 
     The order below IS the safety property, and it is deliberately not the order that reads most
     naturally: reserved markers are collected FIRST and across the WHOLE string, before any pilot
@@ -248,15 +308,8 @@ def classify(reason: str, *, config: Path | None = None, today: str | None = Non
     text = reason or ""
     sha = hashlib.sha256(text.encode("utf-8")).hexdigest()[:16] if text else ""
 
-    reserved_hits = [marker for marker, _cls, _why in RESERVED if marker in text]
-    reserved_classes = sorted({cls for marker, cls, _ in RESERVED if marker in text})
-
-    # The staging segment is a reserved hit only when it holds something needing judgment.
+    reserved_hits, reserved_classes = _reserved(text)
     receipts_only = _staging_is_receipts_only(text)
-    if receipts_only is False:
-        reserved_hits.append(_STAGING_MARKER.strip())
-        reserved_classes = sorted(set(reserved_classes) | {"finding_disposition"})
-
     if reserved_hits:
         return TierDecision(
             model=OPUS, tier="opus", classes=reserved_classes,
@@ -290,6 +343,59 @@ def classify(reason: str, *, config: Path | None = None, today: str | None = Non
     )
 
 
+def _executor_pilot_window(config: Path | None = None, *, today: str | None = None) -> int | None:
+    """`one_in` while the executor pilot is open, else None. Fail-closed toward Opus exactly as
+    `_load_enabled_classes` is: missing, malformed, disabled or outside [starts, ends] is None."""
+    import time
+    path = EXECUTOR_PILOT if config is None else config
+    try:
+        import yaml
+        data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+        if not isinstance(data, dict) or data.get("enabled") is not True:
+            return None
+        starts, ends = str(data.get("starts") or ""), str(data.get("ends") or "")
+        now = today or time.strftime("%Y-%m-%d")
+        if len(starts) != 10 or len(ends) != 10 or not starts <= now <= ends:
+            return None
+        one_in = data.get("one_in")
+        return one_in if isinstance(one_in, int) and one_in >= 2 else None
+    except Exception:
+        return None
+
+
+def executor_arm(drawn: str, work_id: str, *, config: Path | None = None,
+                 today: str | None = None) -> TierDecision:
+    """The seat executor's tier for one drawn item: the P2 pilot pre-registered in section 6 of
+    docs/staging/records/SEAT_PROPOSAL_CHEAPER_PER_LANDED_RESULT_ON_THE_NEW_TIER_2026-10-23.md.
+
+    One turn in `one_in`, chosen by a hash of the WORK ID (so a re-drawn item stays in its arm),
+    runs on Sonnet -- but only when the drawn item carries no reserved marker. Reserved items are
+    excluded BEFORE the hash, so both arms are drawn from the same pool and the other turns are a
+    concurrent Opus control. `drawn` is the item's own doorbell; the advisor channel's rung zero is
+    reactive and is not graded here -- the caller leaves it out of a Sonnet turn's prompt.
+    """
+    text = drawn or ""
+    sha = hashlib.sha256(text.encode("utf-8")).hexdigest()[:16] if text else ""
+    hits, classes = _reserved(text)
+    if hits:
+        return TierDecision(model=OPUS, tier="opus", classes=classes, reserved_hits=hits,
+                            reason_sha=sha, arm="reserved", work_id=work_id,
+                            why="reserved work in the drawn item: " + ", ".join(classes))
+    one_in = _executor_pilot_window(config, today=today)
+    if one_in is None or not work_id:
+        return TierDecision(model=OPUS, tier="opus", classes=["executor_pilot"], reason_sha=sha,
+                            arm="off", work_id=work_id,
+                            why="executor pilot not open" if work_id else "no work id to hash")
+    bucket = int(hashlib.sha256(work_id.encode("utf-8")).hexdigest(), 16) % one_in
+    if bucket:
+        return TierDecision(model=OPUS, tier="opus", classes=["executor_pilot"], reason_sha=sha,
+                            arm="control", work_id=work_id,
+                            why=f"executor pilot control arm (bucket {bucket} of {one_in})")
+    return TierDecision(model=SONNET, tier="sonnet", classes=["executor_pilot"], reason_sha=sha,
+                        prompt_reason=text, arm="sonnet", work_id=work_id,
+                        why=f"executor pilot Sonnet arm (bucket 0 of {one_in}), nothing reserved")
+
+
 def advisor_trial(config: Path | None = None, *, today: str | None = None) -> "tuple[str, str] | None":
     """(main model, advisor model) while the director's advisor trial is live, else None.
 
@@ -321,7 +427,8 @@ def advisor_trial(config: Path | None = None, *, today: str | None = None) -> "t
 
 
 def log_decision(decision: TierDecision, reason: str, *, outcome: str = "SPAWNED",
-                 path: Path | None = None, now: float | None = None) -> None:
+                 path: Path | None = None, now: float | None = None,
+                 route: str = "worker_tick") -> None:
     """Append one auditable line per tick decision. Never raises — measurement must not be able to
     wedge the tick (an unavailable check is a failed check, but an unavailable LOG is not a reason
     to stop working). `reason_head` is truncated: the doorbell can be 8k of staged filenames."""
@@ -342,6 +449,10 @@ def log_decision(decision: TierDecision, reason: str, *, outcome: str = "SPAWNED
             "advisor": decision.advisor,
             "reason_head": (reason or "")[:400],
             "outcome": outcome,
+            "route": route,
+            "arm": decision.arm,
+            "work_id": decision.work_id,
+            "deferred_reactive": bool(decision.prompt_reason) and decision.prompt_reason != reason,
         }
         with target.open("a", encoding="utf-8") as f:
             f.write(json.dumps(entry, sort_keys=True) + "\n")

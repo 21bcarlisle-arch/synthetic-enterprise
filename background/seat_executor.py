@@ -838,9 +838,25 @@ from background.model_tier import UNATTENDED_TURN_ENDS as _TURN_ENDS  # noqa: E4
 CHARTER = CHARTER_BODY + _TURN_ENDS
 
 
-def build_prompt(item: dict) -> str:
+def build_prompt(item: dict, *, bell: str | None = None, rung_zero: bool = True) -> str:
     from background.advisor_channel import prefix as _advisor_rung_zero
-    return CHARTER + "\n\nTHE WORK:\n\n" + _advisor_rung_zero() + delivery_lane.doorbell(item)
+    return (CHARTER + "\n\nTHE WORK:\n\n" + (_advisor_rung_zero() if rung_zero else "")
+            + (delivery_lane.doorbell(item) if bell is None else bell))
+
+
+def choose_model(item: dict, bell: str) -> "tuple[str, object | None]":
+    """The P2 executor pilot (`model_tier.executor_arm`), or MODEL with no decision. An operator's
+    SE_EXECUTOR_MODEL wins outright, and any error is Opus: a tiering bug may cost tokens, never
+    quality."""
+    if os.environ.get("SE_EXECUTOR_MODEL"):
+        return MODEL, None
+    try:
+        from background.model_tier import executor_arm
+        decision = executor_arm(bell, str(item.get("id") or ""))
+        return decision.model, decision
+    except Exception as e:  # noqa: BLE001 - named in the log
+        log(f"model_tier unavailable, running on {MODEL}: {e!r}")
+        return MODEL, None
 
 
 def run_once(*, dry_run: bool = False, now: float | None = None) -> tuple[bool, str]:
@@ -959,7 +975,17 @@ def run_once(*, dry_run: bool = False, now: float | None = None) -> tuple[bool, 
         # `seat_work_in_hand`'s store as ANOTHER writer, and this loop writes one there; composed
         # after it, every turn's brief said its own claim was a rival's (2026-10-10, three
         # home-mover turns in a row, each re-deriving that the "holder" was itself).
-        prompt = build_prompt(item)
+        bell = delivery_lane.doorbell(item)
+        model, decision = choose_model(item, bell)
+        # The Sonnet arm is handed the drawn item alone: the advisor channel's rung zero carries
+        # director steers, which are judgment work, and the next Opus turn reads it instead.
+        prompt = build_prompt(item, bell=bell, rung_zero=not (decision is not None and decision.is_pilot))
+        if decision is not None:
+            try:
+                from background.model_tier import log_decision
+                log_decision(decision, bell, route="seat_executor")
+            except Exception:  # noqa: BLE001 - measurement must never wedge the turn
+                pass
         claimed_at = time.time()
         for store in _claim_stores():
             delivery_lane.claims_mod.claim(
@@ -975,7 +1001,8 @@ def run_once(*, dry_run: bool = False, now: float | None = None) -> tuple[bool, 
             (worktree / OWNER_MARKER).write_text(str(os.getpid()) + "\n")
         except OSError:
             pass  # a marker that cannot be written costs the PID_FILE route below, not the turn
-        log(f"RUNNING {work_id} in {worktree} on {base[:9]}")
+        log(f"RUNNING {work_id} in {worktree} on {base[:9]} -- model {model}"
+            + (f", pilot arm {decision.arm}" if decision is not None else ""))
 
         # THE INSTANT THE SUBJECT IS MEASURED FROM. Taken before the spawn, from the same clock
         # `record_landing` compares commit timestamps against, so "bound during this turn" is a
@@ -988,7 +1015,7 @@ def run_once(*, dry_run: bool = False, now: float | None = None) -> tuple[bool, 
             pass
         try:
             proc = subprocess.run(
-                [claude_bin, "-p", "--dangerously-skip-permissions", *HEADLESS_FLAGS, "--model", MODEL,
+                [claude_bin, "-p", "--dangerously-skip-permissions", *HEADLESS_FLAGS, "--model", model,
                  prompt],
                 cwd=str(worktree), capture_output=True, text=True,
                 timeout=SESSION_TIMEOUT_SECONDS,

@@ -1,0 +1,25 @@
+# THE P2 EXECUTOR PILOT — Sonnet 5.5 on one seat-executor turn in four (opened 2026-10-23)
+#
+# Read by background/model_tier.py `executor_arm` on every executor turn. Pre-registered, before
+# launch, in section 6 of
+# docs/staging/records/SEAT_PROPOSAL_CHEAPER_PER_LANDED_RESULT_ON_THE_NEW_TIER_2026-10-23.md.
+#
+# DESIGN. One turn in `one_in`, chosen by a hash of the work id, runs on model_tier.SONNET — only
+# when the drawn item carries no RESERVED marker (diagnosis, science, level moves, walls, director
+# input). Reserved items are excluded before the hash, so the other turns are a concurrent Opus
+# control drawn from the same pool. Every decision is logged with route=seat_executor, its arm and
+# its work id in docs/observability/model_tier_log.jsonl; landings join on the work id in
+# docs/observability/seat-executor-log.md.
+#
+# SWITCH-ON RULE. After at least 20 turns in each arm, Sonnet 5.5 stays on for this class only if
+# all three hold: landed share within 10 points of the control; rework (a fix commit to the same
+# paths within 72 h) no higher than the control's; at least 25% cheaper per landed result.
+# Otherwise it reverts, and the result is said beside the rule.
+#
+# REVERTING. `enabled: false`, or delete this file: every executor turn is Opus on the next tick.
+# Past `ends` the pilot is off with no edit — fail-closed toward Opus in code.
+
+enabled: true
+starts: "2026-10-23"
+ends: "2026-11-06"     # 14 days: at most about 28 turns a week reach the Sonnet arm at last week's pace
+one_in: 4
