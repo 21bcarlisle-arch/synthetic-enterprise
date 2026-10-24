@@ -1,0 +1,52 @@
+# Which code holds each canon principle, read at publish by tools/canon_lessons.py for How it's
+# built ("what we have learned"). Director steer 23 Oct 09:27: "It feels we've learned and done
+# more than all of this along the way."
+#
+# A principle absent from this file is shown as "no mechanism named yet", which is NOT the same as
+# unenforced: it means nobody has bound it. The canon names its own enforcing code for only 3 of
+# its 168 principles, and code cites canon ids in a form that collides with other id families (R7,
+# C1, D48), so no join can be inferred: each row here is a judgement, made by reading the principle
+# and the code. Bind only what the code actually holds; a path that leaves the tree is shown as
+# "named, but gone", which is a finding.
+#
+# mechanisms: tracked paths. A test path counts as its own evidence when it records a MUTATION;
+# a module counts the mutation-marked tests that name it.
+principles:
+  W1:
+    mechanisms: [company/interfaces/sim_interface.py, tests/architecture/test_epistemic_wall_ratchet.py]
+  W6:
+    mechanisms: [tools/company_network_isolation.py]
+  F1:
+    mechanisms: [tests/test_coupled_triad_gate.py]
+  K12:
+    mechanisms: [tools/domain_constant_origins.py, tests/architecture/test_a_domain_constant_carries_its_origin.py]
+  CO3:
+    mechanisms: [tests/company/test_carbon_not_a_target.py]
+  G3:
+    mechanisms: [background/recommendation_guard.py, background/director_concerns.py]
+  G5:
+    mechanisms: [background/one_way_door.py]
+  G7:
+    mechanisms: [tools/director_document_gate.py]
+  G8:
+    mechanisms: [background/advisor_channel.py]
+  G13:
+    mechanisms: [background/weekly_rhythm.py]
+  G14:
+    mechanisms: [tools/canon_drift_check.py]
+  D2:
+    mechanisms: [tools/director_document_gate.py]
+  H7:
+    mechanisms: [tests/architecture/test_static_quality_ratchet.py]
+  H9:
+    mechanisms: [tools/surgical_land.py, tools/isolate_hunks.py]
+  H10:
+    mechanisms: [background/staging_rooms.py]
+  H11:
+    mechanisms: [background/claude_md_integrity.py]
+  H15:
+    mechanisms: [background/alarm_repetition.py]
+  R7:
+    mechanisms: [background/resource_headroom.py, background/launch_long_job.py]
+  R11:
+    mechanisms: [tools/surgical_land.py]
