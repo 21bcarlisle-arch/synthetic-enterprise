@@ -54,3 +54,27 @@ def test_the_payload_stamps_the_estimate_the_arm_ran_not_the_flag(seen, asked, r
     out = arms.run_arm("register", tmp_path / "a.json", annualised_advance=asked)
     assert json.loads(out.read_text())["_bill_estimate_reads_the_annualised_advance"] is ran
 
+
+
+def test_the_gas_floor_reaches_the_policy_less_callers_and_is_refused_with_the_advance_off(
+        monkeypatch, tmp_path):
+    """Defect named: the floor arm flooring the published bills but not the DD review's rebuild,
+    and a floor asked for with the advance off, which would run the control under a floor's name.
+    The standing policy has the advance on, so the floor needs no `--annualised-advance`."""
+    import json
+    seen_flags = []
+    monkeypatch.setattr(p4c, "main", lambda policy=None, instructed_read_arm="register",
+                        report_end=None: seen_flags.append(p4c.gas_advance_floor_request(None))
+                        or {})
+    monkeypatch.setattr("tools.run_annual_report.extract_report_data", lambda raw: {})
+    monkeypatch.setattr("tools.run_annual_report.reconcile_and_stamp", lambda data, **_: data)
+    monkeypatch.setattr(rp2b, "CURRENT_POLICY", rp2b.CURRENT_POLICY)
+    arms.run_arm("register", tmp_path / "a.json")
+    monkeypatch.setattr(rp2b, "CURRENT_POLICY", rp2b.CURRENT_POLICY)
+    out = arms.run_arm("register", tmp_path / "b.json", gas_nine_month_floor=True)
+    assert seen_flags == [False, True]
+    assert json.loads(out.read_text())["_bill_estimate_floors_the_gas_advance_at_nine_months"] is True
+    monkeypatch.setattr(rp2b, "CURRENT_POLICY", rp2b.CURRENT_POLICY)
+    with pytest.raises(SystemExit, match="has the advance off"):
+        arms.run_arm("register", tmp_path / "c.json", annualised_advance=False,
+                     gas_nine_month_floor=True)
