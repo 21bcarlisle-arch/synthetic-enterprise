@@ -927,3 +927,37 @@ zero. Bills missed past the top rung still each earn one offer. Bills missed bet
 and the top now earn one too, where before they earned none, so the total of offers could move
 either way. **I cannot yet say which way.** Only "never falls" and "at most one offer per new missed
 bill" are predicted as certain.
+
+### Measured on the 2016 book (2026-10-24, after the prediction above)
+Two live runs to 2016-12-31 in the fast mode, at c217862d2 (before) and cd61370db (after). Every
+desk step was logged. The step logs are byte-identical, so the world and the ledger did not move, and
+only the desk did. 502 journeys in both: 400 cured and 102 open.
+
+| | before | after cd61370db | after the residual fix |
+|---|---|---|---|
+| residential journeys whose rung falls | 32 | 0 | 0 |
+| plan offers (rung entered) | 179 | 130 | 130 |
+| re-offers | 35 | 149 | 152 |
+| later offers on a date with no newly missed bill | 48 | 0 | 0 |
+| bills missed after the first offer that got no offer | 116 | 3 | 0 |
+
+The 152 missed bills fall on the 130 journeys that reached the plan offer. The window runs from the
+first offer to the cure, or to the run's end for an open journey.
+
+- **"No open journey's rung falls": held.** The one fall left is an SME open-item journey. GAP C2
+  leaves that one unchanged on purpose.
+- **"At most 1 + the bills missed after the first offer": held**, with no journey over the bound.
+  After the residual fix, every journey sits exactly on it (282 = 130 + 152).
+- **"Journeys unchanged": held** (502, 400, 102).
+- **"The 35 re-offers past the top rung fall": refuted. They rose to 47.** The old desk walked down
+  off the top rung, so when the next bill was missed the journey was no longer standing on it. The
+  walk-down cost those offers, it did not add them. I missed that mechanism.
+- **The total moved up**, from 214 offers to 279, then 282. The page could not say which way it would
+  go. The 48 offers on re-crossings were replaced by offers on the 116 missed bills that had earned
+  none before.
+- **The residual (3 of 152), fixed in the same change:** a household paid off its old arrears on the
+  same day the next bill fell overdue. That left one bill a day overdue, below every rung's trigger,
+  so the selector named no rung. The desk read that as nothing to do, though the case never cured.
+  The climb now treats no rung as a fall too. Control:
+  `test_a_bill_missed_on_the_day_the_old_arrears_clear_is_still_re_offered`; it goes red on the
+  code without the fix.

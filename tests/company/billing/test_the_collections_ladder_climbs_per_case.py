@@ -10,6 +10,9 @@ What each control names as its own defect:
     inside an open case; or a re-crossing of day 28 makes an offer; or a bill missed after the offer
     makes none. Its first assertion is that the hold-the-rung branch WAS taken, so a desk that never
     met a younger oldest-bill cannot pass it.
+  * `test_a_bill_missed_on_the_day_the_old_arrears_clear_is_still_re_offered` -- the selector reads
+    no rung (the only overdue bill is a day old) and the desk takes that as nothing to do, though the
+    case is open and a bill was just missed. Seen on 3 of 152 such bills in the 2016 book.
   * `test_the_order_check_refuses_a_walk_back` -- the order check accepts "final notice, then second
     reminder" on a balance-based segment.
   * `test_an_open_item_segment_is_not_made_to_climb` -- the climb is applied to every segment,
@@ -93,6 +96,31 @@ def test_a_part_paid_case_holds_its_rung_and_offers_once_per_newly_missed_bill()
     assert set(reoffers) == missed_after, (sorted(reoffers), sorted(missed_after))
     offers = [s for s in journey["stages"] if s["stage"] == ARRANGEMENT_OFFERED]
     assert len(offers) == 1 + len(missed_after)
+
+
+def test_a_bill_missed_on_the_day_the_old_arrears_clear_is_still_re_offered():
+    """Four £50 bills, none paid on time. On 16 Mar the household pays £100, which clears January's
+    and February's (FIFO), the same day March's bill falls overdue. That bill is one day old, below
+    every rung's trigger, so the selector names no rung, but the case never cured."""
+    account = "ACC-CLEARS-ON-THE-DAY"
+    consumer = PaymentObservationConsumer(ledger_book=LedgerBook())
+    for n in range(4):
+        consumer.ledger_book.post(_event(account, LedgerEventType.BILL_DEBIT, f"B:{n}", 50.0,
+                                         _issued(n)))
+    missed_march = _issued(2) + dt.timedelta(days=TERMS + 1)
+    consumer.ledger_book.post(_event(account, LedgerEventType.PAYMENT_CREDIT, "P:arrears", 100.0,
+                                     missed_march))
+    consumer.advance_collections_journey(account, dt.date(2016, 3, 31))
+    journeys = consumer.collections_journeys.journeys()
+    assert len(journeys) == 1 and journeys[0]["exit"] is None, journeys
+    stages = journeys[0]["stages"]
+    first_trigger = min(s.trigger_days_overdue for s in dunning_path(Segment.RESIDENTIAL)
+                        if s.action in ladder_actions(Segment.RESIDENTIAL))
+    on_the_day = [s for s in stages if s["on"] == missed_march.isoformat()]
+    # The rare branch CAN be taken: on that date the oldest overdue bill is below the first rung.
+    assert on_the_day and all(s["days_overdue"] < first_trigger for s in on_the_day), on_the_day
+    assert [s["stage"] for s in on_the_day] == [PLAN_REOFFER_STEP, ARRANGEMENT_OFFERED], stages
+    assert_journey_order_lawful(journeys[0], Segment.RESIDENTIAL)
 
 
 def test_the_order_check_refuses_a_walk_back():

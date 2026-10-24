@@ -412,8 +412,11 @@ class CollectionsJourneyDesk:
         action = view.get("dunning_action")
         ladder = ladder_actions(segment)
         highest = journey.highest_rung
-        if (climbs_per_case(segment) and action in ladder and highest is not None
-                and ladder.index(action) < ladder.index(highest)):
+        # No rung at all is a fall too: once FIFO has cleared every older bill, the bill just missed
+        # is a day overdue and below the first trigger, yet the case is still open.
+        if (climbs_per_case(segment) and highest is not None
+                and (action is None or (action in ladder
+                                        and ladder.index(action) < ladder.index(highest)))):
             action = highest
         if action is not None and action != journey.current_step:
             journey.enter(action, on, f"{action} by {view.get('dunning_channel')}", view)
