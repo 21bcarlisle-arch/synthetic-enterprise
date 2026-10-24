@@ -639,3 +639,23 @@ for_the_director:
     a point. A point is now USD 7.9, so the same week would be about 125 points. Landing at 94% needs about 25%
     off at last week''s average, or about 40% at the weekday pace. This weekend projects 55% to 88%. Full breakdown:
     docs/staging/records/SEAT_PROPOSAL_CHEAPER_PER_LANDED_RESULT_ON_THE_NEW_TIER_2026-10-23.md'
+- id: forward-years-ruling-of-24-oct-17
+  raised: '2026-10-24'
+  kind: strategy
+  what: 'Forward years (ruling of 24 Oct 17:22, work 3): the G9 recommendation is ready; two of its six
+    choices are curriculum and his -- the gas band and the renewable fleet path 2026-2035'
+  proposal: 'docs/design/FORWARD_YEARS_RECOMMENDATION_2026-10-24.md: horizon 2026-2035; weather by seeded
+    block draws from the record (same source day in every cell); gas in DESNZ FFPA 2025 A-C band; price
+    from the existing weather chain (0.29 ms/run-year, MAE GBP 24/MWh); M/Q/S forward quotes at conditional
+    expectation + sourced term premium, world-quoted bid-offer, no quote past 2 years; 5 paired futures
+    per question after a one-run cost probe'
+  recommendation: 'I recommend the full DESNZ A-C gas band, uniform, and the NESO FES wind+solar band
+    (2.3-2.5x 2024->2030), both drawn per future and labelled. Trade-off: flat fleet is honest about being
+    a guess but K2 says it asserts a value we know is wrong. Holding position: nothing forward-years is
+    built; the K8 page and EP16 anchoring on the record proceed. What would change it: the cost probe''s
+    memory figure, a sourced payback distribution, or his choice of band.'
+  status: open
+  resolution: ''
+  evidence: Full book runs 55-65 min, 7.0-7.5 GB (launch records 20-24 Oct); no forward run of the production
+    book has ever been launched; bimodal price generator ignores weather; fleet held flat past 2025 by
+    renewable_capacity_trend

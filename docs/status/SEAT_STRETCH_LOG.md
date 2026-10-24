@@ -8,6 +8,33 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-24 — Forward years: the G9 recommendation -- ten years, block-drawn weather, gas in the DESNZ band, price from the weather chain, M/Q/S quotes, 5 paired futures; no forward run has ever been measured
+
+<!-- head: 6216a1655978 -->
+
+The director's ruling of 24 Oct 17:22 owed a recommendation before any forward-years build (work 3). It is at `docs/design/FORWARD_YEARS_RECOMMENDATION_2026-10-24.md` and waits for his go. Two of its six choices are curriculum, so they are his: the gas band and the fleet path. Both are raised in `for_the_director` (`forward-years-ruling-of-24-oct-17`).
+
+**Measured, not recalled.**
+- **Weather.** Forward weather today replays whole record years. Forward price comes from a generator that ignores weather, so a cold, still year does not move price.
+- **Price chain.** The existing chain does what the ruling asks, at 0.29 ms per run year. Its daily-mean error is £24/MWh against a real mean of £78, and cold-and-still days price at 2.2x the rest.
+- **Run cost.** A full 2016 to mid-2025 book run is 55-65 min and 7.0-7.5 GB, on a guest with 15.6 GB available.
+- **Forward runs.** None has ever been launched on the production book. So every forward-run cost in the recommendation is a prediction, filed before the probe that will refute it.
+
+**The recommendation.**
+- **Horizon:** 2026-2035, because DESNZ anchors 2030 and 2035.
+- **Weather:** seeded block draws from the record, with the same source day in every cell.
+- **Gas:** inside the DESNZ A to C band.
+- **Fleet:** the NESO FES band, held flat until he rules.
+- **Forward products:** M/Q/S power and gas, quoted at the market's conditional expectation plus the sourced term premium. The world quotes the bid-offer, and nothing is quoted past two years.
+- **Futures per question:** 5 paired futures, re-sized from the first question's spread.
+- **Blindness:** one control. Two futures sharing a prefix must give identical company decisions until they diverge.
+
+**Cost.** 16-31 sessions, about 3-15 points, central about 6. That is over the 10%-of-a-week flag at the high end, so it is split into seven pieces of at most 4 points each. A question is predicted at 20-30 machine-hours (5 futures x 2 arms x 2-3 h), and machine time costs no usage points. If the one-run probe prices a question above about 20 machine-hours, checkpoint-and-resume is the "real work" the director asked to have raised. It is not recommended before then.
+
+**Against the thesis.** The chain's £24/MWh error and the flat fleet both sit beside every forward figure. Weather cannot leave the 2016-2025 envelope, and there is no warming trend until a source is fetched (GAP). Both limits make the futures milder than reality could be.
+
+---
+
 ## 2026-10-24 — The map: the register's design, and the Collect and Testing pilot's generated findings
 
 <!-- head: 904a091f7b42 -->
