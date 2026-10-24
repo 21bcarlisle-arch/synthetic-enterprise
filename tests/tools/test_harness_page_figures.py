@@ -446,3 +446,17 @@ def test_a_wall_with_no_denial_in_the_window_prints_no_zero_and_still_names_the_
     text = next(v for k, v in wall.items() if k.endswith("30 days"))
     assert not text[0].isdigit() and text.startswith("No tool call was denied")
     assert "1 Jan 2020" in text
+
+
+def test_the_pace_section_carries_the_cost_forecast_and_names_its_absence(tmp_path):
+    import json as _json
+    from datetime import datetime as _dt
+    assert hpf.cost_of_work_to_come(tmp_path).startswith("not measured yet")
+    (tmp_path / ".work_cost_fit.json").write_text(_json.dumps(
+        {"written_at": _dt(2026, 10, 24).timestamp(), "plain": "the rest of this week can afford 65"}))
+    fresh = hpf.cost_of_work_to_come(tmp_path, now=_dt(2026, 10, 25))
+    stale = hpf.cost_of_work_to_come(tmp_path, now=_dt(2026, 11, 10))
+    assert fresh == "as forecast on 24 Oct 2026: the rest of this week can afford 65"
+    assert "may be stale" in stale and "may be stale" not in fresh
+    rows = dict(hpf.follow_on_figures(tmp_path, tmp_path)["DOORS"])
+    assert rows["Cost of work to come"].endswith("can afford 65")

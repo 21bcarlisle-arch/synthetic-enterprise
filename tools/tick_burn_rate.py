@@ -267,6 +267,7 @@ POINT_READINGS: tuple[tuple[str, float], ...] = (
     ("2026-10-23T08:45", 4.0),    # Friday 09:45 BST: "4%"
     ("2026-10-23T14:20", 8.0),    # Friday 15:20 BST: "8%. How is pace and progress?"
     ("2026-10-24T12:47", 27.0),   # Saturday 13:47 BST: "27% used"
+    ("2026-10-24T21:12", 35.0),   # Saturday 22:12 BST: "35% used"
 )
 
 #: The plan moved to a lower tier at this reading (director, 23 Oct 06:55 BST), so a point is a

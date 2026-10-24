@@ -1334,3 +1334,38 @@ def test_retirement_reads_the_orientation_once_however_many_continuations_retire
     assert dl._retired_ids() == {f"w{n}" for n in range(50)}
     assert len(calls) == 1
 
+
+
+def _fit(points_per_session: float) -> dict:
+    c = {"median": points_per_session, "low": points_per_session, "high": points_per_session}
+    return {"classes": {"harness": c, "record": c}, "pooled_median": points_per_session,
+            "sessions_per_step": {"median": 2.0, "low": 1.0, "high": 4.0}}
+
+
+def test_a_landing_bound_to_a_drawn_item_is_written_beside_the_estimate_the_draw_wrote(repo, monkeypatch):
+    """The director's 24 Oct "record its actual cost beside its estimate": the draw writes the
+    estimate before any work is spent, the bind writes the landing, one ledger beside the store.
+    MUTATION (must fire): drop either `cost.record` call."""
+    from tools import work_cost_estimate as cost
+    monkeypatch.setattr(cost, "load_fit", lambda path=None: _fit(1.0))
+    landed_at = _land(repo, "background/thing.py")
+    claims_mod.claim("focus-item", "doing the thing", paths=[], path=repo["claims"], now=landed_at - 60)
+    dl._record_estimate({"id": "focus-item", "what": "fix tools/x.py"}, landed_at - 60, repo["claims"])
+    assert dl.record_landing("focus-item", path=repo["claims"]) == ["background/thing.py"]
+    rows = [json.loads(x) for x in dl._cost_ledger(repo["claims"]).read_text().splitlines()]
+    assert [r["event"] for r in rows] == ["drawn", "landed"]
+    assert rows[0]["estimate"] == {"class": "harness", "points": 2.0, "low": 1.0, "high": 4.0}
+    assert rows[1]["id"] == "focus-item" and rows[1]["at"] == landed_at
+
+
+def test_the_doorbell_flags_an_item_above_a_tenth_of_a_week_and_only_that_item(monkeypatch):
+    """Both sides of the 10-point line are reachable: a guard that flags everything passes a test
+    that only asks whether the big item is flagged."""
+    from tools import work_cost_estimate as cost
+    item = {"id": "x", "what": "rebuild tools/a.py", "why": "w"}
+    monkeypatch.setattr(cost, "load_fit", lambda path=None: _fit(6.0))   # 12 points
+    big = dl.doorbell(item)
+    monkeypatch.setattr(cost, "load_fit", lambda path=None: _fit(4.0))   # 8 points
+    small = dl.doorbell(item)
+    assert big.startswith("COST FLAG") and "12 points" in big and "Split it" in big
+    assert "COST FLAG" not in small

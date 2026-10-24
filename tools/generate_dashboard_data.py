@@ -2442,6 +2442,13 @@ def generate(run_json_path=None):
         from tools.model_on_a_page_sheets import write as write_model_sheets
         write_model_sheets()
         write_model_picture(front_door.parent / "assets" / "model-on-a-page.svg")
+        # The cost of work to come, re-fitted at every publish (director, 24 Oct) so the pace
+        # section's forecast is this week's. A fit that raises leaves the last one, dated, shown.
+        try:
+            from tools.work_cost_estimate import forecast as cost_forecast
+            cost_forecast()
+        except Exception as exc:  # noqa: BLE001
+            print(f"cost of work to come not re-fitted: {type(exc).__name__}: {exc}", file=sys.stderr)
         from tools.harness_page_figures import write_harness_figures
         write_harness_figures(front_door.parent / "harness" / "index.html",
                               OUTPUT_PATH.parent / "proof.json")

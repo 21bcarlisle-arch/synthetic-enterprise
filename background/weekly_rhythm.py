@@ -703,8 +703,9 @@ def _cost_of_work_section() -> list[str]:
         measured = f"NOT ESTIMATED -- `tools.work_cost_estimate` raised {type(exc).__name__}: {exc}"
     return ["## Cost of the work to come", "", measured, "",
             "**Within the priority order, never instead of it.** Of two items of equal value take the "
-            "cheaper; flag before it starts any item expected to take more than about 10 points; split "
-            "an expensive item that cannot finish this week, or say why not.", ""]
+            "cheaper. The draw flags (`COST FLAG`) any item estimated above 10 points before it starts; "
+            "split it, or say why not. A class whose items miss by more than 3x either way is a "
+            "finding, and its fit is refitted from the landed sessions every time this runs.", ""]
 
 
 def _rel(path: Path) -> str:

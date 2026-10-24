@@ -60,7 +60,7 @@ def test_a_prompt_quoting_the_landing_line_is_not_a_landing_and_a_tool_result_is
 def test_a_subagent_is_charged_to_its_session_and_a_repeated_message_row_is_charged_once(tmp_path):
     path = _session(tmp_path, [_assistant("m1", 1_000_000), _assistant("m1", 1_000_000)],
                     [_assistant("m2", 1_000_000)])
-    usd, _ = w._session_cost_and_landings(path)
+    usd, _, _ = w._session_cost_and_landings(path)
     one = w.burn._priced({"output_tokens": 1_000_000}, "claude-opus-5-5")
     assert one > 0 and abs(usd - 2 * one) < 1e-9
 
@@ -83,24 +83,89 @@ def _wire(monkeypatch, tmp_path, reading):
     monkeypatch.setattr(w.burn, "POINT_READINGS", (reading,))
     monkeypatch.setattr(w.burn, "weighted_usd_between", lambda a, b: 50.0)
     monkeypatch.setattr(w, "landed_sessions", lambda d, n: ([{"class": "world_build", "usd": 4.0, "shas": ["a"]}], 8.0))
-    monkeypatch.setattr(w, "level_steps_since", lambda c: 1)
-    monkeypatch.setattr(w, "open_atom_steps", lambda: {"world_build": 3})
+    monkeypatch.setattr(w, "sessions_per_step", lambda s, st, c: {
+        "n": 1, "unjoined": 0, "median": 1, "low": 1, "high": 1, "thin": True})
+    monkeypatch.setattr(w, "open_atoms", lambda: [{"id": "W1_1_x", "class": "world_build", "steps": 3}])
     monkeypatch.setattr(w, "ADVISOR_DIR", tmp_path)
+    monkeypatch.setattr(w, "FIT_CACHE", tmp_path / "fit.json")
+    monkeypatch.setattr(w, "COST_LEDGER", tmp_path / "costs.jsonl")
 
 
 def test_a_reading_from_before_the_reset_is_never_read_as_this_weeks_use(monkeypatch, tmp_path):
     now = _utc("2026-10-24T19:00")
     _wire(monkeypatch, tmp_path, ("2026-10-24T12:47", 27.0))
     fresh = w.forecast(14, now)
+    plain = w.load_fit(tmp_path / "fit.json")["plain"]
     _wire(monkeypatch, tmp_path, ("2026-10-18T12:00", 90.0))
     stale = w.forecast(14, now)
     # both sides of the partition are reachable
     assert fresh["week_used_points"] == 27.0 + 5.0 and stale["week_used_points"] is None
     assert "not known" in w.render(14, now)
     # overhead 8/4 = 2: one world session of 4 USD is 0.8 points; 3 open steps, 1 session per step
-    assert fresh["atom_backlog_points"] == (3 * 0.8, 3 * 0.8)
+    assert fresh["atom_backlog_points"] == (3 * 0.8, 3 * 0.8, 3 * 0.8)
+    # and the forecast left its plain words where the draw and the page read them
+    assert "can afford about 68" in plain
 
 
 def test_no_point_conversion_refuses_with_its_reason_rather_than_pricing_at_zero(monkeypatch):
     monkeypatch.setattr(w.burn, "usd_per_point", lambda: None)
     assert w.render().startswith("NOT ESTIMATED -- no point conversion")
+
+
+def _commit(at, message):
+    return {"at": at, "message": message, "paths": ["company/x.py"]}
+
+
+def test_a_level_step_is_joined_to_the_sessions_whose_commits_name_its_atom_since_its_last_step():
+    steps = [{"atom": "W2_42_debt", "ts": 100.0}, {"atom": "W2_42_debt", "ts": 200.0},
+             {"atom": "B1_other", "ts": 200.0}]
+    sessions = [{"commits": [_commit(150, "W2_42: the rung asks the world")]},
+                {"commits": [_commit(180, "W2_42_debt reached")]},
+                {"commits": [_commit(90, "W2_42 before the previous step")]},   # belongs to step one
+                {"commits": [_commit(170, "W2_4 is another atom, and so is B12")]}]
+    got = w.sessions_per_step(sessions, steps, cutoff=120.0)
+    # step one is before the cutoff; step two joins the two sessions in (100, 200]; B1 joins none
+    assert got["counts"] == [2] and got["unjoined"] == 1 and got["median"] == 2
+
+
+def test_a_window_where_no_step_is_named_refuses_with_its_reason_rather_than_a_number():
+    got = w.sessions_per_step([], [{"atom": "D48_x", "ts": 10.0}], cutoff=0.0)
+    assert got["median"] is None and "cannot be measured" in got["reason"]
+    assert "refused" in w.estimate("harness", {"classes": {}, "pooled_median": 1.0,
+                                               "sessions_per_step": got})
+
+
+def test_the_over_tenth_flag_can_fire_and_can_stay_quiet():
+    def fit_(p):
+        c = {"median": p, "low": p, "high": p}
+        return {"classes": {"world_build": c}, "pooled_median": p,
+                "sessions_per_step": {"median": 2.0, "low": 1.0, "high": 3.0}}
+    text = "rebuild simulation/run_phase2b.py"
+    assert w.item_class(text) == "world_build"
+    assert w.flag_note(text, fit_(5.5)).startswith("COST FLAG")      # 11 points
+    assert w.flag_note(text, fit_(4.5)) == ""                        # 9 points
+    assert w.flag_note(text, {}) == ""                               # no fit: no flag, not a crash
+
+
+def test_an_actual_is_read_from_the_sessions_that_bound_the_item_and_a_bad_miss_is_named(tmp_path):
+    ledger = tmp_path / "costs.jsonl"
+    est = {"class": "harness", "points": 1.0, "low": 0.5, "high": 2.0}
+    for row in ({"event": "drawn", "id": "a", "estimate": est},
+                {"event": "drawn", "id": "a", "estimate": {**est, "points": 9.0}},   # re-draw: first wins
+                {"event": "drawn", "id": "b", "estimate": est},
+                {"event": "drawn", "id": "c", "estimate": est},                       # never landed
+                {"event": "landed", "id": "a"}, {"event": "landed", "id": "b"}):
+        w.record(row, ledger)
+    sessions = [{"usd": 10.0, "bound_ids": ["a"]}, {"usd": 10.0, "bound_ids": ["a", "b"]},
+                {"usd": 30.0, "bound_ids": ["b"]}, {"usd": 99.0, "bound_ids": ["c"]}]
+    rows = w.estimates_against_actuals(sessions, ledger)
+    assert sorted((r["id"], r["actual_usd"], r["sessions"]) for r in rows) == [("a", 20.0, 2), ("b", 40.0, 2)]
+    err = w.error_by_class(rows, usd_per_point=10.0)["harness"]
+    assert err["n"] == 2 and err["median_ratio"] == 3.0 and err["badly_wrong"] == ["b"]
+
+
+def test_a_session_that_ran_the_bind_is_credited_with_the_item_it_bound(tmp_path):
+    bind = {"type": "assistant", "message": {"id": "m9", "model": "claude-opus-5-5", "content": [
+        {"type": "tool_use", "name": "Bash",
+         "input": {"command": "python3 -m background.delivery_lane --landed the-cost-steer-2.5 && x"}}]}}
+    assert w._session_cost_and_landings(_session(tmp_path, [bind]))[2] == ["the-cost-steer-2.5"]
