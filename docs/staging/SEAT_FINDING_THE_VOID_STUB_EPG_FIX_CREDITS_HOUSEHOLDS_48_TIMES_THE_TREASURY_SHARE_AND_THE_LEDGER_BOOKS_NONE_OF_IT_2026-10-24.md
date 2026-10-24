@@ -109,3 +109,11 @@ zero, and the 5 electricity stubs carry receipts of about 1/48 of the table abov
 about GBP 61). LATENT until that run exists, because no published run carries the defect yet. The
 `domain_invariants` leg the section above proposed is not built: the grader's leg covers the same
 property on every graded run.
+
+## The closing run, in flight (24 Oct, 19:10 BST)
+
+The s14clean arms finished at 15:36Z. The closing run was launched through `launch_long_job` as
+`epgfold-fresh-1c30d6c728`, at `1c30d6c728`, which carries `3a31999db`. It runs in its own worktree
+`/var/tmp/se-epgfold-1c30d6c728` and wrote to `/var/tmp/se-epgfold-out/`: the run's JSON, `run.rc`,
+`grade.json` and `grade.rc` (the grader's own exit, 1 on any defect). The prediction above stands as
+filed. It is graded here when `grade.json` exists.
