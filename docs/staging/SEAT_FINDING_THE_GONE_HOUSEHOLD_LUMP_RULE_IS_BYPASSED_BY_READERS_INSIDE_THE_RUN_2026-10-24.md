@@ -68,4 +68,6 @@ Controls: `test_a_closure_told_as_it_happens_cuts_lumps_a_reader_forces_mid_run`
 told closure stored nowhere, red), `test_the_run_tells_the_queue_at_each_departure_and_unfollowed_move`
 (mutation: the departure call removed, red), and
 `test_a_budget_below_the_curves_anchor_is_priced_at_the_class_weight` (mutation: the raw peak
-passed, red). The grade, both arms re-run plus the 12 Oct baseline at `3f09d17e4`, follows in s.1a.
+passed, red).
+
+**Graded (2026-10-25), in `debt_realism_three_world_fidelity_gaps.md` s.1a:** with the switch on, 0 late lumps cross (was 12) and 14 are lost at close; write-offs per pound billed 0.665% to 0.725% (+0.060 points, GBP 562), the off arm unchanged to the penny. Cause 1 is graded and worth about a ninth of the off level. Still open: the 0.15% baseline, being re-read at `3f09d17e4`.

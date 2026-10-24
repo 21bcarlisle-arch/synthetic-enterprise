@@ -182,6 +182,46 @@ same GBP 934,013.65. The arm difference is therefore a mechanism effect only. A 
 Centrica still needs cause 3's reweighting to the world's method mix (s.1, "A mix-adjusted
 comparison before the verdict"). That reweighting is not done here.
 
+**Re-graded with the rule acting inside the run (2026-10-25; the prediction above is still
+unchanged).** The fix: the run tells the queue of each closure on the day it happens, a departure
+when its registration loss is filed and a move that did not follow us once that is decided, with
+the final bill's due date (the 28th of the last supplied day's month), so nothing is looked ahead.
+Same book, seed and probe (`/var/tmp/closed_arrears_runs/probe2.py`, 160 founders, budget 0), from a
+worktree at origin `42b9da490` plus the fix. Outputs: `/var/tmp/closed_arrears_runs/r2_off|r2_on/`.
+
+| | Off | On |
+|---|---|---|
+| Residential billed | GBP 934,013.65 | GBP 934,025.82 |
+| Written off | GBP 6,210.75 | GBP 6,773.13 |
+| Written off per pound billed | **0.665%** | **0.725%** |
+| Cases (bills) / accounts | 160 / 39 | 173 / 46 |
+| Recovered after write-off | GBP 757.75 | GBP 826.37 |
+| Lumps delivered | 641 | 627 |
+| Lumps lost at close | 0 | **14** |
+| Lumps crossed after their closed account's final bill | 14 | **0** |
+
+The off arm reproduces the earlier off arm to the penny, so the fix is inert with the switch off.
+The on arm bills GBP 12.17 more: a lost lump leaves the household in arrears, which changes a later
+bill. The arms are therefore not quite identically billed, but the difference is 0.001% of billing.
+
+Each predicted leg, graded:
+- **Direction up: held**, by GBP 562.38 (+0.060 points).
+- **Size: refuted as stated.** The prediction was a level, 0.2–0.5%. The on arm reads 0.725%,
+  above it, because the baseline the prediction assumed (0.15%) was wrong (below). Read as a rise,
+  the predicted 0.05–0.35 points contains the observed +0.060, at its bottom; that reading is mine,
+  made after the result, and the prediction should be scored on its level.
+- **The extrapolation in the first grade was too low.** It put all 14 lumps at about GBP 330
+  (+0.035 points); they move GBP 562 (+0.060). Two lumps were not a sample of fourteen.
+- **Cases rise: held** (160 to 173). **No stayer's write-off moves: held, vacuously** (no
+  statute-bar write-off in either arm). **Lumps lost above 0 and below those delivered: held**
+  (14 against 627). No stated refutation fired.
+
+**What cause 1 is worth.** About 0.06 points of write-off per pound billed on this book: a ninth
+of the off arm's level, not the several-fold gap s.1 was looking for. On this measure the world
+now sits at 0.725%, inside Centrica's derived 0.67–1.04% before any mix adjustment. Whether "the
+world writes off about 5–7x too little" was ever true depends on the 0.15% baseline, which is
+being re-read at the 12 Oct head `3f09d17e4` with this same probe; its result lands beside this one.
+
 ## 2. Prepayment debt
 
 **What the quantity is.** Before measuring, "prepayment debt" splits into three different things,
