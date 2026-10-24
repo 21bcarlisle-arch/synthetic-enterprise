@@ -851,8 +851,12 @@ def scale(customers: Path = SITE / "data" / "customers.json",
 #: — which is why `provenance_stamp` also asks the coarse whole-tree question beside this list.
 #: These are the paths the 2026-09-19 measurement caught: `/scale/figures[0]/as_of` came from a
 #: `customers.json` NEWER than the commit the feed stamped.
+FIXED_RECORD = PROJECT / "docs" / "design" / "capabilities_fixed_this_week.json"
+DASHBOARD = SITE / "data" / "dashboard.json"
+
 READS = (
     MAP_FEED,
+    FIXED_RECORD,
     SITE / "data" / "moap_node_atoms.json",
     SITE / "data" / "customers.json",
     SITE / "data" / "dashboard.json",
@@ -1014,6 +1018,70 @@ def gaps(world: list[dict], supplier: list[dict], seams: list[dict], book: dict,
     return out
 
 
+def _git(*args: str) -> str | None:
+    try:
+        out = subprocess.run(["git", "-C", str(PROJECT), *args], capture_output=True, text=True,
+                             timeout=30)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    return out.stdout.strip() if out.returncode == 0 else None
+
+
+def stated_on_both_sides(world: list[dict], supplier: list[dict]) -> list[str]:
+    """Work items a world row and a supplier row both rest on (director, 24 Oct: the page must go
+    red "when the world and the supplier state the same capability differently").
+
+    "The same capability" is defined as the same work: two rows resting on one item are one
+    function described twice, and each would carry a state the other can contradict, as the
+    settlement rows once read Live and Planned. Where the world and the supplier do different
+    work on one subject, as settlement's W3_2 and EP5 do, they cite different items and each row
+    must say which side it is about; that is wording, held by the rows themselves.
+    """
+    world_ids = {i for e in world for i in e["rests_on"]}
+    return sorted({i for e in supplier for i in e["rests_on"] if i in world_ids})
+
+
+def fixed_this_week(now: float | None = None, record: Path = FIXED_RECORD,
+                    dashboard: Path = DASHBOARD) -> dict:
+    """The dated "Fixed this week" strip (director, 24 Oct: "a dated 'Fixed this week' strip
+    under In brief ... generated from the record").
+
+    The sentence is the record's; the date is the commit's, read from git; the window is applied
+    here against the publish instant; and whether the run behind the page's figures already
+    carries the fix is `merge-base --is-ancestor`, so the strip never says a figure moved before
+    the published run could have moved it. A recorded commit git cannot resolve raises: a dated
+    claim about a fix nobody can find is the phantom citation in another form. Rows keep the
+    record's order, so the record says which fix is the headline.
+    """
+    try:
+        rec = json.loads(record.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as e:
+        raise CapabilitySourceUnavailable(f"fixed-this-week record unreadable: {e}") from e
+    now = time.time() if now is None else now
+    days = int(rec["window_days"])
+    try:
+        run = json.loads(dashboard.read_text(encoding="utf-8"))["meta"]["git_commit"]
+    except (OSError, ValueError, KeyError, TypeError):
+        run = None
+    items = []
+    for fix in rec["fixes"]:
+        stamp = _git("show", "-s", "--format=%ct", fix["commit"])
+        if not stamp:
+            raise CapabilitySourceUnavailable(
+                f"fixed-this-week cites a commit git cannot resolve: {fix['commit']}")
+        at = int(stamp)
+        if not (now - days * 86400 <= at <= now):
+            continue
+        carried = None
+        if run:
+            carried = _git("merge-base", "--is-ancestor", fix["commit"], run) is not None
+        items.append({"commit": fix["commit"], "what": fix["what"], "at": at,
+                      "date": time.strftime("%a %d %b", time.gmtime(at)),
+                      "in_published_run": carried})
+    return {"window_days": days, "as_of": time.strftime("%d %b %Y", time.gmtime(now)),
+            "published_run": run, "items": items}
+
+
 def build(feed: Path = MAP_FEED) -> dict:
     levels = _levels(feed)
     index = evidence_index()
@@ -1023,6 +1091,10 @@ def build(feed: Path = MAP_FEED) -> dict:
         raise CapabilitySourceUnavailable(f"work record unreadable: {e}") from e
     world = _entries(WORLD, levels, index, records)
     supplier = _entries(SUPPLIER, levels, index, records)
+    shared = stated_on_both_sides(world, supplier)
+    if shared:
+        raise CapabilitySourceUnavailable(
+            f"work item(s) stated on both the world's and the supplier's side: {shared}")
     seams = [
         {"area": s["area"], "counterparty": s["who"], "what": s["what"],
          "access": s["access"], "gate": s["gate"], "spec": s["spec"],
@@ -1057,6 +1129,7 @@ def build(feed: Path = MAP_FEED) -> dict:
             "evidence_map": "site/data/moap_node_atoms.json",
             "checks": "the test files each work item cites in its record",
             "scale": "site/data/customers.json + site/data/dashboard.json",
+            "fixed_this_week": "docs/design/capabilities_fixed_this_week.json + git",
         },
         "world": {"entries": world, "tally": tally(world)},
         "supplier": {"entries": supplier, "tally": tally(supplier)},
@@ -1068,6 +1141,7 @@ def build(feed: Path = MAP_FEED) -> dict:
         "wall": wall_position(),
         "scale": book,
         "gaps": gaps(world, supplier, seams, book, levels),
+        "fixed_this_week": fixed_this_week(),
     }
 
 

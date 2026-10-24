@@ -8,6 +8,51 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-24 — Capabilities steer: the page is shorter and generates its own fix list; the gaps it flags are named or handed on
+
+<!-- head: 746df31c8905 -->
+
+Director steer of 24 Oct on the Capabilities page ("it's long, and flags errors that we should be
+fixing"). The report it asked for, item by item.
+
+**§1, the errors the page flags.**
+- Bills above the cap: 5,488 of 18,398 to 104 of 24,597 on the grading run (d909b6933). Not closed.
+  The 104 are named: 87 are a time-of-use pair on the default tariff that SLC 28AD.4 grades at its
+  assumed split, which the grader counts per bill; about 17 were estimated incoming-occupant stubs
+  inside the EPG, fixed after that run in ce35a25e2. The published run of 19 Oct predates every fix.
+  It closes on Monday's run, re-graded with tools.grade_svt_invoices_over_ceiling.
+- The cap as a series: the page's sentence was false (746df31c8). Unit rates are a dated series from
+  2019 by fuel at GB average; standing charges and region, payment-method and meter-type levels are
+  not. Handed on.
+- Gas follows a mover: not built; handed on with its K8 (5f3b66db0).
+- Debt realism, three K8 pages: not written; handed on.
+- Settlement: both rows were true of different work; the supplier row now says it takes no money
+  at each reconciliation run (746df31c8).
+
+**§2, the five evidence resolutions.** Business customers 29 tests, can't-pay/won't-pay 18,
+self-rationing 41, obligations register 43, all cited from their records; Three clocks has none and
+reads Building. The rule now holds any uncited function from Live.
+
+**§3, doorways.** "read for what the run uses" for Elexon, NESO and the Ofgem cost stack.
+
+**§4, the page, before and after.** Words a reader meets on load, the measured sections at the foot
+excluded: about 5,230 to 2,524. The four top sections: 2,076 to 1,393. Above the fold is In brief,
+the Fixed-this-week strip and the two columns as one-line rows with a badge. The register is one
+collapsed section under its three counts. The stamp sits in the footer, written at publish.
+
+**A call made, and why.** The feed was not regenerated in this landing. A worktree-built feed would
+stamp an unclean tree, and the steer asks for the page change at Monday's publish, which rewrites
+the feed and every block in one commit. So until then the live page shows the new layout on the
+19 Oct feed, with the strip empty.
+
+**What the badge does not say.** The steer's example badge read "28 tests · proven to fail". No
+per-function record says whether its tests were mutation-proven, so the badge says only the count.
+
+**Handed on.** The gas mover build, the three debt K8 pages, the cap's remaining levels, and the
+cold read by one energy and one tech reader after Monday's publish.
+
+---
+
 ## 2026-10-24 — orientation: Level on the thesis
 
 <!-- head: c217862d2776 -->

@@ -1,0 +1,20 @@
+{
+ "about": "The Capabilities page's 'Fixed this week' strip (director steer, 24 Oct 2026). One row per fix a reader of that page would care about: the commit that made it and one plain sentence. The date is never written here: tools/generate_capabilities_door.py reads it from git at publish, keeps only the rows inside the window, and computes whether the published run already carries each fix. A row whose commit does not resolve stops the feed. Add the row in the commit after the fix lands; rows that have aged out may be deleted.",
+ "window_days": 7,
+ "fixes": [
+  {"commit": "ce35a25e213b126406a82b76949710a72e992513",
+   "what": "Standard-variable bills above the price cap: the last of three billing defects is fixed. An incoming occupant was priced as a business, the Energy Price Guarantee did not reach the household's bill, and an estimate on an empty home's stub charged the Treasury's share. The fall was graded on a fresh run in d909b6933; what remains is named there, not closed."},
+  {"commit": "4ef70aba9258f1f7a7a07d510ba2c4c9bcc3196c",
+   "what": "The Energy Price Guarantee reaches the household's bill from October 2022 to June 2023, and the Treasury's share is booked as the supplier's revenue."},
+  {"commit": "4bc21e92095bf2369d4ebdc7bd3cdad4e97929f2",
+   "what": "A household moving into an empty home is billed as a home, not as a business."},
+  {"commit": "1e358809beb335756c28108e6a4477426fc3803a",
+   "what": "A household on the default tariff pays one unit rate; a time-of-use pair now needs the household's choice, not just a smart meter."},
+  {"commit": "50001b0b7b6f88d54ff54520f86873bb2463f14c",
+   "what": "A time-of-use bill prints its peak and off-peak registers, each with its own units, rate and charge."},
+  {"commit": "d8129f3f6afcc6f0e7229fe05e881fda3f7ecd5f",
+   "what": "The Energy Bills Support Scheme's monthly credit reduces what a household owes for electricity in winter 2022-23."},
+  {"commit": "746df31c8905e5bfe205657f062b393f041d6c75",
+   "what": "On this page, a function with no linked test can no longer read Live."}
+ ]
+}

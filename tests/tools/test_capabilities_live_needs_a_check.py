@@ -67,3 +67,43 @@ def test_the_specification_column_takes_all_three_branches_and_each_record_exist
         for record in (s.get("spec"), s.get("used")):
             if record:
                 assert (door.PROJECT / record["where"]).exists(), record["where"]
+
+
+def test_one_piece_of_work_is_never_stated_on_both_sides():
+    """24 Oct: "a consistency check that goes red ... when the world and the supplier state the
+    same capability differently". Both branches, then the real register. MUTATION: return [] from
+    `stated_on_both_sides` -> the first assert reds; compare by name instead of work -> the second
+    reds."""
+    world = [{"name": "Settlement", "rests_on": ["W3_2"]}]
+    assert door.stated_on_both_sides(world, [{"name": "Settling", "rests_on": ["EP5", "W3_2"]}]) \
+        == ["W3_2"]
+    assert door.stated_on_both_sides(world, [{"name": "Settlement", "rests_on": ["EP5"]}]) == []
+    ids = lambda reg: [{"rests_on": r[2]} for r in reg]  # noqa: E731
+    assert door.stated_on_both_sides(ids(door.WORLD), ids(door.SUPPLIER)) == []
+
+
+def test_the_fixed_strip_dates_from_git_and_drops_what_has_aged_out(tmp_path):
+    """The strip is generated: the date is the commit's, the window is applied at publish, and a
+    commit nobody can find stops the feed. MUTATION: skip the window test -> the aged-out row stays
+    and the first assert reds; swallow the unresolved commit -> the raise is not met."""
+    import json
+
+    import pytest
+
+    head = door._git("rev-parse", "HEAD")
+    at = int(door._git("show", "-s", "--format=%ct", head))
+    rec = tmp_path / "fixed.json"
+    rec.write_text(json.dumps({"window_days": 7, "fixes": [{"commit": head, "what": "w"}]}))
+    dash = tmp_path / "dash.json"
+    dash.write_text(json.dumps({"meta": {"git_commit": head}}))
+    assert door.fixed_this_week(now=at + 8 * 86400, record=rec, dashboard=dash)["items"] == []
+    got = door.fixed_this_week(now=at + 60, record=rec, dashboard=dash)["items"]
+    assert len(got) == 1 and got[0]["in_published_run"] is True
+    rec.write_text(json.dumps({"window_days": 7, "fixes": [{"commit": "0" * 40, "what": "w"}]}))
+    with pytest.raises(door.CapabilitySourceUnavailable):
+        door.fixed_this_week(now=at, record=rec, dashboard=dash)
+
+
+def test_the_fixed_record_resolves():
+    feed = door.fixed_this_week(now=4102444800)  # far future: every row ages out, none may raise
+    assert feed["items"] == []

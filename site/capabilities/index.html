@@ -89,6 +89,20 @@ details.more { max-width: 760px; margin: 8px 0 18px; }
 details.more summary { cursor: pointer; font-size: 13px; font-weight: 600; margin-bottom: 8px; }
 .footnote { font-size: 11px; color: var(--muted); max-width: 760px; margin: 6px 0 16px; }
 .table-scroll { overflow-x: auto; }
+details.item { margin-bottom: 6px; }
+details.item > summary { cursor: pointer; list-style: none; }
+details.item > summary::-webkit-details-marker { display: none; }
+details.item > summary::before { content: "\25B8"; color: var(--muted); font-size: 10px; margin-right: 6px; }
+details.item[open] > summary::before { content: "\25BE"; }
+details.item .item-p { margin: 4px 0 8px 16px; }
+.badge { font-size: 11px; font-weight: 400; color: var(--muted); margin-left: 8px; }
+.fixed { max-width: 760px; border-left: 3px solid var(--green); padding: 6px 14px; margin: 0 0 18px; font-size: 13px; }
+.fixed ul { margin: 0; padding-left: 0; list-style: none; }
+.fixed li { margin: 4px 0; }
+.fixed-d { font-weight: 700; margin-right: 6px; white-space: nowrap; }
+.fixed-w { font-size: 11px; color: var(--muted); }
+details.register > summary { font-size: 14px; }
+footer .stamp { margin: 6px 0 0; }
 </style>
 </head>
 <body>
@@ -128,7 +142,11 @@ details.more summary { cursor: pointer; font-size: 13px; font-weight: 600; margi
         listed one table down, each with what closes it.</li>
     </ul>
   </div>
-  <p class="stamp" id="stamp"></p>
+  <div id="fixed-this-week">
+<!-- CAPABILITIES-FIXED:START (written at publish by tools/capabilities_page_figures.py -- do not hand-edit) -->
+
+<!-- CAPABILITIES-FIXED:END -->
+  </div>
 
   <h2 class="sec">What it does: the world and the supplier, side by side</h2>
   <p class="sec-lede">Each function is written in plain English; its state is not written at all.
@@ -143,17 +161,17 @@ details.more summary { cursor: pointer; font-size: 13px; font-weight: 600; margi
 <!-- CAPABILITIES-WORLD:START (written at publish by tools/capabilities_page_figures.py -- do not hand-edit) -->
 <p class="side-count">10 functions: 9 live &middot; 1 building &middot; 0 planned</p>
 <h4 class="col-h">Now &middot; 9</h4>
-<div class="item"><div class="item-h">Weather that behaves like weather<span class="pill pill-live">Live</span></div><div class="item-p">A joint temperature, wind and solar signal that persists the way real weather does — cold snaps last for days rather than flickering — with regional variation that still adds up to the national picture. <span class="checks">28 automated tests are written against this.</span></div></div>
-<div class="item"><div class="item-h">Prices that come out of physics, not out of a distribution<span class="pill pill-live">Live</span></div><div class="item-p">Demand is built from weather and buildings; supply is stacked in merit order; the price is what falls out. Nothing samples a price curve directly. <span class="checks">22 automated tests are written against this.</span></div></div>
-<div class="item"><div class="item-h">Ten years of real settlement data, revealed in order<span class="pill pill-live">Live</span></div><div class="item-p">Nearly a decade of actual half-hourly GB settlement records, released to the simulation in the order they happened, so nothing inside can see a day that has not arrived. <span class="checks">62 automated tests are written against this.</span></div></div>
-<div class="item"><div class="item-h">Buildings with real thermal behaviour<span class="pill pill-live">Live</span></div><div class="item-p">Each home is modelled as a physical fabric with heat loss and thermal mass, which is why a cold week shows up differently in a well-insulated flat and a draughty semi. <span class="checks">400 automated tests are written against this.</span></div></div>
-<div class="item"><div class="item-h">Households with hidden lives<span class="pill pill-live">Live</span></div><div class="item-p">Income, essential costs, life events — job loss, illness, a new child — and the choice between paying and heating. All of it hidden from the supplier, as it is in reality. <span class="checks">66 automated tests are written against this, covering 1 of the 4 pieces of work it rests on.</span></div></div>
-<div class="item"><div class="item-h">Business customers that fail like businesses<span class="pill pill-live">Live</span></div><div class="item-p">Sector shocks, insolvency and late payment behaviour that differ from a household&#x27;s, because a struggling company does not miss a bill the way a struggling family does. <span class="noproof">Nothing published yet shows how this is checked.</span></div></div>
-<div class="item"><div class="item-h">The industry&#x27;s own settlement timetable<span class="pill pill-live">Live</span></div><div class="item-p">Volumes are not final on the day. They are trued up over months, on the real schedule. <span class="checks">38 automated tests are written against this.</span></div></div>
-<div class="item"><div class="item-h">Banking and payment rails<span class="pill pill-live">Live</span></div><div class="item-p">Direct Debit collection modelled end to end — the bank, the acquirer, and the ways a collection actually fails. <span class="checks">46 automated tests are written against this.</span></div></div>
-<div class="item"><div class="item-h">Futures beyond the real record<span class="pill pill-live">Live</span></div><div class="item-p">Worlds that run past the end of the real data, so the supplier can be tested against conditions that have not happened yet. <span class="checks">16 automated tests are written against this.</span></div></div>
+<details class="item"><summary class="item-h">Weather that behaves like weather<span class="pill pill-live">Live</span><span class="badge">28 tests</span></summary><div class="item-p">A joint temperature, wind and solar signal that persists the way real weather does — cold snaps last for days rather than flickering — with regional variation that still adds up to the national picture.</div></details>
+<details class="item"><summary class="item-h">Prices that come out of physics, not out of a distribution<span class="pill pill-live">Live</span><span class="badge">22 tests</span></summary><div class="item-p">Demand is built from weather and buildings; supply is stacked in merit order; the price is what falls out. Nothing samples a price curve directly.</div></details>
+<details class="item"><summary class="item-h">Ten years of real settlement data, revealed in order<span class="pill pill-live">Live</span><span class="badge">62 tests</span></summary><div class="item-p">Nearly a decade of actual half-hourly GB settlement records, released to the simulation in the order they happened, so nothing inside can see a day that has not arrived.</div></details>
+<details class="item"><summary class="item-h">Buildings with real thermal behaviour<span class="pill pill-live">Live</span><span class="badge">400 tests</span></summary><div class="item-p">Each home is modelled as a physical fabric with heat loss and thermal mass, which is why a cold week shows up differently in a well-insulated flat and a draughty semi.</div></details>
+<details class="item"><summary class="item-h">Households with hidden lives<span class="pill pill-live">Live</span><span class="badge">66 tests · 1 of 4 parts</span></summary><div class="item-p">Income, essential costs, life events — job loss, illness, a new child — and the choice between paying and heating. All of it hidden from the supplier, as it is in reality. <span class="checks">The tests cover 1 of the 4 pieces of work it rests on.</span></div></details>
+<details class="item"><summary class="item-h">Business customers that fail like businesses<span class="pill pill-live">Live</span><span class="badge">no test cited</span></summary><div class="item-p">Sector shocks, insolvency and late payment behaviour that differ from a household&#x27;s, because a struggling company does not miss a bill the way a struggling family does.</div></details>
+<details class="item"><summary class="item-h">The industry&#x27;s own settlement timetable<span class="pill pill-live">Live</span><span class="badge">38 tests</span></summary><div class="item-p">Volumes are not final on the day. They are trued up over months, on the real schedule.</div></details>
+<details class="item"><summary class="item-h">Banking and payment rails<span class="pill pill-live">Live</span><span class="badge">46 tests</span></summary><div class="item-p">Direct Debit collection modelled end to end — the bank, the acquirer, and the ways a collection actually fails.</div></details>
+<details class="item"><summary class="item-h">Futures beyond the real record<span class="pill pill-live">Live</span><span class="badge">16 tests</span></summary><div class="item-p">Worlds that run past the end of the real data, so the supplier can be tested against conditions that have not happened yet.</div></details>
 <h4 class="col-h">Next &middot; 1</h4>
-<div class="item"><div class="item-h">The price cap as a real constraint<span class="pill pill-building">Building</span></div><div class="item-p">Ofgem&#x27;s cap binds what can be charged rather than sitting in a lookup table, and it changes within the year the way the real one does.</div></div>
+<details class="item"><summary class="item-h">The price cap as a real constraint<span class="pill pill-building">Building</span><span class="badge">36 tests</span></summary><div class="item-p">Ofgem&#x27;s cap binds what can be charged rather than sitting in a lookup table, and it changes within the year the way the real one does.</div></details>
 <!-- CAPABILITIES-WORLD:END -->
       </div>
     </section>
@@ -165,21 +183,21 @@ details.more summary { cursor: pointer; font-size: 13px; font-weight: 600; margi
 <!-- CAPABILITIES-SUPPLIER:START (written at publish by tools/capabilities_page_figures.py -- do not hand-edit) -->
 <p class="side-count">14 functions: 10 live &middot; 2 building &middot; 2 planned</p>
 <h4 class="col-h">Now &middot; 10</h4>
-<div class="item"><div class="item-h">Bills that add up<span class="pill pill-live">Live</span></div><div class="item-p">Every line — unit rate, standing charge, VAT, the non-commodity costs — computed and checked to foot, with the arithmetic itself under a control that can fail. <span class="checks">94 automated tests are written against this, covering 1 of the 2 pieces of work it rests on.</span></div></div>
-<div class="item"><div class="item-h">Estimated bills, and the correction when the read arrives<span class="pill pill-live">Live</span></div><div class="item-p">Bills built on an estimate when no meter read exists, then rebilled against the truth when it turns up — including when a customer leaves mid-cycle. <span class="checks">94 automated tests are written against this.</span></div></div>
-<div class="item"><div class="item-h">Three clocks kept straight<span class="pill pill-live">Live</span></div><div class="item-p">What happened physically, what was billed, and what was settled are three different dates, and the supplier reconciles all three per bill rather than pretending they agree. <span class="noproof">Nothing published yet shows how this is checked.</span></div></div>
-<div class="item"><div class="item-h">Money matched to the right account<span class="pill pill-live">Live</span></div><div class="item-p">A payment arrives against a party, an account and an agreement. Allocating it correctly — including when the amount is ambiguous — is its own machinery. <span class="checks">19 automated tests are written against this.</span></div></div>
-<div class="item"><div class="item-h">Telling can&#x27;t-pay from won&#x27;t-pay<span class="pill pill-live">Live</span></div><div class="item-p">The supplier infers, from payment behaviour alone, whether an arrears case is hardship or choice — and it is allowed to get this wrong, which is the point. <span class="noproof">Nothing published yet shows how this is checked.</span></div></div>
-<div class="item"><div class="item-h">Noticing a customer who has stopped heating their home<span class="pill pill-live">Live</span></div><div class="item-p">A perfect payment record with collapsing consumption is a warning sign, not a good customer. The supplier detects it from the data it can actually see. <span class="noproof">Nothing published yet shows how this is checked.</span></div></div>
-<div class="item"><div class="item-h">Weather-normalised demand<span class="pill pill-live">Live</span></div><div class="item-p">Working out how much of a change in consumption was the weather and how much was the customer — an inference, from observations, that can be wrong. <span class="checks">27 automated tests are written against this.</span></div></div>
-<div class="item"><div class="item-h">A real set of books<span class="pill pill-live">Live</span></div><div class="item-p">Double-entry ledger, management accounts, and one reconciled definition of revenue used on every surface that reports it. <span class="checks">25 automated tests are written against this, covering 2 of the 3 pieces of work it rests on.</span></div></div>
-<div class="item"><div class="item-h">Hedging, and the margin it explains<span class="pill pill-live">Live</span></div><div class="item-p">Forward cover bought against the book, and a year-over-year bridge that accounts for where the margin actually went. <span class="checks">35 automated tests are written against this, covering 1 of the 2 pieces of work it rests on.</span></div></div>
-<div class="item"><div class="item-h">Its own regulatory obligations, tracked<span class="pill pill-live">Live</span></div><div class="item-p">A register of what the licence requires, checked against what the supplier is doing, with the physical-harm duties treated as the serious ones. <span class="noproof">Nothing published yet shows how this is checked.</span></div></div>
+<details class="item"><summary class="item-h">Bills that add up<span class="pill pill-live">Live</span><span class="badge">94 tests · 1 of 2 parts</span></summary><div class="item-p">Every line — unit rate, standing charge, VAT, the non-commodity costs — computed and checked to foot, with the arithmetic itself under a control that can fail. <span class="checks">The tests cover 1 of the 2 pieces of work it rests on.</span></div></details>
+<details class="item"><summary class="item-h">Estimated bills, and the correction when the read arrives<span class="pill pill-live">Live</span><span class="badge">94 tests</span></summary><div class="item-p">Bills built on an estimate when no meter read exists, then rebilled against the truth when it turns up — including when a customer leaves mid-cycle.</div></details>
+<details class="item"><summary class="item-h">Three clocks kept straight<span class="pill pill-live">Live</span><span class="badge">no test cited</span></summary><div class="item-p">What happened physically, what was billed, and what was settled are three different dates, and the supplier reconciles all three per bill rather than pretending they agree.</div></details>
+<details class="item"><summary class="item-h">Money matched to the right account<span class="pill pill-live">Live</span><span class="badge">19 tests</span></summary><div class="item-p">A payment arrives against a party, an account and an agreement. Allocating it correctly — including when the amount is ambiguous — is its own machinery.</div></details>
+<details class="item"><summary class="item-h">Telling can&#x27;t-pay from won&#x27;t-pay<span class="pill pill-live">Live</span><span class="badge">no test cited</span></summary><div class="item-p">The supplier infers, from payment behaviour alone, whether an arrears case is hardship or choice — and it is allowed to get this wrong, which is the point.</div></details>
+<details class="item"><summary class="item-h">Noticing a customer who has stopped heating their home<span class="pill pill-live">Live</span><span class="badge">no test cited</span></summary><div class="item-p">A perfect payment record with collapsing consumption is a warning sign, not a good customer. The supplier detects it from the data it can actually see.</div></details>
+<details class="item"><summary class="item-h">Weather-normalised demand<span class="pill pill-live">Live</span><span class="badge">27 tests</span></summary><div class="item-p">Working out how much of a change in consumption was the weather and how much was the customer — an inference, from observations, that can be wrong.</div></details>
+<details class="item"><summary class="item-h">A real set of books<span class="pill pill-live">Live</span><span class="badge">25 tests · 2 of 3 parts</span></summary><div class="item-p">Double-entry ledger, management accounts, and one reconciled definition of revenue used on every surface that reports it. <span class="checks">The tests cover 2 of the 3 pieces of work it rests on.</span></div></details>
+<details class="item"><summary class="item-h">Hedging, and the margin it explains<span class="pill pill-live">Live</span><span class="badge">35 tests · 1 of 2 parts</span></summary><div class="item-p">Forward cover bought against the book, and a year-over-year bridge that accounts for where the margin actually went. <span class="checks">The tests cover 1 of the 2 pieces of work it rests on.</span></div></details>
+<details class="item"><summary class="item-h">Its own regulatory obligations, tracked<span class="pill pill-live">Live</span><span class="badge">no test cited</span></summary><div class="item-p">A register of what the licence requires, checked against what the supplier is doing, with the physical-harm duties treated as the serious ones.</div></details>
 <h4 class="col-h">Next &middot; 4</h4>
-<div class="item"><div class="item-h">Carbon measured on three ledgers<span class="pill pill-building">Building</span></div><div class="item-p">Customer, portfolio and grid carbon accounted separately — the measurement the whole premise rests on.</div></div>
-<div class="item"><div class="item-h">A pricing engine<span class="pill pill-planned">Planned</span></div><div class="item-p">Building a tariff forward from the cost stack — wholesale, losses, network, policy — rather than inheriting a price.</div></div>
-<div class="item"><div class="item-h">The collections journey, end to end<span class="pill pill-building">Building</span></div><div class="item-p">Missed payment, reminder, dunning ladder, arrangement, and the point where a debt is handed on.</div></div>
-<div class="item"><div class="item-h">Settlement true-ups on the real timetable<span class="pill pill-planned">Planned</span></div><div class="item-p">Following a volume from initial settlement through each reconciliation run, and taking the financial consequence each time it moves.</div></div>
+<details class="item"><summary class="item-h">Carbon measured on three ledgers<span class="pill pill-building">Building</span><span class="badge">26 tests</span></summary><div class="item-p">Customer, portfolio and grid carbon accounted separately — the measurement the whole premise rests on.</div></details>
+<details class="item"><summary class="item-h">A pricing engine<span class="pill pill-planned">Planned</span><span class="badge">no test cited</span></summary><div class="item-p">Building a tariff forward from the cost stack — wholesale, losses, network, policy — rather than inheriting a price.</div></details>
+<details class="item"><summary class="item-h">The collections journey, end to end<span class="pill pill-building">Building</span><span class="badge">no test cited</span></summary><div class="item-p">Missed payment, reminder, dunning ladder, arrangement, and the point where a debt is handed on.</div></details>
+<details class="item"><summary class="item-h">Settlement true-ups on the real timetable<span class="pill pill-planned">Planned</span><span class="badge">no test cited</span></summary><div class="item-p">Following a volume from initial settlement through each reconciliation run, and taking the financial consequence each time it moves.</div></details>
 <!-- CAPABILITIES-SUPPLIER:END -->
       </div>
     </section>
@@ -278,18 +296,45 @@ details.more summary { cursor: pointer; font-size: 13px; font-weight: 600; margi
     </tbody>
   </table></div>
 
-  <h2 class="sec">What a supplier can do with this world</h2>
-  <p class="sec-lede">The two columns above say how much has been built. This register says what it
-  is <em>for</em> &mdash; the things an energy supplier could actually do here, grouped by the
-  question each one answers about a customer. Every item names the hidden truth it would be scored
-  against, which is what makes this world worth building: for every home it knows what would have
-  happened anyway, so a claim like &ldquo;we saved you this much&rdquo; can be marked against the
-  answer before it is ever said to a real customer. Nothing here is a promise that it has been
-  built. An item reads <em>testable now</em> only when every truth it is scored against already
-  exists in the world; otherwise it says which one is missing, and that sentence is assembled from
-  the record rather than written here.</p>
-  <div class="figs" id="uc-tally"></div>
-  <div id="use-cases"></div>
+  <h2 class="sec">What this world is for</h2>
+  <p class="sec-lede">What an energy supplier could test here, each item scored against the hidden
+  truth the world keeps for every home: what would have happened anyway, so a claim like &ldquo;we
+  saved you this much&rdquo; is marked against the answer before it is said to anyone. An item
+  reads <em>testable now</em> only when every truth it needs already exists; nothing here says it
+  has been built.</p>
+  <div class="figs" id="uc-tally">
+<!-- CAPABILITIES-UCTALLY:START (written at publish by tools/capabilities_page_figures.py -- do not hand-edit) -->
+<div class="fig"><div class="fig-v">2</div><div class="fig-k">testable against hidden truth today</div></div><div class="fig"><div class="fig-v">17</div><div class="fig-k">waiting on truth the world does not model yet</div></div><div class="fig"><div class="fig-v">2</div><div class="fig-k">truths nothing is working on at all</div></div>
+<!-- CAPABILITIES-UCTALLY:END -->
+  </div>
+  <details class="more register" id="use-cases">
+<!-- CAPABILITIES-USECASES:START (written at publish by tools/capabilities_page_figures.py -- do not hand-edit) -->
+<summary>What this world is for: 19 things a supplier could test here</summary>
+<div class="uc-gate">Whether they pay</div>
+<div class="uc uc-testable"><div class="item-h">Debt and cash flow modelled per home<span class="pill pill-testable">Testable now</span><span class="uc-met">4 of 4 in place</span></div><div class="item-p">Provisioning built up home by home, with the rules for how a payment clears against old and new charges made explicit, and a debt trajectory per home so that beating the forecast is something a manager can actually be measured on.</div><div class="uc-test"><b>Scored against:</b> Does the predicted arrears trajectory match what truly happened, and how fast and how accurately was hardship told apart from choice?</div></div>
+<div class="uc uc-testable"><div class="item-h">Spotting a household going cold<span class="pill pill-testable">Testable now</span><span class="uc-met">2 of 2 in place</span></div><div class="item-p">Consumption falling below what the building&#x27;s physics says the home needs in cold weather is not a thrifty customer; it is someone going without heat.</div><div class="uc-test"><b>Scored against:</b> How many are found and how many false alarms — and the false alarm that matters is an empty house mistaken for a cold occupant.</div></div>
+<div class="uc"><div class="item-h">Prepayment offered well rather than imposed<span class="pill pill-waits">Waits</span><span class="uc-met">1 of 2 in place</span></div><div class="item-p">Moving a customer who can pay but will not onto prepayment, screened for vulnerability first and designed with credit that carries them over a weekend.</div><div class="uc-test"><b>Scored against:</b> Bad debt by meter type, holding payment method and financial stress constant — and the share of cases the vulnerability screen stops.</div><div class="uc-waits">Waits on one consistent reading of who counts as vulnerable.</div></div>
+<div class="uc-gate">Whether they stay</div>
+<div class="uc"><div class="item-h">Budget billing from the home&#x27;s own physics<span class="pill pill-waits">Waits</span><span class="uc-met">3 of 5 in place</span></div><div class="item-p">Forecasts from the building rather than from a national average profile, a monthly payment that is right from the first month, and a mode where the customer names the bill they want and is shown the levers that reach it.</div><div class="uc-test"><b>Scored against:</b> Forecast accuracy by house type against the truth, and what accurate, controllable bills do to bill shock, arrears onset and leaving.</div><div class="uc-waits">Waits on the cash-flow shape a seasonal bill produces and whether a household acts on a prompt about its own bill.</div></div>
+<div class="uc"><div class="item-h">Not heating an empty house<span class="pill pill-waits">Waits</span><span class="uc-met">1 of 2 in place</span></div><div class="item-p">Reading occupancy from the meter&#x27;s own signature — base load only, no evening peak, weekday regularity, gaps that look like holidays — and setting back the heating automatically, with anything sharper strictly opt-in.</div><div class="uc-test"><b>Scored against:</b> Detection accuracy and false alarms against the truth, never setting back on inference alone for anyone who might be vulnerable.</div><div class="uc-waits">Waits on when a home is genuinely occupied, half hour by half hour.</div></div>
+<div class="uc"><div class="item-h">The property as the customer, not the occupant<span class="pill pill-waits">Waits</span><span class="uc-met">2 of 3 in place</span></div><div class="item-p">A record of a home&#x27;s energy physics that outlives whoever lives there: quotes prepared before anyone applies, sign-up at the meter rather than the person, and the final bill actually collected when they leave.</div><div class="uc-test"><b>Scored against:</b> Cost to onboard, accuracy of the first monthly payment, final bills collected, and whether the meter point is retained across a change of occupant.</div><div class="uc-waits">Waits on people moving home, and the shocks that come with it.</div></div>
+<div class="uc"><div class="item-h">Comparison against genuinely similar homes<span class="pill pill-waits">Waits</span><span class="uc-met">2 of 3 in place</span></div><div class="item-p">Similar homes chosen by building physics rather than by postcode, so the comparison is fair rather than merely local.</div><div class="uc-test"><b>Scored against:</b> The change each nudge produces by segment, measured against what that same household would have done untouched.</div><div class="uc-waits">Waits on a cost comparison shaped to the customer rather than averaged.</div></div>
+<div class="uc"><div class="item-h">Targets and streaks on money, carbon and timing<span class="pill pill-waits">Waits</span><span class="uc-met">1 of 2 in place</span></div><div class="item-p">Goals and progress on all four of money, carbon, shifting load and efficiency — offered to those who want them, and deliberately not regressive, so the free steps score as richly as the ones that cost thousands.</div><div class="uc-test"><b>Scored against:</b> Behaviour that actually changed against behaviour merely reported differently, by segment — and whether the saving rebounds later.</div><div class="uc-waits">Waits on whether a household responds to a game, and whether the saving rebounds.</div></div>
+<div class="uc-gate">The margin bet</div>
+<div class="uc"><div class="item-h">Buying energy against the homes actually supplied<span class="pill pill-waits">Waits</span><span class="uc-met">3 of 4 in place</span></div><div class="item-p">The shape of what the supplier buys forward derived from how its own homes respond to cold, region by region, instead of from an industry average profile.</div><div class="uc-test"><b>Scored against:</b> Volume risk and shape error measured on a deliberately cold practice book, and how the position survives a crisis year.</div><div class="uc-waits">Waits on published forward prices to test the buying against.</div></div>
+<div class="uc"><div class="item-h">Tariffs between fully fixed and fully variable<span class="pill pill-waits">Waits</span><span class="uc-met">1 of 3 in place</span></div><div class="item-p">A fixed price for part of the expected volume, with caps, floors and a weather-linked element, so stability is sold to those who value it at a price that reflects what it costs to provide.</div><div class="uc-test"><b>Scored against:</b> What the promise costs in a cold year, across the weather distribution and the home&#x27;s own sensitivity to it — and whether customers understood what they bought.</div><div class="uc-waits">Waits on how much a household values a stable bill and weather drawn as a distribution rather than replayed.</div></div>
+<div class="uc"><div class="item-h">Automated buying inside a set risk limit<span class="pill pill-waits">Waits</span><span class="uc-met">0 of 2 in place</span></div><div class="item-p">Timing and shaping the energy purchase automatically, and using batteries and vehicles with permission — always inside a limit set by the board, never as a speculative position on the book.</div><div class="uc-test"><b>Scored against:</b> Value captured against the limit, with a 2021-style tail survivable by construction rather than by luck.</div><div class="uc-waits">Waits on a risk limit set by the board, which is the board&#x27;s alone to set and published forward prices to test the buying against.</div><div class="uc-waits uc-none">No work is under way on a risk limit set by the board, which is the board&#x27;s alone to set.</div></div>
+<div class="uc"><div class="item-h">Running cheaply enough that the saving is the product<span class="pill pill-waits">Waits</span><span class="uc-met">1 of 2 in place</span></div><div class="item-p">Operating at a fraction of the overhead the price ceiling allows for, so that most of the contribution per account survives to be shared.</div><div class="uc-test"><b>Scored against:</b> Cost per account measured honestly against what the market actually clears at.</div><div class="uc-waits">Waits on how often a household makes contact, and through which channel.</div></div>
+<div class="uc-gate">Value beyond the bill</div>
+<div class="uc"><div class="item-h">Advice costed for the actual building<span class="pill pill-waits">Waits</span><span class="uc-met">1 of 3 in place</span></div><div class="item-p">Solar, batteries, vehicles, insulation, flow temperature and timing, each costed from this home&#x27;s own measured behaviour rather than from a brochure.</div><div class="uc-test"><b>Scored against:</b> Did the promised saving actually arrive — and how much of it was the advice rather than the household drifting there anyway?</div><div class="uc-waits">Waits on homes changing on their own, with no prompting and whether a household acts on advice it is given.</div></div>
+<div class="uc"><div class="item-h">Taking a share of what is actually saved<span class="pill pill-waits">Waits</span><span class="uc-met">2 of 3 in place</span></div><div class="item-p">Payment as a share of the saving, measured against the home&#x27;s own physics baseline. The mission&#x27;s create-then-share, sold as a contract — and credible only once the baseline method has been proved against hidden truth.</div><div class="uc-test"><b>Scored against:</b> The error distribution of the baseline itself, and whether value was created before it was divided.</div><div class="uc-waits">Waits on whether a household acts on advice it is given.</div></div>
+<div class="uc"><div class="item-h">Diagnosing the building from the meter<span class="pill pill-waits">Waits</span><span class="uc-met">1 of 2 in place</span></div><div class="item-p">A change in how much energy a home needs per degree of cold is a boiler degrading, insulation failing, or a thermostat being fought over.</div><div class="uc-test"><b>Scored against:</b> Detection against the true timeline of what changed in the house and when.</div><div class="uc-waits">Waits on homes changing on their own, with no prompting.</div></div>
+<div class="uc"><div class="item-h">Flexibility, with permission<span class="pill pill-waits">Waits</span><span class="uc-met">2 of 4 in place</span></div><div class="item-p">Controlling vehicles, batteries and heat pumps where the customer has agreed, and sharing the revenue that flexibility earns.</div><div class="uc-test"><b>Scored against:</b> Value captured per class of asset, and how many customers consent — noting that solar alone stays uneconomic unless paired.</div><div class="uc-waits">Waits on a consented route to a customer&#x27;s own meter and whether a household will let its heating be controlled.</div></div>
+<div class="uc"><div class="item-h">A bill split into what each thing cost<span class="pill pill-waits">Waits</span><span class="uc-met">1 of 2 in place</span></div><div class="item-p">Heating, hot water, the car and everything else separated out, the way a bank app separates spending.</div><div class="uc-test"><b>Scored against:</b> Accuracy of the split against the true consumption of each asset.</div><div class="uc-waits">Waits on consumption broken down by what used it, not just the total.</div></div>
+<div class="uc"><div class="item-h">Carbon as a product beside the money<span class="pill pill-waits">Waits</span><span class="uc-met">0 of 3 in place</span></div><div class="item-p">Each home&#x27;s carbon measured against what the grid was actually emitting half hour by half hour, a carbon budget beside the money one, and shifting use into the cleaner hours.</div><div class="uc-test"><b>Scored against:</b> Carbon actually saved against what that household would have emitted anyway, and how much use genuinely moved.</div><div class="uc-waits">Waits on carbon kept on three separate ledgers, a live route to what the grid is emitting and ten years of what the grid emitted, lined up with the settlement record.</div></div>
+<div class="uc"><div class="item-h">Knowing what a customer is worth before bidding for them<span class="pill pill-waits">Waits</span><span class="uc-met">1 of 4 in place</span></div><div class="item-p">Worth estimated from what is legitimately observable at a quote — the area, the building, the payment method, the meter — so that acquisition is bid by expected value; and each question ranked by how much the answer sharpens the estimate, so &#x27;advice for three answers&#x27; is a designed exchange rather than a form.</div><div class="uc-test"><b>Scored against:</b> The estimate at the quote against what the customer truly turned out to be worth.</div><div class="uc-waits">Waits on a pool of prospective homes that are not yet customers, what a customer is worth over three horizons and how a household behaves at the point of quoting.</div><div class="uc-waits uc-none">No work is under way on a pool of prospective homes that are not yet customers.</div></div>
+<!-- CAPABILITIES-USECASES:END -->
+  </details>
 
   <!-- WHAT IS NOT BUILT YET (director steer of 22 Oct 2026, "the front door shows the ambition and
        what has been built"): these paragraphs led the front door until that day. They moved here
@@ -391,12 +436,9 @@ details.more summary { cursor: pointer; font-size: 13px; font-weight: 600; margi
   <p class="note" id="wallnote"></p>
 
   <p class="note">Every figure on this page is generated from the project's own records at the
-  commit shown at the top. Nothing here is typed in by hand except the descriptions, which say what
+  commit shown at the foot. Nothing here is typed in by hand except the descriptions, which say what
   the code does rather than what any run produced.</p>
 </div>
-<footer>
-  &copy; 2026 Poesys Platforms. A proof of concept, not a product.
-</footer>
 <script>
 (function () {
   var E = function (s) {
@@ -407,48 +449,6 @@ details.more summary { cursor: pointer; font-size: 13px; font-weight: 600; margi
   fetch("../data/capabilities_door.json?t=" + Date.now())
     .then(function (r) { return r.json(); })
     .then(function (d) {
-      document.getElementById("stamp").innerHTML =
-        "Generated " + E(d.generated_at) + " at commit <code>" + E((d.git_commit || "").slice(0, 9)) +
-        "</code>, from the project's own work record and the boundary walker.";
-
-      // The use-case register. The status is never read as a stored string: it is
-      // `testable_now`, which the generator computes from whether every truth the item is
-      // scored against has actually been finished. The waiting sentence is assembled the
-      // same way, so an item leaves it the moment its last missing truth lands.
-      var uc = d.use_cases || {gates: [], tally: {}};
-      var ut = uc.tally || {};
-      document.getElementById("uc-tally").innerHTML = [
-        [ut.testable_now, "testable against hidden truth today"],
-        [ut.waiting, "waiting on truth the world does not model yet"],
-        [ut.unmodelled_truths, "truths nothing is working on at all"]
-      ].map(function (f) {
-        return '<div class="fig"><div class="fig-v">' + E(f[0]) + '</div><div class="fig-k">' +
-          E(f[1]) + "</div></div>";
-      }).join("");
-
-      document.getElementById("use-cases").innerHTML = (uc.gates || []).map(function (g) {
-        return '<div class="uc-gate">' + E(g.gate) + "</div>" + g.items.map(function (u) {
-          var waits = "";
-          if (!u.testable_now) {
-            waits = '<div class="uc-waits">Waits on ' + E(u.status.replace(/^Waits on /, "")) +
-              ".</div>";
-            if (u.unmodelled && u.unmodelled.length) {
-              waits += '<div class="uc-waits uc-none">No work is under way on ' +
-                E(u.unmodelled.join("; ")) + ".</div>";
-            }
-          }
-          return '<div class="uc' + (u.testable_now ? " uc-testable" : "") + '">' +
-            '<div class="item-h">' + E(u.name) +
-            '<span class="pill ' + (u.testable_now ? "pill-testable" : "pill-waits") + '">' +
-            E(u.testable_now ? "Testable now" : "Waits") + "</span>" +
-            '<span class="uc-met">' + E(u.needs_met) + " of " + E(u.needs_total) +
-            " in place</span></div>" +
-            '<div class="item-p">' + E(u.what) + "</div>" +
-            '<div class="uc-test"><b>Scored against:</b> ' + E(u.test) + "</div>" +
-            waits + "</div>";
-        }).join("");
-      }).join("");
-
       // Every gap carries what closes it. A gap with no plan beside it is a confession;
       // a gap with one is a roadmap.
       document.getElementById("gaps").innerHTML = (d.gaps || []).map(function (g) {
@@ -5297,6 +5297,12 @@ details.more summary { cursor: pointer; font-size: 13px; font-weight: 600; margi
     <a href="../harness/">The Company</a>.
   </p>
 </section>
+<footer>
+  &copy; 2026 Poesys Platforms. A proof of concept, not a product.
+  <p class="stamp"><!-- CAPABILITIES-STAMP:START (written at publish by tools/capabilities_page_figures.py -- do not hand-edit) -->
+<span id="stamp">Generated 2026-10-19T08:52:31Z at commit <code>30246d6f0</code>, from the project&#x27;s own work record and the boundary walker.</span>
+<!-- CAPABILITIES-STAMP:END --></p>
+</footer>
 <!-- RUN-CLOCK:START (written at publish by tools/generate_dashboard_data.py -- do not hand-edit) -->
 <p class="lf-prov" style="max-width:1060px;margin:24px auto 8px;padding:0 22px;font-size:11.5px;color:var(--muted,#666)">Figures from the run of 19 Oct 2026 &middot; published every Monday <span class="lf-run">(run 8b6fea024_20261019T033010Z; no figure here is typed by hand)</span></p>
 <!-- RUN-CLOCK:END -->

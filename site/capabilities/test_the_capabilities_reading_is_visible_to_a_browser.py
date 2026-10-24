@@ -87,8 +87,12 @@ _MONEY_CHAINS = {
 _SUBJECT = (
     *_HEADLINES, *_CATCH_TARGETS, *_TALLIES,
     *sorted({eid for ids in _MONEY_CHAINS.values() for eid in ids}),
-    "gaps", "supplier", "world", "wallnote", "golive", "growth", "use-cases",
+    "gaps", "supplier", "world", "wallnote", "golive", "growth",
 )
+# `use-cases` LEFT THIS LIST ON 24 OCT, by ruling rather than by drift: the director asked for the
+# register "below the fold as one collapsed section", so a closed `<details>` is its correct state
+# and a visibility leg on it would red the page for doing what he asked. Its three counts stay in
+# `uc-tally` above, and `tests/tools/test_capabilities_page_figures.py` holds its rows to the feed.
 
 
 @pytest.fixture(scope="module")
