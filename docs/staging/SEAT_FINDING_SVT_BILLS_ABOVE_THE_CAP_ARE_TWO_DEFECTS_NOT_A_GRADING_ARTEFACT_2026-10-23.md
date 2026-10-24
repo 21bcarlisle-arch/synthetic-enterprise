@@ -325,3 +325,41 @@ pre-registration's Result).
 **On the BLOCKING severity:** the over-cap class has fallen from 29.8% to 0.42% of graded invoices.
 The residue is one named route (item 1) plus a known misgrade. I recommend that the seat downgrades
 this to MATERIAL when it re-orients, and keeps it open until item 1 lands.
+
+## Next item 1, 24 Oct 05:40: the void stub's estimate inside the EPG, traced and fixed
+
+**Traced on `88cdf35e48`'s output, not inferred.** Of the 32 default-tariff invoices above the
+ceiling inside the EPG windows, **9 are estimates whose true kWh is 0 and which carry no receipt**:
+5 electricity and 4 gas, on 7 fuel legs of 4 incoming-occupant households, Dec 2022 to Jun 2023.
+They include the five largest (33.47p, 17.89p and three at 16.60p). The route is the one the EPG
+pre-registration named under "Not covered", with one belief corrected: the stub's *true* kWh is 0,
+but the company's *estimate* is not, because it estimates from the registry EAC. `as_void_row` zeroes
+the row, then `stamp_hmt_epg_receipt` writes a 0.0 receipt. `_estimate_records_at_tariff_rate`
+priced the estimated kWh at `unit_rate_gbp_per_mwh`, the Ofgem level, and copied that 0.0 across.
+So the household was charged the Treasury's share. That is a transfer, not value (M2).
+
+**Fix.** The stamp also writes the receipt's per-MWh rate, ex-VAT, on each row it stamps. The field
+is `hmt_epg_receipt_gbp_per_mwh`, the segment's own name for it. The tariff-rate estimate takes its
+kWh at that rate as the receipt, so the generator carves it out as it does on a scaled estimate. At
+real inputs (193.28 kWh):
+
+- Jan 2023 bills at 34.00p with a £61.61 receipt.
+- May 2023 bills at 34.00p.
+- Sep 2022 is unchanged and carries no receipt.
+
+Control: `tests/saas/test_the_epg_reaches_the_household_bill.py::test_a_void_stub_estimated_at_the_tariff_rate_charges_the_household_the_epg`.
+Two mutations each red it: the estimate drops its receipt line, or the stamp stops writing the rate.
+
+**The other 23 inside the windows each carry their receipt**, so a missing EPG is not their cause.
+16 of them are on `PROS-2019-0246` and `OCC-d8e674fa38de`, the two actual-read accounts the
+ToU-pair misgrade covers (largest 8.20p). The other 7 are spread over six accounts. Item 3's
+struck-rate question still owns them.
+
+**Prediction for the next fresh run, filed before it exists:** inside the EPG windows, default-tariff
+invoices above the ceiling fall from 32 to **at most 23**, and none is an estimate with true kWh 0.
+Outside the windows, the count stays at 72 within the run's own noise. The fix touches no row
+outside 2022-10 to 2023-06.
+
+**On the BLOCKING severity:** with item 1 landed, I support downgrading to MATERIAL, as recommended
+above. What remains is EPG predictions 3 and 4 (owed) and the attribution of the denominator's
+growth. Neither is a billing defect.
