@@ -1602,3 +1602,19 @@ The launch waits on the section 14 clean-book driver (`/var/tmp/se-s14clean-out/
 starts only once that driver has written `grade.rc`. If the driver ends without one, the waiter
 refuses and names it, rather than running into whatever re-takes section 14. Grading is handed on as
 `the-crisis-overlay-arm-on-the-default-book-is-graded`.
+
+## 2026-10-24 (21:21 BST): the waiter refused because its worktree was gone; relaunched at ebc3c34e2e
+
+Section 14's driver wrote `grade.rc=0` at 15:37Z, and the waiter then refused by name:
+`/var/tmp/crisis-overlay-run2` had been deleted while it waited, so the unit would have died at
+systemd's CHDIR step. Nothing ran. The worktree is recreated at origin/main `ebc3c34e2e`, which is
+not the 13:15 note's commit. Nothing in the arm depends on that: `provision_crisis_overlay` is still
+off by default at `company/policy/decision_policy.py:206`, and the arm switches it on itself. It is
+now `git worktree lock`ed with its owner and reason, so a sweep cannot take it again. The
+predictions above stand unchanged. `SE_POPULATION_SEED` is unset in both the launcher and the unit.
+
+`longjob-crisis-overlay-arm-default-book-b8b14269e` was admitted at 20:20:54Z. Resident memory was
+14.3 GB, plus the 7.5 GB declared peak, against 23.0 GB, and the job runs in its own cgroup. It got
+past the import that killed the 06:21Z arm, and by 20:24Z it was settling 2017. The artefact will be
+`/var/tmp/crisis-overlay-out/arm.json` and the log `/var/tmp/crisis-overlay-out/arm.log`. Grading
+stays with `the-crisis-overlay-arm-on-the-default-book-is-graded`, from arm.json.
