@@ -629,17 +629,17 @@ for_the_director:
     the tail, or a reason from you that a billing-method change belongs on a curriculum rather than the
     standing policy.'
   status: answered
-  resolution: 'Rich, 23 Oct 2026 07:03 BST, through the advisor channel: ''Great. All good. Do these.''
-    (docs/staging/advisor/done/DIRECTOR_RULING_SWITCH_ONS_THAT_PASS_THEIR_PREREG_ARE_YOURS_2026-10-23.md,
-    advisor commit d9faa7916, signature GOOD). The default is on for every standing policy, with a revert
-    control; switch-ons like this are now the machine''s own call (canon G9).'
+  resolution: 'Director, Fri 23 Oct 2026, 07:03 BST, through the advisor channel: "Great. All good. Do
+    these." (DIRECTOR_RULING_SWITCH_ONS_THAT_PASS_THEIR_PREREG_ARE_YOURS_2026-10-23.md, staged in d9faa7916,
+    which verifies against the advisor''s pinned key). The annualised advance goes on by default, and
+    a switch-on that meets its own pre-registered rule is the machine''s from now on. Focus item 1 does
+    it.'
   evidence: 'docs/staging/records/WORKER_PREREG_THE_BILL_ESTIMATE_READS_THE_ANNUALISED_ADVANCE_2026-10-22.md
     section 4: two arms at 30674a4bd, one variable. PB held (sum of catch-ups 187,975 to 147,136 pounds,
     ratio 0.78), PC held (mean estimated-bill error lower in 9 of 9 years 2017-2025, by 0.6 to 1.7 points),
     PD held (2022-23 overcharges 0.79 of control). PA and PE were refuted in the favourable direction:
     the tail fell by 6 rather than staying flat, and PROS-2017-0336''s +4,225 pound catch-up became a
     1,452 pound credit, not 2,000-6,000.'
-  resolved: '2026-10-23'
 - id: poesys-net-carries-cloudflare-s-web-analytics
   raised: '2026-10-23'
   kind: reserved

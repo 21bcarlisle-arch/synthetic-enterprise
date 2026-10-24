@@ -56,3 +56,20 @@ currently asks a person for. This is not built here.
 
 `git revert` of the landing restores origin's copies. The shared copies the seat wrote are on the
 shared disk until the advance, and the reconciler preserves them on its refs.
+
+## Correction, same turn: on `DIRECTION.yaml` the copy wins, not origin
+
+After the keep-both landing, `DIRECTION.yaml` was the only path still holding the advance. It
+differed from origin in nothing but that one row's resolution wording and its `resolved:` date.
+No door enacts "origin wins" on a YAML replacement (`refresh_to_head` grades it
+`refused_replacement_no_landable_hunk` even with `--base-wins`), and the clock is short: the 08:20Z
+orientation would find its stretch-log copy still not "HEAD plus one block" (it edits a line of
+HEAD's copy, which was measured) and would refuse again. So the shared copy's bytes were landed
+as they stand. The ruling is the same in both wordings. What is lost is the `resolved:
+'2026-10-23'` date on `switch-ons-that-pass-their-prereg`. Nothing in `background/` or `tools/`
+reads it.
+
+`site/data/delivery.json` was refreshed on the shared tree under `--base-wins`, which the clock
+admitted. Its bytes are preserved on `refs/preserved/refresh-to-head/shared-checkout-reaches-origin-delivery-json`.
+The two `advisor/done/` copies are earlier-revision twins of 845c69188, a class
+`origin_reconcile` clears by itself.
