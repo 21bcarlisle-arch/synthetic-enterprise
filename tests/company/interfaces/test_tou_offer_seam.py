@@ -128,7 +128,7 @@ def _drive_pre_cut(customer: dict, unit_rate: float):
 
 def _drive_door(customer: dict, unit_rate: float, module=seam):
     offer = module.request_tou_offer(
-        customer=customer, flat_unit_rate_gbp_per_mwh=unit_rate,
+        customer=customer, tariff_type="fixed", flat_unit_rate_gbp_per_mwh=unit_rate,
     )
     if offer is None:
         return None
@@ -166,7 +166,7 @@ def test_mutation_widening_the_eligibility_rule_is_caught_by_the_same_comparison
         "mutant_tou_desk_eligibility",
     ) as mutated:
         got = mutated.decide_tou_offer(
-            customer=_CUSTOMERS["nhh_no_smart_meter"], flat_unit_rate_gbp_per_mwh=140.0,
+            customer=_CUSTOMERS["nhh_no_smart_meter"], tariff_type="fixed", flat_unit_rate_gbp_per_mwh=140.0,
         )
         assert got is not None, "the mutation did not take"
         with pytest.raises(AssertionError):
@@ -210,7 +210,7 @@ def test_mutation_a_second_copy_of_the_split_is_caught():
 
         flat = price_fixed_tariff(62.4, 14000, "2019-04-01")
         got = mutated.decide_tou_offer(
-            customer=_CUSTOMERS["hh_metered"], flat_unit_rate_gbp_per_mwh=flat,
+            customer=_CUSTOMERS["hh_metered"], tariff_type="fixed", flat_unit_rate_gbp_per_mwh=flat,
         )
         with pytest.raises(AssertionError):
             assert price_tou_tariff(62.4, 14000, "2019-04-01") == (
@@ -242,7 +242,7 @@ def test_mutation_swapping_the_pair_reds_the_neutrality_control():
         "mutant_tou_desk_swap",
     ) as mutated:
         got = mutated.decide_tou_offer(
-            customer=_CUSTOMERS["hh_metered"], flat_unit_rate_gbp_per_mwh=140.0,
+            customer=_CUSTOMERS["hh_metered"], tariff_type="fixed", flat_unit_rate_gbp_per_mwh=140.0,
         )
         with pytest.raises(AssertionError):
             assert 0.30 * got.peak_rate_gbp_per_mwh + 0.70 * got.offpeak_rate_gbp_per_mwh \
@@ -307,7 +307,7 @@ def test_no_parameter_of_the_door_can_carry_the_companys_machinery():
 
 def test_the_offer_carries_values_only():
     offer = request_tou_offer(
-        customer=_CUSTOMERS["hh_metered"], flat_unit_rate_gbp_per_mwh=140.0,
+        customer=_CUSTOMERS["hh_metered"], tariff_type="fixed", flat_unit_rate_gbp_per_mwh=140.0,
     )
     assert isinstance(offer, TouOffer)
     for value in (offer.peak_rate_gbp_per_mwh, offer.offpeak_rate_gbp_per_mwh):
@@ -320,5 +320,5 @@ def test_a_term_with_no_tou_offer_is_none_not_an_offer_of_nulls():
     """A `TouOffer(None, None)` would be billable against by a caller that only
     checks the object exists."""
     assert request_tou_offer(
-        customer=_CUSTOMERS["nhh_no_smart_meter"], flat_unit_rate_gbp_per_mwh=140.0,
+        customer=_CUSTOMERS["nhh_no_smart_meter"], tariff_type="fixed", flat_unit_rate_gbp_per_mwh=140.0,
     ) is None

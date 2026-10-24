@@ -15,7 +15,8 @@ to read as a list of doors, so what crosses the wall stays reviewable at a glanc
 
 WHAT CROSSES, PRECISELY
 -----------------------
-In: the customer record (read for metering facts the supplier genuinely observes)
+In: the customer record (read for metering facts the supplier genuinely observes),
+the term's tariff type (a default tariff is single-rate: nobody chose a ToU pair on it)
 and the flat rate this term is contracted at.
 
 Out: a `TouOffer` -- two numbers -- or `None` when no ToU offer is made. No
@@ -37,6 +38,7 @@ __all__ = ("TouOffer", "request_tou_offer")
 def request_tou_offer(
     *,
     customer: dict,
+    tariff_type: str,
     flat_unit_rate_gbp_per_mwh: float,
 ) -> TouOffer | None:
     """Ask the company what ToU pair, if any, it is offering this customer.
@@ -49,5 +51,6 @@ def request_tou_offer(
 
     return decide_tou_offer(
         customer=customer,
+        tariff_type=tariff_type,
         flat_unit_rate_gbp_per_mwh=flat_unit_rate_gbp_per_mwh,
     )

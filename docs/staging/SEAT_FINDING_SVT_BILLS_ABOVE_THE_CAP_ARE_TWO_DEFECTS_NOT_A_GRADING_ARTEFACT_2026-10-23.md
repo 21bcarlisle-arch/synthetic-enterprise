@@ -250,3 +250,32 @@ differences are not trusted until the fresh run is graded. Their signs are not c
 - Known misgrade carried in: a smart-metered home's default term is billed on a ToU pair, so a bill
   can sit a few per cent over a pair struck at the cap (item 3). If the outside-EPG remnant exceeds
   200, its share on actual-read accounts is read first, before calling A incomplete.
+
+## Items 5 and 6, 24 Oct: a ToU pair needs the household's choice; fixed, not ruled lawful
+
+**Item 5: fixed as an error fix.** The K8 page is
+`docs/market_research/a_tou_tariff_needs_the_households_choice_not_its_meter.md`. SLC 28AD defines a
+Multi-Register Tariff by the household's charging arrangement, "regardless of the metering equipment
+employed". The 2017 SLC 1 default-tariff test says a rollover must be "similar in nature" to the
+current tariff, including "tariff type" and "meter type". SLC 47.11 says sub-daily data for billing
+needs "explicit consent". So a default-tariff roll is single-rate. `tou_desk.offers_tou` now takes a
+required `tariff_type` and refuses ToU for `DEFAULT_TARIFF_TYPES`. The ToU door and `run_phase2b`
+pass the term's type. The renewal chain reads the same predicate, so a smart home's default term is
+graded against the single-rate cap and its fix against the multi-register cap. Partition control:
+`tests/simulation/test_a_default_tariff_term_is_billed_at_one_rate.py::test_the_partition` (the same
+planted smart home: a fix bills two rates, the default bills one). Both mutations, dropping the guard
+and dropping the meter read, red it and the chain's
+`test_the_benchmark_follows_the_product_a_smart_home_chose_not_its_meter`.
+GAP: register-based ToU on a SMETS2 meter without half-hourly data. No rule found either way.
+
+**Item 6: its grading half is spent by item 5, and its display half is handed on.** After the fix,
+no default-tariff bill is a ToU bill. The household-ceiling invariant grades default tariffs only, so
+it no longer meets a pair and stops misgrading the 59. A ToU bill on a chosen fix still prints one
+`Anytime` register at the blended rate (`tools/generate_billing_ledger.py`, the `registers` list), so
+its household cannot check it. Splitting it needs `company/billing/monthly_bill_assembly.py`, which
+another lane holds on the shared tree. It is handed on as its own item, not landed over them.
+
+**The fresh run (`88cdf35e48`, launched 01:51) does NOT carry this fix.** It launched before this
+landed, so its filed prediction is not amended. The ToU pair stays on its default terms as the
+"known misgrade carried in" above. This fix's own effect will show on the next run: default-tariff
+bills on actual-read accounts reproduce their term's struck rate, and the 59 struck at the cap clear.

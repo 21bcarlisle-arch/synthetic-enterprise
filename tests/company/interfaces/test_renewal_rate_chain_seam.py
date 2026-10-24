@@ -236,7 +236,8 @@ def _drive_pre_cut(**over):
         from company.pricing.tou_desk import offers_tou
         _cap = cap_ceiling_ex_vat(
             commodity, date.fromisoformat(term_start_str[:10]),
-            multi_register=commodity == "electricity" and offers_tou(args["customer"]),
+            multi_register=(commodity == "electricity"
+                            and offers_tou(args["customer"], tariff_type=term_tariff_type)),
         )
         if _cap is not None:
             if _cap < unit_rate:

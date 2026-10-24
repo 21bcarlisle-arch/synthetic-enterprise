@@ -29,6 +29,14 @@ split is revenue-neutral against the flat rate. Both are the supplier's, both ar
 allowed to be wrong, and the gap between the assumed 30/70 split and the customer's
 actual half-hourly shape is exactly the quantity the COUPLED TRIAD scores.
 
+A DEFAULT TARIFF IS SINGLE-RATE (2026-10-24). The meter permits ToU; it does not choose it. A
+Multi-Register Tariff is a contract the household is charged under (SLC 28AD's definition), a
+rollover must be "similar in nature" to the household's current tariff in tariff type and meter type
+(SLC 1, 2017), and ToU billing off sub-daily reads needs the household's explicit consent (SLC
+47.11). So a term on a default tariff is never sold as ToU, whatever the meter. Until 2026-10-24 every
+term of a smart-metered home was, the default included: 127 actual-read accounts on run `8b6fea024`.
+Knowledge: `docs/market_research/a_tou_tariff_needs_the_households_choice_not_its_meter.md`.
+
 ORDER IS THE SIGNATURE: the pair is struck off the FINAL flat rate. Ask for the ToU
 offer before the rate chain has finished moving it and the peak rate is a multiple of
 a number the customer was never contracted at.
@@ -38,6 +46,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from company.compliance.domain_invariants import DEFAULT_TARIFF_TYPES
 from saas.smart_meter_rollout import is_tou_eligible
 from saas.tariff_pricing import split_flat_rate_to_tou
 
@@ -58,16 +67,23 @@ class TouOffer:
     offpeak_rate_gbp_per_mwh: float
 
 
-def offers_tou(customer: dict) -> bool:
-    """Whether the company sells this customer a ToU tariff. ONE rule, read by the offer below
-    and by the renewal rate chain, which must grade a term it will sell as ToU against the
-    multi-register cap (SLC 28AD.4) and so has to know before the pair is struck."""
+def offers_tou(customer: dict, *, tariff_type: str) -> bool:
+    """Whether the company sells this customer a ToU tariff on a term of `tariff_type`. ONE rule,
+    read by the offer below and by the renewal rate chain, which must grade a term it will sell as
+    ToU against the multi-register cap (SLC 28AD.4) and so has to know before the pair is struck.
+
+    `tariff_type` is required: a caller that omits it is how a default tariff became ToU. A chosen
+    term (a fix the household accepted with the pair quoted) is ToU where the meter allows; a
+    default-tariff term is single-rate, because nobody chose it."""
+    if tariff_type in DEFAULT_TARIFF_TYPES:
+        return False
     return is_tou_eligible(customer)
 
 
 def decide_tou_offer(
     *,
     customer: dict,
+    tariff_type: str,
     flat_unit_rate_gbp_per_mwh: float,
 ) -> TouOffer | None:
     """Decide whether this customer is offered ToU this term, and at what pair.
@@ -75,12 +91,13 @@ def decide_tou_offer(
     customer: the customer record as the world holds it. Read for METERING FACTS
         only (`metering`, `smart_meter`) -- what the supplier can see about the
         physical meter.
+    tariff_type: the term's product (`svt`, `fixed`, ...). A default tariff gets no offer.
     flat_unit_rate_gbp_per_mwh: the rate this term is actually contracted at,
         AFTER every writer that moves it (see `company/pricing/renewal_rate_chain.py`).
 
     Returns None when the company is not offering ToU for this term.
     """
-    if not offers_tou(customer):
+    if not offers_tou(customer, tariff_type=tariff_type):
         return None
 
     peak, offpeak = split_flat_rate_to_tou(flat_unit_rate_gbp_per_mwh)

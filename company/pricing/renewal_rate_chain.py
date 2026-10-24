@@ -543,7 +543,8 @@ def decide_renewal_rate(
         # the offer uses, so the term graded as ToU is the term sold as ToU.
         cap_ceiling = cap_ceiling_ex_vat(
             commodity, date.fromisoformat(term_start[:10]),
-            multi_register=commodity == "electricity" and offers_tou(customer),
+            multi_register=(commodity == "electricity"
+                            and offers_tou(customer, tariff_type=tariff_type)),
             net_of_epg=tariff_type not in EPG_MADE_WHOLE_TARIFF_TYPES)
 
     arm_uplift = renewal_margin_uplift(

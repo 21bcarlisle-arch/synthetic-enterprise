@@ -69,14 +69,21 @@ def test_in_the_epg_window_svt_is_held_at_the_cap_and_fixed_at_the_epg(commodity
     assert fixed < cap * 0.9, "the EPG no longer binds a fixed term, so this control proves nothing"
 
 
-def test_an_svt_segment_sold_as_tou_is_graded_against_the_multi_register_cap():
-    """Catches an SVT ToU segment graded single-rate: 28AD.4 grades any ToU tariff at the
-    multi-register benchmark, and the chain sells a smart-metered SVT household the ToU pair."""
+def test_the_benchmark_follows_the_product_a_smart_home_chose_not_its_meter():
+    """Catches the benchmark read off the meter alone. 28AD.4 grades a Multi-Register Tariff at the
+    multi-register benchmark, and a ToU pair is a contract the household chose: a smart home's fix
+    (won at the cap, `term_index` 0) is sold as ToU and graded multi-register, and the same home
+    rolled onto the default tariff is single-rate and graded single-rate (2026-10-24). Both legs, so
+    a predicate that answers ToU for everything, or for nothing, fails."""
     cap = _published_ex_vat("electricity", NO_EPG)
-    flat = _contracted(commodity="electricity", on=NO_EPG, tariff_type="svt", struck=cap)
-    tou = _contracted(commodity="electricity", on=NO_EPG, tariff_type="svt", struck=cap,
-                      customer=TOU)
-    assert flat == pytest.approx(cap, rel=1e-9)
-    assert tou == pytest.approx(chain.cap_ceiling_ex_vat(
-        "electricity", date.fromisoformat(NO_EPG), multi_register=True, net_of_epg=False))
-    assert tou < flat
+    multi = chain.cap_ceiling_ex_vat(
+        "electricity", date.fromisoformat(NO_EPG), multi_register=True, net_of_epg=False)
+    assert multi < cap, "the two benchmarks agree on this date, so this control proves nothing"
+    svt_smart = _contracted(commodity="electricity", on=NO_EPG, tariff_type="svt", struck=cap,
+                            customer=TOU)
+    fixed_smart = _contracted(commodity="electricity", on=NO_EPG, tariff_type="fixed", struck=cap,
+                              customer=TOU)
+    assert svt_smart == pytest.approx(cap, rel=1e-9), "a default-tariff smart home graded as ToU"
+    assert fixed_smart == pytest.approx(chain.cap_ceiling_ex_vat(
+        "electricity", date.fromisoformat(NO_EPG), multi_register=True)), (
+        "a smart home's chosen fix was not graded against the multi-register cap")

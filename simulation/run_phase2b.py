@@ -4976,8 +4976,11 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 # the pair, are the supplier's commercial decision -- one door,
                 # `company/interfaces/tou_offer.py`. The METER is the world's and
                 # stays here, on the customer record the door is handed.
+                # The term's tariff type goes with it: a default-tariff roll is single-rate,
+                # because a ToU pair is a contract the household chose, not its meter's gift.
                 _tou = request_tou_offer(
-                    customer=customer, flat_unit_rate_gbp_per_mwh=unit_rate,
+                    customer=customer, tariff_type=term_tariff_type,
+                    flat_unit_rate_gbp_per_mwh=unit_rate,
                 )
                 tou_rates = None
                 if _tou is not None:
