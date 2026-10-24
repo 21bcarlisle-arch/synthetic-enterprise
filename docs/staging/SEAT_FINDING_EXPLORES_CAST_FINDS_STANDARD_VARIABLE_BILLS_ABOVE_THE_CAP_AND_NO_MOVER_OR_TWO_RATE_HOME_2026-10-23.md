@@ -67,6 +67,24 @@ only on leaving. That is the shape `done/SEAT_FINDING_A_FAILED_BILL_IS_WRITTEN_O
 recorded, and it still holds on the 19 Oct run. The gas timeline's `"commodity": "electricity"`
 on its renewals (at an electricity £/MWh rate) is confirmed on `SYN-2016-306g`.
 
+**Built 24 Oct (beside the claim).** "The ladder has no step after the second notice" was true of
+the PUBLISHED record and not of the company. There are two ladders:
+- The published per-bill stage list is `arrears_engine.LEDGER_NOTICES`, two notices, read by the
+  world's `arrears_stages`.
+- The company's live desk (`collections_journey`, run by the triad) has five rungs, up to a Consent
+  prepayment offer at day 90. After that rung it went silent until the household left.
+
+The desk now acts past its top rung. Each further missed bill re-offers the SLC 27.6 menu through
+the plan door. A live debt is written off by one named rule: the statute bar, six years past due
+and six years since any payment.
+- K8 page: `docs/market_research/company_debt_management.md`, "After the last rung".
+- Partition control: `tests/company/billing/test_the_collections_ladder_has_a_step_after_the_last_rung.py`.
+
+**Still open (handed on):**
+- The explore page and the per-bill record show `LEDGER_NOTICES`, not the desk's journey. A reader
+  still sees two notices and silence until the per-household record carries the desk's stages.
+- The two ladders still disagree on the plan-offer day (21 against 28).
+
 ## 4. Slots no household can fill
 
 - **The mover.** The published per-household record has no move-out event and no final-bill

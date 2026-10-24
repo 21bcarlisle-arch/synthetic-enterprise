@@ -921,7 +921,8 @@ DUNNING_REQUIRES_AN_UNCLEARED_DEBT = StructuralInvariant(
 )
 
 #: Journey stages that are not a step to collect: the opening, the hold, the exit.
-_NON_DUNNING_JOURNEY_STAGES = frozenset({"missed_payment", "moratorium_hold", "cured"})
+#: A write-off is a release of the debt, not a demand for it, so it is not a dunning stage.
+_NON_DUNNING_JOURNEY_STAGES = frozenset({"missed_payment", "moratorium_hold", "cured", "write_off"})
 
 
 def dunning_of_a_cleared_debt(journey: dict, balance_on) -> list[dict]:

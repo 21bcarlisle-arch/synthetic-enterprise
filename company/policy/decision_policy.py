@@ -415,15 +415,19 @@ VALUE_ARM_CAPPED_LEARNED_POLICY = replace(
 
 #: B11 (2026-10-16): the supplier with no per-customer view, the baseline EP17's per-customer
 #: switch has to beat. CURRENT_POLICY still targets retention by its own churn belief (tiers) and
-#: splits framing and tone by segment, so "current against value arm" compares per-customer renewal
+#: splits framing by segment, so "current against value arm" compares per-customer renewal
 #: PRICING inside a company that targets per customer in both arms. Here the tier share is zero, so
 #: `retention_cut_share_at_risk_tiers` returns None and no retention offer is made to anyone; the
-#: letters go out in one framing and one tone. Every other field is CURRENT_POLICY's, pinned by
+#: offers go out in one framing. Every other field is CURRENT_POLICY's, pinned by
 #: `test_the_flat_supplier_policy_differs_from_current_in_exactly_the_per_customer_fields`.
 #: SEAT_FINDING_B11_THE_FLAT_SUPPLIER_ARM_HAS_NO_DOOR_ON_A_VARIED_BOOK_2026-10-16.
+#: THE TONE IS NOT ONE OF THEM (2026-10-24). Since the world went to one payment truth the triad's
+#: draws read no dunning tone, so a flat arm that changed it would carry a difference that does
+#: nothing. It comes back when the triad reads it, and the test keyed to that says when.
+#: SEAT_FINDING_THE_COLLECTIONS_TONE_REACHES_NO_PAYMENT_SINCE_THE_WORLD_WENT_TO_ONE_PAYMENT_TRUTH_2026-10-22.
 FLAT_SUPPLIER_POLICY = replace(
     CURRENT_POLICY, name="flat_supplier", retention_discount_mode="flat", flat_discount_pct=0.0,
-    retention_tiers=(), framing_mode="gain_framed", tone_mode="firm_toned")
+    retention_tiers=(), framing_mode="gain_framed")
 
 
 # ---- THE RUN'S POLICY, for consumers that are not handed one ----------------

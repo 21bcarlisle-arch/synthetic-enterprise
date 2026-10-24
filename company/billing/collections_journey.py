@@ -99,6 +99,41 @@ ARRANGEMENT_ACCEPTANCE_GAP = (
     "company: neither the instalment it can afford (SLC 27.8) nor whether it agrees")
 
 
+#: THE STEP AFTER THE TOP RUNG (2026-10-24). Once a journey stands on its segment's last rung, each
+#: further bill that falls overdue re-offers an affordable arrangement through the same door: every
+#: missed bill is a fresh SLC 27.5 "reason to believe", so the 27.6 offer is owed again. Keyed to the
+#: missed bill, never to an interval, because no published cadence exists (GAP A1).
+#: `docs/market_research/company_debt_management.md`, "After the last rung".
+PLAN_REOFFER_STEP = "repayment_plan_reoffer"
+#: The one rule that writes off a LIVE account's debt: Limitation Act 1980 s.5, restarted by any
+#: payment (s.29(5)). A bill is barred once it is six years past due AND nothing has been paid on the
+#: account for six years. The exit is taken when the write-off leaves nothing overdue.
+WRITE_OFF = "write_off"
+STATUTE_BAR_YEARS = 6
+STATUTE_BAR_RULE = "limitation_act_1980_s5_six_years_from_due_and_from_the_last_payment"
+
+
+def _years_after(d: dt.date, years: int) -> dt.date:
+    try:
+        return d.replace(year=d.year + years)
+    except ValueError:  # 29 Feb
+        return d.replace(year=d.year + years, day=28)
+
+
+def statute_barred_gbp(ledger: AccountLedger, on: dt.date, payment_terms_days: int = 14) -> float:
+    """What this account owes on `on` that is statute-barred: the FIFO-unpaid bills due at least six
+    years before `on`, and only if no payment has landed on the account in those six years. Read off
+    the company's own ledger only."""
+    from company.billing.arrears_engine import _fifo_unpaid
+    events = ledger.events_through(on)
+    bar = _years_after(on, -STATUTE_BAR_YEARS)
+    paid = [e.valid_time for e in events if e.event_type == LedgerEventType.PAYMENT_CREDIT]
+    if paid and max(paid) > bar:
+        return 0.0
+    return round(sum(g for billed, g in _fifo_unpaid(events)
+                     if billed + dt.timedelta(days=payment_terms_days) <= bar), 2)
+
+
 #: The exits the atom names that the company's own records cannot reach yet, and why. A journey is
 #: never closed on one of these by inference.
 UNREACHED_EXITS = {
@@ -110,7 +145,6 @@ UNREACHED_EXITS = {
     "prepayment": ("reachable when the world changes the meter on a Consent offer, and unreached "
                    "live: the take-up share ships at 0, so the household cannot answer "
                    "(simulation/payment_method_dynamics.py)"),
-    "write_off": "arrears_engine.build_write_off_event has no production caller",
 }
 
 
@@ -144,6 +178,23 @@ def lawful_successors(segment: Segment) -> Dict[Optional[str], frozenset]:
         table[PREPAYMENT_STEP] = table[PREPAYMENT_STEP] | {PREPAYMENT_OFFERED}
         table[PREPAYMENT_OFFERED] = (working - {PREPAYMENT_STEP}) | {PREPAYMENT}
         table[PREPAYMENT] = frozenset()
+    if PLAN_OFFER_STEP in ladder:
+        # The re-offer follows the top rung, the top rung's own offer, or an earlier re-offer's
+        # offer, and is followed by the offer it made.
+        top = ladder_actions(segment)[-1]
+        for before in (top, PREPAYMENT_OFFERED if top == PREPAYMENT_STEP else None,
+                       ARRANGEMENT_OFFERED):
+            if before is not None:
+                table[before] = table[before] | {PLAN_REOFFER_STEP}
+        table[PLAN_REOFFER_STEP] = frozenset({ARRANGEMENT_OFFERED})
+    # A write-off may follow any open stage. When debt younger than the bar is still owed, the
+    # journey goes on from it (to the ladder, or to another write-off a year on); otherwise it is
+    # the exit, and the exit is the last stage.
+    for stage in list(table):
+        if stage not in (None, CURED, ARRANGEMENT, PREPAYMENT, PLAN_REOFFER_STEP):
+            table[stage] = table[stage] | {WRITE_OFF}
+    table[WRITE_OFF] = working | {WRITE_OFF} | (
+        {PLAN_REOFFER_STEP} if PLAN_OFFER_STEP in ladder else frozenset())
     return table
 
 
@@ -166,6 +217,11 @@ def assert_journey_order_lawful(journey: dict, segment: Segment) -> None:
                 following is None or following["stage"] != ARRANGEMENT_OFFERED):
             raise UnlawfulJourneyOrderError(
                 f"{journey.get('account_id')}: {PLAN_OFFER_STEP} on {s['on']} with no "
+                f"{ARRANGEMENT_OFFERED} recorded after it")
+        if s["stage"] == PLAN_REOFFER_STEP and (
+                following is None or following["stage"] != ARRANGEMENT_OFFERED):
+            raise UnlawfulJourneyOrderError(
+                f"{journey.get('account_id')}: {PLAN_REOFFER_STEP} on {s['on']} with no "
                 f"{ARRANGEMENT_OFFERED} recorded after it")
         if s["stage"] == PREPAYMENT_STEP and (
                 following is None or following["stage"] != PREPAYMENT_OFFERED):
@@ -200,7 +256,8 @@ class _Journey:
         beside its plan-offer step, not instead of it, so it is skipped: reading it as the current
         step would make the next read of the same step look like a new one, and re-offer daily."""
         steps = [s["stage"] for s in self.stages
-                 if s["stage"] not in (ARRANGEMENT_OFFERED, PREPAYMENT_OFFERED)]
+                 if s["stage"] not in (ARRANGEMENT_OFFERED, PREPAYMENT_OFFERED, PLAN_REOFFER_STEP,
+                                       WRITE_OFF)]
         return steps[-1] if steps else None
 
     def enter(self, stage: str, on: dt.date, decision: str, view: dict, **extra) -> None:
@@ -234,7 +291,9 @@ class CollectionsJourneyDesk:
     def __init__(self, view_at: Callable[[str, Segment, dt.date], dict],
                  refuse_dunning_of_cleared_debt: Callable[[dict, str], None],
                  plan_offers: Optional[Any] = None,
-                 post_cash: Optional[Callable[[str, float, dt.date, str], None]] = None) -> None:
+                 post_cash: Optional[Callable[[str, float, dt.date, str], None]] = None,
+                 post_write_off: Optional[Callable[[str, float, dt.date, str], None]] = None
+                 ) -> None:
         if plan_offers is not None and post_cash is None:
             raise ValueError(
                 "a desk that can agree plans needs the cash seam to post their instalments: "
@@ -247,6 +306,9 @@ class CollectionsJourneyDesk:
         #: `post_cash(account_id, amount_gbp, value_date, reference)`: the consumer's received-cash
         #: seam, idempotent on `reference`. Every paid plan instalment goes through it.
         self._post_cash = post_cash
+        #: `post_write_off(account_id, amount_gbp, on, note)`: posts a STATUTE_BARRED write-off to the
+        #: company ledger. None: a barred debt is still recorded as a `write_off` stage, unposted.
+        self._post_write_off = post_write_off
         #: Every arrangement this desk has offered, and what became of each.
         self.arrangements = PaymentPlanBook()
         self._instalments_read: Dict[int, int] = {}
@@ -267,10 +329,15 @@ class CollectionsJourneyDesk:
         events = ledger.events()
         bill_dues = [e.valid_time + dt.timedelta(days=payment_terms_days)
                      for e in events if e.event_type == LedgerEventType.BILL_DEBIT]
-        openers = {d + dt.timedelta(days=1) for d in bill_dues} | {
+        missed = {d + dt.timedelta(days=1) for d in bill_dues}
+        openers = missed | {
             e.valid_time for e in events
             if e.event_type.is_debit and e.event_type != LedgerEventType.BILL_DEBIT}
-        movers = openers | {e.valid_time for e in events} | {
+        # A bar can only fall six years after a due date or after a payment.
+        bars = {_years_after(e.valid_time, STATUTE_BAR_YEARS) for e in events
+                if e.event_type == LedgerEventType.PAYMENT_CREDIT} | {
+            _years_after(d, STATUTE_BAR_YEARS) for d in bill_dues}
+        movers = openers | bars | {e.valid_time for e in events} | {
             d + dt.timedelta(days=t) for d in bill_dues for t in triggers}
 
         def _in_window(d: dt.date) -> bool:
@@ -279,10 +346,13 @@ class CollectionsJourneyDesk:
         for on in sorted(d for d in movers if _in_window(d)):
             if account_id not in self._open and on not in openers:
                 continue
-            self._step(account_id, segment, on)
+            self._step(account_id, segment, on, ledger=ledger, bill_missed=on in missed,
+                       payment_terms_days=payment_terms_days)
         self._through[account_id] = through
 
-    def _step(self, account_id: str, segment: Segment, on: dt.date) -> None:
+    def _step(self, account_id: str, segment: Segment, on: dt.date, *,
+              ledger: Optional[AccountLedger] = None, bill_missed: bool = False,
+              payment_terms_days: int = 14) -> None:
         held_by_plan = self._read_instalments(account_id, on)
         view = self._view_at(account_id, segment, on)
         overdue = (view.get("max_days_overdue") or 0) > 0 and (
@@ -300,6 +370,9 @@ class CollectionsJourneyDesk:
             self._refuse(journey.as_record(), account_id)
             self._closed.append(self._open.pop(account_id))
             return
+        if ledger is not None and self._write_off_if_barred(journey, ledger, on, view,
+                                                            payment_terms_days):
+            return
         action = view.get("dunning_action")
         if action is not None and action != journey.current_step:
             journey.enter(action, on, f"{action} by {view.get('dunning_channel')}", view)
@@ -307,9 +380,35 @@ class CollectionsJourneyDesk:
                 self._offer_arrangement(journey, on, view)
             elif action == PREPAYMENT_STEP:
                 self._offer_prepayment(journey, on, view)
+        elif (bill_missed and action is not None and action == journey.current_step
+              and action == ladder_actions(segment)[-1]
+              and PLAN_OFFER_STEP in ladder_actions(segment)):
+            journey.enter(PLAN_REOFFER_STEP, on,
+                          "a further bill missed past the last rung: the SLC 27.6 offer again", view)
+            self._offer_arrangement(journey, on, view)
         self._refuse(journey.as_record(), account_id)
         if journey.exit in (ARRANGEMENT, PREPAYMENT):
             self._closed.append(self._open.pop(account_id))
+
+    def _write_off_if_barred(self, journey: _Journey, ledger: AccountLedger, on: dt.date,
+                             view: dict, payment_terms_days: int) -> bool:
+        """Write off, on the company ledger, what the statute bar covers. Bills younger than the bar
+        stay owed and the journey goes on; it ends on the `write_off` exit only when nothing is left
+        overdue. Returns whether it ended. A desk with no ledger seam writes nothing off."""
+        if self._post_write_off is None:
+            return False
+        barred = statute_barred_gbp(ledger, on, payment_terms_days)
+        if barred <= 0.005:
+            return False
+        self._post_write_off(journey.account_id, barred, on, STATUTE_BAR_RULE)
+        journey.enter(WRITE_OFF, on, f"written off by rule {STATUTE_BAR_RULE}", view,
+                      written_off_gbp=barred, rule=STATUTE_BAR_RULE)
+        after = self._view_at(journey.account_id, journey.segment, on)
+        if (after.get("max_days_overdue") or 0) > 0 and (after.get("undisputed_overdue_gbp") or 0) > 0:
+            return False
+        journey.exit = WRITE_OFF
+        self._closed.append(self._open.pop(journey.account_id))
+        return True
 
     def _read_instalments(self, account_id: str, on: dt.date) -> bool:
         """Post every instalment of this account's ACTIVE plans that fell due by `on` to the plan

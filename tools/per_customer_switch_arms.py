@@ -13,7 +13,8 @@ SEAT_PREREG_THE_PER_CUSTOMER_SWITCHES_ON_TOGETHER_AGAINST_FLAT_2026-10-21.md`):
   * `current` -- CURRENT_POLICY, unchanged. The control at this commit.
   * `all_on`  -- CURRENT_POLICY with C34 at the renewal roll, C35's rise through it, and the save
                  deciding per household, all on.
-  * `flat`    -- FLAT_SUPPLIER_POLICY: no targeted retention, one framing, one tone.
+  * `flat`    -- FLAT_SUPPLIER_POLICY: no targeted retention, one framing (the tone is current's since
+                 2026-10-24: the payment truth reads none).
   * `all_on_ending_term` -- `all_on` with the renewal churn belief conditioned on the term now
                  ending (`renewal_belief_by_ending_term`), the arm the record's section 10 names.
   * `all_on_save_odds` -- `all_on_ending_term` with the retention guard weighing the company's own

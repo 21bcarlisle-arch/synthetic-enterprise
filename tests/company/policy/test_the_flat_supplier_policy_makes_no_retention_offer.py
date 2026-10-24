@@ -29,9 +29,15 @@ from company.policy.decision_policy import (
     tone_for,
 )
 
-#: The fields that hold a per-customer view, and the name.
+#: The fields that hold a per-customer view, and the name. `tone_mode` joins them only while the
+#: world's payment truth reads a dunning tone: `test_the_tone_differs_iff_the_payment_truth_reads_it`.
 PER_CUSTOMER_FIELDS = {"name", "retention_discount_mode", "flat_discount_pct", "retention_tiers",
-                       "framing_mode", "tone_mode"}
+                       "framing_mode"}
+#: The files that decide whether a household paid, since `world_payment_truth.UNIFIED` (12 Oct).
+#: Extend this when the triad's draw moves.
+PAYMENT_TRUTH_PATH = ("background/live_payment_triad.py", "simulation/payment_behaviour_source.py",
+                      "simulation/payment_seam_adapter.py", "simulation/world_payment_truth.py")
+TONE_READERS = ("collections_tone_for", "tone_effectiveness_multiplier")
 WINDOW_END = "2017-12-31"
 #: The withheld reasons a renewal can carry WITHOUT being given a cut. Any other reason was
 #: asked after the cut, so an unknown new reason counts against the flat arm.
@@ -46,7 +52,21 @@ def _differing(a, b) -> set[str]:
 def test_the_flat_supplier_policy_differs_from_current_in_exactly_the_per_customer_fields():
     """DEFECT: a second field moved with the posture (a hedge rule, a guard term), so the delta
     against current carries an uncontrolled variable."""
-    assert _differing(CURRENT_POLICY, FLAT_SUPPLIER_POLICY) == PER_CUSTOMER_FIELDS
+    assert _differing(CURRENT_POLICY, FLAT_SUPPLIER_POLICY) - {"tone_mode"} == PER_CUSTOMER_FIELDS
+
+
+def test_the_tone_differs_iff_the_payment_truth_reads_it():
+    """DEFECT: the flat arm differs from current by a switch that reaches no act -- the tone,
+    while no file that draws a payment reads it -- or stops differing once one does. Keyed to the
+    property, so wiring the tone into the triad turns this red until the flat arm is one tone again.
+    SEAT_FINDING_THE_COLLECTIONS_TONE_REACHES_NO_PAYMENT_SINCE_THE_WORLD_WENT_TO_ONE_PAYMENT_TRUTH_2026-10-22."""
+    from pathlib import Path
+    root = Path(__file__).resolve().parents[3]
+    from simulation import world_payment_truth
+    triad_reads_tone = world_payment_truth.UNIFIED is False or any(
+        name in (root / f).read_text(encoding="utf-8")
+        for f in PAYMENT_TRUTH_PATH for name in TONE_READERS)
+    assert ("tone_mode" in _differing(CURRENT_POLICY, FLAT_SUPPLIER_POLICY)) == triad_reads_tone
 
 
 def test_the_tier_cut_can_offer_under_current_and_cannot_under_flat():
@@ -60,13 +80,14 @@ def test_the_tier_cut_can_offer_under_current_and_cannot_under_flat():
             cost_floor=floor) is None
 
 
-def test_every_household_gets_one_framing_and_one_tone():
+def test_every_household_gets_one_framing_and_the_tone_current_gives_it():
     ids = [f"C{i}" for i in range(40)]
     assert {framing_type_for(CURRENT_POLICY, c, "2018-01-01") for c in ids} == {
         "gain_framed", "loss_framed"}
     assert {framing_type_for(FLAT_SUPPLIER_POLICY, c, "2018-01-01") for c in ids} == {
         "gain_framed"}
-    assert {tone_for(FLAT_SUPPLIER_POLICY, c, "2018-01-31") for c in ids} == {"firm_toned"}
+    assert {tone_for(FLAT_SUPPLIER_POLICY, c, "2018-01-31") for c in ids} == {
+        tone_for(CURRENT_POLICY, c, "2018-01-31") for c in ids}
 
 
 @pytest.fixture(scope="module")

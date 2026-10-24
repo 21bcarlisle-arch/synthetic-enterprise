@@ -745,3 +745,65 @@ DESIGN CHOICES, each named:
 - **A moved meter ends the journey on the `prepayment` exit.** GAP: life on the meter (debt recovered
   from top-ups at £6.01 / £4.40 a week, §2) is still not built, so the debt stays on the ledger and a
   later overdue read can open a new journey. This can only happen in an injected world today.
+
+## After the last rung: what a supplier must and may do once the notices have gone, and when it stops (2026-10-24)
+
+*K8 page for `the-collections-ladder-has-a-step-after-the-second-notice`. Raised by the 19 Oct run: a
+£93.68 bill of April 2019 drew two notices, then nothing for five years, until it was written off 13 days
+after the household left (`docs/staging/SEAT_FINDING_EXPLORES_CAST_FINDS_STANDARD_VARIABLE_BILLS_ABOVE_THE_CAP_AND_NO_MOVER_OR_TWO_RATE_HOME_2026-10-23.md`
+§3). The rules are cited in the sections above and in `debt_and_collections.md` §3–4; this section only
+puts them in order from the point where our ladder ran out.*
+
+### What the rules require after the plan offer and the final notice (ESTABLISHED unless marked)
+- **The SLC 27 duty does not end with the plan offer.** 27.5 is triggered whenever the supplier "has
+  reason to believe" the customer "is having or will have difficulty paying". 27.5B (two missed monthly
+  payments) is the *latest* point for contact. 27.6 is the menu that must then be offered (Fuel Direct
+  where available, instalments under 27.8, a PPM where safe and practicable). **DERIVED:** each further
+  missed bill on an account already in arrears is a fresh reason to believe, so the 27.6 offer is owed
+  again. It is not owed once per debt.
+- **Re-engagement after a failure is explicit for a broken plan.** 27.8A(g) asks for re-engagement "after
+  an initial occurrence of a failed repayment arrangement", and §4.26 of the 2020 decision says on every
+  failure, "as soon as" it is identified. A failure is defined as full payment not received within 10
+  working days of the agreed date. **GAP A1:** no published text gives a re-contact cadence for a
+  household that declined or never answered an offer. The duty is plain; the clock is not.
+- **Prepayment.** By Consent: SLC 28.22, at any time. Involuntary: SLC 28B's Debt Trigger (3 months or
+  more past the bill, £200 or more per fuel, not on a plan), at least 10 contact attempts, a Site Welfare
+  Visit, and the do-not-install list (`debt_and_collections.md` §3; involuntary PPM section above). The
+  involuntary route is the director's reserved shape here and is never automated.
+- **Referral.** 31G.3A–3E: an enquiry service and signposting to free debt advice. Breathing Space
+  holds all action (`debt_and_collections.md`, Breathing Space). Placement with a debt agency is
+  supplier practice, and its order against write-off and sale is supplier-specific (§2.7 there). **GAP
+  A2:** no published age or amount at which a *live* account is placed.
+- **Proportionality.** 28.15: any recovery action, and its costs, must be proportionate to the amount.
+  27.8C: nothing may be demanded while 27.5–27.8 are unmet.
+- **Disconnection** is lawful only after all reasonable steps to recover through a PPM (27.9), and
+  there have been none in GB since Q1 2023. It is not a lever.
+
+### When it stops: the write-off
+- **No licence condition obliges or dates a domestic write-off** (above, "What Ofgem has said about
+  ability to pay since"). A live account's arrears cost money through provision while they stay
+  (`how_a_gb_supplier_decides_to_write_off_a_failed_payment.md` (c)).
+- **A live account is written off by an event, never on a clock.** The three published events are:
+  - a scheme: the Debt Relief Scheme, phase 1;
+  - redress;
+  - **the statute bar.** Limitation Act 1980 s.5 bars an action on a simple contract debt six years
+    after the cause of action, and s.29(5) restarts the clock on any payment or written acknowledgement
+    by the debtor.
+- **DERIVED:** on a balance-based running account, every payment on the account counts towards the
+  oldest debt (Clayton's Case, `account_hierarchy_payment_allocation.md` s.1). So a debt becomes
+  statute-barred only when the household has paid nothing for six years *and* the bill is six years
+  past due. A supplier can read both off its own ledger.
+- **GAP A3:** whether a supplier writes off at the bar or keeps a barred debt on the account
+  (non-court collection of a barred debt is not unlawful in itself). **GAP A4:** DRS eligibility needs
+  benefit status, which a supplier holds only when the household has told it. Not built.
+
+### Design choices (the company desk, `company/billing/collections_journey.py`)
+- **The further step is a re-offer of the 27.6 menu, through the plan door, on each bill that falls
+  overdue after the ladder's top rung.** It is keyed to an observable event (a missed bill), not to an
+  invented interval (GAP A1). Shipped, the world answers every offer None
+  (`domestic_repayment_plan_take_up_and_keep_rates.md`), so the step is a recorded act. The world does
+  not yet price it.
+- **The write-off is the statute bar and nothing else:** `WriteOffReason.STATUTE_BARRED`, posted to the
+  company ledger on the day both six-year conditions hold, for the debt they cover. No live-account
+  write-off on any other clock (GAP A3 is erred on the side of chasing).
+- **Not built:** live agency placement (GAP A2), DRS (GAP A4), Fuel Direct, and involuntary PPM (reserved).

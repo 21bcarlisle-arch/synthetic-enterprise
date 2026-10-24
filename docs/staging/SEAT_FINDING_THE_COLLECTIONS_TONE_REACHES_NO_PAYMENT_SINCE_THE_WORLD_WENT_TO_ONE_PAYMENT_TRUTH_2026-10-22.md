@@ -40,3 +40,26 @@ world change, decided blind to company results (the baseline/curriculum split). 
 anchor is the nudge-physics tone range (+3–10pp), already sourced. **I cannot yet say** how many
 resi bills are fallback bills. One instrumented run reading `wpt.LAST_COUNTS` answers that, and it
 should be the first step.
+
+## Settled 2026-10-24: the tone leaves the flat/per-customer switch set
+
+**Which of the two.** The tone leaves the set. It does not ride on the new step.
+
+The new step after the last rung (`collections_journey.PLAN_REOFFER_STEP`, K8:
+`docs/market_research/company_debt_management.md`, "After the last rung") makes its offer through
+`answer_plan_offer`. That door the triad does read, but the shipped world answers every offer None,
+because no published take-up rate exists. Putting the tone on that offer would move a switch into
+another act the world does not price. The difference would still do nothing.
+
+**What changed.**
+- `FLAT_SUPPLIER_POLICY` keeps CURRENT_POLICY's `tone_mode`, so flat and current now differ in
+  retention and framing only.
+- The control is keyed to the property, not to today's answer:
+  `test_the_tone_differs_iff_the_payment_truth_reads_it` scans the files that decide a payment. Tone
+  may differ between the arms only while one of them reads `collections_tone_for` or
+  `tone_effectiveness_multiplier`, or while `UNIFIED` is off. Wire the tone into the triad and the
+  test goes red until the flat arm is one tone again.
+
+**What it does not do.** It does not make the tone a lever. That is the world change named above,
+decided blind to company results, and it stays open. Prereg §16's `flat` arm was run with the firm
+tone. By §17's byte-identical evidence that difference did nothing, so the §16 reading stands as it is.

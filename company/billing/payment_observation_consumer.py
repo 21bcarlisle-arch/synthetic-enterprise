@@ -892,6 +892,9 @@ class PaymentObservationConsumer:
             # A paid plan instalment is received cash like any other, so it posts through the
             # same seam and allocates by the same ledger rule.
             post_cash=self._post_plan_instalment if plan_offers is not None else None,
+            # A statute-barred debt on a live account is written off on this ledger, by the one
+            # named rule (`collections_journey.STATUTE_BAR_RULE`).
+            post_write_off=self._post_statute_barred_write_off,
         )
         self._dd_failures: Dict[str, List[DDFailureObservation]] = {}
         self._rail_failures: Dict[str, List[RailFailureNote]] = {}
@@ -1576,6 +1579,14 @@ class PaymentObservationConsumer:
         self._post_cash(account_id=account_id, amount_gbp=amount_gbp, value_date=value_date,
                         observed_at=dt.datetime.combine(value_date, dt.time(0, 0)),
                         correlation_id=reference, remittance_ref=None)
+
+    def _post_statute_barred_write_off(self, account_id: str, amount_gbp: float, on: dt.date,
+                                       rule: str) -> None:
+        """The collections desk's statute-bar write-off, posted on the day it is decided."""
+        from company.billing.arrears_engine import WriteOffReason, build_write_off_event
+        self.ledger_book.post(build_write_off_event(
+            account_id, amount_gbp, WriteOffReason.STATUTE_BARRED, on,
+            dt.datetime.combine(on, dt.time(23, 59)), note=rule))
 
     def _observe_remittance(self, payload: RemittanceAdvice, response: WallResponse) -> None:
         self._post_cash(

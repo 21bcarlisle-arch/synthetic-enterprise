@@ -38,11 +38,13 @@ from company.billing.collections_journey import (
     CURED,
     MISSED_PAYMENT,
     PLAN_OFFER_STEP,
+    PLAN_REOFFER_STEP,
     PREPAYMENT,
     PREPAYMENT_ANSWER_GAP,
     PREPAYMENT_OFFERED,
     PREPAYMENT_STEP,
     UNREACHED_EXITS,
+    WRITE_OFF,
     CollectionsJourneyDesk,
     UnlawfulJourneyOrderError,
     assert_journey_order_lawful,
@@ -354,12 +356,13 @@ def test_a_live_run_offers_arrangements_only_straight_after_the_plan_offer_step(
                if s["stage"] == ARRANGEMENT_OFFERED]
     assert offered, "no live journey reached the plan offer -- the arrangement stage is unreached"
     for journey, i in offered:
-        assert journey["stages"][i - 1]["stage"] == PLAN_OFFER_STEP
+        assert journey["stages"][i - 1]["stage"] in (PLAN_OFFER_STEP, PLAN_REOFFER_STEP)
         assert journey["stages"][i]["household_acceptance"] is None
         # The live run asks the WORLD: the reason is the world's, not the desk's no-seam text.
         assert journey["stages"][i]["acceptance_gap"] not in (None, ARRANGEMENT_ACCEPTANCE_GAP)
-    assert all(j["exit"] in (CURED, None) for j in live_journeys), (
-        "an exit other than cured/open was recorded with no world answer behind it")
+    # A statute-barred write-off is the company's own act and needs no world answer.
+    assert all(j["exit"] in (CURED, WRITE_OFF, None) for j in live_journeys), (
+        "an exit other than cured/written-off/open was recorded with no world answer behind it")
 
 
 def test_a_live_run_asks_the_world_for_a_prepayment_meter_at_the_ninety_day_rung(live_journeys):
