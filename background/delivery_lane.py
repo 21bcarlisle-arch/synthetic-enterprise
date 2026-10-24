@@ -4914,6 +4914,23 @@ def awaited_paths(item: dict) -> list[str]:
         return []
 
 
+_EMBARGO_PHRASE = re.compile(r"do\s+not\s+(?:draw|start)\s+before\b", re.IGNORECASE)
+
+
+def unresolved_embargoes(text: str) -> list[str]:
+    """Each `DO NOT DRAW BEFORE ...` phrase in `text` that neither grammar above can read.
+
+    The draw fails OPEN on these, by design, so the only place an unreadable embargo can be caught
+    is where it is written. `grade-c30-across-seeds-after-r2-arms` (2026-10-24) said `DO NOT DRAW
+    BEFORE /var/tmp/c30-seeds-out/{A,B,C}_6110{1,2,3}.json ALL EXIST`: a brace glob, not a path,
+    so it was drawn at 07:56 with none of its nine artefacts on disk. A phrase opened by a backtick
+    is quoted, not given, as in `awaited_paths`.
+    """
+    readable = {m.start() for g in (_EMBARGO, _EMBARGO_PATH) for m in g.finditer(text)}
+    return [text[m.start():m.start() + 90] for m in _EMBARGO_PHRASE.finditer(text)
+            if m.start() not in readable and not (m.start() > 0 and text[m.start() - 1] == "`")]
+
+
 def _embargoed(item: dict, now: float | None) -> bool:
     """True while `item` is inside its own stated embargo -- a time not yet reached, OR a path not
     yet on disk. Both forms in one item must BOTH be met.
