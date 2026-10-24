@@ -96,3 +96,16 @@ def test_run_phase2b_reads_the_switch_when_it_draws_its_book():
                           capture_output=True, text=True, timeout=600, cwd=bsa.PROJECT_DIR)
     assert done.returncode != 0
     assert "SE_POPULATION_SEED=3 refused" in done.stderr
+
+
+def test_a_seeded_books_registers_are_drawn_at_its_seed(monkeypatch, restore_run_seed):
+    """`run_phase2b` asks for dwellings and campaign spend with NO argument. If those fell back to
+    the module default, a seeded book's founders would have no dwelling (`DwellingNotDrawn` killed
+    all nine seeded C30 arms on 2026-10-24) and the run would book the default book's quotes."""
+    from simulation.dwelling_records import build_properties
+
+    monkeypatch.setenv(lp._ACTIVATION_ENV, "1")
+    book = lp.live_population(base_seed=3)
+    build_properties(book, dwellings=lp.live_dwellings())
+    assert lp.campaign_quotes_paid_for() == lp.campaign_quotes_paid_for(base_seed=3)
+    assert lp.live_premises() == lp.live_premises(base_seed=3)

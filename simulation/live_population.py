@@ -1436,7 +1436,7 @@ def campaign_quotes_paid_for(base_seed: Optional[int] = None) -> List[dict]:
     Deterministic in the seed and memoised with the campaign, so this costs nothing beyond
     the resolution `live_population()` has already paid for.
     """
-    seed = _DEFAULT_BASE_SEED if base_seed is None else base_seed
+    seed = run_base_seed() if base_seed is None else base_seed
     return list(_campaign(_pre_growth_book(seed), seed)["spend"])
 
 
@@ -1484,7 +1484,10 @@ def _live_homes(base_seed: Optional[int] = None) -> dict:
     """
     if not draw_population_enabled():
         return {}
-    seed = _DEFAULT_BASE_SEED if base_seed is None else base_seed
+    # The RUN's seed, never the module default: under `SE_POPULATION_SEED` the book is drawn at
+    # another seed, and a default-seed register misses its founders -- every seeded C30 arm died
+    # on `DwellingNotDrawn` (2026-10-24) because `run_phase2b` calls this with no argument.
+    seed = run_base_seed() if base_seed is None else base_seed
     premises = {
         sc.customer_id: (sc.premise, sc.output_area)
         for sc in _drawn_trickle(seed)
