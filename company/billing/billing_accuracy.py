@@ -27,7 +27,9 @@ not the month-by-month truth, and this module is held to the same limit. The con
 `test_world_truth_on_an_estimated_bill_does_not_move_the_measure`.
 
 An estimated run that has not yet met a read is reported as `open_estimated_kwh`. Its true-up is
-not known, so it is not guessed.
+not known, so it is not guessed. A run the account CLOSED on (an estimated final bill) is not
+awaiting a read, because none will come; it is `closed_on_estimated_final_kwh`, apart
+(`saas.ledger.estimates_closed_by_final_bill`).
 
 K1 (slice 2) is graded, not measured afresh. What the ledger carries for it is
 `saas.ledger.estimated_billing_outstanding`: the whole value of every estimated bill no read has
@@ -186,7 +188,12 @@ def account_billing_accuracy(bills: Iterable[dict]) -> list[dict]:
             if barred > 0:
                 row["barred_kwh"] += barred
                 row["barred_true_ups"] += 1
-        row["open_estimated_kwh"] = open_run_kwh
+        # An account that closed on an estimate is not awaiting a read: none will come, and the
+        # closing estimate is the deemed read it is settled on (`estimates_closed_by_final_bill`).
+        closed_on_estimate = (account_bills[-1].get("final_bill")
+                              and account_bills[-1]["billing_basis"] == "estimated")
+        row["open_estimated_kwh"] = 0.0 if closed_on_estimate else open_run_kwh
+        row["closed_on_estimated_final_kwh"] = open_run_kwh if closed_on_estimate else 0.0
         row["last_period_end"] = account_bills[-1]["period_end"]
         # At the account's last bill: None when it has fewer than 12 bills, as the window
         # cannot answer.
@@ -432,6 +439,7 @@ def billing_accuracy_summary(bills: Iterable[dict], direct_debit: dict | None = 
             "accounts": 0, "billed_kwh": 0.0, "estimated_kwh": 0.0, "true_ups": 0,
             "true_up_kwh": 0.0, "undercharge_kwh": 0.0, "overcharge_kwh": 0.0,
             "barred_kwh": 0.0, "barred_true_ups": 0, "open_estimated_kwh": 0.0,
+            "closed_on_estimated_final_kwh": 0.0,
             "snapshot_accounts": 0, "snapshot_no_read_bill_in_12": 0,
         })
         fuel["accounts"] += 1
@@ -439,7 +447,8 @@ def billing_accuracy_summary(bills: Iterable[dict], direct_debit: dict | None = 
             fuel["snapshot_accounts"] += 1
             fuel["snapshot_no_read_bill_in_12"] += int(row["no_read_bill_in_last_12"])
         for key in ("billed_kwh", "estimated_kwh", "true_ups", "true_up_kwh", "undercharge_kwh",
-                    "overcharge_kwh", "barred_kwh", "barred_true_ups", "open_estimated_kwh"):
+                    "overcharge_kwh", "barred_kwh", "barred_true_ups", "open_estimated_kwh",
+                    "closed_on_estimated_final_kwh"):
             fuel[key] += row[key]
     for fuel in by_fuel.values():
         fuel["K2_estimated_share_of_billed_kwh"] = (
@@ -561,8 +570,10 @@ def unbilled_accrual(bills: Iterable[dict], held: set[tuple[str, str]],
     held = set(held) | {key for key, final in issued_late.items() if final[:7] > as_of}
     window = [b for b in bills if b["period_end"][:7] <= as_of]
     held_now = [b for b in window if (b["customer_id"], b["period_end"]) in held]
+    # A held final bill reached nobody, so it closed nothing: its flag is not passed on.
     open_estimates = open_estimated_bills(
-        [b for b in held_now if b["billing_basis"] == "estimated"]
+        [{**b, "final_bill": False} if b.get("final_bill") else b
+         for b in held_now if b["billing_basis"] == "estimated"]
         + [b for b in window if b["billing_basis"] != "estimated"])
     open_bills = open_estimates + [b for b in held_now if b["billing_basis"] != "estimated"]
     final_month = {}
@@ -665,6 +676,7 @@ def published_view(summary: dict | None, source: str | None = None,
             "K2_estimated_share_of_billed_kwh": f["K2_estimated_share_of_billed_kwh"],
             "true_ups": f["true_ups"], "undercharge_kwh": f["undercharge_kwh"],
             "overcharge_kwh": f["overcharge_kwh"], "open_estimated_kwh": f["open_estimated_kwh"],
+            "closed_on_estimated_final_kwh": f.get("closed_on_estimated_final_kwh"),
             "barred_kwh": f["barred_kwh"], "barred_true_ups": f["barred_true_ups"],
             "K3_barred_share_of_undercharge_kwh": f["K3_barred_share_of_undercharge_kwh"],
             "snapshot": {
@@ -674,7 +686,8 @@ def published_view(summary: dict | None, source: str | None = None,
             },
             "K1_year_end_grades": [
                 {k: g.get(k) for k in ("as_of", "outstanding_gbp", "outstanding_bills", "graded_runs",
-                                   "never_read_runs", "graded_net_true_up_share",
+                                   "never_read_runs", "closed_on_estimated_final_gbp",
+                                   "closed_on_estimated_final_runs", "graded_net_true_up_share",
                                    "graded_gross_true_up_share", "graded_largest_run_account",
                                    "graded_largest_run_share_of_net",
                                    "graded_net_true_up_share_without_largest_run")}
@@ -770,6 +783,8 @@ def estimated_billing_outstanding_grade(bills: Iterable[dict], as_of: str | None
         "outstanding_gbp": 0.0, "outstanding_bills": 0,
         "closed_immaterial_gbp": 0.0, "closed_immaterial_bills": 0,
         "open_gbp": 0.0, "open_kwh": 0.0, "open_bills": 0, "open_runs": 0,
+        "closed_on_estimated_final_gbp": 0.0, "closed_on_estimated_final_kwh": 0.0,
+        "closed_on_estimated_final_bills": 0, "closed_on_estimated_final_runs": 0,
         "never_read_runs": 0, "never_read_kwh": 0.0,
         "graded_runs": 0, "graded_run_billed_kwh": 0.0,
         "graded_run_true_up_kwh": 0.0, "graded_run_abs_true_up_kwh": 0.0,
@@ -789,6 +804,16 @@ def estimated_billing_outstanding_grade(bills: Iterable[dict], as_of: str | None
                 continue
             if not any(_covers(m, bill["period_end"]) for m in materials):
                 open_run.append(bill)
+            if bill.get("final_bill") and open_run:
+                # Closed on an estimate: no read will end this run
+                # (`saas.ledger.estimates_closed_by_final_bill`).
+                grade["closed_on_estimated_final_runs"] += 1
+                grade["closed_on_estimated_final_bills"] += len(open_run)
+                grade["closed_on_estimated_final_gbp"] += sum(
+                    b.get("total_amount_gbp", 0.0) for b in open_run)
+                grade["closed_on_estimated_final_kwh"] += sum(
+                    b["total_consumption_kwh"] for b in open_run)
+                open_run = []
         if not open_run:
             continue
         grade["open_runs"] += 1

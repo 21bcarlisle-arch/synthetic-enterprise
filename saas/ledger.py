@@ -349,7 +349,8 @@ UNBILLED_REVENUE_NOT_COMPUTED = (
 
 def open_estimated_bills(bills: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """The estimated bills in `bills` whose run no read has ended: no bill for the same customer has
-    a `catchup_applied` range covering the period, and no later bill for it is on an actual read.
+    a `catchup_applied` range covering the period, no later bill for it is on an actual read, and
+    the account has not closed on them (`estimates_closed_by_final_bill`).
 
     The one statement of "a read ends the run", read by `estimated_billing_outstanding` (the whole
     issued set) and by `company.billing.billing_accuracy.unbilled_accrual` (the estimates the
@@ -368,15 +369,46 @@ def open_estimated_bills(bills: list[dict[str, Any]]) -> list[dict[str, Any]]:
             resolved_ranges.setdefault(cid, []).append(
                 (b.get("catchup_period_start", ""), b.get("catchup_period_end", ""))
             )
+    closed = {id(b) for b in estimates_closed_by_final_bill(bills)}
     open_bills = []
     for cid, est_bills in by_customer_estimated.items():
         ranges = resolved_ranges.get(cid, [])
         for b in est_bills:
             period_end = b.get("period_end", "")
             if not (any(start <= period_end <= end for start, end in ranges)
-                    or period_end < last_read.get(cid, "")):
+                    or period_end < last_read.get(cid, "") or id(b) in closed):
                 open_bills.append(b)
     return open_bills
+
+
+def estimates_closed_by_final_bill(bills: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """The estimated bills an account closed on: its final bill is an estimate, and these are that
+    bill and the estimates before it back to the last actual read or catch-up.
+
+    No read will end such a run. After the exit this supplier never reads the meter for the account
+    again, and the closing estimate is the deemed read it is billed and settled on, revisable only
+    by a dispute nobody is obliged to raise (unbilled_energy_and_revenue_assurance.md, "An
+    estimated final bill closes its run"). Counted as awaiting a read, the run stays outstanding for
+    ever, and the position grows with every leaver: 298 of the 348 never-read electricity runs in
+    the 2024-12 position on run 904a091f7b.
+    """
+    by_customer: dict[str, list[dict[str, Any]]] = {}
+    for b in bills:
+        by_customer.setdefault(b["customer_id"], []).append(b)
+    closed: list[dict[str, Any]] = []
+    for cust_bills in by_customer.values():
+        cust_bills = sorted(cust_bills, key=lambda b: b.get("period_end", ""))
+        finals = [i for i, b in enumerate(cust_bills) if b.get("final_bill")]
+        if not finals or cust_bills[finals[-1]].get("billing_basis") != "estimated":
+            continue
+        run: list[dict[str, Any]] = []
+        for b in cust_bills[:finals[-1] + 1]:
+            if b.get("billing_basis") != "estimated" or b.get("catchup_applied"):
+                run = []
+                continue
+            run.append(b)
+        closed.extend(run)
+    return closed
 
 
 def estimated_billing_outstanding(bills: list[dict[str, Any]]) -> dict[str, Any]:
@@ -402,7 +434,9 @@ def estimated_billing_outstanding(bills: list[dict[str, Any]]) -> dict[str, Any]
     `catchup_applied` is set only for a MATERIAL correction, so a run an actual read closed with a
     correction under the threshold stayed "outstanding" for ever. On the decade run that was 83% of
     the £93,059 the annual report printed. A read ends the run whether or not the correction is
-    billed. `company.billing.billing_accuracy.estimated_billing_outstanding_grade` splits and
+    billed. A final bill on an estimate ends it too (2026-10-24, `estimates_closed_by_final_bill`):
+    no read will come, and the grade counts those bills beside the position, not in it.
+    `company.billing.billing_accuracy.estimated_billing_outstanding_grade` splits and
     grades the same position.
 
     Returns a dict: `estimated_billing_outstanding_gbp` (portfolio total), `outstanding_bill_count`,

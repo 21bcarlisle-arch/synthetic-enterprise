@@ -203,17 +203,21 @@ def test_the_accrual_holds_a_closing_run_until_the_final_bills_month():
 def test_the_k1_grade_counts_a_closing_run_from_the_final_bills_month_and_never_beside_the_accrual():
     """Billed on estimate and unbilled are the two halves of unread revenue and count disjoint
     bills. Before the final bill's month the interims are the accrual's, so the grade must not
-    count them; from that month they are billed on estimate and the accrual has let them go."""
+    count them; from that month they are billed on estimate and the accrual has let them go.
+    The final bill is an estimate, so from that month the grade counts the run as closed on it,
+    beside the position (2026-10-24: no read will end it), and never as open."""
     from company.billing.billing_accuracy import (
         estimated_billing_outstanding_grade,
         unbilled_accrual,
     )
 
     bills = _leaver()
-    for month, grade_open, accrual_open in (("2018-03", 0, 4), ("2018-04", 5, 0)):
+    for month, grade_open, grade_closed, accrual_open in (("2018-03", 0, 0, 4),
+                                                          ("2018-04", 0, 5, 0)):
         grade = estimated_billing_outstanding_grade(bills, month)
         accrual = unbilled_accrual(bills, set(), month)["by_fuel"]["electricity"]
-        assert (grade["open_bills"], accrual["held_estimates"]) == (grade_open, accrual_open), month
+        assert (grade["open_bills"], grade["closed_on_estimated_final_bills"],
+                accrual["held_estimates"]) == (grade_open, grade_closed, accrual_open), month
 
 
 def test_the_billing_run_stamps_only_a_churned_accounts_last_bill_as_final():

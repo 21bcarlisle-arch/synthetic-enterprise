@@ -323,6 +323,78 @@ def test_the_k1_grade_names_the_run_that_sets_its_net_and_the_net_without_it():
     assert flipped["graded_net_true_up_share_without_largest_run"] == pytest.approx(0.02)
 
 
+def _estimates_then(cid: str, last: dict) -> list[dict]:
+    """A read, three estimated months, then `last`: the same run, ended three ways."""
+    def bill(period_end, basis, **extra):
+        return {"customer_id": cid, "commodity": "electricity", "period_end": period_end,
+                "period_start": period_end[:8] + "01",
+                "billing_basis": basis, "total_amount_gbp": 50.0, "total_consumption_kwh": 300.0,
+                **extra}
+    return ([bill("2022-08-31", "actual")]
+            + [bill(f"2022-{m}-30", "estimated") for m in ("09", "10", "11")]
+            + [bill("2022-12-31", **last)])
+
+
+def test_an_estimated_final_bill_closes_its_run_and_the_position_holds_only_runs_a_read_can_end():
+    """Defect caught (2026-10-24): an account that closed on an estimated final bill was counted as
+    awaiting a read for ever. No read will come; the closing estimate is the deemed read it is
+    settled on. On run 904a091f7b that was £118,549 of the ledger's £199,366 billed-on-estimate
+    position, and 298 of the 348 never-read electricity runs at 2024-12.
+
+    One run of three estimates is ended three ways. All three outcomes are asserted reachable in
+    one statement before what each holds: ON_SUPPLY's run is still open, CLOSED_EST closed on an
+    estimate (counted beside the position, never in it), CLOSED_READ closed on an actual read."""
+    from saas.ledger import estimated_billing_outstanding, estimates_closed_by_final_bill
+
+    on_supply = _estimates_then("ON_SUPPLY", {"basis": "estimated"})
+    closed_est = _estimates_then("CLOSED_EST", {"basis": "estimated", "final_bill": True})
+    closed_read = _estimates_then("CLOSED_READ", {"basis": "actual", "final_bill": True})
+    bills = on_supply + closed_est + closed_read
+
+    grade = estimated_billing_outstanding_grade(bills, "2022-12")
+    rows = {r["account_id"]: r for r in account_billing_accuracy(bills)}
+    ledger = estimated_billing_outstanding(bills)
+    assert (grade["open_runs"] and grade["closed_on_estimated_final_runs"]
+            and grade["closed_immaterial_bills"]), grade
+
+    # Each run is four estimates (or three and a read) of 300 kWh at £50.
+    assert (grade["open_runs"], grade["open_bills"]) == (1, 4)
+    assert (grade["closed_on_estimated_final_runs"],
+            grade["closed_on_estimated_final_bills"]) == (1, 4)
+    assert grade["closed_on_estimated_final_gbp"] == pytest.approx(200.0)
+    assert grade["closed_on_estimated_final_kwh"] == pytest.approx(1200.0)
+    assert grade["closed_immaterial_bills"] == 3  # CLOSED_READ's run, ended by its actual final read
+    assert grade["never_read_runs"] == 1  # ON_SUPPLY only: a closed account is not "never read"
+    assert grade["outstanding_gbp"] == pytest.approx(200.0)
+
+    assert rows["ON_SUPPLY"]["open_estimated_kwh"] == pytest.approx(1200.0)
+    assert rows["ON_SUPPLY"]["closed_on_estimated_final_kwh"] == 0.0
+    assert rows["CLOSED_EST"]["open_estimated_kwh"] == 0.0
+    assert rows["CLOSED_EST"]["closed_on_estimated_final_kwh"] == pytest.approx(1200.0)
+    assert rows["CLOSED_READ"]["open_estimated_kwh"] == 0.0
+    assert rows["CLOSED_READ"]["closed_on_estimated_final_kwh"] == 0.0
+
+    # The ledger states the same rule once, and the grade agrees with it to the bill.
+    assert ledger["outstanding_bill_count"] == grade["outstanding_bills"] == 4
+    assert set(ledger["by_customer"]) == {"ON_SUPPLY"}
+    assert {b["customer_id"] for b in estimates_closed_by_final_bill(bills)} == {"CLOSED_EST"}
+    assert len(estimates_closed_by_final_bill(bills)) == grade["closed_on_estimated_final_bills"]
+
+    # As of a month end before the final bill, the account had not closed: its run is open.
+    before_close = estimated_billing_outstanding_grade(closed_est, "2022-11")
+    assert (before_close["open_runs"], before_close["closed_on_estimated_final_runs"]) == (1, 0)
+
+
+def test_a_held_estimated_final_bill_closes_nothing_in_the_accrual():
+    """A final bill the pre-bill gate held reached nobody. Defect caught: the final-bill rule,
+    read through the shared predicate, dropping a held closing run out of the unbilled accrual."""
+    closed_est = _estimates_then("CLOSED_EST", {"basis": "estimated", "final_bill": True})
+    held = {("CLOSED_EST", b["period_end"]) for b in closed_est[1:]}
+    accrual = unbilled_accrual(closed_est, held, "2022-12", issued_late={})
+    assert accrual["by_fuel"]["electricity"]["held_estimates"] == 4
+    assert accrual["by_fuel"]["electricity"]["kwh"] == pytest.approx(1200.0)
+
+
 def test_the_published_k1_is_graded_from_the_bills_so_an_older_run_output_carries_the_figure():
     """Defect caught: the concentration reaching the page only at the next run. A summary whose
     stored K1 predates the field publishes it from the run's own bills; without bills it publishes
@@ -387,7 +459,8 @@ def test_the_published_example_is_the_account_with_the_most_barred_energy():
     assert view["example_account"]["barred_kwh"] > 0
     assert view["by_fuel"]["electricity"]["K1_year_end_grades"] == [
         {k: g[k] for k in ("as_of", "outstanding_gbp", "outstanding_bills", "graded_runs",
-                           "never_read_runs", "graded_net_true_up_share",
+                           "never_read_runs", "closed_on_estimated_final_gbp",
+                           "closed_on_estimated_final_runs", "graded_net_true_up_share",
                            "graded_gross_true_up_share", "graded_largest_run_account",
                            "graded_largest_run_share_of_net",
                            "graded_net_true_up_share_without_largest_run")}

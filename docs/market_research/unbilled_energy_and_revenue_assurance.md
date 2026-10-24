@@ -734,6 +734,64 @@ it takes. **GAP.**
 - **Not built:** a dispute of the closing read. As in the section above, a dispute moves value
   between suppliers and creates none.
 
+#### An estimated final bill closes its run (2026-10-24, K8 for D48)
+
+**The question.** K1's billed-on-estimate position (`saas.ledger.estimated_billing_outstanding`,
+graded by `billing_accuracy.estimated_billing_outstanding_grade`) is every estimated bill "awaiting
+confirmation against a real meter read". Is an account that closed on an estimated final bill
+still awaiting one?
+
+**What the rules say** (all read above, nothing new is sourced here). The closing read on a switch
+is the change-of-supplier read, actual or the Old Supplier Estimated read, which is deemed, and the
+losing supplier is settled on the advance to it (§K6, "What a losing supplier is settled on").
+"The CoS reading is assumed to be correct by the Old Supplier, until the Old Supplier disputes" it
+(BSCP504 v53.0 footnote 22). A dispute is a may, not a shall, inside 12 months (REC Schedule 30
+7.3(a), 9.2). On a home move with the same supplier, the closing read is the supplier's own and no
+industry process sets a window for correcting it. After the exit, this supplier never reads the
+meter for this account again (§"A held bill on an account that closes", point 1).
+
+**So an estimated final bill is not awaiting a read.** No read will arrive, and the deemed read is
+the one the account is billed and settled on. Its run is closed on an estimate: revisable only by a
+dispute nobody is obliged to raise, never by the next read. Counting it as outstanding makes the
+position grow with every leaver for ever, which is not what Centrica's "unread revenue" (energy
+between the last read and the year end, revised as reads come in) measures.
+
+**Choice for the build.** A final bill ends its account's run whatever its basis
+(`saas.ledger.open_estimated_bills`, the one statement the ledger, the grade and the accrual read).
+The estimates it closed are not dropped: the grade counts them beside the position as
+`closed_on_estimated_final_*`, and each account row carries `closed_on_estimated_final_kwh` apart
+from `open_estimated_kwh`. A held final bill reached nobody, so it closes nothing in the accrual.
+**GAP:** whether a supplier keeps a leaver's estimate in its unread-revenue estimate until the
+12-month dispute window shuts is not published.
+
+**Pre-registration, written before the after was computed.** Measured first on run `904a091f7b`
+(53,110 bills; 852 final bills, 546 on an estimate; none held, none followed by a later bill): the
+electricity K1 position at 2024-12 is £124,194 over 449 open runs, 348 of them never read; the same
+grade over only the accounts still on supply at that month end is £52,879, 151 runs, 50 never read.
+Gas: £78,148 / 366 / 273, and £36,932 / 129 / 36.
+1. After the fix, `outstanding_gbp`, `open_runs` and `never_read_runs` at every year end, per fuel,
+   equal the on-supply-only figures above to the pound (the closing run is the only thing removed).
+2. No `graded_*` figure moves at any year end: a closed account never meets a later read.
+3. `closed_on_estimated_final_gbp` plus the new outstanding equals the old outstanding at every
+   year end.
+4. The ledger's portfolio `estimated_billing_outstanding_gbp` over the whole run falls by the
+   estimated final bills' closing runs; its `outstanding_bill_count` falls to the bills on accounts
+   on supply at the run end.
+
+**Result (added after; the predictions above are unedited).** Same run, origin's code against
+this build in one process, issued bills only.
+1. HELD, to the pound at every year end shown: electricity 2024-12 £52,879 / 151 / 50, gas
+   £36,932 / 129 / 36, electricity 2017-12 £40,757 / 225 / 27.
+2. HELD. No `graded_*` field moves at any year end 2016-2024 or at 2025-06, either fuel.
+3. HELD. Electricity 2024-12: £52,879 + £71,315 closed on an estimate = £124,194.
+4. HELD. The ledger's position falls from £199,366.16 over 4,040 bills to £80,816.86 over 1,369, and
+   1,369 is exactly the old rule's count over the accounts with no final bill. The £118,549.30 that
+   left it is the 2,671 bills of the closing runs. So 59% of the figure the annual report's E3
+   section printed was leavers' estimates no read could end.
+The unbilled accrual is identical at every month end tested. `account_billing_accuracy`'s
+electricity `open_estimated_kwh` was 548,385 kWh, of which 401,165 were closing runs; it is now
+147,220 kWh open and 401,165 closed on an estimate.
+
 ### K7 Smart meter read failures
 
 - See K2: ~10% of installed smart meters not in smart mode end-2024; domestic traditional-mode
