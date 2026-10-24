@@ -83,4 +83,7 @@ bills the household the Treasury's half.
    **Choices this rests on, each a GAP above or here:** the receipt is the full cap − EPG per kWh
    whatever the supplier's own SVT rate (the scheme text is not in the commons); **GAP: the VAT
    treatment of the Treasury payment**, taken here as outside the household's supply; **GAP: the
-   scheme's payment timing**, booked at the bill's period start.
+   scheme's payment timing**, booked at the bill's period start. An estimate on a void row (0 kWh,
+   so a 0.0 receipt) takes the row's per-MWh receipt, `hmt_epg_receipt_gbp_per_mwh`, because the
+   discount is per unit billed. Without it, 9 such estimates on the `88cdf35e48` run charged the
+   household the Treasury's share.

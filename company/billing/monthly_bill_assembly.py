@@ -234,6 +234,10 @@ def _estimate_records_at_tariff_rate(
     revenue, so the estimate is priced low. The company holds no tariff type at billing to tell.
     The catch-up corrects the total either way, since the void's true kWh is 0.
     docs/market_research/back_billing_and_liability.md §14.
+
+    Inside the EPG the row rate is the Ofgem level the supplier receives, and the row's own receipt
+    is 0.0 because its kWh is. The estimate's receipt is its kWh at the row's per-MWh receipt, so
+    the household is charged the EPG, as on a scaled estimate.
     """
     if any(record.get("unit_rate_gbp_per_mwh") is None for record in settlement_records):
         return None
@@ -246,6 +250,9 @@ def _estimate_records_at_tariff_rate(
         new_record["revenue_gbp"] = (
             record["unit_rate_gbp_per_mwh"] * share_kwh / 1000.0 + record.get(sc_field, 0.0)
         )
+        if "hmt_epg_receipt_gbp_per_mwh" in record:
+            new_record["hmt_epg_receipt_gbp"] = (
+                record["hmt_epg_receipt_gbp_per_mwh"] * share_kwh / 1000.0)
         priced.append(new_record)
     return priced
 

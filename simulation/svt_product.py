@@ -413,10 +413,16 @@ def stamp_hmt_epg_receipt(records: list[dict], *, fuel: str) -> list[dict]:
     Only a record whose receipt is positive is stamped, so every bill outside 2022-10..2023-06 is
     byte-identical. The caller decides the record is a domestic `svt` term; the EPG reached no
     non-domestic supply.
+
+    The per-MWh rate rides beside the pounds because a void row has 0 kWh and so a 0.0 receipt, and
+    the company still bills an estimate on it at the row's tariff rate: without the rate that
+    estimate charged the household the Treasury's share (8 invoices on the `88cdf35e48` run, the
+    largest over by exactly cap minus EPG).
     """
     for rec in records:
         receipt = hmt_epg_receipt_gbp_per_mwh(fuel, date.fromisoformat(rec["settlement_date"][:10]))
         if receipt:
+            rec["hmt_epg_receipt_gbp_per_mwh"] = _ex_vat(receipt)
             rec["hmt_epg_receipt_gbp"] = (
-                (rec.get("consumption_kwh") or 0.0) / 1000.0 * _ex_vat(receipt))
+                (rec.get("consumption_kwh") or 0.0) / 1000.0 * rec["hmt_epg_receipt_gbp_per_mwh"])
     return records
