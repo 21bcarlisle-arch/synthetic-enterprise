@@ -71,3 +71,25 @@ electricity exit and counts a customer who never leaves up to 2026-01-01. On the
 gives 33.7 customer-years (C − A) and 37.8 (B − C), or £245 and £208 each. The arm C record
 reported 30.85 and 34.91, or £268 and £275, by a rule it did not state. So prediction 3 is graded
 on the script's rule for all four books, the default book included.
+
+## Status (2026-10-24 ~07:30, no arm has computed)
+
+**None of the nine arms ran.** They sat QUEUED behind `head-green-census.service` (12 GB) and the
+"landings come before experiments" holds. At 07:06 every one of them was refused: `/var/tmp/c30-seeds-wt`
+had been deleted while they waited, and the launcher declines a workdir that is gone. No artefact
+exists, so no prediction above has been tested.
+
+**Relaunched behind section 14, on purpose.** The worktree is recreated at 0481ad381 and is now
+`git worktree lock`ed with a reason. The seat's newest order (continuation
+`the-queued-runs-compute-and-the-thesis-run-goes-first`) puts the section 14 clean-book re-take ahead
+of these arms, and that driver may not share the box with jobs writing `c30-seeds-out`. Its
+`c30-seeds-out` wait passed at 06:06 only because nothing was running, not because these arms had
+finished. If the arms started now, they would overlap it. So `/var/tmp/c30-seeds-out/chain.sh`
+(unit `longjob-c30-seeds-chain`, queued through `launch_long_job`) waits on the driver's pid 1615133
+through `tools.wait_for`, for up to six 6-hour deadlines. It then queues the nine arms with the
+05:45 argv unchanged and skips any arm whose artefact already exists. **Cost:** the result arrives
+after section 14, which needs about 11 hours including E6, instead of in about 5.
+**Reverse:** `systemctl --user stop longjob-c30-seeds-chain longjob-c30-seeds-chain-queued`, then
+run `chain.sh` with a pid that has already exited.
+
+Grading is unchanged. When `A/B/C_6110{1,2,3}.json` all exist, run `grade_seeds.py` as above.
