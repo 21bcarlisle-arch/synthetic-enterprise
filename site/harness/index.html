@@ -303,33 +303,202 @@ details.more summary, .timeline summary { cursor: pointer; color: var(--teal); f
   <details class="fold" id="fold-lessons"><summary>Lessons learned</summary>
   <section id="lessons">
     <h2>Lessons it learned the hard way</h2>
-    <p class="brief-s"><b>In brief.</b> Each cost something and left a rule that runs as code. What was wrong and put right since, newest first, is the next section.</p>
-    <p class="sub">Each one cost something, and each left a rule behind that now runs as code. The
-      full story of each sits in the sections below.</p>
-    <div class="lessons">
-      <div class="card"><div class="meta">20 August 2026</div>
-        <h3>The site that looked broken and was not</h3>
-        <p><b>What happened.</b> The site appeared to fail up to 47% of page loads. Four
-          explanations were tested and each was wrong. The host's analytics were counting one kind
-          of request twice, and the site had been healthy throughout.</p>
-        <p><b>The rule it left.</b> When explanations keep dying, check the instrument before
-          proposing another. And a check through a cache can confirm something is there but never
-          that it is gone, so every live check now asks the source.</p></div>
-      <div class="card"><div class="meta">4 September 2026</div>
-        <h3>Green tests, stale code</h3>
-        <p><b>What happened.</b> Ten of eleven background processes were running code up to eleven
-          days old, while every health check called them healthy. A passing test proves the code
-          is right, not that it is the code running.</p>
-        <p><b>The rule it left.</b> Each process is graded on whether any module it loaded has
-          changed since it started, and is restarted when one has.</p></div>
-      <div class="card"><div class="meta">August 2026</div>
-        <h3>Five checks, all pointed slightly off-target</h3>
-        <p><b>What happened.</b> In one day, five checks that existed, were wired in and looked
-          right were found catching nothing. One reported its own failure and then exited as a
-          success, so months of deploys were recorded green.</p>
-        <p><b>The rule it left.</b> A check counts only once it has been seen failing on its own
-          defect. Checks are counted by that, not by whether they exist.</p></div>
-    </div>
+    <p class="brief-s"><b>In brief.</b> Each lesson is a chain: what happened, the principle it left, the code that holds it or "prose only", and whether that code has been seen to fail on its own defect. What was wrong and put right since, newest first, is the next section.</p>
+<!-- HARNESS-CHAINS:START (written at publish by tools/harness_page_figures.py -- do not hand-edit) -->
+<p class="brief-s"><b>11 of 26 lessons name the code that holds them, and 9 of those have a test seen to fail on that code's own defect.</b> The other 15 are prose only for now, and each says so.</p>
+<p class="sub">A lesson here is one of the 17 permanent rules the machine works under, or one of the 9 classes of mistake it has registered so far; a class can share its rule's code, so some code appears twice. A test counts as evidence only when someone put the defect back into the code and watched that test fail. These are lessons about how the machine builds and checks itself. What the model has learned about supplying energy is on Capabilities and the knowledge pages. Each lesson is read at publish from the canon's rules and the register of mistake classes.</p>
+<div class="lessons">
+<div class="card"><div class="meta">24 Oct 2026 · Rule R9</div>
+  <h3>A reading taken from a stale copy and presented as current</h3>
+  <p><b>What happened.</b> A snapshot, a checkout or a heartbeat that stopped, read as if it were the live thing. Seen 4 times before it was registered as a class of mistake.</p>
+  <p><b>The principle.</b> Label every claim observed-with-evidence or inferred. Pin what produced any number you rely on.</p>
+  <p><b>What holds it.</b> <code>tools/stale_copy_refusal.py</code>.</p>
+  <p><b>Evidence it can fail.</b> 5 tests seen to fail on this code's own defect.</p></div>
+<div class="card"><div class="meta">24 Oct 2026 · Rule R10</div>
+  <h3>An absurd value caught where it was found, not as a class</h3>
+  <p><b>What happened.</b> The same impossible state reached through a second door. Seen 3 times before it was registered as a class of mistake.</p>
+  <p><b>The principle.</b> An absurdity-class defect needs a class-level fix.</p>
+  <p><b>What holds it.</b> <code>company/compliance/domain_invariants.py</code>.</p>
+  <p><b>Evidence it can fail.</b> 10 tests seen to fail on this code's own defect.</p></div>
+<div class="card"><div class="meta">28 Aug 2026 · Rule R14</div>
+  <h3>Figures on a superseded clock</h3>
+  <p><b>What happened.</b> A summary frozen before the rows it summarises were mutated, published beside a figure re-summed from them. Seen 2 times before it was registered as a class of mistake.</p>
+  <p><b>The principle.</b> No financial figure without its clock. Fake freshness is the cardinal sin.</p>
+  <p><b>What holds it.</b> <code>tools/generate_dashboard_data.py</code>.</p>
+  <p><b>Evidence it can fail.</b> 14 tests seen to fail on this code's own defect.</p></div>
+<div class="card"><div class="meta">21 Jul 2026 · Rule R16</div>
+  <h3>The ledger is authority, not commit messages</h3>
+  <p><b>What happened.</b> An unbacked level bump, carried in by a commit message that called it ratified, wedged publishing for three hours.</p>
+  <p><b>The principle.</b> The ledger is authority, not commit messages: the ledger entry is the sole record of a level move, and a commit message claiming one is not (21 July). In G12&#x27;s words: &quot;A level move is recorded, never authorised.&quot;</p>
+  <p><b>What holds it.</b> <code>background/gate_authorization.py</code>, <code>tools/level_promotion_gate.py</code>.</p>
+  <p><b>Evidence it can fail.</b> 5 tests seen to fail on this code's own defect.</p></div>
+<div class="card"><div class="meta">10 Jul 2026 · Rule R12</div>
+  <h3>Anti-goal-seek</h3>
+  <p><b>What happened.</b> Guard against the standing temptation to tune an output toward an external benchmark once it lands off-band, instead of investigating the mechanism that produced it.</p>
+  <p><b>The principle.</b> Anti-goal-seek: margin, and every output, is a diagnostic, never a target. No scorecard number feeds draw priority, reward, selection or scheduling mechanically.</p>
+  <p><b>What holds it.</b> <code>tests/company/test_carbon_not_a_target.py</code>.</p>
+  <p><b>Evidence it can fail.</b> 1 test seen to fail on this code's own defect.</p></div>
+</div>
+<details class="more"><summary>Every lesson, newest first (26)</summary>
+<div class="lessons">
+<div class="card"><div class="meta">24 Oct 2026 · Rule R9</div>
+  <h3>A reading taken from a stale copy and presented as current</h3>
+  <p><b>What happened.</b> A snapshot, a checkout or a heartbeat that stopped, read as if it were the live thing. Seen 4 times before it was registered as a class of mistake.</p>
+  <p><b>The principle.</b> Label every claim observed-with-evidence or inferred. Pin what produced any number you rely on.</p>
+  <p><b>What holds it.</b> <code>tools/stale_copy_refusal.py</code>.</p>
+  <p><b>Evidence it can fail.</b> 5 tests seen to fail on this code's own defect.</p></div>
+<div class="card"><div class="meta">24 Oct 2026 · Rule R10</div>
+  <h3>An absurd value caught where it was found, not as a class</h3>
+  <p><b>What happened.</b> The same impossible state reached through a second door. Seen 3 times before it was registered as a class of mistake.</p>
+  <p><b>The principle.</b> An absurdity-class defect needs a class-level fix.</p>
+  <p><b>What holds it.</b> <code>company/compliance/domain_invariants.py</code>.</p>
+  <p><b>Evidence it can fail.</b> 10 tests seen to fail on this code's own defect.</p></div>
+<div class="card"><div class="meta">24 Oct 2026 · Canon H5</div>
+  <h3>One definition with several homes</h3>
+  <p><b>What happened.</b> A legal rule or a measured quantity implemented in more than one place, one fixed and the others left. Seen 3 times before it was registered as a class of mistake.</p>
+  <p><b>The principle.</b> A concept has one home; joins are tested; figures are generated. &quot;A domain concept ... is defined once, with its meaning, its unit, its owner and its source. Everything else reads that definition.&quot;</p>
+  <p><b>What holds it.</b> Not yet enforced: no code is named as holding it, so it is prose only for now.</p>
+  <p><b>Evidence it can fail.</b> None, because nothing holds it yet.</p></div>
+<div class="card"><div class="meta">28 Aug 2026 · Rule R14</div>
+  <h3>Figures on a superseded clock</h3>
+  <p><b>What happened.</b> A summary frozen before the rows it summarises were mutated, published beside a figure re-summed from them. Seen 2 times before it was registered as a class of mistake.</p>
+  <p><b>The principle.</b> No financial figure without its clock. Fake freshness is the cardinal sin.</p>
+  <p><b>What holds it.</b> <code>tools/generate_dashboard_data.py</code>.</p>
+  <p><b>Evidence it can fail.</b> 14 tests seen to fail on this code's own defect.</p></div>
+<div class="card"><div class="meta">12 Aug 2026 · Canon H8</div>
+  <h3>The publish gate and the wedge</h3>
+  <p><b>What happened.</b> The control that stops publishing, and what it stops on. Seen 18 times before it was registered as a class of mistake.</p>
+  <p><b>The principle.</b> Publishing: committed truth, scoped gate. The publish gate tests a clean checkout of HEAD, never the shared working tree.</p>
+  <p><b>What holds it.</b> Not yet enforced: no code is named as holding it, so it is prose only for now.</p>
+  <p><b>Evidence it can fail.</b> None, because nothing holds it yet.</p></div>
+<div class="card"><div class="meta">12 Aug 2026 · Rule R15</div>
+  <h3>Controls that cannot fail</h3>
+  <p><b>What happened.</b> Vacuous, fail-open, or blind to their own subject. Seen 9 times before it was registered as a class of mistake.</p>
+  <p><b>The principle.</b> &quot;Every control must be failable and proven to fire: a control whose failure has never been demonstrated (mutation/neuter test) is not a control; fail-open-green is the defect class, and no capability&#x27;s VERIFY/HARDEN passes on an unproven control.&quot;</p>
+  <p><b>What holds it.</b> <code>tests/controls/test_control_mutation.py</code>.</p>
+  <p><b>Evidence it can fail.</b> No test has yet been seen to fail on this code's own defect.</p></div>
+<div class="card"><div class="meta">12 Aug 2026 · Rule R15</div>
+  <h3>Measurements that mirror the thing they measure</h3>
+  <p><b>What happened.</b> The instrument reads its own subject back. Seen 7 times before it was registered as a class of mistake.</p>
+  <p><b>The principle.</b> &quot;Every control must be failable and proven to fire: a control whose failure has never been demonstrated (mutation/neuter test) is not a control; fail-open-green is the defect class, and no capability&#x27;s VERIFY/HARDEN passes on an unproven control.&quot;</p>
+  <p><b>What holds it.</b> Not yet enforced: no code is named as holding it, so it is prose only for now.</p>
+  <p><b>Evidence it can fail.</b> None, because nothing holds it yet.</p></div>
+<div class="card"><div class="meta">12 Aug 2026 · Canon H9</div>
+  <h3>Uncommitted and orphaned work</h3>
+  <p><b>What happened.</b> Finished work that never became part of the tree. Seen 7 times before it was registered as a class of mistake.</p>
+  <p><b>The principle.</b> Commit discipline. Hook bypass is a wall: there is no sanctioned bypass shape.</p>
+  <p><b>What holds it.</b> Not yet enforced: no code is named as holding it, so it is prose only for now.</p>
+  <p><b>Evidence it can fail.</b> None, because nothing holds it yet.</p></div>
+<div class="card"><div class="meta">12 Aug 2026</div>
+  <h3>No caller, never runs</h3>
+  <p><b>What happened.</b> Code and controls nothing reaches. Seen 5 times before it was registered as a class of mistake.</p>
+  <p><b>The principle.</b> No principle is named for it yet.</p>
+  <p><b>What holds it.</b> Not yet enforced: no code is named as holding it, so it is prose only for now.</p>
+  <p><b>Evidence it can fail.</b> None, because nothing holds it yet.</p></div>
+<div class="card"><div class="meta">22 Jul 2026 · Rule R17</div>
+  <h3>The tick never rests while authorised work exists</h3>
+  <p><b>What happened.</b> A 95-minute stall with authorised work undrawable: a steer consumed into a document and an atom, but no live mechanism drawing it.</p>
+  <p><b>The principle.</b> The tick never rests while authorised work exists at any priority, within the pace set under P12 (22 July). It may slow to land short of the reserve; it never stops.</p>
+  <p><b>What holds it.</b> Not yet enforced: no code is named as holding it, so it is prose only for now.</p>
+  <p><b>Evidence it can fail.</b> None, because nothing holds it yet.</p></div>
+<div class="card"><div class="meta">21 Jul 2026 · Rule R16</div>
+  <h3>The ledger is authority, not commit messages</h3>
+  <p><b>What happened.</b> An unbacked level bump, carried in by a commit message that called it ratified, wedged publishing for three hours.</p>
+  <p><b>The principle.</b> The ledger is authority, not commit messages: the ledger entry is the sole record of a level move, and a commit message claiming one is not (21 July). In G12&#x27;s words: &quot;A level move is recorded, never authorised.&quot;</p>
+  <p><b>What holds it.</b> <code>background/gate_authorization.py</code>, <code>tools/level_promotion_gate.py</code>.</p>
+  <p><b>Evidence it can fail.</b> 5 tests seen to fail on this code's own defect.</p></div>
+<div class="card"><div class="meta">13 Jul 2026 · Rule R15</div>
+  <h3>A control must be able to fail</h3>
+  <p><b>What happened.</b> Several controls that had been counted as evidence turned out to be theatre -- they passed regardless of input -- so the burden of proof became a mutation that must flip the verdict before the control is trusted.</p>
+  <p><b>The principle.</b> &quot;Every control must be failable and proven to fire: a control whose failure has never been demonstrated (mutation/neuter test) is not a control; fail-open-green is the defect class, and no capability&#x27;s VERIFY/HARDEN passes on an unproven control.&quot;</p>
+  <p><b>What holds it.</b> <code>tests/controls/test_control_mutation.py</code>.</p>
+  <p><b>Evidence it can fail.</b> No test has yet been seen to fail on this code's own defect.</p></div>
+<div class="card"><div class="meta">12 Jul 2026 · Rule R14</div>
+  <h3>No financial figure without its clock</h3>
+  <p><b>What happened.</b> Headline figures on different clocks diverge by design; publishing one without stating which clock it is on invites a false apples-to-apples reading.</p>
+  <p><b>The principle.</b> No financial figure without its clock. Fake freshness is the cardinal sin.</p>
+  <p><b>What holds it.</b> <code>tools/generate_dashboard_data.py</code>.</p>
+  <p><b>Evidence it can fail.</b> 14 tests seen to fail on this code's own defect.</p></div>
+<div class="card"><div class="meta">10 Jul 2026 · Rule R11</div>
+  <h3>Verify to the rendered value</h3>
+  <p><b>What happened.</b> Releasing a publish hold closed the review gate but triggered no regeneration (the change-detection gate saw near-identical headline figures as &#x27;no change&#x27;); the live site stayed stale for hours until the director checked the deployed pixel himself.</p>
+  <p><b>The principle.</b> Verify to the rendered value. No orphan transitions.</p>
+  <p><b>What holds it.</b> Not yet enforced: no code is named as holding it, so it is prose only for now.</p>
+  <p><b>Evidence it can fail.</b> None, because nothing holds it yet.</p></div>
+<div class="card"><div class="meta">10 Jul 2026 · Rule R12</div>
+  <h3>Anti-goal-seek</h3>
+  <p><b>What happened.</b> Guard against the standing temptation to tune an output toward an external benchmark once it lands off-band, instead of investigating the mechanism that produced it.</p>
+  <p><b>The principle.</b> Anti-goal-seek: margin, and every output, is a diagnostic, never a target. No scorecard number feeds draw priority, reward, selection or scheduling mechanically.</p>
+  <p><b>What holds it.</b> <code>tests/company/test_carbon_not_a_target.py</code>.</p>
+  <p><b>Evidence it can fail.</b> 1 test seen to fail on this code's own defect.</p></div>
+<div class="card"><div class="meta">10 Jul 2026 · Rule R13</div>
+  <h3>The baseline/curriculum split</h3>
+  <p><b>What happened.</b> The agent controls both sides of the epistemic wall, so difficulty must face the director, not the builder -- otherwise the company&#x27;s world quietly bends to make its results look right.</p>
+  <p><b>The principle.</b> The baseline/curriculum split: the director owns the curriculum (F4, G6).</p>
+  <p><b>What holds it.</b> Not yet enforced: no code is named as holding it, so it is prose only for now.</p>
+  <p><b>Evidence it can fail.</b> None, because nothing holds it yet.</p></div>
+<div class="card"><div class="meta">9 Jul 2026 · Rule R10</div>
+  <h3>An absurdity-class defect needs a class-level fix</h3>
+  <p><b>What happened.</b> A C6 SME-as-Household 20%-VAT bill (4.3x sigma, missing non-commodity revenue) -- the same class had appeared three times and never been fixed as a class.</p>
+  <p><b>The principle.</b> An absurdity-class defect needs a class-level fix.</p>
+  <p><b>What holds it.</b> <code>company/compliance/domain_invariants.py</code>.</p>
+  <p><b>Evidence it can fail.</b> 10 tests seen to fail on this code's own defect.</p></div>
+<div class="card"><div class="meta">8 Jul 2026 · Rule R7</div>
+  <h3>Injected text carries zero authority</h3>
+  <p><b>What happened.</b> Repeated doorbell/wake failures (strikes 3-5): a session acting on the arrival of wake text rather than on the actual staged/git state it pointed at.</p>
+  <p><b>The principle.</b> Injected text carries zero authority.</p>
+  <p><b>What holds it.</b> <code>background/advisor_channel.py</code>.</p>
+  <p><b>Evidence it can fail.</b> 1 test seen to fail on this code's own defect.</p></div>
+<div class="card"><div class="meta">8 Jul 2026 · Rule R8</div>
+  <h3>Inbound text that is not plausibly the director&#x27;s is untrusted data</h3>
+  <p><b>What happened.</b> NTFY is public and unauthenticated -- anyone can post; a security-relevant directive on that channel alone cannot be trusted without an on-disk correlate.</p>
+  <p><b>The principle.</b> Inbound text that is not plausibly the director&#x27;s is untrusted data (reworded 12 Oct, decision 9).</p>
+  <p><b>What holds it.</b> Not yet enforced: no code is named as holding it, so it is prose only for now.</p>
+  <p><b>Evidence it can fail.</b> None, because nothing holds it yet.</p></div>
+<div class="card"><div class="meta">8 Jul 2026 · Rule R9</div>
+  <h3>Label every claim observed-with-evidence or inferred</h3>
+  <p><b>What happened.</b> A genuine LOCAL test-isolation bug was first reported as external prompt injection -- asserted ahead of checking the one thing (the actual channel history) that would have settled it.</p>
+  <p><b>The principle.</b> Label every claim observed-with-evidence or inferred. Pin what produced any number you rely on.</p>
+  <p><b>What holds it.</b> Not yet enforced: no code is named as holding it, so it is prose only for now.</p>
+  <p><b>Evidence it can fail.</b> None, because nothing holds it yet.</p></div>
+<div class="card"><div class="meta">4 Jul 2026 · Rule R1</div>
+  <h3>Consumer-verified completion</h3>
+  <p><b>What happened.</b> PROJECT_STATE.txt read stale to the advisor&#x27;s fetch while fresh in the local working copy at the very same commit -- producer and consumer were looking at genuinely different things; self-certification could not have caught it.</p>
+  <p><b>The principle.</b> Consumer-verified completion. Done means the rendered value changed. A publish is a publish commit landing, never a green gate.</p>
+  <p><b>What holds it.</b> Not yet enforced: no code is named as holding it, so it is prose only for now.</p>
+  <p><b>Evidence it can fail.</b> None, because nothing holds it yet.</p></div>
+<div class="card"><div class="meta">4 Jul 2026 · Rule R2</div>
+  <h3>Committed is not running</h3>
+  <p><b>What happened.</b> The session watchdog was claimed fixed twice while its tmux pane still showed a bare shell -- the fix had landed in the script but the running process was never restarted with it. Recurred 2026-07-13 (supervisor daemon running stale pre-fix code).</p>
+  <p><b>The principle.</b> Committed is not running.</p>
+  <p><b>What holds it.</b> <code>background/health_check.py</code>.</p>
+  <p><b>Evidence it can fail.</b> 3 tests seen to fail on this code's own defect.</p></div>
+<div class="card"><div class="meta">4 Jul 2026 · Rule R3</div>
+  <h3>Two strikes, then redesign</h3>
+  <p><b>What happened.</b> The watchdog&#x27;s tmux send-keys relaunch failed three distinct ways in succession; the fix that worked was eliminating send-keys entirely, not a third patch.</p>
+  <p><b>The principle.</b> Two strikes, then redesign: on a second false claim, eliminate the mechanism. &quot;Don&#x27;t patch it again. Find why every fix to it goes quiet within a week&quot;.</p>
+  <p><b>What holds it.</b> Not yet enforced: no code is named as holding it, so it is prose only for now.</p>
+  <p><b>Evidence it can fail.</b> None, because nothing holds it yet.</p></div>
+<div class="card"><div class="meta">4 Jul 2026 · Rule R4</div>
+  <h3>Diagnosis discipline</h3>
+  <p><b>What happened.</b> Every real breakthrough that week came from a contrast pair, not a first-principles theory: fresh-vs-stale at the same commit, interactive-vs-login shell for PATH resolution.</p>
+  <p><b>The principle.</b> Diagnosis discipline: name the nearest analogue before fixing, and fix what the measurement shows.</p>
+  <p><b>What holds it.</b> Not yet enforced: no code is named as holding it, so it is prose only for now.</p>
+  <p><b>Evidence it can fail.</b> None, because nothing holds it yet.</p></div>
+<div class="card"><div class="meta">4 Jul 2026 · Rule R5</div>
+  <h3>Alert on transitions only</h3>
+  <p><b>What happened.</b> An early watchdog alert just said &#x27;launch failed&#x27;, which told the human nothing actionable; the fix carries the last N captured pane lines in the NTFY itself.</p>
+  <p><b>The principle.</b> Alert on transitions only. The distinction worth alerting on is someone working on it versus nobody able to. An alarm whose remedy is a person must route to a writer who is always present.</p>
+  <p><b>What holds it.</b> Not yet enforced: no code is named as holding it, so it is prose only for now.</p>
+  <p><b>Evidence it can fail.</b> None, because nothing holds it yet.</p></div>
+<div class="card"><div class="meta">4 Jul 2026 · Rule R6</div>
+  <h3>Board sections are never the primary work</h3>
+  <p><b>What happened.</b> An instruction to close four real priorities was satisfied in name only by writing four board-report sections instead of building the capability each priority named.</p>
+  <p><b>The principle.</b> Board sections are never the primary work.</p>
+  <p><b>What holds it.</b> Not yet enforced: no code is named as holding it, so it is prose only for now.</p>
+  <p><b>Evidence it can fail.</b> None, because nothing holds it yet.</p></div>
+</div></details>
+<!-- HARNESS-CHAINS:END -->
     <h3 id="principles">Every principle, and the code that holds it</h3>
     <p class="sub">The canon is the director's rulebook, 168 numbered principles. Each is listed
       here in its own current words, read from it at publish, with the code that holds it where that

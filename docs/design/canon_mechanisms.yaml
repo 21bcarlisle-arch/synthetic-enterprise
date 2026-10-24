@@ -50,3 +50,46 @@ principles:
     mechanisms: [background/resource_headroom.py, background/launch_long_job.py]
   R11:
     mechanisms: [tools/surgical_land.py]
+
+# The lesson chains (tools/canon_lessons.chains). `rules` binds the PERMANENT harness rules R1-R17
+# (canon H1), which share their ids with section 13's run rules above, so they are a separate map.
+# `classes` binds each registered class of mistake (background/finding_classes.CLASSES) to the rule
+# (`rule: R10`) or principle (`principle: H5`) it is an instance of, and to the code that closes it.
+# A class with no `mechanisms` is shown as not yet held, which is what its Disposition says.
+rules:
+  R2:
+    mechanisms: [background/health_check.py]
+  R7:
+    mechanisms: [background/advisor_channel.py]
+  R10:
+    mechanisms: [company/compliance/domain_invariants.py]
+  R12:
+    mechanisms: [tests/company/test_carbon_not_a_target.py]
+  R14:
+    mechanisms: [tools/generate_dashboard_data.py]
+  R15:
+    mechanisms: [tests/controls/test_control_mutation.py]
+  R16:
+    mechanisms: [background/gate_authorization.py, tools/level_promotion_gate.py]
+classes:
+  controls_that_cannot_fail:
+    rule: R15
+    mechanisms: [tests/controls/test_control_mutation.py]
+  figures_on_a_superseded_clock:
+    rule: R14
+    mechanisms: [tools/generate_dashboard_data.py]
+  an_absurd_value_guarded_at_the_instance:
+    rule: R10
+    mechanisms: [company/compliance/domain_invariants.py]
+  a_reading_taken_from_a_stale_copy:
+    rule: R9
+    mechanisms: [tools/stale_copy_refusal.py]
+  one_definition_with_several_homes:
+    principle: H5
+  publish_gate_and_wedge:
+    principle: H8
+  uncommitted_and_orphaned_work:
+    principle: H9
+  measurements_that_mirror:
+    rule: R15
+  no_caller_and_never_runs: {}

@@ -746,6 +746,8 @@ def write_harness_figures(harness_path, proof_path, obs_dir=None):
                            director_asks_ledger.render_html(ledger))
     out = out and _replace(out, FOLLOW_START.format("LESSONS"), FOLLOW_END.format("LESSONS"),
                            canon_lessons.render_html(canon_lessons.build(root)))
+    out = out and _replace(out, FOLLOW_START.format("CHAINS"), FOLLOW_END.format("CHAINS"),
+                           canon_lessons.render_chains_html(canon_lessons.chains(root)))
     if ledger is not None:
         (root / director_asks_ledger.OUT_JSON).write_text(json.dumps(ledger, indent=1) + "\n",
                                                           encoding="utf-8")

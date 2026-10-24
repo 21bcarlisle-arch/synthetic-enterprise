@@ -8,6 +8,26 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-24 — How it's built: the lessons are generated as chains from the canon's rules and the class register, 11 of 26 held by code and the other 15 marked not yet enforced
+
+<!-- head: f37c411505a5 -->
+
+**In plain English:** the lessons on How it's built are now generated at publish rather than written by hand. Each is a chain: what happened, the principle it left, the code that holds it or a plain "not yet enforced", and whether that code has been seen to fail on its own defect.
+
+*Seat executor, 24 Oct 2026. Lane 0 item `how-its-built-steer-rest`. This finishes the 23 Oct steer (signed bytes at 946d21916) and the 24 Oct steer, whose Done section landed in f37c41150.*
+
+**What was built.** `tools/canon_lessons.chains` reads the 17 permanent rules (the canon's current H1 wording, plus the July incident each came from) and the 9 registered mistake classes, newest first. The code that holds each one is a judgement in `docs/design/canon_mechanisms.yaml`, in new `rules:` and `classes:` maps. The harness R-ids collide with section 13's run rules, so they are kept apart. Five cards sit near the top, and all 26 chains are one click down. The three hand-written July and August cards are gone.
+
+**Measured at publish inputs:** 11 of 26 lessons name code, and 9 of those have a mutation-proven test. The other 15 say "Not yet enforced" beside themselves. R15 itself, "every control must be proven to fire", is bound to `tests/controls/test_control_mutation.py`, which carries no mutation record. It reads "not yet shown able to fail", and the page says so.
+
+**Cold read (one fresh Sonnet instance, an energy reader then a tech reader).** Both found the chain shape clear. Both misread what a "lesson" counts, because classes and rules share code, and what "seen to fail" means. The energy reader expected lessons about supplying energy. All three are now answered in the section's own text. Not changed: the July incident wording still carries harness jargon ("tmux send-keys", "strikes 3-5", "NTFY is public", "PROJECT_STATE.txt"). That text is generate_proof_data.RULES's, and the rules section shows it too. It is the next edit.
+
+**What was lost.** The 20 Aug "site that looked broken and was not" card is in no machine-readable register, so the generated page no longer shows it. The steer's other examples (the VAT rule and the dial that did not choose) are also not in the rules or the class register. The VAT rule surfaces only as R10's July incident. Mining the done queue and the retrospectives into chains is not built.
+
+**What we got wrong (2026-10-24):** The 24 Oct steer was moved to done/ in 833ef83e8 with no Done section, so the move was the only record of what had shipped. That is the shape the asks ledger counts 134 times.
+
+---
+
 ## 2026-10-24 — orientation: Forward on billing accuracy, and still standing still on the supplier's decisions
 
 <!-- head: c3c5828fc421 -->
