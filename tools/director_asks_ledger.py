@@ -21,7 +21,9 @@ Two sources, merged:
 A census row is one DOCUMENT, not one distinct ask. Splitting documents into asks is the rulings'
 job and is done row by row; until a document is ruled, its row says it is unruled rather than guess.
 Readings of his usage, console transcripts and canon versions are record, not asks, and are counted
-apart: the asks inside a console transcript are a named gap until they are itemised.
+apart. The asks inside a console transcript are itemised as rulings with ids `console_<day>_<n>`
+and a `source` naming the transcript; a turn that was machine text, or an ask that became its own
+document, gets no row.
 
 The control: an ask still open (`open`, `partly`, `not_started`) whose last movement -- the later of
 the day it was asked and its ruling's `moved` date -- is more than 21 days old, and which

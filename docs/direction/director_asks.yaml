@@ -402,3 +402,958 @@ asks:
   missing: The scale half -- the live book still launches at 80 founders and settles a few hundred accounts (simulation/net_new_acquisition.py PROSPECTS_PER_YEAR 400 and the customer-year settlement budget both bind); the store has not been made leaner.
   next_step: Measure what breaks at a few thousand settled customers (store bytes per customer-year first), then raise the binding constants on that evidence.
   moved: 2026-10-24
+
+# --- The older 106 (12 Aug back to 18 Jul), ruled 24 Oct from git, the tree and canon. A 13 Oct
+#     "Fate" line on a document was not taken as evidence: several overstate what shipped.
+- id: DIRECTOR_OBSERVATION_PUBLISHED_SURFACE_NAV_AND_STAMPS_2026-08-12
+  ask: Not these three fixes. The class behind them. ... If a control could make 'a published page with no route in' fail at build time ... that is worth more than the fix.
+  status: shipped
+  evidence:
+  - eb4a091bbf knowledge section index plus build-time reachability control and stamp-freshness control
+  - tools/site_reachability.py
+  - tests/tools/test_site_freshness_stamps.py
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12
+  ask: Every finding carries a severity, and severity is the gate, not the count; consolidate by class; blockers outrank housekeeping; the product interleave arms NOW, unconditionally; documents untouched 72h are named daily.
+  status: shipped
+  evidence:
+  - background/finding_severity.py
+  - background/finding_classes.py
+  - tools/level_promotion_gate.py OPS11 lane-held-by-BLOCKING refusal
+  - background/supervisor.py _apply_product_interleave
+  - tests/background/test_product_interleave.py
+  - 022b7ec20a a lane level move released after its OPS11 hold cleared
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_THE_PORTAL_IS_A_WALL_EXHIBIT_2026-08-12
+  ask: Keep all three layers; rename and re-home as a two-sided wall comparison; the bill must show its catch-up line and print in pence.
+  status: shipped
+  evidence:
+  - 5eff5ab323 D36 printed bill foots again on the Explore page that absorbed the portal
+  - b32ef72e56 SITE2 panels declare their side of the wall structurally
+  - site/explore/index.html
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_POPULATION_AND_BOOK_GROWTH_2026-08-11
+  ask: The SIM population grows first ... the opening book materially larger than 13 ... growth is gradual and earned, by acquisition, never by assignment.
+  status: shipped
+  evidence:
+  - fa03a823f3 minted PB1-PB3 on the Epoch-2 shelf
+  - c136809f53 drawn founders open 220 homes rather than 13
+  moved: 2026-10-24
+- id: DIRECTOR_NOTE_SUSPECT_LIST_REDERIVATION_2026-08-10
+  ask: the wedge alarm's suspect list is re-derived from the gate's ACTUAL red (the named blocking test and its blame trail), never from a frozen recency set. Mint now.
+  status: shipped
+  evidence:
+  - background/publish_cause.py attaches blocking list and suspects only from causes a test returned a verdict on
+  - 1edad80a52 scoped publish gate that names its own red
+  moved: 2026-10-24
+- id: DIRECTOR_NOTE_UNBLOCK_CHARTS_2026-08-10
+  ask: PLANNER_MINTED_one_node_to_depth_with_charts ... unblocked ... record one line on the mint doc so the class has a receipt.
+  status: shipped
+  evidence:
+  - docs/staging/done/PLANNER_MINTED_one_node_to_depth_with_charts_2026-07-28.md carries the abolished-block receipt
+  - site/knowledge/electricity-wholesale/index.html renders the four charts
+  moved: 2026-10-24
+- id: DIRECTOR_PRIORITY_BACKLOG_TRIAGE_AND_INTERLEAVE_2026-08-10
+  ask: 'paraphrase: drain the staging root by groups A-E with one-line receipts, then auto-arm the product interleave at <20 files'
+  status: superseded
+  superseded_by: DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12 clause 4 (interleave armed unconditionally); the drain continued as the 2026-10-13 clear-the-decks triage
+  evidence:
+  - background/supervisor.py _apply_product_interleave with no staging-depth term
+  - tests/background/test_product_interleave.py
+  moved: 2026-10-24
+- id: DIRECTOR_PRIORITY_BUILD_THE_BREATHING_2026-08-10
+  ask: 'implement THE SITE BREATHES items 1 and 3 minimally: the scoped publish-path suite, and last-known-good under a dated banner.'
+  status: shipped
+  evidence:
+  - 1edad80a52 publish decoupling items 1 and 3 landed
+  - d4d1a04e69 verification-paused banner on the live site
+  moved: 2026-10-24
+- id: DIRECTOR_PRIORITY_ENUMERATE_THE_STACK_2026-08-10
+  ask: run the scoped publish-path suite ONCE at a clean HEAD checkout WITHOUT -x ... Then fix the complete list as one batch.
+  status: shipped
+  evidence:
+  - c330c3cae7 census instrument and red list
+  - 63da862ff9 the one-item batch fix
+  moved: 2026-10-24
+- id: DIRECTOR_PRIORITY_MEMORY_CLEANSE_2026-08-10
+  ask: stop and disable llama-server ... the resource-headroom governor ... the tmpfs-aware preflight and the OOM-as-OOM classification fix.
+  status: shipped
+  evidence:
+  - background/resource_headroom.py called from background/sim_runner.py and background/process_run_complete.py
+  - CLAUDE.md records qwen evicted 2026-08-10
+  moved: 2026-10-24
+- id: DIRECTOR_PRIORITY_PUBLISH_FIRST_2026-08-10
+  ask: 'Clear the named red. Land your own class fix. Publish and flush. Until 1-3 land: no feature draws.'
+  status: shipped
+  evidence:
+  - 1060fd7276 cleared the stale allowlist red
+  - 2d160ee6ce cleared the successor F841 red
+  - 66fe148998 rest-ladder isolation class fix
+  - background/derived_artefact_register.py re-renders derived artefacts before the gate
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_PUBLISH_DECOUPLING_2026-08-10
+  ask: newer-verified beats older-verified; transparent recency beats frozen perfection; scoped gate, provenance stamps, last-known-good banner, freeze clause retired.
+  status: shipped
+  evidence:
+  - 1edad80a52 THE SITE BREATHES publish decoupling
+  - d4d1a04e69 verification paused banner
+  - background/publish_provenance.py
+  moved: 2026-10-24
+- id: DIRECTOR_INSTRUCTION_PROCEED_WITH_VETO_PAIR_2026-08-09
+  ask: Build value_chain_observation_window_cap now with a provisional value; post-census, select one class fix, announce, proceed under the veto window.
+  status: partly
+  evidence:
+  - e3f2f34848 no-caller census page
+  - tools/level_promotion_gate.py dirty_source_paths refuses a level move with dirty file_scope
+  missing: 'item 1, the window-cap mechanism: its mint still sits in docs/staging/in_progress/PLANNER_MINTED_value_chain_observation_window_cap_2026-07-24.md with no module found'
+  next_step: draw the window-cap mint as its own atom or close it with a reason; this doc's fate line wrongly calls it nothing still owed
+  moved: 2026-10-24
+- id: DIRECTOR_PRIORITY_EPISODE4_TRIPWIRE_AND_RETRY_2026-08-09
+  ask: 'The tripwire-vs-colleague fix ... Make the retry loop actually retry: a failed publish cycle is followed by an attempted one without human touch.'
+  status: shipped
+  evidence:
+  - c49fec2e64 EPISODE4 items 1 and 2 tripwire attribution and sweep alarm
+  - tests/background/test_ghost_pusher_attribution.py
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_HOOK_BYPASS_AND_SURGICAL_LANDING_2026-08-09
+  ask: 'Default: bypass is a wall ... The class closes by mechanism: an atom for a sanctioned surgical-landing tool; also the full-suite pollution bisect.'
+  status: partly
+  evidence:
+  - a86dc9f3f3 OPS4 surgical landing tool
+  - tools/surgical_land.py
+  - CLAUDE.md HOOK-BYPASS IS A WALL
+  missing: no commit or report found for the granted full-suite pollution bisect naming the polluting module
+  next_step: confirm the bisect was run or superseded by the rest-ladder isolation work (66fe148998), then close
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_HOOK_BYPASS_IS_A_WALL_2026-08-09
+  ask: the default is a wall, bypass is never a judgment call ... file an atom for a sanctioned surgical-landing tool ... so the check always runs and 'bypass' stops existing as a concept.
+  status: shipped
+  evidence:
+  - a86dc9f3f3 OPS4 land exactly-named paths with the gate run against the tree the commit would create
+  - tools/surgical_land.py
+  - CLAUDE.md walls section
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_PUBLISH_GATE_SUBJECT_2026-08-09
+  ask: the run-complete publish gate tests a clean checkout of HEAD, never the shared working tree; paired with a standing tree-divergence measure.
+  status: shipped
+  evidence:
+  - 14fbd32cd1 gate-on-HEAD ruling implemented
+  - tests/background/test_publish_gate_head_checkout_is_a_repo.py
+  - background/tree_divergence.py
+  moved: 2026-10-24
+- id: DIRECTOR_STEER_SECOND_PUBLISH_WEDGE_2026-08-09
+  ask: Confirm a real publish commit has landed ... Get tools/run_annual_report.py into version control ... Make the staleness signal mean stale with respect to code this daemon actually loads.
+  status: shipped
+  evidence:
+  - 94933cffff publish commit landed after the fail-open fix
+  - 83a55b7505 run_annual_report.py committed with its real origin
+  - 55899dc992 PW1 staleness detector fixed both halves
+  - ad67e713b6 steer disposition
+  moved: 2026-10-24
+- id: DIRECTOR_TASK_NO_CALLER_CLASS_CENSUS_2026-08-09
+  ask: 'Produce ONE page: every instance of the no-caller class to date, and what ONE mechanism would have caught all of them. Report only.'
+  status: shipped
+  evidence:
+  - e3f2f34848 the no-caller class census page
+  - docs/staging/done/WORKER_REPORT_NO_CALLER_CLASS_CENSUS_2026-08-09.md
+  moved: 2026-10-24
+- id: DIRECTOR_PRIORITY_SIM_RUNNER_TRIAGE_2026-08-08
+  ask: 'paraphrase: make the six-failure sim-runner red loop the first draw and find its cause from the log'
+  status: shipped
+  evidence:
+  - de2c3d7d8c H30 the red loop's stderr was being discarded; child-failure stderr guard fixed eleven launch sites
+  - tools/child_stderr_guard.py
+  moved: 2026-10-24
+- id: DIRECTOR_PRIORITY_UNWEDGE_AND_ALARM_TEETH_2026-08-08
+  ask: 'Draw 1 unwedge. Draw 2 the class: episode memory, and alarm-to-dial wiring so an alarm citing a finding raises its draw priority.'
+  status: shipped
+  evidence:
+  - e21066b783 unwedge cause 1 working-tree lint
+  - bbb959cba6 unwedge cause 2 stale derived ledger
+  - background/process_run_complete.py episode memory
+  - background/supervisor.py alarm-cited finding lifted to rung 1
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_FUTURE_COMMITMENT_SETS_2026-08-08
+  ask: Mint the commitment sets of Epochs 2-5 as level-0 atoms ... the attach-hook ... pull-forward is proposal-only ... visibility of blocked atoms.
+  status: shipped
+  evidence:
+  - 8a484b8700 EP1-EP20 commitment sets and FUT1-3 minted
+  - 641a87ae27 FUT1 attach-hook with visible ledger
+  - docs/design/FORWARD_ATTACHMENT_LEDGER.md
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_INFRASTRUCTURE_POSTURE_2026-08-07
+  ask: 'start with PC, no Qwen reliance, Oracle for recovery cut-over, proper scale later; revised: the cloud box is the SEAT, not the spare.'
+  status: partly
+  evidence:
+  - background/resource_headroom.py
+  - CLAUDE.md records no local model since 2026-08-10
+  missing: the seat is still the WSL2 PC per CLAUDE.md; no seat bootstrap script, Oracle A1 acquisition loop, cut-over checklist or timed dead-box drill found
+  next_step: raise in for_the_director whether the cloud-seat half still stands (account creation is a G5 real-world commitment); recommend closing it as superseded by the PC seat if he agrees
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_TRAFFIC_FORECAST_AND_DEEPENING_REGISTER_2026-08-07
+  ask: Preclude nothing at 10^6 customers; engineer for 10^5; probe at 10^4 ... TARGET_DESIGN consumes both tables as its load section. The write-time gate adds the scale question.
+  status: partly
+  evidence:
+  - docs/design/DIRECTOR_CANON.md R9 scale posture and H6 does this die at 10^5
+  - tests/system/scale_constraints.py
+  missing: docs/design/TARGET_DESIGN.md has no Table A load section; tools/write_time_gate.py asks no scale question; no Table B seam atoms or 10k-probe expected values found
+  next_step: decide whether the mechanised items still earn their place under the smallest-mechanism rule; if so author the TARGET_DESIGN load section first, else close with that reason
+  moved: 2026-10-24
+- id: DIRECTOR_PROGRAMME_ARCHITECTED_OUT_2026-08-05
+  ask: 'paraphrase: architected out, organic in; MAP (capability index, write-time reuse gate), NET (join tests, executable scale constraints), KNIFE (hotspots), RHYTHM, in that order'
+  status: shipped
+  evidence:
+  - 7e5a727d44 AO1 capability index
+  - 008df03062 AO8 batteries executable
+  - tools/write_time_gate.py
+  - tests/system/scale_constraints.py
+  - 7cef2c1d46 KNIFE passes 1 and 3 landed
+  - docs/design/TARGET_DESIGN.md
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_H_LANE_CUT_AND_PLAIN_NAMING_2026-08-05
+  ask: The H territory becomes two lanes, after distribution ... Every lane and every atom carries a plain-English title and a one-line gain statement; ids become machine keys.
+  status: partly
+  evidence:
+  - docs/design/maturity_map.yaml titles on 76 of 106 atoms
+  missing: the map still has a single H_harness lane with no Build Engine/OPS split or charters; 30 atoms lack titles; no id registry at the mint gate found
+  next_step: check whether the map cut to 106 atoms superseded the lane split; if not, ask the director whether the two-lane cut still stands and finish titles on the remaining 30 atoms
+  moved: 2026-10-24
+- id: DIRECTOR_QUESTION_WHY_INVISIBLE_WORK_2026-07-29
+  ask: Your account of why, in plain language, published where a reader can follow it ... the class, named ... a sweep ... Act on what you conclude.
+  status: shipped
+  evidence:
+  - 745c83fa3d retrospective on three silent-drawability blind spots
+  - docs/retrospectives/2026-07-29-three-silent-drawability-blind-spots.md
+  - site/data/method.json publishes it on the method page
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_CA_PROMOTION_BATCH_RATIFIED_2026-07-29
+  ask: Publish it as a finding in its own right -- with the realised cell counts and which cells ran thin (plus ratify CA1-CA3 to L3, CA4 to L1; raise SE_DRAW_POPULATION as its own [ACT])
+  status: partly
+  evidence:
+  - c4c1598172 released the CA levels after NTFY-is-the-director
+  - 84b4614bb1 CA2 realised joint cohort coverage with the ~12-cell knee and thin cells
+  - ead9035b32 flipped assign_cohorts live at the seam
+  - simulation/population_coverage.py
+  missing: no standalone published finding on the knee surviving the N_scored=198 draw (it lives only inside the CA2 build and the CA2 simplifications yaml); no separate SE_DRAW_POPULATION activation [ACT] found
+  next_step: either publish the knee/thin-cell result as a finding or close it as overtaken by the 2026-10-19 cohort-census seat finding, stating which
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_FIX_DOUBLE_MESSAGING_2026-07-29
+  ask: Diagnose the mechanism, do not filter the symptom ... at-most-once execution for anything that acts
+  status: shipped
+  evidence:
+  - 67a2e3ee68 two responder daemons found
+  - second launcher removed
+  - singleton lock and per-message-id claim
+  - 42cff58b62 DOUBLE_LAUNCH no longer fires on processes that merely mention the daemon
+  - background/process_reconciler.py
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_LITERAL_ACTS_2026-07-29
+  ask: For every currently-blocked minted item, emit the exact literal text or command that releases it ... release what you can under authority you already hold
+  status: shipped
+  evidence:
+  - bc3f03d936 literal-act ledger of 21 blocked items by channel with verified acts
+  - eabae39d66 self-authority release sweep with before/after count
+  - docs/design/BLOCKED_ITEM_LITERAL_ACTS.md
+  - 2b095998fd the rip-out then abolished the block types themselves
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_LITERAL_ACT_LIST_2026-07-29
+  ask: Produce one document, and one batched [ACT] pointing at it, listing every currently-blocked minted item with the literal act, channel and observable success
+  status: shipped
+  evidence:
+  - bc3f03d936 literal-act ledger grouped by channel
+  - eabae39d66 self-release sweep
+  - docs/design/BLOCKED_ITEM_LITERAL_ACTS.md
+  - 69bbf00b75 permission blocks mechanically abolished the same day
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_NTFY_IS_THE_DIRECTOR_2026-07-29
+  ask: This is just a virtual pilot not NASA. Anything from ntfy is me. That's it.
+  status: superseded
+  superseded_by: 'NTFY mothballed (his words 15 Oct 14:08: ''Should we not mothball the ntfy alerts?''), CLAUDE.md G8; authority now console and advisor channel'
+  evidence:
+  - c4c1598172 acted on it at the time (CA levels released
+  - phone-signer parked
+  - test sig voided)
+  - ae0f670797 inbound PIN/format gate deleted
+  - 565bd6303b NTFY no longer reaches the director's phone
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_PHONE_SIGNER_NO_CONSOLE_2026-07-29
+  ask: The console is the LAST resort ... write docs/design/PHONE_SIGNER_SETUP.md for a non-technical reader on a phone
+  status: superseded
+  superseded_by: DIRECTOR_RULING_NTFY_IS_THE_DIRECTOR_2026-07-29 and his ntfy 'The authority seam approval is withdrawn -- we removed signatures entirely. Drop it and carry on.'
+  evidence:
+  - docs/staging/done/RESPONSE_AUTHORITY_SEAM_WITHDRAWN_2026-07-29.md
+  - docs/design/PHONE_SIGNER_SETUP.md
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_RIP_OUT_PERMISSION_MACHINERY_2026-07-29
+  ask: 'paraphrase: abolish director_build_open/director_level_up blocks, the LEDGER release convention and the inbound PIN; re-scope one-way doors to real-world consequence; build gap_registers_as_mint_sources'
+  status: shipped
+  evidence:
+  - 2b095998fd abolished both block types and cleared 13 atoms
+  - 69bbf00b75 mechanised the abolition in the draw
+  - ae0f670797 deleted the inbound PIN/format gate
+  - dbb16e8abf one-way-door reserved set re-scoped
+  - background/one_way_door.py
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_ROTATE_SIGNING_KEY_2026-07-29
+  ask: NO -- regenerate. ... Proceed with the rotation path; do not read, echo, log or store the new key
+  status: superseded
+  superseded_by: DIRECTOR_RULING_NTFY_IS_THE_DIRECTOR_2026-07-29 (signatures removed entirely) and docs/staging/done/RESPONSE_AUTHORITY_SEAM_WITHDRAWN_2026-07-29.md
+  evidence:
+  - docs/staging/done/RESPONSE_AUTHORITY_SEAM_WITHDRAWN_2026-07-29.md
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_SIGNING_KEY_NEVER_PROVISIONED_2026-07-29
+  ask: 'paraphrase: prepare everything for SE_WAKE_HMAC_KEY provisioning and hand the director ONE phone-safe command; correct PHONE_SIGNER_SETUP step A1'
+  status: superseded
+  superseded_by: its premise was contested (key was provisioned), then DIRECTOR_RULING_ROTATE_SIGNING_KEY and finally DIRECTOR_RULING_NTFY_IS_THE_DIRECTOR removed signatures
+  evidence:
+  - d6b3be3bc4 contested the premise with evidence and parked the atoms
+  - 9fd4950f32 minted the deliverables
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_WORK_AT_RISK_DEFAULT_2026-07-29
+  ask: Why is it asking a load of questions and not just getting on with it, making a recommendation and flagging for decision reversal if necessary -- working at risk.
+  status: shipped
+  evidence:
+  - 5c8cbfe733 minted the three reversibility atoms
+  - 03db8bdab7 reconciled batched ACT and proceed-at-risk
+  - dbb16e8abf reserved set re-scoped to real-world consequence
+  - background/one_way_door.py
+  moved: 2026-10-24
+- id: DIRECTOR_WARNING_QUIET_BUSYWORK_2026-07-29
+  ask: Will this let the company do something it could not do before? ... Pick the next real item from your own backlog. Start it.
+  status: shipped
+  evidence:
+  - 0360867c3f warning actioned and course-corrected
+  - 90cd95039e built SPINE_1 binding run-rotation to the scenario curriculum
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_BLOCKED_MINT_BATCH_2026-07-28
+  ask: 'paraphrase: consuming a ruling must create the ledger entry that releases its block; release generator activation, cohort assignment and GAP1 BUILD'
+  status: superseded
+  superseded_by: DIRECTOR_RULING_RIP_OUT_PERMISSION_MACHINERY_2026-07-29 (permission block types abolished) and background/gate_authorization.py self-certified levels
+  evidence:
+  - 2b095998fd abolished director_build_open/level_up blocks
+  - 69bbf00b75 mechanised it
+  - 2454e70592 GAP1 reader BUILD half landed
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_CONSUMPTION_AUTHORITY_SEAM_SIGNOFF_2026-07-28
+  ask: 'paraphrase: release only through a channel the worker cannot forge; ratify LEDGER: directives; release generator_draw_wiring, cohort_assignment, gap1_reader_contract now'
+  status: superseded
+  superseded_by: DIRECTOR_RULING_NTFY_IS_THE_DIRECTOR_2026-07-29 and DIRECTOR_RULING_RIP_OUT_PERMISSION_MACHINERY_2026-07-29 withdrew the unforgeable-channel principle and the LEDGER convention
+  evidence:
+  - docs/observability/gate_authorizations.jsonl console BUILD_OPEN entries written at the time
+  - 69bbf00b75 LEDGER convention deleted
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_GAP_TRIAGE_RATIFIED_2026-07-28
+  ask: 'paraphrase: apply the four-bucket gap taxonomy; moves INTO deliberate-and-staying return for ratification; build GAP1 reader; answer staleness and blast-radius'
+  status: shipped
+  evidence:
+  - 2454e70592 GAP1 reader gap_register_scan.py
+  - 42dbfed643 batched inbound-ratification path for into-deliberate moves
+  - 155251dad7 answered staleness (read-time filter) and blast-radius
+  - docs/design/GAP_TRIAGE_AND_RANKING.md
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_KPILOT_DECOMPOSITION_2026-07-28
+  ask: It updated. But mostly just wrote a list of things it hasn't yet done. This is not done.
+  status: shipped
+  evidence:
+  - 9b189404f5 wholesale-domain topic map with gas and electricity separate
+  - 0e695eb97d scope-independence evidence
+  - c07164b6f8 deep node re-homed to electricity-wholesale with charts
+  - 22001572bc gas-wholesale top-level plus stubs
+  - site/knowledge/gas-wholesale
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_KPILOT_SCOPE_FIRST_2026-07-28
+  ask: Doesn't mention the structure of wholesale prices, seasons etc. ... No graphs or charts. -- write the scope brief FIRST, then assemble
+  status: shipped
+  evidence:
+  - 599a18b001 GB wholesale electricity scope brief written before assembly
+  - 08f6bb095d separate gas scope brief
+  - c07164b6f8 charts and DoD gate intact on the deep node
+  - site/knowledge/electricity-wholesale
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_NO_QUESTION_LEFT_UNANSWERED_2026-07-28
+  ask: Let's never leave questions unanswered please.
+  status: shipped
+  evidence:
+  - d05dd80af3 open-question register plus archive-block gate plus daily-note line
+  - 155251dad7 the six outstanding questions answered
+  - background/open_question_register.py
+  - tools/ruling_archive_question_gate.py
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_PUBLISHED_GAPS_ARE_THE_BACKLOG_2026-07-28
+  ask: there are loads of things it self-reports on the website as not being built -- saturation was a bookkeeping artifact; published gaps are the backlog
+  status: shipped
+  evidence:
+  - 7d6497178c minted the gap-register deliverables
+  - c71a2e8452 GAP1/GAP2 DISCOVER halves
+  - 2454e70592 GAP1 reader built
+  - docs/design/GAP_TRIAGE_AND_RANKING.md
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_SHARED_PRIMITIVES_AND_CODE_STANDARDS_2026-07-28
+  ask: 'paraphrase: build shared primitives (working-day calculator, RNG substream), a size-and-clone ratchet, an owned-quantity registry gate, and make ''should this have been shared?'' an ensuring activity; gather money-representation evidence'
+  status: partly
+  evidence:
+  - d21ce8dd76 working-day calculator (SP2_1 closed L3)
+  - company/compliance/working_days.py
+  - 1676bc4d18 size ratchet drain rule
+  - tools/size_ratchet.py
+  - a6bd4d77ef SP2_2 RNG substream parked idle at L1
+  missing: SP4 owned-quantity registry gate never built (DISCOVER found a live ~4.2x net-margin divergence and 5 disagreeing carbon factor tables; atom deleted 7403b89c1c in the 2026-08-24 harness prune); SP2_2 RNG substream primitive stuck at L1 of 3
+  next_step: re-check whether net margin and carbon factors still have more than one computation; if so re-mint the owned-quantity gate as a one-leg check, else close SP2_2 and SP4 with that evidence
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_UNBLOCK_BATCH_2026-07-28
+  ask: 'paraphrase: state what the merit-order window needs, take the cohort promotion at twin authority or batch it, and build the exit-criterion counter'
+  status: shipped
+  evidence:
+  - 0b2b27e900 advanced merit-order and batched the cohort promotion
+  - efad226db0 merit-order SRMC reconstruction engine
+  - background/harness_exit_criterion.py
+  - tests/background/test_harness_exit_criterion.py
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_COHORT_ASSIGNMENT_ACTIVATED_2026-07-27
+  ask: Cohort assignment is ACTIVATED for the population draw ... ratified values unchanged; company-side segmentation stays recorded untestable
+  status: shipped
+  evidence:
+  - 6bb6789dde minted the four CA atoms
+  - ead9035b32 flipped assign_cohorts live at the seam with untestable-at-book marking
+  - simulation/live_population.py
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_EIGHTH_CLASS_PENDING_BATCH_DEADLOCK_2026-07-27
+  ask: 'paraphrase: confirm or refute the pending-batch deadlock (H1) and the liveness-silenced deadman (H2), fix as a class, and escalate rest over 2h while mints are open'
+  status: shipped
+  evidence:
+  - 405397f9eb deadman clock excludes re-verify and chore commits
+  - e9df8321b5 lane isolation regression guard
+  - 6067b55a5b EIGHTH-CLASS 2h age-cap firing live
+  - 521a789467 H1 premise re-examined
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_FAILURE_BIAS_LAWS_2026-07-27
+  ask: I don't get why one assumption caused the whole process to fail. ... don't ignore why stuff went wrong when it shouldn't.
+  status: shipped
+  evidence:
+  - 88e5d107a7 LAW A every suppression declares its re-arm
+  - e9df8321b5 LAW B lane isolation
+  - 37c2a5854e LAW C rest verdict from primary state
+  - e46ddd3e90 R10 suppression sweep
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_HARNESS_EXIT_CRITERION_RATIFIED_2026-07-27
+  ask: 'paraphrase: harness is done for now after three consecutive product atoms reach their next level with zero stall-class events; N=3 ratified; mechanise it'
+  status: shipped
+  evidence:
+  - 77c327bd5d proposal written
+  - background/harness_exit_criterion.py
+  - tests/background/test_harness_exit_criterion.py
+  - 2546a4a0bb landed the counter
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_HARNESS_INVESTMENT_AND_ITS_EVIDENCE_2026-07-27
+  ask: 'paraphrase: harness investment continues but must terminate on evidence; mint the product content as drawable atoms and propose an exit criterion'
+  status: shipped
+  evidence:
+  - 77c327bd5d minted W1_6b
+  - DD_seasonal_cashflow_physics and SITE_evidence atoms and proposed the exit criterion
+  - docs/design/HARNESS_EXIT_CRITERION_PROPOSAL_2026-07-27.md
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_POOL_VS_BOOK_LAMBDA_STANDS_2026-07-27
+  ask: 'N=200 is the coverage draw; lambda=1.0 stands as the real book. The book is earned, never granted. (plus: acquisition as a decision variable is URGENT; at least 3 households per named protected cell in the pool, over-sampling recorded)'
+  status: partly
+  evidence:
+  - 2338f13ffd acquisition selects on each prospect's own responsiveness
+  - company/interfaces/growth_desk.py
+  - simulation/population_coverage.py
+  missing: 'Corollary D not found as asked: DEFAULT_JOINT_THIN_FLOOR=3 only flags thin cells and the draw does not guarantee 3 per protected cell or record a per-cell over-sampling factor'
+  next_step: decide whether the 2026-08-11 POPULATION_AND_BOOK_GROWTH ruling (PB1-PB3) overtook the tail floor; if not, add the guarantee plus reweighting factor or close it with a reason
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_SWEEP_VERDICT_AND_SEQUENCE_2026-07-27
+  ask: 'paraphrase: sweep accepted; close the registration hole; land LAW A/B/C; then the next product draw is merit-order / gas-first reconstruction, never tuned to the benchmark'
+  status: shipped
+  evidence:
+  - 3916c34577 suppression-registration lint
+  - 37c2a5854e LAW C
+  - e9df8321b5 LAW B
+  - 88e5d107a7 LAW A
+  - efad226db0 merit-order reconstruction engine and reconstructibility test
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_WORK_DEFINITION_AND_COHERENCE_2026-07-27
+  ask: 'paraphrase: rulings must create atoms (mint source, WORK THIS CREATES block, rung-1 ordering, enumerable backlog) and model/diagram/site/map must derive from one truth, with HARDEN never outranking real work'
+  status: shipped
+  evidence:
+  - 6f2be1d417 rulings/steers became a mint source with WORK THIS CREATES parser
+  - cac540a0d3 rung-1 ordering test and missing-block defect surface
+  - 8f17b6b0bc coherence-by-derivation computed node stage from atom levels
+  - site/moap_stage.py
+  - site/moap_coherence.py
+  - site/moap_render.py
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_GENERATOR_ACTIVATION_AND_RUN_LEDGER_2026-07-25
+  ask: 'paraphrase: activate the drawn population (N=200, per-run variation, coverage report before publishing), rotate runs on a stratified world x seed grid, record every run in a ledger, keep three scores separate'
+  status: partly
+  evidence:
+  - 9158e8ce4b population draw switched on by director word 2026-08-13
+  - docs/design/curriculum/population_draw_activation.json
+  - 45f60e9307 liquidity/cover-min ledger fields
+  - background/run_rotation.py
+  - background/run_manifest.py
+  - docs/design/RUN_LEDGER_AND_SCORES_BUILD_2026-07-25.md
+  missing: run_rotation.py and run_manifest.py have no production caller (only their tests import them), so the stratified rotation and the per-run ledger and three scores do not run; activation is additive to the CUSTOMERS literal rather than retiring it
+  next_step: wire run_manifest emission and the run_rotation selector into the run path (process_run_complete or the seed-family runner), or retire them and record the ledger requirement as superseded by the seed-family books
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_MC2_REAL_HISTORY_NOT_DIFFICULTY_2026-07-25
+  ask: 'paraphrase: no difficulty knob; the 2021-22 replay is the MC-2 death test (price move alone gives a cash call, death by collateral while P&L survives), sweep 0.8/1.0/1.2/1.5x, and fix the hardcoded GBP5m facility as a book-scaled mechanism'
+  status: shipped
+  evidence:
+  - 578b62f779 book-scaled committed trading facility replaces fixed GBP5m
+  - cf349f5626 collateral death-test with 0.8-1.5x breaking-strain sweep and collateral_while_solvent shape
+  - company/finance/margin_call_book.py
+  - company/risk/collateral_death_test.py
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_PAYMENT_DETECTION_CARVE_OUT_2026-07-25
+  ask: 'paraphrase: non-DD payment failure is a detection latency, not a blind spot; build only the expected-collection reconciliation detector (sensing, no dunning/debt/provisioning), with an R15 that it can still miss'
+  status: shipped
+  evidence:
+  - 52c8e89868 expected-collection reconciliation detector
+  - company/billing/payment_observation_consumer.py
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_POPULATION_ACTIVATION_AND_RUN_LEDGER_2026-07-25
+  ask: 'paraphrase: twin of the generator-activation ruling: activate the population draw at N=200 with a coverage report first, stratified run rotation, a run manifest row per run, three separated scores, domestic-only survival'
+  status: partly
+  evidence:
+  - 9158e8ce4b population draw switched on 2026-08-13
+  - a18821a020 reversible draw-wiring half
+  - ae0e2a44d3 real region draw
+  - background/run_rotation.py
+  - background/run_manifest.py
+  missing: the run manifest/ledger and stratified rotation modules are not called by any run path (test-only imports), so the per-run ledger and three-score verdicts are not produced
+  next_step: 'same as the generator twin: wire or retire run_manifest/run_rotation; close this twin together with it'
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_SSP_BASELINE_HELD_MERIT_ORDER_FIRST_2026-07-25
+  ask: I really want pricing to be right in the end, not just look right now. (hold coefficient recalibration; the fix is merit-order/gas-first reconstruction, re-measured against the unchanged baseline)
+  status: shipped
+  evidence:
+  - db0abe054f part (a) re-scoped to merit-order reconstruction
+  - efad226db0 merit-order SRMC reconstruction engine and reconstructibility test
+  - 0a6be8c47f engine wired live
+  - bed520d26b W1_6b L1->L2 criterion put on trial
+  - sim/merit_order_reconstruction.py
+  - docs/design/simplifications/W1_6b_merit_order_reconstruction.yaml
+  moved: 2026-10-24
+- id: DIRECTOR_STEER_DD_SEASONAL_CASHFLOW_2026-07-25
+  ask: 'paraphrase: every customer carries a realistic level-DD cash flow (staggered anniversaries, seasonal credit build and draw-down, non-zero opening balance), credit balances shown as a liability beside the three clocks, annual DD review as a first-class event'
+  status: partly
+  evidence:
+  - 422d416754 FRAME and propose for level-DD seasonal cash-flow physics
+  - 5cdaca0201 in-loop DD review reads the supplier's own bills
+  - company/billing/dd_review.py
+  - company/billing/credit_balance_control.py
+  - simulation/dd_balance_book.py
+  missing: 'non-zero opening balance at acquisition: simulation/dd_balance_book.py records it is blocked because TenancyChangeCoupler has no production caller and life_events emits no move event'
+  next_step: wire a tenancy-change/move stream (W2_12) so deemed-supply arrears can open a balance, then pass opening_balances into the DD book
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_CANONICAL_DOOR_A_COMMIT_THE_FOLD_2026-07-24
+  ask: Do it. (commit the SITE_V5 fold of /method, /simplified, /project, /tours into /proof via redirects; fix all 22 links in one pass gated on the link-walk)
+  status: superseded
+  superseded_by: director ruling 2026-08-20 recorded in site/_redirects (no one ever visited those URLs; 38 redirects and the fold apparatus deleted)
+  evidence:
+  - 5b8152bb73 fold committed with 22 links to canonical /proof anchors and link-walk gate
+  - site/_redirects
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_FRONT_MISSION_BLOCK_2026-07-24
+  ask: 'paraphrase: the front door leads with the mission (personalisation-abatement, GBP/tCO2e against GBP273), not the cost-to-serve arbitrage leg, which moves intact to /proof; no N=5 GBP7 figure leads'
+  status: superseded
+  superseded_by: 'mission rewritten 2026-08-28 (CLAUDE.md: money, time and carbon; carbon''s job CO1 is to show customers what they saved) - the GBP/tCO2e score no longer leads the front door'
+  evidence:
+  - 423c571518 mission block led the front door and CTS leg moved to /proof
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_HEARTBEAT_AND_QUIET_CLASSIFICATION_2026-07-24
+  ask: 'paraphrase: ship the rail-3 tick heartbeat to origin via auto-publish, classify the quiet window with the per-lane enumeration, and say whether the rung-7 planner is built'
+  status: shipped
+  evidence:
+  - 3297a8fba2 worker_tick writes site/data/tick_heartbeat.json shipped every publish
+  - site/data/tick_heartbeat.json
+  - 2e115c2a7e rung-7 planner built
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_IDEA_FIRST_EXTERNAL_REGISTER_2026-07-24
+  ask: £80k makes no sense either. Why is that the lead number. At this stage what matters more is the idea. And the visibility of each stage of the diagram. In easy normal external views. Not internal project narrative.
+  status: shipped
+  evidence:
+  - 9cf8e1d59f node-by-node Live/Building/Planned stage view on the front door
+  - ca9ca3a6e2 external-register sweep complete with internal pages folded under /proof
+  - site/moap_render.py
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_PLANNER_MINT_WAIVED_2026-07-24
+  ask: Waive it. (all five rung-7 planner mints proceed now, walls intact)
+  status: shipped
+  evidence:
+  - 37c6483fde mints actioned under the waiver
+  - a18821a020 generator draw-wiring reversible half
+  - cf349f5626 MC-2 collateral death-test
+  - 52c8e89868 payment-detection detector
+  - db0abe054f SSP mint re-scoped per director hold
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_RETIRE_PAGE_COMMENT_CHANNEL_2026-07-24
+  ask: Retire. (page-comment channel decommissioned as a director-authority path; manifest marks it retired; archive kept; R15 that a comment is inert)
+  status: shipped
+  evidence:
+  - 358f29f9f4 page-comment authority channel retired
+  - background/director_comments.py
+  - background/process_manifest.yaml
+  - tests/background/test_director_comments.py
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_WEDGE3_AND_RUNG1_MECHANISE_2026-07-24
+  ask: 'paraphrase: unwedge the publish gate now and mechanise the rule that a wedge older than 60 minutes is rung-1 drawable work, with a failing test reproducing the state; route the bill-sanity findings into verify-first atoms'
+  status: shipped
+  evidence:
+  - cc66fd2981 unwedge plus rung-1 wedge draw mechanised
+  - ce17cc4456 wedge-state test isolation
+  - tests/background/test_publish_gate_wedge_draw.py
+  - f90e2e85f2 all five sections actioned
+  moved: 2026-10-24
+- id: DIRECTOR_SECURITY_COMMENT_CHANNEL_INCIDENT_2026-07-24
+  ask: 'What comment? (lock the comment intake, establish provenance; re-scoped: fix heartbeat-vs-action timestamp conflation, synthetic-marker class, ghost-form sweep, keep channel locked)'
+  status: shipped
+  evidence:
+  - 3297a8fba2 comment intake locked
+  - 1f8fe3bd83 heartbeat clock separated from action clock
+  - 358f29f9f4 channel retired
+  - background/agent_status.py
+  moved: 2026-10-24
+- id: DIRECTOR_ADDENDUM_MODEL_ON_A_PAGE_DIAGRAM_2026-07-23
+  ask: 'paraphrase: add the director-approved model-on-a-page diagram to the site in the front-door host; the wall is two-way and bills are outbound'
+  status: shipped
+  evidence:
+  - 9cf8e1d59f diagram with per-node stages on the front door
+  - 1365736683 node deep-anchors and link-walk gate
+  - site/moap_render.py
+  - docs/design/THE_MODEL_ON_A_PAGE.md
+  moved: 2026-10-24
+- id: DIRECTOR_R13_ENGAGEMENT_MIX_RATIFICATION_2026-07-23
+  ask: 'paraphrase: set engagement shares to 0.45/0.35/0.20 with per-archetype renewal probabilities unchanged; register a continuous behavioural engagement model as a DISCOVER atom'
+  status: shipped
+  evidence:
+  - 9542cdd1b2 engagement mix applied
+  - simulation/household_segments.py
+  - f2e1e74981 W2_14 continuous engagement atom registered
+  - 41c465a978 W2_14 continuous latent beneath the ratified bins
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_CAMPAIGN_CONTINUATION_AND_SITE_VERDICT_2026-07-23
+  ask: It still looks awful. (an open campaign is drawable work - mechanise; daily note computes turn-aware utilisation; build site surfaces 2-5 and iterate surface 1)
+  status: superseded
+  superseded_by: SITE4-15 site programme (DIRECTOR_BRIEF_WEBSITE_STRUCTURE) and the 2026-10-04 operating model's stretch log in place of the daily-note utilisation figure
+  evidence:
+  - 1abeb558e9 open-campaign draw rung mechanised
+  - tests/background/test_open_campaign_draw.py
+  - docs/design/CAMPAIGN_REGISTER.yaml
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_DECISION_LINKAGE_PRECEDENCE_2026-07-23
+  ask: 'paraphrase: the 2026-07-22 ratification of the decision-linkage gate (a segment scores value only if a decision is conditioned on it) stands; do not un-wire, hold or re-park it'
+  status: partly
+  evidence:
+  - 01e33ec372 decision-linkage ratification logged
+  - 09f198992e precedence clarification recorded
+  - docs/observability/decision_log.jsonl
+  - docs/design/BOARD_SPEC_006_RECONCILIATION.md
+  missing: 'no code implements the gate: grep for decision-linkage/conditioned-on in the learning-value metric (simulation/population_coverage.py, build_learning_frontier.py) finds nothing'
+  next_step: establish whether the learning-value frontier still exists as a metric; if so wire the gate, otherwise close as superseded by the current population-coverage design
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_F1_WINDOW_WAIVED_2026-07-23
+  ask: Waive. (build the F1 conversations coupled triad now, F1a/F1b/F1c as proposed)
+  status: shipped
+  evidence:
+  - 3c954e5fa8 F1a SIM customer response built to L2 exit test
+  - d341a78566 F1b company comms built to L2 exit test
+  - 991835a4d1 F1c harness conversation gap built
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_HMAC_GAP_OPTION_1_2026-07-23
+  ask: 'paraphrase: option 1 - strip SE_WAKE_HMAC_KEY from the worker spawn env now, R15 both ways, sweep every spawn inheritance path'
+  status: shipped
+  evidence:
+  - 6d81a7b081 key stripped from every model-facing spawn env
+  - background/worker_tick.py
+  - background/autonomous_runner.py
+  - background/build_executor.py
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_NIGHT_ENFORCEMENT_2026-07-23
+  ask: You are condoning doing nothing all night? (build the work-source hierarchy and planner rung tonight, mint the three seeds, publish whole-set enumeration, with four safety rails)
+  status: shipped
+  evidence:
+  - 572fd628b3 rung 4 declared-defect backlog live and 3 seeds minted
+  - 2e115c2a7e rung-7 planner built
+  - 3297a8fba2 rail-3 heartbeat ships to origin
+  - docs/design/proposals/PROPOSE_SPIKE_TAIL_ATTACK_PLAN.md
+  - docs/design/proposals/PROPOSE_PREMISE_DEMAND_PUBLISH_SPEC003.md
+  - docs/design/proposals/PROPOSE_SCENARIO_FOLLOWONS_RANKED.md
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_PRODUCT_FIRST_2026-07-23
+  ask: Nothing material is happening. (split product vs machinery hours in the daily note; re-rank so the product queue is the priority order)
+  status: shipped
+  evidence:
+  - 51048b5d13 product/machinery split mechanised and re-rank
+  - background/daily_self_note.py
+  - a18821a020 generator draw-wiring
+  - cf349f5626 MC-2 death-test
+  - site/data/premise_demand.json
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_R17_BREACH_AND_CLASS_FIX_2026-07-23
+  ask: It built absolutely nothing all night. That's a total disaster. (rest must enumerate the whole authorised set; propose-halves always drawable; then F1 proposal, F2 fold-in, MC-2 test-first, MC-1 classification)
+  status: partly
+  evidence:
+  - 8882cac611 propose-half always drawable class fix
+  - 3bc41e71fb F1 build proposal written
+  - cf349f5626 MC-2 collateral death-test
+  missing: no commit found for the MC-1 mechanism-or-script classification of battery behaviours or the F2 site fold-in (Spec 005 ABSENT row)
+  next_step: close both as superseded one-off July work orders unless the MC-1 battery grading is still wanted; if so mint it as an atom
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_SCENARIO_NONVETO_AND_PRODUCT_STATUS_2026-07-23
+  ask: 'paraphrase: the scenario-spine FRAME proceeds (no veto) but must not pre-empt PRODUCT-FIRST items 1-2; answer product status with evidence and start site v5 pages'
+  status: shipped
+  evidence:
+  - bc7ee7b4b9 non-veto archived and scenario steer parked behind product items
+  - 51048b5d13 product-first re-rank
+  - a18821a020 generator draw-wiring
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_UNWEDGE_AND_AXIS3_2026-07-23
+  ask: 'paraphrase: unwedge the publish gate first, record the axis-3 weather verdicts (still-and-cold MET, normalisation/persistence PARTIAL, warming ABSENT), then F1c, twin level moves, weather steer'
+  status: shipped
+  evidence:
+  - 9bc0114044 publish gate unwedged and facets test added to commit gate
+  - 6548fc26fa axis-3 weather verdicts recorded and weather steer consumed
+  - docs/observability/director_axis_verdicts.jsonl
+  - docs/design/WEATHER_SIM_PURPOSE_FRAME.md
+  - 991835a4d1 F1c built
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_UNWEDGE_PUBLISH_PRIORITY_ZERO_2026-07-23
+  ask: 'paraphrase: diagnose and fix the 3.5h publish-gate wedge, prove the rebuild live, and mechanise that a wedge older than 60 minutes is priority-zero drawable work'
+  status: shipped
+  evidence:
+  - dd45de5495 Method reachability restored on the front door
+  - 1a29fe3b09 gate green and published
+  - cc66fd2981 rung-1 wedge draw mechanised
+  - tests/background/test_publish_gate_wedge_draw.py
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_WORDS_DIAGRAM_EVIDENCE_2026-07-23
+  ask: 'paraphrase: re-ground headline financials as unit economics/rates with N and sample framing (RC6); canonical nav plus an R11 link-walk test per publish; adopt WORDS -> DIAGRAM -> EVIDENCE as the site''s IA spine'
+  status: superseded
+  superseded_by: SITE4 IA/nav programme (docs/design/simplifications/SITE4_ia_register_and_nav.yaml, SITE_STRUCTURE_PROGRAMME_PROPOSAL_2026-08-17.md); the site has been rebuilt since
+  evidence:
+  - 076194063a Company finance panel reframed to unit economics (RC6)
+  - 50af9c5caf /now panel 2 reframed to unit economics (RC6)
+  - site/test_every_served_page_takes_the_canonical_nav.py
+  - site/test_evidence_links_resolve.py
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_WORK_IS_THE_DEFAULT_2026-07-23
+  ask: 'his words: "Why does it not always have something to do?" -- paraphrase: a 7-rung work-source hierarchy so the drawable set is never empty, a planner rung, and seed the defect backlog now'
+  status: shipped
+  evidence:
+  - 572fd628b3 rung 4 declared-defect backlog live + R15-proven + 3 seeds minted
+  - 2e115c2a7e built RUNG 7 the planner rung
+  - docs/design/DECLARED_DEFECTS_REGISTER.yaml
+  - tests/background/test_defect_backlog_draw.py
+  - docs/design/proposals/PROPOSE_SPIKE_TAIL_ATTACK_PLAN.md
+  moved: 2026-10-24
+- id: DIRECTOR_SEGMENTS_REVIEW_VERDICTS_2026-07-23
+  ask: 'paraphrase: register four coupling hypotheses (cars x EV, engagement x price sensitivity, payment method x structure, engagement U-shape); draw a prepayment estate with debt-mandated AND choice/budget-controller sub-populations of opposite reliability; author change-of-tenancy and occupancy DISCOVER atoms'
+  status: partly
+  evidence:
+  - ed9784b01d registered 4 coupling hypotheses + PPM requirement + 2 DISCOVER atoms
+  - f2e1e74981 W2_12 change-of-tenancy DISCOVER
+  - f27a06a39b W2_13 occupancy DISCOVER
+  - docs/market_research/population_fusion_assumptions_register.json
+  missing: the choice-PPM / budget-controller sub-population is only written into SEGMENTATION_GENERATOR_BUILD_PLAN.md; simulation/payment_behaviour_source.py draws one PREPAYMENT method and names PPM debt routes as a gap, so no world population has opposite-reliability PPM sub-groups
+  next_step: check the household draw for a PPM-by-choice cohort; if absent, write the knowledge page (Ofgem/EHS PPM-by-reason split) and build it, or file it as a named gap on arrears_engine.PREPAYMENT_METHOD
+  moved: 2026-10-24
+- id: DIRECTOR_STEER_WEATHER_SIM_PURPOSE_2026-07-23
+  ask: 'paraphrase: W1 is the weather simulation only; gather -> correlate -> select -> simulate with tail-weighted selection; a first-class forecast layer with error shrinking by horizon, anchored on real forecast-vs-outturn pairs'
+  status: partly
+  evidence:
+  - 6548fc26fa weather-purpose steer consumed to FRAME
+  - docs/market_research/WEATHER_FORECAST_ERROR_BY_HORIZON.md
+  - 315c701c0e B3 DISCOVER+FRAME found no forecast feed exists
+  missing: 'the forecast layer itself: B3_published_forecast_error_horizons and EP15_forecast_feed are both level 0, idle, in docs/design/maturity_map.yaml; nothing in sim/ or simulation/ generates forecasts'
+  next_step: draw B3 then EP15 (build the point-in-time leak test first, per EP15's own note)
+  moved: 2026-10-24
+- id: DIRECTOR_STEER_OVERNIGHT_PREFLIGHT_2026-07-22
+  ask: 'paraphrase: before the wiring turn ends, verify restarts/signed message/worker-tick/deadman/NTFY env in one report; state the overnight queue; freeze novelty until daylight'
+  status: shipped
+  evidence:
+  - cd8b953ca7 the wired commit the pre-flight verified daemons against
+  - docs/staging/done/DIRECTOR_STEER_OVERNIGHT_PREFLIGHT_2026-07-22.md disposition banner records the two pre-flight reports
+  moved: 2026-10-24
+- id: DIRECTOR_STEER_PHONE_AUTHORITY_CHANNEL_2026-07-22
+  ask: 'his words: "I don''t want stuff in the window... This is a stupid chicken and egg." -- paraphrase: open F1 FRAME now; make director-NTFY and advisor-staged rulings valid authority channels'
+  status: superseded
+  superseded_by: 'CLAUDE.md operating model G8: his words carry authority on the console and in the advisor channel (docs/staging/advisor/); NTFY mothballed 15 Oct; the proposed director_authority_channels.py was never wired and is gone'
+  evidence:
+  - aeb42c742e F1 graduated to FRAME
+  - docs/design/frame/F1_conversations_coupled_triad_FRAME.md
+  - dccfb7a185 phone authority proposed + R15-proven
+  - 4a581cd723 advisor can steer without a paste
+  - background/advisor_channel.py
+  moved: 2026-10-24
+- id: DIRECTOR_STEER_SELF_MEASUREMENT_AND_AXES_2026-07-22
+  ask: 'his words: "make sure it has some say in how best to do this, as it sees more than you" -- paraphrase: a daily machine-computed self-note, an always-drawable discovery lane, a DIRECTOR_AXES file with twin pre-scores, and an advisor column'
+  status: partly
+  evidence:
+  - 722fa92855 DIRECTOR_AXES v1 + unified design + first note seed
+  - 0bcd49cf24 SM1 daily self-note automation
+  - eaffdb81ec R17 always-drawable forward-discovery lane
+  - background/axis_prescore.py
+  - docs/design/DIRECTOR_AXES.md
+  missing: 'SM5 advisor column (advisor false status calls, clarification loops, empty-queue stalls): no implementation found in background/ or tools/'
+  next_step: confirm whether daily_self_note carries the advisor column under another name; if not, close SM5 with a reason, since the advisor channel has since been restructured
+  moved: 2026-10-24
+- id: DIRECTOR_STEER_TRIANGULATION_SITE_SEGMENTATION_2026-07-22
+  ask: 'paraphrase: reconcile blind board Spec 005 (website) and Spec 006 (segmentation) line by line; make Spec 005 the axis-1 scoring rubric; coverage-test Spec 006 segments against the data-derived structure'
+  status: shipped
+  evidence:
+  - a913a25097 Spec 005/006 reconciliations committed
+  - docs/design/BOARD_SPEC_005_RECONCILIATION.md
+  - docs/design/BOARD_SPEC_006_RECONCILIATION.md
+  - docs/design/TRIANGULATION_SITE_SEGMENTATION_FRAME.md
+  moved: 2026-10-24
+- id: DIRECTOR_STEER_TRIANGULATION_WEATHER_DEMAND_PRICE_2026-07-22
+  ask: 'his words: "working out what is modellable and what is long- and short-term randomness" -- paraphrase: triangulate board Specs 002/003/004 against primary DISCOVER; record model-fundamentals-plus-calibrated-residual as canon'
+  status: shipped
+  evidence:
+  - e2683a9220 Spec 002/003/004 reconciliations
+  - docs/design/BOARD_SPEC_004_RECONCILIATION.md
+  - docs/design/TRIANGULATION_WEATHER_DEMAND_PRICE_FRAME.md
+  - docs/design/DIRECTOR_CANON.md F17 fundamentals plus an honest residual
+  moved: 2026-10-24
+- id: DIRECTOR_DIRECTIVE_KEEP_BUILDING_2026-07-21
+  ask: 'paraphrase: the loop rested overnight beside three drawable atoms; fix the draw so it never rests with drawable work; build W1_10, W1_5, W1_4; advance idle atoms; batch the real gates as one [ACT]'
+  status: shipped
+  evidence:
+  - 0a072a842f draw fix with a level-matched dependency gate
+  - 73721314fb W1_10 L1 adoption S-curves
+  - ca546f5cf2 W1_10 L2 regional adoption field
+  - tests/background/test_build_atom_hold_reasons.py
+  moved: 2026-10-24
+- id: DIRECTOR_STEER_FORWARD_DISCOVERY_REGISTER_2026-07-21
+  ask: 'his words: "REMA is a waste of time. It isn''t live policy. Why are we researching things that don''t exist." -- paraphrase: close W1_8 and set up a forward-discovery register F1-F5 ranked by certainty x criticality'
+  status: partly
+  evidence:
+  - 0427a1e63f close W1_8 + establish the register
+  - docs/design/FORWARD_DISCOVERY_REGISTER.md
+  - eaffdb81ec always-drawable forward-discovery lane
+  missing: W1_8_zonal_locational_pricing still sits in the OPEN docs/design/maturity_map.yaml (epoch 3, level_target 3, idle) and B5_regional_basis_risk depends_on it, although the register says closed 2026-07-21; the row never moved to maturity_map_closed.yaml
+  next_step: retire W1_8 to the closed map (or level_target 0 watching brief) and re-point or close B5_regional_basis_risk's dependency
+  moved: 2026-10-24
+- id: DIRECTOR_FINDING_HEARTBEAT_TOKEN_BURN_2026-07-20
+  ask: 'paraphrase: the rest heartbeat burns ~293k tokens doing nothing; measure it, make rest cost ~zero without losing wake/input properties, or migrate to scheduled bounded invocations'
+  status: shipped
+  evidence:
+  - b9cbb86603 scheduled bounded invocations built and offline-proven
+  - background/worker_tick.py
+  - background/cutover_to_scheduled.sh
+  - docs/design/SCHEDULED_BOUNDED_INVOCATIONS_DESIGN.md
+  moved: 2026-10-24
+- id: DIRECTOR_STEER_COVERAGE_STAGE2_FUSION_CALL_2026-07-20
+  ask: 'paraphrase: conservative crossing by default, fusion only with evidence, each cell tagged observed/fused/assumed, fusion assumptions recorded as testable hypotheses; fetch the open sources, no personal microdata'
+  status: shipped
+  evidence:
+  - f84404d70f coverage stage 2 real joint structure fetched (Census 2021/Nomis + DfT EV)
+  - docs/market_research/population_coverage/crosstabs.json
+  - docs/market_research/population_fusion_assumptions_register.json
+  moved: 2026-10-24
+- id: DIRECTOR_STEER_POPULATION_COVERAGE_DESIGN_2026-07-20
+  ask: 'his words: "work out the 100 customers that give us maximum feature build. And then 200, 500, 1000 etc... It''s at the heart of it."'
+  status: shipped
+  evidence:
+  - 3163620e1a stage 1 source landscape
+  - f84404d70f stage 2 joint structure
+  - f0db8a8f76 stage 3 nested worst-cell design
+  - docs/market_research/POPULATION_COVERAGE_NESTED_DESIGN.md
+  moved: 2026-10-24
+- id: DIRECTOR_STEER_SEGMENTATION_LEARNING_VALUE_REFRAME_2026-07-20
+  ask: 'his words: "Value makes no sense. Bad debt is negative value but working out how to deal with them is really valuable." / "let the data guide us rather than just guess"'
+  status: shipped
+  evidence:
+  - ac25c6bf20 learning-value frontier with bad debt as a positive signal and weights withdrawn
+  - docs/market_research/population_coverage/learning_value_frontier.json
+  - docs/market_research/population_coverage/build_learning_frontier.py
+  moved: 2026-10-24
+- id: DIRECTOR_STEER_UNPARK_TEST_THROUGHPUT_2026-07-20
+  ask: 'paraphrase: resume the throughput regime before the population widens, impact-based selection first and the stochastic/deterministic test split second, with R15 proof of no safety loss'
+  status: partly
+  evidence:
+  - 0343bc2873 static import-graph impact selector
+  - tools/select_impacted_tests.py
+  missing: 'priority 2, the stochastic/deterministic split: tests/conftest.py registers no stochastic/distributional marker and no test carries one'
+  next_step: measure whether distributional tests still wedge gates; if so, add the marker and partition, otherwise close item 2 with the measurement as the reason
+  moved: 2026-10-24
+- id: DIRECTOR_ADDENDUM_FIDELITY_EVIDENCE_2026-07-19
+  ask: 'his words: "The evidence of fidelity. The proof that this is a great SIM and not inadvertently misguided or overly simplistic" -- paraphrase: inspection chain, a lift/worst-cell/ablation grid, emit-as-you-build, and the site as his fidelity instrument'
+  status: superseded
+  superseded_by: Epoch-2 closed; absorbed into Expert Hour + knowledge-map discipline (per the doc's 2026-10-13 Fate line) and the later site programme
+  evidence:
+  - background/fidelity_grid_scorer.py
+  - tests/test_fidelity_grid_scorer.py
+  moved: 2026-10-24
+- id: DIRECTOR_AMENDMENT_TOKEN_RESOURCE_DIMENSION_2026-07-19
+  ask: 'his words: "There is core work and optional. Spend [spare] tokens on optional... we end up with a rhythm, determined by its limit resets."'
+  status: superseded
+  superseded_by: background.tick_mode as the slowdown dial and the Friday burn review (operating model); the scheduling docs were reconciled under RESOURCE_AWARE_SCHEDULING_PROPOSAL.md
+  evidence:
+  - eb3e8105ff step zero found the token sensor available at CC 2.1.215
+  - background/tick_mode.py
+  - docs/design/RESOURCE_AWARE_SCHEDULING_PROPOSAL.md
+  - docs/design/PARALLEL_LANES_PROPOSAL.md marked SUPERSEDED
+  moved: 2026-10-24
+- id: DIRECTOR_CAMPAIGN_EPOCH2_COUPLED_WORLD_2026-07-19
+  ask: 'his words: "sorting weather, linked to energy prices, linked to house shape, proper billing with real event delays, and then choosing decent customer segments to cover the scope of need not just frequency"'
+  status: shipped
+  evidence:
+  - 6deacc8d4a campaign decomposed into atoms A-F
+  - docs/design/EPOCH2_COUPLED_WORLD_CAMPAIGN_DECOMPOSITION.md
+  - docs/design/maturity_map_closed.yaml D_cascade_correlation_estimation
+  moved: 2026-10-24
+- id: DIRECTOR_DIRECTIVE_SEAT_WORK_AND_CONTINUITY_PROOF_2026-07-19
+  ask: 'paraphrase: author atoms D and A into the map, fix the drift-detector false positive, investigate the operational-layer red, and give a view on the persistent stop-hook seat'
+  status: shipped
+  evidence:
+  - aa1caad34e fix drift-detector false positive + operational-red tmux target
+  - docs/design/CONTINUITY_ARCHITECTURE_VIEW_2026-07-19.md
+  - docs/design/maturity_map.yaml A_scope_of_need_scoring_frame
+  moved: 2026-10-24
+- id: DIRECTOR_FINDING_HEARTBEAT_BLOCKED_INPUT_2026-07-19
+  ask: 'paraphrase: the rest heartbeat blocked director input for 27 minutes; it must never block input, overruns must be loud, R15-prove it, and reconsider the architecture'
+  status: shipped
+  evidence:
+  - b9cbb86603 scheduled bounded invocations (P3 never blocks input proven)
+  - background/worker_tick.py
+  - docs/design/CONTINUITY_ARCHITECTURE_VIEW_2026-07-19.md
+  moved: 2026-10-24
+- id: DIRECTOR_STEER_CONTEXT_AS_MANAGED_RESOURCE_2026-07-19
+  ask: 'paraphrase: advice, not instruction -- delegate earlier, make freshness measurable, make fragile map appends unbreakable, ritualise resets, protect state across compaction'
+  status: shipped
+  evidence:
+  - 5004604f8d steer folded into RESOURCE_AWARE_SCHEDULING_PROPOSAL
+  - tools/maturity_map_store.py
+  moved: 2026-10-24
+- id: DIRECTOR_STEER_RESOURCE_AWARE_SCHEDULING_2026-07-19
+  ask: 'his words: "Why can''t it do anything else in parallel? I still don''t like the move at the pace of the slowest approach."'
+  status: shipped
+  evidence:
+  - f89afcd961 resource headroom sees the contention window
+  - a78c8a5d0d OPS2 memory bound
+  - background/resource_headroom.py
+  - docs/design/RESOURCE_AWARE_SCHEDULING_PROPOSAL.md
+  moved: 2026-10-24
+- id: DIRECTOR_STEER_TEST_THROUGHPUT_2026-07-19
+  ask: 'his words: "Testing is key to this. But we want to grow the segments and the duration. Testing starts to become rate determining"'
+  status: partly
+  evidence:
+  - bd2ac2fafa measured suite throughput before restructuring
+  - 0343bc2873 impact selector
+  - tools/profile_test_suite.py
+  - docs/design/TEST_THROUGHPUT_MEASUREMENT_AND_PROPOSAL.md
+  missing: 'requirement 3, separating stochastic from deterministic test populations: no marker or partition exists (same gap as the 07-20 unpark steer)'
+  next_step: 'treat it with DIRECTOR_STEER_UNPARK_TEST_THROUGHPUT_2026-07-20''s item 2: build it or close it on measurement'
+  moved: 2026-10-24
+- id: DIRECTOR_RATIFICATIONS_2026-07-18_L3_R15
+  ask: 'his words: "Should H26 and H24 be stamped Faithful (L3)? ... yes to both ... including the R15 rule-book line."'
+  status: shipped
+  evidence:
+  - 0b74104f22 H26 core.bare guard
+  - 8a2c962b88 H24_precommit build
+  - docs/design/maturity_map_closed.yaml H26 and H24 at level_current 3
+  - docs/design/DIRECTOR_CANON.md R15 line
+  moved: 2026-10-24
