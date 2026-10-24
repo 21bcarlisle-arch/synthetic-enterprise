@@ -172,6 +172,12 @@ def _is_probe_noise(cmdline: str, pattern: str) -> bool:
     head = argv[0].rsplit("/", 1)[-1] if argv else ""
     if head in ("pgrep", "grep", "egrep", "fgrep"):
         return True
+    # An agent session's argv IS its prompt, and a prompt about a job names the job's paths. The
+    # s14clean driver (2026-10-24) waited on `c30-seeds-out` with no arm alive: the two matches
+    # were the claude sessions whose prompts discussed those arms. Anything the session runs
+    # is its own process and still matches; only the prompt-carrying `claude` itself is dropped.
+    if head == "claude":
+        return True
     # ANOTHER WAITER is also the act of looking -- and so is the `bash -c` shell every Bash
     # tool call wraps it in. Excluding only our own ancestry left two `--pattern` waiters on
     # one subject each seeing the other (or the other's shell) as the subject, so neither

@@ -413,6 +413,17 @@ def test_the_noise_filter_only_looks_at_argv0():
     assert kept == [11]
 
 
+def test_an_agent_session_whose_PROMPT_names_the_pattern_is_not_the_subject():
+    """The 2026-10-24 s14clean stall: no C30 arm was alive, but two claude sessions whose prompts
+    discussed `/var/tmp/c30-seeds-out` matched, so the thesis run's driver sat waiting on them.
+    The partner line keeps the session's own child visible: a job it runs is still a subject."""
+    out = ("50 /home/u/.nvm/versions/node/v24/bin/claude -p --model m do the work in "
+           "/var/tmp/c30-seeds-out before anything\n"
+           "51 /usr/bin/python3 /var/tmp/c30-seeds-out/arm2.py A full\n")
+    kept, _ = W.matching_pids("c30-seeds-out", set(), runner=lambda _p: (0, out))
+    assert kept == [51]
+
+
 def test_ANOTHER_WAITER_on_the_same_pattern_is_not_the_subject():
     """The 2026-09-28 stall: two waiters on `se-c1-bracket-b/value_cycle_ab.json` each matched
     the other's argv, so both waited out their six-hour deadline after (b) had exited."""
