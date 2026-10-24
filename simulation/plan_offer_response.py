@@ -199,6 +199,26 @@ class HouseholdPlanBook:
         self._stress_dates: dict[str, list[dt.date]] = {}
         self._stress_values: dict[str, list[str]] = {}
         self.answers: list[dict] = []
+        #: account -> (date the meter was changed for debt, debt carried onto it). First move only.
+        self._meters: dict[str, tuple[dt.date, float]] = {}
+        self._fuel: dict[str, str] = {}
+
+    def record_meter(self, account_id: str, moved_on: dt.date, debt_gbp: float) -> None:
+        """The household's meter was changed to prepayment for debt (payment_method_dynamics)."""
+        self._meters.setdefault(account_id, (moved_on, debt_gbp))
+
+    def meter_of(self, account_id: str) -> Optional[tuple[dt.date, float]]:
+        return self._meters.get(account_id)
+
+    def on_meter(self, account_id: str, on: dt.date) -> bool:
+        m = self._meters.get(account_id)
+        return m is not None and m[0] <= on
+
+    def note_fuel(self, account_id: str, fuel: str) -> None:
+        self._fuel[account_id] = fuel
+
+    def fuel_of(self, account_id: str) -> str:
+        return self._fuel.get(account_id, "electricity")
 
     def record(self, account_id: str, agreed_on: dt.date,
                terms: Optional[OfferTerms] = None) -> None:
@@ -230,6 +250,9 @@ class HouseholdPlanBook:
         """Whether a bill due on `bill_due`, unpaid until `paid_on`, is repaid through a plan rather
         than as a lump that day: a repayment plan was agreed after the bill fell due and before the
         day. A lower-payment or pause agreement repays nothing, so it withdraws no lump."""
+        meter = self._meters.get(account_id)
+        if meter is not None and bill_due < meter[0] < paid_on:
+            return True  # the meter recovers it from top-ups instead
         for agreed in self._agreed.get(account_id, ()):
             terms = self._terms.get((account_id, agreed))
             if terms is not None and terms.kind != REPAYMENT_PLAN:

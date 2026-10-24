@@ -1159,6 +1159,10 @@ class LivePaymentTriad:
                 customer_id, due_date):
             method = PAY_ON_RECEIPT_METHOD
         account_id = f"ACC-{customer_id}"
+        self._household_plans.note_fuel(account_id, fuel)
+        # A meter changed for debt (`payment_method_dynamics`): later bills are paid before use.
+        if self._household_plans.on_meter(account_id, due_date):
+            method = PREPAYMENT
         invoice_ref = f"{customer_id}::{period_index}"
         issue_date = due_date - timedelta(days=PAYMENT_TERMS_DAYS)
 

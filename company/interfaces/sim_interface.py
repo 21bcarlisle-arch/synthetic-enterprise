@@ -12,6 +12,7 @@ When the functional separation is built (later phase), these stubs will be
 replaced with real implementations that call the simulation layer.
 """
 
+import datetime as dt
 import os
 from typing import Any, Optional
 
@@ -331,6 +332,12 @@ class SimInterface:
         """
         raise NotImplementedError
 
+    def get_meter_recoveries(self, account_id: str, moved_on, debt: float, through) -> list[dict]:
+        """Each weekly deduction from top-ups that fell due after the meter was changed for debt
+        and by `through`, as ``{"due": iso date, "amount_gbp": x}`` (WORLD -> COMPANY). OBSERVABLE:
+        a supplier sees the money its meter collects. Empty while no meter was changed."""
+        raise NotImplementedError
+
     def get_plan_instalments(self, account_id: str, agreed_on, through) -> list[dict]:
         """Each instalment of an agreed plan that fell due after `agreed_on` and by `through`, as
         ``{"due": iso date, "paid": bool}`` -- what the supplier's own collection records show.
@@ -442,6 +449,9 @@ class StubSimInterface(SimInterface):
 
     def request_prepayment_move(self, account_id, requested_on, debt, months_outstanding) -> dict:
         return {"moved": False, "reason": "stub seam: no household behind it to answer"}
+
+    def get_meter_recoveries(self, account_id, moved_on, debt, through) -> list[dict]:
+        return []
 
     def get_plan_instalments(self, account_id, agreed_on, through) -> list[dict]:
         return []
@@ -711,7 +721,17 @@ class LiveSimInterface(SimInterface):
             PrepaymentForDebtRequest(account_id, "account", str(requested_on), ROUTE_CONSENT,
                                      debt, months_outstanding, explicit_consent_recorded=True),
             psr_type_vulnerable=False)
+        if move.moved and self._household_plans is not None:
+            self._household_plans.record_meter(
+                account_id, dt.date.fromisoformat(str(requested_on)), debt)
         return {"moved": move.moved, "reason": move.reason}
+
+    def get_meter_recoveries(self, account_id, moved_on, debt, through) -> list[dict]:
+        from simulation.payment_method_dynamics import meter_recoveries
+        fuel = (self._household_plans.fuel_of(account_id) if self._household_plans is not None
+                else "electricity")
+        return meter_recoveries(debt, dt.date.fromisoformat(str(moved_on)),
+                                dt.date.fromisoformat(str(through)), fuel)
 
     def get_plan_instalments(self, account_id, agreed_on, through) -> list[dict]:
         from simulation.plan_offer_response import plan_instalments

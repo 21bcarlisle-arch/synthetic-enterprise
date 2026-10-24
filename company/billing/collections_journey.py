@@ -348,6 +348,8 @@ class CollectionsJourneyDesk:
         #: Every arrangement this desk has offered, and what became of each.
         self.arrangements = PaymentPlanBook()
         self._instalments_read: Dict[int, int] = {}
+        #: account -> (date the meter was changed, debt carried onto it, deductions already posted)
+        self._meters: Dict[str, List] = {}
         self._open: Dict[str, _Journey] = {}
         self._closed: List[_Journey] = []
         self._through: Dict[str, dt.date] = {}
@@ -361,6 +363,7 @@ class CollectionsJourneyDesk:
         after = self._through.get(account_id)
         if after is not None and through <= after:
             return
+        self._read_meter_recoveries(account_id, through)
         triggers = sorted({max(s.trigger_days_overdue, 1) for s in dunning_path(segment)})
         events = ledger.events()
         bill_dues = [e.valid_time + dt.timedelta(days=payment_terms_days)
@@ -384,6 +387,7 @@ class CollectionsJourneyDesk:
                 continue
             self._step(account_id, segment, on, ledger=ledger, bill_missed=on in missed,
                        payment_terms_days=payment_terms_days)
+        self._read_meter_recoveries(account_id, through)  # a meter changed inside this walk
         self._through[account_id] = through
 
     def _step(self, account_id: str, segment: Segment, on: dt.date, *,
@@ -454,6 +458,21 @@ class CollectionsJourneyDesk:
         self._closed.append(self._open.pop(journey.account_id))
         return True
 
+    def _read_meter_recoveries(self, account_id: str, through: dt.date) -> None:
+        """Post each weekly deduction the account's meter took by `through` to the ledger as cash,
+        each once. Read at every advance, not only at a missed bill: a household on a meter misses
+        none, so nothing else would bring this desk back to the account."""
+        meter = self._meters.get(account_id)
+        if meter is None or self._plan_offers is None:
+            return
+        moved_on, debt, read = meter
+        rows = self._plan_offers.get_meter_recoveries(
+            account_id, moved_on.isoformat(), debt, through.isoformat())
+        for n, row in enumerate(rows[read:], read + 1):
+            self._post_cash(account_id, row["amount_gbp"], dt.date.fromisoformat(row["due"]),
+                            f"meter:{account_id}:{n}")
+        meter[2] = len(rows)
+
     def _read_instalments(self, account_id: str, on: dt.date) -> bool:
         """Post every instalment of this account's ACTIVE plans that fell due by `on` to the plan
         book, each once, and each PAID one to the ledger as cash. Returns whether an ACTIVE plan
@@ -508,7 +527,7 @@ class CollectionsJourneyDesk:
         """W2_42: the 90-day rung asks for a prepayment meter by the household's explicit Consent
         (SLC 28.22), never involuntarily, and records the world's answer. A changed meter ends the
         journey on the `prepayment` exit. Life on the meter (debt recovered from top-ups) is not
-        built: `company_debt_management.md`, "What reaches it"."""
+        recovered from the weekly deductions `_read_meter_recoveries` posts."""
         debt = view.get("undisputed_overdue_gbp") or 0.0
         days = view.get("max_days_overdue") or 0
         if self._plan_offers is None:
@@ -519,6 +538,7 @@ class CollectionsJourneyDesk:
         journey.enter(PREPAYMENT_OFFERED, on, "prepayment meter offered by Consent (SLC 28.22)",
                       view, meter_moved=answer["moved"], move_reason=answer["reason"])
         if answer["moved"]:
+            self._meters[journey.account_id] = [on, debt, 0]
             journey.enter(PREPAYMENT, on, answer["reason"], view)
             journey.exit = PREPAYMENT
 
