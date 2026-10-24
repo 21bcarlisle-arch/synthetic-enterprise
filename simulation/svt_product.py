@@ -397,3 +397,26 @@ def build_svt_schedule(
         segment_start = next_start
 
     return segments
+
+
+def stamp_hmt_epg_receipt(records: list[dict], *, fuel: str) -> list[dict]:
+    """Write HM Treasury's share of each settled default-tariff period onto its record.
+
+    `revenue_gbp` is what the supplier receives, and on an SVT term during the Energy Price
+    Guarantee the household paid only part of it. Settlement bills the revenue rate, so without
+    this the household's invoice carried the Treasury's half: 1,817 svt invoices on the 19 Oct run
+    (cause B, `SEAT_FINDING_SVT_BILLS_ABOVE_THE_CAP_ARE_TWO_DEFECTS_NOT_A_GRADING_ARTEFACT_2026-10-23`).
+    `hmt_epg_receipt_gbp` is that share in pounds, ex-VAT like `revenue_gbp`, read per day from the
+    same accessor the segment's own split reads, so the bill and the segment cannot disagree.
+    `saas.bill_generator` carves it out of the household's line; `revenue_gbp` is untouched.
+
+    Only a record whose receipt is positive is stamped, so every bill outside 2022-10..2023-06 is
+    byte-identical. The caller decides the record is a domestic `svt` term; the EPG reached no
+    non-domestic supply.
+    """
+    for rec in records:
+        receipt = hmt_epg_receipt_gbp_per_mwh(fuel, date.fromisoformat(rec["settlement_date"][:10]))
+        if receipt:
+            rec["hmt_epg_receipt_gbp"] = (
+                (rec.get("consumption_kwh") or 0.0) / 1000.0 * _ex_vat(receipt))
+    return records

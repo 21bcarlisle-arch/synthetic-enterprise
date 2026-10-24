@@ -203,6 +203,9 @@ def _estimated_settlement_records(
         new_record = dict(record)
         new_record["consumption_kwh"] = record["consumption_kwh"] * ratio
         new_record["revenue_gbp"] = commodity_portion * ratio + sc
+        # The Treasury's EPG share is per kWh, so it scales with the commodity it is a share of.
+        if "hmt_epg_receipt_gbp" in record:
+            new_record["hmt_epg_receipt_gbp"] = record["hmt_epg_receipt_gbp"] * ratio
         scaled.append(new_record)
     return scaled
 

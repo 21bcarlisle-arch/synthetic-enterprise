@@ -291,6 +291,7 @@ from simulation.svt_product import (
     SVT_TARIFF_TYPE,
     build_svt_schedule,
     inertia_hazard_for_term,
+    stamp_hmt_epg_receipt,
 )
 from simulation.tou_periods import is_peak_period as _is_peak_period
 from simulation.triad import (
@@ -5135,6 +5136,11 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             for rec in term_records:
                 if rec["settlement_date"][:10] < _void_end_iso:
                     as_void_row(rec, commodity, _void_segment)
+
+        # The household on a default tariff paid the EPG rate; the Treasury paid the rest of
+        # `revenue_gbp`. Its share rides on the record for the bill to carve out.
+        if term_tariff_type == SVT_TARIFF_TYPE and _is_domestic_leg(cid):
+            stamp_hmt_epg_receipt(term_records, fuel=commodity)
 
         # Phase MW: income stress bad-debt uplift (residential only).
         _income_stress = (

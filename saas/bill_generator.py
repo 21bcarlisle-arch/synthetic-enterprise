@@ -275,6 +275,13 @@ def generate_bill(
     if records_carry_sc:
         commodity_amount_gbp -= non_commodity_amount_gbp
 
+    # THE ENERGY PRICE GUARANTEE'S SHARE, carved out the same way (2026-10-24). On a default tariff
+    # in Oct 2022-Jun 2023 `revenue_gbp` is what the supplier received, and HM Treasury paid part of
+    # it; the record says how much. The household is billed the rest. The receipt is the
+    # supplier's Treasury receivable, booked by `saas.ledger`, and bears no VAT on this bill.
+    hmt_epg_receipt_gbp = sum(record.get("hmt_epg_receipt_gbp", 0.0) for record in settlement_records)
+    commodity_amount_gbp -= hmt_epg_receipt_gbp
+
     # VAT on the full pre-tax bill. An SME period at or below its fuel's de minimis is reduced-rated
     # (VAT Notice 701/19); the segment label alone charged those periods the standard rate.
     subtotal_gbp = commodity_amount_gbp + non_commodity_amount_gbp + standing_charge_gbp
@@ -339,7 +346,7 @@ def generate_bill(
 
     clarity_score = max(MIN_CLARITY_SCORE, min(MAX_CLARITY_SCORE, clarity_score))
 
-    return {
+    bill = {
         "customer_id": customer_id,
         "period_start": dates[0],
         "period_end": dates[-1],
@@ -389,3 +396,8 @@ def generate_bill(
         "days_in_period": days_in_period,
         "standing_charge_gbp_per_day": standing_charge_gbp_per_day,
     }
+    if hmt_epg_receipt_gbp:
+        # HM Treasury's share of this period's supply, ex-VAT. Not in `total_amount_gbp`, which is
+        # what the household owes. Present only where it is non-zero, so no other bill changes.
+        bill["hmt_epg_receipt_gbp"] = hmt_epg_receipt_gbp
+    return bill

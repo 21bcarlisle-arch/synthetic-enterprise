@@ -446,6 +446,22 @@ def make_vat_remittance_event(bill: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def make_epg_receipt_event(bill: dict[str, Any]) -> dict[str, Any]:
+    """Cash in: HM Treasury's Energy Price Guarantee share of a default-tariff bill, ex-VAT.
+
+    The household's `total_amount_gbp` excludes it (`saas.bill_generator`), so without this event
+    the supplier's revenue in Oct 2022-Jun 2023 would lose what the Treasury paid. Only generated
+    when the bill carries `hmt_epg_receipt_gbp`.
+    """
+    return {
+        "transaction_id": _tid("epg_receipt", bill["customer_id"], bill["period_start"]),
+        "event_type": "epg_receipt_event",
+        "timestamp": bill["period_start"],
+        "customer_id": bill["customer_id"],
+        "amount_gbp": bill["hmt_epg_receipt_gbp"],
+    }
+
+
 def build_ledger(
     all_records: list[dict[str, Any]],
     bills: list[dict[str, Any]],
@@ -498,6 +514,8 @@ def build_ledger(
             events.append(make_non_commodity_cost_event(b))
         if b.get("vat_gbp"):
             events.append(make_vat_remittance_event(b))
+        if b.get("hmt_epg_receipt_gbp"):
+            events.append(make_epg_receipt_event(b))
         if b.get("catchup_written_off_gbp", 0.0) > 0:
             events.append(make_back_billing_write_off_event(b))
         if b.get("catchup_applied"):
@@ -575,7 +593,9 @@ def derive_pnl(events: list[dict[str, Any]]) -> dict[str, float]:
     dd_barred = -sum(
         e["amount_gbp"] for e in events if e["event_type"] == "dd_back_billing_write_off_event"
     )
-    revenue = total_billed - vat_remittance - dd_barred  # ex-VAT revenue (supplier's reported revenue)
+    # The Treasury's EPG share is supplier revenue the household was not billed for.
+    epg_receipt = sum(e["amount_gbp"] for e in events if e["event_type"] == "epg_receipt_event")
+    revenue = total_billed - vat_remittance - dd_barred + epg_receipt  # ex-VAT revenue (supplier's reported revenue)
     gross = revenue - wholesale - non_commodity_cost  # margin on commodity + standing
     net = gross - capital
     result: dict[str, float] = {
@@ -586,6 +606,8 @@ def derive_pnl(events: list[dict[str, Any]]) -> dict[str, float]:
         "net_margin_gbp": net,
     }
 
+    if epg_receipt:
+        result["epg_receipt_gbp"] = epg_receipt
     if vat_events or nc_events:
         result["total_billed_gbp"] = total_billed
         if vat_events:
@@ -595,7 +617,7 @@ def derive_pnl(events: list[dict[str, Any]]) -> dict[str, float]:
 
     payment_events = [e for e in events if e["event_type"] == "payment_received_event"]
     if payment_events:
-        cash_collected = sum(e["amount_gbp"] for e in payment_events) - dd_barred
+        cash_collected = sum(e["amount_gbp"] for e in payment_events) - dd_barred + epg_receipt
         bad_debt = -sum(
             e["amount_gbp"] for e in events if e["event_type"] == "bad_debt_event"
         )

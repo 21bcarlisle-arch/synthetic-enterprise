@@ -73,9 +73,14 @@ bills the household the Treasury's half.
 4. **An incoming occupant on a domestic premise is domestic.** The world's renewal loop held a set of
    domestic account ids frozen at import, so a change-of-tenancy account admitted mid-run was priced
    as non-domestic and its default tariff was never clamped. Fixed as an error, not behind a switch.
-5. **Not yet built: the EPG on the household's bill.** The world already splits every SVT segment
-   into `household_charged_unit_rate_gbp_per_mwh` + `hmt_epg_receipt_gbp_per_mwh`
-   (`simulation/svt_product.py`), but settlement bills the household the revenue rate. The fix bills
-   the household's charge and books the receipt as a Treasury receivable. It moves the
-   bill-derived ledger, debt and direct-debit figures, so it is the next increment with its own
-   pre-registration (see the finding).
+5. **The EPG on the household's bill (built 24 Oct 2026).** A domestic `svt` term's settled rows
+   inside the EPG carry `hmt_epg_receipt_gbp`, kWh × (cap − min(cap, EPG)) ex-VAT, from the same
+   accessor as the SVT segment's split (`simulation.svt_product.stamp_hmt_epg_receipt`).
+   `saas.bill_generator` carves it out of the household's line, as it carves the levy line, and VAT
+   falls on the household's subtotal. `saas.ledger` books it as an `epg_receipt_event`, revenue and
+   cash, so the supplier still books the cap (row 1 of the table). Pre-registration:
+   `docs/staging/records/SEAT_PREREGISTRATION_THE_EPG_REACHES_THE_HOUSEHOLD_BILL_2026-10-24.md`.
+   **Choices this rests on, each a GAP above or here:** the receipt is the full cap − EPG per kWh
+   whatever the supplier's own SVT rate (the scheme text is not in the commons); **GAP: the VAT
+   treatment of the Treasury payment**, taken here as outside the household's supply; **GAP: the
+   scheme's payment timing**, booked at the bill's period start.
