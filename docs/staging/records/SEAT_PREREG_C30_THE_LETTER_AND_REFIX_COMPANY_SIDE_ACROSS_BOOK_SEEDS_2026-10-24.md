@@ -93,3 +93,50 @@ after section 14, which needs about 11 hours including E6, instead of in about 5
 run `chain.sh` with a pid that has already exited.
 
 Grading is unchanged. When `A/B/C_6110{1,2,3}.json` all exist, run `grade_seeds.py` as above.
+
+## Status (2026-10-24 ~07:40, the arms ran and every one died at startup)
+
+**The chain did not hold.** `tools.wait_for --pid 1615133` returned NEVER_STARTED at 06:22Z: that
+pid was already gone, and the section 14 driver had not yet been relaunched (it started at 06:26Z
+as pid 2413933). So the nine arms launched at 06:22Z, ahead of section 14, which is the order the
+seat had ruled out.
+
+**All nine died before computing anything,** with the same error on every arm:
+`DwellingNotDrawn: 'SYN-2016-011' is supplied but the world drew no dwelling for it` (seeds 61101
+and 61102), and the same for `'SYN-2016-036'` (61103). No artefact was written, so no prediction is
+tested yet. The logs are kept as `/var/tmp/c30-seeds-out/{A,B,C}_<seed>.0622-dwelling-not-drawn.log`.
+
+**Cause: a world defect, not this experiment.** `run_phase2b` draws its book at
+`SE_POPULATION_SEED`, but it calls `live_dwellings()`, `live_drawn_households()` and
+`campaign_quotes_paid_for()` with no argument. `_live_homes` and `campaign_quotes_paid_for` then
+fell back to `_DEFAULT_BASE_SEED`, so the dwelling register held the default book's founders. This
+is the failure `run_base_seed()` was written to prevent (S1, 2026-08-27). The default book cannot
+hit it, because it uses the same seed on both paths. Under a seed, the campaign's acquisition spend
+would also have been the default book's quotes, booked against the seeded book. That would have
+gone straight into the `total_net` this prereg differences, **if** the dwelling guard had not
+stopped the run first.
+
+**Fix, landed separately:** both fallbacks now read `run_base_seed()`.
+`tests/simulation/test_the_population_seed_switch.py::test_a_seeded_books_registers_are_drawn_at_its_seed`
+is red on the old code (DwellingNotDrawn) and green on the new. A smoke run on the patched
+measurement worktree builds every property: 547 for seed 61101 (a book of 1,007 accounts) and 546
+for seed 61103 (998 accounts).
+
+**The arms are now one commit off 0481ad381, and that is stated rather than hidden.**
+`/var/tmp/c30-seeds-wt` is 0481ad381 plus that `live_population.py` patch and nothing else. For the
+default book (seed 20260724) the patch is a no-op, because `run_base_seed()` returns the default
+when no seed is set. So the default triple in `/var/tmp/c30-arms-out/` is still the fourth book at
+the same effective code.
+
+**Relaunched behind section 14, through a waiter that this time holds a live pid.**
+`/var/tmp/c30-seeds-relaunch/chain2.sh` runs as unit `longjob-c30-seeds-chain2` and waits on pid
+2413933, `drive.sh`. The driver waits on any process whose command line contains `c30-seeds-out`,
+so the chain is kept outside that directory and its argv never names it. Otherwise the two would
+deadlock. Before queuing anything, the chain also refuses if the worktree lacks the fix. The arms
+are `longjob-c30-s6110{1,2,3}-{a,b,c}-r2`, with the 05:45 argv unchanged. **Expected:** section 14
+runs eight arms one at a time, about 75 minutes each, so the C30 artefacts arrive roughly 10–14
+hours from now. **Reverse:** `systemctl --user stop longjob-c30-seeds-chain2
+longjob-c30-seeds-chain2-queued`.
+
+The predictions above are unchanged and still ungraded. They were written before any arm computed,
+and none has computed yet.
