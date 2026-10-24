@@ -35,6 +35,8 @@ the register would begin optimising itself.
     an `owed` row naming no cut design        -> rc 2   ("later" is not an examination)
     an `owed` row naming a design that
       does not exist in the register          -> rc 2   (a decorative nomination)
+    an `owed` row with no `owner=` live atom,
+      or no `due=` date, or past its due date -> rc 2   (a debt nobody is paying)
     a design block no row references          -> rc 2   (a plan for nothing)
     a `grandfathered` row with no reason,
       or a decorative one                     -> rc 2
@@ -104,6 +106,7 @@ first step had to repair in the KNIFE ledger's mutation proofs.
 from __future__ import annotations
 
 import argparse
+import datetime as _dt
 import json
 import os
 import re
@@ -140,6 +143,16 @@ DECORATIVE = frozenset({
 
 MIN_REASON_CHARS = 24
 
+MAP_DOC = REPO_ROOT / "docs" / "design" / "maturity_map.yaml"
+
+# WHY `owed` CARRIES AN OWNER AND A DATE (2026-10-24, director steer "review your own code").
+# Until then an `owed` row needed only a design that said how the edge dies. That made the
+# debt EXAMINED but not SCHEDULED: the four B2/A rows stood from 2026-08-05 to 2026-10-24
+# with a good design, no atom anyone drew and no date, while the world kept drawing its
+# churn truth from the supplier's model. Naming a live atom says who pays; the date says
+# when the gate stops accepting "owed". Moving the date is allowed and is a visible,
+# reviewable edit to this register -- the point is that standing still is not free.
+
 
 class RegisterError(Exception):
     """The register could not be read or parsed. Never degrades to a pass."""
@@ -157,6 +170,8 @@ class EdgeRow:
     design: str          # "" unless disposition == owed
     reason: str          # "" unless disposition in {cut, grandfathered}
     lineno: int
+    owner: str = ""      # owed only: the live maturity-map atom that pays the debt
+    due: str = ""        # owed only: ISO date after which `owed` is refused
 
     @property
     def key(self) -> tuple[str, str]:
@@ -248,7 +263,7 @@ def _parse_edge_line(line: str, lineno: int) -> EdgeRow:
         raise RegisterError(f"line {lineno}: not a valid edge row: {line!r}")
     src, dst, tail = m.group(1), m.group(2), m.group(3)
     fields = _split_fields(tail, lineno)
-    unknown = set(fields) - {"disposition", "design", "reason"}
+    unknown = set(fields) - {"disposition", "design", "reason", "owner", "due"}
     if unknown:
         raise RegisterError(
             f"line {lineno}: unknown field(s) {sorted(unknown)} — a typo'd key "
@@ -263,7 +278,39 @@ def _parse_edge_line(line: str, lineno: int) -> EdgeRow:
         design=fields.get("design", ""),
         reason=fields.get("reason", ""),
         lineno=lineno,
+        owner=fields.get("owner", ""),
+        due=fields.get("due", ""),
     )
+
+
+def live_atom_ids(text: str) -> set[str]:
+    """Ids of the atoms in the LIVE map text that are not closed. A closed atom is no owner."""
+    from tools.maturity_map_store import _as_atom_list, is_closed
+    return {a["id"] for a in _as_atom_list(text, str(MAP_DOC))
+            if isinstance(a, dict) and a.get("id") and not is_closed(a)}
+
+
+def load_live_atoms_at(rev: str | None, repo_root: Path = REPO_ROOT) -> set[str]:
+    """Live atom ids from the disk (rev None) or from `rev`. Fail-closed: an unreadable
+    map raises RegisterError, because an empty set would refuse every owner silently-wrongly
+    and a None would skip the check."""
+    rel = str(MAP_DOC.relative_to(REPO_ROOT))
+    if rev is None:
+        try:
+            text = (repo_root / rel).read_text(encoding="utf-8")
+        except OSError as exc:
+            raise RegisterError(f"maturity map unreadable: {exc}") from exc
+    else:
+        proc = subprocess.run(["git", "-C", str(repo_root), "show", f"{rev}:{rel}"],
+                              capture_output=True, check=False)
+        if proc.returncode != 0:
+            raise RegisterError(f"maturity map not readable at {rev}: rc={proc.returncode}")
+        text = proc.stdout.decode("utf-8", "replace")
+    ids = live_atom_ids(text)
+    if not ids:
+        raise RegisterError("maturity map parsed ZERO atom ids — an owner check against "
+                            "nothing would refuse every owner")
+    return ids
 
 
 def load_register(path: Path = REGISTER_DOC) -> tuple[list[EdgeRow], list[DesignBlock]]:
@@ -378,6 +425,8 @@ def reconcile(
     measured: set[tuple[str, str]],
     measured_label: str = "THE TREE",
     measured_source: str = "tools.epistemic_wall.live_crossings",
+    live_atoms: set[str] | None = None,
+    today: _dt.date | None = None,
 ) -> tuple[list[str], dict]:
     """Return (findings, report). A finding is rc 2. Counts alone never fail.
 
@@ -391,6 +440,8 @@ def reconcile(
     check would be a weaker gate wearing a stronger gate's name.
     """
     findings: list[str] = []
+    today = today or _dt.date.today()
+    schedule = live_atoms is not None  # the owner/due legs run only when a caller asks NOW
 
     if not rows:
         findings.append(
@@ -472,6 +523,32 @@ def reconcile(
                 )
             else:
                 referenced.add(row.design)
+            if not schedule:
+                continue
+            if _decorative(row.owner):
+                findings.append(
+                    f"{where}: `owed` names no `owner=` atom — a debt with a design and "
+                    "no one paying it stood eleven weeks unnoticed (B2, 2026-08-05..10-24)"
+                )
+            elif row.owner not in live_atoms:
+                findings.append(
+                    f"{where}: `owed` owner {row.owner!r} is not a LIVE maturity-map atom — "
+                    "a closed or absent owner is no owner"
+                )
+            try:
+                due = _dt.date.fromisoformat(row.due)
+            except ValueError:
+                findings.append(
+                    f"{where}: `owed` carries no valid `due=YYYY-MM-DD` (got {row.due!r}) — "
+                    "a debt with no date is grandfathered by another name"
+                )
+            else:
+                if due < today:
+                    findings.append(
+                        f"{where}: `owed` is OVERDUE (due {due}, today {today}) — cut it, "
+                        f"or move `due=` in the register with the reason it slipped "
+                        f"(owner {row.owner or '?'})"
+                    )
 
     unexamined = sorted(measured - set(seen))
     for src, dst in unexamined:
@@ -508,7 +585,8 @@ def reconcile(
     return findings, report
 
 
-def run_at_tree(rev: str, register: Path = REGISTER_DOC) -> tuple[list[str], dict]:
+def run_at_tree(rev: str, register: Path = REGISTER_DOC,
+                schedule: bool = False) -> tuple[list[str], dict]:
     """Reconcile the register AND the code AS THEY EXIST IN ONE TREE.
 
     THE COMMIT-TIME MODE, and the answer to the ordering trap `--at-head` cannot
@@ -538,6 +616,10 @@ def run_at_tree(rev: str, register: Path = REGISTER_DOC) -> tuple[list[str], dic
         rows, designs, direct | indirect,
         measured_label=f"the tree {rev[:9]} (the tree this commit would create)",
         measured_source="tools.epistemic_wall.crossings_at_head(rev=<index tree>)",
+        # SCHEDULE is a question about NOW, so only the commit gate asks it (schedule=True).
+        # An audit of a historical tree asks whether its cut claims held then; a register from
+        # before 2026-10-24 has no owner or due column and was not wrong for lacking one.
+        live_atoms=load_live_atoms_at(rev) if schedule else None,
     )
     report["ruled_source"] = f"{report['ruled_source']} @ {rev[:9]}"
     report["direct_crossings"] = len(direct)
@@ -606,8 +688,14 @@ def main(argv=None) -> int:
         "tools.epistemic_wall.crossings_at_head" if args.at_head
         else "tools.epistemic_wall.live_crossings"
     )
+    try:
+        live_atoms = load_live_atoms_at(None)
+    except RegisterError as exc:
+        print(f"WALL-CROSSING DISPOSITIONS: FAILED — {exc}", file=sys.stderr)
+        return 2
     findings, report = reconcile(
-        rows, designs, measured, measured_label=label, measured_source=source
+        rows, designs, measured, measured_label=label, measured_source=source,
+        live_atoms=live_atoms,
     )
     report["direct_crossings"] = len(direct)
     report["indirect_crossings"] = len(indirect)
