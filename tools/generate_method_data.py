@@ -2,7 +2,7 @@
 """Generate site/data/method.json -- the Method section's data source.
 
 NAV_STORY_PLATFORM_METHOD.md item 6 (The Way): the harness itself framed as
-a transferable, licensable method -- operating model, the R1-R15 rules with
+a transferable, licensable method -- operating model, the R1-R17 rules with
 the real incidents that forged them, a live view of the staging loop
 actually working, and the retrospective library. Per the same discipline as
 the staging-loop and retro-library sections (platform page retired 2026-07-19)
@@ -124,6 +124,15 @@ RULES = [
         id="R15", name="A control must be able to fail",
         description="No control counts as evidence unless a mutation test proves it fires on its own named defect. Three killer patterns: tautology (the checked value derived from the same source it checks), fail-open (passes on missing/zero/empty input), fail-silent (passes when the checker itself is unavailable). A control that cannot fail is worse than none.",
         incident="Forged by CONTROLS_THAT_CANNOT_FAIL (2026-07-13): several controls that had been counted as evidence turned out to be theatre -- they passed regardless of input -- so the burden of proof became a mutation that must flip the verdict.",
+    ),    dict(
+        id="R16", name="The ledger is authority, not commit messages",
+        description="The ledger entry is the sole record of a level move; a commit message claiming one is not. A level move is recorded, never authorised, and the level gate refuses a raise the ledger does not hold.",
+        incident="Forged 2026-07-21: an unbacked level bump, carried in by a commit message that called it ratified, wedged publishing for three hours -- the cited commit was read as authority when only the ledger could be.",
+    ),
+    dict(
+        id="R17", name="The tick never rests while authorised work exists",
+        description="While authorised work exists at any priority, the tick keeps drawing: core, idle-advance or forward-discovery. It may slow to the pace the week's budget sets; it never stops.",
+        incident="Forged 2026-07-22: a 95-minute stall with work authorised but undrawable -- a steer had been consumed into a document and an atom, but no live mechanism drew it. Ratified 24 Oct with the pace clause.",
     ),
 ]
 

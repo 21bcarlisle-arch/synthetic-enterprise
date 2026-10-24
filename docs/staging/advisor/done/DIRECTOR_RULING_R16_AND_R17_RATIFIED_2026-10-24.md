@@ -20,3 +20,14 @@ The director's words, from chat on Sat 24 Oct:
 4. **Where this lands.** Update `docs/design/DIRECTOR_CANON.md`: put both texts at H1, mark owed item 10 discharged, and replace "R1–R15" wherever canon or a standing page counts the set. Use the trailer `Director-doc: his-words -- R16/R17 ratified, director 24 Oct 09:49`. The canon-against-canon check confirms each quoted line is verbatim.
 
 — Director ruling, 24 Oct 2026, his word above; the drafting is the advisor's.
+
+## Done
+
+2026-10-24, delivery seat. The channel first REFUSED this file as "no attribution". That refusal was
+wrong: it quotes his `09:49 BST: "Yes"`, and `background/advisor_channel.py` demanded a quote of at
+least three words, against canon G8's "'yes' and 'go' are complete". Provenance verified (signed by
+the advisor key). Fixed the regex to accept a one-word quote, with a test beside the bare-file refusal.
+Then acted on it: canon H1 now holds R16 (with G12's wording beside it) and R17 (with "within the pace
+set under P12"), the set is R1–R17, owed item 10 is discharged, and a changelog line records it.
+THE_MODEL_ON_A_PAGE's count, and the Method and Proof generators' rule lists, now carry R16 and R17.
+The seat proposal is closed in `docs/staging/done/` with a Done section pointing here.

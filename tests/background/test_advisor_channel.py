@@ -234,3 +234,16 @@ def test_the_draw_lists_origin_not_the_disk_a_checkout_left_behind(tmp_path, mon
     assert verdicts["STEER.md"].drawable and verdicts["STEER.md"].attribution == "delegation"
     assert "OLD.md" not in verdicts
     assert not verdicts["LOCAL.md"].drawable and "not on origin" in verdicts["LOCAL.md"].refusal
+
+
+def test_a_one_word_answer_with_its_time_is_his_quoted_voice(repo):
+    """Defect (24 Oct): the R16/R17 ruling quoted his `09:49 BST: "Yes"` and was refused as having
+    no attribution, because the quote had to be three words. Canon G8: "'yes' and 'go' are
+    complete". A bare file with no quote stays refused beside it."""
+    _write(repo, "A_yes.md", '- 09:49 BST: "Yes"\n')
+    _write(repo, "B_go.md", "- 10:02 BST: “go”\n")
+    _write(repo, "C_bare.md", "Ratified at 09:49, the advisor thinks.\n")
+    verdicts = {i.path.name: i for i in ac.scan(repo)}
+    assert verdicts["A_yes.md"].attribution == "quoted"
+    assert verdicts["B_go.md"].attribution == "quoted"
+    assert not verdicts["C_bare.md"].drawable

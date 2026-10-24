@@ -41,9 +41,11 @@ DONE_SUBDIR = "done"
 
 _DELEGATION_RE = re.compile(
     r"on the director[’']s standing delegation of 15 Oct", re.IGNORECASE)
-# A time, then a quoted span of at least three words, on one line: `- 09:49 BST: "Is there a way..."`.
+# A time, then a quoted span, on one line: `- 09:49 BST: "Is there a way..."`. One word is enough:
+# canon G8 says "'yes' and 'go' are complete", and a three-word floor refused his signed "Yes" on the
+# R16/R17 ruling (24 Oct). Provenance, not quote length, is what guards his voice.
 _QUOTED_CHAT_RE = re.compile(
-    r"\b[0-2]?\d:[0-5]\d\b[^\n\"“]*[\"“][^\"”\n]*\S+\s+\S+\s+\S+[^\"”\n]*[\"”]")
+    r"\b[0-2]?\d:[0-5]\d\b[^\n\"“]*[\"“][^\"”\n]*\S[^\"”\n]*[\"”]")
 
 
 ALLOWED_SIGNERS = REPO_ROOT / "tools" / "advisor_allowed_signers"

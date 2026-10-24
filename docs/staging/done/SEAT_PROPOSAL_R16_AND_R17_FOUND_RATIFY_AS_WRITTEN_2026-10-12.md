@@ -34,3 +34,8 @@ stop").
 Ratify both as written, so H1's numbered set becomes R1-R17. In the canon text, put G12's wording
 beside R16's "authorization", rather than rewording the rule. If either should stay unratified, say
 which; the numbered set then stays R1-R15 and that rule is recorded as retired.
+
+## Done
+
+2026-10-24: ratified by the director (09:49 BST, "Yes"), R17 with "within the pace set under P12".
+See `docs/staging/advisor/done/DIRECTOR_RULING_R16_AND_R17_RATIFIED_2026-10-24.md`; canon H1 carries both.

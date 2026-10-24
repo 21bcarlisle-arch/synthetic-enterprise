@@ -204,7 +204,7 @@ household's emissions are now measured. `company/carbon/half_hourly_footprint.py
 half-hourly intensity by the half-hourly reads of the accounts that have them and profiles the rest,
 and Explore publishes it. The ledger is still called by nothing, and abatement is still unmeasured,
 because nothing supplies the counterfactual it needs.)*
-**Method:** the harness itself — gates, R1–R15 (canon H1), daily self-note — the third product. *(Corrected
+**Method:** the harness itself — gates, R1–R17 (canon H1), daily self-note — the third product. *(Corrected
 2026-10-04: "twin approvals" removed; the twin last acted on 2026-07-16.)*
 
 ## TIMEFRAME 2 — EVOLUTION (registered, sequenced, not yet true)

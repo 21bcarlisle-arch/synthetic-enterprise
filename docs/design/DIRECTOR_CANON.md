@@ -401,7 +401,7 @@ Everything else: act, record how to reverse it, say what you did.
 
 ## 12. Harness rules (H)
 
-**H1. The permanent rules.** R1–R15 below are in full. R16 and R17 are cited in rulings but defined on no page. Until their text is found and ratified, the numbered set is R1–R15 (§15, owed item 10).
+**H1. The permanent rules.** R1–R17 below are in full. R16 and R17 were found in the July CLAUDE.md commits that introduced them and ratified on 24 Oct (his word, 09:49 BST: "Yes"), discharging §15 owed item 10.
 - **R1** Consumer-verified completion. Done means the rendered value changed. A publish is a publish commit landing, never a green gate.
 - **R2** Committed is not running.
 - **R3** Two strikes, then redesign: on a second false claim, eliminate the mechanism. "Don't patch it again. Find why every fix to it goes quiet within a week".
@@ -417,6 +417,8 @@ Everything else: act, record how to reverse it, say what you did.
 - **R13** The baseline/curriculum split: the director owns the curriculum (F4, G6).
 - **R14** No financial figure without its clock. Fake freshness is the cardinal sin.
 - **R15** "Every control must be failable and proven to fire: a control whose failure has never been demonstrated (mutation/neuter test) is not a control; fail-open-green is the defect class, and no capability's VERIFY/HARDEN passes on an unproven control."
+- **R16** The ledger is authority, not commit messages: the ledger entry is the sole record of a level move, and a commit message claiming one is not (21 July). In G12's words: "A level move is recorded, never authorised."
+- **R17** The tick never rests while authorised work exists at any priority, within the pace set under P12 (22 July). It may slow to land short of the reserve; it never stops.
 - **Law A** The provisional plan, now the priority order, is a diagnostic and tie-breaker, never a target.
 - **Law B** Retired with the twin (ruled 12 Oct, decision 1). Its surviving half is that only the director changes canon intent.
 
@@ -565,7 +567,7 @@ Each was put with the advisor's recommendation, and each is now his ruling as wr
 7. The owed knowledge pages (housing, people, the loyalty finding), the headline–title guard (2 Oct), and EP13's write-up (4 Oct).
 8. Money representation, float against Decimal: a recommendation with evidence (reserved since 28 July).
 9. The CLV discount rate and terminal-value method (5 Sept).
-10. The text of R16 and R17.
+10. ~~The text of R16 and R17.~~ Discharged 24 Oct: both ratified, R17 within the P12 pace (H1).
 11. The parked-documents audit: 123 documents, its condition met on 30 Sept.
 12. Why every fix to the stretch log goes quiet within a week (30 Sept): the cause, not the patch.
 
@@ -589,6 +591,7 @@ The full supersession chains are in the review chapters. The main ones:
 
 ## Changelog
 
+- **2026-10-24:** H1: R16 and R17 ratified, R17 with "within the pace set under P12", in the director's word of 09:49 BST (`DIRECTOR_RULING_R16_AND_R17_RATIFIED_2026-10-24.md`). The numbered set is R1–R17; owed item 10 discharged.
 - **2026-10-15:** D5, D7 and G8: NTFY mothballed and its inbound route retired, in the director's words of 14:08 BST (`DIRECTOR_STEER_MOTHBALL_NTFY_2026-10-15.md`). In: the console and the advisor folder. Out: the stretch log and `for_the_director`.
 - v1 (2026-07-12) to v3 (2026-07-18): the director twin's brief. Archived.
 - **v4 (2026-10-12, adopted on the director's ruling "Agree all"):** consolidation of 209 documents and the October console words into one canon. Restores rulings that had dropped out of every standing page:
