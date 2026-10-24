@@ -1571,3 +1571,12 @@ overlay up by GBP 50m in 2023 as arrears per account rose 27% while prices fell.
 validator's pooled window, the price signal alone cannot carry the company's half. The arrears signal
 is the next step (the page's GAP table). The 2022 level gap, about 7x, is not the overlay's: at full
 strength 0.134 adds 15.5% to a stock that is itself a seventh of the floor.
+
+## 2026-10-24: the overlay never reached a run
+
+E6 (2410634ae) passed `crisis_overlay=` to `LivePaymentTriad.provision_stock`, and that method did not
+take it. The TypeError was caught by the read's own "must not kill a completed run" guard. So from
+2410634ae until the fix that adds this note, every run published `company_provision` as unavailable
+(seen on a 2016-12-31 run: `WARNING [company provision] could not be read: TypeError(...)`). No
+published run between those commits says anything about the overlay or the provision. The control
+is `tests/background/test_the_triad_passes_the_crisis_overlay_through.py`.
