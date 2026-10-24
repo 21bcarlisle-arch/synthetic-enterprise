@@ -310,3 +310,26 @@ def test_an_open_findings_only_annotation_still_needs_no_tree(tmp_path):
     prov.record_verified(run_id=RUN_A, git_commit=SHA_A, population=POP, path=p, now=_at(0))
     state = prov.record_annotation(open_findings=47, path=p, now=_at(1))
     assert state["annotation"]["open_findings"] == 47
+
+
+def test_a_figures_caveat_is_shown_for_its_own_run_and_cleared_by_the_next_verified_one(tmp_path):
+    """Defect: the site serves a run whose bills break the cap and says nothing (24 Oct, 8b6fea024).
+
+    The caveat must reach the sentence in both states, must not attach to a run it was not written
+    about, and must be cleared by the next verified publish, or it outlives the figures it names.
+    """
+    p = _p(tmp_path)
+    prov.record_verified(run_id=RUN_A, git_commit=SHA_A, population=POP, path=p, now=_at(0))
+    prov.record_figures_caveat("These figures predate the cap fixes.", path=p, now=_at(1))
+    assert prov.banner_line(prov.read(p)).endswith(" · These figures predate the cap fixes.")
+    prov.record_paused(reason="internal", path=p, now=_at(2))
+    paused = prov.banner_line(prov.read(p))
+    assert "Verification paused since" in paused and "predate the cap fixes" in paused
+    state = prov.read(p)
+    state["showing_run"] = {**state["showing_run"], "run_id": "another"}
+    assert prov.figures_caveat(state) is None
+    prov.record_verified(run_id=RUN_A, git_commit=SHA_A, population=POP, path=p, now=_at(3))
+    assert prov.read(p)["figures_caveat"] is None
+    assert "predate" not in prov.banner_line(prov.read(p))
+    js = (prov.PROJECT_DIR / "site" / "assets" / "freshness-banner.js").read_text()
+    assert "figures_caveat" in js and "caveat.run_id === showing.run_id" in js

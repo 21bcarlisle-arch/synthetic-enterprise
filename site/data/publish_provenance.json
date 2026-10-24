@@ -11,6 +11,10 @@
     "nonblocking_reds_total": 1,
     "open_findings": 21
   },
+  "figures_caveat": {
+    "run_id": "run_output_8b6fea024_20261019T033010Z.json",
+    "sentence": "The billing, customer and debt figures on this site come from run 8b6fea024 of 19 Oct 2026, which predates the price-cap fixes: 5,488 of its 18,398 standard-variable bills (29.8%) are above the household's cap ceiling. They are replaced when a run carrying the fixes passes that check."
+  },
   "last_verified": {
     "generated_at": "2026-10-19T08:55:40Z",
     "git_commit": "8b6fea024",
@@ -39,5 +43,5 @@
     "verified_at": "2026-10-19T08:55:40Z"
   },
   "verification_state": "verified",
-  "written_at": "2026-10-19T08:55:40Z"
+  "written_at": "2026-10-24T14:51:46Z"
 }

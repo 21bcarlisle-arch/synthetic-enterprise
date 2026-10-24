@@ -106,14 +106,23 @@
        something else. */
     var showing = (d && d.showing_run) || {};
     var run = showing.run_id || "unknown";
+    var line;
     if (d && d.verification_state === "verified") {
-      return "Verified " + esc(showing.verified_at || "unknown") +
+      line = "Verified " + esc(showing.verified_at || "unknown") +
              " · showing run " + esc(run);
+    } else {
+      var lastVerified = (d && d.last_verified) || {};
+      line = "Verification paused since " + esc((d && d.paused_since) || "unknown") +
+             " · showing run " + esc(run) +
+             " (last verified " + esc(lastVerified.verified_at || "never") + ")";
     }
-    var lastVerified = (d && d.last_verified) || {};
-    return "Verification paused since " + esc((d && d.paused_since) || "unknown") +
-           " · showing run " + esc(run) +
-           " (last verified " + esc(lastVerified.verified_at || "never") + ")";
+    /* What a reader must know about the figures shown (publish_provenance.figures_caveat):
+       only while the run it was written about is still the one shown. */
+    var caveat = (d && d.figures_caveat) || {};
+    if (caveat.sentence && caveat.run_id === showing.run_id) {
+      line += " · " + esc(caveat.sentence);
+    }
+    return line;
   }
 
   /* ------------------------------------------------------------------------

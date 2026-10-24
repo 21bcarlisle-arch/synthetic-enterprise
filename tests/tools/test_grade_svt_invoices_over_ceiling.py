@@ -75,3 +75,23 @@ def test_the_grade_names_a_carve_the_ledger_never_booked_and_a_negative_estimate
     named = defects(broken)
     assert len(named) == 2
     assert named[0].startswith("carved GBP") and "below zero, worst s 2023-01-17" in named[1]
+
+
+def test_a_book_billed_over_the_ceiling_is_a_defect_and_the_misgrade_residual_is_not():
+    """Defect: the grade that read `defects: []` on 1044c8fe0d, 6,719 of 24,417 SVT bills over the cap.
+
+    Over-cap was counted and never named, so a gate on `defects` passed every pre-fix run. Both
+    sides of the bound must be reachable: one over-cap bill in 100 is the post-fix residual.
+    """
+    from tools.grade_svt_invoices_over_ceiling import OVER_CEILING_SHARE_BOUND, defects
+
+    def run(n_over: int, n_within: int) -> dict:
+        ids = [f"o{i}" for i in range(n_over)] + [f"w{i}" for i in range(n_within)]
+        return {"account_state_log": [_term(c, "svt") for c in ids],
+                "bills": [_bill(c, "2019-02-01", 99.0 if c[0] == "o" else 10.0) for c in ids]}
+
+    residual, broken = grade(run(1, 99)), grade(run(30, 70))
+    assert residual["share"] <= OVER_CEILING_SHARE_BOUND < broken["share"]
+    assert defects(residual) == []
+    assert defects(broken) == ["30 of 100 default-tariff bills (30.0%) over the household's "
+                               "ceiling, across 30 households"]

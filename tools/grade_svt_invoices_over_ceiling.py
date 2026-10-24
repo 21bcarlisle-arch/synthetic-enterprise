@@ -21,7 +21,9 @@ median share of each bill's unit charge the receipt removed, by quarter and fuel
 that quarter's (cap - EPG) / cap, not at one band for the whole crisis.
 
 `defects` names each property the run breaks, and the grader exits 1 when it names any: carved not
-equal to booked, a receipt carved outside the windows, or an estimated bill below zero. A negative
+equal to booked, a receipt carved outside the windows, an estimated bill below zero, or a share of
+default-tariff bills over the ceiling above `OVER_CEILING_SHARE_BOUND`. The publisher refuses a run
+this names a defect on (`process_run_complete.billing_grade_refusal`), so this is the Monday gate. A negative
 bill is under every ceiling, so the over-cap count alone passed the void stubs that the folded
 `hmt_epg_receipt_gbp_per_mwh` credited at 48 times the Treasury's rate (c5a8090187: GBP 5,898.10
 carved and never booked, because `validate_bills` held the five negative bills).
@@ -44,6 +46,15 @@ from company.compliance.domain_invariants import (
     default_tariff_invoice_excess_p_per_kwh,
 )
 from company.pricing.ofgem_price_cap import get_cap_unit_rate_for_date
+
+#: The share of graded default-tariff bills over the ceiling above which the run is a defect, not
+#: the known ToU misgrade above. SIMPLIFICATION, set between two measured regimes rather than from a
+#: rule, because the rule (SLC 28AD) is zero and the residual is this grader's own misgrade:
+#: after the cap fixes, 88cdf35e48 graded 104 of 24,597 (0.42%, 16 households); before them,
+#: 8b6fea024 graded 5,488 of 18,398 (29.8%) and 1044c8fe0d 6,719 of 24,417 (27.5%). Five times the
+#: post-fix residual, and fourteen times under the defect. Doing it properly means grading a ToU
+#: term at its assumed split; the error runs toward passing a run with a small real breach.
+OVER_CEILING_SHARE_BOUND = 0.02
 
 
 def _load(path: Path) -> dict:
@@ -123,6 +134,10 @@ def defects(g: dict) -> list[str]:
                    f"{receipt['booked_gbp']:,.2f}")
     if receipt["carved_outside_epg_windows"]:
         out.append(f"{receipt['carved_outside_epg_windows']} receipt(s) carved outside the EPG windows")
+    if g["share"] is not None and g["share"] > OVER_CEILING_SHARE_BOUND:
+        out.append(f"{g['above_household_ceiling']:,} of {g['default_tariff_invoices_graded']:,} "
+                   f"default-tariff bills ({g['share']:.1%}) over the household's ceiling, across "
+                   f"{g['households_above']:,} households")
     if g["negative_estimated_bills"]:
         worst = min(g["negative_estimated_bills"], key=lambda b: b["total_amount_gbp"])
         out.append(f"{len(g['negative_estimated_bills'])} estimated bill(s) below zero, worst "

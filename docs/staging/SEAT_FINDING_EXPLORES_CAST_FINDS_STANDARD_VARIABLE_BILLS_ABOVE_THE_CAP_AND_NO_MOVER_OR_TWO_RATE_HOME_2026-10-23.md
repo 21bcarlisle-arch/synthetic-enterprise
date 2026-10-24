@@ -168,3 +168,65 @@ On the fresh run at `c5a8090187`, that fix gives 5 electricity void stubs receip
 Treasury's share. Their bills go to as low as −£2,950, and £5,898 is never booked:
 `SEAT_FINDING_THE_VOID_STUB_EPG_FIX_CREDITS_HOUSEHOLDS_48_TIMES_THE_TREASURY_SHARE_AND_THE_LEDGER_BOOKS_NONE_OF_IT_2026-10-24.md`.
 The publish that clears this file must carry that file's fix too.
+
+## The path from run to page, 24 Oct 15:30Z (`the-monday-publish-carries-a-run-with-the-billing-fixes`)
+
+**(a) The run the publisher picks.** Whichever `docs/staging/run_complete_*.md` marker
+`background/process_run_complete.py::_process` handles first once `publish_freshness.content_publish_window`
+opens at Mon 26 Oct 04:00Z. Every marker handled before then is archived on HOLD and is gone. Nothing
+re-publishes a held run when the window opens. The marker is written only by `background/sim_runner.py::run_simulation`,
+and it names that run's `run_output_<HEAD>_<stamp>.json`. So Monday publishes the first sim-runner run
+that finishes after 04:00Z. A run made by hand with `tools.run_annual_report --save-json` writes no marker,
+so the publisher never sees it, whatever directory it lands in.
+
+**(b) The shared checkout.** Yes: sim-runner runs `tools.run_annual_report` with `cwd` set to the
+shared checkout, at its HEAD, and `code_admission` defers it unless that HEAD is on origin. The HEAD
+is `95e78ec777`, 15 behind origin. It carries `ce35a25e21`, `4ef70aba92` and `4bc21e9209`. It does
+not carry `3a31999db`, so a run there now would bill the void stubs 48× (c5a8090187's shape). The
+reconciler's fast-forward was held by 27 paths. 22 of them are byte-identical to origin, which the
+reconciler clears by itself. Four were older copies of the asks-ledger landing (b8b14269e), which
+origin supersedes: `tools/harness_page_figures.py`, `tests/tools/test_harness_page_figures.py` and
+`site/harness/index.html` were refreshed with `refresh_to_head --base origin/main`, and the bytes
+are preserved on `refs/preserved/refresh-to-head/monday-publish-shared-ff-2026-10-24`. The fourth,
+the generated `site/data/director_asks.json`, was set to origin's bytes; its old copy is at
+`/var/tmp/director_asks.json.shared-copy-2026-10-24`. **One path still holds it:
+`docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md`.** It carries a live edit written at 14:02Z by
+the lane correcting "SLC 27B" to the SLC 27.15 duty, which is also editing `M2_PAYMENTS_AUDIT_DD_RAILS.md`
+and `phase-history.md`. Its hunks do not overlap origin's (owner/due fields from 4e3a978bf). It
+clears when that lane lands. It is not this item's to land.
+
+**Two things a reader of the runner should know.** The runner has been due since 22 Oct 20:59Z and
+defers every five minutes to the s14clean long jobs. Its between-run pause, in the running daemon,
+is 4,685 s, not the declared week. `_declared_cadence_seconds` runs at import, before `sys.path` holds
+the project, so under `python3 background/sim_runner.py` it falls back to the consumer floor. That
+fallback is why a run will finish after 04:00Z at all: at a weekly pause, the run that finishes
+first would be held, and the next would come a week later. **Fixing the import without moving the
+window would leave Monday with no run.**
+
+**(c) Reachable by the ordinary route.** The graded run that publishes is sim-runner's first run
+after 04:00Z, so nothing has to be carried into `docs/reports/` by hand. What was missing was the
+grade. `process_run_complete.billing_grade_refusal` now runs `tools.grade_svt_invoices_over_ceiling`
+on every run before regeneration, and refuses one it names a defect on. The grader now names
+over-cap as a defect too: share above `OVER_CEILING_SHARE_BOUND` (2%). Until now it counted over-cap
+and never named it, so `defects: []` passed every pre-fix run. At real inputs:
+
+| run | refusal |
+|---|---|
+| `1044c8fe0d` (22 Oct, pre-fix) | 6,719 of 24,417 default-tariff bills (27.5%) over, 307 households |
+| `8b6fea024` (19 Oct, published) | 5,488 of 18,398 (29.8%), 244 households |
+| `88cdf35e48` (three fixes) | none: 104 of 24,597 (0.42%), 16 households |
+| `c5a8090187` (void-stub defect) | carved GBP 205,866.61 != booked GBP 199,968.51; 5 negative estimates |
+
+**(d) Not silent.** The banner on every live-data page now says it:
+`site/data/publish_provenance.json` `figures_caveat`, rendered by `site/assets/freshness-banner.js`
+and `publish_provenance.banner_line`. It reads: "The billing, customer and debt figures on this
+site come from run 8b6fea024 of 19 Oct 2026, which predates the price-cap fixes: 5,488 of its 18,398
+standard-variable bills (29.8%) are above the household's cap ceiling." It is pinned to that run.
+Only `record_verified` clears it, which means a publish that passed the grade. If Monday's run is
+refused, the publisher keeps the 19 Oct figures, pauses the banner, and keeps this sentence.
+
+**Prediction, filed before Monday.** If the register lands and the shared tree fast-forwards before
+about 02:50Z, the first run after 04:00Z is at a commit carrying all four fixes. The grade passes at
+about 0.4% over, and `explore_cast.json` `book_breaches.above_cap` falls from 199 to about 16. If the
+tree is still at `95e78ec777`, the run is refused on carved != booked, and the 19 Oct figures stay up
+under the caveat. Lower this file to LATENT on the first reading, not the second.

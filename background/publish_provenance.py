@@ -402,7 +402,35 @@ def record_verified(*, run_id, git_commit, generated_at=None, population=None,
     # R11's no-orphan-transitions clause read the other way round: the release of a hold must
     # clear everything the hold asserted, not just the flag the code happens to check.
     state["paused_reason"] = None
+    # The caveat was about the run this replaces, so it goes with it (record_figures_caveat).
+    state["figures_caveat"] = None
     return _write(state, path, now)
+
+
+def record_figures_caveat(sentence, *, path: Path = None, now=None) -> dict:
+    """What a reader must know about the figures being shown, in a sentence for them.
+
+    Different from `paused_reason`, which names internal gates and is not rendered: this one is
+    rendered on every page that carries the banner, in either state. It is written when the
+    publisher refuses a newer run for its bills (`process_run_complete.billing_grade_refusal`) and
+    the run still shown has a known defect, and it is cleared only by `record_verified`, so it
+    cannot outlive the figures it describes. It is pinned to the run it was written about, and
+    `banner_line` drops it if the run shown is another one. Moves no freshness field.
+    """
+    state = read(path)
+    run = (state.get("showing_run") or {}).get("run_id")
+    state["figures_caveat"] = ({"sentence": str(sentence)[:400], "run_id": run}
+                               if sentence else None)
+    return _write(state, path, now)
+
+
+def figures_caveat(state) -> str | None:
+    """The caveat's sentence, or None when there is none or it is about a run no longer shown."""
+    caveat = (state or {}).get("figures_caveat") or {}
+    run = ((state or {}).get("showing_run") or {}).get("run_id")
+    if caveat.get("sentence") and caveat.get("run_id") == run:
+        return caveat["sentence"]
+    return None
 
 
 def record_paused(*, reason=None, path: Path = None, now=None) -> dict:
@@ -498,11 +526,14 @@ def banner_line(state=None, now=None) -> str:
                 int(pop["accounts"]), int(pop.get("bills") or 0))
         if showing.get("run_retained") is False:
             detail += " (the run itself is not retained in the repository)"
-        return "Verified {} · showing run {}{}".format(
+        line = "Verified {} · showing run {}{}".format(
             showing.get("verified_at") or "unknown", run, detail)
-    since = state.get("paused_since") or "unknown"
-    return "Verification paused since {} · showing run {} (last verified {})".format(
-        since, run, (state.get("last_verified") or {}).get("verified_at") or "never")
+    else:
+        line = "Verification paused since {} · showing run {} (last verified {})".format(
+            state.get("paused_since") or "unknown", run,
+            (state.get("last_verified") or {}).get("verified_at") or "never")
+    caveat = figures_caveat(state)
+    return line + (" · " + caveat if caveat else "")
 
 
 # ── WHICH PAGES OWE A BANNER — DERIVED, NEVER TYPED ──────────────────────────

@@ -10762,6 +10762,50 @@ def _content_publish_window():
     return publish_freshness.content_publish_window()
 
 
+def billing_grade_refusal(data, grade_fn=None):
+    """Why this run's bills may not be published, or None: what the over-ceiling grader names.
+
+    19 Oct's run billed 5,488 of 18,398 default-tariff bills above the cap ceiling and published,
+    because nothing between the run and the page graded a bill. The grader's `defects` is that
+    check (over-cap share, EPG carved != booked, a receipt outside the windows, a negative
+    estimate). A grader that cannot run is a refusal too, named as such: the figures it would
+    have checked are the ones a reader is told are capped.
+    """
+    if grade_fn is None:
+        from tools.grade_svt_invoices_over_ceiling import defects, grade
+
+        def grade_fn(run):
+            return defects(grade(run))
+    try:
+        named = grade_fn(data)
+    except Exception as exc:  # noqa: BLE001 -- an unavailable check is a failed check
+        return "the over-ceiling grade could not run ({}: {})".format(type(exc).__name__, exc)
+    if named:
+        return "its bills fail the over-ceiling grade: " + "; ".join(named)
+    return None
+
+
+def _caveat_for_the_run_shown(grade_fn=None):
+    """A reader's sentence about the run still shown, when its own bills fail the grade, else None.
+
+    Written once per shown run: a caveat already standing for it (the seat's, or an earlier
+    refusal's) is kept, because it may say more than this generic one can."""
+    state = publish_provenance.read()
+    if publish_provenance.figures_caveat(state):
+        return None
+    showing = state.get("showing_run") or {}
+    path = PROJECT_DIR / "docs" / "reports" / str(showing.get("run_id") or "")
+    if not showing.get("run_id") or not path.is_file():
+        return None
+    why = billing_grade_refusal(json.loads(path.read_text()), grade_fn=grade_fn)
+    if why is None:
+        return None
+    return ("The billing, customer and debt figures shown come from run {} of {}, and {}. They "
+            "stay until a run that passes is published.").format(
+                showing.get("git_commit"), str(showing.get("generated_at") or "")[:10],
+                why)
+
+
 def stamp_not_on_origin_refusal(data, on_origin=None):
     """Why a run whose stamped commit is not on origin/main may not be published, or None.
 
@@ -10864,6 +10908,20 @@ def _process(marker_path_str):
         _archive_marker(marker)
         log("REFUSED (run bytes are not the stamped commit's): {} -- no regen/test/commit. "
             "Archived {}.".format(off_commit, marker.name))
+        return EXIT_PUBLISH_DID_NOT_LAND
+
+    billing = billing_grade_refusal(data)
+    if billing:
+        _archive_marker(marker)
+        log("REFUSED (bills): {} -- no regen/test/commit. Archived {}.".format(
+            billing, marker.name))
+        try:
+            caveat = _caveat_for_the_run_shown()
+            if caveat:
+                publish_provenance.record_figures_caveat(caveat)
+        except Exception as exc:  # noqa: BLE001 -- the banner below still says it is paused
+            log("Figures caveat for the run shown failed (non-fatal): {}".format(exc))
+        _publish_provenance_banner(git_hash, reason="newest run refused: " + billing)
         return EXIT_PUBLISH_DID_NOT_LAND
 
     # Change-detection gate: if this run's meaningful outputs are identical to
