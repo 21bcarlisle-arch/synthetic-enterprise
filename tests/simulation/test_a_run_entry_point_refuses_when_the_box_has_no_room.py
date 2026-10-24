@@ -87,3 +87,19 @@ def test_the_ordinary_ab_REFUSES_below_its_measured_peak(monkeypatch, tmp_path):
 def test_the_ordinary_ab_STILL_STARTS_with_room(monkeypatch, tmp_path):
     with pytest.raises(_Started):
         _ab(monkeypatch, tmp_path, rvca.FLOOR_RUN_PEAK_MB + 1)
+
+
+def test_a_budget_below_the_curves_anchor_is_priced_at_the_class_weight(monkeypatch):
+    """Defect: at settlement budget 0 the curve extrapolates to a NEGATIVE peak (-1,995 MB on
+    24 Oct), the queue reads it as an undeclared weight and refuses the run for ever. Off the
+    curve the class weight prices it; a priced budget still declares its own peak."""
+    from background import live_ledger_guard, resource_headroom
+    seen = []
+    monkeypatch.setattr(live_ledger_guard, "in_test_process", lambda: False)
+    monkeypatch.setattr(resource_headroom, "queued", lambda job, weight_mb, log: seen.append(weight_mb))
+    monkeypatch.setattr(run_phase2b, "budgeted_run_peak_mb", lambda: (-1995.0, "below the anchor"))
+    run_phase2b._box_admission()
+    monkeypatch.setattr(run_phase2b, "budgeted_run_peak_mb", lambda: (5000.0, "on the curve"))
+    run_phase2b._box_admission()
+    assert seen == [None, 5000.0], f"declared weights {seen}: a negative peak must fall back"
+    assert resource_headroom.weight_for("sim_run", None) > 0, "the fallback has no class weight"

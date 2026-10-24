@@ -1607,7 +1607,11 @@ def _box_admission():
         return contextlib.nullcontext()
     from background import resource_headroom
     peak, _basis = budgeted_run_peak_mb()
-    return resource_headroom.queued("sim_run", weight_mb=peak, log=print)
+    # A budget below the curve's anchor extrapolates the line to a negative peak, which the queue
+    # reads as undeclared and refuses for ever (a budget-0 run, 24 Oct): off the curve, the class
+    # weight prices it, as the docstring says.
+    return resource_headroom.queued("sim_run", weight_mb=peak if peak and peak > 0 else None,
+                                    log=print)
 
 
 def main(report_end: str | None = None, policy: DecisionPolicy | None = None,
@@ -2455,6 +2459,10 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             "days_to_resolve": _outcome.days_to_resolve,
         })
 
+    def _bill_due_on(month: str) -> date:
+        # A month's bill falls due on its 28th; the gone-household close reads the same day.
+        return date.fromisoformat(month + '-28')
+
     def _post_month_bill(cid: str, held: dict) -> None:
         # PB8 (`simulation/payment_method_dynamics.py`): a household paying by DD may cancel its
         # mandate this month for its own reasons, before the month's collection is presented.
@@ -2498,7 +2506,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                                             True)
         _pm_rec = _payment_triad.record_period(
             customer_id=cid,
-            due_date=date.fromisoformat(held["month"] + '-28'),
+            due_date=_bill_due_on(held["month"]),
             # Net of the scheme credit, from the same door the arrears engine asks, so the pounds
             # the household's budget weighs are the pounds that can fail. A month left in credit
             # owes nothing.
@@ -2935,6 +2943,10 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 "customer_id": _point, "household": household, "commodity": _fuel,
                 "event_type": "churned", "event_date": effective_from,
             })
+        # The account closes today, so its final bill is the month of the last day supplied: told
+        # now, before the next reader forces a crossing (`close_account`).
+        _payment_triad.close_account(household, _bill_due_on(
+            (date.fromisoformat(effective_from[:10]) - timedelta(days=1)).isoformat()[:7]))
         _pending = [] if pending_already_sent else (
             _registration_loss_feed.wire_pending_notices_for_departure(_points, effective_from))
         for _wire in (
@@ -4959,6 +4971,14 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                             if _prior_state is not None:
                                 _churn_journey_register.get_journey(
                                     billing_account).state = _prior_state
+
+        # A MOVE THAT DID NOT FOLLOW US CLOSES THE ACCOUNT on the move date (`move_end` is the
+        # first day not supplied), and the queue is told now, as for a departure. A follower stays
+        # ours and is not told.
+        if (_home_moves_on and _moved_in_term
+                and (billing_account, _move_end) not in _followed_moves):
+            _payment_triad.close_account(billing_account, _bill_due_on(
+                (_move_end - timedelta(days=1)).isoformat()[:7]))
 
         if cid in pending_committee_overrides:
             hf = pending_committee_overrides.pop(cid)

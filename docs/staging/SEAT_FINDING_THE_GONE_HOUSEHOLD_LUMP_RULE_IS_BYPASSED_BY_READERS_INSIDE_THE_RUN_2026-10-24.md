@@ -45,3 +45,27 @@ grade cause 1 against the same unchanged prediction.
 `docs/staging/records/SEAT_RECORD_THE_GONE_HOUSEHOLD_LUMP_RULE_BEFORE_AFTER_IS_QUEUED_2026-10-24.md`
 for the method. It is on no ref and not in the shared tree, so it was never landed. The method
 above is read from `both_arms.sh` and `probe2.py` themselves.
+
+## The fix, landed (2026-10-24, before its grade)
+
+`LivePaymentTriad.close_account(household, final_bill_due)` is told **as the run closes the
+account**: from `_notify_registration_loss` (every departure, on its effective date) and where a home
+move that did not follow us closes the account. The final bill's due date is the 28th of the month
+of the last day supplied, the same day `_post_month_bill` uses (`_bill_due_on`), so nothing is looked
+ahead. `_after_final_bill` reads the told date (the later of it and any bill actually posted), and
+the cut in `_cross_settlement` sits under the forced path too. `close_accounts` at the end stays the
+backstop and now adds to the set instead of replacing it.
+
+Named limit: a departure dated the 1st to the 3rd of a month has a final bill due on the previous
+28th, before the departure is known; a reader in those few days can still cross a lump dated after
+that 28th. The counter shows any such residue.
+
+Found on the way: at settlement budget 0 the run's memory curve extrapolates to a negative peak
+(-1,995 MB), which the box queue reads as an undeclared weight and refuses for ever, so the s.1a
+probe could not start. `_box_admission` now prices an off-curve budget at the class weight.
+
+Controls: `test_a_closure_told_as_it_happens_cuts_lumps_a_reader_forces_mid_run` (mutation: the
+told closure stored nowhere, red), `test_the_run_tells_the_queue_at_each_departure_and_unfollowed_move`
+(mutation: the departure call removed, red), and
+`test_a_budget_below_the_curves_anchor_is_priced_at_the_class_weight` (mutation: the raw peak
+passed, red). The grade, both arms re-run plus the 12 Oct baseline at `3f09d17e4`, follows in s.1a.

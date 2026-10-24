@@ -10,6 +10,12 @@ Defect each control names:
     final bill's due date, so a lump the household paid while still billed is lost.
   * `test_switched_off_the_late_lumps_cross_and_are_counted` -- the switch is decorative, or the
     off book hides what it would have lost.
+  * `test_a_closure_told_as_it_happens_cuts_lumps_a_reader_forces_mid_run` -- the queue learns
+    of closures only at the run's end, so readers inside the run (renewals forcing `arrears_state`
+    and `default_belief_rate`) cross a gone household's late lumps first: 12 of 14 on the 24 Oct
+    book. Both partitions (lost, and a stayer's crossed) are asserted reachable first.
+  * `test_the_run_tells_the_queue_at_each_departure_and_unfollowed_move` -- `run_phase2b` keeps
+    only the end-of-run backstop, so the in-run cut is never reached on a real book.
 """
 from __future__ import annotations
 
@@ -94,3 +100,42 @@ def test_closing_after_a_forced_reader_is_seen_not_hidden():
     assert triad.later_settlements()["crossed_after_close"] > 0, (
         "lumps a gone household paid after its final bill crossed before the closure was known, "
         "and the summary does not say so")
+
+
+def test_a_closure_told_as_it_happens_cuts_lumps_a_reader_forces_mid_run():
+    """The run's order: leavers stop being billed after March and are told closed then; a reader
+    forces every account across in mid-2021, before the end-of-run backstop is ever called."""
+    triad = LivePaymentTriad()
+    leavers = {f"RESI{i:05d}" for i in range(60) if i % 2}
+    for m in range(1, 13):
+        for i in range(60):
+            cid = f"RESI{i:05d}"
+            if not (cid in leavers and m > 3):
+                triad.record_period(customer_id=cid, due_date=date(2020, m, 28), amount_gbp=120.0,
+                                    income_stress_value="high", segment="resi")
+        if m == 4:
+            for leaver in leavers:
+                triad.close_account(leaver, date(2020, 3, 28))
+    triad._deliver_settlements_through(date(2021, 6, 30), force=True)
+    assert triad.settlements_lost_at_close > 0, "no late lump was cut mid-run: the closure is inert"
+    assert [c for c in _crossed_by(triad, odd=False) if c[2] > date(2020, 12, 28)], (
+        "no stayer's lump crossed after its last bill: the in-run cut fires on accounts never closed")
+    assert triad.settlements_crossed_after_close == 0, (
+        f"{triad.settlements_crossed_after_close} late lump(s) crossed though the closure was told "
+        "before the reader forced them")
+
+
+def test_the_run_tells_the_queue_at_each_departure_and_unfollowed_move():
+    """Reachability on the real loop: `close_account` is called where a registration loss is
+    filed and where a move that did not follow closes the account, ahead of the backstop."""
+    import inspect
+
+    import simulation.run_phase2b as run
+    src = inspect.getsource(run._main)
+    calls = [i for i in range(len(src)) if src.startswith("_payment_triad.close_account(", i)]
+    backstop = src.index("_payment_triad.close_accounts(")
+    notify = src.index("def _notify_registration_loss(")
+    assert len(calls) == 2, f"{len(calls)} in-run closure call(s); a departure and a move each need one"
+    assert any(notify < c < src.index("_pending = [] if pending_already_sent", notify)
+               for c in calls), "a departure is not told to the queue when its loss is filed"
+    assert all(c < backstop for c in calls), "an in-run closure is told only after the run ends"

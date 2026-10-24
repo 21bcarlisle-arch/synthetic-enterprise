@@ -774,6 +774,10 @@ class LivePaymentTriad:
         # household did not pay because they fell after its final bill (`world_payment_truth.
         # GONE_HOUSEHOLD_PAYS_NO_LUMP`).
         self._closed_accounts: set = set()
+        # Households the run closed AS IT CLOSED THEM (`close_account`), with each final bill's due
+        # date: readers inside the run force crossings at every renewal, so a closure told only at
+        # the end arrives after 12 of 14 late lumps have crossed (finding of 24 Oct).
+        self._closed_households: dict = {}
         self._n_settlements_lost_at_close = 0
 
     @property
@@ -1040,19 +1044,32 @@ class LivePaymentTriad:
     def close_accounts(self, departed_households) -> None:
         """Tell the queue which households' accounts closed in the run (the engine's own set,
         `household.households_whose_account_closed`), keyed here by every supply point it billed
-        them on, as `household.supply_points_that_left` keys the P&L's. Call once every bill
-        has been posted and before any reader forces a crossing (`measure_and_write`,
-        `detection_cells`, `collections_journeys`): until then, a lump dated after a leaver's final
-        bill is held, because no later bill extends its account's walk bound."""
+        them on, as `household.supply_points_that_left` keys the P&L's. The BACKSTOP, called once
+        every bill has been posted: a closure the run told as it happened (`close_account`) is
+        already acting, and readers inside the run (`arrears_state`, `receivable`,
+        `default_belief_rate`) force crossings long before this call."""
         from simulation.household import supply_points_that_left
         legs = supply_points_that_left(departed_households, {r.customer_id for r in self._records})
-        self._closed_accounts = {f"ACC-{cid}" for cid in legs}
+        self._closed_accounts |= {f"ACC-{cid}" for cid in legs}
+
+    def close_account(self, household: str, final_bill_due: date) -> None:
+        """Tell the queue, AS THE RUN CLOSES IT, that every account of `household` has closed and
+        when its final bill falls due. The run knows both on the day the household goes (the last
+        day supplied fixes the final bill's month), so nothing is looked ahead; from here on a
+        reader forcing a crossing cuts that household's lumps dated after `final_bill_due`.
+        `close_accounts` at the run's end stays the backstop for any closure not told here."""
+        self._closed_households[household] = final_bill_due
 
     def _after_final_bill(self, account_id: str, settled_on: date) -> bool:
-        """Whether `settled_on` falls after the final bill's due date of an account that closed."""
-        if account_id not in self._closed_accounts:
-            return False
+        """Whether `settled_on` falls after the final bill's due date of an account that closed.
+        A bill posted after the told due date means the account was still billed, so the later of
+        the two is the final bill."""
         final_due = self._journey_last_due.get(account_id)
+        told = self._closed_households.get(household_of(account_id.removeprefix("ACC-")))
+        if told is not None:
+            final_due = told if final_due is None else max(told, final_due)
+        elif account_id not in self._closed_accounts:
+            return False
         return final_due is not None and settled_on > final_due
 
     @property
@@ -1063,7 +1080,7 @@ class LivePaymentTriad:
     @property
     def settlements_crossed_after_close(self) -> int:
         """Lumps that DID cross dated after their closed account's final bill: every one, with the
-        switch off; with it on, any a reader forced across before `close_accounts` was called."""
+        switch off; with it on, any a reader forced across before the closure was told."""
         return sum(self._after_final_bill(account_id, settled_on)
                    for account_id, _due, settled_on in self._crossed_settlements)
 
