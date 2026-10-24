@@ -8,6 +8,29 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-24 — The gas nine-month floor is on origin, re-based onto the tri-state advance flag; the shared checkout still cannot fast-forward, and what holds it is now the refresh door's blind spot, not the floor
+
+<!-- head: 1c65267f88ef -->
+
+*Delivery seat, 24 Oct 2026. Drawn at lane 0: `the-gas-floor-build-in-the-shared-tree-lands-or-yields`.*
+
+**What was asked.** Land the gas nine-month floor from the shared tree, or preserve it and yield. Then fast-forward the shared checkout, and name the owner of every path that still refuses.
+
+**Landed, re-based rather than copied.** The floor is on origin at `8473e7a1f`, with the arms test at `764720877` and the merge at `1c65267f8`. It is default off. The shared tree's diffs were taken against its own HEAD, which is 63 behind, and applied three-way onto origin. Five applied cleanly. `tools/read_instruction_arms.py` conflicted with origin's tri-state `--annualised-advance` / `--three-read-estimate`, because the advance has been ON by default since 23 Oct. In the resolution the floor is refused when the arm's *effective* policy has the advance off, not the flag, and the payload stamps the policy's values. The shared tree's own arms test was written for the two-state flag. It was rewritten for the tri-state one, not landed as it stood. One more gate caught a gap that the shared draft had already filled: the new field needed declaring in `test_policy_field_consumption.FIELD_CONSUMPTION`. The prereg's stale "default-on not yet answered" line is corrected beside its claim. Neither arm has been launched.
+
+**Preserved before anything moved.** All eleven shared-tree copies of the floor's files are at `refs/preserved/gas-floor-shared-copy/<basename>`, as blob refs. The two untracked ones, the floor's test and its prereg, were then removed from the shared tree. The test was byte-identical to origin. The prereg's copy has no line origin lacks.
+
+**The fast-forward still refuses, and the refusal is left to stand.** Whose each path is:
+- **The floor's tracked copies, now superseded by origin.** These are `company/billing/monthly_bill_assembly.py`, `company/policy/decision_policy.py`, `simulation/run_phase4c_on_phase2b.py`, `tools/read_instruction_arms.py`, `docs/market_research/unbilled_energy_and_revenue_assurance.md`, and three tests. They belong to this item, they are dead drafts, and every one is preserved. `refresh_to_head --base origin/main` refuses most of them as "ordinary edits" or "replacements". Its check works on names, so it cannot see that origin already contains each copy's whole diff against its own base. Overriding it by hand would be `checkout <path>`, so they were not touched. The missing reading is "the copy's diff against its base is contained in the target" (handed on).
+- **The seat's own.** `docs/direction/DIRECTION.yaml`, and the shared `docs/status/SEAT_STRETCH_LOG.md`, whose orientation entries origin lacks.
+- **`docs/market_research/household_budget_w2_4.md`.** Live mixed work: a "Graded on two seeds" arrears section origin lacks, while origin has a correction (EBSS does not reach the world) the copy lacks. The owner is the arrears-grade lane of 22 Oct.
+- **The two `advisor/done/` staged renames**, as recorded on 23 Oct. No door reaches them.
+- **Clear at the fast-forward**, identical to origin: `tools/console_instruction_record.py`, `tools/grade_per_customer_switch_seeds.py`, `unread_month_estimate.py`, and two tests. `test_console_instruction_record.py` differs from origin by one blank line. The two untracked SVT findings are older copies of origin's.
+
+**Still not done.** The shared HEAD stays at `6bf8e621a`, behind origin. Runs launched from it still lack `4bc21e920`. The floor itself no longer holds it there. What does is a gap in the refresh door, plus the seat's and the arrears lane's own files.
+
+---
+
 ## 2026-10-23 — The shared checkout cannot fast-forward yet: what is left in the way is the gas nine-month floor's unlanded build and the seat's own files
 
 <!-- head: ca71818349e0 -->
