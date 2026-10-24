@@ -1692,6 +1692,118 @@ does not read yet.
 |---|---|
 | How any GB supplier maps signals to an overlay | A stated linear belief through two points, choice 1 |
 | Centrica's 2022 Group overlay share | The 2023 Group share, 0.134, borrowed and labelled look-ahead |
-| The overlay's dependence on arrears per account (Centrica 2023: prices falling, overlay up GBP 50m) | Not read. Named next step: a second signal on the company's own arrears per indebted account, read year on year |
+| The overlay's dependence on arrears per account (Centrica 2023: prices falling, overlay up GBP 50m) | Not read. The next section, "The arrears-per-account signal", sizes it on the record before any build |
 | Standing charges in the cap ratio | Unit rates only, which errs low in 2022 |
 | A lift from a DD re-set to non-payment | Not read (it double-counts the cap) |
+
+## The arrears-per-account signal: what it would add to the overlay, and what it cannot explain (2026-10-24)
+
+*Knowledge pass before any arrears term is built into `company/finance/bad_debt_provision.py`. The
+cap-only overlay above predicts (its prediction 4) that it cannot move the validator's pooled
+2022-23 window, because the price signal is back under 1 by end-2023. Centrica held its overlay up
+through 2023 as prices fell. This section asks whether arrears per account is what held it up, read
+on the record that is already on this page. No new source was fetched. The Ofgem series is
+`debt_and_collections.md` §2.1. Centrica's overlay and coverage are §3.2 above.*
+
+### What the signal is, said before it is differenced
+
+**Arrears per indebted account**: the total owed with no repayment plan and more than 91 days old,
+divided by the number of accounts owing it. That is Ofgem's definition of "arrears", per fuel
+account, and its average-arrears chart is exactly this quantity. It is not debt on a repayment plan,
+which Ofgem publishes separately and which barely moved (GBP 425 to 529 to 678 over 2021-23). It is
+not total receivables over accounts, which mixes in every live account that is up to date. Its
+growth splits into two experiences that need different remedies: **more households falling behind**
+(heads) and **the ones behind falling further behind** (intensity). The record says 2022-24 was
+intensity (§2.1, "intensity, not incidence").
+
+### The record, year end on year end (derived from the two tables, printed before this was written)
+
+| Q4 of | Avg elec arrears GBP | Change on a year earlier | Arrears heads, change | Centrica overlay GBP m | Centrica coverage of UK receivables |
+|---|---|---|---|---|---|
+| 2019 | 654 | +11.0% | +7.1% | not disclosed | 28% |
+| 2020 | 774 | +18.3% | +1.1% | 30 (COVID) | 34% |
+| 2021 | 905 | +16.9% | +10.6% | 30 | 29% |
+| 2022 | 1,028 | +13.6% | +0.4% | 125 | 26% |
+| 2023 | 1,303 | **+26.8%** | +29.1% | **175** | 34% |
+| 2024 | 1,617 | **+24.1%** | +4.0% | **49** | 38% |
+| 2025 | 1,773 | +9.6% | +9.7% | 11 | 38% |
+
+The pre-COVID baseline growth (2017-2019 mean) is +4.8% a year.
+
+**What it shows.**
+- **2022: the arrears signal is weak, and the overlay step is the price.** Intensity rose 13.6%,
+  below 2020 and 2021, and heads were flat. Ofgem attributes the end-2022 dip in heads to EBSS and EPG
+  (§2.1), so it is policy, not cure. A supplier reading its own book at end-2022 saw no arrears
+  shock. The cap overlay above is the only one of the two signals that fires there.
+- **2023: the arrears signal is what holds the overlay up.** It is the steepest year on the record,
+  +26.8%, while the cap ratio is 0.73. This is the year the cap-only overlay releases in full, and
+  the year Centrica added GBP 50m.
+- **2020-21: the arrears signal fires, and so did Centrica.** It booked GBP 30m for COVID in 2020
+  and held it through 2021. That is about 7% of the residential column's closing stock (30 / 432 and
+  30 / 426, derived). The denominators are not like for like: 2020 is Group-wide, and the overlay
+  covers billed and unbilled debt. So this is indicative only.
+- **2024: the arrears signal does NOT explain the release.** Intensity was still +24.1%, but Centrica
+  ran its overlay down from 175 to 49 as its coverage rose from 34% to 38%. The overlay was released
+  because the matrix had caught up: the 2022-23 losses were now in the loss rates. Arrears had not
+  turned. **No published source states this mechanism (GAP).** It is the reading that fits both
+  columns, and it is what B5.5.52 implies: the overlay adjusts for what the history does not yet
+  hold.
+
+### What a linear arrears term would produce, at the overlay's own scale
+
+The term is the same shape as the cap term, `0.134 x max(0, g - 0.048) / (g_2023 - 0.048)`, capped at
+0.134, where `g` is the year-on-year change in arrears per indebted account. It is printed here
+against the market series, as an illustration only. The company would read its own book:
+
+| 31 Dec | 2019 | 2020 | 2021 | 2022 | 2023 | 2024 | 2025 |
+|---|---|---|---|---|---|---|---|
+| arrears term | 0.038 | 0.083 | 0.074 | 0.054 | **0.134** | **0.118** | 0.029 |
+| cap term (above) | none | 0 | 0.035 | **0.134** | 0 | 0 | — |
+| max of the two | 0.038 | 0.083 | 0.074 | 0.134 | 0.134 | 0.118 | 0.029 |
+
+So `max(cap, arrears)` puts the step in 2022 and holds it through 2023, which is the record. It fires
+about 7-8% in 2020-21, which matches Centrica's COVID overlay to the stated caution. **But it holds
+0.118 at end-2024, where Centrica held about a quarter of its peak.** That errs toward a larger
+provision, which is against the thesis (F11). So it is the safe direction, and it is named rather
+than tuned away.
+
+### What it predicts for the pooled 2022-23 window (arithmetic, before any run)
+
+The pooled charge moves by the change in overlay between end-2021 and end-2023. With the cap term
+alone that change is `-0.0362 x S21`, so the cap-only overlay cannot pass (prediction 4 above).
+With `max(cap, arrears)` it is `0.1547 x S23 - 0.0799 x S21`, where `S` is the matrix stock. That is
+positive whenever S23 > 0.52 x S21, so the pooled window rises. **Whether it rises enough is not
+arithmetic. It depends on whether the company's own book shows a 2023 intensity step at all.** The
+crisis finding records that the world's error is 2020-21 and persistence (2026-10-23 section). If
+the world's arrears per account do not step in 2023, the arrears term reads near zero there and the
+pooled window does not move. In that case the gap is the world's, and no overlay can honestly carry
+it.
+
+### The choices a build would make, and which are open
+
+1. **Read the company's own book, not Ofgem's series.** The market series is published a quarter
+   late, it is per fuel account across all suppliers, and it is the check, not the input. The
+   company's own residuals by account and age (`_residuals`, `_snapshot`) already give it. Inside
+   the epistemic wall.
+2. **Take the max of the two terms, not the sum.** Both respond to one shock, so summing them counts
+   it twice. This is the same reasoning that keeps DD re-sets out of the cap term.
+3. **The baseline growth is the company's own pre-crisis book, never the market's 4.8%.** A book
+   that is younger than three years has no baseline. The term is then `None`, with the reason, not
+   zero (K2).
+4. **The release in 2024 is OPEN.** Two honest options: (a) leave it, and the overlay stays high
+   through 2024 and errs safe; or (b) scale the arrears term by how far the matrix's own coverage
+   still sits below its level at the last overlay peak, which is the mechanism the table fits but no
+   source states. (b) is a model of Centrica's judgement fitted to one supplier's two columns, so
+   **the recommendation is (a)** until the run shows whether the world produces a 2023 step for it
+   to hold.
+5. **The size at full strength stays the borrowed 0.134**, labelled look-ahead, as above.
+
+### GAPs
+
+| GAP | What a build does instead |
+|---|---|
+| How any supplier maps arrears per account to an overlay | The same stated linear belief as the cap term, through baseline and peak |
+| The mechanism of the 2024 release (matrix catch-up) | Inferred from coverage 34% to 38%. Not built (choice 4a) |
+| Centrica's own arrears per account | The market series stands in, as an illustration only |
+| Whether the company's book shows the 2023 intensity step | The arm grade answers it. The cap-only arm pair `crisis-overlay-arm-70424-387e48132` runs first |
+| The 30-91-day tranche (Energy UK: about GBP 1bn more than Ofgem's 91 days) | Not read. The term uses 91 days, which is Ofgem's definition |
