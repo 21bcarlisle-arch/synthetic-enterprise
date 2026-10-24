@@ -553,6 +553,11 @@ an uncontacted one cannot. Reading the wired route before building it (`run_phas
   it withdrew and the EAC, so its household side can be graded. The arm pair and its
   pre-registration:
   `docs/staging/records/SEAT_PREREG_C30_THE_ONCE_PER_STINT_SVT_LETTER_GRADED_ON_BOTH_SIDES_2026-10-23.md`.
+- **Graded (2026-10-24):** over the full window, 803 letters drew 20 re-fixes. Households saved
+  £1,749 ex VAT on energy, and the company's `total_net` fell £389, so the sum is +£1,360. Why the
+  company lost less than households gained is unattributed, and it is not read as value created.
+  The world's decline-and-stay rule now reaches the re-fix: a woken stayer never re-fixes above
+  the default it pays on the contact day. On the first ungraded arm, 6 did, 5 of them in 2021.
 **GAPs.**
 - Whether SLC 31A's cheapest tariff message survives today in the form the 2016 letter kept was not
   re-read after the SSE notice.
