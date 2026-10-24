@@ -107,3 +107,10 @@ decorative charts — mitigate by stating each graph's hypothesis in the page co
 fail it; (d) killing `/now/` before the new front door exists — sequence the landing swap last within surface 1.
 **Proportionality:** contract-touching (site canon) — implement with the named mitigations; the IA itself is
 director-ratified and not open.
+
+## Done
+
+Ruled 24 Oct 2026 by the delivery seat under the director's ledger steer (docs/staging/advisor/DIRECTOR_STEER_A_LEDGER_OF_EVERYTHING_I_ASKED_FOR_AND_WHETHER_IT_SHIPPED_2026-10-24.md), from the record. **Status: superseded.**
+
+- Superseded by: DIRECTOR_RULING_SITE_STRUCTURE_PROGRAMME_ACCEPTED_2026-08-18 (Home, Capabilities, Knowledge, Explore, How it's built).
+- Evidence: 69beeaa9de fold the nav to the director's five.

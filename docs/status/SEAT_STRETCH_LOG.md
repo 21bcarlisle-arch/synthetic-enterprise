@@ -8,6 +8,29 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-24 — The ledger of director asks: 191 rows, the fifteen in-progress documents ruled, the twelve owed items reported, and a 21-day no-movement control
+
+<!-- head: 95e78ec77737 -->
+
+**In plain English:** Every document the director wrote to the queue is now one row of a ledger built at publish, and the fifteen that had sat "in progress" since July are ruled from the record.
+
+Director steer, 24 Oct 09:45: "Are there other things I've asked for this never finished shipping??" First cut, `tools/director_asks_ledger.py` over `docs/direction/director_asks.yaml`, published under "What a human actually decided" on How it's built.
+
+**Counts (191 rows).** Ruled: 14 shipped, 10 partly shipped, 4 superseded. 8 open and not yet ruled (five advisor steers of 23-24 Oct, and three of the advisor's October items not yet checked). 21 earlier documents closed with a Done section naming evidence. **134 closed with no evidence recorded** — moved to done/ with nothing saying the ask shipped. That last number answers his question in part: the move was the only record, so "done" never meant "shipped". Readings (9), console transcripts (61) and canon versions (11) are counted as record, not asks; the asks inside the console transcripts are a gap until they are itemised.
+
+**The fifteen in-progress documents**, all moved to done/ with a Done section; a partly-shipped ask stays an open row on the ledger:
+- shipped: COVERAGE_STAGE4 (POPULATION_LEARNING_FRONTIER_STAGE4.md), QUERYABLE_PROJECTIONS (c9430c326e), RATE_REBASELINE (policy_costs 2025/26, 7549b0a095);
+- superseded: SITE_REORIENT_TO_PURPOSE (28 Aug mission), AXIS1_SITE_VERDICT and SITE_REBUILD_V5 (the 18 Aug structure programme), RULING_SITE_MODEL_SPINE (the 9 Oct simple-door ruling);
+- partly: LEGIBILITY (no one place shows world, supplier, a customer's bill and their CO2), WHOLESALE_VALUE_CHAIN (B4/B5/B6 at 0), CAMPAIGN_SITE_MODEL_SPINE (arrears per customer; SITE12), SCENARIO_SPINE (SPINE_3, trading friction), DUNNING_DEBT_PROVISIONING (**the flat haircut is still what the ledger books, saas/ledger.py:528**), MOTHBALL (audit rows unexecuted), BRIEF_WEBSITE_STRUCTURE (director-record page, SITE12, stale SITE grades), FRONT_DOOR_STAYS_SIMPLE (L2 sheets: SITE15 at 0 of 2).
+
+**Canon s15, the twelve owed items.** Shipped with evidence: 1 (tick_mode, tick_burn_rate --routes), 2 (8eb39078c, 3373f3523), 3 (1a3800d18), 4 and 9 (proposals delivered 03a42fe4e; his rulings wait in for_the_director), 5 (529a7ea78), 6 (cfd31bcb0), 10 (b79dbdc92), 11 (c6542f76e), 12 (46ddd0e9d; one 6.1h gap on 23 Oct, so durability is not yet shown). Partly: 7 (no loyalty-finding page; the headline-title guard is not a named control), 8 (float against Decimal: the evidence page exists, the recommendation never reached him). His 24 Oct R16/R17 ratification is now recorded against the for_the_director row that still showed it open.
+
+**The mechanism.** (1) A director document arriving in a done folder from 25 Oct must carry a `## Done` section naming a commit or a path; `tests/design/` reds on one that does not, keyed to the day it arrived, not a list of names. (2) An open ask with no movement for 21 days and no `held` reason is stale: `--check` exits 1 and the page says so. Movement is the ruling's `moved` date, not the document's last commit — the 13 Oct banner commit touched all fifteen July documents, and a clock read from git would have hidden them. On today's tree before the rulings, 14 of the 15 tripped it. Five mutations each redden the test.
+
+**What I recommend he close or drop.** Close the four superseded and three shipped rows (done here). Of the partly rows, the dunning haircut is a live defect and should be an atom in the payment lane now; the scenario spine's curriculum values are his (G9) and come to him with a recommendation when SPINE_3 can use them; the rest are carried by existing map atoms (SITE12, SITE15, B4). Still owed this week: rule the 134 closed-without-evidence documents, newest first, and itemise the console asks.
+
+---
+
 ## 2026-10-24 — Front-door diagram brought to canon v4 for Monday, and the canon check now reads the picture
 
 <!-- head: a154b105ace3 -->

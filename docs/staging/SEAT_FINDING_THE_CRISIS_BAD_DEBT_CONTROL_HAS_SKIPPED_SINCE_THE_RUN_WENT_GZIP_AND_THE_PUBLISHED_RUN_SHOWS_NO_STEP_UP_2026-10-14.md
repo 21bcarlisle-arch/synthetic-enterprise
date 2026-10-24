@@ -1580,3 +1580,25 @@ take it. The TypeError was caught by the read's own "must not kill a completed r
 (seen on a 2016-12-31 run: `WARNING [company provision] could not be read: TypeError(...)`). No
 published run between those commits says anything about the overlay or the provision. The control
 is `tests/background/test_the_triad_passes_the_crisis_overlay_through.py`.
+
+## 2026-10-24 (13:15 BST): step (ii) relaunched on the default book, queued behind section 14. Amendment filed before the run
+
+The 06:21Z arm (`longjob-crisis-overlay-arm-70424-387e48132`) died in four minutes at import:
+`SE_POPULATION_SEED=70424 refused`. A book seed other than 20260724 is EP17, the varied population
+draw, which is R13 curriculum and the director's alone, and 70424 is not in its activation file. So
+the pre-registration's "fresh seed" was never ours to pick. Corrected here, before any result exists:
+
+- **The seed is the default book (20260724), `SE_POPULATION_SEED` unset**, at origin/main as of this
+  note, in a fresh worktree. Nothing else in the arm changes.
+- **Predictions 1 to 3 are unchanged.** They are arithmetic on one ledger and do not depend on which
+  book it is.
+- **Prediction 4 is weaker as a test, and says so.** This book has been read: the published run's
+  crisis share (0.15%) comes from it, so "both arms FAIL the 1% floor" is close to known for the off
+  arm. The part a result can still refute is the comparison on one ledger: the on arm's pooled
+  2022-23 share AT OR BELOW the off arm's, step-up within 0.05. If it rises, the build is checked
+  first, as filed.
+
+The launch waits on the section 14 clean-book driver (`/var/tmp/se-s14clean-out/drive.sh`) and
+starts only once that driver has written `grade.rc`. If the driver ends without one, the waiter
+refuses and names it, rather than running into whatever re-takes section 14. Grading is handed on as
+`the-crisis-overlay-arm-on-the-default-book-is-graded`.

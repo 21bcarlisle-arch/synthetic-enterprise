@@ -175,3 +175,16 @@ with only the failures escalated to the expensive judge — a pattern worth
 remembering when visual telemetry is unparked, but not authorised here.
 
 — Advisor, carrying the director's instruction. 2026-08-12.
+
+## Done
+
+Ruled 24 Oct 2026 by the delivery seat under the director's ledger steer (docs/staging/advisor/DIRECTOR_STEER_A_LEDGER_OF_EVERYTHING_I_ASKED_FOR_AND_WHETHER_IT_SHIPPED_2026-10-24.md), from the record. **Status: partly.**
+
+- Evidence: tests/background/test_gate_authorization.py::test_the_permission_surface_is_gone.
+- Evidence: background/one_way_door.py RESERVED_CATEGORIES (G5).
+- Evidence: 565bd6303b NTFY mothballed.
+- Evidence: dd215eda36 Qwen queue retired.
+- Still missing: Rows of docs/design/MOTHBALL_2026-07-29.md still read 'verdict recorded' rather than executed; background/supervisor.py still carries _rule0_harden_draw.
+- Next step: Walk the audit's remaining rows and mark each executed or consciously kept, with the reason.
+
+The document closes; the ask does not. It stays an open row in docs/direction/director_asks.yaml, published by tools/director_asks_ledger.py, until it ships or he releases it.

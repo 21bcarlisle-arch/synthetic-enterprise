@@ -27,3 +27,10 @@
 > if it ever becomes that, the row moves deliberately and the percentage with it. Evidence:
 > `docs/staging/WORKER_FINDING_A_MINT_SOURCES_CITED_DESIGN_ANCHOR_HAS_NEVER_EXISTED_2026-08-11.md`.
 
+## Done
+
+Ruled 24 Oct 2026 by the delivery seat under the director's ledger steer (docs/staging/advisor/DIRECTOR_STEER_A_LEDGER_OF_EVERYTHING_I_ASKED_FOR_AND_WHETHER_IT_SHIPPED_2026-10-24.md), from the record. **Status: shipped.**
+
+- Evidence: c9430c326e G13's proof-of-caller landed and wired (19 Aug).
+- Evidence: tools/lab_query.py.
+- Evidence: tests/tools/test_lab_query.py.

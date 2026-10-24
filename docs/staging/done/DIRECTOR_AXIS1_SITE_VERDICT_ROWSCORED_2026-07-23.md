@@ -41,3 +41,12 @@
 **Risk & proportionality:** presentation-layer work under the confirmed structure; additive, per-page commits; registers move, never deleted. Tag: **proceed — campaign.**
 
 — Advisor bridge, carrying the director's screenshot review, 2026-07-23.
+
+## Done
+
+Ruled 24 Oct 2026 by the delivery seat under the director's ledger steer (docs/staging/advisor/DIRECTOR_STEER_A_LEDGER_OF_EVERYTHING_I_ASKED_FOR_AND_WHETHER_IT_SHIPPED_2026-10-24.md), from the record. **Status: superseded.**
+
+- Superseded by: the 17-18 Aug structure brief and programme ruling, and the 22-23 Oct front-door steers.
+- Evidence: 9d22770952 forty redirects become two.
+- Evidence: site/test_front_door_brand.py.
+- Evidence: site/sitemap.xml lists seven pages and no /now /world or /proof.

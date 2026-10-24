@@ -28,6 +28,7 @@ import sys
 from datetime import date, datetime, timedelta
 from pathlib import Path
 
+from tools import director_asks_ledger
 from tools.generate_dashboard_data import _day, _git_out
 from tools.python_code_text import searchable
 
@@ -740,6 +741,12 @@ def write_harness_figures(harness_path, proof_path, obs_dir=None):
                            render_corrections(corrections_from_the_log(root), publish_day))
     out = out and _replace(out, FOLLOW_START.format("HUMAN"), FOLLOW_END.format("HUMAN"),
                            reserved_and_waiting(root))
+    ledger = director_asks_ledger.build(root)
+    out = out and _replace(out, FOLLOW_START.format("ASKS"), FOLLOW_END.format("ASKS"),
+                           director_asks_ledger.render_html(ledger))
+    if ledger is not None:
+        (root / director_asks_ledger.OUT_JSON).write_text(json.dumps(ledger, indent=1) + "\n",
+                                                          encoding="utf-8")
     if out is None:
         print("HOW IT'S BUILT FIGURES NOT WRITTEN: {} does not carry every pair of markers".format(
             harness_path), file=sys.stderr)

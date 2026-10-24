@@ -1,0 +1,237 @@
+# What the record shows happened to each director ask. Read by tools/director_asks_ledger.py, which
+# merges these rulings over its census of every DIRECTOR_* document under docs/staging and publishes
+# the result. Director steer, 24 Oct 2026 09:45: "Are there other things I've asked for this never
+# finished shipping??"
+#
+# id: the document's file name without .md, or a name for an ask with no document of its own.
+# status: shipped | partly | not_started | superseded | declined | open
+# moved: the last day the ask moved -- set it when work lands on it. An ask still open (open,
+#   partly, not_started) with no movement for 21 days and no `held` reason is STALE and reds
+#   `--check`. `held` is a reason that still holds, not a promise.
+# Evidence is a commit or a path that exists; first cut 24 Oct from the record (git log, the tree,
+# canon s15/s16, the map).
+asks:
+
+# --- The fifteen documents that sat in docs/staging/in_progress/, ruled 24 Oct and moved to done/.
+- id: DIRECTOR_STEER_SITE_REORIENT_TO_PURPOSE_2026-07-19
+  ask: "The website must reflect and be reoriented around the ratified purpose."
+  status: superseded
+  superseded_by: the 28 Aug mission (canon M1, s16 'Mission') and the 12 Oct canon (s15 decisions 4 and 14)
+  evidence: [bee0abf1a8 front door leads with the ambition and what has been built (22 Oct)]
+  moved: 2026-10-24
+- id: DIRECTOR_STEER_COVERAGE_STAGE4_VALUE_FRONTIER_2026-07-20
+  ask: "How much valuable variance and critical small groups can we cover with minimum number of segments."
+  status: shipped
+  evidence: [docs/market_research/POPULATION_LEARNING_FRONTIER_STAGE4.md, simulation/population_coverage.py,
+             84b4614bb1 the ~12-cell value knee, docs/staging/done/DIRECTOR_RULING_COHORT_ASSIGNMENT_ACTIVATED_2026-07-27.md]
+  moved: 2026-10-24
+- id: DIRECTOR_STEER_LEGIBILITY_AND_SEGMENTATION_2026-07-20
+  ask: "I can't follow what the world is doing, what the supplier is doing, and what this is like for an individual customer and their bill... And ultimately their CO2."
+  status: partly
+  evidence: [docs/market_research/segmentation_joint_structure.md (part 2 shipped), site/explore/index.html (one household's bill and collections),
+             4288d42e0c Explore as a live feature demo (23 Oct)]
+  missing: No one place shows the world, the supplier, one customer's bill and that customer's CO2 together; per-customer carbon on a page not confirmed.
+  next_step: Check Explore against the four parts of the ask; build the missing per-customer CO2 view inside the Explore atoms, or close if he reads the 23 Oct pages as followable.
+  moved: 2026-10-24
+- id: DIRECTOR_STEER_WHOLESALE_VALUE_CHAIN_2026-07-22
+  ask: "We still have really simplistic wholesale products. Really just a day or spot... The data needs to drive the actions we know are done to create value."
+  status: partly
+  evidence: [docs/design/WHOLESALE_VALUE_CHAIN_FRAME.md (frame and discover done), 783f441c88 collateral death-test in the 2021-22 replay]
+  missing: No product ladder, shaped annual cost or cover ledger in simulation/, company/ or saas/; map atoms B4, B5, B6 at level 0, idle. WVC_5 (tariff from the cost stack against the cap) has no atom.
+  next_step: B4_traded_product_ladder carries it; confirm WVC_5 was dropped on purpose or mint it.
+  moved: 2026-10-24
+- id: DIRECTOR_AXIS1_SITE_VERDICT_ROWSCORED_2026-07-23
+  ask: "paraphrase: five root causes -- registers are sources not surfaces, a real lay page, charts with proper grammar, a brand pass, no effort-as-outcomes."
+  status: superseded
+  superseded_by: the 17-18 Aug structure brief and programme ruling, and the 22-23 Oct front-door steers
+  evidence: [9d22770952 forty redirects become two, site/test_front_door_brand.py, site/sitemap.xml lists seven pages and no /now /world or /proof]
+  moved: 2026-10-24
+- id: DIRECTOR_CAMPAIGN_SITE_MODEL_SPINE_2026-07-23
+  ask: "paraphrase: words to diagram to evidence; financials as per-customer rates, never totals; link integrity as a publish gate."
+  status: partly
+  evidence: [site/assets/model-on-a-page.svg on the front door, site/test_moap_coherence.py, site/test_evidence_links_resolve.py]
+  missing: The arrears-per-customer distribution is not emitted; the evidence pages behind the diagram's nodes were never built (SITE12 at level 0).
+  next_step: SITE12 carries the evidence behind the nodes; the arrears distribution belongs to the payment-engine lane as an Explore figure.
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_SITE_MODEL_SPINE_2026-07-23
+  ask: "I don't take financials as useful at all. Certainly not totals from a random sample of customers."
+  status: superseded
+  superseded_by: the 9 Oct ruling (the door stays a simple picture, depth goes to L2 sheets) for the navigation spine; the evidence-chart idea lives in SITE12
+  evidence: [docs/staging/done/DIRECTOR_RULING_FRONT_DOOR_STAYS_SIMPLE_AND_EXPLORATION_GOES_DEEPER_2026-10-09.md]
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_SITE_REBUILD_V5_STRUCTURE_2026-07-23
+  ask: "paraphrase: five surfaces (front door, World, Company, Proof, ...), built one per phase in order."
+  status: superseded
+  superseded_by: DIRECTOR_RULING_SITE_STRUCTURE_PROGRAMME_ACCEPTED_2026-08-18 (Home, Capabilities, Knowledge, Explore, How it's built)
+  evidence: [69beeaa9de fold the nav to the director's five]
+  moved: 2026-10-24
+- id: DIRECTOR_STEER_SCENARIO_SPINE_AND_TRADING_FRICTION_2026-07-23
+  ask: "paraphrase: a scenario spine for named worlds; gas as a trend plus a short-run part; trading friction priced."
+  status: partly
+  evidence: [90cd95039e spine bound to run rotation, 18c3ecb8cc a run past the record lives through a named world]
+  missing: Storage-driven gas (SPINE_3_gas_storage_crisis_regime, level 0) and trading friction (no friction term in company/trading) are unbuilt; the curriculum worlds crisis_2021_22 and supply_glut are unratified.
+  next_step: SPINE_3 and B6_collateral_cash_death_loop as a coupled pair; the curriculum world values are his (G9) and go to him with a recommendation when the pair can use them.
+  moved: 2026-10-24
+- id: DIRECTOR_STEER_DUNNING_DEBT_PROVISIONING_2026-07-25
+  ask: "paraphrase: replace the flat revenue-haircut provision with a reconciled expected-loss method."
+  status: partly
+  evidence: [83c440ceb5 payment and debt as one engine on a forward cash forecast (11 Oct), cd61370db3 and ce8d3935f2 the collections desk ladder,
+             2410634aef forward crisis provision overlay, site/knowledge/bad-debt-provisioning]
+  missing: The flat per-band haircut is still what the ledger books (saas/ledger.py:528 calls payment_behaviour.bad_debt_provision_gbp).
+  next_step: An atom in the payment-engine lane that replaces the haircut with the engine's expected loss, citing this document's s1 F1.
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_MOTHBALL_THE_APPARATUS_2026-07-29
+  ask: "Default: mothball it. The burden of proof is on KEEPING, not on removing."
+  status: partly
+  evidence: [tests/background/test_gate_authorization.py::test_the_permission_surface_is_gone, background/one_way_door.py RESERVED_CATEGORIES (G5),
+             565bd6303b NTFY mothballed, dd215eda36 Qwen queue retired]
+  missing: Rows of docs/design/MOTHBALL_2026-07-29.md still read 'verdict recorded' rather than executed; background/supervisor.py still carries _rule0_harden_draw.
+  next_step: Walk the audit's remaining rows and mark each executed or consciously kept, with the reason.
+  moved: 2026-10-24
+- id: DIRECTOR_INSTRUCTION_QUERYABLE_PROJECTIONS_2026-08-10
+  ask: "paraphrase: a queryable projection store (G12) and a proof-of-caller (G13)."
+  status: shipped
+  evidence: [c9430c326e G13's proof-of-caller landed and wired (19 Aug), tools/lab_query.py, tests/tools/test_lab_query.py]
+  moved: 2026-10-24
+- id: DIRECTOR_DECISION_PENDING_RATE_REBASELINE_AND_SPLIT_APPROVAL_2026-08-14
+  ask: "Yes to splitting the test file; three verified 2025/26 rates (RO, electricity CCL, gas CCL) wait for his go."
+  status: shipped
+  evidence: [simulation/policy_costs.py (2025/26 landed 2026-08-18), 7549b0a095 the two Low Carbon tables as two sourced facts]
+  moved: 2026-10-24
+- id: DIRECTOR_BRIEF_WEBSITE_STRUCTURE_2026-08-17
+  ask: "paraphrase: Home, Capabilities, Knowledge, Explore, How it's built; dissolve /proof; publish the director record only after a stranger's read."
+  status: partly
+  evidence: [site/ia_register.py, the five tabs on disk, /proof gone]
+  missing: The director-record page (site/director/) is unbuilt; SITE12 (evidence a reader can use) is unbuilt; the map still grades SITE6, SITE9 and SITE11 at 0 although they are visibly live.
+  next_step: Re-grade SITE6, SITE8, SITE9, SITE11 and SITE12 against the disk; SITE12 carries the open part.
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_FRONT_DOOR_STAYS_SIMPLE_AND_EXPLORATION_GOES_DEEPER_2026-10-09
+  ask: "I don't want the diagram to be full of stats — just a simple visual way to understand what we are doing, and explore. I like the L2 idea."
+  status: partly
+  evidence: [site/test_the_front_door_diagram_carries_no_statistics.py]
+  missing: The L2 sheets are unbuilt -- SITE15_each_front_door_band_opens_into_one_l2_sheet is at level 0 of 2.
+  next_step: Build SITE15.
+  moved: 2026-10-24
+
+# --- Canon s15, "Owed to the director" (the 12 Oct canon; step 7 of the 12 Oct steer asked for this report).
+- id: canon_s15_owed_1_mode_control_and_route_spend
+  source: docs/design/DIRECTOR_CANON.md s15 owed 1
+  asked: 2026-09-25
+  ask: "The one-word mode control and the measurement of which routes spend tokens ('Where are they?' 29 Sept)."
+  status: shipped
+  evidence: [d6d6a2619c one word sets the tick mode (background/tick_mode.py), 38182a3322 tools/tick_burn_rate.py --routes prices each route per landed result]
+  moved: 2026-10-24
+- id: canon_s15_owed_2_merge_cost_and_heartbeat
+  source: docs/design/DIRECTOR_CANON.md s15 owed 2
+  asked: 2026-10-04
+  ask: "The merge-cost measurement, and the heartbeat moved out of main."
+  status: shipped
+  evidence: [8eb39078c5 tools/merge_pressure_census.py, 3373f3523c the idle heartbeat leaves main]
+  moved: 2026-10-24
+- id: canon_s15_owed_3_carried_items_triage
+  source: docs/design/DIRECTOR_CANON.md s15 owed 3
+  asked: 2026-10-07
+  ask: "The triage of carried items, and how many survive as genuinely open."
+  status: shipped
+  evidence: [1a3800d185 every carried known issue has its one fate -- 12 of 18 genuinely open, docs/direction/wrong_triage.yaml]
+  moved: 2026-10-24
+- id: canon_s15_owed_4_responsiveness_correlation
+  source: docs/design/DIRECTOR_CANON.md s15 owed 4
+  asked: 2026-10-08
+  ask: "Propose the change and I'll rule (how far responsiveness may correlate with signals a supplier holds)."
+  status: shipped
+  evidence: [03a42fe4e4 raised in for_the_director with a recommendation, docs/market_research/observable_correlates_of_price_responsiveness.md]
+  missing: His ruling; the proposal was the deliverable and waits in for_the_director.
+  moved: 2026-10-24
+- id: canon_s15_owed_5_slc_22b
+  source: docs/design/DIRECTOR_CANON.md s15 owed 5
+  asked: 2026-10-08
+  ask: "Check whether SLC 22B and its retention carve-out are still in force, and any other GB rule on save or retention offers."
+  status: shipped
+  evidence: [529a7ea786, docs/market_research/a_retention_price_that_shares_the_value_an_action_creates.md s2]
+  moved: 2026-10-24
+- id: canon_s15_owed_6_price_keyed_to_the_meter
+  source: docs/design/DIRECTOR_CANON.md s15 owed 6
+  asked: 2026-10-08
+  ask: "Fix that paraphrase wherever it's recorded."
+  status: shipped
+  evidence: [cfd31bcb07 the 23 Sept fairness ruling restored in his words; the phrase survives only where it is quoted as the corrected paraphrase]
+  moved: 2026-10-24
+- id: canon_s15_owed_7_knowledge_pages_and_headline_guard
+  source: docs/design/DIRECTOR_CANON.md s15 owed 7
+  asked: 2026-10-02
+  ask: "The owed knowledge pages (housing, people, the loyalty finding), the headline-title guard, and EP13's write-up."
+  status: partly
+  evidence: [e3b62b3dd7 the housing and people pages, docs/market_research/what_ep13_established_about_gb_grid_carbon.md]
+  missing: No knowledge page for the loyalty finding; the headline-title guard cannot be identified as a named control.
+  next_step: Find the loyalty finding and publish it as a knowledge page; name the headline-title guard's test or write the one-leg control.
+  moved: 2026-10-24
+- id: canon_s15_owed_8_float_against_decimal
+  source: docs/design/DIRECTOR_CANON.md s15 owed 8
+  asked: 2026-07-28
+  ask: "Money representation, float against Decimal: a recommendation with evidence."
+  status: partly
+  evidence: [docs/design/MONEY_REPRESENTATION_EVIDENCE.md (28 Jul; it recommends), 3e14e6495e every printed bill re-adds (boundary reconciliation at level 3)]
+  missing: The recommendation has never been put to him; no for_the_director row names it, and the evidence page predates the boundary-reconciliation work.
+  next_step: Bring the evidence page up to date with the boundary work and raise it with a recommendation.
+  moved: 2026-10-24
+- id: canon_s15_owed_9_clv_discount_rate
+  source: docs/design/DIRECTOR_CANON.md s15 owed 9
+  asked: 2026-09-05
+  ask: "The CLV discount rate and terminal-value method."
+  status: shipped
+  evidence: [03a42fe4e4 docs/market_research/clv_discount_rate_and_terminal_value_for_a_gb_supplier.md raised with a recommendation]
+  missing: His ruling (EP1 is parked on it).
+  moved: 2026-10-24
+- id: canon_s15_owed_10_r16_r17
+  source: docs/design/DIRECTOR_CANON.md s15 owed 10
+  asked: 2026-10-12
+  ask: "The text of R16 and R17."
+  status: shipped
+  evidence: [b79dbdc925 R16 and R17 ratified into canon H1 (24 Oct)]
+  moved: 2026-10-24
+- id: canon_s15_owed_11_parked_documents_audit
+  source: docs/design/DIRECTOR_CANON.md s15 owed 11
+  asked: 2026-09-30
+  ask: "The parked-documents audit: 123 documents."
+  status: shipped
+  evidence: [c6542f76e4 the staging backlog given one fate each -- 182 leave the queue and 57 stay as ranked atoms]
+  moved: 2026-10-24
+- id: canon_s15_owed_12_stretch_log_goes_quiet
+  source: docs/design/DIRECTOR_CANON.md s15 owed 12
+  asked: 2026-09-30
+  ask: "Why every fix to the stretch log goes quiet within a week: the cause, not the patch."
+  status: shipped
+  evidence: [7cc2e0e69d the cause -- one writer, present only when the director is, 46ddd0e9dc the orientation seat writes the log]
+  missing: Not yet proven durable; the stretch-log alarm fired once on 23 Oct (a 6.1h gap, docs/staging/WORKER_FINDING_REPEATING_ALARM_STRETCH_LOG_2026-10-23.md).
+  moved: 2026-10-24
+
+# --- Rulings this month with no document of their own (the advisor's quick look, 24 Oct).
+- id: ruling_2026-10-17_gas_follows_a_moving_household
+  source: docs/staging/advisor/done/DIRECTOR_STEER_THE_BOOK_IS_SINGLE_FUEL_DO_THE_KNOWLEDGE_WORK_2026-10-17.md
+  asked: 2026-10-17
+  ask: "Gas follows a moving household."
+  status: shipped
+  evidence: [95e78ec777 a dual-fuel household that moves with us takes its gas too (simulation/run_phase2b.py, test_a_dual_fuel_movers_gas_follows_it.py)]
+  moved: 2026-10-24
+- id: ask_2026-10_the_caps_published_levels_as_a_binding_series
+  source: docs/staging/advisor/DIRECTOR_STEER_A_LEDGER_OF_EVERYTHING_I_ASKED_FOR_AND_WHETHER_IT_SHIPPED_2026-10-24.md
+  ask: "The cap's published levels ingested as a binding series."
+  status: open
+  missing: Not yet checked against the record in this first cut.
+  next_step: Find the ruling's words and date, and what the cap ingestion reads today.
+  moved: 2026-10-24
+- id: ask_2026-10_the_pricing_engine_planned_against_c13
+  source: docs/staging/advisor/DIRECTOR_STEER_A_LEDGER_OF_EVERYTHING_I_ASKED_FOR_AND_WHETHER_IT_SHIPPED_2026-10-24.md
+  ask: "The pricing engine still 'Planned' against C13."
+  status: open
+  missing: Not yet checked against the record in this first cut.
+  next_step: Read C13 and the Capabilities row; build or re-label.
+  moved: 2026-10-24
+- id: ask_2026-10_settlement_true_ups_planned_while_the_world_says_live
+  source: docs/staging/advisor/DIRECTOR_STEER_A_LEDGER_OF_EVERYTHING_I_ASKED_FOR_AND_WHETHER_IT_SHIPPED_2026-10-24.md
+  ask: "Settlement true-ups 'Planned' while the world says Live."
+  status: open
+  missing: Not yet checked against the record in this first cut.
+  next_step: Reconcile the Capabilities row with what the world and the company actually run.
+  moved: 2026-10-24

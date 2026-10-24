@@ -49,3 +49,14 @@ DISCOVER: real GB product/curve anchors (cap wholesale-allowance methodology, pu
 **Risk & proportionality:** touches pricing/hedging organs and eventually tariffs — the commercial spine. Extend the existing engine and ledgers; no silent change to billed history; propose the FRAME before build. Tag: **contract-touching — propose-then-proceed, 2h veto per standing model.**
 
 — Advisor, carrying the director's correction, 2026-07-22.
+
+## Done
+
+Ruled 24 Oct 2026 by the delivery seat under the director's ledger steer (docs/staging/advisor/DIRECTOR_STEER_A_LEDGER_OF_EVERYTHING_I_ASKED_FOR_AND_WHETHER_IT_SHIPPED_2026-10-24.md), from the record. **Status: partly.**
+
+- Evidence: docs/design/WHOLESALE_VALUE_CHAIN_FRAME.md (frame and discover done).
+- Evidence: 783f441c88 collateral death-test in the 2021-22 replay.
+- Still missing: No product ladder, shaped annual cost or cover ledger in simulation/, company/ or saas/; map atoms B4, B5, B6 at level 0, idle. WVC_5 (tariff from the cost stack against the cap) has no atom.
+- Next step: B4_traded_product_ladder carries it; confirm WVC_5 was dropped on purpose or mint it.
+
+The document closes; the ask does not. It stays an open row in docs/direction/director_asks.yaml, published by tools/director_asks_ledger.py, until it ships or he releases it.

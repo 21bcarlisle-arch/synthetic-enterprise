@@ -280,3 +280,16 @@ selection and harm weights = **[ACT] first — reserved above.**
 
 *Advisor bridge, 2026-07-25. Findings verified against origin this session; caller counts by code
 search; no claim in §1 is carried from memory or from a map summary.*
+
+## Done
+
+Ruled 24 Oct 2026 by the delivery seat under the director's ledger steer (docs/staging/advisor/DIRECTOR_STEER_A_LEDGER_OF_EVERYTHING_I_ASKED_FOR_AND_WHETHER_IT_SHIPPED_2026-10-24.md), from the record. **Status: partly.**
+
+- Evidence: 83c440ceb5 payment and debt as one engine on a forward cash forecast (11 Oct).
+- Evidence: cd61370db3 and ce8d3935f2 the collections desk ladder.
+- Evidence: 2410634aef forward crisis provision overlay.
+- Evidence: site/knowledge/bad-debt-provisioning.
+- Still missing: The flat per-band haircut is still what the ledger books (saas/ledger.py:528 calls payment_behaviour.bad_debt_provision_gbp).
+- Next step: An atom in the payment-engine lane that replaces the haircut with the engine's expected loss, citing this document's s1 F1.
+
+The document closes; the ask does not. It stays an open row in docs/direction/director_asks.yaml, published by tools/director_asks_ledger.py, until it ships or he releases it.

@@ -72,3 +72,13 @@ reserved action. **Severity:** RECORDED · **Lane:** A_strategy_governance
 
 — Advisor bridge, carrying the director's direction. Verified against origin at 7d5259c before
 staging: no existing staging doc answers this trigger under any name.
+
+## Done
+
+Ruled 24 Oct 2026 by the delivery seat under the director's ledger steer (docs/staging/advisor/DIRECTOR_STEER_A_LEDGER_OF_EVERYTHING_I_ASKED_FOR_AND_WHETHER_IT_SHIPPED_2026-10-24.md), from the record. **Status: partly.**
+
+- Evidence: site/test_the_front_door_diagram_carries_no_statistics.py.
+- Still missing: The L2 sheets are unbuilt -- SITE15_each_front_door_band_opens_into_one_l2_sheet is at level 0 of 2.
+- Next step: Build SITE15.
+
+The document closes; the ask does not. It stays an open row in docs/direction/director_asks.yaml, published by tools/director_asks_ledger.py, until it ships or he releases it.

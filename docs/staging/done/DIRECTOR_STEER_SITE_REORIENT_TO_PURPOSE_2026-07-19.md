@@ -38,3 +38,10 @@ The director has judged the current site as failing its Expert Hour bar and a **
 **Risk & proportionality:** touches the public surface and two canon documents. Reconciliation is document work (reversible, own commits); the rebuild is larger — propose the door set and get the director's eye before building, because "good" here is a taste judgment only he can make. Do not let the rebuild wedge the publish gate. Tag: **contract-touching — propose first.**
 
 — Advisor, carrying the director's instruction, 2026-07-19.
+
+## Done
+
+Ruled 24 Oct 2026 by the delivery seat under the director's ledger steer (docs/staging/advisor/DIRECTOR_STEER_A_LEDGER_OF_EVERYTHING_I_ASKED_FOR_AND_WHETHER_IT_SHIPPED_2026-10-24.md), from the record. **Status: superseded.**
+
+- Superseded by: the 28 Aug mission (canon M1, s16 'Mission') and the 12 Oct canon (s15 decisions 4 and 14).
+- Evidence: bee0abf1a8 front door leads with the ambition and what has been built (22 Oct).

@@ -261,3 +261,15 @@ The public surface publishes roughly every half hour on a pipeline that was unwe
 **Rollback expectation:** each step is a normal reversible landing with receipts. If a step degrades the live surface, the correct response is to revert that step, not to push forward through a red site.
 
 **Success test for the whole programme:** a reader who has never seen the project can arrive, read Knowledge, understand what was built from Capabilities, follow one real customer end to end in Explore, and come away able to say what is proven and what is not — without ever meeting an internal term or a dead link.
+
+## Done
+
+Ruled 24 Oct 2026 by the delivery seat under the director's ledger steer (docs/staging/advisor/DIRECTOR_STEER_A_LEDGER_OF_EVERYTHING_I_ASKED_FOR_AND_WHETHER_IT_SHIPPED_2026-10-24.md), from the record. **Status: partly.**
+
+- Evidence: site/ia_register.py.
+- Evidence: the five tabs on disk.
+- Evidence: /proof gone.
+- Still missing: The director-record page (site/director/) is unbuilt; SITE12 (evidence a reader can use) is unbuilt; the map still grades SITE6, SITE9 and SITE11 at 0 although they are visibly live.
+- Next step: Re-grade SITE6, SITE8, SITE9, SITE11 and SITE12 against the disk; SITE12 carries the open part.
+
+The document closes; the ask does not. It stays an open row in docs/direction/director_asks.yaml, published by tools/director_asks_ledger.py, until it ships or he releases it.
