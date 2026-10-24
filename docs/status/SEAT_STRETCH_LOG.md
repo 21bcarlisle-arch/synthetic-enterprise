@@ -8,6 +8,45 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-24 — The cost of work to come is fitted from 531 landed sessions: a session costs 0.2-0.5 points by class, and the open map work is 0.7-48 weeks because sessions per level step is not yet measured
+
+<!-- head: 5cdb72eb3cb2 -->
+
+**In plain English:** there is now a script that puts a price, in the director's points, on the work still to come. It learns what each kind of work costs from the sessions that actually landed something. On today's records the open map work comes to somewhere between less than a week and about a year of the full allowance. That range is too wide to plan by. Its wide end comes from one thing we have not measured: how many landed sessions one level step takes.
+
+*Autonomous worker, 24 Oct 2026. First increment of the director's 24 Oct 11:09/11:13 steer, `docs/staging/advisor/DIRECTOR_STEER_ESTIMATE_THE_COST_OF_WORK_TO_COME_2026-10-24.md`. The steer stays open in the advisor room (items 3 and 4 and the publish wiring are owed).*
+
+**The work classes and their fitted costs.** `tools/work_cost_estimate.py` reads the last 14 days of Claude Code transcripts. It takes the 531 sessions whose tool results carry `[surgical-land] landed <sha>` and classes each one by the paths its commits touched, with code ahead of records. Each class's cost is the sessions' weighted USD, priced by `tools.tick_burn_rate` and divided by that module's point conversion (USD 10.4 a point, from the director's last two readings). Sessions that landed nothing spent 14% on top of the landed ones, and that is charged to the landed work pro rata. Points per landed session, median (interquartile range):
+- world build 0.34 (0.21–0.54), n 139
+- supplier build 0.32 (0.27–0.46), n 60
+- grading run 0.23 (0.16–0.31), n 145
+- knowledge page 0.32 (0.23–0.43), n 37
+- site page 0.49 (0.31–0.58), n 29
+- harness 0.24 (0.17–0.40), n 55
+- record 0.19 (0.12–0.30), n 66
+
+**How good the fits are.** Every class has at least 29 sessions, and the quartiles sit within about 2x of each other. So the cost of one *session* of a class is well measured. The cost of one *item* is not: an item takes an unknown number of sessions.
+
+**The first forecast.** There are 218 open level steps. The script prices an atom by the class of its `file_scope`. An atom whose scope names no code, such as an idle atom scoped to `docs/design`, is priced by its lane, so idle world atoms are not priced as records. That gives 111 world steps, 43 supplier, 33 harness and 21 site. The backlog is **72–4,788 points, 0.7–48 weeks** at the full allowance:
+- the low end assumes one landed session per level step;
+- the high end assumes every landed session went into a level step: 531 sessions over the 8 steps recorded in `gate_authorizations.jsonl` in the window. That over-counts, because most landed work is not a level step.
+
+The high end is also the plain throughput reading. At the last fortnight's pace of about 4 recorded level steps a week, 218 steps take about a year. **I cannot yet say which end is nearer.** The steer's item 3 (estimate at draw, actual at landing) is what narrows it, and it is not built.
+
+**This week:** about 33 of 100 points used (his 27% reading at 13:47 BST plus spend since), so about 67 remain. The four advisor files are priced at the pooled median of 0.27 points per landed session each, so their whole cost is unknown until each one has a session count.
+
+**Correction beside the claim.** The steer says "about 88 points a week at about USD 10 each". A point is one percent of the week (`tick_burn_rate.POINT_READINGS`), so the week holds 100 points by definition: about USD 1,040 at today's conversion. The last 7 days spent USD 1,084 weighted, which is consistent with the steer's "about USD 1,000".
+
+**Wired:** the Monday step and the Friday step of `background.weekly_rhythm` both print the table, under "Cost of the work to come", with the steer's draw rule. If the estimate cannot run, the section says NOT ESTIMATED with the reason. The script needs about 25 seconds and no new records.
+
+**Still owed on the steer:**
+- a cost on each open finding and direction item (no classifier reads them yet);
+- estimate against actual per landed item, with the weekly refit (item 3);
+- the forecast at publish and on How it's built's pace section;
+- the >10-point flag at draw (item 4).
+
+---
+
 ## 2026-10-24 — The front-door diagram is generated at publish from the canon page's words and the map's levels, and each band opens its L2 sheet; five Now markers move to what the map says
 
 <!-- head: 01a69f17da47 -->

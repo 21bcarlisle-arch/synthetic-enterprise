@@ -549,6 +549,7 @@ def _step_body(step: str, due_on: date, overdue: list[dict]) -> str:
         lines += _merge_pressure_section()
         lines += _run_cost_section()
         lines += _priority_order_section()
+        lines += _cost_of_work_section()
         lines += ["## The ranking for this week", "",
                   "_Written by the Monday step. Ordered. Anything above the line outranks new "
                   "feature work; nothing here outranks a live defect._", "",
@@ -556,6 +557,7 @@ def _step_body(step: str, due_on: date, overdue: list[dict]) -> str:
                   "### Deliberately not this week, and why", "", "- ", ""]
     else:
         lines += _burn_section()
+        lines += _cost_of_work_section()
         lines += ["## What actually happened", "",
                   "_Against Monday's ranking, item by item. Where one did not move, say whether it "
                   "was wrong to rank it or wrong to leave it._", "", "- ", ""]
@@ -673,6 +675,21 @@ def _burn_section(days: float = 7.0) -> list[str]:
             "the director what changed and how to reverse it. Anything the weighted figure cannot "
             "judge -- whether the turns LANDED anything -- is read from the commits, not assumed.",
             ""]
+
+
+def _cost_of_work_section() -> list[str]:
+    """WHAT THE WORK TO COME WILL COST (director, 2026-10-24: "Do we estimate the token cost of work
+    to come?" -- "Yes"). Class costs fitted from landed sessions by `tools.work_cost_estimate`; the
+    order stays the director's, and this only says what it costs."""
+    try:
+        from tools.work_cost_estimate import render
+        measured = render()
+    except Exception as exc:  # noqa: BLE001 -- a review that cannot measure says so on its face
+        measured = f"NOT ESTIMATED -- `tools.work_cost_estimate` raised {type(exc).__name__}: {exc}"
+    return ["## Cost of the work to come", "", measured, "",
+            "**Within the priority order, never instead of it.** Of two items of equal value take the "
+            "cheaper; flag before it starts any item expected to take more than about 10 points; split "
+            "an expensive item that cannot finish this week, or say why not.", ""]
 
 
 def _rel(path: Path) -> str:

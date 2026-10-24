@@ -30,6 +30,10 @@ def rhythm(tmp_path, monkeypatch):
     """A baton and a staging room of this test's own. Never the live ones."""
     monkeypatch.setattr(wr, "BATON", tmp_path / "baton.json")
     monkeypatch.setattr(wr, "STAGING", tmp_path / "staging")
+    # The estimate reads every transcript on the machine (~25 s); its own tests are
+    # tests/tools/test_work_cost_estimate.py. Here only its place in the documents is under test.
+    from tools import work_cost_estimate
+    monkeypatch.setattr(work_cost_estimate, "render", lambda: "ESTIMATE-TABLE")
     return tmp_path
 
 
@@ -628,3 +632,17 @@ def test_monday_cannot_close_on_a_page_aging_problem_until_it_is_explained():
     assert w.page_aging_refusal(f"{w.PAGE_AGING_HEADING}\n\nClean: nothing.\n") is None
     # An unavailable check is not a clean one.
     assert w.page_aging_refusal(f"{w.PAGE_AGING_HEADING}\n\nUNAVAILABLE, not clean: boom\n") is not None
+
+
+def test_monday_carries_the_cost_of_the_work_to_come_and_the_section_says_when_it_cannot(rhythm, monkeypatch):
+    """Director, 2026-10-24: "Do we estimate the token cost of work to come?" -- "Yes". MUTATION: drop
+    the section from Monday and the ranking is written blind to what the order costs."""
+    wr.tick(now=_at(2026, 9, 4))
+    monday = wr.tick(now=_at(2026, 9, 7))
+    body = (rhythm / "staging" / monday["doc"].split("/")[-1]).read_text()
+    assert "## Cost of the work to come" in body and "ESTIMATE-TABLE" in body
+    friday = wr._cost_of_work_section()
+    assert "ESTIMATE-TABLE" in "\n".join(friday)
+    from tools import work_cost_estimate
+    monkeypatch.setattr(work_cost_estimate, "render", lambda: 1 / 0)
+    assert "NOT ESTIMATED" in "\n".join(wr._cost_of_work_section())
