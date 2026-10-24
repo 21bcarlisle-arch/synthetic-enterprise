@@ -40,3 +40,21 @@ The research question first: does published practice (Ofgem's debt and arrears i
 Citizens Advice supplier assessments, the Consumer Standards decision) describe the ladder as per case
 or per bill? If it is per case, the fix is a monotone rung within an open journey, with the re-offer
 keyed to each new missed bill. That is the shape 94b281af7 already gave the step after the top rung.
+
+## Disposition (2026-10-24, actioned)
+
+Researched first (K8): `docs/market_research/company_debt_management.md`, "One case, one climb". No GB
+rule says whether the ladder is kept per case or per bill (GAP C1: which setting a GB supplier runs).
+SLC 27 keys the plan offer to a fresh reason to believe, which is a newly missed bill, not an old bill
+re-crossing day 28. SAP FI-CA, the contract-accounting system that utility billing runs on, holds the
+dunning level per group, not per item, and has a "Do not reduce dunning levels" switch. The fix is
+the shape this finding named:
+
+- **On a balance-based segment the rung never falls inside an open journey.**
+  `collections_journey.climbs_per_case`. A cure closes the case; a later miss starts a new climb.
+- **Re-offer on each newly missed bill from the plan-offer rung up**, never on a re-crossing.
+- **The order check refuses a walk-back.** Open-item (SME / I&C) ladders are unchanged (GAP C2).
+
+Control: `tests/company/billing/test_the_collections_ladder_climbs_per_case.py`, with its rare branch
+asserted taken. Three mutations were run and each fired. The re-measure on a live 2016 book is not run
+here. The prediction is on the knowledge page, written before any run.

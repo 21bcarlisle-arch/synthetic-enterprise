@@ -73,7 +73,7 @@ from typing import Any, Callable, Dict, List, Optional
 from company.billing.account_ledger import AccountLedger, LedgerEventType
 from company.billing.arrears_engine import MORATORIUM_HOLD, dunning_path
 from company.billing.payment_plan import PaymentPlanBook, PaymentPlanStatus
-from company.crm.account_hierarchy import Segment
+from company.crm.account_hierarchy import AccountingModel, Segment, default_accounting_model
 
 MISSED_PAYMENT = "missed_payment"
 CURED = "cured"
@@ -99,8 +99,9 @@ ARRANGEMENT_ACCEPTANCE_GAP = (
     "company: neither the instalment it can afford (SLC 27.8) nor whether it agrees")
 
 
-#: THE STEP AFTER THE TOP RUNG (2026-10-24). Once a journey stands on its segment's last rung, each
-#: further bill that falls overdue re-offers an affordable arrangement through the same door: every
+#: THE STEP AFTER THE OFFER (2026-10-24). Once a journey stands on the plan-offer rung or above it
+#: (first: the last rung only; widened with `climbs_per_case`), each further bill that falls overdue
+#: re-offers an affordable arrangement through the same door: every
 #: missed bill is a fresh SLC 27.5 "reason to believe", so the 27.6 offer is owed again. Keyed to the
 #: missed bill, never to an interval, because no published cadence exists (GAP A1).
 #: `docs/market_research/company_debt_management.md`, "After the last rung".
@@ -111,6 +112,24 @@ PLAN_REOFFER_STEP = "repayment_plan_reoffer"
 WRITE_OFF = "write_off"
 STATUTE_BAR_YEARS = 6
 STATUTE_BAR_RULE = "limitation_act_1980_s5_six_years_from_due_and_from_the_last_payment"
+
+
+def climbs_per_case(segment: Segment) -> bool:
+    """Whether this segment's rung never falls inside an open journey (2026-10-24). On a balance-based
+    account FIFO payment makes the oldest bill younger, so a rung chosen from its age walks back down
+    ("final notice, then second reminder"). The case keeps its highest rung until it cures.
+    Open-item accounts are dunned invoice by invoice and are left as they were (GAP C2).
+    `docs/market_research/company_debt_management.md`, "One case, one climb"."""
+    return default_accounting_model(segment) == AccountingModel.BALANCE_BASED
+
+
+def _reoffer_rungs(segment: Segment) -> frozenset:
+    """The rungs on which a newly missed bill re-makes the SLC 27.6 offer: the plan-offer rung and
+    every rung above it, once the offer has been made once in the case."""
+    ladder = ladder_actions(segment)
+    if PLAN_OFFER_STEP not in ladder:
+        return frozenset()
+    return frozenset(ladder[ladder.index(PLAN_OFFER_STEP):])
 
 
 def _years_after(d: dt.date, years: int) -> dt.date:
@@ -156,9 +175,10 @@ def ladder_actions(segment: Segment) -> tuple:
 def lawful_successors(segment: Segment) -> Dict[Optional[str], frozenset]:
     """Which stage may follow which, for one segment. `None` is the journey's start.
 
-    A journey opens on a missed payment; it then moves between ladder steps (DOWN as well as up: a
-    part-payment that clears the oldest bill re-ages the balance from a younger one), into and out
-    of a moratorium hold, and ends on a cure. Nothing follows a cure: a later miss opens a NEW
+    A journey opens on a missed payment; it then moves between ladder steps, into and out of a
+    moratorium hold, and ends on a cure. On an open-item segment a step may go DOWN as well as up (a
+    payment that clears the oldest invoice re-ages from a younger one); on a balance-based segment
+    the order check refuses a fall (`climbs_per_case`), which this pairwise table cannot express. Nothing follows a cure: a later miss opens a NEW
     journey, so a cured account is never dunned inside the journey that recorded its cure.
 
     The offered arrangement follows the plan-offer step and nothing else, and is followed by what
@@ -179,13 +199,12 @@ def lawful_successors(segment: Segment) -> Dict[Optional[str], frozenset]:
         table[PREPAYMENT_OFFERED] = (working - {PREPAYMENT_STEP}) | {PREPAYMENT}
         table[PREPAYMENT] = frozenset()
     if PLAN_OFFER_STEP in ladder:
-        # The re-offer follows the top rung, the top rung's own offer, or an earlier re-offer's
-        # offer, and is followed by the offer it made.
-        top = ladder_actions(segment)[-1]
-        for before in (top, PREPAYMENT_OFFERED if top == PREPAYMENT_STEP else None,
-                       ARRANGEMENT_OFFERED):
-            if before is not None:
-                table[before] = table[before] | {PLAN_REOFFER_STEP}
+        # The re-offer follows any rung from the plan offer up, the offer such a rung made, or an
+        # earlier re-offer's offer, and is followed by the offer it made.
+        rungs = _reoffer_rungs(segment)
+        for before in rungs | {ARRANGEMENT_OFFERED} | (
+                {PREPAYMENT_OFFERED} if PREPAYMENT_STEP in rungs else frozenset()):
+            table[before] = table[before] | {PLAN_REOFFER_STEP}
         table[PLAN_REOFFER_STEP] = frozenset({ARRANGEMENT_OFFERED})
     # A write-off may follow any open stage. When debt younger than the bar is still owed, the
     # journey goes on from it (to the ladder, or to another write-off a year on); otherwise it is
@@ -238,6 +257,16 @@ def assert_journey_order_lawful(journey: dict, segment: Segment) -> None:
                 f"{journey['account_id']}: {s['stage']!r} on {s['on']} is dated before "
                 f"{previous!r} on {previous_on}")
         previous, previous_on = s["stage"], s["on"]
+    if climbs_per_case(segment):
+        ladder, highest = ladder_actions(segment), -1
+        for s in stages:
+            if s["stage"] not in ladder:
+                continue
+            if ladder.index(s["stage"]) < highest:
+                raise UnlawfulJourneyOrderError(
+                    f"{journey['account_id']}: {s['stage']!r} on {s['on']} walks back down from "
+                    f"{ladder[highest]!r} inside one open case")
+            highest = ladder.index(s["stage"])
     if journey.get("exit") is not None and journey["exit"] != previous:
         raise UnlawfulJourneyOrderError(
             f"{journey['account_id']}: exit {journey['exit']!r} is not its last stage {previous!r}")
@@ -259,6 +288,13 @@ class _Journey:
                  if s["stage"] not in (ARRANGEMENT_OFFERED, PREPAYMENT_OFFERED, PLAN_REOFFER_STEP,
                                        WRITE_OFF)]
         return steps[-1] if steps else None
+
+    @property
+    def highest_rung(self) -> Optional[str]:
+        """The highest ladder rung this journey has entered, or None before the first."""
+        ladder = ladder_actions(self.segment)
+        reached = [ladder.index(s["stage"]) for s in self.stages if s["stage"] in ladder]
+        return ladder[max(reached)] if reached else None
 
     def enter(self, stage: str, on: dt.date, decision: str, view: dict, **extra) -> None:
         self.stages.append({
@@ -374,6 +410,11 @@ class CollectionsJourneyDesk:
                                                             payment_terms_days):
             return
         action = view.get("dunning_action")
+        ladder = ladder_actions(segment)
+        highest = journey.highest_rung
+        if (climbs_per_case(segment) and action in ladder and highest is not None
+                and ladder.index(action) < ladder.index(highest)):
+            action = highest
         if action is not None and action != journey.current_step:
             journey.enter(action, on, f"{action} by {view.get('dunning_channel')}", view)
             if action == PLAN_OFFER_STEP:
@@ -381,10 +422,10 @@ class CollectionsJourneyDesk:
             elif action == PREPAYMENT_STEP:
                 self._offer_prepayment(journey, on, view)
         elif (bill_missed and action is not None and action == journey.current_step
-              and action == ladder_actions(segment)[-1]
-              and PLAN_OFFER_STEP in ladder_actions(segment)):
+              and action in _reoffer_rungs(segment)):
             journey.enter(PLAN_REOFFER_STEP, on,
-                          "a further bill missed past the last rung: the SLC 27.6 offer again", view)
+                          "a further bill missed once the plan was offered: the SLC 27.6 offer again",
+                          view)
             self._offer_arrangement(journey, on, view)
         self._refuse(journey.as_record(), account_id)
         if journey.exit in (ARRANGEMENT, PREPAYMENT):

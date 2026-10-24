@@ -855,3 +855,75 @@ the prediction named only one way a notice is lost, and there is a second.** A c
 repayments settle in full on days 21–27 loses its notice too, because `with_credits_applied` keeps
 only the notices dated on or before the last credit. One case does this. So on that book 341 notices
 remain, each dated 7 days later, and no money figure moves.
+
+## One case, one climb: the ladder does not walk back down while an arrears case is open (2026-10-24)
+
+*K8 page for `is-a-collections-ladder-monotone-within-an-open-case`. Raised by
+`docs/staging/SEAT_FINDING_THE_COLLECTIONS_DESK_WALKS_BACK_DOWN_ITS_OWN_LADDER_2026-10-24.md`: the desk
+chose its rung from the age of the account's OLDEST overdue bill. On a balance-based account a
+part-payment clears that bill first (FIFO), the next bill is younger, and the rung fell. One open
+journey read "final notice, then second reminder", and made a plan offer each time an old bill
+re-crossed day 28. That came to 35 re-offers on 502 journeys in one 2016 run.*
+
+### What the rules say (ESTABLISHED unless marked)
+- **No GB rule says whether the ladder is kept per case or per bill.** SLC 27 sets duties (27.5 "reason
+  to believe", the 27.6 menu, the 27.8 affordable arrangement, 27.8C nothing demanded while those are
+  unmet). It names no ladder at all. The rung days are supplier practice ("One ladder for one act" above).
+- **The plan-offer duty is keyed to a reason to believe, not to an age.** **DERIVED** in "After the
+  last rung" above: each further missed bill on an account already in arrears is a fresh reason, so
+  the 27.6 offer is owed again. An old bill re-crossing day 28 after a part-payment is not a new
+  reason. The household paid something; it did not miss anything new.
+- **A debt letter must state the case truthfully.** In 2014 Ofgem reviewed debt letters and found
+  that some suppliers' "alternative branding" implied a debt had passed to a collection agency when
+  it had not. Ofgem's concern was customers "misled, pressured or scared into making payments they
+  cannot afford" (reported by Law Gazette and Utility Week, 2014). **DERIVED:** a "second reminder"
+  after a "final notice" on the same unpaid balance misstates the case the other way. It is not
+  published as a rule.
+
+### What practitioner systems do (ESTABLISHED as product documentation, not as GB practice)
+- **SAP FI-CA** is the contract-accounting system that utility billing runs on (IS-U). Its FAQ says
+  "the items themselves do not have dunning levels". The level belongs to the dunning group, and the
+  dunning history drives the next level. A level can FALL "because the minimum/maximum amount for the
+  higher dunning level has no longer been achieved", for example after partial clearing. The
+  procedure carries a **"Do not reduce dunning levels"** indicator to stop that. SAP FI, the general
+  ledger product, raises an item's level one step per run, and the account master holds "the highest
+  dunning level determined" (SAP Help, *Determining Dunning Levels*).
+- **Kill Bill** sets its overdue state from the days since the earliest unpaid invoice
+  (`docs/domain_artefact_library/killbill_lago.md`). That is the oldest-bill reading this desk had. It
+  is a product default with no GB anchor.
+- **So both behaviours exist as configuration.** The case-level climb is what the utility product
+  models natively. Walking back down is a side effect of amount limits, and the product gives
+  operators a switch to turn it off.
+
+### GAPs
+- **GAP C1:** which setting any GB supplier actually runs. Nobody publishes it. This is a practitioner
+  question, to put to him only if the reading below turns out wrong in a run.
+- **GAP C2:** open-item (SME / I&C) accounts age each invoice on its own, and commercial dunning is
+  invoice-specific (a final demand names an invoice; LPCDA interest runs per invoice). Whether the
+  commercial desk should also climb per case is not examined here, and it is left unchanged.
+
+### Design choice (`company/billing/collections_journey.py`)
+- **On a balance-based segment (residential, micro-SME), the rung never falls inside an open
+  journey.** The desk takes the higher of the selector's rung and the highest rung the journey has
+  reached. A cure closes the case. A later miss opens a new journey at the bottom, so the climb
+  restarts only when the debt has actually cleared. Breathing Space holds as before. When the hold
+  ends, the journey resumes at its highest rung.
+- **The re-offer is keyed to each newly missed bill once the journey is at or past the plan-offer
+  rung,** not only at the top rung. A re-crossing of day 28 is never an offer. This applies the
+  "After the last rung" rule (a fresh reason, a fresh offer) at every rung where the 27.6 offer has
+  already been made once.
+- **The order check enforces it.** `assert_journey_order_lawful` refuses a journey whose ladder rung
+  falls before it cures.
+
+### Prediction, written before the change is run on a book
+No money moves: a rung is a dated act, and no money figure reads it. On any book:
+- no open journey's rung index ever falls;
+- the plan-offer and re-offer count per journey is at most 1 plus the number of bills missed after
+  the journey first reached the plan-offer rung;
+- the number of journeys is unchanged, because opening and cure read the ledger alone.
+
+On the finding's 2016 run, the 35 re-offers past the top rung are expected to fall, though not to
+zero. Bills missed past the top rung still each earn one offer. Bills missed between the plan offer
+and the top now earn one too, where before they earned none, so the total of offers could move
+either way. **I cannot yet say which way.** Only "never falls" and "at most one offer per new missed
+bill" are predicted as certain.
