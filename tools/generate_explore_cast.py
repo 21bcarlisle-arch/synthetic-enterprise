@@ -297,13 +297,13 @@ def _supplier(hh: dict, ev: dict, iso: str) -> tuple[list[dict], str]:
     rows.append(_row("Balance on the books", ("{} owed".format(_fmt_gbp(owed)) if owed > 0.005 else
                                               "{} in credit".format(_fmt_gbp(-owed)) if owed < -0.005 else "Nothing owed"),
                      max([d for _, d in bal.values()] or [acq])))
-    debt = _latest(rc, lambda r: str(r.get("event_type", "")).startswith("arrears_"))
+    debt = _latest(rc, lambda r: str(r.get("event_type", "")).startswith(_DEBT_PREFIXES))
     if debt:
         rows.append(_row("Debt stage", debt.get("description") or debt["event_type"], debt["date"]))
     decision = _latest(rc, lambda r: r.get("event_type") in ("retention_decision", "arrears_second_notice",
                                                             "arrears_first_notice", "arrears_written_off",
                                                             "arrears_placed_with_dca", "outcome_renewed",
-                                                            "outcome_churned"))
+                                                            "outcome_churned", *_DESK_DECISIONS))
     line = ("{}: {}".format(_day(decision["date"]), _company_words(decision)) if decision
             else "No decision about this household is on record yet.")
     return rows, line
@@ -441,6 +441,11 @@ def _template(hh, ev, iso, kind, rec):
                 {"believed": "The estimated bills", "truth": "The meter read on {}".format(_day(rec["date"])),
                  "meant": "{} {}".format(_fmt_gbp(abs(adj or 0)), "owed in one bill" if (adj or 0) > 0 else "back to the customer"),
                  "tone": "bad" if (adj or 0) > 0 else "good"})
+    if kind == "debt" and rec.get("event_type", "").startswith("collections_"):
+        et = rec["event_type"]
+        return (_DESK_TITLES.get(et, "Collections"), rec.get("description") or et,
+                _DESK_MESSAGES.get(et, "Your account is overdue. Please pay or call us."),
+                _debt_why(hh, ev, iso), None)
     if kind == "debt":
         et = rec.get("event_type", "")
         return ({"arrears_payment_missed": "Missed a payment", "arrears_dd_failed": "Direct debit returned",
@@ -590,6 +595,9 @@ MOVER_EMPTY_REASON = (
 
 
 def _score_debt(hh, ev, person):
+    # The company desk's own journey when the record carries one; the ledger's notices otherwise.
+    if any(str(r.get("event_type", "")).startswith("collections_") for r in ev["reaction"]):
+        return _score_desk_debt(ev)
     depth = {"arrears_payment_missed": 1, "arrears_dd_failed": 1, "arrears_first_notice": 2, "arrears_second_notice": 3,
              "arrears_arrears_repaid": 4, "arrears_written_off": 5, "arrears_placed_with_dca": 6, "arrears_recovered": 7}
     arr = [r for r in ev["reaction"] if r.get("event_type") in depth]
@@ -608,6 +616,82 @@ def _score_debt(hh, ev, person):
             seen.add(r["event_type"])
             picked.append(r)
     picked = picked[:5]
+    keys = [(r["date"], "debt", r) for r in picked]
+    return (deepest * 1000 + len(seq), keys, len(keys) - 1)
+
+
+#: The event types the debt rows read: the billing ledger's per-bill notices (`arrears_`) and the
+#: company desk's collections journey (`collections_`, company/billing/collections_journey).
+_DEBT_PREFIXES = ("arrears_", "collections_")
+
+#: How far into the desk's ladder each stage is. An exit is deeper than any rung it can follow.
+_DESK_DEPTH = {"collections_missed_payment": 1, "collections_moratorium_hold": 2,
+               "collections_reminder": 2, "collections_reminder_2": 3,
+               "collections_repayment_plan_offer": 4, "collections_arrangement_offered": 4,
+               "collections_final_notice": 5, "collections_prepayment_or_debt_agency": 6,
+               "collections_disconnection_warning_or_agency": 6, "collections_prepayment_offered": 6,
+               "collections_statement_of_account": 2, "collections_interest_notice": 3,
+               "collections_final_demand": 5, "collections_debt_recovery": 6,
+               "collections_commercial_recovery": 6,
+               "collections_repayment_plan_reoffer": 7, "collections_cured": 8,
+               "collections_arrangement": 8, "collections_prepayment": 8, "collections_write_off": 9}
+_DESK_TITLES = {"collections_missed_payment": "Missed a payment", "collections_reminder": "Reminder",
+                "collections_reminder_2": "Second reminder",
+                "collections_repayment_plan_offer": "Payment plan offered",
+                "collections_arrangement_offered": "Arrangement put to the household",
+                "collections_final_notice": "Final notice",
+                "collections_prepayment_or_debt_agency": "Prepayment or agency",
+                "collections_disconnection_warning_or_agency": "Disconnection warning or agency",
+                "collections_prepayment_offered": "Prepayment offered",
+                "collections_repayment_plan_reoffer": "Payment plan offered again",
+                "collections_statement_of_account": "Statement of account",
+                "collections_interest_notice": "Interest notice", "collections_final_demand": "Final demand",
+                "collections_debt_recovery": "Debt recovery",
+                "collections_commercial_recovery": "Commercial recovery",
+                "collections_moratorium_hold": "Breathing Space", "collections_cured": "Debt cleared",
+                "collections_arrangement": "Arrangement agreed",
+                "collections_prepayment": "Moved to prepayment",
+                "collections_write_off": "Written off (statute-barred)"}
+_DESK_MESSAGES = {
+    "collections_reminder": "Your account is overdue. Please pay or call us.",
+    "collections_reminder_2": "Your account is still overdue. Please pay or call us.",
+    "collections_repayment_plan_offer": "We can set up a payment plan you can afford.",
+    "collections_arrangement_offered": "We can set up a payment plan you can afford.",
+    "collections_final_notice": "This is our final notice about your overdue account.",
+    "collections_prepayment_or_debt_agency": "We may pass your debt to an agency, or offer a prepayment meter.",
+    "collections_prepayment_offered": "We can fit a prepayment meter, with your consent.",
+    "collections_repayment_plan_reoffer": "Your account is still overdue. Our payment plan offer stands.",
+    "collections_moratorium_hold": "We have paused collection while your Breathing Space lasts.",
+    "collections_cured": "Thank you: your account is no longer overdue.",
+    "collections_arrangement": "Your payment plan is agreed.",
+    "collections_write_off": "We have written off the old debt on your account.",
+}
+#: The desk's stages that are a decision the company took, for the record's last-decision line.
+_DESK_DECISIONS = ("collections_repayment_plan_offer", "collections_final_notice",
+                   "collections_prepayment_or_debt_agency", "collections_prepayment_offered",
+                   "collections_repayment_plan_reoffer", "collections_write_off")
+
+
+def _score_desk_debt(ev):
+    """The deepest of the desk's journeys, from its opening miss to its deepest stage."""
+    arr = [r for r in ev["reaction"] if r.get("event_type") in _DESK_DEPTH]
+    if not arr:
+        return None
+    deepest = max(_DESK_DEPTH[r["event_type"]] for r in arr)
+    if deepest < 4:
+        return None
+    end = max(arr, key=lambda r: (_DESK_DEPTH[r["event_type"]], r["date"]))
+    start = _latest([r for r in arr if r["date"] <= end["date"]
+                     and r["event_type"] == "collections_missed_payment"]) or arr[0]
+    seq = [r for r in arr if start["date"] <= r["date"] <= end["date"]]
+    picked, seen = [], set()
+    for r in seq:
+        # A re-offer repeats by design; one is enough to show the step after the top rung exists.
+        if r["event_type"] not in seen:
+            seen.add(r["event_type"])
+            picked.append(r)
+    if len(picked) > 5:
+        picked = picked[:4] + [picked[-1]]
     keys = [(r["date"], "debt", r) for r in picked]
     return (deepest * 1000 + len(seq), keys, len(keys) - 1)
 

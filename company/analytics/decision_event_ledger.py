@@ -133,12 +133,69 @@ def _arrears_events(cid, ledger_customer):
     return events
 
 
-def build_customer_ledger(cid, events, retention, journey_log, ledger_customer=None):
+#: What each stage of the company desk's collections journey (`company/billing/collections_journey`)
+#: says to a reader. A stage missing here is shown by the desk's own decision text, never dropped.
+_COLLECTIONS_STAGE_WORDS = {
+    "missed_payment": "A bill is unpaid past its due date -- collections journey opened",
+    "reminder": "Reminder sent",
+    "reminder_2": "Second reminder sent",
+    "repayment_plan_offer": "Payment plan offered (SLC 27.8)",
+    "arrangement_offered": "Affordable arrangement put to the household",
+    "final_notice": "Final notice sent",
+    "prepayment_or_debt_agency": "Top rung: prepayment by Consent or a debt agency",
+    "disconnection_warning_or_agency": "Top rung: disconnection warning or a debt agency",
+    "prepayment_offered": "Prepayment meter offered by Consent (SLC 28.22)",
+    "repayment_plan_reoffer": "A further bill missed past the top rung: payment plan offered again",
+    "write_off": "Written off: the debt is statute-barred (Limitation Act 1980 s.5)",
+    "statement_of_account": "Statement of account sent",
+    "interest_notice": "Late-payment interest notice sent (LPCDA 1998)",
+    "final_demand": "Final demand sent",
+    "debt_recovery": "Passed to debt recovery",
+    "commercial_recovery": "Passed to commercial recovery",
+    "moratorium_hold": "Collections held: Breathing Space moratorium",
+    "cured": "Overdue balance cleared -- journey closed",
+    "arrangement": "Arrangement agreed -- the debt leaves the dunning ladder",
+    "prepayment": "Meter changed to prepayment -- journey closed",
+}
+
+
+def _collections_journey_events(cid, journeys):
+    """`journeys` are the company desk's collections journeys on this record's own account (the
+    run's `collections_journeys` rows for `ACC-<file id>`; the caller picks them, because a gas leg's
+    file id is not `cid`), one event per dated stage. Beside `_arrears_events`, not instead of it: that
+    is the billing ledger's per-bill notice record, and the two are different ladders until they
+    are reconciled (`company/billing/arrears_engine.LEDGER_NOTICES`)."""
+    events = []
+    for journey in journeys or []:
+        for stage in journey.get("stages", []):
+            name = stage.get("stage", "")
+            words = _COLLECTIONS_STAGE_WORDS.get(name, stage.get("decision") or name)
+            if stage.get("overdue_gbp") is not None and name not in ("cured", "write_off"):
+                words += " -- GBP%.2f overdue" % stage["overdue_gbp"]
+            if name == "write_off" and stage.get("written_off_gbp") is not None:
+                words += " -- GBP%.2f" % stage["written_off_gbp"]
+            if name == "arrangement_offered" and stage.get("household_acceptance") is None:
+                words += "; the household's answer is not known to the company: " + (
+                    stage.get("acceptance_gap") or "no reason recorded")
+            events.append(LedgerEvent(
+                customer_id=cid,
+                date=stage["on"],
+                event_type="collections_" + name,
+                description=words,
+                amount_gbp=stage.get("written_off_gbp", stage.get("overdue_gbp")),
+                outcome=journey.get("exit"),
+            ))
+    return events
+
+
+def build_customer_ledger(cid, events, retention, journey_log, ledger_customer=None,
+                          collections_journeys=None):
     all_events = (
         _journey_events(cid, journey_log)
         + _retention_decision_events(cid, retention)
         + _renewal_outcome_events(cid, events)
         + _arrears_events(cid, ledger_customer)
+        + _collections_journey_events(cid, collections_journeys)
     )
     all_events.sort(key=lambda e: e.date)
     return [e.__dict__ for e in all_events]

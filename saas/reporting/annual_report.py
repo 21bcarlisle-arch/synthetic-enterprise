@@ -998,6 +998,10 @@ def extract_report_data(run_output: dict) -> dict:
         # footing and age band on the published rows, at each 31 December and the run's end.
         # `None` for a run that did not record one.
         "company_provision": phase2b.get("company_provision"),
+        # EP4: each account's collections journey on the company's own ledger. It was dropped here,
+        # so the published per-household record could show only the ledger's per-bill notices and
+        # never the desk's rungs, re-offers or statute-bar write-off. `None` for a run without one.
+        "collections_journeys": phase2b.get("collections_journeys"),
         "provisioned_net_gbp": phase2b.get("provisioned_total_net"),
         "provisioned_final_treasury_gbp": phase2b.get("provisioned_final_treasury"),
         "administration_event": phase2b["administration_event"],

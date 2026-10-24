@@ -151,6 +151,12 @@ def generate(run_json_path=None):
         dash_customers["events"], dash_customers["retention"], dash_customers["journey_log"],
     )
 
+    # The company desk's collections journeys, keyed by the account the triad posts to (`ACC-<cid>`,
+    # one per fuel leg). Absent from a run published before the report carried them.
+    journeys_by_account = {}
+    for j in run.get("collections_journeys") or []:
+        journeys_by_account.setdefault(j.get("account_id"), []).append(j)
+
     count = 0
     for cust_file in sorted(CUSTOMERS_DIR.glob("*.json")):
         if cust_file.name == "_index.json":
@@ -168,7 +174,8 @@ def generate(run_json_path=None):
 
         from company.analytics.decision_event_ledger import build_customer_ledger
         obj["reaction_chain"] = build_customer_ledger(
-            base, events, retention, journey_log, ledger_customers.get(cid)
+            base, events, retention, journey_log, ledger_customers.get(cid),
+            collections_journeys=journeys_by_account.get("ACC-" + cid, []),
         )
 
         cust_file.write_text(json.dumps(obj, indent=2))

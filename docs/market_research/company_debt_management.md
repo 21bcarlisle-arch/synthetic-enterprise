@@ -807,3 +807,51 @@ puts them in order from the point where our ladder ran out.*
   company ledger on the day both six-year conditions hold, for the debt they cover. No live-account
   write-off on any other clock (GAP A3 is erred on the side of chasing).
 - **Not built:** live agency placement (GAP A2), DRS (GAP A4), Fuel Direct, and involuntary PPM (reserved).
+
+## One ladder for one act: the ledger's per-bill notices take their days from the desk (2026-10-24)
+
+*K8 page for `the-published-household-record-shows-the-desks-collections-journey`. There are two
+ladders for the same act. The billing ledger's per-bill notices (`arrears_engine.LEDGER_NOTICES`) are
+the published per-bill record, and they offered a payment plan at day 21 past due. The company
+desk's rungs (`_DUNNING_PATHS`, run by `collections_journey`) offer it at day 28. The comment on
+`LEDGER_NOTICES` recorded the disagreement when the notices moved out of the world (2026-10-12) and
+left it unresolved. This is the VAT rule's shape: one requirement, two implementations.*
+
+### What the rules and published practice say (ESTABLISHED unless marked)
+- **No rule names a day for the plan offer.** SLC 27.8 says an affordable arrangement must be offered
+  *before* any further action, and 27.5B makes two missed monthly payments the *latest* point for
+  contact (section 1 table; "After the last rung" above). Neither 21 nor 28 is published. Both are
+  inside the table's "Formal written demand ~T+3–4 weeks".
+- **The first reminder is the same on both ladders.** Day 7 is the lower bound of "T+7–14d post-due"
+  (`RESIDENTIAL_FIRST_REMINDER_THRESHOLD_DAYS`).
+
+### Design choice
+- **One source of days.** The ledger's FIRST_NOTICE is dated at the residential ladder's `reminder`
+  rung and its SECOND_NOTICE at the `repayment_plan_offer` rung, both read off `_DUNNING_PATHS`. They
+  are not restated. The desk's 28 is kept rather than the ledger's 21, for three reasons. It is the
+  one that was reasoned against the table (the comment above `_DUNNING_PATHS`, 2026-10-04). It is the
+  one the live desk acts on. And both domestic ladders, residential and micro-SME, already offer at 28.
+- **The names stay.** FIRST_NOTICE and SECOND_NOTICE are the ledger's stage names, and several readers
+  key on them. Only their dates come from the desk.
+- **Commercial is not touched.** The I&C ledger's single DISPUTE_NOTICE (day 14) is a different act
+  from the I&C desk's rungs (reminder 0, interest notice 7, final demand 21). It is not reconciled
+  here, because there is no shared step to align. **GAP B1:** whether a disputed I&C invoice should
+  run the desk's ladder at all is unexamined.
+- **Both views are published, side by side.** The per-household record (`reaction_chain`) now carries
+  the desk's journey (`collections_*` events), including the rungs past the plan offer, the re-offer
+  past the top rung and the statute-bar write-off. The ledger's per-bill notices stay beside it. The
+  explore cast's debt journey reads the desk's events when a record has them.
+
+### Prediction, written before the change is run on a book
+Moving SECOND_NOTICE from day 21 to day 28 moves no money. The notices are dated statements, and no
+money figure reads their dates. Some notices disappear: a bill whose write-off date falls on days
+21–27 loses its SECOND_NOTICE, because a notice dated after the write-off is not sent. Every other
+SECOND_NOTICE is dated 7 days later. FIRST_NOTICE does not move. The count of SECOND_NOTICE stages on
+any book can only fall.
+
+**Measured against the published book (`docs/state/billing_ledger.json`, 19 Oct), after the prediction
+above was written:** 342 cases carry a SECOND_NOTICE. None is written off on days 21–27. **Correction:
+the prediction named only one way a notice is lost, and there is a second.** A case that credits or
+repayments settle in full on days 21–27 loses its notice too, because `with_credits_applied` keeps
+only the notices dated on or before the last credit. One case does this. So on that book 341 notices
+remain, each dated 7 days later, and no money figure moves.

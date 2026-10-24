@@ -322,17 +322,24 @@ _DUNNING_PATHS: Dict[Segment, List[DunningStep]] = {
 MORATORIUM_HOLD = DunningStep(0, "moratorium_hold", "none")
 
 
+def _rung_day(segment: Segment, action: str) -> int:
+    return next(st.trigger_days_overdue for st in _DUNNING_PATHS[segment] if st.action == action)
+
+
 #: THE NOTICES THE BILLING LEDGER RECORDS AGAINST A MISSED BILL: which letter, sent how many days
 #: past the due date, worded how. Moved here from `simulation/arrears_engine.arrears_stages`
 #: (2026-10-12, director: "the DD review and dunning moved out of world files"): when to remind a
-#: customer is the supplier's dunning decision, and the world was taking it. Moved as it stood, so
-#: no ledger figure changed. It is NOT `_DUNNING_PATHS` and the two disagree -- this ledger offers a
-#: plan at day 21, the desk's ladder at day 28 -- and reconciling them is a behaviour change owed
-#: separately, not part of this move. `domestic` is every non-I&C bill; `commercial` the I&C one.
+#: customer is the supplier's dunning decision, and the world was taking it. The domestic days are
+#: the desk's own rungs, read off `_DUNNING_PATHS` (2026-10-24): the ledger offered its plan at day 21
+#: and the desk at 28, two ladders for one act, and the desk's reasoned day won.
+#: `docs/market_research/company_debt_management.md`, "One ladder for one act". `domestic` is every
+#: non-I&C bill; `commercial` the I&C one, whose dispute notice is no desk rung (GAP B1 there).
 LEDGER_NOTICES = {
     "domestic": (
-        ("FIRST_NOTICE", 7, "First overdue notice -- GBP%.2f outstanding"),
-        ("SECOND_NOTICE", 21, "Second notice -- payment plan offered"),
+        ("FIRST_NOTICE", _rung_day(Segment.RESIDENTIAL, "reminder"),
+         "First overdue notice -- GBP%.2f outstanding"),
+        ("SECOND_NOTICE", _rung_day(Segment.RESIDENTIAL, "repayment_plan_offer"),
+         "Second notice -- payment plan offered"),
     ),
     "commercial": (
         ("DISPUTE_NOTICE", 14, "Dispute notice raised -- escalated to accounts receivable"),
