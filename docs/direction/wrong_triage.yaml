@@ -447,3 +447,19 @@ items:
     status: open
     owner: background/delivery_seat.py (ended_sentence; focus item the-brief-says-none-launched-when-it-read-only-endings, 2026-10-21)
     reason: 'Cause read 2026-10-21: the empty branch of ended_sentence claims launches it never reads. Recurred with read-instruction-off/-register (23:45:39Z) and -ceiling (00:19:13Z) in the register.'
+  - id: a-held-work-refusal-never-re-asks-its-diff-digest
+    problem: "The draw's held-work refusal takes a holder worktree's diff digest once and never re-asks it, so a dead owner's stale diff can block a focus item."
+    match: ["The refusal's diff digest was taken once and never re-asked"]
+    first_seen: "2026-10-17"
+    fate: fold
+    owner: "docs/staging/reference/CLASS_UNCOMMITTED_AND_ORPHANED_WORK_2026-08-12.md"
+    reason: "Triaged 2026-10-24 by the delivery seat. The only harmful instance was a dead owner's worktree (/var/tmp/se-ret-margin/wt, pid 1697312) whose stale diff blocked C35. That is the orphaned-worktree class, the same as a-worktree-lock-outlives-its-owner. Every refusal in the eleven recurrences since then was right, because the holder was doing the item's own work."
+  - id: a-continuation-is-not-re-asked-when-another-lane-spends-its-premise
+    problem: "A queued continuation or focus item is served to a tick without asking whether another lane has already spent its premise."
+    match: ["A queued continuation is not re-asked when another lane spends its premise first"]
+    first_seen: "2026-10-17"
+    times_listed: 30
+    fate: fix
+    status: open
+    owner: "background/seat_continuation.py (live(): re-ask each row against origin commits naming its id, or a live surgical_land carrying it, before offering it)"
+    reason: "Triaged 2026-10-24 by the delivery seat. It still bites (premise_spent 5cb0f1918, a duplicate build withdrawn in 4e8bc7633), and the cost each time is a tick's window. The half that waits on a file is built (a5f9cd768). The half that re-asks a spent premise is not."
