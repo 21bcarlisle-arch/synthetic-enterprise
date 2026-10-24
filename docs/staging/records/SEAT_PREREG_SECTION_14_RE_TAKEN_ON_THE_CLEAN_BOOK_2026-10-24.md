@@ -121,3 +121,47 @@ beside the grade. It is **not** predicted here, so it is not a test.
 Launched with `python3 -m background.launch_long_job --detach --job s14clean-driver`. No arm starts unless this file is on `origin/main`; the driver checks that and refuses otherwise. The unit log
 is `/var/tmp/se-s14clean-out/drive.log`. A seat continuation, `grade-section-14-on-the-clean-book`,
 is handed off to write the grade into this file once `grade.rc` exists.
+
+## 5. Grade (written 2026-10-24 ~19:45 BST, after `grade.rc` = 0)
+
+Read from `/var/tmp/se-s14clean-out/grade.txt` and `over_ceiling.txt`; R2 computed from the four
+flat outputs' `customer_events`. Every output's `producing_commit` is `ff8437814e`.
+
+| | prediction | result | held? |
+|---|---|---|---|
+| R0 placebo | save_odds − ending_term £0.00, 0 households, every channel, every seed (99%) | £0.00 and 0h in every channel on all 4 seeds; departures and offers identical | **held** |
+| R1 fixes reached every arm | every output ≤ 300 over the ceiling (85%) | **6** of ~24,200–25,200 graded on all eight (2 households, all 6 outside EPG windows) | **held** |
+| R2 dice reach the world | every flat pair's churned symmetric difference ≥ 20 (90%) | 2–3 109, 2–4 122, 2–5 117, 3–4 101, 3–5 90, 4–5 109 | **held** — no seed void |
+| R3 departure gross | positive on ≥ 3 of 4 (70%); mean in [£0, +£6,000], point +£2,500; interval contains 0 (70%) | +£5,434, +£1,806, +£11,442, +£4,151: **4 of 4**; mean **+£5,709 ± £6,534** → [−£826, +£12,243] | sign and interval **held**; point **wrong** (2.3× too low — the overcharged default bill was not what carried §14's departure figure) |
+| R3n departure household net | positive on ≥ 3 of 4 (70%); point +£1,200; interval contains 0 (75%) | 4 of 4; mean **+£2,852 ± £3,414** → [−£562, +£6,266] | sign and interval **held**; point **wrong** (2.4× low) |
+| R4 money | mean net interval contains zero (70%); point +£1,000 | **+£2,781 ± £2,277** → [+£503, +£5,058] | **REFUTED** — the interval is above zero |
+| R5 shift size | \|mean net − £1,556\| < £2,104 (75%) | \|£2,781 − £1,556\| = £1,225 | **held** |
+
+**Decision rule: NOT PROPOSED** (predicted, 75%). The first leg fails: `departure` gross against
+flat has a 4-seed interval of [−£826, +£12,243], which is not above zero; the household-net leg
+fails the same way ([−£562, +£6,266]). The mean net is positive with an interval above zero, but by
+§3 that does not carry the switch: of the +£2,781, `departure` is +£2,852 ± £3,414 and the rest is
+`parity` (+£440 ± £1,392) and `same_choice` (+£118 ± £378), with book-level −£629 ± £605. A net
+carried outside `departure` is a transfer (M2), not created value. `renewal_belief_by_ending_term`
+stays **off** on this record, by the director's 23 Oct ruling point 3, with this reason: the
+departure channel rests on 4–6 households per seed and its spread is wider than its mean.
+
+**What moved, and what cannot be said.** Both means rose against §14 (net +£1,556 → +£2,781,
+departure gross +£3,618 → +£5,709), inside noise (R5). I cannot attribute the rise to the bill
+fixes: 29 world/company commits changed between `bc1e6ad78` and `ff8437814e` (§0). My R3 reasoning
+— that a saved household stops paying an overcharged default bill, so the gross falls — predicted
+the wrong direction; it is kept here as written.
+
+**What would decide it.** The departure gross's seed standard deviation is about £4,100. If the
+mean and spread held, 6 seeds (t = 2.571, half-width ≈ £4,310 < £5,709) would clear zero — 2 more
+seeds, 4 arm-runs at ~55 minutes and ~7 GB each. The household-net leg needs the same 6 (s ≈ £2,150,
+half-width ≈ £2,250 < £2,852). That holding is a hope, not a prediction: the four seeds range from
++£1,806 to +£11,442. Not launched here; it is a new question with a cost and goes to the queue.
+
+**Reported, not tested: the renewal churn belief's ranking of leavers** (flat arms,
+`churn_model_performance`). Recall 0.49 / 0.37 / 0.49 / 0.57 and precision 0.19 / 0.14 / 0.18 /
+0.22 on seeds 2–5, against a churn base rate of about 17% of rows (90 of 530 on seed 2). Precision
+barely above the base rate means the belief is near chance at picking leavers on this book — a
+plain reason the offers it targets cannot yet show a departure effect clear of noise.
+
+The worktree `/var/tmp/se-s14clean-wt` is unlocked and removed in the commit that lands this grade.
