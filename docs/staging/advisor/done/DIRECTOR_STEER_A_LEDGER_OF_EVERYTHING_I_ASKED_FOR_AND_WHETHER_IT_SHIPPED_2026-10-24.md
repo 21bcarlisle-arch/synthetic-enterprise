@@ -70,3 +70,55 @@ One stretch-log entry with:
 - the open asks you recommend he close or drop, each with a recommendation.
 
 — Director steer, 24 Oct 2026, his words above; the quick look and drafting are the advisor's.
+
+## Done
+
+*24 Oct 2026, the delivery seat. First cut `b8b14269e`; the remainder in `6473a1b4e`, `904a091f7`
+and the commit that carries this file to done/. The ledger is `tools/director_asks_ledger.py` over
+the rulings in `docs/direction/director_asks.yaml`, built at every publish into How it's built and
+`site/data/director_asks.json`.*
+
+**1. The ledger, from the record.** 368 rows: every `DIRECTOR_*` asking document in every staging
+folder, the canon §15 owed list, the October rulings with no document, and 174 asks itemised from
+the 37 console transcripts (his turns only; machine text, answered questions, repeats and asks that
+became their own document get no row). By status: **255 shipped, 47 partly, 6 not started,
+28 superseded, 2 declined, 24 closed with a Done section naming evidence, 6 open** (the advisor
+files still in the queue). **Closed with no evidence: 0**, down from 134; every one of those
+documents is now ruled with a commit or a path, each re-verified against git before it was merged.
+A 13 Oct "Fate" line on a document was not taken as evidence: several overstate what shipped.
+
+**2. The fifteen in-progress documents.** Ruled in the first cut (`b8b14269e`) and moved to done/:
+3 superseded, 2 shipped, 10 partly, each with what is missing and its next step.
+
+**3. The twelve owed items.** Rows `canon_s15_owed_1` to `_12`: 10 shipped with evidence, 2 partly
+(the loyalty-finding knowledge page and a named headline-title guard; float against Decimal has
+evidence and has never been put to him).
+
+**4. The class.** A director document reaching done/ after 25 Oct without a Done section naming a
+commit or a path reds `--check`; an open, partly or not-started ask with no movement for 21 days and
+no `held` reason reds it too. Both legs are mutation-proven in
+`tests/design/test_a_director_ask_cannot_stand_still_or_close_without_evidence.py`. The control
+fired once during this work on its own: six rows merged with `moved` set to the day of the ask went
+STALE, and were corrected to the ruling's day.
+
+**5. Published.** How it's built, under "What a human actually decided", shows the counts and every
+open row with its next step, and the whole ledger one tap down (`tools/harness_page_figures.py`).
+
+**What the audit found that matters most** (each a `partly` row with its next step):
+- he ruled W1_8 zonal pricing out on 21 Jul ("REMA is a waste of time"), yet it is still an open
+  map atom at target 3 and B5_regional_basis_risk depends on it (handed on);
+- the run manifest and stratified rotation (25 Jul) have no production caller, so the per-run
+  ledger and the three separate scores never run;
+- the owned-quantity registry gate (28 Jul) was pruned unbuilt on 24 Aug, while the divergences it
+  found (net margin, five emission-factor tables) are the class CLAUDE.md names;
+- console 8 Sep: a leaky home is heated like a new build ("overstates the saving in exactly the
+  homes we'd target"); the setpoint landed (`0388be7c1`) but the inside temperature does not yet
+  depend on the fabric;
+- console 21 Aug: the write-time gate still fires only on new modules, not on edits to a file that
+  holds a control;
+- the book of a few thousand (7 Oct) is runnable but not what the live book does.
+
+**Recommended to close** (his call; each is a row): console 31 Aug "fix your task list" (session
+hygiene); console 9 Sep weather error at the extremes (the store went per-cell, so the question it
+gated is gone); console 10 Sep the two orphaned sessions (swept by later drains); and the
+director-record page (18 Aug), which this ledger on How it's built now does the job of.

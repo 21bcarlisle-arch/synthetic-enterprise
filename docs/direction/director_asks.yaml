@@ -1357,3 +1357,1615 @@ asks:
   - docs/design/maturity_map_closed.yaml H26 and H24 at level_current 3
   - docs/design/DIRECTOR_CANON.md R15 line
   moved: 2026-10-24
+
+# --- Asks inside the console transcripts (DIRECTOR_CONSOLE_*, 18 Aug to 22 Oct), itemised 24 Oct. His turns
+#     only: machine text, answered questions, repeats and asks that became their own document get no row.
+- id: console_2026-08-18_1
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-08-18.md
+  asked: 2026-08-18
+  ask: 'Four changes: ... make it carry the gaps the lists above don''t. Say how big it is. Every Live item should route to the evidence that makes it live. ... Show readiness honestly rather than one flat "Planned".'
+  status: shipped
+  evidence:
+  - 89ca7f5f97 SITE7 review changes
+  - gaps not repeated
+  - book size stated
+  - claims routed
+  - seam readiness shown
+  moved: 2026-10-24
+- id: console_2026-08-18_2
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-08-18.md
+  asked: 2026-08-18
+  ask: 'Pilot''s good — write the other eight. ... Record that as a check against source and move the page to verified ... Yes to the badge change: distinguish "written, awaiting check" from "stub, never touched"'
+  status: shipped
+  evidence:
+  - 0e74312461 six remaining Knowledge topics written
+  - price cap verified against source
+  - badge separates not-written from unchecked
+  moved: 2026-10-24
+- id: console_2026-08-18_3
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-08-18.md
+  asked: 2026-08-18
+  ask: 'Make every gap on that page answerable: is it planned, what''s it waiting on, when does it draw. ... a sceptic can get from a claim to the thing that justifies it ... Fix the reachability [of the eight Knowledge pages]'
+  status: shipped
+  evidence:
+  - 4e79c4c8f2 every gap names the work that closes it
+  - machine-facing evidence links withdrawn
+  - Knowledge joins the nav
+  moved: 2026-10-24
+- id: console_2026-08-18_4
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-08-18.md
+  asked: 2026-08-18
+  ask: 'Ruled: all three lanes ... fetched bytes may become documentation, design records and Knowledge, never a runtime input the company reads. Build it now. Red-with-a-named-repair is right ... Land the doctrine update'
+  status: shipped
+  evidence:
+  - 6050c2df36 company layer's route to the real world is a control
+  - red with four named routes
+  - 394bd63229 doctrine in CLAUDE.md
+  moved: 2026-10-24
+- id: console_2026-08-18_5
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-08-18.md
+  asked: 2026-08-18
+  ask: a new standing rule replacing the notify-first condition on figures ... CORRECT / CAVEAT / WITHDRAW ... take the CCL history question as its own review ... verify against HMRC and tell me the size of it.
+  status: shipped
+  evidence:
+  - 9a8bd2b7ce CCL gas rates corrected for three years and caveated for two (GBP 32
+  - 795 understated 2023-2025)
+  - docs/design/DIRECTOR_CANON.md
+  moved: 2026-10-24
+- id: console_2026-08-19_1
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-08-19.md
+  asked: 2026-08-19
+  ask: Annual report ... Fix the one real production violation and make it impossible for new importers to appear. Leave the 77 test files ... Record it as known debt with its size
+  status: shipped
+  evidence:
+  - d0b86934ce the annual report stops being a thing production code reads
+  - and the rest is recorded as debt with its size
+  moved: 2026-10-24
+- id: console_2026-08-19_2
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-08-19.md
+  asked: 2026-08-19
+  ask: Nothing currently measures the shape of the draw across lanes ... Make that visible, act on it yourself when formation slips
+  status: shipped
+  evidence:
+  - ca4379d924 the shape of the draw across lanes is measurable
+  - 7879da15ac act on the formation measure
+  - four product-lane atoms promoted
+  moved: 2026-10-24
+- id: console_2026-08-19_3
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-08-19.md
+  asked: 2026-08-19
+  ask: make file and workspace housekeeping a standing property of the system ... bounded lifetimes, alarms before exhaustion rather than after, and no reliance on anyone noticing.
+  status: shipped
+  evidence:
+  - e78be07144 housekeeping becomes a standing property
+  - a disk governor and the RAM governor
+  - background/disk_headroom.py
+  - 580c471013 worktrees given a lifetime
+  moved: 2026-10-24
+- id: console_2026-08-19_4
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-08-19.md
+  asked: 2026-08-19
+  ask: a console-only instruction is invisible to 381 director-facing sources; fix that so my words in the pane leave a trace the machine can read.
+  status: shipped
+  evidence:
+  - d9a88e9957 the director's console words captured
+  - tools/console_instruction_record.py
+  moved: 2026-10-24
+- id: console_2026-08-19_5
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-08-19.md
+  asked: 2026-08-19
+  ask: 'Then the recurring fault that keeps refusing commits: the process re-creating an archived finding hourly. Four manual clears is three too many.'
+  status: shipped
+  evidence:
+  - d9a88e9957 the two-rooms deadlock made non-blocking
+  - 9704184569 the restore source of returning staging-root markers found (the index)
+  moved: 2026-10-24
+- id: console_2026-08-19_6
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-08-19.md
+  asked: 2026-08-19
+  ask: Put the final five-tab structure up now, with honest "being built" pages ... If your controls refuse a route to an area that isn't ready, change the controls
+  status: shipped
+  evidence:
+  - f0954c110b the structure goes up with two honest holes and a fourth IA state for "being built"
+  - 21c4788b54 the evidence page becomes an honest hole
+  moved: 2026-10-24
+- id: console_2026-08-19_7
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-08-19.md
+  asked: 2026-08-19
+  ask: the nav renders identically on every page at phone width, and five items plus the wordmark fit ... fix that properly rather than adding specificity battles.
+  status: shipped
+  evidence:
+  - 69beeaa9de nav folded to the director's five
+  - 92f59bdb91 nav defined once with one phone layout
+  - a11556e23b doors right-justified on a phone
+  moved: 2026-10-24
+- id: console_2026-08-19_8
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-08-19.md
+  asked: 2026-08-19
+  ask: When you mothball or fold a section, check what work is still being done to feed it and stop the parts that no longer earn their keep. Check links ... And prefer fewer cross-links
+  status: shipped
+  evidence:
+  - 03dd8c49e4 eleven pages deleted and 25
+  - 700 lines of unreachable surface removed
+  - 9d22770952 forty redirects become two and their machinery deleted
+  moved: 2026-10-24
+- id: console_2026-08-19_9
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-08-19.md
+  asked: 2026-08-19
+  ask: Register today as a class finding ... Propose the structural fix (all lane work in isolated worktrees; the shared tree stays committable at all times ...) as a proposal for my review
+  status: shipped
+  evidence:
+  - 7045ca2e91 proposal for review
+  - the shared tree must stay committable
+  - fb19bc8e07 EP6 wire landed
+  - bffed2dd3b isolated writer and a route onto main
+  moved: 2026-10-24
+- id: console_2026-08-20_1
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-08-20.md
+  asked: 2026-08-20
+  ask: the dashboard and the exec summary ... If nothing reads them, retire them ... a surface no reader can reach must never be able to block publishing.
+  status: shipped
+  evidence:
+  - docs/design/DASHBOARD_AND_EXEC_SUMMARY_RETIREMENT_2026-08-20.md
+  - tools/reader_reachability.py
+  - 03dd8c49e4 the five tabs are the site
+  moved: 2026-10-24
+- id: console_2026-08-20_2
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-08-20.md
+  asked: 2026-08-20
+  ask: Fix the failures [KeyError net_margin_gbp, TypeError counted_in_guard], and make a repeating alert escalate itself into the draw instead of re-telling me.
+  status: shipped
+  evidence:
+  - d22741ebc5 the gate's real red
+  - net_margin_gbp fixtures
+  - 9d22770952 an escalated condition stops re-pinging and the channel measured over 24h
+  moved: 2026-10-24
+- id: console_2026-08-20_3
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-08-20.md
+  asked: 2026-08-20
+  ask: 'Then Explore: write the actual six-stage traversal, ship it, verify it live.'
+  status: shipped
+  evidence:
+  - 7309e5ddeb Explore's stage 3 draws its day
+  - 83c4fc9d60 Explore opens on eight households chosen by rule at publish (23 Oct)
+  - site/explore/index.html
+  moved: 2026-10-24
+- id: console_2026-08-20_4
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-08-20.md
+  asked: 2026-08-20
+  ask: The five tabs are the site. Anything not in them either has its content moved into a tab that earns it, or it goes ... the G13 audit follows the figures wherever they end up
+  status: shipped
+  evidence:
+  - 03dd8c49e4 eleven pages deleted
+  - content moved
+  - G13 store-agreement audit renders on /harness/
+  moved: 2026-10-24
+- id: console_2026-08-20_5
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-08-20.md
+  asked: 2026-08-20
+  ask: Delete the redirects outright, and the controls, tests and checks that exist to keep them true. ... The SITE9 escalation ... Kill it ... Measure your own channel over the last 24 hours and fix what the measurement shows
+  status: shipped
+  evidence:
+  - 9d22770952 forty redirects become two
+  - SITE9 escalation killed
+  - alarm channel measured over 24h
+  moved: 2026-10-24
+- id: console_2026-08-20_6
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-08-20.md
+  asked: 2026-08-20
+  ask: Harness content next, then PB3.
+  status: shipped
+  evidence:
+  - fc2fc8df2c the Harness page explains its five sections
+  - b8081a60f7 PB3 the book grows because the funnel was survived
+  moved: 2026-10-24
+- id: console_2026-08-20_7
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-08-20.md
+  asked: 2026-08-20
+  ask: fix the deploy's failing cache purge properly, and check whether the edge is still serving pages that origin has deleted ... what else in the publish path prints failure and exits zero.
+  status: shipped
+  evidence:
+  - 49e8af65bb the cache purge reported success while doing nothing
+  - eight deleted pages still served
+  - 733b4491be the ghost list derived not hand-written
+  moved: 2026-10-24
+- id: console_2026-08-20_8
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-08-20.md
+  asked: 2026-08-20
+  ask: set up whatever ongoing visibility you need before the free plan's 1-day retention loses it ... confirm edge_traffic_capture.py runs on a schedule and writes real rows.
+  status: shipped
+  evidence:
+  - tools/edge_traffic_capture.py
+  - 3316e5c6c7 the capture and the 504 diagnosis; edge-traffic-capture.timer live in the user's systemd
+  moved: 2026-10-24
+- id: console_2026-08-20_9
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-08-20.md
+  asked: 2026-08-20
+  ask: 504s first ... Look rather than guess. ... re-run the verifications that concluded something was absent or unchanged, since those couldn't tell a deletion from a timeout
+  status: shipped
+  evidence:
+  - 3316e5c6c7 the site was never returning 504s
+  - Cloudflare logs each HTTP/2 request twice
+  - 733b4491be nine deleted pages still being served
+  moved: 2026-10-24
+- id: console_2026-08-20_10
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-08-20.md
+  asked: 2026-08-20
+  ask: Assume I'm not watching. Batch what you'd tell me into one report at the end of the day rather than after each piece
+  status: superseded
+  superseded_by: the operating model of 4 Oct (stretch log and for_the_director, CLAUDE.md "Be transparent"); NTFY mothballed 15 Oct
+  evidence:
+  - docs/operations/OPERATING_MODEL.md
+  moved: 2026-10-24
+- id: console_2026-08-20_11
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-08-20.md
+  asked: 2026-08-20
+  ask: thats twice youve stalled due to excuses about context. fix this so it doesnt hapen again.
+  status: shipped
+  evidence:
+  - 6fbc927328 a deadline on claimed work that files and releases it
+  - background/seat_work_in_hand.py
+  moved: 2026-10-24
+- id: console_2026-08-21_1
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-08-21.md
+  asked: 2026-08-21
+  ask: tell me what the tests-writing-into-production-surfaces class costs us in total ... Fix the class.
+  status: shipped
+  evidence:
+  - 0ab42217ab the writer refuses instead of trusting test isolation
+  - 22aaaa4942 docs/observability becomes a protected surface
+  moved: 2026-10-24
+- id: console_2026-08-21_2
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-08-21.md
+  asked: 2026-08-21
+  ask: Say what the gate is actually for and how long that should take. ... deciding what genuinely must run before a publish ... And put a limit on the absolute duration that fails loudly when crossed
+  status: partly
+  evidence:
+  - db864a02dc the gate never completed above 1666s; it stopped finishing rather than grew; self-feeding loop measured
+  - background/suite_duration_watch.py
+  missing: No absolute-duration limit that fails loudly landed; db864a02dc reverted the first attempt (300s ceiling) and changed no production timeout.
+  next_step: Check the current publish-gate timeout basis; land an absolute ceiling with a loud failure, or close with the reason the derived ceiling already does that job.
+  moved: 2026-10-24
+- id: console_2026-08-21_3
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-08-21.md
+  asked: 2026-08-21
+  ask: every defence here fires on new modules ... That's a hole worth closing properly — an edit to an existing file with a control in it should face the same questions a new one does.
+  status: not_started
+  evidence:
+  - tools/write_time_gate.py (fires on a new module only; its docstring defers the in-module case)
+  missing: No gate puts an edit to an existing file holding a control through the new-module questions; the rule sits only in canon review notes (R-C1-63).
+  next_step: Extend the write-time gate (or the domain-constant/caller gates) to staged edits of files that hold a control, with a mutation proving it fires; or rule it closed with the cost of living with it.
+  moved: 2026-10-24
+- id: console_2026-08-22_1
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-08-22.md
+  asked: 2026-08-22
+  ask: So reduce consumption, and decide how yourself. ... Tell me what you changed and what the new cadence costs, so I know what I'm spending.
+  status: shipped
+  evidence:
+  - 58fcdc2e62 weekend budget stand-down
+  - tick cadence cut
+  moved: 2026-10-24
+- id: console_2026-08-24_1
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-08-24.md
+  asked: 2026-08-24
+  ask: 'A belief for you to test, not accept: we have been spinning our wheels. ... If the structure is producing work nobody needs, change the structure. Delete atoms that shouldn''t exist.'
+  status: shipped
+  evidence:
+  - ebac923e9e the pass ceiling applies to build
+  - 175 ticks moved zero levels
+  - 7403b89c1c nineteen atoms deleted
+  moved: 2026-10-24
+- id: console_2026-08-24_2
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-08-24.md
+  asked: 2026-08-24
+  ask: make an interrupted interactive session recoverable without me noticing it. ... I shouldn't be the mechanism that spots a stall.
+  status: shipped
+  evidence:
+  - 40bb2478c8 an interrupted session hands its work over
+  - signal is tool calls not commit silence
+  - background/seat_continuity.py
+  moved: 2026-10-24
+- id: console_2026-08-24_3
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-08-24.md
+  asked: 2026-08-24
+  ask: suspend I&C from the book. Keep the capability built and tested ... Grow residential toward 200, earned through the funnel ... if our own code binds growth ... say so on the site and fix it if it's cheap.
+  status: shipped
+  evidence:
+  - 6474e3cc1b settlement budget raised so the funnel decides the book
+  - f6c465e447 the growth curve reaches the site with the engine-bound reason
+  - 7e598a84bd the segment dial stops reaching into the draw
+  - simulation/live_population.py
+  moved: 2026-10-24
+- id: console_2026-08-24_4
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-08-24.md
+  asked: 2026-08-24
+  ask: fix the log excerpt that selects lines by position so a refusal prints its real diagnostic rather than nothing.
+  status: shipped
+  evidence:
+  - 8af9488a17 refusals named no failing test because one narration line ate the excerpt
+  - fixed
+  moved: 2026-10-24
+- id: console_2026-08-24_5
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-08-24.md
+  asked: 2026-08-24
+  ask: 'make the run incremental: process and write, process and discard ... say plainly whether a memory cap is worth having as a guard. [16:13] Cap reasoning accepted — after the memory work, sized above the new peak, as a tripwire'
+  status: partly
+  evidence:
+  - f28d7ab1a6 the fold is wired
+  - 42x fewer records
+  - 84% less memory
+  missing: No memory-cap tripwire sized above the new peak found in the repo's units or run code.
+  next_step: Confirm whether a cgroup/MemoryMax tripwire exists outside the repo; if not, add it above the measured peak or close with the reason.
+  moved: 2026-10-24
+- id: console_2026-08-24_6
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-08-24.md
+  asked: 2026-08-24
+  ask: Either I'm served a cached copy or Knowledge pages don't take the canonical nav; find out which. ... Reference pages shouldn't carry publishing status.
+  status: shipped
+  evidence:
+  - 75e55464c0 the banner comes off every page but How it's built (23 Oct)
+  - 03dd8c49e4 Knowledge pages' per-page nav CSS removed
+  moved: 2026-10-24
+- id: console_2026-08-24_7
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-08-24.md
+  asked: 2026-08-24
+  ask: the half-hourly spine stays half-hourly. ... put a control on it that fails if anything half-hourly-dependent is added while the fold is live
+  status: shipped
+  evidence:
+  - tools/git-hooks/pre-commit (GATE 13 the half-hourly spine is the market)
+  - f28d7ab1a6 fold in the reporting layer
+  moved: 2026-10-24
+- id: console_2026-08-24_8
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-08-24.md
+  asked: 2026-08-24
+  ask: Now find the £14 and wire the fold — but timebox it.
+  status: shipped
+  evidence:
+  - 4b3086b1fd a journal that could not represent a credit was the fold's unexplained 14 pounds
+  - f28d7ab1a6 fold wired
+  moved: 2026-10-24
+- id: console_2026-08-24_9
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-08-24.md
+  asked: 2026-08-24
+  ask: read those 117, delete what shouldn't exist, close what's finished, and collapse anything that's bookkeeping ... I'd rather the map were half the size and true.
+  status: shipped
+  evidence:
+  - 7403b89c1c nineteen atoms deleted
+  - 7f11d9c7d5 the map pruned to 74 atoms
+  moved: 2026-10-24
+- id: console_2026-08-24_10
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-08-24.md
+  asked: 2026-08-24
+  ask: The win-rate loop, so the company can see it is losing and act on it — five years winning nothing isn't a market
+  status: shipped
+  evidence:
+  - 50274434a9 the win side reads the company's own price position through the same elasticity as the loss side
+  moved: 2026-10-24
+- id: console_2026-08-25_1
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-08-25.md
+  asked: 2026-08-25
+  ask: SITE9's director-record block is overturned. Rebuild the delta as a section on /harness/.
+  status: shipped
+  evidence:
+  - 81387bad25 SITE9 discharged on the same page
+  - director_delta rendered on /harness/
+  moved: 2026-10-24
+- id: console_2026-08-25_2
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-08-25.md
+  asked: 2026-08-25
+  ask: Your tick loop has been resting beside drawable work since 00:35Z ... find out which and fix it.
+  status: shipped
+  evidence:
+  - 7f58ef606b the tick was neither wedged nor resting
+  - its own alarms had become its workload
+  moved: 2026-10-24
+- id: console_2026-08-25_3
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-08-25.md
+  asked: 2026-08-25
+  ask: you filed but didn't fix the VAT ceiling — the world clamps an ex-VAT rate against an inc-VAT cap ... Take the measurement and land it.
+  status: shipped
+  evidence:
+  - b3e41f95b4 the domestic price cap was enforced on the wrong side of VAT
+  - 786 half-hours billed above the law
+  - repaired
+  moved: 2026-10-24
+- id: console_2026-08-25_4
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-08-25.md
+  asked: 2026-08-25
+  ask: Wire the carbon ledger to live meter reads and grid intensity, publish it with its provenance, and say plainly what it does and does not yet include.
+  status: shipped
+  evidence:
+  - 8f15b78c1a carbon
+  - the number exists
+  - 145b900746 the published spread caveated in the same sentence
+  moved: 2026-10-24
+- id: console_2026-08-25_5
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-08-25.md
+  asked: 2026-08-25
+  ask: there has to be a baseline to beat ... Nothing yet chooses per customer on what that customer is worth. Say plainly where the gap is largest, then close it
+  status: shipped
+  evidence:
+  - 4b583f3865 the flat-rules baseline
+  - 133d9992cd the first per-customer decision and its control
+  - 03b60e1e91 the company prices per customer
+  moved: 2026-10-24
+- id: console_2026-08-25_6
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-08-25.md
+  asked: 2026-08-25
+  ask: do the meter mix
+  status: shipped
+  evidence:
+  - f8dc54ef8d every funnel win arrived with no meter; meter mix drawn at acquisition
+  moved: 2026-10-24
+- id: console_2026-08-25_7
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-08-25.md
+  asked: 2026-08-25
+  ask: pricing follows expected cost ... Put them inside the EV arithmetic ... Record what is explicitly permitted, what is prohibited, and what is tolerated-but-unwritten, with citations.
+  status: shipped
+  evidence:
+  - 5064540c7f the licence read
+  - expected cost in the arithmetic
+  - SLC citations in the commons
+  moved: 2026-10-24
+- id: console_2026-08-25_8
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-08-25.md
+  asked: 2026-08-25
+  ask: 'Next: fix the churn model, then run both arms. Publish the result honestly whichever way it goes'
+  status: shipped
+  evidence:
+  - baec3efb22 the churn chain reads the company's own price
+  - 03b60e1e91 the value cycle's first realised run
+  - 4b583f3865 baseline published
+  moved: 2026-10-24
+- id: console_2026-08-25_9
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-08-25.md
+  asked: 2026-08-25
+  ask: 'Build it ... A periodic session that decides and writes direction ... Build the other half too: I want to open one page and know what the machine did, what it decided, what it got wrong'
+  status: shipped
+  evidence:
+  - 81387bad25 the delivery seat
+  - a three-hourly session and a page
+  - background/delivery_seat.py
+  - docs/design/THE_DELIVERY_SEAT.md
+  moved: 2026-10-24
+- id: console_2026-08-25_10
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-08-25.md
+  asked: 2026-08-25
+  ask: So the delivery seat may act, not only point. ... I go away for a day. The project moves as much as it moved today.
+  status: shipped
+  evidence:
+  - bf9d30c149 LANE 0 makes the seat's decisions drawable
+  - bffed2dd3b the seat continues without the director
+  - background/seat_executor.py
+  moved: 2026-10-24
+- id: console_2026-08-28_1
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-08-28.md
+  asked: 2026-08-28
+  ask: Second, fix staging. ... Four different kinds of thing share one folder and only one is work. ... Design it properly and drain what shouldn't be there.
+  status: shipped
+  evidence:
+  - 67a2584214 the queue was four kinds of thing in one folder
+  - background/staging_rooms.py
+  moved: 2026-10-24
+- id: console_2026-08-28_2
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-08-28.md
+  asked: 2026-08-28
+  ask: the mission sentence, in my words, and it supersedes both the fidelity line in CLAUDE.md and the wording on the canon page. ... Two of the three [channels] don't exist yet. Note that
+  status: shipped
+  evidence:
+  - 039f202cec the mission is value created then shared
+  - three currencies
+  - three channels
+  - two of which do not exist
+  - CLAUDE.md
+  moved: 2026-10-24
+- id: console_2026-08-28_3
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-08-28.md
+  asked: 2026-08-28
+  ask: take the 80 founders — that's my answer on P9 ... Score both sides of the value split too, as you recommended.
+  status: shipped
+  evidence:
+  - 3d83edffb6 the founder book lands with its ruling
+  - company/analytics/household_value_share.py
+  moved: 2026-10-24
+- id: console_2026-08-28_4
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-08-28.md
+  asked: 2026-08-28
+  ask: CLAUDE.md is 35,235 bytes against its own 35,000 hard limit. ... rewrite CLAUDE.md as a draft ... [17:32] Four additions before it lands. ... Then land it
+  status: shipped
+  evidence:
+  - 3d83edffb6 CLAUDE.md rewritten
+  - docs/design/CLAUDE_MD_REWRITE_NOTES_2026-08-28.md
+  - background/claude_md_integrity.py (35
+  - 000 characters)
+  moved: 2026-10-24
+- id: console_2026-08-28_5
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-08-28.md
+  asked: 2026-08-28
+  ask: 'Knowledge first: establish from published evidence what acquisition and retention actually cost a GB supplier ... write the Knowledge page so the next invented number has something to contradict it.'
+  status: shipped
+  evidence:
+  - 68dea8cda2 what winning and keeping a GB customer costs
+  - site/knowledge/acquisition-and-retention-economics/index.html
+  - 0850eadcd1 retention offer becomes a price
+  moved: 2026-10-24
+- id: console_2026-08-28_6
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-08-28.md
+  asked: 2026-08-28
+  ask: start at R1 and work the whole roadmap ... R6 is the prize ... tell me what would have caught it — a sourced number that exists and isn't wired should not be able to sit quietly beside an unsourced one
+  status: shipped
+  evidence:
+  - 0850eadcd1 the campaign spends the sourced cost
+  - c5641b12f0 R6 acquisition spend reaches the collateral desk
+  - tests/architecture/test_a_cited_constant_has_a_caller.py
+  moved: 2026-10-24
+- id: console_2026-08-29_1
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-08-29.md
+  asked: 2026-08-29
+  ask: Fix the settlement ceiling so the campaign's wins actually reach the book. ... it needs a non-circular basis, not a bigger number.
+  status: shipped
+  evidence:
+  - 9dd0ab90e1 the settlement ceiling's basis stops being circular
+  - 8927e9345c settlement budget 7
+  - 700 on a measured curve
+  moved: 2026-10-24
+- id: console_2026-08-31_1
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-08-31.md
+  asked: 2026-08-31
+  ask: Go and do the SVT belief — 61% of departures on a route the company forms no belief about is the real gap
+  status: shipped
+  evidence:
+  - 87709c6177 the company's first belief about 61% of its departures
+  moved: 2026-10-24
+- id: console_2026-08-31_2
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-08-31.md
+  asked: 2026-08-31
+  ask: can this seat self-advance safely now? If yes, make it so. If no ... move the class of work that happens here into the ticks. ... Now build the integration tool and the seat tick. Include duplication
+  status: shipped
+  evidence:
+  - 178bf5a569 surgical_land works from a worktree
+  - bffed2dd3b isolated writer
+  - route onto main
+  - duplication guard keyed on paths
+  - 0bc78cf14a the executor and its units committed
+  moved: 2026-10-24
+- id: console_2026-08-31_3
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-08-31.md
+  asked: 2026-08-31
+  ask: fix your task list. ... Separate what you owe, what is standing, and what you are waiting on someone else for — so when I look at it, open means open.
+  status: not_started
+  missing: No artefact separates owed, standing and waiting-on-others; it concerned the interactive session's task list, which leaves no record.
+  next_step: Recommend closing as session hygiene; if he wants it kept, give seat_work_in_hand a kind field (owed / standing / waiting) shown on the stretch log.
+  moved: 2026-10-24
+- id: console_2026-08-31_4
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-08-31.md
+  asked: 2026-08-31
+  ask: your runner's "Usage limit active — skipping autonomous turn" is false. ... Make it impossible to claim a limit it hasn't verified, and where the real signal is unavailable it should run rather than skip
+  status: shipped
+  evidence:
+  - 7a995e2b13 the runner had skipped none; usage_limit_verdict() skips only on a dated future reset
+  - contaminated ledgers cleaned
+  moved: 2026-10-24
+- id: console_2026-08-31_5
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-08-31.md
+  asked: 2026-08-31
+  ask: The published average unit rate is the commodity leg presented as the price ... That's wrong on a live surface, so it goes first.
+  status: shipped
+  evidence:
+  - 7a995e2b13 both rates published and named
+  - catch-up bills netted out
+  - excluded-bill count declared
+  moved: 2026-10-24
+- id: console_2026-08-31_6
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-08-31.md
+  asked: 2026-08-31
+  ask: Then the journey's end having two homes, so C1 sits in the churned list with zero renewal events and a reader of either list is wrong about the book.
+  status: partly
+  evidence:
+  - b8e6ba32dc the two departure routes share one denominator for the fit
+  - docs/design/WHAT_THE_JOURNEY_WALK_FOUND_2026-08-31.md
+  missing: Not confirmed that every published reader (the C2 reason mix, the churned list) reads both routes.
+  next_step: Grep the published departure surfaces for single-route reads; union them or label the route, then close.
+  moved: 2026-10-24
+- id: console_2026-08-31_7
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-08-31.md
+  asked: 2026-08-31
+  ask: Then the five-term bill and the corrections whose money spans thirteen periods against volume spanning one.
+  status: partly
+  evidence:
+  - 7a995e2b13 catch-up bills netted out of every rate; five-term rule found already in domain_invariants.BILL_FOOTS
+  missing: No commit found that aligns a correction's money span with its volume span.
+  next_step: Check the curtained bill validator (3705eca796 lineage) for the span mismatch; fix or record it as a known limitation.
+  moved: 2026-10-24
+- id: console_2026-08-31_8
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-08-31.md
+  asked: 2026-08-31
+  ask: Do the surface promotion next, properly ... Take the customers.json finding with it ... if the honest answer is that the site shows 19, show 19 and say why it moved.
+  status: shipped
+  evidence:
+  - 22aaaa4942 docs/observability becomes a protected surface
+  - 0247f3061c publish the run output the customer book was made from
+  - 522f8b5407 a published surface must be reproducible from its committed input
+  moved: 2026-10-24
+- id: console_2026-09-01_1
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-09-01.md
+  asked: 2026-09-01
+  ask: it may be the parent of several class registers ... If it's one class, consolidate it. If not, say why.
+  status: shipped
+  evidence:
+  - adf4bed6e0 answered: one lineage
+  - not one class
+  - and merging would destroy the property being wired in
+  moved: 2026-10-24
+- id: console_2026-09-01_2
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-09-01.md
+  asked: 2026-09-01
+  ask: 'Each class register carries a cumulative cost and nothing reads it. Wire it in. Cumulative cost should rank a class against other work in the draw. ... Then, per class: what closes it'
+  status: shipped
+  evidence:
+  - adf4bed6e0 class registers drawn as work by accrual
+  - background/class_debt.py
+  - 734b79c4bd a class fixed on sight twenty times counts twenty
+  moved: 2026-10-24
+- id: console_2026-09-01_3
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-09-01.md
+  asked: 2026-09-01
+  ask: Before you build satisfaction's rationale, do the knowledge first ... what actually drives domestic satisfaction ... and what bill shock actually is.
+  status: shipped
+  evidence:
+  - 505ebbe44c knowledge first
+  - satisfaction drivers and bill shock
+  - docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md
+  moved: 2026-10-24
+- id: console_2026-09-01_4
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-09-01.md
+  asked: 2026-09-01
+  ask: define bill shock from published evidence before measuring it again, including what share of households are on each payment method ... Put it in CLAUDE.md as a habit
+  status: shipped
+  evidence:
+  - 5994c17d47 bill shock defined by population with a practitioner correction
+  - docs/market_research/what_bill_shock_is.md
+  - 70d70398e1 divergence split by population
+  - CLAUDE.md "Before measuring a thing
+  - say what it is"
+  moved: 2026-10-24
+- id: console_2026-09-01_5
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-09-01.md
+  asked: 2026-09-01
+  ask: Six undeclared worktrees are accreting ... Give them a lifetime. And the channel under-reports you. ... Real work should reach the channel and routine noise shouldn't crowd it out.
+  status: shipped
+  evidence:
+  - 580c471013 worktrees given a lifetime
+  - and the channel carries what got done
+  moved: 2026-10-24
+- id: console_2026-09-02_1
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-09-02.md
+  asked: 2026-09-02
+  ask: 830 newly failing tests at HEAD ... Check that adjacency first [the reaper] ... Then the class-debt understatement ... don't leave the draw ordering wrong for long
+  status: shipped
+  evidence:
+  - f14de5e63b a clean extract went 830 to zero
+  - 734b79c4bd a class fixed on sight twenty times has happened twenty times
+  moved: 2026-10-24
+- id: console_2026-09-02_2
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-09-02.md
+  asked: 2026-09-02
+  ask: Fix the route, not just the instance. Red tests at HEAD need a way into the queue with the same standing as a class register — a named subject, a live baseline, and an end state where zero means zero.
+  status: shipped
+  evidence:
+  - bc57c8e30c red at HEAD gets a route into the draw
+  - background/head_red_register.py
+  moved: 2026-10-24
+- id: console_2026-09-02_3
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-09-02.md
+  asked: 2026-09-02
+  ask: Push, and verify against origin before saying landed. ... make the pull automatic rather than a refusal — a staged document arriving should never block your landing.
+  status: shipped
+  evidence:
+  - a78879ed7e close the fork with origin automatically in a worktree
+  - background/origin_reconcile.py
+  moved: 2026-10-24
+- id: console_2026-09-02_4
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-09-02.md
+  asked: 2026-09-02
+  ask: The conflict door needs its design pass ... the next time two lanes touch one file there's no legal route, and that's a wall with a hole in it.
+  status: shipped
+  evidence:
+  - 3236963419 a mechanism for collisions with another lane's in-place edits
+  - tools/isolate_hunks.py
+  moved: 2026-10-24
+- id: console_2026-09-02_5
+  source: docs/staging/done/DIRECTOR_CONSOLE_2026-09-02.md
+  asked: 2026-09-02
+  ask: reconcile only when there is something of ours to land, never on a cadence, and never while a gate is running. ... every orientation reads the last stretch of commits as a list a person would read
+  status: shipped
+  evidence:
+  - 4087d20732 reconcile only when there is something of ours to land
+  - and read commits instead of counting them
+  moved: 2026-10-24
+- id: console_2026-08-09_1
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-08-09.md
+  asked: '2026-08-09'
+  ask: origin HEAD calls tools.run_annual_report, which is not in origin... Commit the file now with the truthful unknown-origin provenance record as the steer directs.
+  status: shipped
+  evidence:
+  - ebc2356c86 commit the callee whose caller was committed
+  - 7cef2c1d46 land KNIFE passes 1+3 absent from HEAD
+  moved: 2026-10-24
+- id: console_2026-08-09_2
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-08-09.md
+  asked: '2026-08-09'
+  ask: £1,526,676 net is the first figure through the half-cut KNIFE-1 path — state whether its run span matches the £6.17m baseline and what moved; treat it as unbaselined until one clean publish reproduces it.
+  status: partly
+  evidence:
+  - 94933cffff a publish reproduced net £1,526,676
+  missing: No record found stating the run-span comparison against the £6.17m baseline or naming what moved.
+  next_step: 'Close: the figure has been re-baselined many times since (Aug-Oct); recommend closing as overtaken.'
+  moved: 2026-10-24
+- id: console_2026-08-09_3
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-08-09.md
+  asked: '2026-08-09'
+  ask: Classify the KNIFE2 lane — ACTIVE, DORMANT-BETWEEN-TICKS, or ORPHANED — and if orphaned, file it for its own lane to adopt; touch nothing yourself.
+  status: shipped
+  evidence:
+  - docs/staging/done/WORKER_FINDING_KNIFE2_LANE_IS_ORPHANED_2026-08-09.md
+  - '450bf69033 adopt(KNIFE2): land the orphaned lane''s residue'
+  moved: 2026-10-24
+- id: console_2026-08-12_1
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-08-12.md
+  asked: '2026-08-12'
+  ask: 'Autostart decision: stored credentials, not auto-logon... prove it with a cold reboot and no logon — if you find that shape can''t work, say so and tell me what does.'
+  status: shipped
+  evidence:
+  - 43a456cbae Skynet starts itself at boot, with no stored secret and no logon
+  - c959f3ac7c record how the host actually starts
+  moved: 2026-10-24
+- id: console_2026-08-12_2
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-08-12.md
+  asked: '2026-08-12'
+  ask: 'SkynetAutoStart: yours to resolve... decide whether it''s repointed or retired, on the principle that a second stack must never start on the shared tree.'
+  status: shipped
+  evidence:
+  - 43a456cbae RETIRED SkynetAutoStart rather than repairing it
+  moved: 2026-10-24
+- id: console_2026-08-12_3
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-08-12.md
+  asked: '2026-08-12'
+  ask: Take the seven reds and the inert ageing digest... If 'HEAD is green has never been measured' means we need a control that measures it, build that too.
+  status: shipped
+  evidence:
+  - 06ac057dc2 measure whether HEAD is green, instead of inferring it
+  - 6debf1ccf0 record the seven's disposition
+  moved: 2026-10-24
+- id: console_2026-08-12_4
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-08-12.md
+  asked: '2026-08-12'
+  ask: 'CLAUDE.md: do the decay audit sitting in staging, trim what no longer earns its place... and make the size ceiling something that can fail a gate. Don''t raise the ceiling.'
+  status: shipped
+  evidence:
+  - abec13046a the decay audit runs for the first time
+  - background/claude_md_integrity.py
+  moved: 2026-10-24
+- id: console_2026-08-12_5
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-08-12.md
+  asked: '2026-08-12'
+  ask: 'Model tiering: Pilot a tier rather than switching wholesale — propose which routine draws could run on Sonnet, run them there for a defined period, and measure quality against the Opus baseline.'
+  status: partly
+  evidence:
+  - abec13046a background/model_tier.py classifies the drawn doorbell
+  - 505c5f0413 the executor's 1-in-4 Sonnet pilot opens as pre-registered
+  - 17eaac83d0 the P2 executor pilot has a grader
+  missing: The pilot opened only on 23 Oct; no graded quality-vs-Opus result (rework, findings quality, gate failures) is recorded yet.
+  next_step: Read the 17eaac83d0 grader at the end of the pilot window and report the per-arm result, reverting any class that drops.
+  moved: 2026-10-24
+- id: console_2026-08-13_1
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-08-13.md
+  asked: '2026-08-13'
+  ask: 'Authorised: activate the population draw (SE_DRAW_POPULATION) and wire the entrypoints. The book stays earned, never granted. Tell me before any published figure moves.'
+  status: shipped
+  evidence:
+  - 9158e8ce4b the population draw is on, and the book it hands over is two customers it earned
+  moved: 2026-10-24
+- id: console_2026-08-13_2
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-08-13.md
+  asked: '2026-08-13'
+  ask: Decide the discovery daemon — restart or formally retire it, no third state. Clear the undeclared worktrees through the reconciler. And give the class checker a real caller.
+  status: shipped
+  evidence:
+  - 9158e8ce4b the discovery daemon is RETIRED, not left in a third state
+  - f4b504e6c9 wire the finding-class checker to the pre-commit gate
+  moved: 2026-10-24
+- id: console_2026-08-13_3
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-08-13.md
+  asked: '2026-08-13'
+  ask: 'Make the distinction visible: alive-but-unchanged and alive-and-publishing must not look the same to me or to the site.'
+  status: shipped
+  evidence:
+  - c8284059b4 publishing was dead for 21.7h and every signal said it was fine
+  - '24c14f6292 retro: the liveness signal outran the content it was about'
+  moved: 2026-10-24
+- id: console_2026-08-13_4
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-08-13.md
+  asked: '2026-08-13'
+  ask: I received a raw tick work-order as a phone notification... Internal doorbell text should never reach the director channel. Fix the routing along with the batching work.
+  status: shipped
+  evidence:
+  - c8284059b4 DOORBELL TEXT OFF THE DIRECTOR CHANNEL
+  - 13b7844101 inbound NTFY library deleted (NTFY later mothballed)
+  moved: 2026-10-24
+- id: console_2026-08-17_1
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-08-17.md
+  asked: '2026-08-17'
+  ask: PB3's finding that the book structurally cannot grow — design the growth path (acquisition that can net add, losable, wall intact).
+  status: shipped
+  evidence:
+  - '395c65ba45 PB3''s ADD path: acquisition faces the same market churn does'
+  - 4683e68f77 switch the growth mandate ON
+  moved: 2026-10-24
+- id: console_2026-08-17_2
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-08-17.md
+  asked: '2026-08-17'
+  ask: Eliminate the whole-repo hook from the content publish path — whatever replaces it takes as its subject exactly the surfaces that ship, is provably failable, and fails closed if it can't run.
+  status: shipped
+  evidence:
+  - 78d4f46f55 the content publish's replacement gate -- subject is exactly what ships, R15-proven failable
+  moved: 2026-10-24
+- id: console_2026-08-17_3
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-08-17.md
+  asked: '2026-08-17'
+  ask: 'One guard: the opening book size is a measured outcome, never a target. If anyone tunes acquisition to hit a number, that''s the goal-seeking R12 forbids. Growth must stay losable.'
+  status: shipped
+  evidence:
+  - docs/design/simplifications/PB3_book_growth_as_earned_outcome.yaml
+  - tests/simulation/test_net_new_acquisition.py
+  moved: 2026-10-24
+- id: console_2026-08-17_4
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-08-17.md
+  asked: '2026-08-17'
+  ask: Register the simplification — acquisition and churn aren't driven by one shared elasticity... name it as a known simplification rather than leaving it implicit.
+  status: shipped
+  evidence:
+  - docs/design/simplifications/PB3_book_growth_as_earned_outcome.yaml
+  moved: 2026-10-24
+- id: console_2026-08-17_5
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-08-17.md
+  asked: '2026-08-17'
+  ask: 'The sim has failed nine consecutive runs, all KeyError: ''net_margin_gbp''... take it as top draw. Then: should ''producer down'' be as loud as ''publisher wedged''?'
+  status: shipped
+  evidence:
+  - docs/staging/done/WORKER_FINDING_THE_PRODUCER_HAD_THE_ALARM_AND_THE_PUBLISHER_HAD_THE_MECHANISM_2026-08-17.md
+  - d22741ebc5 build_cost_to_serve stopped deriving net_margin_gbp; fixtures repaired
+  moved: 2026-10-24
+- id: console_2026-08-26_1
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-08-26.md
+  asked: '2026-08-26'
+  ask: Epoch 2 is open. Run the evidence pass I ruled, and if it passes, start the value cycle — the per-customer decision engine the whole thesis rests on.
+  status: shipped
+  evidence:
+  - 133d9992cd the first per-customer decision, its control, and the measurement
+  - b28c561d13 the value cycle re-read on the book the director asked about
+  moved: 2026-10-24
+- id: console_2026-08-26_2
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-08-26.md
+  asked: '2026-08-26'
+  ask: Fixing the level error in the lifetime term is the single thing between the value arm and a fair trial. That's your next job.
+  status: shipped
+  evidence:
+  - b7db3e7b85 the CLV gap is graded only on the customers who left, so a calibrated estimator scored as a five-fold over-estimate
+  moved: 2026-10-24
+- id: console_2026-08-26_3
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-08-26.md
+  asked: '2026-08-26'
+  ask: Give waiters a deadline and make them say what they're waiting for.
+  status: shipped
+  evidence:
+  - tools/wait_for.py
+  - 71cdda78a5 the waiter was pgrep-ing its own command line
+  moved: 2026-10-24
+- id: console_2026-08-26_4
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-08-26.md
+  asked: '2026-08-26'
+  ask: Change the book, not the world... the company starts with none of [the I&C accounts] and doesn't try to win any... Rerun the comparison on that book, arm against frozen control.
+  status: shipped
+  evidence:
+  - 4e884cdbfe the director's I&C suspension was mechanised
+  - b28c561d13 the arm wins on households, re-read on the book the director asked about
+  moved: 2026-10-24
+- id: console_2026-08-26_5
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-08-26.md
+  asked: '2026-08-26'
+  ask: The funnel only ever wins electricity, never dual fuel... a single-fuel-only book quietly distorts every per-customer number.
+  status: shipped
+  evidence:
+  - 3088f8c717 the arm refused gas for a reason that had stopped being true
+  - docs/staging/WORKER_FINDING_THE_OPENING_BOOK_WAS_ONE_PERCENT_DUAL_FUEL_AND_NOW_BEARS_THE_PUBLISHED_SPLIT_2026-10-17.md
+  moved: 2026-10-24
+- id: console_2026-08-26_6
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-08-26.md
+  asked: '2026-08-26'
+  ask: The tree divergence alarm reports 437 source files diverging from HEAD... Clear it, and make an alarm firing 29x over its threshold impossible to batch.
+  status: shipped
+  evidence:
+  - 46d17865a8 the divergence alarm fired correctly for six days and could not be heard
+  - 985afb3be3 the oldest divergence on the tree was finished work
+  - background/tree_divergence.py
+  moved: 2026-10-24
+- id: console_2026-08-26_7
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-08-26.md
+  asked: '2026-08-26'
+  ask: 46 branches on origin... Say what's stranded, land or discard it, delete the rest.
+  status: declined
+  evidence:
+  - 780e78c1b8 the last salvage branch could not land either
+  missing: 'Next day he accepted that two of his premises were wrong: ''The evidence branches are authoring, not tidying — leave them until we decide together.'''
+  moved: 2026-10-24
+- id: console_2026-08-26_8
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-08-26.md
+  asked: '2026-08-26'
+  ask: 'Your own flag stands: the publish gate is slower than the cadence it gates, and you''ve already said raising the ceiling can''t clear it.'
+  status: superseded
+  evidence:
+  - efa9fe21e4 the publish gate read over cadence on 30 of 30 runs
+  - 78986f2aa3 the site publishes numbers and runs once a week
+  superseded_by: 'console 2026-09-04: publish numbers and runs weekly; ''a gate that runs weekly can take twenty minutes'''
+  moved: 2026-10-24
+- id: console_2026-08-27_1
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-08-27.md
+  asked: '2026-08-27'
+  ask: 'Build the responder-side redaction anyway: the instance is harmless, the class isn''t. Anything I send over ntfy landing verbatim in the repo will eventually bite us.'
+  status: shipped
+  evidence:
+  - background/inbound_secret_redaction.py
+  - 71cdda78a5 inbound director text reached the tree by four routes rather than one
+  moved: 2026-10-24
+- id: console_2026-08-27_2
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-08-27.md
+  asked: '2026-08-27'
+  ask: fix the renewal schedule and rerun the A/B
+  status: shipped
+  evidence:
+  - 353fe96b87 the renewal schedule is repaired, and the arm's belief-quality result did not survive it
+  moved: 2026-10-24
+- id: console_2026-08-27_3
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-08-27.md
+  asked: '2026-08-27'
+  ask: 'On CLAUDE.md: don''t raise the limit, run the decay audit... make the failure legible: a commit refused because the file is full should say so, not look like a stalled session.'
+  status: shipped
+  evidence:
+  - 05c12b959f the rulebook was ten characters from full, and a commit refused for it looked like a stalled session
+  moved: 2026-10-24
+- id: console_2026-08-27_4
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-08-27.md
+  asked: '2026-08-27'
+  ask: build the third arm properly in renewal_margin_uplift
+  status: shipped
+  evidence:
+  - docs/staging/done/LANE0_THREE_ARM_AB_ON_THE_S1_WORLD_2026-08-27.md
+  - 34a05c130a the arms A/B ran in the world as it now is
+  moved: 2026-10-24
+- id: console_2026-08-27_5
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-08-27.md
+  asked: '2026-08-27'
+  ask: 'Build that roadmap: what a household actually decides on, which of those the world models today, and what each would take. Then sequence it yourself.'
+  status: shipped
+  evidence:
+  - 3486bbacea what a household decides on -- the world's decision richness audit and roadmap
+  moved: 2026-10-24
+- id: console_2026-08-27_6
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-08-27.md
+  asked: '2026-08-27'
+  ask: 'On the marginals: derive them from published evidence, not from what makes the arm look good... take the distribution from what''s published and cite it.'
+  status: shipped
+  evidence:
+  - 9e52d22543 households decide in POUNDS, and the elasticity spread was 3x too wide
+  moved: 2026-10-24
+- id: console_2026-08-27_7
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-08-27.md
+  asked: '2026-08-27'
+  ask: Draw genuine within-segment variance, not just a subgroup mean shift.
+  status: shipped
+  evidence:
+  - 9e52d22543 the elasticity spread re-derived from published evidence
+  - docs/staging/done/WORKER_FINDING_THE_WORLD_PRICED_IN_PERCENT_WHEN_HOUSEHOLDS_DECIDE_IN_POUNDS_2026-08-27.md
+  moved: 2026-10-24
+- id: console_2026-08-27_8
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-08-27.md
+  asked: '2026-08-27'
+  ask: Does the switching decision key on £ saved or % saved?... Find what our world uses, find what the evidence says, and if they differ, fix the world and say what moved.
+  status: shipped
+  evidence:
+  - '9e52d22543 sim(baseline): households decide in POUNDS'
+  moved: 2026-10-24
+- id: console_2026-08-27_9
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-08-27.md
+  asked: '2026-08-27'
+  ask: If a trait has no channel the company can observe, either give it one or mark it hidden. Don't leave it claiming discoverable.
+  status: shipped
+  evidence:
+  - 7af34caa0e the discoverability scan sees five axes, not three, and the two it was blind to are dispositioned
+  moved: 2026-10-24
+- id: console_2026-08-30_1
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-08-30.md
+  asked: '2026-08-30'
+  ask: Repair it — don't accept the limitation... The segment choice belongs at the company's acquisition decision, not in the world's draw. Fix the labels in the same pass.
+  status: shipped
+  evidence:
+  - 7e598a84bd the dial stops reaching into the draw, and eleven houses stop wearing a business label
+  moved: 2026-10-24
+- id: console_2026-08-30_2
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-08-30.md
+  asked: '2026-08-30'
+  ask: You built wait_for with deadlines and named subjects to end exactly this, and then didn't use it. Make that the only way a wait is written.
+  status: shipped
+  evidence:
+  - 3b5a51e657 a wait gets one way
+  - tools/wait_for.py
+  moved: 2026-10-24
+- id: console_2026-08-30_3
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-08-30.md
+  asked: '2026-08-30'
+  ask: Rebuild [the shared_calibration guard] so it answers the actual question — do the company's estimator and the world's response descend from the same record — and make it fail-closed.
+  status: shipped
+  evidence:
+  - 2d8807fe1b the co-calibration guard now answers its own question, and the numbers say I was wrong
+  moved: 2026-10-24
+- id: console_2026-08-30_4
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-08-30.md
+  asked: '2026-08-30'
+  ask: 'Register this for after that work: the world to run past the ten years of real history... Say what an anchor means beyond the record.'
+  status: superseded
+  evidence:
+  - 97e21affa1 what an anchor means past 2025, filed
+  - docs/design/WHAT_AN_ANCHOR_MEANS_BEYOND_THE_RECORD_2026-08-30.md
+  superseded_by: docs/staging/advisor/DIRECTOR_RULING_FORWARD_YEARS_COME_RIGHT_AFTER_THE_BASICS_2026-10-24.md
+  moved: 2026-10-24
+- id: console_2026-08-30_5
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-08-30.md
+  asked: '2026-08-30'
+  ask: Knowledge first is the rule, not a preference. A number you need is a question to research, never a value to pick.
+  status: shipped
+  evidence:
+  - CLAUDE.md
+  - '68dea8cda2 knowledge first: what winning and keeping a GB customer actually costs'
+  moved: 2026-10-24
+- id: console_2026-08-30_6
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-08-30.md
+  asked: '2026-08-30'
+  ask: Refuse unsourced domain constants at the door... Same name may not carry two values anywhere. Baseline the existing 263 uncommented ones as debt that only shrinks.
+  status: shipped
+  evidence:
+  - c050706d33 a domain constant declares its origin
+  - tests/architecture/test_a_domain_constant_carries_its_origin.py
+  - tools/domain_constant_origins.py
+  moved: 2026-10-24
+- id: console_2026-08-30_7
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-08-30.md
+  asked: '2026-08-30'
+  ask: The delivery seat reviews interconnection, not only priority... of what landed since the last orientation, what else assumes it, and does that assumption still hold.
+  status: shipped
+  evidence:
+  - CLAUDE.md
+  moved: 2026-10-24
+- id: console_2026-09-03_1
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-09-03.md
+  asked: '2026-09-03'
+  ask: DIRECTION.yaml's 'wrong' section is five empty rows. The self-audit isn't being populated... Fix that first.
+  status: shipped
+  evidence:
+  - cb4ddf0ae7 the self-audit declared a correction and nothing in the tree carried it
+  - docs/direction/DIRECTION.yaml
+  moved: 2026-10-24
+- id: console_2026-09-03_2
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-09-03.md
+  asked: '2026-09-03'
+  ask: Pre-registrations are records, not work... Move them out of the work channel entirely. Findings that share a class go to the class register... And put a check on the root itself.
+  status: shipped
+  evidence:
+  - '7ffc1563e9 only work is in the work channel: pre-registrations are records'
+  - background/staging_rooms.py
+  moved: 2026-10-24
+- id: console_2026-09-03_3
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-09-03.md
+  asked: '2026-09-03'
+  ask: If the level is being fitted to a band edge rather than emerging from the individuals, repair it rather than tune it.
+  status: shipped
+  evidence:
+  - docs/staging/done/SEAT_FINDING_THE_LEVEL_IS_CLAMPED_AND_THE_MECHANISM_UNDER_IT_IS_COMPRESSED_NOT_MISDIRECTED_2026-09-03.md
+  - 712ae53230 re-fit the departure level on the committed capture
+  moved: 2026-10-24
+- id: console_2026-09-04_1
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-09-04.md
+  asked: '2026-09-04'
+  ask: Restart any daemon that does not host the interactive session whenever its loaded code is behind disk... build that as a mechanism... every daemon's loaded-code age against its running age, in one place.
+  status: shipped
+  evidence:
+  - b83ec58ec7 G-D2 exists now, and its first run restarted nine daemons and refused the one holding a seat
+  - 1343d7d140 the deferred restart could never have fired; fixed
+  moved: 2026-10-24
+- id: console_2026-09-04_2
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-09-04.md
+  asked: '2026-09-04'
+  ask: The site is six hours stale with your Harness section blocked by another lane's uncommitted edits in shared files. That collision is now daily; it wants a mechanism, not a wait.
+  status: shipped
+  evidence:
+  - 3236963419 the collision with another lane's in-place edits is daily, so it gets a mechanism instead of a wait
+  moved: 2026-10-24
+- id: console_2026-09-04_3
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-09-04.md
+  asked: '2026-09-04'
+  ask: Draining thirteen markers at ~30 minutes each... Either the markers should collapse to the newest or the cycle is too slow. Fix whichever it is.
+  status: superseded
+  evidence:
+  - 78986f2aa3 the site publishes numbers and runs once a week
+  superseded_by: 'console 2026-09-04 16:53: weekly publishing cadence'
+  moved: 2026-10-24
+- id: console_2026-09-04_4
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-09-04.md
+  asked: '2026-09-04'
+  ask: 'A weekly sequence that runs itself. Monday: retrospective... Friday: review... Each step fires from the one before it... deliberately breakable and shown to go red.'
+  status: shipped
+  evidence:
+  - 4d1d6298c9 the weekly rhythm is a baton and a due check
+  - background/weekly_rhythm.py
+  moved: 2026-10-24
+- id: console_2026-09-04_5
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-09-04.md
+  asked: '2026-09-04'
+  ask: Land the SE_WAKE_HMAC_KEY fix... Then confirm the empty variable in this seat's environment can't re-block it after the conftest fallback lands.
+  status: shipped
+  evidence:
+  - 568879fa4d the empty wake key is a security control working as designed, so the fallback is now a control of its own
+  moved: 2026-10-24
+- id: console_2026-09-04_6
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-09-04.md
+  asked: '2026-09-04'
+  ask: Change the publishing cadence. The site publishes numbers and runs once a week... give [liveness] to something else before you slow it down. And the staleness banner matters more.
+  status: shipped
+  evidence:
+  - 78986f2aa3 the site publishes numbers and runs once a week
+  - 0fefb02aad liveness gets its own clock, before the publishing cadence slows
+  moved: 2026-10-24
+- id: console_2026-09-05_1
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-09-05.md
+  asked: '2026-09-05'
+  ask: Fix the selector so R1 and R2 can win against machinery work... a stretch with no R1 or R2 progress is a finding about how work is being chosen.
+  status: shipped
+  evidence:
+  - 'b0b5cece4b the selector, not the dial: product work can now win against machinery work'
+  - 96b99dea4c the product floor stops being a sentence in an unread log
+  moved: 2026-10-24
+- id: console_2026-09-05_2
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-09-05.md
+  asked: '2026-09-05'
+  ask: Fix why I have to paste at all. A director document should outrank anything you filed yourself, by construction.
+  status: partly
+  evidence:
+  - ab6f36d109 a filer for director documents
+  missing: No commit found that makes a staged director document outrank self-filed findings in the draw by construction; the filer classifies, it does not rank.
+  next_step: Check the draw/selector for a director-document precedence term; if absent, add one with a control that fails when a DIRECTOR_* doc ranks below a seat finding.
+  moved: 2026-10-24
+- id: console_2026-09-05_3
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-09-05.md
+  asked: '2026-09-05'
+  ask: 'Take R1''s next step: the seam carries nothing, sim_interface doesn''t pass payment method, and vulnerability_index.assess takes has_ppm with no caller.'
+  status: shipped
+  evidence:
+  - '99d2befb46 PB6: the observable crosses the seam'
+  moved: 2026-10-24
+- id: console_2026-09-05_4
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-09-05.md
+  asked: '2026-09-05'
+  ask: When a session names a next step, it becomes work in the queue with a rank before the session ends. If it isn't worth minting, it wasn't worth saying.
+  status: shipped
+  evidence:
+  - 99d2befb46 a next step named in prose becomes a queue entry
+  - c53d0bde3d the next-step gate has been silent since it shipped (repaired)
+  moved: 2026-10-24
+- id: console_2026-09-05_5
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-09-05.md
+  asked: '2026-09-05'
+  ask: The consistency gate failed at 08:43Z, dashboard against exec-summary on a headline number... fix it before the next publish.
+  status: shipped
+  evidence:
+  - 0b35f57811 queue the consistency-gate disagreement
+  - 03e45f29a2 the consistency alarm names the blocker; the 09-05 red was a population mismatch
+  moved: 2026-10-24
+- id: console_2026-09-05_6
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-09-05.md
+  asked: '2026-09-05'
+  ask: The control asserting phase == '?' and tests == 0 deserves its own instance list. A test that pins the fail-silent branch as correct... I'd expect more of them once you go looking.
+  status: shipped
+  evidence:
+  - 4d73019a03 the second instance of a control that pins its own fail-silent, found by looking for the shape
+  moved: 2026-10-24
+- id: console_2026-09-05_7
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-09-05.md
+  asked: '2026-09-05'
+  ask: Fold what you can into the class registers... If any of today's seven [rulings] contradict each other, or contradict yesterday's canons, say so plainly.
+  status: shipped
+  evidence:
+  - 108ff5a685 fold 15 findings into the class registers, and apply the merit-order amendment
+  moved: 2026-10-24
+- id: console_2026-09-05_8
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-09-05.md
+  asked: '2026-09-05'
+  ask: '[The CLV thesis] should be a Knowledge page... And make that the rule: when a piece of work produces domain understanding, it lands in the Knowledge layer with its sources and its gaps stated.'
+  status: shipped
+  evidence:
+  - site/knowledge/what-a-customer-is-worth
+  - site/knowledge/acquisition-and-retention-economics
+  moved: 2026-10-24
+- id: console_2026-09-05_9
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-09-05.md
+  asked: '2026-09-05'
+  ask: 'Sequencing decision: First a robust end-to-end SIM... Second: bill it correctly... Only then: the supplier optimising.'
+  status: shipped
+  evidence:
+  - '58a1062039 the three-stage sequence: mint the stage that had no atom, re-rank'
+  moved: 2026-10-24
+- id: console_2026-09-05_10
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-09-05.md
+  asked: '2026-09-05'
+  ask: W2_12 and W2_13 are closed atoms on exactly the ground the people ruling covers. Find out what those actually delivered — extend them if they hold, say so if they were closed without delivering.
+  status: shipped
+  evidence:
+  - '37bf9d2d67 W2_18 stage 1: measure what the premise draw already carries before extending it'
+  - f5a0a5862b 'closed' now says whether the code runs
+  moved: 2026-10-24
+- id: console_2026-09-05_11
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-09-05.md
+  asked: '2026-09-05'
+  ask: Any derived count merged from two sides will do this again. Re-derive on merge... 31 of 227 closed atoms never built anything... Make that visible.
+  status: shipped
+  evidence:
+  - 2dfc5e4feb a merge re-derives the tree's derived artefacts
+  - f5a0a5862b 'closed' now says whether the code runs
+  moved: 2026-10-24
+- id: console_2026-09-05_12
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-09-05.md
+  asked: '2026-09-05'
+  ask: 'On flow_temp: leave it out of phase 1 and register it as a named gap... Don''t invent hidden state for a ceiling nothing can act on.'
+  status: shipped
+  evidence:
+  - docs/design/simplifications/W2_34_the_company_has_one_piece_of_advice_that_costs_the_customer_nothing.yaml
+  moved: 2026-10-24
+- id: console_2026-09-06_1
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-09-06.md
+  asked: '2026-09-06'
+  ask: Widen MAX_CONCURRENT_FORKS to 2 for this window only... Revert it on the same timer as the tick, at 02:50Z. Update the guard test.
+  status: shipped
+  evidence:
+  - 2e3fab091f widen MAX_CONCURRENT_FORKS 1 -> 2, fenced by a guard that expires with it
+  - f1ccbd2581 the fork dial was never restored at HEAD; restored and the post-expiry leg run
+  moved: 2026-10-24
+- id: console_2026-09-06_2
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-09-06.md
+  asked: '2026-09-06'
+  ask: Write your stretch reports to a committed file, not only to the console... a stretch that lands work without a report is a finding.
+  status: shipped
+  evidence:
+  - 47a5b94c4c stretch reports land in a committed file on the mirror, and a lapse is a finding
+  - tools/stretch_log.py
+  moved: 2026-10-24
+- id: console_2026-09-06_3
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-09-06.md
+  asked: '2026-09-06'
+  ask: Add the stretch log to the startup anchor set... the anchors should say where the current reasoning lives, not only what the project is.
+  status: shipped
+  evidence:
+  - 66dfc5de04 the anchor set said what the project IS and never where the current reasoning LIVES
+  - tools/startup_anchor_freshness.py
+  moved: 2026-10-24
+- id: console_2026-09-06_4
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-09-06.md
+  asked: '2026-09-06'
+  ask: Mint the weather derivation as bounded successors the way you did for housing... Then take the first one.
+  status: shipped
+  evidence:
+  - 'ec351620d5 W1_25: wind is the smoothest driver where people live'
+  - 'bbb5d2c70c W1_27: the cell answer as a DECISION'
+  moved: 2026-10-24
+- id: console_2026-09-06_5
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-09-06.md
+  asked: '2026-09-06'
+  ask: 'Split the cell question by driver... Wind: if that''s right, wind needs almost no household-level resolution... Establish that rather than assume it.'
+  status: shipped
+  evidence:
+  - 'ec351620d5 W1_25: wind is the SMOOTHEST driver where people live, and it is not second-order in the bill either'
+  - docs/market_research/the_world_now_has_a_wind_term_and_my_prediction_was_wrong_three_ways.md
+  moved: 2026-10-24
+- id: console_2026-09-06_6
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-09-06.md
+  asked: '2026-09-06'
+  ask: The cell answer needs stating as a build decision... And separate the two solar effects... Is [solar gain] in fabric_physics, or is it the same gap again?
+  status: shipped
+  evidence:
+  - 'bbb5d2c70c W1_27: the cell answer as a DECISION, and solar gain checked by running the model'
+  moved: 2026-10-24
+- id: console_2026-09-06_7
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-09-06.md
+  asked: '2026-09-06'
+  ask: Make the weather cells visible on the site — Knowledge section, with a map or whatever visualisation actually explains it.
+  status: shipped
+  evidence:
+  - site/knowledge/weather-cells/index.html
+  - d86402a188 the weather-cells map gets its runner
+  moved: 2026-10-24
+- id: console_2026-09-06_8
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-09-06.md
+  asked: '2026-09-06'
+  ask: The density panel is a proportion, not a density... Use households per km². And Scotland has visible gaps... Establish which.
+  status: shipped
+  evidence:
+  - c44c8e8fce the density panel becomes a density, and Scotland's blanks are attributed
+  moved: 2026-10-24
+- id: console_2026-09-06_9
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-09-06.md
+  asked: '2026-09-06'
+  ask: There are white gaps inside the temperature map... And the density map contradicts its own caption... draw at the resolution the claim is made at.
+  status: shipped
+  evidence:
+  - 1619417b74 the white holes were unclassed land and the density map is now drawn at the resolution its caption counts at
+  moved: 2026-10-24
+- id: console_2026-09-06_10
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-09-06.md
+  asked: '2026-09-06'
+  ask: Is it true that 47% of GB 1 km cells have no address in them?... Sample it... If the method undercounts, say by how much and fix the weights.
+  status: shipped
+  evidence:
+  - 'bc60c0f6fd no: 15% of GB square kilometres hold no address, not 47% -- households now follow the address record'
+  moved: 2026-10-24
+- id: console_2026-09-07_1
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-09-07.md
+  asked: '2026-09-07'
+  ask: Why not place dwellings directly? OS Open UPRN is free and open... If the current method is good enough, show me the error it carries rather than asserting it.
+  status: shipped
+  evidence:
+  - bc60c0f6fd households now follow the address record
+  - ec8a187105 a drawn household now has a coordinate
+  moved: 2026-10-24
+- id: console_2026-09-07_2
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-09-07.md
+  asked: '2026-09-07'
+  ask: Check the fork dial actually reverted at 02:50 as designed.
+  status: shipped
+  evidence:
+  - f1ccbd2581 the fork dial was never restored at HEAD, and the guard's post-expiry leg had never been run
+  moved: 2026-10-24
+- id: console_2026-09-07_3
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-09-07.md
+  asked: '2026-09-07'
+  ask: How many house types are needed to capture 99% of the variation in demand, and how do the two compose?... Measure the joint coverage rather than the two separately.
+  status: shipped
+  evidence:
+  - e4bedd2601 13 household cases cover 99% of DEMAND, not 273
+  moved: 2026-10-24
+- id: console_2026-09-07_4
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-09-07.md
+  asked: '2026-09-07'
+  ask: The console capture is dead... Fix it, and make a capture that stops writing a finding rather than a silence. A session that takes director input without capturing it is a finding.
+  status: shipped
+  evidence:
+  - e3b5801868 the console capture read a folder that went cold
+  - ec46351f8a the capture read one transcript folder while both were live
+  - tools/console_instruction_record.py
+  moved: 2026-10-24
+- id: console_2026-09-07_5
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-09-07.md
+  asked: '2026-09-07'
+  ask: It records what I send and not what you reply... there's a window where my advisor can see the instruction and not the answer. Close that however you judge best.
+  status: partly
+  evidence:
+  - 023273d123 the stretch entry for the console-capture repair
+  missing: No capture of the seat's replies found; the gap is covered only indirectly by the stretch log, whose own lapses were reported 10, 16 and 18 Sep.
+  next_step: Decide whether the clock-driven stretch log (1d38d1d811) closes this; if yes, close with that reason, else capture the reply half alongside tools/console_instruction_record.py.
+  moved: 2026-10-24
+- id: console_2026-09-07_6
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-09-07.md
+  asked: '2026-09-07'
+  ask: 'The AST census as a control rather than a manual sweep: yes. Refuse any coverage, ceiling or sufficiency claim that doesn''t declare the dimension it reduces over.'
+  status: shipped
+  evidence:
+  - tools/reduction_dimension.py
+  moved: 2026-10-24
+- id: console_2026-09-07_7
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-09-07.md
+  asked: '2026-09-07'
+  ask: Report [275] as a floor for a partial vector, not an answer, and say so wherever it's published. And tell me what it becomes as each remaining axis lands.
+  status: shipped
+  evidence:
+  - 122c08ec32 the sample size is republished as a FLOOR
+  moved: 2026-10-24
+- id: console_2026-09-07_8
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-09-07.md
+  asked: '2026-09-07'
+  ask: 'Write it up. ''How many synthetic households does it take to represent Britain, and why''... And close the gap: a canon document that establishes domain understanding should reach the Knowledge layer.'
+  status: shipped
+  evidence:
+  - site/knowledge/how-many-synthetic-households
+  - ab6f36d109 a filer for director documents
+  - b3eace8402 the sampling method reaches a reader
+  moved: 2026-10-24
+- id: console_2026-09-07_9
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-09-07.md
+  asked: '2026-09-07'
+  ask: 'Order: the director-document filer first. Then payment method... Then the rest of W2_19''s physical layer... Then half-hourly electricity shape... Then the full-vector re-measure. The outcome: a number that isn''t a floor.'
+  status: partly
+  evidence:
+  - ab6f36d109 a filer for director documents
+  - 393a91fd42 hot water scales with occupancy
+  - 91edd53aad the half-hourly shape axis carries a level, not a shape
+  missing: He then ruled 'Stop measuring N' (8 Sep); the full-vector number that is not a floor was never landed, and the people layer was still being asked for on 17-18 Sep.
+  next_step: Close the N half as superseded by 8 Sep 'Stop measuring N'; carry the people-layer half under the 17 Sep ask.
+  moved: 2026-10-24
+- id: console_2026-09-08_1
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-09-08.md
+  asked: '2026-09-08'
+  ask: Is household shape still derived by rescaling one national profile? If so... say so and fix the mechanism before the number is used.
+  status: shipped
+  evidence:
+  - '91edd53aad the half-hourly shape axis carries a level, not a shape: the director was right'
+  - '316983a72d W1_14: the book is a spread not rescaled copies (10.7x)'
+  moved: 2026-10-24
+- id: console_2026-09-08_2
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-09-08.md
+  asked: '2026-09-08'
+  ask: Before the demand vector goes further, I want knowledge and discovery on gas — published evidence first, then discovery against what we have, then a recommendation on how to join it up.
+  status: shipped
+  evidence:
+  - '5e3e3cceb5 gas: the published evidence, the missing inside temperature'
+  moved: 2026-10-24
+- id: console_2026-09-08_3
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-09-08.md
+  asked: '2026-09-08'
+  ask: Approved — retire the closed form, use simulate_premise, half-hourly for gas. Correct the setpoint to the EFUS anchor... a model that heats a leaky home like a new build... Fix that before any ranking is published.
+  status: partly
+  evidence:
+  - '0388be7c12 gas gets its inside temperature: setpoint anchored to EFUS, schedule driven by presence'
+  missing: No commit found that makes internal temperature depend on fabric (a leaky home running cooler), which he ruled must be fixed before any intervention ranking is published.
+  next_step: Check simulate_premise for a fabric-dependent mean internal temperature; if absent, build it before the intervention ranking reaches a page.
+  moved: 2026-10-24
+- id: console_2026-09-08_4
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-09-08.md
+  asked: '2026-09-08'
+  ask: Go looking for half-hourly gas — smart meter datasets, SERL, any published trial with sub-daily gas — and say what exists and what it would take.
+  status: partly
+  evidence:
+  - 839806aff1 a gas-heated home's electricity now has SERL's season
+  missing: No record found of a census of sub-daily gas sources (SERL access route, trials) with what each would take.
+  next_step: Write the half-hourly gas sources section on the gas knowledge page, labelled GAP where nothing is reachable.
+  moved: 2026-10-24
+- id: console_2026-09-08_5
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-09-08.md
+  asked: '2026-09-08'
+  ask: Make hot water scale with occupancy, as a labelled parameter with its basis stated... Wire it to whatever grades it... build the ability to vary it.
+  status: shipped
+  evidence:
+  - '393a91fd42 hot water scales with occupancy: a named parameter, its basis stated, and a grading'
+  - tools/hot_water_base.py
+  moved: 2026-10-24
+- id: console_2026-09-08_6
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-09-08.md
+  asked: '2026-09-08'
+  ask: 'Don''t price comfort — floor it... Use a health floor instead: 18°C, from WHO and NICE guidance... Below it, turn-down is never recommended at any price.'
+  status: shipped
+  evidence:
+  - 097f9a6c9f COMFORT IS FLOORED, NOT PRICED
+  - docs/staging/done/WORKER_RESULT_THE_ADVICE_LEG_IS_LIVE_FOR_THIRTEEN_HOUSEHOLDS_AND_THE_FLOOR_COSTS_THE_LEDGER_NOTHING_2026-09-21.md
+  moved: 2026-10-24
+- id: console_2026-09-08_7
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-09-08.md
+  asked: '2026-09-08'
+  ask: Phase one is believable meter data — half-hourly reads per account... Tell me when the meter data is believable and what it rests on.
+  status: shipped
+  evidence:
+  - '316983a72d W1_14: the book is a spread not rescaled copies (10.7x)'
+  - '531d869285 W1_14 / Stage 1: the sample earns its place'
+  moved: 2026-10-24
+- id: console_2026-09-08_8
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-09-08.md
+  asked: '2026-09-08'
+  ask: Build the world's weather as a store keyed by cell, once, and have every property read from it.
+  status: shipped
+  evidence:
+  - '6e02d64428 W1_14: the per-cell weather store and its reader land'
+  - 8a746a18fc the per-cell weather store's producer, reader and validator
+  moved: 2026-10-24
+- id: console_2026-09-08_9
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-09-08.md
+  asked: '2026-09-08'
+  ask: Fill the two gaps cell-keyed... Summer daily temperature, and daily wind and cloud — ERA5 is a grid, so a per-cell pull gets everything.
+  status: shipped
+  evidence:
+  - 'f94ebb1d2a W1_14: the ERA5 resume takes the store from 169 to 190 complete cells'
+  moved: 2026-10-24
+- id: console_2026-09-08_10
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-09-08.md
+  asked: '2026-09-08'
+  ask: What happens when we stop replaying historical weather and generate it instead?... Say what the generative case actually needs, and whether anything we're building now forecloses it.
+  status: not_started
+  missing: No record found answering what generated weather needs or whether the per-cell store forecloses it.
+  next_step: 'Answer it inside the forward-years work (DIRECTOR_RULING_FORWARD_YEARS_COME_RIGHT_AFTER_THE_BASICS_2026-10-24): regimes vs cells for generated weather, and whether the store''s shape can carry it.'
+  moved: 2026-10-24
+- id: console_2026-09-08_11
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-09-08.md
+  asked: '2026-09-08'
+  ask: Where did the HadUK pull get to?... Make its progress visible somewhere I can read.
+  status: shipped
+  evidence:
+  - e2accc1ea4 a long job that nobody can read reports success by default; fixed
+  - background/long_job.py
+  - docs/observability/long_jobs.json
+  moved: 2026-10-24
+- id: console_2026-09-09_1
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-09-09.md
+  asked: '2026-09-09'
+  ask: 'Every error figure you''ve quoted is annual... Measure it at the extremes: error on the coldest day, on the coldest week, and on peak half-hour demand, per cell and worst-cell.'
+  status: not_started
+  missing: No record found of the tail-error measurement (coldest day, coldest week, peak half-hour) for the regime decomposition.
+  next_step: 'Recommend closing: the store went per-cell (W1_14, 6e02d64428) rather than twenty regimes, so the question it gated is gone; reopen only if regimes come back for generated weather.'
+  moved: 2026-10-24
+- id: console_2026-09-09_2
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-09-09.md
+  asked: '2026-09-09'
+  ask: The long_job status you built is the right mechanism — put its verdict somewhere I read without asking, because from outside, finished, running and dead still look identical.
+  status: shipped
+  evidence:
+  - docs/staging/done/SEAT_FINDING_A_LONG_JOB_THAT_DIES_IS_NOW_SHOWN_DEAD_IN_THE_BRIEF_2026-09-29.md
+  - background/long_job.py
+  moved: 2026-10-24
+- id: console_2026-09-09_3
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-09-09.md
+  asked: '2026-09-09'
+  ask: The merge gated clean and pushed and the tree still didn't advance, refused on value_arms.json and staged documents modified on both sides. That's derived files colliding... it isn't catching these.
+  status: not_started
+  missing: No commit found that extends the merge re-derivation (2dfc5e4feb) to value_arms.json or to staged documents.
+  next_step: Check whether this collision still happens; if it does, add those paths to the re-derive-on-merge set with a control that fails on a two-sided edit.
+  moved: 2026-10-24
+- id: console_2026-09-10_1
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-09-10.md
+  asked: '2026-09-10'
+  ask: Fix the log, and make a stretch that lands work without a report a finding that fires rather than a silence.
+  status: shipped
+  evidence:
+  - aee126521e the stretch finding now reaches a channel with a reader
+  - eb12cbeb18 the stretch check was never silent
+  moved: 2026-10-24
+- id: console_2026-09-10_2
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-09-10.md
+  asked: '2026-09-10'
+  ask: Two other sessions on this repo — skynet-swirling-owl and a worker-seat bring-up — both disconnected... Adopt what's finished, park what isn't, and release their claims.
+  status: not_started
+  missing: No record found of an audit of those two sessions' leftovers or claims.
+  next_step: 'Recommend closing: six weeks on, any residue has been swept by the later stranded-work drains (e.g. 9ea5c98810); say so in the ledger.'
+  moved: 2026-10-24
+- id: console_2026-09-10_3
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-09-10.md
+  asked: '2026-09-10'
+  ask: Wire the sample... the population the world runs on should be the one the sampler chooses, weighted.
+  status: shipped
+  evidence:
+  - 0d86d6dfe5 the world's homes are drawn from the fitted joint now
+  - 3957ba8485 the settled book is chosen for difference and weighted per account
+  moved: 2026-10-24
+- id: console_2026-09-17_1
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-09-17.md
+  asked: '2026-09-17'
+  ask: Go back to W1_14... Finish the cell store, get the book reading from it... then the book-wide spread, then the people layer.
+  status: partly
+  evidence:
+  - '6e02d64428 W1_14: the per-cell weather store and its reader land'
+  - '316983a72d W1_14: the book is a spread not rescaled copies'
+  - 57b7d6fa6a occupancy <-> income stress carried
+  missing: The people layer (who lives there, presence and schedules feeding the half-hourly shape across the book) is not shown as complete.
+  next_step: Check the people-layer atoms on the map and finish the one that wires occupancy and presence into the book's half-hourly shape.
+  moved: 2026-10-24
+- id: console_2026-09-18_1
+  source: docs/staging/console/DIRECTOR_CONSOLE_2026-09-18.md
+  asked: '2026-09-18'
+  ask: Fix it so [the stretch log] fires on time, not on completion. Every few hours, whatever state the work is in... A stretch with nothing to report is the entry I most need to see.
+  status: shipped
+  evidence:
+  - 1d38d1d811 the stretch log fired on COMPLETION... it fires on a clock now
+  - c91ce75154 skipped runs write too, and the clock pages past two periods
+  moved: 2026-10-24

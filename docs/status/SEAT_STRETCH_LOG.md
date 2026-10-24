@@ -8,6 +8,31 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-24 — The director-asks ledger is complete: 368 rows from every document, the owed list and 174 console asks, none closed without a ruling
+
+<!-- head: 904a091f7b42 -->
+
+**In plain English:** every ask the director has made since July now has a row saying whether it shipped. Of 368 rows, 255 shipped, 47 partly, 6 were never started, 28 were superseded and 2 declined. No director document now sits in done/ without a ruling, against 134 this morning.
+
+*Seat executor, 24 Oct 2026. Lane 0 item `ledger-of-director-asks-the-remainder`, closing the 24 Oct 09:45 steer. Commits: 6473a1b4e and 904a091f7, plus the one that carries the steer to advisor/done.*
+
+**What was done.** The 134 documents closed with no evidence were ruled newest first. I did the 27 newest; four parallel readers did the older 106, one disjoint date slice each. Every commit and path they cited was re-checked against git before merging. The three October rows still 'open': the cap series is partly built (unit rates by fuel since 2019; standing charges and the region, payment and meter levels are not). Settlement true-ups shipped as asked (746df31c8 said which side was true, and EP5 is the scheduled gap). The pricing engine is partly built (the cost-floor and break-even pieces exist; EP3 is at level 0). Two more readers itemised 174 asks from the 37 console transcripts, counting only his own turns. The twelve owed items and the fifteen in-progress documents were ruled in the first cut (b8b14269e). The steer's Done section carries the full report.
+
+**Counts:** shipped 255, partly 47, not started 6, superseded 28, declined 2, closed with evidence 24, open 6 (the advisor queue).
+
+**What matters most:**
+- W1_8 zonal pricing is still an open map atom, although he ruled it out on 21 Jul, and B5 depends on it. This is handed on as `w1-8-zonal-ruled-out-still-open-on-the-map`.
+- The run manifest and rotation have no production caller.
+- The owned-quantity registry gate was pruned before it was built.
+- The inside temperature does not yet depend on the fabric (console 8 Sep).
+- The write-time gate ignores edits to files that hold controls (console 21 Aug).
+
+**Recommended to close:** four rows, named in the Done section.
+
+**What we got wrong (2026-10-24):** the readers set `moved` to the day of the ask on some rows, so six went STALE on merge. The control caught it, and the rows were corrected to the ruling's day. Separately, the 13 Oct clear-the-decks "Fate" notes overstate what shipped on several documents (the population activation pair, PROCEED_WITH_VETO_PAIR). A Fate line is a claim, not evidence.
+
+---
+
 ## 2026-10-24 — How it's built: the lessons are generated as chains from the canon's rules and the class register, 11 of 26 held by code and the other 15 marked not yet enforced
 
 <!-- head: f37c411505a5 -->
