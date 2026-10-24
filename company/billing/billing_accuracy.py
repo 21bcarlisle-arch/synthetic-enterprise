@@ -47,6 +47,12 @@ estimator: the gap between two of the company's estimators is not energy used an
 Billed-on-estimate (above) and unbilled are Centrica's two halves of "unread revenue"; they count
 different bills and are never summed here. K4-K7 cannot arise in the run yet (note §5).
 
+A MOVER'S FINAL BILL (2026-10-24) is `move_out_final_bills`. It grades each account a home move
+closed against three rules on three clocks (`docs/market_research/home_moves.md` §8.8). The final
+bill is due within six weeks of the move. The closing read is actual or estimated. A credit is due
+back within ten working days of the final bill's issue. The debt left on the final bill is `None`,
+with its reason, until the run publishes each closed account's balance.
+
 THE DIRECT-DEBIT MONEY LINE sits beside K3 and is never added to it. For a direct-debit account the
 statement is not a demand, so no kWh is barred at a catch-up and K3 is pay-on-bill energy only.
 What SLC 21BA bars there is money: at a charge recovery action (the final bill of an account that
@@ -61,19 +67,21 @@ exposure, not a loss, and is shown apart. The control that it stays apart is
 
 from __future__ import annotations
 
+import datetime as dt
 import math
 import statistics
 from collections.abc import Iterable
 
 from company.billing.pre_bill_validation import issued_with_final_bill
 from company.billing.read_duty_register import read_duty_summary
+from company.compliance.working_days import OutsideCalendarCoverage, working_days_between
 from saas.ledger import open_estimated_bills
 
 __all__ = [
     "KINDS", "NO_READ_BILL_RUN", "PUBLISHED_MEDIAN_SUPPLIER_SHARE_NO_READ_BILL_IN_12",
     "account_billing_accuracy", "billing_accuracy_summary", "dd_review_arms", "direct_debit_money_line",
-    "estimated_billing_outstanding_grade", "estimated_share_by_year_and_meter", "published_view",
-    "unbilled_accrual",
+    "estimated_billing_outstanding_grade", "estimated_share_by_year_and_meter",
+    "move_out_final_bills", "published_view", "unbilled_accrual",
 ]
 
 #: The kinds this module measures, keyed to the knowledge note's ids.
@@ -83,6 +91,24 @@ KINDS = {
     "K3": "energy barred by the 12-month back-billing limit (SLC 21BA)",
     "K1_unbilled": "energy the company counts as used and has not issued a bill for, at a month end",
 }
+
+#: SLC 27.17: "all reasonable steps to send a final Bill ... within 6 weeks" of the contract
+#: ending (`docs/market_research/home_moves.md` §8.8).
+FINAL_BILL_WITHIN_DAYS = 42
+
+#: GSoP 2015 reg 6D, inserted by SI 2019/218: refund a credit "within 10 working days of issuing
+#: a customer's final bill" (`docs/market_research/home_moves.md` §8.8).
+CREDIT_REFUND_WORKING_DAYS = 10
+
+#: Why the published issue date is the period end, and so why the late branch cannot fire on it.
+ISSUED_AT_PERIOD_END_REASON = (
+    "the bill record carries no issue date; company/billing/invoice.py issues a bill at its period "
+    "end, so days to the final bill are set by that rule and no final bill can be late in this run")
+
+#: Why the debt left on a final bill is not measured from the published run.
+NO_CLOSING_BALANCE_REASON = (
+    "the published run carries no closed account's balance at its final bill; the bill's face "
+    "value would count every paid final bill as owed")
 
 #: Twelve consecutive bills with none on an actual read. This is the Citizens Advice
 #: traditional-meter billing-accuracy window (note §2 K2): a bill on a read in the last 12 months.
@@ -170,6 +196,122 @@ def account_billing_accuracy(bills: Iterable[dict]) -> list[dict]:
         )
         rows.append(row)
     return rows
+
+
+def _working_days(start: dt.date, end: dt.date) -> int:
+    try:
+        return working_days_between(start, end)
+    except OutsideCalendarCoverage:
+        return sum(1 for n in range(1, (end - start).days + 1)
+                   if (start + dt.timedelta(days=n)).weekday() < 5)
+
+
+def move_out_final_bills(bills: Iterable[dict], move_outs: Iterable[dict] | None,
+                         refunds: Iterable[dict] | None = None, *,
+                         closing_balances: dict[str, float] | None = None) -> dict:
+    """Each account a home move closed, graded against the final-bill rules (home_moves.md §8.8).
+
+    `bills` are the supplier's issued bills; the final one carries `final_bill`, and an
+    `issue_date` if the record has one, else its period end is its issue (`ISSUED_AT_PERIOD_END_REASON`).
+    `move_outs` is the run's `home_move_outs`: the account and the move date a notice or the closing
+    read gives. `refunds` is the `credit_refund_log`. `closing_balances`, account -> £ owed (+) or
+    held in credit (-) at the final bill, is absent from every run so far.
+
+    A move with no final bill is `missing` once six weeks have passed by the last bill in the run,
+    and `not_yet_due` before. The missing final bill is the class Ofgem enforced on. An account
+    whose final bill ended before its move is `closed_before_move` and is graded against nothing.
+    A `None` move register is "moves not in this world", not "nobody moved".
+    """
+    if move_outs is None:
+        return {"available": False, "unavailable_because": "the run has no move-out register"}
+    bills = list(bills)
+    run_end = max((b["period_end"] for b in bills), default=None)
+    finals: dict[str, list[dict]] = {}
+    for bill in bills:
+        if bill.get("final_bill"):
+            finals.setdefault(bill["customer_id"], []).append(bill)
+    paid_refunds = {r["customer_id"]: r for r in refunds or ()
+                    if r.get("trigger") == "account_closure"}
+
+    rows, seen = [], set()
+    for move in sorted(move_outs, key=lambda m: (m["customer_id"], m["move_date"])):
+        key = (move["customer_id"], move["move_date"])
+        if key in seen:
+            continue
+        seen.add(key)
+        account, move_date = key[0], dt.date.fromisoformat(key[1])
+        row = {"account_id": account, "fuel": move.get("commodity"), "move_date": key[1],
+               "final_bill_period_end": None, "final_bill_issued": None, "issue_date_basis": None,
+               "days_move_to_final_bill": None, "final_bill": None, "closing_read": None,
+               "credit_refund_working_days": None, "credit": None, "debt_carried_gbp": None,
+               "debt": None}
+        # The final bill closes the day before the move. A final bill that ends earlier closed the
+        # account before the move (it had already switched away), so the move closed nothing of
+        # ours: seven such records in the run of 2026-10-22, the earliest 28 days before its move.
+        last_supplied = (move_date - dt.timedelta(days=1)).isoformat()
+        candidates = [b for b in finals.get(account, ()) if b["period_end"] >= last_supplied]
+        if not candidates and finals.get(account):
+            row["final_bill"] = "closed_before_move"
+            row["final_bill_period_end"] = max(b["period_end"] for b in finals[account])
+            rows.append(row)
+            continue
+        if not candidates:
+            due = move_date + dt.timedelta(days=FINAL_BILL_WITHIN_DAYS)
+            row["final_bill"] = ("missing" if run_end and dt.date.fromisoformat(run_end) > due
+                                 else "not_yet_due")
+            rows.append(row)
+            continue
+        final = min(candidates, key=lambda b: b["period_end"])
+        issued_s = final.get("issue_date") or final["period_end"]
+        issued = dt.date.fromisoformat(issued_s)
+        days = (issued - move_date).days
+        row.update({
+            "final_bill_period_end": final["period_end"], "final_bill_issued": issued_s,
+            "issue_date_basis": "issue_date" if final.get("issue_date") else "period_end",
+            "days_move_to_final_bill": days,
+            "final_bill": "late" if days > FINAL_BILL_WITHIN_DAYS else "on_time",
+            "closing_read": final.get("billing_basis"),
+        })
+        refund = paid_refunds.get(account)
+        if refund is not None and refund.get("paid_date"):
+            wd = _working_days(issued, dt.date.fromisoformat(refund["paid_date"]))
+            row["credit_refund_working_days"] = wd
+            row["credit"] = "late" if wd > CREDIT_REFUND_WORKING_DAYS else "on_time"
+        if closing_balances is not None and account in closing_balances:
+            owed = closing_balances[account]
+            row["debt_carried_gbp"] = owed
+            row["debt"] = "carried" if owed > 0 else ("credit" if owed < 0 else "settled")
+        rows.append(row)
+
+    def count(field: str, value: str) -> int:
+        return sum(1 for r in rows if r[field] == value)
+
+    with_final = [r for r in rows if r["final_bill"] in ("on_time", "late")]
+    by_period_end = all(r["issue_date_basis"] == "period_end" for r in with_final)
+    return {
+        "available": True, "moves": len(rows), "run_end": run_end,
+        "final_bill": {"on_time": count("final_bill", "on_time"),
+                       "late": count("final_bill", "late"),
+                       "missing": count("final_bill", "missing"),
+                       "not_yet_due": count("final_bill", "not_yet_due"),
+                       "closed_before_move": count("final_bill", "closed_before_move"),
+                       "within_days": FINAL_BILL_WITHIN_DAYS,
+                       "late_cannot_fire_because": (ISSUED_AT_PERIOD_END_REASON
+                                                    if with_final and by_period_end else None)},
+        "closing_read": {"of": len(with_final), "actual": count("closing_read", "actual"),
+                         "estimated": count("closing_read", "estimated")},
+        "credit": {"refunds_recorded": count("credit", "on_time") + count("credit", "late"),
+                   "on_time": count("credit", "on_time"), "late": count("credit", "late"),
+                   "within_working_days": CREDIT_REFUND_WORKING_DAYS,
+                   "unrecorded_because": ("the refund log lists only direct-debit accounts that "
+                                          "closed in credit; for the rest the run records no "
+                                          "closing balance")},
+        "debt": {"carried": count("debt", "carried"), "credit": count("debt", "credit"),
+                 "settled": count("debt", "settled"),
+                 "unmeasured_because": None if closing_balances is not None
+                 else NO_CLOSING_BALANCE_REASON},
+        "accounts": rows,
+    }
 
 
 def direct_debit_money_line(accounts: list[dict] | None, *, unmeasured_accounts: int = 0,

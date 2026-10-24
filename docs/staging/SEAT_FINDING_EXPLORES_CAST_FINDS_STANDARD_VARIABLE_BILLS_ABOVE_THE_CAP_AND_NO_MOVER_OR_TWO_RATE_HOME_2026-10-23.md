@@ -90,6 +90,34 @@ and six years since any payment.
 - **The mover.** The published per-household record has no move-out event and no final-bill
   marker. The 181 `OCC-` accounts are not linked to the household they replaced. Until the 22 Oct
   mover fix emits those links, the slot says so on the page.
+
+  **Re-graded 2026-10-24** (rules: `docs/market_research/home_moves.md` §8.8; measure:
+  `billing_accuracy.move_out_final_bills`, over the published run of 2026-10-22, producing commit
+  `1044c8fe0d`, no new arm):
+  - The household record now carries a `moved_out` event and a `final_bill` event, with the
+    closing read's basis and the amount (`tools/generate_customer_reaction_chain.py`). An `OCC-`
+    page names its predecessor account from `occupier_successions`. The current run predates that
+    field, so all 181 pages say "the run predates occupier_successions" until the next run.
+  - **256 move-outs.** 249 closed an account with a final bill. 7 name an account whose final bill
+    ended 28 days to 9 months *before* the move. The account had already left us, so the move
+    closed nothing of ours, and those 7 are graded against nothing. The world puts a move in the
+    supplier's register for a household it no longer supplies. Filed here, not yet chased.
+  - **Final bill within 6 weeks (SLC 27.17): 249 of 249 on time, and that proves nothing.** Every
+    bill's issue date is its period end (`invoice.py`), so every final bill is dated the day
+    before the move (−1 day). The late branch cannot fire in this run. It is proven able to fire
+    on a fixture (`test_every_final_bill_branch_can_be_taken`).
+  - **Closing read: 164 of 249 estimated (66%)**, 85 actual (electricity 87/136 estimated, gas
+    78/113). No rule requires an actual closing read, and the published share is a GAP (G8.9). A
+    mover is told to read the meters on the day, so two in three closing on an estimate is a
+    fidelity question for the read lane. Not graded as a breach.
+  - **Credit refunded within 10 working days of the final bill (GSoP reg 6D): 19 of 21 on time,
+    2 late (14 and 20 working days).** Only direct-debit accounts that closed in credit are in
+    the refund log. For the other 228 the run records no closing balance. The late tail is the
+    world's `credit_refund_events.ON_TIME_PROBABILITY` draw. The log labels this rule "SLC 14",
+    which is the wrong locus (corrected in §8.8).
+  - **Debt carried: unmeasured, `None` with its reason.** The run publishes no closed account's
+    balance at its final bill. Next: publish that balance per closed account, then this branch
+    reads it.
 - **Storage heating.** Every one of the run's 38,554 invoices carries one `Anytime` register. There
   is no profile-class-2 home to show. The rule is proven able to fire on a two-register bill
   (`test_the_storage_rule_fires_on_a_two_register_bill`), so the slot is empty because of the run,

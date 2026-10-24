@@ -18,6 +18,9 @@ Item 4: reuses company/analytics/decision_event_ledger.build_customer_ledger
 data source -- bill-shock/journey-state/retention-decision/outcome/arrears
 events, cause-linked, real EV numbers -- instead of new plumbing.
 
+Also the move-out, its final bill, and for a change-of-tenancy (`OCC-`) account the account it
+succeeded at the same meter point (`docs/market_research/home_moves.md` §8.8).
+
 Output: patches "effect" onto existing timeline entries and adds a new
 "reaction_chain" key into each site/data/customers/{cid}.json (same
 read-existing/patch-key pattern as generate_invoice_data.py and
@@ -134,6 +137,42 @@ def _add_effects(timeline, invoices, consumption_monthly, pcb_entry):
     return timeline
 
 
+#: The timeline entries this module writes, removed before each write so a re-run never doubles them.
+_MOVE_EVENT_TYPES = {"moved_out", "final_bill"}
+
+
+def _move_out_events(cid, move_outs, final_bills):
+    """A move-out and the final bill that closed it, from the run's move-out register and the
+    supplier's own bills (home_moves.md §8.8). A final bill with no move is a departure's."""
+    events = []
+    for m in move_outs or []:
+        if m.get("customer_id") == cid:
+            events.append({"type": "moved_out", "date": m["move_date"], "detail": "Moved out",
+                           "commodity": m.get("commodity")})
+    for b in final_bills.get(cid, []):
+        basis = b.get("billing_basis")
+        events.append({
+            "type": "final_bill", "date": b.get("issue_date") or b["period_end"],
+            "detail": "Final bill", "commodity": b.get("commodity"),
+            "effect": "Closing read {}; billed £{:.2f}".format(
+                basis or "not recorded", b.get("total_amount_gbp") or 0.0),
+        })
+    return events
+
+
+def _predecessor(cid, successions):
+    """For a change-of-tenancy account, the account it succeeded at the same meter point, or None
+    with the reason. Only an `OCC-` account has one."""
+    if not cid.startswith("OCC-"):
+        return None, None
+    if successions is None:
+        return None, "the run predates occupier_successions"
+    for s in successions:
+        if s.get("account_id") == cid:
+            return s.get("predecessor_account_id"), None
+    return None, "the run lists no succession for this account"
+
+
 def generate(run_json_path=None):
     path = Path(run_json_path) if run_json_path else RUN_OUTPUT
     if not path.exists() or not LEDGER_PATH.exists():
@@ -157,6 +196,13 @@ def generate(run_json_path=None):
     for j in run.get("collections_journeys") or []:
         journeys_by_account.setdefault(j.get("account_id"), []).append(j)
 
+    move_outs = run.get("home_move_outs")
+    successions = run.get("occupier_successions")
+    final_bills = {}
+    for b in run.get("bills") or []:
+        if b.get("final_bill"):
+            final_bills.setdefault(b["customer_id"], []).append(b)
+
     count = 0
     for cust_file in sorted(CUSTOMERS_DIR.glob("*.json")):
         if cust_file.name == "_index.json":
@@ -165,8 +211,15 @@ def generate(run_json_path=None):
         obj = json.loads(cust_file.read_text())
         base = _base_id(cid)
 
+        timeline = [e for e in obj.get("timeline", []) if e.get("type") not in _MOVE_EVENT_TYPES]
+        timeline = sorted(timeline + _move_out_events(cid, move_outs, final_bills),
+                          key=lambda e: e.get("date") or "")
+        predecessor, why_not = _predecessor(cid, successions)
+        if cid.startswith("OCC-"):
+            obj["predecessor_account_id"] = predecessor
+            obj["predecessor_unavailable_because"] = why_not
         obj["timeline"] = _add_effects(
-            obj.get("timeline", []),
+            timeline,
             obj.get("invoices", []),
             obj.get("consumption", {}).get("monthly", []),
             pcb.get(base, {}),

@@ -21,6 +21,7 @@ from company.billing.billing_accuracy import (
     direct_debit_money_line,
     estimated_billing_outstanding_grade,
     estimated_share_by_year_and_meter,
+    move_out_final_bills,
     published_view,
     unbilled_accrual,
 )
@@ -611,3 +612,74 @@ def test_the_published_split_is_an_absence_without_meter_types_and_counts_no_hel
         split["by_fuel"]["electricity"]["billed_kwh"])
     assert split["K2_by_year_and_meter_type"]["published_traditional_share_of_domestic_meters_end_2024"] == {
         "electricity": 0.358, "gas": 0.453}
+
+
+# --- a mover's final bill (home_moves.md §8.8) ---------------------------------------------------
+
+def _final(cid, period_end, basis="actual", **extra):
+    return {"customer_id": cid, "period_end": period_end, "billing_basis": basis,
+            "final_bill": True, "total_consumption_kwh": 50.0, **extra}
+
+
+def _move_fixture():
+    bills = [
+        _final("ON", "2020-03-14"),                                        # issued at period end
+        _final("LATE", "2020-03-14", "estimated", issue_date="2020-05-01"),  # 48 days after move
+        _final("GONE", "2019-12-31"),                                      # closed before the move
+        {"customer_id": "RUN", "period_end": "2021-06-30", "billing_basis": "actual",
+         "total_consumption_kwh": 1.0},
+    ]
+    moves = [{"customer_id": c, "commodity": "electricity", "move_date": "2020-03-15"}
+             for c in ("ON", "LATE", "GONE", "NOFINAL")]
+    refunds = [
+        {"customer_id": "ON", "trigger": "account_closure", "paid_date": "2020-03-20"},
+        {"customer_id": "LATE", "trigger": "account_closure", "paid_date": "2020-06-01"},
+    ]
+    return bills, moves, refunds
+
+
+def test_every_final_bill_branch_can_be_taken():
+    """The partition control: on one fixture, every grade the rules allow is reached, so a guard
+    that refuses everything, or passes everything, reds here."""
+    out = move_out_final_bills(*_move_fixture(), closing_balances={"ON": -12.0, "LATE": 40.0})
+    assert out["final_bill"]["on_time"] and out["final_bill"]["late"]
+    assert out["final_bill"]["missing"] and out["final_bill"]["closed_before_move"]
+    assert out["credit"]["on_time"] and out["credit"]["late"]
+    assert out["closing_read"]["actual"] and out["closing_read"]["estimated"]
+    assert out["debt"]["carried"] and out["debt"]["credit"]
+
+
+def test_a_final_bill_issued_after_six_weeks_is_late():
+    out = move_out_final_bills(*_move_fixture())
+    row = {r["account_id"]: r for r in out["accounts"]}
+    assert row["LATE"]["days_move_to_final_bill"] == 47
+    assert row["LATE"]["final_bill"] == "late"
+    assert row["ON"]["final_bill"] == "on_time"
+    # A mixed basis is not the convention, so the cannot-fire caveat is not printed over it.
+    assert out["final_bill"]["late_cannot_fire_because"] is None
+
+
+def test_the_refund_clock_runs_from_the_final_bills_issue_not_the_move():
+    """LATE's refund is 19 working days after its issue on 1 May (two bank holidays); from the move
+    it would be 52."""
+    row = {r["account_id"]: r for r in move_out_final_bills(*_move_fixture())["accounts"]}
+    assert row["LATE"]["credit_refund_working_days"] == 19
+    assert row["ON"]["credit_refund_working_days"] == 5
+
+
+def test_period_end_issue_dates_say_the_late_branch_cannot_fire():
+    bills, moves, refunds = _move_fixture()
+    bills = [b for b in bills if b["customer_id"] != "LATE"]
+    out = move_out_final_bills(bills, moves, refunds)
+    assert out["final_bill"]["late"] == 0
+    assert out["final_bill"]["late_cannot_fire_because"]
+
+
+def test_the_debt_is_unmeasured_without_closing_balances_rather_than_zero():
+    out = move_out_final_bills(*_move_fixture())
+    assert out["debt"]["unmeasured_because"]
+    assert all(r["debt"] is None for r in out["accounts"])
+
+
+def test_no_move_register_is_not_nobody_moved():
+    assert move_out_final_bills([], None)["available"] is False
