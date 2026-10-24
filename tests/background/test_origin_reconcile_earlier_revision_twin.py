@@ -24,6 +24,12 @@ WHAT EACH CONTROL WOULD CATCH:
   * `test_bytes_that_change_after_the_verdict_are_not_cleared` -- the in-lock re-proof. MUTATION:
     skip the `git show` comparison in `preserve_earlier_revision_twins` -> the novel bytes a lane
     wrote after the verdict are destroyed and this reds.
+  * `test_a_staged_rename_to_done_holding_heads_blob_is_unstaged_and_the_tree_advances` -- the
+    2026-10-24 wedge: a worker's uncommitted `git mv` to done/. MUTATION: drop `--force` from the
+    staged-add `git rm --cached` -> held. MUTATION: drop the HEAD-tree leg of
+    `_staged_blob_refusal` -> held, because the rename's blob is HEAD's at the SOURCE path only.
+  * `test_a_staged_blob_no_history_holds_is_never_dropped` -- the other side of the partition.
+    MUTATION: `_staged_blob_refusal` returns None always -> the novel staged blob is dropped.
 """
 from __future__ import annotations
 
@@ -166,3 +172,64 @@ def test_bytes_that_change_after_the_verdict_are_not_cleared(world):
     assert (shared / _DOC).read_bytes() == novel, \
         "bytes that are on no origin revision were destroyed on a proof made about other bytes"
     assert "changed after it was judged" in out["reason"]
+
+
+_SRC = "docs/staging/advisor/DIRECTOR_READING_A_FILE_THE_DRAW_MOVED_TO_DONE.md"
+_DONE = "docs/staging/advisor/done/DIRECTOR_READING_A_FILE_THE_DRAW_MOVED_TO_DONE.md"
+
+
+def _commit_paths(seed: Path, writes: dict[str, bytes], removes: tuple[str, ...], msg: str) -> str:
+    for path, content in writes.items():
+        (seed / path).parent.mkdir(parents=True, exist_ok=True)
+        (seed / path).write_bytes(content)
+        _git(seed, "add", path)
+    for path in removes:
+        _git(seed, "rm", "-q", path)
+    _git(seed, "commit", "-q", "-m", msg)
+    _git(seed, "push", "-q", "origin", "HEAD:main")
+    return _git(seed, "rev-parse", "HEAD")
+
+
+def _staged_rename_world(world, disk: bytes):
+    """The 2026-10-24 shape: a worker's uncommitted `git mv` to done/, and origin's copy on disk.
+
+    HEAD holds the file at its source path. Origin moved it to done/ in the commit that appended
+    its Done section, so v1 is never on origin at done/, and then revised it again. The
+    shared tree's index holds HEAD's blob at the done/ path (the staged rename) while the disk
+    holds `disk`. `git rm --cached` refuses that entry: its blob is neither the file's nor HEAD's.
+    """
+    seed, clone_at = world
+    _commit_paths(seed, {_SRC: _V1}, (), "v1 at the source path")
+    shared = clone_at("shared")
+    _commit_paths(seed, {_DONE: _V2}, (_SRC,), "origin's own move to done/, with its Done section")
+    _commit_paths(seed, {_DONE: _V3}, (), "v3")
+    (shared / _DONE).parent.mkdir(parents=True, exist_ok=True)
+    _git(shared, "mv", _SRC, _DONE)                  # the worker's staged, uncommitted rename
+    (shared / _DONE).write_bytes(disk)
+    return shared
+
+
+def test_a_staged_rename_to_done_holding_heads_blob_is_unstaged_and_the_tree_advances(world):
+    shared = _staged_rename_world(world, _V2)        # disk = an earlier origin revision
+
+    out = _advance(shared)
+
+    assert out["advanced"] is True, out["reason"]
+    assert (shared / _DONE).read_bytes() == _V3
+    assert not (shared / _SRC).exists()
+
+
+def test_a_staged_blob_no_history_holds_is_never_dropped(world):
+    """The control over the partition: the same shape with novel STAGED bytes must still hold."""
+    shared = _staged_rename_world(world, _V2)
+    novel = b"# finding\nstaged by a lane, on no branch\n"
+    (shared / _DONE).write_bytes(novel)
+    _git(shared, "add", _DONE)                        # index now holds the novel blob
+    (shared / _DONE).write_bytes(_V2)                 # and the disk is an earlier origin revision
+    staged = _git(shared, "ls-files", "-s", "--", _DONE).split()[1]
+
+    out = _advance(shared)
+
+    assert out["advanced"] is False, "a staged blob no history holds is a lane's work"
+    assert _git(shared, "ls-files", "-s", "--", _DONE).split()[1] == staged, \
+        "and its index entry must still be there, untouched"

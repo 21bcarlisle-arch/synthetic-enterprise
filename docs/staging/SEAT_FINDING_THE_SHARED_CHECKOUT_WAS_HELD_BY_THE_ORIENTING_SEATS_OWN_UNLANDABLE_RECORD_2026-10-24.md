@@ -91,3 +91,13 @@ and carried `household_budget_w2_4.md`'s live edit across onto origin's copy.
 **Owed:** the twin-clearing leg should unstage an index entry whose blob is HEAD's or an earlier
 origin revision before it removes the path, instead of failing the whole all-or-nothing advance on
 it. A staged-but-uncommitted `git mv` to `done/` is the advisor draw's normal shape, so this will recur.
+
+**Paid, 2026-10-24.** `restore_tracked_twin` now asks `_staged_blob_refusal` about the index entry
+before it touches a path. An index blob that equals the disk's or HEAD's at that path, that HEAD holds at
+any path (a staged rename's source), or that origin wrote at that path is dropped (`git rm --cached
+--force` for a staged add). Any other blob refuses that twin by name, and the index entry is left alone. This
+incident's shape is reproduced in real git in
+`tests/background/test_origin_reconcile_earlier_revision_twin.py`: before the fix it reproduced the
+07:51Z refusal word for word, and after it the tree advances. A second test covers the other side of the partition: a novel
+staged blob still holds the tree. Three mutations each fire: drop `--force`, drop the HEAD-tree leg,
+or let the refusal always pass.

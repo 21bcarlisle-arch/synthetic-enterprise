@@ -651,18 +651,60 @@ def restore_tracked_twin(project: Path | None = None, path: str = "") -> str | N
     project = project or PROJECT_DIR
     in_head = _blob_in_head(project, path)
     try:
+        refusal = _staged_blob_refusal(project, path, in_head)
+        if refusal:
+            return refusal
         if in_head is not None:
             res = _git(project, "checkout", "HEAD", "--", path)
             if res.returncode != 0:
                 return (res.stderr or res.stdout or "").strip()[:200] or "git checkout refused"
             return None
-        res = _git(project, "rm", "--cached", "--quiet", "--", path)
+        # `--force` is licensed by `_staged_blob_refusal` above: whatever the index holds here is
+        # the disk's bytes or a blob history already keeps, so dropping the entry loses nothing.
+        res = _git(project, "rm", "--cached", "--force", "--quiet", "--", path)
         if res.returncode != 0:
             return (res.stderr or res.stdout or "").strip()[:200] or "git rm --cached refused"
         (project / path).unlink(missing_ok=True)
     except (OSError, subprocess.SubprocessError) as exc:
         return "{}: {}".format(type(exc).__name__, exc)
     return None
+
+
+def _staged_blob_refusal(project: Path, path: str, in_head: str | None) -> str | None:
+    """Why the INDEX entry at `path` may not be dropped, or None when dropping it loses nothing.
+
+    THE TWIN PROOF IS ABOUT THE DISK, AND THE INDEX IS A SECOND COPY. Measured on the shared tree
+    2026-10-24: a worker tick's uncommitted `git mv advisor/X advisor/done/X` left HEAD's blob of X
+    staged at the done/ path while the disk held an earlier origin revision. The disk was proven a
+    twin, `git rm --cached` refused the entry (staged content differs from both the file and HEAD),
+    and the all-or-nothing advance held the tree 113 behind until a hand ran `git restore --staged`.
+
+    An index blob equal to the disk's or HEAD's at this path is what the restore already assumes.
+    One HEAD holds at ANY path (a staged rename's source) or that origin wrote at THIS path is on a
+    branch, so it is dropped. Anything else is a lane's staged work, and the twin is refused by
+    name.
+    """
+    try:
+        res = _git(project, "ls-files", "--stage", "--", path)
+    except (OSError, subprocess.SubprocessError) as exc:
+        return "the index entry at {} could not be read ({})".format(path, exc)
+    if res.returncode != 0:
+        return "the index entry at {} could not be read".format(path)
+    fields = (res.stdout or "").split()
+    staged = fields[1] if len(fields) >= 2 else None
+    if staged is None or staged in (in_head, _blob_here(project, path)):
+        return None
+    try:
+        head_tree = _git(project, "ls-tree", "-r", "HEAD")
+    except (OSError, subprocess.SubprocessError):
+        head_tree = None
+    if head_tree is not None and head_tree.returncode == 0 and any(
+            line.split()[2:3] == [staged] for line in (head_tree.stdout or "").splitlines()):
+        return None
+    if staged in (_origin_revisions(project, path) or {}):
+        return None
+    return "{} has staged content ({}) that neither HEAD nor origin's history holds -- a lane's " \
+           "staged work, so the index entry was left alone".format(path, staged[:9])
 
 
 def identical_untracked_twins(project: Path | None = None,
