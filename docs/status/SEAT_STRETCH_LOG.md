@@ -8,6 +8,26 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-24 — Front-door diagram brought to canon v4 for Monday, and the canon check now reads the picture
+
+<!-- head: a154b105ace3 -->
+
+*Seat executor, 24 Oct 2026. Director steer of 24 Oct 09:42 on the front-door diagram, the Monday part plus the canon check on the picture.*
+
+**Each box, before and after.** Mission: the retired "cut carbon through personalisation — measured in £ per tonne of CO₂e saved" → M1 verbatim, with its id. Governance: "Board AI · six stances in tension" → "Delivery seat AI · direction → priorities (G1)". No board process exists, the last BOARD_SPEC commit is 28 Jul, and canon G1 names the seat. Builders → "sessions · daemons". Population: "of three hidden traits, one expresses" → each home hides its finances, life events and a thermal home under local weather, on dual fuel. Competitors "~ not yet" → "a rival: defends prices · contests: not yet". "~200 homes, ~12 segments" → "The founder book is the production shape (R6)". Company: a payment and debt engine band, in build, quoting M7 and citing C9 and C7. "no mechanism presses yet" → "collateral does not press yet". Score: ABATE "grid intensity × HH use → £/tCO₂e" → CARBON "CO₂ saved & could save (CO1)", with a line on money, time and carbon (M3) and £/tCO₂e as an internal diagnostic (CO3). Now column, headed Phase 1 (V1): the carbon ledger line → "Household half-hourly CO₂ measured (CO4)", plus honest gaps for abatement and time; added the defending rival, the payment engine with next best action, B7's moves, income shocks and deaths, and its own holdout (C8). Evolves column, headed Adapt, Forward: the £/tCO₂e headline → "Abatement measured"; "EV is fitness" → "the fitness function is open until Phase 3 (§2)"; V2 and V3 added.
+
+**Found beyond the advisor's list.** The World box said "Weather → half-hourly price + demand". That is wrong: prices are the 2016–25 record replayed, and weather drives each home's demand. The front door's own text has said so since 22 Oct (bee0abf1a8). "Lives rerun across worlds" sat in the present tense in "Why we don't need millions", and it is an Evolves claim, so it is replaced by seed families (R5, R6). The front door's score node still said "priced in £ per tonne", and the alt text described the old picture. Both are rewritten. "168k periods" comes off, so the 9 Oct no-stats list shrinks.
+
+**The canon check on the picture.** The site leg of `tools/canon_drift_check.py` read only `*.html`, which is why the picture kept the retired mission for weeks. It now reads served SVGs too, and it carries the diagram's withdrawn lines with the ruling for each: the 19 July mission, "Carbon becomes the headline" and "£/tCO₂e on the front page" (decision 4), and "EV is fitness" (decision 14). It fired on its first run, on my own picture: the M7 quote had its closing full stop outside the quotation marks. That is fixed. `test_the_real_site_holds...` gates it in the suite. The no-stats control now reads canon ids ("(M1)", "§2", "PHASE 1") as labels, and has a two-way detector case so it still catches "400-founder".
+
+**Trunk was red under it.** 833ef83e81 added an unguarded `window.addEventListener("hashchange")` to `/harness/`. The site render harness has no addEventListener, so 31 door tests threw while booting, and the site lane refused every site commit, this one included. The call is now guarded, and site/ goes from 31 red to green.
+
+**Not done.** The generated SVG (rendered at publish from THE_MODEL_ON_A_PAGE.md and the maturity map), the L2 band sheets and the cold read are still owed. They are handed on.
+
+**What we got wrong (2026-10-24):** The picture said weather drives price for three months. The text under it was corrected on 22 Oct, but nothing compared the two, because the canon check could not read an SVG.
+
+---
+
 ## 2026-10-24 — How it's built: the class register backfilled, the page shortened to five blocks above the fold, and a 30-day aging rule on the Monday step
 
 <!-- head: 05831e8684cc -->
