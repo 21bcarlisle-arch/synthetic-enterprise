@@ -20,6 +20,12 @@ ledger's `booked_gbp`), and none may be carved outside an EPG window. `unit_char
 median share of each bill's unit charge the receipt removed, by quarter and fuel: it should sit at
 that quarter's (cap - EPG) / cap, not at one band for the whole crisis.
 
+`defects` names each property the run breaks, and the grader exits 1 when it names any: carved not
+equal to booked, a receipt carved outside the windows, or an estimated bill below zero. A negative
+bill is under every ceiling, so the over-cap count alone passed the void stubs that the folded
+`hmt_epg_receipt_gbp_per_mwh` credited at 48 times the Treasury's rate (c5a8090187: GBP 5,898.10
+carved and never booked, because `validate_bills` held the five negative bills).
+
     python3 -m tools.grade_svt_invoices_over_ceiling docs/reports/run_output_<commit>_<stamp>.json[.gz]
 """
 
@@ -96,7 +102,32 @@ def grade(run: dict) -> dict:
         "actual_read_accounts": on_actual_read,
         "by_year": dict(sorted(by_year.items())),
         "epg_receipt": epg_receipt(run),
+        "negative_estimated_bills": [
+            {"customer_id": b["customer_id"], "period_start": str(b["period_start"])[:10],
+             "total_amount_gbp": round(b["total_amount_gbp"], 2)}
+            for b in run.get("bills") or []
+            if b.get("billing_basis") == "estimated" and (b.get("total_amount_gbp") or 0.0) < 0
+        ],
     }
+
+
+def defects(g: dict) -> list[str]:
+    """The properties a grade shows broken, each named with its numbers; empty when none is."""
+    out = []
+    receipt = g["epg_receipt"]
+    if receipt["booked_gbp"] is None:
+        if receipt["carved_gbp"]:
+            out.append(f"GBP {receipt['carved_gbp']:,.2f} carved and the run carries no ledger_pnl")
+    elif abs(receipt["carved_gbp"] - receipt["booked_gbp"]) > 0.01:
+        out.append(f"carved GBP {receipt['carved_gbp']:,.2f} != booked GBP "
+                   f"{receipt['booked_gbp']:,.2f}")
+    if receipt["carved_outside_epg_windows"]:
+        out.append(f"{receipt['carved_outside_epg_windows']} receipt(s) carved outside the EPG windows")
+    if g["negative_estimated_bills"]:
+        worst = min(g["negative_estimated_bills"], key=lambda b: b["total_amount_gbp"])
+        out.append(f"{len(g['negative_estimated_bills'])} estimated bill(s) below zero, worst "
+                   f"{worst['customer_id']} {worst['period_start']} GBP {worst['total_amount_gbp']:,.2f}")
+    return out
 
 
 def _quarter(iso: str) -> str:
@@ -132,8 +163,10 @@ def main(argv: list[str]) -> int:
     if len(argv) != 1:
         print(__doc__.strip().splitlines()[-1])
         return 2
-    print(json.dumps(grade(_load(Path(argv[0]))), indent=2))
-    return 0
+    g = grade(_load(Path(argv[0])))
+    g["defects"] = defects(g)
+    print(json.dumps(g, indent=2))
+    return 1 if g["defects"] else 0
 
 
 if __name__ == "__main__":

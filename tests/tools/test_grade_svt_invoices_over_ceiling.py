@@ -55,3 +55,23 @@ def test_the_epg_receipt_grade_sees_a_carve_outside_the_window_and_a_ledger_that
     assert leaky["carved_outside_epg_windows"] == 1
     assert leaky["carved_gbp"] != leaky["booked_gbp"]
     assert epg_receipt({"bills": [inside]})["booked_gbp"] is None
+
+
+def test_the_grade_names_a_carve_the_ledger_never_booked_and_a_negative_estimate():
+    """Defect: a grade that passes a run whose void stubs went negative (c5a8090187).
+
+    A negative bill is under every ceiling, so only these two legs see it. Both must fire on the
+    broken run and neither on the clean one, or a grade that always refuses passes too.
+    """
+    from tools.grade_svt_invoices_over_ceiling import defects
+
+    receipt = round(100 * (0.6747 - 0.34) / 1.05, 2)
+    inside = {**_bill("a", "2023-01-01", 34.0), "hmt_epg_receipt_gbp": receipt}
+    stub = {**_bill("s", "2023-01-17", 34.0), "hmt_epg_receipt_gbp": 48 * receipt,
+            "total_amount_gbp": -2949.65}
+    clean = grade({"bills": [inside], "ledger_pnl": {"epg_receipt_gbp": receipt}})
+    assert defects(clean) == []
+    broken = grade({"bills": [inside, stub], "ledger_pnl": {"epg_receipt_gbp": receipt}})
+    named = defects(broken)
+    assert len(named) == 2
+    assert named[0].startswith("carved GBP") and "below zero, worst s 2023-01-17" in named[1]

@@ -97,6 +97,20 @@ def test_a_rate_is_carried_not_summed():
     assert rows[0]["hedge_fraction"] == pytest.approx(0.85)
 
 
+def test_a_field_named_per_unit_is_carried_even_off_the_carried_list():
+    """Defect: `hmt_epg_receipt_gbp_per_mwh` summed over 48 half-hours (2026-10-24).
+
+    A void stub's estimate took its receipt from the daily row's rate and credited the household
+    48x the Treasury's share (OCC-eb8498f3f8aa, Jan 2023, a GBP -2,949.65 bill). The control is on
+    the name, so the next rate a lane stamps on a record is carried without anyone listing it,
+    and the pounds beside it still sum.
+    """
+    (row,) = fold_to_days(_day_of(kwh=0.25, hmt_epg_receipt_gbp_per_mwh=318.76,
+                                  hmt_epg_receipt_gbp=0.25 / 1000.0 * 318.76))
+    assert row["hmt_epg_receipt_gbp_per_mwh"] == 318.76
+    assert row["hmt_epg_receipt_gbp"] == pytest.approx(12.0 / 1000.0 * 318.76)
+
+
 def test_the_day_carries_the_rate_its_consumption_was_charged_at():
     """Defect: a reader weights the day's OPENING rate by its kWh. On a ToU day that is the 00:00
     off-peak leg, so every ToU account read 11/14 of its flat rate. The weighted rate must differ

@@ -149,6 +149,17 @@ CLOSING_FIELDS = ("treasury_cash_balance_gbp", "settlement_period")
 #: Never summed and never carried — it identifies one half-hour and a day is not one.
 _DROPPED: tuple[str, ...] = ()
 
+#: A field named per unit is a RATE whatever list it is on, and a day's rate is not the sum of
+#: its periods'. `hmt_epg_receipt_gbp_per_mwh` was summed until 2026-10-24: a void stub's daily
+#: row carried 48x the Treasury's rate, and its estimate credited the household 48x the receipt
+#: (OCC-eb8498f3f8aa, Jan 2023, -GBP 2,949.65). Carried from the day's first record, as
+#: `unit_rate_gbp_per_mwh` is.
+_RATE_SUFFIXES = ("_per_mwh", "_per_kwh", "_per_day")
+
+
+def _is_rate(field: str) -> bool:
+    return field.endswith(_RATE_SUFFIXES)
+
 
 def fold_to_days(records):
     """One term's half-hourly records -> one row per (customer, commodity, settlement_date).
@@ -193,7 +204,7 @@ def fold_to_days(records):
             row["unit_rate_min_gbp_per_mwh"] = rate if lo is None else min(lo, rate)
             row["unit_rate_max_gbp_per_mwh"] = rate if hi is None else max(hi, rate)
         for field, value in rec.items():
-            if field in CARRIED_FIELDS or field in _RATE_EXTREMA:
+            if field in CARRIED_FIELDS or field in _RATE_EXTREMA or _is_rate(field):
                 continue
             if field in CLOSING_FIELDS:
                 row[field] = value

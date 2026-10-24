@@ -1,4 +1,4 @@
-**Severity:** BLOCKING · **Lane:** D_billing_metering · **Epoch:** 4 · **Atom:** `D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used`
+**Severity:** LATENT · **Lane:** D_billing_metering · **Epoch:** 4 · **Atom:** `D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used`
 **Knowledge:** `price-cap` -- `docs/market_research/default_tariff_cap_and_epg_on_the_bill.md`
 
 # The void-stub EPG fix gives households credits of about 48× the Treasury's share, and the ledger books none of it
@@ -71,3 +71,41 @@ one-leg control fits that second property. It belongs in the class invariants
 - Denominator: 24,592 gradeable default-tariff invoices (24,597 before), with 12,594 ungradeable.
 - `unit_charge_fall` is identical to `88cdf35e48` in every quarter and fuel. The bills that carried a
   receipt before the fix are unchanged.
+
+## Cause found and fixed (2026-10-24, delivery seat)
+
+- **The route.** `simulation.settlement_daily.fold_to_days` folds a term's half-hours into daily rows
+  and sums every numeric field not on its carried list. `hmt_epg_receipt_gbp_per_mwh`, added by
+  `ce35a25e21`, was not on that list, so each electricity daily row carried 48 x 318.76 =
+  15,300.57 GBP/MWh. Gas is settled daily, which is why the gas stubs were right.
+  `_estimate_records_at_tariff_rate` then priced the estimate's receipt off the summed rate. The
+  run's 47.7, not 48, is still unexplained (a stub whose days are not all 48 periods is the lead
+  belief). The probe below gives 48.0 on full days.
+- **Measured at real inputs, with the run's own functions** (void, stamp, fold, estimate,
+  `generate_bill`), 17-31 Jan 2023, 193.28 kWh: origin's fold gave a GBP 2,957.29 receipt and a
+  GBP -2,968.26 bill. The fixed fold gives the **GBP 61.61** receipt and a GBP 72.21 bill. It is
+  not a one-customer run: the tree has no one-customer flag, and an incoming occupier exists only
+  inside a whole-population run.
+- **The fix is a class fix.** A field named `*_per_mwh`, `*_per_kwh` or `*_per_day` is a rate, and
+  it is carried from the day's first record whatever list it is on. Two other fields were also
+  being summed 48 times: `flex_reference_price_gbp_per_mwh` and `flex_markup_per_mwh`. No reader
+  outside tests takes them from the folded book. Control:
+  `tests/simulation/test_settlement_daily.py::test_a_field_named_per_unit_is_carried_even_off_the_carried_list`.
+  Removing the rule reds it.
+- **The ledger drops nothing by sign.** `saas.ledger.build_ledger` books a receipt on every bill
+  that carries one. The 5 negative bills were held by `validate_bills` (SLC 6.7: a line item is
+  negative), and `accounting_close` hands the ledger only the issued ones. Not booking a bill that
+  was never sent is right. The gap between carved and booked was the inflated receipt, and the hold
+  is what kept the credit off the household's account.
+- **The grader now refuses.** `tools.grade_svt_invoices_over_ceiling` lists `defects` and exits 1
+  when any is present: carved != booked, a receipt carved outside the windows, or an estimated bill
+  below zero. On `c5a8090187`'s output it names both defects: "carved GBP 205,866.61 != booked GBP
+  199,968.51" and "5 estimated bill(s) below zero, worst OCC-eb8498f3f8aa 2023-01-17 GBP -2,949.65".
+  On `88cdf35e48`'s output it names none.
+
+**To close:** a fresh full run at a commit carrying the fold fix, graded with `defects == []`.
+Prediction, filed before that run: carved equals booked to the penny, no estimated bill is below
+zero, and the 5 electricity stubs carry receipts of about 1/48 of the table above (OCC-eb8498f3f8aa
+about GBP 61). LATENT until that run exists, because no published run carries the defect yet. The
+`domain_invariants` leg the section above proposed is not built: the grader's leg covers the same
+property on every graded run.
