@@ -255,6 +255,15 @@ class DecisionPolicy:
     #: `next_best_action_decides_at_renewal`, which would leave nothing to price it.
     next_best_action_shares_by_retention_rise: bool = False
 
+    #: C34's price half (2026-10-24): the rise above is BILLED, not only recorded. Where C34 advises a
+    #: roll leg with a rise, the fix is raised by it, inside the headroom under the published default
+    #: (`company.pricing.renewal_rate_chain.bill_the_shared_rise`); otherwise the rate is left as
+    #: struck. Both floors stay. Off on every standing policy, so loosening the floor stays the other
+    #: one-line choice. The world delivers no advice, so an arm with this on measures the transfer
+    #: and its cost in staying, not the value created. Prereg:
+    #: `docs/staging/records/SEAT_PREREG_THE_SHARED_RISE_BILLED_AT_THE_NOTICE_AGAINST_RECORDED_ONLY_2026-10-24.md`.
+    renewal_rate_bills_the_shared_rise: bool = False
+
     #: (2026-10-21) The renewal churn belief is scaled by the company's own observed-over-expected
     #: losses for the type of term the renewal ends: a fix, a default stint, or a default stint
     #: entered by refusing our fix (`company.crm.churn_desk.ENDING_TERM_TYPES`). Off on every

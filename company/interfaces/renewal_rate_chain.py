@@ -30,11 +30,12 @@ for itself. They stay inside `company/pricing/`, which is the point of the door.
 from __future__ import annotations
 
 from company.interfaces.renewal_decision_inputs import RenewalDecisionInputs
-from company.pricing.renewal_rate_chain import RenewalRateChain
+from company.pricing.renewal_rate_chain import RenewalRateChain, bill_the_shared_rise
 
 __all__ = [
     "RenewalDecisionInputs",
     "RenewalRateChain",
+    "bill_the_shared_rise",
     "decide_renewal",
     "decide_renewal_rate",
     "open_portfolio_margin_book",

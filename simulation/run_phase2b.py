@@ -90,6 +90,7 @@ from company.interfaces.renewal_offer import (
 )
 from company.interfaces.renewal_rate_chain import (
     RenewalDecisionInputs,
+    bill_the_shared_rise,
     decide_renewal,
     open_portfolio_margin_book,
     portfolio_position,
@@ -1388,6 +1389,15 @@ def _refuse_a_rise_with_no_caller(policy) -> None:
             "next_best_action_shares_by_retention_rise is priced at the renewal notice by C34's desk, "
             "and this policy leaves next_best_action_decides_at_renewal off, so no rise would be "
             "priced: switch both on, or neither")
+
+
+def _refuse_a_billed_rise_with_no_price(policy) -> None:
+    """A billed rise is the rise C35 priced at the notice. Asked for without it, nothing is priced to
+    bill, and the run would read as if the share had been tried."""
+    if policy.renewal_rate_bills_the_shared_rise and not policy.next_best_action_shares_by_retention_rise:
+        raise ValueError(
+            "renewal_rate_bills_the_shared_rise bills the rise next_best_action_shares_by_retention_rise "
+            "prices, and this policy leaves that off, so no rise would be billed: switch both on, or neither")
 
 
 def _refuse_save_odds_with_no_ending_term(policy) -> None:
@@ -3009,6 +3019,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     )
     _renewal_advice = None
     _refuse_a_rise_with_no_caller(policy)
+    _refuse_a_billed_rise_with_no_price(policy)
+    shared_rise_log: list[dict] = []
     _refuse_save_odds_with_no_ending_term(policy)
     if policy.next_best_action_decides_at_renewal:
         _renewal_advice = RenewalAdviceDesk(policy)
@@ -3926,6 +3938,31 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                             company_eac_kwh=company_eac, fuel=commodity),
                         renewal_churn_belief=company_est_pre,
                         renewal=_renewal_terms(commodity, term_start_str, unit_rate, company_eac))
+                    # C34'S PRICE HALF (2026-10-24): the rise the desk priced is billed on the fix,
+                    # before the world's roll is asked, so the household answers the raised price.
+                    if policy.renewal_rate_bills_the_shared_rise:
+                        _rise, _rise_why = _renewal_advice.rise_at_notice(
+                            account_id=billing_account, term_start=term_start_str)
+                        _rise_terms = _renewal_terms(commodity, term_start_str, unit_rate, company_eac)
+                        _struck_rate = unit_rate
+                        unit_rate, _billed_why = bill_the_shared_rise(
+                            unit_rate_gbp_per_mwh=unit_rate,
+                            rise_gbp_per_month=None if _rise is None else _rise.rise_gbp_per_month,
+                            annual_mwh=_rise_terms.annual_mwh,
+                            headroom_gbp_per_month=_rise_terms.headroom_gbp_per_month())
+                        shared_rise_log.append({
+                            "account_id": billing_account, "term_start": term_start_str,
+                            "fuel": commodity, "struck_unit_rate_gbp_per_mwh": round(_struck_rate, 4),
+                            "billed_unit_rate_gbp_per_mwh": round(unit_rate, 4),
+                            "rise_gbp_per_month": None if _rise is None else _rise.rise_gbp_per_month,
+                            "reason": _billed_why if _rise is not None else f"{_billed_why}: {_rise_why}",
+                        })
+                        if unit_rate != _struck_rate:
+                            _prior_rates[cid] = unit_rate
+                            _account_state_row["unit_rate_gbp_per_mwh"] = unit_rate
+                            _account_state_row["rate_vs_svt_pct"] = (
+                                round((unit_rate - _state_svt_rate) / _state_svt_rate * 100.0, 2)
+                                if _state_svt_rate else None)
                 if company_est_pre > RETENTION_THRESHOLD:
                     eac_for_ret = company_eac  # Phase 23a: use company estimate
                     # B8 Q5: sized against the best published deal on the day, as the save is, or
@@ -6093,6 +6130,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             "next_best_action_legs_without_contribution":
                 _renewal_advice.legs_without_contribution}
            if _renewal_advice is not None else {}),
+        **({"shared_rise_log": shared_rise_log}
+           if policy.renewal_rate_bills_the_shared_rise else {}),
         "nudge_physics_log": nudge_physics_log,
         "retention_cost_events": retention_cost_events,
         "no_offer_churn_log": no_offer_churn_log,

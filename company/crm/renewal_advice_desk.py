@@ -49,7 +49,7 @@ from saas.cost_to_serve import FIXED_OVERHEAD_GBP_PER_YEAR
 if TYPE_CHECKING:
     from company.policy.decision_policy import DecisionPolicy
 
-__all__ = ["RenewalAdviceDesk", "STATED_ADVICE_EFFECTS", "STANDING_CHARGE_OPEX_GBP_PER_YEAR",
+__all__ = ["BILLED_ADVICE_EFFECT", "RenewalAdviceDesk", "STATED_ADVICE_EFFECTS", "STANDING_CHARGE_OPEX_GBP_PER_YEAR",
            "term_contribution_per_month"]
 
 # The horizon C34 was graded on: docs/market_research/next_best_action_and_cross_sell.md §6.1
@@ -61,6 +61,10 @@ HORIZON_MONTHS = 48
 # estimate: the company's holdout cannot decide one at this book size (next_best_action_and_cross_sell.md
 # §6.2), so every row is a decision under one point of the range and says so.
 STATED_ADVICE_EFFECTS = ((2.0, 0.001), (2.0, 0.003), (3.0, 0.003))
+
+# The one effect a BILLED rise is priced under: the smallest hazard cut in the stated range. The
+# advice is credited with the least it might do (F11), so the rise is the largest our side needs.
+BILLED_ADVICE_EFFECT = STATED_ADVICE_EFFECTS[0]
 
 _EFFECT_SOURCE = ("stated range, a_retention_price_that_shares_the_value_an_action_creates.md §4; "
                   "no company estimate (the holdout cannot decide one at this book size)")
@@ -189,6 +193,26 @@ class RenewalAdviceDesk:
                                         renewal=renewal))
         self._fuels[key].append(fuel)
         return True
+
+    def rise_at_notice(self, *, account_id: str, term_start: str) -> tuple[RetentionRise | None, str]:
+        """C34's decision on the roll leg as the notice is written, for the rise the fix is billed.
+
+        The notice carries one price, so the rise is decided on the leg held at the roll alone, under
+        `BILLED_ADVICE_EFFECT`. The riding leg is priced later on the same start and is not raised.
+        None means no rise is billed, with C34's reason.
+        """
+        legs = self._legs.get((account_id, term_start))
+        if not legs:
+            return None, "no roll leg is held for this notice"
+        state = legs[0]
+        give_up, cut = BILLED_ADVICE_EFFECT
+        est = ActionEstimate(Action.TARIFF_ADVICE, give_up * 12.0, -give_up,
+                             -min(cut, state.monthly_departure_hazard))
+        d = decide(dataclasses.replace(state, estimates=(est,)), HORIZON_MONTHS, self._policy)
+        if d.action is Action.TARIFF_ADVICE and isinstance(d.share, RetentionRise):
+            return d.share, ""
+        unscored = "; ".join(why for _, why in d.unscored)
+        return None, d.reason + (f" ({unscored})" if unscored else "")
 
     def decisions(self) -> list[dict]:
         rows = []

@@ -418,6 +418,96 @@ This is §4b's 260 renewals, priced by `price_retention_rise` on the company's o
 - **Of the 372 cases from 2019, 158 are refused because the rise needed is above the headroom.** None
   is refused on the household's floor.
 
+### 4e. The rise BILLED, not only recorded (C34's price half, 2026-10-24)
+
+Through §4d the rise was priced and written in the decision log, and the household was billed
+the fix as struck: "records only" (prereg of 20 Oct, R1). This section is the knowledge for billing
+it. `company.pricing.renewal_rate_chain.bill_the_shared_rise` is writer 7, and its switch is
+`DecisionPolicy.renewal_rate_bills_the_shared_rise`, off on every standing policy.
+
+**What the rules require, read again for a billed price.** Nothing new is needed beyond §1–§3. The
+rise is part of the fixed offer in the renewal notice (SLC 22C, 31I). The notice states the price
+before the household accepts it, so this is not a mid-term variation. On a Fixed Retention Tariff
+the cap sets no ceiling (§1). The ceiling the design keeps is the **published default**, because a
+stayer offered a fix above it goes onto the default instead (§4a). That makes it a commercial
+ceiling, not a legal one, and the design treats it as binding.
+
+**The choices the build makes:**
+
+- **Where:** at the renewal notice, after the rate chain has closed and before the world's roll is
+  asked. The household therefore answers the raised price, by the same route a retention offer's
+  price takes (`ask_world_at_offer`). The rise is priced on the churn belief, and the churn belief
+  reads the struck rate, so the rise cannot sit inside the chain.
+- **Which leg:** the roll leg alone. The notice carries one price, and the riding leg is priced later
+  on the same start, so it is not raised. A dual household's rise is therefore priced on less room
+  than the recorded decision uses (that sums both legs, `HouseholdRenewalTerms`). This errs towards
+  fewer rises.
+- **Which effect:** the smallest hazard cut in the stated range, (GBP 2, 0.1 pt)
+  (`renewal_advice_desk.BILLED_ADVICE_EFFECT`). One price needs one effect. Crediting the advice
+  with the least it might do makes the rise the largest our side needs (F11).
+- **Both floors stay.** Ours holds twice (hazard held, and the published slope applied), and the
+  household's floor holds too. The writer re-checks the headroom. Every refusal leaves the struck
+  rate and names its reason. A rise above the headroom is refused, never trimmed to fit: a trimmed
+  rise would leave our side below zero, and that is the refusal C34 already makes.
+- **Unit:** GBP/month over the account's own annual volume, as GBP/MWh (rise × 12 / MWh).
+
+**The table over the 18 B11-scale cases** (offer GBP 200/MWh, 2.7 MWh, effect as billed per row,
+headroom at the §4a quartiles; C34 alone advises **none** of the 18). Each cell shows GBP/month
+and GBP/MWh billed, or the reason:
+
+| margin | hazard | effect | headroom unknown (pre-2019) | 0 | 1.35 (median) | 4.00 | 12.38 (p90) |
+|---|---|---|---|---|---|---|---|
+| 5 | 0.5% | 2, 0.1 | refused | refused | refused | 2.28 / 10.13 | 2.28 / 10.13 |
+| 5 | 0.5% | 2, 0.3 | refused | refused | refused | 2.00 / 8.89 | 2.00 / 8.89 |
+| 5 | 0.5% | 3, 0.3 | refused | refused | refused | 3.21 / 14.27 | 3.21 / 14.27 |
+| 5 | 3% | 2, 0.1 | refused | refused | refused | 2.22 / 9.87 | 2.22 / 9.87 |
+| 5 | 3% | 2, 0.3 | refused | refused | refused | 2.00 / 8.89 | 2.00 / 8.89 |
+| 5 | 3% | 3, 0.3 | refused | refused | refused | 3.17 / 14.09 | 3.17 / 14.09 |
+| 15 | 0.5% | 2, 0.1 | refused | refused | refused | refused | refused |
+| 15 | 0.5% | 2, 0.3 | refused | refused | refused | 2.00 / 8.89 | 2.00 / 8.89 |
+| 15 | 0.5% | 3, 0.3 | refused | refused | refused | refused | refused |
+| 15 | 3% | 2, 0.1 | refused | refused | refused | 2.97 / 13.20 | 2.97 / 13.20 |
+| 15 | 3% | 2, 0.3 | refused | refused | refused | 2.00 / 8.89 | 2.00 / 8.89 |
+| 15 | 3% | 3, 0.3 | refused | refused | refused | 3.73 / 16.58 | 3.73 / 16.58 |
+| 30 | 0.5% | 2, 0.1 | refused | refused | refused | refused | refused |
+| 30 | 0.5% | 2, 0.3 | refused | refused | 0.33 / 1.47 | 0.33 / 1.47 | 0.33 / 1.47 |
+| 30 | 0.5% | 3, 0.3 | refused | refused | refused | refused | refused |
+| 30 | 3% | 2, 0.1 | refused | refused | refused | refused | refused |
+| 30 | 3% | 2, 0.3 | refused | refused | refused | 2.00 / 8.89 | 2.00 / 8.89 |
+| 30 | 3% | 3, 0.3 | refused | refused | refused | refused | refused |
+| **billed** | | | **0 / 18** | **0 / 18** | **1 / 18** | **12 / 18** | **12 / 18** |
+
+Reading it:
+
+- **At the median account's headroom (GBP 1.35/month), the switch bills 1 case in 18.** The rises
+  our side needs are GBP 2.00–3.73/month. This is §4d's finding seen from the billing side: 158 of
+  the 372 cases from 2019 were refused above the headroom.
+- **The 12 are not §4's 10, and I cannot yet say why.** §4 counted 10 of 18 clearing both floors
+  under the published slope, and none of the six GBP 30 cases. Here two GBP 30 cases are billed,
+  at (2, 0.3 pt), and the two GBP 15 cases §4 lost to the household's floor are refused, as §4 said.
+  I first wrote that the difference was volume (2.7 MWh here, 3.6 in §4). That is refuted: at 3.6
+  MWh the count is still 12. It is not the desk's clamp on the cut either, since no case here has a
+  cut above its hazard. §4's script was not kept in the tree, so the two cannot be diffed line by
+  line.
+- The repeated GBP 2.00 is the published slope's arm setting the floor of the search, not a
+  coincidence of inputs. At each of those rows the hazard-held rise is smaller.
+- Script: `/var/tmp/c34_shared_rise/table.py` (not in the tree), run from the repo root with
+  `PYTHONPATH=.`.
+
+**What a run with it on can and cannot say.** The world delivers no advice: no world mechanism
+gives an advised household the hazard cut or the saving the company credits (searched `simulation/`
+and `sim/`, 2026-10-24). An arm with the switch on therefore bills a rise on exactly the accounts
+C34 would advise, and the world answers the price alone. Its margin delta is a **transfer**, plus the
+world's own staying response to it. It cannot show value created (M2), and a positive delta must not
+be read as the price half working. What it *can* test is the cost side of the company's claim: that
+a rise priced to the company's floor, with the published slope applied, does not cost more in
+departures than the company predicted. The arm pair is pre-registered in
+`docs/staging/records/SEAT_PREREG_THE_SHARED_RISE_BILLED_AT_THE_NOTICE_AGAINST_RECORDED_ONLY_2026-10-24.md`
+and has not been launched.
+
+**GAP (new):** an advised household's effect in the world. Until the world delivers advice, created
+and shared cannot be measured together in one run.
+
 ## 5. Gaps, in one place
 
 1. Each case's headroom under the cap, if it is on a default tariff (§1).
@@ -434,6 +524,8 @@ This is §4b's 260 renewals, priced by `price_retention_rise` on the company's o
 9. The default a household would roll onto before 2019, as the company could know it (§4c). No
    per-fuel default was published, and the company's own default-tariff record does not cross the
    seam. The rise is refused there, which accounts for 104 of §4b's 314 cases.
+10. What advice does to a household in the world (§4e). No world mechanism delivers it, so a billed
+    rise can be graded only as a transfer.
 
 ## Sources
 

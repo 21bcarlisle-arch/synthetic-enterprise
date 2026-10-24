@@ -414,6 +414,10 @@ up GBP 2-3/month and cutting the hazard 0.1-0.3 points), joint value is positive
 (+GBP 13 to +107). Our side is negative in all 18, so the rule chooses nothing in all 18: the floor
 on our side binds. Whether a positive-sum action that costs us should be paired with a price that
 shares its value is the director's question (M2: created, then shared).
+The price half, a renewal rise that brings our side to zero inside the account's headroom under the
+default, is written up in `a_retention_price_that_shares_the_value_an_action_creates.md`. §4e
+there covers billing it (writer 7, off by default), shows it over these 18 cells, and says why a
+run can grade it only as a transfer while the world delivers no advice.
 The published evidence on how such a share is priced (2026-10-14) is in
 `how_a_supplier_prices_a_share_of_value_it_creates_for_a_household_2026-10-14.md`:
 - **The licence is silent on a savings-share fee.** SLC 0.6 does not bound a fee's amount.

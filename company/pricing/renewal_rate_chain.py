@@ -108,7 +108,7 @@ from company.pricing.value_based_renewal import renewal_margin_uplift
 from saas.payment_behaviour import CREDIT_RISK_BY_CUSTOMER, DEFAULT_CREDIT_RISK
 from saas.tariff_pricing import TARGET_MARGIN_GBP_PER_MWH
 
-__all__ = ["RenewalRateChain", "cap_ceiling_ex_vat", "decide_renewal_rate"]
+__all__ = ["RenewalRateChain", "bill_the_shared_rise", "cap_ceiling_ex_vat", "decide_renewal_rate"]
 
 
 def cap_ceiling_ex_vat(
@@ -821,6 +821,38 @@ def decide_renewal_rate_from(inputs) -> RenewalRateChain:
         locked_network_cost_per_mwh=inputs.locked_network_cost_per_mwh,
         portfolio_priced_for_rates=inputs.portfolio_priced_for_rates,
     )
+
+
+def bill_the_shared_rise(*, unit_rate_gbp_per_mwh: float, rise_gbp_per_month: float | None,
+                         annual_mwh: float | None,
+                         headroom_gbp_per_month: float | None) -> tuple[float, str]:
+    """WRITER 7, THE SHARED RISE (C34's price half, 2026-10-24): the fix this account is billed once
+    C34 advises it with a retention rise, and why.
+
+    C34 ranks on joint value, and our floor refused every B11-scale case, because the advice costs us
+    and creates value for the household. `next_best_action.price_retention_rise` finds the smallest
+    monthly rise that brings our side to zero under both floors. This writer bills that rise on the
+    fix, as GBP/MWh over the account's own annual volume, and only inside the headroom under the
+    published default. A rise above the headroom would send a stayer to the default, so the rate is
+    left as struck. It fires after the chain closes, at the renewal notice, because the rise is
+    priced on the churn belief that reads the struck rate. Knowledge:
+    `a_retention_price_that_shares_the_value_an_action_creates.md` §4e.
+
+    `rise_gbp_per_month` None means C34 priced no rise (it did not advise, or advised at no cost
+    to us), and nothing is billed. Every refusal leaves the struck rate and names its reason.
+    """
+    if rise_gbp_per_month is None or rise_gbp_per_month <= 0.0:
+        return unit_rate_gbp_per_mwh, "no action: C34 priced no rise on this renewal"
+    if headroom_gbp_per_month is None or not annual_mwh:
+        return unit_rate_gbp_per_mwh, ("refused: the headroom under the published default is "
+                                       "unknown, so no rise is billed")
+    if rise_gbp_per_month > headroom_gbp_per_month + 1e-9:
+        return unit_rate_gbp_per_mwh, (
+            f"refused: the rise ({rise_gbp_per_month:.2f} GBP/month) is above the headroom under "
+            f"the published default ({headroom_gbp_per_month:.2f} GBP/month)")
+    return (unit_rate_gbp_per_mwh + rise_gbp_per_month * 12.0 / annual_mwh,
+            f"shared: {rise_gbp_per_month:.2f} GBP/month billed inside "
+            f"{headroom_gbp_per_month:.2f} GBP/month of headroom")
 
 
 #: The tariffs whose completed terms teach the portfolio premium: the product whose strike it moves.

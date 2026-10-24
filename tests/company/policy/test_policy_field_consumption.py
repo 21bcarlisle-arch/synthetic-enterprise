@@ -153,6 +153,7 @@ FIELD_CONSUMPTION = {
     "bill_estimate_reads_the_annualised_advance": {"via": "run_argument"},
     "bill_estimate_floors_the_gas_advance_at_nine_months": {"via": "run_argument"},
     "next_best_action_shares_by_retention_rise": {"via": "run_argument"},
+    "renewal_rate_bills_the_shared_rise": {"via": "run_argument"},
     "renewal_belief_by_ending_term": {"via": "run_argument"},
     "retention_weighs_save_odds": {"via": "run_argument"},
     "retention_save_rate_learned_against_holdout": {"via": "run_argument"},

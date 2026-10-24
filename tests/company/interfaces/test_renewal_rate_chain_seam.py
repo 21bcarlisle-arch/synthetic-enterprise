@@ -689,10 +689,11 @@ def test_the_door_still_hands_over_no_coefficient_with_the_position():
 
 def test_the_door_exposes_only_the_decision_and_its_result():
     # 2026-10-12: the typed input record and its door, and the margin book's door, joined. The
-    # book's CLASS does not cross: the world opens one and reports to it.
+    # book's CLASS does not cross: the world opens one and reports to it. 2026-10-24: writer 7, the
+    # shared rise, joined; it is a decision on the rate, handed its inputs, and carries no coefficient.
     assert sorted(door.__all__) == [
-        "RenewalDecisionInputs", "RenewalRateChain", "decide_renewal", "decide_renewal_rate",
-        "open_portfolio_margin_book", "portfolio_position",
+        "RenewalDecisionInputs", "RenewalRateChain", "bill_the_shared_rise", "decide_renewal",
+        "decide_renewal_rate", "open_portfolio_margin_book", "portfolio_position",
     ]
     for leaked in (
         "PortfolioMarginBook",
