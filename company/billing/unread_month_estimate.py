@@ -96,16 +96,20 @@ def estimate_unread_kwh(
 MIN_ADVANCE_DAYS = 182
 #: ...and the longest: two years, so a hard-to-read household still has an advance to annualise.
 MAX_ADVANCE_DAYS = 731
+#: Gas's own floor, nine months: Xoserve's AQ is "based on the consumption between two meter readings
+#: [9-36 months apart]" (Xoserve, *Annual Quantity (AQ)* help page; unbilled_energy_and_revenue_assurance.md
+#: K2, design choice 1). Read only where the bill run's switch asks for it; `MIN_ADVANCE_DAYS` otherwise.
+GAS_AQ_MIN_ADVANCE_DAYS = 273
 
 
 def annualised_advance_kwh(
-    fuel: str, register_reads: list[tuple[date, float]]
+    fuel: str, register_reads: list[tuple[date, float]], min_advance_days: int = MIN_ADVANCE_DAYS,
 ) -> tuple[float, date, date] | None:
     """The annual rate the company's own actual reads imply: (kWh a year, from, to).
 
     `register_reads` are (read date, register kWh) for reads that ARRIVED, the register counting
     use through the end of that day. The latest read closes the advance; it opens on the earlier
-    read whose span is nearest a year within `MIN_ADVANCE_DAYS`..`MAX_ADVANCE_DAYS`. The advance is
+    read whose span is nearest a year within `min_advance_days`..`MAX_ADVANCE_DAYS`. The advance is
     divided by the profile weight of the days it covers -- the industry's EAC/AQ-from-an-advance.
 
     None when no pair of reads spans long enough, or the fuel has no published shape: the caller
@@ -116,7 +120,7 @@ def annualised_advance_kwh(
     reads = sorted(register_reads)
     closing_day, closing_kwh = reads[-1]
     spans = [(abs((closing_day - d).days - 365), d, kwh) for d, kwh in reads[:-1]
-             if MIN_ADVANCE_DAYS <= (closing_day - d).days <= MAX_ADVANCE_DAYS]
+             if min_advance_days <= (closing_day - d).days <= MAX_ADVANCE_DAYS]
     if not spans:
         return None
     _, opening_day, opening_kwh = min(spans)

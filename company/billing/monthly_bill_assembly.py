@@ -69,6 +69,8 @@ from company.billing.pre_bill_validation import release_on_measured_rate, valida
 from company.billing.read_duty_register import read_instruction_due
 from company.billing.theft_indicator import screen_billing_run
 from company.billing.unread_month_estimate import (
+    GAS_AQ_MIN_ADVANCE_DAYS,
+    MIN_ADVANCE_DAYS,
     annualised_advance_kwh,
     estimate_unread_kwh,
     opening_estimate_kwh,
@@ -510,6 +512,7 @@ def build_monthly_bills(
     tenancy_links: dict[str, str] | None = None,
     instruct_reads: bool = False,
     annualised_advance_estimate: bool = False,
+    gas_advance_floor_nine_months: bool = False,
 ) -> list[dict]:
     """Group the supplier's own settled records into one bill per customer per
     calendar month, in chronological order, via
@@ -605,6 +608,11 @@ def build_monthly_bills(
     (`annualised_advance_kwh`, an advance of at least 182 days, the EAC/AQ-from-an-advance), spread
     by the profile. Where no advance spans that long it falls back to the three-read window. Off by
     default, and off the estimate is exactly the three-read window.
+
+    `gas_advance_floor_nine_months` (2026-10-22, same page, design choice 1): with the advance on, a
+    gas account annualises only an advance of nine months or more (`GAS_AQ_MIN_ADVANCE_DAYS`,
+    Xoserve's AQ floor) and falls back to the three-read window below it. Electricity keeps the AA's
+    six months. Off by default, and it changes nothing while the advance is off.
     """
     churned_ids = churned_ids or set()
     by_customer_month: dict[str, dict[str, list[dict]]] = {}
@@ -809,7 +817,10 @@ def build_monthly_bills(
                     else opening_estimate_kwh(commodity, customer_data, *period)
                 )
                 advance = (
-                    annualised_advance_kwh(commodity, register_reads)
+                    annualised_advance_kwh(commodity, register_reads, min_advance_days=(
+                        GAS_AQ_MIN_ADVANCE_DAYS
+                        if gas_advance_floor_nine_months and commodity == "gas"
+                        else MIN_ADVANCE_DAYS))
                     if annualised_advance_estimate and trailing_actual_periods else None
                 )
                 if advance is not None and advance[0] > 0:

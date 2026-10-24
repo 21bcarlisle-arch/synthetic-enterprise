@@ -94,7 +94,7 @@ def test_switched_on_the_estimate_stops_matching_when_the_advance_is_not_read(mo
     """The control the direction item names: if the estimate stops reading the annualised advance
     with the field on, this reds. A planted annual rate must be the one billed."""
     monkeypatch.setattr(M, "annualised_advance_kwh",
-                        lambda fuel, reads: (12_000.0, reads[0][0], reads[-1][0]))
+                        lambda fuel, reads, **_: (12_000.0, reads[0][0], reads[-1][0]))
     on = _december(M.build_monthly_bills(_records(), _Feed(), annualised_advance_estimate=True),
                    "C1")["total_consumption_kwh"]
     assert on == pytest.approx(12_000.0 * U.profile_weight("electricity", *DEC), abs=0.01)

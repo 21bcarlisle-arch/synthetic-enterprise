@@ -318,6 +318,7 @@ def build_monthly_bills(
     instruct_reads: bool | None = None,
     instructed_read_arm: str = "register",
     annualised_advance_estimate: bool | None = None,
+    gas_advance_floor_nine_months: bool | None = None,
 ) -> list[dict]:
     """Run the SUPPLIER's monthly billing over this run's settled records.
 
@@ -357,10 +358,13 @@ def build_monthly_bills(
     # and the stop notice bill the estimate the published run bills.
     if annualised_advance_estimate is None:
         annualised_advance_estimate = annualised_estimate_request(None)
+    if gas_advance_floor_nine_months is None:
+        gas_advance_floor_nine_months = gas_advance_floor_request(None)
     return assemble_monthly_bills(
         all_records, SimulatedReadFeed(instructed_read_arm=instructed_read_arm),
         churned_ids=churned_ids, instruct_reads=instruct_reads,
         annualised_advance_estimate=annualised_advance_estimate,
+        gas_advance_floor_nine_months=gas_advance_floor_nine_months,
         read_events_out=read_events_out,
         payment_channel_feed=simulated_payment_channel,
         premise_listing_feed=simulated_council_tax_listing,
@@ -399,6 +403,15 @@ def annualised_estimate_request(policy) -> bool:
     from simulation.run_phase2b import CURRENT_POLICY
 
     return bool((policy or CURRENT_POLICY).bill_estimate_reads_the_annualised_advance)
+
+
+def gas_advance_floor_request(policy) -> bool:
+    """Whether a gas estimate annualises only an advance of nine months or more, by the company
+    switch. Off (`DecisionPolicy.bill_estimate_floors_the_gas_advance_at_nine_months`, the default)
+    keeps the six-month floor for both fuels."""
+    from simulation.run_phase2b import CURRENT_POLICY
+
+    return bool((policy or CURRENT_POLICY).bill_estimate_floors_the_gas_advance_at_nine_months)
 
 
 def read_instruction_request(policy) -> bool:
@@ -451,6 +464,7 @@ def main(report_end: str | None = None, policy=None, instructed_read_arm: str = 
                                 theft_screen_out=theft_screen, tenancy_links=tenancy_links,
                                 instruct_reads=read_instruction_request(policy),
                                 annualised_advance_estimate=annualised_estimate_request(policy),
+                                gas_advance_floor_nine_months=gas_advance_floor_request(policy),
                                 instructed_read_arm=instructed_read_arm)
 
     # W5_1_banking_payment_rails L2->L3 (2026-07-12): the rails-timed DD
