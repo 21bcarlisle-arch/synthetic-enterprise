@@ -279,3 +279,49 @@ another lane holds on the shared tree. It is handed on as its own item, not land
 landed, so its filed prediction is not amended. The ToU pair stays on its default terms as the
 "known misgrade carried in" above. This fix's own effect will show on the next run: default-tariff
 bills on actual-read accounts reproduce their term's struck rate, and the 59 struck at the cap clear.
+
+## Result of the fresh run, 24 Oct 02:55 (the prediction above is unedited)
+
+Run at `88cdf35e48`, carrying A, B and the C30 letter, default population seed. Graded by
+`tools.grade_svt_invoices_over_ceiling`; artefact `/var/tmp/se-overcap-out/grade.json`.
+
+| | baseline `8b6fea024` | `88cdf35e48` |
+|---|---|---|
+| default-tariff invoices above min(cap, EPG) | 5,488 | **104** |
+| gradeable default-tariff invoices (denominator) | 18,398 | 24,597 |
+| share | 29.8% | **0.42%** |
+| households above | 244 | 16 |
+| outside the EPG windows | 3,051 | **72** |
+| inside the EPG windows | 2,437 | 32 |
+| ungradeable (catch-ups, no kWh, before the cap) | 8,124 of 26,522 (30.6%) | 12,589 of 37,186 (33.9%) |
+
+- **Outside-EPG leg, the clean test of A: held.** 72, against a bound of 200. A was the whole story
+  outside the windows.
+- **Total, 2,000-3,000: refuted, but not as a test of A.** The bound was written with B unfixed. B
+  landed before the run, so the ~620 cause-A bills expected to stay above inside the windows did not.
+  B's own predictions (at most 300 inside the windows, at most 500 in all) both held; see
+  `records/SEAT_PREREGISTRATION_THE_EPG_REACHES_THE_HOUSEHOLD_BILL_2026-10-24.md`.
+- **Ungradeable did not absorb the drop.** Its share rose 3.3 points, made of the same three kinds
+  of bill. The 5,384-invoice fall is in the graded set.
+- **The denominator grew 34%**, with 37,186 default-tariff invoices against 26,522. Three changes
+  could each move who stays on a default term: A's lower OCC renewals, the C30 letter, and B. **I
+  cannot yet say which.**
+
+**What the 104 are.** 52 OCC, 49 PROS, 2 SYN, 1 C9. 94 electricity, 10 gas. Median excess 0.79p/kWh.
+87 are on accounts billed mostly on actual reads. Two accounts hold 79: `PROS-2019-0246` (41) and
+`OCC-d8e674fa38de` (38). Both read actual, both are a few per cent over, and both go across many years. That is
+the ToU-pair shape of item 3, which the tool's docstring names as a known misgrade, not a breach.
+Inside the windows, 17 are over by more than 3p. The largest are mid-month estimated stubs on
+incoming occupants that carry no EPG receipt. One is over by exactly cap minus EPG (see the EPG
+pre-registration's Result).
+
+**Next, ranked.**
+1. The estimated stub inside the EPG that carries no receipt: trace the route, then carve it. That
+   is about 17 invoices, all transfer (M2).
+2. EPG predictions 3 and 4 (revenue whole, household figures falling) need an add-back reading of
+   this run. They are owed, not graded.
+3. Which of A, C30 and B grew the default-tariff denominator by 34%.
+
+**On the BLOCKING severity:** the over-cap class has fallen from 29.8% to 0.42% of graded invoices.
+The residue is one named route (item 1) plus a known misgrade. I recommend that the seat downgrades
+this to MATERIAL when it re-orients, and keeps it open until item 1 lands.

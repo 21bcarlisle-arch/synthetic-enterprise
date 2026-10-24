@@ -62,4 +62,19 @@ fixed, deemed, flex and non-domestic terms carry no receipt.
 
 ## Result
 
-*(empty until the fresh run exists)*
+*Added 24 Oct 02:55, after the run; the predictions above are unedited.* One full run at
+`88cdf35e48` (A, B and the C30 once-per-stint letter), default population seed, graded by
+`python3 -m tools.grade_svt_invoices_over_ceiling` (artefact `/var/tmp/se-overcap-out/grade.json`).
+
+1. **Held.** Inside the EPG windows, 32 `svt` invoices are above the household ceiling (bound: 300).
+2. **Held.** 104 of 24,597 gradeable default-tariff invoices are above the ceiling, all years
+   (bound: 500), across 16 households. The baseline was 5,488 of 18,398 across 244.
+3. **Not graded.** The tool reads invoices, not `derive_pnl`, and this run has no add-back arm.
+4. **Not graded** for the same reason. Direction only was predicted. It is still owed.
+
+**The 32 left inside the windows are not all rounding.** 17 are over by more than 3p/kWh. The
+largest is `OCC-eb8498f3f8aa`'s estimated stub of 17-31 Jan 2023, 193 kWh, over by 33.47p. That is
+cap minus EPG exactly (67.47p - 34.00p), so the bill carries the Treasury's whole share, and it has no
+`hmt_epg_receipt_gbp`. The next two are also mid-month estimated stubs on incoming occupants with no
+receipt. This fits the estimate-at-tariff-rate route named under "Not covered" above. That note
+expected 0 kWh on such a stub, and these have consumption, so the route is a belief, not traced.
