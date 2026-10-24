@@ -93,6 +93,13 @@ by name, so this file does not sit in rung zero to be re-derived.*
 - *Settlement true-ups.* Done in 746df31c8: both were true, of different work (world W3_2 at target,
   supplier EP5 at L0); the supplier row says it does not yet take the money at each run.
 
+**Correction, 24 Oct, after this section was written.** `140b5ff7b` (on origin while this landed)
+found that `ce35a25e2`'s void-stub fix gives five electricity stubs about 48 times the Treasury's
+share: bills down to -£2,950, and £5,898 carved that the ledger never books. So "fixed by
+`ce35a25e2`" above is wrong, and publishing a run with the three fixes would publish those bills.
+The over-cap close now waits on that finding as well as the run. The Fixed-this-week record no
+longer lists `ce35a25e2` and says the stub fix is open.
+
 **§2.** Four of five given their cited tests (29, 18, 41, 43); Three clocks reads Building; the rule
 holds a function with no cited test from Live; the business row says I&C is not served (SME is).
 

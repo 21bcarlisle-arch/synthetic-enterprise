@@ -21,6 +21,9 @@ fixing"). The report it asked for, item by item.
   assumed split, which the grader counts per bill; about 17 were estimated incoming-occupant stubs
   inside the EPG, fixed after that run in ce35a25e2. The published run of 19 Oct predates every fix.
   It closes on Monday's run, re-graded with tools.grade_svt_invoices_over_ceiling.
+  *Corrected the same day:* 140b5ff7b found ce35a25e2's stub fix over-credits five electricity
+  stubs (bills to -£2,950, £5,898 carved and never booked), so those stubs are not fixed and the
+  close also waits on that finding. The Fixed-this-week record says so and no longer lists ce35a25e2.
 - The cap as a series: the page's sentence was false (746df31c8). Unit rates are a dated series from
   2019 by fuel at GB average; standing charges and region, payment-method and meter-type levels are
   not. Handed on.
