@@ -36,6 +36,24 @@ def test_the_real_site_holds_and_the_leg_is_reading_something():
     assert M1 in front, "the front door must carry M1 verbatim (canon M11, decision 14)"
     assert site["superseded"] == [], site["superseded"]
     assert site["misquoted"] == [], site["misquoted"]
+    # The 24 Oct steer: the picture carried the retired mission for weeks because this leg read only
+    # HTML. The diagram must be among the pages read, and its M1 must be the canon's words.
+    diagram = REPO / "site" / "assets" / "model-on-a-page.svg"
+    assert diagram in C.served_pages(REPO)
+    assert M1 in C.visible_text(diagram.read_text(encoding="utf-8"))
+
+
+def test_the_diagrams_withdrawn_lines_are_caught_in_an_svg(tmp_path):
+    """The lines the picture carried until 24 Oct, as SVG text nodes split across elements."""
+    root = _tree(tmp_path, "<p>x</p>")
+    (root / "site" / "d.svg").write_text(
+        '<svg><text>Mission: cut carbon through personalisation — measured in '
+        '<tspan>£ per tonne</tspan></text><text>£/tCO₂e on the front page — the headline</text>'
+        '<text>— EV is fitness, mortality is selection.</text></svg>', encoding="utf-8")
+    rows = C.site_drift(root)["superseded"]
+    assert sorted(r["phrase"] for r in rows) == [
+        "cut carbon through personalisation", "ev is fitness", "tco₂e on the front page"]
+    assert {r["page"] for r in rows} == {"site/d.svg"}
 
 
 def test_a_superseded_framing_presented_as_current_is_caught(tmp_path):

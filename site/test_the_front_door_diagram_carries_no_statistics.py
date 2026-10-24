@@ -8,7 +8,9 @@ depth goes into L2 sheets behind each band, not onto the door.
 WHAT A STATISTIC IS HERE. A number that counts or measures something: "168k periods", "~200
 homes", "9-year". Not a statistic: a date or a span of years ("2016-25", "2021-22", a canon stamp)
 and a label that happens to carry a digit ("Tier-1", "v4"). Those are stripped first; whatever
-digit is left is a statistic.
+digit is left is a statistic. A canon citation is a label too: "(M1)", "(CO3)", "§2", "Phase 3"
+name a ruling or a phase, never a quantity, and the 24 Oct steer asks every canon line on the
+picture to carry its id.
 
 THE FOUR ALREADY THERE. The director-approved SVG (72bbc9339, 2026-07-23) carried four before the
 ruling. The ruling says nothing numeric is ADDED; it does not order these out, so they are listed
@@ -29,12 +31,13 @@ _TEXT = re.compile(r"<text\b[^>]*>(.*?)</text>", re.DOTALL)
 _TAG = re.compile(r"<[^>]+>")
 _DATE = re.compile(r"\b(?:19|20)\d\d(?:[-–](?:\d\d){1,2}){0,2}\b")
 _LABEL = re.compile(r"\b(?:Tier|v)-?\d+\b")
+_CANON_ID = re.compile(r"\b(?:CO|[BCDFGHKMOPRVWX])\d{1,2}\b|§\d+|\b(?i:phase) \d\b")
 _STATISTIC = re.compile(r"[~≈<>]?\d[\d,.]*(?:[kKmM%]|-\w+)?")
 
 
 def statistics_in(text: str) -> list[str]:
     """Every number in `text` that counts or measures something, in order of appearance."""
-    text = _LABEL.sub(" ", _DATE.sub(" ", text))
+    text = _CANON_ID.sub(" ", _LABEL.sub(" ", _DATE.sub(" ", text)))
     return _STATISTIC.findall(text)
 
 
@@ -48,6 +51,8 @@ def test_the_detector_can_say_yes_and_can_say_no():
     assert statistics_in("a 9-year record of 168k periods") == ["9-year", "168k"]
     assert statistics_in("2016–25 record · Collateral death loop (2021–22 replay)") == []
     assert statistics_in("director-canon 2026-07-23 · v4 · Tier-1 bill accuracy") == []
+    assert statistics_in("mission (M1) · CO₂ saved (CO1) · open until Phase 3 (§2) · NOW — PHASE 1") == []
+    assert statistics_in("(M7) 42 findings · the 400-founder book (R6)") == ["42", "400-founder"]
 
 
 def test_the_published_diagram_has_text_to_read():

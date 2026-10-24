@@ -616,6 +616,10 @@ SUPERSEDED_ON_SITE: tuple[tuple[str, str], ...] = (
     ("public domain", "the 21 July mission; §16 Mission"),
     ("80 founders", "the book before 6 Oct; §16 Book size"),
     ("director twin", "the twin as approver; §16, void since 29 July"),
+    ("cut carbon through personalisation", "the 19 July mission on the front-door diagram; §16 Mission"),
+    ("carbon becomes the headline", "decision 4: £/tCO₂e is an internal diagnostic (CO1, CO3)"),
+    ("tco₂e on the front page", "decision 4: £/tCO₂e is an internal diagnostic (CO1, CO3)"),
+    ("ev is fitness", "decision 14: the fitness function is open until Phase 3 (§2)"),
 )
 
 #: A canon quote is policed on a page only once the page has started to quote it: these many
@@ -677,8 +681,11 @@ def canon_quotes(canon_text: str) -> list[str]:
 
 
 def served_pages(root: Path) -> list[Path]:
+    """Every served `site/**/*.html` and `*.svg`. The SVGs are here for the front-door diagram
+    (director's steer, 24 Oct): its words are text nodes, read by the same parser, so a withdrawn
+    line or a misquoted M1 on the picture reds this leg exactly as it would on a page."""
     site = root / SITE_ROOT
-    return sorted(p for p in site.rglob("*.html")
+    return sorted(p for ext in ("*.html", "*.svg") for p in site.rglob(ext)
                   if not (set(p.relative_to(site).parts) & SKIP_DIRS))
 
 
@@ -701,7 +708,7 @@ def site_drift(root: Path) -> dict[str, Any]:
     superseded, misquoted = [], []
     pages = served_pages(root)
     for page in pages:
-        if page.suffix != ".html":
+        if page.suffix not in {".html", ".svg"}:
             continue
         rel = page.relative_to(root).as_posix()
         text = visible_text(page.read_text(encoding="utf-8", errors="replace"))
@@ -721,7 +728,7 @@ def site_drift(root: Path) -> dict[str, Any]:
 
 def _render_site(site: dict[str, Any]) -> str:
     lines = ["", f"SITE LEG -- {site['pages']} served page(s) against {site['quotes']} canon "
-                 "quote(s) and the superseded framings (visible HTML text only)"]
+                 "quote(s) and the superseded framings (visible text of HTML and SVG only)"]
     for row in site["superseded"]:
         lines.append(f"  [SUPERSEDED] {row['page']}: {row['phrase']!r} -- {row['why']}")
     for row in site["misquoted"]:

@@ -58,7 +58,8 @@ EXPECTED_CLAIM_IDS = frozenset({
     "C3_the_world_cannot_reach_the_liquidity_organs",
     # Renamed 2026-08-29 when the correction they were waiting for landed on both rendered
     # surfaces. The old ids named today's verdict ("still says"); these name the property.
-    "SITE_the_schematic_says_only_one_trait_expresses",
+    # 2026-10-24: ..._only_one_trait_expresses retired (see `_retired`); the diagram steer took
+    # the trait count off the picture, and C1_green_stance_carries_no_channel still binds it.
     "SITE_the_schematic_says_survival_is_not_yet_at_risk",
     "SITE_the_company_card_says_survival_is_not_yet_at_risk",
     # 2026-10-09: TIMEFRAME 1 read line by line; two corrections and the ledger half they split off.

@@ -1664,7 +1664,9 @@ var PRESENT_TENSE_FRESH_FOR_MS = 8 * 86400 * 1000;
     for (var d = el; d; d = d.parentElement) if (d.tagName === "DETAILS") d.open = true;
     if (el && el.scrollIntoView) el.scrollIntoView();
   }
-  window.addEventListener("hashchange", openTo); openTo();
+  // the site tests' render harness has no addEventListener; a browser always does
+  if (typeof window.addEventListener === "function") window.addEventListener("hashchange", openTo);
+  openTo();
 })();
 </script>
 </body>
