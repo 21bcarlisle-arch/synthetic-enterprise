@@ -1611,3 +1611,87 @@ rate towards zero.
 |---|---|
 | Whether a supplier's pricing rate is read by vintage, or off the reported charge that nets releases in | Not published. Read by vintage, because a release is not a cost or a gain of the next year's consumption (§4.29) |
 | A year is re-read only when a later year of the same account resolves, so the newest year carries its year-end reading. A pay-on-receipt bill inside its terms then carries the 4.5% under-30-day rate (DD: 0%) until the next anniversary | Not corrected: re-reading on every decision date would cost a ledger walk per account per renewal. Its size is printed with the before/after table |
+
+## Sizing the forward-looking overlay from what a supplier held in 2022 (2026-10-24)
+
+*Knowledge pass before the overlay build in `company/finance/bad_debt_provision.py`, on the crisis
+bad-debt finding as 6dcea614d split it: the 2022 step in the published charge is Centrica's
+macroeconomic overlay (+GBP 95m on a GBP 234m charge, section 3.2), not formed debt, so the step is
+the company's question. No new source was fetched. The overlay by year is in "The forward-looking
+overlay" above, and IFRS 9 B5.5.52 is quoted in section 2.1. Neither is re-derived here. The EBSS
+work this leans on is aa4bf9525 (K8: how the GBP 400 reached each payment route) and d8129f3f6 (the
+credit nets into both of the world's amount paths).*
+
+### What a supplier actually held, inside 2022
+
+| Signal | What it is, and when it was known | Published? | Read by the build? |
+|---|---|---|---|
+| **The announced cap level** | Ofgem published each window before it began: Feb 2022 for April (+54%), Aug 2022 for October, then the Government's EPG replaced the October level from 1 Oct 2022 at the household's side. The level in force on a provision date is always known on that date. | ESTABLISHED: the windows are in the regulation commons (`ofgem_default_tariff_cap_windows.json`), with EPG levels | **Yes**, the in-force window on the date, net of EPG, from `company/pricing/ofgem_price_cap.get_cap_unit_rate_for_date` |
+| **Its own DD re-sets** | The supplier's own instalment reviews, which move with the cap. Ofgem pressed suppliers in 2022 to set direct debits fairly as prices rose. | Practice. No supplier publishes a re-set series, and no lift from a DD rise to non-payment is published (GAP) | No. A re-set is the company's own response to the same cap, so reading both counts one shock twice |
+| **Arrears per account** | The supplier's own book. Ofgem's series (`debt_and_collections.md` §2.1, Q4): +18% 2020, +17% 2021, **+14% 2022**, +27% 2023, +24% 2024. Heads were flat across 2022. | ESTABLISHED for the market. Each supplier's own series is private | No, not in this build. The matrix already reads the book's arrears. Arrears per account is the signal that held Centrica's overlay up through 2023 while prices fell, and it is the named next step (GAP below) |
+| **The EBSS credit passed on** | GBP 400 per domestic electricity account, Oct 2022 to Mar 2023, known from the scheme's announcement (aa4bf9525) | ESTABLISHED | No. The world already nets the credit from what households owe (d8129f3f6). The matrix sees it through the arrears it lowers, and netting it again here would count the relief twice |
+
+### How an overlay is sized from those signals
+
+**The rule says what it must do, not how big it is.** B5.5.52: historical rates are adjusted for
+current conditions and forecasts that did not affect the period the history comes from, and the
+adjustment moves "directionally consistent" with the signals. Centrica's narrative ties its overlay
+to "increasing energy prices and cost of living", but **no GB supplier publishes the method or the
+function from a signal to an overlay (GAP)**. The record has one usable pattern (section 3.2): the
+overlay was largest when prices had just stepped and the matrix had not yet seen the loss
+(2022-23), and it was released as the matrix caught up (2024).
+
+**What a supplier could compute at each year end, on one consistent definition.** Take the cap
+unit rates in force on 31 December, net of EPG and weighted at Ofgem's typical consumption
+(2,700 kWh electricity, 11,500 kWh gas). Divide by the same quantity a year earlier:
+
+| 31 Dec | 2019 | 2020 | 2021 | 2022 | 2023 | 2024 |
+|---|---|---|---|---|---|---|
+| ratio to a year earlier | none (no cap in 2018) | 0.89 | 1.27 | **2.04** | 0.73 | 0.90 |
+
+The ratio is unit rates only. Standing charges also rose (electricity about 25p to 46p a day by
+late 2022), but they are not in the commons artefact. That is a named simplification, and it errs
+low in 2022.
+
+### The build's choices (company side; the build follows in its own commit)
+
+1. **Shape: linear in the rise, zero when prices did not rise.** The overlay share of the total
+   provision is `high x max(0, R - 1) / (R_2022 - 1)`, capped at `high`. Two points fix it: no
+   overlay in a year whose cap did not rise, which is when the history the matrix reads already
+   holds conditions at least as hard, and the published high at the crisis year end. This is a stated
+   belief, not a fit. It is the simplest monotone line through the two points B5.5.52 and the record
+   support.
+2. **Size: the published high, 0.134** (Centrica 2023, Group, the one year with a Group
+   denominator), already `OVERLAY_SHARE_ENDS["published_high"]`. **This is look-ahead in size and
+   is labelled as such:** Centrica's year-Y overlay is published in year Y+1, and the 2022 Group
+   share is GAP. When and how strongly the overlay fires comes only from in-year observables. How big
+   it is at full strength is borrowed from the record. A larger provision lowers every margin, so the
+   borrowing errs against the thesis (F11).
+3. **The anchor ratio** is the same quantity, read off the same commons table on 31 Dec 2022 (2.04).
+   It is not a free parameter. The table can produce it on that date, and the company is never
+   handed the future.
+4. **Pre-cap dates have no ratio.** The overlay is then zero, with the reason recorded on the stock
+   ("no published cap a year earlier"). Before 2019 there is no published level to read.
+5. **Where it sits:** on the provision stock the run publishes (`company_provision`), grossed up so
+   the overlay is its stated share of the total. The matrix-only stock is kept beside it, so a single
+   run's ledger grades both arms. Default off: `DecisionPolicy.provision_crisis_overlay`.
+
+### What this predicts before any run (arithmetic, then the uncertain part)
+
+The overlay is a reading after the run. It changes no world input and no company decision, so its
+effect on any run is the stock times `share / (1 - share)`. On the run committed at d909b6933
+(stocks GBP 601 at end-2021 and GBP 1,126 at end-2022, revenue GBP 354k in 2022), the overlay adds
+about GBP 22 to end-2021 and GBP 174 to end-2022, and releases the GBP 174 in 2023. **So it moves the
+2022 charge and not the pooled 2022-23 crisis window**, because the price signal is back under 1 by
+end-2023. Centrica held its overlay through 2023 on arrears, and that is the signal this build
+does not read yet.
+
+### GAPs this build carries rather than fills
+
+| GAP | What the build does instead |
+|---|---|
+| How any GB supplier maps signals to an overlay | A stated linear belief through two points, choice 1 |
+| Centrica's 2022 Group overlay share | The 2023 Group share, 0.134, borrowed and labelled look-ahead |
+| The overlay's dependence on arrears per account (Centrica 2023: prices falling, overlay up GBP 50m) | Not read. Named next step: a second signal on the company's own arrears per indebted account, read year on year |
+| Standing charges in the cap ratio | Unit rates only, which errs low in 2022 |
+| A lift from a DD re-set to non-payment | Not read (it double-counts the cap) |

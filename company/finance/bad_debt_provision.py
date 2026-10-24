@@ -9,6 +9,10 @@ TWO THINGS LIVE HERE, AND ONLY THE SECOND IS FORWARD-LOOKING IN IFRS 9's SENSE.
   forward-looking overlay (B5.5.52) run at both of its published ends. The knowledge it builds on, and
   every choice below, is the page's section "A provision matrix whose loss rates come from the
   company's own roll rates" (2026-10-14). Shipped off: `ROLL_RATE_PROVISION`.
+- `with_crisis_overlay`: the overlay sized at each date from what a supplier held then -- the cap in
+  force against the cap a year earlier -- on the run's published stock. The page's section "Sizing the
+  forward-looking overlay from what a supplier held in 2022" (2026-10-24). Default off:
+  `DecisionPolicy.provision_crisis_overlay`.
 """
 from __future__ import annotations
 
@@ -133,6 +137,17 @@ ROLL_RATE_WINDOW_MONTHS = 24
 #: `prov_forward_looking_overlay_share`'s high, Centrica ARA 2023, GBP 175m / GBP 1,309m
 #: (docs/market_research/assumption_toggles.yaml; bad_debt_provisioning.md s.3.2).
 OVERLAY_SHARE_ENDS = (("none", 0.0), ("published_high", 0.134))
+
+#: The weights that turn the cap's two unit rates into one level: Ofgem's typical domestic
+#: consumption values, 2,700 kWh electricity and 11,500 kWh gas a year (bad_debt_provisioning.md,
+#: "Sizing the forward-looking overlay", 2026-10-24). Unit rates only: the commons artefact holds no
+#: standing charges, a named simplification that errs low in 2022.
+CAP_LEVEL_KWH = (("electricity", 2700.0), ("gas", 11500.0))
+
+#: The year end at which the overlay reaches the published high: Centrica's crisis overlay sat on its
+#: 31 Dec 2022 balance sheet (bad_debt_provisioning.md s.3.2). The ratio there is READ off the cap
+#: table, never typed: it is the anchor's own reading of the same signal (2.04 on the commons table).
+CRISIS_OVERLAY_ANCHOR = dt.date(2022, 12, 31)
 
 FOOTING_LIVE_DIRECT_DEBIT = "live_direct_debit"
 FOOTING_LIVE_OTHER = "live_other"
@@ -328,3 +343,53 @@ def roll_rate_provision_stock(book, *, on: dt.date, payment_method_of: Callable,
                       for f, row in matrix.loss_rate.items()},
         "reason": matrix.reason,
     }
+
+
+def cap_level(on: dt.date) -> Optional[float]:
+    """The cap in force on `on`, net of EPG, as one figure: each fuel's unit rate (GBP/MWh) times the
+    typical consumption (`CAP_LEVEL_KWH`). None before the cap existed. The window in force on a
+    date was always published by that date, so this reads nothing a supplier did not hold."""
+    from company.pricing.ofgem_price_cap import get_cap_unit_rate_for_date
+    rates = [(get_cap_unit_rate_for_date(fuel, on), kwh) for fuel, kwh in CAP_LEVEL_KWH]
+    if any(r is None for r, _ in rates):
+        return None
+    return sum(r * kwh / 1000.0 for r, kwh in rates)
+
+
+def _year_earlier(on: dt.date) -> dt.date:
+    return on.replace(year=on.year - 1, day=28 if (on.month, on.day) == (2, 29) else on.day)
+
+
+def cap_ratio(on: dt.date) -> Optional[float]:
+    """The cap level on `on` over the level a year earlier; None where either side has no cap."""
+    now, then = cap_level(on), cap_level(_year_earlier(on))
+    return None if now is None or then is None else now / then
+
+
+def crisis_overlay_share(on: dt.date) -> Tuple[float, Optional[float], Optional[str]]:
+    """(share, ratio, reason): the overlay as a share of the total provision on `on`.
+
+    Linear in the cap's rise, zero when the cap did not rise, and the published high at the anchor
+    year end's own ratio and above (the page's choice 1). B5.5.52: an adjustment for conditions the
+    history did not hold, moving with the signal. With no cap a year earlier the share is 0.0 and the
+    reason says so -- before 2019 there is no published level to read, not a calm year."""
+    ratio = cap_ratio(on)
+    if ratio is None:
+        return 0.0, None, "no published cap a year earlier: the signal cannot be read on this date"
+    high = dict(OVERLAY_SHARE_ENDS)["published_high"]
+    anchor = cap_ratio(CRISIS_OVERLAY_ANCHOR)
+    return min(high, high * max(0.0, ratio - 1.0) / (anchor - 1.0)), ratio, None
+
+
+def with_crisis_overlay(stock: dict, on: dt.date) -> dict:
+    """The published provision stock with the crisis overlay grossed onto its `provision_gbp`, so the
+    overlay is its stated share of the total. The matrix-only figure stays beside it as
+    `matrix_provision_gbp`, so one run's ledger grades both arms. Reads only the date and the
+    stock: no ledger, no world."""
+    share, ratio, reason = crisis_overlay_share(on)
+    matrix = float(stock["provision_gbp"])
+    total = round(matrix / (1.0 - share), 2)
+    return {**stock, "matrix_provision_gbp": stock["provision_gbp"], "provision_gbp": total,
+            "crisis_overlay": {"share": round(share, 4),
+                               "cap_ratio": None if ratio is None else round(ratio, 4),
+                               "overlay_gbp": round(total - matrix, 2), "reason": reason}}

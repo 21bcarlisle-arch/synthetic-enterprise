@@ -1559,7 +1559,8 @@ def _record_renewal_decision(journey, log: list, *, customer_id: str, event_date
                 "commodity": commodity, "rolled": rolled, "switched": switched})
 
 
-def _company_provision_by_year_end(triad, effective_end: str, payment_method_of) -> dict:
+def _company_provision_by_year_end(triad, effective_end: str, payment_method_of,
+                                   crisis_overlay: bool = False) -> dict:
     """The company's provision stock at each year end in the run and at its end, read once the run
     is over. Each read is by value date, so a later read of an earlier date sees only cash that had
     arrived by then; reading during the run would force-cross held settlements and change the run.
@@ -1572,7 +1573,8 @@ def _company_provision_by_year_end(triad, effective_end: str, payment_method_of)
     dates = [date(y, 12, 31) for y in range(int(REPORT_START[:4]), end.year) if date(y, 12, 31) < end]
     try:
         write_offs = triad.write_off_closed_balances(end)
-        stocks = {d.isoformat(): triad.provision_stock(d, payment_method_of=payment_method_of)
+        stocks = {d.isoformat(): triad.provision_stock(d, payment_method_of=payment_method_of,
+                                                       crisis_overlay=crisis_overlay)
                   for d in dates + [end]}
     except Exception as exc:  # noqa: BLE001 -- a reporting read must not kill a completed run
         print(f"WARNING [company provision] could not be read: {exc!r}")
@@ -5977,7 +5979,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         # ledger, by footing and age, at each 31 December and at the end. Unlike
         # `total_bad_debt`'s provisioned reading, which is the world's incidence on revenue.
         "company_provision": _company_provision_by_year_end(
-            _payment_triad, effective_end, _book_method_of),
+            _payment_triad, effective_end, _book_method_of,
+            crisis_overlay=policy.provision_crisis_overlay),
         "total_net": total_net,
         "final_treasury": final_treasury,
         "starting_treasury": STARTING_TREASURY_GBP,
