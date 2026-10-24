@@ -20,11 +20,10 @@ reassessment) are company decisions and are not here. What is here is what a HOU
   * ITS ANSWER TO THE PREPAYMENT ROUTE. When a supplier offers a prepayment meter to recover a debt
     the household agrees or not (`answer_prepayment_offer`; a labelled range, shipped at 0). When
     the meter is changed -- by agreement or under warrant, which is the supplier's act and the
-    household's only response to it is to live with it -- the debt would be recovered from its
-    top-ups at the published mean weekly rate for new PPM-for-debt installs (GBP 6.01 electricity,
-    GBP 4.40 gas, Ofgem 2025; `company_debt_management.md` s.2). No meter is changed for debt in
-    the run, so that recovery is NOT built here (removed 2026-10-12: a cited constant no live code
-    reached); it is built where the run first changes a meter for debt.
+    household's only response to it is to live with it -- the debt is recovered from its top-ups at
+    the published mean weekly rate for new PPM-for-debt installs (GBP 6.01 electricity, GBP 4.40
+    gas, Ofgem 2025; `company_debt_management.md` s.2): `meter_recoveries`, built 2026-10-24 now
+    that the Consent route can change a meter (once take-up is switched on).
   * THE ROUTE ITSELF (W2_42, 2026-10-16). Deciding to ask for the meter change stays the supplier's
     act, but whether the meter actually changes is the world's: `move_to_prepayment_for_debt` moves
     it only by recorded Consent or through the SLC 28.7 involuntary gate, and refuses anything else
@@ -41,11 +40,18 @@ NAMED SIMPLIFICATIONS:
      would couple it is not reachable (the gap in the research section), so no coupling is built.
   4. Self-disconnection on a debt PPM is not drawn: the published counts are a stock over all smart
      PPM customers per quarter, not a per-household rate for one fitted for debt.
+  5. Recovery is the published MEAN weekly sum for every household: not scaled to the debt or the
+     means (SLC 27.8 sets a per-household figure; the 2025 range ran GBP 2.69-17.17 a week), and a
+     household that has not topped up that week still pays it. Understates how slowly a stretched
+     household repays and how often it goes off supply instead (simplification 4).
+  6. Bills after the move are paid before use (the meter's own method) for the rest of the run; a
+     meter is never moved back (SLC 28.1A reassessment is not built).
 
 Pure world code: never imports `company.*` or `saas.*`. Each draw has its own named substream.
 """
 from __future__ import annotations
 
+import datetime as dt
 from dataclasses import asdict, dataclass
 from typing import Optional
 
@@ -60,6 +66,27 @@ TOGGLE_PPM_TAKE_UP = "method_prepayment_offer_take_up_share"
 
 #: Why a cancellation happened, on the book's record. A shock-driven row carries no cause.
 CAUSE_OWN_REASONS = "own_reasons"
+
+#: Mean weekly repayment for prepayment meters installed for debt, calendar 2025 (Ofgem, Debt and
+#: arrears indicators; `company_debt_management.md` s.2, `debt_realism_three_world_fidelity_gaps.md`
+#: s.2). A published mean, not a per-household figure (simplification 5).
+PPM_DEBT_WEEKLY_GBP = {"electricity": 6.01, "gas": 4.40}
+
+
+def meter_recoveries(debt_gbp: float, moved_on: "dt.date", through: "dt.date",
+                     fuel: str = "electricity") -> list[dict]:
+    """Each weekly deduction at top-up falling after the meter was changed and no later than
+    `through`, as `{"due": iso, "amount_gbp": x}`. The sum never exceeds the debt carried onto the
+    meter, so the last is the remainder. Asking cannot see the future."""
+    weekly = PPM_DEBT_WEEKLY_GBP.get(fuel, PPM_DEBT_WEEKLY_GBP["electricity"])
+    out, remaining, n = [], round(debt_gbp, 2), 1
+    while remaining > 0 and (due := moved_on + dt.timedelta(days=7 * n)) <= through:
+        paid = round(min(weekly, remaining), 2)
+        out.append({"due": due.isoformat(), "amount_gbp": paid})
+        remaining = round(remaining - paid, 2)
+        n += 1
+    return out
+
 
 @dataclass(frozen=True)
 class MethodStrengths:

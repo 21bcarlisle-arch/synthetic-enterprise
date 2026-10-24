@@ -395,6 +395,13 @@ class _World:
         reason = {True: "agreed", False: "declined", None: "the world cannot say"}[self.accepted]
         return {"accepted": self.accepted, "instalment": self.instalment, "reason": reason}
 
+    def get_meter_recoveries(self, account_id, moved_on, debt, through):
+        moved, out, n = dt.date.fromisoformat(moved_on), [], 1
+        while (due := moved + dt.timedelta(days=7 * n)) <= dt.date.fromisoformat(through):
+            out.append({"due": due.isoformat(), "amount_gbp": 5.0})
+            n += 1
+        return out
+
     def get_plan_instalments(self, account_id, agreed_on, through):
         out, n = [], 1
         while (due := agreed_on + dt.timedelta(days=30 * n)) <= through:

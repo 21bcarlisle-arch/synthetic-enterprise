@@ -201,6 +201,23 @@ cap prices.
 - **The wall.** The company sees a meter's top-ups and its debt balance, as a real supplier does. It
   never sees the household's reason for self-disconnecting.
 
+**Built, part (a), 2026-10-24.** The route's second half now exists: a meter changed by Consent
+(`move_to_prepayment_for_debt`, only when the take-up toggle is on) recovers the debt carried onto it
+by a weekly deduction at the published mean (`payment_method_dynamics.meter_recoveries`; GBP 6.01
+electricity, 4.40 gas), posted to the company ledger as cash through the collections desk
+(`_read_meter_recoveries`) and crossing the seam as `get_meter_recoveries`. Later bills on that
+account are paid before use, and a lump settlement of a bill from before the move is withdrawn so the
+same arrears are not repaid twice (`HouseholdPlanBook.repays_through_plan`). The shipped world is
+unchanged: take-up ships at 0. Named simplifications 5 and 6 in the module (mean not per-household;
+never moved back).
+- **The grade against 30-40% is circular for take-up.** The toggle's low/high (0.30/0.40) were taken
+  FROM that Ofgem range. A run at those settings reproduces the range by construction at the
+  offer step, so the share of repayers on a PPM can only grade the OTHER half of the denominator
+  (how many debtors reach the 90-day rung and how many repay by plan or lump). Publish it as that,
+  with the denominator named, never as validation of take-up.
+- **Not yet done:** no engagement-attempt, Site Welfare Visit or involuntary path (Consent only);
+  Debt Trigger is not checked on the Consent route, which SLC 28.22 does not require.
+
 ## 3. Payment-failure rates
 
 **What the quantity is.** Six different things travel under this name
