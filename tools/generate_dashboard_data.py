@@ -2436,6 +2436,12 @@ def generate(run_json_path=None):
                                      OUTPUT_PATH.parent / "sim_data.json")
         write_front_door_build_strip(front_door)
         write_run_clocks(front_door.parent, dashboard)
+        # The diagram itself, from the canon page's words and the map's levels (27 Jul: never in
+        # sync by hand). Fails closed: a refused spec leaves the previous picture served.
+        from tools.model_on_a_page_picture import write as write_model_picture
+        from tools.model_on_a_page_sheets import write as write_model_sheets
+        write_model_sheets()
+        write_model_picture(front_door.parent / "assets" / "model-on-a-page.svg")
         from tools.harness_page_figures import write_harness_figures
         write_harness_figures(front_door.parent / "harness" / "index.html",
                               OUTPUT_PATH.parent / "proof.json")

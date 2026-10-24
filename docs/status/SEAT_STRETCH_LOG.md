@@ -8,6 +8,61 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-24 — The front-door diagram is generated at publish from the canon page's words and the map's levels, and each band opens its L2 sheet; five Now markers move to what the map says
+
+<!-- head: 01a69f17da47 -->
+
+**In plain English:** the diagram on the front door is no longer a hand-drawn file. Its words now live in the canon page, `THE_MODEL_ON_A_PAGE.md`, under a new section, "The picture". A generator draws it at every publish, and the maturity map decides whether each "Now" line reads as done, in build or not started.
+
+*Seat executor, 24 Oct 2026. Lane 0 item `front-door-diagram-generated-and-layered`, item 2 of the director's 24 Oct 09:42 steer. Item 1, the content refresh, landed in 9451cb34e.*
+
+**The generator.** `tools/model_on_a_page_picture.py` reads the words from the yaml block in the canon page, and the layout is its own. Each Now line names the map atoms that hold it, and its marker comes from the same derivation the stage words under the picture already used (`moap_stage.compute_stage`). The payment and debt engine's "in build" works the same way. A box given more lines than it has room for is refused by name rather than clipped. So is a line that names no atom. The generator runs at publish beside the other front-door writers in `generate_dashboard_data`, and it fails closed. Each band becomes a link to its L2 sheet once `site/model/<band>/` exists, and none does yet. Rendered in headless Chromium, the words are identical to 9451cb34e's hand-corrected picture.
+
+**What the map changed (my own review, beyond the steer).** The map is stricter than the hand-set markers were, and five of them move:
+- "9-year record replayed; weather → demand": done → in build (`W1_5_premise_demand_shape` is at 1 of 3).
+- "UK-compliant billing on three clocks · collections": done → in build (`EP4_collections_journey` is at 2 of 3).
+- "Tier-1 bill accuracy · assets on anchored S-curves": done → in build (D48 is at 2 of 3, `C4_adoption_physics` at 0 of 2).
+- "Household half-hourly CO₂ measured": done → in build (`EP13_adapter_carbon_intensity` is at 2 of 3).
+- "Naive forward belief it must outgrow": in build → not started (G15, the forward curve that would replace it, is at 0).
+The legend now reads "not started" rather than "honest gap", because a level of 0 is all the map can say. Which atoms hold each line is a judgement, written beside the line in the canon page where the director can read it. Three lines had no obvious atom: the own holdout (B8), conversations v1 (F1b, W2_39) and the naive belief (G15). Those mappings are the weakest.
+
+**The control.** `tests/tools/test_model_on_a_page_picture.py` checks five things:
+- the served picture's words equal the canon page's words, so a hand edit or a stale publish goes red;
+- a word changed on the page changes the picture;
+- all three states can be reached;
+- an atom missing from the map can never read as done;
+- both refusals fire.
+It compares words only, because other lanes move map levels between publishes. The canon drift check already reads the SVG (since 9451cb34e).
+
+**Also fixed, because trunk was red.** `tests/tools/test_the_canon_site_leg_reads_the_served_pages.py` failed at HEAD, from d2076bf0ab. The How it's built lessons clipped canon sentences at 240 characters with "…", and the drift check correctly read the clipped text as four misquotes of the director's words. `canon_lessons._first_sentence` no longer clips, and only the two lesson blocks of `site/harness/index.html` were regenerated.
+
+**The L2 sheets (item 3), all five.** `tools/model_on_a_page_sheets.py` renders `site/model/<band>/` and `site/assets/model-<band>.svg` from a `sheets:` entry in the same canon block, and runs at publish before the picture. It uses the picture's grammar: the same palette and boxes, three columns, a full-width box and a dark wall bar. Every box carries its state from the map, and every sheet links on to Capabilities, How it's built, Explore and The code.
+- World: a chain from cause to what follows. The record runs from wholesale prices to the price cap. The weather runs to each home's demand, then to settlement. The household runs to its hidden finances and life, then to how it behaves. Below them sit the rival and what crosses into the company.
+- Company: three chains. The loop is price → hedge → settle and learn. The money is bill → collect → payment and debt engine. The customer is discovery → life events → next best action. Below them sit the books and what goes back out.
+- Wall, score and governance are lists, not chains (`arrows: false`), and each page says so.
+Every claim on a sheet restates the picture, the canon page or CLAUDE.md. None is new.
+Each band in the picture links to its sheet. The door keeps the single `<img>`, because `site/test_home_door.py` holds that the diagram is hosted exactly once and an `<object>` with an `<img>` fallback counts twice. So each node in the list under the picture carries a "One tap down" link, and the caption says so. The links inside the SVG work when it is opened directly.
+
+**Cold read (item 4), one fresh Sonnet instance, an energy reader then a tech reader, on the rendered picture and the first draft of the sheet.** Acted on:
+- "price cap → settlement" was not a causal chain, so settlement moved under demand as "what each home used, reconciled against wholesale prices";
+- "demand → what the home uses" restated itself, so the two boxes merged;
+- "9-year" beside "2016–25" on the same picture read as a contradiction, and that is ten calendar years, so the line now says "2016–25". That was the picture's last statistic, so the no-stats control's allow-list is now empty;
+- the legend no longer runs past its box (fixed before the read landed);
+- the wall bar on the sheet now says which way it points.
+Not acted on, for the director (canon wording or a content call):
+- "learn from true-up": the trade says reconciliation;
+- "serve & converse — always on" sits beside "Conversations v1" marked in build;
+- "saved in three currencies" sits beside time "not yet instrumented";
+- "Tier-1 bill accuracy · assets on anchored S-curves" cannot be decoded by a billing reader;
+- the canon ids (R5, M8, CO1 and the rest) are unexplained on the door.
+
+**The steer is done** and moved to `advisor/done/` with its Done section. A second cold read over the four later sheets did not run; the first read's lesson (a chain must be causal) is why three of them are lists.
+
+**What we got wrong (2026-10-24):** the first draft of the world sheet chained the price cap into settlement and restated demand as use, and the cold read caught both. The first landing was refused because `load_spec` and the test's SVG reader scanned text with regex. The census reads that as possibly reading Python. Both now use a partition and an XML parse tree, so the census floor did not grow.
+
+---
+
+
 ## 2026-10-24 — The director-asks ledger is complete: 368 rows from every document, the owed list and 174 console asks, none closed without a ruling
 
 <!-- head: 904a091f7b42 -->

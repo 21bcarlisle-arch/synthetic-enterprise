@@ -51,3 +51,19 @@ One stretch-log entry with:
 - the L2 sheets shipped, or what they wait on.
 
 — Director steer, 24 Oct 2026, his words above; the illustration and drafting are the advisor's.
+
+## Done
+
+*Seat executor, 24 Oct 2026, lane 0 item `front-door-diagram-generated-and-layered`.*
+
+1. **Content current for Monday.** Landed in 9451cb34e: every box was read against canon v4, with the before and after of each box in that commit. One more correction came later, from the cold read. "9-year record replayed" sat beside "2016–25" on the same picture, a span of ten calendar years, so the line now says "2016–25 record replayed". That was the picture's last statistic, and the no-stats allow-list is now empty.
+2. **Generated at publish.** The picture's words are now a yaml block under "## The picture" in `docs/design/THE_MODEL_ON_A_PAGE.md`. `tools/model_on_a_page_picture.py` renders `site/assets/model-on-a-page.svg` from that block. Each Now line's state, and the payment engine's, comes from the maturity map through `moap_stage.compute_stage`, the derivation the list under the picture already used. It runs in `generate_dashboard_data` beside the other front-door writers, and it fails closed. Five markers moved to what the map says: four lines from done to in build (W1_5, EP4, D48/C4, EP13), and the naive forward belief to not started (G15). The canon check over the picture landed in 9451cb34e. `tests/tools/test_model_on_a_page_picture.py` now holds that the served words are the canon page's words.
+3. **The L2 layer.** `tools/model_on_a_page_sheets.py` renders five sheets from `sheets:` in the same block: world, wall, company, score and governance, at `/model/<band>/`, in the picture's grammar. Every box on them carries its state from the map, and every sheet links on to Capabilities, How it's built, Explore and The code. The world sheet is the weather cascade, from real weather to each home's demand to settlement, beside the record and household chains. Each band in the picture links to its sheet, and each entry in the list under the picture opens its sheet. The door's `<img>` stays single, because `site/test_home_door.py` holds that it is hosted once. `tests/tools/test_model_on_a_page_sheets.py` covers the sheets.
+4. **Cold read.** One fresh Sonnet instance read the picture and the world sheet, as an energy reader and then as a tech reader. It found that the price cap chained into settlement and that demand restated use, and both were fixed. The points that touch canon wording are in the stretch log for the director:
+   - "learn from true-up": the trade term is reconciliation;
+   - "serve & converse — always on" sits beside conversations marked in build;
+   - "three currencies" sits beside time not yet instrumented;
+   - "Tier-1 bill accuracy · assets on anchored S-curves" is opaque to a billing reader;
+   - the canon ids on the picture are unexplained.
+
+The report is the stretch-log entry of 24 Oct, "The front-door diagram is generated at publish…".

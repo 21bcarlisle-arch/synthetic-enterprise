@@ -346,7 +346,8 @@ details.more[open] summary { margin-bottom: 4px; }
          alt="A one-page schematic of the poesys model, read top to bottom. The mission, M1, quoted in full: we are creating enterprise value by automating ways to find individual customers we can create value for, and sharing in that value, by saving them money, time and carbon, through personalised modelling, tariffs and advice. Governance: one human director sets the mission and the direction; an AI delivery seat turns direction into priorities; AI sessions and daemons build and land the work; a harness of gates, rules and a maturity map steers everything below. The World (sim ground truth, behind the wall): the 2016-25 half-hourly prices replayed as they were, the 2021-22 crisis included, with real weather driving each home's demand; households drawn fresh every run, each hiding its finances, its life events and a thermal home under local weather, on dual fuel; a rival that defends its prices but does not yet contest; settlement lands months late. Cohorts are drawn for learning value, the 400-founder book is the production shape, and seed families answer each question with the smallest run. The Wall: ground truth never crosses; everything else is an interface flow in one of two directions -- inbound (market feeds, forecasts with error, meter reads, payments, complaints and replies, late settlement) and outbound (bills, offers, messages). The Company (sees only through the wall): acquire, forecast the book, price tariffs, hedge forward, bill out, collect, settle late and learn from the true-up; bills run on three clocks, billed, settled and banked; a payment and debt engine, in build, centred on a forward cash forecast per customer, with next best action as one decision per customer; a discovery loop that forms beliefs from observables and must live with being wrong. It must not be guaranteed to live, and collateral does not press yet. The Score: survive (a hard constraint judged worst-case), earn (probability-weighted expected value), and carbon (the CO2 each household saved and could save); the household is saved in three currencies, money, time and carbon, and pounds per tonne of CO2e is an internal diagnostic. Below, what runs now in Phase 1 (Build) and what it evolves into in Phases 2 and 3 (Adapt, Forward).">
     <figcaption>Source: the project's one-page model, docs/design/THE_MODEL_ON_A_PAGE.md, kept in line with
       the director's canon. Each part's build
-      stage is spelled out in plain words in the list below &mdash; the colour only reinforces it.</figcaption>
+      stage is spelled out in plain words in the list below &mdash; the colour only reinforces it.
+      Each band has its own sheet one level down: open it from its entry below.</figcaption>
   </figure>
 
   <div class="nodes" id="model">
@@ -354,11 +355,13 @@ details.more[open] summary { margin-bottom: 4px; }
       <div class="node-head"><span class="node-name">Governance &amp; method</span><span class="stage stage-live">Live</span></div>
       <p class="node-say">One human sets the mission and the handful of decisions that can&rsquo;t be undone; AI designs, builds and tests the rest; a standing set of gates and rules steers everything below it and refuses work that would break them.</p>
       <a class="node-look" href="./harness/#control-kpis">Look: which checks can actually fail &rarr;</a>
+      <a class="node-look" href="./model/governance/">One tap down: who decides, who builds, what checks &rarr;</a>
     </div>
     <div class="node">
       <div class="node-head"><span class="node-name">The world</span><span class="stage stage-building">Building</span></div>
       <p class="node-say">The actual half-hourly wholesale prices of 2016&ndash;2025 are replayed as they happened &mdash; 168,000 settlement periods, including the 2021&ndash;22 gas crisis. Real weather drives each home's demand, not the prices. Per-home demand is part-way there. Where the weather store covers a household's location, its electricity is drawn half hour by half hour from a thermal model of its own building under its own local weather, and its gas is split between heating and everything else by the same model. Homes outside that coverage still use one national shape rescaled, so they look too smooth, and a crowd of them does not vary the way a real street does.</p>
       <a class="node-look" href="./capabilities/#world">Look: how far the world has actually got &rarr;</a>
+      <a class="node-look" href="./model/world/">One tap down: the world, column by column &rarr;</a>
     </div>
     <div class="node">
       <div class="node-head"><span class="node-name">The households</span><span class="stage stage-live">Live</span></div>
@@ -369,16 +372,19 @@ details.more[open] summary { margin-bottom: 4px; }
       <div class="node-head"><span class="node-name">What the company can see</span><span class="stage stage-live">Live</span></div>
       <p class="node-say">The company never sees inside the simulation (the diagram calls this boundary the wall). It learns its world only the way a real supplier would &mdash; market feeds, forecasts that carry error, imperfect meter reads, payments, complaints &mdash; and the settled truth about a period lands months after it happened.</p>
       
+      <a class="node-look" href="./model/wall/">One tap down: the wall, what crosses and what never does &rarr;</a>
     </div>
     <div class="node">
       <div class="node-head"><span class="node-name">The company</span><span class="stage stage-live">Live</span></div>
       <p class="node-say">One joined-up stack: win customers, forecast the book, price tariffs, hedge forward, bill on three clocks, chase what&rsquo;s owed, settle late and learn from the true-up. Billing, collections, cost-to-serve and the discovery loop run today, and renewal prices are now held under a published competitor signal rather than set in a vacuum; the cash-collateral death-loop is still to come. It can be wrong, and it must not be guaranteed to live &mdash; but nothing in the world can yet push it under.</p>
       
+      <a class="node-look" href="./model/company/">One tap down: the company, organ by organ &rarr;</a>
     </div>
     <div class="node">
       <div class="node-head"><span class="node-name">The score</span><span class="stage stage-building">Building</span></div>
       <p class="node-say">Three tests: survive a worst-case shock, earn on a probability-weighted basis, and carbon &mdash; the CO&#8322; each household saved and could save (&pound; per tonne stays an internal diagnostic). Survive and earn run today. Household emissions are measured: a home&rsquo;s half-hourly reads, where the company has them, against what the grid was actually burning. Abatement, meaning what a household did not emit because of something we did, is not yet measured, and the site says so rather than pretend.</p>
       <a class="node-look" href="./harness/#not-proven">Look: what we know is wrong &rarr;</a>
+      <a class="node-look" href="./model/score/">One tap down: the score, leg by leg &rarr;</a>
     </div>
   </div>
 </section>

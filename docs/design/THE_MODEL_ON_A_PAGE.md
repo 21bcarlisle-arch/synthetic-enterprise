@@ -255,3 +255,223 @@ director just closed, nor silently drop his seed instruction. **Escalated via NT
 reply: host the plain-language model-on-a-page as a fold inside the Front-door surface (the closest
 match to "the pitch in plainer words") when surface_1 next iterates, NOT as a resurrected `/simplified`
 door.** Tracked as the open sub-item on the parked staging file.
+
+---
+
+## The picture (the front-door diagram's words)
+
+*Added 2026-10-24 on the director's steer of that morning ("i thought we already review this to
+create a multi layer live artefact?"). `site/assets/model-on-a-page.svg` is generated at publish
+by `tools/model_on_a_page_picture.py` from the block below, so the 27 Jul ruling (never kept in
+sync by hand) now covers the picture as well as the list under it. The words here are the
+picture's words, and `sheets:` holds the words of the L2 sheet one tap down from each band
+(`tools/model_on_a_page_sheets.py`, 9 Oct). The state of each Now line or sheet box is not
+written here: the generators read it from the maturity map's levels for the atoms it names
+(. every atom at target, _ in build, ~ not started). No figure, stat or count goes on the picture (9 Oct). A canon line quotes its
+id.*
+
+```yaml
+tagline: An autonomous UK energy supplier, run inside a faithful simulation of the real market.
+mission_id: M1
+mission:
+  - "“We are creating enterprise value by automating ways to find individual customers we can"
+  - "create value for, and sharing in that value — by saving them money, time and carbon, through personalised"
+  - "modelling, tariffs and advice.”"
+test_line: "The test on every line: could a real supplier know this?"
+governance:
+  heading: THE GOVERNANCE — ONE HUMAN, THE REST IS AI
+  boxes:
+    - {name: Director, sub: "the human · mission (G1)", human: true}
+    - {name: Delivery seat, sub: "direction → priorities (G1)", ai: true}
+    - {name: Builders, sub: "sessions · daemons", ai: true}
+    - {name: Harness, sub: "gates · rules · maturity"}
+  flow: builds and steers everything below
+world:
+  heading: THE WORLD — SIM GROUND TRUTH, BEHIND THE WALL
+  boxes:
+    - title: The real record
+      lines: ["2016–25 half-hourly prices, replayed", "as they were — the 2021–22 crisis too.", "Real weather → each home’s demand."]
+    - title: A drawn population
+      lines: ["Drawn fresh every run; each home hides", "its finances, life events, and a thermal", "home under local weather. Dual fuel."]
+  rival: {title: a rival, does: defends prices, not_yet: ["contests:", "not yet"]}
+  note: "The world moves ahead of the books: settlement lands months late. Ground truth never crosses the wall."
+  scale_heading: WHY WE DON'T NEED MILLIONS
+  scale:
+    - title: Value, not volume
+      lines: ["Cohorts drawn for learning value, not headcount.", "The founder book is the production shape (R6)."]
+    - title: Repetition, not scale
+      lines: ["Seed families: small books side by side on distinct", "seeds — a stated question, the smallest run (R5, R6)."]
+wall:
+  heading: THE WALL
+  sub: "Ground truth never crosses. Everything else is an interface flow — in one of two directions."
+  in: [market feeds, forecasts ± error, meter reads, payments, complaints & replies, settlement (late)]
+  out: [bills, offers, messages]
+  out_note: "— the company touches the world only through what it sends"
+  foot: "Forecast error is the wall on the future · discovery-through-behaviour is the wall on the customer"
+company:
+  heading: THE COMPANY — SEES ONLY THROUGH THE WALL
+  loop_out: [acquire, forecast book, price tariffs, hedge forward, bill out]
+  loop_back: [collect, settle (late)]
+  learn: learn from true-up
+  serve: "serve & converse — always on, woven through every step: sales · queries · care · collections"
+  stack: "One integrated, fully agentic stack grown end to end — trading · finance · billing · CRM · operations · debt."
+  clocks: "Bills run on **three clocks** — billed / settled / banked — and the truth arrives months behind the money."
+  engine:
+    title: Payment and debt engine · next best action (C7)
+    atoms: [E6_a_forward_cash_forecast_per_customer_charges_expected_loss_as_arrears_build, C34_next_best_action_is_one_decision_across_debt_retention_upsell_and_carbon_judged_by_clv]
+    lines: ["“Payment, credit risk and forward cash forecasting are the heart of this business.” (M7)", "One forward cash forecast per customer drives provision, drift limits and plans (C9)."]
+  discovery:
+    title: Discovery loop
+    lines: ["The company clusters its book from observables only, scored on worst-cell belief-vs-truth.", "It forms beliefs, prices against them, and must live with being wrong."]
+  warning: "It can be wrong, and it must not be guaranteed to live (M8) — collateral does not press yet."
+score:
+  heading: THE SCORE
+  legs:
+    - {name: SURVIVE, sub: "hard constraint · judged worst-case"}
+    - {name: EARN, sub: "expected value · probability-weighted"}
+    - {name: CARBON, sub: "CO₂ saved & could save (CO1)"}
+  note: "The household is saved in three currencies: **money, time and carbon** (M3). £/tCO₂e is an internal diagnostic (CO3)."
+now:
+  heading: NOW — PHASE 1, BUILD (V1)
+  items:
+    - {text: "2016–25 record replayed; weather → demand", atoms: [W1_3_national_weather_signal, W1_4_regional_weather_field, W1_reveal_over_time, W1_5_premise_demand_shape]}
+    - {text: "Curriculum-drawn cohorts, protected tails", atoms: [CA1_cohort_assignment_live, CA2_coverage_report_realised_cohort, W2_2_population_draw]}
+    - {text: "UK-compliant billing on three clocks · collections", atoms: [D1_bill_correctness, D2_three_clocks, EP4_collections_journey]}
+    - {text: "Tier-1 bill accuracy · assets on anchored S-curves", atoms: [D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used, C4_adoption_physics]}
+    - {text: "Household half-hourly CO₂ measured (CO4)", atoms: [EP13_adapter_carbon_intensity]}
+    - {text: "A rival that defends: renewals meet its price", atoms: [W2_3_competitor_field, B4_competitor_field]}
+    - {text: "Payment and debt engine · next best action", atoms: [E6_a_forward_cash_forecast_per_customer_charges_expected_loss_as_arrears_build, C34_next_best_action_is_one_decision_across_debt_retention_upsell_and_carbon_judged_by_clv]}
+    - {text: "Life events: moves, income shocks, deaths (B7)", atoms: [B7_customer_state_layer_moves_and_shocks, W2_5_life_event_stream]}
+    - {text: "Its own randomised holdout, read (C8)", atoms: [B8_discovered_price_sensitivity_holdout]}
+    - {text: "Conversations v1: write, respond, score the gap", atoms: [F1b_company_comms, W2_39_households_respond_to_contact_including_badly]}
+    - {text: "Naive forward belief it must outgrow", atoms: [G15_forward_curve_series_to_backtest_hedging_by_physics]}
+    - {text: "Abatement: no counterfactual yet (CO4)", atoms: [E5_carbon_three_ledger]}
+    - {text: "Time, household minutes: not yet instrumented", atoms: [C31_time_is_the_currency_that_does_not_exist]}
+    - {text: "The harness itself — a product in its own right", atoms: [H1_supervisor_turn_granting, H7_skills_and_rules, H12_mutation_test_controls]}
+  foot: ["Anything claimed as working carries its proof —", "level, test, or gap named."]
+evolves:
+  heading: EVOLVES INTO — ADAPT, FORWARD
+  items:
+    - "Scenario worlds: crisis-replay, glut, tail-heavy"
+    - "Traded product ladder; rivals that contest"
+    - "Collateral→cash death loop (2021–22 replay)"
+    - "The rest of the state layer: births, divorce"
+    - "Price-sensitivity discovered, never tagged"
+    - "Holdout-measured uplift: proven, not asserted"
+    - "Abatement measured: CO₂ a home did not emit"
+    - "Phase 2: learns within a run (V2)"
+    - "Phase 3: runs past the record, trends unseen (V3)"
+    - "Endgame: whole lives rerun to death or endpoint"
+  tail: "— the fitness function is open until Phase 3 (§2)."
+  foot: ["Anything here stated as present tense anywhere", "on the site is a claim-status defect."]
+footer: "// THE_MODEL_ON_A_PAGE.md · DIRECTOR_CANON.md v4 (2026-10-12) · no stats on the picture · poesys."
+sheets:
+  world:
+    title: The world
+    lead: ["The world is the part the company cannot see. It replays the real 2016–25 record and draws its households fresh every run.", "What reaches the company is only what crosses the wall at the bottom."]
+    columns: [THE RECORD, THE WEATHER, THE HOUSEHOLD]
+    rows:
+      - - {title: Wholesale prices, lines: ["Half-hourly, 2016–25, replayed as", "they were — the 2021–22 crisis too."], atoms: [W1_reveal_over_time]}
+        - {title: Real weather, lines: ["The national signal and the regional", "field, as it happened."], atoms: [W1_3_national_weather_signal, W1_4_regional_weather_field]}
+        - {title: A drawn household, lines: ["Drawn fresh every run from published", "cross-tabs: who lives there, what home."], atoms: [W2_1_archetype_layers, W2_2_population_draw]}
+      - - {title: The price cap, lines: ["Set each period by Ofgem from", "wholesale and other costs; it limits", "what a default tariff may charge."], atoms: [W3_1_price_cap_binding]}
+        - {title: Each home’s demand, lines: ["Heat load from local weather, through", "the home’s own fabric, shaped by who", "is in and when."], atoms: [W1_5_premise_demand_shape, W1_14_weather_cells_for_household_heat_load, W2_13_occupancy_consumption_volume_shape]}
+        - {title: Hidden finances and life, lines: ["A budget that may be under strain;", "moves, income shocks and deaths."], atoms: [W2_4_household_budget, W2_5_life_event_stream, B7_customer_state_layer_moves_and_shocks]}
+      - - null
+        - {title: Settlement, lines: ["What each home used, reconciled", "against wholesale prices months", "after it was used and billed."], atoms: [W3_2_settlement_timetable]}
+        - {title: How it behaves, lines: ["It pays or falls behind, rations,", "answers contact, sometimes badly."], atoms: [W2_11_payment_behaviour_source, W2_8_self_rationing, W2_39_households_respond_to_contact_including_badly]}
+    across: {title: A rival, lines: ["Defends its prices: when the company undercuts it, it follows over quarters, on a lag the company does not", "control, and never below its own costs. Going after the company’s book: not yet."], atoms: [W2_3_competitor_field, B10_competitor_switching_response]}
+    wall: {heading: WHAT CROSSES THE WALL INTO THE COMPANY, items: [market feeds, meter reads, payments, complaints & replies, settlement (late)], note: "Ground truth never does: the company never sees a household’s budget, its home’s fabric or its intent."}
+    links:
+      - {label: Capabilities, href: "capabilities/", why: "what the company can do with what crosses, each line with its test."}
+      - {label: How it’s built, href: "harness/", why: "the rules that keep the world honest and the wall shut."}
+      - {label: Explore, href: "explore/", why: "the drawn households and their bills, one at a time."}
+      - {label: The code, href: "code/", why: "the world’s modules, and the one seam the company reads through."}
+  wall:
+    title: The wall
+    lead: ["The wall is the line between the world and the company. Ground truth never crosses it; everything else is an interface flow, in one of two directions.", "The test on every line of the company’s code: could a real supplier know this?"]
+    how: "Read each column top to bottom as a list, not a chain."
+    arrows: false
+    columns: [IN — WHAT IT RECEIVES, THE SEAM, OUT — WHAT IT SENDS]
+    rows:
+      - - {title: Market feeds and forecasts, lines: ["Prices and forecasts as a supplier", "would have had them, with their error."], atoms: [W4_1_typed_adapters]}
+        - {title: Typed interfaces, lines: ["Each flow crosses through one typed", "interface; nothing else reaches in."], atoms: [W4_1_typed_adapters, EP6_wall_protocol_typing]}
+        - {title: Bills, lines: ["What it charges each home, on", "three clocks: billed, settled, banked."], atoms: [D1_bill_correctness, D2_three_clocks]}
+      - - {title: Meter reads and payments, lines: ["What a supplier observes of a home:", "its reads, and whether it paid."], atoms: [W4_4_payment_observable_seam]}
+        - {title: Ground truth stays behind, lines: ["The world’s own state never crosses;", "a verifier refuses company code", "that reads it."], atoms: [W4_3_external_truth_wall, F1_epistemic_verifier]}
+        - {title: Offers and messages, lines: ["Renewals, prices and contact: the", "only way it touches a home."], atoms: [F1b_company_comms]}
+      - - {title: Complaints and settlement, lines: ["Replies and complaints as homes send", "them; settlement, months late."], atoms: [W3_2_settlement_timetable]}
+        - {title: Discovery through behaviour, lines: ["What a home is must be inferred from", "what it does, never read off it."], atoms: [C2_discovery_through_interfaces]}
+        - null
+    across: {title: No route to the real world, lines: ["The company’s code may not open a network connection, directly or through anything it calls. Data fetched", "from outside becomes documentation and knowledge, never something the company reads at run time."], atoms: [H5_security_profiles]}
+    wall: {heading: TWO WALLS IN ONE, items: [forecast error, discovery through behaviour], note: "Forecast error is the wall on the future; discovery through behaviour is the wall on the customer."}
+    links:
+      - {label: Capabilities, href: "capabilities/", why: "what the company does with each flow that crosses."}
+      - {label: How it’s built, href: "harness/", why: "the verifier and the rules that keep the wall shut."}
+      - {label: Explore, href: "explore/", why: "one household as the company sees it."}
+      - {label: The code, href: "code/", why: "the seam itself, and the adapters on it."}
+  company:
+    title: The company
+    lead: ["The company is an automated supplier that sees only through the wall. It forms beliefs about each home, prices against them, and must live with being wrong.", "“Payment, credit risk and forward cash forecasting are the heart of this business.” (M7)"]
+    columns: [THE LOOP, THE MONEY, THE CUSTOMER]
+    rows:
+      - - {title: Price tariffs, lines: ["Prices each renewal against its own", "costs and beliefs, under the cap."], atoms: [B12_writer_one_reads_its_margin_on_the_unit_rate_so_a_renewal_floor_is_its_true_unit_cost, B3_hedge_tariff_alignment]}
+        - {title: Bill, lines: ["Correct bills on three clocks, and", "catch-up bills when reads arrive late."], atoms: [D1_bill_correctness, D2_three_clocks, D3_catchup_rebilling]}
+        - {title: Discovery loop, lines: ["Clusters its book from observables", "only, scored on belief against truth."], atoms: [C1_segment_layers, C2_discovery_through_interfaces]}
+      - - {title: Hedge forward, lines: ["Buys ahead to match what it sold, on", "a naive belief it must outgrow."], atoms: [B3_hedge_tariff_alignment, G15_forward_curve_series_to_backtest_hedging_by_physics]}
+        - {title: Collect, lines: ["Direct debits, arrears and plans;", "can’t-pay told apart from won’t-pay."], atoms: [C9_cantpay_wontpay_classifier, EP4_collections_journey]}
+        - {title: Life events, lines: ["Notices moves and hardship from", "what it can see, and acts on them."], atoms: [C7_life_event_detection, B7_customer_state_layer_moves_and_shocks]}
+      - - {title: Settle and learn, lines: ["Reconciliation arrives months late;", "it learns from the gap."], atoms: [E2_revenue_reconciliation, EP5_settlement_true_ups]}
+        - {title: Payment and debt engine, lines: ["One forward cash forecast per", "customer drives provision, drift", "limits and plans (C9)."], atoms: [E6_a_forward_cash_forecast_per_customer_charges_expected_loss_as_arrears_build, C34_next_best_action_is_one_decision_across_debt_retention_upsell_and_carbon_judged_by_clv]}
+        - {title: Next best action, lines: ["One decision across debt, retention,", "upsell and carbon (C7)."], atoms: [C34_next_best_action_is_one_decision_across_debt_retention_upsell_and_carbon_judged_by_clv]}
+    across: {title: The books, lines: ["Double-entry ledgers reconcile revenue to what was billed and settled, and the margin bridge shows where", "the money went."], atoms: [E1_ledger_double_entry, E2_revenue_reconciliation, B1_margin_bridge]}
+    wall: {heading: WHAT IT SENDS BACK ACROSS THE WALL, items: [bills, offers, messages], note: "It can be wrong, and it must not be guaranteed to live (M8): collateral does not press yet."}
+    links:
+      - {label: Capabilities, href: "capabilities/", why: "each organ of the company, with its test and what it cannot yet do."}
+      - {label: How it’s built, href: "harness/", why: "how the company is built and checked."}
+      - {label: Explore, href: "explore/", why: "bills and payments for one household at a time."}
+      - {label: The code, href: "code/", why: "the company’s modules, behind the seam."}
+  score:
+    title: The score
+    lead: ["The score says whether the company is working. Value is created and then shared, so every decision has two sides (M2).", "The household is saved in three currencies: money, time and carbon (M3)."]
+    how: "Read each column top to bottom as a list, not a chain."
+    arrows: false
+    columns: [SURVIVE, EARN, CARBON]
+    rows:
+      - - {title: Judged worst-case, lines: ["A hard constraint: the company must", "not be guaranteed to live (M8)."], atoms: [A5_tournament_fitness_mortality]}
+        - {title: Expected value, lines: ["Margin weighted by probability,", "per customer and over its life."], atoms: [B1_margin_bridge, EP1_clv_three_horizon]}
+        - {title: Household CO₂, lines: ["What each home emitted, half-hour", "by half-hour (CO4)."], atoms: [EP13_adapter_carbon_intensity]}
+      - - {title: The collateral loop, lines: ["The 2021–22 replay: hedges call for", "cash the company may not have."], atoms: [B6_collateral_cash_death_loop]}
+        - {title: The household side, lines: ["What a home kept against the default", "tariff, beside what we earned."], atoms: [A47_the_score_has_no_household_side]}
+        - {title: Saved and could save, lines: ["What a home saved and could save in", "CO₂ (CO1) needs a counterfactual."], atoms: [E5_carbon_three_ledger]}
+    across: {title: The world can defeat the company, lines: ["A score is read only where the world can press back: one that cannot tell value created from value", "transferred."], atoms: [A6_coupled_triad_gap_metric, G1_fidelity_grid_scorer]}
+    wall: {heading: THREE CURRENCIES FOR THE HOUSEHOLD (M3), items: [money, time, carbon], note: "Time is household minutes, never pounds. £/tCO₂e is an internal diagnostic (CO3)."}
+    links:
+      - {label: Capabilities, href: "capabilities/", why: "what each leg is measured by today, and what is not yet measured."}
+      - {label: How it’s built, href: "harness/", why: "how a score is kept honest."}
+      - {label: Explore, href: "explore/", why: "one household’s money and carbon."}
+      - {label: The code, href: "code/", why: "the scoring code."}
+  governance:
+    title: The governance
+    lead: ["One human sets the mission and direction; AI does the rest. The harness of gates and rules builds and steers everything below it.", "The director’s words carry full authority; a question to him comes with a recommendation."]
+    how: "Read each column top to bottom as a list, not a chain."
+    arrows: false
+    columns: [THE DIRECTOR, THE SEAT AND THE BUILDERS, THE HARNESS]
+    rows:
+      - - {title: Mission and direction, lines: ["Sets the mission and the calls that", "are his to make (G1)."], atoms: [A2_decision_rights_register]}
+        - {title: The delivery seat, lines: ["Turns direction into priorities", "and sequences the work (G1)."], atoms: [H1_supervisor_turn_granting, A1_learn_loop_chair]}
+        - {title: Gates, lines: ["A commit is refused when a test", "or a rule says no."], atoms: [H24_precommit_gate_git_env_isolation, H23_publish_gate_scope_marker]}
+      - - {title: Reserved actions, lines: ["Real money, real people and real-world", "commitments are never the machine’s."], atoms: [A3_approval_interface, H5_security_profiles]}
+        - {title: The builders, lines: ["Sessions and daemons working one", "tree at once, under shared rules."], atoms: [H7_skills_and_rules]}
+        - {title: The wall’s guard, lines: ["The epistemic verifier refuses", "company code that sees truth."], atoms: [F1_epistemic_verifier]}
+      - - null
+        - null
+        - {title: Fidelity evidence, lines: ["Each claim of realism carries its", "source, and can be checked."], atoms: [G2_fidelity_evidence_ledger, G3_fidelity_inspection_chain]}
+    across: {title: Controls that can fail, lines: ["A control is trusted only once it has been seen to fire on its own defect."], atoms: [H12_mutation_test_controls]}
+    wall: {heading: WHAT REACHES THE DIRECTOR, items: [the stretch log, open questions with a recommendation], note: "Nothing the machine writes is quoted as his words."}
+    links:
+      - {label: How it’s built, href: "harness/", why: "the rules, the gates and the record of what he asked for."}
+      - {label: Capabilities, href: "capabilities/", why: "what the machine has built under this governance."}
+      - {label: Explore, href: "explore/", why: "what it produces."}
+      - {label: The code, href: "code/", why: "the harness’s own modules."}
+```

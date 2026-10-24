@@ -49,13 +49,13 @@ def _plain(text):
     return re.sub(r"[`*]", "", text).strip()
 
 
-def _first_sentence(text, limit=240):
+def _first_sentence(text):
     text = _plain(text)
     # The end of a sentence is never inside a quotation: his words are not cut mid-ruling.
+    # Nor mid-word: a clipped canon sentence reads as a misquote to tools/canon_drift_check.
     ends = [m.start() for m in re.finditer(r"(?<=[.!?\"”])\s", text)
             if text[:m.start()].count('"') % 2 == 0]
-    out = text[:ends[0]] if ends else text
-    return out if len(out) <= limit else out[:limit - 1].rstrip() + "…"
+    return text[:ends[0]] if ends else text
 
 
 def principles(root=ROOT):

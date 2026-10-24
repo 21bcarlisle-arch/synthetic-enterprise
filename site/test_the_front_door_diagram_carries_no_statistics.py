@@ -25,7 +25,9 @@ from test_the_published_bytes_reader import published_blob, refuse_working_tree_
 
 DIAGRAM_REL = "site/assets/model-on-a-page.svg"
 
-PRESENT_BEFORE_THE_RULING = frozenset({"168k", "~200", "~12", "9-year"})
+# Shrunk to nothing on 2026-10-24: 9451cb34e took the first three off, and "9-year" went when
+# the cold read found it beside "2016-25" on the same picture (ten calendar years).
+PRESENT_BEFORE_THE_RULING: frozenset[str] = frozenset()
 
 _TEXT = re.compile(r"<text\b[^>]*>(.*?)</text>", re.DOTALL)
 _TAG = re.compile(r"<[^>]+>")
