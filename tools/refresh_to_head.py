@@ -252,6 +252,9 @@ class Verdict:
     #: `discarded` is every differing line and is rendered only under `REFRESHABLE`, where it
     #: describes what a write is about to destroy. This is the subset that makes the write refusable.
     prose: tuple[str, ...] = ()
+    #: Graded by `diff_held`: the copy's diff against HEAD is already in the base, so the
+    #: whole-file guards in `judge_copy` have nothing of the copy's own left to protect.
+    contained: bool = False
 
     @property
     def refused(self) -> bool:
@@ -307,6 +310,59 @@ def _discarded_lines(head_text: str, work_text: str) -> tuple[str, ...]:
     diff = difflib.unified_diff(head_text.splitlines(), work_text.splitlines(), n=0, lineterm="")
     return tuple(ln[1:].strip() for ln in diff
                  if ln.startswith("+") and not ln.startswith("+++") and ln[1:].strip())
+
+
+def _strip_blank(block: list[str]) -> list[str]:
+    while block and not block[0].strip():
+        block = block[1:]
+    while block and not block[-1].strip():
+        block = block[:-1]
+    return block
+
+
+def _occurrences(block: list[str], lines: list[str]) -> int:
+    n = len(block)
+    return sum(1 for i in range(len(lines) - n + 1) if lines[i:i + n] == block)
+
+
+def diff_held(head_text: str, work_text: str, base_text: str) -> tuple[int, tuple[str, ...]]:
+    """(blocks read, first line of each block `base_text` does NOT hold) for the copy's diff.
+
+    A block is HELD when `base` has MORE occurrences of an added run than HEAD does, and FEWER of a
+    deleted run -- `git log -S`'s own reading, which is what stops a copy that merely repeats a run
+    HEAD already has from reading as held. Only blank lines are trimmed: a comment is content here,
+    unlike `_trivial`, because the comment is the work `PROSE_GAIN` exists to protect.
+    """
+    head, work, base_lines = (t.splitlines() for t in (head_text, work_text, base_text))
+    read, missing = 0, []
+    matcher = difflib.SequenceMatcher(None, head, work, autojunk=False)
+    for op, i1, i2, j1, j2 in matcher.get_opcodes():
+        if op == "equal":
+            continue
+        added, gone = _strip_blank(work[j1:j2]), _strip_blank(head[i1:i2])
+        if added:
+            read += 1
+            if not _occurrences(added, base_lines) > _occurrences(added, head):
+                missing.append("+ " + added[0].strip())
+        if gone:
+            read += 1
+            if not _occurrences(gone, base_lines) < _occurrences(gone, head):
+                missing.append("- " + gone[0].strip())
+    return read, tuple(missing)
+
+
+def _diff_held_by_base(root: Path, path: str, work_text: str, base: str) -> int | None:
+    """The number of blocks `base` holds when it holds ALL of the copy's diff against HEAD, else None.
+
+    `None` where either blob is missing and where the diff is blank lines only -- nothing was read,
+    so nothing is established. No `base == "HEAD"` shortcut: the occurrence counts already make a
+    diff against HEAD unholdable by HEAD, and `test_head_never_holds_a_diff_against_itself` keys that.
+    """
+    head_text, base_text = blob_at(root, "HEAD", path), blob_at(root, base, path)
+    if head_text is None or base_text is None:
+        return None
+    read, missing = diff_held(head_text, work_text, base_text)
+    return read if read and not missing else None
 
 
 def _clock_disclosure(clock, base: str) -> str:
@@ -400,7 +456,7 @@ def judge_copy(root: Path, path: str, staged: frozenset[str] | None = None,
     """
     verdict = _judge_copy(root, path, staged, base=base, superseded=superseded,
                           base_wins=base_wins, staged_too=staged_too)
-    if verdict.state != REFRESHABLE:
+    if verdict.state != REFRESHABLE or verdict.contained:
         return verdict
     head_text = blob_at(root, base, path)
     if head_text is None:
@@ -559,6 +615,21 @@ def _judge_copy(root: Path, path: str, staged: frozenset[str] | None = None,
                            "so they are two rivals and only the working one has been judged here. "
                            "`--staged-too` refuses rather than discard an index entry no control "
                            "has read. Land or clear the staged copy deliberately first.")
+    # THE DIFF, NOT THE NAMES, AND ASKED BEFORE EITHER OF THEM. Every rule below compares the copy
+    # with `base` as two whole files, so a copy that is the landing's own draft, sitting on a HEAD
+    # the trunk has since moved past, reads as an ordinary edit or a replacement: against origin it
+    # still lacks everything else origin added. What the fast-forward actually destroys is the copy's
+    # diff against its OWN HEAD, and when `base` already holds that diff it destroys nothing.
+    # Measured 2026-10-24 on the gas floor's eleven shared-tree copies after 1c65267f8: 7 of the 9
+    # still on disk are held this way, and every one was refused by a name-level rule.
+    held = _diff_held_by_base(root, path, work_text, base)
+    if held is not None:
+        return Verdict(path, REFRESHABLE,
+                       "rival copy: its whole diff against HEAD ({} block(s)) is already in {}, so "
+                       "the fast-forward installs every line it adds and drops every line it "
+                       "deletes. What the write discards is HEAD's side of lines {} has also "
+                       "moved past.".format(held, base, base),
+                       discarded=_discarded_lines(head_text, work_text), contained=True)
     try:
         head_names, work_names = symbols(head_text, path), symbols(work_text, path)
     except Unparseable as exc:

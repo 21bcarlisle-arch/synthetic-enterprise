@@ -1685,3 +1685,85 @@ def test_the_guard_did_not_buy_its_honesty_from_the_commit_gate(repo: Path) -> N
     assert loss.detail == ("alpha",), (
         "rule 2 no longer names the symbol the copy would delete, so the refusal the commit gate "
         "prints cannot be checked by the reader it is printed for: {}".format(loss.detail))
+
+
+# ------------------------------- the copy's DIFF is already in the base (2026-10-24, the gas floor)
+#
+# The shared tree sat behind origin holding the gas floor's own drafts after 1c65267f8 landed them,
+# and every rule here compares the copy with the base as two whole files: against origin the draft
+# still lacks what OTHER lanes landed beside it, so it read as an ordinary edit or a replacement and
+# the fast-forward stayed refused. What the fast-forward destroys is the copy's diff against HEAD.
+
+HELD_LANE_BLOCK = (
+    "\n\ndef gas_floor_days():\n"
+    "    # Xoserve's AQ floor: an advance shorter than nine months is not annualised.\n"
+    "    return 273\n"
+)
+
+
+def _trunk_lands_the_lane_and_moves_on(repo: Path) -> None:
+    """`trunk` = HEAD + the lane's block, then a second lane rewords a value HEAD carries."""
+    _run(repo, "checkout", "-q", "-b", "trunk")
+    (repo / "m.py").write_text(LANDED + HELD_LANE_BLOCK)
+    _run(repo, "commit", "-qam", "the lane's block lands")
+    (repo / "m.py").write_text(LANDED.replace("return 1\n", "return 10\n") + HELD_LANE_BLOCK)
+    _run(repo, "commit", "-qam", "another lane rewords a value beside it")
+    _run(repo, "checkout", "-q", "main")
+
+
+def test_a_copy_whose_whole_diff_the_base_holds_is_refreshable(repo: Path) -> None:
+    """REACHABILITY, and the defect: before this leg the copy was `NOT_SUPERSEDED` -- against the
+    trunk it lacks the other lane's `return 10`, so it reads as an ordinary edit."""
+    _trunk_lands_the_lane_and_moves_on(repo)
+    (repo / "m.py").write_text(LANDED + HELD_LANE_BLOCK)
+    verdict = rth.judge_copy(repo, "m.py", base="trunk")
+    assert verdict.state == rth.REFRESHABLE and verdict.contained, (
+        "a copy the trunk holds line for line is still refused: [{}] {}".format(
+            verdict.state, verdict.reason))
+    assert rth.diff_held(LANDED, LANDED + HELD_LANE_BLOCK, LANDED)[1], (
+        "the reading holds a block against a base that lacks it -- it would hold everything")
+
+
+@pytest.mark.parametrize("copy, defect", [
+    (LANDED + HELD_LANE_BLOCK + "\n\ndef lane_work_the_trunk_never_saw():\n    return 2\n",
+     "one added block the trunk lacks"),
+    (LANDED.replace('    """A distinctive line that appears exactly once in this file."""\n', "")
+     + HELD_LANE_BLOCK, "a deletion the trunk did not make"),
+    (LANDED + HELD_LANE_BLOCK + "\n\n" + LANDED[LANDED.index("def freshly"):],
+     "a repeat of a run HEAD and the trunk both carry once, which counting presence holds"),
+    (LANDED + "\n\n\n", "a blank-lines-only diff, of which nothing was read"),
+])
+def test_a_copy_holding_anything_the_base_does_not_is_not_graded_held(repo: Path, copy: str,
+                                                                       defect: str) -> None:
+    _trunk_lands_the_lane_and_moves_on(repo)
+    (repo / "m.py").write_text(copy)
+    verdict = rth.judge_copy(repo, "m.py", base="trunk")
+    assert not verdict.contained, "graded held with {}: {}".format(defect, verdict.reason)
+
+
+def test_head_never_holds_a_diff_against_itself(repo: Path) -> None:
+    """At `base="HEAD"` the leg must not fire, or every copy that repeats HEAD's lines is held."""
+    (repo / "m.py").write_text(LANDED + "\n\ndef alpha():\n    return 1\n")
+    assert not rth.judge_copy(repo, "m.py").contained
+
+
+def test_a_held_copy_is_not_refused_for_prose_that_is_heads_and_not_its_own(repo: Path) -> None:
+    """THE WHOLE-FILE GUARDS ARE SKIPPED FOR A HELD COPY, and this is why. `PROSE_GAIN` reads the
+    copy against the base, so a comment HEAD carries and the trunk later reworded reads as the
+    copy's writing. Measured on `company/policy/decision_policy.py`, 2026-10-24: refused for three
+    of HEAD's own lines. MUTATION: apply the guards to `contained` verdicts and this FIRES."""
+    head = "# the rule as HEAD words it\nVALUE = 1\n"
+    (repo / "c.py").write_text(head)
+    _run(repo, "add", "c.py")
+    _run(repo, "commit", "-qm", "c")
+    block = "\n\n# the lane's own reason for the floor\nFLOOR = 273\n"
+    _run(repo, "checkout", "-q", "-b", "trunk")
+    (repo / "c.py").write_text(head + block)
+    _run(repo, "commit", "-qam", "the lane lands")
+    (repo / "c.py").write_text(head.replace("as HEAD words it", "as the trunk rewords it") + block)
+    _run(repo, "commit", "-qam", "another lane rewords HEAD's comment")
+    _run(repo, "checkout", "-q", "main")
+    (repo / "c.py").write_text(head + block)
+    verdict = rth.judge_copy(repo, "c.py", base="trunk")
+    assert verdict.state == rth.REFRESHABLE and verdict.contained, (
+        "[{}] {}".format(verdict.state, verdict.reason))
