@@ -162,3 +162,9 @@ not in `docs/reports/`, so no publish can pick it. Two things stand in the way, 
 **To close:** once a run at a commit that has `ce35a25e21` as an ancestor is published, re-grade it with
 `tools.grade_svt_invoices_over_ceiling`. The cast's `book_breaches.above_cap` should then fall from 199
 households to near the 16 the fresh run showed. Lower this file to LATENT on that reading, not before.
+
+**Amended 24 Oct, beside the condition above.** A run carrying `ce35a25e21` is not yet safe to publish.
+On the fresh run at `c5a8090187`, that fix gives 5 electricity void stubs receipts of about 47.7× the
+Treasury's share. Their bills go to as low as −£2,950, and £5,898 is never booked:
+`SEAT_FINDING_THE_VOID_STUB_EPG_FIX_CREDITS_HOUSEHOLDS_48_TIMES_THE_TREASURY_SHARE_AND_THE_LEDGER_BOOKS_NONE_OF_IT_2026-10-24.md`.
+The publish that clears this file must carry that file's fix too.

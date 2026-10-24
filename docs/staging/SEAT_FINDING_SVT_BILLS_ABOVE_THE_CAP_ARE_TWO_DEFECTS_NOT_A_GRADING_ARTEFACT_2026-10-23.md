@@ -382,6 +382,9 @@ route remains. **It stays open** until these reads are done:
   Still owed: the arrears, bad-debt and DD legs, which need an arm with the receipt left on the bill.*
 - Item 1's prediction above: inside the windows at most 23 over the ceiling and none an estimate on
   true kWh 0, with the outside count at 72 within noise.
+  *Graded 24 Oct on `c5a8090187`: 0 inside, but that is hollow, because the 9 void stubs pass by
+  going negative. 6 outside, so the 72 prediction is refuted, and the cause cannot yet be attributed.
+  `SEAT_FINDING_THE_VOID_STUB_EPG_FIX_CREDITS_HOUSEHOLDS_48_TIMES_THE_TREASURY_SHARE_AND_THE_LEDGER_BOOKS_NONE_OF_IT_2026-10-24.md`.*
 - Item 3's struck-rate question for the other 7 receipt-carrying invoices inside the windows.
 - The attribution of the denominator's growth.
 
