@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>The Map — four spines, one concept register</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;background:#F4F4F4;color:#0A0A0A;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif}
+a{color:#0047FF}a:hover{color:#0A0A0A}
+button{font-family:inherit}
+</style>
+</helmet>
+<div style="box-sizing: border-box; width: 100%; min-height: 100vh; background: #F4F4F4; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #0A0A0A">
+
+  <header style="background: #FFFFFF; border-bottom: 1px solid #D9D9D9">
+    <div style="max-width: 1360px; margin: 0 auto; padding: 14px 24px; display: flex; flex-wrap: wrap; align-items: center; gap: 24px">
+      <div style="font-size: 22px; font-weight: 700; letter-spacing: -0.5px">poesys.</div>
+      <nav aria-label="Main" style="display: flex; flex-wrap: wrap; gap: 18px; font-size: 14px">
+        <a href="#" style="color: #666666; text-decoration: none">Home</a>
+        <a href="#" style="color: #666666; text-decoration: none">Capabilities</a>
+        <a href="#" style="color: #666666; text-decoration: none">How it’s built</a>
+        <a href="#" style="color: #0A0A0A; text-decoration: none; font-weight: 600; border-bottom: 2px solid #0A0A0A; padding-bottom: 2px">The map</a>
+        <a href="#" style="color: #666666; text-decoration: none">The code</a>
+        <a href="#" style="color: #666666; text-decoration: none">Knowledge</a>
+        <a href="#" style="color: #666666; text-decoration: none">Explore</a>
+      </nav>
+    </div>
+  </header>
+
+  <main style="max-width: 1360px; margin: 0 auto; padding: 32px 24px 48px; display: flex; flex-direction: column; gap: 22px">
+
+    <section style="display: flex; flex-direction: column; gap: 8px">
+      <h1 style="margin: 0; font-size: 34px; font-weight: 700; letter-spacing: -0.5px">The map</h1>
+      <p style="margin: 0; font-size: 17px; line-height: 1.5; color: #333333; max-width: 940px">Everything the project knows and does, hung on one register of concepts. Four spines: the simulated world, the supplier’s value chain, the running of the company, and how the whole thing is built. Pick a spine, then a slice. Every page, note and module should land on some concept; what does not is listed, and so is every layer a concept is missing.</p>
+    </section>
+
+    <section aria-label="Choose a spine" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 10px">
+      <sc-for list="{{spines}}" as="sp" hint-placeholder-count="4">
+        <button onClick="{{sp.pick}}" style="{{sp.style}}">
+          <span style="display: block; font-size: 16px; font-weight: 700">{{sp.label}}</span>
+          <span style="display: block; font-size: 13px; line-height: 1.35; margin-top: 4px">{{sp.sub}}</span>
+        </button>
+      </sc-for>
+    </section>
+
+    <section aria-label="Choose a slice" style="display: flex; flex-direction: column; gap: 8px">
+      <div style="font-size: 12px; font-weight: 600; letter-spacing: 0.4px; text-transform: uppercase; color: #666666">{{spineName}} · choose a slice</div>
+      <div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center">
+        <sc-for list="{{chain}}" as="s" hint-placeholder-count="9">
+          <button onClick="{{s.pick}}" style="{{s.style}}">{{s.label}}</button>
+        </sc-for>
+      </div>
+      <div style="font-size: 13px; color: #666666">Solid outline: filled in this mock-up. Dashed: generated the same way in the real map.</div>
+    </section>
+
+    <sc-if value="{{empty}}" hint-placeholder-val="{{false}}">
+      <div style="background: #FFFFFF; border: 1px dashed #999999; border-radius: 10px; padding: 28px; font-size: 16px; color: #333333">[{{sliceName}} is generated the same way from the concept register. Filled in this mock-up: Households (world), Collect, Advise and Optimise (supplier), and Testing and controls (how it’s built).]</div>
+    </sc-if>
+
+    <sc-if value="{{filled}}" hint-placeholder-val="{{true}}">
+    <div style="display: flex; flex-direction: column; gap: 22px">
+
+    <section style="display: flex; flex-direction: column; gap: 4px">
+      <h2 style="margin: 0; font-size: 24px; font-weight: 700">{{slice.title}}</h2>
+      <p style="margin: 0; font-size: 16px; line-height: 1.5; color: #333333; max-width: 940px">{{slice.lede}}</p>
+    </section>
+
+    <section aria-label="What the map finds" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px">
+      <sc-for list="{{findings}}" as="f" hint-placeholder-count="4">
+        <div style="{{f.style}}">
+          <div style="font-size: 28px; font-weight: 700">{{f.n}}</div>
+          <div style="font-size: 14px; line-height: 1.4; margin-top: 2px">{{f.label}}</div>
+        </div>
+      </sc-for>
+    </section>
+
+    <section aria-label="The slice, layer by layer" style="background: #FFFFFF; border: 1px solid #D9D9D9; border-radius: 10px; overflow-x: auto">
+      <div style="{{gridWrap}}">
+        <div style="{{headRow}}">
+          <div style="padding: 12px; font-size: 12px; font-weight: 600; color: #666666; text-transform: uppercase; letter-spacing: 0.4px">{{slice.name}}</div>
+          <sc-for list="{{concepts}}" as="c" hint-placeholder-count="4">
+            <button onClick="{{c.pick}}" style="{{c.headStyle}}">{{c.name}}</button>
+          </sc-for>
+        </div>
+        <sc-for list="{{rows}}" as="row" hint-placeholder-count="4">
+          <div style="{{row.style}}">
+            <div style="padding: 12px; display: flex; flex-direction: column; gap: 2px">
+              <span style="font-size: 14px; font-weight: 700">{{row.label}}</span>
+              <span style="font-size: 12px; color: #666666; line-height: 1.35">{{row.sub}}</span>
+            </div>
+            <sc-for list="{{row.cells}}" as="cell" hint-placeholder-count="4">
+              <div style="{{cell.style}}">
+                <sc-for list="{{cell.items}}" as="it" hint-placeholder-count="2">
+                  <div style="display: flex; flex-direction: column; gap: 3px; padding: 6px 7px; border-radius: 6px; background: #FFFFFF; border: 1px solid #E5E5E5" title="{{it.title}}">
+                    <span style="{{it.tagStyle}}">{{it.tag}}</span>
+                    <span style="font-size: 12px; line-height: 1.3; word-break: break-word">{{it.label}}</span>
+                  </div>
+                </sc-for>
+                <sc-if value="{{cell.isGap}}" hint-placeholder-val="{{false}}">
+                  <div style="font-size: 12px; font-weight: 700; color: #E11900; border: 1px dashed #E11900; border-radius: 6px; padding: 6px 8px; background: #FFFFFF; line-height: 1.3">Gap: {{cell.gapText}}</div>
+                </sc-if>
+              </div>
+            </sc-for>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: #333333; align-items: center">
+      <span style="font-weight: 600">Key</span>
+      <sc-for list="{{key}}" as="k" hint-placeholder-count="5">
+        <span><span style="{{k.tagStyle}}">{{k.tag}}</span> {{k.text}}</span>
+      </sc-for>
+    </div>
+
+    <sc-if value="{{hasBeliefs}}" hint-placeholder-val="{{true}}">
+    <section aria-label="Beliefs and decisions" style="display: flex; flex-direction: column; gap: 12px">
+      <div>
+        <h2 style="margin: 0; font-size: 22px; font-weight: 700">Beliefs and decisions</h2>
+        <p style="margin: 6px 0 0; font-size: 16px; line-height: 1.5; color: #333333; max-width: 940px">The data the supplier decides on. Each belief is built only from what crosses the wall, feeds named decisions, and is graded against the simulation’s hidden truth.</p>
+      </div>
+      <sc-for list="{{beliefs}}" as="b" hint-placeholder-count="3">
+        <div style="background: #FFFFFF; border: 1px solid #D9D9D9; border-radius: 10px; padding: 16px 18px; display: flex; flex-direction: column; gap: 12px">
+          <div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; align-items: baseline">
+            <span style="font-size: 18px; font-weight: 700">{{b.name}}</span>
+            <span style="{{b.gradeStyle}}">{{b.grade}}</span>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; align-items: stretch">
+            <div style="background: #F4F4F4; border-radius: 8px; padding: 10px 12px">
+              <div style="font-size: 11px; font-weight: 600; letter-spacing: 0.4px; text-transform: uppercase; color: #666666">Built from (crosses the wall)</div>
+              <div style="font-size: 14px; line-height: 1.4; margin-top: 4px">{{b.from}}</div>
+            </div>
+            <div style="background: #F4F4F4; border-radius: 8px; padding: 10px 12px">
+              <div style="font-size: 11px; font-weight: 600; letter-spacing: 0.4px; text-transform: uppercase; color: #666666">The belief, in code</div>
+              <div style="display: flex; flex-direction: column; gap: 4px; margin-top: 4px">
+                <sc-for list="{{b.code}}" as="it" hint-placeholder-count="2">
+                  <div style="display: flex; gap: 6px; align-items: baseline" title="{{it.title}}"><span style="{{it.tagStyle}}">{{it.tag}}</span><span style="font-size: 12px; word-break: break-word">{{it.label}}</span></div>
+                </sc-for>
+              </div>
+            </div>
+            <div style="background: #F4F4F4; border-radius: 8px; padding: 10px 12px">
+              <div style="font-size: 11px; font-weight: 600; letter-spacing: 0.4px; text-transform: uppercase; color: #666666">Decides</div>
+              <div style="font-size: 14px; line-height: 1.4; margin-top: 4px">{{b.feeds}}</div>
+            </div>
+            <div style="background: #0A0A0A; color: #FFFFFF; border-radius: 8px; padding: 10px 12px">
+              <div style="font-size: 11px; font-weight: 600; letter-spacing: 0.4px; text-transform: uppercase; color: #BBBBBB">Graded against the truth</div>
+              <div style="font-size: 14px; line-height: 1.4; margin-top: 4px">{{b.truth}}</div>
+            </div>
+          </div>
+        </div>
+      </sc-for>
+    </section>
+    </sc-if>
+
+    <section aria-label="Concept detail" style="background: #FFFFFF; border: 1px solid #0A0A0A; border-radius: 10px; padding: 22px 24px; display: flex; flex-direction: column; gap: 16px">
+      <div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; align-items: baseline">
+        <h2 style="margin: 0; font-size: 22px; font-weight: 700">{{sel.name}}</h2>
+        <span style="font-size: 13px; color: #666666">{{sel.source}}</span>
+      </div>
+      <p style="margin: 0; font-size: 16px; line-height: 1.5; max-width: 900px">{{sel.what}}</p>
+      <div>
+        <div style="font-size: 12px; font-weight: 600; letter-spacing: 0.4px; text-transform: uppercase; color: #666666">What the map flags</div>
+        <sc-for list="{{sel.flags}}" as="fl" hint-placeholder-count="2">
+          <div style="font-size: 14px; line-height: 1.45; border-top: 1px solid #EEEEEE; padding: 6px 0">{{fl}}</div>
+        </sc-for>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 10px">
+        <div style="font-size: 12px; font-weight: 600; letter-spacing: 0.4px; text-transform: uppercase; color: #666666">How it connects, across all four spines · tap a topic to go there</div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px">
+          <sc-for list="{{links}}" as="g" hint-placeholder-count="4">
+            <div style="{{g.style}}">
+              <div style="font-size: 12px; font-weight: 700; letter-spacing: 0.4px; text-transform: uppercase">{{g.spine}}</div>
+              <sc-for list="{{g.items}}" as="l" hint-placeholder-count="2">
+                <button onClick="{{l.go}}" style="{{l.style}}">
+                  <span style="display: block; font-size: 11px; color: #666666; font-weight: 600">{{l.verb}}</span>
+                  <span style="display: block; font-size: 14px; font-weight: 600; margin-top: 1px">{{l.name}}</span>
+                </button>
+              </sc-for>
+              <sc-if value="{{g.none}}" hint-placeholder-val="{{false}}">
+                <div style="font-size: 13px; color: #666666">No link from here.</div>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </section>
+
+    </div>
+    </sc-if>
+
+    <footer style="font-size: 13px; color: #666666; line-height: 1.5; border-top: 1px solid #D9D9D9; padding-top: 14px">Mock-up. Module names, line counts, whether a run calls them, and the grades quoted are real, from the repository, its module census and the published record on 24 Oct 2026. The links between pages, notes, modules and concepts, and between topics, are matched by hand for this sketch; the real map would generate them from a concept register and check them.</footer>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":2600}}'>
+function P(l){ return { tag: "PAGE", label: l }; }
+function N(l){ return { tag: "NOTE", label: l }; }
+function C(l){ return { tag: "CODE", label: l }; }
+function U(l){ return { tag: "UNUSED", label: l }; }
+function T(l){ return { tag: "TWICE", label: l }; }
+function S(l){ return { tag: "SOURCE", label: l }; }
+function R(l){ return { tag: "RULE", label: l }; }
+function E(l){ return { tag: "EVIDENCE", label: l }; }
+function F(l){ return { tag: "FLAG", label: l }; }
+
+var ROWS_WORLD_SUPPLIER = [
+  ["k", "Knowledge", "What published sources say", "no knowledge"],
+  ["w", "The world", "How the simulation behaves", "no world rule"],
+  ["s", "The wall", "What crosses to the supplier", "nothing crosses"],
+  ["c", "The supplier", "What the company does", "nothing built"]
+];
+var ROWS_HARNESS = [
+  ["k", "Established practice", "What the field says, with sources", "no source"],
+  ["w", "Our rule", "What the project adopted", "no rule"],
+  ["s", "Enforced by", "The code or check that holds it", "nothing enforces it"],
+  ["c", "Evidence", "What the record shows", "no evidence"]
+];
+
+var SPINES = [
+  { id: "world", label: "The world", sub: "Markets and physics; households and how they live", steps: ["Weather", "Demand", "Generation and merit order", "Wholesale price", "Settlement", "Who lives where", "Home physics", "Households", "Choices"], rows: ROWS_WORLD_SUPPLIER },
+  { id: "supplier", label: "The supplier’s value chain", sub: "From winning a customer to optimising their home", steps: ["Acquire", "Switch", "Meter", "Bill", "Collect", "Settle", "Hedge", "Renew or lose", "Move", "Advise", "Optimise"], rows: ROWS_WORLD_SUPPLIER },
+  { id: "ops", label: "Running the company", sub: "Finance, capital, risk, regulation and compliance", steps: ["Accounts", "Capital", "Trading risk", "Regulation", "Vulnerability", "Complaints"], rows: ROWS_WORLD_SUPPLIER },
+  { id: "build", label: "How it’s built", sub: "AI engineering, software and data practice", steps: ["Testing and controls", "Delivery and CI", "Agents and models", "Data and lineage", "Security", "Observability"], rows: ROWS_HARNESS }
+];
+
+var SLICES = {
+  "world:Households": { title: "Households: money and life events", lede: "The hidden lives behind each account: who lives there, what they earn and spend, the shocks that hit them, and whether they pay or heat. The supplier sees none of this directly, only its effects.",
+    concepts: [
+      { id: "finances", name: "Household finances", source: "DWP · ONS · Ofgem debt statistics",
+        what: "Income, essential costs and the choice between paying and heating, drawn per household and hidden from the supplier.",
+        flags: ["The supplier sees only payments and returns", "Payment behaviour is modelled in four places across the wall"],
+        k: [P("debt-and-collections")], w: [T("simulation.payment_behaviour_source"), C("simulation.world_payment_truth")],
+        s: [C("contracts.payment_observable_seam")], c: [T("company.crm.payment_behaviour_analytics")] },
+      { id: "lifeevents", name: "Life events", source: "ONS · DWP · Census",
+        what: "Job loss and recovery, a new child, a death, insulation, a move. Each changes how a household uses and pays for energy.",
+        flags: ["The supplier is told about none of them; it must detect them from their effects"],
+        k: [P("how-houses-change"), P("home-moves")], w: [C("simulation.life_events")],
+        s: [], sGap: "only their effects: reads, payments, a move",
+        c: [C("company.crm.life_event_detector"), C("company.crm.life_event_impact")] },
+      { id: "wholives", name: "Who lives where", source: "Census 2021 · English Housing Survey",
+        what: "Household size, tenure and occupancy, drawn from published aggregates, never from personal records.",
+        flags: ["The supplier knows the account holder and nothing about who else lives there"],
+        k: [P("who-lives-where"), P("how-many-synthetic-households")], w: [C("simulation.household")],
+        s: [], sGap: "the account holder only", c: [], cGap: "no belief about the household" }
+    ] },
+
+  "supplier:Collect": { title: "Collect: payments and direct debit", lede: "Getting paid: the mandate, the amount, the collection, and what happens when it fails. Canon calls payment, credit risk and forward cash forecasting the heart of this business.",
+    concepts: [
+      { id: "mandate", name: "Direct debit mandate", source: "Bacs Direct Debit scheme",
+        what: "The customer’s instruction that lets the supplier collect from their bank, cancellable at any time.",
+        flags: ["No published page", "The mandate register is tested but never called", "A cancelled mandate is not observable"],
+        k: [N("account_hierarchy_payment_allocation")], w: [C("simulation.bacs_rails")], s: [], sGap: "a cancelled mandate is not observable",
+        c: [C("company.billing.direct_debit"), U("company.billing.dd_mandate_register")] },
+      { id: "amount", name: "Setting the amount", source: "SLC 27.15",
+        what: "A fixed direct debit rests on the best current information and is reviewed when new information would change it materially.",
+        flags: ["No published page: two research notes", "Rests on a consumption forecast not yet built as one per property"],
+        k: [N("what_a_supplier_holds_to_size_a_direct_debit")], w: [C("simulation.dd_balance_book"), C("simulation.dd_review_in_loop")],
+        s: [C("interfaces.dd_review_outcome")], c: [C("company.billing.dd_review")] },
+      { id: "arrears", name: "Arrears and collections", source: "SLC 27 · Ofgem debt guidance",
+        what: "Money owed past its due date, and the steps from reminder to referral.",
+        flags: ["An arrears engine on both sides of the wall, plus a third classifier"],
+        k: [P("debt-and-collections")], w: [T("simulation.arrears_engine")], s: [C("interfaces.collections_communication")],
+        c: [T("company.billing.arrears_engine"), C("company.billing.collections_journey"), T("saas.arrears_classifier")] },
+      { id: "prepay", name: "Payment method and prepayment", source: "SLC 28B · Ofgem prepayment rules (2023)",
+        what: "How a household pays; moving someone to prepayment for debt is tightly restricted.",
+        flags: ["No prepayment debt in the world", "All three prepayment modules never called"],
+        k: [N("gb_payment_method_migration_rates")], w: [C("simulation.payment_method_dynamics")], s: [], sGap: "a change of method is not observable",
+        c: [U("company.billing.prepayment"), U("company.billing.ppm_debt_loading")] }
+    ],
+    beliefs: [
+      { name: "Forward cash forecast per customer", grade: "Building", tone: "amber", from: "Bills, payments and returns, payment method, the account’s record",
+        code: [C("company.finance.cash_forecast_provision"), U("company.finance.cash_flow_forecast")], feeds: "Provision, balance drift limits, payment plans, early warnings",
+        truth: "Being built now: step 3 of the payment engine." },
+      { name: "Consumption forecast per property", grade: "Missing", tone: "red", from: "Reads, registered consumption, weather",
+        code: [C("company.billing.consumption_forecast"), U("company.market.load_forecast")], feeds: "Direct-debit amount, unbilled estimate, purchasing, CLV",
+        truth: "Canon asks for one forecast used by all four. Today it is a 52-line module." }
+    ] },
+
+  "supplier:Advise": { title: "Advise: savings, tariffs and the home", lede: "Telling a household what would save it money, carbon or time, costed for its own home.",
+    concepts: [
+      { id: "tariffadvice", name: "Tariff and switching advice", source: "SLC 31A",
+        what: "Telling a household when a better tariff exists, including the supplier’s own.",
+        flags: ["The best-connected advice route today"],
+        k: [P("the-price-a-household-is-shown")], w: [C("simulation.renewal_engagement")], s: [C("interfaces.renewal_advice")], c: [C("company.crm.renewal_advice_desk")] },
+      { id: "heating", name: "Heating and thermostat", source: "Household carbon page · SAP",
+        what: "Turning down the thermostat or flow temperature: the measures that save both money and carbon in a gas-heated home.",
+        flags: ["Strong knowledge and world physics; one small supplier module", "No heating signal crosses the wall"],
+        k: [P("household-carbon-and-the-measures-that-save-it")], w: [C("simulation.fabric_physics")], s: [], sGap: "only meter reads", c: [C("company.billing.efficiency_advice")] },
+      { id: "ev", name: "EV", source: "EV, solar and batteries page",
+        what: "A large, movable overnight load. Advice covers the tariff and when to charge.",
+        flags: ["The world’s adoption curve is built but never called", "No EV signal crosses; it must be inferred"],
+        k: [P("ev-solar-and-batteries-as-products")], w: [U("simulation.adoption_geography")], s: [], sGap: "infer from load", c: [U("company.market.ev_demand_forecast")] },
+      { id: "solar", name: "Solar and battery", source: "EV, solar and batteries page",
+        what: "Solar takes demand away; a battery moves it in time.",
+        flags: ["Absent from the world entirely"],
+        k: [P("ev-solar-and-batteries-as-products")], w: [], wGap: "no solar or battery in the world", s: [], sGap: "no export signal", c: [], cGap: "nothing built" }
+    ],
+    beliefs: [
+      { name: "Customer lifetime value (CLV)", grade: "Worse than guessing", tone: "red", from: "Margin per bill, payment record, tenure, renewals",
+        code: [C("company.analytics.forward_clv"), C("company.analytics.clv_three_horizon"), T("saas.clv_model"), U("company.crm.clv_calculator")], feeds: "Next best action, retention offers, acquisition spend",
+        truth: "Sits 8.1% past the line where the company does worse than guessing, on 248 cases. Modelled in seven places." },
+      { name: "Next best action", grade: "Can’t tell yet", tone: "amber", from: "CLV, churn belief, payments, detected life events",
+        code: [C("company.crm.next_best_action")], feeds: "Which offer or advice each household gets, and when",
+        truth: "Per-customer choices against flat rules on four seeds: too small to tell from chance (23 Oct)." }
+    ] },
+
+  "supplier:Optimise": { title: "Optimise: EV charging, batteries and flexibility", lede: "Acting on the household’s assets with its permission, inside a risk limit.",
+    concepts: [
+      { id: "evcharge", name: "EV smart charging", source: "Smart Charge Points Regulations 2021",
+        what: "Shifting charging to cheaper, cleaner hours, with consent and a guaranteed ready time.",
+        flags: ["Nothing built on any layer but knowledge"],
+        k: [P("ev-solar-and-batteries-as-products")], w: [], wGap: "no charging behaviour", s: [], sGap: "no consent or control", c: [], cGap: "nothing built" },
+      { id: "flex", name: "Selling flexibility", source: "DSO flexibility markets · NESO",
+        what: "Offering flexible load to the grid. Built in depth, for business sites only.",
+        flags: ["No Knowledge page", "Business customers only, and their supply is suspended"],
+        k: [], kGap: "no published page", w: [C("sim.flex_dispatch")], s: [C("contracts.flex_observable_seam")], c: [C("company.market.flex_participation"), U("company.market.flexible_asset")] }
+    ],
+    beliefs: [
+      { name: "Does this home have an EV?", grade: "Missing", tone: "red", from: "Half-hourly reads, with consent", code: [], codeGap: "nothing yet",
+        feeds: "EV tariff advice, smart charging", truth: "The world knows which homes have one, so an inference could be graded at once." }
+    ] },
+
+  "build:Testing and controls": { title: "Testing and controls", lede: "What established engineering practice says, the rule the project adopted, the code that enforces it, and what the record shows. This is where the machine checks itself against the field, not only against its own history.",
+    concepts: [
+      { id: "mutation", name: "Checks that can fail", source: "Mutation testing practice",
+        what: "A test only counts if it has been seen to fail when the defect it guards is put back.",
+        flags: ["A strength: adopted in July and enforced", "Only about a quarter of test files record their mutation"],
+        k: [S("Mutation testing (e.g. PIT, Stryker)")], w: [R("A check counts only once seen failing (13 Jul)")],
+        s: [C("docs/design/control_registry.json")], c: [E("532 of 2,154 test files record a mutation")] },
+      { id: "gate", name: "The commit gate", source: "DORA · continuous integration",
+        what: "Every change passes the same automated checks before it lands, and the gate is never skipped.",
+        flags: ["A strength: 23 checks on every commit"],
+        k: [S("DORA: trunk-based development, CI")], w: [R("Skipping the gate is never allowed")],
+        s: [C("tools/git-hooks")], c: [E("14 of the publisher’s 35 attempts refused, last 30 days")] },
+      { id: "deadcode", name: "Dead code", source: "Refactoring: the dead-code smell",
+        what: "Code nothing calls should be removed or archived; it costs reading time, test time and trust.",
+        flags: ["The practice was not followed: the rule kept everything", "286 supplier modules never called, up from 258"],
+        k: [S("Fowler, Refactoring: dead code")], w: [R("Orphan register (Aug): keep as ‘unhooked’")],
+        s: [C("tools/capability_index.py --dispositions")], c: [F("286 never-called modules, about 39,000 lines")] },
+      { id: "onehome", name: "One source of truth", source: "Single source of truth · DRY",
+        what: "Each concept has one home; a second copy will drift from the first.",
+        flags: ["Canon has the rule; nothing enforces it in code", "CLV in seven places, payment behaviour in four"],
+        k: [S("Single source of truth; DRY")], w: [R("Canon: ‘a concept has one home’")],
+        s: [], sGap: "checked for canon text, not for code",
+        c: [F("CLV in 7 places · payment behaviour in 4")] }
+    ] }
+};
+
+// Topic interconnections: concept id -> list of [spine, slice, concept id, verb]
+var LINKS = {
+  finances:     [["supplier","Collect","arrears","drives"], ["supplier","Collect","prepay","shapes"], ["world","Households","lifeevents","changed by"], ["build","Testing and controls","onehome","modelled in four places, see"]],
+  lifeevents:   [["world","Households","finances","changes"], ["supplier","Advise","tariffadvice","creates moments for"], ["world","Households","wholives","changes"]],
+  wholives:     [["supplier","Collect","amount","sets demand behind"], ["supplier","Advise","heating","shapes"]],
+  mandate:      [["supplier","Collect","amount","collects"], ["world","Households","finances","fails when short of"]],
+  amount:       [["supplier","Collect","arrears","too low leads to"], ["supplier","Advise","heating","depends on the forecast behind"], ["world","Households","wholives","driven by"]],
+  arrears:      [["world","Households","finances","caused by"], ["supplier","Collect","prepay","may lead to"], ["build","Testing and controls","onehome","duplicated, see"]],
+  prepay:       [["supplier","Collect","arrears","recovers"], ["world","Households","finances","screened against"]],
+  tariffadvice: [["world","Households","lifeevents","timed by"], ["supplier","Collect","amount","changes"]],
+  heating:      [["world","Households","wholives","depends on"], ["supplier","Advise","solar","pairs with"], ["supplier","Collect","amount","lowers"]],
+  ev:           [["supplier","Optimise","evcharge","leads to"], ["supplier","Advise","tariffadvice","needs the right"]],
+  solar:        [["supplier","Optimise","flex","could offer"], ["supplier","Advise","heating","pairs with"]],
+  evcharge:     [["supplier","Advise","ev","follows"], ["supplier","Optimise","flex","aggregates into"]],
+  flex:         [["supplier","Optimise","evcharge","needs"], ["build","Testing and controls","deadcode","unused registers, see"]],
+  mutation:     [["build","Testing and controls","gate","runs inside"], ["supplier","Advise","tariffadvice","grades decisions like"]],
+  gate:         [["build","Testing and controls","mutation","enforces"], ["build","Testing and controls","deadcode","does not catch"]],
+  deadcode:     [["supplier","Collect","mandate","example in"], ["supplier","Optimise","flex","example in"], ["build","Testing and controls","gate","missed by"]],
+  onehome:      [["supplier","Collect","arrears","broken in"], ["world","Households","finances","broken in"], ["supplier","Advise","tariffadvice","relates to CLV in"]]
+};
+
+var TAGSTYLE = {
+  PAGE: "background: #0047FF; color: #FFFFFF", NOTE: "background: #DCE7FF; color: #0A0A0A", CODE: "background: #0A0A0A; color: #FFFFFF",
+  UNUSED: "background: #FFF0C9; color: #0A0A0A", TWICE: "background: #FFDDD6; color: #0A0A0A",
+  SOURCE: "background: #0047FF; color: #FFFFFF", RULE: "background: #DCE7FF; color: #0A0A0A", EVIDENCE: "background: #D6F2E0; color: #0A0A0A",
+  FLAG: "background: #FFDDD6; color: #0A0A0A", GAP: "background: #FFFFFF; color: #E11900; border: 1px dashed #E11900"
+};
+var TAGTITLE = { PAGE: "A published Knowledge page", NOTE: "A research note, not yet a page", CODE: "Code or a check that runs", UNUSED: "Tested, but never called by a run", TWICE: "The same concept in more than one place",
+  SOURCE: "An established external source", RULE: "The project’s adopted rule", EVIDENCE: "What the record shows, holding", FLAG: "What the record shows, against the practice", GAP: "Missing" };
+var KEY_WS = [["PAGE","published Knowledge page"],["NOTE","research note, not yet a page"],["CODE","module the run calls"],["UNUSED","tested, never called"],["TWICE","same concept in more than one place"]];
+var KEY_BUILD = [["SOURCE","established practice"],["RULE","the project’s rule"],["CODE","what enforces it"],["EVIDENCE","record holds"],["FLAG","record goes against the practice"]];
+var TONE = { red: ["#FFDDD6", "#E11900"], amber: ["#FFF0C9", "#AA6700"], green: ["#D6F2E0", "#00873C"] };
+var SPINE_TONE = { world: "#F7F9FF", supplier: "#FFFFFF", ops: "#F4F4F4", build: "#FFF8E8" };
+
+function tagStyle(t) { return "font-size: 10px; font-weight: 700; padding: 1px 5px; border-radius: 3px; align-self: flex-start; white-space: nowrap; " + TAGSTYLE[t]; }
+function tagged(list) { return list.map(function (it) { return { tag: it.tag, label: it.label, title: TAGTITLE[it.tag], tagStyle: tagStyle(it.tag) }; }); }
+function spineById(id) { for (var i = 0; i < SPINES.length; i++) { if (SPINES[i].id === id) { return i; } } return 0; }
+
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { spine: 1, step: 4, sel: 0 }; }
+  go(spineId, step, conceptId) {
+    var si = spineById(spineId), sp = SPINES[si], idx = sp.steps.indexOf(step);
+    var sl = SLICES[spineId + ":" + step], ci = 0;
+    if (sl) { sl.concepts.forEach(function (c, i) { if (c.id === conceptId) { ci = i; } }); }
+    this.setState({ spine: si, step: idx < 0 ? 0 : idx, sel: ci });
+  }
+  renderVals() {
+    var self = this, st = this.state, sp = SPINES[st.spine];
+    var spines = SPINES.map(function (s, i) {
+      var on = i === st.spine;
+      return { label: s.label, sub: s.sub, pick: function () {
+          var first = 0; s.steps.forEach(function (x, j) { if (SLICES[s.id + ":" + x] && first === 0 && !SLICES[s.id + ":" + s.steps[0]]) { first = j; } });
+          self.setState({ spine: i, step: first, sel: 0 }); },
+        style: "text-align: left; padding: 14px 16px; border-radius: 10px; cursor: pointer; min-height: 72px; border: 1px solid " + (on ? "#0A0A0A" : "#D9D9D9") + "; background: " + (on ? "#0A0A0A" : "#FFFFFF") + "; color: " + (on ? "#FFFFFF" : "#0A0A0A") };
+    });
+    var chain = sp.steps.map(function (s, i) {
+      var on = i === st.step, filled = !!SLICES[sp.id + ":" + s];
+      return { label: s, pick: function () { self.setState({ step: i, sel: 0 }); },
+        style: "min-height: 40px; padding: 0 14px; border-radius: 20px; font-size: 14px; font-weight: 600; cursor: pointer; border: 1px " + (filled ? "solid" : "dashed") + " #0A0A0A; background: " + (on ? "#0A0A0A" : "#FFFFFF") + "; color: " + (on ? "#FFFFFF" : "#0A0A0A") };
+    });
+    var stepName = sp.steps[st.step], sl = SLICES[sp.id + ":" + stepName];
+    var blank = { chain: chain, spines: spines, spineName: sp.label, empty: true, filled: false, sliceName: sp.label + " › " + stepName,
+      slice: { name: "", title: "", lede: "" }, findings: [], concepts: [], rows: [], beliefs: [], hasBeliefs: false, key: [], links: [],
+      gridWrap: "", headRow: "", sel: { name: "", source: "", what: "", flags: [] } };
+    if (!sl) { return blank; }
+    var cs = sl.concepts, n = cs.length, sel = Math.min(st.sel, n - 1);
+    var cols = "display: grid; grid-template-columns: 160px repeat(" + n + ", minmax(0, 1fr))";
+    var concepts = cs.map(function (c, i) {
+      var on = i === sel;
+      return { name: c.name, pick: function () { self.setState({ sel: i }); },
+        headStyle: "text-align: left; padding: 12px 10px; border: 0; border-left: 1px solid #EEEEEE; font-size: 13px; font-weight: 700; line-height: 1.3; cursor: pointer; min-height: 56px; background: " + (on ? "#0A0A0A" : "#FFFFFF") + "; color: " + (on ? "#FFFFFF" : "#0A0A0A") };
+    });
+    var rowBg = ["#F7F9FF", "#F4F4F4", "#FFFFFF", "#FFFFFF"];
+    var rowBorder = ["1px solid #D9D9D9", sp.id === "build" ? "1px solid #D9D9D9" : "4px solid #0A0A0A", "1px solid #D9D9D9", "0"];
+    var rows = sp.rows.map(function (r, ri) {
+      return { label: r[1], sub: r[2], style: cols + "; background: " + rowBg[ri] + "; border-bottom: " + rowBorder[ri],
+        cells: cs.map(function (c, i) {
+          var list = c[r[0]] || [];
+          return { items: tagged(list), isGap: list.length === 0, gapText: c[r[0] + "Gap"] || r[3],
+            style: "padding: 8px; display: flex; flex-direction: column; gap: 6px; border-left: 1px solid #EEEEEE; background: " + (i === sel ? "rgba(0,71,255,0.06)" : "transparent") };
+        }) };
+    });
+    var gaps = 0, unused = 0, twice = 0, flags = 0, noPage = 0;
+    cs.forEach(function (c) {
+      ["k", "w", "s", "c"].forEach(function (key) { if (!(c[key] || []).length) { gaps++; } });
+      ["k", "w", "s", "c"].forEach(function (key) { (c[key] || []).forEach(function (x) { if (x.tag === "UNUSED") { unused++; } if (x.tag === "TWICE") { twice++; } if (x.tag === "FLAG") { flags++; } }); });
+      if (!(c.k || []).some(function (x) { return x.tag === "PAGE"; })) { noPage++; }
+    });
+    function card(nv, label, colour) { return { n: nv, label: label, style: "background: #FFFFFF; border: 1px solid #D9D9D9; border-top: 4px solid " + colour + "; border-radius: 10px; padding: 14px 16px" }; }
+    var findings = sp.id === "build"
+      ? [card(gaps + " of " + (n * 4), "layer cells empty", "#E11900"), card("" + flags, "places the record goes against established practice", "#E11900"), card((n - flags) + " of " + n, "practices the record shows holding", "#00873C"), card("" + n, "topics in this slice", "#0A0A0A")]
+      : [card(gaps + " of " + (n * 4), "layer cells empty across " + n + " concepts", "#E11900"), card(noPage + " of " + n, "concepts with no published Knowledge page", "#AA6700"), card("" + unused, "modules tested but never called by a run", "#AA6700"), card("" + twice, "modules duplicating a concept held elsewhere", "#E11900")];
+    var beliefs = (sl.beliefs || []).map(function (b) {
+      var t = TONE[b.tone];
+      var code = b.code.length ? tagged(b.code) : [{ tag: "GAP", label: b.codeGap || "nothing yet", title: TAGTITLE.GAP, tagStyle: tagStyle("GAP") }];
+      return { name: b.name, grade: b.grade, from: b.from, feeds: b.feeds, truth: b.truth, code: code,
+        gradeStyle: "font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 12px; background: " + t[0] + "; color: #0A0A0A; border: 1px solid " + t[1] };
+    });
+    var key = (sp.id === "build" ? KEY_BUILD : KEY_WS).map(function (k) { return { tag: k[0], text: k[1], tagStyle: tagStyle(k[0]) + "; display: inline-block" }; });
+    var s = cs[sel], raw = LINKS[s.id] || [];
+    var links = SPINES.map(function (spn) {
+      var items = raw.filter(function (l) { return l[0] === spn.id; }).map(function (l) {
+        var target = SLICES[l[0] + ":" + l[1]], tname = l[2];
+        if (target) { target.concepts.forEach(function (c) { if (c.id === l[2]) { tname = c.name; } }); }
+        return { verb: l[3], name: tname + " · " + l[1], go: function () { self.go(l[0], l[1], l[2]); },
+          style: "text-align: left; width: 100%; min-height: 44px; padding: 6px 10px; margin-top: 6px; border-radius: 8px; border: 1px solid #0A0A0A; background: #FFFFFF; color: #0A0A0A; cursor: pointer" };
+      });
+      return { spine: spn.label, items: items, none: items.length === 0,
+        style: "border-radius: 10px; padding: 12px; border: 1px solid #D9D9D9; background: " + SPINE_TONE[spn.id] };
+    });
+    return {
+      chain: chain, spines: spines, spineName: sp.label, empty: false, filled: true, sliceName: stepName,
+      slice: { name: stepName, title: sl.title, lede: sl.lede },
+      findings: findings, concepts: concepts, rows: rows, beliefs: beliefs, hasBeliefs: beliefs.length > 0, key: key, links: links,
+      gridWrap: "min-width: " + (160 + n * 170) + "px", headRow: cols + "; border-bottom: 1px solid #D9D9D9",
+      sel: { name: s.name, source: s.source, what: s.what, flags: s.flags }
+    };
+  }
+}
+</script>
+</body>
+</html>
