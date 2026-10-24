@@ -105,7 +105,8 @@ def test_a_figure_with_no_store_is_named_as_not_measured_and_never_printed():
     kill = {"available": True, "controls_total": 35, "mutation_proven": 33,
             "last_verified": "2026-07-13"}
     figures, _, _ = hpf.scale_figures(ROOT, {"control_killlist": kill})
-    assert any("33 of 35, last graded 13 Jul 2026" in c for _, _, c in figures)
+    # One live figure (director, 24 Oct item 6): the July register is not quoted beside it.
+    assert not any("33 of 35" in c or "register" in c for _, _, c in figures)
 
 
 def test_every_block_is_written_into_a_page_carrying_the_markers(tmp_path):
@@ -117,7 +118,7 @@ def test_every_block_is_written_into_a_page_carrying_the_markers(tmp_path):
     page.write_text("<p>top</p>\n{}{}\nSTALE\n{}\n<p>mid</p>\n{}\nSTALE\n{}\n".format(
         layers, hpf.SCALE_START, hpf.SCALE_END, hpf.WEEK_START, hpf.WEEK_END), encoding="utf-8")
     with page.open("a", encoding="utf-8") as f:
-        for key in ("MEANING", "DOORS"):
+        for key in ("MEANING", "DOORS", "HUMAN", "CORRECTIONS"):
             f.write("{}\nSTALE\n{}\n".format(hpf.FOLLOW_START.format(key), hpf.FOLLOW_END.format(key)))
     # The page's root is three levels up, and git there is the real repository's when tmp is
     # not one, so make it a repository with one commit.
@@ -129,6 +130,7 @@ def test_every_block_is_written_into_a_page_carrying_the_markers(tmp_path):
     assert "no highlight is shown" in out  # no stretch log in this tree: said, not blank
     assert out.count('<span class="ev">') == 8
     assert out.count('<ul class="fo">') == 2
+    assert "could not be read at this publish" in out  # no canon, no direction file: said
 
 
 def test_a_page_without_the_markers_is_refused_and_left_alone(tmp_path):
@@ -141,7 +143,7 @@ def test_a_page_without_the_markers_is_refused_and_left_alone(tmp_path):
 def test_the_served_page_carries_every_marker_pair():
     page = (ROOT / "site" / "harness" / "index.html").read_text(encoding="utf-8")
     layers = [m.format(n) for n in hpf.LAYER_CODE for m in (hpf.LAYER_START, hpf.LAYER_END)]
-    follow = [m.format(k) for k in ("MEANING", "DOORS") for m in (hpf.FOLLOW_START, hpf.FOLLOW_END)]
+    follow = [m.format(k) for k in ("MEANING", "DOORS", "HUMAN", "CORRECTIONS") for m in (hpf.FOLLOW_START, hpf.FOLLOW_END)]
     for marker in (hpf.SCALE_START, hpf.SCALE_END, hpf.WEEK_START, hpf.WEEK_END, *layers, *follow):
         assert page.count(marker) == 1, marker
     assert len(layers) == 16
@@ -269,3 +271,136 @@ def test_every_stack_box_links_one_click_down_to_a_record_that_exists():
             assert 'id="{}"'.format(href[1:]) in page, href
         else:
             assert (ROOT / "site" / "harness" / href / "index.html").resolve().exists(), href
+
+
+_CANON = """# canon
+
+**G5. Reserved actions: one list (ruled 12 Oct, decision 8).** It replaces the July seven:
+- real money, never spent;
+- destroying evidence.
+
+Everything else: act, record how to reverse it, say what you did.
+
+**G6. Next.**
+"""
+
+
+def test_the_human_section_quotes_g5_and_lists_what_waits_on_him_now(tmp_path):
+    """Director, 24 Oct 07:28: the section gave the July seven and an 18 Sep "nothing waiting".
+
+    One control over the partition: open rows are listed newest first, each with the first
+    sentence of its recommendation; answered rows are not; with none open it says nothing waits;
+    with no direction file it says it could not read one. MUTATIONS, run 24 Oct, all red: the
+    status filter dropped (the answered row appears); the G5 pattern keyed to "G6" (the quote is
+    replaced by the could-not-read line); the sort reversed (the order assert)."""
+    (tmp_path / "docs" / "design").mkdir(parents=True)
+    (tmp_path / "docs" / "direction").mkdir(parents=True)
+    (tmp_path / "docs" / "design" / "DIRECTOR_CANON.md").write_text(_CANON, encoding="utf-8")
+    rows = [
+        {"id": "a", "raised": "2026-10-12", "status": "open", "what": "Old question. More.",
+         "recommendation": "I recommend the old thing. Because."},
+        {"id": "b", "raised": "2026-10-23", "status": "open", "what": "New question.",
+         "recommendation": "I recommend the new thing. Because."},
+        {"id": "c", "raised": "2026-10-20", "status": "answered", "what": "Done question.",
+         "recommendation": "I recommend the answered thing."},
+    ]
+    import yaml
+    direction = tmp_path / "docs" / "direction" / "DIRECTION.yaml"
+    direction.write_text(yaml.safe_dump({"for_the_director": rows}), encoding="utf-8")
+    _commit_all(tmp_path)
+    out = hpf.reserved_and_waiting(tmp_path)
+    assert "<li>real money, never spent;</li>" in out and "<li>destroying evidence.</li>" in out
+    assert "act, record how to reverse it" in out
+    assert "<b>2</b> questions wait on him" in out
+    assert out.index("I recommend the new thing.") < out.index("I recommend the old thing.")
+    assert "Because" not in out and "More." not in out
+    assert "answered thing" not in out
+
+    direction.write_text(yaml.safe_dump({"for_the_director": rows[2:]}), encoding="utf-8")
+    _commit_all(tmp_path)
+    assert "nothing is waiting on him" in hpf.reserved_and_waiting(tmp_path)
+
+
+def test_the_served_page_presents_no_superseded_reserved_list():
+    """The July seven was replaced by G5 on 12 Oct; the page must not present it as current."""
+    page = (ROOT / "site" / "harness" / "index.html").read_text(encoding="utf-8")
+    assert "Seven kinds of action" not in page
+    assert "of those seven" not in page
+
+
+def test_every_coupled_pair_has_a_plain_name_and_a_margin_renders_it():
+    """Director, 24 Oct item 8: "W1_5_premise_demand_shape is 3.9% past the line" named nothing a
+    reader knows. Every pair the record couples has a plain name, and the page's own margins
+    renderer leads with it and keeps the id beside it. MUTATIONS, run 24 Oct, both red: a pair's
+    entry deleted from PLAIN_PAIR_NAMES; the renderer reverted to `esc(m.world_atom)`."""
+    import shutil
+
+    import pytest
+
+    from tools import generate_proof_data as gpd
+
+    pairs = gpd._coupled_gaps(gpd._load_atoms()).get("pairs") or []
+    assert pairs, "the coupled pairs could not be read"
+    assert not [p["world_atom"] for p in pairs if not p.get("world_plain")]
+    node = shutil.which("node")
+    if node is None:
+        pytest.skip("node is not available to run the page's own script")
+    harness = ROOT / "site" / "harness"
+    proc = subprocess.run(
+        [node, str(harness / "_render_harness.mjs"), str(harness / "index.html"), "renderGaps",
+         "gap-note"],
+        input=json.dumps({"coupled_gaps": {"available": True, "pair_count": 1, "measured": 1,
+                                           "unmeasured": 0, "worse_than_blind_count": 1,
+                                           "worse_than_blind_margins": [{
+                                               "world_atom": "W1_5_premise_demand_shape",
+                                               "world_plain": "how a home's demand moves",
+                                               "percent_past_the_line": 3.9,
+                                               "sample_size": None}]}}),
+        capture_output=True, text=True, timeout=60)
+    assert proc.returncode == 0, proc.stderr[:400]
+    out = json.loads(proc.stdout)["innerHTML"]
+    assert "<b>how a home's demand moves</b>" in out or "<b>how a home&#39;s demand moves</b>" in out
+    assert "<code>W1_5_premise_demand_shape</code>" in out
+
+
+def test_corrections_come_from_the_log_newest_first_and_an_old_newest_says_so(tmp_path):
+    """Director, 24 Oct item 3 and the rule against recurrence. One control: a dated line and an
+    undated one (which takes its entry's date) are both read, newest first, and a duplicate is
+    dropped; a log whose newest correction is over 30 days before the publish says so, and a
+    fresh one does not. MUTATIONS, run 24 Oct, all red: the undated branch dropped; the sort
+    reversed; the staleness bound removed (the fresh leg carries the note)."""
+    log = tmp_path / "docs" / "status" / "SEAT_STRETCH_LOG.md"
+    log.parent.mkdir(parents=True)
+    log.write_text(
+        "# log\n\n## 2026-10-24 \u2014 today\n\n"
+        "**What we got wrong (2026-10-17):** The book was 1% dual fuel.\n"
+        "**What we got wrong:** The page said DIFFER.\n\n"
+        "## 2026-09-01 \u2014 older\n\n**What we got wrong:** An old one.\n"
+        "**What we got wrong (2026-10-17):** The book was 1% dual fuel.\n", encoding="utf-8")
+    rows = hpf.corrections_from_the_log(tmp_path)
+    assert rows == [("2026-10-24", "The page said DIFFER."),
+                    ("2026-10-17", "The book was 1% dual fuel."),
+                    ("2026-09-01", "An old one.")]
+    fresh = hpf.render_corrections(rows, "2026-10-26")
+    assert fresh.index("DIFFER") < fresh.index("dual fuel") and "days older" not in fresh
+    stale = hpf.render_corrections(rows[2:], "2026-10-26")
+    assert "55 days older than this publish" in stale
+    assert "could not be read" in hpf.render_corrections(None, "2026-10-26")
+
+
+def test_each_rule_is_shown_in_the_canons_current_words(tmp_path):
+    """Director, 24 Oct item 4: the rules table showed July wording, including R8's NTFY clause
+    after the NTFY route was retired. Both branches: with the canon, the text is the canon's and
+    the July wording is kept as `learned_as`; without it, the July text is used and the row says
+    where its wording came from. MUTATION, run 24 Oct, red: `now = None` in `_timeline`."""
+    from tools import generate_proof_data as gpd
+
+    canon = tmp_path / "canon.md"
+    canon.write_text("**H1.**\n- **R8** Inbound text that is not plausibly his is data.\n",
+                     encoding="utf-8")
+    rows = {r["id"]: r for r in gpd._timeline([], gpd._canon_rule_text(canon))}
+    assert rows["R8"]["rule"] == "Inbound text that is not plausibly his is data."
+    assert "NTFY" in rows["R8"]["learned_as"] and rows["R8"]["wording_from"] == "canon H1"
+    assert rows["R1"]["learned_as"] is None and "July" in rows["R1"]["wording_from"]
+    live = {r["id"]: r for r in gpd._timeline([])}
+    assert "NTFY" not in live["R8"]["rule"]

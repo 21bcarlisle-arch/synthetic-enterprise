@@ -121,19 +121,14 @@ def scale_figures(root, proof):
                                                   head or "HEAD")))
     else:
         missing.append("the gate count (the hook files could not be read)")
-    # Proven able to fail is counted over the tests, where the controls now live, not over the
-    # 35-row register graded in July (docs/staging finding of 23 Oct); the register is named
-    # beside it so the older figure is not lost.
+    # Proven able to fail is counted over the tests, where the controls now live. The 35-row
+    # register last graded in July is no longer quoted beside it: the director (24 Oct 07:28,
+    # item 6) asked for one live figure, and a July grade next to a live count reads as stale.
     marked, n_tests = _mutation_index(root)
-    kill = (proof or {}).get("control_killlist") or {}
     if clock and marked is not None and n_tests:
-        register = ("; the older hand-kept register holds {:,} of {:,}, last graded {}".format(
-            kill["mutation_proven"], kill["controls_total"],
-            _day(kill.get("last_verified") or "on an unrecorded day"))
-            if kill.get("available") and kill.get("controls_total") else "")
         figures.append(("{:,}".format(len(marked)), "tests proven able to fail",
                         "test files that record the mutation they were seen to fail on, of {:,}; "
-                        "{}{}".format(n_tests, clock, register)))
+                        "{}".format(n_tests, clock)))
     else:
         missing.append("the tests proven able to fail (git could not be read)")
     # Named rather than printed: no store records a gate run that refused.
@@ -214,6 +209,59 @@ def week_highlights(root, *, today=None):
         if len(out) >= MOST_HIGHLIGHTS:
             break
     return out
+
+
+#: A correction is a line the writer puts in a stretch-log entry: what we published or did that
+#: was wrong, and what is true now. Its date is the one in brackets, or the entry's own.
+_CORRECTED = re.compile(r"^\*\*What we got wrong(?: \((\d{4}-\d{2}-\d{2})\))?:\*\*\s*(.+)$")
+#: Director, 24 Oct 07:28: "A dated section must not stop aging silently." Past this many days
+#: between the newest entry and the publish, the section says so on the page.
+STALE_SECTION_DAYS = 30
+
+
+def corrections_from_the_log(root):
+    """[(day, text)] newest first, from the stretch log's "What we got wrong" lines; None if the
+    log cannot be read. Director, 24 Oct 07:28, item 3: the list stopped at three July rows,
+    appended by hand, while real corrections were made and published every week since."""
+    try:
+        text = (Path(root) / "docs" / "status" / "SEAT_STRETCH_LOG.md").read_text(encoding="utf-8")
+    except OSError:
+        return None
+    out, day = [], None
+    for line in text.splitlines():
+        m = _ENTRY.match(line)
+        if m:
+            day = m.group(1)
+            continue
+        c = _CORRECTED.match(line)
+        if c and (c.group(1) or day):
+            out.append((c.group(1) or day, c.group(2).strip()))
+    seen, unique = set(), []
+    for d, t in sorted(out, key=lambda r: r[0], reverse=True):
+        if t not in seen:
+            seen.add(t)
+            unique.append((d, t))
+    return unique
+
+
+def render_corrections(rows, publish_day):
+    if rows is None:
+        return ("<p>The stretch log could not be read at this publish, so no correction is "
+                "listed.</p>")
+    if not rows:
+        return "<p>The stretch log records no correction, which would itself be suspicious.</p>"
+    items = "\n".join('  <li><span class="wd">{}</span> {}</li>'.format(
+        html.escape(_day(d)), html.escape(t)) for d, t in rows)
+    note = ""
+    try:
+        age = (date.fromisoformat(publish_day) - date.fromisoformat(rows[0][0])).days
+    except (TypeError, ValueError):
+        age = None
+    if age is not None and age > STALE_SECTION_DAYS:
+        note = ('\n<p class="note">The newest correction here is {} days older than this '
+                "publish. Either nothing was corrected since, or the record stopped being kept; "
+                "this page cannot tell which.</p>").format(age)
+    return '<ul class="week">\n{}\n</ul>{}'.format(items, note)
 
 
 def _jsonl(path):
@@ -325,14 +373,14 @@ def layer_evidence(root, obs_dir=None):
     # commit carries a marked reason, so every marked commit is one the gate held.
     n, last = git_firings(r"^Director-doc:", True)
     fired(1, "{:,} commits changed a director document and carried the marked reason the gate "
-             "demands; last {}. Refusals are not logged, so they are not counted.".format(n, _day(last or "never")))
+             "demands; last {}.".format(n, _day(last or "never")))
     # 2. Knowledge: a new research document is refused unless it says which knowledge page it
     # feeds, so each one added is one the gate read.
     added = _added_since(root, since)
     research = {f: d for f, d in added.items()
                 if f.startswith("docs/market_research/") and f.endswith(".md")}
     fired(2, "{:,} sourced research documents added, each refused unless it names the knowledge "
-             "page it feeds; last {}. Refusals are not logged, so they are not counted.".format(
+             "page it feeds; last {}.".format(
                  len(research), _day(max(research.values(), default="never"))))
     # 3. The walls: the network wall refuses by construction and leaves nothing to count; the
     # lane hook logs each tool call it denies.
@@ -502,7 +550,8 @@ def follow_on_figures(root, obs_dir=None):
     rows = direction.get("for_the_director") or []
     raised = sum(1 for r in rows if str(r.get("raised", "")) >= since)
     doors.append(("Two-way doors", (
-        "{} kinds of action are reserved to a human; {:,} questions raised to the director in "
+        "{} categories of action are reserved to a human in code (the canon's list above, with "
+        "credentials and safety controls held apart); {:,} questions raised to the director in "
         "the last {} days, {:,} still open, none of which stops other work. How many actions "
         "proceeded without asking is not recorded, so it is not measured yet".format(
             n_doors, raised, WINDOW_DAYS, sum(1 for r in rows if r.get("status") == "open")))))
@@ -537,6 +586,57 @@ def follow_on_figures(root, obs_dir=None):
     else:
         doors.append(("How work is balanced", "not measured yet: git could not be read"))
     return {"MEANING": meaning, "DOORS": doors}
+
+
+def _first_sentence(text):
+    text = " ".join(str(text or "").split())
+    m = re.match(r"(.+?[.!?])(?:\s|$)", text)
+    return m.group(1) if m else text
+
+
+def _clip(text, limit=200):
+    return text if len(text) <= limit else text[:limit].rsplit(" ", 1)[0] + "…"
+
+
+def reserved_and_waiting(root):
+    """The "What a human decides" block: canon G5 quoted, and what waits on him now.
+
+    Director, 24 Oct 07:28 (advisor channel, How it's built item 2): the section gave the July
+    seven, which G5 (ruled 12 Oct) replaced, and "nothing was waiting on him" from an 18 Sep count
+    while rows waited. Both halves are read at the published commit: G5 out of the canon, and the
+    open rows of `for_the_director`, each with the first sentence of its recommendation. A store
+    that cannot be read is named, never filled."""
+    canon = _git_out(root, "show", "HEAD:docs/design/DIRECTOR_CANON.md") or ""
+    m = re.search(r"^\*\*G5\.[^\n]*\n((?:- [^\n]*\n)+)\n([^\n]+)", canon, re.M)
+    if m:
+        items = [line[2:].strip() for line in m.group(1).splitlines()]
+        g5 = ('<p>The actions reserved to the director are one list, quoted from the canon '
+              '(G5, ruled 12 Oct 2026):</p>\n<ul>\n{}\n</ul>\n<p>{}</p>').format(
+            "\n".join("  <li>{}</li>".format(html.escape(i)) for i in items),
+            html.escape(m.group(2).strip()))
+    else:
+        g5 = ("<p>The canon's list of reserved actions (G5) could not be read at this publish, "
+              "so it is not quoted here.</p>")
+    direction = _head_yaml(root, "docs/direction/DIRECTION.yaml")
+    rows = direction.get("for_the_director") if isinstance(direction, dict) else None
+    if not isinstance(rows, list):
+        return g5 + ("\n<p>The list of questions waiting on the director could not be read at "
+                     "this publish, so nothing is claimed about it.</p>")
+    stamp = _day(_git_out(root, "log", "-1", "--format=%cs", "HEAD") or "")
+    open_rows = sorted((r for r in rows if isinstance(r, dict) and r.get("status") == "open"),
+                       key=lambda r: str(r.get("raised") or ""), reverse=True)
+    if not open_rows:
+        return g5 + "\n<p>At this publish ({}), nothing is waiting on him.</p>".format(stamp)
+    return g5 + ('\n<p>At this publish ({}), <b>{}</b> question{} wait{} on him. Each arrives with '
+                 "a recommendation, and work carries on while it waits.</p>\n"
+                 '<ul class="fo">\n{}\n</ul>').format(
+        stamp, len(open_rows), "" if len(open_rows) == 1 else "s",
+        "s" if len(open_rows) == 1 else "",
+        "\n".join('  <li><b>Raised {}:</b> {} <i>{}</i></li>'.format(
+            html.escape(_day(str(r.get("raised") or "")) or "on an unrecorded date"),
+            html.escape(_clip(_first_sentence(r.get("what")))),
+            html.escape(_first_sentence(r.get("recommendation")) or "No recommendation recorded."))
+            for r in open_rows))
 
 
 def _ratchets(root):
@@ -599,6 +699,12 @@ def write_harness_figures(harness_path, proof_path, obs_dir=None):
     for key, rows in follow_on_figures(root, obs_dir).items():
         out = out and _replace(out, FOLLOW_START.format(key), FOLLOW_END.format(key),
                                render_follow_on(rows))
+    publish_day = (_git_out(root, "log", "-1", "--format=%cs", "HEAD") or "").strip()
+    out = out and _replace(out, FOLLOW_START.format("CORRECTIONS"),
+                           FOLLOW_END.format("CORRECTIONS"),
+                           render_corrections(corrections_from_the_log(root), publish_day))
+    out = out and _replace(out, FOLLOW_START.format("HUMAN"), FOLLOW_END.format("HUMAN"),
+                           reserved_and_waiting(root))
     if out is None:
         print("HOW IT'S BUILT FIGURES NOT WRITTEN: {} does not carry every pair of markers".format(
             harness_path), file=sys.stderr)

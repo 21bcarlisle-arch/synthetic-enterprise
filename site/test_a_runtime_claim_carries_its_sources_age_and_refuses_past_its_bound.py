@@ -49,7 +49,6 @@ READERS = {
     ("assets/freshness-banner.js", "tick_heartbeat"): "claim: banner_failing",
     ("assets/freshness-banner.js", "publish_provenance"):
         "the Verified line names its own verified_at; the frozen-feed check ages it",
-    ("harness/index.html", "director_reserved"): "claim: reserved_right_now",
     ("harness/index.html", "director_delta"): "claim: delta_since",
     ("harness/index.html", "delivery"): "fed fresh: committed by the delivery seat each landing",
 }
@@ -125,10 +124,6 @@ def _day(days_ago: float) -> str:
 # name -> (render at an age, the claim, how its age is stated at that age)
 CLAIMS = {
     "banner_failing": (_banner, "PUBLISHING IS FAILING", lambda d: f"(recorded {d * 24:.1f}h ago)"),
-    "reserved_right_now": (
-        lambda d: _harness("renderReserved", "reserved-now",
-                           {"generated_at": _iso(d), "open_count": 0}),
-        "Right now", lambda d: "(counted on " + _day(d) + ")"),
     "delta_since": (
         lambda d: _harness("renderDirectorDelta", "director-delta",
                            {"generated_at": _iso(d), "last_look_at": _iso(60), "changes": []}),

@@ -319,18 +319,40 @@ def _retro_library():
     return entries
 
 
-def _timeline(retros):
+_CANON_RULE = re.compile(r"^- \*\*(R\d+)\*\* (.+)$", re.M)
+
+
+def _canon_rule_text(path=None):
+    """{"R8": "..."}: each permanent rule as the canon words it NOW (H1). The July wording in
+    RULES is what the rule said when it was learned; some have been reworded since (R8 lost its
+    NTFY clause on 12 Oct, when the NTFY route was retired), and the director (24 Oct 07:28, How
+    it's built item 4) asked that no superseded line be presented as current. {} if unreadable."""
+    try:
+        text = Path(path or PROJECT / "docs" / "design" / "DIRECTOR_CANON.md").read_text(
+            encoding="utf-8")
+    except OSError:
+        return {}
+    return {m.group(1): m.group(2).strip() for m in _CANON_RULE.finditer(text)}
+
+
+def _timeline(retros, canon=None):
     """The incident->rule timeline: each rule with the retro(s) that document
     its incident, resolved to actual on-disk retro links (only links that
-    correspond to a real file are attached). Sorted chronologically."""
+    correspond to a real file are attached). Sorted chronologically. The rule's
+    text is the canon's current wording where the canon carries it, with the
+    July wording kept as `learned_as`."""
+    canon = _canon_rule_text() if canon is None else canon
     on_disk = {r["filename"]: r for r in retros}
     out = []
     for rule in RULES:
         links = [dict(filename=fn, link=RETRO_LINK_BASE + fn)
                  for fn in rule.get("retros", []) if fn in on_disk]
+        now = canon.get(rule["id"])
         out.append(dict(
             id=rule["id"], date=rule["date"], name=rule["name"],
-            rule=rule["rule"], incident=rule["incident"],
+            rule=now or rule["rule"], learned_as=rule["rule"] if now else None,
+            wording_from="canon H1" if now else "the July record (the canon could not be read)",
+            incident=rule["incident"],
             source=rule["source"], retro_links=links,
         ))
     out.sort(key=lambda r: (r["date"], r["id"]))
@@ -579,8 +601,14 @@ def _store_agreement(rows):
 
     rendered = {r.get("world_atom") for r in rows}
     # A pair on the door that the store has never seen is the sharp case: a figure the
-    # public is reading that no commit carries. Named, not just counted.
-    uncommitted = sorted(rendered - set(store_rows))
+    # public is reading that no commit carries. Named, not just counted. A pair with no
+    # measurement at all publishes no figure -- the door shows it as "untested" -- so it
+    # cannot be an uncommitted one. Counting those reddened this check on every publish
+    # from 19 Oct (six unmeasured pairs), and the page's second sentence told readers to
+    # treat every figure as provisional when none of the six had a figure to doubt.
+    unmeasured = {r.get("world_atom") for r in rows
+                  if r.get("value") is None and r.get("raw_gap") is None}
+    uncommitted = sorted(rendered - set(store_rows) - unmeasured)
     # The reverse — committed and no longer rendered — is a retirement or a rename, and
     # is reported rather than dropped, because silently losing a pair is how a coupled
     # pair stops being measured without anyone deciding that it should.
@@ -600,7 +628,43 @@ def _store_agreement(rows):
         disagreements=disagreements,
         uncommitted_pairs=uncommitted,
         unrendered_pairs=unrendered,
+        unmeasured_pairs_not_graded=sorted(unmeasured - set(store_rows)),
     )
+
+
+#: What each coupled pair is about, in a reader's words (director, 24 Oct 07:28, How it's built
+#: item 8: "W1_5_premise_demand_shape is 3.9% past the line" told nobody anything). The atom id
+#: stays one tap down. A pair with no entry renders under its id, and
+#: tests/tools/test_harness_page_figures.py reds on any live pair missing one.
+PLAIN_PAIR_NAMES = {
+    "PB4_engagement_separated_from_elasticity":
+        "whether a customer engages, told apart from how much price moves them",
+    "W1_11_fabric_physics_core": "how fast a home's fabric loses heat",
+    "W1_12_premise_trace_generator": "each home's half-hourly gas and electricity use",
+    "W1_14_weather_cells_for_household_heat_load": "how local weather drives a home's heating",
+    "W1_5_premise_demand_shape": "how a home's demand moves through the day",
+    "W1_6b_merit_order_reconstruction": "how the wholesale price is set from gas and the plant running",
+    "W1_6_physics_price_signal": "how weather becomes the wholesale price",
+    "W2_10_dd_attribution_confound":
+        "whether direct debit makes customers pay, or reliable payers choose direct debit",
+    "W2_11_payment_behaviour_source": "who pays on time, who pays late and whose direct debit fails",
+    "W2_30_per_household_half_hourly_electricity_and_seasonal_gas_shape":
+        "each home's daily electricity pattern and seasonal gas use",
+    "W2_38_the_worlds_debt_is_graded_against_ofgems_quarterly_series":
+        "how much customers owe, against Ofgem's published debt figures",
+    "W2_39_households_respond_to_contact_including_badly":
+        "how customers react when the supplier contacts them, including badly",
+    "W2_4_household_budget": "what a household can afford to pay",
+    "W2_5_life_event_stream": "life events such as a job loss, an illness or a new child",
+    "W2_6_sme_distress_twin": "when a small business customer is in financial trouble",
+    "W2_7_willingness_classification": "whether a customer in arrears can't pay or won't pay",
+    "W2_8_self_rationing": "a customer who pays on time by going without heat",
+    "W2_9_segment_debt_tnc": "which debt rules apply to which kind of customer",
+    "EP1_clv_three_horizon": "what a customer is worth over their time with the supplier",
+    "PB3_book_growth_as_earned_outcome": "how many customers the supplier wins and loses",
+    "W2_2_population_draw": "who the households are",
+    "WORLD_recontracting_relationship_start": "when a customer comes up for a new contract",
+}
 
 
 def _coupled_gaps(atoms):
@@ -727,6 +791,7 @@ def _coupled_gaps(atoms):
             # other two and raises nothing -- the coupled-triad panel would have
             # published every world/company name empty.
             world_name=_atom_brief(world),
+            world_plain=PLAIN_PAIR_NAMES.get(world_id),
             world_level=world.get("level_current"),
             company_atom=twin_id,
             company_name=_atom_brief(twin),
@@ -803,7 +868,8 @@ def _coupled_gaps(atoms):
         # `background/gap_metric.py`. Recorded in
         # `docs/staging/WORKER_FINDING_THE_WORSE_THAN_GUESSING_COUNT_IS_THREE_THRESHOLD_CROSSINGS_WITH_NO_BOUND_2026-08-30.md`.
         worse_than_blind_margins=[
-            {"world_atom": r["world_atom"], "value": r["value"],
+            {"world_atom": r["world_atom"], "world_plain": r.get("world_plain"),
+             "value": r["value"],
              "percent_past_the_line": round((r["value"] - 1.0) * 100.0, 1),
              "sample_size": _sample_size(r.get("components"))}
             for r in rows if r["chip"] == "worse_than_blind"

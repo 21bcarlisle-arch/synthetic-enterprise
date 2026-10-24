@@ -255,3 +255,39 @@ def test_the_live_ledger_projects_without_loss():
         if isinstance(entry, dict):
             seen.update(entry)
     assert seen - set(bp.COUPLED_GAP_FIELD_COLUMNS) == set()
+
+
+# ------------------------------------------------------- D2's boundary: no figure, no doubt
+def test_d2_an_unmeasured_pair_publishes_no_figure_so_is_not_uncommitted(point_at, tmp_path):
+    """MUTATION: drop the `unmeasured` exclusion in `_store_agreement` and this reds.
+
+    Both branches in one control: the unmeasured pair is named but does not red, and a
+    MEASURED pair absent from the store still does. From 19 Oct six unmeasured pairs
+    held the live page on "figures DIFFER" though none of them had a figure.
+    """
+    point_at(_store(tmp_path, _committed()))
+    unmeasured = _rows({"world_atom": "W9_no_measurement_yet", "value": None, "raw_gap": None})
+    out = gpd._store_agreement(_rows() + unmeasured)
+    assert out["agrees"] is True, out
+    assert out["unmeasured_pairs_not_graded"] == ["W9_no_measurement_yet"]
+    measured_unbacked = _rows({"world_atom": "W9_measured_but_uncommitted"})
+    out = gpd._store_agreement(_rows() + unmeasured + measured_unbacked)
+    assert out["agrees"] is False
+    assert out["uncommitted_pairs"] == ["W9_measured_but_uncommitted"]
+
+
+def test_the_publish_path_rebuilds_the_store_before_grading_against_it():
+    """MUTATION: delete the rebuild in `process_run_complete` and this reds.
+
+    The store is rebuilt from HEAD, and nothing on the publish path called the rebuild
+    before 24 Oct, so the grade read a store days older than the figures it graded.
+    """
+    import inspect
+
+    import background.process_run_complete as prc
+
+    src = inspect.getsource(prc)
+    rebuild = src.find("build_projections import build")
+    grade = src.find("generate_proof_data import generate")
+    assert rebuild != -1, "the publish path no longer rebuilds the projection store"
+    assert rebuild < grade, "the store is rebuilt after the proof page grades against it"

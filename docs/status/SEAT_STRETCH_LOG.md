@@ -8,6 +8,37 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-24 — How it's built stops calling its figures provisional, quotes G5 with what waits on him, and lists what we got wrong from the record; the class register is not being used and is handed on
+
+<!-- head: 91d6d9db21b3 -->
+
+**In plain English:** How it's built stopped telling readers to treat its figures as provisional, quotes the director's current list of reserved actions with what waits on him now, lists what we got wrong from the build log newest first, and shows each rule in the canon's current words.
+
+*Seat executor, 24 Oct 2026. Advisor channel, rung zero: `DIRECTOR_STEER_HOW_ITS_BUILT_NOTHING_STALE_AND_SHORTER_2026-10-24.md` (director, 07:28). Drawn item `price-cap-levels-by-region-payment-and-meter` waits behind it.*
+
+**The eight items, before and after.**
+
+1. *"figures DIFFER from the committed record".* Before: on the live page since the 19 Oct publish. Cause, measured: (a) nothing on the publish path rebuilt `docs/observability/projections.sqlite`, so the grade compared the 19 Oct run's W2_11 figure (0.0127) with a store built earlier (0.0730); (b) six coupled pairs with no measurement at all were counted as "a figure no commit carries". After: the run rebuilds the store before grading, unmeasured pairs are named and not graded, and the regenerated proof feed reads `agrees: true`.
+2. *The July seven, and "nothing was waiting on him" from 18 Sep.* After: the section quotes G5 from the canon at publish and lists the open `for_the_director` rows, newest first, each with the first sentence of its recommendation (11 at this publish). The stale `director_reserved.json` reader and its test are removed.
+3. *Corrections stopped in July.* After: generated from `**What we got wrong:**` lines in this log, newest first; the July three sit one click down. Backfilled below. If the newest is over 30 days before the publish, the section says so.
+4. *July rules about retired machinery.* After: each R-rule shows the canon H1 wording at publish (R8's NTFY clause is gone), newest first, with the July wording under "First worded".
+5. *"0 new classes of mistake registered … last 28 Aug".* Not fixed in this stretch. Measured: the register really has six classes, all dated 28 Aug or earlier, while 52 commits since then describe a fix made "as a class". The class fixes are being made as code invariants (`company/compliance/domain_invariants.py`, guarded year arithmetic, the unbounded-quotient control) and never registered in `background/finding_classes.py`. So the register is not being used for this; the count is reading the right place. Handed on.
+6. *The hand-kept July register beside the live count.* After: one live figure, 540 test files proven able to fail. The published-state layer's "last 13 Oct" reads the publish gate's log, which is not in this worktree; I could not check it from here.
+7. *"Refusals are not logged" on three layers.* After: said once, in the stack's caption.
+8. *Internal ids in Belief and truth.* After: each coupled pair has a plain name, for example "how a home's demand moves through the day", with the id beside it. A test reds if a live pair has no name.
+
+**Not done from this steer:** the shorter layout (the collapsed sections and an archive), the class register (item 5), the cold reads, and the Monday end-to-end red for a stale section. The 23 Oct learned-from-the-record steer (lesson chains) is not started. Both files stay in `docs/staging/advisor/`.
+
+**What we got wrong (2026-10-24):** How it's built told every reader that its figures differed from the committed record and should be treated as provisional. The record it checked against was never refreshed at publish, and six pairs with no figure at all were counted as unbacked figures. Both causes are fixed, and the check now agrees.
+**What we got wrong (2026-10-24):** How it's built listed the July "seven kinds of action" reserved to the director, which one list replaced on 12 Oct. It also said nothing was waiting on him, from an 18 Sep count, while eleven questions waited. It now quotes the current list and counts what waits at every publish.
+**What we got wrong (2026-10-24):** Capabilities called a fix to how the Energy Price Guarantee is credited on very short bills done. It credits five of them about 48 times too much, taking one bill to minus £2,950. The page no longer calls it done.
+**What we got wrong (2026-10-23):** Standard-variable bills sat above the price cap and the Energy Price Guarantee: 5,488 of 18,398 default-tariff bills on the 19 Oct run. Two billing defects were found and fixed; 104 bills remain above the line, and that is not closed.
+**What we got wrong (2026-10-23):** The queue of the director's steers was read from a copy of the code 37 commits behind the published one, so finished steers were offered again and new ones were missed. It now reads the published copy.
+**What we got wrong (2026-10-22):** The site's banner said publishing was failing, for over 80 hours. The publisher's own record still held an open failure after a publish had landed by another route. The record is now closed at its source.
+**What we got wrong (2026-10-17):** The simulated customer book was 1% dual fuel, where a published survey has 72% of homes taking both fuels from one supplier. Each account now takes the fuels its home really uses.
+
+---
+
 ## 2026-10-24 — Capabilities steer: the page is shorter and generates its own fix list; the gaps it flags are named or handed on
 
 <!-- head: 746df31c8905 -->

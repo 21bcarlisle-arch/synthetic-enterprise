@@ -5444,6 +5444,15 @@ def _generate_dashboard_json(json_path, git_hash="unknown"):
         # inputs) and BEFORE the GitHub-pages mirror below (so the mirror ships the
         # fresh copies). R11 no-orphan-transition: a generated surface must ride the
         # regen cycle or it silently decays.
+        # The proof page grades its coupled-gap figures against the committed projection
+        # store, so the store is rebuilt from HEAD first. Nothing on this path rebuilt it
+        # before 24 Oct, so the grade compared this run's figures with a store left over
+        # from whenever someone last ran it by hand, and read "DIFFER" for days.
+        try:
+            from tools.build_projections import build as build_projection_store
+            build_projection_store()
+        except Exception as exc:
+            log("projection store rebuild failed: {}".format(exc))
         from tools.generate_proof_data import generate as gen_proof
         gen_proof()
         log("Generated site/data/proof.json (Door 4 THE PROOF)")

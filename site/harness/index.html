@@ -145,8 +145,9 @@ details.more summary, .timeline summary { cursor: pointer; color: var(--teal); f
       enforced by code that refuses, not by a reviewer who approves, and each names the file that
       does it, and links one click down to its record. Under each layer is its own evidence, counted from its own record when this page
       was published: how often it fired in the last 30 days, when it last fired, and whether a test
-      has been seen to fail by putting its defect back. Each count says what it counts. Where a check
-      keeps no record of what it refused, the box says that, rather than show a number.
+      has been seen to fail by putting its defect back. Each count says what it counts. Most checks
+      keep no record of what they refused, so what a box counts is what got through the check, not
+      what it stopped; where even that has no record, the box says so rather than show a number.
     </p>
     <ol class="stack">
       <li><b>Direction.</b> The director sets purpose, and his rulings are kept in his own words.
@@ -155,7 +156,7 @@ details.more summary, .timeline summary { cursor: pointer; color: var(--teal); f
         <span class="held">Held by <code>background/one_way_door.py</code> and
         <code>background/advisor_channel.py</code>, which accepts only files signed with a pinned key.</span>
 <!-- HARNESS-LAYER-1:START (written at publish by tools/harness_page_figures.py -- do not hand-edit) -->
-<span class="ev"><span><b>Fired, last 30 days:</b> 40 commits changed a director document and carried the marked reason the gate demands; last 23 Oct 2026. Refusals are not logged, so they are not counted.</span><span><b>Shown able to fail:</b> 3 tests that name this layer&#x27;s code record a mutation</span></span>
+<span class="ev"><span><b>Fired, last 30 days:</b> 40 commits changed a director document and carried the marked reason the gate demands; last 23 Oct 2026.</span><span><b>Shown able to fail:</b> 3 tests that name this layer&#x27;s code record a mutation</span></span>
 <!-- HARNESS-LAYER-1:END -->
         <a class="down" href="#human">What the director decided, and what is reserved to him &darr;</a></li>
       <li><b>Knowledge before build.</b> Every price, rate or threshold in the code must say where
@@ -164,7 +165,7 @@ details.more summary, .timeline summary { cursor: pointer; color: var(--teal); f
         <span class="held">Held by <code>tests/architecture/test_a_domain_constant_carries_its_origin.py</code>
         and <code>tools/knowledge_layer_gate.py</code>.</span>
 <!-- HARNESS-LAYER-2:START (written at publish by tools/harness_page_figures.py -- do not hand-edit) -->
-<span class="ev"><span><b>Fired, last 30 days:</b> 61 sourced research documents added, each refused unless it names the knowledge page it feeds; last 22 Oct 2026. Refusals are not logged, so they are not counted.</span><span><b>Shown able to fail:</b> 2 tests that name this layer&#x27;s code record a mutation</span></span>
+<span class="ev"><span><b>Fired, last 30 days:</b> 61 sourced research documents added, each refused unless it names the knowledge page it feeds; last 22 Oct 2026.</span><span><b>Shown able to fail:</b> 2 tests that name this layer&#x27;s code record a mutation</span></span>
 <!-- HARNESS-LAYER-2:END -->
         <a class="down" href="../knowledge/">The Knowledge pages this layer guards &darr;</a></li>
       <li><b>The walls.</b> The simulated supplier can know only what a real supplier could know,
@@ -229,7 +230,7 @@ details.more summary, .timeline summary { cursor: pointer; color: var(--teal); f
   <div class="lf"><div class="v">469</div><div class="l">commits landed in the last seven days</div><div class="c">about 67 a day; counted from git at d68786ee0, 23 Oct 2026</div></div>
   <div class="lf"><div class="v">2,154</div><div class="l">test files</div><div class="c">of 3,472 Python files in all; counted from git at d68786ee0, 23 Oct 2026</div></div>
   <div class="lf"><div class="v">23</div><div class="l">checks every commit must pass</div><div class="c">20 before the commit is written and 3 on its message, counted from the hook files at d68786ee0</div></div>
-  <div class="lf"><div class="v">532</div><div class="l">tests proven able to fail</div><div class="c">test files that record the mutation they were seen to fail on, of 2,154; counted from git at d68786ee0, 23 Oct 2026; the older hand-kept register holds 33 of 35, last graded 13 Jul 2026</div></div>
+  <div class="lf"><div class="v">532</div><div class="l">tests proven able to fail</div><div class="c">test files that record the mutation they were seen to fail on, of 2,154; counted from git at d68786ee0, 23 Oct 2026</div></div>
 </div>
 <figure class="timeline"><figcaption>Commits per week since the repository began</figcaption><svg viewBox="0 0 640 120" role="img" aria-label="Commits per week, 1 Jun 2026 to 19 Oct 2026, peaking at 1,430" preserveAspectRatio="none"><rect x="0.0" y="119.0" width="28.6" height="1.0" rx="2"><title>Week of 1 Jun 2026: 9 commits</title></rect><rect x="30.6" y="109.7" width="28.6" height="10.3" rx="2"><title>Week of 8 Jun 2026: 123 commits</title></rect><rect x="61.1" y="104.8" width="28.6" height="15.2" rx="2"><title>Week of 15 Jun 2026: 181 commits</title></rect><rect x="91.7" y="49.8" width="28.6" height="70.2" rx="2"><title>Week of 22 Jun 2026: 837 commits</title></rect><rect x="122.3" y="0.0" width="28.6" height="120.0" rx="2"><title>Week of 29 Jun 2026: 1,430 commits</title></rect><rect x="152.9" y="44.2" width="28.6" height="75.8" rx="2"><title>Week of 6 Jul 2026: 903 commits</title></rect><rect x="183.4" y="18.0" width="28.6" height="102.0" rx="2"><title>Week of 13 Jul 2026: 1,215 commits</title></rect><rect x="214.0" y="34.9" width="28.6" height="85.1" rx="2"><title>Week of 20 Jul 2026: 1,014 commits</title></rect><rect x="244.6" y="39.7" width="28.6" height="80.3" rx="2"><title>Week of 27 Jul 2026: 957 commits</title></rect><rect x="275.1" y="88.4" width="28.6" height="31.6" rx="2"><title>Week of 3 Aug 2026: 377 commits</title></rect><rect x="305.7" y="67.9" width="28.6" height="52.1" rx="2"><title>Week of 10 Aug 2026: 621 commits</title></rect><rect x="336.3" y="78.2" width="28.6" height="41.8" rx="2"><title>Week of 17 Aug 2026: 498 commits</title></rect><rect x="366.9" y="80.3" width="28.6" height="39.7" rx="2"><title>Week of 24 Aug 2026: 473 commits</title></rect><rect x="397.4" y="33.6" width="28.6" height="86.4" rx="2"><title>Week of 31 Aug 2026: 1,030 commits</title></rect><rect x="428.0" y="77.1" width="28.6" height="42.9" rx="2"><title>Week of 7 Sep 2026: 511 commits</title></rect><rect x="458.6" y="70.7" width="28.6" height="49.3" rx="2"><title>Week of 14 Sep 2026: 587 commits</title></rect><rect x="489.1" y="58.2" width="28.6" height="61.8" rx="2"><title>Week of 21 Sep 2026: 737 commits</title></rect><rect x="519.7" y="43.8" width="28.6" height="76.2" rx="2"><title>Week of 28 Sep 2026: 908 commits</title></rect><rect x="550.3" y="66.4" width="28.6" height="53.6" rx="2"><title>Week of 5 Oct 2026: 639 commits</title></rect><rect x="580.9" y="78.8" width="28.6" height="41.2" rx="2"><title>Week of 12 Oct 2026: 491 commits</title></rect><rect x="611.4" y="89.6" width="28.6" height="30.4" rx="2"><title>Week of 19 Oct 2026: 362 commits</title></rect></svg><div class="tl-axis"><span>1 Jun 2026</span><span>busiest week: 1,430</span><span>19 Oct 2026</span></div><details><summary>The same figures as a table</summary><div class="table-scroll"><table><thead><tr><th>Week of</th><th>Commits</th></tr></thead><tbody><tr><td>1 Jun 2026</td><td>9</td></tr><tr><td>8 Jun 2026</td><td>123</td></tr><tr><td>15 Jun 2026</td><td>181</td></tr><tr><td>22 Jun 2026</td><td>837</td></tr><tr><td>29 Jun 2026</td><td>1,430</td></tr><tr><td>6 Jul 2026</td><td>903</td></tr><tr><td>13 Jul 2026</td><td>1,215</td></tr><tr><td>20 Jul 2026</td><td>1,014</td></tr><tr><td>27 Jul 2026</td><td>957</td></tr><tr><td>3 Aug 2026</td><td>377</td></tr><tr><td>10 Aug 2026</td><td>621</td></tr><tr><td>17 Aug 2026</td><td>498</td></tr><tr><td>24 Aug 2026</td><td>473</td></tr><tr><td>31 Aug 2026</td><td>1,030</td></tr><tr><td>7 Sep 2026</td><td>511</td></tr><tr><td>14 Sep 2026</td><td>587</td></tr><tr><td>21 Sep 2026</td><td>737</td></tr><tr><td>28 Sep 2026</td><td>908</td></tr><tr><td>5 Oct 2026</td><td>639</td></tr><tr><td>12 Oct 2026</td><td>491</td></tr><tr><td>19 Oct 2026</td><td>362</td></tr></tbody></table></div></details></figure>
 <p class="lf-prov">Not shown: the share of changes that passed the gates first time (a refused gate run leaves no record, so this is not measured yet).</p>
@@ -431,23 +432,38 @@ details.more summary, .timeline summary { cursor: pointer; color: var(--teal); f
   <section id="human">
     <h2>What a human actually decided</h2>
     <p class="sub">Reserved to the director, and nothing else is.</p>
+<!-- HARNESS-HUMAN:START (written at publish by tools/harness_page_figures.py -- do not hand-edit) -->
+<p>The actions reserved to the director are one list, quoted from the canon (G5, ruled 12 Oct 2026):</p>
+<ul>
+  <li>real money, never spent, even with his yes;</li>
+  <li>real people, customers or the market;</li>
+  <li>real-world commitments: legal, contractual, regulatory;</li>
+  <li>public claims under Poesys&#x27;s name that cannot be retracted;</li>
+  <li>live credentials, security posture and the safety controls that protect real people;</li>
+  <li>destroying evidence or irrecoverable data.</li>
+</ul>
+<p>Everything else: act, record how to reverse it, say what you did.</p>
+<p>At this publish (24 Oct 2026), <b>11</b> questions wait on him. Each arrives with a recommendation, and work carries on while it waits.</p>
+<ul class="fo">
+  <li><b>Raised 23 Oct 2026:</b> poesys.net carries Cloudflare&#x27;s Web Analytics beacon: every HTML page served at US edges (IAD, LAX) has a 367-byte cloudflareinsights script injected before &lt;/body&gt;. <i>I recommend you switch Web Analytics off for the Pages project: it collects data on real visitors, and nothing in Poesys reads it.</i></li>
+  <li><b>Raised 23 Oct 2026:</b> Whether the work needs the bigger plan: the measured cut needed on the new tier is 1.3 to 1.7 times per landed result, not 4 <i>I recommend staying on the £100 tier.</i></li>
+  <li><b>Raised 22 Oct 2026:</b> The front door asserts M11 (software that grows and maintains itself) but links no evidence for it. <i>I recommend adding the link.</i></li>
+  <li><b>Raised 22 Oct 2026:</b> The retention guard you asked for (offer only where the save rate&#x27;s lower bound pays, none while it is unlearned) can never learn from a cold start. <i>I recommend running §16 as built first.</i></li>
+  <li><b>Raised 17 Oct 2026:</b> Reading-reviewer trial (your 08:56 &#x27;Yes&#x27;): a blind Opus reader caught 1 of 5 known-bad commits strictly, 3 of 5 by location; when two readers both said NEEDS_WORK it flagged 4 of 5 bad commits and 0… <i>I recommend the trial as proposed: two blind non-blocking Opus readers on commits that add a module or re-implement a rule, findings filed only when both agree, scored for two weeks and stopped below half confirmed.</i></li>
+  <li><b>Raised 16 Oct 2026:</b> EP17&#x27;s flat-against-per-customer comparison needs six fresh book seeds, and every seed you authorised (61101-61112) has already been read under some arm. <i>I recommend listing 61113-61118 under your 15 Oct ruling.</i></li>
+  <li><b>Raised 13 Oct 2026:</b> Canon W3 leaves open how far the world&#x27;s price responsiveness may correlate with signals a supplier holds (section 15, owed item 4). <i>I recommend change (1) only: selection at acquisition weighted by each prospect&#x27;s own active-renewal probability, with no new number.</i></li>
+  <li><b>Raised 13 Oct 2026:</b> The CLV discount rate and terminal-value method (canon section 15, owed item 9). <i>I recommend the dated rate: 0.10 to September 2023, Ofgem&#x27;s 12.3% from October 2023, every published CLV at both ends (9.3% and 12.3%), and the survival-curve terminal value when CLV is next touched.</i></li>
+  <li><b>Raised 12 Oct 2026:</b> C34 now ranks next best action on joint value with a no-loss floor on both sides, as ruled (C7, eeb38abc3), and it still advises nobody at realistic inputs. <i>I recommend the sharing retention price, not loosening our floor.</i></li>
+  <li><b>Raised 12 Oct 2026:</b> Canon H1 owes R16 and R17 (section 15 item 10). <i>I recommend ratifying R16 and R17 as written.</i></li>
+  <li><b>Raised 12 Oct 2026:</b> A direction item&#x27;s WHY claimed the capital target &#x27;throttles for nine years the growth the thesis is judged on.&#x27; Measured on seed 42 (campaign-only resolve, 403-founder book, 2016-2025): binding is… <i>I recommend landing the capital-115 and C14 dating fixes as plain corrections, and treating the prospect cap and the founder book, not capital, as what sizes growth.</i></li>
+</ul>
+<!-- HARNESS-HUMAN:END -->
     <p>
-      Seven kinds of action are the director's and cannot be taken by the builder under any
-      circumstances: <b>spending real money</b>; <b>dealing with real customers or the real
-      market</b>; <b>making a real-world commitment</b>, legal, contractual or regulatory;
-      <b>making a public claim in the company's name that cannot be retracted</b>; <b>touching live
-      credentials</b>; <b>changing the safety controls</b>; and <b>destroying evidence or data that
-      cannot be recovered</b>. They are listed in <code>background/one_way_door.py</code>, and the
-      count in the doors section below is read from that list. Everything else — architecture, sequencing, what to build, what to
-      delete, what to publish — is decided and acted on autonomously, and reported afterwards.
-    </p>
-    <p id="reserved-now"></p>
-    <p>
-      That list is short on purpose. An earlier version of this project had a large apparatus of
-      approvals, gates and ratifications, and its measured effect was that work stopped waiting
-      for a human who was asleep. It was removed, and the removal is itself enforced: a control
-      refuses to register any new item as needing the director's approval unless it falls in one
-      of those seven.
+      Everything outside that list (architecture, sequencing, what to build, what to delete,
+      what to publish) is decided and acted on by the builder, and reported afterwards. A question
+      for the director never stops the queue. The list is short on purpose: an earlier version of
+      this project had a large apparatus of approvals, gates and ratifications, and its measured
+      effect was that work stopped and waited for a human who was asleep. It was removed.
     </p>
   </section>
 
@@ -513,8 +529,9 @@ details.more summary, .timeline summary { cursor: pointer; color: var(--teal); f
   <section id="corrections-sec">
     <h2>What we got wrong, and corrected</h2>
     <p class="sub">
-      Published claims that turned out to be false, with what replaced them. A project that
-      never lists any of these is not being checked.
+      Things we published or built that turned out to be wrong, with what is true now, newest
+      first. Each is drawn from the build log at publish. A project that never lists any of these
+      is not being checked.
     </p>
     <details class="more"><summary>The rule that shapes this list</summary>
     <p>
@@ -528,14 +545,29 @@ details.more summary, .timeline summary { cursor: pointer; color: var(--teal); f
       only be settled by asking the source.
     </p>
     </details>
+<!-- HARNESS-CORRECTIONS:START (written at publish by tools/harness_page_figures.py -- do not hand-edit) -->
+<ul class="week">
+  <li><span class="wd">24 Oct 2026</span> How it&#x27;s built told every reader that its figures differed from the committed record and should be treated as provisional. The record it checked against was never refreshed at publish, and six pairs with no figure at all were counted as unbacked figures. Both causes are fixed, and the check now agrees.</li>
+  <li><span class="wd">24 Oct 2026</span> How it&#x27;s built listed the July &quot;seven kinds of action&quot; reserved to the director, which one list replaced on 12 Oct. It also said nothing was waiting on him, from an 18 Sep count, while eleven questions waited. It now quotes the current list and counts what waits at every publish.</li>
+  <li><span class="wd">24 Oct 2026</span> Capabilities called a fix to how the Energy Price Guarantee is credited on very short bills done. It credits five of them about 48 times too much, taking one bill to minus £2,950. The page no longer calls it done.</li>
+  <li><span class="wd">23 Oct 2026</span> Standard-variable bills sat above the price cap and the Energy Price Guarantee: 5,488 of 18,398 default-tariff bills on the 19 Oct run. Two billing defects were found and fixed; 104 bills remain above the line, and that is not closed.</li>
+  <li><span class="wd">23 Oct 2026</span> The queue of the director&#x27;s steers was read from a copy of the code 37 commits behind the published one, so finished steers were offered again and new ones were missed. It now reads the published copy.</li>
+  <li><span class="wd">22 Oct 2026</span> The site&#x27;s banner said publishing was failing, for over 80 hours. The publisher&#x27;s own record still held an open failure after a publish had landed by another route. The record is now closed at its source.</li>
+  <li><span class="wd">17 Oct 2026</span> The simulated customer book was 1% dual fuel, where a published survey has 72% of homes taking both fuels from one supplier. Each account now takes the fuels its home really uses.</li>
+</ul>
+<!-- HARNESS-CORRECTIONS:END -->
+    <details class="more"><summary>Earlier corrections, July 2026</summary>
     <div id="corrections"></div>
+    </details>
   </section>
 
   <section id="rules-sec">
     <h2>The rules this project has had to mint</h2>
     <p class="sub">
-      Each of these exists because something broke. They are kept in the order they were
-      learned, with the failure that caused them, because the failure is the useful half.
+      Each of these exists because something broke. They are shown newest first, each in the
+      words the canon gives it now, with the failure that caused it, because the failure is the
+      useful half. Where a rule has been reworded since it was learned, the original wording sits
+      under it.
     </p>
     <details class="more"><summary>Why a rule counts only when it runs</summary>
     <p>
@@ -777,7 +809,7 @@ function renderDeployment(d) {
     : stale + " of " + obs + " observed daemons are running code behind the repository.";
   /* A READING OF RUNNING PROCESSES IS ONLY PRESENT TENSE WHILE IT IS FRESH (2026-10-22). This
      reaches the site with the weekly publish, so it said "are running current code" for up to a
-     week after anyone looked. Past the same bound as `renderReserved` it states the day it was
+     week after anyone looked. Past PRESENT_TENSE_FRESH_FOR_MS it states the day it was
      measured and refuses "now"; an unreadable stamp is too old, never fresh. */
   var measured = Number(dep.measured_at_s) * 1000;
   if (measured > 0 && Date.now() - measured <= PRESENT_TENSE_FRESH_FOR_MS) {
@@ -821,8 +853,9 @@ function renderNotProven(d) {
 function marginsNote(margins) {
   if (!margins || !margins.length) return "";
   var items = margins.map(function (m) {
-    return "<li><b>" + esc(m.world_atom) + "</b> is <b>" + esc(m.percent_past_the_line)
-      + "%</b> past the line"
+    return "<li><b>" + esc(m.world_plain || m.world_atom) + "</b>"
+      + (m.world_plain ? ' <span style="color:var(--muted)">(<code>' + esc(m.world_atom) + "</code>)</span>" : "")
+      + " is <b>" + esc(m.percent_past_the_line) + "%</b> past the line"
       + (m.sample_size === null || m.sample_size === undefined
           ? ", and nothing in the record says how many cases it rests on"
           : ", on " + n(m.sample_size) + " cases")
@@ -877,7 +910,9 @@ function renderCorrections(d) {
 function renderRules(d) {
   var rows = (d.timeline || []).slice().reverse();
   $("rules").querySelector("tbody").innerHTML = rows.map(function (r) {
-    return "<tr><td>" + dt(r.date) + "</td><td>" + esc(r.rule || r.name) + "</td><td>" +
+    var was = r.learned_as && r.learned_as !== r.rule
+      ? '<details><summary>First worded</summary>' + esc(r.learned_as) + "</details>" : "";
+    return "<tr><td>" + dt(r.date) + "</td><td>" + esc(r.rule || r.name) + was + "</td><td>" +
       esc(r.incident || "—") + "</td></tr>";
   }).join("");
 }
@@ -1583,30 +1618,10 @@ fetch("../data/director_delta.json").then(function (r) { return r.json(); }).the
     $("director-delta").innerHTML = "<p>The delta could not be loaded, so nothing is shown here.</p>";
   });
 
-/* A COUNT IS ONLY "RIGHT NOW" WHILE ITS FILE IS (2026-10-22). This said "Right now nothing is
-   waiting on him" from a file last written on 18 Sep, while the director's list held open rows.
-   The file reaches the site with a publish, so past one weekly cadence plus a day's grace (the
+/* A reading reaches the site with a publish, so past one weekly cadence plus a day's grace (the
    same 8 days as background/publish_freshness.STALE_AFTER_SECONDS) it can only say when it was
-   counted. An unreadable stamp is treated as too old, never as fresh. */
+   taken. */
 var PRESENT_TENSE_FRESH_FOR_MS = 8 * 86400 * 1000;
-function renderReserved(j) {
-  var at = Date.parse((j && j.generated_at) || "");
-  var day = isNaN(at) ? null : new Date(at).toISOString().slice(0, 10);
-  var count = j && typeof j.open_count === "number" ? j.open_count : null;
-  var fresh = !isNaN(at) && Date.now() - at <= PRESENT_TENSE_FRESH_FOR_MS;
-  var said = count === null ? null : (count
-    ? "<b>" + n(count) + "</b> decision(s) were waiting on him"
-    : "nothing was waiting on him");
-  $("reserved-now").innerHTML = said === null
-    ? "The count of decisions waiting on him could not be read, so nothing is claimed here."
-    : (fresh
-        ? "Right now " + said.replace(" were ", " are ").replace(" was ", " is ") +
-          " (counted on " + day + ")."
-        : "When this was last counted" + (day ? ", on " + day : "") + ", " + said +
-          ". That count is too old to say what is waiting now.");
-}
-fetch("../data/director_reserved.json").then(function (r) { return r.json(); }).then(renderReserved)
-  .catch(function () {});
 </script>
 <section id="publish-status" aria-label="Publishing status" style="margin-top:40px">
 <h2>Publishing status</h2>
