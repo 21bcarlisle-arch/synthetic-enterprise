@@ -774,11 +774,11 @@ LIVE_ARREARS_PROVISION_RATES = {
     "fallen_out_of_dd": ((30, 0.045), (90, 0.151), (None, 0.503)),
 }
 
-#: C1, the GAP that picks a row above. A sim DD "failure" (`_DD_FAILURE_PROB`) has no source and no
-#: stated basis: if it is a first-presentation bounce the stayer is still a DD account; if it is
-#: net of re-presentation the DD is cancelled (British Gas stops it after a second failure) and
-#: the arrears sit in pay-on-receipt -- about ten times the rate. Nothing published says which, so
-#: there is NO DEFAULT: unset, leg 4b is off and `bad_debt_gbp` is write-offs only. A bracket run
+#: C1, the GAP that picks a row above. A sim DD "failure" (`_DD_FAILURE_PROB`) is a first-presentation
+#: return, gross of re-presentation (its LOW level sourced since c1e3e5105). Still open: which bucket
+#: a stayer's UNCURED failure sits in. Still in DD, or the DD cancelled (British Gas stops it after a
+#: second failure) with the arrears in pay-on-receipt -- about ten times the rate. Nothing published
+#: says which, so there is NO DEFAULT: unset, leg 4b is off and `bad_debt_gbp` is write-offs only. A bracket run
 #: sets it to each row in turn from one commit. Read at call time, not import.
 STAYER_FAILED_DD_BUCKET_ENV = "SIM_STAYER_FAILED_DD_BUCKET"
 
