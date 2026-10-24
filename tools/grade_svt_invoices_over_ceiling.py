@@ -14,6 +14,12 @@ a ToU pair (`company/pricing/tou_desk.offers_tou`), and SLC 28AD.4 grades that a
 not per bill. A bill can sit a few per cent over a pair struck at the cap. `actual_read_accounts`
 counts what lands on accounts billed mostly on actual reads, which is that population's footprint.
 
+`epg_receipt` grades the EPG pre-registration's predictions 3 and 4 on one run. Every pound carved
+off a household's bill as the Treasury's share must be booked as a receipt (`carved_gbp` against the
+ledger's `booked_gbp`), and none may be carved outside an EPG window. `unit_charge_fall` is the
+median share of each bill's unit charge the receipt removed, by quarter and fuel: it should sit at
+that quarter's (cap - EPG) / cap, not at one band for the whole crisis.
+
     python3 -m tools.grade_svt_invoices_over_ceiling docs/reports/run_output_<commit>_<stamp>.json[.gz]
 """
 
@@ -25,6 +31,7 @@ import sys
 from collections import Counter, defaultdict
 from datetime import date
 from pathlib import Path
+from statistics import median
 
 from company.compliance.domain_invariants import (
     DEFAULT_TARIFF_TYPES,
@@ -88,6 +95,36 @@ def grade(run: dict) -> dict:
         "outside_epg_windows": outside_epg,
         "actual_read_accounts": on_actual_read,
         "by_year": dict(sorted(by_year.items())),
+        "epg_receipt": epg_receipt(run),
+    }
+
+
+def _quarter(iso: str) -> str:
+    return f"{iso[:4]}-Q{(int(iso[5:7]) - 1) // 3 + 1}"
+
+
+def epg_receipt(run: dict) -> dict:
+    carved, outside, falls = 0.0, 0, defaultdict(list)
+    carrying = 0
+    for b in run.get("bills") or []:
+        receipt = b.get("hmt_epg_receipt_gbp") or 0.0
+        if not receipt:
+            continue
+        carrying += 1
+        carved += receipt
+        iso = str(b["period_start"])[:10]
+        commodity = b.get("commodity") or "electricity"
+        if not _in_epg_window(commodity, date.fromisoformat(iso)):
+            outside += 1
+        unit = (b.get("commodity_amount_gbp") or 0.0) + (b.get("non_commodity_amount_gbp") or 0.0)
+        falls[f"{_quarter(iso)} {commodity}"].append(receipt / (unit + receipt))
+    booked = (run.get("ledger_pnl") or {}).get("epg_receipt_gbp")
+    return {
+        "bills_carrying_receipt": carrying,
+        "carved_gbp": round(carved, 2),
+        "booked_gbp": None if booked is None else round(booked, 2),
+        "carved_outside_epg_windows": outside,
+        "unit_charge_fall": {k: round(median(v), 3) for k, v in sorted(falls.items())},
     }
 
 

@@ -5,7 +5,7 @@ recorded tariff type, so a fixed bill priced above the cap is counted as an SVT 
 bills on 8b6fea024), or a grade that refuses everything and reports 0 of N.
 """
 
-from tools.grade_svt_invoices_over_ceiling import grade
+from tools.grade_svt_invoices_over_ceiling import epg_receipt, grade
 
 
 def _bill(cid: str, start: str, p_per_kwh_inc_vat: float) -> dict:
@@ -34,3 +34,24 @@ def test_the_partition():
     assert g["households_above"] == 1
     assert g["outside_epg_windows"] == 1
     assert g["by_year"] == {"2019": 1}
+
+
+def test_the_epg_receipt_grade_sees_a_carve_outside_the_window_and_a_ledger_that_lost_one():
+    """Defect: a receipt carved off a bill outside Oct 2022-Jun 2023, or carved and never booked.
+
+    Both leaks must be reachable, and a clean run must read clean, or a grade that always says
+    "leaking" (or never does) passes.
+    """
+    # 100 kWh billed at the EPG; the receipt is the Treasury's (cap - EPG) share, ex-VAT like the bill.
+    receipt = round(100 * (0.6747 - 0.34) / 1.05, 2)
+    inside = {**_bill("a", "2023-01-01", 34.0), "hmt_epg_receipt_gbp": receipt}
+    outside = {**_bill("b", "2019-02-01", 10.0), "hmt_epg_receipt_gbp": 5.0}
+    clean = epg_receipt({"bills": [inside], "ledger_pnl": {"epg_receipt_gbp": receipt}})
+    assert clean["carved_gbp"] == clean["booked_gbp"] == receipt
+    assert clean["carved_outside_epg_windows"] == 0
+    # 33.47p removed from a 67.47p unit charge: Q1 2023's (cap - EPG) / cap.
+    assert clean["unit_charge_fall"] == {"2023-Q1 electricity": 0.496}
+    leaky = epg_receipt({"bills": [inside, outside], "ledger_pnl": {"epg_receipt_gbp": receipt}})
+    assert leaky["carved_outside_epg_windows"] == 1
+    assert leaky["carved_gbp"] != leaky["booked_gbp"]
+    assert epg_receipt({"bills": [inside]})["booked_gbp"] is None

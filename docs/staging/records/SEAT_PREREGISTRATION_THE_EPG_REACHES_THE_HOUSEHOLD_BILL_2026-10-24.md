@@ -78,3 +78,28 @@ cap minus EPG exactly (67.47p - 34.00p), so the bill carries the Treasury's whol
 `hmt_epg_receipt_gbp`. The next two are also mid-month estimated stubs on incoming occupants with no
 receipt. This fits the estimate-at-tariff-rate route named under "Not covered" above. That note
 expected 0 kWh on such a stub, and these have consumption, so the route is a belief, not traced.
+
+## Predictions 3 and 4, graded 24 Oct on `88cdf35e48`
+
+*Added after the result. The predictions above are unedited.* Graded by
+`tools.grade_svt_invoices_over_ceiling`'s `epg_receipt` section on the same run output.
+
+3. **Held at the seam it names.** 3,535 bills carry a receipt. £199,865.32 was taken off household
+   bills and £199,865.32 was booked as `epg_receipt_gbp`, to the penny. None was taken off outside
+   Oct 2022 to Jun 2023, and every receipt bill charges 5% VAT on the reduced subtotal. Supplier
+   revenue is billed ex-VAT plus the receipt, and with the receipt put back on the bill it is the
+   same sum. So it moves by 0%, not "under 0.5%". This was not measured against a second arm: the
+   run has no add-back arm, and with these two totals equal it would read the same.
+4. **The direction held. The 45-55% band was refuted.** The receipt takes each quarter's own
+   (cap − EPG) / cap off the unit charge:
+
+   | quarter | electricity | gas |
+   |---|---|---|
+   | 2022 Q4 | 0.345 | 0.301 |
+   | 2023 Q1 | 0.496 | 0.396 |
+   | 2023 Q2 | 0.328 | 0.182 |
+
+   The band came from Q1 2023's peak cap, 67.47p, and was applied to all nine months. Only Q1 2023
+   electricity is inside it. That is an error in the prediction, not in the bill: each quarter
+   matches its own cap and EPG. The legs on arrears, bad-debt provision and DD levels cannot be
+   graded from one run, because they need a run with the receipt left on the bill. They are still owed.

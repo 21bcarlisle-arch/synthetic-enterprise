@@ -376,7 +376,10 @@ Downgraded to LATENT. The result recommends MATERIAL twice, and `background/find
 such value: LATENT is its word for a real defect that invalidates no published figure. No named over-cap billing
 route remains. **It stays open** until these reads are done:
 
-- EPG pre-registration predictions 3 and 4, against the next fresh run.
+- EPG pre-registration predictions 3 and 4, against the next fresh run. *Graded 24 Oct on `88cdf35e48`
+  (the pre-registration's last section): 3 held, receipts carved = booked to the penny; 4's
+  direction held and its 45-55% band was refuted. The fall is each quarter's (cap − EPG) / cap.
+  Still owed: the arrears, bad-debt and DD legs, which need an arm with the receipt left on the bill.*
 - Item 1's prediction above: inside the windows at most 23 over the ceiling and none an estimate on
   true kWh 0, with the outside count at 72 within noise.
 - Item 3's struck-rate question for the other 7 receipt-carrying invoices inside the windows.
