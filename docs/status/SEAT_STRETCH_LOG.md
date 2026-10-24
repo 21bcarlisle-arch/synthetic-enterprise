@@ -8,6 +8,37 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-24 — The map: the register's design, and the Collect and Testing pilot's generated findings
+
+<!-- head: 904a091f7b42 -->
+
+Director steers of 24 Oct: the map ("Do that", 13:05) and its SKOS refinement ("Yes", 15:44). This is items 1 and 2 in part: the design, and the pilot's generated findings. The page, the coverage checks, notes to pages, the forward knowledge plan and the agents' file (items 2-page, 3-6) are owed. Both steers stay open.
+
+**The design.**
+- **Home and format.** One YAML file, `docs/design/the_map/concepts.yaml`, about 100-150 concepts when full, 13 in the pilot. No database, no RDF. The generator is `tools/the_map.py` and the map it prints is never committed, so there is no second copy to drift.
+- **Fields, SKOS's names where a check or reader uses them.** `prefLabel`; `altLabel` (the two-names check and the module search read it); `definition` (one line); `match` (the outside scheme: licence condition, Bacs, BSC, or a named engineering source; a concept with none is flagged); `placed` (spine/step; SKOS's `broader`, read from the step, so `narrower` is derived and not stored). Our causal relations stay ours: `feeds`, `depends_on`, `graded_by`, `causes`, and the map shows each from both ends. A measure carries `measure: {counts, over, computed_by}`. A belief carries `built_from`, `decides` and its `graded_by`. An empty layer needs a `gap` with its reason, or it is a finding.
+- **How a thing attaches, with no hand-matched link lists.** A page: the concept's `page`. A note: its own `**Knowledge:** <page>` line (already required) or the page citing it by file name. A module: the concept declares ONE home per layer (world, wall, supplier), and the generator grades it from `tools/capability_index` (wired, orphan, gone, wrong side). Every other module whose name or first docstring sentence carries one of the concept's names is listed as "also named": a second home, or a module that belongs here and does not say so. Atoms: live map atoms whose `file_scope` names a home. Controls: `canon_mechanisms.yaml` rows naming a home, and for How it's built the rule's own mechanisms.
+- **How it's built** uses four layers: practice (`match`, with a source), rule (a canon id), enforced by (paths; the rule's mechanisms are read from `canon_mechanisms.yaml`, not repeated), and evidence (a figure computed by one named function in the generator).
+- **What it absorbs, one home per thing.** `knowledge_map.md`: its domains become concepts and its rows become page evidence; it stops being hand-kept once the register covers its domains (not yet). `canon_mechanisms.yaml` and `tools/canon_lessons`: read, not copied. The capability index and orphan register: read for every home's status; the orphan register keeps its rulings. `tools/world_claims.py`: a page's world-claims become the measure definitions for the concepts on that page (next increment). The constant-anchor register, the maturity map and the Explore cast join by path, the same way atoms do now (not yet wired).
+
+**The pilot's findings** (generated, 24 Oct, at real inputs):
+- **Collect has 25 module-concept pairs (22 modules) that carry a mapped concept's name and are not its declared home.** Arrears alone has 9: `company.billing.arrears_engine`, `saas.arrears_classifier`, `company.finance.debt_collection`, `company.billing.debt_referral`, `saas.reporting.arrears_ledger`, `company.finance.bad_debt_provision` and others. The mock-up counted three.
+- **Uncalled modules on Collect:** `dd_mandate_register`, `prepayment`, `ppm_warrant_register`, `capacity_to_pay`, `payment_plan_adequacy`, `cash_flow_forecast`, `load_forecast`, `payment_behaviour` and `account_closure`. The home I declared for payment method, `payment_method_register`, is uncalled too: the supplier has no wired module that owns a household's payment method.
+- **Where the hand matching was wrong.** "All three prepayment modules never called": `ppm_debt_loading` and `ppm_emergency_credit_register` are wired. "286 never-called supplier modules, about 39,000 lines": the index counts 268 and 41,435 lines. The mock-up missed `dd_review_runner` and `interfaces.dd_review` beside the DD review home.
+- **The SKOS altLabel earned its place on the first run.** The bare term "mandate" also names `company.trading.hedge_desk`, `wholesale_trading_mandate_register` and `saas.growth_mandate`, which are risk and growth mandates, not Bacs ones. "collection" named a marketing campaign tracker. Both were narrowed to "dd mandate" and "dd collection".
+- **All three beliefs are ungraded:** the cash forecast, the consumption forecast and can't-pay versus won't-pay. **The DD failure rate has no function named as its one definition.**
+- **Testing and controls:** 541 of 2,179 test files record their mutation. The pre-commit hook names 23 distinct checks. Canon binds no mechanism to R15 (checks that can fail) or H5 (one home), and states no dead-code rule at all.
+- **Notes:** 77 of the trunk's 179 research notes attach to a published page; 102 attach to none. The shared tree reads 79 of 181, because it holds two notes not yet landed. The 102 are the item-4 backlog, not yet ruled note by note.
+- **Wired:** the Monday end-to-end step prints these counts (`weekly_rhythm._the_map_section`), as reporting only.
+
+**Measure and SKOS verdict so far.** `altLabel` and `match` are kept, because a check uses each. `broader` is kept only as the step. `related` is not used: our four relations carry more. The measure pattern is kept in form but has one instance, which is unproven until the page's world-claims join it.
+
+**Prediction, filed before the next increment:** once the remaining supplier steps are registered, I expect "also named" pairs across the value chain to exceed 100, and arrears to remain the largest cluster.
+
+**Owed next:** the page (generated at publish, the mock-up's shape, interconnections tappable); the world-claims join; then items 3-6.
+
+---
+
 ## 2026-10-24 — How it's built: the 24 Oct cold reads acted on -- no zero printed as a figure, each count says what it counts, and the July incidents in plain words
 
 <!-- head: e3e5842fcb30 -->

@@ -543,6 +543,7 @@ def _step_body(step: str, due_on: date, overdue: list[dict]) -> str:
         from background.director_concerns import end_to_end_section
         lines += end_to_end_section()
         lines += _world_claims_section()
+        lines += _the_map_section()
         lines += _explore_cast_section()
         lines += _canon_against_canon_section()
         lines += _page_aging_section()
@@ -615,6 +616,20 @@ def _world_claims_section() -> list[str]:
         measured, verdict = "", (f"**NOT MEASURED** -- `tools.world_claims` raised "
                                  f"{type(exc).__name__}: {exc}")
     return ["## The knowledge pages' claims against the drawn world", "", verdict, "", measured, ""]
+
+
+def _the_map_section() -> list[str]:
+    """THE MAP'S COVERAGE COUNTS (director steer, 2026-10-24, item 3: "run in the Monday end-to-end
+    step ... Report counts, not just pass or fail. Start the checks as reporting only"). Generated
+    from `docs/design/the_map/concepts.yaml` by `tools.the_map`; nothing here goes red yet."""
+    try:
+        from tools import the_map
+        measured = the_map.summary(the_map.build())
+    except Exception as exc:  # noqa: BLE001 -- a review that cannot measure says so on its face
+        measured = f"**NOT MEASURED** -- `tools.the_map` raised {type(exc).__name__}: {exc}"
+    return ["## The map: concepts, their layers, and what attaches to none", "", measured, "",
+            "**Reporting only.** A second home or an uncalled home is read in the end-to-end check; "
+            "it becomes binding once the backlog it exposes is planned.", ""]
 
 
 def _explore_cast_section() -> list[str]:

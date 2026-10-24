@@ -1,0 +1,176 @@
+# The map's concept register: the small, curated input. Everything else on the map is generated
+# from it by tools/the_map.py (director steers of 24 Oct: "Do that", and "Yes" to borrowing SKOS's
+# field names and one computable definition per measure). Design: the stretch log, 24 Oct.
+#
+# A field is filled only where a check or a reader uses it:
+#   prefLabel, altLabel   -- the names. altLabel is what the two-names check and the module search
+#                            read; one term on two concepts is a finding.
+#   definition            -- one line, in the industry's own terms.
+#   match                 -- the outside scheme the concept is taken from (licence condition, Bacs,
+#                            BSC, or a named engineering source). A concept with no match is flagged.
+#   placed                -- spine/step placements. SKOS's broader, read from the step.
+#   page                  -- the published knowledge page (site/knowledge/<id>). Notes attach to it
+#                            through their own `**Knowledge:** <id>` line or the page's citations.
+#   world, wall, supplier -- the declared ONE home per layer, as dotted module names. Every other
+#                            module whose name or first sentence carries one of the concept's names is
+#                            generated as "also named here": a second home or a missing declaration.
+#   gap                   -- a layer that is empty on purpose, with the reason.
+#   relations             -- ours, not SKOS: feeds, depends_on, graded_by, causes.
+#   measure               -- a measure's one definition: what it counts, over whom, and the code.
+#   kind: belief          -- a supplier forecast it decides on: built_from, decides, graded_by.
+# For How it's built the four layers are practice (match), rule (canon id, whose enforcing code is
+# read from docs/design/canon_mechanisms.yaml, not repeated here), enforced_by, and evidence (a
+# figure computed by a named function in tools/the_map.py).
+
+spines:
+  world: {prefLabel: "The world", steps: [Weather, Demand, Generation and merit order, Wholesale price, Settlement, Who lives where, Home physics, Households, Choices]}
+  supplier: {prefLabel: "The supplier's value chain", steps: [Acquire, Switch, Meter, Bill, Collect, Settle, Hedge, Renew or lose, Move, Advise, Optimise]}
+  company: {prefLabel: "Running the company", steps: [Accounts, Capital, Trading risk, Regulation, Vulnerability, Complaints]}
+  build: {prefLabel: "How it's built", steps: [Testing and controls, Delivery and CI, Agents and models, Data and lineage, Security, Observability]}
+
+concepts:
+  - id: collect.mandate
+    prefLabel: Direct debit mandate
+    altLabel: [dd mandate, direct debit instruction, AUDDIS]
+    definition: The customer's instruction letting the supplier collect from their bank, which the customer can cancel at any time.
+    match: ["Bacs Direct Debit scheme: Direct Debit Instruction"]
+    placed: [supplier/Collect]
+    page: debt-and-collections
+    world: [simulation.bacs_rails]
+    supplier: [company.billing.direct_debit]
+    gap: {wall: "a cancelled mandate is not an observable the seam carries"}
+    relations: {feeds: [collect.collection]}
+
+  - id: collect.amount
+    prefLabel: Setting the direct debit amount
+    altLabel: [dd review, direct debit review, dd amount, payment adequacy]
+    definition: A fixed direct debit rests on the best current information and is reviewed when new information would change it materially.
+    match: ["SLC 27.15 (Ofgem decision 26 Aug 2022)"]
+    placed: [supplier/Collect]
+    page: debt-and-collections
+    world: [simulation.dd_review_in_loop]
+    wall: [company.interfaces.dd_review_outcome]
+    supplier: [company.billing.dd_review]
+    relations: {depends_on: [collect.consumption_forecast], causes: [collect.arrears]}
+
+  - id: collect.collection
+    prefLabel: Collection and its failure
+    altLabel: [dd collection, payment collection, failed payment, ARUDD, ADDACS, dd failure, bacs return]
+    definition: The supplier presents the debit on the agreed day; the bank pays it or returns it with a reason code.
+    match: ["Bacs: ARUDD and ADDACS reason codes"]
+    placed: [supplier/Collect]
+    page: debt-and-collections
+    world: [simulation.world_payment_truth]
+    wall: [company.interfaces.dd_collection_instructions]
+    supplier: [company.billing.dd_collections_desk]
+    relations: {causes: [collect.arrears], graded_by: [collect.dd_failure_rate]}
+
+  - id: collect.arrears
+    prefLabel: Arrears and collections
+    altLabel: [arrears, debt collection, collections journey, debt referral]
+    definition: Money owed past its due date, and the steps from reminder to payment plan to referral.
+    match: ["SLC 27 and 28B; Ofgem debt and arrears indicators"]
+    placed: [supplier/Collect, company/Vulnerability]
+    page: debt-and-collections
+    world: [simulation.arrears_engine]
+    wall: [company.interfaces.collections_communication]
+    supplier: [company.billing.collections_journey]
+    relations: {feeds: [collect.payment_method]}
+
+  - id: collect.payment_method
+    prefLabel: Payment method and prepayment
+    altLabel: [payment method, prepayment, ppm, pay as you go]
+    definition: How a household pays; moving someone to prepayment for debt is tightly restricted.
+    match: ["SLC 28B; Ofgem involuntary prepayment rules (2023)"]
+    placed: [supplier/Collect]
+    page: debt-and-collections
+    world: [simulation.payment_method_dynamics]
+    supplier: [company.billing.payment_method_register]
+    gap: {wall: "a change of method is not an observable the seam carries"}
+
+  - id: collect.cash_forecast
+    kind: belief
+    prefLabel: Forward cash forecast per customer
+    altLabel: [cash forecast, cash flow forecast]
+    definition: What the supplier expects each account to pay, and when, over the months ahead.
+    match: ["Canon: payment, credit risk and forward cash forecasting"]
+    placed: [supplier/Collect, company/Capital]
+    supplier: [company.finance.cash_forecast_provision]
+    built_from: "bills, payments and returns, payment method, the account's record"
+    decides: "provision, payment plans, early warnings"
+    gap: {graded_by: "no grade against the world's hidden payments yet"}
+
+  - id: collect.consumption_forecast
+    kind: belief
+    prefLabel: Consumption forecast per property
+    altLabel: [consumption forecast, annual consumption estimate, load forecast]
+    definition: What one property will use over the next year, from its reads, registered consumption and the weather.
+    match: ["SLC 27.15 best current information; MRA/REC estimated annual consumption"]
+    placed: [supplier/Collect, supplier/Bill, supplier/Hedge]
+    supplier: [company.billing.consumption_forecast]
+    built_from: "reads, registered consumption, weather"
+    decides: "direct debit amount, unbilled estimate, purchasing, CLV"
+    gap: {graded_by: "no grade against the world's true consumption yet"}
+
+  - id: collect.cant_pay_wont_pay
+    kind: belief
+    prefLabel: Can't pay versus won't pay
+    altLabel: [affordability, ability to pay, cant pay]
+    definition: Whether an account in arrears lacks the means to pay or the will to, which decides support or enforcement.
+    match: ["SLC 27.5 and 28B ability to pay; Ofgem Consumer Standards 2023"]
+    placed: [supplier/Collect, company/Vulnerability]
+    supplier: [company.crm.affordability_inference]
+    built_from: "payment history, contact record, declared circumstances"
+    decides: "payment plan level, support referral, collections tone"
+    gap: {graded_by: "no grade against the world's hidden finances yet"}
+
+  - id: collect.dd_failure_rate
+    kind: measure
+    prefLabel: Direct debit failure rate
+    altLabel: [dd failure rate, failure rate]
+    definition: The share of presented direct debit collections that the bank returns unpaid.
+    match: ["Bacs: ARUDD returns over presentations"]
+    placed: [supplier/Collect]
+    page: debt-and-collections
+    measure: {counts: "collections returned unpaid", over: "collections presented in the period", computed_by: null}
+    gap: {computed_by: "no function is named as its one definition yet"}
+
+  - id: build.mutation
+    prefLabel: Checks that can fail
+    altLabel: [mutation, neuter test]
+    definition: A check counts only once it has been seen to fail when the defect it guards is put back.
+    match: ["Mutation testing literature (DeMillo, Lipton and Sayward 1978; PIT, Stryker)"]
+    placed: [build/Testing and controls]
+    rule: R15
+    enforced_by: [docs/design/control_registry.json]
+    evidence: mutation_recorded_share
+
+  - id: build.gate
+    prefLabel: The commit gate
+    altLabel: [pre-commit, commit gate, hook bypass]
+    definition: Every change passes the same automated checks before it lands, and the gate is never skipped.
+    match: ["DORA: continuous integration, trunk-based development"]
+    placed: [build/Testing and controls, build/Delivery and CI]
+    rule: H9
+    enforced_by: [tools/git-hooks/pre-commit, tools/git-hooks/commit-msg]
+    evidence: gate_hook_count
+
+  - id: build.dead_code
+    prefLabel: Dead code
+    altLabel: [orphan, unused module, never called]
+    definition: Code nothing calls is removed or archived; it costs reading time, test time and trust.
+    match: ["Fowler, Refactoring (2nd ed.): the dead-code smell"]
+    placed: [build/Testing and controls]
+    enforced_by: [tools/capability_index.py, docs/design/ORPHAN_DISPOSITION_REGISTER.md]
+    gap: {rule: "canon states no dead-code rule; the August orphan register keeps an uncalled module as 'unhooked'"}
+    evidence: orphan_count
+
+  - id: build.one_home
+    prefLabel: One source of truth
+    altLabel: [one home, single source of truth, second copy]
+    definition: Each concept is defined once, and everything else reads that definition.
+    match: ["Single source of truth; DRY (Hunt and Thomas, The Pragmatic Programmer)"]
+    placed: [build/Testing and controls, build/Data and lineage]
+    rule: H5
+    enforced_by: [tools/canon_drift_check.py]
+    evidence: second_homes_on_the_map
