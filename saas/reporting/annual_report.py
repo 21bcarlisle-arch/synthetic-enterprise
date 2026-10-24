@@ -1212,6 +1212,14 @@ def extract_report_data(run_output: dict) -> dict:
         # absent means moves are off. Dropped here until 2026-10-10, so the ledger could not see a
         # mover's account close, and `forward_clv` read the published run as a world without moves.
         "home_move_outs": phase2b.get("home_move_outs"),
+        # Each incoming occupier's account and the account it succeeded at the same meter point:
+        # what a supplier sees when a new account opens on a point it already supplies
+        # (home_moves.md §8.8, choice 6). Only the link and the opening date, never the void the
+        # world drew. `None` when moves are off.
+        "occupier_successions": None if phase2b.get("home_move_ins") is None else [
+            {"account_id": m["customer_id"], "predecessor_account_id": m["premise"],
+             "account_opened": str(m["account_opened"])[:10] if m.get("account_opened") else None}
+            for m in phase2b["home_move_ins"]],
         "company_event_log": phase2b.get("company_event_log", []),
         "basis_risk_terms": phase2b.get("basis_risk_terms", []),
         "churn_basis_risk": phase2b.get("churn_basis_risk", []),

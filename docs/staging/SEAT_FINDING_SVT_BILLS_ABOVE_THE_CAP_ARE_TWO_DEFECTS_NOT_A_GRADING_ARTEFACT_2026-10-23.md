@@ -381,3 +381,9 @@ route remains. **It stays open** until these reads are done:
   true kWh 0, with the outside count at 72 within noise.
 - Item 3's struck-rate question for the other 7 receipt-carrying invoices inside the windows.
 - The attribution of the denominator's growth.
+
+**Correction, 24 Oct 07:25, to the paragraph above.** "A real defect that invalidates no published
+figure" is not true yet. The site still publishes run `8b6fea024`, which predates all three fixes, so
+its bills still carry the over-cap charges. The lane stays held by the parent finding, which says what
+clears it: `SEAT_FINDING_EXPLORES_CAST_FINDS_STANDARD_VARIABLE_BILLS_ABOVE_THE_CAP_AND_NO_MOVER_OR_TWO_RATE_HOME_2026-10-23.md`,
+"Why this stays BLOCKING". This file stays LATENT, because one block on the lane is enough.

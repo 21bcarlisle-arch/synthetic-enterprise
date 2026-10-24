@@ -468,6 +468,8 @@ numbers are at the worktree HEAD of that date.
 8. ~~The statutory or licence locus of the two-day liability rule, the 6-week final bill and the
    10-working-day refund.~~ **Two of three closed 2026-10-08 (§8):** the two-day rule is SLC 24.1, and
    the six-week final bill is SLC 27.17. The 10-working-day credit refund is still unlocated.
+   **The third closed 2026-10-24 (§8.8):** it is regulation 6D of the Electricity and Gas (Standards
+   of Performance) (Suppliers) Regulations 2015, inserted by SI 2019/218. It is not in the SLCs.
 9. The domestic D-flow and gas-flow mechanics of a CoT read after CSS go-live (Jul 2022), beyond the
    CSS CoO indicator.
 
@@ -660,7 +662,8 @@ across and waiving the termination fee that closing the old contract would other
   of `68793db33` had 9 of 15 offered movers follow (60%). That is twice the best figure any
   supplier has claimed (30%). The evidence leans towards the low half of k, but it is too weak to
   narrow the range.
-- G8.5 The 10-working-day credit refund's locus (the remainder of §6 gap 8).
+- G8.5 ~~The 10-working-day credit refund's locus (the remainder of §6 gap 8).~~ Closed 2026-10-24:
+  GSoP regulation 6D (§8.8).
 - G8.6 Where a mover goes, finer than a region. The same-local-authority share of moves is not
   published at GB level (ONS internal migration excludes within-LA moves). Of moves that change
   local authority, 51.9% stay inside the same ONS region (year ending June 2020), so at least 51.9%
@@ -825,6 +828,63 @@ all fail" option. (Ofgem Switching Programme, cited in
    (`run_phase2b._moved_out_on_by_leg`), and the exit draw reads that stamp for every bill from the
    move month on. The build measures what it cost.
 
+
+### 8.8 A mover's final bill: the closing read, the final bill, the credit and the debt
+
+*Added 2026-10-24, before the build (K8). The build is the move-out kind in
+`company/billing/billing_accuracy.py` (`move_out_final_bills`) and the move-out and final-bill
+events on the household record (`tools/generate_customer_reaction_chain.py`). Sources: the SLC text
+already cited in §8 and in Sources, and SI 2019/218, read 2026-10-24.*
+
+**What the rules require.**
+
+| Step | The rule | Locus |
+|---|---|---|
+| The closing read | The contract ends on the move date. The supplier takes "all reasonable steps" to get a read for the final bill. It may be the customer's own read on the day, a smart read, or an estimate when neither arrives | SLC 21B (reads, `slc_21b_21ba_reads_and_back_billing.md`). No rule says the closing read must be actual |
+| The final bill | "all reasonable steps to send a final Bill or statement of account … within 6 weeks" of the contract ending, whether it ended by a switch or otherwise | SLC 27.17 (p.246, consolidated text) |
+| Compensation for a late one | A fixed payment, £30, then £40 for breaches from 2 January 2025 | GSoP 2015 as amended. Ofgem, *Good Energy pay a total of £150k …*, 7 May 2025, and *Octopus Energy pay a total of £1.5m …* (failures to issue final bills to former prepayment customers) |
+| The credit | "within 10 working days of issuing a customer's final bill, or if applicable, corrected final bill, refund any outstanding credit balance". It applies where the customer switches under a valid contract or the supplier's responsibility "has otherwise terminated", so a move-out is in scope | GSoP 2015 reg 6D, inserted by SI 2019/218 reg 3. **Correction, 2026-10-24:** the run's `credit_refund_log` and `simulation/credit_refund_events.py` label this "SLC 14". That is the wrong locus. The deadline is the same, so no figure moves |
+| The debt | A debt on the final bill is the departing customer's. The supplier pursues them at a forwarding address if it has one. It may not charge the incoming occupier for it | Citizens Advice, *Check if you're responsible for paying an energy bill* (Sources). The licence text that says so was not found: **GAP** |
+| Back-billing on the final bill | The 12-month limit applies to a final bill as to any other. A catch-up for energy used more than 12 months before it is barred | SLC 21BA. This is already measured as K3 and the DD money line (`billing_accuracy.py`) |
+
+**Three clocks, not one.** The final bill runs from the move date. The refund runs from the *issue* of
+the final bill, in working days. The debt has no deadline in the rules. A measure that puts them on
+one axis would grade a refund against the move date, which no rule does.
+
+**What the published evidence says about practice.** The enforcement cases are about missing final
+bills, not late ones. In each, closed accounts got no final bill at all, so no refund was ever
+triggered. Ofgem: "this money is nonetheless owed to the customer who has accrued the credit and
+should be returned" (Good Energy, 2025). The share of final bills sent late, or on an estimated
+closing read, is not published: **GAP** (G8.9).
+
+**Gaps this adds.**
+- G8.9 The share of a supplier's final bills issued after six weeks, and the share on an estimated
+  closing read. Ofgem publishes enforcement totals, not rates.
+- G8.10 The licence text for "a debt follows the person, not the premises". Only Citizens Advice
+  guidance was found.
+- G8.11 The share of a final-bill debt recovered after the move (see §5 for what the world draws
+  from Centrica's provisioning).
+
+**The choices the build makes, and why.**
+1. *Read the published run, with no new arm.* The measure reads the supplier's own bills (the final
+   bill is stamped `final_bill`), the move-out register (`home_move_outs`: the move date a notice or
+   a closing read gives) and the refund log. Nothing it reads is the world's truth.
+2. *The issue date of a bill is its period end.* `company/billing/invoice.py` sets it that way, and
+   the run's bill record carries no other. So the days from move-out to final bill are fixed by
+   that rule. The late-final-bill branch cannot fire in this run. That is a property of the model,
+   not a performance, and the measure says so beside the count. A test proves the branch fires on a
+   bill issued late.
+3. *The closing read is graded actual or estimated.* An estimated closing read is not a breach, but
+   it is where a mover is most often billed wrongly (§2.5). It is counted, and nothing grades it
+   against a rule.
+4. *The credit is graded in working days from the final bill's issue* (reg 6D), against 10.
+5. *The debt left on the final bill is `None`, with its reason,* until the run publishes each closed
+   account's balance at its final bill. The published report has no such field, and a debt guessed
+   from the bill's face value would count every paid bill as owed.
+6. *The incoming occupier's account names the account it succeeded* at the same meter point. A real
+   supplier knows this: a new account opens on a meter point it already supplies. The run publishes it
+   as `occupier_successions` from the next run on. A run that has no such record says so.
+
 ---
 
 ## Sources
@@ -836,6 +896,12 @@ all fail" option. (Ofgem Switching Programme, cited in
   24.8, 24.17 (pp.216-220) and SLC 27.17 (p.246),
   https://www.ofgem.gov.uk/sites/default/files/2023-03/Electricity%20Supply%20Standard%20Consolidated%20Licence%20Conditions%20-%20Current.pdf
   (fetched 2026-10-08; consolidated text, "not formal Public Register documents").
+- The Electricity and Gas (Standards of Performance) (Suppliers) (Amendment) Regulations 2019,
+  SI 2019/218, reg 3 inserting reg 6D, https://www.legislation.gov.uk/uksi/2019/218 (read 2026-10-24
+  via https://lawplayer.com/uk/act/uksi-2019-218) (§8.8).
+- Ofgem, *Good Energy pay a total of £150k to former prepayment meter customers due to a failure to
+  issue final bills*, 7 May 2025, https://www.ofgem.gov.uk/decision/good-energy-pay-total-ps150k-former-prepayment-meter-customers-due-failure-issue-final-bills;
+  *Octopus Energy pay a total of £1.5m …*, https://www.ofgem.gov.uk/decision/octopus-energy-pay-total-ps15m-former-prepayment-meter-customers-due-failure-issue-final-bills (§8.8).
 - Ofgem, *Tackling energy debt when moving home – Call for Input: Summary of Responses*, June 2026,
   ¶2.1-2.8, 3.15, https://www.ofgem.gov.uk/sites/default/files/2026-06/Home-Moves-CFI-Summary-of-Responses.pdf
   (fetched 2026-10-08).

@@ -9,6 +9,7 @@ sys.path.insert(0, str(_P(__file__).resolve().parents[2]))
 
 from tools.generate_customer_reaction_chain import (
     _base_id, _usage_effect, _economic_effect, _renewal_effect, _add_effects,
+    _move_out_events, _predecessor,
 )
 
 
@@ -146,3 +147,24 @@ def test_generate_returns_zero_when_ledger_missing(tmp_path, monkeypatch):
     monkeypatch.setattr(gcr, "LEDGER_PATH", tmp_path / "no_such_ledger.json")
 
     assert gcr.generate(str(run_json)) == 0
+
+
+def test_a_mover_gets_a_move_out_event_and_its_final_bill():
+    moves = [{"customer_id": "C1", "commodity": "electricity", "move_date": "2016-04-21"},
+             {"customer_id": "C2", "commodity": "electricity", "move_date": "2017-01-01"}]
+    finals = {"C1": [{"customer_id": "C1", "period_end": "2016-04-20", "final_bill": True,
+                      "billing_basis": "estimated", "total_amount_gbp": 11.36}]}
+    events = _move_out_events("C1", moves, finals)
+    assert [e["type"] for e in events] == ["moved_out", "final_bill"]
+    assert events[0]["date"] == "2016-04-21"
+    assert events[1]["date"] == "2016-04-20"
+    assert "estimated" in events[1]["effect"] and "11.36" in events[1]["effect"]
+    assert _move_out_events("C3", moves, finals) == []
+
+
+def test_an_occupier_names_its_predecessor_or_says_why_not():
+    successions = [{"account_id": "OCC-abc", "predecessor_account_id": "C8"}]
+    assert _predecessor("OCC-abc", successions) == ("C8", None)
+    assert _predecessor("OCC-abc", None)[1] == "the run predates occupier_successions"
+    assert _predecessor("OCC-zzz", successions)[0] is None
+    assert _predecessor("C8", successions) == (None, None)
