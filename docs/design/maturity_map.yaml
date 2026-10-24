@@ -1,22 +1,3 @@
-- id: B5_regional_basis_risk
-  notes_rehomed: [name]
-  lane: B_commercial
-  value_stream: wholesale_to_price
-  couples_with: [W1_8_zonal_locational_pricing]
-  epoch: 3
-  level_current: 0
-  level_target: 3
-  loop_stage: idle
-  dial_inherited: 3
-  provenance: proposal
-  records_rehomed: [evidence]
-  file_scope: [docs/design]
-  simplifications_count: 2
-  expert_hour: {status: not_attempted, last: null, findings: []}
-  real_world_twin: "a real GB supplier with a regionally-skewed book hedged only to the single national forward curve, carrying regional basis it has no instrument to lay off"
-  depends_on: [W1_8_zonal_locational_pricing]
-
-
 - id: A4_sim_approver
   notes_rehomed: [name]
   lane: A_strategy_governance
@@ -188,26 +169,6 @@
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "GB weather-driven demand and price physics -- coherent national signal, feasible regional deviation, premise-level response, price as the output of the merit order"
   depends_on: [W1_4_regional_weather_field]
-
-- id: W1_8_zonal_locational_pricing
-  notes_rehomed: [name]
-  lane: W1_market_weather
-  value_stream: wholesale_to_price
-  couples_with: [B5_regional_basis_risk]
-  epoch: 3
-  level_current: 0
-  level_target: 3
-  loop_stage: idle
-  blocked_reason: closed_zonal_rejected_2026-07-21_watching_brief_in_forward_register
-  block_reason: "Director-rejected 2026-07-21 (the zonal/locational market does not exist in the baseline world); parked as a watching brief in the forward-discovery register -- releases only if the director re-opens it (R13 curriculum, director-reserved)."
-  dial_inherited: 3
-  provenance: proposal
-  records_rehomed: [evidence]
-  file_scope: [docs/design]
-  simplifications_count: 4
-  expert_hour: {status: not_attempted, last: null, findings: []}
-  real_world_twin: "GB weather-driven demand and price physics -- coherent national signal, feasible regional deviation, premise-level response, price as the output of the merit order"
-  depends_on: [W1_6_physics_price_signal]
 
 - id: G4_unified_failure_register
   notes_rehomed: [name]
