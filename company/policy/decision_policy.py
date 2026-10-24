@@ -241,6 +241,12 @@ class DecisionPolicy:
     #: 24). Table, prereg, grade and switch-on: `docs/staging/records/WORKER_PREREG_THE_BILL_ESTIMATE_READS_THE_ANNUALISED_ADVANCE_2026-10-22.md`.
     bill_estimate_reads_the_annualised_advance: bool = True
 
+    #: (2026-10-22, D48) with the advance above on, gas annualises only an advance of nine months or
+    #: more, Xoserve's AQ floor (`unread_month_estimate.GAS_AQ_MIN_ADVANCE_DAYS`), and falls back to
+    #: the three reads below it. Off on every standing policy; prereg in
+    #: `docs/staging/records/WORKER_PREREG_THE_GAS_ESTIMATE_FLOORS_THE_ADVANCE_AT_NINE_MONTHS_2026-10-22.md`.
+    bill_estimate_floors_the_gas_advance_at_nine_months: bool = False
+
     #: C35 (2026-10-17): at a renewal, an advice action that costs us may travel with the smallest
     #: monthly rise on the Fixed Retention Tariff that brings our side to zero, capped by the
     #: headroom under the published default (`company.crm.next_best_action.price_retention_rise`).

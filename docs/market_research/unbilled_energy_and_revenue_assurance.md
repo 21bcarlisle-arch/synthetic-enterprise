@@ -220,6 +220,21 @@ first-hand on 2026-10-06.*
   long enough advance, the estimate falls back to the three-read window, the stand-in for "historical
   information" in the EAC rule. Before the first read, the registry EAC/AQ is used, as before (slice 4).
   (3) Off by default: `DecisionPolicy.bill_estimate_reads_the_annualised_advance`.
+- **Design choice 1 amended: gas may take the AQ's own floor (2026-10-22, K8 for the gas variant).**
+  Nothing new was read. The rule is the Xoserve line above: the AQ is built from reads "9–36 months
+  apart". The variant `DecisionPolicy.bill_estimate_floors_the_gas_advance_at_nine_months` (off by
+  default, and inert while the advance is off) makes a gas account annualise only an advance of
+  `GAS_AQ_MIN_ADVANCE_DAYS` = 273 days or more. Below that it falls back to the three-read window,
+  as an account with no six-month advance already does. Electricity keeps the AA's six months.
+  **What the rule does not say:** it bounds the settlement AQ, not a bill estimate (the GAP above
+  stands). A shorter advance is not wrong because the AQ refuses it. Whether it is worse than three
+  monthly reads is the question the arms answer. **The 36-month ceiling is not taken:** the design
+  keeps two years for both fuels. **Read-only projection, before the build**, on the annualised arm's
+  own bills at 30674a4bd (one process, reproduces 14,462 of 14,616 billed gas estimates): the floor
+  moves 1,655 gas estimated bills. Mean per-bill gas error gets worse in 2016–2017 and 2019–2020
+  (2017: 21.25% to 21.62%) and better in 2018 and 2021–2025 (2022: 18.23% to 17.94%). The early
+  years have fewer long advances, so more bills fall back to three reads. Prereg:
+  `docs/staging/records/WORKER_PREREG_THE_GAS_ESTIMATE_FLOORS_THE_ADVANCE_AT_NINE_MONTHS_2026-10-22.md`.
 
 **Measured on the 76a29bd92 run, one process, changing only the method**
 (`docs/staging/records/WORKER_PREREG_THE_BILL_ESTIMATE_READS_THE_ANNUALISED_ADVANCE_2026-10-22.md`):
