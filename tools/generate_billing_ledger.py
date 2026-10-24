@@ -106,6 +106,39 @@ def _printed_unit_rate(printed_consumption_kwh, printed_commodity_amount_gbp):
     return None if rate is None else rate[0]
 
 
+def _printed_registers(bill_registers, printed_consumption_kwh, printed_commodity_amount_gbp):
+    """The bill's time-of-use registers at print precision, or None for a single-rate bill.
+
+    The bill's registers are unrounded. Each is shared out of the PRINTED usage and energy figures
+    by its own fraction, and the last register takes the remainder, so the registers sum exactly to
+    the printed lines beside them (0.1 kWh, 1p). Each rate is fitted to its own printed pair.
+    """
+    if not bill_registers or len(bill_registers) < 2:
+        return None
+    kwh_total = sum(r["consumption_kwh"] for r in bill_registers)
+    gbp_total = sum(r["commodity_amount_gbp"] for r in bill_registers)
+    if kwh_total <= 0 or gbp_total <= 0:
+        return None
+    printed = []
+    kwh_left, gbp_left = printed_consumption_kwh, printed_commodity_amount_gbp
+    for i, reg in enumerate(bill_registers):
+        if i == len(bill_registers) - 1:
+            kwh, gbp = round(kwh_left, 1), round(gbp_left, 2)
+        else:
+            kwh = round(printed_consumption_kwh * reg["consumption_kwh"] / kwh_total, 1)
+            gbp = round(printed_commodity_amount_gbp * reg["commodity_amount_gbp"] / gbp_total, 2)
+            kwh_left -= kwh
+            gbp_left -= gbp
+        printed.append({
+            "register_id": str(i + 1),
+            "label": reg["label"],
+            "consumption_kwh": kwh,
+            "amount_gbp": gbp,
+            "unit_rate_p_per_kwh": _printed_unit_rate(kwh, gbp),
+        })
+    return printed
+
+
 def _printed_daily_rate(days_in_period, printed_standing_charge_gbp):
     """The GBP/day rate to print, or None if the line cannot carry one.
 
@@ -474,13 +507,19 @@ def generate(run_json_path=None, out_path=None):
         # precision has to be decided here, once, where it can be tested,
         # rather than reimplemented in JS where it would drift from the Python
         # policy. None when no printable precision reproduces the amount.
-        inv["registers"] = [{
+        # 2026-10-24: a time-of-use bill prints one register per band, each with its kWh, charge
+        # and rate (SLC 22A.3; a_tou_tariff_needs_the_households_choice_not_its_meter.md, item 6).
+        inv["registers"] = _printed_registers(
+            bill.get("registers"), inv["consumption_kwh"], inv["commodity_amount_gbp"],
+        ) or [{
             "register_id": "1",
             "label": "Anytime",
             "consumption_kwh": inv["consumption_kwh"],
             "amount_gbp": inv["commodity_amount_gbp"],
             "unit_rate_p_per_kwh": inv["unit_rate_p_per_kwh"],
         }]
+        if bill.get("tou_registers_withheld"):
+            inv["tou_registers_withheld"] = bill["tou_registers_withheld"]
 
         # ADVISOR_STEER_BILL_ARITHMETIC.md Defect 1, R10 class-level gate:
         # a rendered bill whose usage line does not reconcile with its printed

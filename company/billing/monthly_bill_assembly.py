@@ -81,6 +81,7 @@ from saas.bill_generator import (
     BILL_SHOCK_PENALTY_FACTOR,
     MAX_CLARITY_SCORE,
     MIN_CLARITY_SCORE,
+    TOU_BANDS,
     bill_movement,
     generate_bill,
 )
@@ -208,6 +209,12 @@ def _estimated_settlement_records(
         # The Treasury's EPG share is per kWh, so it scales with the commodity it is a share of.
         if "hmt_epg_receipt_gbp" in record:
             new_record["hmt_epg_receipt_gbp"] = record["hmt_epg_receipt_gbp"] * ratio
+        # A time-of-use estimate keeps the bands' split, so each register is estimated at its own
+        # rate. The split is the settled one, which the company holds for a HH-settled ToU term.
+        for stem, _label in TOU_BANDS:
+            for field in ("tou_%s_kwh" % stem, "tou_%s_unit_charge_gbp" % stem):
+                if field in record:
+                    new_record[field] = record[field] * ratio
         scaled.append(new_record)
     return scaled
 

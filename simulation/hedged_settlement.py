@@ -181,7 +181,8 @@ def run_hedged_term(
             consumption_kwh = shape[period - 1]
             if tou_rates is not None:
                 peak_rate, offpeak_rate = tou_rates
-                period_rate = peak_rate if is_peak_period(date_str, period) else offpeak_rate
+                tou_band = "peak" if is_peak_period(date_str, period) else "offpeak"
+                period_rate = peak_rate if tou_band == "peak" else offpeak_rate
             else:
                 period_rate = fixed_tariff_rate_gbp_per_mwh
             settled_kwh = (consumption_kwh if settled_kwh_at is None
@@ -283,6 +284,12 @@ def run_hedged_term(
             })
             if settled_kwh_at is not None:
                 records[-1]["settled_kwh"] = settled_kwh
+            if tou_rates is not None:
+                # The band this half-hour was charged in, as two sums the daily fold adds up, so a
+                # month's bill can print each register's kWh and charge (SLC 22A.3) instead of one
+                # blended rate. Read by `saas.bill_generator.tou_registers`.
+                records[-1]["tou_%s_kwh" % tou_band] = consumption_kwh
+                records[-1]["tou_%s_unit_charge_gbp" % tou_band] = consumption_kwh / 1000 * period_rate
 
         current_date += timedelta(days=1)
 
