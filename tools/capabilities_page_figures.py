@@ -53,6 +53,12 @@ def _item(e):
         if e.get("evidence"):
             proof += ' <a class="inline-link proof-link" href="{}">see the record</a>'.format(
                 E(e["evidence"]))
+    if e.get("held_from_live"):
+        proof += ' <span class="noproof">Shown as building: {}.</span>'.format(
+            E(e["held_from_live"]))
+    if e.get("not_served"):
+        proof += ' <span class="noproof">Built and tested, but not served today: {} accounts are ' \
+                 'suspended from the book.</span>'.format(E(" and ".join(e["not_served"])))
     return '<div class="item"><div class="item-h">{}{}</div><div class="item-p">{}{}</div></div>'.format(
         E(e["name"]), _pill(e["status"]), E(e["what"]), proof)
 
@@ -80,8 +86,13 @@ def render_access(go_live):
 def render_golive(go_live):
     rows = []
     for s in go_live.get("seams") or []:
-        spec = ('<span class="spec-read">read</span> ' + E(s["spec"]["what"]) if s.get("spec")
-                else '<span class="spec-unread">not read</span>')
+        if s.get("spec"):
+            spec = '<span class="spec-read">read</span> ' + E(s["spec"]["what"])
+        elif s.get("used"):
+            spec = ('<span class="spec-used">read for what the run uses</span> '
+                    + E(s["used"]["what"]) + '; the whole specification is not read')
+        else:
+            spec = '<span class="spec-unread">not read</span>'
         rows.append('<tr><td>{}</td><td class="who">{}</td><td><span class="pill pill-{}">{}</span> '
                     '{}</td><td>{}</td><td>{}</td></tr>'.format(
                         E(s["area"]), E(s["counterparty"]), E(str(s["access"]).lower()),

@@ -165,9 +165,13 @@ SUPPLIER: list[tuple[str, str, list[str]]] = [
      "Missed payment, reminder, dunning ladder, arrangement, and the point where a debt is "
      "handed on.",
      ["EP4_collections_journey"]),
-    ("Settlement true-ups on the real timetable",
-     "Following a volume from initial settlement through each reconciliation run, and taking "
-     "the financial consequence each time it moves.",
+    # Not the world's "settlement timetable" row restated (director, 24 Oct: "say which is true").
+    # Both are: the world runs the real reconciliation runs (W3_2, at target, tested); the
+    # supplier does not yet take the money each run moves (EP5, L0, DISCOVER pass 3 2026-09-21).
+    ("Taking the money at each settlement true-up",
+     "The world already runs the industry's real reconciliation timetable. What is not built is "
+     "the supplier's side: booking the financial consequence each time a run moves a volume. "
+     "Its close still states a final figure where the industry can only give a provisional one.",
      ["EP5_settlement_true_ups"]),
 ]
 
@@ -185,6 +189,9 @@ SUPPLIER: list[tuple[str, str, list[str]]] = [
 #            the wall is blocked.
 #   SPEC     whether the REAL published specification has been read, and cited. `None` means
 #            not read, and most of these are None. This is the axis the director noticed.
+#            `used` is the half-step he found missing on 24 Oct ("Specification: not read" for
+#            sources the run reads every day): the parts the run consumes were read and are
+#            recorded, and the whole specification was not. It never upgrades to `spec`.
 #   STATUS   the derived Live/Building/Planned, unchanged, which stays Planned for all eight.
 #
 # `spec` claims are checkable: each names the in-repo record that holds the reading, and
@@ -193,7 +200,10 @@ GO_LIVE_SEAMS: list[dict] = [
     {"area": "Settlement and market data", "who": "Elexon Insights (BMRS)",
      "what": "Half-hourly settlement, system prices and the balancing mechanism.",
      "access": "OPEN", "gate": "None. Published openly, no qualification of any kind.",
-     "spec": None, "ids": ["EP7_adapter_elexon_insights"]},
+     "spec": None, "ids": ["EP7_adapter_elexon_insights"],
+     "used": {"what": "the Insights API v1 endpoints the run reads every day, confirmed against "
+                      "the live service on 7 Jun 2026",
+              "where": "docs/data-sources/elexon.md"}},
     {"area": "Smart metering", "who": "DCC (DUIS service requests)",
      "what": "Reading a meter, changing a tariff, operating the supply switch remotely.",
      "access": "GATED", "gate": "Accession to the Smart Energy Code, SMKI certificates, and CIO/UIT testing.",
@@ -219,11 +229,17 @@ GO_LIVE_SEAMS: list[dict] = [
     {"area": "Carbon intensity", "who": "NESO Carbon Intensity API",
      "what": "The grid's actual carbon content, half-hour by half-hour.",
      "access": "OPEN", "gate": "None. Free, no key.",
-     "spec": None, "ids": ["EP13_adapter_carbon_intensity"]},
+     "spec": None, "ids": ["EP13_adapter_carbon_intensity"],
+     "used": {"what": "the API's two published bases and its half-hourly series from May 2018, "
+                      "read and documented where the run ingests them",
+              "where": "sim/neso_carbon_intensity.py"}},
     {"area": "Published cost stack", "who": "Ofgem and network operator files",
      "what": "Cap levels, network charges and policy costs, ingested as the published files they are.",
      "access": "OPEN", "gate": "None. Published as spreadsheets rather than as an interface.",
-     "spec": None, "ids": ["EP14_adapter_published_cost_stack"]},
+     "spec": None, "ids": ["EP14_adapter_published_cost_stack"],
+     "used": {"what": "the policy-cost and network-charge files the run prices from, and the "
+                      "cap's GB-average unit rates as a dated series from 2019",
+              "where": "simulation/policy_costs.py"}},
 ]
 
 QUALIFICATION_REGISTER = PROJECT / "docs" / "design" / "EP19_COUNTERPARTY_QUALIFICATION_REGISTER.md"
@@ -552,14 +568,42 @@ def _status_for(ids: list[str], levels: dict[str, dict]) -> str:
 def _entries(register, levels, index: dict[str, str] | None = None,
              records: dict | None = None) -> list[dict]:
     index, records = index or {}, records or {}
+    served = _served_segments()
     out = []
     for name, blurb, ids in register:
-        out.append({
-            "name": name, "what": blurb, "status": _status_for(ids, levels), "rests_on": ids,
-            "evidence": _evidence_for(ids, index),
-            "checks": _checks_for(ids, records),
-        })
+        status, checks = _status_for(ids, levels), _checks_for(ids, records)
+        entry = {"name": name, "what": blurb, "status": status, "rests_on": ids,
+                 "evidence": _evidence_for(ids, index), "checks": checks}
+        # LIVE NEEDS A CHECK, NOT ONLY A LEVEL (director, 24 Oct: "flags errors that we should be
+        # fixing"). Five functions read Live beside "Nothing published yet shows how this is
+        # checked". A level is the map's word; a test is the evidence a reader can ask for. So a
+        # function whose work cites no existing test computes as Building, and says why.
+        if status == LIVE and not checks:
+            entry["status"] = BUILDING
+            entry["held_from_live"] = ("built to its target, but none of the work it rests on "
+                                       "cites an automated test, so it is not shown as live")
+        unserved = [seg for seg in SEGMENTS_OF.get(name, ()) if served is not None
+                    and seg not in served]
+        if unserved:
+            entry["not_served"] = unserved
+        out.append(entry)
     return out
+
+
+#: Which customer segments a capability is ABOUT, for the ones that are segment-specific. The
+#: served list is the director's curriculum file, read at publish, never restated here.
+SEGMENTS_OF: dict[str, tuple[str, ...]] = {
+    "Business customers that fail like businesses": ("SME", "I&C"),
+}
+SERVED_SEGMENTS = PROJECT / "docs" / "design" / "curriculum" / "served_segments.json"
+
+
+def _served_segments(path: Path = SERVED_SEGMENTS) -> tuple[str, ...] | None:
+    """The segments the company serves, or None if the curriculum file cannot be read."""
+    try:
+        return tuple(json.loads(path.read_text(encoding="utf-8"))["served"]["value"])
+    except (OSError, ValueError, KeyError, TypeError):
+        return None
 
 
 TESTABLE_NOW = "Testable now"
@@ -939,7 +983,7 @@ def gaps(world: list[dict], supplier: list[dict], seams: list[dict], book: dict,
 
     built = [e for e in world + supplier if e["status"] == LIVE]
     unproven = [e for e in built if not e["evidence"]]
-    unchecked = [e for e in built if not e["checks"]]
+    held = [e for e in world + supplier if e.get("held_from_live")]
     if unproven:
         out.append({
             "plan": plan_for(GAP_PLAN["unproven"], levels),
@@ -950,8 +994,9 @@ def gaps(world: list[dict], supplier: list[dict], seams: list[dict], book: dict,
                 "internal identifiers, maturity levels, file paths -- so sending a reader to "
                 "them would satisfy the letter of the request and teach nothing. Rather than "
                 "link to the machine's own notes, each claim below says how many automated "
-                f"tests are written against it -- and {len(unchecked)} of the {len(built)} built "
-                "capabilities cite none, which is said on the claim itself. A count of tests is "
+                f"tests are written against it. {len(held)} more reached their target level but "
+                "cite no test, so they are shown as Building rather than built. A count of tests "
+                "is "
                 "not an account of what they check or what would prove the claim wrong; a "
                 "record written for a reader is on the plan and is the next thing built here."
             ),
@@ -982,7 +1027,7 @@ def build(feed: Path = MAP_FEED) -> dict:
         {"area": s["area"], "counterparty": s["who"], "what": s["what"],
          "access": s["access"], "gate": s["gate"], "spec": s["spec"],
          "status": _status_for(s["ids"], levels), "rests_on": s["ids"],
-         "evidence": _evidence_for(s["ids"], index)}
+         "evidence": _evidence_for(s["ids"], index), "used": s.get("used")}
         for s in GO_LIVE_SEAMS
     ]
     book = scale()
