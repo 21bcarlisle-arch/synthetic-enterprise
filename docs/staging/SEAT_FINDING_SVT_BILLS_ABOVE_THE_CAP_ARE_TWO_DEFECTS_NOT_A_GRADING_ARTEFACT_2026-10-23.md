@@ -229,3 +229,24 @@ differences are not trusted until the fresh run is graded. Their signs are not c
   **Its baseline on `8b6fea024`:** 5,488 of 18,398 gradeable default-tariff bills, 244 households,
   3,051 outside the EPG windows. That is within 0.1% of the 5,492 / 18,374 / 3,055 above, which were
   counted on rounded invoices. The prediction above is compared against this tool's figures.
+
+## Status, 24 Oct 01:51: the fresh run is launched on both fixes
+
+- Item 1 landed: the EPG reaches the household's bill, `4ef70aba92`, on origin through the merge
+  `88cdf35e48`. Its own predictions are filed in
+  `docs/staging/records/SEAT_PREREGISTRATION_THE_EPG_REACHES_THE_HOUSEHOLD_BILL_2026-10-24.md`.
+- Item 2: one full run at `88cdf35e48`, default population seed (the baseline's seed, so the book
+  is comparable), in the clean worktree `/var/tmp/se-overcap-88cdf35`, unit
+  `longjob-overcap-grade-88cdf35e4`. Its `.rc` gates
+  `python3 -m tools.grade_svt_invoices_over_ceiling`, written to `/var/tmp/se-overcap-out/grade.json`.
+- **Which fixes the run carries.** A (`4bc21e920`, an incoming occupant is domestic) and B
+  (`4ef70aba92`, the EPG carve), and also the C30 once-per-stint SVT letter (`0481ad381c`), which
+  changes who stays on a default term. **So this run grades the prediction above (filed with A
+  only) and the EPG pre-registration's predictions 1 and 2 together.** Against the A-only prediction
+  the run is not a one-variable test: B was meant to leave ~620 cause-A bills above the ceiling
+  inside the EPG windows, and now should not. The outside-EPG leg (at most 200, from 3,051) is
+  still a clean test of A, since B and the SVT letter's EPG quarters do not reach those months'
+  pricing. The C30 letter moves the svt denominator, which is reported with the count.
+- Known misgrade carried in: a smart-metered home's default term is billed on a ToU pair, so a bill
+  can sit a few per cent over a pair struck at the cap (item 3). If the outside-EPG remnant exceeds
+  200, its share on actual-read accounts is read first, before calling A incomplete.
