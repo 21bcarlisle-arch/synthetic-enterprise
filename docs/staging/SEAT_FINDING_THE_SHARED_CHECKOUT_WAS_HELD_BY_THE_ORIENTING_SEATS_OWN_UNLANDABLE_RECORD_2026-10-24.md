@@ -73,3 +73,21 @@ reads it.
 admitted. Its bytes are preserved on `refs/preserved/refresh-to-head/shared-checkout-reaches-origin-delivery-json`.
 The two `advisor/done/` copies are earlier-revision twins of 845c69188, a class
 `origin_reconcile` clears by itself.
+
+## The last holder was a staged rename, and that is a reconciler defect
+
+With every copy graded clearable, `origin_reconcile` still refused, at 07:51Z and again at
+07:56Z, on 13 paths. Its own detail named the cause: `clearing the byte-identical twin
+advisor/done/DIRECTOR_READING_PLAN_TIER_LOWERED_USAGE_0PCT_2026-10-23.md failed (error: the following
+file has staged content different from both the file and the HEAD)`. A worker tick on 23 Oct had
+staged `git mv advisor/X advisor/done/X` for two advisor files and never committed. So the index
+held HEAD's original blob at the `done/` path, the disk held origin's 845c69188 revision, and
+`git rm` refuses that state without `-f`. Both blobs are in history (HEAD, and 845c69188), so
+nothing was unique. `git restore --staged` on the two `done/` paths dropped the index entries and
+left the disk alone. The next `origin_reconcile` returned **FAST_FORWARDED, 113 → 0**. It preserved
+the stretch-log copy on `refs/preserved/origin-reconcile-superseded-live/origin-reconcile-6bf8e621af`
+and carried `household_budget_w2_4.md`'s live edit across onto origin's copy.
+
+**Owed:** the twin-clearing leg should unstage an index entry whose blob is HEAD's or an earlier
+origin revision before it removes the path, instead of failing the whole all-or-nothing advance on
+it. A staged-but-uncommitted `git mv` to `done/` is the advisor draw's normal shape, so this will recur.
