@@ -64,4 +64,5 @@ One stretch-log entry with:
 
 - Work 1 done: canon P1, V3 and the changelog carry the new order in his words; `docs/direction/priority_order.yaml` splits the long-horizon levers (C4, W1_10) into step 7 behind forward years (step 6), and communications become step 8.
 - Work 2 in part: the definition of done for the basics is in the stretch log as seven atoms at their target levels. 0 of 7 are at target. Dual fuel is on no atom (GAP). Still owed: a check that grades the table, and minting the dual-fuel atom.
+- Work 2, line by line (later on 24 Oct): the stretch log now lists each basic as 15 lines, each with its test or record and its state today: 7 done, 6 partial, 2 absent. The absent lines are the mandate the household cancels itself (W2_41) and the dual-fuel atom. Still owed: the grading check and minting the dual-fuel atom.
 - Work 3 owed: the G9 forward-years recommendation, with its cost estimate.

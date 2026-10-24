@@ -77,6 +77,28 @@ Director steers of 24 Oct: the map ("Do that", 13:05) and its SKOS refinement ("
 
 So 0 of 7 rows are at target, and one basic has no atom at all.
 
+**The same list, line by line, with the evidence each line stands on** *(added later on 24 Oct, at head b7997f8473)*. The atom table above is the gate. This table says what each basic is made of, which test or record shows it, and where it stands today. **Done** means a test exercises it in the settled run. **Partial** means it runs, with a named gap. **Absent** means nothing does it yet.
+
+| Basic | The line | Test or record | State today |
+|---|---|---|---|
+| Payment and debt (C9) | A failed DD is re-presented and later repaid | `tests/simulation/test_the_dd_failure_level_reads_the_register_and_a_return_is_re_presented.py` | done |
+| | The supplier reviews DD amounts in the run | `tests/simulation/test_dd_review_in_loop.py` (84fb0d88da) | done |
+| | The supplier's collections desk works arrears to its journey | `tests/company/billing/test_dd_collections_desk.py`, `tests/tools/test_the_household_record_shows_the_desks_collections_journey.py` | partial: EP4 is at 2, target 3 |
+| | Once the supplier stops a DD, the household's money side stops paying by DD | `tests/simulation/test_a_stopped_dd_is_paid_on_receipt_by_the_money_side.py` (dd7bbce0fd) | partial: PB8 is at 1, target 2 |
+| | A household cancels its own mandate | none | absent: W2_41 is at 0 |
+| | Each customer's forward cash forecast charges expected loss as arrears build | E6_a | partial: at 1, target 2 |
+| | A dual-fuel household's credit on one fuel offsets its debt on the other | `tests/simulation/test_a_dual_household_may_offset_one_fuels_credit_against_the_others_debt.py` (3d518bdefc) | done |
+| Dual fuel | The bill carries both fuels | `tests/test_dual_fuel_bill.py` (dfb18b728a) | done (bill only) |
+| | When a dual-fuel household moves, its gas follows it, or is refused | `tests/simulation/test_a_dual_fuel_movers_gas_follows_it.py` (95e78ec777) | done |
+| | A mover's final bill and the end of supply | `tests/simulation/test_a_movers_final_bill_is_the_exit_draw.py`, `tests/simulation/test_a_home_move_ends_supply_in_the_run.py` (9a7449b4b9) | partial: B7 and W2_40 are at 1, target 3 |
+| | One atom that grades dual fuel as a whole | none | **absent (GAP)**: minting it is owed |
+| Switching | A loss notice reaches the company for every leg on supply, through the registration seam | `tests/simulation/test_registration_loss_feed.py`, `tests/interface/test_registration_loss_seam.py`, `tests/company/crm/test_cos_process.py` (4805420bd9) | done |
+| | Objections | `tests/simulation/test_debt_objection.py` (768f41ed14) | partial: the world draws Ofgem's 28% blocked share for indebted credit switchers. The company does not yet decide an objection itself in the CSS window (`simulation/debt_objection.py` gap 2, EP12). |
+| | A save on the loss notice | `tests/simulation/test_a_save_is_not_paid_for_by_the_stayers.py`, `tests/tools/test_the_world_decides_who_a_save_offer_keeps.py` | partial: live since 10 Oct (`docs/design/curriculum/save_on_loss_notice_activation.json`), but only for fixed-term renewals after CSS go-live. No default-tariff saves: the SLC 22B derogation is not established. |
+| | A dual-fuel household switches as one household, with one save decision | `tests/company/crm/test_a_dual_household_is_one_save_decision.py` (c002699e7e), and the loss feed's both-legs test | done |
+
+Read line by line: 7 done, 6 partial, 2 absent. Re-run today file by file, with 240 s each: every named file passed except three. `test_debt_objection.py`, `test_a_save_is_not_paid_for_by_the_stayers.py` and `test_a_dual_fuel_movers_gas_follows_it.py` build a run, and on a busy machine they did not finish in time. No failure was seen before the cut-off. They are graded on the commits that landed them (gated), not on today's run. `test_the_dd_failure_level_reads_the_register_and_a_return_is_re_presented.py` was not re-run today. The definition of done above, and the atom levels, still govern. This table shows where the work is: the company's own objection decision, the mandate cancelled as the household's own act, and the dual-fuel atom.
+
 **Still owed on the ruling:** the check that grades this table at the Monday step, the dual-fuel atom, and the G9 recommendation for forward years. The recommendation must cover the horizon, how weather and fuel are drawn and anchored, the wholesale formation, the forward products, futures per question with their cost, and supplier blindness. Anchoring the generators (EP16) may proceed in parallel. Forward runs and the long-horizon levers wait.
 
 ---
