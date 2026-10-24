@@ -233,7 +233,7 @@ from simulation.hh_consumption import (
     is_hh_customer,
     load_hh_consumption,
 )
-from simulation.household import HeatingSystem, household_of
+from simulation.household import HeatingSystem, household_of, households_whose_account_closed
 from simulation.household_demand import HouseholdDemandRegister
 from simulation.household_demand_shape import (
     SeasonalGasRefusal,
@@ -5507,6 +5507,11 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     # The months still open when the run ended are billed: the last month of every leg.
     for _open_cid in list(_payment_month_open):
         _post_month_bill(_open_cid, _payment_month_open.pop(_open_cid))
+    # Every bill has posted, so each closed account's final bill is known: a lump dated after it is
+    # a gone household's, and is lost (`world_payment_truth.GONE_HOUSEHOLD_PAYS_NO_LUMP`). Told
+    # before the first reader below forces a crossing. The same set the P&L writes off at close.
+    _payment_triad.close_accounts(households_whose_account_closed(
+        {"churned_billing_accounts": churned_billing_accounts, "home_move_outs": home_move_outs}))
 
     # =================== REPORTING ===================
 

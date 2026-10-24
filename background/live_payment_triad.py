@@ -770,6 +770,11 @@ class LivePaymentTriad:
         # account -> segment, for walking every collections journey to the run's end (EP4).
         self._journey_segments: dict = {}
         self._journey_last_due: dict = {}
+        # Accounts the run has told this queue are closed (`close_accounts`), and the lumps a gone
+        # household did not pay because they fell after its final bill (`world_payment_truth.
+        # GONE_HOUSEHOLD_PAYS_NO_LUMP`).
+        self._closed_accounts: set = set()
+        self._n_settlements_lost_at_close = 0
 
     @property
     def contacts_received(self):
@@ -993,6 +998,10 @@ class LivePaymentTriad:
         """Withdraw one lump the household's plan replaced, or cross it to both companies."""
         settled_on, seq, event, account_id, invoice_ref, correlation_id = item
         bill_due = date.fromisoformat(event.due_date)
+        if (world_payment_truth.GONE_HOUSEHOLD_PAYS_NO_LUMP
+                and self._after_final_bill(account_id, settled_on)):
+            self._n_settlements_lost_at_close += 1
+            return
         if seq in self._early_checks:
             contacted = self._contacts_received.first_contact_on(
                 account_id, bill_due, settled_on, early_contact.EARLY_CONTACT_INSTRUMENT)
@@ -1027,6 +1036,36 @@ class LivePaymentTriad:
         self._n_ambiguous_records += 1
         self._n_ambiguous_credits += 1
         self._n_settlements_delivered += 1
+
+    def close_accounts(self, departed_households) -> None:
+        """Tell the queue which households' accounts closed in the run (the engine's own set,
+        `household.households_whose_account_closed`), keyed here by every supply point it billed
+        them on, as `household.supply_points_that_left` keys the P&L's. Call once every bill
+        has been posted and before any reader forces a crossing (`measure_and_write`,
+        `detection_cells`, `collections_journeys`): until then, a lump dated after a leaver's final
+        bill is held, because no later bill extends its account's walk bound."""
+        from simulation.household import supply_points_that_left
+        legs = supply_points_that_left(departed_households, {r.customer_id for r in self._records})
+        self._closed_accounts = {f"ACC-{cid}" for cid in legs}
+
+    def _after_final_bill(self, account_id: str, settled_on: date) -> bool:
+        """Whether `settled_on` falls after the final bill's due date of an account that closed."""
+        if account_id not in self._closed_accounts:
+            return False
+        final_due = self._journey_last_due.get(account_id)
+        return final_due is not None and settled_on > final_due
+
+    @property
+    def settlements_lost_at_close(self) -> int:
+        """Lumps a gone household did not pay: dated after its closed account's final bill."""
+        return self._n_settlements_lost_at_close
+
+    @property
+    def settlements_crossed_after_close(self) -> int:
+        """Lumps that DID cross dated after their closed account's final bill: every one, with the
+        switch off; with it on, any a reader forced across before `close_accounts` was called."""
+        return sum(self._after_final_bill(account_id, settled_on)
+                   for account_id, _due, settled_on in self._crossed_settlements)
 
     @property
     def settlements_delivered(self) -> int:
@@ -1070,6 +1109,8 @@ class LivePaymentTriad:
             "delivered": self.settlements_delivered,
             "withdrawn": self.settlements_withdrawn,
             "crossed_despite_a_plan": self.settlements_crossed_despite_a_plan,
+            "lost_at_close": self._n_settlements_lost_at_close,
+            "crossed_after_close": self.settlements_crossed_after_close,
         }
 
     def _method_for(self, customer_id: str, fuel: str = "electricity") -> str:

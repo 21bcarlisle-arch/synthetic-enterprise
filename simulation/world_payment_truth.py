@@ -40,6 +40,9 @@ NAMED SIMPLIFICATIONS:
      (`arrears_engine.mover_final_bill_outcome`); the part a gone household paid reduces the bill.
   3. The stayer provision leg (off) does not net repayments.
   4. No meter is changed for debt in the run, so no prepayment repayment exists to carry.
+  5. A closed account's lump after its final bill is lost (`GONE_HOUSEHOLD_PAYS_NO_LUMP`); one
+     dated between the departure and that bill's due date still crosses, and plan instalments
+     after close are not touched.
 
 Pure world code: never imports `company.*` or `saas.*`; reads the triad's world-side records only.
 """
@@ -52,6 +55,15 @@ from typing import Optional
 #: before any supplier result was seen: bills households repaid were being written off). Off brings
 #: back the engine's own draw, for comparing against books produced before the correction.
 UNIFIED = True
+
+#: A GONE HOUSEHOLD PAYS NO LUMP AFTER ITS FINAL BILL (2026-10-24). A later settlement or an
+#: early-contact payment dated after a closed account's final bill fell due does not cross; the
+#: closing balance is written off and the gone-household share is recovered from it by
+#: `arrears_engine.post_write_off_recovery_gbp` (10.4-24.5p, the final-bill complement). Before,
+#: the leaver repaid at the stayer's rate AND got that recovery. ON, a world correction made before
+#: any supplier result was seen; off brings back the book of `cfe4d94be`. Knowledge:
+#: `docs/market_research/debt_realism_three_world_fidelity_gaps.md` s.1a.
+GONE_HOUSEHOLD_PAYS_NO_LUMP = True
 
 #: The behavioural-record key the run writes and the arrears engine reads.
 RECORD_KEY = "world_payment_truth"

@@ -94,6 +94,46 @@ the same thing: a behavioural write-off share near 0.1%, against its 1% floor
   write-off share does not move toward the range, cause 1 is not the main cause, and cause 2 (no
   stayer write-off inside the window) is weighed next.
 
+### 1a. The build: a gone household pays no lump after its final bill (2026-10-24)
+
+**What the code does today (read at `cfe4d94be`).** The triad decides at each failed bill's due
+date whether and when the household pays it off later (`payment_behaviour_source.
+later_settlement_date`, up to 3 + 22 months out), and queues the lump. Nothing tells the queue
+that the account has closed since. A lump dated after a leaver's final bill is held until the
+run's end, then crossed (`collections_journeys`, forced). The engine nets it against the
+closing balance (`arrears_engine.balance_settlement_from_outcomes`). So a household that has gone
+repays at the stayer's Centrica live-balance rates. The engine then takes the gone-household
+recovery on top: `post_write_off_recovery_share` = 1 − `prov_coverage_final_bill_over_90d`, which is
+**10.4–24.5p in the pound, default 12.2p** (Centrica Note 17, 2019, 2024 and 2025).
+
+**The choice, and why it adds no number.** The gone-household recovery already sits in the world, on
+the register row, as a labelled range. The defect is that a leaver gets *both*: the stayer's lump
+and then the gone household's recovery on what is left. The build removes the first. A lump (or an
+early-contact payment) dated **after the closed account's final-bill due date** does not cross to
+either company. The balance is written off at close, and the gone-household share is recovered
+from it by the path that already exists. Adding a second recovery draw for the lump would count
+one collection twice, as `mover_final_bill_outcome`'s docstring already says of the final bill.
+"Closed" is the engine's own set (`household.households_whose_account_closed`, by supply point),
+so the queue and the P&L cannot disagree on who left. Switch:
+`world_payment_truth.GONE_HOUSEHOLD_PAYS_NO_LUMP`, shipped on, as a world correction made before
+any supplier result was seen.
+
+**Named limits.** A lump dated between the departure and the final bill's due date still crosses.
+The household has gone, but its closing balance has not yet been demanded, and no source separates
+the two. A plan instalment after close is not touched by this build. G1.1 stands: the share
+recovered is the final-bill complement, applied to the whole closing balance.
+
+**Prediction, filed 2026-10-24T12:46Z, before the after-run and while the before-run had not
+finished.** Book: 160 founders, settlement budget 0, the same seed. Code: origin `cfe4d94be` before;
+the same plus this build after.
+- Residential write-offs per pound billed go **up**, from about 0.15% to **0.2–0.5%**. That is
+  still below Centrica's 0.7–1.0%: causes 2 and 3 (no stayer write-off in the window, and the book
+  mix) are untouched.
+- Write-off cases rise above the baseline's count. No stayer's write-off changes, because the
+  statute-bar leg does not read closed accounts' lumps.
+- Lumps lost at close: more than 0, and fewer than the lumps delivered before.
+- **Refutation:** written off falls, or no lump is lost, or a statute-bar write-off moves.
+
 ## 2. Prepayment debt
 
 **What the quantity is.** Before measuring, "prepayment debt" splits into three different things,

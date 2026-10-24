@@ -319,7 +319,9 @@ def test_a_live_run_publishes_what_became_of_the_later_lump_settlements(live_run
     """The run summary carries the lump counters, so a lump paid twice is seen on the surface and
     not only in a triad test. Published basis: no plan is agreed, so none can be paid twice."""
     lumps = live_run["later_settlements"]
-    assert set(lumps) == {"delivered", "withdrawn", "crossed_despite_a_plan"}
+    assert set(lumps) == {"delivered", "withdrawn", "crossed_despite_a_plan", "lost_at_close",
+                          "crossed_after_close"}
+    assert lumps["crossed_after_close"] == 0, "a gone household's lump crossed after its final bill"
     assert lumps["withdrawn"] == lumps["crossed_despite_a_plan"] == 0
 
 
