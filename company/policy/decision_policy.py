@@ -198,6 +198,13 @@ class DecisionPolicy:
     #: Read only with an instrument set. False keeps the flat rule, so no standing policy moves.
     svt_contact_once_per_stint: bool = False
 
+    #: E6 (2026-10-24): gross the forward-looking overlay onto the provision the run publishes, sized
+    #: at each date from the cap in force against the cap a year earlier
+    #: (`bad_debt_provision.with_crisis_overlay`; bad_debt_provisioning.md, "Sizing the
+    #: forward-looking overlay", 2026-10-24). A reading after the run: no decision moves. False
+    #: publishes the matrix alone, as before.
+    provision_crisis_overlay: bool = False
+
     #: (2026-10-08) the cut, as a share of the renewal unit rate, of the Fixed Retention Tariff
     #: offered on a CSS Invitation to Intervene (`company.crm.save_offer`). A share and not GBP/MWh
     #: because one cut must mean the same thing on both fuels, and it is the form of the toggle that

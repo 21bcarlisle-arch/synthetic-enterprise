@@ -118,6 +118,10 @@ _ALLOWED_CALL_NAMES = {"_company_provision_by_year_end", "_payment_triad", "effe
 _ALLOWED_BODY_NAMES = {"triad", "effective_end", "payment_method_of", "date", "int", "range",
                        "REPORT_START", "end", "dates", "d", "y", "stocks", "Exception", "exc",
                        "print", "repr", "str", "dict", "write_offs"}
+#: The company's own policy switch for the crisis overlay (`bad_debt_provision.with_crisis_overlay`),
+#: which reads only the date and the stock.
+_ALLOWED_CALL_NAMES |= {"policy"}
+_ALLOWED_BODY_NAMES |= {"crisis_overlay", "bool"}
 
 
 def _names(node):

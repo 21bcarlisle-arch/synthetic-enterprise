@@ -1535,3 +1535,39 @@ arms identical from August. EBSS does not explain it. Neither number has been re
 carve's base, which lands after these arms.
 
 **Status:** OPEN and BLOCKING. Step (i) is built and graded. Steps (ii) and (iii) are unchanged.
+
+## 2026-10-24, step (ii): the overlay is sized from what a supplier held, built default off. Pre-registration, filed before the run
+
+Knowledge first: `docs/market_research/bad_debt_provisioning.md`, "Sizing the forward-looking overlay
+from what a supplier held in 2022". The signal is the cap in force on the date, net of EPG and weighted
+at typical consumption, over the cap a year earlier. That ratio is 0.89 at end-2020, 1.27 at
+end-2021, **2.04 at end-2022**, 0.73 at end-2023 and 0.90 at end-2024, and pre-cap dates are unread.
+The overlay share is `0.134 x max(0, R - 1) / (R_2022 - 1)`, capped at 0.134: 3.5% at end-2021,
+13.4% at end-2022, and zero at end-2020, end-2023 and end-2024. It is grossed onto the stock the run
+publishes, with the matrix-only stock kept beside it (`matrix_provision_gbp`), behind
+`DecisionPolicy.provision_crisis_overlay` (default off). The partition control is
+`tests/company/finance/test_the_crisis_overlay_reads_what_a_supplier_held.py`.
+
+**Why one run is the arm pair.** The overlay is a reading after the run. It moves no world input and
+no company decision, so the off arm is the on arm's `matrix_provision_gbp`, read off the same ledger.
+A second run would differ only by its own noise.
+
+**Predictions, filed before the run** (fresh seed `SE_POPULATION_SEED=70424`, full window, origin
+d909b6933 plus this build). `S21` and `S22` are the matrix stocks at end-2021 and end-2022. The first
+three are arithmetic and grade the build. The fourth is the one a result could refute.
+1. **Pairing.** At end-2020, end-2023 and end-2024 the two arms' stocks are equal to the penny. Before
+   2020 they are equal too, with the reason "no published cap a year earlier".
+2. The 2022 charge, on minus off, equals `0.1547 x S22 - 0.0362 x S21` to within GBP 0.05.
+3. The 2023 charge, on minus off, equals `-0.1547 x S22`. The overlay is released in full.
+4. **The validator does not pass on either arm.** The crisis window pools 2022 and 2023, so the
+   overlay's net effect on it is `-0.0362 x S21`: the on arm's pooled crisis share sits AT OR BELOW
+   the off arm's, and its step-up within 0.05 of it. Both FAIL the 1% floor by about 5x or more
+   (the published run's crisis share is 0.15%). If the on arm's pooled share rises, the arithmetic
+   above is wrong, and the build is checked before anything else is read.
+
+**What this would mean, said before the answer.** A cap-only overlay puts the step in 2022, which is
+where the record puts it, and gives it back in 2023, which the record does not do. Centrica held its
+overlay up by GBP 50m in 2023 as arrears per account rose 27% while prices fell. So, against the
+validator's pooled window, the price signal alone cannot carry the company's half. The arrears signal
+is the next step (the page's GAP table). The 2022 level gap, about 7x, is not the overlay's: at full
+strength 0.134 adds 15.5% to a stock that is itself a seventh of the floor.
