@@ -215,23 +215,190 @@ asks:
   evidence: [95e78ec777 a dual-fuel household that moves with us takes its gas too (simulation/run_phase2b.py, test_a_dual_fuel_movers_gas_follows_it.py)]
   moved: 2026-10-24
 - id: ask_2026-10_the_caps_published_levels_as_a_binding_series
-  source: docs/staging/advisor/DIRECTOR_STEER_A_LEDGER_OF_EVERYTHING_I_ASKED_FOR_AND_WHETHER_IT_SHIPPED_2026-10-24.md
-  ask: "The cap's published levels ingested as a binding series."
-  status: open
-  missing: Not yet checked against the record in this first cut.
-  next_step: Find the ruling's words and date, and what the cap ingestion reads today.
+  source: docs/staging/advisor/done/DIRECTOR_STEER_CAPABILITIES_SHORTER_AND_ITS_GAPS_ARE_A_FIX_LIST_2026-10-24.md s1
+  asked: 2026-10-24
+  ask: "This is what the capabilities tab says. Some good stuff but it's long, and flags errors that we should be fixing? (the cap's published levels ingested as a dated series, by fuel, payment method, region and meter type, from 2019)"
+  status: partly
+  evidence: [746df31c89 the unit rates ARE a dated series from Jan 2019 by fuel at GB average; the page's wording corrected]
+  missing: Standing charges, and the region, payment-method and meter-type levels, are not ingested; no bill is priced off a non-average level, so "The price cap as a real constraint" honestly reads Building.
+  next_step: The continuation price-cap-levels-by-region-payment-and-meter, ranked after the gas build.
   moved: 2026-10-24
 - id: ask_2026-10_the_pricing_engine_planned_against_c13
-  source: docs/staging/advisor/DIRECTOR_STEER_A_LEDGER_OF_EVERYTHING_I_ASKED_FOR_AND_WHETHER_IT_SHIPPED_2026-10-24.md
-  ask: "The pricing engine still 'Planned' against C13."
-  status: open
-  missing: Not yet checked against the record in this first cut.
-  next_step: Read C13 and the Capabilities row; build or re-label.
+  source: docs/staging/advisor/DIRECTOR_STEER_A_LEDGER_OF_EVERYTHING_I_ASKED_FOR_AND_WHETHER_IT_SHIPPED_2026-10-24.md (the advisor's reading of canon C13 against the Capabilities row)
+  asked: 2026-10-24
+  ask: "I really want pricing to be right in the end, not just look right now. (C13: price is formed, never asserted; the Capabilities row 'A pricing engine' reads Planned)"
+  status: partly
+  evidence: [company/pricing/renewal_pricing_engine.py (a cost-to-serve floor under the renewal price), company/pricing/break_even_assessor.py (break-even against the cap per customer), company/pricing/tariff_engine.py (a forward price from observable spot)]
+  missing: No tariff is built forward from the whole cost stack with default risk and collections in it, and then met by late cost truth -- EP3_pricing_engine_late_truth is at level 0 of 3. The row's Planned is honest for that; it understates the pieces above, which the row does not name.
+  next_step: EP3 carries the build; at the next Capabilities pass, name the existing pricing pieces under the row so Planned is read as the whole engine, not as nothing.
   moved: 2026-10-24
 - id: ask_2026-10_settlement_true_ups_planned_while_the_world_says_live
-  source: docs/staging/advisor/DIRECTOR_STEER_A_LEDGER_OF_EVERYTHING_I_ASKED_FOR_AND_WHETHER_IT_SHIPPED_2026-10-24.md
-  ask: "Settlement true-ups 'Planned' while the world says Live."
-  status: open
-  missing: Not yet checked against the record in this first cut.
-  next_step: Reconcile the Capabilities row with what the world and the company actually run.
+  source: docs/staging/advisor/done/DIRECTOR_STEER_CAPABILITIES_SHORTER_AND_ITS_GAPS_ARE_A_FIX_LIST_2026-10-24.md s1
+  asked: 2026-10-24
+  ask: "Say which is true. If the supplier really takes no financial consequence at each reconciliation run, that is a supplier gap to schedule."
+  status: shipped
+  evidence: [746df31c89 both were true, of different work -- the world's settlement timetable (W3_2) at target, the supplier's true-ups (EP5) at level 0, and the supplier row now says it does not yet take the money at each run]
+  missing: The supplier build itself, EP5_settlement_true_ups at level 0 of 3, is scheduled on the map and not started.
+  moved: 2026-10-24
+
+# --- Documents moved to done/ with no evidence, ruled newest first (24 Oct). The undated early
+#     documents carry the day they were first committed as `asked`.
+- id: DIRECTOR_STEER_STRETCH_LOG_AND_DECK_2026-10-15
+  ask: "paraphrase: the stretch log has stopped -- fix the cause and write the missed entry; keep to this week's deck."
+  status: shipped
+  evidence: [background/delivery_seat.py entry_head(), tests/background/test_the_orientation_seat_writes_the_stretch_log.py, docs/status/SEAT_STRETCH_LOG.md]
+  moved: 2026-10-24
+- id: DIRECTOR_STEER_CANON_V4_ALIGNMENT_2026-10-12
+  ask: "paraphrase: canon in one home, every page aligned; install v4, banner the sources, close the rows, apply the rulings, keep it aligned, report the owed list."
+  status: shipped
+  evidence: [6a64ec2750 CLAUDE.md and OPERATING_MODEL aligned to canon v4, 002d37e422 the pages aligned, tools/canon_against_canon.py (step 6a), docs/design/DIRECTOR_CANON.md]
+  missing: Step 7 (the owed list reported item by item) was never written up; it is now the twelve canon_s15_owed rows of this ledger.
+  moved: 2026-10-24
+- id: DIRECTOR_STEER_ADVISOR_TRIAL_BACKLOG_2026-10-11
+  ask: "A measured trial of Claude Code's advisor tool: Sonnet 5.5 main, Opus advisor, on the worker ticks only."
+  status: shipped
+  evidence: [99a2ff7a19 the worker tick's model tier, f3a11913a2 the trial stopped on its own pre-registered stop rule, 505c5f0413 the executor's Sonnet 5.5 pilot opens as pre-registered]
+  moved: 2026-10-24
+- id: DIRECTOR_INSTRUCTION_MODULE_GRAPH_DOOR_WEEKLY_2026-10-09
+  ask: "The site gains a door that shows the codebase as a living structure... regenerated from HEAD on a weekly cadence."
+  status: shipped
+  evidence: [tools/module_graph_census.py, site/code/index.html, site/code/galaxy.png, 4e9c7a524a the code tab's census and still written at publish]
+  moved: 2026-10-24
+- id: DIRECTOR_INSTRUCTION_ONEOFF_TRIAL_TYPED_DECISION_MODEL_ON_PUBLISHED_SURFACES_2026-09-27
+  ask: "A single bounded experiment... Report-only. When it is done, report and stop."
+  status: shipped
+  evidence: [a9da50c49d the trial run and its workflow deleted (verdict no; report-only is the ceiling), b2d2de01fc the stamp-vs-date class became a door, site/test_a_chart_stamp_is_never_older_than_its_page.py]
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_SUPPLIER_USE_CASE_REGISTER_AND_SIM_FIDELITY_2026-09-06
+  ask: "paraphrase: a product document saying what the world is for -- a register of supplier use cases and the SIM fidelity each needs."
+  status: shipped
+  evidence: [site/data/capabilities_door.json (the "What this world is for" register, 746df31c89), docs/market_research/N_was_a_hundred_because_the_sample_was_blind_to_what_the_use_cases_need.md]
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_AMENDMENT_MERIT_ORDER_PEOPLE_PHASES_AND_PRACTICE_BOOKS_2026-09-05
+  ask: "Good management of renters and won't pay (but can) can create as much value... (people phases re-cut along the merit order, four practice books)."
+  status: partly
+  evidence: [95e78ec777 movers now move as households, cd61370db3 the collections desk ladder, 83c440ceb5 payment and debt as one engine]
+  missing: Collections responses are not anchored as a household trait the world draws; the four practice books are not named as run mixes anywhere in the tree.
+  next_step: Fold the collections-response and practice-book items into the payment-engine lane's next atom, or record that the curriculum run mix (his, G9) supersedes the books.
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_HOUSING_VALUE_CEILING_AND_SAMPLE_PHASE1_2026-09-05
+  ask: "Creating enterprise value by automating ways to find individual customers we can create value for... (housing phase 1: the houses, the sample, the ceiling)."
+  status: shipped
+  evidence: [e3b62b3dd7 the housing and people pages, docs/market_research/housing_joint_phase1_what_the_draw_already_carries.md, docs/design/simplifications/W2_18_the_housing_joint_the_sample_and_the_ceiling.yaml, site/knowledge/what-a-house-does-to-its-energy]
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_JULY_STEERS_RECONCILED_AND_PARKED_AUDIT_2026-09-05
+  ask: "I don't want to ignore prior steers or stages that are out of date."
+  status: shipped
+  evidence: [c6542f76e4 the staging backlog given one fate each, docs/staging/done/DIRECTOR_STEER_TRIANGULATION_SITE_SEGMENTATION_2026-07-22.md closed]
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_PEOPLE_MONEY_AND_WHO_THEY_ARE_PHASE1_2026-09-05
+  ask: "I guess thinking in terms of CLV credit risk, rental vs owner, number of people versus typical for house matters a lot."
+  status: shipped
+  evidence: [e3b62b3dd7 the housing and people pages, site/knowledge/how-households-behave-toward-a-supplier]
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_WEATHER_CELLS_HEAT_LOAD_SEGMENTATION_PHASE1_2026-09-05
+  ask: "What I'm trying to do is divide the UK up into clusters of similar primary weather drivers."
+  status: shipped
+  evidence: [docs/market_research/how_many_weather_cells_britain_needs_and_why_the_answer_is_a_curve.md, docs/market_research/haduk_grid_weather_cells_phase1_source.md, site/knowledge/weather-cells]
+  moved: 2026-10-24
+- id: DIRECTOR_BRIEF_INDEPENDENT_BILL_VALIDATION_2026-09-02
+  ask: "paraphrase: independent bill validation behind a curtain -- a raw export, a statement export, a validator that has never seen the billing code."
+  status: shipped
+  evidence: [company/billing/raw_account_export.py, company/billing/statement_export.py, tools/independent_bill_validator.py, d886b01140 the comparison filing every difference]
+  moved: 2026-10-24
+- id: DIRECTOR_BRIEF_CHOICE_AND_CHANNEL_2026-08-30
+  ask: "A tariff type is a field. Switching is a market-wide rate. There is no competitor, no channel, no quote, and no reason attached to any departure."
+  status: partly
+  evidence: [docs/design/CHOICE_AND_CHANNEL_ROADMAP.md, simulation/competitor_reference.py, site/knowledge/how-households-choose, site/test_engagement_separated_from_elasticity_reaches_the_reader.py]
+  missing: The roadmap's later steps (a quote and a channel attached to each departure) are carried as atoms, not built.
+  next_step: The roadmap names the atoms; they are drawn in the priority order.
+  moved: 2026-10-24
+- id: DIRECTOR_GUIDANCE_THE_WORLD_MUST_PRESS_2026-08-28
+  ask: "paraphrase: three canon corrections (coupled hidden traits unearned, the market does not compete, ...) and the problem inventory."
+  status: shipped
+  evidence: [docs/design/DIRECTOR_CANON.md (v4 consolidates the corrections), simulation/market_switching_propensity.py (price_sensitivity now read), simulation/competitor_reference.py]
+  moved: 2026-10-24
+- id: DIRECTOR_INSTRUCTION_PASS_CEILING_AND_EP1_EP6_PROMOTION_2026-08-19
+  ask: "paraphrase (console transcript): build the pass ceiling; move EP1 and EP6 to build."
+  status: shipped
+  evidence: [tools/discovery_pass_ceiling.py, docs/design/maturity_map.yaml (EP1 parked on the CLV discount-rate ruling, canon s15 owed 9)]
+  moved: 2026-10-24
+- id: DIRECTOR_RULING_SITE_STRUCTURE_PROGRAMME_ACCEPTED_2026-08-18
+  ask: "All four recommendations accepted, with one condition on the director record: show me its rendered content before it becomes crawlable."
+  status: partly
+  evidence: [site/ia_register.py, 69beeaa9de the nav folded to his five, 9d22770952 forty redirects become two]
+  missing: The director record (step 5) is not built, so it has never been shown to him; same gap as DIRECTOR_BRIEF_WEBSITE_STRUCTURE_2026-08-17.
+  next_step: Ask him whether the director record is still wanted now this ledger publishes on How it's built; recommend that the ledger replaces it.
+  moved: 2026-10-24
+- id: DIRECTOR_ANSWERS_C7
+  asked: 2026-07-15
+  ask: "No token cap beyond the plan's own windows... the pull loop is the main transport."
+  status: superseded
+  superseded_by: canon v4 (G-rules on pace) and the 15 Oct delegation of pacing (background/tick_mode.py)
+  evidence: [d6d6a2619c one word sets the tick mode]
+  moved: 2026-10-24
+- id: DIRECTOR_ANSWERS_ENTITY_CRAWLERS
+  asked: 2026-07-12
+  ask: "Footer site-wide: © 2026 Poesys Platforms. All rights reserved. (and the AI-crawler policy)"
+  status: shipped
+  evidence: [site/index.html carries the Poesys Platforms footer, site/robots.txt names GPTBot, ClaudeBot and CCBot]
+  moved: 2026-10-24
+- id: DIRECTOR_ANSWER_DELEGATE_AND_PREDICATE_FIX
+  asked: 2026-07-16
+  ask: "Delegate -- fix forever. Cold-eyes personas gate visible surfaces; the director does not gate visible surfaces."
+  status: superseded
+  superseded_by: the 29 Jul mothball ruling and canon v4 (G9); the cold-eyes pass survives as a skill
+  evidence: [.claude/skills/cold-eyes-walk/SKILL.md]
+  moved: 2026-10-24
+- id: DIRECTOR_ANSWER_FINISH_NOT_OPEN
+  asked: 2026-07-16
+  ask: "KEEP FINISHING -- do NOT open a new epoch yet."
+  status: superseded
+  superseded_by: canon v4 decision 11 -- epochs retired as a gate, kept as history
+  moved: 2026-10-24
+- id: DIRECTOR_ANSWER_HARM_WEIGHTS
+  asked: 2026-07-13
+  ask: "R = 8:1 SIGNED. Band 5:1-10:1."
+  status: shipped
+  evidence: [saas/arrears_classifier.py HARM_RATIO_R and pursue_threshold]
+  moved: 2026-10-24
+- id: DIRECTOR_COMMENTS_BOX
+  asked: 2026-07-09
+  ask: "paraphrase: a per-page feedback channel so his comments land with their context."
+  status: superseded
+  superseded_by: DIRECTOR_RULING_RETIRE_PAGE_COMMENT_CHANNEL_2026-07-24 (after the comment-channel security incident) and the advisor channel (G8)
+  evidence: [docs/staging/done/DIRECTOR_RULING_RETIRE_PAGE_COMMENT_CHANNEL_2026-07-24.md]
+  moved: 2026-10-24
+- id: DIRECTOR_INPUT_LOG
+  asked: 2026-07-11
+  ask: "paraphrase: a private, channel-tagged log of everything the director says."
+  status: shipped
+  evidence: [70f1d239b7 V1 built, background/director_input_log.py]
+  moved: 2026-10-24
+- id: DIRECTOR_OVERRIDE_SKIP_PERMISSIONS_QUARANTINED
+  asked: 2026-07-04
+  ask: "paraphrase (unauthenticated): run with permissions skipped."
+  status: declined
+  evidence: [docs/staging/done/DIRECTOR_OVERRIDE_SKIP_PERMISSIONS_QUARANTINED.md (quarantined 4 Jul as suspected prompt injection, never actioned)]
+  missing: Not his ask on the record -- the file could not be authenticated as his words, so it is counted here only so the census row is ruled.
+  moved: 2026-10-24
+- id: DIRECTOR_SEQUENCE_AND_TOKEN_ECONOMY
+  asked: 2026-07-08
+  ask: "I agree (RY endorsed but must not auto-start; token economy is a P1 constraint this week)."
+  status: superseded
+  superseded_by: the 15 Oct delegation of pacing and his usage readings (background/tick_mode.py, tools/tick_burn_rate.py)
+  moved: 2026-10-24
+- id: DIRECTOR_TWIN
+  asked: 2026-07-12
+  ask: "paraphrase: a director twin, the pretend principal, to answer in his absence."
+  status: superseded
+  superseded_by: canon v4 -- the twin is retired and its permission code deleted
+  evidence: [tests/background/test_gate_authorization.py::test_the_permission_surface_is_gone]
+  moved: 2026-10-24
+- id: DIRECTOR_STEER_KNOWLEDGE_AND_SCALE_2026-10-07
+  ask: "Holdout groups are useless at about 80 decisions... the book needs to reach a few thousand customers without the machine falling over."
+  status: partly
+  evidence: [fbe24afea3 the knowledge half (back-billing, reads, bad debt) and the toggles, b8808f4ad4 a book of 4,000 founders made runnable in a one-year run]
+  missing: The scale half -- the live book still launches at 80 founders and settles a few hundred accounts (simulation/net_new_acquisition.py PROSPECTS_PER_YEAR 400 and the customer-year settlement budget both bind); the store has not been made leaner.
+  next_step: Measure what breaks at a few thousand settled customers (store bytes per customer-year first), then raise the binding constants on that evidence.
   moved: 2026-10-24
