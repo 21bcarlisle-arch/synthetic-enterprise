@@ -2266,6 +2266,16 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             )
         except ValueError as _no_history:
             return {"refused": f"no fix could be struck: {_no_history}"}
+        # The decline-and-stay rule, here rather than at the pop: the pop skips a `_WOKEN_REFIX`
+        # term, so without this a woken stayer took a fix dearer than its default (6 in 2021 on
+        # the first full arm). Against the default paid on the contact day: the next cap is
+        # usually unpublished when a first-segment letter lands.
+        _vs_default = (position_vs_default(_fix["unit_rate_gbp_per_mwh"], contact_date,
+                                           commodity=commodity)
+                       if DECLINE_A_FIX_ABOVE_THE_DEFAULT else None)
+        if _vs_default is not None and _vs_default > 0:
+            return {"refused": f"the fix sits {_vs_default:+.1%} against the default it would "
+                               "replace, so the household stays on the default"}
         _gone = {id(e) for e in _withdrawn}
         all_terms[:] = [e for e in all_terms if id(e) not in _gone]
         heapq.heapify(all_terms)

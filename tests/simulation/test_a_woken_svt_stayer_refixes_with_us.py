@@ -91,3 +91,20 @@ def test_off_writes_nothing_and_on_matches_off_until_the_first_fix_starts(_arms)
         for k in ("random_roll", "realized_churn_probability", "event_type", "departure_cause"):
             assert r[k] == base[k], (k, _key(r))
     assert paired
+
+
+def test_a_woken_stayer_never_refixes_above_the_default_it_pays(_arms):
+    """DEFECT: the re-fix bypasses the decline-and-stay rule (the pop skips a `_WOKEN_REFIX`
+    term), so a woken stayer contracts a fix dearer than its default -- 6 did in 2021 on the
+    first full C30 arm. Keyed to the property: every re-fix sits at or below the default paid on
+    the contact day. In this 2016-17 window every quote is below the default, so the refusal
+    branch is not reached here and dropping the guard does not red this leg; the full-window
+    arm in the C30 finding is what shows the branch firing."""
+    from simulation.customer_events import position_vs_default
+
+    fixed = [r for r in _arms["on"] if (r.get("sim_refix") or {}).get("fix_start")]
+    assert fixed
+    for r in fixed:
+        pos = position_vs_default(r["sim_refix"]["unit_rate_gbp_per_mwh"], r["event_date"][:10],
+                                  commodity="electricity")
+        assert pos is None or pos <= 0, (r["customer_id"], r["event_date"], pos)

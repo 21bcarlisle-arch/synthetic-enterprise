@@ -58,3 +58,13 @@ its reason on the row's `sim_refix`. Reach test: `tests/simulation/test_a_woken_
 The GAPs are on the research page, §7.5a "Built": no gas re-fix, and the riding gas leg stays on the default.
 **Still owed:** the per-account C34 sender at the first SVT segment and its one-variable arm pair,
 which can now grade both sides. With that, this finding closes.
+
+**Closed (2026-10-24, worker, `c30-the-per-account-svt-sender-grades-both-sides`).** The sender landed in
+`3fb78ecd05`. Its arm pair is graded beside its predictions in
+`docs/staging/records/SEAT_PREREG_C30_THE_ONCE_PER_STINT_SVT_LETTER_GRADED_ON_BOTH_SIDES_2026-10-23.md`.
+Before grading, a defect was fixed: a woken stayer could re-fix above its default, because the
+decline-and-stay rule never reached the splice. Results: 803 letters, 20 re-fixes, H = +£1,749 to
+households and ΔC = −£389 to the company. H + ΔC = +£1,360 refutes the prediction that it would be
+negative, but it is unattributed. The route now has two sides the arms can grade, which is what this
+finding was missing. Why the company's loss is smaller than the household's gain is the next item,
+`c30-whose-gain-offsets-the-refix-margin`.
