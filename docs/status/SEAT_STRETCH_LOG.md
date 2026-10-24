@@ -8,6 +8,23 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-24 — How it's built: the 24 Oct cold reads acted on -- no zero printed as a figure, each count says what it counts, and the July incidents in plain words
+
+<!-- head: e3e5842fcb30 -->
+
+**What.** I acted on what both cold readers of 24 Oct flagged on How it's built:
+- The wall layer no longer prints "0 tool calls denied" as a figure. With none in the window it says so, and keeps the last denial's day.
+- The stack's intro no longer says "most checks keep no record of what they refuse" above per-layer counts. It says each count states what it counts.
+- In the generated text, "publisher" is now "publishing agent" and "mutation" is now "planted fault".
+- The July incident lines in `generate_proof_data.RULES` (R1, R2, R3, R5, R7, R8) are in plain words, and the generated lesson chains now carry them.
+- The two plain-English lines that fed "four sets of dice" and "the galaxy" into Last week are reworded.
+
+**Chosen against.** I kept "the book": the page defines it, and the other uses are canon quotes, which are his words and stay. I did not regenerate the whole page, because the writer also rewrites the director-asks ledger json, another lane's file. The layer, scale, week, lessons and chains blocks were spliced in. `proof.json` and `method.json` take the RULES text at Monday's publish.
+
+**What we got wrong (2026-10-24):** a citation test was keyed to where one real directive sat. The ledger work moved that directive to `done/` today, and the test went red while the resolver was right. It now uses a temporary tree. Separately, I lost this work once in my own worktree: a chained `git checkout -- .` ran after an empty patch. Nothing reached the shared tree. The edits were scripted and were re-applied on the new base.
+
+---
+
 ## 2026-10-24 — Forward years come right after the basics: canon P1 reordered in the director's words, and the basics' definition of done is 0 of 7 atoms at target, with dual fuel on no atom
 
 <!-- head: e7b6155430f2 -->
@@ -989,7 +1006,7 @@ Every item of last stretch's focus was done, and the supplier result still did n
 
 <!-- head: 4e9c7a524a51 -->
 
-**In plain English:** We tested twice, on four sets of dice, whether tailoring each customer's retention offer to what the company believes about them creates value against a supplier that treats everyone alike. Neither version passed the test we set before the runs: on this book, any value they create is too small to tell apart from chance. Both stay switched off.
+**In plain English:** We tested twice, each time on four different random draws of customers, whether tailoring each customer's retention offer to what the company believes about them creates value against a supplier that treats everyone alike. Neither version passed the test we set before the runs: with the customers the supplier has, any value they create is too small to tell apart from chance. Both stay switched off.
 
 *Seat executor, 23 Oct 2026. Section 14 of `docs/staging/records/SEAT_PREREG_THE_PER_CUSTOMER_SWITCHES_ON_TOGETHER_AGAINST_FLAT_2026-10-21.md`, seed 5 graded and the four-seed grade (seeds 2 to 5) written under the rule fixed on 22 Oct before any seeded arm ran.*
 
@@ -1007,7 +1024,7 @@ Every item of last stretch's focus was done, and the supplier result still did n
 
 <!-- head: ff5c0de8b532 -->
 
-**In plain English:** The code tab now shows its figures and a picture of the galaxy the moment it opens, before any script runs, instead of "Loading the census…".
+**In plain English:** The code tab now shows its figures and its map of how the code connects the moment it opens, before any script runs, instead of "Loading the census…".
 
 *Seat executor, 23 Oct 2026. Item 7 of the director's 23 Oct 07:18 steer ("Make more appropriate for energy or tech person who is not familiar with the detail"); his item asks for one check on the code tab, which he named the standard.*
 

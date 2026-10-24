@@ -192,7 +192,7 @@ def test_every_layer_counts_its_own_store_inside_the_window_and_keeps_an_older_l
     fired = {n: next(v for k, v in rows.items() if k.endswith("30 days")) for n, rows in got.items()}
     assert fired[1].startswith("1 commits") and fired[2].startswith("1 sourced")
     assert fired[3].startswith("1 tool calls") and "last {}".format(hpf._day(today)) in fired[3]
-    assert fired[4].startswith("1 of the publisher's 3 commit attempts")
+    assert fired[4].startswith("1 of the publishing agent's 3 commit attempts")
     assert fired[5].startswith("2 of 3 test files") and "2 of them added" in fired[5]
     assert fired[6].startswith("1 blind reviews")
     assert fired[7].startswith("0 of 1 publish gate runs") and "last 3 Feb 2020" in fired[7]
@@ -427,3 +427,22 @@ def test_page_aging_is_clean_then_red_on_age_and_on_a_superseded_line(tmp_path):
     # And a July sentence presented as current is a problem even on a fresh log.
     root2 = _tree_with(tmp_path / "b", "2026-10-20", "<p>Seven kinds of action are the director's</p>")
     assert any("superseded" in p for p in h.page_aging_problems(root2, "2026-10-24"))
+
+
+def test_a_wall_with_no_denial_in_the_window_prints_no_zero_and_still_names_the_last(tmp_path):
+    """Both 24 Oct cold readers read "0 tool calls denied" as a measured result. With only an old
+    denial in the store the box must say none was denied in the window, and keep that denial's
+    day. MUTATION: printing the count unconditionally puts "0 tool calls" back and reds the first
+    assert; dropping the last-day clause reds the second."""
+    obs = tmp_path / "obs"
+    obs.mkdir()
+    _jsonl_rows(obs / "lane_hook_denials.jsonl", [{"timestamp": "2020-01-01T00:00:00Z"}])
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    (tmp_path / "x").write_text("x")
+    subprocess.run(["git", "-C", str(tmp_path), "add", "-A"], check=True)
+    subprocess.run(["git", "-C", str(tmp_path), "-c", "user.name=t", "-c", "user.email=t@t",
+                    "commit", "-q", "-m", "x"], check=True)
+    wall = dict(hpf.layer_evidence(tmp_path, obs)[3])
+    text = next(v for k, v in wall.items() if k.endswith("30 days"))
+    assert not text[0].isdigit() and text.startswith("No tool call was denied")
+    assert "1 Jan 2020" in text

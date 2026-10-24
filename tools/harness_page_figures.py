@@ -128,7 +128,7 @@ def scale_figures(root, proof):
     marked, n_tests = _mutation_index(root)
     if clock and marked is not None and n_tests:
         figures.append(("{:,}".format(len(marked)), "tests proven able to fail",
-                        "test files that record the mutation they were seen to fail on, of {:,}; "
+                        "test files that record the planted fault they were seen to fail on, of {:,}; "
                         "{}".format(n_tests, clock)))
     else:
         missing.append("the tests proven able to fail (git could not be read)")
@@ -425,23 +425,27 @@ def layer_evidence(root, obs_dir=None):
         fired(3, "not measured yet: the lane-hook denial log is not on this machine.")
     else:
         k, _, last = _store_firings(rows, "timestamp", lambda r: 1, since)
-        fired(3, "{:,} tool calls denied for reaching across the wall; last {}. The network "
-                 "wall refuses by construction and leaves nothing to count.".format(
-                     k, _day(last or "never")))
+        # A zero is not printed as a figure (cold reads, 24 Oct): it read as a measured result
+        # rather than as nothing having tried.
+        head = ("{:,} tool calls denied for reaching across the wall; last {}.".format(
+                    k, _day(last)) if k else
+                "No tool call was denied for reaching across the wall in the window{}.".format(
+                    "; the last denial was {}".format(_day(last)) if last else ""))
+        fired(3, head + " The network wall refuses by construction and leaves nothing to count.")
     # 4. The commit gate: only the publisher records its gate's outcome, per commit attempt.
     rows = _jsonl(obs / "commit_hook_duration.jsonl")
     if rows is None:
-        fired(4, "not measured yet: the publisher's gate log is not on this machine.")
+        fired(4, "not measured yet: the publishing agent's gate log is not on this machine.")
     else:
         k, m, last = _store_firings(rows, "timestamp",
                                     lambda r: int(r.get("outcome") == "refused"), since)
-        fired(4, "{:,} of the publisher's {:,} commit attempts refused; last {}. Only the "
-                 "publisher logs its gate, so other agents' refusals are not counted.".format(
+        fired(4, "{:,} of the publishing agent's {:,} commit attempts refused; last {}. Only "
+                 "that agent logs its gate, so other agents' refusals are not counted.".format(
                      k, m, _day(last or "never")))
     # 5. Proof: defined over the tests, not the hand-kept register.
     if n_tests:
         new = sorted(d for f, d in added.items() if f in marked)
-        fired(5, "{:,} of {:,} test files record the mutation they were seen to fail on; {:,} of "
+        fired(5, "{:,} of {:,} test files record the planted fault they were seen to fail on; {:,} of "
                  "them added in the window, the last {}.".format(
                      len(marked), n_tests, len(new), _day(new[-1] if new else "never")),
              label="Counted")
@@ -477,8 +481,8 @@ def layer_evidence(root, obs_dir=None):
             continue
         k = sum(1 for text in marked.values() if any(s in text for s in stems))
         out[n].append(("Shown able to fail",
-                       "{:,} tests that name this layer's code record a mutation".format(k)
-                       if k else "no test that names this layer's code records a mutation yet"))
+                       "{:,} tests that name this layer's code record a planted fault".format(k)
+                       if k else "no test that names this layer's code records a planted fault yet"))
     return out
 
 

@@ -147,9 +147,10 @@ details.more summary, .timeline summary { cursor: pointer; color: var(--teal); f
       Everything an agent proposes passes down this stack before a reader sees it. Each layer is
       enforced by code that refuses, not by a reviewer who approves, and names the file that does
       it. Under each is its own evidence at publish: how often it fired in the last 30 days, when
-      it last fired, and whether a test has been seen to fail by putting its defect back. Most
-      checks keep no record of what they refuse, so a count is what got through, and a layer with
-      no record says so instead of showing a number.
+      it last fired, and whether a test has been seen to fail by putting its defect back. Each count
+      says what it counts: some layers log what they refuse, others only what they let through,
+      because only some checks keep a record of their refusals. A layer with nothing to count says
+      so instead of showing a number.
     </p>
     <ol class="stack">
       <li><b>Direction.</b> The director sets purpose, and his rulings are kept in his own words.
@@ -158,7 +159,7 @@ details.more summary, .timeline summary { cursor: pointer; color: var(--teal); f
         <span class="held">Held by <code>background/one_way_door.py</code> and
         <code>background/advisor_channel.py</code>, which accepts only files signed with a pinned key.</span>
 <!-- HARNESS-LAYER-1:START (written at publish by tools/harness_page_figures.py -- do not hand-edit) -->
-<span class="ev"><span><b>Fired, last 30 days:</b> 40 commits changed a director document and carried the marked reason the gate demands; last 23 Oct 2026.</span><span><b>Shown able to fail:</b> 3 tests that name this layer&#x27;s code record a mutation</span></span>
+<span class="ev"><span><b>Fired, last 30 days:</b> 61 commits changed a director document and carried the marked reason the gate demands; last 24 Oct 2026.</span><span><b>Shown able to fail:</b> 4 tests that name this layer&#x27;s code record a planted fault</span></span>
 <!-- HARNESS-LAYER-1:END -->
         <a class="down" href="#human">What the director decided, and what is reserved to him &darr;</a></li>
       <li><b>Knowledge before build.</b> Every price, rate or threshold in the code must say where
@@ -167,7 +168,7 @@ details.more summary, .timeline summary { cursor: pointer; color: var(--teal); f
         <span class="held">Held by <code>tests/architecture/test_a_domain_constant_carries_its_origin.py</code>
         and <code>tools/knowledge_layer_gate.py</code>.</span>
 <!-- HARNESS-LAYER-2:START (written at publish by tools/harness_page_figures.py -- do not hand-edit) -->
-<span class="ev"><span><b>Fired, last 30 days:</b> 61 sourced research documents added, each refused unless it names the knowledge page it feeds; last 22 Oct 2026.</span><span><b>Shown able to fail:</b> 2 tests that name this layer&#x27;s code record a mutation</span></span>
+<span class="ev"><span><b>Fired, last 30 days:</b> 64 sourced research documents added, each refused unless it names the knowledge page it feeds; last 24 Oct 2026.</span><span><b>Shown able to fail:</b> 2 tests that name this layer&#x27;s code record a planted fault</span></span>
 <!-- HARNESS-LAYER-2:END -->
         <a class="down" href="../knowledge/">The Knowledge pages this layer guards &darr;</a></li>
       <li><b>The walls.</b> The simulated supplier can know only what a real supplier could know,
@@ -175,7 +176,7 @@ details.more summary, .timeline summary { cursor: pointer; color: var(--teal); f
         <span class="held">Held by <code>company/interfaces/sim_interface.py</code>, the one doorway,
         and <code>tools/company_network_isolation.py</code>.</span>
 <!-- HARNESS-LAYER-3:START (written at publish by tools/harness_page_figures.py -- do not hand-edit) -->
-<span class="ev"><span><b>Fired, last 30 days:</b> 0 tool calls denied for reaching across the wall; last 4 Sep 2026. The network wall refuses by construction and leaves nothing to count.</span><span><b>Shown able to fail:</b> 8 tests that name this layer&#x27;s code record a mutation</span></span>
+<span class="ev"><span><b>Fired, last 30 days:</b> No tool call was denied for reaching across the wall in the window; the last denial was 4 Sep 2026. The network wall refuses by construction and leaves nothing to count.</span><span><b>Shown able to fail:</b> 8 tests that name this layer&#x27;s code record a planted fault</span></span>
 <!-- HARNESS-LAYER-3:END -->
         <a class="down" href="#wired">How the code is wired, and where it crosses the wall &darr;</a></li>
       <li><b>The commit gate.</b> Every commit runs a chain of checks before it is written, and
@@ -183,7 +184,7 @@ details.more summary, .timeline summary { cursor: pointer; color: var(--teal); f
         gate is never allowed.
         <span class="held">Held by <code>tools/git-hooks/</code>; the count is in the figures below.</span>
 <!-- HARNESS-LAYER-4:START (written at publish by tools/harness_page_figures.py -- do not hand-edit) -->
-<span class="ev"><span><b>Fired, last 30 days:</b> 14 of the publisher&#x27;s 35 commit attempts refused; last 19 Oct 2026. Only the publisher logs its gate, so other agents&#x27; refusals are not counted.</span><span><b>Shown able to fail:</b> 10 tests that name this layer&#x27;s code record a mutation</span></span>
+<span class="ev"><span><b>Fired, last 30 days:</b> 5 of the publishing agent&#x27;s 26 commit attempts refused; last 19 Oct 2026. Only that agent logs its gate, so other agents&#x27; refusals are not counted.</span><span><b>Shown able to fail:</b> 10 tests that name this layer&#x27;s code record a planted fault</span></span>
 <!-- HARNESS-LAYER-4:END -->
         <a class="down" href="#rules-sec">The rules the gate runs &darr;</a></li>
       <li><b>Proof the checks work.</b> Each control is shown failing on its own defect by putting
@@ -191,7 +192,7 @@ details.more summary, .timeline summary { cursor: pointer; color: var(--teal); f
         <span class="held">Held by <code>docs/design/control_registry.json</code> and the tests that
         name their own defect.</span>
 <!-- HARNESS-LAYER-5:START (written at publish by tools/harness_page_figures.py -- do not hand-edit) -->
-<span class="ev"><span><b>Counted, last 30 days:</b> 532 of 2,154 test files record the mutation they were seen to fail on; 62 of them added in the window, the last 23 Oct 2026.</span></span>
+<span class="ev"><span><b>Counted, last 30 days:</b> 541 of 2,182 test files record the planted fault they were seen to fail on; 61 of them added in the window, the last 24 Oct 2026.</span></span>
 <!-- HARNESS-LAYER-5:END -->
         <a class="down" href="#checks">Checks that can actually fail &darr;</a></li>
       <li><b>Independent judgement.</b> Fresh AI reviewers with no memory of the build read
@@ -199,7 +200,7 @@ details.more summary, .timeline summary { cursor: pointer; color: var(--teal); f
         <span class="held">Held by <code>.claude/agents/phase-close-evaluator.md</code> and the
         cold-eyes review in <code>.claude/skills/cold-eyes-walk/</code>.</span>
 <!-- HARNESS-LAYER-6:START (written at publish by tools/harness_page_figures.py -- do not hand-edit) -->
-<span class="ev"><span><b>Fired, last 30 days:</b> 10 blind reviews recorded; last 21 Oct 2026.</span><span><b>Shown able to fail:</b> 2 tests that name this layer&#x27;s code record a mutation</span></span>
+<span class="ev"><span><b>Fired, last 30 days:</b> 10 blind reviews recorded; last 21 Oct 2026.</span><span><b>Shown able to fail:</b> 2 tests that name this layer&#x27;s code record a planted fault</span></span>
 <!-- HARNESS-LAYER-6:END -->
         <a class="down" href="#meaning">How the reviewers are graded &darr;</a></li>
       <li><b>The published state.</b> What was deployed is fetched back and compared byte for byte
@@ -208,16 +209,16 @@ details.more summary, .timeline summary { cursor: pointer; color: var(--teal); f
         <span class="held">Held by <code>tools/assert_deployed_bytes_are_served.py</code> and
         <code>tools/world_claims.py</code>.</span>
 <!-- HARNESS-LAYER-7:START (written at publish by tools/harness_page_figures.py -- do not hand-edit) -->
-<span class="ev"><span><b>Fired, last 30 days:</b> 28 of 81 publish gate runs stopped a publish; last 13 Oct 2026.</span><span><b>Shown able to fail:</b> 4 tests that name this layer&#x27;s code record a mutation</span></span>
+<span class="ev"><span><b>Fired, last 30 days:</b> 27 of 69 publish gate runs stopped a publish; last 13 Oct 2026.</span><span><b>Shown able to fail:</b> 4 tests that name this layer&#x27;s code record a planted fault</span></span>
 <!-- HARNESS-LAYER-7:END -->
-        <a class="down" href="#publish-status">The publisher's latest state &darr;</a></li>
+        <a class="down" href="#publish-status">The publishing agent's latest state &darr;</a></li>
       <li><b>Learning.</b> A mistake is fixed as a class, not an instance, and becomes a rule that
         runs. A check that keeps refusing becomes work, not a retry. Each week a review reads the
         rules, the code and the findings together.
         <span class="held">Held by <code>background/finding_classes.py</code> and
         <code>background/weekly_rhythm.py</code>. The lessons below are this layer's record.</span>
 <!-- HARNESS-LAYER-8:START (written at publish by tools/harness_page_figures.py -- do not hand-edit) -->
-<span class="ev"><span><b>Fired, last 30 days:</b> 3 new classes of mistake registered, of 9 in the register; last 24 Oct 2026.</span><span><b>Shown able to fail:</b> 13 tests that name this layer&#x27;s code record a mutation</span></span>
+<span class="ev"><span><b>Fired, last 30 days:</b> 3 new classes of mistake registered, of 9 in the register; last 24 Oct 2026.</span><span><b>Shown able to fail:</b> 13 tests that name this layer&#x27;s code record a planted fault</span></span>
 <!-- HARNESS-LAYER-8:END -->
         <a class="down" href="#lessons">The lessons it left &darr;</a></li>
     </ol>
@@ -229,12 +230,12 @@ details.more summary, .timeline summary { cursor: pointer; color: var(--teal); f
       says what it counts.</p>
 <!-- HARNESS-SCALE:START (written at publish by tools/harness_page_figures.py -- do not hand-edit) -->
 <div class="lf-row">
-  <div class="lf"><div class="v">469</div><div class="l">commits landed in the last seven days</div><div class="c">about 67 a day; counted from git at d68786ee0, 23 Oct 2026</div></div>
-  <div class="lf"><div class="v">2,154</div><div class="l">test files</div><div class="c">of 3,472 Python files in all; counted from git at d68786ee0, 23 Oct 2026</div></div>
-  <div class="lf"><div class="v">23</div><div class="l">checks every commit must pass</div><div class="c">20 before the commit is written and 3 on its message, counted from the hook files at d68786ee0</div></div>
-  <div class="lf"><div class="v">532</div><div class="l">tests proven able to fail</div><div class="c">test files that record the mutation they were seen to fail on, of 2,154; counted from git at d68786ee0, 23 Oct 2026</div></div>
+  <div class="lf"><div class="v">519</div><div class="l">commits landed in the last seven days</div><div class="c">about 74 a day; counted from git at e3e5842fc, 24 Oct 2026</div></div>
+  <div class="lf"><div class="v">2,182</div><div class="l">test files</div><div class="c">of 3,509 Python files in all; counted from git at e3e5842fc, 24 Oct 2026</div></div>
+  <div class="lf"><div class="v">23</div><div class="l">checks every commit must pass</div><div class="c">20 before the commit is written and 3 on its message, counted from the hook files at e3e5842fc</div></div>
+  <div class="lf"><div class="v">541</div><div class="l">tests proven able to fail</div><div class="c">test files that record the planted fault they were seen to fail on, of 2,182; counted from git at e3e5842fc, 24 Oct 2026</div></div>
 </div>
-<figure class="timeline"><figcaption>Commits per week since the repository began</figcaption><svg viewBox="0 0 640 120" role="img" aria-label="Commits per week, 1 Jun 2026 to 19 Oct 2026, peaking at 1,430" preserveAspectRatio="none"><rect x="0.0" y="119.0" width="28.6" height="1.0" rx="2"><title>Week of 1 Jun 2026: 9 commits</title></rect><rect x="30.6" y="109.7" width="28.6" height="10.3" rx="2"><title>Week of 8 Jun 2026: 123 commits</title></rect><rect x="61.1" y="104.8" width="28.6" height="15.2" rx="2"><title>Week of 15 Jun 2026: 181 commits</title></rect><rect x="91.7" y="49.8" width="28.6" height="70.2" rx="2"><title>Week of 22 Jun 2026: 837 commits</title></rect><rect x="122.3" y="0.0" width="28.6" height="120.0" rx="2"><title>Week of 29 Jun 2026: 1,430 commits</title></rect><rect x="152.9" y="44.2" width="28.6" height="75.8" rx="2"><title>Week of 6 Jul 2026: 903 commits</title></rect><rect x="183.4" y="18.0" width="28.6" height="102.0" rx="2"><title>Week of 13 Jul 2026: 1,215 commits</title></rect><rect x="214.0" y="34.9" width="28.6" height="85.1" rx="2"><title>Week of 20 Jul 2026: 1,014 commits</title></rect><rect x="244.6" y="39.7" width="28.6" height="80.3" rx="2"><title>Week of 27 Jul 2026: 957 commits</title></rect><rect x="275.1" y="88.4" width="28.6" height="31.6" rx="2"><title>Week of 3 Aug 2026: 377 commits</title></rect><rect x="305.7" y="67.9" width="28.6" height="52.1" rx="2"><title>Week of 10 Aug 2026: 621 commits</title></rect><rect x="336.3" y="78.2" width="28.6" height="41.8" rx="2"><title>Week of 17 Aug 2026: 498 commits</title></rect><rect x="366.9" y="80.3" width="28.6" height="39.7" rx="2"><title>Week of 24 Aug 2026: 473 commits</title></rect><rect x="397.4" y="33.6" width="28.6" height="86.4" rx="2"><title>Week of 31 Aug 2026: 1,030 commits</title></rect><rect x="428.0" y="77.1" width="28.6" height="42.9" rx="2"><title>Week of 7 Sep 2026: 511 commits</title></rect><rect x="458.6" y="70.7" width="28.6" height="49.3" rx="2"><title>Week of 14 Sep 2026: 587 commits</title></rect><rect x="489.1" y="58.2" width="28.6" height="61.8" rx="2"><title>Week of 21 Sep 2026: 737 commits</title></rect><rect x="519.7" y="43.8" width="28.6" height="76.2" rx="2"><title>Week of 28 Sep 2026: 908 commits</title></rect><rect x="550.3" y="66.4" width="28.6" height="53.6" rx="2"><title>Week of 5 Oct 2026: 639 commits</title></rect><rect x="580.9" y="78.8" width="28.6" height="41.2" rx="2"><title>Week of 12 Oct 2026: 491 commits</title></rect><rect x="611.4" y="89.6" width="28.6" height="30.4" rx="2"><title>Week of 19 Oct 2026: 362 commits</title></rect></svg><div class="tl-axis"><span>1 Jun 2026</span><span>busiest week: 1,430</span><span>19 Oct 2026</span></div><details><summary>The same figures as a table</summary><div class="table-scroll"><table><thead><tr><th>Week of</th><th>Commits</th></tr></thead><tbody><tr><td>1 Jun 2026</td><td>9</td></tr><tr><td>8 Jun 2026</td><td>123</td></tr><tr><td>15 Jun 2026</td><td>181</td></tr><tr><td>22 Jun 2026</td><td>837</td></tr><tr><td>29 Jun 2026</td><td>1,430</td></tr><tr><td>6 Jul 2026</td><td>903</td></tr><tr><td>13 Jul 2026</td><td>1,215</td></tr><tr><td>20 Jul 2026</td><td>1,014</td></tr><tr><td>27 Jul 2026</td><td>957</td></tr><tr><td>3 Aug 2026</td><td>377</td></tr><tr><td>10 Aug 2026</td><td>621</td></tr><tr><td>17 Aug 2026</td><td>498</td></tr><tr><td>24 Aug 2026</td><td>473</td></tr><tr><td>31 Aug 2026</td><td>1,030</td></tr><tr><td>7 Sep 2026</td><td>511</td></tr><tr><td>14 Sep 2026</td><td>587</td></tr><tr><td>21 Sep 2026</td><td>737</td></tr><tr><td>28 Sep 2026</td><td>908</td></tr><tr><td>5 Oct 2026</td><td>639</td></tr><tr><td>12 Oct 2026</td><td>491</td></tr><tr><td>19 Oct 2026</td><td>362</td></tr></tbody></table></div></details></figure>
+<figure class="timeline"><figcaption>Commits per week since the repository began</figcaption><svg viewBox="0 0 640 120" role="img" aria-label="Commits per week, 1 Jun 2026 to 19 Oct 2026, peaking at 1,430" preserveAspectRatio="none"><rect x="0.0" y="119.0" width="28.6" height="1.0" rx="2"><title>Week of 1 Jun 2026: 9 commits</title></rect><rect x="30.6" y="109.7" width="28.6" height="10.3" rx="2"><title>Week of 8 Jun 2026: 123 commits</title></rect><rect x="61.1" y="104.8" width="28.6" height="15.2" rx="2"><title>Week of 15 Jun 2026: 181 commits</title></rect><rect x="91.7" y="49.8" width="28.6" height="70.2" rx="2"><title>Week of 22 Jun 2026: 837 commits</title></rect><rect x="122.3" y="0.0" width="28.6" height="120.0" rx="2"><title>Week of 29 Jun 2026: 1,430 commits</title></rect><rect x="152.9" y="44.2" width="28.6" height="75.8" rx="2"><title>Week of 6 Jul 2026: 903 commits</title></rect><rect x="183.4" y="18.0" width="28.6" height="102.0" rx="2"><title>Week of 13 Jul 2026: 1,215 commits</title></rect><rect x="214.0" y="34.9" width="28.6" height="85.1" rx="2"><title>Week of 20 Jul 2026: 1,014 commits</title></rect><rect x="244.6" y="39.7" width="28.6" height="80.3" rx="2"><title>Week of 27 Jul 2026: 957 commits</title></rect><rect x="275.1" y="88.4" width="28.6" height="31.6" rx="2"><title>Week of 3 Aug 2026: 377 commits</title></rect><rect x="305.7" y="67.9" width="28.6" height="52.1" rx="2"><title>Week of 10 Aug 2026: 621 commits</title></rect><rect x="336.3" y="78.2" width="28.6" height="41.8" rx="2"><title>Week of 17 Aug 2026: 498 commits</title></rect><rect x="366.9" y="80.3" width="28.6" height="39.7" rx="2"><title>Week of 24 Aug 2026: 473 commits</title></rect><rect x="397.4" y="33.6" width="28.6" height="86.4" rx="2"><title>Week of 31 Aug 2026: 1,030 commits</title></rect><rect x="428.0" y="77.1" width="28.6" height="42.9" rx="2"><title>Week of 7 Sep 2026: 511 commits</title></rect><rect x="458.6" y="70.7" width="28.6" height="49.3" rx="2"><title>Week of 14 Sep 2026: 587 commits</title></rect><rect x="489.1" y="58.2" width="28.6" height="61.8" rx="2"><title>Week of 21 Sep 2026: 737 commits</title></rect><rect x="519.7" y="43.8" width="28.6" height="76.2" rx="2"><title>Week of 28 Sep 2026: 908 commits</title></rect><rect x="550.3" y="66.4" width="28.6" height="53.6" rx="2"><title>Week of 5 Oct 2026: 639 commits</title></rect><rect x="580.9" y="78.8" width="28.6" height="41.2" rx="2"><title>Week of 12 Oct 2026: 491 commits</title></rect><rect x="611.4" y="77.5" width="28.6" height="42.5" rx="2"><title>Week of 19 Oct 2026: 506 commits</title></rect></svg><div class="tl-axis"><span>1 Jun 2026</span><span>busiest week: 1,430</span><span>19 Oct 2026</span></div><details><summary>The same figures as a table</summary><div class="table-scroll"><table><thead><tr><th>Week of</th><th>Commits</th></tr></thead><tbody><tr><td>1 Jun 2026</td><td>9</td></tr><tr><td>8 Jun 2026</td><td>123</td></tr><tr><td>15 Jun 2026</td><td>181</td></tr><tr><td>22 Jun 2026</td><td>837</td></tr><tr><td>29 Jun 2026</td><td>1,430</td></tr><tr><td>6 Jul 2026</td><td>903</td></tr><tr><td>13 Jul 2026</td><td>1,215</td></tr><tr><td>20 Jul 2026</td><td>1,014</td></tr><tr><td>27 Jul 2026</td><td>957</td></tr><tr><td>3 Aug 2026</td><td>377</td></tr><tr><td>10 Aug 2026</td><td>621</td></tr><tr><td>17 Aug 2026</td><td>498</td></tr><tr><td>24 Aug 2026</td><td>473</td></tr><tr><td>31 Aug 2026</td><td>1,030</td></tr><tr><td>7 Sep 2026</td><td>511</td></tr><tr><td>14 Sep 2026</td><td>587</td></tr><tr><td>21 Sep 2026</td><td>737</td></tr><tr><td>28 Sep 2026</td><td>908</td></tr><tr><td>5 Oct 2026</td><td>639</td></tr><tr><td>12 Oct 2026</td><td>491</td></tr><tr><td>19 Oct 2026</td><td>506</td></tr></tbody></table></div></details></figure>
 <p class="lf-prov">Not shown: the share of changes that passed the gates first time (a refused gate run leaves no record, so this is not measured yet).</p>
 <!-- HARNESS-SCALE:END -->
   </section>
@@ -245,14 +246,14 @@ details.more summary, .timeline summary { cursor: pointer; color: var(--teal); f
       builder wrote in the build log. The <em>book</em> is the supplier's customers.</p>
 <!-- HARNESS-WEEK:START (written at publish by tools/harness_page_figures.py -- do not hand-edit) -->
 <ul class="week">
-  <li><span class="wd">23 Oct 2026</span> We tested twice, on four sets of dice, whether tailoring each customer&#x27;s retention offer to what the company believes about them creates value against a supplier that treats everyone alike. Neither version passed the test we set before the runs: on this book, any value they create is too small to tell apart from chance. Both stay switched off.</li>
-  <li><span class="wd">23 Oct 2026</span> The code tab now shows its figures and a picture of the galaxy the moment it opens, before any script runs, instead of &quot;Loading the census…&quot;.</li>
-  <li><span class="wd">23 Oct 2026</span> Each of the eight layers of checks on How it&#x27;s built now shows its own evidence, counted at publish: how often it fired in the last 30 days, when it last fired, and whether a test has been seen to fail on its defect.</li>
-  <li><span class="wd">23 Oct 2026</span> The Knowledge page now says what Poesys is, groups its pages into five themes, and tells you on each card why the simulation needs it.</li>
-  <li><span class="wd">23 Oct 2026</span> The How it&#x27;s built page now opens with the eight layers of checks every change passes through, the build&#x27;s scale counted at publish, and last week&#x27;s work in plain words.</li>
-  <li><span class="wd">22 Oct 2026</span> A new tab, The code, draws every module of the codebase as a star and every import between them as a line, laid out at each publish.</li>
-  <li><span class="wd">22 Oct 2026</span> The home page now leads with what Poesys is for and how much has been built, and the gaps moved one click down to Capabilities.</li>
-  <li><span class="wd">20 Oct 2026</span> The supplier now opens in 2016 with a book of 400 households, and the run&#x27;s budget was raised so they can all be settled.</li>
+  <li><span class="wd">24 Oct 2026</span> There is now a script that puts a price, in the director&#x27;s points, on the work still to come. It learns what each kind of work costs from the sessions that actually landed something. On today&#x27;s records the open map work comes to somewhere between less than a week and about a year of the full allowance. That range is too wide to plan by. Its wide end comes from one thing we have not measured: how many landed sessions one level step takes.</li>
+  <li><span class="wd">24 Oct 2026</span> The diagram on the front door is no longer a hand-drawn file. Its words now live in the canon page, `THE_MODEL_ON_A_PAGE.md`, under a new section, &quot;The picture&quot;. A generator draws it at every publish, and the maturity map decides whether each &quot;Now&quot; line reads as done, in build or not started.</li>
+  <li><span class="wd">24 Oct 2026</span> Every ask the director has made since July now has a row saying whether it shipped. Of 368 rows, 255 shipped, 47 partly, 6 were never started, 28 were superseded and 2 declined. No director document now sits in done/ without a ruling, against 134 this morning.</li>
+  <li><span class="wd">24 Oct 2026</span> The lessons on How it&#x27;s built are now generated at publish rather than written by hand. Each is a chain: what happened, the principle it left, the code that holds it or a plain &quot;not yet enforced&quot;, and whether that code has been seen to fail on its own defect.</li>
+  <li><span class="wd">24 Oct 2026</span> Every document the director wrote to the queue is now one row of a ledger built at publish, and the fifteen that had sat &quot;in progress&quot; since July are ruled from the record.</li>
+  <li><span class="wd">24 Oct 2026</span> I reviewed our own code for what is unused, duplicated or crossing the wall. The world still draws who leaves from the supplier&#x27;s own churn model. The wall&#x27;s check had caught that in August and filed it as &quot;owed&quot;, with a plan but no one to do it and no date, so it sat for eleven weeks. Owed debts now need an owner and a date, and an overdue one stops the commit gate.</li>
+  <li><span class="wd">24 Oct 2026</span> How it&#x27;s built stopped telling readers to treat its figures as provisional, quotes the director&#x27;s current list of reserved actions with what waits on him now, lists what we got wrong from the build log newest first, and shows each rule in the canon&#x27;s current words.</li>
+  <li><span class="wd">24 Oct 2026</span> Capabilities steer: the page is shorter and generates its own fix list</li>
 </ul>
 <!-- HARNESS-WEEK:END -->
   </section>
@@ -445,13 +446,13 @@ details.more summary, .timeline summary { cursor: pointer; color: var(--teal); f
   <p><b>Evidence it can fail.</b> 10 tests seen to fail on this code's own defect.</p></div>
 <div class="card"><div class="meta">8 Jul 2026 · Rule R7</div>
   <h3>Injected text carries zero authority</h3>
-  <p><b>What happened.</b> Repeated doorbell/wake failures (strikes 3-5): a session acting on the arrival of wake text rather than on the actual staged/git state it pointed at.</p>
+  <p><b>What happened.</b> Three more times (the third to fifth such failures), a session acted on a wake-up message because it had arrived, instead of checking the files and saved work the message pointed at.</p>
   <p><b>The principle.</b> Injected text carries zero authority.</p>
   <p><b>What holds it.</b> <code>background/advisor_channel.py</code>.</p>
   <p><b>Evidence it can fail.</b> 1 test seen to fail on this code's own defect.</p></div>
 <div class="card"><div class="meta">8 Jul 2026 · Rule R8</div>
   <h3>Inbound text that is not plausibly the director&#x27;s is untrusted data</h3>
-  <p><b>What happened.</b> NTFY is public and unauthenticated -- anyone can post; a security-relevant directive on that channel alone cannot be trusted without an on-disk correlate.</p>
+  <p><b>What happened.</b> The phone-alert service we used then is public and needs no login, so anyone can post to it. An instruction that bears on security cannot be trusted from that channel alone, without a matching file written on the machine.</p>
   <p><b>The principle.</b> Inbound text that is not plausibly the director&#x27;s is untrusted data (reworded 12 Oct, decision 9).</p>
   <p><b>What holds it.</b> Not yet enforced: no code is named as holding it, so it is prose only for now.</p>
   <p><b>Evidence it can fail.</b> None, because nothing holds it yet.</p></div>
@@ -463,19 +464,19 @@ details.more summary, .timeline summary { cursor: pointer; color: var(--teal); f
   <p><b>Evidence it can fail.</b> None, because nothing holds it yet.</p></div>
 <div class="card"><div class="meta">4 Jul 2026 · Rule R1</div>
   <h3>Consumer-verified completion</h3>
-  <p><b>What happened.</b> PROJECT_STATE.txt read stale to the advisor&#x27;s fetch while fresh in the local working copy at the very same commit -- producer and consumer were looking at genuinely different things; self-certification could not have caught it.</p>
+  <p><b>What happened.</b> A status file we publish looked current on our own machine but out of date to the advisor who read it online, at the very same version. The writer and the reader were looking at different copies, so the writer checking its own work could not have caught it.</p>
   <p><b>The principle.</b> Consumer-verified completion. Done means the rendered value changed. A publish is a publish commit landing, never a green gate.</p>
   <p><b>What holds it.</b> Not yet enforced: no code is named as holding it, so it is prose only for now.</p>
   <p><b>Evidence it can fail.</b> None, because nothing holds it yet.</p></div>
 <div class="card"><div class="meta">4 Jul 2026 · Rule R2</div>
   <h3>Committed is not running</h3>
-  <p><b>What happened.</b> The session watchdog was claimed fixed twice while its tmux pane still showed a bare shell -- the fix had landed in the script but the running process was never restarted with it. Recurred 2026-07-13 (supervisor daemon running stale pre-fix code).</p>
+  <p><b>What happened.</b> The program that restarts a stalled work session was reported fixed twice while it was still broken: the fix was in the file, but the copy already running was never restarted, so it ran the old code. It happened again on 13 July with the supervising program.</p>
   <p><b>The principle.</b> Committed is not running.</p>
   <p><b>What holds it.</b> <code>background/health_check.py</code>.</p>
   <p><b>Evidence it can fail.</b> 3 tests seen to fail on this code's own defect.</p></div>
 <div class="card"><div class="meta">4 Jul 2026 · Rule R3</div>
   <h3>Two strikes, then redesign</h3>
-  <p><b>What happened.</b> The watchdog&#x27;s tmux send-keys relaunch failed three distinct ways in succession; the fix that worked was eliminating send-keys entirely, not a third patch.</p>
+  <p><b>What happened.</b> The restart program relaunched a session by typing commands into its terminal window, and that broke three different ways in a row. What worked was removing the typing approach altogether, not patching it a third time.</p>
   <p><b>The principle.</b> Two strikes, then redesign: on a second false claim, eliminate the mechanism. &quot;Don&#x27;t patch it again. Find why every fix to it goes quiet within a week&quot;.</p>
   <p><b>What holds it.</b> Not yet enforced: no code is named as holding it, so it is prose only for now.</p>
   <p><b>Evidence it can fail.</b> None, because nothing holds it yet.</p></div>
@@ -487,7 +488,7 @@ details.more summary, .timeline summary { cursor: pointer; color: var(--teal); f
   <p><b>Evidence it can fail.</b> None, because nothing holds it yet.</p></div>
 <div class="card"><div class="meta">4 Jul 2026 · Rule R5</div>
   <h3>Alert on transitions only</h3>
-  <p><b>What happened.</b> An early watchdog alert just said &#x27;launch failed&#x27;, which told the human nothing actionable; the fix carries the last N captured pane lines in the NTFY itself.</p>
+  <p><b>What happened.</b> An early alert to the director&#x27;s phone just said &#x27;launch failed&#x27;, which told him nothing he could act on. The fix puts the last lines the session printed into the alert itself.</p>
   <p><b>The principle.</b> Alert on transitions only. The distinction worth alerting on is someone working on it versus nobody able to. An alarm whose remedy is a person must route to a writer who is always present.</p>
   <p><b>What holds it.</b> Not yet enforced: no code is named as holding it, so it is prose only for now.</p>
   <p><b>Evidence it can fail.</b> None, because nothing holds it yet.</p></div>
@@ -583,7 +584,7 @@ details.more summary, .timeline summary { cursor: pointer; color: var(--teal); f
 </ul></details>
 <details class="more"><summary>What comes first (0 of 14 linked to code)</summary>
 <ul class="week">
-  <li><b>The order from here (5 Oct), superseding the 4 September re-ranking where they differ.</b> Knowledge, now and wide, in parallel with everything else. <span class="wd">no mechanism named yet</span><br><span class="sub"> Canon P1.</span></li>
+  <li><b>The order from here (5 Oct), superseding the 4 September re-ranking where they differ.</b> Knowledge, now and wide, in parallel with everything else. <span class="wd">no mechanism named yet</span><br><span class="sub"> Ruled: 17:17 and 17:22 BST, DIRECTOR_RULING_FORWARD_YEARS_COME_RIGHT_AFTER_THE_BASICS_2026-10-24.md. Canon P1.</span></li>
   <li><b>The order changes by evidence.</b> &quot;Doing what this document says after learning it is wrong is the failure, not departing from it.&quot; <span class="wd">no mechanism named yet</span><br><span class="sub"> Canon P2.</span></li>
   <li><b>Sequencing within a step uses four tests:.</b> &quot;whether other work rests on it; where it sits in the merit order (pays, stays, margin, value-add); whether the world contains what it needs yet; and whether the knowledge exists.&quot; <span class="wd">no mechanism named yet</span><br><span class="sub"> Canon P3.</span></li>
   <li><b>The draw follows the order.</b> &quot;Verify the draw follows this order, not just the dials.&quot; <span class="wd">no mechanism named yet</span><br><span class="sub"> Canon P4.</span></li>

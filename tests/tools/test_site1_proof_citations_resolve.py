@@ -199,11 +199,15 @@ def test_resolver_repoints_an_archived_staging_directive():
     assert (PROJECT / out).is_file()
 
 
-def test_resolver_repoints_a_parked_in_progress_directive():
-    name = "DIRECTOR_AXIS1_SITE_VERDICT_ROWSCORED_2026-07-23.md"
+def test_resolver_repoints_a_parked_in_progress_directive(tmp_path, monkeypatch):
+    # Keyed to a temporary tree, not to where one real directive sits today: the real one moved
+    # to done/ on 24 Oct and this test went red although the resolver was right.
+    monkeypatch.setattr(gpd, "PROJECT", tmp_path)
+    name = "DIRECTOR_X_2026-07-23.md"
+    (tmp_path / "docs" / "staging" / "in_progress").mkdir(parents=True)
+    (tmp_path / "docs" / "staging" / "in_progress" / name).write_text("x")
     out = gpd._resolve_citation("docs/staging/" + name)
     assert out == "docs/staging/in_progress/" + name, out
-    assert (PROJECT / out).is_file()
 
 
 def test_resolver_preserves_a_section_annotation_when_it_repoints(tmp_path, monkeypatch):
