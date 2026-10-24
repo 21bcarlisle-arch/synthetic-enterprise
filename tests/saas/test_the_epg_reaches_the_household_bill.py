@@ -18,6 +18,8 @@ Mutations, each reds this file:
   * `_estimate_records_at_tariff_rate` drops its receipt line, or `stamp_hmt_epg_receipt` stops
     writing `hmt_epg_receipt_gbp_per_mwh` -> a void stub's estimate is over its ceiling by exactly
     cap minus EPG (33.47p in Jan 2023, `OCC-eb8498f3f8aa` on the `88cdf35e48` run).
+  * `stamp_hmt_epg_receipt` reads one in-window day for every row -> the same void stub's estimate in
+    Sep 2022 carries a receipt, which the partition over that route refuses.
 """
 from datetime import date, timedelta
 
@@ -120,3 +122,19 @@ def test_a_void_stub_estimated_at_the_tariff_rate_charges_the_household_the_epg(
 
     assert estimate["hmt_epg_receipt_gbp"] > 0
     assert _excess(estimate) == 0.0
+
+
+def test_a_void_stubs_estimate_carries_the_epg_inside_the_window_and_none_outside_it():
+    """The partition over the void-stub route: both sides reachable, each within its ceiling."""
+    receipts = {}
+    for first_day in ("2023-01-01", "2022-09-01"):
+        rows = _svt_month(first_day)
+        for r in rows:
+            as_void_row(r, "electricity")
+        stamp_hmt_epg_receipt(rows, fuel="electricity")
+        estimate = generate_bill(
+            "OCC-EPG", _estimate_records_at_tariff_rate(rows, 193.28, "electricity"), "svt")
+        receipts[first_day] = estimate.get("hmt_epg_receipt_gbp", 0.0)
+        assert _excess(estimate) == 0.0
+
+    assert receipts["2023-01-01"] > 0 and receipts["2022-09-01"] == 0.0

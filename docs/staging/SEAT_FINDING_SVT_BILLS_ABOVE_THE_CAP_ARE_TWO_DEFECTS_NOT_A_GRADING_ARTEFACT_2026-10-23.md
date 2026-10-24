@@ -1,4 +1,4 @@
-**Severity:** BLOCKING · **Lane:** D_billing_metering · **Epoch:** 4 · **Atom:** `D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used`
+**Severity:** LATENT · **Lane:** D_billing_metering · **Epoch:** 4 · **Atom:** `D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used`
 **Knowledge:** `price-cap` -- `docs/market_research/default_tariff_cap_and_epg_on_the_bill.md`
 
 # Standard-variable bills above the cap are two billing defects, not a grading artefact
@@ -363,3 +363,21 @@ outside 2022-10 to 2023-06.
 **On the BLOCKING severity:** with item 1 landed, I support downgrading to MATERIAL, as recommended
 above. What remains is EPG predictions 3 and 4 (owed) and the attribution of the denominator's
 growth. Neither is a billing defect.
+
+## Severity BLOCKING to LATENT, 24 Oct: item 1 is on origin
+
+Item 1's fix is `ce35a25e21`. Its control asserted only the inside of the window, so it now has the
+partition over the void-stub route:
+`test_a_void_stubs_estimate_carries_the_epg_inside_the_window_and_none_outside_it`. The same planted
+incoming occupant's stub carries the EPG in Jan 2023 and none in Sep 2022, and each is within its
+ceiling. Two mutations red it: the estimate drops its receipt, and the stamp ignores the window.
+
+Downgraded to LATENT. The result recommends MATERIAL twice, and `background/finding_severity.py` has no
+such value: LATENT is its word for a real defect that invalidates no published figure. No named over-cap billing
+route remains. **It stays open** until these reads are done:
+
+- EPG pre-registration predictions 3 and 4, against the next fresh run.
+- Item 1's prediction above: inside the windows at most 23 over the ceiling and none an estimate on
+  true kWh 0, with the outside count at 72 within noise.
+- Item 3's struck-rate question for the other 7 receipt-carrying invoices inside the windows.
+- The attribution of the denominator's growth.
