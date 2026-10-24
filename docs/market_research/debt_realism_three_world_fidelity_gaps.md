@@ -134,6 +134,54 @@ the same plus this build after.
 - Lumps lost at close: more than 0, and fewer than the lumps delivered before.
 - **Refutation:** written off falls, or no lump is lost, or a statute-bar write-off moves.
 
+**Result, graded 2026-10-24 (the prediction above is unchanged).** One book, one seed: 160
+founders, settlement budget 0. Unlike the prediction's design, both arms ran the same code (the
+seat's worktree HEAD at 17:14 BST, after `a8ea44a12`), with `GONE_HOUSEHOLD_PAYS_NO_LUMP` set off
+and then on. Outputs: `/var/tmp/closed_arrears_runs/r_off|r_on/summary.json`. Write-offs are
+`arrears_engine.balance_write_offs` over the residential issued bills.
+
+| | Off | On |
+|---|---|---|
+| Residential billed | GBP 934,013.65 | GBP 934,013.65 |
+| Written off | GBP 6,210.75 | GBP 6,265.26 |
+| Written off per pound billed | **0.665%** | **0.671%** |
+| Cases (bills) / accounts | 160 / 39 | 161 / 40 |
+| By leg | all at close | all at close |
+| Recovered after write-off | GBP 757.75 | GBP 764.40 |
+| Lumps delivered | 641 | 639 |
+| Lumps lost at close | 0 | 2 |
+| Lumps crossed after their closed account's final bill | 14 | **12** |
+
+Each predicted leg, graded:
+- **Direction up: held**, by GBP 54.51 (+0.006 points). **Size: refuted.** The predicted after-range
+  was 0.2–0.5%, and the observed rise is about a tenth of the smallest rise that range allowed.
+- **Baseline about 0.15%: refuted.** The off arm reads 0.665%, about 4.4 times that. Both arms share
+  it, so the arm difference is unaffected. I cannot yet say why the 0.15% above (12 Oct, 14 cases)
+  and this 0.665% differ: the code moved for twelve days in between, and the case unit may differ
+  (cases here are bills). Until that is settled, the "about 5–7x under" reading in s.1 is in
+  question. On this measure, the world sits just under the bottom of Centrica's 0.67–1.04%.
+- **Cases rise: held** (160 to 161). **No stayer's write-off moves: held**, but vacuously: neither
+  arm has a statute-bar write-off at all.
+- **Lumps lost at close above 0 and below those delivered: held** (2 against 641).
+- None of the stated refutations fired.
+
+**Why the effect is small: the switch is mostly bypassed.** With the switch on, 12 of the 14 lumps
+dated after their closed account's final bill still crossed. The counter was built to show exactly
+this: "any a reader forced across before `close_accounts` was called". `run_phase2b` calls
+`close_accounts` once, after the last bills post. But readers inside the run force crossings first:
+`arrears_state` and `receivable` at renewals, and `default_belief_rate`, which forces every account.
+The build's control tests the queue, not the run's call order, so it could not see this. Filed:
+`docs/staging/SEAT_FINDING_THE_GONE_HOUSEHOLD_LUMP_RULE_IS_BYPASSED_BY_READERS_INSIDE_THE_RUN_2026-10-24.md`.
+Cause 1 is **not graded** by this run. A rule that converts 2 of 14 lumps cannot say how much the
+other 12 would move the share. The upper bound, if each of the 12 moves as the 2 did, is about
+GBP 330 more, or about 0.035 points. That is still small against 0.665%, but it is an
+extrapolation from two lumps.
+
+**Mix adjustment.** Between the arms the mix is identical, because the same book was billed the
+same GBP 934,013.65. The arm difference is therefore a mechanism effect only. A comparison with
+Centrica still needs cause 3's reweighting to the world's method mix (s.1, "A mix-adjusted
+comparison before the verdict"). That reweighting is not done here.
+
 ## 2. Prepayment debt
 
 **What the quantity is.** Before measuring, "prepayment debt" splits into three different things,

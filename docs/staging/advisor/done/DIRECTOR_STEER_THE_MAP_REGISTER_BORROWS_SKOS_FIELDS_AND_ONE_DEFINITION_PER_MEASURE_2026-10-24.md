@@ -44,3 +44,20 @@ Probable failure mode: the register growing heavy, with every field filled for i
 Proportionality: reversible and narrow — just do it.
 
 — Director steer, 24 Oct 2026, his words above; the reading and drafting are the advisor's.
+
+## Done
+
+24 Oct. The steer says it "is not a separate build" but an input to the map's design proposal.
+That proposal decided on both ideas in `ebc3c34e2e`, and the decision is recorded in the stretch log
+("Measure and SKOS verdict so far"):
+- **SKOS fields: kept where a check reads them.** `docs/design/the_map/concepts.yaml` uses
+  `prefLabel`, `altLabel`, `definition` and `match`, with `broader` read from the step. `related`
+  is not used, because our four causal relations carry more. `altLabel` earned its place on the
+  first run. The bare word "mandate" also named three trading and growth modules, and "collection"
+  named a marketing tracker, so both were narrowed.
+- **One computable definition per measure: kept in form, unproven.** A measure carries
+  `measure: {counts, over, computed_by}`. The pilot has one measure, the DD failure rate, and its
+  `computed_by` is an open gap with its reason. Whether the pattern earns its place is graded with
+  the map's page and coverage checks. Those are items 2–3 of the parent steer
+  (`DIRECTOR_STEER_THE_MAP_ONE_CONCEPT_REGISTER_FOUR_SPINES_AND_A_KNOWLEDGE_PLAN_2026-10-24.md`),
+  which stays open and carries this verdict forward. No tooling was adopted, as advised.

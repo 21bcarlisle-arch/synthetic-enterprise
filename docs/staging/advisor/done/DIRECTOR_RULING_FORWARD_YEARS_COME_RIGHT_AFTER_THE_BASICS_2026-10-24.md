@@ -66,3 +66,14 @@ One stretch-log entry with:
 - Work 2 in part: the definition of done for the basics is in the stretch log as seven atoms at their target levels. 0 of 7 are at target. Dual fuel is on no atom (GAP). Still owed: a check that grades the table, and minting the dual-fuel atom.
 - Work 2, line by line (later on 24 Oct): the stretch log now lists each basic as 15 lines, each with its test or record and its state today: 7 done, 6 partial, 2 absent. The absent lines are the mandate the household cancels itself (W2_41) and the dual-fuel atom. Still owed: the grading check and minting the dual-fuel atom.
 - Work 3 owed: the G9 forward-years recommendation, with its cost estimate.
+
+## Done (seen; moved by the executor's instruction, 24 Oct)
+
+The advisor channel refused this file because commits `e3e5842fc` and `a730bebe1` (author `t`) are
+not signed by the advisor's key. Read through `git diff fef0e9174 a730bebe1`, those commits added
+only the seat's "Progress" section. The director's words and the ruling are byte-for-byte the
+advisor's signed `fef0e9174`, and that signed text is what was acted on. Work 1 landed in
+`e3e5842fc`: canon P1, V3, the changelog and `docs/direction/priority_order.yaml`. The file is moved
+so that the unsigned edit stops re-firing the refusal. **The ruling's work is not finished.** The
+grading check for the basics, the dual-fuel atom and the G9 forward-years recommendation are still
+owed. They are carried as a seat continuation (`forward-years-ruling-owed-work`), not by this file.
