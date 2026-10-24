@@ -156,7 +156,7 @@ from sim.risk_engine import assess_term_risk, is_administration_triggered
 from sim.system_prices_history import RECORD_START as SSP_RECORD_START
 from sim.system_prices_history import SHORT_RECORD_REASON as SSP_SHORT_RECORD_REASON
 from sim.system_prices_history import get_system_prices_range
-from sim.weather_hdd import REFERENCE_MONTHLY_HDD, get_hdd
+from sim.weather_hdd import REFERENCE_MONTHLY_HDD, get_hdd, relocate_premise_sky
 from simulation.acquisition_funnel import run_acquisition_funnel
 from simulation.bad_debt_incidence import world_bad_debt_incidence
 from simulation.bill_shock_tracker import count_rate_shocks as _count_rate_shocks
@@ -235,7 +235,11 @@ from simulation.hh_consumption import (
 )
 from simulation.household import HeatingSystem, household_of
 from simulation.household_demand import HouseholdDemandRegister
-from simulation.household_demand_shape import seasonal_gas_splits_for_book
+from simulation.household_demand_shape import (
+    SeasonalGasRefusal,
+    seasonal_gas_split,
+    seasonal_gas_splits_for_book,
+)
 from simulation.household_segments import active_renewal_probability_for_customer
 from simulation.household_segments import tenure_for_customer as _tenure_of_household
 from simulation.live_population import (
@@ -2705,6 +2709,10 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     _journey_before_move: dict[tuple, object] = {}
     _followed_moves: set[tuple] = set()
     _home_move_by_household: dict = {}
+    # s.8.7: what a carried electricity leg's destination tells its household's gas leg, keyed by
+    # (household, move date); and, per gas leg that followed, the new home its next term binds.
+    _destination_for_gas: dict[tuple, dict] = {}
+    _gas_relocation_pending: dict[str, dict] = {}
     home_move_outs: list[dict] = []
     # leg -> move date, for the triad's final-bill exit under one payment truth.
     _moved_out_on_by_leg: dict[str, str] = {}
@@ -2808,8 +2816,10 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         """Bind a mover who took the offer to its new home (home_moves.md s.8.6, choices 3-5).
         Returns (what the log records, the reason it could not be supplied, or None)."""
         if commodity != "electricity":
-            return {}, ("only the electricity leg is carried: a destination gas annual quantity "
-                        "and its heating-degree cell are not built")
+            # A dual-fuel household's gas follows its electricity (`_carry_gas_leg`); a household
+            # we supply gas alone has no electricity leg to draw the destination on.
+            return {}, ("a gas-only household's destination is not drawn: its gas follows only "
+                        "beside an electricity leg (home_moves.md s.8.7)")
         record = get_customer(cid)
         if record is None or is_hh_customer(record):
             return {}, ("a half-hourly account settles on its own metered file, which cannot be "
@@ -2858,13 +2868,42 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             date.fromisoformat(effective_end) + timedelta(days=1), run_base_seed())
         _move_out_by_leg[cid] = nxt.move_date if nxt else None
         _home_move_by_leg[cid] = nxt
+        _destination_for_gas[(household, move_end)] = {
+            "destination": dest, "location": dest_record["location"], "series": series,
+            "next_move": nxt}
         return {"destination_premise": dest.premise_id, "destination_region": dest.region,
                 "destination_in_origin_region": dest.in_origin_region,
                 "destination_epc": new_home.epc_rating,
                 "destination_property_type": new_home.property_type.value,
                 "destination_eac_kwh": round(eac, 1),
                 "next_move_date": nxt.move_date.isoformat() if nxt else None,
+                "destination_takes_gas": dest.premise.commodity == "gas",
                 "supplied_at_new_home": True}, None
+
+    def _carry_gas_leg(cid: str, household: str, move_end: date) -> str | None:
+        """A dual-fuel household that moved with us takes its gas leg to the new home on the same
+        date (home_moves.md s.8.7). Returns None when the leg follows, else the named reason it
+        ends at the move. The registered AQ stays the household's band draw (choice 4); the
+        weather changes on the move date and the dwelling's multiplier and heating share from the
+        end of the carried term (choice 3)."""
+        dest = _destination_for_gas.get((household, move_end))
+        if dest is None:
+            return "the household's electricity leg was not supplied at a new home"
+        if dest["destination"].premise.commodity != "gas":
+            return ("the new home has no mains gas meter (its drawn dwelling burns no mains gas): "
+                    "the household arrives electricity-only")
+        _why = relocate_premise_sky(cid, move_end.isoformat(), {"location": dest["location"]})
+        if _why is not None:
+            return f"no weather for the destination's cell: {_why}"
+        _now = household_demand_register.household_at_date(cid, move_end.isoformat())
+        if _now is not None:
+            household_demand_register.relocate(
+                cid, move_end.isoformat(), household_at_destination(_now, dest["destination"]))
+        _gas_relocation_pending[cid] = dest
+        nxt = dest["next_move"]
+        _move_out_by_leg[cid] = nxt.move_date if nxt else None
+        _home_move_by_leg[cid] = nxt
+        return None
 
     # EP12: HOW THE SUPPLIER HEARS IT LOST A HOUSEHOLD -- a registration-loss notice per supply
     # point, from the registration service, filed in its change-of-supplier register. Called at
@@ -3059,6 +3098,24 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             )
             properties[cid] = _new_home["property"]
             _rec["eac_kwh"] = EFFECTIVE_EAC_KWH[cid] = _new_home["eac_kwh"]
+        # ...and a GAS LEG that moved with it (s.8.7, choice 3): the new home's coordinate, and the
+        # heating share refitted on the new dwelling's own gas trace under the household's
+        # occupancy. Its sky already turned on the move date (`_carry_gas_leg`); its AQ is kept.
+        if cid in _gas_relocation_pending:
+            _new_home = _gas_relocation_pending.pop(cid)
+            get_customer(cid)["location"] = _new_home["location"]
+            gas_heating_fraction_by_customer.pop(cid, None)
+            gas_shape_refusals[:] = [r for r in gas_shape_refusals if r.customer_id != cid]
+            _fit_dates = sorted(_new_home["series"].gas_kwh)[:365]
+            _split = seasonal_gas_split(
+                cid, [sum(_new_home["series"].gas_kwh[d]) for d in _fit_dates],
+                [get_hdd(d, cid) for d in _fit_dates],
+                daily_space_heating_kwh=[_new_home["series"].gas_space_heating_kwh[d]
+                                         for d in _fit_dates])
+            if isinstance(_split, SeasonalGasRefusal):
+                gas_shape_refusals.append(_split)
+            else:
+                gas_heating_fraction_by_customer[cid] = _split
 
         # B7 slice 2: a home move ends this household's supply at the move date. Asked once, at
         # the household's first term (the heap is chronological), over its own supply window, so
@@ -3119,6 +3176,22 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 _admit_incoming_occupant(
                     _leg, commodity,
                     _home_move_by_leg.get(cid, _home_move_by_household[billing_account]))
+                # A GAS LEG FOLLOWS ITS HOUSEHOLD (home_moves.md s.8.7): two meters, one date. Its
+                # decision leg popped first (a riding leg waits for it, above), so whether the
+                # household moved with us is already known. The vacated meter is admitted above.
+                if commodity == "gas" and (billing_account, _move_end) in _followed_moves:
+                    _gas_why_not = _carry_gas_leg(cid, billing_account, _move_end)
+                    home_move_outs[-1]["followed_household"] = _gas_why_not is None
+                    for _row in reversed(move_with_us_log):
+                        if (_row["billing_account"] == billing_account
+                                and _row["move_out_date"] == _move_end.isoformat()):
+                            _row["gas_leg_follows"] = _gas_why_not is None
+                            _row["gas_not_followed_reason"] = _gas_why_not
+                            break
+                    if _gas_why_not is None:
+                        term_end_str = _next_renewal_str
+                        # Choice 7: a follower is not an exit, so its bills are not final bills.
+                        _moved_out_on_by_leg.pop(cid, None)
 
         forward_price = term["forward_price_gbp_per_mwh"]        # sim's sophisticated estimate
         company_fwd = term.get("company_forward_price_gbp_per_mwh", forward_price)
@@ -4839,6 +4912,10 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                             # the move date and the new one after it.
                             term_end_str = _next_renewal_str
                             _carried_from = _move_end.isoformat()
+                            # s.8.7 choice 7: a follower is not an exit, so its bills after the
+                            # move are not drawn as a gone-away final bill.
+                            _moved_out_on_by_leg.pop(cid, None)
+                            home_move_outs[-1]["followed_household"] = True
                             _portfolio_margins.account_held_on_a_save(billing_account)
                             _followed_moves.add((billing_account, _move_end))
                             _prior_state = _journey_before_move.get((billing_account, _move_end))

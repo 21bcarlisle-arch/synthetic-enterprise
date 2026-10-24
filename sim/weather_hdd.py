@@ -142,6 +142,24 @@ def _premise_sky(customer_id: str) -> PremiseSky:
     return sky
 
 
+def relocate_premise_sky(customer_id: str, moved_on: str, new_home: dict) -> str | None:
+    """A gas leg that moved with its household reads its old cell before `moved_on` and the new
+    home's cell from it (home_moves.md s.8.7, choice 3: the weather changes on the move date).
+    `new_home` is a record carrying the destination's `location`. Returns None, or the reason the
+    new cell holds no temperature, in which case nothing is changed."""
+    from simulation.weather_inputs import cell_weather_for_customer
+
+    new = cell_weather_for_customer({"customer_id": customer_id, **new_home})
+    if not new.series:
+        return new.refusal or f"the destination's cell {new.cell} holds no mean temperature"
+    old = _premise_sky(customer_id)
+    series = {d: t for d, t in old.series.items() if d < moved_on}
+    series.update({d: t for d, t in new.series.items() if d >= moved_on})
+    _WEATHER_CACHE[customer_id] = PremiseSky(
+        customer_id, f"{old.cell} before {moved_on}, {new.cell} from it", series, None)
+    return None
+
+
 def hdd_reading(date_str: str, customer_id: str) -> HddReading:
     """HDD for one day at the premise's CELL, carrying what it was read from.
 

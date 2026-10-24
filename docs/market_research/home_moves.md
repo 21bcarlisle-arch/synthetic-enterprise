@@ -738,6 +738,7 @@ result turns on.
    as before: a destination gas annual quantity and its heating-degree cell are not built. That can
    only understate the lever.
    *(2026-10-22: the rules and the choice that replace this are §8.7, written before that build.)*
+   *(2026-10-24: superseded. §8.7 is built; a dual-fuel follower's gas leg follows it.)*
 6. *The stayers.* Every later term of a carried account is held out of the portfolio premium. The
    carried rate and the renewals priced off it would otherwise teach the stayers' prices. This is the
    same set the price-match save uses.
@@ -827,6 +828,17 @@ all fail" option. (Ofgem Switching Programme, cited in
    Read from the code before this build: a carried electricity leg keeps its move-out stamp
    (`run_phase2b._moved_out_on_by_leg`), and the exit draw reads that stamp for every bill from the
    move month on. The build measures what it cost.
+
+**Built 2026-10-24** (`simulation/run_phase2b._carry_gas_leg`, `sim/weather_hdd.relocate_premise_sky`;
+control `tests/simulation/test_a_dual_fuel_movers_gas_follows_it.py`). Choices 1 to 5 are built as
+written. Choice 7 is built for both legs: a leg that follows drops its move-out stamp, so its later
+bills are not drawn as a gone-away final bill. What it cost was not measured separately from the gas
+leg; the arm comparison is the place to measure it. Not built, named in the run's log: a household
+we supply with gas alone does not follow, because its destination is drawn on the electricity leg
+(choice 1 says every fuel; this is a gap, not a choice). First measurement, one arm at k = 1 to
+2018-12-31: 22 households answered yes, 9 were supplied at a new home (the rest refused by name,
+mostly a destination cell the weather store does not hold), 4 took their gas, 2 arrived
+electricity-only at a home with no mains gas, and 3 had no gas leg with us.
 
 
 ### 8.8 A mover's final bill: the closing read, the final bill, the credit and the debt
