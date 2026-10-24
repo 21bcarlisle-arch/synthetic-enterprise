@@ -54,3 +54,20 @@ The triple has run on all three seeds at one commit. Each prediction is graded b
 every difference is attributed to named customers or explicitly left unattributed. The reading on
 M2 states whether the company side's sign is established. If it is not, it gives the bound the
 four books earn.
+
+## Status (2026-10-24, before any arm finished)
+
+The nine arms were queued at about 05:45 as `longjob-c30-s6110{1,2,3}-{a,b,c}`, through
+`launch_long_job` at a 7,000 MB peak. The box admits about two at a time, so the full set needs
+about 4–5 hours. Each writes `/var/tmp/c30-seeds-out/{A,B,C}_<seed>.json`. A dead arm is relaunched
+with the argv stored for it in `docs/observability/.launch_records.json`.
+
+**Grading:** `python3 -I /var/tmp/c30-seeds-out/grade_seeds.py default 61101 61102 61103`. That
+prints B − A, C − A and B − C, the customer-years moved, £ per customer-year and the mover counts
+(founders and wins) for every book. `default` reads the arm C triple in `/var/tmp/c30-arms-out/`.
+
+**One counting rule across all four books.** `grade_seeds.py` takes each customer's first
+electricity exit and counts a customer who never leaves up to 2026-01-01. On the default book that
+gives 33.7 customer-years (C − A) and 37.8 (B − C), or £245 and £208 each. The arm C record
+reported 30.85 and 34.91, or £268 and £275, by a rule it did not state. So prediction 3 is graded
+on the script's rule for all four books, the default book included.
