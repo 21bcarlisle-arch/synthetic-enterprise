@@ -379,7 +379,6 @@ company.regulatory.ebrs_register | unhooked | consumers:company.regulatory | Ene
 company.regulatory.ebss_register | unhooked | consumers:company.regulatory | Energy Bills Support Scheme (EBSS) Register.; 1 test(s); no importer
 company.regulatory.eco_tracker | unhooked | consumers:company.regulatory | Energy Company Obligation (ECO) tracker.; 1 test(s); no importer
 company.regulatory.ee_obligation_tracker | unhooked | consumers:company.regulatory | Energy efficiency obligation referral tracker: ECO4, GBIS, WHD, BUS.; 3 test(s); no importer
-company.regulatory.energy_bill_support | unhooked | consumers:company.regulatory | no docstring; 1 test(s); no importer
 company.regulatory.epg_reconciliation_register | unhooked | consumers:company.regulatory | Energy Price Guarantee (EPG) Reconciliation Register (Phase GC).; 2 test(s); no importer; arrived 2026-09-08 when a path in a DOCSTRING stopped counting as an edge -- held ONLY by docstrings in simulation/svt_rates.py and simulation/price_cap_enforcement.py that themselves state the register has no production caller -- the prose wiring it was the prose denying it (register S6)
 company.regulatory.ets_registry | unhooked | consumers:company.regulatory | UK Emissions Trading Scheme (UKETS) allowance registry: purchase, allocation, surrender.; 2 test(s); no importer
 company.regulatory.fuel_poverty | unhooked | consumers:company.regulatory | Fuel Poverty Indicator: customer fuel poverty risk assessment.; 1 test(s); no importer

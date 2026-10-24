@@ -8,6 +8,44 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-24 — Own code review: a third of the supplier is unused, the world still draws churn truth from the supplier's model, and an owed wall debt now needs an owner and a date
+
+<!-- head: 52a5f2cf3f56 -->
+
+**In plain English:** I reviewed our own code for what is unused, duplicated or crossing the wall. The world still draws who leaves from the supplier's own churn model. The wall's check had caught that in August and filed it as "owed", with a plan but no one to do it and no date, so it sat for eleven weeks. Owed debts now need an owner and a date, and an overdue one stops the commit gate.
+
+Director steer, 24 Oct 09:35/09:40. The advisor's illustration was tested, not adopted. The full review is in `docs/staging/SEAT_FINDING_OWN_CODE_REVIEW_UNUSED_DUPLICATED_AND_WALL_CROSSING_2026-10-24.md`.
+
+**What the illustration got right.** About a third of the supplier is unused: **268** modules (41,565 lines) are imported only by their tests. Those tests are **401 files and 9,207 test functions, about 23% of the suite**. The world's churn truth starts from `saas.churn_model` and `saas.home_move_win_rate`, and its own code also computes the supplier's churn estimate (`company.crm.churn_model`). There are two churn models.
+
+**What it missed or got wrong.**
+- 286 is the code tab's count of modules with no import edge; 268 is the ruled orphan set. The two numbers use different definitions.
+- The wall holds **6** owed crossings, not 4. Two are indirect (`run_phase2b` reaching `account_ledger` and `payment_observation_consumer` through a bridge).
+- The orphan check has **no automated caller**. It was red today on a stale row (`energy_bill_support`, wired for the EBSS fix) and nothing noticed.
+- `saas/README.md` claimed household reaction for the business layer. That is where B2 began.
+- Its second hypothesis is **refuted**. The world-to-supplier direction has had a structural check since 5 Aug, and that check took the crossings from 105 to 6. The README that allowed the import was out-of-date text that no check enforces.
+
+**Root cause.** A deferral counted as examined once it said *how* the debt would be cleared, without saying *who* would do it or *by when*. KNIFE3, the atom that owns it, sits at level 0 and dial 3, so the draw almost never reached it.
+
+**The mechanism.** An `owed` row in the wall register now needs `owner=` (a live map atom) and `due=`. A row past its date is refused at commit time on every staged `.py`. The test was red on today's real register before the six rows were scheduled. Six mutations each produce exactly one red, and the due day itself still passes. Dates: B2 ×3 **21 Nov**; decision_policy and B14 ×2 **28 Nov**; owner KNIFE3.
+
+**Rulings.**
+- **Archive** the 268 unused modules with their tests after Monday's publish, one package per commit. Two are kept for C32 because they are in its scope.
+- **Cut B2** with a world build: K8 page first, predictions filed before the build.
+- **Merge** the two churn models after B2. Until then a merge would move world truth too.
+- **Keep** `saas/` beside `company/` and fold it in module by module as each is touched.
+- **Keep** `sim/` and `simulation/` separate. They now split on a real job line: the market versus the households.
+- The **code-tab legend** has shipped. Both READMEs are corrected.
+
+**The saving.** I filed the predictions before measuring:
+- P1: the 401 files run in 2–6 min. **Refuted**: about 10 minutes serial. The run reached 98% at the harness's 10-minute limit and was stopped there, with no failures in what ran.
+- P2: collection is 15–35% of the suite's. **Cannot attribute**: collecting the subset alone takes 17 s and the whole suite 33 s, but start-up is shared between them.
+- P3: the median commit saves under a minute. Not measured.
+
+Search noise also falls: in the supplier, 38% of `tariff` hits, 31% of `hedge` and 34% of `register` are in unused modules.
+
+---
+
 ## 2026-10-24 — The ledger of director asks: 191 rows, the fifteen in-progress documents ruled, the twelve owed items reported, and a 21-day no-movement control
 
 <!-- head: 95e78ec77737 -->

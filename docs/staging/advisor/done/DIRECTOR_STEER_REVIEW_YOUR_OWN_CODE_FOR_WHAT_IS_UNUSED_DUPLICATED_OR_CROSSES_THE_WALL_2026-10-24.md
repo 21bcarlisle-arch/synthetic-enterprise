@@ -67,3 +67,29 @@ One stretch-log entry with:
 - the code-tab legend.
 
 — Director steer, 24 Oct 2026, his words above; the illustration and drafting are the advisor's.
+
+## Done
+
+24 Oct, seat executor. The review, the rulings, the root cause and the measured saving are in
+`docs/staging/SEAT_FINDING_OWN_CODE_REVIEW_UNUSED_DUPLICATED_AND_WALL_CROSSING_2026-10-24.md`, with
+one entry in the stretch log.
+
+- **Shipped in this commit:**
+  - The mechanism. `owed` wall debts now carry an owner atom and a due date, and an overdue debt is
+    refused at commit time (`tools/wall_crossing_dispositions.py`). The test was red on the real
+    register before the six rows were scheduled.
+  - The code-tab legend per cluster (`site/code/index.html`).
+  - Corrected `simulation/` and `saas/` READMEs.
+  - The orphan register's stale row removed.
+- **Ruled, with dates, carried by hand-offs:**
+  - Archive the 268 unused supplier modules with their tests after the 26 Oct publish. Two are kept
+    for C32.
+  - Cut B2 by a world build (K8 first), due 21 Nov.
+  - decision_policy and B14 are due 28 Nov.
+  - Merge the churn models after B2.
+- **Where the illustration was wrong:**
+  - There are 6 owed crossings, not 4.
+  - 268 ruled orphans against the census figure of 286, because the two use different definitions.
+  - The world-to-supplier direction has had a structural check since 5 Aug, so the advisor's second
+    hypothesis is refuted.
+- **What it missed:** the orphan control has no caller and was red today.

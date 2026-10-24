@@ -188,7 +188,7 @@ def test_any_staged_py_is_in_scope(monkeypatch):
     called = {}
     monkeypatch.setattr(gate, "_index_tree", lambda: "a" * 40)
 
-    def fake(tree):
+    def fake(tree, **_):
         called["tree"] = tree
         return [], {"measured_crossings": 22, "rows": 91}
     monkeypatch.setitem(sys.modules, "tools.wall_crossing_dispositions",
@@ -202,7 +202,7 @@ def test_the_register_alone_is_in_scope(monkeypatch):
     """The record-without-the-code commit is the entire class. It carries no .py."""
     monkeypatch.setattr(gate, "_index_tree", lambda: "b" * 40)
     monkeypatch.setitem(sys.modules, "tools.wall_crossing_dispositions",
-                        _stub_module(lambda tree: ([], {"measured_crossings": 1, "rows": 1})))
+                        _stub_module(lambda tree, **_: ([], {"measured_crossings": 1, "rows": 1})))
     ok, _ = gate._wall_crossing_landed_check([gate.WALL_REGISTER_PATH])
     assert ok
 
@@ -219,7 +219,7 @@ def _stub_module(run_at_tree_impl):
 def test_findings_refuse_the_commit(monkeypatch):
     monkeypatch.setattr(gate, "_index_tree", lambda: "c" * 40)
     monkeypatch.setitem(sys.modules, "tools.wall_crossing_dispositions",
-                        _stub_module(lambda tree: (["x -> y: ruled `cut` but the import IS STILL IN"], {})))
+                        _stub_module(lambda tree, **_: (["x -> y: ruled `cut` but the import IS STILL IN"], {})))
     ok, detail = gate._wall_crossing_landed_check(["company/billing/x.py"])
     assert not ok and "still in" in detail.lower()
 
@@ -234,7 +234,7 @@ def test_an_unimportable_checker_refuses(monkeypatch):
 def test_a_raising_checker_refuses(monkeypatch):
     monkeypatch.setattr(gate, "_index_tree", lambda: "d" * 40)
 
-    def boom(tree):
+    def boom(tree, **_):
         raise ValueError("the walker died")
     monkeypatch.setitem(sys.modules, "tools.wall_crossing_dispositions", _stub_module(boom))
     ok, detail = gate._wall_crossing_landed_check(["simulation/x.py"])
@@ -243,7 +243,7 @@ def test_a_raising_checker_refuses(monkeypatch):
 
 def test_an_unusable_index_refuses(monkeypatch):
     monkeypatch.setitem(sys.modules, "tools.wall_crossing_dispositions",
-                        _stub_module(lambda tree: ([], {"measured_crossings": 1, "rows": 1})))
+                        _stub_module(lambda tree, **_: ([], {"measured_crossings": 1, "rows": 1})))
     monkeypatch.setattr(gate, "_index_tree",
                         lambda: (_ for _ in ()).throw(RuntimeError("unmerged entries")))
     ok, detail = gate._wall_crossing_landed_check(["saas/x.py"])

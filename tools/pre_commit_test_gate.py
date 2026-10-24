@@ -1675,7 +1675,7 @@ def _wall_crossing_landed_check(staged: list[str]) -> tuple[bool, str]:
     except Exception as e:  # noqa: BLE001
         return False, f"could not determine the tree this commit would create: {e}"
     try:
-        findings, report = run_at_tree(tree)
+        findings, report = run_at_tree(tree, schedule=True)
     except Exception as e:  # noqa: BLE001
         return False, f"wall-crossing checker RAISED against tree {tree[:9]}: {type(e).__name__}: {e}"
     if not findings:

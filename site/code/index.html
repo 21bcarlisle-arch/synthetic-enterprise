@@ -129,6 +129,24 @@ ul.limits li { margin-bottom: 6px; }
     <p id="mg-picked" class="picked">Tap a dot to see its module, size and edge count.</p>
   </div>
 
+  <h2>What each cluster is</h2>
+  <p class="muted">Two clusters on each side of the wall, because each side was built in two
+  stages, not because the jobs differ that much. Written 24 Oct 2026 from a review of the code;
+  the review's rulings are in the stretch log.</p>
+  <div class="table-scroll"><table id="mg-legend"><thead><tr><th>Cluster</th><th>Side</th><th>What it is</th></tr></thead><tbody>
+    <tr><td>sim</td><td>world</td><td>The market: the real Elexon, NESO and weather record, prices as they stood at each moment, and forward curves.</td></tr>
+    <tr><td>simulation</td><td>world</td><td>The households and the run: demand, life events, payments, settlement, and the runners (<code>run_phase*</code>) that move both programs through time and hand the company only what it could see.</td></tr>
+    <tr><td>company</td><td>company</td><td>The supplier: pricing, billing, customers, trading, compliance. It sees the world only through <code>company/interfaces</code>, the seam.</td></tr>
+    <tr><td>saas</td><td>company</td><td>Also the supplier: the first business layer (July 2026), with customer value, churn and cost to serve, never folded into <code>company</code>. Two of its models are still read by the world: three of the crossings below.</td></tr>
+    <tr><td>interface</td><td>neither</td><td>Shared data shapes for the seam.</td></tr>
+    <tr><td>tools</td><td>outside</td><td>Scripts, generators, checks and run entry points. Many are run by hand, so they have no importer by design.</td></tr>
+    <tr><td>background</td><td>outside</td><td>The machinery that runs the project itself: the daemons, gates and logs. Never an input to the company.</td></tr>
+    <tr><td>functions</td><td>outside</td><td>The website's server-side handlers.</td></tr>
+  </tbody></table></div>
+  <p class="muted">A star with no line is a module nothing else here imports. In <code>tools</code>
+  that is mostly a script. In <code>company</code> and <code>saas</code> it is code that its tests
+  import and no run ever reaches: built, tested and unused.</p>
+
   <h2>Crossings that go round the seam</h2>
   <div id="mg-bypass"></div>
 
@@ -425,7 +443,7 @@ function render(d) {
     }).join("");
 
   set("mg-limits", d.limits.map(function (l) { return "<li>" + esc(l) + "</li>"; }).join("")
-    + "<li>" + fmt(d.unwired_modules) + " modules have no import edge to another module here: the dim ring in the galaxy, hidden in the layered view until you ask for them.</li>");
+    + "<li>" + fmt(d.unwired_modules) + " modules have no import edge to another module here: the dim ring in the galaxy, hidden in the layered view until you ask for them. Tests are not drawn, so a module only its tests import is one of these.</li>");
 
   // The layered view is built on first use, not on load: it starts hidden, and an element written
   // while hidden is a render nobody can read.

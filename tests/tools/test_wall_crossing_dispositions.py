@@ -44,7 +44,7 @@ WALL-CROSSING-DESIGN -->"""
 
 CLEAN_EDGES = """<!-- WALL-CROSSING-EDGES
 # a comment line is ignored
-edge: simulation.a -> company.b | disposition=owed | design=D_move_the_thing
+edge: simulation.a -> company.b | disposition=owed | owner=A_owner | due=2099-12-31 | design=D_move_the_thing
 edge: simulation.c -> saas.d | disposition=grandfathered | reason=the world legitimately observes this published figure
 edge: simulation.e -> company.f | disposition=cut | reason=the composition moved above both layers in pass 1
 WALL-CROSSING-EDGES -->"""
@@ -191,9 +191,9 @@ def test_the_decorative_design_guard_is_not_the_orphan_guard_in_disguise():
     test above would have been proving the wrong guard.
     """
     doc = CLEAN_DOC.replace(
-        "edge: simulation.a -> company.b | disposition=owed | design=D_move_the_thing\n",
-        "edge: simulation.a -> company.b | disposition=owed | design=TBD\n"
-        "edge: simulation.g -> company.h | disposition=owed | design=D_move_the_thing\n",
+        "edge: simulation.a -> company.b | disposition=owed | owner=A_owner | due=2099-12-31 | design=D_move_the_thing\n",
+        "edge: simulation.a -> company.b | disposition=owed | owner=A_owner | due=2099-12-31 | design=TBD\n"
+        "edge: simulation.g -> company.h | disposition=owed | owner=A_owner | due=2099-12-31 | design=D_move_the_thing\n",
     )
     findings = run(doc, live=LIVE | {("simulation.g", "company.h")})
     only(findings, "`owed` names no cut design")
@@ -240,9 +240,9 @@ def test_duplicate_design_names_are_a_finding():
 
 def test_two_rulings_for_one_edge_is_a_finding():
     doc = CLEAN_DOC.replace(
-        "edge: simulation.a -> company.b | disposition=owed | design=D_move_the_thing\n",
-        "edge: simulation.a -> company.b | disposition=owed | design=D_move_the_thing\n"
-        "edge: simulation.a -> company.b | disposition=owed | design=D_move_the_thing\n",
+        "edge: simulation.a -> company.b | disposition=owed | owner=A_owner | due=2099-12-31 | design=D_move_the_thing\n",
+        "edge: simulation.a -> company.b | disposition=owed | owner=A_owner | due=2099-12-31 | design=D_move_the_thing\n"
+        "edge: simulation.a -> company.b | disposition=owed | owner=A_owner | due=2099-12-31 | design=D_move_the_thing\n",
     )
     only(run(doc), "duplicate ruling for simulation.a -> company.b")
 
@@ -399,7 +399,8 @@ def test_no_measured_location_is_carried_in_the_register():
     """
     assert "at=" not in wcd.REGISTER_DOC.read_text(encoding="utf-8")
     assert set(wcd.EdgeRow.__dataclass_fields__) == {
-        "src", "dst", "disposition", "design", "reason", "lineno"
+        "src", "dst", "disposition", "design", "reason", "lineno",
+        "owner", "due",  # 2026-10-24: rulings (who pays, by when), not measurements
     }
 
 
@@ -474,7 +475,7 @@ def test_the_partition_invariant_reds_when_a_live_row_is_deleted():
     notice that the register's own population had silently shrunk.
     """
     mutated = CLEAN_DOC.replace(
-        "edge: simulation.a -> company.b | disposition=owed | design=D_move_the_thing\n",
+        "edge: simulation.a -> company.b | disposition=owed | owner=A_owner | due=2099-12-31 | design=D_move_the_thing\n",
         "",
     )
     assert mutated != CLEAN_DOC, "the mutation did not apply"
@@ -536,3 +537,82 @@ def test_an_unexamined_INDIRECT_edge_also_fails(monkeypatch, capsys):
 def test_main_returns_zero_on_the_live_tree(capsys):
     assert wcd.main([]) == 0
     assert "every live crossing is examined" in capsys.readouterr().out
+
+
+# ---------------------------------------------------------------------------
+# GUARD 5 — an `owed` debt is SCHEDULED: a live owning atom and a due date.
+# Added 2026-10-24 (director steer "review your own code"): the four B2/A rows
+# carried good designs and stood eleven weeks with no one drawing them, while the
+# world drew household churn truth from the supplier's model. Each test below is
+# the clean fixture with exactly one thing wrong; the first is the control that
+# the guard can PASS, so a guard that refuses every row cannot hide here.
+# ---------------------------------------------------------------------------
+
+_TODAY = __import__("datetime").date(2026, 10, 24)
+
+
+def _run_sched(doc: str = CLEAN_DOC, live_atoms=frozenset({"A_owner"}), today=_TODAY):
+    rows, designs = wcd.parse_register(doc)
+    return wcd.reconcile(rows, designs, LIVE, live_atoms=set(live_atoms), today=today)[0]
+
+
+def test_a_scheduled_owed_row_with_a_live_owner_passes():
+    assert _run_sched() == []
+
+
+def test_owed_with_no_owner_is_a_finding():
+    only(_run_sched(CLEAN_DOC.replace("owner=A_owner | ", "")), "names no `owner=` atom")
+
+
+def test_owed_whose_owner_is_not_a_live_atom_is_a_finding():
+    only(_run_sched(live_atoms={"B_someone_else"}), "is not a LIVE maturity-map atom")
+
+
+@pytest.mark.parametrize("bad", ["", "soon", "2026-13-01", "Q4"])
+def test_owed_with_no_valid_due_date_is_a_finding(bad):
+    only(_run_sched(CLEAN_DOC.replace("due=2099-12-31", f"due={bad}")), "no valid `due=YYYY-MM-DD`")
+
+
+def test_owed_past_its_due_date_is_a_finding_and_the_day_itself_is_not():
+    on_the_day = CLEAN_DOC.replace("due=2099-12-31", "due=2026-10-24")
+    assert _run_sched(on_the_day) == []
+    only(_run_sched(on_the_day, today=__import__("datetime").date(2026, 10, 25)), "is OVERDUE")
+
+
+def test_the_live_owed_rows_are_scheduled_against_the_live_map():
+    """The real register, the real map: every owed row has a live owner and a date not passed.
+
+    This is the leg that reds when a due date passes on the real tree -- the scheduled debt
+    coming due is meant to stop the tree, and moving `due=` is the visible way to say it slipped.
+    """
+    rows, designs = wcd.load_register()
+    owed = [r for r in rows if r.disposition == "owed"]
+    assert owed, "no owed rows -- if B2 and A are both cut, delete this test with them"
+    findings, _ = wcd.reconcile(rows, designs, {r.key for r in rows if r.disposition != "cut"},
+                                live_atoms=wcd.load_live_atoms_at(None))
+    sched = [f for f in findings if "owner" in f or "due" in f.lower()]
+    assert sched == [], sched
+
+
+def test_the_commit_gate_asks_the_schedule_and_history_does_not(monkeypatch):
+    """The owner/due legs are only a control if the commit gate turns them on.
+
+    Behavioural, not a source scan: the gate is run with `run_at_tree` replaced by a spy. If the
+    gate stopped passing `schedule=True`, every overdue debt would sail through while the unit
+    legs above stayed green -- the fail-silent shape.
+    """
+    from tools import pre_commit_test_gate as gate
+
+    seen = {}
+
+    def spy(rev, register=wcd.REGISTER_DOC, schedule=False):
+        seen["schedule"] = schedule
+        return [], {"measured_crossings": 0, "rows": 0}
+
+    monkeypatch.setattr(wcd, "run_at_tree", spy)
+    monkeypatch.setattr(gate, "_index_tree", lambda: "0" * 40)
+    ok, _ = gate._wall_crossing_landed_check(["tools/anything.py"])
+    assert ok and seen == {"schedule": True}, seen
+    # and an un-asked reconcile carries no schedule legs, so a pre-2026-10-24 register audits clean
+    rows, designs = wcd.parse_register(CLEAN_DOC.replace("owner=A_owner | due=2099-12-31 | ", ""))
+    assert wcd.reconcile(rows, designs, LIVE)[0] == []
