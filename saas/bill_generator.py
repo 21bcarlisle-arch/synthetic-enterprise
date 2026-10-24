@@ -45,6 +45,57 @@ import statistics
 from company.billing.dual_fuel_bill import vat_rate_for_supply
 from saas.non_commodity import non_commodity_rate, standing_charge_rate
 
+#: A time-of-use term's bands, in the order a bill prints them: (record key stem, register label).
+#: The settlement writer stamps `tou_<stem>_kwh` and `tou_<stem>_unit_charge_gbp` on each half-hour.
+TOU_BANDS = (("peak", "Peak"), ("offpeak", "Off-peak"))
+
+
+def tou_registers(settlement_records, total_consumption_kwh, unit_charge_gbp,
+                  non_commodity_gbp_per_kwh, hmt_epg_receipt_gbp):
+    """One register per time-of-use band, or (None, reason) where the records cannot support them.
+
+    SLC 22A.3: a Time of Use Tariff's rates are displayed separately wherever its charges are, and
+    31H.1 asks for a bill the household can use to understand its tariff, so a two-rate bill prints
+    each band's kWh and energy charge. Each register's `commodity_amount_gbp` is its band's own
+    charge less the non-commodity line and the EPG share at the bill's flat per-kWh rates, so the
+    registers sum to the bill's commodity line.
+
+    Returns `(None, None)` for a single-rate bill. Where band fields are present but their kWh or
+    charge does not reconcile with the bill (a pass-through term's revenue carries policy and
+    network on top; an estimate priced flat over a void), it returns `(None, reason)`: one register
+    is printed and the reason travels with the bill, rather than a split the records do not hold.
+    """
+    bands = []
+    for stem, label in TOU_BANDS:
+        kwh = sum(r.get("tou_%s_kwh" % stem, 0.0) for r in settlement_records)
+        charge = sum(r.get("tou_%s_unit_charge_gbp" % stem, 0.0) for r in settlement_records)
+        bands.append((stem, label, kwh, charge))
+    if not any(kwh or charge for _, _, kwh, charge in bands):
+        return None, None
+    band_kwh = sum(b[2] for b in bands)
+    band_charge = sum(b[3] for b in bands)
+    if abs(band_kwh - total_consumption_kwh) > 1e-6 * max(1.0, total_consumption_kwh):
+        return None, ("time-of-use bands hold %.3f kWh, the bill %.3f"
+                      % (band_kwh, total_consumption_kwh))
+    # Half a penny: the sums are of the same products in a different order.
+    if abs(band_charge - (unit_charge_gbp + hmt_epg_receipt_gbp)) > 0.005:
+        return None, ("time-of-use bands charge %.2f GBP, the bill's unit charge %.2f"
+                      % (band_charge, unit_charge_gbp + hmt_epg_receipt_gbp))
+    registers = []
+    for stem, label, kwh, charge in bands:
+        if kwh <= 0:
+            continue
+        share = kwh / total_consumption_kwh
+        registers.append({
+            "band": stem,
+            "label": label,
+            "consumption_kwh": kwh,
+            "commodity_amount_gbp": (charge - kwh * non_commodity_gbp_per_kwh
+                                     - hmt_epg_receipt_gbp * share),
+        })
+    return registers, None
+
+
 BASE_CLARITY_BY_CONTRACT_TYPE = {
     "fixed_1yr": 1.0,
 }
@@ -294,6 +345,11 @@ def generate_bill(
     average_unit_rate_gbp_per_mwh = (
         unit_charge_gbp / (total_consumption_kwh / 1000) if total_consumption_kwh > 0 else 0.0
     )
+    registers, registers_withheld = (
+        tou_registers(settlement_records, total_consumption_kwh, unit_charge_gbp,
+                      non_commodity_amount_gbp / total_consumption_kwh, hmt_epg_receipt_gbp)
+        if records_carry_sc and total_consumption_kwh > 0 else (None, None)
+    )
 
     clarity_score = BASE_CLARITY_BY_CONTRACT_TYPE.get(contract_type, DEFAULT_BASE_CLARITY)
     clarity_score -= consumption_coefficient_of_variation(settlement_records) * CONSUMPTION_CV_PENALTY_FACTOR
@@ -390,12 +446,13 @@ def generate_bill(
         # standing_charge_gbp_per_day is now derived from the actual billed
         # standing charge (standing_charge_gbp / days_in_period) rather than a
         # separate rate-table lookup, so the two can never disagree.
-        # Full time-of-use (multiple rate bands per day) is a separate,
-        # larger architecture gap -- the tariff engine has no multi-rate-per-
-        # day concept at all yet -- registered separately, not attempted here.
         "days_in_period": days_in_period,
         "standing_charge_gbp_per_day": standing_charge_gbp_per_day,
     }
+    if registers is not None:
+        bill["registers"] = registers
+    if registers_withheld is not None:
+        bill["tou_registers_withheld"] = registers_withheld
     if hmt_epg_receipt_gbp:
         # HM Treasury's share of this period's supply, ex-VAT. Not in `total_amount_gbp`, which is
         # what the household owes. Present only where it is non-zero, so no other bill changes.
