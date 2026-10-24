@@ -1,0 +1,1919 @@
+{
+ "as_of": "2026-10-24",
+ "no_movement_days": 21,
+ "counts": {
+  "closed_without_evidence": 134,
+  "open": 8,
+  "superseded": 4,
+  "shipped": 14,
+  "partly": 10,
+  "closed_with_evidence": 21
+ },
+ "record_not_asks": {
+  "DIRECTOR_READING": 9,
+  "DIRECTOR_CONSOLE": 37,
+  "DIRECTOR_CANON": 11
+ },
+ "stale": [],
+ "rows": [
+  {
+   "id": "DIRECTOR_ANSWERS_C7",
+   "source": "docs/staging/done/DIRECTOR_ANSWERS_C7.md",
+   "asked": null,
+   "ask": "DIRECTOR ANSWERS \u2014 Appendix C.7, all six (signed, relayed by advisor)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_ANSWERS_ENTITY_CRAWLERS",
+   "source": "docs/staging/done/DIRECTOR_ANSWERS_ENTITY_CRAWLERS.md",
+   "asked": null,
+   "ask": "DIRECTOR ANSWERS \u2014 entity name + AI-crawler policy (Tier 2, actions the open [ACTION NEEDED]s)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_ANSWER_DELEGATE_AND_PREDICATE_FIX",
+   "source": "docs/staging/done/DIRECTOR_ANSWER_DELEGATE_AND_PREDICATE_FIX.md",
+   "asked": null,
+   "ask": "DIRECTOR ANSWER \u2014 DELEGATE (forever) + escalation fires IFF the predicate is true (P1, signed)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_ANSWER_FINISH_NOT_OPEN",
+   "source": "docs/staging/done/DIRECTOR_ANSWER_FINISH_NOT_OPEN.md",
+   "asked": null,
+   "ask": "DIRECTOR ANSWER \u2014 the [FINISH SET EXHAUSTED] escalation (06:29)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_ANSWER_HARM_WEIGHTS",
+   "source": "docs/staging/done/DIRECTOR_ANSWER_HARM_WEIGHTS.md",
+   "asked": null,
+   "ask": "DIRECTOR ANSWER \u2014 A7_harm_cost_weights_ratio (R13, signed) + a formula defect",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_COMMENTS_BOX",
+   "source": "docs/staging/done/DIRECTOR_COMMENTS_BOX.md",
+   "asked": null,
+   "ask": "DIRECTOR_COMMENTS_BOX \u2014 per-page feedback channel (P3, small) + one forward registration",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_INPUT_LOG",
+   "source": "docs/staging/done/DIRECTOR_INPUT_LOG.md",
+   "asked": null,
+   "ask": "DIRECTOR_INPUT_LOG \u2014 unified log of every director input, every channel (P2)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_OVERRIDE_SKIP_PERMISSIONS_QUARANTINED",
+   "source": "docs/staging/done/DIRECTOR_OVERRIDE_SKIP_PERMISSIONS_QUARANTINED.md",
+   "asked": null,
+   "ask": "DIRECTOR_OVERRIDE_SKIP_PERMISSIONS_QUARANTINED.md",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_SEQUENCE_AND_TOKEN_ECONOMY",
+   "source": "docs/staging/done/DIRECTOR_SEQUENCE_AND_TOKEN_ECONOMY.md",
+   "asked": null,
+   "ask": "DIRECTOR_SEQUENCE_AND_TOKEN_ECONOMY \u2014 RY endorsed, re-sequenced (P1)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_TWIN",
+   "source": "docs/staging/done/DIRECTOR_TWIN.md",
+   "asked": null,
+   "ask": "DIRECTOR_TWIN \u2014 the pretend principal (P0, capstone of the autonomy work)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "ask_2026-10_settlement_true_ups_planned_while_the_world_says_live",
+   "source": "docs/staging/advisor/DIRECTOR_STEER_A_LEDGER_OF_EVERYTHING_I_ASKED_FOR_AND_WHETHER_IT_SHIPPED_2026-10-24.md",
+   "asked": null,
+   "ask": "Settlement true-ups 'Planned' while the world says Live.",
+   "state": "open",
+   "last_commit": null,
+   "status": "open",
+   "missing": "Not yet checked against the record in this first cut.",
+   "next_step": "Reconcile the Capabilities row with what the world and the company actually run.",
+   "moved": "2026-10-24"
+  },
+  {
+   "id": "ask_2026-10_the_caps_published_levels_as_a_binding_series",
+   "source": "docs/staging/advisor/DIRECTOR_STEER_A_LEDGER_OF_EVERYTHING_I_ASKED_FOR_AND_WHETHER_IT_SHIPPED_2026-10-24.md",
+   "asked": null,
+   "ask": "The cap's published levels ingested as a binding series.",
+   "state": "open",
+   "last_commit": null,
+   "status": "open",
+   "missing": "Not yet checked against the record in this first cut.",
+   "next_step": "Find the ruling's words and date, and what the cap ingestion reads today.",
+   "moved": "2026-10-24"
+  },
+  {
+   "id": "ask_2026-10_the_pricing_engine_planned_against_c13",
+   "source": "docs/staging/advisor/DIRECTOR_STEER_A_LEDGER_OF_EVERYTHING_I_ASKED_FOR_AND_WHETHER_IT_SHIPPED_2026-10-24.md",
+   "asked": null,
+   "ask": "The pricing engine still 'Planned' against C13.",
+   "state": "open",
+   "last_commit": null,
+   "status": "open",
+   "missing": "Not yet checked against the record in this first cut.",
+   "next_step": "Read C13 and the Capabilities row; build or re-label.",
+   "moved": "2026-10-24"
+  },
+  {
+   "id": "DIRECTOR_RATIFICATIONS_2026-07-18_L3_R15",
+   "source": "docs/staging/done/DIRECTOR_RATIFICATIONS_2026-07-18_L3_R15.md",
+   "asked": "2026-07-18",
+   "ask": "DIRECTOR RATIFICATIONS \u2014 2026-07-18 (via advisor channel, director's verbatim \"Yes\")",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-07-18",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_ADDENDUM_FIDELITY_EVIDENCE_2026-07-19",
+   "source": "docs/staging/done/DIRECTOR_ADDENDUM_FIDELITY_EVIDENCE_2026-07-19.md",
+   "asked": "2026-07-19",
+   "ask": "DIRECTOR ADDENDUM \u2014 Fidelity evidence: what Epoch 2 must EMIT, and what the site must let the director eyeball (2026-07-19)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_AMENDMENT_TOKEN_RESOURCE_DIMENSION_2026-07-19",
+   "source": "docs/staging/done/DIRECTOR_AMENDMENT_TOKEN_RESOURCE_DIMENSION_2026-07-19.md",
+   "asked": "2026-07-19",
+   "ask": "DIRECTOR AMENDMENT \u2014 Tokens as the second resource dimension (amends RESOURCE_AWARE_SCHEDULING_PROPOSAL, 2026-07-19)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_CAMPAIGN_EPOCH2_COUPLED_WORLD_2026-07-19",
+   "source": "docs/staging/done/DIRECTOR_CAMPAIGN_EPOCH2_COUPLED_WORLD_2026-07-19.md",
+   "asked": "2026-07-19",
+   "ask": "DIRECTOR CAMPAIGN FRAMING \u2014 Epoch 2: the coupled world, ranked by value (2026-07-19)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_DIRECTIVE_SEAT_WORK_AND_CONTINUITY_PROOF_2026-07-19",
+   "source": "docs/staging/done/DIRECTOR_DIRECTIVE_SEAT_WORK_AND_CONTINUITY_PROOF_2026-07-19.md",
+   "asked": "2026-07-19",
+   "ask": "DIRECTOR DIRECTIVE \u2014 Work for the reconciled seat, and the continuity proof (2026-07-19, evening)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_FINDING_HEARTBEAT_BLOCKED_INPUT_2026-07-19",
+   "source": "docs/staging/done/DIRECTOR_FINDING_HEARTBEAT_BLOCKED_INPUT_2026-07-19.md",
+   "asked": "2026-07-19",
+   "ask": "DIRECTOR FINDING \u2014 The rest-heartbeat blocked director input for 27 minutes (2026-07-19, 22:37 BST)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_CONTEXT_AS_MANAGED_RESOURCE_2026-07-19",
+   "source": "docs/staging/done/DIRECTOR_STEER_CONTEXT_AS_MANAGED_RESOURCE_2026-07-19.md",
+   "asked": "2026-07-19",
+   "ask": "DIRECTOR STEER \u2014 Working stronger for longer: context as a managed resource (2026-07-19)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-07-19",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_RESOURCE_AWARE_SCHEDULING_2026-07-19",
+   "source": "docs/staging/done/DIRECTOR_STEER_RESOURCE_AWARE_SCHEDULING_2026-07-19.md",
+   "asked": "2026-07-19",
+   "ask": "DIRECTOR STEER \u2014 Resource-aware scheduling: light work must never wait behind heavy work (2026-07-19)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_SITE_REORIENT_TO_PURPOSE_2026-07-19",
+   "source": "docs/staging/done/DIRECTOR_STEER_SITE_REORIENT_TO_PURPOSE_2026-07-19.md",
+   "asked": "2026-07-19",
+   "ask": "The website must reflect and be reoriented around the ratified purpose.",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-10-13",
+   "status": "superseded",
+   "evidence": [
+    "bee0abf1a8 front door leads with the ambition and what has been built (22 Oct)"
+   ],
+   "moved": "2026-10-24",
+   "superseded_by": "the 28 Aug mission (canon M1, s16 'Mission') and the 12 Oct canon (s15 decisions 4 and 14)"
+  },
+  {
+   "id": "DIRECTOR_STEER_TEST_THROUGHPUT_2026-07-19",
+   "source": "docs/staging/done/DIRECTOR_STEER_TEST_THROUGHPUT_2026-07-19.md",
+   "asked": "2026-07-19",
+   "ask": "DIRECTOR STEER \u2014 Test throughput is becoming the rate-determining step; restructure it (2026-07-19)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_FINDING_HEARTBEAT_TOKEN_BURN_2026-07-20",
+   "source": "docs/staging/done/DIRECTOR_FINDING_HEARTBEAT_TOKEN_BURN_2026-07-20.md",
+   "asked": "2026-07-20",
+   "ask": "DIRECTOR FINDING \u2014 The rest-heartbeat burns tokens while resting (2026-07-20)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_COVERAGE_STAGE2_FUSION_CALL_2026-07-20",
+   "source": "docs/staging/done/DIRECTOR_STEER_COVERAGE_STAGE2_FUSION_CALL_2026-07-20.md",
+   "asked": "2026-07-20",
+   "ask": "DIRECTOR STEER \u2014 Stage 2 of the coverage loop: the fusion call (2026-07-20)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_COVERAGE_STAGE4_VALUE_FRONTIER_2026-07-20",
+   "source": "docs/staging/done/DIRECTOR_STEER_COVERAGE_STAGE4_VALUE_FRONTIER_2026-07-20.md",
+   "asked": "2026-07-20",
+   "ask": "How much valuable variance and critical small groups can we cover with minimum number of segments.",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-10-13",
+   "status": "shipped",
+   "evidence": [
+    "docs/market_research/POPULATION_LEARNING_FRONTIER_STAGE4.md",
+    "simulation/population_coverage.py",
+    "84b4614bb1 the ~12-cell value knee",
+    "docs/staging/done/DIRECTOR_RULING_COHORT_ASSIGNMENT_ACTIVATED_2026-07-27.md"
+   ],
+   "moved": "2026-10-24"
+  },
+  {
+   "id": "DIRECTOR_STEER_LEGIBILITY_AND_SEGMENTATION_2026-07-20",
+   "source": "docs/staging/done/DIRECTOR_STEER_LEGIBILITY_AND_SEGMENTATION_2026-07-20.md",
+   "asked": "2026-07-20",
+   "ask": "I can't follow what the world is doing, what the supplier is doing, and what this is like for an individual customer and their bill... And ultimately their CO2.",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-10-13",
+   "status": "partly",
+   "evidence": [
+    "docs/market_research/segmentation_joint_structure.md (part 2 shipped)",
+    "site/explore/index.html (one household's bill and collections)",
+    "4288d42e0c Explore as a live feature demo (23 Oct)"
+   ],
+   "missing": "No one place shows the world, the supplier, one customer's bill and that customer's CO2 together; per-customer carbon on a page not confirmed.",
+   "next_step": "Check Explore against the four parts of the ask; build the missing per-customer CO2 view inside the Explore atoms, or close if he reads the 23 Oct pages as followable.",
+   "moved": "2026-10-24"
+  },
+  {
+   "id": "DIRECTOR_STEER_POPULATION_COVERAGE_DESIGN_2026-07-20",
+   "source": "docs/staging/done/DIRECTOR_STEER_POPULATION_COVERAGE_DESIGN_2026-07-20.md",
+   "asked": "2026-07-20",
+   "ask": "DIRECTOR STEER \u2014 Population coverage design: which N households span the space (2026-07-20)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_SEGMENTATION_LEARNING_VALUE_REFRAME_2026-07-20",
+   "source": "docs/staging/done/DIRECTOR_STEER_SEGMENTATION_LEARNING_VALUE_REFRAME_2026-07-20.md",
+   "asked": "2026-07-20",
+   "ask": "DIRECTOR STEER \u2014 Reframe the segmentation objective: LEARNING value, data-guided, not P&L weights (2026-07-20)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_UNPARK_TEST_THROUGHPUT_2026-07-20",
+   "source": "docs/staging/done/DIRECTOR_STEER_UNPARK_TEST_THROUGHPUT_2026-07-20.md",
+   "asked": "2026-07-20",
+   "ask": "DIRECTOR STEER \u2014 Un-park the test-throughput regime; scaling customers will re-raise the ceiling (2026-07-20)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_DIRECTIVE_KEEP_BUILDING_2026-07-21",
+   "source": "docs/staging/done/DIRECTOR_DIRECTIVE_KEEP_BUILDING_2026-07-21.md",
+   "asked": "2026-07-21",
+   "ask": "DIRECTOR DIRECTIVE \u2014 Keep building: drawable work exists; draw it, and advance the idle backlog (2026-07-21)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_FORWARD_DISCOVERY_REGISTER_2026-07-21",
+   "source": "docs/staging/done/DIRECTOR_STEER_FORWARD_DISCOVERY_REGISTER_2026-07-21.md",
+   "asked": "2026-07-21",
+   "ask": "DIRECTOR STEER \u2014 Thinking ahead, done right: kill W1_8, establish the forward-discovery register (2026-07-21)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_OVERNIGHT_PREFLIGHT_2026-07-22",
+   "source": "docs/staging/done/DIRECTOR_STEER_OVERNIGHT_PREFLIGHT_2026-07-22.md",
+   "asked": "2026-07-22",
+   "ask": "DIRECTOR STEER \u2014 Overnight pre-flight: verify the restarts, freeze the novelty, state the queue (2026-07-22)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_PHONE_AUTHORITY_CHANNEL_2026-07-22",
+   "source": "docs/staging/done/DIRECTOR_STEER_PHONE_AUTHORITY_CHANNEL_2026-07-22.md",
+   "asked": "2026-07-22",
+   "ask": "DIRECTOR STEER \u2014 End the console dependency: phone-native authority, plus F1 FRAME-open (2026-07-22)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_SELF_MEASUREMENT_AND_AXES_2026-07-22",
+   "source": "docs/staging/done/DIRECTOR_STEER_SELF_MEASUREMENT_AND_AXES_2026-07-22.md",
+   "asked": "2026-07-22",
+   "ask": "DIRECTOR STEER \u2014 Self-measurement, director axes, and the always-drawable lane (2026-07-22)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_TRIANGULATION_SITE_SEGMENTATION_2026-07-22",
+   "source": "docs/staging/done/DIRECTOR_STEER_TRIANGULATION_SITE_SEGMENTATION_2026-07-22.md",
+   "asked": "2026-07-22",
+   "ask": "DIRECTOR STEER \u2014 Triangulation extended: the website (Spec 005) and segmentation (Spec 006) (2026-07-22)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_TRIANGULATION_WEATHER_DEMAND_PRICE_2026-07-22",
+   "source": "docs/staging/done/DIRECTOR_STEER_TRIANGULATION_WEATHER_DEMAND_PRICE_2026-07-22.md",
+   "asked": "2026-07-22",
+   "ask": "DIRECTOR STEER \u2014 Extend the triangulation: weather, demand, and wholesale price FORMATION (2026-07-22)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_WHOLESALE_VALUE_CHAIN_2026-07-22",
+   "source": "docs/staging/done/DIRECTOR_STEER_WHOLESALE_VALUE_CHAIN_2026-07-22.md",
+   "asked": "2026-07-22",
+   "ask": "We still have really simplistic wholesale products. Really just a day or spot... The data needs to drive the actions we know are done to create value.",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-10-13",
+   "status": "partly",
+   "evidence": [
+    "docs/design/WHOLESALE_VALUE_CHAIN_FRAME.md (frame and discover done)",
+    "783f441c88 collateral death-test in the 2021-22 replay"
+   ],
+   "missing": "No product ladder, shaped annual cost or cover ledger in simulation/, company/ or saas/; map atoms B4, B5, B6 at level 0, idle. WVC_5 (tariff from the cost stack against the cap) has no atom.",
+   "next_step": "B4_traded_product_ladder carries it; confirm WVC_5 was dropped on purpose or mint it.",
+   "moved": "2026-10-24"
+  },
+  {
+   "id": "DIRECTOR_ADDENDUM_MODEL_ON_A_PAGE_DIAGRAM_2026-07-23",
+   "source": "docs/staging/done/DIRECTOR_ADDENDUM_MODEL_ON_A_PAGE_DIAGRAM_2026-07-23.md",
+   "asked": "2026-07-23",
+   "ask": "\u2014 MODEL-ON-A-PAGE DIAGRAM, ADD TO SITE (2026-07-23)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_AXIS1_SITE_VERDICT_ROWSCORED_2026-07-23",
+   "source": "docs/staging/done/DIRECTOR_AXIS1_SITE_VERDICT_ROWSCORED_2026-07-23.md",
+   "asked": "2026-07-23",
+   "ask": "paraphrase: five root causes -- registers are sources not surfaces, a real lay page, charts with proper grammar, a brand pass, no effort-as-outcomes.",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-10-13",
+   "status": "superseded",
+   "evidence": [
+    "9d22770952 forty redirects become two",
+    "site/test_front_door_brand.py",
+    "site/sitemap.xml lists seven pages and no /now /world or /proof"
+   ],
+   "moved": "2026-10-24",
+   "superseded_by": "the 17-18 Aug structure brief and programme ruling, and the 22-23 Oct front-door steers"
+  },
+  {
+   "id": "DIRECTOR_CAMPAIGN_SITE_MODEL_SPINE_2026-07-23",
+   "source": "docs/staging/done/DIRECTOR_CAMPAIGN_SITE_MODEL_SPINE_2026-07-23.md",
+   "asked": "2026-07-23",
+   "ask": "paraphrase: words to diagram to evidence; financials as per-customer rates, never totals; link integrity as a publish gate.",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-10-13",
+   "status": "partly",
+   "evidence": [
+    "site/assets/model-on-a-page.svg on the front door",
+    "site/test_moap_coherence.py",
+    "site/test_evidence_links_resolve.py"
+   ],
+   "missing": "The arrears-per-customer distribution is not emitted; the evidence pages behind the diagram's nodes were never built (SITE12 at level 0).",
+   "next_step": "SITE12 carries the evidence behind the nodes; the arrears distribution belongs to the payment-engine lane as an Explore figure.",
+   "moved": "2026-10-24"
+  },
+  {
+   "id": "DIRECTOR_R13_ENGAGEMENT_MIX_RATIFICATION_2026-07-23",
+   "source": "docs/staging/done/DIRECTOR_R13_ENGAGEMENT_MIX_RATIFICATION_2026-07-23.md",
+   "asked": "2026-07-23",
+   "ask": "Director R13 ratification \u2014 engagement mix (2026-07-23)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-07-23",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_CAMPAIGN_CONTINUATION_AND_SITE_VERDICT_2026-07-23",
+   "source": "docs/staging/done/DIRECTOR_RULING_CAMPAIGN_CONTINUATION_AND_SITE_VERDICT_2026-07-23.md",
+   "asked": "2026-07-23",
+   "ask": "IN PROGRESS (part 2 ABSORBED; parts 1 & 3 OPEN)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_DECISION_LINKAGE_PRECEDENCE_2026-07-23",
+   "source": "docs/staging/done/DIRECTOR_RULING_DECISION_LINKAGE_PRECEDENCE_2026-07-23.md",
+   "asked": "2026-07-23",
+   "ask": "\u2014 Decision-linkage gate: the 2026-07-22 ratification STANDS (precedence clarification, 2026-07-23)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_F1_WINDOW_WAIVED_2026-07-23",
+   "source": "docs/staging/done/DIRECTOR_RULING_F1_WINDOW_WAIVED_2026-07-23.md",
+   "asked": "2026-07-23",
+   "ask": "\u2014 F1 build window WAIVED: build now (2026-07-23)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-07-23",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_HMAC_GAP_OPTION_1_2026-07-23",
+   "source": "docs/staging/done/DIRECTOR_RULING_HMAC_GAP_OPTION_1_2026-07-23.md",
+   "asked": "2026-07-23",
+   "ask": "\u2014 HMAC forgery gap: OPTION 1. Strip the key from the worker spawn env now (2026-07-23)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-07-23",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_NIGHT_ENFORCEMENT_2026-07-23",
+   "source": "docs/staging/done/DIRECTOR_RULING_NIGHT_ENFORCEMENT_2026-07-23.md",
+   "asked": "2026-07-23",
+   "ask": "\u2014 Night enforcement: the hierarchy gets BUILT tonight; the seeds get MINTED tonight; the 07:00 note is pass/fail (2026-07-23)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_PRODUCT_FIRST_2026-07-23",
+   "source": "docs/staging/done/DIRECTOR_RULING_PRODUCT_FIRST_2026-07-23.md",
+   "asked": "2026-07-23",
+   "ask": "\u2014 PRODUCT FIRST: the productive-hours metric, and the re-rank (2026-07-23)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_R17_BREACH_AND_CLASS_FIX_2026-07-23",
+   "source": "docs/staging/done/DIRECTOR_RULING_R17_BREACH_AND_CLASS_FIX_2026-07-23.md",
+   "asked": "2026-07-23",
+   "ask": "\u2014 R17 breach declared; the rest-proof class fix; immediate work order (2026-07-23)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_SCENARIO_NONVETO_AND_PRODUCT_STATUS_2026-07-23",
+   "source": "docs/staging/done/DIRECTOR_RULING_SCENARIO_NONVETO_AND_PRODUCT_STATUS_2026-07-23.md",
+   "asked": "2026-07-23",
+   "ask": "\u2014 Scenario steer: window NOT vetoed + sequencing guard; and a product-status demand (2026-07-23)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_SITE_MODEL_SPINE_2026-07-23",
+   "source": "docs/staging/done/DIRECTOR_RULING_SITE_MODEL_SPINE_2026-07-23.md",
+   "asked": "2026-07-23",
+   "ask": "I don't take financials as useful at all. Certainly not totals from a random sample of customers.",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-10-13",
+   "status": "superseded",
+   "evidence": [
+    "docs/staging/done/DIRECTOR_RULING_FRONT_DOOR_STAYS_SIMPLE_AND_EXPLORATION_GOES_DEEPER_2026-10-09.md"
+   ],
+   "moved": "2026-10-24",
+   "superseded_by": "the 9 Oct ruling (the door stays a simple picture, depth goes to L2 sheets) for the navigation spine; the evidence-chart idea lives in SITE12"
+  },
+  {
+   "id": "DIRECTOR_RULING_SITE_REBUILD_V5_STRUCTURE_2026-07-23",
+   "source": "docs/staging/done/DIRECTOR_RULING_SITE_REBUILD_V5_STRUCTURE_2026-07-23.md",
+   "asked": "2026-07-23",
+   "ask": "paraphrase: five surfaces (front door, World, Company, Proof, ...), built one per phase in order.",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-10-13",
+   "status": "superseded",
+   "evidence": [
+    "69beeaa9de fold the nav to the director's five"
+   ],
+   "moved": "2026-10-24",
+   "superseded_by": "DIRECTOR_RULING_SITE_STRUCTURE_PROGRAMME_ACCEPTED_2026-08-18 (Home, Capabilities, Knowledge, Explore, How it's built)"
+  },
+  {
+   "id": "DIRECTOR_RULING_UNWEDGE_AND_AXIS3_2026-07-23",
+   "source": "docs/staging/done/DIRECTOR_RULING_UNWEDGE_AND_AXIS3_2026-07-23.md",
+   "asked": "2026-07-23",
+   "ask": "\u2014 Unwedge the publish gate (R16 class); axis-3 weather verdicts RATIFIED; sequencing (2026-07-23)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_UNWEDGE_PUBLISH_PRIORITY_ZERO_2026-07-23",
+   "source": "docs/staging/done/DIRECTOR_RULING_UNWEDGE_PUBLISH_PRIORITY_ZERO_2026-07-23.md",
+   "asked": "2026-07-23",
+   "ask": "\u2014 Publish gate wedged 3.5h and escalating: PRIORITY ZERO. Diagnose, fix, republish, prove live. (2026-07-23)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_WORDS_DIAGRAM_EVIDENCE_2026-07-23",
+   "source": "docs/staging/done/DIRECTOR_RULING_WORDS_DIAGRAM_EVIDENCE_2026-07-23.md",
+   "asked": "2026-07-23",
+   "ask": "\u2014 Site round 2 verdicts: financials re-grounded; link integrity; WORDS \u2192 DIAGRAM \u2192 EVIDENCE as the organising principle (2026-07-23)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_WORK_IS_THE_DEFAULT_2026-07-23",
+   "source": "docs/staging/done/DIRECTOR_RULING_WORK_IS_THE_DEFAULT_2026-07-23.md",
+   "asked": "2026-07-23",
+   "ask": "IN PROGRESS (rungs 2 + 4 ABSORBED + seeds MINTED; rungs 5/7 OPEN)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_SEGMENTS_REVIEW_VERDICTS_2026-07-23",
+   "source": "docs/staging/done/DIRECTOR_SEGMENTS_REVIEW_VERDICTS_2026-07-23.md",
+   "asked": "2026-07-23",
+   "ask": "Director segments-review verdicts \u2014 coupling hypotheses, prepayment estate, two new atoms (2026-07-23)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_SCENARIO_SPINE_AND_TRADING_FRICTION_2026-07-23",
+   "source": "docs/staging/done/DIRECTOR_STEER_SCENARIO_SPINE_AND_TRADING_FRICTION_2026-07-23.md",
+   "asked": "2026-07-23",
+   "ask": "paraphrase: a scenario spine for named worlds; gas as a trend plus a short-run part; trading friction priced.",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-10-13",
+   "status": "partly",
+   "evidence": [
+    "90cd95039e spine bound to run rotation",
+    "18c3ecb8cc a run past the record lives through a named world"
+   ],
+   "missing": "Storage-driven gas (SPINE_3_gas_storage_crisis_regime, level 0) and trading friction (no friction term in company/trading) are unbuilt; the curriculum worlds crisis_2021_22 and supply_glut are unratified.",
+   "next_step": "SPINE_3 and B6_collateral_cash_death_loop as a coupled pair; the curriculum world values are his (G9) and go to him with a recommendation when the pair can use them.",
+   "moved": "2026-10-24"
+  },
+  {
+   "id": "DIRECTOR_STEER_WEATHER_SIM_PURPOSE_2026-07-23",
+   "source": "docs/staging/done/DIRECTOR_STEER_WEATHER_SIM_PURPOSE_2026-07-23.md",
+   "asked": "2026-07-23",
+   "ask": "DIRECTOR STEER \u2014 Weather simulation: purpose, variable selection order, forecast layer (2026-07-23)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_CANONICAL_DOOR_A_COMMIT_THE_FOLD_2026-07-24",
+   "source": "docs/staging/done/DIRECTOR_RULING_CANONICAL_DOOR_A_COMMIT_THE_FOLD_2026-07-24.md",
+   "asked": "2026-07-24",
+   "ask": "\u2014 Decision A: COMMIT THE FOLD. Canonical doors confirmed; fix every link in one pass. (2026-07-24)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_FRONT_MISSION_BLOCK_2026-07-24",
+   "source": "docs/staging/done/DIRECTOR_RULING_FRONT_MISSION_BLOCK_2026-07-24.md",
+   "asked": "2026-07-24",
+   "ask": "\u2014 The front carries the MISSION, not the cost-arbitrage leg (2026-07-24)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_HEARTBEAT_AND_QUIET_CLASSIFICATION_2026-07-24",
+   "source": "docs/staging/done/DIRECTOR_RULING_HEARTBEAT_AND_QUIET_CLASSIFICATION_2026-07-24.md",
+   "asked": "2026-07-24",
+   "ask": "\u2014 Rail-3 heartbeat: ship it where promised; classify the current quiet; planner-rung status (2026-07-24)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_IDEA_FIRST_EXTERNAL_REGISTER_2026-07-24",
+   "source": "docs/staging/done/DIRECTOR_RULING_IDEA_FIRST_EXTERNAL_REGISTER_2026-07-24.md",
+   "asked": "2026-07-24",
+   "ask": "\u2014 IDEA FIRST, EXTERNAL REGISTER: no headline financials at this stage; the diagram's stages visible in plain outside language (2026-07-24)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_PLANNER_MINT_WAIVED_2026-07-24",
+   "source": "docs/staging/done/DIRECTOR_RULING_PLANNER_MINT_WAIVED_2026-07-24.md",
+   "asked": "2026-07-24",
+   "ask": "\u2014 First planner mint: ALL FIVE WINDOWS WAIVED. Proceed now. (2026-07-24)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-07-24",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_RETIRE_PAGE_COMMENT_CHANNEL_2026-07-24",
+   "source": "docs/staging/done/DIRECTOR_RULING_RETIRE_PAGE_COMMENT_CHANNEL_2026-07-24.md",
+   "asked": "2026-07-24",
+   "ask": "\u2014 Page-comment authority path: RETIRE (2026-07-24)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_WEDGE3_AND_RUNG1_MECHANISE_2026-07-24",
+   "source": "docs/staging/done/DIRECTOR_RULING_WEDGE3_AND_RUNG1_MECHANISE_2026-07-24.md",
+   "asked": "2026-07-24",
+   "ask": "\u2014 Wedge #3: unwedge NOW, and the rung-1 rule gets MECHANISED this time (2026-07-24)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_SECURITY_COMMENT_CHANNEL_INCIDENT_2026-07-24",
+   "source": "docs/staging/done/DIRECTOR_SECURITY_COMMENT_CHANNEL_INCIDENT_2026-07-24.md",
+   "asked": "2026-07-24",
+   "ask": "\u2014 Comment channel: director DENIES authorship of the 10:22Z comment. Treat as unauthorized-input incident. LOCK FIRST. (2026-07-24)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_GENERATOR_ACTIVATION_AND_RUN_LEDGER_2026-07-25",
+   "source": "docs/staging/done/DIRECTOR_RULING_GENERATOR_ACTIVATION_AND_RUN_LEDGER_2026-07-25.md",
+   "asked": "2026-07-25",
+   "ask": "\u2014 Generator population ACTIVATED (R13); run rotation, run ledger, and the three separated scores (2026-07-25)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_MC2_REAL_HISTORY_NOT_DIFFICULTY_2026-07-25",
+   "source": "docs/staging/done/DIRECTOR_RULING_MC2_REAL_HISTORY_NOT_DIFFICULTY_2026-07-25.md",
+   "asked": "2026-07-25",
+   "ask": "\u2014 MC-2: no difficulty knob. Real 2021\u201322 history is the test; breaking-strain sweep around it. Facility sizing is a defect, not a dial. (2026-07-25)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_PAYMENT_DETECTION_CARVE_OUT_2026-07-25",
+   "source": "docs/staging/done/DIRECTOR_RULING_PAYMENT_DETECTION_CARVE_OUT_2026-07-25.md",
+   "asked": "2026-07-25",
+   "ask": "\u2014 Payment-failure detection: irreducibility REJECTED; narrow sensing carve-out AUTHORIZED; dunning/debt/provisioning RESERVED to a director session (2026-07-25)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_POPULATION_ACTIVATION_AND_RUN_LEDGER_2026-07-25",
+   "source": "docs/staging/done/DIRECTOR_RULING_POPULATION_ACTIVATION_AND_RUN_LEDGER_2026-07-25.md",
+   "asked": "2026-07-25",
+   "ask": "\u2014 Generator population ACTIVATED; run rotation, run manifest and the three separated scores (2026-07-25)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_SSP_BASELINE_HELD_MERIT_ORDER_FIRST_2026-07-25",
+   "source": "docs/staging/done/DIRECTOR_RULING_SSP_BASELINE_HELD_MERIT_ORDER_FIRST_2026-07-25.md",
+   "asked": "2026-07-25",
+   "ask": "\u2014 SSP baseline recalibration HELD. The real fix is merit-order reconstruction, not coefficient recalibration. (2026-07-25)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_DD_SEASONAL_CASHFLOW_2026-07-25",
+   "source": "docs/staging/done/DIRECTOR_STEER_DD_SEASONAL_CASHFLOW_2026-07-25.md",
+   "asked": "2026-07-25",
+   "ask": "\u2014 Per-customer DD cash flow: the seasonal credit cycle, and why growth timing is a solvency mechanism (2026-07-25)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_DUNNING_DEBT_PROVISIONING_2026-07-25",
+   "source": "docs/staging/done/DIRECTOR_STEER_DUNNING_DEBT_PROVISIONING_2026-07-25.md",
+   "asked": "2026-07-25",
+   "ask": "paraphrase: replace the flat revenue-haircut provision with a reconciled expected-loss method.",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-10-13",
+   "status": "partly",
+   "evidence": [
+    "83c440ceb5 payment and debt as one engine on a forward cash forecast (11 Oct)",
+    "cd61370db3 and ce8d3935f2 the collections desk ladder",
+    "2410634aef forward crisis provision overlay",
+    "site/knowledge/bad-debt-provisioning"
+   ],
+   "missing": "The flat per-band haircut is still what the ledger books (saas/ledger.py:528 calls payment_behaviour.bad_debt_provision_gbp).",
+   "next_step": "An atom in the payment-engine lane that replaces the haircut with the engine's expected loss, citing this document's s1 F1.",
+   "moved": "2026-10-24"
+  },
+  {
+   "id": "DIRECTOR_RULING_COHORT_ASSIGNMENT_ACTIVATED_2026-07-27",
+   "source": "docs/staging/done/DIRECTOR_RULING_COHORT_ASSIGNMENT_ACTIVATED_2026-07-27.md",
+   "asked": "2026-07-27",
+   "ask": "\u2014 R13: cohort assignment ACTIVATED for the pool. The world gets variety; the book still cannot. (2026-07-27)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_EIGHTH_CLASS_PENDING_BATCH_DEADLOCK_2026-07-27",
+   "source": "docs/staging/done/DIRECTOR_RULING_EIGHTH_CLASS_PENDING_BATCH_DEADLOCK_2026-07-27.md",
+   "asked": "2026-07-27",
+   "ask": "\u2014 EIGHTH CLASS: the pending-batch deadlock. 42 hours of rest declared legitimate while mints sat open. (2026-07-27)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_FAILURE_BIAS_LAWS_2026-07-27",
+   "source": "docs/staging/done/DIRECTOR_RULING_FAILURE_BIAS_LAWS_2026-07-27.md",
+   "asked": "2026-07-27",
+   "ask": "\u2014 Three failure-bias laws, and the suppression audit. Why one held assumption stopped everything. (2026-07-27)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_HARNESS_EXIT_CRITERION_RATIFIED_2026-07-27",
+   "source": "docs/staging/done/DIRECTOR_RULING_HARNESS_EXIT_CRITERION_RATIFIED_2026-07-27.md",
+   "asked": "2026-07-27",
+   "ask": "\u2014 Harness exit criterion RATIFIED. N=3. Two decisions attached, one problem returned. (2026-07-27)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_HARNESS_INVESTMENT_AND_ITS_EVIDENCE_2026-07-27",
+   "source": "docs/staging/done/DIRECTOR_RULING_HARNESS_INVESTMENT_AND_ITS_EVIDENCE_2026-07-27.md",
+   "asked": "2026-07-27",
+   "ask": "\u2014 Harness investment CONTINUES; it must terminate on evidence. Two problems to solve, mechanisms yours. (2026-07-27)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_POOL_VS_BOOK_LAMBDA_STANDS_2026-07-27",
+   "source": "docs/staging/done/DIRECTOR_RULING_POOL_VS_BOOK_LAMBDA_STANDS_2026-07-27.md",
+   "asked": "2026-07-27",
+   "ask": "\u2014 N=200 is the COVERAGE DRAW; \u03bb=1.0 STANDS as the real book. The book is earned, never granted. (2026-07-27)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_SWEEP_VERDICT_AND_SEQUENCE_2026-07-27",
+   "source": "docs/staging/done/DIRECTOR_RULING_SWEEP_VERDICT_AND_SEQUENCE_2026-07-27.md",
+   "asked": "2026-07-27",
+   "ask": "\u2014 Suppression sweep accepted. Close the registration hole; Law C first; merit-order is the next product draw. (2026-07-27)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_WORK_DEFINITION_AND_COHERENCE_2026-07-27",
+   "source": "docs/staging/done/DIRECTOR_RULING_WORK_DEFINITION_AND_COHERENCE_2026-07-27.md",
+   "asked": "2026-07-27",
+   "ask": "\u2014 Work definition and coherence: rulings must create atoms; model, diagram, site and map must DERIVE from one truth (2026-07-27)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_BLOCKED_MINT_BATCH_2026-07-28",
+   "source": "docs/staging/done/DIRECTOR_RULING_BLOCKED_MINT_BATCH_2026-07-28.md",
+   "asked": "2026-07-28",
+   "ask": "\u2014 Blocked-mint batch release, and the ruling-vs-ledger mismatch (2026-07-28)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_CONSUMPTION_AUTHORITY_SEAM_SIGNOFF_2026-07-28",
+   "source": "docs/staging/done/DIRECTOR_RULING_CONSUMPTION_AUTHORITY_SEAM_SIGNOFF_2026-07-28.md",
+   "asked": "2026-07-28",
+   "ask": "Ruling-consumption authority seam \u2014 signoff (ruling_consumption_authority_seam_signoff)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_GAP_TRIAGE_RATIFIED_2026-07-28",
+   "source": "docs/staging/done/DIRECTOR_RULING_GAP_TRIAGE_RATIFIED_2026-07-28.md",
+   "asked": "2026-07-28",
+   "ask": "\u2014 GAP2 triage method RATIFIED, with one amendment and two questions. GAP1 BUILD half OPENED. (2026-07-28)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_KPILOT_DECOMPOSITION_2026-07-28",
+   "source": "docs/staging/done/DIRECTOR_RULING_KPILOT_DECOMPOSITION_2026-07-28.md",
+   "asked": "2026-07-28",
+   "ask": "\u2014 The DECOMPOSITION is the deliverable. Gas and electricity are separate topics. A gap list is not a page. (2026-07-28)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_KPILOT_SCOPE_FIRST_2026-07-28",
+   "source": "docs/staging/done/DIRECTOR_RULING_KPILOT_SCOPE_FIRST_2026-07-28.md",
+   "asked": "2026-07-28",
+   "ask": "\u2014 K-pilot verdict: SCOPE-FIRST replaces assembly-first. The brief was the fault. (2026-07-28)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_NO_QUESTION_LEFT_UNANSWERED_2026-07-28",
+   "source": "docs/staging/done/DIRECTOR_RULING_NO_QUESTION_LEFT_UNANSWERED_2026-07-28.md",
+   "asked": "2026-07-28",
+   "ask": "\u2014 No question left unanswered. A question is a first-class open item. (2026-07-28)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_PUBLISHED_GAPS_ARE_THE_BACKLOG_2026-07-28",
+   "source": "docs/staging/done/DIRECTOR_RULING_PUBLISHED_GAPS_ARE_THE_BACKLOG_2026-07-28.md",
+   "asked": "2026-07-28",
+   "ask": "\u2014 The published gaps ARE the backlog. Saturation was a bookkeeping artifact. (2026-07-28)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_SHARED_PRIMITIVES_AND_CODE_STANDARDS_2026-07-28",
+   "source": "docs/staging/done/DIRECTOR_RULING_SHARED_PRIMITIVES_AND_CODE_STANDARDS_2026-07-28.md",
+   "asked": "2026-07-28",
+   "ask": "\u2014 Shared primitives, code standards, and making \"should this have been shared?\" an ensuring activity (2026-07-28)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_UNBLOCK_BATCH_2026-07-28",
+   "source": "docs/staging/done/DIRECTOR_RULING_UNBLOCK_BATCH_2026-07-28.md",
+   "asked": "2026-07-28",
+   "ask": "\u2014 Unblock batch: merit-order, cohort level-up, exit-criterion counter (2026-07-28)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "canon_s15_owed_8_float_against_decimal",
+   "source": "docs/design/DIRECTOR_CANON.md s15 owed 8",
+   "asked": "2026-07-28",
+   "ask": "Money representation, float against Decimal: a recommendation with evidence.",
+   "state": "open",
+   "last_commit": null,
+   "status": "partly",
+   "evidence": [
+    "docs/design/MONEY_REPRESENTATION_EVIDENCE.md (28 Jul; it recommends)",
+    "3e14e6495e every printed bill re-adds (boundary reconciliation at level 3)"
+   ],
+   "missing": "The recommendation has never been put to him; no for_the_director row names it, and the evidence page predates the boundary-reconciliation work.",
+   "next_step": "Bring the evidence page up to date with the boundary work and raise it with a recommendation.",
+   "moved": "2026-10-24"
+  },
+  {
+   "id": "DIRECTOR_QUESTION_WHY_INVISIBLE_WORK_2026-07-29",
+   "source": "docs/staging/done/DIRECTOR_QUESTION_WHY_INVISIBLE_WORK_2026-07-29.md",
+   "asked": "2026-07-29",
+   "ask": "\u2014 How did 31 pieces of work stay invisible through all of it? (2026-07-29)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_CA_PROMOTION_BATCH_RATIFIED_2026-07-29",
+   "source": "docs/staging/done/DIRECTOR_RULING_CA_PROMOTION_BATCH_RATIFIED_2026-07-29.md",
+   "asked": "2026-07-29",
+   "ask": "\u2014 CA cohort promotion batch: RATIFIED (2026-07-29)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_FIX_DOUBLE_MESSAGING_2026-07-29",
+   "source": "docs/staging/done/DIRECTOR_RULING_FIX_DOUBLE_MESSAGING_2026-07-29.md",
+   "asked": "2026-07-29",
+   "ask": "\u2014 Fix the double-messaging. Twice is once too many. (2026-07-29)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_LITERAL_ACTS_2026-07-29",
+   "source": "docs/staging/done/DIRECTOR_RULING_LITERAL_ACTS_2026-07-29.md",
+   "asked": "2026-07-29",
+   "ask": "\u2014 Give me the literal acts. Stop describing blocks; emit executable text. (2026-07-29)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_LITERAL_ACT_LIST_2026-07-29",
+   "source": "docs/staging/done/DIRECTOR_RULING_LITERAL_ACT_LIST_2026-07-29.md",
+   "asked": "2026-07-29",
+   "ask": "\u2014 Give us the LITERAL act. One executable list, for all blocked items. (2026-07-29)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_MOTHBALL_THE_APPARATUS_2026-07-29",
+   "source": "docs/staging/done/DIRECTOR_RULING_MOTHBALL_THE_APPARATUS_2026-07-29.md",
+   "asked": "2026-07-29",
+   "ask": "Default: mothball it. The burden of proof is on KEEPING, not on removing.",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-10-13",
+   "status": "partly",
+   "evidence": [
+    "tests/background/test_gate_authorization.py::test_the_permission_surface_is_gone",
+    "background/one_way_door.py RESERVED_CATEGORIES (G5)",
+    "565bd6303b NTFY mothballed",
+    "dd215eda36 Qwen queue retired"
+   ],
+   "missing": "Rows of docs/design/MOTHBALL_2026-07-29.md still read 'verdict recorded' rather than executed; background/supervisor.py still carries _rule0_harden_draw.",
+   "next_step": "Walk the audit's remaining rows and mark each executed or consciously kept, with the reason.",
+   "moved": "2026-10-24"
+  },
+  {
+   "id": "DIRECTOR_RULING_NTFY_IS_THE_DIRECTOR_2026-07-29",
+   "source": "docs/staging/done/DIRECTOR_RULING_NTFY_IS_THE_DIRECTOR_2026-07-29.md",
+   "asked": "2026-07-29",
+   "ask": "\u2014 NTFY IS THE DIRECTOR. No signatures. This is a simulation, not a nuclear facility. (2026-07-29)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_PHONE_SIGNER_NO_CONSOLE_2026-07-29",
+   "source": "docs/staging/done/DIRECTOR_RULING_PHONE_SIGNER_NO_CONSOLE_2026-07-29.md",
+   "asked": "2026-07-29",
+   "ask": "\u2014 Phone-signer setup, delivered as a DOCUMENT not a console session. And: console is the last resort. (2026-07-29)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_RIP_OUT_PERMISSION_MACHINERY_2026-07-29",
+   "source": "docs/staging/done/DIRECTOR_RULING_RIP_OUT_PERMISSION_MACHINERY_2026-07-29.md",
+   "asked": "2026-07-29",
+   "ask": "\u2014 Rip out the permission machinery. Tonight. (2026-07-29)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_ROTATE_SIGNING_KEY_2026-07-29",
+   "source": "docs/staging/done/DIRECTOR_RULING_ROTATE_SIGNING_KEY_2026-07-29.md",
+   "asked": "2026-07-29",
+   "ask": "\u2014 Answer: NO, regenerate. Premise correction accepted; the escalation was right. (2026-07-29)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_SIGNING_KEY_NEVER_PROVISIONED_2026-07-29",
+   "source": "docs/staging/done/DIRECTOR_RULING_SIGNING_KEY_NEVER_PROVISIONED_2026-07-29.md",
+   "asked": "2026-07-29",
+   "ask": "\u2014 The signing key was never provisioned. Prepare everything; give the director ONE command. (2026-07-29)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_WORK_AT_RISK_DEFAULT_2026-07-29",
+   "source": "docs/staging/done/DIRECTOR_RULING_WORK_AT_RISK_DEFAULT_2026-07-29.md",
+   "asked": "2026-07-29",
+   "ask": "\u2014 WORK AT RISK is the default. Re-scope the reserved set by reversibility, not by category. (2026-07-29)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_WARNING_QUIET_BUSYWORK_2026-07-29",
+   "source": "docs/staging/done/DIRECTOR_WARNING_QUIET_BUSYWORK_2026-07-29.md",
+   "asked": "2026-07-29",
+   "ask": "\u2014 Warning: you have swapped one kind of busywork for another. Course-correct now. (2026-07-29)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_PROGRAMME_ARCHITECTED_OUT_2026-08-05",
+   "source": "docs/staging/done/DIRECTOR_PROGRAMME_ARCHITECTED_OUT_2026-08-05.md",
+   "asked": "2026-08-05",
+   "ask": "\u2014 Architected out, organic in (2026-08-05)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_H_LANE_CUT_AND_PLAIN_NAMING_2026-08-05",
+   "source": "docs/staging/done/DIRECTOR_RULING_H_LANE_CUT_AND_PLAIN_NAMING_2026-08-05.md",
+   "asked": "2026-08-05",
+   "ask": "\u2014 H-lane cut + plain-words naming law (2026-08-05)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_INFRASTRUCTURE_POSTURE_2026-08-07",
+   "source": "docs/staging/done/DIRECTOR_RULING_INFRASTRUCTURE_POSTURE_2026-08-07.md",
+   "asked": "2026-08-07",
+   "ask": "\u2014 Infrastructure posture: seat, standby, scale (2026-08-07)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_TRAFFIC_FORECAST_AND_DEEPENING_REGISTER_2026-08-07",
+   "source": "docs/staging/done/DIRECTOR_RULING_TRAFFIC_FORECAST_AND_DEEPENING_REGISTER_2026-08-07.md",
+   "asked": "2026-08-07",
+   "ask": "\u2014 Traffic forecast + deepening register (2026-08-07)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_PRIORITY_SIM_RUNNER_TRIAGE_2026-08-08",
+   "source": "docs/staging/done/DIRECTOR_PRIORITY_SIM_RUNNER_TRIAGE_2026-08-08.md",
+   "asked": "2026-08-08",
+   "ask": "\u2014 Sim-runner red loop: triage first (2026-08-08)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-08-08",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_PRIORITY_UNWEDGE_AND_ALARM_TEETH_2026-08-08",
+   "source": "docs/staging/done/DIRECTOR_PRIORITY_UNWEDGE_AND_ALARM_TEETH_2026-08-08.md",
+   "asked": "2026-08-08",
+   "ask": "\u2014 Unwedge publish, then give alarms memory and teeth (2026-08-08)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_FUTURE_COMMITMENT_SETS_2026-08-08",
+   "source": "docs/staging/done/DIRECTOR_RULING_FUTURE_COMMITMENT_SETS_2026-08-08.md",
+   "asked": "2026-08-08",
+   "ask": "\u2014 The futures go on the map (2026-08-08)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_INSTRUCTION_PROCEED_WITH_VETO_PAIR_2026-08-09",
+   "source": "docs/staging/done/DIRECTOR_INSTRUCTION_PROCEED_WITH_VETO_PAIR_2026-08-09.md",
+   "asked": "2026-08-09",
+   "ask": "\u2014 Two items, proceed-with-veto (2026-08-09)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_PRIORITY_EPISODE4_TRIPWIRE_AND_RETRY_2026-08-09",
+   "source": "docs/staging/done/DIRECTOR_PRIORITY_EPISODE4_TRIPWIRE_AND_RETRY_2026-08-09.md",
+   "asked": "2026-08-09",
+   "ask": "\u2014 Episode 4: two measured causes, draw both before anything else (2026-08-09)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-08-10",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_HOOK_BYPASS_AND_SURGICAL_LANDING_2026-08-09",
+   "source": "docs/staging/done/DIRECTOR_RULING_HOOK_BYPASS_AND_SURGICAL_LANDING_2026-08-09.md",
+   "asked": "2026-08-09",
+   "ask": "\u2014 Hook-bypass is a wall; surgical landings get a tool (2026-08-09)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-08-09",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_HOOK_BYPASS_IS_A_WALL_2026-08-09",
+   "source": "docs/staging/done/DIRECTOR_RULING_HOOK_BYPASS_IS_A_WALL_2026-08-09.md",
+   "asked": "2026-08-09",
+   "ask": "Hook-bypass is a WALL \u2014 and the class gets closed by a tool",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_PUBLISH_GATE_SUBJECT_2026-08-09",
+   "source": "docs/staging/done/DIRECTOR_RULING_PUBLISH_GATE_SUBJECT_2026-08-09.md",
+   "asked": "2026-08-09",
+   "ask": "\u2014 The publish gate's subject is committed truth (2026-08-09)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_SECOND_PUBLISH_WEDGE_2026-08-09",
+   "source": "docs/staging/done/DIRECTOR_STEER_SECOND_PUBLISH_WEDGE_2026-08-09.md",
+   "asked": "2026-08-09",
+   "ask": "\u2014 After the second publish wedge (2026-08-09)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_TASK_NO_CALLER_CLASS_CENSUS_2026-08-09",
+   "source": "docs/staging/done/DIRECTOR_TASK_NO_CALLER_CLASS_CENSUS_2026-08-09.md",
+   "asked": "2026-08-09",
+   "ask": "\u2014 The no-caller class: count it, name it, one page (2026-08-09)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_INSTRUCTION_QUERYABLE_PROJECTIONS_2026-08-10",
+   "source": "docs/staging/done/DIRECTOR_INSTRUCTION_QUERYABLE_PROJECTIONS_2026-08-10.md",
+   "asked": "2026-08-10",
+   "ask": "paraphrase: a queryable projection store (G12) and a proof-of-caller (G13).",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-10-13",
+   "status": "shipped",
+   "evidence": [
+    "c9430c326e G13's proof-of-caller landed and wired (19 Aug)",
+    "tools/lab_query.py",
+    "tests/tools/test_lab_query.py"
+   ],
+   "moved": "2026-10-24"
+  },
+  {
+   "id": "DIRECTOR_NOTE_SUSPECT_LIST_REDERIVATION_2026-08-10",
+   "source": "docs/staging/done/DIRECTOR_NOTE_SUSPECT_LIST_REDERIVATION_2026-08-10.md",
+   "asked": "2026-08-10",
+   "ask": "\u2014 Ratified: mint the suspect-list re-derivation (2026-08-10)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-08-10",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_NOTE_UNBLOCK_CHARTS_2026-08-10",
+   "source": "docs/staging/done/DIRECTOR_NOTE_UNBLOCK_CHARTS_2026-08-10.md",
+   "asked": "2026-08-10",
+   "ask": "\u2014 Unblock the charts mint (2026-08-10)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_PRIORITY_BACKLOG_TRIAGE_AND_INTERLEAVE_2026-08-10",
+   "source": "docs/staging/done/DIRECTOR_PRIORITY_BACKLOG_TRIAGE_AND_INTERLEAVE_2026-08-10.md",
+   "asked": "2026-08-10",
+   "ask": "\u2014 Backlog triage: the whole root, classified; drain to <20 then auto-arm the product interleave (2026-08-10)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_PRIORITY_BUILD_THE_BREATHING_2026-08-10",
+   "source": "docs/staging/done/DIRECTOR_PRIORITY_BUILD_THE_BREATHING_2026-08-10.md",
+   "asked": "2026-08-10",
+   "ask": "\u2014 Build the breathing NOW: stop winning wedges, change the game (2026-08-10)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_PRIORITY_ENUMERATE_THE_STACK_2026-08-10",
+   "source": "docs/staging/done/DIRECTOR_PRIORITY_ENUMERATE_THE_STACK_2026-08-10.md",
+   "asked": "2026-08-10",
+   "ask": "\u2014 Enumerate the whole stack: one no-x run, one batch fix (2026-08-10)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_PRIORITY_MEMORY_CLEANSE_2026-08-10",
+   "source": "docs/staging/done/DIRECTOR_PRIORITY_MEMORY_CLEANSE_2026-08-10.md",
+   "asked": "2026-08-10",
+   "ask": "\u2014 Memory cleanse: reclaim the 6GB tonight, govern the rest (2026-08-10)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_PRIORITY_PUBLISH_FIRST_2026-08-10",
+   "source": "docs/staging/done/DIRECTOR_PRIORITY_PUBLISH_FIRST_2026-08-10.md",
+   "asked": "2026-08-10",
+   "ask": "\u2014 Publish first: three draws, in order, before any feature work (2026-08-10)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-08-10",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_PUBLISH_DECOUPLING_2026-08-10",
+   "source": "docs/staging/done/DIRECTOR_RULING_PUBLISH_DECOUPLING_2026-08-10.md",
+   "asked": "2026-08-10",
+   "ask": "\u2014 The site breathes: publish freshness decoupled from HEAD perfection (2026-08-10)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_POPULATION_AND_BOOK_GROWTH_2026-08-11",
+   "source": "docs/staging/done/DIRECTOR_RULING_POPULATION_AND_BOOK_GROWTH_2026-08-11.md",
+   "asked": "2026-08-11",
+   "ask": "\u2014 Grow the world first, then win a book out of it (2026-08-11)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_OBSERVATION_PUBLISHED_SURFACE_NAV_AND_STAMPS_2026-08-12",
+   "source": "docs/staging/done/DIRECTOR_OBSERVATION_PUBLISHED_SURFACE_NAV_AND_STAMPS_2026-08-12.md",
+   "asked": "2026-08-12",
+   "ask": "DIRECTOR OBSERVATION \u2014 PUBLISHED SURFACE, THREE ITEMS",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12",
+   "source": "docs/staging/done/DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12.md",
+   "asked": "2026-08-12",
+   "ask": "\u2014 Findings get severity; severity gates progress; blockers jump the queue (2026-08-12)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_THE_PORTAL_IS_A_WALL_EXHIBIT_2026-08-12",
+   "source": "docs/staging/done/DIRECTOR_RULING_THE_PORTAL_IS_A_WALL_EXHIBIT_2026-08-12.md",
+   "asked": "2026-08-12",
+   "ask": "DIRECTOR RULING \u2014 the household page is a wall exhibit, and its bill drops the line that explains itself",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_DECISION_PENDING_RATE_REBASELINE_AND_SPLIT_APPROVAL_2026-08-14",
+   "source": "docs/staging/done/DIRECTOR_DECISION_PENDING_RATE_REBASELINE_AND_SPLIT_APPROVAL_2026-08-14.md",
+   "asked": "2026-08-14",
+   "ask": "Yes to splitting the test file; three verified 2025/26 rates (RO, electricity CCL, gas CCL) wait for his go.",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-10-13",
+   "status": "shipped",
+   "evidence": [
+    "simulation/policy_costs.py (2025/26 landed 2026-08-18)",
+    "7549b0a095 the two Low Carbon tables as two sourced facts"
+   ],
+   "moved": "2026-10-24"
+  },
+  {
+   "id": "DIRECTOR_BRIEF_WEBSITE_STRUCTURE_2026-08-17",
+   "source": "docs/staging/done/DIRECTOR_BRIEF_WEBSITE_STRUCTURE_2026-08-17.md",
+   "asked": "2026-08-17",
+   "ask": "paraphrase: Home, Capabilities, Knowledge, Explore, How it's built; dissolve /proof; publish the director record only after a stranger's read.",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-10-13",
+   "status": "partly",
+   "evidence": [
+    "site/ia_register.py",
+    "the five tabs on disk",
+    "/proof gone"
+   ],
+   "missing": "The director-record page (site/director/) is unbuilt; SITE12 (evidence a reader can use) is unbuilt; the map still grades SITE6, SITE9 and SITE11 at 0 although they are visibly live.",
+   "next_step": "Re-grade SITE6, SITE8, SITE9, SITE11 and SITE12 against the disk; SITE12 carries the open part.",
+   "moved": "2026-10-24"
+  },
+  {
+   "id": "DIRECTOR_RULING_SITE_STRUCTURE_PROGRAMME_ACCEPTED_2026-08-18",
+   "source": "docs/staging/done/DIRECTOR_RULING_SITE_STRUCTURE_PROGRAMME_ACCEPTED_2026-08-18.md",
+   "asked": "2026-08-18",
+   "ask": "\u2014 The website structure programme is accepted (2026-08-18)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_INSTRUCTION_PASS_CEILING_AND_EP1_EP6_PROMOTION_2026-08-19",
+   "source": "docs/staging/done/DIRECTOR_INSTRUCTION_PASS_CEILING_AND_EP1_EP6_PROMOTION_2026-08-19.md",
+   "asked": "2026-08-19",
+   "ask": "Director instruction, 2026-08-19 \u2014 build the pass ceiling; move EP1 and EP6 to build",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-08-26",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_GUIDANCE_THE_WORLD_MUST_PRESS_2026-08-28",
+   "source": "docs/staging/done/DIRECTOR_GUIDANCE_THE_WORLD_MUST_PRESS_2026-08-28.md",
+   "asked": "2026-08-28",
+   "ask": "\u2014 The world must press: canon corrections and the problem inventory (2026-08-28)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_BRIEF_CHOICE_AND_CHANNEL_2026-08-30",
+   "source": "docs/staging/done/DIRECTOR_BRIEF_CHOICE_AND_CHANNEL_2026-08-30.md",
+   "asked": "2026-08-30",
+   "ask": "\u2014 Choice and channel: the missing mechanic (2026-08-30)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_BRIEF_INDEPENDENT_BILL_VALIDATION_2026-09-02",
+   "source": "docs/staging/done/DIRECTOR_BRIEF_INDEPENDENT_BILL_VALIDATION_2026-09-02.md",
+   "asked": "2026-09-02",
+   "ask": "\u2014 Independent bill validation behind a curtain (2026-09-02)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_AMENDMENT_MERIT_ORDER_PEOPLE_PHASES_AND_PRACTICE_BOOKS_2026-09-05",
+   "source": "docs/staging/done/DIRECTOR_RULING_AMENDMENT_MERIT_ORDER_PEOPLE_PHASES_AND_PRACTICE_BOOKS_2026-09-05.md",
+   "asked": "2026-09-05",
+   "ask": "[ADVISOR-STAGED] Amendment: the merit order re-cuts the people phases, and four practice books (2026-09-05)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_HOUSING_VALUE_CEILING_AND_SAMPLE_PHASE1_2026-09-05",
+   "source": "docs/staging/done/DIRECTOR_RULING_HOUSING_VALUE_CEILING_AND_SAMPLE_PHASE1_2026-09-05.md",
+   "asked": "2026-09-05",
+   "ask": "[ADVISOR-STAGED] Housing modelling and segmentation \u2014 phase 1 of 3: the houses, the sample, the ceiling (2026-09-05)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_JULY_STEERS_RECONCILED_AND_PARKED_AUDIT_2026-09-05",
+   "source": "docs/staging/done/DIRECTOR_RULING_JULY_STEERS_RECONCILED_AND_PARKED_AUDIT_2026-09-05.md",
+   "asked": "2026-09-05",
+   "ask": "[ADVISOR-STAGED] Three July segmentation steers reconciled, one amendment, and the parked-documents audit (2026-09-05)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_PEOPLE_MONEY_AND_WHO_THEY_ARE_PHASE1_2026-09-05",
+   "source": "docs/staging/done/DIRECTOR_RULING_PEOPLE_MONEY_AND_WHO_THEY_ARE_PHASE1_2026-09-05.md",
+   "asked": "2026-09-05",
+   "ask": "[ADVISOR-STAGED] People modelling and segmentation \u2014 phase 1 of 3: money and who they are (2026-09-05)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_WEATHER_CELLS_HEAT_LOAD_SEGMENTATION_PHASE1_2026-09-05",
+   "source": "docs/staging/done/DIRECTOR_RULING_WEATHER_CELLS_HEAT_LOAD_SEGMENTATION_PHASE1_2026-09-05.md",
+   "asked": "2026-09-05",
+   "ask": "[ADVISOR-STAGED] Weather cells for household heat load \u2014 phase 1 (2026-09-05)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "canon_s15_owed_9_clv_discount_rate",
+   "source": "docs/design/DIRECTOR_CANON.md s15 owed 9",
+   "asked": "2026-09-05",
+   "ask": "The CLV discount rate and terminal-value method.",
+   "state": "open",
+   "last_commit": null,
+   "status": "shipped",
+   "evidence": [
+    "03a42fe4e4 docs/market_research/clv_discount_rate_and_terminal_value_for_a_gb_supplier.md raised with a recommendation"
+   ],
+   "missing": "His ruling (EP1 is parked on it).",
+   "moved": "2026-10-24"
+  },
+  {
+   "id": "DIRECTOR_RULING_SUPPLIER_USE_CASE_REGISTER_AND_SIM_FIDELITY_2026-09-06",
+   "source": "docs/staging/done/DIRECTOR_RULING_SUPPLIER_USE_CASE_REGISTER_AND_SIM_FIDELITY_2026-09-06.md",
+   "asked": "2026-09-06",
+   "ask": "[ADVISOR-STAGED] Supplier-side use-case register, and the SIM fidelity each one needs (2026-09-06)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "canon_s15_owed_1_mode_control_and_route_spend",
+   "source": "docs/design/DIRECTOR_CANON.md s15 owed 1",
+   "asked": "2026-09-25",
+   "ask": "The one-word mode control and the measurement of which routes spend tokens ('Where are they?' 29 Sept).",
+   "state": "open",
+   "last_commit": null,
+   "status": "shipped",
+   "evidence": [
+    "d6d6a2619c one word sets the tick mode (background/tick_mode.py)",
+    "38182a3322 tools/tick_burn_rate.py --routes prices each route per landed result"
+   ],
+   "moved": "2026-10-24"
+  },
+  {
+   "id": "DIRECTOR_INSTRUCTION_ONEOFF_TRIAL_TYPED_DECISION_MODEL_ON_PUBLISHED_SURFACES_2026-09-27",
+   "source": "docs/staging/done/DIRECTOR_INSTRUCTION_ONEOFF_TRIAL_TYPED_DECISION_MODEL_ON_PUBLISHED_SURFACES_2026-09-27.md",
+   "asked": "2026-09-27",
+   "ask": "DIRECTOR INSTRUCTION \u2014 ONE-OFF TRIAL: a typed-decision model on published surfaces",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-09-28",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "canon_s15_owed_11_parked_documents_audit",
+   "source": "docs/design/DIRECTOR_CANON.md s15 owed 11",
+   "asked": "2026-09-30",
+   "ask": "The parked-documents audit: 123 documents.",
+   "state": "open",
+   "last_commit": null,
+   "status": "shipped",
+   "evidence": [
+    "c6542f76e4 the staging backlog given one fate each -- 182 leave the queue and 57 stay as ranked atoms"
+   ],
+   "moved": "2026-10-24"
+  },
+  {
+   "id": "canon_s15_owed_12_stretch_log_goes_quiet",
+   "source": "docs/design/DIRECTOR_CANON.md s15 owed 12",
+   "asked": "2026-09-30",
+   "ask": "Why every fix to the stretch log goes quiet within a week: the cause, not the patch.",
+   "state": "open",
+   "last_commit": null,
+   "status": "shipped",
+   "evidence": [
+    "7cc2e0e69d the cause -- one writer",
+    "present only when the director is",
+    "46ddd0e9dc the orientation seat writes the log"
+   ],
+   "missing": "Not yet proven durable; the stretch-log alarm fired once on 23 Oct (a 6.1h gap, docs/staging/WORKER_FINDING_REPEATING_ALARM_STRETCH_LOG_2026-10-23.md).",
+   "moved": "2026-10-24"
+  },
+  {
+   "id": "canon_s15_owed_7_knowledge_pages_and_headline_guard",
+   "source": "docs/design/DIRECTOR_CANON.md s15 owed 7",
+   "asked": "2026-10-02",
+   "ask": "The owed knowledge pages (housing, people, the loyalty finding), the headline-title guard, and EP13's write-up.",
+   "state": "open",
+   "last_commit": null,
+   "status": "partly",
+   "evidence": [
+    "e3b62b3dd7 the housing and people pages",
+    "docs/market_research/what_ep13_established_about_gb_grid_carbon.md"
+   ],
+   "missing": "No knowledge page for the loyalty finding; the headline-title guard cannot be identified as a named control.",
+   "next_step": "Find the loyalty finding and publish it as a knowledge page; name the headline-title guard's test or write the one-leg control.",
+   "moved": "2026-10-24"
+  },
+  {
+   "id": "canon_s15_owed_2_merge_cost_and_heartbeat",
+   "source": "docs/design/DIRECTOR_CANON.md s15 owed 2",
+   "asked": "2026-10-04",
+   "ask": "The merge-cost measurement, and the heartbeat moved out of main.",
+   "state": "open",
+   "last_commit": null,
+   "status": "shipped",
+   "evidence": [
+    "8eb39078c5 tools/merge_pressure_census.py",
+    "3373f3523c the idle heartbeat leaves main"
+   ],
+   "moved": "2026-10-24"
+  },
+  {
+   "id": "DIRECTOR_STEER_KNOWLEDGE_AND_SCALE_2026-10-07",
+   "source": "docs/staging/done/DIRECTOR_STEER_KNOWLEDGE_AND_SCALE_2026-10-07.md",
+   "asked": "2026-10-07",
+   "ask": "\u2014 Knowledge on three areas, and a book of a few thousand (2026-10-07)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "canon_s15_owed_3_carried_items_triage",
+   "source": "docs/design/DIRECTOR_CANON.md s15 owed 3",
+   "asked": "2026-10-07",
+   "ask": "The triage of carried items, and how many survive as genuinely open.",
+   "state": "open",
+   "last_commit": null,
+   "status": "shipped",
+   "evidence": [
+    "1a3800d185 every carried known issue has its one fate -- 12 of 18 genuinely open",
+    "docs/direction/wrong_triage.yaml"
+   ],
+   "moved": "2026-10-24"
+  },
+  {
+   "id": "canon_s15_owed_4_responsiveness_correlation",
+   "source": "docs/design/DIRECTOR_CANON.md s15 owed 4",
+   "asked": "2026-10-08",
+   "ask": "Propose the change and I'll rule (how far responsiveness may correlate with signals a supplier holds).",
+   "state": "open",
+   "last_commit": null,
+   "status": "shipped",
+   "evidence": [
+    "03a42fe4e4 raised in for_the_director with a recommendation",
+    "docs/market_research/observable_correlates_of_price_responsiveness.md"
+   ],
+   "missing": "His ruling; the proposal was the deliverable and waits in for_the_director.",
+   "moved": "2026-10-24"
+  },
+  {
+   "id": "canon_s15_owed_5_slc_22b",
+   "source": "docs/design/DIRECTOR_CANON.md s15 owed 5",
+   "asked": "2026-10-08",
+   "ask": "Check whether SLC 22B and its retention carve-out are still in force, and any other GB rule on save or retention offers.",
+   "state": "open",
+   "last_commit": null,
+   "status": "shipped",
+   "evidence": [
+    "529a7ea786",
+    "docs/market_research/a_retention_price_that_shares_the_value_an_action_creates.md s2"
+   ],
+   "moved": "2026-10-24"
+  },
+  {
+   "id": "canon_s15_owed_6_price_keyed_to_the_meter",
+   "source": "docs/design/DIRECTOR_CANON.md s15 owed 6",
+   "asked": "2026-10-08",
+   "ask": "Fix that paraphrase wherever it's recorded.",
+   "state": "open",
+   "last_commit": null,
+   "status": "shipped",
+   "evidence": [
+    "cfd31bcb07 the 23 Sept fairness ruling restored in his words; the phrase survives only where it is quoted as the corrected paraphrase"
+   ],
+   "moved": "2026-10-24"
+  },
+  {
+   "id": "DIRECTOR_INSTRUCTION_MODULE_GRAPH_DOOR_WEEKLY_2026-10-09",
+   "source": "docs/staging/done/DIRECTOR_INSTRUCTION_MODULE_GRAPH_DOOR_WEEKLY_2026-10-09.md",
+   "asked": "2026-10-09",
+   "ask": "The site carries a module-graph door, regenerated weekly",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_FRONT_DOOR_STAYS_SIMPLE_AND_EXPLORATION_GOES_DEEPER_2026-10-09",
+   "source": "docs/staging/done/DIRECTOR_RULING_FRONT_DOOR_STAYS_SIMPLE_AND_EXPLORATION_GOES_DEEPER_2026-10-09.md",
+   "asked": "2026-10-09",
+   "ask": "I don't want the diagram to be full of stats \u2014 just a simple visual way to understand what we are doing, and explore. I like the L2 idea.",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-10-13",
+   "status": "partly",
+   "evidence": [
+    "site/test_the_front_door_diagram_carries_no_statistics.py"
+   ],
+   "missing": "The L2 sheets are unbuilt -- SITE15_each_front_door_band_opens_into_one_l2_sheet is at level 0 of 2.",
+   "next_step": "Build SITE15.",
+   "moved": "2026-10-24"
+  },
+  {
+   "id": "DIRECTOR_STEER_ADVISOR_TRIAL_BACKLOG_2026-10-11",
+   "source": "docs/staging/done/DIRECTOR_STEER_ADVISOR_TRIAL_BACKLOG_2026-10-11.md",
+   "asked": "2026-10-11",
+   "ask": "[ADVISOR-STAGED] Backlog: trial Sonnet 5.5 + Opus advisor on worker ticks (2026-10-11)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-13",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_CANON_V4_ALIGNMENT_2026-10-12",
+   "source": "docs/staging/done/DIRECTOR_STEER_CANON_V4_ALIGNMENT_2026-10-12.md",
+   "asked": "2026-10-12",
+   "ask": "Canon in one home, every page aligned (2026-10-12)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-14",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "canon_s15_owed_10_r16_r17",
+   "source": "docs/design/DIRECTOR_CANON.md s15 owed 10",
+   "asked": "2026-10-12",
+   "ask": "The text of R16 and R17.",
+   "state": "open",
+   "last_commit": null,
+   "status": "shipped",
+   "evidence": [
+    "b79dbdc925 R16 and R17 ratified into canon H1 (24 Oct)"
+   ],
+   "moved": "2026-10-24"
+  },
+  {
+   "id": "DIRECTOR_STEER_ADVISOR_CHANNEL_NO_PASTE_2026-10-15",
+   "source": "docs/staging/done/DIRECTOR_STEER_ADVISOR_CHANNEL_NO_PASTE_2026-10-15.md",
+   "asked": "2026-10-15",
+   "ask": "I can't paste: my advisor's staged steers carry my word (2026-10-15)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-10-15",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_MOTHBALL_NTFY_2026-10-15",
+   "source": "docs/staging/done/DIRECTOR_STEER_MOTHBALL_NTFY_2026-10-15.md",
+   "asked": "2026-10-15",
+   "ask": "Mothball NTFY to the director's phone; the advisor channel replaces it (2026-10-15)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-10-15",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_STRETCH_LOG_AND_DECK_2026-10-15",
+   "source": "docs/staging/done/DIRECTOR_STEER_STRETCH_LOG_AND_DECK_2026-10-15.md",
+   "asked": "2026-10-15",
+   "ask": "The stretch log has stopped, and the rest of this week's deck (2026-10-15)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-15",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_EVIDENCE_HOW_GB_HOUSEHOLDS_BUY_BOTH_FUELS_2026-10-17",
+   "source": "docs/staging/advisor/done/DIRECTOR_EVIDENCE_HOW_GB_HOUSEHOLDS_BUY_BOTH_FUELS_2026-10-17.md",
+   "asked": "2026-10-17",
+   "ask": "How GB households buy and switch two fuels: the advisor's research for the single-fuel steer (2026-10-17)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-10-18",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_THE_BOOK_IS_SINGLE_FUEL_DO_THE_KNOWLEDGE_WORK_2026-10-17",
+   "source": "docs/staging/advisor/done/DIRECTOR_STEER_THE_BOOK_IS_SINGLE_FUEL_DO_THE_KNOWLEDGE_WORK_2026-10-17.md",
+   "asked": "2026-10-17",
+   "ask": "The opening book is 1% dual fuel: do the knowledge work, find why we missed it, and correct the world (2026-10-17)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-10-18",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "ruling_2026-10-17_gas_follows_a_moving_household",
+   "source": "docs/staging/advisor/done/DIRECTOR_STEER_THE_BOOK_IS_SINGLE_FUEL_DO_THE_KNOWLEDGE_WORK_2026-10-17.md",
+   "asked": "2026-10-17",
+   "ask": "Gas follows a moving household.",
+   "state": "open",
+   "last_commit": null,
+   "status": "shipped",
+   "evidence": [
+    "95e78ec777 a dual-fuel household that moves with us takes its gas too (simulation/run_phase2b.py",
+    "test_a_dual_fuel_movers_gas_follows_it.py)"
+   ],
+   "moved": "2026-10-24"
+  },
+  {
+   "id": "DIRECTOR_RULING_FOUNDERS_ARE_400_HOUSEHOLDS_2026-10-19",
+   "source": "docs/staging/advisor/done/DIRECTOR_RULING_FOUNDERS_ARE_400_HOUSEHOLDS_2026-10-19.md",
+   "asked": "2026-10-19",
+   "ask": "The founder number is 400 households, provided it fits in memory (2026-10-19)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-10-19",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_KNOWLEDGE_THAT_CHECKS_THE_WORLD_2026-10-19",
+   "source": "docs/staging/advisor/done/DIRECTOR_STEER_KNOWLEDGE_THAT_CHECKS_THE_WORLD_2026-10-19.md",
+   "asked": "2026-10-19",
+   "ask": "Knowledge that checks the world, not knowledge that is read once (2026-10-19)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-10-19",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_RESERVED_DECISIONS_COME_WITH_A_RECOMMENDATION_2026-10-19",
+   "source": "docs/staging/advisor/done/DIRECTOR_STEER_RESERVED_DECISIONS_COME_WITH_A_RECOMMENDATION_2026-10-19.md",
+   "asked": "2026-10-19",
+   "ask": "A decision reserved to him still arrives with a considered recommendation (2026-10-19)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-10-19",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_FOUNDER_HOUSEHOLDS_WITH_BUDGET_RAISED_2026-10-20",
+   "source": "docs/staging/advisor/done/DIRECTOR_RULING_FOUNDER_HOUSEHOLDS_WITH_BUDGET_RAISED_2026-10-20.md",
+   "asked": "2026-10-20",
+   "ask": "Founders are 400 households, and the settlement budget rises to about 7,800 customer-years (2026-10-20)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-10-20",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_THE_CODE_GALAXY_GETS_ITS_OWN_TAB_2026-10-22",
+   "source": "docs/staging/advisor/done/DIRECTOR_STEER_THE_CODE_GALAXY_GETS_ITS_OWN_TAB_2026-10-22.md",
+   "asked": "2026-10-22",
+   "ask": "The code galaxy gets its own tab, linked from the home page (2026-10-22)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-10-22",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_THE_FRONT_DOOR_FOR_A_NEWCOMER_IN_ENERGY_OR_TECH_2026-10-22",
+   "source": "docs/staging/advisor/done/DIRECTOR_STEER_THE_FRONT_DOOR_FOR_A_NEWCOMER_IN_ENERGY_OR_TECH_2026-10-22.md",
+   "asked": "2026-10-22",
+   "ask": "Make the site understandable and impressive to someone in energy or tech who has never heard of the project (2026-10-22)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-10-22",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_THE_FRONT_DOOR_SAYS_PUBLISHING_IS_FAILING_AND_IT_IS_NOT_2026-10-22",
+   "source": "docs/staging/advisor/done/DIRECTOR_STEER_THE_FRONT_DOOR_SAYS_PUBLISHING_IS_FAILING_AND_IT_IS_NOT_2026-10-22.md",
+   "asked": "2026-10-22",
+   "ask": "The front door says \"PUBLISHING IS FAILING\", from a heartbeat frozen before Monday's good publish (2026-10-22)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-10-22",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_THE_FRONT_DOOR_SHOWS_THE_AMBITION_AND_WHAT_HAS_BEEN_BUILT_2026-10-22",
+   "source": "docs/staging/advisor/done/DIRECTOR_STEER_THE_FRONT_DOOR_SHOWS_THE_AMBITION_AND_WHAT_HAS_BEEN_BUILT_2026-10-22.md",
+   "asked": "2026-10-22",
+   "ask": "No banner on the front door, and a home page that shows the ambition and how much has been built (2026-10-22)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-10-22",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_SWITCH_ONS_THAT_PASS_THEIR_PREREG_ARE_YOURS_2026-10-23",
+   "source": "docs/staging/advisor/done/DIRECTOR_RULING_SWITCH_ONS_THAT_PASS_THEIR_PREREG_ARE_YOURS_2026-10-23.md",
+   "asked": "2026-10-23",
+   "ask": "The annualised advance goes on by default, and a switch-on that passes its own pre-registered rule is the machine's call (2026-10-23)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-10-23",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_CHEAPER_PER_LANDED_RESULT_SCRIPTS_TIERS_AND_EFFORT_2026-10-23",
+   "source": "docs/staging/advisor/done/DIRECTOR_STEER_CHEAPER_PER_LANDED_RESULT_SCRIPTS_TIERS_AND_EFFORT_2026-10-23.md",
+   "asked": "2026-10-23",
+   "ask": "Make each landed result cheaper with scripts, model tiers and effort levels, piloted and measured; not a local model (2026-10-23)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-10-23",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_EXPLORE_IS_A_LIVE_FEATURE_DEMO_THAT_PROVES_THE_FEATURES_WORK_2026-10-23",
+   "source": "docs/staging/advisor/done/DIRECTOR_STEER_EXPLORE_IS_A_LIVE_FEATURE_DEMO_THAT_PROVES_THE_FEATURES_WORK_2026-10-23.md",
+   "asked": "2026-10-23",
+   "ask": "Explore becomes a live feature demo, three views of real households, and it proves the features actually work (2026-10-23)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-10-23",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_SHOW_EVERYTHING_WE_HAVE_LEARNED_FROM_THE_RECORD_NOT_FROM_MEMORY_2026-10-23",
+   "source": "docs/staging/advisor/DIRECTOR_STEER_SHOW_EVERYTHING_WE_HAVE_LEARNED_FROM_THE_RECORD_NOT_FROM_MEMORY_2026-10-23.md",
+   "asked": "2026-10-23",
+   "ask": "Show everything we have learned, mined from the record rather than from memory (2026-10-23)",
+   "state": "open",
+   "last_commit": "2026-10-24",
+   "status": "open"
+  },
+  {
+   "id": "DIRECTOR_STEER_SHOW_THE_HARNESS_AS_A_LIVE_CONTROL_STACK_2026-10-23",
+   "source": "docs/staging/advisor/done/DIRECTOR_STEER_SHOW_THE_HARNESS_AS_A_LIVE_CONTROL_STACK_2026-10-23.md",
+   "asked": "2026-10-23",
+   "ask": "Show the harness as one live control stack, end to end (2026-10-23)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-10-23",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_THE_CONTROL_STACK_SHOWS_DOORS_PACE_AND_HOW_WORK_IS_BALANCED_2026-10-23",
+   "source": "docs/staging/advisor/done/DIRECTOR_STEER_THE_CONTROL_STACK_SHOWS_DOORS_PACE_AND_HOW_WORK_IS_BALANCED_2026-10-23.md",
+   "asked": "2026-10-23",
+   "ask": "The control stack also shows two-way doors, pace and how work is balanced (2026-10-23)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-10-23",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_THE_CONTROL_STACK_SHOWS_MEANING_LEARNING_AND_WHAT_IT_REFUSES_2026-10-23",
+   "source": "docs/staging/advisor/done/DIRECTOR_STEER_THE_CONTROL_STACK_SHOWS_MEANING_LEARNING_AND_WHAT_IT_REFUSES_2026-10-23.md",
+   "asked": "2026-10-23",
+   "ask": "The control stack also shows meaning, learning, and what it refuses to do (2026-10-23)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-10-23",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_THE_OTHER_PAGES_MATCH_THE_FRONT_DOOR_2026-10-23",
+   "source": "docs/staging/advisor/done/DIRECTOR_STEER_THE_OTHER_PAGES_MATCH_THE_FRONT_DOOR_2026-10-23.md",
+   "asked": "2026-10-23",
+   "ask": "The other pages match the new front door: no banner, and written for a newcomer in energy or tech (2026-10-23)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-10-23",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_R16_AND_R17_RATIFIED_2026-10-24",
+   "source": "docs/staging/advisor/done/DIRECTOR_RULING_R16_AND_R17_RATIFIED_2026-10-24.md",
+   "asked": "2026-10-24",
+   "ask": "R16 and R17 ratified, R17 within the P12 pace (2026-10-24)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-10-24",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_A_LEDGER_OF_EVERYTHING_I_ASKED_FOR_AND_WHETHER_IT_SHIPPED_2026-10-24",
+   "source": "docs/staging/advisor/DIRECTOR_STEER_A_LEDGER_OF_EVERYTHING_I_ASKED_FOR_AND_WHETHER_IT_SHIPPED_2026-10-24.md",
+   "asked": "2026-10-24",
+   "ask": "A ledger of everything the director asked for, and whether it shipped (2026-10-24)",
+   "state": "open",
+   "last_commit": "2026-10-24",
+   "status": "open"
+  },
+  {
+   "id": "DIRECTOR_STEER_CAPABILITIES_SHORTER_AND_ITS_GAPS_ARE_A_FIX_LIST_2026-10-24",
+   "source": "docs/staging/advisor/done/DIRECTOR_STEER_CAPABILITIES_SHORTER_AND_ITS_GAPS_ARE_A_FIX_LIST_2026-10-24.md",
+   "asked": "2026-10-24",
+   "ask": "Capabilities: shorter, consistent with itself, and its gaps become a fix list (2026-10-24)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-10-24",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_ESTIMATE_THE_COST_OF_WORK_TO_COME_2026-10-24",
+   "source": "docs/staging/advisor/DIRECTOR_STEER_ESTIMATE_THE_COST_OF_WORK_TO_COME_2026-10-24.md",
+   "asked": "2026-10-24",
+   "ask": "Estimate the cost of work to come, forecast the backlog in weeks, and learn from the misses (2026-10-24)",
+   "state": "open",
+   "last_commit": "2026-10-24",
+   "status": "open"
+  },
+  {
+   "id": "DIRECTOR_STEER_HOW_ITS_BUILT_NOTHING_STALE_AND_SHORTER_2026-10-24",
+   "source": "docs/staging/advisor/done/DIRECTOR_STEER_HOW_ITS_BUILT_NOTHING_STALE_AND_SHORTER_2026-10-24.md",
+   "asked": "2026-10-24",
+   "ask": "How it's built: nothing stale, every register drawn from the record, and shorter (2026-10-24)",
+   "state": "closed_without_evidence",
+   "last_commit": "2026-10-24",
+   "status": "closed_without_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_REVIEW_YOUR_OWN_CODE_FOR_WHAT_IS_UNUSED_DUPLICATED_OR_CROSSES_THE_WALL_2026-10-24",
+   "source": "docs/staging/advisor/DIRECTOR_STEER_REVIEW_YOUR_OWN_CODE_FOR_WHAT_IS_UNUSED_DUPLICATED_OR_CROSSES_THE_WALL_2026-10-24.md",
+   "asked": "2026-10-24",
+   "ask": "Review your own code for what is unused, duplicated or crossing the wall, decide what to do, and explain why your controls didn't flag it (2026-10-24)",
+   "state": "open",
+   "last_commit": "2026-10-24",
+   "status": "open"
+  },
+  {
+   "id": "DIRECTOR_STEER_THE_MODEL_ON_A_PAGE_IS_GENERATED_CURRENT_AND_LAYERED_2026-10-24",
+   "source": "docs/staging/advisor/DIRECTOR_STEER_THE_MODEL_ON_A_PAGE_IS_GENERATED_CURRENT_AND_LAYERED_2026-10-24.md",
+   "asked": "2026-10-24",
+   "ask": "The front-door diagram: bring it to current, generate it at publish, and ship the layered drill-down he ruled on 9 Oct (2026-10-24)",
+   "state": "open",
+   "last_commit": "2026-10-24",
+   "status": "open"
+  }
+ ]
+}

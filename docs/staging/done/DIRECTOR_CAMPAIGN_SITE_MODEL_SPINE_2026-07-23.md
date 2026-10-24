@@ -351,3 +351,15 @@ are "a self-refill draw that keeps re-offering already-finished work because its
 too coarse." NO NTFY this tick (R5): §A is already with the director (47ebc31f3); stopping an
 internal treadmill by making a park honest is not a new director-facing transition.
 — Worker tick, 2026-07-24, root-cause over re-escalation.
+
+## Done
+
+Ruled 24 Oct 2026 by the delivery seat under the director's ledger steer (docs/staging/advisor/DIRECTOR_STEER_A_LEDGER_OF_EVERYTHING_I_ASKED_FOR_AND_WHETHER_IT_SHIPPED_2026-10-24.md), from the record. **Status: partly.**
+
+- Evidence: site/assets/model-on-a-page.svg on the front door.
+- Evidence: site/test_moap_coherence.py.
+- Evidence: site/test_evidence_links_resolve.py.
+- Still missing: The arrears-per-customer distribution is not emitted; the evidence pages behind the diagram's nodes were never built (SITE12 at level 0).
+- Next step: SITE12 carries the evidence behind the nodes; the arrears distribution belongs to the payment-engine lane as an Explore figure.
+
+The document closes; the ask does not. It stays an open row in docs/direction/director_asks.yaml, published by tools/director_asks_ledger.py, until it ships or he releases it.

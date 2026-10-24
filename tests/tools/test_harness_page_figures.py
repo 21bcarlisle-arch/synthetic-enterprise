@@ -118,7 +118,7 @@ def test_every_block_is_written_into_a_page_carrying_the_markers(tmp_path):
     page.write_text("<p>top</p>\n{}{}\nSTALE\n{}\n<p>mid</p>\n{}\nSTALE\n{}\n".format(
         layers, hpf.SCALE_START, hpf.SCALE_END, hpf.WEEK_START, hpf.WEEK_END), encoding="utf-8")
     with page.open("a", encoding="utf-8") as f:
-        for key in ("MEANING", "DOORS", "HUMAN", "CORRECTIONS"):
+        for key in ("MEANING", "DOORS", "HUMAN", "CORRECTIONS", "ASKS"):
             f.write("{}\nSTALE\n{}\n".format(hpf.FOLLOW_START.format(key), hpf.FOLLOW_END.format(key)))
     # The page's root is three levels up, and git there is the real repository's when tmp is
     # not one, so make it a repository with one commit.
@@ -131,6 +131,7 @@ def test_every_block_is_written_into_a_page_carrying_the_markers(tmp_path):
     assert out.count('<span class="ev">') == 8
     assert out.count('<ul class="fo">') == 2
     assert "could not be read at this publish" in out  # no canon, no direction file: said
+    assert "ledger of director asks could not be built" in out  # no rulings file: said, not blank
 
 
 def test_a_page_without_the_markers_is_refused_and_left_alone(tmp_path):

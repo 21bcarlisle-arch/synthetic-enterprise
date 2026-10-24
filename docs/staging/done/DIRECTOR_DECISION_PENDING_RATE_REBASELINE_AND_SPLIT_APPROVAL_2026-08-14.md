@@ -151,3 +151,10 @@ agent reading a public document and transcribing a verified figure into a static
 The simulation's runtime egress is unchanged and no new host is reachable from any daemon. If the
 director reads that distinction differently, the three rates above should be dropped, not the
 allowlist widened.
+
+## Done
+
+Ruled 24 Oct 2026 by the delivery seat under the director's ledger steer (docs/staging/advisor/DIRECTOR_STEER_A_LEDGER_OF_EVERYTHING_I_ASKED_FOR_AND_WHETHER_IT_SHIPPED_2026-10-24.md), from the record. **Status: shipped.**
+
+- Evidence: simulation/policy_costs.py (2025/26 landed 2026-08-18).
+- Evidence: 7549b0a095 the two Low Carbon tables as two sourced facts.

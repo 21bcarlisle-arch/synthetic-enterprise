@@ -66,3 +66,12 @@ The coverage design is banked; the next step — **building this structure into 
 **Risk & proportionality:** the frontier analysis is doc-and-data, reversible. The generator wiring is contract-touching and reserved — propose, do not apply. Tag: **narrow/reversible for the analysis; wall for the generator change — bring it back as [ACT].** Report in prose + committed structure per the loop.
 
 — Advisor, carrying the director's steer, 2026-07-20.
+
+## Done
+
+Ruled 24 Oct 2026 by the delivery seat under the director's ledger steer (docs/staging/advisor/DIRECTOR_STEER_A_LEDGER_OF_EVERYTHING_I_ASKED_FOR_AND_WHETHER_IT_SHIPPED_2026-10-24.md), from the record. **Status: shipped.**
+
+- Evidence: docs/market_research/POPULATION_LEARNING_FRONTIER_STAGE4.md.
+- Evidence: simulation/population_coverage.py.
+- Evidence: 84b4614bb1 the ~12-cell value knee.
+- Evidence: docs/staging/done/DIRECTOR_RULING_COHORT_ASSIGNMENT_ACTIVATED_2026-07-27.md.

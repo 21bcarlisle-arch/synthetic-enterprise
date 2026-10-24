@@ -175,3 +175,14 @@ best-practice re-checks).
 
 **DoD addendum:** 6. FRAME states both weightings, their owners (director, R13), the per-run probability tag, the
 worst-case survival verdict, and the no-unweighted-aggregate R15 test.
+
+## Done
+
+Ruled 24 Oct 2026 by the delivery seat under the director's ledger steer (docs/staging/advisor/DIRECTOR_STEER_A_LEDGER_OF_EVERYTHING_I_ASKED_FOR_AND_WHETHER_IT_SHIPPED_2026-10-24.md), from the record. **Status: partly.**
+
+- Evidence: 90cd95039e spine bound to run rotation.
+- Evidence: 18c3ecb8cc a run past the record lives through a named world.
+- Still missing: Storage-driven gas (SPINE_3_gas_storage_crisis_regime, level 0) and trading friction (no friction term in company/trading) are unbuilt; the curriculum worlds crisis_2021_22 and supply_glut are unratified.
+- Next step: SPINE_3 and B6_collateral_cash_death_loop as a coupled pair; the curriculum world values are his (G9) and go to him with a recommendation when the pair can use them.
+
+The document closes; the ask does not. It stays an open row in docs/direction/director_asks.yaml, published by tools/director_asks_ledger.py, until it ships or he releases it.

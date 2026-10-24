@@ -46,3 +46,15 @@ The ratified v4 purpose rests on personalisation: value lives in the **permutati
 **Risk & proportionality:** Part 1 touches the public surface and the director's own instrument — propose the structure before rebuilding, but do NOT wait for approval to proceed (correct-after applies; he will amend). Part 2 touches the population model, which is upstream of nearly everything — sequence it as DISCOVER → FRAME before any generator change, and do not silently alter existing archetype ground truth mid-campaign. Tag: **contract-touching — propose and proceed; bring only genuine gate-opens as [ACT].**
 
 — Advisor, carrying the director's steers, 2026-07-20.
+
+## Done
+
+Ruled 24 Oct 2026 by the delivery seat under the director's ledger steer (docs/staging/advisor/DIRECTOR_STEER_A_LEDGER_OF_EVERYTHING_I_ASKED_FOR_AND_WHETHER_IT_SHIPPED_2026-10-24.md), from the record. **Status: partly.**
+
+- Evidence: docs/market_research/segmentation_joint_structure.md (part 2 shipped).
+- Evidence: site/explore/index.html (one household's bill and collections).
+- Evidence: 4288d42e0c Explore as a live feature demo (23 Oct).
+- Still missing: No one place shows the world, the supplier, one customer's bill and that customer's CO2 together; per-customer carbon on a page not confirmed.
+- Next step: Check Explore against the four parts of the ask; build the missing per-customer CO2 view inside the Explore atoms, or close if he reads the 23 Oct pages as followable.
+
+The document closes; the ask does not. It stays an open row in docs/direction/director_asks.yaml, published by tools/director_asks_ledger.py, until it ships or he releases it.

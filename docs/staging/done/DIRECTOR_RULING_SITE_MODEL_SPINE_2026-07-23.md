@@ -26,3 +26,10 @@ The director hit links resolving to old versions and formats. Rule: **one canoni
 **Risk & proportionality:** presentation + pipeline test; no data-model changes; diagram approval gated on the director's pixels. Tag: **proceed within the running campaign; diagram [ACT] before nav adoption.**
 
 — Advisor bridge, carrying the director's review, 2026-07-23.
+
+## Done
+
+Ruled 24 Oct 2026 by the delivery seat under the director's ledger steer (docs/staging/advisor/DIRECTOR_STEER_A_LEDGER_OF_EVERYTHING_I_ASKED_FOR_AND_WHETHER_IT_SHIPPED_2026-10-24.md), from the record. **Status: superseded.**
+
+- Superseded by: the 9 Oct ruling (the door stays a simple picture, depth goes to L2 sheets) for the navigation spine; the evidence-chart idea lives in SITE12.
+- Evidence: docs/staging/done/DIRECTOR_RULING_FRONT_DOOR_STAYS_SIMPLE_AND_EXPLORATION_GOES_DEEPER_2026-10-09.md.
