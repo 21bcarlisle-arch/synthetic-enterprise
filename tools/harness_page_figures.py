@@ -617,6 +617,7 @@ def follow_on_figures(root, obs_dir=None):
                 len(ROUTES), spend))))
     except Exception:  # noqa: BLE001
         doors.append(("Effort and pace", "not measured yet: the route list could not be read"))
+    doors.append(("Cost of work to come", cost_of_work_to_come(obs_dir)))
     weeks = product_share_by_week(root)
     if weeks:
         doors.append(("How work is balanced", (
@@ -685,6 +686,21 @@ def _ratchets(root):
     if files is None:
         return None
     return [f for f in files.split() if "ratchet" in f.rsplit("/", 1)[-1] and f.endswith(".py")]
+
+
+def cost_of_work_to_come(obs_dir=None, now=None):
+    """The rolling forecast in plain words, as the last `tools.work_cost_estimate` run wrote it
+    (the publisher runs it first). It is never re-fitted here: the fit reads a month of session
+    transcripts, and a page test has none."""
+    from tools import work_cost_estimate as cost
+    fit = cost.load_fit(Path(obs_dir) / cost.FIT_CACHE.name if obs_dir else cost.FIT_CACHE)
+    if not fit or not fit.get("plain"):
+        return "not measured yet: no cost forecast has been written on this machine"
+    at = datetime.fromtimestamp(float(fit.get("written_at") or 0))
+    age = ((now or datetime.now()) - at).total_seconds() / 86400
+    return "as forecast on {}{}: {}".format(_day(at.date().isoformat()),
+                                            ", {:.0f} days ago, so it may be stale".format(age)
+                                            if age > 7 else "", fit["plain"])
 
 
 def render_follow_on(rows):

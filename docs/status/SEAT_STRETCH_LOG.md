@@ -8,6 +8,19 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-24 — The cost of work to come: 3.5 landed sessions per level step, measured, so the backlog reads 2.6 weeks (1.0-8.2) not 0.7-48; the draw records estimates, landings record actuals, and over-10-point items are flagged
+
+<!-- head: 402042c6e53f -->
+
+The cost steer's items 2 to 4 are built, and the backlog range is narrowed by a measurement, not by a guess. Joining the level ledger to the landed sessions whose commits name each atom gives **3.5 landed sessions per level step** (quartiles 2 to 7.75, 40 of 49 steps joined over 30 days). The atom backlog is now **2.6 weeks (1.0 to 8.2)**, where it was 0.7 to 48.
+
+- **Work classes** (points per landed session, median and quartiles): world build 0.39 (0.26-0.53), supplier build 0.34 (0.28-0.50), grading run 0.24, knowledge page 0.30, site page 0.36, harness 0.25, record 0.17. Every class has 60 or more sessions, so the quartiles are fitted, not thin.
+- **This week:** about 65 points remain after the 35% reading. All 23 open priority-order atoms fit in about 50 points, and none is above the 10-point flag.
+- **Estimate against actual:** none yet. The draw records an estimate on every Lane 0 item from now on, and a landing records its actual. The Monday step prints the error by class.
+- **Bias, stated:** the step join is biased low, so the backlog's high end is the more honest one to plan on.
+
+---
+
 ## 2026-10-24 — Forward years: the G9 recommendation -- ten years, block-drawn weather, gas in the DESNZ band, price from the weather chain, M/Q/S quotes, 5 paired futures; no forward run has ever been measured
 
 <!-- head: 6216a1655978 -->

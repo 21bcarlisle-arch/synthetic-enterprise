@@ -3649,6 +3649,12 @@ def record_landing(focus_id: str, *, commit: str = "HEAD", path: Path | None = N
             # moved on this landing", and the accumulated scope would answer "what has ever moved",
             # which is the across-turns fail-open a per-turn reader must not inherit.
             _remember_landing(focus_id, when, paths, store)
+            try:
+                from tools import work_cost_estimate as cost
+                cost.record({"event": "landed", "id": focus_id, "at": when, "commit": commit},
+                            _cost_ledger(store))
+            except Exception:
+                pass
         return bound
     except Exception:
         return []
@@ -4619,7 +4625,7 @@ def doorbell(item: dict) -> str:
     outright, and a reader who has just been told to take a disposition should not first walk a
     per-path table for work they are not going to do. It is also the longest of the five, and the
     four that can end the turn in one line have to be readable above it."""
-    return premise_note(item) + result_note(item) + landed_since_note(item) + rival_note(item) + successor_note(
+    return _cost_flag(item) + premise_note(item) + result_note(item) + landed_since_note(item) + rival_note(item) + successor_note(
         item) + path_note(item) + (
         # DRIFT COMES LAST OF THE FIVE AND IMMEDIATELY AFTER THE TABLE IT REFERS TO. It is the only
         # row here that is not answerable from the tree in front of the reader: a hand-off carries
@@ -5841,9 +5847,41 @@ def draw(now: float | None = None, path: Path | None = None, *, claim: bool = Tr
         rec = claims_mod._load(store).get(item["id"]) or {}
         record_draw(item["id"], float(rec.get("claimed_at") or 0.0), path=store,
                     text=doorbell(item))
+        _record_estimate(item, float(rec.get("claimed_at") or 0.0), store)
         return doorbell(item) + held
     except Exception:
         return None
+
+
+def _cost_text(item: dict) -> str:
+    return " ".join(str(item.get(k) or "") for k in ("what", "why", "done_means"))
+
+
+def _cost_ledger(store: Path) -> Path:
+    """Beside the claims store, so a test store carries its own (see `_ledger_path`)."""
+    return store.with_suffix(".costs.jsonl")
+
+
+def _record_estimate(item: dict, when: float, store: Path) -> None:
+    """THE ESTIMATE, written when the item is handed out and before any of it is spent, so the
+    miss is measurable (director, 24 Oct: "When an item lands, record its actual cost beside its
+    estimate"). The actual is read later by `tools.work_cost_estimate` from the sessions that bound
+    a landing to this id. Never raises: it runs inside `draw()`."""
+    try:
+        from tools import work_cost_estimate as cost
+        est = cost.estimate(cost.item_class(_cost_text(item)), cost.load_fit())
+        cost.record({"event": "drawn", "id": item["id"], "at": when, "estimate": est},
+                    _cost_ledger(store))
+    except Exception:
+        return
+
+
+def _cost_flag(item: dict) -> str:
+    try:
+        from tools import work_cost_estimate as cost
+        return cost.flag_note(_cost_text(item))
+    except Exception:
+        return ""
 
 
 def hand_off_focus(focus_id: str, done_means: str, now: float | None = None) -> dict:
