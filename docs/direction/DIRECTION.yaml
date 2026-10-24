@@ -1,158 +1,128 @@
 version: 1
-oriented_at: '2026-10-22T14:20:40.479180+00:00'
-thesis_read: 'Sideways for the thesis and forward for the site. There were 10 commits, 3 of them substantive.
-  The brief''s split reads supplier 1, world 1 and other 8, and four of the eight are the director''s
-  own steers. No level moved. THE STEER: one of four focus items was drawn, the bill estimator. It is
-  landing now (surgical_land pid 1548702, gating 36 minutes at 14:20Z). The crisis read, the meter-exchange
-  flip and the peer-capture fix were not drawn. The rest of the stretch went to continuations: the four
-  domain points on the front door (02659d155), and the profile-settlement probe with its prereg (19d3c5e50,
-  21741d145). That probe says settling each home''s own half hours against PC1 is worth +0.23% of SSP
-  cost for the book and +/-GBP 35-150 a year for an electrically heated home. The same probe found the
-  -GBP 91 storage-heater figure spurious, because those homes were registered PC1, and e5d99e249 registers
-  them on PC2. That is world fidelity found by a supplier-side measurement, and it is the right direction
-  for it to come from. WHAT IT MEANS. The per-customer-against-flat question is still open on one valid
-  seed. Seed 3 finished at 13:54Z and is ungraded, and section 16''s flat arm is running. Inference still
-  has no graded win over flat that would carry a policy. The BLOCKING crisis finding stands unread for
-  a second stretch. WHAT WENT BACKWARDS is the public surface, and the director found it before the seat
-  did. For three days the front door opened on ''PUBLISHING IS FAILING ... over 80.0h'', read from a heartbeat
-  snapshot frozen two hours before Monday''s good publish. Three of today''s Cloudflare deploys failed
-  with nothing on the seat''s surface. And the page leads with caveats where it should lead with what
-  has been built. Last stretch''s not_now rejected the FAILING line as a publisher matter. That was wrong
-  (see wrong), because the cost was on the page. So his four steers take the first three slots this stretch,
-  ahead of the supplier work: the banner and its class first, because it is false on a live surface; then
-  the ambition rewrite; then the galaxy tab. The two supplier items follow, because he asked for the site
-  this week. One of them is already landing, and the other is a read-only measurement.'
+oriented_at: '2026-10-24T05:24:27.245536+00:00'
+thesis_read: 'Level on the thesis. The question is answerable now, and the machine is not running the
+  run that answers it. There were 25 commits, 9 substantive, split supplier 1, world 0, both 4, other
+  20. Eight are no-work base-advance merges. Every ''both'' commit is a supplier billing or provisioning
+  fix that touches the run loop, so the supplier did get the stretch, but mostly as fidelity repair. THE
+  STEER. All 4 focus items were drawn and all 4 leave focus. (1) The collections desk acts past its top
+  rung, a live debt is written off only by the statute bar, and the tone leaves the flat/per-customer
+  switch set (94b281af7). That closes the inert-switch error: no comparison now carries a difference that
+  does nothing. (2) The void-stub estimate carries the EPG (ce35a25e2). The over-cap finding goes BLOCKING
+  to LATENT (1ee7ec58d). (3) Section 14 on the clean book is pre-registered (6891c01e2) and launched (05:05Z).
+  (4) The E6 crisis-overlay arm is launched, and its arrears-term K8 is written (70bcff656). WHAT IT MEANS.
+  The default-tariff book is billed close to lawfully, and the baseline differs from per-customer only
+  by switches that act. So ''does inference beat flat'' can be graded honestly for the first time since
+  2 Oct. But no long job has computed for about 2.5 hours. All eleven queued runs wait behind the head-green
+  census''s 12 GB full-suite pytest. The section 14 re-take also waits behind all nine C30 seed arms,
+  because I set it no order. So the result that matters most is further away than its launch time suggests,
+  and that is item 1. The shared checkout fell further behind, to 89, so every unit still runs old code.
+  The renewal belief that ranks leavers backwards stays live until section 14 is graded.'
 stretch_reviewed:
-  since: '2026-10-22T11:21:39.215744+00:00'
-  commits: 10
-  substantive: 3
+  since: '2026-10-24T02:24:10.738443+00:00'
+  commits: 25
+  substantive: 9
 focus:
-- id: the-front-door-banner-goes-and-no-page-reads-a-frozen-runtime-snapshot
+- id: the-queued-runs-compute-and-the-thesis-run-goes-first
   lane: H_harness
   side: other
-  what: 'Act on docs/staging/advisor/DIRECTOR_STEER_THE_FRONT_DOOR_SAYS_PUBLISHING_IS_FAILING_AND_IT_IS_NOT_2026-10-22.md,
-    as amended by section 1 of ..._SHOWS_THE_AMBITION_AND_WHAT_HAS_BEEN_BUILT_2026-10-22.md, and deploy
-    it today. (a) Take the freshness and publish-state banner off site/index.html. Put in one generated
-    quiet line: ''Figures from the run of 19 Oct 2026 · published every Monday''. (b) Show the publisher''s
-    state on How it''s built only. It must come from a source no older than one publish cadence, and otherwise
-    say it cannot tell. It must never add elapsed time to a stale failure. (c) Sweep site/ for every element
-    that reads site/data/tick_heartbeat.json or any other snapshotted runtime file, and print the count.
-    Feed each one fresh at publish or deploy, or make it refuse to claim. Add one control: a freshness
-    or failure claim on a served page carries its source''s age and refuses past a bound. Mutation-prove
-    both legs in one assertion, so a refuse-everything mutant reds. (d) Find the cause of today''s three
-    failed Cloudflare deploys (420a5b67d, 989ce4f1c, 02659d155) and of Monday''s two failed publish attempts.
-    Fix the class so a failed deploy reaches the stretch log, and say whether readers ever saw a broken
-    page. (e) Rewrite the garbled Settlement sentence (''timing that one of the period was not charged
-    for'') plainly, with 21741d145''s measured figure. Write one stretch-log entry with the banner before
-    and after, the sweep counts and the causes. Move the steer file to docs/staging/advisor/done/ with
-    a ## Done section.'
-  why: 'His words, twice today: the first line a newcomer reads is a false alarm in bold, and he wants
-    the site updated this week. It is BLOCKING on a live surface. The seat dismissed this line last stretch
-    (see wrong). DONE when the deployed home page has no banner, no served page can claim failure or freshness
-    from a source past its bound (the control proves it), and the five failures have a named cause.'
-  written_at: 1792679120.943
-- id: the-front-door-leads-with-the-ambition-and-what-has-been-built
-  lane: A_strategy_governance
-  side: other
-  what: 'Act on section 2 and section 3 of docs/staging/advisor/DIRECTOR_STEER_THE_FRONT_DOOR_SHOWS_THE_AMBITION_AND_WHAT_HAS_BEEN_BUILT_2026-10-22.md,
-    after item 1 lands, and deploy it this week. Rebuild site/index.html in his six-part shape: the ambition
-    with M1 verbatim and M11; build figures generated at publish (commits, modules, test files, knowledge
-    pages, half-hours settled, founder households), each with its clock; a capability grid with one line
-    per supplier function, each linking to a test or record that exists (check every link); the world
-    it cannot see into; built and run by AI; and the open question in one line. Move every ''Not yet''
-    line, the ''what is not built'' paragraphs and ''No customers. No licence.'' to Capabilities and ''What
-    we know is wrong''. Delete none of them, and leave one link: ''What is not built yet →''. Check that
-    the figures read the 400-household founder book. If this week''s publish cannot carry it before Monday,
-    say so with the reason. Run the cold-reader test with one energy reader and one tech reader, adding
-    ''how impressive is this, and why?'', and record the answers. Write one stretch-log entry and move
-    the steer file to done/.'
-  why: 'His words at 14:57: ''the claims are really weak, they mostly point to failings in the model.''
-    The page is accurate but built from caveats. M4 says the method is the enterprise value, and the front
-    door is where the method is shown. DONE when the deployed page carries the six parts with generated
-    figures, every grid line links to existing evidence, and neither cold reader''s summary leads with
-    the failings. If one does, the item is not done.'
-  written_at: 1792679120.943
-- id: the-code-galaxy-gets-its-own-tab
-  lane: A_strategy_governance
-  side: other
-  what: 'Act on docs/staging/advisor/DIRECTOR_STEER_THE_CODE_GALAXY_GETS_ITS_OWN_TAB_2026-10-22.md alongside
-    item 2, and deploy it this week. Promote site/harness/module-graph/ to a top-level nav item named
-    ''The code'', with a redirect from the old URL. Make the first view a force-directed galaxy: a star
-    per module sized by lines, imports as links, and wall-crossing edges marked. Keep the layered view
-    behind a toggle, and keep the census tables on the same page after both views. Generate it from tools/module_graph_census.py
-    and site/data/module_graph.json at every publish, with a generated caption giving modules, lines,
-    edges and wall crossings through the seam and round it, each with its clock. Link it from the home
-    page''s ''Built and run by AI'' section with one line and a static thumbnail rendered at publish.
-    Measure the page''s load and settle time at phone width. If the graph is too heavy, show the largest
-    modules first and state how many are shown. Report it in the front-door stretch-log entry and move
-    the steer file to done/.'
-  why: 'His words at 15:01: ''I also want a tab with the code galaxy map ... It looks cool!'' The galaxy
-    is the plainest evidence for M11 on the site. DONE when the tab is live, the old URL redirects, the
-    home page carries the thumbnail link, and the caption''s figures are generated.'
-  written_at: 1792679120.943
-- id: the-crisis-charge-lands-a-year-late-world-arrears-or-matrix-ageing
-  lane: E_finance_treasury
-  side: supplier
-  what: 'Carried, not drawn last stretch. Read-only, on the finished HEAD run /var/tmp/se-head-crisis-out/run_output.json
-    (989ce4f1c2, unpublished). Answer the question that docs/staging/SEAT_FINDING_THE_CRISIS_BAD_DEBT_CONTROL_HAS_SKIPPED_SINCE_THE_RUN_WENT_GZIP_AND_THE_PUBLISHED_RUN_SHOWS_NO_STEP_UP_2026-10-14.md
-    names last: why the 2016-19 charge is so high and the 2022 charge so flat. Say first what each series
-    counts. Then print, by year from 2016 to 2025: the world''s arrears stock and new arrears formed (households
-    and GBP); the company''s debt by age bucket; and the IFRS 9 charge split into new-debt charge and
-    ageing of existing debt. Then compute, in one process on the same ledger, the charge with the matrix''s
-    bucket ages shifted back one year, changing that one variable only. Write the result into the finding
-    as a new section. Say which explanation the numbers support (the world forms its debt too early or
-    too deep, or the matrix recognises loss a year late), or say that you cannot tell, and name the one
-    run that would. Do not change the matrix or any world value in this item.'
-  why: It is the only BLOCKING finding, and E6's provision is graded against it. 4eb192b60 put the level
-    inside its band (0.70%) but refuted the step-up (x0.96). The prediction missed on the pre-crisis side
-    (x3.3), and the crisis charge sits in 2023 rather than 2022. The next change is either a world change
-    or a company change, and choosing one without this reading would be arguing, not measuring. DONE when
-    the finding carries the by-year table and the one-variable ageing shift, and states which side the
-    next change belongs to, or that it cannot yet be told, with the run that would tell.
-  written_at: 1792679120.943
-- id: the-bill-estimate-reads-the-annualised-advance-not-three-reads
+  what: No long job has computed since about 02:53Z. Every /var/tmp/longjob-*-queued.log (crisis-overlay-arm-70424-387e48132,
+    c30-s61101..61103 A/B/C, the s14clean driver) reads QUEUED. The cause is head-green-census.service's
+    full-suite pytest (pid 83098, 12 GB of a 23 GB budget per background/resource_headroom.py), and its
+    'landings come before experiments' holds fill the gaps. First read the census's journal for how long
+    a census takes and how often it starts. If the census can restart before the queue drains, make it
+    yield to queued experiments, either in background/resource_headroom.py's admission or in tools/head_green_census.py's
+    own start, and record how to reverse it. Then put the section 14 clean-book re-take (/var/tmp/se-s14clean-out,
+    waiting on c30-seeds-out through tools.wait_for pid 1615135 and rearm.py pid 1729698) ahead of the
+    C30 seed arms. Do not relaunch any job the launch register lists as live. Reorder by holding or releasing,
+    never by a second launch.
+  why: Section 14 on the clean book answers whether inference beats flat, and whether the corrected renewal
+    belief earns a policy. It was launched and is computing nothing. DONE when a queued job is computing
+    (its log grows past QUEUED), the s14clean arms run before the C30 seeds or the order is recorded with
+    its reason, and a finding in docs/staging/ states the census-against-queue cause with its fix or its
+    acceptance.
+  written_at: 1792819946.305
+- id: a-movers-final-bill-is-measured-against-the-rules
   lane: D_billing_metering
   side: supplier
-  what: 'Finish the item in hand; do not rebuild it. At 14:20Z the worker tick''s surgical_land (pid 1548702,
-    ''D48: the bill estimate can read the annualised advance (default off), with its one-variable table
-    on 76a29bd92'') had been gating for 36 minutes. When it lands, read git log -1 on origin to confirm
-    the commit. If it is refused, re-land from the worktree that built it, and never reset that worktree
-    before a confirmed landing. Then do the part the landing does not carry. Pre-register the arm (catch-ups
-    of GBP 500 or more, and the D48 estimated-bill error by year, off against on). Launch the pair through
-    launch_long_job from a locked origin worktree, keeping clear of /var/tmp/se-pcs-arms-out and /var/tmp/se-pcs-arms16-out.
-    File its grade as a continuation that waits for the arm''s .rc file. If the one-variable table refused
-    the method, write that in the D48 simplification record instead, and launch nothing.'
-  why: Billing accuracy is first in his order. The build is landing now, and the arm is what decides whether
-    the supplier's estimate ever changes. DONE when the landing is on origin and the prereg is filed and
-    launched with its grade queued, or when the refusal is recorded in D48 with the numbers.
-  written_at: 1792679120.943
+  what: 'Section 4 of docs/staging/SEAT_FINDING_EXPLORES_CAST_FINDS_STANDARD_VARIABLE_BILLS_ABOVE_THE_CAP_AND_NO_MOVER_OR_TWO_RATE_HOME_2026-10-23.md:
+    the published record has no move-out event, no final-bill marker, and no OCC- account linked to the
+    account it succeeded. K8 first. In docs/market_research/home_moves.md, write what a supplier must
+    do when a household moves out: the closing read, when the final bill must be issued, when a credit
+    is refunded, and how a debt follows the household. Search Ofgem''s licence conditions and docs/domain_artefact_library/
+    before writing, and label GAP what is not published. Then add a move-out kind to company/billing/billing_accuracy.py.
+    Read it over the latest published run, with no new arm. For every account closed by a move, record
+    the days from move-out to final bill, whether the closing read was actual or estimated, and whether
+    the credit was returned or the debt carried, each graded against the rules. Make tools/generate_customer_reaction_chain.py
+    emit the move-out event and the final-bill marker, and for an OCC- account the predecessor account
+    at the same supply point (tools/seed_family.py already classifies change_of_tenancy). The-published-household-record-shows-the-desks-collections-journey
+    is changing the same generator now, so land on top of it, never over it.'
+  why: Home moves are the billing-accuracy priority no run has measured. A mover's final bill is where
+    a real supplier most often bills wrongly, and money moves either way in a transfer (M2). This also
+    drains a BLOCKING finding that still steers every draw in lane D. DONE when the K8 section, the move-out
+    kind and its control (asserting the late-final-bill branch CAN fire on a fixture) are on origin, and
+    section 4 of the cast finding is re-graded with the measured counts.
+  written_at: 1792819946.305
+- id: C34_next_best_action_is_one_decision_across_debt_retention_upsell_and_carbon_judged_by_clv
+  side: supplier
+  what: 'Build the price half of the open concern c34-now-ranks-next-best-action-on. Knowledge first:
+    in docs/market_research/next_best_action_and_cross_sell.md, write how a renewal or retention price
+    may share value that an advice action creates. Cover the cap''s headroom per account (SLC 28AD), and
+    what published practice says, with GAP labels where nothing is published. Then, default off, in company/pricing/renewal_rate_chain.py
+    behind a switch in company/policy/decision_policy.py: where C34''s joint value is positive and our
+    side is negative, price the renewal so our side is at least zero, and only inside that account''s
+    headroom under the cap. Otherwise make no action. Keep both floors. Print the switch''s table over
+    the finding''s 18 B11-scale cases before writing the test. File the arm pair''s pre-registration in
+    docs/staging/records/, but do not launch it while focus item 1''s queue is jammed.'
+  why: C34 ranks on joint value and still advises nobody at realistic inputs, because our floor refuses
+    every case. Sharing value through price is M2's created-then-shared, and it is the per-customer lever
+    that has no baseline equivalent. Building it default off keeps the director's alternative (loosen
+    the floor) a one-line choice. DONE when the K8 section, the default-off build and a partition control
+    (the share branch CAN be taken, and the no-headroom branch refuses) are on origin with the printed
+    table, and the prereg is filed.
+  written_at: 1792819946.305
+- id: the-shared-checkout-reaches-origin
+  lane: H_harness
+  side: other
+  what: Advance /home/rich/synthetic-enterprise to origin/main. It is 89 behind. For each path that is
+    both dirty here and changed on origin (company/billing/monthly_bill_assembly.py, company/billing/unread_month_estimate.py,
+    company/policy/decision_policy.py, simulation/run_phase4c_on_phase2b.py, tools/read_instruction_arms.py,
+    tools/console_instruction_record.py, tools/grade_per_customer_switch_seeds.py and their tests, docs/market_research/household_budget_w2_4.md,
+    docs/market_research/unbilled_energy_and_revenue_assurance.md, docs/status/SEAT_STRETCH_LOG.md, the
+    staged advisor reading), run python3 -m tools.refresh_to_head <path> where origin holds the copy's
+    diff (2ae033565). The gas-floor copies are already preserved under refs/preserved/gas-floor-shared-copy/,
+    and ff8437814 rules that origin wins. For a path whose diff origin lacks, name its owner and land
+    it by surgical_land --content, or leave it named. Leave docs/direction/DIRECTION.yaml to the seat.
+    Then git merge --ff-only origin/main.
+  why: Every unit on the box runs code the trunk has moved past, worker_tick and seat_executor included,
+    and each draw's path check reads the stale base. It has worsened for six stretches. DONE when git
+    rev-list --count HEAD..origin/main reads 0 in the shared tree, or every remaining refusal names a
+    live owner in docs/status/SEAT_STRETCH_LOG.md.
+  written_at: 1792819946.305
 not_now:
-- what: The smart-meter exchange flip pre-registered for D48 (W2, side world).
-  why: It was not drawn last stretch. His site steers take three slots this week, and two supplier items
-    must stay in focus. It remains the next world slot, and it is the one change between D48 and its next
-    level. It returns at the next orientation once items 1 to 3 have landed.
-- what: The peer-session capture fix in tools/console_instruction_record.py.
-  why: No new instance this stretch, and the brief lists no director inputs. It is one file and returns
-    to focus when a slot frees. It stays open in wrong.
-- what: Drawing the dual-fuel mover (the gas supply follows the household, with the deemed contract at
-    the new address and the incoming occupant) as a world build now.
-  why: His steer asks for it, K8 first. It is world work with a supplier side (home-move billing), but
-    the site is due this week and the meter-exchange flip already holds the next world slot. Item 1 must
-    not change the page's honest line until the mover work is built.
-- what: Updating the builder's Claude Code package (2.1.282 against 2.1.303) as part of item 1.
-  why: Three Claude processes are mid-turn on this box, and the package is the harness they run in. It
-    is routine maintenance under canon, not reserved, so it should happen at a quiet point between ticks
-    rather than inside a site item whose deploy the director is waiting for.
-- what: Naming section 14 seed 3's grade, or section 16's grade, in focus.
-  why: Both are queued continuations. Seed 3's three arm files are on disk, so its grade is drawable now,
-    and section 16's flat arm has run since 13:29Z. A focus item would add a second writer to the same
-    grader.
-- what: Proposing renewal_belief_by_ending_term, or either retention guard, for CURRENT_POLICY.
-  why: One graded seed of four. Seed 3 is ungraded, and section 16 has not finished. A standing policy
-    should not rest on that.
-- what: Reaping the b12-* and se-budgetpay-land worktrees.
-  why: They hold salvage commits that no remote keeps. Reaping them loses evidence, and keeping them costs
-    only disk.
+- what: Turning on SMART_METER_EXCHANGE in simulation/meter_reads.py and queueing its arm pair for D48's
+    L3.
+  why: Its trigger has passed, and it is the next world build, because it blocks a supplier level. But
+    its two arms would join a queue that is computing nothing. It goes in once item 1 has a job running.
+- what: 'Launching any further arm: the EP17 varied-draw seeds, a fourth C30 seed, or the arrears-per-account
+    term for the crisis overlay (70bcff656).'
+  why: Eleven runs are queued and none is computing. A new launch only lengthens the queue ahead of the
+    thesis run.
+- what: The gas-follows-the-mover world build (home_moves.md s.8.7) and the W2_30 fabric-home season build.
+  why: Item 2 measures the movers' bills on the leg that follows today, so the gas build will know which
+    supplier result it changes. The fabric build blocks no supplier result.
+- what: 'Section 2 of the Explore cast finding: insulation stated at -24% against -8% on billed gas.'
+  why: It is a question about how the published effect line averages, not a billing error. Mover bills
+    come first because home moves are a named billing priority.
+- what: 'Reaping the worktrees: c30-seeds-land, crisis-overlay-run, b12-*, se-budgetpay-land and se-direction-seat.'
+  why: Each holds a commit no remote keeps. c30-seeds-land is the queued C30 arms' working directory.
+    All are disposable only after their own grades. Reaping one loses work, and keeping it costs disk
+    only.
+- what: Restarting naive-organ, quiet for 23h.
+  why: It declares no cadence, and the other seven daemons are writing, so this is not a frozen guest.
+    A restart would not load origin code anyway (item 4).
+- what: Raising the jammed queue or the run order with the director.
+  why: It is the machine's own scheduling, and reversible. The decision is recorded here and in item 1's
+    finding.
 wrong:
 - what: 'THE WORLD''S, CARRIED. A gas-heated fabric home''s electricity has no season against SERL. 20:22:
     Unchanged. It waits for the post-publish world builds. 23:21: Focus item 4 measures the fabric homes''
@@ -204,34 +174,24 @@ wrong:
     meter-exchange flip (item 4), one world variable at a time. 11:21: Unchanged. It blocks no supplier
     result. It stays behind the meter-exchange flip (item 3), one world variable at a time. 14:20: Unchanged.
     It blocks no supplier result. The site steers take this stretch, and the meter-exchange flip still
+    holds the next world slot. 17:20: Unchanged. It blocks no supplier result. The profile-settlement
+    build (surgical_land live since 16:23Z) moves the fabric homes'' wholesale leg now, and the meter-exchange
+    flip still holds the next world slot, one world variable at a time. 20:24: Unchanged. It blocks no
+    supplier result. Profile settlement landed (ed0717246) and moved the fabric homes'' wholesale leg;
+    the meter-exchange flip still holds the next world slot, and section 14 seed 5 is mid-run on this
+    book, so nothing moves under it. 08:23: Unchanged. It blocks no supplier result. The next world question
+    is the crisis arrears read (focus item 4), which is read-only, so nothing moves under it. 11:23: Unchanged.
+    It blocks no supplier result, and no world build is in focus this stretch, so nothing moves under
+    it. 14:20: Unchanged. It blocks no supplier result, and no world build is in focus, so nothing moves
+    under E6''s arm pair. 17:24: Unchanged. It blocks no supplier result. Items 1 and 3 need the book
+    held still, so nothing moves under them. 20:21: Unchanged. It blocks no supplier result. The EBSS
+    arm pair is running on this book (launched 19:51Z) and the EPG bill fix is landing, so nothing moves
+    under them. 23:24: Unchanged. It blocks no supplier result. The EPG bill fix is still landing and
+    the fresh over-cap run waits on it, so nothing moves under them. 02:24: Unchanged. It blocks no supplier
+    result. Focus item 3 re-takes the per-customer-against-flat grade on the clean book, so nothing moves
+    under it. 05:24: Unchanged. It blocks no supplier result. The section 14 clean-book re-take and the
+    C30 seeds are queued on this book, so nothing moves under them, and the meter-exchange flip still
     holds the next world slot.'
-  corrected: false
-- what: 'THE MACHINE''S, THIS STRETCH. The draw refused two focus items (C35 24 times, the C34 re-read
-    32 times) because /var/tmp/se-ret-margin/wt held simulation/run_phase2b.py. Its owner pid 1697312
-    is dead, and after c61d8b608 landed it differs from origin only in generated files. The refusal''s
-    diff digest was taken once and never re-asked, and the real C35 build sat unseen in a different dead
-    worktree. 14:21: No refusal this stretch, but only because neither item was drawn at all. No commit
-    makes the held-work refusal re-ask its diff digest, so it is not fixed. 17:23: Recurred. say-why-the-median-renewal-contributes-minus-3-91-a-month
-    was refused 49 times because /var/tmp/se-seat-executor changes term_contribution_per_year. That diff
-    is C35''s caller, and the item only reads the file. Not fixed. 23:24: repair-the-flat-arms-reachability-control
-    was refused 12 times by /var/tmp/se-seat-executor. That holder was doing the item''s own work (abe7ce533
-    landed 2 minutes after the last refusal), so this refusal was right. No commit makes the check re-ask
-    its digest, so it is not fixed. 02:21: No refusal this stretch. No commit makes the check re-ask its
-    digest, so it is not fixed. 05:20: No refusal this stretch. No commit makes the check re-ask its digest,
-    so it is not fixed. 08:22: No refusal this stretch. Not fixed. 11:22: the-census-peak-is-two-tests-measure-and-shrink-them
-    was refused twice by /var/tmp/se-seat-executor. That holder''s diff was the item''s own work (d12ebda3c
-    landed 34 minutes later), so the refusal was right. No commit makes the check re-ask its digest, so
-    it is not fixed. 14:20: No refusal this stretch. No commit makes the check re-ask its digest, so it
-    is not fixed. 17:24: No refusal this stretch. No commit makes the check re-ask its digest, so it is
-    not fixed. 20:20: No refusal this stretch. No commit makes the check re-ask its digest, so it is not
-    fixed. 23:20: No refusal this stretch. No commit makes the check re-ask its digest, so it is not fixed.
-    02:22: No refusal this stretch. No commit makes the check re-ask its digest, so it is not fixed. 05:22:
-    No refusal this stretch. No commit makes the check re-ask its digest, so it is not fixed. 08:24: No
-    refusal this stretch. No commit makes the check re-ask its digest, so it is not fixed. 11:21: grade-section-14-seed-2-and-launch-seed-3
-    was refused 17 times by /var/tmp/se-seat-executor, whose diff changes customer_id and event_date.
-    That holder was the item''s own grader fix (9fc114520 landed at 10:55, and the item retired at 10:55),
-    so the refusal was right. No commit makes the check re-ask its digest, so it is not fixed. 14:20:
-    No refusal this stretch. No commit makes the check re-ask its digest, so it is not fixed.'
   corrected: false
 - what: 'THE MACHINE''S, THIS STRETCH. The continuation the-budget-second-seed-grade-after-the-unit-driver
     is still queued for 18:20, but b8045dd4e graded the second seed at 17:17. A queued continuation is
@@ -270,7 +230,39 @@ wrong:
     section 16 a second time. Nothing re-asks a premise another lane spends first, so it is not fixed.
     14:20: Still live. launch-and-grade-prereg-s16-the-lower-bound-guard is still in the live queue, but
     section 16 launched at 11:24Z and two of its three arms have finished. A tick drawing it must grade
-    and must not relaunch. Nothing re-asks a premise another lane spends first, so it is not fixed.'
+    and must not relaunch. Nothing re-asks a premise another lane spends first, so it is not fixed. 17:20:
+    Live again, in two places. launch-and-grade-prereg-s16-the-lower-bound-guard retired at 16:07Z after
+    grading, so that instance closed cleanly. But the ambition rewrite is now queued twice: the-front-door-leads-with-the-ambition-and-what-has-been-built
+    and the-front-door-ambition-rewrite-after-the-build-strip carry the same steer, and a-profiled-home-settles-its-own-volume-on-its-registered-profile
+    is still drawable while surgical_land pid 2849871 lands that exact build. Nothing re-asks a premise
+    another lane spends first, so it is not fixed. 20:24: It bit as predicted, and was caught. The ambition
+    rewrite was queued twice, and the second draw found the seat executor''s live claim under the other
+    id and dispositioned it (WORKER_RESULT_THE_FRONT_DOOR_AMBITION_DRAW_IS_THE_SEAT_EXECUTORS_LIVE_CLAIM_UNDER_ANOTHER_ID,
+    in 49e22fadb), so nothing was built twice. Nothing re-asks a premise another lane spends first, so
+    it is not fixed. 08:23: No spent-premise draw seen this stretch. Nothing re-asks a premise another
+    lane spends first, so it is not fixed. 11:23: Live again. section-14-four-seed-grade-from-seed-5s-finished-arms
+    is still in the continuation queue and still claimed, but 427e5f021 landed its grade at 11:23Z. If
+    its holder releases it without retiring it, a later tick will re-grade a finished section. Nothing
+    re-asks a premise another lane spends first, so it is not fixed. 14:20: section-14-four-seed-grade-from-seed-5s-finished-arms
+    retired cleanly at 11:33Z. Live again on the switch-on ruling: it is a continuation and a focus row,
+    the-directors-23-oct-switch-on-ruling-is-verified-and-acted-on retired without a landing, and the
+    seat executor holds the build in 19070ec13. Item 1 names that holder so a second draw binds instead
+    of rebuilding. Nothing re-asks a premise another lane spends first, so it is not fixed. 17:24: The
+    switch-on ruling closed cleanly: 82f4b20bc landed and its continuation retired at 16:44, with no second
+    build. No spent-premise draw was seen. Nothing re-asks a premise another lane spends first, so it
+    is not fixed. 20:21: Live again. epg-reaches-the-household-bill is still offered by the continuation
+    queue while surgical_land pid 1127827 lands that exact build (running 30m). If that landing succeeds
+    and the row is not retired, a later tick is handed a spent build. Nothing re-asks a premise another
+    lane spends first, so it is not fixed. 23:24: It bit. the-shared-checkout-advances-to-origin was drawn
+    8 minutes after 5cb0f1918 had already done its survey, and the tick recorded it premise_spent. My
+    own focus item 2 also told the worker to bind to surgical_land pid 1127827, which had already exited
+    with nothing landed. Nothing re-asks a premise another lane spends first, so it is not fixed. 02:24:
+    No spent-premise draw this stretch. Two landings now in flight (the gas floor, the E6 overlay) are
+    the previous focus''s own work, and this record names neither again. Triaged in docs/direction/wrong_triage.yaml
+    as fix, open, owner background/seat_continuation.py. Not fixed. 05:24: No spent-premise draw this
+    stretch. The draw now prints a PREMISE CHECK naming cited commits already on origin, which warns a
+    tick but does not withhold the row. Nothing re-asks a premise another lane spends first before offering
+    it, so it is not fixed.'
   corrected: false
 - what: 'THE COMPANY''S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards.
     On 268 desk states from 2019 it reads AUC 0.333, and its mean is 0.193 on end-of-fix rolls, where
@@ -287,28 +279,117 @@ wrong:
     11:21: Seed 2 graded (6f1c336e2), and the grader corrected (9fc114520): ending_term minus flat parity
     is +GBP 2,866. Seed 3 is running, and seeds 4 and 5 are to come. No policy carries the belief. 14:20:
     Seed 3 finished at 13:54Z, and all three arm files are on disk. It is not graded; its continuation
-    is now drawable. Seeds 4 and 5 are to come, and no policy carries the belief.'
+    is now drawable. Seeds 4 and 5 are to come, and no policy carries the belief. 17:20: Seed 3 graded
+    valid (2644ea3ab, P14a'' symdiff 113): ending_term minus flat is +GBP 3,026 on departures and +GBP
+    594 on parity, and P14b and P14c held. Two valid seeds now agree in sign. Seed 4 is running (flat
+    done, all_on_ending_term live), and seed 5 is to come. No policy carries the belief. 20:24: Seed 4
+    graded valid (706bbbc1e, P14a'' symdiff 119): ending_term minus flat is +GBP 7,946 on departures but
+    -GBP 140 on parity, so P14b is the wrong sign on this seed. Across three seeds the net is +2,140 +/-
+    1,887. Seed 5 is running (flat done, all_on_ending_term live), and its grade is queued on the .rc.
+    Section 17 (1044c8fe0) found that the belief''s only act is the offer. No policy carries it. 08:23:
+    Seed 5''s three arms finished by 22:50Z and are not graded: grade-section-14-seed-5-the-four-seed-grade
+    was drawn and landed nothing. Focus item 2 grades it. No policy carries the belief. 11:23: Seed 5
+    graded and the four-seed grade written (427e5f021): mean net +GBP 1,556, but the departure interval
+    is [-GBP 1,306, +GBP 8,542], so the pre-registered rule is not met and the switch stays off. The corrected
+    belief is built and graded, and no policy carries it, so the company''s live renewal belief still
+    ranks leavers backwards. 14:20: Unchanged. No policy carries the corrected belief, so the live renewal
+    belief still ranks leavers backwards. 17:24: Unchanged. No policy carries the corrected belief. 20:21:
+    Unchanged. No policy carries the corrected belief. 23:24: Unchanged. No policy carries the corrected
+    belief. 49a577707 adds that the four-seed grade ran on books with over-cap bills in both arms, so
+    its pound differences are not trusted until the fresh run is graded. 02:24: Unchanged, but its blocker
+    has moved. d909b6933 graded the fresh run, and over-cap bills fell from 29.8% to 0.42% of graded default-tariff
+    invoices. So the corrected belief''s grade can be re-taken on a clean book. That is focus item 3.
+    No policy carries it yet. 05:24: Unchanged. The clean-book re-take is pre-registered (6891c01e2) and
+    launched (s14clean-driver, 05:05Z), but it has computed nothing: it waits on the C30 arms, which wait
+    on memory (focus item 1). No policy carries the corrected belief.'
   corrected: false
-- what: 'THE MACHINE''S, THIS STRETCH. tools/console_instruction_record.py wrote a peer Claude session''s
-    cross-session messages (se-seat-executor-cb, 01:40Z and 01:43Z) into docs/staging/console/DIRECTOR_CONSOLE_2026-10-22.md
-    under the header ''VERBATIM CAPTURE of what he typed''. The orientation brief then listed them as
-    director_inputs. Under G8 the machine''s own text is never his words. This seat treated it as data.
-    Not fixed. 05:22: Unchanged. No new instance this stretch. Not fixed. 08:24: Recurred. The 05:34:47Z
-    entry is se-seat-executor-a8''s cross-session message, recorded under the same header, and this brief
-    lists it as director_inputs. This seat treated it as data. Not fixed. 11:21: No new instance; this
-    brief lists no director inputs. Not fixed. Focus item 4 fixes it. 14:20: No new instance. Not fixed.
-    It leaves focus this stretch so that the director''s four site steers fit, and it is listed in not_now.'
+- what: 'THE COMPANY''S, THIS STRETCH. The collections tone, one of the switches by which the flat baseline
+    differs from per-customer, reaches no payment: since ded298ecd2 the world''s payment triad decides
+    payments, and only fallback bills read the tone (1044c8fe0, filed LATENT as SEAT_FINDING_THE_COLLECTIONS_TONE_REACHES_NO_PAYMENT_SINCE_THE_WORLD_WENT_TO_ONE_PAYMENT_TRUTH_2026-10-22.md).
+    Every flat-against-per-customer reading since then has carried an inert difference, and nothing flagged
+    it. Not fixed. 08:23: Unchanged. Not fixed. Focus item 2''s four-seed grade must state that its flat
+    and per-customer arms also differ by this inert switch. 11:23: Unchanged, not fixed. 427e5f021''s
+    four-seed grade states the inert tone beside its result, as asked. 14:20: Unchanged, not fixed. 17:24:
+    Unchanged, not fixed. Explore''s cast found the ladder it should act on stops after the second notice,
+    so focus item 4 settles both together. 20:21: Unchanged, not fixed. Its focus item (the collections
+    ladder) was not drawn this stretch, because three continuations ran ahead of it. 23:24: Unchanged,
+    not fixed. Its focus item (the collections ladder) was not drawn for the second stretch running. It
+    stays in focus. 02:24: Unchanged, not fixed. Its focus item (the collections ladder) went undrawn
+    for a third stretch, so it is focus item 1 now. 05:24: Corrected for the comparison. 94b281af7 settles
+    it: the tone leaves the flat/per-customer switch set, and the flat arm keeps current''s tone, so no
+    flat-against-per-customer reading now carries the inert difference. That the tone reaches no payment
+    is recorded in the finding as a fact about the world, not as a difference between the arms.'
+  corrected: true
+- what: 'THE MACHINE''S, THIS STRETCH. The shared checkout is 22 commits behind origin, and rung zero
+    reads the advisor files from that checkout''s disk. So two BLOCKING advisor files that reached origin
+    at 08:51Z and 08:56Z (DIRECTOR_READING_THE_NEW_TIER_IS_A_QUARTER_OF_THE_OLD_2026-10-23.md and DIRECTOR_STEER_CHEAPER_PER_LANDED_RESULT_SCRIPTS_TIERS_AND_EFFORT_2026-10-23.md)
+    are absent from this brief''s advisor channel, which lists only the other-pages steer. They ask for
+    a cost proposal before Monday''s reset, and nothing has started it. Focus item 2 does it. The draw
+    still reads the advisor queue from the behind disk, so this is not fixed. 14:20: Recurred as predicted.
+    The checkout is now 32 behind. The Explore feature-demo steer (BLOCKING, due for Monday''s publish),
+    the show-everything-learned steer and both usage readings are on origin and absent from this brief.
+    The brief instead refused the other-pages steer, which bf1e4eaf8 had already closed on origin. Item
+    2 makes the advisor rung read origin. Not fixed. 17:24: Half fixed, and the half that landed is not
+    live. dfcc82f5e makes the advisor draw list origin, but the checkout is now 44 behind and no unit
+    on the box runs that commit. This brief still refused the other-pages steer as ''not on origin'',
+    though bf1e4eaf8 closed it there. Focus item 2 advances the checkout. Not fixed. 20:21: Not fixed,
+    and worse. The checkout is now 51 behind, and every unit on the box lacks at least two origin commits
+    to code it imports. This brief again refused the other-pages steer as ''not on origin'', though bf1e4eaf8
+    closed it there. Its focus item was not drawn, because three continuations ran ahead of it. It is
+    focus item 1 now. 23:24: Not fixed, and worse. The checkout is now 58 behind. 5cb0f1918 shows the
+    fast-forward is refused only by live work, and first by the gas nine-month floor''s unlanded build
+    in the shared tree (company/billing/monthly_bill_assembly.py, unread_month_estimate.py, decision_policy.py).
+    Focus item 2 lands that build or yields it. 02:24: Not fixed, and worse. The checkout is now 64 behind.
+    The gas floor that blocked the fast-forward is landing now, rebased onto origin (surgical_land, started
+    01:52Z). A continuation (the-gas-floor-build-in-the-shared-tree-lands-or-yields) then refreshes the
+    shared files and fast-forwards. 05:24: Not fixed, and worse. The checkout is now 89 behind. The gas
+    floor is on origin (8473e7a1f), but its older shared copies are still dirty in the tree (preserved
+    under refs/preserved/gas-floor-shared-copy/; ff8437814 rules that origin wins). refresh_to_head can
+    now refresh a copy whose diff the base already holds (2ae033565). Nobody ran it over the tree. Focus
+    item 4.'
   corrected: false
-- what: THE SEAT'S, THIS STRETCH. Last stretch's not_now rejected chasing the publisher's FAILING line,
-    on the grounds that its cited red was dead at HEAD and the next window was 26 Oct. That reasoning
-    was about the publisher, and the cost was on the page. The front door read from a heartbeat snapshot
-    frozen at 2026-10-19T07:56Z, two hours before Monday's good publish. Its first bold line told every
-    reader that publishing had failed for 80 hours, and the director found it himself. Focus item 1 removes
-    the banner and fixes the class.
+- what: 'THE COMPANY''S, THIS STRETCH. Explore''s cast rules (83c4fc9d6) found 4,764 of 14,012 pre-renewal
+    invoices on the 19 Oct run (199 of 550 households) more than 0.5% above min(cap, EPG), and a November
+    2022 bill at exactly the cap instead of the EPG. The finding was filed LATENT under W3 with no atom,
+    and the earlier fix 592596b44 is an ancestor of that run. The cause is not yet named, and (c), a mislabelled
+    population, has to be ruled out first. 17:24: Focus item 1. Not fixed. 20:21: Cause named, half fixed.
+    4bc21e920 refuted (c): 4,579 of the 4,764 are on recorded svt terms. On recorded types, 5,492 of 18,374
+    svt invoices (244 of 550 households) sit above the ceiling. 3,600 are cause A (an incoming occupant
+    priced as non-domestic), fixed in 4bc21e920. 1,817 are cause B (the EPG never reached the household''s
+    invoice), which is landing now under epg-reaches-the-household-bill. 436 invoices plus 66 are unexplained,
+    and no fresh run has been re-graded. Not fixed. 23:24: The residue is named, but the defect is not
+    fixed. 49a577707: all 501 bills that miss their struck rate are electricity on a ToU pair. The company
+    offers ToU on every term of a smart-metered home, the default tariff included. The 59 at the cap are
+    not a breach: SLC 28AD.4 grades a multi-register tariff at its split, not per bill. 25 are labelled
+    GAP. Cause B (the EPG) is still not on origin after 5 hours and two attempts, so no fresh run has
+    been graded. 02:24: Mostly fixed, not closed. Cause B landed (4ef70aba9). The fresh run at 88cdf35e4
+    graded 104 of 24,597 default-tariff invoices above min(cap, EPG), down from 5,488 of 18,398 (d909b6933).
+    79 of the 104 are on two accounts with the ToU-pair misgrade, which 1e358809b fixes but which that
+    run did not carry. About 17 inside the EPG windows are mid-month estimated stubs that carry no EPG
+    receipt. Focus item 2 carves that route. 05:24: The last named route is fixed. ce35a25e2 makes the
+    void-stub estimate carry the EPG inside the window, and 1ee7ec58d moves SVT_BILLS_ABOVE_THE_CAP to
+    LATENT. It is not closed: no run carrying 1e358809b and ce35a25e2 has been graded, and the s14clean
+    re-take''s over_ceiling.txt is that grade. The Explore cast finding still reads BLOCKING because of
+    its other sections.'
   corrected: false
-- what: THE MACHINE'S, THIS STRETCH. Three Cloudflare Pages deploys failed today, at 420a5b67d, 989ce4f1c
-    and 02659d155, and nothing on the seat's surface said so. The director's advisor reported them. A
-    site change can fail to deploy without anyone being told. Focus item 1 finds the cause.
+- what: 'THE SEAT''S, THIS STRETCH. Two Lane 0 items whose work landed read not_done CANNOT ANSWER in
+    the draw ledger: c30-the-per-account-svt-sender-grades-both-sides (0481ad381) and the-over-cap-residue-is-named-and-a-fresh-run-is-re-graded
+    (49a577707). My focus prose named staging files and no tracked code path, so git could not be asked.
+    02:24: Every focus item in this record names the tracked paths it changes. 05:24: Corrected. None
+    of last stretch''s four focus items reads CANNOT ANSWER, because each named its tracked paths. the-over-cap-residue-is-named-and-a-fresh-run-is-re-graded
+    still has no landing bound to it. 49a577707 is its work, and binding that is owed.'
+  corrected: true
+- what: THE MACHINE'S, THIS STRETCH. No long job has computed since about 02:53Z. crisis-overlay-arm-70424-387e48132,
+    the nine c30-s6110x arms and the s14clean driver all read QUEUED in /var/tmp/longjob-*-queued.log.
+    head-green-census.service's full-suite pytest (pid 83098, 12 GB resident against a 23 GB budget, 2h47m
+    and counting) leaves no room for a 7 GB job, and holds for 'landings come before experiments' fill
+    the gaps. The run that answers the thesis question was launched and is not running, and nothing named
+    that. Not fixed. Focus item 1.
+  corrected: false
+- what: THE SEAT'S, THIS STRETCH. My focus item for the section 14 re-take set no order against other
+    runs. So it launched waiting on all nine C30 seed arms (tools.wait_for pid 1615135 on c30-seeds-out),
+    which puts the thesis question behind a secondary one on a box that runs about two jobs at a time.
+    Not fixed. Focus item 1 sets the order.
   corrected: false
 for_the_director:
 - id: c34-now-ranks-next-best-action-on
@@ -489,32 +570,6 @@ for_the_director:
     spend of two Opus reads per qualifying commit; without it, the VAT-class defect (one rule, five implementations)
     is left to the seat''s interconnection review alone. Holding position: no reader runs. Would change
     it: a confirmation rate under half, or the spend crowding out feature lanes.'
-- id: your-22-oct-front-door-steer-lists
-  raised: '2026-10-22'
-  kind: canon_intent
-  what: Your 22 Oct front-door steer lists 'tests and commits' as a proof-strip figure. Your earlier site
-    ruling RC5 keeps effort metrics off the front door, and site/test_front_door_brand.py enforces it.
-    The strip shipped with three outcome figures and without tests and commits.
-  proposal: Keep RC5 on the front door. Put tests, commits and the delivery record on the Harness page,
-    which the steer (item 5) is bringing forward as 'How it builds itself', where the build is the subject.
-  recommendation: 'I recommend keeping RC5 as it stands and showing tests and commits on the Harness page.
-    The front door''s job is what the supplier has done, and effort figures read as volume rather than
-    result. The trade-off: a technologist sees the scale of the build one click later. Holding position
-    until you rule: the front door carries three outcome figures (half-hourly periods, years, households)
-    and no effort figure. A ''put them on the front'' from you would change this, as a one-line edit to
-    the brand test plus the renderer.'
-  status: answered
-  resolution: 'Answered by the director''s 14:57 BST steer of 22 Oct (''The home page is not an impressive
-    summary of what the ambition is and just how much has been achieved''). The advisor relays the shape
-    he agreed, which puts the build''s scale on the front door: commits, Python files, test files, knowledge
-    pages and research notes (docs/staging/advisor/DIRECTOR_STEER_THE_FRONT_DOOR_SHOWS_THE_AMBITION_AND_WHAT_HAS_BEEN_BUILT_2026-10-22.md,
-    section 2 item 2). Built as a strip counted from git at publish (tools/generate_dashboard_data.py::write_front_door_build_strip).
-    RC5''s banned phrases (tests passing, tests collected, commits/day) stay banned, and site/test_front_door_brand.py
-    is unchanged.'
-  evidence: site/test_front_door_brand.py::test_no_effort_metrics_on_the_surface goes red on 'tests collected';
-    docs/staging/advisor/done/DIRECTOR_STEER_THE_FRONT_DOOR_FOR_A_NEWCOMER_IN_ENERGY_OR_TECH_2026-10-22.md,
-    closing note
-  resolved: '2026-10-22'
 - id: the-front-door-asserts-m11-software-that
   raised: '2026-10-22'
   kind: strategy
