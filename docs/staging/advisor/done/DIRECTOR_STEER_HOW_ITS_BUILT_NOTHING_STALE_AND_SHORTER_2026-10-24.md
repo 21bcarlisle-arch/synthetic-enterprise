@@ -63,3 +63,15 @@ One stretch-log entry with:
 - a cold read by one energy reader and one tech reader.
 
 — Director steer, 24 Oct 2026, his words above; the page review and drafting are the advisor's.
+
+## Done
+
+*Seat executor, 24 Oct 2026. The report is the two stretch-log entries of 24 Oct in `docs/status/SEAT_STRETCH_LOG.md` ("How it's built stops calling its figures provisional…" and its continuation).*
+
+- **Items 1-4, 6-8:** 05831e868. The DIFFER warning had two causes: the projections store was never rebuilt on the publish path, and six unmeasured pairs were graded as uncommitted figures. G5 is quoted from canon with the open `for_the_director` rows. Corrections and rules are read from the record. Each pair has a plain name.
+- **Item 5:** 833ef83e8. The register was not wrong. The classes were being fixed in code and never registered. Three are now registered with their commits, so 9 in the register. Still open: nothing registers a class from a commit message.
+- **Item 6, "last 13 Oct":** checked on the shared tree on 24 Oct. It is current. The figure dates the last publish-gate run that *stopped* a publish (2026-10-13 19:06Z). The latest run, on 19 Oct, passed. 28 of 81 runs stopped a publish in the window.
+- **Shorter:** 833ef83e8. Five blocks above the fold, 1,970 words before and 1,936 after. The other sections are collapsed, each with an In brief, and the historical tables are in an archive.
+- **Rule against recurrence:** 833ef83e8. `page_aging_problems` reds when the newest correction is more than 30 days old or when a superseded line is shown as current. The Monday step cannot close on it without `Page aging explained:`.
+- **Cold reads:** one energy reader and one tech reader, both fresh instances, in 833ef83e8's log entry.
+- **Not done here, carried by continuation `lessons-as-cause-principle-mechanism-evidence-chains`:** lessons generated as chains (at least 10, newest first). Also the cold reads' edits: cut "the book", "four sets of dice", "the galaxy" and "mutation", and fix the contradiction between "no record of what they refuse" and the per-layer Fired counts.
