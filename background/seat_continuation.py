@@ -312,6 +312,15 @@ def hand_off(
             f"a continuation must carry {', '.join(REQUIRED_FIELDS)}; missing or empty: "
             f"{', '.join(missing)}. A tick handed a topic writes a restatement of it."
         )
+    from background import delivery_lane  # lazily: delivery_lane imports this module
+
+    unread = delivery_lane.unresolved_embargoes(" ".join(fields.values()))
+    if unread:
+        raise ValueError(
+            f"the draw cannot read this embargo and would hand the item out at once: {unread[0]!r}. "
+            "Write `DO NOT DRAW BEFORE HH:MM on YYYY-MM-DD` or `DO NOT DRAW BEFORE /abs/path "
+            "EXISTS`, one phrase per path -- globs and braces are not paths."
+        )
     if lane:
         known = _map_lanes()
         if known and lane not in known:

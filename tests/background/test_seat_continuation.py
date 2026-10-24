@@ -113,6 +113,24 @@ def test_an_INCOMPLETE_handoff_is_REFUSED_and_names_what_is_missing(store):
     )
 
 
+def test_an_embargo_the_draw_CANNOT_READ_is_refused_at_hand_off_and_one_it_can_is_stored(store):
+    """The draw fails open on an unreadable embargo, so the hand-off is the only place to catch it.
+
+    MUTATION: drop the `unresolved_embargoes` check from `hand_off` and the brace glob is stored.
+    """
+    with pytest.raises(ValueError) as exc:
+        _hand(store, "glob", what="DO NOT DRAW BEFORE /var/tmp/o/{A,B}_1.json ALL EXIST. Grade.")
+    assert "{A,B}" in str(exc.value), "the refusal must quote the phrase it could not read"
+    for i, readable in enumerate((
+        "DO NOT DRAW BEFORE /var/tmp/o/A_1.json EXISTS. DO NOT DRAW BEFORE /var/tmp/o/B_1.json EXISTS.",
+        "DO NOT DRAW BEFORE 10:45 on 2026-09-18, then grade.",
+        "the grammar is `DO NOT DRAW BEFORE <path> EXISTS` -- quoted, not given",
+    )):
+        _hand(store, f"ok-{i}", what=readable)
+    stored = {e["id"] for e in json.loads(store.read_text())}
+    assert stored == {"ok-0", "ok-1", "ok-2"}, f"a readable embargo was refused: {stored}"
+
+
 def test_EVERY_FIELD_DECLARED_REQUIRED_IS_THE_ONE_THE_WRITER_DEMANDS(store):
     """`REQUIRED_FIELDS` and `hand_off`'s enforcement must not be able to disagree.
 
