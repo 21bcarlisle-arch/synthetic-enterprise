@@ -8,6 +8,26 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-24 — How it's built: the class register backfilled, the page shortened to five blocks above the fold, and a 30-day aging rule on the Monday step
+
+<!-- head: 05831e8684cc -->
+
+*Seat executor, continuing the entry below, 24 Oct 2026. Same steer; adds item 5, the shorter layout, the aging rule and the cold reads.*
+
+**Item 5, before and after.** Before: "0 new classes of mistake registered, of 6 in the register; last 28 Aug". Cause: nothing was wrong with the count. `background/finding_classes.py` classifies staged finding documents, and since August the recurring classes were fixed in the commit that found them (52 commits say "as a class"), with no finding filed, so no one ever had a reason to register. After: three classes registered and backfilled, each with its commits as evidence: a reading taken from a stale copy (4 instances: 2 Sep, 22 Oct, 23 Oct, 24 Oct), an absurd value guarded at the instance (3: 22 Sep, 2 Oct, 4 Oct), and one definition with several homes (3). They are dated 24 Oct, the day they were registered, not the day first seen. The layer reads "3 new, of 9" and `--check` passes. What is still open: the register only learns what a person registers; nothing registers a class from a commit message. I did not build that.
+
+**The shorter layout.** Above the fold is now In brief, the stack, the scale, last week and belief and truth: 1,936 words, down from 1,970 (the old page already put those first, but then ran on open for another 13 sections). Everything else is collapsed, each starting with an "In brief": lessons, corrections, rules, what a human decides, how work is chosen, doors, checks. The remaining seven sections sit in one archive. A link to an anchor opens its fold.
+
+**The aging rule.** `page_aging_problems` (tools/harness_page_figures.py) reds when the newest correction is over 30 days before the publish, or when a superseded line (the July seven, the 18 Sep count, the NTFY directive) is presented as current. The Monday step carries it as `## How it's built: page aging`, and Monday cannot close on a problem until it is fixed or a `Page aging explained:` line says why not. The corrections section already said it on the page.
+
+**Cold reads (one energy, one tech, both fresh sonnet instances).** Both read the page correctly and both flagged: "0 new classes ... last 28 Aug" (now fixed); "most checks keep no record of what they refuse" beside a Fired count per layer, which reads as self-contradicting; "0 tool calls denied" printed as a figure; and the jargon "the book", "four sets of dice", "the galaxy", "mutation", "publisher". The energy reader would cut the commits-per-week series. Not changed here; these are the next edit.
+
+**Not done.** The lessons are the three hand-written cards, not cause, principle, mechanism and evidence chains mined from the record. The older steer (`SHOW_EVERYTHING_WE_HAVE_LEARNED...`) stays in `docs/staging/advisor/` with a `## Remaining` section. The published-state layer's "last 13 Oct" still cannot be checked from a worktree without the publisher's logs.
+
+**What we got wrong (2026-10-24):** The learning layer said no new class of mistake had been found since 28 Aug. The register was never the place the learning went: the classes were fixed in code and never registered. Three are registered now.
+
+---
+
 ## 2026-10-24 — How it's built stops calling its figures provisional, quotes G5 with what waits on him, and lists what we got wrong from the record; the class register is not being used and is handed on
 
 <!-- head: 91d6d9db21b3 -->

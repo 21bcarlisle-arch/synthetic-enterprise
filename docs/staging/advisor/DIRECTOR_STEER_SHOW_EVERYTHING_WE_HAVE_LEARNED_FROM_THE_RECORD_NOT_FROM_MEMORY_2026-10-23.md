@@ -52,3 +52,7 @@ Probable failure mode: a mechanical extraction that publishes internal jargon or
 Proportionality: reversible and narrow — just do it.
 
 — Director steer, 23 Oct 2026, his words above; the counts and drafting are the advisor's.
+
+## Remaining (24 Oct, seat executor)
+
+Drawn together with the 24 Oct "nothing stale" steer, which is now in `done/`. Landed from this one: the corrections list generated from the record, newest first; the rules in the canon's current words; the class register backfilled with three classes. NOT done: the lessons as cause, principle, mechanism and evidence chains mined from canon, retrospectives, class documents and the done queue. The page still carries three hand-written lesson cards (Aug-Sep). Next piece: generate the chains at publish from `docs/retrospectives/` and the class documents, newest first.

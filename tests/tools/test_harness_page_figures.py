@@ -404,3 +404,23 @@ def test_each_rule_is_shown_in_the_canons_current_words(tmp_path):
     assert rows["R1"]["learned_as"] is None and "July" in rows["R1"]["wording_from"]
     live = {r["id"]: r for r in gpd._timeline([])}
     assert "NTFY" not in live["R8"]["rule"]
+
+
+def _tree_with(tmp_path, log_day, page_text="<p>fine</p>"):
+    (tmp_path / "docs" / "status").mkdir(parents=True)
+    (tmp_path / "site" / "harness").mkdir(parents=True)
+    (tmp_path / "docs" / "status" / "SEAT_STRETCH_LOG.md").write_text(
+        f"## {log_day}\n**What we got wrong ({log_day}):** a thing was wrong.\n")
+    (tmp_path / "site" / "harness" / "index.html").write_text(page_text)
+    return tmp_path
+
+
+def test_page_aging_is_clean_then_red_on_age_and_on_a_superseded_line(tmp_path):
+    from tools import harness_page_figures as h
+    root = _tree_with(tmp_path, "2026-10-20")
+    assert h.page_aging_problems(root, "2026-10-24") == []
+    # The same tree, a publish 40 days later: the section has aged silently.
+    assert any("days old" in p for p in h.page_aging_problems(root, "2026-11-29"))
+    # And a July sentence presented as current is a problem even on a fresh log.
+    root2 = _tree_with(tmp_path / "b", "2026-10-20", "<p>Seven kinds of action are the director's</p>")
+    assert any("superseded" in p for p in h.page_aging_problems(root2, "2026-10-24"))

@@ -618,3 +618,13 @@ def test_the_monday_step_grades_explores_cast_and_says_when_it_cannot(monkeypatc
     monkeypatch.setattr(cast, "OUT_PATH", tmp_path / "absent.json")
     text = "\n".join(wr._explore_cast_section())
     assert "NOT MEASURED" in text, text
+
+
+def test_monday_cannot_close_on_a_page_aging_problem_until_it_is_explained():
+    from background import weekly_rhythm as w
+    red = f"{w.PAGE_AGING_HEADING}\n\n1 problem(s) -- fix them:\n\n- the newest correction is 40 days old\n"
+    assert w.page_aging_refusal(red) is not None
+    assert w.page_aging_refusal(red + f"{w.PAGE_AGING_EXPLAINED} the log is quiet by design\n") is None
+    assert w.page_aging_refusal(f"{w.PAGE_AGING_HEADING}\n\nClean: nothing.\n") is None
+    # An unavailable check is not a clean one.
+    assert w.page_aging_refusal(f"{w.PAGE_AGING_HEADING}\n\nUNAVAILABLE, not clean: boom\n") is not None

@@ -421,6 +421,84 @@ CLASSES: tuple[FindingClass, ...] = (
             r"without[_ ]its[_ ]clock|no[_ ]financial[_ ]figure[_ ]without",
         ),
     ),
+    #: THREE CLASSES REGISTERED 2026-10-24, BACKFILLED. The register went quiet at 28 Aug while the
+    #: tree kept finding classes, because it classifies STAGED FINDING DOCUMENTS and the work since
+    #: August was fixed in the commit that found it, with no finding filed (52 commits say "as a
+    #: class"). Nothing was wrong with the count; the register was not the place the learning went.
+    #: Each class below was found in commits, so each starts with no staged instance and carries its
+    #: observed count in `ruling_count` and its evidence in `provenance`, which is what R10 asks.
+    #: The patterns are narrow on purpose: a backfilled class must not pull a document out of the
+    #: five the director measured.
+    FindingClass(
+        id="a_reading_taken_from_a_stale_copy",
+        title=(
+            "A reading taken from a stale copy and presented as current: a snapshot, a "
+            "checkout or a heartbeat that stopped, read as if it were the live thing"
+        ),
+        ruling_name="a reading from a stale copy",
+        ruling_count=4,
+        lane="H_harness",
+        registered="2026-10-24",
+        provenance=(
+            "registered under R10 from four commits, not from staged findings: 859c529f76 "
+            "(2 Sep, the census overlaid its launch tree's data), 682640b372 (22 Oct, the "
+            "'publishing is failing' banner read a frozen heartbeat), dfcc82f5e9 (23 Oct, the "
+            "advisor queue read from a checkout 37 commits behind) and c5a8090187 (24 Oct, a "
+            "runner 106 commits behind). Not one of the director's five; the count is this "
+            "module's own"
+        ),
+        patterns=_p(
+            r"frozen[_ ]heartbeat",
+            r"checkout[_ ]\d*[_ ]?commits?[_ ]behind",
+            r"read[_ ]from[_ ]a[_ ](stale|frozen)[_ ](copy|checkout|snapshot)",
+        ),
+    ),
+    FindingClass(
+        id="an_absurd_value_guarded_at_the_instance",
+        title=(
+            "An absurd value caught where it was found, not as a class: the same impossible "
+            "state reached through a second door"
+        ),
+        ruling_name="an absurdity fixed at the instance",
+        ruling_count=3,
+        lane="D_billing_metering",
+        registered="2026-10-24",
+        provenance=(
+            "registered under R10 from three commits: c28b7b173f (2 Oct, a term starting "
+            "29 February crashed a whole run), e2fd1bc15c (4 Oct, dunning a cleared debt) and "
+            "852fd28546 (22 Sep, the unbounded quotient, whose first two drafts of the "
+            "control could not fail). The remedy each time was a class guard in "
+            "`company/compliance/domain_invariants.py`. Not one of the director's five; the "
+            "count is this module's own"
+        ),
+        patterns=_p(
+            r"guarded[_ ]as[_ ]a[_ ]class",
+            r"fixed[_ ]at[_ ]the[_ ]instance",
+        ),
+    ),
+    FindingClass(
+        id="one_definition_with_several_homes",
+        title=(
+            "One definition with several homes: a legal rule or a measured quantity "
+            "implemented in more than one place, one fixed and the others left"
+        ),
+        ruling_name="one definition, several homes",
+        ruling_count=3,
+        lane="H_harness",
+        registered="2026-10-24",
+        provenance=(
+            "registered under R10 from three cases the director named in CLAUDE.md and the "
+            "log: the VAT rule (one requirement, five implementations, fixed in one in July "
+            "and live in another in August), the journey's end having two homes, and the "
+            "residual's two voices (1cbf684ed3, 18 Sep). Not one of the director's five; the "
+            "count is this module's own"
+        ),
+        patterns=_p(
+            r"two[_ ]homes",
+            r"several[_ ]homes",
+            r"two[_ ]voices",
+        ),
+    ),
 )
 
 CLASSES_BY_ID = {c.id: c for c in CLASSES}

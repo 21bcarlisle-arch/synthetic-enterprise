@@ -333,6 +333,48 @@ def _canon_against_canon_section() -> list[str]:
     return lines + ([""] if found else [])
 
 
+PAGE_AGING_HEADING = "## How it's built: page aging"
+PAGE_AGING_EXPLAINED = "Page aging explained:"
+
+
+def _page_aging_section() -> list[str]:
+    """Director, 24 Oct 07:28: a dated section must not stop aging silently. Lists what on the
+    How it's built page is more than 30 days old, or a superseded line; Monday cannot close on a
+    problem here until it is fixed or a line starting `Page aging explained:` says why not."""
+    try:
+        from tools.harness_page_figures import page_aging_problems
+        found = page_aging_problems(Path(__file__).resolve().parent.parent)
+    except Exception as exc:  # noqa: BLE001 -- a check that cannot run is UNAVAILABLE, never clean
+        return [PAGE_AGING_HEADING, "", f"UNAVAILABLE, not clean: {exc!r}", ""]
+    if not found:
+        return [PAGE_AGING_HEADING, "", "Clean: no dated section is over 30 days old and no "
+                "superseded line is presented as current.", ""]
+    return [PAGE_AGING_HEADING, "", f"{len(found)} problem(s) -- fix them, or write a line "
+            f"starting `{PAGE_AGING_EXPLAINED}` saying why not:", ""] + [f"- {p}" for p in found] + [""]
+
+
+def page_aging_refusal(text: str) -> str | None:
+    """Why Monday may not close for want of the page-aging check, or None."""
+    lines = (text or "").splitlines()
+    try:
+        start = next(i for i, ln in enumerate(lines) if ln.strip() == PAGE_AGING_HEADING)
+    except StopIteration:
+        return None  # a Monday document staged before this section existed carries none
+    body = []
+    for ln in lines[start + 1:]:
+        if ln.startswith("## "):
+            break
+        body.append(ln)
+    block = "\n".join(body)
+    if "problem(s)" not in block and "UNAVAILABLE" not in block:
+        return None
+    explained = [ln for ln in body if ln.strip().startswith(PAGE_AGING_EXPLAINED)
+                 and ln.strip()[len(PAGE_AGING_EXPLAINED):].strip()]
+    return None if explained else (
+        f"its `{PAGE_AGING_HEADING}` section lists a stale or superseded line on the page and "
+        f"carries no `{PAGE_AGING_EXPLAINED}` line (director, 2026-10-24)")
+
+
 def end_to_end_refusal(step: str, due_on: date, staging: Path | None = None) -> str | None:
     """Why this step may not close for want of its end-to-end check, or None.
 
@@ -351,7 +393,7 @@ def end_to_end_refusal(step: str, due_on: date, staging: Path | None = None) -> 
         return (f"Monday's document {doc.name} is not in the staging root, so it carries no "
                 "end-to-end check -- `--tick` stages it if the step was never opened; if it was "
                 "opened and moved, bring it back from done/ -- then write the check in it")
-    why = end_to_end_unfilled(text)
+    why = end_to_end_unfilled(text) or page_aging_refusal(text)
     return None if why is None else (
         f"{doc.name}: {why}. Monday's retrospective closes only once the end-to-end check is "
         "written (director, 2026-10-04) -- canon, logic, work and findings read together, each "
@@ -503,6 +545,7 @@ def _step_body(step: str, due_on: date, overdue: list[dict]) -> str:
         lines += _world_claims_section()
         lines += _explore_cast_section()
         lines += _canon_against_canon_section()
+        lines += _page_aging_section()
         lines += _merge_pressure_section()
         lines += _run_cost_section()
         lines += _priority_order_section()

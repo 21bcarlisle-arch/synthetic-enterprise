@@ -244,6 +244,41 @@ def corrections_from_the_log(root):
     return unique
 
 
+#: Sentences the canon has superseded. Presented as current on the page they are a defect (director,
+#: 24 Oct 07:28: "no superseded line ... may be presented as current"). Quoted in a correction
+#: they are history, so these are the exact present-tense sentences, not the phrases.
+SUPERSEDED_LINES = (
+    "Seven kinds of action are the director's",
+    "When this was last counted, on 2026-09-18, nothing was waiting on him",
+    "A directive arriving by NTFY",
+)
+
+
+def page_aging_problems(root, today=None):
+    """What on the How it's built page has gone stale, as sentences; an empty list is a clean read.
+    Read by the Monday end-to-end step. A section that cannot be read is reported, not passed."""
+    today = today or date.today().isoformat()
+    problems = []
+    rows = corrections_from_the_log(root)
+    if rows is None:
+        problems.append("the stretch log cannot be read, so the corrections list cannot be dated")
+    elif not rows:
+        problems.append("the corrections list is empty")
+    else:
+        age = (date.fromisoformat(today) - date.fromisoformat(rows[0][0])).days
+        if age > STALE_SECTION_DAYS:
+            problems.append("the newest correction on the page is {} days old (limit {})".format(
+                age, STALE_SECTION_DAYS))
+    try:
+        page = (Path(root) / "site" / "harness" / "index.html").read_text(encoding="utf-8")
+    except OSError:
+        return problems + ["site/harness/index.html cannot be read"]
+    for line in SUPERSEDED_LINES:
+        if html.escape(line) in page or line in page:
+            problems.append("the page still presents a superseded line as current: " + repr(line))
+    return problems
+
+
 def render_corrections(rows, publish_day):
     if rows is None:
         return ("<p>The stretch log could not be read at this publish, so no correction is "

@@ -89,6 +89,9 @@ a { color: var(--teal); }
 .week { padding-left: 18px; }
 .week li { margin: 4px 0; max-width: 68ch; }
 .week .wd { color: var(--muted); font-size: 12px; margin-right: 4px; }
+details.fold { margin: 0 0 14px; border-top: 1px solid var(--border); padding-top: 10px; }
+details.fold > summary { cursor: pointer; font-size: 16px; font-weight: 700; padding: 4px 0; }
+.brief-s { font-size: 13px; color: var(--muted); max-width: 760px; margin: 0 0 12px; }
 details.more { margin: 0 0 12px; }
 details.more summary, .timeline summary { cursor: pointer; color: var(--teal); font-size: 13px; margin-bottom: 8px; }
 .lessons .card h3 { font-size: 15px; }
@@ -142,12 +145,11 @@ details.more summary, .timeline summary { cursor: pointer; color: var(--teal); f
     <h2>From an idea to a published page</h2>
     <p class="sub">
       Everything an agent proposes passes down this stack before a reader sees it. Each layer is
-      enforced by code that refuses, not by a reviewer who approves, and each names the file that
-      does it, and links one click down to its record. Under each layer is its own evidence, counted from its own record when this page
-      was published: how often it fired in the last 30 days, when it last fired, and whether a test
-      has been seen to fail by putting its defect back. Each count says what it counts. Most checks
-      keep no record of what they refused, so what a box counts is what got through the check, not
-      what it stopped; where even that has no record, the box says so rather than show a number.
+      enforced by code that refuses, not by a reviewer who approves, and names the file that does
+      it. Under each is its own evidence at publish: how often it fired in the last 30 days, when
+      it last fired, and whether a test has been seen to fail by putting its defect back. Most
+      checks keep no record of what they refuse, so a count is what got through, and a layer with
+      no record says so instead of showing a number.
     </p>
     <ol class="stack">
       <li><b>Direction.</b> The director sets purpose, and his rulings are kept in his own words.
@@ -215,7 +217,7 @@ details.more summary, .timeline summary { cursor: pointer; color: var(--teal); f
         <span class="held">Held by <code>background/finding_classes.py</code> and
         <code>background/weekly_rhythm.py</code>. The lessons below are this layer's record.</span>
 <!-- HARNESS-LAYER-8:START (written at publish by tools/harness_page_figures.py -- do not hand-edit) -->
-<span class="ev"><span><b>Fired, last 30 days:</b> 0 new classes of mistake registered, of 6 in the register; last 28 Aug 2026.</span><span><b>Shown able to fail:</b> 13 tests that name this layer&#x27;s code record a mutation</span></span>
+<span class="ev"><span><b>Fired, last 30 days:</b> 3 new classes of mistake registered, of 9 in the register; last 24 Oct 2026.</span><span><b>Shown able to fail:</b> 13 tests that name this layer&#x27;s code record a mutation</span></span>
 <!-- HARNESS-LAYER-8:END -->
         <a class="down" href="#lessons">The lessons it left &darr;</a></li>
     </ol>
@@ -281,8 +283,27 @@ details.more summary, .timeline summary { cursor: pointer; color: var(--teal); f
     </details>
   </section>
 
+  <section id="daemons">
+    <h2>What code each daemon is actually running</h2>
+    <p class="sub">
+      A green test proves the code is right. It proves nothing whatever about the code being
+      <em>loaded</em>: a long-lived process holds whatever it imported when it started, and on
+      2026-09-04 ten of eleven daemons here were running code up to eleven days behind the
+      repository — one of them holding 146 changed modules — while every liveness surface called
+      them healthy. Two ages are shown because they answer different questions. <b>Running age</b>
+      is how long the process has been up, and long is not wrong. <b>Loaded-code age</b> is how old
+      the code it holds is. A daemon restarted an hour ago onto a stale checkout has a small
+      running age and a large loaded-code age, and only the pair can tell you so. The verdict is
+      neither: it is whether any module the daemon <em>imports</em> has changed since it booted, so
+      a daemon days behind in time that holds nothing which moved is current, and reads as current.
+    </p>
+    <div id="deployment"></div>
+  </section>
+
+  <details class="fold" id="fold-lessons"><summary>Lessons learned</summary>
   <section id="lessons">
     <h2>Lessons it learned the hard way</h2>
+    <p class="brief-s"><b>In brief.</b> Each cost something and left a rule that runs as code. What was wrong and put right since, newest first, is the next section.</p>
     <p class="sub">Each one cost something, and each left a rule behind that now runs as code. The
       full story of each sits in the sections below.</p>
     <div class="lessons">
@@ -310,7 +331,255 @@ details.more summary, .timeline summary { cursor: pointer; color: var(--teal); f
           defect. Checks are counted by that, not by whether they exist.</p></div>
     </div>
   </section>
+  </details>
 
+  <details class="fold" id="fold-corrections-sec"><summary>What we got wrong, and corrected</summary>
+  <section id="corrections-sec">
+    <h2>What we got wrong, and corrected</h2>
+    <p class="brief-s"><b>In brief.</b> Every wrong claim the build made and then fixed, newest first, written at publish from the stretch log.</p>
+    <p class="sub">
+      Things we published or built that turned out to be wrong, with what is true now, newest
+      first. Each is drawn from the build log at publish. A project that never lists any of these
+      is not being checked.
+    </p>
+    <details class="more"><summary>The rule that shapes this list</summary>
+    <p>
+      One rule shapes this list more than any other, and it was learned the hard way. A check
+      that observes <b>new</b> content is trustworthy; a check that concludes something is
+      <b>absent</b> is not. A cached copy of a page can be old, but it can never be newer than
+      when it was stored — so through a cache, "this is gone" and "I am looking at a stale copy"
+      are the same observation. On 20 August, eight deleted pages went on being served to readers
+      for a day after every published check had confirmed them removed. Every live check this
+      project makes now carries a one-off marker that a cache cannot answer, so the question can
+      only be settled by asking the source.
+    </p>
+    </details>
+<!-- HARNESS-CORRECTIONS:START (written at publish by tools/harness_page_figures.py -- do not hand-edit) -->
+<ul class="week">
+  <li><span class="wd">24 Oct 2026</span> How it&#x27;s built told every reader that its figures differed from the committed record and should be treated as provisional. The record it checked against was never refreshed at publish, and six pairs with no figure at all were counted as unbacked figures. Both causes are fixed, and the check now agrees.</li>
+  <li><span class="wd">24 Oct 2026</span> How it&#x27;s built listed the July &quot;seven kinds of action&quot; reserved to the director, which one list replaced on 12 Oct. It also said nothing was waiting on him, from an 18 Sep count, while eleven questions waited. It now quotes the current list and counts what waits at every publish.</li>
+  <li><span class="wd">24 Oct 2026</span> Capabilities called a fix to how the Energy Price Guarantee is credited on very short bills done. It credits five of them about 48 times too much, taking one bill to minus £2,950. The page no longer calls it done.</li>
+  <li><span class="wd">23 Oct 2026</span> Standard-variable bills sat above the price cap and the Energy Price Guarantee: 5,488 of 18,398 default-tariff bills on the 19 Oct run. Two billing defects were found and fixed; 104 bills remain above the line, and that is not closed.</li>
+  <li><span class="wd">23 Oct 2026</span> The queue of the director&#x27;s steers was read from a copy of the code 37 commits behind the published one, so finished steers were offered again and new ones were missed. It now reads the published copy.</li>
+  <li><span class="wd">22 Oct 2026</span> The site&#x27;s banner said publishing was failing, for over 80 hours. The publisher&#x27;s own record still held an open failure after a publish had landed by another route. The record is now closed at its source.</li>
+  <li><span class="wd">17 Oct 2026</span> The simulated customer book was 1% dual fuel, where a published survey has 72% of homes taking both fuels from one supplier. Each account now takes the fuels its home really uses.</li>
+</ul>
+<!-- HARNESS-CORRECTIONS:END -->
+    <details class="more"><summary>Earlier corrections, July 2026</summary>
+    <div id="corrections"></div>
+    </details>
+  </section>
+  </details>
+
+  <details class="fold" id="fold-rules-sec"><summary>The rules now live</summary>
+  <section id="rules-sec">
+    <h2>The rules this project has had to mint</h2>
+    <p class="brief-s"><b>In brief.</b> The rules the project runs under today, in the canon's current words; retired wordings are marked and sit one click down.</p>
+    <p class="sub">
+      Each of these exists because something broke. They are shown newest first, each in the
+      words the canon gives it now, with the failure that caused it, because the failure is the
+      useful half. Where a rule has been reworded since it was learned, the original wording sits
+      under it.
+    </p>
+    <details class="more"><summary>Why a rule counts only when it runs</summary>
+    <p>
+      A rule earns its place here only by being converted into something that runs. Written
+      rules decay — this project has watched several of them do it, always the same way: the
+      rule stays in the document, everyone agrees with it, and the behaviour drifts back
+      because nothing was checking. So the test applied to every rule below is whether you
+      could delete the sentence and still have the rule hold. If not, it isn't a rule yet.
+    </p>
+    <p>
+      The most useful thing this list has taught is about the shape of failures, rather than
+      any single entry. Almost nothing here was caused by a <i>missing</i> check. In one day of
+      August 2026 five separate controls were found to be present, correct in intent, wired in,
+      and pointed slightly off-target: a cache-clearing step that reported its own failure and
+      then exited successfully, so months of deployments were recorded green; a rule requiring
+      a change to be recorded alongside the code, enforced only by a check that never ran on
+      that code; a guard that reported "I could not ask" as "the answer is empty"; a batch of
+      timeouts that turned out to be an artefact of the measuring instrument rather than the
+      thing measured; and a stall detector whose notion of progress was satisfied by other
+      people's work.
+    </p>
+    <p>
+      Every one of those reads as green until something forces a second look. That is why the
+      section below counts controls by whether they have been <i>proven to fail</i> rather than
+      by whether they exist, and why the entries here name the failure and not just the
+      remedy — a rule remembered without its failure is the first step back to not having it.
+    </p>
+    </details>
+    <div class="table-scroll"><table id="rules"><thead><tr>
+      <th>Learned</th><th>The rule</th><th>What caused it</th>
+    </tr></thead><tbody></tbody></table></div>
+  </section>
+  </details>
+
+  <details class="fold" id="fold-human"><summary>What a human decides</summary>
+  <section id="human">
+    <h2>What a human actually decided</h2>
+    <p class="brief-s"><b>In brief.</b> Canon G5 lists what only the director may do; the count of questions waiting on him is made at publish.</p>
+    <p class="sub">Reserved to the director, and nothing else is.</p>
+<!-- HARNESS-HUMAN:START (written at publish by tools/harness_page_figures.py -- do not hand-edit) -->
+<p>The actions reserved to the director are one list, quoted from the canon (G5, ruled 12 Oct 2026):</p>
+<ul>
+  <li>real money, never spent, even with his yes;</li>
+  <li>real people, customers or the market;</li>
+  <li>real-world commitments: legal, contractual, regulatory;</li>
+  <li>public claims under Poesys&#x27;s name that cannot be retracted;</li>
+  <li>live credentials, security posture and the safety controls that protect real people;</li>
+  <li>destroying evidence or irrecoverable data.</li>
+</ul>
+<p>Everything else: act, record how to reverse it, say what you did.</p>
+<p>At this publish (24 Oct 2026), <b>11</b> questions wait on him. Each arrives with a recommendation, and work carries on while it waits.</p>
+<ul class="fo">
+  <li><b>Raised 23 Oct 2026:</b> poesys.net carries Cloudflare&#x27;s Web Analytics beacon: every HTML page served at US edges (IAD, LAX) has a 367-byte cloudflareinsights script injected before &lt;/body&gt;. <i>I recommend you switch Web Analytics off for the Pages project: it collects data on real visitors, and nothing in Poesys reads it.</i></li>
+  <li><b>Raised 23 Oct 2026:</b> Whether the work needs the bigger plan: the measured cut needed on the new tier is 1.3 to 1.7 times per landed result, not 4 <i>I recommend staying on the £100 tier.</i></li>
+  <li><b>Raised 22 Oct 2026:</b> The front door asserts M11 (software that grows and maintains itself) but links no evidence for it. <i>I recommend adding the link.</i></li>
+  <li><b>Raised 22 Oct 2026:</b> The retention guard you asked for (offer only where the save rate&#x27;s lower bound pays, none while it is unlearned) can never learn from a cold start. <i>I recommend running §16 as built first.</i></li>
+  <li><b>Raised 17 Oct 2026:</b> Reading-reviewer trial (your 08:56 &#x27;Yes&#x27;): a blind Opus reader caught 1 of 5 known-bad commits strictly, 3 of 5 by location; when two readers both said NEEDS_WORK it flagged 4 of 5 bad commits and 0… <i>I recommend the trial as proposed: two blind non-blocking Opus readers on commits that add a module or re-implement a rule, findings filed only when both agree, scored for two weeks and stopped below half confirmed.</i></li>
+  <li><b>Raised 16 Oct 2026:</b> EP17&#x27;s flat-against-per-customer comparison needs six fresh book seeds, and every seed you authorised (61101-61112) has already been read under some arm. <i>I recommend listing 61113-61118 under your 15 Oct ruling.</i></li>
+  <li><b>Raised 13 Oct 2026:</b> Canon W3 leaves open how far the world&#x27;s price responsiveness may correlate with signals a supplier holds (section 15, owed item 4). <i>I recommend change (1) only: selection at acquisition weighted by each prospect&#x27;s own active-renewal probability, with no new number.</i></li>
+  <li><b>Raised 13 Oct 2026:</b> The CLV discount rate and terminal-value method (canon section 15, owed item 9). <i>I recommend the dated rate: 0.10 to September 2023, Ofgem&#x27;s 12.3% from October 2023, every published CLV at both ends (9.3% and 12.3%), and the survival-curve terminal value when CLV is next touched.</i></li>
+  <li><b>Raised 12 Oct 2026:</b> C34 now ranks next best action on joint value with a no-loss floor on both sides, as ruled (C7, eeb38abc3), and it still advises nobody at realistic inputs. <i>I recommend the sharing retention price, not loosening our floor.</i></li>
+  <li><b>Raised 12 Oct 2026:</b> Canon H1 owes R16 and R17 (section 15 item 10). <i>I recommend ratifying R16 and R17 as written.</i></li>
+  <li><b>Raised 12 Oct 2026:</b> A direction item&#x27;s WHY claimed the capital target &#x27;throttles for nine years the growth the thesis is judged on.&#x27; Measured on seed 42 (campaign-only resolve, 403-founder book, 2016-2025): binding is… <i>I recommend landing the capital-115 and C14 dating fixes as plain corrections, and treating the prospect cap and the founder book, not capital, as what sizes growth.</i></li>
+</ul>
+<!-- HARNESS-HUMAN:END -->
+    <p>
+      Everything outside that list (architecture, sequencing, what to build, what to delete,
+      what to publish) is decided and acted on by the builder, and reported afterwards. A question
+      for the director never stops the queue. The list is short on purpose: an earlier version of
+      this project had a large apparatus of approvals, gates and ratifications, and its measured
+      effect was that work stopped and waited for a human who was asleep. It was removed.
+    </p>
+  </section>
+  </details>
+
+  <details class="fold" id="fold-chosen"><summary>How work is chosen</summary>
+  <section id="chosen">
+    <h2>How the work is chosen</h2>
+    <p class="brief-s"><b>In brief.</b> A ranked queue, drawn by rule, with the director's steers first.</p>
+    <p class="sub">In plain English, because the machinery is the subject here.</p>
+    <details class="more"><summary>How the queue is ordered, in four paragraphs</summary>
+    <p>
+      There are two seats. A <b>director</b> decides what matters and rules on anything
+      irreversible; he does not write code. A <b>builder</b> — this system — designs, builds,
+      checks and ships everything else, on its own, continuously.
+    </p>
+    <p>
+      Work is held as a map of small pieces, each with a claimed level of maturity and the
+      evidence that would have to exist for that claim to hold. The builder draws from the map
+      rather than from a plan, so the order of work follows what is now provable rather than
+      what was scheduled months ago. A piece cannot claim a higher level without leaving a
+      record of why; a claim with no record is refused at the point of commit, not at review.
+    </p>
+    <p>
+      The rule that does the most work is the dullest one: <b>a check that cannot fail is worse
+      than no check at all</b>. Every control has to be shown firing on the exact defect it
+      claims to catch, by deliberately reintroducing that defect. Most of the entries in the
+      record below were found that way — a control that looked right, passed, and was measuring
+      nothing.
+    </p>
+    <p>
+      What actually orders the queue is not a plan. Plans exist and are kept, but a date in one
+      has never been allowed to shorten a check or promote a piece of work: when a date and a
+      test disagree, the date is the thing that is wrong. What wins instead is whichever piece
+      of work most shortens the distance between doing something and finding out whether it was
+      right — because that distance, compounded, is the whole difference between a system that
+      improves and one that merely accumulates.
+    </p>
+    </details>
+  </section>
+  </details>
+
+  <details class="fold" id="fold-doors"><summary>Doors, pace and balance</summary>
+  <section id="doors">
+    <h2>Two-way doors, pace and how work is balanced</h2>
+    <p class="brief-s"><b>In brief.</b> Which decisions can be undone, how fast work runs, and how time is divided between kinds of work.</p>
+    <details class="more"><summary>How it decides, how it spends, and how it divides its time</summary>
+    <div class="brief">
+      <p class="brief-h">In brief</p>
+      <ul>
+        <li><strong>Act by default.</strong> Almost every decision can be undone, so it is taken and
+          logged. A short list, in code, is reserved to a human.</li>
+        <li><strong>Spend where depth compounds.</strong> Only three routes can start an AI session,
+          and the top model is the default.</li>
+        <li><strong>A map, not a plan.</strong> Work is drawn from small pieces, each with the
+          evidence it needs; dials order the work but never stop a part of it.</li>
+      </ul>
+    </div>
+<!-- HARNESS-DOORS:START (written at publish by tools/harness_page_figures.py -- do not hand-edit) -->
+<ul class="fo">
+  <li><b>Two-way doors:</b> 7 kinds of action are reserved to a human; 12 questions raised to the director in the last 30 days, 11 still open, none of which stops other work. How many actions proceeded without asking is not recorded, so it is not measured yet.</li>
+  <li><b>Effort and pace:</b> 3 unattended routes can start an AI session, and nothing else spends; 1,071 sessions started in the last 30 days, 98% on the top model.</li>
+  <li><b>How work is balanced:</b> share of commits that changed the world or the supplier, by week: 31 Aug 6%, 7 Sep 7%, 14 Sep 4%, 21 Sep 4%, 28 Sep 14%, 5 Oct 24%, 12 Oct 15%, 19 Oct 18%. Every other commit changed the machine that builds them.</li>
+</ul>
+<!-- HARNESS-DOORS:END -->
+    <p><b>Two-way doors.</b> The burden of proof sits on "this cannot be undone". When an agent is
+      unsure, it proceeds and records how to reverse what it did, and a needless escalation counts
+      as a defect, just as a needless stop does. A wrong reversible decision costs about an hour
+      of computing; a stall costs the director's attention, the one scarce resource. The list that
+      does stop it is held in <code>background/one_way_door.py</code>: real money, real people,
+      real-world commitments, public claims that cannot be retracted, live credentials and the
+      safety controls, and destroying evidence. Over all of it sit a director-only kill switch and
+      a dead-man's switch that watches for real commits.</p>
+    <p><b>Effort and pace.</b> What spends was measured before anything was designed to limit it:
+      only three unattended routes start a model session (<code>background/tick_mode.py</code>),
+      so nothing else needs throttling. The model is matched to the work, not to the process
+      (<code>background/model_tier.py</code>): the top model is the default and the fallback, and a
+      cheaper one is reachable only for named kinds of routine work. In the director's words: "I'd
+      rather spend the tokens than get shallower work." He supplies a reading of the weekly
+      allowance, and the machine paces itself against it with one dial that returns to normal
+      when its time is up.</p>
+    <p><b>How work is balanced.</b> Work is drawn from a map of small pieces, not taken from a
+      schedule; when a date and a test disagree, the date is wrong. The planning agent can make a
+      piece of work more likely but never impossible, so a wrong instruction slows the machine and
+      never wedges it. And when something that just landed is contradicted downstream, that comes
+      first, ahead of anything new.</p>
+    <div class="lessons"><div class="card"><div class="meta">4 September 2026</div>
+      <h3>The dial that did not choose</h3>
+      <p><b>What happened.</b> The director re-ranked the priorities towards the product, and the
+        machine then ran for ten hours and 66 commits with no product work. The dial had moved,
+        but the dial was not what picked the next piece of work: findings the machine had filed
+        itself jumped ahead of it.</p>
+      <p><b>The rule it left.</b> A director document outranks anything the machine filed itself,
+        by construction. A next step named in a report becomes work in the queue before the
+        session ends. And the split between product work and work on the machine is counted at
+        each publish, above.</p></div></div>
+    </details>
+  </section>
+  </details>
+
+  <details class="fold" id="fold-checks"><summary>Checks that can fail</summary>
+  <section id="checks">
+    <h2>Checks that can actually fail</h2>
+    <p class="brief-s"><b>In brief.</b> A check counts only once it has been seen failing on its own defect, put back on purpose.</p>
+    <p class="sub">
+      Every control in the system, graded on whether it has been proven to fire on its own
+      named defect. The ones that have not are counted rather than quietly trusted.
+    </p>
+    <details class="more"><summary>The three ways a check passes while meaning nothing</summary>
+    <p>
+      There are three ways a check passes while meaning nothing, and this project has shipped all
+      three. It can derive the value it is checking from the same place it checks against, so it
+      can only ever agree with itself. It can pass when its input is missing, empty or malformed.
+      Or it can pass when the checker itself could not run — which is the worst of the three,
+      because an unavailable check and a satisfied one look identical from outside.
+    </p>
+    <p>
+      A live example, removed the same day this was written: the step that cleared this site's
+      cache after every deploy had been misconfigured since the day it was added. It reported its
+      own failure and then exited successfully, so every deploy for months was recorded green
+      while the step did nothing at all. It has been replaced by a check that fetches what was
+      just published and compares it, byte for byte, against what a reader is actually served.
+    </p>
+    </details>
+    <div class="kpis" id="control-kpis"></div>
+  </section>
+  </details>
+
+  <details class="fold archive" id="fold-archive"><summary>Archive: the full historical tables and the longer record</summary>
+    <p class="brief-s"><b>In brief.</b> Everything the shorter page leaves out: the full delivery record, the long incidents, the wiring, the daemons and the glossary.</p>
   <section id="meaning">
     <h2>Meaning, learning, and what it is not allowed to do</h2>
     <details class="more"><summary>Four ideas that set this system apart, with their live counts</summary>
@@ -372,233 +641,6 @@ details.more summary, .timeline summary { cursor: pointer; color: var(--teal); f
       </ul>
     </details>
     </details>
-  </section>
-
-  <section id="doors">
-    <h2>Two-way doors, pace and how work is balanced</h2>
-    <details class="more"><summary>How it decides, how it spends, and how it divides its time</summary>
-    <div class="brief">
-      <p class="brief-h">In brief</p>
-      <ul>
-        <li><strong>Act by default.</strong> Almost every decision can be undone, so it is taken and
-          logged. A short list, in code, is reserved to a human.</li>
-        <li><strong>Spend where depth compounds.</strong> Only three routes can start an AI session,
-          and the top model is the default.</li>
-        <li><strong>A map, not a plan.</strong> Work is drawn from small pieces, each with the
-          evidence it needs; dials order the work but never stop a part of it.</li>
-      </ul>
-    </div>
-<!-- HARNESS-DOORS:START (written at publish by tools/harness_page_figures.py -- do not hand-edit) -->
-<ul class="fo">
-  <li><b>Two-way doors:</b> 7 kinds of action are reserved to a human; 12 questions raised to the director in the last 30 days, 11 still open, none of which stops other work. How many actions proceeded without asking is not recorded, so it is not measured yet.</li>
-  <li><b>Effort and pace:</b> 3 unattended routes can start an AI session, and nothing else spends; 1,071 sessions started in the last 30 days, 98% on the top model.</li>
-  <li><b>How work is balanced:</b> share of commits that changed the world or the supplier, by week: 31 Aug 6%, 7 Sep 7%, 14 Sep 4%, 21 Sep 4%, 28 Sep 14%, 5 Oct 24%, 12 Oct 15%, 19 Oct 18%. Every other commit changed the machine that builds them.</li>
-</ul>
-<!-- HARNESS-DOORS:END -->
-    <p><b>Two-way doors.</b> The burden of proof sits on "this cannot be undone". When an agent is
-      unsure, it proceeds and records how to reverse what it did, and a needless escalation counts
-      as a defect, just as a needless stop does. A wrong reversible decision costs about an hour
-      of computing; a stall costs the director's attention, the one scarce resource. The list that
-      does stop it is held in <code>background/one_way_door.py</code>: real money, real people,
-      real-world commitments, public claims that cannot be retracted, live credentials and the
-      safety controls, and destroying evidence. Over all of it sit a director-only kill switch and
-      a dead-man's switch that watches for real commits.</p>
-    <p><b>Effort and pace.</b> What spends was measured before anything was designed to limit it:
-      only three unattended routes start a model session (<code>background/tick_mode.py</code>),
-      so nothing else needs throttling. The model is matched to the work, not to the process
-      (<code>background/model_tier.py</code>): the top model is the default and the fallback, and a
-      cheaper one is reachable only for named kinds of routine work. In the director's words: "I'd
-      rather spend the tokens than get shallower work." He supplies a reading of the weekly
-      allowance, and the machine paces itself against it with one dial that returns to normal
-      when its time is up.</p>
-    <p><b>How work is balanced.</b> Work is drawn from a map of small pieces, not taken from a
-      schedule; when a date and a test disagree, the date is wrong. The planning agent can make a
-      piece of work more likely but never impossible, so a wrong instruction slows the machine and
-      never wedges it. And when something that just landed is contradicted downstream, that comes
-      first, ahead of anything new.</p>
-    <div class="lessons"><div class="card"><div class="meta">4 September 2026</div>
-      <h3>The dial that did not choose</h3>
-      <p><b>What happened.</b> The director re-ranked the priorities towards the product, and the
-        machine then ran for ten hours and 66 commits with no product work. The dial had moved,
-        but the dial was not what picked the next piece of work: findings the machine had filed
-        itself jumped ahead of it.</p>
-      <p><b>The rule it left.</b> A director document outranks anything the machine filed itself,
-        by construction. A next step named in a report becomes work in the queue before the
-        session ends. And the split between product work and work on the machine is counted at
-        each publish, above.</p></div></div>
-    </details>
-  </section>
-
-  <section id="human">
-    <h2>What a human actually decided</h2>
-    <p class="sub">Reserved to the director, and nothing else is.</p>
-<!-- HARNESS-HUMAN:START (written at publish by tools/harness_page_figures.py -- do not hand-edit) -->
-<p>The actions reserved to the director are one list, quoted from the canon (G5, ruled 12 Oct 2026):</p>
-<ul>
-  <li>real money, never spent, even with his yes;</li>
-  <li>real people, customers or the market;</li>
-  <li>real-world commitments: legal, contractual, regulatory;</li>
-  <li>public claims under Poesys&#x27;s name that cannot be retracted;</li>
-  <li>live credentials, security posture and the safety controls that protect real people;</li>
-  <li>destroying evidence or irrecoverable data.</li>
-</ul>
-<p>Everything else: act, record how to reverse it, say what you did.</p>
-<p>At this publish (24 Oct 2026), <b>11</b> questions wait on him. Each arrives with a recommendation, and work carries on while it waits.</p>
-<ul class="fo">
-  <li><b>Raised 23 Oct 2026:</b> poesys.net carries Cloudflare&#x27;s Web Analytics beacon: every HTML page served at US edges (IAD, LAX) has a 367-byte cloudflareinsights script injected before &lt;/body&gt;. <i>I recommend you switch Web Analytics off for the Pages project: it collects data on real visitors, and nothing in Poesys reads it.</i></li>
-  <li><b>Raised 23 Oct 2026:</b> Whether the work needs the bigger plan: the measured cut needed on the new tier is 1.3 to 1.7 times per landed result, not 4 <i>I recommend staying on the £100 tier.</i></li>
-  <li><b>Raised 22 Oct 2026:</b> The front door asserts M11 (software that grows and maintains itself) but links no evidence for it. <i>I recommend adding the link.</i></li>
-  <li><b>Raised 22 Oct 2026:</b> The retention guard you asked for (offer only where the save rate&#x27;s lower bound pays, none while it is unlearned) can never learn from a cold start. <i>I recommend running §16 as built first.</i></li>
-  <li><b>Raised 17 Oct 2026:</b> Reading-reviewer trial (your 08:56 &#x27;Yes&#x27;): a blind Opus reader caught 1 of 5 known-bad commits strictly, 3 of 5 by location; when two readers both said NEEDS_WORK it flagged 4 of 5 bad commits and 0… <i>I recommend the trial as proposed: two blind non-blocking Opus readers on commits that add a module or re-implement a rule, findings filed only when both agree, scored for two weeks and stopped below half confirmed.</i></li>
-  <li><b>Raised 16 Oct 2026:</b> EP17&#x27;s flat-against-per-customer comparison needs six fresh book seeds, and every seed you authorised (61101-61112) has already been read under some arm. <i>I recommend listing 61113-61118 under your 15 Oct ruling.</i></li>
-  <li><b>Raised 13 Oct 2026:</b> Canon W3 leaves open how far the world&#x27;s price responsiveness may correlate with signals a supplier holds (section 15, owed item 4). <i>I recommend change (1) only: selection at acquisition weighted by each prospect&#x27;s own active-renewal probability, with no new number.</i></li>
-  <li><b>Raised 13 Oct 2026:</b> The CLV discount rate and terminal-value method (canon section 15, owed item 9). <i>I recommend the dated rate: 0.10 to September 2023, Ofgem&#x27;s 12.3% from October 2023, every published CLV at both ends (9.3% and 12.3%), and the survival-curve terminal value when CLV is next touched.</i></li>
-  <li><b>Raised 12 Oct 2026:</b> C34 now ranks next best action on joint value with a no-loss floor on both sides, as ruled (C7, eeb38abc3), and it still advises nobody at realistic inputs. <i>I recommend the sharing retention price, not loosening our floor.</i></li>
-  <li><b>Raised 12 Oct 2026:</b> Canon H1 owes R16 and R17 (section 15 item 10). <i>I recommend ratifying R16 and R17 as written.</i></li>
-  <li><b>Raised 12 Oct 2026:</b> A direction item&#x27;s WHY claimed the capital target &#x27;throttles for nine years the growth the thesis is judged on.&#x27; Measured on seed 42 (campaign-only resolve, 403-founder book, 2016-2025): binding is… <i>I recommend landing the capital-115 and C14 dating fixes as plain corrections, and treating the prospect cap and the founder book, not capital, as what sizes growth.</i></li>
-</ul>
-<!-- HARNESS-HUMAN:END -->
-    <p>
-      Everything outside that list (architecture, sequencing, what to build, what to delete,
-      what to publish) is decided and acted on by the builder, and reported afterwards. A question
-      for the director never stops the queue. The list is short on purpose: an earlier version of
-      this project had a large apparatus of approvals, gates and ratifications, and its measured
-      effect was that work stopped and waited for a human who was asleep. It was removed.
-    </p>
-  </section>
-
-  <section id="chosen">
-    <h2>How the work is chosen</h2>
-    <p class="sub">In plain English, because the machinery is the subject here.</p>
-    <details class="more"><summary>How the queue is ordered, in four paragraphs</summary>
-    <p>
-      There are two seats. A <b>director</b> decides what matters and rules on anything
-      irreversible; he does not write code. A <b>builder</b> — this system — designs, builds,
-      checks and ships everything else, on its own, continuously.
-    </p>
-    <p>
-      Work is held as a map of small pieces, each with a claimed level of maturity and the
-      evidence that would have to exist for that claim to hold. The builder draws from the map
-      rather than from a plan, so the order of work follows what is now provable rather than
-      what was scheduled months ago. A piece cannot claim a higher level without leaving a
-      record of why; a claim with no record is refused at the point of commit, not at review.
-    </p>
-    <p>
-      The rule that does the most work is the dullest one: <b>a check that cannot fail is worse
-      than no check at all</b>. Every control has to be shown firing on the exact defect it
-      claims to catch, by deliberately reintroducing that defect. Most of the entries in the
-      record below were found that way — a control that looked right, passed, and was measuring
-      nothing.
-    </p>
-    <p>
-      What actually orders the queue is not a plan. Plans exist and are kept, but a date in one
-      has never been allowed to shorten a check or promote a piece of work: when a date and a
-      test disagree, the date is the thing that is wrong. What wins instead is whichever piece
-      of work most shortens the distance between doing something and finding out whether it was
-      right — because that distance, compounded, is the whole difference between a system that
-      improves and one that merely accumulates.
-    </p>
-    </details>
-  </section>
-
-  <section id="checks">
-    <h2>Checks that can actually fail</h2>
-    <p class="sub">
-      Every control in the system, graded on whether it has been proven to fire on its own
-      named defect. The ones that have not are counted rather than quietly trusted.
-    </p>
-    <details class="more"><summary>The three ways a check passes while meaning nothing</summary>
-    <p>
-      There are three ways a check passes while meaning nothing, and this project has shipped all
-      three. It can derive the value it is checking from the same place it checks against, so it
-      can only ever agree with itself. It can pass when its input is missing, empty or malformed.
-      Or it can pass when the checker itself could not run — which is the worst of the three,
-      because an unavailable check and a satisfied one look identical from outside.
-    </p>
-    <p>
-      A live example, removed the same day this was written: the step that cleared this site's
-      cache after every deploy had been misconfigured since the day it was added. It reported its
-      own failure and then exited successfully, so every deploy for months was recorded green
-      while the step did nothing at all. It has been replaced by a check that fetches what was
-      just published and compares it, byte for byte, against what a reader is actually served.
-    </p>
-    </details>
-    <div class="kpis" id="control-kpis"></div>
-  </section>
-
-  <section id="corrections-sec">
-    <h2>What we got wrong, and corrected</h2>
-    <p class="sub">
-      Things we published or built that turned out to be wrong, with what is true now, newest
-      first. Each is drawn from the build log at publish. A project that never lists any of these
-      is not being checked.
-    </p>
-    <details class="more"><summary>The rule that shapes this list</summary>
-    <p>
-      One rule shapes this list more than any other, and it was learned the hard way. A check
-      that observes <b>new</b> content is trustworthy; a check that concludes something is
-      <b>absent</b> is not. A cached copy of a page can be old, but it can never be newer than
-      when it was stored — so through a cache, "this is gone" and "I am looking at a stale copy"
-      are the same observation. On 20 August, eight deleted pages went on being served to readers
-      for a day after every published check had confirmed them removed. Every live check this
-      project makes now carries a one-off marker that a cache cannot answer, so the question can
-      only be settled by asking the source.
-    </p>
-    </details>
-<!-- HARNESS-CORRECTIONS:START (written at publish by tools/harness_page_figures.py -- do not hand-edit) -->
-<ul class="week">
-  <li><span class="wd">24 Oct 2026</span> How it&#x27;s built told every reader that its figures differed from the committed record and should be treated as provisional. The record it checked against was never refreshed at publish, and six pairs with no figure at all were counted as unbacked figures. Both causes are fixed, and the check now agrees.</li>
-  <li><span class="wd">24 Oct 2026</span> How it&#x27;s built listed the July &quot;seven kinds of action&quot; reserved to the director, which one list replaced on 12 Oct. It also said nothing was waiting on him, from an 18 Sep count, while eleven questions waited. It now quotes the current list and counts what waits at every publish.</li>
-  <li><span class="wd">24 Oct 2026</span> Capabilities called a fix to how the Energy Price Guarantee is credited on very short bills done. It credits five of them about 48 times too much, taking one bill to minus £2,950. The page no longer calls it done.</li>
-  <li><span class="wd">23 Oct 2026</span> Standard-variable bills sat above the price cap and the Energy Price Guarantee: 5,488 of 18,398 default-tariff bills on the 19 Oct run. Two billing defects were found and fixed; 104 bills remain above the line, and that is not closed.</li>
-  <li><span class="wd">23 Oct 2026</span> The queue of the director&#x27;s steers was read from a copy of the code 37 commits behind the published one, so finished steers were offered again and new ones were missed. It now reads the published copy.</li>
-  <li><span class="wd">22 Oct 2026</span> The site&#x27;s banner said publishing was failing, for over 80 hours. The publisher&#x27;s own record still held an open failure after a publish had landed by another route. The record is now closed at its source.</li>
-  <li><span class="wd">17 Oct 2026</span> The simulated customer book was 1% dual fuel, where a published survey has 72% of homes taking both fuels from one supplier. Each account now takes the fuels its home really uses.</li>
-</ul>
-<!-- HARNESS-CORRECTIONS:END -->
-    <details class="more"><summary>Earlier corrections, July 2026</summary>
-    <div id="corrections"></div>
-    </details>
-  </section>
-
-  <section id="rules-sec">
-    <h2>The rules this project has had to mint</h2>
-    <p class="sub">
-      Each of these exists because something broke. They are shown newest first, each in the
-      words the canon gives it now, with the failure that caused it, because the failure is the
-      useful half. Where a rule has been reworded since it was learned, the original wording sits
-      under it.
-    </p>
-    <details class="more"><summary>Why a rule counts only when it runs</summary>
-    <p>
-      A rule earns its place here only by being converted into something that runs. Written
-      rules decay — this project has watched several of them do it, always the same way: the
-      rule stays in the document, everyone agrees with it, and the behaviour drifts back
-      because nothing was checking. So the test applied to every rule below is whether you
-      could delete the sentence and still have the rule hold. If not, it isn't a rule yet.
-    </p>
-    <p>
-      The most useful thing this list has taught is about the shape of failures, rather than
-      any single entry. Almost nothing here was caused by a <i>missing</i> check. In one day of
-      August 2026 five separate controls were found to be present, correct in intent, wired in,
-      and pointed slightly off-target: a cache-clearing step that reported its own failure and
-      then exited successfully, so months of deployments were recorded green; a rule requiring
-      a change to be recorded alongside the code, enforced only by a check that never ran on
-      that code; a guard that reported "I could not ask" as "the answer is empty"; a batch of
-      timeouts that turned out to be an artefact of the measuring instrument rather than the
-      thing measured; and a stall detector whose notion of progress was satisfied by other
-      people's work.
-    </p>
-    <p>
-      Every one of those reads as green until something forces a second look. That is why the
-      section below counts controls by whether they have been <i>proven to fail</i> rather than
-      by whether they exist, and why the entries here name the failure and not just the
-      remedy — a rule remembered without its failure is the first step back to not having it.
-    </p>
-    </details>
-    <div class="table-scroll"><table id="rules"><thead><tr>
-      <th>Learned</th><th>The rule</th><th>What caused it</th>
-    </tr></thead><tbody></tbody></table></div>
   </section>
 
   <section id="known-wrong">
@@ -705,31 +747,6 @@ details.more summary, .timeline summary { cursor: pointer; color: var(--teal); f
     </p>
   </section>
 
-  <section id="daemons">
-    <h2>What code each daemon is actually running</h2>
-    <p class="sub">
-      A green test proves the code is right. It proves nothing whatever about the code being
-      <em>loaded</em>: a long-lived process holds whatever it imported when it started, and on
-      2026-09-04 ten of eleven daemons here were running code up to eleven days behind the
-      repository — one of them holding 146 changed modules — while every liveness surface called
-      them healthy. Two ages are shown because they answer different questions. <b>Running age</b>
-      is how long the process has been up, and long is not wrong. <b>Loaded-code age</b> is how old
-      the code it holds is. A daemon restarted an hour ago onto a stale checkout has a small
-      running age and a large loaded-code age, and only the pair can tell you so. The verdict is
-      neither: it is whether any module the daemon <em>imports</em> has changed since it booted, so
-      a daemon days behind in time that holds nothing which moved is current, and reads as current.
-    </p>
-    <div id="deployment"></div>
-  </section>
-
-
-  <div class="note">
-    <strong>What this page is not.</strong> It is not a dashboard, and there is no view behind it
-    showing atom identifiers, internal level numbers or ledger records. Those exist, and they are
-    how the system checks itself, but they are written for the machine and reading them tells you
-    less than the numbers above.
-  </div>
-
   <section id="glossary">
     <h2>Words the full record uses</h2>
   <p>
@@ -751,6 +768,17 @@ details.more summary, .timeline summary { cursor: pointer; color: var(--teal); f
     </p>
     <div id="director-delta">Loading the delta…</div>
   </section>
+
+  </details>
+
+  <div class="note">
+    <strong>What this page is not.</strong> It is not a dashboard, and there is no view behind it
+    showing atom identifiers, internal level numbers or ledger records. Those exist, and they are
+    how the system checks itself, but they are written for the machine and reading them tells you
+    less than the numbers above.
+  </div>
+
+
 </main>
 
 <script>
@@ -1629,5 +1657,15 @@ var PRESENT_TENSE_FRESH_FOR_MS = 8 * 86400 * 1000;
 <!-- the freshness bar renders here, not across the top (site/assets/freshness-banner.js) -->
 </section>
 <footer style="margin-top:48px;padding:20px 0;border-top:1px solid var(--border);text-align:center;font-size:11px;color:var(--muted);">&copy; 2026 Poesys Platforms. All rights reserved. &middot; <a href="../privacy/" style="color:var(--muted);">Privacy</a></footer>
+<script>
+(function () {
+  function openTo() {
+    var el = location.hash && document.getElementById(location.hash.slice(1));
+    for (var d = el; d; d = d.parentElement) if (d.tagName === "DETAILS") d.open = true;
+    if (el && el.scrollIntoView) el.scrollIntoView();
+  }
+  window.addEventListener("hashchange", openTo); openTo();
+})();
+</script>
 </body>
 </html>
