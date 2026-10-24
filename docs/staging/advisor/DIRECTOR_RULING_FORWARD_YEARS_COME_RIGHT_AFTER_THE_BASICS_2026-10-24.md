@@ -59,3 +59,9 @@ One stretch-log entry with:
 - the forward-years recommendation, when ready.
 
 — Director ruling, 24 Oct 2026, his words above; the drafting is the advisor's.
+
+## Progress (24 Oct, still open)
+
+- Work 1 done: canon P1, V3 and the changelog carry the new order in his words; `docs/direction/priority_order.yaml` splits the long-horizon levers (C4, W1_10) into step 7 behind forward years (step 6), and communications become step 8.
+- Work 2 in part: the definition of done for the basics is in the stretch log as seven atoms at their target levels. 0 of 7 are at target. Dual fuel is on no atom (GAP). Still owed: a check that grades the table, and minting the dual-fuel atom.
+- Work 3 owed: the G9 forward-years recommendation, with its cost estimate.

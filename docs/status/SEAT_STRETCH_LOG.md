@@ -8,6 +8,31 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-24 — Forward years come right after the basics: canon P1 reordered in the director's words, and the basics' definition of done is 0 of 7 atoms at target, with dual fuel on no atom
+
+<!-- head: e7b6155430f2 -->
+
+**What.** The director's ruling of 24 Oct 17:17–17:22 (`DIRECTOR_RULING_FORWARD_YEARS_COME_RIGHT_AFTER_THE_BASICS_2026-10-24.md`) is now the order. Canon P1 carries his words. Step 6 is now forward years, which start once the basics work. Step 7 is the long-horizon levers: tariff types including time-of-use, EV and battery optimisation, and savings over the payback years. Communications move to step 8. `priority_order.yaml` moves C4 (adoption physics) and W1_10 (EV and heat-pump geography) from step 5 to step 7. Step 5 keeps the levers a short run can judge. `draw_follows_the_order` passes its 5 tests on the new order.
+
+**The basics: a definition of done, read from the map.** Forward runs may start when every row below is at its target level. This list is a record; the check that grades it is owed.
+
+| Basic | Atom | Now → target |
+|---|---|---|
+| Payment and debt engine, supplier side (C9) | E6_a_forward_cash_forecast_per_customer… | 1 → 2 |
+| | W2_41_a_household_cancels_its_mandate_as_its_own_act | 0 → 2 |
+| | PB8_a_households_payment_channel_changes_over_its_tenure | 1 → 2 |
+| | EP4_collections_journey | 2 → 3 |
+| Moves (gas follows the household) | B7_customer_state_layer_moves_and_shocks | 1 → 3 |
+| | W2_40_voids_tied_to_move_outs | 1 → 3 |
+| Switching: loss, objections, saves, dual-fuel switching | EP12_adapter_css_rec_switching | 1 → 3 |
+| Dual fuel as one household | **GAP: no open atom carries it.** Minting one is owed before this definition can close. | — |
+
+So 0 of 7 rows are at target, and one basic has no atom at all.
+
+**Still owed on the ruling:** the check that grades this table at the Monday step, the dual-fuel atom, and the G9 recommendation for forward years. The recommendation must cover the horizon, how weather and fuel are drawn and anchored, the wholesale formation, the forward products, futures per question with their cost, and supplier blindness. Anchoring the generators (EP16) may proceed in parallel. Forward runs and the long-horizon levers wait.
+
+---
+
 ## 2026-10-24 — The cost of work to come is fitted from 531 landed sessions: a session costs 0.2-0.5 points by class, and the open map work is 0.7-48 weeks because sessions per level step is not yet measured
 
 <!-- head: 5cdb72eb3cb2 -->

@@ -50,7 +50,7 @@ Quotation marks mark the director's own words, checked against the repository. T
 
 **V2. Phase 2, Adapt.** The supplier learns within a run, from its own observables and only at the point in time: retraining on a schedule, updating its policies, running its own experiments. Success means beating an identical supplier frozen at the start of the run.
 
-**V3. Phase 3, Forward and continuous.** Runs go past the record, with trends and regime changes nobody designed for: EVs, heat pumps, solar, new tariffs, prices, climate. Horizons get longer, a continuous mode appears, and the book is larger. This is step 6 of the priority order (P1) once the levers exist.
+**V3. Phase 3, Forward and continuous.** Runs go past the record, with trends and regime changes nobody designed for: EVs, heat pumps, solar, new tariffs, prices, climate. Horizons get longer, a continuous mode appears, and the book is larger. Since 24 Oct its forward years are step 6 of the priority order (P1), once the basics of payment, dual fuel and switching work, and ahead of the long-horizon levers.
 
 **V4. What the phases ask of today's work.** Build nothing that assumes policies are loaded once per run. Keep every decision callable at any date, from that date's state. Record what the supplier knew when it decided. Treat the live supplier's shape as the destination: each day's events processed per account, with state kept. "Build nothing that forecloses forward simulation." *(5 Oct)*
 
@@ -189,10 +189,13 @@ Quotation marks mark the director's own words, checked against the repository. T
 3. Forward CLV, "the spine every lever is judged against", built and tested on held-back history.
 4. Per-customer decisions, continuing alongside.
 5. The levers, in merit order: debt cashflow forecasting and negotiating tools; home moves; next best action; margin and risk; value-add.
-6. Forward simulation, "a hypothesis that longer runs add value", taken after the levers deliberately.
-7. Communications, sentiment and NPS, last.
+6. Forward years, once the basics work and ahead of the long-horizon levers (amended 24 Oct, below).
+7. The long-horizon levers: tariff types including time-of-use, EV and battery optimisation, and showing households the cost and carbon savings of their decisions over the payback years.
+8. Communications, sentiment and NPS, last.
 
 *Amended the same day:* next best action is one decision spanning debt, retention, upsell and carbon advice, judged by CLV (C7). *Since 11–12 Oct:* steps 3 and 5 run through one payment and debt engine on a forward cash forecast (C9). Its order is the four-principles audit, then the household payment world, then the supplier engine, then one consumption forecast.
+
+*Amended 24 Oct, his words (17:22 BST):* "If we want to play with different tariff types and EV and battery optimisation we need longer runs (and also showing customers the savings etc from their decisions, cost and carbon). Payback is often years. We need the basics of payment, dual fuel, switching etc all working. But after that we probably want weather and simple wholesale prices and forward products for hedging simualted for some future years. This also allows us to see the merits of CLV decisions etc better." The basics are the payment and debt engine through its supplier side (C9), dual fuel including gas following a moving household, and switching (loss notices, objections, saves, dual-fuel switching as one household). Forward years are then simulated simply: weather drawn as a distribution, wholesale prices formed from it and fuel prices, and month, quarter and season-ahead products quoted from the simulated curve for hedging. CLV decisions are judged on forward runs too. Forward runs and the long-horizon levers wait for the basics; anchoring the generators against the record may proceed in parallel. In-run adaptation (V2) stays later. *(17:17 and 17:22 BST, `DIRECTOR_RULING_FORWARD_YEARS_COME_RIGHT_AFTER_THE_BASICS_2026-10-24.md`)*
 
 **P2. The order changes by evidence.** "Doing what this document says after learning it is wrong is the failure, not departing from it." When knowledge work changes the order, the machine proposes the change with the evidence and keeps going. The director rules.
 
@@ -591,6 +594,7 @@ The full supersession chains are in the review chapters. The main ones:
 
 ## Changelog
 
+- **2026-10-24:** P1 and V3: forward years move to step 6, after the basics of payment, dual fuel and switching and ahead of the long-horizon levers (new step 7); communications become step 8. In the director's words of 17:17 and 17:22 BST (`DIRECTOR_RULING_FORWARD_YEARS_COME_RIGHT_AFTER_THE_BASICS_2026-10-24.md`).
 - **2026-10-24:** H1: R16 and R17 ratified, R17 with "within the pace set under P12", in the director's word of 09:49 BST (`DIRECTOR_RULING_R16_AND_R17_RATIFIED_2026-10-24.md`). The numbered set is R1–R17; owed item 10 discharged.
 - **2026-10-15:** D5, D7 and G8: NTFY mothballed and its inbound route retired, in the director's words of 14:08 BST (`DIRECTOR_STEER_MOTHBALL_NTFY_2026-10-15.md`). In: the console and the advisor folder. Out: the stretch log and `for_the_director`.
 - v1 (2026-07-12) to v3 (2026-07-18): the director twin's brief. Archived.

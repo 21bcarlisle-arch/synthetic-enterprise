@@ -5,6 +5,10 @@
 # 2026-10-05: amended by the director's approval of SEAT_PROPOSAL_WHAT_STEP_ONE_TAUGHT_ABOUT_THE_ORDER
 # (home moves and billing complaints into step 2; world debt graded before step 3's CLV; step 4 opens
 # with households that respond to contact; next best action as one CLV-judged decision).
+# 2026-10-24: the director's ruling (17:22) moves forward years ahead of the long-horizon levers, after the
+# basics: docs/staging/advisor/done/DIRECTOR_RULING_FORWARD_YEARS_COME_RIGHT_AFTER_THE_BASICS_2026-10-24.md.
+# Step 5 keeps the levers a short run can judge; the long-horizon ones (adoption, EV and heat-pump
+# geography) move to step 7 behind forward years.
 canon: docs/staging/done/DIRECTOR_CANON_THE_PRIORITY_ORDER_2026-10-05.md
 since: "2026-10-05"
 steps:
@@ -40,11 +44,14 @@ steps:
     atoms: [EP4_collections_journey,
             C30_advice_reaches_a_household,
             W2_34_the_company_has_one_piece_of_advice_that_costs_the_customer_nothing,
-            G14_half_hourly_grid_carbon_intensity_aligned_to_settlement, C4_adoption_physics,
-            C5_key_moment_conversion, W1_10_ev_heatpump_geography]
+            G14_half_hourly_grid_carbon_intensity_aligned_to_settlement,
+            C5_key_moment_conversion]
   6:
-    name: forward simulation
+    name: forward years, once the basics work
     atoms: [EP16_anchored_generators, SPINE_1_scenario_world_state]
   7:
+    name: the long-horizon levers
+    atoms: [C4_adoption_physics, W1_10_ev_heatpump_geography]
+  8:
     name: communications, sentiment and NPS
     atoms: []
