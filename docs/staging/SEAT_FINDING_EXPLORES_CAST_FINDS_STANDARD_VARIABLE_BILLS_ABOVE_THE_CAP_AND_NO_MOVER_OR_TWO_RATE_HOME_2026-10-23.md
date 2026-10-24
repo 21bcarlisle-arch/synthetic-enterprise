@@ -137,3 +137,28 @@ fidelity question, not a breach: no published rule says how much an EV must add.
   it from the same invoices and ledger, and says "simulated household". It does not claim to be
   the supplier's own portal.
 - The cold-reader pass the steer asks for (one energy reader, one tech reader).
+
+## Why this stays BLOCKING, 24 Oct 07:25: the fixes are on origin, and the published run is not
+
+The defects in sections 1, 3 and 4 have been built or graded on origin. Section 1 fell from 5,488 to 104
+of 24,597 on the fresh run (`d909b69338`). This file still holds lane D, and correctly. The site publishes
+run `8b6fea024` of 19 Oct (`site/data/explore_cast.json` `meta.run_git_commit`; `company.json`,
+`billing_accuracy.json` and `case_studies.json` are the same). None of the fixes reaches it:
+`4bc21e9209` (an incoming occupant is domestic), `4ef70aba92` (the EPG reaches the bill) and
+`ce35a25e21` (the void stub's estimate). Its households' bills, and the ledger, debt and revenue figures
+drawn from them, still charge 199 of 550 households above the ceiling.
+That is `background/finding_severity.py`'s BLOCKING: "a published figure may be wrong".
+
+**What clears it is a published run whose commit carries all three fixes, not more code.** The fresh
+run that carries them (`/var/tmp/se-overcap-out/run_output_88cdf35e48.json`) was a grading run. It is
+not in `docs/reports/`, so no publish can pick it. Two things stand in the way, measured at 07:23 UTC:
+
+- The shared checkout, which the simulation runner executes, is **106 commits behind origin and
+  0 ahead**. Not one of the three fixes is an ancestor of its HEAD. A run it produced now would
+  publish the over-cap bills again. Bringing it level is claimed (`the-shared-checkout-reaches-origin`,
+  07:20 UTC) and is in the orienting seat's focus, so this file does not do it.
+- The publish hold opens Mon 26 Oct 04:00 GMT (`.publish_gate_state.json`).
+
+**To close:** once a run at a commit that has `ce35a25e21` as an ancestor is published, re-grade it with
+`tools.grade_svt_invoices_over_ceiling`. The cast's `book_breaches.above_cap` should then fall from 199
+households to near the 16 the fresh run showed. Lower this file to LATENT on that reading, not before.
