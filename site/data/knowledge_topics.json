@@ -2222,6 +2222,50 @@
           "body": "It does not grade the world's registration share, arrears or fuel poverty against these bands; the 16% registration figure is arithmetic on the world's defaults, not a run. It does not cover debt collection itself, which has its own page. It does not describe a prepayment world, because the world has none."
         }
       }
+    },
+    "other-markets-compared-with-gb": {
+      "meta": {
+        "topic_id": "other-markets-compared-with-gb",
+        "title": "Seven markets against GB: what transfers from the build and what a second market would need",
+        "subtitle": "Australia, France, Germany, Italy, Spain, Belgium and Japan set against GB on sixteen dimensions. The weather-to-demand engine, the asset advice and the wholesale replay transfer well; prepayment, the fixed direct debit, the all-supplier price cap, supplier-owned meters, the deemed contract and the mutualised SoLR levy are GB peculiarities.",
+        "wall_placement": "Knowledge only -- not on the roadmap. Public-reality commons; nothing here is read by the world or the company, and nothing is built from it (director, 25 Oct 2026, 07:17).",
+        "claim_freshness": {
+          "last_verified": "2026-10-25",
+          "written": "2026-10-25",
+          "source": "the seven country evidence packs of 25 Oct 2026 and the advisor's synthesis across them",
+          "note": "The synthesis is the advisor's; the closeness ranking is judgement, not a measured distance. Items the packs tag [unverified] were spot-checked on the country pages; this page adds no check of its own."
+        }
+      },
+      "rungs": {
+        "headline": {
+          "heading": "The claim, in one sentence",
+          "body": "Most of what the GB build does to model households transfers to other markets, but most of what it does to model the GB supplier's commercial rules does not, because prepayment at scale, a fixed direct debit that builds a credit balance, one price cap over every supplier's default tariff, supplier-owned meters, a deemed contract on move-in and a mutualised supplier-of-last-resort levy are each unusual outside GB."
+        },
+        "plain": {
+          "heading": "In plain terms",
+          "body": "The director asked how transferable the GB build is, and where a second market would need new world and new supplier features. The advisor compared seven countries with GB on the same sixteen dimensions, from weather to where a household's debt sits. This page is the summary; each country has its own page. It is knowledge only: nothing is built from it and no priority changes."
+        },
+        "theory": {
+          "heading": "How it works",
+          "body": "TRANSFERS WELL ALMOST EVERYWHERE.\n• The weather to building to demand engine. Every market except Germany and Belgium needs a cooling term.\n• Advice and asset offers (EV, PV, battery, heat pump), strongest in Australia, Germany and Spain.\n• The wholesale replay mechanism: High for Germany and Belgium. Australia (5-minute pricing across 5 regions), Italy (zonal) and Japan (9 area prices) need regional prices.\nTRANSFERS POORLY ALMOST EVERYWHERE: GB FEATURES THAT ARE UNUSUAL, NOT STANDARD.\n• Prepayment at GB scale is absent or negligible in all seven. Debt is handled by power limitation (France reduces power; Italy limits to 15% for 15 days; Spain falls back to a 3.5 kW minimum supply), hardship plans (Australia), the DSO as social supplier with prepaid meters (Belgium), or disconnection (Germany about 239k a year; Japan around day 51).\n• Fixed monthly direct debit building a credit balance. Germany, Belgium and France use monthly advances plus an annual true-up; Spain, Italy and Japan bill monthly or bimonthly on actual readings; Australia bills quarterly in arrears.\n• A price cap over every supplier's default tariff. France, Spain and Japan have a regulated tariff only the incumbent may sell (still dominant at about 55-65% in France and Japan); Australia's DMO/VDO caps standing offers only and serves as an advertising reference; Italy auctions its default service; Germany's default supplier is not price-capped; Belgium has only a social tariff.\n• Supplier-owned meters through the DCC. In six of seven the network operator owns the meter; Australia uses a metering coordinator appointed by the retailer. Data arrives from the DSO.\n• The deemed contract on move-in. Only Australia (a designated retailer's standing offer) and Germany (basic supply) have a default supplier. France, Italy, Spain and Japan require the new occupant to contract; Belgium routes unclaimed points to the DSO.\n• SoLR with a mutualised levy. No other market socialises failure costs this way. Australia and Germany move customers to large retailers or the default supplier; Japan's last-resort supply covers high-voltage customers only; in Belgium the network absorbs the debt of social-supply customers."
+        },
+        "expected_shape": {
+          "heading": "What the data should look like",
+          "body": "How far each market is from GB, closest first (the advisor's judgement, not a measured distance):\n• Germany and Belgium: similar climate and wholesale; they differ in billing, settlement and debt.\n• Australia: asset offers transfer very well, but market and settlement mechanics are far apart.\n• France and Spain: a regulated-tariff benchmark, capacity subscription, electric heating and cooling.\n• Italy: all of the above, plus legal heating seasons, CMOR and 3 kW limits.\n• Japan: room-based heating, a three-fuel world, ampere tariffs and an incumbent-dominated market."
+        },
+        "live_evidence": {
+          "heading": "Live evidence",
+          "body": "WHAT A SECOND MARKET WOULD NEED, ACROSS THE SEVEN.\n• A configurable settlement clock: 15 minutes across the EU markets (DE, BE, FR imbalance, IT, ES), 5 minutes in Australia, 30 minutes in Japan.\n• Contracted capacity or a breaker per home: kVA subscription (France 3-36 kVA; Spain two contracted powers), kW subscription (Italy, 3 kW typical, trips at 3.3), ampere breaker (Japan 10-60 A), and a peak-based network charge (Flanders, on the 12-month average of 15-minute peaks with a 2.5 kW floor).\n• Network time-of-use calendars as a constraint on households: Spain's 2.0TD, France's per-home off-peak hours, Germany's §14a dimming, Australian network tariffs.\n• An incumbent regulated tariff as a competitor price signal, with a published formula: France's TRVE cost stack, Spain's PVPC futures blend, Japan's tiers plus fuel cost adjustment.\n• A debt path with power limitation and DSO execution, with rules for where debt sits: Italy's CMOR lets arrears follow the customer; Belgium moves debtors to the DSO; everywhere else the debt stays with the old supplier.\n• Cooling demand: air-conditioning ownership about 90%+ in Japan, about 74% in Australia, 56% in Italy, 43%+ in Spain and about 25% in France; it drives summer peaks.\n• Cooking and heating fuels the GB build lacks: kerosene and LPG (Japan), oil (Belgium, Germany), district heating (Germany), building-level gas heating (Italy, Spain, France), bottled butane (Spain).\n• PV export regimes: per-phase limits and dynamic exports (Australia); monthly netting capped at consumption (Spain); legacy net-metered cohorts (Belgium, Italy); post-FIT buy-back (Japan); the 60% feed-in cap and no payment at negative prices (Germany); regulated purchase of surplus (France).\nWHERE THE GB BUILD HARD-CODES THESE. Rows 8 to 16 of the portability register, docs/design/PORTABILITY_DEBT.md, note each of these GB assumptions as a parameter a second market would need opened; row 3 already covered the settlement clock. Nothing is built from it."
+        },
+        "residuals": {
+          "heading": "Where our picture is still weak",
+          "body": "(1) Every figure on this page comes from the seven packs. Their items tagged [unverified] were spot-checked while each country page was drafted, and most remain open; the director's verification steer of 25 Oct ranks these packs last, after the GB-market packs. The count of confirmed, corrected and open items for each pack is at the foot of the Knowledge index. (2) The GB comparison figures in the packs were not re-checked by the advisor. (3) The closeness ranking is judgement. (4) The packs record blocked fetches (Eurostat's API, several statute sites) that a later pass could make."
+        },
+        "scope_delta": {
+          "heading": "What this page does not yet establish",
+          "body": "It builds nothing and changes no world or supplier priority. It does not say any market is worth entering. It does not check the GB build's own code against the list beyond naming where each assumption sits. Language is out of scope (director, 07:17)."
+        }
+      }
     }
   }
 }

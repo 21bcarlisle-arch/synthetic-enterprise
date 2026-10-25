@@ -50,6 +50,8 @@ One stretch-log entry with:
 - **Routed:** the ruling made these claims the forward years' pass mark. EP16 is unblocked against them (`docs/design/maturity_map.yaml` EP16 `block_reason`), and `docs/design/curriculum/forward_years.json` says no forward run is used for a supplier result until they pass.
 - **Not done: work items 2-4.** No volatility, curve-shape, spark-spread or correlation claim exists yet in `tools/world_claims.py` (a grep for "volatil" finds none). No generator has been graded, and nothing is published on the world spine. That is EP16's work and it waits on the page's headline figures becoming claims. The file stays here until the claims table and its grading are reported.
 
-## Moved to done
+## Done
+
+Work item 1, the knowledge page, landed in 7fb1aabcc3 as `site/knowledge/how-gb-gas-and-power-prices-move/` (note `docs/market_research/how_gb_gas_and_power_prices_move_2026-10-25.md`). Its count on the Knowledge index is 7 confirmed, 0 corrected, 5 still open. Work items 2-4 are EP16's, as below.
 
 Moved here 2026-10-25 by the seat-executor. The signed ruling (the advisor's own commit, ccf49bf88) was read and is being acted on; the file sat in the queue refused as unsigned only because the machine's progress notes above were appended after the advisor staged it. Those notes stay as the record of what landed. What is still owed is carried by: work items 2-4 are EP16's on the maturity map (the volatility, curve-shape, spark-spread and correlation claims in `tools/world_claims.py`, then grading the generators against them).

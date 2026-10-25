@@ -66,6 +66,11 @@ footer { max-width: 860px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
   main, .wrap, article, .page { padding-left: 14px; padding-right: 14px; }
   h1 { font-size: 24px; }
 }
+  .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table.pack-verification { border-collapse: collapse; width: 100%; margin: 6px 0 14px; font-size: 0.9em; }
+  table.pack-verification caption { text-align: left; font-weight: 600; padding: 4px 0; }
+  table.pack-verification th, table.pack-verification td { border-bottom: 1px solid rgba(127,127,127,.25); padding: 4px 6px; text-align: left; vertical-align: top; }
+  table.pack-verification td:nth-child(n+2):nth-child(-n+5) { text-align: right; white-space: nowrap; }
 </style>
 </head>
 <body>
@@ -473,6 +478,12 @@ footer { max-width: 860px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
   <section class="theme" id="theme-other-markets" data-theme="other-markets">
   <h2 class="theme-h">Other markets</h2>
   <p class="theme-why">How seven other countries' household energy markets differ from GB's, and how much of what is built here would transfer. Knowledge only: none of it is on the roadmap.</p>
+  <a class="card" href="./other-markets-compared-with-gb/">
+    <div class="card-h">Seven markets against GB: what transfers from the build and what a second market would need</div>
+    <div class="card-p">Households transfer, the GB supplier's commercial rules mostly do not: prepayment, the fixed direct debit, the all-supplier cap, supplier-owned meters, the deemed contract and the SoLR levy are GB peculiarities. How many of each pack's open items were checked at source is counted at the foot of this index.</div>
+    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> It says which parts of the GB build a second market could reuse and which it would have to build new. Knowledge only, not on the roadmap.</div>
+    <div class="card-foot"><span class="state-badge" id="state-other-markets-compared-with-gb"></span> <div class="card-a" id="atoms-other-markets-compared-with-gb"></div></div>
+  </a>
   <a class="card" href="./other-market-australia/">
     <div class="card-h">Australia against GB: what carries over, and what a second market would need</div>
     <div class="card-p">Five regional five-minute prices, quarterly bills in arrears, no prepayment to speak of, a default price that caps standing offers only, and 4.3 million rooftop solar systems. Knowledge only, not on the roadmap.</div>
@@ -516,6 +527,64 @@ footer { max-width: 860px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
     <div class="card-foot"><span class="state-badge" id="state-other-market-spain"></span> <div class="card-a" id="atoms-other-market-spain"></div></div>
   </a>
   </section>
+
+  <div class="sec" id="pack-verification">How much of the 25 October research was checked at its source</div>
+  <p class="muted" style="margin-bottom:8px;">
+    On 25 October 2026 the advisor delivered research packs in which many figures were tagged
+    [unverified], because its searches ran out or were blocked. The director asked that each tagged
+    item be checked against its primary source as its page was written, and that the result be
+    counted here. Each row counts the items listed in the verification section of that page's
+    research note: <em>confirmed</em> at source, <em>corrected</em> to the published value, or
+    <em>still open</em>, which includes items the source does not publish. A still-open item is
+    never used as a claim. Where the note's own summary disagrees with its list, the list is counted
+    and the note says so.
+  </p>
+  <div class="table-scroll">
+    <table class="pack-verification" id="pack-verification-gb">
+      <caption>GB-market packs: 73 confirmed, 5 partly, 17 corrected, 89 still open</caption>
+      <tr><th>Page</th><th>Confirmed</th><th>Partly</th><th>Corrected</th><th>Still open</th><th>Note</th></tr>
+      <tr><td><a href="./dated-household-cost-and-price-series/">What things cost a household, by date: fuel, energy, kit and carbon, 2016 to 2035</a></td><td>13</td><td></td><td>2</td><td>4</td><td class="muted">The note&#x27;s own tally reads 15 confirmed; its table lists 13 confirmed rows, one of them covering seven weekly rows.</td></tr>
+      <tr><td><a href="./how-gb-gas-and-power-prices-move/">How GB gas and power prices move: volatility at every time scale, the forward curve&#x27;s shape and the spark spread</a></td><td>7</td><td></td><td>0</td><td>5</td><td class="muted"></td></tr>
+      <tr><td><a href="./tariffs-and-the-default-tariff/">How GB households are priced: the fixed deal, the default tariff, the cap and time-of-use</a></td><td>2</td><td>1</td><td>3</td><td>2</td><td class="muted"></td></tr>
+      <tr><td><a href="./smart-meters-and-half-hourly-settlement/">Smart meters and half-hourly settlement: what the meter reports, what settlement uses, and when it changes</a></td><td>2</td><td></td><td>1</td><td>3</td><td class="muted">One open item is a conflict between two Elexon sources on when R2 runs.</td></tr>
+      <tr><td><a href="./vulnerability-and-the-psr/">Vulnerable customers: the Priority Services Register, ability to pay, prepayment and self-disconnection</a></td><td>1</td><td>1</td><td>0</td><td>2</td><td class="muted"></td></tr>
+      <tr><td><a href="./network-limits-on-home-electrification/">Connecting an EV charger, heat pump, solar or battery: the network&#x27;s rules, the home&#x27;s own supply and how long it takes</a></td><td>0</td><td></td><td>0</td><td>1</td><td class="muted"></td></tr>
+      <tr><td><a href="./pv-roofs-orientation-and-yield/">A roof&#x27;s solar array: which way it faces, how steep, how big, how old, and the sky above it</a></td><td>2</td><td></td><td>0</td><td>4</td><td class="muted">Three already-sourced figures were also corrected.</td></tr>
+      <tr><td><a href="./solar-pv-and-home-batteries/">Solar panels and home batteries: what they generate, what the home keeps, and what the settings are worth</a></td><td>1</td><td></td><td>0</td><td>8</td><td class="muted"></td></tr>
+      <tr><td><a href="./vpps-and-local-flexibility/">Who else pays for a household&#x27;s flexibility: aggregators, rival traders and the local network</a></td><td>0</td><td></td><td>0</td><td>2</td><td class="muted"></td></tr>
+      <tr><td><a href="./household-flexibility-and-the-advice-roadmap/">Household flexibility: what moving a home&#x27;s demand is worth, how much households really move, and what else a supplier could advise on</a></td><td>5</td><td></td><td>3</td><td>18</td><td class="muted"></td></tr>
+      <tr><td><a href="./proving-and-showing-household-savings/">Proving a household saved, and showing it so they believe it</a></td><td>5</td><td></td><td>2</td><td>4</td><td class="muted"></td></tr>
+      <tr><td><a href="./gas-boilers-and-heating-controls/">How a gas boiler and its controls turn into the gas a home uses</a></td><td>8</td><td>1</td><td>0</td><td>5</td><td class="muted"></td></tr>
+      <tr><td><a href="./heat-pumps-and-fabric-measures/">What a heat pump and insulation really deliver in GB homes, and what they cost and save</a></td><td>7</td><td>1</td><td>1</td><td>6</td><td class="muted">The note&#x27;s own tally reads 7 open; one of those is an open detail of an item it marks confirmed.</td></tr>
+      <tr><td><a href="./heating-behaviour-comfort-and-health-floors/">How households heat their homes, how warm they actually are, and the temperatures advice must never go below</a></td><td>9</td><td></td><td>0</td><td>3</td><td class="muted"></td></tr>
+      <tr><td><a href="./ev-charging-and-the-saving-against-petrol-and-diesel/">Charging an electric car at home: when it happens, what it costs, and what it saves against petrol and diesel</a></td><td>4</td><td></td><td>2</td><td>7</td><td class="muted"></td></tr>
+      <tr><td><a href="./which-cars-households-run-and-what-they-use/">Which cars households run, and how much energy each one really uses</a></td><td>1</td><td>1</td><td>0</td><td>6</td><td class="muted"></td></tr>
+      <tr><td><a href="./who-drives-how-far-and-where-they-park/">Who drives how far, and where they park: the person comes before the car</a></td><td>6</td><td></td><td>3</td><td>9</td><td class="muted"></td></tr>
+      <tr class="total"><td><strong>Total</strong></td><td><strong>73</strong></td><td><strong>5</strong></td><td><strong>17</strong></td><td><strong>89</strong></td><td></td></tr>
+    </table>
+  </div>
+  <div class="table-scroll">
+    <table class="pack-verification" id="pack-verification-other">
+      <caption>Other-market packs, knowledge only and ranked last for checking: 4 confirmed, 6 corrected, 320 still open</caption>
+      <tr><th>Page</th><th>Confirmed</th><th>Partly</th><th>Corrected</th><th>Still open</th><th>Note</th></tr>
+      <tr><td><a href="./other-market-australia/">Australia against GB: what carries over, and what a second market would need</a></td><td>0</td><td></td><td>0</td><td>59</td><td class="muted">Counts as the note states them; it lists only the exceptions.</td></tr>
+      <tr><td><a href="./other-market-belgium/">Belgium against GB: three regional rulebooks, no price cap, and bad payers handed to the network</a></td><td>0</td><td></td><td>3</td><td>33</td><td class="muted">Counts as the note states them; it lists only the exceptions.</td></tr>
+      <tr><td><a href="./other-market-france/">France against GB: a regulated tariff only the incumbent sells, a power limit in every home, and electric heating</a></td><td>0</td><td></td><td>0</td><td>55</td><td class="muted">Counts as the note states them; it lists only the exceptions.</td></tr>
+      <tr><td><a href="./other-market-germany/">Germany against GB: a default supplier with no price cap, a yearly true-up bill and a fifteen-minute clock</a></td><td>3</td><td></td><td>2</td><td>57</td><td class="muted">A third correction was to a figure the pack had sourced.</td></tr>
+      <tr><td><a href="./other-market-italy/">Italy against GB: contracted kilowatts, an auctioned default service and arrears that follow the customer</a></td><td>0</td><td></td><td>1</td><td>42</td><td class="muted"></td></tr>
+      <tr><td><a href="./other-market-japan/">Japan against GB: an incumbent&#x27;s regulated tariff, a breaker the household chooses and no supplier for a new occupant</a></td><td>0</td><td></td><td>0</td><td>30</td><td class="muted"></td></tr>
+      <tr><td><a href="./other-market-spain/">Spain against GB: a dynamic regulated price, a power subscription and bills paid after the reading</a></td><td>1</td><td></td><td>0</td><td>44</td><td class="muted">The note&#x27;s own tally reads 2 confirmed and 1 corrected; the two confirmations are one outcome written twice, and the correction is to a figure the pack had sourced.</td></tr>
+      <tr class="total"><td><strong>Total</strong></td><td><strong>4</strong></td><td><strong>0</strong></td><td><strong>6</strong></td><td><strong>320</strong></td><td></td></tr>
+    </table>
+  </div>
+  <p class="muted">Four pages from the same day record no verification pass:</p>
+  <ul class="muted">
+      <li><a href="./payments-and-direct-debit/">How a household pays for energy: direct debit, the other methods, and what a supplier owes the customer for getting the amount right</a> keeps its [unverified] items as named gaps, not claims.</li>
+      <li><a href="./switching-mechanics/">How a household changes supplier: the switch, the objection, the save and the switch that goes wrong</a> keeps its [unverified] items as named gaps, not claims.</li>
+      <li><a href="./suppliers-accounts-and-capital/">What a supplier must hold: revenue it has not billed, debt it will not collect, customers&#x27; money and the capital behind them</a> keeps its [unverified] items as named gaps, not claims.</li>
+      <li><a href="./regional-supply-cost/">Why supplying a home costs more in some regions, under one national price</a> carries no [unverified] items.</li>
+  </ul>
+  <p class="muted">The comparison page across the seven other markets is drawn from their packs and adds no check of its own.</p>
 
   <div class="sec">About the cards</div>
   <p class="muted" style="margin-bottom:8px;" id="review-note">

@@ -84,6 +84,8 @@ This is the director's "sharing the savings clearly for the customer to enjoy", 
   3. **Economy 7:** still no two-rate meter in the run. This is recorded in `docs/staging/SEAT_FINDING_EXPLORES_CAST_FINDS_STANDARD_VARIABLE_BILLS_ABOVE_THE_CAP_AND_NO_MOVER_OR_TWO_RATE_HOME_2026-10-23.md`. **Owed.**
   4. **Dated rules:** the 0% VAT on domestic electricity, 1 Oct 2026 to 31 Mar 2027, is **confirmed** at source: SI 2026/987 and HMRC Revenue and Customs Brief 10 (2026), on the price-cap page (7fb1aabcc3). `vat_rate_for_segment` is still undated and fuel-blind. That only bites inside the forward years, so it is owed before any forward run reads it.
 
-## Moved to done
+## Done
+
+Ask 1, the six packs, landed as Knowledge pages in 7fb1aabcc3. Ask 3, the order, is ruled into `docs/direction/priority_order.yaml` steps 8-12 in 970f388c3. Ask 2's VAT date is confirmed on the price-cap page in 7fb1aabcc3. The other three "now" defects are code still owed, as below.
 
 Moved here 2026-10-25 by the seat-executor. The signed ruling (the advisor's own commit, 7dbbec786) was read and is being acted on; the file sat in the queue refused as unsigned only because the machine's progress notes above were appended after the advisor staged it. Those notes stay as the record of what landed. What is still owed is carried by: the three owed "now" defects: TDCV dating (`PERSONALISED_ASSET_WORLD.md` section 10), EV uplift and Economy 7 (step 8 of `docs/direction/priority_order.yaml`, and the open Explore cast finding), and the undated VAT rule before any forward run reads it.

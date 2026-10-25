@@ -34,6 +34,14 @@ Your host has its own network access and does not share the advisor's search all
 - **Checking as drafted: done page by page.** Each page landed in 7fb1aabcc3 and 2d33139a4b says it checked its pack's unverified items at source. Where a page states its tally, it reads, for example: dated cost series 15 confirmed / 2 corrected / 4 open; prices 7 / 0 / 5; PV roofs 2 / 0 / 4; PV and batteries 1 / 0 / 8; network limits 0 / 0 / 1; smart meters 2 / 1 / 3; tariffs 2 (+1 partly) / 3 / 2; vulnerability 1 (+1 partly) / 0 / 2.
 - **Not done: the report-back.** No per-pack count of confirmed, corrected and open items exists in the Knowledge index or in the map's coverage counts. Several pages (the boilers, heat pumps, comfort, savings, VPP, cars, mileage and all seven other-market pages) state no tally in a form a grep finds. Handed on as `knowledge-pack-verification-census`.
 
-## Moved to done
+## Done
+
+Each GB-market page was checked against its sources as it was drafted: 7fb1aabcc3 for twenty-one pages and 2d33139a4b for the last three. The report-back is in the next paragraph.
 
 Moved here 2026-10-25 by the seat-executor. The signed ruling (the advisor's own commit, 12cb6489f) was read and is being acted on; the file sat in the queue refused as unsigned only because the machine's progress notes above were appended after the advisor staged it. Those notes stay as the record of what landed. What is still owed is carried by: the hand-off `knowledge-pack-verification-census` (the per-pack confirmed/corrected/open count on the Knowledge index).
+
+**Report-back, later on 25 Oct.** The hand-off `knowledge-pack-verification-census` is closed. A per-pack count of items confirmed, corrected and still open is now on the Knowledge index, under "How much of the 25 October research was checked at its source" (`site/knowledge/index.html#pack-verification`). It counts the items listed in each research note's verification section. "Partly" is a column of its own, and items the source does not publish count as still open.
+- **The 17 GB-market packs with a verification pass:** 73 confirmed, 5 partly, 17 corrected, 89 still open.
+- **The 7 other-market packs:** 4 confirmed, 6 corrected, 320 still open.
+- **No verification pass recorded:** payments and direct debit, switching mechanics, and suppliers' accounts and capital. Each keeps its [unverified] items as named gaps, not claims. Regional supply cost carries none.
+- **Notes whose own summary disagrees with their list:** dated cost series (summary 15 confirmed, list 13), heat pumps (summary 7 open, list 6) and Spain (one confirmation is written twice). Each has its row note on the index.

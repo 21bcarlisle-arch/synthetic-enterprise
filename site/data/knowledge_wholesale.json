@@ -1997,6 +1997,20 @@
       ],
       "theme": "markets",
       "why": "A saving shown to a household is only true at the price that applied on that date, and the company's advice still prices kit at four fixed figures."
+    },
+    {
+      "id": "other-markets-compared-with-gb",
+      "title": "Seven markets against GB: what transfers from the build and what a second market would need",
+      "kind": "page",
+      "blurb": "Households transfer, the GB supplier's commercial rules mostly do not: prepayment, the fixed direct debit, the all-supplier cap, supplier-owned meters, the deemed contract and the SoLR levy are GB peculiarities. How many of each pack's open items were checked at source is counted at the foot of this index.",
+      "rate_of_change": "medium",
+      "reviewed": {
+        "last_verified": "2026-10-25",
+        "source": "see the page's own sources"
+      },
+      "atoms": "none -- knowledge only, not on the roadmap (director, 25 Oct 2026 07:17: \"this is not to turn into SIM or supplier action at this stage\")",
+      "theme": "other-markets",
+      "why": "It says which parts of the GB build a second market could reuse and which it would have to build new. Knowledge only, not on the roadmap."
     }
   ],
   "edges": [
@@ -2549,6 +2563,41 @@
       "from": "who-lives-where",
       "type": "drives",
       "to": "vulnerability-and-the-psr"
+    },
+    {
+      "from": "other-market-germany",
+      "type": "part-of",
+      "to": "other-markets-compared-with-gb"
+    },
+    {
+      "from": "other-market-belgium",
+      "type": "part-of",
+      "to": "other-markets-compared-with-gb"
+    },
+    {
+      "from": "other-market-australia",
+      "type": "part-of",
+      "to": "other-markets-compared-with-gb"
+    },
+    {
+      "from": "other-market-france",
+      "type": "part-of",
+      "to": "other-markets-compared-with-gb"
+    },
+    {
+      "from": "other-market-spain",
+      "type": "part-of",
+      "to": "other-markets-compared-with-gb"
+    },
+    {
+      "from": "other-market-italy",
+      "type": "part-of",
+      "to": "other-markets-compared-with-gb"
+    },
+    {
+      "from": "other-market-japan",
+      "type": "part-of",
+      "to": "other-markets-compared-with-gb"
     }
   ],
   "review_policy": {
