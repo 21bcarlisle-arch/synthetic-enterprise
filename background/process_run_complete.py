@@ -5217,6 +5217,21 @@ def _generate_dashboard_json(json_path, git_hash="unknown"):
     except Exception as exc:
         log("Explore cast generation failed: {}".format(exc))
     try:
+        # The Knowledge index's live count of world claims (site copy pack A4), drawn at publish so
+        # the page never carries a count nobody measured. A draw that raises says so on the page.
+        from datetime import date as _date
+
+        from tools import world_claims as _wc
+        _on = "{} {}".format(_date.today().day, _date.today().strftime("%b %Y"))
+        try:
+            _claims = _wc.check(_wc.drawn_book())
+        except Exception as exc:  # noqa: BLE001 -- the page states the failure; so does the log
+            log("World claims could not be drawn for the Knowledge index: {}".format(exc))
+            _claims = None
+        _wc.write_index_count(_claims, _on)
+    except Exception as exc:
+        log("Knowledge index claim count failed: {}".format(exc))
+    try:
         # RETIRED from the cycle 2026-08-20, same reason as the evidence page above: the
         # /shadow/ mirror is deleted and this call put it straight back. It was an INTERNAL
         # surface that was nonetheless published at a second root on the public site, carrying
@@ -7147,6 +7162,9 @@ def git_commit_push(git_hash, net_margin, outcome=None):
     if site_explore_cast_json.exists():
         files.append(str(site_explore_cast_json))
         files.append(str(PROJECT_DIR / "site" / "explore" / "index.html"))
+    site_knowledge_index = PROJECT_DIR / "site" / "knowledge" / "index.html"
+    if site_knowledge_index.exists():  # its claim count is rewritten at every publish (A4)
+        files.append(str(site_knowledge_index))
     site_track_record_json = PROJECT_DIR / "site" / "state" / "track_record_scorecard.json"
     if site_track_record_json.exists():
         files.append(str(site_track_record_json))

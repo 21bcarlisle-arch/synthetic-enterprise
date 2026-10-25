@@ -218,6 +218,32 @@ def render(results: list[dict]) -> str:
     return "\n".join(lines)
 
 
+#: The Knowledge index's live line (site copy pack A4: "show the live count … A newcomer should see
+#: that the claims bite"). Rewritten at publish between these markers, so the page never states a
+#: count nobody measured: a publish that cannot draw the book says so in the same place.
+INDEX_PAGE = PROJECT / "site" / "knowledge" / "index.html"
+_COUNT_SPAN = re.compile(r"(<!--claims:count-->)[\s\S]*?(<!--/claims:count-->)")
+
+
+def count_sentence(results: list[dict] | None, on: str) -> str:
+    if results is None:
+        return f"At the publish of {on} the claims could not be checked, so no count is shown."
+    held = sum(r["verdict"] == "holds" for r in results)
+    return (f"<b>{len(results)}</b> claims are published, and at the publish of {on} "
+            f"<b>{held}</b> of them held.")
+
+
+def write_index_count(results: list[dict] | None, on: str, page: Path = INDEX_PAGE) -> bool:
+    """True when the page carries the markers (and so now states this publish's count)."""
+    if not page.is_file():
+        return False
+    text = page.read_text(encoding="utf-8")
+    new, found = _COUNT_SPAN.subn(lambda m: m.group(1) + count_sentence(results, on) + m.group(2), text)
+    if found and new != text:
+        page.write_text(new, encoding="utf-8")
+    return bool(found)
+
+
 def _main() -> int:  # pragma: no cover - operator surface
     rc = 0
     for route in ROUTES:
