@@ -116,3 +116,12 @@ is a ratio within one book. It does mean £8k should not be quoted as a profit f
 **Next (one variable):** the seed. ΔC's sign rests on 14 named customers on one path. Replicate the
 A/B/C triple on further book seeds (`SE_POPULATION_SEED`, EP17; unset is this book), and bound ΔC before any claim
 that the letter creates value for the company.
+
+## Status (2026-10-25): the seed replication runs at one commit
+
+All nine seed arms are re-running at 9bb30c4de5, the fix for a home move on a term boundary. The
+fix alone moves A_61102's `total_net` by +£14,441, more than this record's ΔC of −£389 or its
+£8,252. Grading across commits would therefore measure the world change, not the arm. The
+comparison and the queued grade are in
+`SEAT_PREREG_C30_THE_LETTER_AND_REFIX_COMPANY_SIDE_ACROSS_BOOK_SEEDS_2026-10-24.md` (Status
+2026-10-25). The verdict against this record waits for `at-9bb30c4de5/grade.txt`.

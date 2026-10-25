@@ -140,3 +140,42 @@ longjob-c30-seeds-chain2-queued`.
 
 The predictions above are unchanged and still ungraded. They were written before any arm computed,
 and none has computed yet.
+
+## Status (2026-10-25 ~06:30, all nine arms re-run at one commit, 9bb30c4de5)
+
+**Why the r2 artefacts are not graded:** B_61102 and C_61102 r2 died on an undrawn occupant id. The
+cause was a home move dated on a term boundary, which dropped the vacated meter. 9bb30c4de5 fixes
+it, and its message says every run with home moves changes. Grading 61101 and 61103 at 0481ad381+patch
+against 61102 at 9bb30c4de5 would count a world change as an advice effect, so all nine arms run at
+9bb30c4de5 (worktree `/var/tmp/c30-61102-fix-wt`, locked) and write to
+`/var/tmp/c30-seeds-out/at-9bb30c4de5/`.
+
+**The commit's prediction, tested on A_61102 (no letter, so the policy is the default):** A_61102
+should differ between the two commits, because the fix admits meters the old run dropped.
+Prediction recorded at 9bb30c4de5, before this comparison: a nonzero difference. **Result:
+it held.**
+
+| A_61102 | 0481ad381+patch | 9bb30c4de5 | Δ |
+|---|---|---|---|
+| total_net | £545,810 | £560,251 | **+£14,441** |
+| svt_departures | 273 (all `svt_inertia`) | 273 (all `svt_inertia`) | 0 |
+| customers with an SVT decision | 636 | 643 | +7 |
+| SVT decisions | 8,635 | 8,747 | +112 |
+| electricity accounts at start (log) | 559 | 559 | 0 |
+
+The fix changes the arm with no letter by **£14,441**. That is larger than any between-arm
+difference this prereg grades: £8,252 for the letter alone on the default book, and −£389 for ΔC.
+So a mixed-commit grade would have been mostly world change. The departure count is unchanged,
+because the admitted households are incoming occupants on the book, not new SVT exits.
+"Accounts" here means the starting electricity roster, which the fix cannot touch. The +7 are most
+likely occupants admitted later. That is inferred, not traced.
+
+**Running:** `longjob-c30-s6110{1,3}-{a,b,c}-at9bb`, the 05:45 argv unchanged. They are queued
+through `launch_long_job` and admitted as memory allows (7 GB each), about 50 minutes per arm. The
+61102 triple at 9bb30c4de5 already exists. **The grade is queued on the files, not on a time:** unit
+`longjob-c30-grade-at9bb` runs `at-9bb30c4de5/grade_when_done.sh`. It waits on every `arm2.py`
+process, refuses if any of the six artefacts is missing, then writes `grade_seeds.py 61101 61102
+61103` to `at-9bb30c4de5/grade.txt`. **Reverse:** `systemctl --user stop
+'longjob-c30-*-at9bb*' longjob-c30-grade-at9bb longjob-c30-grade-at9bb-queued`.
+
+The predictions above are still ungraded. They were written before any arm at this commit computed.
