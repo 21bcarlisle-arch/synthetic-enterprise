@@ -89,8 +89,10 @@ WORLD: list[tuple[str, str, list[str]]] = [
      "a cold week shows up differently in a well-insulated flat and a draughty semi.",
      ["W1_11_fabric_physics_core", "W1_12_premise_trace_generator"]),
     ("Households with hidden lives",
-     "Income, essential costs, life events — job loss, illness, a new child — and the choice "
-     "between paying and heating. All of it hidden from the supplier, as it is in reality.",
+     "All four parts run in every household: its income and essential costs; its life events, "
+     "such as a job lost, an illness or a new baby; whether, when it falls behind, it can't pay "
+     "or won't; and whether it cuts back on heating to pay. None of it is visible to the "
+     "supplier, as in reality. Home moves are the part still being joined up.",
      ["W2_4_household_budget", "W2_5_life_event_stream", "W2_7_willingness_classification",
       "W2_8_self_rationing"]),
     ("Business customers that fail like businesses",
