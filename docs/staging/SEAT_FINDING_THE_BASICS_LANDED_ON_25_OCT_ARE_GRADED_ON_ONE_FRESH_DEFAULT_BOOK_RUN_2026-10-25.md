@@ -58,3 +58,32 @@ names what it still lacks.
 ## Grade
 
 *(written after the run, below this line; the predictions above are not edited)*
+
+**The run did not finish.** About 25 minutes in, the company's own preventive invariant refused a
+dunning step and stopped the run:
+
+```
+DunningOfAClearedDebtError: ACC-SYN-2016-048 reminder_2 on 2020-10-12 with the ledger at GBP 0.0 (cured None)
+```
+
+The refusal was raised in `run_phase2b._post_month_bill` → `LivePaymentTriad.record_period` →
+`advance_collections_journey` (log: `/var/tmp/basics-run-out.log`). SYN-2016-048 is a dual-fuel
+household. Its electricity leg runs terms 15 (2020-01-01 → 2020-02-07) and 16 (2020-02-07 →
+2021-02-06). Its gas leg prints no term 16.
+
+No leg (a)-(f) can be graded from this run, because it wrote no output.
+
+**Two commits are new since the last default-book full run that completed** (E6's arm at
+`e623c3354a`):
+
+- c5a3e96fe: one ledger per dual household, walked only once every leg still posting has posted;
+- 43ef011072: EP12, where a departure the company objects to becomes a stay.
+
+I cannot yet say which one causes the refusal, or whether it takes both.
+
+**Prediction, filed 2026-10-25 before the one-variable run.** Same commit, same book,
+`SE_DEBT_OBJECTION=0`, which restores no-objection departures and leaves c5a3e96fe on. My guess,
+held at about 60%: the run gets past 2020-10-12 without this refusal, which would make EP12 the
+cause. The mechanism I suspect is a departure objected to on one leg of a dual household but not
+the other, which leaves the account's legs out of step. If the same refusal fires at the same
+account and date, the cause is c5a3e96fe alone.
