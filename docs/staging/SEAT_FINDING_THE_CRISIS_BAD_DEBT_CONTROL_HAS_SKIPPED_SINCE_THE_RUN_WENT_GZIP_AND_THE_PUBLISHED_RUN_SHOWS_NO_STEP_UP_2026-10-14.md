@@ -1751,3 +1751,16 @@ If (c) fails, the switch stays off. The gap is then the world's, as the page say
 honestly carry a step the book does not show. The validator's pass or fail is recorded beside the
 grade and decides nothing here. The end-2024 level is recorded too. A term still high there errs
 safe (choice 4a), and that is not a criterion.
+
+## 2026-10-25 (19:30Z): the arrears-overlay arm is launched on the default book. Nothing is amended
+
+`longjob-arrears-overlay-arm-default-book-e623c3354`, from the locked worktree
+`/var/tmp/arrears-overlay-run` at origin/main `e623c3354a` (it carries d127468fd8),
+`SE_POPULATION_SEED` unset, `provision_crisis_overlay` and `provision_arrears_overlay` both on. The
+artefact is `/var/tmp/arrears-overlay-out/arm.json`, and the log is `arm.log` beside it. There is no
+separate off arm, as the pre-registration filed: off is the ledger's `matrix_provision_gbp` and
+cap-only is `matrix / (1 - cap_share)`, both off the same snapshots. `grade.py` beside the artefact
+checks the rule one leg at a time and exits 0 only if (a), (b) and (c) all hold. For (c), "the 2023
+step" is end-2023 growth in arrears per indebted account above both the book's 2017-19 baseline
+and its end-2022 growth, as prediction 3 states. The predictions and the switch-on rule above stand
+as filed. Grading is handed on as `e6-the-arrears-overlay-arm-is-graded`.
