@@ -115,7 +115,9 @@ WORLD: list[tuple[str, str, list[str]]] = [
      "Stress worlds past the end of the real data exist today. The forward years approved on "
      "25 Oct 2026 come next, after the basics: 2026-2035, five futures, with gas, power and "
      "forward products whose volatility is checked against the published record.",
-     ["W1_2_generate_futures"]),
+     # EP16 is the forward years' atom (director ruling 24 Oct names it); citing it keeps the row
+     # Building until the generated years pass the volatility claims, not Live off W1_2 alone.
+     ["W1_2_generate_futures", "EP16_anchored_generators"]),
 ]
 
 SUPPLIER: list[tuple[str, str, list[str]]] = [
