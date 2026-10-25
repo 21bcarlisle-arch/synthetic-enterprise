@@ -109,6 +109,27 @@ def note_coverage(root: Path = ROOT, pages: dict | None = None) -> dict:
             "on_no_page": sorted(every - attached)}
 
 
+def coverage(root: Path, pages: dict, rows: list[dict], concepts: list[dict], reg: dict) -> dict:
+    """Steer item 3's three checks as counts. A page or note is covered when a concept's page is it
+    (or cites it); a module is covered when a concept declares it or lists it as also named, or the
+    register's `machinery` list (prefix + reason) rules it plumbing. Layer gaps are the findings."""
+    on_concept = {c["page"]["id"] for c in concepts if c.get("page")}
+    by_page = notes_by_page(root, pages)
+    every = {p.stem for p in (root / NOTES_DIR).glob("*.md")}
+    noted = set().union(*(by_page.get(p, set()) for p in on_concept)) & every
+    machinery = [m for m in reg.get("machinery") or [] if m.get("prefix") and m.get("reason")]
+    mods = [r["module"] for r in rows if r["module"].startswith(("simulation.", "sim.", "company.", "saas."))]
+    attached = {m["module"] for c in concepts for layer in LAYERS for m in c.get(layer, [])}
+    attached |= {m["module"] for c in concepts for m in c.get("also_named", [])}
+    plumbing = {m for m in mods if any(m.startswith(x["prefix"]) for x in machinery)}
+    loose = sorted(set(mods) - attached - plumbing)
+    return {"pages": {"total": len(pages), "on_a_concept": len(on_concept & set(pages)),
+                      "on_none": sorted(set(pages) - on_concept)},
+            "notes": {"total": len(every), "on_a_concept": len(noted), "on_none": len(every - noted)},
+            "modules": {"total": len(mods), "on_a_concept": len(set(mods) & attached),
+                        "machinery": len(plumbing - attached), "on_none": len(loose), "sample_on_none": loose[:10]}}
+
+
 # --- How it's built: each evidence figure has one function, named in the register -------------
 
 def mutation_recorded_share(root: Path, rows: list[dict]) -> str | None:
@@ -269,8 +290,11 @@ def build(root: Path = ROOT, rows: list[dict] | None = None) -> dict:
         if c.get("evidence") == "second_homes_on_the_map":
             out["evidence"] = second_homes_on_the_map(root, rows, concepts)
 
+    cov = coverage(root, pages, rows, concepts, reg)
+    cov["layers"] = {"concepts": len(concepts), "with_a_missing_layer": sum(1 for c in concepts if c["missing"]),
+                     "missing_without_reason": sum(1 for f in findings if f["kind"] == "layer missing, no reason")}
     return {"register": REGISTER, "spines": reg["spines"], "concepts": concepts, "links": links,
-            "findings": findings, "notes": note_coverage(root, pages)}
+            "findings": findings, "notes": note_coverage(root, pages), "coverage": cov}
 
 
 def report(the_map: dict) -> str:
@@ -316,6 +340,14 @@ def summary(the_map: dict) -> str:
              + (", ".join(f"{v} {k}" for k, v in sorted(counts.items())) or "no findings") + ".",
              f"{n['on_a_page']} of {n['notes']} research notes attach to a published page; "
              f"{len(n['on_no_page'])} attach to none.", ""]
+    cv = the_map.get("coverage")
+    if cv:
+        lines += [f"Coverage (reporting only): {cv['pages']['on_a_concept']} of {cv['pages']['total']} published pages "
+                  f"sit on a concept; {cv['notes']['on_a_concept']} of {cv['notes']['total']} notes attach to a page a concept uses; "
+                  f"{cv['modules']['on_a_concept']} of {cv['modules']['total']} supplier and world modules attach to a concept "
+                  f"({cv['modules']['machinery']} more declared machinery, {cv['modules']['on_none']} on none); "
+                  f"{cv['layers']['with_a_missing_layer']} of {cv['layers']['concepts']} concepts miss a layer, "
+                  f"{cv['layers']['missing_without_reason']} with no recorded reason.", ""]
     lines += [f"- {f['kind']}: {f['concept']} -- {f['detail']}" for f in the_map["findings"]]
     return "\n".join(lines)
 

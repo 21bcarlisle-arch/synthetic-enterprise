@@ -14,6 +14,8 @@
 #   world, wall, supplier -- the declared ONE home per layer, as dotted module names. Every other
 #                            module whose name or first sentence carries one of the concept's names is
 #                            generated as "also named here": a second home or a missing declaration.
+#   machinery             -- (top level) [{prefix, reason}]: modules ruled plumbing, so the coverage
+#                            count does not ask them for a concept. Empty until someone rules.
 #   gap                   -- a layer that is empty on purpose, with the reason.
 #   relations             -- ours, not SKOS: feeds, depends_on, graded_by, causes.
 #   measure               -- a measure's one definition: what it counts, over whom, and the code.

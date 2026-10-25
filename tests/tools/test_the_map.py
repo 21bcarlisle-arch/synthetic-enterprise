@@ -98,3 +98,30 @@ def test_the_real_register_loads_and_every_relation_names_a_concept():
     targets = {t for c in reg["concepts"] for ts in (c.get("relations") or {}).values() for t in ts}
     assert targets <= ids, sorted(targets - ids)
     assert all(c.get("placed") for c in reg["concepts"]), "a concept on no spine"
+
+
+def _covered(tmp_path, machinery=None, concepts=None):
+    root = _tree(tmp_path, concepts or [_mandate()])
+    reg = yaml.safe_load((root / the_map.REGISTER).read_text())
+    if machinery:
+        reg["machinery"] = machinery
+    (root / the_map.REGISTER).write_text(yaml.safe_dump(reg))
+    return the_map.build(root, rows=ROWS)["coverage"]
+
+
+def test_coverage_counts_what_attaches_and_what_attaches_to_none(tmp_path):
+    """The control over the whole partition: attached, machinery and loose are each non-empty at once.
+    MUTATION: count every module as attached and `on_none` is 0; drop the machinery rule and
+    `machinery` is 0; count notes by their own Knowledge line only and n2 (cited) drops out."""
+    cov = _covered(tmp_path, machinery=[{"prefix": "company.billing.unrelated", "reason": "prints"}])
+    assert cov["modules"] == {"total": 4, "on_a_concept": 3, "machinery": 1, "on_none": 0, "sample_on_none": []}
+    loose = _covered(tmp_path / "b")
+    assert loose["modules"]["on_none"] == 1 and loose["modules"]["sample_on_none"] == ["company.billing.unrelated"]
+    assert loose["notes"] == {"total": 3, "on_a_concept": 2, "on_none": 1}
+    assert _covered(tmp_path / "c", concepts=[_mandate(page=None)])["pages"]["on_none"] == ["debt"]
+
+
+def test_a_machinery_ruling_without_a_reason_rules_nothing(tmp_path):
+    """MUTATION: accept a prefix with no reason and the unreasoned prefix hides a loose module."""
+    cov = _covered(tmp_path, machinery=[{"prefix": "company.billing.unrelated"}])
+    assert cov["modules"]["on_none"] == 1
