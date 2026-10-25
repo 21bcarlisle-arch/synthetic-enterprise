@@ -22,11 +22,20 @@ account count), `gb_domestic_switcher_split_cim_2022_2025.md` (internal against 
   Invitation to Intervene, dated at the latest submission day the one-working-day floor allows, so no
   save is flattered with warning a real loser might not get. The world emits it
   (`simulation/registration_loss_feed.py`); the company keeps it (`company/crm/cos_process.py`).
-- **The debt objection is the world's, not the company's.** `simulation/debt_objection.py` blocks an
-  indebted credit-meter household's renewal departure with probability 0.283 (Ofgem 2016: about 170k
-  blocked against 430k allowed a year), never a prepayment household (Debt Assignment Protocol), and
-  only after 28 days outstanding. It stands in for industry practice; the company does not yet decide
-  its own objection (EP12). Its named gaps include the 2013-15 vintage applied after CSS go-live.
+- **The debt objection is the company's (EP12, amended 2026-10-25).** On a domestic renewal departure
+  the company reads its own ledger on the switch-request day
+  (`company/market/transfer_objection_register.decide_debt_objection`, through
+  `company/interfaces/transfer_objection.py`): it objects when debt on bills more than 28 days old
+  exceeds £200 per fuel (the top of the published informal de-minimis range, "up to £200 per fuel"),
+  and never to a prepayment debt under the £500 Debt Assignment Protocol ceiling. The world cancels
+  exactly the switches it objected to (`simulation/debt_objection.py`) and keeps the household's
+  own payment behaviour. Until this date the world drew the block itself at 0.283 (Ofgem 2016: about
+  170k blocked against 430k allowed a year); those counts now grade the company's output. Choices
+  and gaps: the per-fuel de-minimis is applied to an account ledger as threshold x fuels (objects
+  less often than a per-fuel ledger would); the request is read on the ASAP floor in both regimes,
+  which pre-CSS overstates objections; a blocked household is asked again only at its next renewal
+  (the IA's repay-and-switch route, rows 22-23 of `domestic_debt_objection_rates_gb.md`, is not
+  modelled).
 - **The save is made on the Invitation to Intervene, from 18 July 2022 only.**
   `simulation/save_on_loss_notice.py` re-asks the household's own renewal roll at the company's
   Fixed Retention Tariff price (`company/crm/save_offer.py`), for a household leaving a fixed term at
