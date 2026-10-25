@@ -11,11 +11,11 @@ Where the run splits a household it is not patched round here. The two splits me
 2026-10-25 are in docs/staging/SEAT_FINDING_A_DUAL_FUEL_HOUSEHOLD_IS_TWO_ACCOUNTS_IN_COLLECTIONS_
 2026-10-25.md: collections runs a journey per fuel leg (189 of 354 dual households, 80 of them two
 journeys open at once), and a gas leg already ended at a move to a home with no gas is listed again
-when the household switches a year later (1). Both are `xfail` below, not strict, so a fix turns
-them into passes without reddening anything. The direct-debit split is NOT a defect of this kind:
-the payment-channel draw lets the fuels differ in the 3-point band between their published
-direct-debit shares (`payment_channel_for_customer`), and the control asserts that band is the only
-route.
+when the household switches a year later (1). The first is fixed: the triad keys its ledger by
+billing account. The second is a non-strict `xfail` below, so a fix turns it into a pass. The
+direct-debit split is NOT a defect of this kind: the payment-channel draw lets the fuels differ in
+the 3-point band between their published direct-debit shares (`payment_channel_for_customer`), and
+the control asserts that band is the only route.
 
 Window measured 2026-10-25: 354 dual households; 28 move-outs; 65 households switching away; 95
 mid-life credits coming off a dual leg's next paid bill (89 gas, 6 electricity); 11 households in
@@ -245,11 +245,9 @@ def test_the_accounts_closing_balance_is_the_sum_of_its_two_fuels(walked):
         assert balance == round(owed - credit, 2), (h, legs, credit)
 
 
-@pytest.mark.xfail(strict=False, reason=(
-    "collections keys a journey per supply point (ACC-<leg>), so a dual household is two accounts "
-    "to the desk: SEAT_FINDING_A_DUAL_FUEL_HOUSEHOLD_IS_TWO_ACCOUNTS_IN_COLLECTIONS_2026-10-25"))
 def test_collections_runs_one_journey_per_household(walked):
-    """Defect, open: two collections journeys for one household, one per fuel, open at once."""
+    """Defect: two collections journeys for one household, one per fuel, open at once. The triad
+    keys its ledger by billing account (`live_payment_triad.account_of`)."""
     dual = _dual_households(walked)
     ids = {j["account_id"].removeprefix("ACC-") for j in walked["phase2b"]["collections_journeys"]}
     assert [h for h in dual if h in ids and h + "g" in ids] == []

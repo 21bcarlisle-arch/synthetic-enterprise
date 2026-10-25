@@ -104,6 +104,7 @@ from company.billing.payment_observation_consumer import (
     PaymentObservationConsumer,
 )
 from company.interfaces.collection_submission import encode_collection_request
+from company.interfaces.dd_review_outcome import billing_account_of
 from company.interfaces.sim_interface import LiveSimInterface
 from interface.contracts.payment_observable_seam import (
     COLLECTION_REQUEST_TYPE,
@@ -270,6 +271,13 @@ def check_every_caveat_is_published(result: dict,
                     "scorer's result dict carries is one no reader of the "
                     "ledger ever sees")
     return out
+
+
+def account_of(supply_point: str) -> str:
+    """The ledger account a supply point's bills post to: the supplier's billing account, so a
+    dual-fuel household is one account to collections as it is to billing (B13). Its two legs'
+    bills are two items on one ledger, each still referenced to its own leg and period."""
+    return f"ACC-{billing_account_of(supply_point)}"
 
 
 def _one_billing_period_before(as_of: date) -> date:
@@ -769,7 +777,15 @@ class LivePaymentTriad:
         self._hand_overs: List[HandOverAssessment] = []
         # account -> segment, for walking every collections journey to the run's end (EP4).
         self._journey_segments: dict = {}
-        self._journey_last_due: dict = {}
+        # ONE ACCOUNT PER HOUSEHOLD, ONE BILL PER LEG (`account_of`). A dual household's two legs
+        # post into one ledger, but whole terms post in turn, electricity before gas, so the
+        # account's journey may only be walked as far as every leg that can still post a bill has
+        # posted. Supply point -> its latest posted due date, and account -> its legs seen so far.
+        self._leg_last_due: dict = {}
+        self._legs_of_account: dict = {}
+        #: The run's answer to "which of this household's supply points can still post a bill?"
+        #: (a term still to start, or a month still open). None: every leg seen so far can.
+        self.legs_still_posting: Optional[Callable[[str], set]] = None
         # Accounts the run has told this queue are closed (`close_accounts`), and the lumps a gone
         # household did not pay because they fell after its final bill (`world_payment_truth.
         # GONE_HOUSEHOLD_PAYS_NO_LUMP`).
@@ -843,9 +859,9 @@ class LivePaymentTriad:
         any account is the previous month. The consumer requires that date and refuses to default
         it -- a window nobody chose is how a DIRECTION column becomes a made-up interval.
         """
-        self._deliver_settlements_through(as_of, force=f"ACC-{customer_id}")
+        self._deliver_settlements_through(as_of, force=account_of(customer_id))
         return self._consumer.arrears_state(
-            f"ACC-{customer_id}",
+            account_of(customer_id),
             as_of,
             _one_billing_period_before(as_of),
             segment=segment,
@@ -861,8 +877,8 @@ class LivePaymentTriad:
         `billed_last_year_gbp` is everything billed in the 365 days to `as_of`. Read at the
         renewal, before this term's bills post -- the no-look-ahead bound `arrears_state` keeps.
         """
-        self._deliver_settlements_through(as_of, force=f"ACC-{customer_id}")
-        account = f"ACC-{customer_id}"
+        account = account_of(customer_id)
+        self._deliver_settlements_through(as_of, force=account)
         unpaid = self._consumer.unpaid_bills_by_age(account, as_of, segment=segment)
         if unpaid is None:
             return None
@@ -977,14 +993,26 @@ class LivePaymentTriad:
                     else:
                         self._held_settlements.setdefault(account_id, []).append(item)
 
+    def _last_due(self, account_id: str) -> Optional[date]:
+        """The latest due date posted on any leg of the account."""
+        dues = [self._leg_last_due[leg] for leg in self._legs_of_account.get(account_id, ())]
+        return max(dues) if dues else None
+
     def _walk_bound(self, account_id: str) -> Optional[date]:
-        """How far this account's journey may be walked now: its ledger is complete to its latest
-        posted due date (every earlier lump of its has been settled, oldest first), and the run has
-        lived through `_lived_through`. None before either is known."""
-        last_due = self._journey_last_due.get(account_id)
-        if last_due is None or self._lived_through is None:
+        """How far this account's journey may be walked now: its ledger is complete to the
+        earliest latest-posted due date among the legs that can still post (every earlier lump of
+        its has been settled, oldest first), and the run has lived through `_lived_through`. None
+        before either is known, or while a leg that can still post has posted nothing: a gas term
+        starting the day its electricity term did is posted after the whole electricity term."""
+        if self._lived_through is None or account_id not in self._legs_of_account:
             return None
-        return min(last_due, self._lived_through)
+        seen = self._legs_of_account[account_id]
+        posting = (seen if self.legs_still_posting is None
+                   else self.legs_still_posting(account_id.removeprefix("ACC-")))
+        if any(leg not in self._leg_last_due for leg in posting):
+            return None
+        dues = [self._leg_last_due[leg] for leg in posting] or [self._last_due(account_id)]
+        return min(min(dues), self._lived_through)
 
     def _settle_held(self, account_id: str, bound: Optional[date] = None) -> None:
         """Walk the account to the day before each held lump, oldest first, and settle it, as far
@@ -1018,8 +1046,8 @@ class LivePaymentTriad:
             self._early_responses.append(response)
             if not response["pays"]:
                 return
-            self._early_cured.add((account_id, bill_due))
-        elif (account_id, bill_due) in self._early_cured:
+            self._early_cured.add(invoice_ref)
+        elif invoice_ref in self._early_cured:
             self._n_early_withdrawn += 1
             return
         if self._household_plans.repays_through_plan(account_id, bill_due, settled_on):
@@ -1052,7 +1080,7 @@ class LivePaymentTriad:
         `default_belief_rate`) force crossings long before this call."""
         from simulation.household import supply_points_that_left
         legs = supply_points_that_left(departed_households, {r.customer_id for r in self._records})
-        self._closed_accounts |= {f"ACC-{cid}" for cid in legs}
+        self._closed_accounts |= {account_of(cid) for cid in legs}
 
     def close_account(self, household: str, final_bill_due: date) -> None:
         """Tell the queue, AS THE RUN CLOSES IT, that every account of `household` has closed and
@@ -1066,7 +1094,7 @@ class LivePaymentTriad:
         """Whether `settled_on` falls after the final bill's due date of an account that closed.
         A bill posted after the told due date means the account was still billed, so the later of
         the two is the final bill."""
-        final_due = self._journey_last_due.get(account_id)
+        final_due = self._last_due(account_id)
         told = self._closed_households.get(household_of(account_id.removeprefix("ACC-")))
         if told is not None:
             final_due = told if final_due is None else max(told, final_due)
@@ -1177,7 +1205,7 @@ class LivePaymentTriad:
         if method == DIRECT_DEBIT and dd_stopped_by is not None and dd_stopped_by(
                 customer_id, due_date):
             method = PAY_ON_RECEIPT_METHOD
-        account_id = f"ACC-{customer_id}"
+        account_id = account_of(customer_id)
         self._household_plans.note_fuel(account_id, fuel)
         # A meter changed for debt (`payment_method_dynamics`): later bills are paid before use.
         if self._household_plans.on_meter(account_id, due_date):
@@ -1517,13 +1545,17 @@ class LivePaymentTriad:
         # The rest of the walk is `collections_journeys`, to the run's own last day.
         # A later settlement dated on or before the previous due date has already crossed: this
         # call delivered every one up to THIS due date before anything else.
-        previous_due = self._journey_last_due.get(account_id)
+        previous_due = self._leg_last_due.get(customer_id)
         self._journey_segments[account_id] = segment
-        self._journey_last_due[account_id] = due_date
+        self._leg_last_due[customer_id] = due_date
+        self._legs_of_account.setdefault(account_id, set()).add(customer_id)
         if previous_due is not None:
             self._lived_through = max(self._lived_through or previous_due, previous_due)
             self._settle_held(account_id)
-            self._consumer.advance_collections_journey(account_id, previous_due, segment=segment)
+            bound = self._walk_bound(account_id)
+            if bound is not None:
+                self._consumer.advance_collections_journey(
+                    account_id, min(previous_due, bound), segment=segment)
 
         return _derive_analytics_record(customer_id, due_date, amount_gbp, event)
 

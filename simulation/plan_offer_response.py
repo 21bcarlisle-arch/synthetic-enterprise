@@ -215,7 +215,9 @@ class HouseholdPlanBook:
         return m is not None and m[0] <= on
 
     def note_fuel(self, account_id: str, fuel: str) -> None:
-        self._fuel[account_id] = fuel
+        # A dual-fuel account notes both legs; its debt meter recovers at the electricity rate.
+        if self._fuel.get(account_id) != "electricity":
+            self._fuel[account_id] = fuel
 
     def fuel_of(self, account_id: str) -> str:
         return self._fuel.get(account_id, "electricity")

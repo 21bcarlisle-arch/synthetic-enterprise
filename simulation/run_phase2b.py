@@ -234,7 +234,12 @@ from simulation.hh_consumption import (
     is_hh_customer,
     load_hh_consumption,
 )
-from simulation.household import HeatingSystem, household_of, households_whose_account_closed
+from simulation.household import (
+    GAS_LEG_ID_SUFFIX,
+    HeatingSystem,
+    household_of,
+    households_whose_account_closed,
+)
 from simulation.household_demand import HouseholdDemandRegister
 from simulation.household_demand_shape import (
     SeasonalGasRefusal,
@@ -2552,6 +2557,10 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     # consumer.observe forms the company's observable-only belief and the gap is
     # measured + written at run end (background.live_payment_triad).
     _payment_triad = LivePaymentTriad()
+    # A dual household's journey waits for its slower leg: whole terms post in turn.
+    _payment_triad.legs_still_posting = lambda household: {
+        leg for leg in (household, household + GAS_LEG_ID_SUFFIX)
+        if _pending_starts.get(leg) or leg in _payment_month_open}
     # SLC 14: the world's own record of who owes, read from the triad's TRUTH (never the company's
     # ledger), for the debt objection at the renewal roll. See `simulation/debt_objection.py`.
     _world_debt_book = WorldDebtBook(_payment_triad.records)
