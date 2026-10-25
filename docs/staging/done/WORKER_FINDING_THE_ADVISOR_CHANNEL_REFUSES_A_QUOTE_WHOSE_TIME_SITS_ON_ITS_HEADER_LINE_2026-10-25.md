@@ -21,3 +21,13 @@ still guards authenticity.
 `map-steer-knowledge-pages-and-forward-plan` are the same steer. The first id's 07:03 invocation died
 on an API error (EAI_AGAIN) and landed nothing; this turn took the work under the second id and
 landed the switching page under it. The first id is released.
+
+## Resolved 2026-10-25
+
+Fixed in `d3f6d9f40` (on origin in 9bba2c47d), the fix this finding proposed:
+`background/advisor_channel.py::_QUOTED_UNDER_LEAD_IN_RE` accepts a timed lead-in line ending in `:` with a
+quoted bullet directly under it. The one-line regex is unchanged.
+`tests/background/test_advisor_channel.py::test_his_words_quoted_under_a_timed_lead_in_line_are_his_quoted_voice`
+reaches both legs. The comfort steer's shape is drawn, and a timed lead-in with nothing quoted under it is
+still refused. The test was written against this file's shape, which today's regex refused, so it was red
+before the fix. The steer stays in the advisor queue to be read with the asset steer it adds to.
