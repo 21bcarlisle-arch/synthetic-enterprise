@@ -69,6 +69,7 @@ from company.interfaces.bill_assembly import (
     assemble_monthly_bills,
     billing_accuracy,
     direct_debit_money_line,
+    move_out_final_bills,
 )
 from company.interfaces.billing_experience import build_billing_experience_view
 from company.interfaces.customer_value import (
@@ -595,10 +596,14 @@ def main(report_end: str | None = None, policy=None, instructed_read_arm: str = 
     # per-customer billing ledger (tools.generate_billing_ledger) -- so the
     # board-reported bad_debt_gbp is an outcome of simulated payment
     # behaviour, not a calibrated assumption.
+    # Each closed account's balance at its final bill, per fuel, from the same walk that writes it
+    # off (home_moves.md s.8.8a): owed positive, credit negative.
+    closing_balances: dict[str, float] = {}
     emergent_bad_debt_by_line = emergent_bad_debt_lines(
         bills,
         phase2b_result.get("per_customer_behavioral", {}),
         churned_ids,
+        closing_out=closing_balances,
     )
 
     # Phase [debt-branch, docs/design/PROCESS_MODEL.md Section 4]: real
@@ -847,6 +852,10 @@ def main(report_end: str | None = None, policy=None, instructed_read_arm: str = 
             unmeasured_accounts=len(dd_balance_book.unestimated_customers),
             seek_balance_at_review=dd_balance_book.seek_balance_at_review)),
         "credit_refund_log": credit_refund_log,
+        "closing_balances": closing_balances,
+        "move_out_final_bills": move_out_final_bills(
+            bills, phase2b_result.get("home_move_outs"), credit_refund_log,
+            closing_balances=closing_balances),
         "contact_centre_log": contact_centre_log,
         "payment_behaviour": payment_behaviour,
         "contact_model": contact_model,

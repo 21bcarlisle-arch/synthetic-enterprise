@@ -720,6 +720,17 @@ def test_every_final_bill_branch_can_be_taken():
     assert out["credit"]["on_time"] and out["credit"]["late"]
     assert out["closing_read"]["actual"] and out["closing_read"]["estimated"]
     assert out["debt"]["carried"] and out["debt"]["credit"]
+    # Settled is its own branch: a zero balance read as "no balance", or the reverse, reds here.
+    settled = move_out_final_bills(*_move_fixture(), closing_balances={"ON": 0.0})
+    assert settled["debt"]["settled"] == 1 and settled["debt"]["no_balance"] == 1
+
+
+def test_a_final_bill_with_no_balance_on_record_is_counted_not_read_as_settled():
+    out = move_out_final_bills(*_move_fixture(), closing_balances={"ON": -12.0})
+    row = {r["account_id"]: r for r in out["accounts"]}
+    assert row["LATE"]["debt"] is None
+    assert out["debt"]["no_balance"] == 1 and out["debt"]["settled"] == 0
+    assert out["debt"]["unmeasured_because"] is None
 
 
 def test_a_final_bill_issued_after_six_weeks_is_late():

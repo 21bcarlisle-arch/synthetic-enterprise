@@ -87,3 +87,37 @@ def test_the_reducer_forwards_the_movers():
 def test_the_reducer_keeps_an_absent_move_register_absent():
     """Absent means moves are off; `[]` would claim a world with moves in which nobody moved."""
     assert extract_report_data(_run_output())["home_move_outs"] is None
+
+
+def _bill(cid, outcome, amount, due, commodity="electricity"):
+    return {"customer_id": cid, "period_end": due.replace(day=1).isoformat(), "commodity": commodity,
+            "amount_gbp": amount, "due_date": due, "method": "standard_credit",
+            "outcome": outcome, "days_late": 0}
+
+
+def test_the_closing_balance_takes_each_branch_and_is_the_write_off_at_close():
+    """Each closed account's balance at its final bill (home_moves.md s.8.8a), from the walk that
+    writes it off. One leaver owes, one is in credit, one is settled, and the stayer has none.
+
+    The partition fails if the balance is never written (the defect: every run handed
+    `move_out_final_bills` None), if a branch cannot be reached, if a stayer is given a closing
+    balance, or if the debt published differs from the debt the P&L writes off at close."""
+    owes, credit, settled, stayer = "L-OWE", "L-CR", "L-SET", "S-1"
+    resolved = [
+        _bill(owes, "success", 50.0, date(2021, 5, 12)),
+        _bill(owes, "failed", 84.0, date(2021, 6, 12)),
+        _bill(credit, "success", 50.0, date(2021, 5, 12)),
+        _bill(credit, "credit", -17.5, date(2021, 6, 12)),
+        _bill(settled, "failed", 30.0, date(2021, 5, 12)),
+        _bill(settled, "credit", -30.0, date(2021, 6, 12)),
+        _bill(stayer, "failed", 40.0, date(2021, 6, 12)),
+    ]
+    closing: dict[str, float] = {}
+    written_off, _ = balance_settlement_from_outcomes(resolved, {owes, credit, settled}, closing)
+    assert closing == {owes: 84.0, credit: -17.5, settled: 0.0}
+    assert closing[owes] > 0 and closing[credit] < 0 and closing[settled] == 0
+    at_close = sum(v["amount_gbp"] for (cid, _pe, _c), v in written_off.items()
+                   if cid == owes and v["leg"] == LEG_CLOSE)
+    assert at_close == closing[owes]
+    # The out-parameter changes nothing it does not own.
+    assert balance_settlement_from_outcomes(resolved, {owes, credit, settled})[0] == written_off
