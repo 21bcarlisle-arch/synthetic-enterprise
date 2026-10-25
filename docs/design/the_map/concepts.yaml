@@ -209,6 +209,311 @@ concepts:
     supplier: [company.finance.segment_profitability]
     gap: {world: "an accounting statement has no world rule", wall: "nothing crosses: the company's own ledgers"}
 
+  - id: world.driver_mileage
+    prefLabel: Annual mileage per driver
+    altLabel: [annual mileage, miles driven, car miles per year]
+    definition: The miles a household's car is driven in a year, skewed and set by who drives it rather than by its fuel.
+    match: ["DfT National Travel Survey NTS0901, NTS0904"]
+    placed: [world/Households]
+    page: who-drives-how-far-and-where-they-park
+    world: [simulation.premise_trace]
+    gap: {wall: "mileage never crosses; a supplier can only ask, or bound it from charging kWh", supplier: "no module estimates a customer's mileage"}
+
+  - id: world.offstreet_parking
+    prefLabel: Off-street parking
+    altLabel: [driveway, has_driveway, home charging access]
+    definition: Whether a home's car can be parked, and so charged, on the home's own land overnight.
+    match: ["DfT National Travel Survey NTS0908; DfT EV driver tracker"]
+    placed: [world/Home physics, world/Households]
+    page: who-drives-how-far-and-where-they-park
+    world: [simulation.household]
+    gap: {wall: "nothing crosses; a supplier asks or reads weak address signals", supplier: "no module holds a customer's parking"}
+
+  - id: world.vehicle_energy_per_mile
+    prefLabel: Vehicle energy per mile
+    altLabel: [ev efficiency, wh per mile, miles per kwh, real-world fuel economy]
+    definition: The energy a car uses per mile on the road, set by its model and the day's temperature, plus what is lost charging it.
+    match: ["EV Database real-world consumption; ADAC charging-loss tests; ICCT Lab-to-Road"]
+    placed: [world/Households]
+    page: which-cars-households-run-and-what-they-use
+    world: [simulation.premise_trace]
+    gap: {wall: "nothing crosses unless the customer shares car data", supplier: "no module holds a car's efficiency"}
+
+  - id: world.phev_electric_share
+    prefLabel: Plug-in hybrid electric share
+    altLabel: [utility factor, phev electric miles]
+    definition: The share of a plug-in hybrid's miles or energy that is electric, set by how often its owner charges it.
+    match: ["ICCT/Fraunhofer real-world PHEV use (2022); EU OBFCM (2025)"]
+    placed: [world/Households]
+    page: which-cars-households-run-and-what-they-use
+    gap: {world: "the world has no plug-in hybrid; an EV is one flag", wall: "nothing crosses", supplier: "nothing to infer while the world draws none"}
+
+  - id: world.ev_home_charging
+    prefLabel: Home EV charging
+    altLabel: [ev charging load, ev annual kwh, charging session, plug-in]
+    definition: The electricity a household's car draws through the home meter, set by its miles, its efficiency and how often and when it is plugged in.
+    match: ["Electric Nation trial (WPD); DfT EV driver tracker"]
+    placed: [world/Households, supplier/Meter]
+    page: ev-charging-and-the-saving-against-petrol-and-diesel
+    world: [simulation.premise_trace]
+    supplier: [company.crm.property_model]
+    gap: {wall: "only the metered half-hourly total crosses; the car's own load is not separated"}
+
+  - id: advise.ev_fuel_saving
+    prefLabel: EV fuel saving
+    altLabel: [ev saving vs petrol, pence per mile, fuel counterfactual]
+    definition: What a household's electric miles cost against the same miles in its previous petrol or diesel car at that week's pump price.
+    match: ["AA pence-per-mile; DESNZ GHG conversion factors 2026"]
+    placed: [supplier/Advise]
+    page: ev-charging-and-the-saving-against-petrol-and-diesel
+    gap: {world: "no household holds a petrol or diesel car to compare against", wall: "mileage and the previous car never cross; the supplier must ask", supplier: "no module computes it"}
+
+  - id: home.boiler_in_use_efficiency
+    prefLabel: Boiler in-use efficiency
+    altLabel: [seasonal boiler efficiency, condensing efficiency, sedbuk, erp efficiency]
+    definition: The share of a gas boiler's fuel delivered as useful heat over a season in a real home, which falls as the return water temperature rises above about 55°C.
+    match: ["BRE S10TP-12 (SAP 10 seasonal efficiency); GASTEC for EST in-situ condensing boiler trial (2009)"]
+    placed: [world/Home physics]
+    page: gas-boilers-and-heating-controls
+    world: [simulation.fabric_physics]
+    supplier: [company.pricing.thermal_inference]
+    gap: {wall: "nothing crosses: the supplier sees only metered gas and must ask for the boiler's model and age"}
+
+  - id: home.flow_temperature
+    prefLabel: Boiler flow temperature
+    altLabel: [flow temp, boiler flow setting, weather compensation]
+    definition: The temperature a boiler sends water out to the radiators at, set on the boiler; below about 55°C return it condenses.
+    match: ["Nesta Money Saving Boiler Challenge evidence (Oct 2022); BEIS Boiler Plus (Apr 2018)"]
+    placed: [world/Home physics, supplier/Advise]
+    page: gas-boilers-and-heating-controls
+    gap: {world: "no home holds a flow temperature; boiler efficiency is fixed by age", wall: "not inferable from meter data; must be asked", supplier: "the advice is named in the offer book's comments and blocked on a source"}
+
+  - id: home.heating_setpoint_and_schedule
+    prefLabel: Heating setpoint and schedule
+    altLabel: [thermostat setting, setpoint, heating schedule, heating hours, setback]
+    definition: The temperature a household sets its thermostat to and the periods it heats in, which with the building set the temperature it actually lives at.
+    match: ["EFUS 2017 heating patterns and occupancy (BEIS)"]
+    placed: [world/Households, world/Home physics]
+    page: heating-behaviour-comfort-and-health-floors
+    world: [simulation.fabric_physics]
+    gap: {wall: "only weakly inferable from the half-hourly gas shape; must be asked or read from a connected thermostat", supplier: "nothing in the company estimates a household's setpoint or schedule"}
+
+  - id: advise.health_floor
+    prefLabel: Health floor on heating advice
+    altLabel: [minimum indoor temperature, cold home threshold, 18c floor]
+    definition: The indoor temperature below which no advice may push a home; 18°C for a living room, higher for the old and ill, with any room-hour below 16°C flagged.
+    match: ["WHO Housing and Health Guidelines (2018); PHE minimum home temperature thresholds (2014); NICE NG6"]
+    placed: [supplier/Advise, company/Vulnerability]
+    page: heating-behaviour-comfort-and-health-floors
+    supplier: [company.pricing.fabric_intervention]
+    gap: {world: "a health floor is a rule on advice, not a property of the world; the world produces the temperatures it is checked against", wall: "nothing crosses: the floor is the company's own rule"}
+
+  - id: home.heat_pump_spf
+    prefLabel: Heat pump seasonal performance factor
+    altLabel: [spf, scop, heat pump efficiency, coefficient of performance]
+    definition: The heat a heat pump delivers over a year divided by the electricity it uses, at a stated boundary; median 2.80 for air-source in the Electrification of Heat trial.
+    match: ["Energy Systems Catapult, Electrification of Heat demonstration (2023); DECC RHPP final report (2016)"]
+    placed: [world/Home physics]
+    page: heat-pumps-and-fabric-measures
+    world: [simulation.fabric_physics]
+    supplier: [company.pricing.thermal_inference]
+    gap: {wall: "only measurable with a heat meter or an assumed heat demand; the supplier sees the electricity"}
+
+  - id: home.measured_insulation_saving
+    prefLabel: Measured insulation saving
+    altLabel: [need saving, insulation saving]
+    definition: The median weather-corrected fall in a home's gas after an insulation measure, against a comparison group without one, as NEED reports it.
+    match: ["DESNZ National Energy Efficiency Data-Framework (NEED) reports 2018-2026"]
+    placed: [supplier/Advise]
+    page: heat-pumps-and-fabric-measures
+    supplier: [company.pricing.fabric_intervention]
+    gap: {world: "the world's insulation changes the fabric; the measured saving is an output to grade it against", wall: "the supplier sees gas before and after and must build its own comparison group"}
+
+  - id: asset.pv_self_consumption
+    prefLabel: Solar self-consumption
+    altLabel: [self-use factor, self-consumption, solar self-use]
+    definition: The share of a home's solar generation used on site rather than exported, by month; SAP gives it as exp(-C1(C2 E/D)^C3) with coefficients that move with usable battery kWh.
+    match: ["BRE S10TP-07, SAP 10.2 PV self-use factor"]
+    placed: [world/Home physics, supplier/Advise]
+    page: solar-pv-and-home-batteries
+    world: [simulation.demand_model]
+    supplier: [company.regulatory.seg_export_estimator]
+    gap: {wall: "net import crosses; generation and self-use do not unless the household shares inverter data"}
+
+  - id: asset.battery_operating_mode
+    prefLabel: Home battery operating mode
+    altLabel: [battery mode, reserve floor, battery schedule, grid charging]
+    definition: How a home battery is set to run - self-consumption, timed grid charge to a target state of charge, timed export, and a reserve floor - which decides most of what it earns.
+    match: ["manufacturer controls (GivEnergy, Tesla Powerwall 3); Octopus Flux and Intelligent Flux terms"]
+    placed: [world/Choices, supplier/Optimise]
+    page: solar-pv-and-home-batteries
+    world: [simulation.run_phase2b]
+    gap: {wall: "settings never cross; the supplier must ask or read an inverter API with consent", supplier: "the company holds no battery settings"}
+
+  - id: asset.pv_array_orientation
+    prefLabel: Solar array orientation and tilt
+    altLabel: [azimuth, roof aspect, panel tilt, roof pitch]
+    definition: The compass direction and slope of a roof plane carrying panels; with location it sets the share of the best possible yield an array can reach.
+    match: ["PVGIS (EU JRC); MCS irradiance zone tables"]
+    placed: [world/Home physics]
+    page: pv-roofs-orientation-and-yield
+    world: [simulation.household]
+    gap: {wall: "orientation never crosses; the supplier asks, or infers it from generation data", supplier: "the company holds no orientation"}
+
+  - id: asset.pv_specific_yield
+    prefLabel: Solar specific yield
+    altLabel: [kWh per kWp, solar load factor, yield per kWp]
+    definition: Annual generation per kilowatt of installed panel; DESNZ publishes the Feed-in Tariff fleet's median as a load factor each year.
+    match: ["DESNZ Feed-in Tariff load factor analysis"]
+    placed: [world/Home physics, world/Weather]
+    page: pv-roofs-orientation-and-yield
+    world: [simulation.demand_model]
+    supplier: [company.regulatory.seg_export_estimator]
+    gap: {wall: "generation crosses only through a FiT generation meter or consented inverter data"}
+
+  - id: network.connect_and_notify
+    prefLabel: Connect and notify
+    altLabel: [notify or apply, apply to connect, ENA connection form, G98 notification]
+    definition: The route by which an installer may fit one EV charger, heat pump or small generator and tell the DNO within 28 days, open only when the home's supply passes the ENA form's conditions.
+    match: ["ENA EV charge point and heat pump form v3.3; EREC G98, G99, G100"]
+    placed: [world/Choices, supplier/Advise]
+    page: network-limits-on-home-electrification
+    gap: {world: "no connection step: every device installs instantly", wall: "an installer's notification goes to the DNO, not the supplier", supplier: "no module plans install lead time or conversion loss"}
+
+  - id: network.looped_service
+    prefLabel: Looped service
+    altLabel: [looped supply, shared service cable, unlooping]
+    definition: One service cable feeding two or more homes through a shared cut-out; it rules out connect and notify, and covers about 3.9 million GB homes.
+    match: ["DESNZ Unlooping electricity network connections (Jan 2026)"]
+    placed: [world/Home physics]
+    page: network-limits-on-home-electrification
+    gap: {world: "no home carries a looped flag", wall: "invisible to a supplier until a survey finds it", supplier: "none"}
+
+  - id: network.cut_out_rating
+    prefLabel: Cut-out rating and supply phase
+    altLabel: [main fuse rating, cut-out fuse, fuse upgrade, three-phase supply]
+    definition: The amp rating of the DNO's main fuse at the home (typically 60-100 A) and whether the supply is single- or three-phase; together they bound what can be added before an application.
+    match: ["ENA form v3.3 (13.8 kVA / 60 A per phase)"]
+    placed: [world/Home physics]
+    page: network-limits-on-home-electrification
+    gap: {world: "no home carries a cut-out rating or phase; a 22 kW charger is drawn regardless", wall: "not visible to a supplier", supplier: "none"}
+
+  - id: optimise.third_party_flex
+    prefLabel: Third-party flexibility capture
+    altLabel: [virtual trading party, virtual lead party, vtp, deviation volume, supplier compensation]
+    definition: An independent party trades or balances a supplier's customer's demand turn-down or turn-up, and the supplier is compensated for the resulting deviation at a reference price funded by all suppliers by market share.
+    match: ["BSC P415 (live 7 Nov 2024); Supplier Compensation Reference Price Methodology v2.0; P444; P510 and P511"]
+    placed: [supplier/Optimise, supplier/Settle]
+    page: vpps-and-local-flexibility
+    gap: {world: "no rival aggregator agent exists; no MSID is ever claimed by another party", wall: "no compensation or deviation volume crosses", supplier: "nothing books compensation or the mutualisation levy"}
+
+  - id: optimise.dno_flexibility
+    prefLabel: Local network flexibility
+    altLabel: [dno flexibility, dso flexibility, flexibility zone, peak reduction, scheduled utilisation]
+    definition: A distribution network buys demand turn-down or turn-up in named zones through standard products, paying availability per MW per hour and utilisation per MWh, settled per minute with a performance multiplier.
+    match: ["ENA Open Networks standard products; Elexon Flexibility Market Rules FMR-VSM (30 Jan 2026) and FMR-SBM; DNO SLC31E reports"]
+    placed: [supplier/Optimise]
+    page: vpps-and-local-flexibility
+    gap: {world: "no network zone map, call or local price exists", wall: "nothing crosses", supplier: "company.market.dso_flexibility_tender_register exists and has no caller"}
+
+  - id: optimise.demand_flexibility_event
+    prefLabel: Demand flexibility event
+    altLabel: [demand flexibility service, dfs, saving session, turn-down event]
+    definition: A called window in which a household is paid to use less (or more) than a baseline of its own recent similar days, with payment on delivered kWh.
+    match: ["NESO Demand Flexibility Service terms (2022/23-2024/25); BSC P376 baselining"]
+    placed: [supplier/Optimise, world/Choices]
+    page: household-flexibility-and-the-advice-roadmap
+    world: [sim.flex_dispatch]
+    supplier: [company.market.flexibility_revenue_book]
+    gap: {wall: "no event notice or delivered-volume settlement crosses the seam; the world dispatches and books its own events", graded_by: "no opt-in, notice, fatigue or baseline error is modelled; the world's baseline is the enrolled volume"}
+
+  - id: optimise.wholesale_shaping
+    prefLabel: Wholesale shaping under half-hourly settlement
+    altLabel: [load shifting value, smart charging value, tariff-embedded shifting]
+    definition: The fall in a supplier's own purchase cost when its customers' settled half-hourly demand moves from expensive to cheap periods.
+    match: ["Ofgem MHHS decision (benefits £1.6-4.5bn to 2045); Elexon half-hourly settlement"]
+    placed: [supplier/Optimise, supplier/Hedge]
+    page: household-flexibility-and-the-advice-roadmap
+    gap: {world: "households do not shift load in response to a price signal beyond the time-of-use peak window", wall: "half-hourly reads cross, but no shifting instruction goes back", supplier: "no module values a household's shifted kWh against the company's half-hourly costs", graded_by: "nothing yet"}
+
+  - id: advise.measured_saving
+    kind: measure
+    prefLabel: Measured household saving
+    altLabel: [measured saving, metered saving, avoided energy use, savings uncertainty]
+    definition: A home's weather-normalised baseline prediction of what it would have used, minus what it used, with its fractional savings uncertainty.
+    match: ["IPMVP Option C (EVO 10000-1:2022); CalTRACK methods; ASHRAE Guideline 14"]
+    placed: [supplier/Advise]
+    page: proving-and-showing-household-savings
+    measure: {counts: "baseline-predicted minus metered kWh, weather-normalised", over: "a home or a portfolio over a reporting period", computed_by: null}
+    gap: {computed_by: "no estimator exists; the household-side figure (company.analytics.household_value_share) is a price comparison against the default tariff, not a change in use", graded_by: "the world's true counterfactual is not yet compared with any estimate"}
+
+  - id: advise.deemed_saving
+    prefLabel: Deemed saving
+    altLabel: [deemed score, in-use factor, deemed savings]
+    definition: A fixed saving assigned to a measure in advance from a model, reduced by an in-use factor or a treated-share adjustment.
+    match: ["Ofgem ECO Measures Table v1.6 (2014); ECO4 and GBIS partial project scores"]
+    placed: [supplier/Advise]
+    page: proving-and-showing-household-savings
+    gap: {world: "the world holds the prebound effect that makes deemed savings over-predict", wall: "nothing crosses: a deemed saving is the supplier's own table", supplier: "no deemed-savings table is held"}
+
+  - id: advise.savings_claim
+    prefLabel: Savings claim to a customer
+    altLabel: [savings claim, you saved, up to claim]
+    definition: A statement to a customer of money, energy or carbon saved, which must state its basis and evidence class and be achieved by a significant share of those it is shown to.
+    match: ["Ofgem SLC 0 Standards of Conduct; CMA Green Claims Code (2021); ASA rulings British Gas (4 Mar 2026) and Octopus (23 Apr 2025)"]
+    placed: [supplier/Advise]
+    page: proving-and-showing-household-savings
+    gap: {world: "a claim is the supplier's statement; the world holds only the true saving it is graded against", wall: "no claim reaches a household yet", supplier: "no claim is shown to any household yet", graded_by: "no claim audit against true savings"}
+
+  - id: price.realised_volatility
+    prefLabel: Realised price volatility
+    altLabel: [realised volatility, price volatility, volatility clustering, monthly volatility]
+    definition: The standard deviation of daily log price changes over a period, scaled to that period's trading days; it clusters in calm and turbulent spells and is higher for gas in winter.
+    match: ["OIES NG60 (Alterman 2012): returns method"]
+    placed: [world/Wholesale price]
+    page: how-gb-gas-and-power-prices-move
+    world: [sim.scenario.fidelity_check]
+    gap: {world: "the replayed gas price is a monthly TTF proxy repeated daily, so it carries no daily or weekly gas volatility", wall: "the company reads the same history through the seam; no volatility observable is separately published to it", supplier: "no company measure of realised volatility is graded against the record"}
+
+  - id: price.curve_shape
+    prefLabel: Forward curve shape
+    altLabel: [backwardation, contango, seasonal spread, curve slope]
+    definition: Whether near-dated contracts trade above (backwardation) or below (contango) later ones, and the winter-over-summer spread; both follow the spot level.
+    match: ["ICE Endex NBP and UK base load futures: month, quarter and season contracts"]
+    placed: [world/Wholesale price, supplier/Hedge]
+    page: how-gb-gas-and-power-prices-move
+    world: [sim.forward_curve]
+    gap: {wall: "the forward quote crosses as a price, not as a curve with a slope", supplier: "nothing measures the curve's slope or the record's share of backwardated days, which is unpublished"}
+
+  - id: price.spark_spread
+    prefLabel: Clean spark spread
+    altLabel: [spark spread, dark spread, clean dark spread, gas-to-power margin]
+    definition: The power price less the cost of the gas a standard 49.13%-efficient plant burns to make it and, for the clean spread, the carbon it emits at 0.411 t/MWh.
+    match: ["GB market convention: 49.13% CCGT efficiency, 0.411 tCO2/MWh"]
+    placed: [world/Generation and merit order]
+    page: how-gb-gas-and-power-prices-move
+    gap: {world: "no module computes the spread, and the replayed gas price is monthly, so its daily range cannot be formed", wall: "nothing crosses: the spread is a market quantity the company does not trade", supplier: "the company does not own generation"}
+
+  - id: cost.dated_series
+    prefLabel: Dated cost series
+    altLabel: [dated series, pump price, road fuel price, installed cost, kit cost]
+    definition: A price or installed cost recorded against the date it applied, with its granularity (region, size band, payment method), so a household's comparison uses the value of its own date.
+    match: ["DESNZ weekly road fuel prices; DESNZ Solar PV cost data; Boiler Upgrade Scheme statistics"]
+    placed: [world/Choices, supplier/Advise]
+    page: dated-household-cost-and-price-series
+    supplier: [company.pricing.fabric_intervention]
+    gap: {world: "no road-fuel price and no dated kit cost exists in the world", wall: "published prices are public; nothing crosses because nothing is held"}
+
+  - id: carbon.grid_factor_year
+    prefLabel: Grid carbon factor and its data year
+    altLabel: [conversion factor, grid emission factor, data year, reporting year]
+    definition: DESNZ's annual electricity factor describes grid data one or two years older than the year it is issued for; the methodology paper's consistent series is indexed by data year.
+    match: ["DESNZ GHG conversion factors 2026 methodology, Tables 9 and 1.6"]
+    placed: [world/Generation and merit order, supplier/Advise]
+    page: dated-household-cost-and-price-series
+    supplier: [company.regulatory.carbon_emissions]
+    gap: {world: "the world replays NESO's measured intensity and holds no DESNZ factor", wall: "a published factor; nothing crosses"}
+
   - id: build.mutation
     prefLabel: Checks that can fail
     altLabel: [mutation, neuter test]

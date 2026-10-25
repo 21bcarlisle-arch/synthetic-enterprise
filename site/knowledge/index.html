@@ -105,7 +105,7 @@ footer { max-width: 860px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
         the published range fails the build.</li>
       <li>Where the published record does not settle a question, the page says so plainly
         rather than filling it with a guess.</li>
-      <li>The pages are grouped into five themes below. Each card says why the simulation
+      <li>The pages are grouped into six themes below. Each card says why the simulation
         needs it.</li>
     </ul>
   </div>
@@ -115,7 +115,8 @@ footer { max-width: 860px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
     <a href="#theme-households">Households and their homes</a> &middot;
     <a href="#theme-customers">Winning and serving customers</a> &middot;
     <a href="#theme-billing">Metering, billing, debt and regulation</a> &middot;
-    <a href="#theme-carbon">Carbon</a>
+    <a href="#theme-carbon">Carbon</a> &middot;
+    <a href="#theme-other-markets">Other markets</a>
   </nav>
 
   <!-- REAL <a> links, not built by script (tools/site_reachability.py strips inline scripts
@@ -187,6 +188,24 @@ footer { max-width: 860px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
     <div class="card-why"><span class="why-k">Why the simulation needs it.</span> A household deciding whether to switch compares a quoted annual figure, not its real bill. The company's offers have to be judged on the same terms.</div>
     <div class="card-foot"><span class="state-badge" id="state-the-price-a-household-is-shown"></span> <div class="card-a" id="atoms-the-price-a-household-is-shown"></div></div>
   </a>
+  <a class="card" href="./vpps-and-local-flexibility/">
+    <div class="card-h">Who else pays for a household's flexibility: aggregators, rival traders and the local network</div>
+    <div class="card-p">Three routes reach a household's flexible devices: its supplier, an independent aggregator and a device platform. Since 2024 a rival can trade a supplier's customer's flexibility and the supplier is compensated from a shared pot; local network payments are location-gated and worth single-digit pounds a year to most homes.</div>
+    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> The company books DFS revenue only and has no rival aggregator in its world, so the value a household's flexibility has to someone else is invisible to it.</div>
+    <div class="card-foot"><span class="state-badge" id="state-vpps-and-local-flexibility"></span> <div class="card-a" id="atoms-vpps-and-local-flexibility"></div></div>
+  </a>
+  <a class="card" href="./how-gb-gas-and-power-prices-move/">
+    <div class="card-h">How GB gas and power prices move: volatility at every time scale, the forward curve's shape and the spark spread</div>
+    <div class="card-p">Front-month gas typically moved 8-15% a month and a third more in winter, power spikes above £500/MWh came in autumn and spring and never in summer, and the curve backwardated when prices rose. The world's own gas price is a monthly average that cannot show any of it below a month.</div>
+    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> The forward years are graded against these bands at every time scale before any forward run is used for a supplier result, and the world's replayed gas price fails them below a month.</div>
+    <div class="card-foot"><span class="state-badge" id="state-how-gb-gas-and-power-prices-move"></span> <div class="card-a" id="atoms-how-gb-gas-and-power-prices-move"></div></div>
+  </a>
+  <a class="card" href="./dated-household-cost-and-price-series/">
+    <div class="card-h">What things cost a household, by date: fuel, energy, kit and carbon, 2016 to 2035</div>
+    <div class="card-p">Petrol, capped energy, solar, batteries, heat pumps and grid carbon each have a published dated series, and all moved a lot between 2016 and 2026. No road-fuel price exists in the code, and the company's retrofit costs are fixed.</div>
+    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> A saving shown to a household is only true at the price that applied on that date, and the company's advice still prices kit at four fixed figures.</div>
+    <div class="card-foot"><span class="state-badge" id="state-dated-household-cost-and-price-series"></span> <div class="card-a" id="atoms-dated-household-cost-and-price-series"></div></div>
+  </a>
   </section>
   <section class="theme" id="theme-households" data-theme="households">
   <h2 class="theme-h">Households and their homes</h2>
@@ -251,6 +270,42 @@ footer { max-width: 860px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
     <div class="card-why"><span class="why-k">Why the simulation needs it.</span> A worked case of one of the simulation's own measures misleading it, and how the real record exposed it.</div>
     <div class="card-foot"><span class="state-badge" id="state-the-first-year-blind-spot"></span> <div class="card-a" id="atoms-the-first-year-blind-spot"></div></div>
   </a>
+  <a class="card" href="./who-drives-how-far-and-where-they-park/">
+    <div class="card-h">Who drives how far, and where they park: the person comes before the car</div>
+    <div class="card-p">An English household car drove about 7,100 miles in 2025, a third under 5,000 and one in eight over 12,000, and the spread follows the driver, not the fuel. About 72% of vehicles sleep off-street, which decides who can charge at home.</div>
+    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> An electric car's demand has to come from the miles its household drives and where it parks. The simulated homes draw neither yet.</div>
+    <div class="card-foot"><span class="state-badge" id="state-who-drives-how-far-and-where-they-park"></span> <div class="card-a" id="atoms-who-drives-how-far-and-where-they-park"></div></div>
+  </a>
+  <a class="card" href="./which-cars-households-run-and-what-they-use/">
+    <div class="card-h">Which cars households run, and how much energy each one really uses</div>
+    <div class="card-p">Household cars are mostly petrol and diesel and about ten years old. An electric car's energy per mile is its model's efficiency times a winter penalty of 1.2-1.3, plus charging losses of 5% on a wallbox or up to 24% on a plug.</div>
+    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> A car's demand on a home has to come from the car itself and the day's weather. The simulated world uses one fixed figure for every car.</div>
+    <div class="card-foot"><span class="state-badge" id="state-which-cars-households-run-and-what-they-use"></span> <div class="card-a" id="atoms-which-cars-households-run-and-what-they-use"></div></div>
+  </a>
+  <a class="card" href="./gas-boilers-and-heating-controls/">
+    <div class="card-h">How a gas boiler and its controls turn into the gas a home uses</div>
+    <div class="card-p">A condensing boiler set to a 70-80°C flow seldom condenses, so homes get about 82-85% of their gas as heat. Turning the flow down saved 9% in a test house and 1.4% in a trial; smart thermostats measure at about 5%, and possibly nothing.</div>
+    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> The boiler is how most homes turn gas into warmth. The world's boilers convert at a fixed efficiency by age, with no flow temperature, so the cheapest advice a supplier could give cannot yet be tested.</div>
+    <div class="card-foot"><span class="state-badge" id="state-gas-boilers-and-heating-controls"></span> <div class="card-a" id="atoms-gas-boilers-and-heating-controls"></div></div>
+  </a>
+  <a class="card" href="./heating-behaviour-comfort-and-health-floors/">
+    <div class="card-h">How households heat their homes, how warm they actually are, and the temperatures advice must never go below</div>
+    <div class="card-p">Households set about 20°C, live about a degree below it and heat for about seven hours a day. After 2022 the average setting fell a degree, hardest in fuel-poor homes. Health guidance puts 18°C as the floor advice must not push a home below.</div>
+    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> Comfort and health are outputs of how a home is heated, not settings. The world draws each home's thermostat and schedule from these figures, and any advice to save heat must clear the health floor first.</div>
+    <div class="card-foot"><span class="state-badge" id="state-heating-behaviour-comfort-and-health-floors"></span> <div class="card-a" id="atoms-heating-behaviour-comfort-and-health-floors"></div></div>
+  </a>
+  <a class="card" href="./solar-pv-and-home-batteries/">
+    <div class="card-h">Solar panels and home batteries: what they generate, what the home keeps, and what the settings are worth</div>
+    <div class="card-p">About 800-1,100 kWh a year per kW of panel; a home keeps roughly 40-45% without a battery; a battery adds 13-25 points, and most of its value comes from the tariff it is set against.</div>
+    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> The world gives every solar home the same array at the half hour and a battery with one mode; advice on solar or a battery needs each home's own generation, self-use and settings.</div>
+    <div class="card-foot"><span class="state-badge" id="state-solar-pv-and-home-batteries"></span> <div class="card-a" id="atoms-solar-pv-and-home-batteries"></div></div>
+  </a>
+  <a class="card" href="./pv-roofs-orientation-and-yield/">
+    <div class="card-h">A roof's solar array: which way it faces, how steep, how big, how old, and the sky above it</div>
+    <div class="card-p">East or west roofs make about 0.76-0.81 of south, north about half; the fleet's median ran 806-920 kWh per kW a year since 2011; and no GB distribution of roof facing is yet published outside one gated dataset.</div>
+    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> The world labels every drawn roof east/west and never lets the label reach output; a personalised solar home needs its own facing, tilt, size, age and sky.</div>
+    <div class="card-foot"><span class="state-badge" id="state-pv-roofs-orientation-and-yield"></span> <div class="card-a" id="atoms-pv-roofs-orientation-and-yield"></div></div>
+  </a>
   </section>
   <section class="theme" id="theme-customers" data-theme="customers">
   <h2 class="theme-h">Winning and serving customers</h2>
@@ -296,6 +351,30 @@ footer { max-width: 860px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
     <div class="card-p">A move is two events at two addresses, often weeks apart, and in Britain the energy keeps flowing to whoever walks in. Between a fifth and two-fifths of all domestic energy debt starts there.</div>
     <div class="card-why"><span class="why-k">Why the simulation needs it.</span> A move closes one account and opens another, and a large share of energy debt starts there. The world has to move households for the company to meet that.</div>
     <div class="card-foot"><span class="state-badge" id="state-home-moves"></span> <div class="card-a" id="atoms-home-moves"></div></div>
+  </a>
+  <a class="card" href="./ev-charging-and-the-saving-against-petrol-and-diesel/">
+    <div class="card-h">Charging an electric car at home: when it happens, what it costs, and what it saves against petrol and diesel</div>
+    <div class="card-p">A home-charged electric car adds 1,750-3,500 kWh a year and costs about 2p a mile off-peak, 9p at the capped rate and 24p on a public rapid charger, against about 18p for petrol. A supplier sees only the home part.</div>
+    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> Advising a household on a car needs its real charging cost against the car it would replace. The simulated cars all charge the same fixed amount at home.</div>
+    <div class="card-foot"><span class="state-badge" id="state-ev-charging-and-the-saving-against-petrol-and-diesel"></span> <div class="card-a" id="atoms-ev-charging-and-the-saving-against-petrol-and-diesel"></div></div>
+  </a>
+  <a class="card" href="./network-limits-on-home-electrification/">
+    <div class="card-h">Connecting an EV charger, heat pump, solar or battery: the network's rules, the home's own supply and how long it takes</div>
+    <div class="card-p">One device on an ordinary supply connects the same day; a looped service (about 3.9m GB homes), a small fuse or two devices at once means applying first, and the cost is mostly weeks of waiting.</div>
+    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> Every EV and heat pump in the world connects instantly; an install offer the supplier makes cannot meet a looped service, a fuse upgrade or a three-phase bill until the world holds them.</div>
+    <div class="card-foot"><span class="state-badge" id="state-network-limits-on-home-electrification"></span> <div class="card-a" id="atoms-network-limits-on-home-electrification"></div></div>
+  </a>
+  <a class="card" href="./household-flexibility-and-the-advice-roadmap/">
+    <div class="card-h">Household flexibility: what moving a home's demand is worth, how much households really move, and what else a supplier could advise on</div>
+    <div class="card-p">DFS cost per MWh delivered fell about thirteen-fold to £241 in 2024/25, about 48p per registered meter a winter. Opted-in households cut 38-40% in an event but only 9% against a fair comparison, so the value is in automated tariff shifting, not manual events.</div>
+    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> The company books DFS event revenue only and values no household's shifted demand against its own half-hourly costs, which is where most of the value now sits.</div>
+    <div class="card-foot"><span class="state-badge" id="state-household-flexibility-and-the-advice-roadmap"></span> <div class="card-a" id="atoms-household-flexibility-and-the-advice-roadmap"></div></div>
+  </a>
+  <a class="card" href="./proving-and-showing-household-savings/">
+    <div class="card-h">Proving a household saved, and showing it so they believe it</div>
+    <div class="card-p">Deemed savings over-predict (about 0.7 of modelled is achieved), uncontrolled studies find four times the saving controlled ones do, and one home's smart-meter data can detect a saving only above about 3.6%. A simulation that knows the true counterfactual can grade any supplier's estimate.</div>
+    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> The company's household-side figure is a price comparison against the default tariff, not a measured saving, and nothing grades an estimate against the true counterfactual the world holds.</div>
+    <div class="card-foot"><span class="state-badge" id="state-proving-and-showing-household-savings"></span> <div class="card-a" id="atoms-proving-and-showing-household-savings"></div></div>
   </a>
   </section>
   <section class="theme" id="theme-billing" data-theme="billing">
@@ -364,6 +443,59 @@ footer { max-width: 860px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
     <div class="card-p">The traded ETS price, charged per tonne emitted, plus Carbon Price Support, charged per unit of fuel burned for generation.</div>
     <div class="card-why"><span class="why-k">Why the simulation needs it.</span> Carbon costs reach the wholesale price through the marginal plant, so they reach every bill, whatever the household thinks about carbon.</div>
     <div class="card-foot"><span class="state-badge" id="state-carbon-price"></span> <div class="card-a" id="atoms-carbon-price"></div></div>
+  </a>
+  <a class="card" href="./heat-pumps-and-fabric-measures/">
+    <div class="card-h">What a heat pump and insulation really deliver in GB homes, and what they cost and save</div>
+    <div class="card-p">A typical air-source heat pump delivers about 2.8 units of heat per unit of electricity over a year, almost exactly break-even with gas at the October 2026 cap, while cutting heating carbon by two thirds or more. Measured insulation savings are about 3% loft, 7-10% cavity, 16-19% solid wall.</div>
+    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> Heat pumps and insulation are the measures that move a home's carbon most. The world gives every heat-pump home the same fixed extra electricity, and the company prices insulation above every measured saving.</div>
+    <div class="card-foot"><span class="state-badge" id="state-heat-pumps-and-fabric-measures"></span> <div class="card-a" id="atoms-heat-pumps-and-fabric-measures"></div></div>
+  </a>
+  </section>
+
+  <section class="theme" id="theme-other-markets" data-theme="other-markets">
+  <h2 class="theme-h">Other markets</h2>
+  <p class="theme-why">How seven other countries' household energy markets differ from GB's, and how much of what is built here would transfer. Knowledge only: none of it is on the roadmap.</p>
+  <a class="card" href="./other-market-australia/">
+    <div class="card-h">Australia against GB: what carries over, and what a second market would need</div>
+    <div class="card-p">Five regional five-minute prices, quarterly bills in arrears, no prepayment to speak of, a default price that caps standing offers only, and 4.3 million rooftop solar systems. Knowledge only, not on the roadmap.</div>
+    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> It shows which parts of the GB build are general and which are GB's own: the advice on solar, batteries and EVs transfers best here, the price replay and billing least.</div>
+    <div class="card-foot"><span class="state-badge" id="state-other-market-australia"></span> <div class="card-a" id="atoms-other-market-australia"></div></div>
+  </a>
+  <a class="card" href="./other-market-belgium/">
+    <div class="card-h">Belgium against GB: three regional rulebooks, no price cap, and bad payers handed to the network</div>
+    <div class="card-p">Close to GB on climate and wholesale, far from it on billing, settlement and debt: monthly advances and an annual true-up, 15-minute settlement, no price cap, a federal social tariff, and bad payers moved to the network operator. Knowledge only, not on the roadmap.</div>
+    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> It is the clearest case of debt leaving the supplier's book, which GB's model never allows, and of a household's 15-minute peak setting its network bill.</div>
+    <div class="card-foot"><span class="state-badge" id="state-other-market-belgium"></span> <div class="card-a" id="atoms-other-market-belgium"></div></div>
+  </a>
+  <a class="card" href="./other-market-france/">
+    <div class="card-h">France against GB: a regulated tariff only the incumbent sells, a power limit in every home, and electric heating</div>
+    <div class="card-p">A regulated tariff on 55.8% of homes that only the incumbent sells, a subscribed power limit from 3 to 36 kVA, per-home off-peak hours, 37% electric heating, households still profiled for settlement, and no prepayment. Knowledge only, not on the roadmap.</div>
+    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> It shows a market anchored to a published regulated cost stack rather than a cap, and a home whose power limit and off-peak hours are set by the network, both of which GB's model lacks.</div>
+    <div class="card-foot"><span class="state-badge" id="state-other-market-france"></span> <div class="card-a" id="atoms-other-market-france"></div></div>
+  </a>
+  <a class="card" href="./other-market-germany/">
+    <div class="card-h">Germany against GB: a default supplier with no price cap, a yearly true-up bill and a fifteen-minute clock</div>
+    <div class="card-p">Germany's basic-supply default is uncapped, households pay monthly advances with a yearly true-up, prepayment is negligible, smart meters cover 5.9% of metering points, and network operators carried out 239,269 disconnections in 2024.</div>
+    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> It shows which parts of the GB build are GB-specific: the cap, prepayment, the deemed contract and fixed direct debit all have no German equivalent.</div>
+    <div class="card-foot"><span class="state-badge" id="state-other-market-germany"></span> <div class="card-a" id="atoms-other-market-germany"></div></div>
+  </a>
+  <a class="card" href="./other-market-italy/">
+    <div class="card-h">Italy against GB: contracted kilowatts, an auctioned default service and arrears that follow the customer</div>
+    <div class="card-p">Italian homes contract a power level (typically 3 kW) that the network's smart meter enforces, are billed every two months on readings, face power limitation rather than prepayment, and can have arrears billed through their next supplier.</div>
+    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> It shows the GB build assumes an uncapped connection and no regulatory heating calendar; Italy has both, and a summer peak.</div>
+    <div class="card-foot"><span class="state-badge" id="state-other-market-italy"></span> <div class="card-a" id="atoms-other-market-italy"></div></div>
+  </a>
+  <a class="card" href="./other-market-japan/">
+    <div class="card-h">Japan against GB: an incumbent's regulated tariff, a breaker the household chooses and no supplier for a new occupant</div>
+    <div class="card-p">Japan settles in half-hours with universal network-owned smart meters, like GB's target, but heats room by room with air conditioners, keeps an incumbent-only regulated tariff on about 65% of incumbent contracts, cuts off non-payers around day 51 and has no supplier for a new occupant.</div>
+    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> It is the market where the GB build's half-hour clock transfers best and its deemed contract, debt objection and supplier-of-last-resort assumptions transfer worst.</div>
+    <div class="card-foot"><span class="state-badge" id="state-other-market-japan"></span> <div class="card-a" id="atoms-other-market-japan"></div></div>
+  </a>
+  <a class="card" href="./other-market-spain/">
+    <div class="card-h">Spain against GB: a dynamic regulated price, a power subscription and bills paid after the reading</div>
+    <div class="card-p">Spain's regulated price is a dynamic hourly-shaped tariff sold only by incumbents' regulated arms, every home subscribes to a power level, meters have been universal and network-owned since 2018, and bills are paid after an actual read.</div>
+    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> It shows that GB's cap, fixed direct debit and prepayment are choices, not givens: Spain has a regulated product, no credit balances and no prepayment.</div>
+    <div class="card-foot"><span class="state-badge" id="state-other-market-spain"></span> <div class="card-a" id="atoms-other-market-spain"></div></div>
   </a>
   </section>
 

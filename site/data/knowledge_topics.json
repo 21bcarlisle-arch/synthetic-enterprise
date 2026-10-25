@@ -266,7 +266,7 @@
         },
         "residuals": {
           "heading": "Where our picture is still weak",
-          "body": "THE ROOF IS MISSING, SO THE SOLAR CEILING IS MISSING. No source this project holds gives roof area, pitch or flat-versus-pitched; the commission anticipated this. WIRING: the model gives every non-flat home the same east–west roof and every flat none. Until a published roof source is found, the per-house solar ceiling cannot be stated in kWh, only bounded by sunshine and orientation — and with it the battery ceiling, which depends on solar.\n\nCURRENT HEATING SETTINGS ARE DELIBERATELY ABSENT. CHOICE (director, 2026-09-05, recorded in docs/market_research/floor_area_anchor_need_2026_hmrc_bands.md): 'The lever only means something once there's a product that could turn it down, and that isn't built. Don't invent hidden state for a ceiling nothing can act on.' The consequence is stated so it is not mistaken for an oversight: the ceiling on turning down a boiler's flow temperature is unstateable, not merely uncomputed.\n\nTHE MODEL HEATS EVERY HOME TO THE SAME TEMPERATURE IN THE SAMPLE MEASUREMENT. WIRING (docs/market_research/gas_demand_what_drives_it_and_the_term_the_model_is_missing.md): the closed form behind the sample holds the thermostat at 20°C for every household, while published measurement shows leaky homes sitting 1.4–2.1°C colder. So the model overstates demand, and therefore overstates the insulation saving, in exactly the homes a supplier would target for insulation. The full building model does draw a per-home set-point, but at a mean (20.5°C) and spread that are not anchored and sit above the published median of 20°C.\n\nRATED SAVINGS AGAINST WHAT METERS SHOW. The commission requires every ceiling to carry the in-use figure with the rated one beside it. That gap is not yet represented. The only figure held is a general one for energy certificates: modelled consumption 50–100% above metered billing consumption (docs/market_research/epc_open_data.md, citing a 2023 study); it has not been checked against measure-specific evaluations.\n\nPARKING IS ASSUMED, NOT SOURCED. WIRING: off-street parking is currently given to every detached and semi-detached home and no other, which is a rule of thumb rather than a published figure; it is what the car-charging ceiling would rest on.\n\nFLOOR AREA IS BANDED. Five bands with an open top above 200 m². Any continuous size within a band is an interpolation choice; the model currently uses band midpoints.\n\nENGLAND AND WALES ONLY FOR THE HOUSES. NEED carries no Scottish dwellings, so the sample and every cross-tabulation here exclude Scotland's homes — the coldest 8% of Britain's households.\n\nONE TAIL DOES NOT CLOSE. The solar-offset tail needs a sample built to draw into it on purpose; that is not built, so at the reported size it is covered to 30%.\n\nTHE SAMPLE IS MEASURED, NOT YET USED. The 233-house design describes the method. The homes this project's market actually draws come from the fitted joint above, in proportion; the chosen-for-difference draw is not yet what a run uses.\n\nGENERATION AND VALIDATION SHARE A SOURCE. The size, fuel and association figures all come from NEED, and NEED also anchors this project's high-end gas figure. Checking the model's gas against NEED after fitting the housing to NEED would be circular; validation needs a source with different lineage and none is in use yet."
+          "body": "THE ROOF IS MISSING, SO THE SOLAR CEILING IS MISSING. No source this project holds gives roof area, pitch or flat-versus-pitched; the commission anticipated this. WIRING: the model gives every non-flat home the same east–west roof and every flat none. Until a published roof source is found, the per-house solar ceiling cannot be stated in kWh, only bounded by sunshine and orientation — and with it the battery ceiling, which depends on solar.\n\nCURRENT HEATING SETTINGS ARE DELIBERATELY ABSENT. CHOICE (director, 2026-09-05, recorded in docs/market_research/floor_area_anchor_need_2026_hmrc_bands.md): 'The lever only means something once there's a product that could turn it down, and that isn't built. Don't invent hidden state for a ceiling nothing can act on.' The consequence is stated so it is not mistaken for an oversight: the ceiling on turning down a boiler's flow temperature is unstateable, not merely uncomputed.\n\nTHE MODEL HEATS EVERY HOME TO THE SAME TEMPERATURE IN THE SAMPLE MEASUREMENT. WIRING (docs/market_research/gas_demand_what_drives_it_and_the_term_the_model_is_missing.md): the closed form behind the sample holds the thermostat at 20°C for every household, while published measurement shows leaky homes sitting 1.4–2.1°C colder. So the model overstates demand, and therefore overstates the insulation saving, in exactly the homes a supplier would target for insulation. The full building model does draw a per-home set-point, but at a mean (20.5°C) and spread that are not anchored and sit above the published median of 20°C.\n\nRATED SAVINGS AGAINST WHAT METERS SHOW. The commission requires every ceiling to carry the in-use figure with the rated one beside it. That gap is not yet represented. Two published figures are held. A general one for energy certificates: modelled consumption 50–100% above metered billing consumption (docs/market_research/epc_open_data.md, citing a 2023 study). And the regulator's own measure-specific discounts, ECO1's in-use factors, which cut a measure's modelled saving by 35% for cavity wall and loft insulation, 33% for solid brick walls built before 1967 (1965 in Scotland), 25% for later or non-brick solid walls and room-in-roof, 15% for flat roofs, floors, cylinder jackets, pipework, draught-proofing, glazing and doors, and 10% for district heating (Ofgem ECO Measures Table v1.6, Dec 2014). ECO1 gave none for boilers, storage heaters, controls, heat pumps or solar, and ECO3 and ECO4 replaced in-use factors with deemed scores, so there is no current equivalent.\n\nPARKING IS ASSUMED, NOT SOURCED. WIRING: off-street parking is currently given to every detached and semi-detached home and no other, which is a rule of thumb rather than a published figure; it is what the car-charging ceiling would rest on.\n\nFLOOR AREA IS BANDED. Five bands with an open top above 200 m². Any continuous size within a band is an interpolation choice; the model currently uses band midpoints.\n\nENGLAND AND WALES ONLY FOR THE HOUSES. NEED carries no Scottish dwellings, so the sample and every cross-tabulation here exclude Scotland's homes — the coldest 8% of Britain's households.\n\nONE TAIL DOES NOT CLOSE. The solar-offset tail needs a sample built to draw into it on purpose; that is not built, so at the reported size it is covered to 30%.\n\nTHE SAMPLE IS MEASURED, NOT YET USED. The 233-house design describes the method. The homes this project's market actually draws come from the fitted joint above, in proportion; the chosen-for-difference draw is not yet what a run uses.\n\nGENERATION AND VALIDATION SHARE A SOURCE. The size, fuel and association figures all come from NEED, and NEED also anchors this project's high-end gas figure. Checking the model's gas against NEED after fitting the housing to NEED would be circular; validation needs a source with different lineage and none is in use yet."
         },
         "scope_delta": {
           "heading": "What this page does not yet establish",
@@ -1164,6 +1164,930 @@
         "scope_delta": {
           "heading": "What this page does not yet establish",
           "body": "It does not grade the company's own book against these bands; that is owed. It does not explain unbilled revenue or bad-debt provisioning in depth, which have their own pages. It does not cover the hedge book's collateral beyond the per-customer figures, which belong to the hedging page."
+        }
+      }
+    },
+    "other-market-australia": {
+      "meta": {
+        "topic_id": "other-market-australia",
+        "title": "Australia against GB: what carries over, and what a second market would need",
+        "subtitle": "Australia's east-coast market prices power every five minutes in five regions, bills households quarterly in arrears, has almost no prepayment, and has rooftop solar on several million homes. The weather-to-demand engine and the advice on solar, batteries and EVs carry over; the price replay, settlement and billing do not.",
+        "no_current_level": "Knowledge — not on the roadmap. The director asked for this on 25 Oct 2026 to judge how far the GB build transfers; nothing in the world or the supplier is built from it. Every number here is a published anchor for another country, not a reading from this project's simulation.",
+        "wall_placement": "Public-reality commons only. Every figure comes from a published source cited in the research note: AEMC, AEMO and AER publications (some through trade-press reports because the AER site refuses automated reading), the National Energy Retail Rules, ESC Victoria, ABS, the Clean Energy Council and Roy Morgan. Figures the advisor could not source are marked unverified and are not claims. Statements about the GB build are read from code, not run.",
+        "claim_freshness": {
+          "written": "2026-10-25",
+          "source": "AEMC market price cap 2025-26 and smart meter reform; AEMO and AER releases via Energy Magazine (2025-26); National Energy Retail Rules v20; ESC Victoria Payment Difficulty Framework (Oct 2026); Clean Energy Council rooftop solar and storage report (Jul-Dec 2025); ABS Census 2021 and Environmental Issues 2014; Roy Morgan switching (Jun 2025); Amber and SA Power Networks on export limits",
+          "note": "From the advisor's cited evidence pack under the director's other-markets steer of 25 Oct 2026. Spot-checked on 25 Oct 2026: confirmed 0, corrected 0, open 59."
+        }
+      },
+      "rungs": {
+        "headline": {
+          "heading": "The claim, in one sentence",
+          "body": "Of the GB build, the weather-driven demand engine and the advice on solar, batteries and EVs transfer to Australia, while the price replay, settlement and billing would need rebuilding: Australia prices power every five minutes in five regions with no day-ahead market, bills at least every 100 days in arrears, and has almost no prepayment."
+        },
+        "plain": {
+          "heading": "In plain terms",
+          "body": "Australia's east-coast National Electricity Market covers Queensland, New South Wales with the ACT, Victoria, South Australia and Tasmania. Each of the five regions has its own price, set every five minutes. There is no day-ahead market. Prices may fall to minus A$1,000/MWh and rise to a cap of A$20,300/MWh in 2025-26 (AEMC). In the last quarter of 2025, 31% of five-minute intervals had a negative price (Energy Magazine, citing AEMO).\nHouseholds are billed at least every 100 days, so usually quarterly, on meter readings and in arrears. Bill smoothing is opt-in. GB's model of a fixed monthly direct debit that builds a credit balance is not the norm. Prepayment is close to absent.\nThe default price works differently. The Default Market Offer and the Victorian Default Offer cap standing offers only, about 12% of Victorian households, and serve as the reference price that every advertised market offer must quote against. In GB the cap covers every default tariff.\nSolar is the ordinary customer, not the edge case: 4.3 million rooftop systems and 28.3 GW at the end of 2025, and 454,473 home batteries (Clean Energy Council, July-December 2025)."
+        },
+        "theory": {
+          "heading": "How it works",
+          "body": "PRICE AND SETTLEMENT. Generators bid into five-minute dispatch, and five-minute settlement replaced half-hourly averaging in October 2021. Since May 2022 global settlement shares unaccounted-for energy among all retailers in each local area in proportion to their load. The spot price is the settlement price; there is no separate imbalance price. Hedging is by over-the-counter and exchange-traded caps and swaps.\nNETWORKS AND EXPORT LIMITS. Thirteen distribution businesses set per-phase export limits on rooftop solar, typically 5 kW per phase and up to 10 kW at Ausgrid. South Australia runs dynamic export limits from 0 or 1.5 kW up to 10 kW per phase, and several states can curtail solar remotely in an emergency (Amber, May 2025; SA Power Networks). A household's connection can therefore bind what its assets earn.\nMETERS. Outside Victoria the retailer appoints a competitive Metering Coordinator; Victoria kept network-owned meters. 57% of meters were remotely read across the market, from 99.1% in Victoria to 39.2% in New South Wales, and the rules set universal smart metering by 2030 (AEMC).\nDEBT. Retailers must run approved hardship programmes and offer payment plans. About 2.9% of residential customers had debt older than 90 days in 2023-24 and 1.9% of electricity customers were in hardship programmes. Disconnections for non-payment were about 0.06% of small customers (AER, via Energy Magazine). The retailer asks for a disconnection; the network carries it out. Debt stays with the old retailer when a customer leaves.\nMOVES AND FAILURE. A move-in customer who has not chosen can take a standing offer from the area's designated retailer, which must act by the next business day (National Energy Retail Rules r17-19). When a retailer fails, its customers go to a retailer of last resort; five small retailers failed this way in May-July 2022."
+        },
+        "expected_shape": {
+          "heading": "What the data should look like",
+          "body": "Against GB, an Australian book would show these shapes:\n• Prices at five-minute resolution in five regions, with frequent negative prices at midday in spring and rare spikes towards the cap.\n• Household electricity use around 3,900-4,900 kWh a year in the 2025-26 default-offer benchmarks, against about 2,700 kWh in GB (the GB figure is from the pack, unverified).\n• Two demand peaks: winter evenings in the south and summer air-conditioning in the north. About 74% of homes had some cooling in 2014 (ABS).\n• Bills every quarter in arrears, not monthly advances, and no prepayment segment.\n• Solar on a large share of homes, with export limits per phase, and a fast-growing battery fleet.\n• Annual switching of about 16% of households in the year to June 2025 (Roy Morgan)."
+        },
+        "live_evidence": {
+          "heading": "Live evidence",
+          "body": "WHAT IS SOURCED. The market design and price bounds (AEMC, Wikipedia), the 2025 generation mix and price outcomes (Energy Magazine reporting AEMO and AER), export limits (Amber, SA Power Networks), smart meter shares (AEMC), billing and hardship rules (National Energy Retail Rules v20; ESC Victoria), arrears and disconnections (AER via Energy Magazine), solar and battery counts (Clean Energy Council), switching (Roy Morgan) and housing (ABS Census 2021 and ABS 2014). Every figure and URL is in the research note.\nWHAT WAS CHECKED ON 25 OCT 2026. Six fetches were tried to check the pack's unverified items. The Australian regulators' and tax office's sites refused or timed out, so none of the pack's unverified items could be confirmed or corrected; all stay open and are marked unverified below. Wikipedia's market article agrees that half-hourly averaging ended in October 2021 and that the price floor is minus A$1,000/MWh.\nWHAT THE GB BUILD DOES, READ FROM CODE AND NOT RUN. The demand model already carries a cooling term on a 22°C base. Everything else here assumes GB: 48 settlement periods a day in about ten modules, a single national price, monthly direct debit and prepayment, a supplier-wide price cap and a deemed contract on move-in."
+        },
+        "residuals": {
+          "heading": "Where our picture is still weak",
+          "body": "Twelve things are missing. (1) City heating and cooling degree days. (2) Heating, cooking and heat-pump shares newer than 2014. (3) The settlement revision timetable and how accumulation meters are profiled. (4) The rule text for disconnection timing, life support, cooling-off, transfer and deemed contracts. (5) Current market shares (the latest is 2019). (6) Credit support and how bad debt is treated. (7) Standing against market offers outside Victoria. (8) The network share of the bill. (9) The tax and levy breakdown, including whether GST is 10% on energy. (10) Meter data granularity by meter type. (11) Feed-in tariff levels. (12) Every GB comparison figure in the pack is from memory and unverified."
+        },
+        "scope_delta": {
+          "heading": "What this page does not yet establish",
+          "body": "It is knowledge, not a plan: it changes no world or supplier priority. It covers the east-coast market, with short notes on Western Australia, where households cannot switch. It does not cost a second-market build. The transferability ratings are the advisor's judgement, not a measurement."
+        }
+      }
+    },
+    "other-market-belgium": {
+      "meta": {
+        "topic_id": "other-market-belgium",
+        "title": "Belgium against GB: three regional rulebooks, no price cap, and bad payers handed to the network",
+        "subtitle": "Belgium's climate and wholesale market are close to GB's, so the weather and price engines carry over. Its billing, settlement and debt are not: households pay monthly advances with an annual true-up, settle in 15-minute periods, and a customer who will not pay can be moved to the network operator as social supplier.",
+        "no_current_level": "Knowledge — not on the roadmap. The director asked for this on 25 Oct 2026 to judge how far the GB build transfers; nothing in the world or the supplier is built from it. Every number here is a published anchor for another country, not a reading from this project's simulation.",
+        "wall_placement": "Public-reality commons only. Every figure comes from a published source cited in the research note: the Belgian regulators' joint and annual reports, CREG studies, Elia, the IEA's 2022 review, the MIG6 reconciliation method, regional government pages, Eurostat, and consumer and trade sources where marked. Figures the advisor could not source are marked unverified and are not claims. Statements about the GB build are read from code, not run.",
+        "claim_freshness": {
+          "written": "2026-10-25",
+          "source": "Belgian regulators' joint market report 2024; CREG study F3188 (Mar 2026); Brugel annual report 2024; Elia 2024 mix; IEA Belgium review 2022; MIG6 reconciliation method (VREG); Vlaanderen.be; Eurostat nrg_chdd_a (via DBnomics, read 25 Oct 2026); Solar Magazine and Test-Achats/Test-Aankoop",
+          "note": "From the advisor's cited evidence pack under the director's other-markets steer of 25 Oct 2026. Spot-checked on 25 Oct 2026: confirmed 0, corrected 3, open 33."
+        }
+      },
+      "rungs": {
+        "headline": {
+          "heading": "The claim, in one sentence",
+          "body": "Belgium's weather and wholesale market are close enough to GB's that the demand and price engines transfer, but its supplier rules differ at the root: three regional rulebooks, no default price cap, monthly advances with an annual true-up, 15-minute settlement, and a drop procedure that hands a non-paying household to the network operator as social supplier."
+        },
+        "plain": {
+          "heading": "In plain terms",
+          "body": "Belgium splits energy powers. The federal level runs the transmission system, the wholesale market, nuclear policy, VAT and a social tariff. The three regions, Flanders, Wallonia and Brussels, each license suppliers, set network tariffs, run smart meters and write their own debt and disconnection rules. A Belgian world is three rulebooks in one federal shell.\nThere is no default price cap. Most household electricity contracts are variable, about 75%, and spot-indexed products make up about 46% of electricity and 48% of gas contracts (CREG study F3188, March 2026). Households pay monthly advance invoices and then an annual true-up bill.\nThe largest difference is debt. In Flanders a supplier that has followed the reminder and notice steps may end the contract, and the network operator, Fluvius, then supplies the household as social supplier, using a prepaid function on the digital meter. Debts to the former supplier stay with that supplier. In Wallonia and Brussels the network operators play the same part. The costs they cannot recover are carried in network tariffs, so the worst credit risk leaves the competitive supplier's book."
+        },
+        "theory": {
+          "heading": "How it works",
+          "body": "SETTLEMENT. Electricity settles in 15-minute periods and gas hourly. Continuously metered points are allocated on their own quarter-hour data; index-read points are split with synthetic or real load profiles, a climate correction and a residue factor. Allocation is monthly and reconciliation is the basis for final settlement, with a compensation step that spreads residual error across all suppliers in proportion (MIG6 reconciliation method, via the Flemish regulator). The central clearing house, Atrias, went live from 1 November 2021 for more than 9.6 million access points.\nNETWORK CHARGES BY PEAK. Since 1 January 2023 Flemish households pay network charges mainly on capacity: the average of the last twelve monthly peaks, each the highest quarter-hour of its month, with a 2.5 kW minimum. A 4 kW average peak cost about €161.60 a year before VAT in 2023 (Test-Aankoop). EV charging, heat pump running and kettle timing change the bill directly.\nMETERS. The network operator owns and runs the meters, not the supplier. Fluvius had installed 4.40 million electricity and gas digital meters by the end of February 2025, in nearly seven in ten Flemish connections. Wallonia and Brussels are slower.\nSOLAR. Net metering ended in Flanders in 2021 and Brussels in November 2021; Walloon systems from before 2024 keep it to 31 December 2030. Owners still on analogue meters pay a prosumer tariff per kVA or kWe of inverter.\nSOCIAL TARIFF AND WINTER. A federal social tariff, set quarterly by the federal regulator, reached 9.7% of electricity and 10% of gas customers in 2020, with allocation more than 90% automatic. Each region bans winter disconnection on its own dates: Wallonia 1 November to 15 March, Brussels 1 October to 31 March, Flanders from 1 December to 1 March or 1 April (the sources conflict)."
+        },
+        "expected_shape": {
+          "heading": "What the data should look like",
+          "body": "Against GB, a Belgian book would show these shapes:\n• Heating degree days of about 2,340-2,770 a year in 2020-24 (Eurostat), and negligible cooling, about 12 cooling degree days in 2024.\n• Comparison households of 3,500 kWh electricity and 17,000 kWh gas a year (CREG), with only about 57% of electricity points also having gas.\n• Oil supplying about a third of residential building heat (IEA 2022).\n• Monthly advances with an annual true-up bill, not monthly direct debits on smart reads.\n• Concentrated regional markets: the top three suppliers held 73.9% of Flemish, 80.2% of Walloon and 92.2% of Brussels electricity in September 2025.\n• Non-paying customers leaving the supplier's book for the network operator, rather than staying as debt."
+        },
+        "live_evidence": {
+          "heading": "Live evidence",
+          "body": "WHAT IS SOURCED. The structure and regulators (joint regulators' market report 2024), the generation mix (Elia 2024; Connaissance des Énergies for 2025), the Flemish capacity tariff (Solar Magazine, Test-Aankoop), access points and distribution volumes (joint report 2024), supplier counts, concentration and product mix (CREG F3188, March 2026), settlement (MIG6 reconciliation method), smart meters (Solar Magazine, Test-Achats), the social tariff and energy poverty (IEA 2022, VVSG, Chamber papers), winter rules (regional sources) and the drop procedure (Vlaanderen.be, Selectra, Brugel 2024). Every figure and URL is in the research note.\nWHAT WAS CHECKED ON 25 OCT 2026. Heating degree days were corrected from the pack's remembered 2,600-2,900 a year to 2,339-2,771 for 2020-24 from Eurostat's own series; the series has no UK values after 2019, so the GB comparison stays open. The federal regulator's page says the social tariff is set every three months from the most advantageous market prices; the pack's 'lowest commercial tariff' and its funding by a federal levy are not stated there and stay unverified. The 6% VAT rate could not be reached and stays unverified.\nWHAT THE GB BUILD DOES, READ FROM CODE AND NOT RUN. It settles in 48 half-hours a day, bills monthly direct debits against a credit balance, keeps every debtor on the supplier's book, has no capacity-based network charge, and sends a new occupant to the supplier on deemed terms."
+        },
+        "residuals": {
+          "heading": "Where our picture is still weak",
+          "body": "Fifteen things are missing; the main ones are these. (1) Housing tenure and building age. (2) Heat pump stock and sales. (3) Solar counts by region. (4) Smart meter counts in Wallonia and Brussels. (5) The payment-method mix. (6) Air-conditioning and cooking fuel. (7) Switching rates in Flanders and Wallonia. (8) Counts of customers on network-operator supply and budget meters. (9) The Flemish winter dates, which conflict. (10) Whether Belgium has a supplier-of-last-resort regime. (11) The VAT and levy structure. (12) The settlement treatment of smart-metered households. All GB comparison figures in the pack are from memory and unverified."
+        },
+        "scope_delta": {
+          "heading": "What this page does not yet establish",
+          "body": "It is knowledge, not a plan: it changes no world or supplier priority. It does not cost a second-market build. The transferability ratings are the advisor's judgement, not a measurement. It does not establish what share of Belgian bad debt ends up in network tariffs; the Brussels figure is an inference the pack marks as such."
+        }
+      }
+    },
+    "other-market-france": {
+      "meta": {
+        "topic_id": "other-market-france",
+        "title": "France against GB: a regulated tariff only the incumbent sells, a power limit in every home, and electric heating",
+        "subtitle": "Over half of French households still buy electricity on a regulated tariff that only EDF and local distributors may sell, every home subscribes to a power limit, and over a third heat with electricity. The demand engine and asset advice carry over after recalibration; tariffs, settlement and network limits do not.",
+        "no_current_level": "Knowledge — not on the roadmap. The director asked for this on 25 Oct 2026 to judge how far the GB build transfers; nothing in the world or the supplier is built from it. Every number here is a published anchor for another country, not a reading from this project's simulation.",
+        "wall_placement": "Public-reality commons only. Every figure comes from a published source cited in the research note: RTE, the energy regulator CRE, SDES and INSEE, EDF, Eurostat, the debt decree and consumer and trade sources where marked. Figures the advisor could not source are marked unverified and are not claims. Statements about the GB build are read from code, not run.",
+        "claim_freshness": {
+          "written": "2026-10-25",
+          "source": "RTE Bilan électrique 2025; CRE regulated tariff deliberations (Jan 2026) and Q4 2025 observatory; EDF on the nuclear revenue scheme; SDES heating energies (2020), tenure (2022) and fuel poverty (2024); INSEE households (2022); Sia Partners on settlement profiling; decree 2008-780; Eurostat nrg_chdd_a (via DBnomics, read 25 Oct 2026)",
+          "note": "From the advisor's cited evidence pack under the director's other-markets steer of 25 Oct 2026. Spot-checked on 25 Oct 2026: confirmed 0, corrected 0, open 55."
+        }
+      },
+      "rungs": {
+        "headline": {
+          "heading": "The claim, in one sentence",
+          "body": "France transfers the GB build's physics but not its market: 55.8% of residential electricity sites were on a regulated tariff that only EDF and local distributors may sell at the end of 2025, every home subscribes to a power limit that its Linky meter enforces, 37% of homes heat with electricity, and households are settled on profiles, not their own half-hours."
+        },
+        "plain": {
+          "heading": "In plain terms",
+          "body": "France had 35.02 million residential electricity sites at the end of 2025. 19.54 million (55.8%) were on the regulated tariff, which only EDF and the local distributors may sell. Alternative suppliers held 31.8% of sites (energy regulator CRE, Q4 2025 observatory). Market offers are commonly priced as the regulated tariff minus a percentage, so the regulated tariff is the price anchor.\nEvery home chooses a subscribed power, in 3 kVA steps from 3 to 36 kVA. It sets the standing charge, and the meter trips if the home draws more. The network operator also sets each home's off-peak hours, and from November 2025 is moving about 11 million homes to a new timetable with three daytime hours, zone by zone to the end of 2027.\nElectricity heats 37.2% of main residences, including 5.1% with heat pumps, against 35.8% on mains gas (SDES, 2020). National demand rises about 2,400 MW for each degree of cold in winter, and about 400 MW per degree at the summer afternoon peak.\nHouseholds pay monthly instalments on estimated use with an annual true-up. There is no prepayment market (unverified). A non-paying household's supply can be reduced rather than cut, and nobody may cut a main residence from 1 November to 31 March."
+        },
+        "theory": {
+          "heading": "How it works",
+          "body": "THE REGULATED TARIFF. The regulator proposes it and the government decides. It is built from a published cost stack: energy bought evenly over 24 months in forward products, capacity, balancing, retail costs (18.11 €/MWh for households, of which energy-saving certificates 9.80 €/MWh), a 2.5% margin, catch-up for past error, the network tariff and taxes. It changed −15% in February 2025 and −0.83% in February 2026, and +2.5% was proposed for August 2026 (CRE).\nNUCLEAR REVENUE. The old regulated access to nuclear power ended on 31 December 2025. Since 1 January 2026 the state takes 50% of EDF's nuclear revenue above 78 €/MWh and 90% above 110 €/MWh and returns it to every consumer as a bill line. At 2026 forward prices it pays nothing (EDF; derived).\nSETTLEMENT. The distributor rebuilds each site's consumption at 30-minute resolution and allocates it to the balance responsible party each supplier names. Households are profiled: 29 profiles in four families, about 90% of sites on dynamic profiles updated at least weekly. Imbalance settles at 15 minutes since January 2025. Runs go from two weeks to 14 months after delivery (Sia Partners, 2020; CRE).\nMETERS AND DATA. 37.3 million Linky meters were installed by 31 August 2024. Daily readings flow by default; the half-hourly load curve needs consent, and only about 30% of meters have it on (CRE, February 2026). The distributor operates the meters; there is no central data body.\nDEBT. From 14 days after the due date the supplier writes; after 15 more days and a second letter at least 20 days ahead, it may reduce power or cut off; social services are told five days in. There were more than 1.2 million debt interventions in 2025, 79% more than in 2019; power reductions grew 3.5-fold since 2019 while cut-offs fell 49%. A means-tested chèque énergie of 48-277 € reaches about 5.6 million households."
+        },
+        "expected_shape": {
+          "heading": "What the data should look like",
+          "body": "Against GB, a French book would show these shapes:\n• A large regulated-tariff base that drifts down slowly, from 19.54 million sites at end-2025 to 19.37 million by end-March 2026.\n• Household electricity use around the regulator's 4.5 MWh reference, against about 2.7 MWh in GB (the GB figure is unverified), with electrically heated homes far higher.\n• Strong winter electricity sensitivity, about 2,400 MW per degree, and a 2025 peak of 88 GW (RTE).\n• Heating degree days of about 2,040-2,410 a year in 2020-24 on Eurostat's basis, and 63-116 cooling degree days in 2022-24.\n• Quarterly switching of 2.78% for electricity and 3.6% for gas in Q4 2025.\n• Debt handled by power reduction rather than prepayment, and no disconnections of main residences in winter."
+        },
+        "live_evidence": {
+          "heading": "Live evidence",
+          "body": "WHAT IS SOURCED. Generation and demand (RTE Bilan électrique 2025), the regulated tariff, its cost stack and its changes (CRE deliberations and press releases, 2025-26), market shares and switching (CRE Q4 2025 observatory), the nuclear revenue scheme (EDF), housing, tenure and heating energy (SDES, INSEE), Linky and its consent rate (Connaissance des Énergies; Selectra reporting CRE), settlement profiling (Sia Partners), debt procedure and interventions (decree 2008-780; Connaissance des Énergies), the chèque énergie and fuel poverty (SDES). Every figure and URL is in the research note.\nWHAT WAS CHECKED ON 25 OCT 2026. Eurostat's heating degree days for France, 2,036-2,413 in 2020-24, sit inside the pack's 2,000-3,000 range on France's own 17°C basis. The Linky consent figure of about 30% was re-read in the CRE's February 2026 wording. The end of the 5.5% VAT rate on the standing charge was confirmed for gas only (20% on both parts since 1 August 2025); the electricity leg stays unverified. Tempo's red-day count could not be reached.\nWHAT THE GB BUILD DOES, READ FROM CODE AND NOT RUN. It has no per-home power limit, no per-home off-peak calendar, no regulated competitor price, settles on 48 half-hours a day, and sends a new occupant to the supplier on deemed terms. Its demand model already carries a cooling term on a 22°C base."
+        },
+        "residuals": {
+          "heading": "Where our picture is still weak",
+          "body": "Fourteen things are missing; the main ones are these. (1) The national degree-day series on France's own basis. (2) The full household network tariff grid. (3) Customer counts by subscribed power and tariff option, including Tempo. (4) Average gas use per household. (5) EV, heat pump and battery stocks. (6) Solar buy-back tariffs after 2025. (7) Air-conditioning and cooking fuel. (8) The switching, home-move, backup-supplier and last-resort rules, which the pack marks mostly unverified. (9) The tax share of the bill. (10) The payment-method mix. (11) Supplier failures and concentration values. (12) Current settlement run timing; the source is from 2020. All GB comparison figures in the pack are from memory and unverified."
+        },
+        "scope_delta": {
+          "heading": "What this page does not yet establish",
+          "body": "It is knowledge, not a plan: it changes no world or supplier priority. It covers mainland France. It does not cost a second-market build. The transferability ratings are the advisor's judgement, not a measurement."
+        }
+      }
+    },
+    "other-market-germany": {
+      "meta": {
+        "subtitle": "No regulator-set cap, a local default supplier, one true-up bill a year, smart meters in 6% of homes and 15-minute settlement. What carries over from the GB build, and what would have to be rebuilt.",
+        "claim_freshness": {
+          "last_verified": "2026-10-25",
+          "written": "2026-10-25",
+          "source": "Bundesnetzagentur Monitoringbericht 2025 and rollout release (Sep 2026); BDEW Strompreisanalyse (Oct 2025) and Beheizungsstruktur 2025; Fraunhofer ISE net generation 2025; Destatis Mikrozensus 2024; Eurostat nrg_chdd_a; Bundesregierung price-brake page",
+          "note": "One of seven other-market pages from the advisor's packs of 25 Oct 2026, knowledge only."
+        },
+        "topic_id": "other-market-germany",
+        "title": "Germany against GB: a default supplier with no price cap, a yearly true-up bill and a fifteen-minute clock",
+        "wall_placement": "Public-reality commons only, and knowledge only. Every figure comes from a published source named in the research note, read on 25 Oct 2026. Figures the advisor could not check are labelled unverified and are not used as claims. Nothing here reaches the simulated world or the supplier: the director ruled on 25 Oct 2026 that other markets are understanding, not work."
+      },
+      "rungs": {
+        "headline": {
+          "heading": "The claim, in one sentence",
+          "body": "Germany's household market runs on a different chassis from GB's: no regulator-set price cap, a local default supplier whose basic-supply tariff takes about a fifth of household consumption, monthly advance payments trued up once a year, smart meters in about 6% of metering points, and fifteen-minute settlement, so the GB build's physics and price replay would transfer but its billing, tariff, settlement and debt machinery would largely need rebuilding."
+        },
+        "plain": {
+          "heading": "In plain terms",
+          "body": "A German household pays an estimated monthly advance (Abschlag) and gets one true-up bill a year after an annual meter reading. There is no prepayment to speak of: 11,985 basic-supply homes in 2024 (Bundesnetzagentur monitoring report 2025).\nIn each network area the supplier with the most household customers is the default supplier. Anyone without a contract, including a new occupant, falls into its basic-supply tariff. That tariff is not capped by a regulator; it is only open to civil-law fairness review (section 36 of the Energy Industry Act).\nTaxes and levies were 32% of a new-customer household price of 39.6 ct/kWh in 2025, with VAT at 19% (BDEW price analysis, Oct 2025).\nWhen a household does not pay, the supplier instructs the network operator to disconnect. Network operators carried out 239,269 electricity disconnections in 2024 (Bundesnetzagentur monitoring report 2025). GB has no counterpart at that scale.\nSwitching is high: about 14% of households switched electricity supplier in 2024 and about 17-18% switched gas (same report)."
+        },
+        "theory": {
+          "heading": "How it works",
+          "body": "MARKET. One bidding zone shared with Luxembourg. Day-ahead trades in 15-minute products since October 2025. The gas hub is Trading Hub Europe, formed in October 2021. Renewables were 55.9% of public net generation in 2025; lignite and hard coal still produced about 94 TWh, and the last three nuclear plants closed on 15 April 2023 (Fraunhofer ISE, Jan 2026).\nNETWORK. Four transmission operators and 819 distribution operators answered the regulator's 2025 survey. Since 1 January 2024, heat pumps, wallboxes and batteries above 4.2 kW are 'controllable': the network operator may dim them to 4.2 kW, and the household gets a network-fee reduction in one of three forms (section 14a of the Energy Industry Act).\nMETERS. A separate meter operator, by default the network operator, owns the meter. At 30 June 2026 there were 3.17 million smart metering systems, 5.9% of 54.1 million metering points (Bundesnetzagentur, Sep 2026). Smart metering is mandatory above 6,000 kWh a year, for controllable devices and for generation above 7 kW.\nSETTLEMENT. Most households are settled on standard load profiles that spread an annual volume across quarter-hours. Measured quarter-hour settlement for smart-metered homes began on 6 June 2025. Each network operator aggregates the data for its area.\nDEBT. Basic-supply disconnection needs arrears of at least 100 euros, a reminder, a written threat, four weeks' wait and three working days' notice, and is barred where disproportionate (section 19 of the basic-supply regulation, read through a secondary source). The old supplier keeps the debt; nothing follows the customer to a new supplier."
+        },
+        "expected_shape": {
+          "heading": "What the data should look like",
+          "body": "If the GB build were re-pointed at Germany, a credible German world would show:\n• A gentler heating need than often assumed: Germany's heating degree days were 2,583 in 2024 against the UK's 2,812, and 2,580-3,130 over 2020-2025 (Eurostat). Cooling degree days were about 19 a year.\n• A heating stock with gas 56.1%, heating oil 17.2%, district heating 15.5% and heat pumps 4.5% of dwellings (BDEW, 2025).\n• Smaller households: 40.8 million at 2.02 people, 41.6% living alone (Destatis microcensus 2024).\n• One bill a year that can move a household's finances sharply, instead of a monthly direct debit.\n• Mass prosumers: 5.71 million PV systems, 2.4 million home batteries and 1.22 million balcony PV units (strom-report, 2026).\n• Disconnection as a routine collections outcome: 4.6 million threats, 981,000 orders and 239,269 cuts in 2024."
+        },
+        "live_evidence": {
+          "heading": "Live evidence",
+          "body": "WHAT IS SOURCED. The advisor's evidence pack, kept as the research note, cites the Bundesnetzagentur monitoring report 2025, BDEW price and heating-stock analyses, Fraunhofer ISE's 2025 generation figures, Destatis and Eurostat. On 25 October 2026 the drafting pass confirmed the 2023 price brakes (40 ct/kWh electricity and 12 ct/kWh gas on 80% of reference use, ended 31 December 2023, federal government page), the nuclear closure date, the smart-meter mandatory groups (Bundesnetzagentur metering page) and Eurostat's degree days. It corrected two items: Germany's heating degree days (about 2,600-2,900, not about 3,000) and the household smart-meter price cap, which the regulator's page gives as 30 euros a year for an intelligent metering system up to 6,000 kWh, not 20.\nWHAT THE SIMULATION DOES. Nothing: this page is knowledge only. The director ruled on 25 October 2026 that other markets are for understanding how transferable the GB build is, not for building."
+        },
+        "residuals": {
+          "heading": "Where our picture is still weak",
+          "body": "The pack carried 70 unverified items; most are GB comparison figures and statute details that could not be fetched. Still missing: the statute texts for basic supply and billing, the reconciliation timeline for volume differences, air-conditioning and cooking-fuel shares, the payment-method mix, supplier concentration, a count of 2021-22 supplier failures, gas disconnection threats, dynamic-tariff uptake and the installed heat-pump base."
+        },
+        "scope_delta": {
+          "heading": "What this page does not yet establish",
+          "body": "It does not rate the build component by component on the page itself; the research note keeps the advisor's transferability ratings and the lists of new world and supplier features a German build would need. It does not cover language, business customers or the district-heating market, and it changes no priority in the GB build."
+        }
+      }
+    },
+    "other-market-italy": {
+      "meta": {
+        "subtitle": "A 3 kW contracted power the meter enforces, 15-minute data for every home, a default service won at auction, power limitation instead of prepayment, and arrears that can follow a customer to the next supplier.",
+        "claim_freshness": {
+          "last_verified": "2026-10-25",
+          "written": "2026-10-25",
+          "source": "ARERA Relazione Annuale 2025 press release, decisions 95/2025, 372/2025 and 463/16, smart-metering page; ISTAT household energy reports 2021 and 2024; Terna via press; Eurostat nrg_chdd_a",
+          "note": "One of seven other-market pages from the advisor's packs of 25 Oct 2026, knowledge only."
+        },
+        "topic_id": "other-market-italy",
+        "title": "Italy against GB: contracted kilowatts, an auctioned default service and arrears that follow the customer",
+        "wall_placement": "Public-reality commons only, and knowledge only. Every figure comes from a published source named in the research note, read on 25 Oct 2026. Figures the advisor could not check are labelled unverified and are not used as claims. Nothing here reaches the simulated world or the supplier: the director ruled on 25 Oct 2026 that other markets are understanding, not work."
+      },
+      "rungs": {
+        "headline": {
+          "heading": "The claim, in one sentence",
+          "body": "Italy differs from GB at the connection itself: a household contracts a power level, typically 3 kW, that its network-owned smart meter enforces and can cut to 15% for arrears, so the GB build's weather engine and debt principles would carry over but its connection model, zonal fifteen-minute prices, bimonthly reading-based billing, auctioned default service and arrears-follow-the-customer rule would all be new."
+        },
+        "plain": {
+          "heading": "In plain terms",
+          "body": "An Italian household chooses a contracted power, most often 3 kW, in steps of 0.5 kW up to 6 kW. The meter allows about 10% headroom and briefly cuts supply above it. Each kilowatt costs about 26 euros a year (ARERA consumer guide).\nThere is no prepayment meter. When a household does not pay, the supplier sends a formal notice, then the network operator limits the meter to 15% of its power for 15 days, then suspends supply. Customers on life-support equipment can never be disconnected (ARERA TIMOE rules, via luce-gas.it).\nRegulated default prices ended for non-vulnerable households in 2024. Those who had not chosen a supplier were moved to a service whose suppliers were chosen by auction in 26 areas (ARERA 95/2025). Vulnerable households stay on a regulated tariff.\nFree-market offers cost more than the regulated tariff in every consumption class in 2025 (ARERA annual report 2025), the reverse of the usual GB expectation that a fixed deal beats the default.\nSwitching is very high: 20.8% of household electricity customers switched in 2025 and 18.8% for gas (same report)."
+        },
+        "theory": {
+          "heading": "How it works",
+          "body": "CLIMATE. Heating is regulated by law through six climate zones, A to F, each with permitted heating dates and maximum hours a day, and a 20 degree (plus or minus 2) indoor limit while heating runs (DPR 412/93). July 2026 set a monthly demand record of 32.5 TWh, with peak demand about 58 GW credited to air conditioning (Terna, reported).\nMARKET. The day-ahead market is zonal, and final customers have been settled on zonal prices since 1 January 2025, with a PUN Index and a perequation mechanism easing the transition. Gas import dependence was 94.3% in 2025 (ARERA annual report 2025).\nMETERS. Network operators own and run second-generation smart meters, about 32.7 million in service at end 2023. They record 15-minute load curves for all customers, can limit power remotely, and offer an in-home data channel (ARERA smart-metering page).\nBILLING. Domestic electricity is billed every two months on readings, and a bill must be issued within 45 days of the last day billed, with automatic indemnities of 6 to 60 euros if late (ARERA 463/16).\nDEBT. The supplier holds the debt and starts the process; the network operator limits and suspends on its request. If a customer switches leaving arrears, the old supplier can have a charge (the CMOR) added to the new supplier's bill 6 to 12 months later. GB has no equivalent.\nSOCIAL SUPPORT. The social bonus has been automatic since 2021, triggered by the household's means-test declaration; it reached 4.3 million households in 2025."
+        },
+        "expected_shape": {
+          "heading": "What the data should look like",
+          "body": "A credible Italian world would show:\n• Much less heating and much more cooling than GB: heating degree days 1,678-2,025 and cooling degree days 224-365 over 2020-2025, against the UK's 2,710-2,961 and under 7 (Eurostat).\n• A summer electricity peak as well as a winter one; 56.0% of households had at least one cooling system in 2024 (ISTAT).\n• More domestic electricity points (just over 30.5 million) than households (24.1 million), because of second homes.\n• Typical use near GB's: ARERA's typical customer uses 2,700 kWh at 3 kW and 1,100 Smc of gas, about 11,600 kWh.\n• 15.4% of homes heated by a building-level system, where the gas customer is the building, not the household (ISTAT 2024).\n• Power limitation, not prepayment, as the first step in collections."
+        },
+        "live_evidence": {
+          "heading": "Live evidence",
+          "body": "WHAT IS SOURCED. The advisor's evidence pack, kept as the research note, cites ARERA's annual report and decisions, ISTAT's 2021 and 2024 household energy surveys, Terna via the press, GME and the TIMOE rules. On 25 October 2026 the drafting pass confirmed Italy's heating and cooling degree days against Eurostat and replaced the pack's estimate with the published range. The ARERA and tax-agency pages for the gas VAT split and the GME page for the bidding-zone list could not be read, so those items stay unverified.\nWHAT THE SIMULATION DOES. Nothing: this page is knowledge only. The director ruled on 25 October 2026 that other markets are for understanding how transferable the GB build is, not for building."
+        },
+        "residuals": {
+          "heading": "Where our picture is still weak",
+          "body": "Still missing: tenure and building-age shares, the number of distribution operators and the largest one's share, the household network tariff components, the exact time-band hours, whether households are settled on measured intervals or profiles, the payment-method mix, disconnection and limitation volumes, how bad debt is socialised, how the arrears charge is sized, supplier licensing capital rules, cooking-fuel and cooling shares of use, home batteries, energy-community numbers, and the home-move rules from ARERA's own text."
+        },
+        "scope_delta": {
+          "heading": "What this page does not yet establish",
+          "body": "It does not rate the build component by component on the page itself; the research note keeps the advisor's transferability ratings and the lists of new world and supplier features an Italian build would need. It does not cover language, business customers or the islands' separate systems, and it changes no priority in the GB build."
+        }
+      }
+    },
+    "other-market-japan": {
+      "meta": {
+        "subtitle": "Room heating by air conditioner, cooling in almost every home, nine area prices, an incumbent-only regulated tariff on most incumbent contracts, monthly bills on actual reads, and a new occupant who must sign up before the power flows.",
+        "claim_freshness": {
+          "last_verified": "2026-10-25",
+          "written": "2026-10-25",
+          "source": "Electricity and Gas Market Surveillance Commission monitoring reports 2025; METI and ANRE; OCCTO switching rules; Ministry of the Environment household CO2 statistics; Statistics Bureau 2025; JMA normals; JEPX; JPEA; JEMA FY2025",
+          "note": "One of seven other-market pages from the advisor's packs of 25 Oct 2026, knowledge only."
+        },
+        "topic_id": "other-market-japan",
+        "title": "Japan against GB: an incumbent's regulated tariff, a breaker the household chooses and no supplier for a new occupant",
+        "wall_placement": "Public-reality commons only, and knowledge only. Every figure comes from a published source named in the research note, read on 25 Oct 2026. Figures the advisor could not check are labelled unverified and are not used as claims. Nothing here reaches the simulated world or the supplier: the director ruled on 25 Oct 2026 that other markets are understanding, not work."
+      },
+      "rungs": {
+        "headline": {
+          "heading": "The claim, in one sentence",
+          "body": "Japan shares GB's thirty-minute settlement and has near-universal network-owned smart meters, so the GB build's clock and meter-data feed would transfer well, but its room-by-room air-conditioner heating, near-universal cooling, nine area prices, incumbent-only regulated tariff on about 65% of incumbent contracts, monthly actual-read billing, disconnection around day 51 and the absence of any default supplier for a new occupant would all be new."
+        },
+        "plain": {
+          "heading": "In plain terms",
+          "body": "Most Japanese homes heat a room at a time, with the same air conditioner that cools it; air conditioners were the main heating for 39% of households in 2023 (Ministry of the Environment). Kerosene heaters matter in the north. Average use in 2023 was 3,911 kWh of electricity and only 177 cubic metres of city gas, so gas is mainly for cooking and hot water.\nIn Tokyo Electric's area the household picks a breaker size from 10 to 60 amps, and the breaker sets its monthly basic charge.\nRetail opened fully in April 2016, but incumbents still hold 44.4 million regulated contracts against 23.7 million free ones in their own areas: about 65% regulated (Electricity and Gas Market Surveillance Commission, 2025). Only the incumbent may sell the regulated tariff.\nBills are monthly on actual reads, with three price tiers, a monthly fuel-cost adjustment and a renewable surcharge of 4.18 yen/kWh in 2026. The government has paid per-kWh subsidies through bills in most winters and summers since 2023.\nA household that does not pay is typically cut off around day 51 after the read, with no winter ban.\nA new occupant must choose a retailer; with a smart meter and no contract, the breaker gives no power."
+        },
+        "theory": {
+          "heading": "How it works",
+          "body": "MARKET. The power exchange trades 48 half-hour products a day in a single-price auction and splits into nine area prices. The country is split between 50 Hz and 60 Hz grids joined by 2.1 GW of frequency converters. Gas is imported LNG, with no traded hub like GB's. In winter 2020-21 an LNG shortage and cold weather drove the exchange to 251 yen/kWh, and new entrants on fixed low tariffs failed.\nNETWORK AND METERS. Ten general transmission and distribution operators, legally unbundled in April 2020, each combine the transmission and distribution roles and own the meters. Smart meters reached 99.9% coverage, about 81.5 million, by March 2025, reporting at 30 minutes; the next generation, from 2025 to 2034, records 5-minute data.\nSETTLEMENT. Every balancing group submits 30-minute plans. The imbalance price cap of 200 yen/kWh rises to 300 from 2026.\nSWITCHING. Switching runs through a central system: at least one business day plus two calendar days after matching for a smart-metered site. There is no debt objection, but the incumbent may refuse a new contract until arrears are paid.\nLAST RESORT. The network operators provide last-resort supply only to high- and extra-high-voltage customers. A household whose retailer exits falls back on the incumbent's regulated tariff; 32% of exiting retailers in 2022 left some customers with no contract (METI)."
+        },
+        "expected_shape": {
+          "heading": "What the data should look like",
+          "body": "A credible Japanese world would show:\n• A climate from subarctic to subtropical: January means of -3.2 degrees in Sapporo, 5.4 in Tokyo and 17.3 in Naha (JMA 1991-2020 normals), and real cooling degree days where GB has almost none.\n• Twice GB's scale: 56.2 million households (Statistics Bureau, 2023), 44.9% of occupied dwellings flats.\n• Electricity-led homes with little wet central heating, and a summer price peak: the day-ahead price reached 37.51 yen/kWh on 29 July 2025.\n• About 3 million residential PV systems, 1.65 million of them off the feed-in tariff by 2023, and 1.14 million home batteries.\n• A low switching rate of about 3.5% a year against meter count (derived from the surveillance commission's figures)."
+        },
+        "live_evidence": {
+          "heading": "Live evidence",
+          "body": "WHAT IS SOURCED. The advisor's evidence pack, kept as the research note, cites the Electricity and Gas Market Surveillance Commission, METI and ANRE, the national grid coordinator's switching rules, the Ministry of the Environment's household energy survey, the Statistics Bureau, JMA climate normals, JEPX and battery and PV industry bodies. Its own unverified items are mostly GB comparisons. On 25 October 2026 the drafting pass tried to confirm the 2020 census household size and could not read the census PDF, so it stays unverified; Eurostat publishes no Japanese degree days, so the pack's area-weighted series stays unmatched to GB's.\nWHAT THE SIMULATION DOES. Nothing: this page is knowledge only. The director ruled on 25 October 2026 that other markets are for understanding how transferable the GB build is, not for building."
+        },
+        "residuals": {
+          "heading": "Where our picture is still weak",
+          "body": "Still missing: a population-weighted heating and cooling degree-day series, a current official air-conditioner ownership figure (the official one is from 2009 and the recent third-party figures conflict), the national cooking-fuel and all-electric shares, the total of low-voltage contracts, network tariff components, settlement and reconciliation timelines, LPG households, the payment mix, arrears data, owner-occupation, the low-voltage bad-debt treatment, whether arrears information is shared, and how many households fell back to regulated tariffs in 2022."
+        },
+        "scope_delta": {
+          "heading": "What this page does not yet establish",
+          "body": "It does not rate the build component by component on the page itself; the research note keeps the advisor's transferability ratings and the lists of new world and supplier features a Japanese build would need. It does not cover the LPG and kerosene retail markets, language or business customers, and it changes no priority in the GB build."
+        }
+      }
+    },
+    "other-market-spain": {
+      "meta": {
+        "subtitle": "A regulated price that moves with the hourly market and only incumbents may sell, a contracted power level under a compulsory time-of-use network tariff, universal network-owned smart meters, and bills paid after the read.",
+        "claim_freshness": {
+          "last_verified": "2026-10-25",
+          "written": "2026-10-25",
+          "source": "CNMC retail report 2024 and household panel Q2 2024; MITECO disconnection and retailer pages; INE household projections and living-conditions survey; REE; IEA MIBEL policy page; SPAHOUSEC II (IDAE); Royal Decrees 244/2019, 446/2023 and 88/2026 via summaries; Eurostat nrg_chdd_a",
+          "note": "One of seven other-market pages from the advisor's packs of 25 Oct 2026, knowledge only."
+        },
+        "topic_id": "other-market-spain",
+        "title": "Spain against GB: a dynamic regulated price, a power subscription and bills paid after the reading",
+        "wall_placement": "Public-reality commons only, and knowledge only. Every figure comes from a published source named in the research note, read on 25 Oct 2026. Figures the advisor could not check are labelled unverified and are not used as claims. Nothing here reaches the simulated world or the supplier: the director ruled on 25 Oct 2026 that other markets are understanding, not work."
+      },
+      "rungs": {
+        "headline": {
+          "heading": "The claim, in one sentence",
+          "body": "Spain's household market inverts several GB defaults: the regulated price is a dynamic hourly-shaped tariff that only incumbents' regulated arms may sell, not a ceiling over everyone's tariffs; every home subscribes to a power level under a compulsory time-of-use network tariff; smart meters owned by the network have been universal since 2018; and bills are paid after an actual reading, so there is no prepayment and no direct-debit credit balance."
+        },
+        "plain": {
+          "heading": "In plain terms",
+          "body": "A Spanish household contracts a power level. In 2024, 43.2% contracted 4-6 kW and 30.3% up to 3 kW (CNMC household panel, Q2 2024). Since June 2021 every supply under 15 kW sits on one network tariff with three energy periods on weekdays and two contracted powers.\nThe regulated electricity price (PVPC) follows the wholesale market hour by hour, now blended with futures: 25% in 2024, 40% in 2025, 55% in 2026 (Royal Decree 446/2023). Only the incumbents' regulated suppliers may offer it. About 8.2 million households, 27.4%, were on it at end 2025.\nBills use actual meter reads and are paid after the bill, usually by direct debit. There is no prepayment meter and no fixed monthly payment building a credit balance.\nVAT on electricity is 21%, plus a 5.11% electricity tax; both were cut during the crisis and have been restored.\nWhen a household does not pay, the supplier sends a formal demand and can ask the network operator to cut supply two months later. Households on the social bonus instead drop to a 3.5 kW minimum supply for six months, during which they cannot be cut (MITECO).\nSwitching was 23.9% for electricity and 19% for gas in 2024 (CNMC)."
+        },
+        "theory": {
+          "heading": "How it works",
+          "body": "MARKET. Spain shares one bidding zone with Portugal. Day-ahead moved to 15-minute products on 1 October 2025. Renewables were 56% of 2024 generation and nuclear 19%, with the nuclear plants due to close between 2027 and 2035. Solar growth pushed prices to zero or below for 797 hours in 2025.\nREGIME BREAK. From May 2022 to the end of 2023 the 'Iberian exception' capped the gas price used in power bids at 40 euros/MWh, rising 5 euros a month to 70, with gas plants compensated (IEA policy page). Replayed 2022-23 Iberian prices are not a pure market series.\nMETERS. By end 2018 about 27 million meters up to 15 kW were read remotely, 99.14% integrated (CNMC). The network operator owns them; most record hourly and quarter-hour values are interpolated.\nSETTLEMENT. The grid operator runs five settlement runs, from about one month to about eleven months after delivery. The supplier is the settled party and lodges guarantees with the grid and market operators.\nDEBT. The supplier holds the debt and the network operator cuts supply at its request, bearing the cost of cutting and reconnecting. Debt does not follow the customer [unverified]. A ban on cutting basic supplies to vulnerable households runs to 31 December 2026.\nSELF-CONSUMPTION. 683,719 self-consumers by 2024. Under simplified compensation the supplier credits exports on each monthly bill, never above that period's consumption, so there is no cash payout (Royal Decree 244/2019)."
+        },
+        "expected_shape": {
+          "heading": "What the data should look like",
+          "body": "A credible Spanish world would show:\n• Half GB's heating need and real cooling: heating degree days 1,497-1,730 and cooling degree days 236-387 over 2020-2025, against the UK's 2,710-2,961 and under 7 (Eurostat).\n• Two demand peaks, winter evening and summer afternoon.\n• Gas as optional: only about 40% of households on mains gas, and a gas-heated home using about 7,921 kWh a year, 57% of it for heating (SPAHOUSEC II).\n• Two-thirds of people in flats, and 73.3% owner-occupation (INE, 2025).\n• 19.3 million households averaging 2.50 people (INE, 2024).\n• Every bill from an actual read, and no credit balances on the book."
+        },
+        "live_evidence": {
+          "heading": "Live evidence",
+          "body": "WHAT IS SOURCED. The advisor's evidence pack, kept as the research note, cites CNMC's retail and household-panel reports, MITECO's disconnection and licensing pages, INE, REE, the IEA, and the 2026 consumer-protection decree through law-firm summaries. On 25 October 2026 the drafting pass checked Spain's degree days against Eurostat: cooling degree days 383 in 2022 and 304 in 2024 match the pack; Eurostat's current release gives 1,537 heating degree days for 2022, not 1,478.\nWHAT THE SIMULATION DOES. Nothing: this page is knowledge only. The director ruled on 25 October 2026 that other markets are for understanding how transferable the GB build is, not for building."
+        },
+        "residuals": {
+          "heading": "Where our picture is still weak",
+          "body": "Still missing: air-conditioning ownership after 2015, typical household electricity use by climate zone, the 2025 generation mix, the distribution-operator count and phase split, the billing period and fallback-supply rules under the 2026 decree, home-move default rules, how the social bonus is funded and capped, how exports are valued, butane penetration, the payment-method mix and arrears after 2018."
+        },
+        "scope_delta": {
+          "heading": "What this page does not yet establish",
+          "body": "It does not rate the build component by component on the page itself; the research note keeps the advisor's transferability ratings and the lists of new world and supplier features a Spanish build would need. It does not cover the island systems in detail, language or business customers, and it changes no priority in the GB build."
+        }
+      }
+    },
+    "who-drives-how-far-and-where-they-park": {
+      "meta": {
+        "topic_id": "who-drives-how-far-and-where-they-park",
+        "title": "Who drives how far, and where they park: the person comes before the car",
+        "subtitle": "How far a household drives depends on who is in it: their work, income, age, where they live and whether they have a company car. Whether they can charge a car at home depends on where they park it. Both have to be drawn for each home before any car is.",
+        "wall_placement": "Public-reality commons only. Every figure is from a published source: DfT's National Travel Survey tables (NTS0901, NTS0904, NTS0908) and road traffic tables (TRA0305, TRA0306), the ONS Census 2021, HMRC benefit-in-kind statistics, DfT's EV driver tracker, and MOT-based analyses. Figures read only through a secondary report are said to be so. The statements about the simulation are about its code, read and not run.",
+        "claim_freshness": {
+          "last_verified": "2026-10-25",
+          "written": "2026-10-25",
+          "source": "DfT NTS0901, NTS0904, NTS0908 (updated 10 Sep 2026); DfT TRA0305 and TRA0306; DfT EV driver behaviours and attitudes tracker, years 1 and 2 (Ipsos, published 25 Sep 2025 and 30 Jul 2026); NTS 2024 and 2025 chapters; ONS Census 2021 travel to work; HMRC benefit-in-kind statistics (Jul 2026); RAC Foundation MOToring Along (2017); Wadud et al. (2022). Full list with links in docs/market_research/who_drives_how_far_and_where_they_park_2026-10-25.md",
+          "note": "One of the six distribution packs for the personalised asset world (director, 25 Oct 2026: EV demand 'should be derived from miles driven and car type', and 'driveways matter too'). The DfT tables the advisor could not reach were fetched and read on 25 Oct 2026."
+        }
+      },
+      "rungs": {
+        "headline": {
+          "heading": "The claim, in one sentence",
+          "body": "An English household car drove about 7,100 miles in 2025, but the spread is wide (a third of cars under 5,000 miles, one in eight over 12,000) and it follows the driver, not the fuel; and about 72% of household vehicles are kept off the street overnight, which is what decides whether an electric car can be charged at home."
+        },
+        "plain": {
+          "heading": "In plain terms",
+          "body": "Most cars do modest mileage. In England in 2025 the average household car did about 7,100 miles a year, and about 56% of cars did between 5,000 and 12,000. A small group of drivers does a great deal more: company cars, people who drive for work, and people in the countryside.\nElectric and diesel cars show higher mileage than petrol cars, but that is mostly because high-mileage drivers choose them, not because the fuel makes people drive further. So a simulated home has to start with the people in it, draw how far they drive, and only then decide what car they own.\nWhere the car sleeps matters as much. About seven in ten household vehicles are parked on a driveway or in a garage overnight, but in the cities far fewer are. Nine in ten electric car drivers can charge at home; the rest rely on public chargers, which cost several times more per mile and add nothing to the home's electricity bill."
+        },
+        "theory": {
+          "heading": "How it works",
+          "body": "MILEAGE. Annual mileage per car is heavily skewed. The National Travel Survey puts the 2025 England mean at 7,100 miles (petrol 6,200, diesel 8,000, battery electric 9,400). MOT readings for 2025 give medians of about 4,900 miles for petrol and 6,900 for diesel, with upper quartiles of 7,800 and 10,400, so a lognormal fits the shape. Mileage falls as a car ages: a 13-year-old car does about half what a car under three does.\nWHO DRIVES. The drivers who do the most miles are men in their fifties, people in work, people on high incomes, company car holders and people in rural areas. Company cars did about 2.4 times the miles of private cars when last measured (2010) and are about 3.7% of household cars in 2025. Commuting is about 2,200 of the average car's 7,100 miles, business 500 and everything else 4,500.\nWHEN. Car traffic is lowest in January (about 15% below an average month) and highest in early summer (about 6% above), and it peaks on Fridays and falls away on Sundays.\nPARKING. In 2024, 64% of household vehicles in England were parked on private property overnight and 9% in a garage; 25% were on the street. In the most rural areas only about 8% are on the street; in towns near a major city about 29% are. Among battery electric car drivers, 87% have off-street parking and 89% can charge at home; about one in nine rely on public charging alone."
+        },
+        "expected_shape": {
+          "heading": "What the data should look like",
+          "body": "A simulated population of drivers and homes should show these shapes against the record:\n• Mean household car mileage near 7,100 a year in 2024-25 (7,900 in 2016, 5,400 in the 2021 lockdown year).\n• About 31% of cars under 5,000 miles, about 56% at 5,000-12,000, about 13% over 12,000.\n• Battery electric cars driving more than petrol cars because of who owns them, not because of the fuel.\n• About 22% of English households with no car, 44% with one and 34% with two or more, and car ownership rising steeply with income.\n• About 72% of vehicles kept off-street overnight, far fewer in conurbations than in villages.\n• Close to nine in ten electric car owners able to charge at home.\n• January traffic about 15% below the average month and early-summer traffic about 6% above it.\nThese are population checks. None of them is a target for any one home."
+        },
+        "live_evidence": {
+          "heading": "Live evidence",
+          "body": "WHAT IS SOURCED. Mileage by fuel, purpose and ownership, and the mileage-band distribution, from DfT's National Travel Survey tables, fetched on 25 Oct 2026. Overnight parking by area type, from the same survey. Monthly and day-of-week traffic indices, from DfT's road traffic tables. Charging access among electric car drivers, from DfT's EV driver tracker, years 1 and 2. Car ownership by income and area, commuting and working from home, from the survey and the Census. Every figure and link is in docs/market_research/who_drives_how_far_and_where_they_park_2026-10-25.md.\nWHAT THE SIMULATION DOES, READ FROM CODE AND NOT RUN. No household is drawn with a driver's mileage. Every simulated home starts without an electric car; one can arrive later by a yearly probability, and only in a detached or semi-detached house, which is how the world stands in for a driveway. On the main demand path an electric car adds a fixed 2,143 kWh a year, from 7,500 miles at 3.5 miles per kWh, for every owner alike. A second path draws daily miles around a fixed 20-mile mean. Neither path knows who drives, so neither can reproduce the spread on this page."
+        },
+        "residuals": {
+          "heading": "Where our picture is still weak",
+          "body": "Seven things are missing. (1) How one driver's mileage persists from year to year: no source publishes it, so any persistence the world uses is a named design choice. (2) The share of all homes, not vehicles, with off-street parking: the 65% (7% in Westminster, 84% in Flintshire) comes from a 2020 RAC Foundation study read only through a secondary report, because the Foundation's site refused our fetch. (3) Off-street parking by dwelling type and tenure from the English Housing Survey: not found in a published table. (4) Driver miles by age, sex, employment and income together: the tables exist but were not read. (5) How often drivers make trips over 100 miles: half of electric car drivers make one about once a month or less, and nothing finer. (6) Working from home after 2021 beyond the Census week. (7) Company car mileage since 2010."
+        },
+        "scope_delta": {
+          "heading": "What this page does not yet establish",
+          "body": "It does not say which car a driver owns or how much energy it uses; that is on the page about which cars households run. It does not cost charging against petrol or diesel; that is on the EV charging page. It does not grade the simulated world against these bands; that waits for the world to draw drivers at all."
+        }
+      }
+    },
+    "which-cars-households-run-and-what-they-use": {
+      "meta": {
+        "topic_id": "which-cars-households-run-and-what-they-use",
+        "title": "Which cars households run, and how much energy each one really uses",
+        "subtitle": "Britain's 31 million household cars are mostly petrol and diesel, about ten years old, and use more fuel on the road than their official figures say. An electric car's energy per mile depends on its model, the day's temperature and how it is charged. None of that is a single number.",
+        "wall_placement": "Public-reality commons only. Every figure is from a published source: DfT vehicle licensing statistics, SMMT parc and registration figures, EV Database model specifications, winter range studies (Recurrent, Geotab, What Car?), ADAC charging-loss tests, ICCT and Fraunhofer plug-in hybrid studies, and the European Commission's on-board fuel consumption data. Most are UK-wide rather than GB, and several winter studies are from North America; both are said where they matter. The statements about the simulation are about its code, read and not run.",
+        "claim_freshness": {
+          "last_verified": "2026-10-25",
+          "written": "2026-10-25",
+          "source": "DfT vehicle licensing statistics 2024 and Q3 2025, VEH0103 (fetched 25 Oct 2026); SMMT Motorparc 2025 and 2025 registrations; EV Database consumption and battery cheatsheets; Recurrent (2025), Geotab, What Car? 2024 winter test; ADAC charging-loss tests (2026); ICCT/Fraunhofer PHEV fact sheet (2022); Fraunhofer/Oeko-Institut OBFCM analysis (2025); European Commission OBFCM release (2024); ICCT Lab-to-Road. Full list with links in docs/market_research/which_cars_households_run_and_what_they_use_2026-10-25.md",
+          "note": "One of the six distribution packs for the personalised asset world (director, 25 Oct 2026: vehicle energy is derived from 'miles driven and car type', never looked up as a percentage)."
+        }
+      },
+      "rungs": {
+        "headline": {
+          "heading": "The claim, in one sentence",
+          "body": "An electric car's energy is its model's base efficiency (about 220 to 310 Wh a mile for mainstream models) times a temperature penalty of roughly 1.2 to 1.3 in a British winter, plus 5-7% lost charging on a wallbox or 13-24% on a three-pin plug; and the petrol or diesel car it replaces uses 8% to 39% more fuel on the road than its official figure, depending on its age."
+        },
+        "plain": {
+          "heading": "In plain terms",
+          "body": "Most household cars in Britain are petrol (about 58%) or diesel (about 32%). Fully electric cars were about 5% of cars at the end of 2025, and more than half of them belong to companies rather than households. The typical car is about ten years old, and nearly half are older than that.\nAn electric car does not use a fixed amount of electricity per mile. A small efficient model uses about a third less than a large SUV. In cold weather the same car uses more, because the battery is less efficient and the cabin needs heating: about a fifth more at 10 degrees and over a quarter more at freezing. A car with a heat pump loses less. Charging also wastes some energy: very little on a wallbox, but up to a quarter on a three-pin socket.\nA plug-in hybrid is only as electric as its owner's charging habits. Private owners drive about half their miles on electricity; company car drivers, whose fuel is often paid for, about one mile in seven.\nThe car an electric car replaces matters for any saving. Older petrol and diesel cars use 8% to 39% more fuel than their official figure, and post-2018 cars about 17% to 21% more."
+        },
+        "theory": {
+          "heading": "How it works",
+          "body": "THE PARC. DfT counted 34.5 million licensed UK cars in September 2025, 1.63 million of them zero-emission (4.7%); company keepers hold 10.4% of all cars but 55.4% of zero-emission ones, so the private electric share is lower than the headline. Northern Ireland is about 3% of UK cars. The 2025 parc is a third superminis, a quarter lower-medium and a fifth SUVs; the average car is 9.7 years old.\nELECTRIC ENERGY PER MILE. EV Database gives real-world consumption by model, averaging 303 Wh a mile across all listed models, 218-309 for mainstream ones. Range studies give the cold penalty: 78% of ideal range at 0 degrees and 70% at minus 7 (Recurrent, 2025), which is 1.28 and 1.43 times the energy per mile; a heat pump recovers about 8-10 points at 0 degrees. A UK winter test at 6-11 degrees found real range 21-38% below the official figure. ADAC's 2026 tests put AC charging losses at 5-7% on an 11 kW wallbox and 13-24% on a 2.3 kW socket.\nPLUG-IN HYBRIDS. Measured electric driving is 45-49% for private owners and 11-15% for company cars (ICCT and Fraunhofer, 2022), against 70-85% assumed in the official test. Across nearly a million European PHEVs the energy-based electric share was 31% (2025).\nPETROL AND DIESEL ON THE ROAD. The gap between official and real fuel use grew from 8% in 2001 to 39% in 2015-17 under the old NEDC test, then reset under WLTP to about 17% for diesel and 21% for petrol (2022 registrations). So real consumption of 2010-17 cars fell much less than their official figures suggest."
+        },
+        "expected_shape": {
+          "heading": "What the data should look like",
+          "body": "A simulated fleet should show these shapes against the record:\n• A private electric share at end-2025 below the 4.9% all-keeper share, because companies hold more than half of zero-emission cars.\n• Mean car age about 9.7-10 years, with about 46% older than ten.\n• Superminis, lower-medium cars and SUVs together about 77% of the parc.\n• A year-round electric efficiency of about 3.0-3.5 miles per kWh at the battery, or 2.8-3.3 at the wall.\n• January electricity per mile about 1.2-1.3 times July's.\n• A plug-in hybrid fleet driving about 31% of its energy electrically overall, and 45-49% among private keepers.\n• Petrol and diesel cars using 8-39% more fuel than their official figures, by registration year.\nThese are population checks, never targets for one home."
+        },
+        "live_evidence": {
+          "heading": "Live evidence",
+          "body": "WHAT IS SOURCED. Licensed car counts and fuel shares, from DfT and SMMT; segment mix and top models, from SMMT; per-model consumption and usable battery, from EV Database; the cold-weather penalty, from three range studies and one UK winter test; charging losses, from ADAC; plug-in hybrid electric shares, from ICCT, Fraunhofer and the EU's on-board meter data; the petrol and diesel real-world gap, from ICCT and the European Commission. Every figure and link is in docs/market_research/which_cars_households_run_and_what_they_use_2026-10-25.md.\nWHAT THE SIMULATION DOES, READ FROM CODE AND NOT RUN. The world has no car model, no battery size by model, no temperature effect and no plug-in hybrid: an electric car is one flag, with a fixed 3.5 miles per kWh, a fixed 55 kWh battery and a fixed 90% charging efficiency. No household has a petrol or diesel car to compare against. Home charger power is drawn from 3.7, 7 or 22 kW, and 22 kW is beyond what most cars accept on AC and what a single-phase home supplies."
+        },
+        "residuals": {
+          "heading": "Where our picture is still weak",
+          "body": "Six things are missing. (1) DfT's fuel-by-year and make-and-model tables for 2016-2025 were not read, so the parc mix before 2024 is interpolated. (2) A sales- or parc-weighted distribution of battery size and onboard charger limit: it needs those tables joined to model specifications. (3) Whether EV Database's consumption is measured at the battery or the wall: its page does not say. (4) A GB split of plug-in hybrid electric share by keeper type: only European figures exist. (5) What fuel an electric car replaces: no GB source. (6) Most cold-weather evidence is North American, and GB winters sit at 0-10 degrees, where the evidence is thinnest."
+        },
+        "scope_delta": {
+          "heading": "What this page does not yet establish",
+          "body": "It does not say how far a household drives; that is on the page about who drives how far. It does not cost electric miles against petrol and diesel; that is on the EV charging page. It does not grade the simulated fleet, which does not yet hold cars at all."
+        }
+      }
+    },
+    "ev-charging-and-the-saving-against-petrol-and-diesel": {
+      "meta": {
+        "topic_id": "ev-charging-and-the-saving-against-petrol-and-diesel",
+        "title": "Charging an electric car at home: when it happens, what it costs, and what it saves against petrol and diesel",
+        "subtitle": "Where a car is charged decides almost everything about its cost. At home on an off-peak tariff an electric mile costs a few pence; on a public rapid charger it can cost more than petrol. A supplier sees only the home part, and has to work out the rest or ask.",
+        "wall_placement": "Public-reality commons only. Every figure is from a published source: SMMT and Zapmap market statistics, DfT's EV driver tracker, the Electric Nation trial, Zapmap's charging price index, Ofgem's price cap, HMRC's VAT notice, DESNZ greenhouse gas factors, the Smart Charge Points Regulations 2021, and published EV-detection studies. Tariff and product figures are from the suppliers' own pages. The worked cost table is our arithmetic on those figures and is marked as such. The statements about the simulation and the company are about their code, read and not run.",
+        "claim_freshness": {
+          "last_verified": "2026-10-25",
+          "written": "2026-10-25",
+          "source": "SMMT and Zapmap market statistics (to Sep 2026); DfT EV driver behaviours and attitudes tracker, years 1 and 2 (Ipsos, 2025 and 30 Jul 2026); Electric Nation; Zapmap Charging Price Index (Sep 2026); Ofgem price cap Oct-Dec 2026; HMRC VAT Notice 701/19 (zero rate 1 Oct 2026-31 Mar 2027); DESNZ GHG conversion factors 2026; Smart Charge Points Regulations 2021; Otago/Vector, SINTEF and Bidgely detection studies; Ofgem TDCV decision (May 2026). Full list with links in docs/market_research/ev_charging_and_the_saving_against_petrol_and_diesel_2026-10-25.md",
+          "note": "From the advice-roadmap evidence pack (director, 25 Oct 2026: 'Home charge versus venue. Cost and carbon savings versus petrol and diesel for different mileages. Then the actual charging and usage patterns'). The EV, solar and batteries page covers what the supplier gains and loses; this page covers the car's own charging and the household's saving."
+        }
+      },
+      "rungs": {
+        "headline": {
+          "heading": "The claim, in one sentence",
+          "body": "A home-charged electric car adds roughly 1,750 to 3,500 kWh a year to a household's electricity, plugs in two or three times a week but draws power for only about an hour and a half each time, and at October 2026 prices costs about 2p a mile on an off-peak EV tariff and 9p on the capped standard rate, against about 18p for petrol, while a driver who can only use public rapid chargers pays about 24p."
+        },
+        "plain": {
+          "heading": "In plain terms",
+          "body": "About a quarter of new cars sold in 2026 are fully electric. Nine in ten electric car drivers can charge at home, and most of their charging happens there, usually overnight once or twice a week.\nWhat a mile costs depends on where the car is charged. Home electricity at the capped rate in late 2026 is about 26p a kWh; an off-peak EV tariff is 7-9p; a public rapid charger is about 79p, and public charging carries 20% VAT where home electricity carries none until March 2027. So the same car can cost a quarter of what petrol costs per mile, or more than petrol.\nFor the household's bill, an electric car is the biggest single addition most homes ever make: 2,000-3,000 kWh a year is about as much again as a typical home uses. A smart tariff can move nearly all of it to the night, which saves the household about £350-510 a year against charging at the standard rate.\nA supplier sees only what passes through the home meter. It can spot a car charging in half-hourly data with good accuracy after a year of readings, but not the car's mileage, its public charging, or what the household drove before. To prove a saving, it has to ask."
+        },
+        "theory": {
+          "heading": "How it works",
+          "body": "UPTAKE. Battery electric cars were 0.7% of new cars in 2018, 16.6% in 2022, 23.4% in 2025 and 26.2% in January-September 2026, under a ZEV mandate rising from 22% in 2024 to 80% in 2030. Plug-in cars were 8.2% of the parc at the end of 2025.\nWHERE. DfT's tracker found 89% of battery electric drivers can charge at home and about 11% rely on public charging (year 2, 2026). In its two-week diary, drivers charged about 4.3 times at home and 1.3 times in public.\nWHEN. In the Electric Nation trial, unmanaged plug-in peaked at 5-7pm on weekdays; cars stayed plugged in about 12 hours but drew power for about 1.5, and battery cars plugged in 2-3 times a week with 55-70% charge left. Since 2022 new home chargers must default to charging outside 8-11am and 4-10pm on weekdays, add a random delay of up to ten minutes, and be able to respond to demand-side signals. On a smart EV tariff about 97% of charging is scheduled by the supplier or its platform.\nCOST. Pence per mile is price per kWh times kWh per mile. At 0.33 kWh a mile at the meter: 26.32p standard gives 8.7p; 7p off-peak gives 2.3p; a rapid charger at 79p (0.30 kWh a mile, 20% VAT included) gives 23.7p. Petrol at 173.8p a litre and 45 mpg is 17.6p a mile.\nCARBON. On DESNZ's 2026 average grid factor (0.144 kg a kWh with losses), an electric mile emits about 0.05 kg against about 0.21 kg for petrol; the marginal factor of the plant that meets extra demand is higher, and is not yet sourced here.\nSEEING IT. With a year of half-hourly reads a detection model found home chargers with precision 0.87 and recall 0.81 (0.91 and 0.96 for fast chargers); with a month, 0.55 and 0.62. Immersion heaters, storage heaters, heat pumps and electric showers confound it."
+        },
+        "expected_shape": {
+          "heading": "What the data should look like",
+          "body": "A simulated book of electric car households should show these shapes against the record:\n• Home charging of about 1,750-3,500 kWh a year per car, central about 2,300, spread by mileage rather than fixed.\n• About nine in ten owners charging at home and about one in ten never doing so.\n• Plug-in 2-3 times a week for battery cars; sessions of about 10 kWh on average.\n• Unmanaged charging starting 5-7pm on weekdays; on a smart tariff, almost all of it overnight.\n• January charging per mile about 1.2-1.3 times July's.\n• A household on an off-peak EV tariff saving about £350-510 a year against the standard rate at 2,000-2,640 kWh.\n• A public-only driver paying more per mile than a petrol driver at 2026 prices.\nThese are population checks, never targets for one home."
+        },
+        "live_evidence": {
+          "heading": "Live evidence",
+          "body": "WHAT IS SOURCED. Registration and parc shares, from SMMT and Zapmap; charging access and frequency, from DfT's EV tracker; charging patterns, from the Electric Nation trial; public prices, from Zapmap's index; the price cap and the VAT zero rate, from Ofgem and HMRC; carbon factors, from DESNZ; charger defaults, from the 2021 regulations; detection accuracy, from three published studies. Every figure and link is in docs/market_research/ev_charging_and_the_saving_against_petrol_and_diesel_2026-10-25.md.\nWHAT THE SIMULATION AND THE COMPANY DO, READ FROM CODE AND NOT RUN. In the world, no household starts with an electric car; one arrives by a fixed yearly probability, only in a detached or semi-detached house, so no owner ever charges in public. On the main path each car adds the same 2,143 kWh a year, 90% of it overnight. The company assumes a different fixed 2,500 kWh, learns of a car only when the customer asks for an EV tariff, and does not try to detect one from meter data. Explore shows one electric car household whose use rose 8% (99 to 108 kWh a month); both of the world's paths should add about 180 kWh a month, so that figure is not yet explained."
+        },
+        "residuals": {
+          "heading": "Where our picture is still weak",
+          "body": "Seven things are missing. (1) The share of charging energy by place (home, work, public, rapid): the diary gives charge counts, not kWh. (2) Street-level diversity of charging (after diversity maximum demand) from the distribution networks. (3) How much a time-of-use tariff without automation moves charging. (4) Any GB study of detecting a car in half-hourly data, and none tests heat pump or storage heater confusion. (5) Total cost of ownership: servicing, insurance and depreciation. (6) The marginal and time-of-day carbon factor of charging. (7) Real-world diesel mpg for the counterfactual: the 55 mpg in the worked table is unsourced, so the diesel column is indicative only."
+        },
+        "scope_delta": {
+          "heading": "What this page does not yet establish",
+          "body": "It does not say how far each household drives or which car it owns; those have their own pages. It does not value an EV tariff to the supplier; the EV, solar and batteries page covers that. It does not grade the simulated world's charging, which draws neither mileage nor public charging yet. The worked cost table is an illustration at one set of prices, not a saving to promise any household."
+        }
+      }
+    },
+    "gas-boilers-and-heating-controls": {
+      "meta": {
+        "topic_id": "gas-boilers-and-heating-controls",
+        "title": "How a gas boiler and its controls turn into the gas a home uses",
+        "subtitle": "Most GB homes heat with a condensing gas boiler that seldom condenses, because it runs too hot. Thermostats, timers and smart controls save far less in the field than on the box, and a supplier sees almost none of it in the meter data.",
+        "wall_placement": "Public-reality commons only. Every figure comes from a published source and was checked against it on 25 October 2026 where the advisor's pack could not fetch it; figures still unconfirmed are named as gaps. The statements about the simulation and the company are about their code and are marked as read, not run.",
+        "claim_freshness": {
+          "last_verified": "2026-10-25",
+          "written": "2026-10-25",
+          "source": "EFUS 2017 heating patterns; GASTEC for EST in-situ condensing boiler trial (2009); BRE S10TP-12 seasonal efficiency of condensing boilers (SAP 10); BEIS Boiler Plus factsheet (2018); Nesta Money Saving Boiler Challenge evidence and flow-temperature RCT (2022); BIT evaluation of the Nest thermostat (2017); BRE and UWE/BSRIA reviews of heating controls for BEIS (2017); Ofgem cap summaries (Jul and Oct 2026)",
+          "note": "Drafted from the advisor's cited evidence pack of 25 Oct 2026 for the advice roadmap and the personalised asset world. Its headline bands are calibration for the whole population, never targets for one home."
+        }
+      },
+      "rungs": {
+        "headline": {
+          "heading": "The claim, in one sentence",
+          "body": "A GB condensing gas boiler measured in homes delivers about 82-85% of its fuel as heat, not the 90%+ on its label, mainly because most are set to a 70-80°C flow that keeps the return water above the roughly 55°C at which it condenses; and the controls households are sold save between nothing and about 6% when measured, against claims of up to 31%."
+        },
+        "plain": {
+          "heading": "In plain terms",
+          "body": "About 22 million UK homes heat with gas central heating; about six in ten of them have a combi boiler that heats water on demand, and the rest feed a hot-water cylinder. Since 2005 new gas boilers have had to be condensing, and since April 2018 in England they must be rated at least 92%.\nIn practice they do worse. A field trial of 43 boilers measured 85% for regular boilers (about 80% once pipe and cylinder losses are counted) and 82.5% for combis, and recommended scaling rated figures by 0.95. The reason is the water temperature: a boiler only recovers the heat in its flue gas when the water coming back to it is below about 55°C, and most are set to send water out at 70-80°C.\nTurning the flow temperature down from 80°C to 60°C saved about 9% of gas in a test house. In a randomised trial of 7,000 homes, advice to do it saved 1.4%, which was not statistically significant. The same gap runs through every control: smart thermostats were measured at about 5% and possibly nothing; timer-based proportional control at 0-0.5%. A typical home heats for about 7 hours on a weekday at a median setting of 20°C."
+        },
+        "theory": {
+          "heading": "How it works",
+          "body": "EFFICIENCY. Seasonal efficiency falls as the design flow and return temperatures rise. SAP 10's modelled figures for a modulating boiler without compensation are 87.1% at 80/60°C, 89.3% at 55/47°C, 92.8% at 45/39°C and 95.3% at 35/30°C; ideal weather compensation adds 1-4 points. The industry standard label overweights part load, which implies a 34.5°C return; hourly analysis supports nearer 48°C, so the label overstates.\nHOT WATER. A combi heats water only when a tap opens. Its hot-water efficiency was measured at about 73%, and very short draws are much worse. A cylinder loses heat standing still: in the field trial as little as half the heat put into a cylinder reached the taps, about 900 kWh a year of losses.\nCONTROLS. A room thermostat ends a heating period when the room is warm; a timer sets when periods start; radiator valves cap individual rooms; weather or load compensation lowers the flow temperature when less heat is needed, which is what lets a boiler condense. Boiler Plus requires a timer and room thermostat with every new boiler and, for combis, one of flue gas heat recovery, weather compensation, load compensation or smart controls.\nIN THE METER DATA. Daily gas is close to a baseload (hot water and cooking, about 7 kWh a day on a typical home) plus a slope times heating degree-days. The slope mixes the building's heat loss, the boiler's efficiency and the setpoint, so a setpoint cut and a flow-temperature cut look the same in daily data."
+        },
+        "expected_shape": {
+          "heading": "What the data should look like",
+          "body": "A credible simulated population of gas-heated homes should show these shapes against the record:\n• About 62% combi boilers and 38% regular or system boilers (2017).\n• A median thermostat setting of 20°C with an interquartile range of 19-21°C before 2022, and a weekday median of 7 hours heating (5-10), 8 hours at weekends.\n• Of homes that heat at set times, 58% twice a day, 23% once and 19% three or more times on a weekday.\n• 87% with a room thermostat, 79% with radiator valves on most radiators, 46% mainly using a timer.\n• In-use boiler efficiency for space heating around 82-85%, and combi hot water around 73%.\n• Space heating about 77%, hot water about 21% and cooking about 2% of household gas.\n• Typical gas use of 11,500 kWh a year before July 2026 and 9,500 kWh after, as Ofgem's medium figure."
+        },
+        "live_evidence": {
+          "heading": "Live evidence",
+          "body": "WHAT IS SOURCED. Boiler stock and types, measured and modelled efficiency, the flow-temperature evidence, control prevalence, the controls evidence and the advice economics are in the research note behind this page, with every link and the outcome of each check made on 25 October 2026.\nWHAT THE WORLD DOES, READ FROM CODE AND NOT RUN. Each home's boiler converts heat to gas at a fixed efficiency by boiler age (90% new, 86% mid, 80% old), with no dependence on flow temperature and no notion of whether it condenses. The new-boiler figure is above every measured in-home value. Thermostat settings are drawn around 20°C with a spread matching the 19-21°C range, adjusted by EPC band. Heating hours follow the published split by daytime presence. Combi hot water is converted at 80%, above the 73% measured.\nWHAT THE COMPANY DOES, READ FROM CODE AND NOT RUN. It assumes one seasonal boiler efficiency of 85% for every home, which the field trial supports. Its customer advice text still says a smart thermostat 'could save 10-15%', which the measured evidence does not support."
+        },
+        "residuals": {
+          "heading": "Where our picture is still weak",
+          "body": "Twelve things are weak. (1) No authoritative GB boiler lifetime distribution. (2) No GB stock by boiler age band, and the survey's combination and condensing-combination categories need defining. (3) No independent GB measurement of savings from power flushing, filters, balancing or bleeding; only an industry 'up to 15%'. (4) No published efficiency gain from servicing. (5) No winter trial of flow-temperature advice. (6) No independent GB field trial of weather compensation. (7) No validated way to infer flow temperature, efficiency, setpoint or schedule from meter data alone. (8) No GB distribution of radiator oversizing. (9) Rebound after controls advice is not quantified. (10) The energy advice body's pound figures run two to three times the arithmetic at the 2026 cap, and their basis is not stated. (11) The 2005 condensing mandate's month and the jurisdictions it covered come from a secondary source. (12) The 70% efficiency cut-off for the old G band is unconfirmed."
+        },
+        "scope_delta": {
+          "heading": "What this page does not yet establish",
+          "body": "It does not grade the simulated world's gas against these bands; that is owed. It does not explain how a household chooses its schedule and setpoint or what health floors bind advice, which are on the heating behaviour page, nor heat pumps and insulation, which have their own page. It does not cover oil, LPG or electric storage heating."
+        }
+      }
+    },
+    "heating-behaviour-comfort-and-health-floors": {
+      "meta": {
+        "topic_id": "heating-behaviour-comfort-and-health-floors",
+        "title": "How households heat their homes, how warm they actually are, and the temperatures advice must never go below",
+        "subtitle": "Households set about 20°C and live about a degree below it, heat for about seven hours a day, and a tenth of homes sit below 16°C in the coldest weeks. After 2022 the average setting fell a degree and the cut fell hardest on those who could least afford it. Any advice to save heat has to respect a health floor first.",
+        "wall_placement": "Public-reality commons only. Every figure comes from a published source and was checked against it on 25 October 2026 where the advisor's pack could not fetch it; figures still unconfirmed are named as gaps. The statements about the simulation and the company are about their code and are marked as read, not run.",
+        "claim_freshness": {
+          "last_verified": "2026-10-25",
+          "written": "2026-10-25",
+          "source": "EFUS 2017 heating patterns and thermal comfort reports; Huebner et al. 2013 and 2015 (CaRB living-room temperatures); SERL panel (Hanmer and Zapata-Webborn 2023; Zapata-Webborn et al. 2024; SERL statistical report vol. 2); DESNZ domestic hot-water use from connected devices (2024); EST hot water measurement (2008) and BRE's analysis; PHE minimum home temperature thresholds (2014); WHO Housing and Health Guidelines (2018); NICE NG6; HSE legionella guidance; Ofgem SLC 27A decision (2020)",
+          "note": "Drafted from the advisor's cited evidence pack of 25 Oct 2026 for the advice roadmap and the personalised asset world. Its headline bands are calibration for the whole population, never targets for one home."
+        }
+      },
+      "rungs": {
+        "headline": {
+          "heading": "The claim, in one sentence",
+          "body": "English households set a median thermostat of 20°C (interquartile range 19-21°C), run their living rooms about a degree cooler than that, and heat for a median of 7 hours on a weekday; in winter 2022/23 the mean setting fell from 20.2°C to 19.2°C and the share set below 18°C more than doubled to 15%, concentrated in homes that felt fuel poor; and published health guidance puts 18°C as the floor no advice should push a living room below."
+        },
+        "plain": {
+          "heading": "In plain terms",
+          "body": "Most homes heat at set times: twice a day is the commonest pattern (a short morning burst and a longer evening block), and about a quarter of centrally heated homes heat irregularly. A home with a pensioner in it heats for about 9 hours, a single person under 60 for about 5.5. The heating season lasts about 5.7 months, typically October to April.\nWhat homes actually reach differs from what they set. In February 2018 the average living room was 18.5°C and the average bedroom 18.1°C; the coldest tenth of homes were below 15.7°C and 15.0°C. Homes in the worst energy bands were about 2°C colder than the best. About 12% of households say their living room is uncomfortably cold often or always, and that rises to 23% among the fuel poor.\nWhen prices rose in 2022, households turned down: the median household cut gas by about 11%, about 3.8% for each degree off the thermostat. The households that cut most were twice as likely to say they could not keep warm. Health guidance says 18°C carries minimal risk for most people, that older and ill people need slightly more, and that risk rises again below 16°C. Ofgem sets no temperature rule; a supplier's duty is to spot customers who ration themselves and support them."
+        },
+        "theory": {
+          "heading": "How it works",
+          "body": "SETPOINT AND ACHIEVED TEMPERATURE. A thermostat ends heating at its setting; the room then falls back during the off periods. Measured living rooms run about 1°C below the stated setting while heating is on, and further below it in leaky homes, where the system cannot keep up or the household sets lower. The survey measures the sum of those two effects, not the split.\nSCHEDULES. Among homes that heat regularly, 58% heat twice on a weekday, 23% once and 19% three or more times. Once-a-day heating is long: its median period is about 14.5 hours, mostly starting at wake-up. Whole-day flat temperature profiles appear in about 31% of measured homes, far more than the 4-6% who report heating all day or all year, because low setbacks and long hours look flat too.\nHOT WATER. A household draws a fixed amount plus an amount per person: about 36 + 25 litres per person per day in the national model, a median of 90 litres in 45,000 combi homes with a range of 19-222. Small taps are 85% of draws but showers and baths are 45% of the volume. About 37% of showers are electric, 47% in fuel-poor homes, and their energy is on the electricity meter.\nHEALTH FLOORS. WHO proposes 18°C as a safe indoor temperature, more for older people, children and the chronically ill. PHE: 18°C poses minimal risk to sedentary, clothed people; over-65s and the ill benefit from slightly more and 18°C overnight; infants' rooms 16-20°C; below 16°C blood-pressure risk rises sharply. Stored hot water must be kept at 60°C or above against legionella, and water above 44°C at the tap is a scald risk for vulnerable people."
+        },
+        "expected_shape": {
+          "heading": "What the data should look like",
+          "body": "A credible simulated population should show these shapes against the record:\n• Thermostat settings with a median of 20°C and interquartile range 19-21°C before 2022; a mean near 19.2°C in 2023 with about 15% below 18°C.\n• A February living room near 18.5°C and bedroom near 18.1°C, with the coldest tenth below 15.7°C and 15.0°C.\n• EPC F and G living rooms about 1.5-2°C colder than A to D.\n• Weekday heating of median 7 hours (5-10), and at any half-hour no more than about 74% of homes heating.\n• At least half of homes using no heating gas overnight.\n• Median gas use of about 26 kWh a day, or about 9,500 kWh a year, in 2023.\n• Hot water about 19% of heat demand, with a median of 90 litres a day in combi homes.\n• About 12% of households reporting an uncomfortably cold living room."
+        },
+        "live_evidence": {
+          "heading": "Live evidence",
+          "body": "WHAT IS SOURCED. Setpoints, measured temperatures by home and household type, schedules, season, flow temperature, controls, room-by-room heating, hot water volumes and events, the 2022/23 response, and the health guidance, with every link and the outcome of each check made on 25 October 2026, are in the research note behind this page.\nWHAT THE WORLD DOES, READ FROM CODE AND NOT RUN. Each home draws a thermostat setting around 20°C with a spread matching the published range, offset by its energy band so leaky homes run colder, and a schedule whose length follows the published hours by daytime presence. Once-a-day homes are given a single evening block of the same 6-8.5 hours, whereas the survey's once-a-day period is a median of about 14.5 hours. There is no irregular or all-day pattern for boiler homes. Hot water follows the national fixed-plus-per-person volume, anchored to the measured combi median. The 2022 response scales each home's whole gas use by a published per-household elasticity rather than lowering its thermostat. No home has an electric shower.\nWHAT THE COMPANY DOES, READ FROM CODE AND NOT RUN. Its one zero-cost heating advice, a one-degree turn-down, is refused wherever the home's band would put it below 18°C, and refused when the band is unknown. It carries no higher floor for older, ill or registered-vulnerable households, no rule against advising homes already rationing, and no hot-water floor."
+        },
+        "residuals": {
+          "heading": "Where our picture is still weak",
+          "body": "Nine things are weak. (1) No published overall distribution of measured winter temperatures, only deciles and group means. (2) The share of homes heated round the clock is uncertain: reported about 4-6%, a flat measured profile about 31%. (3) The flow-temperature distribution rests on one trade-journal report of telemetry; the primary paper was not found. (4) Hot water by occupancy has only a mean line with very wide scatter. (5) No GB figures for coping behaviours such as extra clothing, heating one room or going to bed early. (6) No measurement of how radiator valves are actually set. (7) Electric showers and immersion use are missing from the connected-device data. (8) Whether lowering a combi's hot-water setting is low legionella risk is not a formal HSE position. (9) Access to the SERL in-home temperature data for calibration is unconfirmed."
+        },
+        "scope_delta": {
+          "heading": "What this page does not yet establish",
+          "body": "It does not grade the simulated world's temperatures or schedules against these bands; that is owed. It does not set the health floors as policy; that is a design decision for the advice build, which this page informs. It covers how boilers convert gas to heat only in passing; that is on the boilers page."
+        }
+      }
+    },
+    "heat-pumps-and-fabric-measures": {
+      "meta": {
+        "topic_id": "heat-pumps-and-fabric-measures",
+        "title": "What a heat pump and insulation really deliver in GB homes, and what they cost and save",
+        "subtitle": "A typical air-source heat pump in a GB home delivers about 2.8 units of heat per unit of electricity over a year, close to break-even with gas at today's prices but cutting carbon by two thirds or more. Insulation saves less than modelled: about 3% for a loft top-up, 7-10% for cavity walls and 16-19% for solid walls, as measured.",
+        "wall_placement": "Public-reality commons only. Every figure comes from a published source and was checked against it on 25 October 2026 where the advisor's pack could not fetch it; figures still unconfirmed are named as gaps. The statements about the simulation and the company are about their code and are marked as read, not run.",
+        "claim_freshness": {
+          "last_verified": "2026-10-25",
+          "written": "2026-10-25",
+          "source": "DESNZ heat pump deployment statistics and Household Energy Efficiency detailed release (Mar 2026); Ofgem Boiler Upgrade Scheme annual reports (2024-25, 2025-26); Energy Systems Catapult Electrification of Heat results; DECC RHPP final report (2016); NEED reports 2018-2026; English Housing Survey 2023-24; Ofgem cap announcement for Oct-Dec 2026; Octopus Cosy tariff page; EST insulation and controls advice pages; SMETER competition summary; Sunikka-Blank and Galvin (2012)",
+          "note": "Drafted from the advisor's cited evidence pack of 25 Oct 2026 for the advice roadmap and the personalised asset world. Its headline bands are calibration for the whole population, never targets for one home."
+        }
+      },
+      "rungs": {
+        "headline": {
+          "heading": "The claim, in one sentence",
+          "body": "Air-source heat pumps installed under the Electrification of Heat trial achieved a median seasonal performance factor of 2.80 (2.44 on the coldest days), which at the October 2026 price cap is almost exactly the 2.77 at which they break even on unit cost against an 84%-efficient gas boiler, while cutting the home's heating carbon by about 67-85%; and the government's measured median gas savings from insulation are about 2-4% for lofts, 7-10% for cavity walls and 16-19% for solid walls."
+        },
+        "plain": {
+          "heading": "In plain terms",
+          "body": "Heat pumps are still rare. About 53,000 were fitted to existing homes in 2025, almost all air-source, against a target of over 450,000 a year by 2030. The government grant is £7,500, and the average air-source quote under it was about £13,400 before the grant.\nHow well they work depends on the house and the installation more than on the weather. The best recent field trial found a median of 2.80 units of heat per unit of electricity over a year, up from about 2.44 a decade earlier; enthusiasts who monitor their own systems report nearer 3.9. At today's capped prices electricity costs 3.3 times as much per unit as gas, so a typical heat pump saves little on running cost alone. Most of the money comes from a heat-pump tariff with cheap periods and from dropping the gas standing charge. The carbon saving is large at every efficiency.\nInsulation has been widely fitted: 71% of cavity-walled homes and 67% of lofts have it, but only 11% of solid-walled homes. Measured savings are smaller than models predict, and loft savings fade by about a tenth over five years. At today's gas price a cavity wall saves about £80 a year for an installation costing about £2,200."
+        },
+        "theory": {
+          "heading": "How it works",
+          "body": "PERFORMANCE. A heat pump's seasonal performance factor is the heat it delivers over a year divided by the electricity it uses, measured at a stated boundary. It falls as the flow temperature it must deliver rises, so emitter size and weather compensation matter. In the Electrification of Heat trial the mean flow temperature was 38°C, detached homes did best, and much of the spread was unexplained. Hot water is a harder duty: the earlier RHPP trial measured 2.31 for hot water against 2.74 for space heating, and immersion heaters used about 12% of electricity, more at poor sites.\nRUNNING COST. Break-even on unit cost is the price ratio times the boiler's efficiency: 3.30 times 0.84 gives 2.77 at the October 2026 cap (electricity 26.32p with VAT at zero until March 2027, gas 7.97p). On Octopus's Cosy tariff the cheap periods are 51% below the day rate, which lowers break-even to about 2.2 on an assumed 60/40 split.\nINSULATION. The government's NEED analysis compares the weather-corrected gas of homes that had a measure fitted with a comparison group that did not, and reports the median. Combined measures save less than the sum of their parts: cavity plus loft about 9%, solid wall plus loft about 14%.\nIN THE METER DATA. A heat pump shows as gas falling to zero (or to cooking) from a date, with electricity rising by roughly the heat demand divided by the performance factor, strongly in winter. Insulation shows as a lower slope of gas against heating degree-days with the baseload unchanged. A 3% change is below what one home's year-to-year noise reveals, so loft savings can only be shown across many homes."
+        },
+        "expected_shape": {
+          "heading": "What the data should look like",
+          "body": "A credible simulated population and its heat-pump homes should show these shapes against the record:\n• Air-source seasonal performance with a median near 2.8 (interquartile range about 2.5-3.1), near 2.4 on the coldest days, and hot water near 2.3.\n• Hybrid systems near 2.4.\n• 71% of cavity-walled homes insulated, 67% of lofts at 125 mm or more, 11% of solid walls.\n• EPC registrations in England in 2025 about 15% A-B, 48% C, 30% D, 5% E and 1.5% F-G; about half the whole stock A-C.\n• Air-source 97-99% of new installs, about 52-53 thousand retrofits in 2025.\n• Measured median gas savings of about 2-4% for a loft, 7-10% for a cavity wall and 16-19% for a solid wall, with loft savings about a tenth lower by year five."
+        },
+        "live_evidence": {
+          "heading": "Live evidence",
+          "body": "WHAT IS SOURCED. Deployment, grant levels and costs, field performance, prices, carbon factors, insulation coverage, measured savings and their decay, and the economics, with every link and the outcome of each check made on 25 October 2026, are in the research note behind this page.\nWHAT THE WORLD DOES, READ FROM CODE AND NOT RUN. In the half-hourly physics a heat pump's efficiency rises with outdoor temperature, from 2.2 at -2°C to 3.5 at 7°C. That matches the measured coldest-day figure but sits above the measured 2.8 annual median at mild winter temperatures. A ground-source pump is the same curve scaled up by a quarter. In the settlement path every heat-pump home adds a fixed 5,500 kWh a year whatever its size or fabric, about twice what a typical home would use at the measured performance.\nWHAT THE COMPANY DOES, READ FROM CODE AND NOT RUN. It assumes a seasonal performance of 2.8, which matches the trial. Its offer book prices insulation at £6,000 removing 30% of the fabric's heat loss, above every measured median, and a heat pump at £12,000 with a performance of 2.6."
+        },
+        "residuals": {
+          "heading": "Where our picture is still weak",
+          "body": "Twelve things are weak. (1) The heat-pump install series 2016-2021 on one counting basis. (2) The Electrification of Heat final report, so no final distribution or metered hot-water figure. (3) The self-monitored systems' published paper, so no cycling, defrost or flow-temperature curve. (4) Modelled insulation savings to set against the measured ones. (5) Recent kWh medians, which NEED shows only in charts. (6) The measured rise in electricity after a heat pump. (7) Cosy's absolute rates, which vary by region; only the windows and ratios are confirmed. (8) Winter and marginal carbon intensity of heat-pump load. (9) Heat-pump pathways from the CCC and NESO. (10) Savings-measurement thresholds. (11) Installation time and the replacement-boiler cost. (12) Heat-loss estimation from meter data is unvalidated for heat-pump and A/B homes."
+        },
+        "scope_delta": {
+          "heading": "What this page does not yet establish",
+          "body": "It does not grade the world's heat pumps or insulation against these bands; that is owed. It does not set the advice roadmap's order. How a gas boiler and its controls work is on the boilers page; where a home's carbon sits overall is on the household carbon page; how houses gain measures on their own timeline is on the houses-change page."
+        }
+      }
+    },
+    "solar-pv-and-home-batteries": {
+      "meta": {
+        "topic_id": "solar-pv-and-home-batteries",
+        "title": "Solar panels and home batteries: what they generate, what the home keeps, and what the settings are worth",
+        "subtitle": "A GB rooftop array makes about 800 to 1,100 kWh a year for each kilowatt of panel. A home without a battery uses roughly 40-45% of that itself and exports the rest. A battery's value depends less on its size than on how it is set and which tariff it sits on.",
+        "wall_placement": "Public-reality commons only. Every figure comes from a published source: DESNZ cost and load-factor statistics, Ofgem's Feed-in Tariff and Smart Export Guarantee reports, BRE's SAP self-use method, peer-reviewed field studies, manufacturer datasheets and trade press marked as such. PVGIS figures are © European Union, JRC. The statements about this project's world and company are about their code and are marked as read, not run.",
+        "claim_freshness": {
+          "last_verified": "2026-10-25",
+          "written": "2026-10-25",
+          "source": "DESNZ Solar PV cost data (May 2026) and FiT load factor analysis 2024/25; Ofgem FIT annual report SY15 and SEG annual report Year 5; BRE S10TP-07 (SAP 10.2 self-use factor); McKenna et al. 2018 and 2019; Luthander et al. 2015; NREL degradation review; IEA PVPS Task 12; Tesla Powerwall 3 datasheet; PVGIS v5.2 (run 25 Oct 2026); MCS and Solar Power Portal citing DESNZ for battery counts and costs",
+          "note": "From the advisor's cited evidence pack of 25 Oct 2026 (advice roadmap). The pack's unverified items were checked at source on the same day: 1 confirmed, 0 corrected, 8 still open. The supplier-side view of the same kit is on the EV, solar and batteries page."
+        }
+      },
+      "rungs": {
+        "headline": {
+          "heading": "The claim, in one sentence",
+          "body": "A GB rooftop solar array produces about 800 to 1,100 kWh a year per kilowatt of panel depending on place and orientation, a home without a battery uses about 37-57% of that itself (typically 40-45%), and a battery adds roughly 13-25 percentage points of self-use, so most of a battery's money comes from the tariff it is set to work against, not from the solar."
+        },
+        "plain": {
+          "heading": "In plain terms",
+          "body": "There are about 2.1 million solar installations in Britain, roughly 41% of them from the Feed-in Tariff years of 2010 to 2019 and most of the rest installed since 2023. A typical older system is 2-4 kW; new ones are about 5 kW. Batteries were rare before 2023 and now come with about one new solar system in six or seven, at a mean of about 8.6 kWh.\nA panel only makes power in daylight, mostly in spring and summer, while a home uses most of its power in the evening. So a home keeps less than half of what it generates unless someone is in during the day or a battery stores the surplus. What is not used is exported, and is worth whatever export tariff the household has: from about 1p to 25p a unit in 2026.\nA battery can also charge from the grid at night and discharge at the evening peak. On a tariff built for that, the same 5 kWh battery is worth two to three times as much as on a flat export rate. How it is set (mode, reserve, schedule) decides most of what it earns."
+        },
+        "theory": {
+          "heading": "How it works",
+          "body": "GENERATION. Output is irradiance on the panel's plane times its size times a performance ratio (about 0.77-0.80 measured), less shading, inverter clipping and ageing of about 0.5-0.8% a year. The fleet's median yield ran 806-920 kWh per kW a year in 2011-2025; 2024/25 was the lowest year on record.\nSELF-USE. SAP's method gives the monthly share used on site as exp(-C1·(C2·E/D)^C3), where E is generation and D demand, with coefficients that move with usable battery capacity up to 15 kWh. For a 2.5 kW array on a 3,100 kWh home it gives 0.40 without a battery, 0.65 with 5 kWh and 0.86 with 10 kWh. Daytime occupancy moves it more than anything else: at equal generation and demand, from about 20% to about 80%.\nBATTERY. Round trip about 89%. The levers are self-consumption mode, timed grid charging to a target, timed export and a reserve floor. On a peak/off-peak import-export tariff one 5 kWh cycle a day is worth roughly £210-330 a year; left in self-consumption mode on a flat export rate it adds about £150-180.\nCOST. DESNZ's median installed cost for 0-4 kW systems was £1,780 per kW in 2025/26, down from £2,263 in 2023/24 and at a record low in real terms; batteries cost about £590-1,020 per kWh by size. Both are zero-rated for VAT until 31 March 2027."
+        },
+        "expected_shape": {
+          "heading": "What the data should look like",
+          "body": "A credible simulated population of solar homes should show:\n• About 41% of installations from 2010-2019 at 2-4 kW, and a 2023-26 cohort near 5 kW, 60% of it at 0-4 kW.\n• Annual yield per kW in the 806-920 range across years, about 35% of it in April-June and about 15% in October-December for a south-facing array.\n• Self-use without a battery mostly 37-57%, higher where someone is home in the day.\n• Self-use 13-25 points higher with a battery of about 5 kWh.\n• Batteries almost absent before 2022, then attached to roughly 15-20% of new solar by 2025, averaging about 8.6 kWh.\n• Exports measured, not deemed: homes export 55-63%, more than the Feed-in Tariff's assumed 50%."
+        },
+        "live_evidence": {
+          "heading": "Live evidence",
+          "body": "WHAT IS SOURCED. Installation counts and the cost series by size band (DESNZ, re-read at source on 25 Oct 2026), Feed-in Tariff and Smart Export Guarantee counts and payments (Ofgem, re-read the same day), SAP's self-use coefficients (BRE, re-read), measured self-use from GB field studies, degradation, lifetimes, battery datasheets and warranty terms, and a PVGIS grid run the same day for seven GB sites. Every figure and URL is in the research note solar_pv_and_home_batteries_2026-10-25.md.\nWHAT THE WORLD AND COMPANY DO, READ FROM CODE AND NOT RUN. The world's half-hourly solar output uses one fixed array size for every home, with no orientation, tilt, shading or ageing, and a separate older annual figure. Panel sizes and battery sizes are drawn from flat ranges unchanged across the years. The battery charges only from surplus solar and discharges 4pm-8pm; it never charges from the grid or follows a tariff. The company assumes 50% self-use without a battery, at the top of the measured range, and one export price per year."
+        },
+        "residuals": {
+          "heading": "Where our picture is still weak",
+          "body": "Eight things are missing. (1) Measured inverter efficiency and real-world battery round trip and standby losses in GB homes. (2) The Feed-in Tariff rate by year of installation, and how often a FiT licensee receives generation readings. (3) How export meters are registered and settled, and what share of solar homes have one. (4) Day-to-day cloud variability and how common shading is. (5) The uplift in self-use from a diverter or an electric car. (6) Marginal carbon factors and the embodied carbon of panels. (7) A GB protocol for proving solar and battery savings. (8) The DESNZ battery cost release itself; its figures were read through trade press."
+        },
+        "scope_delta": {
+          "heading": "What this page does not yet establish",
+          "body": "It does not cover what solar and batteries do to a supplier's margin, export competition between suppliers or EV tariffs; those are on the EV, solar and batteries page. It does not give the distributions of roof orientation, tilt and system size across the fleet; those are on the roofs page. It does not cover connecting the kit to the network or local flexibility payments. It does not grade the simulated world's solar homes against these bands."
+        }
+      }
+    },
+    "pv-roofs-orientation-and-yield": {
+      "meta": {
+        "topic_id": "pv-roofs-orientation-and-yield",
+        "title": "A roof's solar array: which way it faces, how steep, how big, how old, and the sky above it",
+        "subtitle": "Two identical panels on two GB roofs can differ in output by half. Facing, tilt, size, age, shade and the local sky each move it, and each can be drawn per home from published data.",
+        "wall_placement": "Public-reality commons only. Every figure comes from a published source: DESNZ load-factor and cost statistics, Ofgem Feed-in Tariff reports, peer-reviewed fleet studies, the Open Climate Fix uk_pv dataset card (© Open Climate Fix, made possible by Sheffield Solar, CC-BY-4.0, DOI 10.57967/hf/0878), PVGIS (© European Union, JRC; run on 25 Oct 2026, calibration only) and CM SAF SARAH-3 (© EUMETSAT). The statements about this project's world are about its code and are marked as read, not run.",
+        "claim_freshness": {
+          "last_verified": "2026-10-25",
+          "written": "2026-10-25",
+          "source": "DESNZ Feed-in Tariff load factor analysis 2011/12-2024/25; DESNZ Solar PV cost data (May 2026); Ofgem FIT annual report Year 10; Open Climate Fix uk_pv dataset card; PVGIS v5.2 grid of seven GB sites × eight facings × three tilts (run 25 Oct 2026); Killinger et al. 2018; Dhimish et al.; PEARL PV fleet study; Pfeifroth et al. 2024 (SARAH-3); ENA EVCP and heat pump form v3.3",
+          "note": "From the advisor's cited evidence pack of 25 Oct 2026, one of six supplying the personalised asset world. Checked at source the same day: of 6 unverified items, 2 confirmed and 4 still open; three sourced figures corrected (the 2-4 kW share of the OCF sample, and the east/west and north factors)."
+        }
+      },
+      "rungs": {
+        "headline": {
+          "heading": "The claim, in one sentence",
+          "body": "Across seven GB sites PVGIS gives a south-facing 35° array 886 to 1,145 kWh per kW a year, an east- or west-facing one 0.76 to 0.81 of that and a north-facing one about half, while the real fleet's median has run 806 to 920 kWh per kW a year since 2011, so where a roof faces and where it is matter as much as what is on it."
+        },
+        "plain": {
+          "heading": "In plain terms",
+          "body": "No two solar roofs are the same. One facing south in Cornwall makes about a third more than the same panels facing south in Manchester, and a fifth more again than the same panels facing east or west. A north-facing roof makes about half. Steepness matters less: anything from about 15° to 50° stays close to the best for its direction.\nSize and age matter too. Most systems fitted under the Feed-in Tariff (2010-2019) are 2-4 kW; most fitted since 2023 are 4-6 kW, and about a third of those are on new-build homes, which get smaller arrays. Panels lose about 0.7-0.9% a year, and inverters fail: about a third of them by year 15 in one large survey.\nThe weather each home sees is available at street scale. A satellite record gives sunshine every half hour on a grid about 4 by 5 km, so neighbouring homes share their sky, and a cloudy afternoon hits a whole street at once."
+        },
+        "theory": {
+          "heading": "How it works",
+          "body": "ORIENTATION AND TILT. The PVGIS grid run for this page (seven sites from Penzance to Aberdeen, eight facings, three tilts, SARAH-2 satellite weather 2005-2020) gives east or west at 0.81-0.84 of south at 25°, 0.76-0.81 at 35° and 0.73-0.78 at 45°; south-east and south-west 0.92-0.96; north 0.41-0.65. The year-to-year standard deviation is 3.4-4.1% of the annual yield.\nWHAT IS NOT PUBLISHED. No GB-wide distribution of which way solar roofs face has been published. The best source is the Open Climate Fix dataset of over 30,000 GB systems, whose metadata gives each system's orientation, tilt and size; its access terms were accepted on 25 Oct 2026 and the metadata has not yet been read. Until it is, the world's orientation shares are a named assumption.\nSIZE. The same dataset's card shows 81.5% of its systems at 2-4 kW. DESNZ data for 2025/26 put 60% of new domestic systems at 0-4 kW and 36% at 4-10 kW.\nTHE MEASURED FLEET. DESNZ's median load factor for Feed-in Tariff solar ran 9.2-10.5% (806-920 kWh per kW) a year from 2011/12 to 2024/25, with the spring quarter near 13.6% and the autumn quarter near 4.7% in 2024/25; the South West ran about 20% above Scotland in 2020/21.\nTHE SKY. CM SAF SARAH-3 gives half-hourly global and direct irradiance from 1983 to the present on a 0.05° grid, free with attribution, and within about ±2 W/m² of ground stations on average."
+        },
+        "expected_shape": {
+          "heading": "What the data should look like",
+          "body": "A credible simulated fleet should show:\n• Median annual yield per kW in 806-920 in each year, moving with that year's sunshine, about 4% year to year.\n• The South West about a fifth above Scotland.\n• East- or west-facing homes at about 0.76-0.81 of south-facing ones at the same place and a 35° tilt.\n• Older systems at 2-4 kW; systems from 2023 on near 5 kW, with a new-build group near 1-2 kW.\n• Output falling about 0.7-0.9% a year with age, and some systems producing nothing for months after an inverter fails.\n• Neighbouring homes' output moving together from one half hour to the next."
+        },
+        "live_evidence": {
+          "heading": "Live evidence",
+          "body": "WHAT IS SOURCED. The Feed-in Tariff fleet's load factors by year, quarter and region (DESNZ, re-read at source 25 Oct 2026), the system-size bins on the Open Climate Fix card (re-read), the DESNZ size split of new installations (re-read), degradation and inverter-failure studies, and a PVGIS grid of 168 runs made on 25 Oct 2026 for calibration only. Every figure and URL is in the research note pv_roofs_orientation_and_yield_2026-10-25.md.\nWHAT THE WORLD DOES, READ FROM CODE AND NOT RUN. Which way a roof faces is a label by house type, and every drawn non-flat home is labelled east/west; the label only decides whether a home may install solar and never reaches its output. Output is computed on a flat surface from a clear-sky curve and a daily cloud figure, at a fixed size for every home, with no tilt, shading, ageing or inverter limit."
+        },
+        "residuals": {
+          "heading": "Where our picture is still weak",
+          "body": "Six things are missing. (1) The GB distribution of roof facing and tilt: in the Open Climate Fix metadata, not yet read. (2) How common east/west split arrays are. (3) How common shading is and how much it costs. (4) How closely cloud moves between nearby homes from day to day. (5) Panel size by house type and region, and battery uptake by region. (6) The share of systems that still work: only a third of Feed-in Tariff solar reported a valid reading in 2024/25, which is a reporting gap, not a failure rate."
+        },
+        "scope_delta": {
+          "heading": "What this page does not yet establish",
+          "body": "It does not cover what a home does with the power (self-use, batteries, export income, cost and carbon); that is on the solar panels and home batteries page. It does not cover connecting an array to the network. It does not grade the simulated world's arrays against these bands. The PVGIS runs are a calibration target and never an input the company reads."
+        }
+      }
+    },
+    "network-limits-on-home-electrification": {
+      "meta": {
+        "topic_id": "network-limits-on-home-electrification",
+        "title": "Connecting an EV charger, heat pump, solar or battery: the network's rules, the home's own supply and how long it takes",
+        "subtitle": "Most homes can fit one device and tell the network afterwards. A home on a shared service cable, with a small main fuse, or adding two devices at once has to apply first, and the cost of that is mostly time, not money.",
+        "wall_placement": "Public-reality commons only. Every figure comes from a published source: the ENA's common EV charger and heat pump form, DESNZ's unlooping research, the Smart Charge Point Regulations 2021, Ofgem decisions, DNO guidance and network studies, with vendor and trade sources marked as such. The statements about this project's world and company are about their code and are marked as read, not run.",
+        "claim_freshness": {
+          "last_verified": "2026-10-25",
+          "written": "2026-10-25",
+          "source": "ENA EV charge point and heat pump form v3.3; DESNZ Unlooping electricity network connections research summary (Jan 2026); Smart Charge Point Regulations 2021 (SI 2021/1467); Ofgem Access SCR decision (May 2022), RIIO-ED2 determinations and SSES implementation decision (Aug 2026); DNO guidance (ENWL, NGED, SPEN, SSEN, UKPN); NIE design demand consultation; Scottish Government network constraints study; Electric Nation; UKPN Shift; Regen/MCS",
+          "note": "From the advisor's cited evidence pack of 25 Oct 2026 under the director's steer that flexibility and network knowledge is thorough and the simulation is layered. The ENA form, the DESNZ unlooping figures and the Smart Charge Point Regulations were re-read at source the same day and confirmed; Octopus's 45% fuse-upgrade share could not be reached and stays open."
+        }
+      },
+      "rungs": {
+        "headline": {
+          "heading": "The claim, in one sentence",
+          "body": "A GB home may fit one EV charger or heat pump and notify its network operator within 28 days only if its supply is not looped, its cut-out rating is known and its maximum demand stays within 60 A per phase, and about 3.9 million homes (11-17%) are on looped services, so for a large minority the real cost of electrifying is weeks to months of waiting, not money."
+        },
+        "plain": {
+          "heading": "In plain terms",
+          "body": "Every home's electricity comes through a service cable and a main fuse (the cut-out), usually rated 60 to 100 amps on a single phase. Fitting an EV charger or a heat pump adds a big new load. If the home's supply is ordinary, the installer fits it and tells the network operator afterwards. If it is not, the installer must apply first and wait.\nThe commonest reason to wait is a looped service: one cable shared by two or more homes, often on 1970s and 1980s estates, in terraces and in rural areas. DESNZ estimates about 3.9 million GB homes are on one, and under 1% had been unlooped by January 2025. Unlooping is usually free to the household and takes 3-12 weeks, or six months to a year if a neighbour objects.\nSince April 2023 a household rarely pays to reinforce the network for new demand; the exception is a move to three-phase, typically £3,000-7,000. Fitting two devices together, a heat pump and a charger, always means applying first, so the bundle a supplier would like to sell is the slowest to connect."
+        },
+        "theory": {
+          "heading": "How it works",
+          "body": "THE RULE. The ENA's common form, used by every DNO, lets an installer connect and notify within 28 days only if all hold: one additional device; a known cut-out rating; a metered supply; not a looped service; no safety concern; maximum demand below the cut-out rating and below 13.8 kVA (60 A) per phase, unless CT-metered or load-limited. A heat pump must also stay within 32 A including back-up heaters and be listed for connect and notify. Between 60 and 100 A the DNO should answer within 10 working days. A fail-safe load limiter holding the home at 60 A restores the quick route.\nGENERATION. Type-tested solar and batteries up to 16 A per phase (about 3.68 kW single-phase) connect under G98 and notify; above that, G99 requires an application, up to 45 working days; export can be limited by a locked control under G100.\nTHE STREET. Network design adds a few kilowatts per home for each device after diversity: about 1.5-3 kVA for a gas-heated home, about 6-7 kVA with a heat pump and an unmanaged EV, about 5 kVA if the car charges smartly. Trials found at least 32% of low-voltage networks need intervention at 40-70% EV uptake, and that cars need only about 20% of their plug-in time to charge.\nCHARGE POINTS. Since 2021 new home charge points come with default charging hours outside 8am-11am and 4pm-10pm on weekdays, which the owner may change, and a random start delay of up to 10 minutes, extendable to 30."
+        },
+        "expected_shape": {
+          "heading": "What the data should look like",
+          "body": "A credible simulated world should show:\n• About 11-17% of homes on looped services, varying 6-25% by network region.\n• Most single-device installs connecting the same day, with a tail of applications, fuse upgrades of up to about 12 weeks and unlooping of up to 6-12 months.\n• About a third to a half of heat pump installs needing a supply upgrade.\n• Combined heat pump and charger installs always going through an application.\n• Almost no reinforcement charged to households after April 2023, except three-phase upgrades at £3,000-7,000.\n• Street-level demand rising by a few kVA per home per device, less where charging is managed."
+        },
+        "live_evidence": {
+          "heading": "Live evidence",
+          "body": "WHAT IS SOURCED. The connect-and-notify conditions (the ENA form, re-read at source on 25 Oct 2026), the looped-service count, cost, timing and DNO practice (DESNZ, re-read), the charge point defaults (the Regulations, re-read), Access SCR charging rules, DNO lead times and upgrade costs, design demand per home, and network studies. Every figure and URL is in the research note network_limits_on_home_electrification_2026-10-25.md.\nWHAT THE WORLD AND COMPANY DO, READ FROM CODE AND NOT RUN. Nothing in the world or the company holds a cut-out rating, a supply phase, a looped service or a connection rule, so every EV and heat pump connects instantly. The world draws a quarter of home EV chargers at 22 kW, which needs a three-phase supply most homes do not have."
+        },
+        "residuals": {
+          "heading": "Where our picture is still weak",
+          "body": "Seven things are missing. (1) The share of GB homes with a three-phase supply, and the spread of main-fuse ratings. (2) A national rate of installs that trigger an upgrade; only Octopus's 45% for its heat pump customers (not re-read at source) and WPD's 'about a third' exist. (3) A count of local substations needing reinforcement by 2030 or 2035. (4) How often home solar or battery applications are export-capped or refused. (5) Electric Nation's per-car peak after diversity. (6) Any right of a network operator to switch off home devices directly. (7) The 2024 and 2026 amendments to the wiring regulations, not read."
+        },
+        "scope_delta": {
+          "heading": "What this page does not yet establish",
+          "body": "It does not cover payments a network operator makes for local flexibility, virtual power plants or the Demand Flexibility Service; those belong to the flexibility page. It does not cover network charges on bills, which are on the regional supply cost page. It does not decide what the simulation builds: the cover steer sets a minimum viable layer (home supply, loop flag, the notify-or-apply rule, published delays) and optional layers above it, each with a trigger."
+        }
+      }
+    },
+    "vpps-and-local-flexibility": {
+      "meta": {
+        "topic_id": "vpps-and-local-flexibility",
+        "title": "Who else pays for a household's flexibility: aggregators, rival traders and the local network",
+        "subtitle": "A household's EV, heat pump or battery can earn money from more than its supplier: an aggregator can sell it to the grid operator, a rival can trade it in the wholesale market, and the local network pays for it in a few places. Each stream is real, most are small, and one of them can be taken from the supplier without asking.",
+        "wall_placement": "Public-reality commons only. Every figure comes from a published source: Elexon modifications and settlement data, NESO and DNO procurement reports, Ofgem decisions and aggregators' published offers. The statements about the company are about its code and are marked as read, not run. Which rival aggregator holds which meter is never visible to a real supplier until compensation arrives, and the page says so.",
+        "claim_freshness": {
+          "last_verified": "2026-10-25",
+          "written": "2026-10-25",
+          "source": "Elexon (P415, P510 IWA slides, BL01, Market Facilitator rules), NESO flexibility onboarding and BM relaxation (Mar 2026), NGED flexibility market insights (Jun 2025, Jun 2026), SSEN, SP ENW and SPEN SLC31E reports 2025/26, UKPN DSO, Ofgem SSES implementation decision (Aug 2026), Cornwall Insight for Nesta (2024), Baringa/Eaton, CrowdFlex (NESO, Feb 2026), aggregator and supplier offer pages",
+          "note": "Written from the advisor's cited evidence pack on VPPs, third-party flexibility and local network payments, under the director's steer of 25 Oct that flexibility knowledge is thorough and the simulation layered. Knowledge only: it commits nothing to the build."
+        }
+      },
+      "rungs": {
+        "headline": {
+          "heading": "The claim, in one sentence",
+          "body": "A GB household's flexible devices can now be sold by its supplier, by an independent aggregator to the grid operator, or by a rival trader into the wholesale market without the supplier's consent; the supplier is compensated for that last route from a pot all suppliers pay into (£18.9m over September 2025 to February 2026), while local network payments reach most homes as single-digit pounds a year."
+        },
+        "plain": {
+          "heading": "In plain terms",
+          "body": "Until recently only a household's supplier could sell its flexibility, by moving its EV charging or heat pump into cheaper hours. Three things changed. Independent aggregators can now register household devices for the grid operator's balancing services; since November 2024 a rival 'virtual trading party' can sell the same household's turn-down into the wholesale market; and the local networks pay for flexibility in specific places where their cables are short of capacity.\nFor a household the money is modest. Aggregators pay about £6-25 a month. A local network may pay £120 once to every home in a constrained area, or a few pounds per event. For the supplier the rival route matters more than its size: when a rival turns down its customer, the supplier is left holding energy it bought and is paid back at a reference price from a shared pot, and if two aggregators claim one meter, the newer one wins."
+        },
+        "theory": {
+          "heading": "How it works",
+          "body": "ROUTES. A supplier optimises its own customers against wholesale and imbalance prices and can register Additional BM Units. A Virtual Lead Party registers Secondary BM Units (at least 1 MW, one GSP Group) for the Balancing Mechanism; a Virtual Trading Party can also trade in the wholesale market under P415. Every unit must be half-hourly settled, so the move to half-hourly settlement (about 36% migrated by June 2026) gates who can take part.\nCOMPENSATION. A VTP's action creates a deviation volume at the supplier's meter. The supplier is compensated at the Supplier Compensation Reference Price and the cost is shared by market share; P510 would make it a direct, two-way payment, and P511 (Aug 2026) keeps large generators out. In the Balancing Mechanism, P444 has compensated suppliers directly since November 2025.\nLOCAL NETWORKS. DNOs buy standard products (Peak Reduction, Scheduled Utilisation, availability plus utilisation, Operational Utilisation) in zones keyed to postcodes and substations, at a 10 kW minimum aggregated in a zone. Since January 2026 delivery is settled per minute with a performance multiplier: at 5% grace and a multiplier of 3, payment reaches zero at 63% delivery.\nRULES. From 2027-28 anyone controlling household devices for flexibility needs a load-control licence, with consent, override, honest rewards and capped exit fees."
+        },
+        "expected_shape": {
+          "heading": "What the data should look like",
+          "body": "A world that holds third-party flexibility should show:\n• Nearly all DNO-registered flexibility assets domestic (about 309,000 of 309,500 at NGED) but under 40% of the capacity.\n• Tendered volume far above contracted, and contracted far above dispatched (NGED 2025/26: 198 GWh procured, 6.5 GWh dispatched).\n• Domestic DNO value of single-digit pounds per asset per year outside short-notice low-voltage events.\n• Household VPP payouts of about £6-25 a month.\n• VTP supplier compensation concentrated in a few parties, rising through winter (£0.7m in September 2025 to £5.6m in February 2026).\n• Turn-up drawing more than twice the response of turn-down."
+        },
+        "live_evidence": {
+          "heading": "Live evidence",
+          "body": "WHAT IS SOURCED. Aggregator routes and counts, the P415 mechanics and compensation flows, P510 and P511, the Market Facilitator timetable and standard baselines, DNO products, prices and 2025/26 results for four of six DNOs, household payment offers, CrowdFlex trial results and load-control licensing. Every figure and link is in docs/market_research/vpps_and_local_flexibility_2026-10-25.md; NGED's 2025/26 figures were checked against its report on 25 October 2026.\nWHAT THE PROJECT DOES, READ FROM CODE AND NOT RUN. The world dispatches flexibility on true system stress with a trivial baseline, and only dispatch instructions and settlement lines cross the wall. The company books DFS revenue only, refuses the Capacity Market leg with a reason, and counts flexible kW at the device's rated power (7.4 kW per charger) rather than the networks' standard baselines (1.67 kW). No rival aggregator exists anywhere, and the DNO tender register has no caller."
+        },
+        "residuals": {
+          "heading": "Where our picture is still weak",
+          "body": "Ten things are missing. (1) How the Supplier Compensation Reference Price is set. (2) Any published household income from the Balancing Mechanism or reserve services. (3) UKPN and Northern Powergrid 2025/26 results. (4) Piclo marketplace statistics. (5) Current Tesla, GivEnergy, Social Energy and Lunar VPP figures. (6) Incentive levels and measured kW per household in Power-ups and CrowdFlex. (7) The mapping from the old DNO products to the new ones. (8) The Balancing Mechanism baseline's lookback rule. (9) A study stacking every domestic revenue stream. (10) Domestic participation in Capacity Market units."
+        },
+        "scope_delta": {
+          "heading": "What this page does not yet establish",
+          "body": "It does not repeat the Demand Flexibility Service and Saving Sessions history, which is on the household flexibility page. It does not say which layer the simulation should build first; the director's steer proposes layers from a minimum viable core upward, and the roadmap rules them. It does not cover network connection limits on EVs and heat pumps, which have their own evidence pack."
+        }
+      }
+    },
+    "household-flexibility-and-the-advice-roadmap": {
+      "meta": {
+        "topic_id": "household-flexibility-and-the-advice-roadmap",
+        "title": "Household flexibility: what moving a home's demand is worth, how much households really move, and what else a supplier could advise on",
+        "subtitle": "The grid operator's paid events have fallen from about £3 to about 20p per kWh in three winters, and households move less than they sign up for. The value that remains is in shifting EV and heat-pump demand automatically into cheap half-hours, and around it sit a dozen other advice topics a supplier could offer.",
+        "wall_placement": "Public-reality commons only. DFS outturns, trial results and survey figures are published by NESO, Ofgem, suppliers and researchers; a real supplier could read every one. Which of its customers would respond to an event, and by how much, is not observable before the event, and the page keeps that distinction. Statements about the company are read from its code, not run.",
+        "claim_freshness": {
+          "last_verified": "2026-10-25",
+          "written": "2026-10-25",
+          "source": "NESO DFS winter reviews (2022/23-2024/25), Octopus Saving Sessions releases, Centre for Net Zero (BIEE 2023), CrowdFlex closure report (NESO 2026), Ofgem Flexibility and Net Zero survey (2025), SPEN customer research, DESNZ SSES government response and Ofgem implementation decision (Aug 2026), Smart Charge Points Regulations 2021, Drax, Cornwall Insight, CMA final report (2016), DESNZ smart meter statistics (Jun 2026), gov.uk scheme pages",
+          "note": "Written from the advisor's cited evidence pack on household flexibility and the advice roadmap, one of six under the director's steer of 25 Oct that the advice roadmap needs its knowledge first. Part 2's roadmap scan was mostly unverified; what was checked on 25 October is listed in the research note."
+        }
+      },
+      "rungs": {
+        "headline": {
+          "heading": "The claim, in one sentence",
+          "body": "The grid operator's Demand Flexibility Service fell from about £3,300 to about £241 per MWh delivered in three winters (48p per registered meter in 2024/25), and households that opt in cut 38-40% in an event but only about 9% against a fair comparison group, so a supplier's flexibility value now lies in automated, tariff-embedded shifting rather than paid events."
+        },
+        "plain": {
+          "heading": "In plain terms",
+          "body": "In winter 2022/23 the grid operator paid up to £3 for every kWh a household avoided in a short peak window, and suppliers like Octopus passed most of it on. Two winters later the same service paid about 20p per kWh and was used all year as an ordinary balancing tool. Households also moved less than the headlines suggested: a natural comparison group shows a 9% cut where the raw figure said 38-40%, and the official baseline overstated it by 13%.\nWhat remains valuable is quieter. A supplier settled on each half hour of its customers' actual use buys less expensive power when an EV charges at 3am instead of 6pm. That is worth tens to hundreds of pounds a year per EV or heat pump, and it needs automation and consent rather than a text message before each event.\nAround flexibility sit other things a supplier could advise on: the right tariff, data consent, storage heaters on Economy 7, prepayment safeguards and grants come first in the scan, ahead of hot water, landlords, home moves and cooling."
+        },
+        "theory": {
+          "heading": "How it works",
+          "body": "EVENTS. DFS pays providers per MWh turned down against a baseline of recent similar days. In 2024/25 it became a year-round merit tool, stackable with local network and capacity payments. Saving Sessions paid customers per kWh in OctoPoints. Opt-in falls with short notice (44% same-day against 63% day-ahead) and with repetition (about 49% to 33% of sign-ups per session), and delivery runs at about 72% of what is bid.\nSHAPING. Under half-hourly settlement a supplier pays for each half hour its customers actually use, so shifting demand from expensive to cheap periods lowers its purchase cost directly; the value scales with shiftable kWh and the price spread.\nCAPTURE. Since November 2024 an independent trader can sell a household's flexibility in the wholesale market and the supplier is compensated from a shared pot. The balancing mechanism opened to standard domestic devices in March 2026.\nCONTROL. From March 2028 controlling EV chargers, smart electric heating up to 45 kW and home batteries for flexibility needs a licence. EV chargers already must ship with off-peak default hours and a random start delay of up to 600 seconds.\nCONSENT. Only 16% of people are comfortable with a company controlling their heating, against 55% of EV users for charging."
+        },
+        "expected_shape": {
+          "heading": "What the data should look like",
+          "body": "A world that holds household flexibility should show:\n• Event response of about 24-26% among signed-up households and 38-40% among those who opt in, but only about 9% against a natural comparison.\n• Opt-in falling with repetition (about half to a third of sign-ups per session) and with short notice.\n• Delivery at about 65-82% of what is bid, lowest in midwinter.\n• Load moved into the hours around an event, not only removed.\n• Comfort with third-party control far higher for EV charging than for heating.\n• Event revenue per registered meter well under £5 a winter, against a stated household expectation of about £150 a year."
+        },
+        "live_evidence": {
+          "heading": "Live evidence",
+          "body": "WHAT IS SOURCED. Three winters of DFS outturns, two of Saving Sessions, the response and opt-in studies, the value streams a supplier can capture with their bands, the SSES licensing timetable and consumer terms, and the value-sharing models in use. The 2024/25 DFS figures, the Smart Charge Points Regulations, the CMA detriment figure, the restricted-meter count, the radio teleswitch switch-off, the smart-meter share and four scheme figures were checked against primary sources on 25 October 2026; eighteen roadmap-scan figures remain unverified and are not used as claims. Every figure is in docs/market_research/household_flexibility_and_the_advice_roadmap_2026-10-25.md.\nWHAT THE COMPANY DOES, READ FROM CODE AND NOT RUN. It books DFS revenue from 2022 for any household with an EV, heat pump or battery, from the published per-winter record, and refuses the capacity leg with a reason. Nothing values a household's shifted demand against the company's own half-hourly costs, nothing models opt-in, notice or fatigue, and no rival trader exists. Its advice modules have no recipient."
+        },
+        "residuals": {
+          "heading": "Where our picture is still weak",
+          "body": "Ten things are missing. (1) The value of imbalance avoidance per household. (2) Balancing Mechanism revenue for aggregated domestic devices. (3) Domestic capacity-market de-rating; the band assumes 0.5 kW. (4) DFS 2025/26 outturn. (5) Saving Sessions 2024/25 and 2025/26. (6) A direct measure of event fatigue. (7) Fetches not made: Axle, OVO Charge Anytime, Piclo, ENA Open Networks and FES 2025 flexibility capacity. (8) Eighteen roadmap-scan figures, including electric-heating homes, prepayment meter counts, the smart data access defaults, the private rented share and heat-network counts. (9) The SSES legal-force date is stated two ways. (10) The CrowdFlex report's own figures disagree between sections."
+        },
+        "scope_delta": {
+          "heading": "What this page does not yet establish",
+          "body": "It does not cover rival aggregators, local network payments or load-control licensing in depth; those are on the VPPs and local flexibility page. It does not cover boilers, EVs, solar and batteries, heat pumps or how savings are proven, which have their own pages. It ranks the advice topics but does not set the build order, which the director's steer and the roadmap decide."
+        }
+      }
+    },
+    "proving-and-showing-household-savings": {
+      "meta": {
+        "topic_id": "proving-and-showing-household-savings",
+        "title": "Proving a household saved, and showing it so they believe it",
+        "subtitle": "A saving is the difference between what a home used and what it would have used, and the second number is never observed. Industry methods estimate it with known biases, a single home can only show a saving above about 4%, and the advertising regulator has twice ruled against suppliers' savings claims.",
+        "wall_placement": "Public-reality commons only. Every method, threshold and result is published. A real supplier never observes a household's counterfactual; the simulation does, and that is what lets this project grade a supplier's estimate. The page keeps the two apart, and the statements about the company are read from its code, not run.",
+        "claim_freshness": {
+          "last_verified": "2026-10-25",
+          "written": "2026-10-25",
+          "source": "CalTRACK methods (readthedocs), EVO M&V Focus #5, ASHRAE Guideline 14 summary, Ofgem ECO measures table (2014) and ECO4/GBIS guidance, DESNZ SMETER evidence annex and ECO4 mid-scheme assessment (2024), BIT/DESNZ smart meter meta-analysis (2023), Early Learning Project (2015), NEED (2025), BRE solid-wall trial (2016), Allcott (2011), Allcott & Rogers (2014), Kemper (ACEEE 2015), NESO/ERM-CSE DFS evaluation (2025), ASA rulings on British Gas (2026) and Octopus (2025), CMA Green Claims Code, Ofgem Standards of Conduct",
+          "note": "Written from the advisor's cited evidence pack on proving and showing household savings, with the CalTRACK and in-use-factor sections of the gap-closure pack, under the director's steer of 25 Oct that the advice roadmap needs its knowledge first."
+        }
+      },
+      "rungs": {
+        "headline": {
+          "heading": "The claim, in one sentence",
+          "body": "A household's saving can only be estimated, because what it would have used is never observed: deemed savings deliver about 0.7 of what they predict, studies without a comparison group find about 9.6% where controlled ones find about 2%, a single home's hourly data can detect a saving only above about 3.6%, and the advertising regulator has ruled that an 'up to' saving must be achieved by a significant share of customers."
+        },
+        "plain": {
+          "heading": "In plain terms",
+          "body": "To say a home saved money you need two numbers: what it used, and what it would have used without the change. The second can only be estimated. Schemes such as the Energy Company Obligation give each measure a fixed 'deemed' saving and then cut it, because measured savings come in lower: a solid-wall trial achieved about 73% of the prediction, and the least efficient homes already use far less than models assume.\nMeasured savings have their own traps. A cold winter, a price rise or a new baby all change a bill. Without a comparison group, studies find savings about four times larger than with one. For one home, a smart meter can only reliably show a saving bigger than about 4%; smaller savings need hundreds or thousands of homes.\nShowing a saving has rules too. In 2026 the advertising regulator upheld a complaint against 'save up to £546 with a heat pump' because only 34% of customers achieved it, and in 2025 against a claim that hid its basis behind 'learn more'."
+        },
+        "theory": {
+          "heading": "How it works",
+          "body": "METHODS. Deemed savings assign each measure a fixed value (ECO1 cut it by an in-use factor: 35% for cavity and loft, 33% for older solid brick walls). Modelled savings come from SAP or an engineering model. Metered savings compare actual use with a counterfactual built from the home's own history, normalised for weather (IPMVP Option C).\nCALTRACK, the open method used in US pay-for-performance, fits a 365-day daily or billing baseline with heating and cooling degree days at a searched balance point, or an hourly time-of-week and temperature model; it reports fractional savings uncertainty and combines homes by root-sum-of-squares, which shrinks noise but not bias.\nDETECTION. Uncertainty falls roughly with the square root of the number of homes: about ±4.5 points with 300 per arm, ±0.8 with 10,000. Weather and price shocks cancel in a randomised comparison but not in one home's before-and-after. ASHRAE Guideline 14 requires savings uncertainty below 50% of the saving at 68% confidence.\nBIASES. Prebound (homes already under-heat), rebound (comfort taken back, 10-30% for heating), Hawthorne (being watched saves about 2.7% that vanishes) and persistence (report-driven savings decay 10-20% a year once reports stop).\nCLAIMS. Ofgem's Standards of Conduct require complete, accurate, plain information; the CMA's Green Claims Code requires substantiation; the ASA requires the basis in the claim itself."
+        },
+        "expected_shape": {
+          "heading": "What the data should look like",
+          "body": "A world in which savings are measured honestly should show:\n• Smart meter and in-home display savings of about 2-3.5% electricity and 1.5-3% gas, lower for prepayment gas.\n• Home energy reports saving about 2% on average, far more for high users (about 6%) than low (about 0.3%), decaying 10-20% a year after they stop.\n• Measured fabric savings at about 0.7 of modelled, with the shortfall largest in the least efficient homes.\n• Single-home detection impossible below about 3.6% with hourly data and about 10% with monthly.\n• Flexibility-event savings net of load moved into the following hours, which exceeded the baseline in 14 of 18 events in 2022/23."
+        },
+        "live_evidence": {
+          "heading": "Live evidence",
+          "body": "WHAT IS SOURCED. Deemed, modelled and metered methods; CalTRACK and the Guideline 14 thresholds; comparison-group and detection-size evidence from GB trials; flexibility baselines and their gaming; measured savings for smart meters, home energy reports and insulation; prebound, rebound, Hawthorne and persistence; the ASA rulings and the rules on claims. The CalTRACK rules, the Guideline 14 uncertainty rule and the ECO in-use factors were checked against their primary sources on 25 October 2026. Every figure is in docs/market_research/proving_and_showing_household_savings_2026-10-25.md.\nWHAT THE PROJECT DOES, READ FROM CODE AND NOT RUN. The company's household-side figure is what a home would have paid on the default tariff minus what it paid: a price comparison, not a measured change in use. The world models the prebound effect. Nothing implements a savings estimator, a detectable-saving calculation or a claim audit, the world's flexibility baseline is trivial, and advice reaches no household yet."
+        },
+        "residuals": {
+          "heading": "Where our picture is still weak",
+          "body": "Nine things are missing. (1) EVO's own IPMVP text. (2) Guideline 14's calibration clause (the standard is sold, not published). (3) LBNL's M&V 2.0 acceptance criteria. (4) In-use factors for ECO3 and ECO4, which replaced them with a treated-share adjustment. (5) The cross-programme range for home energy reports. (6) Ofgem rules specific to estimated savings in sales. (7) How suppliers' apps present savings, and any trial of whether 'you saved £X' is believed. (8) A GB measure of flexibility-baseline error against a true counterfactual. (9) Any GB savings-share or heat-as-a-service tariff with measured savings."
+        },
+        "scope_delta": {
+          "heading": "What this page does not yet establish",
+          "body": "It does not set how this project will measure savings; the savings grader is a roadmap item and its eight tests are listed in the research note as proposals. It does not cover what each measure saves in carbon, which is on the household carbon page, or how advice is chosen for each customer, which is on the next-best-action page."
+        }
+      }
+    },
+    "how-gb-gas-and-power-prices-move": {
+      "meta": {
+        "topic_id": "how-gb-gas-and-power-prices-move",
+        "title": "How GB gas and power prices move: volatility at every time scale, the forward curve's shape and the spark spread",
+        "subtitle": "Gas and power prices in Britain are calm for long stretches and then violent, worst in autumn and winter, and the forward curve and the gas-to-power margin change shape with them. A supplier's hardest job is forecasting through that, and a simulated future that is too smooth or too wild would score every decision for the wrong reason.",
+        "wall_placement": "Public-reality commons only. Every figure comes from a published source: Elexon, Ofgem's commissioned UCL study, the Oxford Institute for Energy Studies, EnAppSys, Electricity Maps, Timera, S&P Global and others named in the research note. The statements about the simulated world are about its code and the price files it replays, read and measured on 25 October 2026; no figure from the company appears.",
+        "claim_freshness": {
+          "last_verified": "2026-10-25",
+          "written": "2026-10-25",
+          "source": "OIES NG60 (Alterman 2012); Elexon BSC insight on 2021 price spikes; UCL for Ofgem (Gissey et al. 2018); EnAppSys GB 2021 annual summary; Electricity Maps GB grid in review 2025; Timera on GB clean spark spreads (Jan 2023); S&P Global, MNI, ECIU, Electric Insights as cited in the note",
+          "note": "The page the director's steer of 25 Oct 2026 asks for first: the forward years must reproduce the record's volatility and calm at every time scale, and these bands are what they are graded against. Seven of the pack's sources were re-fetched and confirmed on 25 Oct; five items remain open and are not used as claims."
+        }
+      },
+      "rungs": {
+        "headline": {
+          "heading": "The claim, in one sentence",
+          "body": "Between 2016 and 2025 GB gas and power prices were calm for long stretches and violent in bursts: front-month gas typically moved 8-15% a month, a third more in winter than summer, power spikes above £500/MWh came in autumn and spring and never in summer, and when prices rose the forward curve tipped into backwardation and the gas-to-power margin swung from a few pounds to hundreds."
+        },
+        "plain": {
+          "heading": "In plain terms",
+          "body": "Energy prices do not wobble evenly. Most weeks they barely move; then a cold, still spell, a pipeline outage or a war moves them several-fold in days, and the turbulence lasts. Between 1997 and 2011 the month-ahead gas price typically moved about 8-15% a month, rising over the period, and about a third more in the heating months than in summer. In 2021-22 it went far beyond that: month-ahead gas hit 800 pence a therm in March 2022, against an average of about 42 pence a therm (£14.24/MWh) before 2021.\nPower follows gas, because gas plant usually sets the price, and adds its own spikes. The half-hourly balancing price passed £500/MWh 50 times in 2016-2020, almost all in autumn and spring when plant is on maintenance and the wind can drop, and never in summer. Since 2019 power has also gone below zero when the wind blows hard at night: 190 hours in 2025.\nThe shape of the future moves too. When prices are high and rising, near-term contracts cost more than later ones; when they fall, the reverse. A supplier hedging a fixed tariff, a household deciding when to run a heat pump and a forecaster projecting a cash balance all live inside that uncertainty, which is why the simulated future has to have it."
+        },
+        "theory": {
+          "heading": "How it works",
+          "body": "VOLATILITY. Measured as the spread of daily log returns, scaled to the horizon. It clusters: calm periods persist and so do turbulent ones, which is why a model of uniform noise is wrong at every scale. Gas volatility rises in winter, when demand is uncertain and storage is finite.\nSPIKES AND NEGATIVES. Power spikes when the margin of available plant is thin and the wind is low; in 2021's spike periods wind supplied 1.1 GWh per half hour against 3.4 GWh otherwise. Negative prices come from high wind and low demand, when subsidised generators pay to keep running.\nTHE FORWARD CURVE. A forward is not a forecast: it carries a risk premium that is positive, grows with horizon and is larger in winter. Its slope follows the spot level. High spot usually means backwardation (near dates dearer) and a compressed or inverted seasonal spread; in February 2025 next summer's gas traded above next winter's. Falling spot restores contango.\nTHE SPARK SPREAD. Power price minus the gas a typical plant burns (at 49.13% efficiency) and, for the clean spread, its carbon (0.411 t/MWh). It was about £4-10/MWh at peak before 2021, reached about £280 base and £610 peak month-ahead in 2022, and fell back to £16 and £46 by January 2023. Gas set the power price 65% of the time in 2017 and about 85% in 2024.\nLINKS. Cold and still weather tightens gas and power together, so a cold, still, gas-tight week is one event, not three coincidences."
+        },
+        "expected_shape": {
+          "heading": "What the data should look like",
+          "body": "A credible price world, past or generated, should show these shapes:\n• Monthly realised gas volatility mostly in the 8-15% range in normal years, about 1.3 times higher in winter than in summer, with clustered spikes well above it.\n• Annual day-ahead power means of about £35-46/MWh in 2015-2020, £118 in 2021, about £200 in 2022 and £72-81 in 2024-25.\n• A daily standard deviation of day-ahead power of about £6-13/MWh in normal years, and a mean daily high-to-low swing of about £68/MWh by 2025.\n• Balancing prices above £500/MWh a few to a few dozen times a year, mostly autumn, never summer.\n• Negative day-ahead hours rising from none before 2019 to about 190 in 2025.\n• A forward curve that backwardates when spot is high and returns to contango when it falls, with a winter-over-summer spread that can collapse or invert.\n• A peak clean spark spread of a few pounds in normal years and hundreds in a crisis."
+        },
+        "live_evidence": {
+          "heading": "Live evidence",
+          "body": "WHAT IS SOURCED. The bands above, each with its publisher; seven sources were re-fetched and confirmed on 25 October 2026, among them Oxford's monthly gas volatility series, Elexon's count and seasonality of price spikes, UCL's day-ahead means and spreads for Ofgem, EnAppSys's 2021 summary, Electricity Maps' 2025 review and Timera's spark spreads.\nWHAT THE SIMULATED WORLD DOES, MEASURED ON ITS OWN FILES. Its power price is the real half-hourly balancing price, replayed: its annual means sit on the day-ahead record (£113 in 2021, £200 in 2022, £71 in 2024), and its 50 balancing prices above £500/MWh in 2015-2020 match Elexon's count exactly. Its gas price is not NBP: it is a European monthly average converted at a fixed exchange rate and repeated every day of the month, so it moves 116 times in ten years. It therefore carries no daily or weekly gas volatility at all, its 2022 peak is a monthly £187/MWh against front-month prints near £273, and the July 2022 split between British and Dutch gas cannot happen in it.\nWHAT THE COMPANY'S FORWARD QUOTE DOES, READ FROM CODE. A recent average of spot, times a fixed seasonal shape, times a premium that is always positive. Whether that reproduces the record's mix of backwardation and contango is not measured, because the record's own mix is unpublished."
+        },
+        "residuals": {
+          "heading": "Where our picture is still weak",
+          "body": "Nine things are missing. (1) Gas volatility by year for 2016-2025, the crisis included: no fetchable source, and the world's own gas file cannot supply it. (2) How fast a gas or power shock decays, and how fat the tails are: the studies are paywalled. (3) Official day-ahead annual means for 2016-2019 and 2022-2023. (4) How often the curve was backwardated: no study found. (5) A yearly spark spread series. (6) A daily gas-power correlation, and how much a gigawatt of wind moves the price. (7) How forecast error grows with horizon for gas and power forwards. (8) Annual NBP averages for 2022-2025 from a primary source. (9) A daily gas price history for the world itself, without which nothing below a month can be graded."
+        },
+        "scope_delta": {
+          "heading": "What this page does not yet establish",
+          "body": "It does not grade any forward generator against these bands; that grading is owed to the forward-years work, scale by scale. It does not explain how the gas price or the power price is set, which the gas, electricity and merit order pages do, nor why a supplier hedges, which the hedging page does. It does not give a forecast of future volatility, only the record's."
+        }
+      }
+    },
+    "dated-household-cost-and-price-series": {
+      "meta": {
+        "topic_id": "dated-household-cost-and-price-series",
+        "title": "What things cost a household, by date: fuel, energy, kit and carbon, 2016 to 2035",
+        "subtitle": "Every price a household weighs, from a litre of petrol to a heat pump to the carbon in a kilowatt-hour, is published as a dated series, and most of them moved a lot between 2016 and 2026. A constant in their place is wrong in most years, and wrong in a different direction each time.",
+        "wall_placement": "Public-reality commons only. Every figure comes from a published source: DESNZ weekly road fuel prices, Quarterly Energy Prices and greenhouse gas conversion factors, Ofgem's price cap pages, HMRC, the NESO carbon intensity service, Nesta's analysis of Boiler Upgrade Scheme data, DfT grant statistics and NESO's Future Energy Scenarios. The statements about the simulated world and company are about their code, read on 25 October 2026 and not run.",
+        "claim_freshness": {
+          "last_verified": "2026-10-25",
+          "written": "2026-10-25",
+          "source": "DESNZ weekly road fuel prices (CSV 2003-2017 and 2018-), QEP September 2026, 2026 GHG conversion factors methodology paper (Tables 9 and 1.6), Ofgem price cap rates page, HMRC VAT Notice 708/6 and Revenue and Customs Brief 10 (2026), NESO carbon intensity API (2025), Hoare Lea (Feb 2026), Nesta (Apr 2026), DfT EV charging grant statistics (Oct 2024), Ofgem on ECO and RO from April 2026",
+          "note": "One of six evidence packs behind the personalised asset world (director, 25 Oct 2026: \"I'm worried you are using static costs and %\"). Fifteen items were re-fetched and confirmed on 25 Oct, two were corrected, four remain open and are not used."
+        }
+      },
+      "rungs": {
+        "headline": {
+          "heading": "The claim, in one sentence",
+          "body": "Every cost a GB household weighs is a dated series, and between 2016 and 2026 petrol ran from about 101p to 192p a litre, the electricity unit rate more than doubled and fell back, the median heat pump fell 11% in real terms after 2022, and the carbon in a grid kilowatt-hour fell by more than half, so any fixed figure is wrong in most years."
+        },
+        "plain": {
+          "heading": "In plain terms",
+          "body": "Whether an electric car, solar panels, a battery or a heat pump saves a household money depends on what the alternatives cost at the time. Those costs move. Petrol averaged 109p a litre in 2016, peaked at 192p in July 2022, fell to about 136p in 2025 and was back at 175p in October 2026. Electricity went from about 15p a kWh in 2015 to 34p under the 2022 price guarantee, and sat near 26p in late 2026, when the government took VAT off electricity for six months. Kit got cheaper: a typical small solar system cost £1,876 per kW of capacity in 2024/25, down a fifth in a year, and the median heat pump about £13,000 before a £7,500 grant.\nCarbon moved most of all. A kilowatt-hour from the grid carried about 0.28 kg of CO2 in 2016 and about 0.13 kg in 2025, and in 2025 it ranged from 24 to 293 grams half-hour by half-hour, and from 47 grams in the north of Scotland to 252 in South Wales over the year.\nSo the honest way to tell a household what it could save is to use the price that applied on the date in question, for that household's region and payment method, and to say how wide the spread between households is."
+        },
+        "theory": {
+          "heading": "How it works",
+          "body": "WHERE EACH SERIES COMES FROM. Pump prices are weekly UK averages from 2003, with duty and VAT, and no regional split. Retail energy prices come from Ofgem's cap (quarterly since October 2023, six-monthly before, from January 2019, by 14 regions, payment method and meter type) and from DESNZ's Quarterly Energy Prices, which go back further. PV costs are £ per kW by size band from 2013/14, battery costs £ per kWh by size band from 2024/25, heat pump costs from the Boiler Upgrade Scheme from 2022. Chargepoints have only grant amounts, and insulation only occasional point estimates.\nPOLICY DATES MOVE PRICES. Fuel duty fell 5p in March 2022. Energy-saving materials were zero-rated for VAT from April 2022 to March 2027, batteries from February 2024. Bill-funded energy efficiency (ECO) left the cap in April 2026 and most of the Renewables Obligation moved to taxation. Electricity was zero-rated for VAT from October 2026 to March 2027, while gas kept 5%.\nCARBON HAS TWO CLOCKS. The government's annual conversion factors describe grid data one or two years older than the year they are published for, and one data year (2024) was skipped when the lag shortened. The same methodology paper publishes a consistent series by data year, and that series differs from the factors as first published by up to about 10%. The National Energy System Operator's carbon intensity service gives measured half-hourly values by region from September 2017."
+        },
+        "expected_shape": {
+          "heading": "What the data should look like",
+          "body": "A credible household world should show these shapes:\n• Petrol and diesel prices that follow the weekly record: about 101-117p a litre in 2016, a peak near 191-199p in July 2022, and a second rise in 2026.\n• Electricity and gas prices that change on the cap's dates and differ by region and payment method, with standing charges ranging from about 42p to 72p a day across regions in early 2025.\n• Kit costs that fall over time and fall with size: battery £ per kWh roughly halving from the smallest to the largest band.\n• Heat pump costs net of a grant that changed on 23 October 2023.\n• Grid carbon falling from about 0.28 to 0.13 kg per kWh over 2016-2025, varying several-fold by region and half-hour.\nThese are calibration properties of the population and the record, never a target for any one home."
+        },
+        "live_evidence": {
+          "heading": "Live evidence",
+          "body": "WHAT IS SOURCED. The series register, representative values and policy dates in the research note, with 15 items re-fetched and confirmed on 25 October 2026 and two corrected: the half-hourly carbon range in 2025 is 24 to 293 grams, and indexing grid carbon by data year should use the consistent series the government now publishes rather than the factors as first issued.\nWHAT THE SIMULATION DOES, READ FROM CODE AND NOT RUN. No petrol or diesel price exists anywhere in the code, so no saving against a petrol car can be computed. The company's retrofit offers carry four fixed costs (insulation £6,000, heat pump £12,000, solar £7,000, a time-shift measure £300), the same in every year. One of its two price cap tables is annual, with a fixed value for every year after 2025 that is well below the published 2026 caps, and three company modules read it. An Economy 7 rate table carries no source and nothing calls it. Grid carbon is read by the year a factor was published, as a reporting company would, which the code states as its choice."
+        },
+        "residuals": {
+          "heading": "Where our picture is still weak",
+          "body": "Ten things are missing. (1) Solar costs and their spread before 2024/25. (2) The spread of heat pump costs by region and size. (3) Ofgem's 2019-2021 unit rates by region. (4) Battery costs before 2024/25. (5) What a home chargepoint costs to install, as opposed to the grant. (6) Insulation costs in 2019 and 2022, with any spread. (7) Price deflators and car price indices. (8) The government's own retail price projections. (9) NESO's technology cost assumptions to 2035. (10) A daily exchange-rate series for converting gas prices."
+        },
+        "scope_delta": {
+          "heading": "What this page does not yet establish",
+          "body": "It does not change any cost in the simulation, and it does not grade the population against these series; both are owed to the personalised asset world. It does not say what any one household paid, only what was published for the market. It does not project bills to 2035, because no published source does."
         }
       }
     }

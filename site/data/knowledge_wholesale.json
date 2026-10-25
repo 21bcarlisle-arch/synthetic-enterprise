@@ -884,6 +884,11 @@
       "id": "carbon",
       "title": "Carbon",
       "why": "Where the carbon behind a bill comes from, in the power market and in the home."
+    },
+    {
+      "id": "other-markets",
+      "title": "Other markets",
+      "why": "How seven other countries' household energy markets differ from GB's, and how much of what is built here would transfer. Knowledge only: none of it is on the roadmap."
     }
   ],
   "topics": [
@@ -1599,6 +1604,348 @@
       ],
       "theme": "billing",
       "why": "The company sizes its growth against the £115 Capital Target, and nothing in it yet watches its cash against customers' credit balances."
+    },
+    {
+      "id": "other-market-australia",
+      "title": "Australia against GB: what carries over, and what a second market would need",
+      "kind": "page",
+      "blurb": "Five regional five-minute prices, quarterly bills in arrears, no prepayment to speak of, a default price that caps standing offers only, and 4.3 million rooftop solar systems. Knowledge only, not on the roadmap.",
+      "rate_of_change": "medium",
+      "reviewed": {
+        "last_verified": "2026-10-25",
+        "source": "see the page's own sources; most of the pack's [unverified] items are still open, as the page says"
+      },
+      "atoms": "none -- knowledge only, not on the roadmap (director 25 Oct 2026): no world or supplier atom builds another market",
+      "theme": "other-markets",
+      "why": "It shows which parts of the GB build are general and which are GB's own: the advice on solar, batteries and EVs transfers best here, the price replay and billing least."
+    },
+    {
+      "id": "other-market-belgium",
+      "title": "Belgium against GB: three regional rulebooks, no price cap, and bad payers handed to the network",
+      "kind": "page",
+      "blurb": "Close to GB on climate and wholesale, far from it on billing, settlement and debt: monthly advances and an annual true-up, 15-minute settlement, no price cap, a federal social tariff, and bad payers moved to the network operator. Knowledge only, not on the roadmap.",
+      "rate_of_change": "medium",
+      "reviewed": {
+        "last_verified": "2026-10-25",
+        "source": "see the page's own sources; most of the pack's [unverified] items are still open, as the page says"
+      },
+      "atoms": "none -- knowledge only, not on the roadmap (director 25 Oct 2026): no world or supplier atom builds another market",
+      "theme": "other-markets",
+      "why": "It is the clearest case of debt leaving the supplier's book, which GB's model never allows, and of a household's 15-minute peak setting its network bill."
+    },
+    {
+      "id": "other-market-france",
+      "title": "France against GB: a regulated tariff only the incumbent sells, a power limit in every home, and electric heating",
+      "kind": "page",
+      "blurb": "A regulated tariff on 55.8% of homes that only the incumbent sells, a subscribed power limit from 3 to 36 kVA, per-home off-peak hours, 37% electric heating, households still profiled for settlement, and no prepayment. Knowledge only, not on the roadmap.",
+      "rate_of_change": "medium",
+      "reviewed": {
+        "last_verified": "2026-10-25",
+        "source": "see the page's own sources; most of the pack's [unverified] items are still open, as the page says"
+      },
+      "atoms": "none -- knowledge only, not on the roadmap (director 25 Oct 2026): no world or supplier atom builds another market",
+      "theme": "other-markets",
+      "why": "It shows a market anchored to a published regulated cost stack rather than a cap, and a home whose power limit and off-peak hours are set by the network, both of which GB's model lacks."
+    },
+    {
+      "blurb": "Germany's basic-supply default is uncapped, households pay monthly advances with a yearly true-up, prepayment is negligible, smart meters cover 5.9% of metering points, and network operators carried out 239,269 disconnections in 2024.",
+      "rate_of_change": "medium",
+      "why": "It shows which parts of the GB build are GB-specific: the cap, prepayment, the deemed contract and fixed direct debit all have no German equivalent.",
+      "id": "other-market-germany",
+      "title": "Germany against GB: a default supplier with no price cap, a yearly true-up bill and a fifteen-minute clock",
+      "kind": "page",
+      "theme": "other-markets",
+      "reviewed": {
+        "last_verified": "2026-10-25",
+        "source": "see the page's own sources"
+      },
+      "atoms": "none -- knowledge only: the director ruled on 25 Oct 2026 that other markets build nothing in the world or the supplier"
+    },
+    {
+      "blurb": "Italian homes contract a power level (typically 3 kW) that the network's smart meter enforces, are billed every two months on readings, face power limitation rather than prepayment, and can have arrears billed through their next supplier.",
+      "rate_of_change": "medium",
+      "why": "It shows the GB build assumes an uncapped connection and no regulatory heating calendar; Italy has both, and a summer peak.",
+      "id": "other-market-italy",
+      "title": "Italy against GB: contracted kilowatts, an auctioned default service and arrears that follow the customer",
+      "kind": "page",
+      "theme": "other-markets",
+      "reviewed": {
+        "last_verified": "2026-10-25",
+        "source": "see the page's own sources"
+      },
+      "atoms": "none -- knowledge only: the director ruled on 25 Oct 2026 that other markets build nothing in the world or the supplier"
+    },
+    {
+      "blurb": "Japan settles in half-hours with universal network-owned smart meters, like GB's target, but heats room by room with air conditioners, keeps an incumbent-only regulated tariff on about 65% of incumbent contracts, cuts off non-payers around day 51 and has no supplier for a new occupant.",
+      "rate_of_change": "medium",
+      "why": "It is the market where the GB build's half-hour clock transfers best and its deemed contract, debt objection and supplier-of-last-resort assumptions transfer worst.",
+      "id": "other-market-japan",
+      "title": "Japan against GB: an incumbent's regulated tariff, a breaker the household chooses and no supplier for a new occupant",
+      "kind": "page",
+      "theme": "other-markets",
+      "reviewed": {
+        "last_verified": "2026-10-25",
+        "source": "see the page's own sources"
+      },
+      "atoms": "none -- knowledge only: the director ruled on 25 Oct 2026 that other markets build nothing in the world or the supplier"
+    },
+    {
+      "blurb": "Spain's regulated price is a dynamic hourly-shaped tariff sold only by incumbents' regulated arms, every home subscribes to a power level, meters have been universal and network-owned since 2018, and bills are paid after an actual read.",
+      "rate_of_change": "medium",
+      "why": "It shows that GB's cap, fixed direct debit and prepayment are choices, not givens: Spain has a regulated product, no credit balances and no prepayment.",
+      "id": "other-market-spain",
+      "title": "Spain against GB: a dynamic regulated price, a power subscription and bills paid after the reading",
+      "kind": "page",
+      "theme": "other-markets",
+      "reviewed": {
+        "last_verified": "2026-10-25",
+        "source": "see the page's own sources"
+      },
+      "atoms": "none -- knowledge only: the director ruled on 25 Oct 2026 that other markets build nothing in the world or the supplier"
+    },
+    {
+      "id": "who-drives-how-far-and-where-they-park",
+      "title": "Who drives how far, and where they park: the person comes before the car",
+      "kind": "page",
+      "blurb": "An English household car drove about 7,100 miles in 2025, a third under 5,000 and one in eight over 12,000, and the spread follows the driver, not the fuel. About 72% of vehicles sleep off-street, which decides who can charge at home.",
+      "rate_of_change": "medium",
+      "reviewed": {
+        "last_verified": "2026-10-25",
+        "source": "see the page's own sources"
+      },
+      "atoms": [
+        "W2_25_people_phase2_shape_and_attitudes",
+        "C4_adoption_physics"
+      ],
+      "theme": "households",
+      "why": "An electric car's demand has to come from the miles its household drives and where it parks. The simulated homes draw neither yet."
+    },
+    {
+      "id": "which-cars-households-run-and-what-they-use",
+      "title": "Which cars households run, and how much energy each one really uses",
+      "kind": "page",
+      "blurb": "Household cars are mostly petrol and diesel and about ten years old. An electric car's energy per mile is its model's efficiency times a winter penalty of 1.2-1.3, plus charging losses of 5% on a wallbox or up to 24% on a plug.",
+      "rate_of_change": "medium",
+      "reviewed": {
+        "last_verified": "2026-10-25",
+        "source": "see the page's own sources"
+      },
+      "atoms": [
+        "W2_30_per_household_half_hourly_electricity_and_seasonal_gas_shape",
+        "C4_adoption_physics"
+      ],
+      "theme": "households",
+      "why": "A car's demand on a home has to come from the car itself and the day's weather. The simulated world uses one fixed figure for every car."
+    },
+    {
+      "id": "ev-charging-and-the-saving-against-petrol-and-diesel",
+      "title": "Charging an electric car at home: when it happens, what it costs, and what it saves against petrol and diesel",
+      "kind": "page",
+      "blurb": "A home-charged electric car adds 1,750-3,500 kWh a year and costs about 2p a mile off-peak, 9p at the capped rate and 24p on a public rapid charger, against about 18p for petrol. A supplier sees only the home part.",
+      "rate_of_change": "fast",
+      "reviewed": {
+        "last_verified": "2026-10-25",
+        "source": "see the page's own sources"
+      },
+      "atoms": [
+        "C4_adoption_physics",
+        "C30_advice_reaches_a_household"
+      ],
+      "theme": "customers",
+      "why": "Advising a household on a car needs its real charging cost against the car it would replace. The simulated cars all charge the same fixed amount at home."
+    },
+    {
+      "id": "gas-boilers-and-heating-controls",
+      "title": "How a gas boiler and its controls turn into the gas a home uses",
+      "kind": "page",
+      "blurb": "A condensing boiler set to a 70-80°C flow seldom condenses, so homes get about 82-85% of their gas as heat. Turning the flow down saved 9% in a test house and 1.4% in a trial; smart thermostats measure at about 5%, and possibly nothing.",
+      "rate_of_change": "slow",
+      "reviewed": {
+        "last_verified": "2026-10-25",
+        "source": "see the page's own sources"
+      },
+      "atoms": [
+        "W1_11_fabric_physics_core",
+        "W2_30_per_household_half_hourly_electricity_and_seasonal_gas_shape",
+        "C30_advice_reaches_a_household"
+      ],
+      "theme": "households",
+      "why": "The boiler is how most homes turn gas into warmth. The world's boilers convert at a fixed efficiency by age, with no flow temperature, so the cheapest advice a supplier could give cannot yet be tested."
+    },
+    {
+      "id": "heating-behaviour-comfort-and-health-floors",
+      "title": "How households heat their homes, how warm they actually are, and the temperatures advice must never go below",
+      "kind": "page",
+      "blurb": "Households set about 20°C, live about a degree below it and heat for about seven hours a day. After 2022 the average setting fell a degree, hardest in fuel-poor homes. Health guidance puts 18°C as the floor advice must not push a home below.",
+      "rate_of_change": "slow",
+      "reviewed": {
+        "last_verified": "2026-10-25",
+        "source": "see the page's own sources"
+      },
+      "atoms": [
+        "W2_30_per_household_half_hourly_electricity_and_seasonal_gas_shape",
+        "W1_14_weather_cells_for_household_heat_load",
+        "W2_34_the_company_has_one_piece_of_advice_that_costs_the_customer_nothing"
+      ],
+      "theme": "households",
+      "why": "Comfort and health are outputs of how a home is heated, not settings. The world draws each home's thermostat and schedule from these figures, and any advice to save heat must clear the health floor first."
+    },
+    {
+      "id": "heat-pumps-and-fabric-measures",
+      "title": "What a heat pump and insulation really deliver in GB homes, and what they cost and save",
+      "kind": "page",
+      "blurb": "A typical air-source heat pump delivers about 2.8 units of heat per unit of electricity over a year, almost exactly break-even with gas at the October 2026 cap, while cutting heating carbon by two thirds or more. Measured insulation savings are about 3% loft, 7-10% cavity, 16-19% solid wall.",
+      "rate_of_change": "medium",
+      "reviewed": {
+        "last_verified": "2026-10-25",
+        "source": "see the page's own sources"
+      },
+      "atoms": [
+        "W1_11_fabric_physics_core",
+        "W2_24_housing_phase3_houses_change_on_their_own_timeline",
+        "E5_carbon_three_ledger",
+        "C30_advice_reaches_a_household"
+      ],
+      "theme": "carbon",
+      "why": "Heat pumps and insulation are the measures that move a home's carbon most. The world gives every heat-pump home the same fixed extra electricity, and the company prices insulation above every measured saving."
+    },
+    {
+      "id": "solar-pv-and-home-batteries",
+      "title": "Solar panels and home batteries: what they generate, what the home keeps, and what the settings are worth",
+      "kind": "page",
+      "blurb": "About 800-1,100 kWh a year per kW of panel; a home keeps roughly 40-45% without a battery; a battery adds 13-25 points, and most of its value comes from the tariff it is set against.",
+      "rate_of_change": "medium",
+      "reviewed": {
+        "last_verified": "2026-10-25",
+        "source": "see the page's own sources"
+      },
+      "atoms": [
+        "C4_adoption_physics",
+        "W2_30_per_household_half_hourly_electricity_and_seasonal_gas_shape"
+      ],
+      "theme": "households",
+      "why": "The world gives every solar home the same array at the half hour and a battery with one mode; advice on solar or a battery needs each home's own generation, self-use and settings."
+    },
+    {
+      "id": "pv-roofs-orientation-and-yield",
+      "title": "A roof's solar array: which way it faces, how steep, how big, how old, and the sky above it",
+      "kind": "page",
+      "blurb": "East or west roofs make about 0.76-0.81 of south, north about half; the fleet's median ran 806-920 kWh per kW a year since 2011; and no GB distribution of roof facing is yet published outside one gated dataset.",
+      "rate_of_change": "slow",
+      "reviewed": {
+        "last_verified": "2026-10-25",
+        "source": "see the page's own sources"
+      },
+      "atoms": [
+        "C4_adoption_physics",
+        "W1_14_weather_cells_for_household_heat_load"
+      ],
+      "theme": "households",
+      "why": "The world labels every drawn roof east/west and never lets the label reach output; a personalised solar home needs its own facing, tilt, size, age and sky."
+    },
+    {
+      "id": "network-limits-on-home-electrification",
+      "title": "Connecting an EV charger, heat pump, solar or battery: the network's rules, the home's own supply and how long it takes",
+      "kind": "page",
+      "blurb": "One device on an ordinary supply connects the same day; a looped service (about 3.9m GB homes), a small fuse or two devices at once means applying first, and the cost is mostly weeks of waiting.",
+      "rate_of_change": "medium",
+      "reviewed": {
+        "last_verified": "2026-10-25",
+        "source": "see the page's own sources"
+      },
+      "atoms": [
+        "C4_adoption_physics"
+      ],
+      "theme": "customers",
+      "why": "Every EV and heat pump in the world connects instantly; an install offer the supplier makes cannot meet a looped service, a fuse upgrade or a three-phase bill until the world holds them."
+    },
+    {
+      "id": "vpps-and-local-flexibility",
+      "title": "Who else pays for a household's flexibility: aggregators, rival traders and the local network",
+      "kind": "page",
+      "blurb": "Three routes reach a household's flexible devices: its supplier, an independent aggregator and a device platform. Since 2024 a rival can trade a supplier's customer's flexibility and the supplier is compensated from a shared pot; local network payments are location-gated and worth single-digit pounds a year to most homes.",
+      "rate_of_change": "fast",
+      "reviewed": {
+        "last_verified": "2026-10-25",
+        "source": "see the page's own sources"
+      },
+      "atoms": [
+        "W1_9_dsr_flex_markets",
+        "C4_adoption_physics"
+      ],
+      "theme": "markets",
+      "why": "The company books DFS revenue only and has no rival aggregator in its world, so the value a household's flexibility has to someone else is invisible to it."
+    },
+    {
+      "id": "household-flexibility-and-the-advice-roadmap",
+      "title": "Household flexibility: what moving a home's demand is worth, how much households really move, and what else a supplier could advise on",
+      "kind": "page",
+      "blurb": "DFS cost per MWh delivered fell about thirteen-fold to £241 in 2024/25, about 48p per registered meter a winter. Opted-in households cut 38-40% in an event but only 9% against a fair comparison, so the value is in automated tariff shifting, not manual events.",
+      "rate_of_change": "fast",
+      "reviewed": {
+        "last_verified": "2026-10-25",
+        "source": "see the page's own sources"
+      },
+      "atoms": [
+        "W1_9_dsr_flex_markets",
+        "C30_advice_reaches_a_household"
+      ],
+      "theme": "customers",
+      "why": "The company books DFS event revenue only and values no household's shifted demand against its own half-hourly costs, which is where most of the value now sits."
+    },
+    {
+      "id": "proving-and-showing-household-savings",
+      "title": "Proving a household saved, and showing it so they believe it",
+      "kind": "page",
+      "blurb": "Deemed savings over-predict (about 0.7 of modelled is achieved), uncontrolled studies find four times the saving controlled ones do, and one home's smart-meter data can detect a saving only above about 3.6%. A simulation that knows the true counterfactual can grade any supplier's estimate.",
+      "rate_of_change": "slow",
+      "reviewed": {
+        "last_verified": "2026-10-25",
+        "source": "see the page's own sources"
+      },
+      "atoms": [
+        "A47_the_score_has_no_household_side",
+        "C30_advice_reaches_a_household",
+        "E5_carbon_three_ledger"
+      ],
+      "theme": "customers",
+      "why": "The company's household-side figure is a price comparison against the default tariff, not a measured saving, and nothing grades an estimate against the true counterfactual the world holds."
+    },
+    {
+      "id": "how-gb-gas-and-power-prices-move",
+      "title": "How GB gas and power prices move: volatility at every time scale, the forward curve's shape and the spark spread",
+      "kind": "page",
+      "blurb": "Front-month gas typically moved 8-15% a month and a third more in winter, power spikes above £500/MWh came in autumn and spring and never in summer, and the curve backwardated when prices rose. The world's own gas price is a monthly average that cannot show any of it below a month.",
+      "rate_of_change": "medium",
+      "reviewed": {
+        "last_verified": "2026-10-25",
+        "source": "see the page's own sources"
+      },
+      "atoms": [
+        "EP16_anchored_generators",
+        "W1_6_physics_price_signal",
+        "G15_forward_curve_series_to_backtest_hedging_by_physics"
+      ],
+      "theme": "markets",
+      "why": "The forward years are graded against these bands at every time scale before any forward run is used for a supplier result, and the world's replayed gas price fails them below a month."
+    },
+    {
+      "id": "dated-household-cost-and-price-series",
+      "title": "What things cost a household, by date: fuel, energy, kit and carbon, 2016 to 2035",
+      "kind": "page",
+      "blurb": "Petrol, capped energy, solar, batteries, heat pumps and grid carbon each have a published dated series, and all moved a lot between 2016 and 2026. No road-fuel price exists in the code, and the company's retrofit costs are fixed.",
+      "rate_of_change": "fast",
+      "reviewed": {
+        "last_verified": "2026-10-25",
+        "source": "see the page's own sources"
+      },
+      "atoms": [
+        "C30_advice_reaches_a_household",
+        "C4_adoption_physics",
+        "E5_carbon_three_ledger"
+      ],
+      "theme": "markets",
+      "why": "A saving shown to a household is only true at the price that applied on that date, and the company's advice still prices kit at four fixed figures."
     }
   ],
   "edges": [
@@ -1791,6 +2138,331 @@
       "from": "bad-debt-provisioning",
       "type": "part-of",
       "to": "suppliers-accounts-and-capital"
+    },
+    {
+      "from": "other-market-australia",
+      "type": "bounded-by",
+      "to": "imbalance-cashout-settlement"
+    },
+    {
+      "from": "other-market-australia",
+      "type": "bounded-by",
+      "to": "price-cap"
+    },
+    {
+      "from": "other-market-australia",
+      "type": "bounded-by",
+      "to": "ev-solar-and-batteries-as-products"
+    },
+    {
+      "from": "other-market-belgium",
+      "type": "bounded-by",
+      "to": "debt-and-collections"
+    },
+    {
+      "from": "other-market-belgium",
+      "type": "bounded-by",
+      "to": "imbalance-cashout-settlement"
+    },
+    {
+      "from": "other-market-belgium",
+      "type": "bounded-by",
+      "to": "payments-and-direct-debit"
+    },
+    {
+      "from": "other-market-belgium",
+      "type": "bounded-by",
+      "to": "home-moves"
+    },
+    {
+      "from": "other-market-france",
+      "type": "bounded-by",
+      "to": "price-cap"
+    },
+    {
+      "from": "other-market-france",
+      "type": "bounded-by",
+      "to": "imbalance-cashout-settlement"
+    },
+    {
+      "from": "other-market-france",
+      "type": "bounded-by",
+      "to": "what-a-house-does-to-its-energy"
+    },
+    {
+      "from": "other-market-france",
+      "type": "bounded-by",
+      "to": "home-moves"
+    },
+    {
+      "from": "price-cap",
+      "type": "prerequisite-for",
+      "to": "other-market-germany"
+    },
+    {
+      "from": "debt-and-collections",
+      "type": "prerequisite-for",
+      "to": "other-market-germany"
+    },
+    {
+      "from": "switching-mechanics",
+      "type": "prerequisite-for",
+      "to": "other-market-germany"
+    },
+    {
+      "from": "debt-and-collections",
+      "type": "prerequisite-for",
+      "to": "other-market-italy"
+    },
+    {
+      "from": "metering-and-reads",
+      "type": "prerequisite-for",
+      "to": "other-market-italy"
+    },
+    {
+      "from": "switching-mechanics",
+      "type": "prerequisite-for",
+      "to": "other-market-italy"
+    },
+    {
+      "from": "home-moves",
+      "type": "prerequisite-for",
+      "to": "other-market-japan"
+    },
+    {
+      "from": "imbalance-cashout-settlement",
+      "type": "prerequisite-for",
+      "to": "other-market-japan"
+    },
+    {
+      "from": "price-cap",
+      "type": "prerequisite-for",
+      "to": "other-market-japan"
+    },
+    {
+      "from": "price-cap",
+      "type": "prerequisite-for",
+      "to": "other-market-spain"
+    },
+    {
+      "from": "payments-and-direct-debit",
+      "type": "prerequisite-for",
+      "to": "other-market-spain"
+    },
+    {
+      "from": "metering-and-reads",
+      "type": "prerequisite-for",
+      "to": "other-market-spain"
+    },
+    {
+      "from": "who-drives-how-far-and-where-they-park",
+      "type": "drives",
+      "to": "which-cars-households-run-and-what-they-use"
+    },
+    {
+      "from": "who-drives-how-far-and-where-they-park",
+      "type": "drives",
+      "to": "ev-charging-and-the-saving-against-petrol-and-diesel"
+    },
+    {
+      "from": "who-lives-where",
+      "type": "drives",
+      "to": "who-drives-how-far-and-where-they-park"
+    },
+    {
+      "from": "who-drives-how-far-and-where-they-park",
+      "type": "drives",
+      "to": "ev-solar-and-batteries-as-products"
+    },
+    {
+      "from": "which-cars-households-run-and-what-they-use",
+      "type": "drives",
+      "to": "ev-charging-and-the-saving-against-petrol-and-diesel"
+    },
+    {
+      "from": "weather-cells",
+      "type": "drives",
+      "to": "which-cars-households-run-and-what-they-use"
+    },
+    {
+      "from": "ev-charging-and-the-saving-against-petrol-and-diesel",
+      "type": "drives",
+      "to": "ev-solar-and-batteries-as-products"
+    },
+    {
+      "from": "price-cap",
+      "type": "drives",
+      "to": "ev-charging-and-the-saving-against-petrol-and-diesel"
+    },
+    {
+      "from": "ev-charging-and-the-saving-against-petrol-and-diesel",
+      "type": "drives",
+      "to": "household-carbon-and-the-measures-that-save-it"
+    },
+    {
+      "from": "gas-boilers-and-heating-controls",
+      "type": "mechanism-of",
+      "to": "what-a-house-does-to-its-energy"
+    },
+    {
+      "from": "gas-boilers-and-heating-controls",
+      "type": "drives",
+      "to": "household-carbon-and-the-measures-that-save-it"
+    },
+    {
+      "from": "heating-behaviour-comfort-and-health-floors",
+      "type": "drives",
+      "to": "gas-boilers-and-heating-controls"
+    },
+    {
+      "from": "heating-behaviour-comfort-and-health-floors",
+      "type": "drives",
+      "to": "what-a-house-does-to-its-energy"
+    },
+    {
+      "from": "heating-behaviour-comfort-and-health-floors",
+      "type": "prerequisite-for",
+      "to": "household-carbon-and-the-measures-that-save-it"
+    },
+    {
+      "from": "heat-pumps-and-fabric-measures",
+      "type": "part-of",
+      "to": "household-carbon-and-the-measures-that-save-it"
+    },
+    {
+      "from": "how-houses-change",
+      "type": "drives",
+      "to": "heat-pumps-and-fabric-measures"
+    },
+    {
+      "from": "gas-boilers-and-heating-controls",
+      "type": "prerequisite-for",
+      "to": "heat-pumps-and-fabric-measures"
+    },
+    {
+      "from": "solar-pv-and-home-batteries",
+      "type": "drives",
+      "to": "ev-solar-and-batteries-as-products"
+    },
+    {
+      "from": "solar-pv-and-home-batteries",
+      "type": "drives",
+      "to": "household-carbon-and-the-measures-that-save-it"
+    },
+    {
+      "from": "pv-roofs-orientation-and-yield",
+      "type": "drives",
+      "to": "solar-pv-and-home-batteries"
+    },
+    {
+      "from": "weather-cells",
+      "type": "drives",
+      "to": "pv-roofs-orientation-and-yield"
+    },
+    {
+      "from": "ev-solar-and-batteries-as-products",
+      "type": "bounded-by",
+      "to": "network-limits-on-home-electrification"
+    },
+    {
+      "from": "network-limits-on-home-electrification",
+      "type": "prerequisite-for",
+      "to": "solar-pv-and-home-batteries"
+    },
+    {
+      "from": "vpps-and-local-flexibility",
+      "type": "part-of",
+      "to": "household-flexibility-and-the-advice-roadmap"
+    },
+    {
+      "from": "imbalance-cashout-settlement",
+      "type": "mechanism-of",
+      "to": "vpps-and-local-flexibility"
+    },
+    {
+      "from": "ev-solar-and-batteries-as-products",
+      "type": "prerequisite-for",
+      "to": "vpps-and-local-flexibility"
+    },
+    {
+      "from": "vpps-and-local-flexibility",
+      "type": "drives",
+      "to": "hedging-forward-market"
+    },
+    {
+      "from": "metering-and-reads",
+      "type": "prerequisite-for",
+      "to": "household-flexibility-and-the-advice-roadmap"
+    },
+    {
+      "from": "household-flexibility-and-the-advice-roadmap",
+      "type": "drives",
+      "to": "next-best-action-and-cross-sell"
+    },
+    {
+      "from": "how-households-behave-toward-a-supplier",
+      "type": "drives",
+      "to": "household-flexibility-and-the-advice-roadmap"
+    },
+    {
+      "from": "what-a-house-does-to-its-energy",
+      "type": "prerequisite-for",
+      "to": "proving-and-showing-household-savings"
+    },
+    {
+      "from": "proving-and-showing-household-savings",
+      "type": "prerequisite-for",
+      "to": "next-best-action-and-cross-sell"
+    },
+    {
+      "from": "proving-and-showing-household-savings",
+      "type": "bounded-by",
+      "to": "household-carbon-and-the-measures-that-save-it"
+    },
+    {
+      "from": "household-flexibility-and-the-advice-roadmap",
+      "type": "drives",
+      "to": "proving-and-showing-household-savings"
+    },
+    {
+      "from": "how-gb-gas-and-power-prices-move",
+      "type": "part-of",
+      "to": "gas-wholesale"
+    },
+    {
+      "from": "how-gb-gas-and-power-prices-move",
+      "type": "part-of",
+      "to": "electricity-wholesale"
+    },
+    {
+      "from": "how-gb-gas-and-power-prices-move",
+      "type": "drives",
+      "to": "hedging-forward-market"
+    },
+    {
+      "from": "carbon-price",
+      "type": "drives",
+      "to": "how-gb-gas-and-power-prices-move"
+    },
+    {
+      "from": "price-cap",
+      "type": "part-of",
+      "to": "dated-household-cost-and-price-series"
+    },
+    {
+      "from": "dated-household-cost-and-price-series",
+      "type": "drives",
+      "to": "ev-solar-and-batteries-as-products"
+    },
+    {
+      "from": "dated-household-cost-and-price-series",
+      "type": "drives",
+      "to": "household-carbon-and-the-measures-that-save-it"
+    },
+    {
+      "from": "non-commodity-costs",
+      "type": "drives",
+      "to": "dated-household-cost-and-price-series"
     }
   ],
   "review_policy": {

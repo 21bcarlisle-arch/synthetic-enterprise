@@ -22,6 +22,7 @@ By property type (NEED 2019 detailed tables, last published disaggregation):
 
 **Ofgem TDCV bands (from 1 July 2026):** Low 6,000 / Medium 9,500 / High 14,000 kWh/year  
 _(Revised down from 2023: 7,500 / 11,500 / 17,000 — reflects measured consumption falls post-crisis)_
+_History (low / medium / high): 8,000 / 12,500 / 18,000 to 2017; 8,000 / 12,000 / 17,000 from 2017 and from 1 Apr 2020; 7,500 / 11,500 / 17,000 from 1 Oct 2023; the values above from 1 Jul 2026 (Ofgem decision letters 2017, 2020, 2026). A world that runs 2016-2025 never meets the 2026 values; `company/billing/annual_consumption_estimate.py::TDCV_BY_DATE` holds the dated table._
 
 ## Residential Electricity Consumption (NEED 2026)
 
@@ -34,6 +35,7 @@ _(Revised down from 2023: 7,500 / 11,500 / 17,000 — reflects measured consumpt
 
 **Ofgem TDCV bands (from 1 July 2026):** Low 1,600 / Medium 2,500 / High 3,800 kWh/year  
 _(Down from 2023: 1,800 / 2,700 / 4,100)_
+_History, single-rate: 2,000 / 3,100 / 4,600; 1,900 / 3,100 / 4,600 from 2017; 1,800 / 2,900 / 4,300 from 1 Apr 2020; 1,800 / 2,700 / 4,100 from 1 Oct 2023. Multi-rate (Profile Class 2): 2,500 / 4,300 / 7,200; 2,500 / 4,200 / 7,100; 2,400 / 4,200 / 7,100; 2,200 / 3,900 / 6,700; **1,900 / 3,400 / 6,100 from 1 Jul 2026**. Economy 7 split 58% day / 42% night, unchanged in 2026._
 
 ## Time-of-Use Profile (Residential)
 
