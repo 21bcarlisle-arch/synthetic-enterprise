@@ -22,7 +22,10 @@ that quarter's (cap - EPG) / cap, not at one band for the whole crisis.
 
 `defects` names each property the run breaks, and the grader exits 1 when it names any: carved not
 equal to booked, a receipt carved outside the windows, an estimated bill below zero, or a share of
-default-tariff bills over the ceiling above `OVER_CEILING_SHARE_BOUND`. The publisher refuses a run
+default-tariff bills over the ceiling above `OVER_CEILING_SHARE_BOUND`, or a leg carrying two
+`account_state_log` rows that cover one day. Each such row is settled over its own window, so a
+month under k rows is billed k times over (063dc4bbd6: 11 gas legs, 33 pairs at 1c30d6c728, priced
+at what read as the mean of their rates). The publisher refuses a run
 this names a defect on (`process_run_complete.billing_grade_refusal`), so this is the Monday gate. A negative
 bill is under every ceiling, so the over-cap count alone passed the void stubs that the folded
 `hmt_epg_receipt_gbp_per_mwh` credited at 48 times the Treasury's rate (c5a8090187: GBP 5,898.10
@@ -113,6 +116,7 @@ def grade(run: dict) -> dict:
         "actual_read_accounts": on_actual_read,
         "by_year": dict(sorted(by_year.items())),
         "epg_receipt": epg_receipt(run),
+        "overlapping_term_legs": overlapping_term_legs(run),
         "negative_estimated_bills": [
             {"customer_id": b["customer_id"], "period_start": str(b["period_start"])[:10],
              "total_amount_gbp": round(b["total_amount_gbp"], 2)}
@@ -120,6 +124,20 @@ def grade(run: dict) -> dict:
             if b.get("billing_basis") == "estimated" and (b.get("total_amount_gbp") or 0.0) < 0
         ],
     }
+
+
+def overlapping_term_legs(run: dict) -> dict[str, int]:
+    """Each leg whose recorded terms overlap, with its count of overlapping pairs."""
+    terms = defaultdict(list)
+    for t in run.get("account_state_log") or []:
+        terms[t["customer_id"]].append(t)
+    out = {}
+    for cid, ts in terms.items():
+        pairs = sum(1 for i, a in enumerate(ts) for b in ts[i + 1:]
+                    if b["term_start"] < a["term_end"] and a["term_start"] < b["term_end"])
+        if pairs:
+            out[cid] = pairs
+    return dict(sorted(out.items()))
 
 
 def defects(g: dict) -> list[str]:
@@ -138,6 +156,10 @@ def defects(g: dict) -> list[str]:
         out.append(f"{g['above_household_ceiling']:,} of {g['default_tariff_invoices_graded']:,} "
                    f"default-tariff bills ({g['share']:.1%}) over the household's ceiling, across "
                    f"{g['households_above']:,} households")
+    if g["overlapping_term_legs"]:
+        legs = g["overlapping_term_legs"]
+        out.append(f"{len(legs)} leg(s) carry overlapping account-state terms "
+                   f"({sum(legs.values())} pairs), first {next(iter(legs))}")
     if g["negative_estimated_bills"]:
         worst = min(g["negative_estimated_bills"], key=lambda b: b["total_amount_gbp"])
         out.append(f"{len(g['negative_estimated_bills'])} estimated bill(s) below zero, worst "

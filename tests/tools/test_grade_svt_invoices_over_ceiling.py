@@ -95,3 +95,26 @@ def test_a_book_billed_over_the_ceiling_is_a_defect_and_the_misgrade_residual_is
     assert defects(residual) == []
     assert defects(broken) == ["30 of 100 default-tariff bills (30.0%) over the household's "
                                "ceiling, across 30 households"]
+
+
+def test_a_leg_whose_terms_overlap_is_a_defect_and_abutting_terms_are_not():
+    """Defect: a leg carrying two account-state rows over one day, each settled over its own window.
+
+    063dc4bbd6: a departure stretched 11 gas legs' default segments to the leaving day (33 pairs at
+    1c30d6c728), so a month under k rows was billed k times. Rows that abut on a boundary must read
+    clean, or a check that refuses every multi-term leg passes too.
+    """
+    from tools.grade_svt_invoices_over_ceiling import defects
+
+    def row(start: str, end: str) -> dict:
+        return {**_term("g", "svt"), "term_start": start, "term_end": end}
+
+    abutting = grade({"account_state_log": [row("2024-01-01", "2024-04-01"),
+                                            row("2024-04-01", "2024-07-01")], "bills": []})
+    assert abutting["overlapping_term_legs"] == {}
+    assert defects(abutting) == []
+    stretched = grade({"account_state_log": [row("2023-12-21", "2024-10-01"),
+                                             row("2024-01-01", "2024-10-01"),
+                                             row("2024-04-01", "2024-10-01")], "bills": []})
+    assert stretched["overlapping_term_legs"] == {"g": 3}
+    assert defects(stretched) == ["1 leg(s) carry overlapping account-state terms (3 pairs), first g"]

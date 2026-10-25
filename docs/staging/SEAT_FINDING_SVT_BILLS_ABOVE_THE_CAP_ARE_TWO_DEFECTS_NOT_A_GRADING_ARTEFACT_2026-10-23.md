@@ -404,3 +404,8 @@ rows. 22 of 26 such bills are priced that way, across 5 legs. Filed:
 `SEAT_FINDING_A_GAS_SVT_TERM_STARTED_OFF_A_CAP_QUARTER_IS_BILLED_AT_THE_MEAN_OF_EVERY_RATE_IT_HAS_CARRIED_2026-10-25.md`.
 That closes "the cause cannot yet be attributed" above. The 72-to-6 fall itself is still not
 attributed to one change.
+
+**25 Oct, on `7559a676f7` (carries the riding-leg cut `063dc4bbd6`):** 0 of 24,663 default-tariff
+bills are over the ceiling, and no leg carries overlapping terms. The third cause is closed, and its
+finding is in `done/`. The grade now refuses a run in which any leg's terms overlap. Item 3's
+seven receipt invoices and the attribution of the denominator's growth are still open here.

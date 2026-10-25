@@ -136,3 +136,37 @@ then `tools.grade_svt_invoices_over_ceiling`). Predictions:
 - P4: no other leg's account-state rows change. I cannot fully assert this: the run's draws
   depend on order, and the fix changes what is settled, so the downstream effects may not be
   byte-stable. If anything else moves, I will say I cannot yet attribute it.
+
+## Graded (2026-10-25, delivery seat)
+
+The first run was lost. Its worktree `/var/tmp/se-svtcut-run` was removed at about 03:47 while the
+run was still going, so it wrote no `.rc`. It was re-run at `7559a676f7`, which carries
+`063dc4bbd6`, in a locked worktree (`/var/tmp/se-svtcut-out2/`, run.rc 0, grade.rc 0).
+
+- **P1 holds.** 0 legs carry two `account_state_log` rows covering one day, down from 11 legs and 33 pairs.
+- **P2 holds, and holds more widely than predicted.** 0 of 24,663 graded default-tariff bills are
+  over the ceiling, down from 6 of 24,597. That is zero overall, not only outside the ToU misgrade.
+- **P3 holds.** The 11 legs' lifetime revenue falls GBP 14,545 -> 11,486 (-21%), and what they
+  were billed falls GBP 14,204 -> 11,647, because months that were settled k times are now settled
+  once. Book gross margin moves GBP 952,989 -> 954,990, which is **+0.21%**: inside the 0.5% bound
+  but *up*, the opposite sign to the 11 legs. The rise is not this fix (see P4).
+- **P4: I cannot yet attribute it.** 266 other legs' account-state rows changed. The
+  1c30d6c728 -> 7559a676f7 window also carries other landings, for example C30's term-boundary
+  move `9bb30c4de`. So this pair of runs cannot separate the fix from those landings. A
+  one-variable run (7559a676f7 with only `_riding_leg_term_end` reverted) would. It is not worth
+  running for a closed defect, because the two properties that define the defect (P1, P2) are
+  read off the output directly.
+
+**The control.** `tools/grade_svt_invoices_over_ceiling.overlapping_term_legs` now names each leg
+whose recorded terms overlap, and `defects` names any such leg. So the publisher's
+`billing_grade_refusal` refuses a run that bills a month twice. On 1c30d6c728 it names 11 legs and
+33 pairs, a run that used to read `defects: []`. On 7559a676f7 it names none. Mutations: letting
+abutting terms count as overlapping reds the test, and dropping the defect line reds it too. One
+consequence: any run produced before 063dc4bbd6 now fails the publish grade (for example the
+904a091f7b run in flight this morning), and the publisher keeps the run already shown, with its
+caveat. That is the intended direction: those runs bill 11 legs' months more than once.
+
+## Done
+
+Located and fixed in 063dc4bbd6, graded clean above, and the one-leg control is in the Monday
+grade. Closed.
