@@ -166,7 +166,7 @@ households to near the 16 the fresh run showed. Lower this file to LATENT on tha
 **Amended 24 Oct, beside the condition above.** A run carrying `ce35a25e21` is not yet safe to publish.
 On the fresh run at `c5a8090187`, that fix gives 5 electricity void stubs receipts of about 47.7× the
 Treasury's share. Their bills go to as low as −£2,950, and £5,898 is never booked:
-`SEAT_FINDING_THE_VOID_STUB_EPG_FIX_CREDITS_HOUSEHOLDS_48_TIMES_THE_TREASURY_SHARE_AND_THE_LEDGER_BOOKS_NONE_OF_IT_2026-10-24.md`.
+`done/SEAT_FINDING_THE_VOID_STUB_EPG_FIX_CREDITS_HOUSEHOLDS_48_TIMES_THE_TREASURY_SHARE_AND_THE_LEDGER_BOOKS_NONE_OF_IT_2026-10-24.md` (closed 25 Oct: the fold fix graded clean at `1c30d6c728`).
 The publish that clears this file must carry that file's fix too.
 
 ## The path from run to page, 24 Oct 15:30Z (`the-monday-publish-carries-a-run-with-the-billing-fixes`)
@@ -230,3 +230,29 @@ about 02:50Z, the first run after 04:00Z is at a commit carrying all four fixes.
 about 0.4% over, and `explore_cast.json` `book_breaches.above_cap` falls from 199 to about 16. If the
 tree is still at `95e78ec777`, the run is refused on carved != booked, and the 19 Oct figures stay up
 under the caveat. Lower this file to LATENT on the first reading, not the second.
+
+## The reading on the closing run, 25 Oct (`1c30d6c728`, not a published run)
+
+The fold fix's closing run graded clean. `tools.grade_svt_invoices_over_ceiling` gives `defects: []`
+on it, so the publisher's grade would pass it:
+
+- 6 of 24,597 default-tariff invoices are above min(cap, EPG) (0.02%, against the 2% bound). They sit
+  on 2 households, all outside the EPG windows (2019: 2, 2024: 4).
+- Carved equals booked at GBP 200,091.73, and there are no negative estimates.
+
+**The six have a cause, and it is a new one.** All six are gas SVT, on `SYN-2016-428g` (Jan and Feb
+2019) and `PROS-2017-0393g` (Apr, May, Jun and Aug 2024). Each is billed at the mean of the rates its
+term has carried since a mid-quarter start, not at the cap quarter's rate. The table, and the class
+(5 legs, 22 bills, mispriced in both directions), are in
+`SEAT_FINDING_A_GAS_SVT_TERM_STARTED_OFF_A_CAP_QUARTER_IS_BILLED_AT_THE_MEAN_OF_EVERY_RATE_IT_HAS_CARRIED_2026-10-25.md`.
+That file is LATENT and does not gate Monday.
+
+**This file stays BLOCKING.** Its condition is a *published* run, and this run is not one. It clears on
+the first run after 2026-10-26T04:00Z that passes the publisher's grade and publishes, and it is
+lowered to LATENT on that reading.
+
+**Prediction, filed before Monday's run.** Suppose the run is at a commit carrying `3a31999db`, and
+nothing else on the billing path has moved. Then the grade passes at about 6 over (0.02%), and
+`book_breaches.above_cap` falls from 199 to about 2 households, not the 16 predicted above. The
+cast's 16 was `88cdf35e48`'s. If the runner's commit predates `3a31999db`, the grade refuses on
+carved != booked, and the 19 Oct figures stay up under the caveat.

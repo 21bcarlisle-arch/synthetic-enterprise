@@ -393,3 +393,14 @@ figure" is not true yet. The site still publishes run `8b6fea024`, which predate
 its bills still carry the over-cap charges. The lane stays held by the parent finding, which says what
 clears it: `SEAT_FINDING_EXPLORES_CAST_FINDS_STANDARD_VARIABLE_BILLS_ABOVE_THE_CAP_AND_NO_MOVER_OR_TWO_RATE_HOME_2026-10-23.md`,
 "Why this stays BLOCKING". This file stays LATENT, because one block on the lane is enough.
+
+## The six outside the windows, attributed (25 Oct, on `1c30d6c728`)
+
+The 6 outside the windows reproduce on the void-stub fix's closing run: 6 of 24,597, on 2 households,
+none on actual-read accounts. They are not the ToU misgrade, because all six are gas. They are not an
+incoming occupant either. **They are a third cause**: a gas SVT stint that starts mid-quarter is
+logged with one unclosed row per cap quarter, and its bills are priced at the mean of the covering
+rows. 22 of 26 such bills are priced that way, across 5 legs. Filed:
+`SEAT_FINDING_A_GAS_SVT_TERM_STARTED_OFF_A_CAP_QUARTER_IS_BILLED_AT_THE_MEAN_OF_EVERY_RATE_IT_HAS_CARRIED_2026-10-25.md`.
+That closes "the cause cannot yet be attributed" above. The 72-to-6 fall itself is still not
+attributed to one change.
