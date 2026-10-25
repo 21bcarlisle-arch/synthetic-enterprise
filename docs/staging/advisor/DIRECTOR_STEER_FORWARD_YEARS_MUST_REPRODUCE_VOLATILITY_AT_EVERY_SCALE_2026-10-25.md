@@ -1,4 +1,4 @@
-**Severity:** BLOCKING · **Lane:** W1_market_physics · **Epoch:** unassigned · **Atom:** `unminted`
+**Severity:** BLOCKING · **Lane:** W1_market_weather · **Epoch:** unassigned · **Atom:** `unminted`
 
 # [DIRECTOR-STEER] Forward years must reproduce the volatility, and the calm, of weather and prices at every time scale (2026-10-25)
 
