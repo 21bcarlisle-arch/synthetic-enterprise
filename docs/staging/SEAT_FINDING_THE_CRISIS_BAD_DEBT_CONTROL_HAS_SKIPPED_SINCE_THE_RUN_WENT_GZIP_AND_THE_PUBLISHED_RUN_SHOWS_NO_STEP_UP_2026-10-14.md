@@ -1618,3 +1618,83 @@ predictions above stand unchanged. `SE_POPULATION_SEED` is unset in both the lau
 past the import that killed the 06:21Z arm, and by 20:24Z it was settling 2017. The artefact will be
 `/var/tmp/crisis-overlay-out/arm.json` and the log `/var/tmp/crisis-overlay-out/arm.log`. Grading
 stays with `the-crisis-overlay-arm-on-the-default-book-is-graded`, from arm.json.
+
+## 2026-10-25: step (ii) graded. All four predictions hold. The off arm's pooled share is 0.98%, not 0.15%
+
+`python3 /var/tmp/crisis-overlay-out/grade.py /var/tmp/crisis-overlay-out/arm.json`, run from the
+locked worktree `/var/tmp/crisis-overlay-run2` at `ebc3c34e2e`, default book, `SE_POPULATION_SEED`
+unset. The run finished in 3,126 s, and its log has no `could not be read` line. The off arm is the
+same ledger's `matrix_provision_gbp`, as filed. `S21` = GBP 1,095.90 and `S22` = GBP 1,794.88.
+
+| year | off charge GBP | off % rev | on charge GBP | on % rev | on minus off |
+|---|---|---|---|---|---|
+| 2016-2020 | identical | | identical | | 0.00 |
+| 2021 | 308.16 | 0.142 | 347.88 | 0.160 | +39.72 (the end-2021 overlay) |
+| 2022 | 1,043.68 | 0.298 | 1,281.69 | 0.365 | +238.01 |
+| 2023 | 6,645.86 | 1.542 | 6,368.13 | 1.477 | -277.73 |
+| 2024 | 1,100.11 | 0.301 | 1,100.11 | 0.301 | 0.00 |
+
+Validator, `ifrs9_charge` basis: off **0.9835%** crisis, 0.7338% pre-crisis, step-up x1.34, FAIL.
+On: **0.9785%**, 0.7338%, x1.33, FAIL. Both fail only the 1% floor. Both clear the x1.2 step-up bar.
+
+1. **Pairing: HELD.** The stocks are equal to the penny at end-2016 to end-2020, end-2023 and end-2024.
+   The pre-2020 dates carry the filed reason, "no published cap a year earlier". **One date was not
+   predicted:** the run's last snapshot, 2025-06-07, carries an overlay of GBP 93.44 (cap ratio 1.13,
+   share 0.0168). It is outside the validator's window and outside the charge series, which ends at
+   2024. It shows the overlay re-arms on the April 2025 cap rise. I did not predict it because the
+   prediction named year ends only.
+2. **The 2022 charge: HELD.** On minus off is GBP 238.01. Predicted: 0.1547 x 1,794.88 - 0.0362 x
+   1,095.90 = 277.67 - 39.67 = GBP 238.00. The miss is GBP 0.01, inside 0.05.
+3. **The 2023 release: HELD in substance.** On minus off is -GBP 277.73, which is exactly the end-2022
+   overlay, so it is released in full. The filed coefficient gives -0.1547 x S22 = -GBP 277.67. That
+   misses by GBP 0.06, because 0.1547 rounds the exact `0.134 / 0.866` = 0.154734. Prediction (2) had
+   a tolerance and (3) had none. I grade (3) on its claim, which is release in full, and record the
+   rounding here.
+4. **The comparison: HELD.** The on arm's pooled share is below the off arm's by 0.0050 points. Its
+   step-up is within 0.01 of the off arm's. The net pooled effect is the end-2021 overlay, GBP 39.72,
+   which is the `-0.0362 x S21` filed. The build was not suspect, so no build check was needed.
+
+**What the grade did not predict, and what it corrects.** The 13:15 amendment said "both FAIL the 1%
+floor" was close to known, and the 2026-10-24 note said the stock is "a seventh of the floor". Both
+leaned on the published run's 0.15%. **On this build the off arm's pooled share is 0.98%, 0.016
+points under the floor.** The 0.15% figure is stale. The builds since that publish (EBSS, the demand
+reading, the held-money switches, the EPG carve) have moved the book. Those two sentences are wrong
+for `ebc3c34e2e`, and they stand above with this correction beside them. The shape is unchanged. 2022
+is 0.30% and 2023 is 1.54%, so the world's book still steps a year after the record (the 2026-10-23
+reading). The pooled window passes or fails mostly on 2023.
+
+**What this means for the overlay.** A cap-only overlay moves the 2022 charge in the direction the
+record does, and it lowers the pooled window by its own end-2021 value. As the knowledge page
+predicted, it cannot carry the company's half. `provision_crisis_overlay` stays **off by default**,
+because the pre-registration filed no switch-on rule. **E6's L2 evidence is not in hand.** The
+validator fails on both arms, so no map row is written.
+
+**Before the next arm, two cautions.** First, the floor is now within an overlay's reach. On the
+page's market illustration, the arrears term at full strength in 2023 (0.134) and 0.074 at end-2021
+would add `0.1547 x S23 - 0.0799 x S21` = 1,033 - 88 = about GBP 946 to the pooled charge. On this
+book that takes 0.98% to about 1.10%. That is an illustration on Ofgem's series, not a prediction on
+the company's book. **The switch-on rule must be filed before that arm is graded**, so the floor
+cannot choose the rule. Second, `arm.json` carries receivables by payment route and no count of
+indebted accounts. The book's own arrears per indebted account cannot be read from this artefact, and
+the next slice has to publish it.
+
+**Next E6 step (the atom slice).** `E6_..._arrears_build`, slice "the arrears-per-account term". Build
+choices 1-3 and 4(a) of `bad_debt_provisioning.md`, "The arrears-per-account signal". The term reads
+the company's own book (`_residuals`) for arrears over 91 days per indebted account. It takes
+`max(cap, arrears)`, never the sum. Its baseline is the book's own pre-crisis growth, and it is `None`,
+with the reason, on a book younger than three years. The 2024 release is left alone (choice 4a, errs
+safe). It stays default off, and each snapshot publishes the per-account series beside the overlay.
+Done means three things: a partition control in the shape of
+`test_the_crisis_overlay_reads_what_a_supplier_held.py`; a pre-registration filed before the arm,
+with the switch-on rule and with whether the book's own series steps in 2023; and one default-book
+arm graded off one ledger, as here.
+
+**Status:** OPEN and BLOCKING. Step (ii) is built and graded. The arrears term is next, then step
+(iii).
+
+**Owed, held behind the settlement-ceiling red.** `bad_debt_provisioning.md`'s GAP row "Whether the
+company's book shows the 2023 intensity step" still names the refused seed-70424 arm. It should read:
+graded 2026-10-25 on the default book, all four held, off arm 0.98%, no indebted-account count in the
+artefact. That path's gate selects `test_net_new_acquisition.py`, which is red on every lane
+(`SEAT_FINDING_THE_SETTLEMENT_CEILING_JOURNAL_LEG_HAS_ARMED_AND_THE_7700_BUDGET_OUTRUNS_THE_PRODUCTION_PEAK_2026-10-25.md`).
+It lands with that finding's other owed one-line correction to the same page.
