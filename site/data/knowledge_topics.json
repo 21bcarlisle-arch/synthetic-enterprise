@@ -990,6 +990,50 @@
           "body": "It does not give a probability that any household will default. A coverage rate is a ratio of two balances at a year-end, and a charge rate is a ratio of two flows over a year; neither is a default probability. It does not say how long a supplier waits before writing off, or what written-off energy debt in particular sells for; it gives only the all-sector purchase prices and says so. It does not establish how the price cap's GBP 71 allowance splits between bad debt and the cost of chasing it."
         }
       }
+    },
+    "regional-supply-cost": {
+      "meta": {
+        "topic_id": "regional-supply-cost",
+        "title": "Why supplying a home costs more in some regions, under one national price",
+        "subtitle": "GB has one wholesale price, but the network charges and the energy lost in the wires are set region by region. Both are published, and our world carries neither by region. It carries no losses at all.",
+        "wall_placement": "Public-reality commons only. Every figure is read from Ofgem's price cap workbooks (Annex 3 network cost allowance v1.25; the demand and losses supplementary workbook v1.19; the cap level model v1.31) or from Elexon's BSC modification record. No figure from this project's simulation appears here except where the page says what our code does.",
+        "claim_freshness": {
+          "last_verified": "2026-10-25",
+          "written": "2026-10-25",
+          "source": "Ofgem Annex 3 network cost allowance methodology, electricity, v1.25 (sheets 2a TNUoS, 2b DUoS, 2c BSUoS, 1a, 3b Losses); Ofgem supplementary workbook to Annexes 2, 3 and 4, demand and losses, v1.19 (1a Loss multipliers); Ofgem, Energy price cap methodology: group correction factors, consultation 22 Aug 2025 and decision Nov 2025; Elexon, BSC modification P350 (zonal transmission losses, live 1 April 2018); docs/market_research/regional_supply_cost_under_one_national_price_2026-10-25.md",
+          "note": "Written because the B5 regional basis atom was closed onto this gap on 24 Oct 2026: only London's DUoS had been extracted, and nothing in the record or the code modelled losses."
+        }
+      },
+      "rungs": {
+        "headline": {
+          "heading": "The claim, in one sentence",
+          "body": "Under one national wholesale price, supplying a home in N Wales and Mersey or the north of Scotland cost £14 to £44 per MWh more in network charges than supplying one in the cheapest region, usually London, in each year from 2016 to 2025. On top of that, a supplier buys more energy than its meters record, because some is lost in the wires: about 10 per cent in the median region, between 3 and 15 per cent across regions and years."
+        },
+        "plain": {
+          "heading": "In plain terms",
+          "body": "Every unit of electricity a household uses has travelled through the transmission grid and a local distribution network. The companies that own those networks charge for their use, and the charges are set separately for each of the 14 regional networks. Rural, sparse networks with long lines cost more per home than dense city ones, so the same household would pay more for its network in Merseyside and North Wales or in the Highlands than in London.\n\nSome electricity is also lost on the way, as heat in cables and transformers. A supplier cannot sell what was lost, but it still has to buy it. The industry's settlement rules therefore scale each supplier's metered volume up to what actually left the grid. The uplift is about a tenth, and it differs by region too.\n\nThese are two different things. A network charge is a fee on a meter. A loss is extra energy the supplier must buy at the wholesale price. They are kept apart here."
+        },
+        "theory": {
+          "heading": "How it works",
+          "body": "NETWORK CHARGES. Three charges make up the network cost of a domestic electricity customer. DUoS, the distribution charge, is published by each of the 14 distribution network areas in its charging statement. It is the part that differs most by region. TNUoS, the transmission charge, is published by NESO with a locational element by zone. BSUoS, the balancing charge, is GB-wide. Ofgem's price cap builds its network allowance for each of the 14 regions from those statements, and publishes the build-up back to April 2015.\n\nTWO BREAKS IN HOW THEY ARE CHARGED. From April 2022 the DUoS residual moved from the unit rate to a fixed daily charge, so most of the regional difference now sits in the standing charge. From April 2023 the TNUoS residual moved to a per-site daily charge that is the same in every region (CMP343). A per-kWh regional figure from before 2022 cannot be differenced against one from after it.\n\nLOSSES. Settlement turns metered volume into the volume a supplier pays for. Line Loss Factors do this for distribution losses; each distribution network publishes them every year. Transmission Loss Multipliers do it for the transmission grid; they have been zonal since BSC modification P350 went live on 1 April 2018. A GSP Group Correction Factor then scales every supplier in a region, each half-hour, so the total matches what entered the region. Ofgem found in 2025 that correction factors had risen enough that line loss factors alone no longer reflected real losses. From the November 2025 update it adds a GB-average uplift of about 1.46 per cent.\n\nTHE CAP ALREADY PRICES LOSSES. The cap's wholesale allowance for each region is scaled by that region's loss multiplier. The ratio of each region's wholesale allowance to London's equals the ratio of their loss multipliers to four decimal places (Eastern 1.0122 against 1.0122, Southern Western 0.9767 against 0.9767)."
+        },
+        "expected_shape": {
+          "heading": "What the data should look like",
+          "body": "Network cost, all-in per MWh at 3,100 kWh a year (DUoS, TNUoS and BSUoS, including the fixed part). In 2016/17 the median region was £44.7, London the cheapest at £39.2, and Northern Scotland the dearest at £57.7. In 2025/26 the median was £66.6, London £51.3, and N Wales and Mersey £95.0. The gap between the cheapest and dearest region was £14 to £20 per MWh before 2023 and £24 to £44 from 2023. London was the cheapest region in 8 of the 10 years.\n\nDUoS alone varies most. The dearest region paid 1.4 to 1.9 times the cheapest each year from 2016/17 to 2024/25, and 3.1 times in 2025/26. That ratio is not a constant.\n\nLosses. Ofgem's demand-weighted transmission and distribution loss multiplier for a single-rate home was 1.07 to 1.11 in 2016/17 (median 1.095). It rose to a median of 1.121 by 2025/26 and runs 1.08 to 1.17 for 2026/27. So in the median region a supplier buys about 9 to 12 per cent more energy than its domestic meters record. The lowest of any region in any year is about 3 per cent (Northern Scotland, 2025/26). The regional spread is 4 to 12 percentage points. At a normal wholesale price that is £2 to £6 per MWh. At the 2022-23 peak it was more than the whole regional DUoS spread."
+        },
+        "live_evidence": {
+          "heading": "Live evidence",
+          "body": "WHAT IS SOURCED. Every figure above was read on 25 October 2026 from Ofgem's Annex 3 v1.25 and demand and losses v1.19 workbooks, with their URLs and checksums recorded in the research note. Two checks passed. London's 2016/17 DUoS (£75.70 a year, 24.4 per MWh) matches the figure read from a 2019 edition of the same annex. Each region's network allowance equals DUoS plus TNUoS plus BSUoS to the penny.\n\nWHAT OUR CODE DOES. The world prices the network at one national figure per year, close to the regional median, with no regional spread and no regional standing charge. The supplier's DUoS ledger holds one national unit rate and is reached by no production caller. No code anywhere in the world or the supplier applies a loss factor. The world settles metered kWh. A real supplier pays for about 1.09 to 1.12 times those kWh, and the cap it is priced against includes them. That flatters margin. At the cap's own allowances, losses were about £13 per customer a year in 2016 and about £134 a year at the January-March 2023 peak, annualised. That is an estimate from the cap's figures, not a measurement of our book. The measurement is filed as a finding."
+        },
+        "residuals": {
+          "heading": "What is still unexplained",
+          "body": "Figures before January 2019 are Ofgem's \"historical examples, for illustration only\". They were built with the same method but were never cap levels in force. One April cap period stands for each charging year, so BSUoS movements within a year, which were large in 2022-23, are not averaged. The London DUoS fall from £101 to £67 a year in April 2025 is read as Ofgem published it and has not been checked against the network's own 2025/26 charging statement. Actual settled correction factors were read only as Ofgem's two-year summary, not from Elexon's files."
+        },
+        "scope_delta": {
+          "heading": "What this page does not yet establish",
+          "body": "It does not map an address to a network region. The world draws households in 11 ONS regions. Network charges and losses are set for 14 GSP groups, and the two do not nest: Scotland is two groups, and N Wales and Mersey crosses the border. Until a mapping is sourced (the published one is the distributor ID by postcode), any regional figure applied by ONS region is an approximation and must say so.\n\nIt does not cover Economy 7 or other multi-rate meters, which are in the same workbooks, or gas, whose network charges are set by gas distribution zones.\n\nIt does not change the world. The national loss uplift is the larger error and needs no region key, so it comes first, as a fidelity fix to the baseline world decided without reference to company results. The regional spread comes after the mapping."
+        }
+      }
     }
   }
 }

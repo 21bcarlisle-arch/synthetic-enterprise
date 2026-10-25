@@ -24,11 +24,15 @@ Financial impact for suppliers:
   - Must purchase LLF-adjusted volumes from wholesale market
   - LLF increase for a meter = higher settlement cost for that customer
   - Pricing models must bake in LLF; flat 1.0 assumption is an error
-  - Typical domestic LLF: 1.00-1.05
-  - High-loss rural: up to 1.12; HV-connected I&C: often 1.0
+  - Domestic LV: Ofgem's demand-weighted distribution-only multiplier for
+    a single-rate home is 1.08-1.15 by region (corrected 2026-10-25 from
+    "1.00-1.05"; Ofgem demand and losses workbook v1.19, sheet 1a)
+  - HV-connected I&C: lower, often close to 1.0
 
-Distinct from Transmission Loss Multipliers (TLMs), which are national
-and handled at BSC level (not tracked per-meter by suppliers).
+Distinct from Transmission Loss Multipliers (TLMs), applied at BSC level
+and not tracked per meter by suppliers. They have been ZONAL by GSP group
+since BSC P350 (1 April 2018), not national as this said until 2026-10-25.
+See docs/market_research/regional_supply_cost_under_one_national_price_2026-10-25.md.
 """
 from __future__ import annotations
 

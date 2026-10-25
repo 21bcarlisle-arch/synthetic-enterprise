@@ -379,6 +379,10 @@ If the simulation models variable consumption customers, note:
 4. **Regional DUoS variation:** Only London (Zone 3) DUoS has been directly extracted.
    Northern, Yorkshire, East Midlands, South Western DNO tariffs are not extracted.
    National average is 20–50% higher than London.
+   **CLOSED 2026-10-25:** all 14 regions' DUoS, TNUoS, BSUoS and loss multipliers, 2016/17–2025/26,
+   are read from Ofgem Annex 3 v1.25 in `regional_supply_cost_under_one_national_price_2026-10-25.md`.
+   The median region's DUoS was 25% above London in 2016/17 and 76% above it in 2025/26. The "30–80%
+   more" in §2b holds for the dearest regions, not for most of them.
 
 5. **SME DUoS below HV threshold:** Precise HV/LV DUoS split not extracted. The ~50%
    reduction for HV vs LV is an industry rule of thumb, not directly sourced.
