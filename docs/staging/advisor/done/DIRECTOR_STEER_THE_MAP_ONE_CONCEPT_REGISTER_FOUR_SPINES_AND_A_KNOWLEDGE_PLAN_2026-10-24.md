@@ -83,3 +83,22 @@ One stretch-log entry with:
 - the token saving.
 
 — Director steer, 24 Oct 2026, his words above; the mock-up and drafting are the advisor's.
+
+## Done
+
+2026-10-25, delivery lane `map-steer-knowledge-pages-and-forward-plan`. The report is the stretch-log
+entry "The map steer's report" in `docs/status/SEAT_STRETCH_LOG.md`.
+
+- Items 1–3 landed earlier: ebc3c34e2 (the register and the Collect pilot), 685ffeadb (the page),
+  c4d903dc9 (the coverage counts).
+- Item 4 has three pages landed: 997cfc67e, 3660142eb and 25d95f3ab. The tariffs, smart-meter/HHS
+  and vulnerability/PSR pages are carried by the seat-executor's claim
+  `knowledge-pages-tariffs-smart-meters-vulnerability`. Grid carbon, operating costs and the loyalty
+  finding are rows in the plan.
+- Item 5 is `tools/knowledge_plan.py`. It has 134 rows, priced at 40 points (30–59). Its lagging
+  measure shows 45 of 167 recent builds drawn before their knowledge, which is a lower bound.
+- Item 6 is `tools/knowledge_plan.py --token-saving`, which measures the saving before the file is built.
+  The per-turn file would cost 10.0k characters. It would save a mean of 3.6k per turn, against a
+  median of 55.6k characters searched per turn. So the file is not wired in until the register
+  covers what turns search for, and the same command will show when that crossing happens.
+- Not done: the coverage checks are not binding yet, because their backlog is the plan above.
