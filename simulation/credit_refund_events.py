@@ -15,20 +15,18 @@ closure, the credit left in the account and the date the money arrived to
 The SLC 14 deadline, the refund taxonomy and the breach verdict are the
 supplier's, and are no longer readable from here.
 
-Real DD billing pays a flat monthly amount, reconciled periodically -- not
-the exact bill each month. `saas/bill_generator.py` bills exact consumption
-with no DD smoothing anywhere in the codebase before this. DD smoothing is
-added here, scoped tightly to this module: a DD customer's flat monthly
-amount at any point is the trailing mean of their own bills TO DATE (no
-lookahead -- what a real supplier would already know when it set the DD
-amount). A customer who churns mid-cycle carrying a positive smoothing
-balance (paid more via flat DD than they were actually billed) is the most
-common real-world SLC 14 trigger.
+The credit is the run's own ledger balance at the final bill (`closing_balances`, from
+``arrears_engine.balance_settlement_from_outcomes``: owed positive, credit negative, per fuel), not a
+balance this module keeps. Until 2026-10-25 it fired from a level-DD smoothing balance of its own (the
+trailing mean of a DD payer's bills less each bill). No household in the run ever paid a level DD:
+the world has one payment truth and a paid bill is paid exactly. So that balance was money nobody had
+collected, and the two books disagreed both ways. At 60 founders to 2020-12-31 the log refunded
+SYN-2016-052, which the ledger says owes GBP 27.64, and refunded none of the 7 move-outs the ledger
+closes in credit (home_moves.md s.8.8a). A level DD's over-collection belongs in that same ledger
+(DD3, ``simulation/dd_balance_book.py``), and reaches the refund once it is posted there.
 
-This is a narrow, closure-only mechanic -- NOT the full billed-vs-collected
-customer statement docs/staging/done/BILLING_AND_PAYMENTS_LEDGER.md's item 3
-still owns (that is a customer-facing reconciliation surface; this is an
-internal SIM trigger for one company compliance process).
+Reg 6D binds a domestic credit however it was paid, so every domestic leaver in credit is evaluated,
+not only DD payers. Non-domestic accounts are not: the Standards of Performance are domestic.
 
 Deterministic dispatch: `random.Random(f"creditrefund_{customer_id}_{period_end}")`,
 matching simulation/feedback_survey.py's convention.
@@ -37,10 +35,9 @@ from __future__ import annotations
 
 import datetime as dt
 import random
-import statistics
 
 from company.interfaces.credit_refund_requests import refund_on_account_closure
-from simulation.arrears_engine import payment_method
+from simulation.segment_vocabulary import RESIDENTIAL, normalise_segment
 
 # Probability the refund is paid within the SLC 14 10-working-day deadline.
 # A small tail breaches it -- the real pattern Ofgem issued multiple 2022
@@ -49,24 +46,6 @@ from simulation.arrears_engine import payment_method
 ON_TIME_PROBABILITY = 0.90
 ON_TIME_WORKING_DAYS = (2, 10)
 LATE_WORKING_DAYS = (11, 25)
-
-
-def dd_smoothing_balance_at_closure(bills_for_customer: list[dict]) -> float:
-    """Cumulative (flat DD amount - actual bill) across a DD customer's full
-    bill history, chronological. The flat DD amount charged in any given
-    month is that customer's own trailing mean of prior bills (no
-    lookahead) -- the first bill has no history yet, so DD == actual for it.
-    """
-    if not bills_for_customer:
-        return 0.0
-    seen_totals: list[float] = []
-    balance = 0.0
-    for bill in bills_for_customer:
-        actual = bill["total_amount_gbp"]
-        dd_amount = statistics.mean(seen_totals) if seen_totals else actual
-        balance += dd_amount - actual
-        seen_totals.append(actual)
-    return balance
 
 
 def _add_working_days(start: dt.date, n: int) -> dt.date:
@@ -82,38 +61,34 @@ def _add_working_days(start: dt.date, n: int) -> dt.date:
 def generate_credit_refund_log(
     bills: list[dict],
     customer_segments: dict[str, str],
-    churned_ids: set[str],
+    closing_balances: dict[str, float],
 ) -> list[dict]:
-    """One SLC 14 refund event per churned DD customer closing with a
-    positive DD-smoothing credit balance. Returns plain JSON-serialisable
-    dicts. Non-DD customers (I&C/SME on bacs/chaps) and customers who never
-    churn are not evaluated -- SLC 14's account-closure trigger only applies
-    at closure.
+    """One reg 6D refund event per closed domestic account the ledger closes in credit.
+
+    ``closing_balances`` is the run's, account -> GBP owed (+) or held in credit (-) at the final
+    bill, for leavers only. An account it does not hold is not evaluated: no balance is not a credit.
+    The closure date is the account's last bill's period end. Returns plain JSON-serialisable dicts.
     """
-    by_customer: dict[str, list[dict]] = {}
-    for bill in sorted(bills, key=lambda b: (b["customer_id"], b["period_end"])):
-        by_customer.setdefault(bill["customer_id"], []).append(bill)
+    last_bill: dict[str, dict] = {}
+    for bill in bills:
+        held = last_bill.get(bill["customer_id"])
+        if held is None or bill["period_end"] > held["period_end"]:
+            last_bill[bill["customer_id"]] = bill
 
     log: list[dict] = []
-    for cid, customer_bills in by_customer.items():
-        if cid not in churned_ids or not customer_bills:
+    for cid in sorted(closing_balances):
+        balance = closing_balances[cid]
+        if balance >= 0 or cid not in last_bill:
             continue
-        segment = customer_segments.get(cid, "resi")
-        last_bill = customer_bills[-1]
-        method = payment_method(segment, last_bill["total_amount_gbp"], cid,
-                                 last_bill.get("commodity", "electricity"))
-        if method != "direct_debit":
+        if normalise_segment(customer_segments.get(cid, RESIDENTIAL)) != RESIDENTIAL:
             continue
-        balance = dd_smoothing_balance_at_closure(customer_bills)
-        if balance <= 0:
-            continue
+        final = last_bill[cid]
+        closure_date = dt.date.fromisoformat(final["period_end"])
 
-        closure_date = dt.date.fromisoformat(last_bill["period_end"])
-
-        # How long the money took to ARRIVE is what the household observes. The
-        # deadline it is judged against, and the verdict, are the company's -- see
-        # the seam module's residual (1) on why this draw is still world-side.
-        rng = random.Random(f"creditrefund_{cid}_{last_bill['period_end']}")
+        # How long the money took to ARRIVE is what the household observes. The deadline it is
+        # judged against, and the verdict, are the company's -- see the seam module's residual (1)
+        # on why this draw is still world-side.
+        rng = random.Random(f"creditrefund_{cid}_{final['period_end']}")
         on_time = rng.random() < ON_TIME_PROBABILITY
         lo, hi = ON_TIME_WORKING_DAYS if on_time else LATE_WORKING_DAYS
         working_days = rng.randint(lo, hi)
@@ -124,7 +99,7 @@ def generate_credit_refund_log(
             **refund_on_account_closure(
                 account_id=cid,
                 closure_date=closure_date,
-                credit_amount_gbp=round(balance, 2),
+                credit_amount_gbp=round(-balance, 2),
                 paid_date=paid_date,
             ),
         })

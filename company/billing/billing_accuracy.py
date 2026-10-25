@@ -312,9 +312,16 @@ def move_out_final_bills(bills: Iterable[dict], move_outs: Iterable[dict] | None
         "credit": {"refunds_recorded": count("credit", "on_time") + count("credit", "late"),
                    "on_time": count("credit", "on_time"), "late": count("credit", "late"),
                    "within_working_days": CREDIT_REFUND_WORKING_DAYS,
-                   "unrecorded_because": ("the refund log lists only direct-debit accounts that "
-                                          "closed in credit; for the rest the run records no "
-                                          "closing balance")},
+                   # Reg 6D is graded over the accounts the ledger closes in credit: one owed and
+                   # unrefunded is a breach the on-time count cannot see, and a refund to an account
+                   # the ledger does not hold in credit is money handed back that was not owed.
+                   "owed_on_ledger": count("debt", "credit"),
+                   "owed_unrefunded": sum(1 for r in rows
+                                          if r["debt"] == "credit" and r["credit"] is None),
+                   "refunded_not_owed": sum(1 for r in rows
+                                            if r["credit"] is not None and r["debt"] != "credit"),
+                   "unrecorded_because": ("the refund log lists only domestic accounts the "
+                                          "ledger closes in credit")},
         "debt": {"carried": count("debt", "carried"), "credit": count("debt", "credit"),
                  "settled": count("debt", "settled"),
                  "no_balance": sum(1 for r in with_final if r["debt"] is None),

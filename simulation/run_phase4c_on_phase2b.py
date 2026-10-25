@@ -446,7 +446,7 @@ def main(report_end: str | None = None, policy=None, instructed_read_arm: str = 
     all_records = phase2b_result["all_records"]
 
     # D3 step 2 (Expert-Hour finding, 2026-07-12): computed here (moved
-    # earlier than its pre-existing use below, for generate_credit_refund_log)
+    # earlier than its pre-existing use below, by build_monthly_bills)
     # so a churning account's own last bill can force-resolve any pending
     # estimated run rather than leaving it unreconciled forever.
     # Keyed by SUPPLY POINT, because every consumer below tests a bill's own id: the roster is
@@ -579,16 +579,9 @@ def main(report_end: str | None = None, policy=None, instructed_read_arm: str = 
         for message in meter_read_messages
     ]
 
-    # Phase 3 (CORE_FIDELITY_PHASES.md item 2): SLC 14 credit-refund
-    # activation -- company/billing/credit_refund.py already had the real
-    # SLA mechanic but no caller anywhere in simulation/. DD customers who
-    # churn carrying a positive DD-smoothing credit balance now raise a real
-    # refund event with an on-time/breach outcome. `churned_ids` computed
-    # above, before build_monthly_bills.
     customer_segments = {
         c["customer_id"]: c.get("segment", "resi") for c in all_customers_for_meter_type
     }
-    credit_refund_log = generate_credit_refund_log(bills, customer_segments, churned_ids)
 
     # Phase QD: replace the flat get_bad_debt_rate() formula baked into
     # all_records by run_phase2b's real-time settlement loop with the real,
@@ -605,6 +598,9 @@ def main(report_end: str | None = None, policy=None, instructed_read_arm: str = 
         churned_ids,
         closing_out=closing_balances,
     )
+    # A closed account the ledger holds in credit is refunded from that balance (reg 6D), so the
+    # refund log and the debt the P&L writes off are one book (home_moves.md s.8.8a).
+    credit_refund_log = generate_credit_refund_log(bills, customer_segments, closing_balances)
 
     # Phase [debt-branch, docs/design/PROCESS_MODEL.md Section 4]: real
     # post-write-off DCA recovery / debt-sale proceeds, applied as a
