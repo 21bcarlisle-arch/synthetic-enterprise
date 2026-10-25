@@ -2442,6 +2442,9 @@ def generate(run_json_path=None):
         from tools.model_on_a_page_sheets import write as write_model_sheets
         write_model_sheets()
         write_model_picture(front_door.parent / "assets" / "model-on-a-page.svg")
+        # The map's page, from the concept register (director, 24 Oct). Fails closed.
+        from tools.the_map_page import write as write_the_map_page
+        write_the_map_page()
         # The cost of work to come, re-fitted at every publish (director, 24 Oct) so the pace
         # section's forecast is this week's. A fit that raises leaves the last one, dated, shown.
         try:

@@ -1,6 +1,6 @@
 # GB domestic payment-method migration rates, while staying with the same supplier (2016-2025)
 
-**Knowledge:** none -- no knowledge page covers payment method or debt and collections, the same gap `dd_failure_basis_and_live_arrears_provision_rates.md` names; the finding reaches readers through the knowledge-map row *How often a household's payment method changes while it stays (PB8)*
+**Knowledge:** debt-and-collections
 
 Research pass, 2026-09-30, discovery agent. Question: how often does a household's PAYMENT METHOD
 change (DD <-> standard credit <-> prepayment) per year, while it stays with the same supplier?

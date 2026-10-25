@@ -8,6 +8,30 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-25 — The map's page: generated at publish at /model/map/ in the mock-up's shape, with world-claims rows joined as measure definitions; the DD failure rate's only same-named function counts over the wrong denominator
+
+<!-- head: f584b44aafe2 -->
+
+**What.** Item 2 of the 24 Oct map steer now has its page, at `/model/map/`, generated at publish by `tools/the_map_page.py` from `tools.the_map.build()`. It has the mock-up's shape: the four spines with their steps; supplier › Collect as a grid of knowledge, world rule, what crosses the wall and supplier feature, with its beliefs band and its measures; and How it's built › Testing and controls as practice, rule, enforcement and evidence. Each concept opens a panel showing its definition, its outside match, its other names, the modules that carry its name outside its home, its atoms, what the map flags, and its links grouped by spine. Every link is tappable. The page carries no link of its own. It is reached from How it's built, beside the code graph.
+
+**The world-claims join.** A `world-claims` row whose note attaches to a mapped concept's page is shown on that page as a measure definition, with `computed_by` naming its function in `tools/world_claims.MEASURES`. The note-to-page rule is the map's own. A row that reaches no mapped page is a finding, "measure on no mapped page", not an omission.
+- On Collect: `direct_debit_share_of_accounts`, range 66.5-75.5% (DESNZ QEP), computed by `tools.world_claims._direct_debit_share_of_accounts`.
+- Unplaced: the three fuel-split claims. Their page, how-households-choose, is not on the register yet.
+
+**Correction, beside the claim.** `gb_payment_method_migration_rates.md` said "no knowledge page covers payment method or debt and collections". The debt-and-collections page exists and cites that note, so its Knowledge line now names the page.
+
+**What the page shows that the register did not say.**
+- The DD failure rate still has no `computed_by`. The one function by that name, `company.billing.payment_behaviour.dd_failure_rate`, is uncalled. It counts failed DDs over all of one customer's payment records, not over presented collections. So that function is not the measure's definition, and the gap stays open with its reason.
+- The declared payment-method home is uncalled, as the 24 Oct entry already found.
+
+**Measure verdict, updated.** The pattern has now done work: it found a function whose name matches the measure and whose denominator differs. That is the two-meanings failure the SKOS steer named. The pattern is kept.
+
+**Tests.** `tests/tools/test_the_map_page.py` (3) and `site/model/test_the_map_door.py` (2, run on the committed page). Five mutations were run and each turns exactly one test red: drop the unplaced branch, attach every claim to every page, rename the panel id, render an empty layer blank, delete a published panel.
+
+**Not done, and owed in order.** The nav tab the mock-up shows ("The map" between How it's built and The code) waits until the full build: adding it re-renders every page's nav, and the row has to be re-measured at 360px. Then items 3-6: coverage checks made binding once their backlog is planned, the 102 notes on no page ruled and the owed domain pages, the forward knowledge plan with `work_cost_estimate` costs, and the agents' one-file map with its token saving.
+
+---
+
 ## 2026-10-25 — The basics are graded, not listed: 0 of 8 gate atoms at target, 7 lines done, 6 partial, 2 absent, and dual fuel now has its atom (B13)
 
 <!-- head: 5ed67fe06cf2 -->

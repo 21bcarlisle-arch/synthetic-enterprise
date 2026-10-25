@@ -179,8 +179,10 @@ def test_the_payment_triad_asks_the_named_household_only_for_its_own_months_shar
             acc[1] += r.get("occupier_debt_gbp", 0.0)
             acc[2] += r.get("void_owner_charge_gbp", 0.0)
     assert [k for k, (_rev, occ, _void) in month.items() if occ > 1.0 and k in posted]
+    # TO THE PENNY: the triad's amount comes through `owed_after_scheme_credit`, which rounds what
+    # is owed to 2dp as a bill does (d8129f3f6), so half a penny is the tolerance, not 1e-6.
     for key, (rev, occ, void) in month.items():
-        assert posted[key] == pytest.approx(rev - occ - void, abs=1e-6), (key, rev, occ, void)
+        assert posted[key] == pytest.approx(rev - occ - void, abs=0.005), (key, rev, occ, void)
 
 
 def _book():

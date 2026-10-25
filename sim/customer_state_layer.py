@@ -311,8 +311,16 @@ def term_window_under_move(term_start: dt.date, term_end: dt.date,
     `term_end` and `move_out` are both EXCLUSIVE: the move date is the first day the mover is not
     liable, the same day the incoming occupancy may start. A term starting on or after the move
     is not supplied to this occupancy at all, which returns (None, False).
+
+    A MOVE ON `term_end` BELONGS TO THIS TERM: the term runs whole and the move falls at its close,
+    so this returns (term_end, True). With `>=` here the move was in no term at all -- this one
+    passed it by and the next, starting on the move date, returned None -- so the vacated meter was
+    never admitted. Quarterly SVT terms put that on every move dated a cap-quarter start: seed 61102
+    gave `SYN-2016-572` a 2017-07-01 move, its gas leg (mid-term) passed an incoming occupant on and
+    its electricity leg (quarter boundary) did not, and the C30 contact then priced a household
+    whose only registered point was a gas leg.
     """
-    if move_out is None or move_out >= term_end:
+    if move_out is None or move_out > term_end:
         return term_end, False
     if move_out <= term_start:
         return None, False

@@ -164,15 +164,67 @@ def test_every_outcome_of_the_term_window_is_reachable():
         term_window_under_move(_T0, _T1, _T0),
         term_window_under_move(_T0, _T1, _T1),
     }
-    assert outcomes == {(_T1, False), (dt.date(2020, 9, 1), True), (None, False)}
+    assert outcomes == {(_T1, False), (dt.date(2020, 9, 1), True), (None, False), (_T1, True)}
 
 
-def test_a_move_on_the_terms_first_day_takes_the_whole_term_and_on_its_end_takes_none():
+def test_a_move_on_the_terms_first_day_takes_the_whole_term_and_on_its_end_closes_it():
     """Defect: an off-by-one that bills the mover a day after leaving, or drops a supplied term."""
     assert term_window_under_move(_T0, _T1, _T0) == (None, False)
     assert term_window_under_move(_T0, _T1, _T0 + dt.timedelta(days=1)) == (
         _T0 + dt.timedelta(days=1), True)
-    assert term_window_under_move(_T0, _T1, _T1) == (_T1, False)
+    assert term_window_under_move(_T0, _T1, _T1) == (_T1, True)
+
+
+def test_every_move_in_the_window_is_seen_by_exactly_one_of_consecutive_terms():
+    """Defect: a move dated on a term boundary falls between two terms and is seen by neither, so
+    the vacated meter is never admitted (seed 61102: SYN-2016-572's electricity leg on 2017-07-01,
+    a cap-quarter start). Swept over every day of four quarterly terms, boundaries included."""
+    starts = [dt.date(2017, 1, 1), dt.date(2017, 4, 1), dt.date(2017, 7, 1),
+              dt.date(2017, 10, 1), dt.date(2018, 1, 1)]
+    terms = list(zip(starts, starts[1:]))
+    day = starts[0] + dt.timedelta(days=1)
+    boundary_moves = 0
+    while day <= starts[-1]:
+        seen = [t for t in terms if term_window_under_move(*t, day)[1]]
+        assert len(seen) == 1, f"a move on {day} is seen by {len(seen)} terms"
+        boundary_moves += day in starts
+        day += dt.timedelta(days=1)
+    assert boundary_moves == 4, "the sweep must reach every boundary, or it proves nothing"
+
+
+def test_an_occupant_admitted_at_a_boundary_move_can_be_priced_and_an_undrawn_id_cannot():
+    """Defect: the run creates an incoming household whose electricity leg was never registered,
+    and the C30 contact's elasticity draw refuses it (B_61102 and C_61102 died on OCC-b9601279e7d4).
+
+    The run's own steps, in its order: each leg's consecutive terms are asked about the household's
+    one move, and a leg that reports it admits the incoming occupant's record onto the book. The
+    move here lands on the electricity leg's quarter boundary and inside the gas leg's term."""
+    from company.interfaces.supply_book import incoming_occupant_supply_points
+    from saas.customers import get_customer
+    from sim.customer_state_layer import incoming_occupant_record
+    from simulation.household import GAS_LEG_ID_SUFFIX, household_of
+    from simulation.population_draw import price_elasticity_for_customer
+
+    occupancy = Occupancy.of_customer("C1", TenureType.PRIVATE_RENTER)
+    move = next(m for y in range(2016, 2026) for s in range(1, 400)
+                if (m := draw_home_move(occupancy, y, s)) is not None)
+    boundary = move.move_date
+    elec_terms = [(boundary - dt.timedelta(days=91), boundary),
+                  (boundary, boundary + dt.timedelta(days=92))]
+    gas_terms = [(boundary - dt.timedelta(days=200), boundary + dt.timedelta(days=165))]
+    book = incoming_occupant_supply_points()
+    try:
+        for leg_id, terms in (("C1", elec_terms), ("C1" + GAS_LEG_ID_SUFFIX, gas_terms)):
+            for term in terms:
+                if term_window_under_move(*term, boundary)[1]:
+                    book.append(incoming_occupant_record(get_customer(leg_id), move))
+        household = household_of(book[-1]["customer_id"])
+        assert household == move.incoming.occupancy_id
+        assert price_elasticity_for_customer(household, 20260724) > 0.0
+        with pytest.raises(ValueError, match="no supply point"):
+            price_elasticity_for_customer("OCC-000000000000", 20260724)
+    finally:
+        book.clear()
 
 
 def test_the_first_move_out_is_the_yearly_draw_unchanged():
