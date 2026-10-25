@@ -25,6 +25,22 @@ _GSOP_AMOUNT_GBP: Dict[GSOPType, float] = {
     GSOPType.REFUND_DELAY: 30.0,
 }
 
+#: The standard payment a supplier guaranteed standard owes on a failure: £30 as set in 2015, £40
+#: for failures from 2 January 2025. Ofgem, *Supplier Guaranteed Standards of Performance (GSoP)
+#: payment uplift* (decision), https://ofgem.gov.uk/decision/supplier-guaranteed-standards-performance-gsop-payment-uplift,
+#: and `docs/market_research/home_moves.md` s.8.8. `_GSOP_AMOUNT_GBP` above has not yet moved to it.
+GSOP_STANDARD_PAYMENT_2015_GBP = 30.0
+GSOP_STANDARD_PAYMENT_UPLIFT_GBP = 40.0
+GSOP_STANDARD_PAYMENT_UPLIFT_FROM = date(2025, 1, 2)
+
+
+def standard_payment_gbp(failed_on: date) -> float:
+    """The standard payment in force on the day a guaranteed standard was failed."""
+    if failed_on >= GSOP_STANDARD_PAYMENT_UPLIFT_FROM:
+        return GSOP_STANDARD_PAYMENT_UPLIFT_GBP
+    return GSOP_STANDARD_PAYMENT_2015_GBP
+
+
 # Working days allowed before payment is due (from trigger date)
 _GSOP_PAYMENT_DAYS: Dict[GSOPType, int] = {
     GSOPType.MISSED_APPOINTMENT: 10,

@@ -1,14 +1,11 @@
 """The move-out credit refund fires from the ledger's closing balance (home_moves.md s.8.8a).
 
 Tests simulation/credit_refund_events.py: a closed domestic account is refunded exactly when the
-run's `closing_balances` holds it in credit, for that credit, whatever it paid by; the SLA
-on-time/breach split is unchanged.
+run's `closing_balances` holds it in credit, for that credit, whatever it paid by. The day it is
+paid is the company's, not a draw here (GSoP reg 6D; the run at b2bc3d8da5 had 10 of 100 late).
 """
-from simulation.credit_refund_events import (
-    LATE_WORKING_DAYS,
-    ON_TIME_WORKING_DAYS,
-    generate_credit_refund_log,
-)
+import simulation.credit_refund_events as events
+from simulation.credit_refund_events import generate_credit_refund_log
 
 
 def bill(cid, period_end, total):
@@ -30,7 +27,7 @@ def test_the_partition_is_takeable_a_credit_is_refunded_and_a_debt_and_a_settled
     assert log[0]["trigger"] == "account_closure"
     assert log[0]["request_date"] == "2020-03-31"  # the last bill closes the account
     assert log[0]["paid_date"] >= log[0]["request_date"]
-    assert isinstance(log[0]["breached_slc14_deadline"], bool)
+    assert log[0]["breached_reg_6d_deadline"] is False
 
 
 def test_a_ledger_debtor_is_never_refunded_whatever_its_bills_look_like():
@@ -66,8 +63,10 @@ def test_an_account_with_no_closing_balance_is_not_evaluated():
     assert generate_credit_refund_log(BILLS, {}, {}) == []
 
 
-def test_on_time_and_late_windows_dont_overlap():
-    assert ON_TIME_WORKING_DAYS[1] < LATE_WORKING_DAYS[0]
+def test_the_world_no_longer_draws_the_suppliers_payment_speed():
+    # Defect (run b2bc3d8da5): every one of the 10 late refunds was this module's 10% late draw,
+    # an unsourced probability standing in for a supplier's own operation.
+    assert not hasattr(events, "ON_TIME_PROBABILITY") and not hasattr(events, "random")
 
 
 def test_generate_log_deterministic():

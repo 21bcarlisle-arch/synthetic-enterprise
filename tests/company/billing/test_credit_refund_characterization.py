@@ -222,6 +222,7 @@ def test_refund_summary_shape():
         "paid": 1,
         "pending": 1,
         "deadline_breaches": 1,
+        "compensation_gbp": 30.0,   # failed in January 2024: GSoP's £30, before the 2025 uplift
         "total_outstanding_gbp": 120.0,
     }
 
@@ -232,6 +233,7 @@ def test_empty_book_summary():
         "paid": 0,
         "pending": 0,
         "deadline_breaches": 0,
+        "compensation_gbp": 0,
         "total_outstanding_gbp": 0,
     }
 

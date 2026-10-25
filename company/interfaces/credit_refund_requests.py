@@ -4,18 +4,17 @@ credit balance and learn what happened to the refund.
 WHY THIS MODULE EXISTS (KNIFE pass 3, design B4_billing_mechanics_reached_directly)
 -----------------------------------------------------------------------------------
 `simulation/credit_refund_events.py` used to import `CreditRefundBook`,
-`CreditRefundRecord` and `RefundTrigger` and RUN the company's SLC 14 compliance
+`CreditRefundRecord` and `RefundTrigger` and RUN the company's reg 6D compliance
 process from inside the simulated world: it opened the company's book, classified the
 trigger, raised the record, paid it, and then read the company's own breach verdict
 back out. The world was operating the supplier's regulatory process and grading it.
 
 WHAT THE WORLD LEGITIMATELY KNOWS, AND WHAT IT DOES NOT
 --------------------------------------------------------
-  * Known — **what happened to the household.** An account closed on a date carrying
-    a credit balance of £X, and the money landed in the bank on a later date. Every
-    one of those is something the customer experiences directly, so the world holds
-    them and hands them over.
-  * Not known — **the compliance apparatus.** The SLC 14 ten-working-day deadline,
+  * Known — **what happened to the household.** An account's final bill was issued on
+    a date closing in a credit of £X. Both are on the bill the customer holds, so the
+    world hands them over. When the money lands is the supplier's doing, and comes back.
+  * Not known — **the compliance apparatus.** The reg 6D ten-working-day deadline,
     the working-day arithmetic, the refund taxonomy (`RefundTrigger` has four members
     and choosing between them is a supplier classification), the record's status
     lifecycle, the book that aggregates breaches for the regulator. A real customer
@@ -27,7 +26,8 @@ returns the record the company made of them.
 
 WHAT CROSSES, PRECISELY
 -----------------------
-In: account id, closure date, credit amount, and the date the money arrived.
+In: account id, the final bill's issue date, and the credit amount. Out: the date the company
+pays, and its reg 6D verdict and any guaranteed-standard payment owed on it.
 
 Out: a plain JSON-serialisable dict — no `CreditRefundBook`, no `CreditRefundRecord`,
 no `RefundTrigger`, no status enum, and deliberately no re-export of any of them.
@@ -39,7 +39,7 @@ ratchet is blind to that by construction.
 
 The trigger is CLASSIFIED here rather than passed in, which is the substance of the
 cut rather than a detail of it: the world says "this account closed with money in
-it", and it is the company that decides that means `ACCOUNT_CLOSURE` under SLC 14
+it", and it is the company that decides that means `ACCOUNT_CLOSURE` under reg 6D
 rather than one of the other three triggers. Accepting a trigger argument would have
 left the taxonomy in the world's hands and made this module a spelling change.
 
@@ -51,15 +51,12 @@ because the measurement stopped looking.
 
 TWO RESIDUALS, NAMED RATHER THAN IMPLIED
 -----------------------------------------
-1. **The refund LATENCY is still drawn world-side.** `credit_refund_events.py` keeps
-   `ON_TIME_PROBABILITY` and the two working-day ranges, so how long the supplier
-   takes to pay is currently modelled as a property of the world rather than of the
-   company's operations. That is arguably backwards — a real supplier's payment speed
-   is its own operational performance, and the 2022 enforcement notices this mechanic
-   models were issued precisely because suppliers CHOSE to sit on credit balances.
-   It is preserved rather than repaired here because moving an RNG draw across the
-   wall in the same commit that moves an import would move published SLC 14 breach
-   figures and make neither change reviewable. Owed to a later pass.
+1. **The refund LATENCY was drawn world-side until 2026-10-25.** `credit_refund_events.py`
+   kept a 90% on-time draw and two working-day ranges, so how long the supplier took to pay
+   was a property of the world. The run at b2bc3d8da5 paid 10 of 100 closure refunds 13 to
+   24 working days after the final bill, every one of them that draw's late arm. The day
+   is now the company's (`credit_refund.scheduled_refund_date`) and `paid_date` no longer
+   crosses in.
 2. **This is a PULL, not the push B4 asks for.** Same structural blocker B5 measured:
    the bills are assembled by `simulation/run_phase4c_on_phase2b.py`, a SIM
    composition root, so there is no company-side emitter to carry a refund
@@ -78,20 +75,18 @@ __all__ = ["refund_on_account_closure"]
 
 def refund_on_account_closure(
     account_id: str,
-    closure_date: dt.date,
+    final_bill_issued: dt.date,
     credit_amount_gbp: float,
-    paid_date: dt.date,
 ) -> dict:
     """Record, and answer for, one credit refund owed because an account closed in
     credit.
 
-    The caller states what the household experienced — the account closed on
-    ``closure_date`` holding ``credit_amount_gbp``, and the money arrived on
-    ``paid_date``. The company classifies the trigger, runs it through its own SLC 14
-    book and returns the resulting facts:
+    The caller states what the household experienced — its final bill was issued on
+    ``final_bill_issued`` closing ``credit_amount_gbp`` in credit. The company classifies
+    the trigger, pays on its own schedule, grades it against GSoP reg 6D and returns:
 
         trigger, request_date, credit_amount_gbp, paid_date,
-        working_days_to_pay, breached_slc14_deadline
+        working_days_to_pay, breached_reg_6d_deadline, reg_6d_payment_owed (in £)
 
     all as plain JSON-serialisable values. The book itself does not leave this module.
     """
@@ -106,23 +101,25 @@ def refund_on_account_closure(
         CreditRefundBook,
         CreditRefundRecord,
         RefundTrigger,
+        scheduled_refund_date,
     )
 
     book = CreditRefundBook()
     book.raise_refund(CreditRefundRecord(
         account_id=account_id,
-        request_date=closure_date,
-        # The company's own reading of SLC 14: a balance left over at closure is the
+        request_date=final_bill_issued,
+        # The company's own reading of reg 6D: a balance left over at closure is the
         # account-closure trigger, not a customer request or an annual review.
         trigger=RefundTrigger.ACCOUNT_CLOSURE,
         credit_amount_gbp=credit_amount_gbp,
     ))
-    record = book.pay(account_id, paid_date)
+    record = book.pay(account_id, scheduled_refund_date(final_bill_issued))
     return {
         "trigger": record.trigger.value,
         "request_date": record.request_date.isoformat(),
         "credit_amount_gbp": record.credit_amount_gbp,
         "paid_date": record.paid_date.isoformat(),
         "working_days_to_pay": record.working_days_to_pay(),
-        "breached_slc14_deadline": record.breached_deadline(),
+        "breached_reg_6d_deadline": record.breached_deadline(),
+        "reg_6d_payment_owed": record.reg_6d_payment(),
     }

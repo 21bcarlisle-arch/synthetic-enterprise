@@ -855,7 +855,7 @@ already cited in §8 and in Sources, and SI 2019/218, read 2026-10-24.*
 | The closing read | The contract ends on the move date. The supplier takes "all reasonable steps" to get a read for the final bill. It may be the customer's own read on the day, a smart read, or an estimate when neither arrives | SLC 21B (reads, `slc_21b_21ba_reads_and_back_billing.md`). No rule says the closing read must be actual |
 | The final bill | "all reasonable steps to send a final Bill or statement of account … within 6 weeks" of the contract ending, whether it ended by a switch or otherwise | SLC 27.17 (p.246, consolidated text) |
 | Compensation for a late one | A fixed payment, £30, then £40 for breaches from 2 January 2025 | GSoP 2015 as amended. Ofgem, *Good Energy pay a total of £150k …*, 7 May 2025, and *Octopus Energy pay a total of £1.5m …* (failures to issue final bills to former prepayment customers) |
-| The credit | "within 10 working days of issuing a customer's final bill, or if applicable, corrected final bill, refund any outstanding credit balance". It applies where the customer switches under a valid contract or the supplier's responsibility "has otherwise terminated", so a move-out is in scope | GSoP 2015 reg 6D, inserted by SI 2019/218 reg 3. **Correction, 2026-10-24:** the run's `credit_refund_log` and `simulation/credit_refund_events.py` label this "SLC 14". That is the wrong locus. The deadline is the same, so no figure moves |
+| The credit | "within 10 working days of issuing a customer's final bill, or if applicable, corrected final bill, refund any outstanding credit balance". It applies where the customer switches under a valid contract or the supplier's responsibility "has otherwise terminated", so a move-out is in scope | GSoP 2015 reg 6D, inserted by SI 2019/218 reg 3. **Correction, 2026-10-24:** the run's `credit_refund_log` and `simulation/credit_refund_events.py` label this "SLC 14". That is the wrong locus. The deadline is the same, so no figure moves. **Relabelled 2026-10-25** in both files, and in the seam between them. SI 2019/218 came into force on **1 May 2019** (reg 1(1)), so a refund due before then owes no standard payment however late |
 | The debt | A debt on the final bill is the departing customer's. The supplier pursues them at a forwarding address if it has one. It may not charge the incoming occupier for it | Citizens Advice, *Check if you're responsible for paying an energy bill* (Sources). The licence text that says so was not found: **GAP** |
 | Back-billing on the final bill | The 12-month limit applies to a final bill as to any other. A catch-up for energy used more than 12 months before it is barred | SLC 21BA. This is already measured as K3 and the DD money line (`billing_accuracy.py`) |
 
@@ -897,6 +897,21 @@ closing read, is not published: **GAP** (G8.9).
 6. *The incoming occupier's account names the account it succeeded* at the same meter point. A real
    supplier knows this: a new account opens on a meter point it already supplies. The run publishes it
    as `occupier_successions` from the next run on. A run that has no such record says so.
+
+**Who sets the refund day (amended 2026-10-25, before the build).** The run at b2bc3d8da5 paid 10
+of its 100 closure refunds 13 to 24 working days after the final bill. The cause was not the final
+bill's date: `simulation/credit_refund_events.py` drew the payment day itself, 90% within 10 working
+days and the rest 11 to 25, a probability nobody had sourced. How fast a supplier pays is its own
+operation, so the day is now the company's. No source gives a supplier's typical lag inside the
+window (**GAP**). *Choice:* the company pays on the 10th working day after the final bill's issue,
+on its bank-holiday calendar. The deadline is the one day the rule fixes, and paying on it holds the
+customer's money longest, the direction that errs against the thesis. A late refund that does occur
+is graded a reg 6D failure and owes the standard payment in force on the day it failed: £30, or
+£40 for a failure from 2 January 2025 (Ofgem, *Supplier GSoP payment uplift*, decision,
+https://ofgem.gov.uk/decision/supplier-guaranteed-standards-performance-gsop-payment-uplift). Ofgem's
+decision also says a further payment is due if the first is not paid within 10 working days. The run
+does not model that second payment yet. Like the refund itself (choice 10 below), the payment is graded
+and not booked to cash.
 
 #### 8.8a The closing balance: what the rules require, what a supplier records, and what the run publishes
 
