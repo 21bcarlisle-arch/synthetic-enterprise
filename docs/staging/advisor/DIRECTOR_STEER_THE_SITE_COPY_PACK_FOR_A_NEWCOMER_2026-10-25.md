@@ -1,0 +1,97 @@
+**Severity:** BLOCKING · **Lane:** A_strategy_governance · **Epoch:** unassigned · **Atom:** `unminted`
+
+# [DIRECTOR-STEER] The site copy pack: drafted outside the serial gate, landed as one batch (2026-10-25)
+
+**Type:** STEER, through the advisor channel. These are the director's words from chat on Sun 25 Oct:
+
+- 05:15 GMT: "Is there no way to use the spare tokens productively? On knowledge creation for example ? Or improving the website? Things that don't impact it's need to run tasks in series"
+- 05:30 GMT, answering the advisor's offer to draft the website copy for the machine to land as one batch: "Do it"
+
+The advisor read every page's text off origin at cfb72939 (the pages as generated from the 19 Oct run) as a newcomer in energy or tech would. Below are drafted copy and the defects that reading surfaced. **Land the copy as one batch, in the generators and their data, not in the built HTML.** Where a draft contradicts the record, the record wins. Change the draft and say so in the landing commit. Where the reading found a defect in the world rather than the words, the page is right to show it. That is Explore doing its job of testing the features. Those defects are listed separately in section B, as work, and are not to be hidden by the copy.
+
+Reader test for every page: someone who knows energy or tech but not this project should, in the first screen, understand what the page is, why it is impressive and what to click. Don't use canon ids (M7, K8, G5) in body text; give the plain words, with the id in a tooltip if you want it. Don't name file paths above the fold.
+
+## A. Copy
+
+### A1. Explore
+
+- **Intro: the same thing is said twice.** "Explore real households from the run" and "Meet the households" both explain the three views. Replace both with:
+
+  > **One household, three ways of seeing it.** Pick a household from the latest run and step through its life. Each moment is shown three ways: what the customer saw on their bill, what the supplier believed on that date, and what was really true in the simulated world. A real supplier only ever has the first two. The gap between the second and third is what this project is built to close.
+
+- **Renewal vignette: right now it is machine output.** "company estimated 100% churn risk, decided to offer a 5% discount (cost £118.01) against £1,313.26 expected term margin at risk -- expected value of offering £1,195.25." Render vignettes from a sentence template, for example:
+
+  > *The renewal, Oct 2018.* The supplier judged this household likely to leave at renewal and offered 5% off (£118 a year) to keep £1,313 of margin over the new term. What the household actually did is shown at the stage below.
+
+  Also, a churn risk of exactly 100% is not a belief a supplier can hold. Either it is clipped wrongly or the model saturates. See section B.
+
+- **"How big the book really is":** this reads as an apology. Replace it with:
+
+  > **Why a few hundred homes, not a few million.** Every household here is a full simulated life: its building's physics under its own local weather, its finances, its moves, every half-hourly read and every bill. The book is sized so that each one can be followed end to end and checked against the published record. It is a deliberate design choice, not a limit.
+
+  (The figure must come from the run. From Monday's run it should be about 400 founder households.)
+
+- **Empty slots:** keep the honesty, but end each one with what closes it, in one line. For example, "The mover: no household in this run can be followed through a move yet. Home moves are being linked occupant to occupant next."
+
+### A2. Capabilities: internal contradictions a newcomer will spot
+
+- **"Prices that come out of physics, not out of a distribution" (Live)** contradicts the front door, which correctly says the 2016–25 prices are *replayed as they happened* and that weather drives demand, not prices. Until the forward years are built, the row should read:
+
+  > **Real prices, replayed in order — Live.** Every half-hourly GB price from Nov 2015 to Jun 2025 is replayed as it happened, so the supplier lives the real market, the 2021–22 crisis included. Prices that come out of weather and the generation stack are the next step, for the forward years (Building).
+
+- **"Futures beyond the real record — Live, 16 tests":** the forward years were approved on 25 Oct to be built after the basics. It is Building. Say "Planned: 2026–2035, five futures, with gas, power and forward products whose volatility is checked against the published record."
+- **"Banking and payment rails … the bank, the acquirer":** an acquirer is a card-scheme term. Direct debit runs on Bacs. Replace with:
+
+  > **Direct debit on the Bacs rails — Live.** Mandates set up and refused (AUDDIS), collections that fail and why (ARUDD), payers who cancel or change bank (ADDACS), and refunds claimed under the Direct Debit Guarantee, on the real three-day cycle.
+
+  Cite only what the code does.
+- **"Live, no test cited"** (Business customers; Three clocks kept straight; Telling can't-pay from won't-pay): Live with no test contradicts the page's own rule that state is computed from evidence. Either cite the test or the row computes to Building. This is a generator fix, not a copy fix.
+- **"Households with hidden lives … job loss, illness, a new child" (Live, 1 of 4 parts)** contradicts the front door ("bigger life events … being wired in next"). Make the row say which of the four parts is live.
+- **"Capital adequacy" on the home page** cites "Ofgem's 2023 financial resilience *consultation*". The rules were decided in July 2023 and have been in force since 31 Mar 2025: a floor of £0 and a target of £115 of adjusted net assets per dual-fuel customer. Cite the decision and test against the decided numbers (see the accounts evidence pack staged today). If any constant says £130, it is the consultation figure and is wrong.
+
+### A3. The five sheets one level down (/model/world, wall, company, score, governance)
+
+- **The legend ". done, _ in build, ~ not started"** is unreadable to a newcomer. Use the words Live / Building / Planned with the same colour chips as the front door.
+- **"(M7)", "(M2)", "(M3)":** drop them from the body. Replace each sheet's opening with:
+  - **World:** "A synthetic Britain the supplier cannot see into: real prices and weather from 2016–25, and households drawn fresh each run with lives, homes and money the supplier is never told about. Each box below is one part of it, read from cause to effect."
+  - **Wall:** "The line between the world and the supplier. Only what a real GB supplier could receive crosses it — meter reads, market data, payments, industry messages, regulation. The test on every line of supplier code: could a real supplier know this?"
+  - **Company:** "An automated supplier that sees only through the wall. It wins customers, prices, hedges, bills, collects and settles, and forms a belief about each home that it must act on while it is wrong. Payment, credit risk and cash forecasting are the heart of it."
+  - **Score:** "Is it working? Three tests: does it survive a worst-case shock, does it earn on a probability-weighted basis, and does each household save money, time and carbon? Value is created and then shared, so every decision is scored for both sides."
+  - **Governance:** "One human sets the mission and the few decisions that can't be undone. AI agents design, build, test and run everything else, inside gates that refuse work that would break the rules. Each box is one of those gates or roles."
+
+### A4. Knowledge index
+
+- Add the seven topics evidenced today under their themes, each with a one-line *why the simulation needs it*:
+  - **Payments and direct debit:** "How most households pay, and how a collection fails. This is the supplier's cash, so a book with the wrong payment mix has the wrong debt and the wrong working capital."
+  - **Switching:** "How a household leaves or joins, both fuels together, and what a losing supplier may and may not do. Every gain and loss in the book passes through it."
+  - **A supplier's accounts and capital:** "How revenue, unbilled energy, bad debt and Ofgem's capital rules show up in a real supplier's accounts. It is the yardstick for whether the simulated supplier's books look like a real one's."
+  - **Tariffs and the default tariff:** "Fixed deals, the capped default, time-of-use, and how households have sat across them since 2016. They set what the supplier can offer and what a household compares."
+  - **Smart meters and half-hourly settlement:** "Who has a working smart meter, what data the supplier may use, and the industry's move to settling every home half-hourly. It sets what the supplier can see of a home."
+  - **How gas and power prices move:** "Volatility at every time scale, the forward curve's shape and the spark spread. This is the uncertainty a supplier has to hedge, and what the forward years must reproduce."
+  - **Vulnerable customers:** "The Priority Services Register, ability to pay and self-disconnection. A third of households are on the register, and a supplier's duties to them shape collections."
+- Under "Some of it is more than reading", show the live count: "*N* published claims are checked against the simulated world every Monday; *k* currently pass." Generate the figures. A newcomer should see that the claims bite.
+
+### A5. Home
+
+- The structure is now right. Two fixes:
+  1. The "Capital adequacy" card, per A2.
+  2. Once Monday's run lands, check that the household figure reads as a founding book of about 400 households on both fuels, and that the dual-fuel story card still matches the run.
+- One addition under "What has been built", generated: "*New this week:* …", three lines at most, drawn from the stretch log. It gives a returning reader a reason to come back. Not a banner.
+
+### A6. How it's built
+
+- The above-the-fold section reads well. Below it the page is still about 20,000 words of text in total. Put the file paths (`background/one_way_door.py` and so on) behind a "show the code that holds it" toggle on each layer. A newcomer reads the claim and the evidence line; an engineer opens the toggle.
+- Collapse everything below the eight layers by default, except the headline figures.
+
+## B. Defects in the world that the pages surfaced (work, not copy)
+
+1. **The EV home: an EV adds 8% (99 → 108 kWh a month).** A GB home with an EV typically adds about 2,000–3,000 kWh a year (about 150–250 kWh a month), which is roughly doubling a typical home's electricity. And 99 kWh a month is already well under a typical home's ~225. Check the EV uptake model and the household base load against the knowledge pages and world claims, and add the EV uplift as a claim with a published band.
+2. **Storage heating: there are no two-rate meters in the run.** Restricted meters (mostly Economy 7) were 14–17% of electricity accounts in 2015–2020 (CMA 2016; Ofgem 2020; tariffs evidence pack staged today). A book with none is outside the published record. Add it as a world claim and draw profile class 2 homes.
+3. **A churn risk of exactly 100%** (renewal vignette, SYN-2016-441). Find out whether the belief saturates or is clipped, and whether it changes the retention decision.
+4. **The mover slot is empty because occupants aren't linked across a move.** This is already known. Explore's slot is the test that shows when it is fixed.
+
+## C. How to land it
+
+- One batch, generators and data first, then a single publish. Run the cold read on the five sheets and Explore after it, and record the result.
+- If a draft line here cannot be made true from the record, don't publish the line. Publish the true one and log the difference.
+- The research and drafting cost has been spent in the advisor's chat. Your cost is the landing.
