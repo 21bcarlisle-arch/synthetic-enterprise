@@ -1078,6 +1078,50 @@
           "body": "It does not give a failure probability for a debit, for any group of households, and supplies none. It does not say how much a large DD change raises failed payments, complaints or churn. It does not say how the payment mix would respond to a change in the standard-credit premium, because the only evidence is a 20% stated willingness to change. It does not grade the simulated world against the headline bands, which is owed: the world has no separate standard-credit or prepayment class to grade. It does not cover the supplier's own treatment of a failed debit, which is on debt-and-collections, nor the setting of the amount from the supplier's side, which is in the research note what_a_supplier_holds_to_size_a_direct_debit.md."
         }
       }
+    },
+    "switching-mechanics": {
+      "meta": {
+        "topic_id": "switching-mechanics",
+        "title": "How a household changes supplier: the switch, the objection, the save and the switch that goes wrong",
+        "subtitle": "Switching is a regulated process with a fixed clock, and the losing supplier's room to act inside it is narrow: an objection only for debt, a save only if the household cancels, and since February 2026 no annulment to keep a customer.",
+        "wall_placement": "Public-reality commons only. Every figure comes from a published source: Ofgem decisions and impact assessments, the Retail Energy Code, DESNZ Quarterly Energy Prices, ElectraLink, Energy UK and the NAO. The statements about the simulation are about its code and are marked as read, not run. Where nothing published establishes a number, the page says so.",
+        "claim_freshness": {
+          "last_verified": "2026-10-25",
+          "written": "2026-10-25",
+          "source": "Ofgem as-is switching map (2018), objections policy update (2017), domestic objections impact assessment (2016), erroneous transfers paper (2016), three-week switching consultation (2014), switch-speed GSoP decision (2024), REC R0287 decision (Feb 2026), BAT decisions (2024, 2026); REC Registration Services schedule; DESNZ Quarterly Energy Prices 2019-2026; ElectraLink (2025); NAO (2023)",
+          "note": "Step 2 of the owed pages in the director's map steer of 24 Oct 2026, from the advisor's cited evidence pack."
+        }
+      },
+      "rungs": {
+        "headline": {
+          "heading": "The claim, in one sentence",
+          "body": "Since the Central Switching Service went live on 18 July 2022 a GB domestic switch completes within five working days, the losing supplier may object only for a debt over 28 days old (about 5-6% of switches met an objection before 2022, over 90% of them for debt), and it may keep a leaving household only by an offer the household accepts and then cancels the new contract for."
+        },
+        "plain": {
+          "heading": "In plain terms",
+          "body": "A household agrees a deal with a new supplier. Unless it asks to start sooner, a 14-day cooling-off period runs first. The new supplier then registers the meter points, and the old one is told. Before 2022 the old supplier had about a week to object and a switch took 15-16 days on average; since CSS the whole thing must finish within five working days, with £30 compensation if it does not.\nThe old supplier cannot simply refuse. It may object if the household owes it money that has been outstanding for more than 28 days after it asked for it, if the switch was made in error, or at the customer's request. A prepayment household with under £500 of debt can usually take the debt with it instead. Before 2022 about one switch in twenty met an objection, and roughly 70% of indebted households switched without one.\nThe old supplier may contact a leaving customer and make an offer, but the price is limited: since April 2022 a supplier may not offer new customers a deal its existing ones cannot have, and a retention-only deal is allowed only to a customer reaching the end of a fixed term. If the household changes its mind, it is the new supplier that withdraws the switch; since February 2026 the old supplier may not annul it to keep the customer."
+        },
+        "theory": {
+          "heading": "How it works",
+          "body": "THE CLOCK. Before CSS, electricity registered on MPAS and gas on UK Link; objection windows were up to 5 working days for electricity and 7 for gas, and the 2014 three-week rule bounded the whole switch. Under CSS (REC Schedule 23) a domestic switch can start at least one complete working day after the request and up to 28 days ahead; the objection window closes at 17:00 on the first working day after the request; the registration becomes Secured Active at 17:00 the day before supply starts, after which it cannot be withdrawn or annulled. SLC 14A.1 requires completion within five working days of the relevant date.\nTHE LOSER'S MESSAGES. Under CSS the losing supplier receives an Invitation to Intervene when the request goes Pending, and a Secured Inactive notice when it can no longer be cancelled. Its only regulated responses are an objection or, in narrow cases, an annulment.\nOBJECTIONS. SLC 14.4 allows a domestic objection for outstanding charges, erroneous transfer, at the customer's request, or where related meter points have not all moved. Ofgem's 2016 review kept debt blocking. Under CSS a dual-fuel switch is linked one-fail-all-fail: an accepted objection on one fuel cancels the other.\nSAVES. SLC 22B (from 14 April 2022, extended to March 2027 and proposed to March 2028) makes a new-customer deal available to existing customers too; a market-wide derogation allows retention-only deals at the end of a fixed term. REC R0287 (27 Feb 2026) removed annulment as a way to keep a customer.\nERRONEOUS TRANSFERS. About 0.5-1% of switches went to the wrong meter or the wrong person before CSS, mostly from address and meter-number mismatches; the household gets £30 automatically since May 2020.\nDUAL FUEL. About 70% of electricity and 80% of gas customers held dual-fuel accounts in 2016; gas transfers run at about 0.75-0.80 of electricity transfers."
+        },
+        "expected_shape": {
+          "heading": "What the data should look like",
+          "body": "A credible world and book should show these shapes against the record:\n• Domestic electricity transfers of about 1.4-1.5m a quarter (about 5% of customers) at the 2019-20 peak, falling to about 0.22m (0.8%) in 2022, and 0.75-0.86m (2.5-2.8%) in 2024-26.\n• Gas transfers at about 0.75-0.80 of electricity transfers.\n• Peaks in April and October and a trough in December.\n• Before CSS, about 5-6% of switch attempts meeting an objection, over 90% of them for debt, and about 30% of indebted switch attempts blocked.\n• Erroneous transfers at 0.5-1% of switches before CSS.\n• No reactive save before 18 July 2022 that relied on a notice the loser did not have in time, and none by annulment after 27 February 2026."
+        },
+        "live_evidence": {
+          "heading": "Live evidence",
+          "body": "WHAT IS SOURCED. The process before and after CSS, the objection grounds and rates, the save rules (SLC 22B and REC R0287), erroneous-transfer rates, quarterly switching volumes 2016-2026 and the SoLR episode. Every figure and URL is in docs/market_research/switching_mechanics_2026-10-25.md. The objection rates and their three denominators are read in full in domestic_debt_objection_rates_gb.md; the save offer against the rules in a_save_offer_against_the_switching_rules_and_the_seam.md; internal against external switching in gb_domestic_switcher_split_cim_2022_2025.md; the monthly series in gb_domestic_switching_by_calendar_month.md.\nWHAT THE SIMULATION DOES, READ FROM CODE AND NOT RUN. The loss notice crosses the wall as REC Schedule 23's own messages, the Invitation to Intervene dated at the latest day the rules allow. The world blocks an indebted credit-meter household's departure with probability 0.283 (Ofgem 2016: about 170,000 blocked against 430,000 allowed a year), never a prepayment one; the company does not yet decide its own objection. The company's save offer is answered by the household's own renewal roll at the offered price, for fixed-term leavers from 18 July 2022. A dual-fuel household leaves on one decision. No switch ever fails: there is no erroneous transfer, cooling-off cancellation or customer-requested objection."
+        },
+        "residuals": {
+          "heading": "Where our picture is still weak",
+          "body": "Nine things are not published. (1) Objection rates after CSS, and how many are withdrawn: the world applies 2013-15 rates to 2022-25. (2) Erroneous-switch rates after CSS. (3) The share of switches completed next day rather than in two to five working days, which decides how much warning a loser gets. (4) The share of switches that are dual fuel. (5) Save rates on loss notices, and any domestic rule on win-back contact. (6) Cooling-off cancellation rates. (7) Exact annual QEP totals per fuel for 2018-2025. (8) Ofgem's 2026 \"fell slightly\" against QEP's Q2 2026 rise of 15.2%. (9) CMA 2016 and the DCC's CSS performance reports were not read."
+        },
+        "scope_delta": {
+          "heading": "What this page does not yet establish",
+          "body": "It does not grade the simulated world's switching level against the quarterly bands; gb_switching_rate_denominators.md holds the matched numerator and denominator for that grade. It does not give a save rate, an objection rate after 2022 or an erroneous-transfer rate after 2022, and supplies none. It does not cover non-domestic switching, where contractual objections apply, or the economics of acquiring and keeping a customer, which are on the acquisition and retention page."
+        }
+      }
     }
   }
 }

@@ -137,6 +137,49 @@ concepts:
     measure: {counts: "collections returned unpaid", over: "collections presented in the period", computed_by: null}
     gap: {computed_by: "no function is named as its one definition yet"}
 
+  - id: switch.loss_notice
+    prefLabel: Loss notice
+    altLabel: [invitation to intervene, secured inactive, registration loss, change of supplier notice]
+    definition: The losing supplier is told a meter point is being registered away, first while the switch can still be stopped and then when it cannot.
+    match: ["REC Schedule 23 Registration Services, paras 7.1.9 and 13.4"]
+    placed: [supplier/Switch]
+    page: switching-mechanics
+    world: [simulation.registration_loss_feed]
+    wall: [company.interfaces.supply_book]
+    supplier: [company.crm.cos_process]
+    relations: {feeds: [switch.save, switch.debt_objection]}
+
+  - id: switch.debt_objection
+    prefLabel: Debt objection
+    altLabel: [objection, transfer blocking, debt block]
+    definition: The losing supplier may stop a domestic credit customer's switch for charges outstanding more than 28 days after it asked for them.
+    match: ["SLC 14.4(a); Ofgem decision on domestic objections (Jul 2016)"]
+    placed: [supplier/Switch, supplier/Collect]
+    page: switching-mechanics
+    world: [simulation.debt_objection]
+    gap: {wall: "the company raises no objection of its own; the world draws industry practice (EP12)", supplier: "the company raises no objection of its own; the world draws industry practice (EP12)"}
+    relations: {depends_on: [collect.arrears]}
+
+  - id: switch.save
+    prefLabel: Save offer on a loss notice
+    altLabel: [save offer, retention tariff, win-back]
+    definition: An offer to a household that has asked to leave; it keeps the household only if the household cancels with the new supplier.
+    match: ["SLC 22B retention derogation; REC R0287 (Feb 2026)"]
+    placed: [supplier/Switch, supplier/Renew or lose]
+    page: switching-mechanics
+    world: [simulation.save_on_loss_notice]
+    wall: [company.interfaces.save_offer]
+    supplier: [company.crm.save_offer]
+
+  - id: switch.erroneous_transfer
+    prefLabel: Erroneous transfer
+    altLabel: [erroneous switch, mistaken switch]
+    definition: A switch of the wrong meter point or a customer who never agreed, returned to the old supplier with £30 compensation.
+    match: ["SLC 14; Ofgem erroneous transfers paper (2016); GSoP (2020)"]
+    placed: [supplier/Switch]
+    page: switching-mechanics
+    gap: {world: "the world has no failed or erroneous switch (registration_loss_seam GAPS)", wall: "no failed switch crosses the seam", supplier: "nothing to handle while the world sends none"}
+
   - id: build.mutation
     prefLabel: Checks that can fail
     altLabel: [mutation, neuter test]

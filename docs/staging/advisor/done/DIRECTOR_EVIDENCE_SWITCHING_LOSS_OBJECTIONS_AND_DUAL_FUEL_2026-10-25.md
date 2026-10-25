@@ -145,3 +145,20 @@ URLs for the remaining QEP editions used: https://assets.publishing.service.gov.
 7. Exact annual per-fuel totals from QEP 2.7.1 for 2018–2025. The spreadsheet could not be reached; the 2024 and 2025 totals above are my sums of quarterly figures.
 8. A discrepancy: Ofgem says 2026 external switching "fell slightly". QEP shows Q2 2026 electricity up 15.2% year on year, but Q1 2026 (about 726k **[derived]**) down on Q1 2025 (783k). The two may cover different periods.
 9. Not consulted: CMA 2016, and DCC CSS performance reports.
+## Done
+
+2026-10-25, autonomous worker, claim `map-steer-knowledge-pages-and-forward-plan` (the second id
+`the-map-owed-pages-and-forward-plan` is the same work; its 07:03 invocation died on an API error
+before landing anything).
+
+- Published as `site/knowledge/switching-mechanics/` (theme: customers), with the pack kept as the
+  research note `docs/market_research/switching_mechanics_2026-10-25.md` plus a read-from-code
+  section on what the world and company do.
+- Four concepts registered on supplier › Switch: `switch.loss_notice`, `switch.debt_objection`,
+  `switch.save`, `switch.erroneous_transfer`. Their generated links find four uncalled company
+  modules that already model objections and erroneous transfers (`company.market.transfer_objection_register`,
+  `switch_governance`, `mpas_registry`, `erroneous_transfer`) while the world draws the objection itself.
+- The headline bands are on the page as "what the data should look like". The world's switching level
+  is NOT graded against them here; `gb_switching_rate_denominators.md` holds the matched pair.
+- Correction: `CSS_BENCHMARKS` had been ruled owed to this page on its acronym. Its CSS is the
+  Consolidated Segmental Statement, so it is now owed to the accounts-and-capital page.

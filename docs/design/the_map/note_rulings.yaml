@@ -135,10 +135,9 @@ owed:
   suppliers-accounts-and-capital:
   - B2_CATEGORY4_INFRASTRUCTURE_ANCHORS
   - B2_CATEGORY5_GOVERNANCE_ANCHORS
-  - supplier_financial_reporting
-  switching-mechanics:
+  # Corrected 25 Oct: ruled owed to switching on its acronym; its CSS is the Consolidated Segmental Statement.
   - CSS_BENCHMARKS
-  - gb_domestic_switcher_split_cim_2022_2025
+  - supplier_financial_reporting
   tariffs-and-the-default-tariff:
   - gb_domestic_default_tariff_share_2016_2025
   - svt_drift_by_payment_behaviour

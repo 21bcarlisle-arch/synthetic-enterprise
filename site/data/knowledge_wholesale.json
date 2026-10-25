@@ -1183,6 +1183,22 @@
       "why": "What it costs to win a customer and to keep one decides whether finding a particular household is worth doing."
     },
     {
+      "id": "switching-mechanics",
+      "title": "How a household changes supplier: the switch, the objection, the save and the switch that goes wrong",
+      "kind": "page",
+      "blurb": "A switch takes five working days under the Central Switching Service, and the losing supplier hears of it in time to object only for debt and to make a save offer only if the household itself cancels. About one switch in twenty met an objection before 2022, almost all for debt.",
+      "rate_of_change": "medium",
+      "reviewed": {
+        "last_verified": "2026-10-25",
+        "source": "see the page's own sources"
+      },
+      "atoms": [
+        "EP12_adapter_css_rec_switching"
+      ],
+      "theme": "customers",
+      "why": "The world blocks an indebted household's switch and lets the company make a save on the loss notice; both are rules this page sets out, and the world has no switch that fails."
+    },
+    {
       "id": "how-households-choose",
       "title": "How a household chooses, and why most don't",
       "kind": "page",
@@ -1739,6 +1755,16 @@
       "from": "payments-and-direct-debit",
       "type": "prerequisite-for",
       "to": "debt-and-collections"
+    },
+    {
+      "from": "switching-mechanics",
+      "type": "prerequisite-for",
+      "to": "acquisition-and-retention-economics"
+    },
+    {
+      "from": "debt-and-collections",
+      "type": "drives",
+      "to": "switching-mechanics"
     }
   ],
   "review_policy": {
