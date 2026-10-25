@@ -1,6 +1,6 @@
 {
  "meta": {
-  "generated_at": "2026-10-23T16:47:59Z",
+  "generated_at": "2026-10-25T16:36:32Z",
   "run_generated_at": "2026-10-19T08:47:16Z",
   "run_git_commit": "8b6fea024",
   "household_count": 550,
@@ -400,7 +400,7 @@
      "date": "5 Oct 2018",
      "kind": "renewal_decision",
      "title": "The renewal decision",
-     "story": "Renewal window: company estimated 100% churn risk, decided to offer a 5% discount (cost £118.01) against £1,313.26 expected term margin at risk -- expected value of offering £1,195.25. Comms framed as a loss (you will lose the discount).",
+     "story": "The supplier put this household's chance of leaving at renewal at 99.9% and offered 5% off, costing £118, against £1,313 of expected margin at risk over the new term. The offer was put as a discount it would lose by leaving. What the household did is the next moment.",
      "why": "The simulation drew this household's real chance of leaving as 0.0%.",
      "gap": {
       "believed": "99.9% chance it would leave",
@@ -1236,7 +1236,7 @@
    "rule": "A household that moves out, takes a final bill, and is followed by a new occupant",
    "filled": false,
    "glossary": "A home move: the leaving occupant gets a final bill, and whoever moves in next becomes the supplier's new customer at that address.",
-   "reason": "No household in this run can be shown moving. The published record carries no move-out event and no final-bill marker, and the new-occupant accounts (OCC-…) are not linked to the household they replaced, so a rule cannot follow a move from one occupant to the next."
+   "reason": "No household in this run can be shown moving. The published record carries no move-out event and no final-bill marker, and the new-occupant accounts (OCC-…) are not linked to the household they replaced, so a rule cannot follow a move from one occupant to the next. What closes it: the record now carries each move-out and final bill and names the household a new occupant replaced, so the next published run is the first that can fill this slot."
   },
   {
    "id": "debt",
@@ -2697,7 +2697,7 @@
    "rule": "A two-rate (profile class 2) home billed on its meter's registers",
    "filled": false,
    "glossary": "Storage heating: heaters that charge overnight on a two-rate meter (such as Economy 7), whose night units are billed cheaper.",
-   "reason": "No household in this run has a two-rate meter. Every bill in the published run is a single 'Anytime' register, so there is no profile class 2 home to show."
+   "reason": "No household in this run has a two-rate meter. Every bill in the published run is a single 'Anytime' register, so there is no profile class 2 home to show. What closes it: two-rate meters are drawn when each home's own equipment is, which comes after the forward years in the build order."
   },
   {
    "id": "shock_2022",

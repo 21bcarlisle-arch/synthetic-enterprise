@@ -222,7 +222,13 @@ def test_every_capability_cites_work_that_exists(feed):
 def test_status_matches_the_record_for_every_entry(feed, levels_the_feed_read):
     levels = levels_the_feed_read
     for entry in feed["world"]["entries"] + feed["supplier"]["entries"] + feed["go_live"]["seams"]:
-        assert entry["status"] == gen._status_for(entry["rests_on"], levels), entry["name"]
+        computed = gen._status_for(entry["rests_on"], levels)
+        if entry.get("held_from_live"):
+            # Live needs a cited test as well as a level; the hold may only ever demote Live.
+            assert computed == "Live" and entry["status"] == "Building", entry["name"]
+            assert not entry.get("checks"), entry["name"]
+        else:
+            assert entry["status"] == computed, entry["name"]
 
 
 def test_the_page_states_what_is_absent(feed):
