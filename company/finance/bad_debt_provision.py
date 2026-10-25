@@ -16,7 +16,7 @@ TWO THINGS LIVE HERE, AND ONLY THE SECOND IS FORWARD-LOOKING IN IFRS 9's SENSE.
 - `arrears_overlay_share`: the second signal, arrears per indebted account on the company's own book
   against its own pre-crisis growth, taken as `max(cap, arrears)` with the cap term, never the sum.
   The page's section "The arrears-per-account signal" (2026-10-24), choices 1-3, 4(a) and 5. Default
-  off: `DecisionPolicy.provision_arrears_overlay`.
+  on since 2026-10-25, when the arm met the filed switch-on rule: `DecisionPolicy.provision_arrears_overlay`.
 """
 from __future__ import annotations
 
