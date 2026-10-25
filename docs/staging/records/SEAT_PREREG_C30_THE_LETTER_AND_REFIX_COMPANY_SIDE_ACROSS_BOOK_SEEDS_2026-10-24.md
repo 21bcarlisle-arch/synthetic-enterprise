@@ -179,3 +179,99 @@ process, refuses if any of the six artefacts is missing, then writes `grade_seed
 'longjob-c30-*-at9bb*' longjob-c30-grade-at9bb longjob-c30-grade-at9bb-queued`.
 
 The predictions above are still ungraded. They were written before any arm at this commit computed.
+
+## Result (2026-10-25, three seeds at 9bb30c4de5; predictions above unedited)
+
+`at-9bb30c4de5/grade.txt` was written at 08:15Z by `longjob-c30-grade-at9bb`, after all six new arms
+finished (the 61102 triple was already there). The household side H was computed with the
+default-book pair's own rule (`c30-arms-out/grade.py`: Σ over withdrawn default segments of
+(default rate − fix rate) × EAC × days, ex VAT, energy only). Each re-fixed household was then split
+by whether it leaves in C and stays in B.
+
+| seed | B − A (ΔC) | C − A (letter) | B − C (re-fix) | sends B / C | re-fixes | `price_position` exits B / C | cust-yrs C−A | cust-yrs B−C | £/yr C−A | £/yr B−C |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 61101 | **−£5,851** | −£7,211 | +£1,360 | 807 / 793 | 21 | 7 / 7 | −30.66 | +28.76 | 235 | 47 |
+| 61102 | **−£9,919** | −£6,345 | −£3,574 | 789 / 782 | 12 | 7 / 7 | −20.87 | 0.00 | 304 | — |
+| 61103 | **−£4,865** | −£3,975 | −£890 | 758 / 747 | 16 | 8 / 8 | −22.03 | +4.25 | 180 | −209 |
+| default (0481ad381) | −£389 | −£8,252 | +£7,864 | 803 / 786 | 20 | 9 / 9 | −33.7 | +37.8 | 245 | 208 |
+
+Movers by kind (founder `SYN-` / win `PROS-`,`OCC-`): C−A 3/4, 4/3, 5/3; B−C 3/2, 0/0, 0/1.
+
+**The default book is one commit behind the seeds.** It ran at 0481ad381, and 9bb30c4de5 changes
+every run with a home move on a term boundary (+£14,441 on A_61102 alone). Its within-book ΔC is
+internally consistent, but it is not the same code as the three seeds. So predictions 4 and 5 are
+graded on the three seeds at one commit, and the four-book figure is given beside them, labelled.
+
+1. **C − A < 0 on every seed: held.** −£7,211, −£6,345, −£3,975. The 7–8 `price_position` exits
+   per seed fall inside 4–15. The letter alone costs the company on all four books.
+2. **B − C > 0 on every seed, keeping 2–8 households: REFUTED.** It holds on 61101 only (+£1,360).
+   There the re-fix keeps 4 re-fixed households (OCC-88f15d013e04, PROS-2016-0203, SYN-2016-260 and
+   -517), and SYN-2016-283 drifts on the path. On 61102 it keeps **nobody**, and B − C is −£3,574.
+   On 61103 it keeps one (PROS-2016-0153, 4.25 years), and B − C is −£890.
+3. **£200–£350 per customer-year in both transfers: REFUTED.** The letter's transfer is close:
+   £235, £304 and £180. 61103 misses low, and the default book gave £245 on the script's rule. The
+   re-fix's transfer is not a per-customer quantity on these seeds: £47, undefined (0 years) and
+   −£209. The default book's "two transfers at one rate" was a property of that cast.
+4. **The sign of ΔC differs across books, with |ΔC| < £5,000 each: REFUTED.** It is negative on all
+   three seeds, and on the default book too, at its own commit. |ΔC| is above £5,000 on 61101 and
+   61102.
+5. **Mean ΔC within ±£3,000 of zero: REFUTED.** The three-seed mean is −£6,878 (range −£9,919 to
+   −£4,865), and the four-book mean is −£5,256.
+
+**Why I was wrong.** I generalised from the default book, where the re-fix kept 5 leavers and almost
+exactly cancelled the letter's 9 exits. Across seeds, the letter's cost is steady: £4–7k, through
+7–8 named exits, every time. What the re-fix keeps depends on the cast: 4, 0 and 1 households. The
+default book's 5 was the high end, so ΔC ≈ 0 there was luck of composition, not balance.
+
+**What is not attributed (F11).** B − C was meant to be the re-fix margin given up (≈ H) plus the
+retention it buys. Pricing the retained years at the same seed's C − A rate gives the residual
+nothing explains:
+
+| seed | retention at C−A £/yr | − H | expected B − C | observed | **unattributed** |
+|---|---|---|---|---|---|
+| 61101 | +£6,759 | −£1,320 | +£5,439 | +£1,360 | **−£4,079** |
+| 61102 | £0 | −£896 | −£896 | −£3,574 | **−£2,678** |
+| 61103 | +£765 | −£1,442 | −£677 | −£890 | **−£213** |
+
+On 61102 no customer moves between B and C, yet B − C is four times H. So the re-fix carries a
+company cost beyond the margin it gives away: hedging, pricing or another path knock-on. The arm C
+record read the default book's 3% agreement as "knock-ons small beside the customer count". **That
+is refuted on two of three seeds.** It is unattributed, not explained, and it is the next read
+(below).
+
+## The household side (M2)
+
+| seed | H, all re-fixes | to stayers (default is the right counterfactual) | to retained households (rival's tariff is the counterfactual, so H overstates) | H + ΔC |
+|---|---|---|---|---|
+| 61101 | £1,320 (21) | £1,134 (17) | £186 (4) | −£4,531 |
+| 61102 | £896 (12) | £896 (12) | £0 (0) | −£9,023 |
+| 61103 | £1,442 (16) | £1,410 (15) | £32 (1) | −£3,422 |
+
+No re-fix leaves a household worse off (0 negative rows on every seed). The re-fix refuses 6–9
+offers a seed because the fix would sit above the default it would replace. That refusal works as
+written. **GAP, unchanged:** the saving of the 7–8 letter leavers at a rival is not recorded by the
+world. Their side is unmeasured, not zero, so H + ΔC is not a total.
+
+## Reading on M2
+
+- **The company side's sign is established at the strength three seeds earn.** The letter plus
+  re-fix costs the company on 3 of 3 seeds at one commit, by £4.9k–£9.9k (mean −£6,878), and on
+  the default book at its own commit. Three same-sign draws would happen 1 time in 8 under a coin
+  flip, so this is a direction, not a tight bound. **Erring against the thesis (F11), the reading
+  is: as built, the letter plus re-fix transfers value away from the company, and it is not shown
+  to create any.**
+- **The households who stay gain £0.9k–£1.4k a book** from the re-fix, and none of them loses. That
+  is real, but it is a transfer from the company (M2: "Transfer is not creation"). It is smaller
+  than what the company loses, except where the leavers' unmeasured gain at rivals would close the
+  gap.
+- **The arm C record's advice, "the re-fix is what makes the letter defensible", does not survive
+  the seeds.** It defended the letter on 61101 alone, partly, and not on 61102 or 61103.
+
+## Next (one variable)
+
+The −£2.7k on 61102, with no customer moving between B and C, is the cleanest place to find the
+re-fix's unattributed cost. The next read is a per-month `total_net` difference B − C on 61102
+from the two artefacts already on disk, if they carry it, or from one instrumented re-run if they
+do not. That shows whether the cost sits in the fix windows (hedge or pricing) or after them. The
+default book at 9bb30c4de5 (three arms, about 50 minutes each) would put the fourth book on the
+seeds' commit. That is lower value, because 3 of 3 already agree in sign.
