@@ -68,6 +68,7 @@ a { color: var(--teal); }
   border-left: 3px solid var(--teal); border-radius: 6px; padding: 9px 14px 9px 44px; margin-bottom: 6px; font-size: 13px; }
 .stack li::before { content: counter(layer); position: absolute; left: 14px; top: 9px; font-weight: 700; color: var(--teal); }
 .stack .held { display: block; font-size: 11px; color: var(--muted); margin-top: 3px; }
+.stack .held > summary { cursor: pointer; color: var(--teal); font-size: 12px; }
 .stack .ev { display: block; margin-top: 6px; padding-top: 5px; border-top: 1px dashed var(--border); font-size: 12px; }
 .stack .ev span { display: block; }
 .stack .down { display: inline-block; margin-top: 6px; font-size: 12px; color: var(--teal); }
@@ -156,8 +157,8 @@ details.more summary, .timeline summary { cursor: pointer; color: var(--teal); f
       <li><b>Direction.</b> The director sets purpose, and his rulings are kept in his own words.
         A planning agent turns them into priorities and never writes code. No agent spends real
         money, contacts a real person or makes a real-world commitment: those are walls, not approvals.
-        <span class="held">Held by <code>background/one_way_door.py</code> and
-        <code>background/advisor_channel.py</code>, which accepts only files signed with a pinned key.</span>
+        <details class="held"><summary>Show the code that holds it</summary>Held by <code>background/one_way_door.py</code> and
+        <code>background/advisor_channel.py</code>, which accepts only files signed with a pinned key.</details>
 <!-- HARNESS-LAYER-1:START (written at publish by tools/harness_page_figures.py -- do not hand-edit) -->
 <span class="ev"><span><b>Fired, last 30 days:</b> 61 commits changed a director document and carried the marked reason the gate demands; last 24 Oct 2026.</span><span><b>Shown able to fail:</b> 4 tests that name this layer&#x27;s code record a planted fault</span></span>
 <!-- HARNESS-LAYER-1:END -->
@@ -165,16 +166,16 @@ details.more summary, .timeline summary { cursor: pointer; color: var(--teal); f
       <li><b>Knowledge before build.</b> Every price, rate or threshold in the code must say where
         it came from, and a sourced figure must actually be used. A published knowledge page comes
         before a new capability.
-        <span class="held">Held by <code>tests/architecture/test_a_domain_constant_carries_its_origin.py</code>
-        and <code>tools/knowledge_layer_gate.py</code>.</span>
+        <details class="held"><summary>Show the code that holds it</summary>Held by <code>tests/architecture/test_a_domain_constant_carries_its_origin.py</code>
+        and <code>tools/knowledge_layer_gate.py</code>.</details>
 <!-- HARNESS-LAYER-2:START (written at publish by tools/harness_page_figures.py -- do not hand-edit) -->
 <span class="ev"><span><b>Fired, last 30 days:</b> 64 sourced research documents added, each refused unless it names the knowledge page it feeds; last 24 Oct 2026.</span><span><b>Shown able to fail:</b> 2 tests that name this layer&#x27;s code record a planted fault</span></span>
 <!-- HARNESS-LAYER-2:END -->
         <a class="down" href="../knowledge/">The Knowledge pages this layer guards &darr;</a></li>
       <li><b>The walls.</b> The simulated supplier can know only what a real supplier could know,
         and it cannot open a network connection. The simulated world's hidden truth never reaches it.
-        <span class="held">Held by <code>company/interfaces/sim_interface.py</code>, the one doorway,
-        and <code>tools/company_network_isolation.py</code>.</span>
+        <details class="held"><summary>Show the code that holds it</summary>Held by <code>company/interfaces/sim_interface.py</code>, the one doorway,
+        and <code>tools/company_network_isolation.py</code>.</details>
 <!-- HARNESS-LAYER-3:START (written at publish by tools/harness_page_figures.py -- do not hand-edit) -->
 <span class="ev"><span><b>Fired, last 30 days:</b> No tool call was denied for reaching across the wall in the window; the last denial was 4 Sep 2026. The network wall refuses by construction and leaves nothing to count.</span><span><b>Shown able to fail:</b> 8 tests that name this layer&#x27;s code record a planted fault</span></span>
 <!-- HARNESS-LAYER-3:END -->
@@ -182,23 +183,23 @@ details.more summary, .timeline summary { cursor: pointer; color: var(--teal); f
       <li><b>The commit gate.</b> Every commit runs a chain of checks before it is written, and
         another on its message. Limits on size and known shortcuts are frozen at today's level, and any growth is refused. Skipping the
         gate is never allowed.
-        <span class="held">Held by <code>tools/git-hooks/</code>; the count is in the figures below.</span>
+        <details class="held"><summary>Show the code that holds it</summary>Held by <code>tools/git-hooks/</code>; the count is in the figures below.</details>
 <!-- HARNESS-LAYER-4:START (written at publish by tools/harness_page_figures.py -- do not hand-edit) -->
 <span class="ev"><span><b>Fired, last 30 days:</b> 5 of the publishing agent&#x27;s 26 commit attempts refused; last 19 Oct 2026. Only that agent logs its gate, so other agents&#x27; refusals are not counted.</span><span><b>Shown able to fail:</b> 10 tests that name this layer&#x27;s code record a planted fault</span></span>
 <!-- HARNESS-LAYER-4:END -->
         <a class="down" href="#rules-sec">The rules the gate runs &darr;</a></li>
       <li><b>Proof the checks work.</b> Each control is shown failing on its own defect by putting
         that defect back.
-        <span class="held">Held by <code>docs/design/control_registry.json</code> and the tests that
-        name their own defect.</span>
+        <details class="held"><summary>Show the code that holds it</summary>Held by <code>docs/design/control_registry.json</code> and the tests that
+        name their own defect.</details>
 <!-- HARNESS-LAYER-5:START (written at publish by tools/harness_page_figures.py -- do not hand-edit) -->
 <span class="ev"><span><b>Counted, last 30 days:</b> 541 of 2,182 test files record the planted fault they were seen to fail on; 61 of them added in the window, the last 24 Oct 2026.</span></span>
 <!-- HARNESS-LAYER-5:END -->
         <a class="down" href="#checks">Checks that can actually fail &darr;</a></li>
       <li><b>Independent judgement.</b> Fresh AI reviewers with no memory of the build read
         finished work cold, as an outsider would, before a phase of work or a public page is closed.
-        <span class="held">Held by <code>.claude/agents/phase-close-evaluator.md</code> and the
-        cold-eyes review in <code>.claude/skills/cold-eyes-walk/</code>.</span>
+        <details class="held"><summary>Show the code that holds it</summary>Held by <code>.claude/agents/phase-close-evaluator.md</code> and the
+        cold-eyes review in <code>.claude/skills/cold-eyes-walk/</code>.</details>
 <!-- HARNESS-LAYER-6:START (written at publish by tools/harness_page_figures.py -- do not hand-edit) -->
 <span class="ev"><span><b>Fired, last 30 days:</b> 10 blind reviews recorded; last 21 Oct 2026.</span><span><b>Shown able to fail:</b> 2 tests that name this layer&#x27;s code record a planted fault</span></span>
 <!-- HARNESS-LAYER-6:END -->
@@ -206,8 +207,8 @@ details.more summary, .timeline summary { cursor: pointer; color: var(--teal); f
       <li><b>The published state.</b> What was deployed is fetched back and compared byte for byte
         with what a reader is served. Each page's own code is run against the real data in the tests.
         The simulated world is checked against the published figures its Knowledge pages cite.
-        <span class="held">Held by <code>tools/assert_deployed_bytes_are_served.py</code> and
-        <code>tools/world_claims.py</code>.</span>
+        <details class="held"><summary>Show the code that holds it</summary>Held by <code>tools/assert_deployed_bytes_are_served.py</code> and
+        <code>tools/world_claims.py</code>.</details>
 <!-- HARNESS-LAYER-7:START (written at publish by tools/harness_page_figures.py -- do not hand-edit) -->
 <span class="ev"><span><b>Fired, last 30 days:</b> 27 of 69 publish gate runs stopped a publish; last 13 Oct 2026.</span><span><b>Shown able to fail:</b> 4 tests that name this layer&#x27;s code record a planted fault</span></span>
 <!-- HARNESS-LAYER-7:END -->
@@ -215,8 +216,8 @@ details.more summary, .timeline summary { cursor: pointer; color: var(--teal); f
       <li><b>Learning.</b> A mistake is fixed as a class, not an instance, and becomes a rule that
         runs. A check that keeps refusing becomes work, not a retry. Each week a review reads the
         rules, the code and the findings together.
-        <span class="held">Held by <code>background/finding_classes.py</code> and
-        <code>background/weekly_rhythm.py</code>. The lessons below are this layer's record.</span>
+        <details class="held"><summary>Show the code that holds it</summary>Held by <code>background/finding_classes.py</code> and
+        <code>background/weekly_rhythm.py</code>. The lessons below are this layer's record.</details>
 <!-- HARNESS-LAYER-8:START (written at publish by tools/harness_page_figures.py -- do not hand-edit) -->
 <span class="ev"><span><b>Fired, last 30 days:</b> 3 new classes of mistake registered, of 9 in the register; last 24 Oct 2026.</span><span><b>Shown able to fail:</b> 13 tests that name this layer&#x27;s code record a planted fault</span></span>
 <!-- HARNESS-LAYER-8:END -->
@@ -240,6 +241,7 @@ details.more summary, .timeline summary { cursor: pointer; color: var(--teal); f
 <!-- HARNESS-SCALE:END -->
   </section>
 
+  <details class="fold" id="fold-last-week"><summary>Last week</summary>
   <section id="last-week">
     <h2>Last week</h2>
     <p class="sub">Pieces of work finished in the seven days to this publish, each in the words its
@@ -257,7 +259,9 @@ details.more summary, .timeline summary { cursor: pointer; color: var(--teal); f
 </ul>
 <!-- HARNESS-WEEK:END -->
   </section>
+  </details>
 
+  <details class="fold" id="fold-belief"><summary>Where belief and truth diverge</summary>
   <section id="belief">
     <h2>Where belief and truth diverge</h2>
     <p class="sub">
@@ -283,6 +287,7 @@ details.more summary, .timeline summary { cursor: pointer; color: var(--teal); f
     </p>
     </details>
   </section>
+  </details>
 
   <section id="daemons">
     <h2>What code each daemon is actually running</h2>
