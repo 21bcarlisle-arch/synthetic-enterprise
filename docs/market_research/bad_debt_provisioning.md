@@ -1177,7 +1177,10 @@ place (the triad, which the grader reads, was always the truth; only a mover's f
 and an account that has left is no longer counted). The FLOW written off undershoots the record
 by about **5-7x** after the correction (2.5-3.6x before): GBP 874 against an anchor that would put
 GBP 4,100-5,900 on the same residential billing. Fewer than twenty write-off cases at 160 founders,
-so the factor is wide; the direction is not in doubt.
+so the factor is wide; the direction is not in doubt. *(Corrected 2026-10-25: the 5-7x was true of
+the 12 Oct world only. The same measure reads 0.665% on the 24 Oct book and 0.725% with the
+gone-household rule acting; `debt_realism_three_world_fidelity_gaps.md` s.1a, "The 0.15% baseline,
+settled".)*
 
 **This is a finding about another part of the world, not a reason to restore the double draw.**
 The double draw wrote off bills the households had paid. Candidate causes, ranked by the evidence

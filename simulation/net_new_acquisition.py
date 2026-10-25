@@ -984,6 +984,15 @@ def quote_capacity(affordable_quotes: int, pool_size: int = PROSPECTS_PER_YEAR,
 #: the pre-registered 5% stop line. 205 of 597 funnel wins settle at this budget. His caveat
 #: binds: the first three production peaks are watched against 6,008 MB, and a run within 5% of
 #: it sends production back to `supply_points` with this constant at 5,000.
+#: CURVE RE-TAKEN 2026-10-25, VALUE HELD AT 7,700. The journal leg went red on four production
+#: lifetimes at 904a091f7b (largest process 5,499.7-5,595.3 MB; systemd's whole-service peak 5.4G):
+#: placed at the old curve's 6,997 cy anchor they priced 7,430. Re-measured at origin 7a692b47ae
+#: (`settlement_ceiling_slope_20261025.json`): 7,699.3 cy -> 5,555.9 MB, 3,567 s; 8,398.5 cy ->
+#: 6,254.1 MB; 0.999 MB per cy. The same 7,700 point is 443 MB heavier than on 20 Oct (cause not
+#: yet attributed) and agrees with production's 5,595.3 within 40 MB. With the 227 MB parent the
+#: curve supports 7,924.7; production's own peak, now placed at its own x, prices 8,112.6. The
+#: probe-plus-parent figure (5,782.9 MB) sits inside the 5% band; production's peaks, which are
+#: what his caveat watches, sit 413 MB under 6,008 and outside it.
 SETTLEMENT_CUSTOMER_YEAR_BUDGET = 7700.0
 
 

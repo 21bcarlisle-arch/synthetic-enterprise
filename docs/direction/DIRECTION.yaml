@@ -689,3 +689,19 @@ for_the_director:
     needs per-home comfort output, the take-back response, the health floor and the grader. Step 7 (adoption physics,
     EV and heat-pump geography, your 24 Oct ruling) is left where you put it, though in the generative form it becomes
     part of step 8.'
+- id: your-20-oct-caveat-on-the-7
+  raised: '2026-10-25'
+  kind: strategy
+  what: 'Your 20 Oct caveat on the 7,700 budget: today''s re-measure puts the probe''s 7,700 peak plus
+    the 227 MB parent at 5,783 MB, inside the 5% band (5,708). Production''s own peaks (5,500 and 5,595
+    MB) sit outside it.'
+  proposal: 'Keep 7,700 and keep founder_unit: households. Watch the next three production peaks on the
+    new code against 5,708 MB. If any one crosses, switch to supply_points at 5,000, as you ruled.'
+  recommendation: 'I recommend holding at 7,700. Your caveat names production runs, and none has come
+    within 5%: systemd''s whole-service peak was 5.4G and the largest process was 5,595 MB. The curve
+    supports 7,925 cy. The trade-off is that the margin is now 413 MB rather than 668 MB, because the
+    code is 443 MB heavier at this point than on 20 Oct, and I have not yet found the cause. Holding position:
+    7,700. What would change it: a production peak above 5,708 MB.'
+  status: open
+  resolution: ''
+  evidence: docs/observability/settlement_ceiling_slope_20261025.json; docs/staging/done/SEAT_FINDING_THE_SETTLEMENT_CEILING_JOURNAL_LEG_HAS_ARMED_AND_THE_7700_BUDGET_OUTRUNS_THE_PRODUCTION_PEAK_2026-10-25.md
