@@ -458,7 +458,7 @@ items:
     problem: "A queued continuation or focus item is served to a tick without asking whether another lane has already spent its premise."
     match: ["A queued continuation is not re-asked when another lane spends its premise first"]
     first_seen: "2026-10-17"
-    times_listed: 30
+    times_listed: 31
     fate: fix
     status: open
     owner: "background/seat_continuation.py (live(): re-ask each row against origin commits naming its id, or a live surgical_land carrying it, before offering it)"
