@@ -47,7 +47,7 @@ The coordinator's dimensions 12–16 are included, and the contrast and transfer
 
 ## 3. Grid
 
-- **Unbundling.** The EPCOs' T&D arms were legally unbundled in **April 2020** ([IEA](https://www.iea.org/reports/japan-2021)). Okinawa may be exempt [unverified].
+- **Unbundling.** The EPCOs' T&D arms were legally unbundled in **April 2020** ([IEA](https://www.iea.org/reports/japan-2021)). Okinawa Electric is excluded from the unbundling (confirmed 25 Oct, second read; METI).
   - Ten **general T&D operators** each combine the TSO and DSO roles. GB has one TSO and 14 DNO areas [unverified].
   - OCCTO coordinates between areas and runs the switching system.
   - The big gas companies' pipeline arms were unbundled in April 2022 ([ANRE](https://www.enecho.meti.go.jp/about/whitepaper/2021/html/3-6-2.html)).
@@ -78,7 +78,7 @@ The coordinator's dimensions 12–16 are included, and the contrast and transfer
   - LPG 23 m³
   - kerosene 119 L
 
-  GB's Ofgem typical consumption values are 2,700 kWh electricity and 11,500 kWh gas [unverified].
+  GB's Ofgem typical consumption values are **2,500 kWh electricity and 9,500 kWh gas from 1 July 2026** (was 2,700 / 11,500; corrected 25 Oct, second read). Ofgem's undated consumer page (2,900 / 12,000) is stale and is not used.
 
 ## 6. Core regulation
 
@@ -174,7 +174,7 @@ The coordinator's dimensions 12–16 are included, and the contrast and transfer
 - **No debt-based block.** The rules contain no objection mechanism for debt. They do require a warning about exit penalties (same source).
 - **Cooling-off** is **8 days** for door-to-door and telephone sales only ([Selectra](https://selectra.jp/energy/electricity/cooling-off)).
 - **Switching rates.** There have been 35.9 million cumulative low-voltage switches since 2016, and 240,836 in May 2025 alone. That is about 3.5% a year against 81.5 million meters [derived] ([EGC](https://www.egc.meti.go.jp/info/public/pdf/20250815001a.pdf)).
-- GB is 5 working days, moving towards next-day, with a 14-day cooling-off on all channels and a debt objection for prepayment and arrears [unverified].
+- GB has had **next-day switching since 18 July 2022** (corrected 25 Oct, second read; was "5 working days, moving towards next-day"), with a 14-day cooling-off on all channels and a debt objection for prepayment and arrears [unverified].
 
 ## 15. Home moves
 
@@ -212,7 +212,7 @@ The coordinator's dimensions 12–16 are included, and the contrast and transfer
 | 2 System | 69% fossil, LNG, no gas hub; 9 area prices; 50/60 Hz with 2.1 GW converters | One price zone, NBP, wind-heavy | Area-price spreads; LNG scarcity shocks |
 | 3 Grid | 10 T&D operators that own meters; 10–60 A contract breaker | TSO plus DNOs; fixed fuse | Capacity is a tariff product |
 | 4 Households | 56.2 million, about 2.2 people | About 28 million | About 2× the scale |
-| 5 Housing | 45% flats; room heating with air conditioners and kerosene; 3,911 kWh | Houses with gas central heating; 2,700 kWh / 11,500 kWh gas | Electricity-led, little wet heating |
+| 5 Housing | 45% flats; room heating with air conditioners and kerosene; 3,911 kWh | Houses with gas central heating; 2,500 kWh / 9,500 kWh gas from 1 Jul 2026 (corrected 25 Oct, second read) | Electricity-led, little wet heating |
 | 6 Regulation | Incumbent-only regulated tariff on 65% of incumbent contracts | Cap on all suppliers | Incumbent vs entrant world |
 | 7 Meters | 99.9%, operator-owned, 30-min, moving to 5-min | About 2/3 smart, supplier-owned | Data assured, finer granularity |
 | 8 Billing | Monthly actuals; tiers plus fuel cost adjustment plus surcharge; per-kWh subsidies | Direct-debit advances; flat rate plus standing charge | No true-up; indexed tiered tariffs |
@@ -221,7 +221,7 @@ The coordinator's dimensions 12–16 are included, and the contrast and transfer
 | 11 Assets | 3 million PV systems, 1.65 million post-FIT, 1.1 million batteries, 2% BEV share | Fewer batteries, more BEVs | Post-FIT buy-back and battery products |
 | 12 Cooling | About 90%+ air-conditioner ownership (about 55–61% in Hokkaido); summer peak and subsidies | Negligible | Summer load and price peak |
 | 13 Cooking | City gas, LPG and IH; all-electric new build | Mostly gas hob | Gas load is cooking and hot water, not space heat |
-| 14 Switching | OCCTO system; about 3 days with a smart meter; no debt block; 8-day cooling-off for door and phone sales | About 5 days; debt objection | Fast switching that ignores debt |
+| 14 Switching | OCCTO system; about 3 days with a smart meter; no debt block; 8-day cooling-off for door and phone sales | Next day since Jul 2022 (corrected 25 Oct, second read); debt objection | Fast switching that ignores debt |
 | 15 Home moves | No deemed supplier; remote energisation needs a contract | Deemed contract with the incumbent supplier | Move-in is an acquisition event |
 | 16 Where debt sits | Retailer holds it; T&D disconnects on request; no mutualisation; last resort is high voltage only, households fall back on the regulated tariff | Supplier holds it; SoLR and levies | Failure risk lands on the incumbent tariff |
 
@@ -298,7 +298,7 @@ The coordinator's dimensions 12–16 are included, and the contrast and transfer
   - Whether arrears information is shared between retailers is unconfirmed.
   - I have no figures for how many low-voltage customers fell back to regulated tariffs in 2022.
   - No figures for retailer-exit notice rules.
-- **Other.** The Ene-Farm figure is undated. Okinawa's unbundling status is uncertain. GB comparison figures were not re-verified.
+- **Other.** The Ene-Farm figure is undated. GB comparison figures were not re-verified.
 
 The search limit was hit once during this work. A follow-up message would let me continue on these gaps.
 
@@ -370,3 +370,42 @@ Per the director's steer of 25 Oct 07:52 GMT: each [unverified] item is confirme
   - **still open: Eurostat publishes no Japanese series. For the GB side, Eurostat still publishes UK degree days: UK HDD 2,710-2,961 over 2018-2025 (2024: 2,812) and CDD 0.1-7.0 (2024: 0.43); Eurostat nrg_chdd_a via the dissemination API (unit NR), dataset updated 2026-05-08, accessed 2026-10-25**
 
 **Counts:** confirmed 0, corrected 0, still open 30.
+
+## Second read: the advisor's verification pass, 25 Oct 2026
+
+The rows follow the order of the drafting pass above. The advisor's own item number is in brackets. The drafting pass fetched only the census PDF and Eurostat, and neither result disagrees with the advisor. Three GB rows use primary sources the advisor found in other packs' passes. GB typical use follows Ofgem's 1 Jul 2026 decision; the undated consumer page (2,900 / 12,000) is stale.
+
+| # | Item | Prior | Advisor | Reconciled | Source |
+|---|---|---|---|---|---|
+| 1 | Caveats paragraph | open | not an item | still open (not a factual claim) | |
+| 2 | GB 4–6 °C January, 15–17 °C summer (A1) | open | open | still open | |
+| 3 | GB HDD 2,000–2,300, base 15.5 (A2) | open | open | still open | |
+| 4 | LNG mostly oil-indexed (A3) | open | open | still open: APERC says ~80% is bought on long-term contracts but gives no pricing basis | https://aperc.or.jp/file/2025/7/3/1355-1405_JPN_OGSN_updates.pdf |
+| 5 | Capacity and balancing markets exist (A4) | open | confirmed | confirmed (no dates) | https://www.iea.org/reports/japan-2021 |
+| 6 | Okinawa may be exempt from unbundling (A5) | open | confirmed | confirmed: Okinawa Electric is excluded | https://www.meti.go.jp/shingikai/enecho/denryoku_gas/denryoku_gas/pdf/017_07_01.pdf |
+| 7 | GB one TSO and 14 DNO areas (A6) | open | confirmed (Wikipedia, secondary) | confirmed on Ofgem 2013 | https://www.ofgem.gov.uk/sites/default/files/docs/2013/11/css_overview_1213_0.pdf |
+| 8 | Single-phase three-wire 100/200 V (A7) | open | open | still open | |
+| 9 | Kansai, Chugoku, Shikoku, Okinawa use minimum charges (A8) | open | confirmed | confirmed (secondary): the ampere areas are Hokkaido, Tohoku, TEPCO, Chubu, Hokuriku, Kyushu | https://enechange.jp/articles/electricity-basic-rate |
+| 10 | Household size 2.21, 2020 (A9) | open | confirmed | confirmed: 2.21 per general household (2.33 in 2015) | https://www.stat.go.jp/info/guide/asu/pdf/2023asu_3-2.pdf |
+| 11 | GB ~28m households (A10) | open | open | confirmed (approx.): 28.6m, UK not GB, 2024 | https://www.ons.gov.uk/peoplepopulationandcommunity/birthsdeathsandmarriages/families/bulletins/familiesandhouseholds/2024 |
+| 12 | GB ~20% flats (A11) | open | open | still open; needs file: English Housing Survey annex tables (xlsx) | |
+| 13 | GB TDCV 2,700 / 11,500 (A12) | open | corrected | corrected: 2,500 / 9,500 from 1 Jul 2026 | https://www.ofgem.gov.uk/sites/default/files/2026-06/Summary-of-changes-to-energy-price-cap-1-July-to-30-September-2026-revised-TDCV.pdf |
+| 14 | ~700+ registered retailers (A13) | open | open | still open: 94 took part in the 2025 ranking; no total stated | https://www.meti.go.jp/press/2025/12/20251224001/20251224001-1.pdf |
+| 15 | GB about two-thirds smart (A14) | open | confirmed | confirmed: ~65% in smart mode end-2025; 73% smart (any mode) end Jun 2026 | https://assets.publishing.service.gov.uk/media/69b80e30b84f01b2be53a2b1/Q4_2025_Smart_Meters_Statistics_Report.pdf |
+| 16 | Card and convenience-store payment; no prepayment (A15) | open | open | still open | |
+| 17 | Balancing-group plans until 1 hour before delivery (A17) | open | confirmed | confirmed (secondary, a commercial column) | https://www.issoh.co.jp/column/details/16831/ |
+| 18 | GB MHHS 2025–27 (A18) | open | open | still open | |
+| 19 | No social tariff, no PSR equivalent (A16) | open | open | still open | |
+| 20 | GB BEV share ~19% (A19) | open | open | still open: 2025 BEV share is 23.4% (SMMT); the 2024 figure was not re-read | https://www.smmt.co.uk/uk-new-car-market-breaches-two-million-as-almost-one-in-four-buyers-go-electric/ |
+| 21 | GB air conditioning <5% (A20) | open | open | still open | |
+| 22 | Gas cookers in the majority, IH a minority (A21) | open | open | still open: the MoE survey asks about cooktop type but this PDF gives no shares | https://www.env.go.jp/content/900516264.pdf |
+| 23 | GB mostly gas hobs (A22) | open | open | still open | |
+| 24 | GB switching 5 working days, 14-day cooling-off, debt objection (A23) | open | open | corrected (speed, secondary): next-day switching since 18 Jul 2022; cooling-off and debt objection not re-read | https://www.idoxgroup.com/news/reliable-next-day-energy-switching-goes-live-after-eight-years-in-the-making/ |
+| 25 | Final bill on the stop-date smart read (A24) | open | open | still open | |
+| 26 | Retailer owns debt; T&D charges network fees (A25) | open | open | still open | |
+| 27 | No mutualisation of bad debt (A26) | open | open | still open | |
+| 28 | GB SoLR credit balances protected; levy (A27) | open | open | still open | |
+| 29 | Household size 2.21 (census PDF row, same item as 10) | open | confirmed | confirmed | as row 10 |
+| 30 | Degree days vs GB (Eurostat row) | open | open | still open; the page's own Eurostat read stands | |
+
+**Counts: confirmed 9 · corrected 2 · still open 19.**

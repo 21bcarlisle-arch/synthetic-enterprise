@@ -18,7 +18,7 @@
 
 ## 1. Weather and climate
 
-- **Spain degree days:** HDD 1,478 and CDD 384 in 2022. The EU averages were HDD 2,858 and CDD 140 ([Energy Institute, citing Eurostat](https://knowledge.energyinst.org/new-energy-world/article?id=137740)). Spain's CDD was 302.7 in 2024 ([Eurostat nrg_chdd_a via DBnomics](https://db.nomics.world/Eurostat/nrg_chdd_a)).
+- **Spain degree days:** HDD 1,478 (1,537 in Eurostat's current release; corrected 25 Oct, drafting pass) and CDD 384 in 2022. The EU averages were HDD 2,858 and CDD 140 ([Energy Institute, citing Eurostat](https://knowledge.energyinst.org/new-energy-world/article?id=137740)). Spain's CDD was 302.7 in 2024 ([Eurostat nrg_chdd_a via DBnomics](https://db.nomics.world/Eurostat/nrg_chdd_a)).
 - **GB degree days:** about 2,800–3,100 HDD a year, with CDD close to zero [unverified]. Ireland's 2022 CDD was 0.03 ([same Energy Institute source](https://knowledge.energyinst.org/new-energy-world/article?id=137740)), which is a fair stand-in for the British Isles.
 - **Regional variation is extreme.**
   - More than 86% of Canary Islands homes have no heating, and only about a third of homes in Extremadura and Andalucía have it ([El Independiente, citing INE 2021](https://www.elindependiente.com/espana/2023/02/24/el-20-de-los-hogares-en-espana-no-tiene-calefaccion-ni-coche-propio/amp/)).
@@ -44,7 +44,7 @@
 **Wholesale market:**
 - MIBEL is a single Iberian bidding zone shared with Portugal, run as an energy-only market. OMIE operates the day-ahead and intraday auctions plus continuous intraday trading [unverified for design detail].
 - The day-ahead market moved to 15-minute products on 1 Oct 2025, with the first trading day 30 Sep 2025 ([APG](https://markt.apg.at/en/news-press/sdac-go-live-of-15-minute-market-time-unit-in-day-ahead-market-coupling-successful-as-of-september-30-2025/)). Continuous intraday went quarter-hourly from 18 Mar 2025 ([tarifaluzhora](https://tarifaluzhora.es/info/nuevo-mercado-cuarto-horario-electricidad)).
-- Interconnection with France is weak, about 3 GW or about 3% of capacity [unverified]. The IEA has long flagged this ([IEA](https://iea.org/news/iea-praises-spain-for-robust-energy-security-but-sees-need-for-further-improvement-in-other-areas)).
+- Interconnection with France is weak, about 2.8 GW or about 2% of capacity, rising to about 5 GW when the Bay of Biscay link opens, expected 2028 (corrected 25 Oct, second read; the pack said 3 GW, 3%) [unverified]. The IEA has long flagged this ([IEA](https://iea.org/news/iea-praises-spain-for-robust-energy-security-but-sees-need-for-further-improvement-in-other-areas)).
 - **Iberian exception (gas price cap):** approved May 2022. It capped the gas price used in power bids at €40/MWh for six months, then raised it €5/MWh a month to €70/MWh. Gas plants were compensated for the difference ([IEA policy page](https://www.iea.org/policies/15621-price-control-in-the-iberian-electricity-market-mibel)). Brussels said it could not run past Dec 2023 ([Euro Weekly](https://euroweeklynews.com/2023/01/20/brussels-informs-spain-the-iberian-exception-can-not-extend-beyond-december-2023/)). For price replay this is a regime break: 2022–23 Iberian prices are not a pure market outcome.
 - **Gas:** the hub is MIBGAS. Supply relies heavily on LNG terminals ([IEA](https://iea.org/news/iea-praises-spain-for-robust-energy-security-but-sees-need-for-further-improvement-in-other-areas)). The 2024 gas wholesale price averaged about €35/MWh ([CNMC](https://www.cnmc.es/sites/default/files/editor_contenidos/20250804_NP_Informe_Minorista_ElectricidadyGas_2024.pdf)).
 - **Blackout, 28 Apr 2025:** the whole Iberian peninsula went dark. The ENTSO-E final report blamed systemic failures in voltage and reactive-power control ([pv magazine](https://www.pv-magazine.com/2026/03/23/entso-e-report-finds-systemic-failures-behind-2025-iberian-blackout/)).
@@ -53,7 +53,7 @@
 
 **Operators:**
 - REE is the TSO and system operator.
-- There are several hundred DSOs, about 330 [unverified]. Five groups (Endesa/e-distribución, Iberdrola/i-DE, Naturgy/UFD, EDP, Viesgo) hold 26.3m of 29.5m supply points, about 89% [derived] ([Energías Renovables, 2021](https://www.renewableenergymagazine.com/panorama/cinco-empresas-controlan-el-90-del-mercado-20210629)).
+- There are several hundred DSOs, nearly 350 on the CNMC census (corrected 25 Oct, second read; the pack said about 330) [unverified]. Five groups (Endesa/e-distribución, Iberdrola/i-DE, Naturgy/UFD, EDP, Viesgo) hold 26.3m of 29.5m supply points, about 89% [derived] ([Energías Renovables, 2021](https://www.renewableenergymagazine.com/panorama/cinco-empresas-controlan-el-90-del-mercado-20210629)).
 - GB has 14 licensed DNO areas under 6 groups, plus IDNOs [unverified].
 
 **Connection: a capacity subscription.** This is the biggest structural difference from GB.
@@ -77,7 +77,7 @@
 
 - 19.31m households at 1 Jan 2024, average size 2.50, 28.1% single-person. Projected 23.0m by 2039 ([INE](https://ine.es/dyngs/Prensa/PROH20242039.htm?print=1)).
 - About 29.5m electricity supply points, including non-domestic ([source above](https://www.renewableenergymagazine.com/panorama/cinco-empresas-controlan-el-90-del-mercado-20210629)).
-- GB has about 28m households of 2.4 people [unverified].
+- The UK has about 28.6m households of 2.35 people (ONS, 2024; corrected 25 Oct, second read; the pack said GB 28m and 2.4) [unverified].
 
 ## 5. Housing
 
@@ -85,7 +85,7 @@
 - **Flats:** 66% of the population lives in apartments ([EPOV Spain report](https://energy-poverty.ec.europa.eu/system/files/2024-05/epov_member_state_report_-_spain.pdf)). GB is about 20% flats [unverified]. Flats in Spain often have shared (comunitaria) heating; communities of owners can take TUR4 gas ([Selectra](https://selectra.es/energia/info/tur-gas)).
 - **Heating fuel, among homes with heating (2021):** gas about 40%, electricity about 34%, the rest oil-derived (heating oil and LPG). About one in five households lacks heating and a car ([INE via El Independiente](https://www.elindependiente.com/espana/2023/02/24/el-20-de-los-hogares-en-espana-no-tiene-calefaccion-ni-coche-propio/amp/)).
 - **Heating systems, older survey (2015):** gas boiler 32.7%, electric heat pump (mostly reversible air-to-air) 16.3%, storage heaters 6.1% ([CNMC Panel 2015](https://cnmc.es/eu/node/271580)).
-- **Gas consumption:** a gas-heated home uses 7,921 kWh/yr (flat 7,384, house 11,635). Heating is 57%, hot water 38%, cooking 5% ([SPAHOUSEC II](https://www.miteco.gob.es/content/dam/miteco/images/es/estudio_spahousec-ii_270619_tcm30-498994.pdf)). GB averages about 11,500 kWh [unverified].
+- **Gas consumption:** a gas-heated home uses 7,921 kWh/yr (flat 7,384, house 11,635). Heating is 57%, hot water 38%, cooking 5% ([SPAHOUSEC II](https://www.miteco.gob.es/content/dam/miteco/images/es/estudio_spahousec-ii_270619_tcm30-498994.pdf)). GB's typical gas use is 9,500 kWh (Ofgem TDCV from 1 Jul 2026; corrected 25 Oct, second read; the pack said 11,500) [unverified].
 - **Electricity consumption:** about 3,000–3,500 kWh/yr per household [unverified]. Average spend was €47.8 a month in Q2 2024 ([CNMC](https://cnmc.es/en/node/412028)).
 - **Gas reach:** about 7.9m gas consumers [derived from 3.1m TUR = 39%], so only about 40% of households have mains gas [derived]. GB is about 85% [unverified].
 
@@ -112,16 +112,16 @@
 - A retailer without guarantees gets no new supply points or switches ([MITECO](https://www.miteco.gob.es/es/energia/energia-electrica/electricidad/distribuidores/comercializadores.html)).
 - Spain has hundreds of retailers (341 in 2019 ([source](https://www.renewableenergymagazine.com/panorama/cinco-empresas-controlan-el-90-del-mercado-20210629))). The licence bar is lower than GB's Ofgem licence plus its post-2022 capital rules [unverified].
 
-**Consumer protection — new RD 88/2026** (in force 12 Feb 2026; it repeals RD 1435/2002, RD 1718/2012 and Orden ITC/1659/2009) ([PwC](https://periscopiofiscalylegal.pwc.es/real-decreto-88-2026-de-11-de-febrero-por-el-que-se-aprueba-el-reglamento-general-de-suministro-comercializacion-y-agregacion-de-energia-electrica/); [GA-P](https://ga-p.com/wp-content/uploads/2026/02/Energia_electrica.pdf)):
+**Consumer protection — new RD 88/2026** (in force 12 Feb 2026, but articles 6, 13, 28–30 and 43–45 only took effect four months later (corrected 25 Oct, second read); it repeals RD 1435/2002, RD 1718/2012 and Orden ITC/1659/2009) ([PwC](https://periscopiofiscalylegal.pwc.es/real-decreto-88-2026-de-11-de-febrero-por-el-que-se-aprueba-el-reglamento-general-de-suministro-comercializacion-y-agregacion-de-energia-electrica/); [GA-P](https://ga-p.com/wp-content/uploads/2026/02/Energia_electrica.pdf)):
 - Cold sales calls are banned.
 - Consumers get a separate summary of key terms.
 - Price changes need 1 month's notice, with a free right to leave.
-- Complaints must be resolved within 15 days.
+- Complaints must be resolved within 15 business days (corrected 25 Oct, second read).
 - Exit fees are removed for non-fixed 2.0TD contracts. On fixed-price contracts the fee is capped at 5% of the estimated remaining energy.
 - Retailers with more than 200,000 customers must offer dynamic-price contracts.
 - A new independent-aggregator role is created.
 
-**Supplier failures:** unlike GB, there was no wave of failures, and no Supplier of Last Resort or Special Administration regime equivalent was needed [unverified]. The fallback for a failed retailer's customers is transfer to a COR [unverified in detail, see §16].
+**Supplier failures:** unlike GB, there was no wave of failures, and no Supplier of Last Resort or Special Administration regime equivalent was needed [unverified]. *(Corrected 25 Oct, second read: Spain did have failures, though not on GB's scale. MITECO barred six retailers in Oct 2021, and in Jul 2026 opened proceedings against Holaluz, about 250k contracts (secondary source). Barring a retailer and moving its customers to a COR is Spain's last-resort route.)* The fallback for a failed retailer's customers is transfer to a COR [unverified in detail, see §16].
 
 ## 7. Smart meters
 
@@ -129,19 +129,19 @@
 - The DSO owns and operates the meters; the consumer pays a meter rental (same source).
 - Hourly load curves are on the distributor's portal, and distributors must pass them to retailers (same source).
 - Most meters record hourly. After the 15-minute market change, REE interpolates quarter-hour values from hourly reads, and PVPC bills use the average of the four quarter-hour prices ([tarifaluzhora](https://tarifaluzhora.es/info/nuevo-mercado-cuarto-horario-electricidad)).
-- GB: the supplier is responsible for the meter and the DCC carries the data. About two-thirds are smart, many not working in smart mode [unverified].
+- GB: the supplier is responsible for the meter and the DCC carries the data. About 71–73% are smart (DESNZ, end 2025 and Jun 2026), and about 92% of those run in smart mode (corrected 25 Oct, second read; the pack said about two-thirds) [unverified].
 
 ## 8. Billing
 
 - **Basis:** bills use actual reads, not estimated advances plus an annual true-up. RD 1718/2012 required real reads from Apr 2013 and set bimonthly billing ([Xataka](https://www.xatakahome.com/iluminacion-y-energia/nuevo-proceso-de-facturacion-electrica-en-espana-mejorando-el-control-de-consumo)). Monthly billing is now common [unverified]. RD 1718/2012 is now repealed by RD 88/2026, and the new billing-period rule was not confirmed.
 - **Payment:** default due date is 20 days from the invoice ([MITECO](https://www.miteco.gob.es/es/energia/energia-electrica/electricidad/contratacion-suministro/cortes-suministro.html)). Paying by bank direct debit (domiciliación) after the bill is the norm. There is no fixed monthly direct debit building a credit balance, and no prepayment meters [unverified]. The GB prepayment segment and "DD smoothing" have no equivalent.
 - **Bill structure:** a power term (€/kW per day × two powers) plus an energy term (€/kWh by period) plus meter rental.
-- **Taxes:** electricity tax (IEE) 5.11% plus VAT 21%. During the crisis these fell to 0.5% and 10%/5%, and have since been restored ([Selectra](https://selectra.es/energia/info/factura-luz/iva-luz-impuestos)). The VAT recovery drove the 2024 household price rise ([CNMC](https://www.cnmc.es/sites/default/files/editor_contenidos/20250804_NP_Informe_Minorista_ElectricidadyGas_2024.pdf)). GB VAT is 5% [unverified].
+- **Taxes:** electricity tax (IEE) 5.11% plus VAT 21%. During the crisis these fell to 0.5% and 10%/5%, and have since been restored ([Selectra](https://selectra.es/energia/info/factura-luz/iva-luz-impuestos)). The VAT recovery drove the 2024 household price rise ([CNMC](https://www.cnmc.es/sites/default/files/editor_contenidos/20250804_NP_Informe_Minorista_ElectricidadyGas_2024.pdf)). GB VAT is 5% [unverified]. *(Corrected 25 Oct, second read: domestic electricity is at 0% from 1 Oct 2026 to 31 Mar 2027; gas stays at 5%.)*
 
 ## 9. Settlement
 
 - **Interval:** household supplies are settled on hourly measured data, interpolated to quarter-hours since Oct 2025 ([tarifaluzhora](https://tarifaluzhora.es/info/nuevo-mercado-cuarto-horario-electricidad)). The imbalance settlement period is 15 minutes [unverified date]. Profiling is now only a fallback for meters not integrated into remote reading [unverified].
-- **Settlement runs:** REE produces five settlements: initial provisional 1 and 2 (about M+1), intermediate (about M+3), final provisional (about M+8) and final definitive (about M+11) ([REE calendar guide 2024](https://www.ree.es/sites/default/files/12_CLIENTES/Documentos/Guia_calendario_sistema_informacion_liquidaciones_clientes_2024.pdf)). GB MHHS runs about 4 months to its final run (RF) [unverified].
+- **Settlement runs:** REE produces five settlements: initial provisional 1 and 2 (about M+1), intermediate (about M+3), final provisional (about M+8) and final definitive (about M+11) ([REE calendar guide 2024](https://www.ree.es/sites/default/files/12_CLIENTES/Documentos/Guia_calendario_sistema_informacion_liquidaciones_clientes_2024.pdf)). GB's final run (RF) is 14 months today, 7 months from 1 Apr 2027 and 4 months from 2 Jul 2027 (Elexon; corrected 25 Oct, second read; the pack said about 4 months) [unverified].
 - **Balance responsibility:** the retailer is the settled party (sujeto de liquidación) toward REE and OMIE, with guarantees lodged at both ([MITECO](https://www.miteco.gob.es/es/energia/energia-electrica/electricidad/distribuidores/comercializadores.html)).
 - **Network charges:** the retailer pays access tolls and charges to the DSO (same source).
 
@@ -204,7 +204,7 @@ The structural fallback is 35% and 50%.
 
 ## 12. Cooling
 
-- 42.8% of households had air conditioning in 2015 ([CNMC Panel](https://cnmc.es/eu/node/271580)). Today it is likely over 50% [unverified].
+- 42.8% of households had air conditioning in 2015 ([CNMC Panel](https://cnmc.es/eu/node/271580)). Today it is likely over 50% [unverified]. *(Corrected 25 Oct, second read: no source supports over 50%. INE gives 31% and a Triodos survey about 40%; the share is uncertain within 31–43%.)*
 - 1.38m residential AC, heat pump and hot-water units were sold in 2024 ([AFEC via Interempresas](https://www.interempresas.net/Construccion/589333-El-mercado-espanol-de-HVAC-se-mantiene-estable-con-un-crecimiento-del-0-8-por-ciento.html)).
 - Spain's CDD (300–390) is more than double the EU average ([sources in §1](https://knowledge.energyinst.org/new-energy-world/article?id=137740)).
 - The summer peak (July–August afternoons) rivals the winter evening peak, both near 40 GW [unverified].
@@ -237,7 +237,7 @@ The structural fallback is 35% and 50%.
 - **Who holds the debt:** the retailer; there is no central body. The retailer starts disconnection, and **the DSO physically cuts supply** at the retailer's request.
 - **Cost of cuts:** the DSO bears disconnection and reconnection costs, and pays compensation for wrongful cuts ([MITECO](https://www.miteco.gob.es/es/energia/energia-electrica/electricidad/contratacion-suministro/cortes-suministro.html)).
 - **Retailer's own exposure:** the retailer pays access tolls whether or not its customer pays, so it carries bad debt ([MITECO](https://www.miteco.gob.es/es/energia/energia-electrica/electricidad/distribuidores/comercializadores.html)).
-- **Bono social funding:** paid by electricity groups and retailers, not general taxation, under RDL 7/2016 and later rules after court challenges [unverified].
+- **Bono social funding:** paid by electricity groups and retailers, not general taxation, under RDL 7/2016 and later rules after court challenges [unverified]. *(Corrected 25 Oct, second read: since RDL 6/2022 the whole chain pays: producers, transmission, distributors, retailers and direct consumers.)*
 - **Supplier of last resort:** the COR also supply customers without a valid free-market contract. The old Orden ITC/1659/2009 transfer rules were repealed by RD 88/2026 ([GA-P](https://ga-p.com/wp-content/uploads/2026/02/Energia_electrica.pdf)). What replaces them was not confirmed.
 - **Does debt follow the customer?** No; it stays with the old retailer and is pursued as an ordinary civil debt [unverified]. GB's Debt Assignment Protocol has no confirmed Spanish equivalent.
 
@@ -249,16 +249,16 @@ The structural fallback is 35% and 50%.
 |---|---|---|---|---|
 | 1 | Climate | HDD about 1,480, CDD about 300–380, big regional spread | HDD about 2,800+ [unverified], CDD about 0 | Two demand peaks; regions need distinct weather |
 | 2 | Generation and wholesale | 56% renewable, 19% nuclear (closing 2027–35), Iberian zone, 15-min day-ahead, 800+ hours at or below zero | Gas-marginal, 30-min settlement [unverified] | Solar-dominated price shape; 2022–23 cap is a regime break |
-| 3 | Grid and network tariff | About 330 DSOs; kW subscription; 2.0TD with 3 energy periods and 2 powers | 14 DNO areas; fuse; unit-rate network charges [unverified] | Capacity term and time-of-use network tariff are compulsory |
-| 4 | Households | 19.3m, 2.50 people | About 28m, 2.4 people [unverified] | Scale similar order |
+| 3 | Grid and network tariff | Nearly 350 DSOs (corrected 25 Oct, second read); kW subscription; 2.0TD with 3 energy periods and 2 powers | 14 DNO areas; fuse; unit-rate network charges [unverified] | Capacity term and time-of-use network tariff are compulsory |
+| 4 | Households | 19.3m, 2.50 people | UK 28.6m, 2.35 people (corrected 25 Oct, second read) [unverified] | Scale similar order |
 | 5 | Housing and fuel | 66% flats, 73% owners, only about 40% on mains gas, heating oil and LPG remain | Mostly houses, about 85% on gas [unverified] | Gas is optional; many all-electric homes |
 | 6 | Regulation | PVPC (dynamic, partly hedged) via COR only; TUR gas; light licensing | Ofgem cap over supplier tariffs | Regulated product is a tariff run by named incumbents, not a ceiling |
 | 7 | Smart meters | 99% DSO meters since 2018, hourly reads | Supplier/DCC, partial [unverified] | Meter data comes from the DSO and is universal |
-| 8 | Billing | Actual reads, monthly or bimonthly, paid after the bill, VAT 21% + IEE 5.11% | Fixed DD with true-up, prepayment, VAT 5% | No credit balances; no prepayment; heavy tax share |
-| 9 | Settlement | Hourly or quarter-hourly measured; final run at M+11 | MHHS, about 4 months [unverified] | Longer reconciliation tail |
+| 8 | Billing | Actual reads, monthly or bimonthly, paid after the bill, VAT 21% + IEE 5.11% | Fixed DD with true-up, prepayment, VAT 5% (0% on electricity Oct 2026–Mar 2027; corrected 25 Oct, second read) | No credit balances; no prepayment; heavy tax share |
+| 9 | Settlement | Hourly or quarter-hourly measured; final run at M+11 | RF 14 months now, 4 months from Jul 2027 (corrected 25 Oct, second read) [unverified] | Spain's M+11 tail is shorter than GB's today and longer from Jul 2027 (corrected 25 Oct, second read) |
 | 10 | Debt and vulnerability | 2 or 4 months, then 3.5 kW SMV; bono social 42.5/57.5%; cut ban to end-2026 | Supplier codes, PSR, winter protections | State-certified vulnerability tied to the PVPC |
 | 11 | EV, PV, heat pumps | 683k self-consumers; simplified monthly netting capped at consumption; EVs 11% | SEG; EVs about 20%+ [unverified] | Self-consumption is mass-market; netting rules live on the bill |
-| 12 | Cooling | AC 43%+ of homes | Negligible | New summer load model needed |
+| 12 | Cooling | AC about 31–43% of homes, uncertain (corrected 25 Oct, second read) | Negligible | New summer load model needed |
 | 13 | Cooking | About 57% electric hobs, mains gas plus butane | Gas and electric [unverified] | Butane is outside the supplier relationship |
 | 14 | Switching | 24% a year, 10 business days, capped fees | Fast switching, lower rates post-2022 [unverified] | High churn; PVPC to free market flow |
 | 15 | Home moves | Name change or reactivation needed [unverified] | Deemed contract | No automatic supply to a new occupant [unverified] |
@@ -288,7 +288,7 @@ The structural fallback is 35% and 50%.
 | Direct debit, collections and debt | Low | No prepayment; 2/4-month process with SMV; DSO executes cuts |
 | Vulnerability duties | Low | Bono social administration and essential-supply flags replace the PSR |
 | Hedging and wholesale buying | Medium | Same concepts; solar cannibalisation and a thin interconnector shift risk |
-| Settlement and imbalance | Medium | 15-min imbalance, REE/OMIE guarantees, longer reconciliation |
+| Settlement and imbalance | Medium | 15-min imbalance, REE/OMIE guarantees, an M+11 reconciliation tail (shorter than GB's 14 months today, longer than its 4 months from Jul 2027; corrected 25 Oct, second read) |
 | Capital and financial rules | Medium | Guarantee posting replaces Ofgem capital rules |
 | Advice and asset offers | Medium–High | Strong PV case; batteries, EVs and air-to-water heat pumps less mature |
 
@@ -314,7 +314,7 @@ The structural fallback is 35% and 50%.
 5. Free-market offers that compete against the PVPC, including PVPC to free-market conversion.
 6. Debt workflow: formal demand, 2/4-month clocks, SMV request to the DSO, cut and 24-hour reconnection.
 7. Guarantee posting with REE and OMIE; 5-run settlement reconciliation.
-8. Handling of RD 88/2026 rules: summary document, complaints within 15 days, no cold calling.
+8. Handling of RD 88/2026 rules: summary document, complaints within 15 business days (corrected 25 Oct, second read), no cold calling.
 9. Optional COR role, with PVPC, bono social and fallback duties, as a separate regulated entity.
 10. Advice on AC and heat-pump efficiency, batteries for solar shifting, EV off-peak charging.
 
@@ -434,3 +434,63 @@ Per the director's steer of 25 Oct 07:52 GMT: each [unverified] item is confirme
   - **corrected (sourced item, not tagged): HDD 2022 1,478 -> 1,537 in Eurostat's current release; CDD 2022 383.27 confirms 384; CDD 2024 304.19 against the pack's 302.7; Eurostat nrg_chdd_a via the dissemination API (unit NR), dataset updated 2026-05-08, accessed 2026-10-25**
 
 **Counts:** confirmed 2, corrected 1, still open 44.
+
+## Second read: the advisor's verification pass, 25 Oct 2026
+
+The advisor checked the pack again against primary sources (`docs/staging/advisor/DIRECTOR_EVIDENCE_VERIFICATION_OF_THE_OTHER_MARKET_PACKS_2026-10-25.md`). Items are numbered in the order of the drafting-pass list above (1 = the labels line, 47 = the Spain HDD row). Where the note's own primary read and the advisor differ, the note's read stands. Where the advisor confirmed only part of a bundled item, it stays still open.
+
+GB typical consumption follows Ofgem's 1 Jul 2026 decision: 2,500 kWh electricity and 9,500 kWh gas. The Spain pass used Ofgem's undated consumer page (2,900 / 12,000). That page is stale and is not used here.
+
+| # | Item | Prior | Advisor | Reconciled | Source |
+|---|---|---|---|---|---|
+| 3 | GB HDD 2,800–3,100, CDD ~0 | confirmed (Eurostat range) | confirmed (approx.) | confirmed | Eurostat nrg_chdd_a; https://www.eurima.org/uploads/files/modules/articles/1576835588_EURIMA-ECOFYS_VII_report_p66-104_ANNEXES1.pdf |
+| 4 | OMIE auctions plus continuous intraday | open | confirmed | confirmed: three EU intraday auctions replaced the six MIBEL sessions | https://cdn.document360.io/01edfa70-9a6e-4b53-9d36-c28ae0819f3a/Images/Documentation/20240201_Presentaci%C3%B3n%20AM%20IDA_20240201_final.pdf |
+| 5 | France link ~3 GW, ~3% | open | corrected | corrected (secondary): 2.8 GW, ~2%; 5 GW expected 2028 | https://www.renewableenergymagazine.com/panorama/el-bei-inyecta-1-600-millones-para-20250616 |
+| 6 | ~330 DSOs | open | corrected | corrected (secondary, citing the CNMC census): nearly 350 | https://roams.es/energia/luz/distribucion-electrica/ |
+| 7 | GB 14 DNO areas, 6 groups | open | confirmed | confirmed (Ofgem 2013; groups may have changed) | https://www.ofgem.gov.uk/sites/default/files/docs/2013/11/css_overview_1213_0.pdf |
+| 8 | Meter trips above contracted power | open | confirmed | confirmed: the ICP is built into the meter; no official tolerance | https://www.endesa.com/es/blog/blog-de-endesa/luz/icp-que-es-por-que-salta |
+| 9 | Most homes single-phase | open | confirmed | confirmed (qualitative; no percentage) | https://www.endesa.com/es/blog/blog-de-endesa/luz/instalacion-monofasica-trifasica |
+| 10 | GB fuse 60–100 A | open | confirmed | confirmed: 60 A default fuse in cut-outs rated to 100 A (ENA) | https://meteroperators.org.uk/?p=18550 |
+| 11 | GB 28m households, 2.4 people | open | corrected | corrected: 28.6m, 2.35 (UK, 2024) | https://www.ons.gov.uk/peoplepopulationandcommunity/birthsdeathsandmarriages/families/bulletins/familiesandhouseholds/2024 |
+| 12 | GB ~20% flats | open | needs file | still open; needs file: English Housing Survey annex tables (xlsx) | https://www.gov.uk/government/statistics/english-housing-survey-2023-to-2024-climate-resilient-homes-fact-sheet/english-housing-survey-2023-to-2024-climate-resilient-homes-fact-sheet |
+| 13 | GB gas ~11,500 kWh | open | corrected to 12,000 (consumer page) | corrected to 9,500 kWh (1 Jul 2026 decision). The advisor's 12,000 comes from a stale page | https://www.ofgem.gov.uk/sites/default/files/2026-06/Summary-of-changes-to-energy-price-cap-1-July-to-30-September-2026-revised-TDCV.pdf |
+| 14 | Electricity 3,000–3,500 kWh | open | confirmed | confirmed (secondary, quoting REE 3,272 and IDAE 3,487) | https://www.xatakahome.com/iluminacion-y-energia/comparar-tu-consumo-luz-media-espana-tu-vecindario-asi-puedes-hacerlo |
+| 15 | GB ~85% on gas | open | confirmed (approx.) | confirmed (approx.; England, main heating fuel by age band 78–89%) | as item 12 |
+| 16 | Spain's licence bar is lower | open | confirmed (qualitative) | confirmed | https://www.miteco.gob.es/es/energia/energia-electrica/electricidad/distribuidores/comercializadores.html |
+| 17 | No wave of failures, no SoLR needed | open | corrected | corrected: six retailers barred Oct 2021; Holaluz proceedings Jul 2026 (secondary); barring plus COR transfer is the SoLR route | https://www.merca2.es/2026/07/20/holaluz-suspendida-cotizacion-expediente-2421058/ |
+| 18 | GB about two-thirds smart | open | corrected | corrected: 71% at end 2025, 73% at Jun 2026; ~92% of those in smart mode | https://assets.publishing.service.gov.uk/media/69b80e30b84f01b2be53a2b1/Q4_2025_Smart_Meters_Statistics_Report.pdf |
+| 19 | Monthly billing now common | open | open | still open; needs file: the full RD 88/2026 Reglamento in the BOE | — |
+| 20 | No credit-building DD; no prepayment | open | open | still open | https://derecholocal.es/?p=16832 |
+| 21 | GB VAT 5% | open | corrected | corrected (secondary): 0% on domestic electricity 1 Oct 2026 to 31 Mar 2027; gas 5% | https://www.icaew.com/insights/tax-news/2026/sep-2026/vat-cut-on-domestic-electricity-bills-confirmed |
+| 22 | 15-min imbalance date; profiling only a fallback | open | confirmed | confirmed: 15-min since 1 Dec 2024; 2026 profiles cover type 4 and 5 points only | https://www.smartgridsinfo.es/2025/02/13/consulta-procedimientos-operacion-electricos-negociacion-cuarto-horaria |
+| 23 | GB RF ~4 months | open | corrected | corrected: 14 months now, 7 from 1 Apr 2027, 4 from 2 Jul 2027 | https://www.elexon.co.uk/bsc/article/new-settlement-timetable-reducing-from-14-months-to-seven-months-from-april-2027/ |
+| 24 | Export valuation; virtual batteries commercial | open | confirmed | confirmed (secondary) | https://selectra.es/autoconsumo/normativa/compensacion |
+| 25 | GB SEG not capped by import | open | confirmed | confirmed | https://www.ofgem.gov.uk/environmental-programmes/smart-export-guarantee-seg/electricity-suppliers |
+| 26 | GB EV share ~20%+ | open | confirmed | confirmed: BEV 23.4%, PHEV 11.1% of 2025 new cars | https://www.smmt.co.uk/uk-new-car-market-breaches-two-million-as-almost-one-in-four-buyers-go-electric/ |
+| 27 | AC likely over 50% | open | corrected (provisional) | corrected (secondary): no source supports over 50%; 31–43% | https://www.elindependiente.com/economia/2025/07/01/el-aire-acondicionado-la-bomba-climatica-que-tiene-en-su-sala-y-no-lo-sabe/amp/ |
+| 28 | Summer peak rivals winter, ~40 GW | open | confirmed (approx.) | confirmed: 2025 peak 40,070 MW (15 Jan); June 2025 max 37,872 MW | https://www.ree.es/sites/default/files/2025-12/1912-np-datos-cierre-2025-en.pdf |
+| 29 | Butane in several million homes | open | confirmed | confirmed (secondary): about 8m homes | https://www.merca2.es/2026/07/20/subida-bombona-butano-2026-2421056/ |
+| 30 | 14-day cooling-off | open | confirmed (partial) | still open: the withdrawal right is confirmed; the 14-day length was not re-fetched | https://derecholocal.es/?p=16832 |
+| 31 | No debt block on switching | open | open | still open; arrears status shows in the distributor database, so gaining retailers can screen | https://www.boe.es/eli/es/rd/2026/02/11/88/con |
+| 32 | Cambio de titular or alta, with fees | open | confirmed | confirmed (2019 article) | https://www.ocu.org/vivienda-y-energia/gas-luz/noticias/alta-suministro-luz |
+| 33 | No deemed contract | open | confirmed | confirmed | as item 32 |
+| 34 | Bono social paid by groups and retailers | open | corrected | corrected: since RDL 6/2022 the whole chain pays | https://ga-p.com/wp-content/uploads/2022/04/Financiacion_Bono_Social.pdf |
+| 35 | Debt stays with the old retailer | open | open | still open; a new holder who takes over a contract inherits its debt | as item 32 |
+| 36 | Table: GB HDD | confirmed | confirmed | confirmed | as item 3 |
+| 37 | Table: GB 30-min settlement | open | confirmed | confirmed | as item 23 |
+| 38 | Table: GB unit-rate network charges | open | open | still open | — |
+| 39 | Table: GB households | open | corrected | corrected, as item 11 | as item 11 |
+| 40 | Table: GB ~85% gas | open | confirmed | confirmed, as item 15 | as item 15 |
+| 41 | Table: GB smart "partial" | open | folded into item 18 | confirmed: 71–73% is partial | as item 18 |
+| 42 | Table: GB MHHS ~4 months | open | corrected | corrected, as item 23 | as item 23 |
+| 43 | Table: GB EVs ~20%+ | open | confirmed | confirmed, as item 26 | as item 26 |
+| 44 | Table: GB cooking | open | open | still open | — |
+| 45 | Table: GB fast switching, lower rates | open | confirmed (speed only) | still open: next-day switching since 18 Jul 2022 is confirmed; rates not checked | https://www.idoxgroup.com/news/reliable-next-day-energy-switching-goes-live-after-eight-years-in-the-making/ |
+| 46 | Table: home moves | open | confirmed | confirmed, as items 32 and 33 | as item 32 |
+| 47 | Spain HDD 2022 | corrected (1,537) | not checked | corrected | Eurostat nrg_chdd_a |
+| 48 (new) | Untagged: complaints resolved in 15 days | not tagged | corrected | corrected: 15 business days | https://ga-p.com/wp-content/uploads/2026/02/Energia_electrica.pdf |
+| 49 (new) | Untagged: RD 88/2026 in force 12 Feb 2026 | not tagged | corrected | corrected: articles 6, 13, 28–30 and 43–45 took effect four months later | as item 48 |
+
+No item disagrees with the note's own read. Items 1 and 2 stay still open. Gap (d)3 now has figures from REE's 2025 note: renewables about 56%, wind 22%, solar about 19%, nuclear about 19%, combined-cycle gas about 17%, demand about 256 TWh, net exports about 13 TWh. A press report that CNMC wants retailers to top up guarantees against about €250m of unpaid bills is a headline only and is not counted.
+
+**Counts: confirmed 23 · corrected 15 · still open 11.**

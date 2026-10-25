@@ -99,7 +99,7 @@
 
 ## 4. Population and households
 
-- **Dwellings (2021 Census):** 10,852,208 private dwellings, of which 1,043,776 were unoccupied. That leaves about 9.81 million occupied **[derived]**. https://www.abs.gov.au/statistics/people/housing/housing-census/latest-release
+- **Dwellings (2021 Census):** 10,852,208 private dwellings, of which 1,043,776 were unoccupied. That leaves about 9.81 million occupied **[derived]**. https://www.abs.gov.au/statistics/people/housing/housing-census/latest-release The ABS itself counts **9,275,217 occupied private dwellings**, so use that figure, not the subtraction (corrected 25 Oct, second read). https://www.abs.gov.au/census/find-census-data/quickstats/2021/AUS
 - **Household size:** about 2.5 persons [unverified]. GB is about 28 million households at about 2.4 persons [unverified].
 - **Urbanisation:** highly urbanised and concentrated in coastal capitals [unverified for a figure]. Density is far lower than GB, with long rural SWER feeders (SAPN source, above).
 
@@ -123,7 +123,7 @@
 
   - Controlled-load (off-peak hot water) customers add about 1,800–2,200 kWh on a separate metered circuit. https://wattever.com.au/2025-26-dmo-electricity-price-rise/
   - The Victorian VDO assumes 4,000 kWh. https://www.esc.vic.gov.au/media-centre/independent-regulator-announces-victorian-electricity-default-offer
-  - GB's typical domestic consumption value (TDCV) is about 2,700 kWh electricity and 11,500 kWh gas [unverified]. Australian electricity use is about 50% higher **[derived]**.
+  - GB's typical domestic consumption value (TDCV) is **2,500 kWh electricity and 9,500 kWh gas from 1 July 2026** (Ofgem decision; was 2,700 / 11,500). Australian electricity use is about **60% higher** at the 4,000 kWh VDO figure, and 56–96% higher across the DMO zones **[derived]** (corrected 25 Oct, second read). Ofgem's undated consumer page (2,900 / 12,000) is stale and is not used.
 - **District heating:** essentially absent. **Oil heating:** marginal [unverified].
 
 ## 6. Core regulation
@@ -180,8 +180,8 @@
 - **Prepayment:** enabling legislation was passed only in SA and TAS. Aurora (Tasmania) has run prepayment meters since 1997 but no longer promotes them. https://www.ewon.com.au/content/Document/PrePayment%20Meter%20Discussion%20Paper%20July%202014.pdf In practice it is marginal (about 0% against GB's ~13% [unverified]).
 - **Payment methods:** BPAY, direct debit and card are common, with pay-on-time discounts on market offers [unverified].
 - **New in Victoria, 1 October 2026:** at least one payment option with no charges, and an automatic best-offer obligation. https://www.esc.vic.gov.au/sites/default/files/documents/GL%20-%20Guideline-Payment%20Difficulty%20Framework%20-%201%20October%202026%20-%2020261001.pdf
-- **Taxes:** GST is 10% [unverified]. GB charges 5% VAT [unverified].
-- **Cost stack:** wholesale was about 35% of the residential bill (AEMC 2021 trends). https://energycouncil.com.au/electricity-price-trends-breaking-down-the-costs/ Network is roughly 40–45% [unverified].
+- **Taxes:** GST is 10% (confirmed, ATO). GB domestic electricity is at **0% VAT from 1 Oct 2026 to 31 Mar 2027**; gas stays at 5% (corrected 25 Oct, second read; ICAEW).
+- **Cost stack:** wholesale was about 35% of the residential bill (AEMC 2021 trends). https://energycouncil.com.au/electricity-price-trends-breaking-down-the-costs/ Network is **33–48% of DMO prices**, varying by region and customer type (corrected 25 Oct, second read; AER DMO 2025-26 final determination). The same AER source puts 8.2% of residential customers in DMO regions on standing offers.
 
 ## 9. Settlement
 
@@ -205,13 +205,13 @@
   - About one-third of indebted customers are on neither a plan nor hardship.
   - Source: https://www.energymagazine.com.au/aer-annual-market-report-released/
 - **Disconnections** for non-payment are about 0.06% of small customers. https://www.energymagazine.com.au/aer-unveils-state-of-the-energy-market-report/
-- **No winter disconnection ban.** Instead, the rules bar disconnection at certain times (Fridays, before public holidays, extreme heat days) and protect customers on life-support registers [unverified; NERR r116 and Part 7 text not retrieved].
+- **No winter disconnection ban.** Instead, the rules bar disconnection in protected periods (r108): before 8am or after 3pm on business days, Fridays, the day before a public holiday, weekends and public holidays, and **20–31 December**. r116 also protects life-support premises, customers keeping to a payment plan, open complaints, pending concessions, and an **extreme weather event** (the rule says weather, not heat) (corrected 25 Oct, second read; NERR v17 Part 6, AER).
 - **Concessions** are state-funded rebates applied to bills by retailers [unverified detail].
 
 ## 11. EV, rooftop PV, home batteries, heat pumps
 
 - **Rooftop PV:** 4.3 million systems and 28.3 GW, with 254,664 installed in 2025. The average new system is 10.6–11.6 kW. QLD has the most installations (1.16 million). https://cleanenergycouncil.org.au/getmedia/16ed1cff-8ddb-423a-b3ad-3f9fa8e4d594/rooftop-solar-and-storage-biannual-report_july-december-2025.pdf
-  - 4.3m divided by about 9.8m occupied dwellings is about 44% **[derived]**. That is an upper bound because some systems are non-residential. The commonly cited "about 1 in 3 homes" is [unverified].
+  - 4.3m divided by 9.28m occupied dwellings (ABS) is about **46%** **[derived]** (corrected 25 Oct, second read; was 44% on 9.8m). That is an upper bound because some systems are non-residential. The commonly cited "about 1 in 3 homes" is [unverified].
 - **Home batteries:** 454,473 cumulative by end-2025, against 185,798 at end-2024. CEC report, above.
   - The **Cheaper Home Batteries Program** started 1 July 2025: a discount of about 25% (around $252 per usable kWh) via SRES certificates, tapering from 1 January 2027. https://solarcalculator.com.au/blog/cheaper-home-batteries-program/
   - WA's battery scheme requires VPP participation (CEC report, above).
@@ -259,12 +259,12 @@
 
 ## 16. Where debt sits (coordinator addition)
 
-- **Retailer bears arrears risk.** The retailer pays network charges (DUoS) to the DNSP whether or not the customer pays, and pays AEMO for energy. Retailers lodge credit support with AEMO, and with DNSPs under NER chapter 6B [unverified].
+- **Retailer bears arrears risk.** The retailer pays network charges (DUoS) to the DNSP whether or not the customer pays, and pays AEMO for energy. Retailers lodge credit support with AEMO [unverified]. A DNSP can ask for credit support only after payment failures in the past 12 months; the main protection is a retailer-insolvency cost pass-through (corrected 25 Oct, second read; AEMC final determination).
 - **Who disconnects:** the retailer *requests* de-energisation for non-payment and the DNSP or metering provider carries it out [unverified], subject to r109–111 notices.
 - **Bad debt** is funded in the retailer's margin. The DMO and VDO include a retail cost allowance [unverified for an explicit bad-debt component].
 - **Retailer failure:** RoLR transfers customers to designated retailers, usually AGL, Origin or EnergyAustralia (RenewEconomy, above). The failed retailer's receivables stay with its administrator [unverified].
 - **Debt does not follow the customer** to the new retailer. The old retailer pursues it, subject to hardship rules. The exception is r18(5), which lets a designated retailer add the customer's own debt to a new standard contract.
-- Australia has **no network-held or centrally held household debt** [unverified], unlike GB's supplier-of-last-resort (SoLR) levy socialisation through network charges [unverified].
+- Australia has no network-held household debt, but **unpaid network charges from a retailer insolvency can be passed through to network tariffs**, with no materiality threshold, so part of the cost is spread across customers (corrected 25 Oct, second read; AEMC). Compare GB's supplier-of-last-resort (SoLR) levy socialisation through network charges [unverified].
 
 ---
 
@@ -275,7 +275,7 @@
 | 1 | Weather | Strong north–south gradient; Brisbane ~1,000 CDD18 | Heating-dominated, near-zero CDD [unverified] | Needs a multi-climate world with a cooling model |
 | 2 | Energy system | 51% renewables (Q4 2025); coal falling; no nuclear; 5 regional prices; 5-min real-time pool, no day-ahead; MPC $20,300/MWh | Gas at the margin; day-ahead and intraday; single national price | Price replay must handle regional 5-min prices, frequent negatives, extreme cap events |
 | 3 | Grid | 13 DNSPs; per-phase PV export limits, dynamic exports, backstop | 14 DNO areas; export limits rarer [unverified] | A connection/export limit becomes a binding household constraint |
-| 4 | Households | ~9.8m occupied dwellings [derived] | ~28m [unverified] | Smaller market, larger homes |
+| 4 | Households | 9.28m occupied private dwellings (ABS 2021; corrected 25 Oct, second read) | ~28m [unverified] | Smaller market, larger homes |
 | 5 | Housing | 70% detached; heating split electric/gas/wood; VIC 80% gas | Mostly gas boilers [unverified] | Gas-heavy VIC vs electric QLD means state-specific archetypes |
 | 6 | Regulation | DMO/VDO cap standing offers only (~12% in VIC); NECF vs VIC code; WA no competition; 2022 RoLR wave | Cap covers most default tariffs | Pricing is a reference-price/advertising regime, not universal cap compliance |
 | 7 | Smart meters | 57% remotely read (VIC 99%, NSW 39%); retailer-appointed Metering Coordinator; universal by 2030 | Supplier-led + DCC [unverified] | Mixed fleet: profiled accumulation + interval meters for years yet |
@@ -287,7 +287,7 @@
 | 13 | Cooking | Gas/electric split unquantified; new-build bans | Gas/electric [unverified] | Minor, but affects the gas disconnection pathway |
 | 14 | Switching | Gaining-retailer led via MSATS; cooling-off; debt no block [unverified]; 16%/yr | Debt can block prepayment switches [unverified] | Faster churn on smart meters; acquisition engine needs regional DMO-referenced quotes |
 | 15 | Home moves | Standing offer from designated retailer; deemed arrangements | Deemed contract with incumbent [unverified] | Conceptually transferable |
-| 16 | Debt location | Retailer bears it; pays DNSP regardless; RoLR to Tier 1; debt stays with the old retailer | Supplier bears it; SoLR costs socialised [unverified] | Similar, but no levy socialisation to model [unverified] |
+| 16 | Debt location | Retailer bears it; pays DNSP regardless; RoLR to Tier 1; debt stays with the old retailer | Supplier bears it; SoLR costs socialised [unverified] | Similar; no levy, but failed-retailer network charges pass through to tariffs (corrected 25 Oct, second read) |
 
 ## (b) Transferability of the GB build
 
@@ -371,3 +371,64 @@ Confirmed 0, corrected 0, open 59. Corrections and checks:
 - L198 `- **Interval:** 5-minute settlement replaced 30-minute averaging in October 2021. https://en.wikipedia.org/wiki/National_Electricity_Market ` -- open (part confirmed): Wikipedia, National Electricity Market (read 2026-10-25) says half-hourly averaging ran until October 2021; the deferral from 1 July 2021 was not confirmed (AEMC and AEMO pages returned 403).
 - L254 `- **Cooling-off:** a period exists for market contracts (r47; I believe 10 business days [unverified]).` -- open: AER and Energy Made Easy pages returned a timeout or 404 on 2026-10-25.
 - L256 `- **Debt does not block switching** in the NECF, as far as I know [unverified]. A designated retailer may not refuse a residential customer ` -- open: AER and Energy Made Easy pages unreachable on 2026-10-25.
+
+## Second read: the advisor's verification pass, 25 Oct 2026
+
+The advisor's pass (`docs/staging/advisor/DIRECTOR_EVIDENCE_VERIFICATION_OF_THE_OTHER_MARKET_PACKS_2026-10-25.md`) is numbered by pack item, so its numbers are used here. The page's own pass above found nothing it could fetch, so no item disagrees with it. Three GB rows use primary sources the advisor found in other packs' passes. GB typical use follows Ofgem's 1 Jul 2026 decision; the undated consumer page (2,900 / 12,000) is stale.
+
+| # | Item | Prior | Advisor | Reconciled | Source |
+|---|---|---|---|---|---|
+| 1 | GB near-zero CDD18 | open | open | still open | |
+| 2 | Melb/Canberra/Hobart HDD18 1,500–2,100; S England 2,800–3,000 | open | open | still open | |
+| 3 | Hedging by OTC and ASX futures and caps | open | confirmed | confirmed | https://www.asxenergy.com.au/products/au_electricity |
+| 4 | East-coast gas: DWGM, STTM, Wallumbilla | open | confirmed | confirmed; the Gas Supply Hub also covers Moomba | https://aemo.com.au/learn/energy-markets-and-systems |
+| 5 | WA domestic gas reservation | open | confirmed | confirmed: 15% of each LNG project's output | https://wa.gov.au/government/publications/wa-domestic-gas-policy |
+| 6 | DNSPs by state | open | confirmed | confirmed | https://www.energymadeeasy.gov.au/frequently-asked-questions/who-is-my-energy-distributor |
+| 7 | GB 14 DNO areas, 6 groups | open | confirmed (Wikipedia, secondary) | confirmed on Ofgem 2013; ownership groups may now be 5 | https://www.ofgem.gov.uk/sites/default/files/docs/2013/11/css_overview_1213_0.pdf |
+| 8 | Two-way export tariffs under the 2021 AEMC rule | open | open | still open | |
+| 9 | Household size ~2.5 | open | confirmed | confirmed: 2.5 (2021) | https://www.abs.gov.au/census/find-census-data/quickstats/2021/AUS |
+| 9b | [derived] ~9.81m occupied dwellings (new row) | not tagged | corrected | corrected: 9,275,217; PV share ~46% | same ABS QuickStats |
+| 9c | GB ~28m households at ~2.4 | open | open | confirmed (approx.): 28.6m at 2.35, UK not GB, 2024 | https://www.ons.gov.uk/peoplepopulationandcommunity/birthsdeathsandmarriages/families/bulletins/familiesandhouseholds/2024 |
+| 10 | Urbanisation figure | open | open | still open | |
+| 11 | GB TDCV 2,700 / 11,500 | open | corrected | corrected: 2,500 / 9,500 from 1 Jul 2026; "~50% higher" becomes ~60% | https://www.ofgem.gov.uk/sites/default/files/2026-06/Summary-of-changes-to-energy-price-cap-1-July-to-30-September-2026-revised-TDCV.pdf |
+| 12 | District heating absent; oil marginal | open | open | still open | |
+| 13 | AER authorisation; ESC licence in VIC | open | open | still open | |
+| 14 | GB supplier-procured meters + DCC | open | open | still open | |
+| 15 | 5-min data from new and replacement meters | open | corrected (partly) | corrected (detail, secondary): type 4 must be 5-min capable from 1 Dec 2018, configured by 1 Dec 2022; types 5/6 profiled | https://wattclarity.com.au/?p=18102 |
+| 15b | VIC AMI 30-min | open | open | still open | |
+| 16 | Consumer Data Right (energy) | open | confirmed | confirmed | https://cdr.gov.au/rollout/cdr-energy-sector |
+| 17 | GB monthly DD advances | open | open | still open | |
+| 18 | GB prepayment ~13% | open | open | still open | |
+| 19 | BPAY / DD / card; pay-on-time discounts | open | open | still open | |
+| 20 | GST 10% | open | confirmed | confirmed | https://www.ato.gov.au/businesses-and-organisations/international-tax-for-business/in-detail/trans-tasman-rules/comparing-the-new-zealand-and-australian-tax-system/goods-and-services-tax |
+| 20b | GB 5% VAT | open | open | corrected: electricity 0% 1 Oct 2026–31 Mar 2027, gas 5% | https://www.icaew.com/insights/tax-news/2026/sep-2026/vat-cut-on-domestic-electricity-bills-confirmed |
+| 21 | Network ~40–45% of the bill | open | corrected | corrected: 33–48% of DMO prices | https://www.aer.gov.au/system/files/2025-05/AER%20-%20Final%20determination%20-%20Default%20market%20offer%20prices%202025%E2%80%9326%20-%2026%20May%202025_0.pdf |
+| 22 | 5MS originally 1 Jul 2021, deferred | open (part confirmed) | confirmed | confirmed: deferred to 1 Oct 2021 | https://www.aemc.gov.au/rule-changes/delayed-implementation-five-minute-and-global-settlement |
+| 23 | Type 6 profiled into intervals | open | confirmed | confirmed: NSLP per network area, in MSATS | https://wa.aemo.com.au/-/media/files/electricity/nem/settlements_and_payments/prudentials/nem-settlement-process.pdf |
+| 24 | Revisions over ~20–30 weeks; MSATS registry | open | confirmed | confirmed | same AEMO PDF |
+| 25 | Disconnection barred Fridays, before holidays, extreme heat | open | corrected (detail) | corrected: protected periods incl. 20–31 Dec; "extreme weather", not heat | https://www.aemc.gov.au/sites/default/files/2019-01/NRR%20-%20v17%20-%20Part%206.PDF |
+| 26 | Concessions state-funded, applied by retailers | open | open | still open | |
+| 27 | "~1 in 3 homes" have PV | open | open | still open | |
+| 28 | Victoria minimum FiT | open | confirmed | confirmed: 2025-26 flat 0.04 c/kWh | https://esc.vic.gov.au/media-centre/solar-minimum-feed-tariffs-2025-26 |
+| 29 | Heat-pump hot water via VEU and NSW | open | open (partial) | still open | |
+| 30 | Heatwaves drive the SA peak | open | confirmed | confirmed (trade press, secondary): 3,623 MW on 16 Dec 2024 | https://reneweconomy.com.au/wind-and-solar-output-records-tumble-as-grid-demand-hits-new-highs-in-midst-of-heatwave |
+| 31 | Cooling's electricity share highest in QLD | open | open | still open | |
+| 32 | LPG matters off-grid | open | open | still open | |
+| 33 | Cooling-off 10 business days | open | confirmed | confirmed: NERR r47(2) | https://www.aemc.gov.au/sites/default/files/2018-04/NRR%20-%20v12%20-%20Part%202.PDF |
+| 34 | Accumulation-meter switch waits for a read | open | open | still open | |
+| 35 | Debt does not block switching | open | open | still open; r18(6) confirmed only | |
+| 36 | Deemed arrangements (r53–54) | open | confirmed | confirmed (r115 not read) | NRR v12 Part 2 (above) |
+| 37 | Vacant premises stay with the FRMP | open | open | still open | |
+| 38 | Credit support with AEMO and DNSPs | open | corrected (nuance) | corrected: DNSP credit support only after recent payment failures | https://www.aemc.gov.au/sites/default/files/content/dc8219f0-3e81-4d74-a659-1cfb26362d36/Information-sheet-final-determination.pdf |
+| 39 | Retailer requests de-energisation; DNSP acts | open | confirmed | confirmed: r119(1)(a) | NRR v17 Part 6 (above) |
+| 40 | DMO allowance includes bad debt | open | confirmed | confirmed | AER DMO 2025-26 (above) |
+| 41 | Failed retailer's receivables stay with the administrator | open | open | still open | |
+| 42 | No network-held household debt | open | corrected (AU part) | corrected: insolvency network charges pass through to tariffs; GB part still open | AEMC info sheet (#38) |
+| 43 | GB export limits rarer | open | open | still open | |
+| 44 | GB capital floor | open | open | still open | |
+| 45 | GB debt can block prepayment switches | open | open | still open | |
+| 46 | GB smart meters | open | confirmed | confirmed: ~65% in smart mode end-2025; 73% smart (any mode) end Jun 2026 | https://assets.publishing.service.gov.uk/media/69b80e30b84f01b2be53a2b1/Q4_2025_Smart_Meters_Statistics_Report.pdf |
+
+The page's own pass counted 59 open items. Nineteen are now confirmed and seven corrected. Row 9b is new, because it was a [derived] figure the page never tagged. The other 33 stay open. That includes the tagged GB and Australian items the advisor did not reach, beyond the rows above.
+
+**Counts: confirmed 19 · corrected 8 · still open 33.**

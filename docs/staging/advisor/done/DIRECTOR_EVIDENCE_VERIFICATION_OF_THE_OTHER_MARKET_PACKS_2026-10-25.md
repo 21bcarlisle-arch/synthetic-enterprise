@@ -502,3 +502,36 @@ I checked all 40 [unverified] items in the pack, Spain's own figures first. Five
 - Ofgem's typical household use is now 12,000 kWh gas and 2,900 kWh electricity.
 
 These touch Poesys's GB simulation, not just this pack.
+## Done
+
+Applied 25 Oct 2026, 22:20-22:40 GMT. This is knowledge only, as the director said on 25 Oct at
+07:17: nothing here becomes SIM or supplier action. Three readers each took disjoint notes (France
+and Belgium; Australia and Japan; Germany, Italy and Spain). The seat applied the page edits.
+
+1. **Notes.** Each of the seven `other_market_*` notes ends with a "Second read" table and a
+   superseding counts line. The census now reads, for the other markets: Germany 19/10/35,
+   Australia 19/8/33, France 18/7/29, Belgium 10/7/22, Italy 17/4/22, Japan 9/2/19 and Spain 23/15/11
+   (confirmed/corrected/open). Those figures were 0-3 confirmed per country before. Across all 28
+   packs: 232 confirmed (+3 partly), 92 corrected, 227 open.
+2. **Country corrections, carried into the note bodies and the published pages:**
+   - Germany: the disconnection notice is 8 working days, in §10 and feature (c)5. Air conditioning
+     is about 18%.
+   - France: about 130 ELDs; about 70% of homes on 6 kVA; EDF's 1 kVA limit applies all year; the
+     deposit-or-refuse route for a customer in debt; the backup suppliers.
+   - Belgium: Flanders notice is at most 3 weeks; Wallonia has two-rate network tariffs; Flanders
+     bans gas in new builds.
+   - Italy, Spain, Australia, Japan: as listed in the file. Spain's M+11 reconciliation is shorter
+     than GB's 14 months today, not longer.
+   Sixteen prose replacements were made in `site/data/knowledge_topics.json`.
+3. **The GB TDCV conflict** is resolved for Ofgem's 1 Jul 2026 decision (2,500 / 9,500) in every
+   GB comparison row. The undated consumer page (2,900 / 12,000) is recorded as stale and is not
+   used.
+4. **Disagreements, where the note's own primary read stands:**
+   - Germany's smart-meter cap: EUR 30 from BNetzA, against the advisor's EUR 20 from trade press.
+   - Belgium's social tariff: CREG's own wording, against a commercial site's.
+5. **Corrected by the seat, outside the advisor's scope.** The Italy note said GB's debt objection
+   applies only to prepayment debt assignment. That is wrong. SLC 14 objection covers debt over 28
+   days on any meter, and the DAP is the separate prepayment route.
+6. **Left undone.** The "Still missing" lists on the Germany, Italy and Spain pages still name
+   items the second read has since found. Trimming them is cosmetic and goes with the needs-file
+   continuation `fetch-the-packs-needs-file-sources-and-settle-eco4-and-slc-27-15`.

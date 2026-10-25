@@ -26,8 +26,8 @@
 
 ## 1. Weather and climate
 
-- **Cooling degree days (CDD):** Germany had **19.3 CDD in 2024**, from Eurostat dataset nrg_chdd_a via https://db.nomics.world/Eurostat/nrg_chdd_a. One secondary source says German CDD fell 63% between 2018 and 2024 (https://germanpedia.com/?p=23501). That shows how much one hot summer moves a small number.
-- **Heating degree days (HDD):** I could not get Germany's annual HDD from Eurostat in this session. Germany is roughly **~3,000 HDD per year** in Eurostat's method, about the same as or slightly above GB [unverified].
+- **Cooling degree days (CDD):** Germany had **19.3 CDD in 2024** (19.02 in Eurostat's current release; corrected 25 Oct, drafting pass), from Eurostat dataset nrg_chdd_a via https://db.nomics.world/Eurostat/nrg_chdd_a. One secondary source says German CDD fell 63% between 2018 and 2024 (https://germanpedia.com/?p=23501). That shows how much one hot summer moves a small number.
+- **Heating degree days (HDD):** I could not get Germany's annual HDD from Eurostat in this session. Germany is roughly **~3,000 HDD per year** in Eurostat's method, about the same as or slightly above GB [unverified]. *(Corrected 25 Oct, drafting pass: Eurostat gives 2,583 HDD in 2024 and 2,580–3,130 over 2020–2025; the UK had 2,812 in 2024.)*
 - **Climate differences from GB:**
   - Germany is more continental than GB, especially in the east and south (Bavaria and Saxony). Winters are colder and summers warmer [unverified].
   - The spread between regions is wider than in GB. Mountain and southern-interior sites run colder than the North Sea coast [unverified].
@@ -117,7 +117,7 @@
   - BDEW guideline values by household size: 1 person 1,900 kWh, 2 persons 2,890, 3 persons 3,720, 4 persons 4,085 (https://www.bdew.de/presse/pressemappen/faq-energieeffizienz/).
   - **3,500 kWh** is the standard reference household for price statistics.
   - Check24 contracts, which are not representative: about 3,150 kWh electricity and about 19,000 kWh gas in 2023 (https://www.cio.de/article/3696617/haushalte-haben-2023-mehr-strom-und-gas-verbraucht.html).
-  - **GB comparison:** Ofgem's typical domestic consumption values are about 2,700 kWh electricity and 11,500 kWh gas [unverified]. German gas homes appear to use materially more gas.
+  - **GB comparison:** Ofgem's typical domestic consumption values are **2,500 kWh electricity and 9,500 kWh gas from 1 Jul 2026** (corrected 25 Oct, second read; 2,700/11,500 were the 2023 values) [unverified]. German gas homes appear to use materially more gas.
 
 ## 6. Core regulation
 
@@ -152,8 +152,8 @@
 - **The law:** The 2023 law restarting energy digitisation (GNDEW) set:
   - a rollout path of 20% of mandatory cases by 2025, 50% by 2028 and 95% by 2030;
   - mandatory installation for homes using more than 6,000 kWh, PV above 7 kW, and §14a devices;
-  - a household price cap of about €20 per year [all unverified; the primary source could not be fetched].
-- **Rollout status:** At 30 June 2026 there were **3,172,579 smart metering systems**, **5.9% of 54.1 million metering points**. BNetzA has opened proceedings against **434 meter operators** that missed the 20% quota. The target is 90% of mandatory cases by 2032 (https://www.bundesnetzagentur.de/SharedDocs/Pressemitteilungen/DE/2026/20260921_Rollout.html). GB has about two-thirds of meters smart [unverified].
+  - a household price cap of about €20 per year [all unverified; the primary source could not be fetched]. *(Corrected 25 Oct, drafting pass: BNetzA gives €30 a year gross for a smart metering system up to 6,000 kWh, €40 for 6,000–10,000 kWh, €25 for a modern metering device.)*
+- **Rollout status:** At 30 June 2026 there were **3,172,579 smart metering systems**, **5.9% of 54.1 million metering points**. BNetzA has opened proceedings against **434 meter operators** that missed the 20% quota. The target is 90% of mandatory cases by 2032 (https://www.bundesnetzagentur.de/SharedDocs/Pressemitteilungen/DE/2026/20260921_Rollout.html). GB has **about 73%** of meters smart (end Jun 2026, DESNZ; corrected 25 Oct, second read) [unverified].
 - **Technology:** An *intelligentes Messsystem* is a digital meter plus a BSI-certified smart meter gateway, which is the secure communications hub. A *moderne Messeinrichtung* is a digital meter with no communications.
 - **Who owns and runs the meter:** The **meter operator** (*Messstellenbetreiber*). By default this is the DSO acting as the "basic responsible" meter operator. The customer can choose a competitive meter operator instead. This differs from GB, where the supplier is responsible for meters [unverified on detail].
 - **Data granularity:** 15-minute data with a smart meter. Without one, an annual read.
@@ -178,7 +178,7 @@
     - CHP levy: 0.28 ct/kWh
   - The annual bill comes to about **€1,386** [derived].
   - The BNetzA average across all households was **40.1 ct/kWh** in April 2025. The gas average was 12.13 ct/kWh.
-  - GB electricity is roughly 25 p/kWh with 5% VAT [unverified].
+  - GB electricity is roughly 25 p/kWh with 5% VAT [unverified]. *(Corrected 25 Oct, second read: domestic electricity VAT is 0% from 1 Oct 2026 to 31 Mar 2027; gas stays at 5%.)*
 - **Payment methods:** SEPA direct debit and bank transfer dominate [unverified]. **Prepayment is marginal**: only **11,985** basic-supply households were on prepayment (*Vorkasse*) systems in 2024 (Monitoringbericht 2025). GB has about 4 million prepayment meters [unverified].
 
 ## 9. Settlement
@@ -204,7 +204,7 @@
 - **Disconnection rules in basic supply (§19 StromGVV, the basic-supply regulation, via a secondary source):**
   - Arrears must be at least **€100**.
   - A reminder, then a written threat, then a **four-week** wait.
-  - The disconnection date must be announced **three working days** ahead.
+  - The disconnection date must be announced **8 working days** ahead (corrected 25 Oct, second read; the pack said three).
   - Disconnection is barred where it would be disproportionate, for example health risks or vulnerable occupants, or where the customer shows a realistic prospect of paying (https://anwalt-kg.de/insolvenzrecht/rechtlichen-handlungsoptionen-bei-stromschulden/).
   - The law since 2022 also requires an instalment offer that would avoid disconnection (*Abwendungsvereinbarung*) [unverified].
 - **Winter:** There is **no statutory winter ban** [unverified]. GB has voluntary winter protections and a ban on forced prepayment installs [unverified].
@@ -246,7 +246,7 @@
 ## 12. Cooling (added scope)
 
 - CDD were **19.3 in 2024** (DBnomics/Eurostat, above), which is small.
-- Residential air-conditioning is uncommon, single-digit to low-teens percent of homes [unverified]. There is no figure from a national statistics source in this pack.
+- Residential air-conditioning is uncommon, **about 18% of households** (Verivox survey, not official statistics; corrected 25 Oct, second read; the pack said single-digit to low-teens) [unverified]. There is no figure from a national statistics source in this pack.
 - The national peak is in winter [unverified]. Summer midday is dominated by surplus PV and negative prices rather than cooling demand.
 - Air conditioners above 4.2 kW count as §14a controllable devices (§3).
 - **Difference from GB:** Slightly more cooling load in the south and east. It is not material for the model, but heat-wave years should be represented.
@@ -301,14 +301,14 @@
 | 4. Households | 40.8m, 2.02 people, 41.6% single-person | ~28m, ~2.4 [unverified] | More, smaller households |
 | 5. Housing | 53% tenants; gas 56%, oil 17%, district heating 15.5% | ~65% owners, ~85% gas [unverified] | Oil and district heating, landlord-run heating |
 | 6. Regulation | Default-supplier basic supply, not price-capped; 139 suppliers | Ofgem price cap; SoLR | No cap to comply with; local incumbent default |
-| 7. Smart meters | 5.9% of meters; DSO or chosen meter operator; secure gateway | ~65% [unverified]; supplier-led | Low coverage; supplier does not control the meter |
-| 8. Billing | Monthly advance plus annual true-up; taxes and levies 32%; 19% VAT | Monthly or quarterly; 5% VAT | Annual true-up cycle; tax-heavy price |
+| 7. Smart meters | 5.9% of meters; DSO or chosen meter operator; secure gateway | ~73% (corrected 25 Oct, second read) [unverified]; supplier-led | Low coverage; supplier does not control the meter |
+| 8. Billing | Monthly advance plus annual true-up; taxes and levies 32%; 19% VAT | Monthly or quarterly; 5% VAT (0% on electricity Oct 2026–Mar 2027; corrected 25 Oct, second read) | Annual true-up cycle; tax-heavy price |
 | 9. Settlement | 15-min; SLP profiles; DSO-level aggregation | 30-min; Elexon; MHHS | Profiled household settlement and decentralised data |
 | 10. Debt | 239k electricity disconnections; no social tariff | Prepayment-centric; WHD | Disconnection is a real tool; prepayment is negligible |
 | 11. Assets | 2.0m BEVs; 5.7m PV; 2.4m batteries; 1.2m balcony PV; 299k heat pumps a year | Smaller [unverified] | Prosumers are mainstream |
 | 12. Cooling | Small, south and east tilt | Small | Minor |
 | 13. Cooking | Mostly electric [unverified] | Gas common [unverified] | Gas load is heat-only |
-| 14. Switching | 24h back-end (electricity); ~14% switch rate | 5-day [unverified]; lower rate [unverified] | High churn, bonus-driven |
+| 14. Switching | 24h back-end (electricity); ~14% switch rate | Next-day since Jul 2022 (corrected 25 Oct, second read) [unverified]; lower rate [unverified] | High churn, bonus-driven |
 | 15. Home moves | No contract means basic supply; no backdating | Deemed contract | Default tariff is the incumbent's |
 | 16. Where debt sits | Supplier; DSO disconnects on instruction; no mutualisation | Supplier; cap allowance | Bad debt not socialised |
 
@@ -364,7 +364,7 @@
 2. Basic-supply mode, when the supplier is the default supplier, with published general prices and no pricing by contract start date. Fallback supply for up to three months.
 3. Mandatory product set: a dynamic tariff for smart-meter customers (§41a), plus a 12-month fixed tariff for larger suppliers.
 4. 24-hour switching, Widerruf handling, and move-in by the move-in day with no backdating.
-5. Collections under §19: €100 threshold, four-week threat, three-working-day notice, instalment offer, proportionality check, and the instruction to the DSO.
+5. Collections under §19: €100 threshold, four-week threat, eight-working-day notice (corrected 25 Oct, second read), instalment offer, proportionality check, and the instruction to the DSO.
 6. Termination of special contracts, sending customers back to basic supply.
 7. Balancing-group management and 15-min imbalance exposure.
 8. Pass-through of §14a network modules and heat-pump tariffs.
@@ -524,3 +524,43 @@ Per the director's steer of 25 Oct 07:52 GMT: each [unverified] item is confirme
   - **corrected (sourced item, not tagged): 19.3 -> 19.02 (2024) in Eurostat's current release; Eurostat nrg_chdd_a via the dissemination API (unit NR), dataset updated 2026-05-08, accessed 2026-10-25**
 
 **Counts:** confirmed 3, corrected 3, still open 57.
+
+## Second read: the advisor's verification pass, 25 Oct 2026
+
+The advisor checked the pack again against primary sources (`docs/staging/advisor/DIRECTOR_EVIDENCE_VERIFICATION_OF_THE_OTHER_MARKET_PACKS_2026-10-25.md`). Items are numbered in the order of the drafting-pass list above (1 = the tag legend, 63 = the CDD row). Where the note's own primary read and the advisor differ, the note's read stands and the row says DISAGREES. GB typical consumption follows Ofgem's 1 Jul 2026 decision (2,500 kWh electricity, 9,500 kWh gas). Rows not listed keep their drafting-pass outcome.
+
+| # | Item | Prior | Advisor | Reconciled | Source |
+|---|---|---|---|---|---|
+| 3 | HDD ~3,000 | corrected (2,583 in 2024) | needs file (API blocked) | corrected; the note read the file the advisor could not | Eurostat nrg_chdd_a |
+| 7 | Last nuclear plants closed April 2023 | confirmed | confirmed (15 Apr 2023) | confirmed | https://www.enerdata.net/publications/daily-energy-news/germany-shuts-down-its-last-remaining-nuclear-reactors-4-gw.html |
+| 8 | GB last coal plant closed 2024 | open | confirmed (Ratcliffe, 30 Sep 2024) | confirmed (secondary) | https://www.iom3.org/resource/last-uk-coal-fired-power-station-closes.html |
+| 10 | DE-LU single bidding zone | open | confirmed (since 1 Oct 2018) | confirmed | https://epexspot.com/en/news/epex-spot-publish-separate-prices-and-volumes-austrian-and-german-day-ahead-markets |
+| 19 | Germany has a high share in flats | open | needs file | still open; needs file: Eurostat ilc_lvho01 | https://ec.europa.eu/eurostat/databrowser/view/ilc_lvho01 |
+| 21 | GB TDCV ~2,700 / 11,500 kWh | open | corrected | corrected: 2,500 / 9,500 kWh from 1 Jul 2026 | https://www.ofgem.gov.uk/sites/default/files/2026-06/Summary-of-changes-to-energy-price-cap-1-July-to-30-September-2026-revised-TDCV.pdf |
+| 23 | Entry by notification; no GB-style resilience regime | open | confirmed | confirmed. §5 EnWG asks for capacity, reliability and (electricity) hedging strategies; no capital thresholds | https://gesetze.legal/bund/enwg/5 |
+| 24 | Price brakes ended 31 Dec 2023 | confirmed | confirmed | confirmed | https://vdiv.de/news-details/preisbremsen-werden-nicht-verlaengert |
+| 26 | Smart-meter cap ~€20 a year | corrected (€30 per BNetzA) | confirmed (~€20) | corrected (€30). DISAGREES: the advisor's source is trade press (ZfK); the note read the regulator's own page | bundesnetzagentur.de Vportal Metering; https://www.zfk.de/digitalisierung/smart-city-energy/smart-meter-rollout-kann-erneut-starten |
+| 27 | GB about two-thirds smart | open | corrected | corrected: 73% at end Jun 2026 | https://www.gov.uk/government/statistics/smart-meters-in-great-britain-quarterly-update-june-2026/smart-meters-in-great-britain-quarterly-update-june-2026-statistical-bulletin |
+| 29 | §40b EnWG billing choice | open | confirmed | confirmed (Germany side; the GB billing line is not checked) | https://gesetze.legal/bund/enwg/40b |
+| 30 | GB ~25 p/kWh with 5% VAT | open | open (Spain pass: corrected) | corrected: 0% VAT on domestic electricity 1 Oct 2026 to 31 Mar 2027; gas 5% (secondary) | https://www.icaew.com/insights/tax-news/2026/sep-2026/vat-cut-on-domestic-electricity-bills-confirmed |
+| 32 | GB MHHS timings | open | open (other passes: confirmed) | confirmed: RF is 14 months now, 7 from 1 Apr 2027, 4 from 2 Jul 2027 | https://www.elexon.co.uk/bsc/article/new-settlement-timetable-reducing-from-14-months-to-seven-months-from-april-2027/ |
+| 33 | Mehr-/Mindermengen true-up; GB ~14 months | open | confirmed (mechanism) | confirmed: mechanism (secondary), GB 14 months (Elexon). The German timeline is still unknown | https://bet-consulting.de/fileadmin/redaktion/PDF/Veroeffentlichungen/2009/BET-Artikel_Mehr-Mindermengenabrechnung_0906.pdf |
+| 34 | Instalment offer (Abwendungsvereinbarung) | open | confirmed | confirmed (secondary): §19 Abs. 5 StromGVV, interest-free instalments offered by the disconnection notice | https://www.gegen-hartz.de/urteile/schulden-keine-gebuehren-bei-stromschulden-und-mehr-zeit-fuer-ratenzahlungen |
+| 35 | No statutory winter ban | open | confirmed | confirmed (Germany side; GB side not checked). Bundestag, Jul 2022 | https://dserver.bundestag.de/btd/20/026/2002686.pdf |
+| 41 | Residential AC single-digit to low-teens % | open | corrected | corrected: ~18% of households (survey, secondary) | https://www.zfk.de/energie/strom/klimaanlagen-kein-hitzeschock-fuers-stromnetz |
+| 43 | Cooking mostly electric | open | confirmed | confirmed: electric cooker 94.6%, gas 4.4% (2023) | https://www.destatis.de/DE/Themen/Gesellschaft-Umwelt/Einkommen-Konsum-Lebensbedingungen/Ausstattung-Gebrauchsgueter/Tabellen/a-evs-haushaltsgeraete-d.html |
+| 45 | Basic supply ends at two weeks' notice | open | confirmed | confirmed: §20(1) StromGVV | https://gesetze.legal/bund/stromgvv/20 |
+| 46 | Special contracts 12 months, then monthly | open | confirmed (secondary) | confirmed (secondary) | https://www.check24.de/strom-gas/ratgeber/faire-verbrauchervertraege |
+| 48 | No GB-style debt objection | open | open | still open. Old debts make a new supplier harder to find; no formal block found | https://www.verivox.de/strom/ratgeber/strom-trotz-schufa-1000811/ |
+| 49 | New-customer bonuses widespread | open | confirmed | confirmed (secondary): up to €800 | https://www.check24.de/strom-gas/ratgeber/faire-verbrauchervertraege |
+| 53 | SCHUFA checks common | open | confirmed (qualified) | confirmed (secondary): not every supplier checks; the default supplier must supply anyway | https://www.verivox.de/strom/ratgeber/strom-trotz-schufa-1000811/ |
+| 57 | Table: GB smart ~65% | open | corrected | corrected: 73% | as item 27 |
+| 59 | Table: cooking mostly electric | open | confirmed | confirmed (Germany side; GB side not checked) | as item 43 |
+| 60 | Table: GB 5-day switching | open | not checked (other passes: next-day confirmed) | corrected (secondary): next-day switching since 18 Jul 2022 | https://www.idoxgroup.com/news/reliable-next-day-energy-switching-goes-live-after-eight-years-in-the-making/ |
+| 61 | Capital and financial rules row | open | confirmed | confirmed, as item 23 | https://gesetze.legal/bund/enwg/5 |
+| 62 | GNDEW 20/50/95% path and mandatory groups | open | confirmed | confirmed (secondary): bands 6,000–100,000 kWh and 7–100 kW. The cap is as item 26 | https://www.zfk.de/digitalisierung/smart-city-energy/smart-meter-rollout-kann-erneut-starten |
+| 64 (new) | Untagged: disconnection announced three working days ahead | not tagged | corrected | corrected: 8 working days under §19 StromGVV. Fixed in §10 and feature (c)5 | https://www.ggew.de/uploads/Downloads/Abwendungsvereinbarung_Muster_19Strom-_GasGVV.pdf |
+
+Items 1, 2, 4–6, 9, 11–18, 20, 22, 25, 28, 31, 36–40, 42, 44, 47, 50–52, 55, 56 and 58 stay still open; the advisor did not settle them either. Item 54 and item 63 keep their drafting-pass outcomes.
+
+**Counts: confirmed 19 · corrected 10 · still open 35.**

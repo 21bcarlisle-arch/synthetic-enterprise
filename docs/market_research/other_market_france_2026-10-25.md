@@ -66,13 +66,13 @@
 
 **Network operators**
 - RTE is the transmission operator.
-- **Enedis** distributes electricity to about 95% of mainland customers. The rest are served by local distributors (ELDs, about 140) [unverified count].
+- **Enedis** distributes electricity to about 95% of mainland customers. The rest are served by local distributors (ELDs): about 130 for electricity, over 160 counting gas (corrected 25 Oct, second read).
 - The CRE observatory names six main ELDs. Alternative suppliers hold only about 0.74% of residential sites in ELD areas: https://www.cre.fr/fileadmin/Documents/Rapports_et_etudes/2026/Observatoire_T4_2025.pdf.
 - GRDF distributes most gas, alongside about 20 gas ELDs [unverified].
 
 **Household connection**
 - Most homes are single-phase. Three-phase is available [unverified].
-- **The key difference from GB is the subscribed power (puissance souscrite), chosen in 3 kVA steps from 3 to 36 kVA.** The customer pays for it in the standing charge, and the Linky meter trips if the home draws more. 6 kVA and 9 kVA are the most common choices [unverified share].
+- **The key difference from GB is the subscribed power (puissance souscrite), chosen in 3 kVA steps from 3 to 36 kVA.** The customer pays for it in the standing charge, and the Linky meter trips if the home draws more. About 70% of households subscribe 6 kVA; no 9 kVA share was found (corrected 25 Oct, second read).
 - The subscription is a hard per-home power limit and a pricing variable in its own right.
 - GB has no subscription. A typical home has a 60–100 A fuse, roughly 14–23 kVA [unverified].
 
@@ -114,7 +114,7 @@
 - GB, for comparison: about 85% of homes have gas central heating and about 8–10% use electric heating [unverified].
 
 **Consumption**
-- The CRE's reference household uses **4.5 MWh of electricity a year**: https://www.cre.fr/fileadmin/Documents/Communiques_de_presse/2026/260120_CP_CRE_TRVE_Fev26.pdf. GB's typical value is 2.7 MWh [unverified].
+- The CRE's reference household uses **4.5 MWh of electricity a year**: https://www.cre.fr/fileadmin/Documents/Communiques_de_presse/2026/260120_CP_CRE_TRVE_Fev26.pdf. Ofgem's typical domestic consumption is 2,500 kWh electricity and 9,500 kWh gas from 1 Jul 2026 (corrected 25 Oct, second read; Ofgem's undated consumer page still shows 2,900 / 12,000 and is stale).
 - Electrically heated homes often use 8–15 MWh a year [unverified].
 - Heat pumps used just over 10 TWh in 2023, a little under 3% of residential energy. Fossil fuels still supplied 43% of residential heating energy (RTE BE2025).
 - No sourced figure for average gas use per household was found. About 10–12 MWh is plausible [unverified].
@@ -187,7 +187,7 @@
 **Gas (Gazpar)**
 - About 11 million meters, rollout finished in 2023 (source inconsistent on dates and counts). GRDF collects readings daily through concentrators: https://www.totalenergies.fr/particuliers/gaz/compteur-gazpar/calendrier-compteur-gazpar.
 
-**GB comparison:** in GB the supplier is responsible for the meter, and data flows through the DCC. About 65–70% of meters are smart [unverified].
+**GB comparison:** in GB the supplier is responsible for the meter, and data flows through the DCC. About 73% of meters run by large suppliers were smart at end June 2026 (corrected 25 Oct, second read).
 
 ## 8. Billing and payment
 
@@ -260,7 +260,7 @@
 
 **Heat pumps:** 5.1% of main residences in 2020, about 9% of houses (SDES heating source). Sales are high, roughly 1 million units a year including air-to-air [unverified].
 
-**EVs:** RTE gives no fleet figure. The fleet is about 1.5 million battery EVs [unverified].
+**EVs:** RTE gives no fleet figure. The fleet is about 1.4 million battery EVs: 3.5% of 40.0 million cars at 1 January 2026 [derived] (corrected 25 Oct, second read).
 
 **GB comparison:** GB pays for exported power through the Smart Export Guarantee (supplier-set export tariffs), and EV-specific time-of-use tariffs are widespread [unverified].
 
@@ -281,7 +281,7 @@
 - The new supplier starts the switch. Enedis or GRDF carries it out, usually within days, and a switch can be dated as early as the next day with Linky [unverified].
 - Households pay no exit fees and can switch at any time [unverified].
 - Distance and doorstep sales carry a 14-day withdrawal right [unverified].
-- Debt does not block a switch. GB's prepayment-debt objection has no French equivalent [unverified].
+- Debt does not block a switch as such. But the new supplier may ask a deposit of up to 600 € or refuse for a legitimate reason, such as debt over 50 € in the ARPE file, and a cut-off already started can continue after the switch. GB's debt objection therefore has a partial French equivalent (corrected 25 Oct, second read).
 - Rates: residential electricity 2.78% and gas 3.6% in Q4 2025 (CRE observatory, quarterly as reported).
 - Inactive regulated-tariff customers are a large pool to win, especially for suppliers offering a discount on the regulated tariff.
 
@@ -295,11 +295,11 @@
 ## 16. Where debt sits
 
 - **The supplier carries the bad-debt risk.** The supplier signs a single combined contract with the customer ("contrat unique") and pays the network tariff to Enedis or GRDF whether or not the customer pays [unverified].
-- The supplier asks for a power reduction or cut-off. **The distributor carries it out**, remotely through Linky. EDF caps power at about 1 kVA in winter [unverified].
+- The supplier asks for a power reduction or cut-off. **The distributor carries it out**, remotely through Linky. EDF caps power at 1 kVA all year, and stopped asking for residential cut-offs from 1 April 2022 (corrected 25 Oct, second read).
 - Debt stays with the old supplier and does not follow the customer on a switch [unverified].
 - The chèque énergie (state-funded) and local solidarity funds for housing costs (FSL) are the outside safety nets [unverified].
-- When a supplier fails, a backup supplier ("fournisseur de secours") is appointed through a designated scheme created under the 2019 Énergie-Climat law. A separate supplier of last resort ("fournisseur de dernier recours") covers gas customers who have no supplier [unverified details].
-- No GB-style levy that spreads failure costs across all bills has been seen in France [unverified].
+- When a supplier fails, a backup supplier ("fournisseur de secours") is appointed through a designated scheme created under the 2019 Énergie-Climat law. The minister designates it for 5 years after a CRE call: EDF for electricity in the Enedis area, TotalEnergies for gas in the GRDF area (confirmed 25 Oct, second read). A separate supplier of last resort ("fournisseur de dernier recours") covers gas customers who have no supplier [unverified].
+- No GB-style levy spreads failure costs across all bills. The backup supplier recovers extra costs, including unpaid bills, through a capped surcharge on the transferred customers only: for households at most 10 €/site/month (confirmed 25 Oct, second read; CRE deliberation 2021-315).
 
 ---
 
@@ -309,7 +309,7 @@
 |---|---|---|---|---|
 | 1 | Weather | 2,000–3,000 DJU; wide range across H1/H2/H3 zones | Mild maritime climate | Wider regional spread |
 | 2 | Energy system | 68% nuclear, net exporter, 61 €/MWh, VNU; gas hub PEG | Gas sets the price; NBP | Prices are lower and less gas-driven; VNU bill credit |
-| 3 | Grid | Enedis about 95% plus about 140 ELDs; subscribed kVA; per-home off-peak hours | 14 regional DNOs; fuse, no subscription | kVA limit and per-home off-peak schedule |
+| 3 | Grid | Enedis about 95% plus about 130 electricity ELDs (corrected 25 Oct, second read); subscribed kVA; per-home off-peak hours | 14 regional DNOs; fuse, no subscription | kVA limit and per-home off-peak schedule |
 | 4 | Households | 30.9m, 2.1 people each | about 28m, 2.4 people | More single-person homes |
 | 5 | Housing and heat | 37% electric heating; 57% owners; collective heating in flats | about 85% gas | **About 2.4 GW/°C winter sensitivity on electricity** |
 | 6 | Regulation | 56% on the regulated tariff; EDF about 68% | Ofgem price cap applies to all default tariffs | Regulated tariff is a product only EDF sells, and the market anchors to it |
@@ -320,7 +320,7 @@
 | 11 | Assets | 838k self-consuming PV homes; purchase obligation for surplus | Smart Export Guarantee | Regulated buy-back of surplus |
 | 12 | Cooling | About 25% have air conditioning; 400 MW/°C in summer | Negligible | Summer load in the south |
 | 13 | Cooking | Mostly electric | Gas common in gas homes | Cooking load moves to electricity |
-| 14 | Switching | About 2.8% a quarter; no debt block | Debt objection possible | Inactive regulated-tariff base to win |
+| 14 | Switching | About 2.8% a quarter; a new supplier may ask a deposit or refuse for debt (corrected 25 Oct, second read) | Debt objection possible | Inactive regulated-tariff base to win |
 | 15 | Home moves | New occupant must contract; no deemed contract | Deemed contract | Empty-home gap |
 | 16 | Where debt sits | Supplier; distributor executes the reduction; backup supplier scheme | Supplier; levy socialises failure costs | Reduction is carried out by the distributor |
 
@@ -407,3 +407,68 @@ Confirmed 0, corrected 0, open 55. Corrections and checks:
 - L31 `- Mainland France usually sees 2,000 to 3,000 DJU a year. Building regulations divide the country into three climate zones, H1 (coldest), H2` -- open: Eurostat nrg_chdd_a gives France 2,036-2,413 HDD in 2020-24 (read 2026-10-25), inside the pack's 2,000-3,000 range on France's 17°C basis; the GB comparison is not in the series after 2019.
 - L167 `- Tempo prices vary by day colour, blue, white or red, with 22 red days a year [unverified]. In February 2026 Tempo rates rose 6.2% to bring` -- open: EDF's Tempo page and two encyclopaedia pages gave no count or 404 on 2026-10-25.
 - L213 `- VAT: 20%. The reduced 5.5% rate on the standing charge was removed in August 2025 [unverified].` -- open (gas leg confirmed): Selectra (read 2026-10-25) states gas VAT is 20% on subscription and consumption since 1 August 2025; it does not state the electricity leg.
+
+## Second read: the advisor's verification pass, 25 Oct 2026
+
+The advisor checked the same tags independently (`docs/staging/advisor/DIRECTOR_EVIDENCE_VERIFICATION_OF_THE_OTHER_MARKET_PACKS_2026-10-25.md`). This page's own pass did not number items, so the rows use the advisor's numbers with this page's line. Item 22 is split in two, which gives 54 items: the 53 tagged lines of sections 1–16 and (b). The earlier "open 55" also counted the gap-list mention of [unverified]. "Secondary" marks a commercial or reporting site, not the regulator or the state.
+
+| # | Item (line) | Prior | Advisor | Reconciled | Source |
+|---|---|---|---|---|---|
+| 1 | Regional range wider than GB's (L21) | open (own read: Eurostat 2,036–2,413 HDD, inside 2,000–3,000) | open | still open | — |
+| 2 | GB peak 45–50 GW (L25) | open | open | still open | — |
+| 3 | Single bidding zone (L51) | open | open | still open | — |
+| 4 | Single gas hub PEG (L62) | open | confirmed | confirmed (secondary): single zone since 1 Nov 2018 | https://selectra.info/energie/guides/comprendre/points-echange-gaz |
+| 5 | CRE "prix repère" (L63) | open | confirmed | confirmed: published since June 2023, indicative | https://www.cre.fr/fileadmin/Documents/Deliberations/2024/240523_2024-92_Decision_Methodologie_PRVG.pdf |
+| 6 | About 140 ELDs (L69) | open | corrected | corrected (secondary): about 130 electricity ELDs | https://www.choisir.com/energie/articles/104108/les-entreprises-locales-de-distribution-eld-delectricite |
+| 7 | About 20 gas ELDs (L71) | open | open | still open | — |
+| 8 | Single-phase; three-phase available (L74) | open | confirmed | confirmed (secondary): three-phase not usually offered below 9 kVA | https://selectra.info/energie/guides/compteurs/puissance/6-kva |
+| 9 | 6 and 9 kVA most common (L75) | open | corrected | corrected (secondary, citing Enedis Open Data): about 70% on 6 kVA | same as #8 |
+| 10 | GB fuse 60–100 A (L77) | open | open | still open | — |
+| 11 | TURPE seasonal periods (L81) | open | open | still open | — |
+| 12 | GB 28m households, 2.4 people (L92) | open | open | still open | — |
+| 13 | France less urban than England (L93) | open | open | still open | — |
+| 14 | GB 85% gas heating, 8–10% electric (L114) | open | open | still open | — |
+| 15 | GB typical use 2.7 MWh (L117) | open | corrected | corrected: 2,500 kWh elec / 9,500 kWh gas from 1 Jul 2026; the consumer page's 2,900 / 12,000 is stale | https://www.ofgem.gov.uk/sites/default/files/2026-06/Summary-of-changes-to-energy-price-cap-1-July-to-30-September-2026-revised-TDCV.pdf |
+| 16 | Electric-heated homes 8–15 MWh (L118) | open | open | still open | — |
+| 17 | Gas use 10–12 MWh (L120) | open | open | still open | — |
+| 18 | Offers as "regulated minus x%" (L153) | open | open | still open | — |
+| 19 | Tempo 22 red days (L157) | open (EDF page gave no count) | confirmed | confirmed (secondary): 22 red, 43 white, 300 blue | https://selectra.info/energie/actualites/marche/tempo-2026-2027-nouvelle-saison-jours-rouges |
+| 20 | "Amortisseur" compensation (L166) | open | open | still open | — |
+| 21 | Ministerial authorisation (L169) | open | confirmed | confirmed (secondary, citing the Journal officiel order) | https://opera-energie.com/media/hydroption-faillite/ |
+| 22a | Hydroption failed (L170) | open | confirmed | confirmed (secondary): liquidated Dec 2021 | same as #21 |
+| 22b | Leclerc and Cdiscount suspended sales (L170) | open | open | still open | — |
+| 23 | GB 65–70% smart (L190) | open | corrected | corrected: 73% at end Jun 2026 | https://www.gov.uk/government/statistics/smart-meters-in-great-britain-quarterly-update-june-2026/smart-meters-in-great-britain-quarterly-update-june-2026-statistical-bulletin |
+| 24 | Instalments plus true-up (L195) | open | open | still open | — |
+| 25 | Payment-method mix (L196) | open | open | still open | — |
+| 26 | No prepayment market (L197) | open | open | still open | — |
+| 27 | GB 4m prepayment meters (L197) | open | open | still open | — |
+| 28 | 5.5% standing-charge VAT removed Aug 2025 (L203) | open (gas leg confirmed) | confirmed | confirmed (secondary, citing ruling BOI-RES-TVA-000209): 20% from 1 Aug 2025 | https://www.journaldeleconomie.fr/?p=39654 |
+| 29 | Taxes a quarter to a third (L204) | open | open | still open | — |
+| 30 | GB MHHS detail (L221) | open | open | still open | — |
+| 31 | No PSR equivalent (L248) | open | open | still open | — |
+| 32 | Purchase-obligation tariff cut (L257) | open | confirmed | confirmed (secondary): ≤9 kWc surplus 0.04 €/kWh, bonus 80 €/kWc | https://www.hellowatt.fr/blog/mise-a-jour-tarifs-primes-solaire-t4-2025/ |
+| 33 | Collective self-consumption (L259) | open | confirmed | confirmed: 2 km, 3 MW; up to 10/20 km by exception | https://www.cre.fr/fileadmin/Documents/Deliberations/2024/241218_2024-231_Projet_Arrete_Autoconso_Collective.pdf |
+| 34 | Heat pump sales about 1m (L261) | open | confirmed (approx.) | confirmed (secondary, Uniclima via Effy): over 800k air-to-air plus air-to-water | https://www.effy.fr/pro/actualite/bilan-uniclima-quels-equipements-ont-ete-plebisicites-en-2025 |
+| 35 | About 1.5m battery EVs (L263) | open | corrected | corrected: about 1.4m, 3.5% of 40.0m cars [derived] | https://www.statistiques.developpement-durable.gouv.fr/40-millions-de-voitures-en-circulation-en-france-au-1er-janvier-2026 |
+| 36 | GB SEG and EV tariffs (L265) | open | open | still open | — |
+| 37 | 25% air conditioning in 2020 (L270) | open | confirmed | confirmed (ADEME via a secondary site) | https://www.hellowatt.fr/pompe-a-chaleur/climatisation/etude-climatisation |
+| 38 | Summer peaks 55–60 GW (L271) | open | confirmed | confirmed (RTE via Connaissance des Énergies): about 60 GW in 2026 | https://www.connaissancedesenergies.org/electricite-rte-detaille-les-impacts-des-vagues-de-chaleur-exceptionnelles-cet-ete |
+| 39 | Cooking mostly electric (L276) | open | open | still open | — |
+| 40 | Switch within days (L281) | open | open | still open | — |
+| 41 | No exit fees (L282) | open | confirmed | confirmed (secondary) | https://selectra.info/energie/guides/factures/impaye/changement-de-fournisseur |
+| 42 | 14-day withdrawal right (L283) | open | open | still open | — |
+| 43 | No debt objection equivalent (L284) | open | corrected | corrected (secondary): deposit up to 600 € or refusal for "motif légitime" | same as #41 |
+| 44 | Remote energisation in a day (L290) | open | confirmed | confirmed (secondary, supplier blog): 24 working hours | https://ekwateur.fr/blog/ma-consommation-d-energie/delais-mise-en-service-linky/ |
+| 45 | Final bill reading (L291) | open | open | still open | — |
+| 46 | Empty home cut off (L292) | open | open | still open | — |
+| 47 | Supplier carries bad debt (L297) | open | open | still open | — |
+| 48 | EDF 1 kVA in winter (L298) | open | corrected | corrected: 1 kVA all year; no residential cut-offs from 1 Apr 2022 | https://www.edf.fr/groupe-edf/espaces-dedies/journalistes/tous-les-communiques-de-presse/edf-ne-demandera-plus-la-coupure-d-electricite-pour-ses-clients-particuliers |
+| 49 | Debt stays with old supplier (L299) | open | confirmed | confirmed (secondary) | same as #41 |
+| 50 | Chèque énergie and FSL (L300) | open | confirmed | confirmed (secondary, thin) | same as #41 |
+| 51 | Backup supplier (L301) | open | confirmed | confirmed: 2019 law; EDF electricity, TotalEnergies gas. The gas "dernier recours" leg stays unconfirmed | https://www.cre.fr/content/download/24578/file/211014_2021-315_Fourniture_de_secours.pdf |
+| 52 | No GB-style failure levy (L302) | open | confirmed | confirmed: capped surcharge on transferred customers only | same as #51 |
+| 53 | No capital adequacy rules (L352) | open | open | still open | — |
+
+No item disagrees with this page's own read. This page's own read of #1 (Eurostat HDD inside the range) and #28 (gas leg) stands beside the advisor's.
+
+**Counts: confirmed 18 · corrected 7 · still open 29.**

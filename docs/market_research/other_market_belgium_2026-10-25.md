@@ -55,7 +55,7 @@ The four regulators publish a joint market report each year ([Rapport commun 202
 ## 1. Weather and climate
 
 - **Climate:** Belgium has a temperate maritime climate like southern England. The Ardennes in south-east Wallonia are colder and more continental. [unverified]
-- **Heating degree days:** I could not retrieve Eurostat annual figures for Belgium. My memory is about 2,600–2,900 heating degree days a year (Eurostat method), slightly below the UK at about 3,000. [unverified]
+- **Heating degree days:** I could not retrieve Eurostat annual figures for Belgium. Eurostat gives 2,339–2,771 heating degree days a year in 2020–24 (corrected 25 Oct, first read; the pack remembered about 2,600–2,900). The UK at about 3,000 is [unverified].
 - **Cooling degree days:** Eurostat gives Belgium **11.79 in 2024**. The series ranges from 0.07 to 52.55, with a long-run average of 14.3 ([DBnomics/Eurostat nrg_chdd_a](https://db.nomics.world/Eurostat/nrg_chdd_a)). Cooling demand is negligible, as in GB.
 - **Demand seasonality:** strongly winter-peaking, driven by gas heating. Gas through distribution networks was 82.3 TWh in 2024 (Flanders 56.4, Wallonia 17.5, Brussels 8.3 TWh), against 63.1 TWh of electricity ([Rapport commun 2024](https://brugel.brussels/publication/document/rapports/2025/fr/Rapport-commun-2024-Marche.pdf)). The report's "Belgium" gas total of 149.3 TWh includes more than distribution.
 
@@ -122,7 +122,7 @@ Sources: 2024 from [Elia 2024 mix release](https://elia.be/-/media/project/elia/
 - Example: 3,500 kWh a year with an average monthly peak of 4.26 kW cost about €337 a year in network charges including VAT in 2023 ([Solar Magazine](https://solarmagazine.nl/nieuws-zonne-energie/i28470/vlaams-capaciteitstarief-op-1-januari-van-start-alle-feiten-en-cijfers-op-een-rij)).
 - A 4 kW average peak cost about €161.60 a year excluding VAT in 2023 ([Test-Aankoop](https://www.test-aankoop.be/woning-energie/gas-elektriciteit-mazout-pellets/nieuws/wat-betekent-de-invoering-van-het-capaciteitstarief-vanaf-2023-voor-jou)). That is about €40/kW/yr [derived].
 
-**Wallonia and Brussels** charge network fees mainly per kWh. Wallonia also charges the prosumer tariff per kWe (section 11). New time-of-use distribution tariffs in the 2025–29 periods are [unverified].
+**Wallonia and Brussels** charge network fees mainly per kWh. Wallonia also charges the prosumer tariff per kWe (section 11). Wallonia has had mandatory two-rate network tariffs since 1 January 2026: peak 07–11 and 17–22 every day, off-peak 11–17 and 22–07, with an optional five-band tariff for active smart meters (confirmed 25 Oct, second read). Brussels's new time-of-use tariffs for 2025–29 are [unverified].
 
 **Compared with GB:** GB household network charges are per kWh plus a standing charge, with no kW capacity element. A Flemish household's network bill depends on its 15-minute peak, so EV charging, heat pump use and kettle timing directly change network cost.
 
@@ -138,7 +138,7 @@ Sources: 2024 from [Elia 2024 mix release](https://elia.be/-/media/project/elia/
 
 - **Building energy by fuel, 2020:** gas about 40%, electricity 27%, oil 27%, biomass 5%, district heating 0.6%. Oil supplied about 33% of residential building demand, the fifth-highest heating-oil share in the IEA ([IEA 2022](https://www.connaissancedesenergies.org/sites/connaissancedesenergies.org/files/pdf-actualites/Belgium2022_EnergyPolicyReview.pdf)). GB oil heating is about 4% of homes [unverified].
 - **Tenure:** about 71% owner-occupied, an old building stock, and houses dominant outside Brussels. [unverified]
-- **Standard consumption:** CREG uses **3,500 kWh/yr electricity** and **17,000 kWh/yr gas** for comparisons ([CREG study (F)3188, March 2026](https://www.connaissancedesenergies.org/sites/connaissancedesenergies.org/files/pdf-actualites/Rapport%20CREG%20fourniture%20d%27%C3%A9nergie%20en%20Belgique%20en%202025.pdf)). Ofgem's typical domestic consumption values are about 2,700 kWh electricity and 11,500 kWh gas [unverified].
+- **Standard consumption:** CREG uses **3,500 kWh/yr electricity** and **17,000 kWh/yr gas** for comparisons ([CREG study (F)3188, March 2026](https://www.connaissancedesenergies.org/sites/connaissancedesenergies.org/files/pdf-actualites/Rapport%20CREG%20fourniture%20d%27%C3%A9nergie%20en%20Belgique%20en%202025.pdf)). Ofgem's typical domestic consumption values are 2,500 kWh electricity and 9,500 kWh gas from 1 Jul 2026 (corrected 25 Oct, second read).
 - **Implied average per electricity point:** about 7.6 MWh in Flanders, 7.1 MWh in Wallonia and 5.7 MWh in Brussels [derived from the TWh and access-point figures above]. These include small businesses on distribution networks, so they overstate household use.
 
 ## 6. Core regulation and competition
@@ -187,7 +187,7 @@ All from [CREG F3188](https://www.connaissancedesenergies.org/sites/connaissance
 **Ownership and data**
 - The DSO owns and operates the meters, not the supplier. This is the opposite of GB, where suppliers own the meters and DCC runs communications.
 - Consumers see quarter-hour data ([Test-Achats](https://www.test-achats.be/maison-energie/gaz-electricite-mazout-pellets/dossier/compteurs-numeriques)). Sibelga runs data-access and consent portals ([Brugel 378](https://brugel.brussels/publication/document/decisions/2025/fr/DECISION-378-KPI-COMPTEURS-INTELLIGENTS.pdf)).
-- **Compared with GB:** GB has about 60–65% smart or advanced meters, supplier-led, with half-hourly data [unverified].
+- **Compared with GB:** about 73% of GB meters run by large suppliers were smart at end June 2026 (corrected 25 Oct, second read). They are supplier-led, with half-hourly data.
 
 ## 8. Billing
 
@@ -214,7 +214,7 @@ All from [CREG F3188](https://www.connaissancedesenergies.org/sites/connaissance
 - A reduced price set by CREG each quarter for people with certain social statuses and for social housing residents. Example levels: Q1 2024 electricity 23.441 c/kWh and gas 5.371 c/kWh, both incl. VAT ([Brussels Times](https://brusselstimes.com/846654/social-tariffs-for-gas-electricity-to-go-up-by-over-9-next-year)).
 - Allocation is more than 90% automatic ([Chamber doc 56 0195/006](https://www.lachambre.be/doc/flwb/pdf/56/0195/56K0195006.pdf)).
 - In 2020, 9.7% of electricity customers (about 470,000) and 10% of gas customers (about 295,000) received it ([IEA 2022](https://www.connaissancedesenergies.org/sites/connaissancedesenergies.org/files/pdf-actualites/Belgium2022_EnergyPolicyReview.pdf)). More than 500,000 households were covered during the crisis ([VVSG, January 2026](https://www.vvsg.be/media/23247/download)).
-- It is pegged to the lowest commercial tariff and funded by a federal levy. [unverified]
+- It is calculated every three months on the most advantageous market prices (CREG; corrected 25 Oct, first read). Funding by a federal levy is [unverified].
 - Reform is under debate, including an income criterion ([Chamber](https://www.lachambre.be/doc/flwb/pdf/56/0195/56K0195006.pdf)).
 - The National Bank puts energy poverty at **21.8% in 2022**. Without the social tariff, 34% of vulnerable households would be energy-poor; with it, 12% ([VVSG](https://www.vvsg.be/media/23247/download)).
 
@@ -247,7 +247,7 @@ All from [CREG F3188](https://www.connaissancedesenergies.org/sites/connaissance
 - Tax: battery EVs bought by end-2026 are 100% deductible, falling to 67.5% by 2031. Deductibility for combustion cars falls to 0% by 2028 ([ICCT](https://theicct.org/?p=60217)).
 - **Why it matters for a supplier:** many home chargers are employer-reimbursed company-car chargers, so the household does not bear the charging cost the way a GB EV owner does.
 
-**Heat pumps:** no verified stock or sales figure was retrieved (gap). Flanders limits gas connections in new builds. [unverified]
+**Heat pumps:** no verified stock or sales figure was retrieved (gap). Flanders bans gas connections in new builds from 2025, and in large projects since 2021 (confirmed 25 Oct, second read).
 
 ## 12. Cooling
 
@@ -263,7 +263,7 @@ No cooking-fuel source was retrieved (gap). Gas hobs are common where there is g
 ## 14. Switching
 
 - Switching runs through the Atrias Central Clearing House, which promised "faster, better-documented switching and moving processes" ([Solar Magazine](https://solarmagazine.nl/nieuws-zonne-energie/i25291/nieuw-dataplatform-moet-hefboom-worden-in-energietransitie-belgische-elektriciteitssector)).
-- Households pay no exit fee and can leave on one month's notice. The switch is effective within 21 days or less, there is a 14-day cooling-off period for distance sales, and the new supplier handles the switch. [unverified]
+- Households pay no exit fee and the new supplier handles the switch. In Flanders the notice is at most 3 weeks, not one month (corrected 25 Oct, second read). The 14-day cooling-off period for distance sales is [unverified].
 - **Rates:** Belgium had the highest electricity switching rate in Europe in 2019 ([IEA 2022](https://www.connaissancedesenergies.org/sites/connaissancedesenergies.org/files/pdf-actualites/Belgium2022_EnergyPolicyReview.pdf)) and generally ranks in the international top three ([CREG F3188](https://www.connaissancedesenergies.org/sites/connaissancedesenergies.org/files/pdf-actualites/Rapport%20CREG%20fourniture%20d%27%C3%A9nergie%20en%20Belgique%20en%202025.pdf)).
 - Brussels 2024: electricity switching 3.05%, a 15-year high; gas 0.97% ([Brugel](https://brugel.brussels/publication/document/rapports/2025/fr/Rapport-annuel-2024-Conso.pdf)).
 - In 2024, electricity switching rose by 0.8 percentage points and gas by 0.3 points nationally ([Rapport commun 2024](https://brugel.brussels/publication/document/rapports/2025/fr/Rapport-commun-2024-Marche.pdf)). Flanders and Wallonia figures are in charts only (gap).
@@ -315,11 +315,11 @@ This is the biggest structural difference from GB.
 
 | Dimension | Belgium | GB | Difference that matters |
 |---|---|---|---|
-| 1 Weather | Maritime, CDD ~12, HDD ~2.7k [unv] | Maritime, HDD ~3k [unv] | Similar; add an Ardennes zone |
+| 1 Weather | Maritime, CDD ~12, HDD 2,339–2,771 in 2020–24 (corrected 25 Oct, first read) | Maritime, HDD ~3k [unv] | Similar; add an Ardennes zone |
 | 2 System | 34% nuclear (falling), 34% renewables, 19% gas, 14 TWh net imports, CRM | More gas and wind, less nuclear, capacity market | Import dependence; nuclear cliff in 2025 |
 | 3 Grid | Elia plus ~7 DSOs; Flanders kW capacity tariff on 15-min peaks | 14 DNO areas; per-kWh plus standing charge | A household's peak sets its network cost (Flanders) |
 | 4 Households | ~5.1 m; 6.28 m electricity points; 3.6 m gas points | ~28 m [unv] | Only ~57% have gas |
-| 5 Housing/heat | Oil ~1/3 of residential heat; 3,500 kWh / 17,000 kWh standard | Gas dominant; ~2,700 / 11,500 kWh [unv] | Oil and off-gas heating; higher use per home |
+| 5 Housing/heat | Oil ~1/3 of residential heat; 3,500 kWh / 17,000 kWh standard | Gas dominant; 2,500 / 9,500 kWh from 1 Jul 2026 (corrected 25 Oct, second read) | Oil and off-gas heating; higher use per home |
 | 6 Regulation | 3 regional licences; no price cap; HHI 2,250–5,300 | Ofgem cap, single licence | No default price cap; Brussels concentrated |
 | 7 Smart meters | DSO-owned; Flanders ~70%, other regions slower | Supplier-owned, DCC | Supplier does not control meter or data |
 | 8 Billing | Monthly advances plus annual true-up; 6% VAT | Monthly direct debit on smart reads; 5% VAT | Annual true-up shocks; estimated advances |
@@ -414,3 +414,53 @@ Confirmed 0, corrected 3, open 33. Corrections and checks:
 - L207 `- **Taxes:** VAT on electricity and gas is 6% (permanent since April 2023, with a federal excise). [unverified] Prosumer tariff amounts are ` -- open: the federal finance and CREG pages tried returned 404 on 2026-10-25.
 - L227 `- It is pegged to the lowest commercial tariff and funded by a federal levy. [unverified]` -- corrected in part: old 'pegged to the lowest commercial tariff'; new 'calculated every three months on the most advantageous market prices' (CREG, tarif social page, read 2026-10-25). Funding by a federal levy is not stated there and stays open.
 - L328 `| 1 Weather | Maritime, CDD ~12, HDD ~2.7k [unv] | Maritime, HDD ~3k [unv] | Similar; add an Ardennes zone |` -- corrected: Belgian HDD 2,339-2,771 in 2020-24 (Eurostat nrg_chdd_a, read 2026-10-25); the GB HDD ~3k stays open.
+
+## Second read: the advisor's verification pass, 25 Oct 2026
+
+The advisor checked the same tags independently (`docs/staging/advisor/DIRECTOR_EVIDENCE_VERIFICATION_OF_THE_OTHER_MARKET_PACKS_2026-10-25.md`). Rows use the advisor's numbers with this page's line. Items 5, 9 and 23 are split, and the five contrast-table tags the advisor did not number get rows T1–T5, which gives 39 items. Line numbers in the first pass above are from the pack; this table uses this page's lines. "Secondary" marks a commercial, news or reference site.
+
+| # | Item (line) | Prior | Advisor | Reconciled | Source |
+|---|---|---|---|---|---|
+| 1 | Maritime climate; Ardennes colder (L57) | open | open | still open | — |
+| 2 | HDD 2,600–2,900 (L58) | corrected: 2,339–2,771 in 2020–24 | needs file (host blocked) | corrected (this page's Eurostat read stands; the advisor could not fetch it) | Eurostat nrg_chdd_a via api.db.nomics.world |
+| 3 | Doel 4 and Tihange 3 to about 2035 (L86) | open | confirmed | confirmed: 10-year extension to 2035 | https://nuclear.engie-electrabel.be/en/nuclear-energy/key-questions-about-nuclear-power-plants/if-end-2021-it-turns-out-we-still-need |
+| 4 | Single Core zone; 15-min day-ahead in 2025 (L92) | open | confirmed (part) | confirmed for the 15-min leg (live for delivery 1 Oct 2025); single-zone leg not fetched | https://www.epexspot.com/en/news/market-coupling-steering-committee-confirms-go-live-15-minute-mtu-sdac-trading-day-30 |
+| 5a | Fluxys is the gas TSO (L96) | open | confirmed | confirmed (secondary, Wikipedia) | https://en.wikipedia.org/wiki/Fluxys |
+| 5b | ZTP is the gas hub (L96) | open | open | still open | — |
+| 6 | GB 14 DNO areas, 6 groups (L109) | open | open | still open | — |
+| 7 | 3×230 V; 40 A breaker (L113) | open | open | still open | — |
+| 8 | Walloon 10 kVA guidance (L114) | open | open | still open | — |
+| 9a | Wallonia time-of-use network tariffs (L125) | open | confirmed | confirmed: mandatory two-rate from 1 Jan 2026, peak 07–11 and 17–22 | https://www.cwape.be/sites/default/files/cwape-documents/2025.11.03-Tarifs%20distribution%202026_CP.pdf |
+| 9b | Brussels time-of-use tariffs 2025–29 (L125) | open | open | still open | — |
+| 10 | GB 28m households (L135) | open | open | still open | — |
+| 11 | Brussels almost all flats (L135) | open | open | still open (only 81.7% of 2023 resales were flats) | — |
+| 12 | GB oil heating 4% (L139) | open | open | still open | — |
+| 13 | 71% owner-occupied (L140) | open | open | still open (Wallonia 56.5% of dwellings, 2011, a different measure) | — |
+| 14 | Ofgem TDCV 2,700 / 11,500 (L141) | open | corrected | corrected: 2,500 / 9,500 kWh from 1 Jul 2026 | https://www.ofgem.gov.uk/sites/default/files/2026-06/Summary-of-changes-to-energy-price-cap-1-July-to-30-September-2026-revised-TDCV.pdf |
+| 15 | Liberalised 2003 / 2007 (L146) | open | confirmed | confirmed (secondary); the no-price-cap clause is not in the source | https://callmepower.be/fr/energie/guides/comprendre/liberalisation-marche |
+| 16 | Regional supply licences (L148) | open | open | still open | — |
+| 17 | GB 60–65% smart (L190) | open | corrected | corrected: 73% at end Jun 2026 | https://www.gov.uk/government/statistics/smart-meters-in-great-britain-quarterly-update-june-2026/smart-meters-in-great-britain-quarterly-update-june-2026-statistical-bulletin |
+| 18 | Prepayment as DSO tool; payment mix (L196) | open | open | still open | — |
+| 19 | 6% VAT permanent since Apr 2023 (L197) | open (pages 404) | confirmed | confirmed (secondary, VRT news) | https://www.vrt.be/vrtnws/en/2023/03/31/reduction-in-vat-on-gas-and-electricity-becomes-permanent-from-1 |
+| 20 | Smart-metered homes profiled unless opted in (L207) | open | confirmed (data side) | confirmed for data: monthly by default since 1 Apr 2024, quarter-hour needs consent; the settlement link is inferred | https://vlaamsenutsregulator.be/sites/default/files/uploads/parlementaire_vragen/2024-2025/antwoord_2.pdf |
+| 21 | Elia 15-min imbalance (L208) | open | confirmed | confirmed | https://www.elia.be/customers/invoicing-and-tariffs/imbalance-invoice |
+| 22 | GB MHHS (L209) | open | open | still open | — |
+| 23a | Social tariff pegged to lowest commercial tariff (L217) | corrected: "most advantageous market prices" (CREG) | confirmed (Selectra) | corrected. DISAGREES: the advisor's commercial source says "lowest commercial tariff"; this page keeps CREG's own wording | CREG tarif social page; https://selectra.be/fr/energie/tarifs/tarif-social |
+| 23b | Social tariff funded by a federal levy (L217) | open | open | still open | — |
+| 24 | GB moratorium and PSR (L230) | open | open | still open | — |
+| 25 | Flanders limits gas in new builds (L250) | open | confirmed (stronger) | confirmed: general ban from 2025 | https://www.vlaanderen.be/bouwen-wonen-en-energie/verwarming-koeling-en-ventilatie/nieuwe-verwarmingsinstallatie-kiezen/geen-aardgasaansluitingen-meer-bij-nieuwbouw-en-nieuwe-grote-projecten |
+| 26 | Air conditioning low (L255) | open | open | still open | — |
+| 27 | Cooking fuel mix (L261) | open | open | still open | — |
+| 28 | Exit fee, notice, 21 days, cooling-off (L266) | open | confirmed (part) | corrected: Flanders notice is at most 3 weeks, not one month; cooling-off stays open | https://www.vlaanderen.be/eenvoudig-veranderen-van-energieleverancier/stappenplan-veranderen-van-energieleverancier |
+| 29 | GB next-working-day switching (L331) | open | open | still open (other passes report it live since Jul 2022; no source in this section) | — |
+| 30 | Takeover document (L274) | open | confirmed | confirmed: both sign within 7 days; contract set up at the new address | https://www.fluvius.be/sites/fluvius/files/2025-08/zorgeloos-verhuizen-met-het-energieovernamedocument.pdf |
+| 31 | MOZA procedure (L277) | open | open | still open | — |
+| T1 | Table: Belgium HDD ~2.7k (L318) | corrected | — | corrected | as #2 |
+| T2 | Table: GB HDD ~3k (L318) | open | — | still open | — |
+| T3 | Table: GB ~28m households (L321) | open | — | still open | — |
+| T4 | Table: GB 2,700 / 11,500 kWh (L322) | open | — | corrected: 2,500 / 9,500 from 1 Jul 2026 | as #14 |
+| T5 | Table: cooking mix (L330) | open | — | still open | — |
+
+Item 28 is counted as corrected, not confirmed as the advisor tallied it, because its main figure (one month's notice) did not hold.
+
+**Counts: confirmed 10 · corrected 7 · still open 22.**

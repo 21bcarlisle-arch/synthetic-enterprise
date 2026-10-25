@@ -36,7 +36,7 @@
 
   The same source says indoor temperature while heating is on must not exceed 20 °C (±2 °C).
 - **A legal heating season is a structural difference.** GB has no rule on when central heating may run. Poesys would need a regulatory calendar layered on top of weather demand.
-- **Comparators.** The Eurostat EU average is 3,199 HDD over 1979–2022 ([Eurostat SE](https://ec.europa.eu/eurostat/statistics-explained/SEPDF/cache/92378.pdf)). Ireland, the nearest proxy for GB, averages 2,833 HDD and has CDD close to 0.03 (same source). Italy's national HDD is roughly 1,800–2,000 and its CDD roughly 200–450 [unverified: the Eurostat series could not be retrieved].
+- **Comparators.** The Eurostat EU average is 3,199 HDD over 1979–2022 ([Eurostat SE](https://ec.europa.eu/eurostat/statistics-explained/SEPDF/cache/92378.pdf)). Ireland, the nearest proxy for GB, averages 2,833 HDD and has CDD close to 0.03 (same source). Italy's national HDD is roughly 1,800–2,000 and its CDD roughly 200–450 [unverified: the Eurostat series could not be retrieved]. *(Corrected 25 Oct, drafting pass: Eurostat gives HDD 1,678–2,025 and CDD 224–365 over 2020–2025; 2024 was HDD 1,678, CDD 365.)*
 - **Regional spread.** Hours of heating use vary widely: 10h25 a day on average in the North-East against 6h34 in the South ([ISTAT 2021](https://www.istat.it/it/files/2022/06/REPORT-CONSUMI-ENERGETICI-FAMIGLIE-2021-DEF.pdf)).
 - **Summer peak.** July 2026 set a monthly demand record of 32.5 TWh (+8.3% year on year). Peak demand was about 58 GW on 15 July, and the article credits air conditioning for the rise ([greenme/Terna](https://www.greenme.it/energia/record-di-consumi-elettrici-a-luglio-2026-in-italia-e-la-dipendenza-energetica-supera-il-75/)). Italy has a real summer electricity peak; GB's peak is in winter.
 
@@ -125,7 +125,7 @@
 
 **Typical consumption.**
 - ARERA's "typical customer" uses 2,700 kWh a year at 3 kW and 1,100 Smc of gas ([luce-gas.it](https://luce-gas.it/guida/glossario/cliente-domestico-tipo)).
-- 1,100 Smc is about 11,600 kWh [derived, at about 10.57 kWh/Smc]. That is close to the GB Ofgem gas TDCV of 11,500 kWh [unverified], and the electricity figure matches GB's 2,700 kWh.
+- 1,100 Smc is about 11,600 kWh [derived, at about 10.57 kWh/Smc]. That was close to the old GB Ofgem gas TDCV of 11,500 kWh [unverified], and the electricity figure matched GB's old 2,700 kWh. *(Corrected 25 Oct, second read: from 1 Jul 2026 Ofgem's TDCVs are 9,500 kWh gas and 2,500 kWh electricity, so Italy's typical customer now uses more than GB's on both fuels.)*
 - ARERA's vulnerable reference customer uses 2,000 kWh at 3 kW ([ARERA](https://www.arera.it/fileadmin/allegati/com_stampa/26/Comunicato_stampa_ARERA__I_numeri_della_Relazione_Annuale_2025.pdf)).
 
 **Tenure and building type.** Owner-occupation is about 70–75% and most people live in flats [unverified: the Eurostat check was blocked by the search limit]. A large share of the stock is pre-1976 [unverified].
@@ -193,7 +193,7 @@
 - 2024 domestic electricity: €35.70/kWh gross against 25.92 c€/kWh net [corrected: 35.70 c€/kWh gross], so taxes, charges and fees were about 9.8 c€/kWh, about 27% of the price [derived] ([ARERA 2025 release on 2024](https://www.arera.it/fileadmin/allegati/com_stampa/25/comunicato_stampa_I_NUMERI_DEI_SERVIZI_ENERGIA_E_AMBIENTE.pdf)).
 - 2025 domestic gas: taxes and charges were 3.75 of 13.71 c€/kWh, about 27% [derived] ([ARERA](https://www.arera.it/fileadmin/allegati/com_stampa/26/Comunicato_stampa_ARERA__I_numeri_della_Relazione_Annuale_2025.pdf)).
 - Domestic VAT is 10%. For gas, the 10% rate covers only the first 480 Smc a year and 22% applies above that [unverified].
-- GB charges 5% VAT [unverified].
+- GB charges 5% VAT [unverified]. *(Corrected 25 Oct, second read: domestic electricity is at 0% from 1 Oct 2026 to 31 Mar 2027; gas stays at 5%.)*
 
 ## 9. Settlement
 
@@ -205,7 +205,7 @@
 - Historically, households without hourly metering were settled using **load profiling by time band** (*load profiling per fasce*) [unverified].
 - 2G meters allow hourly or 15-minute treatment, but whether every low-voltage household is already settled on actual intervals is not confirmed [unverified].
 
-**Reconciliation.** Monthly settlement is followed by annual and multi-year adjustment sessions run by Terna and the SII [unverified].
+**Reconciliation.** Monthly settlement is followed by annual and multi-year adjustment sessions run by Terna and the SII [unverified]. *(Corrected 25 Oct, second read: ARERA names the mechanism the "sessione di conguaglio load profiling"; the multi-year calendar is still unconfirmed.)*
 
 **Contrast with GB.** GB is mid-way through moving everyone to half-hourly settlement (MHHS), with reconciliation runs out to about 14 months [unverified].
 
@@ -306,7 +306,7 @@
 - When a customer switches leaving arrears, the old supplier can have a "Corrispettivo CMOR" added to the new supplier's bill, under the TISIND rules.
 - It can be claimed only 6 to 12 months after the switch, after prior notice, and for at least €10 ([luce-gas TIMOE](https://luce-gas.it/guida/mercato/timoe)).
 - The scheme is the *Sistema Indennitario*, run by Acquirente Unico [unverified].
-- **This has no GB equivalent.** GB's debt-objection rule applies only to prepayment debt assignment.
+- **This has no GB equivalent.** GB has no charge that follows the customer to the new supplier. Under SLC 14 the losing supplier may object to a switch for debt more than 28 days old, on any meter type. Separately, the Debt Assignment Protocol lets a prepayment customer take a debt of up to £500 with them (corrected 25 Oct by the seat: the note had said the objection applies only to prepayment debt assignment; see switching_mechanics_2026-10-25.md).
 
 **Who funds bad debt.**
 - Mainly suppliers.
@@ -512,3 +512,41 @@ Per the director's steer of 25 Oct 07:52 GMT: each [unverified] item is confirme
   - **still open: not fetched in this pass (other-markets packs are the lowest verification priority)**
 
 **Counts:** confirmed 0, corrected 1, still open 42.
+
+## Second read: the advisor's verification pass, 25 Oct 2026
+
+The advisor checked the pack again against primary sources (`docs/staging/advisor/DIRECTOR_EVIDENCE_VERIFICATION_OF_THE_OTHER_MARKET_PACKS_2026-10-25.md`). Items are numbered in the order of the drafting-pass list above (1 = the tag legend, 43 = the search-limit line). Where the note's own primary read and the advisor differ, the note's read stands. GB typical consumption follows Ofgem's 1 Jul 2026 decision (2,500 kWh electricity, 9,500 kWh gas). Where the advisor confirmed only part of a bundled item, it stays still open.
+
+| # | Item | Prior | Advisor | Reconciled | Source |
+|---|---|---|---|---|---|
+| 4 | Italy HDD and CDD | corrected (Eurostat 2020–2025) | HDD needs file; CDD 365 (2024) confirmed (secondary) | corrected; the note read the file, and the advisor's CDD agrees | Eurostat nrg_chdd_a |
+| 5 | No nuclear since the 1987 referendum | open | confirmed | confirmed: referendum Nov 1987; last plants shut Jul 1990 | https://world-nuclear.org/information-library/country-profiles/countries-g-n/italy.aspx |
+| 6 | Seven bidding zones | open (GME page listed no zones) | confirmed | confirmed: GME zone list | https://storico.mercatoelettrico.org/En/Mercati/MercatoElettrico/Zone.aspx |
+| 7 | Capacity market plus MACSE | open | confirmed (MACSE only) | still open: first MACSE auction 30 Sep 2025 confirmed (secondary); the capacity market is not checked | https://www.teleborsa.it/AMP/News/2025/10/01/terna-conclusa-la-prima-asta-macse-assegnati-10-gwh-di-capacita-di-accumulo-di-energia-155.html |
+| 9 | e-distribuzione ~85% of points | open | confirmed (proxy) | still open: the proxy is 86.5% of kWh from the 11 largest DSOs, not e-distribuzione's share of points | https://www.arera.it/fileadmin/allegati/operatori/elettricita/241022_impreseEE.pdf |
+| 13 | 2017 reform: non-progressive, three-part tariff | open | confirmed | confirmed: TD tariff from 1 Jan 2017; fully non-progressive from 2018 | https://www.arera.it/schede-tecniche/dettaglio/it/schedetecniche/16/782-16st |
+| 14 | No time-of-use network element | open | confirmed (by absence) | confirmed (by absence on ARERA's fact sheet) | as item 13 |
+| 17 | GB gas TDCV 11,500; electricity "matches 2,700" | open | corrected | corrected: 9,500 / 2,500 kWh from 1 Jul 2026 | https://www.ofgem.gov.uk/sites/default/files/2026-06/Summary-of-changes-to-energy-price-cap-1-July-to-30-September-2026-revised-TDCV.pdf |
+| 18 | Owners 70–75%; mostly flats; pre-1976 stock | open | 75% owners confirmed (secondary); flats needs file; stock open | still open; needs file: Eurostat ilc_lvho01 | https://en.ilsole24ore.com/art/in-eu-countries-68-per-cent-of-households-live-at-home-AI82F8ZB |
+| 20 | Elenco Venditori rules | open | confirmed (qualitative) | confirmed (secondary): capital in proportion to volume, guarantees, good-standing tests; no amounts | https://luce-gas.it/fornitori/eve-elenco-venditori-elettricita |
+| 21 | First generation in the 2000s | open | confirmed | confirmed: Enel Telegestore 2001–2005, ~30m meters | https://www.enel.com/content/dam/enel-com/pressrelease/porting_pressrelease_IT/554779-1_PDF-1.pdf |
+| 22 | Readings routed through the SII | open | confirmed | confirmed | https://www.e-distribuzione.it/content/dam/e-distribuzione/documenti/open-meter/nuove-guide-open-meter/Una_Guida_su_cui_contare_Vademecum.pdf |
+| 23 | Two-year billing limit, Law 205/2017 | open | confirmed | confirmed (secondary): electricity from Mar 2018, gas from Jan 2019 | https://tariffe.segugio.it/news-tariffe/bollette-luce-e-gas-quando-vanno-in-prescrizione-00031986.aspx |
+| 24 | Payment mix | open | no prepayment confirmed; mix open | still open: the tag is on the payment mix | — |
+| 25 | VAT 10% on first 480 Smc, 22% above | open (404s) | confirmed | confirmed: 22% also on fixed charges; a temporary 5% ran Oct 2022–Dec 2023 | https://www.enel.it/content/dam/asset/documenti/assistenza/luce-gas/articoli/faq-bollette-enel-energia/Totale%20imposte.pdf |
+| 26 | GB 5% VAT | open | open (Spain pass: corrected) | corrected (secondary): 0% on domestic electricity 1 Oct 2026 to 31 Mar 2027; gas 5% | https://www.icaew.com/insights/tax-news/2026/sep-2026/vat-cut-on-domestic-electricity-bills-confirmed |
+| 27 | Non-hourly households settled by profile | open | confirmed (nuance) | confirmed: a profile from the Profilo Residuo di Area; settlement on hourly data from 1 Jan 2026 (ARERA 535/2024) | https://www.arera.it/fileadmin/allegati/docs/24/535-2024-R-eel.pdf |
+| 29 | "Annual and multi-year adjustment sessions" | open | corrected (terminology) | corrected: "sessione di conguaglio load profiling" | as item 27 |
+| 30 | GB MHHS; ~14-month reconciliation | open | open (other passes: confirmed) | confirmed: RF is 14 months now, 7 from 1 Apr 2027, 4 from 2 Jul 2027 | https://www.elexon.co.uk/bsc/article/new-settlement-timetable-reducing-from-14-months-to-seven-months-from-april-2027/ |
+| 33 | Gas hobs dominate; LPG common | open | confirmed | confirmed: hobs 75.5% mains gas, 17.6% LPG (2021); induction share not given | https://www.istat.it/it/files/2022/06/REPORT-CONSUMI-ENERGETICI-FAMIGLIE-2021-DEF.pdf |
+| 34 | Switching far above GB | open | open | still open: Italy's 20.8% / 18.8% confirmed; GB side not checked | ARERA Relazione Annuale 2025 |
+| 35 | 14-day cooling-off | open | confirmed | confirmed: since 13 Jun 2014 (ARERA 266/2014) | https://www.arera.it/comunicati-stampa/dettaglio/it/com-stampa/14/140611 |
+| 36 | Voltura / subentro / prima attivazione | open | confirmed (two of three) | still open: prima attivazione not covered | https://www.money.it/voltura-o-subentro-differenze-costi-e-tempi |
+| 37 | New occupant must contract actively | open | confirmed (subentro) | confirmed (secondary); a voltura takes over the existing contract | as item 36 |
+| 38 | Sistema Indennitario run by Acquirente Unico | open | confirmed (partly) | confirmed: run by the Gestore del SII (Acquirente Unico); covers the last 3 months, capped at about 2 months' billing. The €10 minimum was not found | https://arera.it/operatore-elettricita/faq-chiarimenti-sul-sistema-indennitario |
+| 41 | Salvaguardia is non-domestic | open | confirmed (secondary) | confirmed (secondary) | https://bolletta-energia.it/fornitore/enel/salvaguardia |
+| 42 | Table: cooking gas or LPG | open | confirmed | confirmed, as item 33 | as item 33 |
+
+No item disagrees with the note's own read. Items 1–3, 8, 10–12, 15, 16, 19, 28, 31, 32, 39, 40 and 43 stay still open; the advisor did not settle them either.
+
+**Counts: confirmed 17 · corrected 4 · still open 22.**

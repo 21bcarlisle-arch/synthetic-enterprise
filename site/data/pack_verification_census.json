@@ -1,15 +1,15 @@
 {
- "generated_at": "2026-10-25T21:43:55Z",
+ "generated_at": "2026-10-25T22:26:26Z",
  "source": "python3 -m tools.pack_verification_census --write",
  "steer": "docs/staging/advisor/DIRECTOR_STEER_VERIFY_THE_PACKS_UNVERIFIED_ITEMS_AS_YOU_DRAFT_2026-10-25.md",
  "unit": "flags: one [unverified] tag in a pack, legend sentences excluded; outcomes: the page's own last stated tally, summed",
  "total": {
   "items": 522,
-  "confirmed": 122,
+  "confirmed": 232,
   "partly_confirmed": 3,
-  "corrected": 47,
+  "corrected": 92,
   "unpublished": 4,
-  "open": 376,
+  "open": 227,
   "packs": 28,
   "drafted": 28,
   "no_tally": 0
@@ -604,44 +604,16 @@
    ]
   },
   {
-   "pack": "DIRECTOR_EVIDENCE_OTHER_MARKET_AUSTRALIA_VS_GB_2026-10-25.md",
-   "title": "Australia vs GB",
-   "scope": "other market",
-   "items": 65,
-   "confirmed": 0,
-   "partly_confirmed": 0,
-   "corrected": 0,
-   "unpublished": 0,
-   "open": 59,
-   "counted": 59,
-   "drafted": true,
-   "tally_recorded": true,
-   "pages": [
-    {
-     "note": "docs/market_research/other_market_australia_2026-10-25.md",
-     "knowledge": "other-market-australia",
-     "tally": {
-      "confirmed": 0,
-      "partly_confirmed": 0,
-      "corrected": 0,
-      "unpublished": 0,
-      "open": 59
-     },
-     "published": true
-    }
-   ]
-  },
-  {
    "pack": "DIRECTOR_EVIDENCE_OTHER_MARKET_GERMANY_VS_GB_2026-10-25.md",
    "title": "Germany vs GB",
    "scope": "other market",
    "items": 70,
-   "confirmed": 3,
+   "confirmed": 19,
    "partly_confirmed": 0,
-   "corrected": 3,
+   "corrected": 10,
    "unpublished": 0,
-   "open": 57,
-   "counted": 63,
+   "open": 35,
+   "counted": 64,
    "drafted": true,
    "tally_recorded": true,
    "pages": [
@@ -649,11 +621,39 @@
      "note": "docs/market_research/other_market_germany_2026-10-25.md",
      "knowledge": "other-market-germany",
      "tally": {
-      "confirmed": 3,
+      "confirmed": 19,
       "partly_confirmed": 0,
-      "corrected": 3,
+      "corrected": 10,
       "unpublished": 0,
-      "open": 57
+      "open": 35
+     },
+     "published": true
+    }
+   ]
+  },
+  {
+   "pack": "DIRECTOR_EVIDENCE_OTHER_MARKET_AUSTRALIA_VS_GB_2026-10-25.md",
+   "title": "Australia vs GB",
+   "scope": "other market",
+   "items": 65,
+   "confirmed": 19,
+   "partly_confirmed": 0,
+   "corrected": 8,
+   "unpublished": 0,
+   "open": 33,
+   "counted": 60,
+   "drafted": true,
+   "tally_recorded": true,
+   "pages": [
+    {
+     "note": "docs/market_research/other_market_australia_2026-10-25.md",
+     "knowledge": "other-market-australia",
+     "tally": {
+      "confirmed": 19,
+      "partly_confirmed": 0,
+      "corrected": 8,
+      "unpublished": 0,
+      "open": 33
      },
      "published": true
     }
@@ -664,12 +664,12 @@
    "title": "France vs GB",
    "scope": "other market",
    "items": 56,
-   "confirmed": 0,
+   "confirmed": 18,
    "partly_confirmed": 0,
-   "corrected": 0,
+   "corrected": 7,
    "unpublished": 0,
-   "open": 55,
-   "counted": 55,
+   "open": 29,
+   "counted": 54,
    "drafted": true,
    "tally_recorded": true,
    "pages": [
@@ -677,67 +677,11 @@
      "note": "docs/market_research/other_market_france_2026-10-25.md",
      "knowledge": "other-market-france",
      "tally": {
-      "confirmed": 0,
+      "confirmed": 18,
       "partly_confirmed": 0,
-      "corrected": 0,
+      "corrected": 7,
       "unpublished": 0,
-      "open": 55
-     },
-     "published": true
-    }
-   ]
-  },
-  {
-   "pack": "DIRECTOR_EVIDENCE_OTHER_MARKET_SPAIN_VS_GB_2026-10-25.md",
-   "title": "Spain vs GB",
-   "scope": "other market",
-   "items": 51,
-   "confirmed": 2,
-   "partly_confirmed": 0,
-   "corrected": 1,
-   "unpublished": 0,
-   "open": 44,
-   "counted": 47,
-   "drafted": true,
-   "tally_recorded": true,
-   "pages": [
-    {
-     "note": "docs/market_research/other_market_spain_2026-10-25.md",
-     "knowledge": "other-market-spain",
-     "tally": {
-      "confirmed": 2,
-      "partly_confirmed": 0,
-      "corrected": 1,
-      "unpublished": 0,
-      "open": 44
-     },
-     "published": true
-    }
-   ]
-  },
-  {
-   "pack": "DIRECTOR_EVIDENCE_OTHER_MARKET_ITALY_VS_GB_2026-10-25.md",
-   "title": "Italy vs GB",
-   "scope": "other market",
-   "items": 42,
-   "confirmed": 0,
-   "partly_confirmed": 0,
-   "corrected": 1,
-   "unpublished": 0,
-   "open": 42,
-   "counted": 43,
-   "drafted": true,
-   "tally_recorded": true,
-   "pages": [
-    {
-     "note": "docs/market_research/other_market_italy_2026-10-25.md",
-     "knowledge": "other-market-italy",
-     "tally": {
-      "confirmed": 0,
-      "partly_confirmed": 0,
-      "corrected": 1,
-      "unpublished": 0,
-      "open": 42
+      "open": 29
      },
      "published": true
     }
@@ -748,12 +692,12 @@
    "title": "Belgium vs GB",
    "scope": "other market",
    "items": 32,
-   "confirmed": 0,
+   "confirmed": 10,
    "partly_confirmed": 0,
-   "corrected": 3,
+   "corrected": 7,
    "unpublished": 0,
-   "open": 33,
-   "counted": 36,
+   "open": 22,
+   "counted": 39,
    "drafted": true,
    "tally_recorded": true,
    "pages": [
@@ -761,11 +705,39 @@
      "note": "docs/market_research/other_market_belgium_2026-10-25.md",
      "knowledge": "other-market-belgium",
      "tally": {
-      "confirmed": 0,
+      "confirmed": 10,
       "partly_confirmed": 0,
-      "corrected": 3,
+      "corrected": 7,
       "unpublished": 0,
-      "open": 33
+      "open": 22
+     },
+     "published": true
+    }
+   ]
+  },
+  {
+   "pack": "DIRECTOR_EVIDENCE_OTHER_MARKET_ITALY_VS_GB_2026-10-25.md",
+   "title": "Italy vs GB",
+   "scope": "other market",
+   "items": 42,
+   "confirmed": 17,
+   "partly_confirmed": 0,
+   "corrected": 4,
+   "unpublished": 0,
+   "open": 22,
+   "counted": 43,
+   "drafted": true,
+   "tally_recorded": true,
+   "pages": [
+    {
+     "note": "docs/market_research/other_market_italy_2026-10-25.md",
+     "knowledge": "other-market-italy",
+     "tally": {
+      "confirmed": 17,
+      "partly_confirmed": 0,
+      "corrected": 4,
+      "unpublished": 0,
+      "open": 22
      },
      "published": true
     }
@@ -776,11 +748,11 @@
    "title": "Japan vs GB",
    "scope": "other market",
    "items": 30,
-   "confirmed": 0,
+   "confirmed": 9,
    "partly_confirmed": 0,
-   "corrected": 0,
+   "corrected": 2,
    "unpublished": 0,
-   "open": 30,
+   "open": 19,
    "counted": 30,
    "drafted": true,
    "tally_recorded": true,
@@ -789,11 +761,39 @@
      "note": "docs/market_research/other_market_japan_2026-10-25.md",
      "knowledge": "other-market-japan",
      "tally": {
-      "confirmed": 0,
+      "confirmed": 9,
       "partly_confirmed": 0,
-      "corrected": 0,
+      "corrected": 2,
       "unpublished": 0,
-      "open": 30
+      "open": 19
+     },
+     "published": true
+    }
+   ]
+  },
+  {
+   "pack": "DIRECTOR_EVIDENCE_OTHER_MARKET_SPAIN_VS_GB_2026-10-25.md",
+   "title": "Spain vs GB",
+   "scope": "other market",
+   "items": 51,
+   "confirmed": 23,
+   "partly_confirmed": 0,
+   "corrected": 15,
+   "unpublished": 0,
+   "open": 11,
+   "counted": 49,
+   "drafted": true,
+   "tally_recorded": true,
+   "pages": [
+    {
+     "note": "docs/market_research/other_market_spain_2026-10-25.md",
+     "knowledge": "other-market-spain",
+     "tally": {
+      "confirmed": 23,
+      "partly_confirmed": 0,
+      "corrected": 15,
+      "unpublished": 0,
+      "open": 11
      },
      "published": true
     }
