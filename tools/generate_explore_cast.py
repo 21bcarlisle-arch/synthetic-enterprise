@@ -315,6 +315,26 @@ def _company_words(r: dict) -> str:
     return re.sub(r",? ?-*\s*SIM realized probability was [\d.]+%\.?", "", d).strip()
 
 
+_RENEWAL_RE = re.compile(
+    r"offer a (?P<pct>\d+)% discount \(cost GBP(?P<cost>[\d,.]+)\) against GBP(?P<risk>[\d,.]+) expected term "
+    r"margin at risk.*?framed as a (?P<frame>gain|loss)", re.S)
+
+
+def _renewal_words(r: dict) -> str:
+    """The retention record as a sentence a newcomer can read (site copy pack A1). The belief is the
+    stored one, to a decimal, because a rounded "100%" is not a belief a supplier can hold; a
+    record the template does not recognise falls back to the company's own words."""
+    m = _RENEWAL_RE.search(r.get("description") or "")
+    b = r.get("company_belief")
+    if not m or b is None:
+        return _company_words(r)
+    return ("The supplier put this household's chance of leaving at renewal at {} and offered {}% off, "
+            "costing {}, against {} of expected margin at risk over the new term. The offer was put as "
+            "{}. What the household did is the next moment.").format(
+        _fmt_level(b), m["pct"], "£{:,.0f}".format(float(m["cost"].replace(",", ""))), "£{:,.0f}".format(float(m["risk"].replace(",", ""))),
+        "a saving" if m["frame"] == "gain" else "a discount it would lose by leaving")
+
+
 def _truth(hh: dict, ev: dict, person: dict, iso: str) -> list[dict]:
     y = int(iso[:4])
     rows = []
@@ -405,7 +425,7 @@ def _template(hh, ev, iso, kind, rec):
         b, t = rec.get("company_belief"), rec.get("sim_truth")
         offered = rec.get("outcome") == "retained" or bool(re.search(r"\boffer", rec.get("description") or "", re.I))
         on_fix = any(e.get("type") == "renewed" and e["date"] < iso for e in ev["timeline"])
-        return ("The renewal decision", _company_words(rec),
+        return ("The renewal decision", _renewal_words(rec),
                 ("Your fixed tariff is ending. " if on_fix else "Your tariff is up for review. ")
                 + ("We have an offer for you." if offered else "Here are your options."),
                 "The simulation drew this household's real chance of leaving as {}.".format(_fmt_level(t)),
@@ -590,7 +610,9 @@ def _score_mover(hh, ev, person):
 MOVER_EMPTY_REASON = (
     "No household in this run can be shown moving. The published record carries no move-out event and "
     "no final-bill marker, and the new-occupant accounts (OCC-…) are not linked to the household they "
-    "replaced, so a rule cannot follow a move from one occupant to the next."
+    "replaced, so a rule cannot follow a move from one occupant to the next. What closes it: the "
+    "record now carries each move-out and final bill and names the household a new occupant replaced, "
+    "so the next published run is the first that can fill this slot."
 )
 
 
@@ -724,7 +746,9 @@ def _score_storage(hh, ev, person):
 
 STORAGE_EMPTY_REASON = (
     "No household in this run has a two-rate meter. Every bill in the published run is a single "
-    "'Anytime' register, so there is no profile class 2 home to show."
+    "'Anytime' register, so there is no profile class 2 home to show. What closes it: two-rate "
+    "meters are drawn when each home's own equipment is, which comes after the forward years in "
+    "the build order."
 )
 
 

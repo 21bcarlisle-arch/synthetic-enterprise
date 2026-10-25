@@ -150,7 +150,7 @@ a { color: var(--teal); }
    near miss. ---- */
 .cast { margin: 8px 0 34px; }
 .cast h2 { font-size: 19px; margin-bottom: 6px; }
-.cast .lede { color: var(--muted); font-size: 14px; max-width: 72ch; margin-bottom: 12px; }
+.cast .lede, .walk-lede { color: var(--muted); font-size: 14px; max-width: 72ch; margin-bottom: 12px; }
 .cast-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
 .cast-tabs button { background: var(--surface); color: var(--text); border: 1px solid var(--border);
   border-radius: 6px; padding: 7px 10px; font: inherit; font-size: 13px; cursor: pointer; text-align: left; }
@@ -217,29 +217,29 @@ a { color: var(--teal); }
 </nav>
 <main>
   <div class="intro">
-    <h1>Explore real households from the run</h1>
+    <h1>One household, three ways of seeing it</h1>
     <p class="purpose">
-      Below the cast, the page takes a single real account out of the simulated supplier's book and walks it
-      through six stages, from the day its tariff was priced to the day its worth was judged.
-      At each stage it shows two things side by side: what was true in the world, and what the
-      supplier actually knew at the time. Those are not the same, and the difference is the point.
+      Pick a household from the latest run and step through its life. Each moment is shown three
+      ways: what the customer saw on their bill, what the supplier believed on that date, and what
+      was really true in the simulated world. A real supplier only ever has the first two. The gap
+      between the second and third is what this project is built to close.
     </p>
   </div>
 
   <!-- THE CAST: one household per feature, three views of one moment. -->
   <section class="cast" id="cast" aria-labelledby="cast-h">
-    <h2 id="cast-h">Meet the households</h2>
-    <p class="lede">Each household below is a real account from the latest run, chosen by a stated
-      rule because its story shows one thing the supplier does. Step through its life and see each
-      moment three ways: what the customer saw, what the supplier held on that date, and what was
-      really true. If a rule finds no household, the slot says so: that is a finding about the
-      run, not a gap in the page.</p>
+    <h2 id="cast-h">One household per feature</h2>
+    <p class="lede">Each household below is chosen at publish by a stated rule, never by hand,
+      because its story shows one thing the supplier does. If a rule finds no household, the slot
+      says so and says what will fill it: that is a finding about the run, not a gap in the page.</p>
     <div class="cast-tabs" id="cast-tabs" role="tablist" aria-label="Households, one per feature"></div>
     <div id="cast-stage" aria-live="polite"><!--cast:static--><p class="stamp">Run of 19 Oct 2026 · 6 of 8 feature slots filled</p><ul class="static-cast"><li><strong>The switch-in</strong> · household PROS-2025-0022 · 28 Feb 2025: The first electricity bill: £85.79 for 298 kWh, on an actual read.</li><li><strong>The renewal</strong> · household SYN-2016-441 · 5 Oct 2018: Renewal window: company estimated 100% churn risk, decided to offer a 5% discount (cost £118.01) against £1,313.26 expected term margin at risk -- expected value of offering £1,195.25. Comms framed as a loss (you will lose the discount).</li><li><strong>The estimate trap</strong> · household OCC-49cf03d82fea · 31 Jan 2025: An actual read on 31 Jan 2025 corrects the estimates: £532.80 credited.</li><li><strong>The mover</strong> · empty: No household in this run can be shown moving. The published record carries no move-out event and no final-bill marker, and the new-occupant accounts (OCC-…) are not linked to the household they replaced, so a rule cannot follow a move from one occupant to the next.</li><li><strong>The debt journey</strong> · household PROS-2021-0362 · 27 Nov 2024: Debt placed with third-party debt collection agency</li><li><strong>The EV home</strong> · household PROS-2021-0219 · 9 Aug 2024: EV acquired: Usage moved +8% (avg 99 kWh/mo -&gt; 108 kWh/mo)</li><li><strong>Storage heating</strong> · empty: No household in this run has a two-rate meter. Every bill in the published run is a single &#x27;Anytime&#x27; register, so there is no profile class 2 home to show.</li><li><strong>The 2022 shock</strong> · household PROS-2017-0336 · 31 Jan 2023: The electricity bill for January 2023 was £1,402.76, against £440.53 a year earlier.</li></ul><!--/cast:static--></div>
     <p class="stamp" id="cast-stamp"></p>
   </section>
 
   <h2 class="walk-h" style="font-size:19px;margin:6px 0 4px;">One household, six stages</h2>
+  <p class="walk-lede">Or take any account in the book through six stages, from the day its tariff was
+    priced to the day its worth was judged, with what was true beside what the supplier knew.</p>
   <div class="opbar">
     <label for="cust">Account</label>
     <select id="cust"><option>loading…</option></select>
@@ -264,10 +264,11 @@ a { color: var(--teal); }
   <div class="stage" id="stage">Loading the book…</div>
 
   <div class="note" id="honest">
-    <strong>How big the book really is.</strong> <span id="bookcount">This</span> is the whole
-    customer book, not a sample of a larger one. A supplier with this few accounts is not a
-    realistic business, and nothing here pretends otherwise — these are a small number of real
-    simulated lives, followed properly, rather than a large number of invented ones.
+    <strong>Why a few hundred homes, not a few million.</strong> Every household here is a full
+    simulated life: its building's physics under its own local weather, its finances, its moves,
+    every half-hourly read and every bill. The book is sized so that each one can be followed end
+    to end and checked against the published record. It is a deliberate design choice, not a
+    limit. <span id="bookcount">This</span> is this run's whole book, not a sample of a larger one.
   </div>
 
   <div class="note" id="wall-legend">
@@ -1512,7 +1513,7 @@ fetch("../data/explore_carbon.json").then(function (r) { return r.json(); }).the
 
 fetch("../data/customers.json").then(function (r) { return r.json(); }).then(function (j) {
   IDX = j;
-  $("bookcount").textContent = "All " + j.customers.length + " households below";
+  $("bookcount").textContent = "The list above, all " + j.customers.length + " households,";
   $("cust").innerHTML = j.customers.map(function (c) {
     return '<option value="' + esc(c.customer_group) + '">' + esc(c.customer_group) + " — " +
       esc(c.segment) + ", " + (c.fuels || []).join(" + ") + ", since " + String(c.acquisition_date).slice(0, 4) + "</option>";

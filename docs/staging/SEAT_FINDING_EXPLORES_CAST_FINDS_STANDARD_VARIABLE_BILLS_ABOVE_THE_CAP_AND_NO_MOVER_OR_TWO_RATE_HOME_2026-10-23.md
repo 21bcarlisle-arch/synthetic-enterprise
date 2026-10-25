@@ -279,3 +279,42 @@ not carry it.
    none is owed and unrefunded, and none of the closure refunds goes to an account the ledger holds
    in debt or settled. I cannot predict the count. `a0ed2aa7b`'s 7 was a 60-founder run, and this
    book has 263 move-out rows.
+
+## The renewal slot's "100% churn risk" is a saturated belief of 0.999, not a clip (25 Oct, copy pack B3)
+### What the record says (read, not inferred)
+
+- SYN-2016-441's `retention_decision` of 5 Oct 2018 stores `company_belief: 0.999` against
+  `sim_truth: 0.0`. The "100%" is the ledger's `{:.0%}` format
+  (`company/analytics/decision_event_ledger.py:77`), not the stored value.
+- The belief **saturates**; nothing clips it. `MAX_CHURN_PROBABILITY = 1.0`
+  (`company/crm/churn_model.py:388`) and above `CHURN_SATURATION_ELBOW = 0.90` the score runs
+  through an asymptotic curve toward 1.0. A 0.999 is the curve far up its tail, i.e. a raw score
+  well past the elbow. `churn_desk` rounds to four places (`_ESTIMATE_DP`).
+- The published run holds only two retention-decision shapes besides this one (beliefs 0.448 and
+  0.385), so this household is the outlier the cast rule exists to find: the rule picks the
+  largest belief-truth gap.
+
+### Does it change the decision
+
+- **The tier: no.** `retention_discount_for_risk` (`company/policy/decision_policy.py:365`) takes
+  the first threshold the belief clears, so every belief above the top tier gets the same 5%.
+- **The value of offering: yes, in proportion.** The £1,313 "expected term margin at risk" scales
+  with the belief, so a saturated belief roughly doubles the case for a retention spend against a
+  ~50% one. It cannot flip the offer here (offer cost £118 against £1,313), but it does inflate the
+  published expected value (£1,195).
+
+### Not established (the next measurement)
+
+- Which input drove the raw score past the elbow in Oct 2018 for this household: a rate rise at
+  renewal, a bill-shock count, or the market-pressure multiplier. Read the renewal log row for
+  SYN-2016-441 on 2018-10-05 before calling the saturation wrong; a very large rate rise makes a
+  near-certain belief defensible, and the truth of 0.0 would then be the world's question.
+- Stale comment, same subject: `company/pricing/value_based_renewal.py:215` still says the cap is
+  0.95 and "five percent of the book is modelled as staying whatever they are charged". The
+  constant is 1.0 since the elbow change; the docstring's argument may no longer hold.
+
+### What landed with this finding
+
+The Explore renewal vignette now renders from a sentence template with the stored belief to one
+decimal (`tools/generate_explore_cast.py::_renewal_words`), so the page reads 99.9%, which is the
+supplier's belief, not a rounded certainty it never held.
