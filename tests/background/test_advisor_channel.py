@@ -247,3 +247,15 @@ def test_a_one_word_answer_with_its_time_is_his_quoted_voice(repo):
     assert verdicts["A_yes.md"].attribution == "quoted"
     assert verdicts["B_go.md"].attribution == "quoted"
     assert not verdicts["C_bare.md"].drawable
+
+
+def test_his_words_quoted_under_a_timed_lead_in_line_are_his_quoted_voice(repo):
+    """Defect (25 Oct): the comfort-and-carbon steer gave the time once, on `The director's words,
+    from chat on Sun 25 Oct, 06:30 GMT:`, and quoted his four messages on the bullets beneath. It was
+    refused as having no attribution. A timed lead-in with no quote under it stays refused."""
+    _write(repo, "A_lead.md", "The director's words, from chat on Sun 25 Oct, 06:30 GMT:\n\n"
+                              '- "And the thermostat and timer settings?"\n')
+    _write(repo, "C_lead_only.md", "Discussed at 06:30 GMT:\n\n- the thermostat, unquoted\n")
+    verdicts = {i.path.name: i for i in ac.scan(repo)}
+    assert verdicts["A_lead.md"].attribution == "quoted"
+    assert not verdicts["C_lead_only.md"].drawable

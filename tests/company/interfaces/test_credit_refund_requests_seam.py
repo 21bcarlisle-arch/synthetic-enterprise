@@ -189,32 +189,32 @@ def test_the_slc14_verdict_fires_both_ways(working_days, expect_breach):
 
 
 def _refund_population():
-    """Enough churned DD closures that BOTH verdicts appear in the log — the on-time
-    tail is ~10%, so a small sample lands on one arm only and would prove nothing."""
-    bills, churned = [], set()
+    """Enough closures in credit that BOTH verdicts appear in the log — the on-time
+    tail is ~10%, so a small sample lands on one arm only and would prove nothing. The
+    third item is the run's closing balances: each closes in credit on the ledger."""
+    bills, closing = [], {}
     for i in range(240):
         cid = f"CUST{i:04d}"
-        churned.add(cid)
+        closing[cid] = -round(5.0 + i % 17, 2)
         for m in range(24):
             year, month = 2020 + m // 12, m % 12 + 1
             last = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][month - 1]
             bills.append({
                 "customer_id": cid,
                 "period_end": f"{year:04d}-{month:02d}-{last:02d}",
-                # Falling spend leaves a positive DD-smoothing credit at closure.
                 "total_amount_gbp": round(120.0 - m * 2.5, 2),
                 "segment": "resi",
                 "commodity": "electricity",
             })
-    return bills, {b["customer_id"]: "resi" for b in bills}, churned
+    return bills, {b["customer_id"]: "resi" for b in bills}, closing
 
 
 def test_mutation_a_never_breaching_door_is_caught_in_the_published_log():
     """FAIL-SILENT proof. Force the verdict permanently False at the door and the
     world's published refund log must change — if it does not, the world is not really
     reading the company's compliance answer and the cut moved nothing."""
-    bills, segments, churned = _refund_population()
-    baseline = generate_credit_refund_log(bills, segments, churned)
+    bills, segments, closing = _refund_population()
+    baseline = generate_credit_refund_log(bills, segments, closing)
 
     assert baseline, "vacuity: no refund events at all in this population"
     breaches = sum(1 for r in baseline if r["breached_slc14_deadline"])
@@ -233,7 +233,7 @@ def test_mutation_a_never_breaching_door_is_caught_in_the_published_log():
         original = events.refund_on_account_closure
         try:
             events.refund_on_account_closure = mutant.refund_on_account_closure
-            mutated = generate_credit_refund_log(bills, segments, churned)
+            mutated = generate_credit_refund_log(bills, segments, closing)
         finally:
             events.refund_on_account_closure = original
 
@@ -241,4 +241,4 @@ def test_mutation_a_never_breaching_door_is_caught_in_the_published_log():
     assert mutated != baseline, (
         "the published SLC 14 log was unchanged by a door that never reports a breach"
     )
-    assert generate_credit_refund_log(bills, segments, churned) == baseline, "restoration failed"
+    assert generate_credit_refund_log(bills, segments, closing) == baseline, "restoration failed"

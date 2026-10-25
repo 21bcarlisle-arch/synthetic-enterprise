@@ -46,6 +46,11 @@ _DELEGATION_RE = re.compile(
 # R16/R17 ruling (24 Oct). Provenance, not quote length, is what guards his voice.
 _QUOTED_CHAT_RE = re.compile(
     r"\b[0-2]?\d:[0-5]\d\b[^\n\"“]*[\"“][^\"”\n]*\S[^\"”\n]*[\"”]")
+# Or the time on a lead-in line ending in a colon, his words quoted on the bullet under it:
+# `The director's words, from chat on Sun 25 Oct, 06:30 GMT:` then `- "And the thermostat..."`.
+# That form was refused as unattributed on 25 Oct while carrying four of his messages.
+_QUOTED_UNDER_LEAD_IN_RE = re.compile(
+    r"\b[0-2]?\d:[0-5]\d\b[^\n]*:[ \t]*\n[ \t]*\n?[ \t]*[-*][ \t]+[\"“][^\"”\n]*\S[^\"”\n]*[\"”]")
 
 
 ALLOWED_SIGNERS = REPO_ROOT / "tools" / "advisor_allowed_signers"
@@ -124,7 +129,7 @@ def attribution_of(text: str) -> tuple[str | None, str | None]:
     header = parse_severity_text(text)
     if not header.is_classified:
         return None, f"no staging header ({header.reason})"
-    if _QUOTED_CHAT_RE.search(text):
+    if _QUOTED_CHAT_RE.search(text) or _QUOTED_UNDER_LEAD_IN_RE.search(text):
         return "quoted", None
     if _DELEGATION_RE.search(text):
         return "delegation", None

@@ -931,13 +931,50 @@ no wall. Which debts then go to a DCA and when is not published per supplier: **
 4. *Named limit: the level direct debit's smoothing balance is not in it.* The engine reads a paid
    bill as paid exactly. A level DD that over- or under-collected against the bills sits in a second
    book, `simulation/dd_balance_book.py`, which already asks the final bill for its own closing
-   balance. The two are not summed until they are one ledger. So the credit count here is credit from
-   credit bills and overpaid repayments only, and understates what a DD leaver is owed.
+   balance. The two are not summed until they are one ledger (DD3). So the credit count here is credit
+   from credit bills and overpaid repayments only, and understates what a DD leaver is owed in a world
+   where households pay a level amount. In this run's world they do not: there is one payment truth,
+   and a paid bill is paid exactly.
 5. *Statute-barred debt is not in the balance.* A bill barred before close was written off on its own
    leg and is no longer recoverable, so it is not carried.
 
 **Gaps this adds.**
 - G8.12 Whether SLC 27's debt conduct rules bind a supplier pursuing a former customer.
+
+**The refund reads the same balance (amended 2026-10-25, before the build).** The rule: a credit on
+the final bill is refunded within 10 working days (GSoP reg 6D), and a credit is payments in excess of
+that contract's charges (SLC 27.16). So the refund and the closing balance are the same figure. The
+first printing showed they were not. `simulation/credit_refund_events.py` decided who was in credit
+from its own level-DD smoothing balance (the trailing mean of a DD payer's bills less each bill). At
+60 founders to 2020-12-31 it refunded 3 move-outs, none of them among the 7 the ledger closes in
+credit, and one of them (SYN-2016-052) owes £27.64 on the ledger. That balance was money no household
+had paid, because nobody in the run pays a level DD.
+
+The 7 ledger credits, named row by row: 2 are a negative final bill, a true-up on the closing read
+(−£37.92 and −£23.32). The other 5 are a credit bill from the middle of the account's life, which the
+walk sets only against arrears. With nothing in arrears it waited on the account until the move, for
+5 weeks to about 2½ years. That is probably a defect of its own, not a practice. A statement of account
+carries the balance forward (SLC 27.17), so a credit would ordinarily come off the next bill's amount
+due, and the household would pay that much less. In the walk, each later bill is paid in full beside
+the credit. Filed as
+`docs/staging/SEAT_FINDING_A_MID_LIFE_CREDIT_BILL_IS_NEVER_SET_AGAINST_THE_NEXT_CHARGE_2026-10-25.md`.
+Whatever happens to it in life, the credit is owed at closure.
+
+*Choices.*
+6. *The refund fires from `closing_balances`,* not from a balance of its own. A leaver the ledger holds
+   in credit is refunded that credit. A leaver it holds in debt, or settled, is not refunded. A leaver
+   it holds no balance for is not evaluated, because no balance is not a credit.
+7. *Every domestic leaver, whatever it paid by.* Reg 6D binds a domestic credit however it was paid.
+   Non-domestic accounts are outside the domestic Standards of Performance and are not graded.
+8. *Not DD3 first.* Posting a level DD's over-collection to the ledger needs the world to collect
+   level amounts first, and that is a payment-truth change. When DD3 lands, the refund reads it with no
+   further change here.
+9. *Graded both ways.* `move_out_final_bills` counts `owed_unrefunded` (a ledger credit with no
+   refund, which is a reg 6D breach the on-time count cannot see) and `refunded_not_owed` (a refund to
+   an account the ledger does not hold in credit).
+10. *Named limit: the refund is graded, not booked.* The refund log feeds no cash or P&L line. A credit
+    refunded is still not paid out of the company's cash, so the liability it discharges is not
+    reduced anywhere. That belongs with DD3.
 
 ---
 

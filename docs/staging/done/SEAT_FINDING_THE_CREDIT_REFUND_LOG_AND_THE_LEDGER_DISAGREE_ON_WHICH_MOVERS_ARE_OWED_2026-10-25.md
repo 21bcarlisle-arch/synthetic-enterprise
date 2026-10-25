@@ -33,3 +33,16 @@ and so moves cash, and it wants its own arm.
 **I cannot yet say** what makes the 7 ledger credits. The likely source is a negative final true-up
 bill on an actual closing read after an over-estimate. That is not established, and the next step is
 to name the credit rows that net each one.
+
+## Resolved 2026-10-25
+
+The refund log now fires from `closing_balances`, every domestic leaver whatever it paid by
+(`simulation/credit_refund_events.py`; knowledge `home_moves.md` §8.8a choices 6-10, amended before
+the build). `move_out_final_bills` grades reg 6D both ways (`owed_unrefunded`, `refunded_not_owed`).
+One-variable arm pair at 60 founders to 2020-12-31, seed 42: the 7 ledger credits are now exactly the
+7 refunded (one late), the refund to SYN-2016-052 is gone, and the rest of the run output is
+byte-identical (`docs/staging/records/SEAT_PREREG_THE_CREDIT_REFUND_FIRES_FROM_THE_LEDGERS_CLOSING_BALANCE_2026-10-25.md`).
+The rows behind the 7 are named: 2 negative final true-ups and 5 mid-life credit bills, the second a
+finding of its own (`SEAT_FINDING_A_MID_LIFE_CREDIT_BILL_IS_NEVER_SET_AGAINST_THE_NEXT_CHARGE_2026-10-25.md`).
+The build was written on the shared tree by an earlier holder of this claim and left unlanded; this
+landing carries those bytes unchanged.

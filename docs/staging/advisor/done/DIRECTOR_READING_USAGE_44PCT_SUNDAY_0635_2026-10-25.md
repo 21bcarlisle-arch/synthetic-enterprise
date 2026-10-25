@@ -17,3 +17,15 @@
 - Spend on work that doesn't go through the serial door: grading runs, probes, seed families, cold reads, and drafting the Knowledge pages from the 13 evidence packs staged today. Then land the drafts in batches.
 - The advisor is running a further six research passes now. They cover the attribute distributions for the personalised asset world asked for in this morning's asset steer: mileage, vehicles, roofs, heating behaviour, dated cost series, and closing the named gaps.
 - Don't start a large serial item just to burn the window. Monday's publish and the basics come first.
+
+## Done
+
+**Recorded (seat executor, 25 Oct ~08:00 GMT).** The reading is in `tools/tick_burn_rate.POINT_READINGS`
+as `("2026-10-25T06:35", 44.0)`. Clocks went back at 02:00 this morning, so GMT is UTC and the stamp
+needs no shift.
+
+**The pace.** The dial is already at its fastest setting: `normal` until 2026-10-26T03:00Z (set 23 Oct
+16:58Z). There is nothing faster to set, so nothing was changed. The underspend the reading
+predicts is real. The advice was to fill it with work that skips the serial door, and this turn did
+that: the credit-refund build (drafted by an earlier holder and left on the shared tree) was carried
+and landed in the same window. No large serial item was started to use up the window.

@@ -725,6 +725,22 @@ def test_every_final_bill_branch_can_be_taken():
     assert settled["debt"]["settled"] == 1 and settled["debt"]["no_balance"] == 1
 
 
+def test_reg_6d_is_graded_over_the_ledgers_credits_both_ways():
+    """Defect caught (2026-10-25): the refund log and the ledger disagreed on who was owed, and the
+    on-time count graded only the refunds the log recorded. Every leg of the cross-check is reached
+    on one fixture: an owed credit with no refund, a refund to a debtor, and a refund that matches."""
+    bills, moves, refunds = _move_fixture()
+    bills.append(_final("OWED", "2020-03-14"))
+    moves.append({"customer_id": "OWED", "commodity": "electricity", "move_date": "2020-03-15"})
+    out = move_out_final_bills(bills, moves, refunds,
+                               closing_balances={"ON": -12.0, "LATE": 40.0, "OWED": -5.0})
+    assert out["credit"]["owed_on_ledger"] == 2
+    assert out["credit"]["owed_unrefunded"] == 1   # OWED
+    assert out["credit"]["refunded_not_owed"] == 1  # LATE owes 40 and was refunded
+    clean = move_out_final_bills(*_move_fixture(), closing_balances={"ON": -12.0, "LATE": -1.0})
+    assert clean["credit"]["owed_unrefunded"] == 0 and clean["credit"]["refunded_not_owed"] == 0
+
+
 def test_a_final_bill_with_no_balance_on_record_is_counted_not_read_as_settled():
     out = move_out_final_bills(*_move_fixture(), closing_balances={"ON": -12.0})
     row = {r["account_id"]: r for r in out["accounts"]}
