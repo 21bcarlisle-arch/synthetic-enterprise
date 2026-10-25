@@ -152,9 +152,22 @@ the body.
 | 6c | i3 7.4-11 kW | still open | confirmed (partly) | still open: 11 kW on the 120Ah confirmed; 7.4 kW on earlier i3s not checked | https://ev-database.org/uk/car/1145/BMW-i3-120-Ah |
 | 6d | MG4/MG ZS about 6.6-7 kW | still open | still open | still open | – |
 | 7 | Most GB homes single-phase, capped ~7.4 kW | still open at primary | confirmed | **still open at primary.** The advisor's source is EV Database ("the practical limit is 7.4 kW"), a secondary source on the network fact; no DNO/ENA statement yet | https://ev-database.org/uk/car/1145/BMW-i3-120-Ah |
-| 8 | DfT VEH tables not retrieved | partly closed | needs file (VEH1104) | still open | – |
+| 8 | DfT VEH tables not retrieved | partly closed | needs file (VEH1104) | **partly closed** (files read 25 Oct). VEH1103a gives GB licensed cars by fuel at each year end. VEH1104 (by region, which carries the nation split) was fetched. VEH0141 make/model is still unread, so row 3b stays open | https://www.gov.uk/government/statistical-data-sets/vehicle-licensing-statistics-data-tables |
 
 No row where the reads reach opposite outcomes on the same evidence. Items 4 and 7 were confirmed by
 the advisor and are not promoted, for the reasons given.
 
-**Counts: confirmed 3 · corrected 1 · still open 8.**
+**Counts: confirmed 3 · corrected 1 · still open 8.** (Row 8 is narrower after 25 Oct but still counted open.)
+
+VEH1103a (published 23 Sep 2026, sha256 `8f734d45…e661a7aa`), GB, body type Cars, end of December. Shares of all
+licensed cars, private and company:
+
+| Year end | Cars (k) | Petrol | Diesel | Battery electric | Hybrid incl. plug-in |
+|---|---|---|---|---|---|
+| 2016 | 30,850 | 59.7% | 39.1% | 0.1% | 1.0% |
+| 2019 | 31,888 | 59.0% | 38.5% | 0.3% | 2.1% |
+| 2022 | 32,170 | 58.1% | 34.8% | 1.9% | 5.1% |
+| 2025 | 33,408 | 55.1% | 28.7% | 5.1% | 11.0% |
+
+Every year 2016–2025 was read. The years not shown fall between their neighbours. VEH1104 sha256 `5f1e59ec…9f67e59c`,
+held for the regional read.

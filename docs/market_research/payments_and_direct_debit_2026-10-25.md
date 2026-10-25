@@ -47,7 +47,8 @@ https://www.ofgem.gov.uk/sites/default/files/2022-06/Strengthening_fixed_DD_rule
 - Decision letter: https://www.ofgem.gov.uk/sites/default/files/2022-08/Decision%20letter%20DD%20rules.pdf
 - Licence notice: https://www.ofgem.gov.uk/sites/default/files/2022-08/Decision%20Standard%20Licence%20ELECTRICITY.pdf
 
-**Conflict to resolve.** In the extracted text of the licence notice, "all reasonable steps" still appears; strike-through formatting may have been lost in extraction. The consolidated licence on epr.ofgem.gov.uk should be checked for the current wording.
+**Settled 25 Oct 2026 (third read, below).** Ofgem's consolidated electricity supply SLCs ("Consolidated to 1 August 2025") give 27.15 as: "The licensee must ensure that the fixed amount of the regular direct debit payment is based on the best and most current information available (or which reasonably ought to be available) to the licensee, including information as to the quantity of electricity which the licensee reasonably estimates has been or will be supplied under the relevant Domestic Supply Contract." Both the Principal Term carve-out and "all reasonable steps" are gone, so the duty is absolute. Ofgem notes the consolidated copy is "not [a] formal Public Register document"; the gas licence was not read.
+https://www.ofgem.gov.uk/sites/default/files/2023-03/Electricity%20Supply%20Standard%20Consolidated%20Licence%20Conditions%20-%20Current.pdf
 
 **Consultation responses.** Two respondents asked for quarterly or "on-demand" reviews, and two proposed a 12-month minimal-balance requirement. Ofgem did not prescribe a review frequency in the licence.
 https://www.ofgem.gov.uk/sites/default/files/2022-08/Decision%20letter%20DD%20rules.pdf
@@ -234,8 +235,8 @@ https://assets.publishing.service.gov.uk/media/6942cb008f4636fa2c547df5/quarterl
 ## Named gaps
 
 1. **Consistent mix series for 2016–2025.** DESNZ QEP Table 2.4.1 holds the series, but only the March 2018 figures and the DD shares for 2023 and 2025 could be pulled from release text. Credit and PPM shares after 2018 still need the spreadsheet.
-2. **Current SLC 27.15 wording.** Whether "all reasonable steps" was finally removed needs checking against the consolidated licence.
-3. **SLC 27.16 or a refund-timing condition.** No primary text was retrieved.
+2. ~~Current SLC 27.15 wording.~~ Closed 25 Oct: "must ensure", with no "all reasonable steps" (§2).
+3. **Refund timing.** SLC 27.16 is now read (third read, below): credit is refunded "in a timely manner" on the customer's request, "save where it is fair and reasonable in all the circumstances" not to, with the reasons given. The licence names no number of days, so the timing stays a GAP.
 4. **Energy-sector DD failure rate, by ARUDD reason code.** Not published by Bacs, Pay.UK or Ofgem.
 5. **ADDACS cancellation and DDICA indemnity rates.** Not published.
 6. **DD review frequency across the industry** (annual, quarterly, smart-triggered). Ofgem lists the practices but gives no prevalence figures.
@@ -268,13 +269,22 @@ The first outcome table for this page. The seat had not checked its tagged items
 
 | Item | Prior outcome | Advisor | Reconciled | Source |
 |---|---|---|---|---|
-| Credit balance refunds under SLC 27.16 | tagged, unchecked | still open: the consolidated SLC PDFs truncated in fetch | **still open**, needs file: the consolidated SLC 27 text on Ofgem's licence register | https://www.ofgem.gov.uk/sites/default/files/2022-08/Decision%20Standard%20Licence%20ELECTRICITY.pdf |
+| Credit balance refunds under SLC 27.16 | tagged, unchecked | still open: the consolidated SLC PDFs truncated in fetch | **confirmed** (third read): on request, "in a timely manner", unless "fair and reasonable in all the circumstances" not to, with reasons given. No day count | https://www.ofgem.gov.uk/sites/default/files/2022-08/Decision%20Standard%20Licence%20ELECTRICITY.pdf |
 | BFY energy DD failure rate, 2.2% in 2024, up 27% | tagged, unchecked | confirmed as BFY's own claim ("BFY Group analysis of ONS and Ofgem data"; no method) | **confirmed** as BFY's claim, secondary. Not an official statistic; named gap 4 stands | https://www.bfygroup.co.uk/blog/why-is-energy-debt-still-going-up |
 | Why customers leave DD | tagged, unchecked | still open | **still open** | — |
-| SLC 27.15: was "all reasonable steps" removed in 2022? (new row; the page's own conflict) | open conflict | not tagged; the 2022 notice's new (underlined) 27.15 text still begins "The licensee must take all reasonable steps…"; only the Principal Term carve-out appears struck | **still open**, to check. Needs file: the consolidated SLC 27.15 | same Ofgem notice |
+| SLC 27.15: was "all reasonable steps" removed in 2022? (new row; the page's own conflict) | open conflict | not tagged; the 2022 notice's new (underlined) 27.15 text still begins "The licensee must take all reasonable steps…"; only the Principal Term carve-out appears struck | **settled** (third read): the consolidated 27.15 reads "must ensure". "All reasonable steps" is gone, so the body's account stands and the duty is absolute | Ofgem consolidated SLCs to 1 Aug 2025 |
 
-SLC 27.15: the advisor's read points against the body's account of the 2022 decision, which says the
-duty became absolute. That is not settled. Until the consolidated licence is read, nothing should
-treat 27.15 as an absolute duty.
+SLC 27.15: the advisor's read pointed against the body's account of the 2022 decision. The
+consolidated licence, read in the third read below, settles it the body's way: the duty is absolute.
+`company/billing/annual_consumption_estimate.py` and `dd_review.py` already quote the
+"must ensure" text, so no code changes.
 
-**Counts: confirmed 1 · corrected 0 · still open 3.**
+**Counts: confirmed 1 · corrected 0 · still open 3.** *After the third read: confirmed 3 · corrected 0 · still open 1 (why customers leave DD).*
+
+### Third read: the file fetched, 25 Oct 2026 (seat)
+
+The SLC rows were open because the consolidated PDF had been cut off in an earlier fetch. Here the whole file was fetched:
+`Electricity Supply Standard Consolidated Licence Conditions - Current.pdf`, 611 pages, "Consolidated to 1 August
+2025", sha256 `10e60a77…272ca08e`. pdftotext was used and SLC 27.13–27.17 was read in full. Two points stand:
+27.15 and 27.16 above, and 27.17 still says "take all reasonable steps" to send a final bill within 6 weeks.
+That qualifier stayed on 27.17 and went from 27.15.

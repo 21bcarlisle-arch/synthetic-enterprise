@@ -166,11 +166,19 @@ kept and the row is marked DISAGREES.
 | 7 | Small car ~4 mi/kWh, large SUV ~2.5 | still open | still open | still open | – |
 | 8 | 2022 PHEV share ~6.3% | still open | confirmed | **confirmed (secondary):** 6.3% of 1.614m (~102k), Fleet News reporting SMMT | https://www.fleetnews.co.uk/news/manufacturer-news/2023/01/05/2022-s-new-car-market-ends-2-down |
 | 9 | Diesel 55 mpg | still open | still open | still open | – |
-| 10 | Marginal CCGT 0.35-0.40; overnight below daily average | still open | confirmed (first part) | **still open.** NESO gives CCGT 394 g/kWh, but as an average-efficiency generation factor, not a marginal one; the overnight claim is untested | https://www.neso.energy/document/373951/download |
+| 10 | Marginal CCGT 0.35-0.40; overnight below daily average | still open | confirmed (first part) | **corrected** (files read 25 Oct). Overnight is confirmed: 00–07 UK-time average intensity sits below the year's mean by 10% in 2019, 5% in 2022 and 11% in 2024, and below the day's own mean on 76%, 63% and 68% of days. The 0.35–0.40 marginal factor is a short-run CCGT figure. DESNZ's appraisal long-run marginal factor (domestic, consumption-based) is lower in every run year: 0.34 (2016), 0.29 (2020), 0.26 (2022), 0.21 (2025) kg/kWh | https://www.neso.energy/document/373951/download |
 | 11 | GB confounders | still open | still open | still open | – |
 | 12 | VED £195 both, CO2-band differences | still open | corrected | **corrected (secondary):** £195 standard rate (2025) holds, but for cars registered from Apr 2017 CO2 sets only the first-year rate; there is no CO2-band difference after year one. Expensive-car supplement over £40k list. 2026/27 uprating not checked | https://www.westyorkshire.police.uk/ask-the-police/question/Q01278 |
 | 13 | DfT tracker figures | confirmed and updated | (not tagged) | **confirmed** | DfT EV tracker (section 2) |
 
 DISAGREES: rows 3, 5.
 
-**Counts: confirmed 5 · corrected 3 · still open 5.**
+**Counts: confirmed 5 · corrected 3 · still open 5.** *After the files read 25 Oct: confirmed 5 · corrected 4 · still open 4.*
+
+Files for row 10. The NESO Carbon Intensity API (`api.carbonintensity.org.uk/intensity/{from}/{to}`) was read in
+14-day pages for all of 2019, 2022 and 2024: 17,209, 17,466 and 17,534 half-hours with an `actual` value,
+converted to Europe/London time. Annual means were 214, 183 and 125 gCO2/kWh, and 16:00–19:00 ran 8–17% above them.
+This is an **average** intensity. The API publishes no marginal series, so "overnight charging is cleaner" holds
+on the average and is untested on the margin. The marginal factors are from the Green Book data tables 1–19, Table 1
+(sha256 `fe0175c5…1e773530`), which say long-run marginal factors are "for measuring small changes in consumption".
+Which factor a saving shown to a customer should use is a design choice (CO1) and is not settled here.

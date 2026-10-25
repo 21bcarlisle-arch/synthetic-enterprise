@@ -221,7 +221,7 @@ primary or credible named source; secondary sources are labelled.
 | 17 | MEES: minimum EPC E, £3,500 cap | confirmed | confirmed | **confirmed** | https://www.cambridge.gov.uk/minimum-energy-efficiency-standards-in-private-rented-accommodation |
 | 18 | EPC C by 2030 with a £10,000 cap | corrected | corrected (status) | **corrected. DISAGREES:** section 7 read the gov.uk landlord guidance (an aim, no £10k cap). The advisor reports it as confirmed policy since Jan 2026: EPC C by 1 Oct 2030, £10k cap, spend capped at 10% of value below £100k (Elmhurst, secondary). The guidance page may predate the decision; the gov.uk decision itself is not yet read | https://www.elmhurstenergy.co.uk/blog/2026/01/22/domestic-private-rented-properties-required-to-meet-epc-band-c-by-october-2030/ |
 | 19 | Private rented sector ~19% of English households | still open | confirmed | **confirmed:** 19% (EHS 2024-25) | https://www.gov.uk/government/statistics/chapters-for-english-housing-survey-2024-to-2025-headline-findings-on-demographics-and-household-resilience/introduction-and-key-findings |
-| 20 | ~1m+ housing transactions a year | still open | needs file | still open. needs file: HMRC MPT_Tab_Sep_26.ods (sum the last 12 months) | https://gov.uk/government/publications/monthly-property-transactions-completed-in-the-uk-with-value-40000-or-above/uk-monthly-property-transactions-commentary |
+| 20 | ~1m+ housing transactions a year | still open | needs file | **confirmed** (file read 25 Oct): 1,188,730 UK residential transactions Sep 2025–Aug 2026 (the last three months provisional). Calendar years 2016–2025 ran 1.02m (2023) to 1.48m (2021). Counts only transactions of £40k or more | https://gov.uk/government/publications/monthly-property-transactions-completed-in-the-uk-with-value-40000-or-above/uk-monthly-property-transactions-commentary |
 | 21 | EPC required at sale and let | still open | confirmed | **confirmed;** valid 10 years | https://gov.uk/buy-sell-your-home/energy-performance-certificates |
 | 22 | Home Energy Model replaces SAP ~2026 | still open | corrected | **corrected.** HEM replaces SAP for new-build Part L compliance (annex: "from 2025"); HEM for existing homes and EPCs has no date | https://gov.uk/government/consultations/reforms-to-the-energy-performance-of-buildings-regime/technical-annex-for-chapter-2-what-epcs-measure |
 | 23 | ~14,000 heat networks, ~0.5m consumers; Ofgem regulation from Jan 2026 | still open | confirmed (partly); confirmed | **still open** on the 0.5m consumers. 14,000 networks confirmed (secondary, CMS); regulation began 27 Jan 2026 (Ofgem) | https://cms.law/en/gbr/legal-updates/regulating-heat-networks-a-new-era ; https://www.ofgem.gov.uk/blog/countdown-launch-new-regulatory-rules-heat-networks |
@@ -232,4 +232,19 @@ primary or credible named source; secondary sources are labelled.
 DISAGREES: rows 1, 4, 12, 18. Open questions this read raises: whether ECO4's extension to
 31 Dec 2026 was confirmed, and the gov.uk decision text for EPC C by 2030.
 
-**Counts: confirmed 11 · corrected 7 · still open 8.**
+**Counts: confirmed 11 · corrected 7 · still open 8.** *After the files below: confirmed 12 · corrected 7 · still open 7.*
+
+### Files fetched, 25 Oct 2026 (seat)
+
+- **ECO4 end date: 31 December 2026, confirmed and in force.** DESNZ's government response ("Extending the ECO4
+  end date", updated 23 Jan 2026) says "ECO4 will end on 31 December 2026". It brings no new targets, no carry-over,
+  and GBIS still ends on 31 Mar 2026. The Electricity and Gas (Energy Company Obligation) (Amendment) (Specified Period)
+  Order 2026, SI 2026/361, was made on 25 Mar 2026. It substitutes "31st December 2026" for "31st March 2026" and
+  makes phase 4 "the twenty-one months ending with 31st December 2026". Elmhurst's March date was the original end date and the consultation's
+  starting point. The extension exists to finish and remediate work, and Birmingham CC reports no new applications
+  are funded in it.
+  https://www.gov.uk/government/consultations/extending-the-eco4-end-date/outcome/extending-the-eco4-end-date-government-response-html ;
+  https://www.legislation.gov.uk/uksi/2026/361/made
+- **Row 20, housing transactions.** HMRC `MPT_Tab_Sep_26.ods` (published 30 Sep 2026, sha256 `a076fd35…9d4f2147`),
+  sheet Residential_monthly, UK column, not seasonally adjusted. Summed by calendar year: 2016 1,235k · 2017 1,220k ·
+  2018 1,192k · 2019 1,177k · 2020 1,045k · 2021 1,476k · 2022 1,258k · 2023 1,019k · 2024 1,102k · 2025 1,214k.

@@ -261,9 +261,12 @@ pack 3). Rows follow the section 9 table.
 
 | # | Item | Section 9 | Advisor | Reconciled | Source |
 |---|---|---|---|---|---|
-| 1 | BL01 lookback "10 of the last 10 like-days" | still open | still open | still open. needs file: the full Elexon Baselining Methodology Document (the rule sits in §3.4.1, Step 1) | https://bscdocs.elexon.co.uk/category-3-documents/baselining-methodology-document |
+| 1 | BL01 lookback "10 of the last 10 like-days" | still open | still open | **corrected** (file read 25 Oct): BL01 Step 1 takes the eligible days in the 60-day window D–60 to D–1 (same Working/non-Working type, metered data present, not an Event Day, not a clock-change day). It uses the **ten most recent** for a Working Day (all of them if 5–9; below 5 the baseline defaults to out-turn) and the **four most recent** for a non-Working Day (below 4, out-turn). Step 3 adds an in-day additive adjustment: the mean gap between metered volume and the unadjusted baseline over the 3 hours to Gate Closure (6 periods), applied only where the BM Unit received an Acceptance | https://bscdocs.elexon.co.uk/category-3-documents/baselining-methodology-document |
 | 2 | Sustain → SU/PR, Secure → SAOU, Dynamic → VAOU, Restore → OU | still open | still open | still open, and now **contested**: an example tender row in an SSEN manual reads "Operational Utilisation + Variable Availability (Secure)", which puts Secure under VAOU, not SAOU. The section 2 table's "DNO long-term (SAOU)" label rests on this mapping. Next: ENA Open Networks product definitions, or ask SSEN | https://ssen.co.uk/globalassets/our-services/flexibility-services-document-library/slc31e-reports--statements/ssen-service-terms-aligned-to-fsa-manualv4.pdf |
 
 No disagreement between the reads.
 
-**Counts: confirmed 0 · corrected 0 · still open 2.**
+**Counts: confirmed 0 · corrected 0 · still open 2.** *After the file read 25 Oct: confirmed 0 · corrected 1 · still open 1.*
+The file: the BMD page body is in the page's own `__NEXT_DATA__` JSON, which is why it "renders only by script".
+Read 25 Oct from https://bscdocs.elexon.co.uk/category-3-documents/baselining-methodology-document, V3.0, effective
+07 Nov 2024, §3.4.1 Table 2 and §3.4.3.

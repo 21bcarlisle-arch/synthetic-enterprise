@@ -210,7 +210,7 @@ pass 2 §4). Where §11 had a primary source, §11's read stands.
 | 2016 petrol about 110p | confirmed (DESNZ weekly CSV) | confirmed (RAC: 111.79p petrol, 112.41p diesel, end July 2016) | **confirmed** | https://www.mynewsdesk.com/uk/rac/pressreleases/july-brings-an-end-to-four-months-of-rising-fuel-prices-1504393 |
 | Ofgem cap models reachable as xlsx | still open | still open: the rates page links no xlsx | **still open** | https://www.ofgem.gov.uk/information-consumers/energy-advice-households/energy-price-cap-unit-rates-and-standing-charges |
 | Earlier EVHS caps £500 / £700 | still open | corrected: £900 (Sep 2014), £700 (13 Apr 2015), then £500, then £350 (1 Apr 2020) | **corrected** (secondary; date of the £500 cut not found). Body §6 corrected | https://www.zapmap.com/news/olev-to-reduce-cap-on-ev-homecharge-grants-from-13-april-2015 ; https://www.whatcar.com/advice/owning/electric-vehicle-home-charging-scheme-changes-in-2022-what-do-i-need-to-know/n23628 |
-| Green Book tables 4-8 are the retail ones | still open | needs file: one xlsx of tables 1 to 19, revised 17 Apr 2023 | **still open**, needs file: "Data tables 1 to 19" xlsx | https://www.gov.uk/government/publications/valuation-of-energy-use-and-greenhouse-gas-emissions-for-appraisal |
+| Green Book tables 4-8 are the retail ones | still open | needs file: one xlsx of tables 1 to 19, revised 17 Apr 2023 | **confirmed** (file read 25 Oct): sheet "Tables 4-8: Retail prices", with Table 4 electricity, 5 gas, 6 coal, 7 oil and 8 road fuel, all real 2022 p/kWh or p/litre. The live file is the 30 Nov 2023 revision, not the 17 Apr 2023 one | https://www.gov.uk/government/publications/valuation-of-energy-use-and-greenhouse-gas-emissions-for-appraisal |
 | Batteries in ESM relief from Feb 2024 | confirmed (HMRC 708/6) | confirmed (SI 2024/24; also water-source heat pumps, diverters, groundworks) | **confirmed** | https://legislation.gov.uk/uksi/2024/24/pdfs/uksiem_20240024_en_001.pdf |
 | Half-hourly intensity "20-300+" | corrected: 24 to 293 in 2025 | still open: the API was blocked | **corrected**, DISAGREES | api.carbonintensity.org.uk |
 
@@ -219,4 +219,6 @@ of 2025 from it, so the primary read stands.
 
 The tally below is §11's, moved for this read: the EVHS caps go from still open to corrected.
 
-**Counts: confirmed 15 · corrected 3 · still open 3.**
+**Counts: confirmed 15 · corrected 3 · still open 3.** *After the file read 25 Oct: confirmed 16 · corrected 3 · still open 2.*
+The file: gov.uk `data-tables-1-19.xlsx`, sha256 `fe0175c5…1e773530`. Its Table 1 also carries the long-run
+marginal electricity factors, which `ev_charging_and_the_saving_against_petrol_and_diesel_2026-10-25.md` row 10 uses.
