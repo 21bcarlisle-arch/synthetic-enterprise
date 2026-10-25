@@ -1,4 +1,4 @@
-**Severity:** LATENT · **Lane:** B_commercial · **Epoch:** 4 · **Atom:** `B13_a_dual_fuel_household_is_one_account_across_both_fuels`
+**Severity:** BLOCKING · **Lane:** B_commercial · **Epoch:** 4 · **Atom:** `B13_a_dual_fuel_household_is_one_account_across_both_fuels`
 
 # The basics landed on 25 Oct are graded on one fresh default-book run
 
@@ -87,3 +87,56 @@ held at about 60%: the run gets past 2020-10-12 without this refusal, which woul
 cause. The mechanism I suspect is a departure objected to on one leg of a dual household but not
 the other, which leaves the account's legs out of step. If the same refusal fires at the same
 account and date, the cause is c5a3e96fe alone.
+
+**Result of the one-variable run (job `longjob-basics-default-book-1dda242d0e-objection-off`,
+`SE_DEBT_OBJECTION=0`, confirmed in the unit's environment): refuted.** The same refusal fires on
+the same account on the same day:
+
+```
+DunningOfAClearedDebtError: ACC-SYN-2016-048 reminder_2 on 2020-10-12 with the ledger at GBP 0.0 (cured None)
+```
+
+So EP12 is not the cause. The guess was about 60%, and it was wrong.
+
+**The cause, by elimination: c5a3e96fe.** Three code commits are new since `e623c3354a` across
+`simulation/`, `company/`, `saas/` and `background/live_payment_triad.py`:
+
+- 43ef011072 (EP12): now ruled out.
+- f8c389e9ca: flips a policy default that E6's completed arm already ran with, so it is not the
+  cause. One difference remains: that arm also had the crisis overlay on. That is the remote
+  alternative, since provision does not post to the ledger.
+- c5a3e96fe: what remains.
+
+The invariant predates every one of them (`e2fd1bc15c`, 4 Oct). c5a3e96fe's own runs stopped at
+2017-12-31, so no full window ever ran it. The seat's second-seed E6 arm carries c5a3e96fe without
+EP12 and ran past mid-2022 on seed 61101. So the defect depends on the seed. It is not universal.
+
+**Suspected mechanism, not yet read on the account.** c5a3e96fe makes two changes:
+
+1. It re-keys the early cure from `(account, due date)` to `invoice_ref`, which is per leg.
+2. It walks one account to `min(previous_due of this leg, the walk bound)`.
+
+SYN-2016-048's electricity leg starts a one-year term on 2020-02-07, and its gas leg prints no
+term after 2020-02-07. A balance cleared by one leg's cash would then never register as a cure on
+the journey that the other leg's overdue bill opened. That journey goes on dunning a ledger at
+GBP 0.00.
+
+**Consequences.**
+
+- No default-book full run can finish at origin today.
+- The basics grade has nothing to read. Legs (a)-(f) are **ungraded**, and no map row moves on
+  this finding. B13, W2_41, EP12, E6 and D48 keep their levels.
+- If the weekly published run is a default-book full run, it will stop at the same point. That is
+  why this finding is BLOCKING.
+
+**Next, in order.**
+
+1. Read ACC-SYN-2016-048's journey and ledger between 2020-02 and 2020-10. Read them in-process on
+   a run stopped just before the refusal, not by eye from the log.
+2. Fix the mechanism as a class. A cure is the account's ledger reaching zero, not one invoice's
+   payment. Add a control that reproduces the two-leg shape, and give it a mutant.
+3. Relaunch `/var/tmp/basics-run-scripts/arm.py` at the fix's origin commit, and grade it with
+   `/var/tmp/basics-run-scripts/grade.py` against the predictions above, unedited.
+
+If the fix cannot land quickly, the reversible alternative is to revert c5a3e96fe. That restores
+the two-journey defect it closed, so it is the second choice.
