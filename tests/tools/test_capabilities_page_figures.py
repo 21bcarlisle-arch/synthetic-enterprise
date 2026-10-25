@@ -41,7 +41,7 @@ def test_every_branch_of_the_column_is_taken_and_counts_come_from_the_entries():
     assert "5 functions: 3 live &middot; 1 building &middot; 1 planned" in out
     assert "Now &middot; 3" in out and "Next &middot; 2" in out
     assert out.count("<summary") == 5 and out.count("</details>") == 5
-    assert "5 tests · 1 of 2 parts" in out and ">3 tests<" in out
+    assert "5 tests · 1 of 2 parts tested" in out and ">3 tests<" in out
     assert "The tests cover 1 of the 2 pieces" in out and out.count("The tests cover") == 1
     assert out.count("no test cited") == 3
     assert out.count("see the record") == 1

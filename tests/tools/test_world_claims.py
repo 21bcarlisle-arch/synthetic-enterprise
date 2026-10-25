@@ -92,3 +92,26 @@ def test_every_route_is_a_route_drawn_book_can_assemble():
     assert {r for (r, _) in wc.KNOWN_ROUTE_GAPS} <= set(wc.ROUTES)
     with pytest.raises(ValueError):
         wc.drawn_book(seeds=wc.SEEDS[:1], route="no_such_route")
+
+
+def test_the_index_count_states_both_a_held_count_and_a_failed_draw(tmp_path, book):
+    """Site copy pack A4: the Knowledge index shows how many claims there are and how many hold.
+    Red if the count is not this publish's (a red claim must lower the held figure), or if a draw
+    that could not run leaves a number on the page instead of saying so."""
+    page = tmp_path / "index.html"
+    page.write_text("<li>bite. <!--claims:count-->stale<!--/claims:count--></li>", encoding="utf-8")
+    results = wc.check(book)
+    results[0] = {**results[0], "verdict": "GAP"}
+    assert wc.write_index_count(results, "1 Jan 2030", page)
+    text = page.read_text(encoding="utf-8")
+    assert f"<b>{len(results)}</b> claims" in text and f"<b>{len(results) - 1}</b> of them held" in text
+    assert "stale" not in text
+    wc.write_index_count(None, "2 Jan 2030", page)
+    text = page.read_text(encoding="utf-8")
+    assert "could not be checked" in text and "<b>" not in text
+    assert not wc.write_index_count(results, "x", tmp_path / "missing.html")
+
+
+def test_the_published_index_carries_the_count_markers():
+    """Red if the markers leave the page: the publish would then rewrite nothing, silently."""
+    assert wc._COUNT_SPAN.search(wc.INDEX_PAGE.read_text(encoding="utf-8"))

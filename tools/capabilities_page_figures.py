@@ -54,7 +54,7 @@ def _badge(e):
         return "no test cited"
     badge = "{} tests".format(c["checks"])
     if c["covered"] < c["of"]:
-        badge += " · {} of {} parts".format(c["covered"], c["of"])
+        badge += " · {} of {} parts tested".format(c["covered"], c["of"])
     return badge
 
 
