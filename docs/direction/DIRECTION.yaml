@@ -1,125 +1,112 @@
 version: 1
-oriented_at: '2026-10-25T12:23:34.652602+00:00'
-thesis_read: 'Flat on the thesis, and the steer drifted. Nothing this stretch changed what the supplier decides
-  or knows. The commit split is supplier 0, world 0, both 1 and other 8, and 2 of the 9 changed nothing. The one
-  supplier-touching build, E6''s arrears overlay term (d127468fd), is default off with its switch-on rule filed
-  before any arm, which is the right order but not yet a result. The result that matters is C30''s three-seed grade
-  (2e14c5ce0). The letter plus re-fix loses to the flat rule on every book (-GBP 5,851, -9,919, -4,865), and the
-  re-fix keeps 4, 0 and 1 households. That is the baseline beating a per-customer act, and it says the inference
-  is not yet good enough to earn its cost. But -GBP 2.7k on seed 61102 moves with no customer, so part of the loss
-  may be booking rather than judgement. Placing it comes before any further per-customer move (item 2). The rest
-  of the stretch was knowledge. 24 Knowledge pages from the 25 Oct packs reached origin (7fb1aabcc, 2d33139a4),
-  with their unverified items checked at source, and the map steer''s report priced the forward knowledge plan (fde0f7f0f).
-  That is K8 being honoured, not capability. The steer itself is drifting. Of last stretch''s five focus items,
-  two were drawn: C30''s verdict, now landed and retired, and the Monday run, held by the seat executor but not
-  computing. B13, W2_41 and the settlement re-measure were never drawn, while the advisor channel''s rung zero took
-  the lanes. They are carried in the same order. The risk with a clock on it is Monday''s publish at 2026-10-26T04:00Z.
-  The sim runner has deferred every cycle for six hours, the Monday run''s queued launch logged one HELD line and
-  left no unit, and the site would show 19 Oct figures, which carry every cap defect already fixed, for another
-  week. That is item 1. Two seat records in a row (06:21Z and 09:20Z) never reached origin. Origin''s direction
-  is still 03:21Z, so this record takes the director''s concern list from origin, which carries two rows the shared
-  tree had dropped.'
+oriented_at: '2026-10-25T15:22:08.151032+00:00'
+thesis_read: 'The basics improved and the thesis did not move. This stretch made the supplier''s bills right on
+  the production book, and that is a precondition for the thesis rather than progress on it. Monday''s run at b2bc3d8da5
+  graded clean (294c5286f). 0 of 24,663 default-tariff invoices are over the ceiling, the EPG carved equals booked,
+  and every in-credit move-out was refunded. It is run_output_latest, and a timer offers it to Monday''s 04:05Z
+  publish, so the site will stop showing 19 Oct figures that carry every cap defect already fixed. The same grade
+  found a new company defect: 10 of the 100 refunds were paid after the 10 working days that GSoP reg 6D allows.
+  That is item 1. C30''s residue is placed (f667c576e). The -GBP 2,678 on 61102 is two customers leaving on a fixed-renewal
+  route the exit table never read, and nothing is mis-booked. My last record said part of C30''s loss ''may be booking
+  rather than judgement''. That is refuted: the loss is judgement. The flat rule still beats the letter plus re-fix
+  on all three books, and per-customer inference has not yet earned its cost anywhere it has been graded. That is
+  the thesis''s honest state. The commit split is supplier 1 (085f89e42, VAT dated to its rule), world 1 (dac6b90d7,
+  the mid-life credit), other 18. 5 of the 20 commits changed nothing. Most of the other 13 were the site copy pack
+  and the 25 Oct knowledge packs, which reached done. Supplier-first is not being met. Of last stretch''s five focus
+  items, three were drawn. Monday''s run and C30''s residue are retired, and the settlement re-measure is computing
+  now (pid 4161471). B13 and W2_41 were not drawn, for the fourth stretch in W2_41''s case. Naming them by atom
+  id does not reach the draw, so the steer itself is what is drifting. This record hands both to Lane 0 under plain
+  keys. Both of last stretch''s seat errors that could be fixed are fixed: origin carries the 12:23Z record, and
+  the published run carries the billing fixes.'
 stretch_reviewed:
-  since: '2026-10-25T09:20:45.892471+00:00'
-  commits: 9
-  substantive: 6
+  since: '2026-10-25T12:23:34.652602+00:00'
+  commits: 20
+  substantive: 8
 focus:
-- id: mondays-publish-reads-a-run-that-carries-the-billing-fixes
-  what: 'This is the queued continuation of the same id, and the seat executor (pid 2358144) holds it
-    now. Bind to that holder; do not build a second. First re-ask the live state: is a longjob-mondays-run
-    unit loaded, queued or running? If none is, launch one with background.launch_long_job. Launch from
-    /var/tmp/se-mondays-run-6475cdad14, advanced to origin/main HEAD after the mid-life credit landing
-    (surgical_land pid 2284512) ends, so that the run also carries that fix. Use --wait-for-pid 2284512
-    rather than leaving it to the landings-first queue, and set a follow deadline before 02:00Z. When
-    it finishes, point run_output_latest at it, run tools/grade_svt_invoices_over_ceiling.py on it, and
-    record the over-ceiling count and the credit-refund count in docs/staging/SEAT_FINDING_EXPLORES_CAST_FINDS_STANDARD_VARIABLE_BILLS_ABOVE_THE_CAP_AND_NO_MOVER_OR_TWO_RATE_HOME_2026-10-23.md.
-    If the run cannot finish by 04:00Z, write that in the finding, so the publish''s grade-before-publish
-    refusal (339495a44) names it.'
-  why: The site still shows 19 Oct figures. Every cap, EPG and refund fix is graded clean in side runs,
-    and none is in a published run. The runner has run nothing for six hours, and the one launch made
-    for this logged a single HELD line and left no unit loaded. Done means run_output_latest is a run
-    at a commit carrying 063dc4bbd, 33dd50527, 9bb30c4de and a0ed2aa7b before 2026-10-26T04:00Z, and its
-    grade is in the finding.
-  lane: H_harness
-  side: other
-  written_at: 1792931357.124
-- id: c30-refix-unattributed-cost-61102
-  what: 'This is the queued continuation of the same id: draw it, do not build a second. Read B minus
-    C on seed 61102 month by month from /var/tmp/c30-seeds-out/at-9bb30c4de5/. If the artefacts lack a
-    monthly series, run one instrumented re-run. Place the -GBP 2,678 that the re-fix costs with no customer
-    retained: name the ledger line, the month, and whether a per-customer act or an accounting route moves
-    it. If it is an accounting route, file it as a finding against D48 and re-state C30''s three-seed
-    verdict (2e14c5ce0) net of it in both pre-registration records.'
-  why: C30 is the first per-customer act graded against the flat rule across book seeds, and it lost on
-    all three (-GBP 5,851, -9,919, -4,865). On 61102 almost half the loss moves with no customer. If that
-    is a booking defect, it contaminates every per-customer-against-flat comparison the thesis is judged
-    on. Done means the -GBP 2,678 is attributed in the records and the continuation is retired with --landed.
-  lane: C_customer_ops
+- id: closure-refunds-meet-gsop-reg-6d
+  what: Read the 10 closure refunds flagged breached_slc14_deadline in docs/reports/run_output_b2bc3d8da5_20261025T1230Z.json
+    (credit_refund_log), and name for each the final-bill issue date, the refund date and the route between
+    them. Decide from that whether the lag is the company's refund path (company/billing/credit_refund.py)
+    or how simulation/credit_refund_events.py dates the final bill. Fix the route so that a refund is
+    paid within 10 working days of the final bill's issue, or of a corrected final bill. Where reg 6D's
+    guaranteed-standard compensation is owed on a late one, book it, with the amount taken from docs/market_research/home_moves.md
+    section 8.8 or the GSoP text, never picked. Relabel 'SLC 14' to GSoP reg 6D in both files, as home_moves.md's
+    24 Oct correction asks. File the finding with the counts, and test that a late refund can occur and
+    is then compensated.
+  why: It is a guaranteed standard on the basics the director ruled first (home moves, refunds), found
+    by the grade of the run about to be published, and it costs real customers money in the world we are
+    modelling. Done means the cause is named in a finding, the fix lands with its test, and a re-grade
+    on a run carrying it shows 0 late refunds, or every late one carrying its compensation.
+  lane: D_billing_metering
   side: supplier
-  written_at: 1792931357.124
-- id: B13_a_dual_fuel_household_is_one_account_across_both_fuels
-  what: Take B13 to L1, as its map row defines it. Write one test that walks the run's dual-fuel households
-    through bill, credit offset, move-out and switch together, and asserts that each sees one account
-    and one balance across both fuels. Include the mid-life credit offset that is landing now. Repair
-    the row's rotted path pointer in the same commit. Where the run splits a dual-fuel household into
-    two accounts, record the count and the route in a finding rather than patching around it.
-  why: Dual fuel is one of the basics in the director's 24 Oct ruling, and no test asks it. A per-fuel
-    split would corrupt every balance, refund and credit offset the billing fixes have just made right.
-    It was in focus last stretch and was never drawn. Done means B13 is at level 1 on the map with its
-    test named as the control.
+  written_at: 1792942043.793
+- id: b13-dual-fuel-household-one-account-test
+  what: Take B13_a_dual_fuel_household_is_one_account_across_both_fuels to L1. Write tests/simulation/test_a_dual_fuel_household_is_one_account_across_both_fuels.py
+    so that it walks the dual-fuel households of a short simulation/run_phase2b.py run through a bill,
+    a mid-life credit offset (dac6b90d7), a move-out and a switch, and asserts one account, one direct
+    debit and one move per household across both fuels. A closing credit stays per fuel contract, as SLC
+    27.16 defines it (home_moves.md), so assert the account balance as the sum of the two. Where the run
+    splits a household into two accounts, record the count and the route in a finding rather than patching
+    around it. Move B13's map row to level 1, naming the test.
+  why: Dual fuel is one of the ruled basics, and no test asks it. A per-fuel split would corrupt every
+    balance, refund and credit offset that the billing fixes have just made right. It has been named three
+    times by atom id and never drawn, so it now goes through Lane 0. Done means B13 reads level 1 on the
+    map with this test as its control.
+  lane: B_commercial
   side: supplier
-  written_at: 1792931357.124
-- id: the-settlement-ceiling-is-re-measured-at-todays-code
-  what: 'Close docs/staging/SEAT_FINDING_THE_SETTLEMENT_CEILING_JOURNAL_LEG_HAS_ARMED_AND_THE_7700_BUDGET_OUTRUNS_THE_PRODUCTION_PEAK_2026-10-25.md
-    by its exit (1). Re-measure the memory curve at today''s code, by the method its 20 Oct pre-registration
-    names, and let SETTLEMENT_CUSTOMER_YEAR_BUDGET follow the measurement. Do not raise a tolerance or
-    skip the leg. Then land the one-line ''5-7x'' correction to docs/market_research/bad_debt_provisioning.md
-    that the finding says is held behind it. Do not run the measurement while the Monday run is computing:
-    they compete for the same memory.'
-  why: 'The finding is BLOCKING, and it holds every commit, in every lane, that selects tests/simulation/test_net_new_acquisition.py:
-    7,430 customer-years supported against 7,700 asked. It was in focus last stretch and was never drawn.
-    Done means the test is green on a measured ceiling and the finding is in done/.'
-  lane: A_strategy_governance
-  side: other
-  written_at: 1792931357.124
-- id: W2_41_a_household_cancels_its_mandate_as_its_own_act
-  what: 'Build W2_41 to L1. K8 first: amend docs/market_research/dd_failure_basis_and_live_arrears_provision_rates.md
-    with what Bacs publishes on ADDACS reason code 1 (instruction cancelled by payer) and on the payer-cancelled
-    share against failed collections, and write GAP wherever nothing is published. The 25 Oct payments
-    page (997cfc67e) may already hold it. Then make simulation/bacs_rails.py carry a payer cancellation
-    as its own event: an ADDACS record reaches the supplier the next working day, before any collection
-    fails. Any rate comes from the page, or stays None with a named reason. Test that a cancellation can
-    be drawn, and that it crosses only as an ADDACS record.'
-  why: Payment is first in the ruled basics order. It has been named three times and drawn never. Done
-    means W2_41 is at level 1 with the knowledge page cited in the build commit.
+  written_at: 1792942043.793
+- id: w2-41-a-household-cancels-its-mandate
+  what: 'Build W2_41_a_household_cancels_its_mandate_as_its_own_act to L1. K8 first: read docs/market_research/payments_and_direct_debit_2026-10-25.md
+    and amend docs/market_research/dd_failure_basis_and_live_arrears_provision_rates.md with what Bacs
+    publishes on ADDACS reason 1 (instruction cancelled by payer), and with the payer-cancelled share
+    against failed collections, writing GAP where nothing is published. Then make simulation/bacs_rails.py
+    draw a payer cancellation as its own event, which reaches the supplier as an ADDACS record the next
+    working day, before any collection fails. Any rate comes from the page, or stays None with a named
+    reason. Test it in tests/simulation/test_a_household_cancels_its_mandate_as_its_own_act.py: a cancellation
+    can be drawn, and it crosses the seam only as an ADDACS record.'
+  why: Payment is first in the ruled basics order. It has been named four times and drawn never, so it
+    now goes through Lane 0. Done means W2_41 reads level 1 on the map, and the knowledge page is cited
+    in the build commit.
+  lane: W2_customer_generator
   side: world
-  unblocks: the supplier's handling of a lost mandate in company/billing/dd_collections_desk.py (re-mandate
+  unblocks: the supplier's handling of a lost mandate in company/billing/dd_collections_desk.py (a re-mandate
     or a change of payment method before arrears build), which today is graded against a world that never
     cancels
-  written_at: 1792931357.124
+  written_at: 1792942043.793
+- id: a-continuation-is-re-asked-before-it-is-offered
+  what: 'In background/seat_continuation.py live(), before offering a row, re-ask its premise. If an origin
+    commit since the row was written names its id, or names its NEXT, or a live surgical_land''s -m names
+    it, mark the row premise_spent with that sha or pid and do not offer it. Test it on this stretch''s
+    own instance: knowledge-pack-verification-census, still offered after 4566ce348 landed its per-pack
+    counts. A second test must show a row with no such commit is still offered, so the guard cannot pass
+    by refusing everything.'
+  why: 'Triaged as fix in wrong_triage.yaml and listed 30 times. It bit again this stretch: a second census
+    of the same Knowledge index is gating while its continuation is still offered. Each bite costs a tick''s
+    window and risks a second build. Done means wrong_triage.yaml''s row moves to already_fixed with the
+    commit, and the row leaves this record''s wrong list.'
+  lane: H_harness
+  side: other
+  written_at: 1792942043.793
 not_now:
-- what: Separate focus rows for the eight live continuations, among them the mid-life credit, the site copy pack,
-    the three dated-rule fidelity fixes, other markets, the pack verification census and closing the 25 Oct steers.
+- what: 'Separate focus rows for the four live continuations: the settlement-ceiling re-measure (computing, pid
+    4161471), the held-run offer at the weekly window, the site copy pack''s publish and cold read, and the pack
+    verification census.'
   why: Continuations are drawn before focus, and restating them under new ids is the duplicate-draw shape of the
-    first wrong row. Only C30's residue is restated, under its own id, because it bears on the thesis comparison.
-    The mid-life credit is mid-landing (pid 2284512).
-- what: Working the remaining 25 Oct evidence packs and steers (about 20 still in the shared tree's docs/staging/advisor/)
-    as focus.
-  why: Rung zero already draws them ahead of focus, and they took 8 of this stretch's 9 commits. They are knowledge,
-    not supplier capability. Adding them to focus would starve the supplier items further.
-- what: Switching C30's letter, or any per-customer act, on or off on the strength of the three-seed loss.
-  why: It is off and stays off under its pre-registered rule. Until the -GBP 2.7k that moves with no customer is
-    placed, the size of the loss is not trusted, so the next per-customer move waits on item 2.
-- what: Making a policy carry the corrected renewal belief (0.806 in-run AUC, still off).
-  why: The 24 Oct ruling puts the basics ahead of levers, and the clean-book grade still straddles zero on departures.
-- what: Building the premise re-ask in background/seat_continuation.py, and a guard against in-place edits to advisor
-    files.
-  why: 'Both are real machine defects with owners, but Monday''s publish deadline and the C30 attribution are worth
-    more in the next 16 hours. The cheaper defence is used again: a focus row takes its continuation''s own id.'
-- what: Reaping the b12, se-budgetpay, se-map-steer-land and se-om2 worktrees that hold commits on no remote ref.
-  why: se-om2 and se-map-steer-land are today's salvages from landings that later succeeded under other commits,
-    and the rest are locked by their owners. Reaping risks evidence for no supplier result. close-the-25-oct-steers
-    can confirm the two fresh ones are disposable.
+    first wrong row. The settlement re-measure is already being worked by the seat executor.
+- what: Making a policy carry the corrected renewal belief, or switching C30's letter on, now that the 61102 residue
+    has been shown to be judgement and not booking.
+  why: The placed residue confirms the loss rather than shrinking it, so nothing new argues for switching on. The
+    24 Oct ruling puts the basics ahead of levers, and items 1 and 2 are basics.
+- what: A gate that writes a run-complete marker for a hand-launched long job, so that a finished run always has
+    a grader.
+  why: It bit once this stretch and was caught within 72 minutes by hand. The premise re-ask (item 4) bites more
+    often and costs more each time, and only one machine item fits beside three basics.
+- what: Guarding docs/staging/advisor/ against in-place edits.
+  why: This stretch's edits went only to done/ files, which the channel does not read, so nothing was refused. A
+    guard on the live directory waits for the next live instance.
+- what: Reaping the worktrees whose commits no remote ref keeps (b12-*, se-budgetpay-land, se-om2, se-ceiling-probe-20261025).
+  why: se-ceiling-probe-20261025 is the live settlement probe's. se-om2's work landed as 4566ce348, and the rest
+    are locked by their owners. Reaping buys no supplier result and risks evidence.
 wrong:
 - what: 'THE MACHINE''S, THIS STRETCH. The continuation the-budget-second-seed-grade-after-the-unit-driver is still
     queued for 18:20, but b8045dd4e graded the second seed at 17:17. A queued continuation is not re-asked when
@@ -222,7 +209,11 @@ wrong:
     is still offered, but b2bc3d8da moved six of those steers to done at 11:57Z, so most of its premise is spent.
     And the draw''s PREMISE CHECK told the Monday-run holder that its four cited commits are already on origin,
     which reads as spent, when those commits are the run''s precondition and not its result. The check cannot tell
-    the two halves apart. Nothing re-asks a premise another lane spends first, so it is not fixed.'
+    the two halves apart. Nothing re-asks a premise another lane spends first, so it is not fixed. 15:22: Live again.
+    4566ce348 (14:53Z) landed the per-pack counts of confirmed, corrected and open items that knowledge-pack-verification-census
+    asks for, yet that continuation is still offered, and surgical_land pid 158784 is now landing a second per-pack
+    census on the same Knowledge index. I have not read whether it adds to 4566ce348 or repeats it. Focus item 4
+    builds the re-ask. Not fixed.'
   corrected: false
 - what: 'THE COMPANY''S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards. On
     268 desk states from 2019 it reads AUC 0.333, and its mean is 0.193 on end-of-fix rolls, where 40 of 92 households
@@ -278,7 +269,9 @@ wrong:
     The ruling puts the basics ahead of levers, so it is not in focus. 09:20: Unchanged. No policy carries the corrected
     belief, so the live renewal belief still ranks leavers backwards. The ruling puts the basics ahead of levers,
     so it is not in focus. 12:23: Unchanged. No policy carries the corrected belief, so the live renewal belief
-    still ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus.'
+    still ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus. 15:22: Unchanged.
+    No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The ruling
+    puts the basics ahead of levers, so it is not in focus.'
   corrected: false
 - what: 'THE COMPANY''S, THIS STRETCH. Explore''s cast rules (83c4fc9d6) found 4,764 of 14,012 pre-renewal invoices
     on the 19 Oct run (199 of 550 households) more than 0.5% above min(cap, EPG), and a November 2022 bill at exactly
@@ -335,7 +328,11 @@ wrong:
     Focus item 1. The finding stays BLOCKING. 12:23: Not closed. No full run at a commit carrying the fixes has
     computed. The seat executor (pid 2358144) holds the Monday run and staged /var/tmp/se-mondays-run-6475cdad14
     at 11:47Z. Its queued launch logged one HELD line (''landings come before experiments''), and no longjob unit
-    for it is loaded. Focus item 1. The finding stays BLOCKING.'
+    for it is loaded. Focus item 1. The finding stays BLOCKING. 15:22: Fixed on the production run, not yet published.
+    294c5286f graded Monday''s run at b2bc3d8da5: 0 of 24,663 default-tariff invoices over min(cap, EPG), GBP 200,459.54
+    carved equals booked, 0 negative estimates, 0 overlapping term legs. It is run_output_latest, and a one-shot
+    timer at 2026-10-26T04:05Z offers it to the weekly publish (continuation a-held-run-is-offered-again-when-the-weekly-window-opens).
+    The finding stays BLOCKING until the published site carries it.'
   corrected: false
 - what: 'THE MACHINE''S, THIS STRETCH. A finished long job lost its grader. The E6 crisis-overlay finding hands
     grading to the-crisis-overlay-arm-on-the-default-book-is-graded three times (13:15, 21:21 BST), but that id
@@ -353,7 +350,10 @@ wrong:
     line is in the queue, so the class is not fixed. 12:23: The C30 instance closed: 2e14c5ce0 graded grade.txt,
     and the continuation retired at 10:29Z. Its open residue, -GBP 2.7k on 61102 that moves with no customer, has
     a route (c30-refix-unattributed-cost-61102). No new instance was seen. Nothing checks that a handoff named in
-    a finding or a NEXT line is in the queue, so the class is not fixed.'
+    a finding or a NEXT line is in the queue, so the class is not fixed. 15:22: Live again in a fourth shape. Monday''s
+    hand-launched run finished at 13:32Z, and nothing graded or promoted it, because a hand launch writes no run-complete
+    marker. 294c5286f found and graded it 72 minutes later by hand. Nothing checks that a finished long job has
+    a reader, so the class is not fixed.'
   corrected: false
 - what: 'THE MACHINE''S, THIS STRETCH. The run Monday''s publish would read today lacks the billing fixes. The newest
     full run, run_output_904a091f7b_20261025T031613Z (finished about 04:20Z), predates 063dc4bbd, 33dd50527 and
@@ -365,8 +365,10 @@ wrong:
     also lacks a0ed2aa7b. Focus item 1 stops waiting on the runner. 12:23: Still no run. The runner deferred every
     cycle from 09:21Z to 12:26Z: first for the mid-life credit landing (surgical_land pid 2284512, 47m and still
     gating), then because four imported files in the shared tree are not origin''s. 15h37m remain before 04:00Z.
-    Focus item 1.'
-  corrected: false
+    Focus item 1. 15:22: Fixed. 294c5286f made run_output_latest the run at b2bc3d8da5, which carries 063dc4bbd,
+    33dd50527, 9bb30c4de and a0ed2aa7b, and graded it clean. It does not carry dac6b90d7 (the mid-life credit),
+    which landed after it.'
+  corrected: true
 - what: 'THE SEAT''S, THIS STRETCH. My 06:21Z record never reached origin. Its commit adeded2e0 is still in /var/tmp/se-direction-seat,
     and is not an ancestor of origin/main. e93b88849 (06:27Z, the forward-years ruling) landed DIRECTION.yaml from
     the 03:21Z record, so origin''s direction is three hours older than the one the shared tree served to the draw.
@@ -374,18 +376,32 @@ wrong:
     Origin''s oriented_at is still 03:21Z. The 09:20Z record (09ecf26cc) is stranded in /var/tmp/se-direction-seat
     too, so two consecutive seat records never reached origin. 970f388c3 changed DIRECTION.yaml on origin at 09:28Z
     and carried neither. The shared tree''s copy also lacked two open director rows that origin holds. This record
-    takes its concern list from origin. Not fixed until origin''s oriented_at matches this record.'
-  corrected: false
+    takes its concern list from origin. Not fixed until origin''s oriented_at matches this record. 15:22: Fixed.
+    4a4a858c0 landed the 12:23Z record, and origin''s oriented_at reads 2026-10-25T12:23:34Z, the same as the shared
+    tree''s copy.'
+  corrected: true
 - what: 'THE SEAT''S, THIS STRETCH. Three of my five focus items were never drawn: B13, W2_41 and the settlement-ceiling
     re-measure. W2_41 was named by atom id this time and still not drawn (5 unchanged draws). The advisor channel''s
     rung zero took the lanes, so 8 of 9 commits were ''other'' and none was supplier-only. Naming an item in focus
     does not get it worked while rung zero is full. This record carries all three again in the same order, and puts
-    the advisor residue in not_now so that it is not queued a second time.'
+    the advisor residue in not_now so that it is not queued a second time. 15:22: Half better. The settlement-ceiling
+    re-measure was drawn and is computing (tools.settlement_ceiling_probe, pid 4161471, budgets 7700 and 8400),
+    and Monday''s run and C30''s residue were both drawn and retired. B13 and W2_41 were not drawn again: four stretches
+    in a row for W2_41. An atom id in focus only biases the draw, and the draw is not taking them. This record names
+    both under Lane 0 keys with their lanes, so a worker tick is handed them directly.'
   corrected: false
 - what: 'THE MACHINE''S, THIS STRETCH. Four advisor files were edited in place by a lane (b2bc3d8da, 2ada25833,
     d86d8749c), so the advisor channel now refuses them as unsigned, though the advisor''s own staging commits verify.
     A worker recording ''what has landed'' inside an advisor file breaks that file''s signature chain. Its notes
-    belong in the ## Done move or in a seat file. Not fixed: nothing stops an in-place edit to docs/staging/advisor/.'
+    belong in the ## Done move or in a seat file. Not fixed: nothing stops an in-place edit to docs/staging/advisor/.
+    15:22: No refusal followed this stretch. ff77e6057 and 4566ce348 appended Done sections to advisor files, but
+    only to files already in docs/staging/advisor/done/, which the channel does not scan (scan() on origin offers
+    0 files). Nothing stops an in-place edit to a live advisor file, so it is not fixed.'
+  corrected: false
+- what: THE COMPANY'S, THIS STRETCH. 10 of the 100 in-credit move-outs on Monday's run (b2bc3d8da5) were refunded
+    13 to 24 working days after the final bill. GSoP 2015 reg 6D (SI 2019/218) requires a refund within 10 working
+    days of the final bill, and docs/market_research/home_moves.md already records that. They are flagged breached_slc14_deadline,
+    which is the wrong locus, as home_moves.md's 24 Oct correction says. The cause is not named. Focus item 1.
   corrected: false
 for_the_director:
 - id: c34-now-ranks-next-best-action-on
