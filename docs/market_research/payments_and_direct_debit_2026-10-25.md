@@ -2,6 +2,8 @@
 
 # Payments and direct debit at a GB domestic energy supplier
 
+*Drafted from the advisor's evidence pack `docs/staging/advisor/done/DIRECTOR_EVIDENCE_PAYMENTS_AND_DIRECT_DEBIT_2026-10-25.md`; the text below is the pack as written.*
+
 *Evidence pack, compiled 25 October 2026. Every claim has a source URL. Figures I derived myself are marked **[derived]**. Anything from memory or from a secondary source is marked **[unverified]**.*
 
 ---

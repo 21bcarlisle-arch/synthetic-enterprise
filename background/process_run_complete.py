@@ -5183,6 +5183,19 @@ def _generate_dashboard_json(json_path, git_hash="unknown"):
     except Exception as exc:
         log("Knowledge review generation failed: {}".format(exc))
     try:
+        # The director's verify steer of 25 Oct: per-pack counts of [unverified] items confirmed,
+        # corrected and still open, rendered on the Knowledge index. Recounted at each publish so
+        # a pack drafted or checked since the last one moves the table without anyone remembering.
+        from tools import pack_verification_census as _pvc_mod
+        _pvc = _pvc_mod.build()
+        if _pvc_mod.write(_pvc):
+            log("Generated {} -- {open} of {items} pack items still to check".format(
+                _pvc_mod.OUT, **_pvc["total"]))
+        else:
+            log("Pack verification census found no packs; the previous feed stays live")
+    except Exception as exc:
+        log("Pack verification census failed: {}".format(exc))
+    try:
         # G13: the proof-of-caller for the projection store. G12 built the store on 2026-08-11
         # and NOTHING READ IT for eight days -- the "design with no caller" the founding
         # instruction was written to end, reproduced by the very atom meant to prevent it.

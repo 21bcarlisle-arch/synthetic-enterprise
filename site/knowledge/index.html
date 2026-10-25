@@ -57,6 +57,9 @@ a.card:hover { border-color: var(--teal); }
 .brief li { margin: 3px 0; }
 .themes-nav { font-size: 13px; margin-bottom: 8px; }
 .themes-nav a { color: var(--blue); text-decoration: none; }
+.census { border-collapse: collapse; font-size: 12px; margin: 6px 0 14px; }
+.census th, .census td { text-align: left; padding: 3px 10px 3px 0; border-bottom: 1px solid var(--border); }
+.census td.n { text-align: right; font-variant-numeric: tabular-nums; }
 footer { max-width: 860px; margin: 0 auto; padding: 24px 20px 40px; font-size: 11px; color: var(--muted); }
 
 /* Mobile pass. Added 2026-08-20: these pages had no breakpoint at all -- the control that
@@ -597,6 +600,19 @@ footer { max-width: 860px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
     The short codes beside it name the items in the project's build plan (called
     <em>atoms</em> internally) that build the mechanism the page describes.
   </p>
+
+  <div class="sec">How much of the 25 October research has been checked</div>
+  <p class="muted" style="margin-bottom:8px;">
+    On 25 October the research adviser wrote evidence packs for pages still to be written. Its
+    searches ran out partway, so many figures in the packs carry a flag saying they are not yet
+    checked. Each flag is checked against its primary source when its pack becomes a page, and
+    ends one of three ways: confirmed, corrected, or not published anywhere. The table counts
+    flags, not figures, because one flag can cover a short list. The outcomes are each page's own
+    count, written by whoever checked it and added up here. A page may split one flag into
+    several figures, so its count need not match its pack's flags.
+  </p>
+  <p id="census-total"></p>
+  <div id="census-table"></div>
 </div>
 <script>
 // THE REVIEW RULE, mirrored from site/knowledge/review_state.py -- byte-identical to the
@@ -668,6 +684,47 @@ function renderAtoms(feed){
     if (el) { el.textContent = atomsLine(topics[i]); }
   }
 }
+
+// THE 25 OCT PACKS' CHECK COUNTS, from site/data/pack_verification_census.json
+// (tools/pack_verification_census.py). Fail-closed: an unreadable census says so rather than
+// leaving an empty table that reads as nothing outstanding.
+function esc(s){ return String(s).replace(/[&<>"]/g, function (c) {
+  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
+function renderCensus(c){
+  var t = c.total;
+  document.getElementById("census-total").textContent =
+    "Counted " + String(c.generated_at).slice(0, 10) + ": " + t.packs + " packs carrying " + t.items +
+    " flags, " + t.drafted + " of them written up as a page. " +
+    (t.no_tally ? t.no_tally + " of those pages state no count, so all their flags are shown as still open. " : "") +
+    "The pages' counts: " + t.confirmed + " confirmed and " + t.partly_confirmed + " partly confirmed, " +
+    t.corrected + " corrected, " + t.unpublished + " found not to be published, and " + t.open + " still open.";
+  var rows = ['<div class="table-scroll"><table class="census"><tr><th>Pack</th><th>Covers</th><th>Page</th>' +
+    "<th>Flags in the pack</th><th>Confirmed</th><th>Corrected</th><th>Not published</th><th>Still open</th></tr>"];
+  for (var i = 0; i < c.packs.length; i++) {
+    var r = c.packs[i];
+    var page = "Not written";
+    for (var j = 0; j < r.pages.length; j++) {
+      if (r.pages[j].published) { page = "<a href=\"./" + esc(r.pages[j].knowledge) + "/\">Read</a>"; break; }
+      page = "Drafted";
+    }
+    var cells = r.tally_recorded
+      ? "<td class=\"n\">" + r.confirmed + (r.partly_confirmed ? " + " + r.partly_confirmed + " partly" : "") +
+        "</td><td class=\"n\">" + r.corrected + "</td><td class=\"n\">" + r.unpublished +
+        "</td><td class=\"n\">" + r.open + "</td>"
+      : "<td colspan=\"3\">The page states no count</td><td class=\"n\">" + r.open + "</td>";
+    rows.push("<tr><td>" + esc(r.title) + "</td><td>" + esc(r.scope) + "</td><td>" + page +
+      "</td><td class=\"n\">" + r.items + "</td>" + cells + "</tr>");
+  }
+  rows.push("</table></div>");
+  document.getElementById("census-table").innerHTML = rows.join("");
+}
+fetch("../data/pack_verification_census.json?t=" + Date.now())
+  .then(function (r) { return r.json(); })
+  .then(renderCensus)
+  .catch(function () {
+    document.getElementById("census-total").textContent =
+      "The check counts could not be loaded, so this section cannot say how much has been checked.";
+  });
 
 // FAIL-CLOSED. An unreadable feed leaves every badge EMPTY and says so. It must never
 // leave the cards looking checked -- an unavailable check is a failed check (R15), and
