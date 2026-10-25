@@ -33,7 +33,11 @@ substance of a pull" both modules refused.
 from __future__ import annotations
 
 from company.billing.back_billing import barred_at_charge_recovery
-from company.billing.billing_accuracy import billing_accuracy_summary, direct_debit_money_line
+from company.billing.billing_accuracy import (
+    billing_accuracy_summary,
+    direct_debit_money_line,
+    move_out_final_bills,
+)
 from company.billing.monthly_bill_assembly import (
     ReadArrival,
     ReadArrivalFeed,
@@ -80,5 +84,5 @@ def owed_after_scheme_credit(amount: float, segment: str, commodity: str, month:
 __all__ = [
     "ReadArrival", "ReadArrivalFeed", "assemble_monthly_bills", "barred_at_charge_recovery",
     "billing_accuracy", "direct_debit_money_line", "held_bills", "issued_bills",
-    "owed_after_scheme_credit",
+    "move_out_final_bills", "owed_after_scheme_credit",
 ]

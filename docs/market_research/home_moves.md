@@ -892,10 +892,52 @@ closing read, is not published: **GAP** (G8.9).
 4. *The credit is graded in working days from the final bill's issue* (reg 6D), against 10.
 5. *The debt left on the final bill is `None`, with its reason,* until the run publishes each closed
    account's balance at its final bill. The published report has no such field, and a debt guessed
-   from the bill's face value would count every paid bill as owed.
+   from the bill's face value would count every paid bill as owed. **Superseded 2026-10-25 by
+   §8.8a:** the run now publishes that balance.
 6. *The incoming occupier's account names the account it succeeded* at the same meter point. A real
    supplier knows this: a new account opens on a meter point it already supplies. The run publishes it
    as `occupier_successions` from the next run on. A run that has no such record says so.
+
+#### 8.8a The closing balance: what the rules require, what a supplier records, and what the run publishes
+
+*Added 2026-10-25, before the build (K8). The build is `closing_balances` in
+`simulation/arrears_engine.py`, published by the run as `closing_balances` and read by
+`move_out_final_bills`. Sources: the rows of §8.8 above and `debt_and_collections.md` (P5, SLC 27).*
+
+**What the rules require of the balance.**
+
+| The balance | The rule | Locus |
+|---|---|---|
+| Stated on the final bill | The final bill is a "Bill or statement of account" (SLC 27.17). A statement of account states the balance. So the closing balance is a figure the supplier has already issued, not one it has to estimate | SLC 27.17 |
+| A credit (the customer is owed) | Refunded within 10 working days of the final bill's issue | GSoP reg 6D (§8.8). The credit is net of that contract's own charges: SLC 27.16 defines it as payments in excess of the charges due "under that Domestic Supply Contract", so it is per fuel |
+| A debt (the customer owes) | Pursued against the departing customer, never the incoming occupier. Then a DCA, then a sale or a write-off. No supply lever is left | Citizens Advice (§8.8); `debt_and_collections.md` P5 (Centrica 2025: final bills 84% provisioned). The licence text: **GAP** G8.10 |
+| How a debt is pursued once they have gone | SLC 27.8 (arrangements that take account of ability to pay) binds the supplier's dealings with a Domestic Customer. Whether it, or the SLC 27 debt-collection conduct rules, still binds the supplier once supply has ended is not stated in any text we hold: **GAP** G8.12 |
+| Settled (nothing owed either way) | No rule acts. It is still a result: the measure counts it, so a branch that never fires is seen |
+
+**What a real supplier records.** One signed figure per account at its final bill: the closing balance
+on the statement. It is the supplier's own ledger (charges less payments and credits), so it crosses
+no wall. Which debts then go to a DCA and when is not published per supplier: **GAP**, already G8.11.
+
+**The choices the build makes, and why.**
+1. *One balance, from the book the P&L writes off.* The run settles each bill in
+   `arrears_engine.balance_settlement_from_outcomes`: a failed bill is outstanding, a credit bill or an
+   overpaid repayment is credit on that fuel's contract, a credit nets the oldest debt first. The
+   closing balance is what that walk holds at the final bill's due date, before the write-off at close:
+   outstanding less unapplied credit. The write-off at close is that same debt, so the published
+   balance and the P&L agree by construction.
+2. *Per fuel, because the contract is per fuel.* A leg's `customer_id` is one fuel's account, so the
+   balance is keyed by it and never nets across fuels (SLC 27.16).
+3. *Owed positive, credit negative,* the sign `move_out_final_bills` already grades.
+4. *Named limit: the level direct debit's smoothing balance is not in it.* The engine reads a paid
+   bill as paid exactly. A level DD that over- or under-collected against the bills sits in a second
+   book, `simulation/dd_balance_book.py`, which already asks the final bill for its own closing
+   balance. The two are not summed until they are one ledger. So the credit count here is credit from
+   credit bills and overpaid repayments only, and understates what a DD leaver is owed.
+5. *Statute-barred debt is not in the balance.* A bill barred before close was written off on its own
+   leg and is no longer recoverable, so it is not carried.
+
+**Gaps this adds.**
+- G8.12 Whether SLC 27's debt conduct rules bind a supplier pursuing a former customer.
 
 ---
 

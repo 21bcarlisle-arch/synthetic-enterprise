@@ -959,10 +959,17 @@ def _resolve_bills(bills: list[dict], behavioral: dict, seed: int) -> list[dict]
     return rows
 
 
-def balance_settlement_from_outcomes(resolved: list[dict], churned_ids: set[str]
+def balance_settlement_from_outcomes(resolved: list[dict], churned_ids: set[str],
+                                     closing_out: dict[str, float] | None = None
                                      ) -> tuple[dict[tuple[str, str, str], dict],
                                                 dict[tuple[str, str, str], list[dict]]]:
     """The balance-at-close rule over already-resolved bills. Pure: no RNG.
+
+    ``closing_out``, if given, takes each leaver's balance at its final bill's due date, keyed by
+    the leg's ``customer_id`` (one fuel's contract): what is still outstanding less the credit
+    waiting on the account, owed positive and credit negative, BEFORE the write-off at close
+    takes the debt (home_moves.md s.8.8a). So the published balance and the write-off are one walk.
+    A statute-barred bill was written off before close and is not in it.
 
     Returns ``(write_offs, credits_applied)``, both keyed ``(customer_id, period_end, commodity)``
     of a failed/disputed bill.
@@ -1090,6 +1097,9 @@ def balance_settlement_from_outcomes(resolved: list[dict], churned_ids: set[str]
                         unapplied[c] = round(unapplied.get(c, 0.0) + left, 2)
                         last_credit_pe[c], last_credit_kind[c] = r["period_end"], "repayment"
         _bar(horizon)
+        if leaver and closing_out is not None:
+            closing_out[cid] = round(sum(i["remaining"] for i in outstanding)
+                                     - sum(unapplied.values()), 2)
         if leaver:
             for item in outstanding:
                 _write_off(item, horizon, LEG_CLOSE)
@@ -1144,7 +1154,8 @@ def balance_write_offs(bills: list[dict], behavioral: dict, churned_ids: set[str
 
 
 def emergent_bad_debt_lines(bills: list[dict], behavioral: dict, churned_ids: set[str],
-                            seed: int = 42) -> dict[str, dict[tuple[str, int], float]]:
+                            seed: int = 42, closing_out: dict[str, float] | None = None
+                            ) -> dict[str, dict[tuple[str, int], float]]:
     """`compute_emergent_bad_debt`'s charge, kept apart by LINE: the write-off at close, the
     statute-barred write-off, and leg 4b's stayer provision (empty while leg 4b is off). Each is
     keyed (customer_id, year) exactly as the sum is, so a reader can say which rule a household's
@@ -1152,10 +1163,13 @@ def emergent_bad_debt_lines(bills: list[dict], behavioral: dict, churned_ids: se
 
     `"total"` is the sum, accumulated in the order and with the per-step rounding the charge has
     always used; re-adding the lines in another order can move a key by a penny.
+
+    ``closing_out`` takes each leaver's closing balance from the same walk
+    (`balance_settlement_from_outcomes`).
     """
     from company.interfaces.bill_assembly import issued_bills
     resolved = _resolve_bills(issued_bills(bills), behavioral, seed)
-    written_off, credited = balance_settlement_from_outcomes(resolved, churned_ids)
+    written_off, credited = balance_settlement_from_outcomes(resolved, churned_ids, closing_out)
     lines: dict[str, dict[tuple[str, int], float]] = {
         LEG_CLOSE: {}, LEG_STATUTE_BAR: {}, "stayer_provision": {}, "total": {}}
     total = lines["total"]

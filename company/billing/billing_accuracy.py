@@ -52,8 +52,9 @@ different bills and are never summed here. K4-K7 cannot arise in the run yet (no
 A MOVER'S FINAL BILL (2026-10-24) is `move_out_final_bills`. It grades each account a home move
 closed against three rules on three clocks (`docs/market_research/home_moves.md` §8.8). The final
 bill is due within six weeks of the move. The closing read is actual or estimated. A credit is due
-back within ten working days of the final bill's issue. The debt left on the final bill is `None`,
-with its reason, until the run publishes each closed account's balance.
+back within ten working days of the final bill's issue. The balance left on the final bill is the
+run's `closing_balances` (§8.8a): carried, credit or settled. A run that predates it, or an account
+it holds no balance for, stays `None` with its reason.
 
 THE DIRECT-DEBIT MONEY LINE sits beside K3 and is never added to it. For a direct-debit account the
 statement is not a demand, so no kWh is barred at a catch-up and K3 is pay-on-bill energy only.
@@ -222,7 +223,8 @@ def move_out_final_bills(bills: Iterable[dict], move_outs: Iterable[dict] | None
     `issue_date` if the record has one, else its period end is its issue (`ISSUED_AT_PERIOD_END_REASON`).
     `move_outs` is the run's `home_move_outs`: the account and the move date a notice or the closing
     read gives. `refunds` is the `credit_refund_log`. `closing_balances`, account -> £ owed (+) or
-    held in credit (-) at the final bill, is absent from every run so far.
+    held in credit (-) at the final bill, is the run's own (§8.8a). A final bill with no balance in
+    it is counted `no_balance`, never read as settled.
 
     A move with no final bill is `missing` once six weeks have passed by the last bill in the run,
     and `not_yet_due` before. The missing final bill is the class Ofgem enforced on. An account
@@ -315,6 +317,7 @@ def move_out_final_bills(bills: Iterable[dict], move_outs: Iterable[dict] | None
                                           "closing balance")},
         "debt": {"carried": count("debt", "carried"), "credit": count("debt", "credit"),
                  "settled": count("debt", "settled"),
+                 "no_balance": sum(1 for r in with_final if r["debt"] is None),
                  "unmeasured_because": None if closing_balances is not None
                  else NO_CLOSING_BALANCE_REASON},
         "accounts": rows,
