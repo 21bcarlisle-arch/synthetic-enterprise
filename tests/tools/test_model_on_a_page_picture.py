@@ -10,8 +10,8 @@ import pytest
 from tools import model_on_a_page_picture as mp
 
 SVG_NS = "{http://www.w3.org/2000/svg}"
-# a state the map decides: a lone marker glyph, or the engine's "<glyph> <stage word>"
-_STATE = re.compile(r"^[._~]$|(?:^|\s)[._~] (?:done|in build|not started)$")
+# a state the map decides: a lone marker glyph, the engine's "<glyph> <stage word>", or a sheet's chip word
+_STATE = re.compile(r"^[._~]$|(?:^|\s)[._~] (?:done|in build|not started)$|^(?:LIVE|BUILDING|PLANNED)$")
 
 
 def words(svg: str) -> list[str]:

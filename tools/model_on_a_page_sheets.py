@@ -29,12 +29,8 @@ from tools.model_on_a_page_picture import (  # noqa: E402
     BODY,
     INK,
     LINE,
-    MARK,
-    MONO,
     MUTED,
-    NOT_STARTED,
     SANS,
-    STAGE_WORD,
     PictureSpecError,
     _fit,
     load_spec,
@@ -46,14 +42,19 @@ from tools.model_on_a_page_picture import (  # noqa: E402
 SITE = ROOT / "site"
 sys.path.insert(0, str(SITE))
 from ia_register import render_nav  # noqa: E402
+from moap_stage import BUILDING, LIVE, PLANNED  # noqa: E402
+
+# The front door's own chips (site/index.html .stage-*; site/brand/tokens.css), so a newcomer reads
+# one vocabulary on both: the word is the state, the fill only reinforces it. Copy pack A3, 25 Oct:
+# the glyph legend ". done, _ in build, ~ not started" was unreadable one tap down.
+CHIP = {LIVE: ("#D6F2E0", INK), BUILDING: ("#FFF0C9", INK), PLANNED: ("#F4F4F4", "#666666")}
 
 COL_W, GAP, X0 = 256, 16, 40
 
 
 def _state(atoms, levels):
     stage = stage_of(atoms, levels)
-    glyph, colour = MARK.get(stage, NOT_STARTED)
-    return glyph, colour, STAGE_WORD.get(stage, "not started")
+    return stage if stage in CHIP else PLANNED
 
 
 def _box(x, y, w, cell, levels, out):
@@ -62,9 +63,12 @@ def _box(x, y, w, cell, levels, out):
     out.append('<rect x="{}" y="{}" width="{}" height="{}" rx="8" fill="#FFFFFF" stroke="{}"/>'.format(x, y, w, h, LINE))
     out.append(text(x + 14, y + 24, cell["title"], 14, font_weight=700))
     out += [text(x + 14, y + 42 + 16 * j, s, 12, BODY) for j, s in enumerate(lines)]
-    glyph, colour, word = _state(cell["atoms"], levels)
-    out.append('<text x="{}" y="{}" font-family="{}" font-size="11.5" fill="{}">{} {}</text>'.format(
-        x + 14, y + h - 12, MONO, colour, glyph, word))
+    word = _state(cell["atoms"], levels)
+    fill, ink = CHIP[word]
+    out.append('<rect x="{}" y="{}" width="{}" height="18" fill="{}"/>'.format(
+        x + 14, y + h - 26, round(len(word) * 7.4 + 16), fill))
+    out.append('<text x="{}" y="{}" font-size="10" font-weight="700" letter-spacing="0.6" fill="{}">{}</text>'.format(
+        x + 22, y + h - 13, ink, word.upper()))
     return h
 
 
@@ -115,12 +119,12 @@ def render_svg(sheet: dict, levels: dict) -> str:
 def _alt(sheet, levels) -> str:
     parts = []
     for i, c in enumerate(sheet["columns"]):
-        chain = [cell["title"] + " (" + _state(cell["atoms"], levels)[2] + ")"
+        chain = [cell["title"] + " (" + _state(cell["atoms"], levels) + ")"
                  for row in sheet["rows"] if (cell := row[i])]
         parts.append(c.capitalize() + ": " + (" → " if sheet.get("arrows", True) else "; ").join(chain) + ".")
     if sheet.get("across"):
         a = sheet["across"]
-        parts.append(a["title"] + " (" + _state(a["atoms"], levels)[2] + ").")
+        parts.append(a["title"] + " (" + _state(a["atoms"], levels) + ").")
     parts.append(sheet["wall"]["heading"].capitalize() + ": " + ", ".join(sheet["wall"]["items"]) + ".")
     return " ".join(parts)
 
@@ -150,6 +154,10 @@ figure {{ margin-top: 22px; border: 1px solid var(--border); background: var(--s
 figure img {{ display: block; width: 100%; height: auto; }}
 h2 {{ font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.09em; color: var(--muted); margin: 30px 0 10px; }}
 ul.next {{ list-style: none; }}
+.stage {{ font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 2px 8px; color: var(--text); }}
+.stage-live {{ background: var(--green-soft); }}
+.stage-building {{ background: var(--amber-soft); }}
+.stage-planned {{ background: var(--surface2); color: var(--muted); }}
 ul.next li {{ padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 14px; }}
 @media (max-width: 640px) {{ body {{ font-size: 15px; }} main {{ padding-left: 14px; padding-right: 14px; }} h1 {{ font-size: 24px; }} }}
 </style>
@@ -163,7 +171,7 @@ ul.next li {{ padding: 8px 0; border-bottom: 1px solid var(--border); font-size:
   <a class="back" href="../../#model">&larr; The model on a page</a>
   <h1>{title}</h1>
   <p class="lead">{lead}</p>
-  <p class="how">{how} The mark in each box is read from the maturity map at publish: <code>.</code> done, <code>_</code> in build, <code>~</code> not started.</p>
+  <p class="how">{how} Each box carries its state, read from the maturity map at publish: <span class="stage stage-live">Live</span> built and at target, <span class="stage stage-building">Building</span> under way, <span class="stage stage-planned">Planned</span> not started.</p>
   <figure>
     <img src="../../assets/model-{band}.svg" alt="{alt}">
   </figure>

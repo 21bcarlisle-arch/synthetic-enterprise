@@ -267,7 +267,7 @@ sync by hand) now covers the picture as well as the list under it. The words her
 picture's words, and `sheets:` holds the words of the L2 sheet one tap down from each band
 (`tools/model_on_a_page_sheets.py`, 9 Oct). The state of each Now line or sheet box is not
 written here: the generators read it from the maturity map's levels for the atoms it names
-(. every atom at target, _ in build, ~ not started). No figure, stat or count goes on the picture (9 Oct). A canon line quotes its
+(. every atom at target, _ in build, ~ not started; on a sheet, the front door's words Live, Building, Planned). No figure, stat or count goes on the picture (9 Oct). A canon line quotes its
 id.*
 
 ```yaml
@@ -368,7 +368,7 @@ footer: "// THE_MODEL_ON_A_PAGE.md · DIRECTOR_CANON.md v4 (2026-10-12) · no st
 sheets:
   world:
     title: The world
-    lead: ["The world is the part the company cannot see. It replays the real 2016–25 record and draws its households fresh every run.", "What reaches the company is only what crosses the wall at the bottom."]
+    lead: ["A synthetic Britain the supplier cannot see into: real prices and weather from 2016–25, and households drawn fresh each run with lives, homes and money the supplier is never told about.", "Each box below is one part of it, read from cause to effect."]
     columns: [THE RECORD, THE WEATHER, THE HOUSEHOLD]
     rows:
       - - {title: Wholesale prices, lines: ["Half-hourly, 2016–25, replayed as", "they were — the 2021–22 crisis too."], atoms: [W1_reveal_over_time]}
@@ -389,7 +389,7 @@ sheets:
       - {label: The code, href: "code/", why: "the world’s modules, and the one seam the company reads through."}
   wall:
     title: The wall
-    lead: ["The wall is the line between the world and the company. Ground truth never crosses it; everything else is an interface flow, in one of two directions.", "The test on every line of the company’s code: could a real supplier know this?"]
+    lead: ["The line between the world and the supplier. Only what a real GB supplier could receive crosses it — meter reads, market data, payments, industry messages, regulation.", "The test on every line of supplier code: could a real supplier know this?"]
     how: "Read each column top to bottom as a list, not a chain."
     arrows: false
     columns: [IN — WHAT IT RECEIVES, THE SEAM, OUT — WHAT IT SENDS]
@@ -412,7 +412,7 @@ sheets:
       - {label: The code, href: "code/", why: "the seam itself, and the adapters on it."}
   company:
     title: The company
-    lead: ["The company is an automated supplier that sees only through the wall. It forms beliefs about each home, prices against them, and must live with being wrong.", "“Payment, credit risk and forward cash forecasting are the heart of this business.” (M7)"]
+    lead: ["An automated supplier that sees only through the wall. It wins customers, prices, hedges, bills, collects and settles, and forms a belief about each home that it must act on while it is wrong.", "“Payment, credit risk and forward cash forecasting are the heart of this business.”"]
     columns: [THE LOOP, THE MONEY, THE CUSTOMER]
     rows:
       - - {title: Price tariffs, lines: ["Prices each renewal against its own", "costs and beliefs, under the cap."], atoms: [B12_writer_one_reads_its_margin_on_the_unit_rate_so_a_renewal_floor_is_its_true_unit_cost, B3_hedge_tariff_alignment]}
@@ -433,7 +433,7 @@ sheets:
       - {label: The code, href: "code/", why: "the company’s modules, behind the seam."}
   score:
     title: The score
-    lead: ["The score says whether the company is working. Value is created and then shared, so every decision has two sides (M2).", "The household is saved in three currencies: money, time and carbon (M3)."]
+    lead: ["Is it working? Three tests: does it survive a worst-case shock, does it earn on a probability-weighted basis, and does each household save money, time and carbon?", "Value is created and then shared, so every decision is scored for both sides."]
     how: "Read each column top to bottom as a list, not a chain."
     arrows: false
     columns: [SURVIVE, EARN, CARBON]
@@ -453,7 +453,7 @@ sheets:
       - {label: The code, href: "code/", why: "the scoring code."}
   governance:
     title: The governance
-    lead: ["One human sets the mission and direction; AI does the rest. The harness of gates and rules builds and steers everything below it.", "The director’s words carry full authority; a question to him comes with a recommendation."]
+    lead: ["One human sets the mission and the few decisions that can’t be undone. AI agents design, build, test and run everything else, inside gates that refuse work that would break the rules.", "Each box is one of those gates or roles."]
     how: "Read each column top to bottom as a list, not a chain."
     arrows: false
     columns: [THE DIRECTOR, THE SEAT AND THE BUILDERS, THE HARNESS]
