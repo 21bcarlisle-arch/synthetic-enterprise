@@ -460,9 +460,10 @@ items:
     first_seen: "2026-10-17"
     times_listed: 31
     fate: fix
-    status: open
-    owner: "background/seat_continuation.py (live(): re-ask each row against origin commits naming its id, or a live surgical_land carrying it, before offering it)"
-    reason: "Triaged 2026-10-24 by the delivery seat. It still bites (premise_spent 5cb0f1918, a duplicate build withdrawn in 4e8bc7633), and the cost each time is a tick's window. The half that waits on a file is built (a5f9cd768). The half that re-asks a spent premise is not."
+    status: already_fixed
+    fixed_by: "3b35575d2"
+    owner: "background/delivery_lane.py (held_grade: a live surgical_land whose -m names the id holds it from the draw)"
+    reason: "Triaged 2026-10-24 by the delivery seat; closed 2026-10-25. Every leg that can read a spent premise is now built: a published finish (finished_on_origin, bb250f8ea), work held in another tree (held_grade), a file still to come (a5f9cd768), and a landing in flight (3b35575d2). The origin-commit-names-the-id leg is refuted twice (8dbb82c53; replayed again in 3b35575d2: 62 of 238 rows, nearly all on their own hand-off commit), so it is not built. The cited instance, 4566ce348, named neither the row nor its id, and nothing that reads ids can catch that shape; the orientation retired it by reading. Reopen only on a redraw whose spending commit or landing names the id."
   - id: the-live-renewal-belief-ranks-leavers-backwards
     problem: "The company's live renewal churn belief ranks leavers backwards (AUC 0.333 on 2019 desk states), while the corrected belief (0.806 in run) is built default off and no policy carries it."
     match: ["The renewal churn belief ranks the leavers it exists to find backwards"]
