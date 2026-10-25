@@ -625,6 +625,18 @@ def generate(run_json_path=None, out_path=None):
                                               write_off_date=wo_date),
             }
             arrears_by_cid.setdefault(cid, []).append(arr)
+        elif outcome == "success" and credits and not is_credit:
+            # The bill asks for its charges less the credit on the account (SLC 31H.12,
+            # home_moves.md s.8.8a choice 11), so the household pays the rest. Only a credit bill's
+            # credit is netted here: a repayment's excess was never shown as money in, so taking
+            # it off this payment would show less collected than the household paid.
+            netted = round(sum(c["amount_gbp"] for c in credits if c.get("kind") == "credit"), 2)
+            if netted > 0:
+                pay["amount_gbp"] = round(pay["amount_gbp"] - netted, 2)
+                pay["credit_applied_gbp"] = netted
+                inv["credit_applied_gbp"] = netted
+                if pay["amount_gbp"] <= 0:
+                    inv["payment_status"] = "settled_by_credit"
         # What is still owed on THIS invoice: its case's arrears_gbp, the one figure the household
         # balance also nets credit from -- never the face, which a part-credited bill no longer owes.
         inv["outstanding_gbp"] = 0.0

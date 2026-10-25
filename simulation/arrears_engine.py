@@ -971,8 +971,8 @@ def balance_settlement_from_outcomes(resolved: list[dict], churned_ids: set[str]
     takes the debt (home_moves.md s.8.8a). So the published balance and the write-off are one walk.
     A statute-barred bill was written off before close and is not in it.
 
-    Returns ``(write_offs, credits_applied)``, both keyed ``(customer_id, period_end, commodity)``
-    of a failed/disputed bill.
+    Returns ``(write_offs, credits_applied)``, both keyed ``(customer_id, period_end, commodity)``:
+    ``write_offs`` of a failed/disputed bill, ``credits_applied`` of that or of a paid bill.
 
     ``write_offs`` has one entry per bill that is WRITTEN OFF: ``{"date", "amount_gbp", "leg",
     "outcome", "method", "due_date"}``, where ``amount_gbp`` is what is still unpaid on that bill
@@ -992,8 +992,9 @@ def balance_settlement_from_outcomes(resolved: list[dict], churned_ids: set[str]
     contract's arrears. The contract is per fuel, so a credit nets per (customer, commodity), never
     across fuels. It discharges the oldest outstanding bill first (Clayton's Case, the
     running-account default). It is not a payment by the debtor, so it does not restart the clock.
-    A credit that finds nothing outstanding waits on the account for later arrears, because the
-    SLC 27.16 refund-on-request is not modelled.
+    A credit that finds nothing outstanding comes off the next paid bill on that fuel: the bill asks
+    for its charges less the credit (SLC 31H.12, home_moves.md s.8.8a), and that netting is listed
+    in ``credits_applied`` under the PAID bill's key. Only what neither use takes waits to close.
     """
     by_cid: dict[str, list[dict]] = {}
     for row in resolved:
@@ -1074,6 +1075,17 @@ def balance_settlement_from_outcomes(resolved: list[dict], churned_ids: set[str]
                 for item in [i for i in outstanding if i["row"]["commodity"] == c]:
                     _net(item, when, r["period_end"])
             else:
+                c = r["commodity"]
+                if r["outcome"] == "success" and unapplied.get(c, 0.0) > 0:
+                    # The bill asks for what is owed (SLC 31H.12): its charges less the credit on
+                    # the account, so the household pays the rest and the credit is used up
+                    # (home_moves.md s.8.8a, choice 11). Credit waits only when nothing on this fuel
+                    # is outstanding, so whether this restarts the clock cannot matter (choice 12).
+                    take = round(min(r["amount_gbp"], unapplied[c]), 2)
+                    unapplied[c] = round(unapplied[c] - take, 2)
+                    credited.setdefault(_key(r), []).append(
+                        {"date": when, "amount_gbp": take, "credit_period_end": last_credit_pe[c],
+                         "kind": last_credit_kind[c]})
                 last_ack = when
                 if r["outcome"] == "repayment":
                     left = r["amount_gbp"]

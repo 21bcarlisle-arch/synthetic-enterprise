@@ -940,6 +940,7 @@ no wall. Which debts then go to a DCA and when is not published per supplier: **
 
 **Gaps this adds.**
 - G8.12 Whether SLC 27's debt conduct rules bind a supplier pursuing a former customer.
+- G8.13 How a variable direct debit treats a credit brought forward (below).
 
 **The refund reads the same balance (amended 2026-10-25, before the build).** The rule: a credit on
 the final bill is refunded within 10 working days (GSoP reg 6D), and a credit is payments in excess of
@@ -976,6 +977,47 @@ Whatever happens to it in life, the credit is owed at closure.
     refunded is still not paid out of the company's cash, so the liability it discharges is not
     reduced anywhere. That belongs with DD3.
 
+**A credit in the middle of an account's life (amended 2026-10-25, before the build).** *Correction,
+beside the claim above:* SLC 27.17 is the six-week final bill and says nothing about carrying a balance
+forward. The rules that do are these, read in the consolidated text (to 1 August 2025, pp.245-246 and
+342-345):
+
+| What | The rule | Locus |
+|---|---|---|
+| What a credit is | "the amount by which the payments made by a Domestic Customer … exceeds the total amount of Charges which is due and payable … under that Domestic Supply Contract". It is a running account: payments against all charges due, not bill by bill | SLC 27.16 (operative text, now read; it closes the gap in `what_a_supplier_holds_to_size_a_direct_debit.md` §5, item 1) |
+| Refunding it | Only "where … the relevant Domestic Customer requests". Otherwise the credit stays on the account, unless it is fair and reasonable not to refund (the supplier must then give reasons) | SLC 27.16 |
+| What the bill tells the household | "what is owed to or by the licensee", and "when and how [it] needs to make any payments or will have payments deducted" | SLC 31H.12(a), (c), applied through 31H.1 |
+| A fixed direct debit | SLC 27.13-27.15 cover a "regular direct debit payment of a fixed amount". The fixed amount is reassessed on the best and most current information. Ofgem expects a supplier to cut the DD of a customer in credit (`payments_and_direct_debit_2026-10-25.md`) | SLC 27.15; Ofgem 2022 decision |
+
+What follows from these, as strong logic rather than a published rule: on an account where the household
+pays what the bill asks (pay on receipt, or a variable DD that collects the bill), the amount asked is
+what is owed. That is the new charges less the credit already on the account, with nothing to pay if
+the credit covers them. The credit does not wait for arrears. It is used up by the next charges that
+fall due. On a fixed DD, the fixed amount is still collected, so a credit builds up until the review
+(SLC 27.15) or a request (SLC 27.16).
+
+**GAP G8.13.** No published source says how a variable DD treats a credit brought forward: whether it
+nets the credit off the next collection, or collects the bill and keeps the credit. The practitioner
+question is still open. The build follows the bill rule (31H.12), because a supplier that collected more
+than the bill said was owed would be collecting the very payments that 27.16 defines as Credit.
+
+*Choices.*
+11. *The credit comes off the next charge, in the walk.* `balance_settlement_from_outcomes` used to
+    set a credit against arrears only. Now a paid bill on the same fuel's contract also uses up the
+    credit waiting on the account. The household pays the bill less the credit, or nothing. The netting
+    is recorded in `credits_applied` against that paid bill. The billing ledger prints the smaller
+    payment, so the payment ledger's identity still holds: billed = collected + open + written off.
+    This is the world's one payment truth, because a paid bill is paid as the bill says. Choice 4's
+    level DD is the case that would hold the credit instead, and it waits on DD3.
+12. *The limitation clock is untouched.* A bill wholly settled by credit is not a payment by the
+    debtor (s.29(5)). But a credit waits on the account only when nothing on that fuel is outstanding,
+    because it nets arrears first. So there is no debt whose clock it could restart, and the walk does
+    not need to tell the two cases apart.
+13. *Named limit.* The credit is netted when the payment lands, which is the bill's due date plus its
+    lateness. A credit bill that falls due in that gap is netted against a bill whose statement was
+    issued before it existed. The gap is days, so the overstatement is small. It is named here, not
+    modelled.
+
 ---
 
 ## Sources
@@ -984,9 +1026,9 @@ Whatever happens to it in life, the credit is owed at closure.
   2026-10-10): ONS internal migration matrices YE June 2020, EHS 2021-22 Annex 1.5, Huebner et al.
   2015 (G8.6-G8.8, §8.6).
 - Ofgem, *Electricity Supply Standard Licence Conditions*, consolidated to 1 August 2025, SLC 24.1-24.3A,
-  24.8, 24.17 (pp.216-220) and SLC 27.17 (p.246),
+  24.8, 24.17 (pp.216-220), SLC 27.13-27.17 (pp.245-246) and SLC 31H (pp.342-345),
   https://www.ofgem.gov.uk/sites/default/files/2023-03/Electricity%20Supply%20Standard%20Consolidated%20Licence%20Conditions%20-%20Current.pdf
-  (fetched 2026-10-08; consolidated text, "not formal Public Register documents").
+  (fetched 2026-10-08, and again 2026-10-25 for SLC 27.16 and 31H; consolidated text, "not formal Public Register documents").
 - The Electricity and Gas (Standards of Performance) (Suppliers) (Amendment) Regulations 2019,
   SI 2019/218, reg 3 inserting reg 6D, https://www.legislation.gov.uk/uksi/2019/218 (read 2026-10-24
   via https://lawplayer.com/uk/act/uksi-2019-218) (§8.8).

@@ -256,3 +256,26 @@ nothing else on the billing path has moved. Then the grade passes at about 6 ove
 `book_breaches.above_cap` falls from 199 to about 2 households, not the 16 predicted above. The
 cast's 16 was `88cdf35e48`'s. If the runner's commit predates `3a31999db`, the grade refuses on
 carved != booked, and the 19 Oct figures stay up under the caveat.
+
+## Monday's run: launched at `b2bc3d8da5`, 25 Oct 12:27Z (pre-registered before it finished)
+
+The sim runner had deferred every cycle, and the newest run on `run_output_latest`
+(`904a091f7b`, 03:16Z) carries none of `063dc4bbd`, `33dd50527`, `9bb30c4de` and `a0ed2aa7b`. So a full
+run was launched by hand. It uses `background.launch_long_job`, unit `longjob-mondays-run-b2bc3d8da5`,
+and runs from a clean worktree at origin/main `b2bc3d8da5`, which carries all four and `3a31999db`.
+Its imports are off-commit by nothing. The artefact is
+`docs/reports/run_output_b2bc3d8da5_20261025T1230Z.json`. A rival landing, "a credit in the middle of
+an account's life comes off the next paid bill", was still in its gate at launch, so this run does
+not carry it.
+
+**Predictions, written while the run was in flight:**
+1. `tools.grade_svt_invoices_over_ceiling` gives `defects: []`, with **0** default-tariff invoices
+   over min(cap, EPG) out of about 24,660. This follows `e526b740f`'s side run at `7559a676f7`: 0 of
+   24,663. The "about 6" predicted above was `1c30d6c728`'s, before `063dc4bbd` ended the
+   overlapping terms. If any are over, I expect the mid-quarter-start gas SVT class (the six of
+   `SEAT_FINDING_A_GAS_SVT_TERM_STARTED_OFF_A_CAP_QUARTER...`) and nothing else.
+2. Carved equals booked, and no estimate is negative.
+3. `move_out_final_bills.credit`: every move-out the ledger closes in credit has a refund recorded,
+   none is owed and unrefunded, and none of the closure refunds goes to an account the ledger holds
+   in debt or settled. I cannot predict the count. `a0ed2aa7b`'s 7 was a 60-founder run, and this
+   book has 263 move-out rows.
