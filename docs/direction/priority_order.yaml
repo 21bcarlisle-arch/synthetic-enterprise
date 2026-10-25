@@ -103,6 +103,31 @@ steps:
   7:
     name: the long-horizon levers
     atoms: [C4_adoption_physics, W1_10_ev_heatpump_geography]
+  # 2026-10-25: the advice roadmap after the forward years, ruled by the seat as the steer asks
+  # (docs/staging/advisor/DIRECTOR_STEER_THE_ADVICE_ROADMAP_NEEDS_ITS_KNOWLEDGE_FIRST_2026-10-25.md, "Rule it").
+  # The advisor's order is kept. Steps 8-12 hold no atoms yet: each is minted when its knowledge pages
+  # and docs/design/PERSONALISED_ASSET_WORLD.md exist (K8). Communications stays last, renumbered 8 -> 13.
   8:
+    name: the personalised asset world, drawn per home (L0)
+    atoms: []   # person, then asset, then half hour: boiler, EV, PV, battery, heat pump, fabric
+  9:
+    name: the supplier's inference of each asset, graded against the world's truth
+    atoms: []
+  10:
+    name: the savings grader
+    atoms: []   # its first case is tariff-choice advice, which needs no asset world
+  11:
+    name: advice products, in the roadmap scan's order
+    atoms: []   # tariff choice, data consent, Economy 7 and storage heat, prepayment safeguards, grants, settings
+                # (thermostat, timer, flow temperature) under the health floor; then budget-first advice;
+                # then EV, PV and battery, heat pump, fabric
+  12:
+    name: flexibility and the network layers (L1 and above), each with its trigger
+    atoms: []   # options, not commitments; L0 (devices, cut-out amps, ENA notify-or-apply) is part of step 8.
+                # L1 DFS and CM events: when an L0 smart-shift book exists to bid. L2 DNO policies, G98/G99/G100:
+                # when the company sells installs. L3 local flex zones: when L2 regions are drawn. L4 rival
+                # aggregators: when L1 pays households. L5 BM and load-control licence: SSES from Mar 2028.
+                # Layer table: docs/design/PERSONALISED_ASSET_WORLD.md
+  13:
     name: communications, sentiment and NPS
     atoms: []

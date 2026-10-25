@@ -639,3 +639,47 @@ for_the_director:
     book has ever been launched; bimodal price generator ignores weather; fleet held flat past 2025 by
     renewable_capacity_trend
   resolved: '2026-10-25'
+- id: a-read-only-hugging-face-token-for
+  raised: '2026-10-25'
+  kind: reserved
+  what: A read-only Hugging Face token for the OCF uk_pv dataset, which you accepted the terms of at 06:47
+    on 25 Oct
+  proposal: 'Accept the gated terms on your own Hugging Face account at https://huggingface.co/datasets/openclimatefix/uk_pv,
+    create a fine-grained token with read access to that one repo (scope: read, gated repos), and put
+    it in ~/.config/synthetic-enterprise/.env.hf as HF_TOKEN. The seat then fetches the metadata only
+    (orientation, tilt, kWp, install date), stores the derived joint distribution with its provenance
+    and file hash, and credits Open Climate Fix and Sheffield Solar wherever it is published.'
+  recommendation: 'I recommend you create the read token when convenient. Nothing waits on it: the asset
+    world is behind the basics and the forward years in the order you set, and the placeholder shares
+    are labelled as an assumption until the token arrives. If you would rather not hold an HF account,
+    say so and the seat will use the PVGIS grid and published MCS cohort shares as a weaker substitute.'
+  status: open
+  resolution: ''
+  evidence: No Hugging Face account, token or HF_ env var exists on this machine (checked 25 Oct). Your
+    ruling forbids the seat creating an account. Until then the orientation shares stay a named assumption
+    and the roofs pack's population checks (east/west at 0.80-0.82 of south; fleet 806-920 kWh/kWp) cannot
+    run on empirical orientations.
+- id: the-order-after-the-forward-years-and
+  raised: '2026-10-25'
+  kind: strategy
+  what: The order after the forward years, and a minimum viable world plus layers for every advice domain,
+    as your 25 Oct steers asked the seat to rule
+  proposal: 'Steps 8-13 of docs/direction/priority_order.yaml: 8 the personalised asset world drawn per
+    home (L0, including the network L0: cut-out amps, phase, looped flag, ENA notify-or-apply); 9 the
+    supplier''s inference of each asset, graded against the truth; 10 the savings grader, whose first
+    case is tariff-choice advice because it needs no asset world; 11 advice products (tariff choice, data
+    consent, Economy 7, prepayment safeguards, grants, settings under the health floor, then budget-first
+    advice, then EV, PV and battery, heat pump, fabric); 12 flex and network layers L1-L5, each built
+    only on its trigger; 13 communications, unchanged and last. Design note: docs/design/PERSONALISED_ASSET_WORLD.md.'
+  recommendation: 'I recommend you accept the order as written. The one thing I would change if you agree:
+    fold step 7 into step 8, because who adopts an EV or heat pump is now drawn from the person and home
+    rather than a geography table, so building it separately would be built twice. Holding position until
+    you rule: step 7 stays separate. Nothing waits on this; steps 8-13 hold no atoms until the basics
+    and forward years are done.'
+  status: open
+  resolution: ''
+  evidence: 'The advisor''s order is kept. Two seat changes: the grader starts on tariff choice, so it
+    can begin before the asset world is complete; budget-first advice sits after settings advice and the
+    grader, since it needs per-home comfort output, the take-back response, the health floor and the grader.
+    Step 7 (adoption physics, EV and heat-pump geography, your 24 Oct ruling) is left where you put it,
+    though in the generative form it becomes part of step 8.'

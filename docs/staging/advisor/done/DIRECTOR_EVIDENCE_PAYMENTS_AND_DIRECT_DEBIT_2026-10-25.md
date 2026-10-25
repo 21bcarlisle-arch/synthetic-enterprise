@@ -259,3 +259,6 @@ https://assets.publishing.service.gov.uk/media/6942cb008f4636fa2c547df5/quarterl
 7. **Migration flows between payment methods and their reasons.** No published transition matrix exists. The only figures are involuntary PPM counts.
 8. **Arrears by payment method other than PPM repayment shares.** Ofgem does not publish arrears incidence for DD versus standard credit.
 9. **Quantified seasonality of arrears.** Only qualitative statements exist; the monthly pattern would have to come from the quarterly series.
+## Done
+
+Actioned in 997cfc67e (25 Oct 06:07): the pack became the published page `site/knowledge/payments-and-direct-debit/` and the note `docs/market_research/payments_and_direct_debit_2026-10-25.md`. That commit did not move the pack here, so it stayed in the queue and kept being drawn; moved by the seat on 25 Oct with no change above this section.

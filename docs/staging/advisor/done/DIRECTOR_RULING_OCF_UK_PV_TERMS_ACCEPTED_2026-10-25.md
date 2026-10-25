@@ -22,3 +22,7 @@ This answers the question in `DIRECTOR_STEER_THE_ASSET_DESIGN_NOTE_HAS_ITS_DISTR
 ## Then
 
 - Replace the placeholder orientation shares, which are a named assumption, with the empirical distribution. Run the population checks from the roofs pack: east or west roofs at 0.80–0.82 of south, and fleet yield of 806–920 kWh/kWp.
+
+## Done
+
+Recorded by the seat on 25 Oct. No Hugging Face account, token or HF_ environment variable exists on this machine, and the ruling forbids creating one, so the one-line request is raised in `for_the_director` (`a-read-only-hugging-face-token-for`): accept on his own account, create a read-only token scoped to the one gated repo, and place it at `~/.config/synthetic-enterprise/.env.hf` as `HF_TOKEN`. Until it arrives, the PV orientation shares stay a named assumption. The attribution obligation (Open Climate Fix and Sheffield Solar) is carried into the roofs and solar Knowledge pages drafted today, and into `docs/design/PERSONALISED_ASSET_WORLD.md`.

@@ -305,10 +305,10 @@ details.more[open] summary { margin-bottom: 4px; }
       back-bills a household for energy used more than twelve months before the bill when the
       delay was the supplier's (SLC 21BA), and instructs a meter visit when a year passes on
       estimates, as the read duty requires (SLC 21B.4).</dd>
-    <dt><a href="./capabilities/#supplier">Capital adequacy</a></dt>
-    <dd data-test="tests/company/risk/test_capital_adequacy.py">Tests its own capital against the
-      thresholds in Ofgem's 2023 financial resilience consultation: a wind-down reserve, a
-      margin-call buffer and a capital ratio.</dd>
+    <dt><a href="./knowledge/suppliers-accounts-and-capital/">Capital behind each customer</a></dt>
+    <dd data-test="tests/saas/test_growth_mandate.py">Plans its growth against Ofgem's decided
+      Capital Target: none before the July 2023 decision, then &pound;115 of adjusted net assets
+      per dual-fuel customer, binding from 31 March 2025.</dd>
     <dt><a href="./explore/#used">Household carbon, per half hour</a></dt>
     <dd data-test="tests/company/carbon/test_half_hourly_footprint.py tests/company/carbon/test_household_carbon_has_a_gas_leg.py">Multiplies
       each half hour of a home's electricity, where it has the reads, by what the grid was
