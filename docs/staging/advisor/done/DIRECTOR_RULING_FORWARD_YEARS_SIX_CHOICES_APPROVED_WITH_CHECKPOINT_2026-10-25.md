@@ -30,3 +30,17 @@ The director's words, from chat on Sun 25 Oct:
 - Update `docs/design/FORWARD_YEARS_RECOMMENDATION_2026-10-24.md` with an "Approved 25 Oct" header pointing here.
 
 — Director ruling, 25 Oct 2026, his word above; the drafting is the advisor's.
+
+## Done
+
+*Autonomous worker, 2026-10-25.* All three "Where this lands" items are done:
+- The `for_the_director` row `forward-years-ruling-of-24-oct-17` is answered with this ruling (`docs/direction/DIRECTION.yaml`).
+- The two curriculum choices, the gas band (DESNZ FFPA 2025 A-C, uniform) and the fleet band (NESO FES wind plus solar), are recorded in the new `docs/design/curriculum/forward_years.json`. The commit carries the his-words trailer the ruling names. Nothing reads it yet: no forward generator is built, and the file says so.
+- `docs/design/FORWARD_YEARS_RECOMMENDATION_2026-10-24.md` now carries an "Approved 25 Oct" header pointing here.
+
+Ruling item 4 lets three things run in parallel. I made one change to the map for it:
+`EP16_anchored_generators` was blocked as "director-reserved curriculum sequencing (R13)". The block is cleared and now cites this ruling, so the anchoring and grading can be drawn.
+
+**Not done here, and still open:**
+- the K8 volatility page and the claims grading. These are the companion steer, `DIRECTOR_STEER_FORWARD_YEARS_MUST_REPRODUCE_VOLATILITY_AT_EVERY_SCALE_2026-10-25.md`, which stays in the advisor queue as live work.
+- the checkpoint-and-resume build (ruling item 2). No map atom carries it yet. The steer's owner should mint one when it sizes the 3,400-line run function's state, under the estimate-the-cost steer.

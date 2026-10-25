@@ -862,7 +862,7 @@
   level_current: 0
   level_target: 3
   loop_stage: idle
-  block_reason: "director-reserved curriculum sequencing (R13). Epoch-4 commitment set (ruling §1); pull-forward is proposal-only (§3). DISCOVERY DISPOSITION 2026-08-26 (delivery seat, over the discovery pass ceiling at 5 passes with the level never having moved): no further DISCOVER pass is authorised, and this is a disposition rather than a closure because the atom is wanted and is a director ruling. The reason the passes could not move it is the block above -- the only act that promotes an epoch-4 curriculum atom is a curriculum decision, which R13 reserves to the director. Re-opens the day epoch 4 is named; until then a pass here is the livelock, not the work."
+  block_reason: ""  # UNBLOCKED 2026-10-25: director "Yes" 05:14 GMT (advisor/done/DIRECTOR_RULING_FORWARD_YEARS_SIX_CHOICES_APPROVED_WITH_CHECKPOINT_2026-10-25.md) -- EP16 anchoring and grading goes ahead in parallel, graded against the volatility claims (DIRECTOR_STEER_FORWARD_YEARS_MUST_REPRODUCE_VOLATILITY_AT_EVERY_SCALE_2026-10-25.md); curriculum in docs/design/curriculum/forward_years.json
   dial_inherited: 3
   provenance: director_ruling
   depends_on: []

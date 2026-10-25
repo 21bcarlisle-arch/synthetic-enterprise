@@ -1,0 +1,21 @@
+{
+  "_meta": {
+    "artefact": "forward_years",
+    "version": 1,
+    "status": "RULED -- 2026-10-25 05:14 GMT, director: \"Yes\" to the six choices of docs/design/FORWARD_YEARS_RECOMMENDATION_2026-10-24.md section 8",
+    "authority": "docs/staging/advisor/done/DIRECTOR_RULING_FORWARD_YEARS_SIX_CHOICES_APPROVED_WITH_CHECKPOINT_2026-10-25.md. Two of the six choices are curriculum, the director's because they decide how hard the futures are; they are recorded here. The other four are design and live in the recommendation.",
+    "consumed_by": "NOTHING YET. No forward-years generator is built; the ruling keeps forward runs behind the basics, and no forward run is used for a supplier result until the generators pass the volatility claims (DIRECTOR_STEER_FORWARD_YEARS_MUST_REPRODUCE_VOLATILITY_AT_EVERY_SCALE_2026-10-25.md). The builder of the gas path and the fleet draw reads this file; until then sim/renewable_capacity_trend.py still holds the fleet flat past 2025."
+  },
+  "gas_level_band": {
+    "value": "DESNZ Fossil Fuel Price Assumptions 2025, cases A to C, full band, uniform; each future draws one point per anchored year and interpolates between them",
+    "anchor": "NBP p/therm, real 2024: 2030 = 42 / 71 / 120 (A / B / C); 2035 = 37 / 69 / 114. docs/market_research/scenario_spine_and_friction_anchors_2026-07-23.md section 1.3, confidence H",
+    "why_uniform": "DESNZ does not weight its own cases (recommendation section 2b).",
+    "daily_path": "Design, not curriculum: log-returns with the record's volatility and mean reversion fitted on 2016-2025 NBP, crisis included, graded against the volatility claims."
+  },
+  "renewable_fleet_band": {
+    "value": "NESO FES wind plus solar band, drawn per future and labelled on every forward figure",
+    "anchor": "2.3-2.5x from 2024 to 2030: 49 GW to 113-124 GW (recommendation section 3, citing the same research file section 1.2). Past 2030 the band is owed by the K8 page; GAP until it is sourced.",
+    "replaces": "The fleet held flat past 2025 by sim/renewable_capacity_trend.py, which K2 says asserts a value we know is wrong."
+  },
+  "restore_the_old_behaviour": "Delete this file: the forward world is unbuilt, so nothing reads it yet."
+}

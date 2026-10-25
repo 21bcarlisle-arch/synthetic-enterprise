@@ -1,5 +1,12 @@
 # Forward years: the G9 recommendation before any build (2026-10-24)
 
+> **Approved 25 Oct 2026, 05:14 GMT:** the director said "Yes" to all six choices in section 8, adding
+> checkpoint-and-resume and making the volatility claims the pass mark. Ruling:
+> `docs/staging/advisor/done/DIRECTOR_RULING_FORWARD_YEARS_SIX_CHOICES_APPROVED_WITH_CHECKPOINT_2026-10-25.md`.
+> The two curriculum choices, the gas band and the fleet band, are recorded in
+> `docs/design/curriculum/forward_years.json`. The order is unchanged: forward runs wait for the basics.
+> The K8 page, the EP16 anchoring and the checkpoint build go ahead in parallel.
+
 *Owed by the director's ruling of 24 Oct 17:22 BST, "after that we probably want weather and simple
 wholesale prices and forward products for hedging simualted for some future years"
 (`docs/staging/advisor/done/DIRECTOR_RULING_FORWARD_YEARS_COME_RIGHT_AFTER_THE_BASICS_2026-10-24.md`,
