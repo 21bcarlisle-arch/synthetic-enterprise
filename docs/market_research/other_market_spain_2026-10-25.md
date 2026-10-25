@@ -320,16 +320,16 @@ The structural fallback is 35% and 50%.
 
 ## (d) Named gaps
 
-1. A current Eurostat HDD series for Spain and the UK, and AC penetration after 2015.
-2. Typical annual household electricity kWh, by zone.
-3. REE 2025 full-year mix; GB comparison figures generally.
-4. Exact DSO count; single-phase vs three-phase split.
-5. Exact quarter-hourly imbalance start date; profiling rules for any meters still read manually.
-6. Billing period and the COR transfer rules after RD 88/2026; whether debt follows the customer (no transfer is assumed).
-7. Home-move default-supply rules (cambio de titular, alta).
-8. Bono social funding mechanism after court rulings; annual kWh caps; certification flow.
-9. How self-consumption exports are valued, and the status of virtual batteries.
-10. Butane cylinder penetration; payment-method mix (direct debit share); arrears data after 2018.
+1. A current Eurostat HDD series for Spain and the UK, ~~and AC penetration after 2015~~. *AC is closed: 31–43%, no source supports over 50% (second hand, second-read item 27). The HDD series is still open; single values are Spain 1,537 in 2022 and GB 2,800–3,100 (items 47, 3).*
+2. Typical annual household electricity kWh, by zone. *Partly closed: the national figure is 3,272 kWh (REE) and 3,487 kWh (IDAE), at second hand (item 14); the split by zone is still open.*
+3. ~~REE 2025 full-year mix~~; GB comparison figures generally. *The mix is closed by REE's 2025 note (see the second read). GB figures are partly reconciled (items 11, 13, 18, 21, 23, 26).*
+4. ~~Exact DSO count~~; single-phase vs three-phase split. *DSOs: nearly 350, citing the CNMC census at second hand (item 6). Most homes are single-phase (item 9), but no percentage is known.*
+5. ~~Exact quarter-hourly imbalance start date; profiling rules for any meters still read manually.~~ *Closed: 15-minute since 1 Dec 2024; 2026 profiles cover type 4 and 5 points only (item 22).*
+6. Billing period and the COR transfer rules after RD 88/2026; whether debt follows the customer (no transfer is assumed). *Still open (items 19, 31, 35). Barring plus COR transfer is the failure route (item 17), but the decree's own rules are unread.*
+7. ~~Home-move default-supply rules (cambio de titular, alta).~~ *Closed: cambio de titular or alta, with fees; no deemed contract (items 32, 33).*
+8. ~~Bono social funding mechanism after court rulings~~; annual kWh caps; certification flow. *Funding is closed: since RDL 6/2022 the whole chain pays (item 34). Caps and certification are still open.*
+9. ~~How self-consumption exports are valued, and the status of virtual batteries.~~ *Closed at second hand (item 24).*
+10. ~~Butane cylinder penetration~~; payment-method mix (direct debit share); arrears data after 2018. *Butane is closed: about 8m homes, at second hand (item 29). The rest is still open.*
 11. 2025 EV sales; heat pump stock.
 
 ---

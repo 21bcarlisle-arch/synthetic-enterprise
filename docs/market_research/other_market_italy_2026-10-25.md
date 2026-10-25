@@ -400,23 +400,23 @@
 ## (d) Named gaps
 
 - **Search limit:** the web-search budget ran out partway through. Every [unverified] item above remains to be confirmed.
-- Italy national HDD/CDD series (Eurostat).
-- Tenure, flats-vs-houses and building-age shares.
-- Number of electricity and gas DSOs, and e-distribuzione's share.
-- Network tariff structure (TD, ASOS/ARIM components) and whether it has any time-of-use element.
+- ~~Italy national HDD/CDD series (Eurostat).~~ *Closed: the note read Eurostat 2020–2025, and the advisor's CDD agrees (second-read item 4).*
+- Tenure, flats-vs-houses and building-age shares. *Partly closed: owners about 75% (second hand, item 18); flats and building age are still open.*
+- Number of electricity and gas DSOs, and e-distribuzione's share. *Still open: the 86.5% proxy is the 11 largest DSOs' share of kWh (item 9).*
+- Network tariff structure (TD, ASOS/ARIM components) and whether it has any time-of-use element. *Partly closed: the TD tariff is three-part and non-progressive, with no time-of-use element (items 13, 14); the ASOS/ARIM components are still open.*
 - Exact F1/F2/F3 band hours.
-- Whether household settlement uses actual 15-minute or hourly data or profiles, and the reconciliation calendar.
-- Payment-method mix and the deposit regime.
+- ~~Whether household settlement uses actual 15-minute or hourly data or profiles~~, and the reconciliation calendar. *The first half is closed: non-hourly households are settled by profile, and on hourly data from 1 Jan 2026 (ARERA 535/2024, item 27). The calendar is still open; only the session's name is corrected (item 29).*
+- Payment-method mix and the deposit regime. *Still open; only the absence of prepayment is confirmed (item 24).*
 - Disconnection and limitation volumes, arrears prevalence, and any winter protection.
 - Mechanisms for socialising bad debt and recovering unpaid system charges.
-- Details of the Sistema Indennitario and CMOR amounts.
-- Electricity salvaguardia, and the history of supplier failures and last-resort handling.
-- Supplier licensing (Elenco Venditori) capital requirements.
-- Cooking fuel mix.
+- ~~Details of the Sistema Indennitario and CMOR amounts.~~ *Closed by the second read: run by the Gestore del SII (Acquirente Unico); covers the last 3 months, capped at about 2 months' billing (item 38). The €10 minimum was not found.*
+- Electricity salvaguardia, and the history of supplier failures and last-resort handling. *Partly closed: salvaguardia is non-domestic (second hand, item 41); supplier failures and last-resort handling are still open.*
+- Supplier licensing (Elenco Venditori) capital requirements. *Partly closed: the rules are confirmed at second hand (capital in proportion to volume, guarantees, good standing; item 20); the amounts are still open.*
+- ~~Cooking fuel mix.~~ *Closed: hobs 75.5% mains gas, 17.6% LPG (Istat 2021, item 33).*
 - Cooling share of household consumption.
 - Home battery stock; heat-pump split (air-to-air vs air-to-water).
 - Number of energy communities in operation.
-- Home-move process rules (voltura/subentro) from ARERA primary sources.
+- Home-move process rules (voltura/subentro) from ARERA primary sources. *Still open: voltura and subentro are confirmed at second hand (items 36, 37); prima attivazione and ARERA's own text are not.*
 
 ---
 

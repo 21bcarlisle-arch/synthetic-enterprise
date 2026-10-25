@@ -373,11 +373,11 @@
 
 ## (d) Named gaps
 
-1. **Heating degree days for Germany vs GB** on a like-for-like basis (Eurostat nrg_chdd_a, or DWD German weather service degree days) were not retrieved.
-2. **Statute texts** were not read first-hand: §§13 and 19 StromGVV, §§38, 40b and 40c EnWG.
-3. **GNDEW primary text** was not fetched: the 20/50/95% path, the €20 cap and mandatory groups are [unverified].
-4. **Reconciliation timeline** for volume-difference billing and balancing deadlines was not found.
-5. **Air-conditioning prevalence and cooking fuel mix:** no national statistics source was found.
+1. **Heating degree days for Germany vs GB** on a like-for-like basis (Eurostat nrg_chdd_a, or DWD German weather service degree days) were not retrieved. *Partly closed: Germany 2,583 HDD in 2024 (Eurostat, second-read item 3); the GB series on the same basis is still open.*
+2. **Statute texts** were not read first-hand: §§13 and 19 StromGVV, §§38, 40b and 40c EnWG. *Partly closed: §40b EnWG (item 29) and §20 StromGVV (item 45) are read first-hand, §19 StromGVV only at second hand (items 34, 64); §13 StromGVV and §§38 and 40c EnWG are still open.*
+3. ~~**GNDEW primary text** was not fetched: the 20/50/95% path, the €20 cap and mandatory groups are [unverified].~~ *Closed by the second read: path and mandatory groups confirmed at second hand (item 62); the cap is €30 on the regulator's page (item 26). The primary statute text is still unread.*
+4. **Reconciliation timeline** for volume-difference billing and balancing deadlines was not found. *The mechanism is confirmed (item 33); the German timeline is still open.*
+5. ~~**Air-conditioning prevalence and cooking fuel mix:** no national statistics source was found.~~ *Closed by the second read: AC about 18% of households (survey, second hand, item 41); cooking 94.6% electric, 4.4% gas (Destatis 2023, item 43).*
 6. **Flats vs houses split** and building age bands for Germany.
 7. **Payment-method mix** (direct debit vs transfer) and arrears prevalence beyond the disconnection counts.
 8. **Supplier concentration metrics:** the market shares of the largest suppliers.
@@ -385,7 +385,7 @@
 10. **Gas disconnection threats** and gas prepayment.
 11. **Dynamic tariff uptake** and actual Module 3 take-up.
 12. **Heat-pump installed base**, which the chimney-sweep survey does not capture fully.
-13. **All GB comparison figures** need re-checking against Ofgem and DESNZ sources.
+13. **All GB comparison figures** need re-checking against Ofgem and DESNZ sources. *Partly closed: typical consumption, smart share, VAT, settlement timetable, switching speed and the coal closure are reconciled (items 8, 21, 27, 30, 32, 57, 60); the rest are still open.*
 14. **2026 levy and tax changes** were not verified: a possible federal subsidy of transmission charges, the gas storage levy, and any electricity-tax cut.
 
 The shared web-search allowance for this turn ran out partway through. The items above can be followed up in a further pass.
