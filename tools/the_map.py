@@ -33,6 +33,7 @@ import yaml
 
 ROOT = Path(__file__).resolve().parent.parent
 REGISTER = "docs/design/the_map/concepts.yaml"
+RULINGS = "docs/design/the_map/note_rulings.yaml"
 PAGES = "site/data/knowledge_topics.json"
 NOTES_DIR = "docs/market_research"
 MECHANISMS = "docs/design/canon_mechanisms.yaml"
@@ -86,9 +87,17 @@ def _searchable(row: dict) -> str:
     return f"{name} | {row.get('plain_words') or ''}".lower()
 
 
+def load_rulings(root: Path = ROOT) -> dict:
+    """Steer item 4's ruling on each note no page cites: attach / owed / dead. Absent file, no rulings."""
+    path = root / RULINGS
+    return (yaml.safe_load(_text(path)) or {}) if path.exists() else {}
+
+
 def notes_by_page(root: Path = ROOT, pages: dict | None = None) -> dict[str, set[str]]:
-    """{page id: the notes that attach to it}, by the note's own line or the page's citation."""
+    """{page id: the notes that attach to it}, by the note's own line, the page's citation, or a ruling."""
     out: dict[str, set[str]] = {}
+    for page_id, stems in (load_rulings(root).get("attach") or {}).items():
+        out.setdefault(page_id, set()).update(stems)
     for note in sorted((root / NOTES_DIR).glob("*.md")):
         found = _KNOWLEDGE_LINE.search(_text(note))
         if found and found.group(1) != "none":
@@ -109,6 +118,14 @@ def note_coverage(root: Path = ROOT, pages: dict | None = None) -> dict:
             "on_no_page": sorted(every - attached)}
 
 
+def ruling_counts(root: Path, unattached: set[str]) -> dict:
+    """Of the notes on no page, how many are ruled owed (a page is coming), dead, or not ruled at all."""
+    rulings = load_rulings(root)
+    owed = {n for ns in (rulings.get("owed") or {}).values() for n in ns} & unattached
+    dead = {n for row in rulings.get("dead") or [] if row.get("reason") for n in row.get("notes", [])} & unattached
+    return {"owed": len(owed), "dead": len(dead), "unruled": len(unattached - owed - dead)}
+
+
 def coverage(root: Path, pages: dict, rows: list[dict], concepts: list[dict], reg: dict) -> dict:
     """Steer item 3's three checks as counts. A page or note is covered when a concept's page is it
     (or cites it); a module is covered when a concept declares it or lists it as also named, or the
@@ -125,7 +142,9 @@ def coverage(root: Path, pages: dict, rows: list[dict], concepts: list[dict], re
     loose = sorted(set(mods) - attached - plumbing)
     return {"pages": {"total": len(pages), "on_a_concept": len(on_concept & set(pages)),
                       "on_none": sorted(set(pages) - on_concept)},
-            "notes": {"total": len(every), "on_a_concept": len(noted), "on_none": len(every - noted)},
+            "notes": {"total": len(every), "on_a_concept": len(noted), "on_none": len(every - noted),
+                      "on_no_page": len(every - set().union(*by_page.values())),
+                      **ruling_counts(root, every - set().union(*by_page.values()))},
             "modules": {"total": len(mods), "on_a_concept": len(set(mods) & attached),
                         "machinery": len(plumbing - attached), "on_none": len(loose), "sample_on_none": loose[:10]}}
 
@@ -344,6 +363,8 @@ def summary(the_map: dict) -> str:
     if cv:
         lines += [f"Coverage (reporting only): {cv['pages']['on_a_concept']} of {cv['pages']['total']} published pages "
                   f"sit on a concept; {cv['notes']['on_a_concept']} of {cv['notes']['total']} notes attach to a page a concept uses; "
+                  f"{cv['notes']['on_no_page']} notes sit on no page ({cv['notes']['owed']} ruled owed a page, "
+                  f"{cv['notes']['dead']} ruled dead, {cv['notes']['unruled']} unruled); "
                   f"{cv['modules']['on_a_concept']} of {cv['modules']['total']} supplier and world modules attach to a concept "
                   f"({cv['modules']['machinery']} more declared machinery, {cv['modules']['on_none']} on none); "
                   f"{cv['layers']['with_a_missing_layer']} of {cv['layers']['concepts']} concepts miss a layer, "

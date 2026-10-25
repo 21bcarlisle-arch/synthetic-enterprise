@@ -117,7 +117,7 @@ def test_coverage_counts_what_attaches_and_what_attaches_to_none(tmp_path):
     assert cov["modules"] == {"total": 4, "on_a_concept": 3, "machinery": 1, "on_none": 0, "sample_on_none": []}
     loose = _covered(tmp_path / "b")
     assert loose["modules"]["on_none"] == 1 and loose["modules"]["sample_on_none"] == ["company.billing.unrelated"]
-    assert loose["notes"] == {"total": 3, "on_a_concept": 2, "on_none": 1}
+    assert loose["notes"]["total"] == 3 and loose["notes"]["on_a_concept"] == 2 and loose["notes"]["on_none"] == 1
     assert _covered(tmp_path / "c", concepts=[_mandate(page=None)])["pages"]["on_none"] == ["debt"]
 
 
@@ -125,3 +125,42 @@ def test_a_machinery_ruling_without_a_reason_rules_nothing(tmp_path):
     """MUTATION: accept a prefix with no reason and the unreasoned prefix hides a loose module."""
     cov = _covered(tmp_path, machinery=[{"prefix": "company.billing.unrelated"}])
     assert cov["modules"]["on_none"] == 1
+
+
+def _ruled(tmp_path, rulings):
+    root = _tree(tmp_path, [_mandate()])
+    (root / the_map.RULINGS).write_text(yaml.safe_dump(rulings))
+    return the_map.build(root, rows=ROWS)["coverage"]["notes"]
+
+
+def test_a_ruling_moves_a_note_off_the_unruled_count_by_the_way_it_was_ruled(tmp_path):
+    """The control over the partition: attach, owed and dead are each taken at once. n3 sits on no page.
+    MUTATION: ignore `attach` and n3 stays on no page; ignore `owed` or `dead` and `unruled` is not 0;
+    accept a dead ruling with no reason and n3 is ruled by a row that says nothing."""
+    base = _ruled(tmp_path, {})
+    assert base["on_no_page"] == 1 and base["unruled"] == 1
+    owed = _ruled(tmp_path / "o", {"owed": {"switching": ["n3"]}})
+    dead = _ruled(tmp_path / "d", {"dead": [{"reason": "a prediction", "notes": ["n3"]}]})
+    attach = _ruled(tmp_path / "a", {"attach": {"debt": ["n3"]}})
+    assert (owed["owed"], owed["unruled"]) == (1, 0)
+    assert (dead["dead"], dead["unruled"]) == (1, 0)
+    assert (attach["on_no_page"], attach["on_a_concept"]) == (0, 3)
+    assert _ruled(tmp_path / "r", {"dead": [{"notes": ["n3"]}]})["unruled"] == 1
+
+
+def test_every_ruling_in_the_register_names_a_real_note_and_the_right_kind_of_page():
+    """Key to the property: an attach ruling needs a page that exists, an owed one a page that does not
+    yet, and every ruled note must exist. MUTATION: rule `n` for a deleted note, or `owed` a page that
+    has since landed, and this fires, which is the signal to move the ruling to `attach`."""
+    root = the_map.ROOT
+    rulings = the_map.load_rulings(root)
+    notes = {p.stem for p in (root / the_map.NOTES_DIR).glob("*.md")}
+    pages = {p.name for p in (root / "site/knowledge").iterdir() if p.is_dir() and (p / "index.html").exists()}
+    ruled = [n for ns in (rulings.get("attach") or {}).values() for n in ns]
+    ruled += [n for ns in (rulings.get("owed") or {}).values() for n in ns]
+    ruled += [n for row in rulings.get("dead") or [] for n in row["notes"]]
+    assert set(ruled) <= notes, sorted(set(ruled) - notes)
+    assert len(ruled) == len(set(ruled)), "a note ruled twice"
+    assert set(rulings["attach"]) <= pages, sorted(set(rulings["attach"]) - pages)
+    assert not set(rulings["owed"]) & pages, sorted(set(rulings["owed"]) & pages)
+    assert all(row.get("reason") for row in rulings["dead"])

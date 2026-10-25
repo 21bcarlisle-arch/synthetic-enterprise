@@ -1418,6 +1418,23 @@
       "why": "Debt is one of the largest costs a supplier carries. The company has to meet each kind of debt with the rules that govern it."
     },
     {
+      "id": "payments-and-direct-debit",
+      "title": "How a household pays for energy: direct debit, the other methods, and what a supplier owes the customer for getting the amount right",
+      "kind": "page",
+      "blurb": "About seven in ten accounts pay by direct debit, and it is the cheap way to serve them. Getting the monthly amount right has been an absolute duty since 2022, and getting it wrong in either direction is what turns a payment method into bill shock, debt or a regulator's letter.",
+      "rate_of_change": "medium",
+      "reviewed": {
+        "last_verified": "2026-10-25",
+        "source": "see the page's own sources"
+      },
+      "atoms": [
+        "W5_1_banking_payment_rails",
+        "EP4_collections_journey"
+      ],
+      "theme": "billing",
+      "why": "The payment method sets what a customer costs to collect (£57, £160 and £19 a year in the cap's debt allowance), and the simulated world draws only two methods."
+    },
+    {
       "id": "home-moves",
       "title": "What happens to a supplier when a household moves home",
       "kind": "page",
@@ -1717,6 +1734,11 @@
       "from": "regional-supply-cost",
       "type": "part-of",
       "to": "non-commodity-costs"
+    },
+    {
+      "from": "payments-and-direct-debit",
+      "type": "prerequisite-for",
+      "to": "debt-and-collections"
     }
   ],
   "review_policy": {

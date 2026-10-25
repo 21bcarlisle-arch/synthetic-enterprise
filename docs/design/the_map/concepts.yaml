@@ -37,7 +37,7 @@ concepts:
     definition: The customer's instruction letting the supplier collect from their bank, which the customer can cancel at any time.
     match: ["Bacs Direct Debit scheme: Direct Debit Instruction"]
     placed: [supplier/Collect]
-    page: debt-and-collections
+    page: payments-and-direct-debit
     world: [simulation.bacs_rails]
     supplier: [company.billing.direct_debit]
     gap: {wall: "a cancelled mandate is not an observable the seam carries"}
@@ -49,7 +49,7 @@ concepts:
     definition: A fixed direct debit rests on the best current information and is reviewed when new information would change it materially.
     match: ["SLC 27.15 (Ofgem decision 26 Aug 2022)"]
     placed: [supplier/Collect]
-    page: debt-and-collections
+    page: payments-and-direct-debit
     world: [simulation.dd_review_in_loop]
     wall: [company.interfaces.dd_review_outcome]
     supplier: [company.billing.dd_review]
@@ -61,7 +61,7 @@ concepts:
     definition: The supplier presents the debit on the agreed day; the bank pays it or returns it with a reason code.
     match: ["Bacs: ARUDD and ADDACS reason codes"]
     placed: [supplier/Collect]
-    page: debt-and-collections
+    page: payments-and-direct-debit
     world: [simulation.world_payment_truth]
     wall: [company.interfaces.dd_collection_instructions]
     supplier: [company.billing.dd_collections_desk]
