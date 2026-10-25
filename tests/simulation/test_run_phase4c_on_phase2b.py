@@ -365,13 +365,14 @@ def test_main_produces_contact_centre_log(main_result):
 
 def test_main_produces_credit_refund_log(main_result):
     # Phase 3 item 2 wiring: credit_refund.py's SLA mechanic now has a real
-    # caller -- every logged event must carry a resolved SLC 14 outcome.
+    # caller -- every logged event must carry a resolved GSoP reg 6D outcome.
     result = main_result
     assert result["credit_refund_log"], "no refunds in the window: the legs below would pass vacuously"
     for entry in result["credit_refund_log"]:
         assert entry["credit_amount_gbp"] > 0
         assert entry["working_days_to_pay"] is not None
-        assert isinstance(entry["breached_slc14_deadline"], bool)
+        assert isinstance(entry["breached_reg_6d_deadline"], bool)
+        assert (entry["reg_6d_payment_owed"] > 0) is entry["breached_reg_6d_deadline"]
 
 
 # -- bill_shock_yoy_pct / bill_shock_likely_seasonal (docs/design/

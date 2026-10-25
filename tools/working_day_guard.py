@@ -98,7 +98,6 @@ BASELINE_ALLOWLIST = frozenset(
         # delegates rather than by allowlist entry. What remains is the world's: simulation/ is
         # not the company's to migrate.
         "simulation/bacs_rails.py::_add_working_days",
-        "simulation/credit_refund_events.py::_add_working_days",
     }
 )
 

@@ -3,8 +3,8 @@
 WHAT THIS SUITE IS FOR — the properties NO other instrument in the tree can see
 -------------------------------------------------------------------------------
 `B4_billing_mechanics_reached_directly` stopped `simulation/credit_refund_events.py`
-opening the company's SLC 14 compliance book. The world now reports a closure, a
-credit balance and the date the money arrived to
+opening the company's refund compliance book (GSoP reg 6D; "SLC 14" until 2026-10-25,
+the wrong locus). The world now reports a final bill's issue date and its credit to
 `company/interfaces/credit_refund_requests.py`, and logs what comes back. Three
 properties that cut rests on are invisible to everything already watching, and each
 is mutation-proven below by PERFORMING the defect rather than asserting it impossible.
@@ -17,16 +17,15 @@ is mutation-proven below by PERFORMING the defect rather than asserting it impos
 
   2. THE TAXONOMY COULD DRIFT BACK ACROSS THE WALL THROUGH AN ARGUMENT. A
      `trigger=` parameter would look like a harmless convenience and would leave the
-     classification — which of SLC 14's four triggers this is — in the world's hands,
+     classification — which of the four refund triggers this is — in the world's hands,
      making the door a spelling change rather than a cut. Test 3 pins the signature.
 
-  3. THE BREACH VERDICT COULD GO PERMANENTLY FALSE, SILENTLY. `breached_slc14_deadline`
-     is the only compliance output of this whole mechanic, and nothing else recomputes
-     it. A door that always answered "not breached" would raise no error, break no
-     schedule, move no cash figure, and quietly publish a zero SLC 14 breach count —
-     FAIL-SILENT, and precisely the 2022 failure this mechanic exists to model. Tests
-     4 and 5 force the verdict both ways and then mutate it to prove the world's log
-     really follows it.
+  3. THE BREACH VERDICT COULD GO PERMANENTLY FALSE, SILENTLY. Since 2026-10-25 the
+     company sets the day it pays, on the reg 6D deadline, so the published log holds no
+     late refund. A verdict hard-wired to "not breached" would read identically. Test 4
+     forces the verdict and its compensation both ways on the book; test 5 makes the
+     company's schedule late and proves the world's log carries every breach with its
+     guaranteed-standard payment.
 """
 
 from __future__ import annotations
@@ -151,19 +150,21 @@ def test_mutation_a_widened_door_is_caught(leaked):
 
 
 def test_the_door_does_not_accept_a_trigger_argument():
-    """A `trigger=` convenience would leave SLC 14's four-way classification in the
-    world's hands and make this door a spelling change rather than a cut."""
+    """A `trigger=` convenience would leave the four-way refund classification in the
+    world's hands and make this door a spelling change rather than a cut. A `paid_date=`
+    would hand the world the supplier's payment speed again, the draw that made 10 of
+    100 refunds late at b2bc3d8da5."""
     params = set(inspect.signature(refund_on_account_closure).parameters)
-    assert params == {"account_id", "closure_date", "credit_amount_gbp", "paid_date"}, (
+    assert params == {"account_id", "final_bill_issued", "credit_amount_gbp"}, (
         f"the door's signature changed: {sorted(params)}. Anything naming a trigger, a "
-        "deadline, a status or a record type moves a company classification back across "
-        "the wall."
+        "deadline, a status, a payment date or a record type moves a company decision back "
+        "across the wall."
     )
-    out = refund_on_account_closure("C1", dt.date(2021, 3, 1), 42.0, dt.date(2021, 3, 5))
+    out = refund_on_account_closure("C1", dt.date(2021, 3, 1), 42.0)
     assert out["trigger"] == "account_closure"
     assert set(out) == {
         "trigger", "request_date", "credit_amount_gbp", "paid_date",
-        "working_days_to_pay", "breached_slc14_deadline",
+        "working_days_to_pay", "breached_reg_6d_deadline", "reg_6d_payment_owed",
     }
     assert all(isinstance(v, (str, float, int, bool)) for v in out.values()), (
         "the door returned a live object, not plain JSON-serialisable facts"
@@ -173,72 +174,85 @@ def test_the_door_does_not_accept_a_trigger_argument():
 # ── 4. The deadline is the company's, and it fires both ways ────────────────
 
 
-@pytest.mark.parametrize("working_days,expect_breach", [(1, False), (10, False), (11, True), (25, True)])
-def test_the_slc14_verdict_fires_both_ways(working_days, expect_breach):
-    """VACUITY GUARD BY CONSTRUCTION: a control that only ever saw compliant refunds
-    would pass against a door hard-wired to `False`. Both arms are asserted here."""
-    closure = dt.date(2021, 3, 1)
-    out = refund_on_account_closure(
-        "C1", closure, 42.0, _add_working_days(closure, working_days)
-    )
-    assert out["working_days_to_pay"] == working_days
-    assert out["breached_slc14_deadline"] is expect_breach
+def _paid_after(issued: dt.date, working_days: int):
+    from company.billing.credit_refund import CreditRefundBook, CreditRefundRecord, RefundTrigger
+
+    book = CreditRefundBook()
+    book.raise_refund(CreditRefundRecord("C1", issued, RefundTrigger.ACCOUNT_CLOSURE, 42.0))
+    return book.pay("C1", _add_working_days(issued, working_days))
 
 
-# ── 5. The world's published log really follows the company's verdict ───────
+@pytest.mark.parametrize("issued,working_days,expect_breach,expect_gbp", [
+    (dt.date(2021, 3, 1), 1, False, 0.0),
+    (dt.date(2021, 3, 1), 10, False, 0.0),
+    (dt.date(2021, 3, 1), 11, True, 30.0),
+    (dt.date(2024, 12, 2), 25, True, 30.0),   # failed 17 Dec 2024: before the uplift
+    (dt.date(2025, 1, 10), 11, True, 40.0),   # failed after 2 Jan 2025: £40
+    (dt.date(2018, 6, 1), 25, False, 0.0),    # reg 6D not yet in force (1 May 2019)
+])
+def test_a_late_refund_can_occur_and_is_then_compensated(issued, working_days, expect_breach, expect_gbp):
+    """VACUITY GUARD BY CONSTRUCTION: a book hard-wired to "on time" passes every compliant
+    case. The late arm is asserted reachable, and each late one carries the payment in force
+    the day it failed, from SI 2019/218 and Ofgem's 2025 uplift (home_moves.md s.8.8)."""
+    record = _paid_after(issued, working_days)
+    assert record.working_days_to_pay() == working_days
+    assert record.breached_deadline() is expect_breach
+    assert record.reg_6d_payment() == expect_gbp
+
+
+def test_the_company_pays_every_refund_on_or_before_its_deadline():
+    """Across 2016-2025, every final-bill day of the year: the scheduled day is never late on
+    the company's own calendar, bank holidays included (Christmas, Easter)."""
+    from company.billing.credit_refund import refund_due_date, scheduled_refund_date
+
+    day, worst = dt.date(2016, 1, 1), 0
+    while day <= dt.date(2025, 12, 31):
+        paid = scheduled_refund_date(day)
+        out = refund_on_account_closure("C1", day, 5.0)
+        assert paid <= refund_due_date(day)
+        assert out["breached_reg_6d_deadline"] is False and out["reg_6d_payment_owed"] == 0.0
+        worst = max(worst, out["working_days_to_pay"])
+        day += dt.timedelta(days=1)
+    assert worst == 10
+
+
+# ── 5. The world's published log really follows the company's schedule ─────
 
 
 def _refund_population():
-    """Enough closures in credit that BOTH verdicts appear in the log — the on-time
-    tail is ~10%, so a small sample lands on one arm only and would prove nothing. The
-    third item is the run's closing balances: each closes in credit on the ledger."""
+    """Closures in credit across the uplift and reg 6D's commencement. The third item is the
+    run's closing balances: each closes in credit on the ledger."""
     bills, closing = [], {}
-    for i in range(240):
+    for i in range(120):
         cid = f"CUST{i:04d}"
         closing[cid] = -round(5.0 + i % 17, 2)
-        for m in range(24):
-            year, month = 2020 + m // 12, m % 12 + 1
-            last = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][month - 1]
-            bills.append({
-                "customer_id": cid,
-                "period_end": f"{year:04d}-{month:02d}-{last:02d}",
-                "total_amount_gbp": round(120.0 - m * 2.5, 2),
-                "segment": "resi",
-                "commodity": "electricity",
-            })
+        year, month = 2017 + i // 15, i % 12 + 1
+        last = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][month - 1]
+        bills.append({
+            "customer_id": cid,
+            "period_end": f"{year:04d}-{month:02d}-{last:02d}",
+            "total_amount_gbp": 120.0,
+            "segment": "resi",
+            "commodity": "electricity",
+        })
     return bills, {b["customer_id"]: "resi" for b in bills}, closing
 
 
-def test_mutation_a_never_breaching_door_is_caught_in_the_published_log():
-    """FAIL-SILENT proof. Force the verdict permanently False at the door and the
-    world's published refund log must change — if it does not, the world is not really
-    reading the company's compliance answer and the cut moved nothing."""
+def test_mutation_a_late_schedule_reaches_the_published_log_with_its_compensation(monkeypatch):
+    """FAIL-SILENT proof. Make the company pay one working day after the deadline: the world's
+    published log must show the breaches, each with its payment, and none before 1 May 2019.
+    If the log were unchanged, the world would not be reading the company's schedule."""
+    import company.billing.credit_refund as book
+
     bills, segments, closing = _refund_population()
     baseline = generate_credit_refund_log(bills, segments, closing)
+    assert baseline and not any(r["breached_reg_6d_deadline"] for r in baseline)
 
-    assert baseline, "vacuity: no refund events at all in this population"
-    breaches = sum(1 for r in baseline if r["breached_slc14_deadline"])
-    assert 0 < breaches < len(baseline), (
-        f"vacuity: the population landed on ONE arm only ({breaches}/{len(baseline)} "
-        "breached), so a hard-wired verdict would pass this test"
-    )
-
-    with _Mutant(
-        SEAM_SOURCE,
-        '"breached_slc14_deadline": record.breached_deadline(),',
-        '"breached_slc14_deadline": False,',
-        "_mutant_refund_never_breaches",
-    ) as mutant:
-        import simulation.credit_refund_events as events
-        original = events.refund_on_account_closure
-        try:
-            events.refund_on_account_closure = mutant.refund_on_account_closure
-            mutated = generate_credit_refund_log(bills, segments, closing)
-        finally:
-            events.refund_on_account_closure = original
-
-    assert sum(1 for r in mutated if r["breached_slc14_deadline"]) == 0
-    assert mutated != baseline, (
-        "the published SLC 14 log was unchanged by a door that never reports a breach"
-    )
-    assert generate_credit_refund_log(bills, segments, closing) == baseline, "restoration failed"
+    monkeypatch.setattr(book, "scheduled_refund_date",
+                        lambda issued: _add_working_days(book.refund_due_date(issued), 1))
+    mutated = generate_credit_refund_log(bills, segments, closing)
+    late = [r for r in mutated if r["breached_reg_6d_deadline"]]
+    pre = [r for r in mutated if r["request_date"] < "2019-04-17"]
+    assert late and pre and not any(r["breached_reg_6d_deadline"] for r in pre)
+    assert {r["reg_6d_payment_owed"] for r in late} == {30.0, 40.0}
+    assert all(r["reg_6d_payment_owed"] == 0.0 for r in mutated if not r["breached_reg_6d_deadline"])
