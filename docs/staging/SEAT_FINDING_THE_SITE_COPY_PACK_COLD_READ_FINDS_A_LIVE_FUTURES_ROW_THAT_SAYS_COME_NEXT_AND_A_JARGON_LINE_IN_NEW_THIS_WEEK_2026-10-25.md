@@ -37,3 +37,19 @@ already in the generators, so that redraw changes figures, not wording.
 
 Rendered-browser check of the pages was not run in this worktree; the reads above are of the
 generated JSON and HTML.
+
+## Disposition, items 1 and 2
+
+*Autonomous worker, 2026-10-25.*
+
+1. **Futures row.** No new atom was minted: the 24 Oct ruling
+   (`advisor/done/DIRECTOR_RULING_FORWARD_YEARS_COME_RIGHT_AFTER_THE_BASICS_2026-10-24.md`) already
+   names `EP16_anchored_generators` (L0 of 3) as the forward years' atom. The row now cites it beside
+   `W1_2_generate_futures`, so it computes Building (Live 9 to 8, Building 1 to 2) and goes Live only
+   when EP16 reaches target.
+2. **New this week.** The 24 Oct map entry in `docs/status/SEAT_STRETCH_LOG.md` now carries an
+   `**In plain English:**` line, which `tools/harness_page_figures.week_highlights` shows in place of
+   the title from the next publish on.
+
+Item 5 (founding book of about 400 on both fuels on Home, and an explore redraw that changes only
+figures) still waits for Monday 26 Oct's run. This finding stays open until then.

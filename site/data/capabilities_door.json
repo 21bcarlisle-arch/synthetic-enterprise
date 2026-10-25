@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-25T16:36:26Z",
- "git_commit": "dcd686ac1e1f4ceb0b20b207818a0e6d7dd8f07b",
+ "generated_at": "2026-10-25T18:42:15Z",
+ "git_commit": "f920430d72c7089eb38fd8871d8dcc9b41342c51",
  "published_from": {
-  "commit": "dcd686ac1e1f4ceb0b20b207818a0e6d7dd8f07b",
+  "commit": "f920430d72c7089eb38fd8871d8dcc9b41342c51",
   "tree_was_clean": false,
   "inputs_are_the_committed_bytes": true,
   "inputs": [
@@ -189,21 +189,22 @@
    {
     "name": "Futures beyond the real record",
     "what": "Stress worlds past the end of the real data exist today. The forward years approved on 25 Oct 2026 come next, after the basics: 2026-2035, five futures, with gas, power and forward products whose volatility is checked against the published record.",
-    "status": "Live",
+    "status": "Building",
     "rests_on": [
-     "W1_2_generate_futures"
+     "W1_2_generate_futures",
+     "EP16_anchored_generators"
     ],
     "evidence": null,
     "checks": {
      "checks": 16,
      "covered": 1,
-     "of": 1
+     "of": 2
     }
    }
   ],
   "tally": {
-   "Live": 9,
-   "Building": 1,
+   "Live": 8,
+   "Building": 2,
    "Planned": 0
   }
  },
@@ -1537,14 +1538,14 @@
   {
    "plan": {
     "planned": true,
-    "items": 4,
-    "started": 4,
+    "items": 5,
+    "started": 5,
     "drawable_now": true,
     "when": "being worked on now",
     "waiting_on_count": 0
    },
    "title": "Half-built, not absent",
-   "what": "Listed above as coming next, which understates it: these exist and work in part, and are not finished. The price cap as a real constraint \u2014 Ofgem's cap binds what can be charged rather than sitting in a lookup table, and it change; Three clocks kept straight \u2014 What happened physically, what was billed, and what was settled are three different dates,; Carbon measured on three ledgers \u2014 Customer, portfolio and grid carbon accounted separately \u2014 the measurement the whole premi; The collections journey, end to end \u2014 Missed payment, reminder, dunning ladder, arrangement, and the point where a debt is hande."
+   "what": "Listed above as coming next, which understates it: these exist and work in part, and are not finished. The price cap as a real constraint \u2014 Ofgem's cap binds what can be charged rather than sitting in a lookup table, and it change; Futures beyond the real record \u2014 Stress worlds past the end of the real data exist today. The forward years approved on 25; Three clocks kept straight \u2014 What happened physically, what was billed, and what was settled are three different dates,; Carbon measured on three ledgers \u2014 Customer, portfolio and grid carbon accounted separately \u2014 the measurement the whole premi; The collections journey, end to end \u2014 Missed payment, reminder, dunning ladder, arrangement, and the point where a debt is hande."
   },
   {
    "plan": {

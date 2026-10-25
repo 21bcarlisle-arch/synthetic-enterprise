@@ -557,6 +557,8 @@ The director's ruling of 24 Oct 17:22 owed a recommendation before any forward-y
 
 <!-- head: 904a091f7b42 -->
 
+**In plain English:** A single map of the business's ideas now links each one to the code, the checks and the pages behind it; its first pass over collecting payments found many overlapping modules, including several that nothing calls.
+
 Director steers of 24 Oct: the map ("Do that", 13:05) and its SKOS refinement ("Yes", 15:44). This is items 1 and 2 in part: the design, and the pilot's generated findings. The page, the coverage checks, notes to pages, the forward knowledge plan and the agents' file (items 2-page, 3-6) are owed. Both steers stay open.
 
 **The design.**
