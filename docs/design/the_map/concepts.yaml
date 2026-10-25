@@ -514,6 +514,141 @@ concepts:
     supplier: [company.regulatory.carbon_emissions]
     gap: {world: "the world replays NESO's measured intensity and holds no DESNZ factor", wall: "a published factor; nothing crosses"}
 
+  - id: tariff.default_tariff
+    prefLabel: Default tariff
+    altLabel: [standard variable tariff, svt, evergreen tariff, default tariff cap]
+    definition: An open-ended tariff whose price moves when the cap moves; a household that does nothing at the end of a fixed term lands on it, and since 1 Jan 2019 its price is capped per fuel, payment method and region.
+    match: ["Domestic Gas and Electricity (Tariff Cap) Act 2018; SLC 22C.7; SLC 28AD"]
+    placed: [world/Choices, supplier/Renew or lose]
+    page: tariffs-and-the-default-tariff
+    world: [simulation.svt_product]
+    gap: {wall: "the company sees an account's tariff from its own book; no seam row is the default product itself", supplier: "the company sets no default price: the world prices the default at the published cap"}
+    relations: {depends_on: [tariff.fixed_term_end], graded_by: [tariff.default_share]}
+
+  - id: tariff.fixed_term_end
+    prefLabel: End of a fixed term
+    altLabel: [renewal notice, end of fix, rollover, fixed term default]
+    definition: The supplier writes 42-49 days before a fix ends; a household that does nothing moves to the default, or to a fixed default no dearer than the cheapest evergreen tariff, with no exit fee.
+    match: ["SLC 22C.4(a) and 22C.7 (from 6 Dec 2017)"]
+    placed: [supplier/Renew or lose]
+    page: tariffs-and-the-default-tariff
+    world: [simulation.renewals]
+    wall: [company.interfaces.renewal_advice]
+    gap: {supplier: "company.crm.renewal_notice_register would be the home and is uncalled; the renewal price is struck in the renewal rate chain"}
+    relations: {feeds: [tariff.default_tariff]}
+
+  - id: tariff.exit_fee
+    prefLabel: Exit fee
+    altLabel: [early termination fee, termination fee]
+    definition: A flat fee per fuel for leaving a fixed term early; none may be charged in the final 49 days, and no rule caps its size.
+    match: ["SLC 22C; Which? exit-fee guidance"]
+    placed: [supplier/Renew or lose, supplier/Switch]
+    page: tariffs-and-the-default-tariff
+    gap: {world: "no household pays or weighs an exit fee", wall: "nothing crosses", supplier: "company.billing.exit_fee is uncalled, waives at 42 days not 49, and prices per kWh where published fees are flat"}
+
+  - id: tariff.time_of_use
+    prefLabel: Time-of-use tariff
+    altLabel: [tou, economy 7, restricted meter, multi-register, agile, ev tariff]
+    definition: A tariff whose unit rate depends on the time of day, from an Economy 7 night rate on a restricted meter to half-hourly rates on a smart meter.
+    match: ["SLC 22G (restricted meters); Ofgem State of the Market (Jan 2026)"]
+    placed: [world/Choices, supplier/Optimise]
+    page: tariffs-and-the-default-tariff
+    world: [simulation.tou_periods]
+    wall: [company.interfaces.tou_offer]
+    supplier: [company.pricing.tou_desk]
+    # The company offers smart-metered fixed-term customers a revenue-neutral peak/off-peak split of its flat rate; no restricted meter, no Agile- or Go-shaped product.
+
+  - id: tariff.default_share
+    prefLabel: Share of households on the default tariff
+    altLabel: [default share, svt share, fixed share, tariff mix]
+    definition: Domestic accounts on a default tariff over domestic accounts, on a named basis (with or without prepayment).
+    match: ["Ofgem SVT trends (2017); State of the Market (2019, 2025, 2026); Commons Library CBP-9714"]
+    placed: [world/Choices]
+    page: tariffs-and-the-default-tariff
+    measure: {counts: "domestic accounts on a default tariff", over: "domestic accounts, basis named (all-domestic or excluding prepayment)", computed_by: "tools.published_tariff_mix"}
+    gap: {world: "the share emerges from simulation.svt_product's households; tools.svt_generated_share_check reads it", wall: "a check on the world's output, never crossing", supplier: "a world check, not a supplier belief"}
+
+  - id: meter.smart_meter
+    prefLabel: Smart meter
+    altLabel: [smets1, smets2, smart mode, traditional mode, smart meter penetration]
+    definition: A meter that records half-hourly use and communicates it over the DCC network; one that has stopped communicating is in traditional mode.
+    match: ["SMETS1/SMETS2 technical specifications; DESNZ Smart Meters in Great Britain statistics"]
+    placed: [supplier/Meter, world/Home physics]
+    page: smart-meters-and-half-hourly-settlement
+    world: [simulation.premise_population]
+    gap: {wall: "the meter type rides on the customer record the world renders, with no seam row of its own", supplier: "saas.smart_meter_rollout is a second copy of the rollout series, 4-10 points above the record"}
+
+  - id: settle.reconciliation_run
+    prefLabel: Settlement reconciliation run
+    altLabel: [reconciliation run, r1, r2, r3, rf, final reconciliation, settlement run timetable]
+    definition: A re-run of settlement that replaces estimated or profiled volumes with actual reads as they arrive, at fixed lags after the settlement day up to the final run.
+    match: ["BSC Section U and the SVAA settlement calendar; Elexon settlement-run glossary"]
+    placed: [world/Settlement, supplier/Settle]
+    page: smart-meters-and-half-hourly-settlement
+    world: [simulation.settlement_timetable]
+    supplier: [company.regulatory.settlement_reconciliation]
+    gap: {wall: "each run's revision crosses through the bitemporal event log, not a named seam row"}
+
+  - id: settle.mhhs
+    prefLabel: Market-wide half-hourly settlement
+    altLabel: [mhhs, half-hourly settlement, load shaping service, elective hhs]
+    definition: Every meter settled on its own half-hourly volumes, with non-communicating meters on load-shaping shapes; migration from 22 Oct 2025 to 7 May 2027.
+    match: ["Ofgem MHHS decision (20 Apr 2021); CR022 (Jun 2023); Elexon MHHS programme"]
+    placed: [world/Settlement, supplier/Settle]
+    page: smart-meters-and-half-hourly-settlement
+    gap: {world: "the run ends in 2025, before migration; every non-HH home settles on a profile", wall: "nothing crosses", supplier: "nothing to settle while the world has none; company.market.mhhs_tracker holds a 5 Jun 2025 go-live the record does not"}
+
+  - id: meter.hh_data_consent
+    prefLabel: Half-hourly data consent
+    altLabel: [data access and privacy framework, slc 47, hh opt-out, data granularity]
+    definition: Which granularity of a home's meter data a supplier may use, and for what, under the 2012 framework and SLC 47 as modified from 3 Nov 2022.
+    match: ["SLC 47 (electricity supply licence); DECC data access and privacy framework (2012); Ofgem decision (Jun 2019)"]
+    placed: [supplier/Meter, company/Regulation]
+    page: smart-meters-and-half-hourly-settlement
+    gap: {world: "no household chooses a data granularity", wall: "nothing crosses", supplier: "the company holds whatever the world reads; no consent state"}
+
+  - id: vuln.psr
+    prefLabel: Priority Services Register
+    altLabel: [psr, priority services register, needs code, psr registration]
+    definition: A supplier's register of customers in vulnerable situations, permanent or temporary, who get free priority services and whose needs are shared with the network.
+    match: ["SLC 26 (electricity and gas supply licences); Ofgem PSR review (2015-16)"]
+    placed: [company/Vulnerability, world/Households]
+    page: vulnerability-and-the-psr
+    world: [simulation.vulnerability_state]
+    wall: [company.interfaces.supply_book]
+    supplier: [company.regulatory.priority_services_register]
+    relations: {feeds: [vuln.ability_to_pay]}
+
+  - id: vuln.ability_to_pay
+    prefLabel: Ability-to-pay principles
+    altLabel: [repayment plan, struggling to pay, slc 27.8a]
+    definition: Repayment set by what the household can afford, with contact after two missed monthly payments and pauses considered.
+    match: ["SLC 27.5B, 27.8A, 27.8B; Ofgem Consumer Standards decision (Oct 2023)"]
+    placed: [company/Vulnerability, supplier/Collect]
+    page: vulnerability-and-the-psr
+    gap: {world: "financial vulnerability (V2) is drawn and drives nothing yet; arrears run off income_stress", wall: "V2 never crosses; the company infers it from payment behaviour", supplier: "company.crm.affordability_inference infers ability to pay from payment behaviour and is not declared the home until it is ruled"}
+    relations: {depends_on: [collect.arrears], feeds: [collect.cant_pay_wont_pay]}
+
+  - id: vuln.self_disconnection
+    prefLabel: Self-disconnection
+    altLabel: [self-rationing, friendly-hours credit, emergency credit, additional support credit]
+    definition: A prepayment household going without supply because it cannot top up; the supplier must try to identify it and offer support credit.
+    match: ["SLC 27A (from Dec 2020); Ofgem self-disconnection decision (Oct 2020)"]
+    placed: [company/Vulnerability]
+    page: vulnerability-and-the-psr
+    world: [simulation.self_rationing]
+    supplier: [company.crm.self_rationing_detector]
+    gap: {wall: "only consumption crosses; the hidden state never does. No prepayment meter, so no self-disconnection"}
+
+  - id: vuln.fuel_poverty
+    prefLabel: Fuel poverty
+    altLabel: [lilee, low income low energy efficiency, warm home discount, whd]
+    definition: In England, a home rated D-G whose income after housing and energy costs is below the poverty line; in the devolved nations, fuel spending of 10% or more of income.
+    match: ["DESNZ annual fuel poverty statistics (LILEE); Scottish House Condition Survey"]
+    placed: [world/Households, company/Vulnerability]
+    page: vulnerability-and-the-psr
+    gap: {world: "no fuel-poverty status is drawn or checked", wall: "nothing crosses; WHD eligibility comes from government data matching", supplier: "company.regulatory.fuel_poverty, company.crm.fuel_poverty and company.billing.whd_register have no caller"}
+
   - id: build.mutation
     prefLabel: Checks that can fail
     altLabel: [mutation, neuter test]

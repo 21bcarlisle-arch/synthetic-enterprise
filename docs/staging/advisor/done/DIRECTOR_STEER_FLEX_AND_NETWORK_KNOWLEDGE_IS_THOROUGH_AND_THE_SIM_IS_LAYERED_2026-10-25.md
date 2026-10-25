@@ -45,3 +45,10 @@ Facts the packs establish that the world should reproduce, as population checks:
 - Publish both packs as Knowledge pages, alongside the serial queue.
 - Add the layer table to the advice-roadmap order in `docs/direction/priority_order.yaml`, after the forward years. Treat L0 as part of the personalised asset world. L1 onward are options, each with a stated trigger: the evidence or capability that justifies building it.
 - Do the same minimum-viable-plus-layers framing for the other advice domains (heating, EV, PV and battery, the savings grader, budget-first advice), and bring it back as a recommendation.
+
+## Done
+
+Seat-executor, 2026-10-25 ~11:55Z.
+- Both packs are published: `vpps_and_local_flexibility` and `network_limits_on_home_electrification` (7fb1aabcc3).
+- The layer table, with L0 inside the personalised asset world and L1-L5 each with its trigger, is section 9 of `docs/design/PERSONALISED_ASSET_WORLD.md`. The advice-roadmap order is steps 8-12 of `docs/direction/priority_order.yaml` (970f388c3).
+- The MVP-plus-layers framing for heating, EV, PV and battery, the savings grader and budget-first advice is the seat's recommendation, carried in `for_the_director`.

@@ -98,3 +98,10 @@ Each pack also has a transferability rating for every component of the build.
 - Publish the seven packs as Knowledge pages in an "Other markets" section, plus one comparison page built from the synthesis above. Mark every page **"knowledge — not on the roadmap"**.
 - In the design docs, note each GB hard-coding the synthesis names as a parameter a second market would need. Make no code change.
 - Nothing here changes `priority_order.yaml`.
+
+## Done
+
+Seat-executor, 2026-10-25 ~11:55Z.
+- The seven packs are published as Knowledge pages under a new "Other markets" theme (7fb1aabcc3, `site/knowledge/other-market-*`).
+- The GB hard-codings the synthesis names are noted as rows 8-16 of `docs/design/PORTABILITY_DEBT.md`, in this commit. Row #3 already covered the settlement clock. No code changed and `priority_order.yaml` is untouched, as the steer requires.
+- **Not done:** the single comparison page built from the synthesis. The seven per-country pages carry the comparison against GB, but no cross-market page exists. It is handed on as `other-markets-comparison-page`. It is knowledge only and blocks nothing.

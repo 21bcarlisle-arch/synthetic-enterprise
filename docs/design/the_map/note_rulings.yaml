@@ -75,11 +75,19 @@ attach:
   - settlement_rebilling_best_practice
   price-cap:
   - ofgem_cap_windows
+  smart-meters-and-half-hourly-settlement:
+  - hh_load_shape_clustering_2026
+  - smart_meter_hh_data_consent_2026
   suppliers-accounts-and-capital:
   # Its citation does not attach it: the citation match reads lower-case stems only.
   - CSS_BENCHMARKS
+  tariffs-and-the-default-tariff:
+  - gb_domestic_default_tariff_share_2016_2025
+  - svt_drift_by_payment_behaviour
   unbilled-energy-and-revenue-assurance:
   - unbilled_revenue_accrual_e3
+  vulnerability-and-the-psr:
+  - ofgem_regulation
   weather-cells:
   - WEATHER_FORECAST_ERROR_BY_HORIZON
   - cold_snaps_arrive_in_blocks_and_britain_has_no_second_weather
@@ -132,15 +140,7 @@ owed:
   - g14_grid_carbon_history_and_weather_fitted_future_2026-10-05
   - neso_carbon_intensity_interconnector_treatment_2026-10-04
   - what_ep13_established_about_gb_grid_carbon
-  smart-meters-and-half-hourly-settlement:
-  - hh_load_shape_clustering_2026
-  - smart_meter_hh_data_consent_2026
   # Re-keyed 25 Oct from suppliers-accounts-and-capital: these are operating-cost anchors (opex lines), not accounts or capital.
   operating-costs:
   - B2_CATEGORY4_INFRASTRUCTURE_ANCHORS
   - B2_CATEGORY5_GOVERNANCE_ANCHORS
-  tariffs-and-the-default-tariff:
-  - gb_domestic_default_tariff_share_2016_2025
-  - svt_drift_by_payment_behaviour
-  vulnerability-and-the-psr:
-  - ofgem_regulation

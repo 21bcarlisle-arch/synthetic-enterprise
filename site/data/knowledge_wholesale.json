@@ -1121,6 +1121,23 @@
       "why": "Ofgem's cap limits what most households can be charged, so it bounds every tariff the company can offer."
     },
     {
+      "id": "tariffs-and-the-default-tariff",
+      "title": "How GB households are priced: the fixed deal, the default tariff, the cap and time-of-use",
+      "kind": "page",
+      "blurb": "A fixed deal ends after 12-24 months and, if the household does nothing, it rolls onto the default tariff, priced at Ofgem's cap since January 2019. About two thirds of large suppliers' customers sat on the default in 2016, nine in ten in mid-2023, and about two thirds again by mid-2025.",
+      "rate_of_change": "medium",
+      "reviewed": {
+        "last_verified": "2026-10-25",
+        "source": "see the page's own sources"
+      },
+      "atoms": [
+        "C30_advice_reaches_a_household",
+        "B12_writer_one_reads_its_margin_on_the_unit_rate_so_a_renewal_floor_is_its_true_unit_cost"
+      ],
+      "theme": "markets",
+      "why": "The world prices every default-tariff household at the published cap and its fixed terms at the company's own price; the split between them is a check on the world, and the company's first graded advice is a letter to default-tariff households."
+    },
+    {
       "id": "metering-and-reads",
       "title": "Metering and meter reads",
       "kind": "page",
@@ -1137,6 +1154,24 @@
       ],
       "theme": "billing",
       "why": "The market settles every half hour but most meters are read a few times a year. Estimated bills, catch-up bills and much debt come from that gap."
+    },
+    {
+      "id": "smart-meters-and-half-hourly-settlement",
+      "title": "Smart meters and half-hourly settlement: what the meter reports, what settlement uses, and when it changes",
+      "kind": "page",
+      "blurb": "About seven in ten GB homes had a smart meter by the end of 2025, but until migration to market-wide half-hourly settlement began in October 2025 almost every home was settled on a profile and trued up over 14 months. The final run shortens to four months from July 2027.",
+      "rate_of_change": "fast",
+      "reviewed": {
+        "last_verified": "2026-10-25",
+        "source": "see the page's own sources"
+      },
+      "atoms": [
+        "EP5_settlement_true_ups",
+        "EP8_adapter_dcc_duis",
+        "W2_30_per_household_half_hourly_electricity_and_seasonal_gas_shape"
+      ],
+      "theme": "billing",
+      "why": "The world draws which homes have a smart meter and settles every home on a profile with reconciliation runs; the company's time-of-use offer depends on the meter, and two copies of the rollout series disagree."
     },
     {
       "id": "non-commodity-costs",
@@ -1437,6 +1472,22 @@
       ],
       "theme": "billing",
       "why": "Debt is one of the largest costs a supplier carries. The company has to meet each kind of debt with the rules that govern it."
+    },
+    {
+      "id": "vulnerability-and-the-psr",
+      "title": "Vulnerable customers: the Priority Services Register, ability to pay, prepayment and self-disconnection",
+      "kind": "page",
+      "blurb": "About a third of GB electricity customers were on a supplier's Priority Services Register by the end of 2025, and just under 7% were in debt or arrears, more than half with no repayment plan. The rules on how a supplier must treat them tightened sharply after 2020 and again after the forced prepayment installs of 2022-23.",
+      "rate_of_change": "medium",
+      "reviewed": {
+        "last_verified": "2026-10-25",
+        "source": "see the page's own sources"
+      },
+      "atoms": [
+        "C32_one_obligation_one_vulnerability_scorer"
+      ],
+      "theme": "billing",
+      "why": "The world draws vulnerability as hidden household truth and lets only a disclosed registration cross; the company owes protections it can only give to the households it knows about."
     },
     {
       "id": "payments-and-direct-debit",
@@ -2463,6 +2514,41 @@
       "from": "non-commodity-costs",
       "type": "drives",
       "to": "dated-household-cost-and-price-series"
+    },
+    {
+      "from": "price-cap",
+      "type": "prerequisite-for",
+      "to": "tariffs-and-the-default-tariff"
+    },
+    {
+      "from": "tariffs-and-the-default-tariff",
+      "type": "drives",
+      "to": "how-households-choose"
+    },
+    {
+      "from": "metering-and-reads",
+      "type": "prerequisite-for",
+      "to": "smart-meters-and-half-hourly-settlement"
+    },
+    {
+      "from": "smart-meters-and-half-hourly-settlement",
+      "type": "prerequisite-for",
+      "to": "tariffs-and-the-default-tariff"
+    },
+    {
+      "from": "smart-meters-and-half-hourly-settlement",
+      "type": "drives",
+      "to": "imbalance-cashout-settlement"
+    },
+    {
+      "from": "vulnerability-and-the-psr",
+      "type": "prerequisite-for",
+      "to": "debt-and-collections"
+    },
+    {
+      "from": "who-lives-where",
+      "type": "drives",
+      "to": "vulnerability-and-the-psr"
     }
   ],
   "review_policy": {

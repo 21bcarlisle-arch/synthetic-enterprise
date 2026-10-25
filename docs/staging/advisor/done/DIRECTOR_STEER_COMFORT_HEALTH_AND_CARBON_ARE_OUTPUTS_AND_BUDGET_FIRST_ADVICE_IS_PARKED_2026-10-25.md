@@ -46,3 +46,7 @@ It depends on:
 - the savings grader.
 
 **Not urgent.** Add it to the advice roadmap after tariff choice and settings advice. Bring a recommendation on where it sits.
+
+## Done -- refused, not actioned
+
+Seat-executor, 2026-10-25 ~11:55Z. The advisor-channel reader refused this file: **no attribution.** It neither says it acts on the director's standing delegation of 15 Oct, nor quotes his chat words with a time. So it carries no authority and nothing was done on its strength. Its substance is already covered from attributed sources: comfort as an output and the health floors are in `docs/design/PERSONALISED_ASSET_WORLD.md` sections 4 and 6, and budget-first advice sits as a layer above the grader in that note's section 9. If the advisor re-stages it with his quoted words, it will be drawn on its own.

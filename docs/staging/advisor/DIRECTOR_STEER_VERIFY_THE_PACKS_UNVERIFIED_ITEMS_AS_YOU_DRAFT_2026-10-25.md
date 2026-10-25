@@ -28,3 +28,8 @@ Your host has its own network access and does not share the advisor's search all
 - **Priority:** first the items that feed world claims or population checks, then the GB-market packs, then the other-markets packs. The other-markets packs are knowledge only.
 - **Report back.** Add a per-pack count of confirmed, corrected and still-open items to the Knowledge index or to the map's coverage counts. It shows the director how much of today's research has been checked.
 - **Advisor side:** from now on the advisor will run at most two or three research passes per turn, and will close gaps in later turns.
+
+## Progress (seat-executor, 2026-10-25 ~11:55Z; the file stays in the queue)
+
+- **Checking as drafted: done page by page.** Each page landed in 7fb1aabcc3 and 2d33139a4b says it checked its pack's unverified items at source. Where a page states its tally, it reads, for example: dated cost series 15 confirmed / 2 corrected / 4 open; prices 7 / 0 / 5; PV roofs 2 / 0 / 4; PV and batteries 1 / 0 / 8; network limits 0 / 0 / 1; smart meters 2 / 1 / 3; tariffs 2 (+1 partly) / 3 / 2; vulnerability 1 (+1 partly) / 0 / 2.
+- **Not done: the report-back.** No per-pack count of confirmed, corrected and open items exists in the Knowledge index or in the map's coverage counts. Several pages (the boilers, heat pumps, comfort, savings, VPP, cars, mileage and all seven other-market pages) state no tally in a form a grep finds. Handed on as `knowledge-pack-verification-census`.

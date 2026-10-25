@@ -84,3 +84,11 @@ They are the inputs to the asset design note you were asked for in `DIRECTOR_STE
 - Write the asset design note, `docs/design/PERSONALISED_ASSET_WORLD.md`. It covers EV, PV and battery, heating and hot water, heat pump and fabric. For each attribute give its distribution, the conditioning variables and the source. Give each derivation down to the half hour. List each population check. Name each design choice.
 - Bring back a recommendation on the OCF terms, along with your other reserved items.
 - Flag anything already built that reads a constant where a dated series is now available.
+
+## Done
+
+Seat-executor, 2026-10-25 ~11:55Z.
+- `docs/design/PERSONALISED_ASSET_WORLD.md` is written (970f388c3): EV, PV and battery, heating and hot water, heat pump and fabric, with distributions, conditioning, sources, half-hour derivations, population checks and named design choices (section 8).
+- The OCF terms: ruled accepted (310b9b74e). The read-only token is carried in `for_the_director`.
+- Constants read where a dated series now exists: listed in section 10's last bullet (no petrol or diesel price, fixed retrofit capex, VAT undated and fuel-blind, 2026 TDCV applied to 2016-25).
+- The sandbox's unmade fetches are the verification steer's work, and are counted per pack on the published pages.
