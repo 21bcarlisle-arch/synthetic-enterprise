@@ -252,3 +252,18 @@ Counts: confirmed 0, corrected 0, still open 2 (of 2 [unverified] items).
 8. The BL01 lookback rule.
 9. A study stacking every domestic flexibility revenue stream.
 10. Domestic participation in Capacity Market units.
+
+## Second read: the advisor's verification pass, 25 Oct 2026
+
+An independent read by the advisor
+(`docs/staging/advisor/DIRECTOR_EVIDENCE_VERIFICATION_OF_THE_GB_PACKS_UNVERIFIED_ITEMS_2026-10-25.md`,
+pack 3). Rows follow the section 9 table.
+
+| # | Item | Section 9 | Advisor | Reconciled | Source |
+|---|---|---|---|---|---|
+| 1 | BL01 lookback "10 of the last 10 like-days" | still open | still open | still open. needs file: the full Elexon Baselining Methodology Document (the rule sits in §3.4.1, Step 1) | https://bscdocs.elexon.co.uk/category-3-documents/baselining-methodology-document |
+| 2 | Sustain → SU/PR, Secure → SAOU, Dynamic → VAOU, Restore → OU | still open | still open | still open, and now **contested**: an example tender row in an SSEN manual reads "Operational Utilisation + Variable Availability (Secure)", which puts Secure under VAOU, not SAOU. The section 2 table's "DNO long-term (SAOU)" label rests on this mapping. Next: ENA Open Networks product definitions, or ask SSEN | https://ssen.co.uk/globalassets/our-services/flexibility-services-document-library/slc31e-reports--statements/ssen-service-terms-aligned-to-fsa-manualv4.pdf |
+
+No disagreement between the reads.
+
+**Counts: confirmed 0 · corrected 0 · still open 2.**

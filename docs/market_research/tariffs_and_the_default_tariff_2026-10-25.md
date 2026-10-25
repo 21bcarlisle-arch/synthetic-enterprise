@@ -107,7 +107,7 @@ corrected item: the world draws no exit fee, no BAT and no time-of-use product.
 | Feb 2025 | "around £140" | Ofgem SoM 2025 |
 | Oct 2025 | "approximately £265" | Ofgem SoM Jan 2026 |
 
-**CMA detriment estimates.** The Commons Library and the CMA archive summary quote domestic detriment as "about £1.4 billion a year" (https://researchbriefings.files.parliament.uk/documents/CBP-8081/CBP-8081.pdf ; https://regulation.org.uk/archive-energy-2016_cma_report.html). A Commons Library page gives £1.7bn a year (https://commonslibrary.parliament.uk/research-briefings/cbp-7543/), which I take to include microbusinesses. My recollection that the period was 2012-2015 and that detriment rose above £2bn in 2015 is **[UNVERIFIED]**. *Seat: confirmed as "almost £2bn", see V3.* The CMA's prepayment cap was expected to cut bills by "£300 million a year" (CBP-7543).
+**CMA detriment estimates.** The Commons Library and the CMA archive summary quote domestic detriment as "about £1.4 billion a year" (https://researchbriefings.files.parliament.uk/documents/CBP-8081/CBP-8081.pdf ; https://regulation.org.uk/archive-energy-2016_cma_report.html). A Commons Library page gives £1.7bn a year (https://commonslibrary.parliament.uk/research-briefings/cbp-7543/), which I take to include microbusinesses. My recollection that the period was 2012-2015 and that detriment rose above £2bn in 2015 is **[UNVERIFIED]**. *Seat: confirmed as "almost £2bn", see V3.* Correct reading: about £1.4bn a year on average over 2012-2015, rising to almost (not above) £2bn in 2015 (corrected 25 Oct, second read). The CMA's prepayment cap was expected to cut bills by "£300 million a year" (CBP-7543).
 
 **Restricted meters.** In Q2 2015 restricted-meter customers who would have been better off on the cheapest single-rate tariff lost about £42m in total. That is about £158 per customer, or 17% of their bill. https://assets.publishing.service.gov.uk/media/577521a9e5274a0da3000123/fr-appendix-9-5-restricted-meters.pdf
 
@@ -198,7 +198,7 @@ Standing charges were not changed: "The reductions will come on unit rates rathe
 
   Source: https://www.ofgem.gov.uk/sites/default/files/docs/2016/08/rmr_simpler_removal_stat_con_-_open_letter_august_2016.pdf
 - **Other RMR rules described by SSE:** two-tier tariffs were banned, and tracker tariffs were banned unless linked to an external index. https://www.sse.com/news-and-views/2013/12/retail-market-review-what-does-it-mean-for-you/
-- My recollection that the three permitted discounts were dual fuel, online account management and payment method is **[UNVERIFIED]**. *Seat: two of three confirmed, see V6.*
+- My recollection that the three permitted discounts were dual fuel, online account management and payment method is **[UNVERIFIED]**. *Seat: two of three confirmed, see V6.* The third is dividend payments, not payment method: Ofgem's Aug 2016 open letter names "three permitted types of cash discount (dual fuel, online account management and dividend payments)" (corrected 25 Oct, second read, read in the PDF text).
 - **CMA view:** "the RMR four-tariff rule limits the ability of suppliers to compete and innovate" (para 174).
 - **Removal:** Ofgem said on 14 April 2016 that it would "not intend to enforce these rules" (https://www.ofgem.gov.uk/publications-and-updates/changes-our-retail-market-review-reforms). It opened a statutory consultation on formal removal on 3 August 2016. The date the formal decision took effect is **not verified**.
 - No source I fetched gives the size of dual fuel discounts in £.
@@ -238,3 +238,18 @@ Standing charges were not changed: "The reductions will come on unit rates rathe
 9. **Date the RMR simpler rules were formally removed**, the permitted discount types, and dual fuel discount values in £.
 10. **Date the BAT actually ended.**
 11. **Whether CMA detriment figures are averages for 2012-2015, and how they split between domestic and microbusiness customers.**
+
+## Second read: the advisor's verification pass, 25 Oct 2026
+
+The advisor read the same tags independently (`docs/staging/advisor/DIRECTOR_EVIDENCE_VERIFICATION_OF_THE_GB_PACKS_UNVERIFIED_ITEMS_2026-10-25.md`, pass 3, pack 8). V7 and V8 were not in its scope; their outcomes stand.
+
+| # | Item | Prior outcome | Advisor | Reconciled | Source |
+|---|---|---|---|---|---|
+| V1 | Share of fixes by length | still unpublished (counted open) | still open (not searched) | **still open** | — |
+| V2 | Crisis-era exit fees | corrected band | confirmed: typical £60 dual fuel (Jun 2021), highest £150; highest £600 dual fuel in Jun 2022 (Outfox 1-yr fix) | **corrected**. **DISAGREES** on the label only: both reads agree crisis fees ran far above £30 per fuel; the pack's band is what changed | https://www.moneysavingexpert.com/pressoffice/2022/energy-exit-fees-are-up-to-10-times-higher-than-last-year--warns/ |
+| V3 | CMA detriment 2012-15, "above £2bn in 2015" | confirmed (as "almost £2bn") | corrected: £1.4bn a year average, almost £2bn in 2015 | **corrected**. **DISAGREES**: same source and same words; "almost" does not confirm "above", so the advisor's label is right. Body corrected. Secondary (Littlechild quoting the CMA) | https://www.econ.cam.ac.uk/research/cwpe-abstracts?cwpe=1707 (secondary) |
+| V4 | PPM in the default cap from 2021; levelisation from 2024 | confirmed | confirmed (decision 23 Feb 2024; phase 2 paused Aug 2024) | **confirmed** | https://ofgem.gov.uk/decision/decision-adjusting-standing-charges-prepayment-customers |
+| V5 | Agile ~2018, Go ~2019 | corrected (Go June 2018) | Agile confirmed 19 Feb 2018 (forum, secondary); Go still open (no date visible) | **corrected**. **DISAGREES** on Go: the seat had a dated Fleet News report of June 2018; the advisor's page showed no date. The seat's read stands. Agile's date is still secondary | https://community.openenergymonitor.org/t/my-octopus-agile-go-tariff-comparison-analysis-website/10987 (secondary) |
+| V6 | RMR's three permitted discounts | partly confirmed (payment method open) | corrected: the third is dividend payments | **corrected**, at primary. The advisor asked for the PDF text to be checked; this read extracted it: "three permitted types of cash discount (dual fuel, online account management and dividend payments)". Body corrected | https://www.ofgem.gov.uk/sites/default/files/docs/2016/08/rmr_simpler_removal_stat_con_-_open_letter_august_2016.pdf |
+
+**Counts: confirmed 1 · partly confirmed 0 · corrected 5 · still open 2.**

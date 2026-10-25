@@ -272,7 +272,7 @@ Key sources used throughout:
   - This gives 66 / 93 / 120 / 147 L/day for N = 1–4 [derived].
   - The low R² means wide scatter within each occupancy level.
   - Mean delivery temperature 52.2°C (combi 50.0°C); cold feed 15.3°C.
-- EST headline mean of about 122 L/day: [unverified]. DHW24 instead cites the EST study as 104 L/day at about 2.4 occupants ([DHW24](https://assets.publishing.service.gov.uk/media/65f43b919d99de001d03df8a/domestic-hot-water-use-insights.pdf)).
+- EST headline mean of about 122 L/day (±18 at 95%): confirmed at the EST/EA 2008 report in the checks above (25 Oct; the advisor's second read could not open the PDF). DHW24 instead cites the EST study as 104 L/day at about 2.4 occupants ([DHW24](https://assets.publishing.service.gov.uk/media/65f43b919d99de001d03df8a/domestic-hot-water-use-insights.pdf)).
 - Connected-combi data, 45,000 homes 2021–22 ([DHW24](https://assets.publishing.service.gov.uk/media/65f43b919d99de001d03df8a/domestic-hot-water-use-insights.pdf)):
   - median 90 L/day, P10–P90 19–222 L/day;
   - decile medians 37.9 to 197.8 L/day;
@@ -463,7 +463,7 @@ The simulated population should reproduce these figures:
 
 ## (d) Named gaps and suggested design choices
 
-1. **No cited distribution of measured winter temperatures.** EFUS-T gives deciles and means by group, but no overall histogram or share below 18°C. *Choice:* calibrate the thermal model so the simulated deciles match EFUS-T (coldest decile below 15.7°C living, below 15.0°C bedroom). Pull the SERL in-home temperature sensor data through UKDS SN 8666, which I did not confirm exists for this purpose [unverified].
+1. **No cited distribution of measured winter temperatures.** EFUS-T gives deciles and means by group, but no overall histogram or share below 18°C. *Choice:* calibrate the thermal model so the simulated deciles match EFUS-T (coldest decile below 15.7°C living, below 15.0°C bedroom). Pull the SERL in-home temperature sensor data through UKDS SN 8666, which I did not confirm exists for this purpose [unverified]. SN 8666 is the SERL Observatory 2019–2024, Secure Access, linked to ERA5 and EPC data; whether it carries temperature-sensor readings is still unconfirmed (second read, 25 Oct).
 2. **24-hour heating share is uncertain** (reported about 4%, measured "flat" profile about 31%). *Choice:* treat "flat" as a temperature-profile outcome of low setback combined with long hours, rather than a separate schedule type. Draw around 10% of homes as true 24-hour heating [design assumption], biased towards flats and social rent.
 3. **No national primary source for the flow-temperature distribution.** The CIBSE secondary report is the only field telemetry found. *Choice:* triangular distribution, mode 74°C, range 55–80°C, with 6% at 60°C or below.
 4. **Hot-water volume by occupancy has only a mean line.** The R² of 0.14 means huge scatter. *Choice:* lognormal around 39 + 27N, with a dispersion that reproduces the DHW24 P10–P90 spread.
@@ -475,3 +475,17 @@ The simulated population should reproduce these figures:
    - the EST 2008 report's own headline figure: the PDF was blocked, and DHW24 is internally inconsistent on 104 L;
    - the "Rossi" flow-temperature paper behind the CIBSE Journal report;
    - the full Living Lab zoning data.
+
+## Second read: the advisor's verification pass, 25 Oct 2026
+
+The advisor read three of the tags independently (`docs/staging/advisor/DIRECTOR_EVIDENCE_VERIFICATION_OF_THE_GB_PACKS_UNVERIFIED_ITEMS_2026-10-25.md`, pass 3, pack 6). Items not listed were not in its scope; their outcomes stand.
+
+| # | Item | Prior outcome | Advisor | Reconciled | Source |
+|---|---|---|---|---|---|
+| 6 | EST 2008 headline mean ~122 L/day | confirmed (quoted from the EST/EA report) | still open: the PDF was refused; BRE STP09 does not state 122 | **confirmed**. **DISAGREES**: the advisor could not reach the report this page quoted directly; the primary read stands | https://assets.publishing.service.gov.uk/media/5a75a29ced915d6faf2b4829/3147-measure-domestic-hot-water-consump.pdf |
+| 11 | Lowering a combi hot-water setpoint is low legionella risk, as an HSE position | still open (not an HSE position) | still open: HSE says all systems, including low-storage ones, "can present foreseeable risk" | **still open**. Both reads agree HSE does not say it. Rule (c)7 is a Poesys assumption; HSG274 Part 2 is the next place to look | https://hse.gov.uk/Legionnaires/hot-and-cold.htm |
+| 12 | SERL in-home temperature data via UKDS SN 8666 | still open | still open: SN 8666 exists (SERL Observatory 2019–2024, Secure Access, ERA5 and EPC linked); sensor content unconfirmed | **still open** | https://doc.ukdataservice.ac.uk/doc/8666/mrdoc/UKDA/UKDA_Study_8666_Information.htm |
+
+The advisor's PHE 2014 correction (gap-closure pack, recorded on the proving-savings page) removes recalled bands of <16°C respiratory, 9–12°C cardiovascular and <5°C hypothermia. This page never carried them: its PHE reading (18°C minimal risk; blood-pressure risk below 18°C, more below 16°C; weak evidence) matches the advisor's, so the health-floor rules in (c) stand as written. Item 13 stays a design assumption, not counted.
+
+**Counts: confirmed 9 · corrected 0 · still open 3.**

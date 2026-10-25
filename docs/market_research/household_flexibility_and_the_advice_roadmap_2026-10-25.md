@@ -191,3 +191,45 @@ Networks and FES 2025 flexibility GW not fetched; no direct fatigue measurement;
 above. Discrepancies: the SSES date (end-2027 vs March 2028; later used); NESO's 2024/25 accepted
 tender total (£1,223,312 in the summary, confirmed here, against £1,233,312 elsewhere in the pack's
 reading); CrowdFlex NPV and CO2 disagree between report sections.
+
+## Second read: the advisor's verification pass, 25 Oct 2026
+
+An independent read by the advisor
+(`docs/staging/advisor/DIRECTOR_EVIDENCE_VERIFICATION_OF_THE_GB_PACKS_UNVERIFIED_ITEMS_2026-10-25.md`,
+pack 1). Rows follow the order of the section 7 table. Where the two reads disagree, the section 7
+primary-source read is kept and the row is marked DISAGREES. An item moves from still open only on a
+primary or credible named source; secondary sources are labelled.
+
+| # | Item | Section 7 | Advisor | Reconciled | Source |
+|---|---|---|---|---|---|
+| 1 | Smart Charge Points Regs: defaults, 600 s delay, ETSI EN 303 645 | corrected | confirmed | **corrected. DISAGREES:** both reads agree the SI never names ETSI; the advisor confirmed on gov.uk guidance (read via a mirror) calling the rules "consistent with" it. The SI is the primary text, so the claim that it sets security "to ETSI" stays corrected. Reg 11 also requires the delay to be extendable to 1,800 s | https://legislation.gov.uk/uksi/2021/1467/part/2/made |
+| 2 | ~4m+ homes on Economy 7-type meters | confirmed | confirmed (partly) | **confirmed** (about 4m Profile Class 2 meters; not all on multi-rate tariffs) | Ofgem 2020 (section 7); https://sustainabilityfirst.org.uk/images/Economy_7_and_the_price_cap_final_120123_PWP.pdf (secondary) |
+| 3 | 1.5–2m homes rely mainly on electric heating | still open | confirmed (partly) | **still open.** 1.4m homes have storage heating (secondary); total electric main heating is unsourced | as row 2 |
+| 4 | RTS switch-off began mid-2025, region by region | confirmed | corrected | **corrected. DISAGREES:** section 7 confirmed the 30 Jun 2025 start but did not test "region by region"; Ofgem describes switch-off in groups of meters, with no regional phasing. About 300k RTS meters left in Jul 2025 | https://www.ofgem.gov.uk/news/support-energy-suppliers-during-rts-switch |
+| 5 | Quantum storage heaters cut running costs | still open | confirmed | **still open.** The only source is the manufacturer ("up to 27% cheaper to run") | https://www.dimplex.co.uk/en-gb/news/mythbusters-quantum-vs-night-storage-heaters |
+| 6 | Hot water ~15–20% of heating energy | still open | still open | still open | – |
+| 7 | Cylinders removed in combi conversions | still open | still open | still open | – |
+| 8 | Induction ~85–90% vs gas hob ~40% | still open | still open | still open (retailer page only) | – |
+| 9 | Standby ~£50/yr | still open | still open | still open. A council page says "up to £70" (British Gas); not EST | – |
+| 10 | CMA 2016: ~£1.4bn/yr detriment | confirmed | confirmed | **confirmed** | CMA final report summary (section 7) |
+| 11 | Data access: monthly default, daily opt-out, HH opt-in | still open | corrected | **corrected.** Under SLC 47 as modified in 2022, old-system domestic meters default to daily (opt in to HH, out to monthly); under MHHS, domestic meters default to HH with opt-out to daily. The pack's ladder is not the settlement rule | https://www.ofgem.gov.uk/sites/default/files/2022-09/Decision%20on%20Modifying%20SLC%2047%20of%20the%20electricity%20supply%20licence.pdf |
+| 12 | About two-thirds of meters smart or advanced | corrected | confirmed | **corrected. DISAGREES:** both reads use the June 2026 DESNZ bulletin. About 72–73% of meters are smart; about two-thirds are smart *and in smart mode*. The claim says "smart or advanced", so the section 7 correction stands | https://www.gov.uk/government/statistics/smart-meters-in-great-britain-quarterly-update-june-2026/smart-meters-in-great-britain-quarterly-update-june-2026-statistical-bulletin |
+| 13 | 4m+ electricity prepayment meters | still open | confirmed | **confirmed (secondary).** About 4m GB homes on pay-as-you-go; Which?, Aug 2026; no split by fuel | https://www.which.co.uk/reviews/cutting-your-energy-bills/article/is-a-prepayment-energy-meter-right-for-you |
+| 14 | Ofgem tightened involuntary PPM installs in 2023 | still open | confirmed | **confirmed (secondary).** Code of practice, Apr 2023. The date the licence conditions took effect is still open | https://www.wrekin.com/News/money-matters-new-rules-for-the-installation-of-prepayment-energy-meters |
+| 15 | Warm Home Discount £150 | confirmed | confirmed | **confirmed** | gov.uk (section 7) |
+| 16 | Warm Homes Plan ~£13.2bn | still open | corrected | **corrected (secondary): £15bn**, launched 20 Jan 2026; £13.2bn was the Spending Review figure. ECO's end date is contested: Mar 2026 (Elmhurst, Nov 2025) or Dec 2026 (consulted on); not settled here | https://www.cic.org.uk/news/governments-warm-homes-plan-finally-released ; https://www.elmhurstenergy.co.uk/blog/2025/11/27/eco-scheme-to-end-after-march-2026/ |
+| 17 | MEES: minimum EPC E, £3,500 cap | confirmed | confirmed | **confirmed** | https://www.cambridge.gov.uk/minimum-energy-efficiency-standards-in-private-rented-accommodation |
+| 18 | EPC C by 2030 with a £10,000 cap | corrected | corrected (status) | **corrected. DISAGREES:** section 7 read the gov.uk landlord guidance (an aim, no £10k cap). The advisor reports it as confirmed policy since Jan 2026: EPC C by 1 Oct 2030, £10k cap, spend capped at 10% of value below £100k (Elmhurst, secondary). The guidance page may predate the decision; the gov.uk decision itself is not yet read | https://www.elmhurstenergy.co.uk/blog/2026/01/22/domestic-private-rented-properties-required-to-meet-epc-band-c-by-october-2030/ |
+| 19 | Private rented sector ~19% of English households | still open | confirmed | **confirmed:** 19% (EHS 2024-25) | https://www.gov.uk/government/statistics/chapters-for-english-housing-survey-2024-to-2025-headline-findings-on-demographics-and-household-resilience/introduction-and-key-findings |
+| 20 | ~1m+ housing transactions a year | still open | needs file | still open. needs file: HMRC MPT_Tab_Sep_26.ods (sum the last 12 months) | https://gov.uk/government/publications/monthly-property-transactions-completed-in-the-uk-with-value-40000-or-above/uk-monthly-property-transactions-commentary |
+| 21 | EPC required at sale and let | still open | confirmed | **confirmed;** valid 10 years | https://gov.uk/buy-sell-your-home/energy-performance-certificates |
+| 22 | Home Energy Model replaces SAP ~2026 | still open | corrected | **corrected.** HEM replaces SAP for new-build Part L compliance (annex: "from 2025"); HEM for existing homes and EPCs has no date | https://gov.uk/government/consultations/reforms-to-the-energy-performance-of-buildings-regime/technical-annex-for-chapter-2-what-epcs-measure |
+| 23 | ~14,000 heat networks, ~0.5m consumers; Ofgem regulation from Jan 2026 | still open | confirmed (partly); confirmed | **still open** on the 0.5m consumers. 14,000 networks confirmed (secondary, CMS); regulation began 27 Jan 2026 (Ofgem) | https://cms.law/en/gbr/legal-updates/regulating-heat-networks-a-new-era ; https://www.ofgem.gov.uk/blog/countdown-launch-new-regulatory-rules-heat-networks |
+| 24 | AC in ~3–5% of homes | still open | confirmed | **confirmed:** 4.3% of English homes (EHS 2023-24, via University of Reading) | https://www.reading.ac.uk/news/2026/Research-News/The-most-at-risk-from-heat-have-the-least-air-con |
+| 25 | PAS 2035 mandatory for ECO and GBIS | still open | confirmed | **confirmed** (TrustMark lodgement requires PAS 2030/2035) | https://www.trustmark.org.uk/tradespeople/quality-assurance-guidance-government-funded-schemes |
+| 26 | Ofgem Standards of Conduct apply | still open | confirmed | **confirmed:** SLC 0 (domestic), 0A (non-domestic) | https://www.ofgem.gov.uk/sites/default/files/2023-11/Draft%20Update%20to%20Standards%20of%20Conduct%20Guidance.pdf |
+
+DISAGREES: rows 1, 4, 12, 18. Open questions this read raises: whether ECO4's extension to
+31 Dec 2026 was confirmed, and the gov.uk decision text for EPC C by 2030.
+
+**Counts: confirmed 11 · corrected 7 · still open 8.**

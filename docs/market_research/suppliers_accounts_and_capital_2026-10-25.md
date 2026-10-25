@@ -141,3 +141,21 @@ Source: https://www.centrica.com/media/f1jbfsfs/centrica-plc-2024-preliminary-re
 6. Centrica 2022-2025 accrued income (PDFs would not parse).
 7. A monthly credit-balance series.
 8. Corrected: the Capital Target is £115, not £130; no source supports a 2.4% EBIT allowance.
+
+## Second read: the advisor's verification pass, 25 Oct 2026
+
+The first outcome table for this page (advisor, GB-packs verification file, 25 Oct, pass 2 §7).
+
+| Item | Prior outcome | Advisor | Reconciled | Source |
+|---|---|---|---|---|
+| IFRS 15 para 35(a): revenue over time, as the customer receives and consumes the benefit | tagged, unchecked | confirmed, wording quoted exactly | **confirmed** (BDO commentary, secondary; the standard text was not read) | https://www.bdo.com.au/en-au/accounting-news/accounting-news-august-2019/recognising-revenue-under-ifrs-15 |
+| Unbilled amounts shown as accrued income or contract assets | tagged, unchecked | still open: IFRS 15 paras 105-107 not retrieved | **still open** | — |
+| IFRS 9 simplified approach: paragraph reference | tagged, unchecked | confirmed: IFRS 9 para 5.5.15, mandatory for trade receivables and contract assets with no significant financing component | **confirmed** (IFRS Community, secondary) | https://ifrscommunity.com/knowledge-base/ifrs-9-impairment/ |
+| "~2.4%" EBIT allowance | corrected: no source; 1.9% to Sep 2023, then about 2.5-2.6% (Ofgem decision) | still open: no source found | **corrected**, DISAGREES | Ofgem EBIT allowance decision, Aug 2023 (§4) |
+
+DISAGREES, EBIT: the substance agrees. Neither read found a source for 2.4%. The page's figure rests
+on Ofgem's own decision, so it stays corrected.
+
+Named gap 5 (IFRS standard text) stands: both confirmations are secondary.
+
+**Counts: confirmed 2 · corrected 1 · still open 1.**

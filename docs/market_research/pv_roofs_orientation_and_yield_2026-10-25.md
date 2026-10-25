@@ -133,8 +133,10 @@ well-maintained arrays, so they sit above the fleet's measured median. Raw outpu
   "© EUMETSAT" attribution; interim record within about 2-5 days. The best fit for per-home sky:
   homes in one pixel share their sky.
 - PVGIS uses SARAH (confirmed: the API reports PVGIS-SARAH2, 2005-2020 for GB sites).
-- ERA5 (hourly, 0.25°) and Met Office MIDAS (hourly station radiation) **[unverified; still open,
-  not needed while SARAH-3 is the choice]**.
+- ERA5 (hourly, 0.25°) **[unverified; still open, not needed while SARAH-3 is the choice]**; its
+  radiation is accumulated in J/m² over each hour, stamped at the hour's end (ECMWF forum).
+- Met Office MIDAS Open: hourly global radiation at all sites, direct and diffuse at some; OGL v3;
+  free CEDA account (confirmed 25 Oct, second read; CEDA catalogue, use the latest version, not v202407).
 - OCF `uk_pv` 30-minute generation (>25k systems) and Sheffield Solar PV_Live regional outturn are
   measured cross-checks.
 - Spatial correlation of daily cloudiness between nearby homes: not sourced.
@@ -213,3 +215,22 @@ domestic share. Named-gap fetch closed: the PVGIS grid.
 7. BRE and EHS roof pitch and type; FiT register by tariff band and size; the DESNZ ET 6.3
    deployment workbook (not fetched this pass).
 8. Keep generation half-hourly or finer (NPL).
+
+## Second read: the advisor's verification pass, 25 Oct 2026
+
+An independent read by the advisor
+(`docs/staging/advisor/DIRECTOR_EVIDENCE_VERIFICATION_OF_THE_GB_PACKS_UNVERIFIED_ITEMS_2026-10-25.md`,
+roofs pack). Rows follow the §8 table.
+
+| # | Item | §8 | Advisor | Reconciled | Source |
+|---|---|---|---|---|---|
+| 1 | Killinger UK cluster 30-40°, centred south | still open | still open | still open (needs the paper's full text) | – |
+| 2 | G98 3.68 kW = 16 A per phase | confirmed | confirmed | **confirmed** (§8 read the ENA form; the advisor's source is secondary) | https://www.decerna.co.uk/what-is-g98/ |
+| 3 | ERA5 hourly 0.25° | still open | confirmed (partly) | still open: hourly J/m² accumulation confirmed; the 0.25° grid and the licence not checked | https://forum.ecmwf.int/t/surface-radiation-parameters-joule-m-2-to-watt-m-2/1588 |
+| 4 | MIDAS hourly radiation | still open | confirmed | **confirmed:** hourly global radiation at all sites, OGL v3, CEDA registration; v202407 runs 1947-2023 and is superseded. §6 updated | https://catalogue.ceda.ac.uk/uuid/0afba628c2f4462da68b0a81ebf1ff4c |
+| 5 | PVGIS uses SARAH or ERA5 | confirmed | confirmed | **confirmed.** The advisor adds that PVGIS 5.3 uses SARAH-3 and ERA5, 2005-2023; the grid here was run on v5.2 (SARAH-2, 2005-2020) | https://joint-research-centre.ec.europa.eu/photovoltaic-geographical-information-system-pvgis/pvgis-releases/pvgis-53_en |
+| 6 | FiT-era fleet has essentially no batteries | still open | still open | still open | – |
+
+No disagreement between the reads.
+
+**Counts: confirmed 3 · corrected 0 · still open 3.**

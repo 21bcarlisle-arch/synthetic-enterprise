@@ -47,7 +47,10 @@ class ConsumerImpactLevel(str, Enum):
 
 _OFGEM_SC_CAP_ELEC_PENCE_PER_DAY = 61.0    # Q3 2024
 _OFGEM_SC_CAP_GAS_PENCE_PER_DAY = 31.0
-_TYPICAL_ELEC_KWH = 2900.0                  # Ofgem typical household
+# Ofgem's TDCV medians in force with the Q3 2024 cap above: 2,700 / 11,500 kWh from 1 Oct 2023.
+# Corrected 25 Oct 2026 from 2,900, which was the 2020-23 electricity value and was paired here
+# with the later gas value (ev_charging_and_the_saving_against_petrol_and_diesel_2026-10-25.md).
+_TYPICAL_ELEC_KWH = 2700.0
 _TYPICAL_GAS_KWH = 11500.0
 
 

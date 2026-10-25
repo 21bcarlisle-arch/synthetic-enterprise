@@ -458,3 +458,42 @@ Sources:
 - [Ofgem RMR letter 2016](https://www.ofgem.gov.uk/sites/default/files/docs/2016/08/rmr_simpler_removal_stat_con_-_open_letter_august_2016.pdf)
 - [Elexon 2018 HH response](https://www.ofgem.gov.uk/system/files/docs/2018/09/access_to_hh_data_for_settlement_elexon_responsev1.0_1.pdf)
 - [Ofgem/Elexon 2014 slides](https://www.ofgem.gov.uk/sites/default/files/docs/2014/06/slides_elexon_0.pdf)
+## Done
+
+Applied 25 Oct 2026, 21:40-22:10 GMT. Three readers ran in parallel, one per pass. The seat
+reviewed their reports and made the code and page corrections itself.
+
+1. **The Knowledge notes.** All 20 GB notes the 21 packs name now end with a "Second read" section.
+   Each section reconciles every advisor item against the note's own earlier read, and ends with a
+   counts line that supersedes the earlier one. Where the two reads disagree, the note's own
+   primary-source read stands and the row is marked DISAGREES with the reason (about 20 rows,
+   mostly where the advisor's sandbox could not reach a page the seat had read). Items backed only
+   by manufacturer or secondary sources were not promoted. The census
+   (`site/data/pack_verification_census.json`) now reads 122 confirmed (+3 partly), 47 corrected
+   and 376 still open across all 28 packs, against 85, 27 and 419 before. Most of the open items
+   are the other-markets packs. It no longer counts this file as a 29th pack: a file that names
+   other packs is a report, not a pack.
+2. **Corrections that move numbers or rules.**
+   - **Published pages:** RTS is now "in groups of meters" (metering and reads), and off-street
+     parking is attributed to RAC Foundation *Standing Still* (2021).
+   - **Note bodies, corrected in place:** EV uplift is 70-132% against 2,500 kWh, plus the
+     *Charge My Street* line. Also corrected: the EVHS caps, cavity insulation cost and payback,
+     heat-pump days, boiler cost, PV embodied carbon, FiT CPI, the BS 7671 history, CMA "almost
+     £2bn", and the SLC 47 ladder marked superseded.
+   - **Code:** `standing_charge_assessor`'s TDCV is 2,700 (it was 2,900 paired with 2023 gas).
+     `licence_monitor`'s SLC 47 label is smart-meter data, not the PSR. The consumption
+     generator's docstring follows SLC 47 under MHHS. `fabric_intervention`'s health floor cites
+     PHE 2014, not NICE NG6.
+   - **Checked and left alone:** the TDCV in billing is already dated (2,500 from 1 Jul 2026), and
+     home-electricity VAT already carries the 0% window. No code holds public-charging VAT, Warm
+     Homes £13.2bn, EPC C 2030, the EVHS caps or PV embodied carbon, so none needed a scenario
+     parameter yet.
+   - **Filed, not fixed:** `SEAT_FINDING_THE_SECOND_READ_OF_THE_GB_PACKS_LEAVES_TWO_CODE_CLAIMS_UNSOURCED_2026-10-25.md`
+     covers the rest of the SLC catalogue and the GBP 6,000 "insulate" offer.
+3. **Needs-file items** stay still open, marked "needs file: <file>" in their notes: MPT_Tab_Sep_26,
+   NTS0901/0904, TRA0305, the VEH by-nation table, the Green Book data tables, the Elexon
+   baselining document, the Carbon Intensity API stats, and the consolidated SLC 27. They are handed
+   on as one continuation. ECO4's end date (March or December 2026) and the SLC 27.15 "all
+   reasonable steps" wording go with it. Neither changes any code: the ECO4 year is the same either
+   way, and no code treats 27.15 as absolute.
+4. **Still-open items stay open** in each note's table, each with its reason.

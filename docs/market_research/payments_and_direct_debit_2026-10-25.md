@@ -260,3 +260,21 @@ Read from code, not run. Method: the claim is the band above; the world is the c
 **Not checked:** whether the draw is re-dated per run window. It was read from the constant only. If the early years of a run
 carry the same 0.72/0.75, the first-years DD share is 6–14 points over the record; if the run window is drawn from a
 later date, the point is moot for the book it draws. Run one draw at an early start date to settle it.
+
+## Second read: the advisor's verification pass, 25 Oct 2026
+
+The first outcome table for this page. The seat had not checked its tagged items; the advisor did
+(GB-packs verification file, 25 Oct, pass 2 §6). Items are in page order.
+
+| Item | Prior outcome | Advisor | Reconciled | Source |
+|---|---|---|---|---|
+| Credit balance refunds under SLC 27.16 | tagged, unchecked | still open: the consolidated SLC PDFs truncated in fetch | **still open**, needs file: the consolidated SLC 27 text on Ofgem's licence register | https://www.ofgem.gov.uk/sites/default/files/2022-08/Decision%20Standard%20Licence%20ELECTRICITY.pdf |
+| BFY energy DD failure rate, 2.2% in 2024, up 27% | tagged, unchecked | confirmed as BFY's own claim ("BFY Group analysis of ONS and Ofgem data"; no method) | **confirmed** as BFY's claim, secondary. Not an official statistic; named gap 4 stands | https://www.bfygroup.co.uk/blog/why-is-energy-debt-still-going-up |
+| Why customers leave DD | tagged, unchecked | still open | **still open** | — |
+| SLC 27.15: was "all reasonable steps" removed in 2022? (new row; the page's own conflict) | open conflict | not tagged; the 2022 notice's new (underlined) 27.15 text still begins "The licensee must take all reasonable steps…"; only the Principal Term carve-out appears struck | **still open**, to check. Needs file: the consolidated SLC 27.15 | same Ofgem notice |
+
+SLC 27.15: the advisor's read points against the body's account of the 2022 decision, which says the
+duty became absolute. That is not settled. Until the consolidated licence is read, nothing should
+treat 27.15 as an absolute duty.
+
+**Counts: confirmed 1 · corrected 0 · still open 3.**

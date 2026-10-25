@@ -100,8 +100,10 @@ cost releases (regional medians; mode and capacity) were not opened.
 
 Grant amounts, not installed costs: EVHS to 31 Mar 2022, up to £350 a device at the end (DfT,
 confirmed); £140.8m for 340,222 devices ≈£414 a device [derived]. EVCG from 1 Apr 2022 for renters,
-flat owners and landlords, up to £350 a socket (DfT, confirmed). Earlier EVHS caps of £500 and £700
-stay **[unverified]**. No installed-cost series exists.
+flat owners and landlords, up to £350 a socket (DfT, confirmed). Earlier EVHS caps ran £900 at launch
+(Sep 2014), £700 from 13 Apr 2015, later £500, then £350 from 1 Apr 2020; the date of the cut to £500
+is not established, so a 2016 grant was £700 or £500 (corrected 25 Oct, second read; Zapmap and What
+Car, secondary). No installed-cost series exists.
 
 ## 7. Insulation
 
@@ -197,3 +199,24 @@ bill path exists.
 8. DESNZ fossil fuel price assumptions and Green Book retail price tables (values).
 9. FES 2025 Pathway Assumptions Log (technology capex); CCC 7CB cost dataset.
 10. A daily dollar-sterling series for the gas conversion (Bank of England).
+
+## Second read: the advisor's verification pass, 25 Oct 2026
+
+An independent read of the same tagged items by the advisor (GB-packs verification file, 25 Oct,
+pass 2 §4). Where §11 had a primary source, §11's read stands.
+
+| Item | §11 outcome | Advisor | Reconciled | Source |
+|---|---|---|---|---|
+| 2016 petrol about 110p | confirmed (DESNZ weekly CSV) | confirmed (RAC: 111.79p petrol, 112.41p diesel, end July 2016) | **confirmed** | https://www.mynewsdesk.com/uk/rac/pressreleases/july-brings-an-end-to-four-months-of-rising-fuel-prices-1504393 |
+| Ofgem cap models reachable as xlsx | still open | still open: the rates page links no xlsx | **still open** | https://www.ofgem.gov.uk/information-consumers/energy-advice-households/energy-price-cap-unit-rates-and-standing-charges |
+| Earlier EVHS caps £500 / £700 | still open | corrected: £900 (Sep 2014), £700 (13 Apr 2015), then £500, then £350 (1 Apr 2020) | **corrected** (secondary; date of the £500 cut not found). Body §6 corrected | https://www.zapmap.com/news/olev-to-reduce-cap-on-ev-homecharge-grants-from-13-april-2015 ; https://www.whatcar.com/advice/owning/electric-vehicle-home-charging-scheme-changes-in-2022-what-do-i-need-to-know/n23628 |
+| Green Book tables 4-8 are the retail ones | still open | needs file: one xlsx of tables 1 to 19, revised 17 Apr 2023 | **still open**, needs file: "Data tables 1 to 19" xlsx | https://www.gov.uk/government/publications/valuation-of-energy-use-and-greenhouse-gas-emissions-for-appraisal |
+| Batteries in ESM relief from Feb 2024 | confirmed (HMRC 708/6) | confirmed (SI 2024/24; also water-source heat pumps, diverters, groundworks) | **confirmed** | https://legislation.gov.uk/uksi/2024/24/pdfs/uksiem_20240024_en_001.pdf |
+| Half-hourly intensity "20-300+" | corrected: 24 to 293 in 2025 | still open: the API was blocked | **corrected**, DISAGREES | api.carbonintensity.org.uk |
+
+DISAGREES, half-hourly range: the advisor could not reach the API; §11 pulled all 17,520 half-hours
+of 2025 from it, so the primary read stands.
+
+The tally below is §11's, moved for this read: the EVHS caps go from still open to corrected.
+
+**Counts: confirmed 15 · corrected 3 · still open 3.**

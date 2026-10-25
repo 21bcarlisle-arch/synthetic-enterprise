@@ -1,9 +1,15 @@
 """Tests for Standing Charge Fairness Assessor (Phase FP)."""
 import datetime as dt
+
 import pytest
+
 from company.pricing.standing_charge_assessor import (
-    SCFairnessRating, ConsumerImpactLevel, StandingChargeAssessment,
-    StandingChargeAssessor, _OFGEM_SC_CAP_ELEC_PENCE_PER_DAY,
+    _OFGEM_SC_CAP_ELEC_PENCE_PER_DAY,
+    _TYPICAL_ELEC_KWH,
+    ConsumerImpactLevel,
+    SCFairnessRating,
+    StandingChargeAssessment,
+    StandingChargeAssessor,
 )
 
 
@@ -22,7 +28,7 @@ class TestStandingChargeAssessment:
     def test_typical_annual_bill(self):
         a = make_assessment(sc=50.0, ur=30.0, is_elec=True)
         sc = 365 * 50.0 / 100
-        units = 2900.0 * 30.0 / 100
+        units = _TYPICAL_ELEC_KWH * 30.0 / 100
         assert a.typical_annual_bill_gbp == pytest.approx(sc + units)
 
     def test_sc_pct_of_bill(self):

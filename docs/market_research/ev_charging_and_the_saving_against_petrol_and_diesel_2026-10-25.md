@@ -33,8 +33,9 @@ https://www.gov.uk/government/publications/electric-vehicle-ev-driver-behaviours
 - Home charging 1,750 (Kaluza/OVO model) to ~2,300 (Octopus, 7,500 mi x 0.306) to ~3,300 kWh/yr at
   10,000 mi [derived]; central ~2,300.
 - Against the Ofgem medium electricity TDCV: 2,700 kWh (1 Oct 2023-30 Jun 2026), 2,500 kWh from
-  1 Jul 2026 (Ofgem TDCV decision, May 2026, per the gap-closure pack), an EV adds about 65-130%
-  [derived].
+  1 Jul 2026 (Ofgem TDCV decision, May 2026, per the gap-closure pack), an EV adds about 65-122%
+  against 2,700 and 70-132% against 2,500 [derived] (corrected 25 Oct, second read: 65-130% mixed the
+  two bases).
 
 ## 4. Patterns
 
@@ -52,7 +53,9 @@ Charge Anytime charging smart-scheduled.
 - VAT (HMRC VAT Notice 701/19, fetched 25 Oct 2026, https://www.gov.uk/guidance/vat-on-fuel-and-power-notice-70119):
   domestic electricity in GB zero-rated 1 Oct 2026-31 Mar 2027 (announced 21 Jul 2026); NI stays
   5%; "the recharging of electric vehicles, when using public charging points is always treated as
-  standard-rated for VAT" (20%).
+  standard-rated for VAT" (20%). (Second read, 25 Oct: a tribunal, *Charge My Street v HMRC* [2026]
+  UKFTT 318, held public charging is in principle 5%; HMRC says it will appeal, Revenue and Customs
+  Brief 4/2026. Treat the public rate as a scenario parameter until that is settled.)
 - Zapmap Price Index, Sep 2026, PAYG: public slow/fast 54p, rapid/ultra 79p; home standard ~26p;
   home EV off-peak ~8.9p (https://www.zapmap.com/ev-stats/charging-price-index).
 - EV tariffs: Intelligent Octopus Go 7-8p, 23:30-05:30 plus dispatched slots, capped at 6 h/day
@@ -144,3 +147,30 @@ early adopters; rebound in mileage; average vs marginal carbon; moving VAT, cap 
 | 13 | DfT tracker figures (91%/88%, 76%, 49%, 9%) quoted from secondary reports | **confirmed and updated** | Year 1 confirmed in the DfT report itself; Year 2 (30 Jul 2026) gives 89%, 72%, 57%, ~11% |
 
 **Counts: confirmed 4 (1, 3, 4, 13) · corrected 2 (2, 5) · still open 7 (6-12).**
+
+## Second read: the advisor's verification pass, 25 Oct 2026
+
+An independent read by the advisor
+(`docs/staging/advisor/DIRECTOR_EVIDENCE_VERIFICATION_OF_THE_GB_PACKS_UNVERIFIED_ITEMS_2026-10-25.md`,
+pack 2). Rows use the numbering above. Where the reads disagree, the earlier primary-source read is
+kept and the row is marked DISAGREES.
+
+| # | Item | Earlier | Advisor | Reconciled | Source |
+|---|---|---|---|---|---|
+| 1 | ~7,000 miles per car | confirmed | needs file | **confirmed** (NTS0901a was fetched and read here: 7,100) | https://gov.uk/government/statistical-data-sets/nts09-vehicle-mileage-and-occupancy |
+| 2 | Typical home 2,700 kWh | corrected | corrected | **corrected:** 2,500 kWh from 1 Jul 2026. EV uplift is 70-132% on that base, not 65-130%; section 3 fixed. Ofgem's consumer advice page still says 2,900 kWh, which conflicts | https://www.ofgem.gov.uk/sites/default/files/2026-06/Summary-of-changes-to-energy-price-cap-1-July-to-30-September-2026-revised-TDCV.pdf |
+| 3 | Usual 5% domestic vs 20% public VAT | confirmed, with the dated exception | corrected | **confirmed, with the dated exception. DISAGREES:** both reads agree home electricity is 0% from 1 Oct 2026 to 31 Mar 2027. The advisor adds the *Charge My Street* tribunal (public charging in principle 5%; HMRC appealing; law-firm summary, secondary). HMRC's own notice still says 20%, so the earlier read stands; the public rate is now a scenario parameter, noted in section 5 | https://www.simmons-simmons.com/en/publications/cmmuhuw5j00jwtvk4jvo7lgpi/supplies-of-public-ev-charging-and-vat |
+| 4 | OZEV on-street grant | confirmed | confirmed | **confirmed** | find-government-grants (section 5) |
+| 5 | MOT mileage accessible to a supplier | corrected (sharpened) | still open | **corrected. DISAGREES:** the advisor found the DVSA MOT history API but not its odometer field or eligibility; the earlier read found mileage publicly viewable by registration on gov.uk. "Ask, then look up" stands | https://documentation.history.mot.api.gov.uk/ |
+| 6 | Home share of charging energy 70-80% | still open | still open | still open | – |
+| 7 | Small car ~4 mi/kWh, large SUV ~2.5 | still open | still open | still open | – |
+| 8 | 2022 PHEV share ~6.3% | still open | confirmed | **confirmed (secondary):** 6.3% of 1.614m (~102k), Fleet News reporting SMMT | https://www.fleetnews.co.uk/news/manufacturer-news/2023/01/05/2022-s-new-car-market-ends-2-down |
+| 9 | Diesel 55 mpg | still open | still open | still open | – |
+| 10 | Marginal CCGT 0.35-0.40; overnight below daily average | still open | confirmed (first part) | **still open.** NESO gives CCGT 394 g/kWh, but as an average-efficiency generation factor, not a marginal one; the overnight claim is untested | https://www.neso.energy/document/373951/download |
+| 11 | GB confounders | still open | still open | still open | – |
+| 12 | VED £195 both, CO2-band differences | still open | corrected | **corrected (secondary):** £195 standard rate (2025) holds, but for cars registered from Apr 2017 CO2 sets only the first-year rate; there is no CO2-band difference after year one. Expensive-car supplement over £40k list. 2026/27 uprating not checked | https://www.westyorkshire.police.uk/ask-the-police/question/Q01278 |
+| 13 | DfT tracker figures | confirmed and updated | (not tagged) | **confirmed** | DfT EV tracker (section 2) |
+
+DISAGREES: rows 3, 5.
+
+**Counts: confirmed 5 · corrected 3 · still open 5.**

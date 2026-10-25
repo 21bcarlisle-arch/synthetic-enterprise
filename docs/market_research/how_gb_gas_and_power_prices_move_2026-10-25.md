@@ -90,7 +90,9 @@ is a monthly-step sigma, whatever the code calls it.
 
 - Annual Heren NBP (USD/MMBtu): 2016 4.69, 2017 5.81, 2018 8.06, 2019 4.47, 2020 3.42, 2021 15.80;
   discontinued (YCharts). Before 2021 GB gas averaged **£14.24/MWh**; it peaked at **£155.29/MWh on
-  22 Dec 2021** (EnAppSys 2021, confirmed). Q3 2025 NBP averaged £27.26/MWh (Montel).
+  22 Dec 2021** (EnAppSys 2021, confirmed). The 7 Mar 2022 front-month print of 800 p/th (≈£273/MWh) is
+  about 19× that pre-2021 mean [derived] (confirmed 25 Oct, second read; mixed basis: a front-month print
+  over a spot average). Q3 2025 NBP averaged £27.26/MWh (Montel).
 - Beast from the East, 1 Mar 2018: day-ahead 279.5 p/th intraday, settled 229.75 p/th; within-day
   350 p/th; 535 p/th on the OCM (ICIS; S&P).
 - 2021: front-month record 116.10 p/th (11 Aug); day-ahead 355 p/th (6 Oct).
@@ -253,3 +255,14 @@ g = [float(r["systemSellPrice"]) for r in rows]
 moves = sum(1 for i in range(1, len(g)) if g[i] != g[i-1])
 print("gas days", len(g), "days on which price moves", moves)
 ```
+
+## Second read: the advisor's verification pass, 25 Oct 2026
+
+The advisor read two of the tags independently (`docs/staging/advisor/DIRECTOR_EVIDENCE_VERIFICATION_OF_THE_GB_PACKS_UNVERIFIED_ITEMS_2026-10-25.md`, pass 3, pack 7). Rows not listed were not in its scope; their outcomes stand.
+
+| Item | Prior outcome | Advisor | Reconciled | Source |
+|---|---|---|---|---|
+| TTF/NBP realised vol > 100% annualised in 2022 | still open | still open: a 2021 options review charts implied vol on a 0–160% axis, no readable values | **still open** | https://commodityvol.com/aux/doc/w9Et788A/WEBSCROLL/UjpK6ECp/YearEnd2021.pdf |
+| NBP crisis peak 10–25× pre-crisis average | still open (baseline unverified) | confirmed: about 19× [derived] | **confirmed** [derived]. Both inputs are already confirmed on this page: EnAppSys's £14.24/MWh (≈41.7 p/th) and the 800 p/th front-month print. Mixed basis (front-month over spot), so 19× is a ratio of a print to a mean, not of like series | https://www.enappsys.com/wp-content/uploads/2023/01/2021_Annual_Market_Summary_GB.pdf |
+
+**Counts: confirmed 8 · corrected 0 · still open 4.**

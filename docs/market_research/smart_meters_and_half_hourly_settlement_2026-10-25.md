@@ -165,6 +165,7 @@ Elexon on M11/M12: "the culmination of five years' work across the sector" ([Ele
 - **Half-hourly data:** "explicit (opt-in) consent" required.
 - **Marketing:** opt-in whatever the granularity.
 - Settlement access was to be reviewed if settlement rules changed.
+- This monthly/daily/HH ladder is the 2012 framework. For a domestic consent model it is superseded by SLC 47 as modified in 2022 (below): Old System daily by default, New System HH by default with opt-out to daily. A consent-state model must follow SLC 47, not this ladder (clarified 25 Oct, second read).
 
 **Settlement change (Ofgem decision, June 2019).**
 - The party responsible for settlement gets a legal obligation to process domestic HH data, with consumer opt-out replacing opt-in ([Ofgem](https://www.ofgem.gov.uk/decision/decision-access-half-hourly-electricity-data-settlement-purposes); [open letter June 2020](https://www.ofgem.gov.uk/sites/default/files/docs/2020/06/open_letter_-_clarification_on_issues_around_access_to_data_for_settlement_purposes_-_june_2020_0.pdf)).
@@ -246,3 +247,16 @@ Elexon on M11/M12: "the culmination of five years' work across the sector" ([Ele
 6. **Target intermediate runs.** The R1/R2/R3 timings under the MHHS target timetable are not confirmed.
 7. **Estimated bills by meter type.** No split between smart and traditional meters is available.
 8. **Non-communicating SMETS1/SMETS2 counts.** The latest DCC figures were not retrieved.
+
+## Second read: the advisor's verification pass, 25 Oct 2026
+
+The advisor read two of the tags independently (`docs/staging/advisor/DIRECTOR_EVIDENCE_VERIFICATION_OF_THE_GB_PACKS_UNVERIFIED_ITEMS_2026-10-25.md`, pass 3, pack 9). V2, V3, V5 and V6 were not in its scope; their outcomes stand.
+
+| # | Item | Prior outcome | Advisor | Reconciled | Source |
+|---|---|---|---|---|---|
+| V1 | Elective domestic HHS "low hundreds of thousands" | still unpublished (counted open) | still open: Elexon's 2018 response says only that numbers were uncertain | **still open** | https://www.ofgem.gov.uk/system/files/docs/2018/09/access_to_hh_data_for_settlement_elexon_responsev1.0_1.pdf |
+| V4 | ~30% of energy on actual data at Interim Information | corrected: 30% is at R1 | confirmed: II 30%, R1 60%, R2 80%, R3 97%, DF 99% "as extracted", axis mapping ambiguous | **corrected**. **DISAGREES**: the advisor's extraction puts 30% at II; the seat's in-tree read of the same slides puts it at R1 and 97% at RF. The advisor flags its own mapping as ambiguous; the seat's read stands, and the world's timetable uses it | https://www.ofgem.gov.uk/sites/default/files/docs/2014/06/slides_elexon_0.pdf |
+
+The advisor's SLC 47 correction (household-flexibility pack, item 10) agrees with §4 here, which already carried SLC 47 as modified. §4 now says plainly that the 2012 monthly/daily/HH ladder is superseded for a consent model.
+
+**Counts: confirmed 2 · corrected 1 · still open 3.**

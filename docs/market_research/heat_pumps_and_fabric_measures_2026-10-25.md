@@ -230,7 +230,7 @@ The worked table is in (d) below.
   - Air-source £13,433; most common band £10,001–12,500.
   - Ground-source £27,924.
 - **Net of £7,500:** air-source about £5,933 [derived]. The MCS Foundation says "roughly £5k" after BUS, with costs down 11% in real terms since 2022 ([MCS Foundation](https://mcsfoundation.org.uk/wp-content/uploads/2026/03/What-the-Warm-Homes-Plan-means-for-home-decarbonisation-The-MCS-Foundation.pdf)).
-- **Gas boiler replacement**, as the counterfactual: about £2,000–3,500 [unverified].
+- **Gas boiler replacement**, as the counterfactual: about £1,500–3,000 (corrected 25 Oct, second read; the pack had £2,000–3,500; Which?, https://www.which.co.uk/reviews/boilers/article/boiler-energy-efficiency).
 
 **Design**
 - MCS heat-loss surveys follow MCS 031 / MIS 3005-D. The HPA is updating MCS 031 because of the gap between design SCOP and in-situ SPF ([H&V](https://www.heatingandventilating.net/improvement-in-heat-pump-performance-highlighted-by-new-electrification-of-heat-demonstration-report)).
@@ -239,7 +239,7 @@ The worked table is in (d) below.
 
 **Suitability:** EoH concluded heat pumps suit all house types and ages ([H&V](https://www.heatingandventilating.net/improvement-in-heat-pump-performance-highlighted-by-new-electrification-of-heat-demonstration-report)). Detached homes performed best ([UKDS](https://doc.ukdataservice.ac.uk/doc/9050/mrdoc/pdf/9050_eoh_Interim_insights_from_heat_pump_performance_data.pdf)).
 
-**Time to install:** about 2–5 days on site [unverified]. Lead time from survey to commissioning runs to weeks.
+**Time to install:** about 1–3 days on site (corrected 25 Oct, second read; the pack had 2–5 days; source is a vendor page, Hive, quoting MCS guidance). Lead time from survey to commissioning runs to weeks.
 
 **Satisfaction:** 90–95% among BUS owners ([MCS Foundation](https://mcsfoundation.org.uk/wp-content/uploads/2026/03/What-the-Warm-Homes-Plan-means-for-home-decarbonisation-The-MCS-Foundation.pdf)). 85% of EoH participants would recommend one ([ESC](https://es.catapult.org.uk/report/electrification-of-heat-summary-reports-and-datasets/)).
 
@@ -286,9 +286,9 @@ NEED uses a weather-corrected comparison group, excludes flats and is weighted t
 - **Cavity and solid wall:** savings are sustained over 5 years, and may even rise.
 - **Loft and condensing boiler:** savings fall by about a tenth between year 1 and year 5 ([NEED 2025](https://assets.publishing.service.gov.uk/media/685bf0d30433072fce0e1000/need-report-june-2025.pdf)), and by just over a fifth by year 7 ([NEED 2020](https://assets.publishing.service.gov.uk/media/5ef3ac02e90e075c5674daca/National_Energy_Efficiency_Data_Framework_NEED_report_summary_of_analysis_2020.pdf)).
 
-**Modelled vs measured:** modelled savings (SAP/EST) are typically larger than NEED's measured savings [unverified as a ratio]. NEED notes that loft savings may be underestimated and that low-insulation homes save more than the median.
+**Modelled vs measured:** modelled savings (SAP/EST) are typically larger than NEED's measured savings: measured/modelled about 0.73 in the BRE solid-wall pre/post trial (16 homes), and the gov.uk cavity figure of up to £140/yr against ~£80 NEED-derived [derived] (confirmed 25 Oct, second read). NEED notes that loft savings may be underestimated and that low-insulation homes save more than the median.
 
-**Costs** (corrected 2026-10-25 against EST's own pages; the pack's figures were loft ~£1,000, cavity ~£2,000–3,000, external solid wall ~£10,000–15,000+, all [unverified]): loft to 270 mm £750 from 0 mm and £600 from 120 mm (GB); cavity about £2,200 (GB), £1,000 (NI); solid wall £12,000–15,000 (external about £15,000, internal about £12,000, three-bed semi). Sources: https://energysavingtrust.org.uk/advice/roof-and-loft-insulation/ , https://energysavingtrust.org.uk/advice/cavity-wall-insulation/ , https://energysavingtrust.org.uk/advice/solid-wall-insulation/ (accessed 2026-10-25).
+**Costs** (corrected 2026-10-25 against EST's own pages; the pack's figures were loft ~£1,000, cavity ~£2,000–3,000, external solid wall ~£10,000–15,000+, all [unverified]): loft to 270 mm £750 from 0 mm and £600 from 120 mm (GB); cavity about £2,200 (GB), £1,000 (NI), inside the gov.uk range of £1,000–3,000 (corrected 25 Oct, second read; https://cleanenergy.campaign.gov.uk/insulation, which also gives loft £400–1,200); solid wall £12,000–15,000 (external about £15,000, internal about £12,000, three-bed semi). Sources: https://energysavingtrust.org.uk/advice/roof-and-loft-insulation/ , https://energysavingtrust.org.uk/advice/cavity-wall-insulation/ , https://energysavingtrust.org.uk/advice/solid-wall-insulation/ (accessed 2026-10-25).
 
 **ECO / GBIS**
 - **ECO:** 2.6m households upgraded since 2013; 271,700 measures in 2025. ECO4 averaged about 4 measures per household.
@@ -302,7 +302,7 @@ NEED uses a weather-corrected comparison group, excludes flats and is weighted t
 - Electricity rises by roughly heat ÷ SPF (about 2,000–3,200 kWh a year for a TDCV home [derived]).
 - The increase is strongly winter-weighted and correlated with heating degree-days.
 - On a time-of-use tariff, load shifts into cheap windows.
-- A hot-water cycle shows as a daily block. Immersion use shows as spikes of about 3 kW [unverified].
+- A hot-water cycle shows as a daily block. Immersion use shows as spikes of about 3 kW (3 kW is the standard element: IET; confirmed 25 Oct, second read).
 
 **Heat-loss estimation from smart meter data (SMETER, DESNZ)**
 - **Trial:** 30 homes in north-west England, compared against co-heating tests ([SMETER exec summary](https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/1050880/smeter-innovation-competition-report-executive-summary.pdf)).
@@ -328,11 +328,11 @@ NEED uses a weather-corrected comparison group, excludes flats and is weighted t
 - At SPF 2.8 or below, annual unit savings are about zero [derived].
 - Dropping gas entirely also removes the £108 gas standing charge [derived].
 - On Cosy at SPF 3.5: saving ≈ £757 + £108 − £475 − £8 (extra electricity standing charge) ≈ **£382 a year** [derived].
-- Net capex is about £5,900 against a boiler counterfactual of about £2,500 [unverified], so the increment is about £3,400. Simple payback ≈ **9 years** [derived].
+- Net capex is about £5,900 against a boiler counterfactual of about £2,500 (inside Which?'s £1,500–3,000; confirmed 25 Oct, second read), so the increment is about £3,400. Simple payback ≈ **9 years** [derived].
 - On the standard cap at SPF 2.8, savings are about £107 a year (from dropping the gas standing charge), so payback is about 30 years or more [derived].
 
 **Fabric payback**
-- **Cavity:** about 1,000 kWh × 7.97p ≈ £80 a year [derived]. At EST's £2,200 (corrected 2026-10-25; the pack had £2,000–3,000 [unverified]), simple payback is about 27 years at current gas prices [derived].
+- **Cavity:** about 1,000 kWh × 7.97p ≈ £80 a year [derived]. At EST's £2,200 (corrected 2026-10-25; the pack had £2,000–3,000 [unverified]), simple payback is about 27 years at current gas prices [derived]. Across the gov.uk range of £1,000–3,000 it is about 12–37 years [derived] (corrected 25 Oct, second read).
 - **Loft:** about 300 kWh ≈ £24 a year [derived]; at EST's £600 top-up cost, payback about 25 years [derived]. EST's own modelled saving for a 120→270 mm top-up is £17 a year.
 - These measured paybacks are far longer than the EST-style modelled claims [gap: EST figures not fetched].
 
@@ -354,10 +354,10 @@ NEED uses a weather-corrected comparison group, excludes flats and is weighted t
 - Measures installed outside government schemes are largely unobserved, which may bias savings down ([NEED 2025](https://assets.publishing.service.gov.uk/media/685bf0d30433072fce0e1000/need-report-june-2025.pdf)).
 - NEED does not weather-correct electricity, so heat pump electricity needs a degree-day model of its own.
 
-**IPMVP Option C** [unverified details]
+**IPMVP Option C** (confirmed 25 Oct, second read: DOE FEMP M&V Guide 5.0 asks for at least 12 months pre, preferably 24+, and at least 9 months post, preferably 12)
 - Whole-facility meter data and a regression baseline on degree-days (12 months or more before and after), with the adjusted baseline projected into the reporting period.
 - Savings = adjusted baseline − actual.
-- Uncertainty is reported via CV(RMSE). ASHRAE Guideline 14 thresholds are commonly cited [unverified].
+- Uncertainty is reported via CV(RMSE). ASHRAE Guideline 14 thresholds are commonly cited: calibrated simulation monthly CV(RMSE) 15% / NMBE ±5%, hourly 30% / ±10% (confirmed 25 Oct, second read, through secondary quotes of G14).
 
 **Comparison groups:** a supplier can build matched controls from its own book (same EPC band, region, pre-period consumption) using a difference-in-differences design. That replicates NEED.
 
@@ -475,3 +475,23 @@ NEED uses a weather-corrected comparison group, excludes flats and is weighted t
 10. **IPMVP / ASHRAE 14 thresholds and the prebound/rebound literature:** [unverified].
 11. **Install duration and boiler-replacement counterfactual cost:** [unverified].
 12. **SMETER for heat pump homes and A/B-rated homes:** not validated in the source.
+
+## Second read: the advisor's verification pass, 25 Oct 2026
+
+The advisor read the same tags independently (`docs/staging/advisor/DIRECTOR_EVIDENCE_VERIFICATION_OF_THE_GB_PACKS_UNVERIFIED_ITEMS_2026-10-25.md`, pass 3, pack 1). Items 1–6 were not in its scope; their outcomes stand.
+
+| # | Item | Prior outcome | Advisor | Reconciled | Source |
+|---|---|---|---|---|---|
+| 7 | Cosy windows and rates | partly confirmed | confirmed (partial) | **partly confirmed**. Windows and ratios hold; the 57.1p SC and VAT basis are still not on Octopus's own page | https://octopus.energy/cosy/ |
+| 8 | Fabric costs | corrected (EST: loft £600–750, cavity ~£2,200, solid wall £12–15k) | loft confirmed (£400–1,200); cavity corrected to £1,000–3,000; solid wall confirmed (~£11k EWI / ~£7.5k IWI) | **corrected**. Cavity range £1,000–3,000 taken into §5 and §7; payback 12–37 yrs. **DISAGREES** on loft and solid wall: the advisor's solid-wall figure is a secondary quote of EST 2023 and its loft range is the gov campaign's; the seat's read of EST's current pages stands | https://cleanenergy.campaign.gov.uk/insulation ; https://www.nerdwallet.com/uk/personal-finance/solid-wall-insulation-can-save-hundreds-a-year (secondary) |
+| 9 | Prebound | confirmed | confirmed | **confirmed**. The paper frames it as poorly rated homes, not explicitly low-income | https://www.cam.ac.uk/research/news/the-prebound-effect |
+| 10 | Boiler replacement £2,000–3,500; counterfactual £2,500 | still open | corrected to £1,500–3,000; £2,500 confirmed inside it | **corrected** | https://www.which.co.uk/reviews/boilers/article/boiler-energy-efficiency |
+| 11 | Radiator, cylinder, pipework quantities | still unpublished | still open | **still unpublished** | — |
+| 12 | Install 2–5 days | still open | corrected to 1–3 days | **corrected** (vendor page quoting MCS guidance; secondary) | https://hivehome.com/blog/air-source-heat-pumps/how-are-heat-pumps-installed |
+| 13 | Modelled savings exceed NEED measured, as a ratio | still open | confirmed, ratio ~0.73 | **confirmed** (BRE trial of 16 homes; ratio derived) | https://assets.publishing.service.gov.uk/media/5c9234ca40f0b633f24d046c/Closing-the-gap_Pre-post-insulation-field-trial.pdf |
+| 14 | Immersion spikes ~3 kW | still open | confirmed | **confirmed** (IET; read from the page title, not fetched) | https://electrical.theiet.org/wiring-matters/years/2025/107-september-2025/can-a-3-kw-immersion-heater-be-connected-to-a-13-a-fused-connection-unit-to-bs-1363-4/ |
+| 15 | IPMVP Option C; ASHRAE G14 thresholds | still open | confirmed | **confirmed** (IPMVP via DOE FEMP Guide 5.0; G14 through secondary quotes) | https://www.energy.gov/sites/default/files/2024-10/mv_guide_5_0.pdf ; https://discovery-pp.ucl.ac.uk/10117731/3/Burman_2020_BPA_SimBuild_JainN.pdf (secondary) |
+
+The EoH detail in item 1 (SPFH2 2.94, IQRs, refrigerant splits) stays still open. Named gaps 4, 10 and 11 in (e) are now closed or narrowed by the rows above.
+
+**Counts: confirmed 10 · partly confirmed 1 · corrected 3 · still open 1 · still unpublished 1.**

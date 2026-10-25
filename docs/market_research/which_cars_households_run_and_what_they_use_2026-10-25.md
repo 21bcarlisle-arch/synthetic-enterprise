@@ -130,3 +130,31 @@ medium + SUV ~77%. 4. BEV 3.0-3.5 mi/kWh battery-side annual. 5. January kWh/mi 
 
 The pack's other figures carry fetched URLs in the pack itself and were not re-checked here.
 VEH0103 sha256 aff7bb74272fde9f45a54162bc320788e0f8e03f582ec2074ecd7f37eb4c7cb3.
+
+## Second read: the advisor's verification pass, 25 Oct 2026
+
+An independent read by the advisor
+(`docs/staging/advisor/DIRECTOR_EVIDENCE_VERIFICATION_OF_THE_GB_PACKS_UNVERIFIED_ITEMS_2026-10-25.md`,
+vehicle pack). Rows use the numbering above. The advisor checked items 3 and 6 claim by claim, so
+they are split here (3a/3b, 6a-6d). No body figure changes: the early Leaf charger is not stated in
+the body.
+
+| # | Item | Earlier | Advisor | Reconciled | Source |
+|---|---|---|---|---|---|
+| 1 | NI about 3% of UK cars | confirmed | needs file | **confirmed** (VEH0103 was fetched here: 3.05%) | https://www.gov.uk/government/statistical-data-sets/vehicle-licensing-statistics-data-tables |
+| 2 | EV Database consumption is battery-side | still open | still open (supported) | still open. EV Database says "rated consumption" includes charging losses and defines "vehicle consumption" as battery energy only; the real-world figures carry no label | https://ev-database.org/uk/car/1106/Nissan-LEAF-40-kWh |
+| 3a | Older private parc batteries ~22-62 kWh | still open | confirmed (approx.) | **confirmed:** Leaf 2011-13 24 gross / 22 usable; Leaf 40 40/39; Zoe ZE50 54.7/52; i3 120Ah 42.2/37.9. Leaf e+ 62 kWh not checked | https://ev-database.org/uk/car/1011/Nissan-Leaf ; https://ev-database.org/uk/car/1205/Renault-Zoe-ZE50-R135 ; https://ev-database.org/uk/car/1145/BMW-i3-120-Ah |
+| 3b | Parc-weighted mean below 60 kWh | still open | still open | still open (needs VEH0141 joined to specs) | – |
+| 4 | Older PHEVs ~9-14 kWh gross, 30-60 km | still open | confirmed (one model) | **still open.** One model (Outlander PHEV, 12-13.8 kWh, 45 km WLTP, secondary) cannot confirm a fleet range | https://www.automobile-propre.com/voitures/mitsubishi-outlander-phev/autonomie |
+| 5 | All 2025 top-10 BEVs 11 kW AC | still open | still open | still open | – |
+| 6a | Leaf 6.6 kW (3.6 kW on early cars) | still open | corrected | **corrected:** the early Leaf had **3.3 kW** standard (6.6 kW optional); Leaf 40 MY18-22 6.6 kW | https://ev-database.org/uk/car/1011/Nissan-Leaf |
+| 6b | Zoe 22 kW | still open | confirmed | **confirmed:** ZE50 R135 22 kW AC, three-phase | https://ev-database.org/uk/car/1205/Renault-Zoe-ZE50-R135 |
+| 6c | i3 7.4-11 kW | still open | confirmed (partly) | still open: 11 kW on the 120Ah confirmed; 7.4 kW on earlier i3s not checked | https://ev-database.org/uk/car/1145/BMW-i3-120-Ah |
+| 6d | MG4/MG ZS about 6.6-7 kW | still open | still open | still open | – |
+| 7 | Most GB homes single-phase, capped ~7.4 kW | still open at primary | confirmed | **still open at primary.** The advisor's source is EV Database ("the practical limit is 7.4 kW"), a secondary source on the network fact; no DNO/ENA statement yet | https://ev-database.org/uk/car/1145/BMW-i3-120-Ah |
+| 8 | DfT VEH tables not retrieved | partly closed | needs file (VEH1104) | still open | – |
+
+No row where the reads reach opposite outcomes on the same evidence. Items 4 and 7 were confirmed by
+the advisor and are not promoted, for the reasons given.
+
+**Counts: confirmed 3 · corrected 1 · still open 8.**

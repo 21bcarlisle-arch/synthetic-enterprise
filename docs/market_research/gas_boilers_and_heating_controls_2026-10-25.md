@@ -151,9 +151,9 @@ Shares:
 - 1.67 million boilers were sold in 2019.
 - About 4 million old, inefficient "zombie" boilers remain in use.
 
-All three figures are from HHIC via [Builders Merchants News, Jan 2020](https://www.buildersmerchantsnews.co.uk/news/merchants/boiler-sales-zombie-boilers-survive). Condensing boilers have effectively been mandatory since 2005. Which? suggests replacement is worthwhile mainly for "non-condensing boilers installed before 2005" ([Which?](https://www.which.co.uk/reviews/boilers/article/boiler-energy-efficiency)). The exact regulatory dates (England and Wales from April 2005, NI later) are [unverified].
+All three figures are from HHIC via [Builders Merchants News, Jan 2020](https://www.buildersmerchantsnews.co.uk/news/merchants/boiler-sales-zombie-boilers-survive). Condensing boilers have effectively been mandatory since 2005. Which? suggests replacement is worthwhile mainly for "non-condensing boilers installed before 2005" ([Which?](https://www.which.co.uk/reviews/boilers/article/boiler-energy-efficiency)). England and Wales from April 2005 (A/B, ≥86%), A-rated (≥90%) from 2010, per a manufacturer page (Worcester Bosch; confirmed 25 Oct, second read, secondary). The NI date is still [unverified].
 
-**Lifetime.** No authoritative GB source was found. A 10–15 year working life is commonly cited [unverified]. One modelling framework assumes 25 years with no source given ([DEM docs](https://dem-documentation.readthedocs.io/en/latest/modelling_method/gen_conv_techs/gas_boiler.html)). This is listed as a gap.
+**Lifetime.** No authoritative GB source was found. A 10–15 year working life is commonly cited [unverified]; a manufacturer (Baxi) gives 10–15 years if serviced annually (second read, 25 Oct), which is a claim, not a distribution. One modelling framework assumes 25 years with no source given ([DEM docs](https://dem-documentation.readthedocs.io/en/latest/modelling_method/gen_conv_techs/gas_boiler.html)). This is listed as a gap.
 
 **Rated vs measured efficiency.**
 - Since Boiler Plus (April 2018, England), new gas boilers must reach 92% ErP on their own label ([BEIS Boiler Plus factsheet](https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/718569/Boiler_Plus_Factsheet_v3.pdf)).
@@ -320,9 +320,9 @@ No GB stock distribution of radiator oversizing was found. This is a gap.
 
 ## 6. What shows in the data
 
-**Daily gas vs heating degree days (HDD).** The standard model is daily gas = baseload + slope × HDD, above a balance-point temperature. This is the PRISM / change-point family [unverified as citation].
+**Daily gas vs heating degree days (HDD).** The standard model is daily gas = baseload + slope × HDD, above a balance-point temperature. This is the PRISM / change-point family (confirmed 25 Oct, second read: ACEEE 1986 PRISM paper; the canonical citation is Fels 1986, Energy and Buildings).
 - **The slope** is roughly the heat transfer coefficient (HTC) × 24/1000 ÷ boiler efficiency, net of internal gains [derived].
-- **Typical slope:** about 8,850 kWh ÷ about 2,000 HDD a year ≈ 4.4 kWh/HDD [derived; the annual HDD figure is unverified].
+- **Typical slope:** about 8,850 kWh ÷ about 2,000 HDD a year ≈ 4.4 kWh/HDD [derived]. Annual HDD at 15.5°C ran 1,794 (SW) to 2,638 (NE Scotland), Midlands 2,290, over 1985–2004 (confirmed 25 Oct, second read, OpenLearn, secondary).
 - **The intercept** is hot water plus cooking, about 7 kWh/day on the TDCV home [derived].
 
 What each choice does to the profile [derived from the physics; no published validation found unless cited]:
@@ -373,7 +373,7 @@ All rows assume 11,500 kWh at 5.74p and 0.183 kg/kWh unless the source says othe
 | Weather compensation | 10–15% (US field) to 10–40% (claims) ([BRE](https://assets.publishing.service.gov.uk/media/5a81f66ced915d74e62350ca/heating-controls-compensation-tpi-bre.pdf)). SAP credit 3% | 3%: ~350 kWh, £20 | ~£50 under Boiler Plus ([BEIS](https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/718569/Boiler_Plus_Factsheet_v3.pdf)) |
 | Power flush + inhibitor | "Up to 15%" (industry claim) | Not credible as a central figure | £300–700+ |
 | Servicing | Nothing found | — | — |
-| Replace G-rated with A-rated | £420/yr GB ([EST heating](https://energysavingtrust.org.uk/energy-at-home/heating-your-home/)). An earlier EST figure was £580 ([iheat](https://iheat.co.uk/boiler-help/how-much-can-a-new-boiler-save-me)) | Physics check, about 70%→89% in use [the 70% G-band cut-off is unverified]: ~2,450 kWh, £140, 450 kg | £1,500–3,000 ([Which?](https://www.which.co.uk/reviews/boilers/article/boiler-energy-efficiency)) or £1,845–3,299 ([iheat](https://iheat.co.uk/boiler-help/how-much-can-a-new-boiler-save-me)). Payback 11–20 yrs on the physics check, 4–8 yrs on EST's figure |
+| Replace G-rated with A-rated | £420/yr GB ([EST heating](https://energysavingtrust.org.uk/energy-at-home/heating-your-home/)). An earlier EST figure was £580 ([iheat](https://iheat.co.uk/boiler-help/how-much-can-a-new-boiler-save-me)) | Physics check, about 70%→89% in use [G band is below 70% in SEDBUK 2005; confirmed 25 Oct, second read, nibusinessinfo]: ~2,450 kWh, £140, 450 kg | £1,500–3,000 ([Which?](https://www.which.co.uk/reviews/boilers/article/boiler-energy-efficiency)) or £1,845–3,299 ([iheat](https://iheat.co.uk/boiler-help/how-much-can-a-new-boiler-save-me)). Payback 11–20 yrs on the physics check, 4–8 yrs on EST's figure |
 
 EST's £ figures run about 2–3 times higher than my own calculations at the Q2 2026 cap rate. Ask EST for the unit price and consumption behind them before using them as world truth.
 
@@ -480,3 +480,19 @@ EST's £ figures run about 2–3 times higher than my own calculations at the Q2
 **Notes for the project:**
 - **Ofgem's medium gas figure changed from 11,500 to 9,500 kWh on 1 July 2026.** Any canon or simulation constant using 11,500 needs updating.
 - Published measured savings consistently come in at a quarter to a half of modelled or claimed savings. The supplier's proof-of-saving logic should expect small effects and needs large comparison groups.
+
+## Second read: the advisor's verification pass, 25 Oct 2026
+
+The advisor read the same tags independently (`docs/staging/advisor/DIRECTOR_EVIDENCE_VERIFICATION_OF_THE_GB_PACKS_UNVERIFIED_ITEMS_2026-10-25.md`, pass 3, pack 4). Items not listed were not in its scope; their outcomes stand.
+
+| # | Item | Prior outcome | Advisor | Reconciled | Source |
+|---|---|---|---|---|---|
+| 7 | Annual HDD ≈ 2,000 | still open at primary | confirmed: 1,794–2,638 by region, Midlands 2,290 (base 15.5°C, 1985–2004) | **confirmed**, secondary (OpenLearn) | https://www.open.edu/openlearn/nature-environment/energy-buildings/content-section-2.4.2 |
+| 8 | Condensing mandatory April 2005 (E&W), NI later | partly confirmed | E&W confirmed (A/B ≥86% from April 2005; A-rated from 2010); NI still open | **partly confirmed**: the E&W month now rests on a manufacturer page; NI still open | https://www.worcester-bosch.co.uk/professional/installers-choice/whats-on/20th-anniversary-for-condensing-boilers (secondary) |
+| 9 | Boiler life 10–15 years | still unpublished | confirmed (Baxi: 10–15 yrs if serviced) | **still unpublished**. **DISAGREES**: a manufacturer's figure confirms the claim is made, not that it is a measured GB lifetime; the advisor itself keeps the distribution gap open | https://www.baxi.co.uk/help-and-advice/faqs/how-long-does-a-boiler-last |
+| 10 | PRISM / change-point citation | still open | confirmed | **confirmed** | https://www.aceee.org/files/proceedings/1986/data/papers/SS86_Panel9_Paper_04.pdf |
+| 11 | G-band cut-off ~70% | still open | confirmed: SEDBUK 2005 G <70% | **confirmed** | https://nibusinessinfo.co.uk/content/checking-boiler-efficiency |
+
+The filter-and-clean correction (2022 Part L, not Boiler Plus 2018) belongs to the gap-closure pack and is recorded on the proving-savings page. This page never attributed the filter to Boiler Plus, so nothing here changes.
+
+**Counts: confirmed 11 · partly confirmed 1 · corrected 0 · still open 1 · still unpublished 1.**

@@ -73,7 +73,7 @@ orientation, tilt and the distribution of systems across the fleet are on
 - Degradation: median 0.5%/yr, mean 0.8%/yr over 2,128 reported rates (NREL, Jordan and Kurtz);
   IEA PVPS assumes 0.7%/yr. Panels 30 years, inverter 15 years (IEA PVPS), so about one inverter
   replacement per panel life **[derived]**.
-- Inverter conversion about 96-97% **[unverified; still open]**; Tesla quotes 97% solar-to-grid.
+- Inverter conversion about 96-97% (confirmed 25 Oct, second read, for one model: GivEnergy 3.6 kW datasheet, Euro-weighted 97%, max 97.6%); Tesla quotes 97% solar-to-grid.
 - Season: a south-facing 35° array in London gives about 35% of its year in April-June and about 15%
   in October-December (PVGIS-SARAH2 2005-2020, run 2026-10-25) **[derived]**; the FiT fleet's
   2024/25 quarters were 13.6% and 4.7% load factor (DESNZ).
@@ -144,7 +144,7 @@ orientation, tilt and the distribution of systems across the fleet are on
   up to 5 MW, not homes alone, so it is not a domestic export price.
 - FiT legacy: SY15 just under 8.0 TWh generated across all FiT technologies, £1.73bn generation
   payments, 1.5 TWh exported for about £94.1m (Ofgem, fetched). Export from PV up to 30 kW without
-  an export meter is deemed at 50% of generation. Tariff by vintage **[unverified; still open]**.
+  an export meter is deemed at 50% of generation. Tariff by vintage: early PV paid 43.3p, 45.4p after RPI uplifts, far above later vintages; indexation moves from RPI to CPI from April 2026 (corrected 25 Oct, second read; Solar Power Portal and Which?, secondary; Ofgem's tables by vintage not pulled).
 - EST paybacks (Apr 2026): London 10-12 years, Manchester 11-13, Stirling 12-15, Belfast 13-21.
 
 ## 6. Carbon
@@ -155,7 +155,7 @@ orientation, tilt and the distribution of systems across the fleet are on
   Book long-run marginal factors were not extracted (gap).
 - A battery saves carbon only if the evening margin is dirtier than the night margin by more than
   its ~11% round-trip loss **[derived]**.
-- Embodied carbon about 20-50 gCO₂e/kWh and a 5-12 year carbon payback **[unverified; still open]**.
+- Embodied carbon: harmonised c-Si median about 45 gCO₂e/kWh (IQR 39-49) at 1,700 kWh/m²/yr irradiation (Hsu et al. 2012, NREL harmonisation). At UK irradiation (about 1,000-1,100 kWh/m²/yr) that scales to about 70 g for older modules **[derived]**; newer modules are lower. The pack's 5-12 year carbon payback is therefore probably too short for older modules (corrected 25 Oct, second read; the pack had 20-50 g/kWh).
 
 ## 7. What a supplier can see, infer and must ask
 
@@ -182,7 +182,7 @@ orientation, tilt and the distribution of systems across the fleet are on
 - Attribute separately: self-use, export income, battery shift and tariff change. A Flux switch
   alone changes the bill with no hardware.
 - No GB measurement-and-verification protocol for PV and batteries was found; IPMVP is the usual
-  reference **[unverified; still open]**.
+  reference (confirmed 25 Oct, second read: DOE FEMP M&V Guide 5.0).
 
 ## Headline bands for checking the world
 
@@ -234,3 +234,23 @@ factor. Two named-gap fetches were closed: the DESNZ absolute £/kW series and t
 9. A GB measurement-and-verification protocol for PV and battery savings.
 10. The DESNZ domestic battery cost release itself (figures read through Solar Power Portal).
 11. Which?, Solar Energy UK and Energy Systems Catapult field data.
+
+## Second read: the advisor's verification pass, 25 Oct 2026
+
+The advisor read the same nine tags independently (`docs/staging/advisor/DIRECTOR_EVIDENCE_VERIFICATION_OF_THE_GB_PACKS_UNVERIFIED_ITEMS_2026-10-25.md`, pass 3, pack 2). Items follow §9's order.
+
+| Item | Prior outcome | Advisor | Reconciled | Source |
+|---|---|---|---|---|
+| FiT start in 2010 | confirmed | confirmed | **confirmed** | https://www.ofgem.gov.uk/transparency-document/feed-tariffs-annual-report-scheme-year-15-april-2024-march-2025 |
+| Inverter efficiency 96-97% | still open | confirmed | **confirmed**, for one manufacturer's model only; no fleet figure | https://givenergy.com/wp-content/uploads/2026/03/UK-Datasheet-String-Inverter-3.6-v2.pdf |
+| FiT generation tariff by vintage | still open | corrected | **corrected**: early PV 43.3p rising to 45.4p; RPI-linked is out of date, CPI from Apr 2026. Secondary sources; Ofgem's vintage tables still not pulled | https://www.solarpowerportal.co.uk/energy-policy/rpi-increase-45-4p-solar-fit-from-april-1 ; https://www.which.co.uk/reviews/feed-in-tariffs/article/feed-in-tariffs/what-is-the-feed-in-tariff (secondary) |
+| Export MPAN registration and settlement | still open | confirmed (partial) | **confirmed** for the mechanics (BSCP504/514; NHH export under P081). The share of PV homes with a registered export MPAN stays a named gap | https://www.elexon.co.uk/bsc/smg-issue/issue-91/ |
+| FiT meter-reading frequency | still open | confirmed (partial) | **confirmed**, secondary: payments usually quarterly, a reading each period. No licensee rule text found | https://www.which.co.uk/reviews/feed-in-tariffs/article/feed-in-tariffs/what-is-the-feed-in-tariff (secondary) |
+| Battery evening-flatline signature | still open | still open | **still open** | — |
+| Embodied carbon and carbon payback | still open | corrected | **corrected**: median ~45 g/kWh at 1,700 kWh/m²; ~70 g for older modules at UK irradiation [derived]; 5-12 yr payback probably too short. §6 corrected | https://ideas.repec.org/a/bla/inecol/v16y2012is1ps122-s135.html |
+| Monthly PV and demand shapes | still open (PV half sourced) | still open (PVGIS blocked) | **still open**. The seat's PVGIS read already closed the PV half; the demand half is what stays open | — |
+| IPMVP as the reference protocol | still open | confirmed | **confirmed** | https://www.energy.gov/sites/default/files/2024-10/mv_guide_5_0.pdf |
+
+No item DISAGREES with the earlier read; the advisor's outcomes extend it. Named gaps 1, 2, 3 and 6 are narrowed, not closed.
+
+**Counts: confirmed 5 · corrected 2 · still open 2.**

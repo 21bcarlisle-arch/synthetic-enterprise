@@ -214,8 +214,10 @@ class RetrofitOffer:
 # SO COMFORT IS NOT PRICED, IT IS FLOORED. A floor cannot be bought off by a large enough
 # saving; a price can. Below the floor the measure is not offered at any value.
 HEALTH_FLOOR_INDOOR_C = 18.0
-"""WHO guidance on minimum indoor temperature for health, carried into NICE NG6 (excess winter
-deaths and cold homes). Published and citable, and a THRESHOLD rather than a preference."""
+"""WHO guidance on minimum indoor temperature for health, and PHE's 2014 review: 18 C or above poses
+minimal risk, and risk rises below 18 C and more below 16 C, on weak evidence. NICE NG6 cites the
+cold-homes harm but sets no threshold (corrected 25 Oct 2026; was "carried into NICE NG6"). Published
+and citable, and a THRESHOLD rather than a preference."""
 
 #: EFUS 2017 measured mean living-room temperature over the heating season, by EPC band. This is
 #: MEASURED behaviour, not an assumption about it: worse-insulated homes are COLDER, not merely

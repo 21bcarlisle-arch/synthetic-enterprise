@@ -1,18 +1,18 @@
 {
- "generated_at": "2026-10-25T15:41:02Z",
+ "generated_at": "2026-10-25T21:43:55Z",
  "source": "python3 -m tools.pack_verification_census --write",
  "steer": "docs/staging/advisor/DIRECTOR_STEER_VERIFY_THE_PACKS_UNVERIFIED_ITEMS_AS_YOU_DRAFT_2026-10-25.md",
  "unit": "flags: one [unverified] tag in a pack, legend sentences excluded; outcomes: the page's own last stated tally, summed",
  "total": {
   "items": 522,
-  "confirmed": 85,
-  "partly_confirmed": 4,
-  "corrected": 27,
+  "confirmed": 122,
+  "partly_confirmed": 3,
+  "corrected": 47,
   "unpublished": 4,
-  "open": 419,
+  "open": 376,
   "packs": 28,
   "drafted": 28,
-  "no_tally": 3
+  "no_tally": 0
  },
  "packs": [
   {
@@ -20,11 +20,11 @@
    "title": "Household flexibility and the advice roadmap",
    "scope": "GB",
    "items": 32,
-   "confirmed": 5,
+   "confirmed": 11,
    "partly_confirmed": 0,
-   "corrected": 3,
+   "corrected": 7,
    "unpublished": 0,
-   "open": 18,
+   "open": 8,
    "counted": 26,
    "drafted": true,
    "tally_recorded": true,
@@ -33,95 +33,11 @@
      "note": "docs/market_research/household_flexibility_and_the_advice_roadmap_2026-10-25.md",
      "knowledge": "household-flexibility-and-the-advice-roadmap",
      "tally": {
-      "confirmed": 5,
+      "confirmed": 11,
       "partly_confirmed": 0,
-      "corrected": 3,
-      "unpublished": 0,
-      "open": 18
-     },
-     "published": true
-    }
-   ]
-  },
-  {
-   "pack": "DIRECTOR_EVIDENCE_SOLAR_PV_AND_HOME_BATTERIES_2026-10-25.md",
-   "title": "Solar PV and home batteries",
-   "scope": "GB",
-   "items": 12,
-   "confirmed": 1,
-   "partly_confirmed": 0,
-   "corrected": 0,
-   "unpublished": 0,
-   "open": 8,
-   "counted": 9,
-   "drafted": true,
-   "tally_recorded": true,
-   "pages": [
-    {
-     "note": "docs/market_research/solar_pv_and_home_batteries_2026-10-25.md",
-     "knowledge": "solar-pv-and-home-batteries",
-     "tally": {
-      "confirmed": 1,
-      "partly_confirmed": 0,
-      "corrected": 0,
+      "corrected": 7,
       "unpublished": 0,
       "open": 8
-     },
-     "published": true
-    }
-   ]
-  },
-  {
-   "pack": "DIRECTOR_EVIDENCE_DRIVERS_MILEAGE_AND_PARKING_DISTRIBUTIONS_2026-10-25.md",
-   "title": "Drivers mileage and parking distributions",
-   "scope": "GB",
-   "items": 13,
-   "confirmed": 6,
-   "partly_confirmed": 0,
-   "corrected": 3,
-   "unpublished": 2,
-   "open": 7,
-   "counted": 18,
-   "drafted": true,
-   "tally_recorded": true,
-   "pages": [
-    {
-     "note": "docs/market_research/who_drives_how_far_and_where_they_park_2026-10-25.md",
-     "knowledge": "who-drives-how-far-and-where-they-park",
-     "tally": {
-      "confirmed": 6,
-      "partly_confirmed": 0,
-      "corrected": 3,
-      "unpublished": 2,
-      "open": 7
-     },
-     "published": true
-    }
-   ]
-  },
-  {
-   "pack": "DIRECTOR_EVIDENCE_EVS_CHARGING_AND_SAVINGS_VS_PETROL_AND_DIESEL_2026-10-25.md",
-   "title": "EVs charging and savings vs petrol and diesel",
-   "scope": "GB",
-   "items": 21,
-   "confirmed": 4,
-   "partly_confirmed": 0,
-   "corrected": 2,
-   "unpublished": 0,
-   "open": 7,
-   "counted": 13,
-   "drafted": true,
-   "tally_recorded": true,
-   "pages": [
-    {
-     "note": "docs/market_research/ev_charging_and_the_saving_against_petrol_and_diesel_2026-10-25.md",
-     "knowledge": "ev-charging-and-the-saving-against-petrol-and-diesel",
-     "tally": {
-      "confirmed": 4,
-      "partly_confirmed": 0,
-      "corrected": 2,
-      "unpublished": 0,
-      "open": 7
      },
      "published": true
     }
@@ -132,12 +48,12 @@
    "title": "Vehicle mix and real world efficiency",
    "scope": "GB",
    "items": 11,
-   "confirmed": 1,
+   "confirmed": 3,
    "partly_confirmed": 0,
-   "corrected": 0,
+   "corrected": 1,
    "unpublished": 0,
-   "open": 7,
-   "counted": 8,
+   "open": 8,
+   "counted": 12,
    "drafted": true,
    "tally_recorded": true,
    "pages": [
@@ -145,39 +61,67 @@
      "note": "docs/market_research/which_cars_households_run_and_what_they_use_2026-10-25.md",
      "knowledge": "which-cars-households-run-and-what-they-use",
      "tally": {
-      "confirmed": 1,
+      "confirmed": 3,
       "partly_confirmed": 0,
-      "corrected": 0,
+      "corrected": 1,
       "unpublished": 0,
-      "open": 7
+      "open": 8
      },
      "published": true
     }
    ]
   },
   {
-   "pack": "DIRECTOR_EVIDENCE_HEAT_PUMPS_AND_FABRIC_MEASURES_2026-10-25.md",
-   "title": "Heat pumps and fabric measures",
+   "pack": "DIRECTOR_EVIDENCE_EVS_CHARGING_AND_SAVINGS_VS_PETROL_AND_DIESEL_2026-10-25.md",
+   "title": "EVs charging and savings vs petrol and diesel",
    "scope": "GB",
-   "items": 17,
-   "confirmed": 7,
-   "partly_confirmed": 1,
-   "corrected": 1,
-   "unpublished": 1,
-   "open": 6,
-   "counted": 16,
+   "items": 21,
+   "confirmed": 5,
+   "partly_confirmed": 0,
+   "corrected": 3,
+   "unpublished": 0,
+   "open": 5,
+   "counted": 13,
    "drafted": true,
    "tally_recorded": true,
    "pages": [
     {
-     "note": "docs/market_research/heat_pumps_and_fabric_measures_2026-10-25.md",
-     "knowledge": "heat-pumps-and-fabric-measures",
+     "note": "docs/market_research/ev_charging_and_the_saving_against_petrol_and_diesel_2026-10-25.md",
+     "knowledge": "ev-charging-and-the-saving-against-petrol-and-diesel",
      "tally": {
-      "confirmed": 7,
-      "partly_confirmed": 1,
-      "corrected": 1,
-      "unpublished": 1,
-      "open": 6
+      "confirmed": 5,
+      "partly_confirmed": 0,
+      "corrected": 3,
+      "unpublished": 0,
+      "open": 5
+     },
+     "published": true
+    }
+   ]
+  },
+  {
+   "pack": "DIRECTOR_EVIDENCE_DRIVERS_MILEAGE_AND_PARKING_DISTRIBUTIONS_2026-10-25.md",
+   "title": "Drivers mileage and parking distributions",
+   "scope": "GB",
+   "items": 13,
+   "confirmed": 8,
+   "partly_confirmed": 0,
+   "corrected": 4,
+   "unpublished": 2,
+   "open": 4,
+   "counted": 18,
+   "drafted": true,
+   "tally_recorded": true,
+   "pages": [
+    {
+     "note": "docs/market_research/who_drives_how_far_and_where_they_park_2026-10-25.md",
+     "knowledge": "who-drives-how-far-and-where-they-park",
+     "tally": {
+      "confirmed": 8,
+      "partly_confirmed": 0,
+      "corrected": 4,
+      "unpublished": 2,
+      "open": 4
      },
      "published": true
     }
@@ -188,11 +132,11 @@
    "title": "Gas and power price volatility",
    "scope": "GB",
    "items": 1,
-   "confirmed": 7,
+   "confirmed": 8,
    "partly_confirmed": 0,
    "corrected": 0,
    "unpublished": 0,
-   "open": 5,
+   "open": 4,
    "counted": 12,
    "drafted": true,
    "tally_recorded": true,
@@ -201,11 +145,11 @@
      "note": "docs/market_research/how_gb_gas_and_power_prices_move_2026-10-25.md",
      "knowledge": "how-gb-gas-and-power-prices-move",
      "tally": {
-      "confirmed": 7,
+      "confirmed": 8,
       "partly_confirmed": 0,
       "corrected": 0,
       "unpublished": 0,
-      "open": 5
+      "open": 4
      },
      "published": true
     }
@@ -218,9 +162,9 @@
    "items": 9,
    "confirmed": 15,
    "partly_confirmed": 0,
-   "corrected": 2,
+   "corrected": 3,
    "unpublished": 0,
-   "open": 4,
+   "open": 3,
    "counted": 21,
    "drafted": true,
    "tally_recorded": true,
@@ -231,143 +175,9 @@
      "tally": {
       "confirmed": 15,
       "partly_confirmed": 0,
-      "corrected": 2,
+      "corrected": 3,
       "unpublished": 0,
-      "open": 4
-     },
-     "published": true
-    }
-   ]
-  },
-  {
-   "pack": "DIRECTOR_EVIDENCE_GAP_CLOSURE_TDCV_VAT_RTS_CALTRACK_ECO_IUF_2026-10-25.md",
-   "title": "Gap closure TDCV VAT RTS CalTRACK ECO IUF",
-   "scope": "GB",
-   "items": 5,
-   "confirmed": 5,
-   "partly_confirmed": 0,
-   "corrected": 2,
-   "unpublished": 0,
-   "open": 4,
-   "counted": 11,
-   "drafted": true,
-   "tally_recorded": true,
-   "pages": [
-    {
-     "note": "docs/market_research/proving_and_showing_household_savings_2026-10-25.md",
-     "knowledge": "proving-and-showing-household-savings",
-     "tally": {
-      "confirmed": 5,
-      "partly_confirmed": 0,
-      "corrected": 2,
-      "unpublished": 0,
-      "open": 4
-     },
-     "published": true
-    }
-   ]
-  },
-  {
-   "pack": "DIRECTOR_EVIDENCE_GAS_BOILERS_AND_HEATING_CONTROLS_2026-10-25.md",
-   "title": "Gas boilers and heating controls",
-   "scope": "GB",
-   "items": 5,
-   "confirmed": 8,
-   "partly_confirmed": 1,
-   "corrected": 0,
-   "unpublished": 1,
-   "open": 4,
-   "counted": 14,
-   "drafted": true,
-   "tally_recorded": true,
-   "pages": [
-    {
-     "note": "docs/market_research/gas_boilers_and_heating_controls_2026-10-25.md",
-     "knowledge": "gas-boilers-and-heating-controls",
-     "tally": {
-      "confirmed": 8,
-      "partly_confirmed": 1,
-      "corrected": 0,
-      "unpublished": 1,
-      "open": 4
-     },
-     "published": true
-    }
-   ]
-  },
-  {
-   "pack": "DIRECTOR_EVIDENCE_PAYMENTS_AND_DIRECT_DEBIT_2026-10-25.md",
-   "title": "Payments and direct debit",
-   "scope": "GB",
-   "items": 4,
-   "confirmed": 0,
-   "partly_confirmed": 0,
-   "corrected": 0,
-   "unpublished": 0,
-   "open": 4,
-   "counted": null,
-   "drafted": true,
-   "tally_recorded": false,
-   "pages": [
-    {
-     "note": "docs/market_research/payments_and_direct_debit_2026-10-25.md",
-     "knowledge": "payments-and-direct-debit",
-     "tally": null,
-     "published": true
-    }
-   ]
-  },
-  {
-   "pack": "DIRECTOR_EVIDENCE_PROVING_AND_SHOWING_HOUSEHOLD_SAVINGS_2026-10-25.md",
-   "title": "Proving and showing household savings",
-   "scope": "GB",
-   "items": 12,
-   "confirmed": 5,
-   "partly_confirmed": 0,
-   "corrected": 2,
-   "unpublished": 0,
-   "open": 4,
-   "counted": 11,
-   "drafted": true,
-   "tally_recorded": true,
-   "pages": [
-    {
-     "note": "docs/market_research/proving_and_showing_household_savings_2026-10-25.md",
-     "knowledge": "proving-and-showing-household-savings",
-     "tally": {
-      "confirmed": 5,
-      "partly_confirmed": 0,
-      "corrected": 2,
-      "unpublished": 0,
-      "open": 4
-     },
-     "published": true
-    }
-   ]
-  },
-  {
-   "pack": "DIRECTOR_EVIDENCE_ROOFS_PV_ORIENTATION_YIELD_AND_IRRADIANCE_2026-10-25.md",
-   "title": "Roofs PV orientation yield and irradiance",
-   "scope": "GB",
-   "items": 9,
-   "confirmed": 2,
-   "partly_confirmed": 0,
-   "corrected": 0,
-   "unpublished": 0,
-   "open": 4,
-   "counted": 6,
-   "drafted": true,
-   "tally_recorded": true,
-   "pages": [
-    {
-     "note": "docs/market_research/pv_roofs_orientation_and_yield_2026-10-25.md",
-     "knowledge": "pv-roofs-orientation-and-yield",
-     "tally": {
-      "confirmed": 2,
-      "partly_confirmed": 0,
-      "corrected": 0,
-      "unpublished": 0,
-      "open": 4
+      "open": 3
      },
      "published": true
     }
@@ -392,6 +202,62 @@
      "knowledge": "heating-behaviour-comfort-and-health-floors",
      "tally": {
       "confirmed": 9,
+      "partly_confirmed": 0,
+      "corrected": 0,
+      "unpublished": 0,
+      "open": 3
+     },
+     "published": true
+    }
+   ]
+  },
+  {
+   "pack": "DIRECTOR_EVIDENCE_PAYMENTS_AND_DIRECT_DEBIT_2026-10-25.md",
+   "title": "Payments and direct debit",
+   "scope": "GB",
+   "items": 4,
+   "confirmed": 1,
+   "partly_confirmed": 0,
+   "corrected": 0,
+   "unpublished": 0,
+   "open": 3,
+   "counted": 4,
+   "drafted": true,
+   "tally_recorded": true,
+   "pages": [
+    {
+     "note": "docs/market_research/payments_and_direct_debit_2026-10-25.md",
+     "knowledge": "payments-and-direct-debit",
+     "tally": {
+      "confirmed": 1,
+      "partly_confirmed": 0,
+      "corrected": 0,
+      "unpublished": 0,
+      "open": 3
+     },
+     "published": true
+    }
+   ]
+  },
+  {
+   "pack": "DIRECTOR_EVIDENCE_ROOFS_PV_ORIENTATION_YIELD_AND_IRRADIANCE_2026-10-25.md",
+   "title": "Roofs PV orientation yield and irradiance",
+   "scope": "GB",
+   "items": 9,
+   "confirmed": 3,
+   "partly_confirmed": 0,
+   "corrected": 0,
+   "unpublished": 0,
+   "open": 3,
+   "counted": 6,
+   "drafted": true,
+   "tally_recorded": true,
+   "pages": [
+    {
+     "note": "docs/market_research/pv_roofs_orientation_and_yield_2026-10-25.md",
+     "knowledge": "pv-roofs-orientation-and-yield",
+     "tally": {
+      "confirmed": 3,
       "partly_confirmed": 0,
       "corrected": 0,
       "unpublished": 0,
@@ -430,23 +296,29 @@
    ]
   },
   {
-   "pack": "DIRECTOR_EVIDENCE_SUPPLIER_ACCOUNTS_AND_CAPITAL_2026-10-25.md",
-   "title": "Supplier accounts and capital",
+   "pack": "DIRECTOR_EVIDENCE_SOLAR_PV_AND_HOME_BATTERIES_2026-10-25.md",
+   "title": "Solar PV and home batteries",
    "scope": "GB",
-   "items": 3,
-   "confirmed": 0,
+   "items": 12,
+   "confirmed": 5,
    "partly_confirmed": 0,
-   "corrected": 0,
+   "corrected": 2,
    "unpublished": 0,
-   "open": 3,
-   "counted": null,
+   "open": 2,
+   "counted": 9,
    "drafted": true,
-   "tally_recorded": false,
+   "tally_recorded": true,
    "pages": [
     {
-     "note": "docs/market_research/suppliers_accounts_and_capital_2026-10-25.md",
-     "knowledge": "suppliers-accounts-and-capital",
-     "tally": null,
+     "note": "docs/market_research/solar_pv_and_home_batteries_2026-10-25.md",
+     "knowledge": "solar-pv-and-home-batteries",
+     "tally": {
+      "confirmed": 5,
+      "partly_confirmed": 0,
+      "corrected": 2,
+      "unpublished": 0,
+      "open": 2
+     },
      "published": true
     }
    ]
@@ -456,9 +328,9 @@
    "title": "Tariffs and the default tariff",
    "scope": "GB",
    "items": 6,
-   "confirmed": 2,
-   "partly_confirmed": 1,
-   "corrected": 3,
+   "confirmed": 1,
+   "partly_confirmed": 0,
+   "corrected": 5,
    "unpublished": 0,
    "open": 2,
    "counted": 8,
@@ -469,9 +341,9 @@
      "note": "docs/market_research/tariffs_and_the_default_tariff_2026-10-25.md",
      "knowledge": "tariffs-and-the-default-tariff",
      "tally": {
-      "confirmed": 2,
-      "partly_confirmed": 1,
-      "corrected": 3,
+      "confirmed": 1,
+      "partly_confirmed": 0,
+      "corrected": 5,
       "unpublished": 0,
       "open": 2
      },
@@ -536,26 +408,82 @@
    ]
   },
   {
-   "pack": "DIRECTOR_EVIDENCE_NETWORK_LIMITS_ON_EVS_HEAT_PUMPS_PV_AND_BATTERIES_2026-10-25.md",
-   "title": "Network limits on EVs heat pumps PV and batteries",
+   "pack": "DIRECTOR_EVIDENCE_GAS_BOILERS_AND_HEATING_CONTROLS_2026-10-25.md",
+   "title": "Gas boilers and heating controls",
    "scope": "GB",
-   "items": 3,
-   "confirmed": 0,
-   "partly_confirmed": 0,
+   "items": 5,
+   "confirmed": 11,
+   "partly_confirmed": 1,
    "corrected": 0,
-   "unpublished": 0,
+   "unpublished": 1,
    "open": 1,
-   "counted": 1,
+   "counted": 14,
    "drafted": true,
    "tally_recorded": true,
    "pages": [
     {
-     "note": "docs/market_research/network_limits_on_home_electrification_2026-10-25.md",
-     "knowledge": "network-limits-on-home-electrification",
+     "note": "docs/market_research/gas_boilers_and_heating_controls_2026-10-25.md",
+     "knowledge": "gas-boilers-and-heating-controls",
      "tally": {
-      "confirmed": 0,
-      "partly_confirmed": 0,
+      "confirmed": 11,
+      "partly_confirmed": 1,
       "corrected": 0,
+      "unpublished": 1,
+      "open": 1
+     },
+     "published": true
+    }
+   ]
+  },
+  {
+   "pack": "DIRECTOR_EVIDENCE_HEAT_PUMPS_AND_FABRIC_MEASURES_2026-10-25.md",
+   "title": "Heat pumps and fabric measures",
+   "scope": "GB",
+   "items": 17,
+   "confirmed": 10,
+   "partly_confirmed": 1,
+   "corrected": 3,
+   "unpublished": 1,
+   "open": 1,
+   "counted": 16,
+   "drafted": true,
+   "tally_recorded": true,
+   "pages": [
+    {
+     "note": "docs/market_research/heat_pumps_and_fabric_measures_2026-10-25.md",
+     "knowledge": "heat-pumps-and-fabric-measures",
+     "tally": {
+      "confirmed": 10,
+      "partly_confirmed": 1,
+      "corrected": 3,
+      "unpublished": 1,
+      "open": 1
+     },
+     "published": true
+    }
+   ]
+  },
+  {
+   "pack": "DIRECTOR_EVIDENCE_SUPPLIER_ACCOUNTS_AND_CAPITAL_2026-10-25.md",
+   "title": "Supplier accounts and capital",
+   "scope": "GB",
+   "items": 3,
+   "confirmed": 2,
+   "partly_confirmed": 0,
+   "corrected": 1,
+   "unpublished": 0,
+   "open": 1,
+   "counted": 4,
+   "drafted": true,
+   "tally_recorded": true,
+   "pages": [
+    {
+     "note": "docs/market_research/suppliers_accounts_and_capital_2026-10-25.md",
+     "knowledge": "suppliers-accounts-and-capital",
+     "tally": {
+      "confirmed": 2,
+      "partly_confirmed": 0,
+      "corrected": 1,
       "unpublished": 0,
       "open": 1
      },
@@ -573,14 +501,104 @@
    "corrected": 0,
    "unpublished": 0,
    "open": 1,
-   "counted": null,
+   "counted": 1,
    "drafted": true,
-   "tally_recorded": false,
+   "tally_recorded": true,
    "pages": [
     {
      "note": "docs/market_research/switching_mechanics_2026-10-25.md",
      "knowledge": "switching-mechanics",
-     "tally": null,
+     "tally": {
+      "confirmed": 0,
+      "partly_confirmed": 0,
+      "corrected": 0,
+      "unpublished": 0,
+      "open": 1
+     },
+     "published": true
+    }
+   ]
+  },
+  {
+   "pack": "DIRECTOR_EVIDENCE_GAP_CLOSURE_TDCV_VAT_RTS_CALTRACK_ECO_IUF_2026-10-25.md",
+   "title": "Gap closure TDCV VAT RTS CalTRACK ECO IUF",
+   "scope": "GB",
+   "items": 5,
+   "confirmed": 11,
+   "partly_confirmed": 0,
+   "corrected": 4,
+   "unpublished": 0,
+   "open": 0,
+   "counted": 15,
+   "drafted": true,
+   "tally_recorded": true,
+   "pages": [
+    {
+     "note": "docs/market_research/proving_and_showing_household_savings_2026-10-25.md",
+     "knowledge": "proving-and-showing-household-savings",
+     "tally": {
+      "confirmed": 11,
+      "partly_confirmed": 0,
+      "corrected": 4,
+      "unpublished": 0,
+      "open": 0
+     },
+     "published": true
+    }
+   ]
+  },
+  {
+   "pack": "DIRECTOR_EVIDENCE_NETWORK_LIMITS_ON_EVS_HEAT_PUMPS_PV_AND_BATTERIES_2026-10-25.md",
+   "title": "Network limits on EVs heat pumps PV and batteries",
+   "scope": "GB",
+   "items": 3,
+   "confirmed": 0,
+   "partly_confirmed": 0,
+   "corrected": 1,
+   "unpublished": 0,
+   "open": 0,
+   "counted": 1,
+   "drafted": true,
+   "tally_recorded": true,
+   "pages": [
+    {
+     "note": "docs/market_research/network_limits_on_home_electrification_2026-10-25.md",
+     "knowledge": "network-limits-on-home-electrification",
+     "tally": {
+      "confirmed": 0,
+      "partly_confirmed": 0,
+      "corrected": 1,
+      "unpublished": 0,
+      "open": 0
+     },
+     "published": true
+    }
+   ]
+  },
+  {
+   "pack": "DIRECTOR_EVIDENCE_PROVING_AND_SHOWING_HOUSEHOLD_SAVINGS_2026-10-25.md",
+   "title": "Proving and showing household savings",
+   "scope": "GB",
+   "items": 12,
+   "confirmed": 11,
+   "partly_confirmed": 0,
+   "corrected": 4,
+   "unpublished": 0,
+   "open": 0,
+   "counted": 15,
+   "drafted": true,
+   "tally_recorded": true,
+   "pages": [
+    {
+     "note": "docs/market_research/proving_and_showing_household_savings_2026-10-25.md",
+     "knowledge": "proving-and-showing-household-savings",
+     "tally": {
+      "confirmed": 11,
+      "partly_confirmed": 0,
+      "corrected": 4,
+      "unpublished": 0,
+      "open": 0
+     },
      "published": true
     }
    ]

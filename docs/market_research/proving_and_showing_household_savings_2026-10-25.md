@@ -72,7 +72,9 @@ causes energy use within the measurement boundary to change" (an extension, a ne
   eliminate inherent systemic biases".
 
 **ASHRAE Guideline 14.** Model calibration: CV(RMSE) ≤ 20% monthly and ≤ 30% hourly, NMBE ≤ ±5% and
-±10% (https://energy-data.io/standards/ashrae-guideline-14/). "ASHRAE Guideline 14 requires that the
+±10% (https://energy-data.io/standards/ashrae-guideline-14/). The 20% monthly figure is for regression
+savings baselines; calibrated simulation is held to 15% monthly / NMBE ±5% and 30% / ±10% hourly
+(corrected 25 Oct, second read; Burman et al. 2020 and NREL quoting G14, secondary). "ASHRAE Guideline 14 requires that the
 savings uncertainty be less than 50% of the annual savings at 68% confidence" (EVO M&V Focus #5,
 https://evo-world.org/en/news-media/m-v-focus/868-m-v-focus-issue-5/1164-why-r2-doesn-t-matter,
 fetched 2026-10-25). G14 itself is a purchased document.
@@ -211,3 +213,50 @@ specific to estimated savings in sales; how OVO, British Gas, Ohme and Tesla app
 trial on the believability of "you saved £X"; NEED's own modelled-vs-measured ratio; a GB DFS
 baseline-accuracy figure against a true counterfactual; a GB heat-as-a-service or savings-share
 result with measured savings; SMETER data-duration requirements.
+
+## Second read: the advisor's verification pass, 25 Oct 2026 (gap-closure items only)
+
+An independent read by the advisor (GB-packs verification file, 25 Oct, pass 2 §5). It covers the
+gap-closure pack's tagged items. This page carries only that pack's CalTRACK and ECO sections, so
+four of the five items were never on it; they are added here so the pack's tally is complete. The
+proving-and-showing pack's own items are a separate read and are not reconciled here.
+
+| Item | §8 outcome | Advisor | Reconciled | Source |
+|---|---|---|---|---|
+| G14 calibration limits (§8 row 4) | still open: secondary gives ≤20% monthly / ≤30% hourly | confirmed: hourly NMBE <10%, CV(RMSE) <30% (NREL); monthly ≤15% / ≤5% from a Q&A site | **still open**, DISAGREES. Hourly limits now rest on NREL | https://www.nrel.gov:443/docs/fy19osti/70865.pdf ; https://unmethours.com/question/15/when-calibrating-an-energy-model-what-are-the-typical-metrics-to-show-proper-calibration/ |
+| PHE 2014 bands: <16°C respiratory, 9-12°C cardiovascular, <5°C hypothermia (new row) | not on this page | corrected: the review gives no such bands. ≥18°C "poses minimal risk"; blood-pressure risk rises below 18°C, more below 16°C; evidence weak | **corrected** (primary: the PHE review) | https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/468196/Min_temp_threshold_for_homes_in_winter.pdf |
+| Condensing boilers effectively mandatory since 2005 (new row) | not on this page | confirmed: Approved Document L 2005 | **confirmed** (manufacturer page, secondary) | https://baxi.co.uk/trade/legislation/boiler-plus |
+| EST in-situ condensing-boiler trial "around 2009" (new row) | not on this page | confirmed: DECC, 19 Jun 2009, sixty boilers | **confirmed**. Its summary says nothing on sludge or cleaning | https://www.gov.uk/government/publications/in-situ-monitoring-of-efficiencies-of-condensing-boilers-and-use-of-secondary-heating-trial-final-report-2009 |
+| Boiler Plus (2018) requires a system clean and a filter (new row) | not on this page | corrected: filter plus clean-and-flush (BS 7593) came with the 2022 Part L uplift in England; Boiler Plus was ErP ≥92%, controls and combi measures | **corrected** (trade press, secondary) | https://baxi.co.uk/trade/legislation/boiler-plus ; https://phpionline.co.uk/feature-articles/part-l-and-water-treatment/ |
+
+DISAGREES, G14 monthly: the advisor's 15% comes from a Q&A site, and §8's secondary gives 20%. The two
+may be different clauses (calibrated simulation against a savings regression model). G14 is paywalled,
+so neither is primary; the item stays open and the §2 body figure is left as it was.
+
+The tally below is §8's plus the four new rows: two confirmed, two corrected.
+
+**Counts: confirmed 7 · corrected 4 · still open 4.**
+
+## Second read: the advisor's verification pass, 25 Oct 2026 (proving-and-showing items)
+
+The advisor's read of the proving-and-showing pack (GB-packs verification file, pass 3 §3). Its 13
+items map onto §8's rows (its #12 repeats #6; its #13 is the life-events half of the adjustments row).
+This section reconciles §8 and the gap-closure section above; the tally below covers the whole page.
+
+| Item (§8 row) | Prior outcome | Advisor | Reconciled | Source |
+|---|---|---|---|---|
+| ECO in-use factors | confirmed | confirmed (ECO2t table: CWI/loft 35%; SWI 33% pre-1967 solid brick, else 25%) | **confirmed** | https://www.ofgem.gov.uk/system/files/docs/2018/01/eco2t_measures_table_-_jan_2018_-_v1.2.pdf |
+| IPMVP options A–D | still open (secondary only) | confirmed | **confirmed** (DOE FEMP M&V Guide 5.0) | https://www.energy.gov/sites/default/files/2024-10/mv_guide_5_0.pdf |
+| IPMVP routine / non-routine adjustments; life events | still open | confirmed (eqs 2-1, 2-2; occupancy as non-routine) | **confirmed** | same |
+| G14 ~15% monthly CV(RMSE), calibrated simulation | still open, DISAGREES in the gap-closure read | confirmed: 15% / ±5% monthly, 30% / ±10% hourly; 20% is the regression-baseline figure | **confirmed**, secondary. A second independent quote (Burman 2020) agrees with the first and explains the 20%: it is a different clause. §2 corrected | https://discovery-pp.ucl.ac.uk/10117731/3/Burman_2020_BPA_SimBuild_JainN.pdf (secondary) |
+| G14 savings uncertainty <50% at 68% | confirmed | confirmed | **confirmed** | https://onebuilding.org/archive/equest-users-onebuilding.org/2009-March/001184.html (secondary) |
+| CalTRACK 365-day baseline | corrected (hourly needs no minimum) | confirmed (max_days = 365) | **corrected**. **DISAGREES**: the advisor read eemeter's compliance page; §8 read the CalTRACK methods 2.2.1.1–2.2.1.2, which carry the hourly exception | https://eemeter.readthedocs.io/caltrack_compliance.html |
+| CalTRACK ~90% coverage | corrected (≤37 missing days; >90% of hours) | confirmed (0.9) | **corrected**. **DISAGREES** on the label only: same 90%, but §8's primary read gives the per-method rule | same |
+| CalTRACK HDD/CDD balance-point search | confirmed | confirmed (30–90°F, ≤3°F steps; ≥10 non-zero, ≥20 total degree-days) | **confirmed** | same |
+| CalTRACK hourly TOWT with occupancy | confirmed (CalTRACK 3.8) | still open (docs.caltrack.org blocked) | **confirmed**. **DISAGREES**: §8 read the methods page the advisor could not reach | — |
+| CalTRACK built for portfolio aggregation | confirmed (CalTRACK 4.3.2.5) | still open | **confirmed**. **DISAGREES**: as above | — |
+| Opower 1.4–3.3% | still open | confirmed: 1.4–3.3% by utility, average 2.0% | **confirmed**, secondary (J-PAL summary of Allcott 2011). Cadmus's 1.5–2.5% in years 1–2 sits inside it | https://www.povertyactionlab.org/evaluation/opower-evaluating-impact-home-energy-reports-energy-conservation-united-states (secondary) |
+
+The four gap-closure rows above (PHE bands, condensing 2005, EST trial, Boiler Plus) are unchanged.
+
+**Counts: confirmed 11 · corrected 4 · still open 0.**

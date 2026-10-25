@@ -80,8 +80,10 @@ https://www.enwl.co.uk/globalassets/evcp-and-hp-v3.3-ena-form.pdf
 - BS 7671 Reg 722.411.4.1: a PME earth may serve an EV charger only if an open PEN cannot raise it
   above 70 V; otherwise open-PEN detection or a TT earth. This moves installer cost, not the DNO's
   decision **[derived]**.
-- BS 7671 A4:2026 published 15 Jan 2026; A3:2024's prosumer and battery content **[unverified; still
-  open]**.
+- BS 7671 A4:2026 published 15 Jan 2026. The prosumer chapter (Part 8, Chapter 82) came in with
+  A2:2022, not A3:2024; A3:2024 (31 Jul 2024) added Reg 530.3.201 on bidirectional and unidirectional
+  devices; stationary secondary-battery requirements are the A4:2026 content (corrected 25 Oct,
+  second read; NICEIC and IET Wiring Matters).
 
 ## 2. Limits at the home
 
@@ -236,3 +238,15 @@ returned 403).
 7. Electric Nation's per-EV diversified peak kW.
 8. Any DNO right to interrupt domestic devices directly.
 9. BS 7671 A3/A4 content; SSEN and NPg secondary datasets; NGED-Octopus partnership terms.
+
+## Second read: the advisor's verification pass, 25 Oct 2026
+
+The advisor read the same tag independently (`docs/staging/advisor/DIRECTOR_EVIDENCE_VERIFICATION_OF_THE_GB_PACKS_UNVERIFIED_ITEMS_2026-10-25.md`, pass 3, pack 5).
+
+| Item | Prior outcome | Advisor | Reconciled | Source |
+|---|---|---|---|---|
+| BS 7671 A3:2024 added prosumer and battery provisions | still open | corrected: prosumer Chapter 82 in A2:2022; A3:2024 added Reg 530.3.201 (bidirectional devices); batteries slated for A4:2026 | **corrected**. §1 corrected. The advisor says batteries are "slated" for A4:2026; this page already has A4 published on 15 Jan 2026, so the battery content is in force from A4, not pending | https://niceic.com/news/amendment-3-2024-of-bs-7671-update/ ; https://electrical.theiet.org/wiring-matters/years/2025/108-november-2025/prosumer-electrical-installations/ |
+
+Octopus's 45% fuse-upgrade share was not in the advisor's scope and stays open. Named gap 9 is narrowed to A4's detailed battery clauses.
+
+**Counts: confirmed 0 · corrected 1 · still open 0.**

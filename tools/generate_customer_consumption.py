@@ -26,10 +26,12 @@ opt-in -- the only real "opt-out" is losing/declining smart functionality
 (traditional mode). A separate, genuinely narrower opt-in (domestic) /
 opt-out (microbusiness) consent regime does exist for using HH-granularity
 data for market-wide SETTLEMENT purposes (Ofgem, 25 Jun 2019), but its real
-uptake rate is unpublished, and Ofgem/Elexon's MHHS programme is retiring
-that mechanism entirely by migrating every customer to universal HH
-settlement (began Sept 2025, due complete May 2027) -- not a per-customer
-consent choice. sim/hh_data/ having a CSV for only C7/C8/C9 + every
+uptake rate is unpublished. Under MHHS (began Sept 2025, due complete May
+2027) that consent is NOT retired: SLC 47 as modified in 2022 makes HH the
+default for domestic meters on the new arrangements, with an opt-out to
+daily; old-arrangement domestic meters stay daily by default (corrected
+25 Oct 2026 from "not a per-customer consent choice"; Ofgem, Decision on
+modifying SLC 47, Sept 2022). sim/hh_data/ having a CSV for only C7/C8/C9 + every
 HH-metered I&C account is therefore a SIMULATION DATA-AVAILABILITY choice
 (not every customer's full half-hourly shape is simulated), not a modelled
 real-world consent gate. Every other customer gets monthly bars only --

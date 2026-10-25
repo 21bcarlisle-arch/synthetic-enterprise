@@ -176,3 +176,15 @@ moved, Bulb's 1.6m in special administration, about £2.7bn or £94 a customer
 7. Exact annual per-fuel QEP 2.7.1 totals 2018-2025 (the 2024 and 2025 rows are sums of quarters).
 8. Ofgem says 2026 external switching "fell slightly"; QEP shows Q2 2026 up 15.2% on the year. The two may cover different periods.
 9. Not consulted: CMA 2016, DCC CSS performance reports.
+
+## Second read: the advisor's verification pass, 25 Oct 2026
+
+The first outcome table for this page (advisor, GB-packs verification file, 25 Oct, pass 2 §8).
+
+| Item | Prior outcome | Advisor | Reconciled | Source |
+|---|---|---|---|---|
+| Win-back contact after a loss notice is governed by the Standards of Conduct and general marketing rules (§3) | tagged, unchecked | still open: an interpretation | **still open**. Check SLC 0 and SLC 25 in the consolidated licence | — |
+
+Named gap 5 stands.
+
+**Counts: confirmed 0 · corrected 0 · still open 1.**

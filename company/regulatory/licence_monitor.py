@@ -38,7 +38,9 @@ _SLC_CATALOGUE = {
     "SLC 27": "Annual smart meter rollout progress reporting to Ofgem",
     "SLC 27A": "SMETS2 installation targets (phased from 2019)",
     "SLC 36": "Financial obligations — hold adequate capital, MCR compliance",
-    "SLC 47": "Vulnerable customer PSR — Priority Service Register maintained",
+    # Corrected 25 Oct 2026: SLC 47 is smart-meter data access (Ofgem's 2022 decision modifying it),
+    # not the PSR. The other labels here are unverified; see the finding filed that day.
+    "SLC 47": "Smart meter consumption data — access, consent and the granularity defaults",
     "SLC 55": "Export obligations (Smart Export Guarantee / SEG)",
 }
 

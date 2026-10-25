@@ -104,11 +104,14 @@ https://www.gov.uk/government/publications/electric-vehicle-ev-driver-behaviours
   76% dedicated charger; 49% on an EV tariff; home access 97% Midlands, 98% rural, 86% South,
   89% urban.
 
-**All homes, not EV owners:** 65.1% of UK homes have off-street parking (68% outside London),
-from 7% in Westminster to 84% in Flintshire, attributed to the RAC Foundation (2020), read through
-Forecourt Trader, 29 Sep 2025
-(https://forecourttrader.co.uk/news/government-study-finds-90-of-ev-drivers-can-charge-at-home/709930.article).
-The Foundation's own site refused our fetch (403). **Secondary only.**
+**All homes, not EV owners:** 65% of GB's 27.6m households have, or could have, off-street parking
+(England 68%, London 44%, Wales 75%), from 7% in Westminster to 84% in Flintshire (tied with Knowsley
+and St Helens; City of London 0%). Source: RAC Foundation, *Standing Still* (June 2021; press release
+8 Jul 2021), https://www.racfoundation.org/media-centre/cars-parked-23-hours-a-day; the per-local-
+authority table is https://www.racfoundation.org/wp-content/uploads/standing_still_off_street_parking_by_LA_A-Z.pdf.
+(corrected 25 Oct, second read: first read here as RAC Foundation 2020, "65.1% of UK homes, 68%
+outside London", through Forecourt Trader, 29 Sep 2025; the pack had it as DfT/OZEV.) It gives no
+split by dwelling type or tenure.
 
 ## 5. Distributions for the world to draw from (inputs to the asset design note)
 
@@ -118,7 +121,7 @@ The Foundation's own site refused our fetch (403). **Secondary only.**
 | Age of car | Multiplier 1.00 (0-3 yrs) to 0.51 (13+) | Vehicle age | MOToring Along |
 | Company car | ~3.7% of household cars; ~2.4x miles | Employment, income | NTS0901c; NTS 2010 |
 | Month and weekday | TRA0305 / TRA0306 indices above | Date | DfT |
-| Off-street parking | Draw per home | Dwelling type, tenure, area (NTS0908 by area) | NTS0908; RAC (secondary) |
+| Off-street parking | Draw per home | Dwelling type, tenure, area (NTS0908 by area) | NTS0908; RAC Foundation 2021 per-LA table (corrected 25 Oct, second read) |
 | Fuel given mileage | Draw the car after the mileage | Mileage, income, parking | see the vehicle page |
 
 Design choices to be named, not published: year-to-year persistence (a person factor times a
@@ -138,7 +141,8 @@ yearly shock, plus a regime change on a move, job change or retirement); long-tr
 1. Year-to-year mileage persistence per driver: unpublished (Wilson et al. 2012 assume a Gamma
    usage factor; no measured value).
 2. Homes (not vehicles) with off-street parking by dwelling type and tenure: no English Housing
-   Survey table found; RAC Foundation 2020 figures read only through a secondary report.
+   Survey table found; the RAC Foundation's 2021 per-local-authority table has no dwelling or
+   tenure split (corrected 25 Oct, second read).
 3. Driver miles by age x sex x employment x income: NTS0605/9902 family not read.
 4. Long trips (>100 mi) per driver per year: only "half of BEV drivers about monthly or less".
 5. Hybrid working shares after 2021.
@@ -182,3 +186,30 @@ nts0904.ods 4636b948571cd5db7ca94cc8213fb7b59e3dfb65ccf30f17805221a95c622de9;
 nts0908.ods 49f6044306df47428c8fd3a93053e8f01dae23425d6eb8c045d9ebc773a1a1fe;
 tra0305 a3556849e98533fbdfb908ccf0a077431a093787aabca221023ccc5db7daccea;
 tra0306 46ccdddf8939e8adc8d09ef3e150ddfe6714ad94367d8b7afdb311f8c9ed52ae.
+
+## Second read: the advisor's verification pass, 25 Oct 2026
+
+An independent read by the advisor
+(`docs/staging/advisor/DIRECTOR_EVIDENCE_VERIFICATION_OF_THE_GB_PACKS_UNVERIFIED_ITEMS_2026-10-25.md`,
+drivers pack). Rows use the numbering above; the advisor's eleven items all map onto them. Where the
+reads disagree, the earlier primary-source read is kept and the row is marked DISAGREES.
+
+| # | Item | Earlier | Advisor | Reconciled | Source |
+|---|---|---|---|---|---|
+| 1-3, 5-7 | NTS0904, NTS0901, 7,000 miles, TRA0306, NTS0908 | confirmed | not checked | **confirmed** (fetched here) | DfT tables (above) |
+| 4 | TRA0305 seasonal profile | corrected | needs file | **corrected** (TRA0305 was fetched here; the advisor's "±8% sinusoid" item is the same claim) | https://www.gov.uk/government/statistical-data-sets/road-traffic-estimates-tra |
+| 8 | ~90% of BEV drivers off-street | corrected (updated) | corrected | **corrected. DISAGREES:** the advisor says the tracker measures home-charging access (91% BEV, 88% PHEV), not parking. The earlier read took 90% off-street (Year 1) and 87% (Year 2) from the DfT reports themselves, so it stands | DfT EV tracker; https://forecourttrader.co.uk/news/government-study-finds-90-of-ev-drivers-can-charge-at-home/709930.article |
+| 9 | ~9% of BEV drivers public-only | corrected (updated) | corrected | **corrected. DISAGREES:** the advisor found no public-only share published and offers Zapmap 2025 (23% have no home charging). The earlier read found 9% (Year 1) and about 11% (Year 2) in the DfT reports, so it stands. Zapmap's 23% measures something else (no home charging, survey of Zapmap users) | https://www.zapmap.com/news/ev-charging-survey-2025-results |
+| 10 | 65% off-street; Westminster 7%, Flintshire 84% | still open at primary | corrected (source) | **corrected:** the figures stand; the source is RAC Foundation *Standing Still* (2021), not DfT/OZEV and not 2020; England 68%, not "68% outside London". Section 4 fixed | https://www.racfoundation.org/wp-content/uploads/standing_still_off_street_parking_by_LA_A-Z.pdf |
+| 11 | Zapmap: ~9m households without off-street parking | still open | confirmed | **confirmed:** more than 9 million GB households (Zapmap, 29 Jul 2022). Zapmap cites no underlying source | https://www.zapmap.com/news/ev-drivers-off-street-parking-research |
+| 12 | EHS parking by dwelling type and tenure | still unpublished | still open | still unpublished | – |
+| 13 | Direction by dwelling, tenure, area (incl. "flats and terraces drive most of the variation") | still open | still open | still open | – |
+| 14 | Hybrid working a quarter to a third | still open | confirmed | **confirmed:** 28% of working adults in GB hybrid, autumn 2024 (OPN); 27% Apr-Jun 2024 | https://www.ons.gov.uk/employmentandlabourmarket/peopleinwork/employmentandemployeetypes/articles/whoarethehybridworkers/latest |
+| 15 | Long trips 6-12 per driver per year | still open | still open | still open (a design assumption) | – |
+| 16 | NTS driver miles by age/sex/employment/income | still open | not checked | still open | – |
+| 17 | Year-to-year mileage persistence | still unpublished | not checked | still unpublished | – |
+| 18 | Census TS045 car counts | still open | not checked | still open | – |
+
+DISAGREES: rows 8, 9.
+
+**Counts: confirmed 8 · corrected 4 · still open 4 · still unpublished 2.**
