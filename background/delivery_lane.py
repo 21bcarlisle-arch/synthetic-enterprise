@@ -5521,15 +5521,28 @@ def held_grade(item: dict, holders: list[dict], *, now: float | None = None,
     A THIRD LEG, ON THE NAMES OF FILES THE HOLDER CREATED (`_new_files_naming`), for the item that
     names neither a held path nor a changed identifier. `vocabulary` is `_ledger_vocabulary`'s pair,
     read from this lane's live ledger when not given.
+
+    AND ONE LEG ON THE ID, FOR A LANDING IN FLIGHT ONLY (2026-10-25). A running `surgical_land`
+    whose `-m` names this id is landing work on it now, so a second lane drawing it collides
+    whether that landing finishes the item or not. `_mid_landing` already read this for the ledger
+    and the draw did not. It is NOT widened to origin commits that name the id: replayed over 7
+    days, that leg fired on 62 of 238 continuations, nearly all on the hand-off commit that created
+    them (`SEAT_FINDING_A_COMMIT_NAMING_A_CONTINUATION_IS_NOT_ITS_FINISH_REPLAYED_AGAIN_2026-10-25`).
+    The same hand-off shape costs this leg only the landing's own minutes.
     """
     when = time.time() if now is None else float(now)
     prose = _item_prose(item)
     named_paths = {m.group(0).rstrip(".)") for m in _NAMED_PATH.finditer(prose)}
     idents = _identifiers(prose)
     context: list[tuple[dict, str]] = []
+    item_id = str(item.get("id") or "")
+    named_id = (re.compile(r"(?<![\w-]){}(?![\w-])".format(re.escape(item_id)))
+                if item_id else None)
     for holder in holders:
         if any(n and n in prose for n in holder.get("names") or ()):
             continue
+        if named_id and named_id.search(str(holder.get("message") or "")):
+            return (holder, f"is landing it now: its message names {item_id}"), context
         reasons = []
         shared_paths = sorted(p for p in named_paths & set(holder.get("paths") or ())
                               if claims_mod._informative(p))
