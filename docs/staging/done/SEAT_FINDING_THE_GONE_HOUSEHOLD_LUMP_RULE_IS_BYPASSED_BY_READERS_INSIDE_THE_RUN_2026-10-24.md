@@ -71,3 +71,16 @@ told closure stored nowhere, red), `test_the_run_tells_the_queue_at_each_departu
 passed, red).
 
 **Graded (2026-10-25), in `debt_realism_three_world_fidelity_gaps.md` s.1a:** with the switch on, 0 late lumps cross (was 12) and 14 are lost at close; write-offs per pound billed 0.665% to 0.725% (+0.060 points, GBP 562), the off arm unchanged to the penny. Cause 1 is graded and worth about a ninth of the off level. Still open: the 0.15% baseline, being re-read at `3f09d17e4`.
+
+## Done (2026-10-25)
+
+Both open questions are answered. The rule acts inside the run (`75a84091a`), graded in
+`5ed67fe06`: 0 late lumps cross with the switch on, and cause 1 is worth +0.060 points (0.665% to
+0.725%). The second question, the baseline, is settled in s.1a: the same probe at the 12 Oct head
+`3f09d17e4` reads 0.151% (GBP 874.44, the recorded figure). So the code moved and the measure did
+not. The "5–7x under" headline was true of that world only; it is corrected beside each place it
+stood (s.1 and the bad-debt knowledge topic; `bad_debt_provisioning.md`'s is owed behind the
+settlement-ceiling red, `SEAT_FINDING_THE_SETTLEMENT_CEILING_JOURNAL_LEG_HAS_ARMED..._2026-10-25.md`,
+with its corrected copy at `/var/tmp/closed_arrears_runs/bad_debt_provisioning.corrected.md`). Left open, and not this
+finding's: which commits in `3f09d17e4..42b9da490` raised the same book's write-offs 4.4-fold
+(bisection on the same probe), and the mix-adjusted comparison of s.1.

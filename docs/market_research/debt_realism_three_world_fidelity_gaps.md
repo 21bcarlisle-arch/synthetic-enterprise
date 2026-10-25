@@ -58,7 +58,9 @@ provision leg is off), so a write-off rate is the only like-for-like comparison 
 
 **What the world does.** After the one-payment-truth correction (12 Oct), the world writes off about
 0.15% of residential billing on 160 founders (14 cases). That is **about 5–7x under** the Centrica
-anchor. The arrears **stock** matches Ofgem at the same time (4.4% against 5.1%, MET). So the world
+anchor. *(Corrected 2026-10-25: true of the 12 Oct world only. The same measure reads 0.665% on
+the 24 Oct book and 0.725% with the gone-household rule acting; s.1a, "The 0.15% baseline, settled".)*
+The arrears **stock** matches Ofgem at the same time (4.4% against 5.1%, MET). So the world
 holds about the right amount of debt and almost never loses it. The crisis bad-debt validator reads
 the same thing: a behavioural write-off share near 0.1%, against its 1% floor
 (`SEAT_FINDING_THE_CRISIS_BAD_DEBT_CONTROL_HAS_SKIPPED...2026-10-14.md`).
@@ -220,7 +222,35 @@ Each predicted leg, graded:
 of the off arm's level, not the several-fold gap s.1 was looking for. On this measure the world
 now sits at 0.725%, inside Centrica's derived 0.67–1.04% before any mix adjustment. Whether "the
 world writes off about 5–7x too little" was ever true depends on the 0.15% baseline, which is
-being re-read at the 12 Oct head `3f09d17e4` with this same probe; its result lands beside this one.
+settled below.
+
+**The 0.15% baseline, settled (2026-10-25): the code moved, not the measure.** One variable: the
+same probe, switch off, at the 12 Oct freeze head `3f09d17e4` (worktree `/var/tmp/wt-baseline-1012`;
+its only local change is the budget-0 admission fix of `75a84091a`, which decides when a run may
+start and nothing it computes). Output: `/var/tmp/closed_arrears_runs/r_base1012/summary.json`.
+
+| Same probe, switch off | 12 Oct head `3f09d17e4` | 24 Oct base `42b9da490` |
+|---|---|---|
+| Residential billed | GBP 578,555.51 | GBP 934,013.65 |
+| Written off | GBP 874.44 | GBP 6,210.75 |
+| Written off per pound billed | **0.151%** | **0.665%** |
+| Cases (bills) / accounts | 13 / 13 | 160 / 39 |
+| Leaver legs | 143 | 260 |
+| Lumps delivered | 71 | 641 |
+
+The 12 Oct figure reproduces (GBP 874.44 against the recorded 874.43; the recorded denominator,
+GBP 588,358, was read on a slightly different basis, and the share rounds to 0.15% either way). So
+the measure is the same, and 0.15% was right for the world as it stood on 12 Oct. The world
+changed in the twelve days after: the same 160 founders now bill 61% more, close almost twice as
+many legs, and write off on many bills per account rather than one. **Which commits did that I
+cannot yet say**; the next one-variable step is a bisection of `3f09d17e4..42b9da490` on this probe.
+
+**What that does to s.1's "about 5–7x under".** It was true of the 12 Oct world and is not true
+of today's. On the current book the off level is 0.665% and the on level 0.725%, at the bottom of
+Centrica's derived 0.67–1.04% before the mix adjustment, which should pull the comparable anchor
+down (the world's book is 72% direct debit). The headline is withdrawn; s.1 carries the correction
+beside it. Whether today's level is right or the twelve days of changes overshot is the
+bisection's question, not this one's.
 
 ## 2. Prepayment debt
 
