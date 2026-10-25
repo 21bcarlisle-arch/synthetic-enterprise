@@ -1421,6 +1421,20 @@ def _refuse_save_odds_with_no_ending_term(policy) -> None:
             "there is no interval and the guard would never offer: switch both on")
 
 
+def _riding_leg_term_end(term_end: str, departed_on: str) -> str:
+    """A riding leg's exclusive term end once its household has left: the earlier of the two.
+
+    The departure CUTS a term that runs past it; it never lengthens one that ends first. Until
+    2026-10-25 the run assigned the departure date outright, and a riding gas leg is posted only
+    after its decision leg has rolled every start inside its term -- so a declined fix's default
+    segments, spliced after the household left at a later cap boundary, each popped with
+    `term_end` stretched to that departure. Every one settled and billed to the leaving day, and
+    each month was billed at the mean of the overlapping rates: 6 bills above the cap and 22
+    mispriced at 1c30d6c728 (`SEAT_FINDING_A_GAS_SVT_TERM_STARTED_OFF_A_CAP_QUARTER_..._2026-10-25`).
+    """
+    return departed_on if departed_on < term_end[:10] else term_end
+
+
 def _account_state_svt_rate(commodity: str, term_start_str: str) -> float | None:
     """The default-tariff rate the account-state record carries for THIS leg's fuel.
 
@@ -3101,7 +3115,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         # the day before its household's departure (`unbilled_energy_and_revenue_assurance.md`).
         # `term_end` is exclusive, so it is the departure date itself.
         if billing_account in churned_billing_accounts:
-            term_end_str = _departed_on[billing_account]
+            term_end_str = _riding_leg_term_end(term_end_str, _departed_on[billing_account])
 
         # A LEG THAT MOVED WITH US is bound to its new home from this term on: weather, dwelling,
         # demand trace and the meter point's annual quantity are the destination's. The vacated
