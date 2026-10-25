@@ -175,6 +175,34 @@ def test_a_credit_nets_against_the_same_contracts_arrears_and_every_fate_is_reac
     assert sum(a["amount_gbp"] for a in credited[("FULL", "2016-01-28", "electricity")]) == 100.0
 
 
+def test_a_mid_life_credit_comes_off_the_next_paid_bill_and_every_fate_is_reachable():
+    """SLC 31H.12: the bill asks for what is owed, its charges less the credit on the account
+    (home_moves.md s.8.8a, choice 11). Defect (2026-10-25): a credit bill with no arrears to meet
+    waited on the account for years while every later bill was paid in full, so 5 of 7 move-out
+    credits were the household's money held. One control over the partition: a paid bill covered
+    in part, a paid bill covered whole with the rest carried to the next, and the other fuel left
+    alone. Each leaver's closing balance says what is left."""
+    rows = (
+        [_credit("PART", "2016-01-28", 30.0), _row("PART", "2016-02-28", "success")]
+        + [_credit("WHOLE", "2016-01-28", 130.0), _row("WHOLE", "2016-02-28", "success"),
+           _row("WHOLE", "2016-03-28", "success")]
+        + [_credit("OTHER_FUEL", "2016-01-28", 30.0, commodity="gas"),
+           _row("OTHER_FUEL", "2016-02-28", "success")]
+    )
+    cids = {"PART", "WHOLE", "OTHER_FUEL"}
+    closing: dict = {}
+    _wo, credited = balance_settlement_from_outcomes(rows, cids, closing)
+    took = {k: sum(c["amount_gbp"] for c in v) for k, v in credited.items()}
+    fates = {
+        "paid_in_part": took.get(("PART", "2016-02-28", "electricity")) == 30.0,
+        "covered_whole": took.get(("WHOLE", "2016-02-28", "electricity")) == 100.0,
+        "rest_carried": took.get(("WHOLE", "2016-03-28", "electricity")) == 30.0,
+        "never_across_fuels": ("OTHER_FUEL", "2016-02-28", "electricity") not in took,
+    }
+    assert all(fates.values()), fates
+    assert closing == {"PART": 0.0, "WHOLE": 0.0, "OTHER_FUEL": -30.0}
+
+
 def test_the_oldest_arrears_are_discharged_first():
     rows = [_row("L", "2016-01-28", "failed"), _row("L", "2016-02-28", "failed"),
             _credit("L", "2016-04-28", 100.0)]

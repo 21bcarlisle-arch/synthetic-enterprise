@@ -70,7 +70,9 @@ def build_account_ledger(cust, as_of):
         arr = arrears.get(num)
         pay = payments.get(num)
         if arr is None:
-            if pay and pay["outcome"] == "success" and pay["payment_date"] <= as_of:
+            # A bill the account's credit wholly covered asked for nothing, so nothing was received.
+            if (pay and pay["outcome"] == "success" and pay["payment_date"] <= as_of
+                    and pay["amount_gbp"] > 0):
                 entries.append({
                     "date": pay["payment_date"], "type": "payment_received", "invoice_number": num,
                     "amount_gbp": round(-pay["amount_gbp"], 2), "info_amount_gbp": None,

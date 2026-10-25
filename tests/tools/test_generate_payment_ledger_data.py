@@ -211,3 +211,28 @@ def test_generate_returns_zero_when_ledger_missing(tmp_path):
 
     count = gpl.generate(customers_dir=tmp_path, ledger_path=tmp_path / "no_such_ledger.json")
     assert count == 0
+
+
+def test_a_credit_comes_off_the_next_paid_bill_and_the_account_settles_to_zero():
+    """home_moves.md s.8.8a choice 11: the bill after a credit asks for its charges less the
+    credit. Defect (2026-10-25): every later bill was paid in full beside the credit, so the
+    account held the household's money until the move. Both fates: covered in part (a smaller
+    payment) and covered whole (no payment received at all, not a GBP 0 one)."""
+    credit = dict(invoice_number=1, issue_date="2020-01-31", total_amount_gbp=-130.0)
+    part = dict(invoice_number=2, issue_date="2020-02-29", total_amount_gbp=100.0)
+    whole = dict(invoice_number=3, issue_date="2020-03-31", total_amount_gbp=20.0)
+    # 130 of credit: 100 covers bill 2 whole, the other 30 covers bill 3 whole.
+    pays = [dict(invoice_number=2, payment_date="2020-03-14", amount_gbp=0.0,
+                 method="direct_debit", outcome="success", credit_applied_gbp=100.0),
+            dict(invoice_number=3, payment_date="2020-04-14", amount_gbp=0.0,
+                 method="direct_debit", outcome="success", credit_applied_gbp=20.0)]
+    ledger = build_account_ledger(_cust([credit, part, whole], pays), as_of="2025-01-01")
+    assert [e["type"] for e in ledger["entries"]].count("payment_received") == 0
+    assert ledger["current_balance_gbp"] == -10.0  # the 10 of credit nothing has used yet
+    partial = [dict(invoice_number=2, payment_date="2020-03-14", amount_gbp=70.0,
+                    method="direct_debit", outcome="success", credit_applied_gbp=30.0)]
+    credit30 = dict(credit, total_amount_gbp=-30.0)
+    ledger = build_account_ledger(_cust([credit30, part], partial), as_of="2025-01-01")
+    assert ledger["total_collected_gbp"] == 70.0 and ledger["current_balance_gbp"] == 0.0
+    lhs = ledger["total_collected_gbp"] + ledger["current_balance_gbp"]
+    assert round(lhs, 2) == ledger["total_billed_gbp"]
