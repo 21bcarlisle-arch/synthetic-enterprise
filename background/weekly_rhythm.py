@@ -550,6 +550,7 @@ def _step_body(step: str, due_on: date, overdue: list[dict]) -> str:
         lines += _merge_pressure_section()
         lines += _run_cost_section()
         lines += _priority_order_section()
+        lines += _the_basics_section()
         lines += _cost_of_work_section()
         lines += ["## The ranking for this week", "",
                   "_Written by the Monday step. Ordered. Anything above the line outranks new "
@@ -581,6 +582,18 @@ def _priority_order_section() -> list[str]:
     return ["## Does the work follow the priority order", "", measured, "",
             "**A violation is the next item.** If the landed work sits in a later step than the "
             "draw says it should, the dials are not what is choosing; find what is.", ""]
+
+
+def _the_basics_section() -> list[str]:
+    """MAY FORWARD YEARS START (director's ruling, 24 Oct 17:22: "We need the basics of payment,
+    dual fuel, switching etc all working. But after that ..."). Graded from step 6's `starts_when`
+    by `tools.the_basics`, so the week sees how far the basics are from opening the next step."""
+    try:
+        from tools.the_basics import render
+        measured = render()
+    except Exception as exc:  # noqa: BLE001 -- a review that cannot measure says so on its face
+        measured = f"NOT MEASURED -- `tools.the_basics` raised {type(exc).__name__}: {exc}"
+    return ["## The basics: may forward years start", "", measured, ""]
 
 
 def _merge_pressure_section(days: float = 7.0) -> list[str]:

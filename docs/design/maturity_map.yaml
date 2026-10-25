@@ -1881,6 +1881,26 @@
   simplifications_count: 0
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "an ADDACS 1 file arriving the morning after a customer cancels at their bank, before any collection fails."
+- id: B13_a_dual_fuel_household_is_one_account_across_both_fuels
+  title: "a dual-fuel household is one account across both fuels: one bill, one balance, one move, one switch, and a fix it takes on contact covers its gas too"
+  lane: B_commercial
+  value_stream: meter_to_cash
+  epoch: 4
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  # MINTED 2026-10-25: the basics of the director's 24 Oct ruling name dual fuel, and no atom
+  # carried it. L1: one test walks the run's dual households through bill, offset, move and
+  # switch together. L2: the gas fix on contact (run_phase2b `_splice_a_refix` GAP) is struck.
+  dial_inherited: 85
+  provenance: director_ruling
+  depends_on: []
+  couples_with: [B7_customer_state_layer_moves_and_shocks, EP12_adapter_css_rec_switching]
+  file_scope: ['simulation/run_phase2b.py',
+    'tests/simulation/test_a_dual_fuel_household_is_one_account_across_both_fuels.py']
+  simplifications_count: 0
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a dual-fuel customer who rings to fix and is moved onto the same fix for gas and electricity on one call, with one direct debit across both."
 - id: B12_writer_one_reads_its_margin_on_the_unit_rate_so_a_renewal_floor_is_its_true_unit_cost
   title: "writer 1's realised margin is measured on the unit rate, with standing-charge revenue net of the cost it recovers, and the save takes writer 1's floor, so a renewal at its floor is at its true unit cost"
   lane: B_commercial

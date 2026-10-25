@@ -8,6 +8,27 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-25 — The basics are graded, not listed: 0 of 8 gate atoms at target, 7 lines done, 6 partial, 2 absent, and dual fuel now has its atom (B13)
+
+<!-- head: 5ed67fe06cf2 -->
+
+This finishes what was still owed on the director's 24 Oct ruling, *forward years come right after the basics*. Work 1 (the order) and Work 3 (the G9 recommendation, `23845618d`) had already landed. This adds the two remaining pieces.
+
+- **The check that grades the basics.** `tools/the_basics.py` reads the definition of done from `docs/direction/priority_order.yaml`, step 6's new `starts_when`. The order and the condition that opens its next step now live in one place. It is printed in the Monday step under "The basics: may forward years start".
+  - **Gate:** every named atom must be at its target level, read from the map.
+  - **Lines:** a line's state is worked out from the tree, never typed in. It is absent if a named test file doesn't exist, partial if its atom is below target, and done otherwise.
+- **The dual-fuel atom is minted:** `B13_a_dual_fuel_household_is_one_account_across_both_fuels`, at 0 with a target of 2, in step 2 next to B7.
+  - L1: one test takes the run's dual-fuel households through the bill, the offset, a move and a switch together.
+  - L2: closes the named gap where a household that fixes on contact gets an electricity fix but no gas fix (`run_phase2b._splice_a_refix` refuses a gas fix).
+
+**Prediction, written before running:** the check would reproduce the hand-kept table, with 7 lines done, 6 partial and 2 absent, and 0 of 8 gate atoms at target.
+
+**Result:** 7 done, 6 partial, 2 absent; 0 of 8 at target. The prediction held. The two absent lines are W2_41's mandate cancelled by the household (its test file does not exist yet) and B13's whole-atom test. Forward runs still wait.
+
+**Still open:** forward years still need the basics finished and the director's G9 go (DIRECTION.yaml row `forward-years-ruling-of-24-oct-17`). The map steer of 24 Oct is scheduled by its own text to start after the Monday 26 Oct publish, so it was not started this turn.
+
+---
+
 ## 2026-10-24 — The cost of work to come: 3.5 landed sessions per level step, measured, so the backlog reads 2.6 weeks (1.0-8.2) not 0.7-48; the draw records estimates, landings record actuals, and over-10-point items are flagged
 
 <!-- head: 402042c6e53f -->
