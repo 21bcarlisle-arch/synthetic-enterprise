@@ -8,6 +8,72 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-25 — The map steer's report: the forward knowledge plan prices 134 rows at 40 points (30-59) with 45 of 167 recent builds drawn before their knowledge, and the per-turn map file would cost 10.0k characters to save 3.6k, so it is measured and not built
+
+<!-- head: 25d95f3ab1a2 -->
+
+**What.** This is the one report the 24 Oct map steer asks for. Items 5 and 6 land with it, and the steer moves to done.
+
+**1. The design and what it absorbs** (ebc3c34e2). The register is `docs/design/the_map/concepts.yaml`, which uses SKOS field names and is plain YAML with no ontology tooling. `tools/the_map.py` generates every link from references the tree already holds:
+- pages from `knowledge_topics.json`;
+- notes from their own `**Knowledge:**` line;
+- modules graded by `capability_index`;
+- atoms from `file_scope`;
+- controls from `canon_mechanisms.yaml`.
+
+It joins the world-claims rows as measure definitions (685ffeadb). The hand-kept knowledge map, the anchor register and the maturity map stay where they are. The map reads them and keeps no copy of its own.
+
+**2. The pilots.** Supplier › Collect found:
+- 22 modules carrying a mapped concept's name outside the concept's declared home;
+- 9 modules nothing calls;
+- that the DD failure rate's only same-named function counts over the wrong denominator.
+
+Testing and controls found 544 of 2,187 test files recording their mutation, and 268 supplier modules nothing imports. The page is at `/model/map/`.
+
+**3. Coverage, today (reporting only).**
+
+| What | Today |
+|---|---|
+| Published pages that sit on a concept | 5 of 27 |
+| Research notes that reach a page through a concept | 28 of 186 |
+| Notes on no page | 20: 8 owed a page, 12 dead, 0 unruled |
+| Modules that attach to a concept | 74 of 740 (666 attach to none) |
+| Concepts missing a layer | 12 of 22, each with a recorded reason |
+
+**4. Pages owed, in order.**
+
+| Page | State |
+|---|---|
+| Payments and direct debit | landed (997cfc67e) |
+| Switching mechanics | landed (3660142eb) |
+| Supplier accounts and capital | landed (25d95f3ab) |
+| Tariffs, smart meters and HHS, vulnerability and the PSR | under the seat-executor's claim `knowledge-pages-tariffs-smart-meters-vulnerability`, landing after its kept commit 5a256851e |
+| Grid carbon intensity | owed by `note_rulings.yaml` |
+| Operating costs | owed by `note_rulings.yaml` |
+| The loyalty finding | owed by canon s15 item 7 |
+
+**5. The forward knowledge plan.** This is `python3 -m tools.knowledge_plan`, new in this landing. It has 134 rows, priced at 0.30 points each (0.22–0.44), which is the fitted cost of one landed knowledge-page session. The whole plan comes to **40 points (30–59), about 0.4 of a week**. The rows, in order:
+- **12 priority-order atoms no published page names.** These come first, because knowledge one step ahead of builds is the rule. Examples are B13 dual fuel, W2_37 complaints, E6, W2_41, W2_42 and C34. (EP16 left this list while I measured, when the 21-pack landing 7fb1aabcc named it on a page.)
+- **6 owed pages.**
+- **95 constant modules.** These are ranked by the 19 Oct production screen's gross move. The 12 modules the screen measured come first: `premise_trace` (60 constants, 3.1%), `live_population`, `weather_hdd`, `fabric_physics` (45, 1.3%), and so on. The other 83 follow, marked unmeasured rather than zero.
+- **21 truths that Capabilities uses wait on.** These are ranked by how many uses each one unblocks.
+- **0 page re-checks due.** All 38 checked pages are inside their review threshold. The freshness sweep is the existing `generate_knowledge_review` rule, which this plan reads.
+
+**The lagging measure:** in the last 30 days, **45 of 167 builds** naming a priority atom were drawn before their knowledge. That is a lower bound, matching on short keys as `work_cost_estimate` does. C34 accounts for 19 of them, C35 for 8, C5 and G14 for 7 each, and E6 and W2_39 for 6 each. So knowledge is behind the builds on step 4. It is not ahead.
+
+What the plan is not:
+- The figure of 239 constants the production run reads is not stored anywhere in the tree. The plan therefore ranks the whole register (427 constants across 95 modules), with the measured modules first.
+- One session per row is a choice, and the plan says so. A 60-constant module is probably more than one session.
+
+**6. The token saving, measured before building. It is negative today, so the per-turn file is not built.** I measured with `python3 -m tools.knowledge_plan --token-saving`, over 83 sessions in the last 7 days that edited something:
+- **What turns spend:** a median of 55.6k characters of search results before the first edit.
+- **What the map could replace:** only searches naming one of the register's 22 concepts. That is a median of 0 and a mean of 3.6k characters per turn.
+- **What the file would cost:** 10.0k characters.
+
+So giving every turn the map would cost about 6.4k characters more than it saves. Most of a turn's orientation searching is for things the register does not name yet. The file pays for itself only once the register covers what turns actually search for. The same command will show when that crossing happens. Erring against the thesis, I am not wiring it in yet.
+
+---
+
 ## 2026-10-25 — orientation: Forward on the supplier's basics, not yet on inference
 
 <!-- head: 063dc4bbd67e -->

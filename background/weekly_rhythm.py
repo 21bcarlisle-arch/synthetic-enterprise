@@ -640,7 +640,12 @@ def _the_map_section() -> list[str]:
         measured = the_map.summary(the_map.build())
     except Exception as exc:  # noqa: BLE001 -- a review that cannot measure says so on its face
         measured = f"**NOT MEASURED** -- `tools.the_map` raised {type(exc).__name__}: {exc}"
-    return ["## The map: concepts, their layers, and what attaches to none", "", measured, "",
+    try:  # item 5: the backlog these counts expose, planned and priced
+        from tools import knowledge_plan
+        plan = "\n".join(knowledge_plan.report(knowledge_plan.build()).splitlines()[:3])
+    except Exception as exc:  # noqa: BLE001
+        plan = f"**NOT MEASURED** -- `tools.knowledge_plan` raised {type(exc).__name__}: {exc}"
+    return ["## The map: concepts, their layers, and what attaches to none", "", measured, "", plan, "",
             "**Reporting only.** A second home or an uncalled home is read in the end-to-end check; "
             "it becomes binding once the backlog it exposes is planned.", ""]
 
