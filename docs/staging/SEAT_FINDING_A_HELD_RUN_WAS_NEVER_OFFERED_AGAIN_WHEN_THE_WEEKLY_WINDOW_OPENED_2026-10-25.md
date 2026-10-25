@@ -33,4 +33,26 @@ the route. Leave it armed.
 - The supersession frontier counts a held marker as published. That is harmless for ordering,
   because the newest marker dominates. It is not a true statement, and it shares a root with the
   re-arm doc's filed frontier fault.
-- A run that writes `run_output_latest.json` without a marker is invisible to every publish route.
+- ~~A run that writes `run_output_latest.json` without a marker is invisible to every publish
+  route.~~ **Closed 25 Oct, see below.**
+
+## What wrote latest without a marker (25 Oct, re-measured)
+
+No daemon did it. `longjob-mondays-run-b2bc3d8da5` (`launch_long_job`, 12:27-13:32Z) ran
+`tools.run_annual_report` in a clean worktree. The seat then copied its output onto
+`run_output_b2bc3d8da5_20261025T1230Z.json` and onto latest by hand, as recorded in commit
+294c5286f1. In `background/sim_runner.py`, the byte copy onto latest and the marker write were two
+statements in the loop, so any promotion made outside the loop had only the copy to imitate.
+
+The fix makes `sim_runner.promote_run` the one writer of latest, and it writes the marker in the
+same call. The loop goes through it. A run made outside the loop is promoted with
+`python3 -m background.sim_runner --promote docs/reports/run_output_<sha>_<stamp>.json`. That door
+refuses, with the reason named, a file that is not a timestamped run output, or one whose header
+carries no `producing_commit`. Control:
+`tests/background/test_a_run_promoted_to_latest_is_named_by_a_marker.py`. Two mutants were tried
+and both fire: the marker write removed, and the commit read replaced by a guess.
+
+A hand `cp` onto latest still cannot be refused. The door makes the right route the obvious one;
+it does not wall off the wrong one. Promoting this Monday's run is left to the one-shot timer,
+which is already armed for 26 Oct 04:05Z. Running `--promote` now as well would write a second
+marker for the same run.

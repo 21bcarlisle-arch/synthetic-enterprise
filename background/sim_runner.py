@@ -520,33 +520,72 @@ def run_simulation() -> bool:
     )
     log(f"[protocol] run_complete message: {_msg.to_json()}")
 
-    # Update latest pointer so Claude always has fresh data. A BYTE copy, so the published file is
-    # exactly as compact as `run_annual_report.dump_run_output` wrote it -- re-encoding here
-    # would be a second writer whose format could drift from the first (2026-10-10).
-    latest_json = REPORTS_DIR / "run_output_latest.json"
-    latest_json.write_bytes(out_json.read_bytes())
+    marker = promote_run(out_json, head, out_md=out_md, ts=ts,
+                         duration=f"{elapsed:.0f}s | Size: {size_kb:.0f} KB")
 
-    # Write staging marker — Claude processes this on its next turn
-    STAGING_DIR.mkdir(parents=True, exist_ok=True)
-    marker = STAGING_DIR / f"run_complete_{ts}.md"
+    auto_process_marker(marker)
+
+    return True
+
+
+def promote_run(out_json, head, *, out_md, duration, ts=None, note="", reports_dir=None,
+                staging_dir=None):
+    """Put `out_json` on run_output_latest.json AND write its run_complete marker, together.
+
+    The ONE writer of latest. On 25 Oct a hand-launched full run (longjob-mondays-run-b2bc3d8da5)
+    was copied onto latest by hand and no marker named it, so the publisher never saw it and the
+    held-run offer and the re-arm both refused (each requires latest to equal a marker's JSON).
+    A run made outside this loop is promoted with `python3 -m background.sim_runner --promote`,
+    which calls this, so latest never holds a run no marker names. Returns the marker."""
+    reports_dir = Path(reports_dir) if reports_dir is not None else REPORTS_DIR
+    staging_dir = Path(staging_dir) if staging_dir is not None else STAGING_DIR
+    # A BYTE copy, so the published file is exactly as compact as `run_annual_report.dump_run_output`
+    # wrote it -- re-encoding here would be a second writer whose format could drift (2026-10-10).
+    (reports_dir / "run_output_latest.json").write_bytes(Path(out_json).read_bytes())
+    staging_dir.mkdir(parents=True, exist_ok=True)
+    # The loop passes its run's START stamp: the journal's `Started sim-runner.service` lines are
+    # matched to marker names by it (see the stamp note above).
+    ts = ts or datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    marker = staging_dir / f"run_complete_{ts}.md"
     marker.write_text(
         f"# Simulation Run Complete\n\n"
         f"Finished: {datetime.now(timezone.utc).isoformat()}\n"
         f"Git: {head}\n"
         f"JSON: {out_json}\n"
         f"Draft report: {out_md}\n"
-        f"Duration: {elapsed:.0f}s | Size: {size_kb:.0f} KB\n\n"
-        f"## Action required\n\n"
-        f"1. Regenerate docs/reports/ANNUAL_REPORT.md from this run's data:\n"
-        f"   `python3 -m saas.reporting.annual_report`\n"
-        f"2. Update docs/status/LATEST.md with key figures.\n"
-        f"3. Run tests, commit (include report + LATEST.md), push.\n"
-        f"4. NTFY Rich with headline net margin, gross margin, enterprise value.\n"
+        f"Duration: {duration}\n\n"
+        + (f"{note}\n\n" if note else "")
+        + "## Action required\n\n"
+        "1. Regenerate docs/reports/ANNUAL_REPORT.md from this run's data:\n"
+        "   `python3 -m saas.reporting.annual_report`\n"
+        "2. Update docs/status/LATEST.md with key figures.\n"
+        "3. Run tests, commit (include report + LATEST.md), push.\n"
+        "4. NTFY Rich with headline net margin, gross margin, enterprise value.\n"
     )
+    return marker
 
-    auto_process_marker(marker)
 
-    return True
+def promote_by_hand(run_json, *, reports_dir=None, staging_dir=None):
+    """Promote a run made OUTSIDE this loop (a `launch_long_job` full run). Refuses by name a file
+    that is not a run output in reports/ or carries no producing commit -- the marker's `Git:` line
+    is what the publisher's code-admission reads, and a guessed one would publish under a wrong sha."""
+    reports_dir = Path(reports_dir) if reports_dir is not None else REPORTS_DIR
+    run_json = Path(run_json).resolve()
+    if run_json.parent != reports_dir.resolve() or not run_json.name.startswith("run_output_") \
+            or run_json.name == "run_output_latest.json":
+        raise SystemExit(f"refused: {run_json} is not a timestamped run_output_*.json in {reports_dir}")
+    with open(run_json, "rb") as fh:
+        head_bytes = fh.read(4096).decode("utf-8", errors="replace")
+    import re
+    found = re.search(r'"producing_commit":\{"commit":"([0-9a-f]{7,40})"', head_bytes)
+    if not found:
+        raise SystemExit(f"refused: {run_json.name} names no producing_commit in its header")
+    return promote_run(
+        run_json, found.group(1), out_md="none (promoted by hand)",
+        duration="run made outside the sim-runner loop",
+        note=("Promoted by hand with `python3 -m background.sim_runner --promote`; the run was made "
+              "outside the runner loop."),
+        reports_dir=reports_dir, staging_dir=staging_dir)
 
 
 def auto_process_marker(marker):
@@ -925,4 +964,7 @@ if __name__ == "__main__":
     except ModuleNotFoundError:  # launched as `python3 background/sim_runner.py`
         from _seat import refuse_if_foreign
     refuse_if_foreign("sim_runner")
-    main()
+    if sys.argv[1:2] == ["--promote"] and len(sys.argv) == 3:
+        print(f"wrote {promote_by_hand(sys.argv[2])}; background_worker's sweep offers it to the publisher")
+    else:
+        main()
