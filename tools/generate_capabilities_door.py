@@ -74,9 +74,11 @@ WORLD: list[tuple[str, str, list[str]]] = [
      "cold snaps last for days rather than flickering — with regional variation that still "
      "adds up to the national picture.",
      ["W1_3_national_weather_signal", "W1_4_regional_weather_field"]),
-    ("Prices that come out of physics, not out of a distribution",
-     "Demand is built from weather and buildings; supply is stacked in merit order; the price "
-     "is what falls out. Nothing samples a price curve directly.",
+    ("Prices formed from weather and the generation stack",
+     "Built and graded, for the years after the record: weather sets demand and wind and solar "
+     "output, and the price sits on a gas floor under what is left. On the 2016-25 record its "
+     "daily error is about £24/MWh against a mean of £78. Inside 2016-25 the run does not use "
+     "it: every half-hourly price is replayed as it happened, the 2021-22 crisis included.",
      ["W1_6_physics_price_signal"]),
     ("Ten years of real settlement data, revealed in order",
      "Nearly a decade of actual half-hourly GB settlement records, released to the simulation "
@@ -102,13 +104,15 @@ WORLD: list[tuple[str, str, list[str]]] = [
     ("The industry's own settlement timetable",
      "Volumes are not final on the day. They are trued up over months, on the real schedule.",
      ["W3_2_settlement_timetable"]),
-    ("Banking and payment rails",
-     "Direct Debit collection modelled end to end — the bank, the acquirer, and the ways a "
-     "collection actually fails.",
+    ("Direct debit on the Bacs rails",
+     "Mandates set up and refused (AUDDIS), payers who cancel or change bank (ADDACS), and "
+     "collections that fail and why (ARUDD, reported up to two working days late), on the real "
+     "three-working-day cycle.",
      ["W5_1_banking_payment_rails"]),
     ("Futures beyond the real record",
-     "Worlds that run past the end of the real data, so the supplier can be tested against "
-     "conditions that have not happened yet.",
+     "Stress worlds past the end of the real data exist today. The forward years approved on "
+     "25 Oct 2026 come next, after the basics: 2026-2035, five futures, with gas, power and "
+     "forward products whose volatility is checked against the published record.",
      ["W1_2_generate_futures"]),
 ]
 
