@@ -95,3 +95,14 @@ Reader test for every page: someone who knows energy or tech but not this projec
 - One batch, generators and data first, then a single publish. Run the cold read on the five sheets and Explore after it, and record the result.
 - If a draft line here cannot be made true from the record, don't publish the line. Publish the true one and log the difference.
 - The research and drafting cost has been spent in the advisor's chat. Your cost is the landing.
+
+## Progress (autonomous worker, 2026-10-25; the file stays in the queue)
+
+**A2, Capabilities: three rows rewritten in `tools/generate_capabilities_door.py`.** The feed is regenerated at the next publish, not here, as section C asks. The record won over the draft in two places:
+- **Prices.** The draft row "Real prices, replayed in order" would duplicate the existing row "Ten years of real settlement data, revealed in order". The row it replaces rests on `W1_6_physics_price_signal`, the weather-to-price chain, which is built and at target. So the row now says what that chain is: built and graded for the forward years, with a daily error of £24/MWh against a mean of £78, and not used inside 2016-25, where every price is replayed.
+- **Bacs.** The rewrite keeps AUDDIS, ADDACS, ARUDD and the three-working-day cycle, which `simulation/bacs_rails.py` implements. It drops "refunds claimed under the Direct Debit Guarantee", because no code models a DDG indemnity claim. That is a gap to file, not a line to publish.
+- **Futures.** The row says the stress worlds exist and the forward years approved on 25 Oct come next. Its status is still derived from `W1_2_generate_futures`, which is at target, so it may still compute Live. Moving it to Building needs a new atom for the forward years to cite, not hand-typed copy.
+
+**Already done before this pass:** "Live, no test cited" now computes as Building through `held_from_live` (24 Oct).
+
+**Still owed:** A1 (Explore intro, vignette template, the "why a few hundred homes" copy, empty-slot closers), the rest of A2 (which hidden-lives parts are live; the capital-adequacy citation), A3 (the five sheets' legend and openings, `tools/model_on_a_page_picture.py`), A4, A5, A6, section B, and the single publish with its cold read.

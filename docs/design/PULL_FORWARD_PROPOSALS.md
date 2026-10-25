@@ -9,7 +9,7 @@ Each atom below is parked (`loop_stage: idle`) and has had work filed toward it 
 ## EP16_anchored_generators — Generated worlds that stay tethered to reality
 
 - Lane `W1_market_weather` · epoch 4 · **3 built toward it**
-- Gate: director-reserved curriculum sequencing (R13). Epoch-4 commitment set (ruling §1); pull-forward is proposal-only (§3). DISCOVERY DISPOSITION 2026-08-26 (delivery seat, over the discovery pass ceiling at 5 passes with the level never having moved): no further DISCOVER pass is authorised, and this is a disposition rather than a closure because the atom is wanted and is a director ruling. The reason the passes could not move it is the block above -- the only act that promotes an epoch-4 curriculum atom is a curriculum decision, which R13 reserves to the director. Re-opens the day epoch 4 is named; until then a pass here is the livelock, not the work.
+- Gate: _none stated on the atom_
 - Status: **PENDING the director** — no word on disk
 
 The case (accretion ledger):
