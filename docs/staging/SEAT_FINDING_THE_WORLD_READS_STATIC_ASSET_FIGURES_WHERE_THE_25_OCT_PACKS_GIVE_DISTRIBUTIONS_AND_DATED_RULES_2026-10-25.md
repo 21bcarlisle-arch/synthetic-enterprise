@@ -69,3 +69,15 @@ items are fidelity defects in the world as it stands today:
 - the market report's mixed-basis TDCV.
 
 Each of these three should be drawn on its own as a fix.
+
+## Status, 2026-10-25 (delivery lane `three-dated-rule-fidelity-fixes-from-the-25-oct-packs`)
+
+- **VAT:** the commons now carries amendment A6 (`dated_exceptions`, with `rate_band` added so a
+  reader can price it). `vat_rate_for_segment(segment, fuel=, on=)` honours it, and
+  `cap_ceiling_ex_vat` passes both. The remaining undated readers are filed in
+  `SEAT_FINDING_SIX_VAT_READERS_STILL_ASK_NO_DATE_AND_THE_WORLDS_OWN_IS_UNDATED_2026-10-25.md`.
+- **TDCV:** `market_benchmark` reads `tdcv_kwh(..., "MEDIUM", 1 July of the year)`.
+- **NBP:** recorded, with the 116-of-3,538 count measured, in
+  `SEAT_FINDING_THE_WORLDS_NBP_IS_A_MONTHLY_TTF_PROXY_SO_EP16_CANNOT_FIT_DAILY_GAS_VOLATILITY_2026-10-25.md`.
+
+Everything else here is step 8 and stays open.

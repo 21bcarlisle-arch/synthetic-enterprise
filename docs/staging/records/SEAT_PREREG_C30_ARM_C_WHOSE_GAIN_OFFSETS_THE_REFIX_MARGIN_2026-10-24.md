@@ -140,3 +140,12 @@ The full table is in the seeds record's Result. Against this record:
   −£6,345 and −£3,975, through 7–8 `price_position` exits, at £180–£304 per customer-year.
 - **"The re-fix is what makes the letter defensible": withdrawn.** ΔC = B − A is −£5,851, −£9,919
   and −£4,865. The households that stay gain £896–£1,410 of H, and that is a transfer.
+
+## Correction (2026-10-25): the retention counts missed the fixed-renewal route
+
+This record's "5 kept" and the seeds' "4, 0, 1 kept" counted SVT departures only. A re-fixed
+household's next exit is a fixed-renewal roll at the fix's end, and several leave there. Counting
+both routes, the re-fix's customer-years are +32.59 on this book (was +37.76) and +7.57, −12.78 and
+−3.38 on the seeds (were +28.76, 0 and +4.25). On 61102, the "−£2,678 with no customer moving" is
+two renewal-route leavers, −£1,637 and −£980, and there is no booking defect. `total_net` and so ΔC
+are unchanged. The exact split is in the seeds record, "The −£2,678 on 61102: result".

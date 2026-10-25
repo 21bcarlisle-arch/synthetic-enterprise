@@ -16,6 +16,10 @@ Data: Ofgem Domestic Market Report, Energy Trends (BEIS/DESNZ),
 
 from __future__ import annotations
 
+from datetime import date
+
+from company.billing.annual_consumption_estimate import tdcv_kwh
+
 # UK average domestic electricity unit rate (p/kWh, incl. VAT) by year
 # Source: Ofgem domestic market reports, BEIS Energy Trends
 _UK_AVG_ELEC_UNIT_RATE_P_KWH: dict[int, float] = {
@@ -104,9 +108,21 @@ def market_benchmark(year: int) -> dict:
         "gas_unit_rate_p_kwh": gas,
         "switching_rate_pct": switch,
         "domestic_accounts_millions": accounts_m,
-        "elec_annual_gbp_typical": round(elec * 3100 / 100, 0),  # 3100 kWh/yr typical
-        "gas_annual_gbp_typical": round(gas * 11500 / 100, 0),   # 11500 kWh/yr typical
+        "elec_annual_gbp_typical": _typical_annual_gbp(elec, "electricity", year),
+        "gas_annual_gbp_typical": _typical_annual_gbp(gas, "gas", year),
     }
+
+
+def _typical_annual_gbp(rate_p_kwh: float, commodity: str, year: int) -> float | None:
+    """A year's typical annual unit cost at Ofgem's MEDIUM TDCV as it stood on 1 July that year.
+
+    The TDCV is dated (`TDCV_BY_DATE`): this used 3,100 kWh electricity, the 2015 figure, beside
+    11,500 kWh gas, the 2023 one, for every year. 1 July is the mid-year reading; the 2017 and 2023
+    revisions took effect on 1 October, so those years read the earlier value. None before the
+    published series rather than a nearest neighbour.
+    """
+    kwh = tdcv_kwh(commodity, "MEDIUM", date(year, 7, 1))
+    return None if kwh is None else round(rate_p_kwh * kwh / 100, 0)
 
 
 def compare_to_market(own_elec_p_kwh: float, own_gas_p_kwh: float, year: int) -> dict:

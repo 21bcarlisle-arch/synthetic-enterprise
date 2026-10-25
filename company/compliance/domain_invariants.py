@@ -39,7 +39,7 @@ from company.billing.back_billing import (
     RecoveryPeriod,
     barred_unrecovered_gbp,
 )
-from company.billing.dual_fuel_bill import VAT_RATES
+from company.billing.dual_fuel_bill import DOMESTIC_FUEL_VAT_EXCEPTIONS, VAT_RATES
 from company.compliance.segment_debt_policy import (
     LPCDCA_EFFECTIVE_FROM,
 )
@@ -1235,11 +1235,23 @@ ALL_INVARIANTS: list = [
 ]
 
 
-def vat_rate_for_segment(segment: str) -> Optional[float]:
-    """The correct VAT rate for a segment -- 'resi' -> 5%, anything else
-    (SME/I&C) -> 20%. The exact check the C6 SME-as-Household defect
-    (billed 20% VAT... no wait, billed as if resi at some point, or the
-    reverse -- see R10) would have caught automatically."""
+def vat_rate_for_segment(
+    segment: str, *, fuel: Optional[str] = None, on: Optional[date] = None,
+) -> Optional[float]:
+    """The VAT rate for a segment's supply: 'resi' -> the reduced rate, anything else (SME/I&C)
+    -> the standard rate, before the SME de minimis (`check_vat`).
+
+    Given `fuel` and `on`, a domestic supply also takes the commons' dated exceptions: domestic
+    electricity in GB is zero-rated from 2026-10-01 to 2027-03-31 (SI 2026/987). Without them the
+    answer is the undated band, which is right for every day of 2016-2025 and wrong for a forward
+    electricity day in that window, so a caller pricing a forward year must pass both. One without
+    the other is refused: half a date is how the undated reading survives looking dated."""
+    if (fuel is None) != (on is None):
+        raise ValueError(f"vat_rate_for_segment needs both fuel and on, or neither (got fuel={fuel!r}, on={on!r})")
+    if segment == "resi" and fuel is not None:
+        for ex_fuel, start, end, rate in DOMESTIC_FUEL_VAT_EXCEPTIONS:
+            if ex_fuel == fuel and start <= on <= end:
+                return rate
     return VAT_RESIDENTIAL.value if segment == "resi" else VAT_SME.value
 
 

@@ -1,25 +1,28 @@
 """Tests for company/compliance/domain_invariants.py -- DOMAIN_SENSE_AND_COMPLIANCE.md Phase 2."""
+from datetime import date
+
+import pytest
+
 from company.compliance.domain_invariants import (
     ALL_INVARIANTS,
     BACK_BILLING_CAP_RESPECTED,
-    VAT_RESIDENTIAL,
-    VAT_SME,
+    RESI_CONSUMPTION_ENVELOPE_ELEC,
+    RESI_CONSUMPTION_ENVELOPE_GAS,
     TDCV_ELEC_MEDIUM,
     TDCV_GAS_MEDIUM,
     UNIT_RATE_ELEC_RESI_BY_YEAR,
-    RESI_CONSUMPTION_ENVELOPE_ELEC,
-    RESI_CONSUMPTION_ENVELOPE_GAS,
+    VAT_RESIDENTIAL,
+    VAT_SEGMENT_MATCHES_CONSUMPTION,
+    VAT_SME,
     check_back_billing_cap_respected,
+    check_resi_consumption_plausible,
+    check_unit_rate_plausible,
     check_vat,
     check_vat_consistent_with_consumption,
     consumption_implied_vat_rate,
-    VAT_SEGMENT_MATCHES_CONSUMPTION,
-    check_unit_rate_plausible,
-    check_resi_consumption_plausible,
-    vat_rate_for_segment,
     invariant_count,
+    vat_rate_for_segment,
 )
-
 
 # --- INVARIANT_LIBRARY_REDTEAM.md C1 (2026-07-13): VAT/segment independent
 # --- cross-check (the fix for the vat_by_segment tautology, R10 C6 class) ---
@@ -101,6 +104,30 @@ def test_vat_rate_for_segment():
     assert vat_rate_for_segment("resi") == 0.05
     assert vat_rate_for_segment("SME") == 0.20
     assert vat_rate_for_segment("I&C") == 0.20
+
+
+def test_domestic_electricity_is_zero_rated_only_inside_its_dated_window():
+    """DEFECT: the reader took no date and no fuel, so domestic electricity read 5% from
+    2026-10-01 to 2027-03-31, when SI 2026/987 zero-rates it (uk_vat_rates.json
+    `dated_exceptions`). The first leg proves the exception can be taken at all; the rest prove it
+    is bounded to its fuel, its segment and its two edges.
+
+    MUTATION: drop the exception loop and the first leg reds; drop `ex_fuel == fuel` and the gas
+    leg reds; make `start <= on` strict and the 2026-10-01 leg reds."""
+    assert vat_rate_for_segment("resi", fuel="electricity", on=date(2026, 10, 1)) == 0.0
+    assert vat_rate_for_segment("resi", fuel="electricity", on=date(2027, 3, 31)) == 0.0
+    assert vat_rate_for_segment("resi", fuel="electricity", on=date(2026, 9, 30)) == 0.05
+    assert vat_rate_for_segment("resi", fuel="electricity", on=date(2027, 4, 1)) == 0.05
+    assert vat_rate_for_segment("resi", fuel="gas", on=date(2026, 12, 1)) == 0.05
+    assert vat_rate_for_segment("SME", fuel="electricity", on=date(2026, 12, 1)) == 0.20
+
+
+def test_half_a_date_is_refused():
+    """DEFECT: a caller passing a fuel but no date would silently get the undated band."""
+    with pytest.raises(ValueError, match="both fuel and on"):
+        vat_rate_for_segment("resi", fuel="electricity")
+    with pytest.raises(ValueError, match="both fuel and on"):
+        vat_rate_for_segment("resi", on=date(2026, 12, 1))
 
 
 def test_check_vat_catches_the_r10_c6_defect_class():
@@ -340,8 +367,9 @@ def test_check_back_billing_cap_respected_fails_closed_on_garbage_date_string():
 
 
 def test_check_back_billing_cap_respected_passes_when_genuinely_written_off():
-    from company.billing.back_billing import BackBillingAssessment, BackBillingReason
     import datetime as _dt
+
+    from company.billing.back_billing import BackBillingAssessment, BackBillingReason
     assessment = BackBillingAssessment(
         account_id="C1", billing_date=_dt.date(2019, 12, 31),
         consumption_period_start=_dt.date(2018, 6, 1),
