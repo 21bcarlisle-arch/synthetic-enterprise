@@ -311,3 +311,65 @@ nothing below is graded on it.
    sized for a full term against a fix, or any line booked on a fix that a default segment does
    not carry for the same energy, that is an accounting route. It then goes to D48 as a finding,
    and the three-seed verdict is re-stated net of it.
+
+## The −£2,678 on 61102: result (2026-10-25 ~13:45Z; predictions above unedited)
+
+**Reproduction held to the penny:** B £550,331.643803 and C £553,905.688772, the graded artefacts'
+own figures. Artefacts: `/var/tmp/c30-61102-monthly/{B,C}_61102.json`; split by `decompose.py`
+beside them.
+
+**The premise was wrong: two customers do move between B and C.** Both left on the **fixed-renewal
+route** (`*** CHURNED ***` at a term end). `grade_seeds.py` reads only `svt_departures`, so it could
+not see them. The 277 SVT departures really are identical; the 85 renewal churns are not.
+
+| B − C on 61102, exact (Σ `net_margin_gbp`) | £ | what it is |
+|---|---|---|
+| **PROS-2018-0304** (not re-fixed), elec + gas | **−1,637** | Churns at its first renewal, 2019-10-20, in B only. Roll 0.5995 against p_retain 0.5989 in B and 0.5995 in C. Its term-0 rate is £146.86 in B and £146.85 in C. A book-level knock-on decided a coin with 0.0006 to spare; the moved input is not traced. 6.2 customer-years. B is spared its early-2022 losses (+£65 a month) and forgoes its 2023 margins (−£85 to −£151 a month). |
+| **SYN-2016-248** (re-fixed 2018-07-01 → 2019-06-05) | **−980** | At the fix's end it meets the fixed-renewal roll: p_churn 0.35, p_retain 0.5177, roll 0.6258, and it leaves. In C it is still on the default at that date, converts to a fix ("converted off SVT, not rolled"), and stays to 2025. 6.58 customer-years. |
+| the other 11 re-fixed households | −561 | The fix margin given up. H for all 12 is £896. |
+| 27 other accounts, none of which moves | −396 | Small path knock-ons. The largest is SYN-2016-255 at +£190. **Unattributed.** |
+| **total** | **−3,574** | |
+
+By month, the cost sits in 2023-01 to 2023-06 (−£170 to −£341 a month), when both lost households
+would have been paying post-crisis margins.
+
+1. **≥90% on the 12 re-fixed households: REFUTED.** They carry −£1,541 (43%). PROS-2018-0304 alone
+   carries more.
+2. **`revenue_gbp` ≈ −H, the rest in `wholesale_cost_gbp`: REFUTED.** On the 12, revenue is −£4,715.
+   That is a lost customer's revenue, not a fix's margin. Wholesale cost is £1,566 *lower* in B,
+   and capital cost moves −£56. No hedge or capital line carries the cost.
+3. **OCC-5e8cb2b031ec the largest: REFUTED.** It is third, at −£348, behind PROS-2018-0304 and
+   SYN-2016-248.
+4. **Route: neither of the two I named.** No line is booked on a fix that a default segment would
+   not carry for the same energy, so **there is no accounting route and no D48 finding.** The
+   −£2,678 is two lost customers that the counting rule missed. One is the re-fix's own
+   consequence; the other is a knife-edge knock-on.
+
+**Why I was wrong.** I took "the departures are identical" to mean "nobody moves", and the two
+routes are not the same set.
+
+### Re-stated, every book, both exit routes counted (`grade_both_routes.py`)
+
+`total_net` was never wrong, so **C30's company-side verdict stands unchanged**: B − A is −£5,851,
+−£9,919 and −£4,865, all three negative. What changes is the customer count behind B − C:
+
+| book | re-fix cust-yrs, SVT only (as graded) | **both routes** | who the change is |
+|---|---|---|---|
+| 61101 | +28.76 | **+7.57** | PROS-2016-0203, SYN-2016-260 and SYN-2016-517 are kept off an SVT exit, then leave at their fix's end, 0.7–0.9 years later. SYN-2016-462 leaves 3 years earlier. |
+| 61102 | 0.00 | **−12.78** | the two above |
+| 61103 | +4.25 | **−3.38** | PROS-2016-0153 leaves at its fix's end, earlier than its SVT exit in C |
+| default (0481ad381) | +37.76 | **+32.59** | SYN-2016-260 and -517 again; PROS-2017-0183 is kept |
+
+C − A barely moves (−30.66 → −30.03, −20.87 → −19.65, −22.03 unchanged), so the letter's £/yr
+stands. Priced at each seed's C − A rate, the residual is +£863, +£1,448 and +£1,163. That is one
+rate for every customer (PROS-2018-0304 is dual fuel), so only the exact 61102 split above is an
+attribution.
+
+**Reading.** "The re-fix keeps 4, 0 and 1 households" is withdrawn. Counting both routes, it keeps
+customers on one seed out of three, and briefly. It moves a household off a default it was inert on,
+onto a fix whose end is a renewal roll (p_churn 0.35 on SYN-2016-248). That is the per-customer act's
+own cost, and it points the same way as the verdict: against the thesis (F11).
+
+**Open, world side, not settled here:** whether a woken stayer's fix-end hazard is right. In C, the
+same household's anniversary conversion off the default is "not rolled". Published evidence on
+churn at fix expiry against default is the knowledge to read before anyone changes it.
