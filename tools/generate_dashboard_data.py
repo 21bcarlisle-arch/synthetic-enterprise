@@ -3209,6 +3209,8 @@ def render_proof_strip(figures, missing, generated_at, source_file):
 BUILD_STRIP_START = ("<!-- BUILD-STRIP:START (written at publish by "
                      "tools/generate_dashboard_data.py -- do not hand-edit) -->")
 BUILD_STRIP_END = "<!-- BUILD-STRIP:END -->"
+#: "three lines at most" (site copy pack A5): a teaser for a returning reader, not a log.
+NEW_THIS_WEEK = 3
 
 
 def _git_out(root, *args):
@@ -3272,16 +3274,27 @@ def write_front_door_build_strip(front_door_path):
         print("FRONT-DOOR BUILD STRIP NOT WRITTEN: {} does not carry both markers".format(
             front_door_path), file=sys.stderr)
         return False
-    figures, missing = build_scale_figures(front_door_path.resolve().parent.parent)
+    root = front_door_path.resolve().parent.parent
+    figures, missing = build_scale_figures(root)
     import html as _html
+
+    from tools.harness_page_figures import week_highlights
+    # Site copy pack A5: "New this week", three lines at most, from the stretch log, so a returning
+    # reader has a reason to come back. The same reader How it's built uses for its "Last week";
+    # each entry's first sentence only, because a teaser is not the log.
+    week = week_highlights(root)
+    if week is None:
+        missing.append("the week's new work (the stretch log or git could not be read)")
+    new = ("" if not week else '\n<p class="lf-prov"><b>New this week:</b></p>\n<ul class="lf-new">\n{}\n</ul>'
+           .format("\n".join("  <li>{}</li>".format(_html.escape(re.split(r"(?<=\.)\s", h, maxsplit=1)[0])) for _, h in week[:NEW_THIS_WEEK])))
     cells = "\n".join(
         '  <div class="lf"><div class="v">{}</div><div class="l">{}</div>'
         '<div class="c">{}</div></div>'.format(v, _html.escape(lab), _html.escape(c))
         for v, lab, c in figures)
     tail = ("" if not missing else '\n<p class="lf-prov">Not shown, because its source could '
             'not be read: {}.</p>'.format(_html.escape("; ".join(missing))))
-    block = '{}\n<div class="lf-row">\n{}\n</div>{}\n{}'.format(
-        BUILD_STRIP_START, cells, tail, BUILD_STRIP_END)
+    block = '{}\n<div class="lf-row">\n{}\n</div>{}{}\n{}'.format(
+        BUILD_STRIP_START, cells, new, tail, BUILD_STRIP_END)
     front_door_path.write_text(page[:start] + block + page[end + len(BUILD_STRIP_END):],
                                encoding="utf-8")
     return True

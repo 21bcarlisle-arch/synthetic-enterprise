@@ -142,3 +142,20 @@ def test_every_other_page_gets_its_run_clock_at_publish_and_a_half_marked_page_i
     assert plain.read_text() == "<body>untouched</body>"
     err = capsys.readouterr().err
     assert "half.html" in err and "plain.html" not in err, err
+
+
+def test_new_this_week_shows_at_most_three_lines_and_names_its_absence(tmp_path, monkeypatch):
+    """Site copy pack A5. Red if the strip shows more than three of the week's lines, shows none
+    when the week has some, or stays silent when the stretch log cannot be read."""
+    from tools import harness_page_figures as hpf
+    page = tmp_path / "site" / "index.html"
+    page.parent.mkdir()
+    page.write_text("x\n" + g.BUILD_STRIP_START + "\nstale\n" + g.BUILD_STRIP_END + "\ny")
+    monkeypatch.setattr(hpf, "week_highlights", lambda root: [("2026-10-2%d" % i, "Thing %d" % i) for i in range(5)])
+    assert g.write_front_door_build_strip(page)
+    out = page.read_text()
+    assert "New this week" in out and out.count("<li>Thing") == 3 and "Thing 3" not in out
+    monkeypatch.setattr(hpf, "week_highlights", lambda root: None)
+    g.write_front_door_build_strip(page)
+    out = page.read_text()
+    assert "New this week" not in out and "new work (the stretch log or git could not be read)" in out
