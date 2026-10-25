@@ -1150,6 +1150,22 @@
       "why": "Roughly a third of a bill is networks and policy, passed through at rates the supplier does not choose. Leave it out and every margin is wrong."
     },
     {
+      "id": "regional-supply-cost",
+      "title": "Why supplying a home costs more in some regions, under one national price",
+      "kind": "page",
+      "blurb": "One wholesale price, fourteen network regions. Network charges differ by £14 to £44 per MWh between the cheapest and dearest region, and a supplier typically buys about a tenth more energy than its meters record because some is lost in the wires.",
+      "rate_of_change": "medium",
+      "reviewed": {
+        "last_verified": "2026-10-25",
+        "source": "see the page's own sources"
+      },
+      "atoms": [
+        "W3_3_the_network_charge_splits_per_unit_and_per_day"
+      ],
+      "theme": "markets",
+      "why": "Network charges and losses are the regional cost a supplier carries under one national price. Leave losses out and the energy line is about a tenth light."
+    },
+    {
       "id": "acquisition-and-retention-economics",
       "title": "Winning a customer, and keeping one",
       "kind": "page",
@@ -1696,6 +1712,11 @@
       "from": "the-first-year-blind-spot",
       "type": "mechanism-of",
       "to": "what-a-customer-is-worth"
+    },
+    {
+      "from": "regional-supply-cost",
+      "type": "part-of",
+      "to": "non-commodity-costs"
     }
   ],
   "review_policy": {

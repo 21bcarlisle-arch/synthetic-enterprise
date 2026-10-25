@@ -38,3 +38,20 @@ mix makes the book's cost per kWh move outside what one region's charges imply. 
 measured, nothing here is a build.
 
 **Reversal:** set both atoms' `level_target` back to 3 and run `maturity_map_store.refile()`.
+
+## Done
+
+2026-10-25. The knowledge half was done and the measurement it asked for was taken from the published record:
+
+- K8 page `site/knowledge/regional-supply-cost/` with research note
+  `docs/market_research/regional_supply_cost_under_one_national_price_2026-10-25.md`. It covers per-region DUoS,
+  TNUoS and BSUoS, and Ofgem's T&D loss multipliers for all 14 regions, 2016/17-2025/26, read off Ofgem Annex 3
+  v1.25 and the demand-and-losses workbook v1.19.
+- The lead question is answered. Transmission losses have been allocated by zone since BSC P350, live 1 April
+  2018, and the cap prices losses into its regional wholesale allowance.
+- **Does the world's regional mix move cost per kWh outside one region's charges?** By construction it cannot.
+  The world carries one national network figure, close to the regional median, and no losses. The bigger
+  result is that the missing loss uplift is national, about 9-12% of the energy line. That is filed as
+  `docs/staging/SEAT_FINDING_THE_WORLD_SETTLES_METERED_KWH_AND_NO_LOSSES_SO_THE_ENERGY_LINE_IS_9_TO_12_PCT_LIGHT_2026-10-25.md`
+  under W3_3, with its prediction written before any run.
+- The regional spread waits on an address-to-GSP-group mapping, which is not yet sourced (note §5, §6).
