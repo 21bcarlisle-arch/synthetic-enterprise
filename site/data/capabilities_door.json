@@ -1,13 +1,17 @@
 {
- "generated_at": "2026-10-19T08:52:31Z",
- "git_commit": "30246d6f09f45eafb52e53600574b79b2b4b4fce",
+ "generated_at": "2026-10-25T16:36:26Z",
+ "git_commit": "dcd686ac1e1f4ceb0b20b207818a0e6d7dd8f07b",
  "published_from": {
-  "commit": "30246d6f09f45eafb52e53600574b79b2b4b4fce",
-  "tree_was_clean": true,
+  "commit": "dcd686ac1e1f4ceb0b20b207818a0e6d7dd8f07b",
+  "tree_was_clean": false,
   "inputs_are_the_committed_bytes": true,
   "inputs": [
    {
     "path": "site/data/maturity_map.json",
+    "state": "committed"
+   },
+   {
+    "path": "docs/design/capabilities_fixed_this_week.json",
     "state": "committed"
    },
    {
@@ -31,7 +35,7 @@
     "state": "committed"
    }
   ],
-  "reason": "every input read here is byte-identical to what this commit holds, and nothing else in the tree differed from it either"
+  "reason": "every input named here matches this commit, but the tree carried other uncommitted changes, and this generator reads more than the paths it names \u2014 so standing at this commit may still not reproduce this feed"
  },
  "sources": {
   "record": "site/data/maturity_map.json",
@@ -42,7 +46,8 @@
   "use_case_register": "docs/staging/done/DIRECTOR_RULING_SUPPLIER_USE_CASE_REGISTER_AND_SIM_FIDELITY_2026-09-06.md",
   "evidence_map": "site/data/moap_node_atoms.json",
   "checks": "the test files each work item cites in its record",
-  "scale": "site/data/customers.json + site/data/dashboard.json"
+  "scale": "site/data/customers.json + site/data/dashboard.json",
+  "fixed_this_week": "docs/design/capabilities_fixed_this_week.json + git"
  },
  "world": {
   "entries": [
@@ -62,8 +67,8 @@
     }
    },
    {
-    "name": "Prices that come out of physics, not out of a distribution",
-    "what": "Demand is built from weather and buildings; supply is stacked in merit order; the price is what falls out. Nothing samples a price curve directly.",
+    "name": "Prices formed from weather and the generation stack",
+    "what": "Built and graded, for the years after the record: weather sets demand and wind and solar output, and the price sits on a gas floor under what is left. On the 2016-25 record its daily error is about \u00a324/MWh against a mean of \u00a378. Inside 2016-25 the run does not use it: every half-hourly price is replayed as it happened, the 2021-22 crisis included.",
     "status": "Live",
     "rests_on": [
      "W1_6_physics_price_signal"
@@ -106,7 +111,7 @@
    },
    {
     "name": "Households with hidden lives",
-    "what": "Income, essential costs, life events \u2014 job loss, illness, a new child \u2014 and the choice between paying and heating. All of it hidden from the supplier, as it is in reality.",
+    "what": "All four parts run in every household: its income and essential costs; its life events, such as a job lost, an illness or a new baby; whether, when it falls behind, it can't pay or won't; and whether it cuts back on heating to pay. None of it is visible to the supplier, as in reality. Home moves are the part still being joined up.",
     "status": "Live",
     "rests_on": [
      "W2_4_household_budget",
@@ -129,7 +134,14 @@
      "W2_6_sme_distress_twin"
     ],
     "evidence": null,
-    "checks": null
+    "checks": {
+     "checks": 29,
+     "covered": 1,
+     "of": 1
+    },
+    "not_served": [
+     "I&C"
+    ]
    },
    {
     "name": "The price cap as a real constraint",
@@ -161,8 +173,8 @@
     }
    },
    {
-    "name": "Banking and payment rails",
-    "what": "Direct Debit collection modelled end to end \u2014 the bank, the acquirer, and the ways a collection actually fails.",
+    "name": "Direct debit on the Bacs rails",
+    "what": "Mandates set up and refused (AUDDIS), payers who cancel or change bank (ADDACS), and collections that fail and why (ARUDD, reported up to two working days late), on the real three-working-day cycle.",
     "status": "Live",
     "rests_on": [
      "W5_1_banking_payment_rails"
@@ -176,7 +188,7 @@
    },
    {
     "name": "Futures beyond the real record",
-    "what": "Worlds that run past the end of the real data, so the supplier can be tested against conditions that have not happened yet.",
+    "what": "Stress worlds past the end of the real data exist today. The forward years approved on 25 Oct 2026 come next, after the basics: 2026-2035, five futures, with gas, power and forward products whose volatility is checked against the published record.",
     "status": "Live",
     "rests_on": [
      "W1_2_generate_futures"
@@ -229,12 +241,13 @@
    {
     "name": "Three clocks kept straight",
     "what": "What happened physically, what was billed, and what was settled are three different dates, and the supplier reconciles all three per bill rather than pretending they agree.",
-    "status": "Live",
+    "status": "Building",
     "rests_on": [
      "D2_three_clocks"
     ],
     "evidence": null,
-    "checks": null
+    "checks": null,
+    "held_from_live": "built to its target, but none of the work it rests on cites an automated test, so it is not shown as live"
    },
    {
     "name": "Money matched to the right account",
@@ -259,7 +272,11 @@
      "C7_life_event_detection"
     ],
     "evidence": null,
-    "checks": null
+    "checks": {
+     "checks": 18,
+     "covered": 1,
+     "of": 2
+    }
    },
    {
     "name": "Noticing a customer who has stopped heating their home",
@@ -269,7 +286,11 @@
      "C10_self_rationing_detection"
     ],
     "evidence": null,
-    "checks": null
+    "checks": {
+     "checks": 41,
+     "covered": 1,
+     "of": 1
+    }
    },
    {
     "name": "Weather-normalised demand",
@@ -325,7 +346,11 @@
      "F7_obligations_register_coverage"
     ],
     "evidence": null,
-    "checks": null
+    "checks": {
+     "checks": 43,
+     "covered": 1,
+     "of": 2
+    }
    },
    {
     "name": "Carbon measured on three ledgers",
@@ -362,8 +387,8 @@
     "checks": null
    },
    {
-    "name": "Settlement true-ups on the real timetable",
-    "what": "Following a volume from initial settlement through each reconciliation run, and taking the financial consequence each time it moves.",
+    "name": "Taking the money at each settlement true-up",
+    "what": "The world already runs the industry's real reconciliation timetable. What is not built is the supplier's side: booking the financial consequence each time a run moves a volume. Its close still states a final figure where the industry can only give a provisional one.",
     "status": "Planned",
     "rests_on": [
      "EP5_settlement_true_ups"
@@ -373,8 +398,8 @@
    }
   ],
   "tally": {
-   "Live": 10,
-   "Building": 2,
+   "Live": 9,
+   "Building": 3,
    "Planned": 2
   }
  },
@@ -1188,7 +1213,11 @@
     "rests_on": [
      "EP7_adapter_elexon_insights"
     ],
-    "evidence": null
+    "evidence": null,
+    "used": {
+     "what": "the Insights API v1 endpoints the run reads every day, confirmed against the live service on 7 Jun 2026",
+     "where": "docs/data-sources/elexon.md"
+    }
    },
    {
     "area": "Smart metering",
@@ -1204,7 +1233,8 @@
     "rests_on": [
      "EP8_adapter_dcc_duis"
     ],
-    "evidence": null
+    "evidence": null,
+    "used": null
    },
    {
     "area": "Consented meter access",
@@ -1217,7 +1247,8 @@
     "rests_on": [
      "EP9_adapter_n3rgy_consented_metering"
     ],
-    "evidence": null
+    "evidence": null,
+    "used": null
    },
    {
     "area": "Gas industry systems",
@@ -1230,7 +1261,8 @@
     "rests_on": [
      "EP10_adapter_uk_link_xoserve"
     ],
-    "evidence": null
+    "evidence": null,
+    "used": null
    },
    {
     "area": "Payment collection",
@@ -1243,7 +1275,8 @@
     "rests_on": [
      "EP11_adapter_gocardless_bacs"
     ],
-    "evidence": null
+    "evidence": null,
+    "used": null
    },
    {
     "area": "Switching",
@@ -1256,7 +1289,8 @@
     "rests_on": [
      "EP12_adapter_css_rec_switching"
     ],
-    "evidence": null
+    "evidence": null,
+    "used": null
    },
    {
     "area": "Carbon intensity",
@@ -1269,7 +1303,11 @@
     "rests_on": [
      "EP13_adapter_carbon_intensity"
     ],
-    "evidence": null
+    "evidence": null,
+    "used": {
+     "what": "the API's two published bases and its half-hourly series from May 2018, read and documented where the run ingests them",
+     "where": "sim/neso_carbon_intensity.py"
+    }
    },
    {
     "area": "Published cost stack",
@@ -1282,7 +1320,11 @@
     "rests_on": [
      "EP14_adapter_published_cost_stack"
     ],
-    "evidence": null
+    "evidence": null,
+    "used": {
+     "what": "the policy-cost and network-charge files the run prices from, and the cap's GB-average unit rates as a dated series from 2019",
+     "where": "simulation/policy_costs.py"
+    }
    }
   ],
   "tally": {
@@ -1406,6 +1448,10 @@
    "describes": "RecordedSimInterface \u2014 the typed mock at the OUTER sim/company seam."
   },
   {
+   "module": "renewal_advice",
+   "describes": "The company's RENEWAL-ADVICE door: the desk that decides C34 at each renewal notice, per household."
+  },
+  {
    "module": "renewal_decision_inputs",
    "describes": "The typed record the run loop hands the company when it asks what a renewal costs."
   },
@@ -1458,21 +1504,21 @@
  "scale": {
   "figures": [
    {
-    "value": 774,
+    "value": 550,
     "basis": "accounts in the live customer feed",
     "source": "site/data/customers.json",
-    "as_of": "2026-10-13T21:28:47Z"
+    "as_of": "2026-10-19T08:53:00Z"
    },
    {
-    "value": 987,
+    "value": 961,
     "basis": "book size used by the break-even analysis",
     "source": "site/data/dashboard.json",
     "as_of": "2016-2025"
    }
   ],
   "agree": false,
-  "low": 774,
-  "high": 987,
+  "low": 550,
+  "high": 961,
   "real_world": "A real GB supplier serves hundreds of thousands to millions of homes."
  },
  "gaps": [
@@ -1485,20 +1531,20 @@
     "when": "being worked on now",
     "waiting_on_count": 0
    },
-   "title": "The book is 774\u2013987 customers",
-   "what": "Everything on this page is true of a supplier with 774\u2013987 accounts. A real GB supplier serves hundreds of thousands to millions of homes. Scale is the largest single gap between this and a real energy retailer, and nothing above will tell you that, because every item can be genuinely built at this size. The project's own feeds do not currently agree on the exact figure \u2014 774 (accounts in the live customer feed), 987 (book size used by the break-even analysis) \u2014 and that disagreement is itself unreconciled."
+   "title": "The book is 550\u2013961 customers",
+   "what": "Everything on this page is true of a supplier with 550\u2013961 accounts. A real GB supplier serves hundreds of thousands to millions of homes. Scale is the largest single gap between this and a real energy retailer, and nothing above will tell you that, because every item can be genuinely built at this size. The project's own feeds do not currently agree on the exact figure \u2014 550 (accounts in the live customer feed), 961 (book size used by the break-even analysis) \u2014 and that disagreement is itself unreconciled."
   },
   {
    "plan": {
     "planned": true,
-    "items": 3,
-    "started": 3,
+    "items": 4,
+    "started": 4,
     "drawable_now": true,
     "when": "being worked on now",
     "waiting_on_count": 0
    },
    "title": "Half-built, not absent",
-   "what": "Listed above as coming next, which understates it: these exist and work in part, and are not finished. The price cap as a real constraint \u2014 Ofgem's cap binds what can be charged rather than sitting in a lookup table, and it change; Carbon measured on three ledgers \u2014 Customer, portfolio and grid carbon accounted separately \u2014 the measurement the whole premi; The collections journey, end to end \u2014 Missed payment, reminder, dunning ladder, arrangement, and the point where a debt is hande."
+   "what": "Listed above as coming next, which understates it: these exist and work in part, and are not finished. The price cap as a real constraint \u2014 Ofgem's cap binds what can be charged rather than sitting in a lookup table, and it change; Three clocks kept straight \u2014 What happened physically, what was billed, and what was settled are three different dates,; Carbon measured on three ledgers \u2014 Customer, portfolio and grid carbon accounted separately \u2014 the measurement the whole premi; The collections journey, end to end \u2014 Missed payment, reminder, dunning ladder, arrangement, and the point where a debt is hande."
   },
   {
    "plan": {
@@ -1522,7 +1568,7 @@
     "waiting_on_count": 0
    },
    "title": "No claim on this page yet links to a record a reader could use",
-   "what": "Every item marked as built should be traceable to what makes it so. The records exist, and they are written for whoever maintains this project -- internal identifiers, maturity levels, file paths -- so sending a reader to them would satisfy the letter of the request and teach nothing. Rather than link to the machine's own notes, each claim below says how many automated tests are written against it -- and 5 of the 19 built capabilities cite none, which is said on the claim itself. A count of tests is not an account of what they check or what would prove the claim wrong; a record written for a reader is on the plan and is the next thing built here."
+   "what": "Every item marked as built should be traceable to what makes it so. The records exist, and they are written for whoever maintains this project -- internal identifiers, maturity levels, file paths -- so sending a reader to them would satisfy the letter of the request and teach nothing. Rather than link to the machine's own notes, each claim below says how many automated tests are written against it. 1 more reached their target level but cite no test, so they are shown as Building rather than built. A count of tests is not an account of what they check or what would prove the claim wrong; a record written for a reader is on the plan and is the next thing built here."
   },
   {
    "plan": {
@@ -1536,5 +1582,54 @@
    "title": "This page cannot tell you whether the simulation is right",
    "what": "It reports what has been built and how far, not whether the world it models behaves like the real one. That is a different question, it is measured elsewhere in this project against real market history, and the measurement publishes its own worst failures. A capability list is the wrong place to answer it -- but it is answered."
   }
- ]
+ ],
+ "fixed_this_week": {
+  "window_days": 7,
+  "as_of": "25 Oct 2026",
+  "published_run": "8b6fea024",
+  "items": [
+   {
+    "commit": "4ef70aba9258f1f7a7a07d510ba2c4c9bcc3196c",
+    "what": "Standard-variable bills above the price cap: the Energy Price Guarantee now reaches the household's bill from October 2022 to June 2023, and with a household moving into an empty home no longer priced as a business, the fall was graded on a fresh run in d909b6933. Not closed: the fix for an empty home's estimated stub over-credits five bills, and that is open (140b5ff7b).",
+    "at": 1792801593,
+    "date": "Sat 24 Oct",
+    "in_published_run": false
+   },
+   {
+    "commit": "4bc21e92095bf2369d4ebdc7bd3cdad4e97929f2",
+    "what": "A household moving into an empty home is billed as a home, not as a business.",
+    "at": 1792780005,
+    "date": "Fri 23 Oct",
+    "in_published_run": false
+   },
+   {
+    "commit": "1e358809beb335756c28108e6a4477426fc3803a",
+    "what": "A household on the default tariff pays one unit rate; a time-of-use pair now needs the household's choice, not just a smart meter.",
+    "at": 1792805305,
+    "date": "Sat 24 Oct",
+    "in_published_run": false
+   },
+   {
+    "commit": "50001b0b7b6f88d54ff54520f86873bb2463f14c",
+    "what": "A time-of-use bill prints its peak and off-peak registers, each with its own units, rate and charge.",
+    "at": 1792813397,
+    "date": "Sat 24 Oct",
+    "in_published_run": false
+   },
+   {
+    "commit": "d8129f3f6afcc6f0e7229fe05e881fda3f7ecd5f",
+    "what": "The Energy Bills Support Scheme's monthly credit reduces what a household owes for electricity in winter 2022-23.",
+    "at": 1792777874,
+    "date": "Fri 23 Oct",
+    "in_published_run": false
+   },
+   {
+    "commit": "746df31c8905e5bfe205657f062b393f041d6c75",
+    "what": "On this page, a function with no linked test can no longer read Live.",
+    "at": 1792830002,
+    "date": "Sat 24 Oct",
+    "in_published_run": false
+   }
+  ]
+ }
 }
