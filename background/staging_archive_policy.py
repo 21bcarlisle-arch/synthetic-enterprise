@@ -426,6 +426,31 @@ def publish_did_not_land(path: Path) -> bool:
         return False
 
 
+#: The tag a marker carries when the weekly window HELD it: archived with no publish attempted.
+#: Not a did-not-land statement, so the frontier still reads a held run as overtaking older ones,
+#: which is what it did before this tag existed. `background_worker.held_marker_to_offer` reads it.
+PUBLISH_HELD_TAG = "<!-- publish-held:"
+
+
+def publish_held_note(reason: str | None, when: str | None = None) -> str:
+    """The bytes the publisher appends to a marker it HELD. Avoids every `RECORD_MARKERS` string."""
+    stamp = when or datetime.now(timezone.utc).isoformat()
+    return (
+        "\n\n## Publish outcome: held for the weekly window\n\n"
+        f"{PUBLISH_HELD_TAG} at={stamp} -->\n\n"
+        f"Archived without a publish attempt ({reason or 'window closed'}). If it is still the "
+        f"newest run when the window opens, the worker's sweep offers it to the publisher once.\n"
+    )
+
+
+def publish_was_held(path: Path) -> bool:
+    """True when this archived marker SAYS the weekly window held it. Unreadable reads False."""
+    try:
+        return PUBLISH_HELD_TAG in Path(path).read_text(errors="replace")
+    except OSError:
+        return False
+
+
 def verify(manifest_path: Path | None = None, exhaust_dir: Path | None = None) -> list[dict]:
     """Prove nothing was lost: every manifest entry's new_path must exist.
 

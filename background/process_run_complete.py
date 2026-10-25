@@ -1475,6 +1475,20 @@ def _archive_marker(marker):
         return True
 
 
+def _stamp_held_on_archived_marker(marker_name, reason, done_dir=None):
+    """Say in the archived marker that the window held it, so the worker can offer it when the
+    window opens (24-25 Oct: four runs held, none offered again). Never raises."""
+    try:
+        from background import staging_archive_policy
+        dest = Path(done_dir if done_dir is not None else DONE_DIR) / marker_name
+        with open(dest, "a") as fh:
+            fh.write(staging_archive_policy.publish_held_note(reason))
+        return True
+    except Exception as exc:  # noqa: BLE001 -- a passenger on the hold path
+        log("Held tag not written on {} (non-fatal): {}".format(marker_name, exc))
+        return False
+
+
 def _stamp_publish_outcome_on_archived_marker(marker_name, reason, done_dir=None):
     """Write into the ARCHIVED marker whether the publish that followed it landed.
 
@@ -10921,7 +10935,8 @@ def _process(marker_path_str):
     # An administration event still processes: its NTFY is the reason that exception exists.
     window = _content_publish_window()
     if not window["open"] and not _run_fingerprint(data)["administration_event"]:
-        _archive_marker(marker)
+        if _archive_marker(marker):
+            _stamp_held_on_archived_marker(marker.name, window["reason"])
         log("HOLD (weekly publish window): {} -- no regen/test/commit. Archived {}.".format(
             window["reason"], marker.name))
         record_publish_hold(window["reason"], window.get("next_opens"))

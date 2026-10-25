@@ -166,6 +166,35 @@ run publishing, and that overtakes this one. A re-attempt that lands leaves the 
 So the supersession frontier still under-reads that run as unpublished. Guard 2 is what keeps the
 re-arm from firing on it again. The frontier fault is filed separately and not fixed here.
 
+## A HELD RUN WHEN THE WEEKLY WINDOW OPENS (offer, 2026-10-25)
+
+**What happened.** Every run that finished mid-week was HELD by the weekly window and its marker
+archived into `done/`. Nothing offered it again at Mon 04:00, so a publish happened only if some run
+finished after the window opened. All four 904a091f7b runs of 24-25 Oct were held, with the runner
+deferring on landings. A one-shot timer stood in for the week of 26 Oct.
+
+**What the offer does.** The HOLD branch of `process_run_complete` now appends a
+`publish-held` tag to the archived marker (`staging_archive_policy.publish_held_note`). When
+`staging/` holds no marker and no re-arm is chosen, `background_worker.held_marker_to_offer`
+puts at most ONE `done/` marker into the sweep. It does so only when ALL of these hold, and logs
+the reason for each refusal:
+
+1. The newest `run_complete` marker in `done/` carries the held tag. A later run with
+   its own marker supersedes it.
+2. It carries no `publish-offered-at-window` tag. The tag is written before the publisher is
+   invoked, so the offer happens once however the publish ends.
+3. The weekly window reads open (`publish_freshness.content_publish_window`). It is asked last,
+   because it runs git.
+4. `run_output_latest.json` is still byte-identical to the marker's own run JSON. The same reason
+   as re-arm guard 6.
+
+The publisher then applies every refusal it applies to any marker. **No gate is widened.**
+
+**Known bound.** The held tag is not a did-not-land statement, so the frontier still counts a held
+run as overtaking older ones, which is what it did before. Markers held before this landed carry no
+tag and are never offered. Only `done/` is read, so a held marker that the hand-run exhaust sweep (`staging_archive_policy --apply`) moved before the window is not offered either. A run on `run_output_latest.json` that has no marker at all (25 Oct
+12:30Z, b2bc3d8da5) is not this mechanism's subject.
+
 ## FOLLOW-ON (normal priority, per the sequencing doc)
 
 Ruling item 2's full annotation panel (a `/health` surface the banner links to) and polish.
