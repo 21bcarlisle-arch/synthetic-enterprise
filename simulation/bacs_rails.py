@@ -13,7 +13,12 @@ reason-code references -- not invented):
   SETUP. Confirmation/rejection responses arrive on Day 2 of that
   instruction's own cycle.
 - ADDACS (Automated Direct Debit Amendment and Cancellation Service):
-  mandate AMENDMENTS/cancellations after setup, same 3-day cycle.
+  mandate AMENDMENTS/cancellations after setup. A cancellation the payer
+  makes at their own bank (ADDACS 1) is the household's own act: the
+  supplier reads it from the working day after the bank inputs it, at any
+  time, and before any collection fails (W2_41; the knowledge page is
+  docs/market_research/dd_failure_basis_and_live_arrears_provision_rates.md
+  section 4a).
 - ARUDD (Automated Return of Unpaid Direct Debit): a FAILED collection is
   reported back up to 2 working days AFTER the collection day (i.e. the
   company doesn't learn a DD failed until collection_date + up to 2 days),
@@ -93,6 +98,55 @@ AUDDIS_REASON_CODES = {
     3: "Account Transferred",
     5: "No Account",
 }
+
+
+# ADDACS 1: the payer cancels at their own bank. The supplier reads it from 08:00 on the working day
+# after the bank inputs it (dd_failure_basis_and_live_arrears_provision_rates.md section 4).
+ADDACS_PAYER_CANCELLED = 1
+ADDACS_AVAILABLE_LAG_DAYS = 1     # bank input -> on the supplier's ADDACS report (WORKING days)
+
+#: How often a household cancels its own mandate. None: Bacs publishes DD volumes by purpose and
+#: no ADDACS count, by reason or sector, so no rate exists to anchor to (section 4a's GAP). A
+#: caller supplies the probability from its own model, or the draw refuses.
+PAYER_CANCELLATION_PROBABILITY: Optional[float] = None
+PAYER_CANCELLATION_GAP = ("no published rate of payer-cancelled Direct Debit mandates: Pay.UK's Bacs "
+                          "statistics count DDs by purpose only, with no ADDACS reason-code split")
+
+
+@dataclass(frozen=True)
+class AddacsRecord:
+    """What a payer cancellation looks like to the supplier: a reference, a code and the date it
+    lands on the ADDACS report. It does not carry the date the household acted or why, because the
+    report does not."""
+    reference: str
+    customer_id: str
+    reason_code: int
+    reason: str
+    available_date: date
+
+
+def payer_cancellation(reference: str, customer_id: str, act_date: date) -> AddacsRecord:
+    """The ADDACS 1 record for a cancellation the household has already made at its bank."""
+    return AddacsRecord(reference=reference, customer_id=customer_id,
+                        reason_code=ADDACS_PAYER_CANCELLED,
+                        reason=AUDDIS_REASON_CODES[ADDACS_PAYER_CANCELLED],
+                        available_date=_add_working_days(act_date, ADDACS_AVAILABLE_LAG_DAYS))
+
+
+def draw_payer_cancellation(reference: str, customer_id: str, act_date: date, u: float,
+                            probability: Optional[float] = None) -> Optional[AddacsRecord]:
+    """One draw: does the household cancel its mandate on `act_date`? Its own act, not a failed
+    collection. `u` is a uniform from the caller's own named substream: the rails own no
+    randomness of their own (the R13 split above). Refuses, naming the gap, when no probability is
+    supplied and none is published."""
+    p = PAYER_CANCELLATION_PROBABILITY if probability is None else probability
+    if p is None:
+        raise ValueError(f"cannot draw a payer cancellation: {PAYER_CANCELLATION_GAP}")
+    if not 0.0 <= p <= 1.0:
+        raise ValueError(f"payer cancellation probability {p!r} is not a probability")
+    if u >= p:
+        return None
+    return payer_cancellation(reference, customer_id, act_date)
 
 
 @dataclass(frozen=True)
