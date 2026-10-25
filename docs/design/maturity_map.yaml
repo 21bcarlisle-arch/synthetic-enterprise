@@ -1864,13 +1864,13 @@
   lane: W2_customer_generator
   value_stream: meter_to_cash
   epoch: 4
-  level_current: 0
+  level_current: 1
   level_target: 2
   loop_stage: build
   # MINTED 2026-10-14. The director's ruling of 2026-10-12, on the payment-plan proposal: build the
   # world's response to a bill shock (DD4b, mandate cancellation, debt-to-prepayment) before the
-  # engine is graded. DD4b is built and graded (14633ee7b, 33322ee9c). The rails carry amendments,
-  # not cancellations (simulation/bacs_rails.py). Knowledge: dd_failure_basis_and_live_arrears_provision_rates.md.
+  # engine is graded. DD4b is built and graded (14633ee7b, 33322ee9c). L1: the rails draw an
+  # ADDACS 1 a working day on; the run does not route it yet. Knowledge: dd_failure_basis_and_live_arrears_provision_rates.md.
   # World fidelity, decided blind to company results.
   dial_inherited: 85
   provenance: director_ruling

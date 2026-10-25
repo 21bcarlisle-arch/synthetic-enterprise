@@ -392,6 +392,33 @@ claim) [S]. **A late failure is therefore possible, and it comes through a diffe
 - **A cancellation can overtake a collection already in flight.** That collection then returns
   ARUDD 1. The supplier can therefore receive two messages for one act by the customer.
 
+### 4a. ADDACS reason 1, and the payer-cancelled share against failed collections (2026-10-25, W2_41)
+
+- **What reason 1 is: ESTABLISHED.** ADDACS 1 is "instruction cancelled by payer". The payer asks
+  their own bank to cancel. The bank inputs the advice, and the supplier can read it from 08:00 on
+  the **next working day** [AG §3.2; GC]. ADDACS 0 ("cancelled, refer to payer") is the bank
+  cancelling. That is a different act, and it is not drawn as the household's own act.
+- **Bacs does not publish a count. Volumes are published by purpose only: ESTABLISHED.** Pay.UK's
+  *Bacs Processing Statistics 2025* gives 5,029,499 thousand Direct Debits in total. Of those,
+  **"Domestic fuels" is 304,227 thousand** (6.0%). A line called "Unpaid debits" sits among the
+  payment purposes, at 134,931 thousand (2024: 125,258 thousand of 4,939,796 thousand)
+  [https://www.wearepay.uk/wp-content/uploads/2026/03/Bacs_Annual-processing_stats_2025.pdf].
+  The report has no ADDACS, AUDDIS or ARUDD counts and no reason-code split. It does not split
+  "Unpaid debits" by sector, and it does not define it. **This page does not read that line as a
+  failure rate:** it is listed as a payment purpose, and what it counts is NOT ESTABLISHED.
+- **GAP: how often households cancel.** No published source gives the annual share of domestic
+  energy mandates cancelled by the payer, by any party.
+- **GAP: the payer-cancelled share against failed collections.** You would need ADDACS 1 counts
+  over ARUDD counts for the same population. Neither count is published by sector, so the ratio
+  cannot be formed. Do not form it from the two Pay.UK totals above. They count different things
+  (all-sector DD items and a purpose line), and that ratio is not a quantity.
+- **What the world does with this.** `simulation/bacs_rails.py` draws a payer cancellation as its
+  own event. It reaches the supplier as an ADDACS 1 record dated the next working day, before any
+  collection is presented against the cancelled mandate. The rate is
+  `PAYER_CANCELLATION_PROBABILITY = None`, with this GAP as its reason. The draw refuses unless the
+  caller supplies a probability from its own sourced or registered model (today, DD4b's toggled
+  cancel share).
+
 ### 5. Indemnity claims (DDIC / DDICA) under the Direct Debit Guarantee
 
 - **What they are: ESTABLISHED.** The Guarantee entitles the payer to "a full and immediate refund"
@@ -457,8 +484,8 @@ submission (S):
 **2026-10-21:** the forward-cash-forecast provision now learns P(paid) after a code 0, after a
 second code 0 inside the month, and after a missed manual payment from the company's own book. Where
 the book has never resolved one, it carries the GAP as None (`bad_debt_provisioning.md`, "Early
-warning in the forward-cash-forecast provision"). ADDACS is not read: the world sends it only behind
-an ARUDD 1 (`W2_41`, level 0).
+warning in the forward-cash-forecast provision"). ADDACS is not read. The rails can now send an ADDACS 1 record ahead of any return (§4a, `W2_41`).
+The run does not route it to the supplier yet.
 
 All of these are behind the Bacs login or held as supplier data. **The fastest route is the
 practitioner leg**: a supplier's payments team, or the director.
