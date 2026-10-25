@@ -15,7 +15,7 @@ The crisis was non-linear because five distinct feedback loops amplified an init
 
 **The SOLR mutualization-tariff loop.** SOLR costs recovered via levies hit all consumers through standing charges: ~£2.7bn total, ~£94/household. This increased the energy cost burden, adding to demand destruction on top of commodity prices.
 
-**The regulatory capital void.** Ofgem had no meaningful capital adequacy requirements pre-crisis. Most failed suppliers had insufficient capital to absorb even minor losses. Post-crisis: minimum £115 adjusted net assets per dual-fuel-equivalent customer (confirmed vs our £130 figure — possible different measurement conventions); ringfencing of RO balances mandated.
+**The regulatory capital void.** Ofgem had no meaningful capital adequacy requirements pre-crisis. Most failed suppliers had insufficient capital to absorb even minor losses. Post-crisis: minimum £115 adjusted net assets per dual-fuel-equivalent customer (*corrected 2026-10-25: £130 was the April 2023 consultation figure; Ofgem's decision of 26 July 2023 set £115 Adjusted Net Assets per dual-fuel customer (£57.50 per fuel), binding from 31 March 2025 (FRC decision §1.13; `ofgem_regulation.md` Capital target row)*; not a measurement-convention difference); ringfencing of RO balances mandated.
 
 **Simulation implication:** A realistic stress scenario must model:
 1. The cap-lag mechanism (suppliers carrying MTM losses on unhedged positions while capped tariffs prevent revenue recovery)

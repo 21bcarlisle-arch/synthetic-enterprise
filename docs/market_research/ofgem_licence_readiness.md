@@ -51,7 +51,7 @@ Source: [Electricity Supply Standard Consolidated Licence Conditions](https://ww
 Following the 2021–22 collapse of 30+ suppliers (Ofgem's own figure: cost to consumers/taxpayers of
 ~£10bn via SoLR/mutualisation), Ofgem's 26 July 2023 decision introduced, for domestic suppliers:
 - **Capital Floor: £0.**
-- **Capital Target: £130 per dual-fuel-equivalent domestic customer.**
+- **Capital Target: £115 Adjusted Net Assets per dual-fuel-equivalent domestic customer.** *corrected 2026-10-25: £130 was the April 2023 consultation figure; Ofgem's decision of 26 July 2023 set £115 Adjusted Net Assets per dual-fuel customer (£57.50 per fuel), binding from 31 March 2025 (FRC decision §1.13; `ofgem_regulation.md` Capital target row)*
 - Phased in via **milestone assessments** (Ofgem checks suppliers' progress toward the target at
   defined checkpoints, not a single pass/fail date) — the exact milestone dates were not resolved by
   this pass's sources and are a named open item below.

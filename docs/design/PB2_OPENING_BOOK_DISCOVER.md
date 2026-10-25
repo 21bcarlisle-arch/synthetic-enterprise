@@ -21,7 +21,7 @@ evidence runs out are labelled UNMEASURED and are treated as unknown, not as zer
 | | |
 |---|---|
 | **Proposed opening book (target)** | **3,217 accounts** — derived, §1 |
-| **What it is anchored to** | Ofgem's Capital Target of **£130 per dual-fuel-equivalent domestic customer** (26 July 2023 decision) and the company's own published opening treasury of **£2,467,568.06** |
+| **What it is anchored to** | Ofgem's Capital Target of **£130 per dual-fuel-equivalent domestic customer** (26 July 2023 decision) [*corrected 2026-10-25: £130 was the April 2023 consultation figure; Ofgem's decision of 26 July 2023 set £115 Adjusted Net Assets per dual-fuel customer (£57.50 per fuel), binding from 31 March 2025 (FRC decision §1.13; `ofgem_regulation.md` Capital target row)*; the 3,217 derived from £130 has not been re-derived here] and the company's own published opening treasury of **£2,467,568.06** |
 | **Affordability verdict** | **NOT affordable today.** The AO12 probe measured the settlement build dying at **465 customer-years** under its 3,072 MB ceiling; 3,217 is 6.9× that. Cost governs, per the ruling. |
 | **Recommended interim** | The largest N that completes a **green full shipped run**, established by bisection. Until that measurement exists, **465 is the fail-closed cap** — itself ~36× today's book, so the director's "materially larger than 13" is satisfied by the interim alone. |
 | **Population floor this implies for PB1** | **N_pop ≥ 18,756 premises** — derived from the funnel's own quotes-per-win, §4 |
@@ -41,7 +41,7 @@ A supplier that starts with N accounts must, out of its own opening capital, do 
 
 1. **Win** them — the acquisition path costs real money per account won (§3), and
 2. **Capitalise** them — Ofgem's Minimum Capital Requirement decision (26 July 2023) sets a
-   **Capital Floor of £0 and a Capital Target of £130 per dual-fuel-equivalent domestic customer**,
+   **Capital Floor of £0 and a Capital Target of £130 per dual-fuel-equivalent domestic customer** [*corrected 2026-10-25: £130 was the April 2023 consultation figure; Ofgem's decision of 26 July 2023 set £115 Adjusted Net Assets per dual-fuel customer (£57.50 per fuel), binding from 31 March 2025 (FRC decision §1.13; `ofgem_regulation.md` Capital target row)*],
    phased in by milestone assessment. Source: `docs/market_research/ofgem_licence_readiness.md` §2,
    with the Ofgem decision-document URLs quoted there. The figure is **already load-bearing in this
    repo**, not imported for this argument: `company/finance/treasury.py::MCR_PER_ACCOUNT = 130.0`

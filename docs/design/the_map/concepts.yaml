@@ -180,6 +180,35 @@ concepts:
     page: switching-mechanics
     gap: {world: "the world has no failed or erroneous switch (registration_loss_seam GAPS)", wall: "no failed switch crosses the seam", supplier: "nothing to handle while the world sends none"}
 
+  - id: capital.mcr
+    prefLabel: Minimum capital requirement
+    altLabel: [capital target, capital floor, adjusted net assets, mcr]
+    definition: A domestic supplier holds at least zero, and aims for £115, of adjusted net assets per dual-fuel customer, from 31 March 2025.
+    match: ["SLC 4B; Ofgem financial resilience decision (26 Jul 2023)"]
+    placed: [company/Capital]
+    page: suppliers-accounts-and-capital
+    supplier: [saas.growth_mandate]
+    gap: {world: "capital is the company's own; the world holds no rule for it", wall: "nothing crosses: the company reads its own balance sheet"}
+
+  - id: capital.ccb_coverage
+    prefLabel: Credit balance cash coverage
+    altLabel: [cash coverage trigger, customer credit balances, ringfencing]
+    definition: Ofgem may ringfence customers' credit balances when a supplier's cash falls below 20% of its gross fixed direct debit credit balances.
+    match: ["Ofgem financial resilience decision (26 Jul 2023): Cash Coverage Trigger"]
+    placed: [company/Capital, supplier/Collect]
+    page: suppliers-accounts-and-capital
+    gap: {world: "a direction is the regulator's; the world issues none", wall: "nothing crosses: cash and balances are the company's own", supplier: "no module computes cash against fixed-DD credit balances"}
+
+  - id: accounts.segmental_statement
+    prefLabel: Consolidated Segmental Statement
+    altLabel: [segmental statement, segment profitability, supply ebit]
+    definition: An audited statement separating supply from other activities down to EBIT, reconciled to the statutory accounts.
+    match: ["SLC 19A; Ofgem CSS modification (Sep 2025)"]
+    placed: [company/Accounts]
+    page: suppliers-accounts-and-capital
+    supplier: [company.finance.segment_profitability]
+    gap: {world: "an accounting statement has no world rule", wall: "nothing crosses: the company's own ledgers"}
+
   - id: build.mutation
     prefLabel: Checks that can fail
     altLabel: [mutation, neuter test]

@@ -1122,6 +1122,50 @@
           "body": "It does not grade the simulated world's switching level against the quarterly bands; gb_switching_rate_denominators.md holds the matched numerator and denominator for that grade. It does not give a save rate, an objection rate after 2022 or an erroneous-transfer rate after 2022, and supplies none. It does not cover non-domestic switching, where contractual objections apply, or the economics of acquiring and keeping a customer, which are on the acquisition and retention page."
         }
       }
+    },
+    "suppliers-accounts-and-capital": {
+      "meta": {
+        "topic_id": "suppliers-accounts-and-capital",
+        "title": "What a supplier must hold: revenue it has not billed, debt it will not collect, customers' money and the capital behind them",
+        "subtitle": "A supplier earns revenue as energy is used, holds its customers' credit balances, and since 31 March 2025 must hold £115 of adjusted net assets for every dual-fuel customer. The 2021-22 failures were what happened when none of that was watched.",
+        "wall_placement": "Public-reality commons only. Every figure comes from a published source: Ofgem decisions, data and resilience reports, audited supplier accounts (Centrica, Octopus) and their Consolidated Segmental Statements, and CRA's report for Energy UK. The statements about the company are about its code and are marked as read, not run.",
+        "claim_freshness": {
+          "last_verified": "2026-10-25",
+          "written": "2026-10-25",
+          "source": "Ofgem financial resilience decision (Jul 2023), FRC transparency report (Apr 2025), supplier financial resilience report (Jun 2026), customer credit balance data (2025, 2026), debt-related costs Appendix 2 (May 2025) and historical review (Mar 2026), EBIT allowance decision (Aug 2023), CSS modification (Sep 2025); Centrica 2019 and 2024 accounts and CSS 2016-2023; Octopus Energy Ltd FY2024 accounts; CRA for Energy UK (2023)",
+          "note": "Step 3 of the owed pages in the director's map steer of 24 Oct 2026, from the advisor's cited evidence pack. Unbilled revenue and bad debt have their own pages; this one adds capital, credit balances, margins and collateral."
+        }
+      },
+      "rungs": {
+        "headline": {
+          "heading": "The claim, in one sentence",
+          "body": "Since 31 March 2025 a GB domestic supplier must hold at least £0 and aim for £115 of adjusted net assets per dual-fuel customer (Ofgem consulted on £130 and decided £115), and Ofgem may ringfence its customers' credit balances if its cash falls below 20% of the balances held for fixed direct debit customers."
+        },
+        "plain": {
+          "heading": "In plain terms",
+          "body": "A supplier's books differ from its bills in three ways that matter. First, it earns revenue as the energy is used, not when it sends the bill, so at any year end it carries energy supplied and not yet billed: about 5-8% of a year's revenue at Centrica and Octopus. Second, some of what it bills is never paid; it sets aside a provision for that and writes it off later. In normal years that cost about 1-2% of residential revenue; in 2023-24 British Gas's was 2.3-3.1%. Third, its direct-debit customers pay ahead in summer, so it holds their money: about £3bn across the market on average, £1.9bn at the March low.\nWhen 28 suppliers failed in 2021-22, many had spent those credit balances and held almost no capital. Ofgem's answer, in force since 31 March 2025, is a capital rule (a floor of zero net assets and a target of £115 per dual-fuel customer) and a power to ringfence customers' money. By March 2026, 21 of 24 suppliers were above the target."
+        },
+        "theory": {
+          "heading": "How it works",
+          "body": "REVENUE. Under IFRS 15 energy supply is recognised as it is delivered; the gap between delivered and billed is accrued (unbilled) income, estimated from reads, consumption history, weather and settlement data, and trued up by industry reconciliation (up to £30m at Centrica in 2019).\nBAD DEBT. Under IFRS 9 a supplier provides for lifetime expected credit loss on what it is owed, by a matrix of customer age, payment method and live or final status. The price cap counts the profit-and-loss charge: write-offs and recoveries plus movements in provisions. Octopus's provision covered about 44% of gross trade debtors in FY24.\nCREDIT BALANCES. Fixed direct debits level a seasonal bill, so balances rise in summer and fall in winter. Since 2023 Ofgem may direct ringfencing when a supplier is below its Capital Target or its cash is below 20% of gross fixed-DD credit balances (the Cash Coverage Trigger). In March 2026 the market held £2.7bn of cash against £1.9bn of balances.\nCAPITAL. Adjusted Net Assets are tangible fixed assets plus current assets less liabilities, plus approved Alternative Sources of Capital (rated guarantees and facilities with at least 12 months' tenor). Below the £0 Floor is a breach; between Floor and £115 Target a supplier needs a credible Capitalisation Plan and faces Transition Controls.\nMARGINS. SLC 19A requires an audited Consolidated Segmental Statement that separates supply from everything else down to EBIT. The cap allowed the CMA's 1.9% EBIT until September 2023, then capital employed (£358 per customer) at 12.3%, about 2.5-2.6% of the direct debit cap in 2026."
+        },
+        "expected_shape": {
+          "heading": "What the data should look like",
+          "body": "A credible company book should show these shapes against the record:\n• Unbilled income at year end of about 5-8% of annual revenue.\n• A bad debt charge of about 1-2% of residential revenue in normal years and 2.3-3.1% in the crisis years.\n• A provision covering about a third to under half of gross trade debtors in a stressed book.\n• Direct debit credit balances high in late summer and low in late winter.\n• Adjusted net assets of at least £115 per dual-fuel customer from 31 March 2025, and cash above 20% of fixed-DD credit balances.\n• A domestic EBIT margin near the cap allowance (1.9% to 2023, about 2.5% after), with single-fuel years anywhere from about -4% to +15%."
+        },
+        "live_evidence": {
+          "heading": "Live evidence",
+          "body": "WHAT IS SOURCED. Revenue policy and unbilled shares (Centrica, Octopus), bad debt charges and coverage, the cap's debt allowances, credit balances and ringfencing, the capital rule and outcomes to March 2026, segmental margins and the EBIT allowance, working capital and collateral. Every figure and URL is in docs/market_research/suppliers_accounts_and_capital_2026-10-25.md; Centrica's and EDF's segmental statements are read in CSS_BENCHMARKS.md; the P&L cost structure and IFRS 9 practice in supplier_financial_reporting.md.\nWHAT THE COMPANY DOES, READ FROM CODE AND NOT RUN. It sizes growth against the £115 Capital Target from 31 March 2025, in one place. Nothing computes cash against fixed-DD credit balances. An uncalled capital module states thresholds no source supports (a 1.5%-of-revenue wind-down reserve, a 10% equity ratio); no run reads them. Six documents that still called £130 the decided target were corrected on 25 October 2026."
+        },
+        "residuals": {
+          "heading": "Where our picture is still weak",
+          "body": "Eight things are missing. (1) Debt sale prices: no primary source. (2) E.ON, EDF and OVO accounts were not read. (3) A British Gas bad-debt series for 2016-2022, so the normal-years band is thin. (4) Market-wide segmental margins for 2016-2024. (5) The text of IFRS 15 and IFRS 9 was not fetched. (6) Centrica's 2022-2025 accrued income. (7) A monthly credit-balance series. (8) No source supports a 2.4% EBIT allowance, and none is used."
+        },
+        "scope_delta": {
+          "heading": "What this page does not yet establish",
+          "body": "It does not grade the company's own book against these bands; that is owed. It does not explain unbilled revenue or bad-debt provisioning in depth, which have their own pages. It does not cover the hedge book's collateral beyond the per-customer figures, which belong to the hedging page."
+        }
+      }
     }
   }
 }

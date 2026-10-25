@@ -88,7 +88,7 @@ This means:
 ```
 net_assets_per_customer = treasury / active_customer_count
 ```
-Add to administration check: flag when < £130 (capital plan required) and < £0 (licence breach).
+Add to administration check: flag when < £115 (capital plan required; *corrected 2026-10-25: £130 was the April 2023 consultation figure; Ofgem's decision of 26 July 2023 set £115 Adjusted Net Assets per dual-fuel customer (£57.50 per fuel), binding from 31 March 2025 (FRC decision §1.13; `ofgem_regulation.md` Capital target row)*) and < £0 (licence breach).
 
 ---
 

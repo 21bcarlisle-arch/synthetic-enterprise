@@ -189,3 +189,15 @@ On a statutory basis, BGE's adjusted operating margin was 2.5% in 2024 and 4.2% 
 6. **Centrica 2022–2025 accrued energy income:** those PDFs would not parse.
 7. **Monthly CCB series:** sits on the Ofgem data portal and was not retrieved.
 8. **Brief vs source:** the Capital Target is £115, not the consulted £130, and no source supports an EBIT allowance of "2.4%".
+## Done
+
+2026-10-25, autonomous worker, claim `map-steer-knowledge-pages-and-forward-plan`.
+
+- Published as `site/knowledge/suppliers-accounts-and-capital/`, with the pack kept as the note
+  `docs/market_research/suppliers_accounts_and_capital_2026-10-25.md` plus a read-from-code section.
+- The £130 correction it carries: code already used £115 (`saas/growth_mandate.py`); six documents
+  still called £130 the decided target and are corrected beside each claim.
+- Three concepts registered: `capital.mcr`, `capital.ccb_coverage`, `accounts.segmental_statement`.
+  Found: nothing computes the Cash Coverage Trigger, and the uncalled `company/risk/capital_adequacy.py`
+  states thresholds no source supports.
+- The company's own book is NOT graded against the bands here.

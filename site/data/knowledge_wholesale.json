@@ -1583,6 +1583,22 @@
       ],
       "theme": "billing",
       "why": "How a supplier books money it will not collect decides the cost it reports. The company's accounts follow the same rule."
+    },
+    {
+      "id": "suppliers-accounts-and-capital",
+      "title": "What a supplier must hold: revenue it has not billed, debt it will not collect, customers' money and the capital behind them",
+      "kind": "page",
+      "blurb": "Revenue is earned as energy is used, about 5-8% of a year's revenue sits unbilled at year end, and since 31 March 2025 a supplier must hold £115 of adjusted net assets per dual-fuel customer, with customers' credit balances watched against its cash.",
+      "rate_of_change": "medium",
+      "reviewed": {
+        "last_verified": "2026-10-25",
+        "source": "see the page's own sources"
+      },
+      "atoms": [
+        "PB2_opening_book_won_not_assigned"
+      ],
+      "theme": "billing",
+      "why": "The company sizes its growth against the £115 Capital Target, and nothing in it yet watches its cash against customers' credit balances."
     }
   ],
   "edges": [
@@ -1765,6 +1781,16 @@
       "from": "debt-and-collections",
       "type": "drives",
       "to": "switching-mechanics"
+    },
+    {
+      "from": "unbilled-energy-and-revenue-assurance",
+      "type": "part-of",
+      "to": "suppliers-accounts-and-capital"
+    },
+    {
+      "from": "bad-debt-provisioning",
+      "type": "part-of",
+      "to": "suppliers-accounts-and-capital"
     }
   ],
   "review_policy": {
