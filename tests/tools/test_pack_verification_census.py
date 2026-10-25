@@ -77,3 +77,12 @@ def test_the_real_packs_are_found_and_some_are_tallied():
     census = pvc.build()
     assert len(census["packs"]) >= 20
     assert any(r["tally_recorded"] for r in census["packs"])
+
+
+def test_a_report_that_names_other_packs_is_not_itself_a_pack(tmp_path):
+    """Defect: the advisor's verification report quotes the packs' [unverified] tags and was
+    counted as a 29th pack with no page and no tally."""
+    root = _tree(tmp_path, None)
+    (root / pvc.ADVISOR / "DIRECTOR_EVIDENCE_VERIFICATION_OF_IT_2026-10-25.md").write_text(
+        f"## Pack 1: {PACK}\n| 1 | a figure [unverified] | CONFIRMED |\n", encoding="utf-8")
+    assert [r["pack"] for r in pvc.build(root)["packs"]] == [PACK]

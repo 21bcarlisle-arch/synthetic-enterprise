@@ -1824,3 +1824,33 @@ and did not add it to the control's input allowlist. It is a bool switch, the sa
 
 **Status:** OPEN and BLOCKING. It closes when a published run with the switch on grades through
 the validator. That is the next publish, and the second seed above is its companion check.
+
+## 2026-10-25 (21:45Z): the second-seed arm. Pre-registered before it runs
+
+**Seed.** `SE_POPULATION_SEED=61101`, listed in `varied_population_draw_activation.json` under the
+director's 2026-10-10 ruling. C30 has read it, but under a different question. Nothing about the
+arrears overlay has been read on it, so this grade is not post hoc. The book is the production
+size (a full `run_phase4c_on_phase2b.main`), not a 40-founder seed-family book. C30 ran the same
+full shape on 611xx.
+
+**Arm and grade.** The same `/var/tmp/arrears-overlay-out/arm.py` and `grade.py`, unchanged. The
+run is from a worktree at `c072f4a7cb` (the switch is already on there, and arm.py sets it
+explicitly anyway). The artefact is `/var/tmp/arrears-overlay-out/arm_s61101.json`.
+
+**What decides.** Leg (c) as filed: end-2023 growth in arrears per indebted account is above both
+the book's 2017-19 baseline and its end-2022 growth. If (c) fails on this seed, the switch goes
+back off, as the 21:00Z note says. If the run cannot produce a reading (the share is None at any
+2020-24 year end, so (b) fails), that is "we cannot tell", not a pass. The switch then stays on
+pending a third seed, and the finding says so.
+
+**Predictions (made before the run).**
+1. (a) and (b) hold. They are mechanical, and nothing about them depends on the seed.
+2. (c) holds, at about 0.6. The 2022-23 bill step is in the world, not the cast, so a re-drawn book
+   should carry it. Against that, 33 accounts is few, and the default book's 2022 growth (-0.11)
+   is what made (c) easy. I expect the end-2023 indebted count to be between 10 and 50.
+3. The validator's pooled crisis share on the on arm is within 0.3 points of the default book's
+   1.12%. This is recorded and decides nothing.
+
+**Limit, stated now.** The director's 10 Oct condition asks for results to be split into founders
+and campaign wins. grade.py reads the whole book's provision series and cannot split it. So this
+grade answers "does the step survive a re-drawn cast", not "whose step is it".

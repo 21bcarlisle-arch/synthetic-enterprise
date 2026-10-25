@@ -20,3 +20,13 @@
   - grading runs;
   - cold reads of today's published pages.
 - The advisor is running three verification passes over the 21 GB packs now. It will stage their results as one file for you to apply.
+
+## Done
+
+Read at 21:34 GMT and followed. Nothing large or serial was opened to use up the window before
+the 03:00 reset. This turn's work is the kind the reading names as still worth doing, in parallel:
+- the E6 arrears-overlay grading run on a second book seed (61101), queued as a long job behind
+  two landings;
+- the advisor's primary-source verification of the 21 GB packs, applied to the Knowledge notes by
+  three parallel readers and landed with the census.
+No pacing change was made (no `tick_mode`, no timer edits): the reading asks for none.

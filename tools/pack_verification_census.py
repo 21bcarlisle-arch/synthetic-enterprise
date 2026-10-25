@@ -100,11 +100,17 @@ def _title(pack_name: str) -> str:
     return " ".join(words)
 
 
+PACK_NAME = re.compile(r"DIRECTOR_EVIDENCE_[A-Z0-9_]+_2026-10-25\.md")
+
+
 def packs(root: Path = ROOT) -> list[Path]:
     found = {p.name: p for p in sorted((root / ADVISOR).glob("DIRECTOR_EVIDENCE_*_2026-10-25.md"))}
     for p in sorted((root / ADVISOR / "done").glob("DIRECTOR_EVIDENCE_*_2026-10-25.md")):
         found.setdefault(p.name, p)
-    return [found[k] for k in sorted(found)]
+    # A file that names another pack is a report ABOUT packs (the advisor's verification pass of
+    # 25 Oct), not a pack: its [unverified] tags quote theirs, and counting them double-counts.
+    return [found[k] for k in sorted(found)
+            if not set(PACK_NAME.findall(found[k].read_text(encoding="utf-8"))) - {k}]
 
 
 def build(root: Path = ROOT) -> dict:
