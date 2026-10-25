@@ -465,10 +465,10 @@ its own ledger and little else. Nothing forecasts a customer's debt cashflow.
 - **`simulation/plan_offer_response.py`**: take-up, keep rate and instalment are all `None`, with
   reasons (ll. 71–88). It is correct and honest. Every plan offer answers `accepted=None`.
 - **`simulation/debt_objection.py`**: an SLC 14 block on churn.
-  - `DEBT_OBJECTION_BLOCKED_SHARE` is 0.2833, from 2013–15 data.
-  - It is wired into `customer_events.py:991–1018` through `WorldDebtBook`.
-  - It is world-only. The company neither decides nor sees the objection (named gap 2).
-  - DAP is prose only.
+  - *Corrected 2026-10-25 (EP12):* the world no longer draws it. The 0.2833 blocked share and
+    `WorldDebtBook` are gone; the company decides from its own ledger
+    (`company/market/transfer_objection_register.decide_debt_objection`, with the £500 DAP ceiling
+    in code) and the world cancels the switches it objected to.
 - **`simulation/final_bill_outcome.py`**: P5a gone-away debt.
   - It is anchored to an Ofgem figure of "25–39%" (press release, 30 Oct 2025).
   - The per-move rate is drawn from a Beta distribution with mean 0.12, a declared calibration

@@ -30,6 +30,13 @@ the Standard Licence Conditions (SLC 14) text is a named gap:
   UNPAID_DEBT, METER_DISPUTE, CONTRACT_DISPUTE, COOLING_OFF,
   REGULATORY_RESTRICTION.
 
+THE DEBT OBJECTION IS THE COMPANY'S DECISION (EP12, 2026-10-25). `decide_debt_objection` reads
+this supplier's own ledger at the switch request and answers it under `DebtObjectionPolicy`; the
+world only completes or cancels the switch. Grounds and figures: the Knowledge page
+`docs/market_research/switching_mechanics_2026-10-25.md` section 2, and the rows of
+`docs/market_research/domestic_debt_objection_rates_gb.md` cited at each constant. SLC 14.4(a)
+does establish the debt ground, so UNPAID_DEBT is no longer among the unestablished grounds above.
+
 Connects to: css_performance_register.py (overall CSS performance),
 erroneous_transfer.py (wrongful transfers).
 """
@@ -212,3 +219,76 @@ class TransferObjectionRegister:
             + str(n_open) + " open, "
             + str(n_invalid) + " invalid)."
         )
+
+
+#: SLC 14: no debt objection for a charge outstanding 28 days or fewer since the customer was told
+#: of it in writing. The bill is the written notice, so the clock is days since the bill.
+#: Source: docs/market_research/domestic_debt_objection_rates_gb.md row 17.
+SLC14_MIN_DAYS_SINCE_NOTICE = 28
+
+#: Debt Assignment Protocol: a prepayment customer's debt below GBP 500 moves with them, so it is
+#: no ground to object. Source: docs/market_research/domestic_debt_objection_rates_gb.md row 19
+#: (the 2016 figure; not re-verified for later years, page row 145).
+PREPAYMENT_DAP_CEILING_GBP = 500.0
+
+#: Published supplier practice: informal de-minimis thresholds "ranging up to GBP 200 per fuel",
+#: below which many suppliers let the transfer go. This company takes the top of that published
+#: range; the page gives no other point in it. Source:
+#: docs/market_research/domestic_debt_objection_rates_gb.md row 16 (Ofgem decision letter p.3).
+DE_MINIMIS_GBP_PER_FUEL = 200.0
+
+
+@dataclass(frozen=True)
+class DebtObjectionPolicy:
+    """This supplier's own objection policy. `de_minimis_gbp_per_fuel=None` objects on any debt
+    the licence permits."""
+    de_minimis_gbp_per_fuel: Optional[float] = DE_MINIMIS_GBP_PER_FUEL
+
+
+@dataclass(frozen=True)
+class DebtObjectionDecision:
+    objected: bool
+    #: Why, in words a refusal can be checked against.
+    reason: str
+    #: Debt on bills older than the SLC 14 clock -- what an objection could be raised for.
+    objectionable_debt: float
+    record: Optional[TransferObjectionRecord] = None
+
+
+def decide_debt_objection(
+    register: TransferObjectionRegister, supply_point_id: str, switch_ref: str,
+    request_day: dt.date, unpaid_bills_by_age, *, prepayment: bool, fuels: int,
+    policy: DebtObjectionPolicy = DebtObjectionPolicy(),
+) -> DebtObjectionDecision:
+    """Answer one domestic switch request on the debt ground, from this company's own ledger.
+
+    `unpaid_bills_by_age` is `(unpaid GBP, days since the bill)` per bill still owed on the
+    account, as the company's ledger holds it on `request_day` (`None`: never billed). `fuels`
+    is how many fuels the account carries.
+
+    THE DE-MINIMIS IS PER FUEL AND THE LEDGER IS PER ACCOUNT, so a dual-fuel account is objected
+    to only when its objectionable debt exceeds the threshold times its fuels: then at least one
+    fuel's share must exceed it. One fuel over the line with the other clear is let go, so this
+    can only object less often than a per-fuel ledger would. An accepted objection on either fuel
+    cancels both under CSS's one-fail-all-fail, so one decision answers the account.
+    """
+    owed = sum(gbp for gbp, days in (unpaid_bills_by_age or ())
+               if days > SLC14_MIN_DAYS_SINCE_NOTICE)
+    owed = round(owed, 2)
+    if owed <= 0:
+        return DebtObjectionDecision(False, "no debt outstanding more than "
+                                     f"{SLC14_MIN_DAYS_SINCE_NOTICE} days since its bill", owed)
+    if prepayment and owed < PREPAYMENT_DAP_CEILING_GBP:
+        return DebtObjectionDecision(False, "prepayment debt under the Debt Assignment Protocol "
+                                     f"ceiling of GBP {PREPAYMENT_DAP_CEILING_GBP:.0f} moves "
+                                     "with the customer", owed)
+    if (policy.de_minimis_gbp_per_fuel is not None
+            and owed <= policy.de_minimis_gbp_per_fuel * max(fuels, 1)):
+        return DebtObjectionDecision(False, f"GBP {owed:.2f} is within the de-minimis of GBP "
+                                     f"{policy.de_minimis_gbp_per_fuel:.0f} per fuel", owed)
+    record = register.raise_objection(
+        supply_point_id, switch_ref, request_day, ObjectionGround.UNPAID_DEBT,
+        notes=f"GBP {owed:.2f} outstanding more than {SLC14_MIN_DAYS_SINCE_NOTICE} days",
+        switch_request_submitted=request_day, domestic=True)
+    return DebtObjectionDecision(True, f"GBP {owed:.2f} outstanding more than "
+                                 f"{SLC14_MIN_DAYS_SINCE_NOTICE} days since its bill", owed, record)

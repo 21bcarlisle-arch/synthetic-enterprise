@@ -39,6 +39,7 @@ from interface.contracts.registration_loss_seam import (
     SCHEMA_VERSION,
     RegistrationLossNotice,
     emits_pending_notice,
+    latest_submission_date,
     loss_notice_observed_at,
     loss_notice_sender,
     loss_notice_type,
@@ -79,6 +80,12 @@ def asap_route_share() -> float:
         "route (interface/contracts/registration_loss_seam.py::latest_submission_date); give the "
         "after-cooling-off and dated routes a submission date before applying a share"
     )
+
+
+def switch_request_day(supply_effective_from_date: dt.date) -> dt.date:
+    """The day the losing supplier learns of a switch request: the latest submission day the
+    rules allow, the same ASAP floor the Invitation to Intervene is sent on."""
+    return latest_submission_date(supply_effective_from_date)
 
 
 def supply_points_on_supply(

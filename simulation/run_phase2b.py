@@ -119,6 +119,10 @@ from company.interfaces.supply_book import (
 )
 from company.interfaces.tou_offer import request_tou_offer
 from company.interfaces.tpi_commission import build_tpi_commission
+from company.interfaces.transfer_objection import (
+    open_transfer_objection_register,
+    request_debt_objection,
+)
 from company.policy.decision_policy import (
     CURRENT_POLICY,
     DEFAULT_BELIEF_OWN_BOOK,
@@ -180,7 +184,7 @@ from simulation.customer_events import (
 from simulation.dd_review_in_loop import InLoopDDReview
 from simulation.dd_shock_response import RECORD_KEY as _DD_SHOCK_RECORD_KEY
 from simulation.dd_shock_response import DDShockResponseBook, respond_to_told_amount
-from simulation.debt_objection import WorldDebtBook
+from simulation.debt_objection import apply_objection, debt_objection_active, objection_request_day
 from simulation.demand_model import (
     build_demand_shape,
     eac_scaled_shape_fn,
@@ -2561,9 +2565,9 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     _payment_triad.legs_still_posting = lambda household: {
         leg for leg in (household, household + GAS_LEG_ID_SUFFIX)
         if _pending_starts.get(leg) or leg in _payment_month_open}
-    # SLC 14: the world's own record of who owes, read from the triad's TRUTH (never the company's
-    # ledger), for the debt objection at the renewal roll. See `simulation/debt_objection.py`.
-    _world_debt_book = WorldDebtBook(_payment_triad.records)
+    # SLC 14: the company's own objection register. It decides a debt objection from its OWN
+    # ledger at the switch request; the world only completes or cancels the switch (EP12).
+    _transfer_objection_register = open_transfer_objection_register()
     # The company's own method register, as the renewal price reads it, for every resi account the
     # book's default rate learns over (`DecisionPolicy.renewal_default_belief`), ON A DATE: a DD the
     # supplier stopped is pay-on-receipt from its notice on, and the learner reads each provision
@@ -4368,12 +4372,6 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 # ACTUALLY cost -- `company_fwd` is the company's belief about that number and
                 # would make the rival's costs a function of the company's forecasting skill.
                 wholesale_gbp_per_mwh=forward_price,
-                # Domestic only: SLC 14's domestic objection. Credit meters only is the book's own
-                # filter (a prepayment debt moves under the Debt Assignment Protocol).
-                debt_objection_eligible=(
-                    segment_for_churn == "resi"
-                    and _world_debt_book.owes_objectionable_debt(
-                        billing_account, date.fromisoformat(term_start_str))),
             ) if _rolled else None
             event = (roll_lifecycle_event(cid, term_start_str, commodity, **_roll_kwargs)
                      if _rolled else None)
@@ -4429,6 +4427,19 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 # Its thinner margin does not teach the book's premium, for the reason a save's
                 # does not (director, 2026-10-08): stayers must not pay for the discount.
                 _held_on_a_save = event is None or event["event_type"] == "renewed"
+            # THE DEBT OBJECTION IS THE COMPANY'S (SLC 14, EP12). A domestic household's switch
+            # request reaches the company, which answers it from its own ledger and method register;
+            # an objection cancels the switch. The world drew this block itself until 2026-10-25.
+            if (event is not None and event["event_type"] == "churned"
+                    and segment_for_churn == "resi" and debt_objection_active()):
+                _request_day = objection_request_day(date.fromisoformat(term_start_str))
+                _owed = _payment_triad.receivable(billing_account, _request_day)
+                _objection = request_debt_objection(
+                    _transfer_objection_register, billing_account, _request_day.isoformat(),
+                    None if _owed is None else _owed["unpaid_bills_by_age"],
+                    prepayment=_book_method_of(billing_account, _request_day) == "prepayment",
+                    fuels=len(_fuels_of_household.get(household_of(cid), ())) or 1)
+                event = apply_objection(event, _objection["objected"])
             _pending_notice_sent = False
             # THE RIVAL NEVER SEES A SAVE (2026-10-14). A save is a reactive price offered only to a
             # household that has already chosen to leave; it is on no tariff list a rival or a
