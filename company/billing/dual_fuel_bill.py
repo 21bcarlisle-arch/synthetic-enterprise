@@ -99,6 +99,29 @@ def _load_vat_rates() -> dict[str, float]:
 
 VAT_RATES = _load_vat_rates()
 
+
+def _load_domestic_fuel_exceptions() -> tuple[tuple[str, date, date, float], ...]:
+    """`(fuel, from, to, rate)` for each dated exception the commons sets to the domestic band.
+
+    Only entries naming a `fuel` are supplies of fuel and power; the energy-saving-materials
+    exception sits in the same list and is not one. Raises on a malformed entry, for the reason
+    `_load_de_minimis` gives: a tax rate has no invented default.
+    """
+    out = []
+    for entry in json.loads(_VAT_RATES_COMMONS.read_text()).get("dated_exceptions", []):
+        if "fuel" not in entry:
+            continue
+        band = entry.get("rate_band")
+        if band not in VAT_RATES:
+            raise ValueError(f"{_VAT_RATES_COMMONS}: dated exception {entry.get('what')!r} names "
+                             f"no published band ({band!r})")
+        out.append((entry["fuel"], date.fromisoformat(entry["from"]),
+                    date.fromisoformat(entry["to"]), VAT_RATES[band]))
+    return tuple(out)
+
+
+DOMESTIC_FUEL_VAT_EXCEPTIONS = _load_domestic_fuel_exceptions()
+
 #: SEGMENT DEFAULTS, DERIVED FROM THE PUBLISHED BANDS rather than restated as literals. The mapping
 #: from a market segment to a band is this lane's READING and is where the simplification lives:
 #: `resi` is domestic and unconditionally reduced-rated; `I&C` is business at scale and never near

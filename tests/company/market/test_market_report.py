@@ -1,8 +1,14 @@
 """Phase 125: Ofgem market benchmark tests."""
 
+from datetime import date
+
+from company.billing.annual_consumption_estimate import tdcv_kwh
 from company.market.market_report import (
-    get_market_elec_rate, get_market_gas_rate, get_switching_rate,
-    market_benchmark, compare_to_market,
+    compare_to_market,
+    get_market_elec_rate,
+    get_market_gas_rate,
+    get_switching_rate,
+    market_benchmark,
 )
 
 
@@ -30,7 +36,7 @@ def test_market_benchmark_structure():
 
 def test_market_benchmark_elec_annual_reasonable():
     b = market_benchmark(2024)
-    # 24.5p/kWh x 3100 kWh / 100 = £759.50
+    # 24.5p/kWh x 2,700 kWh (the MEDIUM TDCV in force mid-2024) / 100 = £661.50
     assert 500 < b["elec_annual_gbp_typical"] < 1500
 
 
@@ -138,3 +144,19 @@ def test_compare_just_above_three_pct_threshold():
     own_rate = market_2024 * 1.031  # +3.1%
     result = compare_to_market(own_rate, 5.8, 2024)
     assert result['positioning'] == 'ABOVE_MARKET'
+
+
+def test_the_typical_bill_reads_the_tdcv_in_force_that_year():
+    """DEFECT: 3,100 kWh electricity (2015) and 11,500 kWh gas (2023) applied to every year. Gas
+    moved 12,500 -> 12,000 -> 11,500 -> 9,500 and electricity 3,100 -> 2,900 -> 2,700 -> 2,500,
+    so a single pair is wrong in most years.
+
+    MUTATION: put the 3100 / 11500 literals back and the 2016 gas and 2024 electricity legs red."""
+    for year in (2016, 2020, 2024, 2026):
+        b = market_benchmark(year)
+        for fuel, rate_key, gbp_key in (("electricity", "elec_unit_rate_p_kwh", "elec_annual_gbp_typical"),
+                                        ("gas", "gas_unit_rate_p_kwh", "gas_annual_gbp_typical")):
+            kwh = tdcv_kwh(fuel, "MEDIUM", date(year, 7, 1))
+            assert b[gbp_key] == round(b[rate_key] * kwh / 100, 0), (year, fuel)
+    assert market_benchmark(2016)["gas_annual_gbp_typical"] == round(3.5 * 12500 / 100, 0)
+    assert market_benchmark(2024)["elec_annual_gbp_typical"] == round(24.5 * 2700 / 100, 0)

@@ -129,6 +129,10 @@ def cap_ceiling_ex_vat(
     Gas has one benchmark, so `multi_register` on gas is refused rather than ignored.
 
     `net_of_epg` is passed through to the published lookup; see `get_cap_unit_rate_for_date`.
+
+    The VAT divided out is the rate on `on_date` for this fuel: domestic electricity is zero-rated
+    from 2026-10-01 to 2027-03-31, and dividing that window's cap by 1.05 understated the
+    electricity ceiling by about 4.8%.
     """
     if multi_register:
         if commodity != "electricity":
@@ -136,7 +140,9 @@ def cap_ceiling_ex_vat(
         inc_vat = get_multi_register_cap_unit_rate_for_date(on_date, net_of_epg=net_of_epg)
     else:
         inc_vat = get_cap_unit_rate_for_date(commodity, on_date, net_of_epg=net_of_epg)
-    return None if inc_vat is None else inc_vat / (1.0 + vat_rate_for_segment("resi"))
+    if inc_vat is None:
+        return None
+    return inc_vat / (1.0 + vat_rate_for_segment("resi", fuel=commodity, on=on_date))
 
 # The premium and the surcharge both learn from COMPLETED terms, so neither can
 # apply to a customer's first one. The world used to spell this as

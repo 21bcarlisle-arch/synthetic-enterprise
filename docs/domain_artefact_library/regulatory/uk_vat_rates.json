@@ -2,7 +2,7 @@
   "artefact": "uk_vat_rates",
   "version": 1,
   "published_by": "HM Government (GOV.UK)",
-  "what_this_is": "THE LAW, NOT A READING OF IT. The three current UK VAT rates as percentages, and the fact that domestic fuel and power falls in the reduced band. Nothing here decides WHICH rate a given supply attracts — that is a reading, and for fuel and power it needs `vat_fuel_and_power_de_minimis.json` as well as this.",
+  "what_this_is": "THE LAW, NOT A READING OF IT. The three current UK VAT rates as percentages, the fact that domestic fuel and power falls in the reduced band, and the dated exceptions the law sets to that band (`dated_exceptions`; an entry with a `fuel` is a supply of that fuel, one without is not fuel or power). Nothing here decides WHICH rate a given supply attracts — that is a reading, and for fuel and power it needs `vat_fuel_and_power_de_minimis.json` as well as this.",
   "source": {
     "document": "VAT rates on different goods and services",
     "url": "https://www.gov.uk/vat-rates",
@@ -26,6 +26,41 @@
     }
   },
   "domestic_fuel_and_power_is_REDUCED_rate": "The reduced band explicitly names home energy. Business supply is standard-rated UNLESS it is domestic-use or falls under its fuel's de minimis — see vat_fuel_and_power_de_minimis.json, which is the other half of the rule and cannot be inferred from this artefact.",
+  "dated_exceptions": [
+    {
+      "what": "Domestic electricity in Great Britain is zero-rated",
+      "rate_band": "zero",
+      "from": "2026-10-01",
+      "to": "2027-03-31",
+      "fuel": "electricity",
+      "applies_to": "domestic supply in Great Britain",
+      "not": [
+        "gas (stays reduced, 5%)",
+        "Northern Ireland (stays reduced, 5%)",
+        "public chargepoints (standard, 20%)"
+      ],
+      "time_of_supply": "A billing period spanning 2026-10-01 may be split by the date the energy was consumed; HMRC recommends meter readings.",
+      "law": "The Value Added Tax (Supplies of Domestic Electricity) Order 2026, SI 2026/987 (made 7 Sep 2026, in force 1 Oct 2026); the enabling section was not read, legislation.gov.uk was not fetched",
+      "source": {
+        "document": "Revenue and Customs Brief 10 (2026): temporary zero rate of VAT for domestic electricity in Great Britain",
+        "url": "https://www.gov.uk/government/publications/revenue-and-customs-brief-10-2026-temporary-zero-rate-of-vat-for-domestic-electricity-in-great-britain/temporary-zero-rate-of-vat-for-domestic-electricity-in-great-britain",
+        "fetched": "2026-10-25"
+      }
+    },
+    {
+      "what": "Installation of energy-saving materials in residential accommodation is zero-rated; batteries, water-source heat pumps and smart diverters added from 2024-02-01",
+      "rate_band": "zero",
+      "from": "2022-04-01",
+      "to": "2027-03-31",
+      "applies_to": "installation of energy-saving materials, not fuel or power",
+      "after": "reverts to the reduced rate (5%) from 2027-04-01",
+      "source": {
+        "document": "HMRC VAT Notice 708/6",
+        "url": "https://www.gov.uk/guidance/vat-on-energy-saving-materials-and-heating-equipment-notice-7086",
+        "fetched": "2026-10-25"
+      }
+    }
+  ],
   "WHY_THIS_IS_A_SEPARATE_ARTEFACT_FROM_THE_DE_MINIMIS": "VAT Notice 701/19 names 'the reduced rate' and 'the standard rate' and states NEITHER percentage — it points at this page. Copying 0.05 and 0.20 into the de minimis artefact would have attached that notice's citation to figures it does not carry, which is how an unsourced number acquires a source it never had. Two documents, two artefacts, and a reading that needs both says so.",
   "NOT_ESTABLISHED_declared_rather_than_assumed": [
     "WHEN these rates last changed, and therefore whether they held across 2016-2025. The standard rate has been 20% since 2011-01-04 and the domestic fuel reduced rate 5% since 1997-09-01 by common knowledge, but THIS PAGE STATES NEITHER DATE and no dated source has been read for them. Anything in this repository modelling a year before 2026 is using today's rates for that year on an unchecked assumption. This matters less than it looks — the window is 2016-2025 and both rates are believed stable across it — but 'believed stable' is not 'established', and the gap is declared rather than closed by assertion.",
