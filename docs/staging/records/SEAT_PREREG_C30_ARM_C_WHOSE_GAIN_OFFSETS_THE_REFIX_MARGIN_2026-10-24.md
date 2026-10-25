@@ -125,3 +125,18 @@ fix alone moves A_61102's `total_net` by +£14,441, more than this record's ΔC 
 comparison and the queued grade are in
 `SEAT_PREREG_C30_THE_LETTER_AND_REFIX_COMPANY_SIDE_ACROSS_BOOK_SEEDS_2026-10-24.md` (Status
 2026-10-25). The verdict against this record waits for `at-9bb30c4de5/grade.txt`.
+
+## Verdict across seeds (2026-10-25, grade.txt at 9bb30c4de5)
+
+The full table is in the seeds record's Result. Against this record:
+
+- **"The £1,360 that the pair could not place is retention": true on the default book, not
+  general.** The re-fix keeps 4, 0 and 1 households on seeds 61101, 61102 and 61103. B − C is
+  +£1,360, −£3,574 and −£890.
+- **"£268 and £275 agree within 3%, so knock-ons are small": refuted on two of three seeds.** B − C
+  leaves −£4,079, −£2,678 and −£213 unattributed once retention and H are priced. On 61102 nobody
+  moves, yet B − C is four times H.
+- **"The letter alone is shown to cost the company": held on every seed.** C − A is −£7,211,
+  −£6,345 and −£3,975, through 7–8 `price_position` exits, at £180–£304 per customer-year.
+- **"The re-fix is what makes the letter defensible": withdrawn.** ΔC = B − A is −£5,851, −£9,919
+  and −£4,865. The households that stay gain £896–£1,410 of H, and that is a transfer.
