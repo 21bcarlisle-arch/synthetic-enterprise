@@ -1,45 +1,47 @@
 version: 1
-oriented_at: '2026-10-25T15:22:08.151032+00:00'
-thesis_read: 'The basics improved and the thesis did not move. This stretch made the supplier''s bills right on
-  the production book, and that is a precondition for the thesis rather than progress on it. Monday''s run at b2bc3d8da5
-  graded clean (294c5286f). 0 of 24,663 default-tariff invoices are over the ceiling, the EPG carved equals booked,
-  and every in-credit move-out was refunded. It is run_output_latest, and a timer offers it to Monday''s 04:05Z
-  publish, so the site will stop showing 19 Oct figures that carry every cap defect already fixed. The same grade
-  found a new company defect: 10 of the 100 refunds were paid after the 10 working days that GSoP reg 6D allows.
-  That is item 1. C30''s residue is placed (f667c576e). The -GBP 2,678 on 61102 is two customers leaving on a fixed-renewal
-  route the exit table never read, and nothing is mis-booked. My last record said part of C30''s loss ''may be booking
-  rather than judgement''. That is refuted: the loss is judgement. The flat rule still beats the letter plus re-fix
-  on all three books, and per-customer inference has not yet earned its cost anywhere it has been graded. That is
-  the thesis''s honest state. The commit split is supplier 1 (085f89e42, VAT dated to its rule), world 1 (dac6b90d7,
-  the mid-life credit), other 18. 5 of the 20 commits changed nothing. Most of the other 13 were the site copy pack
-  and the 25 Oct knowledge packs, which reached done. Supplier-first is not being met. Of last stretch''s five focus
-  items, three were drawn. Monday''s run and C30''s residue are retired, and the settlement re-measure is computing
-  now (pid 4161471). B13 and W2_41 were not drawn, for the fourth stretch in W2_41''s case. Naming them by atom
-  id does not reach the draw, so the steer itself is what is drifting. This record hands both to Lane 0 under plain
-  keys. Both of last stretch''s seat errors that could be fixed are fixed: origin carries the 12:23Z record, and
-  the published run carries the billing fixes.'
+oriented_at: '2026-10-25T18:21:19.031438+00:00'
+thesis_read: 'The basics moved a little and the thesis did not. The stretch''s one company change is the reg 6D
+  refund fix (3e3136ee2): the 10 late closure refunds were not the company''s lateness but the world drawing the
+  supplier''s own payment day (90% within 10 working days, the rest 11 to 25, unsourced). The company now pays on
+  the 10th working day on its own calendar, and a late one owes the GBP 30 or 40 standard payment; replaying the
+  run''s 100 final-bill dates gives 0 late. That matters more to the thesis than its size: a decision the world
+  makes for the supplier can never show inference, and the same shape is still live in the debt objection, which
+  simulation/debt_objection.py draws at 0.283 for the company (new wrong row, item 3). The basics gate reads 0 of
+  8 atoms at target and 7 of 15 lines done, so forward runs wait. Per-customer inference has still not earned its
+  cost anywhere it has been graded, and no lever is in focus because the ruling puts the basics first. The commit
+  split is supplier 0, world 1 (the settlement ceiling, b60a0cd8a: 7,700 stands), both 1 (the refunds), other 8,
+  and 4 of the 10 are no-work merges: supplier-first is still not met. The steer did reach the draw this time. Handing
+  B13 and W2_41 to Lane 0 under plain keys got both drawn for the first time after four stretches: the seat executor
+  holds B13 (pid 1671415) and a worker tick holds W2_41 (pid 1709926), so that seat error is corrected. The premise
+  re-ask (item 5) was the one previous item not drawn. E6''s arrears-overlay arm has sat built and default off since
+  d127468fd8 (10:37Z), its NEXT naming an arm that nothing queued or launched, which is the lost-grader shape again
+  and keeps the crisis bad-debt finding BLOCKING; it is item 1. Monday''s run b2bc3d8da5 is graded clean on the
+  cap, and the one-shot timer mondays-window-marker-20261026 is loaded for 04:05Z; 9f4c6c478 builds the weekly route
+  for later weeks. The shared checkout is 45 commits behind origin and 17 units import code origin has moved past,
+  background-worker including its own 9f4c6c478; Monday''s publish does not depend on it, because the timer is that
+  route.'
 stretch_reviewed:
-  since: '2026-10-25T12:23:34.652602+00:00'
-  commits: 20
-  substantive: 8
+  since: '2026-10-25T15:22:08.151032+00:00'
+  commits: 10
+  substantive: 5
 focus:
-- id: closure-refunds-meet-gsop-reg-6d
-  what: Read the 10 closure refunds flagged breached_slc14_deadline in docs/reports/run_output_b2bc3d8da5_20261025T1230Z.json
-    (credit_refund_log), and name for each the final-bill issue date, the refund date and the route between
-    them. Decide from that whether the lag is the company's refund path (company/billing/credit_refund.py)
-    or how simulation/credit_refund_events.py dates the final bill. Fix the route so that a refund is
-    paid within 10 working days of the final bill's issue, or of a corrected final bill. Where reg 6D's
-    guaranteed-standard compensation is owed on a late one, book it, with the amount taken from docs/market_research/home_moves.md
-    section 8.8 or the GSoP text, never picked. Relabel 'SLC 14' to GSoP reg 6D in both files, as home_moves.md's
-    24 Oct correction asks. File the finding with the counts, and test that a late refund can occur and
-    is then compensated.
-  why: It is a guaranteed standard on the basics the director ruled first (home moves, refunds), found
-    by the grade of the run about to be published, and it costs real customers money in the world we are
-    modelling. Done means the cause is named in a finding, the fix lands with its test, and a re-grade
-    on a run carrying it shows 0 late refunds, or every late one carrying its compensation.
-  lane: D_billing_metering
+- id: e6-the-arrears-overlay-arm-is-run-and-graded
+  what: 'Launch the default-book arm with DecisionPolicy.provision_arrears_overlay on (built default off
+    in d127468fd8) through background/launch_long_job.py at origin/main, with an off arm beside it only
+    if the pre-registration asks for one. Before exiting, queue its grade with background/seat_continuation.py
+    so that it waits for the arm''s output file. Grade it against the switch-on rule already filed in
+    docs/staging/SEAT_FINDING_THE_CRISIS_BAD_DEBT_CONTROL_HAS_SKIPPED_SINCE_THE_RUN_WENT_GZIP_AND_THE_PUBLISHED_RUN_SHOWS_NO_STEP_UP_2026-10-14.md:
+    (a) the arithmetic predictions hold, (b) the book''s per-account series reads at every year end 2020-24,
+    and (c) the company''s own book shows the 2023 step. If all three hold, switch the overlay on and
+    move E6 to level 2, naming tests/company/finance/test_the_arrears_overlay_reads_the_companys_own_book.py.
+    If any leg fails, write which one into the finding and leave the switch off.'
+  why: E6 is a gate atom of the basics (1 -> 2), and a provision that moves when arrears build is what
+    makes the supplier's forward value honest. The build has been finished since 10:37Z with no arm launched,
+    and it keeps the crisis bad-debt finding BLOCKING. Done means the grade is written in that finding
+    against the pre-filed rule, and E6's map row and the switch reflect the verdict.
+  lane: E_finance_treasury
   side: supplier
-  written_at: 1792942043.793
+  written_at: 1792952853.569
 - id: b13-dual-fuel-household-one-account-test
   what: Take B13_a_dual_fuel_household_is_one_account_across_both_fuels to L1. Write tests/simulation/test_a_dual_fuel_household_is_one_account_across_both_fuels.py
     so that it walks the dual-fuel households of a short simulation/run_phase2b.py run through a bill,
@@ -48,13 +50,32 @@ focus:
     27.16 defines it (home_moves.md), so assert the account balance as the sum of the two. Where the run
     splits a household into two accounts, record the count and the route in a finding rather than patching
     around it. Move B13's map row to level 1, naming the test.
-  why: Dual fuel is one of the ruled basics, and no test asks it. A per-fuel split would corrupt every
-    balance, refund and credit offset that the billing fixes have just made right. It has been named three
-    times by atom id and never drawn, so it now goes through Lane 0. Done means B13 reads level 1 on the
-    map with this test as its control.
+  why: Dual fuel is a ruled basic and no test asks it; a per-fuel split would corrupt every balance, refund
+    and credit offset the billing fixes have just made right. The seat executor holds it under this same
+    id (pid 1671415, /var/tmp/se-seat-executor), so a second draw binds to that claim and does not rebuild.
+    Done means B13 reads level 1 with this test as its control, and the basics line 'one atom grades dual
+    fuel as a whole' is no longer ABSENT.
   lane: B_commercial
   side: supplier
-  written_at: 1792942043.793
+  written_at: 1792952853.569
+- id: ep12-the-company-decides-the-debt-objection
+  what: Make the debt objection the company's decision. Today simulation/debt_objection.py blocks an indebted
+    credit household's departure at a world-drawn 0.283, so the supplier never decides it. K8 is already
+    met by docs/market_research/switching_mechanics_2026-10-25.md (site/knowledge/switching-mechanics/);
+    read it and the SLC 14 grounds first. Then have the company decide at the loss notice from its own
+    ledger (the debt's age and amount on the account, under its own objection policy), using the uncalled
+    company/market/transfer_objection_register.py rather than a new module, and send the decision across
+    the seam, where the world completes or blocks the switch and keeps only the household's response (whether
+    it pays and switches again). Any rate the company uses comes from the page or is None with a named
+    reason. Test that an objection can be raised and can be declined, and that the world no longer draws
+    it. Move EP12 to level 2.
+  why: The thesis needs decisions to be the company's, so that any advantage comes from inference; 3e3136ee2
+    found and removed the same shape from closure refunds this stretch. It is a basics line that reads
+    PARTIAL ('the company decides an objection in the CSS window'). Done means the world no longer draws
+    the objection, the company's decision crosses the seam under a test, and EP12 reads level 2.
+  lane: W4_the_wall
+  side: supplier
+  written_at: 1792952853.569
 - id: w2-41-a-household-cancels-its-mandate
   what: 'Build W2_41_a_household_cancels_its_mandate_as_its_own_act to L1. K8 first: read docs/market_research/payments_and_direct_debit_2026-10-25.md
     and amend docs/market_research/dd_failure_basis_and_live_arrears_provision_rates.md with what Bacs
@@ -64,15 +85,15 @@ focus:
     working day, before any collection fails. Any rate comes from the page, or stays None with a named
     reason. Test it in tests/simulation/test_a_household_cancels_its_mandate_as_its_own_act.py: a cancellation
     can be drawn, and it crosses the seam only as an ADDACS record.'
-  why: Payment is first in the ruled basics order. It has been named four times and drawn never, so it
-    now goes through Lane 0. Done means W2_41 reads level 1 on the map, and the knowledge page is cited
-    in the build commit.
+  why: Payment is first in the ruled basics order, and this basics line reads ABSENT. A worker tick holds
+    it under this same id (pid 1709926), so a second draw binds to that claim. Done means W2_41 reads
+    level 1 on the map and the knowledge page is cited in the build commit.
   lane: W2_customer_generator
   side: world
   unblocks: the supplier's handling of a lost mandate in company/billing/dd_collections_desk.py (a re-mandate
     or a change of payment method before arrears build), which today is graded against a world that never
     cancels
-  written_at: 1792942043.793
+  written_at: 1792952853.569
 - id: a-continuation-is-re-asked-before-it-is-offered
   what: 'In background/seat_continuation.py live(), before offering a row, re-ask its premise. If an origin
     commit since the row was written names its id, or names its NEXT, or a live surgical_land''s -m names
@@ -80,33 +101,34 @@ focus:
     own instance: knowledge-pack-verification-census, still offered after 4566ce348 landed its per-pack
     counts. A second test must show a row with no such commit is still offered, so the guard cannot pass
     by refusing everything.'
-  why: 'Triaged as fix in wrong_triage.yaml and listed 30 times. It bit again this stretch: a second census
-    of the same Knowledge index is gating while its continuation is still offered. Each bite costs a tick''s
-    window and risks a second build. Done means wrong_triage.yaml''s row moves to already_fixed with the
-    commit, and the row leaves this record''s wrong list.'
+  why: Triaged as fix in wrong_triage.yaml and listed 31 times; it was in focus last stretch and not drawn.
+    Each bite costs a tick's window and risks a second build. Done means wrong_triage.yaml's row moves
+    to already_fixed with the commit, and the row leaves this record's wrong list.
   lane: H_harness
   side: other
-  written_at: 1792942043.793
+  written_at: 1792952853.569
 not_now:
-- what: 'Separate focus rows for the four live continuations: the settlement-ceiling re-measure (computing, pid
-    4161471), the held-run offer at the weekly window, the site copy pack''s publish and cold read, and the pack
-    verification census.'
+- what: A fresh full run at origin before Monday's 04:05Z publish, so the site carries the mid-life credit (dac6b90d7)
+    and the reg 6D refund dating (3e3136ee2).
+  why: b2bc3d8da5 is graded clean on the cap, and the loaded timer offers it. A new run would need its own grade
+    inside a 10-hour window, for two gains that next week's run carries anyway. The published refund log will still
+    show the 10 late refunds under the old key; I record that here rather than run around it.
+- what: Advancing the shared checkout (45 commits behind origin) by hand.
+  why: 17 units import stale code, but Monday's publish goes through the one-shot timer, not the worker's held-run
+    offer. A hand advance on a tree holding other lanes' working copies risks sweeping them, and the reconciler
+    owns it.
+- what: A policy that carries the corrected renewal belief.
+  why: Graded twice on clean books, and the departure interval straddles zero both times. The 24 Oct ruling puts
+    the basics ahead of levers, and items 1 to 4 are basics.
+- what: Focus rows for the two newest continuations (a-run-on-latest-with-no-marker-is-invisible-to-every-publish-route,
+    site-copy-pack-after-mondays-run).
   why: Continuations are drawn before focus, and restating them under new ids is the duplicate-draw shape of the
-    first wrong row. The settlement re-measure is already being worked by the seat executor.
-- what: Making a policy carry the corrected renewal belief, or switching C30's letter on, now that the 61102 residue
-    has been shown to be judgement and not booking.
-  why: The placed residue confirms the loss rather than shrinking it, so nothing new argues for switching on. The
-    24 Oct ruling puts the basics ahead of levers, and items 1 and 2 are basics.
-- what: A gate that writes a run-complete marker for a hand-launched long job, so that a finished run always has
-    a grader.
-  why: It bit once this stretch and was caught within 72 minutes by hand. The premise re-ask (item 4) bites more
-    often and costs more each time, and only one machine item fits beside three basics.
+    first wrong row.
+- what: Reaping /var/tmp/se-ceiling-land-1025 and the other worktrees whose commits no remote ref keeps.
+  why: se-ceiling-land-1025 is the landing worktree of b60a0cd8a, which is on origin, so its salvage commit is disposable.
+    The rest are locked by their owners. Reaping buys no supplier result.
 - what: Guarding docs/staging/advisor/ against in-place edits.
-  why: This stretch's edits went only to done/ files, which the channel does not read, so nothing was refused. A
-    guard on the live directory waits for the next live instance.
-- what: Reaping the worktrees whose commits no remote ref keeps (b12-*, se-budgetpay-land, se-om2, se-ceiling-probe-20261025).
-  why: se-ceiling-probe-20261025 is the live settlement probe's. se-om2's work landed as 4566ce348, and the rest
-    are locked by their owners. Reaping buys no supplier result and risks evidence.
+  why: No live advisor file was edited this stretch. The guard waits for the next live instance.
 wrong:
 - what: 'THE MACHINE''S, THIS STRETCH. The continuation the-budget-second-seed-grade-after-the-unit-driver is still
     queued for 18:20, but b8045dd4e graded the second seed at 17:17. A queued continuation is not re-asked when
@@ -213,7 +235,9 @@ wrong:
     4566ce348 (14:53Z) landed the per-pack counts of confirmed, corrected and open items that knowledge-pack-verification-census
     asks for, yet that continuation is still offered, and surgical_land pid 158784 is now landing a second per-pack
     census on the same Knowledge index. I have not read whether it adds to 4566ce348 or repeats it. Focus item 4
-    builds the re-ask. Not fixed.'
+    builds the re-ask. Not fixed. 18:21: No spent-premise draw this stretch. The three Lane 0 draws went to live
+    items (the refunds, B13, W2_41), and the re-ask build itself was not drawn. Nothing re-asks a premise another
+    lane spends first, so it is not fixed.'
   corrected: false
 - what: 'THE COMPANY''S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards. On
     268 desk states from 2019 it reads AUC 0.333, and its mean is 0.193 on end-of-fix rolls, where 40 of 92 households
@@ -271,7 +295,9 @@ wrong:
     so it is not in focus. 12:23: Unchanged. No policy carries the corrected belief, so the live renewal belief
     still ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus. 15:22: Unchanged.
     No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The ruling
-    puts the basics ahead of levers, so it is not in focus.'
+    puts the basics ahead of levers, so it is not in focus. 18:21: Unchanged. No policy carries the corrected belief,
+    so the live renewal belief still ranks leavers backwards. The ruling puts the basics ahead of levers, so it
+    is not in focus.'
   corrected: false
 - what: 'THE COMPANY''S, THIS STRETCH. Explore''s cast rules (83c4fc9d6) found 4,764 of 14,012 pre-renewal invoices
     on the 19 Oct run (199 of 550 households) more than 0.5% above min(cap, EPG), and a November 2022 bill at exactly
@@ -332,7 +358,9 @@ wrong:
     294c5286f graded Monday''s run at b2bc3d8da5: 0 of 24,663 default-tariff invoices over min(cap, EPG), GBP 200,459.54
     carved equals booked, 0 negative estimates, 0 overlapping term legs. It is run_output_latest, and a one-shot
     timer at 2026-10-26T04:05Z offers it to the weekly publish (continuation a-held-run-is-offered-again-when-the-weekly-window-opens).
-    The finding stays BLOCKING until the published site carries it.'
+    The finding stays BLOCKING until the published site carries it. 18:21: Unchanged. Monday''s run b2bc3d8da5 is
+    graded clean, and the timer mondays-window-marker-20261026 is loaded for 2026-10-26T04:05Z. The finding stays
+    BLOCKING until the published site carries that run.'
   corrected: false
 - what: 'THE MACHINE''S, THIS STRETCH. A finished long job lost its grader. The E6 crisis-overlay finding hands
     grading to the-crisis-overlay-arm-on-the-default-book-is-graded three times (13:15, 21:21 BST), but that id
@@ -353,33 +381,11 @@ wrong:
     a finding or a NEXT line is in the queue, so the class is not fixed. 15:22: Live again in a fourth shape. Monday''s
     hand-launched run finished at 13:32Z, and nothing graded or promoted it, because a hand launch writes no run-complete
     marker. 294c5286f found and graded it 72 minutes later by hand. Nothing checks that a finished long job has
-    a reader, so the class is not fixed.'
+    a reader, so the class is not fixed. 18:21: Live again, one step earlier. d127468fd8 built E6''s arrears-overlay
+    term and wrote ''NEXT: none -- the default-book arm with provision_arrears_overlay on is next'', but nothing
+    queued or launched that arm (no long job launched this stretch). A handoff named in a NEXT line is still not
+    checked against the queue. Focus item 1 gives this instance a route. Not fixed.'
   corrected: false
-- what: 'THE MACHINE''S, THIS STRETCH. The run Monday''s publish would read today lacks the billing fixes. The newest
-    full run, run_output_904a091f7b_20261025T031613Z (finished about 04:20Z), predates 063dc4bbd, 33dd50527 and
-    9bb30c4de. The sim runner logged DEFERRED -- landings come before experiments at 06:15Z and 06:20Z, and advisor
-    landings are arriving back to back. Nothing guarantees a full run at origin before 2026-10-26T04:00Z. Focus
-    item 4. 09:20: Worse. The runner deferred all 37 cycles between 06:15Z and 09:21Z: mostly ''landings come before
-    experiments'' while advisor landings ran back to back, then ''the code a run would import is not origin''s''
-    at 08:51Z and 08:56Z, and once for the memory the C30 arms held at 08:10Z. That memory is free now. The run
-    also lacks a0ed2aa7b. Focus item 1 stops waiting on the runner. 12:23: Still no run. The runner deferred every
-    cycle from 09:21Z to 12:26Z: first for the mid-life credit landing (surgical_land pid 2284512, 47m and still
-    gating), then because four imported files in the shared tree are not origin''s. 15h37m remain before 04:00Z.
-    Focus item 1. 15:22: Fixed. 294c5286f made run_output_latest the run at b2bc3d8da5, which carries 063dc4bbd,
-    33dd50527, 9bb30c4de and a0ed2aa7b, and graded it clean. It does not carry dac6b90d7 (the mid-life credit),
-    which landed after it.'
-  corrected: true
-- what: 'THE SEAT''S, THIS STRETCH. My 06:21Z record never reached origin. Its commit adeded2e0 is still in /var/tmp/se-direction-seat,
-    and is not an ancestor of origin/main. e93b88849 (06:27Z, the forward-years ruling) landed DIRECTION.yaml from
-    the 03:21Z record, so origin''s direction is three hours older than the one the shared tree served to the draw.
-    This record is written into the shared tree. Not fixed until origin''s oriented_at matches it. 12:23: Worse.
-    Origin''s oriented_at is still 03:21Z. The 09:20Z record (09ecf26cc) is stranded in /var/tmp/se-direction-seat
-    too, so two consecutive seat records never reached origin. 970f388c3 changed DIRECTION.yaml on origin at 09:28Z
-    and carried neither. The shared tree''s copy also lacked two open director rows that origin holds. This record
-    takes its concern list from origin. Not fixed until origin''s oriented_at matches this record. 15:22: Fixed.
-    4a4a858c0 landed the 12:23Z record, and origin''s oriented_at reads 2026-10-25T12:23:34Z, the same as the shared
-    tree''s copy.'
-  corrected: true
 - what: 'THE SEAT''S, THIS STRETCH. Three of my five focus items were never drawn: B13, W2_41 and the settlement-ceiling
     re-measure. W2_41 was named by atom id this time and still not drawn (5 unchanged draws). The advisor channel''s
     rung zero took the lanes, so 8 of 9 commits were ''other'' and none was supplier-only. Naming an item in focus
@@ -388,20 +394,32 @@ wrong:
     re-measure was drawn and is computing (tools.settlement_ceiling_probe, pid 4161471, budgets 7700 and 8400),
     and Monday''s run and C30''s residue were both drawn and retired. B13 and W2_41 were not drawn again: four stretches
     in a row for W2_41. An atom id in focus only biases the draw, and the draw is not taking them. This record names
-    both under Lane 0 keys with their lanes, so a worker tick is handed them directly.'
-  corrected: false
+    both under Lane 0 keys with their lanes, so a worker tick is handed them directly. 18:21: Corrected. Handed
+    to Lane 0 under plain keys, both were drawn for the first time: the seat executor holds B13 (pid 1671415) and
+    a worker tick holds W2_41 (pid 1709926).'
+  corrected: true
 - what: 'THE MACHINE''S, THIS STRETCH. Four advisor files were edited in place by a lane (b2bc3d8da, 2ada25833,
     d86d8749c), so the advisor channel now refuses them as unsigned, though the advisor''s own staging commits verify.
     A worker recording ''what has landed'' inside an advisor file breaks that file''s signature chain. Its notes
     belong in the ## Done move or in a seat file. Not fixed: nothing stops an in-place edit to docs/staging/advisor/.
     15:22: No refusal followed this stretch. ff77e6057 and 4566ce348 appended Done sections to advisor files, but
     only to files already in docs/staging/advisor/done/, which the channel does not scan (scan() on origin offers
-    0 files). Nothing stops an in-place edit to a live advisor file, so it is not fixed.'
+    0 files). Nothing stops an in-place edit to a live advisor file, so it is not fixed. 18:21: No instance this
+    stretch. Nothing stops an in-place edit to a live advisor file, so it is not fixed.'
   corrected: false
-- what: THE COMPANY'S, THIS STRETCH. 10 of the 100 in-credit move-outs on Monday's run (b2bc3d8da5) were refunded
+- what: 'THE COMPANY''S, THIS STRETCH. 10 of the 100 in-credit move-outs on Monday''s run (b2bc3d8da5) were refunded
     13 to 24 working days after the final bill. GSoP 2015 reg 6D (SI 2019/218) requires a refund within 10 working
     days of the final bill, and docs/market_research/home_moves.md already records that. They are flagged breached_slc14_deadline,
-    which is the wrong locus, as home_moves.md's 24 Oct correction says. The cause is not named. Focus item 1.
+    which is the wrong locus, as home_moves.md''s 24 Oct correction says. The cause is not named. Focus item 1.
+    18:21: Fixed in code. 3e3136ee2 named the cause: the world drew the supplier''s own payment day, and these 10
+    were its late arm. The company now pays on the 10th working day after the final bill, on its own calendar, and
+    a late refund owes the reg 6D payment. Replaying the run''s 100 final-bill dates gives 0 late. No fresh run
+    carries it yet.'
+  corrected: true
+- what: 'THE COMPANY''S, THIS STRETCH. The debt objection is a supplier''s decision under SLC 14, but simulation/debt_objection.py
+    draws it in the world, blocking an indebted credit household''s departure at 0.283, so the company never decides
+    it (read from code in 3660142eb). It is the same shape 3e3136ee2 removed from closure refunds: the world making
+    an operational choice for the supplier. Focus item 3.'
   corrected: false
 for_the_director:
 - id: c34-now-ranks-next-best-action-on
@@ -692,16 +710,15 @@ for_the_director:
 - id: your-20-oct-caveat-on-the-7
   raised: '2026-10-25'
   kind: strategy
-  what: 'Your 20 Oct caveat on the 7,700 budget: today''s re-measure puts the probe''s 7,700 peak plus
-    the 227 MB parent at 5,783 MB, inside the 5% band (5,708). Production''s own peaks (5,500 and 5,595
-    MB) sit outside it.'
-  proposal: 'Keep 7,700 and keep founder_unit: households. Watch the next three production peaks on the
-    new code against 5,708 MB. If any one crosses, switch to supply_points at 5,000, as you ruled.'
-  recommendation: 'I recommend holding at 7,700. Your caveat names production runs, and none has come
-    within 5%: systemd''s whole-service peak was 5.4G and the largest process was 5,595 MB. The curve
-    supports 7,925 cy. The trade-off is that the margin is now 413 MB rather than 668 MB, because the
-    code is 443 MB heavier at this point than on 20 Oct, and I have not yet found the cause. Holding position:
-    7,700. What would change it: a production peak above 5,708 MB.'
+  what: 'Your 20 Oct caveat on the 7,700 budget: today''s re-measure puts the probe''s 7,700 peak plus the 227 MB
+    parent at 5,783 MB, inside the 5% band (5,708). Production''s own peaks (5,500 and 5,595 MB) sit outside it.'
+  proposal: 'Keep 7,700 and keep founder_unit: households. Watch the next three production peaks on the new code
+    against 5,708 MB. If any one crosses, switch to supply_points at 5,000, as you ruled.'
+  recommendation: 'I recommend holding at 7,700. Your caveat names production runs, and none has come within 5%:
+    systemd''s whole-service peak was 5.4G and the largest process was 5,595 MB. The curve supports 7,925 cy. The
+    trade-off is that the margin is now 413 MB rather than 668 MB, because the code is 443 MB heavier at this point
+    than on 20 Oct, and I have not yet found the cause. Holding position: 7,700. What would change it: a production
+    peak above 5,708 MB.'
   status: open
   resolution: ''
   evidence: docs/observability/settlement_ceiling_slope_20261025.json; docs/staging/done/SEAT_FINDING_THE_SETTLEMENT_CEILING_JOURNAL_LEG_HAS_ARMED_AND_THE_7700_BUDGET_OUTRUNS_THE_PRODUCTION_PEAK_2026-10-25.md
