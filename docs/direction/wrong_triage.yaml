@@ -463,3 +463,11 @@ items:
     status: open
     owner: "background/seat_continuation.py (live(): re-ask each row against origin commits naming its id, or a live surgical_land carrying it, before offering it)"
     reason: "Triaged 2026-10-24 by the delivery seat. It still bites (premise_spent 5cb0f1918, a duplicate build withdrawn in 4e8bc7633), and the cost each time is a tick's window. The half that waits on a file is built (a5f9cd768). The half that re-asks a spent premise is not."
+  - id: the-live-renewal-belief-ranks-leavers-backwards
+    problem: "The company's live renewal churn belief ranks leavers backwards (AUC 0.333 on 2019 desk states), while the corrected belief (0.806 in run) is built default off and no policy carries it."
+    match: ["The renewal churn belief ranks the leavers it exists to find backwards"]
+    first_seen: "2026-10-21"
+    fate: fix
+    status: open
+    owner: "company/policy/decision_policy.py (a policy carries the corrected ending-term belief once a clean-book grade's departure interval clears zero; levers step of docs/direction/priority_order.yaml)"
+    reason: "Triaged 2026-10-25 by the delivery seat, ahead of the 7-day line. The defect is real and live. The fix is built (7a7ad95dc) and graded twice (427e5f021, 5cdb72eb3), and both times the departure interval straddles zero, so the pre-registered switch-on rule is not met. The director's 24 Oct ruling puts levers after the basics, so this stays open with an owner rather than being accepted."
