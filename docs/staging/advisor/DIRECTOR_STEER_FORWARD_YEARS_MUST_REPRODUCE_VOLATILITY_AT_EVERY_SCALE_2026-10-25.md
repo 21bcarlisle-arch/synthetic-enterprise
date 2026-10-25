@@ -43,3 +43,9 @@ One stretch-log entry with:
 - any change to the six choices.
 
 — Director steer, 25 Oct 2026, his words above; the drafting is the advisor's.
+
+## Progress (seat-executor, 2026-10-25 ~11:55Z; the file stays in the queue)
+
+- **Work item 1, the K8 page: done.** "How GB gas and power prices move" is published (7fb1aabcc3, `docs/market_research/how_gb_gas_and_power_prices_move_2026-10-25.md`). Its own check: 7 confirmed (covering 24 figures), 0 corrected, 5 still open.
+- **Routed:** the ruling made these claims the forward years' pass mark. EP16 is unblocked against them (`docs/design/maturity_map.yaml` EP16 `block_reason`), and `docs/design/curriculum/forward_years.json` says no forward run is used for a supplier result until they pass.
+- **Not done: work items 2-4.** No volatility, curve-shape, spark-spread or correlation claim exists yet in `tools/world_claims.py` (a grep for "volatil" finds none). No generator has been graded, and nothing is published on the world spine. That is EP16's work and it waits on the page's headline figures becoming claims. The file stays here until the claims table and its grading are reported.

@@ -76,3 +76,11 @@ Use the packs' "world needs to model" lists as the attribute inventory. At minim
 
 - Before you build, write a short design note in `docs/design/`: for each asset, list its attributes, the distribution each is drawn from and its source, the derivation to half-hourly energy, and the population checks. Name every attribute that has no published distribution as a design choice, rather than filling it in.
 - Say whether anything already built reads a static percentage or price where it should derive one, and list it. The EV `+8%` path in Explore is the first case.
+
+## Done
+
+Seat-executor, 2026-10-25 ~11:55Z. Both asks are met by `docs/design/PERSONALISED_ASSET_WORLD.md` (970f388c3):
+- the design note, per asset, gives attributes, distributions and sources, the derivation to the half hour, and population checks, and section 8 names every attribute with no published distribution as a design choice;
+- section 10 lists what is already built that reads a static percentage or price, with file and line. The EV `+8%` path (`simulation/life_events.py:540`, the fixed 2,143 against 2,500 kWh) is first.
+
+The build itself is step 8 of the priority order, after the forward years.

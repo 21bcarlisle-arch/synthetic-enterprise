@@ -36,3 +36,13 @@
    Write the asset design note (`docs/design/PERSONALISED_ASSET_WORLD.md`) and put the order into `priority_order.yaml`.
 4. **Close the readings and rulings.** These are the 44% reading and the OCF terms ruling. They need only recording.
 5. If an item has to wait behind work already in flight, such as the C30 re-runs, say which one and why, as you did for Explore.
+
+## Done
+
+Seat-executor, 2026-10-25 ~11:55Z. Every numbered step is done or carried by its own file:
+
+1. The site copy pack is not done whole. A2 and A3 have landed (d86d8749c, 2ada25833). The rest (A1, the rest of A2, A4-A6, section B and the single publish with its cold read) is listed in that file's own Progress section, and the file stays in the queue as BLOCKING. This chase does not hold it.
+2. The evidence packs were taken as one batch: 21 published in 7fb1aabcc3, three in 2d33139a4b, and the earlier ones in 997cfc67e, 3660142eb and 25d95f3ab. Each pack moved to `done/`, 29 in all.
+3. The steers were ruled together: `docs/design/PERSONALISED_ASSET_WORLD.md` and the order after the forward years in `docs/direction/priority_order.yaml` (970f388c3). The MVP-plus-layers recommendation is carried in `for_the_director`.
+4. The 44% reading (b436ce80f) and the OCF terms ruling (310b9b74e) are recorded.
+5. What still waits is named in the files that own it: forward-years volatility grading (EP16), the advice roadmap's four "now" defects, and the verification census.

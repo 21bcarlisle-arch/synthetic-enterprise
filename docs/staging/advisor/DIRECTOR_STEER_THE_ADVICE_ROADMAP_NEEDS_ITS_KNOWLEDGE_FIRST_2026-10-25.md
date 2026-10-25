@@ -73,3 +73,13 @@ This is the director's "sharing the savings clearly for the customer to enjoy", 
 - Publish the six packs as Knowledge pages under the map steer, as drafting work alongside the serial queue.
 - Fix the four "now" items, or record why not.
 - Put the advice-roadmap order in `docs/direction/priority_order.yaml` after the forward years, with your view. Bring back a recommendation where you would order it differently.
+
+## Progress (seat-executor, 2026-10-25 ~11:55Z; the file stays in the queue)
+
+- **Ask 1, the six packs: published** (7fb1aabcc3).
+- **Ask 3, the order: ruled** into `docs/direction/priority_order.yaml` steps 8-12, the advisor's order kept (970f388c3).
+- **Ask 2, the four "now" defects: one verified, three still owed as code.**
+  1. **TDCV:** 9,500 kWh and its date are on the price-cap page. In code, 2026 TDCV bands are still applied to 2016-25 in three places (`PERSONALISED_ASSET_WORLD.md` section 10), and 11,500 still appears undated in `docs/design/CHOICE_AND_CHANNEL_DISCOVERY.md`, `CHOICE_AND_CHANNEL_ROADMAP.md` and two reconciliation notes. **Owed.**
+  2. **EV uplift:** no world claim yet. The generator still adds a fixed 2,143 kWh against the company's 2,500 (`simulation/household.py:283`, `company/crm/property_model.py:128`). **Owed.** It is the asset world's first case.
+  3. **Economy 7:** still no two-rate meter in the run. This is recorded in `docs/staging/SEAT_FINDING_EXPLORES_CAST_FINDS_STANDARD_VARIABLE_BILLS_ABOVE_THE_CAP_AND_NO_MOVER_OR_TWO_RATE_HOME_2026-10-23.md`. **Owed.**
+  4. **Dated rules:** the 0% VAT on domestic electricity, 1 Oct 2026 to 31 Mar 2027, is **confirmed** at source: SI 2026/987 and HMRC Revenue and Customs Brief 10 (2026), on the price-cap page (7fb1aabcc3). `vat_rate_for_segment` is still undated and fuel-blind. That only bites inside the forward years, so it is owed before any forward run reads it.
