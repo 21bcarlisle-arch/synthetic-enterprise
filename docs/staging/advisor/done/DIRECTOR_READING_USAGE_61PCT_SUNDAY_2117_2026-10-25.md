@@ -30,3 +30,10 @@ the 03:00 reset. This turn's work is the kind the reading names as still worth d
 - the advisor's primary-source verification of the 21 GB packs, applied to the Knowledge notes by
   three parallel readers and landed with the census.
 No pacing change was made (no `tick_mode`, no timer edits): the reading asks for none.
+
+The 21:22Z direction (`docs/direction/DIRECTION.yaml`, oriented 2026-10-25T21:22Z) acted on this
+reading as pacing, under his 15 Oct delegation, through the order of its work and not through any
+dial: one grading run first (the E6 run, parallel and off the landing door), one build second (EP12's
+debt objection, landed at 43ef01107), and no large serial item opened before the 03:00 reset. B7's
+and EP4's larger gate gaps were left to wait. "No pacing change" above means no `tick_mode` and no
+timer edit; the pacing was in what was drawn.
