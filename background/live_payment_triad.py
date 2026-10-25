@@ -912,14 +912,16 @@ class LivePaymentTriad:
             year, month = year + month // 12, month % 12 + 1
         return posted
 
-    def provision_stock(self, on: date, *, payment_method_of, crisis_overlay: bool = False) -> dict:
+    def provision_stock(self, on: date, *, payment_method_of, crisis_overlay: bool = False,
+                        arrears_overlay: bool = False) -> dict:
         """The COMPANY's bad-debt provision on `on`: a stock over its own receivables, by footing and
         age band, as a plain dict -- the door shape of `default_belief_rate`. The reading is the
         consumer's; this class supplies the cadence, and delivers settlements through `on` first so
         a lump the world paid by then is on the ledger it is read from."""
         self._deliver_settlements_through(on, force=True)
         return self._consumer.provision_stock(on, payment_method_of=payment_method_of,
-                                              crisis_overlay=crisis_overlay)
+                                              crisis_overlay=crisis_overlay,
+                                              arrears_overlay=arrears_overlay)
 
     def detection_cells(self, as_of: date) -> dict:
         """The per-cell DETECTION measurements for the fidelity grid.

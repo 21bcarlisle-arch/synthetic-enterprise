@@ -1698,3 +1698,56 @@ graded 2026-10-25 on the default book, all four held, off arm 0.98%, no indebted
 artefact. That path's gate selects `test_net_new_acquisition.py`, which is red on every lane
 (`SEAT_FINDING_THE_SETTLEMENT_CEILING_JOURNAL_LEG_HAS_ARMED_AND_THE_7700_BUDGET_OUTRUNS_THE_PRODUCTION_PEAK_2026-10-25.md`).
 It lands with that finding's other owed one-line correction to the same page.
+
+## 2026-10-25: the arrears-per-account term is built, default off. Pre-registration and switch-on rule, filed before any arm
+
+**Built** (worker, from the page's "The arrears-per-account signal", choices 1-3, 4(a) and 5).
+`bad_debt_provision.arrears_per_indebted_account(book, on)` is what each account owes on bills more
+than 91 days old, averaged over the accounts owing any, read off the company's own ledger through
+`on`. `arrears_overlay_share` takes its year-on-year growth over the book's own 2017-19 mean growth,
+`0.134 x max(0, g - b) / 0.220`, capped at 0.134. The 0.220 is Ofgem's 2023 excess (26.8% - 4.8%),
+labelled look-ahead like the 0.134. The share is None, with the reason, before 31 Dec 2019, on a book
+with no arrears at a baseline year end, or with none a year earlier. `with_crisis_overlay` takes
+`max(cap, arrears)`, never the sum, and publishes `cap_share`, `driver` and the arrears reading
+(`per_account_gbp`, `indebted_accounts`, `growth`, `baseline_growth`) beside the overlay at every
+snapshot. That is the count of indebted accounts `arm.json` lacked. Switch:
+`DecisionPolicy.provision_arrears_overlay` (default off; implies the overlay), passed by the run and
+through `LivePaymentTriad.provision_stock`. Control:
+`tests/company/finance/test_the_arrears_overlay_reads_the_companys_own_book.py`, 7 tests, six
+mutations each red (the sum mutation first survived, because the cap is zero whenever the
+arrears term wins on the test book; a leg at end-2021, where both are positive, was added).
+Named simplification: Ofgem's arrears exclude debt on a repayment plan; this read counts it.
+
+Printed at real inputs before the test: on Ofgem's market series with a 4.8% baseline, the formula
+gives 0.038, 0.083, 0.074, 0.054, **0.134**, **0.118**, 0.030 at end-2019 to end-2025. That is the
+page's table.
+
+**The arm.** One default-book run at the commit that lands this, `SE_POPULATION_SEED` unset, with
+`provision_arrears_overlay` on. The off arm is the same ledger's `matrix_provision_gbp`, and the
+cap-only arm is `matrix / (1 - cap_share)` off the same snapshot. Not launched by this note.
+
+**Predictions, filed before the run.**
+1. **Pairing (arithmetic).** At end-2016 to end-2018 the arrears share is None with the baseline
+   reason, and the overlay equals the cap-only arm to the penny.
+2. **The max (arithmetic).** At every snapshot `share == max(cap_share, arrears share)`, and
+   `driver` names the larger.
+3. **The book's own series (the one a result can refute).** The world's book steps a year after the
+   record (2022 charge 0.30%, 2023 1.54% on `ebc3c34e2e`). So I predict that arrears per indebted
+   account at end-2023 grows faster than both its 2017-19 baseline and its end-2022 growth: a 2023
+   step on the company's own book. I hold this at moderate confidence. The 2026-10-23 reading
+   located the world's error in 2020-21 and persistence, so a 2020-21 step instead is the main
+   rival.
+4. **The pooled 2022-23 share** on this arm is at or above the cap-only arm's (0.9785% on
+   `ebc3c34e2e`), and equal to it only if the arrears term is no larger than the cap term at both
+   end-2021 and end-2023. Whether it clears 1% is **not predicted, and it plays no part in the rule
+   below**.
+
+**Switch-on rule (filed before the arm, so the 1% floor cannot choose it).**
+`provision_arrears_overlay` goes on by default if and only if all three of these hold:
+(a) predictions 1 and 2 hold, so the build is what it says;
+(b) the book's own series reads (share not None) at every year end from 2020 to 2024;
+(c) prediction 3 holds: the 2023 step is on the company's own book.
+If (c) fails, the switch stays off. The gap is then the world's, as the page says: no overlay can
+honestly carry a step the book does not show. The validator's pass or fail is recorded beside the
+grade and decides nothing here. The end-2024 level is recorded too. A term still high there errs
+safe (choice 4a), and that is not a criterion.

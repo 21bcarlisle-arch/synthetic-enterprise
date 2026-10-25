@@ -2118,17 +2118,24 @@ class PaymentObservationConsumer:
             arrears_state_at=arrears_state_at, memo=memo)
         return default_belief(observations, decided_on=as_of, arrears_state=arrears_state).rate
 
-    def provision_stock(self, on: dt.date, *, payment_method_of, crisis_overlay: bool = False) -> dict:
+    def provision_stock(self, on: dt.date, *, payment_method_of, crisis_overlay: bool = False,
+                        arrears_overlay: bool = False) -> dict:
         """The bad-debt provision this company holds on `on` against its own receivables, by footing
         and age band (`company.pricing.default_belief.provision_stock`). Read off this class's
         ledger for the reason `default_belief_rate` is; `payment_method_of(account, date)` is the
         company's own method register, which this class does not hold. `crisis_overlay` grosses
-        the forward-looking overlay onto the stock (`bad_debt_provision.with_crisis_overlay`)."""
+        the forward-looking overlay onto the stock (`bad_debt_provision.with_crisis_overlay`);
+        `arrears_overlay` takes it as the larger of the cap term and the arrears term read off this
+        ledger (`bad_debt_provision.arrears_overlay_share`), and implies the overlay."""
         from company.finance import bad_debt_provision
         from company.pricing.default_belief import provision_stock
 
         out = provision_stock(self.ledger_book, on=on, payment_method_of=payment_method_of)
-        if crisis_overlay:
+        if arrears_overlay:
+            arrears = bad_debt_provision.arrears_overlay_share(
+                self.ledger_book, on, memo=self.__dict__.setdefault("_arrears_series_memo", {}))
+            out = bad_debt_provision.with_crisis_overlay(out, on, arrears)
+        elif crisis_overlay:
             out = bad_debt_provision.with_crisis_overlay(out, on)
         if bad_debt_provision.ROLL_RATE_PROVISION:
             out["roll_rate"] = bad_debt_provision.roll_rate_provision_stock(

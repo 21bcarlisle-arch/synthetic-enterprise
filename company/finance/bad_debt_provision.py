@@ -13,6 +13,10 @@ TWO THINGS LIVE HERE, AND ONLY THE SECOND IS FORWARD-LOOKING IN IFRS 9's SENSE.
   force against the cap a year earlier -- on the run's published stock. The page's section "Sizing the
   forward-looking overlay from what a supplier held in 2022" (2026-10-24). Default off:
   `DecisionPolicy.provision_crisis_overlay`.
+- `arrears_overlay_share`: the second signal, arrears per indebted account on the company's own book
+  against its own pre-crisis growth, taken as `max(cap, arrears)` with the cap term, never the sum.
+  The page's section "The arrears-per-account signal" (2026-10-24), choices 1-3, 4(a) and 5. Default
+  off: `DecisionPolicy.provision_arrears_overlay`.
 """
 from __future__ import annotations
 
@@ -381,15 +385,97 @@ def crisis_overlay_share(on: dt.date) -> Tuple[float, Optional[float], Optional[
     return min(high, high * max(0.0, ratio - 1.0) / (anchor - 1.0)), ratio, None
 
 
-def with_crisis_overlay(stock: dict, on: dt.date) -> dict:
+#: Ofgem's definition of arrears: owed more than 91 days, per account (bad_debt_provisioning.md, "The
+#: arrears-per-account signal", 2026-10-24, and debt_and_collections.md s.2.1). NAMED SIMPLIFICATION:
+#: Ofgem's figure excludes debt on a repayment plan; the ledger read here does not know which bills a
+#: plan covers, so it counts them. To do it properly, net the collections desk's agreed plans out.
+ARREARS_AGE_DAYS = 91
+
+#: The book's own pre-crisis growth is the mean of its year-on-year change at these three year ends,
+#: the page's 2017-2019 pre-COVID window (bad_debt_provisioning.md, "The arrears-per-account signal",
+#: choice 3). Read only once all three have passed, so nothing is read before it was known.
+ARREARS_BASELINE_YEAR_ENDS = (dt.date(2017, 12, 31), dt.date(2018, 12, 31), dt.date(2019, 12, 31))
+
+#: The growth above baseline at which the term reaches the published high: Ofgem's average electricity
+#: arrears rose 26.8% to Q4 2023 against a 4.8% 2017-19 baseline (bad_debt_provisioning.md, "The
+#: arrears-per-account signal", the record table; 0.268 - 0.048, derived). A look-ahead on any date
+#: before 2024, labelled as the 0.134 it scales to is (the page's choice 5).
+ARREARS_EXCESS_GROWTH_AT_PUBLISHED_HIGH = 0.268 - 0.048
+
+
+def arrears_per_indebted_account(book, on: dt.date) -> Tuple[Optional[float], int]:
+    """(GBP per indebted account, indebted accounts) on `on`: what each account still owes on bills
+    more than `ARREARS_AGE_DAYS` old (the ledger's FIFO, write-offs as credits, so a written-off
+    bill has left the receivable), averaged over the accounts owing any. None with no account owing.
+    Reads only events valued on or before `on`."""
+    cutoff = on - dt.timedelta(days=ARREARS_AGE_DAYS)
+    total, heads = 0.0, 0
+    for account in book.accounts():
+        owed = sum(g for billed, g in _residuals(book.ledger(account), on, cash_only=False).items()
+                   if billed < cutoff)
+        if owed > 0.005:
+            total += owed
+            heads += 1
+    return (round(total / heads, 2) if heads else None), heads
+
+
+def arrears_overlay_share(book, on: dt.date, memo=None) -> dict:
+    """The arrears term on `on`: the year-on-year growth in arrears per indebted account on the
+    company's own book, above the book's own pre-crisis growth, scaled so that the excess the record
+    shows for 2023 carries the published high, and never past it. `share` is None, with the reason,
+    where the signal cannot be read: before the baseline's last year end has passed, on a book with no
+    arrears at a year end the baseline needs (younger than three years), or with none a year earlier.
+    None is not zero (K2): the caller takes the cap term alone and says why.
+
+    The 2024 release is left to the signal (choice 4a): a book whose arrears keep growing holds the
+    term up, which errs toward a larger provision, the safe direction."""
+    memo = {} if memo is None else memo
+
+    def series(d):
+        if d not in memo:
+            memo[d] = arrears_per_indebted_account(book, d)
+        return memo[d]
+
+    per_account, heads = series(on)
+    out = {"per_account_gbp": per_account, "indebted_accounts": heads,
+           "growth": None, "baseline_growth": None, "share": None, "reason": None}
+    if on < ARREARS_BASELINE_YEAR_ENDS[-1]:
+        out["reason"] = "the pre-crisis baseline is not complete until 31 Dec 2019"
+        return out
+    points = [series(_year_earlier(ARREARS_BASELINE_YEAR_ENDS[0]))[0]] + [
+        series(d)[0] for d in ARREARS_BASELINE_YEAR_ENDS]
+    if any(p is None for p in points):
+        out["reason"] = "the book holds no arrears at a year end the baseline needs (younger than three years)"
+        return out
+    baseline = sum(b / a - 1.0 for a, b in zip(points, points[1:])) / len(ARREARS_BASELINE_YEAR_ENDS)
+    then = series(_year_earlier(on))[0]
+    out["baseline_growth"] = round(baseline, 4)
+    if per_account is None or then is None:
+        out["reason"] = "no arrears on the book on the date or a year earlier: the growth cannot be read"
+        return out
+    growth = per_account / then - 1.0
+    high = dict(OVERLAY_SHARE_ENDS)["published_high"]
+    share = min(high, high * max(0.0, growth - baseline) / ARREARS_EXCESS_GROWTH_AT_PUBLISHED_HIGH)
+    out.update(growth=round(growth, 4), share=round(share, 4))
+    return out
+
+
+def with_crisis_overlay(stock: dict, on: dt.date, arrears: Optional[dict] = None) -> dict:
     """The published provision stock with the crisis overlay grossed onto its `provision_gbp`, so the
     overlay is its stated share of the total. The matrix-only figure stays beside it as
     `matrix_provision_gbp`, so one run's ledger grades both arms. Reads only the date and the
-    stock: no ledger, no world."""
-    share, ratio, reason = crisis_overlay_share(on)
+    stock: no ledger, no world. With `arrears` (`arrears_overlay_share`'s reading) the share is the
+    larger of the two terms, never their sum: both answer one shock, and a sum would count it twice."""
+    cap_share, ratio, reason = crisis_overlay_share(on)
+    share, driver = cap_share, "cap"
+    if arrears is not None and arrears["share"] is not None and arrears["share"] > cap_share:
+        share, driver = arrears["share"], "arrears"
     matrix = float(stock["provision_gbp"])
     total = round(matrix / (1.0 - share), 2)
+    overlay = {"share": round(share, 4),
+               "cap_ratio": None if ratio is None else round(ratio, 4),
+               "overlay_gbp": round(total - matrix, 2), "reason": reason}
+    if arrears is not None:
+        overlay.update(cap_share=round(cap_share, 4), driver=driver, arrears=arrears)
     return {**stock, "matrix_provision_gbp": stock["provision_gbp"], "provision_gbp": total,
-            "crisis_overlay": {"share": round(share, 4),
-                               "cap_ratio": None if ratio is None else round(ratio, 4),
-                               "overlay_gbp": round(total - matrix, 2), "reason": reason}}
+            "crisis_overlay": overlay}

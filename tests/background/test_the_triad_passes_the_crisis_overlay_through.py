@@ -18,3 +18,12 @@ def test_the_overlay_switch_reaches_the_consumer_and_its_absence_leaves_none():
     on = date(2016, 12, 31)
     assert "crisis_overlay" in triad.provision_stock(on, payment_method_of=method, crisis_overlay=True)
     assert "crisis_overlay" not in triad.provision_stock(on, payment_method_of=method)
+
+
+def test_the_arrears_switch_reaches_the_consumer_through_the_same_door():
+    """Defect: the same TypeError one argument later. `arrears_overlay=` added to the run's read and
+    the consumer but not to this door would be swallowed exactly as `crisis_overlay=` was."""
+    triad = LivePaymentTriad()
+    method = lambda account, on: "direct_debit"  # noqa: E731
+    out = triad.provision_stock(date(2016, 12, 31), payment_method_of=method, arrears_overlay=True)
+    assert "arrears" in out["crisis_overlay"]
