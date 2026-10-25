@@ -122,6 +122,8 @@ _ALLOWED_BODY_NAMES = {"triad", "effective_end", "payment_method_of", "date", "i
 #: which reads only the date and the stock.
 _ALLOWED_CALL_NAMES |= {"policy"}
 _ALLOWED_BODY_NAMES |= {"crisis_overlay", "bool"}
+#: ...and for the arrears term, which reads the same ledger through the triad (`arrears_overlay_share`).
+_ALLOWED_BODY_NAMES |= {"arrears_overlay"}
 
 
 def _names(node):

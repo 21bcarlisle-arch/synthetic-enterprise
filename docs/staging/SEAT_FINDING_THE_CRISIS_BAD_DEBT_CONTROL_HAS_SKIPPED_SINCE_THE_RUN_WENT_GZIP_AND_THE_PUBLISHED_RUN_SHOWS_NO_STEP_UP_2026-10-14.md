@@ -1764,3 +1764,63 @@ checks the rule one leg at a time and exits 0 only if (a), (b) and (c) all hold.
 step" is end-2023 growth in arrears per indebted account above both the book's 2017-19 baseline
 and its end-2022 growth, as prediction 3 states. The predictions and the switch-on rule above stand
 as filed. Grading is handed on as `e6-the-arrears-overlay-arm-is-graded`.
+
+## 2026-10-25 (21:00Z): the arrears-overlay arm, graded. The switch-on rule holds on all three legs, and the switch is on
+
+`python3 /var/tmp/arrears-overlay-out/grade.py /var/tmp/arrears-overlay-out/arm.json`, run from the
+locked worktree `/var/tmp/arrears-overlay-run` at `e623c3354a`, default book, `SE_POPULATION_SEED`
+unset. Exit 0. The run took 3,232 s, and its log has no `could not be read` line.
+
+| year | off charge GBP (% rev) | cap-only (% rev) | on (% rev) |
+|---|---|---|---|
+| 2016-2020 | identical | identical | identical |
+| 2021 | 522.80 (0.240) | 563.62 (0.259) | 563.59 (0.259) |
+| 2022 | 1,063.71 (0.303) | 1,300.62 (0.370) | 1,300.65 (0.370) |
+| 2023 | 6,715.81 (1.556) | 6,438.08 (1.491) | 7,471.52 (1.731) |
+| 2024 | 1,320.26 (0.361) | 1,320.26 (0.361) | 286.82 (0.078) |
+
+Arrears per indebted account (over 91 days), by year end: 2016 GBP 66 (7 accounts), 2017 164 (20),
+2018 146 (30), 2019 190 (24), 2020 80 (14), 2021 106 (10), 2022 94 (15), **2023 311 (33)**, 2024
+302 (25). Growth: 2019 +0.31, 2020 -0.58, 2021 +0.33, 2022 -0.11, **2023 +2.29**, 2024 -0.03.
+Baseline (2017-19 mean growth) 0.557. The arrears share is 0 at every year end except end-2023,
+where it is at its cap, 0.134, and it drives the overlay.
+
+1. **Pairing: HELD.** End-2016 to end-2018 carry no arrears share, with the baseline reason, and
+   equal the cap-only arm to the penny.
+2. **The max: HELD** at every snapshot, `driver` included.
+3. **The 2023 step on the company's own book: HELD.** End-2023 growth is 2.29, above the baseline
+   (0.557) and above end-2022 growth (-0.11). The named rival, a 2020-21 step, is not there: 2020 falls
+   and 2021 is under the baseline.
+4. **The pooled share: HELD.** On 1.1204% against cap-only 0.9884%. Above, as the arrears term beats
+   the cap term at end-2023.
+
+**Switch-on rule:** (a) held, (b) held (the share reads at every year end from 2020 to 2024), (c)
+held. **`provision_arrears_overlay` is on by default** from the commit that lands this note.
+It implies the cap overlay. It is a reading after the run, so no company decision moves. Recorded
+beside the rule, deciding nothing: the validator **passes** on the on arm (1.12% crisis, 0.77%
+pre-crisis, x1.46). The off arm gives 0.99% and fails the floor by 0.006 points. The cap-only arm
+fails too. End-2024 arrears share: 0.
+
+**Two things the rule did not weigh, said plainly because they make this a weaker pass than it
+reads.**
+- **The count is small.** The step is GBP 94 to GBP 311 per account on 15 and then 33 indebted
+  accounts. The baseline is the mean of three growths on 7 to 30 accounts, and it swings from +1.47
+  to -0.11. The rule names no count floor, so one arm on one seed passes it. A second seed would show
+  whether the step belongs to the book or to these 33 accounts. That arm is the next check. It is
+  not a condition I am adding after the fact. If it fails to show the step, the switch goes back
+  off, as the rule's leg (c) requires.
+- **2024 releases the whole overlay.** The arrears share is 0 at end-2024 (growth -0.03), so the
+  GBP 1,033 end-2023 overlay is released in 2024, and the 2024 charge falls from 0.36% to 0.08%.
+  Choice 4(a) leaves the release alone. Here 4(a) does not err safe in 2024, because the term does not
+  stay high. Per-account arrears stay at GBP 302, which is the 2023 level and not a cure. So the term
+  reads a level that is still elevated as calm, because it reads growth. That is a GAP in the page's
+  choice 4. It is owed to `bad_debt_provisioning.md` beside the GAP-row correction above, behind the
+  same red, and it is not fixed in this turn.
+
+**Fixed on the way.** `test_the_runs_provision_is_read_from_the_company_ledger_and_nothing_else` has been
+red on origin/main since d127468fd8, which passed `arrears_overlay` into the run's provision read
+and did not add it to the control's input allowlist. It is a bool switch, the same shape as
+`crisis_overlay`, and the term it turns on reads the triad's own ledger. It is now on the list.
+
+**Status:** OPEN and BLOCKING. It closes when a published run with the switch on grades through
+the validator. That is the next publish, and the second seed above is its companion check.
