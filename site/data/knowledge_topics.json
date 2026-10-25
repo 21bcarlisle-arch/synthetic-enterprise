@@ -2090,6 +2090,138 @@
           "body": "It does not change any cost in the simulation, and it does not grade the population against these series; both are owed to the personalised asset world. It does not say what any one household paid, only what was published for the market. It does not project bills to 2035, because no published source does."
         }
       }
+    },
+    "tariffs-and-the-default-tariff": {
+      "meta": {
+        "topic_id": "tariffs-and-the-default-tariff",
+        "title": "How GB households are priced: the fixed deal, the default tariff, the cap and time-of-use",
+        "subtitle": "Most of what a GB household pays is decided by which tariff it sits on, and most households who never act sit on the default. This page sets out how fixed deals end, how the default is capped, how far apart the two have been, and how few homes are on a time-of-use tariff.",
+        "wall_placement": "Public-reality commons only. Every figure comes from a published source: CMA 2016, Ofgem decisions, letters and State of the Market reports, House of Commons Library briefings, Which?, MoneySavingExpert, and Octopus's own product pages. The statements about the world and the company are about their code and are marked as read, not run.",
+        "claim_freshness": {
+          "last_verified": "2026-10-25",
+          "written": "2026-10-25",
+          "source": "CMA Energy Market Investigation final report (Jun 2016) and restricted-meters appendix 9.5; Ofgem SVT trends (Sep 2017), default tariff cap decision (Nov 2018), cap letters (Feb 2021, Feb 2024), SLC 22C notice (2017), SLC 22G consultation (2020), BAT decisions (Jul and Nov 2024), State of the Market (Apr 2025, Jan 2026); Commons Library CBP-8081, CBP-9714, CBP-7543; Which?; MSE; Octopus; Elexon (MHHS)",
+          "note": "Step 4 of the owed pages in the director's map steer of 24 Oct 2026, from the advisor's cited evidence pack. Its eight [unverified] items were checked while drafting: 2 confirmed, 1 partly, 3 corrected, 2 still open. The price-cap page has the cap's method; this one has the tariffs around it."
+        }
+      },
+      "rungs": {
+        "headline": {
+          "heading": "The claim, in one sentence",
+          "body": "A GB household that does nothing at the end of a fixed deal moves to its supplier's default tariff, which since 1 January 2019 has been capped by Ofgem per fuel, payment method and region; the default's share of households has ranged from about 54% (August 2021) to about 90% (mid-2023), and the gap to the cheapest fix has been about £140-£330 a year in a normal market and close to nothing in 2022."
+        },
+        "plain": {
+          "heading": "In plain terms",
+          "body": "A household is on one of two kinds of tariff. A fixed deal locks the unit rate and standing charge for 12, 18 or 24 months, may charge a fee to leave early, and ends with a renewal letter 42-49 days before it expires. A default (standard variable) tariff has no end date and its price changes when the cap changes. Anyone who does nothing at the end of a fix lands on it.\nIn 2016 the CMA found about 70% of the big six's customers on a default tariff and put the cost of that inertia at about £1.4bn a year. The cap followed in 2019. In 2022 wholesale prices rose past the cap, fixed deals priced below it disappeared, and about nine households in ten ended up on the default. Fixes came back from late 2023, and by July 2025 about a third of customers were on one.\nTime-of-use is still small: about 835,000 accounts, 2.8%, in July 2025, most of them on EV tariffs. About 4 million homes have an older restricted meter such as Economy 7."
+        },
+        "theory": {
+          "heading": "How it works",
+          "body": "END OF A FIX. SLC 22C (from December 2017) requires the end-of-term notice no earlier than 49 and no later than 42 days before the end. No exit fee may be charged in the final 49 days. A household that does nothing moves to the default, or to a fixed default that is no dearer than the supplier's cheapest evergreen tariff and carries no exit fee.\nEXIT FEES. No rule caps them. Before 2021 they were about £5-£30 per fuel. In 2022-23 they were typically £75 per fuel on a 12-month fix and up to £200 on a two-year fix.\nTHE CAP. The Tariff Cap Act 2018 has Ofgem set a cap for each fuel separately, by payment method and for each of 14 regions, with its own multi-register cap. Levels are quoted at typical consumption: 3,100 kWh electricity and 12,000 kWh gas at first, later revised down. The cap started at £1,137 (direct debit, dual fuel) and was reset every six months, then every quarter from October 2022. It peaked at £3,582 in Q1 2023 on current consumption values. Prepayment joined the default cap when the CMA's prepayment cap expired at the end of 2020. Standing charges were levelised from April 2024, so prepayment paid about £49 a year less and direct debit about £10 more.\nTHE EPG. From 1 October 2022 to 30 June 2023 the household paid 34.0p/kWh for electricity and 10.3p/kWh for gas, including VAT, whatever the cap said. Government paid the supplier the difference. Standing charges were not reduced.\nACQUISITION-ONLY TARIFFS. Banned from April 2022, with a market-wide derogation letting suppliers offer fixed retention tariffs to their own customers. The ban has been extended each year, most recently to 31 March 2027.\nTIME-OF-USE. Restricted meters (Economy 7 about 3.7m in 2015) are covered by SLC 22G. Modern products such as Agile (half-hourly, tied to wholesale) and Go (a night window for EVs, launched June 2018) need a smart meter in smart mode."
+        },
+        "expected_shape": {
+          "heading": "What the data should look like",
+          "body": "A credible world should show these shapes against the record:\n• Default share at large legacy suppliers in 2016-17 of 57-70%, lower across the whole market.\n• Fixed share of about 45-48% in August 2021, about 9-11% at the mid-2023 low, 25-30% in January 2025 and 30-35% in July 2025.\n• A gap between the cheapest fix and the default of £140-£330 a year for typical dual fuel in a normal market, and at most about £100 in 2022, when many fixes cost more than the cap.\n• Exit fees of £5-£30 per fuel before 2021 and up to £75-£200 per fuel in 2022-23, with none in the final 49 days.\n• Restricted meters on 14-17% of electricity accounts.\n• Modern time-of-use on 2.5-3% of accounts in mid-2025, about three quarters of them EV tariffs.\nThese are calibration checks on what the world produces. They are never targets for a single home."
+        },
+        "live_evidence": {
+          "heading": "Live evidence",
+          "body": "WHAT IS SOURCED. Tariff shares 2016-2025, the end-of-fix and rollover rules, exit fees, the loyalty-penalty gap, the cap's structure and levels, the EPG, restricted meters and modern time-of-use, and the RMR and BAT rules. Every figure and URL is in docs/market_research/tariffs_and_the_default_tariff_2026-10-25.md, with the outcome of each [unverified] item checked on 25 October 2026. The default-share series with its prepayment basis is tools/published_tariff_mix.py, written up in gb_domestic_default_tariff_share_2016_2025.md. Payment-behaviour drift on the default is in svt_drift_by_payment_behaviour.md.\nWHAT THE WORLD AND COMPANY DO, READ FROM CODE AND NOT RUN. The world settles a default-tariff account at the published cap, in cap periods, with no renewal decision, and charges the EPG rate in 2022-23. The published split checks its output and is never an input. The company offers smart-metered fixed-term customers a peak/off-peak pair that splits its flat rate revenue-neutrally; there is no Agile- or Go-shaped product and no restricted meter. The company's exit-fee module waives a fee within 42 days, not the licence's 49, prices it per kWh where every published fee is flat, and nothing calls it.\nGRADED. The once-per-stint letter to default-tariff households, with a re-fix, costs the company on all three book seeds (C30, 25 October 2026), and households who stay gain about £0.9k-£1.4k a book."
+        },
+        "residuals": {
+          "heading": "Where our picture is still weak",
+          "body": "Eight things are missing. (1) Ofgem's monthly tariff-type series for 2016-2025 exists only as charts. (2) The share of fixes by length. (3) A regulatory limit on exit fees: none was found. (4) The current wording of SLC 22C after 2022-24. (5) Nil-consumption cap values by region, and the EPG standing charges by region. (6) Customer numbers for each time-of-use product. (7) A current Economy 7 count, after 2020. (8) The date the RMR simpler rules were formally removed, and the third permitted discount."
+        },
+        "scope_delta": {
+          "heading": "What this page does not yet establish",
+          "body": "It does not grade the world's fixed/default split against these bands; tools/svt_generated_share_check.py is the check that does that. It does not repeat the cap's method, which has its own page. It does not grade the company's peak/off-peak split against any published time-of-use product, and the world has no restricted-meter household to price."
+        }
+      }
+    },
+    "smart-meters-and-half-hourly-settlement": {
+      "meta": {
+        "topic_id": "smart-meters-and-half-hourly-settlement",
+        "title": "Smart meters and half-hourly settlement: what the meter reports, what settlement uses, and when it changes",
+        "subtitle": "A smart meter can report every half hour, but what a supplier is charged for a home's energy has, until now, rested on a profile and an annual read, corrected over 14 months. This page sets out the rollout, how settlement worked before MHHS, what MHHS changes, and who may see half-hourly data.",
+        "wall_placement": "Public-reality commons only. Every figure comes from a published source: DESNZ/BEIS smart meter statistics, Elexon's BSC pages and MHHS programme updates, Ofgem decisions (MHHS 2021, CR022 2023, settlement data access 2019, SLC 47 2022, billing performance 2026), DECC's 2012 data access framework and POST. The statements about the world and the company are about their code and are marked as read, not run.",
+        "claim_freshness": {
+          "last_verified": "2026-10-25",
+          "written": "2026-10-25",
+          "source": "DESNZ/BEIS Smart Meters in Great Britain quarterly reports (Q3 2016, Q1 2019, Q4 2019, Q4 2021, Q4 2022, Q1 2024, Q4 2024, Q4 2025, Q1 2026); Elexon profiling, settlement-run glossary, MHHS programme pages (2025-26); Ofgem MHHS decision (Apr 2021), CR022 (Jun 2023), HH data for settlement (Jun 2019), SLC 47 (Sep 2022), domestic billing performance (Jul 2026); DECC data access and privacy (2012); POST smart meters briefing",
+          "note": "Step 5 of the owed pages in the director's map steer of 24 Oct 2026, from the advisor's cited evidence pack. Its six unverified or secondary items were checked while drafting: 2 confirmed, 1 corrected, 3 still open, one of them a conflict between two Elexon sources on when R2 runs."
+        }
+      },
+      "rungs": {
+        "headline": {
+          "heading": "The claim, in one sentence",
+          "body": "By the end of 2025, 71% of GB domestic meters were smart and 65% were in smart mode. Until migration to market-wide half-hourly settlement began on 22 October 2025, almost every home was settled on a profile and corrected over reconciliation runs ending 14 months later. That window falls to 7 months from April 2027 and 4 months from July 2027."
+        },
+        "plain": {
+          "heading": "In plain terms",
+          "body": "A smart meter records use every half hour and sends it to the supplier over the national network. The rollout began in earnest in 2016. About 8% of large suppliers' domestic meters were smart in 2016, 29% in 2019, half in 2022 and 71% by the end of 2025. Not every smart meter works as one. About one in twelve is in 'traditional mode', often a first-generation meter that stopped talking after a switch.\nEven where a supplier had half-hourly data, settlement (how the market charges each supplier for its customers' energy) mostly did not use it. A domestic home was settled on a standard profile shape scaled to an annual estimate, and the bill was corrected as real reads arrived, run by run, over 14 months. Market-wide half-hourly settlement (MHHS) replaces that with each home's actual half-hours. Migration began in October 2025 and is due to finish in May 2027.\nHalf-hourly data is personal data. From November 2022 a newly installed or newly contracted home shares half-hourly data by default and may opt down to daily. Older arrangements default to daily."
+        },
+        "theory": {
+          "heading": "How it works",
+          "body": "PROFILES. Elexon's Profile Class 1 is domestic unrestricted and Profile Class 2 is domestic Economy 7. A non-half-hourly meter's annual quantity (EAC or annualised advance) is spread over half-hours with regression coefficients, refreshed twice a year from about 2,500 sample sites.\nRUNS. Interim Information at 1 week (no money moves), Initial Settlement at about 1 month, R1 at 2 months, R2 at 4 or 5 months (two Elexon sources differ), R3 at 7 months, RF at 14 months, and Dispute Final at 28 months for disputes only. Each run replaces estimates with actual reads as they arrive. In 2014 about 30% of non-half-hourly energy was on actual data at R1, 60% at R2, 80% at R3 and 97% at RF, the performance target.\nMHHS. Approved by Ofgem on 20 April 2021, replanned in June 2023 (CR022) because the first timetable was 'unrealistic and unachievable'. Central systems went live in September 2025 and migration began on 22 October 2025. More than 11.3 million meters had migrated by June 2026. Completion is due on 7 May 2027 and the shorter timetable from 2 July 2027. Non-communicating meters are settled with Load Shaping Service shapes.\nDATA ACCESS. DECC's 2012 framework: monthly data for billing without consent, daily data for any purpose except marketing with an opt-out, half-hourly only with opt-in. Ofgem's 2019 decision made settlement use of half-hourly data an obligation with an opt-out. SLC 47 as modified from 3 November 2022 sets half-hourly by default for 'New System' customers, daily for 'Old System', and no opt-out for half-hourly time-of-use customers.\nREADS. SLC 21B requires all reasonable steps to read a meter at least once a year. The two-yearly duty some sources quote was the meter-inspection duty, removed in April 2016."
+        },
+        "expected_shape": {
+          "heading": "What the data should look like",
+          "body": "A credible world should show these shapes against the record:\n• Domestic meters smart in any mode: about 37% at end 2019 [derived], 50% at end 2021, 55% at end 2022, 66% at end 2024 and 71% at end 2025 (band 68-74%).\n• Smart meters in smart mode: 90-94% of smart and advanced meters. Traditional mode: 4-8% of domestic meters in 2024-25.\n• SMETS1 to SMETS2 at about 1:2 by end 2025 (13m to 27m).\n• About 2.4-3.2m domestic installs a year. About 11% of domestic smart meters in prepayment mode.\n• Every domestic home settled on a profile through 2025, with reconciliation ending at 14 months.\n• About 81% of bills on actual reads at first issue (2024).\nThese are calibration checks on what the world produces. They are never targets for a single home."
+        },
+        "live_evidence": {
+          "heading": "Live evidence",
+          "body": "WHAT IS SOURCED. The rollout at year ends 2016-2026, operating modes, SMETS1 and SMETS2, profile classes, the run timetable and its MHHS transition, MHHS milestones and progress, the data access rules, read duties and estimated bills. Every figure and URL is in docs/market_research/smart_meters_and_half_hourly_settlement_2026-10-25.md, with the outcome of each unverified item checked on 25 October 2026. The run timetable the world uses is read from Elexon's 2014 slides in elexon_settlement_run_timetable_verified.md. Half-hourly load-shape clustering and data consent are in hh_load_shape_clustering_2026.md and smart_meter_hh_data_consent_2026.md.\nWHAT THE WORLD AND COMPANY DO, READ FROM CODE AND NOT RUN. The world draws which premise has a smart meter from DESNZ Table 5a, linearly interpolated (10.6% in 2016 to 68.9% in 2024), with 90% communicating. That is within about 5 points of the record. A second copy in saas/smart_meter_rollout.py runs 4-10 points higher, derived by dividing meters by households, and it gates the company's time-of-use offer. The world settles every home on a profile with R1, R2, R3 and RF at 2, 4, 7 and 14 months. It has no MHHS, because the run ends before migration, no elective half-hourly settlement and no data-consent choice."
+        },
+        "residuals": {
+          "heading": "Where our picture is still weak",
+          "body": "Seven things are missing. (1) The quarter-by-quarter rollout series in DESNZ's data tables was not read, so 2017, 2018 and 2023 rest on gaps or secondary sources. (2) MPAN counts by profile class. (3) Elective domestic half-hourly settlement uptake: no published count. (4) Actual half-hourly data opt-out rates under SLC 47. (5) Whether R2 runs at 4 or 5 months: two Elexon sources disagree. (6) Intermediate run timings under the MHHS target timetable. (7) Estimated bills split by meter type."
+        },
+        "scope_delta": {
+          "heading": "What this page does not yet establish",
+          "body": "It does not grade the world's smart-meter share against these bands beyond the year-end comparison in the note. It does not settle which of the two penetration series should be the one home; that is filed as a finding. It does not cover read cadence and estimated bills in depth, which belong to the metering-and-reads page."
+        }
+      }
+    },
+    "vulnerability-and-the-psr": {
+      "meta": {
+        "topic_id": "vulnerability-and-the-psr",
+        "title": "Vulnerable customers: the Priority Services Register, ability to pay, prepayment and self-disconnection",
+        "subtitle": "A supplier must identify customers in vulnerable situations, give them free priority services, set debt repayments by what they can afford and never leave a prepayment household cut off without help. Most of what it needs to know, it only learns if the household tells it.",
+        "wall_placement": "Public-reality commons only. Every figure comes from a published source: Ofgem decisions, reports and the Consumer Vulnerability Strategy progress report, DESNZ and the Scottish Government's fuel poverty statistics, Citizens Advice, Energy UK, and the Warm Home Discount consultation. The statements about the world and the company are about their code and are marked as read, not run.",
+        "claim_freshness": {
+          "last_verified": "2026-10-25",
+          "written": "2026-10-25",
+          "source": "Ofgem PSR review (2015) and press release (2016); Vulnerable consumers in the energy market (2019); self-disconnection and self-rationing decision (Oct 2020); ability-to-pay review (Sep 2022); involuntary PPM Code of Practice (Apr 2023) and licence decision (Sep 2023); Consumer Standards decision (Oct 2023); PPM compensation (May 2025); Consumer Vulnerability Strategy (Apr 2025) and progress report (Jul 2026); DESNZ fuel poverty statistics (2025, 2026); Scottish House Condition Survey 2024; Citizens Advice (2023, 2025); WHD 2025/26 consultation; Energy UK Vulnerability Commitment",
+          "note": "Step 6 of the owed pages in the director's map steer of 24 Oct 2026, from the advisor's cited evidence pack. Its four unverified items were checked while drafting: 1 confirmed, 1 partly, 2 still open. Debt collection itself has its own page."
+        }
+      },
+      "rungs": {
+        "headline": {
+          "heading": "The claim, in one sentence",
+          "body": "By the end of 2025 about 32% of GB electricity customers were on a supplier's Priority Services Register and just under 7% were in debt or arrears, 58% of those with no repayment plan; since December 2020 a supplier must set repayments by ability to pay and identify prepayment customers who self-disconnect, and since November 2023 it may not force a prepayment meter on a household of over-75s, under-twos or with a health need for continuous supply."
+        },
+        "plain": {
+          "heading": "In plain terms",
+          "body": "Some households are much less able to protect themselves when things go wrong: older people living alone, people who rely on powered medical equipment, families with very young children, people who are seriously ill, or people in a temporary crisis. Suppliers keep a Priority Services Register of them and offer free services such as password schemes, accessible bills and advance warning of power cuts. Registration has grown from about 13% of customers in 2015 to about a third in 2025, but it depends on the household telling its supplier.\nThe other kind of vulnerability is money. Energy debt reached a record £4.79bn in early 2026. A supplier must contact a customer after two missed monthly payments, set repayment by what the household can afford, and consider pausing repayments.\nPrepayment is where the two meet. In 2022 about 600,000 households were moved to prepayment for debt, some by force under warrant, and 3.2 million people ran out of credit. After a newspaper exposed forced installs in February 2023, Ofgem stopped them, made a code of practice mandatory and later had suppliers pay £18.6m in compensation and write-offs."
+        },
+        "theory": {
+          "heading": "How it works",
+          "body": "THE REGISTER. Since January 2017 eligibility covers anyone 'in a vulnerable situation', permanent or temporary; networks must also cover households with children under five. Suppliers must take reasonable steps to identify eligible customers and share needs data with the network, using common needs codes, with consent.\nABILITY TO PAY (SLC 27). From 15 December 2020 suppliers must give due consideration to ability-to-pay principles: repayment rates set on ability to pay, no large upfront payment before reconnection, and re-engagement after a failed arrangement. From 14 December 2023 they must make contact no later than after two missed monthly payments (SLC 27.5B), consider repayment pauses, and offer free contact to customers who are struggling.\nPREPAYMENT AND SELF-DISCONNECTION (SLC 27A). Emergency and friendly-hours credit for every prepayment customer; additional support credit for vulnerable households who are self-disconnecting; all reasonable steps to identify self-disconnection on an ongoing basis. Self-rationing carries no identification duty.\nINVOLUNTARY PREPAYMENT. Frozen from February 2023, governed by a mandatory code from November 2023. It needs at least £200 of debt per fuel and at least three months outstanding, at least ten contact attempts and a welfare visit. Never for households of only over-75s, with children under two, or with a health need for continuous supply.\nFUEL POVERTY. England: an energy-efficiency band of D-G and income after housing and energy costs below the poverty line (LILEE). Scotland, Wales and Northern Ireland use spending shares of 10% or more.\nWARM HOME DISCOUNT. £150 a year, by data matching. It reached about 3.4m households before 2025/26 and about 6.1m after the high-cost-to-heat test was removed."
+        },
+        "expected_shape": {
+          "heading": "What the data should look like",
+          "body": "A credible world should show these shapes against the record:\n• About 24% of electricity accounts on a PSR at end 2018, about 25% at end 2020 and about 32% at end 2025.\n• Just under 5% of customers in debt or arrears at end 2020 and just under 7% at end 2025. Of those in arrears, 49% (2020) to 58% (2025) with no repayment plan.\n• Average electricity debt when a plan is agreed of about £700 (2020) to £1,050 (2025).\n• Prepayment customers self-disconnecting in a year: about 1 in 7 (2019) to 29% (2024/25 survey).\n• Fuel poverty in England falling from 16.2% (2016) to 9.9% (2024), and about 1.5-2.5 times the direct-debit rate among prepayment customers.\nThese are calibration checks on what the world produces. They are never targets for a single home."
+        },
+        "live_evidence": {
+          "heading": "Live evidence",
+          "body": "WHAT IS SOURCED. The Consumer Vulnerability Strategy, PSR eligibility, services and registrations 2014-2025, the ability-to-pay rules and the 2022 review, debt outcomes 2018-2026, the prepayment moratorium, code and compensation, self-disconnection prevalence, fuel poverty definitions and series, and the Warm Home Discount. Every figure and URL is in docs/market_research/vulnerability_psr_and_ability_to_pay_2026-10-25.md, with the outcome of each unverified item checked on 25 October 2026. The world's two vulnerability states are set out in debt_and_collections.md section 10; Ofgem's licence background is in ofgem_regulation.md.\nWHAT THE WORLD AND COMPANY DO, READ FROM CODE AND NOT RUN. The world draws PSR-type and financial vulnerability as hidden household states, independently. Only a disclosed PSR registration crosses to the company, and nothing else reads either state yet. At its defaults the world registers about 16% of households, about half the 2025 register share, though the denominators differ (households against accounts). The company decides PSR eligibility and disconnection protection in one module from the published vocabulary. The world also draws silent self-rationing: a household that keeps paying and stops heating, visible only as a fall in consumption that a company detector looks for. The world has no prepayment meter, so the prepayment rules have no household to act on. Several company registers (prepayment, fuel poverty, Warm Home Discount) have no caller."
+        },
+        "residuals": {
+          "heading": "Where our picture is still weak",
+          "body": "Nine things are missing. (1) The final SLC 26 text and the current needs-code list. (2) PSR counts after 2018, beyond percentages, and how many registrations sit with a supplier but not the network. (3) Ofgem's 2022 expectations letter. (4) Any regulatory measure of self-rationing. (5) A cross-tabulation of fuel poverty against arrears. (6) Friendly-hours and emergency credit amounts. (7) How the Warm Home Discount reaches prepayment customers. (8) The Energy UK Commitment's launch year and signatories. (9) Involuntary prepayment volumes for 2022 and after the 2024 restart."
+        },
+        "scope_delta": {
+          "heading": "What this page does not yet establish",
+          "body": "It does not grade the world's registration share, arrears or fuel poverty against these bands; the 16% registration figure is arithmetic on the world's defaults, not a run. It does not cover debt collection itself, which has its own page. It does not describe a prepayment world, because the world has none."
+        }
+      }
     }
   }
 }
