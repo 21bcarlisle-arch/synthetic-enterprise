@@ -275,3 +275,39 @@ from the two artefacts already on disk, if they carry it, or from one instrument
 do not. That shows whether the cost sits in the fix windows (hedge or pricing) or after them. The
 default book at 9bb30c4de5 (three arms, about 50 minutes each) would put the fourth book on the
 seeds' commit. That is lower value, because 3 of 3 already agree in sign.
+
+## The −£2,678 on 61102: pre-registered before the instrumented re-run computed (2026-10-25 ~12:50Z)
+
+*Continuation `c30-refix-unattributed-cost-61102`. Written while the two arms below were running and
+before either had finished.*
+
+**The on-disk artefacts cannot answer it.** `B_61102.json` and `C_61102.json` hold `total_net`,
+`final_treasury` and the SVT decision and departure rows, and no series by month or ledger line.
+They do settle one thing already: **the 277 departures are identical in B and C** (same customer,
+date and cause). Every one of B's 8,543 decisions is also in C. C's 107 extra decisions are stayed
+quarters that B's 12 re-fixed households spend on a fix instead of on the default. So the knock-on
+cannot run through who leaves.
+
+**Re-run:** `/var/tmp/c30-61102-monthly/arm3.py` is `arm2.py` unchanged, plus it sums `all_records`
+by customer × commodity × month over every numeric column. `total_net` is exactly the sum of those
+rows' `net_margin_gbp` (`run_phase2b.py`, `total_net = sum(...)`), so B − C splits exactly. The arms
+are `longjob-c30-61102-monthly-{b,c}`, both at 9bb30c4de5, seed 61102 and the same argv and labels as
+the graded arms. **Reproduction check, made first:** each `total_net` must equal the graded
+artefact's (B £550,331.64, C £553,905.69). If either differs, the run is not deterministic, and
+nothing below is graded on it.
+
+**Predictions:**
+
+1. **Where.** At least 90% of B − C (−£3,574) sits on the 12 re-fixed households' own rows. The
+   other accounts sum to within ±£250, because the departures are identical.
+2. **Which line.** On those 12, `revenue_gbp` carries about −H (−£896), within ±30%. The ±30% covers
+   settled kWh against EAC, the standing charge and the VAT basis. Most of the remaining ~−£2,700
+   is in `wholesale_cost_gbp` (the fix's hedge struck at the decision date), not in
+   `capital_cost_gbp`.
+3. **When.** The largest single household is OCC-5e8cb2b031ec, whose fix runs 2022-07 to 2023-06
+   at £242/MWh against a default of £270–£324.
+4. **Route.** If the excess is wholesale cost from hedging the fix, that is the company's own
+   per-customer act and a real cost, so C30's verdict stands as graded. If it is capital cost
+   sized for a full term against a fix, or any line booked on a fix that a default segment does
+   not carry for the same energy, that is an accounting route. It then goes to D48 as a finding,
+   and the three-seed verdict is re-stated net of it.
