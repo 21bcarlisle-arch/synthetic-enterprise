@@ -1,4 +1,4 @@
-**Severity:** LATENT · **Lane:** D_billing_metering · **Epoch:** 4 · **Atom:** `D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used`
+**Severity:** RECORDED · **Lane:** D_billing_metering · **Epoch:** 4 · **Atom:** `D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used`
 **Knowledge:** `price-cap` -- `docs/market_research/default_tariff_cap_and_epg_on_the_bill.md`
 
 # The void-stub EPG fix gives households credits of about 48× the Treasury's share, and the ledger books none of it
@@ -117,3 +117,33 @@ The s14clean arms finished at 15:36Z. The closing run was launched through `laun
 `/var/tmp/se-epgfold-1c30d6c728` and wrote to `/var/tmp/se-epgfold-out/`: the run's JSON, `run.rc`,
 `grade.json` and `grade.rc` (the grader's own exit, 1 on any defect). The prediction above stands as
 filed. It is graded here when `grade.json` exists.
+
+## Graded, and closed (25 Oct, delivery seat)
+
+The closing run finished (`run.rc` 0, `grade.rc` 0). `grade.json` at `1c30d6c728`:
+
+- **Carved equals booked: GBP 200,091.73 = GBP 200,091.73,** on 3,544 bills carrying a receipt. None
+  was carved outside the windows.
+- **`negative_estimated_bills` is empty, and `defects` is `[]`.** The closing condition above is met.
+- `unit_charge_fall` is unchanged in every quarter and fuel: 2022-Q4 elec 0.345 / gas 0.301, 2023-Q1
+  0.496 / 0.396, and 2023-Q2 0.328 / 0.182.
+- **Over the ceiling, 6 of 24,597 graded default-tariff invoices** (12,589 ungradeable). They sit on 2
+  households, all outside the EPG windows (2019: 2, 2024: 4), and 0 are on actual-read accounts.
+
+**The prediction held on every leg.** The five electricity stubs now carry the right receipts:
+
+| account | stub start | receipt before | receipt now | bill total now |
+|---|---|---|---|---|
+| OCC-eb8498f3f8aa | 2023-01-17 | GBP 2,940.87 | GBP 61.61 | GBP 73.57 |
+| OCC-cc0c78690877 | 2023-06-01 | GBP 2,024.78 | GBP 42.18 | GBP 106.51 |
+| OCC-25ff8966357a | 2022-12-24 | GBP 476.39 | GBP 9.92 | GBP 23.18 |
+| OCC-cc0c78690877 | 2023-05-27 | GBP 351.81 | GBP 7.33 | GBP 18.39 |
+| OCC-a8253b022c52 | 2023-04-28 | GBP 104.27 | GBP 2.17 | GBP 6.25 |
+
+Four of the five old receipts are 48.0× the new ones. The fifth, OCC-eb8498f3f8aa's January stub, is
+47.73×. That stub's new receipt equals the probe's (GBP 61.61), so the 47.7 was a property of the old
+over-carve alone. It no longer bears on anything, and it stays unexplained.
+
+**The six over the ceiling** are neither a ToU pair nor an incoming occupant. They are a third cause:
+a gas SVT term that starts off a cap quarter is billed at the mean of every rate it has carried. It is
+filed as `SEAT_FINDING_A_GAS_SVT_TERM_STARTED_OFF_A_CAP_QUARTER_IS_BILLED_AT_THE_MEAN_OF_EVERY_RATE_IT_HAS_CARRIED_2026-10-25.md`.

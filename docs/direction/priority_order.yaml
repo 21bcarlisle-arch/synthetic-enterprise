@@ -20,6 +20,7 @@ steps:
     atoms: [W2_36_unbilled_energy_arises_the_way_it_does_in_reality,
             D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used,
             B7_customer_state_layer_moves_and_shocks,
+            B13_a_dual_fuel_household_is_one_account_across_both_fuels,
             W2_37_complaints_arise_from_billing_failures_and_the_silent_unhappy_are_modelled]
   3:
     name: forward CLV
@@ -49,6 +50,56 @@ steps:
   6:
     name: forward years, once the basics work
     atoms: [EP16_anchored_generators, SPINE_1_scenario_world_state]
+    # The basics' definition of done (ruling item 2), graded by `tools/the_basics.py` in the Monday
+    # step. Forward runs start when every gate atom is at its target; the lines say where the work is.
+    # A line's state is read, never typed: absent if a named test is missing, partial if its atom is
+    # below target, done otherwise.
+    starts_when:
+      gate: [E6_a_forward_cash_forecast_per_customer_charges_expected_loss_as_arrears_build,
+             W2_41_a_household_cancels_its_mandate_as_its_own_act,
+             PB8_a_households_payment_channel_changes_over_its_tenure, EP4_collections_journey,
+             B7_customer_state_layer_moves_and_shocks, W2_40_voids_tied_to_move_outs,
+             EP12_adapter_css_rec_switching,
+             B13_a_dual_fuel_household_is_one_account_across_both_fuels]
+      lines:
+        - {basic: payment and debt, line: a failed DD is re-presented and later repaid,
+           tests: [tests/simulation/test_the_dd_failure_level_reads_the_register_and_a_return_is_re_presented.py]}
+        - {basic: payment and debt, line: the supplier reviews DD amounts in the run,
+           tests: [tests/simulation/test_dd_review_in_loop.py]}
+        - {basic: payment and debt, line: the collections desk works arrears to its journey, atom: EP4_collections_journey,
+           tests: [tests/company/billing/test_dd_collections_desk.py,
+                   tests/tools/test_the_household_record_shows_the_desks_collections_journey.py]}
+        - {basic: payment and debt, line: a stopped DD stops the household paying by DD,
+           atom: PB8_a_households_payment_channel_changes_over_its_tenure,
+           tests: [tests/simulation/test_a_stopped_dd_is_paid_on_receipt_by_the_money_side.py]}
+        - {basic: payment and debt, line: a household cancels its own mandate,
+           atom: W2_41_a_household_cancels_its_mandate_as_its_own_act,
+           tests: [tests/simulation/test_a_household_cancels_its_mandate_as_its_own_act.py]}
+        - {basic: payment and debt, line: the forward cash forecast charges expected loss as arrears build,
+           atom: E6_a_forward_cash_forecast_per_customer_charges_expected_loss_as_arrears_build,
+           tests: [tests/company/finance/test_the_provision_charges_expected_loss_as_arrears_build.py]}
+        - {basic: payment and debt, line: a dual household's credit on one fuel offsets its debt on the other,
+           tests: [tests/simulation/test_a_dual_household_may_offset_one_fuels_credit_against_the_others_debt.py]}
+        - {basic: dual fuel, line: the bill carries both fuels, tests: [tests/test_dual_fuel_bill.py]}
+        - {basic: dual fuel, line: a dual mover's gas follows it or is refused,
+           tests: [tests/simulation/test_a_dual_fuel_movers_gas_follows_it.py]}
+        - {basic: dual fuel, line: a mover's final bill and the end of supply,
+           atom: B7_customer_state_layer_moves_and_shocks,
+           tests: [tests/simulation/test_a_movers_final_bill_is_the_exit_draw.py,
+                   tests/simulation/test_a_home_move_ends_supply_in_the_run.py]}
+        - {basic: dual fuel, line: one atom grades dual fuel as a whole,
+           atom: B13_a_dual_fuel_household_is_one_account_across_both_fuels,
+           tests: [tests/simulation/test_a_dual_fuel_household_is_one_account_across_both_fuels.py]}
+        - {basic: switching, line: a loss notice reaches the company for every leg on supply,
+           tests: [tests/simulation/test_registration_loss_feed.py, tests/interface/test_registration_loss_seam.py,
+                   tests/company/crm/test_cos_process.py]}
+        - {basic: switching, line: the company decides an objection in the CSS window,
+           atom: EP12_adapter_css_rec_switching, tests: [tests/simulation/test_debt_objection.py]}
+        - {basic: switching, line: a save on the loss notice, atom: EP12_adapter_css_rec_switching,
+           tests: [tests/simulation/test_a_save_is_not_paid_for_by_the_stayers.py,
+                   tests/tools/test_the_world_decides_who_a_save_offer_keeps.py]}
+        - {basic: switching, line: a dual household switches as one with one save decision,
+           tests: [tests/company/crm/test_a_dual_household_is_one_save_decision.py]}
   7:
     name: the long-horizon levers
     atoms: [C4_adoption_physics, W1_10_ev_heatpump_geography]
