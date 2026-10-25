@@ -199,6 +199,58 @@ def refused_marker_to_rearm(done_dir: Path, newest_published: str | None,
     return marker, f"{marker.name}'s refusal (git {git_hash}) now reads dead at HEAD"
 
 
+PUBLISH_OFFERED_TAG = "<!-- publish-offered-at-window:"
+
+
+def held_marker_to_offer(done_dir: Path, window: dict | None = None,
+                         latest_output: Path | None = None) -> tuple[Path | None, str]:
+    """`(marker, reason)`: the HELD run to offer the publisher now the window is open, or None.
+
+    A run finishing mid-week is held and archived, and nothing offered it again at Mon 04:00:
+    all four 904a091f7b runs of 24-25 Oct. Called only when staging/ holds no marker. Design:
+    docs/design/PUBLISH_DECOUPLING.md "A HELD RUN WHEN THE WEEKLY WINDOW OPENS"."""
+    import filecmp
+
+    from background import staging_archive_policy
+    # done/ alone, as the re-arm reads it: the hold archives there. The exhaust sweep is a hand-run
+    # CLI with no age rule, so a held marker it moved before the window would not be offered.
+    names = {p.name: p for p in Path(done_dir).glob("run_complete_*.md")}
+    if not names:
+        return None, "no run_complete marker is archived in done/"
+    marker = names[max(names)]
+    if not staging_archive_policy.publish_was_held(marker):
+        return None, f"the newest marker {marker.name} was not held by the weekly window"
+    try:
+        text = marker.read_text(errors="replace")
+    except OSError as exc:
+        return None, f"{marker.name} unreadable ({exc})"
+    if PUBLISH_OFFERED_TAG in text:
+        return None, f"{marker.name} was already offered once at the window"
+    if window is None:
+        from background import publish_freshness
+        window = publish_freshness.content_publish_window()
+    if not window.get("open"):
+        return None, f"the weekly window is closed: {window.get('reason')}"
+    run_json = next((Path(line[6:].strip()) for line in text.splitlines()
+                     if line.startswith("JSON: ")), None)
+    latest = latest_output if latest_output is not None else RUN_OUTPUT_LATEST
+    try:
+        same = bool(run_json) and filecmp.cmp(run_json, latest, shallow=False)
+    except OSError:
+        same = False
+    if not same:
+        return None, (f"{latest.name} is no longer {marker.name}'s run output ({run_json}), so "
+                      f"offering it would publish a mix of two runs")
+    return marker, f"{marker.name} was held mid-week and the window is open: {window.get('reason')}"
+
+
+def _stamp_offered(marker: Path) -> None:
+    with open(marker, "a") as fh:
+        fh.write(f"\n{PUBLISH_OFFERED_TAG} at={datetime.now(timezone.utc).isoformat()} -->\n"
+                 "Offered once by background_worker.process_leftover_run_markers when the "
+                 "weekly window opened with no marker pending.\n")
+
+
 def _stamp_rearmed(marker: Path) -> None:
     with open(marker, "a") as fh:
         fh.write(f"\n{PUBLISH_REARMED_TAG} at={datetime.now(timezone.utc).isoformat()} -->\n"
@@ -472,6 +524,12 @@ def process_leftover_run_markers():
     if rearm is not None:
         log(f"Re-arming a refused publish: {why}")
         markers = sorted(markers + [rearm], key=lambda p: p.name)
+    offer = None
+    if not markers:
+        offer, why = held_marker_to_offer(done_dir)
+        if offer is not None:
+            log(f"Offering a held run at the weekly window: {why}")
+            markers = [offer]
     if not markers:
         _check_zero_progress([])
         return
@@ -519,6 +577,8 @@ def process_leftover_run_markers():
     for position, marker in enumerate(order):
         if marker == rearm:
             _stamp_rearmed(marker)   # before the call: a re-attempt that fails is not re-queued
+        elif marker == offer:
+            _stamp_offered(marker)   # the same once-only rule
         try:
             result = subprocess.run(
                 [sys.executable, str(processor), str(marker)],
