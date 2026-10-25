@@ -280,6 +280,53 @@ not carry it.
    in debt or settled. I cannot predict the count. `a0ed2aa7b`'s 7 was a 60-founder run, and this
    book has 263 move-out rows.
 
+## Monday's run graded, 25 Oct 14:50Z: all three predictions held, and it is on `run_output_latest`
+
+The unit `longjob-mondays-run-b2bc3d8da5` finished at 13:32Z (1h05m wall, 5.4 GB peak). Its
+artefact, `docs/reports/run_output_b2bc3d8da5_20261025T1230Z.json`, is stamped `b2bc3d8da5` and
+carries `063dc4bbd`, `33dd50527`, `9bb30c4de` and `a0ed2aa7b`. Nothing graded or promoted it
+afterwards: a hand launch writes no run-complete marker.
+
+**The grade** (`python3 -m tools.grade_svt_invoices_over_ceiling <run>`, `defects: []`):
+
+| Prediction | Result |
+|---|---|
+| 1. 0 default-tariff invoices over min(cap, EPG), about 24,660 graded | **0 of 24,663** (0 households). 12,607 more are ungradeable, meaning the grader's excess function returns `None` for them. |
+| 2. Carved equals booked, no negative estimate | **£200,459.54 carved = £200,459.54 booked** on 3,553 bills. None of it is outside the EPG windows. 0 negative estimates. 0 overlapping term legs. |
+| 3. Every in-credit move-out is refunded, none is unrefunded, none goes to the wrong account | **100 of 848** closing balances are in credit. All 100 have an `account_closure` refund (£7,093.49), 0 are owed and unrefunded, and 0 refunds go to an account not in credit. |
+
+**Not predicted, and still open:** 10 of the 100 closure refunds were paid in 13 to 24 working
+days, against the code's own deadline of `_REFUND_DEADLINE_WORKING_DAYS = 10`
+(`company/billing/credit_refund.py:27`). They are flagged `breached_slc14_deadline`. This grade does
+not say whether 10 working days is the licence's figure, or whether the lag is a billing-cycle
+artefact. That is the next read.
+
+**This run does not carry `dac6b90d7`** ("a credit in the middle of an account's life comes off the
+next paid bill"). That fix landed after `b2bc3d8da5`. The 100 closure credits above are therefore
+before it. `dac6b90d7`'s own 60-founder reading cut them from 7 to 2.
+
+**Promoted.** `docs/reports/run_output_latest.json` on the shared tree is now a byte copy of this
+run (`cmp` clean). The bytes it replaced are still on disk as
+`run_output_904a091f7b_20261025T031613Z.json`. To reverse, copy that file back.
+
+**Why the site would still not move on Monday without one more step.** The publisher HOLDs any run
+that completes mid-week, archives its marker, and nothing offers that run again when the window
+opens. `refused_marker_to_rearm` re-arms refusals only, not holds. All four `904a091f7b` runs of 24
+and 25 Oct were held this way. So Monday's publish happens only if a run happens to finish after
+Mon 04:00. The runner has deferred every cycle since 04:20Z, waiting on landings first. As a
+one-off, the transient user timer `mondays-window-marker-20261026` fires at **2026-10-26 04:05Z**.
+It runs `/var/tmp/mondays-window-marker/drop_marker.py`, which writes a run-complete marker for
+whatever run is on `run_output_latest` at that moment, and only if no marker is already pending.
+The publisher's own refusals all still apply. The log is `/var/tmp/mondays-window-marker/out.log`.
+To reverse, `systemctl --user stop mondays-window-marker-20261026.timer`. It does not survive a
+restart of the user manager. The structural fix, a held run re-offered at window open, is handed on
+as `a-held-run-is-offered-again-when-the-weekly-window-opens`.
+
+**Prediction for Monday, filed before it happens.** The marker is written at 04:05Z and the
+billing grade passes. The publish lands `b2bc3d8da5`'s figures, and `figures_caveat` clears. A later
+run at a newer HEAD may finish first. If so, that run publishes instead and the marker step reports
+a pending marker.
+
 ## The renewal slot's "100% churn risk" is a saturated belief of 0.999, not a clip (25 Oct, copy pack B3)
 ### What the record says (read, not inferred)
 
