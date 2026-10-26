@@ -41,11 +41,61 @@ module.
 - Tests: the ordering test now requires land → deliver → gate. Mutation: deleting the call turns it red.
   A new test drives both outcomes of the push verdict.
 
-**Recovery.** `origin_reconcile` closed the fork unaided at 05:16. At 05:17 the seat re-offered the
-same run with `python3 -m background.sim_runner --promote`, the direction's route for a run made by
-hand, which wrote `run_complete_20261026T051730Z.md`. The outcome of that cycle is recorded in the
-marker's own `Publish outcome` section in `docs/staging/done/`.
+**Recovery, and a second defect it found.** `origin_reconcile` closed the fork unaided at 05:16. At
+05:17 the seat re-offered the same run with `python3 -m background.sim_runner --promote`, the
+direction's route for a run made by hand, which wrote `run_complete_20261026T051730Z.md`. That cycle's
+tests were cached, so it reached the landing at 05:40. It ended `commit_refused` at 05:46, and nothing
+was gated.
 
-**What this does not fix.** If origin moves between the repair landing and its push (a window of
-seconds, not 36 minutes), the old refusal can still happen. Closing that would mean `land()` building
-on origin's head instead of HEAD's. That is a larger change, not taken here.
+1. Origin had moved one commit and the shared tree held none of its own.
+2. `_divergence_refusal` admits that state as disjoint, so the fast-forward never ran.
+3. `surgical_land` then refused, because a PRIMARY checkout behind origin may not commit (the
+   land-twice class).
+
+So the two doors disagree about a tree that is merely behind. The publisher's classifier also logged
+the refusal as "UNNAMEABLE", because it does not know `surgical_land`'s wording. That gap is not fixed
+here.
+
+**Second fix (same lane, landed after the first).** `_land_publish_commit` now calls
+`_level_with_origin_before_landing`, which runs `_advance_to_origin_or_say_why` (a fast-forward only,
+with git's own refusal as the guard). It runs after the quiet-tree wait and before EACH landing
+attempt, because origin moves during that wait too.
+
+- Test: `tests/background/test_the_publish_levels_with_origin_before_each_landing.py` requires the
+  order wait → advance → land on attempt 1 and after a lost race. Mutation: deleting either call turns
+  it red.
+- The run is re-promoted once this code is on the shared tree. That cycle's outcome is in its marker's
+  `Publish outcome` section in `docs/staging/done/`.
+
+**What this does not fix.** Two windows remain:
+
+- If origin moves between the repair landing and its push (a window of seconds, not 36 minutes), the
+  first refusal can still happen. Closing that would mean `land()` building on origin's head instead
+  of HEAD's.
+- If origin moves between the fast-forward and `land()`'s own pre-check (also seconds), the second
+  refusal can still happen.
+
+**Disposition of the Lane 0 item `the-publish-lands-from-a-trunk-worktree-not-the-primary-checkout`
+(worker, 06:45Z).** The item asked for the publish to gate and land in a detached worktree on
+origin/main, so that "origin moving during the gate can no longer refuse a green publish". Re-measured
+against c2fc7b207, that rework is not built, for three reasons:
+
+- Both measured refusals are already closed: 05:14 by 410c1131d, 05:46 by c2fc7b207.
+- Origin moving *during* the gate is already absorbed. The commit lands on the old base and the push
+  is rejected non-fast-forward. `_publish_is_absorbable` then reads that as a race over paths we do not
+  write and hands it to `origin_reconcile`. A real collision on a publish path refuses with its reason.
+  `tests/background/test_the_publish_verdict_asks_reachability_and_not_equality.py::
+  test_only_a_lost_race_over_paths_we_do_not_write_is_absorbable` checks both branches, with a stated
+  mutation. That is the control the item asked for, keyed to the route the code actually takes.
+- A worktree route would make this case worse. `promote_worktree_landing` refuses anything that is not
+  a fast-forward and leaves the re-gate to the caller. So an unrelated mid-gate commit, which is
+  absorbed today, would become a refusal plus a second full gate.
+
+The one remaining shape is the reconciler fast-forwarding the shared HEAD during the gate. That is
+`BaseMoved`: a lost race that `land()` re-gates. It is the hot-tree class, not an origin class, and a
+worktree route would pay the same re-gate.
+
+Done instead: run_output_4ae8da9b0f_20261026T022647Z was re-offered at 06:40Z as
+`run_complete_20261026T064020Z.md`, with c2fc7b207 on the shared tree. Its outcome lands in that
+marker's `Publish outcome` section. `mondays-window-published-the-b2bc3d8da5-run` already counts as
+delivered, so no premise-spent was recorded against it.

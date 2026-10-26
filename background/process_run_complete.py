@@ -6539,6 +6539,22 @@ def _refused_advance_cause(project, blockers_fn=None, ahead_fn=None):
             "it the guard working would be a guess", clause)
 
 
+# THE TWO DOORS DISAGREED ABOUT A TREE THAT IS MERELY BEHIND (2026-10-26, measured). The second
+# Monday publish of run 4ae8da9b0f: origin moved one commit during the cycle and this tree held none
+# of its own. `_divergence_refusal` admits that state as disjoint, so the fast-forward never ran, and
+# `surgical_land` then refused the landing because a PRIMARY checkout behind origin may not commit
+# (the land-twice class). Nothing was gated, and the outcome was `commit_refused`. A tree behind with
+# nothing of its own is exactly the case the fast-forward closes mechanically, so it is taken here,
+# after the quiet-tree wait (origin moves during that wait too) and before each attempt.
+def _level_with_origin_before_landing(attempt):
+    """Fast-forward onto origin right before a publish landing attempt, when that is mechanical."""
+    adv = _advance_to_origin_or_say_why()
+    if adv["advanced"]:
+        log("Publish landing attempt {}/{}: fast-forwarded onto origin first -- {}".format(
+            attempt, PUBLISH_LAND_ATTEMPTS, adv["reason"]))
+    return adv
+
+
 def _advance_to_origin_or_say_why(project=None, *, ahead_fn=None, runner=None, blockers_fn=None):
     """Close a fork the publish path just found, when closing it is MECHANICAL. Never raises.
 
@@ -6989,10 +7005,12 @@ def _land_publish_commit(pathspec, msg, git_hash):
                 "a quiet tree before publish landing attempt {}/{}".format(
                     attempt + 1, PUBLISH_LAND_ATTEMPTS))
             waited_between[0] += float(outcome.get("waited_seconds") or 0.0)
+            _level_with_origin_before_landing(attempt + 1)
 
     # BEFORE THE STOPWATCH, so the wait is not recorded as gate time -- see `waited_between`.
     _wait_for_a_quiet_tree("a quiet tree before publish landing attempt 1/{}".format(
         PUBLISH_LAND_ATTEMPTS))
+    _level_with_origin_before_landing(1)
 
     started = time.monotonic()
 
