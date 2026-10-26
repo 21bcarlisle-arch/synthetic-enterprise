@@ -370,3 +370,14 @@ supplier's belief, not a rounded certainty it never held.
 `4ef70aba92` and `4bc21e9209` as ancestors. It is 0 ahead of origin and 89 behind. sim-runner is up
 (pid 1470317). The site still shows `8b6fea024`. So the prediction's first branch applies: grade passes
 at about 6 over, and above_cap falls to about 2. Still BLOCKING until that publish is read.
+
+**Correction to the 01:21Z reading, 26 Oct 01:45Z (before the window).** Its prediction branch is
+wrong. The run Monday offers is not a sim-runner run. The one-shot `mondays-window-marker-20261026`
+fires at 04:05Z and writes a marker for `run_output_latest.json`. Read dry just now, that file is
+`b2bc3d8da5`, byte-identical to `run_output_b2bc3d8da5_20261025T1230Z.json`, so the marker is written.
+That run is already graded above at **0 of 24,663 over, `defects: []`**. Re-run at 01:40Z, the grade is unchanged.
+The prediction is therefore 0 over, not about 6. `explore_cast.json` `book_breaches.above_cap`
+should fall from 199 households to **0**, not about 2. One exception: if sim-runner finishes a
+fresh run before 04:05Z, latest moves to that run instead. The shared HEAD carries all four fixes,
+so that run would still be expected to grade 0. This file is lowered to LATENT on the published
+reading, and stays BLOCKING until then.
