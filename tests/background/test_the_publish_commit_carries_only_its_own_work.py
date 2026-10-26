@@ -204,13 +204,15 @@ def test_the_publish_commit_names_its_paths_rather_than_committing_the_index(pub
             real_commits))
 
 
-def test_the_maturity_fold_is_named_in_the_pathspec(publish, tmp_path):
+def test_the_maturity_fold_is_named_in_the_pathspec(publish, tmp_path, monkeypatch):
     """The `-A` add of maturity_map.yaml + atom_status only lands if those paths are NAMED.
 
     MUTATION: drop the `extra_relative` argument at the call site -> the fold is staged and
     never committed, i.e. a reconciled map dangles uncommitted, which is the wedge the `-A` add
-    was built to prevent.
+    was built to prevent. Asked on a cycle the fold wrote the map: on any other cycle the map's
+    bytes are not this publish's (see the test below).
     """
+    monkeypatch.setattr(prc, "_FOLD_WROTE_THE_MAP", True)
     (tmp_path / "docs" / "design").mkdir(parents=True, exist_ok=True)
     (tmp_path / "docs" / "design" / "maturity_map.yaml").write_text("atoms: []\n")
 
@@ -240,6 +242,32 @@ def test_the_pathspec_drops_a_path_git_cannot_match(tmp_path, monkeypatch):
     assert str(ghost) not in spec, (
         "a path that is neither on disk nor known to git stayed in the pathspec; git rejects "
         "the whole commit on it and the publish stops")
+
+
+def test_the_map_rides_on_the_publish_only_when_its_own_fold_wrote_it(tmp_path, monkeypatch):
+    """The map is named on every cycle in case the pre-gate fold writes it, and a pathspec stages
+    the working copy -- so on a cycle the fold wrote nothing, a dirty map is another lane's work.
+    On 2026-10-26 the B13 lane's uncommitted level move went out under the publish message and
+    the next-step gate refused the publish on it.
+
+    MUTATION: drop the `_FOLD_WROTE_THE_MAP` condition in `_commit_pathspec` -> the first leg fails.
+    The second leg asserts the extras CAN still ride, so a gate that drops them always also fails.
+    """
+    monkeypatch.setattr(prc, "PROJECT_DIR", tmp_path)
+    the_map = tmp_path / "docs" / "design" / "maturity_map.yaml"
+    the_map.parent.mkdir(parents=True)
+    the_map.write_text("another lane's edit\n")
+    ours = tmp_path / "site.json"
+    ours.write_text("{}")
+
+    monkeypatch.setattr(prc, "_FOLD_WROTE_THE_MAP", False)
+    spec = prc._commit_pathspec([str(ours)], prc.PUBLISH_EXTRA_RELATIVE)
+    assert str(the_map) not in spec, "the publish swept a map its own fold never wrote"
+    assert str(ours) in spec
+
+    monkeypatch.setattr(prc, "_FOLD_WROTE_THE_MAP", True)
+    assert str(the_map) in prc._commit_pathspec([str(ours)], prc.PUBLISH_EXTRA_RELATIVE), (
+        "the fold wrote the map this cycle and the publish no longer carries it")
 
 
 def test_a_staged_deletion_survives_the_pathspec_filter(tmp_path, monkeypatch):

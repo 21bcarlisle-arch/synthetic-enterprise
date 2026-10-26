@@ -5864,8 +5864,13 @@ def _commit_pathspec(files, extra_relative=()):
     add`ed from the worktree two lines earlier), and taking the worktree copy of OUR OWN
     artefacts is strictly better than taking the index copy of EVERYONE'S.
     """
+    # The extras (the map) ride only on a cycle whose own pre-gate fold wrote them. Otherwise any
+    # bytes they differ from HEAD by are another lane's: on 2026-10-26 11:21 the B13 lane's
+    # uncommitted 1 -> 2 level move went out under the publish message and the next-step gate
+    # refused the publish for a NEXT: line it was never ours to write.
+    extras = [str(PROJECT_DIR / rel) for rel in extra_relative] if _FOLD_WROTE_THE_MAP else []
     spec, seen = [], set()
-    for candidate in list(files) + [str(PROJECT_DIR / rel) for rel in extra_relative]:
+    for candidate in list(files) + extras:
         if candidate in seen:
             continue
         seen.add(candidate)
@@ -6152,6 +6157,8 @@ def _fork_against_origin():
 #: intersection. One name, both callers.
 PUBLISH_EXTRA_RELATIVE = ("docs/design/maturity_map.yaml", "docs/design/maturity_map_closed.yaml",
                           "docs/design/atom_status")
+#: Set by the pre-gate atom_status fold when it folds anything; `_commit_pathspec` reads it.
+_FOLD_WROTE_THE_MAP = False
 
 
 def _publish_surface_collisions(publish_paths):
@@ -11249,6 +11256,8 @@ def _process(marker_path_str):
             # suppression-lint: not-a-suppression _folded -- functional reduce (atom_status inbox reconciliation), not a page/alarm suppression
             _folded = _mas.merge()
         if _folded:
+            global _FOLD_WROTE_THE_MAP
+            _FOLD_WROTE_THE_MAP = True
             log("Pre-gate fold: reconciled {} pending atom_status inbox(es) into the map: {}".format(
                 len(_folded), _folded))
     except Exception as _exc:
