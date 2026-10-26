@@ -199,6 +199,22 @@ def compare_bill(reconstructed: dict, issued: dict, *, statutory_vat: dict,
                 observed=charged, how=contract.get("how", ""),
                 why="a bill across a price change printed as one rate: only a range is checkable"))
 
+    # -- the default-tariff term rate against the published cap --------------------------------
+    # The claim above takes the term record as given. For a default tariff Ofgem's cap bounds it
+    # from outside. A fixed term, a business account or a pre-2019 day makes no claim at all, which
+    # is not agreement and is not counted as one.
+    cap = _line_by_label(v_lines, "Default-tariff rate against the published cap") or {}
+    if cap.get("status") == validator.CAP_CHECKED:
+        worst = max(cap["graded"], key=lambda g: float(g["rate_p_per_kwh"]) / g["ceiling_p_per_kwh"])
+        claims.append(_claim(
+            "default_tariff_rate_within_cap", AGREED if cap["within"] else DISAGREED,
+            unit="p/kWh", expected=worst["ceiling_p_per_kwh"], observed=float(worst["rate_p_per_kwh"]),
+            how="{} window {}".format(worst["how"], worst["window"]),
+            why="the term record's rate at or under Ofgem's published level, ex-VAT"))
+    elif cap.get("status") == validator.UNCHECKABLE:
+        claims.append(_claim("default_tariff_rate_within_cap", UNCHECKABLE, unit="p/kWh",
+                             why=cap.get("why", "")))
+
     # -- the line nobody can rebuild ------------------------------------------------------------
     net_v = _line_by_label(v_lines, "Network and policy costs") or {}
     claims.append(_claim(

@@ -54,6 +54,21 @@ and a fix mis-struck by a factor of ten agrees with itself. A ToU pair is the pr
 to the recorded flat rate, and whether a term was ToU is read from the biller's band settlement,
 because no record says so.
 
+**Narrowed again 2026-10-26, from above only, and for default tariffs only.**
+`default_tariff_rate_against_cap` grades each domestic default-tariff term's rate against Ofgem's
+published level for every cap window its days in the period touch. The level is ex-VAT at the
+rate in force for that fuel, and it is the Ofgem level, not the EPG, because the term includes the
+Treasury's receipt. A multi-register period is graded against the cap model's multi-register level.
+On the 4ae8da9b0f book, 27,197 periods were graded and 0 sit above. Every rate is exactly at its
+ceiling, and a 1% raise fails all 27,197. Three things stay open:
+- A default rate set too LOW passes. The wholesale floor is the correctness ruling's other side,
+  and it is not built.
+- The validator and the company read the same commons file. The two code paths are independent,
+  but the published numbers are not, so a wrong row in the commons fails both together.
+- It fails closed where the commons has no level: multi-register from 2026-01-01, and any day past
+  the last window. It does not see region or payment method, because this world bills at GB-average
+  direct-debit levels. The standing-charge half of the cap is not graded.
+
 ## 2. The largest pass-through line is not checked at all
 
 `non_commodity_amount_gbp` bundles DUoS, TNUoS, BSUoS, RO, FiT, CfD, CM and smart metering. The
