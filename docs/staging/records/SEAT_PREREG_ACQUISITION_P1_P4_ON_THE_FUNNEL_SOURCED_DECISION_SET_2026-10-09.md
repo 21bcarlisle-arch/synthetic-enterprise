@@ -115,3 +115,7 @@ spread across all three years.
 responsiveness at the market-average quote creates no group a save offer can be targeted at. The
 reason is not that the company cannot see the group. The world's per-group response to a £7.5 cut
 is about 0.013-0.017 everywhere, an order of magnitude below break-even.
+
+**Re-graded 2026-10-26, after `e847cd123` gated a group's own read on a difference as well as power:**
+the verdicts and value figures above stand, and the table's "own-read groups" column is now *none* in
+every arm. See `SEAT_PREREG_ACQUISITION_SELECTION_REGRADED_ON_THE_DIFFERENCE_GATE_2026-10-26.md`.
