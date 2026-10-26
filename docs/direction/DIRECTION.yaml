@@ -1,117 +1,138 @@
 version: 1
-oriented_at: '2026-10-26T18:21:00.918406+00:00'
-thesis_read: 'The director''s deadline was met, and an outsider can now check the published book''s bills, which
-  is the stretch''s real result for the thesis. 67a893e74 closed his externals steer and the four reserved rulings,
-  and moved both files to advisor/done/ with Done sections. The draw ledger still reads that item not_done, because
-  the commit touched none of its named paths, so it should be bound --landed to 67a893e74. e88b13b23 showed that
-  the curtained validator''s red was the validator, not the bills: rebuilt per register, failures went from 1,416
-  of 52,782 periods to 0, and a stricter leg against the contracted tariff is landing. c77a181fa landed W2_36''s
-  fuel split in its odds form. Against the thesis itself, nothing moved. No per-customer decision beats the flat
-  baseline where it was graded, the corrected renewal belief carries no policy, and PB8 and W2_41 are still graded
-  on no run. The commit split is supplier 1, world 1, other 8. The ''other'' was the site steer, which outranked
-  everything today and is now closed, so the next stretch goes back to supplier work. Two things stayed stuck, and
-  one is mine. B13''s level-2 build has sat uncommitted in the shared run_phase2b.py since 10:16Z after its landing
-  ended with nothing on origin. The mandate run never launched, because my last item made it wait for a clean shared
-  tree that a worktree launch does not need. Of the last focus, 4 of 5 were drawn, and the one that was not was
-  that run. A new contradiction: 4ae8da9b0 says E6''s 2023 step holds, and a post-publish reader says the same published
-  run shows no crisis step-up. The shared checkout is 17 behind origin, so this brief reads the Explore cast finding
-  as BLOCKING, though origin has it LATENT.'
+oriented_at: '2026-10-26T21:23:26.682168+00:00'
+thesis_read: 'The stretch made the published bills checkable against outside sources, and it found that the household''s
+  own mandate cancel never reaches the supplier. Against the thesis, that is a correctness gain and no inference
+  gain. f5c50ec96 graded 27,197 default-tariff term periods of 4ae8da9b0f against Ofgem''s published cap: 0 above
+  it, every rate at its ceiling. So the ruling''s fear that SVTs sat materially under the cap through 2021-22 is
+  not borne out on the cap side; the wholesale floor is queued. 8523e6025 and 3afbc4203 make each bill agree with
+  the tariff it was sold at, and a bill across a price change now prints a line per rate (K8 page 73dc17d8c). The
+  mandate run, my last item 3, was launched from an origin worktree and graded (2f650ca8e). In neither arm does
+  an ADDACS 1 reach the desk, because under one payment truth the rails emit the advice only when told is None,
+  which is 6 of 1,046 legs. So W2_41 stays at 1, and the supplier keeps a live mandate the household has already
+  cancelled. f89db6ff3''s net prediction held for the decade (-GBP 665 net against -GBP 2,051 gross) and was refuted
+  by year, 3 of 10 flipping sign. The commit split is supplier 2, world 0, other 15. Most of the other was the director''s
+  Explore steer and the validator legs, which is correctness work under his ruling and not drift. Of my last four
+  items, two were drawn: the mandate run (graded) and B13 (mid-landing now, surgical_land pid 3994841). The crisis
+  item was not drawn, and reading it this time shows it was my framing error: the two controls answer different
+  questions, and both are right (wrong row). The shared-tree item was ordered behind B13 and waits on it. The director''s
+  18:30 ruling now sets the order: correctness before the next feature, with an exit test of an invariant suite
+  run on a fresh book with zero unexplained breaches, eight Explore slots valid or honestly empty, and one clean
+  cold read. Its first step landed (049bd68db), and its cap step is measured. Its root causes (the read duty that
+  let 250 of 752 households go over a year on estimates, prepayment billed as credit) and its suite are not started,
+  and the draw does not read the ruling yet. This focus is those, in that order. The ruling file stays live in docs/staging/advisor/
+  on origin until its exit test is reported. The shared checkout is 34 behind origin, so it does not show that file.'
 stretch_reviewed:
-  since: '2026-10-26T15:24:26.543703+00:00'
-  commits: 10
-  substantive: 6
+  since: '2026-10-26T18:21:00.918406+00:00'
+  commits: 17
+  substantive: 7
 focus:
-- id: b13-level-2-is-landed-from-the-shared-tree
-  lane: B_commercial
-  side: supplier
-  what: 'B13''s level-2 build is uncommitted in the shared tree: simulation/run_phase2b.py (226 changed
-    lines since 10:16Z, the gas half of a dual household''s re-fix, contact page s.7.5b), the B13 row
-    of docs/design/maturity_map.yaml at level 2, and possibly simulation/churn_journey.py (15:02Z) and
-    simulation/registration_loss_feed.py (08:33Z). Read each hunk and attribute it. In a worktree at origin/main
-    plus these hunks, run tests/simulation/test_a_dual_fuel_household_is_one_account_across_both_fuels.py
-    and tests/simulation/test_run_phase4c_on_phase2b.py. Then land B13''s hunks with tools/isolate_hunks.py
-    and surgical_land --content as a backgrounded job, recording the level move through the level gate.
-    A hunk that fails its tests or is not B13''s stays out, and the commit names it. Do not touch simulation/meter_reads.py
-    (item 4).'
-  why: One account across both fuels is a billing basic. Its L2 has been built for eight hours, is on
-    no run, its stray map row has already refused one publish, and while it sits there no clean run can
-    come from the shared tree. Done means git diff origin/main -- simulation/run_phase2b.py holds no B13
-    hunk, and B13's L2 is either on origin with its test or recorded in docs/design/simplifications/ as
-    handed back, with the reason.
-  written_at: 1793039237.82
-- id: the-crisis-step-up-reader-and-the-basics-run-disagree-on-4ae8da9b0f
-  lane: E_finance_treasury
-  side: supplier
-  what: 'Run tests/company/compliance/test_crisis_bad_debt_validator.py::test_live_run_output_shows_crisis_step_up_ifrs9_charge
-    against the published docs/reports/run_output_latest.json.gz (run 4ae8da9b0f), and read the leg of
-    tools/the_basics.py that let 4ae8da9b0 say E6''s 2023 step holds on the same run. Before comparing,
-    write down what each one reads: IFRS 9 charge, provision or write-off, and for which years. Decide
-    which is wrong. If the reader reads the wrong field or the wrong file form (docs/staging/SEAT_FINDING_THE_CRISIS_BAD_DEBT_CONTROL_HAS_SKIPPED_SINCE_THE_RUN_WENT_GZIP_AND_THE_PUBLISHED_RUN_SHOWS_NO_STEP_UP_2026-10-14.md
-    says it skipped on gzip), fix the reader. If the basics leg passed a step that is not there, fix the
-    leg. Record the verdict in that finding, with the run''s 2021, 2022 and 2023 charges, and set its
-    severity by its own rule.'
-  why: That finding has been BLOCKING for 12 days, and two of our own controls now give opposite answers
-    about one published run, so outsiders can read a crisis-year bad-debt figure we have not agreed with
-    ourselves. It needs no run. Done means both controls agree on 4ae8da9b0f's bytes, or the finding names
-    the real crisis charge and says why one control was wrong.
-  written_at: 1793039237.82
-- id: the-mandate-run-grades-pb8-and-w2-41-on-one-fresh-book
+- id: the-read-duty-fires-when-a-year-passes-on-estimates
   lane: D_billing_metering
   side: supplier
-  what: 'Launch one default-book full run through launch_long_job from a fresh worktree at origin/main,
-    not the shared checkout, whose simulation/ is dirty. Use a commit that carries 1e6083838, bf56dd579,
-    71cb7debc, f89db6ff3 and e88b13b23. Include B13''s L2 if item 1 has landed it by launch, but do not
-    wait for item 1 past 21:00Z. Queue the run''s grade as a continuation in the same act, naming its
-    output path. Grade the run with tools/the_basics.py leg (d): household ADDACS 1 events, the stops
-    that reach company/billing/dd_collections_desk.py before a collection fails on them, and the money
-    still owed at each stop, each with its denominator. Then check f89db6ff3''s filed prediction of net
-    against the same run, and run tools/independent_bill_validator.py on its book.'
-  why: PB8 and W2_41 were built over one event and have been graded on no run since this morning. f89db6ff3
-    hands net to a first run nobody has queued, and the last record held this behind a clean shared tree
-    it did not need. Done means a run is graded and named, leg (d) has counts with denominators, W2_41's
-    row reads 2 or a finding says why not, and the net prediction is graded right or wrong.
-  written_at: 1793039237.82
-- id: the-shared-simulation-tree-matches-origin
+  what: 'Answer the open question in docs/staging/SEAT_FINDING_A_THIRD_OF_HOUSEHOLDS_GO_MORE_THAN_A_YEAR_ON_ESTIMATES_WITHOUT_THE_READ_DUTY_FIRING_2026-10-26.md
+    on the fresh book at /var/tmp/mandate-run-out-67a893e749 (arm A, origin 67a893e749), with no new run.
+    For every fuel leg with a bill more than 365 days after its last actual read, say whether company/billing/read_duty_register
+    instructed a visit (decision_policy.py:238) and, if it did, why no read followed. Count each branch
+    over the same denominator. Then fix the branch that is wrong: the instruction in company/, or the
+    world''s visit outcome in simulation/meter_reads.py via a worktree at origin, never the shared tree''s
+    copy. Settle the finding''s second question in the same piece: trace SYN-2016-587''s GBP 7.03 catch-up
+    to what fed its estimates, and if the estimate reads true consumption, that is an epistemic-wall breach
+    to fix first and file as BLOCKING.'
+  why: SLC 21B.4 is a legal duty the home page says we meet, and 250 of 752 households on the published
+    book contradict it. It is a root cause named in the director's ruling, step 3. Done means the finding
+    records which branch failed, with counts, and either a landed fix with a test that goes red on a leg
+    left a year on estimates, or a named reason the duty cannot fire; and the GBP 7.03 question has an
+    answer either way.
+  written_at: 1793050147.568
+- id: a-prepayment-account-is-billed-as-prepayment
+  lane: D_billing_metering
+  side: supplier
+  what: 'Close docs/staging/SEAT_FINDING_A_PREPAYMENT_HOUSEHOLD_IS_SENT_ESTIMATED_CREDIT_BILLS_2026-10-26.md.
+    K8 first: write the knowledge page on what SLC 28 and published practice say a prepayment customer
+    receives (vend records, an annual statement, debt recovered at the meter, no estimated credit bill),
+    with what is unknown marked GAP, and publish it in site/data/knowledge_topics.json. Then make billing
+    in company/billing/ and saas/bill_generator.py branch on payment method, so a prepayment leg gets
+    a statement and no credit bill or estimate, and add a test that a prepayment leg in the book is never
+    sent an estimated credit bill. Count how many legs on the 67a893e749 arm-A book are affected before
+    and after.'
+  why: A prepayment household sent nine years of credit bills (SYN-2016-476) is a billing basic wrong
+    for a whole payment segment, and the ruling names it in step 3. Explore only hides it (_common_failures).
+    Done means the knowledge page is published, the branch is landed with its test, and the before/after
+    count is in the finding.
+  written_at: 1793050147.568
+- id: the-domain-invariant-suite-is-written-blind-and-run-on-the-book
+  lane: D_billing_metering
+  side: other
+  what: 'Build step 4 of docs/staging/advisor/DIRECTOR_RULING_CORRECTNESS_BEFORE_THE_NEXT_FEATURE_2026-10-26.md
+    in two parts. Part one: spawn an agent with no access to company/, saas/, simulation/ or tools/, give
+    it only site/knowledge/, docs/market_research/ and docs/domain_artefact_library/, and have it write
+    docs/design/DOMAIN_INVARIANTS.yaml. Each invariant is a two-sided range per quantity per period (unit
+    rate between wholesale cost and cap; use within the population percentiles for fuel and segment; events
+    consistent with fuels held; duties firing when due; payment method consistent with billing), citing
+    its source. Part two: a runner over every household of a book, reading only the published raw export,
+    that prints breaches per invariant with their denominators. Run it on the 67a893e749 arm-A book and
+    file the breach table as a finding. Do not wire it into the publish gate until a book''s breaches
+    are each fixed or named as dated exceptions.'
+  why: 'The suite is the ruling''s exit test, and nothing has started it. Writing it blind is the point:
+    the Explore errors passed every test written by the code''s own authors. Done means the invariants
+    file exists with a source per row, the runner has run on one full book, and the breach table is filed,
+    whatever it shows.'
+  written_at: 1793050147.568
+- id: the-addacs-1-advice-reaches-the-desk-under-one-payment-truth
   lane: W2_customer_generator
   side: world
-  unblocks: The next production run sim-runner makes from the shared checkout, which is the book the weekly
-    publish puts in front of readers
-  what: After item 1, empty git diff origin/main -- simulation/ in /home/rich/synthetic-enterprise. Drop
-    the superseded ratio draft in simulation/meter_reads.py to origin's bytes, as 746dd3676 ruled (the
-    odds form wins, and the draft must NOT be landed). Do it through tools.refresh_to_head, with the timing
-    evidence it asked for (the draft's 03:10Z mtime against c77a181fa's commit time), and never with git
-    checkout or stash. For any other hunk left in simulation/, find its owner from the claim stores and
-    the draw ledger. Land it if it is finished and tested, or record it as handed back in the matching
-    finding.
-  why: sim-runner runs from this checkout, and the draft it would carry turns two phase4c tests red. The
-    dirt has blocked clean runs from the shared tree since 05:47Z. Done means git diff origin/main --
-    simulation/ is empty in the shared checkout.
-  written_at: 1793039237.82
+  unblocks: 'W2_41''s level 2 and PB8''s grade: in the mandate run''s arm B, 20 own-reasons cancels reach
+    the rails and no ADDACS 1 reaches company/billing/dd_collections_desk.py, so the supplier keeps live
+    mandates that households have cancelled'
+  what: 'In a worktree at origin, change simulation/dd_collection_book.py:555 (_run_rails) so a household''s
+    own mandate cancel emits its ADDACS 1 record under world_payment_truth.UNIFIED too: read the truth''s
+    failed cancel-month collection instead of requiring told is None. Add a test that a UNIFIED-truth
+    household cancel produces exactly one ADDACS 1 on the supplier side and that a non-cancel failure
+    produces none. Land it. The continuation the-mandate-run-arm-b-is-re-run-after-the-addacs-fix is already
+    queued and re-runs arm B after this, so do not launch the run here.'
+  why: 2f650ca8e named this fix and nothing queued it, so the queued re-run waits on work nothing would
+    draw. It is an error fix, which the correctness ruling admits. Done means the change and its test
+    are on origin, and the re-run continuation can be drawn.
+  written_at: 1793050147.568
+- id: the-draw-honours-the-correctness-stretch
+  lane: H_harness
+  side: other
+  what: 'Make the draw read correctness_stretch in docs/direction/priority_order.yaml: while it is present
+    and its exit test is not recorded as met, background/delivery_lane.py and the dial-weighted draw refuse
+    atoms in ahead_of_steps (6 to 13), naming the ruling as the reason. Work already claimed may finish.
+    Add a test that a step-6 atom is refused with the stretch present, and one that it is drawable once
+    the stretch''s exit is recorded, so the refusal is shown able to lift. Remove the comment ''the draw
+    does not read it yet''.'
+  why: The director's ruling says no new feature work is drawn, and today the draw would draw it if a
+    lane rolled there. Done means a feature atom drawn now is refused with the ruling named, and the test
+    proves the refusal lifts.
+  written_at: 1793050147.568
 not_now:
-- what: Naming the-validator-checks-the-printed-rate-against-the-contracted-tariff as a focus item.
-  why: It is claimed and its landing is in flight (surgical_land pid 2242094). Naming it would hand a second worker
-    the same file.
-- what: More work on the site for the externals after the steer closed.
-  why: 67a893e74 closed the steer and the ruling, with Done sections, in advisor/done/. Further polish loses to
-    supplier work, now that the day's deadline has passed.
+- what: Putting B13's landing or the shared simulation/ cleanup in focus.
+  why: B13 is mid-landing (surgical_land pid 3994841), and the meter_reads.py draft is best dropped after it lands.
+    A second worker on files under a live landing costs more than it saves. Both stay as open wrong rows, and the
+    next orientation takes the cleanup if the landing has finished.
+- what: Re-working the crisis step-up 'contradiction'.
+  why: Reading both controls shows there is none (wrong row, corrected). The remaining gap, the world's crisis bad-debt
+    share at 0.69% against the published 1.12%, is world fidelity behind E6's level 2. It loses to the ruling's
+    root causes and its suite, which may well surface it again on their own terms.
+- what: Naming the queued continuations (the wholesale-floor check, the rate-lines grade, the net decomposition
+    by leg, the arm-B re-run) as focus items.
+  why: Each is already in seat_continuation.live() and drawable. Naming them again would hand a second worker the
+    same work. The wholesale floor is the ruling's step 2, and it is queued.
+- what: 'The other root causes in the ruling''s step 3: life events drawn only for fuels held, EV effects on electricity
+    and weather-normalised, the storage-heating and household-count defects.'
+  why: They are world-side or measurement defects that Explore already gates out. The read duty and prepayment are
+    billing errors a real customer would receive, so they come first. The blind suite is the systematic catch for
+    the rest.
 - what: A policy that carries the corrected renewal belief.
-  why: The director's ruling puts the basics ahead of levers, and two clean-book grades left the departure interval
-    straddling zero.
-- what: The published-series-and-ledger reader red.
-  why: It is a pairing defect in the publish harness that changes no bill and no decision. It loses to the crisis
-    step-up disagreement, which touches a published money figure.
-- what: Making the brief and the level grader read origin/main instead of the shared checkout.
-  why: It is real and live, but it is harness work. Item 4 and the checkout fast-forwarding remove most of the false
-    readings, and each worker re-reads origin anyway, so it loses to three supplier items.
-- what: A check that a handoff named in a finding or a NEXT line is in the continuation queue.
-  why: Item 3 queues the one live instance (f89db6ff3) directly, which costs less than a watcher over our own bookkeeping.
-- what: Reaping or landing the at-risk worktrees (three agent-* SALVAGE commits from 16:20-16:35Z, b12-*, se-budgetpay-land,
-    se-om2).
-  why: None blocks a supplier result. The three agent-* SALVAGE commits are probably the site-steer slices, whose
-    work reached origin in 67a893e74, e0bf4927f and fe14bb3dc, but that is unchecked, so they stay until someone
-    compares them.
-- what: Modelling a lost comms hub that takes both fuels out of smart mode at once (W2_36's open joint).
-  why: Nobody publishes the joint rate, so it is a GAP, not a number to pick, and it blocks no supplier result.
+  why: The ruling holds new levers behind its exit test, and two clean-book grades left the departure interval straddling
+    zero.
+- what: Making the brief read origin/main, and a check that every handoff named in a finding is in the queue.
+  why: Both are real and live (wrong rows). Item 4 queues the one live handoff by building it, and item 5 is the
+    only harness change the ruling itself needs. Two more harness items would leave room for only one supplier item.
+- what: Reaping or landing the at-risk worktrees (b12-*, se-budgetpay-land, se-om2).
+  why: None blocks a supplier result or the ruling's exit test.
 wrong:
 - what: 'THE COMPANY''S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards. On
     268 desk states from 2019 it reads AUC 0.333, and its mean is 0.193 on end-of-fix rolls, where 40 of 92 households
@@ -184,7 +205,9 @@ wrong:
     is not in focus. 15:24: Unchanged. No policy carries the corrected belief, so the live renewal belief still
     ranks leavers backwards. The ruling puts the basics ahead of levers, and today''s site steer is ahead of both,
     so it is not in focus. 18:21: Unchanged. No policy carries the corrected belief, so the live renewal belief
-    still ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus.'
+    still ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus. 21:23: Unchanged.
+    No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The correctness
+    ruling puts this behind its exit test, so it is not in focus.'
   corrected: false
 - what: 'THE MACHINE''S, THIS STRETCH. A finished long job lost its grader. The E6 crisis-overlay finding hands
     grading to the-crisis-overlay-arm-on-the-default-book-is-graded three times (13:15, 21:21 BST), but that id
@@ -231,7 +254,11 @@ wrong:
     line is in the queue, so the class is not fixed. Item 5''s run is that first run. 18:21: Unchanged. The sixth-shape
     instance is still live: no run carrying f89db6ff3''s monthly fields is queued or launched (no long job launched
     this stretch). Focus item 3 launches it and queues its grade in the same act. Nothing checks that a handoff
-    named in a finding or a NEXT line is in the queue, so the class is not fixed.'
+    named in a finding or a NEXT line is in the queue, so the class is not fixed. 21:23: Live again in a seventh
+    shape. 2f650ca8e files the rails fix as the-addacs-1-advice-reaches-the-desk-under-one-payment-truth and queues
+    the arm-B re-run that waits on it (the-mandate-run-arm-b-is-re-run-after-the-addacs-fix), but the fix itself
+    is not in seat_continuation.live(), so the re-run waits on work nothing would draw. Focus item 4 builds it.
+    Nothing checks that a handoff named in a finding or a NEXT line is in the queue, so the class is not fixed.'
   corrected: false
 - what: 'THE MACHINE''S, THIS STRETCH. Four advisor files were edited in place by a lane (b2bc3d8da, 2ada25833,
     d86d8749c), so the advisor channel now refuses them as unsigned, though the advisor''s own staging commits verify.
@@ -251,7 +278,9 @@ wrong:
     by any lane, and 7222fae89 moved the usage reading to done/. Nothing stops an in-place edit to a live advisor
     file, so it is not fixed. 18:21: No instance this stretch. 67a893e74 appended Done sections to the director''s
     steer and ruling files and moved both to done/ in the same commit, which is the sanctioned move and not an in-place
-    edit. Nothing stops an in-place edit to a live advisor file, so it is not fixed.'
+    edit. Nothing stops an in-place edit to a live advisor file, so it is not fixed. 21:23: No instance this stretch.
+    049bd68db and 0abf2bd5b moved the steer, the question and the chase to done/ with their Done sections, which
+    is the sanctioned move. Nothing stops an in-place edit to a live advisor file, so it is not fixed.'
   corrected: false
 - what: 'THE MACHINE''S, THIS STRETCH. The brief reads the shared checkout, which is 57 commits behind origin. Its
     level grader says B13''s and W2_41''s pointers rotted (''a named path is absent here and git knows it''), and
@@ -271,7 +300,9 @@ wrong:
     finding. Nothing makes the brief read origin/main, so it is not fixed. 18:21: Live. The checkout is 17 behind
     origin, this brief still lists the Explore cast finding as BLOCKING (origin''s 27bcc82c2 has it LATENT), and
     17 units run without origin commits to code they import. Nothing makes the brief read origin/main, so it is
-    not fixed.'
+    not fixed. 21:23: Live. The checkout is 34 behind origin, so in it the director''s correctness ruling is absent
+    from docs/staging/advisor/ while origin holds it live, and 17 units run without origin commits to code they
+    import. Nothing makes the brief read origin/main, so it is not fixed.'
   corrected: false
 - what: 'THE SEAT''S, LAST STRETCH. I wrote W2_41 (item 1) and PB8 (item 2) as two items over one event. The ADDACS-to-desk
     work landed under PB8 (1e6083838), so W2_41''s row stayed at level 1, and the landing door reads nothing to
@@ -283,8 +314,10 @@ wrong:
     does not), because the stranded diffs still block a clean run. Focus item 5. 18:21: Unchanged, and partly my
     doing. No full run carries 1e6083838, bf56dd579 or 71cb7debc. My last item 5 waited for the shared simulation/
     to go clean, which it has not (see the B13 row), when a run launched from a worktree at an origin commit does
-    not need it. Focus item 3 launches it that way.'
-  corrected: false
+    not need it. Focus item 3 launches it that way. 21:23: Corrected. The mandate run launched from an origin worktree
+    at 67a893e749, and 2f650ca8e graded PB8 and W2_41 on that one book as one item. W2_41 stays at 1 for a cause
+    the run found (the rails'' ADDACS gate), not for want of a run.'
+  corrected: true
 - what: 'THE MACHINE''S, THIS STRETCH. Another lane''s W2_36 change, smart-mode share split by fuel at DESNZ''s
     6.8% and 14.2%, has sat uncommitted in the shared simulation/meter_reads.py since 03:10Z with no claim naming
     it, and 77b6a16d9 records that since 05:47Z no new run can be made cleanly because of it. The brief reads W2_36
@@ -296,38 +329,33 @@ wrong:
     diff. Focus item 3. 18:21: The work is safe; the tree is not clean. c77a181fa landed the split on origin in
     its odds form with a test, and 746dd3676 judged the shared copy a superseded ratio draft holding no unlanded
     work, which turns two phase4c tests red if a run carries it. tools.refresh_to_head refused to drop it on the
-    seat''s word, so a run from the shared tree still carries the draft. Focus item 4 drops it. Not fixed.'
+    seat''s word, so a run from the shared tree still carries the draft. Focus item 4 drops it. Not fixed. 21:23:
+    Unchanged. The shared checkout''s simulation/meter_reads.py still differs from origin by 22 lines. Last record''s
+    item 4 was not drawn, because it was ordered behind B13''s landing, which is still in flight. Not fixed.'
   corrected: false
-- what: 'THE SEAT''S, LAST STRETCH. I put the stranded meter_reads.py diff second, behind a publish that a live
-    process was already working, and it was not drawn: the lane handed its tick to item 1 and to B13''s continuation.
-    An item whose whole job is to unblock every run sat behind one that needed no worker. This record does not move
-    it to first, because the publish is minutes from its answer, but it names it as the next draw. Not corrected
-    until the diff is off the shared tree. 15:24: Not corrected. The diff is still on the shared tree. This record
-    puts it third, behind two site items that already have claimed workers (site-steer-*), so it is the first item
-    a free tick can take. 18:21: Corrected as an ordering error. Last record put it where a free tick could take
-    it, and it was drawn and retired within the stretch (17:24Z) with c77a181fa on origin. The draft still on the
-    shared tree is the machine row''s residue, and focus item 4 takes it; I am not counting that against this row
-    twice.'
-  corrected: true
-- what: 'THE COMPANY''S, THIS STRETCH. The published book fails a post-publish reader. On 4ae8da9b0f''s published
-    bytes, test_every_period_in_the_book_rebuilds_to_our_own_energy_and_standing_charge (the curtained validator)
-    is red (.post_publish_reader_reds.json, 12:28Z): some billed periods do not rebuild from reads and rates to
-    what the company charged. The cause is not named. f3951d9ab predicts the two-register ToU shape, but that was
-    not run. Focus item 4. 18:21: Corrected, and the cause was the validator, not the bills. e88b13b23 rebuilds
-    a two-register ToU bill per register: 1,416 of 52,782 periods on the published 4ae8da9b0f bytes failed, and
-    now 0 do. A stricter leg, the printed rate against the contracted tariff (46,369 of 46,369 checkable periods),
-    is landing now (surgical_land pid 2242094).'
-  corrected: true
-- what: THE MACHINE'S, THIS STRETCH. B13's level-2 build (the gas half of a dual household's re-fix, contact page
-    s.7.5b) has sat uncommitted in the shared simulation/run_phase2b.py since 10:16Z, 226 changed lines, with its
-    maturity-map row already at 2 in the working copy and 1 on origin. Its landing (surgical_land pid 609471) ended
-    with nothing on origin, and the draw of b13-a-gas-leg-that-ended-is-not-switched-again (14:20Z) landed nothing.
-    That stray level move already refused one publish (185355386). Focus item 1.
+- what: 'THE MACHINE''S, THIS STRETCH. B13''s level-2 build (the gas half of a dual household''s re-fix, contact
+    page s.7.5b) has sat uncommitted in the shared simulation/run_phase2b.py since 10:16Z, 226 changed lines, with
+    its maturity-map row already at 2 in the working copy and 1 on origin. Its landing (surgical_land pid 609471)
+    ended with nothing on origin, and the draw of b13-a-gas-leg-that-ended-is-not-switched-again (14:20Z) landed
+    nothing. That stray level move already refused one publish (185355386). Focus item 1. 21:23: Landing, not landed.
+    b13-a-gas-leg-that-ended-is-not-switched-again is mid-landing (surgical_land pid 3994841, 26 minutes in its
+    gate), and the shared simulation/run_phase2b.py still carries 226 changed lines against origin. It is not in
+    focus, because a second worker on files under a live landing is the wrong move.'
   corrected: false
-- what: THE COMPANY'S OR THE MACHINE'S, THIS STRETCH. 4ae8da9b0 says E6's 2023 step holds on run 4ae8da9b0f, and
-    the post-publish reader test_live_run_output_shows_crisis_step_up_ifrs9_charge is red on that same run's published
-    bytes. Both cannot be right. The 14 Oct BLOCKING finding says the control skipped once the run went gzip. Which
-    one is wrong is not established. Focus item 2.
+- what: 'THE COMPANY''S OR THE MACHINE''S, THIS STRETCH. 4ae8da9b0 says E6''s 2023 step holds on run 4ae8da9b0f,
+    and the post-publish reader test_live_run_output_shows_crisis_step_up_ifrs9_charge is red on that same run''s
+    published bytes. Both cannot be right. The 14 Oct BLOCKING finding says the control skipped once the run went
+    gzip. Which one is wrong is not established. Focus item 2. 21:23: Corrected, and the framing was mine: both
+    are right, because they answer different questions. 4ae8da9b0''s leg asks whether the default cast''s provision
+    steps up at end-2023, and it does. The reader asks whether 2021-22 steps up and whether the pooled crisis share
+    sits within 0.3 points of the published 1.12%; it is 0.69% on every arm, so the reader is right to be red. Its
+    gzip skip is already fixed (it reads plain or .gz). What remains is the world''s crisis bad debt sitting under
+    the published share, which the BLOCKING 14 Oct finding already holds.'
+  corrected: true
+- what: THE MACHINE'S, THIS STRETCH. The director's correctness ruling (18:30, 'Ok do it') says no new feature work
+    is drawn until its exit test holds, and docs/direction/priority_order.yaml records the correctness_stretch with
+    the comment 'the draw does not read it yet'. So the dial-weighted lanes can still draw forward-years, asset-world
+    or advice atoms against his ruling. None was drawn this stretch, but that is luck, not a rule. Focus item 5.
   corrected: false
 for_the_director:
 - id: the-26-oct-advisor-steer-asks-that
