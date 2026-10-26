@@ -1,98 +1,110 @@
 version: 1
-oriented_at: '2026-10-26T06:24:33.026422+00:00'
-thesis_read: 'A supplier basic moved a level this stretch, and the published state did not move. PB8 reached level 2 (1e6083838, bf56dd579, 71cb7debc). A household''s own ADDACS 1 now reaches the desk,
-  the money side and the seam. A stop off DD is a spell. The world answers the desk''s re-mandate invitation at 0.035, the lower edge of a cited range. So a stopped mandate is something the company can
-  see and act on, and it is no longer a fixed-for-life label. E6''s provision already reads the dated channel (bad_debt_provision.py:215), so its DD footing can now move for the first time. Whether it does
-  is unmeasured. No full run carries any of the three commits, so PB8''s level 2 and W2_41''s leg (d) are built and not graded. The failure that matters is the publish. The weekly window opened on a run
-  that is better than the one the seat expected: 4ae8da9b0f, graded clean, with every basics fix in it. The publisher refused it twice in 32 minutes, both times because it lands from a primary checkout
-  that origin moved past while it gated. The site still serves 19 Oct figures, 165 hours old, and the Explore cast finding cannot close until a published run carries the cap fixes. That outranks new building,
-  because every supplier result since 19 Oct is invisible to the director. 6277076378 fixes the steer drift that kept PB8 out of reach for two stretches: an unclassifiable focus atom now goes to Lane 0.
-  Of the previous focus, 2 of 4 were drawn (PB8 and the Lane 0 fix). B13 was not drawn, and W2_41''s work landed under PB8''s id. Against the thesis, nothing changed. Inference has still not beaten the
-  flat baseline anywhere it has been graded. The corrected renewal belief carries no policy, by the basics-first ruling. The split reads supplier 0, world 2, both 1, other 5. PB8''s work is supplier-facing
-  but landed mostly on world paths, which is legitimate here, because a household cancelling its own mandate is a world act. Still, the next stretch carries two pure supplier items.'
+oriented_at: '2026-10-26T09:24:21.781253+00:00'
+thesis_read: 'The publish moved from a machine failure to a billing one, and that is progress, not drift. Last stretch the clean run 4ae8da9b0f was refused by the publisher racing origin. This stretch c2fc7b207,
+  99ef07483 and the three stale-copy fixes (ae03a6317, 78a6dfacc, d6f5e4b21) cleared every mechanical door, and the full gate then refused the run on its own book: 10 customer-years billed below their gross
+  margin, and ToU registers whose exported reads could not reproduce their volume. 3dfe5cad4 bisected both. 1,416 register reads to 0. 6 of the 10 were the EPG, a Treasury transfer the invoice did not carry
+  beside it (M2: transfer read as a break). The last 4 are real supplier defects, held first bills and leavers closed on low estimates with no final read, and their fix is in a live surgical_land now. So
+  the gate that refused the publish found billing errors a real supplier would owe customers, which is what the basics ruling asked for. But the site still serves 19 Oct figures, 168h old, and nothing the
+  supplier has built since is visible to the director. A second blocker sits under the first: another lane''s W2_36 fuel split has been uncommitted in the shared simulation/meter_reads.py since 03:10Z,
+  so no clean new run can be made, which stalls the PB8/W2_41 grade and E6''s footing read. Of the previous focus, item 1 was spent before I wrote it (2aa5298b4 declined it correctly), B13 is being worked
+  now by a live worker tick, and items 3 and 4 were not reached because both wait on a run. The split reads supplier 1, world 0, other 13. The 13 are publisher repairs, which were the right work, but the
+  supplier side moved once. Against the thesis nothing changed: inference has not beaten the flat baseline anywhere it has been graded, and the corrected renewal belief still carries no policy, by the basics-first
+  ruling.'
 stretch_reviewed:
-  since: '2026-10-26T03:20:58.282999+00:00'
-  commits: 8
+  since: '2026-10-26T06:24:33.026422+00:00'
+  commits: 14
   substantive: 6
 focus:
-- id: the-publish-lands-from-a-trunk-worktree-not-the-primary-checkout
-  lane: H_harness
-  side: other
-  what: 'Make background/process_run_complete.py land a publish the way its own 05:46 refusal says to:
-    gate and land in a detached worktree on origin/main (surgical_land, then promote_worktree_landing),
-    so that origin moving during the gate can no longer refuse a green publish. 410c1131d fixed only the
-    repair-commit shape. Add one control that takes both branches: the trunk path lands while origin advances
-    by an unrelated commit mid-gate, and a real conflict on a publish path still refuses with its reason.
-    Mutation-prove it. Then re-offer run_output_4ae8da9b0f_20261026T022647Z (graded clean; its fingerprint
-    was not recorded, so a fresh marker re-attempts it). Record --premise-spent on the continuation mondays-window-published-the-b2bc3d8da5-run,
-    citing this item: the marker offered 4ae8da9b0f, its descendant.'
-  why: Figures have not reached origin in 165h. Two green gates on a clean run were refused by the publisher's
-    own race. The Explore cast BLOCKING finding lowers only on a published graded run. Done means site/data
-    carries git_hash 4ae8da9b0f or a newer graded run, last_landed_publish in .publish_gate_state.json
-    advances past 1792401343, and the control is on origin.
-  written_at: 1792996208.282
+- id: the-4ae8da9b0f-run-is-published-once-its-book-bills-clean
+  lane: D_billing_metering
+  side: supplier
+  what: When the live surgical_land for the four billed<gross inversions (pid 1987804) lands, re-offer
+    run_output_4ae8da9b0f_20261026T022647Z to the publisher with a fresh run-complete marker and watch
+    it through. If the gate refuses again, read .last_gate_blocking_tests.json, name each red customer-year
+    by account and cause in SEAT_FINDING_THE_MONDAY_RUN_4AE8DA9B0F_IS_REFUSED_BY_TWO_BILLING_GATES_ON_ITS_OWN_BOOK_2026-10-26.md,
+    and fix the class in company/billing (not by excusing rows). If the landing is refused, finish it
+    from tools/isolate_hunks.py rather than starting over.
+  why: Figures have not reached origin in 168h and the Explore cast BLOCKING finding lowers only on a
+    published graded run. The remaining refusals are the supplier's own billing, so fixing them is billing
+    accuracy, not plumbing. Done means last_landed_publish in .publish_gate_state.json advances past 1792401343
+    and site/data carries git_hash 4ae8da9b0f or a newer graded run.
+  written_at: 1793006990.79
+- id: the-stranded-w2-36-fuel-split-in-meter-reads-is-landed-or-handed-back
+  lane: W2_customer_generator
+  side: world
+  unblocks: Every new full run, starting with item 4's PB8/W2_41 grade and item 5's E6 footing read
+  what: 'The uncommitted diff in simulation/meter_reads.py (written 03:10Z: not_in_smart_mode_share splits
+    q6_smart_not_in_smart_mode_share by fuel at DESNZ''s Q4 2024 electricity 1.4m/20.5m and gas 2.2m/15.5m,
+    and is_communicating takes commodity) belongs to W2_36_unbilled_energy_arises_the_way_it_does_in_reality.
+    Check .seat_work_in_hand.json and the live processes for an owner first. If none holds it, take it
+    with tools/isolate_hunks.py: confirm the source in docs/market_research/meter_read_latency_estimation_2026.md
+    s.1, add a test that the default reproduces 6.8% and 14.2% and that a sweep of the register row moves
+    both fuels, mutation-prove it, and land it by surgical_land --content without sweeping the other hunks
+    in run_phase2b.py. If the source does not hold, record why on W2_36 and revert only those hunks.'
+  why: Since 05:47Z no clean run can be made (77b6a16d9), and a run from this tree would carry an ungraded
+    world change. The draw thinks nothing has worked W2_36, so the bytes would otherwise sit there. Done
+    means git diff of simulation/meter_reads.py against origin is empty, and either the split is on origin
+    with its test or W2_36's simplification file records why it was dropped.
+  written_at: 1793006990.79
 - id: b13-a-gas-leg-that-ended-is-not-switched-again
   lane: B_commercial
   side: supplier
-  what: 'Take B13_a_dual_fuel_household_is_one_account_across_both_fuels to level 2 (carried, not drawn
-    last stretch). First, find where simulation/run_phase2b.py builds leg_departures, and stop it listing
-    a leg whose supply had already ended. The case is a gas leg ended at a move to a home with no gas,
-    which is listed again when the household later switches. Then make test_no_leg_switches_away_after_its_supply_ended
-    in tests/simulation/test_a_dual_fuel_household_is_one_account_across_both_fuels.py strict and passing.
-    Then build level 2''s ''a fix it takes on contact covers its gas too'': a dual-fuel household that
-    takes a fix on contact moves onto the matching fix for both fuels in one act, with one direct debit
-    across both. Read docs/market_research/home_moves.md first. Test it on the run''s walked fixture,
-    and mutation-prove it.'
-  why: A household that 'switches' a leg it no longer takes inflates leavers, and that corrupts every
-    renewal belief graded on this book. B13 is a basics gate atom (1 -> 2). It was named by atom id and
-    not drawn, so this key hands it to Lane 0. Done means the xfail is strict and passing, the fix-on-contact
-    test exists, and B13 reads level 2 on the map.
-  written_at: 1792996208.282
+  what: 'Take B13_a_dual_fuel_household_is_one_account_across_both_fuels to level 2. A worker tick is
+    on it now (pytest on tests/simulation/test_a_dual_fuel_household_is_one_account_across_both_fuels.py,
+    uncommitted run_phase2b.py hunks): finish and land that before anything new. Stop simulation/run_phase2b.py''s
+    leg_departures listing a leg whose supply had already ended (a gas leg ended at a move to a no-gas
+    home, listed again when the household later switches), make test_no_leg_switches_away_after_its_supply_ended
+    strict and passing, then build ''a fix it takes on contact covers its gas too'': one act moves both
+    fuels onto the matching fix with one direct debit, read docs/market_research/home_moves.md first,
+    mutation-prove it.'
+  why: A household that switches a leg it no longer takes inflates leavers, and that corrupts every renewal
+    belief graded on this book. B13 is a basics gate atom. Done means the xfail is strict and passing,
+    the fix-on-contact test exists, and B13 reads level 2 on the map.
+  written_at: 1793006990.79
 - id: the-mandate-run-grades-pb8-and-w2-41-on-one-fresh-book
   lane: W2_customer_generator
   side: world
-  unblocks: PB8's level 2 graded on a run, leg (d) of the basics grade, and the run item 4 reads E6's
+  unblocks: PB8's level 2 graded on a run, leg (d) of the basics grade, and the run item 5 reads E6's
     footing from
-  what: After item 1's publish has landed, so that it does not compete for memory, launch one default-book
-    full run at an origin commit that carries 1e6083838, bf56dd579 and 71cb7debc, through launch_long_job,
-    and queue its grade as a continuation in the same act. Grade it with tools/the_basics.py, leg (d).
-    Count the household ADDACS 1 events in the run output, the stops that reach company/billing/dd_collections_desk.py
-    before any collection fails on them, and the share of invited accounts that come back onto DD against
-    the cited 0.035-0.05. If leg (d) holds, write W2_41_a_household_cancels_its_mandate_as_its_own_act
-    to level 2 citing tests/simulation/test_a_household_cancels_its_mandate_as_its_own_act.py. If it does
-    not, file what stopped and where.
-  why: PB8 and W2_41 are built over one event, and neither has been graded on a run. A level written from
-    unit tests alone is how a basics fix last blocked every run (c5a3e96fe). Done means a graded run is
-    named in the record, leg (d) has a count with its denominator, and W2_41's map row says 2 or the finding
-    says why not.
-  written_at: 1792996208.282
+  what: 'Once item 1''s publish has landed and item 2 has cleared meter_reads.py, launch one default-book
+    full run through launch_long_job at an origin commit carrying 1e6083838, bf56dd579 and 71cb7debc,
+    and queue its grade as a continuation in the same act. Grade it with tools/the_basics.py leg (d):
+    count household ADDACS 1 events, the stops that reach company/billing/dd_collections_desk.py before
+    any collection fails on them, and the share of invited accounts back on DD against the cited 0.035-0.05.
+    If leg (d) holds, write W2_41_a_household_cancels_its_mandate_as_its_own_act to level 2 citing tests/simulation/test_a_household_cancels_its_mandate_as_its_own_act.py;
+    if not, file what stopped and where. Nothing is to change in dd_collections_desk.py or the_basics.py;
+    the change set is the graded run and W2_41''s map row.'
+  why: PB8 and W2_41 are built over one event and neither is graded on a run; a level written from unit
+    tests alone is how a basics fix last blocked every run (c5a3e96fe). Done means a graded run is named
+    in the record, leg (d) has a count with its denominator, and W2_41's row says 2 or a finding says
+    why not.
+  written_at: 1793006990.79
 - id: e6-the-provision-sees-a-stopped-mandate
   lane: E_finance_treasury
   side: supplier
-  what: On item 3's run, read E6_a_forward_cash_forecast_per_customer_charges_expected_loss_as_arrears_build's
-    provision, company/finance/bad_debt_provision.py (_footing reads payment_method_of(account, on)).
-    Count the roll-rate transitions that leave FOOTING_LIVE_DIRECT_DEBIT, and the provision stock carried
-    by accounts whose DD has stopped, against the same figures on 4ae8da9b0f, where no stop ever ended
-    a mandate. If the count is zero, find out why the dated channel does not reach the footing, and fix
-    it with a test that an account off DD is provided for on the off-DD footing from its stop date, mutation-proven.
-    Then state in the atom's simplification file what E6 level 2 still owes.
-  why: Last stretch rejected E6's next step until a stopped mandate reached the company's cash. It now
-    does, on origin. The provision is the supplier's own expected-loss belief, and a footing that never
-    moves is a belief with one input. Done means the count is filed with its denominator, and either a
-    fix is on origin or the zero is explained.
-  written_at: 1792996208.282
+  what: On item 4's run, read E6_a_forward_cash_forecast_per_customer_charges_expected_loss_as_arrears_build's
+    provision in company/finance/bad_debt_provision.py (_footing reads payment_method_of(account, on)).
+    Count roll-rate transitions that leave FOOTING_LIVE_DIRECT_DEBIT and the provision stock carried by
+    accounts whose DD has stopped, against the same on 4ae8da9b0f. If the count is zero, find why the
+    dated channel does not reach the footing and fix it with a mutation-proven test that an account off
+    DD is provided for on the off-DD footing from its stop date. Then state in the atom's simplification
+    file what E6 level 2 still owes.
+  why: The provision is the supplier's own expected-loss belief, and a footing that never moves is a belief
+    with one input. A stopped mandate now reaches the company's cash on origin. Done means the count is
+    filed with its denominator and either a fix is on origin or the zero is explained.
+  written_at: 1793006990.79
 not_now:
-- what: B12's level 2 (writer one reads its margin on the unit rate).
-  why: It is supplier pricing and drawable, but it is a lever. The 24 Oct ruling puts the basics first, and B13 is the basics atom the last focus failed to reach.
-- what: W2_36, unbilled energy arising as it does in reality (199 unchanged draws, nothing has worked it).
-  why: It is billing accuracy, which is the top supplier priority, but it is world work, and W2_37 behind it is world too. It blocks no supplier result that this stretch can grade, and item 3 already spends
-    the one run slot on a world grade.
+- what: Building the trunk-worktree publish route.
+  why: 2aa5298b4 measured that c2fc7b207 already absorbs a mid-gate origin move, and a worktree route would turn that case into a non-fast-forward refusal plus a second gate. The publish now clears every
+    mechanical door.
+- what: Excusing the four remaining billed<gross customer-years from the publish gate so the run publishes today.
+  why: They are real supplier defects (held bills with no re-issue, leavers closed on low estimates with no final read). Publishing past them would publish wrong bills. Their fix is landing now.
 - what: A policy that carries the corrected renewal belief.
-  why: It has been graded twice on clean books, and the departure interval straddles zero both times. The basics-first ruling stands. Its triage entry owns it as a fix.
+  why: Graded twice on clean books, and the departure interval straddles zero both times. The basics-first ruling stands, and its triage entry owns it as a fix.
+- what: B12's level 2 (writer one reads its margin on the unit rate).
+  why: A pricing lever; the 24 Oct ruling puts the basics first, and B13 is the basics atom in hand.
 - what: A check that a handoff named in a finding or a NEXT line is in the continuation queue.
-  why: There was no instance this stretch. The three PB8 continuations all retired with landings, and the publish race is the live machine defect that costs a visible result.
-- what: Expert Hour cold reads for EP12, EP4, B7 or W2_40 at level 3.
-  why: Item 2 changes the mover path that B7 and W2_40 grade, so a read now would grade code that is about to move.
+  why: No instance this stretch, and no long job launched or ended. The publish and the stranded world diff each cost a visible result now.
 - what: Reaping the six worktrees whose commits no remote ref keeps.
   why: se-om2's work reached origin under other commits, and the b12 and budgetpay trees are locked by their owners. Reaping buys no supplier result.
 wrong:
@@ -131,7 +143,8 @@ wrong:
     of levers, so it is not in focus. 21:22: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The ruling puts the basics ahead of levers, so it
     is not in focus. 00:20: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus.
     03:21: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus. 06:24: Unchanged.
-    No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus.'
+    No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus. 09:24: Unchanged. No policy carries
+    the corrected belief, so the live renewal belief still ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus.'
   corrected: false
 - what: 'THE COMPANY''S, THIS STRETCH. Explore''s cast rules (83c4fc9d6) found 4,764 of 14,012 pre-renewal invoices on the 19 Oct run (199 of 550 households) more than 0.5% above min(cap, EPG), and a November
     2022 bill at exactly the cap instead of the EPG. The finding was filed LATENT under W3 with no atom, and the earlier fix 592596b44 is an ancestor of that run. The cause is not yet named, and (c), a
@@ -176,7 +189,10 @@ wrong:
     site carries a graded run. 06:24: Not closed. The 04:05Z marker offered the newer run, run_output_4ae8da9b0f_20261026T022647Z, not b2bc3d8da5. It descends from b2bc3d8da5 and is graded clean (0 of 24,442
     over the ceiling). Its publish failed twice. At 05:14 it refused as behind_origin, on the publisher''s own repair commit b681cc4d7, which 410c1131d fixes. At 05:46 it refused as commit_refused, because
     the primary checkout''s HEAD 53a0e63da was 1 commit behind origin (71cb7debc). The fingerprint was not recorded and no marker re-offers the run. Figures last reached origin 165h ago. Focus item 1. The
-    finding stays BLOCKING.'
+    finding stays BLOCKING. 09:24: Not closed, but the publish is now refused for the right reason. The 08:06Z re-offer of 4ae8da9b0f cleared every mechanical door (77b6a16d9) and the full gate refused
+    it on two billing reds in the run''s own book. 3dfe5cad4 bisected both: ToU registers now carry their own reads (1,416 to 0), and the invoice carries the EPG receipt beside its total (10 to 4 customer-years
+    billed under gross). The last four (two held first bills, three leavers closed on estimates at 0.39-0.55 of true) are landing now (surgical_land pid 1987804, 4 to 0 claimed). Figures last reached origin
+    168h ago. Focus item 1. The finding stays BLOCKING.'
   corrected: false
 - what: 'THE MACHINE''S, THIS STRETCH. A finished long job lost its grader. The E6 crisis-overlay finding hands grading to the-crisis-overlay-arm-on-the-default-book-is-graded three times (13:15, 21:21
     BST), but that id was never written to the continuation store, so when longjob-crisis-overlay-arm-default-book-b8b14269e succeeded at 21:13Z, nothing was queued to read /var/tmp/crisis-overlay-out/arm.json.
@@ -198,7 +214,7 @@ wrong:
     back to False, and is on origin (via f9021b1e6). Its continuation was still released before the landing was bound, so the brief lists it ''retired without a landing'', and the disposition was recorded
     by hand as premise_spent. The brief''s release check (a5f02f869) caught it, but nothing checks that a handoff named in a finding or a NEXT line is in the queue, so the class is not fixed. 06:24: No
     new instance. The three PB8 continuations retired with landings on origin (1e6083838, bf56dd579, 71cb7debc). Nothing checks that a handoff named in a finding or a NEXT line is in the queue, so the class
-    is not fixed.'
+    is not fixed. 09:24: No new instance. No long job launched or ended this stretch. Nothing checks that a handoff named in a finding or a NEXT line is in the queue, so the class is not fixed.'
   corrected: false
 - what: 'THE MACHINE''S, THIS STRETCH. Four advisor files were edited in place by a lane (b2bc3d8da, 2ada25833, d86d8749c), so the advisor channel now refuses them as unsigned, though the advisor''s own
     staging commits verify. A worker recording ''what has landed'' inside an advisor file breaks that file''s signature chain. Its notes belong in the ## Done move or in a seat file. Not fixed: nothing
@@ -206,27 +222,33 @@ wrong:
     which the channel does not scan (scan() on origin offers 0 files). Nothing stops an in-place edit to a live advisor file, so it is not fixed. 18:21: No instance this stretch. Nothing stops an in-place
     edit to a live advisor file, so it is not fixed. 21:22: No instance this stretch. Nothing stops an in-place edit to a live advisor file, so it is not fixed. 00:20: No instance this stretch. 7cab60e4f
     appended to a file already in done/. Nothing stops an in-place edit to a live advisor file, so it is not fixed. 03:21: No instance this stretch. Nothing stops an in-place edit to a live advisor file,
-    so it is not fixed. 06:24: No instance this stretch. Nothing stops an in-place edit to a live advisor file, so it is not fixed.'
+    so it is not fixed. 06:24: No instance this stretch. Nothing stops an in-place edit to a live advisor file, so it is not fixed. 09:24: No instance this stretch. Nothing stops an in-place edit to a live
+    advisor file, so it is not fixed.'
   corrected: false
 - what: 'THE MACHINE''S, THIS STRETCH. The brief reads the shared checkout, which is 57 commits behind origin. Its level grader says B13''s and W2_41''s pointers rotted (''a named path is absent here and
     git knows it''), and tools/the_basics.py run there reads both lines ABSENT. Both tests are on origin (dc4baf125, f920430d7), and both atoms read level 1 there. A reader who trusted the brief would rebuild
     landed work. The grader should read origin/main, not the working copy. 00:20: The checkout is now 77 behind, and 17 units lack origin commits to code they import (sim-runner lacks 38b69f673 to itself).
     This brief did not repeat the rotted-pointer reading, but nothing makes the level grader read origin/main. Not fixed. 03:21: The shared checkout is level with origin again (5d75e14b0), so this brief
     read origin-equal files and units_lacking_origin is empty. But that is the tree catching up, not the grader changing. Nothing makes the level grader read origin/main, so the next drift brings the same
-    false ABSENT back. Not fixed. 06:24: Level with origin again (HEAD = origin/main = 6277076378). Nothing makes the level grader read origin/main, so it is not fixed.'
+    false ABSENT back. Not fixed. 06:24: Level with origin again (HEAD = origin/main = 6277076378). Nothing makes the level grader read origin/main, so it is not fixed. 09:24: Level with origin again (HEAD
+    = origin/main = 3dfe5cad4). Nothing makes the level grader read origin/main, so it is not fixed.'
   corrected: false
-- what: 'THE SEAT''S, LAST TWO STRETCHES. I named PB8 in focus by its atom id twice, and it was drawn neither time. An atom-id item only biases the ordinary draw, and the draw classifies only BUILD-stage
-    atoms: PB8''s loop_stage is idle, and the brief said ''draw: unclassified'' both times. So the steer could never reach it. This record gives the PB8 work a Lane 0 key (pb8-the-payment-channel-follows-the-mandate).
-    Focus item 4 routes the class. Not fixed until a focus atom the draw cannot classify is handed to Lane 0. 06:13: fixed (6277076378, on origin): `_atom_ids` is now the set the classifier names, so an
-    unclassified focus atom falls to Lane 0; the control takes both branches and both mutations fire.'
-  corrected: true
 - what: 'THE MACHINE''S, THIS STRETCH. The publisher gates and lands from the primary checkout, which origin passes every few minutes, so a green 30-minute gate is refused whenever origin moves under it.
     It happened twice in 32 minutes on the same run: 05:14, when its own repair commit was stranded, and 05:46, when HEAD 53a0e63da was 1 behind 71cb7debc. 410c1131d closes only the first shape. The 05:46
-    refusal tells the publisher to land from a worktree on origin/main, and the publisher does not do what it says. Focus item 1. Not fixed.'
+    refusal tells the publisher to land from a worktree on origin/main, and the publisher does not do what it says. Focus item 1. Not fixed. 09:24: Corrected without the worktree route. c2fc7b207 fast-forwards
+    onto origin right before each landing attempt, 99ef07483 waits out another writer''s index.lock instead of calling it a fork, and ae03a6317, 78a6dfacc and d6f5e4b21 stop the stale-copy guard reading
+    the publish''s own run stamp as a revert. The 08:06Z re-offer cleared every mechanical door (77b6a16d9); what refuses it now is the run''s own billing, which is the gate working.'
+  corrected: true
+- what: 'THE SEAT''S, LAST STRETCH. I wrote W2_41 (item 1) and PB8 (item 2) as two items over one event. The ADDACS-to-desk work landed under PB8 (1e6083838), so W2_41''s row stayed at level 1, and the
+    landing door reads nothing to land on its paths. Neither level 2 has been graded on a run, because no full run carries 1e6083838. This record makes the run grade one item (focus item 3) instead of a
+    second build. 09:24: Unchanged. No full run carries 1e6083838, and since 05:47Z none can be made cleanly (see the stranded meter_reads.py row). Focus item 4.'
   corrected: false
-- what: THE SEAT'S, LAST STRETCH. I wrote W2_41 (item 1) and PB8 (item 2) as two items over one event. The ADDACS-to-desk work landed under PB8 (1e6083838), so W2_41's row stayed at level 1, and the landing
-    door reads nothing to land on its paths. Neither level 2 has been graded on a run, because no full run carries 1e6083838. This record makes the run grade one item (focus item 3) instead of a second
-    build.
+- what: THE SEAT'S, LAST STRETCH. My item 1 asked for the publish to land from a trunk worktree, but c2fc7b207 had already absorbed a mid-gate origin move ten minutes before I wrote it, and 2aa5298b4 measured
+    that and declined the build. I wrote a focus on a premise origin had spent, because I read the refusal and not the commits after it. The worker's refusal was right; this record drops the item.
+  corrected: true
+- what: THE MACHINE'S, THIS STRETCH. Another lane's W2_36 change, smart-mode share split by fuel at DESNZ's 6.8% and 14.2%, has sat uncommitted in the shared simulation/meter_reads.py since 03:10Z with
+    no claim naming it, and 77b6a16d9 records that since 05:47Z no new run can be made cleanly because of it. The brief reads W2_36 as 'nothing has worked it'. A run launched from that tree would carry
+    a world change nobody graded. Focus item 2. Not fixed.
   corrected: false
 for_the_director:
 - id: c34-now-ranks-next-best-action-on
