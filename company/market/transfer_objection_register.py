@@ -226,9 +226,11 @@ class TransferObjectionRegister:
 #: Source: docs/market_research/domestic_debt_objection_rates_gb.md row 17.
 SLC14_MIN_DAYS_SINCE_NOTICE = 28
 
-#: Debt Assignment Protocol: a prepayment customer's debt below GBP 500 moves with them, so it is
-#: no ground to object. Source: docs/market_research/domestic_debt_objection_rates_gb.md row 19
-#: (the 2016 figure; not re-verified for later years, page row 145).
+#: Debt Assignment Protocol ceiling. THIS COMPANY'S CHOICE, NOT THE PROTOCOL: under the DAP the losing
+#: supplier objects and the gaining supplier may buy 90% of a debt up to GBP 500 (Ofgem IA 2016
+#: s.4.3-4.5); this company does not object, so the debt stays on its own ledger as the household
+#: leaves. Source: docs/market_research/domestic_debt_objection_rates_gb.md row 19 (the 2016 figure;
+#: not re-verified for later years, page row 145); switching_mechanics_2026-10-25.md section 2.
 PREPAYMENT_DAP_CEILING_GBP = 500.0
 
 #: Published supplier practice: informal de-minimis thresholds "ranging up to GBP 200 per fuel",
@@ -280,8 +282,8 @@ def decide_debt_objection(
                                      f"{SLC14_MIN_DAYS_SINCE_NOTICE} days since its bill", owed)
     if prepayment and owed < PREPAYMENT_DAP_CEILING_GBP:
         return DebtObjectionDecision(False, "prepayment debt under the Debt Assignment Protocol "
-                                     f"ceiling of GBP {PREPAYMENT_DAP_CEILING_GBP:.0f} moves "
-                                     "with the customer", owed)
+                                     f"ceiling of GBP {PREPAYMENT_DAP_CEILING_GBP:.0f}: this "
+                                     "company lets it go and keeps the debt", owed)
     if (policy.de_minimis_gbp_per_fuel is not None
             and owed <= policy.de_minimis_gbp_per_fuel * max(fuels, 1)):
         return DebtObjectionDecision(False, f"GBP {owed:.2f} is within the de-minimis of GBP "

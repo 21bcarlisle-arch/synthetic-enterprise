@@ -112,4 +112,34 @@ rises.
   the run … no figure here is typed by hand". `publish_provenance`'s clock check accepts both. The
   44 inline copies of "deliberately carries no current cap level" now say to read any quoted cap
   or price level as of its source's date.
-- Still open: 1, 5, 6, 15, 19, 21 and the low items.
+- Then still open: 1, 5, 6, 15, 19, 21 and the low items.
+
+## Items 1, 5, 6, 15 and 20 actioned (delivery seat, 26 Oct 2026)
+
+- **1, closed.** The headline, plain text, theory and index card now count the five working days
+  from the relevant date: the end of cooling-off, or earlier if the household agrees, so up to
+  about three weeks from sign-up. The plain text says Ofgem's pre-CSS 15-16 days does not state
+  its start date and is not like for like.
+- **5, closed. The reviewer was right.** Ofgem's 2016 impact assessment (s.4.3-4.5, fn 23, read
+  in the primary PDF): the DAP needs an objection first unless the customer consented at the point
+  of sale; the gaining supplier, if it agrees, buys 90% of a debt up to £500. Use was under 1,000 in
+  Jan-Sep 2015. The page no longer says the debt "can usually" move. The company rule (never object
+  to a prepayment debt under £500) is now described, in the page, the note and the code comment and
+  reason text, as this company's own choice, not the protocol: it gives up a recovery a real supplier
+  could get. **Not changed:** the behaviour. Modelling DAP needs a gaining-supplier decision in the
+  world. That is a design for the EP12 owner, and it should come with a prediction for the
+  prepayment share of the company's objections against the record's 32-36%.
+- **6, closed. The payments page was the wrong half.** The company's prepayment branch is
+  reachable: it reads the world's three-way draw (`household_segments`), in which about 14% of
+  households prepay. The payments page's "one class called other" described the roster's separate
+  draw, and that draw is independent of the world's (60% agreement on 2,435 households). Filed as
+  `SEAT_FINDING_THE_ROSTER_AND_THE_WORLD_DRAW_A_HOUSEHOLDS_PAYMENT_METHOD_ON_TWO_INDEPENDENT_STREAMS_2026-10-26.md`.
+  The page's "whether it is re-dated per window was not checked" is settled: neither draw takes a
+  date.
+- **15, closed.** The payments page now groups ARUDD codes by Bacs' instruction to the supplier
+  (`dd_failure_basis_and_live_arrears_provision_rates.md` s.2). 0 is cannot pay. 1, 2, 3, 6 and B
+  are no live instruction (6 moved here: Bacs says "obtain a new one"). 4 and 7 are payer disputes,
+  not to be re-collected until resolved. 5, 8, 9 and A are details or timing faults. No code groups
+  them otherwise (`payment_observation_consumer` reads only 0 and a terminal set).
+- **20, closed.** The page says no published run carries the rule yet (last run 19 Oct 2026).
+- Still open: 2, 3, 4, 7, 8, 19, 21 and the low items.

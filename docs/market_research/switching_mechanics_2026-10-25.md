@@ -27,7 +27,8 @@ account count), `gb_domestic_switcher_split_cim_2022_2025.md` (internal against 
   (`company/market/transfer_objection_register.decide_debt_objection`, through
   `company/interfaces/transfer_objection.py`): it objects when debt on bills more than 28 days old
   exceeds £200 per fuel (the top of the published informal de-minimis range, "up to £200 per fuel"),
-  and never to a prepayment debt under the £500 Debt Assignment Protocol ceiling. The world cancels
+  and never to a prepayment debt under the £500 Debt Assignment Protocol ceiling (a design choice that
+  departs from practice; see section 2). The world cancels
   exactly the switches it objected to (`simulation/debt_objection.py`) and keeps the household's
   own payment behaviour. Until this date the world drew the block itself at 0.283 (Ofgem 2016: about
   170k blocked against 430k allowed a year); those counts now grade the company's output. Choices
@@ -76,6 +77,10 @@ belongs to `gb_switching_rate_denominators.md`, which states the matched numerat
   https://xoserve.com/change/investment-change/switching-programme-css
 - SLC 14A.1 (as drafted): the gaining supplier completes a transfer "within five Working Days" of the
   Relevant Date. https://www.ofgem.gov.uk/sites/default/files/2021-12/Electricity_Supply_SLC_Notice%20-%20SCR%20StatCon%20-%20FOR%20PUBLICATION.pdf
+  The Relevant Date is the 2014 rule's: the end of the 14-day cooling-off unless the customer agrees
+  to an earlier start, so a switch with cooling-off runs up to about three weeks from sign-up. The
+  pre-CSS "15 and 16 calendar days" sits after "Cooling off period (14 days)" on Ofgem's map but the
+  map does not say which date it counts from, so it is not like for like with five working days.
 - REC Registration Services Schedule (June 2019 draft; the live v2.2 is read in
   `registration_loss_seam.py`): domestic supply start "at least one complete Working Day (starting at
   midnight) after the day on which the Switch Request is submitted", up to 28 days ahead; the domestic
@@ -95,6 +100,18 @@ belongs to `gb_switching_rate_denominators.md`, which states the matched numerat
   request, related meter points not all transferring. The debt must be asked for and "outstanding for
   more than 28 days". Debt Assignment Protocol: prepayment customers with debt under £500 (raised from
   £200) can switch if the new supplier agrees.
+- **The DAP is a route through an objection, not an exemption from it** (read 26 Oct 2026, IA §4.3-4.5
+  and footnote 23). "The DAP process required an objection to be raised first in the case where the
+  Point of Acquisition model is not used (or if the customer does not provide the relevant consent
+  when switching)"; under the POA model (ten suppliers including the six largest, from April 2015)
+  the sale captures "customer agreement to debt assignment in the event of a debt objection". The
+  gaining supplier buys "90% of the customer's debt from the losing supplier up-front" and recovers
+  it from the customer; above £500 it "is not obliged to take on the customer's debt". Use was "less
+  than 500 in 2014 and less than 1,000 in Jan-Sept 2015", against 285,697 debt objections in 2014, of
+  which prepayment was 32-36% (IA §1.27). So the company's rule of never objecting to a prepayment
+  debt under £500 is its own choice, not the protocol: it lets the household go with the debt left on
+  its ledger, where a real supplier would object and might sell 90% of it. GAP: whether £500 is per
+  fuel, and whether the DAP survived CSS unchanged, are not stated in this source.
   https://www.ofgem.gov.uk/system/files/docs/2016/07/impact_assessment_on_review_of_domestic_objections.pdf
 - Rates before CSS: 6% electricity and 5% gas annual objection rates (March 2016), over 90% for debt;
   374,463 debt objections in 2013, 285,697 in 2014; about 70% of indebted transfers went ahead.
