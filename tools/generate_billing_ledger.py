@@ -36,6 +36,7 @@ from saas.money import (
     display_rate_p_per_kwh,
     foot_components_to_total,
 )
+from saas.tariff_pricing import split_flat_rate_to_tou
 from simulation.arrears_engine import (
     _CORP_BACS_DISPUTE_PROB,
     _CORP_BACS_LATE_PROB,
@@ -140,6 +141,113 @@ def _printed_registers(bill_registers, printed_consumption_kwh, printed_commodit
     return printed
 
 
+def _printed_rate_lines(bill_lines, printed_kwh, printed_unit_charge_gbp, opening_read,
+                        read_type, contracted_terms=()):
+    """A bill across a price change, one line per contracted rate, at print precision; or None.
+
+    Each line's kWh and all-in charge are shared out of the PRINTED usage and the printed energy,
+    network-and-policy and EPG figures by the biller's own split (`saas.bill_generator.rate_lines`),
+    with the last line taking the remainder, so the lines add up exactly to what is printed beside
+    them. Each line carries its own reading pair: the read on the change date is a deemed one,
+    flagged estimated (SLC 31H.8), and the last line closes on the bill's own closing read.
+
+    The rate printed is the term's contracted rate wherever kWh x that rate reproduces the line's
+    printed amount to the penny, because 22A.3 asks for the Unit Rate and a rate fitted to a small
+    line is not it (9 kWh at GBP 1.00 fits 11.11p against a contracted 11.163p). Elsewhere it is
+    fitted to the printed pair, as every other usage line is.
+    """
+    if not bill_lines:
+        return None
+    kwh_total = sum(line["consumption_kwh"] for line in bill_lines)
+    gbp_total = sum(line["unit_charge_gbp"] for line in bill_lines)
+    if kwh_total <= 0 or gbp_total <= 0:
+        return None
+    printed, kwh_left, gbp_left, read = [], printed_kwh, printed_unit_charge_gbp, opening_read
+    for i, line in enumerate(bill_lines):
+        last = i == len(bill_lines) - 1
+        if last:
+            kwh, gbp = round(kwh_left, 1), round(gbp_left, 2)
+        else:
+            kwh = round(printed_kwh * line["consumption_kwh"] / kwh_total, 1)
+            gbp = round(printed_unit_charge_gbp * line["unit_charge_gbp"] / gbp_total, 2)
+            kwh_left -= kwh
+            gbp_left -= gbp
+        closing = round(read + kwh, 1)
+        term = next((t for t in contracted_terms
+                     if t["tariff_effective_from"] == line["term_start"]), None)
+        rate = term and not term.get("tou_unit_rates") and term.get("unit_rate_p_per_kwh")
+        if not rate or abs(round(kwh * rate / 100, 2) - gbp) > 0.001:
+            rate = _printed_unit_rate(kwh, gbp)
+        printed.append({
+            "tariff_effective_from": line["term_start"],
+            "period_start": line["period_start"],
+            "period_end": line["period_end"],
+            "consumption_kwh": kwh,
+            "unit_charge_gbp": gbp,
+            "unit_rate_p_per_kwh": rate,
+            "time_of_use": line["time_of_use"],
+            "opening_read_kwh": read,
+            "closing_read_kwh": closing,
+            "closing_read_type": read_type if last else "E",
+        })
+        read = closing
+    return printed
+
+
+#: Terms whose revenue carries the actual policy and network cost on top, so no single rate was
+#: contracted and the validator says so rather than checking against one.
+_NO_SINGLE_CONTRACTED_RATE = ("pass_through", "flex")
+
+
+def _tou_terms(account_terms, bills):
+    """(customer, term_start) of every term the biller settled on a peak/off-peak pair.
+
+    LIMIT: the run records which terms were SOLD as ToU nowhere (`demand_response_log` is not in
+    the run output, and the term row carries only the flat rate), so a term counts as ToU when any
+    bill inside it carries band registers. Only that a pair existed is read from the bills; the
+    pair's RATES are the product rule's, so a bill charging the wrong band rate still disagrees.
+    """
+    out = set()
+    for b in bills:
+        if b.get("registers"):
+            term = term_of_bill(account_terms, b)
+            if term is not None:
+                out.add((b["customer_id"], term["term_start"]))
+    return out
+
+
+def _contracted_terms(account_terms, bill, tou_terms):
+    """Every recorded term the bill's period touches, at the rate the account was SOLD at.
+
+    From `account_state_log`, never from the bill, so a bill that charged the wrong rate disagrees
+    with it instead of being fitted to it. The rate is all-in p/kWh, the figure the term is struck
+    at and the cap is set on. A chosen term also carries the peak/off-peak pair the one product rule
+    strikes from that flat rate (`split_flat_rate_to_tou`) where the term was settled as ToU (see
+    `_tou_terms`); the term row records only the flat rate, so the pair is derived here. A default
+    term is single-rate (`tou_desk.offers_tou`). A period touching two terms is a bill across a
+    price change and carries both.
+    """
+    start, end = str(bill["period_start"])[:10], str(bill["period_end"])[:10]
+    out = []
+    for t in account_terms.get(bill["customer_id"], ()):
+        if not (t["term_start"] <= end and start < t["term_end"]):
+            continue
+        rate = t.get("unit_rate_gbp_per_mwh")
+        no_rate = rate is None or t["tariff_type"] in _NO_SINGLE_CONTRACTED_RATE
+        pair = (split_flat_rate_to_tou(rate)
+                if not no_rate and (bill["customer_id"], t["term_start"]) in tou_terms else None)
+        out.append({
+            "tariff_effective_from": t["term_start"],
+            "tariff_effective_to": t["term_end"],
+            "tariff_type": t["tariff_type"],
+            "unit_rate_p_per_kwh": None if no_rate else round(rate / 10.0, 4),
+            "tou_unit_rates": None if pair is None else [
+                {"register_label": "Peak", "unit_rate_p_per_kwh": round(pair[0] / 10.0, 4)},
+                {"register_label": "Off-peak", "unit_rate_p_per_kwh": round(pair[1] / 10.0, 4)}],
+        })
+    return out
+
+
 def _printed_daily_rate(days_in_period, printed_standing_charge_gbp):
     """The GBP/day rate to print, or None if the line cannot carry one.
 
@@ -234,6 +342,7 @@ def generate(run_json_path=None, out_path=None):
     # than silently dropped.
     bills, held_bills = validate_bills(bills)
     account_terms = terms_by_customer(data)
+    tou_terms = _tou_terms(account_terms, bills)
 
     # BILL_CORRECTNESS_ADDENDUM.md Defect 2: meter-read status (A=actual,
     # E=estimated) per bill, from Phase 3's real estimation physics
@@ -431,6 +540,7 @@ def generate(run_json_path=None, out_path=None):
             "customer_id": cid,
             "term_tariff_type": term_type,
             "default_tariff_excess_p_per_kwh": None if term_excess is None else round(term_excess, 4),
+            "contracted_terms": _contracted_terms(account_terms, bill, tou_terms),
             "period_start": bill["period_start"],
             "period_end": period_end,
             "commodity": commodity,
@@ -525,7 +635,11 @@ def generate(run_json_path=None, out_path=None):
             bill.get("registers"), inv["consumption_kwh"], inv["commodity_amount_gbp"],
         ) or [{
             "register_id": "1",
-            "label": "Anytime",
+            # A ToU term's bill with use in one band only (a one-day stub) has one register, and
+            # it is that band's, at that band's rate: printed "Anytime" it read as the flat rate
+            # charged at 0.786 of itself (2 of 52,782 on 4ae8da9b0f, against the contracted pair).
+            "label": (bill["registers"][0]["label"]
+                      if len(bill.get("registers") or []) == 1 else "Anytime"),
             "consumption_kwh": inv["consumption_kwh"],
             "amount_gbp": inv["commodity_amount_gbp"],
             "unit_rate_p_per_kwh": inv["unit_rate_p_per_kwh"],
@@ -550,6 +664,16 @@ def generate(run_json_path=None, out_path=None):
         # margin counts it and a reader comparing the two needs both (the 2026-10-26 finding).
         if bill.get("hmt_epg_receipt_gbp"):
             inv["hmt_epg_receipt_gbp"] = round(bill["hmt_epg_receipt_gbp"], 2)
+        # 2026-10-26: a period across a price change prints a line per contracted rate (SLC 22A.3;
+        # tariffs_and_the_default_tariff_2026-10-25.md, "A bill across a price change"). The lines'
+        # all-in charge is the printed energy, network-and-policy and EPG figures together.
+        printed_lines = _printed_rate_lines(
+            bill.get("rate_lines"), inv["consumption_kwh"],
+            round(inv["commodity_amount_gbp"] + inv["non_commodity_amount_gbp"]
+                  + inv.get("hmt_epg_receipt_gbp", 0.0), 2),
+            opening_read_rounded, read_type, inv["contracted_terms"])
+        if printed_lines is not None:
+            inv["rate_lines"] = printed_lines
 
         # ADVISOR_STEER_BILL_ARITHMETIC.md Defect 1, R10 class-level gate:
         # a rendered bill whose usage line does not reconcile with its printed

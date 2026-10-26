@@ -43,6 +43,35 @@ it. Two things would narrow it, neither built:
   domain error with the biller. This is the strongest unbuilt idea in the design and it is not in
   items 1–5.
 
+**Narrowed 2026-10-26, and only narrowed.** The printed rate is fitted to each printed line, so the
+energy rebuild could never see a bill charging the wrong *tariff*. `unit_charge_at_contract` now
+prices each period's volume at the rate the account's term record says it was sold at
+(`account_state_log`, exported as `contracted_terms`). It sets that against energy + network and
+policy + EPG receipt. On the 4ae8da9b0f book: 49,867 of 52,782 periods agree, and 2,915 cross a
+price change and sit inside their terms' rates. From the first run whose bills carry
+`rate_lines` (2026-10-26), a period across a change prints a line per rate with its own readings,
+and each line is priced at its own term's rate. That makes those periods a check, not a range,
+except where a ToU term is inside the period. That closes "the printed rate is not the
+contracted one". It does not close "the contracted rate is wrong": the term record is still ours,
+and a fix mis-struck by a factor of ten agrees with itself. A ToU pair is the product rule applied
+to the recorded flat rate, and whether a term was ToU is read from the biller's band settlement,
+because no record says so.
+
+**Narrowed again 2026-10-26, from above only, and for default tariffs only.**
+`default_tariff_rate_against_cap` grades each domestic default-tariff term's rate against Ofgem's
+published level for every cap window its days in the period touch. The level is ex-VAT at the
+rate in force for that fuel, and it is the Ofgem level, not the EPG, because the term includes the
+Treasury's receipt. A multi-register period is graded against the cap model's multi-register level.
+On the 4ae8da9b0f book, 27,197 periods were graded and 0 sit above. Every rate is exactly at its
+ceiling, and a 1% raise fails all 27,197. Three things stay open:
+- A default rate set too LOW passes. The wholesale floor is the correctness ruling's other side,
+  and it is not built.
+- The validator and the company read the same commons file. The two code paths are independent,
+  but the published numbers are not, so a wrong row in the commons fails both together.
+- It fails closed where the commons has no level: multi-register from 2026-01-01, and any day past
+  the last window. It does not see region or payment method, because this world bills at GB-average
+  direct-debit levels. The standing-charge half of the cap is not graded.
+
 ## 2. The largest pass-through line is not checked at all
 
 `non_commodity_amount_gbp` bundles DUoS, TNUoS, BSUoS, RO, FiT, CfD, CM and smart metering. The

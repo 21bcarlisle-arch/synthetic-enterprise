@@ -552,7 +552,9 @@ def _run_rails(
         # PB8 L2, the household's route: it cancelled at its bank, the collection came back
         # "instruction cancelled", and the supplier reads ADDACS 1 the next working day. The desk
         # cancels from that date, so this is the last bill presented and the notice is the ADDACS day.
-        if shock.cancel_return and told is None and exit_ is None:
+        # Under one payment truth the triad has already returned this collection (`told`), so the
+        # advice follows the return it made; a truth that collected it never saw the cancel.
+        if shock.cancel_return and exit_ is None and outcome == "failed":
             addacs = payer_cancellation(instruction.reference, cid, date.fromisoformat(attempt_date))
             if desk.record_payer_cancellation(cid, addacs.available_date.isoformat()):
                 spells.setdefault(cid, []).append(

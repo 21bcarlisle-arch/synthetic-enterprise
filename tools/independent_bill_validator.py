@@ -20,6 +20,10 @@ that is verified and one that is believed.
 ## WHAT IT CAN REBUILD, AND WHAT IT HONESTLY CANNOT
 
     Energy            volume x unit rate            RECONSTRUCTED
+    Unit charge       volume x CONTRACTED rate      CONTRACT_CHECKED, per printed rate line across a
+                                                      price change; BOUNDED where none is printed
+    Default-tariff    term rate <= Ofgem cap        CAP_CHECKED; UNCHECKABLE where the commons has
+      term rate         (ex-VAT, per window)          no level; NOT_APPLICABLE off a domestic default
     Standing charge   days x daily rate             RECONSTRUCTED
     Network & policy  volume x levy rate            NOT RECONSTRUCTIBLE -- no rate, see below
     VAT               rate x (the three above)      AMOUNT not reconstructible; RATE is checked
@@ -62,6 +66,7 @@ from __future__ import annotations
 
 import ast
 import json
+from datetime import date, timedelta
 from decimal import ROUND_HALF_UP, Decimal
 from pathlib import Path
 
@@ -74,6 +79,12 @@ RECONSTRUCTED = "RECONSTRUCTED"
 UNCHECKABLE = "UNCHECKABLE"
 #: The amount cannot be rebuilt, but the RATE it should have used is published and was checked.
 RATE_CHECKED = "RATE_CHECKED"
+
+#: The unit charge was priced against the rate in the account's TERM RECORD, not the printed rate.
+CONTRACT_CHECKED = "CONTRACT_CHECKED"
+#: The period crosses a price change and the bill prints one rate, so only a range can be checked:
+#: the charge must sit between every covering term's rate times the volume.
+BOUNDED = "BOUNDED"
 
 PENNY = 0.005
 
@@ -292,6 +303,261 @@ def _energy_per_register(period: dict) -> tuple[dict, float | None]:
              "how": " + ".join(hows)}, float(total_kwh))
 
 
+def _volume_by_label(period: dict) -> tuple[dict | None, str]:
+    """Each register's advance from its own two readings, keyed by the label the bill prints."""
+    registers = period.get("registers") or []
+    if len(registers) <= 1:
+        volume, why = _volume_from_reads(period)
+        if volume is None:
+            return None, why
+        label = (registers[0].get("register_label") if registers else None) or \
+            ((period.get("reads") or [{}])[0].get("register_label")) or "Anytime"
+        return {label: Decimal(str(volume))}, ""
+    if period.get("volume_basis") != "reads":
+        return None, "the raw export could not supply readings ({})".format(
+            period.get("volume_basis"))
+    label_of = {r.get("register_id"): r.get("register_label") for r in registers}
+    by_register: dict = {}
+    for read in period.get("reads") or []:
+        by_register.setdefault(read.get("register_id"), []).append(read.get("read_kwh"))
+    out = {}
+    for reg_id, reads in by_register.items():
+        if len(reads) != 2 or None in reads or label_of.get(reg_id) is None:
+            return None, "register {} has {} reading(s) and no usable label".format(
+                reg_id, len(reads))
+        out[label_of[reg_id]] = Decimal(str(reads[1])) - Decimal(str(reads[0]))
+    return out, ""
+
+
+def _contracted_rate(term: dict, label: str):
+    """The rate a register is contracted at: its band's rate on a Peak or Off-peak register of a
+    term that carries a pair, else the term's flat rate."""
+    for band in term.get("tou_unit_rates") or []:
+        if band.get("register_label") == label:
+            return band.get("unit_rate_p_per_kwh")
+    return term.get("unit_rate_p_per_kwh")
+
+
+def unit_charge_at_contract(period: dict) -> dict:
+    """The unit charge the TARIFF says this period costs: volume x the term record's rate.
+
+    The energy line above prices with the rate the bill printed, which is fitted to the printed
+    pair, so it proves the arithmetic and cannot see a bill that charged the wrong tariff. This is
+    the second computation that can. It is ALL-IN, because the rate a term is sold at is: the bill
+    prints its network-and-policy share (and, in an EPG window, the Treasury's share) as separate
+    lines, so the comparison sets this against those lines summed with the energy line.
+
+    One covering term: each register at its contracted rate, with a tolerance for what printing
+    rounds (0.05 kWh a register, a penny a money line). Two or more: the bill crosses a price change
+    and, where it prints a line per rate, each line's own advance is priced at its own term's rate
+    (`_unit_charge_per_rate_line`). Where it prints one rate it is BOUNDED by the lowest and highest
+    contracted rate times the volume, which is weaker and says so. A term with no single rate is
+    UNCHECKABLE.
+    """
+    label = "Unit charge at the contracted tariff"
+    terms = period.get("contracted_terms")
+    if terms is None:
+        return {"label": label, "status": UNCHECKABLE,
+                "why": "the raw export carries no term record for this period"}
+    if not terms:
+        return {"label": label, "status": UNCHECKABLE,
+                "why": "no recorded term covers this period"}
+    volumes, why = _volume_by_label(period)
+    if volumes is None:
+        return {"label": label, "status": UNCHECKABLE, "why": why}
+    unrated = [t.get("tariff_type") for t in terms if t.get("unit_rate_p_per_kwh") is None]
+    if unrated:
+        return {"label": label, "status": UNCHECKABLE,
+                "why": "a covering term ({}) was sold at no single rate".format(", ".join(
+                    map(str, unrated)))}
+    per_term = []
+    for term in terms:
+        amount, hows = Decimal(0), []
+        for reg_label, kwh in volumes.items():
+            rate = _contracted_rate(term, reg_label)
+            amount += kwh * _dec(rate) / 100
+            hows.append("{} kWh {} x {} p/kWh".format(kwh, reg_label, rate))
+        per_term.append((float(amount), hows, term))
+    # Print rounding: each register's kWh is the difference of two cumulative reads printed to
+    # 0.1 kWh, so it sits up to 0.1 kWh from the volume charged (0.05 allowed 3 Jan 2023 bills at
+    # 64p to fail by 7p on an exact rate); the energy, levy and EPG lines are each half a penny.
+    rates = [_dec(r) for t in terms for r in [t.get("unit_rate_p_per_kwh")] + [
+        b.get("unit_rate_p_per_kwh") for b in t.get("tou_unit_rates") or []]]
+    tolerance = round(float(Decimal("0.1") * len(volumes) * max(rates) / 100) + 3 * PENNY, 4)
+    if len(per_term) == 1:
+        amount, hows, term = per_term[0]
+        return {"label": label, "status": CONTRACT_CHECKED, "amount_gbp": round_money(amount),
+                "amount_gbp_unrounded": amount, "tolerance_gbp": tolerance,
+                "how": "{} ({} term from {})".format(" + ".join(hows), term.get("tariff_type"),
+                                                    term.get("tariff_effective_from"))}
+    volume = sum(volumes.values())
+    checked, why_bounded = _unit_charge_per_rate_line(label, period.get("rate_lines"), terms,
+                                                      volume, rates)
+    if checked is not None:
+        return checked
+    # Across a price change the bill prints one register, so a ToU term's share could have been
+    # charged anywhere between its off-peak and peak rates: the bound spans every rate any
+    # covering term carries.
+    low, high = float(volume * min(rates) / 100), float(volume * max(rates) / 100)
+    return {"label": label, "status": BOUNDED, "low_gbp": round_money(low),
+            "high_gbp": round_money(high), "tolerance_gbp": tolerance,
+            "how": "the period crosses {} terms ({}) and {}".format(
+                len(terms), ", ".join("{} from {}".format(t.get("tariff_type"),
+                                                         t.get("tariff_effective_from"))
+                                      for t in terms), why_bounded)}
+
+
+def _unit_charge_per_rate_line(label, lines, terms, volume, rates):
+    """A bill across a price change that prints a line per rate: each line's own advance, from its
+    own two readings, at the rate of the term it names. Returns (result, None), or (None, why) where
+    only the bound can be checked.
+
+    This is what makes the check a CONTRACT_CHECK and not a range: a bill that charged the whole
+    period at either rate, or split the kWh wrongly between them, disagrees, where the bound let any
+    charge between the two rates through. A line whose term carries a peak/off-peak pair is still
+    bounded, because the bill does not print that line's band split.
+    """
+    if not lines:
+        return None, "the bill prints one rate"
+    by_start = {t.get("tariff_effective_from"): t for t in terms}
+    amount, line_volume, hows = Decimal(0), Decimal(0), []
+    for line in lines:
+        term = by_start.get(line.get("tariff_effective_from"))
+        if term is None:
+            return ({"label": label, "status": UNCHECKABLE,
+                     "why": "a printed rate line names a term from {} that no recorded term "
+                            "starts on".format(line.get("tariff_effective_from"))}, None)
+        if term.get("tou_unit_rates"):
+            return None, ("the line from {} is on a time-of-use term and the bill does not print "
+                          "its band split".format(line.get("tariff_effective_from")))
+        reads = [r.get("read_kwh") for r in line.get("reads") or []]
+        if len(reads) != 2 or None in reads:
+            return ({"label": label, "status": UNCHECKABLE,
+                     "why": "the rate line from {} has {} usable reading(s)".format(
+                         line.get("tariff_effective_from"), len([r for r in reads if r is not None]))},
+                    None)
+        kwh = Decimal(str(reads[1])) - Decimal(str(reads[0]))
+        line_volume += kwh
+        amount += kwh * _dec(term.get("unit_rate_p_per_kwh")) / 100
+        hows.append("{} kWh x {} p/kWh ({} from {})".format(
+            kwh, term.get("unit_rate_p_per_kwh"), term.get("tariff_type"),
+            term.get("tariff_effective_from")))
+    # The lines must account for the period's whole advance, or the check prices part of it.
+    if abs(line_volume - Decimal(str(volume))) > Decimal("0.05"):
+        return ({"label": label, "status": UNCHECKABLE,
+                 "why": "the rate lines advance {} kWh and the period's readings {}".format(
+                     line_volume, volume)}, None)
+    tolerance = round(float(Decimal("0.1") * len(lines) * max(rates) / 100) + 3 * PENNY, 4)
+    return ({"label": label, "status": CONTRACT_CHECKED, "amount_gbp": round_money(float(amount)),
+             "amount_gbp_unrounded": float(amount), "tolerance_gbp": tolerance,
+             "how": " + ".join(hows)}, None)
+
+
+#: Default tariffs, which SLC 28AD caps. A fixed or chosen term may lawfully sit above the cap.
+DEFAULT_TARIFF_TYPES = ("svt", "deemed")
+#: The term rate is printed to 4 dp from a GBP/MWh strike, so one struck exactly at the cap reads
+#: up to half that place above it.
+CAP_RATE_TOLERANCE_P = 0.0001
+CAP_CHECKED = "CAP_CHECKED"
+#: Fixed term, non-domestic account, or a date before the cap existed: no claim, not a pass.
+NOT_APPLICABLE = "NOT_APPLICABLE"
+
+
+def _vat_on(commodity: str, day: str) -> float:
+    """The domestic VAT rate on `day` for the fuel: reduced, unless a dated exception covers it."""
+    law = _published("uk_vat_rates.json")
+    for exc in law.get("dated_exceptions") or []:
+        if exc.get("fuel") == commodity and exc["from"] <= day <= exc["to"]:
+            return law["rates"][exc["rate_band"]]["rate"]
+    return law["rates"]["reduced"]["rate"]
+
+
+def published_cap_ceilings(commodity: str, first: str, last: str, *, multi_register: bool):
+    """Every Ofgem level in force between two dates, ex-VAT p/kWh, as (from, to, ceiling, how).
+
+    The Ofgem level, never the EPG: the cap bounded what the supplier charged, and the EPG was the
+    Treasury's discount on top, so a term struck at the cap with the receipt inside it is lawful.
+    A day after the last published window has no level, and carrying the last one forward is the
+    company's reading, not the law; that day comes back with ceiling None and the reason.
+    """
+    windows = _published("ofgem_default_tariff_cap_windows.json")["windows"]
+    if multi_register:
+        if commodity != "electricity":
+            return [(first, last, None, "no multi-register cap is published for {}".format(
+                commodity))]
+        rows = [(p["from"], p["to"], p["multi_register_p_per_kwh_ex_vat"],
+                 "multi-register {} p/kWh ex-VAT, cap level model".format(
+                     p["multi_register_p_per_kwh_ex_vat"]))
+                for p in _published("ofgem_cap_multi_register_unit_rates.json")["periods"]]
+    else:
+        key = "elec" if commodity == "electricity" else "gas"
+        rows = []
+        for w in windows:
+            vat = _vat_on(commodity, w["from"])
+            rows.append((w["from"], w["to"], float(_dec(w[key]) / 10 / (1 + _dec(vat))),
+                         "{} GBP/MWh inc {:.0%} VAT".format(w[key], vat)))
+    out = [r for r in sorted(rows) if r[0] <= last and first <= r[1]]
+    covered_to = max([r[1] for r in out], default=None)
+    if covered_to is None or covered_to < last:
+        why = ("the commons carries no multi-register level after {} (P15b changed the benchmark "
+               "and the model does not state it)".format(covered_to) if multi_register else
+               "no published cap window covers {} onwards".format(covered_to or first))
+        out.append((covered_to or first, last, None, why))
+    return out
+
+
+def default_tariff_rate_against_cap(period: dict, *, segment: str) -> dict:
+    """Each default-tariff term's contracted rate, against Ofgem's published cap for its window.
+
+    The contract check above proves the bill charges the term record's rate, and the term record is
+    ours, so a mis-set default rate passes it. The cap is the outside source that bounds that rate.
+    Only the days of the term inside this period are graded, against every window they touch.
+    Multi-register when the period prints more than one register (SLC 28AD.4 grades every
+    multi-register tariff against that benchmark).
+    """
+    label = "Default-tariff rate against the published cap"
+    terms = [t for t in period.get("contracted_terms") or []
+             if t.get("tariff_type") in DEFAULT_TARIFF_TYPES]
+    if segment != "resi" or not terms:
+        return {"label": label, "status": NOT_APPLICABLE,
+                "why": "the cap binds a domestic default tariff only"}
+    commodity = period.get("commodity") or "electricity"
+    multi = len(period.get("registers") or []) > 1
+    p_start, p_end = str(period.get("period_start"))[:10], str(period.get("period_end"))[:10]
+    cap_began = min(w["from"] for w in _published("ofgem_default_tariff_cap_windows.json")["windows"])
+    graded, blind = [], []
+    for term in terms:
+        rate = term.get("unit_rate_p_per_kwh")
+        first = max(p_start, str(term.get("tariff_effective_from"))[:10], cap_began)
+        # A term's `tariff_effective_to` is the next term's first day, so its own last day is the one before.
+        last = min(p_end, (date.fromisoformat(str(term.get("tariff_effective_to"))[:10])
+                           - timedelta(days=1)).isoformat())
+        if first > last:
+            continue
+        if rate is None:
+            blind.append("a {} term carries no single rate".format(term.get("tariff_type")))
+            continue
+        for w_from, w_to, ceiling, how in published_cap_ceilings(
+                commodity, first, last, multi_register=multi):
+            if ceiling is None:
+                blind.append(how)
+                continue
+            graded.append({"tariff_effective_from": term.get("tariff_effective_from"),
+                           "rate_p_per_kwh": rate, "ceiling_p_per_kwh": round(ceiling, 4),
+                           "window": "{}..{}".format(w_from, w_to), "how": how,
+                           "within": float(rate) <= ceiling + CAP_RATE_TOLERANCE_P})
+    if blind:
+        return {"label": label, "status": UNCHECKABLE, "why": "; ".join(sorted(set(blind))),
+                "graded": graded}
+    if not graded:
+        return {"label": label, "status": NOT_APPLICABLE,
+                "why": "the default term's days in this period predate the cap ({})".format(cap_began)}
+    return {"label": label, "status": CAP_CHECKED, "graded": graded,
+            "within": all(g["within"] for g in graded),
+            "worst_ratio": max(float(g["rate_p_per_kwh"]) / g["ceiling_p_per_kwh"]
+                               for g in graded)}
+
+
 def rebuild_period(period: dict, *, segment: str) -> dict:
     """One period rebuilt from raw facts alone. Never raises; every line says what it is."""
     days = period.get("days_in_period")
@@ -331,6 +597,9 @@ def rebuild_period(period: dict, *, segment: str) -> dict:
         lines.append({"label": "Standing charge", "status": RECONSTRUCTED,
                       "amount_gbp": round_money(amount), "amount_gbp_unrounded": amount,
                       "how": "{} days x GBP {}/day".format(days, sc_day)})
+
+    lines.append(unit_charge_at_contract(period))
+    lines.append(default_tariff_rate_against_cap(period, segment=segment))
 
     lines.append({
         "label": "Network and policy costs", "status": UNCHECKABLE,

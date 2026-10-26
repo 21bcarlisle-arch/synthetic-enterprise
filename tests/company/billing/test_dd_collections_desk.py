@@ -404,3 +404,35 @@ def test_a_household_cancellation_reaches_the_desk_as_addacs_1_on_a_real_book(mo
     assert notices["CANCELS"] == mandate.last_status_change_date > last.attempt_date
     rows = [r for r in ae._resolve_bills(bills, behavioral, 42) if r["customer_id"] == "CANCELS"]
     assert {r["method"] for r in rows if r["period_end"] > "2020-05-28"} == {"standard_credit"}
+
+
+def test_under_one_payment_truth_a_household_cancellation_still_reaches_the_desk_as_addacs_1(
+        monkeypatch):
+    """With the triad's truth on the leg (shipped on since 12 Oct, 1,040 of 1,046 legs in the
+    mandate run), the cancel month's collection is the truth's failed one, and the desk still reads
+    ADDACS 1 the working day after it. The mandate run's arm B found 20 cancels the triad failed and 0
+    advices on this desk, because the branch required no truth at all. A truth that says the cancel
+    month was collected (the triad never saw the cancel) sends no advice."""
+    import simulation.dd_collection_book as mod
+    import simulation.world_payment_truth as wpt
+    from simulation.dd_shock_response import RECORD_KEY
+    monkeypatch.setattr(mod, "payment_method", lambda *a, **k: "direct_debit")
+    bills, behavioral = [], {}
+    for cid in ("CANCELS", "TRIAD_MISSED_IT"):
+        behavioral[cid] = {"income_stress_trajectory": [{"year": 2020, "stress": "LOW"}],
+                           RECORD_KEY: [{"review_month": "2020-05", "cancelled_month": "2020-05",
+                                         "failure_multiplier": 1.0}]}
+        outcomes = {}
+        for m in range(1, 13):
+            bills.append({"customer_id": cid, "segment": "resi", "total_amount_gbp": 90.0,
+                          "period_end": f"2020-{m:02d}-28", "commodity": "electricity"})
+            dd = cid == "TRIAD_MISSED_IT" or m <= 5
+            failed = cid == "CANCELS" and m == 5
+            outcomes[f"2020-{m:02d}"] = {"result": "failed" if failed else "success", "days_late": 0,
+                                         "method": "direct_debit" if dd else "standard_credit"}
+        behavioral[cid][wpt.RECORD_KEY] = {"outcomes": outcomes, "repayments": []}
+    book = mod.build_dd_collection_book(bills, behavioral, seed=42)
+    stops = mod.supplier_dd_stops(bills, behavioral, seed=42)
+    assert stops.get("CANCELS") == "2020-05-28", stops
+    assert book.get_mandate("CANCELS").status == "cancelled"
+    assert "TRIAD_MISSED_IT" not in stops and book.get_mandate("TRIAD_MISSED_IT").status != "cancelled"

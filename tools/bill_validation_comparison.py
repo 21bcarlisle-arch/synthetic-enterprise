@@ -63,6 +63,9 @@ REPORT_PATH = PROJECT_DIR / "docs" / "reports" / "bill_validation_comparison.jso
 AGREED = "AGREED"
 DISAGREED = "DISAGREED"
 UNCHECKABLE = "UNCHECKABLE"
+#: Inside the range the covering terms allow, on a bill that prints one rate across a price change.
+#: Weaker than AGREED, and counted apart so it is never read as one.
+BOUNDED = "BOUNDED"
 
 #: Money is carried to the penny on both sides. See the module docstring: this is the resolution
 #: of the quantity, not a band inside which a disagreement is forgiven.
@@ -114,6 +117,8 @@ def compare_bill(reconstructed: dict, issued: dict, *, statutory_vat: dict,
     one figure and no published artefact reconstructs it -- and that is a fact about the export,
     which belongs in the output.
     """
+    from tools import independent_bill_validator as validator
+
     claims: list[dict] = []
     v_lines = reconstructed.get("lines") or []
     b_lines = issued.get("lines") or []
@@ -162,6 +167,53 @@ def compare_bill(reconstructed: dict, issued: dict, *, statutory_vat: dict,
             continue
         claims.append(_claim(name, AGREED if abs(observed - expected) < PENNY else DISAGREED,
                              expected=expected, observed=observed, how=v_line.get("how", "")))
+
+    # -- the unit charge against the TARIFF, not against the printed rate ----------------------
+    # The energy claim above rebuilds the energy line from the rate the bill printed, so a bill
+    # that charged the wrong tariff passes it. This one prices the volume at the term record's
+    # all-in rate and sets it against everything the bill charged per unit: the energy line, the
+    # network-and-policy line it carved out of the same rate, and the EPG share the Treasury paid.
+    contract = _line_by_label(v_lines, "Unit charge at the contracted tariff") or {}
+    energy, net = _amount(b_lines, "Energy"), _amount(b_lines, "Network and policy costs")
+    status = contract.get("status")
+    checked = status == validator.CONTRACT_CHECKED or status == validator.BOUNDED
+    if not checked or energy is None or net is None:
+        claims.append(_claim("unit_charge_at_contract_gbp", UNCHECKABLE,
+                             why=contract.get("why") or "the bill carries no energy or levy line"))
+    else:
+        charged = round(energy + net + (issued.get("hmt_epg_receipt_gbp") or 0.0), 2)
+        tol = contract["tolerance_gbp"]
+        if status == validator.CONTRACT_CHECKED:
+            expected = contract["amount_gbp"]
+            claims.append(_claim(
+                "unit_charge_at_contract_gbp",
+                AGREED if abs(charged - expected) <= tol else DISAGREED,
+                expected=expected, observed=charged, how=contract.get("how", ""),
+                why="energy + network and policy + EPG receipt, against the volume at the "
+                    "term record's rate, within GBP {:.3f} of print rounding".format(tol)))
+        else:
+            inside = contract["low_gbp"] - tol <= charged <= contract["high_gbp"] + tol
+            claims.append(_claim(
+                "unit_charge_at_contract_gbp", BOUNDED if inside else DISAGREED,
+                expected="{:.2f}..{:.2f}".format(contract["low_gbp"], contract["high_gbp"]),
+                observed=charged, how=contract.get("how", ""),
+                why="a bill across a price change printed as one rate: only a range is checkable"))
+
+    # -- the default-tariff term rate against the published cap --------------------------------
+    # The claim above takes the term record as given. For a default tariff Ofgem's cap bounds it
+    # from outside. A fixed term, a business account or a pre-2019 day makes no claim at all, which
+    # is not agreement and is not counted as one.
+    cap = _line_by_label(v_lines, "Default-tariff rate against the published cap") or {}
+    if cap.get("status") == validator.CAP_CHECKED:
+        worst = max(cap["graded"], key=lambda g: float(g["rate_p_per_kwh"]) / g["ceiling_p_per_kwh"])
+        claims.append(_claim(
+            "default_tariff_rate_within_cap", AGREED if cap["within"] else DISAGREED,
+            unit="p/kWh", expected=worst["ceiling_p_per_kwh"], observed=float(worst["rate_p_per_kwh"]),
+            how="{} window {}".format(worst["how"], worst["window"]),
+            why="the term record's rate at or under Ofgem's published level, ex-VAT"))
+    elif cap.get("status") == validator.UNCHECKABLE:
+        claims.append(_claim("default_tariff_rate_within_cap", UNCHECKABLE, unit="p/kWh",
+                             why=cap.get("why", "")))
 
     # -- the line nobody can rebuild ------------------------------------------------------------
     net_v = _line_by_label(v_lines, "Network and policy costs") or {}
@@ -273,7 +325,7 @@ def compare_account(customer_id: str, record: dict, *, raw_of=None, reconstruct=
             why="the raw export carries {} period(s) the statement issues no bill for".format(
                 len(rebuilt) - len(issued)))]})
 
-    counts = {AGREED: 0, DISAGREED: 0, UNCHECKABLE: 0}
+    counts = {AGREED: 0, DISAGREED: 0, UNCHECKABLE: 0, BOUNDED: 0}
     for bill in bills:
         for claim in bill["claims"]:
             counts[claim["verdict"]] = counts.get(claim["verdict"], 0) + 1
@@ -329,7 +381,7 @@ def compare_all(ledger_path: Path | None = None, *, limit: int | None = None) ->
         ids = ids[:limit]
     accounts = [compare_account(cid, customers[cid]) for cid in ids]
 
-    counts = {AGREED: 0, DISAGREED: 0, UNCHECKABLE: 0}
+    counts = {AGREED: 0, DISAGREED: 0, UNCHECKABLE: 0, BOUNDED: 0}
     for account in accounts:
         for verdict, n in account["counts"].items():
             counts[verdict] = counts.get(verdict, 0) + n

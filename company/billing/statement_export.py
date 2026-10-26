@@ -205,6 +205,10 @@ def bill_document(inv: dict) -> dict:
         "total_amount_gbp": issued_total,          # AS ISSUED. Never recomputed.
         "parts_sum_gbp": parts_sum,
         "internal_discrepancy_gbp": discrepancy,   # None when the document agrees with itself
+        # Printed BESIDE the total and outside it: the Treasury paid it, not the household. A
+        # check of the unit charge against the contracted tariff needs it, because the tariff rate
+        # is what the supplier was paid in full.
+        "hmt_epg_receipt_gbp": inv.get("hmt_epg_receipt_gbp") or 0.0,
         "kind": AS_ISSUED,
     }
 

@@ -671,6 +671,16 @@ So leg (b) is built. Two choices differ from the shape above, and why:
   as gross's and a smaller magnitude, since the levies are roughly a third to a half of an
   electricity unit rate. A year where net moves further than gross would mean that levies
   exceeded volume margin on a leaver's span. It would be checked, not assumed.
+  **Graded (2026-10-26, first runs carrying the fields: the mandate run's two arms at 67a893e749,
+  732 supply-point-years).** Held book-wide: decade gross −£2,050.75 and net −£664.89, the same sign
+  at 0.32 of gross. Refuted by year: 2016, 2017 and 2022 have the opposite sign, and in 2016 net
+  moves further than gross. 2017 is the year that counts: 168 supply-point-years, gross −£252 and
+  net +£39. The reason given (levies are a third to a half of the rate) predicts net at 0.5–0.67 of
+  gross. Same-sign years run from 0.25 to 0.83, so net does not scale gross by a levy share.
+  **GAP:** which cost moves on a different base from revenue is not yet established. The year
+  table is in `docs/staging/SEAT_FINDING_THE_DEFAULT_BOOK_SHIPS_BOTH_HOUSEHOLD_CANCEL_ROUTES_AT_ZERO_SO_THE_MANDATE_RUN_IS_TWO_ARMS_2026-10-26.md`.
+  Until it is closed, the annual report's net settled at the read is a per-run figure, with no
+  rule linking it to gross.
 
 #### What a change of supplier ends on each fuel (2026-10-22, K8 for the dual leaver)
 
