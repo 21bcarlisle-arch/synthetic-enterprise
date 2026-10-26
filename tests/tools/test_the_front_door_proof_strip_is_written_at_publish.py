@@ -144,6 +144,28 @@ def test_every_other_page_gets_its_run_clock_at_publish_and_a_half_marked_page_i
     assert "half.html" in err and "plain.html" not in err, err
 
 
+def test_a_written_knowledge_page_is_not_told_its_figures_are_the_runs(tmp_path):
+    """Cold read, 25 Oct 2026, item 18: every Knowledge topic page said "Figures from the run of
+    ... no figure here is typed by hand" over sourced prose. Both kinds in one publish, so a writer
+    that gives every page either line fails, and the banner check must still count both."""
+    from background import publish_provenance as prov
+    pages = {}
+    for rel in ("knowledge/payments/index.html", "knowledge/index.html", "proof/index.html"):
+        page = tmp_path / rel
+        page.parent.mkdir(parents=True, exist_ok=True)
+        page.write_text("<body>\n" + g.RUN_CLOCK_START + "\n" + g.RUN_CLOCK_END + "\n</body>")
+        pages[rel] = page
+    dash = {"meta": {"generated_at": "2026-10-26T08:00:00Z",
+                     "source_file": "run_output_abc_20261026T033010Z.json"}}
+    assert g.write_run_clocks(tmp_path, dash) == 3
+    text = {rel: page.read_text() for rel, page in pages.items()}
+    topic = text["knowledge/payments/index.html"]
+    assert "Published with the run of 26 Oct 2026" in topic and "typed by hand" not in topic
+    for rel in ("knowledge/index.html", "proof/index.html"):
+        assert "Figures from the run of 26 Oct 2026" in text[rel], rel
+    assert all(prov.states_its_clock_at_publish(t) for t in text.values())
+
+
 def test_new_this_week_shows_at_most_three_lines_and_names_its_absence(tmp_path, monkeypatch):
     """Site copy pack A5. Red if the strip shows more than three of the week's lines, shows none
     when the week has some, or stays silent when the stretch log cannot be read."""

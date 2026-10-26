@@ -3126,10 +3126,15 @@ def proof_strip_figures(data, dashboard, sim_meta):
     return figures, missing
 
 
-def run_clock_line(generated_at, source_file):
+def run_clock_line(generated_at, source_file, written=False):
     """'Figures from the run of <date> · published every <day> (run <id>; ...)', the one clock a
     page carries. The run's date comes from its file stamp, which is when the figures were made;
-    the publish time is the fallback when the name carries none."""
+    the publish time is the fallback when the name carries none.
+
+    A written Knowledge page takes none of its figures from the run, so for one (`written`) the
+    line says it was published with the run and where its figures do come from. "Figures from the
+    run ... no figure here is typed by hand" on a page of sourced prose was false (cold read,
+    25 Oct 2026, item 18)."""
     import html as _html
     run = _html.escape(str(source_file or "an unnamed run")
                        .replace("run_output_", "").replace(".json", ""))
@@ -3139,6 +3144,11 @@ def run_clock_line(generated_at, source_file):
     else:
         ran = _day(generated_at) if generated_at else "an unrecorded date"
     from background.publish_freshness import PUBLISH_WEEKDAY
+    if written:
+        return ('Published with the run of {} &middot; published every {} '
+                '<span class="lf-run">(run {}; a written page: its figures are published anchors '
+                'from the sources it cites, not readings from the run)</span>'.format(
+                    _html.escape(ran), calendar.day_name[PUBLISH_WEEKDAY], run))
     return ('Figures from the run of {} &middot; published every {} '
             '<span class="lf-run">(run {}; no figure here is typed by hand)</span>'.format(
                 _html.escape(ran), calendar.day_name[PUBLISH_WEEKDAY], run))
@@ -3151,10 +3161,17 @@ RUN_CLOCK_START = ("<!-- RUN-CLOCK:START (written at publish by "
 RUN_CLOCK_END = "<!-- RUN-CLOCK:END -->"
 
 
-def render_run_clock(generated_at, source_file):
+def render_run_clock(generated_at, source_file, written=False):
     return ('{}\n<p class="lf-prov" style="max-width:1060px;margin:24px auto 8px;padding:0 22px;'
             'font-size:11.5px;color:var(--muted,#666)">{}</p>\n{}'.format(
-                RUN_CLOCK_START, run_clock_line(generated_at, source_file), RUN_CLOCK_END))
+                RUN_CLOCK_START, run_clock_line(generated_at, source_file, written), RUN_CLOCK_END))
+
+
+def is_written_knowledge_page(site_root, page):
+    """A Knowledge topic page (knowledge/<topic>/index.html): sourced anchors, never run output.
+    The Knowledge index is not one; it carries the pack census."""
+    parts = Path(page).relative_to(site_root).parts
+    return len(parts) == 3 and parts[0] == "knowledge" and parts[2] == "index.html"
 
 
 def write_run_clocks(site_root, dashboard):
@@ -3163,7 +3180,8 @@ def write_run_clocks(site_root, dashboard):
     A page with one marker and not the other is named, never guessed at: its block has nowhere
     certain to go, and the page keeps what it had."""
     meta = dashboard.get("meta", {})
-    block = render_run_clock(meta.get("generated_at"), meta.get("source_file"))
+    blocks = {kind: render_run_clock(meta.get("generated_at"), meta.get("source_file"), kind)
+              for kind in (False, True)}
     written = 0
     for page in sorted(Path(site_root).rglob("*.html")):
         text = page.read_text(encoding="utf-8")
@@ -3174,6 +3192,7 @@ def write_run_clocks(site_root, dashboard):
             print("RUN CLOCK NOT WRITTEN: {} does not carry both markers in order".format(page),
                   file=sys.stderr)
             continue
+        block = blocks[is_written_knowledge_page(site_root, page)]
         new = text[:start] + block + text[end + len(RUN_CLOCK_END):]
         if new != text:
             page.write_text(new, encoding="utf-8")

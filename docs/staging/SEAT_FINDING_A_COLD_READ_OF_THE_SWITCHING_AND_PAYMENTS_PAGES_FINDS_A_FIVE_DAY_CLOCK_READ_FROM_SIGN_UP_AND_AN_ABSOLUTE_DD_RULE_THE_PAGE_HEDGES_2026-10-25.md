@@ -98,3 +98,18 @@ rises.
 - Items 5 and 15 are practice claims. Per K4, read the DAP and the Bacs ARUDD code list first, and
   ask the director only if the published sources leave them open.
 - Item 1 is wording: give the five-day clock its start point.
+
+## Items 11 and 18 actioned (delivery seat, 26 Oct 2026)
+
+- **11, closed.** The GAP was the stale half. The headline and subtitle stand: Ofgem's consolidated
+  electricity SLCs (to 1 Aug 2025) read 27.15 as "must ensure", as `65906582e` recorded. The theory now
+  quotes that text and says the gas licence was not read. The refund sentence ("licence text … not
+  found") now gives SLC 27.16 ("in a timely manner", on request, no day count, which stays a GAP). The
+  residuals go from nine to eight, and the two that closed are named.
+- **18, closed for every Knowledge topic page.** `write_run_clocks` now writes "Published with the
+  run of <date> … a written page: its figures are published anchors from the sources it cites, not
+  readings from the run" on `knowledge/<topic>/index.html`. Every other page keeps "Figures from
+  the run … no figure here is typed by hand". `publish_provenance`'s clock check accepts both. The
+  44 inline copies of "deliberately carries no current cap level" now say to read any quoted cap
+  or price level as of its source's date.
+- Still open: 1, 5, 6, 15, 19, 21 and the low items.
