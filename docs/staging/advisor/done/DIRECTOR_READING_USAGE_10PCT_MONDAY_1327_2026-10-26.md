@@ -24,3 +24,11 @@
 
   Land them through the door in that order.
 - After that, return to the ruled order.
+
+## Done
+
+Actioned 26 Oct by the delivery seat. The headroom went to the site steer first, as the reading
+asked. Three forks were sent out in parallel on its independent sections: correctness with
+Capabilities and home; Knowledge cards with mobile; privacy and stale data. The seat took the G5
+queue itself and landed it at 8be05177e. What each section landed is recorded in the steer's own
+Done section. B13's landing ran alongside on its own worktree.
