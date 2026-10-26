@@ -215,6 +215,21 @@ def compare_bill(reconstructed: dict, issued: dict, *, statutory_vat: dict,
         claims.append(_claim("default_tariff_rate_within_cap", UNCHECKABLE, unit="p/kWh",
                              why=cap.get("why", "")))
 
+    # The ceiling above cannot see a rate set too low. The floor is the cap model's own commodity
+    # allowance for the window; it omits network and policy, which the commons does not separate.
+    floor = _line_by_label(v_lines, "Default-tariff rate against the wholesale floor") or {}
+    if floor.get("status") == validator.CAP_CHECKED:
+        worst = min(floor["graded"], key=lambda g: float(g["rate_p_per_kwh"]) / g["floor_p_per_kwh"])
+        claims.append(_claim(
+            "default_tariff_rate_above_wholesale_floor", AGREED if floor["above"] else DISAGREED,
+            unit="p/kWh", expected=worst["floor_p_per_kwh"], observed=float(worst["rate_p_per_kwh"]),
+            how="{} window {}".format(worst["how"], worst["window"]),
+            why="the term record's rate at or over the commodity cost the cap allows, ex-VAT; "
+                "network and policy costs are not in this floor (GAP: not separable in the commons)"))
+    elif floor.get("status") == validator.UNCHECKABLE:
+        claims.append(_claim("default_tariff_rate_above_wholesale_floor", UNCHECKABLE,
+                             unit="p/kWh", why=floor.get("why", "")))
+
     # -- the line nobody can rebuild ------------------------------------------------------------
     net_v = _line_by_label(v_lines, "Network and policy costs") or {}
     claims.append(_claim(

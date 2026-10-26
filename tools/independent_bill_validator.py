@@ -558,6 +558,93 @@ def default_tariff_rate_against_cap(period: dict, *, segment: str) -> dict:
                                for g in graded)}
 
 
+def published_commodity_floors(commodity: str, first: str, last: str, *, multi_register: bool):
+    """Each cap window between two dates, as (from, to, floor p/kWh ex-VAT or None, how).
+
+    The floor is the commodity allowance (DF + CM) in Ofgem's own cap model for that window: what
+    the cap lets a supplier recover for buying the energy. It is the LOWEST such figure over the
+    three payment methods and the fifteen regions, so a rate under it is under the commodity
+    allowance of every region and method. It is a floor on wholesale cost ALONE: the artefact does
+    not separate the network and policy components, so the "plus network and policy" half of the
+    floor is a stated GAP, not a zero. The commons carries single-rate electricity only.
+    """
+    windows = _published("ofgem_default_tariff_cap_windows.json")["windows"]
+    if multi_register or commodity != "electricity":
+        return [(first, last, None,
+                 "the commons carries the cap model's commodity allowance for single-rate "
+                 "electricity only, not for {}".format(
+                     "multi-register electricity" if multi_register else commodity))]
+    by_method = _published("ofgem_cap_unit_rate_composition.json")["by_payment_method"]
+    out = []
+    for w in windows:
+        if not (w["from"] <= last and first <= w["to"]):
+            continue
+        figures = []
+        for method in by_method.values():
+            row = next((p for p in method["periods"] if p["starts"] == w["from"]), None)
+            if row is not None:
+                figures.append(row["commodity_share_min"] * row["unit_rate_p_per_kwh_ex_vat"])
+        out.append((w["from"], w["to"], min(figures) if len(figures) == len(by_method) else None,
+                    "lowest DF+CM unit-rate allowance, ex-VAT, over payment methods and regions"
+                    if len(figures) == len(by_method) else
+                    "the cap model carries no commodity allowance for the window from " + w["from"]))
+    covered_to = max([r[1] for r in out], default=None)
+    if covered_to is None or covered_to < last:
+        out.append((covered_to or first, last, None,
+                    "no published cap window covers {} onwards".format(covered_to or first)))
+    return out
+
+
+def default_tariff_rate_against_wholesale_floor(period: dict, *, segment: str) -> dict:
+    """Each default-tariff term's contracted rate, against the commodity cost its cap window allows.
+
+    `default_tariff_rate_against_cap` bounds the rate from above; a rate set too low passed it. A
+    default tariff priced under the energy cost the cap itself allows is a loss before any network
+    or policy cost, so it is flagged. Fails closed (UNCHECKABLE, naming the gap) wherever the
+    commons carries no allowance. The floor excludes network and policy costs (see
+    `published_commodity_floors`), so passing is a weaker statement than the ceiling's.
+    """
+    label = "Default-tariff rate against the wholesale floor"
+    terms = [t for t in period.get("contracted_terms") or []
+             if t.get("tariff_type") in DEFAULT_TARIFF_TYPES]
+    if segment != "resi" or not terms:
+        return {"label": label, "status": NOT_APPLICABLE,
+                "why": "the cap binds a domestic default tariff only"}
+    commodity = period.get("commodity") or "electricity"
+    multi = len(period.get("registers") or []) > 1
+    p_start, p_end = str(period.get("period_start"))[:10], str(period.get("period_end"))[:10]
+    cap_began = min(w["from"] for w in _published("ofgem_default_tariff_cap_windows.json")["windows"])
+    graded, blind = [], []
+    for term in terms:
+        rate = term.get("unit_rate_p_per_kwh")
+        first = max(p_start, str(term.get("tariff_effective_from"))[:10], cap_began)
+        last = min(p_end, (date.fromisoformat(str(term.get("tariff_effective_to"))[:10])
+                           - timedelta(days=1)).isoformat())
+        if first > last:
+            continue
+        if rate is None:
+            blind.append("a {} term carries no single rate".format(term.get("tariff_type")))
+            continue
+        for w_from, w_to, floor, how in published_commodity_floors(
+                commodity, first, last, multi_register=multi):
+            if floor is None:
+                blind.append(how)
+                continue
+            graded.append({"tariff_effective_from": term.get("tariff_effective_from"),
+                           "rate_p_per_kwh": rate, "floor_p_per_kwh": round(floor, 4),
+                           "window": "{}..{}".format(w_from, w_to), "how": how,
+                           "above": float(rate) >= floor})
+    if blind:
+        return {"label": label, "status": UNCHECKABLE, "why": "; ".join(sorted(set(blind))),
+                "graded": graded}
+    if not graded:
+        return {"label": label, "status": NOT_APPLICABLE,
+                "why": "the default term's days in this period predate the cap ({})".format(cap_began)}
+    return {"label": label, "status": CAP_CHECKED, "graded": graded,
+            "above": all(g["above"] for g in graded),
+            "lowest_ratio": min(float(g["rate_p_per_kwh"]) / g["floor_p_per_kwh"] for g in graded)}
+
+
 def rebuild_period(period: dict, *, segment: str) -> dict:
     """One period rebuilt from raw facts alone. Never raises; every line says what it is."""
     days = period.get("days_in_period")
@@ -600,6 +687,7 @@ def rebuild_period(period: dict, *, segment: str) -> dict:
 
     lines.append(unit_charge_at_contract(period))
     lines.append(default_tariff_rate_against_cap(period, segment=segment))
+    lines.append(default_tariff_rate_against_wholesale_floor(period, segment=segment))
 
     lines.append({
         "label": "Network and policy costs", "status": UNCHECKABLE,
