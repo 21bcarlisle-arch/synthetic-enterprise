@@ -313,9 +313,14 @@ days to remain on Direct Debit" (https://powerni.co.uk/help/bills-payment/direct
 That is the step before a stop, not a re-mandate. No GB supplier publishes when it invites a stopped or
 self-cancelled account back onto DD. **GAP.**
 
-**What is published about the household's side.** Nothing. No take-up rate is published for a supplier's
-invitation back onto DD, and no flow from standard credit to DD is published (named gap 7 above).
-**GAP.**
+**What is published about the household's side.** No energy figure. No take-up rate is published for a
+supplier's invitation back onto DD, and no flow from standard credit to DD is published (named gap 7
+above). **GAP.** Two figures from elsewhere bound a belief (26 Oct, `gb_payment_method_migration_rates.md`,
+"A take-up rate for an invitation back onto DD"):
+- a randomised trial of a DD prompt to council tax payers not on DD (Medway, 2017): 5% signed within a
+  month with the best insert, and about 3.5% with none;
+- Ofgem's 2015 survey, read with DECC's 2015 payment shares: at most about 4% of standard credit
+  payers a year moved off pay-on-receipt while staying with the same supplier.
 
 **Which choices the design makes, and why.**
 - *The desk's policy is its own, and a named simplification.* The desk invites an account back once it has
@@ -323,12 +328,15 @@ invitation back onto DD, and no flow from standard credit to DD is published (na
   its own ledger to decide that. After a decline it waits the same count again. The count is the
   supplier's choice, not a fact about the world. Nothing published bounds it, and the code says so beside
   the constant.
-- *The world's answer is `None`, with the reason named.* `simulation/bacs_rails.py`
-  `REMANDATE_ACCEPTANCE_PROBABILITY` is None: no published rate. The draw refuses rather than answering
-  yes or no. Until a rate exists, the run puts no invitation to a household. So a household that leaves
-  DD stays off it, which overstates manual payers. That overstatement was already recorded in
-  `gb_payment_method_migration_rates.md`. It now applies to an invitation the desk can make and the world
-  cannot yet answer, rather than to an invitation nobody could make.
+- *The world's answer is a labelled range, and the lower edge ships.* `simulation/bacs_rails.py`
+  `REMANDATE_ACCEPTANCE_PROBABILITY` is 0.035 per invitation, from an EVIDENCE RANGE of 0.035 to 0.05.
+  The lower edge ships (F11) because two things are unmeasured, and both would make 0.05 an
+  overstatement. One is whether a second ask after a decline pulls as well as a first. The other is how
+  far a household that recently left DD differs from a long-standing non-DD payer, and nothing gives
+  the direction for both routes. On the 40-household spell book, over 8 seeds, 1 of 28 stopped
+  households is back on DD by the end of the book's year at 0.035, and 3 at 0.05. That is within the
+  ≤4% a year that Ofgem's survey bounds. *(Until 26 Oct this was `None`. The run put no invitation to
+  a household, so every stop was terminal and manual payers were overstated.)*
 - *ADDACS 1 reaches the desk.* When a household cancels its mandate (DD4b or own-reasons, both shipped at
   0), the month's collection comes back "instruction cancelled" (DD4b's own calendar). The desk then
   reads the ADDACS 1 record dated the next working day after that return, and cancels the mandate from
@@ -342,8 +350,9 @@ invitation back onto DD, and no flow from standard credit to DD is published (na
   the outcome the money side draws for that bill. The money side (`arrears_engine.paying_method`, and the
   billing ledger through it) and the seam (`StopNoticeBoard`) read the same spells. So a rate, once
   sourced, moves the register, the P&L and the renewal price together. A household that cancelled at its
-  own bank and later signs again is collected again: its earlier cancellation is spent. With the rate
-  None, nobody is invited and every spell stays open, so no shipped number moved. Supplying a rate in a
+  own bank and later signs again is collected again: its earlier cancellation is spent. When the spells
+  landed the rate was None, so nobody was invited and no shipped number moved. The rate set on 26 Oct
+  relabels a few bills as DD again. Supplying a rate in a
   test relabels bills and moves no payment outcome, because a resi outcome is drawn the same way on
   either channel. That stops holding once DD and on-receipt payment behaviour differ, so a rate and any
   such difference each need their own pre-registration.

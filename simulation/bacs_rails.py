@@ -149,12 +149,17 @@ def draw_payer_cancellation(reference: str, customer_id: str, act_date: date, u:
     return payer_cancellation(reference, customer_id, act_date)
 
 
-#: How often a household signs the new mandate its supplier invites it to (PB8 L2). None: no GB
-#: supplier publishes a take-up rate for an invitation back onto DD, and no flow from standard
-#: credit to DD is published (payments_and_direct_debit_2026-10-25.md, "Off direct debit and back
-#: on"). Until one exists the run puts no invitation to a household, so every spell off DD stays
-#: open (`dd_collection_book._run_rails`, which already closes a spell when a household signs).
-REMANDATE_ACCEPTANCE_PROBABILITY: Optional[float] = None
+#: How often a household signs the new mandate its supplier invites it to (PB8), per invitation.
+#: EVIDENCE RANGE 0.035-0.05 (gb_payment_method_migration_rates.md, "A take-up rate for an invitation
+#: back onto DD"). No energy supplier publishes one. The nearest is a randomised trial of a direct-debit
+#: prompt to non-DD council tax payers (Medway, BIT Test+Build, 2017): the best letter insert moved 5%
+#: onto DD within a month, 42% more than the no-insert control (so about 3.5%). The lower edge ships
+#: (F11), because two things here are unmeasured and both would make 0.05 an overstatement. First, the
+#: desk asks again after every decline, and nothing publishes whether a second ask pulls as well as a
+#: first. Second, Ofgem's 2015 survey with DECC's 2015 payment shares puts the same-supplier move off
+#: pay-on-receipt at no more than about 4% of standard credit payers a year, which is below the 13% a
+#: year that four asks at 0.035 compound to.
+REMANDATE_ACCEPTANCE_PROBABILITY: Optional[float] = 0.035
 REMANDATE_ACCEPTANCE_GAP = ("no published take-up rate for a supplier's invitation back onto Direct "
                             "Debit, and no published standard-credit-to-DD flow")
 

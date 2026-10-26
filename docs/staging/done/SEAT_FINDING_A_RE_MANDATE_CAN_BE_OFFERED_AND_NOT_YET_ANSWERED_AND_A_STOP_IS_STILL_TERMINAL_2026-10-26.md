@@ -55,3 +55,13 @@ Named simplification: a leg under one payment truth (`world_payment_truth`, off 
 invited. The triad holds its channel.
 
 **Still open: item 1 (the rate).** That is now the only thing between the desk's policy and a run.
+
+**Item 1 answered (worker, 26 Oct, lane 0 `pb8-re-mandate-take-up-rate`).** No energy figure is
+published. `REMANDATE_ACCEPTANCE_PROBABILITY` is now 0.035 per invitation, from an EVIDENCE RANGE of
+0.035 to 0.05: Medway Council's 2017 BIT trial of a DD prompt to council tax payers, cross-checked
+against Ofgem's 2015 survey and DECC's 2015 payment shares (≤4% of SC payers a year leave pay-on-receipt
+while staying with their supplier). The lower edge ships (F11). Evidence and the two GAPs it leaves
+(whether a repeated ask pulls as well as the first; how recent leavers differ from the non-DD stock):
+`gb_payment_method_migration_rates.md`, "A take-up rate for an invitation back onto DD". Item 2 was
+built in bf56dd579. Nothing in this finding stays open except those two GAPs, which the knowledge page
+carries.

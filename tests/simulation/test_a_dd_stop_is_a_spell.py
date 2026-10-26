@@ -2,9 +2,9 @@
 own ledger of on-receipt bills, and once a household signs, the register, the money side and the seam
 all see it back on DD from the same bill.
 
-The take-up rate is None in the shipped world (no published figure), so nobody is invited and every
-spell stays open. These tests supply a rate to show that setting one later moves all three readers
-together, which is the precondition the 26 Oct finding named before any rate is set.
+The shipped take-up rate is the lower edge of a cited range (`bacs_rails.REMANDATE_ACCEPTANCE_PROBABILITY`),
+too thin to re-sign anyone dependably on a small book. So these tests supply 0.5 or 1.0 to show all
+three readers move together, and None to show the world without the rate.
 """
 import json
 
@@ -46,9 +46,9 @@ def half(monkeypatch):
     monkeypatch.setattr(br, "REMANDATE_ACCEPTANCE_PROBABILITY", 0.5)
 
 
-def test_with_no_rate_every_spell_stays_open():
-    """The shipped world: nobody is invited, so a stop is still terminal and no number moves."""
-    assert br.REMANDATE_ACCEPTANCE_PROBABILITY is None
+def test_with_no_rate_every_spell_stays_open(monkeypatch):
+    """With no rate nobody is invited, so a stop is terminal."""
+    monkeypatch.setattr(br, "REMANDATE_ACCEPTANCE_PROBABILITY", None)
     spells = dcb.supplier_dd_spells(*_book(), 42)
     assert spells and all(len(s) == 1 and s[0][1] is None for s in spells.values()), spells
 

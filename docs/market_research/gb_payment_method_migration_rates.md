@@ -329,10 +329,49 @@ side for the day one does.
   an invented strength behind a published share;
 - any published household-initiated cancellation rate (ADDACS code 1 volumes by sector are
   collected by Bacs and not published by energy supplier);
-- re-mandating after a cancellation (the world never re-mandates: an overstatement of manual payers);
+- re-mandating after a cancellation. *(Corrected 26 Oct: the world now answers the supplier's invitation
+  at a labelled range, in the next section.)*
 - a per-household self-disconnection rate on a meter fitted for debt (only stocks over all smart PPM
   customers are published: 564,191 electricity in Q2 2026);
 - prepayment back to credit on the SLC 28.1A reassessment (a supplier act; no flow published).
+
+## A take-up rate for an invitation back onto DD (2026-10-26)
+
+**What is measured.** The probability that a household off DD signs the new mandate its supplier
+invites it to, per invitation. It is not a yearly rate. The supplier decides when to ask
+(`company/billing/dd_collections_desk.py`, `REMANDATE_OFFER_AFTER_PAID_BILLS`), and the household
+decides whether to sign (`simulation/bacs_rails.py`, `REMANDATE_ACCEPTANCE_PROBABILITY`).
+
+**No energy figure exists.** A fresh search (26 Oct) found no supplier, Ofgem or Citizens Advice
+figure for the response to an invitation onto DD. Ofgem's letter trials (CMOL 2017, Active Choice
+2018) measured switching tariff, not payment method. Two figures from elsewhere bound a belief:
+
+| Source | What it counts | Figure | Fit |
+|---|---|---|---|
+| Medway Council with the Behavioural Insights Team, Test+Build RCT, Jan-Jun 2017 (LGA case study, <https://www.local.gov.uk/case-studies/using-behavioural-insights-convert-taxpayers-direct-debit-medway-council>) | council tax payers not on DD who set up a DD within a month of the annual bill, by letter insert | best insert ("loss aversion") 5%, "over 42%" above the no-insert control, so the control was about 3.5% | a single prompt to a non-DD stock; council tax rather than energy; the one-month window matches one invitation |
+| Ofgem, *Customer Engagement with the Energy Market: Tracking Survey 2015*, OG19a/OG19c (electricity), <https://www.ofgem.gov.uk/sites/default/files/docs/2015/09/customerengagementreport2015_final_for_publication.pdf> | bill-payers who stayed with their supplier: 11% changed tariff or payment method; of those (n=184), 9% changed FROM pay-on-receipt | about 1% of non-switching bill-payers a year | a gross flow, to any method (DD or prepayment), prompted or not; n is about 17 respondents |
+| DECC, *Quarterly Energy Prices*, Dec 2015, s.2.3, Chart 2.3.1, <https://assets.publishing.service.gov.uk/media/5a80c814e5274a2e87dbbc9b/QEP_final_Dec_15.pdf> | standard electricity customers by payment method, end-Sept 2015 | credit 26%, DD 57%, prepayment 17% | turns the row above into about 1%/26%, so at most about 4% of standard credit payers a year (lower if, as QEP says, SC payers switch supplier least) |
+
+**The belief.** EVIDENCE RANGE 0.035-0.05 per invitation: Medway's control to its best insert. The
+code ships **0.035**, the lower edge (F11). Two things are unmeasured, and both would make 0.05 an
+overstatement:
+1. whether a second ask after a decline pulls as well as the first. The desk asks again after
+   every three on-time bills, so a household that keeps paying on time could be asked four times a
+   year. At 0.035 that compounds to 13% a year, which already exceeds the published generic flow
+   (≤4% a year). **GAP.**
+2. how a household that recently left DD differs from a long-standing non-DD payer. One that
+   cancelled at its bank chose to leave, and one the supplier stopped is now paying on time. No
+   source gives the direction for either group. **GAP.**
+
+**What it does in the run.** On the 40-household spell book (`tests/simulation/test_a_dd_stop_is_a_spell.py`),
+over 8 seeds: 0 of 28 stopped households are back on DD by the end of the book's year with no rate, 1
+at 0.035, and 3 at 0.05. This is within the generic flow. A resi payment outcome is drawn the same way
+on either channel, so a re-mandate relabels bills and moves no payment outcome
+(`test_a_re_mandate_moves_no_outcome`). The DD share of bills rises a little, and bad debt does not
+move.
+
+**What would replace it.** A supplier's own conversion figure for DD-invitation campaigns, or a
+published SC-to-DD flow (QEP gives stocks only).
 
 ## What the drawn world is checked against (2026-10-19)
 

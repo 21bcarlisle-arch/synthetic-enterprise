@@ -26,6 +26,7 @@ from __future__ import annotations
 from datetime import date
 
 import simulation.arrears_engine as ae
+import simulation.bacs_rails as br
 import simulation.dd_collection_book as dcb
 import simulation.dd_shock_response as d
 from background.live_payment_triad import LivePaymentTriad
@@ -121,7 +122,9 @@ def _book(ids, response=None, stress="moderate"):
     return bills, behavioral
 
 
-def test_the_arrears_engine_returns_the_cancelled_month_and_bills_the_rest_on_receipt():
+def test_the_arrears_engine_returns_the_cancelled_month_and_bills_the_rest_on_receipt(monkeypatch):
+    # The cancellation's own trace, with no invitation back: signing again is test_a_dd_stop_is_a_spell's.
+    monkeypatch.setattr(br, "REMANDATE_ACCEPTANCE_PROBABILITY", None)
     ids = _dd_ids(20)
     cancel = {"review_month": "2022-04", "cancelled_month": "2022-04", "failure_multiplier": 1.0}
     plain = {(r["customer_id"], r["period_end"]): r
@@ -140,7 +143,9 @@ def test_the_arrears_engine_returns_the_cancelled_month_and_bills_the_rest_on_re
             assert r["method"] == ae.PAY_ON_RECEIPT_METHOD
 
 
-def test_the_rails_put_nothing_on_after_a_cancellation():
+def test_the_rails_put_nothing_on_after_a_cancellation(monkeypatch):
+    # As above: no invitation back, so nothing after the returned month is presented.
+    monkeypatch.setattr(br, "REMANDATE_ACCEPTANCE_PROBABILITY", None)
     ids = _dd_ids(10)
     cancel = {"review_month": "2022-04", "cancelled_month": "2022-04", "failure_multiplier": 1.0}
     plain = dcb.build_dd_collection_book(*_book(ids, stress="low")).all_attempts()

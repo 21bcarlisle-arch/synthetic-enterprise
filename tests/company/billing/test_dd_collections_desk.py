@@ -364,12 +364,17 @@ def test_a_declined_invitation_leaves_the_account_on_receipt_and_restarts_the_wa
     assert desk.review_re_mandate(CID, "2025-01-01", 8) is not None
 
 
-def test_the_worlds_answer_to_an_invitation_refuses_without_a_published_rate():
-    from simulation.bacs_rails import REMANDATE_ACCEPTANCE_PROBABILITY, draw_re_mandate_answer
-    assert REMANDATE_ACCEPTANCE_PROBABILITY is None
+def test_the_worlds_answer_to_an_invitation_is_a_cited_rate_and_refuses_without_one(monkeypatch):
+    """The shipped rate sits in its cited range (Medway's 3.5% control to its 5% best insert), so the
+    desk's invitations are answered in a run. Pulled out to None, the draw refuses rather than invent
+    an answer."""
+    import simulation.bacs_rails as br
+    assert 0.035 <= br.REMANDATE_ACCEPTANCE_PROBABILITY <= 0.05
+    assert br.draw_re_mandate_answer(0.0) and not br.draw_re_mandate_answer(0.5)
+    assert br.draw_re_mandate_answer(0.1, probability=0.5) and not br.draw_re_mandate_answer(0.9, 0.5)
+    monkeypatch.setattr(br, "REMANDATE_ACCEPTANCE_PROBABILITY", None)
     with pytest.raises(ValueError, match="no published take-up rate"):
-        draw_re_mandate_answer(0.5)
-    assert draw_re_mandate_answer(0.1, probability=0.5) and not draw_re_mandate_answer(0.9, 0.5)
+        br.draw_re_mandate_answer(0.5)
 
 
 def test_a_household_cancellation_reaches_the_desk_as_addacs_1_on_a_real_book(monkeypatch):
