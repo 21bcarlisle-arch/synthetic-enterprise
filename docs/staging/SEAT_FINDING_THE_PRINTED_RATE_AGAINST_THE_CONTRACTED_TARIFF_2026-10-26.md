@@ -82,9 +82,29 @@ prints that band's label (SLC 22A.3: a ToU tariff's rates are displayed separate
 
 1. **A bill across a price change prints one blended rate (2,915 periods, 5.5%).** A real supplier
    splits the period at the change and prints a line per rate, with an estimated read at the
-   change date. **GAP:** I have not checked which SLC clause, if any, requires the split. Search
-   the commons (SLC 31A/31H bill content) before building it. Until then the validator can only
-   BOUND these, and says so.
+   change date. ~~**GAP:** I have not checked which SLC clause, if any, requires the split.~~
+   **Answered 2026-10-26.** SLC 22A.3 (the Unit Rate(s) must be identified wherever charges are
+   displayed), 31H.12(b) (show how charges are calculated), 31H.8 (flag estimates) and Ofgem's
+   16 Aug 2011 letter on apportioning price increases. The knowledge landed as 73dc17d8c
+   (`tariffs_and_the_default_tariff_2026-10-25.md`, "A bill across a price change"). The split is
+   now **built**. `saas.bill_generator.rate_lines` groups a period's settled records by the term
+   each was stamped with. The ledger prints a line per rate with its own readings: the
+   change-date read is deemed and marked E, and the contracted rate is printed. The raw export
+   carries each line's readings. `unit_charge_at_contract` prices each line's advance at its own
+   term's rate (CONTRACT_CHECKED). A ToU term inside a straddle stays BOUNDED, by name, because the
+   bill prints no band split per line.
+
+   **Pre-registration (written 2026-10-26, before any run has carried `rate_lines`).** Baseline:
+   the 4ae8da9b0f run, ledger regenerated with this code. 52,782 invoices, of which 2,915 are
+   straddles, 106 touching a ToU term and 0 carrying rate lines (its bills predate the field). On
+   the first run whose bills carry `rate_lines`:
+   - **R1.** Every straddle with no ToU term carries rate lines and reads CONTRACT_CHECKED AGREED.
+     I predict ≥99% of them agree and 0 disagree.
+   - **R2.** BOUNDED falls to the straddles touching a ToU term, about 3.6% of straddles (106 of
+     2,915 here). It does not fall to zero.
+   - **R3.** No period that sits inside one term changes verdict.
+   If R1 misses, the first suspects are catch-up and void-stub bills, whose energy line is
+   re-priced around `generate_bill`. Measure those before touching the check.
 2. **Whether a term was ToU is recorded nowhere.** The term row carries only the flat rate, and
    `demand_response_log` is not in the run output, so the ledger reads ToU-ness from the biller's
    band settlement. The clean fix is a `tou_unit_rates_gbp_per_mwh` field on the

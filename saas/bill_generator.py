@@ -96,6 +96,43 @@ def tou_registers(settlement_records, total_consumption_kwh, unit_charge_gbp,
     return registers, None
 
 
+def rate_lines(settlement_records, sc_field):
+    """One line per contracted rate where the period crosses a price change, else None.
+
+    SLC 22A.3 requires the Unit Rate(s) to be identified wherever the charges are displayed, and
+    Ofgem's 2011 letter on apportioning price increases requires that the higher price is paid
+    only for units used after the change. A period across a change was charged at two rates, so
+    one blended p/kWh is neither of them
+    (docs/market_research/tariffs_and_the_default_tariff_2026-10-25.md, "A bill across a price
+    change"). Each record carries the term its writer settled (`term_start`), and a term begins on
+    a day boundary, so grouping by it splits the period at the change. The kWh come from the
+    supplier's own settled consumption, not from a split fitted to the total. Default-tariff terms
+    are one per cap window, so a cap change is a term change too.
+
+    `unit_charge_gbp` is all-in: revenue less the standing charge. That is the energy, the network
+    and policy share and any EPG receipt together, which is the figure a term's rate is struck on.
+    The lines sum to the bill's unit charge plus its EPG receipt. None for a period inside one
+    term, or where any record carries no term (a legacy fixture cannot say where a change fell).
+    """
+    if any(record.get("term_start") is None for record in settlement_records):
+        return None
+    groups: dict = {}
+    for record in sorted(settlement_records, key=lambda r: r["settlement_date"]):
+        line = groups.setdefault(record["term_start"], {
+            "term_start": record["term_start"], "period_start": record["settlement_date"],
+            "consumption_kwh": 0.0, "unit_charge_gbp": 0.0, "hmt_epg_receipt_gbp": 0.0,
+            "time_of_use": False})
+        line["period_end"] = record["settlement_date"]
+        line["consumption_kwh"] += record["consumption_kwh"]
+        line["unit_charge_gbp"] += record["revenue_gbp"] - record.get(sc_field, 0.0)
+        line["hmt_epg_receipt_gbp"] += record.get("hmt_epg_receipt_gbp", 0.0)
+        if any(record.get("tou_%s_kwh" % stem) for stem, _ in TOU_BANDS):
+            line["time_of_use"] = True
+    if len(groups) < 2:
+        return None
+    return sorted(groups.values(), key=lambda g: g["period_start"])
+
+
 BASE_CLARITY_BY_CONTRACT_TYPE = {
     "fixed_1yr": 1.0,
 }
@@ -453,6 +490,9 @@ def generate_bill(
         bill["registers"] = registers
     if registers_withheld is not None:
         bill["tou_registers_withheld"] = registers_withheld
+    lines = rate_lines(settlement_records, sc_field) if records_carry_sc else None
+    if lines is not None:
+        bill["rate_lines"] = lines
     if hmt_epg_receipt_gbp:
         # HM Treasury's share of this period's supply, ex-VAT. Not in `total_amount_gbp`, which is
         # what the household owes. Present only where it is non-zero, so no other bill changes.

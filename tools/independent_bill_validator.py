@@ -20,7 +20,8 @@ that is verified and one that is believed.
 ## WHAT IT CAN REBUILD, AND WHAT IT HONESTLY CANNOT
 
     Energy            volume x unit rate            RECONSTRUCTED
-    Unit charge       volume x CONTRACTED rate      CONTRACT_CHECKED, or BOUNDED across a price change
+    Unit charge       volume x CONTRACTED rate      CONTRACT_CHECKED, per printed rate line across a
+                                                      price change; BOUNDED where none is printed
     Default-tariff    term rate <= Ofgem cap        CAP_CHECKED; UNCHECKABLE where the commons has
       term rate         (ex-VAT, per window)          no level; NOT_APPLICABLE off a domestic default
     Standing charge   days x daily rate             RECONSTRUCTED
@@ -348,8 +349,10 @@ def unit_charge_at_contract(period: dict) -> dict:
 
     One covering term: each register at its contracted rate, with a tolerance for what printing
     rounds (0.05 kWh a register, a penny a money line). Two or more: the bill crosses a price change
-    and prints one rate, so it is BOUNDED by the lowest and highest contracted rate times the
-    volume, which is weaker and says so. A term with no single rate is UNCHECKABLE.
+    and, where it prints a line per rate, each line's own advance is priced at its own term's rate
+    (`_unit_charge_per_rate_line`). Where it prints one rate it is BOUNDED by the lowest and highest
+    contracted rate times the volume, which is weaker and says so. A term with no single rate is
+    UNCHECKABLE.
     """
     label = "Unit charge at the contracted tariff"
     terms = period.get("contracted_terms")
@@ -387,17 +390,67 @@ def unit_charge_at_contract(period: dict) -> dict:
                 "amount_gbp_unrounded": amount, "tolerance_gbp": tolerance,
                 "how": "{} ({} term from {})".format(" + ".join(hows), term.get("tariff_type"),
                                                     term.get("tariff_effective_from"))}
+    volume = sum(volumes.values())
+    checked, why_bounded = _unit_charge_per_rate_line(label, period.get("rate_lines"), terms,
+                                                      volume, rates)
+    if checked is not None:
+        return checked
     # Across a price change the bill prints one register, so a ToU term's share could have been
     # charged anywhere between its off-peak and peak rates: the bound spans every rate any
     # covering term carries.
-    volume = sum(volumes.values())
     low, high = float(volume * min(rates) / 100), float(volume * max(rates) / 100)
     return {"label": label, "status": BOUNDED, "low_gbp": round_money(low),
             "high_gbp": round_money(high), "tolerance_gbp": tolerance,
-            "how": "the period crosses {} terms ({}) and the bill prints one rate".format(
+            "how": "the period crosses {} terms ({}) and {}".format(
                 len(terms), ", ".join("{} from {}".format(t.get("tariff_type"),
                                                          t.get("tariff_effective_from"))
-                                      for t in terms))}
+                                      for t in terms), why_bounded)}
+
+
+def _unit_charge_per_rate_line(label, lines, terms, volume, rates):
+    """A bill across a price change that prints a line per rate: each line's own advance, from its
+    own two readings, at the rate of the term it names. Returns (result, None), or (None, why) where
+    only the bound can be checked.
+
+    This is what makes the check a CONTRACT_CHECK and not a range: a bill that charged the whole
+    period at either rate, or split the kWh wrongly between them, disagrees, where the bound let any
+    charge between the two rates through. A line whose term carries a peak/off-peak pair is still
+    bounded, because the bill does not print that line's band split.
+    """
+    if not lines:
+        return None, "the bill prints one rate"
+    by_start = {t.get("tariff_effective_from"): t for t in terms}
+    amount, line_volume, hows = Decimal(0), Decimal(0), []
+    for line in lines:
+        term = by_start.get(line.get("tariff_effective_from"))
+        if term is None:
+            return ({"label": label, "status": UNCHECKABLE,
+                     "why": "a printed rate line names a term from {} that no recorded term "
+                            "starts on".format(line.get("tariff_effective_from"))}, None)
+        if term.get("tou_unit_rates"):
+            return None, ("the line from {} is on a time-of-use term and the bill does not print "
+                          "its band split".format(line.get("tariff_effective_from")))
+        reads = [r.get("read_kwh") for r in line.get("reads") or []]
+        if len(reads) != 2 or None in reads:
+            return ({"label": label, "status": UNCHECKABLE,
+                     "why": "the rate line from {} has {} usable reading(s)".format(
+                         line.get("tariff_effective_from"), len([r for r in reads if r is not None]))},
+                    None)
+        kwh = Decimal(str(reads[1])) - Decimal(str(reads[0]))
+        line_volume += kwh
+        amount += kwh * _dec(term.get("unit_rate_p_per_kwh")) / 100
+        hows.append("{} kWh x {} p/kWh ({} from {})".format(
+            kwh, term.get("unit_rate_p_per_kwh"), term.get("tariff_type"),
+            term.get("tariff_effective_from")))
+    # The lines must account for the period's whole advance, or the check prices part of it.
+    if abs(line_volume - Decimal(str(volume))) > Decimal("0.05"):
+        return ({"label": label, "status": UNCHECKABLE,
+                 "why": "the rate lines advance {} kWh and the period's readings {}".format(
+                     line_volume, volume)}, None)
+    tolerance = round(float(Decimal("0.1") * len(lines) * max(rates) / 100) + 3 * PENNY, 4)
+    return ({"label": label, "status": CONTRACT_CHECKED, "amount_gbp": round_money(float(amount)),
+             "amount_gbp_unrounded": float(amount), "tolerance_gbp": tolerance,
+             "how": " + ".join(hows)}, None)
 
 
 #: Default tariffs, which SLC 28AD caps. A fixed or chosen term may lawfully sit above the cap.

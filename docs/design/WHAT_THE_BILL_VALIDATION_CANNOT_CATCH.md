@@ -48,7 +48,10 @@ energy rebuild could never see a bill charging the wrong *tariff*. `unit_charge_
 prices each period's volume at the rate the account's term record says it was sold at
 (`account_state_log`, exported as `contracted_terms`). It sets that against energy + network and
 policy + EPG receipt. On the 4ae8da9b0f book: 49,867 of 52,782 periods agree, and 2,915 cross a
-price change and sit inside their terms' rates. That closes "the printed rate is not the
+price change and sit inside their terms' rates. From the first run whose bills carry
+`rate_lines` (2026-10-26), a period across a change prints a line per rate with its own readings,
+and each line is priced at its own term's rate. That makes those periods a check, not a range,
+except where a ToU term is inside the period. That closes "the printed rate is not the
 contracted one". It does not close "the contracted rate is wrong": the term record is still ours,
 and a fix mis-struck by a factor of ten agrees with itself. A ToU pair is the product rule applied
 to the recorded flat rate, and whether a term was ToU is read from the biller's band settlement,

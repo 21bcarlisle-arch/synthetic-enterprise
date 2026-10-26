@@ -141,6 +141,59 @@ def _printed_registers(bill_registers, printed_consumption_kwh, printed_commodit
     return printed
 
 
+def _printed_rate_lines(bill_lines, printed_kwh, printed_unit_charge_gbp, opening_read,
+                        read_type, contracted_terms=()):
+    """A bill across a price change, one line per contracted rate, at print precision; or None.
+
+    Each line's kWh and all-in charge are shared out of the PRINTED usage and the printed energy,
+    network-and-policy and EPG figures by the biller's own split (`saas.bill_generator.rate_lines`),
+    with the last line taking the remainder, so the lines add up exactly to what is printed beside
+    them. Each line carries its own reading pair: the read on the change date is a deemed one,
+    flagged estimated (SLC 31H.8), and the last line closes on the bill's own closing read.
+
+    The rate printed is the term's contracted rate wherever kWh x that rate reproduces the line's
+    printed amount to the penny, because 22A.3 asks for the Unit Rate and a rate fitted to a small
+    line is not it (9 kWh at GBP 1.00 fits 11.11p against a contracted 11.163p). Elsewhere it is
+    fitted to the printed pair, as every other usage line is.
+    """
+    if not bill_lines:
+        return None
+    kwh_total = sum(line["consumption_kwh"] for line in bill_lines)
+    gbp_total = sum(line["unit_charge_gbp"] for line in bill_lines)
+    if kwh_total <= 0 or gbp_total <= 0:
+        return None
+    printed, kwh_left, gbp_left, read = [], printed_kwh, printed_unit_charge_gbp, opening_read
+    for i, line in enumerate(bill_lines):
+        last = i == len(bill_lines) - 1
+        if last:
+            kwh, gbp = round(kwh_left, 1), round(gbp_left, 2)
+        else:
+            kwh = round(printed_kwh * line["consumption_kwh"] / kwh_total, 1)
+            gbp = round(printed_unit_charge_gbp * line["unit_charge_gbp"] / gbp_total, 2)
+            kwh_left -= kwh
+            gbp_left -= gbp
+        closing = round(read + kwh, 1)
+        term = next((t for t in contracted_terms
+                     if t["tariff_effective_from"] == line["term_start"]), None)
+        rate = term and not term.get("tou_unit_rates") and term.get("unit_rate_p_per_kwh")
+        if not rate or abs(round(kwh * rate / 100, 2) - gbp) > 0.001:
+            rate = _printed_unit_rate(kwh, gbp)
+        printed.append({
+            "tariff_effective_from": line["term_start"],
+            "period_start": line["period_start"],
+            "period_end": line["period_end"],
+            "consumption_kwh": kwh,
+            "unit_charge_gbp": gbp,
+            "unit_rate_p_per_kwh": rate,
+            "time_of_use": line["time_of_use"],
+            "opening_read_kwh": read,
+            "closing_read_kwh": closing,
+            "closing_read_type": read_type if last else "E",
+        })
+        read = closing
+    return printed
+
+
 #: Terms whose revenue carries the actual policy and network cost on top, so no single rate was
 #: contracted and the validator says so rather than checking against one.
 _NO_SINGLE_CONTRACTED_RATE = ("pass_through", "flex")
@@ -611,6 +664,16 @@ def generate(run_json_path=None, out_path=None):
         # margin counts it and a reader comparing the two needs both (the 2026-10-26 finding).
         if bill.get("hmt_epg_receipt_gbp"):
             inv["hmt_epg_receipt_gbp"] = round(bill["hmt_epg_receipt_gbp"], 2)
+        # 2026-10-26: a period across a price change prints a line per contracted rate (SLC 22A.3;
+        # tariffs_and_the_default_tariff_2026-10-25.md, "A bill across a price change"). The lines'
+        # all-in charge is the printed energy, network-and-policy and EPG figures together.
+        printed_lines = _printed_rate_lines(
+            bill.get("rate_lines"), inv["consumption_kwh"],
+            round(inv["commodity_amount_gbp"] + inv["non_commodity_amount_gbp"]
+                  + inv.get("hmt_epg_receipt_gbp", 0.0), 2),
+            opening_read_rounded, read_type, inv["contracted_terms"])
+        if printed_lines is not None:
+            inv["rate_lines"] = printed_lines
 
         # ADVISOR_STEER_BILL_ARITHMETIC.md Defect 1, R10 class-level gate:
         # a rendered bill whose usage line does not reconcile with its printed

@@ -288,6 +288,22 @@ def raw_account(customer_id: str, record: dict) -> dict:
                                     "register_label": r.get("label"),
                                     "unit_rate_p_per_kwh": r.get("unit_rate_p_per_kwh")}
                                    for r in registers]
+        # A PERIOD ACROSS A PRICE CHANGE prints a line per contracted rate, each bounded by its own
+        # two readings (the one on the change date deemed). Exported as the readings and the term
+        # each line is on, never its charge, so a reconstruction subtracts each line's volume and
+        # prices it at that term's rate itself.
+        if inv.get("rate_lines"):
+            period["rate_lines"] = [{
+                "tariff_effective_from": line.get("tariff_effective_from"),
+                "period_start": line.get("period_start"),
+                "period_end": line.get("period_end"),
+                "reads": [
+                    {"read_date": line.get("period_start"), "read_kwh": line.get("opening_read_kwh"),
+                     "read_type": CARRIED_FORWARD},
+                    {"read_date": line.get("period_end"), "read_kwh": line.get("closing_read_kwh"),
+                     "read_type": line.get("closing_read_type", "U")},
+                ],
+            } for line in inv["rate_lines"]]
         # OUR VOLUME IS EXPORTED ONLY WHEN THE READINGS CANNOT PRODUCE IT. Where both readings are
         # there, `consumption_kwh` is a subtraction WE did, and handing it over alongside the two
         # numbers it came from lets a reconstruction take the shortcut and agree with us for no
