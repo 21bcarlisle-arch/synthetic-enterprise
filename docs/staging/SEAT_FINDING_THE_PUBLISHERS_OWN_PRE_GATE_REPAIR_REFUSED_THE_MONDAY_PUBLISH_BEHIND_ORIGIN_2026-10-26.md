@@ -124,3 +124,26 @@ each turn it red: dropping the retry, a wait that always succeeds, and widening 
 **Prediction, filed before the next attempt:** the re-offer after this lands either publishes 4ae8da9b0f
 or is refused on a cause that is neither the lock nor behind-origin-by-repair. If it is refused
 `behind_origin` again with the lock named, this fix is wrong.
+
+**What the re-offers found (worker, 07:55Z).**
+
+- **06:47 attempt.** Refused `behind_origin`. The seat's direction landing held `.git/index.lock` at
+  the moment of the fast-forward. 99ef07483 (another lane) now waits out that lock.
+- **07:27 attempt.** The fast-forward worked, and then the stale-copy guard refused 19 site pages as
+  `predates_landing`. Each page's last landing (0913f9818, 16823067a) changed a line carrying the run
+  stamp ("Published with the run of 19 Oct 2026", or the explore cast drawn from that run). The fresh
+  render keeps that landing's wording and says 26 Oct. A run-stamped line never survives the next
+  run's render, so rule 1 refused it.
+  - **Checked on the 5 pages the truncated refusal named.** Four differ from HEAD only by stamp. The
+    explore page's whole line is run content.
+  - **Producers.** No producer of these pages is dirty, and `refuse_stale_producers` already refuses
+    to run a producer whose working copy reverts HEAD.
+  - **Fix.** `_pages_rendered_this_cycle` declares, as printed `drops`, the `.html`/`.js` paths in
+    the publish pathspec that this process rewrote after it started. A page the cycle did not
+    rewrite is still judged in full.
+  - **Control.** `tests/background/test_a_page_this_cycle_rendered_is_declared_to_the_stale_copy_guard.py`
+    covers both partitions plus the wiring. Both mutations were run and both fired.
+
+**Not fixed.** `generated_output_verdicts`' static oracle does not know the knowledge pages, because
+they are stamped through a glob. The reconciler's advance therefore still treats a dirty knowledge
+page as authored work.

@@ -3835,6 +3835,8 @@ GATE_RED_CENSUS_PATH_MARGIN_SECONDS = 120  # what the red path still needs after
 # Set once, at import, so "how much of the publish path have we spent" is measurable from
 # anywhere in it. monotonic: never moves backwards, never NTP-corrected.
 _PROCESS_STARTED_MONOTONIC = time.monotonic()
+#: The same instant on the clock file mtimes are read against -- see `_pages_rendered_this_cycle`.
+_PROCESS_STARTED_WALL = time.time()
 
 # The census's three honest answers, plus the two ways it declines. `fail_fast_only` is the
 # pre-2026-08-14 behaviour and is what every degradation lands on.
@@ -6944,6 +6946,35 @@ def _gate_was_killed(refusal: str) -> bool:
     return "could not be executed" in text and "timed out" in text
 
 
+def _pages_rendered_this_cycle(relative, root, started=None):
+    """The `.html`/`.js` paths in the publish pathspec that THIS process rewrote, as a frozenset.
+
+    WHY THEY ARE DECLARED TO THE STALE-COPY GUARD AS OURS (2026-10-26, run 4ae8da9b0f, the third
+    Monday attempt). The guard refused 19 site pages as `predates_landing`: each one's last landing
+    (0913f9818, 16823067a) had changed a line that carries the RUN STAMP, "Published with the run
+    of 19 Oct 2026" or the explore cast drawn from that run, and the fresh render, with the new
+    wording intact, says "26 Oct". A line stamped with a run is never present in the next run's
+    render, so on these pages rule 1 refuses every publish after any landing that touches the stamp.
+    This publisher is the producer of these bytes, and `refuse_stale_producers` has already refused
+    to run any producer whose working copy reverts HEAD. So a page written after this process
+    started is a render from a graded producer, not a lane's older copy.
+
+    THE CLOCK DRAWS THE LINE, NOT A LIST. A page in the pathspec that this cycle did NOT rewrite is
+    still judged in full, which is the copy the guard exists for: another lane's stale edit that the
+    publish would sweep in. `.json` is not here because `clock_judge` already exempts it."""
+    started = _PROCESS_STARTED_WALL if started is None else float(started)
+    ours = set()
+    for rel in relative:
+        if Path(rel).suffix not in stale_copy_refusal.PAGE_SUFFIXES:
+            continue
+        try:
+            if (Path(root) / rel).stat().st_mtime >= started:
+                ours.add(rel)
+        except OSError:
+            continue
+    return frozenset(ours)
+
+
 def _land_publish_commit(pathspec, msg, git_hash):
     """Land the publish commit through `tools.surgical_land`. Never raises.
 
@@ -6994,6 +7025,13 @@ def _land_publish_commit(pathspec, msg, git_hash):
         relative.append(run_output_store.LATEST_REL)
         retire = {"content": {run_output_store.LATEST_REL: None},
                   "drops": frozenset({run_output_store.LATEST_REL})}
+    rendered = _pages_rendered_this_cycle(relative, root)
+    if rendered:
+        log("Publish landing: {} page(s) were rendered by this cycle, so they are declared ours to "
+            "the stale-copy guard (a run-stamped line cannot survive the next run's render): {}"
+            .format(len(rendered), ", ".join(sorted(rendered)[:8])
+                    + ("" if len(rendered) <= 8 else " (+{} more)".format(len(rendered) - 8))))
+        retire["drops"] = retire.get("drops", frozenset()) | rendered
     lost = []
 
     def _chains_run(exhausted: bool) -> int:
