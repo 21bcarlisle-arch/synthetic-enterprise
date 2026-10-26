@@ -124,3 +124,27 @@ each turn it red: dropping the retry, a wait that always succeeds, and widening 
 **Prediction, filed before the next attempt:** the re-offer after this lands either publishes 4ae8da9b0f
 or is refused on a cause that is neither the lock nor behind-origin-by-repair. If it is refused
 `behind_origin` again with the lock named, this fix is wrong.
+
+## The fourth attempt cleared behind_origin and met the stale-copy guard (07:40Z)
+
+The prediction above held: the 07:00Z re-offer (07:27Z cycle, with the lock fix on the shared tree)
+reached 0 behind and 0 ahead and was NOT refused on the lock. It was then refused `commit_refused`
+by `tools/stale_copy_refusal.py`: "19 path(s) would revert work that has already landed". Those are
+18 knowledge pages (against 0913f9818) and `site/explore/index.html` (against 16823067a). Measured
+on the live tree: every page's mtime is NEWER than its landing. On each page, the only distinctive
+line that landing added was the 19 Oct run's own `RUN-CLOCK` provenance line or its `cast:static`
+stamp. The publish exists to rewrite exactly those, so rule 1 ("contains not one distinctive line")
+read a correct regeneration as a revert. It would refuse the first publish after any commit that
+reaches a page only through its stamp.
+
+**Fixed in the landing that carries this paragraph.** `distinctive_lines` drops lines inside the
+two generator-owned regions (`PUBLISH_WRITTEN_REGIONS`). Any other line the commit added stays
+evidence. Re-run over the live tree with the new code, 0 of the 19 refuse. The one remaining
+refused path (`site/test_the_opening_direct_debit_comparison_reaches_the_reader.py`, a working
+copy from 5 Oct) is not in the publish set and was not named by the publisher. Control:
+`tests/tools/test_a_publish_rewriting_its_own_run_stamp_is_not_a_revert.py`. Two mutations turn it
+red: no filter, and a filter that takes every line. A third test pins the tokens to the generators.
+
+**Prediction, filed before the next attempt:** the next re-offer of 4ae8da9b0f either lands or is
+refused on a cause that is none of the four above. If the stale-copy guard names a knowledge page
+again, this fix is wrong.

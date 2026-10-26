@@ -537,6 +537,35 @@ def last_commit_touching(root: Path, path: str, upto: str = "HEAD") -> str | Non
     return sha or None
 
 
+#: Regions a PUBLISH rewrites whole on every run, so a line a commit added inside one is the
+#: previous run's stamp and never evidence that a copy lacks the landing. Measured 2026-10-26: the
+#: 07:40Z publish of run 4ae8da9b0f was refused as reverting 19 pages, and on every one of them the
+#: only distinctive line was the 19 Oct run's own RUN-CLOCK or cast stamp, which that publish had
+#: correctly rewritten. Owners: `generate_dashboard_data.RUN_CLOCK_START/END` and
+#: `generate_explore_cast` (the `cast:static` markers); a test holds these tokens to theirs.
+PUBLISH_WRITTEN_REGIONS = (("RUN-CLOCK:START", "RUN-CLOCK:END"),
+                           ("<!--cast:static-->", "<!--/cast:static-->"))
+
+
+def publish_written_lines(text: str) -> frozenset[str]:
+    """The stripped lines of `text` inside a `PUBLISH_WRITTEN_REGIONS` region, markers included."""
+    out, closing = set(), None
+    for raw in text.splitlines():
+        ln = raw.strip()
+        if closing is None:
+            for start, end in PUBLISH_WRITTEN_REGIONS:
+                if start in ln:
+                    out.add(ln)
+                    if end not in ln.split(start, 1)[1]:
+                        closing = end
+                    break
+        else:
+            out.add(ln)
+            if closing in ln:
+                closing = None
+    return frozenset(out)
+
+
 def distinctive_lines(root: Path, path: str, commit: str) -> tuple[str, ...]:
     """The stripped lines `commit` ADDED to `path` that are non-trivial and appear exactly once in
     `commit`'s own version of the file.
@@ -589,6 +618,10 @@ def distinctive_lines(root: Path, path: str, commit: str) -> tuple[str, ...]:
         raise ClockUnanswered(
             "`git show {}:{}` gave no blob for a commit that added {} line(s) to it".format(
                 commit[:9], path, len(added)))
+    # A publish-written line is not an exception to "never filter the evidence to nothing": a
+    # commit whose only additions are the last run's stamp has landed nothing a copy can lose.
+    written = publish_written_lines(version or "")
+    added = [ln for ln in added if ln not in written]
     freq = Counter(ln.strip() for ln in (version or "").splitlines())
     strong = tuple(ln for ln in added if not _trivial(ln) and freq[ln] == 1)
     if strong:
