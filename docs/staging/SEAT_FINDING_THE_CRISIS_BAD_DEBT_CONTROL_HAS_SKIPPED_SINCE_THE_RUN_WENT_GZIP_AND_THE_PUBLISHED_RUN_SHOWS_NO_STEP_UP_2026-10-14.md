@@ -1854,3 +1854,63 @@ pending a third seed, and the finding says so.
 **Limit, stated now.** The director's 10 Oct condition asks for results to be split into founders
 and campaign wins. grade.py reads the whole book's provision series and cannot split it. So this
 grade answers "does the step survive a re-drawn cast", not "whose step is it".
+
+## 2026-10-26: the second-seed arm, graded. Leg (c) fails, and the switch goes back off
+
+`python3 /var/tmp/arrears-overlay-out/grade.py /var/tmp/arrears-overlay-out/arm_s61101.json`, run
+from `/var/tmp/arrears-overlay-run` (`e623c3354a`). Exit 1, `SWITCH-ON RULE: FAILS`. The run took
+3,700 s, and its log has no `could not be read` line. The artefact records neither its commit nor
+its seed, so I cannot confirm the `c072f4a7cb` worktree the 21:45Z note named. Two things bound
+that. `arm.py` sets both overlay switches explicitly, so the default does not matter. And the
+indebted-account counts differ from the default book at every year end, so this is a re-drawn cast.
+
+| year | off charge GBP (% rev) | cap-only (% rev) | on (% rev) |
+|---|---|---|---|
+| 2016-2020 | identical | identical | identical |
+| 2021 | 1,069.98 (0.432) | 1,134.49 (0.458) | 1,134.44 (0.458) |
+| 2022 | 1,853.18 (0.482) | 2,246.80 (0.584) | 2,246.85 (0.584) |
+| 2023 | 3,971.53 (0.872) | 3,513.40 (0.771) | 3,513.40 (0.771) |
+| 2024 | 3,692.46 (0.982) | 3,692.46 (0.982) | 3,692.46 (0.982) |
+
+Arrears per indebted account (over 91 days), by year end: 2016 GBP 40 (8 accounts), 2017 137 (16),
+2018 197 (11), 2019 182 (17), 2020 161 (16), 2021 207 (13), **2022 597 (7)**, 2023 701 (11), 2024
+848 (14). Growth: 2019 -0.08, 2020 -0.11, 2021 +0.28, **2022 +1.88**, 2023 +0.17, 2024 +0.21.
+Baseline (2017-19 mean growth) 0.943. The arrears share is 0 at every year end except end-2022.
+There it reaches the cap, 0.134, and ties the cap term at 0.134.
+
+Each prediction filed at 21:45Z, beside its result:
+
+1. **(a) and (b) hold: HELD.** Pairing held, the max held, and the share reads at every year end
+   from 2020 to 2024.
+2. **(c) holds, at about 0.6: FAILED.** End-2023 growth is 0.17, below the baseline (0.94) and far
+   below end-2022 growth (1.88). On this cast the step is a year earlier, at end-2022, and it rests
+   on 7 indebted accounts. The end-2023 indebted count was predicted at 10 to 50 and is 11: HELD,
+   at the edge.
+3. **The pooled crisis share on the on arm is within 0.3 points of 1.12%: FAILED.** It is 0.69%
+   (pre-crisis 0.44%, x1.56), so 0.43 points below. The validator fails on all three arms: off
+   0.69%, cap-only 0.69%, on 0.69%.
+
+**Switch-on rule:** (a) held, (b) held, **(c) failed**. As the 21:00Z note said it would,
+**`provision_arrears_overlay` goes back to False** from the commit that lands this note. Origin
+again publishes the matrix alone, which was the default before f8c389e9c (`provision_crisis_overlay`
+stayed False throughout). The provision control's allowlist entry for `arrears_overlay` stays. The
+run still passes the switch into its provision read, and the control is red without it.
+
+**Did the arrears term ever bind on this seed? No.** `driver` reads `cap` at every snapshot,
+end-2016 to 2025-06-07. At the one year end where the arrears share is positive (end-2022) it ties
+the cap term at the 0.134 ceiling, and a tie goes to `cap`. So the on arm equals the cap-only arm
+to within GBP 0.05 a year, and the term added nothing on this cast.
+
+**What the two seeds say together.** The year of the step belongs to the cast, not the book. The
+default cast steps at end-2023, on 15 and then 33 accounts. This one steps at end-2022, on 13 and
+then 7. The baselines are 0.557 and 0.943, each a mean of three growths on 7 to 30 accounts. At
+this book size, growth in arrears per indebted account is dominated by which few accounts fall
+over 91 days in a given year. The rule's (c) asked whether the step is the book's, and on this
+evidence it is not. That is what "the 21:00Z pass was weaker than it read" turned out to mean. The
+weakness was named before this run and was not added after it.
+
+**What is still open.** E6's map row stays at level 1. The crisis-share gap is the world's, as the
+page says (the off arms pool 0.99% and 0.69%, both under the 1% floor). Two things are owed. The
+first is the 2024-release GAP in choice 4, which this result moots for now, because the term is
+off. The second is a count floor for any later book-read signal. It would be a new pre-registration
+on its own question, not a fix to this one.

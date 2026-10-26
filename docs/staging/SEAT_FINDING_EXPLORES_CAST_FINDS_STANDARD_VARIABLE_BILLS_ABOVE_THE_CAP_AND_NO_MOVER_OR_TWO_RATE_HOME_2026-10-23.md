@@ -365,3 +365,8 @@ a pending marker.
 The Explore renewal vignette now renders from a sentence template with the stored belief to one
 decimal (`tools/generate_explore_cast.py::_renewal_words`), so the page reads 99.9%, which is the
 supplier's belief, not a rounded certainty it never held.
+
+**Reading, 26 Oct 01:21Z (before the window).** The shared checkout's HEAD has `3a31999db`, `ce35a25e21`,
+`4ef70aba92` and `4bc21e9209` as ancestors. It is 0 ahead of origin and 89 behind. sim-runner is up
+(pid 1470317). The site still shows `8b6fea024`. So the prediction's first branch applies: grade passes
+at about 6 over, and above_cap falls to about 2. Still BLOCKING until that publish is read.
