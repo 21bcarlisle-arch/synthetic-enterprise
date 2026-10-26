@@ -182,17 +182,32 @@ def _money(v, signed=False):
     return "{}&pound;{:,.0f}".format(sign, abs(v))
 
 
-def _redraws(leg):
-    """"its 3 re-draws ran £4,722 to £7,846, every one the same sign" -- from the leg's fields."""
+def _where(fig, vals):
+    """Where this run's own draw fell in its re-draw family: above, below or inside it."""
+    if fig > max(vals):
+        return "above every one of them"
+    if fig < min(vals):
+        return "below every one of them"
+    return "inside their range"
+
+
+def _leg_sentence(leg, what):
+    """The range of the re-draws first, then this run's own draw and where it fell (advisor chase
+    of 26 Oct, 19:30: "+£11,345" stood alone above re-draws of £4,722 to £7,846, and the level
+    leg's -£6,101 sat below re-draws that are all positive). The point estimate never stands
+    alone, and the reason a run's draw falls outside its family is not in the feed, so the page
+    does not offer one."""
+    fig = leg.get("figure_gbp") or 0
     st = (leg or {}).get("verdict_stability") or {}
     vals = [v for v in st.get("redraw_values_gbp") or [] if isinstance(v, (int, float))]
     if not st.get("checked") or not vals:
-        return "it has not been re-drawn"
-    fig = leg.get("figure_gbp") or 0
-    same = all(v != 0 and (v > 0) == (fig > 0) for v in vals)
-    return "its {} ran {} to {}, {}".format(
-        _plural(len(vals), "re-draw"), _money(min(vals)), _money(max(vals)),
-        "every one the same sign" if same else "so even its sign is not settled")
+        return "{} was worth <strong>{}</strong> in this run's one draw, and it has not been re-drawn".format(
+            what, _money(fig, True))
+    same = all(v != 0 and (v > 0) == (vals[0] > 0) for v in vals) and (fig > 0) == (vals[0] > 0)
+    return ("{} was worth <strong>{} to {}</strong> across its {}, and {} in this run's own draw, {}{}").format(
+        what, _money(min(vals), True), _money(max(vals), True), _plural(len(vals), "re-draw"),
+        _money(fig, True), _where(fig, vals),
+        "; every draw the same sign" if same else "; so even its sign is not settled")
 
 
 def render_lead(arms):
@@ -213,13 +228,11 @@ def render_lead(arms):
     except ValueError:
         when = ""
     withheld = sel.get("verdict_withheld_because") or lvl.get("verdict_withheld_because")
-    return ('<p class="lead-p">{} On the same book, run three ways{}, per-customer choosing was '
-            'worth <strong>{}</strong> over flat rules, and {}. The price level alone, one flat '
-            'margin at the level the per-customer arm charged, was worth <strong>{}</strong>: '
-            'value moved, not made, and {}. {}Both are shown, with the spread across draws, '
+    return ('<p class="lead-p">{} On the same book, run three ways{}, per-customer choosing over '
+            'flat rules {}. The price level alone is value moved, not made: one flat margin at the '
+            'level the per-customer arm charged {}. {}Both are shown, with the spread across draws, '
             '<a href="#value-arms">in the value test below</a>.</p>').format(
-                q, when, _money(sel["figure_gbp"], True), _redraws(sel),
-                _money(lvl["figure_gbp"], True), _redraws(lvl),
+                q, when, _leg_sentence(sel, "").strip(), _leg_sentence(lvl, "").strip(),
                 "This page states no settled direction for either yet; the test says why. "
                 if withheld else "")
 

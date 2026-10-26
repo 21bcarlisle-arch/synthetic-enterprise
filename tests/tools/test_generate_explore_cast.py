@@ -281,3 +281,62 @@ def test_MUTATION_a_dropped_slot_or_a_broken_feed_is_red_not_clean(feed, tmp_pat
     assert any("slot ev" in r for r in gen.coverage_verdict(f, tmp_path)["red"])
     assert gen.coverage_verdict({}, tmp_path)["red"]
     assert gen.coverage_verdict(None, tmp_path)["red"]
+
+
+# ── Validity (the director's steer of 26 Oct: every example must make sense to an energy reader) ──
+
+
+def _candidates(real, slot_id):
+    customers, sample, _ = real
+    hhs = gen.households(customers)
+    events = {hh["id"]: gen._events(hh) for hh in hhs}
+    bands = gen.use_bands(hhs, events)
+    scorer = next(r[3] for r in gen._cast_rules() if r[0] == slot_id)
+    out = {}
+    for hh in hhs:
+        got = scorer(hh, events[hh["id"]], sample["customers"].get(hh["id"]) or {})
+        if got:
+            out[hh["id"]] = gen.validity_failures(slot_id, hh, events[hh["id"]], got[1], bands)
+    return out
+
+
+def test_no_filled_slot_holds_a_household_its_checks_refuse(real, feed):
+    """DEFECT: a slot filled by the run's most extreme case when that case is an error (a gas-only
+    EV home, a 100 kWh "storage-heated" January). Every filled slot's household passes its checks."""
+    customers, *_ = real
+    hhs = {hh["id"]: hh for hh in gen.households(customers)}
+    bands = gen.use_bands(list(hhs.values()), {k: gen._events(v) for k, v in hhs.items()})
+    for s in feed["slots"]:
+        if not s["filled"]:
+            continue
+        assert not gen._common_failures(hhs[s["household"]], gen._events(hhs[s["household"]]), bands), s["id"]
+
+
+def test_the_checks_can_refuse_and_can_pass(real):
+    """A check that refuses everything empties every slot and passes every 'refuses correctly' test.
+    Over the real book the checks must both refuse some rule-matching household and pass another,
+    on some slot -- and on the EV slot they refuse the published gas-only home."""
+    ev = _candidates(real, "ev")
+    trap = _candidates(real, "estimate_trap")
+    assert any(ev.values()) and any(not v for v in trap.values()) and any(trap.values())
+    assert "it holds no electricity supply with us" in ev.get("SYN-2016-476", []), ev.get("SYN-2016-476")
+
+
+def test_an_empty_slot_with_matches_names_the_checks_that_failed(feed):
+    for s in feed["slots"]:
+        if not s["filled"] and s.get("matched"):
+            assert s["failed_checks"] and "passes this example's checks" in s["reason"], s["id"]
+
+
+def test_MUTATION_checks_that_pass_everything_put_the_gas_only_ev_home_back(real, monkeypatch):
+    monkeypatch.setattr(gen, "validity_failures", lambda *a: [])
+    ev = next(s for s in gen.build(*real)["slots"] if s["id"] == "ev")
+    assert ev["filled"] and "electricity" not in ev["fuels"], "the mutation did not restore the 4ae8da9b0f defect"
+
+
+def test_the_default_account_is_an_ordinary_full_record(real, feed):
+    """DEFECT: the six-stage section opened on C1, a non-public id with four bills."""
+    customers, *_ = real
+    d = feed["meta"]["default_account"]
+    assert d and gen._PUBLIC_ID.fullmatch(d)
+    assert len(customers[d]["invoices"]) >= 12

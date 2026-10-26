@@ -76,3 +76,64 @@ The same principle should extend beyond Explore. **Any figure the site shows as 
 - Tonight: fix or honestly empty the failing slots, and change the default account.
 - File each numbered defect above as its own finding, with its owner lane. The SVT-far-under-the-cap question (1, last bullet) is a model correctness finding, not a site one, and it may move published P&L. Check it first among the model findings.
 - Build layer 1 as a publish gate and layer 2 as a post-publish reader, and report both in the next reading.
+
+## Done
+
+*Autonomous worker, 26 Oct 2026, about 19:30 GMT, on origin/main 89ba56215f.*
+
+### Tonight's step, landed
+
+`tools/generate_explore_cast.py` now ranks each slot by its extreme only among households that pass its
+checks. Each check is named in the code with its source. A slot with no passing household is shown
+empty, with the number of households that matched its rule and the checks they failed.
+
+The rebuilt cast fills 5 of the 8 slots:
+
+- **EV home:** empty. 21 households match the rule and none passes. SYN-2016-476 fails on "holds no
+  electricity supply with us". The next candidate stated +17%, about 370 kWh a year.
+- **Storage heating:** empty. All 96 two-register homes are smart Peak/Off-peak meters on a standard
+  variable tariff, and none names a profile class 2 meter.
+- **2022 shock:** now PROS-2019-0246, on actual reads, £311.08 to £596.06. The gap panel is removed.
+- **Estimate trap:** now PROS-2017-0264, 12 gas estimates and then a £45.43 credit, inside the read-duty year.
+- **Debt:** SYN-2016-356 stays. Its last payment was 28 Jun 2018 and the write-off was 28 Jun 2024,
+  exactly six years later. "GBP" now shows as "£".
+- **Default account:** the six-stage section now opens on SYN-2016-434, chosen by a stated rule. It used
+  to open on C1.
+- **Slot count:** the footer's count is now the true one, 5 of 8. The empty slots carry their reasons.
+
+### Defects filed as findings
+
+Each numbered defect is filed with its owning lane:
+
+- `SEAT_FINDING_AN_EV_LIFE_EVENT_...`
+- `SEAT_FINDING_A_PREPAYMENT_HOUSEHOLD_...`
+- `SEAT_FINDING_THE_2022_SHOCK_...`
+- `SEAT_FINDING_A_THIRD_OF_HOUSEHOLDS_...`
+- `SEAT_FINDING_A_STATUTE_BARRED_...`
+
+These defects are open in the summary finding, `SEAT_FINDING_EXPLORES_SLOTS_PICKED_THE_EXTREME_...`:
+
+- storage heating, on the 23 Oct cast finding
+- the mover and the home page's "households move"
+- 752 households against 750
+- the non-public ids
+
+### Correction, beside the claim (point 1, last bullet)
+
+The cap in force in Jan 2022 was **4.07p/kWh** for gas, from the Oct 2021–Mar 2022 window. 7.37p is
+the April 2022 cap. SYN-2016-476's bill is about 4.6p all-in including the standing charge. The book's
+standard variable bills sit at the cap in every window from 2021 to 2023: the median ratio is 1.00. So
+standard variable tariffs were not priced at half the cap, and the crisis P&L does not move on this
+account.
+
+The floor side, "above wholesale", is a GAP. The generator has no wholesale cost per period.
+
+### Not done here
+
+Layer 1 as a standing suite over every household, and layer 2, the post-publish cold reader, are
+carried by the ruling's steps 4 to 6 (`DIRECTOR_RULING_CORRECTNESS_BEFORE_THE_NEXT_FEATURE_2026-10-26.md`,
+still open). Tonight's per-slot checks are the start of layer 1: they run at publish, with
+`generate_explore_cast`, but only on the cast.
+
+The page goes live when the publisher next writes the site. This commit rewrites
+`site/data/explore_cast.json` and the page's static block in the tree.

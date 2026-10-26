@@ -32,3 +32,37 @@
 
   Report the counts.
 - Add a standing **domain-invariant suite**. It holds two-sided ranges per quantity per period, it is written from the Knowledge pages and the evidence packs rather than from the code, and it runs over every household, not only the published examples.
+
+## Done
+
+*Autonomous worker, 26 Oct 2026.* The answer is in
+`docs/staging/SEAT_FINDING_EXPLORES_SLOTS_PICKED_THE_EXTREME_WITH_NO_VALIDITY_CHECK_AND_FIVE_OF_SEVEN_WERE_ERRORS_2026-10-26.md`.
+That finding carries:
+
+- a root-cause table, one row per defect, giving the module, the class, why no test caught it, and
+  what catches it now;
+- the whole-book counts.
+
+### Hypotheses held against the code
+
+- **Units pass and the joins fail (3)** holds for the EV home and for prepayment.
+- **Aggregates hide tails (4)** holds for the shock: no use band existed anywhere.
+- **One-sided tests (1)** holds for the read duty and the statute-barred clock.
+- **Provenance taken for correctness (5)** holds for storage heating: two registers were read as Economy 7.
+
+**Hypothesis 1's model case is refuted.** Standard variable tariffs sit at the cap throughout 2021–23.
+The 7.4p figure was the April 2022 cap; the cap in Jan 2022 was 4.07p.
+
+### Counts on the 4ae8da9b0f book
+
+| What was checked | Count |
+|---|---|
+| EV arrivals on a gas-only home | 1 of 21 |
+| EV arrivals with an effect outside the published band | 5 of 21 |
+| Prepayment payers sent estimated bills | 88 of 100 |
+| Households with a bill more than a year after the last actual read | 250 of 752 |
+| Households whose use is outside the 1st–99th percentile | 27 of 752 |
+
+### What remains
+
+The standing domain-invariant suite is the ruling's step 4. It is not built yet.

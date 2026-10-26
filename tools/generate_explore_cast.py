@@ -472,7 +472,7 @@ def _template(hh, ev, iso, kind, rec):
                  "tone": "bad" if (adj or 0) > 0 else "good"})
     if kind == "debt" and rec.get("event_type", "").startswith("collections_"):
         et = rec["event_type"]
-        return (_DESK_TITLES.get(et, "Collections"), rec.get("description") or et,
+        return (_DESK_TITLES.get(et, "Collections"), _company_words(rec),
                 _DESK_MESSAGES.get(et, "Your account is overdue. Please pay or call us."),
                 _debt_why(hh, ev, iso), None)
     if kind == "debt":
@@ -481,7 +481,7 @@ def _template(hh, ev, iso, kind, rec):
                  "arrears_first_notice": "First notice", "arrears_second_notice": "Second notice",
                  "arrears_arrears_repaid": "Arrears repaid", "arrears_written_off": "Written off",
                  "arrears_placed_with_dca": "Passed to an agency", "arrears_recovered": "Agency recovery"}.get(et, "Arrears"),
-                rec.get("description") or et,
+                _company_words(rec),
                 {"arrears_first_notice": "Your account is overdue. Please pay or call us.",
                  "arrears_second_notice": "Your account is still overdue. We can set up a payment plan.",
                  "arrears_written_off": "Your account has been closed.",
@@ -499,9 +499,7 @@ def _template(hh, ev, iso, kind, rec):
                     rec["fuel"], rec["month"], _fmt_gbp(rec["now"]), _fmt_gbp(rec["before"])),
                 "Your bill has changed because energy prices have changed.",
                 "Wholesale prices rose; the household's use did not explain the change.",
-                {"believed": "Bill of " + _fmt_gbp(rec["now"]), "truth": "Billed use {:,.0f} kWh, against {:,.0f} kWh a year before".format(rec["kwh_now"], rec["kwh_before"]),
-                 "meant": "{:.0f}% more for the same month".format(100 * (rec["now"] / rec["before"] - 1)) if rec["before"] else "",
-                 "tone": "bad"})
+                None)
     return (kind, "", "", "", None)
 
 
@@ -607,6 +605,7 @@ def _score_estimate_trap(hh, ev, person):
     since = _day(prev_a["date"]) if prev_a else "the household joined"
     keys = [(_acq(hh), "joined", {}),
             (run[len(run) // 2]["date"], "estimate_run", {"fuel": fuel, "n": n, "since": since,
+                                                         "since_iso": prev_a["date"] if prev_a else _acq(hh),
                                                          "kwh": sum(i.get("consumption_kwh") or 0 for i in run)}),
             (catch["date"], "catch_up", catch)]
     return (n, keys, 2)
@@ -754,10 +753,8 @@ def _score_storage(hh, ev, person):
 
 
 STORAGE_EMPTY_REASON = (
-    "No household in this run has a two-rate meter. Every bill in the published run is a single "
-    "'Anytime' register, so there is no profile class 2 home to show. What closes it: two-rate "
-    "meters are drawn when each home's own equipment is, which comes after the forward years in "
-    "the build order."
+    "No household in this run has a two-rate meter, so there is no profile class 2 home to show. "
+    "What closes it: two-rate meters are drawn when each home's own equipment is."
 )
 
 
@@ -786,6 +783,204 @@ def _score_shock(hh, ev, person):
 EMPTY_REASONS = {"mover": MOVER_EMPTY_REASON, "storage_heating": STORAGE_EMPTY_REASON}
 
 
+# ── Validity: a slot ranks by its extreme only among true instances of its feature ─────────────
+#
+# The director's steer of 26 Oct (`docs/staging/advisor/DIRECTOR_STEER_EVERY_EXPLORE_EXAMPLE_MUST_
+# MAKE_SENSE_TO_AN_ENERGY_READER_2026-10-26.md`): each rule picked the most extreme household the run
+# produced, and the extremes are where the model's errors live -- a gas-only EV home whose "EV
+# effect" was -65%, a "storage-heated" home on 100 kWh in January, a 37,500 kWh/yr "shock". Each
+# check below says what an energy reader would reject and where the figure comes from. A slot with
+# no household passing is shown empty with the failed checks named, which is a finding about the
+# run, never a reason to drop the check.
+
+#: SLC 21B.4: a supplier takes all reasonable steps to read the meter at least once a year, and the
+#: home page says it instructs a visit when a year passes on estimates. A longer run contradicts it.
+READ_DUTY_DAYS = 365
+
+#: Limitation Act 1980 s.5: a simple-contract debt is statute-barred six years after the cause of
+#: action (England and Wales); the record's last payment is the latest acknowledgement it carries.
+LIMITATION_YEARS = 6
+
+#: What an EV adds at the meter from home charging, kWh a year: 1,750 (Kaluza/OVO model) to ~3,300
+#: (10,000 mi), `docs/market_research/ev_charging_and_the_saving_against_petrol_and_diesel_2026-10-25.md`
+#: §3. Compared over the twelve months either side of the arrival, so each side holds every season
+#: once; it is not weather-normalised (GAP), so a cold year on one side moves it.
+EV_ADDED_KWH_BAND = (1750.0, 3300.0)
+
+#: A storage-heated home heats with electricity, so it uses more than the Ofgem medium TDCV for a
+#: home that does NOT heat with it (2,700 kWh to 30 Jun 2026, `docs/market_research/ASSUMPTIONS.md`).
+#: A floor from strong logic, not a storage-heating band: the published band is not established (GAP).
+NON_ELECTRIC_HEATED_TDCV_KWH = 2700.0
+
+_PUBLIC_ID = re.compile(r"(SYN|PROS|OCC)-\d{4}-\d+")
+
+
+def _monthly(acc: dict) -> dict[str, float]:
+    return {m["month"]: m.get("kwh") or 0.0 for m in (acc.get("consumption") or {}).get("monthly") or []}
+
+
+def _kwh_per_day(inv: dict) -> float | None:
+    d = inv.get("days_in_period") or 0
+    if d <= 0 or inv.get("catchup_applied") or inv.get("consumption_kwh") is None:
+        return None
+    return inv["consumption_kwh"] / d
+
+
+def _median(xs):
+    xs = sorted(xs)
+    return xs[len(xs) // 2] if xs else None
+
+
+def use_bands(hhs: list[dict], events: dict) -> dict[tuple[str, str], tuple[float, float]]:
+    """(fuel, segment) -> the book's 1st and 99th percentile of a household's median kWh a day."""
+    typ = defaultdict(list)
+    for hh in hhs:
+        seg = hh["legs"][next(iter(hh["legs"]))].get("segment") or "resi"
+        for fuel in hh["legs"]:
+            m = _median([x for i in events[hh["id"]]["invoice"] if i["fuel"] == fuel
+                         for x in [_kwh_per_day(i)] if x is not None])
+            if m is not None:
+                typ[(fuel, seg)].append(m)
+    out = {}
+    for k, xs in typ.items():
+        xs.sort()
+        out[k] = (xs[int(0.01 * (len(xs) - 1))], xs[int(0.99 * (len(xs) - 1))])
+    return out
+
+
+def _common_failures(hh, ev, bands) -> list[str]:
+    out = []
+    if not _PUBLIC_ID.fullmatch(hh["id"]):
+        out.append("its account id is not in the public format")
+    seg = hh["legs"][next(iter(hh["legs"]))].get("segment") or "resi"
+    for fuel in hh["legs"]:
+        m = _median([x for i in ev["invoice"] if i["fuel"] == fuel for x in [_kwh_per_day(i)] if x is not None])
+        lo, hi = bands.get((fuel, seg), (None, None))
+        if m is not None and lo is not None and not lo <= m <= hi:
+            out.append("its {} use is outside the book's 1st-99th percentile".format(fuel))
+    if any(r.get("method") == "prepayment" for r in ev["ledger"] if r.get("type") == "payment_received") and \
+            any(i.get("read_type") == "E" for i in ev["invoice"]):
+        out.append("it pays by prepayment yet is sent estimated credit bills")
+    return out
+
+
+def _ev_change(hh, rec) -> float | None:
+    acc = hh["legs"].get("electricity")
+    if acc is None:
+        return None
+    mon = _monthly(acc)
+    y, m = int(rec["date"][:4]), int(rec["date"][5:7])
+    after = ["{}-{:02d}".format(y + (m + k - 1) // 12, (m + k - 1) % 12 + 1) for k in range(1, 13)]
+    before = ["{}-{:02d}".format(y + (m - k - 1) // 12, (m - k - 1) % 12 + 1) for k in range(1, 13)]
+    if not all(x in mon for x in after + before):
+        return None
+    return sum(mon[x] for x in after) - sum(mon[x] for x in before)
+
+
+def _slot_failures(slot_id, hh, ev, keys) -> list[str]:
+    out = []
+    if slot_id == "ev":
+        rec = next(r for _, k, r in keys if k == "life_event")
+        if "electricity" not in hh["legs"]:
+            out.append("it holds no electricity supply with us")
+        else:
+            d = _ev_change(hh, rec)
+            lo, hi = EV_ADDED_KWH_BAND
+            if d is None:
+                out.append("it lacks a full year of electricity use either side of the car")
+            elif not lo <= d <= hi:
+                out.append("its electricity over the year after the car did not rise by the {:,.0f}-{:,.0f} kWh "
+                           "an EV adds".format(lo, hi))
+            # The record's own statement of the car's effect is what the page prints, so it is held
+            # to the same band: a +17% on 180 kWh a month is ~370 kWh a year, not a car.
+            m = re.search(r"avg ([\d.]+) kWh/mo -> ([\d.]+) kWh/mo", rec.get("effect") or "")
+            if m and not lo <= 12 * (float(m.group(2)) - float(m.group(1))) <= hi:
+                out.append("the car's effect its record states is not the {:,.0f}-{:,.0f} kWh a year an EV "
+                           "adds".format(lo, hi))
+    elif slot_id == "storage_heating":
+        acc = hh["legs"].get("electricity")
+        # Economy 7 storage heating is profile class 2. Every two-register home in the 4ae8da9b0f
+        # record is a smart meter on Peak/Off-peak registers and none names a profile class, so a
+        # second register alone does not make a storage-heated home.
+        if (acc or {}).get("profile_class") != 2:
+            out.append("the record names no profile class 2 (Economy 7) meter for it")
+        mon = _monthly(acc) if acc else {}
+        years = defaultdict(float)
+        for k, v in mon.items():
+            years[k[:4]] += v
+        full = [y for y in years if all("{}-{:02d}".format(y, n) in mon for n in range(1, 13))]
+        if not full:
+            out.append("it has no full calendar year of electricity on record")
+        elif max(years[y] for y in full) < NON_ELECTRIC_HEATED_TDCV_KWH:
+            out.append("it uses less electricity than a home that does not heat with it")
+        winter = [v for k, v in mon.items() if k[5:] in ("12", "01", "02")]
+        summer = [v for k, v in mon.items() if k[5:] in ("06", "07", "08")]
+        if winter and summer and sum(winter) / len(winter) <= sum(summer) / len(summer):
+            out.append("it uses no more electricity in winter than in summer")
+    elif slot_id == "shock_2022":
+        bills = [r for _, k, r in keys if k == "bill"]
+        shock = next(r for _, k, r in keys if k == "shock_2022")
+        now = next((i for i in ev["invoice"] if i["fuel"] == shock["fuel"] and i["date"][:7] ==
+                    datetime.strptime(shock["month"], "%B %Y").strftime("%Y-%m") and not i.get("catchup_applied")), None)
+        if any(b.get("read_type") != "A" for b in bills) or not now or now.get("read_type") != "A":
+            out.append("the shock compares a bill that was estimated, so the use is not observed")
+    elif slot_id == "estimate_trap":
+        run = next(r for _, k, r in keys if k == "estimate_run")
+        catch = next(r for _, k, r in keys if k == "catch_up")
+        if run.get("since_iso") and (date.fromisoformat(catch["date"][:10]).toordinal()
+                                     - date.fromisoformat(run["since_iso"][:10]).toordinal()) > READ_DUTY_DAYS:
+            out.append("the meter went more than a year unread without the read duty (SLC 21B.4) firing")
+    elif slot_id == "debt":
+        wo = [r for _, k, r in keys if k == "debt" and r.get("event_type") == "collections_write_off"
+              and "statute-barred" in (r.get("description") or "")]
+        pays = [r["date"] for r in ev["ledger"] if r.get("type") == "payment_received"]
+        if wo and pays:
+            last = date.fromisoformat(max(p for p in pays if p <= wo[0]["date"])[:10]) if any(
+                p <= wo[0]["date"] for p in pays) else None
+            if last and date.fromisoformat(wo[0]["date"][:10]) < last.replace(year=last.year + LIMITATION_YEARS):
+                out.append("it is written off as statute-barred less than six years after its last payment")
+    return out
+
+
+DEFAULT_ACCOUNT_RULE = ("An ordinary record: a dual-fuel home on supply from 2016 to the end of the run that passes "
+                        "every check above, with its electricity use nearest the book's median")
+
+
+def default_account(hhs, events, bands) -> str | None:
+    """The six-stage section's opening account: the most ordinary full record, not the list's first."""
+    end = max((i["date"] for ev in events.values() for i in ev["invoice"]), default="")[:7]
+    ok = []
+    for hh in hhs:
+        ev = events[hh["id"]]
+        if set(hh["legs"]) != {"electricity", "gas"} or _acq(hh) >= "2017-01-01" or _common_failures(hh, ev, bands):
+            continue
+        if any(max((i["date"] for i in ev["invoice"] if i["fuel"] == f), default="")[:7] != end for f in hh["legs"]):
+            continue
+        m = _median([x for i in ev["invoice"] if i["fuel"] == "electricity" for x in [_kwh_per_day(i)] if x is not None])
+        if m is not None:
+            ok.append((m, hh["id"]))
+    if not ok:
+        return None
+    mid = _median([m for m, _ in ok])
+    return min(ok, key=lambda t: (abs(t[0] - mid), t[1]))[1]
+
+
+def validity_failures(slot_id, hh, ev, keys, bands) -> list[str]:
+    """Why this household is not a valid instance of the slot's feature; empty when it is."""
+    return _common_failures(hh, ev, bands) + _slot_failures(slot_id, hh, ev, keys)
+
+
+def _invalid_reason(slot_id: str, failed: dict[str, int], matched: int) -> str:
+    if not matched:
+        return EMPTY_REASONS.get(slot_id, "No household in this run qualifies under this rule.")
+    named = "; ".join("{} ({} of {})".format(k, v, matched) for k, v in
+                      sorted(failed.items(), key=lambda kv: -kv[1])[:4])
+    return ("No household in this run passes this example's checks yet. {} household{} match the rule, and "
+            "each fails at least one check an energy reader would apply: {}.".format(
+                matched, "" if matched == 1 else "s", named))
+
+
+
 def _story_line(slot_id, hh, keys) -> str:
     k = keys
     return {
@@ -795,6 +990,7 @@ def _story_line(slot_id, hh, keys) -> str:
         "debt": "From a missed payment to the end of the debt.",
         "ev": "An electric car arrives; the supplier sees only the meter.",
         "shock_2022": "The 2022 crisis reaches one household's bill.",
+        "storage_heating": "A two-rate meter whose night units are billed cheaper.",
     }.get(slot_id, "")
 
 
@@ -824,19 +1020,26 @@ def _build(customers, sample, windows):
         hh_breaches[hh["id"]] = b
         for x in {x["rule"] for x in b}:
             book_breaches[x] += 1
+    bands = use_bands(hhs, events)
     used, slots = set(), []
     for slot_id, feature, rule, scorer in _cast_rules():
-        best = None
+        best, matched, failed = None, 0, defaultdict(int)
         for hh in hhs:
             if hh["id"] in used:
                 continue
             got = scorer(hh, events[hh["id"]], people.get(hh["id"]) or {})
-            if got and (best is None or got[0] > best[0][0]):
+            if not got:
+                continue
+            matched += 1
+            why = validity_failures(slot_id, hh, events[hh["id"]], got[1], bands)
+            for w in why:
+                failed[w] += 1
+            if not why and (best is None or got[0] > best[0][0]):
                 best = (got, hh)
         if not best:
             slots.append({"id": slot_id, "feature": feature, "rule": rule, "filled": False,
-                          "glossary": GLOSSARY[slot_id],
-                          "reason": EMPTY_REASONS.get(slot_id, "No household in this run qualifies under this rule.")})
+                          "glossary": GLOSSARY[slot_id], "matched": matched, "failed_checks": dict(failed),
+                          "reason": _invalid_reason(slot_id, failed, matched)})
             continue
         (score, keys, opening), hh = best
         used.add(hh["id"])
@@ -866,12 +1069,15 @@ def _build(customers, sample, windows):
             "breach_count": len(hh_breaches[hh["id"]]),
         })
     meta_src = sample.get("meta") or {}
+    default = default_account(hhs, events, bands)
     return {
         "meta": {
             "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
             "run_generated_at": meta_src.get("generated_at"),
             "run_git_commit": meta_src.get("git_commit"),
             "household_count": len(hhs),
+            "default_account": default,
+            "default_account_rule": DEFAULT_ACCOUNT_RULE,
             "note": "Every household is chosen by the slot's stated rule at publish; nobody is hand-picked. "
                     "The supplier column reads only records dated on or before the moment shown.",
         },
@@ -893,7 +1099,9 @@ _CAST_FINDING = ("SEAT_FINDING_EXPLORES_CAST_FINDS_STANDARD_VARIABLE_BILLS_ABOVE
 #: or whose finding has left the open rooms while the gap remains, is RED: a feature has stopped
 #: working and nothing is working on it. An entry whose gap has closed is reported, never red, so
 #: the run getting more honest cannot red the build.
-ACCOUNTED_BY = {"above_cap": _CAST_FINDING, "mover": _CAST_FINDING, "storage_heating": _CAST_FINDING}
+ACCOUNTED_BY = {"above_cap": _CAST_FINDING, "mover": _CAST_FINDING, "storage_heating": _CAST_FINDING,
+                "ev": "SEAT_FINDING_AN_EV_LIFE_EVENT_IS_DRAWN_WITHOUT_THE_HOUSEHOLDS_FUEL_LEGS_AND_ITS_EFFECT_IS_A_"
+                      "RAW_BEFORE_AFTER_AVERAGE_2026-10-26.md"}
 
 
 def _open_finding(name: str, staging: Path) -> bool:

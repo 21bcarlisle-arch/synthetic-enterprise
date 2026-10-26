@@ -233,7 +233,7 @@ a { color: var(--teal); }
       because its story shows one thing the supplier does. If a rule finds no household, the slot
       says so and says what will fill it: that is a finding about the run, not a gap in the page.</p>
     <div class="cast-tabs" id="cast-tabs" role="tablist" aria-label="Households, one per feature"></div>
-    <div id="cast-stage" aria-live="polite"><!--cast:static--><p class="stamp">Run of 26 Oct 2026 · 7 of 8 feature slots filled</p><ul class="static-cast"><li><strong>The switch-in</strong> · household PROS-2025-0022 · 28 Feb 2025: The first electricity bill: £85.79 for 298 kWh, on an actual read.</li><li><strong>The renewal</strong> · household SYN-2016-031 · 24 Jan 2024: The supplier put this household&#x27;s chance of leaving at renewal at 85.0% and offered 8% off, costing £87, against £113 of expected margin at risk over the new term. The offer was put as a saving. What the household did is the next moment.</li><li><strong>The estimate trap</strong> · household SYN-2016-587 · 29 Feb 2024: An actual read on 29 Feb 2024 corrects the estimates: £7.03 added.</li><li><strong>The mover</strong> · empty: No household in this run can be shown moving. The published record carries no move-out event and no final-bill marker, and the new-occupant accounts (OCC-…) are not linked to the household they replaced, so a rule cannot follow a move from one occupant to the next. What closes it: the record now carries each move-out and final bill and names the household a new occupant replaced, so the next published run is the first that can fill this slot.</li><li><strong>The debt journey</strong> · household SYN-2016-356 · 28 Jun 2024: Written off: the debt is statute-barred (Limitation Act 1980 s.5) -- GBP866.50</li><li><strong>The EV home</strong> · household SYN-2016-476 · 16 Apr 2022: EV acquired: Usage moved -65% (avg 1353 kWh/mo -&gt; 473 kWh/mo)</li><li><strong>Storage heating</strong> · household C1 · 31 Jan 2016: The first electricity bill: £18.31 for 100 kWh, on an actual read.</li><li><strong>The 2022 shock</strong> · household PROS-2017-0336 · 31 Jan 2023: The electricity bill for January 2023 was £1,080.02, against £663.85 a year earlier.</li></ul><!--/cast:static--></div>
+    <div id="cast-stage" aria-live="polite"><!--cast:static--><p class="stamp">Run of 26 Oct 2026 · 5 of 8 feature slots filled</p><ul class="static-cast"><li><strong>The switch-in</strong> · household PROS-2025-0022 · 28 Feb 2025: The first electricity bill: £85.79 for 298 kWh, on an actual read.</li><li><strong>The renewal</strong> · household SYN-2016-031 · 24 Jan 2024: The supplier put this household&#x27;s chance of leaving at renewal at 85.0% and offered 8% off, costing £87, against £113 of expected margin at risk over the new term. The offer was put as a saving. What the household did is the next moment.</li><li><strong>The estimate trap</strong> · household PROS-2017-0264 · 29 Aug 2018: An actual read on 29 Aug 2018 corrects the estimates: £45.43 credited.</li><li><strong>The mover</strong> · empty: No household in this run can be shown moving. The published record carries no move-out event and no final-bill marker, and the new-occupant accounts (OCC-…) are not linked to the household they replaced, so a rule cannot follow a move from one occupant to the next. What closes it: the record now carries each move-out and final bill and names the household a new occupant replaced, so the next published run is the first that can fill this slot.</li><li><strong>The debt journey</strong> · household SYN-2016-356 · 28 Jun 2024: Written off: the debt is statute-barred (Limitation Act 1980 s.5) -- £866.50</li><li><strong>The EV home</strong> · empty: No household in this run passes this example&#x27;s checks yet. 21 households match the rule, and each fails at least one check an energy reader would apply: it lacks a full year of electricity use either side of the car (16 of 21); the car&#x27;s effect its record states is not the 1,750-3,300 kWh a year an EV adds (5 of 21); its electricity over the year after the car did not rise by the 1,750-3,300 kWh an EV adds (3 of 21); it pays by prepayment yet is sent estimated credit bills (3 of 21).</li><li><strong>Storage heating</strong> · empty: No household in this run passes this example&#x27;s checks yet. 96 households match the rule, and each fails at least one check an energy reader would apply: the record names no profile class 2 (Economy 7) meter for it (96 of 96); it has no full calendar year of electricity on record (34 of 96); it uses less electricity than a home that does not heat with it (27 of 96); it pays by prepayment yet is sent estimated credit bills (10 of 96).</li><li><strong>The 2022 shock</strong> · household PROS-2019-0246 · 31 Dec 2022: The electricity bill for December 2022 was £596.06, against £311.08 a year earlier.</li></ul><!--/cast:static--></div>
     <p class="stamp" id="cast-stamp"></p>
   </section>
 
@@ -469,11 +469,20 @@ var STAGES = [
    someone "the bit where the two clocks diverge" can link to /explore/#used instead of
    describing which button to press. Unknown or absent hash falls back to stage 1. */
 function stageFromHash() {
-  var want = String((typeof location !== "undefined" && location.hash) || "").replace("#", "");
+  var want = String((typeof location !== "undefined" && location.hash) || "").replace("#", "").split("/")[0];
   for (var i = 0; i < STAGES.length; i++) {
     if (STAGES[i].t.toLowerCase() === want.toLowerCase()) { return i; }
   }
   return 0;
+}
+
+/* An account is addressable too: /explore/#used/SYN-2016-434 opens that household on that stage. */
+function accountFromHash() {
+  return String((typeof location !== "undefined" && location.hash) || "").replace("#", "").split("/")[1] || null;
+}
+
+function setAddress() {
+  try { history.replaceState(null, "", "#" + STAGES[STAGE].t.toLowerCase() + "/" + $("cust").value); } catch (e) {}
 }
 
 function drawSpine() {
@@ -486,7 +495,7 @@ function drawSpine() {
       STAGE = +b.getAttribute("data-i");
       // replaceState, not pushState: six stages of one page are one place, and filling a
       // reader's back button with them makes leaving the page a six-press job.
-      try { history.replaceState(null, "", "#" + STAGES[STAGE].t.toLowerCase()); } catch (e) {}
+      setAddress();
       drawSpine(); render();
     };
   });
@@ -1524,10 +1533,22 @@ fetch("../data/customers.json").then(function (r) { return r.json(); }).then(fun
     return '<option value="' + esc(c.customer_group) + '">' + esc(c.customer_group) + " — " +
       esc(c.segment) + ", " + (c.fuels || []).join(" + ") + ", since " + String(c.acquisition_date).slice(0, 4) + "</option>";
   }).join("");
-  $("cust").onchange = function () { selectCustomer(this.value); };
+  $("cust").onchange = function () { selectCustomer(this.value); setAddress(); };
   STAGE = stageFromHash();
   drawSpine();
-  selectCustomer(j.customers[0].customer_group);
+  // The opening account is the one the address names, else the cast feed's `default_account` (an
+  // ordinary full record, chosen by the rule it states), never the list's first entry: on
+  // 4ae8da9b0f that was C1, four bills long.
+  var ids = j.customers.map(function (c) { return c.customer_group; });
+  var asked = accountFromHash();
+  if (asked && ids.indexOf(asked) >= 0) { $("cust").value = asked; selectCustomer(asked); return; }
+  fetch("../data/explore_cast.json").then(function (r) { return r.json(); }).then(function (c) {
+    return (c.meta || {}).default_account;
+  }).catch(function () { return null; }).then(function (d) {
+    var pick = ids.indexOf(d) >= 0 ? d : (ids.filter(function (x) { return /^(SYN|PROS|OCC)-/.test(x); })[0] || ids[0]);
+    $("cust").value = pick;
+    selectCustomer(pick);
+  });
 }).catch(function (e) {
   $("stage").innerHTML = "<p>The customer book could not be loaded, so this page is showing nothing rather " +
     "than a placeholder that looks like data.</p>";
