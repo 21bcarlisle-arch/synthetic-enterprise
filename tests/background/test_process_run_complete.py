@@ -2329,6 +2329,7 @@ def _repair_harness(monkeypatch, tmp_path, repaired, land):
     monkeypatch.setattr(prc, "_head_checkout", fake_checkout)
     monkeypatch.setattr(dar, "repair_from", fake_repair_from)
     monkeypatch.setattr(surgical_land, "land", fake_land)
+    monkeypatch.setattr(prc, "_deliver_repair_landing", lambda sha: events.append(("deliver", sha)))
     monkeypatch.setattr(prc, "_run_gate_in", lambda *a, **kw: (events.append("gate"), (True, False))[1])
     return events
 
@@ -2346,9 +2347,33 @@ def test_a_repaired_projection_is_LANDED_and_it_lands_BEFORE_the_gate(monkeypatc
         land=lambda root, paths, message: "abc123def456",
     )
     assert prc.run_fast_tests("deadbeef") == (True, False)
-    assert events == ["repair", ("land", ["docs/design/FORWARD_ATTACHMENT_LEDGER.md"]), "gate"], (
-        "the repair must be COMMITTED before the gate whose red it fixes is run; a landing that "
-        "happens after the gate is the deadlock this closes")
+    assert events == ["repair", ("land", ["docs/design/FORWARD_ATTACHMENT_LEDGER.md"]),
+                      ("deliver", "abc123def456"), "gate"], (
+        "the repair must be COMMITTED before the gate whose red it fixes is run, and PUSHED with "
+        "it: a landing that happens after the gate is the deadlock this closes, and one left "
+        "unpushed is a commit of this tree's own that refuses the publish `behind_origin` "
+        "(2026-10-26, b681cc4d7)")
+
+
+def test_the_repair_push_is_graded_by_the_remote_ref_both_ways(monkeypatch):
+    """Both outcomes must be reachable: delivered when origin holds the sha, refused when the push
+    lost the race -- a leg that always answers one way passes every single-branch test.
+
+    MUTATION: make `_deliver_repair_landing` return False unconditionally, or drop the
+    `_push_reached_origin` check and return True; one half of this fails either way.
+    """
+    import types
+    logged = []
+    monkeypatch.setattr(prc, "log", lambda msg, *a, **kw: logged.append(str(msg)))
+    monkeypatch.setattr(prc, "_commit_is_ancestor", lambda *a, **kw: False)
+    outcomes = {}
+    for case, rc, origin in (("delivered", 0, "abc123def456"), ("lost", 1, "fff000fff000")):
+        monkeypatch.setattr(prc.subprocess, "run",
+                            lambda *a, rc=rc, **kw: types.SimpleNamespace(returncode=rc, stderr="rejected"))
+        monkeypatch.setattr(prc, "_origin_main_sha", lambda *a, origin=origin, **kw: origin)
+        outcomes[case] = prc._deliver_repair_landing("abc123def456")
+    assert outcomes == {"delivered": True, "lost": False}
+    assert any("NOT reach origin" in m and "behind_origin" in m for m in logged), logged
 
 
 def test_nothing_repaired_lands_NOTHING(monkeypatch, tmp_path):

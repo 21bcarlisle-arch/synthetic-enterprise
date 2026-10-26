@@ -1917,6 +1917,35 @@ def _land_repaired_artefacts(repaired):
         log("Derived-artefact repair landing skipped (non-fatal): {}".format(exc))
         return
     log("Derived-artefact repair LANDED pre-gate as {} -- {}".format(sha[:9], ", ".join(repaired)))
+    _deliver_repair_landing(sha)
+
+
+# A REPAIR LANDED HERE AND LEFT HERE REFUSES ITS OWN PUBLISH (2026-10-26, measured). The Monday
+# publish of run 4ae8da9b0f: the repair landed `b681cc4d7` at 04:37 and nothing pushed it; origin
+# took one unrelated commit during the 36-minute gate, and at 05:14 `_unabsorbed_publish_commits`
+# counted the repair as a stranded earlier publish and `_advance_to_origin_or_say_why` would not
+# fast-forward a tree holding a commit of its own. A full run and a green gate, refused by this
+# process's own projection commit. Pushed now, while the fork is usually still zero wide, the
+# advance stays mechanical. A lost race leaves exactly the state that existed before this line
+# (git refuses a non-fast-forward), and `origin_reconcile` owns that state as it did already.
+def _deliver_repair_landing(sha):
+    """Push the pre-gate repair to origin at once; True iff origin now holds it."""
+    try:
+        push = subprocess.run(["git", "push", "origin", "HEAD:main"], cwd=str(PROJECT_DIR),
+                              timeout=60, stderr=subprocess.PIPE, text=True)
+        remote_head = _origin_main_sha(label="Derived-artefact repair push verify")
+    except Exception as exc:  # noqa: BLE001 -- fail-open, same direction as the landing
+        log("Derived-artefact repair {} NOT pushed ({}: {}); origin_reconcile owns the "
+            "fork.".format(sha[:9], type(exc).__name__, exc))
+        return False
+    if _push_reached_origin(push.returncode, remote_head, sha):
+        log("Derived-artefact repair {} pushed to origin before the gate.".format(sha[:9]))
+        return True
+    log("Derived-artefact repair {} did NOT reach origin (push rc={}, origin={}): this tree now "
+        "holds a commit of its own, so a publish refused `behind_origin` this cycle is that commit "
+        "and not the run. {}".format(sha[:9], push.returncode, (remote_head or "?")[:9],
+                                     (getattr(push, "stderr", "") or "").strip()[-300:]))
+    return False
 
 
 # A FULL DISK MUST SAY SO (2026-08-09, third publish wedge).
