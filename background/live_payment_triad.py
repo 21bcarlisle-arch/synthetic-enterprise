@@ -76,6 +76,7 @@ whole 3-period scenario for the identical reason).
 """
 from __future__ import annotations
 
+import bisect
 import dataclasses
 import heapq
 from datetime import date, datetime, time, timedelta, timezone
@@ -742,7 +743,9 @@ class LivePaymentTriad:
         # holding it back means the company never holds a payment from its own future at all.
         self._pending_settlements: list = []
         # Lumps whose day has come but whose account's journey cannot yet be walked to the day
-        # before them, per account, oldest first (`_settle_held`).
+        # before them, per account, oldest first (`_settle_held`). Kept in order by `_hold`, not
+        # by arrival: a dual household's legs post a whole term each in turn, so gas cash dated
+        # before electricity cash already held arrives after it.
         self._held_settlements: dict = {}
         self._n_settlements_delivered = 0
         # Later settlements the household's agreed plan replaced (withdrawn, never crossed), and
@@ -982,8 +985,7 @@ class LivePaymentTriad:
         account's held lumps up to `through` unwalked, and `settlements_crossed_despite_a_plan`
         counts any a later agreement turns out to cover."""
         while self._pending_settlements and self._pending_settlements[0][0] <= through:
-            item = heapq.heappop(self._pending_settlements)
-            self._held_settlements.setdefault(item[3], []).append(item)
+            self._hold(heapq.heappop(self._pending_settlements))
         for account_id in list(self._held_settlements):
             self._settle_held(account_id)
             if force is True or force == account_id:
@@ -991,7 +993,14 @@ class LivePaymentTriad:
                     if item[0] <= through:
                         self._cross_settlement(item)
                     else:
-                        self._held_settlements.setdefault(account_id, []).append(item)
+                        self._hold(item)
+
+    def _hold(self, item) -> None:
+        """Hold one lump on its account in (value date, sequence) order. Appending crossed a later
+        lump first and walked the journey past the earlier one's day: SYN-2016-048 was sent
+        reminder_2 on 2020-10-12 for a gas bill whose cash, dated that day, posted after it."""
+        bisect.insort(self._held_settlements.setdefault(item[3], []), item,
+                      key=lambda held: (held[0], held[1]))
 
     def _last_due(self, account_id: str) -> Optional[date]:
         """The latest due date posted on any leg of the account."""
