@@ -100,6 +100,19 @@ But the desk was told about none of them. `_run_rails` emits the ADDACS 1 record
 cancel reaches the rails as one failed collection, and then the leg leaves DD by the triad's truth.
 The supplier's register still holds a live mandate, and no ADDACS 1 is ever received.
 
+*Correction, same evening, beside the claim:* the last sentence overstates it. The company's
+payment-observation consumer does hear ADDACS 1, through the triad's own mandate stream
+(`background/live_payment_triad.py`, `_mandate_stream`). The desk that never heard it is the
+collection book's rails desk. That desk is the one `grade_d.py` replays, and the one behind
+`supplier_dd_stops`, the stop notices, the money side's DD spells and the published DD collection
+book. So there are two supplier desks, and they disagreed on every household cancel.
+**Fixed** in the commit that carries this note. The rails' ADDACS 1 now follows the cancel month's
+failed collection whoever decided it (`outcome == "failed"`, not `told is None`). A truth that
+collected that month sends no advice. Test:
+`test_under_one_payment_truth_a_household_cancellation_still_reaches_the_desk_as_addacs_1`,
+red before the fix and green after. The default book is unchanged, because both cancel shares ship
+at 0. Arm B has not been re-run, so W2_41 stays at 1 until a run shows ADDACS 1 reaching this desk.
+
 - **Prediction 1 (no ADDACS 1 stop reaches the desk before a failed collection): NOT GRADED.**
   Its denominator is zero: there are no ADDACS 1 stops to time. It is not marked held, even though
   the count it named (0 before) is 0. A vacuous zero is not a hold. In arm B, 20 of the 20 triad
@@ -108,7 +121,7 @@ The supplier's register still holds a live mandate, and no ADDACS 1 is ever rece
 - **W2_41 stays at 1.** Arm B shows the household's act, but not as an ADDACS 1 reaching the desk
   and priced. The cause is the gate above, not the timing question the prediction was about.
   Follow-on: the rails' ADDACS branch has to read the truth's failed cancel-month collection. That
-  is an error fix, filed as `the-addacs-1-advice-reaches-the-desk-under-one-payment-truth`.
+  is an error fix, and it has landed (see the correction above). What remains is re-running arm B.
 
 **f89db6ff3's net.** Settlement view formed in-process in both arms, over 732 supply-point-years.
 
