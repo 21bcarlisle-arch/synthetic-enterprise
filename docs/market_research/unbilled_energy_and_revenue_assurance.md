@@ -656,8 +656,21 @@ So leg (b) is built. Two choices differ from the shape above, and why:
   January. The mechanism is the reason for the change; the row is how it came to light.
 - Book-wide on 4ae8da9b0f: 731 supply-point-years move, netting −£2,120.75 (|Σ| £6,378.60), against
   the decade's gross. Legs whose last bill is actual: 0 move.
-- **Not done:** `saas/reporting/annual_report.py` and net margin do not read the entry yet, and the
-  policy and network costs inside net are not scaled. Named in the finding.
+- **Net and the annual report, built later on 2026-10-26.** Gross carries the policy and network
+  costs as recovered revenue, and net takes them off again. Both are per MWh on settled volume, so
+  net's volume part is gross less the standing charge, less policy, less network. Capital and the
+  hedge's own P&L do not scale. `per_customer_monthly` now carries each month's policy and network
+  costs (`extract_report_data`), and `tools.closing_estimate_run_money.cos_read_settlement_net`
+  scales them by the same profile-spread rule. `tools.run_annual_report.reconcile_and_stamp` stamps
+  `cos_read_settlement` (gross and net, by year) into the run output beside the totals, and the
+  annual report prints net settled at the read beside net. Beside, not inside: net on true demand
+  is what the treasury accumulated. A run output from before the new fields prints "net not
+  formed", never gross's move standing in for net's. On 4ae8da9b0f that is the case: the gross
+  move reproduces exactly (−£2,120.75 over 731 supply-point-years), and net is not formed.
+  **Prediction, filed before the first run that carries the fields:** net's move has the same sign
+  as gross's and a smaller magnitude, since the levies are roughly a third to a half of an
+  electricity unit rate. A year where net moves further than gross would mean that levies
+  exceeded volume margin on a leaver's span. It would be checked, not assumed.
 
 #### What a change of supplier ends on each fuel (2026-10-22, K8 for the dual leaver)
 

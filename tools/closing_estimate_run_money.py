@@ -117,16 +117,70 @@ def cos_read_settlement(run_output: dict) -> dict[tuple[str, int], float]:
     practice estimates an unread period"), so bill i is settled on advance x profile(i) /
     profile(run). Its month moves by (settled / true - 1) x (gross - standing charge): the standing
     charge is per day and the leaver is billed its days. A leg whose last bill is actual moves by
-    nothing. LIMIT: gross only. The per-MWh policy and network costs inside net scale too, and are
-    not moved here.
+    nothing. Net moves by more: see `cos_read_settlement_net`.
     """
+    out: dict[tuple[str, int], float] = defaultdict(float)
+    for cid, year, factor, month, bill in _settled_months(run_output):
+        out[(cid, year)] += factor * (month["gross_gbp"] - (bill.get("standing_charge_gbp") or 0.0))
+    return dict(out)
+
+
+def cos_read_settlement_net(run_output: dict) -> dict[tuple[str, int], float] | None:
+    """(supply point, year) -> the change in NET margin under the same settlement at the read.
+
+    Gross carries the policy and network costs as recovered revenue
+    (`simulation.hedged_settlement`), and net takes them off again. Both are per MWh on settled
+    volume, so on the settled span they scale with the energy, and the volume part of net is
+    gross less the standing charge less policy less network. Capital and the hedge's own P&L do
+    not scale (K6, "The build shape this implies"). None when the run's `per_customer_monthly`
+    predates the policy and network entries: a month without them cannot say what net moves by,
+    and gross's move standing in for net's would overstate it by the levies."""
+    out: dict[tuple[str, int], float] = defaultdict(float)
+    for cid, year, factor, month, bill in _settled_months(run_output):
+        if "policy_cost_gbp" not in month or "network_cost_gbp" not in month:
+            return None
+        out[(cid, year)] += factor * (
+            month["gross_gbp"] - (bill.get("standing_charge_gbp") or 0.0)
+            - month["policy_cost_gbp"] - month["network_cost_gbp"])
+    return dict(out)
+
+
+def settlement_view(run_output: dict) -> dict:
+    """The book-level settlement view the run output carries beside gross and net, by year.
+
+    Beside, never inside: gross and net stay the world's margin on true demand, which is what
+    the treasury accumulated. `net_gbp` is None where `cos_read_settlement_net` cannot be formed."""
+    if not run_output.get("bills"):
+        return {"formed": False, "reason": "the run output carries no bills"}
+    gross = cos_read_settlement(run_output)
+    net = cos_read_settlement_net(run_output)
+    by_year: dict[str, dict] = {}
+    for (cid, year), moved in gross.items():
+        row = by_year.setdefault(str(year), {"gross_gbp": 0.0, "net_gbp": 0.0 if net is not None else None,
+                                             "supply_point_years": 0})
+        row["gross_gbp"] += moved
+        row["supply_point_years"] += 1
+        if net is not None:
+            row["net_gbp"] += net.get((cid, year), 0.0)
+    for row in by_year.values():
+        row["gross_gbp"] = round(row["gross_gbp"], 2)
+        if row["net_gbp"] is not None:
+            row["net_gbp"] = round(row["net_gbp"], 2)
+    return {"formed": True, "by_year": by_year,
+            "gross_gbp": round(sum(gross.values()), 2),
+            "net_gbp": round(sum(net.values()), 2) if net is not None else None,
+            "supply_point_years": len(gross)}
+
+
+def _settled_months(run_output: dict):
+    """(supply point, year, settled/true - 1, the bill's month in `per_customer_monthly`, bill)
+    over every bill in a leaver's trailing run of estimates, where the last bill is one."""
     churned = supply_points_that_left(
         households_whose_account_closed(run_output), {b["customer_id"] for b in run_output["bills"]})
     by_account: dict[str, list[dict]] = defaultdict(list)
     for bill in run_output["bills"]:
         if bill["customer_id"] in churned:
             by_account[bill["customer_id"]].append(bill)
-    out: dict[tuple[str, int], float] = defaultdict(float)
     for cid, bills in by_account.items():
         bills.sort(key=lambda b: b["period_end"])
         if bills[-1].get("billing_basis") != "estimated":
@@ -146,9 +200,7 @@ def cos_read_settlement(run_output: dict) -> dict[tuple[str, int], float]:
                      .get(cid, {}).get(bill["period_end"][:7]))
             if month is None:
                 continue
-            volume_gross = month["gross_gbp"] - (bill.get("standing_charge_gbp") or 0.0)
-            out[(cid, int(year))] += (scale - 1.0) * volume_gross
-    return dict(out)
+            yield cid, int(year), scale - 1.0, month, bill
 
 
 def summarise(rows: list[dict]) -> dict:

@@ -70,6 +70,7 @@ from simulation.departure_level_anchor import world_level_identity
 from simulation.run_phase2b import effective_report_end
 from simulation.run_phase4c_on_phase2b import main as run_phase4c_on_phase2b
 from simulation.settlement_clocks import reconcile_published_run_output
+from tools.closing_estimate_run_money import settlement_view
 
 #: NO CALLER SAID WHAT WINDOW IT RAN, which is a different answer from "it ran the full window"
 #: and must not be able to be mistaken for one. `None` is already a live value on this parameter
@@ -247,6 +248,9 @@ def reconcile_and_stamp(
     world = _world_level_or_reason()
     mode = _execution_mode(report_end, data)
 
+    # Beside gross and net, never inside them: what settlement at a leaver's estimated closing
+    # read takes off each (K6 leg (b), `unbilled_energy_and_revenue_assurance.md`).
+    data["cos_read_settlement"] = settlement_view(data)
     data["_cache_meta"] = {
         "git_commit": commit,
         "generated_at_utc": stamped_at.strftime("%Y%m%dT%H%M%SZ"),

@@ -205,3 +205,28 @@ def test_a_leaver_closed_on_an_estimate_is_settled_on_its_read_spread_by_the_pro
     assert moved[("C1", 2020)] == pytest.approx(expected, abs=0.01)
     assert moved[("C1", 2020)] < 0
     assert set(moved) == {("C1", 2020)}
+
+
+def test_net_settles_the_levies_with_the_energy_and_refuses_a_month_that_has_none():
+    """The same C1 span with policy 30 and network 20 inside each month's gross: net's volume
+    part is 100 - 30 - 20, so net moves by exactly half of gross's move. MUTATIONS this catches:
+    net taken as gross's move (the levies left unscaled) gives 2x; levies subtracted from net
+    but not scaled gives a move unrelated to the scale. A month without the entries returns
+    None, never gross's move standing in for net's: both legs reached.
+    """
+    from tools.closing_estimate_run_money import cos_read_settlement_net, settlement_view
+
+    run = _book()
+    month = {"gross_gbp": 100.0, "policy_cost_gbp": 30.0, "network_cost_gbp": 20.0}
+    run["years"] = {"2020": {"per_customer_monthly": {
+        "C1": {"2020-02": dict(month), "2020-03": dict(month)},
+        "C2": {"2020-02": dict(month)},
+    }}}
+    gross = cos_read_settlement(run)[("C1", 2020)]
+    assert cos_read_settlement_net(run)[("C1", 2020)] == pytest.approx(gross / 2)
+    view = settlement_view(run)
+    assert view["formed"] and view["by_year"]["2020"]["supply_point_years"] == 1
+    assert view["net_gbp"] == pytest.approx(round(gross / 2, 2), abs=0.01)
+    del run["years"]["2020"]["per_customer_monthly"]["C1"]["2020-03"]["network_cost_gbp"]
+    assert cos_read_settlement_net(run) is None and settlement_view(run)["net_gbp"] is None
+

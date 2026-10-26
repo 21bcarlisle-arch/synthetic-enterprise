@@ -482,7 +482,8 @@ def extract_report_data(run_output: dict) -> dict:
             entry = per_customer_monthly.setdefault(cid, {}).setdefault(
                 month_key,
                 {"revenue_gbp": 0.0, "wholesale_cost_gbp": 0.0, "gross_gbp": 0.0,
-                 "capital_gbp": 0.0, "net_gbp": 0.0, "consumption_kwh": 0.0},
+                 "capital_gbp": 0.0, "net_gbp": 0.0, "consumption_kwh": 0.0,
+                 "policy_cost_gbp": 0.0, "network_cost_gbp": 0.0},
             )
             entry["revenue_gbp"] += r["revenue_gbp"]
             entry["wholesale_cost_gbp"] += r.get("wholesale_cost_gbp", 0.0)
@@ -490,6 +491,10 @@ def extract_report_data(run_output: dict) -> dict:
             entry["capital_gbp"] += r["capital_cost_gbp"]
             entry["net_gbp"] += r["net_margin_gbp"]
             entry["consumption_kwh"] += r.get("consumption_kwh", 0.0)
+            # Per MWh on settled volume, so the settlement view at a leaver's estimated closing
+            # read scales them with the energy (`tools.closing_estimate_run_money`).
+            entry["policy_cost_gbp"] += r.get("policy_cost_gbp", 0.0)
+            entry["network_cost_gbp"] += r.get("network_cost_gbp", 0.0)
 
         # THE BALANCE THE YEAR CLOSED AT, in ACCUMULATION order (2026-08-24,
         # docs/staging/WORKER_FINDING_THE_TREASURY_DRAWDOWN_FIGURE_IS_AN_ARTEFACT_OF_SORTING_A_BALANCE_THAT_WAS_NEVER_A_SERIES_2026-08-24.md).
@@ -1857,6 +1862,8 @@ def _executive_summary(data: dict) -> str:
         net_gbp = data["total_net_gbp"]
         capital_gbp = data["total_capital_gbp"]
 
+    net_line += _settled_at_the_closing_read_line(data.get("cos_read_settlement"), net_gbp)
+
     cap_ratio_line = (
         f"- Capital cost ratio: {capital_gbp / gross_gbp:.1%} of gross"
         if gross_gbp else "- Capital cost ratio: n/a"
@@ -1891,6 +1898,24 @@ the last partial). The business {outcome}.
 
 {chr(10).join(crisis_lines) if crisis_lines else "No crisis years in this window."}
 """
+
+
+def _settled_at_the_closing_read_line(view: dict | None, net_gbp: float) -> str:
+    """Net as the losing supplier is settled on it: a leaver whose last bill is an estimate is
+    billed and settled to that read, so the energy after it is the gaining supplier's (BSCP504
+    s.4.4.1; K6 leg (b)). Net above is on true demand, which is what the treasury accumulated, so
+    this stands beside it. A run output stamped before the view existed prints nothing; one that
+    cannot form the net side says so."""
+    if not view:
+        return ""
+    if not view.get("formed"):
+        return f"\n  Settled at leavers' closing reads: not formed ({view.get('reason', 'no reason given')})"
+    if view.get("net_gbp") is None:
+        return ("\n  Settled at leavers' closing reads: net not formed (this run's monthly figures "
+                f"carry no policy or network costs); gross moves by {_fmt_gbp(view['gross_gbp'])}")
+    return (f"\n  Settled at leavers' closing reads: {_fmt_gbp(net_gbp + view['net_gbp'])} "
+            f"({_fmt_gbp(view['net_gbp'])} over {view['supply_point_years']} supply-point-years "
+            "closed on an estimate)")
 
 
 def _hedge_value_add_line(totals: dict | None) -> str:

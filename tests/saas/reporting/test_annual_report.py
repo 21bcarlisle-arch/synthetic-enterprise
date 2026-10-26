@@ -3405,3 +3405,17 @@ def test_the_re_sorted_treasury_path_does_not_come_back():
 # tests/simulation/test_run_phase2b.py::test_the_run_emits_a_treasury_drawdown_register.
 # A rename on either side is otherwise silent: this read is a `.get`, so it would quietly fall
 # back to the book and go on publishing a number.
+
+
+def test_the_annual_report_prints_net_settled_at_the_read_beside_net_and_names_what_it_cannot_form():
+    """Defect named: the annual report books net on true demand past an estimated closing read
+    with nothing beside it, or prints gross's move as though it were net's."""
+    import saas.reporting.annual_report as ar_mod
+
+    formed = {"formed": True, "gross_gbp": -20.0, "net_gbp": -10.0, "supply_point_years": 3}
+    assert "£990.00" in ar_mod._settled_at_the_closing_read_line(formed, 1000.0)
+    no_net = dict(formed, net_gbp=None)
+    assert "net not formed" in ar_mod._settled_at_the_closing_read_line(no_net, 1000.0)
+    assert "not formed (the run output carries no bills)" in ar_mod._settled_at_the_closing_read_line(
+        {"formed": False, "reason": "the run output carries no bills"}, 1000.0)
+    assert ar_mod._settled_at_the_closing_read_line(None, 1000.0) == ""
