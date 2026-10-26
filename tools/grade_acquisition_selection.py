@@ -97,6 +97,7 @@ def grade_arm(d: Path, arm: str, *, train_seeds, fresh_seeds, noise_seeds, cut: 
     from company.pricing.discovered_price_sensitivity import (
         SAVE_POSITION_OBSERVABLES,
         decisions_needed_per_arm,
+        effect_for_channel,
         estimate_offer_effect,
         estimate_offer_effect_by_position,
         position_group,
@@ -118,8 +119,7 @@ def grade_arm(d: Path, arm: str, *, train_seeds, fresh_seeds, noise_seeds, cut: 
             def decide(obs, _by=by, _o=observable, _m=margin):
                 return retention_cut_decision(obs, cut_gbp_per_mwh=cut, margin_share=_m,
                                               by_channel=_by, pooled=pooled, observable=_o)
-            own = {g for g, e in by.items()
-                   if need is not None and min(e.treated, e.held_out) >= need}
+            own = {g for g, e in by.items() if effect_for_channel(g, by, pooled)[0] is e}
             cut_groups: dict[str, int] = {}
             for obs in holdout_decision_observations([r for rows in fresh.values() for r in rows]):
                 if decide(obs).offer_cut:

@@ -293,20 +293,61 @@ def decisions_needed_per_arm(estimate: OfferEffectEstimate) -> int | None:
     return math.ceil(2 * z * z * p * (1 - p) / estimate.effect ** 2)
 
 
+def _difference_and_variance(treated: int, held_out: int, stayed_treated: int,
+                             stayed_held_out: int) -> tuple[float, float]:
+    """Treated minus held-out stay share, and its Wald variance."""
+    p1, p0 = stayed_treated / treated, stayed_held_out / held_out
+    return p1 - p0, p1 * (1 - p1) / treated + p0 * (1 - p0) / held_out
+
+
+def channel_gap(own: OfferEffectEstimate, pooled: OfferEffectEstimate) -> tuple[float, float] | None:
+    """The channel's effect minus the effect on the rest of the book (pooled counts less the
+    channel's), and the two-sided `INTERVAL_COVERAGE` bound on that gap. None where the rest has an
+    empty arm: a channel that is the whole book has nothing to differ from."""
+    from statistics import NormalDist
+
+    rest = (pooled.treated - own.treated, pooled.held_out - own.held_out,
+            pooled.stayed_treated - own.stayed_treated, pooled.stayed_held_out - own.stayed_held_out)
+    if min(rest) < 0:
+        raise ValueError("the channel holds more decisions than the pooled estimate: they were not "
+                         "estimated on the same rows")
+    if not rest[0] or not rest[1]:
+        return None
+    d_own, v_own = _difference_and_variance(own.treated, own.held_out, own.stayed_treated,
+                                            own.stayed_held_out)
+    d_rest, v_rest = _difference_and_variance(*rest)
+    z = NormalDist().inv_cdf(0.5 + INTERVAL_COVERAGE / 2)
+    return d_own - d_rest, z * math.sqrt(v_own + v_rest)
+
+
 def effect_for_channel(payment_method: str, by_channel: dict[str, OfferEffectEstimate],
                        pooled: OfferEffectEstimate) -> tuple[OfferEffectEstimate, str]:
-    """The channel's own estimate where its smaller arm reaches the decisions the POOLED effect needs;
-    otherwise the pooled one, and the reason says which and why."""
+    """The channel's own estimate where its smaller arm reaches the decisions the POOLED effect needs
+    AND its effect differs from the rest of the book's beyond the interval on that gap; otherwise
+    the pooled one, and the reason says which gate refused.
+
+    Power alone is not enough: it passes as the book grows whether or not the channels differ, and
+    a channel read where they do not swaps the pooled estimate for a noisier subset of the same rows
+    (2026-10-26: direct debit read on 12,096 of 16,788 decisions where the world's per-channel gap
+    was 0.0001)."""
     need = decisions_needed_per_arm(pooled)
     own = by_channel.get(payment_method)
     if own is None or own.verdict == "refused":
         return pooled, f"pooled: no {payment_method} decision in the holdout"
     have = min(own.treated, own.held_out)
-    if need is not None and have >= need:
-        return own, f"{payment_method}: {have:,} per arm reaches the {need:,} the pooled effect needs"
     if need is None:
         return pooled, f"pooled: {payment_method} has {have:,} per arm and the pooled effect is nil"
-    return pooled, f"pooled: {payment_method} has {have:,} per arm, short of the {need:,} needed"
+    if have < need:
+        return pooled, f"pooled: {payment_method} has {have:,} per arm, short of the {need:,} needed"
+    gap = channel_gap(own, pooled)
+    if gap is None:
+        return pooled, f"pooled: {payment_method} is the whole book, so there is no rest to differ from"
+    diff, bound = gap
+    if abs(diff) <= bound:
+        return pooled, (f"pooled: {payment_method} is powered ({have:,} per arm) but its gap to the rest, "
+                        f"{diff:+.4f}, is inside +/-{bound:.4f}")
+    return own, (f"{payment_method}: {have:,} per arm reaches the {need:,} needed and its gap to the "
+                 f"rest, {diff:+.4f}, is beyond +/-{bound:.4f}")
 
 
 @dataclass(frozen=True)

@@ -35,3 +35,7 @@ The control should be one partition that asserts all three reads can be taken: p
 pooled (powered, no difference), and channel (powered and different). Use a planted per-channel
 effect, so the third branch is reachable. Then re-run `decide` and check that the 12,096 channel
 reads fall to about the false-positive rate.
+
+## Closed 2026-10-26
+
+Actioned: the read now also asks the gap to the rest of the book. Result: `SEAT_RESULT_B8_THE_PER_CHANNEL_READ_GATED_ON_A_DIFFERENCE_2026-10-26.md` (12,096 channel reads fell to 0, nothing priced moved).

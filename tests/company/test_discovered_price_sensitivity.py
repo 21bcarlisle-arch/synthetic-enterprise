@@ -177,20 +177,38 @@ def test_the_decision_takes_every_branch_and_the_margin_is_what_flips_it():
     assert thin.effect >= strong.effect  # the undecided point is larger: only its interval refuses
 
 
-def test_a_channel_is_read_on_its_own_only_when_it_holds_the_decisions_the_effect_needs():
-    """DEFECT: a channel read off a handful of decisions, or never read at all. A channel with
-    enough decisions per arm decides on its own estimate; a short one falls back to the pooled one,
-    and the read says which."""
-    pooled = dps.estimate_offer_effect(_holdout(700, 1000, 600, 1000))
-    need = dps.decisions_needed_per_arm(pooled)
-    big = dps.estimate_offer_effect(_holdout(300, 500, 300, 500))
-    small = dps.estimate_offer_effect(_holdout(45, 50, 30, 50))
-    assert min(big.treated, big.held_out) >= need > min(small.treated, small.held_out)
-    by = {"direct_debit": big, "other": small}
-    own = _decide(pooled, margin_share=0.14, by_channel=by, method="direct_debit")
-    short = _decide(pooled, margin_share=0.14, by_channel=by, method="other")
-    assert own.read.startswith("direct_debit") and not own.offer_cut  # its own nil effect decides
-    assert short.read.startswith("pooled") and short.offer_cut       # the pooled effect decides
+def _book_of(**channels):
+    """Per-channel estimates and the pooled one ON THE SAME ROWS, from (ts, tn, hs, hn) counts."""
+    rows = [{**r, "payment_method": m} for m, c in channels.items() for r in _holdout(*c)]
+    return dps.estimate_offer_effect_by_channel(rows), dps.estimate_offer_effect(rows)
+
+
+def test_a_channel_is_read_on_its_own_only_when_it_is_powered_and_differs_from_the_rest():
+    """One partition over the three reads. DEFECT: a channel read off a handful of decisions; a
+    channel read because it is powered though it does not differ (12,096 of 16,788 decisions on
+    2026-10-26, where the world's gap was 0.0001); or a channel never read at all. Every book pools
+    to 700/1000 against 600/1000, so the decisions needed per arm are the same in all three."""
+    books = {
+        "short": _book_of(direct_debit=(210, 300, 180, 300), other=(490, 700, 420, 700)),
+        "same": _book_of(direct_debit=(350, 500, 300, 500), other=(350, 500, 300, 500)),
+        "differs": _book_of(direct_debit=(300, 500, 300, 500), other=(400, 500, 300, 500)),
+    }
+    need = dps.decisions_needed_per_arm(books["same"][1])
+    assert 300 < need <= 500
+    reads = {k: _decide(pooled, margin_share=0.14, by_channel=by) for k, (by, pooled) in books.items()}
+    assert reads["short"].read.startswith("pooled") and "short of" in reads["short"].read
+    assert reads["same"].read.startswith("pooled") and "inside" in reads["same"].read
+    assert reads["differs"].read.startswith("direct_debit") and "beyond" in reads["differs"].read
+    assert reads["same"].offer_cut and not reads["differs"].offer_cut  # its own nil effect decides
+
+
+def test_a_channel_that_is_the_whole_book_reads_pooled_and_mismatched_rows_are_refused():
+    """DEFECT: a gap computed against an empty rest, or against a pooled estimate on other rows."""
+    by, pooled = _book_of(direct_debit=(700, 1000, 600, 1000))
+    assert "whole book" in _decide(pooled, margin_share=0.14, by_channel=by).read
+    smaller = dps.estimate_offer_effect(_holdout(70, 100, 60, 100))
+    with pytest.raises(ValueError, match="same rows"):
+        dps.channel_gap(by["direct_debit"], smaller)
 
 
 # --- B8 L3: the run's own holdout ------------------------------------------------------------------
