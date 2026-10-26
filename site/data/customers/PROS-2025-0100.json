@@ -3,7 +3,7 @@
   "base_account_id": "PROS-2025-0100",
   "segment": "resi",
   "commodity": "electricity",
-  "is_dual_fuel": true,
+  "is_dual_fuel": false,
   "acquisition_date": "2025-04-13",
   "tariff_name": "Standard Variable (Electricity)",
   "meter_type": "Traditional",
@@ -13,9 +13,9 @@
   },
   "mprn": null,
   "lifetime_revenue_gbp": 414.36,
-  "lifetime_gross_gbp": 271.62,
-  "lifetime_net_gbp": 67.27,
-  "lifetime_net_after_cts_gbp": 58.83,
+  "lifetime_gross_gbp": 271.31,
+  "lifetime_net_gbp": 66.95,
+  "lifetime_net_after_cts_gbp": 58.51,
   "cost_to_serve_gbp": 8.44,
   "pricing_action": {
     "flag": "OK",
@@ -31,24 +31,18 @@
   "forward_looking_account_id": "PROS-2025-0100",
   "commodity_split": {
     "electricity": {
-      "net_gbp": 67.27,
+      "net_gbp": 66.95,
       "revenue_gbp": 414.36
     },
     "gas": null
   },
-  "dual_fuel_combined": {
-    "gas_account_id": "PROS-2025-0100g",
-    "gas_lifetime_net_gbp": 31.12,
-    "gas_lifetime_revenue_gbp": 91.25,
-    "combined_net_gbp": 98.39,
-    "combined_revenue_gbp": 505.6
-  },
+  "dual_fuel_combined": null,
   "annual_pnl": [
     {
       "year": 2025,
       "revenue_gbp": 0,
-      "gross_gbp": 271.62,
-      "net_gbp": 67.27,
+      "gross_gbp": 271.31,
+      "net_gbp": 66.95,
       "tariff_min": 257.43,
       "tariff_max": 257.43
     }
@@ -56,7 +50,7 @@
   "timeline": [],
   "invoices": [
     {
-      "id": "PROS-2025-0100-INV19504",
+      "id": "PROS-2025-0100-INV21216",
       "date": "2025-04-30",
       "period_start": "2025-04-13",
       "period_end": "2025-04-30",
@@ -99,7 +93,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2025-0100-INV19505",
+      "id": "PROS-2025-0100-INV21217",
       "date": "2025-05-31",
       "period_start": "2025-05-01",
       "period_end": "2025-05-31",
@@ -142,7 +136,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2025-0100-INV19506",
+      "id": "PROS-2025-0100-INV21218",
       "date": "2025-06-07",
       "period_start": "2025-06-01",
       "period_end": "2025-06-07",
@@ -186,22 +180,22 @@
     }
   ],
   "ledger": {
-    "as_of_date": "2025-06-25",
+    "as_of_date": "2025-07-04",
     "entries": [
       {
         "date": "2025-05-03",
         "type": "invoice_raised",
-        "invoice_number": 19504,
+        "invoice_number": 21216,
         "amount_gbp": 140.02,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV19504 raised",
+        "description": "Invoice INV21216 raised",
         "running_balance_gbp": 140.02
       },
       {
         "date": "2025-05-25",
         "type": "payment_received",
-        "invoice_number": 19504,
+        "invoice_number": 21216,
         "amount_gbp": -140.02,
         "info_amount_gbp": null,
         "method": "standard_credit",
@@ -211,27 +205,27 @@
       {
         "date": "2025-06-01",
         "type": "invoice_raised",
-        "invoice_number": 19505,
+        "invoice_number": 21217,
         "amount_gbp": 210.15,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV19505 raised",
+        "description": "Invoice INV21217 raised",
         "running_balance_gbp": 210.15
       },
       {
         "date": "2025-06-08",
         "type": "invoice_raised",
-        "invoice_number": 19506,
+        "invoice_number": 21218,
         "amount_gbp": 45.67,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV19506 raised",
+        "description": "Invoice INV21218 raised",
         "running_balance_gbp": 255.82
       },
       {
         "date": "2025-06-15",
         "type": "payment_received",
-        "invoice_number": 19505,
+        "invoice_number": 21217,
         "amount_gbp": -210.15,
         "info_amount_gbp": null,
         "method": "standard_credit",
@@ -241,7 +235,7 @@
       {
         "date": "2025-06-22",
         "type": "payment_received",
-        "invoice_number": 19506,
+        "invoice_number": 21218,
         "amount_gbp": -45.67,
         "info_amount_gbp": null,
         "method": "standard_credit",
@@ -273,5 +267,39 @@
     ],
     "has_hh_data": false
   },
-  "reaction_chain": []
+  "reaction_chain": [
+    {
+      "customer_id": "PROS-2025-0100",
+      "date": "2025-04-29",
+      "event_type": "collections_missed_payment",
+      "description": "A bill is unpaid past its due date -- collections journey opened -- GBP133.35 overdue",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 133.35,
+      "outcome": "cured",
+      "framing_type": null
+    },
+    {
+      "customer_id": "PROS-2025-0100",
+      "date": "2025-05-05",
+      "event_type": "collections_reminder",
+      "description": "Reminder sent -- GBP133.35 overdue",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 133.35,
+      "outcome": "cured",
+      "framing_type": null
+    },
+    {
+      "customer_id": "PROS-2025-0100",
+      "date": "2025-05-06",
+      "event_type": "collections_cured",
+      "description": "Overdue balance cleared -- journey closed",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 0,
+      "outcome": "cured",
+      "framing_type": null
+    }
+  ]
 }

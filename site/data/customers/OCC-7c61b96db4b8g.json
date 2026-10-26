@@ -52,10 +52,18 @@
       "tariff_max": 32.0
     }
   ],
-  "timeline": [],
+  "timeline": [
+    {
+      "type": "final_bill",
+      "date": "2017-03-31",
+      "detail": "Final bill",
+      "commodity": "gas",
+      "effect": "Closing read estimated; billed \u00a346.31"
+    }
+  ],
   "invoices": [
     {
-      "id": "OCC-7c61b96db4b8g-INV3508",
+      "id": "OCC-7c61b96db4b8g-INV4061",
       "date": "2016-11-30",
       "period_start": "2016-11-01",
       "period_end": "2016-11-30",
@@ -98,7 +106,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "OCC-7c61b96db4b8g-INV3509",
+      "id": "OCC-7c61b96db4b8g-INV4062",
       "date": "2016-12-31",
       "period_start": "2016-12-01",
       "period_end": "2016-12-31",
@@ -141,7 +149,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "OCC-7c61b96db4b8g-INV3510",
+      "id": "OCC-7c61b96db4b8g-INV4063",
       "date": "2017-01-31",
       "period_start": "2017-01-01",
       "period_end": "2017-01-31",
@@ -184,7 +192,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "OCC-7c61b96db4b8g-INV3511",
+      "id": "OCC-7c61b96db4b8g-INV4064",
       "date": "2017-02-28",
       "period_start": "2017-02-01",
       "period_end": "2017-02-28",
@@ -227,7 +235,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "OCC-7c61b96db4b8g-INV3512",
+      "id": "OCC-7c61b96db4b8g-INV4065",
       "date": "2017-03-31",
       "period_start": "2017-03-01",
       "period_end": "2017-03-31",
@@ -271,22 +279,22 @@
     }
   ],
   "ledger": {
-    "as_of_date": "2025-06-25",
+    "as_of_date": "2025-07-04",
     "entries": [
       {
         "date": "2016-12-07",
         "type": "invoice_raised",
-        "invoice_number": 3508,
+        "invoice_number": 4061,
         "amount_gbp": 53.26,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV3508 raised",
+        "description": "Invoice INV4061 raised",
         "running_balance_gbp": 53.26
       },
       {
         "date": "2016-12-21",
         "type": "payment_received",
-        "invoice_number": 3508,
+        "invoice_number": 4061,
         "amount_gbp": -53.26,
         "info_amount_gbp": null,
         "method": "standard_credit",
@@ -296,17 +304,17 @@
       {
         "date": "2016-12-31",
         "type": "invoice_raised",
-        "invoice_number": 3509,
+        "invoice_number": 4062,
         "amount_gbp": 64.83,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV3509 raised",
+        "description": "Invoice INV4062 raised",
         "running_balance_gbp": 64.83
       },
       {
         "date": "2017-01-14",
         "type": "payment_received",
-        "invoice_number": 3509,
+        "invoice_number": 4062,
         "amount_gbp": -64.83,
         "info_amount_gbp": null,
         "method": "standard_credit",
@@ -316,17 +324,17 @@
       {
         "date": "2017-02-01",
         "type": "invoice_raised",
-        "invoice_number": 3510,
+        "invoice_number": 4063,
         "amount_gbp": 61.52,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV3510 raised",
+        "description": "Invoice INV4063 raised",
         "running_balance_gbp": 61.52
       },
       {
         "date": "2017-02-15",
         "type": "payment_received",
-        "invoice_number": 3510,
+        "invoice_number": 4063,
         "amount_gbp": -61.52,
         "info_amount_gbp": null,
         "method": "standard_credit",
@@ -336,17 +344,17 @@
       {
         "date": "2017-03-03",
         "type": "invoice_raised",
-        "invoice_number": 3511,
+        "invoice_number": 4064,
         "amount_gbp": 49.22,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV3511 raised",
+        "description": "Invoice INV4064 raised",
         "running_balance_gbp": 49.22
       },
       {
         "date": "2017-03-17",
         "type": "payment_received",
-        "invoice_number": 3511,
+        "invoice_number": 4064,
         "amount_gbp": -49.22,
         "info_amount_gbp": null,
         "method": "standard_credit",
@@ -356,17 +364,17 @@
       {
         "date": "2017-04-02",
         "type": "invoice_raised",
-        "invoice_number": 3512,
+        "invoice_number": 4065,
         "amount_gbp": 46.31,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV3512 raised",
+        "description": "Invoice INV4065 raised",
         "running_balance_gbp": 46.31
       },
       {
         "date": "2017-04-16",
         "type": "payment_received",
-        "invoice_number": 3512,
+        "invoice_number": 4065,
         "amount_gbp": -46.31,
         "info_amount_gbp": null,
         "method": "standard_credit",
@@ -406,5 +414,7 @@
     ],
     "has_hh_data": false
   },
+  "predecessor_account_id": "SYN-2016-447g",
+  "predecessor_unavailable_because": null,
   "reaction_chain": []
 }

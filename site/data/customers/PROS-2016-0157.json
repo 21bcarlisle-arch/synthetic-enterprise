@@ -13,9 +13,9 @@
   },
   "mprn": null,
   "lifetime_revenue_gbp": 130.55,
-  "lifetime_gross_gbp": 98.33,
-  "lifetime_net_gbp": 40.88,
-  "lifetime_net_after_cts_gbp": 8.93,
+  "lifetime_gross_gbp": 98.18,
+  "lifetime_net_gbp": 40.73,
+  "lifetime_net_after_cts_gbp": 8.78,
   "cost_to_serve_gbp": 31.95,
   "pricing_action": {
     "flag": "OK",
@@ -31,7 +31,7 @@
   "forward_looking_account_id": "PROS-2016-0157",
   "commodity_split": {
     "electricity": {
-      "net_gbp": 40.88,
+      "net_gbp": 40.73,
       "revenue_gbp": 130.55
     },
     "gas": null
@@ -40,36 +40,56 @@
     "gas_account_id": "PROS-2016-0157g",
     "gas_lifetime_net_gbp": 50.42,
     "gas_lifetime_revenue_gbp": 155.68,
-    "combined_net_gbp": 91.3,
+    "combined_net_gbp": 91.15,
     "combined_revenue_gbp": 286.23
   },
   "annual_pnl": [
     {
       "year": 2016,
       "revenue_gbp": 0,
-      "gross_gbp": 98.33,
-      "net_gbp": 40.88,
+      "gross_gbp": 98.18,
+      "net_gbp": 40.73,
       "tariff_min": 100.63,
       "tariff_max": 100.63
     }
   ],
   "timeline": [
     {
+      "type": "final_bill",
+      "date": "2016-12-25",
+      "detail": "Final bill",
+      "commodity": "electricity",
+      "effect": "Closing read estimated; billed \u00a319.61"
+    },
+    {
+      "type": "moved_out",
+      "date": "2016-12-26",
+      "detail": "Moved out",
+      "commodity": "electricity"
+    },
+    {
       "date": "2017-07-22",
       "type": "life_event",
       "commodity": null,
       "detail": "Job loss",
-      "effect": "Real downstream drift: income stress low -> high"
+      "effect": "Real downstream drift: income stress low -> moderate"
     },
     {
-      "date": "2018-03-28",
+      "date": "2017-08-16",
       "type": "life_event",
       "commodity": null,
-      "detail": "Income recovery",
-      "effect": "Real downstream drift: income stress high -> low"
+      "detail": "Reemployed",
+      "effect": "Real downstream drift: income stress low -> moderate"
     },
     {
-      "date": "2019-03-08",
+      "date": "2022-08-16",
+      "type": "life_event",
+      "commodity": null,
+      "detail": "Income scar ended",
+      "effect": "Real downstream drift: income stress moderate -> low"
+    },
+    {
+      "date": "2023-03-08",
       "type": "life_event",
       "commodity": null,
       "detail": "New baby",
@@ -78,7 +98,7 @@
   ],
   "invoices": [
     {
-      "id": "PROS-2016-0157-INV8010",
+      "id": "PROS-2016-0157-INV10189",
       "date": "2016-05-31",
       "period_start": "2016-05-28",
       "period_end": "2016-05-31",
@@ -121,7 +141,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2016-0157-INV8011",
+      "id": "PROS-2016-0157-INV10190",
       "date": "2016-06-30",
       "period_start": "2016-06-01",
       "period_end": "2016-06-30",
@@ -164,7 +184,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2016-0157-INV8012",
+      "id": "PROS-2016-0157-INV10191",
       "date": "2016-07-31",
       "period_start": "2016-07-01",
       "period_end": "2016-07-31",
@@ -207,7 +227,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2016-0157-INV8013",
+      "id": "PROS-2016-0157-INV10192",
       "date": "2016-08-31",
       "period_start": "2016-08-01",
       "period_end": "2016-08-31",
@@ -250,7 +270,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2016-0157-INV8014",
+      "id": "PROS-2016-0157-INV10193",
       "date": "2016-09-30",
       "period_start": "2016-09-01",
       "period_end": "2016-09-30",
@@ -293,7 +313,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2016-0157-INV8015",
+      "id": "PROS-2016-0157-INV10194",
       "date": "2016-10-31",
       "period_start": "2016-10-01",
       "period_end": "2016-10-31",
@@ -336,7 +356,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2016-0157-INV8016",
+      "id": "PROS-2016-0157-INV10195",
       "date": "2016-11-30",
       "period_start": "2016-11-01",
       "period_end": "2016-11-30",
@@ -379,20 +399,20 @@
       "catchup_back_billing_cap_applied": false
     },
     {
-      "id": "PROS-2016-0157-INV8017",
+      "id": "PROS-2016-0157-INV10196",
       "date": "2016-12-25",
       "period_start": "2016-12-01",
       "period_end": "2016-12-25",
       "commodity": "electricity",
-      "consumption_kwh": 113.4,
+      "consumption_kwh": 137.9,
       "unit_rate_p_per_kwh": 4.86,
-      "commodity_amount_gbp": 5.51,
+      "commodity_amount_gbp": 6.7,
       "standing_charge_gbp": 4.81,
       "days_in_period": 25,
       "standing_charge_gbp_per_day": 0.1924,
-      "non_commodity_amount_gbp": 5.9,
-      "vat_gbp": 0.81,
-      "amount_gbp": 17.03,
+      "non_commodity_amount_gbp": 7.17,
+      "vat_gbp": 0.93,
+      "amount_gbp": 19.61,
       "status": "PAID",
       "outstanding_gbp": 0.0,
       "credit_applied_gbp": null,
@@ -401,13 +421,13 @@
       "mprn": null,
       "read_type": "E",
       "opening_read_kwh": 705.3,
-      "closing_read_kwh": 818.7,
+      "closing_read_kwh": 843.2,
       "registers": [
         {
           "register_id": "1",
           "label": "Anytime",
-          "consumption_kwh": 113.4,
-          "amount_gbp": 5.51,
+          "consumption_kwh": 137.9,
+          "amount_gbp": 6.7,
           "unit_rate_p_per_kwh": 4.86
         }
       ],
@@ -423,22 +443,22 @@
     }
   ],
   "ledger": {
-    "as_of_date": "2025-06-25",
+    "as_of_date": "2025-07-04",
     "entries": [
       {
         "date": "2016-06-03",
         "type": "invoice_raised",
-        "invoice_number": 8010,
+        "invoice_number": 10189,
         "amount_gbp": 2.35,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV8010 raised",
+        "description": "Invoice INV10189 raised",
         "running_balance_gbp": 2.35
       },
       {
         "date": "2016-06-17",
         "type": "payment_received",
-        "invoice_number": 8010,
+        "invoice_number": 10189,
         "amount_gbp": -2.35,
         "info_amount_gbp": null,
         "method": "standard_credit",
@@ -448,17 +468,17 @@
       {
         "date": "2016-06-30",
         "type": "invoice_raised",
-        "invoice_number": 8011,
+        "invoice_number": 10190,
         "amount_gbp": 17.09,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV8011 raised",
+        "description": "Invoice INV10190 raised",
         "running_balance_gbp": 17.09
       },
       {
         "date": "2016-07-14",
         "type": "payment_received",
-        "invoice_number": 8011,
+        "invoice_number": 10190,
         "amount_gbp": -17.09,
         "info_amount_gbp": null,
         "method": "standard_credit",
@@ -468,17 +488,17 @@
       {
         "date": "2016-08-01",
         "type": "invoice_raised",
-        "invoice_number": 8012,
+        "invoice_number": 10191,
         "amount_gbp": 17.38,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV8012 raised",
+        "description": "Invoice INV10191 raised",
         "running_balance_gbp": 17.38
       },
       {
         "date": "2016-08-15",
         "type": "payment_received",
-        "invoice_number": 8012,
+        "invoice_number": 10191,
         "amount_gbp": -17.38,
         "info_amount_gbp": null,
         "method": "standard_credit",
@@ -488,17 +508,17 @@
       {
         "date": "2016-09-01",
         "type": "invoice_raised",
-        "invoice_number": 8013,
+        "invoice_number": 10192,
         "amount_gbp": 17.67,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV8013 raised",
+        "description": "Invoice INV10192 raised",
         "running_balance_gbp": 17.67
       },
       {
         "date": "2016-09-15",
         "type": "payment_received",
-        "invoice_number": 8013,
+        "invoice_number": 10192,
         "amount_gbp": -17.67,
         "info_amount_gbp": null,
         "method": "standard_credit",
@@ -508,17 +528,17 @@
       {
         "date": "2016-10-02",
         "type": "invoice_raised",
-        "invoice_number": 8014,
+        "invoice_number": 10193,
         "amount_gbp": 18.03,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV8014 raised",
+        "description": "Invoice INV10193 raised",
         "running_balance_gbp": 18.03
       },
       {
         "date": "2016-10-16",
         "type": "payment_received",
-        "invoice_number": 8014,
+        "invoice_number": 10193,
         "amount_gbp": -18.03,
         "info_amount_gbp": null,
         "method": "standard_credit",
@@ -528,17 +548,17 @@
       {
         "date": "2016-11-01",
         "type": "invoice_raised",
-        "invoice_number": 8015,
+        "invoice_number": 10194,
         "amount_gbp": 19.67,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV8015 raised",
+        "description": "Invoice INV10194 raised",
         "running_balance_gbp": 19.67
       },
       {
         "date": "2016-11-15",
         "type": "payment_received",
-        "invoice_number": 8015,
+        "invoice_number": 10194,
         "amount_gbp": -19.67,
         "info_amount_gbp": null,
         "method": "standard_credit",
@@ -548,17 +568,17 @@
       {
         "date": "2016-12-10",
         "type": "invoice_raised",
-        "invoice_number": 8016,
+        "invoice_number": 10195,
         "amount_gbp": 27.81,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV8016 raised",
+        "description": "Invoice INV10195 raised",
         "running_balance_gbp": 27.81
       },
       {
         "date": "2016-12-24",
         "type": "payment_received",
-        "invoice_number": 8016,
+        "invoice_number": 10195,
         "amount_gbp": -27.81,
         "info_amount_gbp": null,
         "method": "standard_credit",
@@ -568,18 +588,18 @@
       {
         "date": "2016-12-26",
         "type": "invoice_raised",
-        "invoice_number": 8017,
-        "amount_gbp": 17.03,
+        "invoice_number": 10196,
+        "amount_gbp": 19.61,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV8017 raised",
-        "running_balance_gbp": 17.03
+        "description": "Invoice INV10196 raised",
+        "running_balance_gbp": 19.61
       },
       {
         "date": "2017-01-09",
         "type": "payment_received",
-        "invoice_number": 8017,
-        "amount_gbp": -17.03,
+        "invoice_number": 10196,
+        "amount_gbp": -19.61,
         "info_amount_gbp": null,
         "method": "standard_credit",
         "description": "Payment received",
@@ -587,8 +607,8 @@
       }
     ],
     "current_balance_gbp": 0.0,
-    "total_billed_gbp": 137.03,
-    "total_collected_gbp": 137.03,
+    "total_billed_gbp": 139.61,
+    "total_collected_gbp": 139.61,
     "total_written_off_gross_gbp": 0,
     "total_recovered_gbp": 0
   },
@@ -625,10 +645,44 @@
       },
       {
         "month": "2016-12",
-        "kwh": 113.4
+        "kwh": 137.9
       }
     ],
     "has_hh_data": false
   },
-  "reaction_chain": []
+  "reaction_chain": [
+    {
+      "customer_id": "PROS-2016-0157",
+      "date": "2016-08-29",
+      "event_type": "collections_missed_payment",
+      "description": "A bill is unpaid past its due date -- collections journey opened -- GBP12.57 overdue",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 12.57,
+      "outcome": "cured",
+      "framing_type": null
+    },
+    {
+      "customer_id": "PROS-2016-0157",
+      "date": "2016-09-04",
+      "event_type": "collections_reminder",
+      "description": "Reminder sent -- GBP12.57 overdue",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 12.57,
+      "outcome": "cured",
+      "framing_type": null
+    },
+    {
+      "customer_id": "PROS-2016-0157",
+      "date": "2016-09-05",
+      "event_type": "collections_cured",
+      "description": "Overdue balance cleared -- journey closed",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 0,
+      "outcome": "cured",
+      "framing_type": null
+    }
+  ]
 }

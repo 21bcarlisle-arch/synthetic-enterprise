@@ -1,0 +1,153 @@
+{
+  "account_id": "OCC-0512a736822f",
+  "base_account_id": "OCC-0512a736822f",
+  "segment": "resi",
+  "commodity": "electricity",
+  "is_dual_fuel": true,
+  "acquisition_date": "2020-06-26",
+  "tariff_name": "Standard Variable (Electricity)",
+  "meter_type": "Traditional",
+  "mpan": {
+    "top_line": "0100206",
+    "bottom_line": "20146164162"
+  },
+  "mprn": null,
+  "lifetime_revenue_gbp": 4.79,
+  "lifetime_gross_gbp": 4.22,
+  "lifetime_net_gbp": -2.49,
+  "lifetime_net_after_cts_gbp": -3.24,
+  "cost_to_serve_gbp": 0.75,
+  "pricing_action": {
+    "flag": "NET_NEGATIVE",
+    "recommended_uplift_pct": 67.8
+  },
+  "avg_hedge_fraction": 0.85,
+  "clv_gbp": null,
+  "churn_probability": null,
+  "expected_lifetime_periods": null,
+  "forecast_annual_profit_gbp": null,
+  "forecast_cashflow": [],
+  "forward_looking_basis": "no_billing_account",
+  "forward_looking_account_id": "OCC-0512a736822f",
+  "commodity_split": {
+    "electricity": {
+      "net_gbp": -2.49,
+      "revenue_gbp": 4.79
+    },
+    "gas": null
+  },
+  "dual_fuel_combined": {
+    "gas_account_id": "OCC-0512a736822fg",
+    "gas_lifetime_net_gbp": -1.25,
+    "gas_lifetime_revenue_gbp": 4.16,
+    "combined_net_gbp": -3.74,
+    "combined_revenue_gbp": 8.95
+  },
+  "annual_pnl": [
+    {
+      "year": 2020,
+      "revenue_gbp": 0,
+      "gross_gbp": 4.22,
+      "net_gbp": -2.49,
+      "tariff_min": 169.62,
+      "tariff_max": 169.62
+    }
+  ],
+  "timeline": [
+    {
+      "type": "final_bill",
+      "date": "2020-06-30",
+      "detail": "Final bill",
+      "commodity": "electricity",
+      "effect": "Closing read actual; billed \u00a35.03"
+    }
+  ],
+  "invoices": [
+    {
+      "id": "OCC-0512a736822f-INV428",
+      "date": "2020-06-30",
+      "period_start": "2020-06-26",
+      "period_end": "2020-06-30",
+      "commodity": "electricity",
+      "consumption_kwh": 21.4,
+      "unit_rate_p_per_kwh": 11.26,
+      "commodity_amount_gbp": 2.41,
+      "standing_charge_gbp": 1.15,
+      "days_in_period": 5,
+      "standing_charge_gbp_per_day": 0.23,
+      "non_commodity_amount_gbp": 1.22,
+      "vat_gbp": 0.24,
+      "amount_gbp": 5.02,
+      "status": "PAID",
+      "outstanding_gbp": 0.0,
+      "credit_applied_gbp": null,
+      "meter_serial": "M00066898",
+      "mpan": "1000000000973",
+      "mprn": null,
+      "read_type": "A",
+      "opening_read_kwh": 0.0,
+      "closing_read_kwh": 21.4,
+      "registers": [
+        {
+          "register_id": "1",
+          "label": "Anytime",
+          "consumption_kwh": 21.4,
+          "amount_gbp": 2.41,
+          "unit_rate_p_per_kwh": 11.26
+        }
+      ],
+      "catchup_applied": false,
+      "catchup_period_start": null,
+      "catchup_period_end": null,
+      "catchup_periods_covered": null,
+      "catchup_direction": null,
+      "catchup_raw_delta_gbp": null,
+      "catchup_adjustment_gbp": null,
+      "catchup_written_off_gbp": null,
+      "catchup_back_billing_cap_applied": null
+    }
+  ],
+  "ledger": {
+    "as_of_date": "2025-07-04",
+    "entries": [
+      {
+        "date": "2020-07-01",
+        "type": "invoice_raised",
+        "invoice_number": 428,
+        "amount_gbp": 5.02,
+        "info_amount_gbp": null,
+        "method": null,
+        "description": "Invoice INV428 raised",
+        "running_balance_gbp": 5.02
+      },
+      {
+        "date": "2020-07-15",
+        "type": "payment_received",
+        "invoice_number": 428,
+        "amount_gbp": -5.02,
+        "info_amount_gbp": null,
+        "method": "direct_debit",
+        "description": "Payment received",
+        "running_balance_gbp": 0.0
+      }
+    ],
+    "current_balance_gbp": 0.0,
+    "total_billed_gbp": 5.02,
+    "total_collected_gbp": 5.02,
+    "total_written_off_gross_gbp": 0,
+    "total_recovered_gbp": 0
+  },
+  "consumption": {
+    "unit": "kWh",
+    "monthly": [
+      {
+        "month": "2020-06",
+        "kwh": 21.4
+      }
+    ],
+    "has_hh_data": false
+  },
+  "predecessor_account_id": "SYN-2016-603",
+  "predecessor_unavailable_because": null,
+  "reaction_chain": []
+}

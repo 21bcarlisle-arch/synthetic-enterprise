@@ -40,8 +40,8 @@
       "revenue_gbp": 0,
       "gross_gbp": 3.15,
       "net_gbp": 1.53,
-      "tariff_min": 43.15,
-      "tariff_max": 43.15
+      "tariff_min": 43.18,
+      "tariff_max": 43.18
     }
   ],
   "timeline": [
@@ -56,11 +56,24 @@
       "type": "life_event",
       "commodity": null,
       "detail": "Insulation upgraded"
+    },
+    {
+      "type": "final_bill",
+      "date": "2024-05-08",
+      "detail": "Final bill",
+      "commodity": "gas",
+      "effect": "Closing read actual; billed \u00a35.42"
+    },
+    {
+      "type": "moved_out",
+      "date": "2024-05-09",
+      "detail": "Moved out",
+      "commodity": "gas"
     }
   ],
   "invoices": [
     {
-      "id": "PROS-2024-0110g-INV19132",
+      "id": "PROS-2024-0110g-INV20864",
       "date": "2024-05-08",
       "period_start": "2024-05-03",
       "period_end": "2024-05-08",
@@ -104,22 +117,22 @@
     }
   ],
   "ledger": {
-    "as_of_date": "2025-06-25",
+    "as_of_date": "2025-07-04",
     "entries": [
       {
         "date": "2024-05-09",
         "type": "invoice_raised",
-        "invoice_number": 19132,
+        "invoice_number": 20864,
         "amount_gbp": 5.42,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV19132 raised",
+        "description": "Invoice INV20864 raised",
         "running_balance_gbp": 5.42
       },
       {
         "date": "2024-05-23",
         "type": "payment_received",
-        "invoice_number": 19132,
+        "invoice_number": 20864,
         "amount_gbp": -5.42,
         "info_amount_gbp": null,
         "method": "direct_debit",

@@ -1,30 +1,6 @@
 {
   "atoms": [
     {
-      "id": "B5_regional_basis_risk",
-      "name": "Regional basis risk (COUPLED): the company settles regional volumes at published zonal prices but can only hedge nationally -- no regional forward market exists -- so a regionally-skewed book carries unhedgeable basis; gap = assumed-national-hedge protection vs realised zonal basis cost (company twin of W1_8)",
-      "lane": "B_commercial",
-      "value_stream": "wholesale_to_price",
-      "value_stream_label": "Wholesale to Price",
-      "epoch": 3,
-      "level_current": 0,
-      "level_target": 3,
-      "loop_stage": "idle",
-      "dial_inherited": 3,
-      "expert_hour_status": "not_attempted",
-      "depends_on": [
-        "W1_8_zonal_locational_pricing"
-      ],
-      "couples_with": [
-        "W1_8_zonal_locational_pricing"
-      ],
-      "chain": null,
-      "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
-      "forward_attachments": []
-    },
-    {
       "id": "A4_sim_approver",
       "name": "Sim-approver (policy-agent playing the human approver for tournament runs)",
       "lane": "A_strategy_governance",
@@ -240,30 +216,6 @@
         "C13_weather_normalisation"
       ],
       "chain": "weather_cascade",
-      "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
-      "forward_attachments": []
-    },
-    {
-      "id": "W1_8_zonal_locational_pricing",
-      "name": "Zonal / locational marginal pricing mechanics (the regional-basis market that does not exist today)",
-      "lane": "W1_market_weather",
-      "value_stream": "wholesale_to_price",
-      "value_stream_label": "Wholesale to Price",
-      "epoch": 3,
-      "level_current": 0,
-      "level_target": 3,
-      "loop_stage": "idle",
-      "dial_inherited": 3,
-      "expert_hour_status": "not_attempted",
-      "depends_on": [
-        "W1_6_physics_price_signal"
-      ],
-      "couples_with": [
-        "B5_regional_basis_risk"
-      ],
-      "chain": null,
       "at_target": false,
       "stalled": false,
       "stall_consecutive_unchanged": null,
@@ -551,7 +503,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 948,
+      "stall_consecutive_unchanged": 906,
       "forward_attachments": []
     },
     {
@@ -593,7 +545,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 962,
+      "stall_consecutive_unchanged": 140,
       "forward_attachments": []
     },
     {
@@ -909,7 +861,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 3712,
+      "stall_consecutive_unchanged": 5214,
       "forward_attachments": []
     },
     {
@@ -919,7 +871,7 @@
       "value_stream": "meter_to_cash",
       "value_stream_label": "Meter to Cash",
       "epoch": 3,
-      "level_current": 1,
+      "level_current": 2,
       "level_target": 3,
       "loop_stage": "idle",
       "dial_inherited": 3,
@@ -1136,7 +1088,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 3712,
+      "stall_consecutive_unchanged": 5213,
       "forward_attachments": []
     },
     {
@@ -1204,7 +1156,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 54,
+      "stall_consecutive_unchanged": 183,
       "forward_attachments": []
     },
     {
@@ -1228,7 +1180,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 54,
+      "stall_consecutive_unchanged": 184,
       "forward_attachments": []
     },
     {
@@ -1251,7 +1203,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 48728,
+      "stall_consecutive_unchanged": 49119,
       "forward_attachments": []
     },
     {
@@ -1273,7 +1225,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 3712,
+      "stall_consecutive_unchanged": 5214,
       "forward_attachments": []
     },
     {
@@ -1339,7 +1291,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 3712,
+      "stall_consecutive_unchanged": 5213,
       "forward_attachments": []
     },
     {
@@ -1383,7 +1335,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 3712,
+      "stall_consecutive_unchanged": 5213,
       "forward_attachments": []
     },
     {
@@ -1478,28 +1430,6 @@
       "at_target": false,
       "stalled": true,
       "stall_consecutive_unchanged": 742,
-      "forward_attachments": []
-    },
-    {
-      "id": "PB8_a_households_payment_channel_changes_over_its_tenure",
-      "name": "",
-      "lane": "W2_customer_generator",
-      "value_stream": "meter_to_cash",
-      "value_stream_label": "Meter to Cash",
-      "epoch": 3,
-      "level_current": 1,
-      "level_target": 2,
-      "loop_stage": "idle",
-      "dial_inherited": 45,
-      "expert_hour_status": "not_attempted",
-      "depends_on": [],
-      "couples_with": [
-        "PB6_the_engagement_observable_crosses_the_seam"
-      ],
-      "chain": null,
-      "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 836,
       "forward_attachments": []
     },
     {
@@ -1839,7 +1769,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 3713,
+      "stall_consecutive_unchanged": 5214,
       "forward_attachments": []
     },
     {
@@ -2074,7 +2004,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 7734,
+      "stall_consecutive_unchanged": 16133,
       "forward_attachments": []
     },
     {
@@ -2108,7 +2038,7 @@
       "value_stream": "meter_to_cash",
       "value_stream_label": "Meter to Cash",
       "epoch": 4,
-      "level_current": 0,
+      "level_current": 1,
       "level_target": 3,
       "loop_stage": "build",
       "dial_inherited": 100,
@@ -2120,7 +2050,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 947,
+      "stall_consecutive_unchanged": 303,
       "forward_attachments": []
     },
     {
@@ -2144,7 +2074,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2754,
+      "stall_consecutive_unchanged": 3013,
       "forward_attachments": []
     },
     {
@@ -2167,8 +2097,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
+      "stalled": true,
+      "stall_consecutive_unchanged": 6,
       "forward_attachments": []
     },
     {
@@ -2178,7 +2108,7 @@
       "value_stream": "meter_to_cash",
       "value_stream_label": "Meter to Cash",
       "epoch": 4,
-      "level_current": 0,
+      "level_current": 1,
       "level_target": 2,
       "loop_stage": "build",
       "dial_inherited": 85,
@@ -2189,8 +2119,31 @@
       ],
       "chain": null,
       "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 5,
+      "forward_attachments": []
+    },
+    {
+      "id": "B13_a_dual_fuel_household_is_one_account_across_both_fuels",
+      "name": "",
+      "lane": "B_commercial",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 4,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 85,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [
+        "B7_customer_state_layer_moves_and_shocks",
+        "EP12_adapter_css_rec_switching"
+      ],
+      "chain": null,
+      "at_target": true,
       "stalled": false,
-      "stall_consecutive_unchanged": 1,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -2200,7 +2153,7 @@
       "value_stream": "price_to_bill",
       "value_stream_label": "Price to Bill",
       "epoch": 4,
-      "level_current": 0,
+      "level_current": 1,
       "level_target": 2,
       "loop_stage": "build",
       "dial_inherited": 90,
@@ -2212,8 +2165,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
+      "stalled": true,
+      "stall_consecutive_unchanged": 5,
       "forward_attachments": []
     },
     {
@@ -2267,7 +2220,7 @@
       "value_stream": "meter_to_cash",
       "value_stream_label": "Meter to Cash",
       "epoch": 4,
-      "level_current": 0,
+      "level_current": 1,
       "level_target": 3,
       "loop_stage": "build",
       "dial_inherited": 95,
@@ -2280,8 +2233,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
+      "stalled": true,
+      "stall_consecutive_unchanged": 15,
       "forward_attachments": []
     },
     {
@@ -8330,6 +8283,76 @@
       "stalled": true,
       "stall_consecutive_unchanged": 170,
       "forward_attachments": []
+    },
+    {
+      "id": "B5_regional_basis_risk",
+      "name": "Regional basis risk (COUPLED): the company settles regional volumes at published zonal prices but can only hedge nationally -- no regional forward market exists -- so a regionally-skewed book carries unhedgeable basis; gap = assumed-national-hedge protection vs realised zonal basis cost (company twin of W1_8)",
+      "lane": "B_commercial",
+      "value_stream": "wholesale_to_price",
+      "value_stream_label": "Wholesale to Price",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 0,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "W1_8_zonal_locational_pricing"
+      ],
+      "couples_with": [
+        "W1_8_zonal_locational_pricing"
+      ],
+      "chain": null,
+      "at_target": true,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
+    },
+    {
+      "id": "W1_8_zonal_locational_pricing",
+      "name": "Zonal / locational marginal pricing mechanics (the regional-basis market that does not exist today)",
+      "lane": "W1_market_weather",
+      "value_stream": "wholesale_to_price",
+      "value_stream_label": "Wholesale to Price",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 0,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "W1_6_physics_price_signal"
+      ],
+      "couples_with": [
+        "B5_regional_basis_risk"
+      ],
+      "chain": null,
+      "at_target": true,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
+    },
+    {
+      "id": "PB8_a_households_payment_channel_changes_over_its_tenure",
+      "name": "",
+      "lane": "W2_customer_generator",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 3,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "idle",
+      "dial_inherited": 45,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [
+        "PB6_the_engagement_observable_crosses_the_seam"
+      ],
+      "chain": null,
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 836,
+      "forward_attachments": []
     }
   ],
   "lanes": {
@@ -8412,7 +8435,7 @@
       "loop_stage_now": "harden"
     }
   },
-  "total_atoms": 371,
+  "total_atoms": 372,
   "epoch2_movements": [
     {
       "id": "M1",

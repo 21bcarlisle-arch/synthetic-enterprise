@@ -53,7 +53,21 @@
       "tariff_max": 179.47
     }
   ],
-  "timeline": [],
+  "timeline": [
+    {
+      "type": "final_bill",
+      "date": "2016-04-20",
+      "detail": "Final bill",
+      "commodity": "electricity",
+      "effect": "Closing read actual; billed \u00a311.36"
+    },
+    {
+      "type": "moved_out",
+      "date": "2016-04-21",
+      "detail": "Moved out",
+      "commodity": "electricity"
+    }
+  ],
   "invoices": [
     {
       "id": "C1-INV1",
@@ -82,10 +96,21 @@
       "registers": [
         {
           "register_id": "1",
-          "label": "Anytime",
-          "consumption_kwh": 100.1,
-          "amount_gbp": 6.28,
-          "unit_rate_p_per_kwh": 6.27
+          "label": "Peak",
+          "consumption_kwh": 24.3,
+          "amount_gbp": 3.09,
+          "unit_rate_p_per_kwh": 12.72,
+          "opening_read_kwh": 0.0,
+          "closing_read_kwh": 24.3
+        },
+        {
+          "register_id": "2",
+          "label": "Off-peak",
+          "consumption_kwh": 75.8,
+          "amount_gbp": 3.19,
+          "unit_rate_p_per_kwh": 4.21,
+          "opening_read_kwh": 0.0,
+          "closing_read_kwh": 75.8
         }
       ],
       "catchup_applied": false,
@@ -125,10 +150,21 @@
       "registers": [
         {
           "register_id": "1",
-          "label": "Anytime",
-          "consumption_kwh": 86.9,
-          "amount_gbp": 5.66,
-          "unit_rate_p_per_kwh": 6.51
+          "label": "Peak",
+          "consumption_kwh": 23.5,
+          "amount_gbp": 3.0,
+          "unit_rate_p_per_kwh": 12.77,
+          "opening_read_kwh": 24.3,
+          "closing_read_kwh": 47.8
+        },
+        {
+          "register_id": "2",
+          "label": "Off-peak",
+          "consumption_kwh": 63.4,
+          "amount_gbp": 2.66,
+          "unit_rate_p_per_kwh": 4.2,
+          "opening_read_kwh": 75.8,
+          "closing_read_kwh": 139.2
         }
       ],
       "catchup_applied": false,
@@ -168,10 +204,21 @@
       "registers": [
         {
           "register_id": "1",
-          "label": "Anytime",
-          "consumption_kwh": 88.9,
-          "amount_gbp": 5.93,
-          "unit_rate_p_per_kwh": 6.67
+          "label": "Peak",
+          "consumption_kwh": 25.6,
+          "amount_gbp": 3.27,
+          "unit_rate_p_per_kwh": 12.77,
+          "opening_read_kwh": 47.8,
+          "closing_read_kwh": 73.4
+        },
+        {
+          "register_id": "2",
+          "label": "Off-peak",
+          "consumption_kwh": 63.3,
+          "amount_gbp": 2.66,
+          "unit_rate_p_per_kwh": 4.2,
+          "opening_read_kwh": 139.2,
+          "closing_read_kwh": 202.5
         }
       ],
       "catchup_applied": false,
@@ -211,10 +258,21 @@
       "registers": [
         {
           "register_id": "1",
-          "label": "Anytime",
-          "consumption_kwh": 58.8,
-          "amount_gbp": 3.92,
-          "unit_rate_p_per_kwh": 6.67
+          "label": "Peak",
+          "consumption_kwh": 16.9,
+          "amount_gbp": 2.16,
+          "unit_rate_p_per_kwh": 12.78,
+          "opening_read_kwh": 73.4,
+          "closing_read_kwh": 90.3
+        },
+        {
+          "register_id": "2",
+          "label": "Off-peak",
+          "consumption_kwh": 41.9,
+          "amount_gbp": 1.76,
+          "unit_rate_p_per_kwh": 4.2,
+          "opening_read_kwh": 202.5,
+          "closing_read_kwh": 244.4
         }
       ],
       "catchup_applied": false,
@@ -229,7 +287,7 @@
     }
   ],
   "ledger": {
-    "as_of_date": "2025-06-25",
+    "as_of_date": "2025-07-04",
     "entries": [
       {
         "date": "2016-02-05",

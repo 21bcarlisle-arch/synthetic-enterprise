@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-10-19T08:52:36Z",
-  "git_hash": "30246d6f0",
+  "generated_at": "2026-10-26T12:06:08Z",
+  "git_hash": "185355386",
   "published_from": {
-    "commit": "30246d6f09f45eafb52e53600574b79b2b4b4fce",
+    "commit": "18535538667faa48945caf54094fd13960a35b7f",
     "tree_was_clean": true,
     "inputs_are_the_committed_bytes": true,
     "inputs": [
@@ -291,14 +291,21 @@
               "resolved_path": "company/compliance/population_sanity.py",
               "raw": "company/compliance/population_sanity.py",
               "is_test": false
+            },
+            {
+              "path": "tests/company/compliance/test_obligations_register.py",
+              "status": "RESOLVED",
+              "resolved_path": "tests/company/compliance/test_obligations_register.py",
+              "raw": "tests/company/compliance/test_obligations_register.py",
+              "is_test": true,
+              "test_functions": 43
             }
           ],
-          "test_files": 0,
-          "test_functions": 0,
+          "test_files": 1,
+          "test_functions": 43,
           "ledger": [],
           "missing": [
-            "NO_LEDGER_RECORD",
-            "NO_TEST_CITED"
+            "NO_LEDGER_RECORD"
           ]
         },
         {
@@ -1455,14 +1462,21 @@
               "resolved_path": "docs/market_research/sme_distress_twin_w2_6.md",
               "raw": "docs/market_research/sme_distress_twin_w2_6.md",
               "is_test": false
+            },
+            {
+              "path": "tests/sim/test_w2_6_sme_distress.py",
+              "status": "RESOLVED",
+              "resolved_path": "tests/sim/test_w2_6_sme_distress.py",
+              "raw": "tests/sim/test_w2_6_sme_distress.py",
+              "is_test": true,
+              "test_functions": 29
             }
           ],
-          "test_files": 0,
-          "test_functions": 0,
+          "test_files": 1,
+          "test_functions": 29,
           "ledger": [],
           "missing": [
-            "NO_LEDGER_RECORD",
-            "NO_TEST_CITED"
+            "NO_LEDGER_RECORD"
           ]
         },
         {
@@ -1964,14 +1978,21 @@
               "resolved_path": "docs/design/COUPLED_TRIAD_DESIGN.md",
               "raw": "docs/design/COUPLED_TRIAD_DESIGN.md",
               "is_test": false
+            },
+            {
+              "path": "tests/test_couple_w2_7_c9.py",
+              "status": "RESOLVED",
+              "resolved_path": "tests/test_couple_w2_7_c9.py",
+              "raw": "tests/test_couple_w2_7_c9.py",
+              "is_test": true,
+              "test_functions": 18
             }
           ],
-          "test_files": 0,
-          "test_functions": 0,
+          "test_files": 1,
+          "test_functions": 18,
           "ledger": [],
           "missing": [
-            "NO_LEDGER_RECORD",
-            "NO_TEST_CITED"
+            "NO_LEDGER_RECORD"
           ]
         },
         {
@@ -2745,8 +2766,8 @@
   "totals": {
     "nodes": 6,
     "atoms": 46,
-    "citations": 214,
-    "citations_resolved": 205,
+    "citations": 217,
+    "citations_resolved": 208,
     "citations_relocated": 5,
     "citations_missing": 4,
     "atoms_with_missing": 42,

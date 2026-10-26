@@ -13,9 +13,9 @@
   },
   "mprn": null,
   "lifetime_revenue_gbp": 340.25,
-  "lifetime_gross_gbp": 236.06,
-  "lifetime_net_gbp": 57.9,
-  "lifetime_net_after_cts_gbp": 2.91,
+  "lifetime_gross_gbp": 235.82,
+  "lifetime_net_gbp": 57.66,
+  "lifetime_net_after_cts_gbp": 2.67,
   "cost_to_serve_gbp": 54.99,
   "pricing_action": {
     "flag": "MARGIN_SQUEEZE",
@@ -31,7 +31,7 @@
   "forward_looking_account_id": "C3",
   "commodity_split": {
     "electricity": {
-      "net_gbp": 57.9,
+      "net_gbp": 57.66,
       "revenue_gbp": 340.25
     },
     "gas": null
@@ -40,28 +40,35 @@
     "gas_account_id": "C3g",
     "gas_lifetime_net_gbp": 88.14,
     "gas_lifetime_revenue_gbp": 520.18,
-    "combined_net_gbp": 146.04,
+    "combined_net_gbp": 145.79,
     "combined_revenue_gbp": 860.43
   },
   "annual_pnl": [
     {
       "year": 2016,
       "revenue_gbp": 0,
-      "gross_gbp": 117.83,
-      "net_gbp": 32.07,
+      "gross_gbp": 117.65,
+      "net_gbp": 31.88,
       "tariff_min": 100.17,
       "tariff_max": 100.17
     },
     {
       "year": 2017,
       "revenue_gbp": 0,
-      "gross_gbp": 118.23,
-      "net_gbp": 25.83,
+      "gross_gbp": 118.17,
+      "net_gbp": 25.78,
       "tariff_min": 100.17,
       "tariff_max": 100.17
     }
   ],
   "timeline": [
+    {
+      "type": "final_bill",
+      "date": "2017-06-30",
+      "detail": "Final bill",
+      "commodity": "electricity",
+      "effect": "Closing read estimated; billed \u00a322.60"
+    },
     {
       "date": "2017-07-01",
       "type": "churned",
@@ -73,7 +80,14 @@
       "type": "life_event",
       "commodity": null,
       "detail": "Job loss",
-      "effect": "Real downstream drift: income stress low -> high"
+      "effect": "Real downstream drift: income stress low -> moderate"
+    },
+    {
+      "date": "2023-06-07",
+      "type": "life_event",
+      "commodity": null,
+      "detail": "Reemployed",
+      "effect": "Real downstream drift: income stress low -> moderate"
     }
   ],
   "invoices": [
@@ -595,7 +609,7 @@
     }
   ],
   "ledger": {
-    "as_of_date": "2025-06-25",
+    "as_of_date": "2025-07-04",
     "entries": [
       {
         "date": "2016-07-31",
@@ -901,6 +915,94 @@
   "reaction_chain": [
     {
       "customer_id": "C3",
+      "date": "2017-03-29",
+      "event_type": "collections_missed_payment",
+      "description": "A bill is unpaid past its due date -- collections journey opened -- GBP29.96 overdue",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 29.96,
+      "outcome": "cured",
+      "framing_type": null
+    },
+    {
+      "customer_id": "C3",
+      "date": "2017-04-04",
+      "event_type": "collections_reminder",
+      "description": "Reminder sent -- GBP29.96 overdue",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 29.96,
+      "outcome": "cured",
+      "framing_type": null
+    },
+    {
+      "customer_id": "C3",
+      "date": "2017-04-11",
+      "event_type": "collections_cured",
+      "description": "Overdue balance cleared -- journey closed",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 0,
+      "outcome": "cured",
+      "framing_type": null
+    },
+    {
+      "customer_id": "C3",
+      "date": "2017-04-29",
+      "event_type": "collections_missed_payment",
+      "description": "A bill is unpaid past its due date -- collections journey opened -- GBP27.81 overdue",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 27.81,
+      "outcome": "cured",
+      "framing_type": null
+    },
+    {
+      "customer_id": "C3",
+      "date": "2017-05-02",
+      "event_type": "collections_cured",
+      "description": "Overdue balance cleared -- journey closed",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 0,
+      "outcome": "cured",
+      "framing_type": null
+    },
+    {
+      "customer_id": "C3",
+      "date": "2017-05-29",
+      "event_type": "collections_missed_payment",
+      "description": "A bill is unpaid past its due date -- collections journey opened -- GBP26.90 overdue",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 26.9,
+      "outcome": "cured",
+      "framing_type": null
+    },
+    {
+      "customer_id": "C3",
+      "date": "2017-06-01",
+      "event_type": "collections_cured",
+      "description": "Overdue balance cleared -- journey closed",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 0,
+      "outcome": "cured",
+      "framing_type": null
+    },
+    {
+      "customer_id": "C3",
+      "date": "2017-06-29",
+      "event_type": "collections_missed_payment",
+      "description": "A bill is unpaid past its due date -- collections journey opened -- GBP18.77 overdue",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 18.77,
+      "outcome": "cured",
+      "framing_type": null
+    },
+    {
+      "customer_id": "C3",
       "date": "2017-07-01",
       "event_type": "journey_state",
       "description": "Hidden churn-journey state advances to IRRITATED (resentment score 38.0)",
@@ -914,10 +1016,10 @@
       "customer_id": "C3",
       "date": "2017-07-01",
       "event_type": "retention_decision",
-      "description": "Renewal window: company estimated 44% churn risk, decided to offer a 3% discount (cost GBP10.16) against GBP205.23 expected term margin at risk -- expected value of offering GBP195.07. Comms framed as a gain (save with this discount).",
-      "company_belief": 0.443,
+      "description": "Renewal window: company estimated 46% churn risk, decided to offer a 3% discount (cost GBP10.26) against GBP2.96 expected term margin at risk -- expected value of offering GBP-7.30. Comms framed as a gain (save with this discount).",
+      "company_belief": 0.455,
       "sim_truth": 0.462,
-      "amount_gbp": 195.07,
+      "amount_gbp": -7.3,
       "outcome": "churned_despite_offer",
       "framing_type": "gain_framed"
     },
@@ -925,11 +1027,22 @@
       "customer_id": "C3",
       "date": "2017-07-01",
       "event_type": "outcome_churned",
-      "description": "Renewal outcome: CHURNED -- company believed 44% churn risk at decision time, SIM realized probability was 46%.",
-      "company_belief": 0.443,
+      "description": "Renewal outcome: CHURNED -- company believed 46% churn risk at decision time, SIM realized probability was 46%.",
+      "company_belief": 0.455,
       "sim_truth": 0.462,
       "amount_gbp": null,
       "outcome": "churned",
+      "framing_type": null
+    },
+    {
+      "customer_id": "C3",
+      "date": "2017-07-05",
+      "event_type": "collections_cured",
+      "description": "Overdue balance cleared -- journey closed",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 0,
+      "outcome": "cured",
       "framing_type": null
     }
   ]

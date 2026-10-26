@@ -1,9 +1,9 @@
 {
- "generated_at": "2026-10-25T18:42:15Z",
- "git_commit": "f920430d72c7089eb38fd8871d8dcc9b41342c51",
+ "generated_at": "2026-10-26T12:06:03Z",
+ "git_commit": "18535538667faa48945caf54094fd13960a35b7f",
  "published_from": {
-  "commit": "f920430d72c7089eb38fd8871d8dcc9b41342c51",
-  "tree_was_clean": false,
+  "commit": "18535538667faa48945caf54094fd13960a35b7f",
+  "tree_was_clean": true,
   "inputs_are_the_committed_bytes": true,
   "inputs": [
    {
@@ -35,7 +35,7 @@
     "state": "committed"
    }
   ],
-  "reason": "every input named here matches this commit, but the tree carried other uncommitted changes, and this generator reads more than the paths it names \u2014 so standing at this commit may still not reproduce this feed"
+  "reason": "every input read here is byte-identical to what this commit holds, and nothing else in the tree differed from it either"
  },
  "sources": {
   "record": "site/data/maturity_map.json",
@@ -1489,6 +1489,10 @@
    "describes": "Seam: the world hands over settled volume and its I&C roster; the supplier books the commission."
   },
   {
+   "module": "transfer_objection",
+   "describes": "The door the world asks through when a domestic household asks to switch away: does the company object for debt?"
+  },
+  {
    "module": "wall_protocol",
    "describes": "The company's WIRE protocol for the wall envelope (atom EP6_wall_protocol_typing)."
   }
@@ -1586,7 +1590,7 @@
  ],
  "fixed_this_week": {
   "window_days": 7,
-  "as_of": "25 Oct 2026",
+  "as_of": "26 Oct 2026",
   "published_run": "8b6fea024",
   "items": [
    {

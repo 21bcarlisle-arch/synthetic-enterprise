@@ -12,10 +12,10 @@
     "bottom_line": "20945460011"
   },
   "mprn": null,
-  "lifetime_revenue_gbp": 546.54,
-  "lifetime_gross_gbp": 382.85,
-  "lifetime_net_gbp": 128.17,
-  "lifetime_net_after_cts_gbp": 53.45,
+  "lifetime_revenue_gbp": 547.26,
+  "lifetime_gross_gbp": 383.56,
+  "lifetime_net_gbp": 128.89,
+  "lifetime_net_after_cts_gbp": 54.16,
   "cost_to_serve_gbp": 74.73,
   "pricing_action": {
     "flag": "OK",
@@ -31,17 +31,17 @@
   "forward_looking_account_id": "PROS-2016-0054",
   "commodity_split": {
     "electricity": {
-      "net_gbp": 128.17,
-      "revenue_gbp": 546.54
+      "net_gbp": 128.89,
+      "revenue_gbp": 547.26
     },
     "gas": null
   },
   "dual_fuel_combined": {
     "gas_account_id": "PROS-2016-0054g",
-    "gas_lifetime_net_gbp": 175.19,
+    "gas_lifetime_net_gbp": 141.56,
     "gas_lifetime_revenue_gbp": 569.32,
-    "combined_net_gbp": 303.37,
-    "combined_revenue_gbp": 1115.86
+    "combined_net_gbp": 270.45,
+    "combined_revenue_gbp": 1116.58
   },
   "annual_pnl": [
     {
@@ -55,13 +55,20 @@
     {
       "year": 2017,
       "revenue_gbp": 0,
-      "gross_gbp": 152.42,
-      "net_gbp": 52.85,
+      "gross_gbp": 153.13,
+      "net_gbp": 53.56,
       "tariff_min": 110.33,
-      "tariff_max": 134.12
+      "tariff_max": 135.49
     }
   ],
   "timeline": [
+    {
+      "type": "final_bill",
+      "date": "2017-06-30",
+      "detail": "Final bill",
+      "commodity": "electricity",
+      "effect": "Closing read estimated; billed \u00a333.39"
+    },
     {
       "date": "2018-02-22",
       "type": "life_event",
@@ -72,7 +79,7 @@
   ],
   "invoices": [
     {
-      "id": "PROS-2016-0054-INV6967",
+      "id": "PROS-2016-0054-INV9555",
       "date": "2016-02-29",
       "period_start": "2016-02-21",
       "period_end": "2016-02-29",
@@ -115,7 +122,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2016-0054-INV6968",
+      "id": "PROS-2016-0054-INV9556",
       "date": "2016-03-31",
       "period_start": "2016-03-01",
       "period_end": "2016-03-31",
@@ -158,7 +165,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2016-0054-INV6969",
+      "id": "PROS-2016-0054-INV9557",
       "date": "2016-04-30",
       "period_start": "2016-04-01",
       "period_end": "2016-04-30",
@@ -201,7 +208,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2016-0054-INV6970",
+      "id": "PROS-2016-0054-INV9558",
       "date": "2016-05-31",
       "period_start": "2016-05-01",
       "period_end": "2016-05-31",
@@ -244,7 +251,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2016-0054-INV6971",
+      "id": "PROS-2016-0054-INV9559",
       "date": "2016-06-30",
       "period_start": "2016-06-01",
       "period_end": "2016-06-30",
@@ -287,7 +294,7 @@
       "catchup_back_billing_cap_applied": false
     },
     {
-      "id": "PROS-2016-0054-INV6972",
+      "id": "PROS-2016-0054-INV9560",
       "date": "2016-07-31",
       "period_start": "2016-07-01",
       "period_end": "2016-07-31",
@@ -330,7 +337,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2016-0054-INV6973",
+      "id": "PROS-2016-0054-INV9561",
       "date": "2016-08-31",
       "period_start": "2016-08-01",
       "period_end": "2016-08-31",
@@ -373,7 +380,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2016-0054-INV6974",
+      "id": "PROS-2016-0054-INV9562",
       "date": "2016-09-30",
       "period_start": "2016-09-01",
       "period_end": "2016-09-30",
@@ -416,7 +423,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2016-0054-INV6975",
+      "id": "PROS-2016-0054-INV9563",
       "date": "2016-10-31",
       "period_start": "2016-10-01",
       "period_end": "2016-10-31",
@@ -459,20 +466,20 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2016-0054-INV6976",
+      "id": "PROS-2016-0054-INV9564",
       "date": "2016-11-30",
       "period_start": "2016-11-01",
       "period_end": "2016-11-30",
       "commodity": "electricity",
-      "consumption_kwh": 281.2,
+      "consumption_kwh": 284.1,
       "unit_rate_p_per_kwh": 5.832,
-      "commodity_amount_gbp": 16.4,
+      "commodity_amount_gbp": 16.57,
       "standing_charge_gbp": 5.77,
       "days_in_period": 30,
       "standing_charge_gbp_per_day": 0.1923,
-      "non_commodity_amount_gbp": 14.62,
-      "vat_gbp": 1.84,
-      "amount_gbp": 38.63,
+      "non_commodity_amount_gbp": 14.78,
+      "vat_gbp": 1.86,
+      "amount_gbp": 38.98,
       "status": "PAID",
       "outstanding_gbp": 0.0,
       "credit_applied_gbp": null,
@@ -481,13 +488,13 @@
       "mprn": null,
       "read_type": "E",
       "opening_read_kwh": 1691.2,
-      "closing_read_kwh": 1972.4,
+      "closing_read_kwh": 1975.3,
       "registers": [
         {
           "register_id": "1",
           "label": "Anytime",
-          "consumption_kwh": 281.2,
-          "amount_gbp": 16.4,
+          "consumption_kwh": 284.1,
+          "amount_gbp": 16.57,
           "unit_rate_p_per_kwh": 5.832
         }
       ],
@@ -502,13 +509,13 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2016-0054-INV6977",
+      "id": "PROS-2016-0054-INV9565",
       "date": "2016-12-31",
       "period_start": "2016-12-01",
       "period_end": "2016-12-31",
       "commodity": "electricity",
-      "consumption_kwh": 286.0,
-      "unit_rate_p_per_kwh": 5.836,
+      "consumption_kwh": 286.1,
+      "unit_rate_p_per_kwh": 5.834,
       "commodity_amount_gbp": 16.69,
       "standing_charge_gbp": 5.96,
       "days_in_period": 31,
@@ -523,15 +530,15 @@
       "mpan": "1000000000816",
       "mprn": null,
       "read_type": "A",
-      "opening_read_kwh": 1972.4,
-      "closing_read_kwh": 2258.4,
+      "opening_read_kwh": 1975.3,
+      "closing_read_kwh": 2261.4,
       "registers": [
         {
           "register_id": "1",
           "label": "Anytime",
-          "consumption_kwh": 286.0,
+          "consumption_kwh": 286.1,
           "amount_gbp": 16.69,
-          "unit_rate_p_per_kwh": 5.836
+          "unit_rate_p_per_kwh": 5.834
         }
       ],
       "catchup_applied": false,
@@ -545,20 +552,20 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2016-0054-INV6978",
+      "id": "PROS-2016-0054-INV9566",
       "date": "2017-01-31",
       "period_start": "2017-01-01",
       "period_end": "2017-01-31",
       "commodity": "electricity",
-      "consumption_kwh": 310.0,
-      "unit_rate_p_per_kwh": 5.632,
-      "commodity_amount_gbp": 17.46,
+      "consumption_kwh": 315.4,
+      "unit_rate_p_per_kwh": 5.634,
+      "commodity_amount_gbp": 17.77,
       "standing_charge_gbp": 5.88,
       "days_in_period": 31,
       "standing_charge_gbp_per_day": 0.1897,
-      "non_commodity_amount_gbp": 16.74,
-      "vat_gbp": 2.0,
-      "amount_gbp": 42.08,
+      "non_commodity_amount_gbp": 17.03,
+      "vat_gbp": 2.03,
+      "amount_gbp": 42.71,
       "status": "PAID",
       "outstanding_gbp": 0.0,
       "credit_applied_gbp": null,
@@ -566,15 +573,15 @@
       "mpan": "1000000000816",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 2258.4,
-      "closing_read_kwh": 2568.4,
+      "opening_read_kwh": 2261.4,
+      "closing_read_kwh": 2576.8,
       "registers": [
         {
           "register_id": "1",
           "label": "Anytime",
-          "consumption_kwh": 310.0,
-          "amount_gbp": 17.46,
-          "unit_rate_p_per_kwh": 5.632
+          "consumption_kwh": 315.4,
+          "amount_gbp": 17.77,
+          "unit_rate_p_per_kwh": 5.634
         }
       ],
       "catchup_applied": false,
@@ -588,20 +595,20 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2016-0054-INV6979",
+      "id": "PROS-2016-0054-INV9567",
       "date": "2017-02-28",
       "period_start": "2017-02-01",
       "period_end": "2017-02-28",
       "commodity": "electricity",
       "consumption_kwh": 259.4,
-      "unit_rate_p_per_kwh": 6.396,
-      "commodity_amount_gbp": 16.59,
+      "unit_rate_p_per_kwh": 6.438,
+      "commodity_amount_gbp": 16.7,
       "standing_charge_gbp": 5.31,
       "days_in_period": 28,
       "standing_charge_gbp_per_day": 0.1896,
       "non_commodity_amount_gbp": 14.01,
       "vat_gbp": 1.8,
-      "amount_gbp": 37.71,
+      "amount_gbp": 37.82,
       "status": "PAID",
       "outstanding_gbp": 0.0,
       "credit_applied_gbp": null,
@@ -609,15 +616,15 @@
       "mpan": "1000000000816",
       "mprn": null,
       "read_type": "A",
-      "opening_read_kwh": 2568.4,
-      "closing_read_kwh": 2827.8,
+      "opening_read_kwh": 2576.8,
+      "closing_read_kwh": 2836.2,
       "registers": [
         {
           "register_id": "1",
           "label": "Anytime",
           "consumption_kwh": 259.4,
-          "amount_gbp": 16.59,
-          "unit_rate_p_per_kwh": 6.396
+          "amount_gbp": 16.7,
+          "unit_rate_p_per_kwh": 6.438
         }
       ],
       "catchup_applied": false,
@@ -631,20 +638,20 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2016-0054-INV6980",
+      "id": "PROS-2016-0054-INV9568",
       "date": "2017-03-31",
       "period_start": "2017-03-01",
       "period_end": "2017-03-31",
       "commodity": "electricity",
       "consumption_kwh": 274.9,
-      "unit_rate_p_per_kwh": 8.014,
-      "commodity_amount_gbp": 22.03,
+      "unit_rate_p_per_kwh": 8.15,
+      "commodity_amount_gbp": 22.4,
       "standing_charge_gbp": 5.88,
       "days_in_period": 31,
       "standing_charge_gbp_per_day": 0.1897,
       "non_commodity_amount_gbp": 14.84,
-      "vat_gbp": 2.14,
-      "amount_gbp": 44.89,
+      "vat_gbp": 2.16,
+      "amount_gbp": 45.28,
       "status": "PAID",
       "outstanding_gbp": 0.0,
       "credit_applied_gbp": null,
@@ -652,15 +659,15 @@
       "mpan": "1000000000816",
       "mprn": null,
       "read_type": "A",
-      "opening_read_kwh": 2827.8,
-      "closing_read_kwh": 3102.7,
+      "opening_read_kwh": 2836.2,
+      "closing_read_kwh": 3111.1,
       "registers": [
         {
           "register_id": "1",
           "label": "Anytime",
           "consumption_kwh": 274.9,
-          "amount_gbp": 22.03,
-          "unit_rate_p_per_kwh": 8.014
+          "amount_gbp": 22.4,
+          "unit_rate_p_per_kwh": 8.15
         }
       ],
       "catchup_applied": false,
@@ -674,20 +681,20 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2016-0054-INV6981",
+      "id": "PROS-2016-0054-INV9569",
       "date": "2017-04-30",
       "period_start": "2017-04-01",
       "period_end": "2017-04-30",
       "commodity": "electricity",
-      "consumption_kwh": 236.7,
-      "unit_rate_p_per_kwh": 7.934,
-      "commodity_amount_gbp": 18.78,
+      "consumption_kwh": 236.2,
+      "unit_rate_p_per_kwh": 7.968,
+      "commodity_amount_gbp": 18.82,
       "standing_charge_gbp": 5.69,
       "days_in_period": 30,
       "standing_charge_gbp_per_day": 0.1897,
-      "non_commodity_amount_gbp": 12.78,
+      "non_commodity_amount_gbp": 12.75,
       "vat_gbp": 1.86,
-      "amount_gbp": 39.11,
+      "amount_gbp": 39.12,
       "status": "PAID",
       "outstanding_gbp": 0.0,
       "credit_applied_gbp": null,
@@ -695,15 +702,15 @@
       "mpan": "1000000000816",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 3102.7,
-      "closing_read_kwh": 3339.4,
+      "opening_read_kwh": 3111.1,
+      "closing_read_kwh": 3347.3,
       "registers": [
         {
           "register_id": "1",
           "label": "Anytime",
-          "consumption_kwh": 236.7,
-          "amount_gbp": 18.78,
-          "unit_rate_p_per_kwh": 7.934
+          "consumption_kwh": 236.2,
+          "amount_gbp": 18.82,
+          "unit_rate_p_per_kwh": 7.968
         }
       ],
       "catchup_applied": false,
@@ -717,20 +724,20 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2016-0054-INV6982",
+      "id": "PROS-2016-0054-INV9570",
       "date": "2017-05-31",
       "period_start": "2017-05-01",
       "period_end": "2017-05-31",
       "commodity": "electricity",
-      "consumption_kwh": 210.8,
-      "unit_rate_p_per_kwh": 7.936,
-      "commodity_amount_gbp": 16.73,
+      "consumption_kwh": 210.3,
+      "unit_rate_p_per_kwh": 7.97,
+      "commodity_amount_gbp": 16.76,
       "standing_charge_gbp": 5.88,
       "days_in_period": 31,
       "standing_charge_gbp_per_day": 0.1897,
-      "non_commodity_amount_gbp": 11.38,
+      "non_commodity_amount_gbp": 11.36,
       "vat_gbp": 1.7,
-      "amount_gbp": 35.69,
+      "amount_gbp": 35.7,
       "status": "PAID",
       "outstanding_gbp": 0.0,
       "credit_applied_gbp": null,
@@ -738,15 +745,15 @@
       "mpan": "1000000000816",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 3339.4,
-      "closing_read_kwh": 3550.2,
+      "opening_read_kwh": 3347.3,
+      "closing_read_kwh": 3557.6,
       "registers": [
         {
           "register_id": "1",
           "label": "Anytime",
-          "consumption_kwh": 210.8,
-          "amount_gbp": 16.73,
-          "unit_rate_p_per_kwh": 7.936
+          "consumption_kwh": 210.3,
+          "amount_gbp": 16.76,
+          "unit_rate_p_per_kwh": 7.97
         }
       ],
       "catchup_applied": false,
@@ -760,18 +767,18 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2016-0054-INV6983",
+      "id": "PROS-2016-0054-INV9571",
       "date": "2017-06-30",
       "period_start": "2017-06-01",
       "period_end": "2017-06-30",
       "commodity": "electricity",
-      "consumption_kwh": 195.7,
-      "unit_rate_p_per_kwh": 7.936,
-      "commodity_amount_gbp": 15.53,
+      "consumption_kwh": 195.3,
+      "unit_rate_p_per_kwh": 7.967,
+      "commodity_amount_gbp": 15.56,
       "standing_charge_gbp": 5.69,
       "days_in_period": 30,
       "standing_charge_gbp_per_day": 0.1897,
-      "non_commodity_amount_gbp": 10.57,
+      "non_commodity_amount_gbp": 10.54,
       "vat_gbp": 1.59,
       "amount_gbp": 33.38,
       "status": "PAID",
@@ -781,15 +788,15 @@
       "mpan": "1000000000816",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 3550.2,
-      "closing_read_kwh": 3745.9,
+      "opening_read_kwh": 3557.6,
+      "closing_read_kwh": 3752.9,
       "registers": [
         {
           "register_id": "1",
           "label": "Anytime",
-          "consumption_kwh": 195.7,
-          "amount_gbp": 15.53,
-          "unit_rate_p_per_kwh": 7.936
+          "consumption_kwh": 195.3,
+          "amount_gbp": 15.56,
+          "unit_rate_p_per_kwh": 7.967
         }
       ],
       "catchup_applied": false,
@@ -804,22 +811,22 @@
     }
   ],
   "ledger": {
-    "as_of_date": "2025-06-25",
+    "as_of_date": "2025-07-04",
     "entries": [
       {
         "date": "2016-03-02",
         "type": "invoice_raised",
-        "invoice_number": 6967,
+        "invoice_number": 9555,
         "amount_gbp": 9.21,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV6967 raised",
+        "description": "Invoice INV9555 raised",
         "running_balance_gbp": 9.21
       },
       {
         "date": "2016-03-16",
         "type": "payment_received",
-        "invoice_number": 6967,
+        "invoice_number": 9555,
         "amount_gbp": -9.21,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -829,17 +836,17 @@
       {
         "date": "2016-03-31",
         "type": "invoice_raised",
-        "invoice_number": 6968,
+        "invoice_number": 9556,
         "amount_gbp": 30.71,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV6968 raised",
+        "description": "Invoice INV9556 raised",
         "running_balance_gbp": 30.71
       },
       {
         "date": "2016-04-14",
         "type": "payment_received",
-        "invoice_number": 6968,
+        "invoice_number": 9556,
         "amount_gbp": -30.71,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -849,17 +856,17 @@
       {
         "date": "2016-05-02",
         "type": "invoice_raised",
-        "invoice_number": 6969,
+        "invoice_number": 9557,
         "amount_gbp": 27.9,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV6969 raised",
+        "description": "Invoice INV9557 raised",
         "running_balance_gbp": 27.9
       },
       {
         "date": "2016-05-16",
         "type": "payment_received",
-        "invoice_number": 6969,
+        "invoice_number": 9557,
         "amount_gbp": -27.9,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -869,17 +876,17 @@
       {
         "date": "2016-06-01",
         "type": "invoice_raised",
-        "invoice_number": 6970,
+        "invoice_number": 9558,
         "amount_gbp": 25.7,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV6970 raised",
+        "description": "Invoice INV9558 raised",
         "running_balance_gbp": 25.7
       },
       {
         "date": "2016-06-15",
         "type": "payment_received",
-        "invoice_number": 6970,
+        "invoice_number": 9558,
         "amount_gbp": -25.7,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -889,17 +896,17 @@
       {
         "date": "2016-06-30",
         "type": "invoice_raised",
-        "invoice_number": 6971,
+        "invoice_number": 9559,
         "amount_gbp": 48.29,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV6971 raised",
+        "description": "Invoice INV9559 raised",
         "running_balance_gbp": 48.29
       },
       {
         "date": "2016-07-14",
         "type": "payment_received",
-        "invoice_number": 6971,
+        "invoice_number": 9559,
         "amount_gbp": -48.29,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -909,17 +916,17 @@
       {
         "date": "2016-08-03",
         "type": "invoice_raised",
-        "invoice_number": 6972,
+        "invoice_number": 9560,
         "amount_gbp": 29.6,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV6972 raised",
+        "description": "Invoice INV9560 raised",
         "running_balance_gbp": 29.6
       },
       {
         "date": "2016-08-17",
         "type": "payment_received",
-        "invoice_number": 6972,
+        "invoice_number": 9560,
         "amount_gbp": -29.6,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -929,17 +936,17 @@
       {
         "date": "2016-09-10",
         "type": "invoice_raised",
-        "invoice_number": 6973,
+        "invoice_number": 9561,
         "amount_gbp": 30.22,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV6973 raised",
+        "description": "Invoice INV9561 raised",
         "running_balance_gbp": 30.22
       },
       {
         "date": "2016-09-24",
         "type": "payment_received",
-        "invoice_number": 6973,
+        "invoice_number": 9561,
         "amount_gbp": -30.22,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -949,17 +956,17 @@
       {
         "date": "2016-10-01",
         "type": "invoice_raised",
-        "invoice_number": 6974,
+        "invoice_number": 9562,
         "amount_gbp": 31.19,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV6974 raised",
+        "description": "Invoice INV9562 raised",
         "running_balance_gbp": 31.19
       },
       {
         "date": "2016-10-15",
         "type": "payment_received",
-        "invoice_number": 6974,
+        "invoice_number": 9562,
         "amount_gbp": -31.19,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -969,17 +976,17 @@
       {
         "date": "2016-11-03",
         "type": "invoice_raised",
-        "invoice_number": 6975,
+        "invoice_number": 9563,
         "amount_gbp": 33.42,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV6975 raised",
+        "description": "Invoice INV9563 raised",
         "running_balance_gbp": 33.42
       },
       {
         "date": "2016-11-17",
         "type": "payment_received",
-        "invoice_number": 6975,
+        "invoice_number": 9563,
         "amount_gbp": -33.42,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -989,18 +996,18 @@
       {
         "date": "2016-11-30",
         "type": "invoice_raised",
-        "invoice_number": 6976,
-        "amount_gbp": 38.63,
+        "invoice_number": 9564,
+        "amount_gbp": 38.98,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV6976 raised",
-        "running_balance_gbp": 38.63
+        "description": "Invoice INV9564 raised",
+        "running_balance_gbp": 38.98
       },
       {
         "date": "2016-12-14",
         "type": "payment_received",
-        "invoice_number": 6976,
-        "amount_gbp": -38.63,
+        "invoice_number": 9564,
+        "amount_gbp": -38.98,
         "info_amount_gbp": null,
         "method": "direct_debit",
         "description": "Payment received",
@@ -1009,17 +1016,17 @@
       {
         "date": "2017-01-04",
         "type": "invoice_raised",
-        "invoice_number": 6977,
+        "invoice_number": 9565,
         "amount_gbp": 39.41,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV6977 raised",
+        "description": "Invoice INV9565 raised",
         "running_balance_gbp": 39.41
       },
       {
         "date": "2017-01-18",
         "type": "payment_received",
-        "invoice_number": 6977,
+        "invoice_number": 9565,
         "amount_gbp": -39.41,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -1029,18 +1036,18 @@
       {
         "date": "2017-02-06",
         "type": "invoice_raised",
-        "invoice_number": 6978,
-        "amount_gbp": 42.08,
+        "invoice_number": 9566,
+        "amount_gbp": 42.71,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV6978 raised",
-        "running_balance_gbp": 42.08
+        "description": "Invoice INV9566 raised",
+        "running_balance_gbp": 42.71
       },
       {
         "date": "2017-02-20",
         "type": "payment_received",
-        "invoice_number": 6978,
-        "amount_gbp": -42.08,
+        "invoice_number": 9566,
+        "amount_gbp": -42.71,
         "info_amount_gbp": null,
         "method": "direct_debit",
         "description": "Payment received",
@@ -1049,18 +1056,18 @@
       {
         "date": "2017-03-01",
         "type": "invoice_raised",
-        "invoice_number": 6979,
-        "amount_gbp": 37.71,
+        "invoice_number": 9567,
+        "amount_gbp": 37.82,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV6979 raised",
-        "running_balance_gbp": 37.71
+        "description": "Invoice INV9567 raised",
+        "running_balance_gbp": 37.82
       },
       {
         "date": "2017-03-15",
         "type": "payment_received",
-        "invoice_number": 6979,
-        "amount_gbp": -37.71,
+        "invoice_number": 9567,
+        "amount_gbp": -37.82,
         "info_amount_gbp": null,
         "method": "direct_debit",
         "description": "Payment received",
@@ -1069,18 +1076,18 @@
       {
         "date": "2017-03-31",
         "type": "invoice_raised",
-        "invoice_number": 6980,
-        "amount_gbp": 44.89,
+        "invoice_number": 9568,
+        "amount_gbp": 45.28,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV6980 raised",
-        "running_balance_gbp": 44.89
+        "description": "Invoice INV9568 raised",
+        "running_balance_gbp": 45.28
       },
       {
         "date": "2017-04-14",
         "type": "payment_received",
-        "invoice_number": 6980,
-        "amount_gbp": -44.89,
+        "invoice_number": 9568,
+        "amount_gbp": -45.28,
         "info_amount_gbp": null,
         "method": "direct_debit",
         "description": "Payment received",
@@ -1089,18 +1096,18 @@
       {
         "date": "2017-05-16",
         "type": "invoice_raised",
-        "invoice_number": 6981,
-        "amount_gbp": 39.11,
+        "invoice_number": 9569,
+        "amount_gbp": 39.12,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV6981 raised",
-        "running_balance_gbp": 39.11
+        "description": "Invoice INV9569 raised",
+        "running_balance_gbp": 39.12
       },
       {
         "date": "2017-05-30",
         "type": "payment_received",
-        "invoice_number": 6981,
-        "amount_gbp": -39.11,
+        "invoice_number": 9569,
+        "amount_gbp": -39.12,
         "info_amount_gbp": null,
         "method": "direct_debit",
         "description": "Payment received",
@@ -1109,18 +1116,18 @@
       {
         "date": "2017-06-03",
         "type": "invoice_raised",
-        "invoice_number": 6982,
-        "amount_gbp": 35.69,
+        "invoice_number": 9570,
+        "amount_gbp": 35.7,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV6982 raised",
-        "running_balance_gbp": 35.69
+        "description": "Invoice INV9570 raised",
+        "running_balance_gbp": 35.7
       },
       {
         "date": "2017-06-17",
         "type": "payment_received",
-        "invoice_number": 6982,
-        "amount_gbp": -35.69,
+        "invoice_number": 9570,
+        "amount_gbp": -35.7,
         "info_amount_gbp": null,
         "method": "direct_debit",
         "description": "Payment received",
@@ -1129,17 +1136,17 @@
       {
         "date": "2017-07-06",
         "type": "invoice_raised",
-        "invoice_number": 6983,
+        "invoice_number": 9571,
         "amount_gbp": 33.38,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV6983 raised",
+        "description": "Invoice INV9571 raised",
         "running_balance_gbp": 33.38
       },
       {
         "date": "2017-07-20",
         "type": "payment_received",
-        "invoice_number": 6983,
+        "invoice_number": 9571,
         "amount_gbp": -33.38,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -1148,8 +1155,8 @@
       }
     ],
     "current_balance_gbp": 0.0,
-    "total_billed_gbp": 577.14,
-    "total_collected_gbp": 577.14,
+    "total_billed_gbp": 578.64,
+    "total_collected_gbp": 578.64,
     "total_written_off_gross_gbp": 0,
     "total_recovered_gbp": 0
   },
@@ -1194,7 +1201,7 @@
       },
       {
         "month": "2016-11",
-        "kwh": 281.2
+        "kwh": 284.2
       },
       {
         "month": "2016-12",
@@ -1202,7 +1209,7 @@
       },
       {
         "month": "2017-01",
-        "kwh": 310.0
+        "kwh": 315.4
       },
       {
         "month": "2017-02",
@@ -1214,18 +1221,261 @@
       },
       {
         "month": "2017-04",
-        "kwh": 236.7
+        "kwh": 236.2
       },
       {
         "month": "2017-05",
-        "kwh": 210.8
+        "kwh": 210.3
       },
       {
         "month": "2017-06",
-        "kwh": 195.7
+        "kwh": 195.3
       }
     ],
     "has_hh_data": false
   },
-  "reaction_chain": []
+  "reaction_chain": [
+    {
+      "customer_id": "PROS-2016-0054",
+      "date": "2016-06-29",
+      "event_type": "collections_missed_payment",
+      "description": "A bill is unpaid past its due date -- collections journey opened -- GBP18.49 overdue",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 18.49,
+      "outcome": "cured",
+      "framing_type": null
+    },
+    {
+      "customer_id": "PROS-2016-0054",
+      "date": "2016-07-05",
+      "event_type": "collections_reminder",
+      "description": "Reminder sent -- GBP18.49 overdue",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 18.49,
+      "outcome": "cured",
+      "framing_type": null
+    },
+    {
+      "customer_id": "PROS-2016-0054",
+      "date": "2016-07-12",
+      "event_type": "collections_reminder_2",
+      "description": "Second reminder sent -- GBP18.49 overdue",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 18.49,
+      "outcome": "cured",
+      "framing_type": null
+    },
+    {
+      "customer_id": "PROS-2016-0054",
+      "date": "2016-07-26",
+      "event_type": "collections_repayment_plan_offer",
+      "description": "Payment plan offered (SLC 27.8) -- GBP63.29 overdue",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 63.29,
+      "outcome": "cured",
+      "framing_type": null
+    },
+    {
+      "customer_id": "PROS-2016-0054",
+      "date": "2016-07-26",
+      "event_type": "collections_arrangement_offered",
+      "description": "Affordable arrangement put to the household -- GBP63.29 overdue; the household's answer is not known to the company: no published rate of plan take-up among domestic debtors offered one: no published source counts offers, and Ofgem's quarter-end stocks of accounts in arrears and in debt do not bound it (docs/market_research/domestic_repayment_plan_take_up_and_keep_rates.md)",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 63.29,
+      "outcome": "cured",
+      "framing_type": null
+    },
+    {
+      "customer_id": "PROS-2016-0054",
+      "date": "2016-07-28",
+      "event_type": "collections_cured",
+      "description": "Overdue balance cleared -- journey closed",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 0,
+      "outcome": "cured",
+      "framing_type": null
+    },
+    {
+      "customer_id": "PROS-2016-0054",
+      "date": "2016-07-29",
+      "event_type": "collections_missed_payment",
+      "description": "A bill is unpaid past its due date -- collections journey opened -- GBP18.49 overdue",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 18.49,
+      "outcome": "cured",
+      "framing_type": null
+    },
+    {
+      "customer_id": "PROS-2016-0054",
+      "date": "2016-08-04",
+      "event_type": "collections_reminder",
+      "description": "Reminder sent -- GBP18.49 overdue",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 18.49,
+      "outcome": "cured",
+      "framing_type": null
+    },
+    {
+      "customer_id": "PROS-2016-0054",
+      "date": "2016-08-11",
+      "event_type": "collections_reminder_2",
+      "description": "Second reminder sent -- GBP18.49 overdue",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 18.49,
+      "outcome": "cured",
+      "framing_type": null
+    },
+    {
+      "customer_id": "PROS-2016-0054",
+      "date": "2016-08-25",
+      "event_type": "collections_repayment_plan_offer",
+      "description": "Payment plan offered (SLC 27.8) -- GBP63.11 overdue",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 63.11,
+      "outcome": "cured",
+      "framing_type": null
+    },
+    {
+      "customer_id": "PROS-2016-0054",
+      "date": "2016-08-25",
+      "event_type": "collections_arrangement_offered",
+      "description": "Affordable arrangement put to the household -- GBP63.11 overdue; the household's answer is not known to the company: no published rate of plan take-up among domestic debtors offered one: no published source counts offers, and Ofgem's quarter-end stocks of accounts in arrears and in debt do not bound it (docs/market_research/domestic_repayment_plan_take_up_and_keep_rates.md)",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 63.11,
+      "outcome": "cured",
+      "framing_type": null
+    },
+    {
+      "customer_id": "PROS-2016-0054",
+      "date": "2016-08-28",
+      "event_type": "collections_cured",
+      "description": "Overdue balance cleared -- journey closed",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 0,
+      "outcome": "cured",
+      "framing_type": null
+    },
+    {
+      "customer_id": "PROS-2016-0054",
+      "date": "2016-08-29",
+      "event_type": "collections_missed_payment",
+      "description": "A bill is unpaid past its due date -- collections journey opened -- GBP18.49 overdue",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 18.49,
+      "outcome": "cured",
+      "framing_type": null
+    },
+    {
+      "customer_id": "PROS-2016-0054",
+      "date": "2016-09-04",
+      "event_type": "collections_reminder",
+      "description": "Reminder sent -- GBP18.49 overdue",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 18.49,
+      "outcome": "cured",
+      "framing_type": null
+    },
+    {
+      "customer_id": "PROS-2016-0054",
+      "date": "2016-09-11",
+      "event_type": "collections_reminder_2",
+      "description": "Second reminder sent -- GBP18.49 overdue",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 18.49,
+      "outcome": "cured",
+      "framing_type": null
+    },
+    {
+      "customer_id": "PROS-2016-0054",
+      "date": "2016-09-25",
+      "event_type": "collections_repayment_plan_offer",
+      "description": "Payment plan offered (SLC 27.8) -- GBP67.88 overdue",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 67.88,
+      "outcome": "cured",
+      "framing_type": null
+    },
+    {
+      "customer_id": "PROS-2016-0054",
+      "date": "2016-09-25",
+      "event_type": "collections_arrangement_offered",
+      "description": "Affordable arrangement put to the household -- GBP67.88 overdue; the household's answer is not known to the company: no published rate of plan take-up among domestic debtors offered one: no published source counts offers, and Ofgem's quarter-end stocks of accounts in arrears and in debt do not bound it (docs/market_research/domestic_repayment_plan_take_up_and_keep_rates.md)",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 67.88,
+      "outcome": "cured",
+      "framing_type": null
+    },
+    {
+      "customer_id": "PROS-2016-0054",
+      "date": "2016-09-28",
+      "event_type": "collections_cured",
+      "description": "Overdue balance cleared -- journey closed",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 0,
+      "outcome": "cured",
+      "framing_type": null
+    },
+    {
+      "customer_id": "PROS-2016-0054",
+      "date": "2016-09-29",
+      "event_type": "collections_missed_payment",
+      "description": "A bill is unpaid past its due date -- collections journey opened -- GBP18.49 overdue",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 18.49,
+      "outcome": "cured",
+      "framing_type": null
+    },
+    {
+      "customer_id": "PROS-2016-0054",
+      "date": "2016-10-05",
+      "event_type": "collections_reminder",
+      "description": "Reminder sent -- GBP18.49 overdue",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 18.49,
+      "outcome": "cured",
+      "framing_type": null
+    },
+    {
+      "customer_id": "PROS-2016-0054",
+      "date": "2016-10-12",
+      "event_type": "collections_reminder_2",
+      "description": "Second reminder sent -- GBP18.49 overdue",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 18.49,
+      "outcome": "cured",
+      "framing_type": null
+    },
+    {
+      "customer_id": "PROS-2016-0054",
+      "date": "2016-10-26",
+      "event_type": "collections_cured",
+      "description": "Overdue balance cleared -- journey closed",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 0,
+      "outcome": "cured",
+      "framing_type": null
+    }
+  ]
 }

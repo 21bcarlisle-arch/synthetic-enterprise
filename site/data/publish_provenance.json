@@ -1,6 +1,6 @@
 {
   "annotation": {
-    "checked_at": "2026-09-27T02:28:00Z",
+    "checked_at": "2026-10-26T09:01:08Z",
     "nonblocking_reds": [
       "ERROR tests/architecture/test_a_departure_reading_declares_its_population.py"
     ],
@@ -9,39 +9,36 @@
       "tree_state": "working-tree"
     },
     "nonblocking_reds_total": 1,
-    "open_findings": 21
+    "open_findings": 16
   },
-  "figures_caveat": {
-    "run_id": "run_output_8b6fea024_20261019T033010Z.json",
-    "sentence": "The billing, customer and debt figures on this site come from run 8b6fea024 of 19 Oct 2026, which predates the price-cap fixes: 5,488 of its 18,398 standard-variable bills (29.8%) are above the household's cap ceiling. They are replaced when a run carrying the fixes passes that check."
-  },
+  "figures_caveat": null,
   "last_verified": {
-    "generated_at": "2026-10-19T08:55:40Z",
-    "git_commit": "8b6fea024",
+    "generated_at": "2026-10-26T12:09:33Z",
+    "git_commit": "4ae8da9b0f",
     "population": {
-      "accounts": 963,
-      "bills": 38596,
-      "total_revenue_gbp": 2378270.43
+      "accounts": 1291,
+      "bills": 52791,
+      "total_revenue_gbp": 2906732.96
     },
-    "run_id": "run_output_8b6fea024_20261019T033010Z.json",
+    "run_id": "run_output_4ae8da9b0f_20261026T022647Z.json",
     "run_retained": true,
-    "verified_at": "2026-10-19T08:55:40Z"
+    "verified_at": "2026-10-26T12:09:33Z"
   },
   "paused_reason": null,
   "paused_since": null,
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-10-19T08:55:40Z",
-    "git_commit": "8b6fea024",
+    "generated_at": "2026-10-26T12:09:33Z",
+    "git_commit": "4ae8da9b0f",
     "population": {
-      "accounts": 963,
-      "bills": 38596,
-      "total_revenue_gbp": 2378270.43
+      "accounts": 1291,
+      "bills": 52791,
+      "total_revenue_gbp": 2906732.96
     },
-    "run_id": "run_output_8b6fea024_20261019T033010Z.json",
+    "run_id": "run_output_4ae8da9b0f_20261026T022647Z.json",
     "run_retained": true,
-    "verified_at": "2026-10-19T08:55:40Z"
+    "verified_at": "2026-10-26T12:09:33Z"
   },
   "verification_state": "verified",
-  "written_at": "2026-10-24T14:51:46Z"
+  "written_at": "2026-10-26T12:09:33Z"
 }

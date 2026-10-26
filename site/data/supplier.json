@@ -1,38 +1,38 @@
 {
-  "generated": "2026-10-19T08:53:03Z",
+  "generated": "2026-10-26T12:06:39Z",
   "simulation_window": "2016-2025",
   "portfolio_summary": {
-    "total_revenue_gbp": 2378270.0,
-    "total_gross_gbp": 1371848.0,
-    "total_net_gbp": 555900.0,
-    "total_bad_debt_gbp": 1748.0,
-    "final_treasury_gbp": 805900.0,
-    "enterprise_value_gbp": 438153.0,
-    "cost_to_serve_portfolio_gbp": 172937.0
+    "total_revenue_gbp": 2906733.0,
+    "total_gross_gbp": 1669370.0,
+    "total_net_gbp": 664130.0,
+    "total_bad_debt_gbp": 18495.0,
+    "final_treasury_gbp": 914130.0,
+    "enterprise_value_gbp": 418893.0,
+    "cost_to_serve_portfolio_gbp": 236807.0
   },
   "years": [
     {
       "year": 2016,
-      "revenue_gbp": 102069.0,
-      "gross_gbp": 68465.0,
-      "net_gbp": 25381.0,
-      "bad_debt_gbp": 25.0,
-      "treasury_end_gbp": 289408.0,
-      "active_customers": 469,
-      "policy_cost_gbp": 9624.0,
-      "network_cost_gbp": 20004.0,
+      "revenue_gbp": 150331.0,
+      "gross_gbp": 101712.0,
+      "net_gbp": 39106.0,
+      "bad_debt_gbp": 36.0,
+      "treasury_end_gbp": 348048.0,
+      "active_customers": 765,
+      "policy_cost_gbp": 13773.0,
+      "network_cost_gbp": 28793.0,
       "segment_split": {
         "resi electricity": {
-          "revenue_gbp": 59186.05771949821,
-          "gross_gbp": 41545.057439506214,
-          "capital_gbp": 381.4343894990393,
-          "net_gbp": 12561.699159000053
+          "revenue_gbp": 88602.19277031359,
+          "gross_gbp": 62492.95382388374,
+          "capital_gbp": 565.495706492135,
+          "net_gbp": 19875.033714999892
         },
         "resi gas": {
-          "revenue_gbp": 39056.302474002296,
-          "gross_gbp": 24410.92802399969,
-          "capital_gbp": 184.32740330001056,
-          "net_gbp": 12572.957948000054
+          "revenue_gbp": 57902.58333100128,
+          "gross_gbp": 36710.74246999976,
+          "capital_gbp": 274.08469520999665,
+          "net_gbp": 18985.028377998715
         },
         "SME electricity": {
           "revenue_gbp": 3826.475197848178,
@@ -43,43 +43,43 @@
       },
       "commodity_split": {
         "electricity": {
-          "revenue_gbp": 63012.53291734457,
-          "wholesale_cost_gbp": 18958.913389391513,
-          "gross_gbp": 44053.61952795306,
-          "capital_gbp": 420.3142807971733,
-          "net_gbp": 12808.089471
+          "revenue_gbp": 92428.66796815497,
+          "wholesale_cost_gbp": 27427.15205582366,
+          "gross_gbp": 65001.51591233131,
+          "capital_gbp": 604.375597790306,
+          "net_gbp": 20121.424027
         },
         "gas": {
-          "revenue_gbp": 39056.302474,
-          "wholesale_cost_gbp": 14645.374119,
-          "gross_gbp": 24410.928024,
-          "capital_gbp": 184.32740330000001,
-          "net_gbp": 12572.957948
+          "revenue_gbp": 57902.583331,
+          "wholesale_cost_gbp": 21191.840712,
+          "gross_gbp": 36710.74247,
+          "capital_gbp": 274.08469521,
+          "net_gbp": 18985.028378
         }
       }
     },
     {
       "year": 2017,
-      "revenue_gbp": 188115.0,
-      "gross_gbp": 120651.0,
-      "net_gbp": 39375.0,
-      "bad_debt_gbp": 152.0,
-      "treasury_end_gbp": 317549.0,
-      "active_customers": 502,
-      "policy_cost_gbp": 20185.0,
-      "network_cost_gbp": 35721.0,
+      "revenue_gbp": 283753.0,
+      "gross_gbp": 183304.0,
+      "net_gbp": 60954.0,
+      "bad_debt_gbp": 2011.0,
+      "treasury_end_gbp": 405655.0,
+      "active_customers": 791,
+      "policy_cost_gbp": 29845.0,
+      "network_cost_gbp": 52907.0,
       "segment_split": {
         "resi electricity": {
-          "revenue_gbp": 117184.05786095324,
-          "gross_gbp": 79890.26035010231,
-          "capital_gbp": 875.0328153005594,
-          "net_gbp": 21936.918652
+          "revenue_gbp": 176955.22268714494,
+          "gross_gbp": 121356.08712843171,
+          "capital_gbp": 1342.406252005416,
+          "net_gbp": 34481.322191000305
         },
         "resi gas": {
-          "revenue_gbp": 70122.49517799885,
-          "gross_gbp": 40257.796819001895,
-          "capital_gbp": 360.77270659997833,
-          "net_gbp": 17482.87860499942
+          "revenue_gbp": 105989.4106500048,
+          "gross_gbp": 61444.684190001484,
+          "capital_gbp": 547.2384504799528,
+          "net_gbp": 26517.06601200164
         },
         "SME electricity": {
           "revenue_gbp": 808.0757426858484,
@@ -90,346 +90,346 @@
       },
       "commodity_split": {
         "electricity": {
-          "revenue_gbp": 117992.13360364408,
-          "wholesale_cost_gbp": 37598.694499996986,
-          "gross_gbp": 80393.43910364709,
-          "capital_gbp": 883.5564557832475,
-          "net_gbp": 21892.366016
+          "revenue_gbp": 177763.29842983664,
+          "wholesale_cost_gbp": 55904.032547856674,
+          "gross_gbp": 121859.26588197995,
+          "capital_gbp": 1350.9298924880336,
+          "net_gbp": 34436.769555
         },
         "gas": {
-          "revenue_gbp": 70122.495178,
-          "wholesale_cost_gbp": 29864.698469,
-          "gross_gbp": 40257.796819,
-          "capital_gbp": 360.7727066,
-          "net_gbp": 17482.878605
+          "revenue_gbp": 105989.41065,
+          "wholesale_cost_gbp": 44544.726522,
+          "gross_gbp": 61444.68419,
+          "capital_gbp": 547.23845048,
+          "net_gbp": 26517.066012
         }
       }
     },
     {
       "year": 2018,
-      "revenue_gbp": 194964.0,
-      "gross_gbp": 115396.0,
-      "net_gbp": 38626.0,
-      "bad_debt_gbp": 61.0,
-      "treasury_end_gbp": 355750.0,
-      "active_customers": 430,
-      "policy_cost_gbp": 23739.0,
-      "network_cost_gbp": 31040.0,
+      "revenue_gbp": 277787.0,
+      "gross_gbp": 165248.0,
+      "net_gbp": 57655.0,
+      "bad_debt_gbp": 2013.0,
+      "treasury_end_gbp": 485744.0,
+      "active_customers": 663,
+      "policy_cost_gbp": 31673.0,
+      "network_cost_gbp": 41552.0,
       "segment_split": {
         "resi electricity": {
-          "revenue_gbp": 118546.3124926079,
-          "gross_gbp": 76346.53460936369,
-          "capital_gbp": 694.5108537621437,
-          "net_gbp": 17968.924338999794
+          "revenue_gbp": 161918.63713060555,
+          "gross_gbp": 105380.95906811673,
+          "capital_gbp": 955.7016493940642,
+          "net_gbp": 27835.37681100028
         },
         "resi gas": {
-          "revenue_gbp": 76417.69008800166,
-          "gross_gbp": 39049.40518599961,
-          "capital_gbp": 488.1651471899899,
-          "net_gbp": 20656.837416999813
+          "revenue_gbp": 115868.35122199479,
+          "gross_gbp": 59866.84870699699,
+          "capital_gbp": 736.5174509300059,
+          "net_gbp": 29819.959144001954
         }
       },
       "commodity_split": {
         "electricity": {
-          "revenue_gbp": 118546.31249260886,
-          "wholesale_cost_gbp": 42199.77788324469,
-          "gross_gbp": 76346.53460936417,
-          "capital_gbp": 694.5108537621184,
-          "net_gbp": 17968.924339
+          "revenue_gbp": 161918.63713060517,
+          "wholesale_cost_gbp": 56537.678062488456,
+          "gross_gbp": 105380.9590681167,
+          "capital_gbp": 955.7016493940707,
+          "net_gbp": 27835.376811
         },
         "gas": {
-          "revenue_gbp": 76417.690088,
-          "wholesale_cost_gbp": 37368.284016,
-          "gross_gbp": 39049.405186,
-          "capital_gbp": 488.16514719,
-          "net_gbp": 20656.837417
+          "revenue_gbp": 115868.351222,
+          "wholesale_cost_gbp": 56001.502116,
+          "gross_gbp": 59866.848707,
+          "capital_gbp": 736.51745093,
+          "net_gbp": 29819.959144
         }
       }
     },
     {
       "year": 2019,
-      "revenue_gbp": 193923.0,
-      "gross_gbp": 134602.0,
-      "net_gbp": 59232.0,
-      "bad_debt_gbp": 137.0,
-      "treasury_end_gbp": 419331.0,
-      "active_customers": 412,
-      "policy_cost_gbp": 25134.0,
-      "network_cost_gbp": 29307.0,
+      "revenue_gbp": 254923.0,
+      "gross_gbp": 177125.0,
+      "net_gbp": 77768.0,
+      "bad_debt_gbp": 4132.0,
+      "treasury_end_gbp": 554357.0,
+      "active_customers": 564,
+      "policy_cost_gbp": 31100.0,
+      "network_cost_gbp": 36258.0,
       "segment_split": {
         "resi electricity": {
-          "revenue_gbp": 123343.96967079554,
-          "gross_gbp": 89835.36252550723,
-          "capital_gbp": 414.43309164767425,
-          "net_gbp": 32456.120012999712
+          "revenue_gbp": 155108.21351333737,
+          "gross_gbp": 113836.19727002374,
+          "capital_gbp": 525.1214210651619,
+          "net_gbp": 42375.832639999724
         },
         "resi gas": {
-          "revenue_gbp": 70578.7857949963,
-          "gross_gbp": 44766.64392200076,
-          "capital_gbp": 327.8601731000265,
-          "net_gbp": 26775.464508999165
+          "revenue_gbp": 99814.45809999386,
+          "gross_gbp": 63288.86986999876,
+          "capital_gbp": 465.72871065000203,
+          "net_gbp": 35392.35418700029
         }
       },
       "commodity_split": {
         "electricity": {
-          "revenue_gbp": 123343.96967079933,
-          "wholesale_cost_gbp": 33508.60714529292,
-          "gross_gbp": 89835.36252550641,
-          "capital_gbp": 414.4330916476835,
-          "net_gbp": 32456.120013
+          "revenue_gbp": 155108.2135133406,
+          "wholesale_cost_gbp": 41272.01624331699,
+          "gross_gbp": 113836.19727002361,
+          "capital_gbp": 525.1214210651627,
+          "net_gbp": 42375.83264
         },
         "gas": {
-          "revenue_gbp": 70578.785795,
-          "wholesale_cost_gbp": 25812.141401,
-          "gross_gbp": 44766.643922,
-          "capital_gbp": 327.8601731,
-          "net_gbp": 26775.464509
+          "revenue_gbp": 99814.4581,
+          "wholesale_cost_gbp": 36525.588408,
+          "gross_gbp": 63288.86987,
+          "capital_gbp": 465.72871065,
+          "net_gbp": 35392.354187
         }
       }
     },
     {
       "year": 2020,
-      "revenue_gbp": 171348.0,
-      "gross_gbp": 132467.0,
-      "net_gbp": 59657.0,
-      "bad_debt_gbp": 143.0,
-      "treasury_end_gbp": 474790.0,
-      "active_customers": 396,
-      "policy_cost_gbp": 25115.0,
-      "network_cost_gbp": 29033.0,
+      "revenue_gbp": 216469.0,
+      "gross_gbp": 167573.0,
+      "net_gbp": 77843.0,
+      "bad_debt_gbp": 1124.0,
+      "treasury_end_gbp": 576051.0,
+      "active_customers": 512,
+      "policy_cost_gbp": 30157.0,
+      "network_cost_gbp": 34864.0,
       "segment_split": {
         "resi electricity": {
-          "revenue_gbp": 114141.94137516302,
-          "gross_gbp": 90052.75281523215,
-          "capital_gbp": 430.3702053026877,
-          "net_gbp": 33050.321355000066
+          "revenue_gbp": 139503.51253146757,
+          "gross_gbp": 110447.8388868307,
+          "capital_gbp": 509.498182044412,
+          "net_gbp": 42082.9415870004
         },
         "resi gas": {
-          "revenue_gbp": 57206.309626999166,
-          "gross_gbp": 42414.23066800037,
-          "capital_gbp": 180.75211731999147,
-          "net_gbp": 26606.817862000553
+          "revenue_gbp": 76965.74578800109,
+          "gross_gbp": 57125.01070900066,
+          "capital_gbp": 244.09111773000214,
+          "net_gbp": 35760.345909001204
         }
       },
       "commodity_split": {
         "electricity": {
-          "revenue_gbp": 114141.94137516145,
-          "wholesale_cost_gbp": 24089.188559928833,
-          "gross_gbp": 90052.75281523261,
-          "capital_gbp": 430.3702053027125,
-          "net_gbp": 33050.321355
+          "revenue_gbp": 139503.51253147656,
+          "wholesale_cost_gbp": 29055.673644645303,
+          "gross_gbp": 110447.83888683125,
+          "capital_gbp": 509.4981820444214,
+          "net_gbp": 42082.941587
         },
         "gas": {
-          "revenue_gbp": 57206.309627,
-          "wholesale_cost_gbp": 14792.078089,
-          "gross_gbp": 42414.230668,
-          "capital_gbp": 180.75211732,
-          "net_gbp": 26606.817862
+          "revenue_gbp": 76965.745788,
+          "wholesale_cost_gbp": 19840.73545,
+          "gross_gbp": 57125.010709,
+          "capital_gbp": 244.09111773,
+          "net_gbp": 35760.345909
         }
       }
     },
     {
       "year": 2021,
-      "revenue_gbp": 183549.0,
-      "gross_gbp": 84799.0,
-      "net_gbp": 7965.0,
-      "bad_debt_gbp": 164.0,
-      "treasury_end_gbp": 477707.0,
-      "active_customers": 359,
-      "policy_cost_gbp": 26573.0,
-      "network_cost_gbp": 30739.0,
+      "revenue_gbp": 215541.0,
+      "gross_gbp": 98336.0,
+      "net_gbp": 9584.0,
+      "bad_debt_gbp": 677.0,
+      "treasury_end_gbp": 518787.0,
+      "active_customers": 458,
+      "policy_cost_gbp": 29390.0,
+      "network_cost_gbp": 33995.0,
       "segment_split": {
         "resi electricity": {
-          "revenue_gbp": 125367.73779392327,
-          "gross_gbp": 69239.63898565377,
-          "capital_gbp": 1427.6280345104078,
-          "net_gbp": 8688.600122999815
+          "revenue_gbp": 140439.40699915428,
+          "gross_gbp": 78864.94860183218,
+          "capital_gbp": 1573.5428180237739,
+          "net_gbp": 11210.236685999813
         },
         "resi gas": {
-          "revenue_gbp": 58181.46408999785,
-          "gross_gbp": 15559.656996999363,
-          "capital_gbp": 523.9336400899832,
-          "net_gbp": -724.0629379998613
+          "revenue_gbp": 75101.13535900204,
+          "gross_gbp": 19471.421478998996,
+          "capital_gbp": 692.9865459599582,
+          "net_gbp": -1625.8873780003578
         }
       },
       "commodity_split": {
         "electricity": {
-          "revenue_gbp": 125367.73779392477,
-          "wholesale_cost_gbp": 56128.09880827008,
-          "gross_gbp": 69239.63898565469,
-          "capital_gbp": 1427.6280345103953,
-          "net_gbp": 8688.600123
+          "revenue_gbp": 140439.4069991538,
+          "wholesale_cost_gbp": 61574.45839732145,
+          "gross_gbp": 78864.94860183237,
+          "capital_gbp": 1573.5428180236484,
+          "net_gbp": 11210.236686
         },
         "gas": {
-          "revenue_gbp": 58181.46409,
-          "wholesale_cost_gbp": 42621.806643,
-          "gross_gbp": 15559.656997,
-          "capital_gbp": 523.93364009,
-          "net_gbp": -724.0629379999999
+          "revenue_gbp": 75101.135359,
+          "wholesale_cost_gbp": 55629.713372,
+          "gross_gbp": 19471.421479,
+          "capital_gbp": 692.9865459600001,
+          "net_gbp": -1625.887378
         }
       }
     },
     {
       "year": 2022,
-      "revenue_gbp": 354848.0,
-      "gross_gbp": 64487.0,
-      "net_gbp": -24821.0,
-      "bad_debt_gbp": 109.0,
-      "treasury_end_gbp": 450164.0,
-      "active_customers": 343,
-      "policy_cost_gbp": 25880.0,
-      "network_cost_gbp": 38175.0,
+      "revenue_gbp": 400711.0,
+      "gross_gbp": 56187.0,
+      "net_gbp": -41823.0,
+      "bad_debt_gbp": 355.0,
+      "treasury_end_gbp": 705795.0,
+      "active_customers": 424,
+      "policy_cost_gbp": 27763.0,
+      "network_cost_gbp": 40946.0,
       "segment_split": {
         "resi electricity": {
-          "revenue_gbp": 223951.04918111357,
-          "gross_gbp": 86714.57032869905,
-          "capital_gbp": 2257.3147145269654,
-          "net_gbp": 16504.910418000072
+          "revenue_gbp": 237492.98057698942,
+          "gross_gbp": 91399.39502798482,
+          "capital_gbp": 2355.522969133264,
+          "net_gbp": 17931.63781599985
         },
         "resi gas": {
-          "revenue_gbp": 130896.80309600098,
-          "gross_gbp": -22227.197410001925,
-          "capital_gbp": 1952.2030631199189,
-          "net_gbp": -41326.027249000865
+          "revenue_gbp": 163217.68352799298,
+          "gross_gbp": -35212.46538000337,
+          "capital_gbp": 2548.786568319884,
+          "net_gbp": -59754.44785399802
         }
       },
       "commodity_split": {
         "electricity": {
-          "revenue_gbp": 223951.04918111174,
-          "wholesale_cost_gbp": 137236.47885241234,
-          "gross_gbp": 86714.5703286994,
-          "capital_gbp": 2257.3147145269822,
-          "net_gbp": 16504.910418
+          "revenue_gbp": 237492.98057698575,
+          "wholesale_cost_gbp": 146093.58554900077,
+          "gross_gbp": 91399.39502798497,
+          "capital_gbp": 2355.5229691333457,
+          "net_gbp": 17931.637816
         },
         "gas": {
-          "revenue_gbp": 130896.803096,
-          "wholesale_cost_gbp": 153124.000584,
-          "gross_gbp": -22227.19741,
-          "capital_gbp": 1952.20306312,
-          "net_gbp": -41326.027249
+          "revenue_gbp": 163217.683528,
+          "wholesale_cost_gbp": 198430.14966,
+          "gross_gbp": -35212.46538,
+          "capital_gbp": 2548.78656832,
+          "net_gbp": -59754.447854
         }
       }
     },
     {
       "year": 2023,
-      "revenue_gbp": 506301.0,
-      "gross_gbp": 334797.0,
-      "net_gbp": 219041.0,
-      "bad_debt_gbp": 222.0,
-      "treasury_end_gbp": 681182.0,
-      "active_customers": 375,
-      "policy_cost_gbp": 31537.0,
-      "network_cost_gbp": 47923.0,
+      "revenue_gbp": 567154.0,
+      "gross_gbp": 369408.0,
+      "net_gbp": 241564.0,
+      "bad_debt_gbp": 823.0,
+      "treasury_end_gbp": 872423.0,
+      "active_customers": 452,
+      "policy_cost_gbp": 33526.0,
+      "network_cost_gbp": 50958.0,
       "segment_split": {
         "resi electricity": {
-          "revenue_gbp": 319223.395714154,
-          "gross_gbp": 230051.2944902752,
-          "capital_gbp": 3312.5093917420536,
-          "net_gbp": 142930.50363700293
+          "revenue_gbp": 333793.822872117,
+          "gross_gbp": 239809.20793754875,
+          "capital_gbp": 3522.6570254644225,
+          "net_gbp": 148441.26814800012
         },
         "resi gas": {
-          "revenue_gbp": 187078.02481699752,
-          "gross_gbp": 104745.86138400176,
-          "capital_gbp": 2730.8073411698665,
-          "net_gbp": 76110.36438600002
+          "revenue_gbp": 233359.68651800073,
+          "gross_gbp": 129598.73148300624,
+          "capital_gbp": 3516.3366610499666,
+          "net_gbp": 93122.38815600473
         }
       },
       "commodity_split": {
         "electricity": {
-          "revenue_gbp": 319223.3957141652,
-          "wholesale_cost_gbp": 89172.10122389102,
-          "gross_gbp": 230051.2944902742,
-          "capital_gbp": 3312.509391742103,
-          "net_gbp": 142930.503637
+          "revenue_gbp": 333793.82287211885,
+          "wholesale_cost_gbp": 93984.61493457017,
+          "gross_gbp": 239809.20793754866,
+          "capital_gbp": 3522.657025464584,
+          "net_gbp": 148441.268148
         },
         "gas": {
-          "revenue_gbp": 187078.024817,
-          "wholesale_cost_gbp": 82332.163699,
-          "gross_gbp": 104745.861384,
-          "capital_gbp": 2730.80734117,
-          "net_gbp": 76110.364386
+          "revenue_gbp": 233359.686518,
+          "wholesale_cost_gbp": 103760.954637,
+          "gross_gbp": 129598.731483,
+          "capital_gbp": 3516.33666105,
+          "net_gbp": 93122.388156
         }
       }
     },
     {
       "year": 2024,
-      "revenue_gbp": 323987.0,
-      "gross_gbp": 222177.0,
-      "net_gbp": 98320.0,
-      "bad_debt_gbp": 676.0,
-      "treasury_end_gbp": 776953.0,
-      "active_customers": 415,
-      "policy_cost_gbp": 39848.0,
-      "network_cost_gbp": 49818.0,
+      "revenue_gbp": 366729.0,
+      "gross_gbp": 249315.0,
+      "net_gbp": 109325.0,
+      "bad_debt_gbp": 3797.0,
+      "treasury_end_gbp": 912330.0,
+      "active_customers": 483,
+      "policy_cost_gbp": 42899.0,
+      "network_cost_gbp": 53659.0,
       "segment_split": {
-        "resi gas": {
-          "revenue_gbp": 113378.09359099863,
-          "gross_gbp": 65093.3248359983,
-          "capital_gbp": 1877.1796432300926,
-          "net_gbp": 37060.36918899979
-        },
         "resi electricity": {
-          "revenue_gbp": 210608.465023719,
-          "gross_gbp": 157083.70151725798,
-          "capital_gbp": 1927.8211248609223,
-          "net_gbp": 61259.334478000244
+          "revenue_gbp": 228505.6076372278,
+          "gross_gbp": 170843.67391641813,
+          "capital_gbp": 2048.9112419117605,
+          "net_gbp": 68659.04432299954
+        },
+        "resi gas": {
+          "revenue_gbp": 138223.308353997,
+          "gross_gbp": 78471.62140099857,
+          "capital_gbp": 2297.093512030054,
+          "net_gbp": 40666.095450001936
         }
       },
       "commodity_split": {
         "electricity": {
-          "revenue_gbp": 210608.4650237179,
-          "wholesale_cost_gbp": 53524.763506458774,
-          "gross_gbp": 157083.70151725915,
-          "capital_gbp": 1927.8211248609584,
-          "net_gbp": 61259.334478
+          "revenue_gbp": 228505.60763723968,
+          "wholesale_cost_gbp": 57661.933720823305,
+          "gross_gbp": 170843.67391641636,
+          "capital_gbp": 2048.91124191169,
+          "net_gbp": 68659.044323
         },
         "gas": {
-          "revenue_gbp": 113378.093591,
-          "wholesale_cost_gbp": 48284.768628,
-          "gross_gbp": 65093.324836,
-          "capital_gbp": 1877.17964323,
-          "net_gbp": 37060.369189
+          "revenue_gbp": 138223.308354,
+          "wholesale_cost_gbp": 59751.686683,
+          "gross_gbp": 78471.621401,
+          "capital_gbp": 2297.09351203,
+          "net_gbp": 40666.09545
         }
       }
     },
     {
       "year": 2025,
-      "revenue_gbp": 159167.0,
-      "gross_gbp": 94006.0,
-      "net_gbp": 33125.0,
-      "bad_debt_gbp": 59.0,
-      "treasury_end_gbp": 805900.0,
-      "active_customers": 392,
-      "policy_cost_gbp": 19739.0,
-      "network_cost_gbp": 22894.0,
+      "revenue_gbp": 173336.0,
+      "gross_gbp": 101161.0,
+      "net_gbp": 32153.0,
+      "bad_debt_gbp": 3527.0,
+      "treasury_end_gbp": 914130.0,
+      "active_customers": 453,
+      "policy_cost_gbp": 20119.0,
+      "network_cost_gbp": 23336.0,
       "segment_split": {
-        "resi gas": {
-          "revenue_gbp": 62388.86448299854,
-          "gross_gbp": 28534.60427500104,
-          "capital_gbp": 1176.8711746499966,
-          "net_gbp": 13220.602783000555
-        },
         "resi electricity": {
-          "revenue_gbp": 96778.05439181301,
-          "gross_gbp": 65471.73094068024,
-          "capital_gbp": 1325.8641440940723,
-          "net_gbp": 19904.690823000023
+          "revenue_gbp": 99143.7068148883,
+          "gross_gbp": 67469.55465172541,
+          "capital_gbp": 1328.9011115071046,
+          "net_gbp": 19046.375511999962
+        },
+        "resi gas": {
+          "revenue_gbp": 74192.74150699987,
+          "gross_gbp": 33691.59660699985,
+          "capital_gbp": 1405.8026772399833,
+          "net_gbp": 13106.286613000104
         }
       },
       "commodity_split": {
         "electricity": {
-          "revenue_gbp": 96778.05439181268,
-          "wholesale_cost_gbp": 31306.323451132124,
-          "gross_gbp": 65471.73094068055,
-          "capital_gbp": 1325.8641440940376,
-          "net_gbp": 19904.690823
+          "revenue_gbp": 99143.70681488852,
+          "wholesale_cost_gbp": 31674.152163163646,
+          "gross_gbp": 67469.55465172486,
+          "capital_gbp": 1328.9011115071564,
+          "net_gbp": 19046.375512
         },
         "gas": {
-          "revenue_gbp": 62388.864483,
-          "wholesale_cost_gbp": 33854.26109,
-          "gross_gbp": 28534.604275,
-          "capital_gbp": 1176.87117465,
-          "net_gbp": 13220.602783
+          "revenue_gbp": 74192.741507,
+          "wholesale_cost_gbp": 40501.145663,
+          "gross_gbp": 33691.596607,
+          "capital_gbp": 1405.80267724,
+          "net_gbp": 13106.286613
         }
       }
     }
@@ -437,91 +437,91 @@
   "fra_ratio_series": [
     {
       "year": 2016,
-      "equity_gbp": 259700.45335604454,
-      "annual_revenue_gbp": 100852.78041388893,
-      "monthly_revenue_gbp": 8404.4,
-      "fra_ratio": 30.9,
+      "equity_gbp": 269782.34422330116,
+      "annual_revenue_gbp": 149575.5347287457,
+      "monthly_revenue_gbp": 12464.63,
+      "fra_ratio": 21.64,
       "rag": "GREEN",
       "is_compliant": true
     },
     {
       "year": 2017,
-      "equity_gbp": 275873.98255074903,
-      "annual_revenue_gbp": 184758.0493467654,
-      "monthly_revenue_gbp": 15396.5,
-      "fra_ratio": 17.92,
+      "equity_gbp": 302756.5315035649,
+      "annual_revenue_gbp": 282850.82084622374,
+      "monthly_revenue_gbp": 23570.9,
+      "fra_ratio": 12.84,
       "rag": "GREEN",
       "is_compliant": true
     },
     {
       "year": 2018,
-      "equity_gbp": 301308.8200013421,
-      "annual_revenue_gbp": 193372.1814196033,
-      "monthly_revenue_gbp": 16114.35,
-      "fra_ratio": 18.7,
+      "equity_gbp": 342269.40673134197,
+      "annual_revenue_gbp": 278044.41269493493,
+      "monthly_revenue_gbp": 23170.37,
+      "fra_ratio": 14.77,
       "rag": "GREEN",
       "is_compliant": true
     },
     {
       "year": 2019,
-      "equity_gbp": 346865.4640774746,
-      "annual_revenue_gbp": 190534.84633054322,
-      "monthly_revenue_gbp": 15877.9,
-      "fra_ratio": 21.85,
+      "equity_gbp": 406980.193970512,
+      "annual_revenue_gbp": 255167.88395193862,
+      "monthly_revenue_gbp": 21263.99,
+      "fra_ratio": 19.14,
       "rag": "GREEN",
       "is_compliant": true
     },
     {
       "year": 2020,
-      "equity_gbp": 399272.3527414814,
-      "annual_revenue_gbp": 175821.96704416347,
-      "monthly_revenue_gbp": 14651.83,
-      "fra_ratio": 27.25,
+      "equity_gbp": 469925.0636869221,
+      "annual_revenue_gbp": 216722.91850128063,
+      "monthly_revenue_gbp": 18060.24,
+      "fra_ratio": 26.02,
       "rag": "GREEN",
       "is_compliant": true
     },
     {
       "year": 2021,
-      "equity_gbp": 395084.0398276546,
-      "annual_revenue_gbp": 183158.08584695272,
-      "monthly_revenue_gbp": 15263.17,
-      "fra_ratio": 25.88,
+      "equity_gbp": 464485.31068983255,
+      "annual_revenue_gbp": 216011.70165057963,
+      "monthly_revenue_gbp": 18000.98,
+      "fra_ratio": 25.8,
       "rag": "GREEN",
       "is_compliant": true
     },
     {
       "year": 2022,
-      "equity_gbp": 360953.5243830369,
-      "annual_revenue_gbp": 353839.60384022794,
-      "monthly_revenue_gbp": 29486.63,
-      "fra_ratio": 12.24,
+      "equity_gbp": 352950.1832705069,
+      "annual_revenue_gbp": 347503.29786570533,
+      "monthly_revenue_gbp": 28958.61,
+      "fra_ratio": 12.19,
       "rag": "GREEN",
       "is_compliant": true
     },
     {
       "year": 2023,
-      "equity_gbp": 577020.9978400042,
-      "annual_revenue_gbp": 506071.04503876704,
-      "monthly_revenue_gbp": 42172.59,
-      "fra_ratio": 13.68,
+      "equity_gbp": 449349.2987415599,
+      "annual_revenue_gbp": 427653.45304293936,
+      "monthly_revenue_gbp": 35637.79,
+      "fra_ratio": 12.61,
       "rag": "GREEN",
       "is_compliant": true
     },
     {
       "year": 2024,
-      "equity_gbp": 687633.2653288291,
-      "annual_revenue_gbp": 325334.2469542934,
-      "monthly_revenue_gbp": 27111.19,
-      "fra_ratio": 25.36,
+      "equity_gbp": 569248.2005398475,
+      "annual_revenue_gbp": 362841.66601560893,
+      "monthly_revenue_gbp": 30236.81,
+      "fra_ratio": 18.83,
       "rag": "GREEN",
       "is_compliant": true
     },
     {
       "year": 2025,
-      "equity_gbp": 733934.4017436136,
-      "annual_revenue_gbp": 158348.9637521879,
-      "monthly_revenue_gbp": 13195.75,
-      "fra_ratio": 55.62,
+      "equity_gbp": 620131.6141344847,
+      "annual_revenue_gbp": 173357.90908751948,
+      "monthly_revenue_gbp": 14446.49,
+      "fra_ratio": 42.93,
       "rag": "GREEN",
       "is_compliant": true
     }

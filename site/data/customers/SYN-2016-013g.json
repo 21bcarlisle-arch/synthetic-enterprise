@@ -1,0 +1,182 @@
+{
+  "account_id": "SYN-2016-013g",
+  "base_account_id": "SYN-2016-013",
+  "segment": "resi",
+  "commodity": "gas",
+  "is_dual_fuel": false,
+  "acquisition_date": "2016-01-11",
+  "tariff_name": "Standard Variable (Gas)",
+  "meter_type": "Smart",
+  "mpan": null,
+  "mprn": "52391462",
+  "lifetime_revenue_gbp": 33.79,
+  "lifetime_gross_gbp": 18.56,
+  "lifetime_net_gbp": 8.68,
+  "lifetime_net_after_cts_gbp": 5.97,
+  "cost_to_serve_gbp": 2.71,
+  "pricing_action": {
+    "flag": "OK",
+    "recommended_uplift_pct": null
+  },
+  "avg_hedge_fraction": 0.85,
+  "clv_gbp": null,
+  "churn_probability": null,
+  "expected_lifetime_periods": null,
+  "forecast_annual_profit_gbp": null,
+  "forecast_cashflow": [],
+  "forward_looking_basis": "billing_account",
+  "forward_looking_account_id": "SYN-2016-013",
+  "commodity_split": {
+    "electricity": null,
+    "gas": {
+      "net_gbp": 8.68,
+      "revenue_gbp": 33.79
+    }
+  },
+  "dual_fuel_combined": null,
+  "annual_pnl": [
+    {
+      "year": 2016,
+      "revenue_gbp": 0,
+      "gross_gbp": 18.56,
+      "net_gbp": 8.68,
+      "tariff_min": 30.59,
+      "tariff_max": 30.59
+    }
+  ],
+  "timeline": [
+    {
+      "date": "2016-01-02",
+      "type": "life_event",
+      "commodity": null,
+      "detail": "Job loss"
+    },
+    {
+      "type": "final_bill",
+      "date": "2016-01-28",
+      "detail": "Final bill",
+      "commodity": "gas",
+      "effect": "Closing read actual; billed \u00a335.48"
+    },
+    {
+      "type": "moved_out",
+      "date": "2016-01-29",
+      "detail": "Moved out",
+      "commodity": "gas"
+    },
+    {
+      "date": "2017-05-07",
+      "type": "life_event",
+      "commodity": null,
+      "detail": "Reemployed",
+      "effect": "Real downstream drift: income stress high -> moderate"
+    },
+    {
+      "date": "2022-05-07",
+      "type": "life_event",
+      "commodity": null,
+      "detail": "Income scar ended",
+      "effect": "Real downstream drift: income stress moderate -> low"
+    },
+    {
+      "date": "2024-12-08",
+      "type": "life_event",
+      "commodity": null,
+      "detail": "Job loss",
+      "effect": "Real downstream drift: income stress low -> high"
+    },
+    {
+      "date": "2025-05-05",
+      "type": "life_event",
+      "commodity": null,
+      "detail": "Reemployed",
+      "effect": "Real downstream drift: income stress high -> moderate"
+    }
+  ],
+  "invoices": [
+    {
+      "id": "SYN-2016-013g-INV21972",
+      "date": "2016-01-28",
+      "period_start": "2016-01-11",
+      "period_end": "2016-01-28",
+      "commodity": "gas",
+      "consumption_kwh": 981.5,
+      "unit_rate_p_per_kwh": 2.159,
+      "commodity_amount_gbp": 21.19,
+      "standing_charge_gbp": 3.77,
+      "days_in_period": 18,
+      "standing_charge_gbp_per_day": 0.2094,
+      "non_commodity_amount_gbp": 8.83,
+      "vat_gbp": 1.69,
+      "amount_gbp": 35.48,
+      "status": "PAID",
+      "outstanding_gbp": 0.0,
+      "credit_applied_gbp": null,
+      "meter_serial": "M00034317",
+      "mpan": null,
+      "mprn": "0000013464",
+      "read_type": "A",
+      "opening_read_kwh": 0.0,
+      "closing_read_kwh": 981.5,
+      "registers": [
+        {
+          "register_id": "1",
+          "label": "Anytime",
+          "consumption_kwh": 981.5,
+          "amount_gbp": 21.19,
+          "unit_rate_p_per_kwh": 2.159
+        }
+      ],
+      "catchup_applied": false,
+      "catchup_period_start": null,
+      "catchup_period_end": null,
+      "catchup_periods_covered": null,
+      "catchup_direction": null,
+      "catchup_raw_delta_gbp": null,
+      "catchup_adjustment_gbp": null,
+      "catchup_written_off_gbp": null,
+      "catchup_back_billing_cap_applied": null
+    }
+  ],
+  "ledger": {
+    "as_of_date": "2025-07-04",
+    "entries": [
+      {
+        "date": "2016-01-29",
+        "type": "invoice_raised",
+        "invoice_number": 21972,
+        "amount_gbp": 35.48,
+        "info_amount_gbp": null,
+        "method": null,
+        "description": "Invoice INV21972 raised",
+        "running_balance_gbp": 35.48
+      },
+      {
+        "date": "2016-02-12",
+        "type": "payment_received",
+        "invoice_number": 21972,
+        "amount_gbp": -35.48,
+        "info_amount_gbp": null,
+        "method": "direct_debit",
+        "description": "Payment received",
+        "running_balance_gbp": 0.0
+      }
+    ],
+    "current_balance_gbp": 0.0,
+    "total_billed_gbp": 35.48,
+    "total_collected_gbp": 35.48,
+    "total_written_off_gross_gbp": 0,
+    "total_recovered_gbp": 0
+  },
+  "consumption": {
+    "unit": "kWh",
+    "monthly": [
+      {
+        "month": "2016-01",
+        "kwh": 981.5
+      }
+    ],
+    "has_hh_data": false
+  },
+  "reaction_chain": []
+}

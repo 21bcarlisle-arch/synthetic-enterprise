@@ -54,7 +54,7 @@
   ],
   "invoices": [
     {
-      "id": "SYN-2025-001g-INV38552",
+      "id": "SYN-2025-001g-INV52780",
       "date": "2025-04-30",
       "period_start": "2025-04-18",
       "period_end": "2025-04-30",
@@ -97,7 +97,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "SYN-2025-001g-INV38553",
+      "id": "SYN-2025-001g-INV52781",
       "date": "2025-05-31",
       "period_start": "2025-05-01",
       "period_end": "2025-05-31",
@@ -140,7 +140,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "SYN-2025-001g-INV38554",
+      "id": "SYN-2025-001g-INV52782",
       "date": "2025-06-07",
       "period_start": "2025-06-01",
       "period_end": "2025-06-07",
@@ -184,22 +184,22 @@
     }
   ],
   "ledger": {
-    "as_of_date": "2025-06-25",
+    "as_of_date": "2025-07-04",
     "entries": [
       {
         "date": "2025-04-30",
         "type": "invoice_raised",
-        "invoice_number": 38552,
+        "invoice_number": 52780,
         "amount_gbp": 5.69,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV38552 raised",
+        "description": "Invoice INV52780 raised",
         "running_balance_gbp": 5.69
       },
       {
         "date": "2025-05-14",
         "type": "payment_received",
-        "invoice_number": 38552,
+        "invoice_number": 52780,
         "amount_gbp": -5.69,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -209,37 +209,37 @@
       {
         "date": "2025-06-01",
         "type": "invoice_raised",
-        "invoice_number": 38553,
+        "invoice_number": 52781,
         "amount_gbp": 13.56,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV38553 raised",
+        "description": "Invoice INV52781 raised",
         "running_balance_gbp": 13.56
       },
       {
         "date": "2025-06-14",
         "type": "invoice_raised",
-        "invoice_number": 38554,
+        "invoice_number": 52782,
         "amount_gbp": 3.07,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV38554 raised",
+        "description": "Invoice INV52782 raised",
         "running_balance_gbp": 16.63
       },
       {
-        "date": "2025-06-15",
+        "date": "2025-06-28",
         "type": "payment_received",
-        "invoice_number": 38553,
-        "amount_gbp": -13.56,
+        "invoice_number": 52782,
+        "amount_gbp": -3.07,
         "info_amount_gbp": null,
         "method": "direct_debit",
         "description": "Payment received",
-        "running_balance_gbp": 3.07
+        "running_balance_gbp": 13.56
       }
     ],
-    "current_balance_gbp": 3.07,
+    "current_balance_gbp": 13.56,
     "total_billed_gbp": 22.32,
-    "total_collected_gbp": 19.25,
+    "total_collected_gbp": 8.76,
     "total_written_off_gross_gbp": 0,
     "total_recovered_gbp": 0
   },

@@ -63,7 +63,7 @@
   ],
   "invoices": [
     {
-      "id": "SYN-2025-001-INV38549",
+      "id": "SYN-2025-001-INV52777",
       "date": "2025-04-30",
       "period_start": "2025-04-18",
       "period_end": "2025-04-30",
@@ -89,10 +89,21 @@
       "registers": [
         {
           "register_id": "1",
-          "label": "Anytime",
-          "consumption_kwh": 98.3,
-          "amount_gbp": 18.24,
-          "unit_rate_p_per_kwh": 18.56
+          "label": "Peak",
+          "consumption_kwh": 26.8,
+          "amount_gbp": 8.39,
+          "unit_rate_p_per_kwh": 31.31,
+          "opening_read_kwh": 0.0,
+          "closing_read_kwh": 26.8
+        },
+        {
+          "register_id": "2",
+          "label": "Off-peak",
+          "consumption_kwh": 71.5,
+          "amount_gbp": 9.85,
+          "unit_rate_p_per_kwh": 13.78,
+          "opening_read_kwh": 0.0,
+          "closing_read_kwh": 71.5
         }
       ],
       "catchup_applied": false,
@@ -106,7 +117,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "SYN-2025-001-INV38550",
+      "id": "SYN-2025-001-INV52778",
       "date": "2025-05-31",
       "period_start": "2025-05-01",
       "period_end": "2025-05-31",
@@ -132,10 +143,21 @@
       "registers": [
         {
           "register_id": "1",
-          "label": "Anytime",
-          "consumption_kwh": 266.5,
-          "amount_gbp": 48.86,
-          "unit_rate_p_per_kwh": 18.334
+          "label": "Peak",
+          "consumption_kwh": 69.4,
+          "amount_gbp": 21.72,
+          "unit_rate_p_per_kwh": 31.3,
+          "opening_read_kwh": 26.8,
+          "closing_read_kwh": 96.2
+        },
+        {
+          "register_id": "2",
+          "label": "Off-peak",
+          "consumption_kwh": 197.1,
+          "amount_gbp": 27.14,
+          "unit_rate_p_per_kwh": 13.77,
+          "opening_read_kwh": 71.5,
+          "closing_read_kwh": 268.6
         }
       ],
       "catchup_applied": false,
@@ -149,7 +171,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "SYN-2025-001-INV38551",
+      "id": "SYN-2025-001-INV52779",
       "date": "2025-06-07",
       "period_start": "2025-06-01",
       "period_end": "2025-06-07",
@@ -175,10 +197,21 @@
       "registers": [
         {
           "register_id": "1",
-          "label": "Anytime",
-          "consumption_kwh": 57.0,
-          "amount_gbp": 10.02,
-          "unit_rate_p_per_kwh": 17.58
+          "label": "Peak",
+          "consumption_kwh": 12.3,
+          "amount_gbp": 3.87,
+          "unit_rate_p_per_kwh": 31.46,
+          "opening_read_kwh": 96.2,
+          "closing_read_kwh": 108.5
+        },
+        {
+          "register_id": "2",
+          "label": "Off-peak",
+          "consumption_kwh": 44.7,
+          "amount_gbp": 6.15,
+          "unit_rate_p_per_kwh": 13.76,
+          "opening_read_kwh": 268.6,
+          "closing_read_kwh": 313.3
         }
       ],
       "catchup_applied": false,
@@ -193,22 +226,22 @@
     }
   ],
   "ledger": {
-    "as_of_date": "2025-06-25",
+    "as_of_date": "2025-07-04",
     "entries": [
       {
         "date": "2025-05-02",
         "type": "invoice_raised",
-        "invoice_number": 38549,
+        "invoice_number": 52777,
         "amount_gbp": 31.83,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV38549 raised",
+        "description": "Invoice INV52777 raised",
         "running_balance_gbp": 31.83
       },
       {
         "date": "2025-05-22",
         "type": "payment_received",
-        "invoice_number": 38549,
+        "invoice_number": 52777,
         "amount_gbp": -31.83,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -218,27 +251,27 @@
       {
         "date": "2025-06-02",
         "type": "invoice_raised",
-        "invoice_number": 38550,
+        "invoice_number": 52778,
         "amount_gbp": 83.37,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV38550 raised",
+        "description": "Invoice INV52778 raised",
         "running_balance_gbp": 83.37
       },
       {
         "date": "2025-06-09",
         "type": "invoice_raised",
-        "invoice_number": 38551,
+        "invoice_number": 52779,
         "amount_gbp": 17.59,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV38551 raised",
+        "description": "Invoice INV52779 raised",
         "running_balance_gbp": 100.96
       },
       {
         "date": "2025-06-16",
         "type": "payment_received",
-        "invoice_number": 38550,
+        "invoice_number": 52778,
         "amount_gbp": -83.37,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -248,7 +281,7 @@
       {
         "date": "2025-06-23",
         "type": "payment_received",
-        "invoice_number": 38551,
+        "invoice_number": 52779,
         "amount_gbp": -17.59,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -280,5 +313,50 @@
     ],
     "has_hh_data": false
   },
-  "reaction_chain": []
+  "reaction_chain": [
+    {
+      "customer_id": "SYN-2025-001",
+      "date": "2025-04-29",
+      "event_type": "collections_missed_payment",
+      "description": "A bill is unpaid past its due date -- collections journey opened -- GBP30.30 overdue",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 30.3,
+      "outcome": "cured",
+      "framing_type": null
+    },
+    {
+      "customer_id": "SYN-2025-001",
+      "date": "2025-05-04",
+      "event_type": "collections_cured",
+      "description": "Overdue balance cleared -- journey closed",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 0,
+      "outcome": "cured",
+      "framing_type": null
+    },
+    {
+      "customer_id": "SYN-2025-001",
+      "date": "2025-05-29",
+      "event_type": "collections_missed_payment",
+      "description": "A bill is unpaid past its due date -- collections journey opened -- GBP12.91 overdue",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 12.91,
+      "outcome": null,
+      "framing_type": null
+    },
+    {
+      "customer_id": "SYN-2025-001",
+      "date": "2025-06-04",
+      "event_type": "collections_reminder",
+      "description": "Reminder sent -- GBP12.91 overdue",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 12.91,
+      "outcome": null,
+      "framing_type": null
+    }
+  ]
 }

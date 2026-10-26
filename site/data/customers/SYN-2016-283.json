@@ -1,0 +1,151 @@
+{
+  "account_id": "SYN-2016-283",
+  "base_account_id": "SYN-2016-283",
+  "segment": "resi",
+  "commodity": "electricity",
+  "is_dual_fuel": true,
+  "acquisition_date": "2016-06-21",
+  "tariff_name": "Standard Variable (Electricity)",
+  "meter_type": "Traditional",
+  "mpan": {
+    "top_line": "0100101",
+    "bottom_line": "10137436907"
+  },
+  "mprn": null,
+  "lifetime_revenue_gbp": 12.22,
+  "lifetime_gross_gbp": 9.37,
+  "lifetime_net_gbp": 4.21,
+  "lifetime_net_after_cts_gbp": 2.71,
+  "cost_to_serve_gbp": 1.51,
+  "pricing_action": {
+    "flag": "OK",
+    "recommended_uplift_pct": null
+  },
+  "avg_hedge_fraction": 0.85,
+  "clv_gbp": null,
+  "churn_probability": null,
+  "expected_lifetime_periods": null,
+  "forecast_annual_profit_gbp": null,
+  "forecast_cashflow": [],
+  "forward_looking_basis": "no_billing_account",
+  "forward_looking_account_id": "SYN-2016-283",
+  "commodity_split": {
+    "electricity": {
+      "net_gbp": 4.21,
+      "revenue_gbp": 12.22
+    },
+    "gas": null
+  },
+  "dual_fuel_combined": {
+    "gas_account_id": "SYN-2016-283g",
+    "gas_lifetime_net_gbp": 2.1,
+    "gas_lifetime_revenue_gbp": 3.44,
+    "combined_net_gbp": 6.31,
+    "combined_revenue_gbp": 15.66
+  },
+  "annual_pnl": [
+    {
+      "year": 2016,
+      "revenue_gbp": 0,
+      "gross_gbp": 9.37,
+      "net_gbp": 4.21,
+      "tariff_min": 133.33,
+      "tariff_max": 133.33
+    }
+  ],
+  "timeline": [
+    {
+      "type": "final_bill",
+      "date": "2016-06-30",
+      "detail": "Final bill",
+      "commodity": "electricity",
+      "effect": "Closing read actual; billed \u00a312.84"
+    }
+  ],
+  "invoices": [
+    {
+      "id": "SYN-2016-283-INV36826",
+      "date": "2016-06-30",
+      "period_start": "2016-06-21",
+      "period_end": "2016-06-30",
+      "commodity": "electricity",
+      "consumption_kwh": 77.3,
+      "unit_rate_p_per_kwh": 8.12,
+      "commodity_amount_gbp": 6.28,
+      "standing_charge_gbp": 1.92,
+      "days_in_period": 10,
+      "standing_charge_gbp_per_day": 0.192,
+      "non_commodity_amount_gbp": 4.02,
+      "vat_gbp": 0.61,
+      "amount_gbp": 12.83,
+      "status": "PAID",
+      "outstanding_gbp": 0.0,
+      "credit_applied_gbp": null,
+      "meter_serial": "M00058373",
+      "mpan": "1000000000698",
+      "mprn": null,
+      "read_type": "A",
+      "opening_read_kwh": 0.0,
+      "closing_read_kwh": 77.3,
+      "registers": [
+        {
+          "register_id": "1",
+          "label": "Anytime",
+          "consumption_kwh": 77.3,
+          "amount_gbp": 6.28,
+          "unit_rate_p_per_kwh": 8.12
+        }
+      ],
+      "catchup_applied": false,
+      "catchup_period_start": null,
+      "catchup_period_end": null,
+      "catchup_periods_covered": null,
+      "catchup_direction": null,
+      "catchup_raw_delta_gbp": null,
+      "catchup_adjustment_gbp": null,
+      "catchup_written_off_gbp": null,
+      "catchup_back_billing_cap_applied": null
+    }
+  ],
+  "ledger": {
+    "as_of_date": "2025-07-04",
+    "entries": [
+      {
+        "date": "2016-07-14",
+        "type": "invoice_raised",
+        "invoice_number": 36826,
+        "amount_gbp": 12.83,
+        "info_amount_gbp": null,
+        "method": null,
+        "description": "Invoice INV36826 raised",
+        "running_balance_gbp": 12.83
+      },
+      {
+        "date": "2016-07-28",
+        "type": "payment_received",
+        "invoice_number": 36826,
+        "amount_gbp": -12.83,
+        "info_amount_gbp": null,
+        "method": "direct_debit",
+        "description": "Payment received",
+        "running_balance_gbp": 0.0
+      }
+    ],
+    "current_balance_gbp": 0.0,
+    "total_billed_gbp": 12.83,
+    "total_collected_gbp": 12.83,
+    "total_written_off_gross_gbp": 0,
+    "total_recovered_gbp": 0
+  },
+  "consumption": {
+    "unit": "kWh",
+    "monthly": [
+      {
+        "month": "2016-06",
+        "kwh": 77.3
+      }
+    ],
+    "has_hh_data": false
+  },
+  "reaction_chain": []
+}

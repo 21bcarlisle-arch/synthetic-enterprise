@@ -44,7 +44,21 @@
       "tariff_max": 31.0
     }
   ],
-  "timeline": [],
+  "timeline": [
+    {
+      "type": "final_bill",
+      "date": "2016-04-20",
+      "detail": "Final bill",
+      "commodity": "gas",
+      "effect": "Closing read estimated; billed \u00a324.89"
+    },
+    {
+      "type": "moved_out",
+      "date": "2016-04-21",
+      "detail": "Moved out",
+      "commodity": "gas"
+    }
+  ],
   "invoices": [
     {
       "id": "C1g-INV5",
@@ -220,7 +234,7 @@
     }
   ],
   "ledger": {
-    "as_of_date": "2025-06-25",
+    "as_of_date": "2025-07-04",
     "entries": [
       {
         "date": "2016-01-31",
