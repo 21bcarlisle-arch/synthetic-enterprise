@@ -307,7 +307,10 @@ def test_every_real_period_exports_readings_that_reproduce_our_own_volume():
                 wrong.append("{}/{}: {}".format(cid, inv.get("invoice_number"),
                                                 period["volume_basis"]))
                 continue
-            got = period["reads"][1]["read_kwh"] - period["reads"][0]["read_kwh"]
+            # Opening and closing alternate per register, so a two-rate meter's volume is the sum
+            # of its registers' advances (2026-10-26).
+            reads = period["reads"]
+            got = sum(c["read_kwh"] - o["read_kwh"] for o, c in zip(reads[::2], reads[1::2]))
             if abs(got - (inv.get("consumption_kwh") or 0.0)) >= 0.005:
                 wrong.append("{}/{}: reads give {} but the bill used {}".format(
                     cid, inv.get("invoice_number"), round(got, 2), inv.get("consumption_kwh")))
@@ -321,3 +324,28 @@ def test_every_real_period_exports_readings_that_reproduce_our_own_volume():
         "partially exported ledger passes any constant floor and fails this one".format(
             periods, declared))
     assert not wrong, "{} of {} periods: {}".format(len(wrong), periods, wrong[:5])
+
+
+def test_a_two_register_period_exports_each_registers_own_readings():
+    """C1's January 2016 on the 4ae8da9b0f book: Peak 24.3 + Off-peak 75.8 = 100.1 kWh. Before
+    2026-10-26 a two-register bill exported no readings at all, and 1,416 periods went out as
+    `consumption_only`.
+
+    MUTATION: return [] for any multi-register invoice (the old behaviour) and this fails; drop one
+    register's readings and the second half fails rather than exporting a partial set.
+    """
+    inv = _period_inv(consumption_kwh=100.1, opening_read_kwh=0.0, closing_read_kwh=100.1,
+                      registers=[
+                          {"register_id": "1", "label": "Peak", "consumption_kwh": 24.3,
+                           "opening_read_kwh": 10.0, "closing_read_kwh": 34.3},
+                          {"register_id": "2", "label": "Off-peak", "consumption_kwh": 75.8,
+                           "opening_read_kwh": 20.0, "closing_read_kwh": 95.8}])
+    period = rx.raw_account("C1", {"invoices": [inv]})["periods"][0]
+    assert period["volume_basis"] == rx.VOLUME_FROM_READS
+    assert [(r["register_label"], r["read_kwh"]) for r in period["reads"]] == [
+        ("Peak", 10.0), ("Peak", 34.3), ("Off-peak", 20.0), ("Off-peak", 95.8)]
+    assert rx.derived_leaks(period) == []
+
+    del inv["registers"][1]["opening_read_kwh"]
+    period = rx.raw_account("C1", {"invoices": [inv]})["periods"][0]
+    assert period["reads"] == [] and period["volume_basis"] == rx.VOLUME_CONSUMPTION_ONLY

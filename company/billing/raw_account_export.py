@@ -201,10 +201,16 @@ def _reads_from_invoice(inv: dict) -> list[dict]:
     bills is single-register — but keying to that is keying to today's answer, so an unattributable
     case returns NO reads and the period declares `volume_basis: "unattributable"`. A guess here
     would be a fabricated meter reading, which is worse than an absent one.
+
+    SUPERSEDED IN PART, 2026-10-26: ToU invoices print two registers (50001b0b7b) and the ledger
+    now records each register's own readings, so `_reads_per_register` exports those. A register
+    with no readings of its own still makes the period unattributable.
     """
     registers = inv.get("registers") or [{}]
+    if len(registers) > 1:
+        return _reads_per_register(inv, registers)
     opening, closing = inv.get("opening_read_kwh"), inv.get("closing_read_kwh")
-    if len(registers) != 1 or opening is None or closing is None:
+    if opening is None or closing is None:
         return []
     reg = registers[0]
     ident = {"register_id": reg.get("register_id", "1"),
@@ -218,6 +224,27 @@ def _reads_from_invoice(inv: dict) -> list[dict]:
         dict(ident, read_date=inv.get("period_end"), read_kwh=closing,
              read_type=inv.get("read_type", "U")),
     ]
+
+
+def _reads_per_register(inv: dict, registers: list[dict]) -> list[dict]:
+    """A multi-register meter's readings, two per register, or none if any register lacks its own.
+
+    Each register carries its own cumulative index (the ledger's 2026-10-26 change), so the
+    attribution the docstring above refused to guess is now recorded rather than inferred. One
+    register without both readings makes the whole period unattributable: a partial set would let
+    a reconstruction subtract some bands and miss the rest.
+    """
+    if any(r.get("opening_read_kwh") is None or r.get("closing_read_kwh") is None
+           for r in registers):
+        return []
+    reads = []
+    for reg in registers:
+        ident = {"register_id": reg.get("register_id"), "register_label": reg.get("label")}
+        reads.append(dict(ident, read_date=inv.get("period_start"),
+                          read_kwh=reg["opening_read_kwh"], read_type=CARRIED_FORWARD))
+        reads.append(dict(ident, read_date=inv.get("period_end"),
+                          read_kwh=reg["closing_read_kwh"], read_type=inv.get("read_type", "U")))
+    return reads
 
 
 def raw_account(customer_id: str, record: dict) -> dict:

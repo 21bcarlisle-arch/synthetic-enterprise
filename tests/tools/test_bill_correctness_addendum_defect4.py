@@ -37,7 +37,8 @@ LEDGER_PATH = PROJECT / "docs" / "state" / "billing_ledger.json"
 SAMPLE_PATH = PROJECT / "site" / "data" / "customer_sample.json"
 
 
-def billed_total_by_customer_year(ledger: dict, *, net_of_catchup: bool = False) -> dict:
+def billed_total_by_customer_year(ledger: dict, *, net_of_catchup: bool = False,
+                                  with_epg_receipt: bool = False) -> dict:
     """(customer_id, year) -> sum of that year's invoice total_amount_gbp.
 
     `net_of_catchup` REMOVES each invoice's `catchup_adjustment_gbp`, and the reason is the
@@ -50,6 +51,11 @@ def billed_total_by_customer_year(ledger: dict, *, net_of_catchup: bool = False)
     corrected year short by exactly the amount it was under-billed, and that read as an inversion:
     6 of the 11 on the 2026-09-28 book were catch-ups that landed in the next year. An invoice
     that does not name its period keeps the 2026-08-24 behaviour, which is removal only.
+
+    `with_epg_receipt` ADDS each invoice's `hmt_epg_receipt_gbp` (2026-10-26). Since 4ef70aba92
+    the household pays the EPG price and HM Treasury pays the supplier the rest, and gross margin
+    counts that receipt as revenue. Without it, 6 of the 10 inversions on the 4ae8da9b0f book were
+    2023 accounts billed at the EPG and margined at the cap -- a transfer read as a break.
     """
     out = defaultdict(float)
     for cid, cust in ledger.get("customers", {}).items():
@@ -65,6 +71,8 @@ def billed_total_by_customer_year(ledger: dict, *, net_of_catchup: bool = False)
                     days = (last - first).days + 1
                     for offset in range(days):
                         out[(cid, (first + timedelta(days=offset)).year)] += adjustment / days
+            if with_epg_receipt:
+                amount += inv.get("hmt_epg_receipt_gbp") or 0.0
             out[(cid, year)] += amount
     return out
 
@@ -204,7 +212,7 @@ def test_billed_total_never_less_than_gross_margin_for_any_real_customer_year():
     """
     ledger = json.loads(LEDGER_PATH.read_text())
     sample = json.loads(SAMPLE_PATH.read_text())
-    billed = billed_total_by_customer_year(ledger, net_of_catchup=True)
+    billed = billed_total_by_customer_year(ledger, net_of_catchup=True, with_epg_receipt=True)
 
     # COMPARED AT THE BILLING ACCOUNT, NOT THE SUPPLY POINT (2026-08-27).
     #
@@ -308,6 +316,22 @@ def test_netting_removes_a_PRIOR_PERIODS_credit_from_THIS_years_total():
     assert billed_total_by_customer_year(ledger, net_of_catchup=True)[("P", 2019)] == (
         pytest.approx(3.77)
     ), "the one day's own charge should survive the netting"
+
+
+def test_the_treasurys_epg_share_counts_beside_the_bill_and_only_when_asked():
+    """SYN-2016-298 Jan-Mar 2023 on the 4ae8da9b0f book: billed 239.02 at the EPG, 179.75 from the
+    Treasury, gross 294.86. The bill alone inverts; bill plus receipt does not.
+
+    MUTATION: drop the `with_epg_receipt` branch and the second assertion fails; apply it always
+    and the first does.
+    """
+    ledger = {"customers": {"P": {"invoices": [
+        {"period_end": "2023-01-31", "total_amount_gbp": 83.30, "hmt_epg_receipt_gbp": 62.10},
+        {"period_end": "2023-03-31", "total_amount_gbp": 155.72, "hmt_epg_receipt_gbp": 117.65},
+    ]}}}
+    assert billed_total_by_customer_year(ledger)[("P", 2023)] == pytest.approx(239.02)
+    assert billed_total_by_customer_year(ledger, with_epg_receipt=True)[("P", 2023)] == (
+        pytest.approx(418.77))
 
 
 def test_a_catchup_is_credited_back_to_the_period_it_corrects():

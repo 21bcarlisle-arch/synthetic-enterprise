@@ -248,6 +248,8 @@ def generate(run_json_path=None, out_path=None):
     # modelling what the physical meter/estimate would actually show until
     # the next actual read corrects it.
     running_closing_read: dict[tuple[str, str], float] = {}
+    # A time-of-use meter has one cumulative index per register, keyed by its band label.
+    running_register_read: dict[tuple[str, str, str], float] = {}
 
     if not bills:
         result = {
@@ -520,6 +522,24 @@ def generate(run_json_path=None, out_path=None):
         }]
         if bill.get("tou_registers_withheld"):
             inv["tou_registers_withheld"] = bill["tou_registers_withheld"]
+        # 2026-10-26: a register's own readings. A two-rate meter is read register by register, so
+        # the one opening/closing pair above cannot say how its volume splits, and the raw export
+        # exported 1,416 ToU periods of the 4ae8da9b0f book as `consumption_only`. Each index
+        # advances by its printed kWh, so closing - opening reproduces the register to 0.1 kWh.
+        # LIMIT: a register's index advances only over periods that print it; a household back on
+        # a single rate records no band split, so the index does not move while it is.
+        if len(inv["registers"]) > 1:
+            for reg in inv["registers"]:
+                reg_key = (cid, commodity, reg["label"])
+                reg_opening = running_register_read.get(reg_key, 0.0)
+                reg["opening_read_kwh"] = reg_opening
+                reg["closing_read_kwh"] = round(reg_opening + reg["consumption_kwh"], 1)
+                running_register_read[reg_key] = reg["closing_read_kwh"]
+        # The Treasury's EPG share on this bill's volume (4ef70aba92). It is supplier revenue the
+        # household never pays, so it is NOT in the total; it is printed beside it because gross
+        # margin counts it and a reader comparing the two needs both (the 2026-10-26 finding).
+        if bill.get("hmt_epg_receipt_gbp"):
+            inv["hmt_epg_receipt_gbp"] = round(bill["hmt_epg_receipt_gbp"], 2)
 
         # ADVISOR_STEER_BILL_ARITHMETIC.md Defect 1, R10 class-level gate:
         # a rendered bill whose usage line does not reconcile with its printed
