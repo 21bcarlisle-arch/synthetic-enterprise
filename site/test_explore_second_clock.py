@@ -56,8 +56,8 @@ def _load(path: Path):
 def _render(first_group: str, carbon: dict | None = None) -> dict:
     """Drive the real door on stage 3, with `first_group` as the selected household.
 
-    The account selector is not addressable, so the household under test is put first in the
-    book the page is handed — the same book, reordered. FAIL-CLOSED: an unresolved feed or a
+    The household under test is named in the address (`#used/<group>`), as a reader would link
+    to it, and also put first in the book the page is handed. FAIL-CLOSED: an unresolved feed or a
     script error raises rather than degrading to an empty string a `not in` would pass on.
     """
     if not HARNESS.is_file():
@@ -83,7 +83,7 @@ def _render(first_group: str, carbon: dict | None = None) -> dict:
             if path.is_file():
                 feeds["../data/customers/{}.json".format(leg["cid"])] = _load(path)
 
-    proc = subprocess.run(["node", str(HARNESS), str(DOOR), USED],
+    proc = subprocess.run(["node", str(HARNESS), str(DOOR), USED + "/" + first_group],
                           input=json.dumps(feeds), capture_output=True, text=True, timeout=120)
     assert proc.returncode == 0, "the render harness failed: {}".format(proc.stderr[-2000:])
     out = json.loads(proc.stdout)

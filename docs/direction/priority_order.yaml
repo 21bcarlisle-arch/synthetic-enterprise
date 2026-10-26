@@ -11,6 +11,23 @@
 # geography) move to step 7 behind forward years.
 canon: docs/staging/done/DIRECTOR_CANON_THE_PRIORITY_ORDER_2026-10-05.md
 since: "2026-10-05"
+# 2026-10-26: the director's ruling (18:30, "Ok do it") puts a correctness stretch ahead of every
+# remaining step from 6 on: no new feature work (forward years, the asset world, advice) is drawn until
+# its exit test holds; work already landing may finish. It is held here; the draw does not read it yet.
+correctness_stretch:
+  ruling: docs/staging/advisor/DIRECTOR_RULING_CORRECTNESS_BEFORE_THE_NEXT_FEATURE_2026-10-26.md
+  ahead_of_steps: [6, 7, 8, 9, 10, 11, 12, 13]
+  work: [the Explore slots pass validity checks or are honestly empty (landed 26 Oct),
+         SVT unit rates against cap and wholesale per fuel per period (cap side measured 26 Oct, at the cap),
+         root causes -- life events by fuel held, prepayment billed as prepayment, the read duty bounding
+         estimate runs, EV effects on electricity and normalised, storage heating and the household count,
+         a domain-invariant suite written from the Knowledge pages by an agent that has not read the code,
+         run over every household on every run,
+         a cold reader after every publish]
+  exit_test: >-
+    The suite runs on the full book of a fresh run with zero unexplained breaches; all eight Explore
+    slots are filled validly or are honestly empty; one cold read finds no new class of error. Reported
+    in a reading, and only then is the ruled order resumed.
 steps:
   1:
     name: knowledge, now and wide
