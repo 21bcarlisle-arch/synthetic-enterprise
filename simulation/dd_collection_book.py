@@ -146,8 +146,11 @@ from __future__ import annotations
 import random
 from datetime import date, timedelta
 
+import simulation.bacs_rails as bacs_rails
+from company.interfaces.bill_assembly import owed_after_scheme_credit
 from company.interfaces.dd_collection_instructions import open_collections_desk
 from simulation.arrears_engine import (
+    PAY_ON_RECEIPT_METHOD,
     PAYMENT_TERMS_DAYS,
     _fuel_poor_for_bill,
     _tone_for_bill,
@@ -159,6 +162,7 @@ from simulation.arrears_engine import (
 )
 from simulation.bacs_rails import (
     ARUDD_REASON_CODES,
+    draw_re_mandate_answer,
     payer_cancellation,
     resolve_submission,
     submit_amendment,
@@ -166,6 +170,10 @@ from simulation.bacs_rails import (
     submit_mandate_setup,
 )
 from simulation.dd_payment_day import staggered_payment_day
+from simulation.rng_substream import substream
+
+#: The household's answer to an invitation back onto DD is drawn here, one stream per invitation.
+RE_MANDATE_STREAM = "PB8_re_mandate_answer"
 
 # The amendment materiality floor and the trailing re-estimation window MOVED to
 # `company/billing/dd_collections_desk.py` (KNIFE pass 3,
@@ -184,26 +192,49 @@ def build_dd_collection_book(
     return _run_rails(bills, behavioral, monthly_amount_by_customer, seed)[0].collection_register()
 
 
-def supplier_dd_stops(bills: list[dict], behavioral: dict, seed: int = 42) -> dict[str, str]:
-    """PB8 L2: the households whose Direct Debit has ended, by the supplier's stop or by their own
-    cancellation read back as ADDACS 1.
+def supplier_dd_spells(bills: list[dict], behavioral: dict, seed: int = 42
+                       ) -> dict[str, list[tuple[str, str | None]]]:
+    """PB8: each household's spells off Direct Debit, as `[(off_after, on_after), ...]` of period_ends.
 
-    `{customer_id: period_end}` of the last bill the supplier presented by DD. Every later bill
-    is payable on receipt. This is what the household is told, so it is all the world reads.
-    Why it stopped, and on what rule, stay behind the desk.
+    A bill with `off_after < period_end <= on_after` is payable on receipt: `off_after` is the last
+    bill the supplier presented by DD before the stop (its own, or the household's ADDACS 1), and
+    `on_after` the last on-receipt bill before a re-mandate the household signed. `on_after` None:
+    still off at the end of the bills. This is the money side's key (`arrears_engine.paying_method`).
     """
-    return {cid: stop[0] for cid, stop in _run_rails(bills, behavioral, None, seed)[1].items()}
+    return {cid: [(s[0], s[2]) for s in spells]
+            for cid, spells in _run_rails(bills, behavioral, None, seed)[1].items()}
+
+
+def supplier_dd_spell_notices(bills: list[dict], behavioral: dict, seed: int = 42
+                              ) -> dict[str, list[tuple[str, str | None]]]:
+    """The same spells as dates, `[(off_from, on_from), ...]`: the day the household was told its DD
+    had ended (the return that stopped it, or the ADDACS 1 day), and the day AUDDIS confirmed the
+    mandate it signed again. The as-of key for anything asked mid-run (`StopNoticeBoard`)."""
+    return {cid: [(s[1], s[3]) for s in spells]
+            for cid, spells in _run_rails(bills, behavioral, None, seed)[1].items()}
+
+
+def supplier_dd_stops(bills: list[dict], behavioral: dict, seed: int = 42) -> dict[str, str]:
+    """`{customer_id: period_end}` for the households still off DD at the end of these bills: the
+    last bill presented by DD before their open spell. Readers that ask about one bill take
+    `supplier_dd_spells`; a household that came back onto DD is not here."""
+    return {cid: spells[-1][0] for cid, spells in supplier_dd_spells(bills, behavioral, seed).items()
+            if spells[-1][1] is None}
 
 
 def supplier_dd_stop_notices(bills: list[dict], behavioral: dict, seed: int = 42) -> dict[str, str]:
-    """`{customer_id: notice_date}`: the day the household learnt its DD was stopped.
+    """`{customer_id: notice_date}` of the open spell, as `supplier_dd_stops`."""
+    return {cid: spells[-1][0]
+            for cid, spells in supplier_dd_spell_notices(bills, behavioral, seed).items()
+            if spells[-1][1] is None}
 
-    That is the day of the return that made the supplier stop it, or, when the household cancelled
-    it at its bank, the day the ADDACS 1 record reached the supplier. It is the as-of key for anything
-    asked mid-run ("how does this household pay, on this date?"), where `supplier_dd_stops`'s
-    period_end is the key for which bills are payable on receipt.
-    """
-    return {cid: stop[1] for cid, stop in _run_rails(bills, behavioral, None, seed)[1].items()}
+
+def _off_dd_notice(spells: list[tuple[str, str | None]], as_of: str) -> str | None:
+    """The notice date of the spell `as_of` falls in, or None if the household was on DD then."""
+    for off_from, on_from in spells:
+        if off_from <= as_of and (on_from is None or as_of < on_from):
+            return off_from
+    return None
 
 
 class StopNoticeBoard:
@@ -231,8 +262,11 @@ class StopNoticeBoard:
         # read it as the post-run rails do. None, or an empty answer, adds no key.
         self._dd_shock_responses_of = dd_shock_responses_of
         self._records: dict[str, list[dict]] = {}
-        self._stopped: dict[str, str] = {}
-        self._clear_through: dict[str, date] = {}
+        # A spell list nothing can change any more: the household is off DD and no invitation back
+        # can be answered (`bacs_rails.REMANDATE_ACCEPTANCE_PROBABILITY` None), so the stop is final.
+        self._final: dict[str, list[tuple[str, str | None]]] = {}
+        # Otherwise the spells as billed through a month, re-asked once a later month is billed.
+        self._spells_through: dict[str, tuple[date, list[tuple[str, str | None]]]] = {}
         self._billed: dict[tuple[str, str], str] = {}
 
     def observe(self, records: list[dict]) -> None:
@@ -253,13 +287,15 @@ class StopNoticeBoard:
         return self._billed.get((household, fuel))
 
     def notice_as_of(self, supply_point: str, as_of: str) -> str | None:
-        """The notice date of the stop, if the household had been told by `as_of`; else None."""
-        notice = self._stopped.get(supply_point)
-        if notice is not None:
-            return notice if notice <= as_of else None
+        """The notice date of the stop, if the household had been told by `as_of` and had not signed
+        a new mandate that AUDDIS confirmed by then; else None."""
+        final = self._final.get(supply_point)
+        if final is not None:
+            return _off_dd_notice(final, as_of)
         cutoff = date.fromisoformat(as_of).replace(day=1)
-        if self._clear_through.get(supply_point, date.min) >= cutoff:
-            return None
+        known = self._spells_through.get(supply_point)
+        if known is not None and known[0] >= cutoff:
+            return _off_dd_notice(known[1], as_of)
         records = [r for r in self._records.get(supply_point, [])
                    if r.get("settlement_date", "9999") < cutoff.isoformat()]
         if not records:
@@ -277,12 +313,11 @@ class StopNoticeBoard:
         if self._payment_truth_of is not None:
             from simulation.world_payment_truth import RECORD_KEY as TRUTH_KEY
             behavioral[supply_point][TRUTH_KEY] = self._payment_truth_of(supply_point)
-        notices = supplier_dd_stop_notices(bills, behavioral, self._seed)
-        if supply_point in notices:
-            self._stopped[supply_point] = notices[supply_point]
-            return notices[supply_point] if notices[supply_point] <= as_of else None
-        self._clear_through[supply_point] = cutoff
-        return None
+        spells = supplier_dd_spell_notices(bills, behavioral, self._seed).get(supply_point, [])
+        if spells and bacs_rails.REMANDATE_ACCEPTANCE_PROBABILITY is None:
+            self._final[supply_point] = spells
+        self._spells_through[supply_point] = (cutoff, spells)
+        return _off_dd_notice(spells, as_of)
 
 
 _ACTIVE_BOARD: StopNoticeBoard | None = None
@@ -303,7 +338,14 @@ def _run_rails(
     seed: int,
 ):
     """Run this world's Bacs rails against the supplier's collection instructions.
-    Returns the desk and the stop notices it sent (`supplier_dd_stops`).
+    Returns the desk and each household's spells off DD, `[off_after, off_from, on_after, on_from]`
+    (`supplier_dd_spells` reads the period_ends, `supplier_dd_spell_notices` the dates).
+
+    A spell is opened by the desk's stop or the household's ADDACS 1, and closed only by a mandate
+    the household signs when the desk invites it back. The desk invites on its own ledger of on-receipt
+    bills, which this loop feeds it (`_paid_on_receipt_by_due_date`); the household answers only
+    while `bacs_rails.REMANDATE_ACCEPTANCE_PROBABILITY` is set. While it is None nobody is invited,
+    and every spell stays open to the end of the bills.
 
     Resolves each bill from the same per-bill substream compute_emergent_bad_debt()
     uses (`arrears_engine.bill_substream`, C-S2) -- the resulting success/failure
@@ -335,7 +377,10 @@ def _run_rails(
     from simulation.dd_shock_response import bill_effect, failure_table
     rails_rngs: dict[str, random.Random] = {}
     desk = open_collections_desk()
-    stops: dict[str, tuple[str, str]] = {}
+    spells: dict[str, list[list]] = {}
+    acceptance = bacs_rails.REMANDATE_ACCEPTANCE_PROBABILITY
+    # Households that signed a new mandate: their earlier cancellation at the bank (DD4b) is spent.
+    re_signed: set[str] = set()
     monthly_amount_by_customer = monthly_amount_by_customer or {}
 
     for bill in sorted(bills, key=lambda b: (b["customer_id"], b["period_end"])):
@@ -361,16 +406,23 @@ def _run_rails(
         # did not.
         if method != "direct_debit":
             continue
-        # PB8: the supplier stopped this customer's DD after repeated returns, so the
-        # bill is payable on receipt and nothing is put on the rails for it. The world
-        # does not re-open a mandate the household never asked for.
+        # PB8: the DD has ended (the desk's stop or the household's ADDACS 1), so the bill is
+        # payable on receipt and nothing is put on the rails for it. The desk sees whether it was
+        # paid by its due date on its own ledger, and may invite the household back. Under one
+        # payment truth the triad holds the channel, so its legs are not invited here.
         if desk.has_mandate(cid) and not desk.pays_by_direct_debit(cid):
+            paid = None if told is not None else _paid_on_receipt_by_due_date(bill, behavioral, seed)
+            if paid is not None:
+                desk.note_receipt_payment(cid, paid)
+                if acceptance is not None and _re_mandate(desk, cid, period_end, acceptance, seed,
+                                                          spells[cid][-1]):
+                    re_signed.add(cid)
             continue
         # DD4b (`simulation/dd_shock_response.py`): a household that cancelled its own mandate
         # after a DD shock has nothing on the rails from the month after; that month's collection
         # comes back unpaid. NO_EFFECT on every record while the toggles are at zero.
         shock = bill_effect((behavioral.get(cid) or {}).get(SHOCK_RECORD_KEY), period_end[:7])
-        if shock.cancelled and told is None:
+        if shock.cancelled and told is None and cid not in re_signed:
             continue
         stress = stress_for_year(behavioral.get(cid) or {}, year)
         commodity = bill.get("commodity", "electricity")
@@ -496,13 +548,68 @@ def _run_rails(
             collected=resolved.status == "success",
             failure_reason=failure_reason,
         ):
-            stops[cid] = (period_end, attempt_date)
+            spells.setdefault(cid, []).append([period_end, attempt_date, None, None])
         # PB8 L2, the household's route: it cancelled at its bank, the collection came back
         # "instruction cancelled", and the supplier reads ADDACS 1 the next working day. The desk
         # cancels from that date, so this is the last bill presented and the notice is the ADDACS day.
         if shock.cancel_return and told is None and exit_ is None:
             addacs = payer_cancellation(instruction.reference, cid, date.fromisoformat(attempt_date))
             if desk.record_payer_cancellation(cid, addacs.available_date.isoformat()):
-                stops[cid] = (period_end, addacs.available_date.isoformat())
+                spells.setdefault(cid, []).append(
+                    [period_end, addacs.available_date.isoformat(), None, None])
 
-    return desk, stops
+    return desk, spells
+
+
+def _paid_on_receipt_by_due_date(bill: dict, behavioral: dict, seed: int) -> bool | None:
+    """Was this on-receipt bill paid by its due date? None when the payer owed nothing on it.
+
+    Drawn as `arrears_engine._resolve_bills` draws the same bill, from the same substream and the
+    same inputs, so the desk's ledger is the money side's outcome and not a second opinion.
+    """
+    cid, period_end = bill["customer_id"], bill["period_end"]
+    segment = bill.get("segment", "resi")
+    commodity = bill.get("commodity", "electricity")
+    occupier_share = bill.get("occupier_share", 0.0) + bill.get("void_owner_share", 0.0)
+    if occupier_share >= 1.0 - 1e-9:
+        return None
+    amount = bill["total_amount_gbp"]
+    if occupier_share > 0.0:
+        amount = round(amount * (1.0 - occupier_share), 2)
+    amount = owed_after_scheme_credit(amount, segment, commodity, period_end[:7])
+    if amount <= 0:
+        return None
+    stress = stress_for_year(behavioral.get(cid) or {}, int(period_end[:4]))
+    method = PAY_ON_RECEIPT_METHOD
+    exit_ = mover_final_bill_outcome(behavioral.get(cid) or {}, cid, period_end, commodity, amount,
+                                     method, stress, seed)
+    if exit_ is not None:
+        outcome, days_late = exit_[0], exit_[1]
+    else:
+        outcome, days_late = payment_outcome(
+            method, stress, bill_substream(seed, cid, period_end, commodity), segment,
+            _fuel_poor_for_bill(payment_method(segment, amount, cid, commodity), cid),
+            _tone_for_bill(method, cid, period_end), cid,
+        )
+    return outcome == "success" and days_late == 0
+
+
+def _re_mandate(desk, cid: str, period_end: str, acceptance: float, seed: int, spell: list) -> bool:
+    """Put the desk's invitation, if it makes one, to the household, and close `spell` if it signs.
+
+    The desk reviews on the bill's due date, the day it knows the bill was paid in time. A signed
+    mandate goes through AUDDIS like any setup; the bills after this one are presented by DD again.
+    """
+    as_of = date.fromisoformat(period_end) + timedelta(days=PAYMENT_TERMS_DAYS)
+    invitation = desk.review_re_mandate(cid, as_of.isoformat(), staggered_payment_day(cid))
+    if invitation is None:
+        return False
+    u = substream(RE_MANDATE_STREAM, f"{cid}::{period_end}", seed).random()
+    if not draw_re_mandate_answer(u, acceptance):
+        desk.record_re_mandate_declined(invitation)
+        return False
+    resolved = resolve_submission(submit_mandate_setup(invitation.reference, cid, as_of), "success")
+    confirmed = resolved.expected_outcome_date.isoformat()
+    desk.confirm_mandate(invitation, confirmed)
+    spell[2], spell[3] = period_end, confirmed
+    return True

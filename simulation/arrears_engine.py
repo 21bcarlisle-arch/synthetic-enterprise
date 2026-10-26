@@ -400,19 +400,27 @@ PAY_ON_RECEIPT_METHOD = "standard_credit"
 
 
 def paying_method(segment: str, amount_gbp: float, customer_id: str | None, fuel: str,
-                  period_end: str, dd_stops: dict[str, str]) -> str:
-    """How this bill is paid: `payment_method`, unless the supplier has stopped the household's DD.
+                  period_end: str, dd_spells: dict[str, list[tuple[str, str | None]]]) -> str:
+    """How this bill is paid: `payment_method`, unless the bill falls in a spell off DD.
 
-    `dd_stops` is `dd_collection_book.supplier_dd_stops`: a bill after the last one the supplier
-    presented by DD is payable on receipt. Use it for the PAYING channel only. A household trait
-    that the channel conditions (fuel poverty) stays on `payment_method`, because the household's
-    circumstances do not change when its mandate is cancelled.
+    `dd_spells` is `dd_collection_book.supplier_dd_spells`: a bill after the last one presented by
+    DD before a stop, and up to the last one before a re-mandate, is payable on receipt. Use it for
+    the PAYING channel only. A household trait that the channel conditions (fuel poverty) stays on
+    `payment_method`, because the household's circumstances do not change when its mandate does.
     """
     method = payment_method(segment, amount_gbp, customer_id, fuel)
-    stopped_after = dd_stops.get(customer_id) if customer_id is not None else None
-    if method == "direct_debit" and stopped_after is not None and period_end > stopped_after:
+    spells = dd_spells.get(customer_id, ()) if customer_id is not None else ()
+    if method == "direct_debit" and any(off < period_end and (on is None or period_end <= on)
+                                        for off, on in spells):
         return PAY_ON_RECEIPT_METHOD
     return method
+
+
+def re_signed_before(dd_spells: dict[str, list[tuple[str, str | None]]], customer_id: str,
+                     period_end: str) -> bool:
+    """Has the household signed a new mandate since its DD ended, before this bill? Then a
+    cancellation it made at its bank earlier (DD4b) is spent, as it is on the rails."""
+    return any(on is not None and on < period_end for _off, on in dd_spells.get(customer_id, ()))
 
 
 def _fuel_poor_for_bill(method: str, customer_id: str | None) -> bool:
@@ -870,11 +878,12 @@ def _resolve_bills(bills: list[dict], behavioral: dict, seed: int) -> list[dict]
     """
     import simulation.world_payment_truth as wpt
     from company.interfaces.bill_assembly import owed_after_scheme_credit
-    from simulation.dd_collection_book import supplier_dd_stops
+    from simulation.dd_collection_book import supplier_dd_spells
     from simulation.dd_shock_response import RECORD_KEY as SHOCK_RECORD_KEY
     from simulation.dd_shock_response import bill_effect, failure_table
-    # PB8 L2: a household whose DD the supplier stopped pays its later bills on receipt.
-    dd_stops = supplier_dd_stops(bills, behavioral, seed)
+    # PB8: a household off DD (the supplier's stop or its own ADDACS 1) pays on receipt until it
+    # signs a new mandate.
+    dd_spells = supplier_dd_spells(bills, behavioral, seed)
     rows = []
     # ONE PAYMENT TRUTH (`simulation/world_payment_truth.py`): a leg whose record carries the
     # triad's truth takes each bill's outcome from it, and its repayments are appended after its
@@ -910,11 +919,12 @@ def _resolve_bills(bills: list[dict], behavioral: dict, seed: int) -> list[dict]
                          "outcome": "credit", "days_late": 0})
             continue
         stress = stress_for_year(behavioral.get(cid) or {}, int(period_end[:4]))
-        method = paying_method(segment, amount, cid, commodity, period_end, dd_stops)
+        method = paying_method(segment, amount, cid, commodity, period_end, dd_spells)
         # DD4b: the household's own answer to a DD shock (`simulation/dd_shock_response.py`). Absent
         # on every record while its toggles are at zero, so this is NO_EFFECT on the shipped world.
         shock = bill_effect((behavioral.get(cid) or {}).get(SHOCK_RECORD_KEY), period_end[:7])
-        if method == "direct_debit" and shock.cancelled:
+        if method == "direct_debit" and shock.cancelled and not re_signed_before(
+                dd_spells, cid, period_end):
             method = PAY_ON_RECEIPT_METHOD
         # One payment truth: the triad decided this bill, a mover's final bill included, so the
         # engine reads that and does not draw the exit again.

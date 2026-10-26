@@ -220,11 +220,11 @@ def generate(run_json_path=None, out_path=None):
     # tests/tools/test_the_ledger_and_the_pnl_write_off_agree_on_the_real_book.py holds that on the
     # real run.
     resolved, write_offs, credits_applied = _resolved_settlement(bills, behavioral, churned, seed=42)
-    # PB8 L2: the households the supplier stopped collecting by DD, over the bills the engine reads,
-    # so a stopped household's later bills are payable on receipt here as they are in the P&L.
+    # PB8: each household's spells off DD, over the bills the engine reads, so a bill inside one is
+    # payable on receipt here as it is in the P&L.
     from company.interfaces.bill_assembly import issued_bills
-    from simulation.dd_collection_book import supplier_dd_stops
-    dd_stops = supplier_dd_stops(issued_bills(bills), behavioral, seed=42)
+    from simulation.dd_collection_book import supplier_dd_spells
+    dd_spells = supplier_dd_spells(issued_bills(bills), behavioral, seed=42)
 
     # DOMAIN_SENSE_AND_COMPLIANCE.md Phase 3: Tier-1 pre-bill validation gate
     # (director's Principle 1 -- 100% of bills validated before issue, zero
@@ -321,7 +321,7 @@ def generate(run_json_path=None, out_path=None):
         else:
             # No row: the bill is wholly the occupier's or the owner's, which the engine never
             # collects from this payer. Drawn here as before; see the 2026-10-15 finding.
-            method = _paying_method(segment, amount, cid, commodity, period_end, dd_stops)
+            method = _paying_method(segment, amount, cid, commodity, period_end, dd_spells)
             _tone = _tone_for_bill(method, cid, period_end)
             exit_ = _mover_final_bill_outcome(beh, cid, period_end, commodity, amount, method,
                                               stress, _outcome_seed)

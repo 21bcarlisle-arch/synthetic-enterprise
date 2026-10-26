@@ -152,7 +152,8 @@ def draw_payer_cancellation(reference: str, customer_id: str, act_date: date, u:
 #: How often a household signs the new mandate its supplier invites it to (PB8 L2). None: no GB
 #: supplier publishes a take-up rate for an invitation back onto DD, and no flow from standard
 #: credit to DD is published (payments_and_direct_debit_2026-10-25.md, "Off direct debit and back
-#: on"). Until one exists the run puts no invitation to a household, and a household off DD stays off.
+#: on"). Until one exists the run puts no invitation to a household, so every spell off DD stays
+#: open (`dd_collection_book._run_rails`, which already closes a spell when a household signs).
 REMANDATE_ACCEPTANCE_PROBABILITY: Optional[float] = None
 REMANDATE_ACCEPTANCE_GAP = ("no published take-up rate for a supplier's invitation back onto Direct "
                             "Debit, and no published standard-credit-to-DD flow")

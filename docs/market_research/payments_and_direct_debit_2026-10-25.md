@@ -335,3 +335,15 @@ invitation back onto DD, and no flow from standard credit to DD is published (na
   that date. The supplier-stop route and the household route now leave the same trace: the mandate is
   cancelled in the register, the account pays on receipt in the money side, and the seam answers
   `standard_credit` from the notice date.
+- *A stop is a spell, not the end (seat, 26 Oct 2026, built before any rate).* The rails hold each
+  household's spells off DD: the last bill presented by DD before the stop, the notice date, and, if
+  the household signs again, the last on-receipt bill before the re-mandate and the AUDDIS confirmation
+  date. The rails feed the desk its own on-receipt ledger: whether each bill was paid by its due date, on
+  the outcome the money side draws for that bill. The money side (`arrears_engine.paying_method`, and the
+  billing ledger through it) and the seam (`StopNoticeBoard`) read the same spells. So a rate, once
+  sourced, moves the register, the P&L and the renewal price together. A household that cancelled at its
+  own bank and later signs again is collected again: its earlier cancellation is spent. With the rate
+  None, nobody is invited and every spell stays open, so no shipped number moved. Supplying a rate in a
+  test relabels bills and moves no payment outcome, because a resi outcome is drawn the same way on
+  either channel. That stops holding once DD and on-receipt payment behaviour differ, so a rate and any
+  such difference each need their own pre-registration.

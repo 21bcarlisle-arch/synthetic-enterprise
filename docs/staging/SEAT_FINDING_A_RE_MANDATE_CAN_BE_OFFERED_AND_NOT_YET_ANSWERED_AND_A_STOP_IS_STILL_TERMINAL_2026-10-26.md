@@ -31,3 +31,27 @@ updated, so the atom was offered twice for work that had landed.
    desk's on-receipt ledger, which it skips today because a non-DD bill is never on the rails. **Do
    not set the rate without this.** Otherwise a re-mandated household would keep paying on receipt in
    the money side while the register shows it back on DD.
+
+## Item 2 done, 26 Oct (seat, `pb8-re-mandate-spells`)
+
+The readers now hold spells, so item 1 can be answered without splitting the register from the money
+side. `_run_rails` returns each household's spells off DD (`supplier_dd_spells` by period_end,
+`supplier_dd_spell_notices` by date). It feeds the desk its on-receipt ledger, drawn as
+`_resolve_bills` draws the same bill, and puts the desk's invitation to the household when a rate is
+set. `paying_method`, the billing ledger and `StopNoticeBoard` read the spells. A DD4b cancellation is
+spent once the household signs again, on the rails and in the engine alike. While the rate is None,
+the board still caches a stop as final, because none can end.
+
+Tests: `tests/simulation/test_a_dd_stop_is_a_spell.py`, 8 tests. With the rate at 0.5, the register,
+the engine, the ledger and the board agree bill by bill and date by date. There is a partition control:
+3 of 6 stopped households come back. A re-mandate moves no payment outcome. Five mutants went red: the
+board ignoring the back-on date (this survived the first draft, whose expectation used the mutated
+helper, so the test was rewritten), `paying_method` ignoring `on_after`, the ledger never being fed,
+and each of the two DD4b guards. Prediction kept: on the one-year stressed book I predicted fewer than
+half of the stopped households would come back even at rate 1.0. 0 of 5 did, because there were too
+few months after a stop.
+
+Named simplification: a leg under one payment truth (`world_payment_truth`, off by default) is not
+invited. The triad holds its channel.
+
+**Still open: item 1 (the rate).** That is now the only thing between the desk's policy and a run.
