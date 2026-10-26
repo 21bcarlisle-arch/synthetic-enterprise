@@ -61,7 +61,7 @@ def test_the_stop_moves_no_outcome(monkeypatch):
     goes red, published bad debt moved, and that needs its own pre-registration."""
     bills, behavioral = _book()
     followed = ae._resolve_bills(bills, behavioral, 42)
-    monkeypatch.setattr(dcb, "supplier_dd_stops", lambda *a, **k: {})
+    monkeypatch.setattr(dcb, "supplier_dd_spells", lambda *a, **k: {})
     ignored = ae._resolve_bills(bills, behavioral, 42)
     assert any(f["method"] != i["method"] for f, i in zip(followed, ignored))
     assert [(r["outcome"], r["days_late"]) for r in followed] == \
