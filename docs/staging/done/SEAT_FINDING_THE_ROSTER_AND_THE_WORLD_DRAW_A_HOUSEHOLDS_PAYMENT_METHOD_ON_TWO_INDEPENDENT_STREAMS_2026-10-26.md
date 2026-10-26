@@ -1,5 +1,7 @@
 # The roster and the world draw a household's payment method on two independent streams, and they agree for 60% of households
 
+**Fate (2026-10-26):** DONE -- e35ce23f6 made the roster read the world's channel; re-graded in `SEAT_RESULT_B8_THE_HOLDOUT_RE_GRADED_ON_ONE_PAYMENT_METHOD_2026-10-26.md`: pooled unchanged to the digit, and the world's true per-channel effect differs by 0.0001, so there was no difference to dilute.
+
 **Severity:** LATENT · **Lane:** H_harness · **Epoch:** unassigned · **Atom:** `unminted` (found closing cold-read item 6 of the switching and payments pages)
 
 *Delivery seat, 2026-10-26.*

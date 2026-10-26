@@ -853,3 +853,17 @@ def test_a_small_lambda_draw_consumes_the_stream_exactly_as_before(lam):
     assert [pd._poisson(new_rng, lam) for _ in range(50)] == [
         _knuth_as_it_was(old_rng, lam) for _ in range(50)]
     assert new_rng.getstate() == old_rng.getstate()
+
+
+def test_a_households_roster_payment_method_is_the_one_the_world_pays_by():
+    """Was 60% agreement (two independent 72% draws). Keyed to the property: every household, both
+    DD and non-DD present so a constant label cannot pass."""
+    from simulation.household_segments import PaymentChannel, payment_channel_for_customer
+
+    pop = pd.draw_population(42, acquisitions_per_year_lambda=500)
+    labels = set()
+    for c in pop:
+        world_dd = payment_channel_for_customer(c.customer_id, c.commodity) is PaymentChannel.DIRECT_DEBIT
+        assert (c.payment_method == "direct_debit") == world_dd, c.customer_id
+        labels.add(c.payment_method)
+    assert labels == {"direct_debit", "other"}
