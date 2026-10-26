@@ -381,3 +381,19 @@ should fall from 199 households to **0**, not about 2. One exception: if sim-run
 fresh run before 04:05Z, latest moves to that run instead. The shared HEAD carries all four fixes,
 so that run would still be expected to grade 0. This file is lowered to LATENT on the published
 reading, and stays BLOCKING until then.
+
+**Reading, 26 Oct 02:27Z (before the window): the shared tree is level with origin, and sim-runner
+has a run going.** From 01:21Z the runner deferred every cycle: 7 files it imports were origin's bytes
+over a HEAD 96 behind, and 61 dirty paths refused the fast-forward. Every blocking copy was one of
+these: equal to origin; an earlier revision of an origin commit; already contained in origin's text
+(`home_moves.md`, `bad_debt_provisioning.md`); superseded by a renamed or resolved entry there
+(`concepts.yaml` `tariff.end_of_fix` → `tariff.fixed_term_end`, the credit-refund finding's
+`## Resolved`); or generated exhaust. I preserved them on
+`refs/preserved/ff-shared-tree/2026-10-26` (`65edd5bcf3`), fast-forwarded the tree to `4ae8da9b0f`,
+and merged the two append logs back. The runner started `run_output_4ae8da9b0f_20261026T022647Z.json`
+at 02:26Z. That commit carries all four fixes and `12246cbae5`. **Prediction:** about 2 hours, as the
+25 Oct run took, so it finishes after the 04:05Z marker. Monday still publishes `b2bc3d8da5`, and the
+01:45Z prediction stands: 0 over, `above_cap` 199 → 0. If it is graded, this run is expected to show
+0 over too. Still BLOCKING until the publish is read. The capabilities page's unlanded 24 Oct dual-fuel
+wording was a hand edit to a generated page, and is also on salvage commit `0c945463d2`. It is not
+carried here.
