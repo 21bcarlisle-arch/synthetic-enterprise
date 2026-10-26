@@ -121,6 +121,12 @@ FIELDS: dict[str, tuple[str, str]] = {
     "non_commodity_rate_gbp_per_mwh": (CONTRACTED, "network and levy pass-through rate for the year"),
     "tariff_effective_from": (MEASURED, "when these terms started applying"),
     "tariff_effective_to": (MEASURED, "when they stopped"),
+    "contracted_terms": (CONTRACTED, "every recorded term the period touches, from the account's "
+                                     "term record and never from the bill; two where the period "
+                                     "crosses a price change"),
+    "tariff_type": (CONTRACTED, "the product the term was sold as (fixed, svt, ...)"),
+    "tou_unit_rates": (CONTRACTED, "a chosen term's peak and off-peak rates, the pair the one "
+                                   "product rule strikes from its flat rate"),
     # money that actually moved
     "payment_date": (MEASURED, "when the payment was received"),
     "payment_amount_gbp": (MOVED, "what was actually received — it happened, we did not work it out"),
@@ -264,6 +270,11 @@ def raw_account(customer_id: str, record: dict) -> dict:
             "standing_charge_gbp_per_day": inv.get("standing_charge_gbp_per_day"),
             "reads": reads,
         }
+        # THE RATE THE ACCOUNT WAS SOLD AT, beside the rate the bill printed. The printed rate is
+        # fitted to the printed line, so pricing with it proves the arithmetic and not the tariff;
+        # these come from the term record. Absent on a ledger that predates them.
+        if "contracted_terms" in inv:
+            period["contracted_terms"] = inv["contracted_terms"]
         # A TWO-RATE BILL HAS NO ONE RATE. The invoice's own `unit_rate_p_per_kwh` on a ToU bill
         # is the energy line over its volume (6.28 / 100.1 = 6.27p on C1/1, against Peak 12.72p and
         # Off-peak 4.21p), which is a quotient we worked out and not a rate anyone contracted. So

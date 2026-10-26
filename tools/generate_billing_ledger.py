@@ -36,6 +36,7 @@ from saas.money import (
     display_rate_p_per_kwh,
     foot_components_to_total,
 )
+from saas.tariff_pricing import split_flat_rate_to_tou
 from simulation.arrears_engine import (
     _CORP_BACS_DISPUTE_PROB,
     _CORP_BACS_LATE_PROB,
@@ -140,6 +141,60 @@ def _printed_registers(bill_registers, printed_consumption_kwh, printed_commodit
     return printed
 
 
+#: Terms whose revenue carries the actual policy and network cost on top, so no single rate was
+#: contracted and the validator says so rather than checking against one.
+_NO_SINGLE_CONTRACTED_RATE = ("pass_through", "flex")
+
+
+def _tou_terms(account_terms, bills):
+    """(customer, term_start) of every term the biller settled on a peak/off-peak pair.
+
+    LIMIT: the run records which terms were SOLD as ToU nowhere (`demand_response_log` is not in
+    the run output, and the term row carries only the flat rate), so a term counts as ToU when any
+    bill inside it carries band registers. Only that a pair existed is read from the bills; the
+    pair's RATES are the product rule's, so a bill charging the wrong band rate still disagrees.
+    """
+    out = set()
+    for b in bills:
+        if b.get("registers"):
+            term = term_of_bill(account_terms, b)
+            if term is not None:
+                out.add((b["customer_id"], term["term_start"]))
+    return out
+
+
+def _contracted_terms(account_terms, bill, tou_terms):
+    """Every recorded term the bill's period touches, at the rate the account was SOLD at.
+
+    From `account_state_log`, never from the bill, so a bill that charged the wrong rate disagrees
+    with it instead of being fitted to it. The rate is all-in p/kWh, the figure the term is struck
+    at and the cap is set on. A chosen term also carries the peak/off-peak pair the one product rule
+    strikes from that flat rate (`split_flat_rate_to_tou`) where the term was settled as ToU (see
+    `_tou_terms`); the term row records only the flat rate, so the pair is derived here. A default
+    term is single-rate (`tou_desk.offers_tou`). A period touching two terms is a bill across a
+    price change and carries both.
+    """
+    start, end = str(bill["period_start"])[:10], str(bill["period_end"])[:10]
+    out = []
+    for t in account_terms.get(bill["customer_id"], ()):
+        if not (t["term_start"] <= end and start < t["term_end"]):
+            continue
+        rate = t.get("unit_rate_gbp_per_mwh")
+        no_rate = rate is None or t["tariff_type"] in _NO_SINGLE_CONTRACTED_RATE
+        pair = (split_flat_rate_to_tou(rate)
+                if not no_rate and (bill["customer_id"], t["term_start"]) in tou_terms else None)
+        out.append({
+            "tariff_effective_from": t["term_start"],
+            "tariff_effective_to": t["term_end"],
+            "tariff_type": t["tariff_type"],
+            "unit_rate_p_per_kwh": None if no_rate else round(rate / 10.0, 4),
+            "tou_unit_rates": None if pair is None else [
+                {"register_label": "Peak", "unit_rate_p_per_kwh": round(pair[0] / 10.0, 4)},
+                {"register_label": "Off-peak", "unit_rate_p_per_kwh": round(pair[1] / 10.0, 4)}],
+        })
+    return out
+
+
 def _printed_daily_rate(days_in_period, printed_standing_charge_gbp):
     """The GBP/day rate to print, or None if the line cannot carry one.
 
@@ -234,6 +289,7 @@ def generate(run_json_path=None, out_path=None):
     # than silently dropped.
     bills, held_bills = validate_bills(bills)
     account_terms = terms_by_customer(data)
+    tou_terms = _tou_terms(account_terms, bills)
 
     # BILL_CORRECTNESS_ADDENDUM.md Defect 2: meter-read status (A=actual,
     # E=estimated) per bill, from Phase 3's real estimation physics
@@ -431,6 +487,7 @@ def generate(run_json_path=None, out_path=None):
             "customer_id": cid,
             "term_tariff_type": term_type,
             "default_tariff_excess_p_per_kwh": None if term_excess is None else round(term_excess, 4),
+            "contracted_terms": _contracted_terms(account_terms, bill, tou_terms),
             "period_start": bill["period_start"],
             "period_end": period_end,
             "commodity": commodity,
@@ -525,7 +582,11 @@ def generate(run_json_path=None, out_path=None):
             bill.get("registers"), inv["consumption_kwh"], inv["commodity_amount_gbp"],
         ) or [{
             "register_id": "1",
-            "label": "Anytime",
+            # A ToU term's bill with use in one band only (a one-day stub) has one register, and
+            # it is that band's, at that band's rate: printed "Anytime" it read as the flat rate
+            # charged at 0.786 of itself (2 of 52,782 on 4ae8da9b0f, against the contracted pair).
+            "label": (bill["registers"][0]["label"]
+                      if len(bill.get("registers") or []) == 1 else "Anytime"),
             "consumption_kwh": inv["consumption_kwh"],
             "amount_gbp": inv["commodity_amount_gbp"],
             "unit_rate_p_per_kwh": inv["unit_rate_p_per_kwh"],

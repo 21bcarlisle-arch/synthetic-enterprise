@@ -20,6 +20,7 @@ that is verified and one that is believed.
 ## WHAT IT CAN REBUILD, AND WHAT IT HONESTLY CANNOT
 
     Energy            volume x unit rate            RECONSTRUCTED
+    Unit charge       volume x CONTRACTED rate      CONTRACT_CHECKED, or BOUNDED across a price change
     Standing charge   days x daily rate             RECONSTRUCTED
     Network & policy  volume x levy rate            NOT RECONSTRUCTIBLE -- no rate, see below
     VAT               rate x (the three above)      AMOUNT not reconstructible; RATE is checked
@@ -74,6 +75,12 @@ RECONSTRUCTED = "RECONSTRUCTED"
 UNCHECKABLE = "UNCHECKABLE"
 #: The amount cannot be rebuilt, but the RATE it should have used is published and was checked.
 RATE_CHECKED = "RATE_CHECKED"
+
+#: The unit charge was priced against the rate in the account's TERM RECORD, not the printed rate.
+CONTRACT_CHECKED = "CONTRACT_CHECKED"
+#: The period crosses a price change and the bill prints one rate, so only a range can be checked:
+#: the charge must sit between every covering term's rate times the volume.
+BOUNDED = "BOUNDED"
 
 PENNY = 0.005
 
@@ -292,6 +299,104 @@ def _energy_per_register(period: dict) -> tuple[dict, float | None]:
              "how": " + ".join(hows)}, float(total_kwh))
 
 
+def _volume_by_label(period: dict) -> tuple[dict | None, str]:
+    """Each register's advance from its own two readings, keyed by the label the bill prints."""
+    registers = period.get("registers") or []
+    if len(registers) <= 1:
+        volume, why = _volume_from_reads(period)
+        if volume is None:
+            return None, why
+        label = (registers[0].get("register_label") if registers else None) or \
+            ((period.get("reads") or [{}])[0].get("register_label")) or "Anytime"
+        return {label: Decimal(str(volume))}, ""
+    if period.get("volume_basis") != "reads":
+        return None, "the raw export could not supply readings ({})".format(
+            period.get("volume_basis"))
+    label_of = {r.get("register_id"): r.get("register_label") for r in registers}
+    by_register: dict = {}
+    for read in period.get("reads") or []:
+        by_register.setdefault(read.get("register_id"), []).append(read.get("read_kwh"))
+    out = {}
+    for reg_id, reads in by_register.items():
+        if len(reads) != 2 or None in reads or label_of.get(reg_id) is None:
+            return None, "register {} has {} reading(s) and no usable label".format(
+                reg_id, len(reads))
+        out[label_of[reg_id]] = Decimal(str(reads[1])) - Decimal(str(reads[0]))
+    return out, ""
+
+
+def _contracted_rate(term: dict, label: str):
+    """The rate a register is contracted at: its band's rate on a Peak or Off-peak register of a
+    term that carries a pair, else the term's flat rate."""
+    for band in term.get("tou_unit_rates") or []:
+        if band.get("register_label") == label:
+            return band.get("unit_rate_p_per_kwh")
+    return term.get("unit_rate_p_per_kwh")
+
+
+def unit_charge_at_contract(period: dict) -> dict:
+    """The unit charge the TARIFF says this period costs: volume x the term record's rate.
+
+    The energy line above prices with the rate the bill printed, which is fitted to the printed
+    pair, so it proves the arithmetic and cannot see a bill that charged the wrong tariff. This is
+    the second computation that can. It is ALL-IN, because the rate a term is sold at is: the bill
+    prints its network-and-policy share (and, in an EPG window, the Treasury's share) as separate
+    lines, so the comparison sets this against those lines summed with the energy line.
+
+    One covering term: each register at its contracted rate, with a tolerance for what printing
+    rounds (0.05 kWh a register, a penny a money line). Two or more: the bill crosses a price change
+    and prints one rate, so it is BOUNDED by the lowest and highest contracted rate times the
+    volume, which is weaker and says so. A term with no single rate is UNCHECKABLE.
+    """
+    label = "Unit charge at the contracted tariff"
+    terms = period.get("contracted_terms")
+    if terms is None:
+        return {"label": label, "status": UNCHECKABLE,
+                "why": "the raw export carries no term record for this period"}
+    if not terms:
+        return {"label": label, "status": UNCHECKABLE,
+                "why": "no recorded term covers this period"}
+    volumes, why = _volume_by_label(period)
+    if volumes is None:
+        return {"label": label, "status": UNCHECKABLE, "why": why}
+    unrated = [t.get("tariff_type") for t in terms if t.get("unit_rate_p_per_kwh") is None]
+    if unrated:
+        return {"label": label, "status": UNCHECKABLE,
+                "why": "a covering term ({}) was sold at no single rate".format(", ".join(
+                    map(str, unrated)))}
+    per_term = []
+    for term in terms:
+        amount, hows = Decimal(0), []
+        for reg_label, kwh in volumes.items():
+            rate = _contracted_rate(term, reg_label)
+            amount += kwh * _dec(rate) / 100
+            hows.append("{} kWh {} x {} p/kWh".format(kwh, reg_label, rate))
+        per_term.append((float(amount), hows, term))
+    # Print rounding: each register's kWh is the difference of two cumulative reads printed to
+    # 0.1 kWh, so it sits up to 0.1 kWh from the volume charged (0.05 allowed 3 Jan 2023 bills at
+    # 64p to fail by 7p on an exact rate); the energy, levy and EPG lines are each half a penny.
+    rates = [_dec(r) for t in terms for r in [t.get("unit_rate_p_per_kwh")] + [
+        b.get("unit_rate_p_per_kwh") for b in t.get("tou_unit_rates") or []]]
+    tolerance = round(float(Decimal("0.1") * len(volumes) * max(rates) / 100) + 3 * PENNY, 4)
+    if len(per_term) == 1:
+        amount, hows, term = per_term[0]
+        return {"label": label, "status": CONTRACT_CHECKED, "amount_gbp": round_money(amount),
+                "amount_gbp_unrounded": amount, "tolerance_gbp": tolerance,
+                "how": "{} ({} term from {})".format(" + ".join(hows), term.get("tariff_type"),
+                                                    term.get("tariff_effective_from"))}
+    # Across a price change the bill prints one register, so a ToU term's share could have been
+    # charged anywhere between its off-peak and peak rates: the bound spans every rate any
+    # covering term carries.
+    volume = sum(volumes.values())
+    low, high = float(volume * min(rates) / 100), float(volume * max(rates) / 100)
+    return {"label": label, "status": BOUNDED, "low_gbp": round_money(low),
+            "high_gbp": round_money(high), "tolerance_gbp": tolerance,
+            "how": "the period crosses {} terms ({}) and the bill prints one rate".format(
+                len(terms), ", ".join("{} from {}".format(t.get("tariff_type"),
+                                                         t.get("tariff_effective_from"))
+                                      for t in terms))}
+
+
 def rebuild_period(period: dict, *, segment: str) -> dict:
     """One period rebuilt from raw facts alone. Never raises; every line says what it is."""
     days = period.get("days_in_period")
@@ -331,6 +436,8 @@ def rebuild_period(period: dict, *, segment: str) -> dict:
         lines.append({"label": "Standing charge", "status": RECONSTRUCTED,
                       "amount_gbp": round_money(amount), "amount_gbp_unrounded": amount,
                       "how": "{} days x GBP {}/day".format(days, sc_day)})
+
+    lines.append(unit_charge_at_contract(period))
 
     lines.append({
         "label": "Network and policy costs", "status": UNCHECKABLE,

@@ -43,6 +43,17 @@ it. Two things would narrow it, neither built:
   domain error with the biller. This is the strongest unbuilt idea in the design and it is not in
   items 1–5.
 
+**Narrowed 2026-10-26, and only narrowed.** The printed rate is fitted to each printed line, so the
+energy rebuild could never see a bill charging the wrong *tariff*. `unit_charge_at_contract` now
+prices each period's volume at the rate the account's term record says it was sold at
+(`account_state_log`, exported as `contracted_terms`). It sets that against energy + network and
+policy + EPG receipt. On the 4ae8da9b0f book: 49,867 of 52,782 periods agree, and 2,915 cross a
+price change and sit inside their terms' rates. That closes "the printed rate is not the
+contracted one". It does not close "the contracted rate is wrong": the term record is still ours,
+and a fix mis-struck by a factor of ten agrees with itself. A ToU pair is the product rule applied
+to the recorded flat rate, and whether a term was ToU is read from the biller's band settlement,
+because no record says so.
+
 ## 2. The largest pass-through line is not checked at all
 
 `non_commodity_amount_gbp` bundles DUoS, TNUoS, BSUoS, RO, FiT, CfD, CM and smart metering. The
