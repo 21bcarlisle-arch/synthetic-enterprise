@@ -81,8 +81,12 @@ def tree(tmp_path, monkeypatch):
     map_path = tmp_path / "maturity_map.yaml"
     claims_path = tmp_path / "claims.json"
     continuation_path = tmp_path / ".seat_continuation.json"
-    map_path.write_text(yaml.safe_dump([{"id": "EP1_real_atom", "level_current": 1}]),
-                        encoding="utf-8")
+    # A BUILD-stage atom below target: the only kind the draw classifies, so the only kind Lane 0
+    # leaves to the biased draw (`_atom_ids`).
+    map_path.write_text(yaml.safe_dump([
+        {"id": "EP1_real_atom", "level_current": 1, "level_target": 3, "loop_stage": "build"},
+        {"id": "PB8_idle_atom", "level_current": 1, "level_target": 3, "loop_stage": "idle"},
+    ]), encoding="utf-8")
     monkeypatch.setattr(dl, "MATURITY_MAP", map_path)
     monkeypatch.setattr(d, "DIRECTION_PATH", direction_path)
     monkeypatch.setattr(sc, "STORE", continuation_path)
@@ -132,6 +136,28 @@ def test_an_item_that_IS_an_atom_is_NOT_offered_here(tree):
     item = dl.next_item(now=NOW_EPOCH, path=tree["claims"])
 
     assert item["id"] == "not-an-atom"
+
+
+def test_a_focus_atom_the_draw_cannot_classify_is_LANE_0s_and_a_drawable_one_is_not(tree):
+    """BOTH BRANCHES, one control. PB8 sat in focus for two stretches as an atom the classifier
+    never named (idle stage), so the weight bias multiplied nothing and Lane 0 skipped it for being
+    an atom -- reached by neither route, and only the brief's `draw: unclassified` line said so.
+
+    MUTATION (must fire): `_atom_ids` returns every map id again -> the idle atom is not offered.
+    MUTATION (must fire): `_atom_ids` returns nothing -> the DRAWABLE atom is offered twice.
+    """
+    from background.supervisor import build_atom_hold_reasons
+    atoms = dl.map_store.load_atoms(tree["map"])
+    # The premise, asked of the supervisor's own classifier rather than assumed.
+    assert build_atom_hold_reasons(atoms).get("EP1_real_atom") == "DRAWABLE"
+    assert "PB8_idle_atom" not in build_atom_hold_reasons(atoms)
+
+    tree["write"]([_item("EP1_real_atom"), _item("PB8_idle_atom", "what the seat wrote")])
+
+    # The DRAWABLE atom is FIRST in the seat's order, so offering it would return it here.
+    item = dl.next_item(now=NOW_EPOCH, path=tree["claims"])
+    assert item is not None and item["id"] == "PB8_idle_atom"
+    assert "what the seat wrote" in dl.doorbell(item)
 
 
 def test_THE_SEATS_ORDER_IS_THE_DRAW_ORDER(tree):

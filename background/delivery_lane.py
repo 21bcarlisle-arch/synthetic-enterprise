@@ -256,17 +256,26 @@ DRAWN_WITHOUT_LANDING_HORIZON_SECONDS = 24 * 60 * 60
 
 
 def _atom_ids() -> set[str]:
-    """Every id on the map. An unreadable map yields an EMPTY set, which makes every focus item
-    look unreachable and offers work that may duplicate an atom — noisy, and the safe direction:
-    the opposite error would silently hide the seat's decisions whenever the map hiccuped."""
-    try:
+    """The map ids the BIASED DRAW CAN REACH: those the supervisor's own classifier
+    (`build_atom_hold_reasons`) names, DRAWABLE or held. A focus id outside this set is Lane 0's.
 
+    NOT every id on the map. A focus atom the classifier never names (stage not build, or not
+    below target -- the brief's `draw: unclassified` line) multiplies no weight, and Lane 0 skipped
+    it because it was an atom: PB8 sat in focus for two stretches reached by neither route, and
+    only a line in the brief said so. A HELD atom stays with the draw, which reaches it when its
+    gate opens; handing it to Lane 0 as well would be the second route `hand_off_focus` refuses.
+
+    An unreadable map yields an EMPTY set, which makes every focus item look unreachable and
+    offers work that may duplicate an atom — noisy, and the safe direction: the opposite error
+    would silently hide the seat's decisions whenever the map hiccuped."""
+    try:
+        from background.supervisor import build_atom_hold_reasons
         atoms = map_store.load_atoms(MATURITY_MAP)
+        if not isinstance(atoms, list):
+            return set()
+        return set(build_atom_hold_reasons(atoms))
     except Exception:
         return set()
-    if not isinstance(atoms, list):
-        return set()
-    return {a["id"] for a in atoms if isinstance(a, dict) and "id" in a}
 
 
 def held(path: Path | None = None) -> set[str]:
