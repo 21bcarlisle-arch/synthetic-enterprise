@@ -598,8 +598,10 @@ _PUBLISHED_CLOCK_RE = re.compile(
 
 #: Every other page meets it the same way since 23 Oct 2026 (the other-pages steer: "Remove
 #: banner"), through `tools/generate_dashboard_data.py::write_run_clocks`, between its own markers.
+#: A written Knowledge page says "Published with the run of", since none of its figures are the run's.
 _RUN_CLOCK_RE = re.compile(
-    r"<!-- RUN-CLOCK:START.*?<p class=\"lf-prov\"[^>]*>Figures from the run of \d{1,2} \w{3} \d{4}"
+    r"<!-- RUN-CLOCK:START.*?<p class=\"lf-prov\"[^>]*>(?:Figures from|Published with) the run of "
+    r"\d{1,2} \w{3} \d{4}"
     r".*?<!-- RUN-CLOCK:END -->", re.DOTALL)
 
 #: The publisher's state has one home, a section at the foot of How it's built, and the banner

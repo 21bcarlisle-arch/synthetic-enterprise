@@ -182,8 +182,9 @@ function render(page, graph){
   });
 
   set("wall-note", esc(m.wall_placement));
-  set("page-note", "A written page, not a stub. It explains the mechanism and deliberately "
-    + "carries no current cap level, because that changes every quarter and the mechanism does not.");
+  set("page-note", "A written page, not a stub. It explains the mechanism from published sources "
+    + "and is not refreshed each quarter, so read any cap or price level it quotes as of the date "
+    + "its source gives, not as today's.");
 
   var me = null;
   graph.topics.forEach(function(t){ if(t.id === m.topic_id) me = t; });
@@ -211,7 +212,7 @@ if (typeof window !== "undefined" && window.document && document.getElementById(
 }
 </script>
 <!-- RUN-CLOCK:START (written at publish by tools/generate_dashboard_data.py -- do not hand-edit) -->
-<p class="lf-prov" style="max-width:1060px;margin:24px auto 8px;padding:0 22px;font-size:11.5px;color:var(--muted,#666)">Figures from the run of 19 Oct 2026 &middot; published every Monday <span class="lf-run">(run 8b6fea024_20261019T033010Z; no figure here is typed by hand)</span></p>
+<p class="lf-prov" style="max-width:1060px;margin:24px auto 8px;padding:0 22px;font-size:11.5px;color:var(--muted,#666)">Published with the run of 19 Oct 2026 &middot; published every Monday <span class="lf-run">(run 8b6fea024_20261019T033010Z; a written page: its figures are published anchors from the sources it cites, not readings from the run)</span></p>
 <!-- RUN-CLOCK:END -->
 </body>
 </html>

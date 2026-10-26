@@ -52,3 +52,5 @@
 - [2026-07-16 21:36:41 UTC] draw error: ModuleNotFoundError("No module named 'background'") -> allow stop (fail-safe)
 - [2026-07-16 21:45:12 UTC] draw error: ModuleNotFoundError("No module named 'background'") -> allow stop (fail-safe)
 - [2026-07-16 21:55:47 UTC] draw error: ModuleNotFoundError("No module named 'background'") -> allow stop (fail-safe)
+- [2026-10-26 00:06:03 UTC] non-worker session (session_id=ef250574...) -> allow stop (G-L1 console/other exempt)
+- [2026-10-26 00:06:20 UTC] non-worker session (session_id=ef250574...) -> allow stop (G-L1 console/other exempt)
