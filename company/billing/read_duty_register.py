@@ -21,6 +21,11 @@ month its visit fell in, whether the visit read or not; `accounting_close` posts
 Which visit a supplier sends, a round or an appointment, is a GAP, so the upper bound is published
 beside the central figure by `read_duty_summary`.
 
+Each row says whether the step was taken (`step_taken`), and the summary counts the years that
+passed without one (`rows_without_step`). A row WITH the step is a visit that found no read, which
+the duty of effort allows; one without it is the duty not met (2026-10-26, SEAT_FINDING_A_THIRD_OF_
+HOUSEHOLDS_GO_MORE_THAN_A_YEAR_ON_ESTIMATES_WITHOUT_THE_READ_DUTY_FIRING).
+
 A row on a prepayment bill is kept, marked `duty_applies` False, and left out of the duty's count.
 That is the licence's test on both fuels. The instruction is the code's on gas too: a gas prepayment
 account is instructed although its row is not 21B.4's (2026-10-22, M5.9.14).
@@ -88,6 +93,9 @@ def read_duty_register(bills: Iterable[dict]) -> list[dict]:
             "estimates_in_a_row": READ_DUTY_YEAR_BILLS,
             "payment_channel": channel,
             "duty_applies": channel not in _OUTSIDE_THE_DUTY,
+            # The instruction raised on the 11th estimate is stamped on this, the visit's bill: a
+            # 12th estimate is one the visit did not read. False is a year that passed with no step.
+            "step_taken": bool(bill.get("read_instruction_raised")),
         })
     return rows
 
@@ -132,9 +140,10 @@ def read_duty_summary(bills: Iterable[dict]) -> dict:
     accounts: dict[str, set[str]] = {}
     for row in read_duty_register(bills):
         fuel = by_fuel.setdefault(row["fuel"], {
-            "rows": 0, "accounts": 0, "prepayment_rows": 0})
+            "rows": 0, "accounts": 0, "prepayment_rows": 0, "rows_without_step": 0})
         if row["duty_applies"]:
             fuel["rows"] += 1
+            fuel["rows_without_step"] += not row["step_taken"]
             accounts.setdefault(row["fuel"], set()).add(row["account_id"])
         else:
             fuel["prepayment_rows"] += 1

@@ -213,3 +213,24 @@ def test_the_close_posts_the_visits_to_account_6100_and_off_the_operating_margin
     assert on.pnl["operating_net_margin_gbp"] == pytest.approx(
         on.pnl["net_margin_gbp"] - 18.0 - on.pnl.get("acquisition_spend_gbp", 0.0)
         - on.pnl.get("fixed_cost_gbp", 0.0) - on.pnl.get("cost_to_serve_gbp", 0.0))
+
+
+def test_a_year_on_estimates_with_no_step_is_counted_and_one_with_a_failed_visit_is_not():
+    """Defect this guards (2026-10-26, SEAT_FINDING_A_THIRD_OF_HOUSEHOLDS_GO_MORE_THAN_A_YEAR_ON_
+    ESTIMATES_WITHOUT_THE_READ_DUTY_FIRING): 250 households a year on estimates read as the duty
+    not firing, and nothing published could say whether the step was taken. Each 21B.4 row now
+    says so. With instructions on, C3 and C5 reach the year after a visit that found no access:
+    step taken, none counted. With them off, C1, C2, C3 and C5 all reach a year with no step, and every
+    duty-applying row is counted; C4 (electricity prepayment) is outside the duty either way.
+
+    Mutations, each run and reverted: `step_taken` hard-wired True (the off arm counts 0) or
+    False (the on arm counts 2), and the count taken over prepayment rows too (the off arm counts
+    5). Each reds the one assertion, whose two arms are the partition: both branches occur."""
+    def without_step(bills):
+        return read_duty_summary(bills)["by_fuel"]["electricity"]["rows_without_step"]
+
+    on, off = _bills(_Feed(), instruct_reads=True), _bills(_Feed(), instruct_reads=False)
+    assert (
+        [(r["account_id"], r["step_taken"]) for r in read_duty_register(on) if r["duty_applies"]],
+        without_step(on), without_step(off),
+    ) == ([("C3", True), ("C5", True)], 0, 4)
