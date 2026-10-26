@@ -56,3 +56,28 @@ A hand `cp` onto latest still cannot be refused. The door makes the right route 
 it does not wall off the wrong one. Promoting this Monday's run is left to the one-shot timer,
 which is already armed for 26 Oct 04:05Z. Running `--promote` now as well would write a second
 marker for the same run.
+
+## What the 26 Oct one-shot did (re-measured 08:15Z)
+
+**The prediction was wrong.** The item said the one-shot would offer
+`run_output_b2bc3d8da5_20261025T1230Z`. It did not. At 03:28Z the basics run at 4ae8da9b0f took
+`run_output_latest.json`, and the window held it. So at 04:05Z `drop_marker.py` wrote
+`run_complete_20261026T040501Z.md` for `run_output_4ae8da9b0f_20261026T022647Z.json`, as
+`/var/tmp/mondays-window-marker/out.log` records. b2bc3d8da5 is an ancestor of 4ae8da9b0f, so the
+four billing fixes are in the run that was offered. The b2bc3d8da5 run itself is superseded, and
+nothing should offer it again.
+
+The marker did its job: the run was re-offered at the window. Publishing it failed four times,
+each time for a publisher defect and not for the run:
+
+| marker | outcome |
+|---|---|
+| 040501Z (one-shot) | did not land: `behind_origin` 05:14Z |
+| 051730Z (`--promote`) | did not land: `commit_refused` 05:46Z |
+| 064020Z (`--promote`) | did not land: `behind_origin` 06:59Z |
+| 070039Z (`--promote`) | did not land: `commit_refused` 07:40Z (19-page stale-copy refusal) |
+| 080604Z (`--promote`) | did not land: `commit_refused` 08:28Z. The publisher races are fixed; two billing gates refuse the run's own book, see `SEAT_FINDING_THE_MONDAY_RUN_4AE8DA9B0F_IS_REFUSED_BY_TWO_BILLING_GATES_ON_ITS_OWN_BOOK_2026-10-26.md` |
+
+The later markers came through `sim_runner --promote`, so this one-shot was the last of its kind,
+as intended. The publisher defects are owned by `the-publish-lands-from-a-trunk-worktree-not-the-primary-checkout`
+and the stale-copy commits ae03a6317 and 78a6dfacc. This claim does not duplicate them.
