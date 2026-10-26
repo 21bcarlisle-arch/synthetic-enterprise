@@ -38,7 +38,8 @@ In (the world → the desk), all of it observable to a real supplier:
     arrived, and — when it did not — the ARUDD reason text. Rails timing is industry
     physics; the supplier observes it, it does not choose it.
 
-Out (the desk → the world) — three instructions and nothing else:
+Out (the desk → the world) — three instructions and nothing else (a re-mandate invitation is a
+`MandateSetupInstruction` like the first):
 
   * `MandateSetupInstruction` — please set this mandate up, at this amount, on this
     day, under this reference;
@@ -46,7 +47,8 @@ Out (the desk → the world) — three instructions and nothing else:
   * `CollectionInstruction` — collect this amount on this date under this reference.
 
 And one answer: `record_collection_outcome` says whether that return made the desk
-stop the DD (PB8). The world then stops putting that customer's bills on the rails.
+stop the DD (PB8). The world then stops putting that customer's bills on the rails. An
+ADDACS 1 (`record_payer_cancellation`) ends the mandate the same way, by the household's act.
 
 NOT crossing, and this is the substance of the cut: `DirectDebitBook`,
 `DirectDebitMandate`, `DDPaymentAttempt`, `next_collection_on_day`, the re-estimation
@@ -126,6 +128,16 @@ AMENDMENT_WINDOW_BILLS = 12  # roughly a year of monthly billing
 # Put to the director as a practitioner question 2026-10-03.
 DD_STOP_THRESHOLD_CONSECUTIVE_RETURNS = 2
 
+# PB8 L2, back onto DD: the desk invites an off-DD account to sign a new mandate once it has paid
+# this many on-receipt bills in a row by their due date, on the desk's own ledger, and waits the
+# same count again after a decline. NAMED SIMPLIFICATION: no GB supplier publishes when it invites
+# a stopped or self-cancelled account back (payments_and_direct_debit_2026-10-25.md, "Off direct
+# debit and back on"). To do it properly the desk would weigh the standard-credit premium it loses
+# against the returns it expects, from its own book. The direction of the error is unknown: a
+# shorter wait re-mandates more payers who then bounce, and a longer one keeps good payers on the
+# dearer channel.
+REMANDATE_OFFER_AFTER_PAID_BILLS = 3
+
 # The masked bank detail the register carries. No real bank data exists anywhere in
 # this project and none is invented here; the mask matches `DirectDebitMandate`'s own
 # convention. It is the SUPPLIER's placeholder, which is why it sits on this side.
@@ -175,6 +187,9 @@ class DirectDebitCollectionsDesk:
         # Amounts this desk has actually billed each customer, oldest first. It is
         # the desk's own record of its own bills — not a window onto the world.
         self._billed_history: dict[str, list[float]] = {}
+        # On-receipt bills paid by their due date in a row since the account left DD or last
+        # declined an invitation. The desk's own ledger; the only input `review_re_mandate` reads.
+        self._paid_on_receipt_run: dict[str, int] = {}
 
     # -- what the world may ask about the register -------------------------------
 
@@ -221,7 +236,12 @@ class DirectDebitCollectionsDesk:
     def confirm_mandate(
         self, instruction: MandateSetupInstruction, confirmed_date: str
     ) -> None:
-        """AUDDIS confirmed on `confirmed_date`: register the mandate."""
+        """AUDDIS confirmed on `confirmed_date`: register the mandate.
+
+        A re-mandate replaces the ended mandate in the register under a new reference. Its earlier
+        attempts stay in the register under the old reference.
+        """
+        self._paid_on_receipt_run.pop(instruction.customer_id, None)
         self._book.create_mandate(
             customer_id=instruction.customer_id,
             sort_code=_MASKED_SORT_CODE,
@@ -232,6 +252,47 @@ class DirectDebitCollectionsDesk:
             setup_confirmed_date=confirmed_date,
             payment_day=instruction.payment_day,
         )
+
+    def record_payer_cancellation(self, customer_id: str, available_date: str) -> bool:
+        """ADDACS 1, "cancelled by payer", on the report from `available_date`.
+
+        The household cancelled at its own bank. The desk cancels the mandate from that date, so no
+        collection is presented after it, and the account pays on receipt. Returns True when this
+        advice ended a live mandate, and False when there was none or the desk had already stopped it.
+        """
+        if not self.pays_by_direct_debit(customer_id):
+            return False
+        self._paid_on_receipt_run[customer_id] = 0
+        return self._book.cancel_mandate(customer_id, as_of=available_date)
+
+    def note_receipt_payment(self, customer_id: str, paid_by_due_date: bool) -> None:
+        """An on-receipt bill resolved on the desk's own ledger: paid by its due date, or not."""
+        if self.pays_by_direct_debit(customer_id):
+            return
+        run = self._paid_on_receipt_run.get(customer_id, 0)
+        self._paid_on_receipt_run[customer_id] = run + 1 if paid_by_due_date else 0
+
+    def review_re_mandate(
+        self, customer_id: str, as_of: str, payment_day: int
+    ) -> MandateSetupInstruction | None:
+        """Invite an off-DD account to sign a new mandate, under the desk's own policy.
+
+        Only an account whose mandate has ended is invited, and only after
+        `REMANDATE_OFFER_AFTER_PAID_BILLS` on-receipt bills in a row were paid by their due date.
+        The invitation is a setup instruction. Nothing is registered until the household signs and
+        AUDDIS confirms it (`confirm_mandate`), because a mandate needs the payer's instruction.
+        """
+        if not self.has_mandate(customer_id) or self.pays_by_direct_debit(customer_id):
+            return None
+        if self._paid_on_receipt_run.get(customer_id, 0) < REMANDATE_OFFER_AFTER_PAID_BILLS:
+            return None
+        history = self._billed_history.get(customer_id) or []
+        monthly = round(statistics.median(history[-AMENDMENT_WINDOW_BILLS:]), 2) if history else 0.0
+        return self.open_mandate(customer_id, monthly, as_of, payment_day)
+
+    def record_re_mandate_declined(self, instruction: MandateSetupInstruction) -> None:
+        """The household did not sign. The account stays on receipt, and the wait starts again."""
+        self._paid_on_receipt_run[instruction.customer_id] = 0
 
     def review_amendment(
         self, customer_id: str, period_end: str

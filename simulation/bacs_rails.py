@@ -149,6 +149,27 @@ def draw_payer_cancellation(reference: str, customer_id: str, act_date: date, u:
     return payer_cancellation(reference, customer_id, act_date)
 
 
+#: How often a household signs the new mandate its supplier invites it to (PB8 L2). None: no GB
+#: supplier publishes a take-up rate for an invitation back onto DD, and no flow from standard
+#: credit to DD is published (payments_and_direct_debit_2026-10-25.md, "Off direct debit and back
+#: on"). Until one exists the run puts no invitation to a household, and a household off DD stays off.
+REMANDATE_ACCEPTANCE_PROBABILITY: Optional[float] = None
+REMANDATE_ACCEPTANCE_GAP = ("no published take-up rate for a supplier's invitation back onto Direct "
+                            "Debit, and no published standard-credit-to-DD flow")
+
+
+def draw_re_mandate_answer(u: float, probability: Optional[float] = None) -> bool:
+    """One draw: does the household sign the new mandate it was invited to? Its own act. `u` comes
+    from the caller's named substream. Refuses, naming the gap, when no probability is supplied and
+    none is published, because answering would assert a rate nobody has measured."""
+    p = REMANDATE_ACCEPTANCE_PROBABILITY if probability is None else probability
+    if p is None:
+        raise ValueError(f"cannot answer a re-mandate invitation: {REMANDATE_ACCEPTANCE_GAP}")
+    if not 0.0 <= p <= 1.0:
+        raise ValueError(f"re-mandate acceptance probability {p!r} is not a probability")
+    return u < p
+
+
 @dataclass(frozen=True)
 class BacsSubmission:
     """One item submitted into the rails -- a mandate setup, a collection

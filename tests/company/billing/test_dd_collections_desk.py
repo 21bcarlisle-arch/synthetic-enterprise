@@ -292,3 +292,110 @@ def test_both_branches_are_reached_on_a_real_book(monkeypatch):
         if m.status == "cancelled":
             last = book.attempts_for_customer(m.customer_id)[-1]
             assert last.outcome == "failed" and last.attempt_date == m.last_status_change_date
+
+
+# ── 12. PB8 L2: a mandate ended by ADDACS 1, and the way back onto DD ───────
+
+
+def _paid_on_receipt(desk, n, on_time=True):
+    for _ in range(n):
+        desk.note_receipt_payment(CID, paid_by_due_date=on_time)
+
+
+def test_an_addacs_1_cancellation_stops_dd_collection_from_its_date():
+    desk = _confirmed_desk()
+    desk.note_billed_amount(CID, 90.0)
+    assert desk.record_payer_cancellation(CID, available_date="2024-03-05") is True
+    assert not desk.pays_by_direct_debit(CID)
+    assert desk.collection_register().get_mandate(CID).last_status_change_date == "2024-03-05"
+    with pytest.raises(ValueError, match="billed on receipt"):
+        desk.instruct_collection(CID, "2024-03-31", 80.0, "2024-04-14")
+    # A second advice, or one after the desk's own stop, ends nothing more.
+    assert desk.record_payer_cancellation(CID, available_date="2024-03-06") is False
+
+
+def test_the_invitation_back_onto_dd_is_reachable_and_withheld():
+    """Partition control first: a policy that never invites, or always does, fails here."""
+    from company.billing.dd_collections_desk import REMANDATE_OFFER_AFTER_PAID_BILLS as N
+    on_dd = _confirmed_desk()
+    _paid_on_receipt(on_dd, N)
+    assert on_dd.review_re_mandate(CID, "2024-06-01", 8) is None   # still on DD: nothing to ask
+
+    desk = _confirmed_desk()
+    desk.note_billed_amount(CID, 90.0)
+    desk.record_payer_cancellation(CID, available_date="2024-03-05")
+    _paid_on_receipt(desk, N - 1)
+    assert desk.review_re_mandate(CID, "2024-06-01", 8) is None
+    _paid_on_receipt(desk, 1)
+    assert desk.review_re_mandate(CID, "2024-07-01", 8) is not None
+
+
+def test_a_re_mandate_puts_the_account_back_on_dd_under_a_new_reference():
+    from company.billing.dd_collections_desk import REMANDATE_OFFER_AFTER_PAID_BILLS as N
+    desk = _confirmed_desk()
+    desk.note_billed_amount(CID, 90.0)
+    old_ref = desk.collection_register().get_mandate(CID).mandate_reference
+    desk.record_payer_cancellation(CID, available_date="2024-03-05")
+    _paid_on_receipt(desk, N)
+    invitation = desk.review_re_mandate(CID, "2024-07-01", 8)
+    assert desk.pays_by_direct_debit(CID) is False   # an invitation registers nothing
+    desk.confirm_mandate(invitation, "2024-07-03")
+    assert desk.pays_by_direct_debit(CID)
+    mandate = desk.collection_register().get_mandate(CID)
+    assert mandate.mandate_reference != old_ref and mandate.monthly_amount_gbp == 90.0
+    desk.instruct_collection(CID, "2024-07-31", 80.0, "2024-08-14")
+
+
+def test_a_declined_invitation_leaves_the_account_on_receipt_and_restarts_the_wait():
+    from company.billing.dd_collections_desk import REMANDATE_OFFER_AFTER_PAID_BILLS as N
+    desk = _confirmed_desk()
+    desk.note_billed_amount(CID, 90.0)
+    desk.record_payer_cancellation(CID, available_date="2024-03-05")
+    _paid_on_receipt(desk, N)
+    desk.record_re_mandate_declined(desk.review_re_mandate(CID, "2024-07-01", 8))
+    assert not desk.pays_by_direct_debit(CID)
+    assert desk.review_re_mandate(CID, "2024-08-01", 8) is None
+    # A late on-receipt bill breaks the run as well.
+    _paid_on_receipt(desk, N - 1)
+    _paid_on_receipt(desk, 1, on_time=False)
+    _paid_on_receipt(desk, N - 1)
+    assert desk.review_re_mandate(CID, "2024-12-01", 8) is None
+    _paid_on_receipt(desk, 1)
+    assert desk.review_re_mandate(CID, "2025-01-01", 8) is not None
+
+
+def test_the_worlds_answer_to_an_invitation_refuses_without_a_published_rate():
+    from simulation.bacs_rails import REMANDATE_ACCEPTANCE_PROBABILITY, draw_re_mandate_answer
+    assert REMANDATE_ACCEPTANCE_PROBABILITY is None
+    with pytest.raises(ValueError, match="no published take-up rate"):
+        draw_re_mandate_answer(0.5)
+    assert draw_re_mandate_answer(0.1, probability=0.5) and not draw_re_mandate_answer(0.9, 0.5)
+
+
+def test_a_household_cancellation_reaches_the_desk_as_addacs_1_on_a_real_book(monkeypatch):
+    """The household's route through the world's own rails: its cancel month is the last bill
+    presented by DD, the mandate ends on the ADDACS day after that return, and the money side pays
+    every later bill on receipt. A household with no cancellation is not stopped by this route."""
+    import simulation.arrears_engine as ae
+    import simulation.dd_collection_book as mod
+    from simulation.dd_shock_response import RECORD_KEY
+    monkeypatch.setattr(mod, "payment_method", lambda *a, **k: "direct_debit")
+    monkeypatch.setattr(ae, "payment_method", lambda *a, **k: "direct_debit")
+    bills, behavioral = [], {}
+    for cid in ("CANCELS", "STAYS"):
+        behavioral[cid] = {"income_stress_trajectory": [{"year": 2020, "stress": "LOW"}]}
+        for m in range(1, 13):
+            bills.append({"customer_id": cid, "segment": "resi", "total_amount_gbp": 90.0,
+                          "period_end": f"2020-{m:02d}-28", "commodity": "electricity"})
+    behavioral["CANCELS"][RECORD_KEY] = [
+        {"review_month": "2020-05", "cancelled_month": "2020-05", "failure_multiplier": 1.0}]
+    book = mod.build_dd_collection_book(bills, behavioral, seed=42)
+    stops = mod.supplier_dd_stops(bills, behavioral, seed=42)
+    notices = mod.supplier_dd_stop_notices(bills, behavioral, seed=42)
+    assert stops.get("CANCELS") == "2020-05-28" and "STAYS" not in stops, stops
+    mandate = book.get_mandate("CANCELS")
+    last = book.attempts_for_customer("CANCELS")[-1]
+    assert mandate.status == "cancelled" and last.outcome == "failed"
+    assert notices["CANCELS"] == mandate.last_status_change_date > last.attempt_date
+    rows = [r for r in ae._resolve_bills(bills, behavioral, 42) if r["customer_id"] == "CANCELS"]
+    assert {r["method"] for r in rows if r["period_end"] > "2020-05-28"} == {"standard_credit"}

@@ -159,6 +159,7 @@ from simulation.arrears_engine import (
 )
 from simulation.bacs_rails import (
     ARUDD_REASON_CODES,
+    payer_cancellation,
     resolve_submission,
     submit_amendment,
     submit_collection,
@@ -184,7 +185,8 @@ def build_dd_collection_book(
 
 
 def supplier_dd_stops(bills: list[dict], behavioral: dict, seed: int = 42) -> dict[str, str]:
-    """PB8 L2: the households the supplier has told their Direct Debit is stopped.
+    """PB8 L2: the households whose Direct Debit has ended, by the supplier's stop or by their own
+    cancellation read back as ADDACS 1.
 
     `{customer_id: period_end}` of the last bill the supplier presented by DD. Every later bill
     is payable on receipt. This is what the household is told, so it is all the world reads.
@@ -196,7 +198,8 @@ def supplier_dd_stops(bills: list[dict], behavioral: dict, seed: int = 42) -> di
 def supplier_dd_stop_notices(bills: list[dict], behavioral: dict, seed: int = 42) -> dict[str, str]:
     """`{customer_id: notice_date}`: the day the household learnt its DD was stopped.
 
-    That is the day of the return that made the supplier stop it. It is the as-of key for anything
+    That is the day of the return that made the supplier stop it, or, when the household cancelled
+    it at its bank, the day the ADDACS 1 record reached the supplier. It is the as-of key for anything
     asked mid-run ("how does this household pay, on this date?"), where `supplier_dd_stops`'s
     period_end is the key for which bills are payable on receipt.
     """
@@ -494,5 +497,12 @@ def _run_rails(
             failure_reason=failure_reason,
         ):
             stops[cid] = (period_end, attempt_date)
+        # PB8 L2, the household's route: it cancelled at its bank, the collection came back
+        # "instruction cancelled", and the supplier reads ADDACS 1 the next working day. The desk
+        # cancels from that date, so this is the last bill presented and the notice is the ADDACS day.
+        if shock.cancel_return and told is None and exit_ is None:
+            addacs = payer_cancellation(instruction.reference, cid, date.fromisoformat(attempt_date))
+            if desk.record_payer_cancellation(cid, addacs.available_date.isoformat()):
+                stops[cid] = (period_end, addacs.available_date.isoformat())
 
     return desk, stops

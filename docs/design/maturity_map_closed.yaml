@@ -4933,3 +4933,19 @@
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "GB weather-driven demand and price physics -- coherent national signal, feasible regional deviation, premise-level response, price as the output of the merit order"
   depends_on: [W1_6_physics_price_signal]
+
+- id: PB8_a_households_payment_channel_changes_over_its_tenure
+  title: "PB6 EH-3: a household's payment channel is fixed for life, and a real book's channels move"
+  lane: W2_customer_generator
+  value_stream: meter_to_cash
+  epoch: 3
+  level_current: 2
+  level_target: 2
+  loop_stage: idle
+  block_reason: "L2 2026-10-26: the channel follows the mandate on both routes -- desk stop and ADDACS 1 -- in arrears_engine (dd7bbce0f), the seam (065ac54eb) and the register; tests/company/billing/test_dd_collections_desk.py. Re-mandate: desk policy built, world answer None (no published take-up rate); see SEAT_FINDING_A_RE_MANDATE_CAN_BE_OFFERED_AND_NOT_YET_ANSWERED_AND_A_STOP_IS_STILL_TERMINAL_2026-10-26.md."
+  dial_inherited: 45    # PB6's rank: EH-3 is one of the two disqualifiers holding PB6 below L3.
+  provenance: worker_finding
+  file_scope: ['company/billing/dd_collections_desk.py', 'tests/company/billing/test_dd_collections_desk.py', 'simulation/household_segments.py', 'simulation/dd_collection_book.py', 'simulation/bacs_rails.py']
+  frame_saturated: true   # 2026-10-03: FRAME is the addendum in gb_payment_method_migration_rates.md (226976c0f), not a *_FRAME doc, so H23 could not see it and re-drew it.
+  depends_on: []
+  couples_with: [PB6_the_engagement_observable_crosses_the_seam]

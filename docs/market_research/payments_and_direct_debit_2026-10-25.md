@@ -288,3 +288,50 @@ The SLC rows were open because the consolidated PDF had been cut off in an earli
 2025", sha256 `10e60a77…272ca08e`. pdftotext was used and SLC 27.13–27.17 was read in full. Two points stand:
 27.15 and 27.16 above, and 27.17 still says "take all reasonable steps" to send a final bill within 6 weeks.
 That qualifier stayed on 27.17 and went from 27.15.
+
+## Off direct debit and back on: what the supplier may do (seat, 26 Oct 2026, PB8 L2)
+
+The page said nothing about re-mandating. Before PB8 L2 was built, the seat recorded these points.
+
+**A mandate ends by one of two routes, and the supplier sees both.** (a) The supplier cancels it. British
+Gas: "If your payment fails for a second time, we'll have to cancel your Direct Debit and send you a bill
+instead" (https://www.britishgas.co.uk/help/struggling-to-pay/what-happens-if-i-dont-pay.html, read
+2026-10-03). This is `DD_STOP_THRESHOLD_CONSECUTIVE_RETURNS` in `company/billing/dd_collections_desk.py`.
+(b) The payer cancels at its own bank, and the supplier reads ADDACS code 1, "cancelled by payer" (§3),
+from the working day after the bank inputs it (`dd_failure_basis_and_live_arrears_provision_rates.md`
+§4a). In both cases the account then pays on receipt. That is standard credit, and StepChange warns it
+is billed "at a higher rate" (https://www.brighouseecho.co.uk/news/people/dont-pay-uk-expert-warns-why-you-should-not-cancel-energy-bill-direct-debits-3804057).
+
+**A new mandate needs the payer's instruction.** A Direct Debit Instruction is the payer's authority, lodged
+through AUDDIS (§3). A supplier can invite a household to sign one. It cannot reinstate a mandate the
+household cancelled, and it cannot reopen one it cancelled itself without a new instruction. So a
+re-mandate has two authors. The supplier decides whether and when to ask. The household decides whether
+to sign.
+
+**What is published about the supplier's side.** Power NI asks for a missed DD payment "within 5 working
+days to remain on Direct Debit" (https://powerni.co.uk/help/bills-payment/direct-debit-management/what-if-i-miss-a-direct-debit-payment/).
+That is the step before a stop, not a re-mandate. No GB supplier publishes when it invites a stopped or
+self-cancelled account back onto DD. **GAP.**
+
+**What is published about the household's side.** Nothing. No take-up rate is published for a supplier's
+invitation back onto DD, and no flow from standard credit to DD is published (named gap 7 above).
+**GAP.**
+
+**Which choices the design makes, and why.**
+- *The desk's policy is its own, and a named simplification.* The desk invites an account back once it has
+  paid `REMANDATE_OFFER_AFTER_PAID_BILLS` on-receipt bills in a row by their due date, and it reads only
+  its own ledger to decide that. After a decline it waits the same count again. The count is the
+  supplier's choice, not a fact about the world. Nothing published bounds it, and the code says so beside
+  the constant.
+- *The world's answer is `None`, with the reason named.* `simulation/bacs_rails.py`
+  `REMANDATE_ACCEPTANCE_PROBABILITY` is None: no published rate. The draw refuses rather than answering
+  yes or no. Until a rate exists, the run puts no invitation to a household. So a household that leaves
+  DD stays off it, which overstates manual payers. That overstatement was already recorded in
+  `gb_payment_method_migration_rates.md`. It now applies to an invitation the desk can make and the world
+  cannot yet answer, rather than to an invitation nobody could make.
+- *ADDACS 1 reaches the desk.* When a household cancels its mandate (DD4b or own-reasons, both shipped at
+  0), the month's collection comes back "instruction cancelled" (DD4b's own calendar). The desk then
+  reads the ADDACS 1 record dated the next working day after that return, and cancels the mandate from
+  that date. The supplier-stop route and the household route now leave the same trace: the mandate is
+  cancelled in the register, the account pays on receipt in the money side, and the seam answers
+  `standard_credit` from the notice date.
