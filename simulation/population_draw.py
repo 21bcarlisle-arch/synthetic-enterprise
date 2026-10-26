@@ -89,7 +89,12 @@ from typing import (
     Tuple,
 )
 
-from simulation.household_segments import TenureType, tenure_for_customer
+from simulation.household_segments import (
+    PaymentChannel,
+    TenureType,
+    payment_channel_for_customer,
+    tenure_for_customer,
+)
 from simulation.rng_substream import substream
 from simulation.segment_vocabulary import INDUSTRIAL_AND_COMMERCIAL, normalise_segment
 
@@ -551,8 +556,15 @@ def _draw_one(
         arrangement = None
     low, high = TDCV_BANDS_KWH[commodity][band]
     eac = round(rng.uniform(low, high), 1)
-    dd_share = DD_SHARE_ELEC if commodity == "electricity" else DD_SHARE_GAS
-    payment_method = "direct_debit" if rng.random() < dd_share else "other"
+    # ONE PAYMENT METHOD PER HOUSEHOLD (2026-10-26). The draw is still taken, so every later value on
+    # this stream is byte-identical, but the label comes from the channel the world's payments run on
+    # (`payment_channel_for_customer`). It was a second independent 72% draw that agreed with the
+    # world's for 60% of households, so any per-payment-method grouping of the roster could not
+    # find a real difference.
+    rng.random()
+    payment_method = ("direct_debit"
+                      if payment_channel_for_customer(customer_id, commodity) is PaymentChannel.DIRECT_DEBIT
+                      else "other")
     # DEFAULT OFF (assign_cohorts=False): `cohort` stays None and every prior
     # field/draw above is untouched, so the byte-identical-by-default guarantee
     # holds structurally -- `assign_cohort()` draws from its OWN named substream
