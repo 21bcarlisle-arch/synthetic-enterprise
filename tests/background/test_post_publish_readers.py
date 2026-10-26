@@ -117,3 +117,18 @@ def test_a_red_reader_run_reaches_the_supervisors_doorbell(tmp_path, monkeypatch
 @pytest.mark.parametrize("bad", [None, {}])
 def test_no_store_is_silent(bad):
     assert ppr.doorbell_clause(bad or None, path=ppr.PROJECT_DIR / "nonexistent.json") is None
+
+
+def test_every_page_reader_exists_and_a_publish_runs_it(tmp_path, monkeypatch):
+    """The named page readers are real files, and a run with the derived set includes them --
+    a name that rotted, or a run that dropped them, would leave the 390 px check unrun."""
+    root = ppr.PROJECT_DIR
+    assert ppr.PAGE_READERS, "no page reader is named"
+    for rel in ppr.PAGE_READERS:
+        assert (root / rel).is_file(), f"{rel} is named as a page reader and does not exist"
+    monkeypatch.setattr(ppr, "reader_tests", lambda *a, **k: ["tests/x/test_book.py"])
+    seen = []
+    runner = lambda argv, timeout: seen.append(argv) or SimpleNamespace(returncode=0, stdout=GREEN_OUT)  # noqa: E731
+    ppr.run("abc", PARSE, runner=runner, path=tmp_path / "s.json")
+    assert seen and all(rel in seen[0] for rel in ppr.PAGE_READERS), seen
+    assert "tests/x/test_book.py" in seen[0]

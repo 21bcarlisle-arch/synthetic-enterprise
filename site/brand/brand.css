@@ -190,3 +190,25 @@
   .site-nav .doors { display: grid; grid-template-columns: repeat(3, auto); justify-content: end; row-gap: 2px; }
   .site-nav .nav-link { text-align: right; }
 }
+
+/* NOTHING PUSHES A PHONE PAGE SIDEWAYS (director's steer, 26 Oct: "Give every table a wrapper
+ * with overflow-x:auto and max-width:100%, and let pre/code wrap"). One sheet, so every page
+ * that links it gets the same answer; site/test_no_published_page_scrolls_sideways_on_a_phone.py
+ * reads every published page at 390 px in a browser and names what sticks out.
+ *  - A grid or flex child defaults to min-width:auto, so ONE long word, code span or table
+ *    inside the Knowledge pages' two-column .wrap widened the whole column past the screen
+ *    (25 of 77 pages at 390 px, measured 26 Oct). min-width:0 lets the column be the screen.
+ *  - A long unbroken token (a file path in a provenance line, 26 Oct on Capabilities) breaks
+ *    rather than overflowing its line; break-word, not anywhere, so a table's columns are not
+ *    squeezed letter by letter to avoid scrolling.
+ *  - A table scrolls inside its own box; one not opened in a .table-scroll wrapper becomes
+ *    that box itself on a narrow screen. */
+.table-scroll { overflow-x: auto; max-width: 100%; -webkit-overflow-scrolling: touch; }
+pre { white-space: pre-wrap; overflow-wrap: anywhere; max-width: 100%; }
+code, kbd, samp { overflow-wrap: anywhere; }
+img, video, canvas { max-width: 100%; }
+@media (max-width: 820px) {
+  main, article, aside, section, .wrap > *, .page > * { min-width: 0; }
+  :not(.table-scroll) > table { display: block; overflow-x: auto; max-width: 100%; }
+  body { overflow-wrap: break-word; }
+}

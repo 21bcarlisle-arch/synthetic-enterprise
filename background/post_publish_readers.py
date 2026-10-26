@@ -53,6 +53,13 @@ PROJECT_DIR = Path(__file__).resolve().parent.parent
 #: which is what readers spell (the committed `.json.gz` is read through `run_output_store`).
 ARTEFACTS = ("docs/state/billing_ledger.json", "docs/reports/run_output_latest.json")
 
+#: Readers whose subject is every published PAGE rather than one artefact, so no path in their
+#: text predicts them: a publish rewrites pages and the feeds they render, and what a phone reader
+#: meets is a property of the laid-out page (director's steer, 26 Oct 2026: "Add the hscroll=false
+#: at 390 px check for every published page to the post-publish readers"). Named, not derived,
+#: and `test_post_publish_readers` holds each to a file that exists.
+PAGE_READERS = ("site/test_no_published_page_scrolls_sideways_on_a_phone.py",)
+
 #: Untracked machine state (see `.gitignore`), dot-prefixed like its neighbours.
 OBSERVED_PATH = PROJECT_DIR / "docs" / "observability" / ".post_publish_reader_reds.json"
 
@@ -198,7 +205,12 @@ def run(git_hash: str | None, parse_reds, *, runner=None, timeout: float = TIMEO
     state = {"checked_at": (now or datetime.now(timezone.utc)).replace(microsecond=0).isoformat(),
              "git_hash": git_hash, "artefacts": list(ARTEFACTS)}
     try:
-        files = reader_tests() if files is None else list(files)
+        # The page readers join AFTER the emptiness check: an empty derivation is still the
+        # derivation broken, and must not read as a run because the named readers filled it.
+        derived = files is None
+        files = reader_tests() if derived else list(files)
+        if files and derived:
+            files += [f for f in PAGE_READERS if f not in files]
         state["files"] = len(files)
         if not files:
             # Zero readers found is the derivation breaking, not a clean bill: say so.
@@ -269,7 +281,7 @@ def main(argv=None) -> int:
     ap.add_argument("--run", action="store_true", help="run them now against this tree")
     args = ap.parse_args(argv)
     if args.list:
-        print("\n".join(reader_tests()))
+        print("\n".join(reader_tests() + list(PAGE_READERS)))
         return 0
     if args.run:
         # The CLI is never the supervisor's path; importing the publisher here is what lets the

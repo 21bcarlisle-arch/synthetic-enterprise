@@ -139,6 +139,9 @@ for (const job of jobs) {
   const { url, ids } = job;
   pageErrors = [];
   try {
+  // A job may name its own viewport ({width, height}); the default is the desktop one above.
+  // `site/test_no_published_page_scrolls_sideways_on_a_phone.py` reads every page at 390 px.
+  await page.setViewportSize(job.viewport || { width: 1280, height: 900 });
   // The RESPONSE is kept: a live origin answering 404 or 503 still produces a DOM, and every
   // element would then read `exists: false` -- which describes a broken page rather than a missing
   // one. The caller gets the status and can say which it met.
@@ -203,7 +206,35 @@ for (const job of jobs) {
     return out;
   }, ids);
 
-  readings.push({ ok: true, url, status, elements, pageErrors });
+  // SIDEWAYS SCROLL: does the document overflow the viewport's width, and if so which elements
+  // stick out past its right edge -- the outermost few, so the reading names the cause.
+  const hscroll = await page.evaluate(() => {
+    const root = document.documentElement;
+    const vw = root.clientWidth;
+    const culprits = [];
+    if (root.scrollWidth > vw) {
+      for (const el of document.body.querySelectorAll("*")) {
+        const r = el.getBoundingClientRect();
+        if (r.right <= vw + 1 || r.width === 0) { continue; }
+        let p = el.parentElement, outermost = true;
+        while (p && p !== document.body) {
+          const ox = getComputedStyle(p).overflowX;
+          if (ox !== "visible" || p.getBoundingClientRect().right > vw + 1) { outermost = false; break; }
+          p = p.parentElement;
+        }
+        if (!outermost) { continue; }
+        const cls = typeof el.className === "string" && el.className.trim()
+          ? "." + el.className.trim().split(/\s+/).join(".") : "";
+        culprits.push(el.tagName.toLowerCase() + (el.id ? "#" + el.id : "") + cls +
+                      " right=" + Math.round(r.right));
+        if (culprits.length >= 8) { break; }
+      }
+    }
+    return { scrollWidth: root.scrollWidth, clientWidth: vw,
+             overflowing: root.scrollWidth > vw, culprits };
+  });
+
+  readings.push({ ok: true, url, status, elements, hscroll, pageErrors });
   } catch (err) {
     // ONE UNREADABLE PAGE MUST NOT COST THE OTHERS THEIR READING, and it must not be reported as a
     // reading either. The job gets `ok: false` with its own error and the loop carries on, so the

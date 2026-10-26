@@ -1,4 +1,8 @@
-"""The Knowledge index renders the 25 Oct pack check counts from their feed, and fails closed."""
+"""The 25 Oct pack check counts render from their feed, and fail closed.
+
+Since 2026-10-26 (director's steer: the site is read by externals) the census lives on its own
+page, "How these pages are checked", linked from the Knowledge index by one plain line.
+"""
 from __future__ import annotations
 
 import json
@@ -7,7 +11,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 SITE = HERE.parent
-INDEX = HERE / "index.html"
+INDEX = HERE / "how-these-pages-are-checked.html"
 LIVE_HARNESS = SITE / "_live_harness.mjs"
 CENSUS_URL = "../data/pack_verification_census.json"
 CENSUS = json.loads((SITE / "data" / "pack_verification_census.json").read_text(encoding="utf-8"))

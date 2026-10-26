@@ -20,8 +20,14 @@ An ABSENT field means nobody looked, and is refused here and shown as that gap o
 closed store reds this file, so renaming or deleting an atom cannot leave a page pointing at
 nothing. A CLOSED atom resolves -- a mechanism built and finished is still what builds the page.
 
-NOT graded: whether the named atoms are the RIGHT ones. That is a judgement the writer makes
-and the reader can now see on the index card; a control on it would be a list keyed to today.
+NOT graded: whether the named atoms are the RIGHT ones. That is a judgement the writer makes;
+a control on it would be a list keyed to today.
+
+WHERE IT IS SHOWN. Until 2026-10-26 every index card printed "Built by: <atom ids>". The
+director's steer of that day (the site is read by externals: "what an outsider should not have
+to read") took the line off the cards. The record and its resolver stay -- they are what makes
+page and code unable to disagree -- and the reader tests below now assert the opposite
+property: no card shows a build-plan id, with or without the record.
 """
 from __future__ import annotations
 
@@ -87,16 +93,6 @@ def unresolved(feed: dict, ids: set[str]) -> dict[str, list[str]]:
     return out
 
 
-def expected_line(topic: dict) -> str:
-    """The Python statement of what the card shows; the JavaScript must agree with it."""
-    a = topic.get("atoms")
-    if isinstance(a, list) and a:
-        return "Built by: " + " · ".join(a)
-    if isinstance(a, str) and a.startswith(NONE_PREFIX) and len(a) > len(NONE_PREFIX):
-        return "Built by no build-plan item yet: " + a[len(NONE_PREFIX):]
-    return "Not recorded: nobody has noted which build-plan item builds this."
-
-
 def _render(feeds: dict) -> dict:
     proc = subprocess.run(
         ["node", str(LIVE_HARNESS), str(INDEX)],
@@ -145,42 +141,29 @@ def test_MUTATION_an_absent_or_bare_none_is_caught():
 
 
 # ---------------------------------------------------------------------------
-# What the reader is shown
+# What the reader is shown: the record, not the ids
 # ---------------------------------------------------------------------------
-def test_every_card_has_a_slot_for_its_atoms(feed):
+def _ids_shown(text: str, feed: dict) -> list[str]:
+    named = {x for t in feed["topics"] if isinstance(t.get("atoms"), list) for x in t["atoms"]}
+    return sorted(x for x in named if x in text)
+
+
+def test_the_index_markup_names_no_build_plan_item(feed):
     markup = INDEX.read_text(encoding="utf-8")
-    for t in feed["topics"]:
-        assert f'<div class="card-a" id="atoms-{t["id"]}"></div>' in markup, (
-            f"{t['id']} has no empty atoms slot on its index card"
-        )
+    assert "Built by" not in markup
+    assert not _ids_shown(markup, feed)
 
 
-def test_the_rendered_index_shows_each_topics_atoms(feed):
+def test_the_rendered_index_shows_no_build_plan_item(feed):
     rendered = _render({FEED_URL: feed})
-    for t in feed["topics"]:
-        el = rendered.get(f"atoms-{t['id']}")
-        assert el and el["textContent"] == expected_line(t), (
-            f"{t['id']}: page shows {el and el['textContent']!r}, record says "
-            f"{expected_line(t)!r}"
-        )
+    text = " ".join(str(v.get("textContent", "")) for v in rendered.values()
+                    if isinstance(v, dict))
+    assert rendered, "the harness rendered nothing, so this test would pass vacuously"
+    assert "Built by" not in text
+    assert not _ids_shown(text, feed)
 
 
-def test_MUTATION_a_topic_with_no_field_is_shown_as_the_gap(feed):
-    doctored = json.loads(json.dumps(feed))
-    for t in doctored["topics"]:
-        t.pop("atoms", None)
-    rendered = _render({FEED_URL: doctored})
-    for t in doctored["topics"]:
-        el = rendered.get(f"atoms-{t['id']}")
-        assert el and el["textContent"].startswith("Not recorded"), (
-            f"{t['id']} names no atom and the page shows {el and el['textContent']!r}"
-        )
-
-
-def test_MUTATION_FAIL_CLOSED_an_unreachable_record_names_no_atom(feed):
-    rendered = _render({})
-    for t in feed["topics"]:
-        el = rendered.get(f"atoms-{t['id']}")
-        assert not (el and el["textContent"].strip()), (
-            f"{t['id']} shows {el['textContent']!r} with the record unreachable"
-        )
+def test_MUTATION_the_id_check_can_fire(feed):
+    """The rare branch: a card that printed an id would be caught by the helper above."""
+    t = next(t for t in feed["topics"] if isinstance(t.get("atoms"), list))
+    assert _ids_shown("Built by: " + t["atoms"][0], feed) == [t["atoms"][0]]
