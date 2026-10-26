@@ -1,4 +1,4 @@
-**Severity:** BLOCKING · **Lane:** D_billing_metering · **Epoch:** 4 · **Atom:** `D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used`
+**Severity:** LATENT · **Lane:** D_billing_metering · **Epoch:** 4 · **Atom:** `D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used`
 
 # Explore's cast finds standard-variable bills above the cap, and no mover or two-rate home to show
 
@@ -397,3 +397,35 @@ at 02:26Z. That commit carries all four fixes and `12246cbae5`. **Prediction:** 
 0 over too. Still BLOCKING until the publish is read. The capabilities page's unlanded 24 Oct dual-fuel
 wording was a hand edit to a generated page, and is also on salvage commit `0c945463d2`. It is not
 carried here.
+
+## The published reading, 26 Oct 13:10Z: LATENT by this file's own rule
+
+Run `4ae8da9b0f` was published by `60e4d4dc52`. `site/data` carries `git_hash` 4ae8da9b0f, and
+`last_landed_publish` is 1793017681 (12:28Z). This file's close condition was the grader's reading on a
+published run that carries `ce35a25e21` and `3a31999db`. `python3 -m tools.grade_svt_invoices_over_ceiling`
+on `run_output_4ae8da9b0f_20261026T022647Z.json` gives **0 of 24,442 default-tariff invoices over min(cap, EPG)**,
+0 households, carved = booked at £198,651.40, 0 negative estimates, 0 overlapping term legs,
+`defects: []`. That is enough to lower this file to LATENT. Section 1's published defect is gone.
+
+**Correction beside the 01:45Z prediction.** That prediction said `book_breaches.above_cap` would fall from
+199 to 0. It fell to **36 of 752 households** (186 invoices). The grade matched the prediction; the cast
+did not. Every one of the 186 has been joined to the run's own `account_state_log` term:
+
+| Cause | Invoices | What it is |
+|---|---|---|
+| The run records a **fixed** term | 179 | The cast treats an invoice as SVT if it falls before the first `renewed` event. An acquisition fix that rolls off to SVT emits no `renewed` event, so a whole first fix counts as SVT (e.g. `PROS-2018-0016g`, fixed 2018-01-30 to 2019-01-30, has its Jan 2019 gas bill counted). This is the proxy `grade_svt_invoices_over_ceiling`'s docstring already names. |
+| An SVT term, **1 to 22 day occupier stubs** | 7 | These are on `OCC-198d2b2c01a7`, `OCC-564700946c93`(g), `OCC-88636921e9c6`, `OCC-924f5fe3f622`(g) and `OCC-cb5a3446f416`. The same invariant grades the run's bill at 0.0. The published invoice rounds kWh to 0.1 and £ to pennies, and at 1.5 to 7 kWh that moves the all-in rate past the 0.5% tolerance (1.539 → 1.5 kWh alone is 2.6%). |
+
+**No bill is over the cap. The cast's check is what is wrong.** The published Explore page still names
+36 households as above the ceiling, and none of them is. That is a wrong published claim, but it sits on
+the demo page's coverage line, not in a billing, revenue or debt figure. It stays accounted here
+(`ACCOUNTED_BY["above_cap"]`), so the weekly check stays honest while the fix is built. The fix is
+to grade the cast on the run's recorded term rather than the proxy, and on unrounded amounts. The page
+bytes cannot do that: the customer page carries no per-invoice `tariff_type` and no acquisition-term
+event. It is handed on as `the-explore-cast-grades-above-cap-on-the-recorded-term`.
+
+**What still holds this file open:** the cast's above_cap check (above), the mover's unmeasured debt
+carried and the 7 move-outs against already-closed accounts (§4), the empty storage-heating slot (§4), the
+ladder that shows two notices (§3), and the handed-on items. None of these invalidates a published
+billing figure.
+
