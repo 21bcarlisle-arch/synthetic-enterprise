@@ -65,8 +65,9 @@ invariant in pi) are in practitioner_questions_as_assumption_toggles.md Q2.
 
 SMART MODE IS A STATE (W2_36, 2026-10-07). A smart meter not in smart mode
 stays so for the account's life, at the register's share
-(q6_smart_not_in_smart_mode_share), and its household is read like a
-traditional one -- by the two classes above. Drawn afresh each month, as
+(q6_smart_not_in_smart_mode_share) split by fuel as DESNZ splits it
+(2026-10-26), and its household is read like a traditional one -- by the two
+classes above. Drawn afresh each month, as
 before, a smart home could never go a year unread.
 
 Deterministic dispatch: `random.Random(f"meterread_{customer_id}_{period_end}")`,
@@ -125,6 +126,33 @@ def assumption_toggle_or_gap(
 # Blended elec/gas -- see module docstring. A STATE the meter holds
 # (`is_not_in_smart_mode`), not a fresh draw each month.
 SMART_METER_NOT_COMMUNICATING_RATE = assumption_toggle("q6_smart_not_in_smart_mode_share")
+
+# The register's share is the domestic blend; DESNZ gives each fuel's own (Q4 2024, domestic, of
+# smart meters: electricity 1.4m of 20.5m, gas 2.2m of 15.5m, both 3.6m of 36.0m;
+# meter_read_latency_estimation_2026.md s.1). A gas meter's reads leave through the electricity
+# meter's comms hub, so gas fails more often. Held as each fuel's odds ratio to the blend, so the
+# default reproduces DESNZ's 6.8% and 14.2%, a sweep of the register row moves both fuels, and 0
+# and 1 stay none and all for each (a plain ratio sent gas past 1 and left electricity at 68%
+# where the row said every meter). That the gap is a constant odds ratio across levels is a
+# modelling choice, not a published finding: DESNZ publishes the one level.
+def _odds(share: float) -> float:
+    return share / (1.0 - share)
+
+
+_DESNZ_TRADITIONAL_MODE_MILLIONS = {"electricity": (1.4, 20.5), "gas": (2.2, 15.5)}
+_DESNZ_BLEND = 3.6 / 36.0
+SMART_MODE_FUEL_ODDS_RATIO = {fuel: _odds(out / of) / _odds(_DESNZ_BLEND)
+                              for fuel, (out, of) in _DESNZ_TRADITIONAL_MODE_MILLIONS.items()}
+
+
+def not_in_smart_mode_share(commodity: str = "electricity") -> float:
+    """The share of this fuel's smart meters in traditional mode, at the register's level."""
+    level = SMART_METER_NOT_COMMUNICATING_RATE
+    if level >= 1.0:
+        return 1.0
+    odds = _odds(level) * SMART_MODE_FUEL_ODDS_RATIO[commodity]
+    return odds / (1.0 + odds)
+
 
 # How fast such a meter returns to smart mode is NOT ESTABLISHED: DESNZ and Ofgem
 # publish the stock, not transitions, and the 90-day repair duty starts in 2026,
@@ -194,24 +222,29 @@ def is_hard_to_read(customer_id: str) -> bool:
     return random.Random(f"readclass_{customer_id}").random() < PERSISTENT_UNREAD_SHARE
 
 
-def is_not_in_smart_mode(customer_id: str) -> bool:
+def is_not_in_smart_mode(customer_id: str, commodity: str = "electricity") -> bool:
     """Whether the account's smart meter is in traditional mode, drawn once from its id.
 
     Drawn afresh each month (before 2026-10-07) a smart home was read-exposed one month in ten
     and never went a year unread; reality is a meter that stays out of smart mode (lost WAN, not
-    enrolled after a switch), whose household is then read like a traditional one.
+    enrolled after a switch), whose household is then read like a traditional one. Until
+    2026-10-26 both fuels drew the 10% blend, so gas meters were in smart mode 4 points too often
+    and electricity 3 too rarely. The two legs still draw from their own ids: whether one lost hub
+    takes both is not modelled.
     """
-    return random.Random(f"smartmode_{customer_id}").random() < SMART_METER_NOT_COMMUNICATING_RATE
+    return (random.Random(f"smartmode_{customer_id}").random()
+            < not_in_smart_mode_share(commodity))
 
 
-def is_communicating(customer_id: str, meter_type: str, half_hourly: bool = False) -> bool:
+def is_communicating(customer_id: str, meter_type: str, half_hourly: bool = False,
+                     commodity: str = "electricity") -> bool:
     """Whether the meter is read remotely this period.
 
     A half-hourly-settled account is settled on its own interval data, and that data is a read
     the supplier can bill, so its id's smart-mode draw does not apply. Before 2026-10-20 C7
     (metering "HH") drew traditional mode and billed 42 estimates out of 42 while the world
     settled it on every half hour (read_access_and_theft_duties.md s.2.3)."""
-    return meter_type == "smart" and (half_hourly or not is_not_in_smart_mode(customer_id))
+    return meter_type == "smart" and (half_hourly or not is_not_in_smart_mode(customer_id, commodity))
 
 # --- Theft at a premise (W2_36, 2026-10-16) ---------------------------------
 # The director's ruling of 2026-10-08: theft is "a premise-level study in the minutes tier", not
@@ -468,7 +501,7 @@ def simulate_read(
     """
     rng = random.Random(f"meterread_{customer_id}_{period_end}")
 
-    communicating = is_communicating(customer_id, meter_type, half_hourly)
+    communicating = is_communicating(customer_id, meter_type, half_hourly, commodity)
 
     if communicating:
         arrived_actual = True
@@ -539,7 +572,8 @@ def simulate_final_read(
     (`CLOSING_READ_CUSTOMER_GIVEN_GAP`), so none is drawn until it is sourced. Otherwise the
     answer is the period's ordinary read, which is estimated.
     """
-    if is_communicating(customer_id, meter_type, meter.get("half_hourly", False)):
+    if is_communicating(customer_id, meter_type, meter.get("half_hourly", False),
+                        meter.get("commodity", "electricity")):
         given = True
     elif CLOSING_READ_CUSTOMER_GIVEN_SHARE is not None:
         rng = random.Random(f"closingread_{customer_id}_{period_end}")
@@ -586,7 +620,8 @@ def _month_ends_after(day: str, n: int) -> list[str]:
 
 
 def gaining_supplier_first_read(customer_id: str, switch_date: str, meter_type: str,
-                                months: int = SWITCH_READ_DISPUTE_WINDOW_MONTHS) -> Optional[str]:
+                                months: int = SWITCH_READ_DISPUTE_WINDOW_MONTHS,
+                                commodity: str = "electricity") -> Optional[str]:
     """The period end of the gaining supplier's first actual read within `months` of the switch,
     or None.
 
@@ -595,7 +630,8 @@ def gaining_supplier_first_read(customer_id: str, switch_date: str, meter_type: 
     household, whose read class and smart-mode state are drawn from its id and outlive the account.
     """
     for period_end in _month_ends_after(switch_date, months):
-        if simulate_read(customer_id, period_end, meter_type, 0.0, 0).status == "actual":
+        if simulate_read(customer_id, period_end, meter_type, 0.0, 0,
+                         commodity=commodity).status == "actual":
             return period_end
     return None
 
@@ -613,7 +649,8 @@ def switch_read_dispute(customer_id: str, commodity: str, switch_date: str, mete
     """
     if arm not in SWITCH_READ_DISPUTE_ARMS:
         raise ValueError(f"arm {arm!r} is not one of {SWITCH_READ_DISPUTE_ARMS}")
-    first_read = gaining_supplier_first_read(customer_id, switch_date, meter_type)
+    first_read = gaining_supplier_first_read(customer_id, switch_date, meter_type,
+                                             commodity=commodity)
     threshold = SWITCH_READ_DISPUTE_THRESHOLD_KWH[commodity]
     possible = first_read is not None and closing_error_kwh > threshold
     if not possible:

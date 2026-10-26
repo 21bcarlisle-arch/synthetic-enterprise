@@ -183,9 +183,55 @@ def test_a_smart_meter_out_of_smart_mode_stays_out_so_its_home_can_go_a_year_unr
     out = [c for c in cids if is_not_in_smart_mode(c)]
     in_mode = [c for c in cids if not is_not_in_smart_mode(c)]
     assert out and in_mode
-    assert abs(len(out) / len(cids) - mr.SMART_METER_NOT_COMMUNICATING_RATE) < 0.02
+    assert abs(len(out) / len(cids) - mr.not_in_smart_mode_share("electricity")) < 0.02
     assert any(_year_unread(c, "smart") for c in out)
     assert not any(_year_unread(c, "smart") for c in in_mode[:300])
+
+
+def _smart_mode_dropouts(commodity, n=4000):
+    return sum(not mr.is_communicating(f"FS{i}", "smart", commodity=commodity) for i in range(n)) / n
+
+
+def test_each_fuel_is_out_of_smart_mode_at_its_desnz_share_and_the_register_row_moves_both(
+        monkeypatch):
+    """Defect caught: both fuels drawing the register's 10% domestic blend, so gas meters sat in
+    smart mode 4 points too often and electricity 3 too rarely (DESNZ Q4 2024, domestic smart
+    meters: electricity 1.4m of 20.5m, gas 2.2m of 15.5m; meter_read_latency_estimation_2026.md
+    s.1). Also caught: a split typed as two constants, which a sweep of the register row cannot
+    move; a plain ratio, under which the row at 1.0 left electricity 68% out of smart mode; and a
+    fuel the read path drops on its way to the draw."""
+    assert mr.SMART_METER_NOT_COMMUNICATING_RATE == pytest.approx(0.10)
+    assert round(mr.not_in_smart_mode_share("electricity"), 3) == 0.068
+    assert round(mr.not_in_smart_mode_share("gas"), 3) == 0.142
+    for fuel in ("electricity", "gas"):
+        assert abs(_smart_mode_dropouts(fuel) - mr.not_in_smart_mode_share(fuel)) < 0.015
+
+    # The fuel reaches the draw through the read itself: on homes in smart mode for electricity
+    # and out of it for gas, the gas reads are estimated far more often (a communicating read
+    # can still arrive late, so electricity's count is small, not zero).
+    split = [f"FS{i}" for i in range(4000)
+             if mr.is_communicating(f"FS{i}", "smart", commodity="electricity")
+             and not mr.is_communicating(f"FS{i}", "smart", commodity="gas")]
+    assert split
+    months = [f"2019-{m:02d}-28" for m in range(1, 13)]
+
+    def estimated(fuel):
+        return sum(simulate_read(c, d, "smart", 300.0, 0, commodity=fuel).status == "estimated"
+                   for c in split[:50] for d in months)
+    assert estimated("gas") > 3 * estimated("electricity") + 10
+
+    for level in (0.02, 0.149):
+        monkeypatch.setattr(mr, "SMART_METER_NOT_COMMUNICATING_RATE", level)
+        elec, gas = mr.not_in_smart_mode_share("electricity"), mr.not_in_smart_mode_share("gas")
+        assert elec < level < gas
+        assert abs(_smart_mode_dropouts("gas") - gas) < 0.015
+    for level in (0.3, 0.6, 0.9):  # every level between is a share, for each fuel
+        monkeypatch.setattr(mr, "SMART_METER_NOT_COMMUNICATING_RATE", level)
+        assert 0.0 < mr.not_in_smart_mode_share("electricity") < level < mr.not_in_smart_mode_share(
+            "gas") < 1.0
+    for level in (0.0, 1.0):  # the row's ends are none and all, for each fuel
+        monkeypatch.setattr(mr, "SMART_METER_NOT_COMMUNICATING_RATE", level)
+        assert mr.not_in_smart_mode_share("electricity") == mr.not_in_smart_mode_share("gas") == level
 
 
 def test_delay_days_non_negative():
