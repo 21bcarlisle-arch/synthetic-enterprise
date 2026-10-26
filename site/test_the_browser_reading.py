@@ -251,11 +251,15 @@ def read_in_browser(url: str, *element_ids: str) -> dict:
     return payload
 
 
-def read_pages_in_browser(jobs: list[tuple[str, list[str]]]) -> dict[str, dict]:
+def read_pages_in_browser(jobs: list[tuple[str, list[str]]],
+                          viewport: dict | None = None) -> dict[str, dict]:
     """Read MANY pages in ONE browser: `[(url, [ids...]), ...]` -> `{url: payload}`.
 
     Each payload has the same shape `read_in_browser` returns, so `assert_visible_reading` grades
     either without knowing which form produced it.
+
+    `viewport` ({"width", "height"}) reads every page at that size instead of the probe's desktop
+    default. Every payload carries `hscroll`, the page's sideways-overflow reading at that size.
 
     WHY THIS IS NOT JUST A LOOP OVER `read_in_browser`. A chromium launch is ~1.5s and the page
     load it exists to serve is ~0.4s, so a control whose subject is EVERY published door spends
@@ -267,7 +271,8 @@ def read_pages_in_browser(jobs: list[tuple[str, list[str]]]) -> dict[str, dict]:
     with no elements -- which every caller would then report as "the reader meets nothing on this
     door", blaming the page for the probe's own failure to look at it.
     """
-    payload_in = [{"url": url, "ids": list(ids)} for url, ids in jobs]
+    payload_in = [{"url": url, "ids": list(ids), **({"viewport": viewport} if viewport else {})}
+                  for url, ids in jobs]
     env = {**os.environ, "POESYS_PLAYWRIGHT_BASE": str(playwright_base())}
     proc = subprocess.run(
         ["node", str(PROBE), "--jobs"],
