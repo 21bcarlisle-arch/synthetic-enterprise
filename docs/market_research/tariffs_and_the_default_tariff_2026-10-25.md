@@ -253,3 +253,64 @@ The advisor read the same tags independently (`docs/staging/advisor/DIRECTOR_EVI
 | V6 | RMR's three permitted discounts | partly confirmed (payment method open) | corrected: the third is dividend payments | **corrected**, at primary. The advisor asked for the PDF text to be checked; this read extracted it: "three permitted types of cash discount (dual fuel, online account management and dividend payments)". Body corrected | https://www.ofgem.gov.uk/sites/default/files/docs/2016/08/rmr_simpler_removal_stat_con_-_open_letter_august_2016.pdf |
 
 **Counts: confirmed 1 · partly confirmed 0 · corrected 5 · still open 2.**
+
+## A bill across a price change (2026-10-26, seat; primary text read this session)
+
+**Asked because** 2,915 of 52,782 periods in the 4ae8da9b0f book cross a term change and print one
+blended rate that matches neither contracted rate
+(`docs/staging/SEAT_FINDING_THE_PRINTED_RATE_AGAINST_THE_CONTRACTED_TARIFF_2026-10-26.md`, item 1).
+The commons (`docs/domain_artefact_library/regulatory/`) held no bill-content condition, so these
+were read from Ofgem's consolidated electricity supply SLCs (consolidated to 1 Aug 2025, extracted
+with `pdftotext`). [H] means the primary text was read as text.
+
+**What the rules require.**
+
+- **SLC 22A.3 [H]:** "When the licensee or any Representative displays or communicates the Charges
+  for the Supply of Electricity in any form the licensee must ensure that each of the following are
+  separately identified from each other and any other charges: (a) the Standing Charge(s); (b) the
+  Unit Rate(s) or, where applicable, Time of Use Rates." A bill is such a display. A period that
+  crosses a price change was charged at two Unit Rates. A single blended p/kWh is neither of them,
+  so printing it does not identify the Unit Rates.
+- **SLC 31H.1 and 31H.12(b) [H]:** the bill must let the household "understand and manage the costs
+  associated with their Tariff". Relevant Billing Information includes "how any charges, fees or
+  payments are calculated". A blended rate cannot be recomputed from the household's own tariff.
+- **SLC 31H.12(d) [H]:** "if the Domestic Supply Contract or Deemed Contract provides for a further
+  change of the product or price this must be indicated on the bill together with the date on which
+  the change takes place." So the bill already has to carry change dates.
+- **SLC 31H.8 [H]:** the bill must make clear "whether any estimates of the Domestic Customer's
+  electricity consumption have been used". If the split at the change date is estimated, the bill
+  has to say so.
+- **SLC 21B.7 [H]:** on request, the supplier must explain how the bill was derived "in plain and
+  intelligible language".
+- **Ofgem, "Apportioning price increases", letter to all domestic suppliers, 16 Aug 2011 (Andy
+  Burgess, Head of Enforcement) [H]:** Ofgem wanted to understand "what mechanisms suppliers use when
+  prices are raised to ensure that consumers only pay the higher price for units consumed following
+  the price increase". It cited an EDF fault in which customers who reported a reading by IVR were
+  over- or under-charged across a price change. A reading taken by an agent "would correctly
+  apportion the change in units across the whole billing period". So the charging principle is
+  established: the old rate applies to units used before the change and the new rate to units used
+  after it.
+
+**What the design does, and why.** A period that crosses a term change prints one usage line per
+contracted rate, each with its own kWh, rate and amount. The kWh on each side come from the
+supplier's own settled consumption, grouped by the term each settled record was stamped with
+(`term_start`). This is the "units consumed following the price increase" the 2011 letter asks for.
+It is not a split fitted afterwards to the bill's total, which any total within bounds would
+satisfy. The lines add up to the printed usage and energy lines beside them. Where the period's
+read was estimated, the bill's estimate flag already covers the split (31H.8).
+
+**GAPs (labelled, not filled):**
+
+- **GAP, the apportionment method on a non-half-hourly meter.** Nothing read says how a supplier
+  must split a period between two reads when no reading was taken on the change date. The options
+  in practice are by days, by a consumption profile, or a customer reading near the date; which one
+  is required, if any, is not established. Our book settles daily, so the supplier holds a daily
+  split. A real non-smart supplier would hold only the two reads and its profile.
+- **GAP, the gas licence.** The equivalent gas supply conditions (22A, 31H) were not read in this
+  pass. The design assumes they mirror electricity.
+- **GAP, the line layout.** No rule found prescribes one line per rate as against a footnote that
+  gives both rates and both kWh. Either seems to meet 22A.3. A line per rate is what the
+  practitioner examples found show (Ergon, Energo-Pro; not GB) and is the simpler one to check.
+
+Sources: https://www.ofgem.gov.uk/sites/default/files/2023-03/Electricity%20Supply%20Standard%20Consolidated%20Licence%20Conditions%20-%20Current.pdf ;
+https://www.ofgem.gov.uk/sites/default/files/docs/2011/08/letter-to-suppliers-on-apportioning-price-increases.pdf
