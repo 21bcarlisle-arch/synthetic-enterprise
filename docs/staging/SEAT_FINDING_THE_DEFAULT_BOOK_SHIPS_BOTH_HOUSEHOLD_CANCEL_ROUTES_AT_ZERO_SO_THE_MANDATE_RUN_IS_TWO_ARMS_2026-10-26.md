@@ -155,3 +155,32 @@ because a mandate cancel moves no settled volume.
   **I cannot yet say which.** Prediction, filed now: the 2017 flip sits on a few legs whose policy
   and network costs move against their revenue. One-variable check: decompose 2017's net by leg
   into revenue, policy and network moves. Carried as `the-net-settlement-move-is-decomposed-by-leg`.
+
+## Arm B re-run after the rails fix: pre-registered 26 Oct ~22:20Z, before launch
+
+Drawn as `the-mandate-run-arm-b-is-re-run-after-the-addacs-fix`. Not re-run by anyone before this
+(no output dir, no unit, no process). Arm B's script is unchanged and runs in a fresh worktree
+`/var/tmp/se-mandate-run-8a56cb7ae8`. That is origin 8a56cb7ae8, which carries 331c128058 (the
+rails' ADDACS 1 now keys on `outcome == "failed"`, `simulation/dd_collection_book.py:557`). Output
+goes to `/var/tmp/mandate-run-out-8a56cb7ae8-own-cancel-low/`, and it is graded with `grade_d.py`
+and `grade_net.py` unchanged.
+
+**This is not one variable away from the 67a893e749 arm B.** There are 42 commits between the two
+bases, among them the read-duty step (85dcdc3b83), B13 L2's dual fix on contact (b7b17b8bf3) and
+the per-rate bill lines. So a move in DD counts, returns or net cannot be put down to the ADDACS fix.
+The one quantity the fix alone governs is ADDACS 1 on the rails desk, which was 0 before.
+
+- **P1 (ADDACS 1 reaches this desk):** ADDACS 1 stops are between 12 and 20 legs. At 67a893e749
+  the triad's own-reasons cancels were 20, with a failed cancel-month collection. A leg the desk
+  had already stopped on returns cannot be stopped twice, and the 42 commits may shift which
+  households draw a cancel. Refuted if 0, or if more than the triad's failed cancel-month
+  collections in this run.
+- **P2 (the filed prediction 1, now non-vacuous):** `reached_desk_before_any_collection_failed`
+  = 0 of N. Every ADDACS 1 is dated after a returned collection, because `_run_rails` still builds
+  it from `shock.cancel_return`.
+- **P3:** the decade gross and net are within £5 of 67a893e749's arm B (−2,050.78 / −664.92).
+  A cancel moves no settled volume, and none of the 42 commits is meant to move settlement. If
+  this misses, it is listed. It is not attributed.
+
+W2_41 moves to 2 only if P1 holds: ADDACS 1 stops reach the rails desk, with what is owed at each
+one priced.

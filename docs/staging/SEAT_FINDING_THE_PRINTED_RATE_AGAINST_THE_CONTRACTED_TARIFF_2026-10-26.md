@@ -119,3 +119,33 @@ prints that band's label (SLC 22A.3: a ToU tariff's rates are displayed separate
 4. **The contracted rate itself is still ours.** See
    `docs/design/WHAT_THE_BILL_VALIDATION_CANNOT_CATCH.md` §1. A mis-struck term agrees with itself.
    The SVT half of that is `the-svt-term-rate-is-checked-against-the-published-cap`.
+
+## Grading R1–R3: premise re-measured 2026-10-26 22:20Z — not yet gradable
+
+R1–R3 are predictions about a run that does not exist yet. Re-measured at draw time:
+
+- `docs/reports/run_output_latest.json.gz` is 4ae8da9b0f's (generated 03:27Z), the same bytes in every
+  worktree. It holds no `rate_lines`, so it predates the field. `3afbc4203` landed 20:57Z.
+- No run is in flight. `background/sim_runner.py` is idle, and there is no output on disk that
+  mentions the field.
+- The ledger cannot be regenerated from 4ae8da9b0f to get the answer. `term_start` is stamped on the
+  settlement records inside the run, so the split is decided in the world's run, not by the ledger.
+  Regenerating the ledger over old bills only re-proves the baseline.
+- A hand-launched shorter run was not made. `launch_long_job` is the one launcher, and Monday's run
+  carries 3afbc4203 anyway. That is cheaper than a second run answering the same question.
+
+**Nothing to build.** The comparison already counts verdicts per claim, and the grading is its output
+on the new book. The recipe, to run on the first run whose `producing_commit` contains 3afbc4203:
+
+1. `python3 -m tools.generate_billing_ledger`, then `python3 -m tools.bill_validation_comparison`
+   (`counts` and `differences_by_claim`; the `unit_charge_at_contract_gbp` claim carries
+   AGREED / BOUNDED / DISAGREED).
+2. **R1** holds if no straddle without a ToU term is BOUNDED and ≥99% of the 2,915-like straddles
+   agree with 0 DISAGREED. Check `rate_lines` is present on every straddle period in the raw export.
+3. **R2** holds if BOUNDED ≈ the straddles touching a ToU term (106 of 2,915 on 4ae8da9b0f; the new
+   run's own figure, with its own denominator) and is above zero.
+4. **R3** holds if the 49,867 single-term periods still AGREE. Compare per period, not in total.
+5. If R1 misses, measure catch-up and void-stub bills first (named above), not the check.
+
+The 106 ToU remainder needs a per-line band split on the bill before it can leave BOUNDED. That is a
+separate build, not part of grading, and the prediction R2 says it stays non-zero until then.
