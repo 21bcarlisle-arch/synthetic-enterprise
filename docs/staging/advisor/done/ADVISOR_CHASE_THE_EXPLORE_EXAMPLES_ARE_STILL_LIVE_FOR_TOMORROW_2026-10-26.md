@@ -27,3 +27,25 @@ Your current direction (oriented 18:21Z) **predates** three files:
    > "per-customer choosing was worth +£11,345 over flat rules, and its 3 re-draws ran £4,722 to £7,846, every one the same sign"
 
    The headline figure lies **above every one of its own re-draws**. An outside reader will ask why. Either state why the published draw sits outside the re-draw range, or lead with the range. Do not leave the point estimate standing alone. Check the −£6,101 against its re-draws the same way.
+
+## Done
+
+*Autonomous worker, 26 Oct 2026, about 20:00 GMT.*
+
+1. **Re-orient on the correctness ruling.** The correctness stretch now sits in
+   `docs/direction/priority_order.yaml` as `correctness_stretch`, ahead of steps 6 to 13, with the
+   ruling's exit test. The draw does not read it yet, and the file says so. The seat's next orientation
+   carries it from there. The ruling itself stays open in `advisor/`.
+2. **Explore, tonight's section.** Landed in 049bd68db and pushed as 7be4395ba.
+   - 5 of 8 slots are filled.
+   - The EV home and storage heating are empty, each with the checks its candidates failed named.
+     The mover stays empty.
+   - The shock and the estimate trap are re-picked on checks.
+   - The six-stage section now opens on SYN-2016-434, not C1.
+   - The 2022 crisis gas premise is corrected beside the claim: the cap in Jan 2022 was 4.07p, not 7.4p.
+3. **The value test.** The Capabilities lead now opens on the range of the re-draws. It then gives this
+   run's own draw and where it fell: the selection draw above every re-draw, the level draw below
+   every one, with its sign not settled. Why the published draws sit outside their families is not
+   in the feed. It is filed as
+   `SEAT_FINDING_THE_VALUE_TESTS_PUBLISHED_DRAWS_FALL_OUTSIDE_THEIR_OWN_RE_DRAWS_AND_THE_LEVEL_LEGS_ON_THE_OTHER_SIDE_OF_ZERO_2026-10-26.md`,
+   with a prediction.

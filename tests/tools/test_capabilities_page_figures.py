@@ -187,8 +187,11 @@ def test_the_lead_states_both_legs_from_the_feed_with_their_spread_and_the_verdi
     withheld verdict; a sign the re-draws do not share; no withholding; no current figure."""
     out = cpf.render_lead(_arms(1234.4, -567.8))
     assert "+&pound;1,234" in out and "&minus;&pound;568" in out and "value moved, not made" in out
-    assert "its 2 re-draws ran &pound;1 to &pound;2" in out and "run of 8 Oct 2026" in out
-    assert "every one the same sign" in out and "so even its sign is not settled" in out
+    assert "+&pound;1 to +&pound;2</strong> across its 2 re-draws" in out and "run of 8 Oct 2026" in out
+    assert "every draw the same sign" in out and "so even its sign is not settled" in out
+    # The advisor chase of 26 Oct: a run's own draw is placed against its family, never alone.
+    assert "above every one of them" in out and "below every one of them" in out
+    assert "inside their range" in cpf.render_lead(_arms(1.5, 1.2))
     assert "states no settled direction" in out
     assert "states no settled direction" not in cpf.render_lead(_arms(1.0, 2.0, withheld=False))
     assert cpf.render_lead(_arms(99.0, 5.0)) != out
