@@ -379,7 +379,7 @@ def _portal(hh: dict, ev: dict, iso: str, message: str) -> dict:
     bills = [{"fuel": i["fuel"], "when": _day(i["date"]), "kwh": round(i.get("consumption_kwh") or 0),
               "amount": (_fmt_gbp(i.get("amount_gbp")) if (i.get("amount_gbp") or 0) >= 0
                          else "{} credit".format(_fmt_gbp(-i["amount_gbp"]))),
-              "badge": "Actual read" if i.get("read_type") == "A" else "Estimated"} for i in inv[-4:]][::-1]
+              "badge": {"A": "Actual read", "M": "Prepayment meter"}.get(i.get("read_type"), "Estimated")} for i in inv[-4:]][::-1]
     bal = {}
     for r in led:
         bal[r["fuel"]] = r.get("running_balance_gbp") or 0.0
@@ -421,13 +421,13 @@ def _template(hh, ev, iso, kind, rec):
     if kind == "first_bill":
         return ("First bill", "The first {} bill: {} for {:,.0f} kWh, {}.".format(
                     rec["fuel"], _fmt_gbp(rec.get("amount_gbp")), rec.get("consumption_kwh") or 0,
-                    "on an actual read" if rec.get("read_type") == "A" else "estimated"),
+                    _read_phrase(rec)),
                 "Your first {} bill is ready: {}.".format(rec["fuel"], _fmt_gbp(rec.get("amount_gbp"))),
                 "The amount follows from the reading and the tariff; nothing else is behind it.", None)
     if kind == "bill":
         return (rec.get("label") or "A bill", "The {} bill of {}: {} for {:,.0f} kWh, {}.".format(
                     rec["fuel"], _day(rec["date"]), _fmt_gbp(rec.get("amount_gbp")), rec.get("consumption_kwh") or 0,
-                    "on an actual read" if rec.get("read_type") == "A" else "estimated"),
+                    _read_phrase(rec)),
                 "Your {} bill is ready: {}.".format(rec["fuel"], _fmt_gbp(rec.get("amount_gbp"))),
                 "The amount follows from the reading and the tariff then in force.", None)
     if kind == "renewal_decision":
@@ -846,6 +846,12 @@ def use_bands(hhs: list[dict], events: dict) -> dict[tuple[str, str], tuple[floa
         xs.sort()
         out[k] = (xs[int(0.01 * (len(xs) - 1))], xs[int(0.99 * (len(xs) - 1))])
     return out
+
+
+def _read_phrase(rec) -> str:
+    """How a period's charge was established: an actual read, the prepayment meter, or an estimate."""
+    return {"A": "on an actual read", "M": "charged at the prepayment meter"}.get(
+        rec.get("read_type"), "estimated")
 
 
 def _common_failures(hh, ev, bands) -> list[str]:

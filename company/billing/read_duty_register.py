@@ -30,6 +30,8 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 
+from saas.bill_generator import CHARGED_AT_THE_METER
+
 __all__ = ["READ_DUTY_YEAR_BILLS", "READ_INSTRUCTION_AT_ESTIMATES",
            "READ_VISIT_PRICE_GBP_PER_VISIT", "READ_VISIT_PRICE_UPPER_GBP_PER_VISIT",
            "read_duty_register", "read_duty_summary", "read_instruction_due",
@@ -77,8 +79,12 @@ def read_duty_register(bills: Iterable[dict]) -> list[dict]:
     A run's count resets at an actual read, so a run of 30 estimates writes one row, at its 12th."""
     rows = []
     for bill in sorted(bills, key=lambda b: (b["customer_id"], b["period_end"])):
-        if (bill.get("billing_basis") != "estimated"
-                or bill.get("consecutive_estimated_count") != READ_DUTY_YEAR_BILLS):
+        # A prepayment period is charged at the meter, never estimated, but its settlement read can
+        # still go a year unread, and that is the run the duty asks about.
+        unread = (bill.get("billing_basis") == "estimated"
+                  or (bill.get("billing_basis") == CHARGED_AT_THE_METER
+                      and bill.get("settlement_read_status") == "estimated"))
+        if not unread or bill.get("consecutive_estimated_count") != READ_DUTY_YEAR_BILLS:
             continue
         channel = bill.get("payment_channel")
         rows.append({

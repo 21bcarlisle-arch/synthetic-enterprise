@@ -79,8 +79,10 @@ from company.billing.unread_month_estimate import (
 from company.interfaces.supply_book import registered_point as get_customer
 from saas.bill_generator import (
     BILL_SHOCK_PENALTY_FACTOR,
+    CHARGED_AT_THE_METER,
     MAX_CLARITY_SCORE,
     MIN_CLARITY_SCORE,
+    PREPAYMENT_CHANNEL,
     TOU_BANDS,
     bill_movement,
     generate_bill,
@@ -279,6 +281,20 @@ def _annotate_billing_basis(bill: dict, event, true_bill: dict) -> dict:
         annotated["estimated_consumption_kwh"] = event.estimated_consumption_kwh
         annotated["consecutive_estimated_count"] = event.consecutive_estimated_count
     return annotated
+
+
+def _charged_at_the_meter(true_bill: dict, event) -> dict:
+    """The period as the prepayment meter charged it: the true bill, with its basis named.
+
+    The settlement read is a separate matter and is kept beside it: whether a read reached the
+    supplier, and the run of unread periods, which the read duty register still counts (21B.3
+    exempts electricity prepayment; UNC TPD M5.9.14 does not exempt gas)."""
+    charged = dict(true_bill)
+    charged["billing_basis"] = CHARGED_AT_THE_METER
+    charged["settlement_read_status"] = event.status
+    charged["consecutive_estimated_count"] = (
+        event.consecutive_estimated_count if event.status == "estimated" else 0)
+    return charged
 
 
 # Below this delta, real suppliers typically do not bother billing a
@@ -715,7 +731,19 @@ def build_monthly_bills(
                     customer_id, true_bill["period_end"], meter_type,
                     true_bill["total_consumption_kwh"], consecutive_estimated,
                 )
-            if event.status == "actual":
+            if payment_channel == PREPAYMENT_CHANNEL:
+                # Paid at the meter before use: no estimate, no catch-up, no credit bill. The read
+                # event still stands for settlement and the read duty, which reads it separately.
+                bill = _charged_at_the_meter(true_bill, event)
+                read_advance_kwh = true_bill["total_consumption_kwh"]
+                if event.status == "actual":
+                    register_reads.append((date.fromisoformat(true_bill["period_end"]),
+                                           register_reads[-1][1] + read_advance_kwh))
+                    trailing_actual_periods.append((
+                        date.fromisoformat(true_bill["period_start"]),
+                        date.fromisoformat(true_bill["period_end"]), read_advance_kwh))
+                consecutive_estimated = event.consecutive_estimated_count
+            elif event.status == "actual":
                 bill = _annotate_billing_basis(true_bill, event, true_bill)
                 # The register's advance since the last actual read: the one consumption figure a
                 # read gives a supplier. Taken before the catch-up empties the pending run.

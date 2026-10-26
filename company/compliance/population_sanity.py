@@ -23,7 +23,7 @@ from company.compliance.domain_invariants import (
     check_resi_consumption_plausible,
     check_unit_rate_plausible,
 )
-
+from saas.bill_generator import CHARGED_AT_THE_METER
 
 # A customer-year with less real billing history than this can't be
 # meaningfully judged against a full annual envelope -- a partial-year
@@ -220,10 +220,12 @@ def check_read_log_matches_billing_basis(bills: list, meter_read_log: list) -> l
     carry their keys and NOT ONE row joins is itself flagged -- that is the
     control losing its subject, which must not read clean.
     """
+    # A period charged at a prepayment meter is charged on what was used whatever read arrived,
+    # so it has no read status to agree with and is left out of the join.
     basis_by_key = {
         (b.get("customer_id"), b.get("period_end")): b["billing_basis"]
         for b in bills
-        if b.get("billing_basis") is not None
+        if b.get("billing_basis") not in (None, CHARGED_AT_THE_METER)
         and b.get("customer_id") is not None
         and b.get("period_end") is not None
     }

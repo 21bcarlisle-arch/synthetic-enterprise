@@ -809,6 +809,8 @@ function stageBilled(d, c) {
   var estimated = inv.read_type === "E";
   setWall(
     "Actual consumption for this period was metered at <b>" + num(inv.consumption_kwh, 1) + " kWh</b>.",
+    inv.read_type === "M" ? "This household pays at a <b>prepayment meter</b>: the meter charged the energy as it " +
+      "was used, so it is sent a statement of what the meter took, not a bill to pay." :
     estimated ? "This bill was raised on an <b>estimated</b> read. The figure on the customer's bill is the " +
       "supplier's belief, and it will be corrected when a real read arrives." :
       "This bill was raised on an <b>actual</b> read, so the charged figure and the metered figure agree."

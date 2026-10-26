@@ -170,20 +170,32 @@ BILL_SHOCK_BASELINE_FLOOR_GBP = 5.0
 #:                    equivalent experience is an unaffordable top-up or self-disconnection, a
 #:                    different measurement with a different remedy. ~13%.
 #:
-#: THE "prepayment" BRANCH IS UNREACHABLE IN THIS WORLD TODAY and is written anyway.
-#: `simulation.household_segments.PaymentChannel` has two members, so our book is 0% prepayment
-#: against a published ~13%; the non-DD remainder is folded into standard credit. That fold is a
-#: recorded simplification made for a DIFFERENT question (`dd_attribution_confound_w2_10.md`, DD
-#: discount confounding) and it is the wrong one here, because bill shock is DEFINED by payment
-#: method rather than merely correlated with it. Naming the branch is not the repair — adding the
-#: channel or excluding those households explicitly is, and it is owed separately. It is written
-#: because a definition with no place to put prepayment is exactly how prepayment got folded into
-#: standard credit in the first place.
+#: The "prepayment" branch is reached: `simulation.household_segments.PaymentChannel` has a
+#: prepayment member, and 163 resi legs of the 4ae8da9b0f book pay by it. (Correction, 2026-10-26:
+#: this comment said the branch was unreachable and the book 0% prepayment; the channel was added
+#: after it was written.)
 BILL_SHOCK_POPULATION_BY_PAYMENT_CHANNEL = {
     "direct_debit": "payment",
     "standard_credit": "bill",
     "prepayment": "out_of_scope",
 }
+
+#: What the household is sent for a period, by how it pays. A prepayment meter is paid before use,
+#: so the period's document is a statement of what the meter charged, never a bill that asks for
+#: payment (`docs/market_research/what_a_prepayment_customer_is_sent_2026-10-26.md`). Every other
+#: channel, and an unknown one, is sent a bill.
+PREPAYMENT_CHANNEL = "prepayment"
+PREPAYMENT_STATEMENT = "prepayment_statement"
+CREDIT_BILL = "bill"
+#: The `billing_basis` of a period on a prepayment meter: the meter took payment for the energy as
+#: it was used, so the period is charged on what was used whether or not a read reached the
+#: supplier. There is no estimate to make and no estimated run for a later read to true up.
+CHARGED_AT_THE_METER = "prepayment_meter"
+
+
+def document_for_channel(payment_channel: str | None) -> str:
+    """`PREPAYMENT_STATEMENT` for a prepayment household, `CREDIT_BILL` for any other."""
+    return PREPAYMENT_STATEMENT if payment_channel == PREPAYMENT_CHANNEL else CREDIT_BILL
 
 #: The value when NO channel was supplied. Its own value, never one of the two real ones: a caller
 #: that did not say how the household pays has not told us which definition applies, and defaulting
@@ -473,6 +485,7 @@ def generate_bill(
         "bill_shock_population": BILL_SHOCK_POPULATION_BY_PAYMENT_CHANNEL.get(
             payment_channel, UNKNOWN_BILL_SHOCK_POPULATION
         ),
+        "document": document_for_channel(payment_channel),
         "segment": segment,
         "commodity": commodity,
         # Calculation-transparency breakdown (2026-07-10, director page comment

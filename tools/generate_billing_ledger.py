@@ -30,6 +30,7 @@ from company.billing.pre_bill_validation import (
     validate_rendered_bill_money,
     validate_rendered_bill_reads,
 )
+from saas.bill_generator import CHARGED_AT_THE_METER, CREDIT_BILL
 from saas.money import (
     MoneyBoundaryError,
     display_rate_gbp_per_day,
@@ -87,6 +88,10 @@ from tools.grade_svt_invoices_over_ceiling import bill_excess, term_of_bill, ter
 from tools.run_output_store import load_run_output
 
 PROJECT = Path(__file__).parent.parent
+#: The read type of a period a prepayment meter charged as it was used: neither an actual read
+#: taken for the bill (A) nor an estimate (E), but the meter's own register.
+METER_CHARGED_READ_TYPE = "M"
+
 RUN_JSON = PROJECT / "docs" / "reports" / "run_output_latest.json"
 # NOT under site/ (2026-10-14): at 57.7 MiB it passed Cloudflare Pages' 25 MiB per-file limit, and
 # Pages refuses the whole upload over one file. No page fetches it; every reader is a generator
@@ -454,7 +459,12 @@ def generate(run_json_path=None, out_path=None):
         # falls back to "actual" at the bill's own consumption figure
         # rather than omitting the fields.
         read_event = read_by_key.get((cid, period_end))
-        if read_event is not None and read_event["status"] == "estimated":
+        if bill.get("billing_basis") == CHARGED_AT_THE_METER:
+            # A prepayment meter charged this period as it was used: the statement shows the
+            # meter's own register, never an estimate, whatever reached the supplier for settlement.
+            read_type = METER_CHARGED_READ_TYPE
+            register_consumption_kwh = bill.get("total_consumption_kwh", 0)
+        elif read_event is not None and read_event["status"] == "estimated":
             read_type = "E"
             register_consumption_kwh = read_event["estimated_consumption_kwh"]
         else:
@@ -538,6 +548,8 @@ def generate(run_json_path=None, out_path=None):
         inv = {
             "invoice_number": invoice_number,
             "customer_id": cid,
+            # A prepayment household is sent a statement of what its meter charged, not a bill.
+            "document_type": bill.get("document", CREDIT_BILL),
             "term_tariff_type": term_type,
             "default_tariff_excess_p_per_kwh": None if term_excess is None else round(term_excess, 4),
             "contracted_terms": _contracted_terms(account_terms, bill, tou_terms),
