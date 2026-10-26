@@ -1,231 +1,98 @@
 version: 1
-oriented_at: '2026-10-25T21:22:13.273306+00:00'
-thesis_read: 'The basics moved more this stretch than any stretch this week, and the thesis did not move. Four of
-  the five previous focus items were worked. B13 reached level 1 asked of a live run (dc4baf125), and collections
-  now runs one journey per dual-fuel household on the billing account (c5a3e96fe). W2_41 reached level 1 (f920430d7):
-  a household cancels its own mandate, and the supplier reads ADDACS 1 the next working day. E6''s arrears-overlay
-  arm ran (2cd26acfc, finished 20:21Z), and the seat executor has graded it: the pairing, the max, the company''s
-  own 2023 step (growth 2.29 against a 0.557 baseline) and the pooled share all held, so the switch is on in its
-  uncommitted diff. It calls that a weaker pass than it reads, because the step rests on 33 indebted accounts, and
-  the second seed is queued for that reason. EP12''s fix, the company deciding the debt objection from its own ledger,
-  is in surgical_land now (pid 3751240). That one matters most to the thesis, because it is the second decision
-  this week taken back from the world (after the reg 6D refund day), and a decision the world makes for the supplier
-  can never show inference. On origin, the basics gate is still 0 of 8 gate atoms at target. E6 and EP12 should
-  change that once they land, and B13, W2_41, PB8, EP4, B7 and W2_40 still sit below. Per-customer inference has
-  still not earned its cost anywhere it has been graded, and the corrected renewal belief still carries no policy,
-  because the basics come first. The classifier splits the stretch supplier 0, world 2, other 10. That under-reads
-  it: B13 and E6 are supplier substance filed as ''other'', and the collections change is the company''s journey.
-  Still, no commit was supplier-only, and 2 of the 12 carried no work. The premise re-ask was not drawn for the
-  second stretch running. The director''s 21:17 usage reading (61%, reset Monday 03:00 GMT) is pacing under his
-  15 Oct delegation, and this record acts on it. The stretch ahead ends before the reset, so item 1 is a grading
-  run, parallel and off the landing door. The one build, item 2, comes second, and B7''s and EP4''s larger gate
-  gaps wait. The shared checkout is 57 commits behind origin, and sim-runner lacks its own 38b69f673. Monday''s
-  04:05Z publish goes through the one-shot timer, so it does not depend on that. The brief''s own basics and level
-  readings do, and they read stale (new wrong row).'
+oriented_at: '2026-10-26T00:20:24.119491+00:00'
+thesis_read: 'This stretch went backwards on the basics, though the machine did not stall. Of the previous four
+  focus items, three were drawn and two are finished. The switching page now says the company decides the debt objection
+  (7cab60e4f). The premise re-ask is closed: 3b35575d2 holds an item while a landing names it, and the triage register
+  reads already_fixed, so that row leaves wrong. EP12 landed (43ef01107). It is the second decision this week taken
+  back from the world, and the one that matters most to the thesis, because a decision the world makes for the supplier
+  can never show inference. But the basics grade, item 1, could not be taken. B13''s collections change c5a3e96fe
+  stops every default-book full run at origin with a dunning refusal on a cleared ledger. Two runs died on it, so
+  no basic landed on 25 Oct has been asked of a run. Worse, E6''s switch-on rested on one seed, and the second seed
+  fails it. On 61101, end-2023 growth is 0.17 against 1.88 in 2022 and a 0.94 baseline, so leg (c) fails. The rule
+  filed before the run says the switch goes back off. Its continuation retired with nothing landed, and the overlay
+  is still on at origin. So the basics gate stands where it stood, 0 of 8 on origin. E6''s one claimed pass is refuted,
+  and B13''s change is a defect. PB8 was not drawn. The split reads supplier 2, both 1, world 0, other 17. Most
+  of the 17 were primary-source second reads of the 28 advice packs. That is real knowledge work, but it is not
+  supplier work, and it took most of the stretch. Per-customer inference has still not earned its cost anywhere
+  it has been graded. The corrected renewal belief carries no policy, and the ruling keeps it behind the basics.'
 stretch_reviewed:
-  since: '2026-10-25T18:21:19.031438+00:00'
-  commits: 12
-  substantive: 5
+  since: '2026-10-25T21:22:13.273306+00:00'
+  commits: 20
+  substantive: 9
 focus:
-- id: the-basics-landed-today-are-graded-on-one-fresh-run
-  what: 'Once EP12''s debt-objection landing (surgical_land pid 3751240) and E6''s switch-on (the seat
-    executor''s diff in /var/tmp/se-seat-executor) are both on origin/main, launch ONE default-book full
-    run at that origin commit through background/launch_long_job.py, after e6-arrears-overlay-second-seed
-    if memory will not hold both. Before launch, file the predictions in a docs/staging/ finding, and
-    queue the grade with background/seat_continuation.py waiting on the run''s own output file. Grade:
-    (a) closure refunds paid more than 10 working days after the final bill (3e3136ee2; predict 0); (b)
-    dual-fuel households with more than one collections ledger (c5a3e96fe; predict 0); (c) debt objections
-    raised and declined by the company, and objections drawn by the world (predict >0, >0 and 0); (d)
-    ADDACS 1 records, and what the desk did after each; (e) default-tariff invoices above min(cap, EPG)
-    (predict 0); (f) the E6 2023 step on this book. Where a leg holds, move that atom (B13, W2_41, EP12,
-    E6) as far as its own next level''s definition allows, citing the grade. Where the next level asks
-    more than a run, write what it asks into the map row.'
-  why: Five basics landed today, and none of them has been asked of a run that carries them all. The basics
-    gate is 0 of 8 at target, and this run is the evidence most of those levels need. It is also the parallel,
-    non-gate compute that the 61% reading asks for before 03:00. Done means the grade is written against
-    the filed predictions and each passing atom's map row has moved or names what it still lacks.
-  lane: B_commercial
+- id: e6-the-second-seed-fails-leg-c-and-the-overlay-goes-back-off
+  what: 'Run python3 /var/tmp/arrears-overlay-out/grade.py /var/tmp/arrears-overlay-out/arm_s61101.json
+    from /var/tmp/arrears-overlay-run. It read SWITCH-ON RULE: FAILS at 00:20Z: P3/(c) is False, with
+    end-2023 growth 0.1746 against 2022''s 1.8807 and a 0.9432 baseline. Write the grade under the 21:45Z
+    pre-registration in docs/staging/SEAT_FINDING_THE_CRISIS_BAD_DEBT_CONTROL_HAS_SKIPPED_SINCE_THE_RUN_WENT_GZIP_AND_THE_PUBLISHED_RUN_SHOWS_NO_STEP_UP_2026-10-14.md,
+    with each prediction beside its result, unedited. Set provision_arrears_overlay back to False in company/policy/decision_policy.py,
+    as the filed rule requires. Keep the provision control''s allowlist entry from f8c389e9c if the test
+    still needs it. Amend the arrears-overlay section of docs/market_research/bad_debt_provisioning.md
+    to say the 2023 step did not survive a re-drawn cast. Say whether the overlay''s driver reads ''cap''
+    every year on this seed, because then the arrears term never bound. Leave E6''s map row at level 1.'
+  why: E6 is a basics gate atom, and its one pass came from one seed. The rule filed before the second
+    run says that a failed (c) turns the switch off. Leaving it on means origin runs a provision whose
+    evidence is refuted. Done means the switch is False on origin, and the grade and the knowledge page
+    say why.
+  lane: E_finance_treasury
   side: supplier
-  written_at: 1792963667.308
-- id: PB8_a_households_payment_channel_changes_over_its_tenure
-  what: 'Take PB8 to level 2. The map row owes this: simulation/arrears_engine.py and get_payment_method
-    still read a payment channel fixed for life. Make both read the channel the account holds on the date.
-    A mandate ends either through the desk''s own cancellation (company/billing/dd_collections_desk.py,
-    after DD_STOP_THRESHOLD_CONSECUTIVE_RETURNS) or through W2_41''s ADDACS 1, and either way the account
-    moves to pay on receipt from that date. The company, reading only the ADDACS record and its own ledger,
-    asks for a new mandate under its own policy. Read docs/market_research/payments_and_direct_debit_2026-10-25.md
-    first, and amend it if it is silent on re-mandating. Any rate the company uses comes from that page,
-    or is None with a named reason. Test that a cancelled mandate stops DD collection from the next date,
-    that a re-mandate can happen, and that one can be declined.'
-  why: W2_41 now makes households cancel mandates, but the arrears engine still treats every DD payer
-    as a DD payer forever, so the new event changes nothing downstream. 'A stopped DD stops the household
-    paying by DD' is a PARTIAL basics line, and PB8 is a gate atom (1 -> 2). Done means PB8 reads level
-    2 on the map with this test named.
-  side: supplier
-  written_at: 1792963667.308
-- id: a-continuation-is-re-asked-before-it-is-offered
-  what: In background/seat_continuation.py live(), before offering a row, re-ask its premise. If an origin
-    commit since the row was written names its id or its NEXT, or a live surgical_land's -m names it,
-    mark the row premise_spent with that sha or pid and do not offer it. Test it on a real instance from
-    wrong_triage.yaml (knowledge-pack-verification-census after 4566ce348). A second test must show that
-    a row with no such commit is still offered, so the guard cannot pass by refusing everything.
-  why: 'It is triaged as fix and has been listed 32 times. It was not drawn in either of the last two
-    stretches. The E6 grade rows are the live exposure now: both stay offered while their work sits finished
-    in another lane''s tree. It is small, so it fits before the reset. Done means wrong_triage.yaml''s
-    row reads already_fixed with the commit, and the first wrong row leaves this record.'
-  lane: H_harness
-  side: other
-  written_at: 1792963667.308
-- id: the-switching-page-says-the-company-decides-the-objection
-  what: 'After EP12''s debt-objection landing is on origin, correct site/knowledge/switching-mechanics/
-    and docs/market_research/switching_mechanics_2026-10-25.md wherever they say that the world draws
-    the objection or that company/market/transfer_objection_register.py is uncalled, citing the landing
-    sha. Then run .claude/skills/cold-eyes-walk/SKILL.md over that page and over site/knowledge/ payments
-    and direct debit, and file what a cold reader gets wrong. Then move docs/staging/advisor/DIRECTOR_READING_USAGE_61PCT_SUNDAY_2117_2026-10-25.md
-    to docs/staging/advisor/done/ with a ## Done saying that the 21:22Z direction acted on it as pacing:
-    one grading run first, one build, and no large serial item opened before 03:00.'
-  why: 'Interconnection: 3660142eb published the page while the objection was the world''s, and EP12 is
-    changing that under it, so the page will soon say something false about our own build. A cold read
-    of today''s pages is the parallel work the reading names. Done means the page matches the landed code,
-    the cold read is filed, and the advisor file is in done/.'
+  written_at: 1792974414.717
+- id: fix-the-dual-household-cure-then-grade-the-basics
+  what: This is the queued continuation under its own id, so a draw binds to it rather than rebuilding.
+    The worker tick (pid 663436) is landing the held-cash order fix ('A dual household's held cash crosses
+    in date order whichever leg it came from'). If it is on origin, do not rebuild it. Once it is on origin,
+    relaunch /var/tmp/basics-run-scripts/arm.py at that commit through background/launch_long_job.py,
+    and queue its grade with background/seat_continuation.py on the run's own DONE.json. Grade with /var/tmp/basics-run-scripts/grade.py
+    against the predictions already in docs/staging/SEAT_FINDING_THE_BASICS_LANDED_ON_25_OCT_ARE_GRADED_ON_ONE_FRESH_DEFAULT_BOOK_RUN_2026-10-25.md,
+    unedited. If the fix cannot land, revert c5a3e96fe as the finding's second choice. Where a leg holds,
+    move B13, W2_41, EP12 or EP4 as far as its next level's definition allows. Where a leg fails, write
+    what failed into that atom's map row.
+  why: No default-book full run can finish at origin, so no basic landed on 25 Oct has evidence, and any
+    replacement for Monday's published run is blocked. EP4's own file_scope (company/billing/collections_journey.py)
+    holds the defect. Done means a run at a commit carrying the fix exits 0, and its grade is written
+    against the filed predictions.
   lane: C_customer_ops
-  side: other
-  written_at: 1792963667.308
+  side: supplier
+  written_at: 1792974414.717
+- id: PB8_a_households_payment_channel_changes_over_its_tenure
+  what: 'Take PB8 to level 2. simulation/arrears_engine.py and get_payment_method still read a payment
+    channel fixed for life, so make both read the channel the account holds on the date. A mandate ends
+    either through company/billing/dd_collections_desk.py''s own cancellation or through W2_41''s ADDACS
+    1, and from that date the account pays on receipt. The company, reading only ADDACS and its own ledger,
+    asks for a new mandate under its own policy. Read docs/market_research/payments_and_direct_debit_2026-10-25.md
+    first, and amend it if it is silent on re-mandating. Any rate comes from that page, or is None with
+    a named reason. Test three things: a cancelled mandate stops DD collection from the next date, a re-mandate
+    can happen, and one can be declined. Do not edit collections_journey.py while focus item 2''s fix
+    is landing.'
+  why: W2_41 makes households cancel mandates, but every DD payer stays a DD payer forever, so the event
+    changes nothing downstream. PB8 is a gate atom (1 -> 2), and it was not drawn last stretch. Done means
+    PB8 reads level 2 on the map with this test named.
+  side: supplier
+  written_at: 1792974414.717
 not_now:
-- what: Opening B7 (1 -> 3) or EP4 (2 -> 3), the two largest basics gaps, as builds this stretch.
-  why: The 61% reading asks for no large serial item before the 03:00 reset, and the stretch ahead ends before it.
-    Both need the fresh run's grade (item 1) to say what is still missing. They are the next orientation's candidates.
-- what: Focus rows for e6-the-arrears-overlay-arm-is-graded and e6-arrears-overlay-second-seed.
-  why: Both are continuations, and the seat executor holds the first. Restating a continuation under a new id is
-    the duplicate-draw shape of the first wrong row. The previous E6 focus row is finished and leaves focus here.
-- what: Hand-advancing the shared checkout (57 behind origin; sim-runner lacks its own 38b69f673).
-  why: Monday's publish goes through the one-shot timer. A hand advance on a tree holding other lanes' working copies
-    risks sweeping them, and the reconciler owns it. The stale-brief harm is recorded as a wrong row instead.
-- what: Working the 419 still-open checks on the 25 Oct packs.
-  why: The advisor is running three verification passes over them now and will stage the results as one file. A
-    lane doing the same work in parallel would duplicate it.
+- what: Opening B7 (1 -> 3) or EP4 (2 -> 3) as builds this stretch.
+  why: Both need a basics run that can finish, and none can until item 2 lands. EP4's files are the ones item 2
+    is changing, so a parallel EP4 build would collide with it.
+- what: A third E6 seed to rescue the arrears overlay.
+  why: The rule was filed before the run, and it says a failed (c) turns the switch off. A third seed run to overturn
+    a failure is a search for a pass. If the knowledge page finds the arrears term never bound, the next E6 step
+    is a design question, not more seeds.
+- what: More work on the 28 advice packs (second reads, still-missing lists).
+  why: It took most of this stretch, and supplier-first puts it behind the basics. The census is published. What
+    remains can wait until the gate moves.
+- what: Hand-advancing the shared checkout (77 behind origin; sim-runner lacks 38b69f673 to itself).
+  why: Monday's publish is served by the one-shot timer from a run that is already graded. A hand advance over other
+    lanes' working copies risks sweeping them, and the reconciler owns it.
 - what: A policy that carries the corrected renewal belief.
   why: Graded twice on clean books, and the departure interval straddles zero both times. The 24 Oct ruling puts
     the basics first.
-- what: Reaping /var/tmp/se-om2 and the other worktrees whose commits no remote ref keeps.
-  why: se-om2's 219fcdc2d is other markets, which reached origin as 7fb1aabcc and 4566ce348, so it is disposable.
-    The b12 and budgetpay trees are locked by their owners. Reaping buys no supplier result.
-- what: Guarding docs/staging/advisor/ against in-place edits.
-  why: No live advisor file was edited this stretch. The guard waits for the next live instance.
+- what: A check that a retired continuation has a landing.
+  why: One instance so far (E6 second seed), and item 1 closes it by hand. Build the check on a second instance,
+    not before. The smallest mechanism comes after the second failure.
+- what: Reaping the six worktrees whose commits no remote ref keeps.
+  why: se-om2's 219fcdc2d reached origin as other commits, so it is disposable. The b12 and budgetpay trees are
+    locked by their owners. Reaping buys no supplier result.
 wrong:
-- what: 'THE MACHINE''S, THIS STRETCH. The continuation the-budget-second-seed-grade-after-the-unit-driver is still
-    queued for 18:20, but b8045dd4e graded the second seed at 17:17. A queued continuation is not re-asked when
-    another lane spends its premise first, so a tick may be handed a finished grade. 23:24: It bit twice. A tick
-    was handed the second-seed grade after it was spent and re-graded it (711359a8c), and the flat-arm repair was
-    drawn after abe7ce533 had spent it (732b2e116). Both ticks dispositioned the item, but nothing re-asks a premise
-    before the draw. Not fixed. 02:21: No instance this stretch. grade-the-standing-charge-opex-credit-against-its-prereg
-    becomes drawable at 02:00, but both of its arms are still queued (193ae19be), so a tick drawn now has nothing
-    to grade. That is the same shape: nothing re-asks a premise before the draw. Not fixed. 05:20: No instance seen
-    this stretch. Nothing re-asks a premise before the draw, so it is not fixed. 08:22: Live again. grade-the-per-customer-switches-on-together-against-flat
-    becomes drawable at 09:20, but the three arms run one after another from 07:22Z, so all_on and flat will not
-    have finished by then. A tick drawn at 09:20 would find one arm. Not fixed. 11:22: It bit as predicted. The
-    09:20 grade was drawn, found only one arm finished, and was re-filed as grade-the-per-customer-switches-arms-after-they-finish
-    for 15:40 local (14:40Z). The current arm took 2h26m, so flat should end near 14:40Z, which leaves the new embargo
-    with no margin. Focus item 3 builds the re-ask: a continuation that waits for the file it grades. 14:20: Half
-    fixed. a5f9cd768 lets a continuation wait for the file it grades, and the per-customer grade now waits for /var/tmp/se-pcs-arms-out/flat.rc
-    instead of a guessed time. The other half is not fixed: nothing re-asks a premise that another lane spends first.
-    17:24: No instance this stretch. Every grade now waits on its driver''s own exit or file. Nothing re-asks a
-    premise that another lane spends first, so it is not fixed. 20:20: No instance this stretch, and the continuation
-    queue is empty. Nothing re-asks a premise that another lane spends first, so it is not fixed. 23:20: No instance.
-    The one queued continuation, ending-term-belief-first-year-prior, is claimed, and its rerun is live. e856ddc69
-    is its own work, not another lane''s. Nothing re-asks a premise that another lane spends first, so it is not
-    fixed. 02:22: It bit in a new shape. The executor drew W2_demand_negative_margin_part_payment, which was unclaimed
-    while the worker tick was building it, and built the same rule a second time before withdrawing (4e8bc7633).
-    The duplicate cross-checked the tick''s build (0 of 1,048 accounts differ), so the compute bought a check, but
-    nothing stopped it. Not fixed. 05:22: No machine instance this stretch. The one spent premise was the seat''s
-    own D48 item, listed below. Nothing re-asks a premise another lane spends first, so it is not fixed. 08:24:
-    Live again. site-deploy-exclusion-canon-check-and-cold-reader and front-door-steer-items-5-6-9-and-the-cold-read
-    are both queued for the steer''s item 9 and its cold read. The second also carries items 5 and 6, which site-two-audiences-and-plain-vocabulary
-    is landing now. Whichever is drawn second has a spent premise, and nothing re-asks it first. Not fixed. 11:21:
-    Live again. 4d94422536 launched section 16 at 11:24Z, and launch-and-grade-prereg-s16-the-lower-bound-guard
-    is still in the live queue. If its holder releases it without retiring it, a later tick will launch section
-    16 a second time. Nothing re-asks a premise another lane spends first, so it is not fixed. 14:20: Still live.
-    launch-and-grade-prereg-s16-the-lower-bound-guard is still in the live queue, but section 16 launched at 11:24Z
-    and two of its three arms have finished. A tick drawing it must grade and must not relaunch. Nothing re-asks
-    a premise another lane spends first, so it is not fixed. 17:20: Live again, in two places. launch-and-grade-prereg-s16-the-lower-bound-guard
-    retired at 16:07Z after grading, so that instance closed cleanly. But the ambition rewrite is now queued twice:
-    the-front-door-leads-with-the-ambition-and-what-has-been-built and the-front-door-ambition-rewrite-after-the-build-strip
-    carry the same steer, and a-profiled-home-settles-its-own-volume-on-its-registered-profile is still drawable
-    while surgical_land pid 2849871 lands that exact build. Nothing re-asks a premise another lane spends first,
-    so it is not fixed. 20:24: It bit as predicted, and was caught. The ambition rewrite was queued twice, and the
-    second draw found the seat executor''s live claim under the other id and dispositioned it (WORKER_RESULT_THE_FRONT_DOOR_AMBITION_DRAW_IS_THE_SEAT_EXECUTORS_LIVE_CLAIM_UNDER_ANOTHER_ID,
-    in 49e22fadb), so nothing was built twice. Nothing re-asks a premise another lane spends first, so it is not
-    fixed. 08:23: No spent-premise draw seen this stretch. Nothing re-asks a premise another lane spends first,
-    so it is not fixed. 11:23: Live again. section-14-four-seed-grade-from-seed-5s-finished-arms is still in the
-    continuation queue and still claimed, but 427e5f021 landed its grade at 11:23Z. If its holder releases it without
-    retiring it, a later tick will re-grade a finished section. Nothing re-asks a premise another lane spends first,
-    so it is not fixed. 14:20: section-14-four-seed-grade-from-seed-5s-finished-arms retired cleanly at 11:33Z.
-    Live again on the switch-on ruling: it is a continuation and a focus row, the-directors-23-oct-switch-on-ruling-is-verified-and-acted-on
-    retired without a landing, and the seat executor holds the build in 19070ec13. Item 1 names that holder so a
-    second draw binds instead of rebuilding. Nothing re-asks a premise another lane spends first, so it is not fixed.
-    17:24: The switch-on ruling closed cleanly: 82f4b20bc landed and its continuation retired at 16:44, with no
-    second build. No spent-premise draw was seen. Nothing re-asks a premise another lane spends first, so it is
-    not fixed. 20:21: Live again. epg-reaches-the-household-bill is still offered by the continuation queue while
-    surgical_land pid 1127827 lands that exact build (running 30m). If that landing succeeds and the row is not
-    retired, a later tick is handed a spent build. Nothing re-asks a premise another lane spends first, so it is
-    not fixed. 23:24: It bit. the-shared-checkout-advances-to-origin was drawn 8 minutes after 5cb0f1918 had already
-    done its survey, and the tick recorded it premise_spent. My own focus item 2 also told the worker to bind to
-    surgical_land pid 1127827, which had already exited with nothing landed. Nothing re-asks a premise another lane
-    spends first, so it is not fixed. 02:24: No spent-premise draw this stretch. Two landings now in flight (the
-    gas floor, the E6 overlay) are the previous focus''s own work, and this record names neither again. Triaged
-    in docs/direction/wrong_triage.yaml as fix, open, owner background/seat_continuation.py. Not fixed. 05:24: No
-    spent-premise draw this stretch. The draw now prints a PREMISE CHECK naming cited commits already on origin,
-    which warns a tick but does not withhold the row. Nothing re-asks a premise another lane spends first before
-    offering it, so it is not fixed. 08:24: Live in a new shape. the-crisis-overlay-arm-is-graded-against-its-prereg
-    is held until /var/tmp/crisis-overlay-out/arm.json exists, but the arm that would write it died at 06:21Z, so
-    the hold can never release. Nothing re-asks whether a held row''s producer is still alive, or whether another
-    lane spent its premise. Focus item 5. Not fixed. 11:22: Live in a third shape. the-crisis-overlay-arm-is-graded-against-its-prereg
-    has left seat_continuation.live() without being retired, while its producing arm is dead and never relaunched,
-    so the grade has no route and nothing said so. Focus item 4 adds that branch. Not fixed. 14:20: Live again,
-    unnoticed. a-tou-invoice-prints-each-registers-rate reads not_done in the draw ledger, but 50001b0b7 landed
-    that exact build (a ToU invoice prints a Peak and an Off-peak register) under another id, and nothing bound
-    it. The crisis-overlay grade''s dead hold closed cleanly: it was retired premise_spent naming 6b6c1438b. Focus
-    item 4 builds the re-ask. Not fixed. 17:20: It bit, quietly. The waiter crisis-overlay-waits-on-s14 saw section
-    14''s grade.rc at 15:37Z and refused to launch, because its workdir /var/tmp/crisis-overlay-run2 had been deleted.
-    The unit failed at 16:37 BST, and the launch register never saw a launch, so the brief reads 0 DIED. the-crisis-overlay-arm-on-the-default-book-is-graded
-    is still offered as held on arm.json, which nothing will write. Focus items 2 and 4. Not fixed. 20:20: Live
-    again. forward-years-after-the-basics-order-and-definition-of-done is still offered by seat_continuation.live(),
-    but e3e5842fc landed its items 1, 2 and 4. The draw refused it twice only because surgical_land pid 1538016
-    held the stretch log, not because its premise was spent. Focus item 5 retires that row by hand. The re-ask build
-    is not in focus this stretch (see not_now). Not fixed. 23:24: Live again, in two shapes. The crisis-overlay
-    arm finished at 21:13Z and wrote arm.json, but the-crisis-overlay-arm-on-the-default-book-is-graded, the handoff
-    its finding names three times, is in no queue, so a finished result has no route to its grade (focus item 1
-    gives it one by hand). And gone-household-lump-rule-applies-inside-the-run is still offered by seat_continuation.live()
-    while two surgical_land processes (pids 3582804, 3743982) land that exact build. Nothing re-asks a premise another
-    lane spends first, so it is not fixed. 03:21: Live again. the-gas-svt-term-rows-that-never-close-are-located-and-fixed
-    is still offered by seat_continuation.live(), but 063dc4bbd landed that exact fix at 02:55Z. It is claimed,
-    and the claim and the fix look like one lane, so no second build is likely. But if its holder releases it without
-    retiring it, a later tick is handed a spent fix. Nothing re-asks a premise another lane spends first, so it
-    is not fixed. 06:22: Live again, in two shapes. The 24 Oct map steer is queued twice: the-map-owed-pages-and-forward-plan
-    and map-steer-knowledge-pages-and-forward-plan carry the same items. 997cfc67e landed the 102 note rulings and
-    the payments page, and the switching page is landing now (surgical_land pid 3301267). And the-credit-refund-fires-from-the-ledgers-closing-balance
-    is still offered, while its build sits finished and unlanded in /var/tmp/credit_refund_wt (428f31121). A second
-    draw would rebuild it. Focus item 1 binds it. Nothing re-asks a premise another lane spends first, so it is
-    not fixed. 09:20: Live again. The 24 Oct map steer was queued twice. the-map-owed-pages-and-forward-plan retired
-    at 07:50Z, but the draw ledger still reads it not_done (''CANNOT ANSWER'': its prose names no path). map-steer-knowledge-pages-and-forward-plan
-    is still offered, though 3660142eb (switching) and 25d95f3ab (accounts and capital) have landed pages it names.
-    This record gives C30''s verdict the continuation''s own id, so the two cannot be drawn as two items. Nothing
-    re-asks a premise another lane spends first, so it is not fixed. 12:23: Live again, in two shapes. close-the-25-oct-steers-now-their-pages-exist
-    is still offered, but b2bc3d8da moved six of those steers to done at 11:57Z, so most of its premise is spent.
-    And the draw''s PREMISE CHECK told the Monday-run holder that its four cited commits are already on origin,
-    which reads as spent, when those commits are the run''s precondition and not its result. The check cannot tell
-    the two halves apart. Nothing re-asks a premise another lane spends first, so it is not fixed. 15:22: Live again.
-    4566ce348 (14:53Z) landed the per-pack counts of confirmed, corrected and open items that knowledge-pack-verification-census
-    asks for, yet that continuation is still offered, and surgical_land pid 158784 is now landing a second per-pack
-    census on the same Knowledge index. I have not read whether it adds to 4566ce348 or repeats it. Focus item 4
-    builds the re-ask. Not fixed. 18:21: No spent-premise draw this stretch. The three Lane 0 draws went to live
-    items (the refunds, B13, W2_41), and the re-ask build itself was not drawn. Nothing re-asks a premise another
-    lane spends first, so it is not fixed. 21:22: No duplicate build this stretch. The draw''s held-work check refused
-    e6-the-arrears-overlay-arm-is-graded 11 times while the seat executor graded it in /var/tmp/se-seat-executor,
-    and that refusal was right. But that row and e6-arrears-overlay-second-seed are still offered while the grade
-    sits uncommitted there, and the re-ask build was not drawn for the second stretch running. Focus item 3. Not
-    fixed.'
-  corrected: false
 - what: 'THE COMPANY''S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards. On
     268 desk states from 2019 it reads AUC 0.333, and its mean is 0.193 on end-of-fix rolls, where 40 of 92 households
     leave, against 0.378 on the other rolls, where 6 of 176 leave. The company holds each term''s tariff type before
@@ -285,7 +152,9 @@ wrong:
     puts the basics ahead of levers, so it is not in focus. 18:21: Unchanged. No policy carries the corrected belief,
     so the live renewal belief still ranks leavers backwards. The ruling puts the basics ahead of levers, so it
     is not in focus. 21:22: Unchanged. No policy carries the corrected belief, so the live renewal belief still
-    ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus.'
+    ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus. 00:20: Unchanged.
+    No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The ruling
+    puts the basics ahead of levers, so it is not in focus.'
   corrected: false
 - what: 'THE COMPANY''S, THIS STRETCH. Explore''s cast rules (83c4fc9d6) found 4,764 of 14,012 pre-renewal invoices
     on the 19 Oct run (199 of 550 households) more than 0.5% above min(cap, EPG), and a November 2022 bill at exactly
@@ -350,7 +219,10 @@ wrong:
     graded clean, and the timer mondays-window-marker-20261026 is loaded for 2026-10-26T04:05Z. The finding stays
     BLOCKING until the published site carries that run. 21:22: Unchanged. Monday''s run b2bc3d8da5 is graded clean,
     and mondays-window-marker-20261026 fires at 2026-10-26T04:05Z (continuation mondays-window-published-the-b2bc3d8da5-run
-    checks it). The finding stays BLOCKING until the published site carries that run.'
+    checks it). The finding stays BLOCKING until the published site carries that run. 00:20: Unchanged. Monday''s
+    run b2bc3d8da5 is graded clean and mondays-window-marker-20261026 fires at 04:05Z. That run predates c5a3e96fe,
+    so the dunning stop below does not touch it, but no newer default-book run can replace it until that stop is
+    fixed. The finding stays BLOCKING until the published site carries the run.'
   corrected: false
 - what: 'THE MACHINE''S, THIS STRETCH. A finished long job lost its grader. The E6 crisis-overlay finding hands
     grading to the-crisis-overlay-arm-on-the-default-book-is-graded three times (13:15, 21:21 BST), but that id
@@ -377,7 +249,11 @@ wrong:
     checked against the queue. Focus item 1 gives this instance a route. Not fixed. 21:22: The E6 instance closed.
     2cd26acfc launched the arm and queued its grade, the arm finished at 20:21Z, and the seat executor has graded
     it: all three legs held, and the switch is on in its uncommitted diff. No new instance was seen. Nothing checks
-    that a handoff named in a finding or a NEXT line is in the queue, so the class is not fixed.'
+    that a handoff named in a finding or a NEXT line is in the queue, so the class is not fixed. 00:20: Live again
+    in a fifth shape. The E6 second-seed arm finished at 22:56Z, and e6-arrears-overlay-second-seed retired at 22:59Z,
+    but nothing reached origin: its landing log /var/tmp/land5-s61101.log is empty. Re-run now, grade.py reads SWITCH-ON
+    RULE: FAILS on leg (c), and the filed rule says the switch goes back off, yet provision_arrears_overlay is still
+    True on origin. A retired continuation is not checked for a landing. Focus item 1. Not fixed.'
   corrected: false
 - what: 'THE MACHINE''S, THIS STRETCH. Four advisor files were edited in place by a lane (b2bc3d8da, 2ada25833,
     d86d8749c), so the advisor channel now refuses them as unsigned, though the advisor''s own staging commits verify.
@@ -387,7 +263,9 @@ wrong:
     only to files already in docs/staging/advisor/done/, which the channel does not scan (scan() on origin offers
     0 files). Nothing stops an in-place edit to a live advisor file, so it is not fixed. 18:21: No instance this
     stretch. Nothing stops an in-place edit to a live advisor file, so it is not fixed. 21:22: No instance this
-    stretch. Nothing stops an in-place edit to a live advisor file, so it is not fixed.'
+    stretch. Nothing stops an in-place edit to a live advisor file, so it is not fixed. 00:20: No instance this
+    stretch. 7cab60e4f appended to a file already in done/. Nothing stops an in-place edit to a live advisor file,
+    so it is not fixed.'
   corrected: false
 - what: 'THE COMPANY''S, THIS STRETCH. The debt objection is a supplier''s decision under SLC 14, but simulation/debt_objection.py
     draws it in the world, blocking an indebted credit household''s departure at 0.283, so the company never decides
@@ -395,13 +273,25 @@ wrong:
     an operational choice for the supplier. Focus item 3. 21:22: The fix is landing, not landed. surgical_land pid
     3751240 (''The company decides the debt objection from its own ledger, and the world only cancels the switches
     it objected to'') has been running since 21:15Z, and simulation/debt_objection.py on origin still draws at 0.283.
-    Not fixed until it is on origin and a run carries it (focus item 1).'
+    Not fixed until it is on origin and a run carries it (focus item 1). 00:20: Fixed in code. 43ef01107 is on origin:
+    the company decides the objection from its own ledger, simulation/debt_objection.py no longer draws it, and
+    7cab60e4f corrected the switching page and its index card. No run has graded it yet, because every default-book
+    run at origin stops at the dunning defect below. That grade is leg (c) of the basics run in focus item 2.'
+  corrected: true
+- what: 'THE MACHINE''S, THIS STRETCH. The brief reads the shared checkout, which is 57 commits behind origin. Its
+    level grader says B13''s and W2_41''s pointers rotted (''a named path is absent here and git knows it''), and
+    tools/the_basics.py run there reads both lines ABSENT. Both tests are on origin (dc4baf125, f920430d7), and
+    both atoms read level 1 there. A reader who trusted the brief would rebuild landed work. The grader should read
+    origin/main, not the working copy. 00:20: The checkout is now 77 behind, and 17 units lack origin commits to
+    code they import (sim-runner lacks 38b69f673 to itself). This brief did not repeat the rotted-pointer reading,
+    but nothing makes the level grader read origin/main. Not fixed.'
   corrected: false
-- what: THE MACHINE'S, THIS STRETCH. The brief reads the shared checkout, which is 57 commits behind origin. Its
-    level grader says B13's and W2_41's pointers rotted ('a named path is absent here and git knows it'), and tools/the_basics.py
-    run there reads both lines ABSENT. Both tests are on origin (dc4baf125, f920430d7), and both atoms read level
-    1 there. A reader who trusted the brief would rebuild landed work. The grader should read origin/main, not the
-    working copy.
+- what: 'THE COMPANY''S, THIS STRETCH. c5a3e96fe, which gave a dual-fuel household one collections journey, left
+    the cure reading one leg''s cash. So every default-book full run at origin stops at DunningOfAClearedDebtError:
+    ACC-SYN-2016-048 reminder_2 on 2020-10-12, with the ledger at GBP 0.00, never cured. Both basics runs died on
+    it (22:24Z, and 22:44Z with the objection off, which clears EP12, per e7b7aa4f2). A basics fix landed without
+    a full run, and it blocked every later run. The fix (held cash crosses in date order whichever leg it came from)
+    is with the worker tick. Not on origin. Focus item 2.'
   corrected: false
 for_the_director:
 - id: c34-now-ranks-next-best-action-on
