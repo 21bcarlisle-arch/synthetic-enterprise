@@ -165,3 +165,49 @@ its account was already walked past. It first asserts that an earlier lump did a
 later one. The append mutant reds it, with 8 crossings past the walk on the 40-household fixture.
 Next is step 3 above: relaunch at the fix's origin commit and grade against the predictions,
 unedited.
+
+**The run at the fix finished, and every leg it can show holds.** Worker, 26 Oct. `arm.py` ran at
+`12246cbae5` (the held-cash order fix, on origin) into `/var/tmp/basics-run-out-12246cbae`, exited
+0 after 3,317 s and skipped no key. It carries c5a3e96fe, 43ef011072, 3e3136ee2 and f8c389e9ca, so
+E6's overlay is **on**. 994c87103e turned it off afterwards, so this run is not at today's default
+for E6. I graded it with `grade.py`, unedited, in a worktree at `12246cbae5`. Summary:
+`/var/tmp/basics-grade-12246cbae.json`.
+
+| Leg | Prediction | Read | Verdict |
+|---|---|---|---|
+| (a) | 0 refunds over 10 working days | 0 of 28 closure refunds; slowest took exactly 10 | **holds** |
+| (b) | 0 dual households with two ledgers | 0 of 602 accounts with a journey (7,150 journeys); 0 journeys keyed to a leg | **holds** |
+| (c) | >0 asked, >0 raised, >0 declined, 0 world-drawn, raised/asked < 6% | 101 asked, 1 raised (SYN-2016-206, 2018-04-27), 100 declined; 0.99% | **holds** (see the world-drawn note) |
+| (d) | >0 ADDACS 1 records in the output | no output key mentions ADDACS | **cannot be read from the output**, as filed; not a 0 |
+| (e) | 0 default-tariff bills above min(cap, EPG) | 0 of 24,442 graded | **holds**, with the grader fix below |
+| (f) | end-2023 growth above baseline and above end-2022 | 2.09 against baseline 0.63 and end-2022 0.68; E6's switch-on rule: all hold | **holds** on this seed, overlay on |
+
+Three notes on how each figure was read, each placed beside its leg:
+
+- **(c) world-drawn.** The grader's source grep returns one line,
+  `simulation/debt_objection.py:10`. That line is the docstring recording the draw abolished on
+  25 Oct ("Until 2026-10-25 this module drew the block itself"). The module has no random draw. So
+  the world draws 0.
+- **(e) the grader, not the run.** `grade.py`'s leg (e) raised `KeyError('SYN-2016-001')` in
+  `saas/cost_to_serve.build_cost_to_serve`. `extract_report_data` builds CLV snapshots from the
+  run-time roster (`DRAWN_CUSTOMERS`), and a separate grading process does not have it. I fed
+  `tools/grade_svt_invoices_over_ceiling.grade` the three keys it reads (`bills`,
+  `account_state_log`, `ledger_pnl`) straight from the pickles
+  (`/var/tmp/basics-grade-e-direct.py`). It found no defect: 0 over the ceiling, 0 overlapping
+  term legs, 0 negative estimated bills. EPG carved GBP 198,651.40 and booked the same, with 0
+  outside the windows. The 12,524 ungradeable bills break down as 9,312 from before the cap
+  (2016-18), 2,929 catch-up rebills, and 283 with zero kWh or zero net.
+- **(f) one seed.** This matches E6's first arm and not the seed-61101 arm, which failed leg (c)
+  and turned the overlay back off (994c87103e). One more passing seed does not undo that ruling.
+  E6 stays where 994c87103e put it.
+
+**What moves.** No level. On this map, L3 is the veteran's "this is real" (Expert Hour), so no run
+can move EP12, EP4 or D48 to L3. B13's L2 is the gas fix on contact, which a run cannot supply.
+W2_41's L2 needs the run to route ADDACS, and (d) shows it does not yet. Two rows are corrected
+instead:
+
+- B13 said collections' per-leg journeys are xfail. At origin that test passes, and the one xfail
+  left is the gas leg that is listed again in `leg_departures` after a move to a home with no gas.
+- W2_41 now records that (d) read no ADDACS key in this run's output.
+
+The run's own blocking premise is spent: a default-book full run finishes at origin again.

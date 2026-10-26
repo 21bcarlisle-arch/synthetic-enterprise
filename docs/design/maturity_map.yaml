@@ -1870,7 +1870,7 @@
   # MINTED 2026-10-14. The director's ruling of 2026-10-12, on the payment-plan proposal: build the
   # world's response to a bill shock (DD4b, mandate cancellation, debt-to-prepayment) before the
   # engine is graded. DD4b is built and graded (14633ee7b, 33322ee9c). L1: the rails draw an
-  # ADDACS 1 a working day on; the run does not route it yet. Knowledge: dd_failure_basis_and_live_arrears_provision_rates.md.
+  # ADDACS 1 a working day on; the run does not route it yet (no output key at 12246cbae5). Knowledge: dd_failure_basis_and_live_arrears_provision_rates.md.
   # World fidelity, decided blind to company results.
   dial_inherited: 85
   provenance: director_ruling
@@ -1890,7 +1890,7 @@
   level_target: 2
   loop_stage: build
   # L1 2026-10-25: test_a_dual_fuel_household_is_one_account_across_both_fuels walks bill, offset,
-  # move and switch; collections' per-leg journeys are xfail (SEAT_FINDING_A_DUAL_FUEL_HOUSEHOLD_*).
+  # move, switch, one collections ledger; xfail: a gas leg re-listed in leg_departures after a move.
   # MINTED 2026-10-25 from the 24 Oct ruling's basics. L2: the gas fix on contact
   # (run_phase2b `_splice_a_refix` GAP) is struck.
   dial_inherited: 85
