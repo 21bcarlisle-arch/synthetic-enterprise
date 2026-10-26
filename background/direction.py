@@ -165,7 +165,22 @@ def _concern_problems(rows) -> list[str]:
         if kind is not None and kind not in CONCERN_KINDS:
             problems.append(f"for_the_director[{i}].kind must be one of "
                             f"{', '.join(CONCERN_KINDS)}, got {kind!r}")
+        g5 = row.get("g5_class")
+        if status == "open" and kind == "reserved" and g5 not in g5_classes():
+            problems.append(f"for_the_director[{i}] is reserved and names no G5 class ({g5!r}) -- "
+                            f"say which of {', '.join(g5_classes())} it is, or it is not his")
     return problems
+
+
+def g5_classes() -> tuple[str, ...]:
+    """The G5 classes a `reserved` concern names: `RESERVED_CATEGORIES`, the canon's one list.
+
+    Advisor steer 26 Oct: thirteen questions waited on the director and four were reserved; the
+    other nine were the seat's own calls, sent to him as `strategy` with nothing to say otherwise.
+    A strategy or canon-intent concern still reaches him (canon, operating model) but is not
+    shown as waiting on him."""
+    from background.one_way_door import RESERVED_CATEGORIES
+    return tuple(sorted(c.value for c in RESERVED_CATEGORIES))
 
 
 #: A RESERVED DECISION STILL ARRIVES WITH A RECOMMENDATION (director, 2026-10-19 16:38): *"Even items

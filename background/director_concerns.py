@@ -290,10 +290,10 @@ def _today(now: datetime | None) -> str:
 
 
 def raise_concern(kind: str, what: str, proposal: str, evidence: str | None = None, *,
-                  recommendation: str = "", path: Path | None = None,
+                  recommendation: str = "", g5_class: str | None = None, path: Path | None = None,
                   now: datetime | None = None) -> dict:
-    """Append an OPEN concern. Refuses one with no proposal, no recommendation, an unknown kind, or
-    a bare ask."""
+    """Append an OPEN concern. Refuses one with no proposal, no recommendation, an unknown kind, a
+    bare ask, or a `reserved` one that names no G5 class (and a G5 class on any other kind)."""
     from background.recommendation_guard import RecommendationRequired, check_message
 
     path = path or direction_mod.DIRECTION_PATH
@@ -302,6 +302,13 @@ def raise_concern(kind: str, what: str, proposal: str, evidence: str | None = No
         raise ConcernRefused(f"kind must be one of {', '.join(direction_mod.CONCERN_KINDS)}")
     if not what:
         raise ConcernRefused("a concern needs a what")
+    if kind == "reserved" and g5_class not in direction_mod.g5_classes():
+        raise ConcernRefused(
+            f"a reserved concern names its G5 class, one of {', '.join(direction_mod.g5_classes())}"
+            f" (got {g5_class!r}). If it is none of them it is not reserved: act, record how to "
+            "reverse it, and say what you did (canon G5)")
+    if kind != "reserved" and g5_class:
+        raise ConcernRefused(f"a {kind} concern carries no G5 class; raise it as reserved if it is")
     if not proposal:
         raise ConcernRefused(
             "a concern needs a proposal -- the change you propose, or 'investigate: <what>'. "
@@ -328,6 +335,8 @@ def raise_concern(kind: str, what: str, proposal: str, evidence: str | None = No
     row = {"id": _unique_id(_slug(what), {str(r.get("id")) for r in rows}),
            "raised": _today(now), "kind": kind, "what": what, "proposal": proposal,
            "recommendation": recommendation, "status": "open", "resolution": ""}
+    if g5_class:
+        row["g5_class"] = g5_class
     if evidence:
         row["evidence"] = evidence.strip()
     _write(path, text, rows + [row])
@@ -374,6 +383,7 @@ def main(argv=None) -> int:
                     help="'I recommend X', with the evidence, the trade-off, the holding position "
                          "until he rules and what would change it")
     ap.add_argument("--resolution")
+    ap.add_argument("--g5-class", help="for --kind reserved: which G5 class it is")
     args = ap.parse_args(argv)
     try:
         if args.list:
@@ -387,7 +397,8 @@ def main(argv=None) -> int:
             if not args.kind:
                 raise ConcernRefused("--raise needs --kind")
             row = raise_concern(args.kind, args.what or "", args.proposal or "", args.evidence,
-                                recommendation=args.recommendation or "")
+                                recommendation=args.recommendation or "",
+                                g5_class=args.g5_class)
         else:
             rid = args.answer or args.withdraw
             row = resolve(rid, "answered" if args.answer else "withdrawn", args.resolution or "")

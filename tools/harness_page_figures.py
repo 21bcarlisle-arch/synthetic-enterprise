@@ -664,20 +664,32 @@ def reserved_and_waiting(root):
         return g5 + ("\n<p>The list of questions waiting on the director could not be read at "
                      "this publish, so nothing is claimed about it.</p>")
     stamp = _day(_git_out(root, "log", "-1", "--format=%cs", "HEAD") or "")
-    open_rows = sorted((r for r in rows if isinstance(r, dict) and r.get("status") == "open"),
-                       key=lambda r: str(r.get("raised") or ""), reverse=True)
-    if not open_rows:
-        return g5 + "\n<p>At this publish ({}), nothing is waiting on him.</p>".format(stamp)
-    return g5 + ('\n<p>At this publish ({}), <b>{}</b> question{} wait{} on him. Each arrives with '
-                 "a recommendation, and work carries on while it waits.</p>\n"
-                 '<ul class="fo">\n{}\n</ul>').format(
-        stamp, len(open_rows), "" if len(open_rows) == 1 else "s",
-        "s" if len(open_rows) == 1 else "",
-        "\n".join('  <li><b>Raised {}:</b> {} <i>{}</i></li>'.format(
+    # Advisor steer 26 Oct: only a G5-reserved row waits on him. A strategy or canon-intent
+    # concern is raised for him to read and is counted, not listed as waiting.
+    open_rows = [r for r in rows if isinstance(r, dict) and r.get("status") == "open"]
+    waiting = sorted((r for r in open_rows if r.get("kind") == "reserved"),
+                     key=lambda r: str(r.get("raised") or ""), reverse=True)
+    others = len(open_rows) - len(waiting)
+    head = "\n<h3>Waiting on the director (reserved actions only)</h3>"
+    tail = ("" if not others else
+            "\n<p>{:,} proposal{} on strategy or canon intent {} raised for him to read; the work "
+            "goes ahead on the recommendation meanwhile, so {} not waiting on him.</p>".format(
+                others, "" if others == 1 else "s", "is" if others == 1 else "are",
+                "it is" if others == 1 else "they are"))
+    if not waiting:
+        return g5 + head + "\n<p>At this publish ({}), nothing is waiting on him.</p>{}".format(
+            stamp, tail)
+    return g5 + head + ('\n<p>At this publish ({}), <b>{}</b> reserved action{} wait{} on him. '
+                        "Each arrives with a recommendation, and work carries on while it waits."
+                        '</p>\n<ul class="fo">\n{}\n</ul>{}').format(
+        stamp, len(waiting), "" if len(waiting) == 1 else "s",
+        "s" if len(waiting) == 1 else "",
+        "\n".join('  <li><b>Raised {}</b> ({}): {} <i>{}</i></li>'.format(
             html.escape(_day(str(r.get("raised") or "")) or "on an unrecorded date"),
+            html.escape(str(r.get("g5_class") or "no G5 class named").replace("_", " ")),
             html.escape(_clip(_first_sentence(r.get("what")))),
             html.escape(_first_sentence(r.get("recommendation")) or "No recommendation recorded."))
-            for r in open_rows))
+            for r in waiting), tail)
 
 
 def _ratchets(root):

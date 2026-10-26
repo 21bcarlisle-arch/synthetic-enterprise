@@ -301,11 +301,16 @@ def test_the_human_section_quotes_g5_and_lists_what_waits_on_him_now(tmp_path):
     (tmp_path / "docs" / "design" / "DIRECTOR_CANON.md").write_text(_CANON, encoding="utf-8")
     rows = [
         {"id": "a", "raised": "2026-10-12", "status": "open", "what": "Old question. More.",
+         "kind": "reserved", "g5_class": "real_money",
          "recommendation": "I recommend the old thing. Because."},
         {"id": "b", "raised": "2026-10-23", "status": "open", "what": "New question.",
+         "kind": "reserved", "g5_class": "live_credential_exposure",
          "recommendation": "I recommend the new thing. Because."},
         {"id": "c", "raised": "2026-10-20", "status": "answered", "what": "Done question.",
+         "kind": "reserved", "g5_class": "real_money",
          "recommendation": "I recommend the answered thing."},
+        {"id": "d", "raised": "2026-10-21", "status": "open", "what": "A strategy call.",
+         "kind": "strategy", "recommendation": "I recommend the seat's own call."},
     ]
     import yaml
     direction = tmp_path / "docs" / "direction" / "DIRECTION.yaml"
@@ -314,10 +319,14 @@ def test_the_human_section_quotes_g5_and_lists_what_waits_on_him_now(tmp_path):
     out = hpf.reserved_and_waiting(tmp_path)
     assert "<li>real money, never spent;</li>" in out and "<li>destroying evidence.</li>" in out
     assert "act, record how to reverse it" in out
-    assert "<b>2</b> questions wait on him" in out
+    assert "Waiting on the director (reserved actions only)" in out
+    assert "<b>2</b> reserved actions wait on him" in out
+    assert "(real money)" in out and "(live credential exposure)" in out
     assert out.index("I recommend the new thing.") < out.index("I recommend the old thing.")
     assert "Because" not in out and "More." not in out
     assert "answered thing" not in out
+    # Advisor steer 26 Oct: a non-reserved row is the seat's call, counted and never listed.
+    assert "seat's own call" not in out and "1 proposal on strategy" in out
 
     direction.write_text(yaml.safe_dump({"for_the_director": rows[2:]}), encoding="utf-8")
     _commit_all(tmp_path)

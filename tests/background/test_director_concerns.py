@@ -97,13 +97,46 @@ def test_a_switch_on_the_23_oct_ruling_made_the_machines_is_REFUSED_at_raise(rec
     where it must refuse), or make it return its reason unconditionally (rows 2-4 refuse)."""
     before = record_file.read_text(encoding="utf-8")
     what = SWITCH_WHAT if proposal != GOOD_PROPOSAL else GOOD_WHAT
+    g5 = "real_money" if kind == "reserved" else None
     if refused:
         with pytest.raises(dc.ConcernRefused, match="ruling of 23 Oct"):
-            dc.raise_concern(kind, what, proposal, recommendation=GOOD_RECOMMENDATION)
+            dc.raise_concern(kind, what, proposal, recommendation=GOOD_RECOMMENDATION, g5_class=g5)
         assert record_file.read_text(encoding="utf-8") == before, "a refusal still wrote"
     else:
-        row = dc.raise_concern(kind, what, proposal, recommendation=GOOD_RECOMMENDATION)
+        row = dc.raise_concern(kind, what, proposal, recommendation=GOOD_RECOMMENDATION,
+                               g5_class=g5)
         assert dc.open_rows(dc.read_raw())[-1] == row
+
+
+@pytest.mark.parametrize("kind, g5_class, refused_for", [
+    ("reserved", "real_money", None),                                  # the passing branch
+    ("reserved", None, "names its G5 class"),
+    ("reserved", "a_judgement_call", "names its G5 class"),
+    ("strategy", "real_money", "carries no G5 class"),
+    ("strategy", None, None),                                          # still reaches the list
+])
+def test_a_reserved_concern_names_its_G5_class_or_is_not_raised(record_file, kind, g5_class,
+                                                                refused_for):
+    """Defect (advisor steer 26 Oct): thirteen questions waited on the director and nine were the
+    seat's own calls, because nothing made a raise say which reserved action it was. One partition:
+    a reserved raise without a valid G5 class refuses and writes nothing, a class on another kind
+    refuses, and the two passing rows are written; `validate` flags an open reserved row with none.
+
+    MUTATION (must fire): drop the class check in `raise_concern` (rows 2-3 go green), or the
+    `g5_classes` clause in `_concern_problems` (the validate leg)."""
+    before = record_file.read_text(encoding="utf-8")
+    if refused_for:
+        with pytest.raises(dc.ConcernRefused, match=refused_for):
+            dc.raise_concern(kind, GOOD_WHAT, GOOD_PROPOSAL, recommendation=GOOD_RECOMMENDATION,
+                             g5_class=g5_class)
+        assert record_file.read_text(encoding="utf-8") == before, "a refusal still wrote"
+    else:
+        row = dc.raise_concern(kind, GOOD_WHAT, GOOD_PROPOSAL, recommendation=GOOD_RECOMMENDATION,
+                               g5_class=g5_class)
+        assert row.get("g5_class") == g5_class and d.validate(dc.read_raw()) == []
+    bare = {"id": "x", "what": "w", "proposal": "p", "status": "open", "kind": "reserved"}
+    assert any("names no G5 class" in p for p in d._concern_problems([bare]))
+    assert d._concern_problems([dict(bare, g5_class="real_money")]) == []
 
 
 def test_raising_edits_ONLY_the_concerns_block_and_ids_stay_unique(record_file):
@@ -161,12 +194,13 @@ def test_a_concern_with_no_recommendation_is_REFUSED_at_raise_and_FLAGGED_by_the
     flagged = sw.flag_concerns_without_recommendation(_record(for_the_director=[row]))
     if refused_for is None:
         written = dc.raise_concern("reserved", GOOD_WHAT, GOOD_PROPOSAL,
-                                   recommendation=recommendation)
+                                   recommendation=recommendation, g5_class="real_money")
         assert dc.read_raw()["for_the_director"][-1]["recommendation"] == GOOD_RECOMMENDATION
         assert written["status"] == "open" and flagged == []
     else:
         with pytest.raises(dc.ConcernRefused, match=refused_for):
-            dc.raise_concern("reserved", GOOD_WHAT, GOOD_PROPOSAL, recommendation=recommendation)
+            dc.raise_concern("reserved", GOOD_WHAT, GOOD_PROPOSAL, recommendation=recommendation,
+                             g5_class="real_money")
         assert record_file.read_text(encoding="utf-8") == before, "a refusal still wrote"
         assert len(flagged) == 1 and refused_for in flagged[0] and "canon-split" in flagged[0]
     closed = dict(row, status="answered", resolution="Rich: yes")
