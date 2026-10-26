@@ -1808,5 +1808,34 @@ it.
 | How any supplier maps arrears per account to an overlay | The same stated linear belief as the cap term, through baseline and peak |
 | The mechanism of the 2024 release (matrix catch-up) | Inferred from coverage 34% to 38%. Not built (choice 4a) |
 | Centrica's own arrears per account | The market series stands in, as an illustration only |
-| Whether the company's book shows the 2023 intensity step | The arm grade answers it. The cap-only arm pair `crisis-overlay-arm-70424-387e48132` runs first |
+| Whether the company's book shows the 2023 intensity step | **Answered (2026-10-26): not at this book size.** The default cast steps at end-2023 and seed 61101 at end-2022. See the next subsection. The term is off |
 | The 30-91-day tranche (Energy UK: about GBP 1bn more than Ofgem's 91 days) | Not read. The term uses 91 days, which is Ofgem's definition |
+
+### What two re-drawn casts showed: the 2023 step did not survive (2026-10-26)
+
+The term was built default off, and it was graded against a switch-on rule filed before any arm (the
+crisis finding, 2026-10-25). The rule's leg (c) asks for the 2023 step on the company's own book:
+end-2023 growth in arrears per indebted account above both the book's 2017-19 baseline and its
+end-2022 growth.
+
+| Cast | Indebted accounts, end-2021 / 2022 / 2023 | Growth at end-2022 / 2023 | Baseline | (c) | Year the term drives |
+|---|---|---|---|---|---|
+| Default book (`e623c3354a`) | 10 / 15 / 33 | -0.11 / **+2.29** | 0.557 | held | end-2023 (`arrears`) |
+| Seed 61101 | 13 / 7 / 11 | **+1.88** / +0.17 | 0.943 | **failed** | never: it ties the cap at end-2022 and the tie reads `cap` |
+
+On the second cast the arrears term never binds. `driver` reads `cap` at every year end, and the
+on arm equals the cap-only arm. **The step's year belongs to the cast, not to the book.** On 7 to
+33 indebted accounts, growth in their average arrears reflects which few accounts cross 91 days in
+a given year. A three-year baseline built from the same counts swings from 0.56 to 0.94 between
+casts. Ofgem's market series rises steadily (+14% in 2022, +27% in 2023), and a book this small
+cannot resolve that against its own noise.
+
+So `provision_arrears_overlay` is off again. The crisis-share gap stays the world's, as this page
+says above: the off arms pool 0.99% and 0.69% of revenue, both under the 1% floor. Two consequences
+for any later build:
+
+- **A book-read growth signal needs a count floor.** It must be filed before its arm runs, and set
+  from how many indebted accounts make a year-on-year growth in their mean distinguishable from
+  re-drawing the cast. GAP: no figure is established, and the two casts are not enough to set one.
+- **Choice 4's release is moot while the term is off.** It is still a GAP. On the default cast the
+  whole overlay was released in 2024, because the term reads growth and the level held at GBP 302.

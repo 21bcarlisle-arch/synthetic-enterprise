@@ -207,10 +207,11 @@ class DecisionPolicy:
 
     #: E6 (2026-10-25): take the overlay as max(cap term, arrears term), the arrears term read off the
     #: company's own book (`bad_debt_provision.arrears_overlay_share`; bad_debt_provisioning.md, "The
-    #: arrears-per-account signal", 2026-10-24). Implies the overlay. A reading after the run. On
-    #: since 2026-10-25: the default-book arm met all three legs of the switch-on rule filed in the
-    #: crisis finding before it ran. False publishes the matrix alone.
-    provision_arrears_overlay: bool = True
+    #: arrears-per-account signal", 2026-10-24). Implies the overlay. A reading after the run. Off
+    #: again since 2026-10-26: the default-book arm met the switch-on rule filed in the crisis
+    #: finding, but the second seed (61101) failed its leg (c), with the step at end-2022 on 7
+    #: accounts and not at end-2023. False publishes the matrix alone.
+    provision_arrears_overlay: bool = False
 
     #: (2026-10-08) the cut, as a share of the renewal unit rate, of the Fixed Retention Tariff
     #: offered on a CSS Invitation to Intervene (`company.crm.save_offer`). A share and not GBP/MWh

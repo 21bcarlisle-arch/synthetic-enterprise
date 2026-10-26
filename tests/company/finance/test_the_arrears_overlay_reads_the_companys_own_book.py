@@ -101,10 +101,10 @@ def test_the_switch_publishes_the_series_beside_the_overlay_and_leaves_the_matri
     assert overlay["driver"] == "arrears" and lit["matrix_provision_gbp"] == off["provision_gbp"]
 
 
-def test_the_policy_switch_is_on_by_default_and_reaches_the_runs_read():
+def test_the_policy_switch_is_off_by_default_and_reaches_the_runs_read():
     """Defect: a switch the run never passes, so turning it on changes nothing that is published.
-    On since the 2026-10-25 arm met the switch-on rule filed in the crisis finding."""
-    assert CURRENT_POLICY.provision_arrears_overlay is True
+    Off since the 2026-10-26 second seed failed leg (c) of the switch-on rule in the crisis finding."""
+    assert CURRENT_POLICY.provision_arrears_overlay is False
     import simulation.run_phase2b as rp
     tree = ast.parse(inspect.getsource(rp))
     calls = [c for c in ast.walk(tree) if isinstance(c, ast.Call)
