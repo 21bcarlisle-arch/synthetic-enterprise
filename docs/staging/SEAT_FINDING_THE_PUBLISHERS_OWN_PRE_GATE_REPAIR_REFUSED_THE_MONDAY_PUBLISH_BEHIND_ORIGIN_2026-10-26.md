@@ -99,3 +99,28 @@ Done instead: run_output_4ae8da9b0f_20261026T022647Z was re-offered at 06:40Z as
 `run_complete_20261026T064020Z.md`, with c2fc7b207 on the shared tree. Its outcome lands in that
 marker's `Publish outcome` section. `mondays-window-published-the-b2bc3d8da5-run` already counts as
 delivered, so no premise-spent was recorded against it.
+
+## The 06:40Z re-offer was refused too, and on a third cause (delivery seat, 07:05Z)
+
+Checked under `mondays-window-published-the-b2bc3d8da5-run`. The publisher took
+`run_complete_20261026T064020Z.md` at 06:46Z and refused it `behind_origin` at 06:58Z. c2fc7b207's
+pre-landing fast-forward ran; git refused it because another writer held the shared
+`.git/index.lock`. The advance loop treats every refusal to advance as terminal, so attempts 2 and 3
+went unspent and the cycle was discarded. That is right for a real fork, a collision and an
+unreadable origin. It is wrong for a held lock, which a live git process holds and will release.
+
+Three refusals of one clean run, each on a different cause: behind_origin (the repair commit),
+commit_refused (the primary checkout behind), behind_origin (the lock). `last_landed_publish` is
+still 1792401343. Not one of the three refusals was about the run's own figures.
+
+**Fixed in the landing that carries this paragraph.** A refusal naming git's `index.lock': File
+exists` now waits for the lock to clear, with surgical_land's own deadline. It then re-runs the
+advance within the existing three attempts. A lock still held at the deadline is refused and named
+as possibly stale, and it is never deleted. Control:
+`tests/background/test_a_held_index_lock_is_waited_out_not_taken_for_a_fork.py`. Three mutations
+each turn it red: dropping the retry, a wait that always succeeds, and widening the match to
+"REFUSED".
+
+**Prediction, filed before the next attempt:** the re-offer after this lands either publishes 4ae8da9b0f
+or is refused on a cause that is neither the lock nor behind-origin-by-repair. If it is refused
+`behind_origin` again with the lock named, this fix is wrong.

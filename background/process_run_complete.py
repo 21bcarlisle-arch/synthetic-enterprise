@@ -6457,6 +6457,35 @@ FORK_ADVANCE_TIMEOUT_SECONDS = 300
 PUBLISH_ADVANCE_ATTEMPTS = 3
 
 
+#: git's own words when the fast-forward found another writer's index lock. Matched on git's
+#: message, not the rc: rc=128 also covers a corrupt object and a real collision.
+_HELD_INDEX_LOCK = "index.lock': File exists"
+
+
+def _await_index_lock_release(project=None, *, deadline_s=None, poll_s=None,
+                              sleep=time.sleep, clock=time.monotonic) -> bool:
+    """Wait for `.git/index.lock` to go; True if it did. Never deletes it.
+
+    A HELD LOCK IS A MOMENT, NOT A STATE (2026-10-26). The third Monday publish of run 4ae8da9b0f
+    was refused `behind_origin` because the advance's `--ff-only` met another lane's
+    `index.lock` -- and the loop above treats every refusal to advance as terminal. That asymmetry
+    is right for a real fork, a collision and an unreadable origin; a lock is held by a git process
+    that will finish. The deadline and poll are `surgical_land`'s, which waits out the same lock
+    for the same reason. A lock still there at the deadline is stale or wedged: that stays a
+    refusal, and deleting it stays a seat's call (`_git_add_or_refuse`).
+    """
+    from tools import surgical_land
+    lock = Path(project if project is not None else PROJECT_DIR) / ".git" / "index.lock"
+    deadline = clock() + (surgical_land._INDEX_LOCK_DEADLINE_S if deadline_s is None
+                          else deadline_s)
+    poll = surgical_land._INDEX_LOCK_POLL_S if poll_s is None else poll_s
+    while lock.exists():
+        if clock() >= deadline:
+            return False
+        sleep(poll)
+    return True
+
+
 def _refused_advance_cause(project, blockers_fn=None, ahead_fn=None):
     """The NAMED cause of a refused fast-forward, and whether calling it "the guard working" is
     honest. Returns `(verdict, clause)`, both sentences, never raising.
@@ -7464,11 +7493,23 @@ def git_commit_push(git_hash, net_margin, outcome=None):
     # for the arithmetic that decided the bound, and for the prediction it refuted.
     _advance = None
     _lost = []
+    _locked = []
     if _behind is not None:
         for _attempt in range(1, PUBLISH_ADVANCE_ATTEMPTS + 1):
             _advance = _advance_to_origin_or_say_why()
             log("Publish path is behind origin ({}). Advance attempt {}/{}: {}".format(
                 _behind, _attempt, PUBLISH_ADVANCE_ATTEMPTS, _advance["reason"]))
+            if (not _advance["advanced"] and _HELD_INDEX_LOCK in _advance["reason"]
+                    and _attempt < PUBLISH_ADVANCE_ATTEMPTS):
+                # The one refusal that is a moment: see `_await_index_lock_release`.
+                if _await_index_lock_release():
+                    log("Another writer's index.lock cleared; re-running the advance.")
+                    _locked.append(_attempt)
+                    continue
+                # AHEAD of git's words: the cause record truncates the evidence's tail.
+                _advance = dict(_advance, reason="another writer's index.lock was STILL held at "
+                                "the wait's deadline, so it may be stale and was not deleted; "
+                                + _advance["reason"])
             if not _advance["advanced"]:
                 # TERMINAL ON THE FIRST ATTEMPT, and the asymmetry is the whole safety argument --
                 # `land()`'s, inherited. A refusal to advance means the fork is REAL (we hold
@@ -7539,6 +7580,9 @@ def git_commit_push(git_hash, net_margin, outcome=None):
             _why_not = ("the fast-forward SUCCEEDED and origin moved again anyway on {} of {} "
                         "attempt(s) -- the last one reported: {}".format(
                             len(_lost), PUBLISH_ADVANCE_ATTEMPTS, _advance["reason"]))
+        if _locked:
+            _why_not = ("another writer's index.lock held the fast-forward on {} attempt(s) and "
+                        "cleared; then: {}".format(len(_locked), _why_not))
         log("Publish commit REFUSED before staging: {}.".format(_behind))
         from background.notify import notify
         notify(
