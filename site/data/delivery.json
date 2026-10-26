@@ -1,9 +1,39 @@
 {
- "generated_at": "2026-10-26T09:29:51.413531+00:00",
+ "generated_at": "2026-10-26T12:29:17.273117+00:00",
  "seat": "delivery",
  "what_it_did": {
   "available": true,
   "commits": [
+   {
+    "sha": "60e4d4dc5",
+    "at": "2026-10-26T12:28:01Z",
+    "subject": "Auto-process run complete: report + LATEST.md + site/ (git=4ae8da9b0f, net=\u00a3664,130)",
+    "substantive": true
+   },
+   {
+    "sha": "185355386",
+    "at": "2026-10-26T11:48:36Z",
+    "subject": "The publish carries the maturity map only on a cycle its own fold wrote it: the 4ae8da9b0f re-offer was refused for another lane's uncommitted B13 level move",
+    "substantive": true
+   },
+   {
+    "sha": "255c34d52",
+    "at": "2026-10-26T10:34:34Z",
+    "subject": "merge origin/main into the four-inversions landing (upstream touches only direction and stretch-log paths)",
+    "substantive": false
+   },
+   {
+    "sha": "166ce2b5b",
+    "at": "2026-10-26T10:33:21Z",
+    "subject": "The 4ae8da9b0f book's last four billed<gross inversions close: a held day is owed its catch-up's whole cost, and a leaver closed on an estimate is settled at its read (4 -> 0, none excused)",
+    "substantive": true
+   },
+   {
+    "sha": "41770321b",
+    "at": "2026-10-26T09:51:17Z",
+    "subject": "delivery seat: direction for the next stretch",
+    "substantive": false
+   },
    {
     "sha": "3dfe5cad4",
     "at": "2026-10-26T09:08:10Z",
@@ -213,101 +243,71 @@
     "at": "2026-10-26T01:12:08Z",
     "subject": "The coin-drawn holdout re-graded on one payment method: pooled identical to the digit, and the world's true per-channel offer effect differs by 0.0001",
     "substantive": false
-   },
-   {
-    "sha": "e35ce23f6",
-    "at": "2026-10-26T01:01:43Z",
-    "subject": "The roster's payment_method now reads the channel the world pays by, so a household has one payment method (was 60% agreement on 2,435 households)",
-    "substantive": true
-   },
-   {
-    "sha": "bad3cedd9",
-    "at": "2026-10-26T00:48:23Z",
-    "subject": "merge origin/main (fa30ebba0) into the cold-read switching and payments landing to re-gate on the new base; upstream touches the direction files, none of this landing's paths",
-    "substantive": false
-   },
-   {
-    "sha": "dba6e250d",
-    "at": "2026-10-26T00:47:10Z",
-    "subject": "merge origin/main (5bf870b1d) into the cold-read switching and payments landing to re-gate on the new base; upstream touches the held-cash order, none of this landing's paths",
-    "substantive": false
-   },
-   {
-    "sha": "fa30ebba0",
-    "at": "2026-10-26T00:45:39Z",
-    "subject": "delivery seat: merge origin/main into the direction landing (upstream does not touch its paths)",
-    "substantive": false
-   },
-   {
-    "sha": "c0f001ddc",
-    "at": "2026-10-26T00:45:06Z",
-    "subject": "The switching page counts its five working days from the end of cooling-off, the DAP is described as a route through an objection rather than an exemption, and the payments page groups ARUDD codes by Bacs' instruction and says the world draws payment method twice",
-    "substantive": true
    }
   ],
-  "substantive": 19,
-  "mechanical": 21,
+  "substantive": 20,
+  "mechanical": 20,
   "what_the_split_means": "A mechanical commit republishes an unchanged net -- the report, the dashboard, the state files. Counting those as work would make a quiet day look busy, so they are separated rather than filtered: they happened, they are just not progress."
  },
  "what_it_decided": {
   "available": true,
-  "oriented_at": "2026-10-26T09:24:21.781253+00:00",
+  "oriented_at": "2026-10-26T12:24:54.090591+00:00",
   "age_hours": 0.1,
   "expires_after_hours": 12.0,
   "live": true,
-  "thesis_read": "The publish moved from a machine failure to a billing one, and that is progress, not drift. Last stretch the clean run 4ae8da9b0f was refused by the publisher racing origin. This stretch c2fc7b207, 99ef07483 and the three stale-copy fixes (ae03a6317, 78a6dfacc, d6f5e4b21) cleared every mechanical door, and the full gate then refused the run on its own book: 10 customer-years billed below their gross margin, and ToU registers whose exported reads could not reproduce their volume. 3dfe5cad4 bisected both. 1,416 register reads to 0. 6 of the 10 were the EPG, a Treasury transfer the invoice did not carry beside it (M2: transfer read as a break). The last 4 are real supplier defects, held first bills and leavers closed on low estimates with no final read, and their fix is in a live surgical_land now. So the gate that refused the publish found billing errors a real supplier would owe customers, which is what the basics ruling asked for. But the site still serves 19 Oct figures, 168h old, and nothing the supplier has built since is visible to the director. A second blocker sits under the first: another lane's W2_36 fuel split has been uncommitted in the shared simulation/meter_reads.py since 03:10Z, so no clean new run can be made, which stalls the PB8/W2_41 grade and E6's footing read. Of the previous focus, item 1 was spent before I wrote it (2aa5298b4 declined it correctly), B13 is being worked now by a live worker tick, and items 3 and 4 were not reached because both wait on a run. The split reads supplier 1, world 0, other 13. The 13 are publisher repairs, which were the right work, but the supplier side moved once. Against the thesis nothing changed: inference has not beaten the flat baseline anywhere it has been graded, and the corrected renewal belief still carries no policy, by the basics-first ruling.",
+  "thesis_read": "The supplier's book now bills clean on the gate's own terms, and the publish is waiting on the machine again, not on billing. 166ce2b5b closed the last four billed<gross customer-years: a held day is owed its catch-up's whole cost, and a leaver closed on an estimate is settled at its read (4 to 0, none excused). The 11:49Z re-offer was then refused for a reason that was not the run's: another lane's uncommitted B13 level move in the shared maturity map rode into the publish commit, and 185355386 stops the publish carrying a map it did not write. The publisher is re-offering now (pid 2855590), and figures last reached origin 171h ago. B13 is built and its level 2 sits in the shared tree, but it is not on origin. The surgical_land for it ran under a 590-second timeout, gates take over ten minutes, and nothing landed, so I cannot yet say whether it was refused or cut off. The stranded W2_36 diff in meter_reads.py was my item 2 and was not drawn, so the steer drifted there: the one item that unblocks every new run sat behind work a live process was already doing. Because of it, PB8 and W2_41 are still graded on no run, and E6's footing read was not reached. The split reads supplier 0, world 0, other 4. That label undercounts: 166ce2b5b is billing accuracy, which is supplier work. Against the thesis nothing moved. No per-customer decision has beaten the flat baseline where graded, and the corrected renewal belief still carries no policy, by the basics-first ruling. The stretch was small (2 substantive commits in 3h), and it went forward, not backwards.",
   "focus": [
    {
     "id": "the-4ae8da9b0f-run-is-published-once-its-book-bills-clean",
     "lane": "D_billing_metering",
     "side": "supplier",
-    "what": "When the live surgical_land for the four billed<gross inversions (pid 1987804) lands, re-offer run_output_4ae8da9b0f_20261026T022647Z to the publisher with a fresh run-complete marker and watch it through. If the gate refuses again, read .last_gate_blocking_tests.json, name each red customer-year by account and cause in SEAT_FINDING_THE_MONDAY_RUN_4AE8DA9B0F_IS_REFUSED_BY_TWO_BILLING_GATES_ON_ITS_OWN_BOOK_2026-10-26.md, and fix the class in company/billing (not by excusing rows). If the landing is refused, finish it from tools/isolate_hunks.py rather than starting over.",
-    "why": "Figures have not reached origin in 168h and the Explore cast BLOCKING finding lowers only on a published graded run. The remaining refusals are the supplier's own billing, so fixing them is billing accuracy, not plumbing. Done means last_landed_publish in .publish_gate_state.json advances past 1792401343 and site/data carries git_hash 4ae8da9b0f or a newer graded run.",
-    "written_at": 1793006990.79
+    "what": "Watch the live publisher (pid 2855590, docs/staging/run_complete_20261026T114906Z.md) to its end with tools/wait_for.py. If it lands, confirm site/data carries git_hash 4ae8da9b0f and lower SEAT_FINDING_EXPLORES_CAST_FINDS_STANDARD_VARIABLE_BILLS_ABOVE_THE_CAP_AND_NO_MOVER_OR_TWO_RATE_HOME_2026-10-23.md by its own rule. If it refuses, read .publish_gate_state.json failures[-1].cause: for a billing red, name each customer-year by account and cause in SEAT_FINDING_THE_MONDAY_RUN_4AE8DA9B0F_IS_REFUSED_BY_TWO_BILLING_GATES_ON_ITS_OWN_BOOK_2026-10-26.md and fix the class in company/billing; for a non_test_gate_refusal, name which gate refused from the surgical_land log and fix that gate in background/process_run_complete.py.",
+    "why": "Figures have not reached origin in 171h, and the book now bills clean on the gate's own terms, so every refusal left is either a real bill or a defect in the door. Done means last_landed_publish in .publish_gate_state.json advances past 1792401343 and the Explore cast finding is lowered or names what still holds it.",
+    "written_at": 1793017756.084
+   },
+   {
+    "id": "b13-a-gas-leg-that-ended-is-not-switched-again",
+    "lane": "B_commercial",
+    "side": "supplier",
+    "what": "Land B13's built work, not rebuild it. The uncommitted hunks in simulation/run_phase2b.py (leg_departures lists only legs on supply; _plan_the_gas_refix), tests/simulation/test_a_dual_fuel_household_is_one_account_across_both_fuels.py and B13's map row at level 2 are in the shared tree, and the last surgical_land ran under timeout 590, shorter than the gates. Separate B13's hunks from any W2_36 hunks in run_phase2b.py with tools/isolate_hunks.py, then land them by surgical_land --content as a backgrounded job with a timeout above the gate time (check headroom with python3 -m tools.maturity_map_store first). If the gates refuse, fix what they name.",
+    "why": "A household that switches a leg it no longer takes inflates leavers and corrupts every renewal belief graded on this book, and an uncommitted level move in the shared map has already refused one publish. Done means B13 reads level 2 on origin/main with its strict test passing, and git diff origin/main shows no B13 hunk left in the shared tree.",
+    "written_at": 1793017756.084
    },
    {
     "id": "the-stranded-w2-36-fuel-split-in-meter-reads-is-landed-or-handed-back",
     "lane": "W2_customer_generator",
     "side": "world",
     "unblocks": "Every new full run, starting with item 4's PB8/W2_41 grade and item 5's E6 footing read",
-    "what": "The uncommitted diff in simulation/meter_reads.py (written 03:10Z: not_in_smart_mode_share splits q6_smart_not_in_smart_mode_share by fuel at DESNZ's Q4 2024 electricity 1.4m/20.5m and gas 2.2m/15.5m, and is_communicating takes commodity) belongs to W2_36_unbilled_energy_arises_the_way_it_does_in_reality. Check .seat_work_in_hand.json and the live processes for an owner first. If none holds it, take it with tools/isolate_hunks.py: confirm the source in docs/market_research/meter_read_latency_estimation_2026.md s.1, add a test that the default reproduces 6.8% and 14.2% and that a sweep of the register row moves both fuels, mutation-prove it, and land it by surgical_land --content without sweeping the other hunks in run_phase2b.py. If the source does not hold, record why on W2_36 and revert only those hunks.",
-    "why": "Since 05:47Z no clean run can be made (77b6a16d9), and a run from this tree would carry an ungraded world change. The draw thinks nothing has worked W2_36, so the bytes would otherwise sit there. Done means git diff of simulation/meter_reads.py against origin is empty, and either the split is on origin with its test or W2_36's simplification file records why it was dropped.",
-    "written_at": 1793006990.79
-   },
-   {
-    "id": "b13-a-gas-leg-that-ended-is-not-switched-again",
-    "lane": "B_commercial",
-    "side": "supplier",
-    "what": "Take B13_a_dual_fuel_household_is_one_account_across_both_fuels to level 2. A worker tick is on it now (pytest on tests/simulation/test_a_dual_fuel_household_is_one_account_across_both_fuels.py, uncommitted run_phase2b.py hunks): finish and land that before anything new. Stop simulation/run_phase2b.py's leg_departures listing a leg whose supply had already ended (a gas leg ended at a move to a no-gas home, listed again when the household later switches), make test_no_leg_switches_away_after_its_supply_ended strict and passing, then build 'a fix it takes on contact covers its gas too': one act moves both fuels onto the matching fix with one direct debit, read docs/market_research/home_moves.md first, mutation-prove it.",
-    "why": "A household that switches a leg it no longer takes inflates leavers, and that corrupts every renewal belief graded on this book. B13 is a basics gate atom. Done means the xfail is strict and passing, the fix-on-contact test exists, and B13 reads level 2 on the map.",
-    "written_at": 1793006990.79
+    "what": "The uncommitted diff in simulation/meter_reads.py (mtime 03:10; not_in_smart_mode_share splits q6_smart_not_in_smart_mode_share by fuel at DESNZ Q4 2024: electricity 1.4m of 20.5m, gas 2.2m of 15.5m) belongs to W2_36_unbilled_energy_arises_the_way_it_does_in_reality, and no claim names it. Confirm the source in docs/market_research/meter_read_latency_estimation_2026.md s.1, add a test that the default reproduces 6.8% and 14.2% and that a sweep of the register row moves both fuels, mutation-prove it, and land it with its callers' hunks only via tools/isolate_hunks.py and surgical_land --content, without sweeping item 2's B13 hunks. If the source does not hold, record why in W2_36's simplification file and revert only those hunks.",
+    "why": "Since 05:47Z no clean run can be made, and a run from this tree would carry an ungraded world change. It was in focus last stretch and was not drawn. Done means git diff origin/main -- simulation/meter_reads.py is empty, and the split is either on origin with its test or recorded as dropped.",
+    "written_at": 1793017756.084
    },
    {
     "id": "the-mandate-run-grades-pb8-and-w2-41-on-one-fresh-book",
     "lane": "W2_customer_generator",
     "side": "world",
     "unblocks": "PB8's level 2 graded on a run, leg (d) of the basics grade, and the run item 5 reads E6's footing from",
-    "what": "Once item 1's publish has landed and item 2 has cleared meter_reads.py, launch one default-book full run through launch_long_job at an origin commit carrying 1e6083838, bf56dd579 and 71cb7debc, and queue its grade as a continuation in the same act. Grade it with tools/the_basics.py leg (d): count household ADDACS 1 events, the stops that reach company/billing/dd_collections_desk.py before any collection fails on them, and the share of invited accounts back on DD against the cited 0.035-0.05. If leg (d) holds, write W2_41_a_household_cancels_its_mandate_as_its_own_act to level 2 citing tests/simulation/test_a_household_cancels_its_mandate_as_its_own_act.py; if not, file what stopped and where. Nothing is to change in dd_collections_desk.py or the_basics.py; the change set is the graded run and W2_41's map row.",
-    "why": "PB8 and W2_41 are built over one event and neither is graded on a run; a level written from unit tests alone is how a basics fix last blocked every run (c5a3e96fe). Done means a graded run is named in the record, leg (d) has a count with its denominator, and W2_41's row says 2 or a finding says why not.",
-    "written_at": 1793006990.79
+    "what": "Once items 2 and 3 leave the shared tree clean, launch one default-book full run through launch_long_job at an origin commit carrying 1e6083838, bf56dd579 and 71cb7debc, and queue its grade as a continuation in the same act. Grade it with tools/the_basics.py leg (d): count household ADDACS 1 events, the stops that reach company/billing/dd_collections_desk.py before any collection fails on them, and the share of invited accounts back on DD against the cited 0.035-0.05. If leg (d) holds, write W2_41_a_household_cancels_its_mandate_as_its_own_act to level 2 citing tests/simulation/test_a_household_cancels_its_mandate_as_its_own_act.py; if not, file what stopped and where.",
+    "why": "PB8 and W2_41 are built over one event and neither is graded on a run; a level written from unit tests alone is how a basics fix last blocked every run (c5a3e96fe). Done means a graded run is named, leg (d) has a count with its denominator, and W2_41's row says 2 or a finding says why not.",
+    "written_at": 1793017756.084
    },
    {
     "id": "e6-the-provision-sees-a-stopped-mandate",
     "lane": "E_finance_treasury",
     "side": "supplier",
     "what": "On item 4's run, read E6_a_forward_cash_forecast_per_customer_charges_expected_loss_as_arrears_build's provision in company/finance/bad_debt_provision.py (_footing reads payment_method_of(account, on)). Count roll-rate transitions that leave FOOTING_LIVE_DIRECT_DEBIT and the provision stock carried by accounts whose DD has stopped, against the same on 4ae8da9b0f. If the count is zero, find why the dated channel does not reach the footing and fix it with a mutation-proven test that an account off DD is provided for on the off-DD footing from its stop date. Then state in the atom's simplification file what E6 level 2 still owes.",
-    "why": "The provision is the supplier's own expected-loss belief, and a footing that never moves is a belief with one input. A stopped mandate now reaches the company's cash on origin. Done means the count is filed with its denominator and either a fix is on origin or the zero is explained.",
-    "written_at": 1793006990.79
+    "why": "The provision is the supplier's own expected-loss belief, and a footing that never moves is a belief with one input. Done means the count is filed with its denominator and either a fix is on origin or the zero is explained.",
+    "written_at": 1793017756.084
    }
   ],
   "not_now": [
    {
-    "what": "Building the trunk-worktree publish route.",
-    "why": "2aa5298b4 measured that c2fc7b207 already absorbs a mid-gate origin move, and a worktree route would turn that case into a non-fast-forward refusal plus a second gate. The publish now clears every mechanical door."
+    "what": "Putting settled-gross-reaches-annual-report-and-net in focus.",
+    "why": "It is already in the continuation queue and the draw will offer it. Naming it here would only compete with the B13 landing and the stranded diff, which each block a run."
    },
    {
-    "what": "Excusing the four remaining billed<gross customer-years from the publish gate so the run publishes today.",
-    "why": "They are real supplier defects (held bills with no re-issue, leavers closed on low estimates with no final read). Publishing past them would publish wrong bills. Their fix is landing now."
+    "what": "Moving the stranded meter_reads.py diff to first.",
+    "why": "The publish is minutes from its answer with a live process on it, and B13's uncommitted map row has already refused one publish, so landing B13 comes before the world diff. Item 3 is the next draw after those."
    },
    {
     "what": "A policy that carries the corrected renewal belief.",
@@ -315,11 +315,11 @@
    },
    {
     "what": "B12's level 2 (writer one reads its margin on the unit rate).",
-    "why": "A pricing lever; the 24 Oct ruling puts the basics first, and B13 is the basics atom in hand."
+    "why": "A pricing lever; the 24 Oct ruling puts the basics first."
    },
    {
     "what": "A check that a handoff named in a finding or a NEXT line is in the continuation queue.",
-    "why": "No instance this stretch, and no long job launched or ended. The publish and the stranded world diff each cost a visible result now."
+    "why": "No instance this stretch, and no long job launched or ended. The publish and the two stranded diffs each cost a visible result now."
    },
    {
     "what": "Reaping the six worktrees whose commits no remote ref keeps.",
@@ -479,10 +479,10 @@
   "problems": [
    {
     "key": "triage:the-live-renewal-belief-ranks-leavers-backwards",
-    "what": "THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards. On 268 desk states from 2019 it reads AUC 0.333, and its mean is 0.193 on end-of-fix rolls, where 40 of 92 households leave, against 0.378 on the other rolls, where 6 of 176 leave. The company holds each term's tariff type before the roll and does not use it (7dc923787, 7eb9f2695). Focus item 1 rebuilds it. 23:20: The fix is built, default off (7a7ad95dc): 0.819 [0.757, 0.877] out of sample from 2019, and 0.819 in the run (f16695c2a). It stays false, because no policy carries it yet, and its first-year multiplier defect is graded by section 12, which is running. 02:22: Section 12 graded (a7fc5c728): with the prior, the in-run AUC is 0.806 [0.745, 0.860]. It stays false because no policy carries it yet. The seeds are queued, behind item 2's money split. 05:22: Unchanged. Section 14's four dice seeds are running (seed 1's all_on_save_odds arm is live), and no policy carries the belief yet. 08:24: Unchanged. Section 14 seed 1 is void (P14a: flat departed 353, the same as the default), so seed 5 replaces it, and seed 2 is running. No seed is graded, and no policy carries the belief. 11:21: Seed 2 graded (6f1c336e2), and the grader corrected (9fc114520): ending_term minus flat parity is +GBP 2,866. Seed 3 is running, and seeds 4 and 5 are to come. No policy carries the belief. 14:20: Seed 3 finished at 13:54Z, and all three arm files are on disk. It is not graded; its continuation is now drawable. Seeds 4 and 5 are to come, and no policy carries the belief. 17:20: Seed 3 graded valid (2644ea3ab, P14a' symdiff 113): ending_term minus flat is +GBP 3,026 on departures and +GBP 594 on parity, and P14b and P14c held. Two valid seeds now agree in sign. Seed 4 is running (flat done, all_on_ending_term live), and seed 5 is to come. No policy carries the belief. 20:24: Seed 4 graded valid (706bbbc1e, P14a' symdiff 119): ending_term minus flat is +GBP 7,946 on departures but -GBP 140 on parity, so P14b is the wrong sign on this seed. Across three seeds the net is +2,140 +/- 1,887. Seed 5 is running (flat done, all_on_ending_term live), and its grade is queued on the .rc. Section 17 (1044c8fe0) found that the belief's only act is the offer. No policy carries it. 08:23: Seed 5's three arms finished by 22:50Z and are not graded: grade-section-14-seed-5-the-four-seed-grade was drawn and landed nothing. Focus item 2 grades it. No policy carries the belief. 11:23: Seed 5 graded and the four-seed grade written (427e5f021): mean net +GBP 1,556, but the departure interval is [-GBP 1,306, +GBP 8,542], so the pre-registered rule is not met and the switch stays off. The corrected belief is built and graded, and no policy carries it, so the company's live renewal belief still ranks leavers backwards. 14:20: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. 17:24: Unchanged. No policy carries the corrected belief. 20:21: Unchanged. No policy carries the corrected belief. 23:24: Unchanged. No policy carries the corrected belief. 49a577707 adds that the four-seed grade ran on books with over-cap bills in both arms, so its pound differences are not trusted until the fresh run is graded. 02:24: Unchanged, but its blocker has moved. d909b6933 graded the fresh run, and over-cap bills fell from 29.8% to 0.42% of graded default-tariff invoices. So the corrected belief's grade can be re-taken on a clean book. That is focus item 3. No policy carries it yet. 05:24: Unchanged. The clean-book re-take is pre-registered (6891c01e2) and launched (s14clean-driver, 05:05Z), but it has computed nothing: it waits on the C30 arms, which wait on memory (focus item 1). No policy carries the corrected belief. 08:24: Unchanged. The clean-book re-take is computing now: seed 2's flat arm finished at 07:38Z and all_on_ending_term is live, with seeds 3 to 5 to follow. No policy carries the corrected belief. 11:22: Unchanged. The clean-book re-take finished seeds 2 and 3, and seed 4's flat arm is live (11:17Z). The grade is about 4 arm-hours away. No policy carries the corrected belief. 14:20: Unchanged. The clean-book re-take finished seed 4 (flat by 12:24Z, all_on_ending_term by 13:19Z), and seed 5's flat arm has been live since 13:27Z, so the grade is about 2 arm-hours away and rearm.py hands it off. No policy carries the corrected belief. 17:20: Unchanged, but the clean-book re-take is on disk and not graded. /var/tmp/se-s14clean-out/grade.txt (grade.rc=0, 16:36 BST) gives ending_term minus flat across 4 seeds as net +GBP 2,781 +/- 2,277 and departures net +GBP 2,852 +/- 3,414, so the departure interval still spans zero. grade-section-14-on-the-clean-book is now drawable and grades it against the pre-registration. No policy carries the corrected belief. 20:20: Unchanged. 5cdb72eb3 graded section 14's clean-book re-take against its pre-registration, and the switch stays off: mean net clears zero, but the departure interval still straddles it. The corrected belief is built and graded twice, and no policy carries it, so the live renewal belief still ranks leavers backwards. 23:24: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus. 03:21: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus. 06:22: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus. 09:20: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus. 12:23: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus. 15:22: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus. 18:21: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus. 21:22: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus. 00:20: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus. 03:21: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus. 06:24: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus. 09:24: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus.",
-    "last_at": "2026-10-26T09:24:21.781253+00:00",
+    "what": "THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards. On 268 desk states from 2019 it reads AUC 0.333, and its mean is 0.193 on end-of-fix rolls, where 40 of 92 households leave, against 0.378 on the other rolls, where 6 of 176 leave. The company holds each term's tariff type before the roll and does not use it (7dc923787, 7eb9f2695). Focus item 1 rebuilds it. 23:20: The fix is built, default off (7a7ad95dc): 0.819 [0.757, 0.877] out of sample from 2019, and 0.819 in the run (f16695c2a). It stays false, because no policy carries it yet, and its first-year multiplier defect is graded by section 12, which is running. 02:22: Section 12 graded (a7fc5c728): with the prior, the in-run AUC is 0.806 [0.745, 0.860]. It stays false because no policy carries it yet. The seeds are queued, behind item 2's money split. 05:22: Unchanged. Section 14's four dice seeds are running (seed 1's all_on_save_odds arm is live), and no policy carries the belief yet. 08:24: Unchanged. Section 14 seed 1 is void (P14a: flat departed 353, the same as the default), so seed 5 replaces it, and seed 2 is running. No seed is graded, and no policy carries the belief. 11:21: Seed 2 graded (6f1c336e2), and the grader corrected (9fc114520): ending_term minus flat parity is +GBP 2,866. Seed 3 is running, and seeds 4 and 5 are to come. No policy carries the belief. 14:20: Seed 3 finished at 13:54Z, and all three arm files are on disk. It is not graded; its continuation is now drawable. Seeds 4 and 5 are to come, and no policy carries the belief. 17:20: Seed 3 graded valid (2644ea3ab, P14a' symdiff 113): ending_term minus flat is +GBP 3,026 on departures and +GBP 594 on parity, and P14b and P14c held. Two valid seeds now agree in sign. Seed 4 is running (flat done, all_on_ending_term live), and seed 5 is to come. No policy carries the belief. 20:24: Seed 4 graded valid (706bbbc1e, P14a' symdiff 119): ending_term minus flat is +GBP 7,946 on departures but -GBP 140 on parity, so P14b is the wrong sign on this seed. Across three seeds the net is +2,140 +/- 1,887. Seed 5 is running (flat done, all_on_ending_term live), and its grade is queued on the .rc. Section 17 (1044c8fe0) found that the belief's only act is the offer. No policy carries it. 08:23: Seed 5's three arms finished by 22:50Z and are not graded: grade-section-14-seed-5-the-four-seed-grade was drawn and landed nothing. Focus item 2 grades it. No policy carries the belief. 11:23: Seed 5 graded and the four-seed grade written (427e5f021): mean net +GBP 1,556, but the departure interval is [-GBP 1,306, +GBP 8,542], so the pre-registered rule is not met and the switch stays off. The corrected belief is built and graded, and no policy carries it, so the company's live renewal belief still ranks leavers backwards. 14:20: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. 17:24: Unchanged. No policy carries the corrected belief. 20:21: Unchanged. No policy carries the corrected belief. 23:24: Unchanged. No policy carries the corrected belief. 49a577707 adds that the four-seed grade ran on books with over-cap bills in both arms, so its pound differences are not trusted until the fresh run is graded. 02:24: Unchanged, but its blocker has moved. d909b6933 graded the fresh run, and over-cap bills fell from 29.8% to 0.42% of graded default-tariff invoices. So the corrected belief's grade can be re-taken on a clean book. That is focus item 3. No policy carries it yet. 05:24: Unchanged. The clean-book re-take is pre-registered (6891c01e2) and launched (s14clean-driver, 05:05Z), but it has computed nothing: it waits on the C30 arms, which wait on memory (focus item 1). No policy carries the corrected belief. 08:24: Unchanged. The clean-book re-take is computing now: seed 2's flat arm finished at 07:38Z and all_on_ending_term is live, with seeds 3 to 5 to follow. No policy carries the corrected belief. 11:22: Unchanged. The clean-book re-take finished seeds 2 and 3, and seed 4's flat arm is live (11:17Z). The grade is about 4 arm-hours away. No policy carries the corrected belief. 14:20: Unchanged. The clean-book re-take finished seed 4 (flat by 12:24Z, all_on_ending_term by 13:19Z), and seed 5's flat arm has been live since 13:27Z, so the grade is about 2 arm-hours away and rearm.py hands it off. No policy carries the corrected belief. 17:20: Unchanged, but the clean-book re-take is on disk and not graded. /var/tmp/se-s14clean-out/grade.txt (grade.rc=0, 16:36 BST) gives ending_term minus flat across 4 seeds as net +GBP 2,781 +/- 2,277 and departures net +GBP 2,852 +/- 3,414, so the departure interval still spans zero. grade-section-14-on-the-clean-book is now drawable and grades it against the pre-registration. No policy carries the corrected belief. 20:20: Unchanged. 5cdb72eb3 graded section 14's clean-book re-take against its pre-registration, and the switch stays off: mean net clears zero, but the departure interval still straddles it. The corrected belief is built and graded twice, and no policy carries it, so the live renewal belief still ranks leavers backwards. 23:24: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus. 03:21: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus. 06:22: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus. 09:20: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus. 12:23: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus. 15:22: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus. 18:21: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus. 21:22: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus. 00:20: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus. 03:21: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus. 06:24: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus. 09:24: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus. 12:24: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus.",
+    "last_at": "2026-10-26T12:24:54.090591+00:00",
     "first_at": "2026-10-23T08:23:01.145005+00:00",
-    "times_listed": 39,
+    "times_listed": 40,
     "corrected": false,
     "fate": "fix",
     "status": "open",
@@ -492,10 +492,10 @@
    },
    {
     "key": "text:explore's cast rules (83c4fc9d6) found 4,764 of 14,012 pre-renewal invoices on the 19 oct run (199 of 550 households) more than 0.5% above min(cap, epg), and a november 2022 bill at exactly the cap instead of the epg",
-    "what": "THE COMPANY'S, THIS STRETCH. Explore's cast rules (83c4fc9d6) found 4,764 of 14,012 pre-renewal invoices on the 19 Oct run (199 of 550 households) more than 0.5% above min(cap, EPG), and a November 2022 bill at exactly the cap instead of the EPG. The finding was filed LATENT under W3 with no atom, and the earlier fix 592596b44 is an ancestor of that run. The cause is not yet named, and (c), a mislabelled population, has to be ruled out first. 17:24: Focus item 1. Not fixed. 20:21: Cause named, half fixed. 4bc21e920 refuted (c): 4,579 of the 4,764 are on recorded svt terms. On recorded types, 5,492 of 18,374 svt invoices (244 of 550 households) sit above the ceiling. 3,600 are cause A (an incoming occupant priced as non-domestic), fixed in 4bc21e920. 1,817 are cause B (the EPG never reached the household's invoice), which is landing now under epg-reaches-the-household-bill. 436 invoices plus 66 are unexplained, and no fresh run has been re-graded. Not fixed. 23:24: The residue is named, but the defect is not fixed. 49a577707: all 501 bills that miss their struck rate are electricity on a ToU pair. The company offers ToU on every term of a smart-metered home, the default tariff included. The 59 at the cap are not a breach: SLC 28AD.4 grades a multi-register tariff at its split, not per bill. 25 are labelled GAP. Cause B (the EPG) is still not on origin after 5 hours and two attempts, so no fresh run has been graded. 02:24: Mostly fixed, not closed. Cause B landed (4ef70aba9). The fresh run at 88cdf35e4 graded 104 of 24,597 default-tariff invoices above min(cap, EPG), down from 5,488 of 18,398 (d909b6933). 79 of the 104 are on two accounts with the ToU-pair misgrade, which 1e358809b fixes but which that run did not carry. About 17 inside the EPG windows are mid-month estimated stubs that carry no EPG receipt. Focus item 2 carves that route. 05:24: The last named route is fixed. ce35a25e2 makes the void-stub estimate carry the EPG inside the window, and 1ee7ec58d moves SVT_BILLS_ABOVE_THE_CAP to LATENT. It is not closed: no run carrying 1e358809b and ce35a25e2 has been graded, and the s14clean re-take's over_ceiling.txt is that grade. The Explore cast finding still reads BLOCKING because of its other sections. 08:24: Not closed. dcf5f10f3 graded the EPG receipt to the penny. A fresh run at c5a8090187, which carries 1e358809b and ce35a25e2, is computing now (pid 3152321) for the over-cap grade, under the continuation capabilities-steer-remaining-before-monday. c5a809018 keeps the Explore cast finding BLOCKING until that grade is in. 11:22: Not closed, and the fresh run found a new defect. The c5a8090187 run's grade (140b5ff7b) shows that the void-stub fix ce35a25e2 over-credits 5 electricity stubs, so they pass the ceiling by going negative. That defect is its own row below and focus item 1. The Explore cast finding stays BLOCKING. 14:20: Not closed. 3a31999db fixed the route the void-stub defect took, and the grader now refuses a run whose carved and booked differ. The site still publishes the 19 Oct run (8b6fea024), which carries none of the fixes, and the shared checkout the runner executes is 14 commits behind origin. Focus item 1 makes Monday's publish carry a run that has them. The Explore cast finding stays BLOCKING. 17:20: Not closed. 339495a44 took the fallback route: the publisher grades a run's bills before it publishes them, and the site says the 19 Oct figures predate the cap fixes. The s14clean arms at ff8437814e show 6 default-tariff invoices on 2 households above the ceiling per arm, but ff8437814e does not carry 3a31999db. The fresh run that does is the-epg-fold-fix-is-graded-on-a-fresh-full-run, launchable now that section 14's arms are done. The finding stays BLOCKING. 20:20: Not closed, but close. The closing run at 1c30d6c728 graded clean (/var/tmp/se-epgfold-out/grade.json): 6 of 24,597 default-tariff invoices are above the ceiling (0.02%), on 2 households, all outside the EPG windows (2019: 2, 2024: 4). The EPG carved GBP 200,091.73 and booked the same, there are no negative estimated bills, and defects is empty. The finding's own text lowers it on the first published run that passes, so it stays BLOCKING until Monday's publish. Focus item 2 records the grade and names the six bills. 23:24: Not closed. The six bills from the closing run at 1c30d6c728 are still not named, and the previous focus item that names them was not drawn. Monday's publish opens 2026-10-26T04:00Z. Focus item 2. The finding stays BLOCKING. 03:21: The six are named, and their cause is fixed but not graded. 0a0530576 named a third cause: a gas SVT term started mid-quarter was billed at the mean of every rate it had carried. 063dc4bbd fixed it (a departure cut a riding gas leg's term short of its end, 33 overlapping pairs, 6 over-cap and 22 mispriced bills). The fresh run that grades the fix is computing (/var/tmp/se-svtcut-out, pid 1572414). The run computing in the shared checkout (pid 1962520, at 904a091f7) does not carry the fix, because that checkout is 34 commits behind origin. Focus item 3. The finding stays BLOCKING. 06:22: Fixed in code and graded clean, not yet published. e526b740f graded the gas-term fix on 7559a676f7: 0 legs carry overlapping terms (was 11 legs, 33 pairs), and 0 of 24,663 default-tariff bills sit over the ceiling (was 6). The grade now refuses any run whose terms overlap. The newest full run (904a091f7b, 03:16Z) predates the fix, and the published site still shows 19 Oct figures. The finding stays BLOCKING until a published run passes. Focus item 4. 09:20: Not closed. No full run at a commit carrying 063dc4bbd, 33dd50527, 9bb30c4de and now a0ed2aa7b has started. The sim runner deferred every five-minute cycle from 06:15Z to 09:21Z. The published site still shows 19 Oct figures. Focus item 1. The finding stays BLOCKING. 12:23: Not closed. No full run at a commit carrying the fixes has computed. The seat executor (pid 2358144) holds the Monday run and staged /var/tmp/se-mondays-run-6475cdad14 at 11:47Z. Its queued launch logged one HELD line ('landings come before experiments'), and no longjob unit for it is loaded. Focus item 1. The finding stays BLOCKING. 15:22: Fixed on the production run, not yet published. 294c5286f graded Monday's run at b2bc3d8da5: 0 of 24,663 default-tariff invoices over min(cap, EPG), GBP 200,459.54 carved equals booked, 0 negative estimates, 0 overlapping term legs. It is run_output_latest, and a one-shot timer at 2026-10-26T04:05Z offers it to the weekly publish (continuation a-held-run-is-offered-again-when-the-weekly-window-opens). The finding stays BLOCKING until the published site carries it. 18:21: Unchanged. Monday's run b2bc3d8da5 is graded clean, and the timer mondays-window-marker-20261026 is loaded for 2026-10-26T04:05Z. The finding stays BLOCKING until the published site carries that run. 21:22: Unchanged. Monday's run b2bc3d8da5 is graded clean, and mondays-window-marker-20261026 fires at 2026-10-26T04:05Z (continuation mondays-window-published-the-b2bc3d8da5-run checks it). The finding stays BLOCKING until the published site carries that run. 00:20: Unchanged. Monday's run b2bc3d8da5 is graded clean and mondays-window-marker-20261026 fires at 04:05Z. That run predates c5a3e96fe, so the dunning stop below does not touch it, but no newer default-book run can replace it until that stop is fixed. The finding stays BLOCKING until the published site carries the run. 03:21: Unchanged, and a second clean grade is in. The basics run at 12246cbae5 graded 0 of 24,442 default-tariff bills over min(cap, EPG), with GBP 198,651.40 carved equal to booked (4ae8da9b0). The window opens at 04:00Z, and mondays-window-marker-20261026 (04:05Z) offers b2bc3d8da5. sim-runner's run at 4ae8da9b0f (pid 2630147, live since 02:26Z) may finish first; the publisher grades a run's bills from the run JSON itself before publishing it (process_run_complete.py:10820), so either run fails closed. mondays-window-published-the-b2bc3d8da5-run checks it after 04:30. The finding stays BLOCKING until the published site carries a graded run. 06:24: Not closed. The 04:05Z marker offered the newer run, run_output_4ae8da9b0f_20261026T022647Z, not b2bc3d8da5. It descends from b2bc3d8da5 and is graded clean (0 of 24,442 over the ceiling). Its publish failed twice. At 05:14 it refused as behind_origin, on the publisher's own repair commit b681cc4d7, which 410c1131d fixes. At 05:46 it refused as commit_refused, because the primary checkout's HEAD 53a0e63da was 1 commit behind origin (71cb7debc). The fingerprint was not recorded and no marker re-offers the run. Figures last reached origin 165h ago. Focus item 1. The finding stays BLOCKING. 09:24: Not closed, but the publish is now refused for the right reason. The 08:06Z re-offer of 4ae8da9b0f cleared every mechanical door (77b6a16d9) and the full gate refused it on two billing reds in the run's own book. 3dfe5cad4 bisected both: ToU registers now carry their own reads (1,416 to 0), and the invoice carries the EPG receipt beside its total (10 to 4 customer-years billed under gross). The last four (two held first bills, three leavers closed on estimates at 0.39-0.55 of true) are landing now (surgical_land pid 1987804, 4 to 0 claimed). Figures last reached origin 168h ago. Focus item 1. The finding stays BLOCKING.",
-    "last_at": "2026-10-26T09:24:21.781253+00:00",
+    "what": "THE COMPANY'S, THIS STRETCH. Explore's cast rules (83c4fc9d6) found 4,764 of 14,012 pre-renewal invoices on the 19 Oct run (199 of 550 households) more than 0.5% above min(cap, EPG), and a November 2022 bill at exactly the cap instead of the EPG. The finding was filed LATENT under W3 with no atom, and the earlier fix 592596b44 is an ancestor of that run. The cause is not yet named, and (c), a mislabelled population, has to be ruled out first. 17:24: Focus item 1. Not fixed. 20:21: Cause named, half fixed. 4bc21e920 refuted (c): 4,579 of the 4,764 are on recorded svt terms. On recorded types, 5,492 of 18,374 svt invoices (244 of 550 households) sit above the ceiling. 3,600 are cause A (an incoming occupant priced as non-domestic), fixed in 4bc21e920. 1,817 are cause B (the EPG never reached the household's invoice), which is landing now under epg-reaches-the-household-bill. 436 invoices plus 66 are unexplained, and no fresh run has been re-graded. Not fixed. 23:24: The residue is named, but the defect is not fixed. 49a577707: all 501 bills that miss their struck rate are electricity on a ToU pair. The company offers ToU on every term of a smart-metered home, the default tariff included. The 59 at the cap are not a breach: SLC 28AD.4 grades a multi-register tariff at its split, not per bill. 25 are labelled GAP. Cause B (the EPG) is still not on origin after 5 hours and two attempts, so no fresh run has been graded. 02:24: Mostly fixed, not closed. Cause B landed (4ef70aba9). The fresh run at 88cdf35e4 graded 104 of 24,597 default-tariff invoices above min(cap, EPG), down from 5,488 of 18,398 (d909b6933). 79 of the 104 are on two accounts with the ToU-pair misgrade, which 1e358809b fixes but which that run did not carry. About 17 inside the EPG windows are mid-month estimated stubs that carry no EPG receipt. Focus item 2 carves that route. 05:24: The last named route is fixed. ce35a25e2 makes the void-stub estimate carry the EPG inside the window, and 1ee7ec58d moves SVT_BILLS_ABOVE_THE_CAP to LATENT. It is not closed: no run carrying 1e358809b and ce35a25e2 has been graded, and the s14clean re-take's over_ceiling.txt is that grade. The Explore cast finding still reads BLOCKING because of its other sections. 08:24: Not closed. dcf5f10f3 graded the EPG receipt to the penny. A fresh run at c5a8090187, which carries 1e358809b and ce35a25e2, is computing now (pid 3152321) for the over-cap grade, under the continuation capabilities-steer-remaining-before-monday. c5a809018 keeps the Explore cast finding BLOCKING until that grade is in. 11:22: Not closed, and the fresh run found a new defect. The c5a8090187 run's grade (140b5ff7b) shows that the void-stub fix ce35a25e2 over-credits 5 electricity stubs, so they pass the ceiling by going negative. That defect is its own row below and focus item 1. The Explore cast finding stays BLOCKING. 14:20: Not closed. 3a31999db fixed the route the void-stub defect took, and the grader now refuses a run whose carved and booked differ. The site still publishes the 19 Oct run (8b6fea024), which carries none of the fixes, and the shared checkout the runner executes is 14 commits behind origin. Focus item 1 makes Monday's publish carry a run that has them. The Explore cast finding stays BLOCKING. 17:20: Not closed. 339495a44 took the fallback route: the publisher grades a run's bills before it publishes them, and the site says the 19 Oct figures predate the cap fixes. The s14clean arms at ff8437814e show 6 default-tariff invoices on 2 households above the ceiling per arm, but ff8437814e does not carry 3a31999db. The fresh run that does is the-epg-fold-fix-is-graded-on-a-fresh-full-run, launchable now that section 14's arms are done. The finding stays BLOCKING. 20:20: Not closed, but close. The closing run at 1c30d6c728 graded clean (/var/tmp/se-epgfold-out/grade.json): 6 of 24,597 default-tariff invoices are above the ceiling (0.02%), on 2 households, all outside the EPG windows (2019: 2, 2024: 4). The EPG carved GBP 200,091.73 and booked the same, there are no negative estimated bills, and defects is empty. The finding's own text lowers it on the first published run that passes, so it stays BLOCKING until Monday's publish. Focus item 2 records the grade and names the six bills. 23:24: Not closed. The six bills from the closing run at 1c30d6c728 are still not named, and the previous focus item that names them was not drawn. Monday's publish opens 2026-10-26T04:00Z. Focus item 2. The finding stays BLOCKING. 03:21: The six are named, and their cause is fixed but not graded. 0a0530576 named a third cause: a gas SVT term started mid-quarter was billed at the mean of every rate it had carried. 063dc4bbd fixed it (a departure cut a riding gas leg's term short of its end, 33 overlapping pairs, 6 over-cap and 22 mispriced bills). The fresh run that grades the fix is computing (/var/tmp/se-svtcut-out, pid 1572414). The run computing in the shared checkout (pid 1962520, at 904a091f7) does not carry the fix, because that checkout is 34 commits behind origin. Focus item 3. The finding stays BLOCKING. 06:22: Fixed in code and graded clean, not yet published. e526b740f graded the gas-term fix on 7559a676f7: 0 legs carry overlapping terms (was 11 legs, 33 pairs), and 0 of 24,663 default-tariff bills sit over the ceiling (was 6). The grade now refuses any run whose terms overlap. The newest full run (904a091f7b, 03:16Z) predates the fix, and the published site still shows 19 Oct figures. The finding stays BLOCKING until a published run passes. Focus item 4. 09:20: Not closed. No full run at a commit carrying 063dc4bbd, 33dd50527, 9bb30c4de and now a0ed2aa7b has started. The sim runner deferred every five-minute cycle from 06:15Z to 09:21Z. The published site still shows 19 Oct figures. Focus item 1. The finding stays BLOCKING. 12:23: Not closed. No full run at a commit carrying the fixes has computed. The seat executor (pid 2358144) holds the Monday run and staged /var/tmp/se-mondays-run-6475cdad14 at 11:47Z. Its queued launch logged one HELD line ('landings come before experiments'), and no longjob unit for it is loaded. Focus item 1. The finding stays BLOCKING. 15:22: Fixed on the production run, not yet published. 294c5286f graded Monday's run at b2bc3d8da5: 0 of 24,663 default-tariff invoices over min(cap, EPG), GBP 200,459.54 carved equals booked, 0 negative estimates, 0 overlapping term legs. It is run_output_latest, and a one-shot timer at 2026-10-26T04:05Z offers it to the weekly publish (continuation a-held-run-is-offered-again-when-the-weekly-window-opens). The finding stays BLOCKING until the published site carries it. 18:21: Unchanged. Monday's run b2bc3d8da5 is graded clean, and the timer mondays-window-marker-20261026 is loaded for 2026-10-26T04:05Z. The finding stays BLOCKING until the published site carries that run. 21:22: Unchanged. Monday's run b2bc3d8da5 is graded clean, and mondays-window-marker-20261026 fires at 2026-10-26T04:05Z (continuation mondays-window-published-the-b2bc3d8da5-run checks it). The finding stays BLOCKING until the published site carries that run. 00:20: Unchanged. Monday's run b2bc3d8da5 is graded clean and mondays-window-marker-20261026 fires at 04:05Z. That run predates c5a3e96fe, so the dunning stop below does not touch it, but no newer default-book run can replace it until that stop is fixed. The finding stays BLOCKING until the published site carries the run. 03:21: Unchanged, and a second clean grade is in. The basics run at 12246cbae5 graded 0 of 24,442 default-tariff bills over min(cap, EPG), with GBP 198,651.40 carved equal to booked (4ae8da9b0). The window opens at 04:00Z, and mondays-window-marker-20261026 (04:05Z) offers b2bc3d8da5. sim-runner's run at 4ae8da9b0f (pid 2630147, live since 02:26Z) may finish first; the publisher grades a run's bills from the run JSON itself before publishing it (process_run_complete.py:10820), so either run fails closed. mondays-window-published-the-b2bc3d8da5-run checks it after 04:30. The finding stays BLOCKING until the published site carries a graded run. 06:24: Not closed. The 04:05Z marker offered the newer run, run_output_4ae8da9b0f_20261026T022647Z, not b2bc3d8da5. It descends from b2bc3d8da5 and is graded clean (0 of 24,442 over the ceiling). Its publish failed twice. At 05:14 it refused as behind_origin, on the publisher's own repair commit b681cc4d7, which 410c1131d fixes. At 05:46 it refused as commit_refused, because the primary checkout's HEAD 53a0e63da was 1 commit behind origin (71cb7debc). The fingerprint was not recorded and no marker re-offers the run. Figures last reached origin 165h ago. Focus item 1. The finding stays BLOCKING. 09:24: Not closed, but the publish is now refused for the right reason. The 08:06Z re-offer of 4ae8da9b0f cleared every mechanical door (77b6a16d9) and the full gate refused it on two billing reds in the run's own book. 3dfe5cad4 bisected both: ToU registers now carry their own reads (1,416 to 0), and the invoice carries the EPG receipt beside its total (10 to 4 customer-years billed under gross). The last four (two held first bills, three leavers closed on estimates at 0.39-0.55 of true) are landing now (surgical_land pid 1987804, 4 to 0 claimed). Figures last reached origin 168h ago. Focus item 1. The finding stays BLOCKING. 12:24: Not closed. 166ce2b5b closed the last four billed<gross customer-years (4 to 0, none excused). The 11:49Z re-offer was then refused for a reason that was not the run's: another lane's uncommitted B13 level move in the shared maturity map rode into the publish commit, which 185355386 fixes. The publisher is re-offering now (pid 2855590, marker 114906Z). Figures last reached origin 171h ago. Focus item 1. The finding stays BLOCKING.",
+    "last_at": "2026-10-26T12:24:54.090591+00:00",
     "first_at": "2026-10-23T17:24:06.995384+00:00",
-    "times_listed": 33,
+    "times_listed": 34,
     "corrected": false,
     "fate": null,
     "status": null,
@@ -505,10 +505,10 @@
    },
    {
     "key": "text:a finished long job lost its grader",
-    "what": "THE MACHINE'S, THIS STRETCH. A finished long job lost its grader. The E6 crisis-overlay finding hands grading to the-crisis-overlay-arm-on-the-default-book-is-graded three times (13:15, 21:21 BST), but that id was never written to the continuation store, so when longjob-crisis-overlay-arm-default-book-b8b14269e succeeded at 21:13Z, nothing was queued to read /var/tmp/crisis-overlay-out/arm.json. A finding that names a handoff is not checked against the queue. Focus item 1 grades it. 03:21: Still not graded. arm.json has sat on disk since 22:13 BST, and the item was not drawn this stretch either (see the seat row below). Focus item 1 now hands it to Lane 0 under a key that is not an atom id. 06:22: The E6 instance closed: 7559a676f graded the arm, and the continuation retired at 04:02Z. But it is live again on C30. 2349031ed's c30-grade-at9bb job writes grade.txt, and its NEXT reads 'none -- the verdict lands when grade.txt exists', so nothing is queued to read that file against the pre-registration. A finding or commit that names a handoff is still not checked against the queue. Focus item 2 gives this one a route. Not fixed. 09:20: The C30 instance has a route now. c30-three-seed-verdict-from-grade-txt is in seat_continuation.live(), grade.txt has been on disk since 08:23Z, and the verdict has sat unread for an hour. Focus item 2 takes it under that same id. Nothing checks that a handoff named in a finding or a NEXT line is in the queue, so the class is not fixed. 12:23: The C30 instance closed: 2e14c5ce0 graded grade.txt, and the continuation retired at 10:29Z. Its open residue, -GBP 2.7k on 61102 that moves with no customer, has a route (c30-refix-unattributed-cost-61102). No new instance was seen. Nothing checks that a handoff named in a finding or a NEXT line is in the queue, so the class is not fixed. 15:22: Live again in a fourth shape. Monday's hand-launched run finished at 13:32Z, and nothing graded or promoted it, because a hand launch writes no run-complete marker. 294c5286f found and graded it 72 minutes later by hand. Nothing checks that a finished long job has a reader, so the class is not fixed. 18:21: Live again, one step earlier. d127468fd8 built E6's arrears-overlay term and wrote 'NEXT: none -- the default-book arm with provision_arrears_overlay on is next', but nothing queued or launched that arm (no long job launched this stretch). A handoff named in a NEXT line is still not checked against the queue. Focus item 1 gives this instance a route. Not fixed. 21:22: The E6 instance closed. 2cd26acfc launched the arm and queued its grade, the arm finished at 20:21Z, and the seat executor has graded it: all three legs held, and the switch is on in its uncommitted diff. No new instance was seen. Nothing checks that a handoff named in a finding or a NEXT line is in the queue, so the class is not fixed. 00:20: Live again in a fifth shape. The E6 second-seed arm finished at 22:56Z, and e6-arrears-overlay-second-seed retired at 22:59Z, but nothing reached origin: its landing log /var/tmp/land5-s61101.log is empty. Re-run now, grade.py reads SWITCH-ON RULE: FAILS on leg (c), and the filed rule says the switch goes back off, yet provision_arrears_overlay is still True on origin. A retired continuation is not checked for a landing. Focus item 1. Not fixed. 03:21: The E6 fifth-shape instance closed: 994c87103 graded the second seed, set provision_arrears_overlay back to False, and is on origin (via f9021b1e6). Its continuation was still released before the landing was bound, so the brief lists it 'retired without a landing', and the disposition was recorded by hand as premise_spent. The brief's release check (a5f02f869) caught it, but nothing checks that a handoff named in a finding or a NEXT line is in the queue, so the class is not fixed. 06:24: No new instance. The three PB8 continuations retired with landings on origin (1e6083838, bf56dd579, 71cb7debc). Nothing checks that a handoff named in a finding or a NEXT line is in the queue, so the class is not fixed. 09:24: No new instance. No long job launched or ended this stretch. Nothing checks that a handoff named in a finding or a NEXT line is in the queue, so the class is not fixed.",
-    "last_at": "2026-10-26T09:24:21.781253+00:00",
+    "what": "THE MACHINE'S, THIS STRETCH. A finished long job lost its grader. The E6 crisis-overlay finding hands grading to the-crisis-overlay-arm-on-the-default-book-is-graded three times (13:15, 21:21 BST), but that id was never written to the continuation store, so when longjob-crisis-overlay-arm-default-book-b8b14269e succeeded at 21:13Z, nothing was queued to read /var/tmp/crisis-overlay-out/arm.json. A finding that names a handoff is not checked against the queue. Focus item 1 grades it. 03:21: Still not graded. arm.json has sat on disk since 22:13 BST, and the item was not drawn this stretch either (see the seat row below). Focus item 1 now hands it to Lane 0 under a key that is not an atom id. 06:22: The E6 instance closed: 7559a676f graded the arm, and the continuation retired at 04:02Z. But it is live again on C30. 2349031ed's c30-grade-at9bb job writes grade.txt, and its NEXT reads 'none -- the verdict lands when grade.txt exists', so nothing is queued to read that file against the pre-registration. A finding or commit that names a handoff is still not checked against the queue. Focus item 2 gives this one a route. Not fixed. 09:20: The C30 instance has a route now. c30-three-seed-verdict-from-grade-txt is in seat_continuation.live(), grade.txt has been on disk since 08:23Z, and the verdict has sat unread for an hour. Focus item 2 takes it under that same id. Nothing checks that a handoff named in a finding or a NEXT line is in the queue, so the class is not fixed. 12:23: The C30 instance closed: 2e14c5ce0 graded grade.txt, and the continuation retired at 10:29Z. Its open residue, -GBP 2.7k on 61102 that moves with no customer, has a route (c30-refix-unattributed-cost-61102). No new instance was seen. Nothing checks that a handoff named in a finding or a NEXT line is in the queue, so the class is not fixed. 15:22: Live again in a fourth shape. Monday's hand-launched run finished at 13:32Z, and nothing graded or promoted it, because a hand launch writes no run-complete marker. 294c5286f found and graded it 72 minutes later by hand. Nothing checks that a finished long job has a reader, so the class is not fixed. 18:21: Live again, one step earlier. d127468fd8 built E6's arrears-overlay term and wrote 'NEXT: none -- the default-book arm with provision_arrears_overlay on is next', but nothing queued or launched that arm (no long job launched this stretch). A handoff named in a NEXT line is still not checked against the queue. Focus item 1 gives this instance a route. Not fixed. 21:22: The E6 instance closed. 2cd26acfc launched the arm and queued its grade, the arm finished at 20:21Z, and the seat executor has graded it: all three legs held, and the switch is on in its uncommitted diff. No new instance was seen. Nothing checks that a handoff named in a finding or a NEXT line is in the queue, so the class is not fixed. 00:20: Live again in a fifth shape. The E6 second-seed arm finished at 22:56Z, and e6-arrears-overlay-second-seed retired at 22:59Z, but nothing reached origin: its landing log /var/tmp/land5-s61101.log is empty. Re-run now, grade.py reads SWITCH-ON RULE: FAILS on leg (c), and the filed rule says the switch goes back off, yet provision_arrears_overlay is still True on origin. A retired continuation is not checked for a landing. Focus item 1. Not fixed. 03:21: The E6 fifth-shape instance closed: 994c87103 graded the second seed, set provision_arrears_overlay back to False, and is on origin (via f9021b1e6). Its continuation was still released before the landing was bound, so the brief lists it 'retired without a landing', and the disposition was recorded by hand as premise_spent. The brief's release check (a5f02f869) caught it, but nothing checks that a handoff named in a finding or a NEXT line is in the queue, so the class is not fixed. 06:24: No new instance. The three PB8 continuations retired with landings on origin (1e6083838, bf56dd579, 71cb7debc). Nothing checks that a handoff named in a finding or a NEXT line is in the queue, so the class is not fixed. 09:24: No new instance. No long job launched or ended this stretch. Nothing checks that a handoff named in a finding or a NEXT line is in the queue, so the class is not fixed. 12:24: No new instance. No long job launched or ended this stretch. Nothing checks that a handoff named in a finding or a NEXT line is in the queue, so the class is not fixed.",
+    "last_at": "2026-10-26T12:24:54.090591+00:00",
     "first_at": "2026-10-24T23:24:13.150931+00:00",
-    "times_listed": 15,
+    "times_listed": 16,
     "corrected": false,
     "fate": null,
     "status": null,
@@ -518,10 +518,10 @@
    },
    {
     "key": "text:four advisor files were edited in place by a lane (b2bc3d8da, 2ada25833, d86d8749c), so the advisor channel now refuses them as unsigned, though the advisor's own staging commits verify",
-    "what": "THE MACHINE'S, THIS STRETCH. Four advisor files were edited in place by a lane (b2bc3d8da, 2ada25833, d86d8749c), so the advisor channel now refuses them as unsigned, though the advisor's own staging commits verify. A worker recording 'what has landed' inside an advisor file breaks that file's signature chain. Its notes belong in the ## Done move or in a seat file. Not fixed: nothing stops an in-place edit to docs/staging/advisor/. 15:22: No refusal followed this stretch. ff77e6057 and 4566ce348 appended Done sections to advisor files, but only to files already in docs/staging/advisor/done/, which the channel does not scan (scan() on origin offers 0 files). Nothing stops an in-place edit to a live advisor file, so it is not fixed. 18:21: No instance this stretch. Nothing stops an in-place edit to a live advisor file, so it is not fixed. 21:22: No instance this stretch. Nothing stops an in-place edit to a live advisor file, so it is not fixed. 00:20: No instance this stretch. 7cab60e4f appended to a file already in done/. Nothing stops an in-place edit to a live advisor file, so it is not fixed. 03:21: No instance this stretch. Nothing stops an in-place edit to a live advisor file, so it is not fixed. 06:24: No instance this stretch. Nothing stops an in-place edit to a live advisor file, so it is not fixed. 09:24: No instance this stretch. Nothing stops an in-place edit to a live advisor file, so it is not fixed.",
-    "last_at": "2026-10-26T09:24:21.781253+00:00",
+    "what": "THE MACHINE'S, THIS STRETCH. Four advisor files were edited in place by a lane (b2bc3d8da, 2ada25833, d86d8749c), so the advisor channel now refuses them as unsigned, though the advisor's own staging commits verify. A worker recording 'what has landed' inside an advisor file breaks that file's signature chain. Its notes belong in the ## Done move or in a seat file. Not fixed: nothing stops an in-place edit to docs/staging/advisor/. 15:22: No refusal followed this stretch. ff77e6057 and 4566ce348 appended Done sections to advisor files, but only to files already in docs/staging/advisor/done/, which the channel does not scan (scan() on origin offers 0 files). Nothing stops an in-place edit to a live advisor file, so it is not fixed. 18:21: No instance this stretch. Nothing stops an in-place edit to a live advisor file, so it is not fixed. 21:22: No instance this stretch. Nothing stops an in-place edit to a live advisor file, so it is not fixed. 00:20: No instance this stretch. 7cab60e4f appended to a file already in done/. Nothing stops an in-place edit to a live advisor file, so it is not fixed. 03:21: No instance this stretch. Nothing stops an in-place edit to a live advisor file, so it is not fixed. 06:24: No instance this stretch. Nothing stops an in-place edit to a live advisor file, so it is not fixed. 09:24: No instance this stretch. Nothing stops an in-place edit to a live advisor file, so it is not fixed. 12:24: No instance this stretch. Nothing stops an in-place edit to a live advisor file, so it is not fixed.",
+    "last_at": "2026-10-26T12:24:54.090591+00:00",
     "first_at": "2026-10-25T12:23:34.652602+00:00",
-    "times_listed": 8,
+    "times_listed": 9,
     "corrected": false,
     "fate": null,
     "status": null,
@@ -531,10 +531,62 @@
    },
    {
     "key": "text:the brief reads the shared checkout, which is 57 commits behind origin",
-    "what": "THE MACHINE'S, THIS STRETCH. The brief reads the shared checkout, which is 57 commits behind origin. Its level grader says B13's and W2_41's pointers rotted ('a named path is absent here and git knows it'), and tools/the_basics.py run there reads both lines ABSENT. Both tests are on origin (dc4baf125, f920430d7), and both atoms read level 1 there. A reader who trusted the brief would rebuild landed work. The grader should read origin/main, not the working copy. 00:20: The checkout is now 77 behind, and 17 units lack origin commits to code they import (sim-runner lacks 38b69f673 to itself). This brief did not repeat the rotted-pointer reading, but nothing makes the level grader read origin/main. Not fixed. 03:21: The shared checkout is level with origin again (5d75e14b0), so this brief read origin-equal files and units_lacking_origin is empty. But that is the tree catching up, not the grader changing. Nothing makes the level grader read origin/main, so the next drift brings the same false ABSENT back. Not fixed. 06:24: Level with origin again (HEAD = origin/main = 6277076378). Nothing makes the level grader read origin/main, so it is not fixed. 09:24: Level with origin again (HEAD = origin/main = 3dfe5cad4). Nothing makes the level grader read origin/main, so it is not fixed.",
-    "last_at": "2026-10-26T09:24:21.781253+00:00",
+    "what": "THE MACHINE'S, THIS STRETCH. The brief reads the shared checkout, which is 57 commits behind origin. Its level grader says B13's and W2_41's pointers rotted ('a named path is absent here and git knows it'), and tools/the_basics.py run there reads both lines ABSENT. Both tests are on origin (dc4baf125, f920430d7), and both atoms read level 1 there. A reader who trusted the brief would rebuild landed work. The grader should read origin/main, not the working copy. 00:20: The checkout is now 77 behind, and 17 units lack origin commits to code they import (sim-runner lacks 38b69f673 to itself). This brief did not repeat the rotted-pointer reading, but nothing makes the level grader read origin/main. Not fixed. 03:21: The shared checkout is level with origin again (5d75e14b0), so this brief read origin-equal files and units_lacking_origin is empty. But that is the tree catching up, not the grader changing. Nothing makes the level grader read origin/main, so the next drift brings the same false ABSENT back. Not fixed. 06:24: Level with origin again (HEAD = origin/main = 6277076378). Nothing makes the level grader read origin/main, so it is not fixed. 09:24: Level with origin again (HEAD = origin/main = 3dfe5cad4). Nothing makes the level grader read origin/main, so it is not fixed. 12:24: Level with origin again (HEAD = origin/main = 185355386). Nothing makes the level grader read origin/main, so it is not fixed.",
+    "last_at": "2026-10-26T12:24:54.090591+00:00",
     "first_at": "2026-10-25T21:22:13.273306+00:00",
-    "times_listed": 5,
+    "times_listed": 6,
+    "corrected": false,
+    "fate": null,
+    "status": null,
+    "retired": false,
+    "owner": null,
+    "reason": null
+   },
+   {
+    "key": "text:i wrote w2_41 (item 1) and pb8 (item 2) as two items over one event",
+    "what": "THE SEAT'S, LAST STRETCH. I wrote W2_41 (item 1) and PB8 (item 2) as two items over one event. The ADDACS-to-desk work landed under PB8 (1e6083838), so W2_41's row stayed at level 1, and the landing door reads nothing to land on its paths. Neither level 2 has been graded on a run, because no full run carries 1e6083838. This record makes the run grade one item (focus item 3) instead of a second build. 09:24: Unchanged. No full run carries 1e6083838, and since 05:47Z none can be made cleanly (see the stranded meter_reads.py row). Focus item 4. 12:24: Unchanged. No full run carries 1e6083838, because the stranded meter_reads.py diff still blocks a clean run. Focus item 4.",
+    "last_at": "2026-10-26T12:24:54.090591+00:00",
+    "first_at": "2026-10-26T06:24:33.026422+00:00",
+    "times_listed": 3,
+    "corrected": false,
+    "fate": null,
+    "status": null,
+    "retired": false,
+    "owner": null,
+    "reason": null
+   },
+   {
+    "key": "text:another lane's w2_36 change, smart-mode share split by fuel at desnz's 6.8% and 14.2%, has sat uncommitted in the shared simulation/meter_reads.py since 03:10z with no claim naming it, and 77b6a16d9 records that since 05:47z no new run can be made cleanly because of it",
+    "what": "THE MACHINE'S, THIS STRETCH. Another lane's W2_36 change, smart-mode share split by fuel at DESNZ's 6.8% and 14.2%, has sat uncommitted in the shared simulation/meter_reads.py since 03:10Z with no claim naming it, and 77b6a16d9 records that since 05:47Z no new run can be made cleanly because of it. The brief reads W2_36 as 'nothing has worked it'. A run launched from that tree would carry a world change nobody graded. Focus item 2. Not fixed. 12:24: Unchanged, and my focus item for it was not drawn. The diff in simulation/meter_reads.py is still uncommitted (mtime 03:10), and nothing in .seat_work_in_hand.json claims it. Focus item 3.",
+    "last_at": "2026-10-26T12:24:54.090591+00:00",
+    "first_at": "2026-10-26T09:24:21.781253+00:00",
+    "times_listed": 2,
+    "corrected": false,
+    "fate": null,
+    "status": null,
+    "retired": false,
+    "owner": null,
+    "reason": null
+   },
+   {
+    "key": "text:the 4ae8da9b0f re-offer, clean on its own book after 166ce2b5b, was refused because the publish commit swept another lane's uncommitted b13 level move (level_current 1 to 2) from the shared docs/design/maturity_map.yaml",
+    "what": "THE MACHINE'S, THIS STRETCH. The 4ae8da9b0f re-offer, clean on its own book after 166ce2b5b, was refused because the publish commit swept another lane's uncommitted B13 level move (level_current 1 to 2) from the shared docs/design/maturity_map.yaml. A publish carried a map write it did not make. 185355386 corrects it: the publish carries the map only on a cycle its own fold wrote it, with a test. Corrected.",
+    "last_at": "2026-10-26T12:24:54.090591+00:00",
+    "first_at": "2026-10-26T12:24:54.090591+00:00",
+    "times_listed": 1,
+    "corrected": true,
+    "fate": null,
+    "status": null,
+    "retired": false,
+    "owner": null,
+    "reason": null
+   },
+   {
+    "key": "text:i put the stranded meter_reads.py diff second, behind a publish that a live process was already working, and it was not drawn: the lane handed its tick to item 1 and to b13's continuation",
+    "what": "THE SEAT'S, LAST STRETCH. I put the stranded meter_reads.py diff second, behind a publish that a live process was already working, and it was not drawn: the lane handed its tick to item 1 and to B13's continuation. An item whose whole job is to unblock every run sat behind one that needed no worker. This record does not move it to first, because the publish is minutes from its answer, but it names it as the next draw. Not corrected until the diff is off the shared tree.",
+    "last_at": "2026-10-26T12:24:54.090591+00:00",
+    "first_at": "2026-10-26T12:24:54.090591+00:00",
+    "times_listed": 1,
     "corrected": false,
     "fate": null,
     "status": null,
@@ -556,38 +608,12 @@
     "reason": null
    },
    {
-    "key": "text:i wrote w2_41 (item 1) and pb8 (item 2) as two items over one event",
-    "what": "THE SEAT'S, LAST STRETCH. I wrote W2_41 (item 1) and PB8 (item 2) as two items over one event. The ADDACS-to-desk work landed under PB8 (1e6083838), so W2_41's row stayed at level 1, and the landing door reads nothing to land on its paths. Neither level 2 has been graded on a run, because no full run carries 1e6083838. This record makes the run grade one item (focus item 3) instead of a second build. 09:24: Unchanged. No full run carries 1e6083838, and since 05:47Z none can be made cleanly (see the stranded meter_reads.py row). Focus item 4.",
-    "last_at": "2026-10-26T09:24:21.781253+00:00",
-    "first_at": "2026-10-26T06:24:33.026422+00:00",
-    "times_listed": 2,
-    "corrected": false,
-    "fate": null,
-    "status": null,
-    "retired": false,
-    "owner": null,
-    "reason": null
-   },
-   {
     "key": "text:my item 1 asked for the publish to land from a trunk worktree, but c2fc7b207 had already absorbed a mid-gate origin move ten minutes before i wrote it, and 2aa5298b4 measured that and declined the build",
     "what": "THE SEAT'S, LAST STRETCH. My item 1 asked for the publish to land from a trunk worktree, but c2fc7b207 had already absorbed a mid-gate origin move ten minutes before I wrote it, and 2aa5298b4 measured that and declined the build. I wrote a focus on a premise origin had spent, because I read the refusal and not the commits after it. The worker's refusal was right; this record drops the item.",
     "last_at": "2026-10-26T09:24:21.781253+00:00",
     "first_at": "2026-10-26T09:24:21.781253+00:00",
     "times_listed": 1,
     "corrected": true,
-    "fate": null,
-    "status": null,
-    "retired": false,
-    "owner": null,
-    "reason": null
-   },
-   {
-    "key": "text:another lane's w2_36 change, smart-mode share split by fuel at desnz's 6.8% and 14.2%, has sat uncommitted in the shared simulation/meter_reads.py since 03:10z with no claim naming it, and 77b6a16d9 records that since 05:47z no new run can be made cleanly because of it",
-    "what": "THE MACHINE'S, THIS STRETCH. Another lane's W2_36 change, smart-mode share split by fuel at DESNZ's 6.8% and 14.2%, has sat uncommitted in the shared simulation/meter_reads.py since 03:10Z with no claim naming it, and 77b6a16d9 records that since 05:47Z no new run can be made cleanly because of it. The brief reads W2_36 as 'nothing has worked it'. A run launched from that tree would carry a world change nobody graded. Focus item 2. Not fixed.",
-    "last_at": "2026-10-26T09:24:21.781253+00:00",
-    "first_at": "2026-10-26T09:24:21.781253+00:00",
-    "times_listed": 1,
-    "corrected": false,
     "fate": null,
     "status": null,
     "retired": false,
@@ -1011,18 +1037,63 @@
     "reason": null
    }
   ],
-  "distinct": 41,
+  "distinct": 43,
   "triaged": 4,
   "triaged_by_fate": {
    "fix": 2,
    "fold": 2,
    "accept": 0
   },
-  "untriaged": 37,
-  "distinct_open": 7,
-  "rows": 308,
+  "untriaged": 39,
+  "distinct_open": 8,
+  "rows": 317,
   "triage_register": "read",
   "entries": [
+   {
+    "at": "2026-10-26T12:24:54.090591+00:00",
+    "corrected": false,
+    "problem": "triage:the-live-renewal-belief-ranks-leavers-backwards"
+   },
+   {
+    "at": "2026-10-26T12:24:54.090591+00:00",
+    "corrected": false,
+    "problem": "text:explore's cast rules (83c4fc9d6) found 4,764 of 14,012 pre-renewal invoices on the 19 oct run (199 of 550 households) more than 0.5% above min(cap, epg), and a november 2022 bill at exactly the cap instead of the epg"
+   },
+   {
+    "at": "2026-10-26T12:24:54.090591+00:00",
+    "corrected": false,
+    "problem": "text:a finished long job lost its grader"
+   },
+   {
+    "at": "2026-10-26T12:24:54.090591+00:00",
+    "corrected": false,
+    "problem": "text:four advisor files were edited in place by a lane (b2bc3d8da, 2ada25833, d86d8749c), so the advisor channel now refuses them as unsigned, though the advisor's own staging commits verify"
+   },
+   {
+    "at": "2026-10-26T12:24:54.090591+00:00",
+    "corrected": false,
+    "problem": "text:the brief reads the shared checkout, which is 57 commits behind origin"
+   },
+   {
+    "at": "2026-10-26T12:24:54.090591+00:00",
+    "corrected": false,
+    "problem": "text:i wrote w2_41 (item 1) and pb8 (item 2) as two items over one event"
+   },
+   {
+    "at": "2026-10-26T12:24:54.090591+00:00",
+    "corrected": false,
+    "problem": "text:another lane's w2_36 change, smart-mode share split by fuel at desnz's 6.8% and 14.2%, has sat uncommitted in the shared simulation/meter_reads.py since 03:10z with no claim naming it, and 77b6a16d9 records that since 05:47z no new run can be made cleanly because of it"
+   },
+   {
+    "at": "2026-10-26T12:24:54.090591+00:00",
+    "corrected": true,
+    "problem": "text:the 4ae8da9b0f re-offer, clean on its own book after 166ce2b5b, was refused because the publish commit swept another lane's uncommitted b13 level move (level_current 1 to 2) from the shared docs/design/maturity_map.yaml"
+   },
+   {
+    "at": "2026-10-26T12:24:54.090591+00:00",
+    "corrected": false,
+    "problem": "text:i put the stranded meter_reads.py diff second, behind a publish that a live process was already working, and it was not drawn: the lane handed its tick to item 1 and to b13's continuation"
+   },
    {
     "at": "2026-10-26T09:24:21.781253+00:00",
     "corrected": false,
@@ -2620,28 +2691,52 @@
    {
     "at": "2026-10-23T08:23:01.145005+00:00",
     "problems": []
-   },
-   {
-    "at": "2026-10-23T05:23:23.352315+00:00",
-    "problems": [
-     "the orienting session did not run: rc=1"
-    ]
    }
   ],
-  "outstanding": 262,
-  "corrected": 46,
+  "outstanding": 270,
+  "corrected": 47,
   "correction_not_recorded": 0,
   "empty_means": ""
  },
  "what_next": {
   "focus": [
    "the-4ae8da9b0f-run-is-published-once-its-book-bills-clean",
-   "the-stranded-w2-36-fuel-split-in-meter-reads-is-landed-or-handed-back",
    "b13-a-gas-leg-that-ended-is-not-switched-again",
+   "the-stranded-w2-36-fuel-split-in-meter-reads-is-landed-or-handed-back",
    "the-mandate-run-grades-pb8-and-w2-41-on-one-fresh-book",
    "e6-the-provision-sees-a-stopped-mandate"
   ],
   "steer_checks": [
+   {
+    "by_class": {
+     "lane_0": {
+      "drawn": [
+       "b13-a-gas-leg-that-ended-is-not-switched-again"
+      ],
+      "focus": [
+       "the-4ae8da9b0f-run-is-published-once-its-book-bills-clean",
+       "the-stranded-w2-36-fuel-split-in-meter-reads-is-landed-or-handed-back",
+       "b13-a-gas-leg-that-ended-is-not-switched-again",
+       "the-mandate-run-grades-pb8-and-w2-41-on-one-fresh-book",
+       "e6-the-provision-sees-a-stopped-mandate"
+      ],
+      "steered": true
+     }
+    },
+    "drawn": [
+     "b13-a-gas-leg-that-ended-is-not-switched-again"
+    ],
+    "focus": [
+     "the-4ae8da9b0f-run-is-published-once-its-book-bills-clean",
+     "the-stranded-w2-36-fuel-split-in-meter-reads-is-landed-or-handed-back",
+     "b13-a-gas-leg-that-ended-is-not-switched-again",
+     "the-mandate-run-grades-pb8-and-w2-41-on-one-fresh-book",
+     "e6-the-provision-sees-a-stopped-mandate"
+    ],
+    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-10-26T09:24:21.781253+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
+    "steered": true,
+    "window": "this stretch only -- the 3.0h since 2026-10-26T09:24:21.781253+00:00"
+   },
    {
     "by_class": {
      "lane_0": {
@@ -2779,40 +2874,6 @@
     "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-10-25T21:22:13.273306+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
     "steered": true,
     "window": "this stretch only -- the 3.0h since 2026-10-25T21:22:13.273306+00:00"
-   },
-   {
-    "by_class": {
-     "lane_0": {
-      "drawn": [
-       "e6-the-arrears-overlay-arm-is-run-and-graded",
-       "b13-dual-fuel-household-one-account-test",
-       "ep12-the-company-decides-the-debt-objection"
-      ],
-      "focus": [
-       "e6-the-arrears-overlay-arm-is-run-and-graded",
-       "b13-dual-fuel-household-one-account-test",
-       "ep12-the-company-decides-the-debt-objection",
-       "w2-41-a-household-cancels-its-mandate",
-       "a-continuation-is-re-asked-before-it-is-offered"
-      ],
-      "steered": true
-     }
-    },
-    "drawn": [
-     "e6-the-arrears-overlay-arm-is-run-and-graded",
-     "b13-dual-fuel-household-one-account-test",
-     "ep12-the-company-decides-the-debt-objection"
-    ],
-    "focus": [
-     "e6-the-arrears-overlay-arm-is-run-and-graded",
-     "b13-dual-fuel-household-one-account-test",
-     "ep12-the-company-decides-the-debt-objection",
-     "w2-41-a-household-cancels-its-mandate",
-     "a-continuation-is-re-asked-before-it-is-offered"
-    ],
-    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-10-25T18:21:19.031438+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
-    "steered": true,
-    "window": "this stretch only -- the 3.0h since 2026-10-25T18:21:19.031438+00:00"
    }
   ],
   "steered_recently": true,
@@ -2822,13 +2883,12 @@
   "available": true,
   "population": 36,
   "chained": 36,
-  "minted": 8,
-  "unminted": 27,
+  "minted": 9,
+  "unminted": 26,
   "unminted_by_kind": {
    "alarm": 16,
    "finding": 9,
-   "reference": 1,
-   "unknown": 1
+   "reference": 1
   },
   "unresolved": [
    {
@@ -2846,7 +2906,7 @@
   "by_epoch": {
    "2": 2,
    "3": 1,
-   "4": 5
+   "4": 6
   },
   "unchained": [],
   "unreadable": 0,
@@ -2856,6 +2916,7 @@
    "read": 0,
    "not_yet_read": [
     "SEAT_FINDING_A_DUAL_FUEL_HOUSEHOLD_IS_TWO_ACCOUNTS_IN_COLLECTIONS_2026-10-25.md",
+    "SEAT_FINDING_A_DUAL_HOUSEHOLDS_TWO_FUELS_ANSWER_THEIR_ANNIVERSARY_OFFERS_APART_2026-10-26.md",
     "SEAT_FINDING_EXPLORES_CAST_FINDS_STANDARD_VARIABLE_BILLS_ABOVE_THE_CAP_AND_NO_MOVER_OR_TWO_RATE_HOME_2026-10-23.md",
     "SEAT_FINDING_OWN_CODE_REVIEW_UNUSED_DUPLICATED_AND_WALL_CROSSING_2026-10-24.md",
     "SEAT_FINDING_SVT_BILLS_ABOVE_THE_CAP_ARE_TWO_DEFECTS_NOT_A_GRADING_ARTEFACT_2026-10-23.md",
@@ -2937,7 +2998,7 @@
     },
     {
      "date": "2026-10-26",
-     "commit": "3dfe5cad4",
+     "commit": "60e4d4dc5",
      "population": 105,
      "chained": 105,
      "minted": 72,
