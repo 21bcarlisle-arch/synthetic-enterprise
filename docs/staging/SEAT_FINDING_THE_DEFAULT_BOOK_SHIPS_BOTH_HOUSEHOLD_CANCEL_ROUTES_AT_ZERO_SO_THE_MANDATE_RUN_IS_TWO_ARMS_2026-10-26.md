@@ -72,4 +72,73 @@ reaching the desk and priced; otherwise this page says why not.
 
 ## Result
 
-*(owed: added by the continuation that grades the arms)*
+Graded 26 Oct ~21:10Z by `the-mandate-run-arms-are-graded`. Both units finished (DONE.json, arm A
+3,600 s, arm B 3,561 s, nothing skipped). Both graders ran from the run worktree (origin 67a893e749).
+Outputs: `<out>/grade_d.json`, `<out>/grade_net.json`.
+
+**Leg (d), the desk's stops.** Denominators are the same in both arms: 962 DD legs, 568 DD households.
+
+| | arm A, default | arm B, own-cancel 0.005 |
+|---|---|---|
+| DD presentations / returned unpaid | 37,449 / 653 | 36,831 / 659 |
+| returns stops (legs / households) | 64 / 43 | 66 / 45 |
+| owed at a returns stop: total, median | £8,438.37, £87.23 | £8,517.17, £86.31 |
+| returns stops with nothing owed | 0 | 0 |
+| **ADDACS 1 advices received by the desk** | 0 | **0** |
+| spells off DD / closed by a re-mandate | 64 / 0 | 66 / 0 |
+
+Arm A's zero is by construction, as filed. **Arm B's zero is not.** The world did act. PB8 recorded
+20 own-reasons cancellations (`household_method_acts_summary`: 10 moderate stress, 6 low, 4 high)
+over 31 fuel legs. The triad honoured them: in the cancel month 20 of the 31 legs' collections come
+back failed, and the following month they move to standard credit. (Of the other 11, 6 were
+already paying on receipt that month, 5 of them because the desk had stopped them earlier on
+returns. The other 5 show a DD success in the cancel month. That is not chased here.)
+But the desk was told about none of them. `_run_rails` emits the ADDACS 1 record only when
+`shock.cancel_return and told is None and exit_ is None` (`simulation/dd_collection_book.py:555`).
+`told` is the one-payment-truth outcome, and it is set for **1,040 of 1,046 legs**, because
+`world_payment_truth.UNIFIED` has shipped on since 12 Oct. So on the shipped world the household's
+cancel reaches the rails as one failed collection, and then the leg leaves DD by the triad's truth.
+The supplier's register still holds a live mandate, and no ADDACS 1 is ever received.
+
+- **Prediction 1 (no ADDACS 1 stop reaches the desk before a failed collection): NOT GRADED.**
+  Its denominator is zero: there are no ADDACS 1 stops to time. It is not marked held, even though
+  the count it named (0 before) is 0. A vacuous zero is not a hold. In arm B, 20 of the 20 triad
+  cancels that failed show a failed collection in the cancel month, which is the shape the
+  prediction expected, but the advice that should follow it never fires.
+- **W2_41 stays at 1.** Arm B shows the household's act, but not as an ADDACS 1 reaching the desk
+  and priced. The cause is the gate above, not the timing question the prediction was about.
+  Follow-on: the rails' ADDACS branch has to read the truth's failed cancel-month collection. That
+  is an error fix, filed as `the-addacs-1-advice-reaches-the-desk-under-one-payment-truth`.
+
+**f89db6ff3's net.** Settlement view formed in-process in both arms, over 732 supply-point-years.
+
+| year | gross £ | net £ | supply-point-years |
+|---|---|---|---|
+| 2016 | −1.68 | **+32.69** | 78 |
+| 2017 | −251.98 | **+39.46** | 168 |
+| 2018 | −655.88 | −274.31 | 141 |
+| 2019 | −291.30 | −187.50 | 109 |
+| 2020 | −80.41 | −25.20 | 86 |
+| 2021 | −71.25 | −53.98 | 45 |
+| 2022 | +37.43 | **−7.53** | 21 |
+| 2023 | +109.30 | +90.39 | 31 |
+| 2024 | −623.66 | −156.84 | 38 |
+| 2025 | −221.31 | −122.07 | 15 |
+| **decade** | **−2,050.75** | **−664.89** | **732** |
+
+Arm B differs from A by at most 3p in any cell (decade −2,050.78 / −664.92). That is expected,
+because a mandate cancel moves no settled volume.
+
+- **Prediction 2, as filed ("net's move has the same sign as gross's and a smaller magnitude"):
+  HELD book-wide, REFUTED by year.** For the decade, net is −£664.89 against gross's −£2,050.75:
+  the same sign, at 0.32 of gross. By year, **3 of 10 years have the opposite sign**: 2016, 2017
+  and 2022. In **1 of 10** (2016) net moves further than gross, though gross there is £1.68, so
+  the ratio says little. 2017 does say something: 168 supply-point-years, gross −£252 and net +£39.
+- The filed reason ("levies are roughly a third to a half of an electricity unit rate") implies
+  net ≈ gross × 0.5–0.67 wherever volume is what moves. The decade's 0.32 is outside that, and the
+  same-sign years range from 0.25 (2024) to 0.83 (2023). So **net is not gross scaled by a levy
+  share.** Something in net moves on a different base from gross's volume: the standing charge, the
+  profile-spread rule applied to costs and revenue separately, or legs where one is a credit.
+  **I cannot yet say which.** Prediction, filed now: the 2017 flip sits on a few legs whose policy
+  and network costs move against their revenue. One-variable check: decompose 2017's net by leg
+  into revenue, policy and network moves. Carried as `the-net-settlement-move-is-decomposed-by-leg`.
