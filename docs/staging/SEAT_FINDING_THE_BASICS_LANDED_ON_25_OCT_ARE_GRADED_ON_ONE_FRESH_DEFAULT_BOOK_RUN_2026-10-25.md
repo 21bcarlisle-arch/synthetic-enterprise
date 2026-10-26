@@ -140,3 +140,28 @@ GBP 0.00.
 
 If the fix cannot land quickly, the reversible alternative is to revert c5a3e96fe. That restores
 the two-journey defect it closed, so it is the second choice.
+
+**Read in-process, 25 Oct, and the suspected mechanism above is refuted.** A probe run at
+`65906582e5` (same book) wrapped the refusal and dumped ACC-SYN-2016-048's journey, its ledger in
+posting order, and every `record_period` and walk on it. The cure is not keyed per leg: it is
+already the account's balance (`age_balance` reads `ledger.balance`). And the wait for the slower
+leg held: both legs read as still posting on every call. What went wrong is the order in which
+held cash crossed:
+
+1. Electricity's whole term to 2021-01 posted first. Its late lump for the 2020-10 bill (dated
+   2020-11-11) was held on the account, waiting for gas.
+2. Gas posted next. Its lump for the 2020-09 bill (GBP 22.18, dated 2020-10-12) arrived later and
+   was **appended behind** the 2020-11-11 lump.
+3. `_settle_held` takes the head of the list as the oldest. It walked the journey to 2020-11-10 and
+   crossed the 2020-11-11 cash. That walk entered reminder_2 on 2020-10-12 lawfully, because the
+   ledger then held GBP 22.18 for the unpaid gas bill. Only then did the 2020-10-12 cash post,
+   beneath a step already taken. The refusal re-read reminder_2 on a ledger at GBP 0.00.
+
+Per-leg ledgers never mixed two legs' arrivals in one held list, which is why c5a3e96fe exposed
+this. **The fix:** held lumps are inserted in (value date, sequence) order
+(`LivePaymentTriad._hold`). **The control:**
+`test_held_cash_crosses_in_date_order_whichever_leg_it_came_from` asserts no cash crosses on a day
+its account was already walked past. It first asserts that an earlier lump did arrive behind a
+later one. The append mutant reds it, with 8 crossings past the walk on the 40-household fixture.
+Next is step 3 above: relaunch at the fix's origin commit and grade against the predictions,
+unedited.

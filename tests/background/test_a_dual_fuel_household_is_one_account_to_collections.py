@@ -11,6 +11,12 @@ Defect each control names:
     before gas, so walking the account on the electricity leg alone steps past gas bills not yet on
     the ledger. The partition is asserted first: a single-fuel household in the same book IS walked
     mid-run, so a walk that never happens cannot pass for one that waits.
+  * `test_held_cash_crosses_in_date_order_whichever_leg_it_came_from` -- the account's held lumps
+    were appended in arrival order, so electricity cash held for its whole term crossed before gas
+    cash dated earlier, the journey was walked past the gas day, and a step already taken there
+    read as dunning a cleared debt (ACC-SYN-2016-048, reminder_2 on 2020-10-12, every default-book
+    run at c5a3e96fe). The partition is asserted first: an earlier lump DID arrive behind a later
+    one, so a book that never mixes the legs' cash cannot pass for one that orders it.
 """
 from __future__ import annotations
 
@@ -60,3 +66,30 @@ def test_the_journey_waits_for_the_leg_still_to_post():
         _post(triad, h + "g", range(1, 13))
     assert all(walked.get(f"ACC-{h}") for h in _HOUSEHOLDS), "the account was never walked"
     assert max(walked[f"ACC-{h}"] for h in _HOUSEHOLDS) <= date(2020, 12, 28)
+
+
+def test_held_cash_crosses_in_date_order_whichever_leg_it_came_from():
+    triad = LivePaymentTriad()
+    triad.legs_still_posting = lambda household: {household, household + "g"}
+    walked = triad._consumer.collections_journeys._through
+    behind, past = [], []
+    hold, cross = triad._hold, triad._cross_settlement
+
+    def _hold(item):
+        held = triad._held_settlements.get(item[3], [])
+        if any(other[0] > item[0] for other in held):
+            behind.append(item[3])
+        hold(item)
+
+    def _cross(item):
+        if walked.get(item[3]) is not None and item[0] <= walked[item[3]]:
+            past.append((item[3], item[0], walked[item[3]]))
+        cross(item)
+
+    triad._hold, triad._cross_settlement = _hold, _cross
+    for h in _HOUSEHOLDS:
+        _post(triad, h, range(1, 13))
+        _post(triad, h + "g", range(1, 13))
+    triad.collections_journeys(date(2021, 6, 30))
+    assert behind, "no earlier lump arrived behind a later one held: the control asks nothing"
+    assert past == [], f"cash crossed on a day its account was already walked past: {past[:3]}"
