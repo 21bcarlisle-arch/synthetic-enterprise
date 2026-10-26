@@ -1,0 +1,2161 @@
+meta:
+  written_by: blind agent, 2026-10-26, read only site/knowledge, docs/market_research, docs/domain_artefact_library
+  conventions:
+    unit_rate: p/kWh EX-VAT all-in (export unit_rate_p_per_kwh)
+    standing_charge: GBP/day EX-VAT (export standing_charge_gbp_per_day)
+    row_dates: from/to inclusive
+    null_bound: null = GAP, never 0
+  blindfold_disclosure: Several market_research notes quote code paths and constants from company/ and simulation/ (e.g. a ±5% DD review threshold, a 15,000 kWh electricity envelope, 'the world bills at
+    GB average', 'the world has no Economy 7 homes'). They were seen incidentally while reading the notes; no bound here is taken from them.
+  files_read:
+  - docs/domain_artefact_library/INDEX.md
+  - docs/domain_artefact_library/regulatory/slc_21b_21ba_reads_and_back_billing.md
+  - docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json
+  - docs/domain_artefact_library/regulatory/ofgem_cap_standing_charges.json
+  - docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json
+  - docs/domain_artefact_library/regulatory/slc_28ad_multi_register_cap_test.md
+  - docs/domain_artefact_library/regulatory/ofgem_cap_multi_register_unit_rates.json (first 150 lines + all rows via json load)
+  - docs/domain_artefact_library/regulatory/uk_vat_rates.json
+  - docs/domain_artefact_library/regulatory/vat_fuel_and_power_de_minimis.json
+  - docs/domain_artefact_library/regulatory/pricing_differentiation_permissions.md
+  - docs/domain_artefact_library/regulatory/desnz_natural_gas_conversion_factor.json (first 60 lines)
+  - docs/domain_artefact_library/regulatory/ccl_main_rates.json (top-level metadata only)
+  - (listed only, not opened) docs/domain_artefact_library/regulatory/* and scope_briefs/*
+  - docs/market_research/need_domestic_electricity_high_tail.md
+  - docs/market_research/need_domestic_gas_high_tail.md
+  - docs/market_research/what_a_supplier_holds_to_size_a_direct_debit.md (§3 and grep lines)
+  - docs/market_research/read_access_and_theft_duties.md (lines 1-140)
+  - docs/market_research/default_tariff_cap_and_epg_on_the_bill.md (first 200 lines = whole)
+  - docs/market_research/ofgem_cap_windows.md
+  - docs/market_research/tariffs_and_the_default_tariff_2026-10-25.md
+  - docs/market_research/svt_rates_active_passive_2016_2025.md (lines 1-200)
+  - docs/market_research/payments_and_direct_debit_2026-10-25.md (lines 41-100, 216-240, 284-358 + grep)
+  - docs/market_research/back_billing_and_liability.md (lines 1-60 + headings)
+  - docs/market_research/unbilled_energy_and_revenue_assurance.md (lines 520-540, 780-795, 965-1000)
+  - docs/market_research/how_gb_gas_and_power_prices_move_2026-10-25.md (lines 1-80 + grep)
+  - docs/market_research/dated_household_cost_and_price_series_2026-10-25.md (grep 'gas' lines only)
+  - docs/market_research/network_limits_on_home_electrification_2026-10-25.md (grep lines only)
+  - 'grep-only hits (matching lines, files not opened): docs/market_research/how_a_supplier_shapes_an_estimate_for_an_unread_month.md, ASSUMPTIONS.md, cheapest_fix_against_the_default_tariff_gb_2016_2025.md,
+    f4_international_expansion_probe.md, debt_and_collections.md, other_market_italy_2026-10-25.md, which_cars_households_run_and_what_they_use_2026-10-25.md, when_an_electrically_heated_homes_water_heater_runs.md,
+    what_a_conversion_decision_is_at_a_cap_boundary.md; filename-only grep lists over docs/market_research and site/knowledge'
+  - site/knowledge/price-cap/index.html (a JS shell; its text body is empty, data lives in site/data/knowledge_*.json which was NOT read); directory listing of site/knowledge/
+invariants:
+- id: INV_UNIT_RATE_SVT_ELEC
+  family: unit_rate
+  statement: A domestic single-rate electricity default (SVT/deemed) unit rate sits between the cap's commodity allowance for that window and the cap's unit rate for the payment method, from 1 Jan 2019.
+  applies_to:
+    commodity: electricity
+    segment: domestic
+    tariff: svt (default/evergreen and deemed)
+    meter: single-register (exactly one distinct register_id on the account)
+  basis: p/kWh, EX-VAT, GB median of Ofgem's 15 cap-model Total rows (14 regions + GB), single-rate, per payment method (DD column is `upper`). Compare against unit_rate_p_per_kwh (all-in, ex-VAT).
+  evaluation: 'Evaluate the term against EVERY cap window its [tariff_effective_from, tariff_effective_to or account end] overlaps; the term must satisfy each overlapped window''s row. A term starting before
+    2019-01-01 is graded against the pre-cap rows for that part of its life. Payment method for the window = from the account''s payments dated inside the window: any ''prepayment top-up'' -> prepayment
+    column; else all ''direct debit'' -> DD column (`upper`); else (card/cash only) -> standard-credit column. No payments in the window -> use the maximum of the three columns.'
+  rows:
+  - from: '2019-01-01'
+    to: '2019-03-31'
+    lower: 6.632
+    upper: 15.723
+    upper_standard_credit: 16.562
+    upper_prepayment: 15.553
+    lower_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.direct_debit.periods[starts=2019-01-01].commodity_share_min x .unit_rate_p_per_kwh_ex_vat
+      = 0.4218 x 15.723 = 6.632
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.<method>.periods[starts=2019-01-01].unit_rate_p_per_kwh_ex_vat (DD 15.723, standard credit
+      16.562, prepayment 15.553); cross-check docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2019-01-01].elec 165.2 GBP/MWh inc VAT /10/1.05 = 15.733
+  - from: '2019-04-01'
+    to: '2019-09-30'
+    lower: 8.024
+    upper: 17.666
+    upper_standard_credit: 18.609
+    upper_prepayment: 17.487
+    lower_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.direct_debit.periods[starts=2019-04-01].commodity_share_min x .unit_rate_p_per_kwh_ex_vat
+      = 0.4542 x 17.666 = 8.024
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.<method>.periods[starts=2019-04-01].unit_rate_p_per_kwh_ex_vat (DD 17.666, standard credit
+      18.609, prepayment 17.487); cross-check docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2019-04-01].elec 185.6 GBP/MWh inc VAT /10/1.05 = 17.676
+  - from: '2019-10-01'
+    to: '2020-03-31'
+    lower: 7.282
+    upper: 16.986
+    upper_standard_credit: 17.893
+    upper_prepayment: 16.808
+    lower_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.direct_debit.periods[starts=2019-10-01].commodity_share_min x .unit_rate_p_per_kwh_ex_vat
+      = 0.4287 x 16.986 = 7.282
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.<method>.periods[starts=2019-10-01].unit_rate_p_per_kwh_ex_vat (DD 16.986, standard credit
+      17.893, prepayment 16.808); cross-check docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2019-10-01].elec 178.5 GBP/MWh inc VAT /10/1.05 = 17.0
+  - from: '2020-04-01'
+    to: '2020-09-30'
+    lower: 6.983
+    upper: 16.766
+    upper_standard_credit: 17.661
+    upper_prepayment: 16.587
+    lower_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.direct_debit.periods[starts=2020-04-01].commodity_share_min x .unit_rate_p_per_kwh_ex_vat
+      = 0.4165 x 16.766 = 6.983
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.<method>.periods[starts=2020-04-01].unit_rate_p_per_kwh_ex_vat (DD 16.766, standard credit
+      17.661, prepayment 16.587); cross-check docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2020-04-01].elec 178.1 GBP/MWh inc VAT /10/1.05 = 16.962
+  - from: '2020-10-01'
+    to: '2021-03-31'
+    lower: 6.206
+    upper: 16.152
+    upper_standard_credit: 17.014
+    upper_prepayment: 15.81
+    lower_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.direct_debit.periods[starts=2020-10-01].commodity_share_min x .unit_rate_p_per_kwh_ex_vat
+      = 0.3842 x 16.152 = 6.206
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.<method>.periods[starts=2020-10-01].unit_rate_p_per_kwh_ex_vat (DD 16.152, standard credit
+      17.014, prepayment 15.81); cross-check docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2020-10-01].elec 171.9 GBP/MWh inc VAT /10/1.05 = 16.371
+  - from: '2021-04-01'
+    to: '2021-09-30'
+    lower: 7.248
+    upper: 18.004
+    upper_standard_credit: 18.965
+    upper_prepayment: 17.523
+    lower_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.direct_debit.periods[starts=2021-04-01].commodity_share_min x .unit_rate_p_per_kwh_ex_vat
+      = 0.4026 x 18.004 = 7.248
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.<method>.periods[starts=2021-04-01].unit_rate_p_per_kwh_ex_vat (DD 18.004, standard credit
+      18.965, prepayment 17.523); cross-check docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2021-04-01].elec 189.5 GBP/MWh inc VAT /10/1.05 = 18.048
+  - from: '2021-10-01'
+    to: '2022-03-31'
+    lower: 9.039
+    upper: 19.784
+    upper_standard_credit: 20.84
+    upper_prepayment: 19.457
+    lower_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.direct_debit.periods[starts=2021-10-01].commodity_share_min x .unit_rate_p_per_kwh_ex_vat
+      = 0.4569 x 19.784 = 9.039
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.<method>.periods[starts=2021-10-01].unit_rate_p_per_kwh_ex_vat (DD 19.784, standard credit
+      20.84, prepayment 19.457); cross-check docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2021-10-01].elec 208.0 GBP/MWh inc VAT /10/1.05 = 19.81
+  - from: '2022-04-01'
+    to: '2022-09-30'
+    lower: 16.319
+    upper: 26.942
+    upper_standard_credit: 28.379
+    upper_prepayment: 26.718
+    lower_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.direct_debit.periods[starts=2022-04-01].commodity_share_min x .unit_rate_p_per_kwh_ex_vat
+      = 0.6057 x 26.942 = 16.319
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.<method>.periods[starts=2022-04-01].unit_rate_p_per_kwh_ex_vat (DD 26.942, standard credit
+      28.379, prepayment 26.718); cross-check docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2022-04-01].elec 283.4 GBP/MWh inc VAT /10/1.05 = 26.99
+  - from: '2022-10-01'
+    to: '2022-12-31'
+    lower: 32.381
+    upper: 49.246
+    upper_standard_credit: 51.869
+    upper_prepayment: 48.338
+    lower_source: 'docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.direct_debit.periods[starts=2022-10-01].commodity_share_min x .unit_rate_p_per_kwh_ex_vat
+      = 0.7471 x 49.246 = 36.792; EPG window: lower = min(36.792, EPG 340.0 GBP/MWh inc VAT /10/1.05 = 32.381) = 32.381 so a household-charged (post-EPG) rate does not false-fire'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.<method>.periods[starts=2022-10-01].unit_rate_p_per_kwh_ex_vat (DD 49.246, standard credit
+      51.869, prepayment 48.338); cross-check docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2022-10-01].elec 518.9 GBP/MWh inc VAT /10/1.05 = 49.419
+    household_charged_ceiling_epg: 32.381
+  - from: '2023-01-01'
+    to: '2023-03-31'
+    lower: 32.381
+    upper: 64.139
+    upper_standard_credit: 67.554
+    upper_prepayment: 63.148
+    lower_source: 'docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.direct_debit.periods[starts=2023-01-01].commodity_share_min x .unit_rate_p_per_kwh_ex_vat
+      = 0.7961 x 64.139 = 51.061; EPG window: lower = min(51.061, EPG 340.0 GBP/MWh inc VAT /10/1.05 = 32.381) = 32.381 so a household-charged (post-EPG) rate does not false-fire'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.<method>.periods[starts=2023-01-01].unit_rate_p_per_kwh_ex_vat (DD 64.139, standard credit
+      67.554, prepayment 63.148); cross-check docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2023-01-01].elec 674.7 GBP/MWh inc VAT /10/1.05 = 64.257
+    household_charged_ceiling_epg: 32.381
+  - from: '2023-04-01'
+    to: '2023-06-30'
+    lower: 32.381
+    upper: 47.912
+    upper_standard_credit: 50.464
+    upper_prepayment: 46.808
+    lower_source: 'docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.direct_debit.periods[starts=2023-04-01].commodity_share_min x .unit_rate_p_per_kwh_ex_vat
+      = 0.7319 x 47.912 = 35.067; EPG window: lower = min(35.067, EPG 340.0 GBP/MWh inc VAT /10/1.05 = 32.381) = 32.381 so a household-charged (post-EPG) rate does not false-fire'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.<method>.periods[starts=2023-04-01].unit_rate_p_per_kwh_ex_vat (DD 47.912, standard credit
+      50.464, prepayment 46.808); cross-check docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2023-04-01].elec 506.0 GBP/MWh inc VAT /10/1.05 = 48.19
+    household_charged_ceiling_epg: 32.381
+  - from: '2023-07-01'
+    to: '2023-09-30'
+    lower: 16.04
+    upper: 28.541
+    upper_standard_credit: 30.064
+    upper_prepayment: 27.545
+    lower_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.direct_debit.periods[starts=2023-07-01].commodity_share_min x .unit_rate_p_per_kwh_ex_vat
+      = 0.562 x 28.541 = 16.04
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.<method>.periods[starts=2023-07-01].unit_rate_p_per_kwh_ex_vat (DD 28.541, standard credit
+      30.064, prepayment 27.545); cross-check docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2023-07-01].elec 301.1 GBP/MWh inc VAT /10/1.05 = 28.676
+  - from: '2023-10-01'
+    to: '2023-12-31'
+    lower: 14.254
+    upper: 25.964
+    upper_standard_credit: 27.333
+    upper_prepayment: 25.55
+    lower_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.direct_debit.periods[starts=2023-10-01].commodity_share_min x .unit_rate_p_per_kwh_ex_vat
+      = 0.549 x 25.964 = 14.254
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.<method>.periods[starts=2023-10-01].unit_rate_p_per_kwh_ex_vat (DD 25.964, standard credit
+      27.333, prepayment 25.55); cross-check docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2023-10-01].elec 273.5 GBP/MWh inc VAT /10/1.05 = 26.048
+  - from: '2024-01-01'
+    to: '2024-03-31'
+    lower: 15.369
+    upper: 27.121
+    upper_standard_credit: 28.55
+    upper_prepayment: 26.701
+    lower_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.direct_debit.periods[starts=2024-01-01].commodity_share_min x .unit_rate_p_per_kwh_ex_vat
+      = 0.5667 x 27.121 = 15.369
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.<method>.periods[starts=2024-01-01].unit_rate_p_per_kwh_ex_vat (DD 27.121, standard credit
+      28.55, prepayment 26.701); cross-check docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2024-01-01].elec 286.2 GBP/MWh inc VAT /10/1.05 = 27.257
+  - from: '2024-04-01'
+    to: '2024-06-30'
+    lower: 11.572
+    upper: 23.35
+    upper_standard_credit: 24.578
+    upper_prepayment: 22.606
+    lower_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.direct_debit.periods[starts=2024-04-01].commodity_share_min x .unit_rate_p_per_kwh_ex_vat
+      = 0.4956 x 23.35 = 11.572
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.<method>.periods[starts=2024-04-01].unit_rate_p_per_kwh_ex_vat (DD 23.35, standard credit
+      24.578, prepayment 22.606); cross-check docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2024-04-01].elec 245.0 GBP/MWh inc VAT /10/1.05 = 23.333
+  - from: '2024-07-01'
+    to: '2024-09-30'
+    lower: 9.851
+    upper: 21.308
+    upper_standard_credit: 22.427
+    upper_prepayment: 20.573
+    lower_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.direct_debit.periods[starts=2024-07-01].commodity_share_min x .unit_rate_p_per_kwh_ex_vat
+      = 0.4623 x 21.308 = 9.851
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.<method>.periods[starts=2024-07-01].unit_rate_p_per_kwh_ex_vat (DD 21.308, standard credit
+      22.427, prepayment 20.573); cross-check docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2024-07-01].elec 223.6 GBP/MWh inc VAT /10/1.05 = 21.295
+  - from: '2024-10-01'
+    to: '2024-12-31'
+    lower: 11.261
+    upper: 23.335
+    upper_standard_credit: 24.561
+    upper_prepayment: 22.554
+    lower_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.direct_debit.periods[starts=2024-10-01].commodity_share_min x .unit_rate_p_per_kwh_ex_vat
+      = 0.4826 x 23.335 = 11.261
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.<method>.periods[starts=2024-10-01].unit_rate_p_per_kwh_ex_vat (DD 23.335, standard credit
+      24.561, prepayment 22.554); cross-check docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2024-10-01].elec 245.0 GBP/MWh inc VAT /10/1.05 = 23.333
+  - from: '2025-01-01'
+    to: '2025-03-31'
+    lower: 11.573
+    upper: 23.672
+    upper_standard_credit: 24.916
+    upper_prepayment: 22.889
+    lower_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.direct_debit.periods[starts=2025-01-01].commodity_share_min x .unit_rate_p_per_kwh_ex_vat
+      = 0.4889 x 23.672 = 11.573
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.<method>.periods[starts=2025-01-01].unit_rate_p_per_kwh_ex_vat (DD 23.672, standard credit
+      24.916, prepayment 22.889); cross-check docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2025-01-01].elec 248.6 GBP/MWh inc VAT /10/1.05 = 23.676
+  - from: '2025-04-01'
+    to: '2025-06-30'
+    lower: 12.366
+    upper: 25.742
+    upper_standard_credit: 27.096
+    upper_prepayment: 24.949
+    lower_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.direct_debit.periods[starts=2025-04-01].commodity_share_min x .unit_rate_p_per_kwh_ex_vat
+      = 0.4804 x 25.742 = 12.366
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.<method>.periods[starts=2025-04-01].unit_rate_p_per_kwh_ex_vat (DD 25.742, standard credit
+      27.096, prepayment 24.949); cross-check docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2025-04-01].elec 270.3 GBP/MWh inc VAT /10/1.05 = 25.743
+  - from: '2025-07-01'
+    to: '2025-09-30'
+    lower: 11.118
+    upper: 24.564
+    upper_standard_credit: 25.946
+    upper_prepayment: 23.786
+    lower_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.direct_debit.periods[starts=2025-07-01].commodity_share_min x .unit_rate_p_per_kwh_ex_vat
+      = 0.4526 x 24.564 = 11.118
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.<method>.periods[starts=2025-07-01].unit_rate_p_per_kwh_ex_vat (DD 24.564, standard credit
+      25.946, prepayment 23.786); cross-check docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2025-07-01].elec 257.3 GBP/MWh inc VAT /10/1.05 = 24.505
+  - from: '2025-10-01'
+    to: '2025-12-31'
+    lower: 11.42
+    upper: 25.215
+    upper_standard_credit: 26.607
+    upper_prepayment: 24.441
+    lower_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.direct_debit.periods[starts=2025-10-01].commodity_share_min x .unit_rate_p_per_kwh_ex_vat
+      = 0.4529 x 25.215 = 11.42
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.<method>.periods[starts=2025-10-01].unit_rate_p_per_kwh_ex_vat (DD 25.215, standard credit
+      26.607, prepayment 24.441); cross-check docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2025-10-01].elec 263.5 GBP/MWh inc VAT /10/1.05 = 25.095
+  - from: '2026-01-01'
+    to: '2026-03-31'
+    lower: 11.759
+    upper: 26.502
+    upper_standard_credit: 27.969
+    upper_prepayment: 25.688
+    lower_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.direct_debit.periods[starts=2026-01-01].commodity_share_min x .unit_rate_p_per_kwh_ex_vat
+      = 0.4437 x 26.502 = 11.759
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.<method>.periods[starts=2026-01-01].unit_rate_p_per_kwh_ex_vat (DD 26.502, standard credit
+      27.969, prepayment 25.688); cross-check docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2026-01-01].elec 276.9 GBP/MWh inc VAT /10/1.05 = 26.371
+  - from: '2026-04-01'
+    to: '2026-06-30'
+    lower: 12.055
+    upper: 23.711
+    upper_standard_credit: 25.028
+    upper_prepayment: 22.993
+    lower_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.direct_debit.periods[starts=2026-04-01].commodity_share_min x .unit_rate_p_per_kwh_ex_vat
+      = 0.5084 x 23.711 = 12.055
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.<method>.periods[starts=2026-04-01].unit_rate_p_per_kwh_ex_vat (DD 23.711, standard credit
+      25.028, prepayment 22.993); cross-check docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2026-04-01].elec 246.7 GBP/MWh inc VAT /10/1.05 = 23.495
+  - from: '2026-07-01'
+    to: '2026-09-30'
+    lower: 13.157
+    upper: 25.08
+    upper_standard_credit: 26.476
+    upper_prepayment: 24.322
+    lower_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.direct_debit.periods[starts=2026-07-01].commodity_share_min x .unit_rate_p_per_kwh_ex_vat
+      = 0.5246 x 25.08 = 13.157
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.<method>.periods[starts=2026-07-01].unit_rate_p_per_kwh_ex_vat (DD 25.08, standard credit
+      26.476, prepayment 24.322); cross-check docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2026-07-01].elec 261.1 GBP/MWh inc VAT /10/1.05 = 24.867
+  - from: '2026-10-01'
+    to: '2026-12-31'
+    lower: 14.446
+    upper: 26.467
+    upper_standard_credit: 27.955
+    upper_prepayment: 25.658
+    lower_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.direct_debit.periods[starts=2026-10-01].commodity_share_min x .unit_rate_p_per_kwh_ex_vat
+      = 0.5458 x 26.467 = 14.446
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.<method>.periods[starts=2026-10-01].unit_rate_p_per_kwh_ex_vat (DD 26.467, standard credit
+      27.955, prepayment 25.658); cross-check docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2026-10-01].elec 263.2 GBP/MWh inc VAT /10/1.0 = 26.32
+  tolerance:
+    upper_relative: 0.015
+    reason: 'The upper bound is Ofgem''s model derivation; its worst disagreement with the published cap levels across 21 periods is 1.34% (docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#cross_check_against_published_cap_levels.worst_relative_error
+      = 0.0134). 1.5% absorbs that and publication rounding, nothing else. Lower bound has no tolerance: it already uses the regional MINIMUM commodity share (conservative).'
+  regional_caveat: 'GAP: both bounds are GB medians. The cap is set per region (14 regions) and the export carries no region. The regional spread of the electricity UNIT RATE is not in the commons (only
+    the commodity share''s regional min/max is). Report the exceedance size beside any upper breach so a reader can judge it; do not widen the bound by an invented regional margin.'
+  epg_note: '1 Oct 2022 - 30 Jun 2023: the Energy Price Guarantee held the household-charged rate at 34.0p/kWh inc VAT (= 32.381 ex VAT) while the supplier''s tariff could sit at the cap (Treasury paid
+    the gap). The export does not say which of the two unit_rate_p_per_kwh holds, so the EPG rows accept both: lower = min(commodity floor, EPG ex-VAT), upper = cap. The household-side check is INV_UNIT_RATE_EPG_HOUSEHOLD.'
+  prepayment_note: Prepayment sat under the CMA prepayment cap (Apr 2017 - end 2020) and joined the default cap from 1 Apr 2021 (docs/market_research/tariffs_and_the_default_tariff_2026-10-25.md V4). Whether
+    the model's prepayment column for 2019-01..2021-03 equals the CMA cap then in force is NOT established; treat upper_prepayment in those rows as a belief.
+  floor_meaning: 'The floor is Ofgem''s DIRECT FUEL + CAPACITY MARKET allowance (the commodity components DF, CM of the cap model), i.e. the regulator''s efficient wholesale cost for that delivery window.
+    An SVT below it is selling below the cap''s own wholesale cost: lawful but a flag a professional would ask about, so severity is ''flag'' below and ''breach'' above.'
+  severity:
+    below_lower: flag
+    above_upper: 'breach (SLC 28AD.2, at any consumption level: unit rate must be at or below the cap slope, docs/domain_artefact_library/regulatory/slc_28ad_multi_register_cap_test.md ''What the text settles''
+      item 3)'
+  export_fields:
+  - unit_rate_p_per_kwh
+  - tariff_effective_from
+  - tariff_effective_to
+  - tariff kind
+  - register_id
+  - payment_method
+  - payment_date
+  - segment
+  - commodity
+  checkable: true
+  gap: regional spread of the unit rate (see regional_caveat)
+  source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json (by_payment_method.*.periods); docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json (cross-check,
+    EPG); docs/domain_artefact_library/regulatory/slc_28ad_multi_register_cap_test.md
+- id: INV_UNIT_RATE_SVT_ELEC_PRE_CAP
+  family: unit_rate
+  statement: Before the cap (2016-2018) a domestic electricity SVT unit rate has a wholesale floor but no statutory ceiling.
+  applies_to:
+    commodity: electricity
+    segment: domestic
+    tariff: svt
+    meter: single-register
+  basis: p/kWh EX-VAT, GB median, DD; floor from Ofgem's own back-cast of its cap methodology
+  evaluation: Evaluate the term against EVERY cap window its [tariff_effective_from, tariff_effective_to or account end] overlaps; the term must satisfy each overlapped window's row. A term starting before
+    2019-01-01 is graded against the pre-cap rows for that part of its life. Rows are keyed on the Ofgem back-cast half-years; each runs to the day before the next row's `from` (last row to 2018-12-31).
+  rows:
+  - from: '2016-01-01'
+    cap_period_label: October 2015- March 2016
+    lower: 5.07
+    upper: null
+    lower_source: 'docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.direct_debit.periods[starts=2015-10-01] (cap_in_force=false, Ofgem''s illustrative back-cast):
+      commodity_share_min 0.4011 x unit_rate_p_per_kwh_ex_vat 12.64 = 5.07'
+    to: '2016-03-31'
+  - from: '2016-04-01'
+    cap_period_label: April 2016-September 2016
+    lower: 4.692
+    upper: null
+    lower_source: 'docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.direct_debit.periods[starts=2016-04-01] (cap_in_force=false, Ofgem''s illustrative back-cast):
+      commodity_share_min 0.3567 x unit_rate_p_per_kwh_ex_vat 13.153 = 4.692'
+    to: '2016-09-30'
+  - from: '2016-10-01'
+    cap_period_label: October 2016-March 2017
+    lower: 4.428
+    upper: null
+    lower_source: 'docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.direct_debit.periods[starts=2016-10-01] (cap_in_force=false, Ofgem''s illustrative back-cast):
+      commodity_share_min 0.3445 x unit_rate_p_per_kwh_ex_vat 12.852 = 4.428'
+    to: '2017-03-31'
+  - from: '2017-04-01'
+    cap_period_label: April 2017 - September 2017
+    lower: 5.411
+    upper: null
+    lower_source: 'docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.direct_debit.periods[starts=2017-04-01] (cap_in_force=false, Ofgem''s illustrative back-cast):
+      commodity_share_min 0.3864 x unit_rate_p_per_kwh_ex_vat 14.004 = 5.411'
+    to: '2017-09-30'
+  - from: '2017-10-01'
+    cap_period_label: October 2017 - March 2018
+    lower: 5.173
+    upper: null
+    lower_source: 'docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.direct_debit.periods[starts=2017-10-01] (cap_in_force=false, Ofgem''s illustrative back-cast):
+      commodity_share_min 0.375 x unit_rate_p_per_kwh_ex_vat 13.796 = 5.173'
+    to: '2018-03-31'
+  - from: '2018-04-01'
+    cap_period_label: April 2018 - September 2018
+    lower: 6.104
+    upper: null
+    lower_source: 'docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.direct_debit.periods[starts=2018-04-01] (cap_in_force=false, Ofgem''s illustrative back-cast):
+      commodity_share_min 0.4052 x unit_rate_p_per_kwh_ex_vat 15.064 = 6.104'
+    to: '2018-09-30'
+  - from: '2018-10-01'
+    cap_period_label: October 2018 - March 2019
+    lower: 6.632
+    upper: null
+    lower_source: 'docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.direct_debit.periods[starts=2018-10-01] (cap_in_force=false, Ofgem''s illustrative back-cast):
+      commodity_share_min 0.4218 x unit_rate_p_per_kwh_ex_vat 15.723 = 6.632'
+    to: '2018-12-31'
+  upper_gap: 'GAP: no cap existed. Ofgem published the pre-cap default only as a dual-fuel annual bill, never per fuel or as a unit rate (docs/market_research/svt_rates_active_passive_2016_2025.md §1a).
+    The world''s own back-derived ~13.5-16p range is marked ±15% and is NOT used as a bound.'
+  floor_meaning: 'Belief, not law: Ofgem labels these columns ''for illustration only'' (docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#headline.the_backcast_is_not_the_law).
+    It is still the regulator''s own estimate of efficient wholesale cost for those half-years.'
+  severity:
+    below_lower: flag
+  export_fields:
+  - unit_rate_p_per_kwh
+  - tariff_effective_from
+  - tariff_effective_to
+  checkable: true
+  gap: 'upper bound: no published per-fuel pre-cap default'
+  source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json; docs/market_research/svt_rates_active_passive_2016_2025.md
+- id: INV_UNIT_RATE_SVT_GAS
+  family: unit_rate
+  statement: A domestic gas default (SVT/deemed) unit rate paid by direct debit is at or below the cap's gas unit rate for the window, from 1 Jan 2019.
+  applies_to:
+    commodity: gas
+    segment: domestic
+    tariff: svt (default/deemed)
+    payment: direct debit only
+  basis: p/kWh EX-VAT, GB typical-household (DD) gas unit rate; commons row is GBP/MWh INC 5% VAT, converted per row
+  evaluation: 'Evaluate the term against EVERY cap window its [tariff_effective_from, tariff_effective_to or account end] overlaps; the term must satisfy each overlapped window''s row. A term starting before
+    2019-01-01 is graded against the pre-cap rows for that part of its life. Apply the upper only where every payment in the window is ''direct debit''. Non-DD accounts: UNCHECKABLE (standard-credit and
+    prepayment gas cap rates are not in the commons).'
+  rows:
+  - from: '2019-01-01'
+    to: '2019-03-31'
+    lower: 0.0
+    upper: 3.552
+    lower_source: 'logic only: a unit rate is positive. Wholesale floor GAP (no gas commodity component in the commons)'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2019-01-01].gas = 37.3 GBP/MWh inc VAT; /10 -> p/kWh; /1.05 (gas is 5% throughout per basis.vat)
+      = 3.552
+  - from: '2019-04-01'
+    to: '2019-09-30'
+    lower: 0.0
+    upper: 3.943
+    lower_source: 'logic only: a unit rate is positive. Wholesale floor GAP (no gas commodity component in the commons)'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2019-04-01].gas = 41.4 GBP/MWh inc VAT; /10 -> p/kWh; /1.05 (gas is 5% throughout per basis.vat)
+      = 3.943
+  - from: '2019-10-01'
+    to: '2020-03-31'
+    lower: 0.0
+    upper: 3.505
+    lower_source: 'logic only: a unit rate is positive. Wholesale floor GAP (no gas commodity component in the commons)'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2019-10-01].gas = 36.8 GBP/MWh inc VAT; /10 -> p/kWh; /1.05 (gas is 5% throughout per basis.vat)
+      = 3.505
+  - from: '2020-04-01'
+    to: '2020-09-30'
+    lower: 0.0
+    upper: 3.333
+    lower_source: 'logic only: a unit rate is positive. Wholesale floor GAP (no gas commodity component in the commons)'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2020-04-01].gas = 35.0 GBP/MWh inc VAT; /10 -> p/kWh; /1.05 (gas is 5% throughout per basis.vat)
+      = 3.333
+  - from: '2020-10-01'
+    to: '2021-03-31'
+    lower: 0.0
+    upper: 2.857
+    lower_source: 'logic only: a unit rate is positive. Wholesale floor GAP (no gas commodity component in the commons)'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2020-10-01].gas = 30.0 GBP/MWh inc VAT; /10 -> p/kWh; /1.05 (gas is 5% throughout per basis.vat)
+      = 2.857
+  - from: '2021-04-01'
+    to: '2021-09-30'
+    lower: 0.0
+    upper: 3.181
+    lower_source: 'logic only: a unit rate is positive. Wholesale floor GAP (no gas commodity component in the commons)'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2021-04-01].gas = 33.4 GBP/MWh inc VAT; /10 -> p/kWh; /1.05 (gas is 5% throughout per basis.vat)
+      = 3.181
+  - from: '2021-10-01'
+    to: '2022-03-31'
+    lower: 0.0
+    upper: 3.876
+    lower_source: 'logic only: a unit rate is positive. Wholesale floor GAP (no gas commodity component in the commons)'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2021-10-01].gas = 40.7 GBP/MWh inc VAT; /10 -> p/kWh; /1.05 (gas is 5% throughout per basis.vat)
+      = 3.876
+  - from: '2022-04-01'
+    to: '2022-09-30'
+    lower: 0.0
+    upper: 7.019
+    lower_source: 'logic only: a unit rate is positive. Wholesale floor GAP (no gas commodity component in the commons)'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2022-04-01].gas = 73.7 GBP/MWh inc VAT; /10 -> p/kWh; /1.05 (gas is 5% throughout per basis.vat)
+      = 7.019
+  - from: '2022-10-01'
+    to: '2022-12-31'
+    lower: 0.0
+    upper: 14.057
+    lower_source: 'logic only: a unit rate is positive. Wholesale floor GAP (no gas commodity component in the commons)'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2022-10-01].gas = 147.6 GBP/MWh inc VAT; /10 -> p/kWh; /1.05 (gas is 5% throughout per basis.vat)
+      = 14.057
+    household_charged_ceiling_epg: 9.829
+  - from: '2023-01-01'
+    to: '2023-03-31'
+    lower: 0.0
+    upper: 16.267
+    lower_source: 'logic only: a unit rate is positive. Wholesale floor GAP (no gas commodity component in the commons)'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2023-01-01].gas = 170.8 GBP/MWh inc VAT; /10 -> p/kWh; /1.05 (gas is 5% throughout per basis.vat)
+      = 16.267
+    household_charged_ceiling_epg: 9.829
+  - from: '2023-04-01'
+    to: '2023-06-30'
+    lower: 0.0
+    upper: 12.01
+    lower_source: 'logic only: a unit rate is positive. Wholesale floor GAP (no gas commodity component in the commons)'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2023-04-01].gas = 126.1 GBP/MWh inc VAT; /10 -> p/kWh; /1.05 (gas is 5% throughout per basis.vat)
+      = 12.01
+    household_charged_ceiling_epg: 9.829
+  - from: '2023-07-01'
+    to: '2023-09-30'
+    lower: 0.0
+    upper: 7.152
+    lower_source: 'logic only: a unit rate is positive. Wholesale floor GAP (no gas commodity component in the commons)'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2023-07-01].gas = 75.1 GBP/MWh inc VAT; /10 -> p/kWh; /1.05 (gas is 5% throughout per basis.vat)
+      = 7.152
+  - from: '2023-10-01'
+    to: '2023-12-31'
+    lower: 0.0
+    upper: 6.562
+    lower_source: 'logic only: a unit rate is positive. Wholesale floor GAP (no gas commodity component in the commons)'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2023-10-01].gas = 68.9 GBP/MWh inc VAT; /10 -> p/kWh; /1.05 (gas is 5% throughout per basis.vat)
+      = 6.562
+  - from: '2024-01-01'
+    to: '2024-03-31'
+    lower: 0.0
+    upper: 7.067
+    lower_source: 'logic only: a unit rate is positive. Wholesale floor GAP (no gas commodity component in the commons)'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2024-01-01].gas = 74.2 GBP/MWh inc VAT; /10 -> p/kWh; /1.05 (gas is 5% throughout per basis.vat)
+      = 7.067
+  - from: '2024-04-01'
+    to: '2024-06-30'
+    lower: 0.0
+    upper: 5.752
+    lower_source: 'logic only: a unit rate is positive. Wholesale floor GAP (no gas commodity component in the commons)'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2024-04-01].gas = 60.4 GBP/MWh inc VAT; /10 -> p/kWh; /1.05 (gas is 5% throughout per basis.vat)
+      = 5.752
+  - from: '2024-07-01'
+    to: '2024-09-30'
+    lower: 0.0
+    upper: 5.219
+    lower_source: 'logic only: a unit rate is positive. Wholesale floor GAP (no gas commodity component in the commons)'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2024-07-01].gas = 54.8 GBP/MWh inc VAT; /10 -> p/kWh; /1.05 (gas is 5% throughout per basis.vat)
+      = 5.219
+  - from: '2024-10-01'
+    to: '2024-12-31'
+    lower: 0.0
+    upper: 5.943
+    lower_source: 'logic only: a unit rate is positive. Wholesale floor GAP (no gas commodity component in the commons)'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2024-10-01].gas = 62.4 GBP/MWh inc VAT; /10 -> p/kWh; /1.05 (gas is 5% throughout per basis.vat)
+      = 5.943
+  - from: '2025-01-01'
+    to: '2025-03-31'
+    lower: 0.0
+    upper: 6.038
+    lower_source: 'logic only: a unit rate is positive. Wholesale floor GAP (no gas commodity component in the commons)'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2025-01-01].gas = 63.4 GBP/MWh inc VAT; /10 -> p/kWh; /1.05 (gas is 5% throughout per basis.vat)
+      = 6.038
+  - from: '2025-04-01'
+    to: '2025-06-30'
+    lower: 0.0
+    upper: 6.657
+    lower_source: 'logic only: a unit rate is positive. Wholesale floor GAP (no gas commodity component in the commons)'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2025-04-01].gas = 69.9 GBP/MWh inc VAT; /10 -> p/kWh; /1.05 (gas is 5% throughout per basis.vat)
+      = 6.657
+  - from: '2025-07-01'
+    to: '2025-09-30'
+    lower: 0.0
+    upper: 6.029
+    lower_source: 'logic only: a unit rate is positive. Wholesale floor GAP (no gas commodity component in the commons)'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2025-07-01].gas = 63.3 GBP/MWh inc VAT; /10 -> p/kWh; /1.05 (gas is 5% throughout per basis.vat)
+      = 6.029
+  - from: '2025-10-01'
+    to: '2025-12-31'
+    lower: 0.0
+    upper: 5.99
+    lower_source: 'logic only: a unit rate is positive. Wholesale floor GAP (no gas commodity component in the commons)'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2025-10-01].gas = 62.9 GBP/MWh inc VAT; /10 -> p/kWh; /1.05 (gas is 5% throughout per basis.vat)
+      = 5.99
+  - from: '2026-01-01'
+    to: '2026-03-31'
+    lower: 0.0
+    upper: 5.648
+    lower_source: 'logic only: a unit rate is positive. Wholesale floor GAP (no gas commodity component in the commons)'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2026-01-01].gas = 59.3 GBP/MWh inc VAT; /10 -> p/kWh; /1.05 (gas is 5% throughout per basis.vat)
+      = 5.648
+  - from: '2026-04-01'
+    to: '2026-06-30'
+    lower: 0.0
+    upper: 5.467
+    lower_source: 'logic only: a unit rate is positive. Wholesale floor GAP (no gas commodity component in the commons)'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2026-04-01].gas = 57.4 GBP/MWh inc VAT; /10 -> p/kWh; /1.05 (gas is 5% throughout per basis.vat)
+      = 5.467
+  - from: '2026-07-01'
+    to: '2026-09-30'
+    lower: 0.0
+    upper: 6.981
+    lower_source: 'logic only: a unit rate is positive. Wholesale floor GAP (no gas commodity component in the commons)'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2026-07-01].gas = 73.3 GBP/MWh inc VAT; /10 -> p/kWh; /1.05 (gas is 5% throughout per basis.vat)
+      = 6.981
+  - from: '2026-10-01'
+    to: '2026-12-31'
+    lower: 0.0
+    upper: 7.59
+    lower_source: 'logic only: a unit rate is positive. Wholesale floor GAP (no gas commodity component in the commons)'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2026-10-01].gas = 79.7 GBP/MWh inc VAT; /10 -> p/kWh; /1.05 (gas is 5% throughout per basis.vat)
+      = 7.59
+  tolerance:
+    upper_relative: 0.005
+    reason: rows are published to 0.1 GBP/MWh; 0.5% absorbs that rounding and the ex-VAT conversion
+  lower_gap: 'GAP: the commons carries the commodity share of the ELECTRICITY unit rate only; no gas direct-fuel allowance is in the commons, so there is no sourced gas wholesale floor. Lower is the logical
+    floor 0 (rate must be positive: `> 0`).'
+  regional_caveat: 'GAP: GB-average row; the gas cap varies by region and the export carries none.'
+  epg_note: 'EPG rows: household-charged gas rate was 10.3p inc VAT (103.2 GBP/MWh = 9.829p ex VAT). Upper stays the cap so either convention passes; see INV_UNIT_RATE_EPG_HOUSEHOLD.'
+  severity:
+    above_upper: breach (SLC 28AD.2)
+    not_positive: breach
+  export_fields:
+  - unit_rate_p_per_kwh
+  - tariff_effective_from
+  - tariff_effective_to
+  - tariff kind
+  - payment_method
+  - payment_date
+  checkable: true
+  gap: wholesale floor for gas; non-DD gas ceilings; regional spread
+  source: docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[].gas, basis.vat
+- id: INV_UNIT_RATE_SVT_GAS_PRE_CAP
+  family: unit_rate
+  statement: Before 2019 a domestic gas SVT unit rate has no sourced floor or ceiling beyond being positive.
+  applies_to:
+    commodity: gas
+    segment: domestic
+    tariff: svt
+  basis: p/kWh ex-VAT
+  rows:
+  - from: '2016-01-01'
+    to: '2018-12-31'
+    lower: 0.0
+    upper: null
+    lower_source: 'logic: positive (> 0)'
+    upper_source: GAP
+  export_fields:
+  - unit_rate_p_per_kwh
+  - tariff_effective_from
+  checkable: true
+  gap: No cap before 2019; no gas commodity component (pre-cap back-cast exists for electricity only in the commons); per-fuel default never published pre-cap (docs/market_research/svt_rates_active_passive_2016_2025.md
+    §1a)
+  source: docs/market_research/svt_rates_active_passive_2016_2025.md
+- id: INV_UNIT_RATE_SVT_ELEC_MULTI_REGISTER
+  family: unit_rate
+  statement: A multi-register (Economy 7 or other ToU) default electricity tariff, weighted at its assumed split, is at or below the MULTI-REGISTER cap unit rate, which sits 0.4-8% below the single-rate
+    cap.
+  applies_to:
+    commodity: electricity
+    segment: domestic
+    tariff: svt/deemed
+    meter: two or more distinct register_id on the account
+  basis: 'p/kWh EX-VAT, DD, GB median, multi-register benchmark 4,200 kWh. Graded at the tariff''s ASSUMED split (E7: 42% off-peak / 58% peak, SLC 28AD.36(a)), never the household''s realised split.'
+  evaluation: Evaluate the term against EVERY cap window its [tariff_effective_from, tariff_effective_to or account end] overlaps; the term must satisfy each overlapped window's row. A term starting before
+    2019-01-01 is graded against the pre-cap rows for that part of its life. The export carries ONE unit_rate_p_per_kwh per term; read it as the tariff's assumed-split weighted rate. If the runner can see
+    per-register rates it must weight E7 at 0.42/0.58.
+  rows:
+  - from: '2019-01-01'
+    to: '2019-03-31'
+    lower: null
+    upper: 14.63
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_multi_register_unit_rates.json#periods[from=2019-01-01].multi_register_p_per_kwh_ex_vat
+  - from: '2019-04-01'
+    to: '2019-09-30'
+    lower: null
+    upper: 16.469
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_multi_register_unit_rates.json#periods[from=2019-04-01].multi_register_p_per_kwh_ex_vat
+  - from: '2019-10-01'
+    to: '2020-03-31'
+    lower: null
+    upper: 15.763
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_multi_register_unit_rates.json#periods[from=2019-10-01].multi_register_p_per_kwh_ex_vat
+  - from: '2020-04-01'
+    to: '2020-09-30'
+    lower: null
+    upper: 15.614
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_multi_register_unit_rates.json#periods[from=2020-04-01].multi_register_p_per_kwh_ex_vat
+  - from: '2020-10-01'
+    to: '2021-03-31'
+    lower: null
+    upper: 14.932
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_multi_register_unit_rates.json#periods[from=2020-10-01].multi_register_p_per_kwh_ex_vat
+  - from: '2021-04-01'
+    to: '2021-09-30'
+    lower: null
+    upper: 16.558
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_multi_register_unit_rates.json#periods[from=2021-04-01].multi_register_p_per_kwh_ex_vat
+  - from: '2021-10-01'
+    to: '2022-03-31'
+    lower: null
+    upper: 18.383
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_multi_register_unit_rates.json#periods[from=2021-10-01].multi_register_p_per_kwh_ex_vat
+  - from: '2022-04-01'
+    to: '2022-09-30'
+    lower: null
+    upper: 25.41
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_multi_register_unit_rates.json#periods[from=2022-04-01].multi_register_p_per_kwh_ex_vat
+  - from: '2022-10-01'
+    to: '2022-12-31'
+    lower: null
+    upper: 46.54
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_multi_register_unit_rates.json#periods[from=2022-10-01].multi_register_p_per_kwh_ex_vat
+  - from: '2023-01-01'
+    to: '2023-03-31'
+    lower: null
+    upper: 63.871
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_multi_register_unit_rates.json#periods[from=2023-01-01].multi_register_p_per_kwh_ex_vat
+  - from: '2023-04-01'
+    to: '2023-06-30'
+    lower: null
+    upper: 47.12
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_multi_register_unit_rates.json#periods[from=2023-04-01].multi_register_p_per_kwh_ex_vat
+  - from: '2023-07-01'
+    to: '2023-09-30'
+    lower: null
+    upper: 27.292
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_multi_register_unit_rates.json#periods[from=2023-07-01].multi_register_p_per_kwh_ex_vat
+  - from: '2023-10-01'
+    to: '2023-12-31'
+    lower: null
+    upper: 24.984
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_multi_register_unit_rates.json#periods[from=2023-10-01].multi_register_p_per_kwh_ex_vat
+  - from: '2024-01-01'
+    to: '2024-03-31'
+    lower: null
+    upper: 26.228
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_multi_register_unit_rates.json#periods[from=2024-01-01].multi_register_p_per_kwh_ex_vat
+  - from: '2024-04-01'
+    to: '2024-06-30'
+    lower: null
+    upper: 22.106
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_multi_register_unit_rates.json#periods[from=2024-04-01].multi_register_p_per_kwh_ex_vat
+  - from: '2024-07-01'
+    to: '2024-09-30'
+    lower: null
+    upper: 19.97
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_multi_register_unit_rates.json#periods[from=2024-07-01].multi_register_p_per_kwh_ex_vat
+  - from: '2024-10-01'
+    to: '2024-12-31'
+    lower: null
+    upper: 22.189
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_multi_register_unit_rates.json#periods[from=2024-10-01].multi_register_p_per_kwh_ex_vat
+  - from: '2025-01-01'
+    to: '2025-03-31'
+    lower: null
+    upper: 22.656
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_multi_register_unit_rates.json#periods[from=2025-01-01].multi_register_p_per_kwh_ex_vat
+  - from: '2025-04-01'
+    to: '2025-06-30'
+    lower: null
+    upper: 24.529
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_multi_register_unit_rates.json#periods[from=2025-04-01].multi_register_p_per_kwh_ex_vat
+  - from: '2025-07-01'
+    to: '2025-09-30'
+    lower: null
+    upper: 23.371
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_multi_register_unit_rates.json#periods[from=2025-07-01].multi_register_p_per_kwh_ex_vat
+  - from: '2025-10-01'
+    to: '2025-12-31'
+    lower: null
+    upper: 24.129
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_multi_register_unit_rates.json#periods[from=2025-10-01].multi_register_p_per_kwh_ex_vat
+  tolerance:
+    upper_relative: 0.015
+    reason: same derivation as the single-rate column (see INV_UNIT_RATE_SVT_ELEC)
+  caveat: 'UNCORROBORATED column: not checked against a published Economy 7 cap series (docs/domain_artefact_library/regulatory/ofgem_cap_multi_register_unit_rates.json#basis.corroboration). Coverage ends
+    2025-12-31 (the 2026 multi-register benchmark kWh is not stated).'
+  lower_gap: 'GAP: the commons carries no multi-register commodity allowance (night-weighted wholesale differs from the single-rate DF).'
+  severity:
+    above_upper: breach (SLC 28AD.4, .34, .36)
+  export_fields:
+  - unit_rate_p_per_kwh
+  - register_id
+  - register_label
+  - tariff_effective_from
+  - tariff_effective_to
+  checkable: true
+  gap: lower bound; 2026 rows; non-DD columns; whether the export's single rate is an assumed-split blend
+  source: docs/domain_artefact_library/regulatory/ofgem_cap_multi_register_unit_rates.json; docs/domain_artefact_library/regulatory/slc_28ad_multi_register_cap_test.md
+- id: INV_UNIT_RATE_FIXED
+  family: unit_rate
+  statement: 'A domestic fixed tariff the customer chose is outside the cap: its floor is the wholesale cost when it was PRICED, not when it is delivered, and it has no regulatory ceiling.'
+  applies_to:
+    commodity: electricity (floor); gas (no floor sourced)
+    segment: domestic
+    tariff: fixed (chosen fixed term; NOT a 28AD Default Fixed Term Contract)
+  basis: p/kWh ex-VAT
+  evaluation: 'Floor = the INV_UNIT_RATE_SVT_ELEC `lower` of the cap window CONTAINING tariff_effective_from (the window in which the fix was struck), applied to the whole term. Do NOT use the delivery
+    window: a fix struck in 2020 delivering into 2022 sat far below the 2022 wholesale allowance, which is how the record really looked.'
+  rows:
+  - from: '2019-01-01'
+    to: '2019-03-31'
+    lower: 6.632
+    upper: null
+    lower_source: 'INV_UNIT_RATE_SVT_ELEC row for the window containing tariff_effective_from: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.direct_debit.periods[starts=2019-01-01].commodity_share_min
+      x .unit_rate_p_per_kwh_ex_vat = 0.4218 x 15.723 = 6.632'
+    upper_source: 'GAP: no regulatory ceiling on a chosen fix'
+  - from: '2019-04-01'
+    to: '2019-09-30'
+    lower: 8.024
+    upper: null
+    lower_source: 'INV_UNIT_RATE_SVT_ELEC row for the window containing tariff_effective_from: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.direct_debit.periods[starts=2019-04-01].commodity_share_min
+      x .unit_rate_p_per_kwh_ex_vat = 0.4542 x 17.666 = 8.024'
+    upper_source: 'GAP: no regulatory ceiling on a chosen fix'
+  - from: '2019-10-01'
+    to: '2020-03-31'
+    lower: 7.282
+    upper: null
+    lower_source: 'INV_UNIT_RATE_SVT_ELEC row for the window containing tariff_effective_from: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.direct_debit.periods[starts=2019-10-01].commodity_share_min
+      x .unit_rate_p_per_kwh_ex_vat = 0.4287 x 16.986 = 7.282'
+    upper_source: 'GAP: no regulatory ceiling on a chosen fix'
+  - from: '2020-04-01'
+    to: '2020-09-30'
+    lower: 6.983
+    upper: null
+    lower_source: 'INV_UNIT_RATE_SVT_ELEC row for the window containing tariff_effective_from: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.direct_debit.periods[starts=2020-04-01].commodity_share_min
+      x .unit_rate_p_per_kwh_ex_vat = 0.4165 x 16.766 = 6.983'
+    upper_source: 'GAP: no regulatory ceiling on a chosen fix'
+  - from: '2020-10-01'
+    to: '2021-03-31'
+    lower: 6.206
+    upper: null
+    lower_source: 'INV_UNIT_RATE_SVT_ELEC row for the window containing tariff_effective_from: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.direct_debit.periods[starts=2020-10-01].commodity_share_min
+      x .unit_rate_p_per_kwh_ex_vat = 0.3842 x 16.152 = 6.206'
+    upper_source: 'GAP: no regulatory ceiling on a chosen fix'
+  - from: '2021-04-01'
+    to: '2021-09-30'
+    lower: 7.248
+    upper: null
+    lower_source: 'INV_UNIT_RATE_SVT_ELEC row for the window containing tariff_effective_from: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.direct_debit.periods[starts=2021-04-01].commodity_share_min
+      x .unit_rate_p_per_kwh_ex_vat = 0.4026 x 18.004 = 7.248'
+    upper_source: 'GAP: no regulatory ceiling on a chosen fix'
+  - from: '2021-10-01'
+    to: '2022-03-31'
+    lower: 9.039
+    upper: null
+    lower_source: 'INV_UNIT_RATE_SVT_ELEC row for the window containing tariff_effective_from: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.direct_debit.periods[starts=2021-10-01].commodity_share_min
+      x .unit_rate_p_per_kwh_ex_vat = 0.4569 x 19.784 = 9.039'
+    upper_source: 'GAP: no regulatory ceiling on a chosen fix'
+  - from: '2022-04-01'
+    to: '2022-09-30'
+    lower: 16.319
+    upper: null
+    lower_source: 'INV_UNIT_RATE_SVT_ELEC row for the window containing tariff_effective_from: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.direct_debit.periods[starts=2022-04-01].commodity_share_min
+      x .unit_rate_p_per_kwh_ex_vat = 0.6057 x 26.942 = 16.319'
+    upper_source: 'GAP: no regulatory ceiling on a chosen fix'
+  - from: '2022-10-01'
+    to: '2022-12-31'
+    lower: 32.381
+    upper: null
+    lower_source: 'INV_UNIT_RATE_SVT_ELEC row for the window containing tariff_effective_from: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.direct_debit.periods[starts=2022-10-01].commodity_share_min
+      x .unit_rate_p_per_kwh_ex_vat = 0.7471 x 49.246 = 36.792; EPG window: lower = min(36.792, EPG 340.0 GBP/MWh inc VAT /10/1.05 = 32.381) = 32.381 so a household-charged (post-EPG) rate does not false-fire'
+    upper_source: 'GAP: no regulatory ceiling on a chosen fix'
+  - from: '2023-01-01'
+    to: '2023-03-31'
+    lower: 32.381
+    upper: null
+    lower_source: 'INV_UNIT_RATE_SVT_ELEC row for the window containing tariff_effective_from: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.direct_debit.periods[starts=2023-01-01].commodity_share_min
+      x .unit_rate_p_per_kwh_ex_vat = 0.7961 x 64.139 = 51.061; EPG window: lower = min(51.061, EPG 340.0 GBP/MWh inc VAT /10/1.05 = 32.381) = 32.381 so a household-charged (post-EPG) rate does not false-fire'
+    upper_source: 'GAP: no regulatory ceiling on a chosen fix'
+  - from: '2023-04-01'
+    to: '2023-06-30'
+    lower: 32.381
+    upper: null
+    lower_source: 'INV_UNIT_RATE_SVT_ELEC row for the window containing tariff_effective_from: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.direct_debit.periods[starts=2023-04-01].commodity_share_min
+      x .unit_rate_p_per_kwh_ex_vat = 0.7319 x 47.912 = 35.067; EPG window: lower = min(35.067, EPG 340.0 GBP/MWh inc VAT /10/1.05 = 32.381) = 32.381 so a household-charged (post-EPG) rate does not false-fire'
+    upper_source: 'GAP: no regulatory ceiling on a chosen fix'
+  - from: '2023-07-01'
+    to: '2023-09-30'
+    lower: 16.04
+    upper: null
+    lower_source: 'INV_UNIT_RATE_SVT_ELEC row for the window containing tariff_effective_from: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.direct_debit.periods[starts=2023-07-01].commodity_share_min
+      x .unit_rate_p_per_kwh_ex_vat = 0.562 x 28.541 = 16.04'
+    upper_source: 'GAP: no regulatory ceiling on a chosen fix'
+  - from: '2023-10-01'
+    to: '2023-12-31'
+    lower: 14.254
+    upper: null
+    lower_source: 'INV_UNIT_RATE_SVT_ELEC row for the window containing tariff_effective_from: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.direct_debit.periods[starts=2023-10-01].commodity_share_min
+      x .unit_rate_p_per_kwh_ex_vat = 0.549 x 25.964 = 14.254'
+    upper_source: 'GAP: no regulatory ceiling on a chosen fix'
+  - from: '2024-01-01'
+    to: '2024-03-31'
+    lower: 15.369
+    upper: null
+    lower_source: 'INV_UNIT_RATE_SVT_ELEC row for the window containing tariff_effective_from: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.direct_debit.periods[starts=2024-01-01].commodity_share_min
+      x .unit_rate_p_per_kwh_ex_vat = 0.5667 x 27.121 = 15.369'
+    upper_source: 'GAP: no regulatory ceiling on a chosen fix'
+  - from: '2024-04-01'
+    to: '2024-06-30'
+    lower: 11.572
+    upper: null
+    lower_source: 'INV_UNIT_RATE_SVT_ELEC row for the window containing tariff_effective_from: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.direct_debit.periods[starts=2024-04-01].commodity_share_min
+      x .unit_rate_p_per_kwh_ex_vat = 0.4956 x 23.35 = 11.572'
+    upper_source: 'GAP: no regulatory ceiling on a chosen fix'
+  - from: '2024-07-01'
+    to: '2024-09-30'
+    lower: 9.851
+    upper: null
+    lower_source: 'INV_UNIT_RATE_SVT_ELEC row for the window containing tariff_effective_from: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.direct_debit.periods[starts=2024-07-01].commodity_share_min
+      x .unit_rate_p_per_kwh_ex_vat = 0.4623 x 21.308 = 9.851'
+    upper_source: 'GAP: no regulatory ceiling on a chosen fix'
+  - from: '2024-10-01'
+    to: '2024-12-31'
+    lower: 11.261
+    upper: null
+    lower_source: 'INV_UNIT_RATE_SVT_ELEC row for the window containing tariff_effective_from: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.direct_debit.periods[starts=2024-10-01].commodity_share_min
+      x .unit_rate_p_per_kwh_ex_vat = 0.4826 x 23.335 = 11.261'
+    upper_source: 'GAP: no regulatory ceiling on a chosen fix'
+  - from: '2025-01-01'
+    to: '2025-03-31'
+    lower: 11.573
+    upper: null
+    lower_source: 'INV_UNIT_RATE_SVT_ELEC row for the window containing tariff_effective_from: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.direct_debit.periods[starts=2025-01-01].commodity_share_min
+      x .unit_rate_p_per_kwh_ex_vat = 0.4889 x 23.672 = 11.573'
+    upper_source: 'GAP: no regulatory ceiling on a chosen fix'
+  - from: '2025-04-01'
+    to: '2025-06-30'
+    lower: 12.366
+    upper: null
+    lower_source: 'INV_UNIT_RATE_SVT_ELEC row for the window containing tariff_effective_from: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.direct_debit.periods[starts=2025-04-01].commodity_share_min
+      x .unit_rate_p_per_kwh_ex_vat = 0.4804 x 25.742 = 12.366'
+    upper_source: 'GAP: no regulatory ceiling on a chosen fix'
+  - from: '2025-07-01'
+    to: '2025-09-30'
+    lower: 11.118
+    upper: null
+    lower_source: 'INV_UNIT_RATE_SVT_ELEC row for the window containing tariff_effective_from: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.direct_debit.periods[starts=2025-07-01].commodity_share_min
+      x .unit_rate_p_per_kwh_ex_vat = 0.4526 x 24.564 = 11.118'
+    upper_source: 'GAP: no regulatory ceiling on a chosen fix'
+  - from: '2025-10-01'
+    to: '2025-12-31'
+    lower: 11.42
+    upper: null
+    lower_source: 'INV_UNIT_RATE_SVT_ELEC row for the window containing tariff_effective_from: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.direct_debit.periods[starts=2025-10-01].commodity_share_min
+      x .unit_rate_p_per_kwh_ex_vat = 0.4529 x 25.215 = 11.42'
+    upper_source: 'GAP: no regulatory ceiling on a chosen fix'
+  - from: '2026-01-01'
+    to: '2026-03-31'
+    lower: 11.759
+    upper: null
+    lower_source: 'INV_UNIT_RATE_SVT_ELEC row for the window containing tariff_effective_from: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.direct_debit.periods[starts=2026-01-01].commodity_share_min
+      x .unit_rate_p_per_kwh_ex_vat = 0.4437 x 26.502 = 11.759'
+    upper_source: 'GAP: no regulatory ceiling on a chosen fix'
+  - from: '2026-04-01'
+    to: '2026-06-30'
+    lower: 12.055
+    upper: null
+    lower_source: 'INV_UNIT_RATE_SVT_ELEC row for the window containing tariff_effective_from: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.direct_debit.periods[starts=2026-04-01].commodity_share_min
+      x .unit_rate_p_per_kwh_ex_vat = 0.5084 x 23.711 = 12.055'
+    upper_source: 'GAP: no regulatory ceiling on a chosen fix'
+  - from: '2026-07-01'
+    to: '2026-09-30'
+    lower: 13.157
+    upper: null
+    lower_source: 'INV_UNIT_RATE_SVT_ELEC row for the window containing tariff_effective_from: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.direct_debit.periods[starts=2026-07-01].commodity_share_min
+      x .unit_rate_p_per_kwh_ex_vat = 0.5246 x 25.08 = 13.157'
+    upper_source: 'GAP: no regulatory ceiling on a chosen fix'
+  - from: '2026-10-01'
+    to: '2026-12-31'
+    lower: 14.446
+    upper: null
+    lower_source: 'INV_UNIT_RATE_SVT_ELEC row for the window containing tariff_effective_from: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.direct_debit.periods[starts=2026-10-01].commodity_share_min
+      x .unit_rate_p_per_kwh_ex_vat = 0.5458 x 26.467 = 14.446'
+    upper_source: 'GAP: no regulatory ceiling on a chosen fix'
+  upper_gap: 'GAP, and deliberately not the cap: SLC 28AD covers Evergreen, Deemed and 28AD Default Fixed Term contracts only; ''A fixed tariff the customer chose is outside 28AD'' (docs/domain_artefact_library/regulatory/slc_28ad_multi_register_cap_test.md
+    item 4). In 2022 most fixes were priced ABOVE the cap (CBP-8081 via docs/market_research/tariffs_and_the_default_tariff_2026-10-25.md §1, §3). The one conditional ceiling (SLC 22C.7: a Relevant Fixed
+    Term Default Tariff costs no more than the supplier''s Relevant Cheapest Evergreen Tariff) needs a rollover flag the export does not carry.'
+  severity:
+    below_lower: flag (loss-leading fixes were lawful and occurred; the floor is a question, not an impossibility)
+  gas: GAP for both bounds (no gas commodity allowance in the commons); lower = 0 by logic.
+  export_fields:
+  - unit_rate_p_per_kwh
+  - tariff_effective_from
+  - tariff kind
+  checkable: true
+  gap: upper bound (no regulatory ceiling); gas floor; rollover-default fixes not identifiable
+  source: docs/domain_artefact_library/regulatory/slc_28ad_multi_register_cap_test.md; docs/market_research/tariffs_and_the_default_tariff_2026-10-25.md; docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json
+- id: INV_UNIT_RATE_EPG_HOUSEHOLD
+  family: unit_rate
+  statement: From 1 Oct 2022 to 30 Jun 2023 the unit rate a domestic household was CHARGED did not exceed the Energy Price Guarantee rate.
+  applies_to:
+    commodity: electricity and gas
+    segment: domestic
+    tariff: 'svt (fixed: see note)'
+  basis: p/kWh ex-VAT; EPG 34.0p/kWh elec and 10.3p/kWh gas inc VAT, DD (340.0 / 103.2 GBP/MWh)
+  rows:
+  - from: '2022-10-01'
+    to: '2023-06-30'
+    commodity: electricity
+    lower: null
+    upper: 32.381
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2022-10-01..2023-04-01].elec_epg = 340.0 GBP/MWh inc VAT; /10/1.05 = 32.381
+  - from: '2022-10-01'
+    to: '2023-06-30'
+    commodity: gas
+    lower: null
+    upper: 9.829
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[].gas_epg = 103.2 GBP/MWh inc VAT; /10/1.05 = 9.829
+  note: The EPG also reached fixed tariffs, but the commons and the K8 page carry no scheme text for how (docs/market_research/default_tariff_cap_and_epg_on_the_bill.md GAPs). Standing charges were NOT
+    changed by the EPG (docs/market_research/tariffs_and_the_default_tariff_2026-10-25.md §4).
+  export_fields:
+  - unit_rate_p_per_kwh
+  - tariff_effective_from
+  - tariff_effective_to
+  checkable: false
+  gap: 'UNCHECKABLE: the export''s unit_rate_p_per_kwh does not say whether it is the supplier''s tariff rate (cap-bounded, Treasury paid the difference) or the household-charged rate (EPG-bounded). Checkable
+    if the export adds the EPG discount per period or states the rate''s basis.'
+  source: docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#epg_note, windows[].elec_epg/gas_epg; docs/market_research/ofgem_cap_windows.md §4
+- id: INV_STANDING_CHARGE_SVT_ELEC
+  family: standing_charge
+  statement: A domestic electricity default-tariff standing charge is non-negative and at or below the cap's nil-consumption allowance for the window and payment method.
+  applies_to:
+    commodity: electricity
+    segment: domestic
+    tariff: svt/deemed
+    meter: single-register (multi-register SC is within 0.1p/day of single-rate, docs/domain_artefact_library/regulatory/slc_28ad_multi_register_cap_test.md)
+  basis: GBP/day EX-VAT (export unit) = p/day /100; Ofgem cap model nil-consumption Total row /365, median of 15 rows; DD = `upper`
+  evaluation: 'Evaluate the term against EVERY cap window its [tariff_effective_from, tariff_effective_to or account end] overlaps; the term must satisfy each overlapped window''s row. A term starting before
+    2019-01-01 is graded against the pre-cap rows for that part of its life. Payment method for the window = from the account''s payments dated inside the window: any ''prepayment top-up'' -> prepayment
+    column; else all ''direct debit'' -> DD column (`upper`); else (card/cash only) -> standard-credit column. No payments in the window -> use the maximum of the three columns.'
+  rows:
+  - from: '2016-01-01'
+    to: '2018-12-31'
+    lower: 0.0
+    upper: null
+    lower_source: 'logic: non-negative'
+    upper_source: 'GAP: no default tariff cap before 2019-01-01; Ofgem''s pre-2019 model columns are a back-cast ''for illustration only'' (docs/domain_artefact_library/regulatory/ofgem_cap_standing_charges.json#basis.pre_cap),
+      not a ceiling'
+  - from: '2019-01-01'
+    to: '2019-03-31'
+    lower: 0.0
+    upper: 0.2153
+    upper_standard_credit: 0.25656
+    upper_prepayment: 0.25828
+    lower_source: 'logic: a standing charge is non-negative; SLC 28AD.2 caps, it does not floor'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_standing_charges.json#periods.electricity[starts=2019-01-01].p_per_day_ex_vat = 21.53 p/day /100 = GBP/day; non-DD from docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.<method>.periods[starts=2019-01-01].standing_charge_p_per_day_ex_vat
+      (25.656 SC, 25.828 PPM)
+  - from: '2019-04-01'
+    to: '2019-09-30'
+    lower: 0.0
+    upper: 0.22301
+    upper_standard_credit: 0.26503
+    upper_prepayment: 0.26666
+    lower_source: 'logic: a standing charge is non-negative; SLC 28AD.2 caps, it does not floor'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_standing_charges.json#periods.electricity[starts=2019-04-01].p_per_day_ex_vat = 22.301 p/day /100 = GBP/day; non-DD from docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.<method>.periods[starts=2019-04-01].standing_charge_p_per_day_ex_vat
+      (26.503 SC, 26.666 PPM)
+  - from: '2019-10-01'
+    to: '2020-03-31'
+    lower: 0.0
+    upper: 0.22393
+    upper_standard_credit: 0.26622
+    upper_prepayment: 0.26757
+    lower_source: 'logic: a standing charge is non-negative; SLC 28AD.2 caps, it does not floor'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_standing_charges.json#periods.electricity[starts=2019-10-01].p_per_day_ex_vat = 22.393 p/day /100 = GBP/day; non-DD from docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.<method>.periods[starts=2019-10-01].standing_charge_p_per_day_ex_vat
+      (26.622 SC, 26.757 PPM)
+  - from: '2020-04-01'
+    to: '2020-09-30'
+    lower: 0.0
+    upper: 0.23192
+    upper_standard_credit: 0.2748
+    upper_prepayment: 0.2754
+    lower_source: 'logic: a standing charge is non-negative; SLC 28AD.2 caps, it does not floor'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_standing_charges.json#periods.electricity[starts=2020-04-01].p_per_day_ex_vat = 23.192 p/day /100 = GBP/day; non-DD from docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.<method>.periods[starts=2020-04-01].standing_charge_p_per_day_ex_vat
+      (27.48 SC, 27.54 PPM)
+  - from: '2020-10-01'
+    to: '2021-03-31'
+    lower: 0.0
+    upper: 0.23191
+    upper_standard_credit: 0.27488
+    upper_prepayment: 0.27334
+    lower_source: 'logic: a standing charge is non-negative; SLC 28AD.2 caps, it does not floor'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_standing_charges.json#periods.electricity[starts=2020-10-01].p_per_day_ex_vat = 23.191 p/day /100 = GBP/day; non-DD from docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.<method>.periods[starts=2020-10-01].standing_charge_p_per_day_ex_vat
+      (27.488 SC, 27.334 PPM)
+  - from: '2021-04-01'
+    to: '2021-09-30'
+    lower: 0.0
+    upper: 0.23692
+    upper_standard_credit: 0.28033
+    upper_prepayment: 0.27446
+    lower_source: 'logic: a standing charge is non-negative; SLC 28AD.2 caps, it does not floor'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_standing_charges.json#periods.electricity[starts=2021-04-01].p_per_day_ex_vat = 23.692 p/day /100 = GBP/day; non-DD from docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.<method>.periods[starts=2021-04-01].standing_charge_p_per_day_ex_vat
+      (28.033 SC, 27.446 PPM)
+  - from: '2021-10-01'
+    to: '2022-03-31'
+    lower: 0.0
+    upper: 0.23682
+    upper_standard_credit: 0.28078
+    upper_prepayment: 0.27848
+    lower_source: 'logic: a standing charge is non-negative; SLC 28AD.2 caps, it does not floor'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_standing_charges.json#periods.electricity[starts=2021-10-01].p_per_day_ex_vat = 23.682 p/day /100 = GBP/day; non-DD from docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.<method>.periods[starts=2021-10-01].standing_charge_p_per_day_ex_vat
+      (28.078 SC, 27.848 PPM)
+  - from: '2022-04-01'
+    to: '2022-09-30'
+    lower: 0.0
+    upper: 0.45314
+    upper_standard_credit: 0.50969
+    upper_prepayment: 0.5
+    lower_source: 'logic: a standing charge is non-negative; SLC 28AD.2 caps, it does not floor'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_standing_charges.json#periods.electricity[starts=2022-04-01].p_per_day_ex_vat = 45.314 p/day /100 = GBP/day; non-DD from docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.<method>.periods[starts=2022-04-01].standing_charge_p_per_day_ex_vat
+      (50.969 SC, 50.0 PPM)
+  - from: '2022-10-01'
+    to: '2022-12-31'
+    lower: 0.0
+    upper: 0.46283
+    upper_standard_credit: 0.52154
+    upper_prepayment: 0.51086
+    lower_source: 'logic: a standing charge is non-negative; SLC 28AD.2 caps, it does not floor'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_standing_charges.json#periods.electricity[starts=2022-10-01].p_per_day_ex_vat = 46.283 p/day /100 = GBP/day; non-DD from docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.<method>.periods[starts=2022-10-01].standing_charge_p_per_day_ex_vat
+      (52.154 SC, 51.086 PPM)
+  - from: '2023-01-01'
+    to: '2023-03-31'
+    lower: 0.0
+    upper: 0.46283
+    upper_standard_credit: 0.52154
+    upper_prepayment: 0.51086
+    lower_source: 'logic: a standing charge is non-negative; SLC 28AD.2 caps, it does not floor'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_standing_charges.json#periods.electricity[starts=2023-01-01].p_per_day_ex_vat = 46.283 p/day /100 = GBP/day; non-DD from docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.<method>.periods[starts=2023-01-01].standing_charge_p_per_day_ex_vat
+      (52.154 SC, 51.086 PPM)
+  - from: '2023-04-01'
+    to: '2023-06-30'
+    lower: 0.0
+    upper: 0.51262
+    upper_standard_credit: 0.57535
+    upper_prepayment: 0.56129
+    lower_source: 'logic: a standing charge is non-negative; SLC 28AD.2 caps, it does not floor'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_standing_charges.json#periods.electricity[starts=2023-04-01].p_per_day_ex_vat = 51.262 p/day /100 = GBP/day; non-DD from docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.<method>.periods[starts=2023-04-01].standing_charge_p_per_day_ex_vat
+      (57.535 SC, 56.129 PPM)
+  - from: '2023-07-01'
+    to: '2023-09-30'
+    lower: 0.0
+    upper: 0.51262
+    upper_standard_credit: 0.57535
+    upper_prepayment: 0.56129
+    lower_source: 'logic: a standing charge is non-negative; SLC 28AD.2 caps, it does not floor'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_standing_charges.json#periods.electricity[starts=2023-07-01].p_per_day_ex_vat = 51.262 p/day /100 = GBP/day; non-DD from docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.<method>.periods[starts=2023-07-01].standing_charge_p_per_day_ex_vat
+      (57.535 SC, 56.129 PPM)
+  - from: '2023-10-01'
+    to: '2023-12-31'
+    lower: 0.0
+    upper: 0.51644
+    upper_standard_credit: 0.58034
+    upper_prepayment: 0.58225
+    lower_source: 'logic: a standing charge is non-negative; SLC 28AD.2 caps, it does not floor'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_standing_charges.json#periods.electricity[starts=2023-10-01].p_per_day_ex_vat = 51.644 p/day /100 = GBP/day; non-DD from docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.<method>.periods[starts=2023-10-01].standing_charge_p_per_day_ex_vat
+      (58.034 SC, 58.225 PPM)
+  - from: '2024-01-01'
+    to: '2024-03-31'
+    lower: 0.0
+    upper: 0.51625
+    upper_standard_credit: 0.58014
+    upper_prepayment: 0.58205
+    lower_source: 'logic: a standing charge is non-negative; SLC 28AD.2 caps, it does not floor'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_standing_charges.json#periods.electricity[starts=2024-01-01].p_per_day_ex_vat = 51.625 p/day /100 = GBP/day; non-DD from docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.<method>.periods[starts=2024-01-01].standing_charge_p_per_day_ex_vat
+      (58.014 SC, 58.205 PPM)
+  - from: '2024-04-01'
+    to: '2024-06-30'
+    lower: 0.0
+    upper: 0.58573
+    upper_standard_credit: 0.65362
+    upper_prepayment: 0.65349
+    lower_source: 'logic: a standing charge is non-negative; SLC 28AD.2 caps, it does not floor'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_standing_charges.json#periods.electricity[starts=2024-04-01].p_per_day_ex_vat = 58.573 p/day /100 = GBP/day; non-DD from docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.<method>.periods[starts=2024-04-01].standing_charge_p_per_day_ex_vat
+      (65.362 SC, 65.349 PPM)
+  - from: '2024-07-01'
+    to: '2024-09-30'
+    lower: 0.0
+    upper: 0.58622
+    upper_standard_credit: 0.65412
+    upper_prepayment: 0.65403
+    lower_source: 'logic: a standing charge is non-negative; SLC 28AD.2 caps, it does not floor'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_standing_charges.json#periods.electricity[starts=2024-07-01].p_per_day_ex_vat = 58.622 p/day /100 = GBP/day; non-DD from docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.<method>.periods[starts=2024-07-01].standing_charge_p_per_day_ex_vat
+      (65.412 SC, 65.403 PPM)
+  - from: '2024-10-01'
+    to: '2024-12-31'
+    lower: 0.0
+    upper: 0.59575
+    upper_standard_credit: 0.66489
+    upper_prepayment: 0.65653
+    lower_source: 'logic: a standing charge is non-negative; SLC 28AD.2 caps, it does not floor'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_standing_charges.json#periods.electricity[starts=2024-10-01].p_per_day_ex_vat = 59.575 p/day /100 = GBP/day; non-DD from docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.<method>.periods[starts=2024-10-01].standing_charge_p_per_day_ex_vat
+      (66.489 SC, 65.653 PPM)
+  - from: '2025-01-01'
+    to: '2025-03-31'
+    lower: 0.0
+    upper: 0.59567
+    upper_standard_credit: 0.6648
+    upper_prepayment: 0.65645
+    lower_source: 'logic: a standing charge is non-negative; SLC 28AD.2 caps, it does not floor'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_standing_charges.json#periods.electricity[starts=2025-01-01].p_per_day_ex_vat = 59.567 p/day /100 = GBP/day; non-DD from docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.<method>.periods[starts=2025-01-01].standing_charge_p_per_day_ex_vat
+      (66.48 SC, 65.645 PPM)
+  - from: '2025-04-01'
+    to: '2025-06-30'
+    lower: 0.0
+    upper: 0.4963
+    upper_standard_credit: 0.56074
+    upper_prepayment: 0.55614
+    lower_source: 'logic: a standing charge is non-negative; SLC 28AD.2 caps, it does not floor'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_standing_charges.json#periods.electricity[starts=2025-04-01].p_per_day_ex_vat = 49.63 p/day /100 = GBP/day; non-DD from docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.<method>.periods[starts=2025-04-01].standing_charge_p_per_day_ex_vat
+      (56.074 SC, 55.614 PPM)
+  - from: '2025-07-01'
+    to: '2025-09-30'
+    lower: 0.0
+    upper: 0.46825
+    upper_standard_credit: 0.55725
+    upper_prepayment: 0.5598
+    lower_source: 'logic: a standing charge is non-negative; SLC 28AD.2 caps, it does not floor'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_standing_charges.json#periods.electricity[starts=2025-07-01].p_per_day_ex_vat = 46.825 p/day /100 = GBP/day; non-DD from docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.<method>.periods[starts=2025-07-01].standing_charge_p_per_day_ex_vat
+      (55.725 SC, 55.98 PPM)
+  - from: '2025-10-01'
+    to: '2025-12-31'
+    lower: 0.0
+    upper: 0.49045
+    upper_standard_credit: 0.58163
+    upper_prepayment: 0.58165
+    lower_source: 'logic: a standing charge is non-negative; SLC 28AD.2 caps, it does not floor'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_standing_charges.json#periods.electricity[starts=2025-10-01].p_per_day_ex_vat = 49.045 p/day /100 = GBP/day; non-DD from docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.<method>.periods[starts=2025-10-01].standing_charge_p_per_day_ex_vat
+      (58.163 SC, 58.165 PPM)
+  - from: '2026-01-01'
+    to: '2026-03-31'
+    lower: 0.0
+    upper: 0.50089
+    upper_standard_credit: 0.59263
+    upper_prepayment: 0.59126
+    lower_source: 'logic: a standing charge is non-negative; SLC 28AD.2 caps, it does not floor'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_standing_charges.json#periods.electricity[starts=2026-01-01].p_per_day_ex_vat = 50.089 p/day /100 = GBP/day; non-DD from docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.<method>.periods[starts=2026-01-01].standing_charge_p_per_day_ex_vat
+      (59.263 SC, 59.126 PPM)
+  - from: '2026-04-01'
+    to: '2026-06-30'
+    lower: 0.0
+    upper: 0.53348
+    upper_standard_credit: 0.62771
+    upper_prepayment: 0.61964
+    lower_source: 'logic: a standing charge is non-negative; SLC 28AD.2 caps, it does not floor'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_standing_charges.json#periods.electricity[starts=2026-04-01].p_per_day_ex_vat = 53.348 p/day /100 = GBP/day; non-DD from docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.<method>.periods[starts=2026-04-01].standing_charge_p_per_day_ex_vat
+      (62.771 SC, 61.964 PPM)
+  - from: '2026-07-01'
+    to: '2026-09-30'
+    lower: 0.0
+    upper: 0.5336
+    upper_standard_credit: 0.62783
+    upper_prepayment: 0.61964
+    lower_source: 'logic: a standing charge is non-negative; SLC 28AD.2 caps, it does not floor'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_standing_charges.json#periods.electricity[starts=2026-07-01].p_per_day_ex_vat = 53.36 p/day /100 = GBP/day; non-DD from docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.<method>.periods[starts=2026-07-01].standing_charge_p_per_day_ex_vat
+      (62.783 SC, 61.964 PPM)
+  - from: '2026-10-01'
+    to: '2026-12-31'
+    lower: 0.0
+    upper: 0.54047
+    upper_standard_credit: 0.63665
+    upper_prepayment: 0.60694
+    lower_source: 'logic: a standing charge is non-negative; SLC 28AD.2 caps, it does not floor'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_standing_charges.json#periods.electricity[starts=2026-10-01].p_per_day_ex_vat = 54.047 p/day /100 = GBP/day; non-DD from docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#by_payment_method.<method>.periods[starts=2026-10-01].standing_charge_p_per_day_ex_vat
+      (63.665 SC, 60.694 PPM)
+  tolerance:
+    upper_absolute_gbp_per_day: 0.0001
+    reason: export/penny rounding only
+  regional_caveat: 'Belief, one year only: electricity standing charges spread ''about 36-59p'' across regions in 2023 against a median of 51.3p (docs/domain_artefact_library/regulatory/ofgem_cap_standing_charges.json#basis.statistic),
+    i.e. the highest region was ~15% above the median. Report exceedances up to +15% as AMBIGUOUS_REGIONAL (export carries no region), above +15% as breach. The spread in other years is not established.'
+  epg_note: The EPG did not change standing charges (docs/market_research/tariffs_and_the_default_tariff_2026-10-25.md §4), so the cap row is the ceiling in EPG windows too.
+  severity:
+    above_upper: breach (SLC 28AD.2 at x = 0 kWh)
+    negative: breach
+  export_fields:
+  - standing_charge_gbp_per_day
+  - tariff_effective_from
+  - tariff_effective_to
+  - tariff kind
+  - payment_method
+  checkable: true
+  gap: pre-2019 ceiling; regional spread outside 2023
+  source: docs/domain_artefact_library/regulatory/ofgem_cap_standing_charges.json; docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json (standard credit, prepayment SC)
+- id: INV_STANDING_CHARGE_SVT_GAS
+  family: standing_charge
+  statement: A domestic gas default-tariff standing charge paid by direct debit is non-negative and at or below the cap's gas nil-consumption allowance for the window.
+  applies_to:
+    commodity: gas
+    segment: domestic
+    tariff: svt/deemed
+    payment: direct debit only
+  basis: GBP/day EX-VAT, DD, median of 15 cap-model Total rows
+  evaluation: 'Evaluate the term against EVERY cap window its [tariff_effective_from, tariff_effective_to or account end] overlaps; the term must satisfy each overlapped window''s row. A term starting before
+    2019-01-01 is graded against the pre-cap rows for that part of its life. Non-DD accounts: UNCHECKABLE (gas SC for standard credit/prepayment not in the commons).'
+  rows:
+  - from: '2016-01-01'
+    to: '2018-12-31'
+    lower: 0.0
+    upper: null
+    lower_source: 'logic: non-negative'
+    upper_source: 'GAP: no default tariff cap before 2019-01-01; Ofgem''s pre-2019 model columns are a back-cast ''for illustration only'' (docs/domain_artefact_library/regulatory/ofgem_cap_standing_charges.json#basis.pre_cap),
+      not a ceiling'
+  - from: '2019-01-01'
+    to: '2019-03-31'
+    lower: 0.0
+    upper: 0.24594
+    lower_source: 'logic: non-negative'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_standing_charges.json#periods.gas[starts=2019-01-01].p_per_day_ex_vat = 24.594 p/day /100 = GBP/day (direct debit only; standard-credit
+      and prepayment gas SC not in the commons)
+  - from: '2019-04-01'
+    to: '2019-09-30'
+    lower: 0.0
+    upper: 0.25257
+    lower_source: 'logic: non-negative'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_standing_charges.json#periods.gas[starts=2019-04-01].p_per_day_ex_vat = 25.257 p/day /100 = GBP/day (direct debit only; standard-credit
+      and prepayment gas SC not in the commons)
+  - from: '2019-10-01'
+    to: '2020-03-31'
+    lower: 0.0
+    upper: 0.25441
+    lower_source: 'logic: non-negative'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_standing_charges.json#periods.gas[starts=2019-10-01].p_per_day_ex_vat = 25.441 p/day /100 = GBP/day (direct debit only; standard-credit
+      and prepayment gas SC not in the commons)
+  - from: '2020-04-01'
+    to: '2020-09-30'
+    lower: 0.0
+    upper: 0.26042
+    lower_source: 'logic: non-negative'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_standing_charges.json#periods.gas[starts=2020-04-01].p_per_day_ex_vat = 26.042 p/day /100 = GBP/day (direct debit only; standard-credit
+      and prepayment gas SC not in the commons)
+  - from: '2020-10-01'
+    to: '2021-03-31'
+    lower: 0.0
+    upper: 0.24832
+    lower_source: 'logic: non-negative'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_standing_charges.json#periods.gas[starts=2020-10-01].p_per_day_ex_vat = 24.832 p/day /100 = GBP/day (direct debit only; standard-credit
+      and prepayment gas SC not in the commons)
+  - from: '2021-04-01'
+    to: '2021-09-30'
+    lower: 0.0
+    upper: 0.25333
+    lower_source: 'logic: non-negative'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_standing_charges.json#periods.gas[starts=2021-04-01].p_per_day_ex_vat = 25.333 p/day /100 = GBP/day (direct debit only; standard-credit
+      and prepayment gas SC not in the commons)
+  - from: '2021-10-01'
+    to: '2022-03-31'
+    lower: 0.0
+    upper: 0.2488
+    lower_source: 'logic: non-negative'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_standing_charges.json#periods.gas[starts=2021-10-01].p_per_day_ex_vat = 24.88 p/day /100 = GBP/day (direct debit only; standard-credit
+      and prepayment gas SC not in the commons)
+  - from: '2022-04-01'
+    to: '2022-09-30'
+    lower: 0.0
+    upper: 0.25922
+    lower_source: 'logic: non-negative'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_standing_charges.json#periods.gas[starts=2022-04-01].p_per_day_ex_vat = 25.922 p/day /100 = GBP/day (direct debit only; standard-credit
+      and prepayment gas SC not in the commons)
+  - from: '2022-10-01'
+    to: '2022-12-31'
+    lower: 0.0
+    upper: 0.27129
+    lower_source: 'logic: non-negative'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_standing_charges.json#periods.gas[starts=2022-10-01].p_per_day_ex_vat = 27.129 p/day /100 = GBP/day (direct debit only; standard-credit
+      and prepayment gas SC not in the commons)
+  - from: '2023-01-01'
+    to: '2023-03-31'
+    lower: 0.0
+    upper: 0.27129
+    lower_source: 'logic: non-negative'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_standing_charges.json#periods.gas[starts=2023-01-01].p_per_day_ex_vat = 27.129 p/day /100 = GBP/day (direct debit only; standard-credit
+      and prepayment gas SC not in the commons)
+  - from: '2023-04-01'
+    to: '2023-06-30'
+    lower: 0.0
+    upper: 0.27725
+    lower_source: 'logic: non-negative'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_standing_charges.json#periods.gas[starts=2023-04-01].p_per_day_ex_vat = 27.725 p/day /100 = GBP/day (direct debit only; standard-credit
+      and prepayment gas SC not in the commons)
+  - from: '2023-07-01'
+    to: '2023-09-30'
+    lower: 0.0
+    upper: 0.27725
+    lower_source: 'logic: non-negative'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_standing_charges.json#periods.gas[starts=2023-07-01].p_per_day_ex_vat = 27.725 p/day /100 = GBP/day (direct debit only; standard-credit
+      and prepayment gas SC not in the commons)
+  - from: '2023-10-01'
+    to: '2023-12-31'
+    lower: 0.0
+    upper: 0.28209
+    lower_source: 'logic: non-negative'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_standing_charges.json#periods.gas[starts=2023-10-01].p_per_day_ex_vat = 28.209 p/day /100 = GBP/day (direct debit only; standard-credit
+      and prepayment gas SC not in the commons)
+  - from: '2024-01-01'
+    to: '2024-03-31'
+    lower: 0.0
+    upper: 0.28189
+    lower_source: 'logic: non-negative'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_standing_charges.json#periods.gas[starts=2024-01-01].p_per_day_ex_vat = 28.189 p/day /100 = GBP/day (direct debit only; standard-credit
+      and prepayment gas SC not in the commons)
+  - from: '2024-04-01'
+    to: '2024-06-30'
+    lower: 0.0
+    upper: 0.28376
+    lower_source: 'logic: non-negative'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_standing_charges.json#periods.gas[starts=2024-04-01].p_per_day_ex_vat = 28.376 p/day /100 = GBP/day (direct debit only; standard-credit
+      and prepayment gas SC not in the commons)
+  - from: '2024-07-01'
+    to: '2024-09-30'
+    lower: 0.0
+    upper: 0.28408
+    lower_source: 'logic: non-negative'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_standing_charges.json#periods.gas[starts=2024-07-01].p_per_day_ex_vat = 28.408 p/day /100 = GBP/day (direct debit only; standard-credit
+      and prepayment gas SC not in the commons)
+  - from: '2024-10-01'
+    to: '2024-12-31'
+    lower: 0.0
+    upper: 0.29306
+    lower_source: 'logic: non-negative'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_standing_charges.json#periods.gas[starts=2024-10-01].p_per_day_ex_vat = 29.306 p/day /100 = GBP/day (direct debit only; standard-credit
+      and prepayment gas SC not in the commons)
+  - from: '2025-01-01'
+    to: '2025-03-31'
+    lower: 0.0
+    upper: 0.29301
+    lower_source: 'logic: non-negative'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_standing_charges.json#periods.gas[starts=2025-01-01].p_per_day_ex_vat = 29.301 p/day /100 = GBP/day (direct debit only; standard-credit
+      and prepayment gas SC not in the commons)
+  - from: '2025-04-01'
+    to: '2025-06-30'
+    lower: 0.0
+    upper: 0.3039
+    lower_source: 'logic: non-negative'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_standing_charges.json#periods.gas[starts=2025-04-01].p_per_day_ex_vat = 30.39 p/day /100 = GBP/day (direct debit only; standard-credit
+      and prepayment gas SC not in the commons)
+  - from: '2025-07-01'
+    to: '2025-09-30'
+    lower: 0.0
+    upper: 0.27549
+    lower_source: 'logic: non-negative'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_standing_charges.json#periods.gas[starts=2025-07-01].p_per_day_ex_vat = 27.549 p/day /100 = GBP/day (direct debit only; standard-credit
+      and prepayment gas SC not in the commons)
+  - from: '2025-10-01'
+    to: '2025-12-31'
+    lower: 0.0
+    upper: 0.31098
+    lower_source: 'logic: non-negative'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_standing_charges.json#periods.gas[starts=2025-10-01].p_per_day_ex_vat = 31.098 p/day /100 = GBP/day (direct debit only; standard-credit
+      and prepayment gas SC not in the commons)
+  - from: '2026-01-01'
+    to: '2026-03-31'
+    lower: 0.0
+    upper: 0.32139
+    lower_source: 'logic: non-negative'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_standing_charges.json#periods.gas[starts=2026-01-01].p_per_day_ex_vat = 32.139 p/day /100 = GBP/day (direct debit only; standard-credit
+      and prepayment gas SC not in the commons)
+  - from: '2026-04-01'
+    to: '2026-06-30'
+    lower: 0.0
+    upper: 0.26453
+    lower_source: 'logic: non-negative'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_standing_charges.json#periods.gas[starts=2026-04-01].p_per_day_ex_vat = 26.453 p/day /100 = GBP/day (direct debit only; standard-credit
+      and prepayment gas SC not in the commons)
+  - from: '2026-07-01'
+    to: '2026-09-30'
+    lower: 0.0
+    upper: 0.26435
+    lower_source: 'logic: non-negative'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_standing_charges.json#periods.gas[starts=2026-07-01].p_per_day_ex_vat = 26.435 p/day /100 = GBP/day (direct debit only; standard-credit
+      and prepayment gas SC not in the commons)
+  - from: '2026-10-01'
+    to: '2026-12-31'
+    lower: 0.0
+    upper: 0.27022
+    lower_source: 'logic: non-negative'
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_standing_charges.json#periods.gas[starts=2026-10-01].p_per_day_ex_vat = 27.022 p/day /100 = GBP/day (direct debit only; standard-credit
+      and prepayment gas SC not in the commons)
+  tolerance:
+    upper_absolute_gbp_per_day: 0.0001
+    reason: rounding
+  regional_caveat: 'GAP: gas regional SC spread not in the commons.'
+  severity:
+    above_upper: breach
+    negative: breach
+  export_fields:
+  - standing_charge_gbp_per_day
+  - tariff_effective_from
+  - tariff_effective_to
+  - payment_method
+  checkable: true
+  gap: pre-2019 ceiling; non-DD gas; regional spread
+  source: docs/domain_artefact_library/regulatory/ofgem_cap_standing_charges.json#periods.gas
+- id: INV_STANDING_CHARGE_FIXED
+  family: standing_charge
+  statement: A chosen fixed tariff's standing charge is non-negative; no regulatory ceiling applies.
+  applies_to:
+    commodity: electricity and gas
+    segment: domestic
+    tariff: fixed
+  basis: GBP/day ex-VAT
+  lower: 0.0
+  upper: null
+  lower_source: logic
+  upper_source: 'GAP: outside SLC 28AD (docs/domain_artefact_library/regulatory/slc_28ad_multi_register_cap_test.md item 4)'
+  export_fields:
+  - standing_charge_gbp_per_day
+  checkable: true
+  gap: no ceiling exists for a chosen fix
+  source: docs/domain_artefact_library/regulatory/slc_28ad_multi_register_cap_test.md
+- id: INV_ANNUAL_USE_ELEC_ACCOUNT
+  family: annual_use
+  statement: A domestic electricity account's annual consumption is non-negative and physically deliverable; above the published p99 of its class it is a premise to confirm, not an impossibility.
+  applies_to:
+    commodity: electricity
+    segment: domestic
+  basis: 'kWh per year = sum of consumption_kwh over a run of consecutive periods covering 365 days (no scaling of partial years: use only complete 365-day runs; electricity in NEED is NOT weather-corrected;
+    NEED electricity year Feb 2024 - Jan 2025)'
+  lower: 0.0
+  upper: 201480
+  lower_source: 'logic: import consumption cannot be negative'
+  upper_source: 'physics belief: a single-phase supply at 100 A is about 23 kVA (docs/market_research/network_limits_on_home_electrification_2026-10-25.md line 92 ''100 A ≈ 23 kVA [derived]''; ''SSEN treats
+    ≤100 A per phase as typical''). 23 kW x 8,760 h = 201,480 kWh/yr if run flat out all year. Three-phase domestic supplies exist, so this is a belief bound for single-phase homes; above it, breach.'
+  flag_bands:
+  - class: all domestic
+    flag_lower: 500
+    flag_upper_p99: 14300
+    median: 2600
+    p95: 8600
+    share_above_25000: 0.0034
+  - class: 'gas-heated (proxy: same customer_id also holds a gas account)'
+    flag_upper_p99: 12200
+    median: 2500
+    p95: 7300
+    share_above_25000: 0.0017
+  - class: 'gas not main heating fuel (proxy: customer_id holds no gas account)'
+    flag_upper_p99: 18200
+    median: 3200
+    p95: 12100
+    share_above_25000: 0.011
+  flag_source: 'docs/market_research/need_domestic_electricity_high_tail.md ''Measurement — 2024 electricity year'' table; flag_lower 500 = NEED metadata ''removed due to being ... too small (under 500
+    kWh)'' (a statistics filter: voids and second homes are real)'
+  not_a_ceiling: '25,000 kWh is DESNZ''s suppression threshold, NOT a domestic ceiling: 0.34% of all domestic and 1 in 17 large pre-1930 detached homes without mains gas exceed it (docs/market_research/need_domestic_electricity_high_tail.md
+    ''THE CENSORING FACT'').'
+  book_level: Share of the book's complete account-years above the class p99 should be about 1%. Flag if it exceeds the one-sided 99.9% binomial upper bound for p = 0.01 at the book's n (the 99.9% is a
+    method choice, not a sourced number). E&W 2024 percentiles applied to all years is a stated simplification.
+  physics_per_period:
+    upper_kwh_per_day: 552
+    rule: consumption_kwh / days_in_period <= 552 (23 kW x 24 h, same single-phase 100 A belief)
+  export_fields:
+  - consumption_kwh
+  - period_start
+  - period_end
+  - days_in_period
+  - customer_id
+  - commodity
+  - volume_basis
+  checkable: true
+  gap: no published P1 (lower tail below the 500 kWh filter is unmeasured); direct-electric class tail is heavier than the 'gas not main heating' row shows
+  source: docs/market_research/need_domestic_electricity_high_tail.md
+- id: INV_ANNUAL_USE_GAS_ACCOUNT
+  family: annual_use
+  statement: A domestic gas account's annual consumption is non-negative; above 50,000 kWh (DESNZ's own 'too large' cut) or the class p99 it is a premise to confirm.
+  applies_to:
+    commodity: gas
+    segment: domestic
+  basis: kWh per year over a complete 365-day run of consecutive periods. NEED gas is WEATHER-CORRECTED (2024 gas year); an actual-weather year (e.g. a cold 2018 or 2010-type winter) can sit above it.
+  lower: 0.0
+  upper: null
+  lower_source: logic
+  upper_source: 'GAP: no physical domestic gas ceiling (meter capacity) is in the allowed sources'
+  flag_bands:
+  - class: all gas-heated
+    flag_lower: 1000
+    median: 10000
+    p90: 19500
+    p95: 23500
+    flag_upper_p99: 34300
+    share_above_50000: 0.0057
+  - class: detached any age
+    median: 13600
+    flag_upper_p99: 41100
+    share_above_50000: 0.0158
+  hard_flag:
+    upper: 50000
+    source: 'docs/market_research/need_domestic_gas_high_tail.md ''THE CENSORING FACT'': NEED metadata ''removed due to being too large (over 50,000 kWh)''; 0.57% of gas-heated E&W homes exceed it, so it
+      is a strong flag, not a breach'
+  flag_source: docs/market_research/need_domestic_gas_high_tail.md 'Measurement 2' table; flag_lower 1000 = NEED 'too small (under 1,000 kWh)'
+  book_level: 'As for electricity: share above class p99 about 1%, binomial upper bound at the book''s n.'
+  export_fields:
+  - consumption_kwh
+  - period_start
+  - period_end
+  - days_in_period
+  - commodity
+  checkable: true
+  gap: physical ceiling; no P1; dwelling class (age/type/floor area) not in the export so class-conditioned bands cannot be applied
+  source: docs/market_research/need_domestic_gas_high_tail.md
+- id: INV_ANNUAL_USE_BOOK_MEDIAN
+  family: annual_use
+  statement: The book's median domestic annual consumption per fuel and meter class lies between Ofgem's TDCV low and high values in force (by definition the population median lies between the lower and
+    upper quartiles).
+  applies_to:
+    segment: domestic
+    level: book (population), not account
+  basis: kWh/yr; TDCV low/medium/high = lower quartile / median / upper quartile of GB domestic consumption (docs/market_research/what_a_supplier_holds_to_size_a_direct_debit.md §2 'Methodology (§1.2)').
+    Half of all households fall outside low-high, so this is a POPULATION check only.
+  evaluation: For each TDCV row, take complete 365-day account-years whose midpoint falls in [from, to]; compute the book median and its order-statistic 95% CI; breach only if the whole CI lies outside
+    [lower, upper]. Multi-register = accounts with two or more register_id.
+  rows:
+  - from: '2016-01-01'
+    to: '2017-09-30'
+    class: gas
+    lower: 8000
+    upper: 18000
+    medium: 12500
+    lower_source: docs/market_research/what_a_supplier_holds_to_size_a_direct_debit.md §3 table row 'in force from 2016-01-01' ('Current' column of the 2017 decision) Gas L
+    upper_source: docs/market_research/what_a_supplier_holds_to_size_a_direct_debit.md §3 table row 'in force from 2016-01-01' ('Current' column of the 2017 decision) Gas H
+  - from: '2016-01-01'
+    to: '2017-09-30'
+    class: electricity single-register (PC1)
+    lower: 2000
+    upper: 4600
+    medium: 3100
+    lower_source: docs/market_research/what_a_supplier_holds_to_size_a_direct_debit.md §3 table row 'in force from 2016-01-01' ('Current' column of the 2017 decision) Elec PC1 L
+    upper_source: docs/market_research/what_a_supplier_holds_to_size_a_direct_debit.md §3 table row 'in force from 2016-01-01' ('Current' column of the 2017 decision) Elec PC1 H
+  - from: '2016-01-01'
+    to: '2017-09-30'
+    class: electricity multi-register (PC2)
+    lower: 2500
+    upper: 7200
+    medium: 4300
+    lower_source: docs/market_research/what_a_supplier_holds_to_size_a_direct_debit.md §3 table row 'in force from 2016-01-01' ('Current' column of the 2017 decision) Elec PC2 L
+    upper_source: docs/market_research/what_a_supplier_holds_to_size_a_direct_debit.md §3 table row 'in force from 2016-01-01' ('Current' column of the 2017 decision) Elec PC2 H
+  - from: '2017-10-01'
+    to: '2020-03-31'
+    class: gas
+    lower: 8000
+    upper: 17000
+    medium: 12000
+    lower_source: docs/market_research/what_a_supplier_holds_to_size_a_direct_debit.md §3 table row 'in force from 2017-10-01' (Ofgem TDCV decision letter, 3 Aug 2017) Gas L
+    upper_source: docs/market_research/what_a_supplier_holds_to_size_a_direct_debit.md §3 table row 'in force from 2017-10-01' (Ofgem TDCV decision letter, 3 Aug 2017) Gas H
+  - from: '2017-10-01'
+    to: '2020-03-31'
+    class: electricity single-register (PC1)
+    lower: 1900
+    upper: 4600
+    medium: 3100
+    lower_source: docs/market_research/what_a_supplier_holds_to_size_a_direct_debit.md §3 table row 'in force from 2017-10-01' (Ofgem TDCV decision letter, 3 Aug 2017) Elec PC1 L
+    upper_source: docs/market_research/what_a_supplier_holds_to_size_a_direct_debit.md §3 table row 'in force from 2017-10-01' (Ofgem TDCV decision letter, 3 Aug 2017) Elec PC1 H
+  - from: '2017-10-01'
+    to: '2020-03-31'
+    class: electricity multi-register (PC2)
+    lower: 2500
+    upper: 7100
+    medium: 4200
+    lower_source: docs/market_research/what_a_supplier_holds_to_size_a_direct_debit.md §3 table row 'in force from 2017-10-01' (Ofgem TDCV decision letter, 3 Aug 2017) Elec PC2 L
+    upper_source: docs/market_research/what_a_supplier_holds_to_size_a_direct_debit.md §3 table row 'in force from 2017-10-01' (Ofgem TDCV decision letter, 3 Aug 2017) Elec PC2 H
+  - from: '2020-04-01'
+    to: '2023-09-30'
+    class: gas
+    lower: 8000
+    upper: 17000
+    medium: 12000
+    lower_source: docs/market_research/what_a_supplier_holds_to_size_a_direct_debit.md §3 table row 'in force from 2020-04-01' (Ofgem TDCV decision letter, 6 Jan 2020) Gas L
+    upper_source: docs/market_research/what_a_supplier_holds_to_size_a_direct_debit.md §3 table row 'in force from 2020-04-01' (Ofgem TDCV decision letter, 6 Jan 2020) Gas H
+  - from: '2020-04-01'
+    to: '2023-09-30'
+    class: electricity single-register (PC1)
+    lower: 1800
+    upper: 4300
+    medium: 2900
+    lower_source: docs/market_research/what_a_supplier_holds_to_size_a_direct_debit.md §3 table row 'in force from 2020-04-01' (Ofgem TDCV decision letter, 6 Jan 2020) Elec PC1 L
+    upper_source: docs/market_research/what_a_supplier_holds_to_size_a_direct_debit.md §3 table row 'in force from 2020-04-01' (Ofgem TDCV decision letter, 6 Jan 2020) Elec PC1 H
+  - from: '2020-04-01'
+    to: '2023-09-30'
+    class: electricity multi-register (PC2)
+    lower: 2400
+    upper: 7100
+    medium: 4200
+    lower_source: docs/market_research/what_a_supplier_holds_to_size_a_direct_debit.md §3 table row 'in force from 2020-04-01' (Ofgem TDCV decision letter, 6 Jan 2020) Elec PC2 L
+    upper_source: docs/market_research/what_a_supplier_holds_to_size_a_direct_debit.md §3 table row 'in force from 2020-04-01' (Ofgem TDCV decision letter, 6 Jan 2020) Elec PC2 H
+  - from: '2023-10-01'
+    to: '2026-06-30'
+    class: gas
+    lower: 7500
+    upper: 17000
+    medium: 11500
+    lower_source: docs/market_research/what_a_supplier_holds_to_size_a_direct_debit.md §3 table row 'in force from 2023-10-01' (Ofgem decision, 25 May 2023, §2.4, §2.41) Gas L
+    upper_source: docs/market_research/what_a_supplier_holds_to_size_a_direct_debit.md §3 table row 'in force from 2023-10-01' (Ofgem decision, 25 May 2023, §2.4, §2.41) Gas H
+  - from: '2023-10-01'
+    to: '2026-06-30'
+    class: electricity single-register (PC1)
+    lower: 1800
+    upper: 4100
+    medium: 2700
+    lower_source: docs/market_research/what_a_supplier_holds_to_size_a_direct_debit.md §3 table row 'in force from 2023-10-01' (Ofgem decision, 25 May 2023, §2.4, §2.41) Elec PC1 L
+    upper_source: docs/market_research/what_a_supplier_holds_to_size_a_direct_debit.md §3 table row 'in force from 2023-10-01' (Ofgem decision, 25 May 2023, §2.4, §2.41) Elec PC1 H
+  - from: '2023-10-01'
+    to: '2026-06-30'
+    class: electricity multi-register (PC2)
+    lower: 2200
+    upper: 6700
+    medium: 3900
+    lower_source: docs/market_research/what_a_supplier_holds_to_size_a_direct_debit.md §3 table row 'in force from 2023-10-01' (Ofgem decision, 25 May 2023, §2.4, §2.41) Elec PC2 L
+    upper_source: docs/market_research/what_a_supplier_holds_to_size_a_direct_debit.md §3 table row 'in force from 2023-10-01' (Ofgem decision, 25 May 2023, §2.4, §2.41) Elec PC2 H
+  - from: '2026-07-01'
+    to: '2026-12-31'
+    class: gas
+    lower: 6000
+    upper: 14000
+    medium: 9500
+    lower_source: docs/market_research/what_a_supplier_holds_to_size_a_direct_debit.md §3 table row 'in force from 2026-07-01' (Ofgem decision, 27 May 2026) Gas L
+    upper_source: docs/market_research/what_a_supplier_holds_to_size_a_direct_debit.md §3 table row 'in force from 2026-07-01' (Ofgem decision, 27 May 2026) Gas H
+  - from: '2026-07-01'
+    to: '2026-12-31'
+    class: electricity single-register (PC1)
+    lower: 1600
+    upper: 3800
+    medium: 2500
+    lower_source: docs/market_research/what_a_supplier_holds_to_size_a_direct_debit.md §3 table row 'in force from 2026-07-01' (Ofgem decision, 27 May 2026) Elec PC1 L
+    upper_source: docs/market_research/what_a_supplier_holds_to_size_a_direct_debit.md §3 table row 'in force from 2026-07-01' (Ofgem decision, 27 May 2026) Elec PC1 H
+  - from: '2026-07-01'
+    to: '2026-12-31'
+    class: electricity multi-register (PC2)
+    lower: null
+    upper: null
+    medium: null
+    lower_source: 'GAP: 2026 PC2 not established'
+    upper_source: GAP
+  caveats:
+  - 'PC2 values are known to be biased LOW (Ofgem: multi-meter properties could not be aggregated).'
+  - A book is not the GB population (a supplier's book can be skewed); a breach is a question about the book's mix as much as about consumption.
+  - TDCV is computed from weather-normalised industry data; a single actual-weather year moves gas.
+  export_fields:
+  - consumption_kwh
+  - period_start
+  - period_end
+  - register_id
+  - commodity
+  - segment
+  checkable: true
+  gap: null
+  source: docs/market_research/what_a_supplier_holds_to_size_a_direct_debit.md §3
+- id: INV_READ_DUTY_ANNUAL
+  family: read_duty
+  statement: For every credit-meter customer the supplier takes all reasonable steps to obtain a meter reading at least once every year (SLC 21B.4); a customer's own read or a smart meter's transmitted
+    read counts.
+  applies_to:
+    commodity: electricity and gas
+    segment: domestic (the condition is in the domestic/customer licence text; applied to all credit meters here)
+    excludes: prepayment accounts (21B.4 'does not apply to prepayment meters'); identify by any 'prepayment top-up' payment
+  basis: days between consecutive reads whose read_type is actual or customer (and from supply start to the first such read)
+  lower: 0
+  upper: 365
+  lower_source: logic
+  upper_source: docs/domain_artefact_library/regulatory/slc_21b_21ba_reads_and_back_billing.md '21B.4 ... at least once every year' (in force from 31 Dec 2014, 21B.3); corroborated docs/market_research/read_access_and_theft_duties.md
+    §2.1 [H]
+  tolerance:
+    upper_days: 1
+    reason: a leap-year span is 366 days
+  severity:
+    above_upper: 'flag, not breach: 21B.4 is a duty of EFFORT (''all reasonable steps''), not a guarantee of a read. An unread interval over a year is evidence to be explained, and it costs the supplier
+      under 21BA (''not reading is not a 21BA exception'', docs/domain_artefact_library/regulatory/slc_21b_21ba_reads_and_back_billing.md ''How the two conditions meet'').'
+  correction_to_brief: The brief's 'at least once every two years' is the old two-yearly INSPECTION duty, repealed from 1 April 2016 in both fuels (Ofgem decision 4 Feb 2016, docs/market_research/read_access_and_theft_duties.md
+    §2.1 [H]). For the whole 2016-2025 window the read duty is ANNUAL.
+  export_fields:
+  - read_date
+  - read_type
+  - register_id
+  - payment_method
+  - period_start
+  checkable: true
+  gap: smart-meter status not in the export (a smart read should arrive as read_type actual; if exported otherwise the check under-counts)
+  source: docs/domain_artefact_library/regulatory/slc_21b_21ba_reads_and_back_billing.md
+- id: INV_SETTLEMENT_ACTUAL_SHARE_ELEC
+  family: read_duty
+  statement: At least 97% of a supplier's non-half-hourly electricity is settled on actual metered data by the final reconciliation run (about 14 months after the settlement date).
+  applies_to:
+    commodity: electricity
+    level: book
+  basis: share of book electricity kWh, for consumption dated at least 14 months before the export end, that lies on or before each account's latest actual/customer read (i.e. bounded by actual reads rather
+    than estimate-to-estimate). Approximation of BSC Section S Annex S-1.
+  lower: 0.97
+  upper: 1.0
+  lower_source: 'docs/market_research/read_access_and_theft_duties.md §2.1: BSC ''requires that at least 97% of non-half hourly electricity is settled on the basis of actual metered data by the time of
+    Elexon''s final volume allocation run (i.e. within 14 months)'' [H for Ofgem''s statement; the BSC annex itself not read, M]'
+  upper_source: logic
+  severity:
+    below_lower: flag (a settlement performance standard, charged, not a licence breach)
+  export_fields:
+  - read_date
+  - read_type
+  - consumption_kwh
+  - period_start
+  - period_end
+  checkable: true
+  gap: the export's periods are billing periods, not settlement periods; the share is an approximation; HH-settled accounts cannot be identified
+  source: docs/market_research/read_access_and_theft_duties.md
+- id: INV_BILL_AT_LEAST_TWICE_YEARLY
+  family: read_duty
+  statement: A credit-meter customer is sent a bill or statement at least twice a year (SLC 21B.5), so no billing period on a non-prepayment, non-smart account exceeds about six months.
+  applies_to:
+    segment: domestic
+    excludes: prepayment, smart and unmetered supply (21B.5 carve-out)
+  basis: days_in_period per period
+  lower: 1
+  upper: 184
+  lower_source: logic
+  upper_source: docs/domain_artefact_library/regulatory/slc_21b_21ba_reads_and_back_billing.md '21B.5 ... at least twice yearly'; 184 = the longest half-year (Jul-Dec)
+  severity:
+    above_upper: flag (smart accounts are exempt and the export does not mark smart)
+  export_fields:
+  - days_in_period
+  - payment_method
+  checkable: true
+  gap: smart-meter flag absent, so cannot separate exempt accounts
+  source: docs/domain_artefact_library/regulatory/slc_21b_21ba_reads_and_back_billing.md
+- id: INV_OPENING_READ
+  family: read_duty
+  statement: 'Every supply span opens on a read that is actual or deemed, dated at the supply start date (electricity CoS: within SSD ±5 days, deemed by SSD+8; gas: estimated opening read within 10 days).'
+  applies_to:
+    commodity: electricity and gas
+    segment: all
+  basis: days from the account's first period_start to its first read_date
+  rows:
+  - commodity: electricity
+    lower: -5
+    upper: 8
+    lower_source: 'docs/market_research/unbilled_energy_and_revenue_assurance.md ''The opening read at a change of tenancy'': BSCP504 §4.4.1 ''within the SSD ±5 days'' [H]'
+    upper_source: 'same: ''the new data collector deems one by SSD+8'' [H]'
+  - commodity: gas
+    lower: -5
+    upper: 10
+    lower_source: 'belief: mirror of electricity window'
+    upper_source: 'same section: ''an estimated opening read within 10 days (UNC 0427S ...)'' [M]'
+  severity:
+    outside: flag (at a change of tenancy with the same supplier no industry process sets the read; 'an opening read always exists, and it is either actual or deemed')
+  export_fields:
+  - period_start
+  - read_date
+  - read_type
+  checkable: true
+  gap: CoS vs CoT not distinguishable in the export
+  source: docs/market_research/unbilled_energy_and_revenue_assurance.md
+- id: INV_PAYMENT_PPM_AND_DD_NOT_CONCURRENT
+  family: payment_method_consistency
+  statement: 'An account does not pay by prepayment top-up and by direct debit at the same time: a prepayment meter is paid in advance at the meter.'
+  applies_to:
+    segment: all
+  predicate: For each account and calendar month, NOT (any payment_method == 'prepayment top-up' AND any payment_method == 'direct debit'). One change-over month is lawful (a method change); two or more
+    consecutive months with both = breach.
+  lower: null
+  upper: null
+  source: docs/domain_artefact_library/regulatory/pricing_differentiation_permissions.md (SLC 27.1 payment methods incl. 'payment in advance through a Prepayment Meter'); docs/market_research/payments_and_direct_debit_2026-10-25.md
+  severity:
+    one_month: flag
+    two_plus_consecutive_months: breach
+  export_fields:
+  - payment_date
+  - payment_method
+  checkable: true
+  gap: the 'two months' tolerance is a reading, not a sourced number
+- id: INV_PAYMENT_AMOUNT_SIGN
+  family: payment_method_consistency
+  statement: A direct-debit collection and a prepayment top-up are positive amounts; refunds travel as adjustments or credit transfers, not as negative DDs or negative top-ups.
+  predicate: payment_method in {direct debit, prepayment top-up} => payment_amount_gbp > 0
+  lower: 0.0
+  upper: null
+  lower_source: logic (a DD collects; a Direct Debit Guarantee refund is the payer's bank's indemnity claim, docs/market_research/payments_and_direct_debit_2026-10-25.md §3 DDICA)
+  upper_source: null
+  export_fields:
+  - payment_amount_gbp
+  - payment_method
+  checkable: true
+  gap: how the export encodes DD returns/indemnity claims is not stated; if as negative DD payments, the runner should report them separately rather than as breaches
+  source: docs/market_research/payments_and_direct_debit_2026-10-25.md
+- id: INV_DD_CADENCE
+  family: payment_method_consistency
+  statement: A fixed direct debit is a regular fixed amount, collected at most once per scheduled interval (monthly), with at most one re-presentation of a failed collection.
+  predicate: count(payment_method == 'direct debit') per account per calendar month <= 2
+  lower: 0
+  upper: 2
+  lower_source: logic
+  upper_source: SLC 27.15 'the fixed amount of the regular direct debit payment' (docs/market_research/payments_and_direct_debit_2026-10-25.md §2); the +1 for a re-presentation is a belief
+  severity:
+    above_upper: flag
+  export_fields:
+  - payment_date
+  - payment_method
+  checkable: true
+  gap: variable (bill-paying) DD customers exist (£725m of balances, §2) and pay per bill; they also satisfy <= 2 per month
+  source: docs/market_research/payments_and_direct_debit_2026-10-25.md
+- id: INV_DD_STEP_CHANGE
+  family: payment_method_consistency
+  statement: A regular direct debit that more than doubles from one collection to the next is the case Ofgem required suppliers to re-review in 2022.
+  predicate: 'for consecutive regular DD collections a, b: b.payment_amount_gbp / a.payment_amount_gbp <= 2.0'
+  lower: null
+  upper: 2.0
+  upper_source: docs/market_research/what_a_supplier_holds_to_size_a_direct_debit.md §1 'The only published numeric cut is Ofgem's 100% threshold from the 2022 Direct Debit Market Compliance Review ...
+    an enforcement instrument, not a licence threshold'; docs/market_research/payments_and_direct_debit_2026-10-25.md §2 (8% of DD increases Feb-Apr 2022 were >100%)
+  severity:
+    above_upper: 'flag (not a licence breach: SLC 27.15 names no numeric trigger)'
+  export_fields:
+  - payment_amount_gbp
+  - payment_date
+  - payment_method
+  checkable: true
+  gap: no licence numeric threshold for DD adequacy; Ofgem expects a DD to fall when the customer is in credit but gives no number
+  source: docs/market_research/payments_and_direct_debit_2026-10-25.md
+- id: INV_PPM_NOT_CREDIT_BILLED
+  family: payment_method_consistency
+  statement: 'A prepayment customer is not sent credit bills or estimated credit bills: 21B.4 and 21B.5 do not apply to prepayment, and consumption is paid at the meter.'
+  lower: null
+  upper: null
+  export_fields: []
+  checkable: false
+  gap: 'UNCHECKABLE: the export carries no bill/statement record, bill type or meter type. Periods exist for every account (they are consumption periods), so a period on a prepayment account is not evidence
+    of a credit bill. Needs a bill-issued record with its type.'
+  source: docs/domain_artefact_library/regulatory/slc_21b_21ba_reads_and_back_billing.md (21B.4, 21B.5 carve-outs)
+- id: INV_FUEL_IDENTIFIER
+  family: event_fuel_consistency
+  statement: An electricity account is identified by an MPAN and has no MPRN; a gas account by an MPRN and has no MPAN. Every read, period and term on an account is of the account's fuel.
+  predicate: (commodity == electricity => mpan non-empty and mprn empty) and (commodity == gas => mprn non-empty and mpan empty)
+  lower: null
+  upper: null
+  source: logic of GB meter-point identifiers (MPAN electricity, MPRN gas)
+  severity:
+    violation: breach
+  export_fields:
+  - commodity
+  - mpan
+  - mprn
+  checkable: true
+  gap: null
+- id: INV_GAS_SINGLE_REGISTER
+  family: event_fuel_consistency
+  statement: A domestic gas meter records one register; multi-register (Economy 7 / ToU) metering is an electricity arrangement.
+  predicate: commodity == gas => count(distinct register_id) == 1 per meter_serial
+  lower: 1
+  upper: 1
+  source: 'belief (strong logic): SLC 28AD''s Multi-Register definitions are electricity-licence text (docs/domain_artefact_library/regulatory/slc_28ad_multi_register_cap_test.md); no domestic gas multi-register
+    arrangement appears in any allowed source'
+  severity:
+    violation: breach
+  export_fields:
+  - commodity
+  - register_id
+  - meter_serial
+  checkable: true
+  gap: stated belief, not a quoted rule
+- id: INV_CROSS_FUEL_PRICE_SCALE
+  family: event_fuel_consistency
+  statement: A gas account priced on an electricity-scale unit rate (or the reverse) is a crossed fuel; caught by the per-fuel unit-rate bands.
+  predicate: 'for svt terms: commodity == gas => unit_rate within INV_UNIT_RATE_SVT_GAS row; commodity == electricity => above INV_UNIT_RATE_SVT_ELEC lower (outside EPG windows, every electricity floor
+    from 2019 exceeds the same window''s gas cap)'
+  lower: null
+  upper: null
+  source: derived from INV_UNIT_RATE_SVT_ELEC and INV_UNIT_RATE_SVT_GAS rows; e.g. 2019-04 elec floor 8.024 > gas cap 3.943
+  export_fields:
+  - commodity
+  - unit_rate_p_per_kwh
+  - tariff_effective_from
+  checkable: true
+  gap: null
+- id: INV_EV_ADOPTION_ELECTRICITY_ONLY
+  family: event_fuel_consistency
+  statement: An EV adoption (or heat pump, PV) touches the electricity account only; an electricity-only household has no gas reads, terms or bills.
+  lower: null
+  upper: null
+  export_fields: []
+  checkable: false
+  gap: 'UNCHECKABLE: the export carries no event stream (adoption events, asset changes). The ''electricity-only household has no gas records'' half is checkable only as INV_FUEL_IDENTIFIER, because every
+    record in the export already hangs off one commodity''s account.'
+  source: logic
+- id: INV_PERIODS_CONTIGUOUS
+  family: billing_interval
+  statement: An account's billing periods run consecutively from supply start to supply end with no gap and no overlap, and each period's day count matches its dates.
+  predicate: 'sort periods by period_start; for consecutive p, q: q.period_start == p.period_end + 1 day (inclusive-end convention) OR q.period_start == p.period_end (exclusive-end) -- one convention, used
+    consistently across the whole export; days_in_period == (period_end - period_start) [+1 if inclusive]; days_in_period >= 1'
+  lower: 0
+  upper: 0
+  lower_source: logic
+  upper_source: 'logic: gap/overlap days must be 0'
+  severity:
+    gap_or_overlap: breach
+    day_count_mismatch: breach
+  export_fields:
+  - period_start
+  - period_end
+  - days_in_period
+  checkable: true
+  gap: null
+  source: logic of a meter-point account ledger
+- id: INV_BACK_BILLING_12M
+  family: back_billing
+  statement: From 1 May 2018 (domestic; microbusiness from 1 Nov 2018) a supplier may recover only energy reasonably considered consumed in the 12 months before the charge recovery action, absent customer
+    obstruction.
+  applies_to:
+    segment: domestic from 2018-05-01; microbusiness from 2018-11-01
+  basis: days between the start of the energy charged and the charge recovery action
+  lower: 0
+  upper: 365
+  lower_source: logic
+  upper_source: docs/domain_artefact_library/regulatory/slc_21b_21ba_reads_and_back_billing.md '21BA.1 ... consumed within the 12 months preceding the date the charge recovery action was taken'; in force
+    docs/domain_artefact_library/regulatory/slc_21b_21ba_reads_and_back_billing.md 'In force'
+  checkable_part: 'PROXY (flag): the demand date is taken as period_end (a bill cannot predate its period). (a) any period with days_in_period > 365 whose kWh were not already demanded is a flag; (b) catch-up:
+    where an actual read follows a run of estimated/deemed reads whose last actual read is more than 365 days before the catching-up period''s period_end, and that period''s consumption_kwh exceeds its
+    days x the account''s prior daily average, the excess is energy older than 12 months unless a negative adjustment of matching size follows -> flag. Non-reading is NOT obstruction (Ofgem 2018: ''We do
+    not consider a consumer to be obstructive ... when he or she does not supply a meter reading'').'
+  uncheckable_part: A definitive breach needs the bill issue (demand) date and the link between a catch-up charge and the consumption window it recovers; the export has neither. Money already collected
+    by DD that covered the energy is not barred (Ombudsman Scenario B, docs/market_research/back_billing_and_liability.md §1), which needs a running balance the runner would have to reconstruct.
+  severity:
+    flag: proxy hits
+  export_fields:
+  - period_start
+  - period_end
+  - days_in_period
+  - consumption_kwh
+  - read_date
+  - read_type
+  - adjustment_date
+  - adjustment_amount_gbp
+  - adjustment_reason
+  - segment
+  checkable: true
+  gap: bill issue date and charge-to-period link absent (definitive check UNCHECKABLE; proxy checkable)
+  source: docs/domain_artefact_library/regulatory/slc_21b_21ba_reads_and_back_billing.md; docs/market_research/back_billing_and_liability.md
+- id: INV_PERIOD_CONSUMPTION_NON_NEGATIVE
+  family: meter_physics
+  statement: Import consumption in a period is never negative.
+  lower: 0.0
+  upper: null
+  lower_source: physics
+  upper_source: see INV_ANNUAL_USE_ELEC_ACCOUNT physics_per_period for electricity
+  predicate: consumption_kwh >= 0 (exclude registers whose register_label marks EXPORT generation)
+  export_fields:
+  - consumption_kwh
+  - register_label
+  checkable: true
+  gap: null
+  source: physics
+  severity:
+    violation: breach
+- id: INV_READ_MONOTONIC
+  family: meter_physics
+  statement: On one meter and register, an actual read is never lower than an earlier actual read (a read does not go backwards), except at a meter exchange or a register roll-over.
+  predicate: 'for consecutive reads r1 < r2 by read_date on the same (meter_serial, register_id) with read_type in {actual}: r2.read_kwh >= r1.read_kwh, unless r2.read_kwh + 10^d - r1.read_kwh (d = digits
+    of r1) is an advance within the period''s physics bound (roll-over). Customer reads: same test, severity flag (customer reads can be mis-keyed and are rejected in practice). Estimated/deemed reads:
+    excluded (an estimate later corrected downward by an actual is normal).'
+  lower: 0.0
+  upper: null
+  lower_source: 'physics: an accumulating register'
+  upper_source: null
+  severity:
+    actual_to_actual: breach
+    customer_involved: flag
+  export_fields:
+  - read_date
+  - register_id
+  - read_kwh
+  - read_type
+  - meter_serial
+  checkable: true
+  gap: meter exchange visible only if meter_serial changes on the account
+  source: physics
+- id: INV_PERIOD_MATCHES_READS
+  family: meter_physics
+  statement: A period billed on reads bills exactly the advance between its opening and closing reads, summed over registers.
+  predicate: volume_basis == 'reads' and reads exist at period_start and period_end on every register => |consumption_kwh - sum_registers(read_end - read_start)| <= 1 kWh x registers
+  lower: -1
+  upper: 1
+  lower_source: rounding of read_kwh to 1 kWh (belief)
+  upper_source: same
+  export_fields:
+  - consumption_kwh
+  - volume_basis
+  - read_date
+  - read_kwh
+  - register_id
+  - period_start
+  - period_end
+  checkable: true
+  gap: gas reads are volumetric at the meter and converted to kWh with a calorific value; the export carries read_kwh, so the conversion is assumed already applied
+  source: logic
+  severity:
+    violation: breach
+- id: INV_VAT_RATE
+  family: vat
+  statement: Domestic electricity and gas carry the reduced 5% VAT rate, except domestic electricity in GB from 1 Oct 2026 to 31 Mar 2027 at 0%; business supply is 5% at or under the de minimis daily average
+    and 20% above it.
+  basis: vat_rate as a fraction
+  rows:
+  - from: '2016-01-01'
+    to: '2026-09-30'
+    segment: domestic
+    commodity: electricity
+    lower: 0.05
+    upper: 0.05
+    lower_source: docs/domain_artefact_library/regulatory/uk_vat_rates.json#rates.reduced.rate (0.05) + domestic_fuel_and_power_is_REDUCED_rate
+    upper_source: same
+  - from: '2026-10-01'
+    to: '2027-03-31'
+    segment: domestic
+    commodity: electricity
+    lower: 0.0
+    upper: 0.0
+    lower_source: docs/domain_artefact_library/regulatory/uk_vat_rates.json#dated_exceptions[0] (SI 2026/987; HMRC Brief 10 (2026))
+    upper_source: same
+  - from: '2016-01-01'
+    to: '2027-03-31'
+    segment: domestic
+    commodity: gas
+    lower: 0.05
+    upper: 0.05
+    lower_source: docs/domain_artefact_library/regulatory/uk_vat_rates.json#rates.reduced; dated_exceptions[0].not 'gas (stays reduced, 5%)'
+    upper_source: same
+  - from: '2016-01-01'
+    to: '2027-03-31'
+    segment: sme/non-domestic
+    commodity: electricity
+    rule: 0.05 if consumption_kwh/days_in_period <= 33 else 0.20
+    lower: 0.05
+    upper: 0.2
+    lower_source: docs/domain_artefact_library/regulatory/vat_fuel_and_power_de_minimis.json#de_minimis_by_fuel.electricity.kwh_per_day (33)
+    upper_source: docs/domain_artefact_library/regulatory/uk_vat_rates.json#rates.standard (0.20)
+  - from: '2016-01-01'
+    to: '2027-03-31'
+    segment: sme/non-domestic
+    commodity: gas
+    rule: 0.05 if consumption_kwh/days_in_period <= 145 else 0.20
+    lower: 0.05
+    upper: 0.2
+    lower_source: docs/domain_artefact_library/regulatory/vat_fuel_and_power_de_minimis.json#de_minimis_by_fuel.gas.kwh_per_day (145)
+    upper_source: docs/domain_artefact_library/regulatory/uk_vat_rates.json#rates.standard
+  tolerance:
+    absolute: 0.0
+    reason: statutory rate
+  caveats:
+  - The commons states the rates as of 2026 and declares their dates of change NOT ESTABLISHED (uk_vat_rates.json#NOT_ESTABLISHED_declared_rather_than_assumed); 5% domestic fuel throughout 2016-2025 is
+    a belief (stated as 'domestic VAT 5% throughout' in docs/market_research/svt_rates_active_passive_2016_2025.md §1a, and VATA 1994 Sch 7A Group 1 in docs/market_research/default_tariff_cap_and_epg_on_the_bill.md).
+  - A period spanning 2026-10-01 may be split by consumption date (HMRC); a single vat_rate on such a period is a flag, not a breach.
+  - The de minimis averaging rule (period, month, rolling) is not established; using the period average is a reading.
+  export_fields:
+  - vat_rate
+  - segment
+  - commodity
+  - period_start
+  - period_end
+  - consumption_kwh
+  - days_in_period
+  checkable: true
+  gap: dated source for the 5% rate before 2026 not in the commons
+  source: docs/domain_artefact_library/regulatory/uk_vat_rates.json; docs/domain_artefact_library/regulatory/vat_fuel_and_power_de_minimis.json
+- id: INV_NON_COMMODITY_WITHIN_ALL_IN
+  family: tariff_structure
+  statement: The non-commodity part of an all-in unit rate is non-negative and no larger than the all-in rate itself.
+  predicate: 0 <= non_commodity_rate_gbp_per_mwh <= unit_rate_p_per_kwh x 10
+  lower: 0.0
+  upper: unit_rate_p_per_kwh x 10 (GBP/MWh)
+  lower_source: logic
+  upper_source: 'logic: the unit rate is all-in, so it contains the non-commodity part (docs/market_research/default_tariff_cap_and_epg_on_the_bill.md ''its unit rate already contains every non-commodity
+    cost'')'
+  export_fields:
+  - non_commodity_rate_gbp_per_mwh
+  - unit_rate_p_per_kwh
+  checkable: true
+  gap: null
+  source: logic
+  severity:
+    violation: breach
