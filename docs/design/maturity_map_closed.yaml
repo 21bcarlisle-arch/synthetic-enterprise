@@ -4949,3 +4949,23 @@
   frame_saturated: true   # 2026-10-03: FRAME is the addendum in gb_payment_method_migration_rates.md (226976c0f), not a *_FRAME doc, so H23 could not see it and re-drew it.
   depends_on: []
   couples_with: [PB6_the_engagement_observable_crosses_the_seam]
+
+- id: B13_a_dual_fuel_household_is_one_account_across_both_fuels
+  title: "a dual-fuel household is one account across both fuels: one bill, one balance, one move, one switch, and a fix it takes on contact covers its gas too"
+  lane: B_commercial
+  value_stream: meter_to_cash
+  epoch: 4
+  level_current: 2
+  level_target: 2
+  loop_stage: build
+  # L2 2026-10-26: a departure lists only legs on supply; a fix on contact covers gas in one act
+  # (`_plan_the_gas_refix`, contact page s.7.5b). Open: fuels answer anniversaries apart (finding).
+  dial_inherited: 85
+  provenance: director_ruling
+  depends_on: []
+  couples_with: [B7_customer_state_layer_moves_and_shocks, EP12_adapter_css_rec_switching]
+  file_scope: ['simulation/run_phase2b.py',
+    'tests/simulation/test_a_dual_fuel_household_is_one_account_across_both_fuels.py']
+  simplifications_count: 0
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a dual-fuel customer who rings to fix and is moved onto the same fix for gas and electricity on one call, with one direct debit across both."

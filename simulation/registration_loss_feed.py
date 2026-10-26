@@ -93,18 +93,23 @@ def supply_points_on_supply(
     as_of: str,
     electricity_schedules: Mapping[str, Sequence[Mapping]],
     gas_schedules: Mapping[str, Sequence[Mapping]],
+    supply_ended_on: Mapping[str, str] | None = None,
 ) -> list[tuple[str, str]]:
-    """(supply point, fuel) for each of the household's points whose supply had begun by `as_of`.
+    """(supply point, fuel) for each of the household's points on supply on `as_of`: begun by it,
+    and not ended before it.
 
     A point whose first term starts later was never registered to this supplier on the day the
-    household left, so no loss can be notified for it.
+    household left, so no loss can be notified for it. Nor can one whose supply already ended
+    (`supply_ended_on`, point -> last day supplied): a gas leg ended at a move to a home with no
+    mains gas is not switched away when the household later leaves (B13).
     """
+    ended = supply_ended_on or {}
     held = []
     for fuel, by_point in ((ELECTRICITY, electricity_schedules), (GAS, gas_schedules)):
         for point, terms in by_point.items():
             if household_of(point) == household and any(
                 t["acquisition_date"] <= as_of for t in terms
-            ):
+            ) and not ended.get(point, as_of) < as_of:
                 held.append((point, fuel))
     return sorted(held)
 

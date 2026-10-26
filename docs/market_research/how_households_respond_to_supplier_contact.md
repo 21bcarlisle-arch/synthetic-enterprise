@@ -539,7 +539,8 @@ an uncontacted one cannot. Reading the wired route before building it (`run_phas
   (F11): the fix starts at the next cap segment, not on the contact date, and a contact in a stint's
   last segment re-fixes nothing. Not built, each a GAP: the riding gas leg of a dual household stays
   on the default, and a gas-only household cannot re-fix, because a gas fix is struck only inside
-  the gas builder. The fixed term already built at the anniversary was priced with no prior fixed
+  the gas builder. *(2026-10-26: the dual household's gas leg is §7.5b, built. A gas-only
+  household still cannot re-fix.)* The fixed term already built at the anniversary was priced with no prior fixed
   rate, so the company classifies that renewal against nothing.
 - **The per-account sender (2026-10-23, default off):** `svt_contact_once_per_stint` sends the
   policy's instrument once per default-tariff stint, at its first segment, in place of every
@@ -558,6 +559,47 @@ an uncontacted one cannot. Reading the wired route before building it (`run_phas
   company lost less than households gained is unattributed, and it is not read as value created.
   The world's decline-and-stay rule now reaches the re-fix: a woken stayer never re-fixes above
   the default it pays on the contact day. On the first ungraded arm, 6 did, 5 of them in 2021.
+**7.5b A dual household's re-fix covers its gas too (B13 L2, 2026-10-26, delivery seat).** Written
+before the build (K8). The director's basics ruling of 24 Oct, as B13 carries it: "a dual-fuel customer
+who rings to fix and is moved onto the same fix for gas and electricity on one call, with one direct
+debit across both."
+- *The rules.* Each fuel is its own Domestic Supply Contract (SLC 27.16; `home_moves.md` §8.8a), so
+  a dual fix is two contracts struck on one contact. Nothing in the licence ties their end dates.
+- *Published practice.* A dual-fuel tariff is sold as one product across both fuels, and 90 to 94%
+  of switching homes with gas moved both fuels together (`home_moves.md` §8.7). No source gives how
+  often a household on the default fixes one fuel and leaves the other on it (GAP, the re-fix twin
+  of G8.9).
+- *Choice 1, one act.* A woken dual household that re-fixes takes the matching fix on both fuels on
+  the same contact, from the same day, or takes neither. A one-fuel re-fix is not built; it can only
+  move value between the legs.
+- *Choice 2, the gas fix's own door and term.* The gas fix is struck by the gas builder's own
+  strike (`run_phase2b.strike_gas_fixed_term`, lifted out of the builder, not copied), quoted as of
+  the contact. It runs to the gas contract's own next anniversary, which can sit days from the
+  electricity one's because the two legs registered days apart. If the gas leg is not on default
+  segments over that window, or its next term does not start on that anniversary, the whole act is
+  refused with the reason on the row. Refused, each by name on the row, each understating the household's
+  side (F11): a gas renewal offer dated before the fix's day and not yet answered (a riding leg
+  answers after its decision leg, so the world cannot yet say whether the gas is on a fix); a gas
+  leg already on a fix or offered one on the fix's day, whose two fuels would sit on different
+  products; and an incoming occupant at a home with gas. Measured on the B13 walked run (phase 4c
+  to 2017-12-31, the once-per-stint letter and the re-fix on): 10 dual households re-fixed both
+  fuels in one act; 10 were refused on a gas offer not yet answered, 2 as incoming occupants at a
+  home with gas, and 1 on the occupant stint below. The 10 unanswered offers are the two fuels
+  answering their anniversary apart:
+  `docs/staging/SEAT_FINDING_A_DUAL_HOUSEHOLDS_TWO_FUELS_ANSWER_THEIR_ANNIVERSARY_OFFERS_APART_2026-10-26.md`.
+- *Choice 3, the decline rule per fuel.* Neither fuel is fixed above the default it pays on the
+  contact day. A household weighing the pair as one bill would take some of these, so the rule
+  understates its side (F11).
+- *Found by the build (C30's, not B13's).* An incoming occupant's default supply is one schedule
+  with no anniversary, so its cap segments do not stop at the stint's twelve-month mark. The re-fix
+  withdrew them whole and left the leg unsupplied from that mark to the segment's end
+  (OCC-6387bf64272a, 21 Apr to 1 Jul 2017). Such a re-fix is now refused by name. An occupant's
+  gas leg is admitted when the vacated gas leg is reached, which can be after the contact, and has
+  no drawn record to quote on (GAP: an occupant's fix on contact).
+- *The direct debit.* The two legs already pay the one way the household pays: the payment-channel
+  draw is the household's, and the fuels can differ only in the 3-point band between their published
+  direct-debit shares (B13 L1). The re-fix changes no payment channel.
+
 **GAPs.**
 - Whether SLC 31A's cheapest tariff message survives today in the form the 2016 letter kept was not
   re-read after the SSE notice.

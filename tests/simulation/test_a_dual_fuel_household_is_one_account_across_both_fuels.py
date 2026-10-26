@@ -1,5 +1,7 @@
 """A dual-fuel household is one account across both fuels: one bill, one direct debit, one move, one
-switch, and its credit offset and closing balance read per fuel contract (B13 L1).
+switch, and its credit offset and closing balance read per fuel contract (B13 L1); and a fix it
+takes on contact covers its gas too, in one act (L2, how_households_respond_to_supplier_contact.md
+s.7.5b). The run sends the once-per-stint default-tariff letter with the woken re-fix on.
 
 One run of phase 4c over the real loop to 2017-12-31, with moves on and the company offering to move
 households with it, so the run walks its dual households through a bill, a mid-life credit offset
@@ -11,17 +13,19 @@ Where the run splits a household it is not patched round here. The two splits me
 2026-10-25 are in docs/staging/SEAT_FINDING_A_DUAL_FUEL_HOUSEHOLD_IS_TWO_ACCOUNTS_IN_COLLECTIONS_
 2026-10-25.md: collections runs a journey per fuel leg (189 of 354 dual households, 80 of them two
 journeys open at once), and a gas leg already ended at a move to a home with no gas is listed again
-when the household switches a year later (1). The first is fixed: the triad keys its ledger by
-billing account. The second is a non-strict `xfail` below, so a fix turns it into a pass. The
+when the household switches a year later (1). Both are fixed: the triad keys its ledger by
+billing account, and a departure lists only the legs still on supply. The
 direct-debit split is NOT a defect of this kind: the payment-channel draw lets the fuels differ in
 the 3-point band between their published direct-debit shares (`payment_channel_for_customer`), and
 the control asserts that band is the only route.
 
-Window measured 2026-10-25: 354 dual households; 28 move-outs; 65 households switching away; 95
-mid-life credits coming off a dual leg's next paid bill (89 gas, 6 electricity); 11 households in
-the channel band, all electricity non-DD beside gas on DD; 2 gas legs ended at a move to a home
-with no gas. No dual leaver closed with a credit on one fuel and a debt on the other in this
-window, so the per-fuel refund is asserted on the legs that closed in credit, not on a mixed one.
+Window measured 2026-10-25, before the letter was on: 354 dual households; 28 move-outs; 65
+households switching away; 95 mid-life credits coming off a dual leg's next paid bill (89 gas, 6
+electricity); 11 households in the channel band, all electricity non-DD beside gas on DD; 2 gas
+legs ended at a move to a home with no gas. With the letter on (2026-10-26): 10 dual households
+re-fixed both fuels in one act, and 13 dual re-fixes were refused by name (contact page s.7.5b).
+No dual leaver closed with a credit on one fuel and a debt on the other in this window, so the
+per-fuel refund is asserted on the legs that closed in credit, not on a mixed one.
 """
 from __future__ import annotations
 
@@ -31,6 +35,7 @@ import random
 
 import pytest
 
+import simulation.contact_response as contact_response
 import simulation.run_phase2b as run
 import simulation.run_phase4c_on_phase2b as p4c
 from company.policy.decision_policy import CURRENT_POLICY, policy_scope
@@ -51,7 +56,12 @@ def walked():
     patch.setattr(run, "moves_active", lambda: True)
     patch.setattr(run, "move_with_us_active", lambda: True)
     patch.setattr(run, "take_up_scale", lambda: 1.0)
-    policy = dataclasses.replace(CURRENT_POLICY, move_with_us_offers=True)
+    # The once-per-stint default-tariff letter with the woken stayer's re-fix on (C30), so a dual
+    # household takes a fix on contact inside the window (L2).
+    patch.setattr(contact_response, "A_WOKEN_SVT_STAYER_REFIXES", True)
+    policy = dataclasses.replace(CURRENT_POLICY, move_with_us_offers=True,
+                                 svt_contact_instrument="collective_switch",
+                                 svt_contact_once_per_stint=True)
     try:
         with policy_scope(policy):
             result = p4c.main(report_end=REPORT_END, policy=policy)
@@ -86,6 +96,11 @@ def _gas_ended_at_a_move_to_no_gas(result) -> dict[str, str]:
     return {r["billing_account"]: r["move_out_date"]
             for r in result["phase2b"].get("move_with_us_log", [])
             if r.get("supplied_at_new_home") and r.get("destination_takes_gas") is False}
+
+
+def _refixes(result) -> list[dict]:
+    return [r for r in result["phase2b"]["svt_decisions"]
+            if (r.get("sim_refix") or {}).get("fix_start")]
 
 
 def _in_the_channel_band(household: str) -> bool:
@@ -253,13 +268,40 @@ def test_collections_runs_one_journey_per_household(walked):
     assert [h for h in dual if h in ids and h + "g" in ids] == []
 
 
-@pytest.mark.xfail(strict=False, reason=(
-    "a gas leg ended at a move to a home with no gas is listed again in leg_departures when the "
-    "household switches later: SEAT_FINDING_A_DUAL_FUEL_HOUSEHOLD_IS_TWO_ACCOUNTS_IN_COLLECTIONS_"
-    "2026-10-25"))
 def test_no_leg_switches_away_after_its_supply_ended(walked):
-    """Defect, open: a switch counted on a leg the household stopped taking a year before."""
+    """Defect: a switch counted on a leg the household stopped taking a year before. The departure
+    lists only the points on supply that day (`supply_points_on_supply(..., supply_ended_on)`)."""
     last = _last_supplied(walked)
     late = [d for d in walked["phase2b"]["leg_departures"]
             if d["customer_id"] in last and last[d["customer_id"]] < d["event_date"][:10]]
     assert late == []
+
+
+def test_a_fix_a_dual_household_takes_on_contact_covers_its_gas_too(walked):
+    """Defect: a woken dual household re-fixes its electricity and its gas stays on the default
+    (contact page s.7.5b), or the gas fix starts on another day, or a default gas segment is still
+    billed inside the gas fix. One act: both fuels from one day, or neither.
+
+    MUTATION: `_plan_the_gas_refix` returning `{}` unconditionally leaves every dual re-fix with no
+    `gas_leg`; dropping the gas withdrawal leaves default gas rows inside the fix."""
+    dual = _dual_households(walked)
+    last = _last_supplied(walked)
+    log = walked["phase2b"]["account_state_log"]
+    refixed = [r for r in _refixes(walked) if household_of(r["customer_id"]) in dual]
+    assert refixed, "no dual household re-fixed on contact in the window: the route is unread"
+    moved = []
+    for r in refixed:
+        fix = r["sim_refix"]
+        gas_on = [c for c in last if household_of(c) == household_of(r["customer_id"])
+                  and c != r["customer_id"] and last[c] >= fix["fix_start"]]
+        if not gas_on:
+            assert not fix.get("gas_leg"), (r["customer_id"], fix)
+            continue
+        assert fix.get("gas_leg"), (r["customer_id"], fix)
+        gas = fix["gas_leg"]
+        moved.append(gas["customer_id"])
+        terms = [t for t in log if t["customer_id"] == gas["customer_id"]
+                 and fix["fix_start"] <= t["term_start"][:10] < gas["fix_end"]]
+        assert [t["term_start"][:10] for t in terms][:1] == [fix["fix_start"]], (gas, terms)
+        assert all(t["tariff_type"] != run.SVT_TARIFF_TYPE for t in terms), (gas, terms)
+    assert moved, "no dual re-fix moved its gas: the gas half is unread"

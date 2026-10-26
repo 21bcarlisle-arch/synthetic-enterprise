@@ -848,6 +848,62 @@ def resolved_tariff_type(record: dict, *, successor: bool = False) -> str | None
     return record.get("tariff_type") or "fixed"
 
 
+def strike_gas_fixed_term(
+    customer: dict, term_start: str, notice_date: str, term_end: str, sim_fwd: float,
+    gas_records: list[dict], *, tariff_type: str = "fixed",
+) -> dict:
+    """One gas term, struck through the company's doors as of `notice_date`: the term dict
+    `_build_gas_renewal_schedule` appends at every boundary, lifted out so the run loop can strike
+    a gas fix at a moment the schedule never reached (B13 L2, a dual household re-fixing both
+    fuels on one contact). The gas twin of `renewals.price_fixed_term`. `term_end` is exclusive.
+    """
+    aq_kwh = customer["aq_kwh"]
+    cust_segment = customer.get("segment", "resi")
+    # KNIFE step 24 (§3s): WHICH forward the company prices gas off is its
+    # own estimate, made behind the door -- the same door electricity has
+    # used since B7. The world still owns the cold-start fallback it hands
+    # over, which is the leak §3a records as owed.
+    company_fwd = request_company_forward_estimate(
+        commodity="gas",
+        notice_date=notice_date,
+        observable_price_records=gas_records,
+        fallback_gbp_per_mwh=sim_fwd,
+    )
+    # Phase 30b: gas policy cost (CCL + GGL) and network charges pass-through.
+    # CCL: domestic gas exempt; GGL applies from Nov 2021.
+    gas_policy = (
+        get_gas_ccl_per_mwh(term_start, cust_segment)
+        + get_ggl_per_mwh(term_start, aq_kwh)
+    )
+    gas_network = get_gas_network_cost_per_mwh(term_start)
+    # KNIFE step 25 (§3t): WHICH of the published components this product
+    # locks at signing (Phase 40b), the naked fraction the capital cost is
+    # priced on, and the strike itself are ONE act and it is the supplier's.
+    # The world publishes the levy and network schedules; it was also
+    # reading them on the company's behalf. Electricity has struck its rate
+    # behind `quote_renewal` since B7 -- gas now uses the same
+    # implementation, not a second copy that agreed by inspection.
+    _gas_strike = request_fixed_unit_rate(
+        tariff_type=tariff_type,
+        company_forward_price_gbp_per_mwh=company_fwd,
+        eac_kwh=aq_kwh,
+        term_start=term_start,
+        published_policy_cost_per_mwh=gas_policy,
+        published_network_cost_per_mwh=gas_network,
+    )
+    return {
+        "acquisition_date": term_start,
+        "notice_date": notice_date,
+        "term_end": term_end,
+        "forward_price_gbp_per_mwh": sim_fwd,
+        "company_forward_price_gbp_per_mwh": company_fwd,
+        "unit_rate_gbp_per_mwh": _gas_strike.unit_rate_gbp_per_mwh,
+        "locked_policy_cost_gbp_per_mwh": _gas_strike.locked_policy_cost_gbp_per_mwh,
+        "locked_network_cost_gbp_per_mwh": _gas_strike.locked_network_cost_gbp_per_mwh,
+        "tariff_type": tariff_type,
+    }
+
+
 def _build_gas_renewal_schedule(
     customer: dict, gas_records: list[dict], lookback_temps_fn=None,
     report_end: str = REPORT_END, tariff_type: str = "fixed",
@@ -864,7 +920,6 @@ def _build_gas_renewal_schedule(
     resolving to `"fixed"` without this would BE the blanket-fixed the 2026-08-28 determination
     refused. The two land together and neither is correct alone.
     """
-    aq_kwh = customer["aq_kwh"]
     acq_date = customer["acquisition_date"]
     cust_segment = customer.get("segment", "resi")
     if "customer_id" not in customer:
@@ -1000,50 +1055,9 @@ def _build_gas_renewal_schedule(
             break
         # Phase 34a: gas tariffs also priced NOTICE_DAYS before term start.
         gas_notice_date = (date.fromisoformat(term_start) - timedelta(days=NOTICE_DAYS)).isoformat()
-        # KNIFE step 24 (§3s): WHICH forward the company prices gas off is its
-        # own estimate, made behind the door -- the same door electricity has
-        # used since B7. The world still owns the cold-start fallback it hands
-        # over, which is the leak §3a records as owed.
-        company_fwd = request_company_forward_estimate(
-            commodity="gas",
-            notice_date=gas_notice_date,
-            observable_price_records=gas_records,
-            fallback_gbp_per_mwh=sim_fwd,
-        )
-        # Phase 30b: gas policy cost (CCL + GGL) and network charges pass-through.
-        # CCL: domestic gas exempt; GGL applies from Nov 2021.
-        gas_policy = (
-            get_gas_ccl_per_mwh(term_start, cust_segment)
-            + get_ggl_per_mwh(term_start, aq_kwh)
-        )
-        gas_network = get_gas_network_cost_per_mwh(term_start)
-        # KNIFE step 25 (§3t): WHICH of the published components this product
-        # locks at signing (Phase 40b), the naked fraction the capital cost is
-        # priced on, and the strike itself are ONE act and it is the supplier's.
-        # The world publishes the levy and network schedules; it was also
-        # reading them on the company's behalf. Electricity has struck its rate
-        # behind `quote_renewal` since B7 -- gas now uses the same
-        # implementation, not a second copy that agreed by inspection.
-        _gas_strike = request_fixed_unit_rate(
-            tariff_type=tariff_type,
-            company_forward_price_gbp_per_mwh=company_fwd,
-            eac_kwh=aq_kwh,
-            term_start=term_start,
-            published_policy_cost_per_mwh=gas_policy,
-            published_network_cost_per_mwh=gas_network,
-        )
-        unit_rate = _gas_strike.unit_rate_gbp_per_mwh
-        schedule.append({
-            "acquisition_date": term_start,
-            "notice_date": gas_notice_date,
-            "term_end": term_end,
-            "forward_price_gbp_per_mwh": sim_fwd,
-            "company_forward_price_gbp_per_mwh": company_fwd,
-            "unit_rate_gbp_per_mwh": unit_rate,
-            "locked_policy_cost_gbp_per_mwh": _gas_strike.locked_policy_cost_gbp_per_mwh,
-            "locked_network_cost_gbp_per_mwh": _gas_strike.locked_network_cost_gbp_per_mwh,
-            "tariff_type": tariff_type,
-        })
+        schedule.append(strike_gas_fixed_term(
+            customer, term_start, gas_notice_date, term_end, sim_fwd, gas_records,
+            tariff_type=tariff_type))
         term_start = term_end  # next term starts where this ends
 
     return schedule
@@ -2256,6 +2270,105 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         heapq.heappush(all_terms, (term_start, leg, next(_term_seq), commodity, term))
         bisect.insort(_pending_starts.setdefault(leg, []), term_start)
 
+    _gas_customer_by_leg = {c["customer_id"]: c for c in GAS_CUSTOMERS}
+
+    def _plan_the_gas_refix(leg: str, contact_date: str, fix_start: date) -> dict:
+        """The gas half of a dual household's re-fix (B13 L2, contact page s.7.5b): `{}` for a
+        household with no gas leg on supply, `{"refused": why}` to refuse the whole act, else a
+        plan whose `_apply` splices the gas fix and returns its row. Nothing moves until `_apply`.
+
+        The gas fix starts on the electricity fix's day, is quoted on the same contact, and runs to
+        the gas contract's own next anniversary (each fuel is its own contract, SLC 27.16), which
+        may sit days from the electricity one's because the two legs registered days apart."""
+        _household = household_of(leg)
+        _day = fix_start.isoformat()
+        _premise = _move_in_entry.get(leg, {}).get("premise")
+        if _premise is not None and any(household_of(g) == household_of(_premise)
+                                        for g in gas_schedules):
+            # An incoming occupant's gas leg is admitted when the vacated gas leg pops, which can
+            # be after this contact, and has no drawn record to quote on (OCC-8bd9f5bbfa68).
+            return {"refused": "an incoming occupant at a home with gas: its gas leg has no drawn "
+                               "record to quote a fix on"}
+        # The drawn gas legs and an incoming occupant's, which is pushed straight into the heap.
+        _gas = sorted(g for g in (
+            {g for g in gas_schedules if household_of(g) == _household}
+            | {k for k, v in _move_in_entry.items()
+               if v["commodity"] == "gas" and v["household"] == _household})
+            if _moved_out_on_by_leg.get(g, _day) >= _day
+            and (g in _last_tariff_type or any(e[1] == g for e in all_terms)))
+        if not _gas:
+            return {}
+        if len(_gas) > 1 or _gas[0] not in _gas_customer_by_leg:
+            return {"refused": f"the household's gas legs {_gas} are not one drawn leg with a "
+                               "registered AQ (an incoming occupant's leg has no drawn record)"}
+        g = _gas[0]
+        # Only default segments are withdrawn. A gas leg already on a fix, or with an offer on the
+        # fix's day, is refused below: its window holds a term that is not a default segment.
+        _before = [e for e in all_terms if e[1] == g and e[0] < _day]
+        _offer = [e[0] for e in _before if e[4].get("tariff_type") != SVT_TARIFF_TYPE]
+        if _offer:
+            # A fix still in the heap before the day is an offer the gas leg has not answered: a
+            # riding leg pops after its decision leg, and declines at its pop (SYN-2016-023g took
+            # its 2017-01-17 offer as a fix here, then declined it onto the default).
+            return {"refused": f"the gas leg {g} has not yet answered its renewal offer of "
+                               f"{_offer[0]}, so the household cannot fix both fuels in one act"}
+        _first = _gas_customer_by_leg[g]["acquisition_date"]
+        _years = (fix_start - date.fromisoformat(_first)).days // CONTRACT_LENGTH_DAYS + 1
+        _gas_end = min(date.fromisoformat(_first) + timedelta(days=_years * CONTRACT_LENGTH_DAYS),
+                       date.fromisoformat(effective_end) + timedelta(days=1))
+        _out = [e for e in all_terms
+                if e[1] == g and fix_start.isoformat() <= e[0] < _gas_end.isoformat()]
+        _not_default = [(e[0], e[4].get("tariff_type")) for e in sorted(_out)
+                        if e[4].get("tariff_type") != SVT_TARIFF_TYPE
+                        or e[4].get(_HELD_FOR_THE_DECISION_LEG)
+                        or (e[4].get("term_end") or "")[:10] > _gas_end.isoformat()]
+        _starts = sorted(e[0] for e in _out)
+        _after = [s for s in _pending_starts[g] if s >= _gas_end.isoformat()]
+        if (not _starts or _starts[0] != fix_start.isoformat() or _not_default
+                or (_after and _after[0] != _gas_end.isoformat())):
+            return {"refused": (
+                f"the gas leg {g} is not on default segments from {fix_start} to its anniversary "
+                f"{_gas_end} (starts {_starts[:3]}, not default {_not_default[:3]}, next "
+                f"{_after[:1]}), so the household cannot fix both fuels in one act")}
+        try:
+            _temps = _lookback_temps_fn(g)
+            _sim_fwd = generate_forward_price(
+                fix_start.isoformat(), gas_records,
+                lookback_daily_mean_temps_c=_temps(fix_start.isoformat()) if _temps else None,
+                fuel="gas")
+            _gfix = strike_gas_fixed_term(
+                _gas_customer_by_leg[g], fix_start.isoformat(), contact_date,
+                _gas_end.isoformat(), _sim_fwd, gas_records)
+        except ValueError as _no_history:
+            return {"refused": f"no gas fix could be struck: {_no_history}"}
+        _gas_vs_default = (position_vs_default(_gfix["unit_rate_gbp_per_mwh"], contact_date,
+                                               commodity="gas")
+                           if DECLINE_A_FIX_ABOVE_THE_DEFAULT else None)
+        if _gas_vs_default is not None and _gas_vs_default > 0:
+            # Per fuel and both-or-neither: a household weighing the pair as one bill would take
+            # some of these, so refusing them understates its side (F11).
+            return {"refused": f"the gas fix sits {_gas_vs_default:+.1%} against its default, so "
+                               "the household fixes neither fuel"}
+
+        def _apply() -> dict:
+            _gone = {id(e) for e in _out}
+            all_terms[:] = [e for e in all_terms if id(e) not in _gone]
+            heapq.heapify(all_terms)
+            for _start in _starts:
+                _pending_starts[g].remove(_start)
+            _gfix[_WOKEN_REFIX] = True
+            _push_term(fix_start.isoformat(), g, "gas", _gfix)
+            term_indices[g] += len(_out) - 1
+            return {"customer_id": g, "fix_end": _gas_end.isoformat(),
+                    "unit_rate_gbp_per_mwh": _gfix["unit_rate_gbp_per_mwh"],
+                    "default_segments_withdrawn": len(_out),
+                    "withdrawn_default_rates": [
+                        [e[0], e[4].get("term_end"), e[4].get(
+                            "household_charged_unit_rate_gbp_per_mwh",
+                            e[4].get("unit_rate_gbp_per_mwh"))] for e in sorted(_out)],
+                    "aq_kwh": _gas_customer_by_leg[g]["aq_kwh"]}
+        return {"_apply": _apply}
+
     def _splice_a_refix(leg: str, contact_date: str, segment_end: str, stint_start: str,
                         commodity: str) -> dict:
         """C30, research doc §7.5a: a woken SVT stayer re-fixes from its next default segment.
@@ -2298,6 +2411,16 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             return {"refused": (
                 f"the window {_fix_start} to {_fix_end_excl} holds terms that are not this "
                 f"stint's default segments: {_foreign}")}
+        _past = [(e[0], e[4].get("term_end")) for e in _withdrawn
+                 if (e[4].get("term_end") or "")[:10] > _fix_end_excl.isoformat()]
+        if _past:
+            # An incoming occupant's default supply is one schedule with no anniversary, so its
+            # segments do not stop at one: withdrawing them whole left the leg unsupplied from the
+            # fix's end to the segment's (OCC-6387bf64272a, 2017-04-21 to 07-01, B13 L2 probe).
+            return {"refused": (
+                f"the default segment {_past[0]} runs past the stint's anniversary "
+                f"{_fix_end_excl}: the stint is not anniversary-bound, so the fix would leave the "
+                "leg unsupplied")}
         if not _is_domestic_leg(leg):
             return {"refused": "the default tariff and its re-fix are domestic"}
         if leg not in EFFECTIVE_EAC_KWH:
@@ -2321,6 +2444,11 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         if _vs_default is not None and _vs_default > 0:
             return {"refused": f"the fix sits {_vs_default:+.1%} against the default it would "
                                "replace, so the household stays on the default"}
+        # B13 L2: A DUAL HOUSEHOLD'S FIX COVERS ITS GAS TOO, in the same act or not at all
+        # (how_households_respond_to_supplier_contact.md s.7.5b). Planned before anything moves.
+        _gas_plan = _plan_the_gas_refix(leg, contact_date, _fix_start)
+        if "refused" in _gas_plan:
+            return _gas_plan
         _gone = {id(e) for e in _withdrawn}
         all_terms[:] = [e for e in all_terms if id(e) not in _gone]
         heapq.heapify(all_terms)
@@ -2331,7 +2459,9 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         # The builders counted each withdrawn segment; the fix advances one when it pops, so the
         # rest are advanced here and the engagement seed agrees with theirs at the anniversary.
         term_indices[leg] += len(_withdrawn) - 1
+        _gas_leg = _gas_plan.pop("_apply", lambda: None)()
         return {
+            **({"gas_leg": _gas_leg} if _gas_leg else {}),
             "fix_start": _fix_start.isoformat(),
             "fix_end": _fix_end_excl.isoformat(),
             "unit_rate_gbp_per_mwh": _fix["unit_rate_gbp_per_mwh"],
@@ -2962,7 +3092,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
 
     def _notify_registration_loss(household: str, effective_from: str,
                                   pending_already_sent: bool = False) -> None:
-        _points = supply_points_on_supply(household, effective_from, elec_schedules, gas_schedules)
+        _points = supply_points_on_supply(household, effective_from, elec_schedules, gas_schedules,
+                                          _moved_out_on_by_leg)
         _departed_on[household] = effective_from
         # EACH LEG'S OWN DEPARTURE, for readers that count per supply point. Not
         # `customer_events_log`: its churned rows are counted as households leaving, and a second
@@ -4456,7 +4587,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 # the loser its CSS Invitation; the company answers it from what it holds; the
                 # household answers the offer on its own roll. Off unless the curriculum says on.
                 _points = supply_points_on_supply(
-                    billing_account, term_start_str, elec_schedules, gas_schedules)
+                    billing_account, term_start_str, elec_schedules, gas_schedules,
+                    _moved_out_on_by_leg)
                 for _wire in _registration_loss_feed.wire_pending_notices_for_departure(
                         _points, term_start_str):
                     _change_of_supplier_register.receive_loss_wire(_wire)
