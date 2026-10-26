@@ -151,6 +151,11 @@ for (const job of jobs) {
   // sufficient -- a render scheduled on the microtask queue after the last response can still be
   // pending. This settles it without pinning a selector the probe is supposed to be neutral about.
   await page.waitForTimeout(800);
+  // A `details.fold` is a section the director's steer of 26 Oct put one tap down ("collapse every
+  // section below the capability table and the value test"). Closed is its correct state, so the
+  // probe reads it as the reader who taps it does. Only `.fold`: any other closed `<details>` is
+  // still read as closed, so content hidden by accident still goes red.
+  await page.evaluate(() => document.querySelectorAll("details.fold").forEach((d) => { d.open = true; }));
 
   const elements = await page.evaluate((wanted) => {
     const out = {};

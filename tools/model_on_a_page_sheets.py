@@ -41,7 +41,7 @@ from tools.model_on_a_page_picture import (  # noqa: E402
 
 SITE = ROOT / "site"
 sys.path.insert(0, str(SITE))
-from ia_register import render_nav  # noqa: E402
+from ia_register import render_footer, render_nav  # noqa: E402
 from moap_stage import BUILDING, LIVE, PLANNED  # noqa: E402
 
 # The front door's own chips (site/index.html .stage-*; site/brand/tokens.css), so a newcomer reads
@@ -180,9 +180,11 @@ ul.next li {{ padding: 8px 0; border-bottom: 1px solid var(--border); font-size:
 {links}
   </ul>
 </main>
+{footer}
 </body>
 </html>
 """.format(title=escape(sheet["title"]), lead=lead, nav=render_nav("/model/", depth=1), band=band,
+           footer=render_footer("../../privacy/"),
            alt=escape(_alt(sheet, levels)), links=links,
            how=escape(sheet.get("how", "Read each column top to bottom, from cause to what follows.")))
 

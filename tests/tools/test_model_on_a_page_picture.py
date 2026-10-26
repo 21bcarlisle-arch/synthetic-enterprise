@@ -77,3 +77,14 @@ def test_a_band_links_to_its_sheet_only_when_the_sheet_exists(tmp_path):
     (tmp_path / "world" / "index.html").write_text("x")
     svg = mp.render(spec, levels, tmp_path)
     assert svg.count("<a href") == 1 and 'href="./model/world/"' in svg
+
+
+def test_the_front_door_picture_shows_plain_names_and_no_canon_code():
+    """Steer of 26 Oct: the home diagram showed internal codes (M1, G1, R5, R6 ...). The picture
+    carries plain names; the codes stay in the canon page, the alt text and the sheets. KEYED TO THE
+    PROPERTY: the canon page still writes codes (the first assert), and none reaches the picture.
+    MUTATION: drop the CANON_CODE pass from build() -> the second assert reds."""
+    assert mp.CANON_CODE.search(mp.DOC.read_text(encoding="utf-8")), (
+        "the canon page carries no bracketed code, so this control has nothing to hold back")
+    text = " ".join(t.text or "" for t in ET.fromstring(mp.build()).iter() if t.tag.endswith("text"))
+    assert not mp.CANON_CODE.search(text), mp.CANON_CODE.search(text)

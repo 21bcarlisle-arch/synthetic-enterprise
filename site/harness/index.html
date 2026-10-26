@@ -47,6 +47,10 @@ p { margin-bottom: 12px; max-width: 68ch; }
 
 .wasnow { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 8px; }
 .wasnow div { font-size: 13px; }
+/* A long path in a decision record ("Close docs/staging/advisor/...") set this grid 575 px wide on a
+   390 px phone once its fold was opened: grid children default to min-width:auto. */
+.wasnow > div { min-width: 0; overflow-wrap: anywhere; }
+@media (max-width: 600px) { .wasnow { grid-template-columns: 1fr; } }
 .wasnow .k { font-size: 11px; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); margin-bottom: 2px; }
 
 table { border-collapse: collapse; width: 100%; font-size: 13px; }
@@ -2276,5 +2280,8 @@ var PRESENT_TENSE_FRESH_FOR_MS = 8 * 86400 * 1000;
   openTo();
 })();
 </script>
+<!-- SITE-FOOTER:START (rendered from site/ia_register.py -- do not hand-edit) -->
+<p class="site-analytics-notice" style="max-width:1060px;margin:0 auto;padding:10px 20px 24px;text-align:center;font-size:11px;color:var(--muted,#666);">Poesys counts page views with Cloudflare Web Analytics. It sets no cookies and does not track you across sites. <a href="../privacy/" style="color:inherit;">Privacy</a></p>
+<!-- SITE-FOOTER:END -->
 </body>
 </html>

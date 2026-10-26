@@ -3274,9 +3274,13 @@ def build_scale_figures(root):
                  if f.startswith("site/knowledge/") and f.endswith("/index.html")
                  and f != "site/knowledge/index.html"]
         notes = [f for f in tracked if f.startswith("docs/market_research/") and f.endswith(".md")]
-        figures.append(("{:,}".format(len(pages)), "published knowledge pages on how the GB market "
-                        "and its households work", "built from {:,} sourced research notes; {}"
-                        .format(len(notes), clock)))
+        # The other-market pages compare a foreign market with GB; counting them as pages "on how
+        # the GB market works" overstated the GB set (steer, 26 Oct). Split by the slug they share.
+        other = [f for f in pages if f.split("/")[2].startswith("other-market")]
+        figures.append(("{:,}".format(len(pages)), "published knowledge pages: {:,} on how the GB "
+                        "market and its households work, {:,} comparing other markets with GB"
+                        .format(len(pages) - len(other), len(other)),
+                        "built from {:,} sourced research notes; {}".format(len(notes), clock)))
     else:
         missing.append("the file and page counts (git could not be read)")
     return figures, missing
@@ -3302,6 +3306,10 @@ def write_front_door_build_strip(front_door_path):
     # reader has a reason to come back. The same reader How it's built uses for its "Last week";
     # each entry's first sentence only, because a teaser is not the log.
     week = week_highlights(root)
+    # The front door is read by visitors: a line about the director's own queue or his points is
+    # internal news, not this week's work (steer, 26 Oct). How it's built still lists it.
+    if week:
+        week = [(d, h) for d, h in week if not re.search(r"\bdirector", h, re.I)]
     if week is None:
         missing.append("the week's new work (the stretch log or git could not be read)")
     new = ("" if not week else '\n<p class="lf-prov"><b>New this week:</b></p>\n<ul class="lf-new">\n{}\n</ul>'

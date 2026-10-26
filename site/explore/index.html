@@ -329,9 +329,9 @@ a { color: var(--teal); }
     var maxE = 1, maxG = 1;
     usage.forEach(function (u) { maxE = Math.max(maxE, u.e); maxG = Math.max(maxG, u.g); });
     var hasGas = usage.some(function (u) { return u.g > 0; });
-    var e = "<div class=\"bars\" role=\"img\" aria-label=\"Electricity use by month, " + usage.length + " months\">" +
+    var e = "<div class=\"bars\" role=\"img\" aria-label=\"Electricity use by month, " + usage.length + (usage.length === 1 ? " month" : " months") + "\">" +
       usage.map(function (u) { return "<span title=\"" + esc(u.month) + ": " + u.e + " kWh\" style=\"height:" + Math.round(100 * u.e / maxE) + "%\"></span>"; }).join("") + "</div>";
-    var g = hasGas ? "<div class=\"bars\" role=\"img\" aria-label=\"Gas use by month, " + usage.length + " months\">" +
+    var g = hasGas ? "<div class=\"bars\" role=\"img\" aria-label=\"Gas use by month, " + usage.length + (usage.length === 1 ? " month" : " months") + "\">" +
       usage.map(function (u) { return "<span class=\"g\" title=\"" + esc(u.month) + ": " + u.g + " kWh\" style=\"height:" + Math.round(100 * u.g / maxG) + "%\"></span>"; }).join("") + "</div>" : "";
     var span = usage.length ? esc(usage[0].month) + " to " + esc(usage[usage.length - 1].month) : "no bills yet";
     return "<div class=\"sub\">Billed use, " + span + " (electricity" + (hasGas ? ", then gas" : "") + ")</div>" + e + g;
@@ -570,7 +570,7 @@ function billGbp(n){
 }
 function standingChargeLabel(i){
   return (i.days_in_period!=null&&i.standing_charge_gbp_per_day!=null)
-    ?("Standing charge ("+i.days_in_period+" days &times; £"+rateStr(i.standing_charge_gbp_per_day)+"/day)")
+    ?("Standing charge ("+i.days_in_period+(i.days_in_period===1?" day":" days")+" &times; £"+rateStr(i.standing_charge_gbp_per_day)+"/day)")
     :"Standing charge";
 }
 /* The catch-up line names the period it corrects and which way it corrects it. The FIGURE is
@@ -653,6 +653,10 @@ function stagePriced(d, c) {
     {k: "Network, policy and levies", v: ncP, label: ncP.toFixed(2) + "p"},
     {k: "Standing charge, spread over use", v: scP, label: scP.toFixed(2) + "p"}
   ];
+  /* The tariff record stores the ENERGY component only; the unit rate a customer is quoted also
+     carries network, policy and levy costs. Shown as their sum so the panel never presents a
+     component as the whole rate (steer 26 Oct; the reader test holds it >= its components). */
+  var allInP = (inv.unit_rate_p_per_kwh || 0) + ncP;
   var pnl = (d.annual_pnl || [])[0] || {};
   setWall(
     "The account consumed <b>" + num(kwh, 1) + " kWh</b> in its first billing month.",
@@ -669,11 +673,13 @@ function stagePriced(d, c) {
     panel("company", "What the supplier committed to",
       '<div class="table-scroll"><table><tbody>' +
       "<tr><td>Tariff</td><td class=\"n\">" + esc(d.tariff_name || "—") + "</td></tr>" +
-      "<tr><td>Unit rate</td><td class=\"n\">" + (inv.unit_rate_p_per_kwh || 0).toFixed(2) + " p/kWh</td></tr>" +
+      "<tr><td>Unit rate, all-in before VAT</td><td class=\"n\">" + allInP.toFixed(2) + " p/kWh</td></tr>" +
+      "<tr><td>Energy component of the unit rate</td><td class=\"n\">" + (inv.unit_rate_p_per_kwh || 0).toFixed(2) + " p/kWh</td></tr>" +
       "<tr><td>Standing charge</td><td class=\"n\">" + gbp(inv.standing_charge_gbp_per_day, 4) + "/day</td></tr>" +
       "<tr><td>Range offered that year</td><td class=\"n\">" + gbp(pnl.tariff_min) + " – " + gbp(pnl.tariff_max) + "/MWh</td></tr>" +
       "<tr><td>Bought forward</td><td class=\"n\">" + pct(d.avg_hedge_fraction) + " of expected volume</td></tr>" +
-      '</tbody></table></div><p style="font-size:12px;color:var(--muted);margin-top:8px">Buying forward is how the ' +
+      '</tbody></table></div><p style="font-size:12px;color:var(--muted);margin-top:8px">The all-in unit rate is the energy component ' +
+      'plus network, policy and levies; the standing charge is billed separately per day. Buying forward is how the ' +
       'supplier fixes its own cost before it knows the customer\'s use. The unhedged remainder is bought later at ' +
       'whatever the market does — which is where a fixed price to the customer becomes a risk to the supplier.</p>') +
     '</div>' +
@@ -1017,7 +1023,7 @@ function hddPanel(fuels) {
 
   var verdict = r === null
     ? "Too few overlapping years on this account to put a number on the relationship."
-    : "Across these " + years.length + " years the two move together with a correlation of " +
+    : "Across these " + years.length + (years.length === 1 ? " year" : " years") + " the two move together with a correlation of " +
       "<b>r = " + r.toFixed(2) + "</b>" +
       (r > 0.6 ? " — the household&rsquo;s gas is following the weather, not its habits."
        : r > 0.3 ? " — a visible relationship, weaker than a well-heated home usually shows; " +
@@ -1531,5 +1537,8 @@ fetch("../data/customers.json").then(function (r) { return r.json(); }).then(fun
 <!-- RUN-CLOCK:START (written at publish by tools/generate_dashboard_data.py -- do not hand-edit) -->
 <p class="lf-prov" style="max-width:1060px;margin:24px auto 8px;padding:0 22px;font-size:11.5px;color:var(--muted,#666)">Figures from the run of 26 Oct 2026 &middot; published every Monday <span class="lf-run">(run 4ae8da9b0f_20261026T022647Z; no figure here is typed by hand)</span></p>
 <!-- RUN-CLOCK:END -->
+<!-- SITE-FOOTER:START (rendered from site/ia_register.py -- do not hand-edit) -->
+<p class="site-analytics-notice" style="max-width:1060px;margin:0 auto;padding:10px 20px 24px;text-align:center;font-size:11px;color:var(--muted,#666);">Poesys counts page views with Cloudflare Web Analytics. It sets no cookies and does not track you across sites. <a href="../privacy/" style="color:inherit;">Privacy</a></p>
+<!-- SITE-FOOTER:END -->
 </body>
 </html>

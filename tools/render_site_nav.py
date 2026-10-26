@@ -131,6 +131,60 @@ def population(site: Path = reg.SITE) -> list[tuple[str, int, str, Path]]:
     return [(a, 0, a, p) for a, p in pages(site)] + sub_pages(site)
 
 
+#: Directories under `site/` that hold no reader-facing page (same list as the canonical-nav test).
+_NOT_PAGES = {"__pycache__", "assets", "brand", "data", "state", "snapshots", "shadow",
+              "node_modules", "harness_out"}
+_FOOTER = re.compile(re.escape(reg.FOOTER_START) + r".*?" + re.escape(reg.FOOTER_END), re.S)
+
+
+def footer_pages(site: Path = reg.SITE) -> list[tuple[str, Path]]:
+    """(privacy href, path) for every HTML page a reader can be served: every `.html` page
+    outside the non-page directories. `404.html` is served at any missing path, so it links
+    /privacy/ site-absolute. Wider than the nav population on purpose: the analytics
+    beacon reaches every HTML response, nav or no nav."""
+    out = []
+    for path in sorted(site.rglob("*.html")):
+        rel = path.relative_to(site)
+        if any(part in _NOT_PAGES for part in rel.parts):
+            continue
+        if rel.name == "404.html" and len(rel.parts) == 1:
+            out.append(("/privacy/", path))
+        else:
+            # Any other page, index.html or not (knowledge/how-these-pages-are-checked.html is
+            # served at its own name), links relative to the directory it sits in.
+            out.append(("../" * (len(rel.parts) - 1) + "privacy/", path))
+    return out
+
+
+def render_footer_into(html: str, privacy_href: str) -> str:
+    """The page with its analytics notice rendered. Idempotent: the marked region is replaced
+    in place, or, the first time, inserted immediately before the last `</body>`."""
+    block = reg.render_footer(privacy_href)
+    if _FOOTER.search(html):
+        return _FOOTER.sub(lambda _: block, html, count=1)
+    at = html.rfind("</body>")
+    if at < 0:
+        raise ValueError("no </body> to put the analytics notice before")
+    return html[:at] + block + "\n" + html[at:]
+
+
+def stale_footers(site: Path = reg.SITE) -> list[Path]:
+    return [p for href, p in footer_pages(site)
+            if render_footer_into(p.read_text(encoding="utf-8"), href)
+            != p.read_text(encoding="utf-8")]
+
+
+def write_footers(site: Path = reg.SITE) -> list[Path]:
+    changed = []
+    for href, path in footer_pages(site):
+        html = path.read_text(encoding="utf-8")
+        new = render_footer_into(html, href)
+        if new != html:
+            path.write_text(new, encoding="utf-8")
+            changed.append(path)
+    return changed
+
+
 def stale(site: Path = reg.SITE) -> list[str]:
     """Pages (by URL) whose committed nav is not what the register renders."""
     bad = []
@@ -160,12 +214,17 @@ def main(argv=None) -> int:
     if args.write:
         changed = write()
         print(f"rendered {len(changed)} page(s): {', '.join(changed) or 'none'}")
+        feet = write_footers()
+        print(f"rendered the analytics notice into {len(feet)} page(s)")
         return 0
     bad = stale()
     for area in bad:
         print(f"STALE {area} -- nav does not match site/ia_register.py")
-    print(f"{len(bad)} page(s) out of date")
-    return 1 if bad else 0
+    feet = stale_footers()
+    for path in feet:
+        print(f"STALE {path} -- analytics notice does not match site/ia_register.py")
+    print(f"{len(bad)} page(s) out of date, {len(feet)} without the current analytics notice")
+    return 1 if bad or feet else 0
 
 
 if __name__ == "__main__":

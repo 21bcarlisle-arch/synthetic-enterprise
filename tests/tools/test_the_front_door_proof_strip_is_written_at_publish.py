@@ -99,10 +99,13 @@ def test_the_build_figures_are_counted_from_the_repository_and_name_what_they_co
     """Defect: a typed or stale build figure. Two repositories that differ by one file must
     render different counts, and a test file is counted inside the Python files, not beside."""
     base = ["a.py", "tests/test_a.py", "site/knowledge/x/index.html", "site/knowledge/index.html",
-            "docs/market_research/n.md"]
+            "site/knowledge/other-market-y/index.html", "docs/market_research/n.md"]
     figures, missing = g.build_scale_figures(_repo(tmp_path, base))
     assert missing == []
-    assert [f[0] for f in figures] == ["2", "2", "1"], figures
+    assert [f[0] for f in figures] == ["2", "2", "2"], figures
+    # Steer 26 Oct: an other-market page is not a page "on how the GB market works". The two
+    # counts are named and add to the total.
+    assert "1 on how the GB market" in figures[2][1] and "1 comparing other markets" in figures[2][1]
     assert figures[1][2].startswith("1 of them test files; 4 lines in all; counted from git at ")
     assert "built from 1 sourced research notes" in figures[2][2]
     more, _ = g.build_scale_figures(_repo(tmp_path / "b", base + ["b.py"]))
@@ -181,3 +184,18 @@ def test_new_this_week_shows_at_most_three_lines_and_names_its_absence(tmp_path,
     g.write_front_door_build_strip(page)
     out = page.read_text()
     assert "New this week" not in out and "new work (the stretch log or git could not be read)" in out
+
+
+def test_new_this_week_on_the_front_door_carries_no_line_about_the_directors_queue(tmp_path, monkeypatch):
+    """Steer 26 Oct: "the director's points" reached the public front door. A line naming the
+    director is internal news; the strip drops it and still fills from the rest of the week."""
+    from tools import harness_page_figures as hpf
+    page = tmp_path / "site" / "index.html"
+    page.parent.mkdir()
+    page.write_text("x\n" + g.BUILD_STRIP_START + "\nstale\n" + g.BUILD_STRIP_END + "\ny")
+    week = [("2026-10-24", "A price, in the director's points, on work to come."),
+            ("2026-10-24", "Thing 1"), ("2026-10-23", "Thing 2")]
+    monkeypatch.setattr(hpf, "week_highlights", lambda root: week)
+    assert g.write_front_door_build_strip(page)
+    out = page.read_text()
+    assert "director" not in out.lower() and out.count("<li>Thing") == 2

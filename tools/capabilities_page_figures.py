@@ -22,10 +22,12 @@ from __future__ import annotations
 
 import html
 import json
+import re
 import sys
+from datetime import datetime
 from pathlib import Path
 
-BLOCKS = ("FIXED", "WORLD", "SUPPLIER", "ACCESS", "GOLIVE", "UCTALLY", "USECASES", "STAMP")
+BLOCKS = ("LEAD", "FIXED", "WORLD", "SUPPLIER", "ACCESS", "GOLIVE", "UCTALLY", "USECASES", "STAMP")
 START = ("<!-- CAPABILITIES-{}:START (written at publish by "
          "tools/capabilities_page_figures.py -- do not hand-edit) -->")
 END = "<!-- CAPABILITIES-{}:END -->"
@@ -116,6 +118,31 @@ def render_golive(go_live):
     return "\n".join(rows)
 
 
+#: A commit hash in a record's sentence: seven or more hex characters with a digit AND a letter
+#: in them, so "decade" and "2016" are left alone.
+_HASH = r"\b(?=[0-9a-f]*[0-9])(?=[0-9a-f]*[a-f])[0-9a-f]{7,40}\b"
+#: The hash with the words that only introduce it ("in d909b6933", "(140b5ff7b)"), which go with it.
+_HASH_PHRASE = re.compile(r"\s*\(" + _HASH + r"\)|\s+(?:in|at|by)\s+" + _HASH + r"|\s*" + _HASH)
+
+
+def _strip_hashes(text):
+    """(the sentence a reader meets, the hashes it cited). Steer of 26 Oct, section 3(b): bare
+    commit hashes leave the visible text and are kept in the "Show the evidence" toggle."""
+    return _HASH_PHRASE.sub("", text), re.findall(_HASH, text)
+
+
+def _plural(n, unit):
+    return "{} {}{}".format(n, unit, "" if str(n) == "1" else "s")
+
+
+def _feed_day(feed):
+    """The publish day of the feed, in the strip's own "%d %b %Y" form, or None."""
+    try:
+        return datetime.strptime(str(feed.get("generated_at"))[:10], "%Y-%m-%d").strftime("%d %b %Y")
+    except ValueError:
+        return None
+
+
 def render_fixed(feed):
     """The dated "Fixed this week" strip under In brief (director, 24 Oct). Every date is the
     commit's own, read from git when the feed was built; whether each fix is already in the run
@@ -123,21 +150,78 @@ def render_fixed(feed):
     fixed = feed.get("fixed_this_week")
     if not fixed:
         return ""
+    # Steer of 26 Oct, section 3(c): a "Fixed in the N days to <date>" strip whose date is not
+    # this publish's is dropped, not shown stale. The feed is built at publish, so its own day
+    # is the publish day.
+    if feed.get("generated_at") is not None and fixed.get("as_of") != _feed_day(feed):
+        return ""
+    head = '<p class="brief-h">Fixed in the {} to {}</p>'.format(
+        E(_plural(fixed["window_days"], "day")), E(fixed["as_of"]))
     items = fixed.get("items") or []
     if not items:
-        return ('<div class="fixed"><p class="brief-h">Fixed in the {} days to {}</p>'
-                '<p class="note">Nothing recorded.</p></div>').format(
-                    E(str(fixed["window_days"])), E(fixed["as_of"]))
-    rows = []
+        return '<div class="fixed">{}<p class="note">Nothing recorded.</p></div>'.format(head)
+    rows, evidence = [], []
     for it in items:
-        where = {True: "in the published figures &middot; ",
-                 False: "reaches the figures at the next published run &middot; "}.get(
-                     it.get("in_published_run"), "")
-        rows.append('<li><span class="fixed-d">{}</span> {} <span class="fixed-w">{}'
-                    '<code>{}</code></span></li>'.format(
-                        E(it["date"]), E(it["what"]), where, E(it["commit"][:9])))
-    return ('<div class="fixed"><p class="brief-h">Fixed in the {} days to {}</p><ul>{}</ul>'
-            '</div>').format(E(str(fixed["window_days"])), E(fixed["as_of"]), "".join(rows))
+        where = {True: "in the published figures",
+                 False: "reaches the figures at the next published run"}.get(
+                     it.get("in_published_run"))
+        what, cited = _strip_hashes(it["what"])
+        rows.append('<li><span class="fixed-d">{}</span> {}{}</li>'.format(
+            E(it["date"]), E(what),
+            ' <span class="fixed-w">{}</span>'.format(where) if where else ""))
+        evidence.append("<li>{}: <code>{}</code>{}</li>".format(
+            E(it["date"]), E(it["commit"][:9]),
+            "".join(", cites <code>{}</code>".format(E(h)) for h in cited)))
+    return ('<div class="fixed">{}<ul>{}</ul><details class="evidence"><summary>Show the '
+            'evidence</summary><ul>{}</ul></details></div>').format(
+                head, "".join(rows), "".join(evidence))
+
+
+def _money(v, signed=False):
+    sign = ("+" if v > 0 else "&minus;" if v < 0 else "") if signed else ("&minus;" if v < 0 else "")
+    return "{}&pound;{:,.0f}".format(sign, abs(v))
+
+
+def _redraws(leg):
+    """"its 3 re-draws ran £4,722 to £7,846, every one the same sign" -- from the leg's fields."""
+    st = (leg or {}).get("verdict_stability") or {}
+    vals = [v for v in st.get("redraw_values_gbp") or [] if isinstance(v, (int, float))]
+    if not st.get("checked") or not vals:
+        return "it has not been re-drawn"
+    fig = leg.get("figure_gbp") or 0
+    same = all(v != 0 and (v > 0) == (fig > 0) for v in vals)
+    return "its {} ran {} to {}, {}".format(
+        _plural(len(vals), "re-draw"), _money(min(vals)), _money(max(vals)),
+        "every one the same sign" if same else "so even its sign is not settled")
+
+
+def render_lead(arms):
+    """The opening paragraph (steer of 26 Oct, section 3: "Lead Capabilities with its best
+    result ... Use the published figures from the live data, not these numbers typed in"). Every
+    figure is the value-arms feed's own; the verdict clause follows the feed's withholding."""
+    cw = (arms or {}).get("current_world") or {}
+    sel, lvl = cw.get("selection_leg") or {}, cw.get("level_leg") or {}
+    q = ("The question this project tests is whether deciding customer by customer creates value "
+         "or only moves it.")
+    if not cw.get("available") or not isinstance(sel.get("figure_gbp"), (int, float)) \
+            or not isinstance(lvl.get("figure_gbp"), (int, float)):
+        return ('<p class="lead-p">{} The value test below has no current figure to lead with, '
+                'and says why. <a href="#value-arms">The value test &darr;</a></p>').format(q)
+    when = str(cw.get("generated_at") or "")[:10]
+    try:
+        when = " (run of {})".format(datetime.strptime(when, "%Y-%m-%d").strftime("%-d %b %Y"))
+    except ValueError:
+        when = ""
+    withheld = sel.get("verdict_withheld_because") or lvl.get("verdict_withheld_because")
+    return ('<p class="lead-p">{} On the same book, run three ways{}, per-customer choosing was '
+            'worth <strong>{}</strong> over flat rules, and {}. The price level alone, one flat '
+            'margin at the level the per-customer arm charged, was worth <strong>{}</strong>: '
+            'value moved, not made, and {}. {}Both are shown, with the spread across draws, '
+            '<a href="#value-arms">in the value test below</a>.</p>').format(
+                q, when, _money(sel["figure_gbp"], True), _redraws(sel),
+                _money(lvl["figure_gbp"], True), _redraws(lvl),
+                "This page states no settled direction for either yet; the test says why. "
+                if withheld else "")
 
 
 def render_uc_tally(feed):
@@ -184,9 +268,10 @@ def render_stamp(feed):
                 E(str(feed.get("git_commit") or "unknown")[:9]))
 
 
-def render_blocks(feed):
+def render_blocks(feed, arms=None):
     go_live = feed.get("go_live") or {}
-    return {"FIXED": render_fixed(feed),
+    return {"LEAD": render_lead(arms),
+            "FIXED": render_fixed(feed),
             "WORLD": render_side(feed.get("world") or {}),
             "SUPPLIER": render_side(feed.get("supplier") or {}),
             "ACCESS": render_access(go_live),
@@ -205,6 +290,14 @@ def block(page, name):
     return page[start + len(START.format(name)):end].strip("\n")
 
 
+def read_arms(feed_path):
+    """The value-arms feed beside the capabilities feed; None (and the lead says so) if absent."""
+    try:
+        return json.loads((Path(feed_path).parent / "value_arms.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+
+
 def write_capabilities_figures(page_path, feed_path):
     """Rewrite every block on the Capabilities page from the feed. True if all were written."""
     try:
@@ -214,7 +307,7 @@ def write_capabilities_figures(page_path, feed_path):
         print("CAPABILITIES FIGURES NOT WRITTEN: {}".format(exc), file=sys.stderr)
         return False
     out = page
-    for name, inner in render_blocks(feed).items():
+    for name, inner in render_blocks(feed, read_arms(feed_path)).items():
         if block(out, name) is None:
             print("CAPABILITIES FIGURES NOT WRITTEN: {} has no {} markers".format(page_path, name),
                   file=sys.stderr)

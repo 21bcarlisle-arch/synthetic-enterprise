@@ -164,6 +164,11 @@ def _text(fragment: str) -> str:
     The door escapes every feed string through its own `esc()` before assigning, so asserting
     against raw innerHTML is how a correct page gets reported red.
     """
+    # A path or hash run sits one tap down in an evidence fold (steer of 26 Oct, 3(b)); its
+    # label is CSS content, so the run itself is still the sentence's text. Unwrap it
+    # before stripping tags, or the tag boundary reads as a space before the comma.
+    fragment = re.sub(r'<label class="ev"[^>]*><input[^>]*><span class="ev-v">(.*?)</span></label>',
+                      r"\1", fragment, flags=re.S)
     return re.sub(r"\s+", " ", html_lib.unescape(re.sub(r"<[^>]+>", " ", fragment))).strip()
 
 

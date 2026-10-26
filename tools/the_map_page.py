@@ -213,7 +213,7 @@ def _build_slice(concepts: list[dict]) -> str:
 def render(the_map: dict, on_page: dict, unplaced: list[dict]) -> str:
     if str(SITE) not in sys.path:
         sys.path.insert(0, str(SITE))
-    from ia_register import render_nav
+    from ia_register import render_footer, render_nav
     concepts = the_map["concepts"]
     by_id = {c["id"]: c for c in concepts}
     spines = the_map["spines"]
@@ -322,6 +322,7 @@ code {{ font-size: 12px; overflow-wrap: anywhere; }}
   <p class="sub">The register is <code>docs/design/the_map/concepts.yaml</code>; the map is
   <code>tools/the_map.py</code>; this page is <code>tools/the_map_page.py</code>.</p>
 </main>
+{render_footer("../../privacy/")}
 </body>
 </html>
 """

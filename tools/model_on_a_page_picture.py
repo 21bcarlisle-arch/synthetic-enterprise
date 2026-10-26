@@ -267,8 +267,14 @@ def render(spec: dict, levels: dict, sheets: Path = SHEETS) -> str:
     return "\n".join(o) + "\n"
 
 
+#: A canon code in brackets on the picture: "(G1)", "(R5, R6)", "(CO1)". Steer of 26 Oct: the
+#: front door shows plain names; the codes stay in the canon page, the alt text and the band
+#: sheets one tap down. Only bracketed codes, so an SVG path's "M0,0" is never touched.
+CANON_CODE = re.compile(r" ?\((?:[A-Z]{1,2}\d+)(?:,\s*[A-Z]{1,2}\d+)*\)")
+
+
 def build(doc: Path = DOC, map_path: Path = _MAP, sheets: Path = SHEETS) -> str:
-    return render(load_spec(doc), map_atom_levels(map_path), sheets)
+    return CANON_CODE.sub("", render(load_spec(doc), map_atom_levels(map_path), sheets))
 
 
 def write(out: Path = OUT) -> bool:

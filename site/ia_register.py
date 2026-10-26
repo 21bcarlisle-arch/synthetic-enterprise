@@ -77,6 +77,27 @@ CANONICAL_HOST = "https://poesys.net"
 NAV_START = "<!-- IA-NAV:START (rendered from site/ia_register.py -- do not hand-edit) -->"
 NAV_END = "<!-- IA-NAV:END -->"
 
+# The analytics notice every served page carries, in the director's words (ruling of 26 Oct,
+# item 2: "Keep the tracker but put a footnote or whatever is necessary for this to be reasonable
+# and normal practice"). Cloudflare Web Analytics is injected at the edge, so it reaches every
+# HTML response; the notice has to reach every page for the same reason. Rendered into a marked
+# region just before `</body>` by `tools/render_site_nav.py --write`, and by the two generators
+# that write whole pages (`the_map_page`, `model_on_a_page_sheets`).
+FOOTER_START = "<!-- SITE-FOOTER:START (rendered from site/ia_register.py -- do not hand-edit) -->"
+FOOTER_END = "<!-- SITE-FOOTER:END -->"
+ANALYTICS_NOTICE = ("Poesys counts page views with Cloudflare Web Analytics. It sets no cookies "
+                    "and does not track you across sites.")
+
+
+def render_footer(privacy_href: str) -> str:
+    """The marked analytics-notice block, linking to /privacy/ by `privacy_href` (relative from
+    the page, or site-absolute on a page served at arbitrary paths such as the 404)."""
+    return (f"{FOOTER_START}\n"
+            f'<p class="site-analytics-notice" style="max-width:1060px;margin:0 auto;'
+            f'padding:10px 20px 24px;text-align:center;font-size:11px;color:var(--muted,#666);">'
+            f'{ANALYTICS_NOTICE} <a href="{privacy_href}" style="color:inherit;">Privacy</a></p>\n'
+            f"{FOOTER_END}")
+
 
 class IaRegisterUnavailable(RuntimeError):
     """The register could not be built. NOT an empty register -- callers must treat

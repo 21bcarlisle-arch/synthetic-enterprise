@@ -98,7 +98,7 @@ def test_the_served_page_shows_what_the_committed_feed_says():
     page, or a feed published without its page, reds. The publisher commits both in one commit."""
     page = PAGE.read_text(encoding="utf-8")
     feed = json.loads(FEED.read_text(encoding="utf-8"))
-    for name, inner in cpf.render_blocks(feed).items():
+    for name, inner in cpf.render_blocks(feed, cpf.read_arms(FEED)).items():
         assert page.count(cpf.START.format(name)) == 1, name
         assert cpf.block(page, name) == inner, (
             "the {} block on the Capabilities page is not what site/data/capabilities_door.json "
@@ -126,7 +126,8 @@ def test_the_fixed_strip_takes_every_branch():
     out = cpf.render_fixed(_fixed(dict(one, in_published_run=True),
                                   dict(one, in_published_run=False),
                                   dict(one, in_published_run=None)))
-    assert out.count("<li>") == 3 and "Bills &lt;fixed&gt;" in out
+    shown = out.split("<details")[0]
+    assert shown.count("<li>") == 3 and "Bills &lt;fixed&gt;" in out
     assert out.count("in the published figures") == 1
     assert out.count("reaches the figures at the next published run") == 1
     assert "Nothing recorded" in cpf.render_fixed(_fixed())
@@ -153,3 +154,60 @@ def test_the_publish_step_calls_the_writer_after_the_feed_is_published():
     code = searchable((ROOT / "background" / "process_run_complete.py").read_text(encoding="utf-8"))
     publish, write = code.find("publish_clean()"), code.find("write_capabilities_figures(")
     assert 0 < publish < write
+
+
+def test_the_fixed_strip_dated_before_this_publish_is_dropped_and_its_hashes_go_one_tap_down():
+    """Steer of 26 Oct, 3(b) and 3(c). Red if a strip dated before the feed's own publish day is
+    shown; if a strip dated at it is not; if a commit hash stays in the visible sentence; if the
+    hash is lost rather than kept under "Show the evidence"; or if a one-day window reads "1 days"."""
+    fix = {"commit": "b" * 40, "what": "Bills fixed, graded on a fresh run in d909b6933.",
+           "date": "Mon 26 Oct", "in_published_run": True}
+    feed = {"generated_at": "2026-10-26T12:00:00Z",
+            "fixed_this_week": {"window_days": 1, "as_of": "26 Oct 2026", "items": [fix]}}
+    out = cpf.render_fixed(feed)
+    shown, evidence = out.split("<details")
+    assert "Fixed in the 1 day to 26 Oct 2026" in shown
+    assert "graded on a fresh run." in shown and "d909b6933" not in shown and "bbbbbbbbb" not in shown
+    assert "Show the evidence" in evidence and "d909b6933" in evidence and "bbbbbbbbb" in evidence
+    stale = dict(feed, generated_at="2026-10-27T08:00:00Z")
+    assert cpf.render_fixed(stale) == ""
+
+
+def _arms(sel, lvl, withheld=True, redraws=(1.0, 2.0)):
+    def leg(v):
+        return {"figure_gbp": v, "verdict_withheld_because": "why" if withheld else None,
+                "verdict_stability": {"checked": True, "redraw_values_gbp": list(redraws)}}
+    return {"current_world": {"available": True, "generated_at": "2026-10-08T06:52:42Z",
+                              "selection_leg": leg(sel), "level_leg": leg(lvl)}}
+
+
+def test_the_lead_states_both_legs_from_the_feed_with_their_spread_and_the_verdict_it_withholds():
+    """Steer of 26 Oct: lead with the value test, from the live figures, not typed in. KEYED TO
+    THE FEED: two different feeds give two different paragraphs. Every branch: both legs and a
+    withheld verdict; a sign the re-draws do not share; no withholding; no current figure."""
+    out = cpf.render_lead(_arms(1234.4, -567.8))
+    assert "+&pound;1,234" in out and "&minus;&pound;568" in out and "value moved, not made" in out
+    assert "its 2 re-draws ran &pound;1 to &pound;2" in out and "run of 8 Oct 2026" in out
+    assert "every one the same sign" in out and "so even its sign is not settled" in out
+    assert "states no settled direction" in out
+    assert "states no settled direction" not in cpf.render_lead(_arms(1.0, 2.0, withheld=False))
+    assert cpf.render_lead(_arms(99.0, 5.0)) != out
+    empty = cpf.render_lead(None)
+    assert "no current figure" in empty and "&pound;" not in empty
+
+
+def test_every_section_below_the_table_and_the_value_test_is_one_tap_down():
+    """Steer of 26 Oct, 3(a). Each `details.fold` is CLOSED in the served bytes and its summary is
+    a heading plus a one-line summary; the value test is not folded and the lead sits above the
+    capability table. MUTATION: open a fold, fold the value test, or drop the lead -> red."""
+    page = (ROOT / "site" / "capabilities" / "index.html").read_text(encoding="utf-8")
+    folds = page.split('<details class="fold"')[1:]
+    assert len(folds) >= 6, "the sections below the capability table are no longer folded"
+    for f in folds:
+        tag = f[:f.index(">")]
+        assert "open" not in tag, tag
+        head = f[f.index("<summary>"):f.index("</summary>")]
+        assert '<h2 class="sec">' in head and 'class="fold-line"' in head, head[:120]
+    arms = page.index('<section id="value-arms"')
+    assert '<details class="fold"' not in page[arms:page.index("</section>", arms)]
+    assert page.index('id="value-lead"') < page.index('id="world"')

@@ -160,7 +160,7 @@ CAPABILITIES = [
          description="RO, FiT, CCL, GSOP, WHD/ECO (EXEMPT), Carbon emissions, Settlement Reconciliation, TPI commission, Ofgem Supply Return, SLC Compliance Scorecard, FRA Capital Ratio. All using real published rates.",
          evidence_link="../knowledge/non-commodity-costs/", metric=_regulatory_metric),
     dict(id="carbon-emissions", name="Carbon Emissions Reporting",
-         description="Scope 2 electricity: real UK fuel mix 2016-2025. Scope 1 gas: fixed BEIS/DESNZ combustion factor. 10-year decarbonisation trend in the board section.",
+         description="Scope 2 electricity: real GB fuel mix 2016-2025. Scope 1 gas: fixed BEIS/DESNZ combustion factor. 10-year decarbonisation trend in the board section.",
          evidence_link="../knowledge/household-carbon-and-the-measures-that-save-it/", metric=_carbon_metric),
     dict(id="ic-segment", name="I&C Segment Simulation",
          description="HH metering for large I&C. Gas pass-through (zero VaR, service-fee billing). TPI trail commission. Triad demand curtailment on alert days. Rate-sensitivity-only churn.",

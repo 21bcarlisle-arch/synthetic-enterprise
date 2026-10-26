@@ -103,6 +103,27 @@ details.item .item-p { margin: 4px 0 8px 16px; }
 .fixed-w { font-size: 11px; color: var(--muted); }
 details.register > summary { font-size: 14px; }
 footer .stamp { margin: 6px 0 0; }
+/* Steer of 26 Oct: everything below the capability table and the value test is one tap down. */
+details.fold { margin: 28px 0 0; border-top: 1px solid var(--border); padding-top: 4px; }
+details.fold > summary { cursor: pointer; list-style: none; }
+details.fold > summary::-webkit-details-marker { display: none; }
+details.fold > summary h2.sec { display: inline; margin: 0; }
+details.fold > summary h2.sec::after { content: " +"; color: var(--muted); font-weight: 400; }
+details.fold[open] > summary h2.sec::after { content: " \2212"; }
+details.fold > summary .fold-line { display: block; margin: 4px 0 6px; color: var(--muted); font-size: 14px; }
+details.fold[open] > summary { margin-bottom: 10px; }
+.lead { margin: 18px 0 8px; max-width: 760px; }
+.lead-p { font-size: 16px; line-height: 1.55; margin: 0; }
+details.evidence { margin-top: 6px; font-size: 12px; color: var(--muted); }
+details.evidence > summary { cursor: pointer; }
+.ev { cursor: pointer; }
+.ev input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.ev::before { content: attr(data-k); color: var(--muted); text-decoration: underline dotted; }
+.ev-v { display: none; overflow-wrap: anywhere; }
+.ev-v::before { content: " ("; }
+.ev-v::after { content: ")"; }
+.ev input:checked ~ .ev-v { display: inline; }
+.ev:focus-within { outline: 2px solid var(--muted); }
 </style>
 </head>
 <body>
@@ -124,6 +145,11 @@ footer .stamp { margin: 6px 0 0; }
   <p class="hero-sub">What the simulated GB energy world and the supplier inside it can do today,
   how that compares with a real GB supplier, and what it would take to connect it to the real
   industry.</p>
+  <div class="lead" id="value-lead">
+<!-- CAPABILITIES-LEAD:START (written at publish by tools/capabilities_page_figures.py -- do not hand-edit) -->
+<p class="lead-p">The question this project tests is whether deciding customer by customer creates value or only moves it. On the same book, run three ways (run of 8 Oct 2026), per-customer choosing was worth <strong>+&pound;11,345</strong> over flat rules, and its 3 re-draws ran &pound;4,722 to &pound;7,846, every one the same sign. The price level alone, one flat margin at the level the per-customer arm charged, was worth <strong>&minus;&pound;6,101</strong>: value moved, not made, and its 3 re-draws ran &pound;1,649 to &pound;4,975, so even its sign is not settled. This page states no settled direction for either yet; the test says why. Both are shown, with the spread across draws, <a href="#value-arms">in the value test below</a>.</p>
+<!-- CAPABILITIES-LEAD:END -->
+  </div>
   <div class="brief" id="in-brief">
     <p class="brief-h">In brief</p>
     <ul>
@@ -144,7 +170,7 @@ footer .stamp { margin: 6px 0 0; }
   </div>
   <div id="fixed-this-week">
 <!-- CAPABILITIES-FIXED:START (written at publish by tools/capabilities_page_figures.py -- do not hand-edit) -->
-<div class="fixed"><p class="brief-h">Fixed in the 7 days to 26 Oct 2026</p><ul><li><span class="fixed-d">Sat 24 Oct</span> Standard-variable bills above the price cap: the Energy Price Guarantee now reaches the household&#x27;s bill from October 2022 to June 2023, and with a household moving into an empty home no longer priced as a business, the fall was graded on a fresh run in d909b6933. Not closed: the fix for an empty home&#x27;s estimated stub over-credits five bills, and that is open (140b5ff7b). <span class="fixed-w">reaches the figures at the next published run &middot; <code>4ef70aba9</code></span></li><li><span class="fixed-d">Fri 23 Oct</span> A household moving into an empty home is billed as a home, not as a business. <span class="fixed-w">reaches the figures at the next published run &middot; <code>4bc21e920</code></span></li><li><span class="fixed-d">Sat 24 Oct</span> A household on the default tariff pays one unit rate; a time-of-use pair now needs the household&#x27;s choice, not just a smart meter. <span class="fixed-w">reaches the figures at the next published run &middot; <code>1e358809b</code></span></li><li><span class="fixed-d">Sat 24 Oct</span> A time-of-use bill prints its peak and off-peak registers, each with its own units, rate and charge. <span class="fixed-w">reaches the figures at the next published run &middot; <code>50001b0b7</code></span></li><li><span class="fixed-d">Fri 23 Oct</span> The Energy Bills Support Scheme&#x27;s monthly credit reduces what a household owes for electricity in winter 2022-23. <span class="fixed-w">reaches the figures at the next published run &middot; <code>d8129f3f6</code></span></li><li><span class="fixed-d">Sat 24 Oct</span> On this page, a function with no linked test can no longer read Live. <span class="fixed-w">reaches the figures at the next published run &middot; <code>746df31c8</code></span></li></ul></div>
+<div class="fixed"><p class="brief-h">Fixed in the 7 days to 26 Oct 2026</p><ul><li><span class="fixed-d">Sat 24 Oct</span> Standard-variable bills above the price cap: the Energy Price Guarantee now reaches the household&#x27;s bill from October 2022 to June 2023, and with a household moving into an empty home no longer priced as a business, the fall was graded on a fresh run. Not closed: the fix for an empty home&#x27;s estimated stub over-credits five bills, and that is open. <span class="fixed-w">in the published figures</span></li><li><span class="fixed-d">Fri 23 Oct</span> A household moving into an empty home is billed as a home, not as a business. <span class="fixed-w">in the published figures</span></li><li><span class="fixed-d">Sat 24 Oct</span> A household on the default tariff pays one unit rate; a time-of-use pair now needs the household&#x27;s choice, not just a smart meter. <span class="fixed-w">in the published figures</span></li><li><span class="fixed-d">Sat 24 Oct</span> A time-of-use bill prints its peak and off-peak registers, each with its own units, rate and charge. <span class="fixed-w">in the published figures</span></li><li><span class="fixed-d">Fri 23 Oct</span> The Energy Bills Support Scheme&#x27;s monthly credit reduces what a household owes for electricity in winter 2022-23. <span class="fixed-w">in the published figures</span></li><li><span class="fixed-d">Sat 24 Oct</span> On this page, a function with no linked test can no longer read Live. <span class="fixed-w">in the published figures</span></li></ul><details class="evidence"><summary>Show the evidence</summary><ul><li>Sat 24 Oct: <code>4ef70aba9</code>, cites <code>d909b6933</code>, cites <code>140b5ff7b</code></li><li>Fri 23 Oct: <code>4bc21e920</code></li><li>Sat 24 Oct: <code>1e358809b</code></li><li>Sat 24 Oct: <code>50001b0b7</code></li><li>Fri 23 Oct: <code>d8129f3f6</code></li><li>Sat 24 Oct: <code>746df31c8</code></li></ul></details></div>
 <!-- CAPABILITIES-FIXED:END -->
   </div>
 
@@ -207,7 +233,7 @@ footer .stamp { margin: 6px 0 0; }
        door", item 3.2): this was a definition list inside "What is not built yet"; it moved up
        whole as a table, every line kept. Hand-authored prose; no run figure is typed in it. -->
   <section id="against">
-  <h2 class="sec">Against a real GB supplier</h2>
+  <details class="fold"><summary><h2 class="sec">Against a real GB supplier</h2><span class="fold-line">Area by area, what is modelled faithfully today and what is not yet, each with its source.</span></summary>
   <p class="sec-lede">What is modelled faithfully today and what is not yet, area by area, each
     linked to the Knowledge page that sources it. When one of those pages changes its account, its
     line here is updated to match.</p>
@@ -270,9 +296,10 @@ footer .stamp { margin: 6px 0 0; }
         <td><a href="../knowledge/how-households-choose/">How households choose</a></td></tr>
     </tbody>
   </table></div>
-  </section>
+  </details>
+</section>
 
-  <h2 class="sec">The path to a real supplier</h2>
+  <details class="fold"><summary><h2 class="sec">The path to a real supplier</h2><span class="fold-line">The named doorways to the real industry, and what it would take to connect each one.</span></summary>
   <p class="sec-lede">The supplier never reaches into the world. It reads and writes through named
   doorways (typed interfaces, one per counterparty), the same way a real supplier reaches the industry: settlement data, smart meters, gas
   registration, switching, direct-debit collection, carbon intensity and the published cost
@@ -299,8 +326,9 @@ footer .stamp { margin: 6px 0 0; }
 <!-- CAPABILITIES-GOLIVE:END -->
     </tbody>
   </table></div>
+  </details>
 
-  <h2 class="sec">What this world is for</h2>
+  <details class="fold"><summary><h2 class="sec">What this world is for</h2><span class="fold-line">What a supplier could test here, each scored against the hidden truth the world keeps.</span></summary>
   <p class="sec-lede">What an energy supplier could test here, each item scored against the hidden
   truth the world keeps for every home: what would have happened anyway, so a claim like &ldquo;we
   saved you this much&rdquo; is marked against the answer before it is said to anyone. An item
@@ -339,6 +367,7 @@ footer .stamp { margin: 6px 0 0; }
 <div class="uc"><div class="item-h">Knowing what a customer is worth before bidding for them<span class="pill pill-waits">Waits</span><span class="uc-met">1 of 4 in place</span></div><div class="item-p">Worth estimated from what is legitimately observable at a quote — the area, the building, the payment method, the meter — so that acquisition is bid by expected value; and each question ranked by how much the answer sharpens the estimate, so &#x27;advice for three answers&#x27; is a designed exchange rather than a form.</div><div class="uc-test"><b>Scored against:</b> The estimate at the quote against what the customer truly turned out to be worth.</div><div class="uc-waits">Waits on a pool of prospective homes that are not yet customers, what a customer is worth over three horizons and how a household behaves at the point of quoting.</div><div class="uc-waits uc-none">No work is under way on a pool of prospective homes that are not yet customers.</div></div>
 <!-- CAPABILITIES-USECASES:END -->
   </details>
+  </details>
 
   <!-- WHAT IS NOT BUILT YET (director steer of 22 Oct 2026, "the front door shows the ambition and
        what has been built"): these paragraphs led the front door until that day. They moved here
@@ -346,7 +375,7 @@ footer .stamp { margin: 6px 0 0; }
        pages match the front door", item 3.4) they were condensed into one table, with the full
        paragraphs kept below it, collapsed. Hand-authored prose; no run figure is typed in it. -->
   <section id="not-built">
-  <h2 class="sec">What is not built yet</h2>
+  <details class="fold"><summary><h2 class="sec">What is not built yet</h2><span class="fold-line">No customers and no licence: what is missing before this could be a real supplier.</span></summary>
   <p class="sec-lede"><strong>No customers. No licence. A running simulator.</strong> A fully
     autonomous licensed supplier will not be permitted, because a licence needs accountable humans,
     and we say so up front. Autonomy is the <em>how</em>, not the headline.</p>
@@ -430,14 +459,16 @@ footer .stamp { margin: 6px 0 0; }
     supply</strong>. The capability is still built and still tested &mdash; half-hourly settlement,
     cutting demand at the three winter peaks that set transmission charges (Triad), the flexibility revenue book, the split of network charges between distribution and transmission (DUoS/TNUoS) &mdash; but the company has
     stopped serving those accounts, which is a different thing from deleting them.</p>
-  </section>
+  </details>
+</section>
 
-  <h2 class="sec">How solid the boundary is</h2>
+  <details class="fold"><summary><h2 class="sec">How solid the boundary is</h2><span class="fold-line">Every place the supplier&rsquo;s code and the world&rsquo;s still touch, found and ruled on.</span></summary>
   <p class="sec-lede">The boundary is not a promise; it is measured, and the measurement is allowed
   to be unflattering. Every place the supplier's code and the world's code still touch directly is
   found by a walker, listed, and given a ruling &mdash; cut, or kept for a stated reason.</p>
   <div class="figs" id="wall"></div>
   <p class="note" id="wallnote"></p>
+  </details>
 
   <p class="note">Every figure on this page is generated from the project's own records at the
   commit shown at the foot. Nothing here is typed in by hand except the descriptions, which say what
@@ -495,7 +526,7 @@ footer .stamp { margin: 6px 0 0; }
 })();
 </script>
 <section style="max-width:760px;margin:0 auto;padding:0 24px 24px;">
-  <h2 class="sec">How the book grew, and what stopped it</h2>
+  <details class="fold"><summary><h2 class="sec">How the book grew, and what stopped it</h2><span class="fold-line">The book year by year, and which limit held it back each year.</span></summary>
   <p class="sec-lede">The supplier starts with a handful of accounts and has to win the rest. A flat
   year on this table can mean four different things &mdash; it could not afford to quote, it chose
   not to grow faster than its own mandate, almost nobody was switching that year, or
@@ -507,6 +538,7 @@ footer .stamp { margin: 6px 0 0; }
   <p id="growth-winrate" style="margin:0 0 14px;"></p>
   <div id="growth"></div>
   <p id="growth-note" class="stamp" style="margin-top:10px;"></p>
+</details>
 </section>
 <script>
 /* THE GROWTH CURVE WITH ITS BINDING REASON. Its own fetch and its own IIFE, deliberately: this
@@ -907,7 +939,29 @@ footer .stamp { margin: 6px 0 0; }
   /* The feed is written in the repository's plain-text house style, where an em dash is typed
      "--". On a page that is a typo, so it is set properly here. Escape FIRST, then typeset: the
      other order would let a feed string introduce markup. */
-  var prose = function (s) { return esc(s).replace(/ -- /g, " &mdash; "); };
+  /* FILE PATHS AND COMMIT HASHES GO ONE TAP DOWN (steer of 26 Oct, section 3(b)). A run of them
+     -- one, or a list joined by commas or "and" -- is replaced by a short label ("a commit",
+     "180 files") that opens to the run itself. The bytes stay in the page: a reader who taps sees
+     them, and every control that reads this section's text still finds them. A hash must carry a
+     digit and a letter, so "decade" and "2016" are left alone; an all-digit short hash is too. */
+  var EV_ONE = "`?(?:\\b(?:docs|tools|company|saas|sim|simulation|background|site|tests|interface)/[\\w./-]+"
+    + "|\\b[\\w-]+\\.(?:py|md|yaml|yml|mjs)\\b"
+    + "|\\b(?=[0-9a-f]*[0-9])(?=[0-9a-f]*[a-f])[0-9a-f]{7,40}\\b)`?";
+  var EV_RUN = new RegExp(EV_ONE + "(?:(?:,\\s*|\\s+and\\s+)" + EV_ONE + ")*", "g");
+  var evidence = function (html) {
+    return html.replace(EV_RUN, function (run) {
+      var items = run.split(/,\s*|\s+and\s+/);
+      var hashes = items.filter(function (i) { return /^`?[0-9a-f]+`?$/.test(i); }).length;
+      var kind = hashes === items.length ? ["a commit", "commits"]
+        : (hashes === 0 ? ["a file", "files"] : ["a reference", "references"]);
+      var label = items.length === 1 ? kind[0] : items.length + " " + kind[1];
+      /* The label is CSS content, not text: the page's text stays byte-for-byte the feed's
+         sentence, which the reader-side controls compare against. */
+      return '<label class="ev" data-k="' + label + '"><input type="checkbox"><span class="ev-v">'
+        + run + '</span></label>';
+    });
+  };
+  var prose = function (s) { return evidence(esc(s).replace(/ -- /g, " &mdash; ")); };
   /* Whole pounds, with a real minus sign in front of the £ rather than inside it: a negative
      leg is the finding here, and "£-175" reads as a typo where "-£175" reads as a result. */
   var gbp = function (v) {
@@ -1758,7 +1812,7 @@ footer .stamp { margin: 6px 0 0; }
   function whichPopulation(p) {
     var parts = [
       p.run ? "the run of " + esc(p.run) : "a run this publish cannot date",
-      p.commit ? "produced at " + esc(String(p.commit).slice(0, 9))
+      p.commit ? "produced at " + evidence(esc(String(p.commit).slice(0, 9)))
                : "produced at a commit this publish cannot name",
       p.clock ? "read on the " + esc(p.clock) + " clock"
               : "read on a clock this publish cannot name",
@@ -1919,11 +1973,11 @@ footer .stamp { margin: 6px 0 0; }
                   ? "an unstated number"
                   : esc(r.its_own_bar_sems.toFixed(2))))
         + '. <span style="font-size:0.92em;">Measured on '
-        + (code.length ? esc(code.join(" and ")) : "code this family does not name")
+        + (code.length ? evidence(esc(code.join(" and "))) : "code this family does not name")
         + ", folded " + esc((r.family_folded_at || "").slice(0, 10))
         + ", runs drawn "
         + esc((((r.which_code || {}).member_runs_drawn_at || [])[0] || "").slice(0, 10))
-        + ". " + esc(r.artefact) + "</span></span>";
+        + ". " + evidence(esc(r.artefact)) + "</span></span>";
     }
     /* WHAT MAKES THE PAIR MEAN ANYTHING, on the block and not in a footnote: if the two families
        held different seeds a reader would be right to shrug, because any two seed sets disagree.
@@ -3843,7 +3897,7 @@ footer .stamp { margin: 6px 0 0; }
                     + "of this same question exists on a different book of "
                     + esc(String(rb.second_grade.renewals)) + " renewals and "
                     + esc(String(rb.second_grade.departures)) + " departures ("
-                    + esc(rb.second_grade.path) + "). "
+                    + evidence(esc(rb.second_grade.path)) + "). "
                     + prose(rb.second_grade.why_not || "") + " "
                     + prose(rb.second_grade.never_averaged_because || "") + "</p>"
                   : "")
@@ -4614,7 +4668,7 @@ footer .stamp { margin: 6px 0 0; }
      baseline there will ever be. Every figure is fetched from ../data/dd_opening_arms.json;
      none is authored here. -->
 <section id="dd-opening" style="max-width:760px;margin:0 auto;padding:0 24px 24px;">
-  <h2 class="sec">Does estimating the direct debit beat guessing it?</h2>
+  <details class="fold"><summary><h2 class="sec">Does estimating the direct debit beat guessing it?</h2><span class="fold-line">Whether estimating a new account&rsquo;s direct debit beats setting it from the first bill.</span></summary>
   <p class="sec-lede">A direct debit is one of the few numbers a customer can quote back at you,
   and it is only as good as the estimated annual consumption behind it: when that estimate is
   wrong the account drifts into credit or debit, and the correction arrives later as a change
@@ -4641,6 +4695,7 @@ footer .stamp { margin: 6px 0 0; }
   <p id="ddopen-refused" style="margin:14px 0 0;font-size:13px;"></p>
   <p id="ddopen-basis" style="margin:10px 0 0;font-size:13px;"></p>
   <p id="ddopen-note" class="stamp" style="margin-top:12px;"></p>
+</details>
 </section>
 <script>
 /* Its own fetch and its own IIFE, same discipline as the arm comparison above. On any failure
@@ -4850,7 +4905,7 @@ footer .stamp { margin: 6px 0 0; }
      ../data/billing_accuracy.json, written by company/billing/billing_accuracy.published_view;
      none is authored here. -->
 <section id="billing-accuracy" style="max-width:760px;margin:0 auto;padding:0 24px 24px;">
-  <h2 class="sec">How much of what this supplier billed was a guess?</h2>
+  <details class="fold"><summary><h2 class="sec">How much of what this supplier billed was a guess?</h2><span class="fold-line">How much of what was billed was estimated rather than read, and how the corrections landed.</span></summary>
   <p class="sec-lede">A traditional meter is read only now and then. In the months between,
   the bill is an estimate, and it is corrected when a real read arrives. A supplier cannot see
   what a household actually used in a month it did not read. It only sees the size of the
@@ -4865,6 +4920,7 @@ footer .stamp { margin: 6px 0 0; }
   <div id="billacc-unbilled"></div>
   <p id="billacc-example" style="margin:14px 0 0;font-size:13px;"></p>
   <p id="billacc-note" class="stamp" style="margin-top:12px;"></p>
+</details>
 </section>
 <script>
 /* On any failure every figure is ABSENT with its reason, never zero. */
@@ -5143,7 +5199,7 @@ footer .stamp { margin: 6px 0 0; }
      ../data/engagement_separation.json, written by tools/engagement_separation.py; none is
      authored here. -->
 <section id="engagement-separation" style="max-width:760px;margin:0 auto;padding:0 24px 24px;">
-  <h2 class="sec">Does a household that never shops not care about price?</h2>
+  <details class="fold"><summary><h2 class="sec">Does a household that never shops not care about price?</h2><span class="fold-line">Whether a household that never switches is really indifferent to price.</span></summary>
   <p class="sec-lede">Most households never switch, and it is tempting to read that as not caring
   what they pay. The simulated world keeps two things apart: whether a household looks at all when
   its deal ends, and how much a price difference moves it once it does look.</p>
@@ -5154,6 +5210,7 @@ footer .stamp { margin: 6px 0 0; }
   <p id="engsep-construction" style="margin:14px 0 0;font-size:13px;"></p>
   <p id="engsep-gap" style="margin:10px 0 0;font-size:13px;"></p>
   <p id="engsep-note" class="stamp" style="margin-top:12px;"></p>
+</details>
 </section>
 <script>
 /* Its own fetch and its own IIFE. On any failure every figure is ABSENT with a stated reason,
@@ -5310,5 +5367,8 @@ footer .stamp { margin: 6px 0 0; }
 <!-- RUN-CLOCK:START (written at publish by tools/generate_dashboard_data.py -- do not hand-edit) -->
 <p class="lf-prov" style="max-width:1060px;margin:24px auto 8px;padding:0 22px;font-size:11.5px;color:var(--muted,#666)">Figures from the run of 26 Oct 2026 &middot; published every Monday <span class="lf-run">(run 4ae8da9b0f_20261026T022647Z; no figure here is typed by hand)</span></p>
 <!-- RUN-CLOCK:END -->
+<!-- SITE-FOOTER:START (rendered from site/ia_register.py -- do not hand-edit) -->
+<p class="site-analytics-notice" style="max-width:1060px;margin:0 auto;padding:10px 20px 24px;text-align:center;font-size:11px;color:var(--muted,#666);">Poesys counts page views with Cloudflare Web Analytics. It sets no cookies and does not track you across sites. <a href="../privacy/" style="color:inherit;">Privacy</a></p>
+<!-- SITE-FOOTER:END -->
 </body>
 </html>

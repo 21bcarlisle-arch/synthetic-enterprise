@@ -109,16 +109,21 @@ def review_state(topic: dict, policy: dict | None = None, today: date | None = N
             "state": DUE, "last_verified": reviewed.get("last_verified"),
             "days_allowed": days_allowed, "age_days": age, "overdue_by": overdue,
             "label": "Review due",
-            "detail": (f"Last checked {age} days ago; this subject is meant to be re-checked "
+            "detail": (f"Last checked {_days(age)} ago; this subject is meant to be re-checked "
                        f"every {days_allowed} days."),
         }
     return {
         "state": FRESH, "last_verified": reviewed.get("last_verified"),
         "days_allowed": days_allowed, "age_days": age, "overdue_by": None,
         "label": f"Reviewed {reviewed.get('last_verified')}",
-        "detail": (f"Checked {age} days ago against a {days_allowed}-day threshold."
+        "detail": (f"Checked {_days(age)} ago against a {days_allowed}-day threshold."
                    + (f" Source: {reviewed['source']}." if reviewed.get("source") else "")),
     }
+
+
+def _days(n: int) -> str:
+    """"1 day", "2 days": a page checked yesterday read "Checked 1 days ago" (steer, 26 Oct)."""
+    return f"{n} day" if n == 1 else f"{n} days"
 
 
 def states_for(feed: dict, today: date | None = None) -> dict[str, dict]:

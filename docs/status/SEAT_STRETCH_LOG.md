@@ -1232,7 +1232,7 @@ The director's ruling of 24 Oct 17:22 owed a recommendation before any forward-y
 
 <!-- head: 904a091f7b42 -->
 
-**In plain English:** A single map of the business's ideas now links each one to the code, the checks and the pages behind it; its first pass over collecting payments found many overlapping modules, including several that nothing calls.
+**In plain English:** A single map now links each of the business's ideas to the code, checks and pages behind it; its first pass over payment collection found overlapping modules, several of which nothing calls.
 
 Director steers of 24 Oct: the map ("Do that", 13:05) and its SKOS refinement ("Yes", 15:44). This is items 1 and 2 in part: the design, and the pilot's generated findings. The page, the coverage checks, notes to pages, the forward knowledge plan and the agents' file (items 2-page, 3-6) are owed. Both steers stay open.
 
@@ -1368,7 +1368,7 @@ The high end is also the plain throughput reading. At the last fortnight's pace 
 
 <!-- head: 01a69f17da47 -->
 
-**In plain English:** the diagram on the front door is no longer a hand-drawn file. Its words now live in the canon page, `THE_MODEL_ON_A_PAGE.md`, under a new section, "The picture". A generator draws it at every publish, and the maturity map decides whether each "Now" line reads as done, in build or not started.
+**In plain English:** The front-door diagram is now generated from the model itself, so it cannot drift from the code. Its words now live in the canon page, `THE_MODEL_ON_A_PAGE.md`, under a new section, "The picture". A generator draws it at every publish, and the maturity map decides whether each "Now" line reads as done, in build or not started.
 
 *Seat executor, 24 Oct 2026. Lane 0 item `front-door-diagram-generated-and-layered`, item 2 of the director's 24 Oct 09:42 steer. Item 1, the content refresh, landed in 9451cb34e.*
 

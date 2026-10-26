@@ -136,10 +136,10 @@ function reviewState(topic, policy, today){
   var age = Math.floor((today - when) / 86400000);
   if (age - days > 0) {
     return { state:"due", label:"Review due", days_allowed:days, age_days:age,
-             detail:"Last checked " + age + " days ago; this subject is meant to be re-checked every " + days + " days." };
+             detail:"Last checked " + age + (age === 1 ? " day" : " days") + " ago; this subject is meant to be re-checked every " + days + (days === 1 ? " day." : " days.") };
   }
   return { state:"fresh", label:"Reviewed " + raw, days_allowed:days, age_days:age,
-           detail:"Checked " + age + " days ago against a " + days + "-day threshold." +
+           detail:"Checked " + age + (age === 1 ? " day" : " days") + " ago against a " + days + "-day threshold." +
                   (rec.source ? " Source: " + rec.source + "." : "") };
 }
 

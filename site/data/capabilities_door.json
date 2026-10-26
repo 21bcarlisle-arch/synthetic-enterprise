@@ -1591,49 +1591,49 @@
  "fixed_this_week": {
   "window_days": 7,
   "as_of": "26 Oct 2026",
-  "published_run": "8b6fea024",
+  "published_run": "4ae8da9b0f",
   "items": [
    {
     "commit": "4ef70aba9258f1f7a7a07d510ba2c4c9bcc3196c",
     "what": "Standard-variable bills above the price cap: the Energy Price Guarantee now reaches the household's bill from October 2022 to June 2023, and with a household moving into an empty home no longer priced as a business, the fall was graded on a fresh run in d909b6933. Not closed: the fix for an empty home's estimated stub over-credits five bills, and that is open (140b5ff7b).",
     "at": 1792801593,
     "date": "Sat 24 Oct",
-    "in_published_run": false
+    "in_published_run": true
    },
    {
     "commit": "4bc21e92095bf2369d4ebdc7bd3cdad4e97929f2",
     "what": "A household moving into an empty home is billed as a home, not as a business.",
     "at": 1792780005,
     "date": "Fri 23 Oct",
-    "in_published_run": false
+    "in_published_run": true
    },
    {
     "commit": "1e358809beb335756c28108e6a4477426fc3803a",
     "what": "A household on the default tariff pays one unit rate; a time-of-use pair now needs the household's choice, not just a smart meter.",
     "at": 1792805305,
     "date": "Sat 24 Oct",
-    "in_published_run": false
+    "in_published_run": true
    },
    {
     "commit": "50001b0b7b6f88d54ff54520f86873bb2463f14c",
     "what": "A time-of-use bill prints its peak and off-peak registers, each with its own units, rate and charge.",
     "at": 1792813397,
     "date": "Sat 24 Oct",
-    "in_published_run": false
+    "in_published_run": true
    },
    {
     "commit": "d8129f3f6afcc6f0e7229fe05e881fda3f7ecd5f",
     "what": "The Energy Bills Support Scheme's monthly credit reduces what a household owes for electricity in winter 2022-23.",
     "at": 1792777874,
     "date": "Fri 23 Oct",
-    "in_published_run": false
+    "in_published_run": true
    },
    {
     "commit": "746df31c8905e5bfe205657f062b393f041d6c75",
     "what": "On this page, a function with no linked test can no longer read Live.",
     "at": 1792830002,
     "date": "Sat 24 Oct",
-    "in_published_run": false
+    "in_published_run": true
    }
   ]
  }

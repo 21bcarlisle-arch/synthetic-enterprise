@@ -76,4 +76,41 @@ Horizontal scroll is still true on Capabilities, `knowledge/payments-and-direct-
 
 ## Done
 
-(The seat records here what landed, with commits, and what was deferred, with dates.)
+Recorded 26 Oct 2026 by the delivery seat's Lane 0 worker. Checked by rendering the pages built from the landing commit in headless Chromium at 1366×900 and 390×844, every `<details>` opened for the width check.
+
+**The take-over.** The correctness/Capabilities slice and the privacy/stale-data slice were claimed by one agent process, pid 3982540 (worktrees `agent-ae7df5a36397eaf94` and `agent-a8b46610c52021c2c`). It exited at about 14:50 with both slices uncommitted, and nothing wrote to either worktree after that. Both diffs were replayed onto origin, finished, and landed together in this commit. The knowledge-and-mobile slice had already landed and released.
+
+### 1. The director's queue
+- Queue holds reserved actions only; nine rows closed as the seat's own calls with how to reverse each; reserved raise must name its G5 class: **8be05177e**.
+- How it's built: "Waiting on the director (reserved actions only)", counted at publish; it now reads "nothing is waiting on him": **7222fae89**. Rendered and confirmed.
+- The classifier clause ("a row must name its G5 class or it is not raised") was not enacted, because it would end the escalation of strategy and canon-intent concerns. It was raised as `the-26-oct-advisor-steer-asks-that`, and the advisor's 16:20 chase accepts that: **7222fae89**.
+
+### 2. Correctness a reader can see
+- Explore: "Unit rate, all-in before VAT 11.47 p/kWh" beside "Energy component of the unit rate 6.27 p/kWh". A reader test holds all-in ≥ the components: **this commit**.
+- Home: "62 published knowledge pages: 54 on how the GB market and its households work, 8 comparing other markets with GB", counted live at publish: **this commit**.
+- Plurals: one rule, with a sitewide test (`site/test_a_count_of_one_is_never_given_a_plural_unit.py`): **this commit**.
+- UK→GB in the Capabilities carbon row ("real GB fuel mix"); UK Link untouched: **this commit**.
+
+### 3. What an outsider should not have to read
+- Knowledge: "Built by" gone from every card (0 of 62); census moved to "How these pages are checked", one plain line on the index: **fe14bb3dc**, **e0bf4927ff**.
+- Capabilities (a): every section below the capability table and the value test is a closed `<details>` with a one-line summary (44,555 → 26,868 px at 1366): **this commit**.
+- Capabilities (b): paths and hashes fold into "Show the evidence" (37 visible hashes and 523 visible `.py` names → 1 and 3): **this commit**.
+- Capabilities (c): the "Fixed in the N days to <date>" strip renders only on its own publish day. Its six fixes now read "in the published figures"; they had wrongly read "next published run" against the stale 8b6fea024: **this commit**.
+- Capabilities lead: the value test opens the page, generated from `value_arms.json`. It gives per-customer choosing at +£11,345 and the flat level at −£6,101, value moved, not made, each with its re-draw spread, and states that no direction is settled yet (run of 8 Oct): **this commit**.
+- Home "New this week" in plain words; the "director's points" line is dropped, and the generator now leaves out any highlight naming the director: **this commit**.
+- Home diagram: bracketed canon codes removed from the picture, kept in the alt text, the canon page and the band sheets: **this commit**.
+
+### 4. Mobile (390 px)
+- 0 of 77 pages scroll sideways, and a browser check runs over every page after each publish: **e71f73233c**.
+- A How it's built decision record overflowed to 575 px once its fold was opened; the grid now wraps: **this commit**.
+
+### 5. Data on the previous run
+- `capabilities_door.json` named `published_run: 8b6fea024`; it is re-spliced against the live dashboard (4ae8da9b0f): **this commit**.
+- `dashboard.json` and `delivery.json` each mention 8b6fea024 once, and both mentions are correct. In `dashboard.json` it is the 19 Oct row of the run-history series; the latest row and `meta.git_commit` are 4ae8da9b0f. In `delivery.json` it is a 26 Oct note recording that the site then still published the 19 Oct run. No change.
+
+### Not to do today
+- `/model/`: the deployed host returns its 404 page, not a directory listing (checked live at about 17:00). No redirect was added.
+
+### Deferred (dated)
+- **Mon 2 Nov 2026:** three file names and one hash still show in the value test's hand-written prose on Capabilities (`tools/measure_departure_level.py`, `tools/grade_renewal_churn_belief.py`, `company/pricing/value_based_renewal.py`, and 45122d156/b329e702b in the population lines). They come from strings that do not go through the evidence fold, and routing them through it double-escapes one clause. They need a change on the feed side.
+- **Mon 2 Nov 2026:** Capabilities is still about 19,000 words. The steer asked for collapse, not a rewrite, and that is done.

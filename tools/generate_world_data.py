@@ -213,7 +213,8 @@ def _crossing_meter_reads(dashboard):
     ]
     settlement_ladder = [
         dict(run=run, name=name, months=ELEXON_RUN_MONTHS[run],
-             timing="T + " + str(ELEXON_RUN_MONTHS[run]) + " months", reads=reads)
+             timing="T + {} month{}".format(ELEXON_RUN_MONTHS[run],
+                                         "" if ELEXON_RUN_MONTHS[run] == 1 else "s"), reads=reads)
         for run, name, reads in _LADDER_READS
     ]
     return dict(

@@ -39,3 +39,14 @@ Your pushback on the classifier clause is reasonable. Leave it raised as you fil
 6. **The home diagram** still shows internal codes.
 
 If 4 or 6 cannot land safely tonight, say so in Done. Items 1–3 can.
+
+## Done
+
+Recorded 26 Oct 2026 by the delivery seat's Lane 0 worker. All six items landed in **this commit**, and items 4 and 6 landed safely. Points:
+
+1. Explore shows the all-in unit rate (11.47p) beside the energy component (6.27p).
+2. Footer line on every page. `/privacy/` opens with "Visitors to this website", and the modelled notice stays below it with GB for UK.
+3. Home: 54 GB + 8 other-market pages, counted live; "New this week" reworded and the director's-points line dropped.
+4. Capabilities opens with the value test, the rest is folded (26,868 px at 1366, from 44,555), and paths and hashes fold into "Show the evidence". The residue is dated in the steer's Done.
+5. `capabilities_door.json` re-spliced onto 4ae8da9b0f. The single mentions in `dashboard.json` and `delivery.json` are history and correct; see the steer's Done §5.
+6. Home diagram codes removed from the picture.

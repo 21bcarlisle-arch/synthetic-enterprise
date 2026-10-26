@@ -239,3 +239,33 @@ def test_the_population_headline_counts_the_list_it_heads(reading):
         "of the two is counting a different population: the headline reads {!r}".format(
             claimed, len(offered), text)
     )
+
+
+def test_the_unit_rate_shown_is_at_least_the_sum_of_its_cost_components(reading):
+    """THE DEFECT, 26 Oct 2026: the "What the supplier committed to" panel printed the ENERGY
+    component (6.27p) as the Standard Variable tariff's "Unit rate", beside a stack showing Energy
+    6.27p + Network, policy and levies 5.20p. A unit rate below the sum of the costs it is built
+    from is not a unit rate, whatever the record holds.
+
+    Keyed to the property, not to today's pence: the all-in rate the panel names must be at least
+    the energy and network/levy components the stack on the same stage prints (one penny of
+    tolerance for each figure's own two-decimal rounding). The opening stage is the Priced one; if
+    it stops being, this leg says so rather than passing over nothing."""
+    payload, _source = reading
+    text = assert_visible_reading(payload, "stage")["text"]
+    assert "Priced" in text.split("Clock:")[0], (
+        f"the opening stage is no longer Priced, so this leg has no unit rate to read: {text[:200]!r}"
+    )
+    rate = re.search(r"Unit rate, all-in before VAT\s*([\d.]+)\s*p/kWh", text)
+    assert rate, (
+        "the supplier panel names no all-in unit rate, so the reader is left with a component "
+        f"standing in for the rate: {text[:400]!r}"
+    )
+    energy = re.search(r"Energy\s+([\d.]+)p", text)
+    levies = re.search(r"Network, policy and levies\s+([\d.]+)p", text)
+    assert energy and levies, f"the stack no longer prints its components: {text[:400]!r}"
+    shown, parts = float(rate.group(1)), float(energy.group(1)) + float(levies.group(1))
+    assert shown >= parts - 0.011, (
+        f"the panel shows a unit rate of {shown:.2f}p/kWh, below the {parts:.2f}p its own cost "
+        "components add to on the same stage"
+    )

@@ -26,4 +26,13 @@ This rules the four items that `DIRECTOR_STEER_THE_SITE_IS_READ_BY_EXTERNALS_TOM
 
 ## Done
 
-The seat records here what landed, with commits.
+Recorded 26 Oct 2026 by the delivery seat's Lane 0 worker.
+
+1. **GitHub link: declined.** The 22 Oct item is closed as *declined*, with his words: **8be05177e**. Published pages checked for `github.com/21bcarlisle-arch/synthetic-enterprise` across every rendered page at origin and the raw bytes of `site/`: **no link anywhere**. The only hit is text, not a link: `site/data/delivery.json` quotes this ruling. `site/data/simplified.json` names a different repository (SmartDCCInnovation). Nothing to remove.
+2. **Cloudflare Web Analytics: kept, with notice.** Item closed as *ruled*: **8be05177e**.
+   - The footer line, verbatim, is on every served page (77) and links `/privacy/`. It is rendered from `site/ia_register.py`, and `site/test_every_served_page_carries_the_analytics_notice.py` holds it: **this commit**.
+   - `/privacy/` opens with "Visitors to this website", which covers what is collected in aggregate, Cloudflare as processor with its policy linked, no cookies, accounts, forms or pixels of our own, and that this is a simulation that holds no real customer's data. The modelled customer notice stays below it, with UK supplier now GB, per the 16:20 chase: **this commit**.
+   - **Contact: no contact address is published anywhere on the site, so the page says so and none was invented.**
+   - The deploy check allows exactly one injected `cloudflareinsights` block and stays red for anything else: **75cc881dc** (23 Oct), unchanged.
+3. **Plan tier: stay on £100.** Closed as *ruled*: **8be05177e**.
+4. **HF token: deferred, not open.** Closed as *deferred*; raise again as one line when step 8 reaches PV: **8be05177e**.
