@@ -41,11 +41,36 @@ module.
 - Tests: the ordering test now requires land → deliver → gate. Mutation: deleting the call turns it red.
   A new test drives both outcomes of the push verdict.
 
-**Recovery.** `origin_reconcile` closed the fork unaided at 05:16. At 05:17 the seat re-offered the
-same run with `python3 -m background.sim_runner --promote`, the direction's route for a run made by
-hand, which wrote `run_complete_20261026T051730Z.md`. The outcome of that cycle is recorded in the
-marker's own `Publish outcome` section in `docs/staging/done/`.
+**Recovery, and a second defect it found.** `origin_reconcile` closed the fork unaided at 05:16. At
+05:17 the seat re-offered the same run with `python3 -m background.sim_runner --promote`, the
+direction's route for a run made by hand, which wrote `run_complete_20261026T051730Z.md`. That cycle's
+tests were cached, so it reached the landing at 05:40. It ended `commit_refused` at 05:46, and nothing
+was gated.
 
-**What this does not fix.** If origin moves between the repair landing and its push (a window of
-seconds, not 36 minutes), the old refusal can still happen. Closing that would mean `land()` building
-on origin's head instead of HEAD's. That is a larger change, not taken here.
+1. Origin had moved one commit and the shared tree held none of its own.
+2. `_divergence_refusal` admits that state as disjoint, so the fast-forward never ran.
+3. `surgical_land` then refused, because a PRIMARY checkout behind origin may not commit (the
+   land-twice class).
+
+So the two doors disagree about a tree that is merely behind. The publisher's classifier also logged
+the refusal as "UNNAMEABLE", because it does not know `surgical_land`'s wording. That gap is not fixed
+here.
+
+**Second fix (same lane, landed after the first).** `_land_publish_commit` now calls
+`_level_with_origin_before_landing`, which runs `_advance_to_origin_or_say_why` (a fast-forward only,
+with git's own refusal as the guard). It runs after the quiet-tree wait and before EACH landing
+attempt, because origin moves during that wait too.
+
+- Test: `tests/background/test_the_publish_levels_with_origin_before_each_landing.py` requires the
+  order wait → advance → land on attempt 1 and after a lost race. Mutation: deleting either call turns
+  it red.
+- The run is re-promoted once this code is on the shared tree. That cycle's outcome is in its marker's
+  `Publish outcome` section in `docs/staging/done/`.
+
+**What this does not fix.** Two windows remain:
+
+- If origin moves between the repair landing and its push (a window of seconds, not 36 minutes), the
+  first refusal can still happen. Closing that would mean `land()` building on origin's head instead
+  of HEAD's.
+- If origin moves between the fast-forward and `land()`'s own pre-check (also seconds), the second
+  refusal can still happen.
