@@ -144,3 +144,21 @@ regenerated from the same run.
 not read `cos_read_settlement_gbp` yet. The policy and network costs inside net scale on the same
 rule and are not moved. Treasury cash still books margin on true demand for these legs. Next: re-offer the run with
 `sim_runner --promote`.
+
+## Published, 26 Oct 12:28Z (worker tick)
+
+- **The re-offer at 10:45Z cleared both billing gates.** The book regenerated from the run at HEAD
+  passes 43 of 43. Its commit was then refused by the next-step gate, and not for anything of its
+  own: the publish pathspec names `docs/design/maturity_map.yaml` on every cycle, and the shared
+  tree's copy held the B13 lane's uncommitted 1 -> 2 move. Fixed as a class in 1853553866: the map
+  now rides only on a cycle the publisher's own fold wrote it. The mutation was run, and it fires.
+- **The second re-offer landed** as 60e4d4dc52 over 199 paths, and the standing-red ledger is
+  discharged. R11: poesys.net serves `customer_sample.json` generated at 12:01:01Z for 4ae8da9b0f,
+  carrying `cos_read_settlement_gbp` on 730 rows.
+- **Three post-publish readers are red on the published bytes** (`.post_publish_reader_reds.json`,
+  12:28Z). They are owed, and they are drawable from here:
+  - `tests/background/test_the_published_series_and_the_ledger_it_came_from_are_committed_together.py::test_every_run_the_committed_dashboard_publishes_is_in_the_committed_ledger`
+  - `tests/tools/test_the_curtained_validator_rebuilds_the_bills_without_us.py::test_every_period_in_the_book_rebuilds_to_our_own_energy_and_standing_charge`.
+    This is likely the same two-register ToU shape as red 2. That is a prediction, not yet run.
+  - `tests/company/compliance/test_crisis_bad_debt_validator.py::test_live_run_output_shows_crisis_step_up_ifrs9_charge`.
+    It is already filed in `SEAT_FINDING_THE_CRISIS_BAD_DEBT_CONTROL_HAS_SKIPPED_SINCE_THE_RUN_WENT_GZIP_...2026-10-14.md`.
