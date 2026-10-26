@@ -324,6 +324,18 @@ def test_MUTATION_a_deleted_nav_marker_fires(tree):
     assert victim_area in renderer.stale(tree)
 
 
+def test_MUTATION_a_flat_page_inside_an_area_is_rendered_and_goes_stale(tree):
+    """knowledge/how-these-pages-are-checked.html is a flat page, not a directory index. It is in
+    the renderer's population (else its nav would drift silently), and a hand-edited nav on it
+    is reported stale."""
+    flat = [(u, p) for _, _, u, p in renderer.population(tree) if not u.endswith("/")]
+    assert flat, "no flat page is in the nav population"
+    url, path = flat[0]
+    html = path.read_text(encoding="utf-8")
+    path.write_text(html.replace('class="nav-link">Home</a>', 'class="nav-link">Hme</a>', 1))
+    assert url in renderer.stale(tree)
+
+
 def test_MUTATION_a_new_page_with_no_nav_block_at_all_fires(tree):
     (tree / "newcomer").mkdir()
     (tree / "newcomer" / "index.html").write_text("<html><body>no nav here</body></html>")

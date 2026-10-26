@@ -110,6 +110,19 @@ def sub_pages(site: Path = reg.SITE) -> list[tuple[str, int, str, Path]]:
         if reg.NAV_START not in html:
             continue
         out.append((area, len(parts) - 1, "/" + "/".join(parts) + "/", path))
+    # A FLAT page inside an area (knowledge/how-these-pages-are-checked.html, 2026-10-26) sits at
+    # its directory's depth, so it renders exactly as that directory's index.html would. Same rule
+    # as above: only pages already carrying the marked block.
+    for path in sorted(site.rglob("*.html")):
+        parts = path.relative_to(site).parts
+        if path.name == "index.html" or len(parts) < 2:
+            continue
+        area = f"/{parts[0]}/"
+        if area in reg.GENERATED_NAV or area in reg.NAV_EXEMPT:
+            continue
+        if reg.NAV_START not in path.read_text(encoding="utf-8"):
+            continue
+        out.append((area, len(parts) - 2, "/" + "/".join(parts), path))
     return out
 
 

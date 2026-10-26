@@ -72,6 +72,11 @@ footer { max-width: 860px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
   .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
   table.pack-verification { border-collapse: collapse; width: 100%; margin: 6px 0 14px; font-size: 0.9em; }
   table.pack-verification caption { text-align: left; font-weight: 600; padding: 4px 0; }
+  /* On a phone the table is wider than the screen and scrolls in its box; the caption is held
+     to the screen's width and to its left edge, so it reads whole without scrolling. */
+  @media (max-width: 640px) {
+    table.pack-verification caption { position: sticky; left: 0; max-width: calc(100vw - 28px); }
+  }
   table.pack-verification th, table.pack-verification td { border-bottom: 1px solid rgba(127,127,127,.25); padding: 4px 6px; text-align: left; vertical-align: top; }
   table.pack-verification td:nth-child(n+2):nth-child(-n+5) { text-align: right; white-space: nowrap; }
 </style>
@@ -93,22 +98,25 @@ footer { max-width: 860px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
 <div class="wrap">
   <h1 class="hero-h">How these pages are checked</h1>
   <p class="hero-sub">
-    Every figure on a <a class="inline-link" href="./">Knowledge</a> page carries its source.
-    Each page's header says when it was last checked against that source, and figures not yet
-    checked against the primary source are marked as unchecked on the page. This page counts
-    how much of the research behind the pages has been checked so far.
+    Every figure on a <a class="inline-link" href="./">Knowledge</a> page names its source. Each
+    page's header says when the page was last checked against those sources. A figure that has
+    not yet been checked against its primary source is marked as unchecked where it appears, and
+    is never used as a claim. This page counts how much of that checking has been done.
   </p>
 
   <h2 class="sec" id="pack-verification">How much of the 25 October research was checked at its source</h2>
   <p class="muted" style="margin-bottom:8px;">
-    On 25 October 2026 the advisor delivered research packs in which many figures were tagged
-    [unverified], because its searches ran out or were blocked. The director asked that each tagged
-    item be checked against its primary source as its page was written, and that the result be
-    counted here. Each row counts the items listed in the verification section of that page's
-    research note: <em>confirmed</em> at source, <em>corrected</em> to the published value, or
-    <em>still open</em>, which includes items the source does not publish. A still-open item is
-    never used as a claim. Where the note's own summary disagrees with its list, the list is counted
-    and the note says so.
+    Many of these pages were written from research gathered on 25 October 2026. Where that
+    research could not trace a figure to its original publisher in the time it had (an Ofgem
+    decision, an Elexon dataset, a government statistic), it flagged the figure as
+    <em>unverified</em>. Each flagged figure is then looked up in its primary
+    source when its page is written. It ends one of three ways: <em>confirmed</em>, where the
+    source says what the research said; <em>corrected</em>, where the source says something
+    different and the page uses the source's value; or <em>still open</em>, where it has not yet
+    been traced or the source does not publish it. A still-open figure is shown on the page as a
+    gap, never as a claim. Each row below counts one page's checked items, as that page records
+    them; where a page's own summary and its list disagree, the list is counted and the note
+    column says so.
   </p>
   <div class="table-scroll">
     <table class="pack-verification" id="pack-verification-gb">
@@ -148,24 +156,23 @@ footer { max-width: 860px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
       <tr class="total"><td><strong>Total</strong></td><td><strong>4</strong></td><td><strong>0</strong></td><td><strong>6</strong></td><td><strong>320</strong></td><td></td></tr>
     </table>
   </div>
-  <p class="muted">Four pages from the same day record no verification pass:</p>
+  <p class="muted">Four pages written the same day record no checking pass of their own:</p>
   <ul class="muted">
-      <li><a href="./payments-and-direct-debit/">How a household pays for energy: direct debit, the other methods, and what a supplier owes the customer for getting the amount right</a> keeps its [unverified] items as named gaps, not claims.</li>
-      <li><a href="./switching-mechanics/">How a household changes supplier: the switch, the objection, the save and the switch that goes wrong</a> keeps its [unverified] items as named gaps, not claims.</li>
-      <li><a href="./suppliers-accounts-and-capital/">What a supplier must hold: revenue it has not billed, debt it will not collect, customers&#x27; money and the capital behind them</a> keeps its [unverified] items as named gaps, not claims.</li>
-      <li><a href="./regional-supply-cost/">Why supplying a home costs more in some regions, under one national price</a> carries no [unverified] items.</li>
+      <li><a href="./payments-and-direct-debit/">How a household pays for energy: direct debit, the other methods, and what a supplier owes the customer for getting the amount right</a> keeps its unverified figures as named gaps, not claims.</li>
+      <li><a href="./switching-mechanics/">How a household changes supplier: the switch, the objection, the save and the switch that goes wrong</a> keeps its unverified figures as named gaps, not claims.</li>
+      <li><a href="./suppliers-accounts-and-capital/">What a supplier must hold: revenue it has not billed, debt it will not collect, customers&#x27; money and the capital behind them</a> keeps its unverified figures as named gaps, not claims.</li>
+      <li><a href="./regional-supply-cost/">Why supplying a home costs more in some regions, under one national price</a> carries no unverified figures.</li>
   </ul>
-  <p class="muted">The comparison page across the seven other markets is drawn from their packs and adds no check of its own.</p>
+  <p class="muted">The page comparing the seven other markets with GB draws on the seven country pages above and adds no check of its own.</p>
 
-  <h2 class="sec">How much of the 25 October research has been checked</h2>
+  <h2 class="sec">All 25 October research, including pages not yet written</h2>
   <p class="muted" style="margin-bottom:8px;">
-    On 25 October the research adviser wrote evidence packs for pages still to be written. Its
-    searches ran out partway, so many figures in the packs carry a flag saying they are not yet
-    checked. Each flag is checked against its primary source when its pack becomes a page, and
-    ends one of three ways: confirmed, corrected, or not published anywhere. The table counts
-    flags, not figures, because one flag can cover a short list. The outcomes are each page's own
-    count, written by whoever checked it and added up here. A page may split one flag into
-    several figures, so its count need not match its pack's flags.
+    The same research, counted by research topic (a "pack") rather than by page, so it includes
+    topics whose page is not written yet. A flag marks a figure, or a short list of figures, not
+    yet traced to its primary source. Every flag ends one of three ways: confirmed, corrected, or
+    found not to be published anywhere. The outcome counts are each page's own, recorded by
+    whoever checked it and added up here. A page may split one flag into several figures, so its
+    count need not match its pack's flags. This table is read from the latest published count.
   </p>
   <p id="census-total"></p>
   <div id="census-table"></div>
