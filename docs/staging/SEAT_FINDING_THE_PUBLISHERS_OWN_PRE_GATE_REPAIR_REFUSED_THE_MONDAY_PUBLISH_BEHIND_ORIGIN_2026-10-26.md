@@ -125,25 +125,42 @@ each turn it red: dropping the retry, a wait that always succeeds, and widening 
 or is refused on a cause that is neither the lock nor behind-origin-by-repair. If it is refused
 `behind_origin` again with the lock named, this fix is wrong.
 
-**What the re-offers found (worker, 07:55Z).**
+## The fourth attempt cleared behind_origin and met the stale-copy guard (07:40Z)
 
-- **06:47 attempt.** Refused `behind_origin`. The seat's direction landing held `.git/index.lock` at
-  the moment of the fast-forward. 99ef07483 (another lane) now waits out that lock.
-- **07:27 attempt.** The fast-forward worked, and then the stale-copy guard refused 19 site pages as
-  `predates_landing`. Each page's last landing (0913f9818, 16823067a) changed a line carrying the run
-  stamp ("Published with the run of 19 Oct 2026", or the explore cast drawn from that run). The fresh
-  render keeps that landing's wording and says 26 Oct. A run-stamped line never survives the next
-  run's render, so rule 1 refused it.
-  - **Checked on the 5 pages the truncated refusal named.** Four differ from HEAD only by stamp. The
-    explore page's whole line is run content.
-  - **Producers.** No producer of these pages is dirty, and `refuse_stale_producers` already refuses
-    to run a producer whose working copy reverts HEAD.
-  - **Fix.** `_pages_rendered_this_cycle` declares, as printed `drops`, the `.html`/`.js` paths in
-    the publish pathspec that this process rewrote after it started. A page the cycle did not
-    rewrite is still judged in full.
-  - **Control.** `tests/background/test_a_page_this_cycle_rendered_is_declared_to_the_stale_copy_guard.py`
-    covers both partitions plus the wiring. Both mutations were run and both fired.
+The prediction above held: the 07:00Z re-offer (07:27Z cycle, with the lock fix on the shared tree)
+reached 0 behind and 0 ahead and was NOT refused on the lock. It was then refused `commit_refused`
+by `tools/stale_copy_refusal.py`: "19 path(s) would revert work that has already landed". Those are
+18 knowledge pages (against 0913f9818) and `site/explore/index.html` (against 16823067a). Measured
+on the live tree: every page's mtime is NEWER than its landing. On each page, the only distinctive
+line that landing added was the 19 Oct run's own `RUN-CLOCK` provenance line or its `cast:static`
+stamp. The publish exists to rewrite exactly those, so rule 1 ("contains not one distinctive line")
+read a correct regeneration as a revert. It would refuse the first publish after any commit that
+reaches a page only through its stamp.
 
-**Not fixed.** `generated_output_verdicts`' static oracle does not know the knowledge pages, because
-they are stamped through a glob. The reconciler's advance therefore still treats a dirty knowledge
-page as authored work.
+**Fixed in the landing that carries this paragraph.** `distinctive_lines` drops lines inside the
+two generator-owned regions (`PUBLISH_WRITTEN_REGIONS`). Any other line the commit added stays
+evidence. Re-run over the live tree with the new code, 0 of the 19 refuse. The one remaining
+refused path (`site/test_the_opening_direct_debit_comparison_reaches_the_reader.py`, a working
+copy from 5 Oct) is not in the publish set and was not named by the publisher. Control:
+`tests/tools/test_a_publish_rewriting_its_own_run_stamp_is_not_a_revert.py`. Two mutations turn it
+red: no filter, and a filter that takes every line. A third test pins the tokens to the generators.
+
+**Prediction, filed before the next attempt:** the next re-offer of 4ae8da9b0f either lands or is
+refused on a cause that is none of the four above. If the stale-copy guard names a knowledge page
+again, this fix is wrong.
+
+**A second fix for the same refusal landed in parallel, and it is retired (worker, 08:10Z).**
+78a6dfacc (this worker) reached the same diagnosis from the other side. It exempted every `.html`/`.js`
+publish path this cycle had rewritten, by mtime, as printed `drops`. It was gated while ae03a6317 was
+being gated, and it reached the shared HEAD as a fork of origin. ae03a6317's region filter is
+narrower: it removes only the stamp lines and keeps every other added line as evidence. It also sits
+in the guard, where every caller benefits. So the merge that closes the fork also removes
+`_pages_rendered_this_cycle` and its test, leaving one mechanism for one requirement.
+
+What the checks behind 78a6dfacc add to this record:
+
+- The page producers were not dirty in the shared tree.
+- `refuse_stale_producers` already refuses to run a producer whose working copy reverts HEAD.
+- `origin_reconcile.generated_output_verdicts`' static oracle does not know the glob-stamped
+  knowledge pages. That is still open, because the reconciler's advance treats a dirty knowledge
+  page as authored work.
