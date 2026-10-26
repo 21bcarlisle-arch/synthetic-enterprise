@@ -254,18 +254,60 @@ def _volume_from_reads(period: dict) -> tuple[float | None, str]:
     return float(volume), ""
 
 
+def _energy_per_register(period: dict) -> tuple[dict, float | None]:
+    """A multi-rate period's energy line: each register's own advance at its own rate.
+
+    The bill prints one line per register at a penny, and its energy total is their sum, so each
+    register is quantized before summing. Every register must have exactly two readings and a
+    rate; one missing makes the whole line uncheckable rather than a partial sum, which would
+    report the missing band as a shortfall in the biller.
+    """
+    rates = {r.get("register_id"): r.get("unit_rate_p_per_kwh")
+             for r in period.get("registers") or []}
+    if period.get("volume_basis") != "reads":
+        return ({"label": "Energy", "status": UNCHECKABLE,
+                 "why": "the raw export could not supply readings for this period ({})".format(
+                     period.get("volume_basis"))}, None)
+    by_register: dict = {}
+    for read in period.get("reads") or []:
+        by_register.setdefault(read.get("register_id"), []).append(read.get("read_kwh"))
+    if set(by_register) != set(rates):
+        return ({"label": "Energy", "status": UNCHECKABLE,
+                 "why": "readings for registers {} but rates for {}".format(
+                     sorted(map(str, by_register)), sorted(map(str, rates)))}, None)
+    total_kwh, total_gbp, hows = Decimal(0), 0.0, []
+    for reg_id, reads in by_register.items():
+        rate_p = rates[reg_id]
+        if len(reads) != 2 or None in reads or rate_p is None:
+            return ({"label": "Energy", "status": UNCHECKABLE,
+                     "why": "register {} has {} reading(s) and rate {}".format(
+                         reg_id, len(reads), rate_p)}, None)
+        kwh = Decimal(str(reads[1])) - Decimal(str(reads[0]))
+        total_kwh += kwh
+        total_gbp += round_money(float(kwh * _dec(rate_p) / 100))
+        hows.append("({} - {}) kWh x {} p/kWh / 100".format(reads[1], reads[0], rate_p))
+    amount = round_money(total_gbp)
+    return ({"label": "Energy", "status": RECONSTRUCTED, "amount_gbp": amount,
+             "amount_gbp_unrounded": amount, "volume_kwh": float(total_kwh),
+             "how": " + ".join(hows)}, float(total_kwh))
+
+
 def rebuild_period(period: dict, *, segment: str) -> dict:
     """One period rebuilt from raw facts alone. Never raises; every line says what it is."""
-    volume, why_not = _volume_from_reads(period)
     days = period.get("days_in_period")
     rate_p = period.get("unit_rate_p_per_kwh")
     sc_day = period.get("standing_charge_gbp_per_day")
 
     lines: list[dict] = []
-    if volume is None or rate_p is None:
+    if len(period.get("registers") or []) > 1:
+        energy, volume = _energy_per_register(period)
+        lines.append(energy)
+    elif (single := _volume_from_reads(period))[0] is None or rate_p is None:
+        volume, why_not = single
         lines.append({"label": "Energy", "status": UNCHECKABLE,
                       "why": why_not or "no unit rate in the raw export"})
     else:
+        volume = single[0]
         # IN DECIMAL ALL THE WAY TO THE PENNY, and fixing only the subtraction was not enough --
         # measured, twice, on the same run. `212.5 * 19.08 / 100` in float is
         # 40.544999999999995, a hair BELOW the exact 40.545, so it rounds down and disagrees by a

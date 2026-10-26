@@ -264,6 +264,19 @@ def raw_account(customer_id: str, record: dict) -> dict:
             "standing_charge_gbp_per_day": inv.get("standing_charge_gbp_per_day"),
             "reads": reads,
         }
+        # A TWO-RATE BILL HAS NO ONE RATE. The invoice's own `unit_rate_p_per_kwh` on a ToU bill
+        # is the energy line over its volume (6.28 / 100.1 = 6.27p on C1/1, against Peak 12.72p and
+        # Off-peak 4.21p), which is a quotient we worked out and not a rate anyone contracted. So
+        # a multi-register period exports each register's printed rate and no period rate; a
+        # reconstruction prices each register's own advance at its own rate (2026-10-26: 1,416
+        # periods failed to rebuild for want of exactly this).
+        registers = inv.get("registers") or []
+        if len(registers) > 1:
+            period["unit_rate_p_per_kwh"] = None
+            period["registers"] = [{"register_id": r.get("register_id"),
+                                    "register_label": r.get("label"),
+                                    "unit_rate_p_per_kwh": r.get("unit_rate_p_per_kwh")}
+                                   for r in registers]
         # OUR VOLUME IS EXPORTED ONLY WHEN THE READINGS CANNOT PRODUCE IT. Where both readings are
         # there, `consumption_kwh` is a subtraction WE did, and handing it over alongside the two
         # numbers it came from lets a reconstruction take the shortcut and agree with us for no

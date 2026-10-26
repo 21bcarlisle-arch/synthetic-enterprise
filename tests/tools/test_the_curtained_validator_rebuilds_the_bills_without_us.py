@@ -298,3 +298,41 @@ def test_every_bills_vat_matches_the_rate_the_PUBLISHED_LAW_says_applies():
         "the published law reached a statutory rate for NONE of the {} bills walked, so this "
         "control checked nothing -- an unavailable check is a failed check".format(periods))
     assert not differ, "{} of {} bills: {}".format(len(differ), checked, differ[:5])
+
+
+# ── a two-rate meter ────────────────────────────────────────────────────────────────────────
+def _tou(**over):
+    reads = [{"register_id": "1", "read_kwh": 0.0}, {"register_id": "1", "read_kwh": 24.3},
+             {"register_id": "2", "read_kwh": 0.0}, {"register_id": "2", "read_kwh": 75.8}]
+    return _period(unit_rate_p_per_kwh=None, standing_charge_gbp_per_day=0.192,
+                   days_in_period=31, reads=reads,
+                   registers=[{"register_id": "1", "unit_rate_p_per_kwh": 12.72},
+                              {"register_id": "2", "unit_rate_p_per_kwh": 4.21}], **over)
+
+
+def test_a_two_register_period_prices_each_registers_advance_at_its_own_rate():
+    """C1/1 of the 4ae8da9b0f book, which the validator called uncheckable on 2026-10-26 and
+    which was one of 1,416 such periods: Peak 24.3 kWh at 12.72p (3.09) plus Off-peak 75.8 kWh at
+    4.21p (3.19) is the bill's 6.28, plus 31 days at 0.192 is 5.95.
+
+    MUTATION: price the total advance at either one register's rate and the 6.28 is lost.
+    """
+    built = v.rebuild_period(_tou(), segment="resi")
+    energy = built["lines"][0]
+    assert energy["status"] == v.RECONSTRUCTED
+    assert energy["amount_gbp"] == pytest.approx(6.28, abs=0.001)
+    assert energy["volume_kwh"] == pytest.approx(100.1)
+    assert built["reconstructed_subtotal_gbp"] == pytest.approx(12.23, abs=0.001)
+
+
+def test_a_register_without_its_rate_makes_the_energy_UNCHECKABLE_not_a_partial_sum():
+    """A partial sum would report the missing band as the biller undercharging.
+
+    MUTATION: skip a register whose rate is None instead of refusing and this fails.
+    """
+    p = _tou()
+    p["registers"][1]["unit_rate_p_per_kwh"] = None
+    assert v.rebuild_period(p, segment="resi")["lines"][0]["status"] == v.UNCHECKABLE
+    p = _tou()
+    del p["reads"][3]
+    assert v.rebuild_period(p, segment="resi")["lines"][0]["status"] == v.UNCHECKABLE

@@ -162,3 +162,47 @@ rule and are not moved. Treasury cash still books margin on true demand for thes
     This is likely the same two-register ToU shape as red 2. That is a prediction, not yet run.
   - `tests/company/compliance/test_crisis_bad_debt_validator.py::test_live_run_output_shows_crisis_step_up_ifrs9_charge`.
     It is already filed in `SEAT_FINDING_THE_CRISIS_BAD_DEBT_CONTROL_HAS_SKIPPED_SINCE_THE_RUN_WENT_GZIP_...2026-10-14.md`.
+
+## The curtained-validator red, 26 Oct (seat executor). Pre-registered before the run
+
+Prediction, written before running the reader on the published bytes (origin `746dd3676b`,
+`docs/reports/run_output_latest.json.gz` and `docs/state/billing_ledger.json` as 4ae8da9b0f published
+them): every period that fails to rebuild is a two-register ToU invoice (the 50001b0b7b shape that
+red 2 was), and nothing else. The count will be on the order of red 2's 1,416, out of a denominator of
+real periods near 52,782. If any failing period is single-register, this prediction is refuted for it.
+
+**Result (added after; the prediction above is not edited). The prediction HELD.** On the published
+bytes, **1,416 of 52,782 periods** did not rebuild. That is the whole energy line of every one of
+them, **3,913,825p (£39,138.25)** in total; C1/1–4 and C2/9–10 lead the list. All 1,416 are the same
+class, and no other shape occurs: electricity, `volume_basis: reads`, four readings over two
+registers (Peak/Off-peak), with the energy line UNCHECKABLE ("expected an opening and a closing
+reading, got 4"). The rebuilt subtotal was therefore the standing charge alone. These are red 2's
+1,416, one step further down the same path: the export now gives each register's readings, and the
+validator still knew only one register.
+
+**The validator was wrong, not the bill.** On C1/1, Peak 24.3 kWh at 12.72p gives £3.09 and Off-peak
+75.8 kWh at 4.21p gives £3.19. Those sum to the bill's £6.28, and with 31 days at £0.192 the subtotal
+is £12.23, which is the bill's figure. A second defect sat beside it, in the export. On a ToU invoice
+the period-level `unit_rate_p_per_kwh` (6.27p) is energy over volume. It is a quotient, yet it was
+exported under a CONTRACTED declaration. The fix:
+- `raw_account_export` now exports `registers: [{register_id, register_label, unit_rate_p_per_kwh}]`
+  on a multi-register period, and no period rate.
+- `independent_bill_validator._energy_per_register` prices each register's own advance at its own
+  rate and quantizes each to the penny, as the bill prints it. It fails closed (UNCHECKABLE, never a
+  partial sum) if any register lacks two readings or a rate. It is still stdlib only, and the
+  curtain test passes.
+
+**After: 0 of 52,782 periods differ.** I mutation-ran it: pricing every register at one rate reds
+both the new unit test and the whole-book walk.
+
+**The limit, stated because it applies to both paths.** The rate exported per register is the
+*printed* rate, which `generate_billing_ledger._printed_registers` fits to that register's printed
+kWh and pounds. This is the same footing the single-register period rate has always had. So this
+validator proves that the printed lines' arithmetic holds from the readings. It does not prove that
+the printed rate is the tariff's contracted rate. That second check needs the tariff's Peak/Off-peak
+rates in the export from the tariff record, not from the bill. It is not built.
+
+**Interconnection, not acted on here.** The advisor's chase item 1 (Explore shows "Unit rate 6.27"
+on SVT) concerns a different account and a different mechanism: the energy component, not a ToU
+blend. It sits with the live externals-steer claim. Any reader that shows a ToU invoice's
+`unit_rate_p_per_kwh` as "the unit rate" carries the same blended-quotient problem as the export did.

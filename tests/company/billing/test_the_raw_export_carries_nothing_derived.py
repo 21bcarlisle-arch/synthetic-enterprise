@@ -349,3 +349,24 @@ def test_a_two_register_period_exports_each_registers_own_readings():
     del inv["registers"][1]["opening_read_kwh"]
     period = rx.raw_account("C1", {"invoices": [inv]})["periods"][0]
     assert period["reads"] == [] and period["volume_basis"] == rx.VOLUME_CONSUMPTION_ONLY
+
+
+def test_a_two_register_period_exports_each_registers_rate_and_no_blended_one():
+    """On a ToU bill the invoice's own `unit_rate_p_per_kwh` is energy over volume (6.27p on C1/1,
+    between Peak 12.72p and Off-peak 4.21p): a quotient we worked out, exported under a CONTRACTED
+    declaration until 2026-10-26.
+
+    MUTATION: keep the invoice's period rate on a multi-register period and the first assert fails;
+    drop `registers` and the validator has nothing to price each advance with.
+    """
+    inv = _period_inv(unit_rate_p_per_kwh=6.27, registers=[
+        {"register_id": "1", "label": "Peak", "consumption_kwh": 24.3, "unit_rate_p_per_kwh": 12.72,
+         "amount_gbp": 3.09, "opening_read_kwh": 0.0, "closing_read_kwh": 24.3},
+        {"register_id": "2", "label": "Off-peak", "consumption_kwh": 75.8,
+         "unit_rate_p_per_kwh": 4.21, "amount_gbp": 3.19,
+         "opening_read_kwh": 0.0, "closing_read_kwh": 75.8}])
+    period = rx.raw_account("C1", {"invoices": [inv]})["periods"][0]
+    assert period["unit_rate_p_per_kwh"] is None
+    assert [(r["register_id"], r["unit_rate_p_per_kwh"]) for r in period["registers"]] == [
+        ("1", 12.72), ("2", 4.21)]
+    assert rx.derived_leaks(period) == []
