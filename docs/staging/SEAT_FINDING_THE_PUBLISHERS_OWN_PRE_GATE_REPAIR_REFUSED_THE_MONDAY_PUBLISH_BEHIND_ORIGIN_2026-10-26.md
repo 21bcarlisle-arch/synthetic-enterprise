@@ -164,3 +164,41 @@ What the checks behind 78a6dfacc add to this record:
 - `origin_reconcile.generated_output_verdicts`' static oracle does not know the glob-stamped
   knowledge pages. That is still open, because the reconciler's advance treats a dirty knowledge
   page as authored work.
+
+## The fifth attempt passed every mechanical door and was refused on the run's own bills (08:28Z)
+
+The other lane's 08:06Z re-offer (`run_complete_20261026T080604Z.md`) fast-forwarded cleanly, passed
+the stale-copy guard, and ran the full gate on the tree the commit would create: 2 failed, 1,702
+passed. **The prediction above held.** The refusal was on neither the lock, behind-origin, nor a
+knowledge page. The remaining cause is the run's content, so **the publish mechanics are now done.**
+What stands between 4ae8da9b0f and the site is these two reds, and neither is filed anywhere else:
+
+- `tests/tools/test_bill_correctness_addendum_defect4.py::test_billed_total_never_less_than_gross_margin_for_any_real_customer_year`.
+  10 customer-years were billed LESS than their own gross margin, which the test calls "a real
+  pipeline break". The first five are OCC-14d60fd5bb78 2023 (1,913.94 < 1,998.94), PROS-2016-0263
+  2023, PROS-2017-0117 2018, PROS-2017-0336 2023 (6,092.68 < 7,450.98), and PROS-2021-0279 2023.
+  Four of the five are 2023.
+- `tests/company/billing/test_the_raw_export_carries_nothing_derived.py::test_every_real_period_exports_readings_that_reproduce_our_own_volume`.
+  The assertion text was cut from the log excerpt. Re-run it against the regenerated surfaces to read
+  it.
+
+**I cannot yet say** whether these are defects of the run, made by the code at 4ae8da9b0f, or of
+HEAD's regeneration of its derived surfaces, made by code that landed after it (the PB8 DD-spell
+commits bf56dd579d and 71cb7debc touch the money side). The one-variable test is to run both tests
+against the run JSON with the derived surfaces regenerated at 4ae8da9b0f, rather than at HEAD.
+Prediction, filed first: the gross-margin red is the run's own, because both its inputs (`annual_pnl`
+and billed totals) come from the run rather than from a renderer.
+
+**A newer run cannot replace this one yet.** Since 05:47Z every sim-runner cycle has deferred with
+"the code a run would import is not origin's: simulation/meter_reads.py". The shared copy is another
+lane's W2_36 work in progress: `refresh_to_head` grades it holder work, supplying
+`SMART_MODE_FUEL_RATIO`, `_DESNZ_BLEND`, `_DESNZ_TRADITIONAL_MODE_MILLIONS` and
+`not_in_smart_mode_share`. It is not this worker's to land. Until it lands or is set aside, no run is
+made at all.
+
+**Recommendation to the seat:** give the two reds to D_billing_metering as the next item ahead of new
+work. A clean publish of the default book now waits on them, and the Explore cast BLOCKING finding
+lowers only on a published graded run. Re-offering 4ae8da9b0f again before they are answered will be
+refused the same way. The worker withdrew its own duplicate marker `run_complete_20261026T081858Z.md`
+before any sweep took it, so no gate cycle is spent on a refusal already known. `python3 -m background.sim_runner --promote
+docs/reports/run_output_4ae8da9b0f_20261026T022647Z.json` re-offers the run once the reds are answered.
