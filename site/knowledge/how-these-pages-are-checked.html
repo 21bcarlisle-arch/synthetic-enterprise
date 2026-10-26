@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Poesys -- How these pages are checked</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<link rel="stylesheet" href="../brand/brand.css">
+<style>
+/* Brand palette consumed from ../brand/brand.css (BRAG tokens, no raw hex). */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; font-size: 14px; line-height: 1.6; }
+/* Nav sits on the RIGHT on every section (2026-08-12, DIRECTOR_OBSERVATION_PUBLISHED_SURFACE_NAV_AND_STAMPS item 3: "The nav sits on different sides depending on which section
+   you are in. The director's preference is consistent right-hand alignment."). The doors
+   here are loose flex children rather than the front door's grouped nav.doors, so the group
+   is pushed right by giving the first link the free space -- no markup change, and the
+   wordmark stays left as it does on every other surface. Shared cause with item 1: these are
+   the pages built from the older left-aligned template. */
+.wrap { max-width: 860px; margin: 0 auto; padding: 40px 20px; }
+.hero-h { font-size: 27px; font-weight: 800; letter-spacing: -0.4px; margin-bottom: 8px; }
+.hero-sub { font-size: 14px; color: var(--muted); max-width: 720px; margin-bottom: 28px; }
+.sec { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.09em;
+  color: var(--muted); margin-bottom: 12px; margin-top: 36px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+  padding: 18px 20px; margin-bottom: 12px; display: block; text-decoration: none; color: inherit; }
+a.card:hover { border-color: var(--teal); }
+.card-h { font-size: 16px; font-weight: 700; margin-bottom: 4px; color: var(--text); }
+.card-p { font-size: 13px; color: var(--muted); }
+.card-a { font-size: 11px; color: var(--muted); margin-top: 6px; font-family: ui-monospace, monospace; word-break: break-word; }
+.card-a:empty { display: none; }
+.muted { color: var(--muted); font-size: 12px; }
+.inline-link { color: var(--blue); text-decoration: none; border-bottom: 1px dashed var(--border); }
+.inline-link:hover { border-bottom-color: var(--blue); }
+/* The review badge is EMPTY in the markup and filled from the record. It carried the word
+   "Stub" in hand-typed markup until 2026-08-24, by which time all seven pages it said that
+   about had been written and checked against published sources -- the index went on calling
+   them unwritten for six days while each page's own header said "A written page, not a
+   stub." Nothing here may state a review state; the state comes from the feed. */
+/* Quieter since 2026-10-23 (director's steer, item 5): the label sits at the card's foot in
+   muted type; only a page past its threshold keeps a colour, and an unchecked one is italic. */
+.state-badge { display: inline-block; font-size: 10px; color: var(--muted); margin-right: 6px; }
+.state-badge:empty { display: none; }
+.state-badge.rev-fresh { color: var(--muted); }
+.state-badge.rev-unchecked { color: var(--muted); font-style: italic; }
+.state-badge.rev-due { color: var(--amber); }
+.card-why { font-size: 13px; color: var(--text); margin-top: 6px; }
+.why-k { font-weight: 600; }
+.card-foot { margin-top: 6px; font-size: 10px; color: var(--muted); }
+.card-foot .card-a { display: inline-block; font-size: 10px; margin-top: 0; }
+.theme { margin-top: 30px; }
+.theme-h { font-size: 19px; font-weight: 750; margin-bottom: 2px; }
+.theme-why { font-size: 13px; color: var(--muted); margin-bottom: 12px; max-width: 720px; }
+.brief { max-width: 760px; border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; margin: 0 0 18px; font-size: 13px; line-height: 1.55; }
+.brief-h { font-size: 10px; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); font-weight: 700; margin: 0 0 6px; }
+.brief ul { margin: 0; padding-left: 18px; }
+.brief li { margin: 3px 0; }
+.themes-nav { font-size: 13px; margin-bottom: 8px; }
+.themes-nav a { color: var(--blue); text-decoration: none; }
+.census { border-collapse: collapse; font-size: 12px; margin: 6px 0 14px; }
+.census th, .census td { text-align: left; padding: 3px 10px 3px 0; border-bottom: 1px solid var(--border); }
+.census td.n { text-align: right; font-variant-numeric: tabular-nums; }
+footer { max-width: 860px; margin: 0 auto; padding: 24px 20px 40px; font-size: 11px; color: var(--muted); }
+
+/* Mobile pass. Added 2026-08-20: these pages had no breakpoint at all -- the control that
+   requires one only ever looked at nine top-level doors, none of them Knowledge. */
+@media (max-width: 640px) {
+  body { font-size: 15px; }
+  main, .wrap, article, .page { padding-left: 14px; padding-right: 14px; }
+  h1 { font-size: 24px; }
+}
+  .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table.pack-verification { border-collapse: collapse; width: 100%; margin: 6px 0 14px; font-size: 0.9em; }
+  table.pack-verification caption { text-align: left; font-weight: 600; padding: 4px 0; }
+  table.pack-verification th, table.pack-verification td { border-bottom: 1px solid rgba(127,127,127,.25); padding: 4px 6px; text-align: left; vertical-align: top; }
+  table.pack-verification td:nth-child(n+2):nth-child(-n+5) { text-align: right; white-space: nowrap; }
+</style>
+</head>
+<body>
+<nav class="site-nav">
+  <a href="../" class="nav-logo wordmark">poesys.</a>
+  <!-- IA-NAV:START (rendered from site/ia_register.py -- do not hand-edit) -->
+  <span class="doors">
+  <a href="../" class="nav-link">Home</a>
+  <a href="../capabilities/" class="nav-link">Capabilities</a>
+  <a href="../harness/" class="nav-link">How it&rsquo;s built</a>
+  <a href="../code/" class="nav-link">The code</a>
+  <a href="./" class="nav-link active">Knowledge</a>
+  <a href="../explore/" class="nav-link">Explore</a>
+  </span>
+  <!-- IA-NAV:END -->
+</nav>
+<div class="wrap">
+  <h1 class="hero-h">How these pages are checked</h1>
+  <p class="hero-sub">
+    Every figure on a <a class="inline-link" href="./">Knowledge</a> page carries its source.
+    Each page's header says when it was last checked against that source, and figures not yet
+    checked against the primary source are marked as unchecked on the page. This page counts
+    how much of the research behind the pages has been checked so far.
+  </p>
+
+  <h2 class="sec" id="pack-verification">How much of the 25 October research was checked at its source</h2>
+  <p class="muted" style="margin-bottom:8px;">
+    On 25 October 2026 the advisor delivered research packs in which many figures were tagged
+    [unverified], because its searches ran out or were blocked. The director asked that each tagged
+    item be checked against its primary source as its page was written, and that the result be
+    counted here. Each row counts the items listed in the verification section of that page's
+    research note: <em>confirmed</em> at source, <em>corrected</em> to the published value, or
+    <em>still open</em>, which includes items the source does not publish. A still-open item is
+    never used as a claim. Where the note's own summary disagrees with its list, the list is counted
+    and the note says so.
+  </p>
+  <div class="table-scroll">
+    <table class="pack-verification" id="pack-verification-gb">
+      <caption>GB-market packs: 73 confirmed, 5 partly, 17 corrected, 89 still open</caption>
+      <tr><th>Page</th><th>Confirmed</th><th>Partly</th><th>Corrected</th><th>Still open</th><th>Note</th></tr>
+      <tr><td><a href="./dated-household-cost-and-price-series/">What things cost a household, by date: fuel, energy, kit and carbon, 2016 to 2035</a></td><td>13</td><td></td><td>2</td><td>4</td><td class="muted">The note&#x27;s own tally reads 15 confirmed; its table lists 13 confirmed rows, one of them covering seven weekly rows.</td></tr>
+      <tr><td><a href="./how-gb-gas-and-power-prices-move/">How GB gas and power prices move: volatility at every time scale, the forward curve&#x27;s shape and the spark spread</a></td><td>7</td><td></td><td>0</td><td>5</td><td class="muted"></td></tr>
+      <tr><td><a href="./tariffs-and-the-default-tariff/">How GB households are priced: the fixed deal, the default tariff, the cap and time-of-use</a></td><td>2</td><td>1</td><td>3</td><td>2</td><td class="muted"></td></tr>
+      <tr><td><a href="./smart-meters-and-half-hourly-settlement/">Smart meters and half-hourly settlement: what the meter reports, what settlement uses, and when it changes</a></td><td>2</td><td></td><td>1</td><td>3</td><td class="muted">One open item is a conflict between two Elexon sources on when R2 runs.</td></tr>
+      <tr><td><a href="./vulnerability-and-the-psr/">Vulnerable customers: the Priority Services Register, ability to pay, prepayment and self-disconnection</a></td><td>1</td><td>1</td><td>0</td><td>2</td><td class="muted"></td></tr>
+      <tr><td><a href="./network-limits-on-home-electrification/">Connecting an EV charger, heat pump, solar or battery: the network&#x27;s rules, the home&#x27;s own supply and how long it takes</a></td><td>0</td><td></td><td>0</td><td>1</td><td class="muted"></td></tr>
+      <tr><td><a href="./pv-roofs-orientation-and-yield/">A roof&#x27;s solar array: which way it faces, how steep, how big, how old, and the sky above it</a></td><td>2</td><td></td><td>0</td><td>4</td><td class="muted">Three already-sourced figures were also corrected.</td></tr>
+      <tr><td><a href="./solar-pv-and-home-batteries/">Solar panels and home batteries: what they generate, what the home keeps, and what the settings are worth</a></td><td>1</td><td></td><td>0</td><td>8</td><td class="muted"></td></tr>
+      <tr><td><a href="./vpps-and-local-flexibility/">Who else pays for a household&#x27;s flexibility: aggregators, rival traders and the local network</a></td><td>0</td><td></td><td>0</td><td>2</td><td class="muted"></td></tr>
+      <tr><td><a href="./household-flexibility-and-the-advice-roadmap/">Household flexibility: what moving a home&#x27;s demand is worth, how much households really move, and what else a supplier could advise on</a></td><td>5</td><td></td><td>3</td><td>18</td><td class="muted"></td></tr>
+      <tr><td><a href="./proving-and-showing-household-savings/">Proving a household saved, and showing it so they believe it</a></td><td>5</td><td></td><td>2</td><td>4</td><td class="muted"></td></tr>
+      <tr><td><a href="./gas-boilers-and-heating-controls/">How a gas boiler and its controls turn into the gas a home uses</a></td><td>8</td><td>1</td><td>0</td><td>5</td><td class="muted"></td></tr>
+      <tr><td><a href="./heat-pumps-and-fabric-measures/">What a heat pump and insulation really deliver in GB homes, and what they cost and save</a></td><td>7</td><td>1</td><td>1</td><td>6</td><td class="muted">The note&#x27;s own tally reads 7 open; one of those is an open detail of an item it marks confirmed.</td></tr>
+      <tr><td><a href="./heating-behaviour-comfort-and-health-floors/">How households heat their homes, how warm they actually are, and the temperatures advice must never go below</a></td><td>9</td><td></td><td>0</td><td>3</td><td class="muted"></td></tr>
+      <tr><td><a href="./ev-charging-and-the-saving-against-petrol-and-diesel/">Charging an electric car at home: when it happens, what it costs, and what it saves against petrol and diesel</a></td><td>4</td><td></td><td>2</td><td>7</td><td class="muted"></td></tr>
+      <tr><td><a href="./which-cars-households-run-and-what-they-use/">Which cars households run, and how much energy each one really uses</a></td><td>1</td><td>1</td><td>0</td><td>6</td><td class="muted"></td></tr>
+      <tr><td><a href="./who-drives-how-far-and-where-they-park/">Who drives how far, and where they park: the person comes before the car</a></td><td>6</td><td></td><td>3</td><td>9</td><td class="muted"></td></tr>
+      <tr class="total"><td><strong>Total</strong></td><td><strong>73</strong></td><td><strong>5</strong></td><td><strong>17</strong></td><td><strong>89</strong></td><td></td></tr>
+    </table>
+  </div>
+  <div class="table-scroll">
+    <table class="pack-verification" id="pack-verification-other">
+      <caption>Other-market packs, knowledge only and ranked last for checking: 4 confirmed, 6 corrected, 320 still open</caption>
+      <tr><th>Page</th><th>Confirmed</th><th>Partly</th><th>Corrected</th><th>Still open</th><th>Note</th></tr>
+      <tr><td><a href="./other-market-australia/">Australia against GB: what carries over, and what a second market would need</a></td><td>0</td><td></td><td>0</td><td>59</td><td class="muted">Counts as the note states them; it lists only the exceptions.</td></tr>
+      <tr><td><a href="./other-market-belgium/">Belgium against GB: three regional rulebooks, no price cap, and bad payers handed to the network</a></td><td>0</td><td></td><td>3</td><td>33</td><td class="muted">Counts as the note states them; it lists only the exceptions.</td></tr>
+      <tr><td><a href="./other-market-france/">France against GB: a regulated tariff only the incumbent sells, a power limit in every home, and electric heating</a></td><td>0</td><td></td><td>0</td><td>55</td><td class="muted">Counts as the note states them; it lists only the exceptions.</td></tr>
+      <tr><td><a href="./other-market-germany/">Germany against GB: a default supplier with no price cap, a yearly true-up bill and a fifteen-minute clock</a></td><td>3</td><td></td><td>2</td><td>57</td><td class="muted">A third correction was to a figure the pack had sourced.</td></tr>
+      <tr><td><a href="./other-market-italy/">Italy against GB: contracted kilowatts, an auctioned default service and arrears that follow the customer</a></td><td>0</td><td></td><td>1</td><td>42</td><td class="muted"></td></tr>
+      <tr><td><a href="./other-market-japan/">Japan against GB: an incumbent&#x27;s regulated tariff, a breaker the household chooses and no supplier for a new occupant</a></td><td>0</td><td></td><td>0</td><td>30</td><td class="muted"></td></tr>
+      <tr><td><a href="./other-market-spain/">Spain against GB: a dynamic regulated price, a power subscription and bills paid after the reading</a></td><td>1</td><td></td><td>0</td><td>44</td><td class="muted">The note&#x27;s own tally reads 2 confirmed and 1 corrected; the two confirmations are one outcome written twice, and the correction is to a figure the pack had sourced.</td></tr>
+      <tr class="total"><td><strong>Total</strong></td><td><strong>4</strong></td><td><strong>0</strong></td><td><strong>6</strong></td><td><strong>320</strong></td><td></td></tr>
+    </table>
+  </div>
+  <p class="muted">Four pages from the same day record no verification pass:</p>
+  <ul class="muted">
+      <li><a href="./payments-and-direct-debit/">How a household pays for energy: direct debit, the other methods, and what a supplier owes the customer for getting the amount right</a> keeps its [unverified] items as named gaps, not claims.</li>
+      <li><a href="./switching-mechanics/">How a household changes supplier: the switch, the objection, the save and the switch that goes wrong</a> keeps its [unverified] items as named gaps, not claims.</li>
+      <li><a href="./suppliers-accounts-and-capital/">What a supplier must hold: revenue it has not billed, debt it will not collect, customers&#x27; money and the capital behind them</a> keeps its [unverified] items as named gaps, not claims.</li>
+      <li><a href="./regional-supply-cost/">Why supplying a home costs more in some regions, under one national price</a> carries no [unverified] items.</li>
+  </ul>
+  <p class="muted">The comparison page across the seven other markets is drawn from their packs and adds no check of its own.</p>
+
+  <h2 class="sec">How much of the 25 October research has been checked</h2>
+  <p class="muted" style="margin-bottom:8px;">
+    On 25 October the research adviser wrote evidence packs for pages still to be written. Its
+    searches ran out partway, so many figures in the packs carry a flag saying they are not yet
+    checked. Each flag is checked against its primary source when its pack becomes a page, and
+    ends one of three ways: confirmed, corrected, or not published anywhere. The table counts
+    flags, not figures, because one flag can cover a short list. The outcomes are each page's own
+    count, written by whoever checked it and added up here. A page may split one flag into
+    several figures, so its count need not match its pack's flags.
+  </p>
+  <p id="census-total"></p>
+  <div id="census-table"></div>
+</div>
+<script>
+// THE 25 OCT PACKS' CHECK COUNTS, from site/data/pack_verification_census.json
+// (tools/pack_verification_census.py). Fail-closed: an unreadable census says so rather than
+// leaving an empty table that reads as nothing outstanding.
+function esc(s){ return String(s).replace(/[&<>"]/g, function (c) {
+  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
+function renderCensus(c){
+  var t = c.total;
+  document.getElementById("census-total").textContent =
+    "Counted " + String(c.generated_at).slice(0, 10) + ": " + t.packs + " packs carrying " + t.items +
+    " flags, " + t.drafted + " of them written up as a page. " +
+    (t.no_tally ? t.no_tally + " of those pages state no count, so all their flags are shown as still open. " : "") +
+    "The pages' counts: " + t.confirmed + " confirmed and " + t.partly_confirmed + " partly confirmed, " +
+    t.corrected + " corrected, " + t.unpublished + " found not to be published, and " + t.open + " still open.";
+  var rows = ['<div class="table-scroll"><table class="census"><tr><th>Pack</th><th>Covers</th><th>Page</th>' +
+    "<th>Flags in the pack</th><th>Confirmed</th><th>Corrected</th><th>Not published</th><th>Still open</th></tr>"];
+  for (var i = 0; i < c.packs.length; i++) {
+    var r = c.packs[i];
+    var page = "Not written";
+    for (var j = 0; j < r.pages.length; j++) {
+      if (r.pages[j].published) { page = "<a href=\"./" + esc(r.pages[j].knowledge) + "/\">Read</a>"; break; }
+      page = "Drafted";
+    }
+    var cells = r.tally_recorded
+      ? "<td class=\"n\">" + r.confirmed + (r.partly_confirmed ? " + " + r.partly_confirmed + " partly" : "") +
+        "</td><td class=\"n\">" + r.corrected + "</td><td class=\"n\">" + r.unpublished +
+        "</td><td class=\"n\">" + r.open + "</td>"
+      : "<td colspan=\"3\">The page states no count</td><td class=\"n\">" + r.open + "</td>";
+    rows.push("<tr><td>" + esc(r.title) + "</td><td>" + esc(r.scope) + "</td><td>" + page +
+      "</td><td class=\"n\">" + r.items + "</td>" + cells + "</tr>");
+  }
+  rows.push("</table></div>");
+  document.getElementById("census-table").innerHTML = rows.join("");
+}
+fetch("../data/pack_verification_census.json?t=" + Date.now())
+  .then(function (r) { return r.json(); })
+  .then(renderCensus)
+  .catch(function () {
+    document.getElementById("census-total").textContent =
+      "The check counts could not be loaded, so this section cannot say how much has been checked.";
+  });
+
+</script>
+<footer>
+  Reference material. Figures on linked pages carry their own source and vintage.
+  <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);text-align:center;font-size:11px;color:var(--muted);">&copy; 2026 Poesys Platforms. All rights reserved.</div>
+</footer>
+<!-- RUN-CLOCK:START (written at publish by tools/generate_dashboard_data.py -- do not hand-edit) -->
+<p class="lf-prov" style="max-width:1060px;margin:24px auto 8px;padding:0 22px;font-size:11.5px;color:var(--muted,#666)">Figures from the run of 26 Oct 2026 &middot; published every Monday <span class="lf-run">(run 4ae8da9b0f_20261026T022647Z; no figure here is typed by hand)</span></p>
+<!-- RUN-CLOCK:END -->
+</body>
+</html>
