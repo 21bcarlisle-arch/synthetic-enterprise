@@ -59,7 +59,8 @@ def billed_total_by_customer_year(ledger: dict, *, net_of_catchup: bool = False,
     """
     out = defaultdict(float)
     for cid, cust in ledger.get("customers", {}).items():
-        for inv in cust.get("invoices", []):
+        invoices = cust.get("invoices", [])
+        for inv in invoices:
             year = int(inv["period_end"][:4])
             amount = inv["total_amount_gbp"]
             if net_of_catchup and inv.get("catchup_applied"):
@@ -67,14 +68,47 @@ def billed_total_by_customer_year(ledger: dict, *, net_of_catchup: bool = False,
                 amount -= adjustment
                 start, end = inv.get("catchup_period_start"), inv.get("catchup_period_end")
                 if start and end:
-                    first, last = date.fromisoformat(start), date.fromisoformat(end)
-                    days = (last - first).days + 1
-                    for offset in range(days):
-                        out[(cid, (first + timedelta(days=offset)).year)] += adjustment / days
+                    for day, share in _catchup_by_day(invoices, start, end, adjustment):
+                        out[(cid, day.year)] += share
             if with_epg_receipt:
                 amount += inv.get("hmt_epg_receipt_gbp") or 0.0
             out[(cid, year)] += amount
     return out
+
+
+def _catchup_by_day(invoices: list, start: str, end: str, adjustment: float):
+    """Each day of a catch-up's span, with the part of the adjustment that corrects it.
+
+    A day an estimate billed is owed only that estimate's error, spread evenly. A day NO invoice
+    covers was billed nothing (its bill was held), so the catch-up carries the whole of its energy:
+    the span's true cost, (billed in span + adjustment) / days, is priced flat per day, and an
+    uncovered day takes all of it. SYN-2016-582 on the 4ae8da9b0f book: held from its 2016-12-10
+    start until 2017-03, trued up on the 2017-07 read; an even spread gave 2016 £88.42 of the
+    £815.86 against a £149.20 gross. Where every day was billed, or an invoice does not say where
+    it starts, this is the even spread exactly.
+    """
+    first, last = date.fromisoformat(start), date.fromisoformat(end)
+    days = [first + timedelta(days=n) for n in range((last - first).days + 1)]
+    even = [(d, adjustment / len(days)) for d in days]
+    if any(not inv.get("period_start") for inv in invoices):
+        return even
+    billed: dict = {}
+    for inv in invoices:
+        p0, p1 = date.fromisoformat(inv["period_start"]), date.fromisoformat(inv["period_end"])
+        length = (p1 - p0).days + 1
+        own = inv["total_amount_gbp"]
+        if inv.get("catchup_applied"):
+            own -= inv.get("catchup_adjustment_gbp") or 0.0
+        for n in range(length):
+            day = p0 + timedelta(days=n)
+            billed[day] = billed.get(day, 0.0) + own / length
+    uncovered = [d for d in days if billed.get(d) is None]
+    if not uncovered:
+        return even
+    daily_true = (sum(billed.get(d, 0.0) for d in days) + adjustment) / len(days)
+    covered = len(days) - len(uncovered)
+    rest = (adjustment - daily_true * len(uncovered)) / covered if covered else 0.0
+    return [(d, daily_true if billed.get(d) is None else rest) for d in days]
 
 
 def unresolved_account_years(ledger: dict) -> set:
@@ -240,7 +274,9 @@ def test_billed_total_never_less_than_gross_margin_for_any_real_customer_year():
         base_cid = _base_id(cid)
         for row in cust.get("annual_pnl", []):
             key = (base_cid, row["year"])
-            gross_by_account[key] = gross_by_account.get(key, 0.0) + row["gross_gbp"]
+            # Settled at the closing read, not on true demand: see `cos_read_settlement`.
+            gross_by_account[key] = (gross_by_account.get(key, 0.0) + row["gross_gbp"]
+                                     + row.get("cos_read_settlement_gbp", 0.0))
 
     billed_by_account: dict = {}
     for (cid, year), total in billed.items():
@@ -332,6 +368,25 @@ def test_the_treasurys_epg_share_counts_beside_the_bill_and_only_when_asked():
     assert billed_total_by_customer_year(ledger)[("P", 2023)] == pytest.approx(239.02)
     assert billed_total_by_customer_year(ledger, with_epg_receipt=True)[("P", 2023)] == (
         pytest.approx(418.77))
+
+
+def test_a_held_days_share_of_a_catchup_is_its_whole_cost_not_an_even_spread():
+    """SYN-2016-582's shape, shrunk: supply from 2016-12-22, the December bill held (no invoice),
+    January estimated at 31, and the February read's catch-up 51 over 2016-12-22..2017-01-31. The
+    span's true cost is 82 over 41 days, 2 a day. December was billed nothing, so it is owed all
+    of its 10 days, 20; January is owed the rest, 31. MUTATION this catches: the even spread
+    (51 x 10/41 = 12.44 to 2016) reds the first assert. Where every day was billed the even
+    spread is kept: `test_a_catchup_is_credited_back_to_the_period_it_corrects` holds it."""
+    ledger = {"customers": {"P": {"invoices": [
+        {"period_start": "2017-01-01", "period_end": "2017-01-31", "total_amount_gbp": 31.0},
+        {"period_start": "2017-02-01", "period_end": "2017-02-28", "total_amount_gbp": 81.0,
+         "catchup_applied": True, "catchup_adjustment_gbp": 51.0,
+         "catchup_period_start": "2016-12-22", "catchup_period_end": "2017-01-31"},
+    ]}}}
+    netted = billed_total_by_customer_year(ledger, net_of_catchup=True)
+    assert netted[("P", 2016)] == pytest.approx(20.0)
+    assert netted[("P", 2017)] == pytest.approx(31.0 + 31.0 + 30.0)
+    assert sum(netted.values()) == pytest.approx(31.0 + 81.0)
 
 
 def test_a_catchup_is_credited_back_to_the_period_it_corrects():

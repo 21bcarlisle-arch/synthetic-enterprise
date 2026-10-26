@@ -636,6 +636,29 @@ year changes sign against the defect-4 gate. So leg (b) is now a fix to what the
 little money. It no longer blocks the publish or lane D. It waits behind leg (c) and is not built in
 this turn.
 
+**Built, 2026-10-26: the settlement view is computed after the run, and spread by the profile.**
+The 20 Oct prediction that "no account year changes sign against the defect-4 gate" is refuted on
+the 4ae8da9b0f book. Three leavers invert on it (PROS-2017-0117 2018, PROS-2024-0010 2025,
+SYN-2016-190 2016; `SEAT_FINDING_THE_MONDAY_RUN_4AE8DA9B0F_IS_REFUSED_BY_TWO_BILLING_GATES_ON_ITS_OWN_BOOK_2026-10-26.md`).
+So leg (b) is built. Two choices differ from the shape above, and why:
+- *Where.* It is not written in phase 4c. `tools.closing_estimate_run_money.cos_read_settlement`
+  forms it from the run output's own bills and `per_customer_monthly`, the same inputs phase 4c would
+  have. So it reads a finished run as it stands, without a rerun. `tools.generate_customer_sample`
+  carries it as `cos_read_settlement_gbp` beside `gross_gbp` in `annual_pnl`, never inside it. The
+  defect-4 sweep compares the bill against gross plus that entry.
+- *Shape.* The settled advance is the sum of the run's billed kWh (the deemed read is the
+  cumulative estimate). It is spread over the run's bills by the profile weight
+  (`company.billing.unread_month_estimate.profile_weight`, the published PC1/EUC01B proxy): the EAC
+  and AQ spread an advance by the profile (K2, "How published practice estimates an unread
+  period"), not by the household's true shape, which the first build kept. **This change was
+  prompted by a refuted prediction**: under one scale over the whole run, PROS-2024-0010 2025 stayed
+  inverted (£215.05 billed against £255.46 settled), because its true use climbs steeply into
+  January. The mechanism is the reason for the change; the row is how it came to light.
+- Book-wide on 4ae8da9b0f: 731 supply-point-years move, netting −£2,120.75 (|Σ| £6,378.60), against
+  the decade's gross. Legs whose last bill is actual: 0 move.
+- **Not done:** `saas/reporting/annual_report.py` and net margin do not read the entry yet, and the
+  policy and network costs inside net are not scaled. Named in the finding.
+
 #### What a change of supplier ends on each fuel (2026-10-22, K8 for the dual leaver)
 
 Asked by `WORKER_FINDING_A_DUAL_HOUSEHOLD_THAT_LEAVES_ON_ITS_ELECTRICITY_LEG_IS_BILLED_GAS_FOR_UP_TO_A_YEAR_SINCE_THE_BOOK_WENT_DUAL_2026-10-22.md`.

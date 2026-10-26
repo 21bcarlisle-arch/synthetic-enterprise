@@ -37,6 +37,7 @@ import json
 from collections import defaultdict
 from pathlib import Path
 
+from company.billing.unread_month_estimate import MONTHLY_SHARE_OF_ANNUAL_USE, profile_weight
 from company.interfaces.bill_assembly import barred_at_charge_recovery
 from simulation.household import households_whose_account_closed, supply_points_that_left
 
@@ -98,6 +99,56 @@ def closing_accounts(run_output: dict) -> list[dict]:
             "book_raw_delta_gbp": last_bill.get("catchup_raw_delta_gbp") if outcome == "settled" else None,
         })
     return rows
+
+
+def cos_read_settlement(run_output: dict) -> dict[tuple[str, int], float]:
+    """(supply point, year) -> the change in gross margin when a leaver's last span is settled on
+    its closing read rather than on true demand.
+
+    The losing supplier is billed and settled at the change-of-supplier read (BSCP504 v53.0
+    s.4.4.1); energy after an estimated one is the gaining supplier's
+    (`unbilled_energy_and_revenue_assurance.md` K6, "What a losing supplier is settled on").
+    `per_customer_monthly` forms gross on true demand through the exit, so a leaver whose last
+    bill is an estimate carries margin on energy it was neither billed nor charged for.
+
+    The settled advance over the trailing run of estimates is the billed kWh (the deemed read is
+    the cumulative estimate). Settlement spreads an advance over its days by the profile, not by
+    the household's own shape (BSCP504 via DESNZ; Xoserve's AQ against the ALP: K2, "How published
+    practice estimates an unread period"), so bill i is settled on advance x profile(i) /
+    profile(run). Its month moves by (settled / true - 1) x (gross - standing charge): the standing
+    charge is per day and the leaver is billed its days. A leg whose last bill is actual moves by
+    nothing. LIMIT: gross only. The per-MWh policy and network costs inside net scale too, and are
+    not moved here.
+    """
+    churned = supply_points_that_left(
+        households_whose_account_closed(run_output), {b["customer_id"] for b in run_output["bills"]})
+    by_account: dict[str, list[dict]] = defaultdict(list)
+    for bill in run_output["bills"]:
+        if bill["customer_id"] in churned:
+            by_account[bill["customer_id"]].append(bill)
+    out: dict[tuple[str, int], float] = defaultdict(float)
+    for cid, bills in by_account.items():
+        bills.sort(key=lambda b: b["period_end"])
+        if bills[-1].get("billing_basis") != "estimated":
+            continue
+        run = _trailing_estimates(bills)
+        fuel = bills[-1]["commodity"]
+        if fuel not in MONTHLY_SHARE_OF_ANNUAL_USE:
+            continue
+        weights = [profile_weight(fuel, *_period(b)) for b in run]
+        advance = sum(b["total_consumption_kwh"] for b in run)
+        for bill, weight in zip(run, weights):
+            if bill["true_consumption_kwh"] <= 0:
+                continue
+            scale = advance * weight / sum(weights) / bill["true_consumption_kwh"]
+            year = bill["period_end"][:4]
+            month = (run_output["years"].get(year, {}).get("per_customer_monthly", {})
+                     .get(cid, {}).get(bill["period_end"][:7]))
+            if month is None:
+                continue
+            volume_gross = month["gross_gbp"] - (bill.get("standing_charge_gbp") or 0.0)
+            out[(cid, int(year))] += (scale - 1.0) * volume_gross
+    return dict(out)
 
 
 def summarise(rows: list[dict]) -> dict:

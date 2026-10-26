@@ -2,7 +2,12 @@
 
 import pytest
 
-from tools.closing_estimate_run_money import closing_accounts, summarise, what_closure_shows
+from tools.closing_estimate_run_money import (
+    closing_accounts,
+    cos_read_settlement,
+    summarise,
+    what_closure_shows,
+)
 
 
 def _bill(cid, end, basis, billed, true=None, commodity="electricity"):
@@ -175,3 +180,28 @@ def test_the_grade_places_the_instructed_visit_where_the_billing_run_does():
 
     assert (_instruction_visits(account("direct_debit")), _instruction_visits(account("prepayment"))) == (
         [12, 24], [])
+
+
+def test_a_leaver_closed_on_an_estimate_is_settled_on_its_read_spread_by_the_profile():
+    """C1 closes on two estimates billing 160 + 120 kWh against 220 + 128 true. The deemed advance,
+    280 kWh, is settled over February and March by the electricity profile (8.87 : 9.12), not by
+    the household's own shape: 138.05 and 141.95 kWh. With gross 100 a month and no standing
+    charge, February moves by 100 x (138.05/220 - 1) and March by 100 x (141.95/128 - 1).
+    MUTATIONS this catches: one scale over the whole run (true shape kept) gives -39.08, and a flat
+    day count in place of the profile gives -25.46, against the profile's -26.35; either reds the
+    approx. C2 closed on an actual read and C9 never left, so neither carries an entry: both halves
+    of the partition are reached.
+    """
+    run = _book()
+    run["years"] = {"2020": {"per_customer_monthly": {
+        "C1": {"2020-02": {"gross_gbp": 100.0}, "2020-03": {"gross_gbp": 100.0}},
+        "C2": {"2020-02": {"gross_gbp": 100.0}},
+        "C9": {"2020-01": {"gross_gbp": 100.0}},
+    }}}
+    moved = cos_read_settlement(run)
+    weights = (8.87 / 29 * 29, 9.12 / 31 * 31)
+    feb = 280 * weights[0] / sum(weights)
+    expected = 100 * (feb / 220 - 1) + 100 * ((280 - feb) / 128 - 1)
+    assert moved[("C1", 2020)] == pytest.approx(expected, abs=0.01)
+    assert moved[("C1", 2020)] < 0
+    assert set(moved) == {("C1", 2020)}

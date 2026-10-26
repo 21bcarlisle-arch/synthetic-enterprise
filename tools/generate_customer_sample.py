@@ -18,6 +18,7 @@ from pathlib import Path
 # as the company's belief) where the company computed nothing. Imported rather
 # than re-declared: this shape must not be patched twice.
 # See docs/staging/done/WORKER_FINDING_THE_PUBLISH_PATH_SWALLOWED_199_GENERATOR_CRASHES_2026-08-17.md
+from tools.closing_estimate_run_money import cos_read_settlement
 from tools.generate_customer_data import _round_or_none
 
 PROJECT = Path(__file__).resolve().parent.parent
@@ -31,19 +32,26 @@ def _base_id(cid):
     return cid
 
 
-def _per_year(run, cid):
+def _per_year(run, cid, settlement=None):
+    """`cos_read_settlement_gbp` sits beside gross, never inside it: gross stays the world's margin
+    on true demand, and the entry is what settlement at an estimated closing read takes off it
+    (`tools.closing_estimate_run_money.cos_read_settlement`). Written only where it is non-zero."""
     out = []
     for yr in sorted(run.get("years", {}).keys()):
         ydata = run["years"][yr]
         cdata = ydata.get("per_customer", {}).get(cid)
         if cdata:
-            out.append({
+            row = {
                 "year": int(yr),
                 "gross_gbp": round(cdata.get("gross_gbp", 0), 2),
                 "net_gbp": round(cdata.get("net_gbp", 0), 2),
                 "tariff_min_gbp_per_mwh": round(cdata.get("tariff_min_gbp_per_mwh", 0), 2),
                 "tariff_max_gbp_per_mwh": round(cdata.get("tariff_max_gbp_per_mwh", 0), 2),
-            })
+            }
+            moved = round((settlement or {}).get((cid, int(yr)), 0.0), 2)
+            if moved:
+                row["cos_read_settlement_gbp"] = moved
+            out.append(row)
     return out
 
 
@@ -76,6 +84,7 @@ def generate(run_json_path=None, out_path=None, state_path=None):
     generated_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
     pcl = run.get("per_customer_lifetime", {})
+    settlement = cos_read_settlement(run) if run.get("bills") else {}
     bba = run.get("by_billing_account", {})
 
     events_by_cid = defaultdict(list)
@@ -244,7 +253,7 @@ def generate(run_json_path=None, out_path=None, state_path=None):
             "expected_lifetime_periods": _round_or_none(
                 clv_data.get("expected_lifetime_periods"), 2
             ),
-            "annual_pnl": _per_year(run, cid),
+            "annual_pnl": _per_year(run, cid, settlement),
             "renewal_events": events_by_cid.get(cid, []),
             "basis_risk_by_term": basis_by_cid.get(cid, []),
             "churn_accuracy_by_renewal": churn_acc_by_cid.get(cid, []),

@@ -82,3 +82,65 @@ periods that bill single-rate.
 **What is owed now:** a re-issue or rebill route for held bills (or a ruling that a held bill's
 period is excluded from gross), and a final-read or true-up for a leaver who closes on a low
 estimate. Until one of those lands, this run's publish stays refused, which is correct.
+
+## The last four, 26 Oct (seat executor, second pass). Pre-registered before any fix was measured
+
+**Correction to the paragraph above, beside it.** "Nothing re-issues them" is wrong for the held
+bills. SYN-2016-582's held winter bills (supply from 2016-12-10, nothing issued before 2017-03)
+are billed by the catch-up on its first actual read: 2017-07, £815.86 over 2016-12-10 to
+2017-06-30. That is the route `unbilled_energy_and_revenue_assurance.md` §"A held bill on an
+account that closes" already describes ("its catch-up already carries the held energy"). PROS-2024-0010's
+held Jan–Feb 2024 is billed the same way (2024-05, £1,596.25 from 2024-01-14) and its 2024 is not
+inverted. The inversion is in the gate, not the book. `billed_total_by_customer_year` credits a
+catch-up back to its span pro rata by day. That is right when every day of the span was billed on
+an estimate and only the estimate's error is corrected. It is wrong on a day no invoice covered:
+nothing was billed for that day, so the catch-up carries the whole of its energy. SYN-2016-582 gets
+22 of 203 days' share in 2016 (£88.42), when it owes 22 days of the span's whole true cost.
+
+**The three leavers are the K6 leg (b) build that was deferred on 20 Oct**, under the prediction
+"no account year changes sign against the defect-4 gate". On this book three do, so that
+prediction is refuted. The losing supplier is billed AND settled at the change-of-supplier read
+(BSCP504 §4.4.1). Gross is formed on true demand through the exit, so it counts margin on energy
+this supplier was neither billed for nor charged for.
+
+**Fixes, chosen before measuring:**
+1. Gate attribution. A catch-up's span is priced flat per day, at (billed in span + adjustment) /
+   days. A day no invoice covers takes that whole daily amount. The rest of the adjustment is
+   spread evenly over the days that were billed. Where every day was billed, this is identical
+   to the old rule.
+2. Settlement view (K6 choice "the build shape this implies"). For each supply point whose last
+   bill is an estimate, the trailing estimate run gets scale = billed kWh / true kWh. Each of the
+   run's months gets `cos_read_settlement_gbp = (scale − 1) × (gross − standing charge)`. That is
+   carried beside `gross_gbp` in `annual_pnl`, and the sweep compares against gross + that entry.
+   It is computed after the run from the run output's own bills and monthly rows, not in phase 4c,
+   so it reads this run as it stands.
+
+**Predictions:**
+- P1. SYN-2016-582 2016 billed rises from £88.42 to about £190 (22 days × about £8.80), above
+  its £149.20 gross. Book-wide billed total is unchanged to the penny. No new inversion appears.
+- P2. PROS-2017-0117 2018: scale about 0.48. Settled gross falls from £1,008 to about £500, below
+  its £724.69 billed. PROS-2024-0010 2025 and SYN-2016-190 2016 also clear.
+- P3. Book-wide, the settlement entry nets to under £2,000 in absolute value over the decade. It
+  is zero on every leg whose last bill is actual.
+- P4. The sweep reports 0 inversions on this book, with no row excused.
+
+**Result (added after; the predictions above are not edited).** Run on the ledger regenerated
+from `run_output_4ae8da9b0f_20261026T022647Z.json` at this commit, with `customer_sample.json`
+regenerated from the same run.
+- P1 HELD. SYN-2016-582 2016 is now billed at £193.65 against £149.20 gross. Attribution only
+  moves within a span, so no new inversion appears.
+- P2 HELD FOR TWO OF THREE, then changed. Under one scale over the whole run, PROS-2017-0117 2018
+  (−£516) and SYN-2016-190 2016 (−£95 over both fuels) clear. PROS-2024-0010 2025 does not: £215.05
+  billed against £255.46 settled. Its true use climbs steeply into January, and one scale keeps the
+  true shape. Settlement spreads a deemed advance by the profile, not by the household's shape
+  (K2). Spread by `profile_weight`, it settles at −£275.29 and clears. I made the change after
+  seeing the refutation, and say so here and on the K8 page. The mechanism is the reason for it.
+- P3 REFUTED, narrowly. The book-wide net is −£2,120.75 against the predicted bound of under
+  £2,000 (it was −£1,922.72 under one scale). It is 0 on every leg whose last bill is actual.
+- P4 HELD. The sweep finds 0 inversions on this book, with no row excused. The test file passes
+  13 of 13 on both the committed book and this one.
+
+**Still owed, and not blocking the publish:** `saas/reporting/annual_report.py` and net margin do
+not read `cos_read_settlement_gbp` yet. The policy and network costs inside net scale on the same
+rule and are not moved. Treasury cash still books margin on true demand for these legs. Next: re-offer the run with
+`sim_runner --promote`.
