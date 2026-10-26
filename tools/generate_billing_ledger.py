@@ -82,6 +82,7 @@ from simulation.arrears_engine import (
     with_credits_applied as _with_credits_applied,
 )
 from simulation.household import households_whose_account_closed, supply_points_that_left
+from tools.grade_svt_invoices_over_ceiling import bill_excess, term_of_bill, terms_by_customer
 from tools.run_output_store import load_run_output
 
 PROJECT = Path(__file__).parent.parent
@@ -232,6 +233,7 @@ def generate(run_json_path=None, out_path=None):
     # entirely (never sent) and recorded on the exception queue below rather
     # than silently dropped.
     bills, held_bills = validate_bills(bills)
+    account_terms = terms_by_customer(data)
 
     # BILL_CORRECTNESS_ADDENDUM.md Defect 2: meter-read status (A=actual,
     # E=estimated) per bill, from Phase 3's real estimation physics
@@ -418,9 +420,17 @@ def generate(run_json_path=None, out_path=None):
             ))
             continue
 
+        # The term this bill sits in, as the run recorded it, and the default-tariff verdict on the
+        # bill's UNROUNDED amounts: the printed lines are rounded, which on a 1-22 day stub moves a
+        # unit rate past the 0.5% tolerance. Both None where the run records no term / cannot grade.
+        term = term_of_bill(account_terms, bill)
+        term_type = term["tariff_type"] if term else None
+        term_excess = bill_excess(bill, term_type) if term_type else None
         inv = {
             "invoice_number": invoice_number,
             "customer_id": cid,
+            "term_tariff_type": term_type,
+            "default_tariff_excess_p_per_kwh": None if term_excess is None else round(term_excess, 4),
             "period_start": bill["period_start"],
             "period_end": period_end,
             "commodity": commodity,

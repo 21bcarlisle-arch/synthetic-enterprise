@@ -155,6 +155,25 @@ def test_the_cap_rule_skips_a_bill_after_a_fixed_renewal_and_a_business_account(
     assert gen.coverage_breaches(*sme, WINDOWS, "sme") == []
 
 
+def test_the_cap_rule_grades_the_recorded_term_not_the_renewal_proxy():
+    """Same 50p bill, no renewal on the timeline: the recorded verdict decides, both ways."""
+    over = dict(term_tariff_type="svt", default_tariff_excess_p_per_kwh=16.0)
+    fixed = dict(term_tariff_type="fixed", default_tariff_excess_p_per_kwh=0.0)
+    unrecorded = dict(term_tariff_type=None, default_tariff_excess_p_per_kwh=None)
+    bill = (500, 500 * 0.50 / 1.05)
+    assert [b["rule"] for b in gen.coverage_breaches(*_hh([_inv("2022-11-30", *bill, **over)]), WINDOWS, "resi")] == ["above_cap"]
+    assert gen.coverage_breaches(*_hh([_inv("2022-11-30", *bill, **fixed)]), WINDOWS, "resi") == []
+    assert gen.coverage_breaches(*_hh([_inv("2022-11-30", *bill, **unrecorded)]), WINDOWS, "resi") == []
+
+
+def test_the_cap_rule_trusts_an_svt_verdict_even_after_a_renewal_dated_earlier():
+    """A default term after a renewal (a fix that lapsed to SVT) is capped; the proxy would skip it."""
+    renewed = [{"date": "2022-06-01", "type": "renewed", "detail": "x"}]
+    svt = dict(term_tariff_type="svt", default_tariff_excess_p_per_kwh=16.0)
+    hh = _hh([_inv("2022-11-30", 500, 500 * 0.50 / 1.05, **svt)], timeline=renewed)
+    assert gen.coverage_breaches(*hh, WINDOWS, "resi")
+
+
 def test_the_backbill_rule_can_fire_and_respects_the_cap_when_applied():
     catch = dict(catchup_applied=True, catchup_direction="debit", catchup_period_start="2021-01-01")
     late = _hh([_inv("2022-11-30", 500, 100, **catch)])

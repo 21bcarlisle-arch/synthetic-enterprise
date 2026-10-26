@@ -72,10 +72,29 @@ def _in_epg_window(commodity: str, on: date) -> bool:
     return epg is not None and cap is not None and epg < cap
 
 
-def grade(run: dict) -> dict:
+def terms_by_customer(run: dict) -> dict[str, list[dict]]:
     terms = defaultdict(list)
     for t in run.get("account_state_log") or []:
         terms[t["customer_id"]].append(t)
+    return terms
+
+
+def term_of_bill(terms: dict[str, list[dict]], b: dict) -> dict | None:
+    """The recorded term a bill's period starts in; None when the run records none."""
+    iso = str(b["period_start"])[:10]
+    return next((t for t in terms.get(b["customer_id"], ())
+                 if t["term_start"] <= iso < t["term_end"]), None)
+
+
+def bill_excess(b: dict, tariff_type: str) -> float | None:
+    """The class invariant over a run bill's own unrounded amounts (None: not gradeable)."""
+    invoice = {**b, "amount_gbp": b.get("total_amount_gbp"),
+               "consumption_kwh": b.get("total_consumption_kwh")}
+    return default_tariff_invoice_excess_p_per_kwh(invoice, tariff_type)
+
+
+def grade(run: dict) -> dict:
+    terms = terms_by_customer(run)
     reads = defaultdict(Counter)
     for b in run.get("bills") or []:
         reads[b["customer_id"]][b.get("billing_basis")] += 1
@@ -84,13 +103,10 @@ def grade(run: dict) -> dict:
     households, by_year, outside_epg, on_actual_read = set(), Counter(), 0, 0
     for b in run.get("bills") or []:
         iso = str(b["period_start"])[:10]
-        term = next((t for t in terms.get(b["customer_id"], ())
-                     if t["term_start"] <= iso < t["term_end"]), None)
+        term = term_of_bill(terms, b)
         if term is None or term["tariff_type"] not in DEFAULT_TARIFF_TYPES:
             continue
-        invoice = {**b, "amount_gbp": b.get("total_amount_gbp"),
-                   "consumption_kwh": b.get("total_consumption_kwh")}
-        excess = default_tariff_invoice_excess_p_per_kwh(invoice, term["tariff_type"])
+        excess = bill_excess(b, term["tariff_type"])
         if excess is None:
             ungradeable += 1
             continue

@@ -132,6 +132,10 @@ def _real_invoice(inv):
         # catch-up rebilling cycle"): carried straight through from the
         # ledger record, same as read_type above -- not fabricated here.
         catchup_applied=inv.get("catchup_applied", False),
+        # The run's recorded term for this bill and its default-tariff verdict, graded on unrounded
+        # amounts upstream; None when the run records no term (an older book).
+        term_tariff_type=inv.get("term_tariff_type"),
+        default_tariff_excess_p_per_kwh=inv.get("default_tariff_excess_p_per_kwh"),
         catchup_period_start=inv.get("catchup_period_start"),
         catchup_period_end=inv.get("catchup_period_end"),
         catchup_periods_covered=inv.get("catchup_periods_covered"),

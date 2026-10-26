@@ -52,12 +52,14 @@ PAGE_PATH = PROJECT / "site" / "explore" / "index.html"
 #: months before the bill when the delay was its own.
 BACKBILL_LIMIT_DAYS = 365
 
-#: A fixed-term renewal is outside the default-tariff cap for its term. The run records each term's
-#: `tariff_type` (`account_state_log`) but the published household record does not carry it, so
-#: the cap check reads bills dated before the household's first renewal on that fuel. Graded
-#: against the recorded type on the 19 Oct run, 4,579 of that population's 4,764 breaches were on
-#: `svt` terms, so this is a proxy for the record and not the cause of the count (correction,
-#: 23 Oct: this said the run did not record the term).
+#: Key present with a None value means the run recorded no term; key absent means an older page.
+_NOT_CARRIED = object()
+
+#: A fixed-term renewal is outside the default-tariff cap for its term, so the cap check grades
+#: only bills the run records inside a default-tariff term (`term_tariff_type` on the invoice, from
+#: `account_state_log`), on the invariant's verdict over unrounded amounts. Before-first-renewal was
+#: the proxy for a page without the field: on 4ae8da9b0f 179 of 186 flagged invoices were
+#: fixed-term and 7 were rounding on 1-22 day stubs, where the run grades 0 of 24,442.
 
 #: A gas leg billed this long after its electricity leg left is "left behind". One billing month
 #: plus a final-bill allowance; anything past it is a bill for a household that has gone.
@@ -207,12 +209,19 @@ def coverage_breaches(hh: dict, ev: dict, windows: list[dict], segment: str) -> 
     if segment == "resi":
         for inv in ev["invoice"]:
             iso = inv.get("period_start") or inv["date"]
-            if inv["date"] >= fixed_from.get(inv["fuel"], "9999"):
-                continue
-            # The rule itself is the company's invariant, so the cast and the bill are graded by
-            # one implementation of one legal requirement, not two.
-            if not default_tariff_invoice_excess_p_per_kwh({**inv, "commodity": inv["fuel"]}, "svt"):
-                continue
+            if inv.get("term_tariff_type", _NOT_CARRIED) is not _NOT_CARRIED:
+                # The run's own record: the term the bill sits in, and the invariant's verdict on
+                # the bill's unrounded amounts (rounded print lines on a short stub can cross the
+                # tolerance on their own). No recorded term or no verdict is not a breach.
+                if not inv.get("default_tariff_excess_p_per_kwh"):
+                    continue
+            else:
+                # A page published before the record carried the term: the bills before the first
+                # renewal, graded on the printed lines. A proxy, kept only for those pages.
+                if inv["date"] >= fixed_from.get(inv["fuel"], "9999"):
+                    continue
+                if not default_tariff_invoice_excess_p_per_kwh({**inv, "commodity": inv["fuel"]}, "svt"):
+                    continue
             ceiling = binding_ceiling_p_per_kwh(windows, inv["fuel"], iso)
             charged = _all_in_p_per_kwh(inv)
             if ceiling is not None and charged is not None:

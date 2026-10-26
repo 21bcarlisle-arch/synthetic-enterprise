@@ -179,6 +179,23 @@ def test_invoice_exposes_days_in_period_and_daily_standing_charge_rate(tmp_path)
     )
 
 
+def test_invoice_carries_the_recorded_term_and_the_default_tariff_verdict(tmp_path):
+    """An svt term is graded (over the ceiling), a fixed term is 0.0, no recorded term is None."""
+    def invoice(tariff_type):
+        run = _run([_bill("C_R1", "2022-03-31", 8000.0, segment="resi")])
+        if tariff_type:
+            run["account_state_log"] = [{"customer_id": "C_R1", "term_start": "2021-01-01",
+                                         "term_end": "2023-01-01", "tariff_type": tariff_type}]
+        rj = tmp_path / (tariff_type or "none") / "run.json"
+        rj.parent.mkdir()
+        rj.write_text(json.dumps(run))
+        return generate(rj, rj.parent / "l.json")["customers"]["C_R1"]["invoices"][0]
+    svt, fixed, none = invoice("svt"), invoice("fixed"), invoice(None)
+    assert svt["term_tariff_type"] == "svt" and svt["default_tariff_excess_p_per_kwh"] > 0
+    assert fixed["term_tariff_type"] == "fixed" and fixed["default_tariff_excess_p_per_kwh"] == 0.0
+    assert none["term_tariff_type"] is None and none["default_tariff_excess_p_per_kwh"] is None
+
+
 # BILL_CORRECTNESS_ADDENDUM.md Defect 2 (2026-07-09): meter serial,
 # MPAN/MPRN, read type, opening/closing reads.
 
