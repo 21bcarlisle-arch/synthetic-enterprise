@@ -431,6 +431,49 @@ Both are readouts of experiences that the world will only generate once steps 2�
 
 ---
 
+## 9. W2_37's design choices (L1, 2026-10-26: `simulation/complaint_generation.py`)
+
+This is Proposal 1 built as a mechanism. It is not yet wired into the run.
+
+**What the rules and evidence fix.** A complaint is the statutory wide event (§1). Its market rate per account per
+quarter is the portal figure (§3.3). Its cause mix is the 2014 subject shares, with billing split by the
+Ombudsman's 2024 billing sub-mix (§2). The dissatisfied stock is the CSS 6% (§3.1).
+
+**What the design chooses, and why.**
+
+1. **There is no per-trigger complaint probability, because none is published.** The module derives one per cause and
+   quarter: market rate × cause share ÷ the share of accounts the world put through that trigger. The world's count and
+   mix then match the record whatever its trigger rates are. A trigger the world produces too rarely, or never,
+   **refuses and names the cause**. It does not quietly lose that cause's share (K2).
+2. **Only a trigger the household met can fire.** A catch-up bill with no price change can produce a complaint, and a
+   household that met nothing cannot complain.
+3. **The silent unhappy are drawn only from households that met a trigger and did not complain.** They are sized so
+   that they plus the badly handled complainants equal the published dissatisfied share. Complaints are therefore
+   a floor on dissatisfaction by construction. If the badly handled complainants alone exceed 6%, the derivation refuses.
+   At the 2025 rate (~4.0% of accounts complain a year) and 57% handling-dissatisfied (2014, §3.4b), the silent are
+   ~3.7% of accounts, about 60% of the dissatisfied.
+
+**Simplifications, each with its direction.**
+
+- The multi-coded subject shares (summing to 118) are normalised to one cause per complaint. This understates causes
+  that co-occur. The co-coding table is not published.
+- The supplier-level billing share is split by the Ombudsman's billing sub-mix, which describes escalated disputes
+  rather than complaints. The direction of that error is unknown.
+
+**GAP, carried in code (`NEAREST_ANCHOR_GAP`).** Every quarter before 2025Q4 reads the nearest published quarter and
+is labelled with the gap. So 2016–2024, and the crisis in particular, carry no rise in complaints or dissatisfaction.
+Satisfaction did fall 78% → 69% (§3.1). Closing §7.4 (the portal CSV) closes this.
+
+**What L2 needs.**
+
+- Feed the derivation the world's measured trigger shares: W2_36's catch-up bills, DD4b's DD reviews and PB4's
+  per-population shock.
+- Replace `feedback_survey.dispatch_complaint_and_resolution`'s 3% + 35pp occurrence roll. Its resolution model stays.
+- Carry the two departure edges with opposite signs (§3.4): complainants by how their complaint was handled, and the
+  silent unhappy switching *less*.
+
+---
+
 ## Sources
 
 - Ofgem, *Customers' satisfaction with their supplier — supplier level findings, July to August 2025* (pub. 2 Dec 2025), n=3,790. https://www.ofgem.gov.uk/sites/default/files/2025-12/Customers%27-satisfaction-with-their-supplier-supplier-level-findings-July-to-August-2025.pdf
