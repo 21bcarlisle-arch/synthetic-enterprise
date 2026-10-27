@@ -472,3 +472,24 @@ items:
     status: open
     owner: "company/policy/decision_policy.py (a policy carries the corrected ending-term belief once a clean-book grade's departure interval clears zero; levers step of docs/direction/priority_order.yaml)"
     reason: "Triaged 2026-10-25 by the delivery seat, ahead of the 7-day line. The defect is real and live. The fix is built (7a7ad95dc) and graded twice (427e5f021, 5cdb72eb3), and both times the departure interval straddles zero, so the pre-registered switch-on rule is not met. The director's 24 Oct ruling puts levers after the basics, so this stays open with an owner rather than being accepted."
+  - id: a-handoff-named-in-a-finding-or-next-line-is-not-checked-against-the-queue
+    problem: "A grade or follow-on named in a finding, a NEXT line or a continuation's own text is not checked against the queue, and a continuation can be released before the artefact it names exists, so a finished long job can sit with no reader."
+    match: ["A finished long job lost its grader"]
+    first_seen: "2026-10-25"
+    fate: fix
+    status: open
+    owner: "background/seat_continuation.py (focus item a-handoff-is-not-discharged-before-its-artefact-exists: refuse to retire a row while an artefact path or long job it names is absent or unfinished)"
+    reason: "Triaged 2026-10-27 by the delivery seat, ahead of the 7-day line. Ten shapes in three days, and the tenth delayed the correctness ruling's exit test by about three hours. The cheapest leg that would have caught the costly shape is the artefact check, because the row named its own artefact. It stays listed until that check is on origin."
+  - id: a-lane-edits-a-live-advisor-file-in-place
+    problem: "A lane recording what has landed inside a live docs/staging/advisor/ file breaks that file's signature chain, and nothing stops the edit."
+    match: ["Four advisor files were edited in place"]
+    first_seen: "2026-10-25"
+    fate: accept
+    reason: "Triaged 2026-10-27 by the delivery seat. The failure is loud and fails closed: the advisor channel refuses an edited file as unsigned, so the director's words cannot be silently altered, only delayed. There has been no instance since 25 Oct across twelve orientations, and every Done note since then went through the sanctioned move to done/. A guard on this would only guard the machine's own channel. Reopen on the next refusal."
+  - id: the-level-grader-reads-the-working-copy-not-origin
+    problem: "The brief's level grader and the_basics read the shared checkout, so when it falls behind origin they report landed work as ABSENT and closed findings as BLOCKING."
+    match: ["The brief reads the shared checkout, which is 57 commits behind origin"]
+    first_seen: "2026-10-25"
+    fate: fold
+    owner: "docs/staging/done/SEAT_FINDING_THE_DIRECTION_RECORDS_WORKING_COPY_IS_READ_CARRIED_AND_RECORDED_AS_IF_IT_WERE_ORIGINS_2026-10-07.md"
+    reason: "Triaged 2026-10-27 by the delivery seat. It is the same class as the working-copy reading in that finding. The brief now prints the divergence and units_lacking_origin at its head, so a reader is told when its readings may be stale, and the checkout has been level since 65e1af5f8. The residue is one more instance of that class, not a separate row."
