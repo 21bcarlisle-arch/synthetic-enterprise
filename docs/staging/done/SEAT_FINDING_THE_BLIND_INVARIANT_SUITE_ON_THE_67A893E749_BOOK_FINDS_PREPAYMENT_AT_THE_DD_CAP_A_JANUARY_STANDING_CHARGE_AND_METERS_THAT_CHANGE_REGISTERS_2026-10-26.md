@@ -645,3 +645,31 @@ URLS
 - https://bscdocs.elexon.co.uk/guidance-notes/radio-teleswitch-standard-settlement-configuration-mapping/v-2-0/id-633d60472982320007e69608 (table of contents only; no body text returned)
 - WebSearch result snippets only, not opened: Elexon CP1456, MDD FAQs / MDD made easy, E.ON / OVO community forum threads on SMETS2 48 registers
 ```
+
+## Done
+
+*2026-10-27, worker tick.* Closed against its own "What would close this":
+- **Fixes (1)–(4):** all landed and graded on a fresh run. Prepayment at its own column:
+  2eeb3f0b32, graded 0/5,921 and 0/4,721 in 13a6e5e71d. Standing charge on the cap's own dates,
+  with penny tolerance: 0/0. Register identity: READ_MONOTONIC 0, plus two blind register rows.
+  Payment Nones: 871f674a2a.
+- **Re-run and exceptions:** the runner reports 0 unexcepted breaches, and `enforce: true` is in
+  the publish gate (`process_run_complete`). Two dated exceptions remain, and each carries its own
+  `retired_by`: C6 (the SME prepayment leg) and the occupier EBSS months.
+- **Export:** the three NOT_IN_EXPORT fields and document type are carried (871f674a2a).
+- **Still open, and owned elsewhere:**
+  - (a) The event stream for INV_EV_ADOPTION_ELECTRICITY_ONLY is owned by
+    `SEAT_FINDING_AN_EV_LIFE_EVENT_IS_DRAWN_WITHOUT_THE_HOUSEHOLDS_FUEL_LEGS_...` in staging.
+  - (b) The EBSS part-credit was closed by 9d7bd4a5c8 and 5977203780: the whole credit is now on
+    the invoice.
+- **(c), done in this commit.** The electricity annual-use check now reads the heating-class
+  proxy through `billing_account_id`. A household that also holds gas takes the gas-heated band
+  (p99 12,200 kWh). One that holds no gas takes the band where gas is not the main heating fuel
+  (p99 18,200 kWh). Both keep the all-domestic 500 kWh floor.
+  - On the 2eeb3f0b3 book this splits 1,749 account-years into 1,310 and 439. Flags go from 11
+    to 6 (0 gas-heated, 6 not gas-heated: PROS-2017-0336 in five years and PROS-2022-0400 once).
+    The book share above its class p99 is 0.34%, against an expected 1%.
+  - The 5 that drop are homes with no gas that the all-domestic p99 flagged. They sit inside
+    their own class's published tail.
+  - Test: `test_an_electricity_account_takes_its_households_heating_band_through_the_billing_account`.
+    Forcing the all band reds it, and so does dropping the inherited floor.

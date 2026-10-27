@@ -527,3 +527,27 @@ def test_every_leg_of_the_mpan_row_is_reachable():
     assert grade("2400000000010") == ["format"]                          # distributor 24
     assert grade("1000000000116") == ["check digit"]
     assert runner.mpan_check_digit("100000000011") == 0
+
+
+def test_an_electricity_account_takes_its_households_heating_band_through_the_billing_account():
+    """The heating-class proxy ("also holds gas") read through `billing_account_id`, both legs: a
+    household holding gas flags above the gas-heated p99, one holding none only above the higher
+    p99, and an export without the id keeps the all-domestic band."""
+    inv = {"id": "INV_ANNUAL_USE_ELEC_ACCOUNT", "lower": 0.0, "upper": 201480, "flag_bands": [
+        {"class": "all domestic", "flag_lower": 500, "flag_upper_p99": 14300},
+        {"class": "gas-heated (proxy)", "flag_upper_p99": 12200},
+        {"class": "gas not main heating fuel (proxy)", "flag_upper_p99": 18200}]}
+
+    def flags(kwh_year, *, holds_gas, with_id=True):
+        e = _account("E", "electricity", rate=15.0, kwh_per_month=kwh_year / 12)
+        g = _account("G", "gas", rate=3.0, kwh_per_month=900.0)
+        if with_id:
+            e["billing_account_id"] = "H1"
+            g["billing_account_id"] = "H1" if holds_gas else "H2"
+        book = [runner.Account(c, r) for c, r in {"E": e, "G": g}.items()]
+        return len(runner.ev_annual_use_elec(inv, book).flags)
+
+    assert flags(13000, holds_gas=True) and not flags(13000, holds_gas=False)
+    assert flags(16000, holds_gas=True) and not flags(16000, holds_gas=False)
+    assert not flags(13000, holds_gas=True, with_id=False) and flags(16000, holds_gas=False, with_id=False)
+    assert flags(400, holds_gas=True) and flags(400, holds_gas=False)
