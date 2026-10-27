@@ -236,3 +236,22 @@ def test_a_credit_comes_off_the_next_paid_bill_and_the_account_settles_to_zero()
     assert ledger["total_collected_gbp"] == 70.0 and ledger["current_balance_gbp"] == 0.0
     lhs = ledger["total_collected_gbp"] + ledger["current_balance_gbp"]
     assert round(lhs, 2) == ledger["total_billed_gbp"]
+
+
+def test_the_scheme_credit_lowers_the_balance_and_is_not_collected():
+    """A bill the EBSS covered in part is paid for the rest, and one it covered whole is paid not
+    at all; both settle to zero. Before the 2026-10-27 finding the first was collected in full and
+    the second stood owed for ever.
+    """
+    invoices = [dict(invoice_number=1, issue_date="2022-12-05", total_amount_gbp=100.0),
+                dict(invoice_number=2, issue_date="2023-01-05", total_amount_gbp=40.0)]
+    payments = [dict(invoice_number=1, payment_date="2022-12-20", amount_gbp=34.0,
+                     scheme_credit_gbp=66.0, method="direct_debit", outcome="success"),
+                dict(invoice_number=2, payment_date="2023-01-20", amount_gbp=0.0,
+                     scheme_credit_gbp=40.0, method="scheme_credit", outcome="credit")]
+    ledger = build_account_ledger(_cust(invoices, payments), as_of="2025-01-01")
+    assert ledger["current_balance_gbp"] == 0.0
+    assert ledger["total_collected_gbp"] == 34.0
+    assert ledger["total_scheme_credit_gbp"] == 106.0
+    assert [e["type"] for e in ledger["entries"]] == [
+        "invoice_raised", "scheme_credit", "payment_received", "invoice_raised", "scheme_credit"]

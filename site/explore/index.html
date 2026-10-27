@@ -868,7 +868,9 @@ function stagePaid(d, c) {
       }).join("") + "</tbody></table></div>") +
     "</div>" +
     '<p class="prov">Payment ledger as at ' + dt(led.as_of_date) + ". Billed " + gbp(led.total_billed_gbp) +
-    ", collected " + gbp(led.total_collected_gbp) + ", balance " + gbp(led.current_balance_gbp) + ".</p>";
+    ", collected " + gbp(led.total_collected_gbp) +
+    (led.total_scheme_credit_gbp ? ", government bill credit " + gbp(led.total_scheme_credit_gbp) : "") +
+    ", balance " + gbp(led.current_balance_gbp) + ".</p>";
 }
 
 function stageJudged(d, c, fuels) {

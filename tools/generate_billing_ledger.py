@@ -30,6 +30,7 @@ from company.billing.pre_bill_validation import (
     validate_rendered_bill_money,
     validate_rendered_bill_reads,
 )
+from company.regulatory.energy_bill_support import ebss_credit_gbp
 from saas.bill_generator import CHARGED_AT_THE_METER, CREDIT_BILL, TOU_BANDS, applied_rates
 from saas.money import (
     MoneyBoundaryError,
@@ -94,6 +95,8 @@ METER_CHARGED_READ_TYPE = "M"
 #: The method on a bill the government's bill credit (EBSS) settled whole, so the household paid
 #: nothing: the engine marks it `outcome: credit` with no method, which the ledger used to copy as
 #: a payment of the whole bill by nobody (218 rows on 4ae8da9b0f, all Oct 2022 to Mar 2023).
+#: A bill the credit covers in part keeps the household's own method, and its payment carries
+#: `scheme_credit_gbp` beside what the household paid (the 2026-10-27 finding).
 SCHEME_CREDIT_METHOD = "scheme_credit"
 
 RUN_JSON = PROJECT / "docs" / "reports" / "run_output_latest.json"
@@ -438,6 +441,9 @@ def generate(run_json_path=None, out_path=None):
         part_paid = 0.0
         # What the named payer is asked for: the bill less any occupier or owner share (B7).
         asked = amount
+        # The government's credit applied to this bill, which the household did not pay. Only a bill
+        # the engine collects carries it: the engine nets it there (`owed_after_scheme_credit`).
+        scheme_credit = 0.0
         row = resolved.get((cid, period_end, commodity))
         if is_credit:
             method = None
@@ -450,6 +456,7 @@ def generate(run_json_path=None, out_path=None):
                 method = SCHEME_CREDIT_METHOD
             part_paid = row.get("part_paid_gbp", 0.0)
             asked = round(row["amount_gbp"] + part_paid, 2)
+            scheme_credit = ebss_credit_gbp(segment, commodity, period_end[:7])
             _tone = None if outcome == "credit" else _tone_for_bill(method, cid, period_end)
         else:
             # No row: the bill is wholly the occupier's or the owner's, which the engine never
@@ -757,14 +764,20 @@ def generate(run_json_path=None, out_path=None):
         # get its effect on the balance, which would cancel the credit back out).
         if not is_credit:
             payment_date = due_date + timedelta(days=days_late)
+            # No more of the credit than the bill: what it exceeds by stays on the account, and the
+            # engine nets that from the next bill (`credits_applied`, kind "credit").
+            scheme_applied = round(min(scheme_credit, printed_total), 2)
             pay = {
                 "invoice_number": invoice_number,
                 "payment_date": payment_date.isoformat(),
                 # The customer pays what the invoice PRINTS, not the
                 # full-precision total behind it -- collecting a figure that
                 # differs from the one on the bill is exactly the "maths
-                # doesn't add up" surface this atom closes.
-                "amount_gbp": printed_total,
+                # doesn't add up" surface this atom closes. Less the scheme
+                # credit, which the account received and the household did not
+                # pay: part-covered bills were recorded as paid in full (the
+                # 2026-10-27 finding).
+                "amount_gbp": round(printed_total - scheme_applied, 2),
                 "method": method,
                 "outcome": outcome,
                 "income_stress_at_time": stress,
@@ -773,6 +786,9 @@ def generate(run_json_path=None, out_path=None):
             if part_paid:
                 # A mover's final bill paid in part: the case below is for the rest.
                 pay["part_paid_gbp"] = part_paid
+            if scheme_applied:
+                pay["scheme_credit_gbp"] = scheme_applied
+                inv["scheme_credit_gbp"] = scheme_applied
             payments_by_cid.setdefault(cid, []).append(pay)
 
         written_off = write_offs.get((cid, period_end, commodity))
