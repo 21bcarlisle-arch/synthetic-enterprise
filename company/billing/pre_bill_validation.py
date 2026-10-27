@@ -41,6 +41,7 @@ from company.compliance.domain_invariants import (
     consumption_implied_vat_rate,
     is_credit_bill,
 )
+from saas.bill_generator import CHARGED_AT_THE_METER
 
 
 class ValidationOutcome(str, Enum):
@@ -340,6 +341,10 @@ def release_confirmed_domestic(bill: dict, result: BillValidationResult) -> dict
     25,000 kWh/yr and 0.34% of all domestic properties -- 5.9% of non-gas pre-1930 detached
     151-200 m2 -- are above even that (docs/market_research/need_domestic_electricity_high_tail.md).
     Volume cannot say where domestic ends; the premise record can.
+
+    A prepayment statement answers the volume half as an actual read does: the meter charged what it
+    recorded as used, and the customer has paid it (what_a_prepayment_customer_is_sent_2026-10-26.md,
+    choice 6).
     """
     if not (result.held and result.consumption_scale_only):
         return None
@@ -347,13 +352,15 @@ def release_confirmed_domestic(bill: dict, result: BillValidationResult) -> dict
         return None
     if bill.get("premise_council_tax_listed") is not True:
         return None
-    if bill.get("billing_basis") != "actual":
+    basis = bill.get("billing_basis")
+    if basis not in ("actual", CHARGED_AT_THE_METER):
         return None
     released = dict(bill)
     released["pre_bill_release"] = {
         "outcome": ValidationOutcome.RELEASED.value,
         "held_for": list(result.reasons),
-        "confirmed_by": "supply address on the council tax list; bill on an actual read",
+        "confirmed_by": "supply address on the council tax list; " + (
+            "bill on an actual read" if basis == "actual" else "charged at the prepayment meter"),
     }
     return released
 

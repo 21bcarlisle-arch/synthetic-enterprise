@@ -120,6 +120,8 @@ FIELDS: dict[str, tuple[str, str]] = {
     "period_start": (MEASURED, "first day the account was supplied in this period"),
     "period_end": (MEASURED, "last day the account was supplied in this period"),
     "days_in_period": (MEASURED, "a count of calendar days, not a calculation over money"),
+    "held_periods_reconciled": (EVENT, "periods a pre-bill hold kept off their own bill, taken "
+                                       "up by this bill's catch-up at its actual read"),
     "consumption_kwh": (MEASURED, "the volume the period was billed for: between two reads "
                                   "where it has them, which INV_PERIOD_MATCHES_READS checks"),
     "document_type": (EVENT, "what was sent for the period: a credit bill, or a prepayment "
@@ -289,6 +291,8 @@ def raw_account(customer_id: str, record: dict) -> dict:
         # these come from the term record. Absent on a ledger that predates them.
         if "contracted_terms" in inv:
             period["contracted_terms"] = inv["contracted_terms"]
+        if inv.get("held_periods_reconciled"):
+            period["held_periods_reconciled"] = inv["held_periods_reconciled"]
         # A TWO-RATE BILL HAS NO ONE RATE. The invoice's own `unit_rate_p_per_kwh` on a ToU bill
         # is the energy line over its volume (6.28 / 100.1 = 6.27p on C1/1, against Peak 12.72p and
         # Off-peak 4.21p), which is a quotient we worked out and not a rate anyone contracted. So

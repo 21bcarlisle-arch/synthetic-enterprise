@@ -75,3 +75,13 @@ duty register.
 4. **The ledger prints read type `M`**, "charged at the prepayment meter", where it printed `E`.
 5. **Not built:** a vend record per top-up, the annual statement document, debt loaded on the meter.
    The world records no vends (`PREPAYMENT_METHOD`'s own named gap), so there is nothing to print.
+6. **A statement the pre-bill gate holds on consumption scale alone is released on a listed
+   dwelling** (2026-10-27, K8 for `a-held-bill-is-released-and-billed`). The domestic ceiling hold
+   asks two things (`unbilled_energy_and_revenue_assurance.md` §4c). The council tax listing answers
+   whether this is a business mislabelled as domestic. An actual read answers whether the volume is
+   wrong, and a prepayment period needs no read for that: the meter charged what it recorded as used,
+   and the customer has already paid it. Holding the statement takes no charge back. It only leaves
+   the leg's record with a month nobody accounts for: on the 894503ba41 book, 5 held statements on
+   SYN-2016-561 and OCC-371b33ca4bdf (resi electricity, 2,100–2,300 kWh a month in winter), and 3
+   of `INV_PERIODS_CONTIGUOUS`'s 3 gaps. A statement held for any other reason (footing, sign,
+   period, VAT arithmetic) still stays held.

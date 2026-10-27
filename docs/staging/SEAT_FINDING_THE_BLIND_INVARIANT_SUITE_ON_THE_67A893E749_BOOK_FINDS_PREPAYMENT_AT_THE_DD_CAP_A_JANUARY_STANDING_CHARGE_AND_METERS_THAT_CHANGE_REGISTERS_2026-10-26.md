@@ -596,6 +596,29 @@ published Elexon and Ofgem documents. It wrote `INV_REGISTER_ID_ONE_LABEL` and
   investigates one and then bills it. Separately, a resi home at 25–60 MWh a year is a world-range
   question for `INV_ANNUAL_USE_ELEC_ACCOUNT`.
 
+**Correction (2026-10-27, worker, for `a-held-bill-is-released-and-billed`): the energy WAS billed.
+The defect was in the record, not the revenue.**
+- **The claim "9,150 kWh was never billed" is wrong.** The assembly already reconciles a held month as
+  billed nothing (`monthly_bill_assembly`, `back_billing_and_liability.md` §12). So the catch-up at
+  the next actual read is the held month's first demand. On the 4ae8da9b0f book, PROS-2017-0336's
+  2018-02-28 bill carries `catchup_unbilled_periods: 2`, a true-up of 9,151 kWh and £1,174.18. That
+  is exactly the held Dec–Jan true total. Nothing was capped and nothing was written off.
+- **All 9 held bills on that book (4 accounts) are taken up this way**, each by its next actual-read
+  bill, inside SLC 21BA's 12 months. So the release path asked for already existed. It is the one
+  `unbilled_energy_and_revenue_assurance.md` §4c–4d and `back_billing_and_liability.md` §12 describe:
+  a bill that cannot be validated waits for a read, and the read bills it.
+- **What was missing:** the bill that took the held months up did not say so. Its period stayed its
+  own month, so the export showed a gap. That bill now names the held periods
+  (`held_periods_reconciled`, from `generate_billing_ledger` through the raw export), and
+  `INV_PERIODS_CONTIGUOUS` reads them as billed days. A gap that nothing names is still a breach.
+- **Result:** on the ledger regenerated from 4ae8da9b0f, the check goes from 1 breach to 0 of
+  104,282. The exception is retired.
+- **The 25–60 MWh question is answered from evidence in hand, not raised.** DESNZ NEED 2026 puts 0.34%
+  of domestic properties above 25,000 kWh a year (`need_domestic_electricity_high_tail.md`). This book
+  has 2 of 1,751 electricity account-years above 25 MWh (0.11%, both PROS-2017-0336; the highest is
+  27.3 MWh), and none near 60. That sits inside the published tail. The held months annualise high
+  because they are winter months on a heavy home, which is what the ceiling hold exists to look at.
+
 **What the blind writer read** (its own list, verbatim):
 
 ```
