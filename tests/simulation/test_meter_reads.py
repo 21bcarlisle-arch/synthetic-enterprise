@@ -289,6 +289,23 @@ def test_generate_meter_read_log_multiple_customers_independent():
     assert by_cid["C10"]["meter_type"] == "traditional"
 
 
+def test_generate_meter_read_log_reads_a_gas_leg_by_the_gas_smart_mode_share():
+    """Defect: the re-derived log drew every leg at electricity's smart-mode share (6.8%), so a
+    smart gas meter whose household draw falls between that and gas's 14.2% read as communicating."""
+    cid = next(f"C{i}g" for i in range(1000)
+               if mr.is_not_in_smart_mode(f"C{i}g", "gas")
+               and not mr.is_not_in_smart_mode(f"C{i}g", "electricity"))
+    bills = [{"customer_id": cid, "commodity": "gas", "period_end": f"2020-{mo:02d}-28",
+              "total_consumption_kwh": 900.0} for mo in range(1, 13)]
+    log = generate_meter_read_log(bills, {cid: "smart"})
+    assert any(entry["status"] == "estimated" for entry in log)
+    running = 0
+    for bill, entry in zip(bills, log):
+        expected = simulate_read(cid, bill["period_end"], "smart", 900.0, running, commodity="gas")
+        assert entry["status"] == expected.status
+        running = expected.consecutive_estimated_count
+
+
 def test_read_cutoff_constant_is_positive():
     assert READ_CUTOFF_DAYS_AFTER_PERIOD_END > 0
 

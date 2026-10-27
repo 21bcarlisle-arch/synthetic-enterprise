@@ -742,6 +742,7 @@ def generate_meter_read_log(
         event = simulate_read(
             cid, bill["period_end"], customer_meter_types.get(cid, "traditional"),
             bill["total_consumption_kwh"], consecutive_by_customer.get(cid, 0),
+            commodity=bill.get("commodity", "electricity"),
         )
         consecutive_by_customer[cid] = event.consecutive_estimated_count
         log.append(read_event_to_log_entry(event))
