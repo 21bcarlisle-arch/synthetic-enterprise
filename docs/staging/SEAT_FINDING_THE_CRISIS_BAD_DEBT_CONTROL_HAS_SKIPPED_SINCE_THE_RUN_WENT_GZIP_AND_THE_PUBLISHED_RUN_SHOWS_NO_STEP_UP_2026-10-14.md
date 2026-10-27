@@ -1935,3 +1935,15 @@ closes less than a quarter, this ranking is refuted. Also owed: discovery on whe
 arrears stock depends on how fast the company collects. That decides whether (b) can reach it.
 
 **Status:** OPEN and BLOCKING. Step (iii) is read. Next is the price-held capture above.
+
+## 2026-10-27 (21:19Z): the price-held capture is pre-registered and launched. Nothing is graded
+
+Record: `docs/staging/records/SEAT_PREREG_THE_PRICE_HELD_CAPTURE_2020_21_2026-10-27.md`, written
+before either arm started. There are two paired world-only arms at `21f216076f`, run to 2022-03-31:
+`longjob-price-held-capture-21f216076f-{off,on}`. The thresholds are the ones filed above (at least
+half closed; under a quarter refutes the ranking). At real inputs the lever is small. Holding at 2019
+raises gas bills about 15%, leaves 2020 electricity flat and *lowers* 2021 electricity about 6%. So
+the record expects the ranking to be refuted, and says so before the answer.
+
+**Status:** OPEN and BLOCKING. Next: `python3 /var/tmp/price_held/grade.py` once both artefacts
+exist. Do not re-launch: ask `.launch_records.json` first.
