@@ -57,8 +57,15 @@ exceptions:
   - invariant: INV_PERIODS_CONTIGUOUS
     scope: 3 accounts (SYN-2016-561, OCC-371b33ca4bdf, PROS-2017-0336), 4 gaps of 32-91 days, all between Nov 2016 and Feb 2018
     reason: >-
-      Not predicted; no landed commit addressed it. Each gap sits before the first bill of a later
-      period, so it looks like a missing bill rather than a mis-dated one. Not traced.
+      Traced 2026-10-27 on the 871f674a2 book. Every gap is a bill the company's own pre-bill gate
+      HELD and never issued (company.billing.pre_bill_validation via tools/generate_billing_ledger.py:
+      the 14-bill exception_queue). Each was a resi electricity month of 2,100-4,300 kWh, held on
+      "slc_6_7_billing_accuracy ... implausible" and "vat_by_segment ... SME-as-Household". The world
+      settled every day of those months (all_records), so the energy exists. A held bill is never
+      re-issued, and the next bill opens at the last issued closing read, so the held months' energy
+      is never billed. Two defects, named and not yet fixed: (1) a held bill has no release, which is
+      a company defect; (2) whether a domestic home at 25-60 MWh a year is in the world's range,
+      which is a fidelity question for INV_ANNUAL_USE_ELEC_ACCOUNT.
     filed: 2026-10-27
-    retired_by: tracing one of the three accounts' missing period
+    retired_by: a held bill that is investigated and then issued, or corrected and issued, inside the 12-month back-billing window
     max_breached: 4

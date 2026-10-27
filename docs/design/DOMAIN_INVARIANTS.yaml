@@ -2293,3 +2293,91 @@ invariants:
   source: logic
   severity:
     violation: breach
+# Written blind 2026-10-27 by an agent that read only site/knowledge, docs/market_research,
+# docs/domain_artefact_library and published Elexon/Ofgem documents (files read: listed in the
+# 67a893e749 blind-suite finding, "Every breach ... now has a row"). Rows appended unedited.
+- id: INV_REGISTER_ID_ONE_LABEL
+  family: meter_physics
+  statement: On one meter serial, a register id keeps one label for as long as the meter keeps one settlement configuration. The strict form, one label for the serial's whole life, does NOT hold in GB. Under
+    the industry register-mapping convention, register 1 is "single rate" on a single-rate SSC and "peak" on a multi-rate SSC. A smart meter can lawfully be moved from one SSC to another without an exchange,
+    at a change of supplier or at a tariff change. So a register id can lawfully be relabelled at a configuration change, but never within one configuration. One separation is physical and holds under
+    every configuration. On a smart meter, the total cumulative import register is a different register from the time-of-use registers. So an id that reads as the total is never also a time band.
+  predicate: 'For each meter_serial, order its periods by period_start. Split them into configuration runs: maximal runs of consecutive periods that share the same set of (register_id, register_label) pairs
+    in registers[]. Three tests follow. (a) BREACH: within one period, a register_id carries more than one register_label across registers[] and reads[]. (b) BREACH: on one serial, one register_id carries
+    both a total/cumulative label (Total, Anytime, Single rate, Unrestricted) and a time-band label (Peak, Off-peak, Day, Night, Evening/Weekend, Heating) where the reads under both labels form one
+    continuous cumulative series. That is one physical register given two identities. The usual sign is a jump in read_kwh at the relabel that matches neither label''s own advance. (c) FLAG: a register_id
+    changes label between two configuration runs. This is lawful only at a reconfiguration, so the boundary should coincide with a change in contracted_terms (tariff_type or tou_unit_rates, at a
+    tariff_effective_from within the boundary period). A relabel with no term change at the boundary is flagged "relabelled_without_visible_reconfiguration". The flag is not a breach, because a change of
+    SSC is not exported.'
+  lower: null
+  upper: null
+  source: 'Elexon, Issue 79 Workgroup 1 slide pack v2.0, 20 May 2019, "SSC/TPR to Meter Register mapping conventions (DTC)" (slide 17): "Register 1: Single rate; or peak for multi-rate SSCs; or heating load
+    for secondary MPAN; 2: off-peak for multi-rate SSCs; 3: Evening/weekend ...; 4: Seasonal ...". Example mappings (slides 18-19): SSC 0393 TPR 00001 register 1 Unrestricted; SSC 0151 TPR 00043 register 1
+    peak and TPR 00210 register 2 off-peak. Slide 20 (P302): "All 48 ToU register readings plus Total Cumulative register reading", "Register readings for old SSC" and "Register readings for new SSC".
+    Slide 22: "the new Supplier adopts a new SSC with fewer Time Pattern Regimes than losing Supplier''s SSC". https://assets.elexon.co.uk/wp-content/uploads/sites/11/2019/05/28155716/Issue-79-WG1-Slidestack-v2.0.pdf.
+    Ofgem, BSC P302 decision, 18 Jun 2015, p.2: the new supplier collects "the total cumulative and time of use meter register readings retrieved from the meter at the point that it is reconfigured"; p.3:
+    "the ease with which the new supplier will be able to reconfigure the meter on CoS". https://www.ofgem.gov.uk/sites/default/files/docs/2015/06/p302d.pdf'
+  severity:
+    label_conflict_within_period: breach
+    total_register_relabelled_as_band: breach
+    relabel_across_configurations: flag
+  export_fields:
+  - meter_serial
+  - period_start
+  - registers.register_id
+  - registers.register_label
+  - reads.register_id
+  - reads.register_label
+  - reads.read_date
+  - reads.read_kwh
+  - contracted_terms.tariff_type
+  - contracted_terms.tou_unit_rates
+  - contracted_terms.tariff_effective_from
+  checkable: partial
+  gap: 'The export has no SSC, TPR or MTC field and no reconfiguration event, so a lawful relabel cannot be told from a defective one: (c) is a flag only. The DTC mapping is a convention in an Elexon
+    workgroup pack, not a quoted BSC obligation, and register_id in this export may not be the DTC settlement register id. Which tariff register a smart meter bills a single-rate tariff on (the total
+    register or TOU register 1) is not established in any source read. A relabel at a change of supplier is invisible, because this book only sees its own tenure.'
+- id: INV_SERIAL_REGISTER_COUNT_STABLE
+  family: meter_physics
+  statement: 'The strict form is NOT established, and for smart meters it is false. A smart meter''s set of billed and settled registers can lawfully change with no exchange and no new serial. The new
+    supplier reconfigures the meter at a change of supplier, and the SSC can change to one with fewer or more Time Pattern Regimes (Elexon Issue 79, Ofgem P302). A SMETS meter "can be operated in credit or
+    prepayment mode and change configuration ... on any Time Pattern Regime / Tariff" (Elexon Issue 67). A Multi-Register Tariff is a contract "regardless of the metering equipment employed" (SLC 28AD /
+    SLC 1). What remains is a stated belief for traditional (non-smart) meters: their registers are fixed by the hardware and its timeswitch, so the count should change only at an exchange. That belief
+    is unverified. The narrowed and checkable form: a serial''s register count changes only at a boundary where the contracted tariff structure also changes.'
+  predicate: 'For each meter_serial, let n(p) = count(distinct register_id) in registers[] of period p, falling back to reads[] when registers[] is empty. Compare consecutive periods p1 and p2 on the same
+    serial. (a) If n(p1) != n(p2), FLAG "register_count_changed_without_tariff_change" unless contracted_terms shows a change of tariff_type or of the tou_unit_rates band set, with a tariff_effective_from
+    in [p1.period_start, p2.period_end]. (b) BREACH: n changes within one period, meaning two reads of the same period on the same serial carry different register_id sets on the same read_date. (c)
+    Exchange: a change of meter_serial on one mpan (or mprn) between consecutive periods is the only visible exchange. The register sets on the two sides of it are not compared, so any count is lawful
+    there. A serial that comes back on the same mpan after another serial is treated as a new life. (d) If n changes and the earlier register is still read later on the same serial, that is not a count
+    change; the test is on the set, not on gaps in reading.'
+  lower: null
+  upper: null
+  source: 'Elexon, Issue 79 WG1 slide pack v2.0, 20 May 2019, slide 22 "Summary of Issue": "Will occur where the new Supplier adopts a new SSC with fewer Time Pattern Regimes than losing Supplier''s SSC";
+    slide 20 (P302): register readings "for old SSC" and "for new SSC" on one meter; slides 6-8: a Utilita SMETS single-rate tariff "Creates separate blocks within the SMETS configuration for each rate"
+    (2 blocks single-rate, 3 E7), https://assets.elexon.co.uk/wp-content/uploads/sites/11/2019/05/28155716/Issue-79-WG1-Slidestack-v2.0.pdf. Ofgem BSC P302 decision, 18 Jun 2015, pp.2-3 (reconfiguration
+    at CoS, no exchange), https://www.ofgem.gov.uk/sites/default/files/docs/2015/06/p302d.pdf. Elexon BSCP40/04 Issue 67 form "Meter Timeswitch Code for Smart Meters", 16 Jan 2017, Issue Description and
+    Justification, https://assets.elexon.co.uk/wp-content/uploads/sites/11/2017/01/28161831/BSCP40_04-Issue-Meter-Timeswitch-Code-for-Smart-Meters_v1.0.pdf. SLC 1 definition of Multi-Register Metering
+    Arrangement, docs/domain_artefact_library/regulatory/slc_28ad_multi_register_cap_test.md (Definitions, S1 verbatim). Traditional-meter half: belief (strong logic), no quoted rule.'
+  severity:
+    count_change_within_period: breach
+    count_change_without_tariff_change: flag
+    count_change_at_tariff_change: pass
+    count_change_at_serial_change: pass
+  export_fields:
+  - mpan
+  - mprn
+  - meter_serial
+  - period_start
+  - period_end
+  - registers.register_id
+  - reads.register_id
+  - reads.read_date
+  - contracted_terms.tariff_type
+  - contracted_terms.tou_unit_rates
+  - contracted_terms.tariff_effective_from
+  checkable: partial
+  gap: 'UNESTABLISHED in strict form, and refuted for smart meters. The export carries no meter type, MTC, SSC or exchange event, so the evaluator cannot apply the strict rule even to the traditional meters
+    it might hold for: every count change is at most a flag. Not seen: (1) a change of SSC at a change of supplier, which is outside this book''s tenure; (2) a "dummy meter exchange" (DMEX, Issue 79 slides
+    11-12), an exchange recorded in the industry data with no new physical meter, which may keep the serial; (3) an exchange that refits the same serial; (4) a tariff change whose register change lags
+    the term date. Whether a traditional Economy 7 meter moved to a single-rate tariff keeps two registers, is reprogrammed, or is exchanged is not established in any source read (practitioner question).
+    A Multi-Register Metering Arrangement can span two meters (E10 primary/secondary MPAN, SSC 0980/0981), so the count is per serial and never per account.'
