@@ -27,6 +27,11 @@
 # carries the company's clamp at the payment method's own column, grades 0 of 5,921 (elec) and
 # 0 of 4,721 (gas), from 298 and 249. Grade beside
 # docs/staging/records/SEAT_PREREGISTRATION_THE_FRESH_RUN_AT_2EEB3F0B3_CARRIES_THE_CLAMP_THE_OCCUPIER_CREDIT_UIG_AND_THE_SHARED_HUB_2026-10-27.md.
+#
+# 2026-10-27: the INV_RENEWAL_NOTICE_42_TO_49_DAYS exception (1,338) is retired. The run now sends the
+# SLC 22C statement on day 42, and a fresh full run carrying it grades 0 of 1,170 domestic fixed
+# terms owed one. The 2eeb3f0b3 book, graded by the same evaluator, still breaches 1,323 of 1,323.
+# Grade beside docs/staging/records/SEAT_PREREGISTRATION_THE_SLC_22C_STATEMENT_ON_A_FRESH_RUN_2026-10-27.md.
 enforce: true
 exceptions:
   - invariant: INV_PPM_NOT_CREDIT_BILLED
@@ -62,16 +67,6 @@ exceptions:
   # 2026-10-27: four cold-read rows read the company's own dated acts (`raw_account_export.account_events`).
   # Grade and causes beside the pre-registration,
   # docs/staging/records/SEAT_PREREGISTRATION_THE_SIX_COLD_READ_ROWS_ON_THE_2EEB3F0B3_BOOK_2026-10-27.md.
-  - invariant: INV_RENEWAL_NOTICE_42_TO_49_DAYS
-    scope: every fixed term ending in supply on the 2eeb3f0b3 book, 1,338 terms
-    reason: >-
-      The company records no end-of-fixed-term notice: company/crm/renewal_notice_register.py
-      implements the 42-49 day window and nothing in the run calls it. Its only dated renewal act is
-      the retention offer, made on the day the term ends (163 at 0 days, 2 at -9); 1,173 terms have
-      no offer at all. Not a reading error: SLC 22C.4(a) needs the notice for every fixed term.
-    filed: 2026-10-27
-    retired_by: the company sending and recording an SLC 22C notice 42-49 days before each fixed term ends (wired 2026-10-27, item the-renewal-notice-is-sent-42-to-49-days-before-a-fixed-term-ends), and a run carrying it
-    max_breached: 1338
   - invariant: INV_OVERDUE_WITHIN_BALANCE
     scope: 1,987 of 7,151 collections-journey openings on the 2eeb3f0b3 book (second leg only)
     reason: >-

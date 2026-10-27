@@ -41,3 +41,32 @@ about 56 minutes (`/var/tmp/fresh-run-2eeb3f0b3.log`, 3,351 s).
 - Whether any household reacts to a statement. No world code reads it (GAP, named on the page).
 - Whether a retention offer on the day a fix ends is a defect. The text dates the statement, not an
   offer of a new contract (22C.8(c)); a practitioner question, filed beside the finding.
+
+## Grade (written after both runs returned)
+
+**Runs.** The 2016-17 window was `run_phase2b.main(report_end="2017-12-31")` at the landing's code.
+The full run was `/var/tmp/fresh-run-scripts/arm.py` from a worktree at 66ac2ec58a plus this item's
+uncommitted change, which landed unchanged as 50c14a9dc. It took 3,864 s and skipped no keys. It
+wrote `/var/tmp/fresh-run-out-slc22c`. Its ledger was built with `build_ledger.py` and graded with
+`python3 -m tools.domain_invariant_runner --ledger /var/tmp/slc22c-grade/ledger.json`
+(`/var/tmp/slc22c-grade/report.txt`, `result.json`).
+
+- **P1 held.** 569 statements. Every one was exactly 42 days before its `fixed_term_end`, none was
+  dated on a day its term was unsupplied, and none was sent twice. One thing was not predicted:
+  measured against the term rows, 575 terms looked "owed" and 6 got no statement. Three of those
+  are non-domestic (C5, C6). The other three are rows for terms their household never started,
+  because it left at the term's start: a term row is written before the departure roll. So the
+  run test grades the window, the supplied day and uniqueness against the rows, and leaves
+  completeness to the billed book (`tests/simulation/test_the_run_sends_the_slc_22c_statement.py`,
+  3 passed).
+- **P2 held.** `INV_RENEWAL_NOTICE_42_TO_49_DAYS` is **CLEAN: 0 of 1,170** domestic fixed terms
+  owed a statement (predicted 0 of 1,000-1,400). The 1,338 exception is retired.
+- **Control (the evaluator is keyed to the property, not to this answer).** The 2eeb3f0b3 ledger,
+  graded by the same evaluator, still **breaches 1,323 of 1,323**. 15 non-domestic terms left the
+  count, and on a book with no statements the evaluator falls back to the offer.
+- **P3, reported and not attributed.** Exactly one other row moved:
+  `INV_EBSS_CREDIT_EACH_MONTH_OCT22_MAR23`, from 12 to 8 of 2,269. ff937d809e (the occupier EBSS
+  fix) landed after 2eeb3f0b3 and predicted 12 -> 5-7, so 8 is just outside its range. A statement
+  nothing reads cannot reach a credit, but this run cannot separate the two changes. Every other
+  row's checked, breached and flagged counts are identical. Publish gate: 0 unexcepted breaches,
+  4 excepted.

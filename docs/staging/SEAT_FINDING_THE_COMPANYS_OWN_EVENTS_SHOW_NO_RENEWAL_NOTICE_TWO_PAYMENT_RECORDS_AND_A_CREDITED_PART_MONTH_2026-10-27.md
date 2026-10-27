@@ -18,7 +18,9 @@ Each defect is excepted, capped at its count, in `docs/design/DOMAIN_INVARIANT_E
    the run sends the SLC 22C statement on day 42 to each domestic fixed term supplied that day, and
    the export carries it. Text first: `docs/domain_artefact_library/regulatory/slc_22c_end_of_fixed_term_statement.md`.
    On the 2016-17 window, 569 statements, every one at exactly 42 days, none on an unsupplied day.
-   Full-run grade: `docs/staging/records/SEAT_PREREGISTRATION_THE_SLC_22C_STATEMENT_ON_A_FRESH_RUN_2026-10-27.md`.
+   **A fresh full run grades the row 0 of 1,170** (the 2eeb3f0b3 book, same evaluator: 1,323 of
+   1,323); the 1,338 exception is retired. Grade:
+   `docs/staging/records/SEAT_PREREGISTRATION_THE_SLC_22C_STATEMENT_ON_A_FRESH_RUN_2026-10-27.md`.
    **Not done, on purpose:** the offer was NOT moved. On reading the text, 22C dates the statement
    and an offer to extend the same contract (22C.5, inside the statement), and does not date a new
    fixed contract's offer (22C.8(c)). Moving the offer means deciding 42 days earlier, a commercial
