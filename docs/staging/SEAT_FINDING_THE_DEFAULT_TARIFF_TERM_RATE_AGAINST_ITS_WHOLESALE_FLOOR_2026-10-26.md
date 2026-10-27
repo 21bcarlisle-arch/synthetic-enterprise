@@ -42,3 +42,9 @@ The ceiling check reproduces 27,197 AGREED = 15,150 + 12,047. The prediction hel
 - The margin is wide (1.26x at worst). The floor would only catch a gross under-pricing; a rate
   between the floor and the cap is unconstrained. A tighter floor needs the network and policy
   components, which the cap model publishes per component in the same workbook.
+
+## Correction, 2026-10-27
+
+"Network and policy are not separable in the commons" was wrong. The cap model carries `NC` and
+`PC` as their own rows, and gas has its own sheets. Both are now extracted, and the floor covers
+gas and DF+CM+NC+PC: `SEAT_FINDING_THE_DEFAULT_TARIFF_FLOOR_NOW_COVERS_GAS_AND_NETWORK_AND_POLICY_2026-10-27.md`.
