@@ -1970,3 +1970,16 @@ Q1 tests whether agreements carry two thirds of the repeat failers' drop. Q2 tes
 top stress tier's share falls by a third. Grader: `/var/tmp/price_held/grade_plans.py`.
 
 **Status:** OPEN and BLOCKING. Next: grade it. Do not re-launch: ask `.launch_records.json` first.
+
+## 2026-10-27 (22:20Z): plans refuted (the world agrees none), stress inconclusive, and the halving may be seven households
+
+*Correction beside the 21:52Z ranking.* Plans cannot end the 2020 failing because the world agrees no
+plan. Take-up is a named GAP, so all 2,923 offers go unanswered. The stress tier's top share falls 13%,
+which is inconclusive and small. The new lead is concentration. About seven accounts carry 42-47% of
+every year's failed pounds, on both dice seeds. A household failing every 2019 bill can fail none in
+2020 while still billed. The dice seed does not re-draw the cast. So two independent book seeds
+(61101, 61102) are pre-registered and queued: `SEAT_PREREG_IS_THE_2020_HALVING_A_FEW_HOUSEHOLDS_2026-10-27.md`.
+If either seed keeps 85% or more of its 2019 share, the 2020-21 leg is a sample-size bound on the
+default book, not a defect.
+
+**Status:** OPEN and BLOCKING. Next: grade the two book seeds (`longjob-book-seed-capture-21f216076f-{61101,61102}`).
