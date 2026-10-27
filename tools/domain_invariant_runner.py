@@ -28,9 +28,11 @@ Five statuses are never "clean":
 Readings this runner makes where the file's text leaves a choice, each named where it is used:
   * `tariff_effective_to` is EXCLUSIVE: on the books measured, every successive term starts on the
     previous term's `tariff_effective_to`.
-  * an ACCOUNT is one `customer_id`. The export carries one fuel per account and no household
-    link, so the file's "same customer_id also holds gas" heating-class proxy is never true and
-    the all-domestic band is used instead.
+  * an ACCOUNT is one `customer_id`, one fuel. The file's heating-class proxy ("same customer_id
+    also holds gas") is read through the export's `billing_account_id`, which both fuels of one
+    household share: an electricity account whose billing account also holds gas takes the
+    gas-heated band, one whose billing account holds none takes the not-gas-heated band. An
+    export without `billing_account_id` falls back to the all-domestic band.
   * the read duty also counts the run from the last actual read to the end of supply: the duty
     runs for as long as the account is supplied.
 
@@ -103,6 +105,7 @@ def load_book(raw_path: Path | None = None, ledger_path: Path | None = None) -> 
 class Account:
     def __init__(self, cid: str, raw: dict):
         self.cid, self.segment = cid, raw.get("segment")
+        self.billing_account = raw.get("billing_account_id")
         self.periods = sorted(raw.get("periods", ()), key=lambda p: p["period_start"])
         self.fuel = self.periods[0]["commodity"] if self.periods else None
         self.payments = sorted((p for p in raw.get("payments", ()) if p.get("payment_date")),
@@ -397,13 +400,28 @@ def _binomial_upper(n: int, p: float, z: float = 3.09) -> float:
     return p + z * math.sqrt(p * (1 - p) / n) if n else 1.0
 
 
+def _heating_band(inv, a, gas_billing_accounts):
+    """The flag band for this account's heating class (the runner's reading, module docstring)."""
+    bands = inv.get("flag_bands") or ()
+
+    def starting(prefix):
+        return next((b for b in bands if str(b.get("class", "")).startswith(prefix)), None)
+
+    every = starting("all") or {}
+    if a.fuel != "electricity" or not a.billing_account:
+        return every
+    cls = starting("gas-heated") if a.billing_account in gas_billing_accounts else starting("gas not")
+    # a class band carries only its own percentiles; the 500 kWh floor is the all-domestic band's
+    return dict(every, **(cls or {}))
+
+
 def _annual_use(inv, book, fuel, hard_flag_upper=None):
     tally = Tally("complete calendar account-year ({})".format(fuel))
-    band = next((b for b in inv.get("flag_bands") or ()
-                 if str(b.get("class", "")).startswith("all")), {})
+    gas_billing_accounts = {a.billing_account for a in book if a.fuel == "gas" and a.billing_account}
     years = list(account_years(book, fuel))
     above_p99 = 0
     for a, year, kwh in years:
+        band = _heating_band(inv, a, gas_billing_accounts)
         where = "{} {} {:.0f} kWh".format(a.cid, year, kwh)
         tally.band(where, kwh, _num(inv.get("lower")), _num(inv.get("upper")))
         lo, hi = _num(band.get("flag_lower")), _num(band.get("flag_upper_p99"))
@@ -414,7 +432,7 @@ def _annual_use(inv, book, fuel, hard_flag_upper=None):
             tally.hit("flag", where, kwh, hi, "above the class p99")
         if hard_flag_upper is not None and kwh > hard_flag_upper:
             tally.hit("flag", where, kwh, hard_flag_upper, "above the hard flag")
-    if years and band.get("flag_upper_p99") is not None:
+    if years and any(b.get("flag_upper_p99") is not None for b in inv.get("flag_bands") or ()):
         share, bound = above_p99 / len(years), _binomial_upper(len(years), 0.01)
         tally.book = {"above_p99": above_p99, "of": len(years), "share": round(share, 4),
                       "upper_999": round(bound, 4), "flag": share > bound}
