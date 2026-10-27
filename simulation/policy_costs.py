@@ -28,7 +28,9 @@ is also exempt from electricity CCL. Phase 30b adds gas-side costs: gas CCL
 """
 
 import json
+from bisect import bisect_right
 from datetime import date, timedelta
+from functools import lru_cache
 from pathlib import Path
 
 # RO effective cost floor (£/MWh) by obligation year start.
@@ -552,98 +554,107 @@ def get_ggl_per_mwh(date_str: str, aq_kwh: float) -> float:
 # cap standing charges (46p/53p/61p electricity, 28p/29p/31p gas), and Ofgem publishes those
 # INCLUDING VAT, so the world booked the VAT as supplier revenue and the bill grossed it a second
 # time (SEAT_FINDING_THE_DD_BOOKS_NOW_OPEN_AT_THE_STANDING_CHARGE_SOLD_AND_THE_WORLDS_CHARGE_MAY_
-# CARRY_VAT_TWICE_2026-10-01). The pre-2022 rows were "typical market averages" with no source.
+# CARRY_VAT_TWICE_2026-10-01).
 #
-# Source, every row: Ofgem default tariff cap level model v1.31
-# (`sim/cache/ofgem_cap_level_models/Default-tariff-cap-level-v1.31.xlsx`, the same edition
-# `tools/ofgem_cap_unit_rate_composition` reads), sheets `ElecSingle_Other_Nil` and `Gas_Other_Nil`
-# — the NIL-CONSUMPTION allowance is the standing charge, by Ofgem's own construction, and the
-# model's components are ex-VAT. "Other" is direct debit. Per cap period: the median of Total/365
-# over the sheet's 15 Total rows -- the 14 regions AND the model's own "GB average" row, which is
-# what reproduces these figures (regions alone run up to 0.22p/day different on electricity, 0.5p in
-# 2025; gas is the same either way); per calendar year: the day-weighted mean of the periods in
-# force, the cap column winning where the model's historical and cap columns overlap (early 2019).
-# `tests/simulation/test_standing_charge_reproduces_the_cap_model.py` re-derives every row.
-# Corroboration of the basis: Oct 2022 gas 27.13p ex-VAT x 1.05 = 28.49p, Ofgem's published inc-VAT
-# figure to the penny. Electricity's regional spread is wide (e.g. 36-59p in 2023), so a
-# GB median is not any one household's charge; the world has no regional standing charge.
+# STEPPED ON THE CAP'S OWN DATES, NOT THE CALENDAR YEAR. Until 2026-10-27 these were two tables
+# keyed by calendar year, each row the day-weighted blend of the cap periods in force that year.
+# A blend is right for a year's total and wrong for every day in it: Jan-Mar 2022 electricity was
+# charged 40.22p against a cap of 23.68p (1.70x, the April rise three months early) and Apr-Dec
+# 2022 0.87-0.89x the cap, so crisis revenue moved INTO the quarter before the crisis bit. Gas
+# carried the same shape at 0.95-1.07x. Found by the blind invariant suite on the 67a893e749 book
+# (SEAT_FINDING_THE_BLIND_INVARIANT_SUITE_ON_THE_67A893E749_BOOK_..._2026-10-26, breach class 2).
+# The reader now serves the cap period in force on the date asked, from the commons artefact.
 #
-# GAP, carried rather than filled: the 2016-2018 rows are periods BEFORE the cap was in force
-# (2019-01-01). The model back-casts Ofgem's methodology over them, so they are a notional cap
-# level, not an observed market tariff; nothing in the commons yet says what suppliers actually
-# charged then. 2025 is the last year the world runs; a date after it clamps to 2025.
-_ELEC_SC_PENCE_PER_DAY_BY_YEAR: dict[int, float] = {
-    2016: 19.22,  # notional (pre-cap back-cast)
-    2017: 18.98,  # notional
-    2018: 19.93,  # notional
-    2019: 22.13,
-    2020: 22.99,
-    2021: 23.57,
-    2022: 40.22,  # 23.68p to March, 45.31p from April, 46.28p from October
-    2023: 50.13,
-    2024: 57.11,
-    2025: 51.23,  # 59.57p to March, 49.63p from April, 46.82p from July, 49.04p from October
-}
+# Source: Ofgem default tariff cap level model v1.31, sheets `ElecSingle_Other_Nil` and
+# `Gas_Other_Nil`, as carried per cap period by
+# `docs/domain_artefact_library/regulatory/ofgem_cap_standing_charges.json` -- the NIL-CONSUMPTION
+# allowance is the standing charge by Ofgem's own construction, "Other" is direct debit, and the
+# figure is the median of the sheet's 15 Total rows (14 regions and the model's GB-average row).
+# Electricity's regional spread is wide (e.g. 36-59p in 2023), so a GB median is not any one
+# household's charge; the world has no regional standing charge, and no prepayment or
+# standard-credit column (every account is charged the DD level -- breach class 1 of the same
+# finding, not fixed here).
+#
+# Two periods overlap (Oct 2018-Mar 2019 historical and the cap's first, Jan-Mar 2019): the one
+# that STARTS latest is in force. GAP, carried rather than filled: periods before 2019-01-01 are
+# Ofgem's back-cast of its own methodology, a notional cap level and not what suppliers charged.
+# A date outside the artefact's span (Apr 2015 - Dec 2026; the world runs 2016-2025) is served
+# the nearest period.
+_CAP_STANDING_CHARGE_ARTEFACT = (
+    Path(__file__).resolve().parents[1]
+    / "docs" / "domain_artefact_library" / "regulatory"
+    / "ofgem_cap_standing_charges.json"
+)
 
-# Daily gas standing charge, pence/day EX-VAT. Source and basis: as the electricity table above --
-# Ofgem default tariff cap level model v1.31, sheet `Gas_Other_Nil`, re-derived row by row in
-# `tests/simulation/test_standing_charge_reproduces_the_cap_model.py`; 2016-2018 are notional.
-_GAS_SC_PENCE_PER_DAY_BY_YEAR: dict[int, float] = {
-    2016: 20.93,  # notional (pre-cap back-cast)
-    2017: 21.28,  # notional
-    2018: 22.69,  # notional
-    2019: 25.14,
-    2020: 25.59,
-    2021: 25.10,
-    2022: 25.97,
-    2023: 27.70,
-    2024: 28.57,
-    2025: 29.58,
-}
+
+def _load_cap_standing_charges() -> dict[str, tuple[tuple[str, ...], tuple[float, ...]]]:
+    """`{fuel: (period start dates ascending, pence/day ex-VAT)}` from the regulation commons.
+
+    Raises at import on a missing artefact, a missing fuel, or a gap between periods: a
+    standing charge read across a hole would be served the period before it and say nothing.
+    """
+    if not _CAP_STANDING_CHARGE_ARTEFACT.exists():
+        raise FileNotFoundError(
+            f"cap standing-charge commons artefact missing: {_CAP_STANDING_CHARGE_ARTEFACT}. "
+            "The cap model's per-period figures are required; there is no invented default."
+        )
+    by_fuel = json.loads(_CAP_STANDING_CHARGE_ARTEFACT.read_text()).get("periods") or {}
+    out = {}
+    for fuel in ("electricity", "gas"):
+        periods = sorted(by_fuel.get(fuel) or (), key=lambda r: r["starts"])
+        if not periods:
+            raise ValueError(f"{_CAP_STANDING_CHARGE_ARTEFACT.name} carries no {fuel} periods")
+        for prev, nxt in zip(periods, periods[1:]):
+            if nxt["starts"] > prev["ends_before"]:
+                raise ValueError(
+                    f"{fuel} cap standing charge has a gap: {prev['cap_period']!r} ends before "
+                    f"{prev['ends_before']}, {nxt['cap_period']!r} starts {nxt['starts']}"
+                )
+        out[fuel] = (
+            tuple(r["starts"] for r in periods),
+            tuple(float(r["p_per_day_ex_vat"]) for r in periods),
+        )
+    return out
+
+
+_CAP_SC_PENCE_PER_DAY: dict[str, tuple[tuple[str, ...], tuple[float, ...]]] = (
+    _load_cap_standing_charges()
+)
 
 # SME meter capacity standing charge multiplier vs resi (larger meters, higher capacity).
 _SME_SC_MULTIPLIER: float = 1.5
 
 
+@lru_cache(maxsize=8192)
+def _cap_sc_pence(fuel: str, day: str) -> float:
+    """The cap period in force on `day` (YYYY-MM-DD): the latest-starting period begun by then."""
+    starts, pence = _CAP_SC_PENCE_PER_DAY[fuel]
+    return pence[max(bisect_right(starts, day) - 1, 0)]
+
+
 def get_electricity_standing_charge_per_day(date_str: str, segment: str = "resi") -> float:
-    """Daily electricity standing charge (£/day, EX-VAT) by year and segment.
+    """Daily electricity standing charge (£/day, EX-VAT) for the cap period in force on the date.
 
     Resi/SME: covers metering costs, network fixed capacity, and supplier admin.
     SME pays 1.5x the resi rate (larger meter, higher capacity charge).
     I&C: returns 0.0 -- capacity charges handled via BSC settlement mechanism.
-    Falls back to nearest known year.
     """
     if segment == "I&C":
         return 0.0
-    year = int(date_str[:4])
-    if year in _ELEC_SC_PENCE_PER_DAY_BY_YEAR:
-        pence = _ELEC_SC_PENCE_PER_DAY_BY_YEAR[year]
-    elif year < min(_ELEC_SC_PENCE_PER_DAY_BY_YEAR):
-        pence = _ELEC_SC_PENCE_PER_DAY_BY_YEAR[min(_ELEC_SC_PENCE_PER_DAY_BY_YEAR)]
-    else:
-        pence = _ELEC_SC_PENCE_PER_DAY_BY_YEAR[max(_ELEC_SC_PENCE_PER_DAY_BY_YEAR)]
-    sc = pence / 100.0
+    sc = _cap_sc_pence("electricity", date_str[:10]) / 100.0
     return sc * _SME_SC_MULTIPLIER if segment == "SME" else sc
 
 
 def get_gas_standing_charge_per_day(date_str: str, segment: str = "resi") -> float:
-    """Daily gas standing charge (£/day, EX-VAT) by year and segment.
+    """Daily gas standing charge (£/day, EX-VAT) for the cap period in force on the date.
 
     Resi/SME: covers gas meter fixed charges (metering + network fixed component).
     SME pays 1.5x the resi rate.
     I&C: returns 0.0 -- transportation tariffs handled separately.
-    Falls back to nearest known year.
     """
     if segment == "I&C":
         return 0.0
-    year = int(date_str[:4])
-    if year in _GAS_SC_PENCE_PER_DAY_BY_YEAR:
-        pence = _GAS_SC_PENCE_PER_DAY_BY_YEAR[year]
-    elif year < min(_GAS_SC_PENCE_PER_DAY_BY_YEAR):
-        pence = _GAS_SC_PENCE_PER_DAY_BY_YEAR[min(_GAS_SC_PENCE_PER_DAY_BY_YEAR)]
-    else:
-        pence = _GAS_SC_PENCE_PER_DAY_BY_YEAR[max(_GAS_SC_PENCE_PER_DAY_BY_YEAR)]
-    sc = pence / 100.0
+    sc = _cap_sc_pence("gas", date_str[:10]) / 100.0
     return sc * _SME_SC_MULTIPLIER if segment == "SME" else sc
 
 
@@ -688,12 +699,10 @@ YEAR_KEY_BASIS: dict[str, str] = {
     #   CfD interim levy rate: EMR Settlement publishes an annual average per calendar year.
     #   Mutualization: the module comment above states "calendar year basis" and cites
     #     calendar-year SoLR recovery totals.
-    #   Standing charges: sourced from Ofgem quarterly cap periods, which are calendar
-    #     quarters ("Q4 2022", "Q1 2023"), not an Apr-Mar year.
+    # The standing charges left this registry on 2026-10-27: they are keyed by cap period, not
+    # by any year (see `_load_cap_standing_charges`).
     "_CFD_LEVY_BY_YEAR": "calendar",
     "_MUTUALIZATION_LEVY_BY_YEAR": "calendar",
-    "_ELEC_SC_PENCE_PER_DAY_BY_YEAR": "calendar",
-    "_GAS_SC_PENCE_PER_DAY_BY_YEAR": "calendar",
 }
 
 

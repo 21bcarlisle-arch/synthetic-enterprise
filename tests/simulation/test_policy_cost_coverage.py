@@ -21,7 +21,8 @@ ROOT = Path(__file__).resolve().parents[2]
 def test_the_census_covers_every_registered_table():
     """VACUITY GUARD, and the same census leg the year-basis control already runs. A table that
     slips the registry is invisible to every other test here, so this one is unconditional."""
-    assert len(pc.YEAR_KEY_BASIS) >= 13
+    # 11: the two standing-charge tables left on 2026-10-27, keyed by cap period, not year.
+    assert len(pc.YEAR_KEY_BASIS) >= 11
     for name in pc.YEAR_KEY_BASIS:
         first, last = pc.table_coverage(name)
         assert isinstance(first, int) and isinstance(last, int)

@@ -61,15 +61,8 @@ _READERS: dict[str, tuple] = {
     "_GGL_RATE_GBP_PER_METER_YEAR": (
         policy_costs.get_ggl_per_mwh, {"aq_kwh": _AQ_KWH}, lambda r: r / (_AQ_KWH / 1000.0), 2022,
     ),
-    # Standing charges are held in pence/day and returned in £/day.
-    "_ELEC_SC_PENCE_PER_DAY_BY_YEAR": (
-        policy_costs.get_electricity_standing_charge_per_day,
-        {"segment": "resi"}, lambda r: r / 100.0, None,
-    ),
-    "_GAS_SC_PENCE_PER_DAY_BY_YEAR": (
-        policy_costs.get_gas_standing_charge_per_day,
-        {"segment": "resi"}, lambda r: r / 100.0, None,
-    ),
+    # The standing charges left on 2026-10-27: keyed by cap period, not by year, and held by
+    # tests/simulation/test_standing_charge_reproduces_the_cap_model.py on every run day.
 }
 
 

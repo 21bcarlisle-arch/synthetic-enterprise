@@ -98,11 +98,8 @@ _PINNED_ELSEWHERE: dict[str, str] = {
     # Its old unverified reason — "the pin is the Annex 9 row and not the quotient" — was right
     # and is now moot: the quotient is stated in the artefact's own `basis.derivation`.
     "_CM_LEVY_BY_YEAR": "tests/architecture/test_year_keyed_rate_table_census.py",
-    # Both standing-charge tables left `_UNVERIFIED_TABLES` on 2026-10-01: the commons now carries
-    # the cap model's per-period figures and that file does the calendar-year blend as a stated
-    # reading -- exactly the shape the old unverified reason said the pin must have.
-    "_ELEC_SC_PENCE_PER_DAY_BY_YEAR": "tests/simulation/test_standing_charge_reproduces_the_cap_model.py",
-    "_GAS_SC_PENCE_PER_DAY_BY_YEAR": "tests/simulation/test_standing_charge_reproduces_the_cap_model.py",
+    # Both standing-charge tables are gone (2026-10-27): the readers serve the commons' cap
+    # periods directly, held by tests/simulation/test_standing_charge_reproduces_the_cap_model.py.
 }
 
 # Tables with NO values-vs-source pin yet, each with the reason. Declared rather than omitted:

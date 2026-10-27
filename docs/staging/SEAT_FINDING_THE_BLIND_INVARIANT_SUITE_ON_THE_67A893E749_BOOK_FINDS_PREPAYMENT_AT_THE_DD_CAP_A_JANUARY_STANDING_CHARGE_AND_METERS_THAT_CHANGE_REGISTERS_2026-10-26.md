@@ -208,3 +208,91 @@ account, or pair of reads.
   the publish gate, as the ruling's step 4 asks.
 - **Export:** add the three NOT_IN_EXPORT fields, a bill record, and an event stream, so the
   ruling's two unreached families can run.
+
+## Breach class 2, fixed 2026-10-27: the standing charge now steps on the cap's own dates
+
+**Where it was.** `simulation/policy_costs.py` held each fuel's standing charge as a table keyed
+by calendar year. Each row was the day-weighted blend of the cap periods in force that year. A
+blend gets a year's total right and every individual day wrong. Every SVT **and fixed** settlement
+row read it per day (`hedged_settlement`, `gas_settlement`, `customer_state_layer.as_void_row`),
+and the bill sums those rows. `saas/non_commodity.standing_charge_rate` is only a fallback for
+records that carry no charge, and nothing in this book reaches it.
+
+**The fix.** The two readers now serve the cap period in force on the date asked, taken from
+`docs/domain_artefact_library/regulatory/ofgem_cap_standing_charges.json`. Where two periods
+overlap, the one that starts latest wins. The year tables are deleted.
+
+**Gas, traced period by period** (the finding had not done this). It is the same mechanism.
+Before the fix, the charge ran from 0.95× to 1.074× the cap depending on the window:
+- over the cap in Oct 2020–Mar 2021 (1.031×), Oct 2021–Mar 2022 (1.044×) and Jul–Sep 2025 (1.074×);
+- under it in Oct–Dec 2022 (0.957×) and Oct–Dec 2025 (0.951×).
+
+**Electricity before the fix:**
+- Oct 2021–Mar 2022 window: **1.698×** the cap (40.22p on every day from 1 Jan).
+- Apr–Sep 2022: 0.888×. Oct–Dec 2022: 0.869×.
+- Jan–Mar 2024: 1.106×. Jan–Mar 2025: 0.860×.
+
+The full per-window, per-fuel table was printed before the test was written. After the fix,
+every day from 2016 to 2025 equals its cap period's figure exactly.
+
+**Tests** (`tests/simulation/test_standing_charge_reproduces_the_cap_model.py`):
+- Every run day is charged the cap period in force.
+- No day is charged above the blind suite's own DD ceiling row. This covers all 21 capped windows
+  for both fuels, graded against `DOMAIN_INVARIANTS.yaml`, not against the artefact the code reads.
+- The Jan–Mar 2022 electricity instance is named as its own test.
+- Restoring the year blend turns 5 tests red. Adding 0.01p to every period turns 4 red.
+
+**Re-run of the suite.** The charge is applied at **run time**, not at export, so a ledger
+regenerated from the 67a893e749 book still carries the old charge. A true closing reading needs a
+fresh run.
+
+What was done instead:
+1. Every one of the 52,782 bill periods' standing-charge line was re-priced day by day with the
+   new reader (`/tmp/svt_sc/reprice.py`, not committed).
+2. Before that, the method was checked: the old reader reproduces the printed per-day rate on all
+   52,782 periods (0 mismatches).
+3. The runner was then run on the re-priced export:
+   - `INV_STANDING_CHARGE_SVT_ELEC`: 2,986 breaches → **0** of 21,305.
+   - `INV_STANDING_CHARGE_SVT_GAS`: 4,226 breaches → **0** of 16,468.
+   - `INV_STANDING_CHARGE_FIXED`: stays clean.
+
+What the re-pricing cannot show is second-order effects. A different bill moves DD amounts,
+arrears and the company's later decisions, and only the fresh run will show those.
+
+**What it moves.** Figures are for the standing-charge line, ex-VAT, whole 67a893e749 book. The
+published book's own figures will differ in size but follow the same mechanism.
+
+| period | before | after | change |
+|---|---|---|---|
+| 2022 Q1 | £11,915.88 | £8,535.61 | **−£3,380.27 (−28%)** |
+| 2022 Q2 | | | +£993.58 |
+| 2022 Q3 | | | +£1,010.46 |
+| 2022 Q4 | | | +£1,410.07 |
+| FY2021/22 | | | −£3,269.57 |
+| FY2022/23 | | | +£2,549.41 |
+| FY2024/25 | | | +£2,910.37 |
+| calendar 2021 | | | −£6.39 |
+| calendar 2022 | | | +£33.85 |
+| calendar 2025 | | | +£1,550.28 |
+
+The 2025 change comes from Jan–Mar 2025, which had been charged at the 51.23p blend against a
+59.57p cap, and the book ends in mid-2025.
+
+**Published figures that move:**
+- every monthly or quarterly revenue and margin series: `dashboard.json` `monthly_ops`,
+  `sim_data.json` `monthly` and `bm`;
+- any Apr–Mar split;
+- the 2025 annual line;
+- every Jan–Mar 2022 bill and Explore example;
+- per-customer bill totals in any window where the blend and the cap differed.
+
+**Published figures that barely move:** the annual crisis figures for 2021 and 2022. The blend
+was right for the calendar year, so they shift by under £40 on this book. This is the honest
+reading: the defect moved crisis revenue between quarters, not into or out of the crisis years.
+
+**Not fixed here:**
+- Breach class 1. Every account is still charged the DD level. The world has no prepayment or
+  standard-credit standing-charge column.
+- A fixed term's standing charge still follows the cap per day instead of being held at its
+  strike. `INV_STANDING_CHARGE_FIXED` is clean, but that is a separate reading for the D lane to
+  take up.

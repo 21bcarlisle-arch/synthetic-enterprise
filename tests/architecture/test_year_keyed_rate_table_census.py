@@ -212,12 +212,6 @@ _PUBLISHED_UNPINNED: dict[str, str] = {
         "Green Gas Levy is published GBP/meter/DAY by DESNZ in statutory instruments; this "
         "table spells the annualisation in its own values (0.576 * 365 / 100), which is why "
         "discovery has to read arithmetic. A genuinely cheap pin, and the next one to do.",
-    "simulation/policy_costs.py::_ELEC_SC_PENCE_PER_DAY_BY_YEAR":
-        "Ofgem cap standing charges are published per cap period and per region; the table is a "
-        "calendar-year blend, so the pin is the cap-period rows and the blend is the reading.",
-    "simulation/policy_costs.py::_GAS_SC_PENCE_PER_DAY_BY_YEAR":
-        "the gas half of the above: published per cap period and per region, against a table "
-        "keyed by calendar year, so the pin must carry the blending as a stated reading.",
     "simulation/triad.py::_TNUOS_TRIAD_TARIFF_BY_YEAR":
         "NGESO/NESO publish TNUoS Triad tariffs per zone; this table names Zone 14 (London) as "
         "representative, so the pin is the zone row and the representativeness is the reading.",
@@ -463,7 +457,9 @@ _BAND_PINNED: dict[str, str] = {
 # 35 -> 39 on 2026-10-19, CHARGED, not paid: 78a36a84c added household_budget's four price-level
 # tables unclassified, which reddened this leg for every commit importing a censused module. They
 # are published series with no commons pin, so this is the true bucket; pinning them pays it back.
-_MAX_PUBLISHED_UNPINNED = 39  # 38 -> 37 on 2026-09-07 (a51): the CM supplier
+# 39 -> 37 on 2026-10-27, paid: both standing-charge tables are gone, the readers serve the
+# commons' cap periods directly (tests/simulation/test_standing_charge_reproduces_the_cap_model.py).
+_MAX_PUBLISHED_UNPINNED = 37  # 38 -> 37 on 2026-09-07 (a51): the CM supplier
 # obligation rate came off, re-founded on Ofgem Annex 9 in the commons. The ratchet coming down is
 # the point -- pinning a table is the only sanctioned way to move this number.
 #
