@@ -55,3 +55,33 @@ def test_the_dd_desk_draws_the_bill_the_occupier_took_the_credit_on():
     bill = dict(_resi_bill("OCC-8", "2023-01-31", 100.0), occupier_share=0.5)
     assert _paid_on_receipt_by_due_date(bill, {}, 42) is None
     assert _paid_on_receipt_by_due_date(dict(bill, occupier_scheme_credit_gbp=67.0), {}, 42) is not None
+
+
+def test_the_account_holds_the_whole_month_credit_not_the_part_the_debt_used():
+    """A window of ten days at £2 owes £20, so the debt draws £20 of the £67; the account still
+    RECEIVED £67 on the 1st (guidance 5.4), and that is what the ledger and the named payer's guard
+    must see. Sized by the debt, the record read £20 and a window with no debt at all read nothing.
+    """
+    left, opened = {}, {}
+    drawn = [occupier_scheme_credit(left, "OCC-9", f"2023-01-{d:02d}", 2.0, "resi", "electricity", opened)
+             for d in range(1, 11)]
+    assert sum(drawn) == 20.0 and opened == {("OCC-9", "2023-01"): 67.0}
+    free, free_opened = {}, {}
+    assert occupier_scheme_credit(free, "OCC-10", "2023-01-01", 0.0, "resi", "electricity", free_opened) == 0.0
+    assert free_opened == {("OCC-10", "2023-01"): 67.0}
+    late, late_opened = {}, {}
+    occupier_scheme_credit(late, "OCC-11", "2023-01-03", 5.0, "resi", "electricity", late_opened)
+    assert not late_opened  # a home void on the 1st opens nothing
+
+
+def test_the_guards_see_a_month_credit_the_debt_did_not_draw():
+    """MUTATIONS: key either guard on `occupier_scheme_credit_gbp` alone and the named payer is
+    given the second credit the account already held."""
+    from simulation.dd_collection_book import _paid_on_receipt_by_due_date
+    bill = dict(_resi_bill("OCC-12", "2023-01-31", 150.0), occupier_share=0.5,
+                occupier_scheme_month_credit_gbp=67.0)
+    marked, = ae._resolve_bills([bill], {}, 42)
+    assert marked["amount_gbp"] == 75.0
+    dd = dict(_resi_bill("OCC-13", "2023-01-31", 100.0), occupier_share=0.5,
+              occupier_scheme_month_credit_gbp=67.0)
+    assert _paid_on_receipt_by_due_date(dd, {}, 42) is not None

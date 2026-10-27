@@ -940,6 +940,10 @@ def build_monthly_bills(
             occupier_credit = sum(r.get("occupier_scheme_credit_gbp", 0.0) for r in months[month])
             if occupier_credit:
                 bill["occupier_scheme_credit_gbp"] = round(occupier_credit, 2)
+            # What the account RECEIVED on the 1st, which the debt may have used only part of.
+            month_credit = sum(r.get("occupier_scheme_month_credit_gbp", 0.0) for r in months[month])
+            if month_credit:
+                bill["occupier_scheme_month_credit_gbp"] = round(month_credit, 2)
             # B7 slice 6: a void month's standing charges are the OWNER's deemed charge, booked by
             # the world as `void_owner_charge_gbp`. Its own share, so the arrears engine asks no
             # named payer for it and no reader confuses the owner with "the occupier".

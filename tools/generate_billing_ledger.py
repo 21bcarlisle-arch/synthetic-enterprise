@@ -778,7 +778,8 @@ def generate(run_json_path=None, out_path=None):
         # book that read as 283 short, late or missing EBSS months (INV_EBSS_CREDIT_EACH_MONTH).
         # The engine netted the month's credit wherever it resolved the bill, unless the unnamed
         # occupier's account held it (`arrears_engine`, `occupier_scheme_credit_gbp`).
-        whole_credit = bill.get("occupier_scheme_credit_gbp") or (
+        whole_credit = bill.get("occupier_scheme_month_credit_gbp") or bill.get(
+            "occupier_scheme_credit_gbp") or (
             ebss_credit_gbp(segment, commodity, period_end[:7]) if row is not None else 0.0)
         if whole_credit:
             inv["scheme_credit_month_gbp"] = round(whole_credit, 2)

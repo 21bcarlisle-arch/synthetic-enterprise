@@ -50,7 +50,8 @@ exceptions:
       The row now reads "held at 00:00 on the 1st" (guidance 5.4 and 5.8, restated 2026-10-27 by
       its blind author), so the four first part-months it used to count are gone. The seven
       occupier months are the world's occupier path (run_phase2b, occupier_scheme_credit), which
-      sizes the credit by the occupier's debt and dates it by the settlement record. The five
+      sized the credit by the occupier's debt; since 2026-10-27 it records the month's whole credit
+      (`occupier_scheme_month_credit_gbp`), which no run has carried yet, so the ceiling stays. The five
       PROS months are the other side of the same rule: the named-household path credits a joiner's
       first part-month (PROS-2022-0356 joined 12 Nov 2022 and was credited £66 for November), and
       the guidance gives that month nothing, so one credit too many lands in a later window. Two

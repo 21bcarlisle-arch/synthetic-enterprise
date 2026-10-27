@@ -911,7 +911,7 @@ def _resolve_bills(bills: list[dict], behavioral: dict, seed: int) -> list[dict]
         commodity = bill.get("commodity", "electricity")
         # The bill's charge is unchanged by EBSS; what the named payer owes is net of it, unless
         # the unnamed occupier's account held the month's credit (`occupier_scheme_credit_gbp`).
-        if not bill.get("occupier_scheme_credit_gbp"):
+        if not (bill.get("occupier_scheme_credit_gbp") or bill.get("occupier_scheme_month_credit_gbp")):
             amount = owed_after_scheme_credit(amount, segment, commodity, period_end[:7])
         due_date = date.fromisoformat(period_end) + timedelta(days=PAYMENT_TERMS_DAYS)
         if amount <= 0:

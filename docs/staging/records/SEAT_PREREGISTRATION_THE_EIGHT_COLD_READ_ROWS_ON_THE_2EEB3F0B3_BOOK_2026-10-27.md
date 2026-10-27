@@ -127,3 +127,15 @@ and dates it by the settlement record. Four of the 12 are first part-months, whe
 gives no credit (OCC-a1e9ae835e65 Nov, OCC-bec72a04dec8 Oct, OCC-e3e94f81161b Feb,
 OCC-eb8498f3f8aa Jan). OCC-c0afcdf9fce8, which I had counted as a joiner, joined on 3 Jan, and its
 breach is February. The exception is now scoped to those five accounts with a ceiling of 12.
+
+## Item 4: the occupier path records the month's whole credit (prediction, written before any run)
+
+Fix: `occupier_scheme_credit` opens the month's credit on the 1st and `opened` records it whole
+(`occupier_scheme_month_credit_gbp`); the bill, ledger and both guards read it. Tests:
+`tests/simulation/test_an_occupier_account_carries_the_ebss_credit.py` (two new, red before).
+
+Prediction for the next fresh run, graded with the same runner: the 7 occupier-account months fall
+to 0 to 2 (a residual would mean a window opening on the 1st with a different cause); the 5 PROS
+months are unchanged, since they are the named-household path. **Total 5 to 7, from 12.** A total
+above 7 refutes the claim that the occupier breaches are the debt-sizing. The exception's ceiling
+stays 12 until that run exists.

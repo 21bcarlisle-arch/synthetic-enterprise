@@ -1734,17 +1734,22 @@ def _deliver_psr_registrations(all_records: list[dict], base_seed: int) -> list[
 
 
 def occupier_scheme_credit(credit_left: dict, cid: str, settlement_date: str, owed_gbp: float,
-                           segment: str, commodity: str) -> float:
+                           segment: str, commodity: str, opened: dict | None = None) -> float:
     """The EBSS credit one unnamed-occupier row nets from its debt, drawn down in `credit_left`.
 
     The month's credit opens only on a row dated the 1st, because eligibility is the account held
     at 00:00 on the qualifying date (EBSS supplier guidance 5.4); a home void on the 1st is Annex
     C's vacant exception and opens nothing. No row takes more than it owes: a credit larger than
     the occupier's month leaves the account in credit, which the government's payment funds.
+    `opened`, when given, records the month's WHOLE credit as the account received it on the 1st:
+    the drawdown is only what the debt used, and a window that ends mid-month leaves the rest
+    unrecorded though the account held it (the named payer is guarded from a second).
     """
     key = (cid, settlement_date[:7])
     if settlement_date[8:10] == "01" and key not in credit_left:
         credit_left[key] = scheme_credit(segment, commodity, settlement_date[:7])
+        if opened is not None:
+            opened[key] = credit_left[key]
     credit = min(credit_left.get(key, 0.0), max(0.0, owed_gbp))
     if credit > 0.0:
         credit_left[key] -= credit
@@ -5572,8 +5577,11 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 # C, "Occupier Accounts"). The government pays the credit, so only the rest is
                 # the occupier's debt. A home still void on the 1st is Annex C's vacant exception.
                 _owed = rec.get("revenue_gbp", 0.0)
+                _opened: dict[tuple[str, str], float] = {}
                 _credit = occupier_scheme_credit(_occupier_credit_left, cid, rec["settlement_date"],
-                                                 _owed, cust_segment, commodity)
+                                                 _owed, cust_segment, commodity, _opened)
+                if _opened:
+                    rec["occupier_scheme_month_credit_gbp"] = sum(_opened.values())
                 if _credit > 0.0:
                     rec["occupier_scheme_credit_gbp"] = _credit
                 rec["occupier_debt_gbp"] = _owed - _credit
